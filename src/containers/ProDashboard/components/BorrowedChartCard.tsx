@@ -1,10 +1,10 @@
-import * as echarts from 'echarts/core'
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useMemo } from 'react'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { download, toNiceCsvDate } from '~/utils'
 import { BORROWED_CHART_OPTIONS, BORROWED_CHART_TYPE_LABELS } from '../borrowedChartConstants'
+import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { BorrowedChartConfig } from '../types'
@@ -29,7 +29,7 @@ interface BorrowedChartCardProps {
 export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 	const { protocol, protocolName, chartType } = config
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
-	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
+	const { chartInstance, handleChartReady } = useChartImageExport()
 
 	const { data: addlData, historicalChainTvls, isLoading } = useFetchProtocolAddlChartsData(protocolName, true)
 
@@ -54,9 +54,9 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 	const filteredChartData = useMemo(() => {
 		if (!timePeriod || timePeriod === 'all') {
 			return {
-				chainsSplit,
-				tokenBreakdownUSD,
-				tokenBreakdown
+				chainsSplit: resolvedChainsSplit,
+				tokenBreakdownUSD: resolvedTokenBreakdownUSD,
+				tokenBreakdown: resolvedTokenBreakdown
 			}
 		}
 
@@ -159,7 +159,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 							hideDownloadButton={true}
 							hideGradient={true}
 							chartOptions={BORROWED_CHART_OPTIONS}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -182,7 +182,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 							hideDownloadButton={true}
 							hideGradient={true}
 							chartOptions={BORROWED_CHART_OPTIONS}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -221,7 +221,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 							hideDownloadButton={true}
 							hideGradient={true}
 							chartOptions={BORROWED_CHART_OPTIONS}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)

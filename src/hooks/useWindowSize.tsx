@@ -30,8 +30,11 @@ export default function useWindowSize(): Size {
 		// Add event listener
 		window.addEventListener('resize', handleResize)
 
-		// Call handler right away so state gets updated with initial window size
-		handleResize()
+		// Set initial size immediately; debounce only subsequent resizes
+		setDebouncedWindowSize({
+			width: window.innerWidth,
+			height: window.innerHeight
+		})
 
 		// Remove event listener on cleanup
 		return () => window.removeEventListener('resize', handleResize)

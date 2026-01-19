@@ -256,9 +256,8 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 	)
 
 	const renderMarkdownSection = (markdownContent: string, key: string) => (
-		<Suspense fallback={null}>
+		<Suspense key={key} fallback={null}>
 			<ReactMarkdown
-				key={key}
 				remarkPlugins={MARKDOWN_REMARK_PLUGINS}
 				rehypePlugins={MARKDOWN_REHYPE_PLUGINS}
 				components={markdownComponents}

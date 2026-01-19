@@ -136,18 +136,14 @@ interface EndTrialModalProps {
 }
 
 function EndTrialModal({ isOpen, onClose }: EndTrialModalProps) {
-	const { endTrialSubscription } = useSubscribe()
-	const [isLoading, setIsLoading] = useState(false)
+	const { endTrialSubscription, isEndTrialLoading } = useSubscribe()
 
 	const handleEndTrial = async () => {
-		setIsLoading(true)
 		try {
 			await endTrialSubscription()
 			onClose()
 		} catch (error) {
 			console.error('Failed to end trial:', error)
-		} finally {
-			setIsLoading(false)
 		}
 	}
 
@@ -200,14 +196,14 @@ function EndTrialModal({ isOpen, onClose }: EndTrialModalProps) {
 			<div className="mt-2 flex flex-col gap-3">
 				<button
 					onClick={handleEndTrial}
-					disabled={isLoading}
+					disabled={isEndTrialLoading}
 					className="w-full rounded-lg bg-[#5C5CF9] px-4 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70"
 				>
-					{isLoading ? 'Processing...' : 'Confirm & Upgrade Now'}
+					{isEndTrialLoading ? 'Processing...' : 'Confirm & Upgrade Now'}
 				</button>
 				<button
 					onClick={onClose}
-					disabled={isLoading}
+					disabled={isEndTrialLoading}
 					className="w-full rounded-lg border border-[#39393E] px-4 py-2 text-[#8a8c90] transition-colors hover:bg-[#2a2b30] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					Close

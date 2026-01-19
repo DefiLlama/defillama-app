@@ -49,7 +49,7 @@ export function useDebounce<T extends (...args: any[]) => void>(callback: T, del
 export function useDebounce<T>(value: T, delay: number): T
 export function useDebounce<T>(valueOrCallback: T, delay: number) {
 	const isCallback = typeof valueOrCallback === 'function'
-	const [debouncedValue, setDebouncedValue] = useState(valueOrCallback)
+	const [debouncedValue, setDebouncedValue] = useState(() => valueOrCallback)
 	const handlerRef = useRef<(...args: any[]) => void>(() => {})
 	handlerRef.current = isCallback
 		? (valueOrCallback as (...args: any[]) => void)

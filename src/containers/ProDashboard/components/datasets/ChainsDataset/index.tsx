@@ -339,7 +339,7 @@ export function ChainsDataset({
 
 	React.useEffect(() => {
 		onSyncInitialColumns()
-	}, [savedColumnOrder, savedColumnVisibility, selectedPreset, instance])
+	}, [savedColumnOrder, savedColumnVisibility])
 
 	const handleExportCSV = React.useCallback(() => {
 		const headers = instance
