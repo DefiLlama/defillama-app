@@ -48,8 +48,14 @@ import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
 const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000
 
 /**
- * Pre-compute TVL 24h change values on server to avoid client-side iteration.
- * This finds the last value and the value from ~24 hours ago.
+ * Compute a 24-hour TVL summary from a time-series chart of [timestamp, value] pairs.
+ *
+ * @param chart - Array of `[timestamp, value]` pairs where `timestamp` is milliseconds since epoch and `value` is TVL in USD
+ * @returns An object containing:
+ *  - `totalValueUSD`: the most recent TVL value or `null` if unavailable,
+ *  - `tvlPrevDay`: the TVL value from at least 24 hours before the most recent point, or `null` if not found or data is stale,
+ *  - `valueChange24hUSD`: difference between `totalValueUSD` and `tvlPrevDay`, or `null` if not computable,
+ *  - `change24h`: percent change between `totalValueUSD` and `tvlPrevDay`, or `null` if not computable
  */
 function computeTvlChartSummary(chart: Array<[number, number]>): {
 	totalValueUSD: number | null
@@ -90,6 +96,20 @@ function computeTvlChartSummary(chart: Array<[number, number]>): {
 	return { totalValueUSD: lastValue, tvlPrevDay, valueChange24hUSD, change24h }
 }
 
+/**
+ * Assembles a comprehensive overview dataset for a specific chain or for all chains.
+ *
+ * Fetches and aggregates charts, protocol lists, stablecoins, inflows, user and transaction metrics,
+ * treasury and raises data, adapter summaries (fees/revenue), NFT/ETF/global market data, emissions,
+ * unlock schedules, and other chain-specific metrics into a single IChainOverviewData payload.
+ *
+ * @param chain - Chain identifier (slug or "All") to build the overview for.
+ * @param chainMetadata - Map of chain slugs to their metadata used to determine available features and endpoints.
+ * @param protocolMetadata - Map of protocol identifiers to metadata used when assembling protocol entries.
+ * @returns The assembled IChainOverviewData for the requested chain, or `null` if the chain metadata is missing.
+ *
+ * @throws Error - If required chart data is missing for the "All" overview or if a fetch/aggregation error occurs.
+ */
 export async function getChainOverviewData({
 	chain,
 	chainMetadata,

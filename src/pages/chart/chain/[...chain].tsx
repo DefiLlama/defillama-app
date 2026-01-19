@@ -48,6 +48,25 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
+/**
+ * Renders the chain chart page: derives UI state from URL/query and props, fetches chart data, applies theme, and displays either a loader or the chart.
+ *
+ * This component:
+ * - Builds query-derived state (selected charts, grouping, denomination, TVL inclusion flags, theme, and optional CoinGecko id).
+ * - Invokes data fetching with those settings (including the provided `tvlChart` and `tvlChartSummary`) to produce final chart data and display symbol.
+ * - Toggles the document theme class and forces the Next.js root flex direction when the theme changes.
+ * - Shows a centered loading indicator while chart data is being fetched or the router/client is not ready; otherwise renders the lazily loaded ChainChart.
+ *
+ * @param props - Page props object. Expected keys used by this component:
+ *   - metadata: page metadata (uses `name` and `id`)
+ *   - charts: available chart labels
+ *   - chainTokenInfo: optional token info (may include `gecko_id`)
+ *   - tvlChart: primary TVL chart config
+ *   - tvlChartSummary: TVL summary data used by the chart fetcher
+ *   - extraTvlChart: extra TVL chart configs
+ *
+ * @returns The page's React element tree that contains either a loading indicator or the ChainChart component.
+ */
 export default function ChainChartPage(props) {
 	const router = useRouter()
 	const selectedChain = props.metadata.name
