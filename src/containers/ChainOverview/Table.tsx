@@ -661,15 +661,17 @@ export const ChainProtocolsTable = ({
 					onEditCustomColumn={handleEditCustomColumn}
 					onDeleteCustomColumn={handleDeleteCustomColumn}
 				/>
-				<TVLRange triggerClassName="w-full sm:w-auto" />
-				<CSVDownloadButton prepareCsv={prepareCsv} />
-			</div>
+			<TVLRange triggerClassName="w-full sm:w-auto" />
+			<CSVDownloadButton prepareCsv={prepareCsv} />
+		</div>
+		<div ref={tableContainerRef}>
 			<VirtualTable 
 				instance={instance} 
 				useStickyHeader={useStickyHeader} 
 				columnResizeMode="onChange"
 			/>
-			<CustomColumnModal
+		</div>
+		<CustomColumnModal
 				dialogStore={customColumnDialogStore}
 				onSave={handleSaveCustomColumn}
 				sampleRow={sampleRow}
