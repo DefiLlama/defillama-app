@@ -13,7 +13,7 @@ import {
 	tokenIconUrl,
 	toNiceDayAndHour
 } from '~/utils'
-import { formatColumnOrder } from '../../utils'
+import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '../../utils'
 import type { IBridge, IBridgeChain } from './types'
 
 export const bridgesColumn: ColumnDef<IBridge>[] = [
@@ -444,12 +444,12 @@ export const bridgeAddressesColumn: ColumnDef<IBridge>[] = [
 
 // key: min width of window/screen
 // values: table columns order
-export const bridgesColumnOrders = formatColumnOrder({
+export const bridgesColumnOrders: ColumnOrdersByBreakpoint = {
 	0: ['displayName', 'lastDailyVolume', 'change_1d', 'weeklyVolume', 'monthlyVolume', 'chains', 'txsPrevDay'],
 	1024: ['displayName', 'chains', 'change_1d', 'lastDailyVolume', 'weeklyVolume', 'monthlyVolume', 'txsPrevDay']
-})
+}
 
-export const bridgeChainsColumnOrders = formatColumnOrder({
+export const bridgeChainsColumnOrders: ColumnOrdersByBreakpoint = {
 	0: [
 		'name',
 		'prevDayUsdWithdrawals',
@@ -470,24 +470,24 @@ export const bridgeChainsColumnOrders = formatColumnOrder({
 		'prevWeekUsdDeposits',
 		'prevWeekNetFlow'
 	]
-})
+}
 
-export const largeTxsColumnOrders = formatColumnOrder({
+export const largeTxsColumnOrders: ColumnOrdersByBreakpoint = {
 	0: ['date', 'symbol', 'usdValue', 'isDeposit', 'bridge', 'txHash'],
 	1024: ['date', 'bridge', 'isDeposit', 'symbol', 'usdValue', 'txHash']
-})
+}
 
-export const bridgeTokensColumnOrders = formatColumnOrder({
+export const bridgeTokensColumnOrders: ColumnOrdersByBreakpoint = {
 	0: ['symbol', 'withdrawn', 'deposited', 'volume'],
 	1024: ['symbol', 'withdrawn', 'deposited', 'volume']
-})
+}
 
-export const bridgeAddressesColumnOrders = formatColumnOrder({
+export const bridgeAddressesColumnOrders: ColumnOrdersByBreakpoint = {
 	0: ['address', 'withdrawn', 'deposited', 'txs'],
 	1024: ['address', 'withdrawn', 'deposited', 'txs']
-})
+}
 
-export const bridgesColumnSizes = {
+export const bridgesColumnSizes: ColumnSizesByBreakpoint = {
 	0: {
 		displayName: 140,
 		chains: 180,
@@ -517,7 +517,7 @@ export const bridgesColumnSizes = {
 	}
 }
 
-export const bridgeChainsColumnSizes = {
+export const bridgeChainsColumnSizes: ColumnSizesByBreakpoint = {
 	0: {
 		name: 160,
 		prevDayNetFlow: 120,
@@ -550,7 +550,7 @@ export const bridgeChainsColumnSizes = {
 	}
 }
 
-export const largeTxsColumnSizes = {
+export const largeTxsColumnSizes: ColumnSizesByBreakpoint = {
 	0: {
 		date: 120,
 		bridge: 140,

@@ -2,9 +2,7 @@ import {
 	ColumnDef,
 	ColumnFiltersState,
 	ColumnOrderState,
-	ColumnOrderTableState,
 	ColumnSizingState,
-	ColumnSizingTableState,
 	ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -18,7 +16,8 @@ import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useDebounce } from '~/hooks/useDebounce'
-import { alphanumericFalsyLast } from './utils'
+import { alphanumericFalsyLast, sortColumnSizesAndOrders } from './utils'
+import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from './utils'
 
 interface ITableWithSearchProps {
 	data: any[]
@@ -28,8 +27,8 @@ interface ITableWithSearchProps {
 	customFilters?: React.ReactNode
 	header?: string
 	renderSubComponent?: (row: any) => React.ReactNode
-	columnSizes?: ColumnSizingTableState
-	columnOrders?: ColumnOrderTableState
+	columnSizes?: ColumnSizesByBreakpoint | null
+	columnOrders?: ColumnOrdersByBreakpoint | null
 	sortingState: SortingState
 	rowSize?: number
 	compact?: boolean
@@ -93,15 +92,12 @@ export function TableWithSearch({
 	const width = useBreakpointWidth()
 
 	React.useEffect(() => {
-		if (columnSizes && Array.isArray(columnSizes)) {
-			const colSize = columnSizes.find((size) => width > +size[0]) ?? columnSizes[0]
-			instance.setColumnSizing(colSize[1])
-		}
-
-		if (columnOrders && Array.isArray(columnOrders)) {
-			const colOrder = columnOrders.find((size) => width > +size[0]) ?? columnOrders[0]
-			instance.setColumnOrder(colOrder[1])
-		}
+		sortColumnSizesAndOrders({
+			instance,
+			columnSizes,
+			columnOrders,
+			width
+		})
 	}, [instance, width, columnOrders, columnSizes])
 
 	return (

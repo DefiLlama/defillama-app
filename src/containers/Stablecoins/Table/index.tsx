@@ -14,7 +14,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { alphanumericFalsyLast } from '~/components/Table/utils'
+import { alphanumericFalsyLast, sortColumnSizesAndOrders } from '~/components/Table/utils'
 import {
 	CHAINS_CATEGORY_GROUP_SETTINGS,
 	isChainsCategoryGroupKey,
@@ -32,10 +32,6 @@ import {
 	peggedChainsColumns
 } from './columns'
 import { IPeggedAssetByChainRow, IPeggedChain } from './types'
-
-const assetsColumnSizesKeys = Object.keys(assetsColumnSizes)
-	.map((x) => Number(x))
-	.sort((a, b) => Number(b) - Number(a))
 
 export function PeggedAssetsTable({ data }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'mcap', desc: true }])
@@ -67,16 +63,13 @@ export function PeggedAssetsTable({ data }) {
 	})
 
 	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = assetsColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder
-
-		const cSize = assetsColumnSizesKeys.find((size) => width > Number(size)) ?? assetsColumnSizesKeys[0]
-
-		instance.setColumnSizing(assetsColumnSizes[cSize])
-
-		instance.setColumnOrder(order)
-	}, [width, instance])
+		sortColumnSizesAndOrders({
+			instance,
+			columnSizes: assetsColumnSizes,
+			columnOrders: assetsColumnOrders,
+			width
+		})
+	}, [instance, width])
 
 	const [projectName, setProjectName] = React.useState('')
 	const debouncedProjectName = useDebounce(projectName, 200)
@@ -113,10 +106,6 @@ export function PeggedAssetsTable({ data }) {
 	)
 }
 
-const assetsByChainColumnSizesKeys = Object.keys(assetsByChainColumnSizes)
-	.map((x) => Number(x))
-	.sort((a, b) => Number(b) - Number(a))
-
 export function PeggedAssetByChainTable({ data }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'circulating', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -152,16 +141,13 @@ export function PeggedAssetByChainTable({ data }) {
 	})
 
 	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = assetsByChainColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder
-
-		const cSize = assetsByChainColumnSizesKeys.find((size) => width > Number(size)) ?? assetsByChainColumnSizesKeys[0]
-
-		instance.setColumnSizing(assetsByChainColumnSizes[cSize])
-
-		instance.setColumnOrder(order)
-	}, [width, instance])
+		sortColumnSizesAndOrders({
+			instance,
+			columnSizes: assetsByChainColumnSizes,
+			columnOrders: assetsByChainColumnOrders,
+			width
+		})
+	}, [instance, width])
 
 	const [projectName, setProjectName] = React.useState('')
 	const debouncedProjectName = useDebounce(projectName, 200)

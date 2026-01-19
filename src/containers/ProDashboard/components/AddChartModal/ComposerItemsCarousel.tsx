@@ -23,7 +23,9 @@ export function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselPr
 
 	const chartPreviewData = useMemo(
 		() =>
-			(currentItem?.data ?? EMPTY_ITEM_DATA).map((d) => [typeof d[0] === 'string' ? Number(d[0]) : d[0], d[1]] as [number, number]),
+			(currentItem?.data ?? EMPTY_ITEM_DATA).map(
+				(d) => [typeof d[0] === 'string' ? Number(d[0]) : d[0], d[1]] as [number, number]
+			),
 		[currentItem?.data]
 	)
 

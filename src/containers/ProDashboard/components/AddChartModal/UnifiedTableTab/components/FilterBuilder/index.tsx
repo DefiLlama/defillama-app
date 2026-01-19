@@ -327,7 +327,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 	if (config.type === 'boolean') {
 		return (
 			<div
-				className={`group flex items-start justify-between rounded-md border px-2.5 py-2 ${CATEGORY_COLORS[config.category]} ${isEditing ? 'ring-1 ring-(--primary)/60 shadow-sm' : ''}`}
+				className={`group flex items-start justify-between rounded-md border px-2.5 py-2 ${CATEGORY_COLORS[config.category]} ${isEditing ? 'shadow-sm ring-1 ring-(--primary)/60' : ''}`}
 			>
 				<div className="flex min-w-0 flex-col gap-0.5">
 					<div className="flex items-center gap-1.5">
@@ -356,7 +356,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 	if (!isEditing && hasValue) {
 		return (
 			<div
-				className={`group flex items-start justify-between rounded-md border px-2.5 py-2 ${CATEGORY_COLORS[config.category]} ${isEditing ? 'ring-1 ring-(--primary)/60 shadow-sm' : ''}`}
+				className={`group flex items-start justify-between rounded-md border px-2.5 py-2 ${CATEGORY_COLORS[config.category]} ${isEditing ? 'shadow-sm ring-1 ring-(--primary)/60' : ''}`}
 			>
 				<button type="button" onClick={onStartEdit} className="flex min-w-0 flex-1 items-start gap-1.5 text-left">
 					<div className="flex min-w-0 flex-col gap-0.5">
@@ -385,7 +385,9 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 
 	if (config.type === 'numeric-single') {
 		return (
-			<div className={`flex flex-col gap-1.5 rounded-md border p-2 ${CATEGORY_COLORS[config.category]} ${isEditing ? 'ring-1 ring-(--primary)/60 shadow-sm' : ''}`}>
+			<div
+				className={`flex flex-col gap-1.5 rounded-md border p-2 ${CATEGORY_COLORS[config.category]} ${isEditing ? 'shadow-sm ring-1 ring-(--primary)/60' : ''}`}
+			>
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex min-w-0 items-center gap-1.5">
 						<span className="truncate text-xs font-semibold">{config.label}</span>
@@ -426,7 +428,9 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 	}
 
 	return (
-		<div className={`flex flex-col gap-1.5 rounded-md border p-2 ${CATEGORY_COLORS[config.category]} ${isEditing ? 'ring-1 ring-(--primary)/60 shadow-sm' : ''}`}>
+		<div
+			className={`flex flex-col gap-1.5 rounded-md border p-2 ${CATEGORY_COLORS[config.category]} ${isEditing ? 'shadow-sm ring-1 ring-(--primary)/60' : ''}`}
+		>
 			<div className="flex items-center justify-between gap-2">
 				<div className="flex min-w-0 items-center gap-1.5">
 					<span className="truncate text-xs font-semibold">{config.label}</span>

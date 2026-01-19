@@ -200,11 +200,7 @@ export const AdapterByChainChart = ({
 								</Tooltip>
 							))}
 				</div>
-				<CSVDownloadButton
-					onClick={handleDownloadBreakdownCsv}
-					isLoading={isDownloadingBreakdownChart}
-					smol
-				/>
+				<CSVDownloadButton onClick={handleDownloadBreakdownCsv} isLoading={isDownloadingBreakdownChart} smol />
 				<ChartExportButton
 					chartInstance={exportChartInstance}
 					filename={`${slug(chain)}-${adapterType}-${chartName}`}

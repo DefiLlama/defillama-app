@@ -10,13 +10,14 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { startTransition, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { startTransition, useCallback, useEffect, useMemo, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
-import { alphanumericFalsyLast } from '~/components/Table/utils'
+import { alphanumericFalsyLast, sortColumnSizesAndOrders } from '~/components/Table/utils'
+import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
@@ -110,10 +111,11 @@ export function ChainsByAdapter(props: IProps) {
 	const width = useBreakpointWidth()
 
 	useEffect(() => {
-		const colSize = columnSizes.find((size) => width >= Number(size[0])) ?? columnSizes[columnSizes.length - 1]
-		// const colOrder = width ? columnOrders.find((size) => width > +size[0]) : columnOrders[0]
-		// instance.setColumnOrder(colOrder[1])
-		instance.setColumnSizing(colSize[1])
+		sortColumnSizesAndOrders({
+			instance,
+			columnSizes,
+			width
+		})
 	}, [instance, width])
 
 	const prepareCsv = useCallback(() => {
@@ -170,9 +172,7 @@ export function ChainsByAdapter(props: IProps) {
 	)
 }
 
-const columnSizes = Object.entries({ 0: { name: 180 }, 640: { name: 240 }, 768: { name: 280 } }).sort(
-	(a, b) => Number(b[0]) - Number(a[0])
-)
+const columnSizes: ColumnSizesByBreakpoint = { 0: { name: 180 }, 640: { name: 240 }, 768: { name: 280 } }
 
 const NameColumn = (route: string): ColumnDef<IChainsByAdapterPageData['chains'][0]> => {
 	return {

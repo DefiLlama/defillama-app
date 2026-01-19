@@ -17,7 +17,8 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { formatColumnOrder } from '~/components/Table/utils'
+import { sortColumnSizesAndOrders } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import {
@@ -85,12 +86,12 @@ export function ChainsByCategoryTable({
 	}, [debouncedProjectName, instance])
 
 	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = chainsTableColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder
-
-		instance.setColumnOrder(order)
-	}, [width, instance])
+		sortColumnSizesAndOrders({
+			instance,
+			columnOrders: chainsTableColumnOrders,
+			width
+		})
+	}, [instance, width])
 
 	const clearAllColumns = () => {
 		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))
@@ -251,9 +252,7 @@ export function ChainsByCategoryTable({
 	)
 }
 
-// key: min width of window/screen
-// values: table columns order
-const chainsTableColumnOrders = formatColumnOrder({
+const chainsTableColumnOrders: ColumnOrdersByBreakpoint = {
 	0: [
 		'name',
 		'tvl',
@@ -314,7 +313,7 @@ const chainsTableColumnOrders = formatColumnOrder({
 		'users',
 		'mcaptvl'
 	]
-})
+}
 
 const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{

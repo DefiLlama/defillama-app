@@ -37,16 +37,14 @@ export function IncomeStatementCard({ config }: IncomeStatementCardProps) {
 			incentives: Boolean(record?.flags?.incentives),
 			emissions: Boolean(record?.flags?.emissions)
 		}),
-		[
-			displayName,
-			record?.flags?.fees,
-			record?.flags?.revenue,
-			record?.flags?.incentives,
-			record?.flags?.emissions
-		]
+		[displayName, record?.flags?.fees, record?.flags?.revenue, record?.flags?.incentives, record?.flags?.emissions]
 	)
 
-	const { data: incomeStatement, isLoading, isError } = useQuery({
+	const {
+		data: incomeStatement,
+		isLoading,
+		isError
+	} = useQuery({
 		queryKey: ['income-statement', config.protocol],
 		queryFn: () => getProtocolIncomeStatement({ metadata }),
 		enabled: Boolean(config.protocol && displayName && metadata.fees && metadata.revenue),
@@ -103,7 +101,9 @@ export function IncomeStatementCard({ config }: IncomeStatementCardProps) {
 						<p className="text-sm text-(--text-form)">Error loading income statement</p>
 					</div>
 				) : !hasData ? (
-					<div className="flex flex-1 items-center justify-center text-(--text-form)">No income statement data available</div>
+					<div className="flex flex-1 items-center justify-center text-(--text-form)">
+						No income statement data available
+					</div>
 				) : (
 					<div className="min-h-0 flex-1 overflow-auto">
 						<IncomeStatement

@@ -152,10 +152,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			: [asset.attestationLinks]
 		: []
 
-	const contractsEntries = useMemo(
-		() => (asset.contracts ? Object.entries(asset.contracts) : []),
-		[asset.contracts]
-	)
+	const contractsEntries = useMemo(() => (asset.contracts ? Object.entries(asset.contracts) : []), [asset.contracts])
 
 	return (
 		<div className="flex flex-col gap-2">

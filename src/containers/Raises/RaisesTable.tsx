@@ -12,6 +12,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { raisesColumnOrders, raisesColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
+import { sortColumnSizesAndOrders } from '~/components/Table/utils'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useDebounce } from '~/hooks/useDebounce'
 
@@ -44,12 +45,12 @@ export function RaisesTable({ raises, prepareCsv }) {
 	})
 
 	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = raisesColumnOrders.find(([size]) => width >= size)?.[1] ?? defaultOrder
-
-		instance.setColumnOrder(order)
-	}, [width, instance])
+		sortColumnSizesAndOrders({
+			instance,
+			columnOrders: raisesColumnOrders,
+			width
+		})
+	}, [instance, width])
 
 	const [projectName, setProjectName] = React.useState('')
 	const debouncedProjectName = useDebounce(projectName, 200)

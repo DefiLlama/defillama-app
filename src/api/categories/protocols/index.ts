@@ -582,7 +582,14 @@ export function formatGovernanceData(data: {
 		}
 	}
 }) {
-	const proposals: Array<{ scores: Array<number>; choices: Array<string>; id: string; totalVotes: number; winningChoice: string; winningPerc: string }> = []
+	const proposals: Array<{
+		scores: Array<number>
+		choices: Array<string>
+		id: string
+		totalVotes: number
+		winningChoice: string
+		winningPerc: string
+	}> = []
 	for (const proposal of data.proposals) {
 		const winningScore = proposal.scores.length > 0 ? Math.max(...proposal.scores) : undefined
 		const totalVotes = proposal.scores.reduce((acc, curr) => (acc += curr), 0)

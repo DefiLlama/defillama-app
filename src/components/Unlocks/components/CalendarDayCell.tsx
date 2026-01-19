@@ -49,22 +49,18 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 
 	const cellContent = (
 		<div
-			className={`h-24 w-full relative border ${
-				isToday ? 'border-(--blue)' : 'border-(--divider)'
-			} ${
-				dayInfo.isCurrentMonth
-					? 'hover:brightness-110'
-					: 'bg-(--bg-card) opacity-60 hover:opacity-80'
+			className={`relative h-24 w-full border ${isToday ? 'border-(--blue)' : 'border-(--divider)'} ${
+				dayInfo.isCurrentMonth ? 'hover:brightness-110' : 'bg-(--bg-card) opacity-60 hover:opacity-80'
 			}`}
 			style={cellStyle}
 		>
 			<div className="relative z-10 flex h-full w-full flex-col justify-between p-2">
-				<span className={`text-sm font-medium ${isToday ? 'text-(--blue) font-bold' : 'text-(--text-primary)'}`}>
+				<span className={`text-sm font-medium ${isToday ? 'font-bold text-(--blue)' : 'text-(--text-primary)'}`}>
 					{dayInfo.date.date()}
 				</span>
 				{hasUnlocks && dayInfo.isCurrentMonth && (
 					<>
-						<div className="mt-auto hidden truncate text-xs sm:block text-(--text-primary)">
+						<div className="mt-auto hidden truncate text-xs text-(--text-primary) sm:block">
 							Total: {formattedNum(dayData.totalValue, true)}
 						</div>
 					</>

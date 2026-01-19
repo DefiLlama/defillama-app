@@ -515,9 +515,7 @@ export function CustomColumnPanel({
 									)}
 								</div>
 								{liveValidation.isValid && (
-									<div className="pro-text3 mt-1 text-xs">
-										Using sample data: {sampleDataPreview}...
-									</div>
+									<div className="pro-text3 mt-1 text-xs">Using sample data: {sampleDataPreview}...</div>
 								)}
 							</div>
 						)}

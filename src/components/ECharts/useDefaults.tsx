@@ -35,11 +35,7 @@ const CHART_SYMBOLS: Record<string, string> = {
 }
 
 // Helper to get the symbol for a series name in tooltip
-const getSeriesSymbol = (
-	seriesName: string,
-	valueSymbol: string,
-	unlockTokenSymbol: string
-): string => {
+const getSeriesSymbol = (seriesName: string, valueSymbol: string, unlockTokenSymbol: string): string => {
 	if (seriesName === 'Unlocks') return unlockTokenSymbol
 	if (seriesName.includes('Users')) return 'Addresses'
 	if (seriesName.includes('Addresses')) return ''

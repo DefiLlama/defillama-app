@@ -90,7 +90,7 @@ export function CustomColumnModal({
 					word &&
 					!AVAILABLE_FIELDS.some((f) => f.toLowerCase() === word.toLowerCase()) &&
 					!AVAILABLE_FUNCTIONS.some((f) => f.name.toLowerCase() === word.toLowerCase()) &&
-						Number.isNaN(Number(word))
+					Number.isNaN(Number(word))
 						? `Field or function '${word}' is not available.`
 						: null
 			}))

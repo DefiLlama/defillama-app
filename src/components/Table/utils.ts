@@ -1,11 +1,12 @@
-interface IColumnOrder {
-	[key: number]: Array<string>
-}
+import type { ColumnOrderState, ColumnSizingState } from '@tanstack/react-table'
 
-export const formatColumnOrder = (columnOrders: IColumnOrder) => {
-	return Object.entries(columnOrders)
-		.map(([size, order]) => [Number(size), order])
-		.sort(([a], [b]) => b - a) as Array<[number, Array<string>]>
+export type BreakpointMap<T> = Record<number, T>
+export type ColumnSizesByBreakpoint = BreakpointMap<ColumnSizingState>
+export type ColumnOrdersByBreakpoint = BreakpointMap<ColumnOrderState>
+
+type ColumnTableInstance = {
+	setColumnSizing: (sizing: ColumnSizingState) => void
+	setColumnOrder: (order: ColumnOrderState) => void
 }
 
 export function splitArrayByFalsyValues(data, column) {
@@ -18,12 +19,6 @@ export function splitArrayByFalsyValues(data, column) {
 		},
 		[[], []]
 	)
-}
-
-export function getColumnSizesKeys(columnSizes) {
-	return Object.keys(columnSizes)
-		.map((x) => Number(x))
-		.sort((a, b) => Number(b) - Number(a))
 }
 
 export function alphanumericFalsyLast(rowA, rowB, columnId, sorting) {
@@ -49,4 +44,42 @@ export function alphanumericFalsyLast(rowA, rowB, columnId, sorting) {
 
 	// at this point, you have non-null values and you should do whatever is required to sort those values correctly
 	return a - b
+}
+
+// Utility function to sort column sizes and orders based on width
+export function sortColumnSizesAndOrders({
+	instance,
+	columnSizes,
+	columnOrders,
+	width
+}: {
+	instance: ColumnTableInstance
+	columnSizes?: ColumnSizesByBreakpoint | null
+	columnOrders?: ColumnOrdersByBreakpoint | null
+	width?: number | null
+}) {
+	if (!width) {
+		return
+	}
+
+	const getBreakpointValue = <T>(sizes: BreakpointMap<T>) => {
+		return Object.entries(sizes)
+			.map(([size, value]) => [Number(size), value] as const)
+			.sort(([a], [b]) => b - a)
+			.find(([size]) => width >= size)?.[1]
+	}
+
+	if (columnSizes) {
+		const size = getBreakpointValue(columnSizes)
+		if (size !== undefined) {
+			instance.setColumnSizing(size)
+		}
+	}
+
+	if (columnOrders) {
+		const order = getBreakpointValue(columnOrders)
+		if (order !== undefined) {
+			instance.setColumnOrder(order)
+		}
+	}
 }

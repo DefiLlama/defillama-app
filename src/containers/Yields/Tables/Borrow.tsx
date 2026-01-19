@@ -1,8 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
-import * as React from 'react'
 import { IconsRow } from '~/components/IconsRow'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { formatColumnOrder, getColumnSizesKeys } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
 import { formattedNum, formattedPercent } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
@@ -245,9 +244,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 	}
 ]
 
-// key: min width of window/screen
-// values: table columns order
-const columnOrders = {
+const columnOrders: ColumnOrdersByBreakpoint = {
 	0: [
 		'pool',
 		'project',
@@ -305,7 +302,7 @@ const columnOrders = {
 		'totalAvailableUsd'
 	]
 }
-const columnSizes = {
+const columnSizes: ColumnSizesByBreakpoint = {
 	0: {
 		pool: 200,
 		project: 200,
@@ -392,18 +389,6 @@ const columnSizes = {
 	}
 }
 
-const yieldsColumnOrders = formatColumnOrder(columnOrders)
-
-const columnSizesKeys = getColumnSizesKeys(columnSizes)
-
 export function YieldsBorrowTable({ data }: IYieldsTableProps) {
-	return (
-		<YieldsTableWrapper
-			data={data}
-			columns={columns}
-			columnSizes={columnSizes}
-			columnSizesKeys={columnSizesKeys}
-			columnOrders={yieldsColumnOrders}
-		/>
-	)
+	return <YieldsTableWrapper data={data} columns={columns} columnSizes={columnSizes} columnOrders={columnOrders} />
 }

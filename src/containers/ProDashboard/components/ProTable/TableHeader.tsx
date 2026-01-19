@@ -57,10 +57,7 @@ export function TableHeader({
 	)
 	const existingViewNames = React.useMemo(() => customViews.map((v) => v.name), [customViews])
 	const datasetPresets = React.useMemo(
-		() =>
-			columnPresets.filter(
-				(preset) => preset.group === 'dataset' || preset.group == null
-			),
+		() => columnPresets.filter((preset) => preset.group === 'dataset' || preset.group == null),
 		[columnPresets]
 	)
 

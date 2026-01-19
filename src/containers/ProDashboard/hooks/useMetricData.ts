@@ -194,7 +194,11 @@ export function useMetricData(metric: MetricConfig) {
 	const tokenTypes = ['tokenMcap', 'tokenPrice', 'tokenVolume']
 	const chainTokenTypes = ['chainMcap', 'chainPrice']
 
-	const { data: series, isLoading, isError } = useQuery({
+	const {
+		data: series,
+		isLoading,
+		isError
+	} = useQuery({
 		queryKey: ['metric', ...getChartQueryKey(type, itemType, item, geckoId, undefined)],
 		queryFn: getChartQueryFn(type, itemType, item, geckoId, undefined, parentMapping),
 		staleTime: 5 * 60 * 1000,

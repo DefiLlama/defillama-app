@@ -949,7 +949,8 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 														const chartdate = new Date(millis).toLocaleDateString()
 
 														let filteredParams = params.filter(
-															(item: any) => item.value[1] !== '-' && item.value[1] !== null && item.value[1] !== undefined
+															(item: any) =>
+																item.value[1] !== '-' && item.value[1] !== null && item.value[1] !== undefined
 														)
 														filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
 

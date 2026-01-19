@@ -167,7 +167,10 @@ export function ProtocolFilterModal({
 
 	const selectedProtocolsSet = React.useMemo(() => new Set(selectedProtocols), [selectedProtocols])
 	const selectedCategoriesSet = React.useMemo(() => new Set(selectedCategories), [selectedCategories])
-	const selectedExcludedCategoriesSet = React.useMemo(() => new Set(selectedExcludedCategories), [selectedExcludedCategories])
+	const selectedExcludedCategoriesSet = React.useMemo(
+		() => new Set(selectedExcludedCategories),
+		[selectedExcludedCategories]
+	)
 	const selectedOraclesSet = React.useMemo(() => new Set(selectedOracles), [selectedOracles])
 
 	const {

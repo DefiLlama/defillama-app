@@ -3,7 +3,7 @@ import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { formatColumnOrder } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, formattedPercent, peggedAssetIconUrl, slug } from '~/utils'
@@ -146,15 +146,13 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 	}
 ]
 
-// key: min width of window/screen
-// values: table columns order
-export const assetsByChainColumnOrders = formatColumnOrder({
+export const assetsByChainColumnOrders: ColumnOrdersByBreakpoint = {
 	0: ['name', 'change_7d', 'circulating', 'change_1d', 'change_1m', 'bridgeInfo', 'bridgedAmount'],
 	480: ['name', 'change_7d', 'circulating', 'change_1d', 'change_1m', 'bridgeInfo', 'bridgedAmount'],
 	1024: ['name', 'bridgeInfo', 'bridgedAmount', 'change_1d', 'change_7d', 'change_1m', 'circulating']
-})
+}
 
-export const assetsByChainColumnSizes = {
+export const assetsByChainColumnSizes: ColumnSizesByBreakpoint = {
 	0: {
 		name: 160,
 		bridgeInfo: 240,
@@ -386,12 +384,12 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 
 // key: min width of window/screen
 // values: table columns order
-export const assetsColumnOrders = formatColumnOrder({
+export const assetsColumnOrders: ColumnOrdersByBreakpoint = {
 	0: ['name', 'mcap', 'change_1d', 'change_7d', 'change_1m', 'price', 'pegDeviation', 'pegDeviation_1m', 'chains'],
 	1024: ['name', 'chains', 'pegDeviation', 'pegDeviation_1m', 'price', 'change_1d', 'change_7d', 'change_1m', 'mcap']
-})
+}
 
-export const assetsColumnSizes = {
+export const assetsColumnSizes: ColumnSizesByBreakpoint = {
 	0: {
 		name: 180,
 		chains: 180,

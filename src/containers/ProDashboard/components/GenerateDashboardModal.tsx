@@ -185,7 +185,7 @@ export function GenerateDashboardModal({
 			onGenerate({
 				dashboardName: mode === 'iterate' ? existingDashboard?.dashboardName || '' : dashboardName.trim(),
 				visibility: mode === 'iterate' ? existingDashboard?.visibility || 'private' : visibility,
-				tags: mode === 'iterate' ? existingDashboard?.tags ?? EMPTY_DASHBOARD_TAGS : tags,
+				tags: mode === 'iterate' ? (existingDashboard?.tags ?? EMPTY_DASHBOARD_TAGS) : tags,
 				description: mode === 'iterate' ? existingDashboard?.description || '' : '',
 				items,
 				aiGenerationContext: sessionId

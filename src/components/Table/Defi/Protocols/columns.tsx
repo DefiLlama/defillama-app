@@ -10,7 +10,7 @@ import { removedCategoriesFromChainTvlSet } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
-import { formatColumnOrder } from '../../utils'
+import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '../../utils'
 import { IProtocolRow, IProtocolRowWithCompare } from './types'
 
 const columnHelper = createColumnHelper<IProtocolRow>()
@@ -1494,7 +1494,7 @@ export const protocolAddlColumns = {
 
 // key: min width of window/screen
 // values: table columns order
-export const columnOrders = formatColumnOrder({
+export const columnOrders: ColumnOrdersByBreakpoint = {
 	0: [
 		'rank',
 		'compare',
@@ -1537,9 +1537,9 @@ export const columnOrders = formatColumnOrder({
 		'volume_7d',
 		'mcaptvl'
 	]
-})
+}
 
-export const columnSizes = {
+export const columnSizes: ColumnSizesByBreakpoint = {
 	0: {
 		rank: 60,
 		compare: 80,

@@ -26,10 +26,7 @@ export const TagGroup = ({
 	disabledValues,
 	...props
 }: IProps) => {
-	const disabledValuesSet = React.useMemo(
-		() => (disabledValues ? new Set(disabledValues) : null),
-		[disabledValues]
-	)
+	const disabledValuesSet = React.useMemo(() => (disabledValues ? new Set(disabledValues) : null), [disabledValues])
 
 	return (
 		<div

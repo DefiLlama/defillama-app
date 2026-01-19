@@ -120,7 +120,7 @@ export default function Correlations({ coinsData }) {
 	}, [selectedCoins])
 	const { data: priceChart, isLoading } = usePriceCharts(selectedCoinKeys)
 	const coins = useMemo(() => {
-		const result: typeof selectedCoins[keyof typeof selectedCoins][] = []
+		const result: (typeof selectedCoins)[keyof typeof selectedCoins][] = []
 		for (const key in selectedCoins) {
 			if (selectedCoins[key]) result.push(selectedCoins[key])
 		}

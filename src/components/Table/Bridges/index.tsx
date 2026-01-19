@@ -11,6 +11,7 @@ import {
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
+import { sortColumnSizesAndOrders } from '~/components/Table/utils'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useDebounce } from '~/hooks/useDebounce'
 import {
@@ -26,10 +27,6 @@ import {
 	largeTxsColumnOrders,
 	largeTxsColumnSizes
 } from './Bridges/columns'
-
-const columnSizesKeys = Object.keys(bridgesColumnSizes)
-	.map((x) => Number(x))
-	.sort((a, b) => Number(b) - Number(a))
 
 export function BridgesTable({ data, searchValue = '' }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'lastDailyVolume', desc: true }])
@@ -63,16 +60,13 @@ export function BridgesTable({ data, searchValue = '' }) {
 	}, [searchValue, instance])
 
 	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = bridgesColumnOrders.find(([size]) => width >= size)?.[1] ?? defaultOrder
-
-		const cSize = columnSizesKeys.find((size) => width >= Number(size)) ?? columnSizesKeys[0]
-
-		instance.setColumnSizing(bridgesColumnSizes[cSize])
-
-		instance.setColumnOrder(order)
-	}, [width, instance])
+		sortColumnSizesAndOrders({
+			instance,
+			columnSizes: bridgesColumnSizes,
+			columnOrders: bridgesColumnOrders,
+			width
+		})
+	}, [instance, width])
 
 	return <VirtualTable instance={instance} />
 }
@@ -103,16 +97,13 @@ export function BridgeChainsTable({ data }) {
 	})
 
 	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = bridgeChainsColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder
-
-		const cSize = columnSizesKeys.find((size) => width > Number(size)) ?? columnSizesKeys[0]
-
-		instance.setColumnSizing(bridgeChainsColumnSizes[cSize])
-
-		instance.setColumnOrder(order)
-	}, [width, instance])
+		sortColumnSizesAndOrders({
+			instance,
+			columnSizes: bridgeChainsColumnSizes,
+			columnOrders: bridgeChainsColumnOrders,
+			width
+		})
+	}, [instance, width])
 
 	const [projectName, setProjectName] = React.useState('')
 	const debouncedProjectName = useDebounce(projectName, 200)
@@ -173,16 +164,13 @@ export function BridgesLargeTxsTable({ data }) {
 	})
 
 	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = largeTxsColumnOrders.find(([size]) => width >= size)?.[1] ?? defaultOrder
-
-		const cSize = columnSizesKeys.find((size) => width >= Number(size)) ?? columnSizesKeys[0]
-
-		instance.setColumnSizing(largeTxsColumnSizes[cSize])
-
-		instance.setColumnOrder(order)
-	}, [width, instance])
+		sortColumnSizesAndOrders({
+			instance,
+			columnSizes: largeTxsColumnSizes,
+			columnOrders: largeTxsColumnOrders,
+			width
+		})
+	}, [instance, width])
 
 	return <VirtualTable instance={instance} />
 }

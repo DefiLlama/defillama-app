@@ -22,18 +22,7 @@ const YIELDS_COLUMN_PRESETS: Record<string, string[]> = {
 	essential: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase', 'apyReward'],
 	lending: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBorrow', 'totalSupplyUsd', 'totalBorrowUsd', 'ltv'],
 	volume: ['pool', 'project', 'chains', 'tvl', 'apy', 'volumeUsd1d', 'volumeUsd7d', 'il7d'],
-	advanced: [
-		'pool',
-		'project',
-		'chains',
-		'tvl',
-		'apy',
-		'apyBase',
-		'apyReward',
-		'change1d',
-		'change7d',
-		'apyMean30d'
-	]
+	advanced: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase', 'apyReward', 'change1d', 'change7d', 'apyMean30d']
 }
 const EMPTY_CHAINS: string[] = []
 const EMPTY_PROTOCOLS: string[] = []

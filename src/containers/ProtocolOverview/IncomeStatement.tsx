@@ -428,7 +428,7 @@ export const IncomeStatement = ({
 					</h2>
 				) : null}
 				{showTable ? (
-				<div className="ml-auto flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
+					<div className="ml-auto flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 						{incomeStatementGroupByOptions.map((groupOption) => (
 							<button
 								key={`income-statement-${groupOption}`}

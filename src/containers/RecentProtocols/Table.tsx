@@ -20,6 +20,7 @@ import { Switch } from '~/components/Switch'
 import { columnSizes, protocolsColumns } from '~/components/Table/Defi/Protocols/columns'
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { VirtualTable } from '~/components/Table/Table'
+import { sortColumnSizesAndOrders } from '~/components/Table/utils'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useDebounce } from '~/hooks/useDebounce'
 import { formattedNum, toNiceDaysAgo } from '~/utils'
@@ -70,10 +71,12 @@ export function RecentlyListedProtocolsTable({
 	})
 
 	React.useEffect(() => {
-		const cSize = columnSizesKeys.find((size) => width > Number(size)) ?? columnSizesKeys[0]
-
-		instance.setColumnSizing(columnSizes[cSize])
-	}, [width, instance])
+		sortColumnSizesAndOrders({
+			instance,
+			columnSizes,
+			width
+		})
+	}, [instance, width])
 
 	const [projectName, setProjectName] = React.useState('')
 	const debouncedProjectName = useDebounce(projectName, 200)
@@ -239,10 +242,6 @@ const airdropsColumns: ColumnDef<IProtocolRow>[] = [
 	listedAtColumn,
 	...protocolsColumns.slice(3, -1).filter((c: any) => !['volume_7d', 'fees_7d', 'revenue_7d'].includes(c.accessorKey))
 ]
-
-const columnSizesKeys = Object.keys(columnSizes)
-	.map((x) => Number(x))
-	.sort((a, b) => Number(b) - Number(a))
 
 function HideForkedProtocols() {
 	const router = useRouter()

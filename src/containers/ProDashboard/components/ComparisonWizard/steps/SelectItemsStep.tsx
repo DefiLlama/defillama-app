@@ -304,8 +304,7 @@ export function SelectItemsStep() {
 							{virtualizer.getVirtualItems().map((virtualRow) => {
 								const option = filteredOptions[virtualRow.index]
 								const isDirectlySelected = selectedItemsSet.has(option.value)
-								const isParentSelected =
-									option.isChild && option.parentSlug && selectedItemsSet.has(option.parentSlug)
+								const isParentSelected = option.isChild && option.parentSlug && selectedItemsSet.has(option.parentSlug)
 								const isSelected = isDirectlySelected || isParentSelected
 								const isDisabledByParent = isParentSelected && !isDirectlySelected
 								const isDisabledByLimit = !isSelected && selectedItemsSet.size >= 10

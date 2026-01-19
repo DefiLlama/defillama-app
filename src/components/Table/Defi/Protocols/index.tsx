@@ -20,7 +20,7 @@ import { TagGroup } from '~/components/TagGroup'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useDebounce } from '~/hooks/useDebounce'
-import { alphanumericFalsyLast } from '../../utils'
+import { alphanumericFalsyLast, sortColumnSizesAndOrders } from '../../utils'
 import {
 	columnOrders,
 	columnSizes,
@@ -30,10 +30,6 @@ import {
 	topGainersAndLosersColumns
 } from './columns'
 import { IProtocolRow } from './types'
-
-const columnSizesKeys = Object.keys(columnSizes)
-	.map((x) => Number(x))
-	.sort((a, b) => Number(b) - Number(a))
 
 export enum TABLE_CATEGORIES {
 	FEES = 'Fees',
@@ -641,16 +637,13 @@ export function ProtocolsTableWithSearch({
 	})
 
 	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = columnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder
-
-		const cSize = columnSizesKeys.find((size) => width > Number(size)) ?? columnSizesKeys[0]
-
-		instance.setColumnSizing(columnSizes[cSize])
-
-		instance.setColumnOrder(order)
-	}, [width, instance])
+		sortColumnSizesAndOrders({
+			instance,
+			columnSizes,
+			columnOrders,
+			width
+		})
+	}, [instance, width])
 
 	const [projectName, setProjectName] = React.useState('')
 	const debouncedProjectName = useDebounce(projectName, 200)

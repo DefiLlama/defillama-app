@@ -24,7 +24,8 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
-import { alphanumericFalsyLast } from '~/components/Table/utils'
+import { alphanumericFalsyLast, sortColumnSizesAndOrders } from '~/components/Table/utils'
+import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
@@ -308,11 +309,11 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const width = useBreakpointWidth()
 
 	useEffect(() => {
-		const colSize = columnSizes.find(([bp]) => width >= Number(bp)) ?? columnSizes[columnSizes.length - 1]
-
-		if (colSize) {
-			instance.setColumnSizing(colSize[1])
-		}
+		sortColumnSizesAndOrders({
+			instance,
+			columnSizes,
+			width
+		})
 	}, [instance, width])
 
 	const prepareCsv = useCallback(() => {
@@ -1063,10 +1064,10 @@ const TVLBreakdownCell = ({
 	)
 }
 
-const columnSizes = Object.entries({
+const columnSizes: ColumnSizesByBreakpoint = {
 	0: { name: 180 },
 	640: { name: 240 }
-}).sort((a, b) => Number(b[0]) - Number(a[0]))
+}
 
 const toArrayParam = (p: string | string[] | undefined): string[] => {
 	if (!p) return []

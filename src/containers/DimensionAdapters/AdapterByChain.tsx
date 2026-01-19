@@ -11,7 +11,7 @@ import {
 	type SortingState
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { startTransition, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { startTransition, useCallback, useEffect, useMemo, useState } from 'react'
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
@@ -21,7 +21,8 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { alphanumericFalsyLast } from '~/components/Table/utils'
+import { alphanumericFalsyLast, sortColumnSizesAndOrders } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -256,10 +257,12 @@ export function AdapterByChain(props: IProps) {
 	const width = useBreakpointWidth()
 
 	useEffect(() => {
-		const colSize = columnSizes.find((size) => width >= Number(size[0])) ?? columnSizes[columnSizes.length - 1]
-		const colOrder = columnOrders.find((size) => width >= Number(size[0])) ?? columnOrders[columnOrders.length - 1]
-		instance.setColumnOrder(colOrder[1])
-		instance.setColumnSizing(colSize[1])
+		sortColumnSizesAndOrders({
+			instance,
+			columnSizes,
+			columnOrders,
+			width
+		})
 	}, [instance, width])
 
 	const prepareCsv = useCallback(() => {
@@ -531,17 +534,17 @@ export function AdapterByChain(props: IProps) {
 	)
 }
 
-const columnSizes = Object.entries({
+const columnSizes: ColumnSizesByBreakpoint = {
 	0: { name: 180, definition: 400 },
 	640: { name: 240, definition: 400 },
 	768: { name: 280, definition: 400 },
 	1536: { name: 280, definition: 400 }
-}).sort((a, b) => Number(b[0]) - Number(a[0]))
+}
 
-const columnOrders = Object.entries({
+const columnOrders: ColumnOrdersByBreakpoint = {
 	0: ['name', 'total24h', 'open_interest', 'total7d', 'total30d', 'category', 'definition'],
 	640: ['name', 'category', 'definition', 'total24h', 'open_interest', 'total7d', 'total30d']
-}).sort((a, b) => Number(b[0]) - Number(a[0]))
+}
 
 const protocolChartsKeys: Partial<Record<IProps['type'], (typeof protocolCharts)[keyof typeof protocolCharts]>> = {
 	Fees: 'fees',

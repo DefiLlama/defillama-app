@@ -46,7 +46,12 @@ export function RaisesFilterDropdowns({
 			)}
 
 			{chains && chains.length > 0 && (
-				<Chains chains={chains} selectedChains={selectedChains ?? EMPTY_CHAINS} pathname={pathname} nestedMenu={nestedMenu} />
+				<Chains
+					chains={chains}
+					selectedChains={selectedChains ?? EMPTY_CHAINS}
+					pathname={pathname}
+					nestedMenu={nestedMenu}
+				/>
 			)}
 
 			{sectors && sectors.length > 0 && (
@@ -59,7 +64,12 @@ export function RaisesFilterDropdowns({
 			)}
 
 			{rounds && rounds.length > 0 && (
-				<Rounds rounds={rounds} selectedRounds={selectedRounds ?? EMPTY_ROUNDS} pathname={pathname} nestedMenu={nestedMenu} />
+				<Rounds
+					rounds={rounds}
+					selectedRounds={selectedRounds ?? EMPTY_ROUNDS}
+					pathname={pathname}
+					nestedMenu={nestedMenu}
+				/>
 			)}
 
 			<RaisedRange nestedMenu={nestedMenu} variant="secondary" placement="bottom-start" />

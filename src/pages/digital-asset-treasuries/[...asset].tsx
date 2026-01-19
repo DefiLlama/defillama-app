@@ -187,9 +187,7 @@ export default function TreasuriesByAsset({
 				placeholder="Search institutions"
 				columnToSearch="name"
 				sortingState={DEFAULT_SORTING_STATE}
-				customFilters={
-					<CSVDownloadButton prepareCsv={handlePrepareAssetBreakdownCsv} />
-				}
+				customFilters={<CSVDownloadButton prepareCsv={handlePrepareAssetBreakdownCsv} />}
 			/>
 		</Layout>
 	)

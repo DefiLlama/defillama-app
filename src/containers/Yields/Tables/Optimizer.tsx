@@ -1,9 +1,8 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import * as React from 'react'
 import { IconsRow } from '~/components/IconsRow'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { formatColumnOrder, getColumnSizesKeys } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
 import { formattedNum, formattedPercent } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
@@ -304,7 +303,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 
 // key: min width of window/screen
 // values: table columns order
-const columnOrders = {
+const columnOrders: ColumnOrdersByBreakpoint = {
 	0: [
 		'pool',
 		'project',
@@ -375,7 +374,7 @@ const columnOrders = {
 	]
 }
 
-const columnSizes = {
+const columnSizes: ColumnSizesByBreakpoint = {
 	0: {
 		pool: 160,
 		project: 180,
@@ -468,10 +467,6 @@ const columnSizes = {
 	}
 }
 
-const yieldsColumnOrders = formatColumnOrder(columnOrders)
-
-const columnSizesKeys = getColumnSizesKeys(columnSizes)
-
 const defaultSortingState = [{ id: 'borrowAvailableUsd', desc: true }]
 
 export function YieldsOptimizerTable({ data }) {
@@ -510,8 +505,7 @@ export function YieldsOptimizerTable({ data }) {
 			data={data}
 			columns={columns}
 			columnSizes={columnSizes}
-			columnSizesKeys={columnSizesKeys}
-			columnOrders={yieldsColumnOrders}
+			columnOrders={columnOrders}
 			sortingState={defaultSortingState}
 			columnVisibility={columnVisibility}
 		/>

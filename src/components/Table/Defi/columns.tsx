@@ -9,7 +9,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import { formattedNum, formattedPercent, slug, tokenIconUrl, toNiceDayMonthYear } from '~/utils'
-import { formatColumnOrder } from '../utils'
+import type { ColumnOrdersByBreakpoint } from '../utils'
 import type { AirdropRow, IEmission, IForksRow, IGovernance, ILSDRow } from './types'
 
 const UnconstrainedSmolLineChart = lazy(() =>
@@ -695,7 +695,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 	}
 ]
 
-export const raisesColumnOrders = formatColumnOrder({
+export const raisesColumnOrders: ColumnOrdersByBreakpoint = {
 	0: [
 		'name',
 		'amount',
@@ -722,4 +722,4 @@ export const raisesColumnOrders = formatColumnOrder({
 		'chains',
 		'otherInvestors'
 	]
-})
+}

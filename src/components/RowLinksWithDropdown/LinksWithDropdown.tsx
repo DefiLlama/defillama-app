@@ -94,10 +94,7 @@ export const LinksWithDropdown = React.memo(function LinksWithDropdown({
 		}
 	}, [calcOverflowIndex])
 
-	const isActiveLinkInList = useMemo(
-		() => !!links.find((link) => link.label === activeLink),
-		[links, activeLink]
-	)
+	const isActiveLinkInList = useMemo(() => !!links.find((link) => link.label === activeLink), [links, activeLink])
 
 	const { hasOverflow, isLinkInDropdown } = useMemo(() => {
 		const hasOverflow = overflowIndex !== null && typeof overflowIndex === 'number' && overflowIndex > 0
