@@ -1,15 +1,15 @@
 import * as echarts from 'echarts/core'
-import { useCallback, useState } from 'react'
+import { useCallback, useRef } from 'react'
 
 export function useChartImageExport() {
-	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
+	const chartInstanceRef = useRef<echarts.ECharts | null>(null)
 
 	const handleChartReady = useCallback((instance: echarts.ECharts | null) => {
-		setChartInstance(instance)
+		chartInstanceRef.current = instance
 	}, [])
 
 	return {
-		chartInstance,
+		chartInstance: () => chartInstanceRef.current,
 		handleChartReady
 	}
 }

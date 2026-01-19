@@ -213,7 +213,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
 										: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
 								}
-								className="!inline text-(--text-label) underline decoration-dotted"
+								className="inline text-(--text-label) underline decoration-dotted"
 							>
 								Total Value Locked in DeFi
 							</Tooltip>
