@@ -26,6 +26,11 @@ export const TagGroup = ({
 	disabledValues,
 	...props
 }: IProps) => {
+	const disabledValuesSet = React.useMemo(
+		() => (disabledValues ? new Set(disabledValues) : null),
+		[disabledValues]
+	)
+
 	return (
 		<div
 			className={
@@ -49,7 +54,7 @@ export const TagGroup = ({
 								triggerClassName
 							)
 						}
-						disabled={disabledValues?.includes(value)}
+						disabled={disabledValuesSet?.has(value)}
 						data-active={value === selectedValue}
 						key={value}
 						onClick={() => setValue(value)}

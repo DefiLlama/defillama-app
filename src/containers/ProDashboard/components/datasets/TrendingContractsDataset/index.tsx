@@ -14,7 +14,7 @@ import {
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { TagGroup } from '~/components/TagGroup'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -22,6 +22,17 @@ import { TableBody } from '../../ProTable/TableBody'
 import { TablePagination } from '../../ProTable/TablePagination'
 import { trendingContractsColumns } from './columns'
 import { useTrendingContractsData } from './useTrendingContractsData'
+
+const TIME_VALUES = ['1d', '7d', '30d'] as const
+const CHAIN_VALUES = ['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base'] as const
+const EMPTY_RESULTS: any[] = []
+const TRENDING_CONTRACTS_COLUMNS_BY_CHAIN = {
+	ethereum: trendingContractsColumns('ethereum'),
+	arbitrum: trendingContractsColumns('arbitrum'),
+	polygon: trendingContractsColumns('polygon'),
+	optimism: trendingContractsColumns('optimism'),
+	base: trendingContractsColumns('base')
+} as const
 
 interface TrendingContractsDatasetProps {
 	chain?: string
@@ -53,13 +64,16 @@ export function TrendingContractsDataset({
 
 	const activeChain = chain.toLowerCase()
 	const { data, isLoading, error } = useTrendingContractsData(activeChain, timeframe)
-	const results = data?.results ?? []
+	const results = data?.results ?? EMPTY_RESULTS
+	const columns =
+		TRENDING_CONTRACTS_COLUMNS_BY_CHAIN[activeChain as keyof typeof TRENDING_CONTRACTS_COLUMNS_BY_CHAIN] ??
+		trendingContractsColumns(activeChain)
 
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data: results,
-		columns: trendingContractsColumns(activeChain) as ColumnDef<any>[],
+		columns: columns as ColumnDef<any>[],
 		state: {
 			sorting,
 			columnOrder,
@@ -77,7 +91,8 @@ export function TrendingContractsDataset({
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {
@@ -94,7 +109,7 @@ export function TrendingContractsDataset({
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [windowSize, instance])
+	}, [width, instance])
 
 	const [contractSearch, setContractSearch] = React.useState('')
 
@@ -155,7 +170,7 @@ export function TrendingContractsDataset({
 									onTimeframeChange(val)
 								}
 							}}
-							values={['1d', '7d', '30d']}
+							values={TIME_VALUES}
 							containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
 							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary) data-[active=true]:text-white"
 						/>
@@ -167,7 +182,7 @@ export function TrendingContractsDataset({
 									onChainChange(val)
 								}
 							}}
-							values={['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base']}
+							values={CHAIN_VALUES}
 							containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
 							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary) data-[active=true]:text-white"
 						/>

@@ -17,6 +17,7 @@ const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as Re
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
 const pageName = ['Oracles', 'ranked by', 'TVS']
+const DEFAULT_SORTING_STATE = [{ id: 'tvs', desc: true }]
 
 export const OraclesByChain = ({
 	chartData,
@@ -106,7 +107,7 @@ export const OraclesByChain = ({
 					columnToSearch={'name'}
 					placeholder={'Search oracles...'}
 					header={'Oracle Rankings'}
-					sortingState={[{ id: 'tvs', desc: true }]}
+					sortingState={DEFAULT_SORTING_STATE}
 				/>
 			</React.Suspense>
 		</Layout>
@@ -144,7 +145,7 @@ const columns: ColumnDef<IOraclesRow>[] = [
 		header: 'Chains',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
+		cell: ({ getValue }) => {
 			return <IconsRow links={getValue() as Array<string>} url="/oracles/chain" iconType="chain" />
 		},
 		size: 200,

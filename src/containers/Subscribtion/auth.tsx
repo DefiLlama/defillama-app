@@ -2,7 +2,6 @@ import { useMutation, UseMutationResult, useQuery, useQueryClient } from '@tanst
 import { RecordAuthResponse, RecordModel } from 'pocketbase'
 import { createContext, ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
-import { createSiweMessage } from 'viem/siwe'
 import { AUTH_SERVER } from '~/constants'
 import pb, { AuthModel } from '~/utils/pocketbase'
 
@@ -335,6 +334,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const signInWithEthereumMutation = useMutation({
 		mutationFn: async ({ address, signMessageFunction }: { address: string; signMessageFunction: any }) => {
+			const { createSiweMessage } = await import('viem/siwe')
 			const { nonce } = await getNonce(address)
 			const issuedAt = new Date()
 			const message = createSiweMessage({
@@ -406,6 +406,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				throw new Error('User not authenticated')
 			}
 
+			const { createSiweMessage } = await import('viem/siwe')
 			const { nonce } = await getNonce(address)
 			const issuedAt = new Date()
 			const message = createSiweMessage({
@@ -447,7 +448,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		onSuccess: async () => {
 			try {
 				await pb.collection('users').authRefresh()
-			} catch { /* ignore refresh error */ }
+			} catch {
+				/* ignore refresh error */
+			}
 			toast.success('Wallet linked successfully')
 		},
 		onError: (error) => {

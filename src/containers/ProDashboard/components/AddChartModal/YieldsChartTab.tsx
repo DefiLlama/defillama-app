@@ -43,6 +43,7 @@ const barChartStacks = { Base: 'a', Reward: 'a' }
 const barChartColors = { Base: CHART_COLORS[0], Reward: CHART_COLORS[1] }
 const liquidityChartColors = { Supplied: CHART_COLORS[0], Borrowed: CHART_COLORS[1], Available: CHART_COLORS[2] }
 const liquidityLegendOptions = ['Supplied', 'Borrowed', 'Available']
+const EMPTY_YIELDS_DATA: any[] = []
 
 export function YieldsChartTab({
 	selectedYieldPool,
@@ -62,7 +63,8 @@ export function YieldsChartTab({
 	onMinTvlChange,
 	onMaxTvlChange
 }: YieldsChartTabProps) {
-	const { data: yieldsData = [], isLoading: yieldsLoading } = useYieldsData()
+	const { data: yieldsDataResponse, isLoading: yieldsLoading } = useYieldsData()
+	const yieldsData = yieldsDataResponse ?? EMPTY_YIELDS_DATA
 	const [chainSearch, setChainSearch] = useState('')
 	const [projectSearch, setProjectSearch] = useState('')
 	const [tokenSearch, setTokenSearch] = useState('')
@@ -80,12 +82,12 @@ export function YieldsChartTab({
 
 	const chainOptions = useMemo(() => {
 		const chainTvlMap = new Map<string, number>()
-		yieldsData.forEach((p: any) => {
+		for (const p of yieldsData as any[]) {
 			const chain = p.chains[0]
-			if (!chain) return
+			if (!chain) continue
 			const currentTvl = chainTvlMap.get(chain) || 0
 			chainTvlMap.set(chain, currentTvl + (p.tvl || 0))
-		})
+		}
 		return Array.from(chainTvlMap.entries())
 			.sort((a, b) => b[1] - a[1])
 			.map(([chain]) => ({ value: chain, label: chain }))
@@ -93,12 +95,12 @@ export function YieldsChartTab({
 
 	const projectOptions = useMemo(() => {
 		const projectTvlMap = new Map<string, number>()
-		yieldsData.forEach((p: any) => {
+		for (const p of yieldsData as any[]) {
 			const project = p.project
-			if (!project) return
+			if (!project) continue
 			const currentTvl = projectTvlMap.get(project) || 0
 			projectTvlMap.set(project, currentTvl + (p.tvl || 0))
-		})
+		}
 		return Array.from(projectTvlMap.entries())
 			.sort((a, b) => b[1] - a[1])
 			.map(([project]) => ({ value: project, label: project }))
@@ -114,20 +116,20 @@ export function YieldsChartTab({
 
 	const tokenOptions = useMemo(() => {
 		const tokenTvlMap = new Map<string, number>()
-		yieldsData.forEach((p: any) => {
+		for (const p of yieldsData as any[]) {
 			const symbol = (p.pool || '') as string
 			const baseSymbol = symbol.split('(')[0]
-			baseSymbol
+			const tokens = baseSymbol
 				.split('-')
 				.map((token: string) => token.trim())
 				.filter(Boolean)
-				.forEach((token: string) => {
-					const normalized = token.toUpperCase()
-					if (!normalized) return
-					const current = tokenTvlMap.get(normalized) || 0
-					tokenTvlMap.set(normalized, current + (p.tvl || 0))
-				})
-		})
+			for (const token of tokens) {
+				const normalized = token.toUpperCase()
+				if (!normalized) continue
+				const current = tokenTvlMap.get(normalized) || 0
+				tokenTvlMap.set(normalized, current + (p.tvl || 0))
+			}
+		}
 
 		const baseOptions = [
 			{ value: 'ALL_BITCOINS', label: 'All Bitcoins' },
@@ -450,7 +452,7 @@ export function YieldsChartTab({
 										? `${selectedYieldChains.length} chain${selectedYieldChains.length > 1 ? 's' : ''} selected`
 										: 'All chains'}
 								</span>
-								<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+								<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 							</PopoverDisclosure>
 							<Popover
 								store={chainPopover}
@@ -524,12 +526,7 @@ export function YieldsChartTab({
 															<span className="truncate">{option.label}</span>
 														</div>
 														{isActive && (
-															<Icon
-																name="check"
-																width={14}
-																height={14}
-																className="ml-2 flex-shrink-0 text-(--primary)"
-															/>
+															<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
 														)}
 													</button>
 												)
@@ -565,7 +562,7 @@ export function YieldsChartTab({
 										? `${selectedYieldProjects.length} project${selectedYieldProjects.length > 1 ? 's' : ''} selected`
 										: 'All projects'}
 								</span>
-								<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+								<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 							</PopoverDisclosure>
 							<Popover
 								store={projectPopover}
@@ -639,12 +636,7 @@ export function YieldsChartTab({
 															<span className="truncate">{option.label}</span>
 														</div>
 														{isActive && (
-															<Icon
-																name="check"
-																width={14}
-																height={14}
-																className="ml-2 flex-shrink-0 text-(--primary)"
-															/>
+															<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
 														)}
 													</button>
 												)
@@ -680,7 +672,7 @@ export function YieldsChartTab({
 										? `${selectedYieldTokens.length} token${selectedYieldTokens.length > 1 ? 's' : ''} selected`
 										: 'All tokens'}
 								</span>
-								<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+								<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 							</PopoverDisclosure>
 							<Popover
 								store={tokenPopover}
@@ -741,12 +733,7 @@ export function YieldsChartTab({
 													>
 														<span className="truncate">{option.label}</span>
 														{isActive && (
-															<Icon
-																name="check"
-																width={14}
-																height={14}
-																className="ml-2 flex-shrink-0 text-(--primary)"
-															/>
+															<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
 														)}
 													</button>
 												)
@@ -970,7 +957,7 @@ export function YieldsChartTab({
 															<img
 																src={iconUrl}
 																alt={pool.project}
-																className="h-6 w-6 flex-shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
+																className="h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
 																onError={(e) => {
 																	e.currentTarget.style.display = 'none'
 																}}

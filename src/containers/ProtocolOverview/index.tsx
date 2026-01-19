@@ -11,7 +11,12 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { DEFI_SETTINGS_KEYS_SET, FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import {
+	TVL_SETTINGS_KEYS_SET,
+	FEES_SETTINGS,
+	isTvlSettingsKey,
+	useLocalStorageSettingsManager
+} from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { ProtocolChart } from './Chart/ProtocolChart'
@@ -142,7 +147,11 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 				<AdditionalInfo {...props} />
 				{props.incomeStatement?.data ? (
 					<Suspense fallback={<></>}>
-						<IncomeStatement {...props} />
+						<IncomeStatement
+							name={props.name}
+							incomeStatement={props.incomeStatement}
+							hasIncentives={props.metrics?.incentives}
+						/>
 					</Suspense>
 				) : null}
 			</div>
@@ -161,7 +170,7 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 		const oracleTvsByChainMap = {}
 
 		for (const chain in props.currentTvlByChain ?? {}) {
-			if (DEFI_SETTINGS_KEYS_SET.has(chain)) {
+			if (TVL_SETTINGS_KEYS_SET.has(chain)) {
 				const option = tvlOptionsMap.get(chain as any)
 				if (option && chain !== 'offers') {
 					toggleOptions.push(option)
@@ -176,7 +185,8 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 				continue
 			}
 
-			if (extraTvlsEnabled[extraTvlKey.toLowerCase()]) {
+			const normalizedExtraKey = extraTvlKey.toLowerCase()
+			if (isTvlSettingsKey(normalizedExtraKey) && extraTvlsEnabled[normalizedExtraKey]) {
 				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + props.currentTvlByChain[chain]
 				continue
 			}
@@ -188,7 +198,7 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 
 		// Process oracle TVS by chain
 		for (const chain in props.oracleTvs ?? {}) {
-			if (DEFI_SETTINGS_KEYS_SET.has(chain)) {
+			if (TVL_SETTINGS_KEYS_SET.has(chain)) {
 				const option = tvlOptionsMap.get(chain as any)
 				if (option && chain !== 'offers') {
 					if (!toggleOptions.some((o) => o.key === option.key)) {
@@ -205,7 +215,8 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 				continue
 			}
 
-			if (extraTvlsEnabled[extraTvlKey.toLowerCase()]) {
+			const normalizedExtraKey = extraTvlKey.toLowerCase()
+			if (isTvlSettingsKey(normalizedExtraKey) && extraTvlsEnabled[normalizedExtraKey]) {
 				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + props.oracleTvs[chain]
 				continue
 			}
@@ -1176,7 +1187,7 @@ function BridgeVolume(props: IKeyMetricsProps) {
 	let total30d = 0
 	let totalAllTime = 0
 
-	props.bridgeVolume.forEach((item) => {
+	for (const item of props.bridgeVolume) {
 		const volume = (item.depositUSD + item.withdrawUSD) / 2
 		const timestamp = new Date(+item.date * 1000).getTime()
 
@@ -1193,7 +1204,7 @@ function BridgeVolume(props: IKeyMetricsProps) {
 		if (timestamp >= oneDayAgo) {
 			total24h += volume
 		}
-	})
+	}
 
 	if (total30d > 0) {
 		metrics.push({
@@ -1599,6 +1610,8 @@ const SmolStats = ({
 	openSmolStatsSummaryByDefault?: boolean
 	dataType: string
 }) => {
+	const restOfData = useMemo(() => data.slice(1), [data])
+
 	if (data.length === 0) return null
 
 	if (data.length === 1) {
@@ -1647,7 +1660,7 @@ const SmolStats = ({
 				<span className="font-jetbrains ml-auto">{formatPrice(data[0].value)}</span>
 			</summary>
 			<div className="mb-3 flex flex-col">
-				{data.slice(1).map((metric) => (
+				{restOfData.map((metric) => (
 					<p
 						className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none"
 						key={`${metric.name}-${metric.value}-${protocolName}`}

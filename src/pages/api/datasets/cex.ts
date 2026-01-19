@@ -76,14 +76,14 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 				let cexTvl = 0
 				let ownToken = 0
 
-				Object.values(chainTvls as IChainTvl).forEach((item: any) => {
-					if (item.tvl) {
-						cexTvl += item.tvl[item.tvl.length - 1]?.totalLiquidityUSD ?? 0
+				for (const item of Object.values(chainTvls as IChainTvl)) {
+					if ((item as any).tvl) {
+						cexTvl += (item as any).tvl[(item as any).tvl.length - 1]?.totalLiquidityUSD ?? 0
 					}
-					if (item.tokensInUsd && c.coin) {
-						ownToken += item.tokensInUsd[item.tokensInUsd.length - 1]?.tokens[c.coin] ?? 0
+					if ((item as any).tokensInUsd && c.coin) {
+						ownToken += (item as any).tokensInUsd[(item as any).tokensInUsd.length - 1]?.tokens[c.coin] ?? 0
 					}
-				})
+				}
 
 				const cleanTvl = cexTvl - ownToken
 

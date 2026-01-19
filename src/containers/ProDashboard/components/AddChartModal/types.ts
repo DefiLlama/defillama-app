@@ -10,7 +10,14 @@ export interface AddChartModalProps {
 
 export type MainTabType = 'charts' | 'metric' | 'table' | 'text' | 'builder' | 'llamaai'
 export type ChartModeType = 'manual' | 'builder'
-export type ChartTabType = 'chain' | 'protocol' | 'yields' | 'stablecoins' | 'advanced-tvl' | 'borrowed'
+export type ChartTabType =
+	| 'chain'
+	| 'protocol'
+	| 'yields'
+	| 'stablecoins'
+	| 'advanced-tvl'
+	| 'borrowed'
+	| 'income-statement'
 export type ManualChartViewMode = 'cards' | 'form'
 export type CombinedTableType =
 	| 'protocols'
@@ -122,6 +129,8 @@ export interface ModalState {
 	selectedBorrowedProtocol: string | null
 	selectedBorrowedProtocolName: string | null
 	selectedBorrowedChartType: string
+	selectedIncomeStatementProtocol: string | null
+	selectedIncomeStatementProtocolName: string | null
 	selectedLlamaAIChart: { id: string; title: string } | null
 }
 
@@ -187,5 +196,7 @@ export interface ModalActions {
 	setSelectedBorrowedProtocol: (protocol: string | null) => void
 	setSelectedBorrowedProtocolName: (name: string | null) => void
 	setSelectedBorrowedChartType: (chartType: string) => void
+	setSelectedIncomeStatementProtocol: (protocol: string | null) => void
+	setSelectedIncomeStatementProtocolName: (name: string | null) => void
 	setSelectedLlamaAIChart: (chart: { id: string; title: string } | null) => void
 }

@@ -52,7 +52,7 @@ export const AccountStatus = ({
 				console.error('Failed to create portal session:', e)
 				setPortalUrl(null)
 			})
-	}, [isAuthenticated])
+	}, [getPortalSessionUrl, isAuthenticated])
 
 	const handleCloseWalletLinkModal = useCallback(() => {
 		setIsModalOpen(false)

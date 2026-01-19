@@ -10,11 +10,14 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CATEGORY_API, PROTOCOLS_API } from '~/constants'
 import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
 import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
-import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { formattedNum, formattedPercent, getNDistinctColors, getPercentChange, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const EXCLUDED_EXTRAS = new Set(['doublecounted', 'liquidstaking'])
+const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
 
 const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')
@@ -35,11 +38,11 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 	const categories = {}
 	const tagsByCategory = {}
 	const revenueByProtocol = {}
-	revenueData.protocols.forEach((p) => {
+	for (const p of revenueData.protocols) {
 		revenueByProtocol[p.defillamaId] = p.total24h || 0
-	})
+	}
 
-	protocols.forEach((p) => {
+	for (const p of protocols) {
 		const cat = p.category
 
 		const tvl = p.tvl ?? 0
@@ -49,8 +52,8 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 
 		const extraTvls = {}
 
-		for (const extra of DEFI_SETTINGS_KEYS) {
-			if (!['doublecounted', 'liquidstaking'].includes(extra) && p.chainTvls[extra]) {
+		for (const extra of TVL_SETTINGS_KEYS) {
+			if (!EXCLUDED_EXTRAS.has(extra) && p.chainTvls[extra]) {
 				extraTvls[extra] = p.chainTvls[extra]
 			}
 		}
@@ -65,7 +68,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 				tvlPrevMonth: 0,
 				revenue: 0,
 				extraTvls: Object.fromEntries(
-					DEFI_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
+					TVL_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
 				)
 			}
 		}
@@ -75,7 +78,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 				tagsByCategory[cat] = []
 			}
 
-			p.tags.forEach((t) => {
+			for (const t of p.tags) {
 				if (!tagsByCategory[cat][t]) {
 					tagsByCategory[cat][t] = {
 						name: t,
@@ -86,7 +89,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 						tvlPrevMonth: 0,
 						revenue: 0,
 						extraTvls: Object.fromEntries(
-							DEFI_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
+							TVL_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
 						)
 					}
 				}
@@ -103,7 +106,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 					tagsByCategory[cat][t].extraTvls[extra].tvlPrevWeek += extraTvls[extra].tvlPrevWeek
 					tagsByCategory[cat][t].extraTvls[extra].tvlPrevMonth += extraTvls[extra].tvlPrevMonth
 				}
-			})
+			}
 		}
 
 		categories[cat].protocols++
@@ -119,24 +122,47 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 			categories[cat].extraTvls[extra].tvlPrevWeek += extraTvls[extra].tvlPrevWeek
 			categories[cat].extraTvls[extra].tvlPrevMonth += extraTvls[extra].tvlPrevMonth
 		}
-	})
+	}
 
+	// Build categoryKeys array once and use for all subsequent iterations
+	const categoryKeys: string[] = []
 	for (const cat in protocolsByCategory) {
-		if (!categories[cat]) {
-			categories[cat] = { name: cat, protocols: 0, tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0, revenue: 0 }
-		}
+		categoryKeys.push(cat)
+	}
+
+	const allColors = getNDistinctColors(categoryKeys.length)
+	const categoryColors: Record<string, string> = {}
+	for (let i = 0; i < categoryKeys.length; i++) {
+		categoryColors[categoryKeys[i]] = allColors[i]
 	}
 
 	const finalCategories = []
 
-	for (const cat in protocolsByCategory) {
+	// Combined loop: ensure category exists AND build finalCategories
+	for (const cat of categoryKeys) {
+		if (!categories[cat]) {
+			categories[cat] = {
+				name: cat,
+				protocols: 0,
+				tvl: 0,
+				tvlPrevDay: 0,
+				tvlPrevWeek: 0,
+				tvlPrevMonth: 0,
+				revenue: 0,
+				extraTvls: Object.fromEntries(
+					TVL_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
+				)
+			}
+		}
+
 		const subRows = []
-		for (const tag in tagsByCategory[cat]) {
+		const tags = tagsByCategory[cat] ?? {}
+		for (const tag in tags) {
 			subRows.push({
-				...tagsByCategory[cat][tag],
-				change_1d: getPercentChange(tagsByCategory[cat][tag].tvl, tagsByCategory[cat][tag].tvlPrevDay),
-				change_7d: getPercentChange(tagsByCategory[cat][tag].tvl, tagsByCategory[cat][tag].tvlPrevWeek),
-				change_1m: getPercentChange(tagsByCategory[cat][tag].tvl, tagsByCategory[cat][tag].tvlPrevMonth),
+				...tags[tag],
+				change_1d: getPercentChange(tags[tag].tvl, tags[tag].tvlPrevDay),
+				change_7d: getPercentChange(tags[tag].tvl, tags[tag].tvlPrevWeek),
+				change_1m: getPercentChange(tags[tag].tvl, tags[tag].tvlPrevMonth),
 				description: protocolCategories[tag]?.description ?? ''
 			})
 		}
@@ -152,12 +178,9 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 
 	const chartData = {}
 	const extraTvlCharts = {}
-	const totalCategories = Object.keys(protocolsByCategory).length
-	const allColors = getNDistinctColors(totalCategories)
-	const categoryColors = Object.fromEntries(Object.keys(protocolsByCategory).map((_, i) => [_, allColors[i]]))
 
 	for (const date in chart) {
-		for (const cat in protocolsByCategory) {
+		for (const cat of categoryKeys) {
 			if (!chartData[cat]) {
 				chartData[cat] = {
 					name: cat,
@@ -168,8 +191,8 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 				}
 			}
 			chartData[cat].data.push([+date * 1e3, chart[date]?.[cat]?.tvl ?? null])
-			for (const extra of DEFI_SETTINGS_KEYS) {
-				if (['doublecounted', 'liquidstaking'].includes(extra)) {
+			for (const extra of TVL_SETTINGS_KEYS) {
+				if (EXCLUDED_EXTRAS.has(extra)) {
 					continue
 				}
 
@@ -189,8 +212,8 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 
 	return {
 		props: {
-			categories: Object.keys(protocolsByCategory),
-			tableData: finalCategories.sort((a, b) => b.tvl - a.tvl),
+			categories: categoryKeys,
+			tableData: finalCategories.toSorted((a, b) => b.tvl - a.tvl),
 			chartData,
 			extraTvlCharts
 		},
@@ -198,7 +221,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 	}
 })
 
-const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
+const finalTvlOptions = tvlOptions.filter((e) => !EXCLUDED_EXTRAS.has(e.key))
 
 const pageName = ['Protocol Categories']
 
@@ -214,16 +237,18 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 		setSelectedCategories([category])
 	}
 	const [extaTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+	const enabledTvls = React.useMemo(() => TVL_SETTINGS_KEYS.filter((key) => extaTvlsEnabled[key]), [extaTvlsEnabled])
 
 	const charts = React.useMemo(() => {
-		if (!Object.values(extaTvlsEnabled).some((e) => e === true)) {
+		const selectedCategoriesSet = new Set(selectedCategories)
+		if (enabledTvls.length === 0) {
 			if (selectedCategories.length === categories.length) {
 				return chartData
 			}
 
 			const charts = {}
 			for (const cat in chartData) {
-				if (selectedCategories.includes(cat)) {
+				if (selectedCategoriesSet.has(cat)) {
 					charts[cat] = chartData[cat]
 				}
 			}
@@ -231,14 +256,10 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 			return charts
 		}
 
-		const enabledTvls = Object.entries(extaTvlsEnabled)
-			.filter((e) => e[1] === true)
-			.map((e) => e[0])
-
 		const charts = {}
 
 		for (const cat in chartData) {
-			if (selectedCategories.includes(cat)) {
+			if (selectedCategoriesSet.has(cat)) {
 				const data = chartData[cat].data.map(([date, val], _index) => {
 					const extraTvls = enabledTvls.map((e) => extraTvlCharts?.[cat]?.[e]?.[date] ?? 0)
 					return [date, val + extraTvls.reduce((a, b) => a + b, 0)]
@@ -252,13 +273,9 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 		}
 
 		return charts
-	}, [chartData, selectedCategories, categories, extraTvlCharts, extaTvlsEnabled])
+	}, [chartData, selectedCategories, categories, extraTvlCharts, enabledTvls])
 
 	const finalCategoriesList = React.useMemo(() => {
-		const enabledTvls = Object.entries(extaTvlsEnabled)
-			.filter((e) => e[1] === true)
-			.map((e) => e[0])
-
 		if (enabledTvls.length === 0) {
 			return tableData
 		}
@@ -322,7 +339,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 		}
 
 		return finalList
-	}, [tableData, extaTvlsEnabled])
+	}, [tableData, enabledTvls])
 
 	return (
 		<Layout
@@ -366,7 +383,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 					columns={categoriesColumn}
 					columnToSearch={'name'}
 					placeholder={'Search category...'}
-					sortingState={[{ id: 'tvl', desc: true }]}
+					sortingState={DEFAULT_SORTING_STATE}
 				/>
 			</React.Suspense>
 		</Layout>

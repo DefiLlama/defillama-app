@@ -65,9 +65,9 @@ export default class ChainCharts {
 				if (response.ok) {
 					const data = await response.json()
 					const extracted = extractData(data)
-					extracted.forEach(([timestamp, value]) => {
+					for (const [timestamp, value] of extracted) {
 						mergedMap.set(timestamp, value)
-					})
+					}
 				}
 			}
 

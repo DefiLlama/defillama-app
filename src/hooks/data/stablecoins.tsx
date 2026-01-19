@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { useMemo } from 'react'
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { isChainsCategoryGroupKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, formatNum, getDominancePercent } from '~/utils'
 
 interface IPegged {
@@ -67,8 +67,6 @@ interface IGroupData {
 	[key: string]: Record<string, string[]>
 }
 
-type ChainTvlsByDay = [string, IChainTvl]
-
 export const useCalcCirculating = (filteredPeggedAssets: IPegged[]) => {
 	const [extraPeggedEnabled] = useLocalStorageSettingsManager('stablecoins')
 
@@ -117,7 +115,8 @@ export const useCalcGroupExtraPeggedByDay = (chains) => {
 		const data = chains.map(([date, values]) => {
 			const circulatings: IChainTvl = {}
 			let totalDaySum = 0
-			Object.entries(values).forEach(([name, chainCirculating]: ChainTvlsByDay) => {
+			for (const name in values) {
+				const chainCirculating = values[name] as IChainTvl
 				let sum = chainCirculating.circulating
 				totalDaySum += chainCirculating.circulating
 				if (extraPeggedEnabled['unreleased'] && chainCirculating.unreleased) {
@@ -126,7 +125,7 @@ export const useCalcGroupExtraPeggedByDay = (chains) => {
 				}
 
 				circulatings[name] = sum
-			})
+			}
 			daySum[date] = totalDaySum
 			return { date, ...circulatings }
 		})
@@ -146,9 +145,23 @@ export const useCalcGroupExtraPeggedByDay = (chains) => {
 	return { data, daySum, dataWithExtraPeggedAndDominanceByDay }
 }
 
-export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainPegged[] => {
+interface IChainData {
+	name: string
+	mcap: number | null
+	unreleased: number | null
+	bridgedTo: number | null
+	minted: number | null
+	dominance?: { name: string; value: number } | null
+	mcaptvl?: number | null
+	subRows?: IChainData[]
+}
+
+export const useGroupChainsPegged = (chains: IChainData[], groupData: IGroupData): GroupChainPegged[] => {
 	const [groupsEnabled] = useLocalStorageSettingsManager('tvl_chains')
 	const data: GroupChainPegged[] = useMemo(() => {
+		// Build lookup map for O(1) access by name
+		const chainsByName = new Map<string, IChainData>(chains.map((item) => [item.name, item]))
+
 		const finalData = {}
 		const addedChains = []
 		for (const parentName in groupData) {
@@ -161,7 +174,7 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
 
 			finalData[parentName] = {}
 
-			const parentData = chains.find((item) => item.name === parentName)
+			const parentData = chainsByName.get(parentName)
 			if (parentData) {
 				mcap = parentData.mcap || null
 				unreleased = parentData.unreleased || null
@@ -177,35 +190,36 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
 
 			let addedChildren = false
 			for (const type in groupData[parentName]) {
-				if (groupsEnabled[type] === true) {
-					for (const child of groupData[parentName][type]) {
-						const childData = chains.find((item) => item.name === child)
+				if (!isChainsCategoryGroupKey(type) || groupsEnabled[type] !== true) {
+					continue
+				}
+				for (const child of groupData[parentName][type]) {
+					const childData = chainsByName.get(child)
 
-						const alreadyAdded = (finalData[parentName].subRows ?? []).find((p) => p.name === child)
+					const alreadyAdded = (finalData[parentName].subRows ?? []).find((p) => p.name === child)
 
-						if (childData && alreadyAdded === undefined) {
-							mcap += childData.mcap
-							unreleased += childData.unreleased
-							bridgedTo += childData.bridgedTo
-							minted += childData.minted
-							dominance = null
-							mcaptvl = null
-							const subChains = finalData[parentName].subRows || []
+					if (childData && alreadyAdded === undefined) {
+						mcap += childData.mcap
+						unreleased += childData.unreleased
+						bridgedTo += childData.bridgedTo
+						minted += childData.minted
+						dominance = null
+						mcaptvl = null
+						const subChains = finalData[parentName].subRows || []
 
-							finalData[parentName] = {
-								...finalData[parentName],
-								mcap,
-								unreleased,
-								bridgedTo,
-								minted,
-								dominance,
-								mcaptvl: mcaptvl !== null ? +formatNum(+mcaptvl) : null,
-								name: parentName,
-								subRows: [...subChains, childData]
-							}
-							addedChains.push(child)
-							addedChildren = true
+						finalData[parentName] = {
+							...finalData[parentName],
+							mcap,
+							unreleased,
+							bridgedTo,
+							minted,
+							dominance,
+							mcaptvl: mcaptvl !== null ? +formatNum(+mcaptvl) : null,
+							name: parentName,
+							subRows: [...subChains, childData]
 						}
+						addedChains.push(child)
+						addedChildren = true
 					}
 				}
 			}
@@ -218,11 +232,11 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
 			}
 		}
 
-		chains.forEach((item) => {
+		for (const item of chains) {
 			if (!addedChains.includes(item.name)) {
 				finalData[item.name] = item
 			}
-		})
+		}
 		return (Object.values(finalData) as GroupChainPegged[]).sort((a, b) => b.mcap - a.mcap)
 	}, [chains, groupData, groupsEnabled])
 
@@ -242,7 +256,14 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
 					? percentBridged.toFixed(2) + '%'
 					: '100%'
 				: null
-			if (!parentBridges || Object.keys(parentBridges).length === 0) {
+			let hasParentBridges = false
+			if (parentBridges) {
+				for (const _ in parentBridges) {
+					hasParentBridges = true
+					break
+				}
+			}
+			if (!parentBridges || !hasParentBridges) {
 				finalData[parent.name] = {
 					...parent,
 					bridgeInfo: {

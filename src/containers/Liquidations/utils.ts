@@ -209,43 +209,45 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 	const totalLiquidable = validPositions.reduce((acc, p) => acc + p.collateralValue, 0)
 
 	const chartDataBinsByProtocol = getChartDataBins(validPositions, currentPrice, totalBins, 'protocol')
-	const protocols = Object.keys(chartDataBinsByProtocol)
-	const liquidablesByProtocol = protocols.reduce(
-		(acc, protocol) => {
-			acc[protocol] = Object.values(chartDataBinsByProtocol[protocol].bins).reduce((a, b) => a + b['usd'], 0)
-			return acc
-		},
-		{} as { [protocol: string]: number }
-	)
+	const protocols: string[] = []
+	const liquidablesByProtocol: { [protocol: string]: number } = {}
+	for (const protocol in chartDataBinsByProtocol) {
+		protocols.push(protocol)
+		let sum = 0
+		for (const binKey in chartDataBinsByProtocol[protocol].bins) {
+			sum += chartDataBinsByProtocol[protocol].bins[binKey]['usd']
+		}
+		liquidablesByProtocol[protocol] = sum
+	}
 
 	const chartDataBinsByChain = getChartDataBins(validPositions, currentPrice, totalBins, 'chain')
-	const chains = Object.keys(chartDataBinsByChain)
-	const liquidablesByChain = chains.reduce(
-		(acc, chain) => {
-			acc[chain] = Object.values(chartDataBinsByChain[chain].bins).reduce((a, b) => a + b['usd'], 0)
-			return acc
-		},
-		{} as { [chain: string]: number }
-	)
+	const chains: string[] = []
+	const liquidablesByChain: { [chain: string]: number } = {}
+	for (const chain in chartDataBinsByChain) {
+		chains.push(chain)
+		let sum = 0
+		for (const binKey in chartDataBinsByChain[chain].bins) {
+			sum += chartDataBinsByChain[chain].bins[binKey]['usd']
+		}
+		liquidablesByChain[chain] = sum
+	}
 
 	const dangerousPositions = validPositions.filter((p) => p.liqPrice > currentPrice * 0.8 && p.liqPrice <= currentPrice)
-	const dangerousPositionsAmount = dangerousPositions.reduce((acc, p) => acc + p.collateralValue, 0)
-	const dangerousPositionsAmountByProtocol = protocols.reduce(
-		(acc, protocol) => {
-			acc[protocol] = dangerousPositions
-				.filter((p) => p.protocol === protocol)
-				.reduce((a, p) => a + p.collateralValue, 0)
-			return acc
-		},
-		{} as { [protocol: string]: number }
-	)
-	const dangerousPositionsAmountByChain = chains.reduce(
-		(acc, chain) => {
-			acc[chain] = dangerousPositions.filter((p) => p.chain === chain).reduce((a, p) => a + p.collateralValue, 0)
-			return acc
-		},
-		{} as { [chain: string]: number }
-	)
+	let dangerousPositionsAmount = 0
+	const dangerousPositionsAmountByProtocol: { [protocol: string]: number } = {}
+	const dangerousPositionsAmountByChain: { [chain: string]: number } = {}
+	for (const protocol of protocols) {
+		dangerousPositionsAmountByProtocol[protocol] = 0
+	}
+	for (const chain of chains) {
+		dangerousPositionsAmountByChain[chain] = 0
+	}
+	for (const p of dangerousPositions) {
+		dangerousPositionsAmount += p.collateralValue
+		dangerousPositionsAmountByProtocol[p.protocol] =
+			(dangerousPositionsAmountByProtocol[p.protocol] ?? 0) + p.collateralValue
+		dangerousPositionsAmountByChain[p.chain] = (dangerousPositionsAmountByChain[p.chain] ?? 0) + p.collateralValue
+	}
 
 	const topPositions = [...validPositions]
 		.sort((a, b) => b.collateralValue - a.collateralValue)
@@ -304,7 +306,7 @@ export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS)
 }
 
 export function getReadableValue(value: number) {
-	if (typeof value !== 'number' || isNaN(value) || value === 0) return '0'
+	if (typeof value !== 'number' || Number.isNaN(value) || value === 0) return '0'
 
 	if (Math.abs(value) < 1000) {
 		return value.toPrecision(4)
@@ -563,10 +565,15 @@ export const PROTOCOL_NAMES_MAP = {
 	strike: 'Strike'
 } as const
 
-export const PROTOCOL_NAMES_MAP_REVERSE: { [name: string]: string } = Object.entries(PROTOCOL_NAMES_MAP).reduce(
-	(acc, [key, value]) => ({ ...acc, [value]: key }),
-	{}
-)
+const buildProtocolNamesMapReverse = (): { [name: string]: string } => {
+	const result: { [name: string]: string } = {}
+	for (const key in PROTOCOL_NAMES_MAP) {
+		const value = PROTOCOL_NAMES_MAP[key as keyof typeof PROTOCOL_NAMES_MAP]
+		result[value] = key
+	}
+	return result
+}
+export const PROTOCOL_NAMES_MAP_REVERSE = buildProtocolNamesMapReverse()
 
 export const sortObject = <T>(
 	unordered: { [key: string]: T },
@@ -594,10 +601,13 @@ export const getOption = (
 ) => {
 	const chartDataBins = chartData.chartDataBins[stackBy]
 	// convert chartDataBins to array
-	const chartDataBinsArray = Object.keys(chartDataBins).map((key) => ({
-		key: key,
-		data: convertChartDataBinsToArray(chartDataBins[key], 150)
-	}))
+	const chartDataBinsArray = []
+	for (const key in chartDataBins) {
+		chartDataBinsArray.push({
+			key,
+			data: convertChartDataBinsToArray(chartDataBins[key], 150)
+		})
+	}
 	let series: {
 		type: string
 		large?: boolean
@@ -636,11 +646,11 @@ export const getOption = (
 		}))
 	}
 
-	series.forEach((seriesItem) => {
+	for (const seriesItem of series) {
 		if (seriesItem.data.length === 0) {
 			seriesItem.large = false
 		}
-	})
+	}
 
 	const option: ECBasicOption = {
 		graphic: {

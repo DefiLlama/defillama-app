@@ -63,14 +63,14 @@ export function DashboardSettingsModal({
 
 	const handleAddTag = (tag: string) => {
 		const trimmedTag = tag.trim().toLowerCase()
-		if (trimmedTag && !localTags.includes(trimmedTag)) {
-			setLocalTags([...localTags, trimmedTag])
+		if (trimmedTag) {
+			setLocalTags((prev) => (prev.includes(trimmedTag) ? prev : [...prev, trimmedTag]))
 		}
 		setTagInput('')
 	}
 
 	const handleRemoveTag = (tag: string) => {
-		setLocalTags(localTags.filter((t) => t !== tag))
+		setLocalTags((prev) => prev.filter((t) => t !== tag))
 	}
 
 	const handleTagInputKeyDown = (e: React.KeyboardEvent) => {

@@ -21,6 +21,13 @@ export const CATEGORY_CARDS: CategoryCardData[] = [
 		tags: ['TVL', 'Fees', 'Revenue', 'Volume', 'Users']
 	},
 	{
+		id: 'income-statement',
+		title: 'Income Statement',
+		description: 'Financial flows with table and Sankey views for protocols with fees and revenue',
+		icon: 'file-text',
+		tags: ['Table', 'Sankey', 'Fees', 'Revenue']
+	},
+	{
 		id: 'yields',
 		title: 'Yields & Lending',
 		description: 'Supply/Borrow APY, TVL, and pool liquidity for 17000+ yield pools',

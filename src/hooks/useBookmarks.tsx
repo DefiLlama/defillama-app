@@ -1,7 +1,7 @@
 import debounce from 'lodash/debounce'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useWatchlistManager } from '~/contexts/LocalStorage'
+import { readAppStorage, readAppStorageRaw, useWatchlistManager, writeAppStorage } from '~/contexts/LocalStorage'
 import { useUserConfig } from './useUserConfig'
 
 const SYNC_DEBOUNCE_MS = 1000
@@ -13,29 +13,32 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 	const isSyncing = useRef(false)
 	const hasInitialized = useRef(false)
 
+	const syncToServer = useEffectEvent(async () => {
+		if (!isAuthenticated || !saveUserConfig || isSyncing.current) return
+
+		try {
+			isSyncing.current = true
+			// Get current localStorage data
+			const localData = readAppStorageRaw()
+			if (!localData) return
+
+			await saveUserConfig(readAppStorage())
+		} catch (error) {
+			console.log('Failed to sync watchlist to server:', error)
+		} finally {
+			setTimeout(() => {
+				isSyncing.current = false
+			}, 100)
+		}
+	})
+
 	// Debounced sync function to save to server
-	const syncToServer = useMemo(
+	const debouncedSyncToServer = useMemo(
 		() =>
-			debounce(async () => {
-				if (!isAuthenticated || !saveUserConfig || isSyncing.current) return
-
-				try {
-					isSyncing.current = true
-					// Get current localStorage data
-					const localData = localStorage.getItem('DEFILLAMA')
-					if (!localData) return
-
-					const parsed = JSON.parse(localData)
-					await saveUserConfig(parsed)
-				} catch (error) {
-					console.log('Failed to sync watchlist to server:', error)
-				} finally {
-					setTimeout(() => {
-						isSyncing.current = false
-					}, 100)
-				}
+			debounce(() => {
+				void syncToServer()
 			}, SYNC_DEBOUNCE_MS),
-		[isAuthenticated, saveUserConfig]
+		[]
 	)
 
 	// Initialize from server config on mount
@@ -46,18 +49,24 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 			type === 'defi' ? 'DEFI_WATCHLIST' : type === 'chains' ? 'CHAINS_WATCHLIST' : 'YIELDS_WATCHLIST'
 		const serverWatchlist = userConfig[watchlistKey]
 
-		if (serverWatchlist && Object.keys(serverWatchlist).length > 0) {
+		let hasServerWatchlist = false
+		if (serverWatchlist) {
+			for (const _ in serverWatchlist) {
+				hasServerWatchlist = true
+				break
+			}
+		}
+		if (serverWatchlist && hasServerWatchlist) {
 			hasInitialized.current = true
 			isSyncing.current = true
 
 			// Merge server data with local data
-			const localData = localStorage.getItem('DEFILLAMA')
-			const localParsed = localData ? JSON.parse(localData) : {}
+			const localParsed = readAppStorage()
 			const localWatchlistData = localParsed[watchlistKey] || { main: {} }
 
 			// Deep merge watchlists
 			const mergedWatchlist = { ...localWatchlistData }
-			Object.keys(serverWatchlist).forEach((portfolio) => {
+			for (const portfolio in serverWatchlist) {
 				if (!mergedWatchlist[portfolio]) {
 					mergedWatchlist[portfolio] = {}
 				}
@@ -65,15 +74,14 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 					...mergedWatchlist[portfolio],
 					...serverWatchlist[portfolio]
 				}
-			})
+			}
 
 			// Update localStorage with merged data
 			const updatedData = {
 				...localParsed,
 				[watchlistKey]: mergedWatchlist
 			}
-			localStorage.setItem('DEFILLAMA', JSON.stringify(updatedData))
-			window.dispatchEvent(new Event('storage'))
+			writeAppStorage(updatedData)
 
 			setTimeout(() => {
 				isSyncing.current = false
@@ -86,58 +94,48 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 	const addProtocol = useCallback(
 		(name: string) => {
 			localWatchlist.addProtocol(name)
-			if (isAuthenticated) {
-				syncToServer()
-			}
+			debouncedSyncToServer()
 		},
-		[localWatchlist, isAuthenticated, syncToServer]
+		[localWatchlist, debouncedSyncToServer]
 	)
 
 	const removeProtocol = useCallback(
 		(name: string) => {
 			localWatchlist.removeProtocol(name)
-			if (isAuthenticated) {
-				syncToServer()
-			}
+			debouncedSyncToServer()
 		},
-		[localWatchlist, isAuthenticated, syncToServer]
+		[localWatchlist, debouncedSyncToServer]
 	)
 
 	const addPortfolio = useCallback(
 		(name: string) => {
 			localWatchlist.addPortfolio(name)
-			if (isAuthenticated) {
-				syncToServer()
-			}
+			debouncedSyncToServer()
 		},
-		[localWatchlist, isAuthenticated, syncToServer]
+		[localWatchlist, debouncedSyncToServer]
 	)
 
 	const removePortfolio = useCallback(
 		(name: string) => {
 			localWatchlist.removePortfolio(name)
-			if (isAuthenticated) {
-				syncToServer()
-			}
+			debouncedSyncToServer()
 		},
-		[localWatchlist, isAuthenticated, syncToServer]
+		[localWatchlist, debouncedSyncToServer]
 	)
 
 	const setSelectedPortfolio = useCallback(
 		(name: string) => {
 			localWatchlist.setSelectedPortfolio(name)
-			if (isAuthenticated) {
-				syncToServer()
-			}
+			debouncedSyncToServer()
 		},
-		[localWatchlist, isAuthenticated, syncToServer]
+		[localWatchlist, debouncedSyncToServer]
 	)
 
 	useEffect(() => {
 		return () => {
-			syncToServer.cancel()
+			debouncedSyncToServer.cancel()
 		}
-	}, [syncToServer])
+	}, [debouncedSyncToServer])
 
 	return {
 		...localWatchlist,

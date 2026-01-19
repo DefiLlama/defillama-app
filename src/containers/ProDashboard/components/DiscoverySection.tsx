@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useRef, useState, useEffect } from 'react'
 import { Icon, IIcon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Dashboard } from '../services/DashboardAPI'
@@ -24,12 +24,41 @@ export function DiscoverySection({
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const [canScrollLeft, setCanScrollLeft] = useState(false)
 	const [canScrollRight, setCanScrollRight] = useState(true)
+	const rafIdRef = useRef<number | null>(null)
+	// Cache previous values to avoid unnecessary state updates
+	const prevScrollStateRef = useRef({ canScrollLeft: false, canScrollRight: true })
 
 	const updateScrollState = useCallback(() => {
-		const container = scrollContainerRef.current
-		if (!container) return
-		setCanScrollLeft(container.scrollLeft > 0)
-		setCanScrollRight(container.scrollLeft < container.scrollWidth - container.clientWidth - 10)
+		// Cancel any pending RAF to avoid stacking
+		if (rafIdRef.current) return
+
+		rafIdRef.current = requestAnimationFrame(() => {
+			rafIdRef.current = null
+			const container = scrollContainerRef.current
+			if (!container) return
+
+			// Batch read all scroll properties at once
+			const { scrollLeft, scrollWidth, clientWidth } = container
+			const newCanScrollLeft = scrollLeft > 0
+			const newCanScrollRight = scrollLeft < scrollWidth - clientWidth - 10
+
+			// Only update state if values changed
+			if (newCanScrollLeft !== prevScrollStateRef.current.canScrollLeft) {
+				prevScrollStateRef.current.canScrollLeft = newCanScrollLeft
+				setCanScrollLeft(newCanScrollLeft)
+			}
+			if (newCanScrollRight !== prevScrollStateRef.current.canScrollRight) {
+				prevScrollStateRef.current.canScrollRight = newCanScrollRight
+				setCanScrollRight(newCanScrollRight)
+			}
+		})
+	}, [])
+
+	// Cleanup RAF on unmount
+	useEffect(() => {
+		return () => {
+			if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current)
+		}
 	}, [])
 
 	const scroll = (direction: 'left' | 'right') => {
@@ -98,7 +127,10 @@ export function DiscoverySection({
 					className="no-scrollbar flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto pb-2 md:snap-none"
 				>
 					{dashboards.map((dashboard) => (
-						<div key={dashboard.id} className="w-[300px] shrink-0 snap-start scroll-ml-4 md:w-[320px] md:snap-align-none">
+						<div
+							key={dashboard.id}
+							className="w-[300px] shrink-0 snap-start scroll-ml-4 md:w-[320px] md:snap-align-none"
+						>
 							<DashboardCard dashboard={dashboard} onTagClick={onTagClick} viewMode="grid" className="h-full" />
 						</div>
 					))}

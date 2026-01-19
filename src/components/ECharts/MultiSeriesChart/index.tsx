@@ -1,6 +1,7 @@
 import * as echarts from 'echarts/core'
 import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formatTooltipValue, useDefaults } from '../useDefaults'
 import { mergeDeep } from '../utils'
 
@@ -33,15 +34,17 @@ interface IMultiSeriesChartProps {
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 
+const EMPTY_ARRAY = []
+
 export default function MultiSeriesChart({
 	series,
 	valueSymbol = '',
-	yAxisSymbols = [],
+	yAxisSymbols = EMPTY_ARRAY,
 	height,
 	chartOptions,
 	groupBy,
 	hideDataZoom = false,
-	hideDownloadButton = false,
+	hideDownloadButton: _hideDownloadButton = false,
 	alwaysShowTooltip,
 	xAxisType = 'time',
 	showAggregateInTooltip = false,
@@ -112,6 +115,9 @@ export default function MultiSeriesChart({
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
 
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
+
 	const updateChartInstance = useCallback(
 		(instance: echarts.ECharts | null) => {
 			chartRef.current = instance
@@ -126,12 +132,12 @@ export default function MultiSeriesChart({
 		const chartDom = document.getElementById(id)
 		if (!chartDom) return
 
-		let chartInstance = echarts.getInstanceByDom(chartDom)
-		if (!chartInstance) {
-			chartInstance = echarts.init(chartDom)
+		let instance = echarts.getInstanceByDom(chartDom)
+		if (!instance) {
+			instance = echarts.init(chartDom)
 		}
 
-		updateChartInstance(chartInstance)
+		updateChartInstance(instance)
 
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
@@ -191,7 +197,7 @@ export default function MultiSeriesChart({
 
 		const shouldHideDataZoom = seriesWithHallmarks.every((s: any) => s.data.length < 2) || hideDataZoom
 
-		chartInstance.setOption({
+		instance.setOption({
 			graphic,
 			tooltip:
 				showAggregateInTooltip && !alwaysShowTooltip
@@ -234,15 +240,15 @@ export default function MultiSeriesChart({
 		})
 
 		if (alwaysShowTooltip && seriesWithHallmarks.length > 0 && seriesWithHallmarks[0].data.length > 0) {
-			chartInstance.dispatchAction({
+			instance.dispatchAction({
 				type: 'showTip',
 				seriesIndex: 0,
 				dataIndex: seriesWithHallmarks[0].data.length - 1,
 				position: [60, 0]
 			})
 
-			chartInstance.on('globalout', () => {
-				chartInstance.dispatchAction({
+			instance.on('globalout', () => {
+				instance.dispatchAction({
 					type: 'showTip',
 					seriesIndex: 0,
 					dataIndex: seriesWithHallmarks[0].data.length - 1,
@@ -251,14 +257,7 @@ export default function MultiSeriesChart({
 			})
 		}
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
 			updateChartInstance(null)
 		}
 	}, [
@@ -270,7 +269,9 @@ export default function MultiSeriesChart({
 		series,
 		id,
 		updateChartInstance,
-		showAggregateInTooltip
+		showAggregateInTooltip,
+		valueSymbol,
+		yAxisSymbols
 	])
 
 	useEffect(() => {

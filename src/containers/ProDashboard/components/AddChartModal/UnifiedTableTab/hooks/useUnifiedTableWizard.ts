@@ -139,9 +139,10 @@ const reducer = (state: WizardState, action: WizardAction): WizardState => {
 				customColumns: state.customColumns
 			})
 			const customColumnIds = getOrderedCustomColumnIds(state.columnOrder, state.customColumns)
-			const customColumnVisibility = Object.fromEntries(
-				customColumnIds.map((id) => [id, state.columnVisibility[id] ?? true])
-			)
+			const customColumnVisibility: Record<string, boolean> = {}
+			for (const id of customColumnIds) {
+				customColumnVisibility[id] = state.columnVisibility[id] ?? true
+			}
 			const nextOrderSet = new Set(sanitized.order)
 			return {
 				...state,

@@ -2,10 +2,11 @@ import { SankeyChart as ESankeyChart } from 'echarts/charts'
 import { GraphicComponent, GridComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useCallback, useEffect, useId, useMemo } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
 import type { ISankeyChartProps } from '../types'
 import { formatTooltipValue } from '../useDefaults'
@@ -33,13 +34,17 @@ export default function SankeyChart({
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 	const exportFilename = imageExportFilename || (title ? title.replace(/\s+/g, '-').toLowerCase() : 'sankey-chart')
 	const exportTitle = imageExportTitle || title
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	// Create maps for node metadata (descriptions, display values, and percentage labels)
 	const nodeMetadata = useMemo(() => {
 		const descriptions: Record<string, string> = {}
 		const displayValues: Record<string, number | string> = {}
 		const percentageLabels: Record<string, string> = {}
-		nodes.forEach((node) => {
+		for (const node of nodes) {
 			if (node.description) {
 				descriptions[node.name] = node.description
 			}
@@ -49,7 +54,7 @@ export default function SankeyChart({
 			if (node.percentageLabel) {
 				percentageLabels[node.name] = node.percentageLabel
 			}
-		})
+		}
 		return { descriptions, displayValues, percentageLabels }
 	}, [nodes])
 
@@ -127,13 +132,11 @@ export default function SankeyChart({
 		}
 	}, [nodes, links, nodeColors, nodeAlign, orient, isDark, isSmall, valueSymbol, nodeMetadata])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
 
 		const graphic = {
 			type: 'image',
@@ -147,7 +150,7 @@ export default function SankeyChart({
 			top: '50%'
 		}
 
-		chartInstance.setOption({
+		instance.setOption({
 			graphic,
 			tooltip: {
 				trigger: 'item',
@@ -183,20 +186,14 @@ export default function SankeyChart({
 			series
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		handleChartReady(chartInstance)
-
-		window.addEventListener('resize', resize)
+		handleChartReady(instance)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 			handleChartReady(null)
 		}
-	}, [createInstance, series, isDark, title, valueSymbol, isSmall, handleChartReady, nodeMetadata])
+	}, [id, series, isDark, title, valueSymbol, isSmall, handleChartReady, nodeMetadata])
 
 	return (
 		<div className="relative" {...props}>

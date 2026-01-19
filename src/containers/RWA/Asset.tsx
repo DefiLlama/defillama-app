@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, useMemo } from 'react'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -33,7 +33,13 @@ const ClassificationItem = ({ label, value, positive, description }: Classificat
 		>
 			<div className="flex flex-col gap-1">
 				<span
-					className={`font-medium ${isBoolean ? (positive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400') : 'text-(--text-label)'}`}
+					className={`font-medium ${
+						isBoolean
+							? positive
+								? 'text-green-700 dark:text-green-400'
+								: 'text-red-700 dark:text-red-400'
+							: 'text-(--text-label)'
+					}`}
 				>
 					{label}
 				</span>
@@ -146,6 +152,11 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			: [asset.attestationLinks]
 		: []
 
+	const contractsEntries = useMemo(
+		() => (asset.contracts ? Object.entries(asset.contracts) : []),
+		[asset.contracts]
+	)
+
 	return (
 		<div className="flex flex-col gap-2">
 			{/* Header */}
@@ -192,6 +203,17 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					</Tooltip>
 					<span className="font-jetbrains text-xl font-semibold">
 						{formattedNum(asset.onChainMarketcap.total, true)}
+					</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<Tooltip
+						content={definitions.activeMarketcap.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						{definitions.activeMarketcap.label}
+					</Tooltip>
+					<span className="font-jetbrains text-xl font-semibold">
+						{formattedNum(asset.activeMarketcap.total, true)}
 					</span>
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
@@ -331,10 +353,10 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					</SectionCard>
 
 					{/* Contracts */}
-					{asset.contracts && (
+					{contractsEntries.length > 0 && (
 						<SectionCard title="Contracts">
 							<div className="grid grid-cols-2 gap-2">
-								{Object.entries(asset.contracts).map(([chain, contracts]) => (
+								{contractsEntries.map(([chain, contracts]) => (
 									<Fragment key={`${asset.name}-contracts-${chain}`}>
 										{contracts.map((contract) => (
 											<ContractItem

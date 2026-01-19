@@ -27,7 +27,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			return 'include'
 		}
 		const chainMode = resolveMode(chainFilterMode as string | undefined, filterMode as string | undefined)
-		const chainCategoryMode = resolveMode(chainCategoryFilterMode as string | undefined, filterMode as string | undefined)
+		const chainCategoryMode = resolveMode(
+			chainCategoryFilterMode as string | undefined,
+			filterMode as string | undefined
+		)
 		const protocolCategoryMode = resolveMode(
 			protocolCategoryFilterMode as string | undefined,
 			filterMode as string | undefined

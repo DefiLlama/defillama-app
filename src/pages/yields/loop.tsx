@@ -16,7 +16,7 @@ export const getStaticProps = withPerformanceLogging('yields/loop', async () => 
 
 	const tokens = []
 
-	cgTokens.forEach((token) => {
+	for (const token of cgTokens) {
 		if (token.symbol) {
 			tokens.push({
 				name: token.name,
@@ -25,7 +25,7 @@ export const getStaticProps = withPerformanceLogging('yields/loop', async () => 
 				fallbackLogo: token.image || null
 			})
 		}
-	})
+	}
 
 	return {
 		props: {

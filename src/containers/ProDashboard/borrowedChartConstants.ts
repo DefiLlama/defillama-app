@@ -16,6 +16,7 @@ export const BORROWED_CHART_TYPES = [
 	{ value: 'tokenBorrowedRaw', label: 'Borrowed by Token (Raw Quantities)' }
 ] as const
 
-export const BORROWED_CHART_TYPE_LABELS: Record<string, string> = Object.fromEntries(
-	BORROWED_CHART_TYPES.map(({ value, label }) => [value, label])
-)
+export const BORROWED_CHART_TYPE_LABELS: Record<string, string> = {}
+for (const { value, label } of BORROWED_CHART_TYPES) {
+	BORROWED_CHART_TYPE_LABELS[value] = label
+}

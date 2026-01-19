@@ -154,8 +154,7 @@ export function postRuntimeLogs(log: string, options?: RuntimeLogOptions): void 
 	}
 
 	// Periodic cleanup (time-throttled to avoid running on every call)
-	const shouldCleanup =
-		recentErrors.size > 500 && now - lastCleanupTime >= CLEANUP_INTERVAL_MS
+	const shouldCleanup = recentErrors.size > 500 && now - lastCleanupTime >= CLEANUP_INTERVAL_MS
 	if (shouldCleanup || recentErrors.size >= DEDUP_MAX_ENTRIES) {
 		lastCleanupTime = now
 		const cutoff = now - DEDUP_WINDOW_MS
@@ -282,13 +281,7 @@ export async function handleFetchResponse(res: Response): Promise<any> {
 	if (responseText) {
 		try {
 			const errorResponse = JSON.parse(responseText)
-			if (errorResponse.error) {
-				errorMessage = errorResponse.error
-			} else if (errorResponse.message) {
-				errorMessage = errorResponse.message
-			} else {
-				errorMessage = responseText
-			}
+			errorMessage = errorResponse.error ?? errorResponse.message ?? responseText
 		} catch {
 			errorMessage = responseText
 		}
@@ -309,13 +302,7 @@ export async function handleSimpleFetchResponse(res: Response): Promise<Response
 		if (responseText) {
 			try {
 				const errorResponse = JSON.parse(responseText)
-				if (errorResponse.error) {
-					errorMessage = errorResponse.error
-				} else if (errorResponse.message) {
-					errorMessage = errorResponse.message
-				} else {
-					errorMessage = responseText
-				}
+				errorMessage = errorResponse.error ?? errorResponse.message ?? responseText
 			} catch {
 				errorMessage = responseText
 			}

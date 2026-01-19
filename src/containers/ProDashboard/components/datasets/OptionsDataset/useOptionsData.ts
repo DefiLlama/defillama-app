@@ -10,7 +10,7 @@ export function useOptionsData(chains?: string[]) {
 			? `?${filteredChains.map((chain) => `chains=${encodeURIComponent(chain)}`).join('&')}`
 			: ''
 
-	const sortedChains = chains ? [...chains].sort() : []
+	const sortedChains = chains?.length ? [...chains].sort() : []
 
 	return useQuery({
 		queryKey: ['options-overview', sortedChains.join(',')],

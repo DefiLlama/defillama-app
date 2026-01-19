@@ -17,8 +17,8 @@ import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
-import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
-import useWindowSize from '~/hooks/useWindowSize'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { alphanumericFalsyLast } from '../../utils'
 import {
 	columnOrders,
@@ -46,6 +46,9 @@ export enum TABLE_PERIODS {
 	SEVEN_DAYS = '7d',
 	ONE_MONTH = '1m'
 }
+
+export const TABLE_CATEGORIES_VALUES = Object.values(TABLE_CATEGORIES) as Array<string>
+export const TABLE_PERIODS_VALUES = Object.values(TABLE_PERIODS) as Array<string>
 
 export const protocolsByChainTableColumns = [
 	{ name: 'Name', key: 'name' },
@@ -509,8 +512,8 @@ export function ProtocolsByChainTable({
 	useStickyHeader?: boolean
 }) {
 	const columnsInStorage = React.useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(optionsKey) ?? defaultColumns,
+		(callback) => subscribeToStorageKey(optionsKey, callback),
+		() => getStorageItem(optionsKey, defaultColumns) ?? defaultColumns,
 		() => defaultColumns
 	)
 
@@ -518,25 +521,21 @@ export function ProtocolsByChainTable({
 
 	const clearAllOptions = () => {
 		const ops = JSON.stringify(Object.fromEntries(protocolsByChainTableColumns.map((option) => [option.key, false])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(optionsKey, ops)
 	}
 	const toggleAllOptions = () => {
 		const ops = JSON.stringify(Object.fromEntries(protocolsByChainTableColumns.map((option) => [option.key, true])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(optionsKey, ops)
 	}
 
 	const addOption = (newOptions) => {
 		const ops = Object.fromEntries(protocolsByChainTableColumns.map((col) => [col.key, newOptions.includes(col.key)]))
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(optionsKey, JSON.stringify(ops))
 	}
 
 	const addOnlyOneOption = (newOption) => {
 		const ops = Object.fromEntries(protocolsByChainTableColumns.map((col) => [col.key, col.key === newOption]))
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(optionsKey, JSON.stringify(ops))
 	}
 	const setFilter = (key) => (newState) => {
 		const newOptions = Object.fromEntries(
@@ -550,8 +549,7 @@ export function ProtocolsByChainTable({
 			toggleAllOptions()
 			setFilterState(null)
 		} else {
-			window.localStorage.setItem(optionsKey, JSON.stringify(newOptions))
-			window.dispatchEvent(new Event('storage'))
+			setStorageItem(optionsKey, JSON.stringify(newOptions))
 			setFilterState(newState)
 		}
 	}
@@ -568,12 +566,12 @@ export function ProtocolsByChainTable({
 				<TagGroup
 					setValue={setFilter('category')}
 					selectedValue={filterState}
-					values={Object.values(TABLE_CATEGORIES) as Array<string>}
+					values={TABLE_CATEGORIES_VALUES}
 				/>
 				<TagGroup
 					setValue={setFilter('period')}
 					selectedValue={filterState}
-					values={Object.values(TABLE_PERIODS) as Array<string>}
+					values={TABLE_PERIODS_VALUES}
 				/>
 				<SelectWithCombobox
 					allValues={protocolsByChainTableColumns}
@@ -615,18 +613,16 @@ export function ProtocolsTableWithSearch({
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
-	const columnsData = React.useMemo(
-		() =>
-			addlColumns || removeColumns
-				? [
-						...(columnsToUse as any).filter((c) => !(removeColumns ?? []).includes((c as any).accessorKey)),
-						...(addlColumns ?? []).map((x) => protocolAddlColumns[x])
-					]
-				: columnsToUse,
-		[addlColumns, removeColumns, columnsToUse]
-	)
+	const columnsData = React.useMemo(() => {
+		if (!addlColumns && !removeColumns) return columnsToUse
+		const removeColumnsSet = removeColumns ? new Set(removeColumns) : null
+		return [
+			...(columnsToUse as any).filter((c) => !removeColumnsSet || !removeColumnsSet.has((c as any).accessorKey)),
+			...(addlColumns ?? []).map((x) => protocolAddlColumns[x])
+		]
+	}, [addlColumns, removeColumns, columnsToUse])
 
 	const instance = useReactTable({
 		data,
@@ -654,18 +650,14 @@ export function ProtocolsTableWithSearch({
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = windowSize.width
-			? (columnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
-			: defaultOrder
+		const order = columnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder
 
-		const cSize = windowSize.width
-			? columnSizesKeys.find((size) => windowSize.width > Number(size))
-			: columnSizesKeys[0]
+		const cSize = columnSizesKeys.find((size) => width > Number(size)) ?? columnSizesKeys[0]
 
 		instance.setColumnSizing(columnSizes[cSize])
 
 		instance.setColumnOrder(order)
-	}, [windowSize, instance])
+	}, [width, instance])
 
 	const [projectName, setProjectName] = React.useState('')
 

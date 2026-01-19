@@ -213,14 +213,14 @@ export const getNFTCollectionEarnings = async () => {
 			let totalMintEarnings = 0
 			let totalEarnings = 0
 
-			subCollectionEarnings.forEach((c) => {
+			for (const c of subCollectionEarnings) {
 				total24h += c.total24h ?? 0
 				total7d += c.total7d ?? 0
 				total30d += c.total30d ?? 0
 				totalRoyaltyEarnings += c.totalRoyaltyEarnings ?? 0
 				totalMintEarnings += c.totalMintEarnings ?? 0
 				totalEarnings += c.totalEarnings ?? 0
-			})
+			}
 
 			return {
 				defillamaId: subCollections.join('+'),

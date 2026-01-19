@@ -20,15 +20,15 @@ interface UnlockBreakdown {
 	unlockType: string
 }
 
+const DESCRIPTION_REGEX =
+	/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})/
+
+const parseDescription = (description: string): string => {
+	const matches = description.match(DESCRIPTION_REGEX)
+	return matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
+}
+
 export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ data, title, className }) => {
-	const regex =
-		/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1]\} tokens per week from (.+?) on {timestamp})/
-
-	const parseDescription = (description: string): string => {
-		const matches = description.match(regex)
-		return matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
-	}
-
 	const { topImpacts } = React.useMemo(() => {
 		const protocolImpacts = new Map<
 			string,
@@ -45,15 +45,15 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 			}
 		>()
 
-		data?.forEach((protocol) => {
+		for (const protocol of data ?? []) {
 			if (!protocol.historicalPrice?.length || protocol.historicalPrice.length < 8 || !protocol.lastEvent?.length)
-				return
+				continue
 
 			const now = Date.now() / 1000
 			const thirtyDaysAgo = now - 30 * 24 * 60 * 60
 
 			const lastEvents = protocol.lastEvent.filter((event) => event.timestamp >= thirtyDaysAgo)
-			if (!lastEvents.length) return
+			if (!lastEvents.length) continue
 
 			const eventsByTimestamp = lastEvents.reduce((acc, event) => {
 				const totalTokens = event.noOfTokens?.reduce((sum, amount) => sum + amount, 0) || 0
@@ -69,7 +69,11 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 				return acc
 			}, {})
 
-			const latestTimestamp = Math.max(...Object.keys(eventsByTimestamp).map(Number))
+			let latestTimestamp = -Infinity
+			for (const ts of Object.keys(eventsByTimestamp)) {
+				const num = Number(ts)
+				if (num > latestTimestamp) latestTimestamp = num
+			}
 			const latestEvent = eventsByTimestamp[latestTimestamp]
 
 			const unlockValue = latestEvent.totalTokens * protocol.tPrice
@@ -101,7 +105,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 				mcap: protocol.mcap,
 				price: protocol.tPrice
 			})
-		})
+		}
 
 		return {
 			topImpacts: Array.from(protocolImpacts.values())
@@ -195,8 +199,8 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 												</span>
 												<span className="flex items-center justify-between gap-2 text-(--text-tertiary)">
 													<span>
-														{percentage && formattedNum(percentage)}%{' '}
-														{percentageFloat && <>({formattedNum(percentageFloat)}% of float)</>}
+														{percentage != null ? <>{formattedNum(percentage)}%</> : null}{' '}
+														{percentageFloat != null ? <>({formattedNum(percentageFloat)}% of float)</> : null}
 													</span>
 													<span>
 														{formattedNum(item.amount)} {impact.symbol}

@@ -97,23 +97,35 @@ export default function Correlations({ coinsData }) {
 		const routerQuery = JSON.parse(queryParamString)
 		return routerQuery?.coin || ([] as Array<string>)
 	}, [queryParamString])
+
+	// Normalize queryCoins to always be an array for simpler filtering
+	const normalizedQueryCoins = useMemo(() => {
+		if (!queryCoins) return []
+		return Array.isArray(queryCoins) ? queryCoins : [queryCoins]
+	}, [queryCoins])
+
 	const selectedCoins = useMemo<Record<string, IResponseCGMarketsAPI>>(() => {
-		return (
-			(queryCoins &&
-				Object.fromEntries(
-					coinsData
-						.filter((coin) =>
-							Array.isArray(queryCoins) ? queryCoins.find((c) => c === coin.id) : coin.id === queryCoins
-						)
-						.map((coin) => [coin.id, coin])
-				)) ||
-			{}
-		)
-	}, [queryCoins, coinsData])
+		if (normalizedQueryCoins.length === 0) return {}
+		const queryCoinsSet = new Set(normalizedQueryCoins)
+		return Object.fromEntries(coinsData.filter((coin) => queryCoinsSet.has(coin.id)).map((coin) => [coin.id, coin]))
+	}, [normalizedQueryCoins, coinsData])
 
 	const [period, setPeriod] = useState<Period>('1y')
-	const { data: priceChart, isLoading } = usePriceCharts(Object.keys(selectedCoins))
-	const coins = Object.values(selectedCoins).filter(Boolean)
+	const selectedCoinKeys = useMemo(() => {
+		const keys: string[] = []
+		for (const key in selectedCoins) {
+			keys.push(key)
+		}
+		return keys
+	}, [selectedCoins])
+	const { data: priceChart, isLoading } = usePriceCharts(selectedCoinKeys)
+	const coins = useMemo(() => {
+		const result: typeof selectedCoins[keyof typeof selectedCoins][] = []
+		for (const key in selectedCoins) {
+			if (selectedCoins[key]) result.push(selectedCoins[key])
+		}
+		return result
+	}, [selectedCoins])
 	const correlations = useMemo(
 		() =>
 			!isLoading
@@ -183,7 +195,7 @@ export default function Correlations({ coinsData }) {
 				<div className="flex flex-col sm:flex-row">
 					<div className="no-scrollbar mr-8 flex flex-col overflow-auto">
 						<h2 className="text-lg font-medium">Selected Coins</h2>
-						{Object.values(selectedCoins).map((coin) =>
+						{coins.map((coin) =>
 							coin ? (
 								<button
 									key={coin.symbol.toUpperCase()}

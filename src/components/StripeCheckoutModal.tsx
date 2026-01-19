@@ -20,7 +20,7 @@ interface StripeCheckoutModalProps {
 	isOpen: boolean
 	onClose: () => void
 	paymentMethod: 'stripe'
-	type: 'api' | 'contributor' | 'llamafeed'
+	type: 'api' | 'llamafeed'
 	billingInterval?: 'year' | 'month'
 	isTrial?: boolean
 }

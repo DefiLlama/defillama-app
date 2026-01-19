@@ -24,6 +24,8 @@ export const yieldsColumnMetadata = {
 	ltv: { name: 'LTV', description: 'Loan-to-Value ratio - Maximum borrowing capacity' }
 }
 
+const yieldsColumnKeys = Object.keys(yieldsColumnMetadata)
+
 const columnGroups = [
 	{
 		title: 'Core Metrics',
@@ -71,16 +73,29 @@ export function YieldsColumnManagementPanel({
 	moveColumnDown
 }: YieldsColumnManagementPanelProps) {
 	const filteredColumns = React.useMemo(() => {
-		if (!searchTerm) return Object.keys(yieldsColumnMetadata)
+		if (!searchTerm) return yieldsColumnKeys
 
-		return Object.keys(yieldsColumnMetadata).filter((key) => {
+		const lowerSearch = searchTerm.toLowerCase()
+		const result: string[] = []
+		for (const key of yieldsColumnKeys) {
 			const metadata = yieldsColumnMetadata[key]
-			return (
-				metadata.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				metadata.description.toLowerCase().includes(searchTerm.toLowerCase())
-			)
-		})
+			if (
+				metadata.name.toLowerCase().includes(lowerSearch) ||
+				metadata.description.toLowerCase().includes(lowerSearch)
+			) {
+				result.push(key)
+			}
+		}
+		return result
 	}, [searchTerm])
+
+	const visibleColumnCount = React.useMemo(() => {
+		let count = 0
+		for (const k in currentColumns) {
+			if (currentColumns[k]) count++
+		}
+		return count
+	}, [currentColumns])
 
 	const ColumnButton = ({ columnKey }: { columnKey: string }) => {
 		const metadata = yieldsColumnMetadata[columnKey]
@@ -165,9 +180,9 @@ export function YieldsColumnManagementPanel({
 				<div className="flex items-center gap-2">
 					<button
 						onClick={() => {
-							Object.keys(yieldsColumnMetadata).forEach((key) => {
+							for (const key in yieldsColumnMetadata) {
 								toggleColumnVisibility(key, true)
-							})
+							}
 						}}
 						className="pro-divider pro-hover-bg pro-text2 pro-bg2 rounded-md border px-2 py-1 text-xs transition-colors"
 					>
@@ -175,9 +190,9 @@ export function YieldsColumnManagementPanel({
 					</button>
 					<button
 						onClick={() => {
-							Object.keys(yieldsColumnMetadata).forEach((key) => {
+							for (const key in yieldsColumnMetadata) {
 								toggleColumnVisibility(key, ['pool', 'project', 'chains', 'tvl'].includes(key))
-							})
+							}
 						}}
 						className="pro-divider pro-hover-bg pro-text2 pro-bg2 rounded-md border px-2 py-1 text-xs transition-colors"
 					>
@@ -206,7 +221,7 @@ export function YieldsColumnManagementPanel({
 				<div>
 					<h5 className="pro-text2 mb-2 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
 						<Icon name="eye" height={12} width={12} />
-						Active Columns ({Object.values(currentColumns).filter(Boolean).length})
+						Active Columns ({visibleColumnCount})
 					</h5>
 					<p className="pro-text3 mb-3 text-xs">Use arrows to reorder • Click × to hide</p>
 					<div className="thin-scrollbar max-h-60 space-y-1 overflow-y-auto">
@@ -249,8 +264,7 @@ export function YieldsColumnManagementPanel({
 
 			<div className="pro-divider mt-4 flex items-center justify-between border-t pt-3 text-xs">
 				<span className="pro-text3">
-					{Object.values(currentColumns).filter(Boolean).length} of {Object.keys(yieldsColumnMetadata).length} columns
-					visible
+					{visibleColumnCount} of {yieldsColumnKeys.length} columns visible
 				</span>
 				<button
 					onClick={() => setShowColumnPanel(false)}

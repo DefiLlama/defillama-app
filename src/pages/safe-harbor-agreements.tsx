@@ -11,16 +11,18 @@ import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 export async function getStaticProps() {
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const protocolMetadata = metadataCache.protocolMetadata
+
 	const [safeHarborProtocols, { protocols }]: [Record<string, boolean>, { protocols: Array<IProtocol> }] =
 		await Promise.all([
 			fetchJson('https://api.llama.fi/_fe/static/safe-harbor-projects'),
 			getProtocolsByChain({
 				chain: 'All',
-				metadata: { name: 'All', stablecoins: true, fees: true, dexs: true, perps: true, id: 'all' }
+				chainMetadata: metadataCache.chainMetadata,
+				protocolMetadata: metadataCache.protocolMetadata
 			})
 		])
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const protocolMetadata = metadataCache.protocolMetadata
 
 	const tvlByProtocol = {}
 	const feesByProtocol = {}
@@ -60,6 +62,7 @@ export async function getStaticProps() {
 }
 
 const pageName = ['Safe Harbor Agreements']
+const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
 
 export default function SafeHarborAgreements({ protocols }) {
 	return (
@@ -76,7 +79,7 @@ export default function SafeHarborAgreements({ protocols }) {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				compact
-				sortingState={[{ id: 'tvl', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)

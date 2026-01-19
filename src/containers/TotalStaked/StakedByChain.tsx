@@ -12,6 +12,8 @@ import { ITotalStakedByChainPageData } from './queries'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
+const DEFAULT_SORTING_STATE = [{ id: 'totalStaked', desc: true }]
+
 export function StakedProtocolsTVLByChain(props: ITotalStakedByChainPageData) {
 	return (
 		<>
@@ -59,7 +61,7 @@ export function StakedProtocolsTVLByChain(props: ITotalStakedByChainPageData) {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
-				sortingState={[{ id: 'totalStaked', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)

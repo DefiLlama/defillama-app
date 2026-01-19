@@ -54,14 +54,14 @@ export function PreviewStep() {
 
 	const handleAddTag = () => {
 		const tag = tagInput.trim()
-		if (tag && !state.tags.includes(tag)) {
-			actions.setTags([...state.tags, tag])
+		if (tag) {
+			actions.addTag(tag)
 		}
 		setTagInput('')
 	}
 
 	const handleRemoveTag = (tag: string) => {
-		actions.setTags(state.tags.filter((t) => t !== tag))
+		actions.removeTag(tag)
 	}
 
 	const handleTagKeyDown = (e: React.KeyboardEvent) => {

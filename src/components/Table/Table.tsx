@@ -2,10 +2,11 @@ import { flexRender, RowData, Table } from '@tanstack/react-table'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useEffectEvent, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { SortIcon } from '~/components/Table/SortIcon'
+import { useMedia } from '~/hooks/useMedia'
 import { Tooltip } from '../Tooltip'
 
 interface ITableProps {
@@ -42,6 +43,7 @@ export function VirtualTable({
 	...props
 }: ITableProps) {
 	const router = useRouter()
+	const isSmallScreen = useMedia('(max-width: 768px)')
 	const tableContainerRef = useRef<HTMLTableSectionElement>(null)
 	const { rows } = instance.getRowModel()
 
@@ -69,20 +71,23 @@ export function VirtualTable({
 
 	const hasNoVisibleColumns = visibleLeafColumns.length === 0
 
-	useEffect(() => {
-		function focusSearchBar(e: KeyboardEvent) {
-			if (!skipVirtualization && (e.ctrlKey || e.metaKey) && e.code === 'KeyF') {
-				toast.error("Native browser search isn't well supported, please use search boxes / ctrl-k / cmd-k instead", {
-					id: 'native-search-warn',
-					icon: <Icon name="alert-triangle" color="red" height={16} width={16} style={{ flexShrink: 0 }} />
-				})
-			}
+	// useEffectEvent for keyboard handler - reads skipVirtualization without re-subscribing
+	const onKeyDown = useEffectEvent((e: KeyboardEvent) => {
+		if (!skipVirtualization && (e.ctrlKey || e.metaKey) && e.code === 'KeyF') {
+			toast.error("Native browser search isn't well supported, please use search boxes / ctrl-k / cmd-k instead", {
+				id: 'native-search-warn',
+				icon: <Icon name="alert-triangle" color="red" height={16} width={16} style={{ flexShrink: 0 }} />
+			})
 		}
-		window.addEventListener('keydown', focusSearchBar)
-		return () => window.removeEventListener('keydown', focusSearchBar)
-	}, [skipVirtualization])
+	})
 
-	const onScrollOrResize = React.useCallback(() => {
+	useEffect(() => {
+		window.addEventListener('keydown', onKeyDown)
+		return () => window.removeEventListener('keydown', onKeyDown)
+	}, [])
+
+	// useEffectEvent for scroll/resize - always reads latest props without re-subscribing
+	const onScrollOrResize = useEffectEvent(() => {
 		if (!useStickyHeader) return
 
 		const tableWrapperEl = document.getElementById('table-wrapper')
@@ -95,32 +100,65 @@ export function VirtualTable({
 			tableWrapperEl.getBoundingClientRect().top <= 20 &&
 			tableHeaderDuplicate
 		) {
-			// Batch DOM writes
+			// Batch DOM reads first
 			const scrollLeft = tableWrapperEl.scrollLeft
 			const offsetWidth = tableWrapperEl.offsetWidth
 			const headerHeight = instance.getHeaderGroups().length * 45
 
-			tableHeaderRef.current.style.position = 'fixed'
-			tableHeaderRef.current.style.top = '0px'
-			tableHeaderRef.current.style.width = `${offsetWidth}px`
-			tableHeaderRef.current.style['overflow-x'] = 'overlay'
-			tableHeaderDuplicate.style.height = `${headerHeight}px`
+			// Batch DOM writes using cssText for single reflow
+			tableHeaderRef.current.style.cssText = `
+				display: flex;
+				flex-direction: column;
+				z-index: 10;
+				position: fixed;
+				top: 0px;
+				width: ${offsetWidth}px;
+				overflow-x: overlay;
+			`
+			tableHeaderDuplicate.style.cssText = `height: ${headerHeight}px;`
 			tableHeaderRef.current.scrollLeft = scrollLeft
 		} else if (tableHeaderRef.current) {
 			const offsetWidth = tableWrapperEl?.offsetWidth || 0
-			tableHeaderRef.current.style.position = 'relative'
-			tableHeaderRef.current.style.width = `${offsetWidth}px`
-			tableHeaderRef.current.style['overflow-x'] = 'initial'
-			tableHeaderDuplicate.style.height = '0px'
+			// Batch DOM writes using cssText for single reflow
+			tableHeaderRef.current.style.cssText = `
+				display: flex;
+				flex-direction: column;
+				z-index: 10;
+				position: relative;
+				width: ${offsetWidth}px;
+				overflow-x: initial;
+			`
+			if (tableHeaderDuplicate) {
+				tableHeaderDuplicate.style.cssText = 'height: 0px;'
+			}
 		}
-	}, [instance, skipVirtualization, useStickyHeader])
+	})
+
+	// useEffectEvent for table scroll - reads skipVirtualization without re-subscribing
+	const onTableScroll = useEffectEvent((tableWrapperEl: HTMLElement, isMobile: boolean) => {
+		const scrollLeft = tableWrapperEl.scrollLeft
+
+		// Sync header horizontal scroll
+		if (tableHeaderRef.current) {
+			if (!skipVirtualization) {
+				tableHeaderRef.current.scrollLeft = scrollLeft
+			} else {
+				tableHeaderRef.current.scrollLeft = 0
+			}
+		}
+
+		// Sync sticky scrollbar (desktop only)
+		if (!isMobile && stickyScrollbarRef.current) {
+			stickyScrollbarRef.current.scrollLeft = scrollLeft
+		}
+	})
 
 	// Consolidated scroll/resize handlers with RAF optimization
 	useEffect(() => {
 		const tableWrapperEl = document.getElementById('table-wrapper')
 		if (!tableWrapperEl) return
 
-		const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window
+		const isMobile = isSmallScreen || 'ontouchstart' in window
 		const stickyScrollbar = stickyScrollbarRef.current // Capture ref value for cleanup
 		let scrollRaf: number | null = null
 		let resizeTimeout: ReturnType<typeof setTimeout>
@@ -132,21 +170,7 @@ export function VirtualTable({
 
 			scrollRaf = requestAnimationFrame(() => {
 				scrollRaf = null
-				const scrollLeft = tableWrapperEl.scrollLeft
-
-				// Sync header horizontal scroll
-				if (tableHeaderRef.current) {
-					if (!skipVirtualization) {
-						tableHeaderRef.current.scrollLeft = scrollLeft
-					} else {
-						tableHeaderRef.current.scrollLeft = 0
-					}
-				}
-
-				// Sync sticky scrollbar (desktop only)
-				if (!isMobile && stickyScrollbarRef.current) {
-					stickyScrollbarRef.current.scrollLeft = scrollLeft
-				}
+				onTableScroll(tableWrapperEl, isMobile)
 			})
 		}
 
@@ -168,13 +192,36 @@ export function VirtualTable({
 					const isTableBelowViewport = tableRect.top > window.innerHeight
 
 					if (hasHorizontalScroll && isTableAboveViewport && !isTableBelowViewport) {
-						// Batch all DOM writes together
-						stickyScrollbarRef.current.style.display = 'block'
-						stickyScrollbarRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
-						stickyScrollbarRef.current.style.left = `${tableRect.left}px`
-						stickyScrollbarContentRef.current.style.width = `${tableWrapperEl.scrollWidth}px`
+						// Batch DOM reads first
+						const scrollbarWidth = tableWrapperEl.offsetWidth
+						const scrollbarLeft = tableRect.left
+						const contentWidth = tableWrapperEl.scrollWidth
+
+						// Batch DOM writes using cssText for single reflow
+						stickyScrollbarRef.current.style.cssText = `
+							position: fixed;
+							bottom: 0;
+							height: 12px;
+							overflow-x: auto;
+							overflow-y: hidden;
+							z-index: 999;
+							background-color: var(--cards-bg);
+							display: block;
+							width: ${scrollbarWidth}px;
+							left: ${scrollbarLeft}px;
+						`
+						stickyScrollbarContentRef.current.style.cssText = `height: 1px; width: ${contentWidth}px;`
 					} else {
-						stickyScrollbarRef.current.style.display = 'none'
+						stickyScrollbarRef.current.style.cssText = `
+							position: fixed;
+							bottom: 0;
+							height: 12px;
+							overflow-x: auto;
+							overflow-y: hidden;
+							z-index: 999;
+							background-color: var(--cards-bg);
+							display: none;
+						`
 					}
 				}
 			})
@@ -220,7 +267,7 @@ export function VirtualTable({
 				stickyScrollbar.removeEventListener('scroll', handleStickyScroll)
 			}
 		}
-	}, [skipVirtualization, onScrollOrResize, totalTableWidth, rows.length])
+	}, [totalTableWidth, rows.length, isSmallScreen])
 
 	if (hasNoVisibleColumns) {
 		return (

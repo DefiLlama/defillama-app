@@ -1,9 +1,10 @@
-import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { getStorageItem, removeStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import pb from '~/utils/pocketbase'
 
@@ -48,39 +49,20 @@ interface Credits {
 	maxCredits: number
 	monthKey: string
 }
-const defaultInactiveSubscription: SubscriptionResponse = {
-	subscription: {
-		status: 'inactive',
-		id: '',
-		PK: '',
-		checkoutUrl: '',
-		updatedAt: '',
-		expires_at: '',
-		type: '',
-		provider: ''
-	}
+const defaultInactiveSubscription: Subscription = {
+	status: 'inactive',
+	id: '',
+	PK: '',
+	checkoutUrl: '',
+	updatedAt: '',
+	expires_at: '',
+	type: '',
+	provider: ''
 }
-
-const SUBSCRIPTION_TYPES = ['api', 'llamafeed', 'legacy'] as const
 
 const API_KEY_LOCAL_STORAGE_KEY = 'pro_apikey'
-const API_KEY_CHANGE_LISTENER_KEY = 'apiKeyChange'
 
-function subscribeToApiKeyInLocalStorage(callback: () => void) {
-	window.addEventListener(API_KEY_CHANGE_LISTENER_KEY, callback)
-
-	return () => {
-		window.removeEventListener(API_KEY_CHANGE_LISTENER_KEY, callback)
-	}
-}
-
-async function fetchSubscription({
-	type,
-	isAuthenticated
-}: {
-	type: 'api' | 'llamafeed' | 'legacy'
-	isAuthenticated: boolean
-}): Promise<SubscriptionResponse> {
+async function fetchSubscription({ isAuthenticated }: { isAuthenticated: boolean }): Promise<Subscription> {
 	if (!isAuthenticated) {
 		return defaultInactiveSubscription
 	}
@@ -91,20 +73,16 @@ async function fetchSubscription({
 			headers: {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${pb.authStore.token}`
-			},
-			body: JSON.stringify({ subscriptionType: type })
+			}
 		})
 
 		if (!response.ok) {
 			return defaultInactiveSubscription
 		}
 
-		const data = await response.json()
-		if (type === 'llamafeed' && (data?.subscription?.type === 'api' || data?.subscription?.type === 'legacy')) {
-			return defaultInactiveSubscription
-		}
+		const data: SubscriptionResponse = await response.json()
 
-		return data
+		return data?.subscription
 	} catch (error) {
 		console.log('Error fetching subscription:', error)
 		return defaultInactiveSubscription
@@ -145,81 +123,78 @@ export const useSubscribe = () => {
 		}
 	})
 
-	const handleSubscribe = async (
-		paymentMethod: 'stripe' | 'llamapay',
-		type: 'api' | 'contributor' | 'llamafeed',
-		onSuccess?: (checkoutUrl: string) => void,
-		billingInterval: 'year' | 'month' = 'month',
-		useEmbedded: boolean = false,
-		isTrial: boolean = false
-	) => {
-		if (!isAuthenticated) {
-			toast.error('Please sign in to subscribe')
-			return
-		}
-
-		try {
-			if (paymentMethod === 'stripe') {
-				setIsPayingWithStripe(true)
-			} else {
-				setIsPayingWithLlamapay(true)
+	const handleSubscribe = useCallback(
+		async (
+			paymentMethod: 'stripe' | 'llamapay',
+			type: 'api' | 'llamafeed',
+			onSuccess?: (checkoutUrl: string) => void,
+			billingInterval: 'year' | 'month' = 'month',
+			useEmbedded: boolean = false,
+			isTrial: boolean = false
+		) => {
+			if (!isAuthenticated) {
+				toast.error('Please sign in to subscribe')
+				return
 			}
 
-			const subscriptionData: SubscriptionRequest = {
-				redirectUrl: `${window.location.origin}/subscription?subscription=success`,
-				cancelUrl: `${window.location.origin}/subscription?subscription=cancelled`,
-				provider: paymentMethod,
-				subscriptionType: type || 'api',
-				billingInterval,
-				isTrial
+			try {
+				if (paymentMethod === 'stripe') {
+					setIsPayingWithStripe(true)
+				} else {
+					setIsPayingWithLlamapay(true)
+				}
+
+				const subscriptionData: SubscriptionRequest = {
+					redirectUrl: `${window.location.origin}/subscription?subscription=success`,
+					cancelUrl: `${window.location.origin}/subscription?subscription=cancelled`,
+					provider: paymentMethod,
+					subscriptionType: type || 'api',
+					billingInterval,
+					isTrial
+				}
+
+				queryClient.setQueryData(['subscription', user?.id], defaultInactiveSubscription)
+				queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
+
+				const result = await createSubscription.mutateAsync(subscriptionData)
+
+				// For embedded mode, return the result instead of redirecting
+				if (useEmbedded) {
+					return result
+				}
+
+				// Navigate to checkout URL in same window
+				if (result.checkoutUrl) {
+					onSuccess?.(result.checkoutUrl)
+					window.location.href = result.checkoutUrl
+				}
+			} catch (error) {
+				console.log('Subscription error:', error)
+				throw error
+			} finally {
+				setIsPayingWithStripe(false)
+				setIsPayingWithLlamapay(false)
 			}
+		},
+		[isAuthenticated, queryClient, user?.id, createSubscription]
+	)
 
-			queryClient.setQueryData(['subscription', user?.id, type], defaultInactiveSubscription)
-			queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
-
-			const result = await createSubscription.mutateAsync(subscriptionData)
-
-			// For embedded mode, return the result instead of redirecting
-			if (useEmbedded) {
-				return result
-			}
-
-			// Navigate to checkout URL in same window
-			if (result.checkoutUrl) {
-				onSuccess?.(result.checkoutUrl)
-				window.location.href = result.checkoutUrl
-			}
-		} catch (error) {
-			console.log('Subscription error:', error)
-			throw error
-		} finally {
-			setIsPayingWithStripe(false)
-			setIsPayingWithLlamapay(false)
-		}
-	}
-
-	const subscriptionsQueries = useQueries({
-		queries: SUBSCRIPTION_TYPES.map((type) => ({
-			queryKey: ['subscription', user?.id, type],
-			queryFn: () => fetchSubscription({ type, isAuthenticated }),
-			retry: false,
-			refetchOnWindowFocus: false,
-			enabled: isAuthenticated,
-			staleTime: 1000 * 60 * 15
-		}))
+	const subscriptionQuery = useQuery({
+		queryKey: ['subscription', user?.id],
+		queryFn: () => fetchSubscription({ isAuthenticated }),
+		retry: false,
+		refetchOnWindowFocus: false,
+		enabled: isAuthenticated,
+		staleTime: 1000 * 60 * 15
 	})
 
-	const apiSubscription = subscriptionsQueries[0]?.data
-	const llamafeedSubscription = subscriptionsQueries[1]?.data
-	const legacySubscription = subscriptionsQueries[2]?.data
+	const subscriptionData = subscriptionQuery?.data ?? null
 
-	const subscriptionData = useMemo(() => {
-		return (
-			[apiSubscription, llamafeedSubscription, legacySubscription].find(
-				(subscription) => subscription?.subscription?.status === 'active'
-			)?.subscription ?? null
-		)
-	}, [apiSubscription, llamafeedSubscription, legacySubscription])
+	const apiSubscription = subscriptionData?.type === 'api' ? subscriptionData : defaultInactiveSubscription
+
+	const llamafeedSubscription = subscriptionData?.type === 'llamafeed' ? subscriptionData : defaultInactiveSubscription
+
+	const legacySubscription = subscriptionData?.provider === 'legacy' ? subscriptionData : defaultInactiveSubscription
 
 	useEffect(() => {
 		if (subscriptionData?.status === 'active' && !user?.has_active_subscription) {
@@ -227,8 +202,8 @@ export const useSubscribe = () => {
 		}
 	}, [subscriptionData?.status, user?.has_active_subscription, queryClient])
 
-	const isSubscriptionLoading = subscriptionsQueries.some((query) => query.isLoading) && subscriptionData == null
-	const isSubscriptionError = subscriptionsQueries.some((query) => query.isError) && !subscriptionData
+	const isSubscriptionLoading = subscriptionQuery.isLoading && subscriptionData == null
+	const isSubscriptionError = subscriptionQuery.isError && !subscriptionData
 
 	const trialAvailabilityQuery = useQuery({
 		queryKey: ['trialAvailable', user?.id],
@@ -253,10 +228,13 @@ export const useSubscribe = () => {
 					.then(handleSimpleFetchResponse)
 					.then((res) => res.json())
 				const newApiKey = data.apiKey?.api_key ?? null
-				const currentApiKey = window.localStorage.getItem(API_KEY_LOCAL_STORAGE_KEY)
+				const currentApiKey = getStorageItem(API_KEY_LOCAL_STORAGE_KEY, null)
 				if (newApiKey !== currentApiKey) {
-					window.localStorage.setItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
-					window.dispatchEvent(new Event(API_KEY_CHANGE_LISTENER_KEY))
+					if (newApiKey === null) {
+						removeStorageItem(API_KEY_LOCAL_STORAGE_KEY)
+					} else {
+						setStorageItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
+					}
 				}
 				return newApiKey
 			} catch (error) {
@@ -265,7 +243,7 @@ export const useSubscribe = () => {
 		},
 		staleTime: 24 * 60 * 60 * 1000, // 24 hours
 		refetchOnWindowFocus: false,
-		enabled: isAuthenticated && apiSubscription?.subscription?.status === 'active' && router.pathname === '/account'
+		enabled: isAuthenticated && apiSubscription?.status === 'active' && router.pathname === '/account'
 	})
 
 	const generateNewKeyMutation = useMutation({
@@ -277,10 +255,13 @@ export const useSubscribe = () => {
 					.then(handleSimpleFetchResponse)
 					.then((res) => res.json())
 				const newApiKey = data.apiKey ?? null
-				const currentApiKey = window.localStorage.getItem(API_KEY_LOCAL_STORAGE_KEY)
+				const currentApiKey = getStorageItem(API_KEY_LOCAL_STORAGE_KEY, null)
 				if (newApiKey !== currentApiKey) {
-					window.localStorage.setItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
-					window.dispatchEvent(new Event(API_KEY_CHANGE_LISTENER_KEY))
+					if (newApiKey === null) {
+						removeStorageItem(API_KEY_LOCAL_STORAGE_KEY)
+					} else {
+						setStorageItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
+					}
 				}
 				return newApiKey
 			} catch (error) {
@@ -290,8 +271,8 @@ export const useSubscribe = () => {
 	})
 
 	const apiKey = useSyncExternalStore(
-		subscribeToApiKeyInLocalStorage,
-		() => localStorage.getItem(API_KEY_LOCAL_STORAGE_KEY) ?? null,
+		(callback) => subscribeToStorageKey(API_KEY_LOCAL_STORAGE_KEY, callback),
+		() => getStorageItem(API_KEY_LOCAL_STORAGE_KEY, null),
 		() => null
 	)
 
@@ -302,14 +283,6 @@ export const useSubscribe = () => {
 	} = useQuery<Credits>({
 		queryKey: ['credits', user?.id, apiKey],
 		queryFn: async () => {
-			if (!isAuthenticated) {
-				throw new Error('Not authenticated')
-			}
-
-			if (router.pathname !== '/account') {
-				return { credits: 0, maxCredits: 0, monthKey: '' }
-			}
-
 			const data = await authorizedFetch(`${AUTH_SERVER}/user/credits`, {
 				method: 'GET'
 			})
@@ -324,7 +297,7 @@ export const useSubscribe = () => {
 		retry: false
 	})
 
-	const createPortalSessionMutation = useMutation({
+	const { mutateAsync: createPortalSessionAsync, isPending: isPortalSessionLoading } = useMutation({
 		mutationFn: async () => {
 			if (!isAuthenticated) {
 				throw new Error('Not authenticated')
@@ -357,13 +330,13 @@ export const useSubscribe = () => {
 		}
 	})
 
-	const createPortalSession = async () => {
+	const createPortalSession = useCallback(async () => {
 		if (!isAuthenticated) {
 			return null
 		}
 
 		try {
-			const url = await createPortalSessionMutation.mutateAsync()
+			const url = await createPortalSessionAsync()
 			if (url) {
 				window.location.href = url
 			}
@@ -371,9 +344,9 @@ export const useSubscribe = () => {
 		} catch {
 			return null
 		}
-	}
+	}, [isAuthenticated, createPortalSessionAsync])
 
-	const endTrialSubscription = async () => {
+	const endTrialSubscription = useCallback(async () => {
 		if (!isAuthenticated) {
 			throw new Error('Not authenticated')
 		}
@@ -397,16 +370,16 @@ export const useSubscribe = () => {
 			console.log('End trial subscription error:', error)
 			throw error
 		}
-	}
+	}, [isAuthenticated, authorizedFetch, queryClient])
 
-	const getPortalSessionUrl = async () => {
+	const getPortalSessionUrl = useCallback(async () => {
 		if (!isAuthenticated) {
 			throw new Error('Not authenticated')
 		}
 
-		const url = await createPortalSessionMutation.mutateAsync()
+		const url = await createPortalSessionAsync()
 		return url
-	}
+	}, [isAuthenticated, createPortalSessionAsync])
 
 	const enableOverageMutation = useMutation({
 		mutationFn: async () => {
@@ -431,7 +404,7 @@ export const useSubscribe = () => {
 		},
 		onSuccess: () => {
 			toast.success('Overage has been enabled successfully')
-			queryClient.invalidateQueries({ queryKey: ['subscription', user?.id, 'api'] })
+			queryClient.invalidateQueries({ queryKey: ['subscription', user?.id] })
 		},
 		onError: (error) => {
 			console.log('Failed to enable overage:', error)
@@ -439,13 +412,13 @@ export const useSubscribe = () => {
 		}
 	})
 
-	const enableOverage = async () => {
+	const enableOverage = useCallback(async () => {
 		if (!isAuthenticated) {
 			toast.error('Please sign in to enable overage')
 			return
 		}
 
-		if (apiSubscription ? apiSubscription.subscription.status !== 'active' : true) {
+		if (apiSubscription.status !== 'active') {
 			toast.error('No active API subscription found')
 			return
 		}
@@ -455,13 +428,13 @@ export const useSubscribe = () => {
 		} catch (error) {
 			console.log('Enable overage error:', error)
 		}
-	}
+	}, [isAuthenticated, apiSubscription.status, enableOverageMutation])
 
 	return {
 		handleSubscribe,
 		isLoading: createSubscription.isPending,
 		error: createSubscription.error,
-		subscription: subscriptionData ?? defaultInactiveSubscription.subscription,
+		subscription: subscriptionData ?? defaultInactiveSubscription,
 		hasActiveSubscription: subscriptionData?.status === 'active',
 		loading: isPayingWithStripe ? 'stripe' : isPayingWithLlamapay ? 'llamapay' : null,
 		isSubscriptionLoading,
@@ -475,13 +448,12 @@ export const useSubscribe = () => {
 		getPortalSessionUrl,
 		createPortalSession,
 		endTrialSubscription,
-		isPortalSessionLoading: createPortalSessionMutation.isPending,
+		isPortalSessionLoading,
 		enableOverage,
 		isEnableOverageLoading: enableOverageMutation.isPending,
-		isContributor: false,
-		apiSubscription: apiSubscription?.subscription,
-		llamafeedSubscription: llamafeedSubscription?.subscription,
-		legacySubscription: legacySubscription?.subscription,
+		apiSubscription: apiSubscription,
+		llamafeedSubscription: llamafeedSubscription,
+		legacySubscription: legacySubscription,
 		isTrialAvailable: trialAvailabilityQuery.data?.trialAvailable ?? false
 	}
 }

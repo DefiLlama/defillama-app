@@ -101,9 +101,9 @@ export async function fetchChainMcaps(chains: Array<[string, string]>) {
 
 	// Merge all results into a single object
 	const mergedMcaps = {}
-	batchResults.forEach((batchResult) => {
+	for (const batchResult of batchResults) {
 		Object.assign(mergedMcaps, batchResult)
-	})
+	}
 
 	return validChains.reduce((acc, [chain, geckoId]) => {
 		if (mergedMcaps[`coingecko:${geckoId}`]) {
@@ -142,9 +142,9 @@ export async function fetchCoinPrices(coins: Array<string>) {
 
 	// Merge all results into a single object
 	const mergedPrices = {}
-	batchResults.forEach((batchResult) => {
+	for (const batchResult of batchResults) {
 		Object.assign(mergedPrices, batchResult)
-	})
+	}
 
 	return coins.reduce(
 		(acc, coin) => {

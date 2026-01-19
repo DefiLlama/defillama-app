@@ -14,7 +14,8 @@ import { withPerformanceLogging } from '~/utils/perf'
 const adapterType = ADAPTER_TYPES.FEES
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
-	const data = await getChainsByREVPageData()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const data = await getChainsByREVPageData({ chainMetadata: metadataCache.chainMetadata })
 
 	return {
 		props: data,
@@ -23,6 +24,7 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 })
 
 const pageName = ['Chains', 'ranked by', 'REV']
+const DEFAULT_SORTING_STATE = [{ id: 'total24h', desc: true }]
 
 const REVByChain = (props: IChainsByREVPageData) => {
 	return (
@@ -41,7 +43,7 @@ const REVByChain = (props: IChainsByREVPageData) => {
 				header="Protocol Rankings"
 				rowSize={64}
 				compact
-				sortingState={[{ id: 'total24h', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)

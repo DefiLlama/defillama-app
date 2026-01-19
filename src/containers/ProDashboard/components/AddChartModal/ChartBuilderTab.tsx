@@ -18,6 +18,10 @@ import { ChartBuilderConfig } from './types'
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 const TreeMapBuilderChart = lazy(() => import('~/components/ECharts/TreeMapBuilderChart'))
 
+const EMPTY_PROTOCOLS: any[] = []
+const EMPTY_CATEGORIES: string[] = []
+const EMPTY_SELECT_OPTIONS: Array<{ value: string; label: string }> = []
+
 const DEFAULT_SERIES_COLOR = '#3366ff'
 const HEX_COLOR_REGEX = /^#([0-9a-f]{3}){1,2}$/i
 
@@ -134,7 +138,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		queryFn: async () => {
 			const response = await fetch(PROTOCOLS_API)
 			const data = await response.json()
-			return data.protocols || []
+			return data.protocols ?? EMPTY_PROTOCOLS
 		},
 		staleTime: 60 * 60 * 1000
 	})
@@ -144,19 +148,19 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		queryFn: async () => {
 			const res = await fetch(CHAINS_API_V2)
 			const data = await res.json()
-			return (data?.categories as string[]) || []
+			return (data?.categories as string[]) ?? EMPTY_CATEGORIES
 		},
 		staleTime: 60 * 60 * 1000
 	})
 
 	const categoryOptions = useMemo(() => {
-		if (!protocols) return []
+		if (!protocols) return EMPTY_SELECT_OPTIONS
 		const categoriesSet = new Set<string>()
-		protocols.forEach((protocol: any) => {
+		for (const protocol of protocols as any[]) {
 			if (protocol.category) {
 				categoriesSet.add(protocol.category)
 			}
-		})
+		}
 		return Array.from(categoriesSet)
 			.sort()
 			.map((cat) => ({
@@ -164,6 +168,11 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 				label: cat
 			}))
 	}, [protocols])
+
+	const chainCategoryOptions = useMemo(
+		() => (chainCategoriesList ?? EMPTY_CATEGORIES).map((c) => ({ value: c, label: c })),
+		[chainCategoriesList]
+	)
 
 	const metricOptions = useMemo(() => {
 		return METRIC_OPTIONS.filter(
@@ -273,7 +282,11 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 	})
 
 	const seriesColors = useRef<Record<string, string>>(chartBuilder.seriesColors || {})
-	const hasCustomSeriesColors = Object.keys(seriesColors.current).length > 0
+	let hasCustomSeriesColors = false
+	for (const _ in seriesColors.current) {
+		hasCustomSeriesColors = true
+		break
+	}
 
 	const visibleSeries = useMemo(() => {
 		if (!previewData?.series) {
@@ -353,7 +366,6 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		if (!metric || metaLoading || metaError) return protocolOptions
 		return protocolOptions.filter((opt) => hasProtocolBuilderMetric(opt.value, metric))
 	}, [protocolOptions, chartBuilder.mode, chartBuilder.metric, hasProtocolBuilderMetric, metaLoading, metaError])
-
 
 	const handleMetricChange = (option: any) => {
 		const newMetric = option?.value || 'tvl'
@@ -518,7 +530,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 			</div>
 
 			<div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
-				<div className="max-h-[calc(100vh-200px)] w-full flex-shrink-0 space-y-1.5 overflow-x-visible overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 lg:w-[320px] xl:w-[360px]">
+				<div className="max-h-[calc(100vh-200px)] w-full shrink-0 space-y-1.5 overflow-x-visible overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 lg:w-[320px] xl:w-[360px]">
 					<h3 className="pro-text1 text-[11px] font-semibold">Chart Configuration</h3>
 
 					<div>
@@ -694,7 +706,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 										<AriakitMultiSelect
 											label="Protocol Categories"
 											options={categoryOptions}
-											selectedValues={chartBuilder.protocolCategories || []}
+											selectedValues={chartBuilder.protocolCategories ?? EMPTY_CATEGORIES}
 											onChange={handleProtocolCategoriesChange}
 											placeholder={
 												protocolCategoryFilterMode === 'exclude'
@@ -713,11 +725,8 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 									</div>
 									<AriakitMultiSelect
 										label="Chain Categories"
-										options={(chainCategoriesList || []).map((c) => ({
-											value: c,
-											label: c
-										}))}
-										selectedValues={chartBuilder.chainCategories || []}
+										options={chainCategoryOptions}
+										selectedValues={chartBuilder.chainCategories ?? EMPTY_CATEGORIES}
 										onChange={handleChainCategoriesChange}
 										placeholder={
 											chainCategoryFilterMode === 'exclude'
@@ -817,7 +826,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 				</div>
 
 				<div className="flex min-h-0 flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<div className="mb-2 flex flex-shrink-0 items-center justify-between">
+					<div className="mb-2 flex shrink-0 items-center justify-between">
 						<h3 className="pro-text1 text-xs font-semibold">Preview</h3>
 						<div className="pro-text3 flex items-center gap-1 text-[10px]">
 							<span>ⓘ</span>
@@ -854,7 +863,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 													filteredSeries = filteredSeries.map((s) => {
 														const aggregatedData: Map<number, number> = new Map()
 
-														s.data.forEach(([timestamp, value]: [number, number]) => {
+														for (const [timestamp, value] of s.data as [number, number][]) {
 															const date = new Date(timestamp * 1000)
 															const weekDate = new Date(date)
 															const day = weekDate.getDay()
@@ -864,7 +873,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 															const weekKey = Math.floor(weekDate.getTime() / 1000)
 
 															aggregatedData.set(weekKey, (aggregatedData.get(weekKey) || 0) + value)
-														})
+														}
 
 														return {
 															...s,
@@ -875,11 +884,11 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 
 												if (chartBuilder.displayAs === 'percentage') {
 													const timestampTotals = new Map<number, number>()
-													filteredSeries.forEach((s) => {
-														s.data.forEach(([timestamp, value]) => {
+													for (const s of filteredSeries) {
+														for (const [timestamp, value] of s.data) {
 															timestampTotals.set(timestamp, (timestampTotals.get(timestamp) || 0) + value)
-														})
-													})
+														}
+													}
 
 													return filteredSeries.map((s) => ({
 														name: s.name,
@@ -935,9 +944,13 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 												},
 												tooltip: {
 													formatter: function (params: any) {
-														const chartdate = new Date(params[0].value[0]).toLocaleDateString()
+														const rawTimestamp = params[0].value[0]
+														const millis = rawTimestamp < 10000000000 ? rawTimestamp * 1000 : rawTimestamp
+														const chartdate = new Date(millis).toLocaleDateString()
 
-														let filteredParams = params.filter((item: any) => item.value[1] !== '-' && item.value[1])
+														let filteredParams = params.filter(
+															(item: any) => item.value[1] !== '-' && item.value[1] !== null && item.value[1] !== undefined
+														)
 														filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
 
 														const formatValue = (value: number) => {
@@ -1058,7 +1071,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 						</div>
 					)}
 
-					<div className="pro-bg2 mt-2 flex-shrink-0 rounded p-2">
+					<div className="pro-bg2 mt-2 shrink-0 rounded p-2">
 						<div className="flex items-start gap-1">
 							<span className="pro-text3 text-[10px]">ⓘ</span>
 							<p className="pro-text3 text-[10px] leading-relaxed">

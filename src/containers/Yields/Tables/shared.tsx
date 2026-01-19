@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { VirtualTable } from '~/components/Table/Table'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 
 interface IYieldsTableWrapper {
 	data: any
@@ -38,7 +38,7 @@ export const YieldsTableWrapper = ({
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data,
@@ -60,18 +60,14 @@ export const YieldsTableWrapper = ({
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = windowSize.width
-			? (columnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
-			: defaultOrder
+		const order = columnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder
 
-		const cSize = windowSize.width
-			? columnSizesKeys.find((size) => windowSize.width > Number(size))
-			: columnSizesKeys[0]
+		const cSize = columnSizesKeys.find((size) => width > Number(size)) ?? columnSizesKeys[0]
 
 		instance.setColumnSizing(columnSizes[cSize])
 
 		instance.setColumnOrder(order)
-	}, [windowSize, instance, columnSizes, columnSizesKeys, columnOrders])
+	}, [width, instance, columnSizes, columnSizesKeys, columnOrders])
 
 	return (
 		<span className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

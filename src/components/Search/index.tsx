@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { LoadingDots } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { useDebounce } from '~/hooks/useDebounce'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
 import { Icon } from '../Icon'
@@ -327,7 +327,7 @@ const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: bo
 const setRecentSearch = (route: ISearchItem) => {
 	const recentSearch = window.localStorage.getItem('recentSearch')
 	const recentSearchArray = JSON.parse(recentSearch ?? '[]')
-	window.localStorage.setItem(
+	setStorageItem(
 		'recentSearch',
 		JSON.stringify([route, ...recentSearchArray.filter((r: ISearchItem) => r.route !== route.route).slice(0, 2)])
 	)
@@ -343,8 +343,8 @@ const useDefaultSearchList = () => {
 	})
 
 	const recentSearch = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => window.localStorage.getItem('recentSearch') ?? '[]',
+		(callback) => subscribeToStorageKey('recentSearch', callback),
+		() => getStorageItem('recentSearch', '[]') ?? '[]',
 		() => '[]'
 	)
 

@@ -17,19 +17,50 @@ import { NextRouter, useRouter } from 'next/router'
 import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IPieChartProps } from '~/components/ECharts/types'
+import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
 import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
-import useWindowSize from '~/hooks/useWindowSize'
-import definitions from '~/public/rwa-definitions.json'
+import { CHART_COLORS } from '~/constants/colors'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
+import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
 import { IRWAAssetsOverview } from './queries'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+
+type RWADefinitions = typeof rwaDefinitionsJson & {
+	totalOnChainMarketcap: { label: string; description: string }
+	totalActiveMarketcap: { label: string; description: string }
+	totalDefiActiveTvl: { label: string; description: string }
+}
+
+const definitions = rwaDefinitionsJson as RWADefinitions
+
+const meetsRatioPercent = (
+	numerator: number,
+	denominator: number,
+	minPercent: number | null,
+	maxPercent: number | null
+) => {
+	if (minPercent == null && maxPercent == null) return true
+	if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator <= 0) return false
+	const percent = (numerator / denominator) * 100
+	if (minPercent != null && percent < minPercent) return false
+	if (maxPercent != null && percent > maxPercent) return false
+	return true
+}
+
+const formatPercentRange = (minPercent: number | null, maxPercent: number | null) => {
+	const minLabel = minPercent != null ? `${minPercent.toLocaleString()}%` : 'no min'
+	const maxLabel = maxPercent != null ? `${maxPercent.toLocaleString()}%` : 'no max'
+	return `${minLabel} - ${maxLabel}`
+}
 
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -44,6 +75,12 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
+		minDefiActiveTvlToOnChainPct,
+		maxDefiActiveTvlToOnChainPct,
+		minActiveMcapToOnChainPct,
+		maxActiveMcapToOnChainPct,
+		minDefiActiveTvlToActiveMcapPct,
+		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
 		includeGovernance,
 		setSelectedCategories,
@@ -51,6 +88,9 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		setSelectedRwaClassifications,
 		setSelectedAccessModels,
 		setSelectedIssuers,
+		setDefiActiveTvlToOnChainPctRange,
+		setActiveMcapToOnChainPctRange,
+		setDefiActiveTvlToActiveMcapPctRange,
 		setIncludeStablecoins,
 		setIncludeGovernance,
 		selectOnlyOneCategory,
@@ -76,99 +116,15 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		issuers: props.issuers
 	})
 
-	// Recalculate summary values based on all filters
-	const { totalOnChainRwaValue, totalOnChainStablecoinValue, totalOnChainDeFiActiveTvl, issuersCount } = useMemo(() => {
-		// Filter assets based on all filters
-		const filteredAssets = props.assets.filter((asset) => {
-			if (!includeStablecoins && asset.stablecoin) return false
-			if (!includeGovernance && asset.governance) return false
-			return (
-				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
-				(asset.assetClass?.length
-					? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
-					: true) &&
-				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
-				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
-				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
-			)
-		})
-
-		let rwaValue = 0
-		let stablecoinValue = 0
-		let defiTvl = 0
-		const issuersSet = new Set<string>()
-
-		for (const asset of filteredAssets) {
-			rwaValue += asset.onChainMarketcap.total
-			if (asset.stablecoin) {
-				stablecoinValue += asset.onChainMarketcap.total
-			}
-			defiTvl += asset.defiActiveTvl.total
-			if (asset.issuer) {
-				issuersSet.add(asset.issuer)
-			}
-		}
-
-		return {
-			totalOnChainRwaValue: rwaValue,
-			totalOnChainStablecoinValue: stablecoinValue,
-			totalOnChainDeFiActiveTvl: defiTvl,
-			issuersCount: issuersSet.size
-		}
-	}, [
-		props.assets,
-		selectedCategories,
-		selectedAssetClasses,
-		selectedRwaClassifications,
-		selectedAccessModels,
-		selectedIssuers,
-		includeStablecoins,
-		includeGovernance
-	])
-
-	// Pie chart data - recalculate category values based on all filters
-	const pieChartData = useMemo(() => {
-		// Filter assets based on all filters (same as filteredAssets but we need to calculate category breakdown)
-		const filteredForPie = props.assets.filter((asset) => {
-			if (!includeStablecoins && asset.stablecoin) return false
-			if (!includeGovernance && asset.governance) return false
-			return (
-				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
-				(asset.assetClass?.length
-					? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
-					: true) &&
-				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
-				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
-				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
-			)
-		})
-
-		// Build category breakdown from filtered assets
-		const categoryMap = new Map<string, number>()
-		for (const asset of filteredForPie) {
-			asset.category?.forEach((category) => {
-				if (category && selectedCategories.includes(category)) {
-					categoryMap.set(category, (categoryMap.get(category) ?? 0) + asset.onChainMarketcap.total)
-				}
-			})
-		}
-
-		return Array.from(categoryMap.entries())
-			.sort((a, b) => b[1] - a[1])
-			.map(([name, value]) => ({ name, value }))
-	}, [
-		props.assets,
-		selectedCategories,
-		selectedAssetClasses,
-		selectedRwaClassifications,
-		selectedAccessModels,
-		selectedIssuers,
-		includeStablecoins,
-		includeGovernance
-	])
-
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
+
+	// Memoize filter arrays as Sets for O(1) lookups
+	const selectedCategoriesSet = useMemo(() => new Set(selectedCategories), [selectedCategories])
+	const selectedAssetClassesSet = useMemo(() => new Set(selectedAssetClasses), [selectedAssetClasses])
+	const selectedRwaClassificationsSet = useMemo(() => new Set(selectedRwaClassifications), [selectedRwaClassifications])
+	const selectedAccessModelsSet = useMemo(() => new Set(selectedAccessModels), [selectedAccessModels])
+	const selectedIssuersSet = useMemo(() => new Set(selectedIssuers), [selectedIssuers])
 
 	// Non-RWA Stablecoins
 	// Crypto-collateralized stablecoin (non-RWA)
@@ -180,26 +136,139 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			if (!includeGovernance && asset.governance) {
 				return false
 			}
+
+			const onChainMarketcap = asset.onChainMarketcap.total
+			if (
+				!meetsRatioPercent(
+					asset.defiActiveTvl.total,
+					onChainMarketcap,
+					minDefiActiveTvlToOnChainPct,
+					maxDefiActiveTvlToOnChainPct
+				)
+			) {
+				return false
+			}
+			if (
+				!meetsRatioPercent(
+					asset.activeMarketcap.total,
+					onChainMarketcap,
+					minActiveMcapToOnChainPct,
+					maxActiveMcapToOnChainPct
+				)
+			) {
+				return false
+			}
+			if (
+				!meetsRatioPercent(
+					asset.defiActiveTvl.total,
+					asset.activeMarketcap.total,
+					minDefiActiveTvlToActiveMcapPct,
+					maxDefiActiveTvlToActiveMcapPct
+				)
+			) {
+				return false
+			}
+
 			return (
-				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
+				(asset.category?.length ? asset.category.some((category) => selectedCategoriesSet.has(category)) : true) &&
 				(asset.assetClass?.length
-					? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
+					? asset.assetClass.some((assetClass) => selectedAssetClassesSet.has(assetClass))
 					: true) &&
-				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
-				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
-				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
+				(asset.rwaClassification ? selectedRwaClassificationsSet.has(asset.rwaClassification) : true) &&
+				(asset.accessModel ? selectedAccessModelsSet.has(asset.accessModel) : true) &&
+				(asset.issuer ? selectedIssuersSet.has(asset.issuer) : true)
 			)
 		})
 	}, [
 		props.assets,
-		selectedCategories,
-		selectedAssetClasses,
-		selectedRwaClassifications,
-		selectedAccessModels,
-		selectedIssuers,
+		selectedCategoriesSet,
+		selectedAssetClassesSet,
+		selectedRwaClassificationsSet,
+		selectedAccessModelsSet,
+		selectedIssuersSet,
 		includeStablecoins,
-		includeGovernance
+		includeGovernance,
+		minDefiActiveTvlToOnChainPct,
+		maxDefiActiveTvlToOnChainPct,
+		minActiveMcapToOnChainPct,
+		maxActiveMcapToOnChainPct,
+		minDefiActiveTvlToActiveMcapPct,
+		maxDefiActiveTvlToActiveMcapPct
 	])
+
+	// Recalculate summary values based on all filters
+	const {
+		totalOnChainRwaValue,
+		totalActiveMarketcap,
+		totalOnChainStablecoinValue,
+		totalOnChainDeFiActiveTvl,
+		issuersCount
+	} = useMemo(() => {
+		let rwaValue = 0
+		let activeMarketcap = 0
+		let stablecoinValue = 0
+		let defiTvl = 0
+		const issuersSet = new Set<string>()
+
+		for (const asset of filteredAssets) {
+			rwaValue += asset.onChainMarketcap.total
+			activeMarketcap += asset.activeMarketcap.total
+			if (asset.stablecoin) {
+				stablecoinValue += asset.onChainMarketcap.total
+			}
+			defiTvl += asset.defiActiveTvl.total
+			if (asset.issuer) {
+				issuersSet.add(asset.issuer)
+			}
+		}
+
+		return {
+			totalOnChainRwaValue: rwaValue,
+			totalActiveMarketcap: activeMarketcap,
+			totalOnChainStablecoinValue: stablecoinValue,
+			totalOnChainDeFiActiveTvl: defiTvl,
+			issuersCount: issuersSet.size
+		}
+	}, [filteredAssets])
+
+	// Pie charts (single pass): keep category colors consistent across all 3 charts via `stackColors`
+	const { totalOnChainRwaPieChartData, activeMarketcapPieChartData, defiActiveTvlPieChartData, pieChartStackColors } =
+		useMemo(() => {
+			const categoryTotals = new Map<string, { onChain: number; active: number; defi: number }>()
+
+			for (const asset of filteredAssets) {
+				for (const category of asset.category ?? []) {
+					if (!category || !selectedCategoriesSet.has(category)) continue
+
+					const prev = categoryTotals.get(category) ?? { onChain: 0, active: 0, defi: 0 }
+					prev.onChain += asset.onChainMarketcap.total
+					prev.active += asset.activeMarketcap.total
+					prev.defi += asset.defiActiveTvl.total
+					categoryTotals.set(category, prev)
+				}
+			}
+
+			// Stable mapping so the same category renders with the same color on all pie charts
+			// Respect the category order we already use in the UI (`props.categories`)
+			// so colors match the same "category list" order consistently.
+			const pieChartStackColors: Record<string, string> = {}
+			for (const [idx, category] of props.categories.entries()) {
+				pieChartStackColors[category] = CHART_COLORS[idx % CHART_COLORS.length]
+			}
+
+			const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
+				Array.from(categoryTotals.entries())
+					.map(([name, totals]) => ({ name, value: totals[metric] }))
+					.filter((x) => x.value > 0)
+					.sort((a, b) => b.value - a.value)
+
+			return {
+				totalOnChainRwaPieChartData: toSortedChartData('onChain'),
+				activeMarketcapPieChartData: toSortedChartData('active'),
+				defiActiveTvlPieChartData: toSortedChartData('defi'),
+				pieChartStackColors
+			}
+		}, [filteredAssets, props.categories, selectedCategoriesSet])
 
 	const assetsData = useMemo(() => {
 		if (!deferredSearchValue) return filteredAssets
@@ -236,59 +305,61 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	useEffect(() => {
-		const colSize = windowSize.width ? columnSizes.find((size) => windowSize.width > +size[0]) : columnSizes[0]
-		const colOrder = windowSize.width ? columnOrders.find((size) => windowSize.width > +size[0]) : columnOrders[0]
+		const colSize = columnSizes.find(([bp]) => width >= Number(bp)) ?? columnSizes[columnSizes.length - 1]
+
 		if (colSize) {
 			instance.setColumnSizing(colSize[1])
 		}
-		if (colOrder) {
-			instance.setColumnOrder(colOrder[1])
-		}
-	}, [instance, windowSize])
+	}, [instance, width])
 
 	const prepareCsv = useCallback(() => {
 		const tableRows = instance.getSortedRowModel().rows
 		const headers: Array<string | number | boolean> = [
+			// Keep in sync with `columns` below (virtual table columns)
 			'Name',
-			'Ticker',
-			'Type',
-			'Category',
-			'Asset Class',
-			'On-chain Marketcap',
-			'DeFi Active TVL',
-			'RWA Classification',
-			'Issuer',
-			'Primary Chain',
-			'Chains',
-			'Redeemable',
-			'Attestations',
-			'CEX Listed',
-			'KYC',
-			'Transferable',
-			'Self Custody'
+			definitions.type.label,
+			definitions.category.label,
+			definitions.assetClass.label,
+			definitions.onChainMarketcap.label,
+			definitions.activeMarketcap.label,
+			definitions.defiActiveTvl.label,
+			definitions.rwaClassification.label,
+			definitions.accessModel.label,
+			definitions.issuer.label,
+			definitions.redeemable.label,
+			definitions.attestations.label,
+			definitions.cexListed.label,
+			definitions.kycForMintRedeem.label,
+			definitions.kycAllowlistedWhitelistedToTransferHold.label,
+			definitions.transferable.label,
+			definitions.selfCustody.label
 		]
 
 		const csvData: Array<Array<string | number | boolean>> = tableRows.map((row) => {
 			const asset = row.original
 			return [
-				asset.name ?? '',
-				asset.ticker ?? '',
+				asset.name ?? asset.ticker ?? '',
 				asset.type ?? '',
 				asset.category?.join(', ') ?? '',
 				asset.assetClass?.join(', ') ?? '',
-				asset.onChainMarketcap.total,
-				asset.defiActiveTvl.total,
+				asset.onChainMarketcap.total ?? '',
+				asset.activeMarketcap.total ?? '',
+				asset.defiActiveTvl.total ?? '',
 				asset.rwaClassification ?? '',
+				asset.accessModel ?? '',
 				asset.issuer ?? '',
-				asset.primaryChain ?? '',
-				asset.chain?.join(', ') ?? '',
 				asset.redeemable != null ? (asset.redeemable ? 'Yes' : 'No') : '',
 				asset.attestations != null ? (asset.attestations ? 'Yes' : 'No') : '',
 				asset.cexListed != null ? (asset.cexListed ? 'Yes' : 'No') : '',
-				asset.kyc != null ? (typeof asset.kyc === 'boolean' ? (asset.kyc ? 'Yes' : 'No') : asset.kyc.join(', ')) : '',
+				asset.kycForMintRedeem != null ? (asset.kycForMintRedeem ? 'Yes' : 'No') : '',
+				asset.kycAllowlistedWhitelistedToTransferHold != null
+					? asset.kycAllowlistedWhitelistedToTransferHold
+						? 'Yes'
+						: 'No'
+					: '',
 				asset.transferable != null ? (asset.transferable ? 'Yes' : 'No') : '',
 				asset.selfCustody != null ? (asset.selfCustody ? 'Yes' : 'No') : ''
 			]
@@ -303,10 +374,182 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	return (
 		<>
 			<RowLinksWithDropdown links={props.chains} activeLink={props.selectedChain} />
+			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 md:flex-row md:flex-wrap md:items-center">
+				<SelectWithCombobox
+					allValues={props.categories}
+					selectedValues={selectedCategories}
+					setSelectedValues={setSelectedCategories}
+					selectOnlyOne={selectOnlyOneCategory}
+					toggleAll={toggleAllCategories}
+					clearAll={clearAllCategories}
+					label={'Categories'}
+					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+					}}
+				/>
+				<SelectWithCombobox
+					allValues={props.assetClassOptions}
+					selectedValues={selectedAssetClasses}
+					setSelectedValues={setSelectedAssetClasses}
+					selectOnlyOne={selectOnlyOneAssetClass}
+					toggleAll={toggleAllAssetClasses}
+					clearAll={clearAllAssetClasses}
+					label={'Asset Classes'}
+					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+					}}
+				/>
+				<SelectWithCombobox
+					allValues={props.rwaClassificationOptions}
+					selectedValues={selectedRwaClassifications}
+					setSelectedValues={setSelectedRwaClassifications}
+					selectOnlyOne={selectOnlyOneRwaClassification}
+					toggleAll={toggleAllRwaClassifications}
+					clearAll={clearAllRwaClassifications}
+					label={'RWA Classification'}
+					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+					}}
+				/>
+				<SelectWithCombobox
+					allValues={props.accessModelOptions}
+					selectedValues={selectedAccessModels}
+					setSelectedValues={setSelectedAccessModels}
+					selectOnlyOne={selectOnlyOneAccessModel}
+					toggleAll={toggleAllAccessModels}
+					clearAll={clearAllAccessModels}
+					label={'Access Model'}
+					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+					}}
+				/>
+				<SelectWithCombobox
+					allValues={props.issuers}
+					selectedValues={selectedIssuers}
+					setSelectedValues={setSelectedIssuers}
+					selectOnlyOne={selectOnlyOneIssuer}
+					toggleAll={toggleAllIssuers}
+					clearAll={clearAllIssuers}
+					label={'Issuers'}
+					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+					}}
+				/>
+				<FilterBetweenRange
+					name="DeFi TVL / On-chain %"
+					trigger={
+						minDefiActiveTvlToOnChainPct != null || maxDefiActiveTvlToOnChainPct != null ? (
+							<>
+								<span>DeFi TVL / On-chain: </span>
+								<span className="text-(--link)">
+									{formatPercentRange(minDefiActiveTvlToOnChainPct, maxDefiActiveTvlToOnChainPct)}
+								</span>
+							</>
+						) : (
+							<span>DeFi TVL / On-chain %</span>
+						)
+					}
+					onSubmit={(e) => {
+						e.preventDefault()
+						const form = e.currentTarget
+						const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
+						const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
+						setDefiActiveTvlToOnChainPctRange(minValue, maxValue)
+					}}
+					onClear={() => setDefiActiveTvlToOnChainPctRange(null, null)}
+					min={minDefiActiveTvlToOnChainPct}
+					max={maxDefiActiveTvlToOnChainPct}
+					minLabel="Min %"
+					maxLabel="Max %"
+					minInputProps={ratioPercentInputProps}
+					maxInputProps={ratioPercentInputProps}
+				/>
+				<FilterBetweenRange
+					name="Active Marketcap / On-chain %"
+					trigger={
+						minActiveMcapToOnChainPct != null || maxActiveMcapToOnChainPct != null ? (
+							<>
+								<span>Active Marketcap / On-chain: </span>
+								<span className="text-(--link)">
+									{formatPercentRange(minActiveMcapToOnChainPct, maxActiveMcapToOnChainPct)}
+								</span>
+							</>
+						) : (
+							<span>Active Marketcap / On-chain %</span>
+						)
+					}
+					onSubmit={(e) => {
+						e.preventDefault()
+						const form = e.currentTarget
+						const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
+						const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
+						setActiveMcapToOnChainPctRange(minValue, maxValue)
+					}}
+					onClear={() => setActiveMcapToOnChainPctRange(null, null)}
+					min={minActiveMcapToOnChainPct}
+					max={maxActiveMcapToOnChainPct}
+					minLabel="Min %"
+					maxLabel="Max %"
+					minInputProps={ratioPercentInputProps}
+					maxInputProps={ratioPercentInputProps}
+				/>
+				<FilterBetweenRange
+					name="DeFi TVL / Active Marketcap %"
+					trigger={
+						minDefiActiveTvlToActiveMcapPct != null || maxDefiActiveTvlToActiveMcapPct != null ? (
+							<>
+								<span>DeFi TVL / Active Marketcap: </span>
+								<span className="text-(--link)">
+									{formatPercentRange(minDefiActiveTvlToActiveMcapPct, maxDefiActiveTvlToActiveMcapPct)}
+								</span>
+							</>
+						) : (
+							<span>DeFi TVL / Active Marketcap %</span>
+						)
+					}
+					onSubmit={(e) => {
+						e.preventDefault()
+						const form = e.currentTarget
+						const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
+						const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
+						setDefiActiveTvlToActiveMcapPctRange(minValue, maxValue)
+					}}
+					onClear={() => setDefiActiveTvlToActiveMcapPctRange(null, null)}
+					min={minDefiActiveTvlToActiveMcapPct}
+					max={maxDefiActiveTvlToActiveMcapPct}
+					minLabel="Min %"
+					maxLabel="Max %"
+					minInputProps={ratioPercentInputProps}
+					maxInputProps={ratioPercentInputProps}
+				/>
+				<Switch
+					label="Stablecoins"
+					value="includeStablecoins"
+					checked={includeStablecoins}
+					onChange={() => setIncludeStablecoins(!includeStablecoins)}
+					className="ml-auto"
+				/>
+				<Switch
+					label="Governance Tokens"
+					value="includeGovernance"
+					checked={includeGovernance}
+					onChange={() => setIncludeGovernance(!includeGovernance)}
+				/>
+			</div>
 			<div className="flex flex-col gap-2 md:flex-row md:items-center">
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
-						content="Sum of value of all real world assets on chain"
+						content={definitions.totalOnChainMarketcap.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
 						Total RWA On-chain
@@ -315,7 +558,16 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
-						content="Total number of issuers of real world assets on chain"
+						content={definitions.totalActiveMarketcap.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						Total RWA Active Marketcap
+					</Tooltip>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalActiveMarketcap, true)}</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<Tooltip
+						content={definitions.totalAssetIssuers.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
 						Total Asset Issuers
@@ -324,7 +576,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
-						content="Sum of value of all stablecoins on chain"
+						content={definitions.totalStablecoinsValue.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
 						Total Stablecoins Value
@@ -333,7 +585,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
-						content="Sum of value of all real world assets on chain that are deployed into third-party DeFi protocols tracked by DeFiLlama"
+						content={definitions.totalDefiActiveTvl.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
 						DeFi Active TVL
@@ -341,16 +593,43 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainDeFiActiveTvl, true)}</span>
 				</p>
 			</div>
-			<div className="relative flex min-h-[360px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-				<h2 className="px-3 text-lg font-semibold">Total RWA Value - Repartition</h2>
-				<Suspense fallback={<div className="h-[360px]" />}>
-					<PieChart
-						chartData={pieChartData}
-						radius={pieChartRadius}
-						legendPosition={pieChartLegendPosition}
-						legendTextStyle={pieChartLegendTextStyle}
-					/>
-				</Suspense>
+			<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+				<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<h2 className="px-3 text-lg font-semibold">Total RWA On-chain</h2>
+					<Suspense fallback={<div className="h-[360px]" />}>
+						<PieChart
+							chartData={totalOnChainRwaPieChartData}
+							stackColors={pieChartStackColors}
+							radius={pieChartRadius}
+							legendPosition={pieChartLegendPosition}
+							legendTextStyle={pieChartLegendTextStyle}
+						/>
+					</Suspense>
+				</div>
+				<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<h2 className="px-3 text-lg font-semibold">Active Marketcap</h2>
+					<Suspense fallback={<div className="h-[360px]" />}>
+						<PieChart
+							chartData={activeMarketcapPieChartData}
+							stackColors={pieChartStackColors}
+							radius={pieChartRadius}
+							legendPosition={pieChartLegendPosition}
+							legendTextStyle={pieChartLegendTextStyle}
+						/>
+					</Suspense>
+				</div>
+				<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<h2 className="px-3 text-lg font-semibold">DeFi Active TVL</h2>
+					<Suspense fallback={<div className="h-[360px]" />}>
+						<PieChart
+							chartData={defiActiveTvlPieChartData}
+							stackColors={pieChartStackColors}
+							radius={pieChartRadius}
+							legendPosition={pieChartLegendPosition}
+							legendTextStyle={pieChartLegendTextStyle}
+						/>
+					</Suspense>
+				</div>
 			</div>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<h1 className="mr-auto p-3 text-lg font-semibold">Assets Rankings</h1>
@@ -371,92 +650,6 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 							placeholder="Search assets..."
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
-					</label>
-					<SelectWithCombobox
-						allValues={props.categories}
-						selectedValues={selectedCategories}
-						setSelectedValues={setSelectedCategories}
-						selectOnlyOne={selectOnlyOneCategory}
-						toggleAll={toggleAllCategories}
-						clearAll={clearAllCategories}
-						label={'Categories'}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-					/>
-					<SelectWithCombobox
-						allValues={props.assetClassOptions}
-						selectedValues={selectedAssetClasses}
-						setSelectedValues={setSelectedAssetClasses}
-						selectOnlyOne={selectOnlyOneAssetClass}
-						toggleAll={toggleAllAssetClasses}
-						clearAll={clearAllAssetClasses}
-						label={'Asset Classes'}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-					/>
-					<SelectWithCombobox
-						allValues={props.rwaClassificationOptions}
-						selectedValues={selectedRwaClassifications}
-						setSelectedValues={setSelectedRwaClassifications}
-						selectOnlyOne={selectOnlyOneRwaClassification}
-						toggleAll={toggleAllRwaClassifications}
-						clearAll={clearAllRwaClassifications}
-						label={'RWA Classification'}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-					/>
-					<SelectWithCombobox
-						allValues={props.accessModelOptions}
-						selectedValues={selectedAccessModels}
-						setSelectedValues={setSelectedAccessModels}
-						selectOnlyOne={selectOnlyOneAccessModel}
-						toggleAll={toggleAllAccessModels}
-						clearAll={clearAllAccessModels}
-						label={'Access Model'}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-					/>
-					<SelectWithCombobox
-						allValues={props.issuers}
-						selectedValues={selectedIssuers}
-						setSelectedValues={setSelectedIssuers}
-						selectOnlyOne={selectOnlyOneIssuer}
-						toggleAll={toggleAllIssuers}
-						clearAll={clearAllIssuers}
-						label={'Issuers'}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-					/>
-					<label className="flex items-center gap-2">
-						<input
-							type="checkbox"
-							checked={includeStablecoins}
-							onChange={(e) => setIncludeStablecoins(e.target.checked)}
-						/>
-						<span>Include Stablecoins</span>
-					</label>
-					<label className="flex items-center gap-2">
-						<input
-							type="checkbox"
-							checked={includeGovernance}
-							onChange={(e) => setIncludeGovernance(e.target.checked)}
-						/>
-						<span>Include Governance Tokens</span>
 					</label>
 					<CSVDownloadButton prepareCsv={prepareCsv} />
 				</div>
@@ -593,6 +786,30 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		}
 	},
 	{
+		id: 'defiActiveTvl.total',
+		header: definitions.defiActiveTvl.label,
+		accessorFn: (asset) => asset.defiActiveTvl.total,
+		cell: (info) => (
+			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.defiActiveTvl.breakdown} />
+		),
+		meta: {
+			headerHelperText: definitions.defiActiveTvl.description,
+			align: 'end'
+		}
+	},
+	{
+		id: 'activeMarketcap.total',
+		header: definitions.activeMarketcap.label,
+		accessorFn: (asset) => asset.activeMarketcap.total,
+		cell: (info) => (
+			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.activeMarketcap.breakdown} />
+		),
+		meta: {
+			headerHelperText: definitions.activeMarketcap.description,
+			align: 'end'
+		}
+	},
+	{
 		id: 'onChainMarketcap.total',
 		header: definitions.onChainMarketcap.label,
 		accessorFn: (asset) => asset.onChainMarketcap.total,
@@ -602,27 +819,6 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		size: 168,
 		meta: {
 			headerHelperText: definitions.onChainMarketcap.description,
-			align: 'end'
-		}
-	},
-	{
-		id: 'activeMarketcap.total',
-		header: definitions.activeMarketcap.label,
-		cell: () => null,
-		meta: {
-			headerHelperText: definitions.activeMarketcap.description,
-			align: 'end'
-		}
-	},
-	{
-		id: 'defiActiveTvl.total',
-		header: definitions.defiActiveTvl.label,
-		accessorFn: (asset) => asset.defiActiveTvl.total,
-		cell: (info) => (
-			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.defiActiveTvl.breakdown} />
-		),
-		meta: {
-			headerHelperText: definitions.defiActiveTvl.description,
 			align: 'end'
 		}
 	},
@@ -667,20 +863,35 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 				| 'Custodial Only'
 				| 'Unknown'
 			const valueDescription = definitions.accessModel.values?.[value]
-			const colorClass = clsx(
-				value === 'Permissioned' && 'text-(--warning)',
-				value === 'Permissionless' && 'text-(--success)',
-				value === 'Non-transferable' && 'text-(--error)',
-				value === 'Custodial Only' && 'text-(--error)'
-			)
 			if (valueDescription) {
 				return (
-					<Tooltip content={valueDescription} className={`justify-end underline decoration-dotted ${colorClass}`}>
+					<Tooltip
+						content={valueDescription}
+						className={clsx(
+							'justify-end underline decoration-dotted',
+							value === 'Permissioned' && 'text-(--warning)',
+							value === 'Permissionless' && 'text-(--success)',
+							value === 'Non-transferable' && 'text-(--error)',
+							value === 'Custodial Only' && 'text-(--error)'
+						)}
+					>
 						{value}
 					</Tooltip>
 				)
 			}
-			return <span className={colorClass}>{value}</span>
+			return (
+				<span
+					className={clsx(
+						'inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap',
+						value === 'Permissioned' && 'text-(--warning)',
+						value === 'Permissionless' && 'text-(--success)',
+						value === 'Non-transferable' && 'text-(--error)',
+						value === 'Custodial Only' && 'text-(--error)'
+					)}
+				>
+					{value}
+				</span>
+			)
 		},
 		size: 180,
 		meta: {
@@ -857,50 +1068,25 @@ const columnSizes = Object.entries({
 	640: { name: 240 }
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
-const columnOrders = Object.entries({
-	0: [
-		'name',
-		'onChainMarketcap.total',
-		'category',
-		'assetClass',
-		'activeMarketcap.total',
-		'defiActiveTvl.total',
-		'type',
-		'rwaClassification',
-		'accessModel',
-		'issuer',
-		'redeemable',
-		'attestations',
-		'cex_listed',
-		'kycForMintRedeem',
-		'kycAllowlistedWhitelistedToTransferHold',
-		'transferable',
-		'self_custody'
-	],
-	640: [
-		'name',
-		'type',
-		'category',
-		'assetClass',
-		'onChainMarketcap.total',
-		'activeMarketcap.total',
-		'defiActiveTvl.total',
-		'rwaClassification',
-		'accessModel',
-		'issuer',
-		'redeemable',
-		'attestations',
-		'cex_listed',
-		'kycForMintRedeem',
-		'kycAllowlistedWhitelistedToTransferHold',
-		'transferable',
-		'self_custody'
-	]
-}).sort((a, b) => Number(b[0]) - Number(a[0]))
-
 const toArrayParam = (p: string | string[] | undefined): string[] => {
 	if (!p) return []
 	return Array.isArray(p) ? p.filter(Boolean) : [p].filter(Boolean)
+}
+
+const parseNumberInput = (value: string | number | null | undefined): number | null => {
+	if (value == null) return null
+	if (typeof value === 'number') return Number.isFinite(value) ? value : null
+	const trimmed = value.trim()
+	if (!trimmed) return null
+	const n = Number(trimmed)
+	return Number.isFinite(n) ? n : null
+}
+
+const toNumberParam = (p: string | string[] | undefined): number | null => {
+	if (Array.isArray(p)) {
+		return parseNumberInput(p[0])
+	}
+	return parseNumberInput(p)
 }
 
 const updateArrayQuery = (key: string, values: string[] | 'None', router: NextRouter) => {
@@ -911,6 +1097,29 @@ const updateArrayQuery = (key: string, values: string[] | 'None', router: NextRo
 		nextQuery[key] = values
 	} else {
 		delete nextQuery[key]
+	}
+	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+}
+
+const updateNumberRangeQuery = (
+	minKey: string,
+	maxKey: string,
+	minValue: string | number | null | undefined,
+	maxValue: string | number | null | undefined,
+	router: NextRouter
+) => {
+	const nextQuery: Record<string, any> = { ...router.query }
+	const parsedMin = parseNumberInput(minValue)
+	const parsedMax = parseNumberInput(maxValue)
+	if (parsedMin == null) {
+		delete nextQuery[minKey]
+	} else {
+		nextQuery[minKey] = String(parsedMin)
+	}
+	if (parsedMax == null) {
+		delete nextQuery[maxKey]
+	} else {
+		nextQuery[maxKey] = String(parsedMax)
 	}
 	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 }
@@ -936,6 +1145,12 @@ const useRWATableQueryParams = ({
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
+		minDefiActiveTvlToOnChainPct,
+		maxDefiActiveTvlToOnChainPct,
+		minActiveMcapToOnChainPct,
+		maxActiveMcapToOnChainPct,
+		minDefiActiveTvlToActiveMcapPct,
+		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
 		includeGovernance
 	} = useMemo(() => {
@@ -945,6 +1160,12 @@ const useRWATableQueryParams = ({
 			rwaClassifications: rwaClassificationsQ,
 			accessModels: accessModelsQ,
 			issuers: issuersQ,
+			minDefiActiveTvlToOnChainPct: minDefiActiveTvlToOnChainPctQ,
+			maxDefiActiveTvlToOnChainPct: maxDefiActiveTvlToOnChainPctQ,
+			minActiveMcapToOnChainPct: minActiveMcapToOnChainPctQ,
+			maxActiveMcapToOnChainPct: maxActiveMcapToOnChainPctQ,
+			minDefiActiveTvlToActiveMcapPct: minDefiActiveTvlToActiveMcapPctQ,
+			maxDefiActiveTvlToActiveMcapPct: maxDefiActiveTvlToActiveMcapPctQ,
 			includeStablecoins: stablecoinsQ,
 			includeGovernance: governanceQ
 		} = router.query
@@ -963,6 +1184,12 @@ const useRWATableQueryParams = ({
 		const selectedRwaClassifications = parseArrayParam(rwaClassificationsQ, rwaClassifications)
 		const selectedAccessModels = parseArrayParam(accessModelsQ, accessModels)
 		const selectedIssuers = parseArrayParam(issuersQ, issuers)
+		const minDefiActiveTvlToOnChainPct = toNumberParam(minDefiActiveTvlToOnChainPctQ)
+		const maxDefiActiveTvlToOnChainPct = toNumberParam(maxDefiActiveTvlToOnChainPctQ)
+		const minActiveMcapToOnChainPct = toNumberParam(minActiveMcapToOnChainPctQ)
+		const maxActiveMcapToOnChainPct = toNumberParam(maxActiveMcapToOnChainPctQ)
+		const minDefiActiveTvlToActiveMcapPct = toNumberParam(minDefiActiveTvlToActiveMcapPctQ)
+		const maxDefiActiveTvlToActiveMcapPct = toNumberParam(maxDefiActiveTvlToActiveMcapPctQ)
 
 		// includeStablecoins is true by default, unless explicitly set to 'false'
 		const includeStablecoins = stablecoinsQ !== 'false'
@@ -973,6 +1200,12 @@ const useRWATableQueryParams = ({
 			selectedRwaClassifications,
 			selectedAccessModels,
 			selectedIssuers,
+			minDefiActiveTvlToOnChainPct,
+			maxDefiActiveTvlToOnChainPct,
+			minActiveMcapToOnChainPct,
+			maxActiveMcapToOnChainPct,
+			minDefiActiveTvlToActiveMcapPct,
+			maxDefiActiveTvlToActiveMcapPct,
 			includeStablecoins,
 			includeGovernance
 		}
@@ -1047,6 +1280,34 @@ const useRWATableQueryParams = ({
 	}, [router])
 	const clearAllIssuers = useCallback(() => updateArrayQuery('issuers', 'None', router), [router])
 
+	const setDefiActiveTvlToOnChainPctRange = useCallback(
+		(minValue: string | number | null, maxValue: string | number | null) =>
+			updateNumberRangeQuery(
+				'minDefiActiveTvlToOnChainPct',
+				'maxDefiActiveTvlToOnChainPct',
+				minValue,
+				maxValue,
+				router
+			),
+		[router]
+	)
+	const setActiveMcapToOnChainPctRange = useCallback(
+		(minValue: string | number | null, maxValue: string | number | null) =>
+			updateNumberRangeQuery('minActiveMcapToOnChainPct', 'maxActiveMcapToOnChainPct', minValue, maxValue, router),
+		[router]
+	)
+	const setDefiActiveTvlToActiveMcapPctRange = useCallback(
+		(minValue: string | number | null, maxValue: string | number | null) =>
+			updateNumberRangeQuery(
+				'minDefiActiveTvlToActiveMcapPct',
+				'maxDefiActiveTvlToActiveMcapPct',
+				minValue,
+				maxValue,
+				router
+			),
+		[router]
+	)
+
 	const setIncludeStablecoins = useCallback(
 		(value: boolean) => {
 			const nextQuery: Record<string, any> = { ...router.query }
@@ -1079,6 +1340,12 @@ const useRWATableQueryParams = ({
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
+		minDefiActiveTvlToOnChainPct,
+		maxDefiActiveTvlToOnChainPct,
+		minActiveMcapToOnChainPct,
+		maxActiveMcapToOnChainPct,
+		minDefiActiveTvlToActiveMcapPct,
+		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
 		includeGovernance,
 		setSelectedCategories,
@@ -1086,6 +1353,9 @@ const useRWATableQueryParams = ({
 		setSelectedRwaClassifications,
 		setSelectedAccessModels,
 		setSelectedIssuers,
+		setDefiActiveTvlToOnChainPctRange,
+		setActiveMcapToOnChainPctRange,
+		setDefiActiveTvlToActiveMcapPctRange,
 		setIncludeStablecoins,
 		setIncludeGovernance,
 		selectOnlyOneCategory,
@@ -1116,3 +1386,4 @@ const pieChartLegendPosition = {
 	}
 } as any
 const pieChartLegendTextStyle = { fontSize: 14 }
+const ratioPercentInputProps = { min: 0, step: '0.01' } as const

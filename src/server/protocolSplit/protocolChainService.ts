@@ -165,8 +165,14 @@ const buildAlignedTopAndOthers = (
 	totalSeries: [number, number][]
 ): { alignedTopSeries: ChartSeries[]; othersData: [number, number][]; allTimestamps: number[] } => {
 	const timestampSet = new Set<number>()
-	topSeries.forEach((s) => s.data.forEach(([t]) => timestampSet.add(t)))
-	totalSeries.forEach(([t]) => timestampSet.add(t))
+	for (const s of topSeries) {
+		for (const [t] of s.data) {
+			timestampSet.add(t)
+		}
+	}
+	for (const [t] of totalSeries) {
+		timestampSet.add(t)
+	}
 	const allTimestamps = Array.from(timestampSet).sort((a, b) => a - b)
 
 	const alignedTopSeries = topSeries.map((s) => ({
@@ -222,7 +228,7 @@ async function getTvlProtocolChainData(
 		if (chainCategories && chainCategories.length > 0) {
 			allowNamesFromCategories = await resolveAllowedChainNamesFromCategories(chainCategories)
 		}
-		for (const chainKey of Object.keys(chainTvls)) {
+		for (const chainKey in chainTvls) {
 			if (keysToSkip.some((key) => chainKey.includes(`-${key}`) || chainKey === key)) {
 				continue
 			}
@@ -258,16 +264,16 @@ async function getTvlProtocolChainData(
 			}
 		}
 
-		series.sort((a, b) => {
+		const sortedSeries = series.toSorted((a, b) => {
 			const lastA = a.data[a.data.length - 1]?.[1] || 0
 			const lastB = b.data[b.data.length - 1]?.[1] || 0
 			return lastB - lastA
 		})
 
-		const topSeries = series.slice(0, Math.min(topN, series.length))
-		const othersSeries = series.slice(Math.min(topN, series.length))
+		const topSeries = sortedSeries.slice(0, Math.min(topN, sortedSeries.length))
+		const othersSeries = sortedSeries.slice(Math.min(topN, sortedSeries.length))
 
-		const totalSeries = Array.from(sumSeriesByTimestamp(series.map((s) => s.data)).entries()).sort(
+		const totalSeries = Array.from(sumSeriesByTimestamp(sortedSeries.map((s) => s.data)).entries()).sort(
 			(a, b) => a[0] - b[0]
 		) as [number, number][]
 		const { alignedTopSeries, othersData } = buildAlignedTopAndOthers(topSeries, totalSeries)
@@ -290,8 +296,8 @@ async function getTvlProtocolChainData(
 				metric: 'TVL',
 				chains: availableChains,
 				totalChains: availableChains.length,
-				topN: Math.min(topN, series.length),
-				othersCount: Math.max(0, series.length - Math.min(topN, series.length))
+				topN: Math.min(topN, sortedSeries.length),
+				othersCount: Math.max(0, sortedSeries.length - Math.min(topN, sortedSeries.length))
 			}
 		}
 	} catch (error) {
@@ -355,35 +361,36 @@ async function getDimensionsProtocolChainData(
 		if (chainCategories && chainCategories.length > 0) {
 			allowSlugsFromCategories = await resolveAllowedChainSlugsFromCategories(chainCategories)
 		}
-		breakdown.forEach((item: any) => {
+		for (const item of breakdown) {
 			const [timestamp, chainData] = item
-			if (!chainData || typeof chainData !== 'object') return
+			if (!chainData || typeof chainData !== 'object') continue
 
-			Object.entries(chainData).forEach(([chain, versions]: [string, any]) => {
-			if (chains && chains.length > 0) {
-				if (chainFilterMode === 'include') {
-						if (!chains.includes(chain)) return
+			for (const chain in chainData) {
+				const versions = (chainData as Record<string, any>)[chain]
+				if (chains && chains.length > 0) {
+					if (chainFilterMode === 'include') {
+						if (!chains.includes(chain)) continue
 					} else {
-						if (excludeSet.has(chain)) return
+						if (excludeSet.has(chain)) continue
 					}
 				}
 
 				if (allowSlugsFromCategories && allowSlugsFromCategories.size > 0) {
 					const chainSlug = toDimensionsSlug(chain)
-				if (chainCategoryFilterMode === 'include') {
-						if (!allowSlugsFromCategories.has(chainSlug)) return
+					if (chainCategoryFilterMode === 'include') {
+						if (!allowSlugsFromCategories.has(chainSlug)) continue
 					} else {
-						if (allowSlugsFromCategories.has(chainSlug)) return
+						if (allowSlugsFromCategories.has(chainSlug)) continue
 					}
 				}
 
 				if (typeof versions === 'object' && versions !== null) {
 					let chainTotal = 0
-					Object.values(versions).forEach((value: any) => {
+					for (const value of Object.values(versions)) {
 						if (typeof value === 'number') {
 							chainTotal += value
 						}
-					})
+					}
 
 					if (chainTotal > 0) {
 						if (!chainDataMap.has(chain)) {
@@ -392,34 +399,35 @@ async function getDimensionsProtocolChainData(
 						chainDataMap.get(chain)!.push([timestamp, chainTotal])
 					}
 				}
-			})
-		})
+			}
+		}
 
 		const series: ChartSeries[] = []
 		let colorIndex = 0
 
-		Array.from(chainDataMap.entries()).forEach(([chain, data]) => {
-			const sortedData = data.sort((a, b) => a[0] - b[0])
+		for (const chain of chainDataMap.keys()) {
+			const data = chainDataMap.get(chain)!
+			const sortedData = data.toSorted((a, b) => a[0] - b[0])
 			series.push({
 				name: chain,
 				data: filterOutToday(sortedData),
 				color: EXTENDED_COLOR_PALETTE[colorIndex % EXTENDED_COLOR_PALETTE.length]
 			})
 			colorIndex++
-		})
+		}
 
-		series.sort((a, b) => {
+		const sortedSeries = series.toSorted((a, b) => {
 			const lastA = a.data[a.data.length - 1]?.[1] || 0
 			const lastB = b.data[b.data.length - 1]?.[1] || 0
 			return lastB - lastA
 		})
 
-		const availableChains = series.map((s) => s.name)
+		const availableChains = sortedSeries.map((s) => s.name)
 
-		const topSeries = series.slice(0, Math.min(topN, series.length))
-		const othersSeries = series.slice(Math.min(topN, series.length))
+		const topSeries = sortedSeries.slice(0, Math.min(topN, sortedSeries.length))
+		const othersSeries = sortedSeries.slice(Math.min(topN, sortedSeries.length))
 
-		const totalSeries = Array.from(sumSeriesByTimestamp(series.map((s) => s.data)).entries()).sort(
+		const totalSeries = Array.from(sumSeriesByTimestamp(sortedSeries.map((s) => s.data)).entries()).sort(
 			(a, b) => a[0] - b[0]
 		) as [number, number][]
 		const { alignedTopSeries, othersData } = buildAlignedTopAndOthers(topSeries, totalSeries)
@@ -442,8 +450,8 @@ async function getDimensionsProtocolChainData(
 				metric: config.metricName,
 				chains: availableChains,
 				totalChains: availableChains.length,
-				topN: Math.min(topN, series.length),
-				othersCount: Math.max(0, series.length - Math.min(topN, series.length))
+				topN: Math.min(topN, sortedSeries.length),
+				othersCount: Math.max(0, sortedSeries.length - Math.min(topN, sortedSeries.length))
 			}
 		}
 	} catch (error) {
@@ -567,7 +575,8 @@ async function getAllProtocolsTopChainsStablecoinsData(
 
 		const candidates: Array<{ name: string; data: [number, number][]; lastValue: number }> = []
 
-		for (const [chainName, charts] of Object.entries(chainChartMap)) {
+		for (const chainName in chainChartMap) {
+			const charts = chainChartMap[chainName]
 			if (chainName.toLowerCase() === 'all') continue
 			if (!Array.isArray(charts) || charts.length === 0) continue
 
@@ -910,7 +919,8 @@ async function getAllProtocolsTopChainsDimensionsData(
 		const aggregateProtocolsForTimestamp = (protocolsMap: Record<string, any>): number => {
 			if (!protocolsMap || typeof protocolsMap !== 'object') return 0
 			let total = 0
-			for (const [protocolName, value] of Object.entries(protocolsMap)) {
+			for (const protocolName in protocolsMap) {
+				const value = protocolsMap[protocolName]
 				if (!shouldIncludeProtocol(protocolName)) continue
 				total += sumNestedValues(value)
 			}
@@ -922,7 +932,8 @@ async function getAllProtocolsTopChainsDimensionsData(
 
 			const br24 = p?.breakdown24h
 			if (!br24 || typeof br24 !== 'object') continue
-			for (const [chainSlug, versions] of Object.entries(br24)) {
+			for (const chainSlug in br24) {
+				const versions = br24[chainSlug]
 				let sum = 0
 				if (versions && typeof versions === 'object') {
 					for (const v of Object.values(versions as Record<string, number>)) sum += Number(v) || 0
@@ -1082,7 +1093,13 @@ export const getProtocolChainSplitData = async ({
 
 	if (CHAIN_ONLY_METRICS.has(metricStr)) {
 		if (metricStr === 'stablecoins') {
-			return getAllProtocolsTopChainsStablecoinsData(topN, chains, chainFilterMode, chainCategoryFilterMode, chainCategories)
+			return getAllProtocolsTopChainsStablecoinsData(
+				topN,
+				chains,
+				chainFilterMode,
+				chainCategoryFilterMode,
+				chainCategories
+			)
 		}
 		return getAllProtocolsTopChainsChainFeesData(
 			metricStr as 'chain-fees' | 'chain-revenue',
@@ -1113,7 +1130,15 @@ export const getProtocolChainSplitData = async ({
 	if (metricStr === 'tvl') {
 		return getTvlProtocolChainData(protocolStr, chains, topN, chainFilterMode, chainCategoryFilterMode, chainCategories)
 	}
-	return getDimensionsProtocolChainData(protocolStr, metricStr, chains, topN, chainFilterMode, chainCategoryFilterMode, chainCategories)
+	return getDimensionsProtocolChainData(
+		protocolStr,
+		metricStr,
+		chains,
+		topN,
+		chainFilterMode,
+		chainCategoryFilterMode,
+		chainCategories
+	)
 }
 
 async function resolveAllowedChainNamesFromCategories(categories: string[]): Promise<Set<string>> {

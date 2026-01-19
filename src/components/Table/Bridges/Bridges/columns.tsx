@@ -342,7 +342,7 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 		cell: ({ row }) => {
 			const value = row.original.symbol
 			const splitValue = value.split('#')
-			const [symbol, token] = splitValue
+			const [, token] = splitValue
 			const { chainName } = getBlockExplorer(token)
 			return chainName
 		},

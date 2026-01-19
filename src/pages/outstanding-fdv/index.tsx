@@ -5,7 +5,8 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`protocols-aFDV/index`, async () => {
-	const data = await getProtocolsAdjustedFDVsByChain({ chain: 'All' })
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const data = await getProtocolsAdjustedFDVsByChain({ chain: 'All', protocolMetadata: metadataCache.protocolMetadata })
 
 	if (!data) return { notFound: true }
 

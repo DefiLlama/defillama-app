@@ -719,7 +719,7 @@ export const useFetchProtocolAddlChartsData = (
 		queryKey: [
 			'protocols-addl-chart-data',
 			protocolName,
-			addlProtocolData ? true : false,
+			Boolean(addlProtocolData),
 			isBorrowed ? 'borrowed' : JSON.stringify(extraTvlsEnabled),
 			normalizedTokenToExclude
 		],
@@ -761,13 +761,13 @@ export const getProtocolWarningBanners = (protocolData: IUpdatedProtocol) => {
 		// Check if it's a number (seconds or milliseconds)
 		if (typeof date === 'number') {
 			const dateObj = new Date(date * 1000)
-			return !isNaN(dateObj.getTime())
+			return !Number.isNaN(dateObj.getTime())
 		}
 
 		// Check if it's a string in YYYY-MM-DD format
 		if (typeof date === 'string') {
 			const dateObj = new Date(date)
-			return !isNaN(dateObj.getTime())
+			return !Number.isNaN(dateObj.getTime())
 		}
 
 		return false

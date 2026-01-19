@@ -16,7 +16,7 @@ interface ChainsTableHeaderProps {
 export function ChainsTableHeader({
 	selectedPreset,
 	setSelectedPreset,
-	columnPresets,
+	columnPresets: _columnPresets,
 	applyPreset,
 	showColumnSelector,
 	setShowColumnSelector,

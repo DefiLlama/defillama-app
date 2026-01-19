@@ -213,7 +213,7 @@ function ProContent({
 													key={`my-dashboard-page-${pageNum}`}
 													onClick={() => goToPage(pageNum)}
 													data-active={isActive}
-													className="h-[32px] min-w-[32px] flex-shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+													className="h-[32px] min-w-[32px] shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 												>
 													{pageNum}
 												</button>

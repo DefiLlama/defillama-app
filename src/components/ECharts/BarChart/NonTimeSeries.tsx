@@ -1,7 +1,8 @@
 import * as echarts from 'echarts/core'
-import { useCallback, useEffect, useId, useMemo } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { slug } from '~/utils'
 import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
@@ -24,6 +25,10 @@ export default function NonTimeSeriesBarChart({
 	const id = useId()
 
 	const [isThemeDark] = useDarkModeManager()
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const defaultChartSettings = useDefaults({
 		color,
@@ -40,13 +45,13 @@ export default function NonTimeSeriesBarChart({
 		const series = []
 
 		const allStacks = new Set<string>()
-		chartData.forEach((item) => {
-			Object.keys(item).forEach((key) => {
+		for (const item of chartData) {
+			for (const key in item) {
 				if (key !== 'date') {
 					allStacks.add(key)
 				}
-			})
-		})
+			}
+		}
 
 		for (const stack of allStacks) {
 			series.push({
@@ -81,15 +86,12 @@ export default function NonTimeSeriesBarChart({
 		return series
 	}, [chartData, isThemeDark])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
 		// create instance
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
 
 		// override default chart settings
 		for (const option in chartOptions) {
@@ -107,7 +109,7 @@ export default function NonTimeSeriesBarChart({
 
 		const shouldHideDataZoom = series.every((s) => s.data.length < 2) || hideDataZoom
 
-		chartInstance.setOption({
+		instance.setOption({
 			graphic,
 			tooltip,
 			grid: {
@@ -124,17 +126,11 @@ export default function NonTimeSeriesBarChart({
 			series
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, isThemeDark, chartOptions, valueSymbol, hideDataZoom])
+	}, [id, defaultChartSettings, series, isThemeDark, chartOptions, valueSymbol, hideDataZoom])
 
 	const prepareCsv = useCallback(() => {
 		let rows = [['Name', 'Value']]

@@ -3,9 +3,10 @@ import { TreemapChart as EChartTreemap } from 'echarts/charts'
 import { TitleComponent, ToolboxComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useCallback, useEffect, useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { TagGroup } from '~/components/TagGroup'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum, tokenIconUrl } from '~/utils'
 
 echarts.use([TitleComponent, TooltipComponent, ToolboxComponent, EChartTreemap, CanvasRenderer])
@@ -50,6 +51,10 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 	const [isDark] = useDarkModeManager()
 	const [timeView, setTimeView] = useState<TimeView>('Current Year')
 	const [selectedDate, setSelectedDate] = useState(dayjs())
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const currentYear = filterYear || dayjs().year()
 
@@ -57,18 +62,19 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 		const treeData = []
 		const yearData: YearDataMap = {}
 
-		Object.entries(unlocksData).forEach(([dateStr, dailyData]) => {
+		for (const dateStr in unlocksData) {
+			const dailyData = unlocksData[dateStr]
 			const date = dayjs(dateStr)
 			const year = date.year()
 			const monthIndex = date.month()
 			const monthName = date.format('MMMM')
 
 			if (timeView === 'Month') {
-				if (monthIndex !== selectedDate.month() || year !== selectedDate.year()) return
+				if (monthIndex !== selectedDate.month() || year !== selectedDate.year()) continue
 			} else if (timeView === 'Current Year') {
-				if (year !== currentYear) return
+				if (year !== currentYear) continue
 			} else if (timeView === 'All Years') {
-				if (year < currentYear) return
+				if (year < currentYear) continue
 			}
 
 			if (!yearData[year]) {
@@ -85,7 +91,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 				}
 			}
 
-			dailyData.events.forEach((event) => {
+			for (const event of dailyData.events) {
 				if (!yearData[year].children[monthName].protocols[event.protocol]) {
 					yearData[year].children[monthName].protocols[event.protocol] = 0
 				}
@@ -93,8 +99,8 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 				yearData[year].children[monthName].protocols[event.protocol] += event.value
 				yearData[year].children[monthName].value += event.value
 				yearData[year].value += event.value
-			})
-		})
+			}
+		}
 
 		if (timeView === 'Month') {
 			const targetYear = selectedDate.year()
@@ -142,7 +148,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 							}
 						}
 					})
-					.sort((a, b) => b.value - a.value)
+					.toSorted((a, b) => b.value - a.value)
 				return protocolsData
 			} else {
 				return []
@@ -167,7 +173,8 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						}
 					}
 
-					Object.entries(monthInfo.protocols).forEach(([protocol, value]) => {
+					for (const protocol in monthInfo.protocols) {
+						const value = monthInfo.protocols[protocol]
 						const iconUrl = tokenIconUrl(protocol)
 						monthNode.children.push({
 							name: protocol,
@@ -208,16 +215,17 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 								}
 							}
 						})
-					})
+					}
 
-					monthNode.children.sort((a, b) => b.value - a.value)
+					monthNode.children = monthNode.children.toSorted((a, b) => b.value - a.value)
 					return monthNode
 				})
-				.sort((a, b) => b.value - a.value)
+				.toSorted((a, b) => b.value - a.value)
 		}
 
 		if (timeView === 'All Years') {
-			Object.entries(yearData).forEach(([year, yearInfo]) => {
+			for (const year in yearData) {
+				const yearInfo = yearData[year]
 				const yearNode: any = {
 					name: year,
 					value: yearInfo.value,
@@ -231,7 +239,8 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					}
 				}
 
-				Object.entries(yearInfo.children).forEach(([month, monthInfo]) => {
+				for (const month in yearInfo.children) {
+					const monthInfo = yearInfo.children[month]
 					const monthNode: any = {
 						name: month,
 						value: monthInfo.value,
@@ -245,7 +254,8 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						}
 					}
 
-					Object.entries(monthInfo.protocols).forEach(([protocol, value]) => {
+					for (const protocol in monthInfo.protocols) {
+						const value = monthInfo.protocols[protocol]
 						const iconUrl = tokenIconUrl(protocol)
 						monthNode.children.push({
 							name: protocol,
@@ -286,15 +296,15 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 								}
 							}
 						})
-					})
+					}
 
-					monthNode.children.sort((a, b) => b.value - a.value)
+					monthNode.children = monthNode.children.toSorted((a, b) => b.value - a.value)
 					yearNode.children.push(monthNode)
-				})
+				}
 
-				yearNode.children.sort((a, b) => b.value - a.value)
+				yearNode.children = yearNode.children.toSorted((a, b) => b.value - a.value)
 				treeData.push(yearNode)
-			})
+			}
 
 			treeData.sort((a, b) => Number(a.name) - Number(b.name))
 			return treeData
@@ -303,14 +313,11 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 		return []
 	}, [unlocksData, currentYear, timeView, isDark, selectedDate])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
-		const chartInstance = createInstance()
-		if (!chartInstance) return
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
 
 		const option = {
 			title: {
@@ -468,19 +475,13 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 			]
 		}
 
-		chartInstance.setOption(option)
-
-		function resize() {
-			chartInstance?.resize()
-		}
-
-		window.addEventListener('resize', resize)
+		instance.setOption(option)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [id, chartDataTree, createInstance, isDark, timeView, selectedDate])
+	}, [id, chartDataTree, isDark, timeView, selectedDate])
 
 	const goToPrevMonth = () => setSelectedDate((d) => d.subtract(1, 'month'))
 	const goToNextMonth = () => setSelectedDate((d) => d.add(1, 'month'))
@@ -492,7 +493,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					<div className="order-1 flex items-center gap-2 md:order-0">
 						<button
 							onClick={goToPrevMonth}
-							className="rounded-md p-1.5 text-(--text-secondary) transition-colors hover:bg-(--bg-glass) hover:text-(--text-primary)"
+							className="rounded-md p-1.5 text-(--text-secondary) hover:bg-(--bg-glass) hover:text-(--text-primary)"
 							aria-label="Previous Month"
 						>
 							←
@@ -503,7 +504,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						</span>
 						<button
 							onClick={goToNextMonth}
-							className="rounded-md p-1.5 text-(--text-secondary) transition-colors hover:bg-(--bg-glass) hover:text-(--text-primary)"
+							className="rounded-md p-1.5 text-(--text-secondary) hover:bg-(--bg-glass) hover:text-(--text-primary)"
 							aria-label="Next Month"
 						>
 							→

@@ -205,43 +205,64 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 
 		const prepareCsv = () => {
 			const filename = `${adaptedChart.title}-${adaptedChart.chartType}-${new Date().toISOString().split('T')[0]}.csv`
+			const isTimeSeries = config.axes.x.type === 'time'
+			const xLabel = config.axes.x.label || (isTimeSeries ? 'Date' : 'Category')
+			const yLabel = config.axes.yAxes?.[0]?.label || config.series?.[0]?.name || 'Value'
+
 			if (['multi-series', 'combo'].includes(adaptedChart.chartType)) {
-				const rows = [['Timestamp', 'Date', ...(adaptedChart.props as any).series.map((series: any) => series.name)]]
-				const valuesByDate = {}
-				for (const adaptedSeries of (adaptedChart.props as any).series ?? []) {
-					for (const item of adaptedSeries.data ?? []) {
-						valuesByDate[item[0]] = valuesByDate[item[0]] || {}
-						valuesByDate[item[0]][adaptedSeries.name] = item[1]
+				const seriesNames = (adaptedChart.props as any).series.map((s: any) => s.name)
+				const rows: Array<Array<string | number | boolean>> = [
+					isTimeSeries ? ['Timestamp', 'Date', ...seriesNames] : [xLabel, ...seriesNames]
+				]
+				const valuesByKey: Record<string | number, Record<string, number>> = {}
+				for (const s of (adaptedChart.props as any).series ?? []) {
+					for (const [key, val] of s.data ?? []) {
+						valuesByKey[key] = valuesByKey[key] || {}
+						valuesByKey[key][s.name] = val
 					}
 				}
-				for (const date in valuesByDate) {
-					const row = [date, new Date(+date * 1e3).toLocaleDateString()]
-					for (const series of (adaptedChart.props as any).series ?? []) {
-						row.push(valuesByDate[date][series.name] ?? '')
-					}
-					rows.push(row)
+				for (const key of Object.keys(valuesByKey).sort((a, b) => +a - +b)) {
+					const base = isTimeSeries ? [key, new Date(+key * 1e3).toLocaleDateString()] : [key]
+					rows.push([...base, ...seriesNames.map((name: string) => valuesByKey[key][name] ?? '')])
 				}
-				return {
-					filename,
-					rows
-				}
+				return { filename, rows }
 			}
 
 			if (adaptedChart.chartType === 'pie') {
-				const rows = [['Name', 'Value']]
+				const rows: Array<Array<string | number | boolean>> = [['Name', 'Value']]
 				for (const item of (adaptedChart.props as any).chartData ?? []) {
 					rows.push([item.name, item.value])
 				}
-				return {
-					filename,
-					rows
-				}
+				return { filename, rows }
 			}
 
-			return {
-				filename,
-				rows: []
+			if (adaptedChart.chartType === 'scatter') {
+				const xAxisLabel = config.axes.x.label || 'X'
+				const yAxisLabel = config.axes.yAxes?.[0]?.label || 'Y'
+				const rows: Array<Array<string | number | boolean>> = [[xAxisLabel, yAxisLabel, 'Entity']]
+				for (const point of (adaptedChart.props as any).chartData ?? []) {
+					rows.push([point[0], point[1], point[2] ?? ''])
+				}
+				return { filename, rows }
 			}
+
+			if (['area', 'line', 'bar', 'hbar'].includes(adaptedChart.chartType)) {
+				const chartData = adaptedChart.data as Array<[string | number, number | null]>
+				if (isTimeSeries) {
+					const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', yLabel]]
+					for (const [ts, val] of chartData) {
+						rows.push([ts, new Date(+ts * 1e3).toLocaleDateString(), val ?? ''])
+					}
+					return { filename, rows }
+				}
+				const rows: Array<Array<string | number | boolean>> = [[xLabel, yLabel]]
+				for (const [category, val] of chartData) {
+					rows.push([category, val ?? ''])
+				}
+				return { filename, rows }
+			}
+
+			return { filename, rows: [] }
 		}
 
 		if (!hasData) {
@@ -529,7 +550,7 @@ export const ChartRenderer = memo(function ChartRenderer({
 	isLoading = false,
 	isAnalyzing = false,
 	hasError = false,
-	expectedChartCount,
+	expectedChartCount: _expectedChartCount,
 	chartTypes,
 	resizeTrigger = 0,
 	messageId

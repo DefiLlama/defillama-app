@@ -63,9 +63,9 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 				return formattedCharts
 			})
 
-			chartDataByPeggedAsset.forEach((chart: any) => {
+			for (const chart of chartDataByPeggedAsset) {
 				const last = chart[chart.length - 1]
-				if (!last) return
+				if (!last) continue
 
 				let lastDate = Number(last.date)
 				while (lastDate < lastTimestamp) {
@@ -75,7 +75,7 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 						date: lastDate
 					})
 				}
-			})
+			}
 
 			const peggedAssetNames = peggedAssets.map((p: any) => p.name)
 
@@ -89,11 +89,12 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 			})
 
 			const doublecountedIds: number[] = []
-			peggedAssets.forEach((asset: any, idx: number) => {
+			for (let idx = 0; idx < peggedAssets.length; idx++) {
+				const asset = peggedAssets[idx]
 				if (asset.doublecounted) {
 					doublecountedIds.push(idx)
 				}
-			})
+			}
 
 			return {
 				chartDataByPeggedAsset,
@@ -142,20 +143,23 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 		if (stackedDataset.length === 0) return []
 
 		const daySum: Record<string, number> = {}
-		stackedDataset.forEach(([date, values]: [string, any]) => {
+		for (const entry of stackedDataset as [string, any][]) {
+			const date = entry[0]
+			const values = entry[1]
 			let totalDaySum = 0
-			Object.values(values).forEach((chainCirculating: any) => {
+			for (const chainCirculating of Object.values(values) as any[]) {
 				totalDaySum += chainCirculating?.circulating || 0
-			})
+			}
 			daySum[date] = totalDaySum
-		})
+		}
 
 		return stackedDataset.map(([date, values]: [string, any]) => {
 			const shares: Record<string, number> = {}
-			Object.entries(values).forEach(([name, chainCirculating]: [string, any]) => {
+			for (const name in values) {
+				const chainCirculating = values[name] as any
 				const circulating = chainCirculating?.circulating || 0
 				shares[name] = getDominancePercent(circulating, daySum[date]) || 0
-			})
+			}
 			return { date, ...shares }
 		})
 	}, [chartData.stackedDataset])

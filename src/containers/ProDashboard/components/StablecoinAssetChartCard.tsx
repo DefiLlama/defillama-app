@@ -57,9 +57,9 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 
 	const chainColors = useMemo(() => {
 		const colors: Record<string, string> = {}
-		chainsUnique.forEach((chain) => {
+		for (const chain of chainsUnique) {
 			colors[chain] = colorManager.getItemColor(chain, 'chain')
-		})
+		}
 		return colors
 	}, [chainsUnique])
 

@@ -74,14 +74,15 @@ export const toNiceDayMonthYear = (date) => dayjs.utc(dayjs.unix(date)).format('
 export const timeFromNow = (date) => dayjs.utc(dayjs.unix(date)).fromNow()
 
 export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, symbol }) {
-	noOfTokens.forEach((tokens, i) => {
+	for (let i = 0; i < noOfTokens.length; i++) {
+		const tokens = noOfTokens[i]
 		description = description.replace(
 			`{tokens[${i}]}`,
 			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${
 				price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
 			}`
 		)
-	})
+	}
 	description = description?.replace('{timestamp}', `${toNiceDateYear(timestamp)} (${timeFromNow(timestamp)})`)
 	return description
 }
@@ -300,7 +301,7 @@ export const formattedNum = (number, symbol = false) => {
 		currencySymbol = symbol
 	}
 
-	if (number === '' || number === undefined || number === null || Number.isNaN(+number)) {
+	if (number === '' || number == null || Number.isNaN(+number)) {
 		return symbol ? `${currencySymbol}0` : `0`
 	}
 	let num = Number(number)
@@ -457,7 +458,7 @@ export function formattedPercent(percent, noSign = false, fontWeight = 400, retu
 export const getPercentChange = (valueNow, value24HoursAgo) => {
 	const adjustedPercentChange =
 		((parseFloat(valueNow) - parseFloat(value24HoursAgo)) / parseFloat(value24HoursAgo)) * 100
-	if (isNaN(adjustedPercentChange) || !isFinite(adjustedPercentChange)) {
+	if (Number.isNaN(adjustedPercentChange) || !isFinite(adjustedPercentChange)) {
 		return null
 	}
 	return adjustedPercentChange
@@ -706,7 +707,7 @@ export function downloadCSV(filename, csvData, options = {}) {
 				.map((row) =>
 					row
 						.map((cell) => {
-							if (cell === null || cell === undefined) return ''
+							if (cell == null) return ''
 							if (typeof cell === 'object') return JSON.stringify(cell)
 							const cellStr = String(cell)
 							if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
@@ -767,7 +768,7 @@ export function downloadDatasetCSV({
 		const rows = data.map((item) =>
 			finalColumns.map((col) => {
 				const value = item[col]
-				if (value === null || value === undefined) return ''
+				if (value == null) return ''
 				if (typeof value === 'object') return JSON.stringify(value)
 				return String(value)
 			})
@@ -791,18 +792,14 @@ export const formatPercentage = (value) => {
 	let zeroes = 0
 	let stop = false
 
-	value
-		.toString()
-		.split('.')?.[1]
-		?.slice(0, 5)
-		?.split('')
-		?.forEach((x) => {
-			if (!stop && x == '0') {
-				zeroes += 1
-			} else {
-				stop = true
-			}
-		})
+	const decimals = value.toString().split('.')?.[1]?.slice(0, 5)?.split('') ?? []
+	for (const x of decimals) {
+		if (!stop && x == '0') {
+			zeroes += 1
+		} else {
+			stop = true
+		}
+	}
 
 	return value.toLocaleString(undefined, { maximumFractionDigits: zeroes + 1 })
 }
@@ -810,10 +807,11 @@ export const formatPercentage = (value) => {
 export function iterateAndRemoveUndefined(obj) {
 	if (typeof obj !== 'object') return obj
 	if (Array.isArray(obj)) return obj
-	Object.entries(obj).forEach((key, value) => {
+	for (const key in obj) {
+		const value = obj[key]
 		if (value === undefined) delete obj[key]
 		else iterateAndRemoveUndefined(value)
-	})
+	}
 	return obj
 }
 
@@ -956,7 +954,7 @@ export function formatValue(value, formatType = 'auto') {
 		}
 		if (typeof value === 'string') {
 			const num = Number(value)
-			if (!isNaN(num)) {
+			if (!Number.isNaN(num)) {
 				if (num !== 0 && Math.abs(num) < 1) return formattedPercent(num * 100, true, 400, true)
 				if (Math.abs(num) > 1000) return formattedNum(num, true)
 				return formattedNum(num)
@@ -972,7 +970,7 @@ export function formatValue(value, formatType = 'auto') {
 		}
 		if (typeof value === 'string') {
 			const num = Number(value)
-			if (!isNaN(num) && num !== 0 && Math.abs(num) < 1) {
+			if (!Number.isNaN(num) && num !== 0 && Math.abs(num) < 1) {
 				return formattedPercent(num * 100, true, 400, true)
 			}
 		}

@@ -17,6 +17,10 @@ export interface YieldsFilters {
 	poolTypes?: string[]
 }
 
+const EMPTY_POOL_TYPES: string[] = []
+const EMPTY_PROTOCOLS: string[] = []
+const EMPTY_TOKENS: string[] = []
+
 interface YieldsFiltersPanelProps {
 	showFiltersPanel: boolean
 	setShowFiltersPanel: (show: boolean) => void
@@ -44,6 +48,11 @@ export function YieldsFiltersPanel({
 }: YieldsFiltersPanelProps) {
 	const [localFilters, setLocalFilters] = React.useState<YieldsFilters>(filters)
 
+	const tokenOptions = React.useMemo(
+		() => availableTokens.map((token) => ({ value: token, label: token })),
+		[availableTokens]
+	)
+
 	React.useEffect(() => {
 		setLocalFilters(filters)
 	}, [filters])
@@ -56,14 +65,14 @@ export function YieldsFiltersPanel({
 	}
 
 	const formatNumberWithCommas = (num: number | undefined): string => {
-		if (num === undefined || num === null) return ''
+		if (num == null) return ''
 		return num.toLocaleString('en-US', { maximumFractionDigits: 0 })
 	}
 
 	const parseFormattedNumber = (value: string): number | undefined => {
 		const cleaned = value.replace(/,/g, '')
 		const parsed = Number(cleaned)
-		return cleaned && !isNaN(parsed) ? parsed : undefined
+		return cleaned && !Number.isNaN(parsed) ? parsed : undefined
 	}
 
 	const handleApply = () => {
@@ -248,7 +257,7 @@ export function YieldsFiltersPanel({
 												type="checkbox"
 												checked={localFilters.poolTypes?.includes(type) || false}
 												onChange={(e) => {
-													const currentTypes = localFilters.poolTypes || []
+													const currentTypes = localFilters.poolTypes ?? EMPTY_POOL_TYPES
 													if (e.target.checked) {
 														updateFilter('poolTypes', [...currentTypes, type])
 													} else {
@@ -291,7 +300,7 @@ export function YieldsFiltersPanel({
 						<AriakitVirtualizedMultiSelect
 							label="Protocols"
 							options={availableProtocols}
-							selectedValues={localFilters.protocols || []}
+							selectedValues={localFilters.protocols ?? EMPTY_PROTOCOLS}
 							onChange={(values) => updateFilter('protocols', values.length > 0 ? values : undefined)}
 							placeholder="Select protocols..."
 							renderIcon={(option) => option.logo || null}
@@ -299,8 +308,8 @@ export function YieldsFiltersPanel({
 
 						<AriakitVirtualizedMultiSelect
 							label="Pool Tokens"
-							options={availableTokens.map((token) => ({ value: token, label: token }))}
-							selectedValues={localFilters.tokens || []}
+							options={tokenOptions}
+							selectedValues={localFilters.tokens ?? EMPTY_TOKENS}
 							onChange={(values) => updateFilter('tokens', values.length > 0 ? values : undefined)}
 							placeholder="Select tokens..."
 						/>

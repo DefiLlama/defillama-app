@@ -70,21 +70,25 @@ export async function getCoinPerformance(categoryId) {
 
 		// calculate cumulative percentage change for each id
 		const results = {}
-		Object.keys(groupedData).forEach((id) => {
+		for (const id in groupedData) {
 			const prices = groupedData[id]
 			const initialPrice = prices[0].price
-			prices.forEach(({ timestamp, price }) => {
+			for (const { timestamp, price } of prices) {
 				if (!results[timestamp]) results[timestamp] = {}
 				const percentageChange = ((price - initialPrice) / initialPrice) * 100
 				results[timestamp][mapping[id]] = percentageChange
-			})
-		})
+			}
+		}
 
 		// format for chart
-		return Object.entries(results).map(([timestamp, changes]) => ({
-			date: parseInt(timestamp),
-			...(changes as object)
-		}))
+		const chartData: Array<{ date: number } & object> = []
+		for (const timestamp in results) {
+			chartData.push({
+				date: parseInt(timestamp),
+				...(results[timestamp] as object)
+			})
+		}
+		return chartData
 	}
 
 	const prices = await fetchJson(`${CATEGORY_COIN_PRICES_API}/${categoryId}`)

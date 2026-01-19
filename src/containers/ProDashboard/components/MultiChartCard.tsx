@@ -19,6 +19,26 @@ import { ProTableCSVButton } from './ProTable/CsvButton'
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 const TreeMapBuilderChart = lazy(() => import('~/components/ECharts/TreeMapBuilderChart'))
 
+const CUMULATIVE_DISPLAY_OPTIONS = [
+	{ name: 'Show individual values', key: 'Individual' },
+	{ name: 'Show cumulative values', key: 'Cumulative' }
+]
+
+const STACKING_DISPLAY_OPTIONS = [
+	{ name: 'Show separate', key: 'Separate' },
+	{ name: 'Show stacked', key: 'Stacked' }
+]
+
+const VALUE_TYPE_OPTIONS = [
+	{ name: 'Show absolute ($)', key: '$ Absolute' },
+	{ name: 'Show percentage (%)', key: '% Percentage' }
+]
+
+const CHART_LAYOUT_OPTIONS = [
+	{ name: 'Time Series', key: 'chart' },
+	{ name: 'Tree Map', key: 'treemap' }
+]
+
 interface MultiChartCardProps {
 	multi: MultiChartConfig
 }
@@ -93,21 +113,21 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			}
 		}
 
-		for (const item in Object.fromEntries(color_uniqueItemIdsPerProtocol)) {
-			if (color_uniqueItemIdsPerProtocol.get(item)?.length > 1) {
-				;(color_uniqueItemIdsPerProtocol.get(item) || []).forEach((id) => {
+		for (const [item, ids] of color_uniqueItemIdsPerProtocol) {
+			if (ids.length > 1) {
+				for (const id of ids) {
 					color_uniqueItemIds.add(id)
-				})
+				}
 			} else {
 				color_uniqueItemIds.add(item)
 			}
 		}
 
-		for (const item in Object.fromEntries(color_uniqueItemIdsPerChain)) {
-			if (color_uniqueItemIdsPerChain.get(item)?.length > 1) {
-				;(color_uniqueItemIdsPerChain.get(item) || []).forEach((id) => {
+		for (const [item, ids] of color_uniqueItemIdsPerChain) {
+			if (ids.length > 1) {
+				for (const id of ids) {
 					color_uniqueItemIds.add(id)
-				})
+				}
 			} else {
 				color_uniqueItemIds.add(item)
 			}
@@ -134,7 +154,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			const name = cfg.protocol ? getProtocolInfo(cfg.protocol)?.name || cfg.protocol : cfg.chain
 
 			const data: [number, number][] = rawData.map(([timestamp, value]) => [
-				typeof timestamp === 'string' && !isNaN(Number(timestamp))
+				typeof timestamp === 'string' && !Number.isNaN(Number(timestamp))
 					? Number(timestamp)
 					: Math.floor(new Date(timestamp).getTime()),
 				value
@@ -217,9 +237,11 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 		if ((allBarType || allAreaType) && showStacked && !showCumulative && !showPercentage) {
 			const allTimestamps = new Set<number>()
-			processedSeries.forEach((serie) => {
-				serie.data.forEach(([timestamp]) => allTimestamps.add(timestamp))
-			})
+			for (const serie of processedSeries) {
+				for (const [timestamp] of serie.data) {
+					allTimestamps.add(timestamp)
+				}
+			}
 
 			const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b)
 
@@ -250,23 +272,25 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		}
 
 		const allTimestamps = new Set<number>()
-		processedSeries.forEach((serie) => {
-			serie.data.forEach(([timestamp]) => allTimestamps.add(timestamp))
-		})
+		for (const serie of processedSeries) {
+			for (const [timestamp] of serie.data) {
+				allTimestamps.add(timestamp)
+			}
+		}
 
 		const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b)
 
 		const totals = new Map<number, number>()
-		sortedTimestamps.forEach((timestamp) => {
+		for (const timestamp of sortedTimestamps) {
 			let total = 0
-			processedSeries.forEach((serie) => {
+			for (const serie of processedSeries) {
 				const dataPoint = serie.data.find(([t]) => t === timestamp)
 				if (dataPoint) {
 					total += dataPoint[1]
 				}
-			})
+			}
 			totals.set(timestamp, total)
-		})
+		}
 
 		const percentageColors = [
 			'#FF6B6B',
@@ -322,19 +346,21 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		if (!series || series.length === 0) return
 
 		const timestampSet = new Set<number>()
-		series.forEach((s) => {
-			s.data.forEach(([timestamp]) => timestampSet.add(timestamp))
-		})
+		for (const s of series) {
+			for (const [timestamp] of s.data) {
+				timestampSet.add(timestamp)
+			}
+		}
 		const timestamps = Array.from(timestampSet).sort((a, b) => a - b)
 
 		const headers = ['Date', ...series.map((s) => s.name)]
 
 		const rows = timestamps.map((timestamp) => {
 			const row = [new Date(timestamp * 1000).toLocaleDateString()]
-			series.forEach((s) => {
+			for (const s of series) {
 				const dataPoint = s.data.find(([t]) => t === timestamp)
 				row.push(dataPoint ? dataPoint[1].toString() : '0')
-			})
+			}
 			return row
 		})
 
@@ -376,6 +402,137 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 	const canStack = allChartsAreBarType || allChartsAreAreaType
 
+	const seriesCount = series.length
+	const chartOptions = useMemo(() => {
+		if (showPercentage) {
+			return {
+				yAxis: {
+					max: 100,
+					min: 0,
+					axisLabel: {
+						formatter: '{value}%'
+					}
+				},
+				tooltip: {
+					valueFormatter: (value: number) => value.toFixed(2) + '%'
+				},
+				grid: {
+					top: 80,
+					bottom: 12,
+					left: 12,
+					right: 12,
+					outerBoundsMode: 'same',
+					outerBoundsContain: 'axisLabel'
+				},
+				legend: {
+					top: 10,
+					type: 'scroll',
+					pageButtonPosition: 'end',
+					height: seriesCount > 5 ? 80 : 40
+				}
+			}
+		}
+
+		if (allPercentMetrics) {
+			return {
+				yAxis: {
+					max: undefined,
+					min: undefined,
+					axisLabel: {
+						formatter: '{value}%'
+					}
+				},
+				tooltip: {
+					valueFormatter: (value: number) => value.toFixed(2) + '%'
+				},
+				grid: {
+					top: seriesCount > 5 ? 80 : 40,
+					bottom: 12,
+					left: 12,
+					right: 12,
+					outerBoundsMode: 'same',
+					outerBoundsContain: 'axisLabel'
+				},
+				legend: {
+					top: 0,
+					type: 'scroll',
+					pageButtonPosition: 'end',
+					height: seriesCount > 5 ? 80 : 40
+				}
+			}
+		}
+
+		if (allCountMetrics || allRatioMetrics) {
+			return {
+				yAxis: {
+					max: undefined,
+					min: undefined,
+					axisLabel: {
+						formatter: (value: number) => {
+							const absValue = Math.abs(value)
+							if (absValue >= 1e9) {
+								return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
+							} else if (absValue >= 1e6) {
+								return (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+							} else if (absValue >= 1e3) {
+								return (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
+							}
+							return value.toFixed(2)
+						}
+					}
+				},
+				grid: {
+					top: seriesCount > 5 ? 80 : 40,
+					bottom: 12,
+					left: 12,
+					right: 12,
+					outerBoundsMode: 'same',
+					outerBoundsContain: 'axisLabel'
+				},
+				legend: {
+					top: 0,
+					type: 'scroll',
+					pageButtonPosition: 'end',
+					height: seriesCount > 5 ? 80 : 40
+				}
+			}
+		}
+
+		return {
+			yAxis: {
+				max: undefined,
+				min: undefined,
+				axisLabel: {
+					formatter: (value: number) => {
+						const absValue = Math.abs(value)
+						if (absValue >= 1e9) {
+							return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
+						} else if (absValue >= 1e6) {
+							return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+						} else if (absValue >= 1e3) {
+							return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
+						}
+						return '$' + value.toString()
+					}
+				}
+			},
+			grid: {
+				top: seriesCount > 5 ? 80 : 40,
+				bottom: 12,
+				left: 12,
+				right: 12,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
+			},
+			legend: {
+				top: 0,
+				type: 'scroll',
+				pageButtonPosition: 'end',
+				height: seriesCount > 5 ? 80 : 40
+			}
+		}
+	}, [allCountMetrics, allPercentMetrics, allRatioMetrics, seriesCount, showPercentage])
+
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
 
 	return (
@@ -403,10 +560,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 				{!isReadOnly && hasAnyData && !hasMultipleMetrics && allChartsAreBarType && (
 					<Select
-						allValues={[
-							{ name: 'Show individual values', key: 'Individual' },
-							{ name: `Show cumulative values`, key: `Cumulative` }
-						]}
+						allValues={CUMULATIVE_DISPLAY_OPTIONS}
 						selectedValues={showCumulative ? 'Cumulative' : 'Individual'}
 						setSelectedValues={(value) => {
 							handleCumulativeChange(multi.id, value === 'Cumulative')
@@ -424,10 +578,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				)}
 				{!isReadOnly && hasAnyData && !hasMultipleMetrics && canStack && !showCumulative && !showTreemap && (
 					<Select
-						allValues={[
-							{ name: 'Show separate', key: 'Separate' },
-							{ name: `Show stacked`, key: `Stacked` }
-						]}
+						allValues={STACKING_DISPLAY_OPTIONS}
 						selectedValues={showStacked ? 'Stacked' : 'Separate'}
 						setSelectedValues={(value) => {
 							handleStackedChange(multi.id, value !== 'Separate')
@@ -443,10 +594,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				)}
 				{!isReadOnly && hasAnyData && !hasMultipleMetrics && !showTreemap && (
 					<Select
-						allValues={[
-							{ name: 'Show absolute ($)', key: '$ Absolute' },
-							{ name: `Show percentage (%)`, key: `% Percentage` }
-						]}
+						allValues={VALUE_TYPE_OPTIONS}
 						selectedValues={showPercentage ? '% Percentage' : '$ Absolute'}
 						setSelectedValues={(value) => {
 							handlePercentageChange(multi.id, value === '% Percentage')
@@ -462,10 +610,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				)}
 				{!isReadOnly && hasAnyData && !hasMultipleMetrics && (
 					<Select
-						allValues={[
-							{ name: 'Time Series', key: 'chart' },
-							{ name: 'Tree Map', key: 'treemap' }
-						]}
+						allValues={CHART_LAYOUT_OPTIONS}
 						selectedValues={showTreemap ? 'treemap' : 'chart'}
 						setSelectedValues={(value) => {
 							handleTreemapChange(multi.id, value === 'treemap')
@@ -538,129 +683,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						}
 						hideDataZoom={true}
 						onReady={handleChartReady}
-						chartOptions={
-							showPercentage
-								? {
-										yAxis: {
-											max: 100,
-											min: 0,
-											axisLabel: {
-												formatter: '{value}%'
-											}
-										},
-										tooltip: {
-											valueFormatter: (value: number) => value.toFixed(2) + '%'
-										},
-										grid: {
-											top: series.length > 5 ? 80 : 80,
-											bottom: 12,
-											left: 12,
-											right: 12,
-											outerBoundsMode: 'same',
-											outerBoundsContain: 'axisLabel'
-										},
-										legend: {
-											top: 10,
-											type: 'scroll',
-											pageButtonPosition: 'end',
-											height: series.length > 5 ? 80 : 40
-										}
-									}
-								: allPercentMetrics
-									? {
-											yAxis: {
-												max: undefined,
-												min: undefined,
-												axisLabel: {
-													formatter: '{value}%'
-												}
-											},
-											tooltip: {
-												valueFormatter: (value: number) => value.toFixed(2) + '%'
-											},
-											grid: {
-												top: series.length > 5 ? 80 : 40,
-												bottom: 12,
-												left: 12,
-												right: 12,
-												outerBoundsMode: 'same',
-												outerBoundsContain: 'axisLabel'
-											},
-											legend: {
-												top: 0,
-												type: 'scroll',
-												pageButtonPosition: 'end',
-												height: series.length > 5 ? 80 : 40
-											}
-										}
-									: allCountMetrics || allRatioMetrics
-										? {
-												yAxis: {
-													max: undefined,
-													min: undefined,
-													axisLabel: {
-														formatter: (value: number) => {
-															const absValue = Math.abs(value)
-															if (absValue >= 1e9) {
-																return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
-															} else if (absValue >= 1e6) {
-																return (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
-															} else if (absValue >= 1e3) {
-																return (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
-															}
-															return value.toFixed(2)
-														}
-													}
-												},
-												grid: {
-													top: series.length > 5 ? 80 : 40,
-													bottom: 12,
-													left: 12,
-													right: 12,
-													outerBoundsMode: 'same',
-													outerBoundsContain: 'axisLabel'
-												},
-												legend: {
-													top: 0,
-													type: 'scroll',
-													pageButtonPosition: 'end',
-													height: series.length > 5 ? 80 : 40
-												}
-											}
-										: {
-												yAxis: {
-													max: undefined,
-													min: undefined,
-													axisLabel: {
-														formatter: (value: number) => {
-															const absValue = Math.abs(value)
-															if (absValue >= 1e9) {
-																return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
-															} else if (absValue >= 1e6) {
-																return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
-															} else if (absValue >= 1e3) {
-																return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
-															}
-															return '$' + value.toString()
-														}
-													}
-												},
-												grid: {
-													top: series.length > 5 ? 80 : 40,
-													bottom: 12,
-													left: 12,
-													right: 12,
-													outerBoundsMode: 'same',
-													outerBoundsContain: 'axisLabel'
-												},
-												legend: {
-													top: 0,
-													type: 'scroll',
-													pageButtonPosition: 'end',
-													height: series.length > 5 ? 80 : 40
-												}
-											}
-						}
+						chartOptions={chartOptions}
 					/>
 				</Suspense>
 			)}

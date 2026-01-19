@@ -19,7 +19,10 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const data = await getTotalStakedByChain({ chain: metadataCache.chainMetadata[chain].name })
+		const data = await getTotalStakedByChain({
+			chain: metadataCache.chainMetadata[chain].name,
+			protocolMetadata: metadataCache.protocolMetadata
+		})
 
 		if (!data) return { notFound: true }
 

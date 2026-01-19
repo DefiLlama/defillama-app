@@ -12,7 +12,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -20,6 +20,8 @@ import { TableBody } from '../../ProTable/TableBody'
 import { TablePagination } from '../../ProTable/TablePagination'
 import { cexDatasetColumns } from './columns'
 import { useCexData } from './useCexData'
+
+const EMPTY_DATA: any[] = []
 
 export function CexDataset() {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'cleanTvl', desc: true }])
@@ -32,10 +34,10 @@ export function CexDataset() {
 	})
 
 	const { data, isLoading, error } = useCexData()
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const filteredData = React.useMemo(() => {
-		return data?.filter((d) => d.cleanTvl > 0) || []
+		return data ? data.filter((d) => d.cleanTvl > 0) : EMPTY_DATA
 	}, [data])
 
 	const instance = useReactTable({
@@ -56,7 +58,8 @@ export function CexDataset() {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {
@@ -75,7 +78,7 @@ export function CexDataset() {
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [windowSize])
+	}, [instance, width])
 
 	const [exchangeName, setExchangeName] = React.useState('')
 

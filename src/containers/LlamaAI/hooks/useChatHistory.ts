@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useState, useSyncExternalStore } from 'react'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { useMedia } from '~/hooks/useMedia'
 import { handleSimpleFetchResponse } from '~/utils/async'
 
@@ -100,7 +101,7 @@ export function useChatHistory() {
 		}
 	})
 
-	const restoreSessionMutation = useMutation({
+	const { mutateAsync: restoreSessionAsync, isPending: isRestoringSession } = useMutation({
 		mutationFn: async ({ sessionId, limit, cursor }: { sessionId: string; limit?: number; cursor?: number }) => {
 			try {
 				const params = new URLSearchParams()
@@ -138,10 +139,13 @@ export function useChatHistory() {
 		onMutate: async (sessionId) => {
 			queryClient.setQueryData(
 				['chat-sessions', user.id],
-				(old: { sessions: ChatSession[]; usage: ResearchUsage | null }) => ({
-					...old,
-					sessions: old.sessions.filter((session) => session.sessionId !== sessionId)
-				})
+				(old: { sessions: ChatSession[]; usage: ResearchUsage | null } | undefined) => {
+					if (!old) return { sessions: [], usage: null }
+					return {
+						...old,
+						sessions: old.sessions.filter((session) => session.sessionId !== sessionId)
+					}
+				}
 			)
 		},
 		onSuccess: () => {
@@ -164,15 +168,18 @@ export function useChatHistory() {
 		onMutate: async ({ sessionId, title }) => {
 			queryClient.setQueryData(
 				['chat-sessions', user.id],
-				(old: { sessions: ChatSession[]; usage: ResearchUsage | null }) => ({
-					...old,
-					sessions: old.sessions.map((session) => {
-						if (session.sessionId === sessionId) {
-							return { ...session, title }
-						}
-						return session
-					})
-				})
+				(old: { sessions: ChatSession[]; usage: ResearchUsage | null } | undefined) => {
+					if (!old) return { sessions: [], usage: null }
+					return {
+						...old,
+						sessions: old.sessions.map((session) => {
+							if (session.sessionId === sessionId) {
+								return { ...session, title }
+							}
+							return session
+						})
+					}
+				}
 			)
 		},
 		onSuccess: () => {
@@ -195,9 +202,9 @@ export function useChatHistory() {
 
 			queryClient.setQueryData(
 				['chat-sessions', user.id],
-				(old: { sessions: ChatSession[]; usage: ResearchUsage | null }) => ({
-					...old,
-					sessions: [fakeSession, ...old.sessions]
+				(old: { sessions: ChatSession[]; usage: ResearchUsage | null } | undefined) => ({
+					usage: old?.usage ?? null,
+					sessions: [fakeSession, ...(old?.sessions ?? [])]
 				})
 			)
 		}
@@ -208,7 +215,7 @@ export function useChatHistory() {
 	const restoreSession = useCallback(
 		async (sessionId: string, limit: number = 10) => {
 			try {
-				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit })
+				const result = await restoreSessionAsync({ sessionId, limit })
 				return {
 					messages: result.messages || result.conversationHistory || [],
 					pagination: {
@@ -230,13 +237,13 @@ export function useChatHistory() {
 				}
 			}
 		},
-		[restoreSessionMutation]
+		[restoreSessionAsync]
 	)
 
 	const loadMoreMessages = useCallback(
 		async (sessionId: string, cursor: number) => {
 			try {
-				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit: 10, cursor })
+				const result = await restoreSessionAsync({ sessionId, limit: 10, cursor })
 				return {
 					messages: result.messages || result.conversationHistory || [],
 					pagination: {
@@ -257,7 +264,7 @@ export function useChatHistory() {
 				}
 			}
 		},
-		[restoreSessionMutation]
+		[restoreSessionAsync]
 	)
 
 	const moveSessionToTop = useCallback(
@@ -266,7 +273,8 @@ export function useChatHistory() {
 
 			queryClient.setQueryData(
 				['chat-sessions', user.id],
-				(old: { sessions: ChatSession[]; usage: ResearchUsage | null }) => {
+				(old: { sessions: ChatSession[]; usage: ResearchUsage | null } | undefined) => {
+					if (!old) return { sessions: [], usage: null }
 					const sessionIndex = old.sessions.findIndex((s) => s.sessionId === sessionId)
 					if (sessionIndex === -1) return old
 
@@ -286,8 +294,8 @@ export function useChatHistory() {
 
 		queryClient.setQueryData(
 			['chat-sessions', user.id],
-			(old: { sessions: ChatSession[]; usage: ResearchUsage | null }) => {
-				if (!old?.usage) return old
+			(old: { sessions: ChatSession[]; usage: ResearchUsage | null } | undefined) => {
+				if (!old?.usage) return old ?? { sessions: [], usage: null }
 				return {
 					...old,
 					usage: {
@@ -301,13 +309,12 @@ export function useChatHistory() {
 
 	const toggleSidebar = useCallback(() => {
 		const currentVisible = localStorage.getItem('llamaai-sidebar-hidden') === 'true'
-		localStorage.setItem('llamaai-sidebar-hidden', String(!currentVisible))
-		window.dispatchEvent(new Event('chatHistorySidebarChange'))
+		setStorageItem('llamaai-sidebar-hidden', String(!currentVisible))
 	}, [])
 
 	const sidebarHidden = useSyncExternalStore(
-		subscribeToChatHistorySidebar,
-		() => localStorage.getItem('llamaai-sidebar-hidden') ?? 'true',
+		(callback) => subscribeToStorageKey('llamaai-sidebar-hidden', callback),
+		() => getStorageItem('llamaai-sidebar-hidden', 'true') ?? 'true',
 		() => 'true'
 	)
 
@@ -332,16 +339,8 @@ export function useChatHistory() {
 		decrementResearchUsage,
 		toggleSidebar: isMobile ? toggleSidebarMobile : toggleSidebar,
 		isCreatingSession: createSessionMutation.isPending,
-		isRestoringSession: restoreSessionMutation.isPending,
+		isRestoringSession,
 		isDeletingSession: deleteSessionMutation.isPending,
 		isUpdatingTitle: updateTitleMutation.isPending
-	}
-}
-
-function subscribeToChatHistorySidebar(callback: () => void) {
-	window.addEventListener('chatHistorySidebarChange', callback)
-
-	return () => {
-		window.removeEventListener('chatHistorySidebarChange', callback)
 	}
 }

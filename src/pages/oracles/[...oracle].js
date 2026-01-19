@@ -38,13 +38,13 @@ export const getStaticProps = withPerformanceLogging(
 export async function getStaticPaths() {
 	const { oracles = {} } = await getOraclePageData()
 
-	const oraclesList = Object.keys(oracles)
-
-	const paths = oraclesList.slice(0, 10).map((oracle) => {
-		return {
-			params: { oracle }
-		}
-	})
+	const paths = []
+	let i = 0
+	for (const oracle in oracles) {
+		if (i >= 10) break
+		paths.push({ params: { oracle: [oracle] } })
+		i++
+	}
 
 	return { paths, fallback: 'blocking' }
 }

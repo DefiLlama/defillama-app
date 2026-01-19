@@ -46,7 +46,11 @@ export function useStreamNotification() {
 	}, [])
 
 	const showNotification = useCallback(() => {
-		new Notification('LlamaAI', { body: 'Llama has answered your question!', icon: '/favicon-badge.png' })
+		const notification = new Notification('LlamaAI', {
+			body: 'Llama has answered your question!',
+			icon: '/favicon-badge.png'
+		})
+		void notification
 		playSound()
 	}, [playSound])
 

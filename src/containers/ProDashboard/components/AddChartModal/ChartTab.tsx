@@ -67,6 +67,10 @@ interface ChartTabProps {
 	onSelectedBorrowedProtocolChange?: (protocol: string | null) => void
 	onSelectedBorrowedProtocolNameChange?: (name: string | null) => void
 	onSelectedBorrowedChartTypeChange?: (chartType: string) => void
+	selectedIncomeStatementProtocol?: string | null
+	selectedIncomeStatementProtocolName?: string | null
+	onSelectedIncomeStatementProtocolChange?: (protocol: string | null) => void
+	onSelectedIncomeStatementProtocolNameChange?: (name: string | null) => void
 	onUnifiedChartNameChange: (name: string) => void
 	onChartCreationModeChange: (mode: 'separate' | 'combined') => void
 	onComposerItemColorChange: (id: string, color: string) => void
@@ -200,6 +204,10 @@ export const ChartTab = memo(function ChartTab(props: ChartTabProps) {
 					onSelectedBorrowedProtocolChange={props.onSelectedBorrowedProtocolChange}
 					onSelectedBorrowedProtocolNameChange={props.onSelectedBorrowedProtocolNameChange}
 					onSelectedBorrowedChartTypeChange={props.onSelectedBorrowedChartTypeChange}
+					selectedIncomeStatementProtocol={props.selectedIncomeStatementProtocol}
+					selectedIncomeStatementProtocolName={props.selectedIncomeStatementProtocolName}
+					onSelectedIncomeStatementProtocolChange={props.onSelectedIncomeStatementProtocolChange}
+					onSelectedIncomeStatementProtocolNameChange={props.onSelectedIncomeStatementProtocolNameChange}
 					onUnifiedChartNameChange={props.onUnifiedChartNameChange}
 					onChartCreationModeChange={props.onChartCreationModeChange}
 					onComposerItemColorChange={props.onComposerItemColorChange}

@@ -61,10 +61,14 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 	}, [router.query, props])
 
 	const addOption = (newOptions) => {
+		const optionsObj: Record<string, boolean> = {}
+		for (const op of newOptions) {
+			optionsObj[op] = true
+		}
 		router.push(
 			{
 				pathname: router.pathname,
-				query: { ...queries, ...Object.fromEntries(newOptions.map((op) => [op, true])) }
+				query: { ...queries, ...optionsObj }
 			},
 			undefined,
 			{
@@ -87,12 +91,16 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 	}
 
 	const toggleAll = () => {
+		const optionsObj: Record<string, boolean> = {}
+		for (const op of options) {
+			optionsObj[op.key] = true
+		}
 		router.push(
 			{
 				pathname: router.pathname,
 				query: {
 					...queries,
-					...Object.fromEntries(options.map((op) => [op.key, true]))
+					...optionsObj
 				}
 			},
 			undefined,

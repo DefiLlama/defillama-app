@@ -43,7 +43,7 @@ export function FormattedNumberInput({
 
 	useEffect(() => {
 		if (!isFocused) {
-			if (value === undefined || value === null) {
+			if (value == null) {
 				setDisplayValue('')
 			} else {
 				setDisplayValue(value.toLocaleString())
@@ -53,7 +53,7 @@ export function FormattedNumberInput({
 
 	const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
 		setIsFocused(true)
-		if (value !== undefined && value !== null) {
+		if (value != null) {
 			setDisplayValue(value.toString())
 			setTimeout(() => event.target.select(), 0)
 		}
@@ -61,7 +61,7 @@ export function FormattedNumberInput({
 
 	const handleBlur = () => {
 		setIsFocused(false)
-		if (value === undefined || value === null) {
+		if (value == null) {
 			setDisplayValue('')
 		} else {
 			setDisplayValue(value.toLocaleString())

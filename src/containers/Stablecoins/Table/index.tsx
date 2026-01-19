@@ -15,8 +15,12 @@ import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { alphanumericFalsyLast } from '~/components/Table/utils'
-import { DEFI_CHAINS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import useWindowSize from '~/hooks/useWindowSize'
+import {
+	CHAINS_CATEGORY_GROUP_SETTINGS,
+	isChainsCategoryGroupKey,
+	useLocalStorageSettingsManager
+} from '~/contexts/LocalStorage'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import {
 	assetsByChainColumnOrders,
 	assetsByChainColumnSizes,
@@ -38,7 +42,7 @@ export function PeggedAssetsTable({ data }) {
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data,
@@ -64,18 +68,14 @@ export function PeggedAssetsTable({ data }) {
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = windowSize.width
-			? (assetsColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
-			: defaultOrder
+		const order = assetsColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder
 
-		const cSize = windowSize.width
-			? assetsColumnSizesKeys.find((size) => windowSize.width > Number(size))
-			: assetsColumnSizesKeys[0]
+		const cSize = assetsColumnSizesKeys.find((size) => width > Number(size)) ?? assetsColumnSizesKeys[0]
 
 		instance.setColumnSizing(assetsColumnSizes[cSize])
 
 		instance.setColumnOrder(order)
-	}, [windowSize, instance])
+	}, [width, instance])
 
 	const [projectName, setProjectName] = React.useState('')
 
@@ -128,7 +128,7 @@ export function PeggedAssetByChainTable({ data }) {
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data,
@@ -158,18 +158,14 @@ export function PeggedAssetByChainTable({ data }) {
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = windowSize.width
-			? (assetsByChainColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
-			: defaultOrder
+		const order = assetsByChainColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder
 
-		const cSize = windowSize.width
-			? assetsByChainColumnSizesKeys.find((size) => windowSize.width > Number(size))
-			: assetsByChainColumnSizesKeys[0]
+		const cSize = assetsByChainColumnSizesKeys.find((size) => width > Number(size)) ?? assetsByChainColumnSizesKeys[0]
 
 		instance.setColumnSizing(assetsByChainColumnSizes[cSize])
 
 		instance.setColumnOrder(order)
-	}, [windowSize, instance])
+	}, [width, instance])
 
 	const [projectName, setProjectName] = React.useState('')
 
@@ -252,51 +248,45 @@ export function PeggedChainsTable({ data }) {
 	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 
 	const clearAllAggrOptions = () => {
-		DEFI_CHAINS_SETTINGS.forEach((item) => {
-			if (selectedAggregateTypes.includes(item.key)) {
+		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
+			if (selectedAggregateTypesSet.has(item.key)) {
 				updater(item.key)
-			}
-		})
-	}
-
-	const toggleAllAggrOptions = () => {
-		DEFI_CHAINS_SETTINGS.forEach((item) => {
-			if (!selectedAggregateTypes.includes(item.key)) {
-				updater(item.key)
-			}
-		})
-	}
-
-	const addAggrOption = (selectedKeys) => {
-		for (const item in groupTvls) {
-			// toggle on
-			if (!groupTvls[item] && selectedKeys.includes(item)) {
-				updater(item)
-			}
-
-			// toggle off
-			if (groupTvls[item] && !selectedKeys.includes(item)) {
-				updater(item)
 			}
 		}
 	}
 
-	const addOnlyOneAggrOption = (newOption) => {
-		DEFI_CHAINS_SETTINGS.forEach((item) => {
-			if (item.key === newOption) {
-				if (!selectedAggregateTypes.includes(item.key)) {
-					updater(item.key)
-				}
-			} else {
-				if (selectedAggregateTypes.includes(item.key)) {
-					updater(item.key)
-				}
+	const toggleAllAggrOptions = () => {
+		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
+			if (!selectedAggregateTypesSet.has(item.key)) {
+				updater(item.key)
 			}
-		})
+		}
+	}
+
+	const addAggrOption = (selectedKeys: string[]) => {
+		const selectedSet = new Set(selectedKeys)
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
+			const shouldEnable = selectedSet.has(item.key)
+			if (groupTvls[item.key] !== shouldEnable) {
+				updater(item.key)
+			}
+		}
+	}
+
+	const addOnlyOneAggrOption = (newOption: string) => {
+		if (!isChainsCategoryGroupKey(newOption)) return
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
+			const shouldEnable = item.key === newOption
+			if (groupTvls[item.key] !== shouldEnable) {
+				updater(item.key)
+			}
+		}
 	}
 
 	const selectedAggregateTypes = React.useMemo(() => {
-		return DEFI_CHAINS_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
+		return CHAINS_CATEGORY_GROUP_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
 	}, [groupTvls])
 
 	return (
@@ -320,7 +310,7 @@ export function PeggedChainsTable({ data }) {
 					/>
 				</label>
 				<SelectWithCombobox
-					allValues={DEFI_CHAINS_SETTINGS}
+					allValues={CHAINS_CATEGORY_GROUP_SETTINGS}
 					selectedValues={selectedAggregateTypes}
 					setSelectedValues={addAggrOption}
 					selectOnlyOne={addOnlyOneAggrOption}

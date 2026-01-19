@@ -2,28 +2,30 @@ import { BarChart, LineChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
-import { useCallback, useEffect, useId, useMemo } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { CHART_COLORS, purple } from '~/constants/colors'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum, slug } from '~/utils'
 
 echarts.use([SVGRenderer, LineChart, BarChart, TooltipComponent, GridComponent])
 
 export function FeesGeneratedChart({ series }: { series: Array<[string, number, string]> }) {
 	const id = useId()
+	const chartRef = useRef<echarts.ECharts | null>(null)
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
-	}, [id])
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	useEffect(() => {
 		// create instance
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'svg' })
+		chartRef.current = instance
 
-		chartInstance.setOption({
+		instance.setOption({
 			animation: false,
 			grid: {
 				left: 0,
@@ -106,23 +108,17 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 			}
 		})
 
-		chartInstance.on('click', function (params) {
+		instance.on('click', function (params) {
 			window.open(
 				`/fees/${slug(params.name ?? (typeof params.value === 'string' ? params.value : (params.value?.[0] ?? '')))}`
 			)
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [createInstance, series])
+	}, [id, series])
 
 	return (
 		<div className="relative" id="fees-generated-chart">
@@ -144,17 +140,19 @@ export function SmolLineChart({
 }) {
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
+	const chartRef = useRef<echarts.ECharts | null>(null)
 
-		return instance || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
-	}, [id])
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	useEffect(() => {
 		// create instance
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'svg' })
+		chartRef.current = instance
 
-		chartInstance.setOption({
+		instance.setOption({
 			animation: false,
 			grid: {
 				left: 0,
@@ -223,17 +221,11 @@ export function SmolLineChart({
 			}
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [createInstance, series, color, isThemeDark, name])
+	}, [id, series, color, isThemeDark, name])
 
 	return (
 		<div className="relative">
@@ -254,18 +246,19 @@ export function SmolBarChart({
 	groupBy?: 'daily' | 'weekly' | 'monthly'
 }) {
 	const id = useId()
+	const chartRef = useRef<echarts.ECharts | null>(null)
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
-	}, [id])
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	useEffect(() => {
 		// create instance
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'svg' })
+		chartRef.current = instance
 
-		chartInstance.setOption({
+		instance.setOption({
 			animation: false,
 			grid: {
 				left: 0,
@@ -332,17 +325,11 @@ export function SmolBarChart({
 			}
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [createInstance, series, name])
+	}, [id, series, name, groupBy])
 
 	return (
 		<div className="relative flex-1">
@@ -363,12 +350,10 @@ export function UpcomingUnlocksChart({
 	className?: string
 }) {
 	const id = useId()
+	const chartRef = useRef<echarts.ECharts | null>(null)
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
-	}, [id])
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const series = useMemo(() => {
 		// Calculate totals for each date and include breakdown info
@@ -397,9 +382,12 @@ export function UpcomingUnlocksChart({
 
 	useEffect(() => {
 		// create instance
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'svg' })
+		chartRef.current = instance
 
-		chartInstance.setOption({
+		instance.setOption({
 			animation: false,
 			grid: {
 				left: 0,
@@ -472,17 +460,11 @@ export function UpcomingUnlocksChart({
 			series
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [createInstance, series, name])
+	}, [id, series, name, tokens])
 
 	return (
 		<div className="relative flex-1">

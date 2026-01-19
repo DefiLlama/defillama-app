@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useRouter } from 'next/router'
+import Router from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 
@@ -10,18 +10,12 @@ interface ReturnModalProps {
 }
 
 export function ReturnModal({ isOpen, onClose, returnUrl }: ReturnModalProps) {
-	const router = useRouter()
-
 	const handleStayOnPage = () => {
-		const { returnUrl: _returnUrl, ...restQuery } = router.query
-		router.replace(
-			{
-				pathname: router.pathname,
-				query: restQuery
-			},
-			undefined,
-			{ shallow: true }
-		)
+		const params = new URLSearchParams(window.location.search)
+		params.delete('returnUrl')
+		const queryString = params.toString()
+		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
+		Router.replace(newUrl, undefined, { shallow: true })
 		onClose()
 	}
 	return (

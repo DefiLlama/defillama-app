@@ -30,9 +30,9 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 
 	const itemTypes = useMemo(() => {
 		const counts: Record<string, number> = {}
-		dashboard.data.items?.forEach((item: DashboardItemConfig) => {
+		for (const item of dashboard.data.items ?? []) {
 			if (!item || typeof item !== 'object') {
-				return
+				continue
 			}
 
 			switch (item.kind) {
@@ -52,7 +52,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 					const otherItem = item as DashboardItemConfig
 					counts[otherItem.kind] = (counts[otherItem.kind] || 0) + 1
 			}
-		})
+		}
 
 		const sorted = Object.entries(counts)
 			.sort(([, a], [, b]) => b - a)
@@ -60,9 +60,10 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 
 		const summary = sorted.map(([type, count]) => `${count} ${type}`).join(', ')
 
-		if (Object.keys(counts).length > 3) {
-			const remaining = Object.keys(counts).length - 3
-			return `${summary} +${remaining} more`
+		let countsLength = 0
+		for (const _ in counts) countsLength++
+		if (countsLength > 3) {
+			return `${summary} +${countsLength - 3} more`
 		}
 
 		return summary
@@ -70,10 +71,10 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 
 	return (
 		<div
-			className={`relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 transition-all duration-200 ease-out hover:border-(--old-blue)/30 hover:bg-pro-blue-300/5 hover:shadow-md hover:shadow-pro-blue-300/5 dark:hover:border-(--old-blue)/40 dark:hover:bg-pro-blue-300/10 ${className ?? ''}`}
+			className={`relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} hover:bg-pro-blue-300/5 hover:shadow-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 transition-all duration-200 ease-out hover:border-(--old-blue)/30 hover:shadow-md dark:hover:border-(--old-blue)/40 ${className ?? ''}`}
 		>
 			<div className="flex flex-wrap items-center justify-end gap-2">
-				<h2 className="mr-auto text-base font-semibold leading-tight text-wrap">
+				<h2 className="mr-auto text-base leading-tight font-semibold text-wrap">
 					{dashboard.data.dashboardName || 'Untitled Dashboard'}
 				</h2>
 

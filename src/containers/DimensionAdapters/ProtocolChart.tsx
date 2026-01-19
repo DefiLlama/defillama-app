@@ -305,7 +305,10 @@ const ChartByType = ({
 
 		// Build chart config
 		const allColors = getNDistinctColors(breakdownNames.length + 1)
-		const stackColors = Object.fromEntries(breakdownNames.map((type, i) => [type, allColors[i]]))
+		const stackColors: Record<string, string> = {}
+		for (let i = 0; i < breakdownNames.length; i++) {
+			stackColors[breakdownNames[i]] = allColors[i]
+		}
 		stackColors['Others'] = allColors[allColors.length - 1]
 
 		const chartType2: 'line' | 'bar' = isCumulative ? 'line' : 'bar'

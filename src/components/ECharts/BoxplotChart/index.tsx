@@ -13,8 +13,9 @@ import {
 import * as echarts from 'echarts/core'
 import { UniversalTransition } from 'echarts/features'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useCallback, useEffect, useId } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 
 echarts.use([
 	CanvasRenderer,
@@ -30,6 +31,9 @@ echarts.use([
 	UniversalTransition
 ])
 
+// Register transform once at module level
+echarts.registerTransform(aggregate)
+
 export interface IChartProps {
 	chartData: any
 }
@@ -38,22 +42,23 @@ export default function BoxplotChart({ chartData }: IChartProps) {
 	const id = useId()
 
 	const [isDark] = useDarkModeManager()
+	const chartRef = useRef<echarts.ECharts | null>(null)
 
-	// transform chartData into required structure
-	const data = chartData.map((p) => [p.apy, p.projectName])
-	data.unshift(['APY', 'Project'])
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
-	// Register transform func
-	echarts.registerTransform(aggregate)
+	// Memoize data to prevent effect re-running on every render
+	const data = useMemo(() => {
+		const rows = chartData.map((p) => [p.apy, p.projectName])
+		rows.unshift(['APY', 'Project'])
+		return rows
+	}, [chartData])
 
 	useEffect(() => {
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
 
 		const option = {
 			dataset: [
@@ -212,19 +217,13 @@ export default function BoxplotChart({ chartData }: IChartProps) {
 				}
 			]
 		}
-		chartInstance.setOption(option)
-
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
+		instance.setOption(option)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [id, data, createInstance, isDark])
+	}, [id, data, isDark])
 
 	return (
 		<div className="relative flex flex-col items-end rounded-md bg-(--cards-bg) p-3">

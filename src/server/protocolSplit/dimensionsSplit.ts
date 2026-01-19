@@ -75,11 +75,13 @@ const fetchChainResults = async (chainsArray: string[], metric: string): Promise
 
 const toBreakdownMap = (breakdown: Array<[number, Record<string, number>]>): Map<number, Map<string, number>> => {
 	const map = new Map<number, Map<string, number>>()
-	breakdown.forEach(([ts, protocols]) => {
+	for (const [ts, protocols] of breakdown) {
 		const m = new Map<string, number>()
-		Object.entries(protocols || {}).forEach(([name, v]) => m.set(name, v as number))
+		for (const name in protocols || {}) {
+			m.set(name, protocols[name] as number)
+		}
 		map.set(ts, m)
-	})
+	}
 	return map
 }
 
@@ -140,9 +142,9 @@ const buildAggregatedBreakdown = async (
 			const { data } = result
 			if (!data.totalDataChartBreakdown || !Array.isArray(data.totalDataChartBreakdown)) continue
 
-			data.totalDataChartBreakdown.forEach((item: any) => {
+			for (const item of data.totalDataChartBreakdown as any[]) {
 				const [timestamp, protocols] = item
-				if (!protocols) return
+				if (!protocols) continue
 
 				if (!aggregatedBreakdown.has(timestamp)) {
 					aggregatedBreakdown.set(timestamp, new Map())
@@ -150,11 +152,12 @@ const buildAggregatedBreakdown = async (
 
 				const timestampData = aggregatedBreakdown.get(timestamp)!
 
-				Object.entries(protocols).forEach(([protocolName, value]) => {
+				for (const protocolName in protocols) {
+					const value = protocols[protocolName]
 					const currentValue = timestampData.get(protocolName) || 0
 					timestampData.set(protocolName, currentValue + (value as number))
-				})
-			})
+				}
+			}
 		}
 	}
 
@@ -177,6 +180,7 @@ export const getDimensionsSplitData = async ({
 
 	const chainsArray = chains.length > 0 ? chains : ['all']
 	const categoriesArray = (categories || []).map((cat) => cat.toLowerCase())
+	const categoriesSet = new Set(categoriesArray)
 
 	const chainResults = await fetchChainResults(chainsArray, metric)
 
@@ -227,7 +231,7 @@ export const getDimensionsSplitData = async ({
 		}
 	}
 
-	protocols.forEach((protocol: any) => {
+	for (const protocol of protocols as any[]) {
 		if (protocol.name) {
 			if (protocol.category) {
 				const cat = protocol.category.toLowerCase()
@@ -238,7 +242,7 @@ export const getDimensionsSplitData = async ({
 				protocolToParentId.set(protocol.name, protocol.parentProtocol)
 			}
 		}
-	})
+	}
 
 	const getCategory = (name: string): string => {
 		return protocolCategories.get(name) || protocolCategoriesBySlug.get(toSlug(name)) || ''
@@ -246,11 +250,11 @@ export const getDimensionsSplitData = async ({
 
 	let protocolEntries = Object.entries(lastDayProtocols).map(([name, value]) => ({ name, value: value as number }))
 
-	if (categoriesArray.length > 0 && (protocolCategories.size > 0 || protocolCategoriesBySlug.size > 0)) {
+	if (categoriesSet.size > 0 && (protocolCategories.size > 0 || protocolCategoriesBySlug.size > 0)) {
 		if (categoryFilterMode === 'exclude') {
-			protocolEntries = protocolEntries.filter((p) => !categoriesArray.includes(getCategory(p.name)))
+			protocolEntries = protocolEntries.filter((p) => !categoriesSet.has(getCategory(p.name)))
 		} else {
-			protocolEntries = protocolEntries.filter((p) => categoriesArray.includes(getCategory(p.name)))
+			protocolEntries = protocolEntries.filter((p) => categoriesSet.has(getCategory(p.name)))
 		}
 	}
 
@@ -299,8 +303,8 @@ export const getDimensionsSplitData = async ({
 			}
 		}
 	} else {
-		protocolEntries.sort((a, b) => b.value - a.value)
-		topProtocols = protocolEntries.slice(0, topN).map((p) => p.name)
+		const sortedProtocolEntries = protocolEntries.toSorted((a, b) => b.value - a.value)
+		topProtocols = sortedProtocolEntries.slice(0, topN).map((p) => p.name)
 		topProtocolsSet = new Set(topProtocols)
 
 		for (const entry of protocolEntries) {
@@ -313,27 +317,28 @@ export const getDimensionsSplitData = async ({
 	}
 
 	const protocolData: Map<string, [number, number][]> = new Map()
-	topProtocols.forEach((protocol) => {
+	for (const protocol of topProtocols) {
 		protocolData.set(protocol, [])
-	})
+	}
 
 	const timestampTotals: Map<number, number> = new Map()
 	const timestampTopTotals: Map<number, number> = new Map()
 
-	data.totalDataChartBreakdown.forEach((item: any) => {
+	for (const item of data.totalDataChartBreakdown as any[]) {
 		const [timestamp, protocols] = item
-		if (!protocols) return
+		if (!protocols) continue
 
 		let dayTotal = 0
 		let topTotal = 0
 
-		Object.entries(protocols).forEach(([protocolName, value]) => {
-			if (categoriesArray.length > 0 && (protocolCategories.size > 0 || protocolCategoriesBySlug.size > 0)) {
+		for (const protocolName in protocols) {
+			const value = protocols[protocolName]
+			if (categoriesSet.size > 0 && (protocolCategories.size > 0 || protocolCategoriesBySlug.size > 0)) {
 				const cat = getCategory(protocolName)
 				if (categoryFilterMode === 'exclude') {
-					if (categoriesArray.includes(cat)) return
+					if (categoriesSet.has(cat)) continue
 				} else {
-					if (!categoriesArray.includes(cat)) return
+					if (!categoriesSet.has(cat)) continue
 				}
 			}
 
@@ -354,17 +359,18 @@ export const getDimensionsSplitData = async ({
 					}
 				}
 			}
-		})
+		}
 
 		timestampTotals.set(timestamp, dayTotal)
 		timestampTopTotals.set(timestamp, topTotal)
-	})
+	}
 
 	const allTimestamps = Array.from(timestampTotals.keys()).sort((a, b) => a - b)
 
 	const series: ChartSeries[] = []
 
-	topProtocols.forEach((protocol, index) => {
+	for (let i = 0; i < topProtocols.length; i++) {
+		const protocol = topProtocols[i]
 		const sortedData = (protocolData.get(protocol) || []).sort((a, b) => a[0] - b[0])
 		const protocolDataMap = new Map(sortedData)
 
@@ -375,9 +381,9 @@ export const getDimensionsSplitData = async ({
 		series.push({
 			name: protocol,
 			data: alignedData,
-			color: EXTENDED_COLOR_PALETTE[index % EXTENDED_COLOR_PALETTE.length]
+			color: EXTENDED_COLOR_PALETTE[i % EXTENDED_COLOR_PALETTE.length]
 		})
-	})
+	}
 
 	const othersData: [number, number][] = allTimestamps.map((timestamp) => {
 		const total = timestampTotals.get(timestamp) || 0

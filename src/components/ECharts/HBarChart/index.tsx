@@ -1,9 +1,10 @@
-import * as echarts from 'echarts/core'
 import { BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
+import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useEffect, useId } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formatTooltipValue } from '../useDefaults'
 
 echarts.use([CanvasRenderer, BarChart, GridComponent, TooltipComponent])
@@ -27,19 +28,24 @@ export default function HBarChart({
 }: IHBarChartProps) {
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
 		if (!chartDom) return
 
-		let chartInstance = echarts.getInstanceByDom(chartDom)
-		if (!chartInstance) {
-			chartInstance = echarts.init(chartDom)
+		let instance = echarts.getInstanceByDom(chartDom)
+		if (!instance) {
+			instance = echarts.init(chartDom)
 		}
+		chartRef.current = instance
 
 		const textColor = isThemeDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)'
 
-		chartInstance.setOption({
+		instance.setOption({
 			grid: {
 				left: 120,
 				right: 20,
@@ -87,12 +93,9 @@ export default function HBarChart({
 			]
 		})
 
-		const resize = () => chartInstance?.resize()
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance?.dispose()
+			chartRef.current = null
+			instance?.dispose()
 		}
 	}, [id, categories, values, valueSymbol, color, isThemeDark])
 

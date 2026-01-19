@@ -34,6 +34,7 @@ export async function getYieldPageData() {
 		avalanche: 'avax',
 		gnosis: 'xdai'
 	}
+	const priceChainMappingKeys = new Set(Object.keys(priceChainMapping))
 
 	// get Price data
 	//
@@ -44,9 +45,7 @@ export async function getYieldPageData() {
 
 		if (rewardTokens?.length) {
 			let priceChainName = p.chain.toLowerCase()
-			priceChainName = Object.keys(priceChainMapping).includes(priceChainName)
-				? priceChainMapping[priceChainName]
-				: priceChainName
+			priceChainName = priceChainMappingKeys.has(priceChainName) ? priceChainMapping[priceChainName] : priceChainName
 
 			// using coingecko ids for projects on Neo, otherwise empty object
 			pricesList.push(
@@ -64,9 +63,7 @@ export async function getYieldPageData() {
 		let priceChainName = p.chain.toLowerCase()
 		const rewardTokens = p.rewardTokens?.filter((t) => !!t)
 
-		priceChainName = Object.keys(priceChainMapping).includes(priceChainName)
-			? priceChainMapping[priceChainName]
-			: priceChainName
+		priceChainName = priceChainMappingKeys.has(priceChainName) ? priceChainMapping[priceChainName] : priceChainName
 
 		p['rewardTokensSymbols'] =
 			p.chain === 'Neo'
@@ -267,7 +264,7 @@ export async function getLendBorrowData() {
 	const lendingProtocols = new Set()
 	const farmProtocols = new Set()
 
-	props.pools.forEach((pool) => {
+	for (const pool of props.pools) {
 		projectsList.add(pool.projectName)
 		// remove undercollateralised cause we cannot borrow on those
 		if (['Lending', 'CDP', 'NFT Lending'].includes(pool.category)) {
@@ -275,11 +272,13 @@ export async function getLendBorrowData() {
 		}
 		farmProtocols.add(pool.projectName)
 
-		pool.rewardTokensNames?.forEach((rewardName) => {
-			projectsList.add(rewardName)
-			farmProtocols.add(rewardName)
-		})
-	})
+		if (pool.rewardTokensNames) {
+			for (const rewardName of pool.rewardTokensNames) {
+				projectsList.add(rewardName)
+				farmProtocols.add(rewardName)
+			}
+		}
+	}
 
 	return {
 		props: {

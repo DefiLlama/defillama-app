@@ -66,9 +66,9 @@ let globalData: any
 function fetchGlobalData({ peggedAssets, chains }: any) {
 	if (globalData) return globalData
 	const tvlMap: any = {}
-	chains.forEach((chain) => {
+	for (const chain of chains) {
 		tvlMap[chain.name] = chain.tvl
-	})
+	}
 	const chainList = chains
 		.sort((a, b) => {
 			const bTotalCirculatings = Object.values(b.totalCirculatingUSD) as any
@@ -80,15 +80,15 @@ function fetchGlobalData({ peggedAssets, chains }: any) {
 		.map((chain) => chain.name)
 	const chainsSet = new Set()
 	const _chainSet = new Set(chainList)
-	peggedAssets.forEach(({ chains }) => {
-		chains.forEach((chain) => {
+	for (const { chains } of peggedAssets) {
+		for (const chain of chains) {
 			if (!chain) {
 				chainsSet.add(chain)
 			} else {
 				if (_chainSet.has(chain)) chainsSet.add(chain)
 			}
-		})
-	})
+		}
+	}
 	globalData = {
 		chainList,
 		chainsSet,
@@ -142,10 +142,10 @@ export async function getPeggedOverviewPageData(chain) {
 			}
 			return formattedCharts
 		})
-		chartDataByPeggedAsset.forEach((chart) => {
+		for (const chart of chartDataByPeggedAsset) {
 			const last = chart[chart.length - 1]
 			if (!last) {
-				return
+				continue
 			}
 			let lastDate = Number(last.date)
 			while (lastDate < lastTimestamp) {
@@ -155,7 +155,7 @@ export async function getPeggedOverviewPageData(chain) {
 					date: lastDate
 				})
 			}
-		})
+		}
 
 		const filteredPeggedAssets = formatPeggedAssetsData({
 			peggedAssets,
@@ -188,7 +188,7 @@ export async function getPeggedChainsPageData() {
 		const { chainList, chainsTVLData } = fetchGlobalData({ peggedAssets, chains })
 
 		let chainsGroupbyParent: Record<string, Record<string, string[]>> = {}
-		chainList.forEach((chain) => {
+		for (const chain of chainList) {
 			const parent = chainCoingeckoIds[chain]?.parent
 			if (parent) {
 				if (!chainsGroupbyParent[parent.chain]) {
@@ -201,7 +201,7 @@ export async function getPeggedChainsPageData() {
 					chainsGroupbyParent[parent.chain][type].push(chain)
 				}
 			}
-		})
+		}
 
 		let peggedChartDataByChain = chainList.map((chain) => chainChartMap[chain] ?? null)
 

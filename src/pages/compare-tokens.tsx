@@ -1,6 +1,6 @@
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { DIMENSIONS_OVERVIEW_API, PROTOCOLS_API } from '~/constants'
-import CompareTokens from '~/containers/CompareTokens'
+import { CompareTokens } from '~/containers/CompareTokens'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -28,12 +28,19 @@ export const getStaticProps = withPerformanceLogging('compare-tokens', async () 
 			}
 		)
 	])
-	const parentProtocols = Object.fromEntries(
-		tvlProtocols.parentProtocols.map((protocol) => [
-			protocol.id,
-			{ name: protocol.name, geckoId: protocol.gecko_id ?? null, tvl: null, fees: null, revenue: null }
-		])
-	)
+	const parentProtocols: Record<
+		string,
+		{ name: string; geckoId: string | null; tvl: number | null; fees: number | null; revenue: number | null }
+	> = {}
+	for (const protocol of tvlProtocols.parentProtocols) {
+		parentProtocols[protocol.id] = {
+			name: protocol.name,
+			geckoId: protocol.gecko_id ?? null,
+			tvl: null,
+			fees: null,
+			revenue: null
+		}
+	}
 	const llamaProtocols = tvlProtocols.protocols.map((protocol) => {
 		const fees = feesProtocols.protocols.find((fp) => fp.defillamaId === protocol.defillamaId)?.total24h ?? null
 		const revenue = revenueProtocols.protocols.find((fp) => fp.defillamaId === protocol.defillamaId)?.total24h ?? null

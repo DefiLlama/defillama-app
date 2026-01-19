@@ -14,7 +14,7 @@ import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { emissionsColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
-import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 
 const optionsKey = 'unlockTable'
 const filterStatekey = 'unlockTableFilterState'
@@ -40,6 +40,11 @@ const UNLOCK_TYPES = [
 	'liquidity',
 	'uncategorized'
 ]
+
+const UNLOCK_TYPE_OPTIONS = UNLOCK_TYPES.map((type) => ({
+	name: type.charAt(0).toUpperCase() + type.slice(1),
+	key: type
+}))
 
 export const UnlocksTable = ({
 	protocols,
@@ -135,57 +140,63 @@ export const UnlocksTable = ({
 	}
 
 	const columnsInStorage = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(optionsKey) ?? defaultColumns,
+		(callback) => subscribeToStorageKey(optionsKey, callback),
+		() => getStorageItem(optionsKey, defaultColumns) ?? defaultColumns,
 		() => defaultColumns
 	)
 
 	const _filterState = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(filterStatekey) ?? null,
+		(callback) => subscribeToStorageKey(filterStatekey, callback),
+		() => getStorageItem(filterStatekey, null),
 		() => null
 	)
 
 	const clearAllOptions = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
+		const opsObj: Record<string, boolean> = {}
+		for (const option of columnOptions) {
+			opsObj[option.key] = false
+		}
+		const ops = JSON.stringify(opsObj)
+		setStorageItem(optionsKey, ops)
 	}
 
 	const toggleAllOptions = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, true])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
+		const opsObj: Record<string, boolean> = {}
+		for (const option of columnOptions) {
+			opsObj[option.key] = true
+		}
+		const ops = JSON.stringify(opsObj)
+		setStorageItem(optionsKey, ops)
 	}
 
 	const addOption = (newOptions) => {
-		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key)]))
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
+		const ops: Record<string, boolean> = {}
+		for (const col of columnOptions) {
+			ops[col.key] = newOptions.includes(col.key)
+		}
+		setStorageItem(optionsKey, JSON.stringify(ops))
 	}
 
 	const addOnlyOneOption = (newOption) => {
-		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, col.key === newOption]))
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
+		const ops: Record<string, boolean> = {}
+		for (const col of columnOptions) {
+			ops[col.key] = col.key === newOption
+		}
+		setStorageItem(optionsKey, JSON.stringify(ops))
 	}
 
 	const _setFilter = (key) => (newState) => {
-		const newOptions = Object.fromEntries(
-			columnOptions.map((column) => [
-				[column.key],
-				['name', 'category'].includes(column.key) ? true : column[key] === newState
-			])
-		)
+		const newOptions: Record<string, boolean> = {}
+		for (const column of columnOptions) {
+			newOptions[column.key] = ['name', 'category'].includes(column.key) ? true : column[key] === newState
+		}
 
 		if (columnsInStorage === JSON.stringify(newOptions)) {
 			toggleAllOptions()
-			window.localStorage.setItem(filterStatekey, null)
-			window.dispatchEvent(new Event('storage'))
+			setStorageItem(filterStatekey, 'null')
 		} else {
-			window.localStorage.setItem(optionsKey, JSON.stringify(newOptions))
-			window.localStorage.setItem(filterStatekey, newState)
-			window.dispatchEvent(new Event('storage'))
+			setStorageItem(optionsKey, JSON.stringify(newOptions))
+			setStorageItem(filterStatekey, newState)
 		}
 	}
 
@@ -372,7 +383,7 @@ export const UnlocksTable = ({
 				/>
 
 				<SelectWithCombobox
-					allValues={UNLOCK_TYPES.map((type) => ({ name: type.charAt(0).toUpperCase() + type.slice(1), key: type }))}
+					allValues={UNLOCK_TYPE_OPTIONS}
 					selectedValues={selectedUnlockTypes}
 					setSelectedValues={setSelectedUnlockTypes}
 					selectOnlyOne={(value) => setSelectedUnlockTypes([value])}

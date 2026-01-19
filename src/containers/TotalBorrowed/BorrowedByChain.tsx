@@ -12,6 +12,8 @@ import { ITotalBorrowedByChainPageData } from './queries'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
+const DEFAULT_SORTING_STATE = [{ id: 'totalBorrowed', desc: true }]
+
 export function BorrowedProtocolsTVLByChain(props: ITotalBorrowedByChainPageData) {
 	return (
 		<>
@@ -59,7 +61,7 @@ export function BorrowedProtocolsTVLByChain(props: ITotalBorrowedByChainPageData
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
-				sortingState={[{ id: 'totalBorrowed', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)

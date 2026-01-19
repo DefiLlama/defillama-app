@@ -45,9 +45,9 @@ export function useStablecoinsData(chain: string) {
 			})
 
 			// Normalize chart data to same end date
-			chartDataByPeggedAsset.forEach((chart: any) => {
+			for (const chart of chartDataByPeggedAsset) {
 				const last = chart[chart.length - 1]
-				if (!last) return
+				if (!last) continue
 
 				let lastDate = Number(last.date)
 				while (lastDate < lastTimestamp) {
@@ -57,7 +57,7 @@ export function useStablecoinsData(chain: string) {
 						date: lastDate
 					})
 				}
-			})
+			}
 
 			// Format the assets data
 			const filteredPeggedAssets = formatPeggedAssetsData({

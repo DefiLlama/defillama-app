@@ -18,13 +18,21 @@ import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { getColumns } from './columns'
 import { useTokenSearch } from './useTokenSearch'
-import { useTokenUsageData } from './useTokenUsageData'
+import { type TokenUsageData, useTokenUsageData } from './useTokenUsageData'
 
 interface _TokenOption {
 	value: string
 	label: string
 	logo?: string
 }
+
+const EMPTY_TOKEN_OPTIONS: _TokenOption[] = []
+const EMPTY_SELECTED_TOKENS: _TokenOption[] = []
+const EMPTY_USAGE_DATA: TokenUsageData[] = []
+const EMPTY_TOKEN_SYMBOLS: string[] = []
+
+type CategoryStats = { count: number; amount: number }
+type CategoryBreakdown = Record<string, CategoryStats>
 
 interface TokenUsageDatasetProps {
 	config: {
@@ -84,15 +92,24 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 	const [tokenSearchInput, setTokenSearchInput] = useState('')
 	const [localIncludeCex, setLocalIncludeCex] = useState(config.includeCex ?? false)
 
-	const tokenSymbols = config.tokenSymbols || []
+	const tokenSymbols = config.tokenSymbols ?? EMPTY_TOKEN_SYMBOLS
+
+	const tokenSymbolSelectValue = useMemo(
+		() => tokenSymbols.map((symbol) => ({ label: symbol.toUpperCase(), value: symbol })),
+		[tokenSymbols]
+	)
 
 	useEffect(() => {
 		setLocalIncludeCex(config.includeCex ?? false)
 	}, [config.includeCex])
 
-	const { data: rawData = [], isLoading, isError, refetch } = useTokenUsageData(tokenSymbols, localIncludeCex)
-	const { data: tokenOptions = [], isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
-	const { data: defaultTokens = [] } = useTokenSearch('')
+	const { data: rawDataResponse, isLoading, isError, refetch } = useTokenUsageData(tokenSymbols, localIncludeCex)
+	const { data: tokenOptionsResponse, isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
+	const { data: defaultTokensResponse } = useTokenSearch('')
+
+	const rawData = rawDataResponse ?? EMPTY_USAGE_DATA
+	const tokenOptions = tokenOptionsResponse ?? EMPTY_TOKEN_OPTIONS
+	const defaultTokens = defaultTokensResponse ?? EMPTY_TOKEN_OPTIONS
 
 	const filteredData = useMemo(() => {
 		if (!search) return rawData
@@ -118,7 +135,8 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
-		getFilteredRowModel: getFilteredRowModel()
+		getFilteredRowModel: getFilteredRowModel(),
+		autoResetPageIndex: false
 	})
 
 	const handleTokenChange = (selectedOptions: any) => {
@@ -144,28 +162,29 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 		if (tokenSymbols.length <= 1) return null
 
 		const stats: Record<string, { total: number; protocols: number }> = {}
-		tokenSymbols.forEach((symbol) => {
+		for (const symbol of tokenSymbols) {
 			stats[symbol] = { total: 0, protocols: 0 }
-		})
+		}
 
-		rawData.forEach((item) => {
+		for (const item of rawData) {
 			if (item.tokens) {
-				Object.entries(item.tokens).forEach(([symbol, amount]) => {
+				for (const symbol in item.tokens) {
+					const amount = item.tokens[symbol]
 					if (stats[symbol]) {
 						stats[symbol].total += amount
 						stats[symbol].protocols++
 					}
-				})
+				}
 			}
-		})
+		}
 
 		return stats
 	}, [rawData, tokenSymbols])
 
 	const totalAmount = useMemo(() => rawData.reduce((sum, item) => sum + item.amountUsd, 0), [rawData])
 	const protocolCount = rawData.length
-	const categoryBreakdown = useMemo(() => {
-		return rawData.reduce(
+	const categoryBreakdown = useMemo<CategoryBreakdown>(() => {
+		return rawData.reduce<CategoryBreakdown>(
 			(acc, item) => {
 				const category = item.category || 'Unknown'
 				if (!acc[category]) {
@@ -180,7 +199,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 	}, [rawData])
 
 	const topCategories = useMemo(() => {
-		return Object.entries(categoryBreakdown)
+		return (Object.entries(categoryBreakdown) as Array<[string, CategoryStats]>)
 			.sort(([, a], [, b]) => b.amount - a.amount)
 			.slice(0, 3)
 	}, [categoryBreakdown])
@@ -193,11 +212,11 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			shared: 0
 		}
 
-		tokenSymbols.forEach((symbol) => {
+		for (const symbol of tokenSymbols) {
 			overlap[`${symbol}_only`] = 0
-		})
+		}
 
-		rawData.forEach((protocol) => {
+		for (const protocol of rawData) {
 			const usedTokens = tokenSymbols.filter((symbol) => protocol.tokens?.[symbol] && protocol.tokens[symbol] > 0)
 
 			if (usedTokens.length === 1) {
@@ -206,7 +225,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			} else if (usedTokens.length > 1) {
 				overlap.shared++
 			}
-		})
+		}
 
 		return overlap
 	}, [rawData, tokenSymbols])
@@ -216,20 +235,22 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 		const headers = ['Protocol', 'Category']
 
 		if (isMultiToken) {
-			tokenSymbols.forEach((symbol) => headers.push(`${symbol.toUpperCase()} (USD)`))
+			for (const symbol of tokenSymbols) {
+				headers.push(`${symbol.toUpperCase()} (USD)`)
+			}
 		}
 		headers.push('Total Amount (USD)')
 
 		const csvData = table.getRowModel().rows.map((row) => {
-			const data: any = {
+			const data: Record<string, any> = {
 				Protocol: row.original.name,
 				Category: row.original.category || ''
 			}
 
 			if (isMultiToken) {
-				tokenSymbols.forEach((symbol) => {
+				for (const symbol of tokenSymbols) {
 					data[`${symbol.toUpperCase()} (USD)`] = row.original.tokens?.[symbol] || 0
-				})
+				}
 			}
 
 			data['Total Amount (USD)'] = row.original.amountUsd
@@ -254,7 +275,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 					<div className="w-full max-w-md">
 						<ReactSelect
 							placeholder="Search tokens..."
-							value={[]}
+							value={EMPTY_SELECTED_TOKENS}
 							onChange={handleTokenChange}
 							options={tokenSearchInput ? tokenOptions : defaultTokens}
 							onInputChange={(value) => setTokenSearchInput(value)}
@@ -477,7 +498,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 						<div className="order-2 w-full sm:order-1 sm:w-64 lg:w-96">
 							<ReactSelect
 								placeholder="Add or remove tokens (max 4)..."
-								value={tokenSymbols.map((symbol) => ({ label: symbol.toUpperCase(), value: symbol }))}
+								value={tokenSymbolSelectValue}
 								onChange={handleTokenChange}
 								options={tokenSearchInput ? tokenOptions : defaultTokens}
 								onInputChange={(value) => setTokenSearchInput(value)}

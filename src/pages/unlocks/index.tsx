@@ -22,30 +22,32 @@ const calculateUnlockStatistics = (data) => {
 	const thirtyDaysLater = now + 30 * 24 * 60 * 60
 	const sevenDaysLater = now + 7 * 24 * 60 * 60
 
-	data?.forEach((protocol) => {
-		if (!protocol.upcomingEvent || protocol.tPrice === null || protocol.tPrice === undefined) {
-			return
+	if (data) {
+		for (const protocol of data) {
+			if (!protocol.upcomingEvent || protocol.tPrice == null) {
+				continue
+			}
+
+			for (const event of protocol.upcomingEvent) {
+				if (event.timestamp === null || !event.noOfTokens || event.noOfTokens.length === 0) {
+					continue
+				}
+
+				const totalTokens = event.noOfTokens.reduce((sum, amount) => sum + amount, 0)
+				if (totalTokens === 0) {
+					continue
+				}
+
+				const valueUSD = totalTokens * protocol.tPrice
+				if (event.timestamp >= now && event.timestamp <= thirtyDaysLater) {
+					upcomingUnlocks30dValue += valueUSD
+				}
+				if (event.timestamp >= now && event.timestamp <= sevenDaysLater) {
+					upcomingUnlocks7dValue += valueUSD
+				}
+			}
 		}
-
-		protocol.upcomingEvent.forEach((event) => {
-			if (event.timestamp === null || !event.noOfTokens || event.noOfTokens.length === 0) {
-				return
-			}
-
-			const totalTokens = event.noOfTokens.reduce((sum, amount) => sum + amount, 0)
-			if (totalTokens === 0) {
-				return
-			}
-
-			const valueUSD = totalTokens * protocol.tPrice
-			if (event.timestamp >= now && event.timestamp <= thirtyDaysLater) {
-				upcomingUnlocks30dValue += valueUSD
-			}
-			if (event.timestamp >= now && event.timestamp <= sevenDaysLater) {
-				upcomingUnlocks7dValue += valueUSD
-			}
-		})
-	})
+	}
 
 	return {
 		upcomingUnlocks7dValue,

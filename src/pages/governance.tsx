@@ -104,12 +104,19 @@ export default function Governance({ data }) {
 	)
 }
 
-const renderSubComponent = ({ row }) => {
+const RenderSubComponent = ({ row }) => {
+	const subRowEntries = React.useMemo(
+		() => Object.entries(row.original.subRowData),
+		[row.original.subRowData]
+	)
+
 	return (
 		<span className="flex flex-col gap-1 pl-[72px]">
-			{Object.entries(row.original.subRowData).map(([type, value]) => (
+			{subRowEntries.map(([type, value]) => (
 				<span key={row.original.name + type + value}>{capitalizeFirstLetter(type) + ' Proposals : ' + value}</span>
 			))}
 		</span>
 	)
 }
+
+const renderSubComponent = ({ row }) => <RenderSubComponent row={row} />

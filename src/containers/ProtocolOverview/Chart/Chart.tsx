@@ -1,8 +1,9 @@
 import { MarkAreaComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
-import { useCallback, useEffect, useId, useMemo } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
 import { BAR_CHARTS, ProtocolChartsLabels, yAxisByChart } from './constants'
 
@@ -33,6 +34,10 @@ export default function ProtocolLineBarChart({
 }) {
 	const id = useId()
 	const isCumulative = groupBy === 'cumulative'
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const defaultChartSettings = useDefaults({
 		color,
@@ -166,17 +171,14 @@ export default function ProtocolLineBarChart({
 		}
 	}, [chartData, chartColors, hallmarks, isThemeDark, isCumulative, rangeHallmarks])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
 		// create instance
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
 		if (onReady) {
-			onReady(chartInstance)
+			onReady(instance)
 		}
 
 		for (const option in chartOptions) {
@@ -195,7 +197,7 @@ export default function ProtocolLineBarChart({
 
 		const chartsInSeries = new Set(series.map((s) => s.name))
 
-		allYAxis.forEach(([type, index]) => {
+		for (const [type, index] of allYAxis) {
 			const options = {
 				...yAxis,
 				name: '',
@@ -508,13 +510,13 @@ export default function ProtocolLineBarChart({
 					}
 				})
 			}
-		})
+		}
 
 		if (allYAxis.length === 0) {
 			finalYAxis.push(yAxis)
 		}
 
-		chartInstance.setOption({
+		instance.setOption({
 			graphic,
 			tooltip,
 			grid: {
@@ -531,21 +533,15 @@ export default function ProtocolLineBarChart({
 			series
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 			if (onReady) {
 				onReady(null)
 			}
 		}
 	}, [
-		createInstance,
+		id,
 		defaultChartSettings,
 		series,
 		chartOptions,
@@ -553,7 +549,8 @@ export default function ProtocolLineBarChart({
 		chartColors,
 		allYAxis,
 		rangeHallmarks,
-		onReady
+		onReady,
+		hideDataZoom
 	])
 
 	return (

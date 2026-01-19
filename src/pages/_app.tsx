@@ -10,6 +10,7 @@ import NProgress from 'nprogress'
 import { useEffect } from 'react'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider, useUserHash } from '~/containers/Subscribtion/auth'
+import { useMedia } from '~/hooks/useMedia'
 
 NProgress.configure({ showSpinner: false })
 
@@ -63,6 +64,7 @@ function App({ Component, pageProps }: AppProps) {
 	}, [router])
 
 	const { userHash, email } = useUserHash()
+	const isDesktop = useMedia('(min-width: 769px)')
 
 	return (
 		<>
@@ -81,7 +83,7 @@ function App({ Component, pageProps }: AppProps) {
 			{userHash &&
 			typeof window !== 'undefined' &&
 			!(window as any).FrontChat &&
-			window.innerWidth > 768 &&
+			isDesktop &&
 			// hide support icon on ai chat page because it can block the dialog button
 			!router.pathname.includes('/ai/chat') ? (
 				<Script

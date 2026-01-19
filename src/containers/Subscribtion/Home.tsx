@@ -24,7 +24,6 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
 	const [showEmailForm, setShowEmailForm] = useState(false)
-
 	const [showReturnModal, setShowReturnModal] = useState(false)
 	const [hasShownModal, setHasShownModal] = useState(false)
 

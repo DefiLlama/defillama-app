@@ -51,7 +51,7 @@ export const getColumns = (tokenSymbols: string[]): ColumnDef<TokenUsageRow>[] =
 	]
 
 	if (isMultiToken) {
-		tokenSymbols.forEach((symbol) => {
+		for (const symbol of tokenSymbols) {
 			baseColumns.push({
 				header: symbol.toUpperCase(),
 				accessorFn: (row) => row.tokens?.[symbol] || 0,
@@ -67,7 +67,7 @@ export const getColumns = (tokenSymbols: string[]): ColumnDef<TokenUsageRow>[] =
 					align: 'end'
 				}
 			})
-		})
+		}
 	}
 
 	baseColumns.push({

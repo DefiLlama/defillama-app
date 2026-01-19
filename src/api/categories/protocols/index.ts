@@ -1,4 +1,4 @@
-import { fetchCoinPrices } from '~/api'
+import { fetchCoinPrices as fetchCoinPricesBatched } from '~/api'
 import {
 	COINS_PRICES_API,
 	ETF_FLOWS_API,
@@ -31,7 +31,7 @@ export const getAllProtocolEmissionsWithHistory = async ({
 	try {
 		const res = await fetchJson(PROTOCOL_EMISSIONS_API)
 
-		const coinPrices = await fetchCoinPrices(res.filter((p) => p.gecko_id).map((p) => `coingecko:${p.gecko_id}`))
+		const coinPrices = await fetchCoinPricesBatched(res.filter((p) => p.gecko_id).map((p) => `coingecko:${p.gecko_id}`))
 
 		return res
 			.map((protocol) => {
@@ -44,7 +44,7 @@ export const getAllProtocolEmissionsWithHistory = async ({
 						filteredEvents = filteredEvents.filter((e) => e.timestamp <= endDate)
 					}
 
-					filteredEvents.sort((a, b) => a.timestamp - b.timestamp)
+					filteredEvents = filteredEvents.toSorted((a, b) => a.timestamp - b.timestamp)
 
 					const coin = coinPrices[`coingecko:${protocol.gecko_id}`]
 
@@ -98,33 +98,39 @@ export const getAllProtocolEmissions = async ({
 } = {}) => {
 	try {
 		const res = await fetchJson(PROTOCOL_EMISSIONS_API)
-		const coins = await fetchJson(
-			`${COINS_PRICES_API}/current/${res
-				.filter((p) => p.gecko_id)
-				.map((p) => 'coingecko:' + p.gecko_id)
-				.join(',')}`
-		)
+		const coinIds = res.filter((p) => p.gecko_id).map((p) => `coingecko:${p.gecko_id}`)
+		const coinPrices = await fetchCoinPricesBatched(coinIds)
+		const coins = { coins: coinPrices }
 
 		const parsedRes = res
 
 		const priceReqs = {}
-		res.forEach((protocol) => {
-			if (!getHistoricalPrices) return
-			if (!protocol.gecko_id) return
-			let lastEventTimestamp = protocol.events
-				?.filter(
-					(e) =>
-						e.timestamp < Date.now() / 1000 - 7 * 24 * 60 * 60 &&
-						e.category !== 'noncirculating' &&
-						e.category !== 'farming'
-				)
-				.sort((a, b) => b.timestamp - a.timestamp)[0]?.timestamp
+		for (const protocol of res) {
+			if (!getHistoricalPrices) continue
+			if (!protocol.gecko_id) continue
+			let lastEventTimestamp: number | undefined
+			for (const e of protocol.events ?? []) {
+				if (
+					e.timestamp < Date.now() / 1000 - 7 * 24 * 60 * 60 &&
+					e.category !== 'noncirculating' &&
+					e.category !== 'farming'
+				) {
+					if (lastEventTimestamp === undefined || e.timestamp > lastEventTimestamp) {
+						lastEventTimestamp = e.timestamp
+					}
+				}
+			}
 
-			if (!lastEventTimestamp) return
+			if (!lastEventTimestamp) continue
 
-			const earliestEvent = protocol.events?.sort((a, b) => a.timestamp - b.timestamp)[0]?.timestamp
+			let earliestEvent: number | undefined
+			for (const e of protocol.events ?? []) {
+				if (earliestEvent === undefined || e.timestamp < earliestEvent) {
+					earliestEvent = e.timestamp
+				}
+			}
 
-			if (lastEventTimestamp === earliestEvent) return
+			if (lastEventTimestamp === earliestEvent) continue
 
 			lastEventTimestamp = Math.floor(lastEventTimestamp / 86400) * 86400
 
@@ -136,7 +142,7 @@ export const getAllProtocolEmissions = async ({
 			].sort((a, b) => a - b)
 
 			priceReqs[`coingecko:${protocol.gecko_id}`] = timestamps
-		})
+		}
 
 		const historicalPrices = (await batchFetchHistoricalPrices(priceReqs)).results
 
@@ -150,14 +156,19 @@ export const getAllProtocolEmissions = async ({
 						}))
 					}
 					let event = protocol.events?.find((e) => e.timestamp >= Date.now() / 1000)
-					let lastEventTimestamp = protocol.events
-						?.filter((e) => e.timestamp < Date.now() / 1000 - 7 * 24 * 60 * 60)
-						.sort((a, b) => b.timestamp - a.timestamp)[0]?.timestamp
+					let lastEventTimestamp: number | undefined
+					for (const e of protocol.events ?? []) {
+						if (e.timestamp < Date.now() / 1000 - 7 * 24 * 60 * 60) {
+							if (lastEventTimestamp === undefined || e.timestamp > lastEventTimestamp) {
+								lastEventTimestamp = e.timestamp
+							}
+						}
+					}
 
 					let lastEvent = []
 					let upcomingEvent = []
 
-					if (!event || (event.noOfTokens.length === 1 && event.noOfTokens[0] === 0)) {
+					if (!event || (event.noOfTokens?.length === 1 && event.noOfTokens[0] === 0)) {
 						upcomingEvent = [{ timestamp: null }]
 					} else {
 						const comingEvents = protocol.events.filter((e) => e.timestamp === event.timestamp)
@@ -179,7 +190,7 @@ export const getAllProtocolEmissions = async ({
 						filteredEvents = filteredEvents.filter((e) => e.timestamp <= endDate)
 					}
 
-					const coin = coins.coins['coingecko:' + protocol.gecko_id]
+					const coin = coins.coins[`coingecko:${protocol.gecko_id}`]
 					const tSymbol = coin?.symbol ?? null
 					const historicalPrice = historicalPrices[`coingecko:${protocol.gecko_id}`]
 					//remove protocol.unlockEvents
@@ -235,9 +246,16 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		if (!list.includes(protocolName))
 			return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
 
-		const allEmissions = await fetchJson(PROTOCOL_EMISSIONS_API)
+		const [res, allEmissions] = await Promise.all([
+			fetchJson(`${PROTOCOL_EMISSION_API}/${protocolName}`)
+				.then((r) => JSON.parse(r.body))
+				.catch(() => null),
+			fetchJson(PROTOCOL_EMISSIONS_API)
+		])
 
-		const res = await fetchJson(`${PROTOCOL_EMISSION_API}/${protocolName}`).then((r) => JSON.parse(r.body))
+		if (!res) {
+			return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
+		}
 
 		const { metadata, name, futures } = res
 
@@ -245,7 +263,9 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		const realTimeData = res.realTimeData ?? {}
 
 		const protocolEmissions = { documented: {}, realtime: {} }
-		const emissionCategories = { documented: [], realtime: [] }
+		const emissionCategories = { documented: [] as string[], realtime: [] as string[] }
+		const seenDocumentedLabels = new Set<string>()
+		const seenRealtimeLabels = new Set<string>()
 
 		const prices = await fetchJson(`${COINS_PRICES_API}/current/${metadata.token}?searchWidth=4h`).catch((err) => {
 			console.log(err)
@@ -254,19 +274,20 @@ export const getProtocolEmissons = async (protocolName: string) => {
 
 		const tokenPrice = prices?.coins?.[metadata.token] ?? {}
 
-		documentedData.data?.forEach((emission) => {
+		for (const emission of documentedData.data ?? []) {
 			const label = emission.label
 				.split(' ')
 				.map((l) => capitalizeFirstLetter(l))
 				.join(' ')
 
-			if (emissionCategories['documented'].includes(label)) {
-				return
+			if (seenDocumentedLabels.has(label)) {
+				continue
 			}
 
+			seenDocumentedLabels.add(label)
 			emissionCategories['documented'].push(label)
 
-			emission.data.forEach((value) => {
+			for (const value of emission.data) {
 				if (!protocolEmissions['documented'][value.timestamp]) {
 					protocolEmissions['documented'][value.timestamp] = {}
 				}
@@ -275,22 +296,23 @@ export const getProtocolEmissons = async (protocolName: string) => {
 					...protocolEmissions['documented'][value.timestamp],
 					[label]: value.unlocked
 				}
-			})
-		})
+			}
+		}
 
-		realTimeData.data?.forEach((emission) => {
+		for (const emission of realTimeData.data ?? []) {
 			const label = emission.label
 				.split(' ')
 				.map((l) => capitalizeFirstLetter(l))
 				.join(' ')
 
-			if (emissionCategories['realtime'].includes(label)) {
-				return
+			if (seenRealtimeLabels.has(label)) {
+				continue
 			}
 
+			seenRealtimeLabels.add(label)
 			emissionCategories['realtime'].push(label)
 
-			emission.data.forEach((value) => {
+			for (const value of emission.data) {
 				if (!protocolEmissions['realtime'][value.timestamp]) {
 					protocolEmissions['realtime'][value.timestamp] = {}
 				}
@@ -299,8 +321,8 @@ export const getProtocolEmissons = async (protocolName: string) => {
 					...protocolEmissions['realtime'][value.timestamp],
 					[label]: value.unlocked
 				}
-			})
-		})
+			}
+		}
 
 		if (metadata.events) {
 			metadata.events = metadata.events.map((event) => ({
@@ -324,29 +346,27 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			upcomingEvent = [{ timestamp: null }]
 		}
 
-		const chartData = {
-			documented: Object.entries(protocolEmissions['documented']).map(
-				([date, values]: [string, { [key: string]: number }]) => ({
-					date,
-					...values
-				})
-			),
-			realtime: Object.entries(protocolEmissions['realtime']).map(
-				([date, values]: [string, { [key: string]: number }]) => ({
-					date,
-					...values
-				})
-			)
+		const documentedChart: Array<{ date: string; [key: string]: number | string }> = []
+		for (const date in protocolEmissions['documented']) {
+			documentedChart.push({ date, ...protocolEmissions['documented'][date] })
 		}
+		const realtimeChart: Array<{ date: string; [key: string]: number | string }> = []
+		for (const date in protocolEmissions['realtime']) {
+			realtimeChart.push({ date, ...protocolEmissions['realtime'][date] })
+		}
+		const chartData = { documented: documentedChart, realtime: realtimeChart }
 
-		const pieChartData = {
-			documented: Object.entries(chartData.documented[chartData.documented.length - 1] || {})
-				.filter(([key]) => key !== 'date')
-				.map(([name, value]) => ({ name, value })),
-			realtime: Object.entries(chartData.realtime[chartData.realtime.length - 1] || {})
-				.filter(([key]) => key !== 'date')
-				.map(([name, value]) => ({ name, value }))
+		const documentedPie: Array<{ name: string; value: number | string }> = []
+		const lastDocumented = chartData.documented[chartData.documented.length - 1] || {}
+		for (const key in lastDocumented) {
+			if (key !== 'date') documentedPie.push({ name: key, value: lastDocumented[key] })
 		}
+		const realtimePie: Array<{ name: string; value: number | string }> = []
+		const lastRealtime = chartData.realtime[chartData.realtime.length - 1] || {}
+		for (const key in lastRealtime) {
+			if (key !== 'date') realtimePie.push({ name: key, value: lastRealtime[key] })
+		}
+		const pieChartData = { documented: documentedPie, realtime: realtimePie }
 
 		const stackColors = { documented: {}, realtime: {} }
 
@@ -359,7 +379,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			stackColors['realtime'][pieChartData['realtime'][i].name] = allRealtimeColors[i]
 		}
 
-		if (protocolName == 'looksrare') {
+		if (protocolName === 'looksrare') {
 			tokenPrice.symbol = 'LOOKS'
 		}
 
@@ -425,10 +445,11 @@ export async function getLSDPageData() {
 
 	// get historical data
 	const lsdProtocolsSlug = lsdProtocols.map((p) => slug(p))
+	const lsdProtocolsSlugSet = new Set(lsdProtocolsSlug)
 	const history = await Promise.all(lsdProtocolsSlug.map((p) => fetchJson(`${PROTOCOL_API}/${p}`)))
 
 	let lsdApy = pools
-		.filter((p) => lsdProtocolsSlug.includes(p.project) && p.chain === 'Ethereum' && p.symbol.includes('ETH'))
+		.filter((p) => lsdProtocolsSlugSet.has(p.project) && p.chain === 'Ethereum' && p.symbol.includes('ETH'))
 		.concat(pools.find((i) => i.project === 'crypto.com-staked-eth'))
 		.filter(Boolean)
 		.map((p) => ({
@@ -509,7 +530,7 @@ export async function getETFData() {
 		.sort((a, b) => b.flows - a.flows)
 
 	const processedFlows = flows.reduce((acc, { gecko_id, day, total_flow_usd }) => {
-		const timestamp = (new Date(day).getTime() / 86400 / 1000) * 86400
+		const timestamp = Math.floor(new Date(day).getTime() / 1000 / 86400) * 86400
 		acc[timestamp] = {
 			date: timestamp,
 			...acc[timestamp],
@@ -538,11 +559,15 @@ export async function getAirdropDirectoryData() {
 	const airdrops = await fetchJson('https://airdrops.llama.fi/config')
 
 	const now = Date.now()
-	return Object.values(airdrops).filter((i: { endTime?: number; isActive: boolean; page?: string }) => {
-		if (i.isActive === false || !i.page) return false
-		if (!i.endTime) return true
-		return i.endTime < 1e12 ? i.endTime * 1000 > now : i.endTime > now
-	})
+	const result: Array<{ endTime?: number; isActive: boolean; page?: string }> = []
+	for (const key in airdrops) {
+		const i = airdrops[key] as { endTime?: number; isActive: boolean; page?: string }
+		if (i.isActive === false || !i.page) continue
+		if (!i.endTime || (i.endTime < 1e12 ? i.endTime * 1000 > now : i.endTime > now)) {
+			result.push(i)
+		}
+	}
+	return result
 }
 
 export function formatGovernanceData(data: {
@@ -557,39 +582,41 @@ export function formatGovernanceData(data: {
 		}
 	}
 }) {
-	const proposals = Object.values(data.proposals).map((proposal) => {
-		const winningScore = [...proposal.scores].sort((a, b) => b - a)[0]
+	const proposals: Array<{ scores: Array<number>; choices: Array<string>; id: string; totalVotes: number; winningChoice: string; winningPerc: string }> = []
+	for (const proposal of data.proposals) {
+		const winningScore = proposal.scores.length > 0 ? Math.max(...proposal.scores) : undefined
 		const totalVotes = proposal.scores.reduce((acc, curr) => (acc += curr), 0)
-
-		return {
+		proposals.push({
 			...proposal,
+			totalVotes,
 			winningChoice: winningScore ? proposal.choices[proposal.scores.findIndex((x) => x === winningScore)] : '',
 			winningPerc:
 				totalVotes && winningScore ? `(${Number(((winningScore / totalVotes) * 100).toFixed(2))}% of votes)` : ''
-		}
-	})
-
-	const activity = Object.entries(data.stats.months || {}).map(([date, values]) => ({
-		date: Math.floor(new Date(date).getTime() / 1000),
-		Total: values.total || 0,
-		Successful: values.successful || 0
-	}))
-
-	const maxVotes = Object.entries(data.stats.months || {}).map(([date, values]) => {
-		let maxVotes = 0
-		values.proposals?.forEach((proposal) => {
-			const votes = proposals.find((p) => p.id === proposal)?.['scores_total'] ?? 0
-
-			if (votes > maxVotes) {
-				maxVotes = votes
-			}
 		})
+	}
 
-		return {
+	const activity: Array<{ date: number; Total: number; Successful: number }> = []
+	const maxVotes: Array<{ date: number; 'Max Votes': string }> = []
+	const statsMonths = data.stats.months || {}
+	for (const date in statsMonths) {
+		const values = statsMonths[date]
+		activity.push({
 			date: Math.floor(new Date(date).getTime() / 1000),
-			'Max Votes': maxVotes.toFixed(2)
+			Total: values.total || 0,
+			Successful: values.successful || 0
+		})
+		let maxVotesValue = 0
+		for (const proposal of values.proposals ?? []) {
+			const votes = proposals.find((p) => p.id === proposal)?.totalVotes ?? 0
+			if (votes > maxVotesValue) {
+				maxVotesValue = votes
+			}
 		}
-	})
+		maxVotes.push({
+			date: Math.floor(new Date(date).getTime() / 1000),
+			'Max Votes': maxVotesValue.toFixed(2)
+		})
+	}
 
 	return { maxVotes, activity, proposals }
 }

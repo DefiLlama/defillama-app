@@ -5,6 +5,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useChartResize } from '~/hooks/useChartResize'
 import { slug, toNiceCsvDate } from '~/utils'
 import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
@@ -38,22 +39,32 @@ export default function BarChart({
 	const shouldEnableExport = enableImageExport ?? (!!title && !hideDownloadButton)
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 
-	const [legendOptions, setLegendOptions] = useState(customLegendOptions ? [...customLegendOptions] : [])
+	const [legendOptions, setLegendOptions] = useState(() => (customLegendOptions ? [...customLegendOptions] : []))
 
 	const { defaultStacks, stackKeys, selectedStacks } = useMemo(() => {
 		const values = stacks || {}
 
-		if ((!values || Object.keys(values).length === 0) && customLegendOptions) {
-			customLegendOptions.forEach((name) => {
+		let hasValues = false
+		for (const _ in values) {
+			hasValues = true
+			break
+		}
+		if (!hasValues && customLegendOptions) {
+			for (const name of customLegendOptions) {
 				values[name] = 'stackA'
-			})
+			}
 		}
 
-		const selectedStacks = Object.keys(values).filter((s) =>
-			legendOptions && customLegendName ? legendOptions.includes(s) : true
-		)
+		const keys: string[] = []
+		const selected: string[] = []
+		for (const s in values) {
+			keys.push(s)
+			if (!legendOptions || !customLegendName || legendOptions.includes(s)) {
+				selected.push(s)
+			}
+		}
 
-		return { defaultStacks: values, stackKeys: Object.keys(values), selectedStacks }
+		return { defaultStacks: values, stackKeys: keys, selectedStacks: selected }
 	}, [stacks, customLegendOptions, customLegendName, legendOptions])
 
 	const hideLegend = hideDefaultLegend || stackKeys.length < 2
@@ -132,6 +143,10 @@ export default function BarChart({
 	}, [chartData, color, defaultStacks, stackColors, stackKeys, selectedStacks])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
+
 	const exportFilename = imageExportFilename || (title ? slug(title) : 'chart')
 	const exportTitle = imageExportTitle || title
 	const updateExportInstance = useCallback(
@@ -147,16 +162,16 @@ export default function BarChart({
 		const chartDom = document.getElementById(id)
 		if (!chartDom) return
 
-		let chartInstance = echarts.getInstanceByDom(chartDom)
-		const isNewInstance = !chartInstance
-		if (!chartInstance) {
-			chartInstance = echarts.init(chartDom)
+		let instance = echarts.getInstanceByDom(chartDom)
+		const isNewInstance = !instance
+		if (!instance) {
+			instance = echarts.init(chartDom)
 		}
-		chartRef.current = chartInstance
-		updateExportInstance(chartInstance)
+		chartRef.current = instance
+		updateExportInstance(instance)
 
 		if (onReady && isNewInstance) {
-			onReady(chartInstance)
+			onReady(instance)
 		}
 
 		for (const option in chartOptions) {
@@ -177,7 +192,7 @@ export default function BarChart({
 
 		const isHorizontal = orientation === 'horizontal'
 
-		chartInstance.setOption({
+		instance.setOption({
 			graphic: {
 				...graphic
 			},
@@ -205,15 +220,9 @@ export default function BarChart({
 			series
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 			updateExportInstance(null)
 		}
 	}, [
@@ -225,7 +234,8 @@ export default function BarChart({
 		hideDataZoom,
 		id,
 		updateExportInstance,
-		orientation
+		orientation,
+		onReady
 	])
 
 	useEffect(() => {
@@ -247,7 +257,7 @@ export default function BarChart({
 		}
 	}, [id, onReady, updateExportInstance])
 
-	const showLegend = customLegendName && customLegendOptions?.length > 1 ? true : false
+	const showLegend = Boolean(customLegendName && customLegendOptions?.length > 1)
 
 	const prepareCsv = useCallback(() => {
 		let rows = []

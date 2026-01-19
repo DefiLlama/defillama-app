@@ -6,6 +6,8 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { DashboardItemConfig } from '../types'
 
 const MCP_SERVER = 'https://mcp.llama.fi'
+const EMPTY_DASHBOARD_ITEMS: DashboardItemConfig[] = []
+const EMPTY_DASHBOARD_TAGS: string[] = []
 
 interface GenerateDashboardModalProps {
 	isOpen: boolean
@@ -99,7 +101,12 @@ export function GenerateDashboardModal({
 		if (aiDescriptionError) newErrors.aiDescription = aiDescriptionError
 
 		setErrors(newErrors)
-		return Object.keys(newErrors).length === 0
+		let hasErrors = false
+		for (const _ in newErrors) {
+			hasErrors = true
+			break
+		}
+		return !hasErrors
 	}
 
 	const handleFieldBlur = (field: keyof typeof touchedFields) => {
@@ -140,7 +147,7 @@ export function GenerateDashboardModal({
 							mode: 'iterate',
 							existingDashboard: {
 								dashboardName: existingDashboard?.dashboardName || '',
-								items: existingDashboard?.items || [],
+								items: existingDashboard?.items ?? EMPTY_DASHBOARD_ITEMS,
 								aiGenerated: existingDashboard?.aiGenerated
 							}
 						}
@@ -178,7 +185,7 @@ export function GenerateDashboardModal({
 			onGenerate({
 				dashboardName: mode === 'iterate' ? existingDashboard?.dashboardName || '' : dashboardName.trim(),
 				visibility: mode === 'iterate' ? existingDashboard?.visibility || 'private' : visibility,
-				tags: mode === 'iterate' ? existingDashboard?.tags || [] : tags,
+				tags: mode === 'iterate' ? existingDashboard?.tags ?? EMPTY_DASHBOARD_TAGS : tags,
 				description: mode === 'iterate' ? existingDashboard?.description || '' : '',
 				items,
 				aiGenerationContext: sessionId
@@ -222,14 +229,14 @@ export function GenerateDashboardModal({
 
 	const handleAddTag = (tag: string) => {
 		const trimmedTag = tag.trim().toLowerCase()
-		if (trimmedTag && !tags.includes(trimmedTag)) {
-			setTags([...tags, trimmedTag])
+		if (trimmedTag) {
+			setTags((prev) => (prev.includes(trimmedTag) ? prev : [...prev, trimmedTag]))
 		}
 		setTagInput('')
 	}
 
 	const handleRemoveTag = (tag: string) => {
-		setTags(tags.filter((t) => t !== tag))
+		setTags((prev) => prev.filter((t) => t !== tag))
 	}
 
 	const handleTagInputKeyDown = (e: React.KeyboardEvent) => {

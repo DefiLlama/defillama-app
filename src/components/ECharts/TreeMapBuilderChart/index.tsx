@@ -4,6 +4,7 @@ import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useId, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
 
 echarts.use([TooltipComponent, GraphicComponent, EChartTreemap, CanvasRenderer])
@@ -39,23 +40,19 @@ export default function TreeMapBuilderChart({ data, height = '450px', onReady }:
 	const onReadyRef = useRef(onReady)
 	onReadyRef.current = onReady
 
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
+
 	useEffect(() => {
 		const container = document.getElementById(id)
 		if (!container) return
 
-		const chartInstance = echarts.init(container)
-		chartRef.current = chartInstance
-		onReadyRef.current?.(chartInstance)
-
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
+		const instance = echarts.init(container)
+		chartRef.current = instance
+		onReadyRef.current?.(instance)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			instance.dispose()
 			chartRef.current = null
 			onReadyRef.current?.(null)
 		}

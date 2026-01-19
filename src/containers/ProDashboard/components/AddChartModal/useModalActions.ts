@@ -5,6 +5,7 @@ import {
 	CHART_TYPES,
 	ChartConfig,
 	DashboardItemConfig,
+	IncomeStatementConfig,
 	LlamaAIChartConfig,
 	MultiChartConfig,
 	Protocol,
@@ -30,6 +31,7 @@ export function useModalActions(
 		handleAddStablecoinAssetChart,
 		handleAddAdvancedTvlChart,
 		handleAddBorrowedChart,
+		handleAddIncomeStatement,
 		handleAddTable,
 		handleAddMultiChart,
 		handleAddText,
@@ -346,6 +348,18 @@ export function useModalActions(
 				} as any
 			} else if (
 				state.selectedMainTab === 'charts' &&
+				state.selectedChartTab === 'income-statement' &&
+				state.selectedIncomeStatementProtocol &&
+				state.selectedIncomeStatementProtocolName
+			) {
+				newItem = {
+					...editItem,
+					kind: 'income-statement',
+					protocol: state.selectedIncomeStatementProtocol,
+					protocolName: state.selectedIncomeStatementProtocolName
+				} as IncomeStatementConfig
+			} else if (
+				state.selectedMainTab === 'charts' &&
 				state.chartCreationMode === 'combined' &&
 				state.composerItems.length > 0
 			) {
@@ -616,31 +630,39 @@ export function useModalActions(
 					state.selectedBorrowedProtocolName,
 					state.selectedBorrowedChartType
 				)
+			} else if (
+				state.selectedMainTab === 'charts' &&
+				state.chartMode === 'manual' &&
+				state.selectedChartTab === 'income-statement' &&
+				state.selectedIncomeStatementProtocol &&
+				state.selectedIncomeStatementProtocolName
+			) {
+				handleAddIncomeStatement(state.selectedIncomeStatementProtocol, state.selectedIncomeStatementProtocolName)
 			} else if (state.selectedMainTab === 'charts' && state.chartMode === 'manual') {
 				if (state.composerItems.length > 0) {
 					if (state.chartCreationMode === 'combined') {
 						handleAddMultiChart(state.composerItems, state.unifiedChartName.trim() || undefined)
 					} else {
-						state.composerItems.forEach((item) => {
+						for (const item of state.composerItems) {
 							if (item.chain) {
 								handleAddChart(item.chain, item.type, 'chain', item.geckoId, item.color)
 							} else if (item.protocol) {
 								handleAddChart(item.protocol, item.type, 'protocol', item.geckoId, item.color)
 							}
-						})
+						}
 					}
 				} else if (state.chartCreationMode === 'separate' && state.selectedChartTypes.length > 0) {
 					if (state.selectedChain) {
 						const chain = chains.find((c: Chain) => c.name === state.selectedChain)
-						state.selectedChartTypes.forEach((chartType) => {
+						for (const chartType of state.selectedChartTypes) {
 							const geckoId = ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
 							handleAddChart(state.selectedChain, chartType, 'chain', geckoId)
-						})
+						}
 					} else if (state.selectedProtocol) {
 						const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
-						state.selectedChartTypes.forEach((chartType) => {
+						for (const chartType of state.selectedChartTypes) {
 							handleAddChart(state.selectedProtocol, chartType, 'protocol', protocol?.geckoId)
-						})
+						}
 					}
 				}
 			} else if (state.selectedMainTab === 'table') {
@@ -731,6 +753,7 @@ export function useModalActions(
 		handleAddStablecoinAssetChart,
 		handleAddAdvancedTvlChart,
 		handleAddBorrowedChart,
+		handleAddIncomeStatement,
 		handleAddTable,
 		handleAddText,
 		handleAddMetric,

@@ -1,6 +1,6 @@
 import { CATEGORY_CHART_API, PROTOCOLS_API, RWA_STATS_API, TAGS_CHART_API, ZERO_FEE_PERPS } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
-import { DEFI_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { IChainMetadata, ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
@@ -10,11 +10,13 @@ import { IProtocolByCategoryOrTagPageData, IRWAStats } from './types'
 export async function getProtocolsByCategoryOrTag({
 	category,
 	tag,
-	chain
+	chain,
+	chainMetadata
 }: {
 	category?: string
 	tag?: string
 	chain?: string
+	chainMetadata: Record<string, IChainMetadata>
 }): Promise<IProtocolByCategoryOrTagPageData> {
 	if (category && tag) {
 		return null
@@ -24,9 +26,8 @@ export async function getProtocolsByCategoryOrTag({
 		return null
 	}
 
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const chainMetadata: IChainMetadata = chain
-		? metadataCache.chainMetadata[slug(chain)]
+	const currentChainMetadata: IChainMetadata = chain
+		? chainMetadata[slug(chain)]
 		: {
 				name: 'All',
 				fees: true,
@@ -37,12 +38,12 @@ export async function getProtocolsByCategoryOrTag({
 				id: 'all'
 			}
 
-	if (!chainMetadata) {
+	if (!currentChainMetadata) {
 		return null
 	}
 
 	// todo need to use parent category of tag
-	const isRWA = category === 'RWA' || tag ? true : false
+	const isRWA = Boolean(category === 'RWA' || tag)
 
 	const [
 		{ protocols, parentProtocols },
@@ -70,14 +71,14 @@ export async function getProtocolsByCategoryOrTag({
 		Record<string, IRWAStats>
 	] = await Promise.all([
 		fetchJson(PROTOCOLS_API),
-		chainMetadata?.fees
+		currentChainMetadata?.fees
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'fees',
 					excludeTotalDataChart: true
 				})
 			: null,
-		chainMetadata?.fees
+		currentChainMetadata?.fees
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'fees',
@@ -85,21 +86,21 @@ export async function getProtocolsByCategoryOrTag({
 					excludeTotalDataChart: true
 				})
 			: null,
-		chainMetadata?.dexs && category && ['Dexs', 'DEX Aggregators', 'Prediction Market'].includes(category)
+		currentChainMetadata?.dexs && category && ['Dexs', 'DEX Aggregators', 'Prediction Market'].includes(category)
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: category === 'DEX Aggregators' ? 'aggregators' : 'dexs',
 					excludeTotalDataChart: true
 				})
 			: null,
-		chainMetadata?.perps && category && ['Derivatives', 'Interface'].includes(category)
+		currentChainMetadata?.perps && category && ['Derivatives', 'Interface'].includes(category)
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'derivatives',
 					excludeTotalDataChart: true
 				})
 			: null,
-		chainMetadata?.perps && category && ['Derivatives', 'Prediction Market'].includes(category)
+		currentChainMetadata?.perps && category && ['Derivatives', 'Prediction Market'].includes(category)
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'open-interest',
@@ -110,7 +111,7 @@ export async function getProtocolsByCategoryOrTag({
 					return null
 				})
 			: null,
-		chainMetadata?.optionsPremiumVolume && category === 'Options'
+		currentChainMetadata?.optionsPremiumVolume && category === 'Options'
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'options',
@@ -118,7 +119,7 @@ export async function getProtocolsByCategoryOrTag({
 					excludeTotalDataChart: true
 				})
 			: null,
-		chainMetadata?.optionsNotionalVolume && category === 'Options'
+		currentChainMetadata?.optionsNotionalVolume && category === 'Options'
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'options',
@@ -244,7 +245,7 @@ export async function getProtocolsByCategoryOrTag({
 					}
 
 					const chainName = pchain.split('-')[0]
-					if (chainName !== chainMetadata.name) {
+					if (chainName !== currentChainMetadata.name) {
 						continue
 					}
 
@@ -258,13 +259,13 @@ export async function getProtocolsByCategoryOrTag({
 					if (
 						extraKey
 							? ['doublecounted', 'liquidstaking', 'dcAndLsOverlap', 'offers'].includes(extraKey) ||
-								!DEFI_SETTINGS_KEYS_SET.has(extraKey)
+								!TVL_SETTINGS_KEYS_SET.has(extraKey)
 							: false
 					) {
 						continue
 					}
 
-					if (DEFI_SETTINGS_KEYS_SET.has(extraKey)) {
+					if (TVL_SETTINGS_KEYS_SET.has(extraKey)) {
 						extraTvls[extraKey] = (extraTvls[extraKey] ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
 						continue
 					}
@@ -290,7 +291,7 @@ export async function getProtocolsByCategoryOrTag({
 						continue
 					}
 
-					if (DEFI_SETTINGS_KEYS_SET.has(pchain)) {
+					if (TVL_SETTINGS_KEYS_SET.has(pchain)) {
 						extraTvls[pchain] = (extraTvls[pchain] ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
 						continue
 					}
@@ -523,7 +524,7 @@ export async function getProtocolsByCategoryOrTag({
 		}
 	}
 
-	const startIndex = chart.findIndex(([date, tvl]) => tvl != null)
+	const startIndex = chart.findIndex(([, tvl]) => tvl != null)
 
 	let fees7d = 0
 	let revenue7d = 0
@@ -553,10 +554,11 @@ export async function getProtocolsByCategoryOrTag({
 				color: CHART_COLORS[0]
 			}
 		},
-		chain: chainMetadata?.name ?? 'All',
-		protocols: (chain ? finalProtocols.filter((p) => p.chains.includes(chainMetadata.name)) : finalProtocols).sort(
-			(a, b) => b.tvl - a.tvl
-		),
+		chain: currentChainMetadata?.name ?? 'All',
+		protocols: (chain
+			? finalProtocols.filter((p) => p.chains.includes(currentChainMetadata.name))
+			: finalProtocols
+		).sort((a, b) => b.tvl - a.tvl),
 		category: category ?? null,
 		tag: tag ?? null,
 		isRWA,

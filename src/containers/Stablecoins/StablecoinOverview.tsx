@@ -34,6 +34,15 @@ const risksHelperTexts = {
 		'Crypto-backed assets are backed by cryptoassets locked in a smart contract as collateral. Risks of crypto-backed assets include smart contract risk, collateral volatility and liquidation, and de-pegging.'
 }
 
+const CHART_TYPE_TO_API_TYPE: Record<string, StablecoinAssetChartType> = {
+	'Total Circ': 'totalCirc',
+	Pie: 'chainPie',
+	Dominance: 'chainDominance',
+	Area: 'chainMcaps'
+}
+
+const CHART_TYPE_VALUES = ['Total Circ', 'Pie', 'Dominance', 'Area'] as const
+
 export default function PeggedContainer(props) {
 	let { name, symbol } = props.peggedAssetData
 	const nameWithSymbol = name + (symbol && symbol !== '-' ? ` (${symbol})` : '')
@@ -105,7 +114,7 @@ export const PeggedAssetInfo = ({
 		[chainsData, chainsUnique]
 	)
 
-	const extraPeggeds = [UNRELEASED]
+	const extraPeggeds = [UNRELEASED] as const
 	const [extraPeggedsEnabled, updater] = useLocalStorageSettingsManager('stablecoins')
 
 	const chainTotals = useCalcCirculating(chainCirculatings)
@@ -120,18 +129,17 @@ export const PeggedAssetInfo = ({
 
 	const prepareCsv = React.useCallback(() => {
 		const rows = [['Timestamp', 'Date', ...chainsUnique, 'Total']]
-		stackedData
-			.sort((a, b) => a.date - b.date)
-			.forEach((day) => {
-				rows.push([
-					day.date,
-					toNiceCsvDate(day.date),
-					...chainsUnique.map((chain) => day[chain] ?? ''),
-					chainsUnique.reduce((acc, curr) => {
-						return (acc += day[curr] ?? 0)
-					}, 0)
-				])
-			})
+		const sortedData = stackedData.sort((a, b) => a.date - b.date)
+		for (const day of sortedData) {
+			rows.push([
+				day.date,
+				toNiceCsvDate(day.date),
+				...chainsUnique.map((chain) => day[chain] ?? ''),
+				chainsUnique.reduce((acc, curr) => {
+					return (acc += day[curr] ?? 0)
+				}, 0)
+			])
+		}
 		return { filename: 'stablecoinsChains.csv', rows: rows as (string | number | boolean)[][] }
 	}, [stackedData, chainsUnique])
 
@@ -150,20 +158,13 @@ export const PeggedAssetInfo = ({
 		return `${slug(name)}-${chartSlug}`
 	}
 
-	const chartTypeToApiType: Record<string, StablecoinAssetChartType> = {
-		'Total Circ': 'totalCirc',
-		Pie: 'chainPie',
-		Dominance: 'chainDominance',
-		Area: 'chainMcaps'
-	}
-
 	const dashboardChartConfig: StablecoinAssetChartConfig = React.useMemo(
 		() => ({
-			id: `stablecoin-asset-${slug(name)}-${chartTypeToApiType[chartType]}`,
+			id: `stablecoin-asset-${slug(name)}-${CHART_TYPE_TO_API_TYPE[chartType]}`,
 			kind: 'stablecoin-asset',
 			stablecoin: name,
 			stablecoinId: slug(name),
-			chartType: chartTypeToApiType[chartType],
+			chartType: CHART_TYPE_TO_API_TYPE[chartType],
 			colSpan: 1
 		}),
 		[name, chartType]
@@ -220,7 +221,7 @@ export const PeggedAssetInfo = ({
 									<span className="font-jetbrains">{price === null ? '-' : formattedNum(price, true)}</span>
 								</p>
 
-								{totalCirculating && (
+								{totalCirculating != null ? (
 									<table className="w-full border-collapse text-base">
 										<caption className="pb-1 text-left text-xs text-(--text-label)">Issuance Stats</caption>
 										<tbody>
@@ -230,7 +231,7 @@ export const PeggedAssetInfo = ({
 											</tr>
 										</tbody>
 									</table>
-								)}
+								) : null}
 
 								{extraPeggeds.length > 0 && (
 									<table className="w-full border-collapse text-base">
@@ -383,7 +384,7 @@ export const PeggedAssetInfo = ({
 					<TagGroup
 						setValue={setChartType}
 						selectedValue={chartType}
-						values={['Total Circ', 'Pie', 'Dominance', 'Area']}
+						values={CHART_TYPE_VALUES}
 						className="m-2 max-sm:w-full"
 						triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 					/>

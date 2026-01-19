@@ -98,7 +98,15 @@ export default class SProtocolSplitCharts {
 		chainFilterMode: 'include' | 'exclude' = 'include',
 		categoryFilterMode: 'include' | 'exclude' = 'include'
 	): Promise<ProtocolSplitData> {
-		const cacheKey = this.getCacheKey(metric, chains, limit, categories, groupByParent, chainFilterMode, categoryFilterMode)
+		const cacheKey = this.getCacheKey(
+			metric,
+			chains,
+			limit,
+			categories,
+			groupByParent,
+			chainFilterMode,
+			categoryFilterMode
+		)
 		const cached = this.cache.get(cacheKey)
 
 		if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
@@ -106,7 +114,15 @@ export default class SProtocolSplitCharts {
 		}
 
 		try {
-			const data = await this.fetchSplitData(metric, chains, limit, categories, groupByParent, chainFilterMode, categoryFilterMode)
+			const data = await this.fetchSplitData(
+				metric,
+				chains,
+				limit,
+				categories,
+				groupByParent,
+				chainFilterMode,
+				categoryFilterMode
+			)
 
 			this.cache.set(cacheKey, {
 				data,

@@ -1,9 +1,8 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, formattedPercent } from '~/utils'
+import { formattedNum } from '~/utils'
 
 interface ICexRow {
 	name: string

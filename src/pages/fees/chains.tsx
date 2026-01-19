@@ -11,7 +11,12 @@ const dataType = ADAPTER_DATA_TYPES.DAILY_FEES
 const type = 'Fees'
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/${dataType}/chains`, async () => {
-	const data = await getChainsByFeesAdapterPageData({ adapterType, dataType })
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const data = await getChainsByFeesAdapterPageData({
+		adapterType,
+		dataType,
+		chainMetadata: metadataCache.chainMetadata
+	})
 
 	return {
 		props: data,

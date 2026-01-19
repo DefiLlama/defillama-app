@@ -32,6 +32,7 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 }) {
 	const { handleTableFiltersChange, handleTableColumnsChange } = useProDashboardEditorActions()
 	const [showFilterModal, setShowFilterModal] = useState(false)
+	// oxlint-disable-next-line react/exhaustive-deps
 	const memoizedChains = useMemo(() => chains, [chains.join(',')])
 	const proDashboardElement = typeof window !== 'undefined' ? document.querySelector('.pro-dashboard') : null
 

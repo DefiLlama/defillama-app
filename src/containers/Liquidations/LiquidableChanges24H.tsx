@@ -31,48 +31,46 @@ const getLiquidableChangesRatio = (
 	let prev = 0
 	if (!selectedSeries) {
 		if (stackBy === 'chains') {
-			Object.keys(data.totalLiquidables.chains).forEach((chain) => {
+			for (const chain in data.totalLiquidables.chains) {
 				if (!prevData.totalLiquidables.chains[chain]) {
-					return
+					continue
 				}
 				current += data.totalLiquidables.chains[chain]
 				prev += prevData.totalLiquidables.chains[chain]
-			})
+			}
 		} else {
-			Object.keys(data.totalLiquidables.protocols).forEach((protocol) => {
+			for (const protocol in data.totalLiquidables.protocols) {
 				if (!prevData.totalLiquidables.protocols[protocol]) {
-					return
+					continue
 				}
 				current += data.totalLiquidables.protocols[protocol]
 				prev += prevData.totalLiquidables.protocols[protocol]
-			})
+			}
 		}
 	} else {
 		if (stackBy === 'chains') {
-			Object.keys(selectedSeries)
-				.filter((chain) => selectedSeries[chain])
-				.forEach((chain) => {
-					const _chain = PROTOCOL_NAMES_MAP_REVERSE[chain]
-					if (!prevData.totalLiquidables.chains[_chain]) {
-						return
-					}
-					current += data.totalLiquidables.chains[_chain]
-					prev += prevData.totalLiquidables.chains[_chain]
-				})
+			for (const chain in selectedSeries) {
+				if (!selectedSeries[chain]) continue
+				const _chain = PROTOCOL_NAMES_MAP_REVERSE[chain]
+				if (!prevData.totalLiquidables.chains[_chain]) {
+					continue
+				}
+				current += data.totalLiquidables.chains[_chain]
+				prev += prevData.totalLiquidables.chains[_chain]
+			}
 		} else {
-			Object.keys(selectedSeries)
-				.filter((protocol) => selectedSeries[protocol])
-				.forEach((protocol) => {
-					const _protocol = PROTOCOL_NAMES_MAP_REVERSE[protocol]
-					if (!prevData.totalLiquidables.protocols[_protocol]) {
-						return
-					}
-					current += data.totalLiquidables.protocols[_protocol]
-					prev += prevData.totalLiquidables.protocols[_protocol]
-				})
+			for (const protocol in selectedSeries) {
+				if (!selectedSeries[protocol]) continue
+				const _protocol = PROTOCOL_NAMES_MAP_REVERSE[protocol]
+				if (!prevData.totalLiquidables.protocols[_protocol]) {
+					continue
+				}
+				current += data.totalLiquidables.protocols[_protocol]
+				prev += prevData.totalLiquidables.protocols[_protocol]
+			}
 		}
 	}
 
 	const changesRatio = (current - prev) / prev
-	return isNaN(changesRatio) ? 0 : changesRatio
+	return Number.isNaN(changesRatio) ? 0 : changesRatio
 }

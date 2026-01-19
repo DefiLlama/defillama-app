@@ -19,6 +19,8 @@ import { formatDateLabel, formatPercent } from './format'
 import { StatsCard } from './StatsCard'
 import type { ComparisonEntry, PricePoint, TimelinePoint } from './types'
 
+const EMPTY_COMPARISON_ENTRIES: ComparisonEntry[] = []
+
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
 const DAY_IN_SECONDS = 86_400
@@ -206,7 +208,8 @@ const computeTokenPnl = async (params: {
 		dataPoints.push([start * 1000, firstPoint.price])
 	}
 
-	series.forEach((point, index) => {
+	for (let index = 0; index < series.length; index++) {
+		const point = series[index]
 		prices.push(point.price)
 
 		if (index === 0) {
@@ -220,7 +223,7 @@ const computeTokenPnl = async (params: {
 
 		// Prepare chart data
 		dataPoints.push([point.timestamp * 1000, point.price])
-	})
+	}
 
 	const lastPoint = series[series.length - 1]
 	if (lastPoint && lastPoint.timestamp !== end) {
@@ -270,7 +273,7 @@ const computeTokenPnl = async (params: {
 const isValidDate = (dateString: string | string[] | undefined): boolean => {
 	if (!dateString || typeof dateString !== 'string') return false
 	const date = new Date(+dateString * 1000)
-	return !isNaN(date.getTime())
+	return !Number.isNaN(date.getTime())
 }
 
 export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) {
@@ -599,7 +602,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 
 				<DailyPnLGrid timeline={timeline} />
 
-				<ComparisonPanel entries={comparisonData ?? []} activeId={selectedCoinId} />
+				<ComparisonPanel entries={comparisonData ?? EMPTY_COMPARISON_ENTRIES} activeId={selectedCoinId} />
 			</div>
 		)
 	}

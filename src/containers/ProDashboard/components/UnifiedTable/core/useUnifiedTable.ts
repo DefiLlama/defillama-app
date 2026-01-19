@@ -23,6 +23,9 @@ import { setChainMetrics } from './chainMetricsStore'
 import { getGroupingColumnIdsForHeaders } from './grouping'
 import { getRowHeaderFromGroupingColumn, isSelfGroupingValue } from './groupingUtils'
 
+const EMPTY_CHAINS: string[] = []
+const EMPTY_ROWS: NormalizedRow[] = []
+
 interface UseUnifiedTableArgs {
 	config: UnifiedTableConfig
 	searchTerm: string
@@ -50,10 +53,14 @@ type UnifiedTableApiResponse = {
 const buildQueryString = (config: UnifiedTableConfig, rowHeaders: UnifiedRowHeaderType[]): string => {
 	const params = new URLSearchParams()
 
-	rowHeaders.forEach((header) => params.append('rowHeaders[]', header))
+	for (const header of rowHeaders) {
+		params.append('rowHeaders[]', header)
+	}
 
 	if (config.params?.chains) {
-		config.params.chains.forEach((chain) => params.append('chains[]', chain))
+		for (const chain of config.params.chains) {
+			params.append('chains[]', chain)
+		}
 	}
 
 	return params.toString()
@@ -94,7 +101,8 @@ export function useUnifiedTable({
 
 	const sanitizedHeaders = useMemo(() => sanitizeRowHeaders(config.rowHeaders), [config.rowHeaders])
 
-	const paramsKey = useMemo(() => JSON.stringify({ chains: config.params?.chains ?? [] }), [config.params?.chains])
+	const paramsChains = config.params?.chains ?? EMPTY_CHAINS
+	const paramsKey = useMemo(() => JSON.stringify({ chains: paramsChains }), [paramsChains])
 	const headersKey = useMemo(() => sanitizedHeaders.join('|'), [sanitizedHeaders])
 
 	const { data, isLoading } = useQuery({
@@ -107,12 +115,10 @@ export function useUnifiedTable({
 		setChainMetrics(data?.chainMetrics)
 	}, [data?.chainMetrics])
 
-	const rows = data?.rows ?? []
-
 	const filteredRows = useMemo(() => {
-		const withFilters = filterRowsByConfig(rows, config.filters)
+		const withFilters = filterRowsByConfig(data?.rows ?? EMPTY_ROWS, config.filters)
 		return filterRowsBySearch(withFilters, searchTerm)
-	}, [rows, config.filters, searchTerm])
+	}, [data?.rows, config.filters, searchTerm])
 
 	const columns = useMemo(() => getUnifiedTableColumns(config.customColumns), [config.customColumns])
 	const groupingColumnIds = useMemo(() => getGroupingColumnIdsForHeaders(sanitizedHeaders), [sanitizedHeaders])
