@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
-import * as echarts from 'echarts/core'
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useMemo } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { oldBlue } from '~/constants/colors'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { download, toNiceCsvDate } from '~/utils'
+import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import ProtocolCharts from '../services/ProtocolCharts'
@@ -71,7 +71,7 @@ const EMPTY_ADDL_DATA: {
 export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 	const { protocol, protocolName, chartType } = config
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
-	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
+	const { chartInstance, handleChartReady } = useChartImageExport()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
 	const { data: basicTvlData, isLoading: isBasicTvlLoading } = useQuery({
@@ -139,7 +139,15 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 			usdInflows: filterStringDateTuples(resolvedUsdInflows as [string, number][] | undefined),
 			tokenInflows: filterTimeSeries(resolvedTokenInflows)
 		}
-	}, [resolvedChainsSplit, resolvedTokenBreakdownUSD, resolvedTokenBreakdown, resolvedUsdInflows, resolvedTokenInflows, timePeriod, customTimePeriod])
+	}, [
+		resolvedChainsSplit,
+		resolvedTokenBreakdownUSD,
+		resolvedTokenBreakdown,
+		resolvedUsdInflows,
+		resolvedTokenInflows,
+		timePeriod,
+		customTimePeriod
+	])
 
 	const filteredTvlData = useMemo(() => {
 		if (!timePeriod || timePeriod === 'all') return tvlData
@@ -222,7 +230,15 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 			const csvContent = rows.map((row) => row.join(',')).join('\n')
 			download(filename, csvContent)
 		}
-	}, [filteredChartData, filteredTvlData, resolvedTokenBreakdownPieChart, chainsUnique, resolvedTokensUnique, protocol, chartType])
+	}, [
+		filteredChartData,
+		filteredTvlData,
+		resolvedTokenBreakdownPieChart,
+		chainsUnique,
+		resolvedTokensUnique,
+		protocol,
+		chartType
+	])
 
 	const chartTypeLabel = CHART_TYPE_LABELS[chartType] || chartType
 	const imageTitle = `${protocolName} - ${chartTypeLabel}`
@@ -253,7 +269,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 							color={oldBlue}
 							chartOptions={chartOptions}
 							height="360px"
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -273,7 +289,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 							hideGradient={true}
 							chartOptions={chartOptions}
 							height="360px"
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -292,7 +308,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 							hideGradient={true}
 							chartOptions={chartOptions}
 							height="360px"
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -322,7 +338,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 							hideGradient={true}
 							chartOptions={chartOptions}
 							height="360px"
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -337,7 +353,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 							hideDownloadButton={true}
 							chartOptions={inflowsChartOptions}
 							height="360px"
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -354,7 +370,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 							customLegendOptions={resolvedTokensUnique}
 							chartOptions={inflowsChartOptions}
 							height="360px"
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)

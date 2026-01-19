@@ -218,11 +218,7 @@ const PinnedPagesSection = React.memo(function PinnedPagesSection({
 			{isReordering ? (
 				<p className="mt-1 text-[11px] text-(--text-tertiary)">Drag to reorder, tap remove to unpin</p>
 			) : null}
-			<DndContext
-				sensors={sensors}
-				onDragEnd={handleDragEnd}
-				modifiers={VERTICAL_SORTING_MODIFIERS}
-			>
+			<DndContext sensors={sensors} onDragEnd={handleDragEnd} modifiers={VERTICAL_SORTING_MODIFIERS}>
 				<SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
 					<div className="mt-1 flex flex-col gap-1">
 						{pinnedPages.map((page) => (
@@ -335,6 +331,7 @@ const LinkToPage = React.memo(function LinkToPage({
 }) {
 	const isActive = route === asPath.split('/?')[0].split('?')[0]
 	const isExternal = route.startsWith('http')
+	const handleClick = React.useCallback(() => setShow(false), [setShow])
 
 	return (
 		<BasicLink
@@ -344,7 +341,7 @@ const LinkToPage = React.memo(function LinkToPage({
 			data-linkactive={isActive}
 			data-umami-event={umamiEvent}
 			className="group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-			onClick={() => setShow(false)}
+			onClick={handleClick}
 		>
 			<NavItemContent name={name} icon={icon} attention={attention} freeTrial={freeTrial} />
 		</BasicLink>

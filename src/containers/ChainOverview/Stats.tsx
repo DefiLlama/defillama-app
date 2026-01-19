@@ -189,6 +189,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 			}
 		}
 	})
+	const handleDownloadChartCsv = useCallback(() => downloadAndPrepareChartCsv(), [downloadAndPrepareChartCsv])
 
 	return (
 		<div className="relative isolate grid h-full grid-cols-2 gap-2 xl:grid-cols-3">
@@ -784,7 +785,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 					</div>
 				</div>
 				<CSVDownloadButton
-					onClick={() => downloadAndPrepareChartCsv()}
+					onClick={handleDownloadChartCsv}
 					isLoading={isDownloadingChartCsv}
 					smol
 					className="ml-auto"

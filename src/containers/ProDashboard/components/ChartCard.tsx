@@ -1,10 +1,11 @@
-import * as echarts from 'echarts/core'
-import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react'
+import type * as echarts from 'echarts/core'
+import { lazy, memo, Suspense, useCallback, useMemo } from 'react'
 import { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select'
 import { Tooltip } from '~/components/Tooltip'
 import { capitalizeFirstLetter, download } from '~/utils'
+import { useChartImageExport } from '../hooks/useChartImageExport'
 import {
 	useProDashboardCatalog,
 	useProDashboardEditorActions,
@@ -108,7 +109,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 	const { getChainInfo, getProtocolInfo } = useProDashboardCatalog()
 	const { handleGroupingChange, handleCumulativeChange } = useProDashboardEditorActions()
 	const { isReadOnly } = useProDashboardPermissions()
-	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
+	const { chartInstance, handleChartReady } = useChartImageExport()
 
 	const {
 		itemName,
@@ -244,7 +245,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 				hasError={chart.hasError}
 				refetch={chart.refetch}
 				color={chartColor}
-				onChartReady={setChartInstance}
+				onChartReady={handleChartReady}
 			/>
 		</div>
 	)

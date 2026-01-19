@@ -1,10 +1,10 @@
-import * as echarts from 'echarts/core'
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useMemo } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { useStablecoinsChartData } from '~/containers/ProDashboard/components/datasets/StablecoinsDataset/useStablecoinsChartData'
 import { generateConsistentChartColor, STABLECOIN_TOKEN_COLORS } from '~/containers/ProDashboard/utils/colorManager'
 import { download, formattedNum, toNiceCsvDate } from '~/utils'
+import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { StablecoinsChartConfig } from '../types'
@@ -51,7 +51,7 @@ const EMPTY_HALLMARKS: [number, string][] = []
 export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 	const { chain, chartType } = config
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
-	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
+	const { chartInstance, handleChartReady } = useChartImageExport()
 
 	const {
 		peggedAreaTotalData,
@@ -222,7 +222,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 							hallmarks={EMPTY_HALLMARKS}
 							color="#4f8fea"
 							chartOptions={chartOptions}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -245,7 +245,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 							hideGradient={true}
 							stackColors={stackColors}
 							chartOptions={chartOptions}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -281,7 +281,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 							expandTo100Percent={true}
 							stackColors={stackColors}
 							chartOptions={chartOptions}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -299,7 +299,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 							color="#4f8fea"
 							title=""
 							hideDownloadButton={true}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -321,7 +321,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 							customLegendOptions={tokenInflowNames}
 							chartOptions={inflowsChartOptions}
 							stackColors={stackColors}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)

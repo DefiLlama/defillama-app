@@ -193,6 +193,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 			onChartTypesChange(['tvl'])
 		}
 	}
+	const handleChartTypeSelect = useCallback((type: string) => onChartTypesChange([type]), [onChartTypesChange])
 
 	const selectedChartTypeSingle = useMemo(() => selectedChartTypes[0] || null, [selectedChartTypes])
 
@@ -557,7 +558,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 						<ChartTypePills
 							chartTypes={chartTypeOptions}
 							selectedType={selectedChartTypeSingle}
-							onSelect={(type) => onChartTypesChange([type])}
+							onSelect={handleChartTypeSelect}
 							isLoading={metaLoading}
 							mode={selectedChartTab as 'chain' | 'protocol'}
 						/>

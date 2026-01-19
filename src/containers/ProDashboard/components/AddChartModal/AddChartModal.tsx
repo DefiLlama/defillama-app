@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
+import type { VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
 import { ChartTab } from './ChartTab'
 import { LlamaAITab } from './LlamaAITab'
 import { MetricTab } from './MetricTab'
@@ -11,7 +12,6 @@ import { AddChartModalProps, CombinedTableType } from './types'
 import { UnifiedTableTab } from './UnifiedTableTab'
 import { useComposerItemsData } from './useComposerItemsData'
 import { useModalActions } from './useModalActions'
-import type { VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
 
 const EMPTY_CHAIN_OPTIONS: VirtualizedSelectOption[] = []
 const EMPTY_CHART_TYPES: string[] = []
@@ -44,6 +44,14 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 	const legacyTableTypes = useMemo(
 		() => (PRIMARY_TABLE_TYPES_SET.has(state.selectedTableType) ? [] : [state.selectedTableType]),
 		[state.selectedTableType]
+	)
+	const handleMetricChainChange = useCallback(
+		(opt: { value: string; label: string }) => actions.setMetricChain(opt?.value ?? null),
+		[actions]
+	)
+	const handleMetricProtocolChange = useCallback(
+		(opt: { value: string; label: string }) => actions.setMetricProtocol(opt?.value ?? null),
+		[actions]
 	)
 
 	return (
@@ -161,8 +169,8 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							metricLabel={state.metricLabel}
 							metricShowSparkline={state.metricShowSparkline}
 							onSubjectTypeChange={actions.setMetricSubjectType}
-							onChainChange={(opt) => actions.setMetricChain(opt?.value ?? null)}
-							onProtocolChange={(opt) => actions.setMetricProtocol(opt?.value ?? null)}
+							onChainChange={handleMetricChainChange}
+							onProtocolChange={handleMetricProtocolChange}
 							onTypeChange={actions.setMetricType}
 							onAggregatorChange={actions.setMetricAggregator}
 							onWindowChange={actions.setMetricWindow}

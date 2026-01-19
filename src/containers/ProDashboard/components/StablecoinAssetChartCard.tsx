@@ -1,10 +1,10 @@
-import * as echarts from 'echarts/core'
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useMemo } from 'react'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { useStablecoinAssetChartData } from '~/containers/ProDashboard/components/datasets/StablecoinAssetDataset/useStablecoinAssetChartData'
 import { colorManager } from '~/containers/ProDashboard/utils/colorManager'
 import { download, formattedNum, toNiceCsvDate } from '~/utils'
+import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { StablecoinAssetChartConfig } from '../types'
@@ -42,7 +42,7 @@ const EMPTY_HALLMARKS: [number, string][] = []
 export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardProps) {
 	const { stablecoin, stablecoinId, chartType } = config
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
-	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
+	const { chartInstance, handleChartReady } = useChartImageExport()
 
 	const {
 		peggedAreaTotalData,
@@ -176,7 +176,7 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 							hallmarks={EMPTY_HALLMARKS}
 							color="#4f8fea"
 							chartOptions={chartOptions}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -199,7 +199,7 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 							hideGradient={true}
 							stackColors={chainColors}
 							chartOptions={chartOptions}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -235,7 +235,7 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 							expandTo100Percent={true}
 							stackColors={chainColors}
 							chartOptions={chartOptions}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)

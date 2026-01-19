@@ -34,6 +34,9 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 			download(`${data.symbol}-all-positions.csv`, csvString)
 		}
 	})
+	const handleCsvDownload = React.useCallback(() => {
+		mutate()
+	}, [mutate])
 	return (
 		<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 			<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
@@ -58,7 +61,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 				<p className="hidden flex-col md:flex">
 					<DangerousPositionsAmount data={data} />
 				</p>
-				<CSVDownloadButton onClick={() => mutate()} isLoading={isPending} smol className="mt-auto mr-auto" />
+				<CSVDownloadButton onClick={handleCsvDownload} isLoading={isPending} smol className="mt-auto mr-auto" />
 			</div>
 			<div className="col-span-2 flex min-h-[458px] flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="flex flex-wrap items-center gap-4">
@@ -178,14 +181,22 @@ const getDangerousPositionsAmount = (
 }
 
 const LastUpdated = ({ data }) => {
-	const [minutesAgo, setMinutesAgo] = React.useState(Math.round((Date.now() - data?.time * 1000) / 1000 / 60))
+	const [minutesAgo, setMinutesAgo] = React.useState(() =>
+		Math.round((Date.now() - (data?.time ?? 0) * 1000) / 1000 / 60)
+	)
+
+	const onUpdateMinutesAgo = React.useEffectEvent(() => {
+		const baseTime = data?.time != null ? data.time * 1000 : Date.now()
+		setMinutesAgo(Math.round((Date.now() - baseTime) / 1000 / 60))
+	})
 
 	React.useEffect(() => {
+		onUpdateMinutesAgo()
 		const interval = setInterval(() => {
-			setMinutesAgo((x) => x + 1)
+			onUpdateMinutesAgo()
 		}, 1000 * 60)
 		return () => clearInterval(interval)
-	}, [])
+	}, [data?.time])
 
 	return (
 		<>

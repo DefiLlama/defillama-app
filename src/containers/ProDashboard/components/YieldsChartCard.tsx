@@ -1,10 +1,10 @@
-import * as echarts from 'echarts/core'
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useMemo } from 'react'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'
 import { useYieldChartData, useYieldChartLendBorrow } from '~/containers/Yields/queries/client'
 import { download, formattedNum } from '~/utils'
+import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import type { YieldsChartConfig } from '../types'
 import { ChartExportButton } from './ProTable/ChartExportButton'
@@ -34,10 +34,7 @@ const liquidityLegendOptions = ['Supplied', 'Borrowed', 'Available']
 export function YieldsChartCard({ config }: YieldsChartCardProps) {
 	const { poolConfigId, poolName, project, chain, chartType = 'tvl-apy' } = config
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
-	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
-	const handleChartReady = useCallback((instance: echarts.ECharts) => {
-		setChartInstance((prev) => (prev === instance ? prev : instance))
-	}, [])
+	const { chartInstance, handleChartReady } = useChartImageExport()
 
 	const { data: chart, isLoading: fetchingChartData, isError: chartError } = useYieldChartData(poolConfigId)
 

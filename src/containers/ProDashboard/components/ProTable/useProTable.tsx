@@ -627,9 +627,12 @@ export function useProTable(
 		return userConfig?.tableViews as CustomView[]
 	}, [userConfig])
 
-	React.useEffect(() => {
-		if (options?.initialActiveViewId && customViews.length > 0) {
-			const view = customViews.find((v) => v.id === options.initialActiveViewId)
+	const onApplyInitialCustomView = React.useEffectEvent(
+		(initialViewId: string | undefined, views: CustomView[]) => {
+			if (!initialViewId || views.length === 0) {
+				return
+			}
+			const view = views.find((v) => v.id === initialViewId)
 			let hasVisibility = false
 			for (const _ in columnVisibility) {
 				hasVisibility = true
@@ -641,7 +644,10 @@ export function useProTable(
 				setCustomColumns(view.customColumns || [])
 			}
 		}
-		// oxlint-disable-next-line react/exhaustive-deps
+	)
+
+	React.useEffect(() => {
+		onApplyInitialCustomView(options?.initialActiveViewId, customViews)
 	}, [customViews, options?.initialActiveViewId])
 
 	// Create custom column definitions
@@ -1019,11 +1025,14 @@ export function useProTable(
 		}
 	}, [columnOrder, columnVisibility, customColumns, activeCustomView, selectedPreset, options])
 
-	React.useEffect(() => {
+	const onApplyDefaultPreset = React.useEffectEvent(() => {
 		if (!options?.initialColumnVisibility && !options?.initialActivePresetId) {
 			applyPreset('essential')
 		}
-		// oxlint-disable-next-line react/exhaustive-deps
+	})
+
+	React.useEffect(() => {
+		onApplyDefaultPreset()
 	}, [])
 
 	const addOption = (newOptions: string[]) => {

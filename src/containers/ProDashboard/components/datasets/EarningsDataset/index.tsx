@@ -50,7 +50,9 @@ export function EarningsDataset({ chains, tableId, filters }: EarningsDatasetPro
 
 	const [showFilterModal, setShowFilterModal] = React.useState(false)
 	const [includeCategories, setIncludeCategories] = React.useState<string[]>(filters?.categories ?? EMPTY_CATEGORIES)
-	const [excludeCategories, setExcludeCategories] = React.useState<string[]>(filters?.excludedCategories ?? EMPTY_CATEGORIES)
+	const [excludeCategories, setExcludeCategories] = React.useState<string[]>(
+		filters?.excludedCategories ?? EMPTY_CATEGORIES
+	)
 
 	React.useEffect(() => {
 		setIncludeCategories(filters?.categories ?? EMPTY_CATEGORIES)
@@ -79,10 +81,13 @@ export function EarningsDataset({ chains, tableId, filters }: EarningsDatasetPro
 	const includeCategoriesSet = React.useMemo(() => new Set(includeCategories), [includeCategories])
 	const excludeCategoriesSet = React.useMemo(() => new Set(excludeCategories), [excludeCategories])
 
-	const { filteredIncludeCategories, filteredExcludeCategories } = React.useMemo(() => ({
-		filteredIncludeCategories: includeCategories.filter((cat) => availableCategoriesSet.has(cat)),
-		filteredExcludeCategories: excludeCategories.filter((cat) => availableCategoriesSet.has(cat))
-	}), [includeCategories, excludeCategories, availableCategoriesSet])
+	const { filteredIncludeCategories, filteredExcludeCategories } = React.useMemo(
+		() => ({
+			filteredIncludeCategories: includeCategories.filter((cat) => availableCategoriesSet.has(cat)),
+			filteredExcludeCategories: excludeCategories.filter((cat) => availableCategoriesSet.has(cat))
+		}),
+		[includeCategories, excludeCategories, availableCategoriesSet]
+	)
 
 	const filteredData = React.useMemo(() => {
 		if (!data) return []

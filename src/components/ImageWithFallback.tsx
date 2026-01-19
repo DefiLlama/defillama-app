@@ -12,11 +12,25 @@ export const ImageWithFallback = ({
 }: ImageProps & {
 	fallback?: string
 }) => {
-	const [error, setError] = useState(null)
+	const resolvedSrc = (() => {
+		if (typeof src === 'string') return src
+		if ('default' in src) return src.default.src
+		return src.src
+	})()
+	const [erroredSrc, setErroredSrc] = useState<string | null>(null)
+	const shouldFallback = erroredSrc === resolvedSrc
 
 	useEffect(() => {
-		setError(null)
-	}, [src])
+		setErroredSrc(null)
+	}, [resolvedSrc])
 
-	return <Image alt={alt} onError={setError} src={error ? fallbackImage : src} unoptimized {...props} />
+	return (
+		<Image
+			alt={alt}
+			onError={() => setErroredSrc(resolvedSrc)}
+			src={shouldFallback ? _fallback : src}
+			unoptimized
+			{...props}
+		/>
+	)
 }

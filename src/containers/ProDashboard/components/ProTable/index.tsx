@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { memo, useMemo, useState } from 'react'
 import { useProDashboardEditorActions } from '../../ProDashboardAPIContext'
 import { TableFilters } from '../../types'

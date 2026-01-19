@@ -6,7 +6,6 @@ import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { useIsClient } from '~/hooks/useIsClient'
 import { downloadDataURL } from '~/utils'
 
 const IMAGE_EXPORT_WIDTH = 1280

@@ -20,8 +20,7 @@ export const useResize = (myRef: React.RefObject<HTMLDivElement>) => {
 		return () => {
 			window.removeEventListener('resize', handleResize)
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps -- Ref object is stable, no need to include in deps
-	}, [])
+	}, [myRef])
 
 	return { width, height }
 }
