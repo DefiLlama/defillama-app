@@ -1229,13 +1229,15 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 			fetchJson(`${V2_SERVER_URL}/metrics/financial-statement/protocol/${slug(metadata.displayName)}?q=30`).catch(
 				() => null
 			),
-			getProtocolEmissons(slug(metadata.displayName))
-				.then((data) => data.unlockUsdChart ?? [])
-				.then((chart) => {
-					const nonZeroIndex = chart.findIndex(([_, value]) => value > 0)
-					return chart.slice(nonZeroIndex)
-				})
-				.catch(() => [])
+			metadata.incentives
+				? getProtocolEmissons(slug(metadata.displayName))
+						.then((data) => data.unlockUsdChart ?? [])
+						.then((chart) => {
+							const nonZeroIndex = chart.findIndex(([_, value]) => value > 0)
+							return chart.slice(nonZeroIndex)
+						})
+						.catch(() => null)
+				: Promise.resolve(null)
 		])
 
 		if (!incomeStatement) {

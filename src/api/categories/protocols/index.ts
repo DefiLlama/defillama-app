@@ -246,9 +246,16 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		if (!list.includes(protocolName))
 			return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
 
-		const allEmissions = await fetchJson(PROTOCOL_EMISSIONS_API)
+		const [res, allEmissions] = await Promise.all([
+			fetchJson(`${PROTOCOL_EMISSION_API}/${protocolName}`)
+				.then((r) => JSON.parse(r.body))
+				.catch(() => null),
+			fetchJson(PROTOCOL_EMISSIONS_API)
+		])
 
-		const res = await fetchJson(`${PROTOCOL_EMISSION_API}/${protocolName}`).then((r) => JSON.parse(r.body))
+		if (!res) {
+			return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
+		}
 
 		const { metadata, name, futures } = res
 
