@@ -415,20 +415,20 @@ export const IncomeStatement = ({
 			}`}
 		>
 			<div className="flex flex-wrap items-center justify-between gap-1">
-			{showTitles ? (
-				<h2 className="group relative flex items-center gap-1 text-base font-semibold" id={headerId}>
-					Income Statement for {name}
-					<a
-						aria-hidden="true"
-						tabIndex={-1}
-						href={`#${headerId}`}
-						className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
-					/>
-					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
-				</h2>
-			) : null}
+				{showTitles ? (
+					<h2 className="group relative flex items-center gap-1 text-base font-semibold" id={headerId}>
+						Income Statement for {name}
+						<a
+							aria-hidden="true"
+							tabIndex={-1}
+							href={`#${headerId}`}
+							className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+						/>
+						<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+					</h2>
+				) : null}
 				{showTable ? (
-					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
+				<div className="ml-auto flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 						{incomeStatementGroupByOptions.map((groupOption) => (
 							<button
 								key={`income-statement-${groupOption}`}
