@@ -49,9 +49,13 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 
 	const cellContent = (
 		<div
-			className={`h-24 w-full relative border hover:brightness-110 ${
+			className={`h-24 w-full relative border ${
 				isToday ? 'border-(--blue)' : 'border-(--divider)'
-			} ${!dayInfo.isCurrentMonth ? 'bg-(--bg-card) opacity-60 hover:opacity-80' : 'hover:brightness-110'}`}
+			} ${
+				dayInfo.isCurrentMonth
+					? 'hover:brightness-110'
+					: 'bg-(--bg-card) opacity-60 hover:opacity-80'
+			}`}
 			style={cellStyle}
 		>
 			<div className="relative z-10 flex h-full w-full flex-col justify-between p-2">

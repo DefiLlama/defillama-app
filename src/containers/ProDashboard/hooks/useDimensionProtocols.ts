@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchJson } from '~/utils/async'
 import type { DimensionProtocols } from '../templates'
@@ -23,11 +24,14 @@ export function useDimensionProtocols() {
 		staleTime: 5 * 60 * 1000
 	})
 
-	const dimensionProtocols: DimensionProtocols = {
-		perps: perpsData ?? EMPTY_PROTOCOLS,
-		dexs: dexsData ?? EMPTY_PROTOCOLS,
-		dexAggregators: aggregatorsData ?? EMPTY_PROTOCOLS
-	}
+	const dimensionProtocols: DimensionProtocols = useMemo(
+		() => ({
+			perps: perpsData ?? EMPTY_PROTOCOLS,
+			dexs: dexsData ?? EMPTY_PROTOCOLS,
+			dexAggregators: aggregatorsData ?? EMPTY_PROTOCOLS
+		}),
+		[perpsData, dexsData, aggregatorsData]
+	)
 
 	const isLoading = perpsLoading || dexsLoading || aggregatorsLoading
 

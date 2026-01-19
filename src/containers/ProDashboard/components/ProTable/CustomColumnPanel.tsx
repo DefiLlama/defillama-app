@@ -168,13 +168,28 @@ export function CustomColumnPanel({
 		return sample
 	}, [availableVariables])
 
+	// Format number for display - hoisted above sampleDataPreview to avoid TDZ
+	const formatPreviewNumber = React.useCallback((value: number | null): string => {
+		if (value == null) return '-'
+
+		if (Math.abs(value) >= 1e9) {
+			return `$${(value / 1e9).toFixed(2)}B`
+		} else if (Math.abs(value) >= 1e6) {
+			return `$${(value / 1e6).toFixed(2)}M`
+		} else if (Math.abs(value) >= 1e3) {
+			return `$${(value / 1e3).toFixed(2)}K`
+		} else {
+			return value.toFixed(2)
+		}
+	}, [])
+
 	const sampleDataPreview = React.useMemo(
 		() =>
 			Object.entries(sampleData)
 				.slice(0, 3)
 				.map(([key, value]) => `${key}=${formatPreviewNumber(value)}`)
 				.join(', '),
-		[sampleData]
+		[sampleData, formatPreviewNumber]
 	)
 
 	const validateExpression = (expression: string): { isValid: boolean; error?: string } => {
@@ -359,21 +374,6 @@ export function CustomColumnPanel({
 			setLiveValidation({ isValid: false, error: error.message || 'Invalid expression' })
 		}
 	}, [newColumnExpression, sampleData])
-
-	// Format number for display
-	const formatPreviewNumber = (value: number | null): string => {
-		if (value == null) return '-'
-
-		if (Math.abs(value) >= 1e9) {
-			return `$${(value / 1e9).toFixed(2)}B`
-		} else if (Math.abs(value) >= 1e6) {
-			return `$${(value / 1e6).toFixed(2)}M`
-		} else if (Math.abs(value) >= 1e3) {
-			return `$${(value / 1e3).toFixed(2)}K`
-		} else {
-			return value.toFixed(2)
-		}
-	}
 
 	const handleMouseDown = (e: React.MouseEvent) => {
 		// Prevent drag events from bubbling up to dashboard

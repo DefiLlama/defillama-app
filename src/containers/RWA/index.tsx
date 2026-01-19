@@ -882,6 +882,7 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 			return (
 				<span
 					className={clsx(
+						'inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap',
 						value === 'Permissioned' && 'text-(--warning)',
 						value === 'Permissionless' && 'text-(--success)',
 						value === 'Non-transferable' && 'text-(--error)',

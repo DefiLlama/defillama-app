@@ -404,10 +404,14 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 
 	const tooltipFormatter = useCallback(
 		(params: any) => {
-			const date = new Date(params[0].value[0])
+			const rawTimestamp = params[0].value[0]
+			const millis = rawTimestamp < 10000000000 ? rawTimestamp * 1000 : rawTimestamp
+			const date = new Date(millis)
 			const chartdate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
 
-			let filteredParams = params.filter((item: any) => item.value[1] !== '-' && item.value[1])
+			let filteredParams = params.filter(
+				(item: any) => item.value[1] !== '-' && item.value[1] !== null && item.value[1] !== undefined
+			)
 			filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
 
 			const formatValue = (value: number) => {

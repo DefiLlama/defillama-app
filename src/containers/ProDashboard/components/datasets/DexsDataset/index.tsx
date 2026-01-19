@@ -76,6 +76,17 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 		autoResetPageIndex: false
 	})
 
+	// Guard against stale page index when data or filters change
+	React.useEffect(() => {
+		const pageSize = instance.getState().pagination.pageSize
+		const currentPageIndex = instance.getState().pagination.pageIndex
+		const filteredRowCount = instance.getFilteredRowModel().rows.length
+		const maxPage = Math.max(0, Math.ceil(filteredRowCount / pageSize) - 1)
+		if (currentPageIndex > maxPage) {
+			instance.setPageIndex(maxPage)
+		}
+	}, [enrichedData.length, columnFilters, instance])
+
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 		const defaultSizing = {
