@@ -7,16 +7,16 @@ export async function getCategoryInfo() {
 }
 
 export async function getCategoryPerformance() {
-	const performanceTimeSeries = Object.fromEntries(
-		await Promise.all(
+	const [performanceEntries, info] = await Promise.all([
+		Promise.all(
 			['7', '30', 'ytd', '365'].map(async (period) => [
 				period,
 				await fetchJson(`${CATEGORY_PERFORMANCE_API}/${period}`).catch(() => [])
 			])
-		)
-	)
-
-	const info = await fetchJson(CATEGORY_INFO_API).catch(() => [])
+		),
+		fetchJson(CATEGORY_INFO_API).catch(() => [])
+	])
+	const performanceTimeSeries = Object.fromEntries(performanceEntries)
 	const getCumulativeChangeOfPeriod = (period, name) => performanceTimeSeries[period].slice(-1)?.[0]?.[name] ?? null
 	const pctChanges = info.map((i) => ({
 		...i,
@@ -91,8 +91,11 @@ export async function getCoinPerformance(categoryId) {
 		return chartData
 	}
 
-	const prices = await fetchJson(`${CATEGORY_COIN_PRICES_API}/${categoryId}`)
-	const coinInfo = await fetchJson(`${COINS_INFO_API}/${categoryId}`)
+	const [prices, coinInfo, categories] = await Promise.all([
+		fetchJson(`${CATEGORY_COIN_PRICES_API}/${categoryId}`),
+		fetchJson(`${COINS_INFO_API}/${categoryId}`),
+		getCategoryInfo()
+	])
 
 	const coinsInCategory = coinInfo.map((c) => [c.id, c.name])
 
@@ -123,6 +126,6 @@ export async function getCoinPerformance(categoryId) {
 		performanceTimeSeries,
 		areaChartLegend: coinInfo.filter((i) => !['Bitcoin', 'Ethereum', 'Solana'].includes(i.name)).map((i) => i.name),
 		isCoinPage: true,
-		categoryName: (await getCategoryInfo()).find((i) => i.id === categoryId).name
+		categoryName: categories.find((i) => i.id === categoryId)?.name
 	}
 }

@@ -102,16 +102,17 @@ function fetchGlobalData({ peggedAssets, chains }: any) {
 export async function getPeggedOverviewPageData(chain) {
 	const chainKey = chain ? slug(chain) : 'all'
 	return withStablecoinsCache(`overview:${chainKey}`, async () => {
-		const { peggedAssets, chains } = await getPeggedAssets()
 		const chainLabel = chain ?? 'all-llama-app' // custom key to fetch limited data to reduce page size
-		const chainData = await fetchJson(`${PEGGEDCHART_API}/${chainLabel}`)
+		const [{ peggedAssets, chains }, chainData, priceData, rateData] = await Promise.all([
+			getPeggedAssets(),
+			fetchJson(`${PEGGEDCHART_API}/${chainLabel}`),
+			getPeggedPrices(),
+			getPeggedRates()
+		])
 		const breakdown = chainData?.breakdown
 		if (!breakdown) {
 			throw new Error(`[getPeggedOverviewPageData] [${chainLabel}] no breakdown`)
 		}
-
-		const priceData = await getPeggedPrices()
-		const rateData = await getPeggedRates()
 
 		let chartDataByPeggedAsset = []
 		let peggedAssetNamesSet: Set<string> = new Set() // fix name of this variable
@@ -180,11 +181,17 @@ export async function getPeggedOverviewPageData(chain) {
 
 export async function getPeggedChainsPageData() {
 	return withStablecoinsCache('chains-page', async () => {
-		const { peggedAssets, chains } = await getPeggedAssets()
-		const { chainCoingeckoIds } = await getConfigData()
-
-		const { aggregated: chartData } = await fetchJson(`${PEGGEDCHART_API}/all`)
-		const { dominanceMap, chainChartMap } = await fetchJson(PEGGEDCHART_DOMINANCE_ALL_API)
+		const [
+			{ peggedAssets, chains },
+			{ chainCoingeckoIds },
+			{ aggregated: chartData },
+			{ dominanceMap, chainChartMap }
+		] = await Promise.all([
+			getPeggedAssets(),
+			getConfigData(),
+			fetchJson(`${PEGGEDCHART_API}/all`),
+			fetchJson(PEGGEDCHART_DOMINANCE_ALL_API)
+		])
 		const { chainList, chainsTVLData } = fetchGlobalData({ peggedAssets, chains })
 
 		let chainsGroupbyParent: Record<string, Record<string, string[]>> = {}

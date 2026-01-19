@@ -1,4 +1,3 @@
-import type { IChainData } from '~/api/types'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import {
 	BRIDGEDAYSTATS_API,
@@ -117,28 +116,37 @@ export async function getBridgeOverviewPageData(chain) {
 		})
 		.map((chain) => chain.name)
 
-	const chainVolumeData: IChainData[] = await getChainVolumeData(chain, chainCoingeckoIds)
+	const chainVolumePromise = getChainVolumeData(chain, chainCoingeckoIds)
 
 	const currentTimestamp = Math.floor(new Date().getTime() / 1000 / 3600) * 3600
 	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
 	const prevDayTimestamp = currentTimestamp
-	let bridgeStatsCurrentDay = {}
-	if (chain) {
-		for (let i = 0; i < 5; i++) {
-			try {
-				bridgeStatsCurrentDay = await fetchJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}`)
-				// can format differently here if needed
-			} catch {}
-		}
-	}
+	const bridgeStatsPromise = chain
+		? (async () => {
+				let bridgeStatsCurrentDay = {}
+				for (let i = 0; i < 5; i++) {
+					try {
+						bridgeStatsCurrentDay = await fetchJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}`)
+						// can format differently here if needed
+					} catch {}
+				}
+				return bridgeStatsCurrentDay
+			})()
+		: Promise.resolve({})
 
 	const numberOfDaysForLargeTx = chain ? 7 : 1
 	const secondsInDay = 3600 * 24
-	const unformattedLargeTxsData = await getLargeTransactionsData(
+	const largeTxsPromise = getLargeTransactionsData(
 		chain,
 		currentTimestamp - numberOfDaysForLargeTx * secondsInDay,
 		currentTimestamp
 	)
+
+	const [chainVolumeData, bridgeStatsCurrentDay, unformattedLargeTxsData] = await Promise.all([
+		chainVolumePromise,
+		bridgeStatsPromise,
+		largeTxsPromise
+	])
 	const largeTxsData = Array.isArray(unformattedLargeTxsData)
 		? unformattedLargeTxsData.map((transaction) => {
 				const { token, symbol, isDeposit, chain: txChain } = transaction

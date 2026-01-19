@@ -11,10 +11,12 @@ import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('expenses', async () => {
-	const { protocols, parentProtocols } = await fetchJson(PROTOCOLS_API)
-	const expenses = await fetchJson(
-		'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
-	)
+	const [{ protocols, parentProtocols }, expenses] = await Promise.all([
+		fetchJson(PROTOCOLS_API),
+		fetchJson(
+			'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
+		)
+	])
 
 	return {
 		props: {
