@@ -7,6 +7,57 @@ export type ColumnOrdersByBreakpoint = BreakpointMap<ColumnOrderState>
 type ColumnTableInstance = {
 	setColumnSizing: (sizing: ColumnSizingState) => void
 	setColumnOrder: (order: ColumnOrderState) => void
+	getState: () => {
+		columnSizing?: ColumnSizingState
+		columnOrder?: ColumnOrderState
+	}
+	getAllLeafColumns?: () => Array<{ id: string; getSize?: () => number }>
+}
+
+const isColumnOrderEqual = (current: ColumnOrderState, next: ColumnOrderState) => {
+	if (current === next) return true
+	if (current.length !== next.length) return false
+	for (let i = 0; i < current.length; i++) {
+		if (current[i] !== next[i]) return false
+	}
+	return true
+}
+
+const isColumnSizingEqual = (current: ColumnSizingState, next: ColumnSizingState) => {
+	if (current === next) return true
+	const currentKeys = Object.keys(current)
+	const nextKeys = Object.keys(next)
+	if (currentKeys.length !== nextKeys.length) return false
+	for (const key of currentKeys) {
+		if (current[key] !== next[key]) return false
+	}
+	return true
+}
+
+const getSizingForKeys = (
+	keys: string[],
+	currentSizing?: ColumnSizingState,
+	columns?: Array<{ id: string; getSize?: () => number }>
+) => {
+	const sizing: ColumnSizingState = {}
+	for (const key of keys) {
+		const value = currentSizing?.[key]
+		if (value != null) {
+			sizing[key] = value
+		}
+	}
+	if (columns) {
+		const columnsById = new Map(columns.map((col) => [col.id, col]))
+		for (const key of keys) {
+			if (sizing[key] == null) {
+				const size = columnsById.get(key)?.getSize?.()
+				if (size != null) {
+					sizing[key] = size
+				}
+			}
+		}
+	}
+	return sizing
 }
 
 export function splitArrayByFalsyValues(data, column) {
@@ -62,6 +113,12 @@ export function sortColumnSizesAndOrders({
 		return
 	}
 
+	const { columnSizing: currentSizing, columnOrder: currentOrder } = instance.getState()
+	const columns = instance.getAllLeafColumns?.()
+
+	const effectiveOrder =
+		currentOrder && currentOrder.length > 0 ? currentOrder : (columns?.map((col) => col.id) ?? currentOrder)
+
 	const getBreakpointValue = <T>(sizes: BreakpointMap<T>) => {
 		return Object.entries(sizes)
 			.map(([size, value]) => [Number(size), value] as const)
@@ -69,16 +126,17 @@ export function sortColumnSizesAndOrders({
 			.find(([size]) => width >= size)?.[1]
 	}
 
-	if (columnSizes) {
+	if (columnSizes && currentSizing != null) {
 		const size = getBreakpointValue(columnSizes)
-		if (size !== undefined) {
+		const effectiveSizing = size ? getSizingForKeys(Object.keys(size), currentSizing, columns) : currentSizing
+		if (size !== undefined && effectiveSizing != null && !isColumnSizingEqual(effectiveSizing, size)) {
 			instance.setColumnSizing(size)
 		}
 	}
 
-	if (columnOrders) {
+	if (columnOrders && currentOrder != null) {
 		const order = getBreakpointValue(columnOrders)
-		if (order !== undefined) {
+		if (order !== undefined && effectiveOrder != null && !isColumnOrderEqual(effectiveOrder, order)) {
 			instance.setColumnOrder(order)
 		}
 	}
