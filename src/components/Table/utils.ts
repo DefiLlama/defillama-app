@@ -75,31 +75,6 @@ export function splitArrayByFalsyValues(data, column) {
 	)
 }
 
-export function alphanumericFalsyLast(rowA, rowB, columnId, sorting) {
-	const desc = sorting.length ? sorting[0].desc : true
-
-	let a = (rowA.getValue(columnId) ?? null) as any
-	let b = (rowB.getValue(columnId) ?? null) as any
-
-	/**
-	 * These first 3 conditions keep our null values at the bottom.
-	 */
-	if (a === null && b !== null) {
-		return desc ? -1 : 1
-	}
-
-	if (a !== null && b === null) {
-		return desc ? 1 : -1
-	}
-
-	if (a === null && b === null) {
-		return 0
-	}
-
-	// at this point, you have non-null values and you should do whatever is required to sort those values correctly
-	return a - b
-}
-
 // Utility function to sort column sizes and orders based on width
 function sortColumnSizesAndOrders({
 	instance,

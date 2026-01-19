@@ -169,6 +169,9 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 			columnFilters,
 			columnVisibility
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel()

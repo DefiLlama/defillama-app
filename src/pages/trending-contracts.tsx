@@ -90,6 +90,9 @@ export default function TrendingContracts() {
 		state: {
 			sorting
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		columns: columns(activeChain),
 		getCoreRowModel: getCoreRowModel(),
 		onSortingChange: setSorting,

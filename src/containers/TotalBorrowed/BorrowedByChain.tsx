@@ -154,7 +154,6 @@ const columns: ColumnDef<ITotalBorrowedByChainPageData['protocols'][0]>[] = [
 		header: 'Total Borrowed',
 		accessorFn: (protocol) => protocol.totalBorrowed,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: 'Sum of value currently borrowed across all active loans on a Lending protocol'

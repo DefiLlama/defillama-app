@@ -154,7 +154,6 @@ const columns: ColumnDef<ITotalStakedByChainPageData['protocols'][0]>[] = [
 		header: 'Total Staked',
 		accessorFn: (protocol) => protocol.totalStaked,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: "Sum of value of protocol's own tokens staked on their protocol"

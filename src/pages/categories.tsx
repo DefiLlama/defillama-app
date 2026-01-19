@@ -471,7 +471,6 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		sortUndefined: 'last',
 		size: 135
 	},
 	{
@@ -512,7 +511,6 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		sortUndefined: 'last',
 		size: 200
 	},
 	{

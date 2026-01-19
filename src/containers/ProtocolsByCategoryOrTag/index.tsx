@@ -348,7 +348,6 @@ const tvlColumn = (isRWA: boolean): Column => ({
 	header: isRWA ? 'Total Assets' : 'TVL',
 	accessorFn: (protocol) => protocol.tvl,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: 'Sum of value of all coins held in smart contracts of the protocol'
@@ -361,7 +360,6 @@ const mcapTvlColumn: Column = {
 	header: 'Mcap/TVL',
 	accessorFn: (protocol) => (protocol.mcap && protocol.tvl ? formatNum(protocol.mcap / protocol.tvl) : null),
 	cell: (info) => <>{info.getValue() != null ? info.getValue() : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: 'Market cap / TVL ratio'
@@ -378,7 +376,6 @@ const fees7dColumn: Column = {
 	header: 'Fees 7d',
 	accessorFn: (protocol) => protocol.fees?.total7d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.fees.protocol['7d']
@@ -391,7 +388,6 @@ const revenue7dColumn: Column = {
 	header: 'Revenue 7d',
 	accessorFn: (protocol) => protocol.revenue?.total7d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.revenue.protocol['7d']
@@ -404,7 +400,6 @@ const fees30dColumn: Column = {
 	header: 'Fees 30d',
 	accessorFn: (protocol) => protocol.fees?.total30d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.fees.protocol['30d']
@@ -417,7 +412,6 @@ const revenue30dColumn: Column = {
 	header: 'Revenue 30d',
 	accessorFn: (protocol) => protocol.revenue?.total30d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.revenue.protocol['30d']
@@ -430,7 +424,6 @@ const fees24hColumn: Column = {
 	header: 'Fees 24h',
 	accessorFn: (protocol) => protocol.fees?.total24h,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.fees.protocol['24h']
@@ -443,7 +436,6 @@ const revenue24hColumn: Column = {
 	header: 'Revenue 24h',
 	accessorFn: (protocol) => protocol.revenue?.total24h,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.revenue.protocol['24h']
@@ -510,7 +502,7 @@ const rwaStatsColumns: Column[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Whether the asset can be redeemed for the underlying'
@@ -526,7 +518,7 @@ const rwaStatsColumns: Column[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Whether the platform publishes holdings reports'
@@ -542,7 +534,7 @@ const rwaStatsColumns: Column[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Whether the asset is listed on a CEX'
@@ -558,7 +550,7 @@ const rwaStatsColumns: Column[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Whether the asset requires KYC to mint and redeem'
@@ -574,7 +566,7 @@ const rwaStatsColumns: Column[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Whether the asset can be transferred freely to third parties'
@@ -590,7 +582,7 @@ const rwaStatsColumns: Column[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Whether the asset can be self-custodied'
@@ -602,7 +594,7 @@ const rwaStatsColumns: Column[] = [
 		header: 'Liquidity',
 		accessorFn: (protocol) => protocol.rwaStats?.tvlUsd,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Liquidity of the asset in tracked pools'
@@ -614,7 +606,7 @@ const rwaStatsColumns: Column[] = [
 		header: 'Volume 7d',
 		accessorFn: (protocol) => protocol.rwaStats?.volumeUsd7d,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Volume of trades across tracked pools in the last 7 days'
@@ -626,7 +618,7 @@ const rwaStatsColumns: Column[] = [
 		header: 'Volume 24h',
 		accessorFn: (protocol) => protocol.rwaStats?.volumeUsd1d,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Volume of trades across tracked pools in the last 24 hours'
@@ -670,7 +662,6 @@ const perpVolume24hColumn: Column = {
 
 		return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 	},
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.perps.protocol['24h']
@@ -683,8 +674,6 @@ const openInterestColumn: Column = {
 	id: 'open_interest',
 	accessorFn: (protocol) => protocol.openInterest?.total24h,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
-	sortingFn: 'alphanumericFalsyLast' as any,
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.openInterest.protocol
@@ -723,7 +712,6 @@ const perpVolume7dColumn: Column = {
 
 		return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 	},
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.perps.protocol['7d']
@@ -762,7 +750,6 @@ const perpVolume30dColumn: Column = {
 
 		return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 	},
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.perps.protocol['30d']
@@ -779,7 +766,6 @@ const dexVolume7dColumn: Column = {
 	header: 'DEX Volume 7d',
 	accessorFn: (protocol) => protocol.dexVolume?.total7d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.dexs.protocol['7d']
@@ -792,7 +778,6 @@ const dexVolume30dColumn: Column = {
 	header: 'DEX Volume 30d',
 	accessorFn: (protocol) => protocol.dexVolume?.total30d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.dexs.protocol['30d']
@@ -805,7 +790,6 @@ const dexVolume24hColumn: Column = {
 	header: 'DEX Volume 24h',
 	accessorFn: (protocol) => protocol.dexVolume?.total24h,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.dexs.protocol['24h']
@@ -822,7 +806,6 @@ const dexAggregatorVolume7dColumn: Column = {
 	header: 'DEX Aggregator Volume 7d',
 	accessorFn: (protocol) => protocol.dexVolume?.total7d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.dexAggregators.protocol['7d']
@@ -835,7 +818,6 @@ const dexAggregatorVolume30dColumn: Column = {
 	header: 'DEX Aggregator Volume 30d',
 	accessorFn: (protocol) => protocol.dexVolume?.total30d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.dexAggregators.protocol['30d']
@@ -848,7 +830,6 @@ const dexAggregatorVolume24hColumn: Column = {
 	header: 'DEX Aggregator Volume 24h',
 	accessorFn: (protocol) => protocol.dexVolume?.total24h,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.dexAggregators.protocol['24h']
@@ -865,7 +846,6 @@ const predictionMarketVolume7dColumn: Column = {
 	header: 'Volume 7d',
 	accessorFn: (protocol) => protocol.dexVolume?.total7d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end'
 	},
@@ -877,7 +857,6 @@ const predictionMarketVolume30dColumn: Column = {
 	header: 'Volume 30d',
 	accessorFn: (protocol) => protocol.dexVolume?.total30d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end'
 	},
@@ -889,7 +868,6 @@ const predictionMarketVolume24hColumn: Column = {
 	header: 'Volume 24h',
 	accessorFn: (protocol) => protocol.dexVolume?.total24h,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end'
 	},
@@ -906,7 +884,7 @@ const lendingColumns: Column[] = [
 		header: 'Borrowed',
 		accessorFn: (protocol) => protocol.borrowed,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Total amount borrowed from the protocol'
@@ -918,7 +896,7 @@ const lendingColumns: Column[] = [
 		header: 'Supplied',
 		accessorFn: (protocol) => protocol.supplied,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Total amount supplied to the protocol'
@@ -930,7 +908,7 @@ const lendingColumns: Column[] = [
 		header: 'Supplied/TVL',
 		accessorFn: (protocol) => protocol.suppliedTvl,
 		cell: (info) => <>{info.getValue() ?? null}</>,
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: '(Total amount supplied / Total value locked) ratio'
@@ -948,7 +926,6 @@ const optionsPremium24hColumn: Column = {
 	header: 'Premium Volume 24h',
 	accessorFn: (protocol) => protocol.optionsPremium?.total24h,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.optionsPremium.protocol['24h']
@@ -961,7 +938,6 @@ const optionsPremium7dColumn: Column = {
 	header: 'Premium Volume 7d',
 	accessorFn: (protocol) => protocol.optionsPremium?.total7d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.optionsPremium.protocol['7d']
@@ -974,7 +950,6 @@ const optionsPremium30dColumn: Column = {
 	header: 'Premium Volume 30d',
 	accessorFn: (protocol) => protocol.optionsPremium?.total30d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.optionsPremium.protocol['30d']
@@ -987,7 +962,6 @@ const optionsNotional24hColumn: Column = {
 	header: 'Notional Volume 24h',
 	accessorFn: (protocol) => protocol.optionsNotional?.total24h,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.optionsNotional.protocol['24h']
@@ -1000,7 +974,6 @@ const optionsNotional7dColumn: Column = {
 	header: 'Notional Volume 7d',
 	accessorFn: (protocol) => protocol.optionsNotional?.total7d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.optionsNotional.protocol['7d']
@@ -1013,7 +986,6 @@ const optionsNotional30dColumn: Column = {
 	header: 'Notional Volume 30d',
 	accessorFn: (protocol) => protocol.optionsNotional?.total30d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.optionsNotional.protocol['30d']

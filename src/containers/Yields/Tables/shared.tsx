@@ -46,6 +46,9 @@ export const YieldsTableWrapper = ({
 			columnSizing,
 			columnVisibility
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,

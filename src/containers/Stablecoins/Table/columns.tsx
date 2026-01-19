@@ -94,8 +94,6 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 		header: 'Bridged Amount',
 		accessorKey: 'bridgedAmount',
 		size: 145,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -105,8 +103,6 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 		accessorKey: 'change_1d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 110,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -116,8 +112,6 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 		accessorKey: 'change_7d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 110,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -127,8 +121,6 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 		accessorKey: 'change_1m',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 110,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -138,8 +130,6 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 		accessorKey: 'circulating',
 		cell: (info) => <>{formattedNum(info.getValue())}</>,
 		size: 145,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -246,8 +236,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 				</span>
 			)
 		},
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -270,8 +258,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 				</span>
 			)
 		},
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Shows greatest % price deviation from peg over the past month'
@@ -291,8 +277,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 				</span>
 			)
 		},
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -314,8 +298,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 			) : (
 				'-'
 			),
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		size: 120,
 		meta: {
 			align: 'end'
@@ -338,8 +320,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 			) : (
 				'-'
 			),
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		size: 160,
 		meta: {
 			align: 'end'
@@ -362,8 +342,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 			) : (
 				'-'
 			),
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		size: 160,
 		meta: {
 			align: 'end'
@@ -374,8 +352,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 		accessorKey: 'mcap',
 		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 120,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -585,8 +561,6 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 		accessorKey: 'change_7d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 120,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -596,8 +570,6 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 		accessorKey: 'mcap',
 		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
 		size: 132,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -630,8 +602,6 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 		accessorKey: 'minted',
 		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
 		size: 180,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -641,8 +611,6 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 		accessorKey: 'bridgedTo',
 		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
 		size: 185,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -652,8 +620,6 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 		accessorKey: 'mcaptvl',
 		cell: ({ getValue }) => <>{getValue() && formattedNum(getValue(), false)}</>,
 		size: 195,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}

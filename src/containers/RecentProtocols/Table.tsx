@@ -56,6 +56,9 @@ export function RecentlyListedProtocolsTable({
 			columnSizing,
 			columnFilters
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IProtocolRow) => row.subRows,
 		onSortingChange: setSorting,
@@ -198,7 +201,6 @@ const listedAtColumn: ColumnDef<IProtocolRow> = {
 	header: 'Listed At',
 	accessorKey: 'listedAt',
 	cell: ({ getValue }) => toNiceDaysAgo(getValue()),
-	sortUndefined: 'last' as const,
 	size: 140,
 	meta: {
 		align: 'end' as const
@@ -217,7 +219,6 @@ const airdropsColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Total Money Raised',
 		accessorKey: 'totalRaised',
 		cell: ({ getValue }) => <>{getValue() ? formattedNum(getValue(), true) : ''}</>,
-		sortUndefined: 'last',
 		size: 180,
 		meta: {
 			align: 'end' as const

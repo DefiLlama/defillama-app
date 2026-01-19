@@ -33,6 +33,9 @@ export function RaisesTable({ raises, prepareCsv }) {
 			columnOrder,
 			sorting
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		onColumnOrderChange: setColumnOrder,
 		onColumnFiltersChange: setColumnFilters,

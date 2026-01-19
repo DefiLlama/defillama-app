@@ -18,7 +18,9 @@ export function LiquidatableProtocolsTable({ data }) {
 		state: {
 			sorting
 		},
-
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
@@ -37,7 +39,9 @@ export function LiquidatablePositionsTable({ data }) {
 		state: {
 			sorting
 		},
-
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),

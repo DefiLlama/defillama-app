@@ -206,7 +206,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		header: 'Price',
 		accessorKey: 'tPrice',
 		accessorFn: (row) => (row.tPrice ? +row.tPrice : undefined),
-		sortUndefined: 'last',
 		cell: ({ getValue }) => {
 			return <>{getValue() ? '$' + (+getValue()).toFixed(2) : ''}</>
 		},
@@ -219,7 +218,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		header: 'MCap',
 		accessorKey: 'mcap',
 		accessorFn: (row) => (row.mcap ? +row.mcap : undefined),
-		sortUndefined: 'last',
 		cell: ({ getValue }) => {
 			if (!getValue()) return null
 			return <>{formattedNum(getValue(), true)}</>
@@ -259,7 +257,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Prev. Unlock Analysis',
 		id: 'prevUnlock',
-		sortUndefined: 'last',
 		accessorFn: (row) => (row.historicalPrice ? row.historicalPrice : undefined),
 
 		cell: ({ row }) => {
@@ -296,7 +293,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: '7d Post Unlock',
 		id: 'postUnlock',
-		sortUndefined: 'last',
 		accessorFn: (row) => {
 			if (!row.historicalPrice?.length || row.historicalPrice.length < 8) return undefined
 			const priceAtUnlock = row.historicalPrice[7][1]
@@ -315,7 +311,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Daily Unlocks',
 		id: 'nextEvent',
-		sortUndefined: 'last',
 		accessorFn: (row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : undefined),
 		cell: ({ getValue, row }) => {
 			if (!row.original.unlocksPerDay) return '-'
@@ -339,7 +334,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			if (!timestamp || timestamp < Date.now() / 1e3) return undefined
 			return timestamp
 		},
-		sortUndefined: 'last',
 		cell: ({ row }) => {
 			let { timestamp } = row.original.upcomingEvent[0]
 
@@ -450,8 +444,7 @@ export const bridgedChainColumns: ColumnDef<any>[] = [
 		accessorFn: (row) => (row.value ? +row.value : undefined),
 		cell: ({ getValue }) => {
 			return <>${formattedNum(getValue())}</>
-		},
-		sortUndefined: 'last'
+		}
 	}
 ]
 

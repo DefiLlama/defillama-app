@@ -141,6 +141,9 @@ function Table({ data }: { data: Array<{ name: string; amountUsd: number }> }) {
 		state: {
 			sorting
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()

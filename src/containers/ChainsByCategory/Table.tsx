@@ -63,6 +63,9 @@ export function ChainsByCategoryTable({
 			columnFilters,
 			columnVisibility: JSON.parse(columnsInStorage)
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IFormattedDataWithExtraTvl) => row.subRows,
 		onSortingChange: setSorting,
@@ -443,7 +446,6 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 				</Tooltip>
 			)
 		},
-		sortUndefined: 'last',
 		size: 120,
 		meta: {
 			align: 'end',

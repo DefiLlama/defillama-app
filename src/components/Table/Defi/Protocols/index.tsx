@@ -18,7 +18,7 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { alphanumericFalsyLast, useSortColumnSizesAndOrders, useTableSearch } from '../../utils'
+import { useSortColumnSizesAndOrders, useTableSearch } from '../../utils'
 import {
 	columnOrders,
 	columnSizes,
@@ -462,8 +462,8 @@ const ProtocolsTable = ({
 			columnSizing,
 			columnVisibility: JSON.parse(columnsInStorage)
 		},
-		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
@@ -620,6 +620,9 @@ export function ProtocolsTableWithSearch({
 			columnSizing,
 			columnFilters
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IProtocolRow) => row.subRows,
@@ -674,6 +677,9 @@ export function TopGainersAndLosers({ data, sortingState }: { data: Array<IProto
 		columns: topGainersAndLosersColumns,
 		state: {
 			sorting
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),

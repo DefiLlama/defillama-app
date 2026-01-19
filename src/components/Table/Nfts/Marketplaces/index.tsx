@@ -24,6 +24,9 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 			columnFilters,
 			sorting
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),

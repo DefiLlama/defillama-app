@@ -41,6 +41,9 @@ export function BridgesTable({ data, searchValue = '' }) {
 			columnOrder,
 			columnSizing
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
 		onColumnOrderChange: setColumnOrder,
@@ -79,6 +82,9 @@ export function BridgeChainsTable({ data }) {
 			columnOrder,
 			columnSizing,
 			columnFilters
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
 		onColumnOrderChange: setColumnOrder,
@@ -137,6 +143,9 @@ export function BridgesLargeTxsTable({ data }) {
 			columnOrder,
 			columnSizing
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
@@ -162,6 +171,9 @@ export function BridgeTokensTable({ data }) {
 		state: {
 			sorting
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
@@ -178,6 +190,9 @@ export function BridgeAddressesTable({ data }) {
 		columns: bridgeAddressesColumn,
 		state: {
 			sorting
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),

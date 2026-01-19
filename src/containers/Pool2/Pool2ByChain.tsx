@@ -154,7 +154,6 @@ const columns: ColumnDef<IPool2ProtocolsTVLByChainPageData['protocols'][0]>[] = 
 		header: 'Pool2 TVL',
 		accessorFn: (protocol) => protocol.pool2Tvl,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: 'Total value locked in pool2'

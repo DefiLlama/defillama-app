@@ -24,7 +24,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
-import { alphanumericFalsyLast, useSortColumnSizesAndOrders } from '~/components/Table/utils'
+import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
@@ -289,8 +289,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			columnSizing,
 			columnOrder
 		},
-		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
@@ -918,7 +918,6 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.redeemable.description
@@ -934,7 +933,6 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.attestations.description
@@ -950,7 +948,6 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.cexListed.description
@@ -966,7 +963,6 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.kycForMintRedeem.description
@@ -982,7 +978,6 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.kycAllowlistedWhitelistedToTransferHold.description
@@ -998,7 +993,6 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.transferable.description
@@ -1014,7 +1008,6 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.selfCustody.description

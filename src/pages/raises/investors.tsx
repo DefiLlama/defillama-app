@@ -345,6 +345,9 @@ const ActiveInvestors = ({ investors }: { investors: IInvestor[] }) => {
 			columnFilters,
 			sorting
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),

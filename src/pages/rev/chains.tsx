@@ -83,7 +83,6 @@ const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
 		header: 'REV 24h',
 		accessorFn: (protocol) => protocol.total24h,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'center',
 			headerHelperText: definitions.rev.chain['24h']
@@ -95,7 +94,6 @@ const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
 		header: 'REV 30d',
 		accessorFn: (protocol) => protocol.total30d,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'center',
 			headerHelperText: definitions.rev.chain['30d']

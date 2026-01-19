@@ -34,6 +34,9 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 		state: {
 			sorting
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()

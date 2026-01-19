@@ -320,6 +320,9 @@ export const UnlocksTable = ({
 			columnSizing,
 			columnVisibility: JSON.parse(columnsInStorage)
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		onColumnSizingChange: setColumnSizing,
 		onExpandedChange: setExpanded,

@@ -90,6 +90,9 @@ export function YieldsProjectsTable({ data }: { data: Array<IYieldsProjectsTable
 		state: {
 			sorting
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()

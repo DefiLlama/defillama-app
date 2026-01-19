@@ -133,7 +133,6 @@ const columns: ColumnDef<ICex>[] = [
 			}
 			return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 		},
-		sortUndefined: 'last',
 		size: 120,
 		meta: {
 			align: 'end',
@@ -165,7 +164,6 @@ const columns: ColumnDef<ICex>[] = [
 				</span>
 			)
 		},
-		sortUndefined: 'last',
 		size: 145,
 		meta: {
 			align: 'end',
@@ -184,7 +182,6 @@ const columns: ColumnDef<ICex>[] = [
 				</span>
 			)
 		},
-		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		}
@@ -201,7 +198,6 @@ const columns: ColumnDef<ICex>[] = [
 				</span>
 			)
 		},
-		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		}
@@ -218,7 +214,6 @@ const columns: ColumnDef<ICex>[] = [
 				</span>
 			)
 		},
-		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		}
@@ -227,7 +222,6 @@ const columns: ColumnDef<ICex>[] = [
 		header: 'Spot Volume',
 		accessorKey: 'spotVolume',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		sortUndefined: 'last',
 		size: 125,
 		meta: {
 			align: 'end'
@@ -237,7 +231,6 @@ const columns: ColumnDef<ICex>[] = [
 		header: '24h Open Interest',
 		accessorKey: 'oi',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		sortUndefined: 'last',
 		size: 160,
 		meta: {
 			align: 'end'
@@ -247,7 +240,6 @@ const columns: ColumnDef<ICex>[] = [
 		header: 'Avg Leverage',
 		accessorKey: 'leverage',
 		cell: (info) => (info.getValue() != null ? Number(Number(info.getValue()).toFixed(2)) + 'x' : null),
-		sortUndefined: 'last',
 		size: 130,
 		meta: {
 			align: 'end'
@@ -266,7 +258,6 @@ const columns: ColumnDef<ICex>[] = [
 				</span>
 			)
 		},
-		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		}

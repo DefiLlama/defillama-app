@@ -99,7 +99,6 @@ const columns: ColumnDef<INetProjectTreasuryByChain['protocols'][0]>[] = [
 		header: 'Net Treasury',
 		accessorFn: (protocol) => protocol.netTreasury,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: "Value of tokens owned by a protocol, excluding it's own token"

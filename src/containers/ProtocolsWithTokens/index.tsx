@@ -289,7 +289,6 @@ const mcapColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]
 		header: 'Market Cap',
 		accessorFn: (protocol) => protocol.value,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -304,7 +303,6 @@ const fdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>
 		header: 'FDV',
 		accessorFn: (protocol) => protocol.value,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -319,7 +317,6 @@ const priceColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0
 		header: 'Token Price',
 		accessorFn: (protocol) => protocol.value,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -334,7 +331,6 @@ const outstandingFdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['prot
 		header: 'Outstanding FDV',
 		accessorFn: (protocol) => protocol.value,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText:

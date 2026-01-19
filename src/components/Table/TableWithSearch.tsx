@@ -14,7 +14,7 @@ import {
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
-import { alphanumericFalsyLast, useSortColumnSizesAndOrders, useTableSearch } from './utils'
+import { useSortColumnSizesAndOrders, useTableSearch } from './utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from './utils'
 
 interface ITableWithSearchProps {
@@ -62,8 +62,8 @@ export function TableWithSearch({
 			columnSizing,
 			columnOrder
 		},
-		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,

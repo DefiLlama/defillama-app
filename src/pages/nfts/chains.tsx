@@ -91,7 +91,6 @@ const columns: ColumnDef<any>[] = [
 		header: 'NFT Volume 24h',
 		accessorFn: (protocol) => protocol.total24h,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: 'Sum of volume across all NFT exchanges on the chain in the last 24 hours'

@@ -14,7 +14,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { alphanumericFalsyLast, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import {
 	CHAINS_CATEGORY_GROUP_SETTINGS,
 	isChainsCategoryGroupKey,
@@ -46,8 +46,8 @@ export function PeggedAssetsTable({ data }) {
 			columnSizing,
 			columnFilters
 		},
-		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
 		onColumnOrderChange: setColumnOrder,
@@ -104,8 +104,8 @@ export function PeggedAssetByChainTable({ data }) {
 			columnSizing,
 			columnFilters
 		},
-		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IPeggedAssetByChainRow) => row.subRows,
@@ -165,8 +165,8 @@ export function PeggedChainsTable({ data }) {
 			expanded,
 			columnFilters
 		},
-		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IPeggedChain) => row.subRows,

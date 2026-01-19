@@ -21,7 +21,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { alphanumericFalsyLast, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -228,8 +228,8 @@ export function AdapterByChain(props: IProps) {
 			columnSizing,
 			columnOrder
 		},
-		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		filterFromLeafRows: true,
 		getSubRows: (row: IAdapterByChainPageData['protocols'][0]) => row.childProtocols,
@@ -720,8 +720,6 @@ const getColumnsByType = (
 				header: 'Fees 24h',
 				accessorFn: (protocol) => protocol.total24h,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.fees.protocol['24h']
@@ -733,8 +731,6 @@ const getColumnsByType = (
 				header: 'Fees 7d',
 				accessorFn: (protocol) => protocol.total7d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.fees.protocol['7d']
@@ -746,8 +742,6 @@ const getColumnsByType = (
 				header: 'Fees 30d',
 				accessorFn: (protocol) => protocol.total30d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.fees.protocol['30d']
@@ -794,8 +788,6 @@ const getColumnsByType = (
 				header: 'Revenue 24h',
 				accessorFn: (protocol) => protocol.total24h,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.revenue.protocol['24h']
@@ -807,8 +799,6 @@ const getColumnsByType = (
 				header: 'Revenue 7d',
 				accessorFn: (protocol) => protocol.total7d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.revenue.protocol['7d']
@@ -820,8 +810,6 @@ const getColumnsByType = (
 				header: 'Revenue 30d',
 				accessorFn: (protocol) => protocol.total30d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.revenue.protocol['30d']
@@ -868,8 +856,6 @@ const getColumnsByType = (
 				header: 'Holders Revenue 24h',
 				accessorFn: (protocol) => protocol.total24h,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.holdersRevenue.protocol['24h']
@@ -881,8 +867,6 @@ const getColumnsByType = (
 				header: 'Holders Revenue 7d',
 				accessorFn: (protocol) => protocol.total7d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.holdersRevenue.protocol['7d']
@@ -894,8 +878,6 @@ const getColumnsByType = (
 				header: 'Holders Revenue 30d',
 				accessorFn: (protocol) => protocol.total30d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.holdersRevenue.protocol['30d']
@@ -910,8 +892,6 @@ const getColumnsByType = (
 				header: 'Premium Volume 24h',
 				accessorFn: (protocol) => protocol.total24h,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.optionsPremium.protocol['24h']
@@ -923,8 +903,6 @@ const getColumnsByType = (
 				header: 'Premium Volume 7d',
 				accessorFn: (protocol) => protocol.total7d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.optionsPremium.protocol['7d']
@@ -936,8 +914,6 @@ const getColumnsByType = (
 				header: 'Premium Volume 30d',
 				accessorFn: (protocol) => protocol.total30d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.optionsPremium.protocol['30d']
@@ -952,8 +928,6 @@ const getColumnsByType = (
 				header: 'Notional Volume 24h',
 				accessorFn: (protocol) => protocol.total24h,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.optionsNotional.protocol['24h']
@@ -965,8 +939,6 @@ const getColumnsByType = (
 				header: 'Notional Volume 7d',
 				accessorFn: (protocol) => protocol.total7d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.optionsNotional.protocol['7d']
@@ -978,8 +950,6 @@ const getColumnsByType = (
 				header: 'Notional Volume 30d',
 				accessorFn: (protocol) => protocol.total30d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.optionsNotional.protocol['30d']
@@ -1004,8 +974,6 @@ const getColumnsByType = (
 					}
 					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 				},
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.dexs.protocol['24h']
@@ -1027,8 +995,6 @@ const getColumnsByType = (
 					}
 					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 				},
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.dexs.protocol['7d']
@@ -1050,8 +1016,6 @@ const getColumnsByType = (
 					}
 					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 				},
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.dexs.protocol['30d']
@@ -1092,8 +1056,6 @@ const getColumnsByType = (
 
 					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 				},
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.perps.protocol['24h']
@@ -1105,8 +1067,6 @@ const getColumnsByType = (
 				id: 'open_interest',
 				accessorFn: (protocol) => protocol.openInterest,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.openInterest.protocol
@@ -1144,8 +1104,6 @@ const getColumnsByType = (
 
 					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 				},
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.perps.protocol['7d']
@@ -1183,8 +1141,6 @@ const getColumnsByType = (
 
 					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 				},
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.perps.protocol['30d']
@@ -1199,8 +1155,6 @@ const getColumnsByType = (
 				header: 'Open Interest',
 				accessorFn: (protocol) => protocol.total24h,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.openInterest.protocol
@@ -1220,8 +1174,6 @@ const getColumnsByType = (
 				),
 				accessorFn: (protocol) => protocol.total24h,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.perpsAggregators.protocol['24h']
@@ -1233,8 +1185,6 @@ const getColumnsByType = (
 				header: 'Perp Aggregator Volume 7d',
 				accessorFn: (protocol) => protocol.total7d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.perpsAggregators.protocol['7d']
@@ -1251,8 +1201,6 @@ const getColumnsByType = (
 				),
 				accessorFn: (protocol) => protocol.total30d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.perpsAggregators.protocol['30d']
@@ -1272,8 +1220,6 @@ const getColumnsByType = (
 				),
 				accessorFn: (protocol) => protocol.total24h,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.bridgeAggregators.chain['24h']
@@ -1285,8 +1231,6 @@ const getColumnsByType = (
 				header: 'Bridge Aggregator Volume 7d',
 				accessorFn: (protocol) => protocol.total7d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.bridgeAggregators.chain['7d']
@@ -1303,8 +1247,6 @@ const getColumnsByType = (
 				),
 				accessorFn: (protocol) => protocol.total30d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.bridgeAggregators.chain['30d']
@@ -1324,8 +1266,6 @@ const getColumnsByType = (
 				),
 				accessorFn: (protocol) => protocol.total24h,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.dexAggregators.protocol['24h']
@@ -1337,8 +1277,6 @@ const getColumnsByType = (
 				header: 'DEX Aggregator Volume 7d',
 				accessorFn: (protocol) => protocol.total7d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.dexAggregators.protocol['7d']
@@ -1355,8 +1293,6 @@ const getColumnsByType = (
 				),
 				accessorFn: (protocol) => protocol.total30d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.dexAggregators.protocol['30d']
@@ -1389,8 +1325,6 @@ const getColumnsByType = (
 				header: 'Earnings 24h',
 				accessorFn: (protocol) => protocol.total24h,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: isChain ? definitions.earnings.chain['24h'] : definitions.earnings.protocol['24h']
@@ -1402,8 +1336,6 @@ const getColumnsByType = (
 				header: 'Earnings 7d',
 				accessorFn: (protocol) => protocol.total7d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: isChain ? definitions.earnings.chain['7d'] : definitions.earnings.protocol['7d']
@@ -1415,8 +1347,6 @@ const getColumnsByType = (
 				header: 'Earnings 30d',
 				accessorFn: (protocol) => protocol.total30d,
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: isChain ? definitions.earnings.chain['30d'] : definitions.earnings.protocol['30d']
@@ -1452,8 +1382,6 @@ const getColumnsByType = (
 				header: 'P/F',
 				accessorFn: (protocol) => protocol.pf,
 				cell: (info) => <>{info.getValue() != null ? info.getValue() : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.fees.protocol['pf']
@@ -1489,8 +1417,6 @@ const getColumnsByType = (
 				header: 'P/S',
 				accessorFn: (protocol) => protocol.ps,
 				cell: (info) => <>{info.getValue() != null ? info.getValue() : null}</>,
-				sortUndefined: 'last',
-				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.revenue.protocol['ps']
