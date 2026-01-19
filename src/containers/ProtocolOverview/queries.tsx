@@ -1220,6 +1220,11 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 			return null
 		}
 
+		if (typeof window !== 'undefined') {
+			const protocol = slug(metadata.displayName)
+			return fetchJson(`/api/income-statement?protocol=${encodeURIComponent(protocol)}`).catch(() => null)
+		}
+
 		const [incomeStatement, incentives] = await Promise.all([
 			fetchJson(`${V2_SERVER_URL}/metrics/financial-statement/protocol/${slug(metadata.displayName)}?q=30`).catch(
 				() => null

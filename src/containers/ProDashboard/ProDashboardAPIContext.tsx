@@ -200,6 +200,7 @@ interface ProDashboardEditorActionsContextType {
 	handleAddStablecoinAssetChart: (stablecoin: string, stablecoinId: string, chartType: string) => void
 	handleAddAdvancedTvlChart: (protocol: string, protocolName: string, chartType: string) => void
 	handleAddBorrowedChart: (protocol: string, protocolName: string, chartType: string) => void
+	handleAddIncomeStatement: (protocol: string, protocolName: string) => void
 	handleAddTable: (
 		chains: string[],
 		tableType?: 'protocols' | 'dataset',
@@ -351,6 +352,7 @@ export function ProDashboardAPIProvider({
 		handleAddStablecoinAssetChart,
 		handleAddAdvancedTvlChart,
 		handleAddBorrowedChart,
+		handleAddIncomeStatement,
 		handleAddTable,
 		handleAddUnifiedTable,
 		handleAddMultiChart,
@@ -978,6 +980,7 @@ export function ProDashboardAPIProvider({
 		handleAddStablecoinAssetChart: typeof handleAddStablecoinAssetChart
 		handleAddAdvancedTvlChart: typeof handleAddAdvancedTvlChart
 		handleAddBorrowedChart: typeof handleAddBorrowedChart
+		handleAddIncomeStatement: typeof handleAddIncomeStatement
 		handleAddTable: typeof handleAddTable
 		handleAddMultiChart: typeof handleAddMultiChart
 		handleAddText: typeof handleAddText
@@ -1008,6 +1011,7 @@ export function ProDashboardAPIProvider({
 			handleAddStablecoinAssetChart,
 			handleAddAdvancedTvlChart,
 			handleAddBorrowedChart,
+			handleAddIncomeStatement,
 			handleAddTable,
 			handleAddMultiChart,
 			handleAddText,
@@ -1158,6 +1162,8 @@ export function ProDashboardAPIProvider({
 				handlersRef.current.handleAddAdvancedTvlChart(...args),
 			handleAddBorrowedChart: (...args: Parameters<typeof handleAddBorrowedChart>) =>
 				handlersRef.current.handleAddBorrowedChart(...args),
+			handleAddIncomeStatement: (...args: Parameters<typeof handleAddIncomeStatement>) =>
+				handlersRef.current.handleAddIncomeStatement(...args),
 			handleAddTable: (...args: Parameters<typeof handleAddTable>) => handlersRef.current.handleAddTable(...args),
 			handleAddMultiChart: (...args: Parameters<typeof handleAddMultiChart>) =>
 				handlersRef.current.handleAddMultiChart(...args),

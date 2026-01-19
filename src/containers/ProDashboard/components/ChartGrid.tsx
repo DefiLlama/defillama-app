@@ -51,6 +51,9 @@ const AdvancedTvlChartCard = lazy(() =>
 	import('./AdvancedTvlChartCard').then((mod) => ({ default: mod.AdvancedTvlChartCard }))
 )
 const BorrowedChartCard = lazy(() => import('./BorrowedChartCard').then((mod) => ({ default: mod.BorrowedChartCard })))
+const IncomeStatementCard = lazy(() =>
+	import('./IncomeStatementCard').then((mod) => ({ default: mod.IncomeStatementCard }))
+)
 const LlamaAIChartCard = lazy(() => import('./LlamaAIChartCard'))
 
 const STORED_COL_SPANS = [0.5, 1, 1.5, 2] as const satisfies readonly StoredColSpan[]
@@ -220,6 +223,14 @@ const DashboardItemRenderer = memo(function DashboardItemRenderer({
 		return (
 			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
 				<BorrowedChartCard config={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'income-statement') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[360px] flex-col p-1" />}>
+				<IncomeStatementCard config={item} />
 			</Suspense>
 		)
 	}

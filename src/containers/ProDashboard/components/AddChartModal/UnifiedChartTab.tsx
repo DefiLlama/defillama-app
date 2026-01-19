@@ -10,6 +10,7 @@ import { CategoryFormHeader } from './CategoryFormHeader'
 import { ChartTypePills } from './ChartTypePills'
 import { CombinedChartPreview } from './CombinedChartPreview'
 import { EntityPickerList } from './EntityPickerList'
+import { IncomeStatementChartTab } from './IncomeStatementChartTab'
 import { SelectionFooter } from './SelectionFooter'
 import { StablecoinsChartTab } from './StablecoinsChartTab'
 import { ChartTabType, ManualChartViewMode } from './types'
@@ -87,6 +88,10 @@ interface UnifiedChartTabPropsExtended extends UnifiedChartTabProps {
 	onSelectedBorrowedProtocolChange?: (protocol: string | null) => void
 	onSelectedBorrowedProtocolNameChange?: (name: string | null) => void
 	onSelectedBorrowedChartTypeChange?: (chartType: string) => void
+	selectedIncomeStatementProtocol?: string | null
+	selectedIncomeStatementProtocolName?: string | null
+	onSelectedIncomeStatementProtocolChange?: (protocol: string | null) => void
+	onSelectedIncomeStatementProtocolNameChange?: (name: string | null) => void
 }
 
 export const UnifiedChartTab = memo(function UnifiedChartTab({
@@ -154,9 +159,13 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 	selectedBorrowedChartType = 'chainsBorrowed',
 	onSelectedBorrowedProtocolChange,
 	onSelectedBorrowedProtocolNameChange,
-	onSelectedBorrowedChartTypeChange
+	onSelectedBorrowedChartTypeChange,
+	selectedIncomeStatementProtocol = null,
+	selectedIncomeStatementProtocolName = null,
+	onSelectedIncomeStatementProtocolChange,
+	onSelectedIncomeStatementProtocolNameChange
 }: UnifiedChartTabPropsExtended) {
-	const specialtyTabs = ['yields', 'stablecoins', 'advanced-tvl', 'borrowed']
+	const specialtyTabs = ['yields', 'stablecoins', 'advanced-tvl', 'borrowed', 'income-statement']
 	const [viewMode, setViewMode] = useState<ManualChartViewMode>(() =>
 		specialtyTabs.includes(selectedChartTab) || composerItems.length > 0 ? 'form' : 'cards'
 	)
@@ -446,6 +455,33 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 						onSelectedBorrowedProtocolChange={onSelectedBorrowedProtocolChange || (() => {})}
 						onSelectedBorrowedProtocolNameChange={onSelectedBorrowedProtocolNameChange || (() => {})}
 						onSelectedBorrowedChartTypeChange={onSelectedBorrowedChartTypeChange || (() => {})}
+						protocolOptions={protocolOptions as any}
+						protocolsLoading={protocolsLoading}
+					/>
+				</div>
+				<SelectionFooter
+					composerItems={composerItems}
+					chartCreationMode={chartCreationMode}
+					unifiedChartName={unifiedChartName}
+					onChartCreationModeChange={onChartCreationModeChange}
+					onUnifiedChartNameChange={onUnifiedChartNameChange}
+					onComposerItemColorChange={onComposerItemColorChange}
+					onRemoveFromComposer={onRemoveFromComposer}
+				/>
+			</div>
+		)
+	}
+
+	if (selectedChartTab === 'income-statement') {
+		return (
+			<div className="flex h-full flex-col">
+				<CategoryFormHeader category={selectedChartTab} onBack={handleBackToCards} />
+				<div className="min-h-0 flex-1">
+					<IncomeStatementChartTab
+						selectedIncomeStatementProtocol={selectedIncomeStatementProtocol}
+						selectedIncomeStatementProtocolName={selectedIncomeStatementProtocolName}
+						onSelectedIncomeStatementProtocolChange={onSelectedIncomeStatementProtocolChange || (() => {})}
+						onSelectedIncomeStatementProtocolNameChange={onSelectedIncomeStatementProtocolNameChange || (() => {})}
 						protocolOptions={protocolOptions as any}
 						protocolsLoading={protocolsLoading}
 					/>

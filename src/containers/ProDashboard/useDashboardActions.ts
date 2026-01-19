@@ -15,6 +15,7 @@ import {
 	ChartBuilderConfig,
 	ChartConfig,
 	DashboardItemConfig,
+	IncomeStatementConfig,
 	LlamaAIChartConfig,
 	MetricConfig,
 	MultiChartConfig,
@@ -196,6 +197,23 @@ export function useDashboardActions(
 			}
 
 			dispatchItemsAndSave((prev) => [...prev, newBorrowedChart])
+		},
+		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
+	)
+
+	const handleAddIncomeStatement = useCallback(
+		(protocol: string, protocolName: string) => {
+			if (isReadOnlyUntilDashboardLoaded) return
+
+			const newIncomeStatement: IncomeStatementConfig = {
+				id: generateItemId('income-statement', protocol),
+				kind: 'income-statement',
+				protocol,
+				protocolName,
+				colSpan: 2
+			}
+
+			dispatchItemsAndSave((prev) => [...prev, newIncomeStatement])
 		},
 		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
 	)
@@ -705,6 +723,7 @@ export function useDashboardActions(
 		handleAddStablecoinAssetChart,
 		handleAddAdvancedTvlChart,
 		handleAddBorrowedChart,
+		handleAddIncomeStatement,
 		handleAddTable,
 		handleAddUnifiedTable,
 		handleAddMultiChart,

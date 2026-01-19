@@ -188,6 +188,14 @@ export interface BorrowedChartConfig {
 	colSpan?: StoredColSpan
 }
 
+export interface IncomeStatementConfig {
+	id: string
+	kind: 'income-statement'
+	protocol: string
+	protocolName: string
+	colSpan?: StoredColSpan
+}
+
 export interface LlamaAIChartConfig {
 	id: string
 	kind: 'llamaai-chart'
@@ -210,6 +218,7 @@ export type DashboardItemConfig =
 	| StablecoinAssetChartConfig
 	| AdvancedTvlChartConfig
 	| BorrowedChartConfig
+	| IncomeStatementConfig
 	| UnifiedTableConfig
 	| LlamaAIChartConfig
 

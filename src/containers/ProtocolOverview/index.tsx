@@ -147,7 +147,11 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 				<AdditionalInfo {...props} />
 				{props.incomeStatement?.data ? (
 					<Suspense fallback={<></>}>
-						<IncomeStatement {...props} />
+						<IncomeStatement
+							name={props.name}
+							incomeStatement={props.incomeStatement}
+							hasIncentives={props.metrics?.incentives}
+						/>
 					</Suspense>
 				) : null}
 			</div>

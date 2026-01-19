@@ -132,6 +132,10 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onSelectedBorrowedProtocolChange={actions.setSelectedBorrowedProtocol}
 							onSelectedBorrowedProtocolNameChange={actions.setSelectedBorrowedProtocolName}
 							onSelectedBorrowedChartTypeChange={actions.setSelectedBorrowedChartType}
+							selectedIncomeStatementProtocol={state.selectedIncomeStatementProtocol}
+							selectedIncomeStatementProtocolName={state.selectedIncomeStatementProtocolName}
+							onSelectedIncomeStatementProtocolChange={actions.setSelectedIncomeStatementProtocol}
+							onSelectedIncomeStatementProtocolNameChange={actions.setSelectedIncomeStatementProtocolName}
 							onUnifiedChartNameChange={actions.setUnifiedChartName}
 							onChartCreationModeChange={actions.setChartCreationMode}
 							onComposerItemColorChange={actions.handleUpdateComposerItemColor}
@@ -238,6 +242,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							selectedAdvancedTvlChartType={state.selectedAdvancedTvlChartType}
 							selectedBorrowedProtocol={state.selectedBorrowedProtocol}
 							selectedBorrowedChartType={state.selectedBorrowedChartType}
+							selectedIncomeStatementProtocol={state.selectedIncomeStatementProtocol}
 							selectedLlamaAIChart={state.selectedLlamaAIChart}
 							onSubmit={actions.handleSubmit}
 						/>

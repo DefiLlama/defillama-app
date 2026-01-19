@@ -5,6 +5,7 @@ import {
 	CHART_TYPES,
 	ChartConfig,
 	DashboardItemConfig,
+	IncomeStatementConfig,
 	LlamaAIChartConfig,
 	MultiChartConfig,
 	Protocol,
@@ -30,6 +31,7 @@ export function useModalActions(
 		handleAddStablecoinAssetChart,
 		handleAddAdvancedTvlChart,
 		handleAddBorrowedChart,
+		handleAddIncomeStatement,
 		handleAddTable,
 		handleAddMultiChart,
 		handleAddText,
@@ -346,6 +348,18 @@ export function useModalActions(
 				} as any
 			} else if (
 				state.selectedMainTab === 'charts' &&
+				state.selectedChartTab === 'income-statement' &&
+				state.selectedIncomeStatementProtocol &&
+				state.selectedIncomeStatementProtocolName
+			) {
+				newItem = {
+					...editItem,
+					kind: 'income-statement',
+					protocol: state.selectedIncomeStatementProtocol,
+					protocolName: state.selectedIncomeStatementProtocolName
+				} as IncomeStatementConfig
+			} else if (
+				state.selectedMainTab === 'charts' &&
 				state.chartCreationMode === 'combined' &&
 				state.composerItems.length > 0
 			) {
@@ -616,6 +630,14 @@ export function useModalActions(
 					state.selectedBorrowedProtocolName,
 					state.selectedBorrowedChartType
 				)
+			} else if (
+				state.selectedMainTab === 'charts' &&
+				state.chartMode === 'manual' &&
+				state.selectedChartTab === 'income-statement' &&
+				state.selectedIncomeStatementProtocol &&
+				state.selectedIncomeStatementProtocolName
+			) {
+				handleAddIncomeStatement(state.selectedIncomeStatementProtocol, state.selectedIncomeStatementProtocolName)
 			} else if (state.selectedMainTab === 'charts' && state.chartMode === 'manual') {
 				if (state.composerItems.length > 0) {
 					if (state.chartCreationMode === 'combined') {
@@ -731,6 +753,7 @@ export function useModalActions(
 		handleAddStablecoinAssetChart,
 		handleAddAdvancedTvlChart,
 		handleAddBorrowedChart,
+		handleAddIncomeStatement,
 		handleAddTable,
 		handleAddText,
 		handleAddMetric,
