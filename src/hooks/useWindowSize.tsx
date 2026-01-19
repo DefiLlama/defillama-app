@@ -10,16 +10,18 @@ interface Size {
 export default function useWindowSize(): Size {
 	// Initialize state with undefined width/height so server and client renders match
 	// Learn more here: https://joshwcomeau.com/react/the-perils-of-rehydration/
-	const [windowSize, setWindowSize] = useState<Size>({
+	const [debouncedWindowSize, setDebouncedWindowSize] = useState<Size>({
 		width: undefined,
 		height: undefined
 	})
+	const updateDebouncedWindowSize = useDebounce((nextValue: Size) => {
+		setDebouncedWindowSize(nextValue)
+	}, 1000)
 
 	useEffect(() => {
 		// Handler to call on window resize
 		function handleResize() {
-			// Set window width/height to state
-			setWindowSize({
+			updateDebouncedWindowSize({
 				width: window.innerWidth,
 				height: window.innerHeight
 			})
@@ -33,7 +35,7 @@ export default function useWindowSize(): Size {
 
 		// Remove event listener on cleanup
 		return () => window.removeEventListener('resize', handleResize)
-	}, []) // Empty array ensures that effect is only run on mount
+	}, [updateDebouncedWindowSize]) // Keep handler in sync with debounced updater
 
-	return useDebounce(windowSize, 1000)
+	return debouncedWindowSize
 }

@@ -1,5 +1,5 @@
 import Image, { ImageProps } from 'next/image'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 // empty pixel
 const fallbackImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
@@ -12,11 +12,10 @@ export const ImageWithFallback = ({
 }: ImageProps & {
 	fallback?: string
 }) => {
-	const [error, setError] = useState(null)
+	const [erroredSrc, setErroredSrc] = useState<ImageProps['src'] | null>(null)
+	const shouldFallback = Object.is(erroredSrc, src)
 
-	useEffect(() => {
-		setError(null)
-	}, [src])
-
-	return <Image alt={alt} onError={setError} src={error ? fallbackImage : src} unoptimized {...props} />
+	return (
+		<Image alt={alt} onError={() => setErroredSrc(src)} src={shouldFallback ? _fallback : src} unoptimized {...props} />
+	)
 }

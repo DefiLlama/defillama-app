@@ -21,6 +21,9 @@ export function RaisesTable({ raises, prepareCsv }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const width = useBreakpointWidth()
+	const handleDownloadJson = React.useCallback(() => {
+		window.open('https://api.llama.fi/raises')
+	}, [])
 
 	const instance = useReactTable({
 		data: raises,
@@ -90,9 +93,7 @@ export function RaisesTable({ raises, prepareCsv }) {
 					<Icon name="external-link" height={12} width={12} />
 				</a>
 				<CSVDownloadButton
-					onClick={() => {
-						window.open('https://api.llama.fi/raises')
-					}}
+					onClick={handleDownloadJson}
 					isLoading={false}
 				>
 					Download.json

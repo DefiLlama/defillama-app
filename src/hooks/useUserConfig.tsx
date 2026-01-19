@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import debounce from 'lodash/debounce'
-import { useCallback, useEffect, useEffectEvent, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
 import {
 	readAppStorage,
 	readAppStorageRaw,
@@ -14,6 +13,7 @@ import {
 import { subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { AUTH_SERVER } from '../constants'
 import { useAuthContext } from '../containers/Subscribtion/auth'
+import { useDebounce } from './useDebounce'
 
 const USER_CONFIG_QUERY_KEY = ['userConfig']
 const SYNC_DEBOUNCE_MS = 2000
@@ -189,25 +189,18 @@ export function useUserConfig() {
 	})
 
 	const saveConfigAsyncRef = useRef(saveConfigAsync)
+	saveConfigAsyncRef.current = saveConfigAsync
 
-	useEffect(() => {
-		saveConfigAsyncRef.current = saveConfigAsync
-	}, [saveConfigAsync])
+	const syncSettings = useDebounce(async () => {
+		try {
+			const currentSettings = readAppStorageRaw()
+			if (!currentSettings) return
 
-	const syncSettings = useMemo(
-		() =>
-			debounce(async () => {
-				try {
-					const currentSettings = readAppStorageRaw()
-					if (!currentSettings) return
-
-					await saveConfigAsyncRef.current(readAppStorage())
-				} catch (error) {
-					console.log('Failed to sync settings:', error)
-				}
-			}, SYNC_DEBOUNCE_MS),
-		[]
-	)
+			await saveConfigAsyncRef.current(readAppStorage())
+		} catch (error) {
+			console.log('Failed to sync settings:', error)
+		}
+	}, SYNC_DEBOUNCE_MS)
 
 	// useEffectEvent ensures we call the latest syncSettings without re-subscribing listeners
 	const onStorageChange = useEffectEvent(() => {

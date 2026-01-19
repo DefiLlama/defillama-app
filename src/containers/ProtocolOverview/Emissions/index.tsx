@@ -1,8 +1,3 @@
-import chunk from 'lodash/chunk'
-import groupBy from 'lodash/groupBy'
-import isEqual from 'lodash/isEqual'
-import omit from 'lodash/omit'
-import sum from 'lodash/sum'
 import Link from 'next/link'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/categories/protocols/client'
@@ -100,6 +95,44 @@ const EMPTY_ALLOCATION: Record<string, number> = {}
 const EMPTY_TOKEN_ALLOCATION = { current: EMPTY_ALLOCATION, final: EMPTY_ALLOCATION }
 const EMPTY_CHART_DATA: any[] = []
 
+const chunkArray = <T,>(items: T[], size = 1): T[][] => {
+	if (!Number.isFinite(size) || size < 1) return []
+	const result: T[][] = []
+	for (let i = 0; i < items.length; i += size) {
+		result.push(items.slice(i, i + size))
+	}
+	return result
+}
+
+const groupByKey = <T, K extends PropertyKey>(items: T[], getKey: (item: T) => K): Record<K, T[]> => {
+	const grouped = {} as Record<K, T[]>
+	for (const item of items) {
+		const key = getKey(item)
+		const existing = grouped[key]
+		if (existing) {
+			existing.push(item)
+		} else {
+			grouped[key] = [item]
+		}
+	}
+	return grouped
+}
+
+const areArraysEqual = (left: string[], right: string[]) =>
+	left.length === right.length && left.every((value, index) => value === right[index])
+
+const sumValuesExcludingKey = (data: Record<string, unknown>, keyToSkip: string) => {
+	let total = 0
+	for (const [key, value] of Object.entries(data)) {
+		if (key === keyToSkip) continue
+		const numericValue = typeof value === 'number' ? value : Number(value)
+		if (!Number.isNaN(numericValue)) {
+			total += numericValue
+		}
+	}
+	return total
+}
+
 const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
 	const width = useBreakpointWidth()
 	const [dataType, setDataType] = useState<DataType>('documented')
@@ -117,11 +150,11 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		[data.tokenAllocation, dataType]
 	)
 	const tokenAllocationCurrentChunks = useMemo(
-		() => chunk(Object.entries(tokenAllocation.current ?? EMPTY_ALLOCATION)),
+		() => chunkArray(Object.entries(tokenAllocation.current ?? EMPTY_ALLOCATION)),
 		[tokenAllocation.current]
 	)
 	const tokenAllocationFinalChunks = useMemo(
-		() => chunk(Object.entries(tokenAllocation.final ?? EMPTY_ALLOCATION)),
+		() => chunkArray(Object.entries(tokenAllocation.final ?? EMPTY_ALLOCATION)),
 		[tokenAllocation.final]
 	)
 	const rawChartData = useMemo(() => data.chartData?.[dataType] ?? EMPTY_CHART_DATA, [data.chartData, dataType])
@@ -133,7 +166,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			setSelectedCategories((current) => {
 				const newCategories = categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
 				if (current.length !== newCategories.length) return newCategories
-				return isEqual([...current].sort(), [...newCategories].sort()) ? current : newCategories
+				return areArraysEqual([...current].sort(), [...newCategories].sort()) ? current : newCategories
 			})
 		}
 	}, [categoriesFromData])
@@ -165,7 +198,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		return result
 	}, [priceChart.data?.data])
 
-	const groupedEvents = useMemo(() => groupBy(data.events, (event) => event.timestamp), [data.events])
+	const groupedEvents = useMemo(() => groupByKey(data.events ?? [], (event) => event.timestamp), [data.events])
 
 	const sortedEvents = useMemo(() => {
 		const now = Date.now() / 1e3
@@ -231,7 +264,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 				return res
 			})
-			?.filter((chartItem) => sum(Object.values(omit(chartItem, 'date'))) > 0)
+			?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'date') > 0)
 	}, [rawChartData, normilizePriceChart, isPriceEnabled])
 
 	const availableCategories = useMemo(() => {

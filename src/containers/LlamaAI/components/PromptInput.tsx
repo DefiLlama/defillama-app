@@ -452,8 +452,7 @@ export const PromptInput = memo(function PromptInput({
 					textarea.focus()
 				}, 0)
 			},
-		// oxlint-disable-next-line react/exhaustive-deps
-		[combobox, searchValue]
+		[combobox, searchValue, promptInputRef]
 	)
 
 	return (

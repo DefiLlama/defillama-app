@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -185,6 +185,8 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 	}, [dailyFlowsByAsset, groupBy])
 
 	const { chartInstance, handleChartReady } = useChartImageExport()
+	const handlePrepareDailyFlowsCsv = useCallback(() => prepareDailyFlowsCsv(charts), [charts])
+	const handlePrepareInstitutionsCsv = useCallback(() => prepareInstitutionsCsv(institutions), [institutions])
 
 	return (
 		<Layout
@@ -204,7 +206,7 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 						values={GROUP_BY}
 						className="ml-auto"
 					/>
-					<CSVDownloadButton prepareCsv={() => prepareDailyFlowsCsv(charts)} smol />
+					<CSVDownloadButton prepareCsv={handlePrepareDailyFlowsCsv} smol />
 					<ChartExportButton
 						chartInstance={chartInstance}
 						filename="digital-asset-treasuries-inflows-by-asset"
@@ -223,7 +225,7 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 				placeholder="Search institutions"
 				columnToSearch="name"
 				sortingState={DEFAULT_SORTING_STATE}
-				customFilters={<CSVDownloadButton prepareCsv={() => prepareInstitutionsCsv(institutions)} />}
+				customFilters={<CSVDownloadButton prepareCsv={handlePrepareInstitutionsCsv} />}
 			/>
 		</Layout>
 	)

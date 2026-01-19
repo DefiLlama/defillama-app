@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
-import { useEffect, useState } from 'react'
+import { useEffect, useEffectEvent, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, tokenIconUrl } from '~/utils'
@@ -128,13 +128,19 @@ export const UpcomingEvent = ({
 	const seconds = Math.floor(timeLeft - 86400 * days - 3600 * hours - minutes * 60)
 	const [_, rerender] = useState(1)
 
+	const onCountdownTick = useEffectEvent(() => {
+		rerender((value) => value + 1)
+	})
+
 	useEffect(() => {
-		if (timeLeft <= 0) return
-		const id = setInterval(() => rerender((value) => value + 1), 1000)
+		const now = Date.now() / 1e3
+		if (timestamp <= now) return
+		const id = setInterval(() => {
+			onCountdownTick()
+		}, 1000)
 
 		return () => clearInterval(id)
-		// oxlint-disable-next-line react/exhaustive-deps
-	}, [])
+	}, [timestamp])
 
 	if (isProtocolPage) {
 		return (

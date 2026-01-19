@@ -1,5 +1,5 @@
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { downloadCSV } from '~/utils'
 import { useProDashboardEditorActions, useProDashboardPermissions } from '../../ProDashboardAPIContext'
 import type { CustomColumnDefinition, TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '../../types'
@@ -253,18 +253,24 @@ export const UnifiedTable = memo(function UnifiedTable({
 		return () => clearTimeout(timer)
 	}, [config.columnOrder, config.columnVisibility, config.defaultSorting, previewMode])
 
-	useEffect(() => {
+	const onResetColumnOrder = useEffectEvent((nextConfig: UnifiedTableConfig) => {
 		if (!previewMode) {
-			setColumnOrderState(getDefaultColumnOrder(config))
+			setColumnOrderState(getDefaultColumnOrder(nextConfig))
 		}
-		// oxlint-disable-next-line react/exhaustive-deps
-	}, [config.columnOrder, previewMode])
+	})
 
 	useEffect(() => {
+		onResetColumnOrder(config)
+	}, [config.columnOrder, previewMode])
+
+	const onResetColumnVisibility = useEffectEvent((nextConfig: UnifiedTableConfig) => {
 		if (!previewMode) {
-			setColumnVisibilityState(getDefaultColumnVisibility(config))
+			setColumnVisibilityState(getDefaultColumnVisibility(nextConfig))
 		}
-		// oxlint-disable-next-line react/exhaustive-deps
+	})
+
+	useEffect(() => {
+		onResetColumnVisibility(config)
 	}, [config.columnVisibility, previewMode])
 
 	useEffect(() => {

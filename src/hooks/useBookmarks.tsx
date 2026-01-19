@@ -1,7 +1,7 @@
-import debounce from 'lodash/debounce'
-import { useCallback, useEffect, useEffectEvent, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { readAppStorage, readAppStorageRaw, useWatchlistManager, writeAppStorage } from '~/contexts/LocalStorage'
+import { useDebounce } from './useDebounce'
 import { useUserConfig } from './useUserConfig'
 
 const SYNC_DEBOUNCE_MS = 1000
@@ -13,7 +13,7 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 	const isSyncing = useRef(false)
 	const hasInitialized = useRef(false)
 
-	const syncToServer = useEffectEvent(async () => {
+	const syncToServer = useCallback(async () => {
 		if (!isAuthenticated || !saveUserConfig || isSyncing.current) return
 
 		try {
@@ -30,16 +30,12 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 				isSyncing.current = false
 			}, 100)
 		}
-	})
+	}, [isAuthenticated, saveUserConfig])
 
 	// Debounced sync function to save to server
-	const debouncedSyncToServer = useMemo(
-		() =>
-			debounce(() => {
-				void syncToServer()
-			}, SYNC_DEBOUNCE_MS),
-		[]
-	)
+	const debouncedSyncToServer = useDebounce(() => {
+		void syncToServer()
+	}, SYNC_DEBOUNCE_MS)
 
 	// Initialize from server config on mount
 	useEffect(() => {

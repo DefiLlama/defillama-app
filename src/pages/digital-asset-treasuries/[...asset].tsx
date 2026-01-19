@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
@@ -116,6 +116,11 @@ export default function TreasuriesByAsset({
 	mNAVMaxChart,
 	institutionsNames
 }: IDATOverviewDataByAssetProps) {
+	const handlePrepareAssetBreakdownCsv = useCallback(
+		() => prepareAssetBreakdownCsv(institutions, metadata.name, metadata.ticker),
+		[institutions, metadata.name, metadata.ticker]
+	)
+
 	return (
 		<Layout
 			title={`${metadata.name} Treasury Holdings - DefiLlama`}
@@ -183,9 +188,7 @@ export default function TreasuriesByAsset({
 				columnToSearch="name"
 				sortingState={DEFAULT_SORTING_STATE}
 				customFilters={
-					<CSVDownloadButton
-						prepareCsv={() => prepareAssetBreakdownCsv(institutions, metadata.name, metadata.ticker)}
-					/>
+					<CSVDownloadButton prepareCsv={handlePrepareAssetBreakdownCsv} />
 				}
 			/>
 		</Layout>

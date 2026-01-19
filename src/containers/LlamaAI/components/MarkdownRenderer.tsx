@@ -1,5 +1,4 @@
-import { memo, useMemo, useRef } from 'react'
-import ReactMarkdown from 'react-markdown'
+import { lazy, memo, Suspense, useMemo, useRef } from 'react'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -9,6 +8,8 @@ import type { ChartConfiguration } from '../types'
 import { getEntityUrl } from '../utils/entityLinks'
 import { ChartRenderer } from './ChartRenderer'
 import { CSVExportArtifact, CSVExportLoading, type CSVExport } from './CSVExportArtifact'
+
+const ReactMarkdown = lazy(() => import('react-markdown'))
 
 const MARKDOWN_REMARK_PLUGINS = [remarkGfm]
 const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]
@@ -255,14 +256,16 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 	)
 
 	const renderMarkdownSection = (markdownContent: string, key: string) => (
-		<ReactMarkdown
-			key={key}
-			remarkPlugins={MARKDOWN_REMARK_PLUGINS}
-			rehypePlugins={MARKDOWN_REHYPE_PLUGINS}
-			components={markdownComponents}
-		>
-			{markdownContent}
-		</ReactMarkdown>
+		<Suspense fallback={null}>
+			<ReactMarkdown
+				key={key}
+				remarkPlugins={MARKDOWN_REMARK_PLUGINS}
+				rehypePlugins={MARKDOWN_REHYPE_PLUGINS}
+				components={markdownComponents}
+			>
+				{markdownContent}
+			</ReactMarkdown>
+		</Suspense>
 	)
 
 	return (

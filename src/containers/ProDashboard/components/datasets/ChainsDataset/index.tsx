@@ -272,7 +272,7 @@ export function ChainsDataset({
 		[instance, uniqueTableId, handleTableColumnsChange, columnVisibility, columnOrder]
 	)
 
-	React.useEffect(() => {
+	const onSyncInitialColumns = React.useEffectEvent(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 		const defaultSizing = {
 			name: 200,
@@ -335,7 +335,10 @@ export function ChainsDataset({
 				instance.setColumnOrder(presetColumns)
 			}
 		}
-		// oxlint-disable-next-line react/exhaustive-deps
+	})
+
+	React.useEffect(() => {
+		onSyncInitialColumns()
 	}, [savedColumnOrder, savedColumnVisibility, selectedPreset, instance])
 
 	const handleExportCSV = React.useCallback(() => {

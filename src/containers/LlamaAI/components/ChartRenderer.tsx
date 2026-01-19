@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
+import { lazy, memo, Suspense, useCallback, useEffect, useReducer, useRef } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTooltipValue } from '~/components/ECharts/formatters'
@@ -87,6 +87,30 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 		showHallmarks: true,
 		showLabels: config.displayOptions?.showLabels || false
 	})
+	const handleStackedChange = useCallback(
+		(stacked: boolean) => dispatch({ type: 'SET_STACKED', payload: stacked }),
+		[dispatch]
+	)
+	const handlePercentageChange = useCallback(
+		(percentage: boolean) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage }),
+		[dispatch]
+	)
+	const handleCumulativeChange = useCallback(
+		(cumulative: boolean) => dispatch({ type: 'SET_CUMULATIVE', payload: cumulative }),
+		[dispatch]
+	)
+	const handleGroupingChange = useCallback(
+		(grouping: ChartState['grouping']) => dispatch({ type: 'SET_GROUPING', payload: grouping }),
+		[dispatch]
+	)
+	const handleHallmarksChange = useCallback(
+		(showHallmarks: boolean) => dispatch({ type: 'SET_HALLMARKS', payload: showHallmarks }),
+		[dispatch]
+	)
+	const handleLabelsChange = useCallback(
+		(showLabels: boolean) => dispatch({ type: 'SET_LABELS', payload: showLabels }),
+		[dispatch]
+	)
 
 	if (!isActive) return null
 
@@ -495,12 +519,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 						hasHallmarks={!!config.hallmarks?.length}
 						showLabels={chartState.showLabels}
 						isScatter={adaptedChart.chartType === 'scatter'}
-						onStackedChange={(stacked) => dispatch({ type: 'SET_STACKED', payload: stacked })}
-						onPercentageChange={(percentage) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage })}
-						onCumulativeChange={(cumulative) => dispatch({ type: 'SET_CUMULATIVE', payload: cumulative })}
-						onGroupingChange={(grouping) => dispatch({ type: 'SET_GROUPING', payload: grouping })}
-						onHallmarksChange={(showHallmarks) => dispatch({ type: 'SET_HALLMARKS', payload: showHallmarks })}
-						onLabelsChange={(showLabels) => dispatch({ type: 'SET_LABELS', payload: showLabels })}
+						onStackedChange={handleStackedChange}
+						onPercentageChange={handlePercentageChange}
+						onCumulativeChange={handleCumulativeChange}
+						onGroupingChange={handleGroupingChange}
+						onHallmarksChange={handleHallmarksChange}
+						onLabelsChange={handleLabelsChange}
 					/>
 				)}
 				{chartContent}

@@ -172,6 +172,14 @@ export const AdapterByChainChart = ({
 	const { mutate: downloadBreakdownChartMutation, isPending: isDownloadingBreakdownChart } = useMutation({
 		mutationFn: downloadBreakdownChart
 	})
+	const handleDownloadBreakdownCsv = React.useCallback(() => {
+		downloadBreakdownChartMutation({
+			adapterType,
+			chain,
+			dataType,
+			fileName: `${chain === 'All' ? 'All Chains' : chain} - ${chartName}`
+		})
+	}, [adapterType, chain, chartName, dataType, downloadBreakdownChartMutation])
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -193,14 +201,7 @@ export const AdapterByChainChart = ({
 							))}
 				</div>
 				<CSVDownloadButton
-					onClick={() => {
-						downloadBreakdownChartMutation({
-							adapterType,
-							chain,
-							dataType,
-							fileName: `${chain === 'All' ? 'All Chains' : chain} - ${chartName}`
-						})
-					}}
+					onClick={handleDownloadBreakdownCsv}
 					isLoading={isDownloadingBreakdownChart}
 					smol
 				/>

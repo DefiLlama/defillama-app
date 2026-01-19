@@ -667,6 +667,7 @@ const TabContent = memo(function TabContent({
 		onTableTypeChange(type)
 		setShowTypeSelector(false)
 	}
+	const handleBackToTypeSelector = useCallback(() => setShowTypeSelector(true), [setShowTypeSelector])
 
 	if (showTypeSelector) {
 		const heroCard = TABLE_TYPE_CARDS[0]
@@ -754,7 +755,7 @@ const TabContent = memo(function TabContent({
 				includeCex={includeCex}
 				onIncludeCexChange={onIncludeCexChange}
 				legacyTableTypes={legacyTableTypes}
-				onBackToTypeSelector={() => setShowTypeSelector(true)}
+				onBackToTypeSelector={handleBackToTypeSelector}
 			/>
 		)
 	}
