@@ -459,6 +459,14 @@ const fetchSubProtocolRows = async (
 			FROM lens.oracle_tvs_current
 			WHERE sub_protocol IS NOT NULL OR protocol IS NOT NULL
 			GROUP BY COALESCE(sub_protocol, protocol)
+		),
+		open_interest AS (
+			SELECT
+				sub_protocol,
+				SUM(open_interest) AS open_interest
+			FROM lens.open_interest_current
+			WHERE sub_protocol IS NOT NULL
+			GROUP BY sub_protocol
 		)
 		SELECT
 			msp.sub_protocol,
@@ -526,10 +534,11 @@ const fetchSubProtocolRows = async (
 			msp.fdv,
 			msp.pf_ratio,
 			msp.ps_ratio,
-			NULL AS open_interest
+			oi.open_interest
 		FROM lens.metrics_sub_protocol_current msp
 		LEFT JOIN chain_meta chains ON chains.sub_protocol = msp.sub_protocol
 		LEFT JOIN oracle_meta oracles ON oracles.sub_protocol = msp.sub_protocol
+		LEFT JOIN open_interest oi ON oi.sub_protocol = msp.sub_protocol
 		${whereClause}
 	`,
 		values
@@ -735,6 +744,15 @@ const fetchSubProtocolsByChain = async (
 				lower(chain) AS chain,
 				mcap
 			FROM lens.metrics_chain_current
+		),
+		open_interest AS (
+			SELECT
+				sub_protocol,
+				chain,
+				SUM(open_interest) AS open_interest
+			FROM lens.open_interest_current
+			WHERE sub_protocol IS NOT NULL
+			GROUP BY sub_protocol, chain
 		)
 		SELECT
 			mspc.sub_protocol,
@@ -804,10 +822,11 @@ const fetchSubProtocolsByChain = async (
 			cm.mcap AS chain_mcap,
 			mspc.pf_ratio,
 			mspc.ps_ratio,
-			NULL AS open_interest
+			oi.open_interest
 		FROM lens.metrics_sub_protocol_by_chain_current mspc
 		LEFT JOIN oracle_meta oracles ON oracles.sub_protocol = mspc.sub_protocol AND oracles.chain = lower(mspc.chain)
 		LEFT JOIN chain_mcap cm ON cm.chain = lower(mspc.chain)
+		LEFT JOIN open_interest oi ON oi.sub_protocol = mspc.sub_protocol AND oi.chain = mspc.chain
 		WHERE
 			mspc.sub_protocol != mspc.protocol
 			AND (COALESCE(cardinality($1::text[]), 0) = 0 OR lower(mspc.chain) = ANY($1))
