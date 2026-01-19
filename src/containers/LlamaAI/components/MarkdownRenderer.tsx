@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useMemo, useRef } from 'react'
+import { lazy, memo, useMemo, useRef } from 'react'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -256,15 +256,14 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 	)
 
 	const renderMarkdownSection = (markdownContent: string, key: string) => (
-		<Suspense key={key} fallback={null}>
-			<ReactMarkdown
-				remarkPlugins={MARKDOWN_REMARK_PLUGINS}
-				rehypePlugins={MARKDOWN_REHYPE_PLUGINS}
-				components={markdownComponents}
-			>
-				{markdownContent}
-			</ReactMarkdown>
-		</Suspense>
+		<ReactMarkdown
+			key={key}
+			remarkPlugins={MARKDOWN_REMARK_PLUGINS}
+			rehypePlugins={MARKDOWN_REHYPE_PLUGINS}
+			components={markdownComponents}
+		>
+			{markdownContent}
+		</ReactMarkdown>
 	)
 
 	return (
