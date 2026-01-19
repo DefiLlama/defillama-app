@@ -33,6 +33,7 @@ interface SubmitButtonProps {
 	selectedAdvancedTvlChartType?: string
 	selectedBorrowedProtocol?: string | null
 	selectedBorrowedChartType?: string
+	selectedIncomeStatementProtocol?: string | null
 	selectedLlamaAIChart?: { id: string; title: string } | null
 	onSubmit: () => void
 }
@@ -41,9 +42,9 @@ export function SubmitButton({
 	editItem,
 	selectedMainTab,
 	selectedChartTab,
-	selectedChain,
-	selectedChains = [],
-	selectedProtocol,
+	selectedChain: _selectedChain,
+	selectedChains: _selectedChains = [],
+	selectedProtocol: _selectedProtocol,
 	selectedChartTypes = [],
 	selectedYieldPool,
 	composerItems,
@@ -69,6 +70,7 @@ export function SubmitButton({
 	selectedAdvancedTvlChartType,
 	selectedBorrowedProtocol,
 	selectedBorrowedChartType,
+	selectedIncomeStatementProtocol,
 	selectedLlamaAIChart,
 	onSubmit
 }: SubmitButtonProps) {
@@ -79,6 +81,7 @@ export function SubmitButton({
 		(!selectedStablecoinAsset || !selectedStablecoinAssetId || !selectedStablecoinAssetChartType)
 	const isAdvancedTvlInvalid = !selectedAdvancedTvlProtocol || !selectedAdvancedTvlChartType
 	const isBorrowedInvalid = !selectedBorrowedProtocol || !selectedBorrowedChartType
+	const isIncomeStatementInvalid = !selectedIncomeStatementProtocol
 
 	const isDisabled =
 		chartTypesLoading ||
@@ -91,16 +94,18 @@ export function SubmitButton({
 			chartMode === 'manual' &&
 			selectedChartTab === 'advanced-tvl' &&
 			isAdvancedTvlInvalid) ||
+		(selectedMainTab === 'charts' && chartMode === 'manual' && selectedChartTab === 'borrowed' && isBorrowedInvalid) ||
 		(selectedMainTab === 'charts' &&
 			chartMode === 'manual' &&
-			selectedChartTab === 'borrowed' &&
-			isBorrowedInvalid) ||
+			selectedChartTab === 'income-statement' &&
+			isIncomeStatementInvalid) ||
 		(selectedMainTab === 'charts' &&
 			chartMode === 'manual' &&
 			selectedChartTab !== 'yields' &&
 			selectedChartTab !== 'stablecoins' &&
 			selectedChartTab !== 'advanced-tvl' &&
 			selectedChartTab !== 'borrowed' &&
+			selectedChartTab !== 'income-statement' &&
 			composerItems.length === 0) ||
 		(selectedMainTab === 'charts' && chartMode === 'builder' && !chartBuilder?.metric) ||
 		(selectedMainTab === 'table' && selectedTableType === 'stablecoins' && !selectedDatasetChain) ||
@@ -131,7 +136,8 @@ export function SubmitButton({
 					selectedChartTab === 'yields' ||
 					selectedChartTab === 'stablecoins' ||
 					selectedChartTab === 'advanced-tvl' ||
-					selectedChartTab === 'borrowed'
+					selectedChartTab === 'borrowed' ||
+					selectedChartTab === 'income-statement'
 				) {
 					return 'Add Chart'
 				}

@@ -11,8 +11,13 @@ const adapterType = ADAPTER_TYPES.FEES
 const dataType = ADAPTER_DATA_TYPES.DAILY_APP_REVENUE
 const type = 'App Revenue'
 
-export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
-	const data = await getChainsByAdapterPageData({ adapterType, dataType })
+export const getStaticProps = withPerformanceLogging(`${adapterType}/${dataType}/chains`, async () => {
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const data = await getChainsByAdapterPageData({
+		adapterType,
+		dataType,
+		chainMetadata: metadataCache.chainMetadata
+	})
 
 	return {
 		props: data,

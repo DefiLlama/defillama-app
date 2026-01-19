@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
 import { DatasetComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { abbreviateNumber } from '~/utils'
 import type { IMultiSeriesChart2Props } from '../types'
 import { formatTooltipChartDate, useDefaults } from '../useDefaults'
@@ -28,6 +29,10 @@ export default function MultiSeriesChart2({
 	const id = useId()
 
 	const [isThemeDark] = useDarkModeManager()
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const defaultChartSettings = useDefaults({
 		isThemeDark,
@@ -155,18 +160,15 @@ export default function MultiSeriesChart2({
 		return series
 	}, [charts, isThemeDark, expandTo100Percent, hallmarks, solidChartAreaStyle, selectedCharts])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
 		// create instance
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
 
 		if (onReady) {
-			onReady(chartInstance)
+			onReady(instance)
 		}
 
 		// override default chart settings
@@ -188,7 +190,7 @@ export default function MultiSeriesChart2({
 			// Collect all unique yAxisIndex values from series and map them to colors
 			const yAxisIndexToColor = new Map<number, string | undefined>()
 
-			series.forEach((item) => {
+			for (const item of series) {
 				if (item.yAxisIndex != null) {
 					// Map each yAxisIndex to the color of the first series that uses it
 					if (!yAxisIndexToColor.has(item.yAxisIndex)) {
@@ -196,7 +198,7 @@ export default function MultiSeriesChart2({
 						yAxisIndexToColor.set(item.yAxisIndex, seriesColor)
 					}
 				}
-			})
+			}
 
 			// Create yAxis objects for each index from 0 to max
 			if (yAxisIndexToColor.size > 0) {
@@ -225,7 +227,7 @@ export default function MultiSeriesChart2({
 
 		const shouldHideDataZoom = data.length < 2 || hideDataZoom
 
-		chartInstance.setOption({
+		instance.setOption({
 			...(hideDefaultLegend ? {} : { legend }),
 			graphic,
 			tooltip: {
@@ -283,7 +285,7 @@ export default function MultiSeriesChart2({
 		})
 
 		if (alwaysShowTooltip) {
-			chartInstance.dispatchAction({
+			instance.dispatchAction({
 				type: 'showTip',
 				// index of series, which is optional when trigger of tooltip is axis
 				seriesIndex: 0,
@@ -294,8 +296,8 @@ export default function MultiSeriesChart2({
 				position: [60, 0]
 			})
 
-			chartInstance.on('globalout', () => {
-				chartInstance.dispatchAction({
+			instance.on('globalout', () => {
+				instance.dispatchAction({
 					type: 'showTip',
 					// index of series, which is optional when trigger of tooltip is axis
 					seriesIndex: 0,
@@ -308,18 +310,12 @@ export default function MultiSeriesChart2({
 			})
 		}
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
 	}, [
-		createInstance,
+		id,
 		defaultChartSettings,
 		series,
 		chartOptions,
@@ -331,7 +327,8 @@ export default function MultiSeriesChart2({
 		charts,
 		groupBy,
 		valueSymbol,
-		selectedCharts
+		selectedCharts,
+		onReady
 	])
 
 	return <div id={id} className="h-[360px]" style={height ? { height } : undefined}></div>

@@ -1,12 +1,12 @@
-import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { maxAgeForNext } from '~/api'
 import { LocalLoader } from '~/components/Loaders'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { BAR_CHARTS, ChainChartLabels, chainCharts } from '~/containers/ChainOverview/constants'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
-import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -25,7 +25,13 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const data = await getChainOverviewData({ chain })
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
+		const data = await getChainOverviewData({
+			chain,
+			chainMetadata: metadataCache.chainMetadata,
+			protocolMetadata: metadataCache.protocolMetadata
+		})
 
 		if (!data) {
 			return { notFound: true }
@@ -72,8 +78,8 @@ export default function ChainChartPage(props) {
 
 		const tvlSettings = {}
 
-		for (const setting in DEFI_SETTINGS) {
-			tvlSettings[DEFI_SETTINGS[setting]] = queryParams[`include_${DEFI_SETTINGS[setting]}_in_tvl`]
+		for (const setting in TVL_SETTINGS) {
+			tvlSettings[TVL_SETTINGS[setting]] = queryParams[`include_${TVL_SETTINGS[setting]}_in_tvl`]
 		}
 
 		const toggledCharts = props.charts.filter((tchart, index) =>
@@ -91,7 +97,7 @@ export default function ChainChartPage(props) {
 
 		const denomination = typeof queryParams.currency === 'string' ? queryParams.currency : 'USD'
 
-		const isThemeDark = queryParams.theme === 'dark' ? true : false
+		const isThemeDark = queryParams.theme === 'dark'
 
 		return {
 			chainGeckoId,
@@ -101,7 +107,7 @@ export default function ChainChartPage(props) {
 			tvlSettings,
 			isThemeDark
 		}
-	}, [queryParamsString])
+	}, [queryParamsString, props.charts, props.chainTokenInfo?.gecko_id, selectedChain])
 
 	const { finalCharts, valueSymbol, isFetchingChartData } = useFetchChainChartData({
 		denomination,

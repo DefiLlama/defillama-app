@@ -13,6 +13,7 @@ export interface AuthModel extends RecordModel {
 	updated: string
 	has_active_subscription: boolean
 	flags: Record<string, boolean>
+	promotionalEmails?: 'initial' | 'on' | 'off'
 }
 
 export default pb

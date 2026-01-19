@@ -1,20 +1,23 @@
-import { memo, useMemo, useState } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import { CHART_TYPES, ChartConfig, getChainChartTypes, getProtocolChartTypes } from '../../types'
-import { AriakitSelect } from '../AriakitSelect'
 import { AdvancedTvlChartTab } from './AdvancedTvlChartTab'
 import { BorrowedChartTab } from './BorrowedChartTab'
 import { CategoryCardsGrid } from './CategoryCardsGrid'
 import { CategoryFormHeader } from './CategoryFormHeader'
+import { ChartTypePills } from './ChartTypePills'
 import { CombinedChartPreview } from './CombinedChartPreview'
-import { ComposerItemsCarousel } from './ComposerItemsCarousel'
+import { EntityPickerList } from './EntityPickerList'
+import { IncomeStatementChartTab } from './IncomeStatementChartTab'
 import { SelectionFooter } from './SelectionFooter'
 import { StablecoinsChartTab } from './StablecoinsChartTab'
-import { SubjectMultiPanel } from './SubjectMultiPanel'
 import { ChartTabType, ManualChartViewMode } from './types'
 import { YieldsChartTab } from './YieldsChartTab'
+
+const PROTOCOL_CHART_TYPES = getProtocolChartTypes()
+const CHAIN_CHART_TYPES = getChainChartTypes()
 
 interface UnifiedChartTabProps {
 	selectedChartTab: ChartTabType
@@ -36,7 +39,7 @@ interface UnifiedChartTabProps {
 	onUnifiedChartNameChange: (name: string) => void
 	onChartCreationModeChange: (mode: 'separate' | 'combined') => void
 	onComposerItemColorChange: (id: string, color: string) => void
-	onAddToComposer: (typesToAdd?: string[]) => void
+	onAddToComposer: (typesToAdd?: string[], options?: { entity?: string; mode?: 'chain' | 'protocol' }) => void
 	onRemoveFromComposer: (id: string) => void
 }
 
@@ -85,6 +88,10 @@ interface UnifiedChartTabPropsExtended extends UnifiedChartTabProps {
 	onSelectedBorrowedProtocolChange?: (protocol: string | null) => void
 	onSelectedBorrowedProtocolNameChange?: (name: string | null) => void
 	onSelectedBorrowedChartTypeChange?: (chartType: string) => void
+	selectedIncomeStatementProtocol?: string | null
+	selectedIncomeStatementProtocolName?: string | null
+	onSelectedIncomeStatementProtocolChange?: (protocol: string | null) => void
+	onSelectedIncomeStatementProtocolNameChange?: (name: string | null) => void
 }
 
 export const UnifiedChartTab = memo(function UnifiedChartTab({
@@ -94,26 +101,26 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 	selectedChartTypes,
 	chainOptions,
 	protocolOptions,
-	availableChartTypes,
-	chartTypesLoading,
+	availableChartTypes: _availableChartTypes,
+	chartTypesLoading: _chartTypesLoading,
 	protocolsLoading,
 	unifiedChartName,
 	chartCreationMode,
 	composerItems,
 	onChartTabChange,
-	onChainChange,
-	onProtocolChange,
+	onChainChange: _onChainChange,
+	onProtocolChange: _onProtocolChange,
 	onChartTypesChange,
 	onUnifiedChartNameChange,
 	onChartCreationModeChange,
 	onComposerItemColorChange,
 	onAddToComposer,
 	onRemoveFromComposer,
-	selectedChains = [],
-	selectedProtocols = [],
+	selectedChains: _selectedChains = [],
+	selectedProtocols: _selectedProtocols = [],
 	selectedYieldPool = null,
-	onSelectedChainsChange,
-	onSelectedProtocolsChange,
+	onSelectedChainsChange: _onSelectedChainsChange,
+	onSelectedProtocolsChange: _onSelectedProtocolsChange,
 	onSelectedYieldPoolChange,
 	selectedYieldChains = [],
 	selectedYieldProjects = [],
@@ -152,37 +159,92 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 	selectedBorrowedChartType = 'chainsBorrowed',
 	onSelectedBorrowedProtocolChange,
 	onSelectedBorrowedProtocolNameChange,
-	onSelectedBorrowedChartTypeChange
+	onSelectedBorrowedChartTypeChange,
+	selectedIncomeStatementProtocol = null,
+	selectedIncomeStatementProtocolName = null,
+	onSelectedIncomeStatementProtocolChange,
+	onSelectedIncomeStatementProtocolNameChange
 }: UnifiedChartTabPropsExtended) {
-	const specialtyTabs = ['yields', 'stablecoins', 'advanced-tvl', 'borrowed']
+	const specialtyTabs = ['yields', 'stablecoins', 'advanced-tvl', 'borrowed', 'income-statement']
 	const [viewMode, setViewMode] = useState<ManualChartViewMode>(() =>
 		specialtyTabs.includes(selectedChartTab) || composerItems.length > 0 ? 'form' : 'cards'
 	)
 
-	const protocolChartTypes = useMemo(() => getProtocolChartTypes(), [])
-	const chainChartTypes = useMemo(() => getChainChartTypes(), [])
+	const protocolChartTypes = PROTOCOL_CHART_TYPES
+	const chainChartTypes = CHAIN_CHART_TYPES
 	const { loading: metaLoading, availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
 	const { protocols, chains } = useProDashboardCatalog()
 
 	const handleSelectCategory = (category: ChartTabType) => {
 		onChartTabChange(category)
 		setViewMode('form')
+		if (category === 'chain' || category === 'protocol') {
+			onChartTypesChange(['tvl'])
+		}
 	}
 
 	const handleBackToCards = () => {
 		setViewMode('cards')
 	}
 
-	const handleAddToSelection = () => {
-		if (selectedChartTypes.length > 0) {
-			onAddToComposer(selectedChartTypes)
-			onChartTypesChange([])
-			onSelectedChainsChange?.([])
-			onSelectedProtocolsChange?.([])
+	const handleChainProtocolTabChange = (tab: 'chain' | 'protocol') => {
+		onChartTabChange(tab)
+		if (!selectedChartTypes.length || selectedChartTypes[0] !== 'tvl') {
+			onChartTypesChange(['tvl'])
 		}
 	}
 
-	const instantAvailableChartTypes = useMemo(() => {
+	const selectedChartTypeSingle = useMemo(() => selectedChartTypes[0] || null, [selectedChartTypes])
+
+	const selectedEntitiesForCurrentType = useMemo(() => {
+		if (!selectedChartTypeSingle) return []
+		return composerItems
+			.filter((item) => item.type === selectedChartTypeSingle)
+			.map((item) => (selectedChartTab === 'chain' ? item.chain : item.protocol))
+			.filter(Boolean) as string[]
+	}, [composerItems, selectedChartTypeSingle, selectedChartTab])
+
+	const handleEntityToggle = useCallback(
+		(entityValue: string) => {
+			if (!selectedChartTypeSingle) return
+
+			const isSelected = selectedEntitiesForCurrentType.includes(entityValue)
+
+			if (isSelected) {
+				const itemToRemove = composerItems.find(
+					(item) =>
+						item.type === selectedChartTypeSingle &&
+						(selectedChartTab === 'chain' ? item.chain === entityValue : item.protocol === entityValue)
+				)
+				if (itemToRemove) {
+					onRemoveFromComposer(itemToRemove.id)
+				}
+			} else {
+				onAddToComposer([selectedChartTypeSingle], {
+					entity: entityValue,
+					mode: selectedChartTab as 'chain' | 'protocol'
+				})
+			}
+		},
+		[
+			selectedChartTypeSingle,
+			selectedEntitiesForCurrentType,
+			composerItems,
+			selectedChartTab,
+			onRemoveFromComposer,
+			onAddToComposer
+		]
+	)
+
+	const handleClearSelection = useCallback(() => {
+		if (!selectedChartTypeSingle) return
+		const itemsToRemove = composerItems.filter((item) => item.type === selectedChartTypeSingle)
+		for (const item of itemsToRemove) {
+			onRemoveFromComposer(item.id)
+		}
+	}, [selectedChartTypeSingle, composerItems, onRemoveFromComposer])
+
+	const _instantAvailableChartTypes = useMemo(() => {
 		let available: string[] = []
 		if (selectedChartTab === 'protocol' && selectedProtocol) {
 			const geckoId = protocols.find((p: any) => p.slug === selectedProtocol)?.geckoId
@@ -225,19 +287,43 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 		return Array.from(set)
 	}, [chains, protocols, availableChainChartTypes, availableProtocolChartTypes])
 
-	const selectedChartTypeSingle = useMemo(() => selectedChartTypes[0] || null, [selectedChartTypes])
-
 	const chartTypeOptions = useMemo(() => {
-		const availableTypes =
-			instantAvailableChartTypes.length > 0 ? instantAvailableChartTypes : globalAvailableChartTypes
 		const chartTypesOrder = selectedChartTab === 'chain' ? chainChartTypes : protocolChartTypes
-		return chartTypesOrder
-			.filter((type) => availableTypes.includes(type))
-			.map((type) => ({
-				value: type,
-				label: CHART_TYPES[type as keyof typeof CHART_TYPES]?.title || type
-			}))
-	}, [instantAvailableChartTypes, globalAvailableChartTypes, selectedChartTab, chainChartTypes, protocolChartTypes])
+		return chartTypesOrder.map((type) => ({
+			value: type,
+			label: CHART_TYPES[type as keyof typeof CHART_TYPES]?.title || type,
+			available: globalAvailableChartTypes.includes(type)
+		}))
+	}, [globalAvailableChartTypes, selectedChartTab, chainChartTypes, protocolChartTypes])
+
+	const filteredEntities = useMemo(() => {
+		if (!selectedChartTypeSingle) {
+			return selectedChartTab === 'chain' ? chainOptions : protocolOptions
+		}
+
+		if (selectedChartTab === 'chain') {
+			return chainOptions.filter((chain) => {
+				const geckoId = chains.find((c: any) => c.name === chain.value)?.gecko_id
+				const available = availableChainChartTypes(chain.value, { hasGeckoId: !!geckoId })
+				return available.includes(selectedChartTypeSingle)
+			})
+		} else {
+			return protocolOptions.filter((protocol) => {
+				const geckoId = protocols.find((p: any) => p.slug === protocol.value)?.geckoId
+				const available = availableProtocolChartTypes(protocol.value, { hasGeckoId: !!geckoId })
+				return available.includes(selectedChartTypeSingle)
+			})
+		}
+	}, [
+		selectedChartTypeSingle,
+		selectedChartTab,
+		chainOptions,
+		protocolOptions,
+		chains,
+		protocols,
+		availableChainChartTypes,
+		availableProtocolChartTypes
+	])
 
 	if (viewMode === 'cards') {
 		return (
@@ -386,139 +472,154 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 		)
 	}
 
+	if (selectedChartTab === 'income-statement') {
+		return (
+			<div className="flex h-full flex-col">
+				<CategoryFormHeader category={selectedChartTab} onBack={handleBackToCards} />
+				<div className="min-h-0 flex-1">
+					<IncomeStatementChartTab
+						selectedIncomeStatementProtocol={selectedIncomeStatementProtocol}
+						selectedIncomeStatementProtocolName={selectedIncomeStatementProtocolName}
+						onSelectedIncomeStatementProtocolChange={onSelectedIncomeStatementProtocolChange || (() => {})}
+						onSelectedIncomeStatementProtocolNameChange={onSelectedIncomeStatementProtocolNameChange || (() => {})}
+						protocolOptions={protocolOptions as any}
+						protocolsLoading={protocolsLoading}
+					/>
+				</div>
+				<SelectionFooter
+					composerItems={composerItems}
+					chartCreationMode={chartCreationMode}
+					unifiedChartName={unifiedChartName}
+					onChartCreationModeChange={onChartCreationModeChange}
+					onUnifiedChartNameChange={onUnifiedChartNameChange}
+					onComposerItemColorChange={onComposerItemColorChange}
+					onRemoveFromComposer={onRemoveFromComposer}
+				/>
+			</div>
+		)
+	}
+
 	return (
-		<div className="flex h-full flex-col">
+		<div className="flex h-full flex-col gap-3">
 			<CategoryFormHeader category={selectedChartTab} onBack={handleBackToCards} />
 
-			<div className="mb-3 rounded-xl border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1 shadow-sm">
-				<div className="grid grid-cols-2 gap-1">
-					<button
-						type="button"
-						onClick={() => onChartTabChange('chain')}
-						className={`group flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold transition-all duration-200 ${
-							selectedChartTab === 'chain'
-								? 'bg-(--old-blue) text-white shadow-md ring-1 ring-black/10'
-								: 'text-(--text-secondary) hover:bg-(--cards-bg)/80 hover:text-(--text-primary) hover:shadow-sm'
-						}`}
-					>
-						<Icon
-							name="chain"
-							width={14}
-							height={14}
-							className={
-								selectedChartTab === 'chain'
-									? 'text-white'
-									: 'text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)'
-							}
-						/>
-						<span>Chains</span>
-					</button>
-					<button
-						type="button"
-						onClick={() => onChartTabChange('protocol')}
-						className={`group flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold transition-all duration-200 ${
-							selectedChartTab === 'protocol'
-								? 'bg-(--old-blue) text-white shadow-md ring-1 ring-black/10'
-								: 'text-(--text-secondary) hover:bg-(--cards-bg)/80 hover:text-(--text-primary) hover:shadow-sm'
-						}`}
-					>
-						<Icon
-							name="protocol"
-							width={14}
-							height={14}
-							className={
-								selectedChartTab === 'protocol'
-									? 'text-white'
-									: 'text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)'
-							}
-						/>
-						<span>Protocols</span>
-					</button>
-				</div>
-			</div>
-
-			<div className="min-h-0 flex-1">
-				<div className="flex flex-col gap-4">
-					<div className="space-y-3">
-						<AriakitSelect
-							label="Select Chart Type"
-							options={chartTypeOptions}
-							selectedValue={selectedChartTypeSingle}
-							onChange={(option) => onChartTypesChange([option.value])}
-							placeholder="Select chart type..."
-							isLoading={metaLoading}
-						/>
-
-						<SubjectMultiPanel
-							activeTab={selectedChartTab}
-							onTabChange={onChartTabChange}
-							selectedChartType={selectedChartTypeSingle}
-							chainOptions={chainOptions}
-							protocolOptions={protocolOptions as any}
-							selectedChains={selectedChains}
-							onSelectedChainsChange={onSelectedChainsChange || (() => {})}
-							selectedProtocols={selectedProtocols}
-							onSelectedProtocolsChange={onSelectedProtocolsChange || (() => {})}
-							isLoading={protocolsLoading}
-							hideTabToggle
-						/>
-
-						<button
-							onClick={handleAddToSelection}
-							disabled={
-								selectedChartTypes.length === 0 ||
-								(selectedChartTab === 'chain' && selectedChains.length === 0) ||
-								(selectedChartTab === 'protocol' && selectedProtocols.length === 0)
-							}
-							className={`w-full rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 ${
-								selectedChartTypes.length === 0 ||
-								(selectedChartTab === 'chain' && selectedChains.length === 0) ||
-								(selectedChartTab === 'protocol' && selectedProtocols.length === 0)
-									? 'pro-border pro-text3 cursor-not-allowed border opacity-50'
-									: 'pro-btn-blue'
-							}`}
-						>
-							Add to Selection{' '}
-							{selectedChartTypes.length > 0 &&
-								`(${selectedChartTypes.length} chart${selectedChartTypes.length > 1 ? 's' : ''})`}
-						</button>
+			<div className="grid min-h-0 flex-1 grid-cols-2 gap-4">
+				<div className="flex min-h-0 flex-col gap-3">
+					<div className="shrink-0 rounded-xl border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1 shadow-sm">
+						<div className="grid grid-cols-2 gap-1">
+							<button
+								type="button"
+								onClick={() => handleChainProtocolTabChange('chain')}
+								className={`group flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold transition-all duration-200 ${
+									selectedChartTab === 'chain'
+										? 'bg-(--old-blue) text-white shadow-md ring-1 ring-black/10'
+										: 'text-(--text-secondary) hover:bg-(--cards-bg)/80 hover:text-(--text-primary) hover:shadow-sm'
+								}`}
+							>
+								<Icon
+									name="chain"
+									width={14}
+									height={14}
+									className={
+										selectedChartTab === 'chain'
+											? 'text-white'
+											: 'text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)'
+									}
+								/>
+								<span>Chains</span>
+							</button>
+							<button
+								type="button"
+								onClick={() => handleChainProtocolTabChange('protocol')}
+								className={`group flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold transition-all duration-200 ${
+									selectedChartTab === 'protocol'
+										? 'bg-(--old-blue) text-white shadow-md ring-1 ring-black/10'
+										: 'text-(--text-secondary) hover:bg-(--cards-bg)/80 hover:text-(--text-primary) hover:shadow-sm'
+								}`}
+							>
+								<Icon
+									name="protocol"
+									width={14}
+									height={14}
+									className={
+										selectedChartTab === 'protocol'
+											? 'text-white'
+											: 'text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)'
+									}
+								/>
+								<span>Protocols</span>
+							</button>
+						</div>
 					</div>
 
-					<SelectionFooter
-						composerItems={composerItems}
-						chartCreationMode={chartCreationMode}
-						unifiedChartName={unifiedChartName}
-						onChartCreationModeChange={onChartCreationModeChange}
-						onUnifiedChartNameChange={onUnifiedChartNameChange}
-						onComposerItemColorChange={onComposerItemColorChange}
-						onRemoveFromComposer={onRemoveFromComposer}
+					<div className="shrink-0">
+						<label className="pro-text2 mb-2 block text-xs font-medium">Select Chart Type</label>
+						<ChartTypePills
+							chartTypes={chartTypeOptions}
+							selectedType={selectedChartTypeSingle}
+							onSelect={(type) => onChartTypesChange([type])}
+							isLoading={metaLoading}
+							mode={selectedChartTab as 'chain' | 'protocol'}
+						/>
+					</div>
+
+					<div className="min-h-0 flex-1">
+						<EntityPickerList
+							mode={selectedChartTab as 'chain' | 'protocol'}
+							entities={filteredEntities}
+							selectedEntities={selectedEntitiesForCurrentType}
+							onToggle={handleEntityToggle}
+							onClear={handleClearSelection}
+							isLoading={protocolsLoading}
+						/>
+					</div>
+				</div>
+
+				<div className="flex min-h-0 flex-col gap-3">
+					<input
+						type="text"
+						value={unifiedChartName}
+						onChange={(e) => onUnifiedChartNameChange(e.target.value)}
+						placeholder="Chart name..."
+						className="pro-text1 placeholder:pro-text3 w-full shrink-0 rounded border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					/>
 
-					<div className="pro-border overflow-hidden rounded-lg border">
-						<div className="pro-text2 border-b border-(--cards-border) px-3 py-2 text-xs font-medium">Preview</div>
-
+					<div className="h-[450px] shrink-0 overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg)">
 						{composerItems.length > 0 ? (
-							<div className="h-[240px] bg-(--cards-bg)">
-								<div className="h-full w-full" key={`${composerItems.map((i) => i.id).join(',')}`}>
-									{chartCreationMode === 'combined' ? (
-										<CombinedChartPreview composerItems={composerItems} />
-									) : (
-										<ComposerItemsCarousel composerItems={composerItems} />
-									)}
-								</div>
-							</div>
+							<CombinedChartPreview composerItems={composerItems} />
 						) : (
-							<div className="pro-text3 flex h-[120px] items-center justify-center text-center">
-								<div>
-									<Icon name="bar-chart-2" height={32} width={32} className="mx-auto mb-1" />
-									<div className="text-xs">Select charts to see preview</div>
-									<div className="pro-text3 mt-1 text-xs">
-										Choose a {selectedChartTab} and chart types to generate preview
-									</div>
-								</div>
+							<div className="flex h-full items-center justify-center text-xs text-(--text-tertiary)">
+								Select entities to preview chart
 							</div>
 						)}
 					</div>
+
+					{composerItems.length > 0 && (
+						<div className="thin-scrollbar flex shrink-0 items-center gap-2 overflow-x-auto py-1">
+							{composerItems.map((item) => (
+								<div
+									key={item.id}
+									className="flex shrink-0 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-1 text-xs"
+								>
+									<input
+										type="color"
+										value={item.color || '#3366ff'}
+										onChange={(e) => onComposerItemColorChange(item.id, e.target.value)}
+										className="h-4 w-4 cursor-pointer rounded border-0 bg-transparent p-0"
+									/>
+									<span className="pro-text1 whitespace-nowrap">
+										{item.protocol || item.chain} - {CHART_TYPES[item.type]?.title || item.type}
+									</span>
+									<button
+										onClick={() => onRemoveFromComposer(item.id)}
+										className="pro-text3 transition-colors hover:text-red-500"
+									>
+										<Icon name="x" height={12} width={12} />
+									</button>
+								</div>
+							))}
+						</div>
+					)}
 				</div>
 			</div>
 		</div>

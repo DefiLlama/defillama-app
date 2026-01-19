@@ -1,14 +1,16 @@
-import Script from 'next/script'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import NProgress from 'nprogress'
+import { AppProps } from 'next/app'
+import Head from 'next/head'
+import { useRouter } from 'next/router'
 import '~/tailwind.css'
 import '~/nprogress.css'
+import Script from 'next/script'
+import NProgress from 'nprogress'
 import { useEffect } from 'react'
-import { AppProps } from 'next/app'
-import { useRouter } from 'next/router'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider, useUserHash } from '~/containers/Subscribtion/auth'
+import { useMedia } from '~/hooks/useMedia'
 
 NProgress.configure({ showSpinner: false })
 
@@ -62,13 +64,26 @@ function App({ Component, pageProps }: AppProps) {
 	}, [router])
 
 	const { userHash, email } = useUserHash()
+	const isDesktop = useMedia('(min-width: 769px)')
 
 	return (
 		<>
+			<Head>
+				<meta charSet="utf-8" />
+				<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+			</Head>
+			{/* Analytics script - loaded after page becomes interactive to reduce TBT */}
+			<Script
+				src="/script2.js"
+				strategy="afterInteractive"
+				data-website-id="ca346731-f7ec-437f-9727-162f29bb67ae"
+				data-host-url="https://tasty.defillama.com"
+			/>
+
 			{userHash &&
 			typeof window !== 'undefined' &&
 			!(window as any).FrontChat &&
-			window.innerWidth > 768 &&
+			isDesktop &&
 			// hide support icon on ai chat page because it can block the dialog button
 			!router.pathname.includes('/ai/chat') ? (
 				<Script

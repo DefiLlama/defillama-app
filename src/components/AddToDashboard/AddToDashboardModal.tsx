@@ -1,16 +1,19 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
-import { dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
+import { type Dashboard, dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
 import type { LlamaAIChartConfig } from '~/containers/ProDashboard/types'
 import { addItemToDashboard } from '~/containers/ProDashboard/utils/dashboardItemsUtils'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import type { DashboardChartConfig, LlamaAIChartInput } from './AddToDashboardButton'
+
+const EMPTY_DASHBOARDS: Dashboard[] = []
+const EMPTY_UNSUPPORTED_METRICS: string[] = []
 
 interface AddToDashboardModalProps {
 	dialogStore: Ariakit.DialogStore
@@ -19,10 +22,7 @@ interface AddToDashboardModalProps {
 	unsupportedMetrics?: string[]
 }
 
-function getConfigName(
-	config: DashboardChartConfig | null,
-	llamaAIChart?: LlamaAIChartInput | null
-): string {
+function getConfigName(config: DashboardChartConfig | null, llamaAIChart?: LlamaAIChartInput | null): string {
 	if (llamaAIChart) return llamaAIChart.title
 	if (!config) return ''
 	if (config.kind === 'multi') {
@@ -60,12 +60,13 @@ export function AddToDashboardModal({
 	dialogStore,
 	chartConfig,
 	llamaAIChart,
-	unsupportedMetrics = []
+	unsupportedMetrics = EMPTY_UNSUPPORTED_METRICS
 }: AddToDashboardModalProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
 	const { authorizedFetch, isAuthenticated, hasActiveSubscription } = useAuthContext()
-	const { data: dashboards = [], isLoading: isLoadingDashboards } = useGetLiteDashboards()
+	const { data: dashboardsData, isLoading: isLoadingDashboards } = useGetLiteDashboards()
+	const dashboards = dashboardsData ?? EMPTY_DASHBOARDS
 
 	const [search, setSearch] = useState('')
 	const [selectedDashboardId, setSelectedDashboardId] = useState<string | null>(null)
@@ -247,7 +248,7 @@ export function AddToDashboardModal({
 		>
 			<div className="mb-4 flex items-center justify-between">
 				<h2 className="pro-text1 text-base font-semibold">Add to Dashboard</h2>
-				<Ariakit.DialogDismiss className="pro-hover-bg pro-text2 rounded-md p-1 transition-colors">
+				<Ariakit.DialogDismiss className="pro-hover-bg pro-text2 rounded-md p-1">
 					<Icon name="x" height={18} width={18} />
 				</Ariakit.DialogDismiss>
 			</div>
@@ -279,12 +280,12 @@ export function AddToDashboardModal({
 								key={dashboard.id}
 								type="button"
 								onClick={() => handleSelectDashboard(dashboard.id)}
-								className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
+								className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${
 									selectedDashboardId === dashboard.id ? 'bg-(--primary)/10 text-(--primary)' : 'pro-text1 pro-hover-bg'
 								}`}
 							>
 								<div
-									className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border ${
+									className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
 										selectedDashboardId === dashboard.id ? 'border-(--primary) bg-(--primary)' : 'pro-border'
 									}`}
 								>
@@ -317,7 +318,7 @@ export function AddToDashboardModal({
 					<button
 						type="button"
 						onClick={handleCreateNew}
-						className="pro-text2 hover:pro-text1 pro-hover-bg flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
+						className="pro-text2 hover:pro-text1 pro-hover-bg flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm"
 					>
 						<Icon name="plus" className="h-4 w-4" />
 						<span>Create new dashboard</span>
@@ -348,7 +349,7 @@ export function AddToDashboardModal({
 			<div className="flex gap-2">
 				<Ariakit.DialogDismiss
 					disabled={isAdding}
-					className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex-1 rounded-md border px-3 py-2 text-sm transition-colors disabled:opacity-50"
+					className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex-1 rounded-md border px-3 py-2 text-sm disabled:opacity-50"
 				>
 					Cancel
 				</Ariakit.DialogDismiss>
@@ -356,7 +357,7 @@ export function AddToDashboardModal({
 					type="button"
 					onClick={handleAdd}
 					disabled={isAdding || !canSubmit}
-					className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+					className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${
 						canSubmit ? 'pro-btn-purple' : 'pro-border pro-text3 cursor-not-allowed border'
 					}`}
 				>

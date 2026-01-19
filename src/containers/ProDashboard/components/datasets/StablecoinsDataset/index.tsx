@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -12,9 +11,8 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { Icon } from '~/components/Icon'
-import { TagGroup } from '~/components/TagGroup'
-import useWindowSize from '~/hooks/useWindowSize'
+import * as React from 'react'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -27,6 +25,8 @@ interface StablecoinsDatasetProps {
 	chain: string
 }
 
+const EMPTY_DATA: any[] = []
+
 export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'mcap', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -38,10 +38,10 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 	})
 
 	const { data, isLoading, error } = useStablecoinsData(chain)
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
-		data: data || [],
+		data: data ?? EMPTY_DATA,
 		columns: stablecoinsDatasetColumns as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -58,7 +58,8 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {
@@ -75,7 +76,7 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [windowSize])
+	}, [instance, width])
 
 	const [projectName, setProjectName] = React.useState('')
 

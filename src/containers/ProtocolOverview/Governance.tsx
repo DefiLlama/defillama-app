@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
 	ColumnDef,
@@ -9,6 +8,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { formatGovernanceData } from '~/api/categories/protocols'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
@@ -70,7 +70,7 @@ export function GovernanceTable({ data, governanceType, filters = null }) {
 							setProposalName(e.target.value)
 						}}
 						placeholder="Search proposals..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 				{filters}
@@ -298,10 +298,7 @@ const proposalsSnapshotColumns: ColumnDef<IProposal>[] = [
 		id: 'state',
 		accessorFn: (row) => (row.state === 'closed' ? 0 : 1),
 		cell: (info) => (
-			<span
-				data-isactive={info.getValue() === 0 ? false : true}
-				className="text-(--error) data-[isactive=true]:text-(--success)"
-			>
+			<span data-isactive={info.getValue() !== 0} className="text-(--error) data-[isactive=true]:text-(--success)">
 				{info.getValue() === 0 ? 'Closed' : 'Active'}
 			</span>
 		),

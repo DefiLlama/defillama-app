@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import { lazy, Suspense } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
@@ -8,7 +8,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
-import { formattedNum, formattedPercent, slug, tokenIconUrl, toNiceDayMonthAndYear, toNiceDayMonthYear } from '~/utils'
+import { formattedNum, formattedPercent, slug, tokenIconUrl, toNiceDayMonthYear } from '~/utils'
 import { formatColumnOrder } from '../utils'
 import type { AirdropRow, IEmission, IForksRow, IGovernance, ILSDRow } from './types'
 
@@ -59,7 +59,7 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 		accessorKey: 'ftot',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value && value.toFixed(2) + '%'}</>
+			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
 			align: 'end'
@@ -519,7 +519,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		accessorKey: 'marketShare',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value && value.toFixed(2) + '%'}</>
+			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
 			align: 'end'
@@ -593,7 +593,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		accessorKey: 'apy',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value && value.toFixed(2) + '%'}</>
+			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
 			align: 'end'
@@ -605,7 +605,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		accessorKey: 'fee',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value && value.toFixed(2) + '%'}</>
+			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
 			align: 'end',

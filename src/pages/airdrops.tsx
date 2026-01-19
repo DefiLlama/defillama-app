@@ -154,11 +154,11 @@ export const getStaticProps = withPerformanceLogging('airdrops', async () => {
 
 	const forkedList: { [name: string]: boolean } = {}
 
-	Object.values(forks).map((list: string[]) => {
-		list.map((f) => {
+	for (const list of Object.values(forks) as string[][]) {
+		for (const f of list) {
 			forkedList[f] = true
-		})
-	})
+		}
+	}
 
 	return {
 		props: {

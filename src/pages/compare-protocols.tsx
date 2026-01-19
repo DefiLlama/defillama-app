@@ -1,6 +1,6 @@
-import * as React from 'react'
-import { useRouter } from 'next/router'
 import { useQueries } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { tvlOptions } from '~/components/Filters/options'
@@ -22,7 +22,13 @@ const LineAndBarChart = React.lazy(
 ) as React.FC<ILineAndBarChartProps>
 
 export const getStaticProps = withPerformanceLogging('comparison', async () => {
-	const { protocols } = await getChainOverviewData({ chain: 'All' })
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
+	const { protocols } = await getChainOverviewData({
+		chain: 'All',
+		chainMetadata: metadataCache.chainMetadata,
+		protocolMetadata: metadataCache.protocolMetadata
+	})
 
 	return {
 		props: {
@@ -229,11 +235,11 @@ export default function CompareProtocols({
 						)}
 					</div>
 
-					{protocolsTableData.length && (
+					{protocolsTableData.length > 0 ? (
 						<div>
 							<ChainProtocolsTable protocols={protocolsTableData} useStickyHeader={false} />
 						</div>
-					)}
+					) : null}
 				</div>
 			) : (
 				<div className="flex min-h-[362px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">

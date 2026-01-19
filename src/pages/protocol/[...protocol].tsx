@@ -15,7 +15,9 @@ export const getStaticProps = withPerformanceLogging(
 		}
 	}) => {
 		const normalizedName = slug(protocol)
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
 		const { protocolMetadata } = metadataCache
 		let metadata: [string, IProtocolMetadata] | undefined
 		for (const key in protocolMetadata) {
@@ -31,7 +33,8 @@ export const getStaticProps = withPerformanceLogging(
 
 		const data = await getProtocolOverviewPageData({
 			protocolId: metadata[0],
-			metadata: metadata[1]
+			currentProtocolMetadata: metadata[1],
+			chainMetadata: metadataCache.chainMetadata
 		})
 
 		if (!data) {

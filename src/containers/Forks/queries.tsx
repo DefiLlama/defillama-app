@@ -27,24 +27,24 @@ export async function getForkPageData(fork = null) {
 
 		if (fork) {
 			let data = []
-			chartData.forEach(([date, tokens]) => {
+			for (const [date, tokens] of chartData) {
 				const value = tokens[fork]
 				if (value) {
 					data.push([date, value])
 				}
-			})
+			}
 			chartData = data
 			const protocol = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase())
 			if (protocol) {
 				parentTokens.push(protocol)
 			}
 		} else {
-			forksUnique.forEach((fork) => {
+			for (const fork of forksUnique) {
 				const protocol = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase())
 				if (protocol) {
 					parentTokens.push(protocol)
 				}
-			})
+			}
 		}
 
 		const forksProtocols = {}

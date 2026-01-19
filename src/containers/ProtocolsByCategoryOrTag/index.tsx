@@ -1,5 +1,5 @@
-import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
@@ -9,7 +9,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formatNum, formattedNum, slug, toNiceCsvDate } from '~/utils'
 import { protocolCategories } from './constants'
@@ -43,9 +43,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 
 	const { finalProtocols, charts } = useMemo(() => {
-		const toggledSettings = Object.entries(tvlSettings)
-			.filter(([key, value]) => value === true)
-			.map(([key]) => key)
+		const toggledSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 
 		if (toggledSettings.length === 0) return { finalProtocols: props.protocols, charts: props.charts }
 
@@ -87,7 +85,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 					'accessorFn' in col && col.accessorFn
 						? col?.accessorFn?.(protocol)
 						: protocol[col.id as keyof typeof protocol]
-				if (value === null || value === undefined) return ''
+				if (value == null) return ''
 				if (col.id === 'name') return `"${protocol.name}"`
 				if (typeof value === 'number') return value
 				return String(value).includes(',') ? `"${String(value)}"` : String(value)

@@ -115,10 +115,17 @@ const breakdownColor = (type) => {
 export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
 	const res: IDATInstitutions = await fetchJson(`${TRADFI_API}/institutions`)
 
-	const allAssets = Object.keys(res.assetMetadata).sort(
-		(a, b) => (res.assetMetadata[b].totalUsdValue ?? 0) - (res.assetMetadata[a].totalUsdValue ?? 0)
-	)
-	const colorByAsset = {}
+	// Build array with cached values to avoid lookups during sort
+	const assetEntries: [string, number][] = []
+	for (const key in res.assetMetadata) {
+		assetEntries.push([key, res.assetMetadata[key].totalUsdValue ?? 0])
+	}
+	assetEntries.sort((a, b) => b[1] - a[1])
+	const allAssets: string[] = []
+	for (const [key] of assetEntries) {
+		allAssets.push(key)
+	}
+	const colorByAsset: Record<string, string> = {}
 	let i = 0
 	const colors = getNDistinctColors(allAssets.length + 7).filter((color) => color !== '#673AB7')
 	for (const asset in res.assetMetadata) {
@@ -142,7 +149,7 @@ export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
 			color: colorByAsset[asset],
 			data: []
 		}
-		for (const [date, net, inflow, outflow, purchasePrice, usdValueOfPurchase] of res.flows[asset]) {
+		for (const [date, net, _inflow, _outflow, purchasePrice, usdValueOfPurchase] of res.flows[asset]) {
 			inflowsByAssetByDate[date] = inflowsByAssetByDate[date] ?? {}
 			inflowsByAssetByDate[date][asset] = [purchasePrice || usdValueOfPurchase || 0, net]
 		}
@@ -190,8 +197,10 @@ export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
 	}
 }
 
-interface IInstitutionOverviewByAsset
-	extends Omit<IDATInstitutions['institutionMetadata'][number], 'holdings' | 'totalUsdValue' | 'totalCost'> {
+interface IInstitutionOverviewByAsset extends Omit<
+	IDATInstitutions['institutionMetadata'][number],
+	'holdings' | 'totalUsdValue' | 'totalCost'
+> {
 	realized_mNAV: number | null
 	realistic_mNAV: number | null
 	max_mNAV: number | null
@@ -221,9 +230,16 @@ export interface IDATOverviewDataByAssetProps {
 
 export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOverviewDataByAssetProps | null> {
 	const res: IDATInstitutions = await fetchJson(`${TRADFI_API}/institutions`)
-	const allAssets = Object.keys(res.assetMetadata).sort(
-		(a, b) => (res.assetMetadata[b].totalUsdValue ?? 0) - (res.assetMetadata[a].totalUsdValue ?? 0)
-	)
+	// Build array with cached values to avoid lookups during sort
+	const assetEntries: [string, number][] = []
+	for (const key in res.assetMetadata) {
+		assetEntries.push([key, res.assetMetadata[key].totalUsdValue ?? 0])
+	}
+	assetEntries.sort((a, b) => b[1] - a[1])
+	const allAssets: string[] = []
+	for (const [key] of assetEntries) {
+		allAssets.push(key)
+	}
 	const metadata = res.assetMetadata[asset]
 	const institutions = res.assets[asset]
 

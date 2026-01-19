@@ -39,7 +39,7 @@ const customStyles = {
 		...provided,
 		color: 'var(--text-tertiary)'
 	}),
-	singleValue: (provided, state) => ({
+	singleValue: (provided, _state) => ({
 		...provided,
 		color: 'var(--text-primary)'
 	})

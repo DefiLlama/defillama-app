@@ -11,7 +11,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 
 	return {
 		props: {
-			cexs: data.cexs.sort((a, b) => b.cleanAssetsTvl - a.cleanAssetsTvl) ?? []
+			cexs: data.cexs.sort((a, b) => (b.cleanAssetsTvl ?? 0) - (a.cleanAssetsTvl ?? 0)) ?? []
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -31,4 +31,4 @@ export default function CexsPage({ cexs }) {
 			<Cexs cexs={cexs} />
 		</Layout>
 	)
-} // trigger
+} // triggerr

@@ -4,12 +4,23 @@ export const defaultTriggers = ['@', '$']
 
 export function getTriggerOffset(element: HTMLTextAreaElement, triggers = defaultTriggers) {
 	const { value, selectionStart } = element
-	for (let i = selectionStart; i >= 0; i--) {
+
+	// Only consider triggers within the "current token" (since the last whitespace).
+	// This prevents normal text like "total $ value ..." from opening suggestions because of an older "$".
+	for (let i = Math.max(0, selectionStart - 1); i >= 0; i--) {
 		const char = value[i]
+
+		// If we've crossed a word boundary, there can't be an active trigger for the caret position.
+		if (char && /\s/.test(char)) return -1
+
 		if (char && triggers.includes(char)) {
-			return i
+			// Match the same isolation rules as `getTrigger`: trigger must be at the start or preceded by whitespace
+			const prev = value[i - 1]
+			const isIsolated = !prev || /\s/.test(prev)
+			return isIsolated ? i : -1
 		}
 	}
+
 	return -1
 }
 

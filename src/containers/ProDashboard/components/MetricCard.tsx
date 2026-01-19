@@ -1,5 +1,8 @@
-import { useMemo } from 'react'
-import { SparklineChart } from '~/components/ECharts/SparklineChart'
+import { lazy, Suspense, useMemo } from 'react'
+
+const SparklineChart = lazy(() =>
+	import('~/components/ECharts/SparklineChart').then((m) => ({ default: m.SparklineChart }))
+)
 import { Icon } from '~/components/Icon'
 import { formattedNum } from '~/utils'
 import { useMetricData } from '../hooks/useMetricData'
@@ -66,7 +69,15 @@ interface MetricCardProps {
 export function MetricCard({ metric }: MetricCardProps) {
 	const { getChainInfo, getProtocolInfo } = useProDashboardCatalog()
 	const { isReadOnly } = useProDashboardPermissions()
-	const { value, delta, deltaPct, sparklineData, lastUpdatedTs, isLoading, isError } = useMetricData(metric)
+	const {
+		value,
+		delta,
+		deltaPct,
+		sparklineData,
+		lastUpdatedTs: _lastUpdatedTs,
+		isLoading,
+		isError
+	} = useMetricData(metric)
 
 	const { displayTitle, baseTitle, iconUrl, format } = useMemo(() => {
 		const subject = metric.subject
@@ -191,9 +202,11 @@ export function MetricCard({ metric }: MetricCardProps) {
 			<div className="flex h-full flex-1 flex-col items-center justify-center gap-3 text-center">
 				<div className="text-4xl leading-tight font-semibold">{displayValue}</div>
 				{sparklineSeries.length > 1 && (
-					<div className="w-full max-w-[280px]">
-						<SparklineChart data={sparklineSeries} color={sparklineColor} height={64} smooth />
-					</div>
+					<Suspense fallback={<div className="h-16 w-full max-w-[280px]" />}>
+						<div className="w-full max-w-[280px]">
+							<SparklineChart data={sparklineSeries} color={sparklineColor} height={64} smooth />
+						</div>
+					</Suspense>
 				)}
 				{deltaText && metric.aggregator !== 'growth' && (
 					<div

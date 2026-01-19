@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
-import { useRouter } from 'next/router'
 import { ColumnDef, SortingState } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -137,11 +137,12 @@ const getProtocolsByCategory = (
 	categoriesToFilter: Array<string>
 ) => {
 	const final = []
+	const categoriesToFilterSet = new Set(categoriesToFilter)
 
 	for (const protocol of protocols) {
 		if (protocol.subRows) {
 			const childProtocols = protocol.subRows.filter((childProtocol) =>
-				categoriesToFilter.includes(childProtocol.category)
+				categoriesToFilterSet.has(childProtocol.category)
 			)
 
 			if (childProtocols.length) {
@@ -151,7 +152,7 @@ const getProtocolsByCategory = (
 			continue
 		}
 
-		if (categoriesToFilter.includes(protocol.category)) {
+		if (categoriesToFilterSet.has(protocol.category)) {
 			final.push(protocol)
 			continue
 		}

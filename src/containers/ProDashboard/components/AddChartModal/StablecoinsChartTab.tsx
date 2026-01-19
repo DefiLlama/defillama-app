@@ -12,7 +12,11 @@ import {
 	useStablecoinChainsList,
 	useStablecoinsChartData
 } from '~/containers/ProDashboard/components/datasets/StablecoinsDataset/useStablecoinsChartData'
-import { colorManager, generateConsistentChartColor, STABLECOIN_TOKEN_COLORS } from '~/containers/ProDashboard/utils/colorManager'
+import {
+	colorManager,
+	generateConsistentChartColor,
+	STABLECOIN_TOKEN_COLORS
+} from '~/containers/ProDashboard/utils/colorManager'
 import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
@@ -72,6 +76,8 @@ const inflowsChartOptions = {
 const MCAP_STACKS = ['Mcap']
 const CIRC_STACKS = ['Circulating']
 const EMPTY_HALLMARKS: [number, string][] = []
+const EMPTY_CHAIN_LIST: StablecoinChainInfo[] = []
+const EMPTY_ASSET_LIST: StablecoinAssetInfo[] = []
 
 export function StablecoinsChartTab({
 	selectedStablecoinChain,
@@ -87,19 +93,21 @@ export function StablecoinsChartTab({
 	onSelectedStablecoinAssetIdChange,
 	onSelectedStablecoinAssetChartTypeChange
 }: StablecoinsChartTabProps) {
-	const { data: chainsList = [], isLoading: chainsLoading } = useStablecoinChainsList()
-	const { data: assetsList = [], isLoading: assetsLoading } = useStablecoinAssetsList()
+	const { data: chainsListData, isLoading: chainsLoading } = useStablecoinChainsList()
+	const { data: assetsListData, isLoading: assetsLoading } = useStablecoinAssetsList()
+	const chainsList = chainsListData ?? EMPTY_CHAIN_LIST
+	const assetsList = assetsListData ?? EMPTY_ASSET_LIST
 
 	const chainOptions: VirtualizedSelectOption[] = useMemo(() => {
 		const options: VirtualizedSelectOption[] = [{ value: 'All', label: 'All Chains', icon: '🌐' }]
-		;(chainsList as StablecoinChainInfo[]).forEach((chain) => {
+		for (const chain of chainsList as StablecoinChainInfo[]) {
 			options.push({
 				value: chain.name,
 				label: chain.name,
 				logo: chainIconUrl(chain.name),
 				description: formattedNum(chain.tvl, true)
 			})
-		})
+		}
 		return options
 	}, [chainsList])
 
@@ -140,9 +148,9 @@ export function StablecoinsChartTab({
 
 	const assetChainColors = useMemo(() => {
 		const colors: Record<string, string> = {}
-		chainsUnique.forEach((chain) => {
+		for (const chain of chainsUnique) {
 			colors[chain] = colorManager.getItemColor(chain, 'chain')
-		})
+		}
 		return colors
 	}, [chainsUnique])
 

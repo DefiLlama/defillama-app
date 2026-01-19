@@ -41,30 +41,30 @@ function getParsedExpression(expression: string): ReturnType<typeof parser.parse
 const renderDash = () => <span className="pro-text3">-</span>
 
 const renderUsd = (value: number | null | undefined) => {
-	if (value === null || value === undefined) return renderDash()
+	if (value == null) return renderDash()
 	return <span className="pro-text2">{formattedNum(value, true)}</span>
 }
 
 const renderNumber = (value: number | null | undefined) => {
-	if (value === null || value === undefined) return renderDash()
+	if (value == null) return renderDash()
 	return <span className="pro-text2">{formattedNum(value, false)}</span>
 }
 
 const renderPercent = (value: number | null | undefined) => {
-	if (value === null || value === undefined) return renderDash()
+	if (value == null) return renderDash()
 	return <span className="pro-text2">{formattedPercent(value, true)}</span>
 }
 
 const renderRatio = (value: number | null | undefined) => {
-	if (value === null || value === undefined) return renderDash()
+	if (value == null) return renderDash()
 	return <span className="pro-text2">{`${formattedNum(value, false)}x`}</span>
 }
 
 const numericSorting = (a: number | null | undefined, b: number | null | undefined) => {
-	if (a === null || a === undefined) {
-		return b === null || b === undefined ? 0 : -1
+	if (a == null) {
+		return b == null ? 0 : -1
 	}
-	if (b === null || b === undefined) {
+	if (b == null) {
 		return 1
 	}
 	return a - b
@@ -148,13 +148,14 @@ export function evaluateExpression(expression: string, metrics: NumericMetrics):
 
 		for (const varName of usedVars) {
 			const value = metrics[varName as keyof NumericMetrics]
-			if (value === null || value === undefined) {
+			if (value == null) {
 				return null
 			}
 		}
 
 		const context: Record<string, number> = {}
-		for (const [key, value] of Object.entries(metrics)) {
+		for (const key in metrics) {
+			const value = metrics[key as keyof NumericMetrics]
 			if (typeof value === 'number' && !Number.isNaN(value)) {
 				context[key] = value
 			}
@@ -419,7 +420,7 @@ export function formatPreviewNumber(
 	value: number | null | undefined,
 	format: CustomColumnDefinition['format'] = 'number'
 ): string {
-	if (value === null || value === undefined) return '-'
+	if (value == null) return '-'
 
 	if (format === 'percent') {
 		return `${value.toFixed(2)}%`

@@ -40,7 +40,13 @@ export function pruneVisibility(
 	validCustomColumnIds?: Set<string>
 ): VisibilityState {
 	if (!visibility) return {}
-	return Object.fromEntries(Object.entries(visibility).filter(([key]) => isColumnSupported(key, validCustomColumnIds)))
+	const result: VisibilityState = {}
+	for (const key in visibility) {
+		if (isColumnSupported(key, validCustomColumnIds)) {
+			result[key] = visibility[key]
+		}
+	}
+	return result
 }
 
 export function sanitizeSorting(sorting: SortingState | undefined, validCustomColumnIds?: Set<string>): SortingState {

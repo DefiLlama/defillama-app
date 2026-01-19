@@ -1,5 +1,5 @@
-import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
+import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react'
 import { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select'
@@ -39,6 +39,10 @@ interface ChartRendererProps {
 const userMetricTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
 const percentMetricTypes = ['medianApy']
 const ratioMetricTypes = ['pfRatio', 'psRatio']
+const CUMULATIVE_DISPLAY_OPTIONS = [
+	{ name: 'Show individual values', key: 'Individual' },
+	{ name: 'Show cumulative values', key: 'Cumulative' }
+]
 
 const ChartRenderer = memo(function ChartRenderer({
 	type,
@@ -204,13 +208,10 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 							)}
 							{isBarChart && (
 								<Select
-									allValues={[
-										{ name: 'Show individual values', key: 'Individual' },
-										{ name: `Show cumulative values`, key: `Cumulative` }
-									]}
+									allValues={CUMULATIVE_DISPLAY_OPTIONS}
 									selectedValues={showCumulative ? 'Cumulative' : 'Individual'}
 									setSelectedValues={(value) => {
-										handleCumulativeChange(chart.id, value === 'Cumulative' ? true : false)
+										handleCumulativeChange(chart.id, value === 'Cumulative')
 									}}
 									label={showCumulative ? 'Cumulative' : 'Individual'}
 									labelType="none"

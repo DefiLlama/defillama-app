@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import toast from 'react-hot-toast'
 
 interface DateRangeValidationOptions {
@@ -9,21 +9,21 @@ interface DateRangeValidationOptions {
 export const useDateRangeValidation = (options?: DateRangeValidationOptions) => {
 	const [startDate, setStartDate] = useState(options?.initialStartDate || '')
 	const [endDate, setEndDate] = useState(options?.initialEndDate || '')
-	const [dateError, setDateError] = useState('')
+	const [dateError, _setDateError] = useState('')
 
-	const handleStartDateChange = (value: string) => {
+	const handleStartDateChange = useCallback((value: string) => {
 		setStartDate(value)
+		setEndDate((currentEndDate) => {
+			if (currentEndDate && value && new Date(currentEndDate) < new Date(value)) {
+				return ''
+			}
+			return currentEndDate
+		})
+	}, [])
 
-		if (endDate && value && new Date(endDate) < new Date(value)) {
-			setEndDate('')
-		}
-	}
-
-	const handleEndDateChange = (value: string) => {
+	const handleEndDateChange = useCallback((value: string) => {
 		setEndDate(value)
-		if (dateError) {
-		}
-	}
+	}, [])
 
 	const validateDateRange = (startDateValue: string, endDateValue: string): boolean => {
 		if (startDateValue && endDateValue && new Date(endDateValue) < new Date(startDateValue)) {

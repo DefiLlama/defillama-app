@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
+import * as React from 'react'
 
 export function InputFilter({ placeholder, filterKey }: { placeholder: string; filterKey: string }) {
 	const router = useRouter()
@@ -21,11 +21,14 @@ export function InputFilter({ placeholder, filterKey }: { placeholder: string; f
 		)
 	}
 
+	const rawFilterValue = router.query[filterKey]
+	const filterValue = Array.isArray(rawFilterValue) ? rawFilterValue.join(',') : (rawFilterValue ?? '')
+
 	React.useEffect(() => {
-		if (router.query[filterKey]) {
-			ref.current.value = router.query[filterKey]
+		if (filterValue) {
+			ref.current.value = filterValue
 		}
-	}, [filterKey, router.query])
+	}, [filterKey, filterValue])
 
 	const onChange = (e) => {
 		let timer

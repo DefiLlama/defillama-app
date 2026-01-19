@@ -12,13 +12,15 @@ import {
 	getProtocolWarningBanners,
 	useFetchProtocolAddlChartsData
 } from '~/containers/ProtocolOverview/utils'
-import { DEFI_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+
+const EMPTY_OTHER_PROTOCOLS: string[] = []
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/borrowed/[...protocol]',
@@ -53,7 +55,7 @@ export const getStaticProps = withPerformanceLogging(
 		const toggleOptions = []
 
 		for (const chain in protocolData.chainTvls) {
-			if (DEFI_SETTINGS_KEYS_SET.has(chain)) {
+			if (TVL_SETTINGS_KEYS_SET.has(chain)) {
 				const option = tvlOptionsMap.get(chain as any)
 				if (option) {
 					toggleOptions.push(option)
@@ -65,7 +67,7 @@ export const getStaticProps = withPerformanceLogging(
 			props: {
 				name: protocolData.name,
 				parentProtocol: protocolData.parentProtocol ?? null,
-				otherProtocols: protocolData.otherProtocols ?? [],
+				otherProtocols: protocolData.otherProtocols ?? EMPTY_OTHER_PROTOCOLS,
 				category: protocolData.category ?? null,
 				metrics,
 				warningBanners: getProtocolWarningBanners(protocolData),
@@ -87,7 +89,12 @@ export default function Protocols(props) {
 	const { chainsSplit, chainsUnique } = React.useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
 		const chainsSplit = formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled: {} })
-		const chainsUnique = Object.keys(chainsSplit[chainsSplit.length - 1] ?? {}).filter((c) => c !== 'date')
+		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
+		const chainsUnique: string[] = []
+		for (const key in lastEntry) {
+			if (!Object.prototype.hasOwnProperty.call(lastEntry, key)) continue
+			if (key !== 'date') chainsUnique.push(key)
+		}
 		return { chainsSplit, chainsUnique }
 	}, [historicalChainTvls])
 	const protocolSlug = slug(props.name || 'protocol')

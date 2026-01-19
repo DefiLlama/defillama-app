@@ -75,11 +75,11 @@ export function ColumnManagementPanel({
 				<div className="flex items-center gap-2">
 					<button
 						onClick={() => {
-							columns.forEach((col) => {
+							for (const col of columns) {
 								if (columnVisibility[col.id] === false) {
 									toggleColumnVisibility(col.id)
 								}
-							})
+							}
 						}}
 						className="pro-divider pro-hover-bg pro-text2 pro-bg2 rounded-md border px-2 py-1 text-xs transition-colors"
 					>
@@ -87,11 +87,11 @@ export function ColumnManagementPanel({
 					</button>
 					<button
 						onClick={() => {
-							columns.forEach((col) => {
+							for (const col of columns) {
 								if (col.id !== 'name' && columnVisibility[col.id] !== false) {
 									toggleColumnVisibility(col.id)
 								}
-							})
+							}
 						}}
 						className="pro-divider pro-hover-bg pro-text2 pro-bg2 rounded-md border px-2 py-1 text-xs transition-colors"
 					>

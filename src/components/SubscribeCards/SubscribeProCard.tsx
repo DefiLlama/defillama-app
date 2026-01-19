@@ -1,13 +1,15 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import * as Ariakit from '@ariakit/react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignInForm, SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
 import { BasicLink } from '../Link'
+import { QuestionHelper } from '../QuestionHelper'
 
 const StripeCheckoutModal = lazy(() =>
 	import('~/components/StripeCheckoutModal').then((m) => ({ default: m.StripeCheckoutModal }))
@@ -20,24 +22,44 @@ interface SubscribeProCardProps {
 	onCancelSubscription?: () => void
 	billingInterval?: 'year' | 'month'
 	currentBillingInterval?: 'year' | 'month'
+	isTrialAvailable?: boolean
 }
 
-function SubscribeProCardContent({ billingInterval = 'month' }: { billingInterval?: 'year' | 'month' }) {
+function SubscribeProCardContent({
+	billingInterval = 'month',
+	isTrialAvailable = false,
+	isAuthenticated = false,
+	isTrialActive = false
+}: {
+	billingInterval?: 'year' | 'month'
+	isTrialAvailable?: boolean
+	isAuthenticated?: boolean
+	isTrialActive?: boolean
+}) {
 	const monthlyPrice = 49
 	const yearlyPrice = monthlyPrice * 10
 	const displayPrice = billingInterval === 'year' ? yearlyPrice : monthlyPrice
 	const displayPeriod = billingInterval === 'year' ? '/year' : '/month'
 
+	const showTrialAvailable = !isAuthenticated || isTrialAvailable || isTrialActive
+
 	return (
 		<>
 			<h2 className="relative z-10 text-center text-[2rem] font-extrabold whitespace-nowrap text-[#5C5CF9]">Pro</h2>
 			<div className="relative z-10 mt-1 flex flex-col items-center justify-center">
-				<div className="flex items-center">
+				<div
+					className={`relative flex items-center ${showTrialAvailable ? 'after:absolute after:top-1/2 after:right-0 after:left-0 after:h-[1.5px] after:bg-[#8a8c90]' : ''}`}
+				>
 					<span className="bg-linear-to-r from-[#5C5CF9] to-[#7B7BFF] bg-clip-text text-center text-2xl font-medium text-transparent">
 						{displayPrice} USD
 					</span>
 					<span className="ml-1 text-[#8a8c90]">{displayPeriod}</span>
 				</div>
+				{showTrialAvailable && (
+					<div className="flex items-center">
+						<span className="text-sm font-bold">Free 7-day trial available</span>
+					</div>
+				)}
 				{billingInterval === 'year' && (
 					<span className="text-sm text-[#8a8c90]">${(yearlyPrice / 12).toFixed(2)}/month</span>
 				)}
@@ -56,18 +78,26 @@ function SubscribeProCardContent({ billingInterval = 'month' }: { billingInterva
 								LlamaAI
 							</Link>{' '}
 							<svg className="relative mx-1 inline-block h-4 w-4">
-								<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+								<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 							</svg>{' '}
 							- conversational analysis of DefiLlama data
 						</span>
+					</li>
+					<li className="group ml-6 flex items-center gap-2.5">
+						<Icon name="check" height={16} width={16} className="shrink-0 text-green-400" />
+						<span>Deep research: 5/day</span>
+						{showTrialAvailable ? (
+							<QuestionHelper text="During trial, deep research is limited to 3 questions. Full subscription includes 5/day." />
+						) : null}
 					</li>
 					<li className="flex flex-nowrap items-start gap-2.5">
 						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
 						<span>DefiLlama Pro Dashboards - build custom dashboards</span>
 					</li>
-					<li className="flex flex-nowrap items-start gap-2.5">
-						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+					<li className="flex flex-nowrap items-center gap-2.5">
+						<Icon name="check" height={16} width={16} className="shrink-0 text-green-400" />
 						<span>CSV Downloads - export any dataset</span>
+						{showTrialAvailable ? <QuestionHelper text="CSV downloads are disabled during the trial period." /> : null}
 					</li>
 					<li className="flex flex-nowrap items-start gap-2.5">
 						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
@@ -104,12 +134,14 @@ export function SubscribeProCard({
 	context = 'page',
 	active = false,
 	onCancelSubscription,
-	returnUrl,
+	returnUrl: _returnUrl,
 	billingInterval = 'month',
 	currentBillingInterval
 }: SubscribeProCardProps) {
-	const { loading } = useSubscribe()
+	const { loading, isTrialAvailable } = useSubscribe()
+	const { isAuthenticated, isTrial } = useAuthContext()
 	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
+	const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
 
 	const handleUpgradeToYearly = () => {
 		setIsUpgradeModalOpen(true)
@@ -117,7 +149,12 @@ export function SubscribeProCard({
 
 	return (
 		<>
-			<SubscribeProCardContent billingInterval={billingInterval} />
+			<SubscribeProCardContent
+				billingInterval={billingInterval}
+				isTrialAvailable={isTrialAvailable}
+				isTrialActive={isTrial}
+				isAuthenticated={isAuthenticated}
+			/>
 			<div className="relative z-10 mx-auto flex w-full max-w-[408px] flex-col gap-3">
 				{active ? (
 					<div className="flex flex-col gap-2">
@@ -146,6 +183,17 @@ export function SubscribeProCard({
 				) : (
 					<>
 						<SignInModal text="Already a subscriber? Sign In" />
+						{isAuthenticated && isTrialAvailable && (
+							<div className="flex flex-col gap-1.5">
+								<button
+									onClick={() => setIsTrialModalOpen(true)}
+									className="flex w-full items-center justify-center gap-2 rounded-lg border border-white bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-[#4A4AF0] hover:shadow-lg"
+								>
+									Free trial for 7 days
+									<QuestionHelper text="CSV downloads are disabled during the trial period." />
+								</button>
+							</div>
+						)}
 						<div
 							className={`grid gap-3 max-sm:w-full max-sm:grid-cols-1 ${billingInterval === 'year' ? 'grid-cols-1' : 'grid-cols-2'}`}
 						>
@@ -179,6 +227,18 @@ export function SubscribeProCard({
 					/>
 				</Suspense>
 			)}
+			{isTrialModalOpen && (
+				<Suspense fallback={<></>}>
+					<StripeCheckoutModal
+						isOpen={isTrialModalOpen}
+						onClose={() => setIsTrialModalOpen(false)}
+						paymentMethod="stripe"
+						type="llamafeed"
+						billingInterval="month"
+						isTrial
+					/>
+				</Suspense>
+			)}
 		</>
 	)
 }
@@ -190,6 +250,7 @@ interface SubscribeProModalProps extends SubscribeProCardProps {
 
 export function SubscribeProModal({ dialogStore, returnUrl, ...props }: SubscribeProModalProps) {
 	const router = useRouter()
+	const { isAuthenticated, isTrial } = useAuthContext()
 
 	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
@@ -199,7 +260,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 		}
 	}, [dialogStore])
 
-	const finalReturnUrl = returnUrl ? returnUrl : router.asPath
+	const _finalReturnUrl = returnUrl ?? router.asPath
 
 	return (
 		<WalletProvider>
@@ -219,24 +280,29 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 									<Icon name="x" height={18} width={18} />
 									<span className="sr-only">Close</span>
 								</Ariakit.DialogDismiss>
-								<SubscribeProCardContent billingInterval={props.billingInterval} />
+								<SubscribeProCardContent
+									isAuthenticated={isAuthenticated}
+									isTrialActive={isTrial}
+									billingInterval={props.billingInterval}
+									isTrialAvailable={true}
+								/>
 								<div className="flex flex-col gap-3">
 									<BasicLink
-										href={
-											finalReturnUrl ? `/subscription?returnUrl=${encodeURIComponent(finalReturnUrl)}` : '/subscription'
-										}
+										href="/subscription"
 										data-umami-event="subscribe-modal-goto-page"
 										className="mt-3 block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
 									>
 										Unlock Pro Features
 									</BasicLink>
 
-									<button
-										className="mx-auto w-full flex-1 rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed"
-										onClick={() => setIsSignInModalOpen(true)}
-									>
-										Already a subscriber? Sign In
-									</button>
+									{!isAuthenticated && (
+										<button
+											className="mx-auto w-full flex-1 rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed"
+											onClick={() => setIsSignInModalOpen(true)}
+										>
+											Already a subscriber? Sign In
+										</button>
+									)}
 								</div>
 							</>
 						)}

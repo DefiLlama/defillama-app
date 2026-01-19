@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -13,7 +12,7 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
-import { TagGroup } from '~/components/TagGroup'
+import * as React from 'react'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -21,6 +20,8 @@ import { TableBody } from '../../ProTable/TableBody'
 import { TablePagination } from '../../ProTable/TablePagination'
 import { bridgeAggregatorsDatasetColumns } from './columns'
 import { useBridgeAggregatorsData } from './useBridgeAggregatorsData'
+
+const EMPTY_DATA: any[] = []
 
 export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
@@ -36,7 +37,7 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 	const { data, isLoading, error } = useBridgeAggregatorsData(chains)
 
 	const instance = useReactTable({
-		data: data || [],
+		data: data ?? EMPTY_DATA,
 		columns: bridgeAggregatorsDatasetColumns as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -55,7 +56,8 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {
@@ -65,11 +67,11 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 
 	React.useEffect(() => {
 		const columnSizes = {}
-		bridgeAggregatorsDatasetColumns.forEach((column) => {
+		for (const column of bridgeAggregatorsDatasetColumns) {
 			if (column.size) {
 				columnSizes[column.id as string] = column.size
 			}
-		})
+		}
 		instance.setColumnSizing(columnSizes)
 	}, [instance])
 

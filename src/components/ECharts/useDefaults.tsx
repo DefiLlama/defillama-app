@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { BarChart, LineChart } from 'echarts/charts'
 import {
 	DataZoomComponent,
@@ -11,10 +10,11 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useMemo } from 'react'
 import { useMedia } from '~/hooks/useMedia'
-import { formattedNum } from '~/utils'
+import { formatChartEmphasisDate, formatTooltipChartDate, formatTooltipValue } from './formatters'
 
-const CHART_SYMBOLS = {
+const CHART_SYMBOLS: Record<string, string> = {
 	'Active Addresses': '',
 	'Returning Addresses': '',
 	'New Addresses': '',
@@ -32,6 +32,21 @@ const CHART_SYMBOLS = {
 	'Contributors Commits': '',
 	Commits: '',
 	'Devs Commits': ''
+}
+
+// Helper to get the symbol for a series name in tooltip
+const getSeriesSymbol = (
+	seriesName: string,
+	valueSymbol: string,
+	unlockTokenSymbol: string
+): string => {
+	if (seriesName === 'Unlocks') return unlockTokenSymbol
+	if (seriesName.includes('Users')) return 'Addresses'
+	if (seriesName.includes('Addresses')) return ''
+	if (seriesName.includes('Transactions')) return 'TXs'
+	if (seriesName === 'TVL' && valueSymbol !== '$') return valueSymbol
+	if (seriesName in CHART_SYMBOLS) return CHART_SYMBOLS[seriesName]
+	return valueSymbol
 }
 
 echarts.use([
@@ -79,7 +94,7 @@ export function useDefaults({
 	hideOthersInTooltip,
 	groupBy,
 	alwaysShowTooltip,
-	showAggregateInTooltip = false,
+	showAggregateInTooltip: _showAggregateInTooltip = false,
 	xAxisType = 'time'
 }: IUseDefaultsProps) {
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
@@ -89,7 +104,7 @@ export function useDefaults({
 			type: 'image',
 			z: 0,
 			style: {
-				image: isThemeDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
+				image: isThemeDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp',
 				height: 40,
 				opacity: 0.3
 			},
@@ -109,7 +124,13 @@ export function useDefaults({
 				}
 			: {}
 
-		const gridTop = valueSymbol === '%' ? 20 : hideLegend ? 0 : isSmall ? 60 : 10
+		const getGridTop = (): number => {
+			if (valueSymbol === '%') return 20
+			if (hideLegend) return 0
+			if (isSmall) return 60
+			return 10
+		}
+		const gridTop = getGridTop()
 
 		const grid = {
 			left: 20,
@@ -161,22 +182,7 @@ export function useDefaults({
 						curr.marker +
 						curr.seriesName +
 						'&nbsp;&nbsp;' +
-						formatTooltipValue(
-							curr.value[1],
-							curr.seriesName === 'Unlocks'
-								? unlockTokenSymbol
-								: curr.seriesName.includes('Users')
-									? 'Addresses'
-									: curr.seriesName.includes('Addresses')
-										? ''
-										: curr.seriesName.includes('Transactions')
-											? 'TXs'
-											: curr.seriesName === 'TVL' && valueSymbol !== '$'
-												? valueSymbol
-												: Object.keys(CHART_SYMBOLS).includes(curr.seriesName)
-													? CHART_SYMBOLS[curr.seriesName]
-													: valueSymbol
-						) +
+						formatTooltipValue(curr.value[1], getSeriesSymbol(curr.seriesName, valueSymbol, unlockTokenSymbol)) +
 						'</li>')
 				}, '')
 
@@ -203,7 +209,7 @@ export function useDefaults({
 				const tvl = params.filter((param) => param.seriesName === 'TVL')?.[0]?.value[1]
 
 				if (mcap && mcap != '-' && tvl) {
-					vals += '<li style="list-style:none">' + 'Mcap/TVL' + '&nbsp;&nbsp;' + Number(mcap / tvl).toFixed(2) + '</li>'
+					vals += `<li style="list-style:none">Mcap/TVL&nbsp;&nbsp;${Number(mcap / tvl).toFixed(2)}</li>`
 				}
 
 				if (title && (title.toLowerCase() === 'tokens (usd)' || title.toLowerCase() === 'chains')) {
@@ -469,84 +475,6 @@ export function useDefaults({
 	return defaults
 }
 
-export const formatTooltipValue = (value, symbol) => {
-	switch (symbol) {
-		case '$':
-			return formattedNum(value, true)
-		case '%':
-			return `${Math.round(value * 100) / 100} %`
-		default:
-			return `${formattedNum(value)} ${symbol}`
-	}
-}
-
-const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
-// timestamps in monthly chart date is 1st of every month
-// timestamps in weekly chart date is last day of week i.e., sunday
-export function formatTooltipChartDate(
-	value: number,
-	groupBy: 'daily' | 'weekly' | 'monthly' | 'quarterly',
-	hideTime?: boolean
-) {
-	const date = new Date(value)
-
-	return groupBy === 'monthly'
-		? `${monthNames[date.getUTCMonth()]} 1 - ${lastDayOfMonth(value)}, ${date.getUTCFullYear()}`
-		: groupBy === 'quarterly'
-			? getQuarterDateRange(value)
-			: groupBy === 'weekly'
-				? getStartAndEndDayOfTheWeek(value)
-				: date.getUTCHours() !== 0 && !hideTime
-					? `${date.toLocaleDateString(undefined, {
-							year: 'numeric',
-							month: '2-digit',
-							day: '2-digit',
-							hour: '2-digit',
-							minute: '2-digit',
-							timeZone: 'UTC'
-						})}`
-					: `${date.getUTCDate().toString().padStart(2, '0')} ${monthNames[date.getUTCMonth()]} ${date.getUTCFullYear()}`
-}
-
-export function formatChartEmphasisDate(value: number) {
-	const date = new Date(value)
-	return date.toLocaleDateString(undefined, {
-		year: 'numeric',
-		month: '2-digit',
-		day: '2-digit',
-		timeZone: 'UTC'
-	})
-}
-
-function getStartAndEndDayOfTheWeek(value: number) {
-	const current = new Date(value)
-	const past = new Date(value - 6 * 24 * 60 * 60 * 1000)
-
-	const currentMonth = monthNames[current.getUTCMonth()]
-	const pastMonth = monthNames[past.getUTCMonth()]
-	const currentYear = current.getUTCFullYear()
-	const pastYear = past.getUTCFullYear()
-
-	return `${past.getUTCDate().toString().padStart(2, '0')}${pastMonth !== currentMonth ? ` ${pastMonth}` : ''}${
-		pastYear !== currentYear ? ` ${pastYear}` : ''
-	} - ${current.getUTCDate().toString().padStart(2, '0')} ${currentMonth} ${currentYear}`
-}
-
-function lastDayOfMonth(dateString) {
-	let date = new Date(dateString)
-
-	return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
-}
-
-function getQuarterDateRange(value: number) {
-	const date = new Date(value)
-	const month = date.getUTCMonth()
-	const year = date.getUTCFullYear()
-	const quarterStartMonth = Math.floor(month / 3) * 3
-	const quarterEndMonth = quarterStartMonth + 2
-
-	const quarterEndDate = new Date(year, quarterEndMonth + 1, 0).getUTCDate()
-
-	return `${monthNames[quarterStartMonth]} 1 - ${monthNames[quarterEndMonth]} ${quarterEndDate}, ${year}`
-}
+// Re-export formatters for backward compatibility
+// New code should import directly from '~/components/ECharts/formatters'
+export { formatTooltipValue, formatTooltipChartDate, formatChartEmphasisDate } from './formatters'

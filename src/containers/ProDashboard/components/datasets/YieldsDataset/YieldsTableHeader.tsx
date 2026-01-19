@@ -17,8 +17,10 @@ interface YieldsTableHeaderProps {
 	activeFilterCount: number
 }
 
+const EMPTY_CHAINS: string[] = []
+
 export function YieldsTableHeader({
-	chains = [],
+	chains = EMPTY_CHAINS,
 	columnPresets,
 	applyPreset,
 	activePreset,
@@ -44,6 +46,8 @@ export function YieldsTableHeader({
 		return `${chains.length} Chains Yields`
 	}, [chains])
 
+	const presetKeys = React.useMemo(() => Object.keys(columnPresets), [columnPresets])
+
 	return (
 		<div className="mb-3">
 			<div className="mb-3 flex items-center justify-between gap-4">
@@ -61,7 +65,7 @@ export function YieldsTableHeader({
 
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="flex items-center gap-2">
-					{Object.keys(columnPresets).map((preset) => (
+					{presetKeys.map((preset) => (
 						<button
 							key={preset}
 							onClick={() => applyPreset(preset)}

@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import * as React from 'react'
 import { getETFData } from '~/api/categories/protocols'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { ILineAndBarChartProps } from '~/components/ECharts/types'
@@ -78,6 +78,8 @@ interface PageViewProps {
 }
 
 const groupByList = ['Daily', 'Weekly', 'Monthly', 'Cumulative']
+const ASSET_VALUES = ['Bitcoin', 'Ethereum'] as const
+const DEFAULT_SORTING_STATE = [{ id: 'aum', desc: true }]
 const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps) => {
 	const [groupBy, setGroupBy] = React.useState<(typeof groupByList)[number]>('Weekly')
 	const [tickers, setTickers] = React.useState(['Bitcoin', 'Ethereum'])
@@ -183,7 +185,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 						<h2 className="mr-auto text-lg font-semibold">Flows (Source: Farside)</h2>
 						<TagGroup setValue={(val) => setGroupBy(val)} values={groupByList} selectedValue={groupBy} />
 						<Select
-							allValues={['Bitcoin', 'Ethereum']}
+							allValues={ASSET_VALUES}
 							selectedValues={tickers}
 							setSelectedValues={setTickers}
 							selectOnlyOne={(newOption) => {
@@ -191,7 +193,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 							}}
 							label={'ETF'}
 							clearAll={() => setTickers([])}
-							toggleAll={() => setTickers(['Bitcoin', 'Ethereum'])}
+							toggleAll={() => setTickers([...ASSET_VALUES])}
 							labelType="smol"
 							triggerProps={{
 								className:
@@ -215,7 +217,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 				columnToSearch={'ticker'}
 				placeholder={'Search ETF...'}
 				header="Exchange Traded Funds"
-				sortingState={[{ id: 'aum', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -13,9 +12,9 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
-import { TagGroup } from '~/components/TagGroup'
+import * as React from 'react'
 import { DexItem } from '~/containers/ProDashboard/types'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -39,8 +38,8 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 		pageSize: 10
 	})
 
-	const { data, isLoading, error, refetch } = useDexsData(chains)
-	const windowSize = useWindowSize()
+	const { data, isLoading, error } = useDexsData(chains)
+	const width = useBreakpointWidth()
 
 	const enrichedData = React.useMemo<DexItemWithMarketShare[]>(() => {
 		if (!data || data.length === 0) return []
@@ -73,8 +72,20 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
+
+	// Guard against stale page index when data or filters change
+	React.useEffect(() => {
+		const pageSize = instance.getState().pagination.pageSize
+		const currentPageIndex = instance.getState().pagination.pageIndex
+		const filteredRowCount = instance.getFilteredRowModel().rows.length
+		const maxPage = Math.max(0, Math.ceil(filteredRowCount / pageSize) - 1)
+		if (currentPageIndex > maxPage) {
+			instance.setPageIndex(maxPage)
+		}
+	}, [enrichedData.length, columnFilters, instance])
 
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
@@ -98,7 +109,7 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
 		instance.setColumnVisibility(defaultVisibility)
-	}, [windowSize, chains, instance])
+	}, [width, chains, instance])
 
 	const [protocolName, setProtocolName] = React.useState('')
 

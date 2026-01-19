@@ -1,13 +1,15 @@
-import * as React from 'react'
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '../../Tooltip'
 import { mutatePinnedMetrics } from '../pinnedUtils'
 import { TNavLink } from '../types'
 import { LinkToPage, NavItemContent } from './shared'
+
+const VERTICAL_SORTING_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
 
 export const PinnedPages = React.memo(function PinnedPages({
 	pinnedPages,
@@ -46,6 +48,8 @@ export const PinnedPages = React.memo(function PinnedPages({
 		[pinnedPages]
 	)
 
+	const sortableItems = React.useMemo(() => pinnedPages.map(({ route }) => route), [pinnedPages])
+
 	return (
 		<div className="group/pinned flex flex-col">
 			<div
@@ -69,9 +73,9 @@ export const PinnedPages = React.memo(function PinnedPages({
 			<DndContext
 				sensors={sensors}
 				onDragEnd={handleDragEnd}
-				modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+				modifiers={VERTICAL_SORTING_MODIFIERS}
 			>
-				<SortableContext items={pinnedPages.map(({ route }) => route)} strategy={verticalListSortingStrategy}>
+				<SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
 					<div className="flex flex-col">
 						{pinnedPages.map((page) => (
 							<PinnedPageRow

@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { STABLECOINS_SETTINGS, useManageAppSettings } from '~/contexts/LocalStorage'
+import { STABLECOINS_SETTINGS, type StablecoinsSettingKey, useManageAppSettings } from '~/contexts/LocalStorage'
 
 export function ResetAllStablecoinFilters({ pathname }: { pathname: string; nestedMenu: boolean }) {
 	const router = useRouter()
@@ -13,7 +13,11 @@ export function ResetAllStablecoinFilters({ pathname }: { pathname: string; nest
 	return (
 		<button
 			onClick={() => {
-				updater(Object.fromEntries(Object.values(STABLECOINS_SETTINGS).map((s) => [s, false])))
+				const resetSettings: Partial<Record<StablecoinsSettingKey, boolean>> = {}
+				for (const s of Object.values(STABLECOINS_SETTINGS)) {
+					resetSettings[s] = false
+				}
+				updater(resetSettings)
 				router.push(pathname, undefined, { shallow: true })
 			}}
 			disabled={!hasActiveFilters}

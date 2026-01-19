@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
+import { useCallback, useEffect, useState } from 'react'
 import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -52,7 +52,7 @@ export const AccountStatus = ({
 				console.error('Failed to create portal session:', e)
 				setPortalUrl(null)
 			})
-	}, [isAuthenticated])
+	}, [getPortalSessionUrl, isAuthenticated])
 
 	const handleCloseWalletLinkModal = useCallback(() => {
 		setIsModalOpen(false)
@@ -153,7 +153,7 @@ export const AccountStatus = ({
 											width={14}
 											className="text-[#5C5CF9] transition-transform group-hover:scale-110"
 										/>
-										<span>Manage stripe</span>
+										<span>Manage subscription</span>
 									</BasicLink>
 								)}
 							</span>

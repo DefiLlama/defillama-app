@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import {
 	DndContext,
@@ -20,6 +19,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import {
@@ -39,6 +39,9 @@ import {
 	validateExpression
 } from '~/containers/ProDashboard/components/UnifiedTable/utils/customColumns'
 import type { CustomColumnDefinition } from '~/containers/ProDashboard/types'
+
+const AVAILABLE_VARIABLES = getAvailableVariables()
+const EMPTY_CUSTOM_COLUMNS: CustomColumnDefinition[] = []
 
 interface ColumnManagerProps {
 	columnOrder: ColumnOrderState
@@ -138,7 +141,7 @@ const buildAllColumns = (customColumns?: CustomColumnDefinition[]): ColumnMeta[]
 		.map(({ id }) => getColumnMeta(id))
 		.filter((meta): meta is ColumnMeta => Boolean(meta))
 
-	const customMetas: ColumnMeta[] = (customColumns ?? []).map((col) => ({
+	const customMetas: ColumnMeta[] = (customColumns ?? EMPTY_CUSTOM_COLUMNS).map((col) => ({
 		id: col.id,
 		header: col.name,
 		group: 'custom' as const
@@ -190,18 +193,24 @@ export function ColumnManager({
 
 	const selectedColumns = useMemo(() => {
 		const selected: string[] = []
+		const addedIds = new Set<string>()
 		for (const id of columnOrder) {
 			if (id === 'name') continue
 			if (!allColumnIds.has(id)) continue
-			if (visibleSet.has(id)) selected.push(id)
+			if (visibleSet.has(id)) {
+				selected.push(id)
+				addedIds.add(id)
+			}
 		}
 		for (const meta of allColumns) {
 			if (meta.id === 'name') continue
-			if (selected.includes(meta.id)) continue
+			if (addedIds.has(meta.id)) continue
 			if (visibleSet.has(meta.id)) selected.push(meta.id)
 		}
 		return selected
 	}, [allColumns, allColumnIds, columnOrder, visibleSet])
+
+	const selectedColumnsSet = useMemo(() => new Set(selectedColumns), [selectedColumns])
 
 	const filteredColumns = useMemo(() => {
 		const term = search.trim().toLowerCase()
@@ -220,12 +229,13 @@ export function ColumnManager({
 
 	const applyChanges = useCallback(
 		(nextSelected: string[]) => {
-			const remaining = allColumns.map((c) => c.id).filter((id) => id !== 'name' && !nextSelected.includes(id))
+			const nextSelectedSet = new Set(nextSelected)
+			const remaining = allColumns.map((c) => c.id).filter((id) => id !== 'name' && !nextSelectedSet.has(id))
 			const nextOrder: ColumnOrderState = ['name', ...nextSelected, ...remaining]
 			const nextVisibility: VisibilityState = { name: true }
 			for (const column of allColumns) {
 				if (column.id === 'name') continue
-				nextVisibility[column.id] = nextSelected.includes(column.id)
+				nextVisibility[column.id] = nextSelectedSet.has(column.id)
 			}
 			onChange(nextOrder, nextVisibility)
 		},
@@ -235,14 +245,14 @@ export function ColumnManager({
 	const handleToggleColumn = useCallback(
 		(id: string) => {
 			if (id === 'name') return
-			const isSelected = selectedColumns.includes(id)
+			const isSelected = selectedColumnsSet.has(id)
 			if (isSelected) {
 				applyChanges(selectedColumns.filter((c) => c !== id))
 			} else {
 				applyChanges([...selectedColumns, id])
 			}
 		},
-		[selectedColumns, applyChanges]
+		[selectedColumns, selectedColumnsSet, applyChanges]
 	)
 
 	const handleRemoveColumn = useCallback(
@@ -270,7 +280,7 @@ export function ColumnManager({
 	}
 	const handleDragCancel = () => setActiveId(null)
 
-	const availableVariables = useMemo(() => getAvailableVariables(), [])
+	const availableVariables = AVAILABLE_VARIABLES
 
 	const autocompleteSuggestions = useMemo<AutocompleteSuggestion[]>(() => {
 		return [
@@ -307,7 +317,7 @@ export function ColumnManager({
 
 	const validation = useMemo(() => {
 		if (!customName.trim()) return { isValid: false, error: 'Name is required' }
-		const isDuplicate = (customColumns ?? []).some(
+		const isDuplicate = (customColumns ?? EMPTY_CUSTOM_COLUMNS).some(
 			(col) => col.name.toLowerCase() === customName.toLowerCase() && col.id !== editingId
 		)
 		if (isDuplicate) return { isValid: false, error: 'Column name already exists' }
@@ -880,7 +890,7 @@ export function ColumnManager({
 					) : (
 						<div className="flex flex-col gap-1">
 							{filteredColumns.map((column) => {
-								const isSelected = selectedColumns.includes(column.id)
+								const isSelected = selectedColumnsSet.has(column.id)
 								return (
 									<button
 										key={column.id}
@@ -1012,7 +1022,7 @@ function SortingSection({
 						<span className={`truncate ${currentSortColumn ? 'text-(--text-primary)' : 'text-(--text-tertiary)'}`}>
 							{selectedLabel}
 						</span>
-						<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+						<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 					</PopoverDisclosure>
 					<Popover
 						store={popover}
@@ -1038,7 +1048,7 @@ function SortingSection({
 							>
 								<span>No sorting</span>
 								{!currentSortColumn && (
-									<Icon name="check" width={12} height={12} className="ml-2 flex-shrink-0 text-(--primary)" />
+									<Icon name="check" width={12} height={12} className="ml-2 shrink-0 text-(--primary)" />
 								)}
 							</button>
 							{selectableColumns.map((col) => {
@@ -1059,7 +1069,7 @@ function SortingSection({
 									>
 										<span className="truncate">{col.header}</span>
 										{isActive && (
-											<Icon name="check" width={12} height={12} className="ml-2 flex-shrink-0 text-(--primary)" />
+											<Icon name="check" width={12} height={12} className="ml-2 shrink-0 text-(--primary)" />
 										)}
 									</button>
 								)

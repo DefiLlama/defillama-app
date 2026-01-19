@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -12,8 +11,8 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { TagGroup } from '~/components/TagGroup'
-import useWindowSize from '~/hooks/useWindowSize'
+import * as React from 'react'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -21,6 +20,8 @@ import { TableBody } from '../../ProTable/TableBody'
 import { TablePagination } from '../../ProTable/TablePagination'
 import { feesDatasetColumns } from './columns'
 import { useFeesData } from './useFeesData'
+
+const EMPTY_DATA: any[] = []
 
 export function FeesDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
@@ -33,10 +34,10 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 	})
 
 	const { data, isLoading, error } = useFeesData(chains)
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
-		data: data || [],
+		data: data ?? EMPTY_DATA,
 		columns: feesDatasetColumns as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -53,7 +54,8 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {
@@ -71,7 +73,7 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [windowSize])
+	}, [instance, width])
 
 	const [protocolName, setProtocolName] = React.useState('')
 

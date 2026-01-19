@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { BarChart as EChartBar, LineChart as EChartLine, ScatterChart as EChartScatter } from 'echarts/charts'
 import {
 	DataZoomComponent,
@@ -10,8 +9,10 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
+import * as React from 'react'
+import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
 import type { ICollectionScatterChartProps } from './types'
 
@@ -33,15 +34,16 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
 	const [isDark] = useDarkModeManager()
+	const chartRef = React.useRef<echarts.ECharts | null>(null)
 
-	const createInstance = React.useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	React.useEffect(() => {
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
 
 		const series =
 			sales.length > 0
@@ -88,7 +90,7 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 				type: 'image',
 				z: 0,
 				style: {
-					image: isDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
+					image: isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp',
 					height: 40,
 					opacity: 0.3
 				},
@@ -228,19 +230,13 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 			series: series
 		}
 
-		chartInstance.setOption(option)
-
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
+		instance.setOption(option)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [id, sales, volume, createInstance, isDark, isSmall, salesMedian1d])
+	}, [id, sales, volume, isDark, isSmall, salesMedian1d])
 
 	return <div id={id} className="h-[360px]" style={height ? { height } : undefined} />
 }

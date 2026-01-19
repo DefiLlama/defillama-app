@@ -1,6 +1,6 @@
-import { useDeferredValue, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import { useDeferredValue, useState } from 'react'
 import { LocalLoader } from '~/components/Loaders'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
@@ -13,6 +13,9 @@ const valueToFilter = {
 	'7d': 'week',
 	'30d': 'month'
 }
+
+const TIME_VALUES = ['1d', '7d', '30d'] as const
+const CHAIN_VALUES = ['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base'] as const
 
 interface ITrendingContracts {
 	accounts_percentage_growth: number
@@ -41,13 +44,13 @@ async function getContracts(chain: string, time: string) {
 							if (name.name === undefined) {
 								throw new Error('RolodETH: No name')
 							}
-						} catch (e) {
+						} catch {
 							try {
 								name = await fetchJson(`https://api.llama.fi/contractName2/${chain}/${contract.contract.toLowerCase()}`)
 								if (name.name === '') {
 									throw new Error('Etherescan: Contract not verified')
 								}
-							} catch (e) {
+							} catch {
 								name = undefined
 							}
 						}
@@ -103,12 +106,8 @@ export default function TrendingContracts() {
 			<div className="flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center gap-5 p-3">
 					<h1 className="mr-auto text-xl font-semibold">Trending Contracts</h1>
-					<TagGroup selectedValue={value} setValue={(val: string) => setValue(val)} values={['1d', '7d', '30d']} />
-					<TagGroup
-						selectedValue={chain}
-						setValue={(val: string) => setChain(val)}
-						values={['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base']}
-					/>
+					<TagGroup selectedValue={value} setValue={(val: string) => setValue(val)} values={TIME_VALUES} />
+					<TagGroup selectedValue={chain} setValue={(val: string) => setChain(val)} values={CHAIN_VALUES} />
 				</div>
 				{isLoading ? (
 					<div className="my-auto flex min-h-[360px] flex-1 items-center justify-center">

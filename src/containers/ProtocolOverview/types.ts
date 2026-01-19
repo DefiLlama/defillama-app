@@ -260,7 +260,9 @@ export interface IProtocolOverviewPageData {
 			Record<string, Record<string, { value: number; 'by-label': Record<string, number> }>> & { timestamp?: number }
 		>
 		labelsByType: Record<string, Array<string>>
-		methodologyByType: Record<string, Record<string, string>>
+		methodology: string
+		breakdownMethodology: Record<string, Record<string, string>>
+		hasOtherTokenHolderFlows: boolean
 	} | null
 	openSmolStatsSummaryByDefault?: boolean
 	warningBanners?: IUpdatedProtocol['warningBanners']
@@ -333,8 +335,10 @@ export interface IDenominationPriceHistory {
 	volumes: Array<[number, number]>
 }
 
-export interface IToggledMetrics
-	extends Record<(typeof protocolCharts)[keyof typeof protocolCharts], 'true' | 'false'> {
+export interface IToggledMetrics extends Record<
+	(typeof protocolCharts)[keyof typeof protocolCharts],
+	'true' | 'false'
+> {
 	events: 'true' | 'false'
 	denomination: string | null
 }

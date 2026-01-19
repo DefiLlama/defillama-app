@@ -5,9 +5,11 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('protocols', async () => {
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const protocols = await getProtocolsByChain({
 		chain: 'All',
-		metadata: { name: 'All', stablecoins: true, fees: true, dexs: true, perps: true, id: 'all' }
+		chainMetadata: metadataCache.chainMetadata,
+		protocolMetadata: metadataCache.protocolMetadata
 	}).then((data) => data.protocols)
 
 	return {

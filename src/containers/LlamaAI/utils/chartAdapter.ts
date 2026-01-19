@@ -1,5 +1,11 @@
-import type { IBarChartProps, IChartProps, IMultiSeriesChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { formatTooltipValue } from '~/components/ECharts/useDefaults'
+import { formatTooltipValue } from '~/components/ECharts/formatters'
+import type {
+	IBarChartProps,
+	ICandlestickChartProps,
+	IChartProps,
+	IMultiSeriesChartProps,
+	IPieChartProps
+} from '~/components/ECharts/types'
 import { generateChartColor } from '~/containers/ProDashboard/utils'
 import { colorManager } from '~/containers/ProDashboard/utils/colorManager'
 import { formattedNum, getNDistinctColors } from '~/utils'
@@ -15,7 +21,7 @@ const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Arr
 }
 
 interface AdaptedChartData {
-	chartType: 'area' | 'bar' | 'line' | 'combo' | 'multi-series' | 'pie' | 'scatter'
+	chartType: 'area' | 'bar' | 'line' | 'combo' | 'multi-series' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
 	data: [number, number | null][] | [any, number | null][] | Array<{ name: string; value: number }>
 	props: Partial<IChartProps | IBarChartProps | IMultiSeriesChartProps | IPieChartProps>
 	title: string
@@ -42,14 +48,14 @@ const parseStringNumber = (value: any): number => {
 
 	if (typeof value === 'string') {
 		const parsed = parseFloat(value)
-		return isNaN(parsed) ? 0 : parsed
+		return Number.isNaN(parsed) ? 0 : parsed
 	}
 
 	return 0
 }
 
 const formatPrecisionPercentage = (value: number): string => {
-	if (value === null || value === undefined || isNaN(value)) {
+	if (value == null || Number.isNaN(value)) {
 		return '0%'
 	}
 
@@ -61,7 +67,7 @@ const formatPrecisionPercentage = (value: number): string => {
 	return `${Math.round(value * 100) / 100}%`
 }
 
-const formatChartValue = (value: number, valueSymbol?: string): string => {
+const _formatChartValue = (value: number, valueSymbol?: string): string => {
 	switch (valueSymbol) {
 		case '%':
 			return formatPrecisionPercentage(value)
@@ -85,21 +91,21 @@ const validateChartData = (
 	const uniqueData = data.filter((item, index, self) => index === self.findIndex((t) => t[0] === item[0]))
 
 	const validData = uniqueData.filter(([x, y]) => {
-		if (x === null || x === undefined) {
+		if (x == null) {
 			return false
 		}
 
 		// Accept strings for categorical charts
 		if (typeof x === 'string' && x.length > 0) {
-			return typeof y === 'number' && !isNaN(y)
+			return typeof y === 'number' && !Number.isNaN(y)
 		}
 
 		// Accept numbers for time-series charts
 		if (typeof x === 'number') {
 			if (chartType === 'area' || chartType === 'line') {
-				return y === null || y === undefined || (typeof y === 'number' && !isNaN(y))
+				return y == null || (typeof y === 'number' && !Number.isNaN(y))
 			}
-			return typeof y === 'number' && !isNaN(y)
+			return typeof y === 'number' && !Number.isNaN(y)
 		}
 
 		return false
@@ -108,7 +114,7 @@ const validateChartData = (
 	return validData
 }
 
-const determineTimeGrouping = (data: any[], timeField: string): 'day' | 'week' | 'month' => {
+const determineTimeGrouping = (_data: any[], _timeField: string): 'day' | 'week' | 'month' => {
 	return 'day'
 }
 
@@ -119,12 +125,12 @@ const convertToUnixTimestamp = (timestamp: any): number => {
 
 	if (typeof timestamp === 'string') {
 		const date = new Date(timestamp)
-		if (!isNaN(date.getTime())) {
+		if (!Number.isNaN(date.getTime())) {
 			return Math.floor(date.getTime() / 1000)
 		}
 
 		const parsed = parseInt(timestamp)
-		if (!isNaN(parsed)) {
+		if (!Number.isNaN(parsed)) {
 			return parsed.toString().length <= 10 ? parsed : Math.floor(parsed / 1000)
 		}
 	}
@@ -171,9 +177,10 @@ function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedC
 			.sort((a, b) => b.value - a.value)
 
 		const stackColors: Record<string, string> = {}
-		pieData.forEach((item, index) => {
+		for (let index = 0; index < pieData.length; index++) {
+			const item = pieData[index]
 			stackColors[item.name] = getChartColor(item.name, index, '#8884d8')
-		})
+		}
 
 		const pieProps: Partial<IPieChartProps> = {
 			title: config.title,
@@ -228,7 +235,7 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 				const entitySlug = entityName.toLowerCase().replace(/\s+/g, '-')
 				return [xValue, yValue, entityName, entitySlug]
 			})
-			.filter(([x, y]) => !isNaN(x as number) && !isNaN(y as number))
+			.filter(([x, y]) => !Number.isNaN(x as number) && !Number.isNaN(y as number))
 
 		const xAxisLabel = config.axes.x.label || xField
 		const yAxisLabel = config.axes.yAxes[0]?.label || yField
@@ -296,7 +303,7 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 		}
 
 		const timeField = config.dataTransformation?.timeField || config.axes.x.field
-		const timeGrouping = determineTimeGrouping(rawData, timeField)
+		const _timeGrouping = determineTimeGrouping(rawData, timeField)
 
 		const primarySeries = config.series[0]
 		if (!primarySeries) {
@@ -358,7 +365,7 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 				tooltip: {
 					confine: false,
 					appendToBody: true,
-					...(config.type === 'bar' &&
+					...((config.type === 'bar' || config.type === 'hbar') &&
 						config.axes.x.type !== 'time' && {
 							formatter: (params: any) => {
 								const value = params[0].value
@@ -376,12 +383,12 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 
 						let content = `<div style="margin-bottom: 8px; font-weight: 600;">${date}</div>`
 
-						params.forEach((param: any) => {
+						for (const param of params as any[]) {
 							const value = param.value?.[1]
 							if (value !== null && value !== undefined) {
 								content += `<div>${param.marker} ${param.seriesName}: ${formatPrecisionPercentage(value)}</div>`
 							}
-						})
+						}
 
 						return content
 					}
@@ -422,10 +429,11 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 
 		const yAxisIdToIndex = new Map<string, number>()
 		const yAxisIndexToSymbol = new Map<number, string>()
-		config.axes.yAxes?.forEach((axis, index) => {
+		for (let index = 0; index < (config.axes.yAxes?.length ?? 0); index++) {
+			const axis = config.axes.yAxes![index]
 			yAxisIdToIndex.set(axis.id, index)
 			yAxisIndexToSymbol.set(index, axis.valueSymbol ?? config.valueSymbol ?? '$')
-		})
+		}
 
 		const series: Array<{
 			data: Array<[number, number | null]>
@@ -521,18 +529,16 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 						const header = config.axes.x.type === 'time' ? new Date(xValue).toLocaleDateString() : String(xValue)
 
 						let content = `<div style="margin-bottom: 8px; font-weight: 600;">${header}</div>`
-						params.forEach((param: any) => {
+						for (const param of params as any[]) {
 							const value = param.value?.[1]
 							if (value != null) {
 								const yAxisIndex = validSeries[param.seriesIndex]?.yAxisIndex ?? 0
 								const axisSymbol = yAxisIndexToSymbol.get(yAxisIndex) ?? config.valueSymbol ?? '$'
 								const formattedValue =
-									axisSymbol === '%'
-										? formatPrecisionPercentage(value)
-										: formatTooltipValue(value, axisSymbol)
+									axisSymbol === '%' ? formatPrecisionPercentage(value) : formatTooltipValue(value, axisSymbol)
 								content += `<div>${param.marker} ${param.seriesName}: ${formattedValue}</div>`
 							}
-						})
+						}
 						return content
 					}
 				}
@@ -561,4 +567,113 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			description: `Failed to render multi-series chart: ${error instanceof Error ? error.message : 'Unknown error'}`
 		}
 	}
+}
+
+const OVERLAY_INDICATORS = ['sma', 'ema', 'dema', 'tema', 'wma', 'vwap', 'bbands', 'bollinger']
+
+export function adaptCandlestickData(
+	config: ChartConfiguration,
+	rawData: any
+): { data: ICandlestickChartProps['data']; indicators: ICandlestickChartProps['indicators'] } {
+	let data: ICandlestickChartProps['data'] = []
+	let indicators: ICandlestickChartProps['indicators'] = []
+
+	if (rawData?.ohlcv) {
+		data = rawData.ohlcv.map((row: any[]) => [row[0], row[1], row[2], row[3], row[4], row[5]])
+		indicators = Object.entries(rawData.indicators || {}).map(([name, ind]: [string, any]) => {
+			const isOverlay = OVERLAY_INDICATORS.some((o) => name.toLowerCase().startsWith(o))
+			const hasMultiValues = ind.data?.[0]?.values
+			return {
+				name,
+				category: isOverlay ? 'overlay' : 'panel',
+				data: ind.data?.map((d: any) => [d.date, d.value]) || [],
+				values: hasMultiValues ? ind.data.map((d: any) => [d.date, d.values]) : undefined
+			}
+		})
+	} else if (Array.isArray(rawData)) {
+		const sample = rawData[0] || {}
+		const keys = Object.keys(sample)
+		const getTs = (r: any) => (r.timestamp ? parseFloat(r.timestamp) : new Date(r.date).getTime())
+
+		data = rawData.map((r: any) => [
+			getTs(r),
+			parseFloat(r.open),
+			parseFloat(r.close),
+			parseFloat(r.low),
+			parseFloat(r.high),
+			parseFloat(r.volume || 0)
+		])
+
+		const bbUpper = keys.find((k) => k.includes('_bb_upper'))
+		const bbMiddle = keys.find((k) => k.includes('_bb_middle'))
+		const bbLower = keys.find((k) => k.includes('_bb_lower'))
+		if (bbUpper && bbMiddle && bbLower) {
+			indicators.push({
+				name: 'BBands',
+				category: 'overlay',
+				data: [],
+				values: rawData.map((r: any) => [
+					getTs(r),
+					{
+						upper: parseFloat(r[bbUpper] || 0),
+						middle: parseFloat(r[bbMiddle] || 0),
+						lower: parseFloat(r[bbLower] || 0)
+					}
+				])
+			})
+		}
+
+		const maFields = keys.filter((k) => /_(ma|sma|ema)\d*$/i.test(k) || /^(sma|ema)_\d+$/i.test(k))
+		for (const field of maFields) {
+			indicators.push({
+				name: field.toUpperCase(),
+				category: 'overlay',
+				data: rawData.map((r: any) => [getTs(r), parseFloat(r[field]) || null])
+			})
+		}
+
+		const rsiField = keys.find((k) => /^rsi(_\d+)?$/i.test(k))
+		if (rsiField) {
+			indicators.push({
+				name: 'RSI',
+				category: 'panel',
+				data: rawData.map((r: any) => [getTs(r), parseFloat(r[rsiField]) || null])
+			})
+		}
+
+		const macdField = keys.find((k) => k === 'macd')
+		const signalField = keys.find((k) => k === 'macd_signal')
+		const histField = keys.find((k) => k === 'macd_histogram')
+		if (macdField || signalField || histField) {
+			indicators.push({
+				name: 'MACD',
+				category: 'panel',
+				data: [],
+				values: rawData.map((r: any) => [
+					getTs(r),
+					{
+						macd: parseFloat(r[macdField as string] || 0),
+						signal: parseFloat(r[signalField as string] || 0),
+						histogram: parseFloat(r[histField as string] || 0)
+					}
+				])
+			})
+		}
+
+		const stochK = keys.find((k) => k === 'stoch_k')
+		const stochD = keys.find((k) => k === 'stoch_d')
+		if (stochK || stochD) {
+			indicators.push({
+				name: 'Stoch',
+				category: 'panel',
+				data: [],
+				values: rawData.map((r: any) => [
+					getTs(r),
+					{ k: parseFloat(r[stochK as string] || 0), d: parseFloat(r[stochD as string] || 0) }
+				])
+			})
+		}
+	}
+
+	return { data, indicators }
 }

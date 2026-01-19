@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
 import { PieChart as EPieChart } from 'echarts/charts'
 import { GraphicComponent, GridComponent, LegendComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
+import { formattedNum } from '~/utils'
 import type { IPieChartProps } from '../types'
 import { formatTooltipValue } from '../useDefaults'
 
@@ -42,8 +44,23 @@ export default function PieChart({
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 	const exportFilename = imageExportFilename || (title ? title.replace(/\s+/g, '-').toLowerCase() : 'pie-chart')
 	const exportTitle = imageExportTitle || title
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const series = useMemo(() => {
+		const total = chartData.reduce((acc, item) => acc + item.value, 0)
+
+		const formatPercent = (value: number) => {
+			if (total === 0) return '0%'
+			const pct = (value / total) * 100
+			if (pct === 0) return '0%'
+			if (pct < 0.0001) return '< 0.0001%'
+			if (pct < 0.01) return formattedNum(pct) + '%'
+			return pct.toFixed(2) + '%'
+		}
+
 		const series: Record<string, any> = {
 			name: '',
 			type: 'pie',
@@ -51,9 +68,9 @@ export default function PieChart({
 				fontFamily: 'sans-serif',
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 				formatter: (x) => {
-					return `${x.name}: (${x.percent}%)`
+					return `${x.name}: (${formatPercent(x.value)})`
 				},
-				show: showLegend ? false : true
+				show: !showLegend
 			},
 			emphasis: {
 				itemStyle: {
@@ -62,7 +79,7 @@ export default function PieChart({
 					shadowColor: 'rgba(0, 0, 0, 0.5)'
 				}
 			},
-			data: chartData.map((item, idx) => ({
+			data: chartData.map((item) => ({
 				name: item.name,
 				value: item.value,
 				itemStyle: {
@@ -82,29 +99,26 @@ export default function PieChart({
 		return series
 	}, [isDark, showLegend, chartData, radius, stackColors, isSmall])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
 		// create instance
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
 
 		const graphic = {
 			type: 'image',
 			z: 999,
 			style: {
-				image: isDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
+				image: isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp',
 				height: 40,
 				opacity: 0.3
 			},
-			left: isSmall ? '35%' : '40%',
+			left: isSmall ? '35%' : '45%',
 			top: '160px'
 		}
 
-		chartInstance.setOption({
+		instance.setOption({
 			graphic,
 			tooltip: {
 				trigger: 'item',
@@ -123,7 +137,6 @@ export default function PieChart({
 				show: showLegend,
 				left: 'right', // Default
 				orient: 'vertical', // Default
-				...legendPosition, // Apply overrides from prop
 				data: chartData.map((item) => item.name),
 				icon: 'circle',
 				itemWidth: 10,
@@ -136,26 +149,21 @@ export default function PieChart({
 				formatter: function (name) {
 					const maxLength = 18 // Keep existing formatter
 					return name.length > maxLength ? name.slice(0, maxLength) + '...' : name
-				}
+				},
+				...legendPosition // Apply overrides from prop
 			},
 			series
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		handleChartReady(chartInstance)
-
-		window.addEventListener('resize', resize)
+		handleChartReady(instance)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 			handleChartReady(null)
 		}
 	}, [
-		createInstance,
+		id,
 		series,
 		isDark,
 		title,
@@ -164,7 +172,8 @@ export default function PieChart({
 		chartData,
 		legendPosition,
 		legendTextStyle,
-		isSmall
+		isSmall,
+		handleChartReady
 	])
 
 	return (

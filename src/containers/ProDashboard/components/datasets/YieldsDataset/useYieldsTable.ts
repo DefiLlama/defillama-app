@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -13,11 +12,32 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { downloadCSV } from '~/utils'
 import { toInternalSlug } from '~/utils/chainNormalizer'
 import { yieldsDatasetColumns } from './columns'
 import { YieldsFilters } from './YieldsFiltersPanel'
 
+const YIELDS_COLUMN_PRESETS: Record<string, string[]> = {
+	essential: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase', 'apyReward'],
+	lending: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBorrow', 'totalSupplyUsd', 'totalBorrowUsd', 'ltv'],
+	volume: ['pool', 'project', 'chains', 'tvl', 'apy', 'volumeUsd1d', 'volumeUsd7d', 'il7d'],
+	advanced: [
+		'pool',
+		'project',
+		'chains',
+		'tvl',
+		'apy',
+		'apyBase',
+		'apyReward',
+		'change1d',
+		'change7d',
+		'apyMean30d'
+	]
+}
+const EMPTY_CHAINS: string[] = []
+const EMPTY_PROTOCOLS: string[] = []
+const EMPTY_TABLE_DATA: any[] = []
 interface UseYieldsTableOptions {
 	data: any[]
 	isLoading: boolean
@@ -32,7 +52,7 @@ interface UseYieldsTableOptions {
 export function useYieldsTable({
 	data,
 	isLoading,
-	chains = [],
+	chains = EMPTY_CHAINS,
 	initialColumnOrder,
 	initialColumnVisibility,
 	initialFilters,
@@ -57,7 +77,7 @@ export function useYieldsTable({
 	const filteredData = React.useMemo(() => {
 		if (!data) return []
 
-		const selectedProtocols = filters.protocols?.map((protocol) => protocol.toLowerCase()) || []
+		const selectedProtocols = filters.protocols?.map((protocol) => protocol.toLowerCase()) ?? EMPTY_PROTOCOLS
 
 		const selectedChainsSet =
 			filters.chains && filters.chains.length > 0 ? new Set(filters.chains.map(toInternalSlug)) : null
@@ -144,7 +164,7 @@ export function useYieldsTable({
 	}, [data, filters])
 
 	const table = useReactTable({
-		data: filteredData || [],
+		data: filteredData.length > 0 ? filteredData : EMPTY_TABLE_DATA,
 		columns: yieldsDatasetColumns as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -164,7 +184,8 @@ export function useYieldsTable({
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
-		maxMultiSortColCount: 1
+		maxMultiSortColCount: 1,
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {
@@ -220,30 +241,9 @@ export function useYieldsTable({
 		}
 	}, [columnOrder, columnVisibility, onColumnsChange])
 
-	const columnPresets = React.useMemo(
-		() => ({
-			essential: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase', 'apyReward'],
-			lending: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBorrow', 'totalSupplyUsd', 'totalBorrowUsd', 'ltv'],
-			volume: ['pool', 'project', 'chains', 'tvl', 'apy', 'volumeUsd1d', 'volumeUsd7d', 'il7d'],
-			advanced: [
-				'pool',
-				'project',
-				'chains',
-				'tvl',
-				'apy',
-				'apyBase',
-				'apyReward',
-				'change1d',
-				'change7d',
-				'apyMean30d'
-			]
-		}),
-		[]
-	)
-
 	const applyPreset = React.useCallback(
 		(presetName: string) => {
-			const preset = columnPresets[presetName]
+			const preset = YIELDS_COLUMN_PRESETS[presetName as keyof typeof YIELDS_COLUMN_PRESETS]
 			if (preset && table) {
 				const newVisibility = {}
 				const allColumnIds = yieldsDatasetColumns
@@ -254,9 +254,9 @@ export function useYieldsTable({
 					})
 					.filter(Boolean)
 
-				allColumnIds.forEach((colId) => {
+				for (const colId of allColumnIds) {
 					newVisibility[colId] = preset.includes(colId)
-				})
+				}
 
 				setColumnVisibility(newVisibility)
 				setColumnOrder(preset)
@@ -264,11 +264,18 @@ export function useYieldsTable({
 				setSelectedPreset(presetName)
 			}
 		},
-		[table, columnPresets]
+		[table]
 	)
 
 	React.useEffect(() => {
-		if ((!initialColumnVisibility || Object.keys(initialColumnVisibility).length === 0) && table) {
+		let hasInitialVisibility = false
+		if (initialColumnVisibility) {
+			for (const _ in initialColumnVisibility) {
+				hasInitialVisibility = true
+				break
+			}
+		}
+		if ((!initialColumnVisibility || !hasInitialVisibility) && table) {
 			applyPreset('essential')
 		}
 	}, [initialColumnVisibility, table, applyPreset])
@@ -277,9 +284,9 @@ export function useYieldsTable({
 		if (!table) return {}
 		const allColumns = table.getAllLeafColumns()
 		const visibility = {}
-		allColumns.forEach((col) => {
+		for (const col of allColumns) {
 			visibility[col.id] = columnVisibility[col.id] !== false
-		})
+		}
 		return visibility
 	}, [table, columnVisibility])
 
@@ -362,7 +369,7 @@ export function useYieldsTable({
 	// 		visibleColumnIds
 	// 			.map((id) => {
 	// 				const value = item[id]
-	// 				if (value === undefined || value === null) return ''
+	// 				if (value == null) return ''
 	// 				if (Array.isArray(value)) {
 	// 					return `"${value.join(';')}"`
 	// 				}
@@ -394,9 +401,11 @@ export function useYieldsTable({
 	const availableChains = React.useMemo(() => {
 		if (!data) return []
 		const chainsSet = new Set<string>()
-		data.forEach((row) => {
-			row.chains?.forEach((chain: string) => chainsSet.add(chain))
-		})
+		for (const row of data) {
+			for (const chain of row.chains ?? []) {
+				chainsSet.add(chain)
+			}
+		}
 		return Array.from(chainsSet).sort()
 	}, [data])
 
@@ -404,19 +413,19 @@ export function useYieldsTable({
 		if (!data) return []
 		const tokenTvlMap = new Map<string, number>()
 
-		data.forEach((row) => {
+		for (const row of data) {
 			if (row.pool && row.tvl) {
-				const separators = /[-\s\/,+]/
+				const separators = /[-\s/,+]/
 				const tokens = row.pool.split(separators)
-				tokens.forEach((token: string) => {
+				for (const token of tokens) {
 					const cleaned = token.trim().toUpperCase()
 					if (cleaned && cleaned.length >= 2 && !['LP', 'V2', 'V3', 'POOL', 'VAULT', 'FARM'].includes(cleaned)) {
 						const currentTvl = tokenTvlMap.get(cleaned) || 0
 						tokenTvlMap.set(cleaned, currentTvl + row.tvl)
 					}
-				})
+				}
 			}
-		})
+		}
 
 		return Array.from(tokenTvlMap.entries())
 			.sort((a, b) => b[1] - a[1])
@@ -446,10 +455,10 @@ export function useYieldsTable({
 
 		const protocolMap = new Map<string, { value: string; label: string; tvl: number }>()
 
-		data.forEach((row) => {
+		for (const row of data) {
 			const slug = (row.projectslug || row.project || '').trim()
 			const name = (row.project || '').trim()
-			if (!slug && !name) return
+			if (!slug && !name) continue
 
 			const key = (slug || name).toLowerCase()
 			const existing = protocolMap.get(key)
@@ -470,7 +479,7 @@ export function useYieldsTable({
 					tvl
 				})
 			}
-		})
+		}
 
 		return Array.from(protocolMap.values())
 			.sort((a, b) => {
@@ -513,7 +522,6 @@ export function useYieldsTable({
 		toggleColumnVisibility,
 		moveColumnUp,
 		moveColumnDown,
-		columnPresets,
 		applyPreset,
 		activePreset: selectedPreset,
 		downloadCSV,
@@ -530,6 +538,7 @@ export function useYieldsTable({
 		availableProtocols,
 		activeFilterCount,
 		applyFilters,
-		resetFilters
+		resetFilters,
+		columnPresets: YIELDS_COLUMN_PRESETS
 	}
 }

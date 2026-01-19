@@ -241,8 +241,11 @@ export default function DataDefinitions() {
 
 			<Definition header="App Fees" id="app-fees">
 				<p>
-					App Fees represents the sum of Fees on all protocols on a chain (excluding stablecoins, liquid staking apps
-					and gas fees). App Fees is a measure of economic activity on a chain and can be used to evaluate how active an
+					<BasicLink className="text-(--blue) hover:underline" href="/app-fees/chains">
+						App Fees
+					</BasicLink>{' '}
+					represents the sum of Fees on all protocols on a chain (excluding stablecoins, liquid staking apps and gas
+					fees). App Fees is a measure of economic activity on a chain and can be used to evaluate how active an
 					ecosystem is.
 				</p>
 			</Definition>

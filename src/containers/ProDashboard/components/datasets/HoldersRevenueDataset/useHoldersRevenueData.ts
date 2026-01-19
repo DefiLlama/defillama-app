@@ -6,7 +6,7 @@ export function useHoldersRevenueData(chains?: string[]) {
 		chains && chains.length > 0 ? `?${chains.map((chain) => `chains=${encodeURIComponent(chain)}`).join('&')}` : ''
 
 	// Use sorted chains array to ensure consistent query key
-	const sortedChains = chains ? [...chains].sort() : []
+	const sortedChains = chains?.length ? [...chains].sort() : []
 
 	return useQuery({
 		queryKey: ['holders-revenue-overview', sortedChains.join(',')],

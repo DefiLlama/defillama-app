@@ -1,16 +1,24 @@
 import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { IBarChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
-import { formatTooltipValue } from '~/components/ECharts/useDefaults'
+import { formatTooltipValue } from '~/components/ECharts/formatters'
+import type {
+	IBarChartProps,
+	ICandlestickChartProps,
+	IChartProps,
+	IPieChartProps,
+	IScatterChartProps
+} from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
-import { adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
+import { adaptCandlestickData, adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
 import { ChartDataTransformer } from '../utils/chartDataTransformer'
 import { ChartControls } from './ChartControls'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const CandlestickChart = lazy(() => import('~/components/ECharts/CandlestickChart')) as React.FC<ICandlestickChartProps>
+const HBarChart = lazy(() => import('~/components/ECharts/HBarChart'))
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 const PieChart = lazy(() => import('~/components/ECharts/PieChart'))
 const ScatterChart = lazy(() => import('~/components/ECharts/ScatterChart'))
@@ -81,6 +89,17 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 	})
 
 	if (!isActive) return null
+
+	if (config.type === 'candlestick') {
+		const candlestickData = adaptCandlestickData(config, data)
+		return (
+			<div className="flex flex-col" data-chart-id={config.id}>
+				<Suspense fallback={<div className="h-[480px]" />}>
+					<CandlestickChart data={candlestickData.data} indicators={candlestickData.indicators} />
+				</Suspense>
+			</div>
+		)
+	}
 
 	try {
 		const isMultiSeries = config.series && config.series.length > 1
@@ -186,43 +205,64 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 
 		const prepareCsv = () => {
 			const filename = `${adaptedChart.title}-${adaptedChart.chartType}-${new Date().toISOString().split('T')[0]}.csv`
+			const isTimeSeries = config.axes.x.type === 'time'
+			const xLabel = config.axes.x.label || (isTimeSeries ? 'Date' : 'Category')
+			const yLabel = config.axes.yAxes?.[0]?.label || config.series?.[0]?.name || 'Value'
+
 			if (['multi-series', 'combo'].includes(adaptedChart.chartType)) {
-				const rows = [['Timestamp', 'Date', ...(adaptedChart.props as any).series.map((series: any) => series.name)]]
-				const valuesByDate = {}
-				for (const adaptedSeries of (adaptedChart.props as any).series ?? []) {
-					for (const item of adaptedSeries.data ?? []) {
-						valuesByDate[item[0]] = valuesByDate[item[0]] || {}
-						valuesByDate[item[0]][adaptedSeries.name] = item[1]
+				const seriesNames = (adaptedChart.props as any).series.map((s: any) => s.name)
+				const rows: Array<Array<string | number | boolean>> = [
+					isTimeSeries ? ['Timestamp', 'Date', ...seriesNames] : [xLabel, ...seriesNames]
+				]
+				const valuesByKey: Record<string | number, Record<string, number>> = {}
+				for (const s of (adaptedChart.props as any).series ?? []) {
+					for (const [key, val] of s.data ?? []) {
+						valuesByKey[key] = valuesByKey[key] || {}
+						valuesByKey[key][s.name] = val
 					}
 				}
-				for (const date in valuesByDate) {
-					const row = [date, new Date(+date * 1e3).toLocaleDateString()]
-					for (const series of (adaptedChart.props as any).series ?? []) {
-						row.push(valuesByDate[date][series.name] ?? '')
-					}
-					rows.push(row)
+				for (const key of Object.keys(valuesByKey).sort((a, b) => +a - +b)) {
+					const base = isTimeSeries ? [key, new Date(+key * 1e3).toLocaleDateString()] : [key]
+					rows.push([...base, ...seriesNames.map((name: string) => valuesByKey[key][name] ?? '')])
 				}
-				return {
-					filename,
-					rows
-				}
+				return { filename, rows }
 			}
 
 			if (adaptedChart.chartType === 'pie') {
-				const rows = [['Name', 'Value']]
+				const rows: Array<Array<string | number | boolean>> = [['Name', 'Value']]
 				for (const item of (adaptedChart.props as any).chartData ?? []) {
 					rows.push([item.name, item.value])
 				}
-				return {
-					filename,
-					rows
-				}
+				return { filename, rows }
 			}
 
-			return {
-				filename,
-				rows: []
+			if (adaptedChart.chartType === 'scatter') {
+				const xAxisLabel = config.axes.x.label || 'X'
+				const yAxisLabel = config.axes.yAxes?.[0]?.label || 'Y'
+				const rows: Array<Array<string | number | boolean>> = [[xAxisLabel, yAxisLabel, 'Entity']]
+				for (const point of (adaptedChart.props as any).chartData ?? []) {
+					rows.push([point[0], point[1], point[2] ?? ''])
+				}
+				return { filename, rows }
 			}
+
+			if (['area', 'line', 'bar', 'hbar'].includes(adaptedChart.chartType)) {
+				const chartData = adaptedChart.data as Array<[string | number, number | null]>
+				if (isTimeSeries) {
+					const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', yLabel]]
+					for (const [ts, val] of chartData) {
+						rows.push([ts, new Date(+ts * 1e3).toLocaleDateString(), val ?? ''])
+					}
+					return { filename, rows }
+				}
+				const rows: Array<Array<string | number | boolean>> = [[xLabel, yLabel]]
+				for (const [category, val] of chartData) {
+					rows.push([category, val ?? ''])
+				}
+				return { filename, rows }
+			}
+
+			return { filename, rows: [] }
 		}
 
 		if (!hasData) {
@@ -252,7 +292,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 								/>
 								<CSVDownloadButton prepareCsv={prepareCsv} smol />
 							</div>
-							<BarChart key={chartKey} chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} hideDownloadButton={true} />
+							<BarChart
+								key={chartKey}
+								chartData={adaptedChart.data}
+								{...(adaptedChart.props as IBarChartProps)}
+								hideDownloadButton={true}
+							/>
 						</Suspense>
 					)
 				} else {
@@ -303,6 +348,31 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 						</Suspense>
 					)
 				}
+				break
+
+			case 'hbar':
+				const hbarData = adaptedChart.data as Array<[any, number]>
+				const hbarCategories = hbarData.map(([cat]) => cat)
+				const hbarValues = hbarData.map(([, val]) => val)
+				chartContent = (
+					<Suspense fallback={<div className="h-[338px]" />}>
+						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							<AddToDashboardButton
+								chartConfig={null}
+								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
+								smol
+							/>
+							<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						</div>
+						<HBarChart
+							key={chartKey}
+							categories={hbarCategories}
+							values={hbarValues}
+							valueSymbol={config.valueSymbol || '$'}
+							color={config.series[0]?.styling?.color || '#1f77b4'}
+						/>
+					</Suspense>
+				)
 				break
 
 			case 'line':
@@ -392,7 +462,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 							/>
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 						</div>
-						<ScatterChart key={chartKey} {...(adaptedChart.props as IScatterChartProps)} height="360px" showLabels={chartState.showLabels} />
+						<ScatterChart
+							key={chartKey}
+							{...(adaptedChart.props as IScatterChartProps)}
+							height="360px"
+							showLabels={chartState.showLabels}
+						/>
 					</Suspense>
 				)
 				break
@@ -475,7 +550,7 @@ export const ChartRenderer = memo(function ChartRenderer({
 	isLoading = false,
 	isAnalyzing = false,
 	hasError = false,
-	expectedChartCount,
+	expectedChartCount: _expectedChartCount,
 	chartTypes,
 	resizeTrigger = 0,
 	messageId

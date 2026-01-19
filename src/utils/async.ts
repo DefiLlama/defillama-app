@@ -1,228 +1,309 @@
-import { fetchWithPoolingOnServer, FetchWithPoolingOnServerOptions } from './perf'
+import { fetchWithPoolingOnServer, FetchWithPoolingOnServerOptions } from './http-client'
 
-async function fetchWithErrorLogging(
-	url: RequestInfo | URL,
-	options?: FetchWithPoolingOnServerOptions,
-	retry: boolean = false
-): Promise<Response> {
-	const start = Date.now()
-	try {
-		const res = await fetchWithPoolingOnServer(url, options)
-		if (res.status !== 200) {
-			// const end = Date.now()
-			// postRuntimeLogs(`[HTTP] [error] [${res.status}] [${end - start}ms] < ${url} >`)
-		}
-		return res
-	} catch (error) {
-		if (retry) {
-			try {
-				const res = await fetchWithPoolingOnServer(url, options)
-				if (res.status >= 400) {
-					const end = Date.now()
-					postRuntimeLogs(`[HTTP] [1] [error] [${res.status}] [${end - start}ms] < ${url} >`)
-				}
-				return res
-			} catch (error) {
-				try {
-					const res = await fetchWithPoolingOnServer(url, options)
-					if (res.status >= 400) {
-						const end = Date.now()
-						postRuntimeLogs(`[HTTP] [2] [error] [${res.status}] [${end - start}ms] < ${url} >`)
-					}
-					return res
-				} catch (error) {
-					const end = Date.now()
-					postRuntimeLogs(
-						`[HTTP] [3] [error] [fetch] [${(error as Error).name}] [${(error as Error).message}] [${
-							end - start
-						}ms] < ${url} >`
-					)
-					return null
-				}
-			}
-		}
-		throw error
-	}
+// ─────────────────────────────────────────────────────────────
+// Config: Only 2 knobs instead of 5
+// ─────────────────────────────────────────────────────────────
+export function getEnvNumber(name: string, fallback: number): number {
+	const raw = process.env[name]
+	if (raw === undefined) return fallback
+	const parsed = Number(raw)
+	return Number.isFinite(parsed) ? parsed : fallback
 }
 
+const LOG_MAX_QPS = Math.max(0, getEnvNumber('RUNTIME_LOG_MAX_QPS', 5))
+const LOG_QUEUE_MAX = Math.max(10, getEnvNumber('RUNTIME_LOG_QUEUE_MAX', 200))
+const LOG_SILENT =
+	process.env.RUNTIME_LOG_SILENT === '1' ||
+	(process.env.NODE_ENV === 'production' && process.env.RUNTIME_LOG_SILENT !== '0')
+
+// ─────────────────────────────────────────────────────────────
+// Shared utilities (exported for perf.ts to reuse)
+// ─────────────────────────────────────────────────────────────
 export async function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+export function getJitteredDelay(baseMs: number, attempt: number, maxMs: number): number {
+	const exp = Math.min(baseMs * 2 ** attempt, maxMs)
+	return Math.floor(exp * (0.5 + Math.random()))
+}
+
+const TRANSIENT_ERRORS = ['aborted', 'socket', 'econnreset', 'etimedout', 'timeout', 'fetch failed', 'network']
+
+export function isTransientError(err: unknown): boolean {
+	if (!(err instanceof Error)) return false
+	const msg = err.message.toLowerCase()
+	return TRANSIENT_ERRORS.some((t) => msg.includes(t))
+}
+
+export function isRetryableStatus(status: number): boolean {
+	return status === 408 || status === 429 || (status >= 500 && status < 600)
+}
+
+// ─────────────────────────────────────────────────────────────
+// Logging: Simple QPS throttle + dedup + async webhook
+// ─────────────────────────────────────────────────────────────
+const recentErrors = new Map<string, number>() // key → timestamp
+const DEDUP_WINDOW_MS = 60_000
+const DEDUP_MAX_ENTRIES = 1000
+const CLEANUP_INTERVAL_MS = 10_000
+let lastCleanupTime = 0
+let qpsWindow = 0
+let qpsCount = 0
+let dropped = 0
+
+const logQueue: string[] = []
+let flushTimer: ReturnType<typeof setInterval> | null = null
+
+function webhookEnabled(): boolean {
+	return typeof window === 'undefined' && !!process.env.RUNTIME_LOGS_WEBHOOK
+}
+
+function startFlushTimer(): void {
+	if (flushTimer || !webhookEnabled()) return
+	flushTimer = setInterval(flushQueue, 1000)
+	if (typeof flushTimer.unref === 'function') {
+		flushTimer.unref()
+	}
+}
+
+function flushQueue(): void {
+	if (logQueue.length === 0 && dropped === 0) {
+		// Stop timer when idle to save CPU
+		if (flushTimer) {
+			clearInterval(flushTimer)
+			flushTimer = null
+		}
+		return
+	}
+
+	const items = logQueue.splice(0)
+	if (dropped > 0) {
+		items.unshift(`[logs] ${dropped} dropped`)
+		dropped = 0
+	}
+
+	// Batch into ≤1900 char messages (Discord limit is 2000)
+	let batch = ''
+	for (const line of items) {
+		const next = batch ? `${batch}\n${line}` : line
+		if (next.length > 1900) {
+			if (batch) sendWebhook(batch)
+			batch = line.slice(0, 1900)
+		} else {
+			batch = next
+		}
+	}
+	if (batch) sendWebhook(batch)
+}
+
+function sendWebhook(content: string): void {
+	const url = process.env.RUNTIME_LOGS_WEBHOOK
+	if (!url) return
+
+	const controller = new AbortController()
+	const timeoutId = setTimeout(() => controller.abort(), 5000)
+
+	fetch(url, {
+		method: 'POST',
+		body: JSON.stringify({ content }),
+		headers: { 'Content-Type': 'application/json' },
+		signal: controller.signal
+	})
+		.catch(() => {
+			// Silently ignore webhook failures
+		})
+		.finally(() => clearTimeout(timeoutId))
+}
+
+type RuntimeLogOptions = {
+	level?: 'info' | 'error'
+	forceConsole?: boolean
+}
+
+export function postRuntimeLogs(log: string, options?: RuntimeLogOptions): void {
+	const now = Date.now()
+	const level = options?.level ?? 'info'
+	const forceConsole = options?.forceConsole ?? false
+	let droppedForThrottle = false
+
+	// QPS throttle
+	if (now - qpsWindow >= 1000) {
+		qpsWindow = now
+		qpsCount = 0
+	}
+	if (LOG_MAX_QPS > 0 && qpsCount >= LOG_MAX_QPS) {
+		dropped++
+		droppedForThrottle = true
+		startFlushTimer()
+	}
+	if (!droppedForThrottle) {
+		qpsCount++
+	}
+
+	// Dedup: skip if same error logged within window
+	const key = log.replace(/\[\d+ms\]/g, '').replace(/\d{10,}/g, '')
+	const lastSeen = recentErrors.get(key)
+	if (!droppedForThrottle && lastSeen && now - lastSeen < DEDUP_WINDOW_MS) {
+		dropped++
+		startFlushTimer()
+		droppedForThrottle = true
+	}
+	if (!droppedForThrottle) {
+		recentErrors.set(key, now)
+	}
+
+	// Periodic cleanup (time-throttled to avoid running on every call)
+	const shouldCleanup = recentErrors.size > 500 && now - lastCleanupTime >= CLEANUP_INTERVAL_MS
+	if (shouldCleanup || recentErrors.size >= DEDUP_MAX_ENTRIES) {
+		lastCleanupTime = now
+		const cutoff = now - DEDUP_WINDOW_MS
+		for (const [k, t] of recentErrors) {
+			if (t < cutoff) recentErrors.delete(k)
+		}
+		// Hard cap: evict oldest entries if map still too large
+		if (recentErrors.size >= DEDUP_MAX_ENTRIES) {
+			const toDelete = recentErrors.size - DEDUP_MAX_ENTRIES + 100
+			let deleted = 0
+			for (const key of recentErrors.keys()) {
+				if (deleted >= toDelete) break
+				recentErrors.delete(key)
+				deleted++
+			}
+		}
+	}
+
+	// Enqueue for webhook
+	if (!droppedForThrottle && webhookEnabled()) {
+		if (logQueue.length >= LOG_QUEUE_MAX) {
+			dropped++
+			startFlushTimer()
+		} else {
+			logQueue.push(log.slice(0, 1900))
+			startFlushTimer()
+		}
+	}
+
+	// Console (unless silent)
+	if (!LOG_SILENT || forceConsole || level === 'error') {
+		const output = level === 'error' ? console.error : console.log
+		output(`\n${log}\n`)
+	}
+}
+
+// ─────────────────────────────────────────────────────────────
+// Fetch with single retry loop
+// ─────────────────────────────────────────────────────────────
+export async function fetchJson<T = any>(
+	url: RequestInfo | URL,
+	options?: FetchWithPoolingOnServerOptions,
+	extraRetry: boolean = false
+): Promise<T> {
+	const start = Date.now()
+	const maxAttempts = extraRetry ? 3 : 2
+	let lastErr: Error | null = null
+
+	for (let attempt = 0; attempt < maxAttempts; attempt++) {
+		try {
+			const res = await fetchWithPoolingOnServer(url, options)
+
+			if (!res.ok) {
+				// Non-retryable client errors → fail fast
+				if (res.status >= 400 && res.status < 500 && !isRetryableStatus(res.status)) {
+					const text = await res.text().catch(() => res.statusText)
+					throw new Error(`[${res.status}] ${text}`)
+				}
+				// Retryable server errors
+				if (isRetryableStatus(res.status) && attempt < maxAttempts - 1) {
+					await sleep(getJitteredDelay(200, attempt, 2000))
+					continue
+				}
+				const text = await res.text().catch(() => res.statusText)
+				throw new Error(`[${res.status}] ${text}`)
+			}
+
+			const data = await res.json()
+			const elapsed = Date.now() - start
+			if (elapsed > 5000) {
+				postRuntimeLogs(`[fetchJson] [${elapsed}ms] < ${url} >`)
+			}
+
+			return data
+		} catch (err) {
+			lastErr = err instanceof Error ? err : new Error(String(err))
+			const canRetry = attempt < maxAttempts - 1 && isTransientError(lastErr)
+			if (canRetry) {
+				await sleep(getJitteredDelay(100, attempt, 2000))
+				continue
+			}
+		}
+	}
+
+	// Log on final failure only
+	const elapsed = Date.now() - start
+	postRuntimeLogs(`[fetchJson] [error] [${elapsed}ms] [${lastErr?.message}] < ${url} >`, {
+		level: 'error',
+		forceConsole: true
+	})
+	throw lastErr
+}
+
+// ─────────────────────────────────────────────────────────────
+// Simple fetch wrapper for API calls
+// ─────────────────────────────────────────────────────────────
 export const fetchApi = async (url: string | Array<string>) => {
 	if (!url) return null
 	try {
 		const data = typeof url === 'string' ? await fetchJson(url) : await Promise.all(url.map((u) => fetchJson(u)))
 		return data
 	} catch (error) {
-		throw new Error(
-			error instanceof Error ? error.message : `Failed to fetch ${typeof url === 'string' ? url : url.join(', ')}`
-		)
+		if (error instanceof Error) {
+			throw error
+		}
+		throw new Error(`Failed to fetch ${typeof url === 'string' ? url : url.join(', ')}`)
 	}
 }
 
-export function postRuntimeLogs(log) {
-	if (typeof window === 'undefined' && process.env.RUNTIME_LOGS_WEBHOOK) {
-		fetch(process.env.RUNTIME_LOGS_WEBHOOK, {
-			method: 'POST',
-			body: JSON.stringify({ content: log }),
-			headers: { 'Content-Type': 'application/json' }
-		})
+// ─────────────────────────────────────────────────────────────
+// Response handlers (kept for backward compatibility)
+// ─────────────────────────────────────────────────────────────
+export async function handleFetchResponse(res: Response): Promise<any> {
+	if (res.ok) {
+		return res.json()
 	}
-	console.log(`\n${log}\n`)
-}
 
-export async function handleFetchResponse(
-	res: Response,
-	url: RequestInfo | URL,
-	options?: FetchWithPoolingOnServerOptions,
-	callerInfo?: string
-) {
-	try {
-		if (res.ok) {
-			const response = await res.json()
-			return response
-		}
-
-		// Handle non-200 status codes
-		let errorMessage = `[HTTP] [error] [${res.status}] < ${res.url} >`
-
-		// Try to get error message from statusText first
-		if (res.statusText) {
-			errorMessage += `: ${res.statusText}`
-		}
-
-		// Read response body only once
-		const responseText = await res.text()
-
-		if (responseText) {
-			// Try to parse as JSON first
-			try {
-				const errorResponse = JSON.parse(responseText)
-				if (errorResponse.error) {
-					errorMessage = errorResponse.error
-				} else if (errorResponse.message) {
-					errorMessage = errorResponse.message
-				} else {
-					// If JSON parsing succeeded but no error/message field, use the text
-					errorMessage = responseText
-				}
-			} catch (jsonError) {
-				// If JSON parsing fails, use the text response
-				errorMessage = responseText
-			}
-		}
-
-		throw new Error(errorMessage)
-	} catch (e) {
-		// Log with caller info if available
-		const logMessage = callerInfo
-			? `[fetchJson] [error] [caller: ${callerInfo}] [${e.message}] < ${url} >`
-			: `[HTTP] [parse] [error] [${e.message}] < ${url} > \n${JSON.stringify(options)}`
-
-		postRuntimeLogs(logMessage)
-
-		throw e // Re-throw the error instead of returning empty object
+	let errorMessage = `[${res.status}]`
+	if (res.statusText) {
+		errorMessage += `: ${res.statusText}`
 	}
-}
 
-export async function fetchJson(
-	url: RequestInfo | URL,
-	options?: FetchWithPoolingOnServerOptions,
-	retry: boolean = false
-): Promise<any> {
-	const start = Date.now()
-
-	// Capture caller information at the time of call
-	const callerInfo = getCallerInfo(new Error().stack)
-
-	try {
-		const res = await fetchWithErrorLogging(url, options, retry).then((res) =>
-			handleFetchResponse(res, url, options, callerInfo)
-		)
-
-		const end = Date.now()
-		if (end - start > 5000) {
-			postRuntimeLogs(`[fetchJson] [success] [${end - start}ms] < ${url} >`)
-		}
-
-		return res
-	} catch (error) {
-		const end = Date.now()
-		// Only log here if the error didn't come from handleFetchResponse
-		if (!error.message.includes('[HTTP]')) {
-			postRuntimeLogs(
-				`[fetchJson] [error] [${end - start}ms] [caller: ${callerInfo}] [${
-					error instanceof Error ? error.message : 'Unknown error'
-				}] < ${url} >`
-			)
-		}
-
-		throw error
-	}
-}
-
-// Helper function to extract caller information from stack trace
-function getCallerInfo(stack?: string): string {
-	if (!stack) return 'unknown'
-
-	const lines = stack.split('\n')
-	// Look for the first line that contains a file path and function name
-	// Skip lines that contain fetchJson, handleFetchResponse, etc.
-	for (let i = 0; i < lines.length; i++) {
-		const line = lines[i].trim()
-		// Match patterns like "at functionName (file:line:column)" or "at file:line:column"
-		const match = line.match(/at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)|at\s+(.+?):(\d+):(\d+)/)
-		if (match) {
-			const functionName = match[1] || 'anonymous'
-			const filePath = match[2] || match[5]
-			const lineNumber = match[3] || match[6]
-
-			// Skip if this is fetchJson, handleFetchResponse, or other internal functions
-			if (
-				functionName.includes('fetchJson') ||
-				functionName.includes('handleFetchResponse') ||
-				functionName.includes('fetchWithErrorLogging') ||
-				functionName.includes('getCallerInfo')
-			) {
-				continue
-			}
-
-			// Extract just the filename from the full path
-			const fileName = filePath.split('/').pop()?.split('\\').pop() || 'unknown'
-			return `${functionName} (${fileName}:${lineNumber})`
+	const responseText = await res.text().catch(() => '')
+	if (responseText) {
+		try {
+			const errorResponse = JSON.parse(responseText)
+			errorMessage = errorResponse.error ?? errorResponse.message ?? responseText
+		} catch {
+			errorMessage = responseText
 		}
 	}
 
-	return 'unknown'
+	throw new Error(errorMessage)
 }
 
-export async function handleSimpleFetchResponse(res: Response) {
+export async function handleSimpleFetchResponse(res: Response): Promise<Response> {
 	if (!res.ok) {
 		let errorMessage = `[HTTP] [error] [${res.status}]`
 
-		// Try to get error message from statusText first
 		if (res.statusText) {
 			errorMessage += `: ${res.statusText}`
 		}
 
-		// Read response body only once
-		const responseText = await res.text()
-
+		const responseText = await res.text().catch(() => '')
 		if (responseText) {
-			// Try to parse as JSON first
 			try {
 				const errorResponse = JSON.parse(responseText)
-				if (errorResponse.error) {
-					errorMessage = errorResponse.error
-				} else if (errorResponse.message) {
-					errorMessage = errorResponse.message
-				} else {
-					// If JSON parsing succeeded but no error/message field, use the text
-					errorMessage = responseText
-				}
-			} catch (jsonError) {
-				// If JSON parsing fails, use the text response
+				errorMessage = errorResponse.error ?? errorResponse.message ?? responseText
+			} catch {
 				errorMessage = responseText
 			}
 		}

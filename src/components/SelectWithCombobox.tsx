@@ -1,14 +1,13 @@
-import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import * as React from 'react'
 import { Icon } from './Icon'
 import { NestedMenu, NestedMenuItem } from './NestedMenu'
+import type { SelectOption, SelectValues } from './selectTypes'
 import { Tooltip } from './Tooltip'
 
 interface ISelectWithCombobox {
-	allValues:
-		| Array<{ key: string; name: string; help?: string; isCustom?: boolean; customIndex?: number }>
-		| Array<string>
+	allValues: SelectValues
 	selectedValues: Array<string>
 	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string>>>
 	label: string
@@ -50,12 +49,12 @@ export function SelectWithCombobox({
 		if (!deferredSearchValue) return allValues
 
 		if (valuesAreAnArrayOfStrings) {
-			return matchSorter(allValues as Array<string>, deferredSearchValue, {
+			return matchSorter(allValues as ReadonlyArray<string>, deferredSearchValue, {
 				threshold: matchSorter.rankings.CONTAINS
 			})
 		}
 
-		return matchSorter(allValues as Array<{ name: string }>, deferredSearchValue, {
+		return matchSorter(allValues as ReadonlyArray<SelectOption>, deferredSearchValue, {
 			keys: ['name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
@@ -266,7 +265,7 @@ export function SelectWithCombobox({
 														className="rounded-sm p-1 hover:bg-(--btn-hover-bg)"
 														onClick={(e) => {
 															e.stopPropagation()
-															onEditCustomColumn && onEditCustomColumn(option.customIndex!)
+															onEditCustomColumn?.(option.customIndex)
 														}}
 														title="Edit custom column"
 													>
@@ -278,7 +277,7 @@ export function SelectWithCombobox({
 														className="rounded-sm p-1 hover:bg-red-100 dark:hover:bg-red-900"
 														onClick={(e) => {
 															e.stopPropagation()
-															onDeleteCustomColumn && onDeleteCustomColumn(option.customIndex!)
+															onDeleteCustomColumn?.(option.customIndex)
 														}}
 														title="Delete custom column"
 													>

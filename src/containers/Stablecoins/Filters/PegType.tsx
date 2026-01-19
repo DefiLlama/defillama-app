@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import { Select } from '~/components/Select'
 import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
 
@@ -111,7 +111,7 @@ export const stablecoinPegTypeOptions = [
 export function PegType({ pathname, nestedMenu }: { pathname: string; nestedMenu: boolean }) {
 	const router = useRouter()
 
-	const { pegtype = [], chain, ...queries } = router.query
+	const { pegtype = [], chain: _chain, ...queries } = router.query
 
 	const selectedValues = useMemo(() => {
 		return stablecoinPegTypeOptions

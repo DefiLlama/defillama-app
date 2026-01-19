@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
+import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -78,7 +78,7 @@ export const DimensionProtocolChartByType = ({
 						type: chartType
 					})
 			: () => Promise.resolve(null),
-		enabled: metadata?.bribeRevenue && feesSettings.bribes ? true : false,
+		enabled: !!(metadata?.bribeRevenue && feesSettings.bribes),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0
@@ -107,7 +107,7 @@ export const DimensionProtocolChartByType = ({
 						type: chartType
 					})
 			: () => Promise.resolve(null),
-		enabled: metadata?.tokenTax && feesSettings.tokentax ? true : false,
+		enabled: !!(metadata?.tokenTax && feesSettings.tokentax),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0
@@ -305,7 +305,10 @@ const ChartByType = ({
 
 		// Build chart config
 		const allColors = getNDistinctColors(breakdownNames.length + 1)
-		const stackColors = Object.fromEntries(breakdownNames.map((type, i) => [type, allColors[i]]))
+		const stackColors: Record<string, string> = {}
+		for (let i = 0; i < breakdownNames.length; i++) {
+			stackColors[breakdownNames[i]] = allColors[i]
+		}
 		stackColors['Others'] = allColors[allColors.length - 1]
 
 		const chartType2: 'line' | 'bar' = isCumulative ? 'line' : 'bar'

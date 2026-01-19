@@ -1,5 +1,5 @@
-import { useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 
 interface CreateDashboardModalProps {
@@ -40,14 +40,14 @@ export function CreateDashboardModal({ dialogStore, onCreate }: CreateDashboardM
 
 	const handleAddTag = (tag: string) => {
 		const trimmedTag = tag.trim().toLowerCase()
-		if (trimmedTag && !tags.includes(trimmedTag)) {
-			setTags([...tags, trimmedTag])
+		if (trimmedTag) {
+			setTags((prev) => (prev.includes(trimmedTag) ? prev : [...prev, trimmedTag]))
 		}
 		setTagInput('')
 	}
 
 	const handleRemoveTag = (tag: string) => {
-		setTags(tags.filter((t) => t !== tag))
+		setTags((prev) => prev.filter((t) => t !== tag))
 	}
 
 	const handleTagInputKeyDown = (e: React.KeyboardEvent) => {

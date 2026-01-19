@@ -1,5 +1,5 @@
-import * as React from 'react'
 import * as echarts from 'echarts/core'
+import * as React from 'react'
 
 type Value = string | number | boolean
 
@@ -47,22 +47,21 @@ export interface IChartProps {
 	imageExportTitle?: string
 }
 
-export interface ISingleSeriesChartProps
-	extends Omit<
-		IChartProps,
-		| 'stacks'
-		| 'stackColors'
-		| 'customLegendOptions'
-		| 'customLegendName'
-		| 'customYAxis'
-		| 'groupBy'
-		| 'tooltipOrderBottomUp'
-		| 'hideDownloadButton'
-		| 'containerClassName'
-		| 'enableImageExport'
-		| 'imageExportFilename'
-		| 'imageExportTitle'
-	> {
+export interface ISingleSeriesChartProps extends Omit<
+	IChartProps,
+	| 'stacks'
+	| 'stackColors'
+	| 'customLegendOptions'
+	| 'customLegendName'
+	| 'customYAxis'
+	| 'groupBy'
+	| 'tooltipOrderBottomUp'
+	| 'hideDownloadButton'
+	| 'containerClassName'
+	| 'enableImageExport'
+	| 'imageExportFilename'
+	| 'imageExportTitle'
+> {
 	chartName?: string
 	chartType: 'line' | 'bar'
 	symbolOnChart?: 'circle' | 'rect' | 'roundRect' | 'triangle' | 'diamond' | 'pin' | 'arrow' | 'none'
@@ -73,6 +72,7 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 		[stack: string]: string
 	}
 	customComponents?: React.ReactNode
+	orientation?: 'vertical' | 'horizontal'
 }
 
 export interface ILineAndBarChartProps {
@@ -102,6 +102,7 @@ export interface ILineAndBarChartProps {
 	hideDataZoom?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
 	hideDefaultLegend?: boolean
+	hideDownloadButton?: boolean
 	enableImageExport?: boolean
 	imageExportFilename?: string
 	imageExportTitle?: string
@@ -142,6 +143,13 @@ export interface IMultiSeriesChart2Props {
 
 export interface ICandlestickChartProps {
 	data: Array<[number, number, number, number, number, number]>
+	indicators?: Array<{
+		name: string
+		category: 'overlay' | 'panel'
+		data: Array<[number, number | null]>
+		values?: Array<[number, Record<string, number | null>]>
+		color?: string
+	}>
 }
 
 export interface IMultiSeriesChartProps {

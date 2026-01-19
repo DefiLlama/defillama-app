@@ -1,0 +1,27 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"plugins": ["react", "typescript", "nextjs"],
+	"categories": {
+		"correctness": "error",
+		"suspicious": "warn"
+	},
+	"rules": {
+		"eslint/no-var": "off",
+		"eslint/prefer-const": "off",
+		"typescript/no-explicit-any": "off",
+		"typescript/no-empty-object-type": "off",
+		"react/no-unescaped-entities": "off",
+		"nextjs/no-img-element": "off",
+		"eslint/no-unused-vars": "off",
+		"typescript/no-unused-vars": "warn",
+		"eslint/no-undef": "off",
+		"typescript/consistent-type-imports": "off",
+		"react/react-in-jsx-scope": "off",
+		"nextjs/no-html-link-for-pages": "off",
+		"eslint/preserve-caught-error": "off",
+		"typescript/no-extraneous-class": "off",
+		"react/iframe-missing-sandbox": "off",
+		"nextjs/no-duplicate-head": "off"
+	},
+	"ignorePatterns": ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "public/**"]
+}

@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import Head from 'next/head'
 import * as Ariakit from '@ariakit/react'
+import Head from 'next/head'
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LinkPreviewCard } from '~/components/SEO'
@@ -72,7 +72,7 @@ export function SubscribeLayout({ children }) {
 					<div className="mx-auto max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px]">
 						<div className="flex flex-col items-center justify-between gap-6 md:flex-row">
 							<div className="flex items-center gap-3">
-								<img src="/icons/llama.webp" alt="DefiLlama" width={28} height={28} className="rounded-full" />
+								<img src="/assets/llama.webp" alt="DefiLlama" width={28} height={28} className="rounded-full" />
 								<span className="font-bold">DefiLlama</span>
 							</div>
 

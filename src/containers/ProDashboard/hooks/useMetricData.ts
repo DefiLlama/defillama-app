@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import dayjs, { type Dayjs } from 'dayjs'
+import { useMemo } from 'react'
 import { useProDashboardCatalog } from '../ProDashboardAPIContext'
 import { getChartQueryFn, getChartQueryKey, useParentChildMapping } from '../queries'
 import type { MetricAggregator, MetricConfig, MetricWindow } from '../types'
@@ -9,6 +9,7 @@ const DEFAULT_COMPARE = {
 	mode: 'previous_value' as const,
 	format: 'percent' as const
 }
+const EMPTY_SERIES: [number, number][] = []
 
 type WindowBounds = {
 	currentStart: number | null
@@ -142,10 +143,11 @@ function aggregate(values: number[], aggregator: MetricAggregator, window: Metri
 		case 'first':
 			return arr[0]
 		case 'growth': {
-			if (arr.length < 2) return null
-			const first = arr[0]
-			const last = arr[arr.length - 1]
-			return first !== 0 ? ((last - first) / first) * 100 : null
+			const nonZero = arr.filter((value) => value !== 0)
+			if (nonZero.length < 2) return null
+			const first = nonZero[0]
+			const last = nonZero[nonZero.length - 1]
+			return ((last - first) / first) * 100
 		}
 		case 'movingavg': {
 			if (arr.length === 0) return null
@@ -192,11 +194,7 @@ export function useMetricData(metric: MetricConfig) {
 	const tokenTypes = ['tokenMcap', 'tokenPrice', 'tokenVolume']
 	const chainTokenTypes = ['chainMcap', 'chainPrice']
 
-	const {
-		data: series = [],
-		isLoading,
-		isError
-	} = useQuery({
+	const { data: series, isLoading, isError } = useQuery({
 		queryKey: ['metric', ...getChartQueryKey(type, itemType, item, geckoId, undefined)],
 		queryFn: getChartQueryFn(type, itemType, item, geckoId, undefined, parentMapping),
 		staleTime: 5 * 60 * 1000,
@@ -207,10 +205,12 @@ export function useMetricData(metric: MetricConfig) {
 				(itemType === 'chain' && (!chainTokenTypes.includes(type) || !!geckoId)))
 	})
 
+	const resolvedSeries = series ?? EMPTY_SERIES
+
 	const result = useMemo(() => {
 		const reference = dayjs()
-		const inWindow = filterByWindow(series, window, reference)
-		const previousWindow = getPreviousWindow(series, window, reference)
+		const inWindow = filterByWindow(resolvedSeries, window, reference)
+		const previousWindow = getPreviousWindow(resolvedSeries, window, reference)
 
 		const values = inWindow.map(([, v]) => v)
 		const value = aggregate(values, aggregator, window)
@@ -245,12 +245,12 @@ export function useMetricData(metric: MetricConfig) {
 		const lastUpdatedTs =
 			inWindow.length > 0
 				? inWindow[inWindow.length - 1][0]
-				: series.length > 0
-					? series[series.length - 1][0]
+				: resolvedSeries.length > 0
+					? resolvedSeries[resolvedSeries.length - 1][0]
 					: undefined
 
 		return { value, delta, deltaPct, sparklineData, lastUpdatedTs }
-	}, [series, window, aggregator, compare, type])
+	}, [resolvedSeries, window, aggregator, compare])
 
 	return {
 		...result,

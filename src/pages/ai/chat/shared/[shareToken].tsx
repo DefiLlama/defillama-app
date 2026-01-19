@@ -1,5 +1,5 @@
-import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
 import { LoadingDots } from '~/components/Loaders'
 import { MCP_SERVER } from '~/constants'
 import { LlamaAI } from '~/containers/LlamaAI'

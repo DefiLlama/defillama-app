@@ -1,10 +1,8 @@
+import Router from 'next/router'
 import { useEffect, useRef } from 'react'
-import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 
 export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
-	const router = useRouter()
-
 	const id = useRef(null)
 
 	// cleanup timeout on unmount
@@ -31,15 +29,10 @@ export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
 							clearTimeout(id.current)
 						}
 						id.current = setTimeout(() => {
-							const { page, ...queryWithoutPage } = router.query
-							router.push(
-								{
-									pathname: '/pro',
-									query: { ...queryWithoutPage, query: currentValue }
-								},
-								undefined,
-								{ shallow: true }
-							)
+							const params = new URLSearchParams(window.location.search)
+							params.delete('page')
+							params.set('query', currentValue)
+							Router.push(`/pro?${params.toString()}`, undefined, { shallow: true })
 						}, 300)
 					}}
 					placeholder="Search community created dashboards..."

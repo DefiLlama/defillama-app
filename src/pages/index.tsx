@@ -4,8 +4,13 @@ import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('index', async () => {
+	const metadataModule = await import('~/utils/metadata')
+	await metadataModule.refreshMetadataIfStale()
+	const metadataCache = metadataModule.default
 	const data = await getChainOverviewData({
-		chain: 'All'
+		chain: 'All',
+		chainMetadata: metadataCache.chainMetadata,
+		protocolMetadata: metadataCache.protocolMetadata
 	})
 
 	return {

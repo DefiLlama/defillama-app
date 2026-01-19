@@ -1,5 +1,3 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import {
 	createColumnHelper,
@@ -12,6 +10,8 @@ import {
 	type ExpandedState,
 	type SortingState
 } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
@@ -25,7 +25,8 @@ import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { ICONS_CDN, removedCategoriesFromChainTvlSet } from '~/constants'
-import { subscribeToLocalStorage, useCustomColumns, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useCustomColumns, useLocalStorageSettingsManager, type CustomColumnDef } from '~/contexts/LocalStorage'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, formattedPercent, slug, toNumberOrNullFromQueryParam } from '~/utils'
@@ -35,12 +36,7 @@ import { replaceAliases, sampleProtocol } from './customColumnsUtils'
 import { evaluateFormula, getSortableValue } from './formula.service'
 import type { IProtocol } from './types'
 
-export interface CustomColumnDef {
-	name: string
-	formula: string
-	formatType: 'auto' | 'number' | 'usd' | 'percent' | 'string' | 'boolean'
-	determinedFormat?: 'number' | 'usd' | 'percent' | 'string' | 'boolean'
-}
+const EMPTY_CUSTOM_COLUMN_VALUES: Record<string, unknown> = {}
 
 export const ChainProtocolsTable = ({
 	protocols,
@@ -65,14 +61,14 @@ export const ChainProtocolsTable = ({
 	}, [protocols, extraTvlsEnabled, minTvl, maxTvl])
 
 	const columnsInStorage = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(tableColumnOptionsKey) ?? defaultColumns,
+		(callback) => subscribeToStorageKey(tableColumnOptionsKey, callback),
+		() => getStorageItem(tableColumnOptionsKey, defaultColumns) ?? defaultColumns,
 		() => defaultColumns
 	)
 
 	const filterState = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(tableFilterStateKey) ?? null,
+		(callback) => subscribeToStorageKey(tableFilterStateKey, callback),
+		() => getStorageItem(tableFilterStateKey, null),
 		() => null
 	)
 
@@ -98,8 +94,7 @@ export const ChainProtocolsTable = ({
 				])
 			)
 		)
-		window.localStorage.setItem(tableColumnOptionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(tableColumnOptionsKey, ops)
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(JSON.parse(ops))
 		}
@@ -140,8 +135,7 @@ export const ChainProtocolsTable = ({
 				])
 			)
 		)
-		window.localStorage.setItem(tableColumnOptionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(tableColumnOptionsKey, ops)
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(JSON.parse(ops))
 		}
@@ -185,15 +179,14 @@ export const ChainProtocolsTable = ({
 			try {
 				ops = JSON.parse(localStorage.getItem(tableColumnOptionsKey) ?? '{}')
 			} catch {}
-			allKeys.forEach((key) => {
+			for (const key of allKeys) {
 				if (key === newColumnKey) {
 					ops[key] = true
 				} else if (!(key in ops)) {
 					ops[key] = false
 				}
-			})
-			localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
-			window.dispatchEvent(new Event('storage'))
+			}
+			setStorageItem(tableColumnOptionsKey, JSON.stringify(ops))
 			if (instance && instance.setColumnVisibility) {
 				instance.setColumnVisibility(ops)
 			}
@@ -216,8 +209,8 @@ export const ChainProtocolsTable = ({
 
 	const addColumn = (newColumns) => {
 		const allKeys = mergedColumns.map((col) => col.key)
-		const ops = Object.fromEntries(allKeys.map((key) => [key, newColumns.includes(key) ? true : false]))
-		window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
+		const ops = Object.fromEntries(allKeys.map((key) => [key, newColumns.includes(key)]))
+		setStorageItem(tableColumnOptionsKey, JSON.stringify(ops))
 
 		// Remove manual resize tracking for columns that are being hidden
 		const hiddenColumns = allKeys.filter(key => !newColumns.includes(key))
@@ -227,27 +220,20 @@ export const ChainProtocolsTable = ({
 
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(ops)
-		} else {
-			window.dispatchEvent(new Event('storage'))
 		}
 	}
 
 	const addOnlyOneColumn = (newOption) => {
-		const ops = Object.fromEntries(
-			instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption ? true : false])
-		)
-		window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
+		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption]))
+		setStorageItem(tableColumnOptionsKey, JSON.stringify(ops))
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(ops)
-		} else {
-			window.dispatchEvent(new Event('storage'))
 		}
 	}
 
 	const selectedColumns = useMemo(() => {
 		const storage = JSON.parse(columnsInStorage)
-		return mergedColumns.filter((c) => (storage[c.key] ? true : false)).map((c) => c.key)
+		return mergedColumns.filter((c) => !!storage[c.key]).map((c) => c.key)
 	}, [columnsInStorage, mergedColumns])
 
 	const [sorting, setSorting] = useState<SortingState>([
@@ -465,12 +451,12 @@ export const ChainProtocolsTable = ({
 
 		if (columnsInStorage === JSON.stringify(newColumns)) {
 			toggleAllColumns()
-			window.localStorage.setItem(tableFilterStateKey, null)
+			setStorageItem(tableFilterStateKey, 'null')
 			instance.setSorting([{ id: 'tvl', desc: true }])
 			// window.dispatchEvent(new Event('storage'))
 		} else {
-			window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(newColumns))
-			window.localStorage.setItem(tableFilterStateKey, newState)
+			setStorageItem(tableColumnOptionsKey, JSON.stringify(newColumns))
+			setStorageItem(tableFilterStateKey, newState)
 			instance.setSorting([{ id: MAIN_COLUMN_BY_CATEGORY[newState] ?? 'tvl', desc: true }])
 			// window.dispatchEvent(new Event('storage'))
 		}
@@ -491,7 +477,7 @@ export const ChainProtocolsTable = ({
 				if (!cell) return ''
 
 				const value = cell.getValue()
-				if (value === null || value === undefined) return ''
+				if (value == null) return ''
 
 				if (col.id === 'name') {
 					return `"${row.original.name}"`
@@ -635,14 +621,14 @@ export const ChainProtocolsTable = ({
 				<TagGroup
 					setValue={setFilter('category')}
 					selectedValue={filterState}
-					values={Object.values(TABLE_CATEGORIES) as Array<string>}
+					values={TABLE_CATEGORIES_VALUES}
 					className="max-sm:w-full"
 					triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 				/>
 				<TagGroup
 					setValue={setFilter('period')}
 					selectedValue={filterState}
-					values={Object.values(TABLE_PERIODS) as Array<string>}
+					values={TABLE_PERIODS_VALUES}
 					className="max-sm:w-full"
 					triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 				/>
@@ -682,14 +668,13 @@ export const ChainProtocolsTable = ({
 				instance={instance} 
 				useStickyHeader={useStickyHeader} 
 				columnResizeMode="onChange"
-				containerRef={tableContainerRef}
 			/>
 			<CustomColumnModal
 				dialogStore={customColumnDialogStore}
 				onSave={handleSaveCustomColumn}
 				sampleRow={sampleRow}
 				key={`custom-index-${customColumnModalEditIndex}`}
-				{...(customColumnModalInitialValues || {})}
+				{...(customColumnModalInitialValues ?? EMPTY_CUSTOM_COLUMN_VALUES)}
 			/>
 		</div>
 	)
@@ -717,6 +702,9 @@ enum TABLE_PERIODS {
 	SEVEN_DAYS = '7d',
 	ONE_MONTH = '1m'
 }
+
+const TABLE_CATEGORIES_VALUES = Object.values(TABLE_CATEGORIES) as Array<string>
+const TABLE_PERIODS_VALUES = Object.values(TABLE_PERIODS) as Array<string>
 
 const columnOptions = [
 	{ name: 'Name', key: 'name' },

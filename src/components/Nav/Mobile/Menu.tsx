@@ -1,16 +1,19 @@
-import * as React from 'react'
-import { Suspense, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { useRouter } from 'next/router'
+import * as React from 'react'
+import { Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
 import { mutatePinnedMetrics } from '../pinnedUtils'
+import { PremiumHeader } from '../PremiumHeader'
 import { TNavLink, TNavLinks, TOldNavLink } from '../types'
+
+const VERTICAL_SORTING_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
 
 export const Menu = React.memo(function Menu({
 	mainLinks,
@@ -45,9 +48,9 @@ export const Menu = React.memo(function Menu({
 
 					{mainLinks.map(({ category, pages }) => (
 						<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
-							<p className="mb-1 text-xs opacity-65">{category}</p>
+							{category === 'Premium' ? <PremiumHeader /> : <p className="mb-1 text-xs opacity-65">{category}</p>}
 							<hr className="border-black/20 dark:border-white/20" />
-							{pages.map(({ name, route, icon, attention }) => (
+							{pages.map(({ name, route, icon, attention, umamiEvent }) => (
 								<LinkToPage
 									route={route}
 									name={name}
@@ -56,6 +59,7 @@ export const Menu = React.memo(function Menu({
 									key={`mobile-nav-${name}-${route}`}
 									asPath={asPath}
 									setShow={setShow}
+									umamiEvent={umamiEvent}
 								/>
 							))}
 						</div>
@@ -189,6 +193,8 @@ const PinnedPagesSection = React.memo(function PinnedPagesSection({
 		[pinnedPages]
 	)
 
+	const sortableItems = React.useMemo(() => pinnedPages.map(({ route }) => route), [pinnedPages])
+
 	return (
 		<div className="group/pinned mb-3 flex flex-col first:mb-auto">
 			<div className="mb-1 flex items-center justify-between gap-2 text-xs opacity-65">
@@ -215,9 +221,9 @@ const PinnedPagesSection = React.memo(function PinnedPagesSection({
 			<DndContext
 				sensors={sensors}
 				onDragEnd={handleDragEnd}
-				modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+				modifiers={VERTICAL_SORTING_MODIFIERS}
 			>
-				<SortableContext items={pinnedPages.map(({ route }) => route)} strategy={verticalListSortingStrategy}>
+				<SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
 					<div className="mt-1 flex flex-col gap-1">
 						{pinnedPages.map((page) => (
 							<PinnedPageRow
@@ -312,16 +318,20 @@ const LinkToPage = React.memo(function LinkToPage({
 	route,
 	name,
 	attention,
+	freeTrial,
 	icon,
 	asPath,
-	setShow
+	setShow,
+	umamiEvent
 }: {
 	route: string
 	name: string
 	attention?: boolean
+	freeTrial?: boolean
 	icon?: string
 	asPath: string
 	setShow: (show: boolean) => void
+	umamiEvent?: string
 }) {
 	const isActive = route === asPath.split('/?')[0].split('?')[0]
 	const isExternal = route.startsWith('http')
@@ -332,10 +342,11 @@ const LinkToPage = React.memo(function LinkToPage({
 			target={isExternal ? '_blank' : undefined}
 			rel={isExternal ? 'noopener noreferrer' : undefined}
 			data-linkactive={isActive}
+			data-umami-event={umamiEvent}
 			className="group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 			onClick={() => setShow(false)}
 		>
-			<NavItemContent name={name} icon={icon} attention={attention} />
+			<NavItemContent name={name} icon={icon} attention={attention} freeTrial={freeTrial} />
 		</BasicLink>
 	)
 })
@@ -343,11 +354,13 @@ const LinkToPage = React.memo(function LinkToPage({
 const NavItemContent = React.memo(function NavItemContent({
 	name,
 	icon,
-	attention
+	attention,
+	freeTrial
 }: {
 	name: string
 	icon?: string
 	attention?: boolean
+	freeTrial?: boolean
 }) {
 	return (
 		<>
@@ -355,7 +368,7 @@ const NavItemContent = React.memo(function NavItemContent({
 				<Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4 shrink-0" />
 			) : name === 'LlamaAI' ? (
 				<svg className="group-hover/link:animate-wiggle h-4 w-4 shrink-0">
-					<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+					<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 				</svg>
 			) : null}
 			<span className="relative flex min-w-0 flex-1 flex-wrap items-center gap-2 text-left leading-tight">
@@ -365,6 +378,11 @@ const NavItemContent = React.memo(function NavItemContent({
 						aria-hidden
 						className="inline-block h-2 w-2 shrink-0 rounded-full bg-(--error) shadow-[0_0_0_2px_var(--bg-main)]"
 					/>
+				) : null}
+				{freeTrial ? (
+					<span className="relative inline-flex items-center rounded-full border border-[#C99A4A]/50 bg-gradient-to-r from-[#C99A4A]/15 via-[#C99A4A]/5 to-[#C99A4A]/15 px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#996F1F] shadow-[0_0_8px_rgba(201,154,74,0.3)] dark:border-[#FDE0A9]/50 dark:from-[#FDE0A9]/20 dark:via-[#FDE0A9]/10 dark:to-[#FDE0A9]/20 dark:text-[#FDE0A9] dark:shadow-[0_0_8px_rgba(253,224,169,0.25)]">
+						Try free
+					</span>
 				) : null}
 			</span>
 		</>

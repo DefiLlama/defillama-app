@@ -1,7 +1,7 @@
 // Chart-related types from backend
 export interface ChartConfiguration {
 	id: string
-	type: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter'
+	type: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
 	title: string
 	description: string
 	valueSymbol?: string
@@ -25,7 +25,7 @@ export interface ChartConfiguration {
 
 	series: Array<{
 		name: string
-		type: 'line' | 'area' | 'bar'
+		type: 'line' | 'area' | 'bar' | 'hbar' | 'candlestick'
 		yAxisId: string
 		metricClass: 'flow' | 'stock'
 		dataMapping: {
@@ -56,4 +56,12 @@ export interface ChartConfiguration {
 		defaultPercentage?: boolean
 		showLabels?: boolean
 	}
+}
+
+export interface UploadedImage {
+	id: string
+	url: string
+	mimeType: string
+	filename?: string
+	size: number
 }

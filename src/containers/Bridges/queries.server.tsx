@@ -1,4 +1,5 @@
 import type { IChainData } from '~/api/types'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import {
 	BRIDGEDAYSTATS_API,
 	BRIDGELARGETX_API,
@@ -7,7 +8,7 @@ import {
 	CONFIG_API,
 	NETFLOWS_API
 } from '~/constants'
-import { chainIconUrl, getNDistinctColors, preparePieChartData, slug, tokenIconUrl } from '~/utils'
+import { chainIconUrl, getNDistinctColors, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { formatBridgesData, formatChainsData } from './utils'
 
@@ -33,7 +34,7 @@ const getChainVolumeData = async (chain: string, chainCoingeckoIds) => {
 						}
 					})
 					return formattedChart
-				} catch (e) {}
+				} catch {}
 			}
 			throw new Error(`${BRIDGEVOLUME_API}/${chain} is broken`)
 		} else return null
@@ -60,7 +61,7 @@ const getLargeTransactionsData = async (chain: string, startTimestamp: number, e
 			} else {
 				return await fetchJson(`${BRIDGELARGETX_API}/all?starttimestamp=${startTimestamp}&endtimestamp=${endTimestamp}`)
 			}
-		} catch (e) {}
+		} catch {}
 	}
 	return []
 }
@@ -103,7 +104,7 @@ export async function getBridgeOverviewPageData(chain) {
 						})
 					}
 					return formattedCharts
-				} catch (e) {}
+				} catch {}
 			}
 			return []
 		})
@@ -127,7 +128,7 @@ export async function getBridgeOverviewPageData(chain) {
 			try {
 				bridgeStatsCurrentDay = await fetchJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}`)
 				// can format differently here if needed
-			} catch (e) {}
+			} catch {}
 		}
 	}
 
@@ -183,7 +184,7 @@ export async function getBridgeChainsPageData() {
 				try {
 					const charts = await fetchJson(`${BRIDGEVOLUME_API}/${chain.name}`)
 					return charts
-				} catch (e) {}
+				} catch {}
 			}
 			return []
 		})
@@ -191,15 +192,16 @@ export async function getBridgeChainsPageData() {
 
 	let chartData: Record<string, Record<string, number>> = {}
 
-	chains.forEach((chain, i) => {
+	for (let i = 0; i < chains.length; i++) {
+		const chain = chains[i]
 		const charts = chartDataByChain[i]
-		charts.forEach((chart) => {
+		for (const chart of charts) {
 			const date = chart.date
 			const netFlow = chart.depositUSD - chart.withdrawUSD
 			chartData[date] = chartData[date] || {}
 			chartData[date][chain.name] = netFlow
-		})
-	})
+		}
+	}
 
 	// order of chains will update every 24 hrs, can consider changing metric sorted by here
 	const chainList = await chains
@@ -231,7 +233,7 @@ export async function getBridgeChainsPageData() {
 					try {
 						const charts = await fetchJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name}`)
 						return { ...charts, name: chain.name }
-					} catch (e) {}
+					} catch {}
 				}
 				//throw new Error(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name} is broken`)
 			})
@@ -276,7 +278,7 @@ export async function getBridgePageData(bridge: string) {
 				try {
 					const charts = await fetchJson(`${BRIDGEVOLUME_API}/${chain}?id=${id}`)
 					return charts
-				} catch (e) {}
+				} catch {}
 			}
 			return []
 		})
@@ -293,7 +295,7 @@ export async function getBridgePageData(bridge: string) {
 					const charts = await fetchJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}?id=${id}`)
 					// can format differently here if needed
 					return charts
-				} catch (e) {}
+				} catch {}
 			}
 			return []
 		})
@@ -335,7 +337,7 @@ export async function getBridgePageDatanew(bridge: string) {
 				try {
 					const charts = await fetchJson(`${BRIDGEVOLUME_API}/${chain}?id=${id}`)
 					return charts
-				} catch (e) {}
+				} catch {}
 			}
 
 			throw new Error(`${BRIDGEVOLUME_API}/${chain} is broken`)
@@ -350,10 +352,11 @@ export async function getBridgePageDatanew(bridge: string) {
 		}
 	} = {}
 
-	volume.forEach((chainVolume, index) => {
+	for (let index = 0; index < volume.length; index++) {
+		const chainVolume = volume[index]
 		const chartData = []
 
-		chainVolume.forEach((item) => {
+		for (const item of chainVolume) {
 			const date = Number(item.date)
 			chartData.push({ date, Deposited: item.depositUSD, Withdrawn: -item.withdrawUSD })
 
@@ -366,10 +369,10 @@ export async function getBridgePageDatanew(bridge: string) {
 				Deposited: volumeOnAllChains[date].Deposited + (item.depositUSD || 0),
 				Withdrawn: volumeOnAllChains[date].Withdrawn - (item.withdrawUSD || 0)
 			}
-		})
+		}
 
 		volumeDataByChain[chains[index]] = chartData
-	})
+	}
 
 	volumeDataByChain['All Chains'] =
 		destinationChain !== 'false' ? (volumeDataByChain?.[destinationChain] ?? []) : Object.values(volumeOnAllChains)
@@ -385,7 +388,7 @@ export async function getBridgePageDatanew(bridge: string) {
 					const charts = await fetchJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}?id=${id}`)
 					// can format differently here if needed
 					return charts
-				} catch (e) {}
+				} catch {}
 			}
 			throw new Error(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain} is broken`)
 		})
@@ -393,7 +396,8 @@ export async function getBridgePageDatanew(bridge: string) {
 
 	const prevDayDataByChain = {}
 
-	statsOnPrevDay.forEach((data, index) => {
+	for (let index = 0; index < statsOnPrevDay.length; index++) {
+		const data = statsOnPrevDay[index]
 		prevDayDataByChain['All Chains'] = {
 			date: Math.max(prevDayDataByChain['All Chains']?.date ?? 0, data.date),
 			totalTokensDeposited: {
@@ -415,7 +419,7 @@ export async function getBridgePageDatanew(bridge: string) {
 		}
 
 		prevDayDataByChain[chains[index]] = data
-	})
+	}
 
 	if (destinationChain !== 'false') {
 		prevDayDataByChain[destinationChain] = prevDayDataByChain['All Chains']
@@ -426,7 +430,7 @@ export async function getBridgePageDatanew(bridge: string) {
 	)
 
 	const tableDataByChain = {}
-	chainsList.forEach((currentChain) => {
+	for (const currentChain of chainsList) {
 		const prevDayData = prevDayDataByChain[currentChain]
 		let tokensTableData = [],
 			addressesTableData = [],
@@ -460,7 +464,7 @@ export async function getBridgePageDatanew(bridge: string) {
 			})
 
 			tokensTableData = Object.entries(tokensTableUnformatted)
-				.filter(([symbol, volumeData]: [string, any]) => {
+				.filter(([, volumeData]: [string, any]) => {
 					return volumeData.volume !== 0
 				})
 				.map((entry: [string, object]) => {
@@ -521,26 +525,24 @@ export async function getBridgePageDatanew(bridge: string) {
 			const totalAddressesDeposited = prevDayData.totalAddressDeposited
 			const totalAddressesWithdrawn = prevDayData.totalAddressWithdrawn
 			let addressesTableUnformatted = {}
-			Object.entries(totalAddressesDeposited).map(
-				([address, addressData]: [string, { txs: number; deposited: number; usdValue: number }]) => {
-					const txs = addressData.txs
-					const usdValue = addressData.usdValue
-					addressesTableUnformatted[address] = addressesTableUnformatted[address] || {}
-					addressesTableUnformatted[address].deposited = (addressesTableUnformatted[address].deposited ?? 0) + usdValue
-					addressesTableUnformatted[address].txs = (addressesTableUnformatted[address].txs ?? 0) + txs
-				}
-			)
-			Object.entries(totalAddressesWithdrawn).map(
-				([address, addressData]: [string, { txs: number; deposited: number; usdValue: number }]) => {
-					const txs = addressData.txs
-					const usdValue = addressData.usdValue
-					addressesTableUnformatted[address] = addressesTableUnformatted[address] || {}
-					addressesTableUnformatted[address].withdrawn = (addressesTableUnformatted[address].withdrawn ?? 0) + usdValue
-					addressesTableUnformatted[address].txs = (addressesTableUnformatted[address].txs ?? 0) + txs
-				}
-			)
+			for (const address in totalAddressesDeposited) {
+				const addressData = totalAddressesDeposited[address] as { txs: number; deposited: number; usdValue: number }
+				const txs = addressData.txs
+				const usdValue = addressData.usdValue
+				addressesTableUnformatted[address] = addressesTableUnformatted[address] || {}
+				addressesTableUnformatted[address].deposited = (addressesTableUnformatted[address].deposited ?? 0) + usdValue
+				addressesTableUnformatted[address].txs = (addressesTableUnformatted[address].txs ?? 0) + txs
+			}
+			for (const address in totalAddressesWithdrawn) {
+				const addressData = totalAddressesWithdrawn[address] as { txs: number; deposited: number; usdValue: number }
+				const txs = addressData.txs
+				const usdValue = addressData.usdValue
+				addressesTableUnformatted[address] = addressesTableUnformatted[address] || {}
+				addressesTableUnformatted[address].withdrawn = (addressesTableUnformatted[address].withdrawn ?? 0) + usdValue
+				addressesTableUnformatted[address].txs = (addressesTableUnformatted[address].txs ?? 0) + txs
+			}
 			addressesTableData = Object.entries(addressesTableUnformatted)
-				.filter(([address, addressData]: [string, any]) => {
+				.filter(([, addressData]: [string, any]) => {
 					return addressData.txs !== 0
 				})
 				.map((entry: [string, object]) => {
@@ -555,7 +557,7 @@ export async function getBridgePageDatanew(bridge: string) {
 			tokenWithdrawals,
 			tokenColor
 		}
-	})
+	}
 
 	return {
 		displayName,

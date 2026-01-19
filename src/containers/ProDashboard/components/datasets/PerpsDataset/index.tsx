@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -13,8 +12,8 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
-import { TagGroup } from '~/components/TagGroup'
-import useWindowSize from '~/hooks/useWindowSize'
+import * as React from 'react'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -22,6 +21,8 @@ import { TableBody } from '../../ProTable/TableBody'
 import { TablePagination } from '../../ProTable/TablePagination'
 import { perpsDatasetColumns } from './columns'
 import { usePerpsData } from './usePerpsData'
+
+const EMPTY_DATA: any[] = []
 
 export function PerpsDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
@@ -34,11 +35,11 @@ export function PerpsDataset({ chains }: { chains?: string[] }) {
 		pageSize: 10
 	})
 
-	const { data, isLoading, error, refetch } = usePerpsData(chains)
-	const windowSize = useWindowSize()
+	const { data, isLoading, error, refetch: _refetch } = usePerpsData(chains)
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
-		data: data || [],
+		data: data ?? EMPTY_DATA,
 		columns: perpsDatasetColumns as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -57,7 +58,8 @@ export function PerpsDataset({ chains }: { chains?: string[] }) {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {
@@ -82,7 +84,7 @@ export function PerpsDataset({ chains }: { chains?: string[] }) {
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
 		instance.setColumnVisibility(defaultVisibility)
-	}, [windowSize, chains, instance])
+	}, [width, chains, instance])
 
 	const [protocolName, setProtocolName] = React.useState('')
 

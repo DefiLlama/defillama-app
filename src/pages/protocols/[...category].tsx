@@ -29,7 +29,12 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		const props = await getProtocolsByCategoryOrTag({ category: categoryName, tag: tagName, chain })
+		const props = await getProtocolsByCategoryOrTag({
+			category: categoryName,
+			tag: tagName,
+			chain,
+			chainMetadata: metadataCache.chainMetadata
+		})
 
 		if (!props)
 			return {

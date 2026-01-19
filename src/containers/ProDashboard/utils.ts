@@ -36,7 +36,7 @@ export const normalizeHourlyToDaily = (
 
 	const dailyData: { [dayKey: string]: { values: number[]; lastTimestamp: number; lastValue: number } } = {}
 
-	sortedData.forEach(([timestamp, value]) => {
+	for (const [timestamp, value] of sortedData) {
 		const date = new Date(timestamp * 1000)
 		date.setUTCHours(0, 0, 0, 0)
 		const dayKey = (date.getTime() / 1000).toString()
@@ -50,15 +50,15 @@ export const normalizeHourlyToDaily = (
 			dailyData[dayKey].lastTimestamp = timestamp
 			dailyData[dayKey].lastValue = value
 		}
-	})
+	}
 
-	return Object.entries(dailyData)
-		.map(([dayTimestamp, { values, lastValue }]) => {
-			const aggregatedValue = aggregationType === 'sum' ? values.reduce((sum, v) => sum + v, 0) : lastValue
-
-			return [parseInt(dayTimestamp), aggregatedValue] as [number, number]
-		})
-		.sort((a, b) => a[0] - b[0])
+	const result: [number, number][] = []
+	for (const dayTimestamp in dailyData) {
+		const { values, lastValue } = dailyData[dayTimestamp]
+		const aggregatedValue = aggregationType === 'sum' ? values.reduce((sum, v) => sum + v, 0) : lastValue
+		result.push([parseInt(dayTimestamp), aggregatedValue])
+	}
+	return result.sort((a, b) => a[0] - b[0])
 }
 
 export const getStartOfWeek = (date: Date): Date => {
@@ -90,7 +90,7 @@ export const groupData = (
 
 	const groupedData: { [key: string]: number } = {}
 
-	data.forEach(([timestampStr, value]) => {
+	for (const [timestampStr, value] of data) {
 		const date = new Date(parseInt(timestampStr) * 1000)
 		let groupKeyDate: Date
 
@@ -112,14 +112,16 @@ export const groupData = (
 		} else {
 			groupedData[groupKey] = +value
 		}
-	})
+	}
 
-	return Object.entries(groupedData).sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+	const entries: [string, number][] = []
+	for (const key in groupedData) {
+		entries.push([key, groupedData[key]])
+	}
+	return entries.sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
 }
 
-export const convertToCumulative = <T extends string | number>(
-	data: [T, number][] | undefined
-): [T, number][] => {
+export const convertToCumulative = <T extends string | number>(data: [T, number][] | undefined): [T, number][] => {
 	if (!data || data.length === 0) return []
 
 	const sorted = [...data].sort((a, b) => {

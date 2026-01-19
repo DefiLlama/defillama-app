@@ -11,6 +11,14 @@ import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVir
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+const EMPTY_CHART_DATA: any[] = []
+const EMPTY_STACKS: string[] = []
+const EMPTY_ADDL_DATA: {
+	tokensUnique?: string[]
+	tokenBreakdownUSD?: any[]
+	tokenBreakdownPieChart?: any[]
+	tokenBreakdown?: any[]
+} = {}
 
 interface BorrowedChartTabProps {
 	selectedBorrowedProtocol: string | null
@@ -53,11 +61,20 @@ export function BorrowedChartTab({
 	const { chainsSplit, chainsUnique } = useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
 		const chainsSplit = formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled: {} })
-		const chainsUnique = Object.keys(chainsSplit[chainsSplit.length - 1] ?? {}).filter((c) => c !== 'date')
+		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
+		const chainsUnique: string[] = []
+		for (const key in lastEntry) {
+			if (key !== 'date') chainsUnique.push(key)
+		}
 		return { chainsSplit, chainsUnique }
 	}, [historicalChainTvls])
 
-	const { tokensUnique, tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = addlData ?? {}
+	const { tokensUnique, tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = addlData ?? EMPTY_ADDL_DATA
+	const resolvedTokensUnique = tokensUnique ?? EMPTY_STACKS
+	const resolvedTokenBreakdownUSD = tokenBreakdownUSD ?? EMPTY_CHART_DATA
+	const resolvedTokenBreakdownPieChart = tokenBreakdownPieChart ?? EMPTY_CHART_DATA
+	const resolvedTokenBreakdown = tokenBreakdown ?? EMPTY_CHART_DATA
+	const resolvedChainsSplit = chainsSplit ?? EMPTY_CHART_DATA
 
 	const availableChartTypes = useMemo(() => {
 		const available = new Set<string>()
@@ -109,12 +126,7 @@ export function BorrowedChartTab({
 				onSelectedBorrowedChartTypeChange(nextChartType)
 			}
 		}
-	}, [
-		hasProtocolSelection,
-		availableChartTypes,
-		selectedBorrowedChartType,
-		onSelectedBorrowedChartTypeChange
-	])
+	}, [hasProtocolSelection, availableChartTypes, selectedBorrowedChartType, onSelectedBorrowedChartTypeChange])
 
 	const chartTypeLabel = BORROWED_CHART_TYPES.find((t) => t.value === selectedBorrowedChartType)?.label || ''
 	const previewTitle = chartTypeLabel
@@ -142,7 +154,7 @@ export function BorrowedChartTab({
 					>
 						<AreaChart
 							title=""
-							chartData={chainsSplit ?? []}
+							chartData={resolvedChainsSplit}
 							stacks={chainsUnique}
 							valueSymbol="$"
 							hideDefaultLegend={true}
@@ -162,8 +174,8 @@ export function BorrowedChartTab({
 					>
 						<AreaChart
 							title=""
-							chartData={tokenBreakdownUSD ?? []}
-							stacks={tokensUnique ?? []}
+							chartData={resolvedTokenBreakdownUSD}
+							stacks={resolvedTokensUnique}
 							valueSymbol="$"
 							hideDefaultLegend={true}
 							hideGradient={true}
@@ -180,7 +192,7 @@ export function BorrowedChartTab({
 							</div>
 						}
 					>
-						<PieChart chartData={tokenBreakdownPieChart ?? []} />
+						<PieChart chartData={resolvedTokenBreakdownPieChart} />
 					</Suspense>
 				)
 			case 'tokenBorrowedRaw':
@@ -194,8 +206,8 @@ export function BorrowedChartTab({
 					>
 						<AreaChart
 							title=""
-							chartData={tokenBreakdown ?? []}
-							stacks={tokensUnique ?? []}
+							chartData={resolvedTokenBreakdown}
+							stacks={resolvedTokensUnique}
 							hideDefaultLegend={true}
 							hideGradient={true}
 							chartOptions={BORROWED_CHART_OPTIONS}

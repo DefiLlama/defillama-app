@@ -19,6 +19,32 @@ export const getStablecoinDominance = (topToken, totalMcap) => {
 	} else return null
 }
 
+const BACKFILLED_CHAINS = new Set([
+	'All',
+	'Ethereum',
+	'BSC',
+	'Avalanche',
+	'Arbitrum',
+	'Optimism',
+	'Fantom',
+	'Polygon',
+	'Gnosis',
+	'Celo',
+	'Harmony',
+	'Moonriver',
+	'Aztec',
+	'Loopring',
+	'Starknet',
+	'ZKsync',
+	'Boba',
+	'Metis',
+	'Moonbeam',
+	'Syscoin',
+	'OKExChain',
+	'IoTeX',
+	'Heco'
+])
+
 export const buildStablecoinChartData = ({
 	chartDataByAssetOrChain,
 	assetsOrChainsList,
@@ -37,73 +63,55 @@ export const buildStablecoinChartData = ({
 	doublecountedIds?: Array<number>
 }) => {
 	if (selectedChain === null) return {}
-	const backfilledChains = [
-		'All',
-		'Ethereum',
-		'BSC',
-		'Avalanche',
-		'Arbitrum',
-		'Optimism',
-		'Fantom',
-		'Polygon',
-		'Gnosis',
-		'Celo',
-		'Harmony',
-		'Moonriver',
-		'Aztec',
-		'Loopring',
-		'Starknet',
-		'ZKsync',
-		'Boba',
-		'Metis',
-		'Moonbeam',
-		'Syscoin',
-		'OKExChain',
-		'IoTeX',
-		'Heco'
-	]
+	const filteredIndexesSet = new Set(filteredIndexes)
+	const doublecountedIdsSet = new Set(doublecountedIds)
+
 	let unformattedAreaData = {}
 	let unformattedTotalData = {}
 	let stackedDatasetObject = {}
 	let unformattedTokenInflowData = {}
 	let assetAddedToInflows = assetsOrChainsList?.reduce((acc, curr) => ({ ...acc, [curr]: false }), {}) ?? {}
 
-	chartDataByAssetOrChain?.forEach((charts, i) => {
-		if (!charts || !charts.length || !filteredIndexes.includes(i) || doublecountedIds.includes(i)) return
-		charts.forEach((chart, j) => {
-			const mcap = getPrevStablecoinTotalFromChart([chart], 0, issuanceType) // 'issuanceType' and 'mcap' here are 'circulating' values on /stablecoin pages, and 'mcap' otherwise
-			const prevDayMcap = getPrevStablecoinTotalFromChart([charts[j - 1]], 0, issuanceType)
-			const assetOrChain = assetsOrChainsList[i]
-			const date = chart.date
-			if (mcap) {
-				if (backfilledChains.includes(selectedChain) || date > 1652241600) {
-					// for individual chains data is currently only backfilled to May 11, 2022
-					unformattedAreaData[date] = unformattedAreaData[date] || {}
-					unformattedAreaData[date][assetsOrChainsList[i]] = mcap
+	if (chartDataByAssetOrChain) {
+		for (let i = 0; i < chartDataByAssetOrChain.length; i++) {
+			const charts = chartDataByAssetOrChain[i]
+			if (!charts || !charts.length || !filteredIndexesSet.has(i) || doublecountedIdsSet.has(i)) continue
+			for (let j = 0; j < charts.length; j++) {
+				const chart = charts[j]
+				const mcap = getPrevStablecoinTotalFromChart([chart], 0, issuanceType) // 'issuanceType' and 'mcap' here are 'circulating' values on /stablecoin pages, and 'mcap' otherwise
+				const prevDayMcap = getPrevStablecoinTotalFromChart([charts[j - 1]], 0, issuanceType)
+				const assetOrChain = assetsOrChainsList[i]
+				const date = chart.date
+				if (mcap) {
+					if (BACKFILLED_CHAINS.has(selectedChain) || date > 1652241600) {
+						// for individual chains data is currently only backfilled to May 11, 2022
+						unformattedAreaData[date] = unformattedAreaData[date] || {}
+						unformattedAreaData[date][assetsOrChainsList[i]] = mcap
 
-					unformattedTotalData[date] = (unformattedTotalData[date] ?? 0) + mcap
+						unformattedTotalData[date] = (unformattedTotalData[date] ?? 0) + mcap
 
-					if (mcap !== null && mcap !== 0) {
-						if (stackedDatasetObject[date] == undefined) {
-							stackedDatasetObject[date] = {}
+						if (mcap !== null && mcap !== 0) {
+							if (stackedDatasetObject[date] == undefined) {
+								stackedDatasetObject[date] = {}
+							}
+							const b = stackedDatasetObject[date][assetOrChain]
+							stackedDatasetObject[date][assetOrChain] = { ...b, circulating: mcap ?? 0 }
 						}
-						const b = stackedDatasetObject[date][assetOrChain]
-						stackedDatasetObject[date][assetOrChain] = { ...b, circulating: mcap ?? 0 }
-					}
 
-					const diff = (mcap ?? 0) - (prevDayMcap ?? 0)
-					// the first day's inflow is not added to prevent large inflows on the day token is first tracked
-					if (assetAddedToInflows[assetOrChain]) {
-						unformattedTokenInflowData[date] = unformattedTokenInflowData[date] || {}
-						unformattedTokenInflowData[date][assetsOrChainsList[i]] = diff
-					}
-					if (diff) {
-						assetAddedToInflows[assetOrChain] = true
+						const diff = (mcap ?? 0) - (prevDayMcap ?? 0)
+						// the first day's inflow is not added to prevent large inflows on the day token is first tracked
+						if (assetAddedToInflows[assetOrChain]) {
+							unformattedTokenInflowData[date] = unformattedTokenInflowData[date] || {}
+							unformattedTokenInflowData[date][assetsOrChainsList[i]] = diff
+						}
+						if (diff) {
+							assetAddedToInflows[assetOrChain] = true
+						}
 					}
 				}
 			}
-		})
-	})
+		}
+	}
 
 	const peggedAreaChartData = Object.entries(unformattedAreaData).map(([date, chart]) => {
 		if (typeof chart === 'object') {
@@ -129,7 +137,8 @@ export const buildStablecoinChartData = ({
 	let tokenInflows = []
 	let usdInflows = []
 	const tokenSet: Set<string> = new Set()
-	Object.entries(unformattedTokenInflowData).map(([date, chart]) => {
+	for (const date in unformattedTokenInflowData) {
+		const chart = unformattedTokenInflowData[date]
 		if (typeof chart === 'object') {
 			let dayDifference = 0
 			let tokenDayDifference = {}
@@ -147,7 +156,12 @@ export const buildStablecoinChartData = ({
 				zeroUsdInfows++
 			}
 
-			if (Object.keys(tokenDayDifference)?.length === 0) {
+			let hasTokenDayDifference = false
+			for (const _ in tokenDayDifference) {
+				hasTokenDayDifference = true
+				break
+			}
+			if (!hasTokenDayDifference) {
 				zeroTokenInflows++
 			}
 
@@ -161,7 +175,7 @@ export const buildStablecoinChartData = ({
 
 			usdInflows.push([adjustedDate, dayDifference])
 		}
-	})
+	}
 
 	const tokenInflowNames = zeroTokenInflows === tokenInflows.length ? ['USDT'] : (Array.from(tokenSet) as any)
 
@@ -222,8 +236,9 @@ export const formatPeggedAssetsData = ({
 	let filteredPeggedAssets = [...peggedAssets]
 
 	if (chain) {
+		const sluggedChain = slug(chain)
 		filteredPeggedAssets = filteredPeggedAssets.filter(({ chains = [] }) =>
-			chains.map((c) => slug(c)).includes(slug(chain))
+			chains.some((c) => slug(c) === sluggedChain)
 		)
 	}
 
@@ -311,7 +326,7 @@ export const formatPeggedAssetsData = ({
 	})
 
 	if (chain) {
-		filteredPeggedAssets = filteredPeggedAssets.sort((a, b) => b.mcap - a.mcap)
+		filteredPeggedAssets = filteredPeggedAssets.toSorted((a, b) => b.mcap - a.mcap)
 	}
 
 	return filteredPeggedAssets
@@ -361,7 +376,7 @@ export const formatPeggedChainsData = ({
 		return chainData
 	})
 
-	filteredPeggedAssets = filteredPeggedAssets.sort((a, b) => b.mcap - a.mcap)
+	filteredPeggedAssets = filteredPeggedAssets.toSorted((a, b) => b.mcap - a.mcap)
 
 	return filteredPeggedAssets
 }

@@ -7,7 +7,8 @@ const CATEGORY_TITLES: Record<ChartTabType, string> = {
 	yields: 'Yields',
 	stablecoins: 'Stablecoins',
 	'advanced-tvl': 'Advanced TVL',
-	borrowed: 'Borrowed'
+	borrowed: 'Borrowed',
+	'income-statement': 'Income Statement'
 }
 
 interface CategoryFormHeaderProps {

@@ -1,8 +1,10 @@
-import { useCallback } from 'react'
-import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { useCallback } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
+
+const EMPTY_DASHBOARDS: Dashboard[] = []
 
 interface UseMyDashboardsParams {
 	page: number
@@ -19,7 +21,7 @@ export function useMyDashboards({ page, limit, enabled = true }: UseMyDashboards
 		queryFn: async () => {
 			if (!isAuthenticated) {
 				return {
-					items: [] as Dashboard[],
+					items: EMPTY_DASHBOARDS,
 					page: 1,
 					perPage: limit,
 					totalItems: 0,
@@ -43,7 +45,7 @@ export function useMyDashboards({ page, limit, enabled = true }: UseMyDashboards
 	)
 
 	return {
-		dashboards: data?.items || [],
+		dashboards: data?.items ?? EMPTY_DASHBOARDS,
 		isLoading,
 		error: error as Error | null,
 		page: data?.page || page,

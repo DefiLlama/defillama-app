@@ -30,9 +30,9 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 
 	const itemTypes = useMemo(() => {
 		const counts: Record<string, number> = {}
-		dashboard.data.items?.forEach((item: DashboardItemConfig) => {
+		for (const item of dashboard.data.items ?? []) {
 			if (!item || typeof item !== 'object') {
-				return
+				continue
 			}
 
 			switch (item.kind) {
@@ -52,7 +52,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 					const otherItem = item as DashboardItemConfig
 					counts[otherItem.kind] = (counts[otherItem.kind] || 0) + 1
 			}
-		})
+		}
 
 		const sorted = Object.entries(counts)
 			.sort(([, a], [, b]) => b - a)
@@ -60,9 +60,10 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 
 		const summary = sorted.map(([type, count]) => `${count} ${type}`).join(', ')
 
-		if (Object.keys(counts).length > 3) {
-			const remaining = Object.keys(counts).length - 3
-			return `${summary} +${remaining} more`
+		let countsLength = 0
+		for (const _ in counts) countsLength++
+		if (countsLength > 3) {
+			return `${summary} +${countsLength - 3} more`
 		}
 
 		return summary
@@ -70,10 +71,10 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 
 	return (
 		<div
-			className={`hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 ${className ?? ''}`}
+			className={`relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} hover:bg-pro-blue-300/5 hover:shadow-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 transition-all duration-200 ease-out hover:border-(--old-blue)/30 hover:shadow-md dark:hover:border-(--old-blue)/40 ${className ?? ''}`}
 		>
 			<div className="flex flex-wrap items-center justify-end gap-2">
-				<h2 className="mr-auto text-lg font-medium text-wrap">
+				<h2 className="mr-auto text-base leading-tight font-semibold text-wrap">
 					{dashboard.data.dashboardName || 'Untitled Dashboard'}
 				</h2>
 
@@ -106,45 +107,36 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 			{viewMode === 'grid' && <Tags dashboard={dashboard} onTagClick={onTagClick} />}
 
 			{dashboard.description ? (
-				<p className="line-clamp-2 text-sm text-(--text-label)">{dashboard.description}</p>
+				<p className="mt-1 line-clamp-2 text-sm leading-snug text-(--text-label)">{dashboard.description}</p>
 			) : null}
 
-			{dashboard.data.items?.length ? (
-				<div className={`flex flex-col ${viewMode === 'grid' ? 'mt-5' : 'mt-2'}`}>
-					<span className="flex items-center gap-1 text-(--text-label)">
-						<Icon name="layers" height={14} width={14} />
-						<p className="flex items-center gap-1">{dashboard.data.items.length} items</p>
+			<div className={`mt-auto flex flex-col gap-2 ${viewMode === 'grid' ? 'pt-4' : 'pt-2'}`}>
+				<div className="flex flex-wrap items-center gap-3 text-xs text-(--text-form)">
+					{dashboard.data.items?.length ? (
+						<span className="flex items-center gap-1" title={itemTypes}>
+							<Icon name="layers" height={12} width={12} />
+							{dashboard.data.items.length} items
+						</span>
+					) : null}
+					<span className="flex items-center gap-1" title="Views">
+						<Icon name="eye" height={12} width={12} />
+						{dashboard.viewCount || 0}
 					</span>
-					<p className="text-xs text-(--text-form)">{itemTypes}</p>
-				</div>
-			) : null}
-
-			<div
-				className={`mt-auto flex items-center justify-between gap-2 text-(--text-label) ${viewMode === 'grid' ? 'pt-5' : 'pt-2'}`}
-			>
-				<div className="flex items-center gap-2">
-					<p className="flex items-center gap-1" title="Views">
-						<Icon name="eye" height={16} width={16} />
-						<span className="sr-only">Views</span>
-						<span>{dashboard.viewCount || 0}</span>
-					</p>
-					<p className="flex items-center gap-1" title="Likes">
+					<span className="flex items-center gap-1" title="Likes">
 						<Icon
 							name="star"
-							height={16}
-							width={16}
+							height={12}
+							width={12}
 							className={dashboard.liked ? 'fill-current text-yellow-400' : 'fill-none'}
 						/>
-						<span className="sr-only">Favorites</span>
-						<span>{dashboard.likeCount || 0}</span>
-					</p>
+						{dashboard.likeCount || 0}
+					</span>
 				</div>
-
 				<p
 					className="flex items-center gap-1 text-xs text-(--text-form)"
 					title={new Date(dashboard.editedAt || dashboard.updated).toLocaleString()}
 				>
-					<Icon name="clock" height={12} width={12} />
+					<Icon name="clock" height={10} width={10} />
 					<span>Updated {new Date(dashboard.editedAt || dashboard.updated).toLocaleDateString()}</span>
 				</p>
 			</div>
@@ -166,7 +158,7 @@ const Tags = ({ dashboard, onTagClick }: { dashboard: Dashboard; onTagClick?: (t
 						e.stopPropagation()
 						onTagClick?.(tag)
 					}}
-					className="z-10 rounded-full border border-(--switch-border) px-2 py-1 text-xs text-(--text-form) hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
+					className="z-10 rounded-full border border-(--switch-border) px-2 py-1 text-xs text-(--text-form) transition-colors duration-150 hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
 				>
 					{tag}
 				</button>

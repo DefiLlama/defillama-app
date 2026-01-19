@@ -201,7 +201,7 @@ export default class ProtocolCharts {
 			const data = await res.json()
 			const chainTvls = data?.chainTvls || {}
 			const store: Record<number, number> = {}
-			for (const key of Object.keys(chainTvls)) {
+			for (const key in chainTvls) {
 				const arr = chainTvls[key]?.tvl || []
 				for (const item of arr) {
 					const d = Number(item?.date)
@@ -210,9 +210,12 @@ export default class ProtocolCharts {
 					store[d] = (store[d] ?? 0) + v
 				}
 			}
-			return Object.entries(store)
-				.map(([d, v]) => [Number(d), Number(v)] as [number, number])
-				.sort((a, b) => a[0] - b[0])
+			const result: [number, number][] = []
+			for (const d in store) {
+				result.push([Number(d), store[d]])
+			}
+			result.sort((a, b) => a[0] - b[0])
+			return result
 		} catch (e) {
 			console.log('Error fetching protocol treasury', e)
 			return []
@@ -222,7 +225,10 @@ export default class ProtocolCharts {
 	static async medianApy(protocol: string): Promise<[number, number][]> {
 		const response = await fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`)
 		const { data } = await response.json()
-		const res = data.map((item) => [dayjs(item.timestamp).unix(), item.medianAPY])
+		const res: [number, number][] = []
+		for (const item of data) {
+			res.push([dayjs(item.timestamp).unix(), item.medianAPY])
+		}
 		return res
 	}
 
@@ -234,7 +240,7 @@ export default class ProtocolCharts {
 			const data = await res.json()
 			const chainTvls = data?.chainTvls || {}
 			const store: Record<number, number> = {}
-			for (const key of Object.keys(chainTvls)) {
+			for (const key in chainTvls) {
 				if (!key.endsWith('-borrowed')) continue
 				const arr = chainTvls[key]?.tvl || []
 				for (const item of arr) {
@@ -244,9 +250,12 @@ export default class ProtocolCharts {
 					store[d] = (store[d] ?? 0) + v
 				}
 			}
-			return Object.entries(store)
-				.map(([d, v]) => [Number(d), Number(v)] as [number, number])
-				.sort((a, b) => a[0] - b[0])
+			const result: [number, number][] = []
+			for (const d in store) {
+				result.push([Number(d), store[d]])
+			}
+			result.sort((a, b) => a[0] - b[0])
+			return result
 		} catch (e) {
 			console.log('Error fetching protocol borrowed', e)
 			return []

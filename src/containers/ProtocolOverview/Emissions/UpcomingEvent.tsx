@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
+import { useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, tokenIconUrl } from '~/utils'
@@ -133,7 +133,7 @@ export const UpcomingEvent = ({
 		const id = setInterval(() => rerender((value) => value + 1), 1000)
 
 		return () => clearInterval(id)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		// oxlint-disable-next-line react/exhaustive-deps
 	}, [])
 
 	if (isProtocolPage) {
@@ -156,11 +156,7 @@ export const UpcomingEvent = ({
 							<span>
 								{timestamp ? `${dayjs(timestamp * 1e3).format('h:mm A')} ` : null}
 								<span className="text-sm text-(--text-meta)">
-									{timestamp
-										? `GMT${dayjs(timestamp * 1e3)
-												.format('Z')
-												.slice(0, 3)}`
-										: ''}
+									{timestamp ? `GMT${dayjs(timestamp * 1e3).format('Z')}` : ''}
 								</span>
 							</span>
 						</span>
@@ -183,7 +179,7 @@ export const UpcomingEvent = ({
 				<hr className="border-(--bg-border)" />
 				<span className="flex flex-col gap-4">
 					{currentUnlockBreakdown.map(
-						({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp, isOngoing }) => {
+						({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp: _timestamp, isOngoing }) => {
 							const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
 							const usdValue = price
 								? isLinearPerDay
@@ -320,9 +316,7 @@ export const UpcomingEvent = ({
 							<span>{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}</span>
 							<span className="text-sm text-(--text-meta)">
 								{timestamp
-									? `${dayjs(timestamp * 1e3).format('HH:mm')} GMT${dayjs(timestamp * 1e3)
-											.format('Z')
-											.slice(0, 3)}`
+									? `${dayjs(timestamp * 1e3).format('HH:mm')} GMT${dayjs(timestamp * 1e3).format('Z')}`
 									: null}
 							</span>
 						</span>
@@ -330,7 +324,7 @@ export const UpcomingEvent = ({
 					<hr className="border-(--bg-border)" />
 					<span className="flex flex-col gap-4">
 						{currentUnlockBreakdown.map(
-							({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp, isOngoing }) => {
+							({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp: _timestamp, isOngoing }) => {
 								const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
 								const usdValue = price
 									? isLinearPerDay

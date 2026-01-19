@@ -1,7 +1,9 @@
-import { useCallback, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useCallback, useState } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { dashboardAPI } from '../services/DashboardAPI'
+import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
+
+const EMPTY_DASHBOARDS: Dashboard[] = []
 
 export function useLikedDashboards() {
 	const { authorizedFetch, isAuthenticated } = useAuthContext()
@@ -13,7 +15,7 @@ export function useLikedDashboards() {
 		queryFn: async () => {
 			if (!isAuthenticated) {
 				return {
-					items: [],
+					items: EMPTY_DASHBOARDS,
 					page: 1,
 					perPage: limit,
 					totalItems: 0,
@@ -43,7 +45,7 @@ export function useLikedDashboards() {
 	}, [page])
 
 	return {
-		dashboards: data?.items || [],
+		dashboards: data?.items ?? EMPTY_DASHBOARDS,
 		isLoading,
 		error: error as Error | null,
 		page,

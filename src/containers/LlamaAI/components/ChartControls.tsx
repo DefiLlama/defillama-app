@@ -4,6 +4,31 @@ import { Tooltip } from '~/components/Tooltip'
 import { capitalizeFirstLetter } from '~/utils'
 import type { ChartConfiguration } from '../types'
 
+const CUMULATIVE_DISPLAY_OPTIONS = [
+	{ name: 'Show individual values', key: 'Individual' },
+	{ name: 'Show cumulative values', key: 'Cumulative' }
+]
+
+const STACKING_DISPLAY_OPTIONS = [
+	{ name: 'Show separate', key: 'Separate' },
+	{ name: 'Show stacked', key: 'Stacked' }
+]
+
+const VALUE_TYPE_OPTIONS = [
+	{ name: 'Show absolute ($)', key: '$ Absolute' },
+	{ name: 'Show percentage (%)', key: '% Percentage' }
+]
+
+const HALLMARK_OPTIONS = [
+	{ name: 'Show hallmarks', key: 'Show Hallmarks' },
+	{ name: 'Hide hallmarks', key: 'Hide Hallmarks' }
+]
+
+const LABEL_OPTIONS = [
+	{ name: 'Show labels', key: 'Show' },
+	{ name: 'Hide labels', key: 'Hide' }
+]
+
 interface ChartControlsProps {
 	displayOptions: ChartConfiguration['displayOptions']
 	stacked: boolean
@@ -54,7 +79,14 @@ export const ChartControls = memo(function ChartControls({
 
 	const showGrouping = supportsGrouping && groupingOptions.length > 1
 
-	if (!showGrouping && !canShowCumulative && !(canStack && !cumulative) && !canShowPercentage && !hasHallmarks && !isScatter)
+	if (
+		!showGrouping &&
+		!canShowCumulative &&
+		!(canStack && !cumulative) &&
+		!canShowPercentage &&
+		!hasHallmarks &&
+		!isScatter
+	)
 		return null
 
 	return (
@@ -78,10 +110,7 @@ export const ChartControls = memo(function ChartControls({
 
 			{canShowCumulative && (
 				<Select
-					allValues={[
-						{ name: 'Show individual values', key: 'Individual' },
-						{ name: 'Show cumulative values', key: 'Cumulative' }
-					]}
+					allValues={CUMULATIVE_DISPLAY_OPTIONS}
 					selectedValues={cumulative ? 'Cumulative' : 'Individual'}
 					setSelectedValues={(value) => {
 						onCumulativeChange(value === 'Cumulative')
@@ -100,10 +129,7 @@ export const ChartControls = memo(function ChartControls({
 
 			{canStack && !cumulative && (
 				<Select
-					allValues={[
-						{ name: 'Show separate', key: 'Separate' },
-						{ name: 'Show stacked', key: 'Stacked' }
-					]}
+					allValues={STACKING_DISPLAY_OPTIONS}
 					selectedValues={stacked ? 'Stacked' : 'Separate'}
 					setSelectedValues={(value) => {
 						const isStacked = value === 'Stacked'
@@ -120,10 +146,7 @@ export const ChartControls = memo(function ChartControls({
 
 			{canShowPercentage && (
 				<Select
-					allValues={[
-						{ name: 'Show absolute ($)', key: '$ Absolute' },
-						{ name: 'Show percentage (%)', key: '% Percentage' }
-					]}
+					allValues={VALUE_TYPE_OPTIONS}
 					selectedValues={percentage ? '% Percentage' : '$ Absolute'}
 					setSelectedValues={(value) => {
 						onPercentageChange(value === '% Percentage')
@@ -139,10 +162,7 @@ export const ChartControls = memo(function ChartControls({
 
 			{hasHallmarks && (
 				<Select
-					allValues={[
-						{ name: 'Show hallmarks', key: 'Show Hallmarks' },
-						{ name: 'Hide hallmarks', key: 'Hide Hallmarks' }
-					]}
+					allValues={HALLMARK_OPTIONS}
 					selectedValues={showHallmarks ? 'Show Hallmarks' : 'Hide Hallmarks'}
 					setSelectedValues={(value) => {
 						onHallmarksChange(value === 'Show Hallmarks')
@@ -158,10 +178,7 @@ export const ChartControls = memo(function ChartControls({
 
 			{isScatter && (
 				<Select
-					allValues={[
-						{ name: 'Show labels', key: 'Show' },
-						{ name: 'Hide labels', key: 'Hide' }
-					]}
+					allValues={LABEL_OPTIONS}
 					selectedValues={showLabels ? 'Show' : 'Hide'}
 					setSelectedValues={(value) => {
 						onLabelsChange(value === 'Show')

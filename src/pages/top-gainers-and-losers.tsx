@@ -8,6 +8,9 @@ import { useCalcStakePool2Tvl } from '~/hooks/data'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
+const GAINERS_SORTING_STATE = [{ id: 'change_1d', desc: true }]
+const LOSERS_SORTING_STATE = [{ id: 'change_1d', desc: false }]
+
 export const getStaticProps = withPerformanceLogging('top-gainers-and-losers', async () => {
 	const { protocols } = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl'])
 
@@ -40,12 +43,12 @@ export default function TopGainersLosers({ protocols }) {
 		>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<h1 className="p-3 text-xl font-semibold">Top Gainers</h1>
-				<TopGainersAndLosers data={topGainers} sortingState={[{ id: 'change_1d', desc: true }]} />
+				<TopGainersAndLosers data={topGainers} sortingState={GAINERS_SORTING_STATE} />
 			</div>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<h1 className="p-3 text-xl font-semibold">Top Losers</h1>
-				<TopGainersAndLosers data={topLosers} sortingState={[{ id: 'change_1d', desc: false }]} />
+				<TopGainersAndLosers data={topLosers} sortingState={LOSERS_SORTING_STATE} />
 			</div>
 		</Layout>
 	)

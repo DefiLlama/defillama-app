@@ -1,5 +1,3 @@
-import * as React from 'react'
-import { useRouter } from 'next/router'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -12,6 +10,8 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
@@ -20,7 +20,7 @@ import { Switch } from '~/components/Switch'
 import { columnSizes, protocolsColumns } from '~/components/Table/Defi/Protocols/columns'
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { VirtualTable } from '~/components/Table/Table'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { formattedNum, toNiceDaysAgo } from '~/utils'
 
 export function RecentlyListedProtocolsTable({
@@ -43,7 +43,7 @@ export function RecentlyListedProtocolsTable({
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'listedAt' }])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
 	const router = useRouter()
@@ -69,12 +69,10 @@ export function RecentlyListedProtocolsTable({
 	})
 
 	React.useEffect(() => {
-		const cSize = windowSize.width
-			? columnSizesKeys.find((size) => windowSize.width > Number(size))
-			: columnSizesKeys[0]
+		const cSize = columnSizesKeys.find((size) => width > Number(size)) ?? columnSizesKeys[0]
 
 		instance.setColumnSizing(columnSizes[cSize])
-	}, [windowSize, instance])
+	}, [width, instance])
 	const [projectName, setProjectName] = React.useState('')
 
 	React.useEffect(() => {
@@ -177,7 +175,7 @@ export function RecentlyListedProtocolsTable({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search protocols..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 
@@ -252,7 +250,7 @@ function HideForkedProtocols() {
 
 	const { hideForks } = router.query
 
-	const toHide = hideForks && typeof hideForks === 'string' && hideForks === 'true' ? false : true
+	const toHide = !(hideForks && typeof hideForks === 'string' && hideForks === 'true')
 
 	const hide = () => {
 		router.push(

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -10,6 +9,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
@@ -20,9 +20,14 @@ import { VirtualTable } from '~/components/Table/Table'
 import { formatColumnOrder } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { DEFI_CHAINS_SETTINGS, subscribeToLocalStorage, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import {
+	CHAINS_CATEGORY_GROUP_SETTINGS,
+	isChainsCategoryGroupKey,
+	useLocalStorageSettingsManager
+} from '~/contexts/LocalStorage'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 
@@ -40,15 +45,15 @@ export function ChainsByCategoryTable({
 	showByGroup: boolean
 }) {
 	const columnsInStorage = React.useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(optionsKey) ?? defaultColumns,
+		(callback) => subscribeToStorageKey(optionsKey, callback),
+		() => getStorageItem(optionsKey, defaultColumns) ?? defaultColumns,
 		() => defaultColumns
 	)
 
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'tvl', desc: true }])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data,
@@ -84,36 +89,28 @@ export function ChainsByCategoryTable({
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = windowSize.width
-			? (chainsTableColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
-			: defaultOrder
+		const order = chainsTableColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder
 
 		instance.setColumnOrder(order)
-	}, [windowSize, instance])
+	}, [width, instance])
 
 	const clearAllColumns = () => {
 		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(optionsKey, ops)
 	}
 	const toggleAllColumns = () => {
 		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, true])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(optionsKey, ops)
 	}
 
 	const addColumn = (newOptions) => {
-		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key) ? true : false]))
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
+		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key)]))
+		setStorageItem(optionsKey, JSON.stringify(ops))
 	}
 
 	const addOnlyOneColumn = (newOption) => {
-		const ops = Object.fromEntries(
-			instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption ? true : false])
-		)
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
+		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption]))
+		setStorageItem(optionsKey, JSON.stringify(ops))
 	}
 
 	const selectedColumns = instance
@@ -124,51 +121,46 @@ export function ChainsByCategoryTable({
 	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 
 	const clearAllAggrOptions = () => {
-		DEFI_CHAINS_SETTINGS.forEach((item) => {
-			if (selectedAggregateTypes.includes(item.key)) {
+		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
+			if (selectedAggregateTypesSet.has(item.key)) {
 				updater(item.key)
-			}
-		})
-	}
-
-	const toggleAllAggrOptions = () => {
-		DEFI_CHAINS_SETTINGS.forEach((item) => {
-			if (!selectedAggregateTypes.includes(item.key)) {
-				updater(item.key)
-			}
-		})
-	}
-
-	const addAggrOption = (selectedKeys) => {
-		for (const item in groupTvls) {
-			// toggle on
-			if (!groupTvls[item] && selectedKeys.includes(item)) {
-				updater(item)
-			}
-
-			// toggle off
-			if (groupTvls[item] && !selectedKeys.includes(item)) {
-				updater(item)
 			}
 		}
 	}
 
-	const addOnlyOneAggrOption = (newOption) => {
-		DEFI_CHAINS_SETTINGS.forEach((item) => {
-			if (item.key === newOption) {
-				if (!selectedAggregateTypes.includes(item.key)) {
-					updater(item.key)
-				}
-			} else {
-				if (selectedAggregateTypes.includes(item.key)) {
-					updater(item.key)
-				}
+	const toggleAllAggrOptions = () => {
+		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
+			if (!selectedAggregateTypesSet.has(item.key)) {
+				updater(item.key)
 			}
-		})
+		}
+	}
+
+	const addAggrOption: React.Dispatch<React.SetStateAction<Array<string>>> = (selectedKeys) => {
+		const nextSelectedKeys = typeof selectedKeys === 'function' ? selectedKeys(selectedAggregateTypes) : selectedKeys
+		const selectedKeysSet = new Set(nextSelectedKeys)
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
+			const shouldEnable = selectedKeysSet.has(item.key)
+			if (groupTvls[item.key] !== shouldEnable) {
+				updater(item.key)
+			}
+		}
+	}
+
+	const addOnlyOneAggrOption = (newOption: string) => {
+		if (!isChainsCategoryGroupKey(newOption)) return
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
+			const shouldEnable = item.key === newOption
+			if (groupTvls[item.key] !== shouldEnable) {
+				updater(item.key)
+			}
+		}
 	}
 
 	const selectedAggregateTypes = React.useMemo(() => {
-		return DEFI_CHAINS_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
+		return CHAINS_CATEGORY_GROUP_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
 	}, [groupTvls])
 
 	const prepareCsv = React.useCallback(() => {
@@ -186,7 +178,7 @@ export function ChainsByCategoryTable({
 				if (!cell) return ''
 
 				const value = cell.getValue()
-				if (value === null || value === undefined) return ''
+				if (value == null) return ''
 
 				return value
 			})
@@ -212,7 +204,7 @@ export function ChainsByCategoryTable({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 
@@ -220,7 +212,7 @@ export function ChainsByCategoryTable({
 					<div className="flex w-full items-center gap-2 sm:w-auto">
 						{showByGroup ? (
 							<SelectWithCombobox
-								allValues={DEFI_CHAINS_SETTINGS}
+								allValues={CHAINS_CATEGORY_GROUP_SETTINGS}
 								selectedValues={selectedAggregateTypes}
 								setSelectedValues={addAggrOption}
 								selectOnlyOne={addOnlyOneAggrOption}

@@ -2,13 +2,13 @@ export class ChartDataTransformer {
 	static groupByInterval(
 		series: any[],
 		interval: 'day' | 'week' | 'month' | 'quarter',
-		chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter'
+		_chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
 	): any[] {
 		return series.map((s) => {
 			const isFlowMetric = s.metricClass === 'flow'
 			const grouped = new Map<number, number[]>()
 
-			s.data.forEach(([timestamp, value]: [number, number]) => {
+			for (const [timestamp, value] of s.data as [number, number][]) {
 				const date = new Date(timestamp * 1000)
 				let key: number
 
@@ -28,7 +28,7 @@ export class ChartDataTransformer {
 
 				if (!grouped.has(key)) grouped.set(key, [])
 				grouped.get(key)!.push(value)
-			})
+			}
 
 			const aggregatedData: [number, number][] = Array.from(grouped.entries())
 				.map(([timestamp, values]): [number, number] => {
@@ -46,11 +46,16 @@ export class ChartDataTransformer {
 		})
 	}
 
-	static toStacked(series: any[], chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter'): any[] {
+	static toStacked(
+		series: any[],
+		chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
+	): any[] {
 		const allTimestamps = new Set<number>()
-		series.forEach((s) => {
-			s.data.forEach(([timestamp]: [number, number]) => allTimestamps.add(timestamp))
-		})
+		for (const s of series) {
+			for (const [timestamp] of s.data as [number, number][]) {
+				allTimestamps.add(timestamp)
+			}
+		}
 
 		const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b)
 
@@ -76,23 +81,25 @@ export class ChartDataTransformer {
 
 	static toPercentage(series: any[], shouldStack: boolean = true): any[] {
 		const allTimestamps = new Set<number>()
-		series.forEach((s) => {
-			s.data.forEach(([timestamp]: [number, number]) => allTimestamps.add(timestamp))
-		})
+		for (const s of series) {
+			for (const [timestamp] of s.data as [number, number][]) {
+				allTimestamps.add(timestamp)
+			}
+		}
 
 		const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b)
 
 		const totals = new Map<number, number>()
-		sortedTimestamps.forEach((timestamp) => {
+		for (const timestamp of sortedTimestamps) {
 			let total = 0
-			series.forEach((s) => {
+			for (const s of series) {
 				const dataPoint = s.data.find(([t]: [number, number]) => t === timestamp)
 				if (dataPoint) {
 					total += dataPoint[1]
 				}
-			})
+			}
 			totals.set(timestamp, total)
-		})
+		}
 
 		const percentageColors = [
 			'#FF6B6B',
@@ -112,7 +119,7 @@ export class ChartDataTransformer {
 			'#D7BDE2'
 		]
 
-		const seriesWithAverages = series.map((s, serieIndex) => {
+		const seriesWithAverages = series.map((s, _serieIndex) => {
 			const percentageData: [number, number][] = sortedTimestamps.map((timestamp) => {
 				const dataPoint = s.data.find(([t]: [number, number]) => t === timestamp)
 				const value = dataPoint ? dataPoint[1] : 0

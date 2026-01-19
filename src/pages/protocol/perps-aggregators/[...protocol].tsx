@@ -15,6 +15,8 @@ import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
+const EMPTY_TOGGLE_OPTIONS = []
+
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
 export const getStaticProps = withPerformanceLogging(
@@ -57,22 +59,22 @@ export const getStaticProps = withPerformanceLogging(
 			totalAllTime: adapterData.totalAllTime ?? null
 		}
 
-		const linkedProtocols = (adapterData?.linkedProtocols ?? []).slice(1)
+		const linkedProtocolsSet = new Set((adapterData?.linkedProtocols ?? []).slice(1))
 		const linkedProtocolsWithAdapterData = []
 		if (protocolData.isParentProtocol) {
 			for (const key in protocolMetadata) {
-				if (linkedProtocols.length === 0) break
-				if (linkedProtocols.includes(protocolMetadata[key].displayName)) {
+				if (linkedProtocolsSet.size === 0) break
+				if (linkedProtocolsSet.has(protocolMetadata[key].displayName)) {
 					if (protocolMetadata[key].perpsAggregators) {
 						linkedProtocolsWithAdapterData.push(protocolMetadata[key])
 					}
-					linkedProtocols.splice(linkedProtocols.indexOf(protocolMetadata[key].displayName), 1)
+					linkedProtocolsSet.delete(protocolMetadata[key].displayName)
 				}
 			}
 		}
 
 		let chart = (adapterData.totalDataChart ?? []).map(([date, value]) => [+date * 1e3, value])
-		const nonZeroIndex = chart.findIndex(([date, value]) => value > 0)
+		const nonZeroIndex = chart.findIndex(([_date, value]) => value > 0)
 		if (nonZeroIndex !== -1) {
 			chart = chart.slice(nonZeroIndex)
 		}
@@ -137,14 +139,14 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="perpsAggregators"
 			warningBanners={props.warningBanners}
-			toggleOptions={[]}
+			toggleOptions={EMPTY_TOGGLE_OPTIONS}
 		>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">
 					<h1 className="flex flex-wrap items-center gap-2 text-xl">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
 						<span className="font-bold">
-							{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
+							{props.name ? `${props.name}${props.deprecated ? ' (*Deprecated*)' : ''} ` : ''}
 						</span>
 					</h1>
 					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />

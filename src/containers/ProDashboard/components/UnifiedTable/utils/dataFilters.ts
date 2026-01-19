@@ -1,6 +1,6 @@
+import { normalizeChainSlug } from '~/utils/chainNormalizer'
 import type { TableFilters } from '../../../types'
 import type { NormalizedRow } from '../types'
-import { normalizeChainSlug } from '~/utils/chainNormalizer'
 
 const normalize = (value: string | null | undefined) => value?.toLowerCase().trim()
 
@@ -157,23 +157,23 @@ export function filterRowsByConfig(rows: NormalizedRow[], filters?: TableFilters
 		}
 	]
 
-	numericRangeFilters.forEach(({ minKey, maxKey, getValue }) => {
+	for (const { minKey, maxKey, getValue } of numericRangeFilters) {
 		const minValue = minKey ? (filters[minKey] as number | undefined) : undefined
 		const maxValue = maxKey ? (filters[maxKey] as number | undefined) : undefined
 		if (minValue === undefined && maxValue === undefined) {
-			return
+			continue
 		}
 		filtered = filtered.filter((row) => {
 			const value = getValue(row)
-			if (minValue !== undefined && (value === null || value === undefined || value < minValue)) {
+			if (minValue !== undefined && (value == null || value < minValue)) {
 				return false
 			}
-			if (maxValue !== undefined && (value === null || value === undefined || value > maxValue)) {
+			if (maxValue !== undefined && (value == null || value > maxValue)) {
 				return false
 			}
 			return true
 		})
-	})
+	}
 
 	if (filters.hasPerps) {
 		filtered = filtered.filter((row) => (row.metrics.perpsVolume24h ?? 0) > 0)

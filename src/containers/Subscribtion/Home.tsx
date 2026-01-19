@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
-import { useQueryClient } from '@tanstack/react-query'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { FreeCard } from '~/components/SubscribeCards/FreeCard'
@@ -12,10 +11,9 @@ import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { AccountStatus } from './components/AccountStatus'
 import { EmailVerificationWarning } from './components/EmailVerificationWarning'
 import { ReturnModal } from './components/ReturnModal'
-import { TrialActivation } from './components/TrialActivation'
 import { SignInModal } from './SignIn'
 
-export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTrial?: boolean }) {
+export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 	const router = useRouter()
 	const { isAuthenticated, loaders, user, resendVerification } = useAuthContext()
 	const isWalletUser = user?.email?.includes('@defillama.com')
@@ -26,8 +24,6 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
 	const [showEmailForm, setShowEmailForm] = useState(false)
-
-	const queryClient = useQueryClient()
 	const [showReturnModal, setShowReturnModal] = useState(false)
 	const [hasShownModal, setHasShownModal] = useState(false)
 
@@ -84,7 +80,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 						className="absolute z-0 mx-auto aspect-square h-[132px] w-[132px] rounded-full object-contain"
 					/>
 					<img
-						src="/icons/llama.webp"
+						src="/assets/llama.webp"
 						height={118}
 						width={118}
 						className="z-10 mx-auto aspect-square rounded-full object-contain"
@@ -130,93 +126,6 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 									defaultFlow="signup"
 								/>
 								<p className="mt-2 text-center text-xs text-[#8a8c90]">Cancel anytime • Crypto and Card payments</p>
-							</div>
-						)}
-					</div>
-				)}
-
-				{!isAuthenticated && isTrial && (
-					<div className="relative mt-4 overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] p-6 shadow-md backdrop-blur-md transition-all duration-300">
-						<div className="absolute top-0 left-0 h-1 w-full bg-linear-to-r from-transparent via-[#5c5cf9] to-transparent opacity-40"></div>
-						<div className="absolute top-[-30px] right-[-30px] h-[80px] w-[80px] rounded-full bg-[#5c5cf9] opacity-10 blur-2xl"></div>
-
-						<div className="mb-4 flex items-center gap-3">
-							<div className="rounded-lg bg-[#5c5cf9]/10 p-2">
-								<svg className="h-6 w-6 text-[#5c5cf9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-									/>
-								</svg>
-							</div>
-							<h2 className="bg-linear-to-r from-[#5C5CF9] to-[#8A8AFF] bg-clip-text text-2xl font-bold text-transparent">
-								Welcome to Your Free Trial!
-							</h2>
-						</div>
-
-						<p className="mb-6 leading-relaxed text-[#b4b7bc]">
-							You've been invited to experience Pro for free! Sign in or create an account to activate your exclusive
-							24-hour trial access.
-						</p>
-
-						<SignInModal
-							text="Sign In to Activate Trial"
-							className="w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] px-4 py-3 font-medium text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/20"
-						/>
-					</div>
-				)}
-
-				{isAuthenticated && isTrial && !isSubscribed && (
-					<TrialActivation
-						onSuccess={() => {
-							queryClient.invalidateQueries({ queryKey: ['subscription'] })
-							window.location.reload()
-						}}
-					/>
-				)}
-
-				{isAuthenticated && isTrial && isSubscribed && subscription?.provider === 'trial' && (
-					<div className="relative mt-4 overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] p-6 shadow-md backdrop-blur-md transition-all duration-300">
-						<div className="absolute top-0 left-0 h-1 w-full bg-linear-to-r from-transparent via-green-500 to-transparent opacity-40"></div>
-						<div className="absolute top-[-30px] right-[-30px] h-[80px] w-[80px] rounded-full bg-green-500 opacity-10 blur-2xl"></div>
-
-						<div className="mb-4 flex items-center gap-3">
-							<div className="rounded-lg bg-green-500/10 p-2">
-								<svg className="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-									/>
-								</svg>
-							</div>
-							<h2 className="bg-linear-to-r from-green-400 to-green-600 bg-clip-text text-2xl font-bold text-transparent">
-								Trial Active
-							</h2>
-						</div>
-
-						<p className="mb-4 text-[#b4b7bc]">
-							Your 24-hour trial is currently active. Enjoy full access to all premium features!
-						</p>
-
-						{subscription?.expires_at && (
-							<div className="rounded-lg border border-[#39393E] bg-[#1a1b1f]/50 p-3">
-								<div className="flex items-center gap-2 text-sm">
-									<svg className="h-4 w-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2}
-											d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-										/>
-									</svg>
-									<span className="text-[#919296]">
-										Expires: {new Date(parseFloat(subscription.expires_at) * 1000).toLocaleString()}
-									</span>
-								</div>
 							</div>
 						)}
 					</div>
@@ -293,11 +202,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 						>
 							<SubscribeProCard
 								context="page"
-								active={
-									subscription?.status === 'active' &&
-									subscription?.type === 'llamafeed' &&
-									subscription?.provider !== 'trial'
-								}
+								active={subscription?.status === 'active' && subscription?.type === 'llamafeed'}
 								billingInterval={billingInterval}
 								currentBillingInterval={llamafeedSubscription?.billing_interval}
 							/>
@@ -347,22 +252,38 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 				<h2 className="text-[32px] font-extrabold">They trust us</h2>
 
 				<div className="grid grid-cols-2 place-items-center gap-20 md:grid-cols-4 lg:grid-cols-5">
-					<img src="/icons/us-treasury.svg" alt="U.S. Department of the Treasury" className="h-15 object-contain" />
-					<img src="/icons/cftc.svg" alt="CFTC" className="h-[48px] object-contain" />
+					<img
+						src="/assets/trusts-llama/us-treasury.svg"
+						alt="U.S. Department of the Treasury"
+						className="h-15 object-contain"
+					/>
+					<img src="/assets/trusts-llama/cftc.svg" alt="CFTC" className="h-[48px] object-contain" />
 					<span className="flex flex-col gap-2">
-						<img src="/icons/ecb-1.svg" alt="" className="h-7 object-contain" />
-						<img src="/icons/ecb-2.svg" alt="European Central Bank" className="h-2.5 object-contain" />
+						<img src="/assets/trusts-llama/ecb-1.svg" alt="" className="h-7 object-contain" />
+						<img src="/assets/trusts-llama/ecb-2.svg" alt="European Central Bank" className="h-2.5 object-contain" />
 					</span>
-					<img src="/icons/mas.svg" alt="Monetary Authority of Singapore" className="h-15 object-contain" />
-					<img src="/icons/bis.svg" alt="Bank of International Settlements" className="h-[48px] object-contain" />
-					<img src="/icons/nber.svg" alt="National Bureau of Economic Research" className="h-15 object-contain" />
-					<img src="/icons/imf.svg" alt="International Monetary Fund" className="h-7 object-contain" />
-					<img src="/icons/boc.svg" alt="Bank of Canada" className="h-15 object-contain" />
-					<img src="/icons/boe.svg" alt="Bank of England" className="h-7 object-contain" />
-					<img src="/icons/binance.svg" alt="Binance" className="h-7 object-contain" />
-					<img src="/icons/okx.svg" alt="OKX" className="h-7 object-contain" />
-					<img src="/icons/chainlink.svg" alt="Chainlink" className="h-7 object-contain" />
-					<img src="/icons/coinbase.svg" alt="Coinbase" className="h-7 object-contain" />
+					<img
+						src="/assets/trusts-llama/mas.svg"
+						alt="Monetary Authority of Singapore"
+						className="h-15 object-contain"
+					/>
+					<img
+						src="/assets/trusts-llama/bis.svg"
+						alt="Bank of International Settlements"
+						className="h-[48px] object-contain"
+					/>
+					<img
+						src="/assets/trusts-llama/nber.svg"
+						alt="National Bureau of Economic Research"
+						className="h-15 object-contain"
+					/>
+					<img src="/assets/trusts-llama/imf.svg" alt="International Monetary Fund" className="h-7 object-contain" />
+					<img src="/assets/trusts-llama/boc.svg" alt="Bank of Canada" className="h-15 object-contain" />
+					<img src="/assets/trusts-llama/boe.svg" alt="Bank of England" className="h-7 object-contain" />
+					<img src="/assets/trusts-llama/binance.svg" alt="Binance" className="h-7 object-contain" />
+					<img src="/assets/trusts-llama/okx.svg" alt="OKX" className="h-7 object-contain" />
+					<img src="/assets/trusts-llama/chainlink.svg" alt="Chainlink" className="h-7 object-contain" />
+					<img src="/assets/trusts-llama/coinbase.svg" alt="Coinbase" className="h-7 object-contain" />
 				</div>
 			</div>
 			{returnUrl && (

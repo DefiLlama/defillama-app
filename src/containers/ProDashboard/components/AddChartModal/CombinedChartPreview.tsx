@@ -5,6 +5,11 @@ import { EXTENDED_COLOR_PALETTE } from '../../utils/colorManager'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 
+const CHART_OPTIONS = {
+	xAxis: { show: true },
+	yAxis: { show: true }
+}
+
 interface CombinedChartPreviewProps {
 	composerItems: ChartConfig[]
 }
@@ -42,7 +47,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 		let hasNonMonetaryMetrics = false
 		let allPercentMetrics = true
 
-		composerItems.forEach((item) => {
+		for (const item of composerItems) {
 			if (item.data && Array.isArray(item.data) && item.data.length > 0) {
 				const meta = CHART_TYPES[item.type]
 				const displayName = item.protocol ? getProtocolInfo(item.protocol)?.name || item.protocol : item.chain || ''
@@ -81,7 +86,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 					colorIndex++
 				}
 			}
-		})
+		}
 
 		const symbol = result.length > 0 && allPercentMetrics ? '%' : hasNonMonetaryMetrics ? '' : '$'
 
@@ -114,7 +119,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 		<div className="h-full w-full">
 			<Suspense
 				fallback={
-					<div className="h-[240px] w-full animate-pulse rounded-md border border-(--cards-border) bg-(--cards-bg)"></div>
+					<div className="h-[450px] w-full animate-pulse rounded-md border border-(--cards-border) bg-(--cards-bg)"></div>
 				}
 			>
 				<MultiSeriesChart
@@ -123,15 +128,8 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 					valueSymbol={valueSymbol}
 					groupBy={mapGroupingToGroupBy(previewGrouping)}
 					hideDataZoom={true}
-					height="240px"
-					chartOptions={{
-						xAxis: {
-							show: true
-						},
-						yAxis: {
-							show: true
-						}
-					}}
+					height="450px"
+					chartOptions={CHART_OPTIONS}
 				/>
 			</Suspense>
 		</div>

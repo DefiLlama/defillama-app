@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useMutation } from '@tanstack/react-query'
+import * as React from 'react'
 import { LoadingDots } from '~/components/Loaders'
 import { BRIDGETX_API } from '~/constants'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
@@ -24,7 +24,7 @@ const downloadCsv = (transactions: BridgeTransaction[]) => {
 	const rows = [
 		['Timestamp', 'Date', 'Bridge', 'Chain', 'Deposit/Withdrawal', 'Token', 'Amount', 'USD Value', 'From', 'To', 'Hash']
 	]
-	transactions.forEach((tx) => {
+	for (const tx of transactions) {
 		const timestamp = Math.floor(new Date(tx.ts).getTime() / 1000).toString()
 		rows.push([
 			timestamp,
@@ -39,7 +39,7 @@ const downloadCsv = (transactions: BridgeTransaction[]) => {
 			tx.tx_to,
 			tx.tx_hash
 		])
-	})
+	}
 	download(
 		`bridge-transactions.csv`,
 		rows

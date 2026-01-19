@@ -229,7 +229,12 @@ export function groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled }: I
 	let tvlKey = 'tvl'
 	if (tvlTypes !== null) {
 		tvlKey = tvlTypes[tvlKey]
-		extraTvls = Object.fromEntries(Object.entries(extraTvls).map(([toggle, val]) => [tvlTypes[toggle], val]))
+		const mappedExtraTvls: Record<string, boolean> = {}
+		for (const toggle in extraTvls) {
+			const val = extraTvls[toggle]
+			mappedExtraTvls[tvlTypes[toggle]] = val
+		}
+		extraTvls = mappedExtraTvls
 	}
 
 	const daySum = {}
@@ -238,7 +243,8 @@ export function groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled }: I
 		const tvls: IChainTvl = {}
 		let totalDaySum = 0
 
-		Object.entries(values).forEach(([name, chainTvls]: ChainTvlsByDay) => {
+		for (const name in values) {
+			const chainTvls = values[name] as IChainTvl
 			let sum = chainTvls[tvlKey]
 			totalDaySum += chainTvls[tvlKey] || 0
 
@@ -267,7 +273,7 @@ export function groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled }: I
 			}
 
 			tvls[name] = sum
-		})
+		}
 
 		daySum[date] = totalDaySum
 
@@ -325,8 +331,9 @@ export const formatProtocolsList = ({
 	): Record<string, ChainMetricSnapshot> | undefined => {
 		if (!incoming) return existing
 		const next: Record<string, ChainMetricSnapshot> = { ...(existing ?? {}) }
-		Object.entries(incoming).forEach(([key, rawValue]) => {
-			if (!rawValue) return
+		for (const key in incoming) {
+			const rawValue = incoming[key]
+			if (!rawValue) continue
 			const value = rawValue as ChainMetricSnapshot & { chain?: string }
 			const chainLabel = typeof value.chain === 'string' && value.chain.trim().length ? value.chain : key
 			const normalizedKey =
@@ -337,7 +344,7 @@ export const formatProtocolsList = ({
 				...value,
 				chain: chainLabel
 			}
-		})
+		}
 		return next
 	}
 
@@ -556,10 +563,10 @@ export const formatProtocolsList = ({
 	const mergeVolumeDataset = (
 		dataset: DimensionDatasetItem[] | undefined,
 		assign: (protocol: IFormattedProtocol, item: DimensionDatasetItem) => IFormattedProtocol
-	) =>
-		(dataset ?? []).forEach((item) => {
+	) => {
+		for (const item of dataset ?? []) {
 			const protocolName = item.name?.toLowerCase()
-			if (!protocolName) return
+			if (!protocolName) continue
 			if (!allProtocols[protocolName]) {
 				allProtocols[protocolName] = { name: item.displayName ?? item.name } as IFormattedProtocol
 			}
@@ -570,7 +577,8 @@ export const formatProtocolsList = ({
 				},
 				item
 			)
-		})
+		}
+	}
 
 	mergeVolumeDataset(aggregatorsData, (protocol, item) => ({
 		...protocol,
@@ -738,7 +746,10 @@ export const formatProtocolsList2 = ({
 					const mcaptvl =
 						child.mcap && defaultTvl.tvl ? +formatNum(+child.mcap.toFixed(2) / +defaultTvl.tvl.toFixed(2)) : null
 
-					if ((minTvl != null ? defaultTvl.tvl >= minTvl : true) && (maxTvl != null ? defaultTvl.tvl <= maxTvl : true)) {
+					if (
+						(minTvl != null ? defaultTvl.tvl >= minTvl : true) &&
+						(maxTvl != null ? defaultTvl.tvl <= maxTvl : true)
+					) {
 						childProtocols.push({
 							...child,
 							strikeTvl,

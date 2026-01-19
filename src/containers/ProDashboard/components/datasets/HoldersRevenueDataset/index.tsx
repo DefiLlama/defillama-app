@@ -1,8 +1,6 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
-	ColumnOrderState,
 	ColumnSizingState,
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -12,9 +10,9 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { TagGroup } from '~/components/TagGroup'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
 import { TableFilters } from '../../../types'
@@ -26,6 +24,9 @@ import { TablePagination } from '../../ProTable/TablePagination'
 import { holdersRevenueDatasetColumns } from './columns'
 import { useHoldersRevenueData } from './useHoldersRevenueData'
 
+const EMPTY_CATEGORIES: string[] = []
+const EMPTY_TABLE_DATA: any[] = []
+
 interface HoldersRevenueDatasetProps {
 	chains?: string[]
 	tableId?: string
@@ -34,7 +35,7 @@ interface HoldersRevenueDatasetProps {
 
 export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersRevenueDatasetProps) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
-	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
+	const [columnOrder, setColumnOrder] = React.useState<string[]>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [pagination, setPagination] = React.useState<PaginationState>({
@@ -44,52 +45,62 @@ export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersReven
 
 	const { handleTableFiltersChange } = useProDashboardEditorActions()
 	const { data, isLoading, error } = useHoldersRevenueData(chains)
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const [showFilterModal, setShowFilterModal] = React.useState(false)
-	const [includeCategories, setIncludeCategories] = React.useState<string[]>(filters?.categories || [])
-	const [excludeCategories, setExcludeCategories] = React.useState<string[]>(filters?.excludedCategories || [])
+	const [includeCategories, setIncludeCategories] = React.useState<string[]>(filters?.categories ?? EMPTY_CATEGORIES)
+	const [excludeCategories, setExcludeCategories] = React.useState<string[]>(filters?.excludedCategories ?? EMPTY_CATEGORIES)
 
 	React.useEffect(() => {
-		setIncludeCategories(filters?.categories || [])
-		setExcludeCategories(filters?.excludedCategories || [])
+		setIncludeCategories(filters?.categories ?? EMPTY_CATEGORIES)
+		setExcludeCategories(filters?.excludedCategories ?? EMPTY_CATEGORIES)
 	}, [filters?.categories, filters?.excludedCategories])
 
 	const availableCategories = React.useMemo(() => {
 		if (!data || data.length === 0) return [] as string[]
 		const unique = new Set<string>()
-		data.forEach((row: any) => {
+		for (const row of data) {
 			if (row?.category) {
 				unique.add(row.category)
 			}
-		})
+		}
 		return Array.from(unique).sort((a, b) => a.localeCompare(b))
 	}, [data])
 
+	const availableCategoriesSet = React.useMemo(() => new Set(availableCategories), [availableCategories])
+
 	React.useEffect(() => {
-		if (!availableCategories.length) return
-		setIncludeCategories((prev) => prev.filter((cat) => availableCategories.includes(cat)))
-		setExcludeCategories((prev) => prev.filter((cat) => availableCategories.includes(cat)))
-	}, [availableCategories])
+		if (!availableCategoriesSet.size) return
+		setIncludeCategories((prev) => prev.filter((cat) => availableCategoriesSet.has(cat)))
+		setExcludeCategories((prev) => prev.filter((cat) => availableCategoriesSet.has(cat)))
+	}, [availableCategoriesSet])
+
+	const includeCategoriesSet = React.useMemo(() => new Set(includeCategories), [includeCategories])
+	const excludeCategoriesSet = React.useMemo(() => new Set(excludeCategories), [excludeCategories])
+
+	const { filteredIncludeCategories, filteredExcludeCategories } = React.useMemo(() => ({
+		filteredIncludeCategories: includeCategories.filter((cat) => availableCategoriesSet.has(cat)),
+		filteredExcludeCategories: excludeCategories.filter((cat) => availableCategoriesSet.has(cat))
+	}), [includeCategories, excludeCategories, availableCategoriesSet])
 
 	const filteredData = React.useMemo(() => {
 		if (!data) return []
 		return data.filter((row: any) => {
 			const category = row?.category ?? ''
-			if (includeCategories.length > 0 && !includeCategories.includes(category)) {
+			if (includeCategoriesSet.size > 0 && !includeCategoriesSet.has(category)) {
 				return false
 			}
-			if (excludeCategories.length > 0 && excludeCategories.includes(category)) {
+			if (excludeCategoriesSet.size > 0 && excludeCategoriesSet.has(category)) {
 				return false
 			}
 			return true
 		})
-	}, [data, includeCategories, excludeCategories])
+	}, [data, includeCategoriesSet, excludeCategoriesSet])
 
 	const handleApplyCategoryFilters = React.useCallback(
 		(include: string[], exclude: string[]) => {
-			const sanitizedInclude = include.filter((cat) => availableCategories.includes(cat))
-			const sanitizedExclude = exclude.filter((cat) => availableCategories.includes(cat))
+			const sanitizedInclude = include.filter((cat) => availableCategoriesSet.has(cat))
+			const sanitizedExclude = exclude.filter((cat) => availableCategoriesSet.has(cat))
 			setIncludeCategories(sanitizedInclude)
 			setExcludeCategories(sanitizedExclude)
 			if (tableId) {
@@ -99,7 +110,7 @@ export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersReven
 				})
 			}
 		},
-		[availableCategories, handleTableFiltersChange, tableId]
+		[availableCategoriesSet, handleTableFiltersChange, tableId]
 	)
 
 	const handleClearCategoryFilters = React.useCallback(() => {
@@ -145,10 +156,10 @@ export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersReven
 			}
 			return col
 		})
-	}, [columnsToUse, filterButtonIsActive, activeCategoryFilterCount])
+	}, [columnsToUse, filterButtonIsActive])
 
 	const instance = useReactTable({
-		data: filteredData || [],
+		data: filteredData.length > 0 ? filteredData : EMPTY_TABLE_DATA,
 		columns: columnsWithFilterButton as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -165,7 +176,8 @@ export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersReven
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {
@@ -183,7 +195,7 @@ export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersReven
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [windowSize])
+	}, [instance, width])
 
 	const [protocolName, setProtocolName] = React.useState('')
 
@@ -301,8 +313,8 @@ export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersReven
 				onApply={(include, exclude) => handleApplyCategoryFilters(include, exclude)}
 				onClear={handleClearCategoryFilters}
 				categories={availableCategories}
-				initialInclude={includeCategories.filter((cat) => availableCategories.includes(cat))}
-				initialExclude={excludeCategories.filter((cat) => availableCategories.includes(cat))}
+				initialInclude={filteredIncludeCategories}
+				initialExclude={filteredExcludeCategories}
 			/>
 		</div>
 	)

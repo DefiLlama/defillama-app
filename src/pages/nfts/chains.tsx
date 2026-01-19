@@ -12,7 +12,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
-	const data = (await fetchJson(TEMP_CHAIN_NFTS)) as Promise<Record<string, number>>
+	const data = await fetchJson<Record<string, number>>(TEMP_CHAIN_NFTS)
 
 	if (!data) return { notFound: true }
 
@@ -36,6 +36,7 @@ export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => 
 })
 
 const pageName = ['Chains', 'ranked by', 'NFT Volume']
+const DEFAULT_SORTING_STATE = [{ id: 'total24h', desc: true }]
 
 export default function NftsOnAllChains(props) {
 	return (
@@ -52,7 +53,7 @@ export default function NftsOnAllChains(props) {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
-				sortingState={[{ id: 'total24h', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)

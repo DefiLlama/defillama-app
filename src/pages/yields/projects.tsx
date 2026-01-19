@@ -23,17 +23,17 @@ export const getStaticProps = withPerformanceLogging('yields/projects', async ()
 	data.props.pools = data.props.pools.filter((p) => p.apy > 0)
 
 	const projects = {}
-	data.props.pools.forEach((p) => {
+	for (const p of data.props.pools) {
 		const proj = p.project
 		if (projects[proj] === undefined) {
 			projects[proj] = { protocols: 0, tvl: 0, name: p.projectName }
 		}
 		projects[proj].protocols++
 		projects[proj].tvl += p.tvlUsd
-	})
+	}
 
 	// add other fields
-	for (const project of Object.keys(projects)) {
+	for (const project in projects) {
 		const x = data.props.pools.filter((p) => p.project === project)
 		const m = median(x.map((el) => el.apy))
 		projects[project]['medianApy'] = m
@@ -44,10 +44,10 @@ export const getStaticProps = withPerformanceLogging('yields/projects', async ()
 			: x[0].airdrop
 	}
 
-	const projArray = Object.entries(projects).map(([slug, details]: [string, any]) => ({
-		slug,
-		...details
-	}))
+	const projArray: Array<{ slug: string } & any> = []
+	for (const slug in projects) {
+		projArray.push({ slug, ...projects[slug] })
+	}
 
 	return {
 		props: { projects: projArray.sort((a, b) => b.tvl - a.tvl) },

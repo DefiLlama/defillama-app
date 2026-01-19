@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { useQueries, useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { PROTOCOLS_API } from '~/constants'
 import { fetchApi, fetchJson } from '~/utils/async'
 import {
@@ -16,7 +16,7 @@ type WeightedStore = Record<string, WeightedAccumulator>
 const WEIGHTED_ACC_SYMBOL: unique symbol = Symbol('weightedAccumulators')
 
 const toFiniteNumber = (value: unknown): number | null => {
-	if (value === null || value === undefined) return null
+	if (value == null) return null
 	const num = typeof value === 'number' ? value : Number(value)
 	return Number.isFinite(num) ? num : null
 }
@@ -50,9 +50,10 @@ const finalizeAggregatedProtocol = (entry: Record<string | symbol, any>, options
 	const result = { ...entry }
 	const store = entry[WEIGHTED_ACC_SYMBOL] as WeightedStore | undefined
 	if (store) {
-		Object.entries(store).forEach(([key, accumulator]) => {
+		for (const key in store) {
+			const accumulator = store[key]
 			result[key] = accumulator.denominator > 0 ? accumulator.numerator / accumulator.denominator : undefined
-		})
+		}
 		delete result[WEIGHTED_ACC_SYMBOL]
 	}
 
@@ -102,7 +103,7 @@ export function useGetProtocolsListMultiChain(chains: string[]) {
 
 		const protocolsMap = new Map<string, any>()
 
-		chains.forEach((chain) => {
+		for (const chain of chains) {
 			const chainProtocols = formatProtocolsData({
 				chain,
 				protocols,
@@ -110,7 +111,7 @@ export function useGetProtocolsListMultiChain(chains: string[]) {
 				protocolProps: [...basicPropertiesToKeep, 'extraTvl', 'oracles', 'oraclesByChain']
 			})
 
-			chainProtocols.forEach((protocol) => {
+			for (const protocol of chainProtocols) {
 				const existing = protocolsMap.get(protocol.name)
 				if (existing) {
 					existing.tvl = (existing.tvl || 0) + (protocol.tvl || 0)
@@ -127,7 +128,7 @@ export function useGetProtocolsListMultiChain(chains: string[]) {
 					}
 					if (protocol.oraclesByChain) {
 						existing.oraclesByChain = existing.oraclesByChain || {}
-						for (const k of Object.keys(protocol.oraclesByChain)) {
+						for (const k in protocol.oraclesByChain) {
 							const cur = new Set([...(existing.oraclesByChain[k] || []), ...protocol.oraclesByChain[k]])
 							existing.oraclesByChain[k] = Array.from(cur)
 						}
@@ -135,8 +136,8 @@ export function useGetProtocolsListMultiChain(chains: string[]) {
 				} else {
 					protocolsMap.set(protocol.name, { ...protocol })
 				}
-			})
-		})
+			}
+		}
 
 		return {
 			fullProtocolsList: Array.from(protocolsMap.values()),
@@ -176,9 +177,9 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 
 		const protocolsMap = new Map<string, any>()
 
-		queryDatas.forEach((payload) => {
-			if (!payload?.protocols) return
-			payload.protocols.forEach((protocol: any) => {
+		for (const payload of queryDatas) {
+			if (!payload?.protocols) continue
+			for (const protocol of payload.protocols as any[]) {
 				const existing = protocolsMap.get(protocol.name)
 				const change7d = protocol.change_7d ?? protocol.change_7dover7d
 				const chainName = payload.chain
@@ -216,11 +217,11 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 					applyWeightedChange(newEntry, 'change_1m', protocol.total30d, protocol.change_1m)
 					protocolsMap.set(protocol.name, newEntry)
 				}
-			})
-		})
+			}
+		}
 
 		return Array.from(protocolsMap.values()).map((protocol) => finalizeAggregatedProtocol(protocol))
-	}, [shouldFetchAll, ...queryDatas])
+	}, [shouldFetchAll, queryDatas])
 
 	return { data, isLoading, error }
 }
@@ -247,9 +248,9 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 
 		const protocolsMap = new Map<string, any>()
 
-		queryDatas.forEach((payload) => {
-			if (!payload?.protocols) return
-			payload.protocols.forEach((protocol: any) => {
+		for (const payload of queryDatas) {
+			if (!payload?.protocols) continue
+			for (const protocol of payload.protocols as any[]) {
 				const key = protocol.name
 				const existing = protocolsMap.get(key)
 				const chainName = payload.chain
@@ -310,13 +311,13 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 					applyWeightedChange(newEntry, 'revenueChange_1m', protocol.revenue30d, protocol.revenueChange_1m)
 					protocolsMap.set(key, newEntry)
 				}
-			})
-		})
+			}
+		}
 
 		return Array.from(protocolsMap.values()).map((protocol) =>
 			finalizeAggregatedProtocol(protocol, { computeRatios: true })
 		)
-	}, [shouldFetchAll, ...queryDatas])
+	}, [shouldFetchAll, queryDatas])
 
 	return { data, isLoading, error }
 }
@@ -346,9 +347,9 @@ export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
 
 		const protocolsMap = new Map<string, any>()
 
-		queryDatas.forEach((payload) => {
-			if (!payload?.protocols) return
-			payload.protocols.forEach((protocol: any) => {
+		for (const payload of queryDatas) {
+			if (!payload?.protocols) continue
+			for (const protocol of payload.protocols as any[]) {
 				const existing = protocolsMap.get(protocol.name)
 				const chainName = payload.chain
 				const normalizedChainKey = typeof chainName === 'string' ? chainName.trim().toLowerCase() : ''
@@ -382,11 +383,11 @@ export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
 					applyWeightedChange(newEntry, 'change_1m', protocol.total30d, protocol.change_1m)
 					protocolsMap.set(protocol.name, newEntry)
 				}
-			})
-		})
+			}
+		}
 
 		return Array.from(protocolsMap.values()).map((protocol) => finalizeAggregatedProtocol(protocol))
-	}, [shouldFetchAll, ...queryDatas])
+	}, [shouldFetchAll, queryDatas])
 
 	return { data, isLoading, error }
 }
@@ -413,9 +414,9 @@ export function useGetProtocolsOpenInterestByMultiChain(chains: string[]) {
 
 		const protocolsMap = new Map<string, any>()
 
-		queryDatas.forEach((payload) => {
-			if (!payload?.protocols) return
-			payload.protocols.forEach((protocol: any) => {
+		for (const payload of queryDatas) {
+			if (!payload?.protocols) continue
+			for (const protocol of payload.protocols as any[]) {
 				const existing = protocolsMap.get(protocol.name)
 				const chainName = payload.chain
 				const normalizedChainKey = typeof chainName === 'string' ? chainName.trim().toLowerCase() : ''
@@ -440,11 +441,11 @@ export function useGetProtocolsOpenInterestByMultiChain(chains: string[]) {
 					}
 					protocolsMap.set(protocol.name, entry)
 				}
-			})
-		})
+			}
+		}
 
 		return Array.from(protocolsMap.values())
-	}, [shouldFetchAll, ...queryDatas])
+	}, [shouldFetchAll, queryDatas])
 
 	return { data, isLoading, error }
 }

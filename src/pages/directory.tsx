@@ -1,11 +1,12 @@
-import { startTransition, useDeferredValue, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import { startTransition, useDeferredValue, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import Layout from '~/layout'
 import { tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -20,22 +21,13 @@ export const getStaticProps = withPerformanceLogging('directory', async () => {
 					logo: tokenIconUrl(protocol.name),
 					route: protocol.url
 				}))
-				.filter((p) => (p.name && p.route ? true : false))
+				.filter((p) => !!(p.name && p.route))
 		},
 		revalidate: maxAgeForNext([22])
 	}
 })
 
 const RECENTS_KEY = 'recent_protocols'
-
-export function subscribeToRecentProtocols(callback: () => void) {
-	// Listen for localStorage changes (for other settings)
-	window.addEventListener('recentProtocolsChange', callback)
-
-	return () => {
-		window.removeEventListener('recentProtocolsChange', callback)
-	}
-}
 
 export default function Protocols({ protocols }: { protocols: Array<{ name: string; logo: string; route: string }> }) {
 	const [searchValue, setSearchValue] = useState('')
@@ -53,8 +45,8 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 	const comboboxRef = useRef<HTMLDivElement>(null)
 
 	const recentProtocolsInStorage = useSyncExternalStore(
-		subscribeToRecentProtocols,
-		() => window.localStorage.getItem(RECENTS_KEY) ?? '[]',
+		(callback) => subscribeToStorageKey(RECENTS_KEY, callback),
+		() => getStorageItem(RECENTS_KEY, '[]') ?? '[]',
 		() => '[]'
 	)
 
@@ -98,8 +90,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 				})
 				.slice(0, 6)
 
-			window.localStorage.setItem(RECENTS_KEY, JSON.stringify(arr))
-			window.dispatchEvent(new Event('recentProtocolsChange'))
+			setStorageItem(RECENTS_KEY, JSON.stringify(arr))
 		} catch (e) {
 			console.log('failed to save recent protocol', e)
 		}

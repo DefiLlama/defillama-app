@@ -7,6 +7,8 @@ import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
+const EMPTY_TOGGLE_OPTIONS = []
+
 export const getStaticProps = withPerformanceLogging(
 	'protocol/stablecoins/[...protocol]',
 	async ({
@@ -51,7 +53,7 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocols({ clientSide, protocolData, ...props }) {
+export default function Protocols({ clientSide: _clientSide, protocolData: _protocolData, ...props }) {
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
@@ -60,7 +62,7 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			metrics={props.metrics}
 			tab="stablecoins"
 			warningBanners={props.warningBanners}
-			toggleOptions={[]}
+			toggleOptions={EMPTY_TOGGLE_OPTIONS}
 		>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<StablecoinInfo assetName={props.assetName} />

@@ -4,6 +4,8 @@ import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import { CHART_TYPES, ChartConfig } from '../../types'
 import { ChartPreview } from '../ChartPreview'
 
+const EMPTY_ITEM_DATA: any[] = []
+
 interface ComposerItemsCarouselProps {
 	composerItems: ChartConfig[]
 }
@@ -15,6 +17,14 @@ export function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselPr
 	const validItems = useMemo(
 		() => composerItems.filter((item) => item.data && Array.isArray(item.data) && item.data.length > 0),
 		[composerItems]
+	)
+
+	const currentItem = validItems[currentIndex]
+
+	const chartPreviewData = useMemo(
+		() =>
+			(currentItem?.data ?? EMPTY_ITEM_DATA).map((d) => [typeof d[0] === 'string' ? Number(d[0]) : d[0], d[1]] as [number, number]),
+		[currentItem?.data]
 	)
 
 	const handlePrevious = () => {
@@ -36,7 +46,6 @@ export function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselPr
 		)
 	}
 
-	const currentItem = validItems[currentIndex]
 	const chartType = CHART_TYPES[currentItem.type]
 	const itemName = currentItem.protocol
 		? getProtocolInfo(currentItem.protocol)?.name || currentItem.protocol
@@ -71,7 +80,7 @@ export function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselPr
 			<div className="flex-1">
 				<ChartPreview
 					chartType={currentItem.type}
-					data={(currentItem.data || []).map((d) => [typeof d[0] === 'string' ? Number(d[0]) : d[0], d[1]])}
+					data={chartPreviewData}
 					color={currentItem.color}
 					itemName={itemName}
 				/>

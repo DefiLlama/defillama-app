@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
+import * as React from 'react'
 import { YieldFiltersV2 } from './Filters'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
@@ -91,6 +91,8 @@ export const PlotsPage = ({
 		usdPeggedSymbols
 	])
 
+	const nonOutlierPoolsData = React.useMemo(() => poolsData.filter((p) => !p.outlier), [poolsData])
+
 	return (
 		<>
 			<YieldFiltersV2
@@ -118,11 +120,11 @@ export const PlotsPage = ({
 			</React.Suspense>
 			<React.Suspense fallback={<></>}>
 				<div className="relative rounded-md bg-(--cards-bg) p-3">
-					<ScatterChart chartData={poolsData.filter((p) => !p.outlier)} />
+					<ScatterChart chartData={nonOutlierPoolsData} />
 				</div>
 			</React.Suspense>
 			<React.Suspense fallback={<></>}>
-				<BoxplotChart chartData={poolsData.filter((p) => !p.outlier)} />
+				<BoxplotChart chartData={nonOutlierPoolsData} />
 			</React.Suspense>
 		</>
 	)

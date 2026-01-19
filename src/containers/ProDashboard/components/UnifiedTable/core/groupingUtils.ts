@@ -2,7 +2,7 @@ import type { Row } from '@tanstack/react-table'
 import type { UnifiedRowHeaderType } from '../../../types'
 import type { NormalizedRow, NumericMetrics } from '../types'
 import { aggregateMetrics } from '../utils/aggregation'
-import { GROUPING_COLUMN_ID_TO_HEADER, ROW_HEADER_GROUPING_COLUMN_IDS, type GroupingColumnId } from './grouping'
+import { GROUPING_COLUMN_ID_TO_HEADER, type GroupingColumnId } from './grouping'
 
 const UNKNOWN_LABELS: Record<UnifiedRowHeaderType, string> = {
 	protocol: 'Unknown Protocol',
@@ -117,7 +117,9 @@ const getAggregatedChains = (rows: NormalizedRow[]): string[] => {
 	const set = new Set<string>()
 	for (const row of rows) {
 		if (row.chains?.length) {
-			row.chains.forEach((chain) => set.add(chain))
+			for (const chain of row.chains) {
+				set.add(chain)
+			}
 		} else if (row.chain) {
 			set.add(row.chain)
 		}
@@ -129,7 +131,9 @@ const getAggregatedOracles = (rows: NormalizedRow[]): string[] => {
 	const set = new Set<string>()
 	for (const row of rows) {
 		if (row.oracles?.length) {
-			row.oracles.forEach((oracle) => set.add(oracle))
+			for (const oracle of row.oracles) {
+				set.add(oracle)
+			}
 		}
 	}
 	return Array.from(set)

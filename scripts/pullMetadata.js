@@ -20,7 +20,7 @@ let defillamaPages
 try {
 	const fileContent = fs.readFileSync(path.join('public', 'pages.json'), 'utf8')
 	defillamaPages = JSON.parse(fileContent)
-} catch (error) {
+} catch {
 	console.log('Could not load pages.json, using empty structure')
 	defillamaPages = {
 		Metrics: [],

@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import * as echarts from 'echarts/core'
+import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
-import { slug } from '~/utils'
+import { useChartResize } from '~/hooks/useChartResize'
+import { slug, toNiceCsvDate } from '~/utils'
 import type { ILineAndBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { mergeDeep } from '../utils'
@@ -21,6 +23,7 @@ export default function LineAndBarChart({
 	hideDataZoom,
 	onReady,
 	hideDefaultLegend = true,
+	hideDownloadButton = true,
 	enableImageExport,
 	imageExportFilename,
 	imageExportTitle,
@@ -29,9 +32,12 @@ export default function LineAndBarChart({
 	const id = useId()
 	const shouldEnableExport = enableImageExport ?? !!title
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const chartInstanceRef = useRef<echarts.ECharts | null>(null)
+	const chartRef = useRef<echarts.ECharts | null>(null)
 
 	const [isThemeDark] = useDarkModeManager()
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const defaultChartSettings = useDefaults({
 		isThemeDark,
@@ -163,23 +169,19 @@ export default function LineAndBarChart({
 		return series
 	}, [charts, isThemeDark, expandTo100Percent, hallmarks, solidChartAreaStyle])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
 		// create instance
-		const chartInstance = createInstance()
-		chartInstanceRef.current = chartInstance
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
 
 		if (shouldEnableExport) {
-			handleChartReady(chartInstance)
+			handleChartReady(instance)
 		}
 
 		if (onReady) {
-			onReady(chartInstance)
+			onReady(instance)
 		}
 
 		// override default chart settings
@@ -201,7 +203,7 @@ export default function LineAndBarChart({
 			// Collect all unique yAxisIndex values from series and map them to colors
 			const yAxisIndexToColor = new Map<number, string | undefined>()
 
-			series.forEach((item) => {
+			for (const item of series) {
 				if (item.yAxisIndex != null) {
 					// Map each yAxisIndex to the color of the first series that uses it
 					if (!yAxisIndexToColor.has(item.yAxisIndex)) {
@@ -209,7 +211,7 @@ export default function LineAndBarChart({
 						yAxisIndexToColor.set(item.yAxisIndex, seriesColor)
 					}
 				}
-			})
+			}
 
 			// Create yAxis objects for each index from 0 to max
 			if (yAxisIndexToColor.size > 0) {
@@ -238,7 +240,7 @@ export default function LineAndBarChart({
 
 		const shouldHideDataZoom = series.every((s) => s.data.length < 2) || hideDataZoom
 
-		chartInstance.setOption({
+		instance.setOption({
 			...(hideDefaultLegend ? {} : { legend }),
 			graphic,
 			tooltip,
@@ -264,7 +266,7 @@ export default function LineAndBarChart({
 		})
 
 		if (alwaysShowTooltip) {
-			chartInstance.dispatchAction({
+			instance.dispatchAction({
 				type: 'showTip',
 				// index of series, which is optional when trigger of tooltip is axis
 				seriesIndex: 0,
@@ -275,8 +277,8 @@ export default function LineAndBarChart({
 				position: [60, 0]
 			})
 
-			chartInstance.on('globalout', () => {
-				chartInstance.dispatchAction({
+			instance.on('globalout', () => {
+				instance.dispatchAction({
 					type: 'showTip',
 					// index of series, which is optional when trigger of tooltip is axis
 					seriesIndex: 0,
@@ -289,16 +291,9 @@ export default function LineAndBarChart({
 			})
 		}
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
-			chartInstanceRef.current = null
+			chartRef.current = null
+			instance.dispose()
 			if (shouldEnableExport) {
 				handleChartReady(null)
 			}
@@ -307,7 +302,7 @@ export default function LineAndBarChart({
 			}
 		}
 	}, [
-		createInstance,
+		id,
 		defaultChartSettings,
 		series,
 		chartOptions,
@@ -323,17 +318,47 @@ export default function LineAndBarChart({
 	const exportFilename = imageExportFilename || (title ? slug(title) : 'chart')
 	const exportTitle = imageExportTitle || title
 
+	const prepareCsv = useCallback(() => {
+		const chartNames = Object.keys(charts)
+		const rows = [['Timestamp', 'Date', ...chartNames.map((key) => charts[key].name || key)]]
+
+		// Get all timestamps from the first chart (assuming all charts have same timestamps)
+		const firstChartData = charts[chartNames[0]]?.data || []
+
+		for (let i = 0; i < firstChartData.length; i++) {
+			const timestamp = firstChartData[i][0]
+			const timestampSeconds = timestamp / 1000
+			const row = [timestampSeconds, toNiceCsvDate(timestampSeconds)]
+
+			for (const chartKey of chartNames) {
+				const chartData = charts[chartKey]?.data || []
+				const value = chartData[i]?.[1] ?? ''
+				row.push(value)
+			}
+
+			rows.push(row as string[])
+		}
+
+		const myTitle = title ? slug(title) : 'data'
+		const filename = `line-bar-chart-${myTitle}-${new Date().toISOString().split('T')[0]}.csv`
+		return { filename, rows }
+	}, [charts, title])
+
 	return (
 		<div className="relative">
-			{shouldEnableExport && (
-				<div className="absolute top-2 right-2 z-10">
-					<ChartExportButton
-						chartInstance={exportChartInstance}
-						filename={exportFilename}
-						title={exportTitle}
-						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) bg-(--cards-bg) px-1.5 py-1 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-						smol
-					/>
+			{(title || !hideDownloadButton || shouldEnableExport) && (
+				<div className="mb-2 flex items-center justify-end gap-2 px-2">
+					{title && <h1 className="mr-auto text-lg font-bold">{title}</h1>}
+					{!hideDownloadButton && <CSVDownloadButton prepareCsv={prepareCsv} smol />}
+					{shouldEnableExport && (
+						<ChartExportButton
+							chartInstance={exportChartInstance}
+							filename={exportFilename}
+							title={exportTitle}
+							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+							smol
+						/>
+					)}
 				</div>
 			)}
 			<div id={id} className="h-[360px]" style={height ? { height } : undefined}></div>

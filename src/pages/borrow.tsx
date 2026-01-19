@@ -1,8 +1,8 @@
-import * as React from 'react'
-import { useMemo } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import { useRouter } from 'next/router'
+import * as React from 'react'
+import { useMemo } from 'react'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
@@ -29,18 +29,17 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 		}
 	}
 
-	data.symbols
-		.sort((a, b) => cgPositions[a] - cgPositions[b])
-		.forEach((sRaw) => {
-			const s = sRaw.replaceAll(/\(.*\)/g, '').trim()
+	const sortedSymbols = data.symbols.sort((a, b) => cgPositions[a] - cgPositions[b])
+	for (const sRaw of sortedSymbols) {
+		const s = sRaw.replaceAll(/\(.*\)/g, '').trim()
 
-			// const cgToken = cgTokens.find((x) => x.symbol === sRaw.toLowerCase() || x.symbol === s.toLowerCase())
+		// const cgToken = cgTokens.find((x) => x.symbol === sRaw.toLowerCase() || x.symbol === s.toLowerCase())
 
-			searchData[s] = {
-				name: s,
-				symbol: s
-			}
-		})
+		searchData[s] = {
+			name: s,
+			symbol: s
+		}
+	}
 
 	return {
 		props: {
@@ -359,11 +358,11 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 
 	const filteredPools2 = {}
 
-	filteredPools.forEach((pool) => {
+	for (const pool of filteredPools) {
 		if (!filteredPools2[pool.projectName + pool.chain]) {
 			filteredPools2[pool.projectName + pool.chain] = pool
 		}
-	})
+	}
 
 	const finalPools: Array<IPool> = Object.values(filteredPools2)
 

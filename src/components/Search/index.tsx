@@ -1,10 +1,10 @@
-import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { LoadingDots } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { useDebounce } from '~/hooks/useDebounce'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
 import { Icon } from '../Icon'
@@ -78,7 +78,7 @@ export const MobileSearch = () => {
 					data-umami-event-subscribed={hasActiveSubscription ? 'true' : 'false'}
 				>
 					<svg className="h-4 w-4 shrink-0">
-						<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+						<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 					</svg>
 					<span className="sr-only">Ask LlamaAI</span>
 				</BasicLink>
@@ -291,9 +291,7 @@ const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: bo
 				<BasicLink
 					href={route.route}
 					shallow={
-						route.subName && route.route.includes('?') && router.asPath.startsWith(route.route.split('?')[0])
-							? true
-							: false
+						!!(route.subName && route.route.includes('?') && router.asPath.startsWith(route.route.split('?')[0]))
 					}
 				/>
 			}
@@ -329,7 +327,7 @@ const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: bo
 const setRecentSearch = (route: ISearchItem) => {
 	const recentSearch = window.localStorage.getItem('recentSearch')
 	const recentSearchArray = JSON.parse(recentSearch ?? '[]')
-	window.localStorage.setItem(
+	setStorageItem(
 		'recentSearch',
 		JSON.stringify([route, ...recentSearchArray.filter((r: ISearchItem) => r.route !== route.route).slice(0, 2)])
 	)
@@ -345,8 +343,8 @@ const useDefaultSearchList = () => {
 	})
 
 	const recentSearch = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => window.localStorage.getItem('recentSearch') ?? '[]',
+		(callback) => subscribeToStorageKey('recentSearch', callback),
+		() => getStorageItem('recentSearch', '[]') ?? '[]',
 		() => '[]'
 	)
 

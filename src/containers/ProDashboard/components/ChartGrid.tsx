@@ -1,9 +1,10 @@
-import { lazy, memo, Suspense, useCallback, useEffect, useState } from 'react'
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
+import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
+import { useMedia } from '~/hooks/useMedia'
 import {
 	useProDashboardChartsData,
 	useProDashboardDashboard,
@@ -33,8 +34,8 @@ import { ProtocolsByChainTable } from './ProTable'
 import { Rating } from './Rating'
 import { TextCard } from './TextCard'
 import type { UnifiedTableFocusSection } from './UnifiedTable/types'
-import { YieldsChartCard } from './YieldsChartCard'
 
+const YieldsChartCard = lazy(() => import('./YieldsChartCard').then((mod) => ({ default: mod.YieldsChartCard })))
 const ChartCard = lazy(() => import('./ChartCard').then((mod) => ({ default: mod.ChartCard })))
 const MultiChartCard = lazy(() => import('./MultiChartCard'))
 const ChartBuilderCard = lazy(() => import('./ChartBuilderCard').then((mod) => ({ default: mod.ChartBuilderCard })))
@@ -49,8 +50,9 @@ const StablecoinAssetChartCard = lazy(() =>
 const AdvancedTvlChartCard = lazy(() =>
 	import('./AdvancedTvlChartCard').then((mod) => ({ default: mod.AdvancedTvlChartCard }))
 )
-const BorrowedChartCard = lazy(() =>
-	import('./BorrowedChartCard').then((mod) => ({ default: mod.BorrowedChartCard }))
+const BorrowedChartCard = lazy(() => import('./BorrowedChartCard').then((mod) => ({ default: mod.BorrowedChartCard })))
+const IncomeStatementCard = lazy(() =>
+	import('./IncomeStatementCard').then((mod) => ({ default: mod.IncomeStatementCard }))
 )
 const LlamaAIChartCard = lazy(() => import('./LlamaAIChartCard'))
 
@@ -186,7 +188,11 @@ const DashboardItemRenderer = memo(function DashboardItemRenderer({
 	}
 
 	if (item.kind === 'yields') {
-		return <YieldsChartCard config={item} />
+		return (
+			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+				<YieldsChartCard config={item} />
+			</Suspense>
+		)
 	}
 
 	if (item.kind === 'stablecoins') {
@@ -217,6 +223,14 @@ const DashboardItemRenderer = memo(function DashboardItemRenderer({
 		return (
 			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
 				<BorrowedChartCard config={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'income-statement') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[360px] flex-col p-1" />}>
+				<IncomeStatementCard config={item} />
 			</Suspense>
 		)
 	}
@@ -309,31 +323,24 @@ const DashboardItemRenderer = memo(function DashboardItemRenderer({
 
 export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 	const { chartsWithData } = useProDashboardChartsData()
-	const { handleChartsReordered, handleRemoveItem, handleColSpanChange, handleEditItem } = useProDashboardEditorActions()
+	const { handleChartsReordered, handleRemoveItem, handleColSpanChange, handleEditItem } =
+		useProDashboardEditorActions()
 	const { isReadOnly } = useProDashboardPermissions()
 	const { getCurrentRatingSession, autoSkipOlderSessionsForRating, submitRating, skipRating } =
 		useProDashboardDashboard()
 	const [deleteConfirmItem, setDeleteConfirmItem] = useState<string | null>(null)
-	const [isSmallScreen, setIsSmallScreen] = useState(false)
+	const isSmallScreen = useMedia('(max-width: 768px)')
+
+	const sortableItemIds = useMemo(() => chartsWithData.map((c) => c.id), [chartsWithData])
 
 	const currentRatingSession = getCurrentRatingSession()
+	const currentSessionId = currentRatingSession?.sessionId
 
 	useEffect(() => {
-		if (currentRatingSession) {
+		if (currentSessionId) {
 			autoSkipOlderSessionsForRating()
 		}
-	}, [currentRatingSession?.sessionId, autoSkipOlderSessionsForRating])
-
-	useEffect(() => {
-		const checkScreenSize = () => {
-			setIsSmallScreen(window.innerWidth <= 768)
-		}
-
-		checkScreenSize()
-		window.addEventListener('resize', checkScreenSize)
-
-		return () => window.removeEventListener('resize', checkScreenSize)
-	}, [])
+	}, [currentSessionId, autoSkipOlderSessionsForRating])
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
@@ -378,14 +385,13 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 					const fallbackSpan: StoredColSpan = item.kind === 'metric' ? spanOptions[0] : 1
 					const storedColSpan = normalizeStoredColSpan(item.colSpan, fallbackSpan)
 					const effectiveColSpan = getEffectiveColSpan(storedColSpan)
-					const largeColClass = COL_SPAN_CLASS_MAP[effectiveColSpan]
 
 					return (
 						<div
 							key={`${item.id}-${item.colSpan}${
 								item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''
 							}`}
-							className={`col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) ${largeColClass}`}
+							className={`col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) ${COL_SPAN_CLASS_MAP[effectiveColSpan]}`}
 						>
 							<DashboardItemRenderer item={item} onEditItem={onEditItem} handleEditItem={handleEditItem} />
 						</div>
@@ -398,7 +404,7 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 	return (
 		<>
 			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-				<SortableContext items={chartsWithData.map((c) => c.id)} strategy={rectSortingStrategy}>
+				<SortableContext items={sortableItemIds} strategy={rectSortingStrategy}>
 					<div className="grid grid-flow-dense grid-cols-1 gap-2 lg:grid-cols-4">
 						{chartsWithData.map((item) => {
 							const spanOptions = item.kind === 'metric' ? METRIC_COL_SPANS : STORED_COL_SPANS
@@ -409,23 +415,19 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 							const expandTarget = getNextStoredColSpan(storedColSpan, spanOptions)
 							const disableShrink = shrinkTarget === storedColSpan
 							const disableExpand = expandTarget === storedColSpan
-							const largeColClass = COL_SPAN_CLASS_MAP[effectiveColSpan]
 
 							return (
 								<div
 									key={`${item.id}-${item.colSpan}${
 										item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''
 									}`}
-									className={`col-span-1 flex flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) ${largeColClass}`}
+									className={`col-span-1 flex flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) ${COL_SPAN_CLASS_MAP[effectiveColSpan]}`}
 								>
 									<div className="flex flex-wrap items-center justify-end border-b border-(--cards-border)">
 										<Tooltip
 											content="Shrink width"
 											render={
-												<button
-													onClick={() => handleColSpanChange(item.id, shrinkTarget)}
-													disabled={disableShrink}
-												/>
+												<button onClick={() => handleColSpanChange(item.id, shrinkTarget)} disabled={disableShrink} />
 											}
 											className="hover:pro-btn-blue px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
 										>
@@ -435,10 +437,7 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 										<Tooltip
 											content="Expand width"
 											render={
-												<button
-													onClick={() => handleColSpanChange(item.id, expandTarget)}
-													disabled={disableExpand}
-												/>
+												<button onClick={() => handleColSpanChange(item.id, expandTarget)} disabled={disableExpand} />
 											}
 											className="hover:pro-btn-blue px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
 										>
@@ -464,7 +463,12 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 											<span className="sr-only">Remove item</span>
 										</Tooltip>
 									</div>
-									<SortableItem id={item.id} isTable={item.kind === 'table'} data-col={item.colSpan} className="min-h-0 flex-1">
+									<SortableItem
+										id={item.id}
+										isTable={item.kind === 'table'}
+										data-col={item.colSpan}
+										className="min-h-0 flex-1"
+									>
 										<DashboardItemRenderer item={item} onEditItem={onEditItem} handleEditItem={handleEditItem} />
 									</SortableItem>
 								</div>

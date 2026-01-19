@@ -1,5 +1,5 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { downloadCSV } from '~/utils'
 import { useProDashboardEditorActions, useProDashboardPermissions } from '../../ProDashboardAPIContext'
 import type { CustomColumnDefinition, TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '../../types'
@@ -26,23 +26,35 @@ import { sanitizeRowHeaders } from './utils/rowHeaders'
 
 const arraysEqual = (a: string[], b: string[]) => {
 	if (a.length !== b.length) return false
-	return a.every((value, index) => value === b[index])
+	for (let i = 0; i < a.length; i++) {
+		if (a[i] !== b[i]) return false
+	}
+	return true
 }
 
+// Count keys in 'a' while comparing values, then verify 'b' has the same count
 const recordsEqual = (a: Record<string, boolean>, b: Record<string, boolean>) => {
-	const aKeys = Object.keys(a)
-	const bKeys = Object.keys(b)
-	if (aKeys.length !== bKeys.length) return false
-	return aKeys.every((key) => a[key] === b[key])
+	let count = 0
+	for (const key in a) {
+		if (a[key] !== b[key]) return false
+		count++
+	}
+	for (const _ in b) {
+		if (--count < 0) return false
+	}
+	return count === 0
 }
 
 const sortingEquals = (a: SortingState, b: SortingState) => {
 	if (a.length !== b.length) return false
-	return a.every((value, index) => {
-		const other = b[index]
-		if (!other) return false
-		return value.id === other.id && Boolean(value.desc) === Boolean(other.desc)
-	})
+	for (let i = 0; i < a.length; i++) {
+		const value = a[i]
+		const other = b[i]
+		if (!other || value.id !== other.id || Boolean(value.desc) !== Boolean(other.desc)) {
+			return false
+		}
+	}
+	return true
 }
 
 const CSV_PERCENT_COLUMNS = new Set([
@@ -101,35 +113,53 @@ const PROTOCOL_GROUPING_OPTIONS: RowGroupingOption[] = [
 	}
 ]
 
+const PROTOCOL_GROUPING_OPTION_MAP = new Map(PROTOCOL_GROUPING_OPTIONS.map((option) => [option.id, option]))
+const PROTOCOL_GROUPING_HEADERS = PROTOCOL_GROUPING_OPTIONS.map(({ id, label }) => ({ id, label }))
+const EMPTY_COLUMN_ORDER: string[] = []
+const EMPTY_CHAINS: string[] = []
+
 const rowHeadersMatch = (a: UnifiedRowHeaderType[], b: UnifiedRowHeaderType[]) => {
-	if (a.length !== b.length) {
-		return false
+	if (a.length !== b.length) return false
+	for (let i = 0; i < a.length; i++) {
+		if (a[i] !== b[i]) return false
 	}
-	return a.every((value, index) => value === b[index])
+	return true
 }
 
 const sanitizeFilters = (filters: TableFilters): TableFilters | undefined => {
-	const entries = Object.entries(filters).filter(([, value]) => {
-		if (value === undefined || value === null) {
-			return false
+	const result: Record<string, unknown> = {}
+	let hasKeys = false
+	for (const key in filters) {
+		const value = filters[key]
+		if (value == null) {
+			continue
 		}
 		if (typeof value === 'boolean') {
-			return value === true
+			if (value === true) {
+				result[key] = value
+				hasKeys = true
+			}
+			continue
 		}
 		if (typeof value === 'string') {
-			return value.trim().length > 0
+			if (value.trim().length > 0) {
+				result[key] = value
+				hasKeys = true
+			}
+			continue
 		}
 		if (Array.isArray(value)) {
-			return value.length > 0
+			if (value.length > 0) {
+				result[key] = value
+				hasKeys = true
+			}
+			continue
 		}
-		return true
-	})
-
-	if (!entries.length) {
-		return undefined
+		result[key] = value
+		hasKeys = true
 	}
 
-	return Object.fromEntries(entries) as TableFilters
+	return hasKeys ? (result as TableFilters) : undefined
 }
 
 const metricFromColumn = (columnId: string) => columnId
@@ -163,7 +193,7 @@ const toCsvValue = (columnId: string, row: NormalizedRow, customColumns?: Custom
 	const metricKey = metricFromColumn(columnId)
 	const value = row.metrics?.[metricKey as keyof typeof row.metrics]
 
-	if (value === null || value === undefined) {
+	if (value == null) {
 		return ''
 	}
 
@@ -199,22 +229,14 @@ export const UnifiedTable = memo(function UnifiedTable({
 	const resolvedRowHeaders = useMemo(() => sanitizeRowHeaders(getDefaultRowHeaders(config)), [config])
 	const filterChips = useMemo(() => getActiveFilterChips(config.filters), [config.filters])
 	const activeFilterCount = filterChips.length
-	const groupingOptions = useMemo<RowGroupingOption[]>(() => PROTOCOL_GROUPING_OPTIONS, [])
-	const canEditGrouping = !previewMode && !isReadOnly && groupingOptions.length > 0
-	const groupingOptionMap = useMemo(() => {
-		return new Map(groupingOptions.map((option) => [option.id, option]))
-	}, [groupingOptions])
-	const headerGroupingOptions = useMemo(
-		() => groupingOptions.map(({ id, label }) => ({ id, label })),
-		[groupingOptions]
-	)
+	const canEditGrouping = !previewMode && !isReadOnly && PROTOCOL_GROUPING_OPTIONS.length > 0
 	const selectedGroupingId = useMemo(() => {
-		if (!groupingOptions.length) {
+		if (!PROTOCOL_GROUPING_OPTIONS.length) {
 			return undefined
 		}
-		const match = groupingOptions.find((option) => rowHeadersMatch(option.headers, resolvedRowHeaders))
+		const match = PROTOCOL_GROUPING_OPTIONS.find((option) => rowHeadersMatch(option.headers, resolvedRowHeaders))
 		return match?.id
-	}, [groupingOptions, resolvedRowHeaders])
+	}, [resolvedRowHeaders])
 
 	const effectiveColumnOrder = previewMode ? (columnOrderOverride ?? getDefaultColumnOrder(config)) : columnOrderState
 	const effectiveColumnVisibility = previewMode
@@ -235,12 +257,14 @@ export const UnifiedTable = memo(function UnifiedTable({
 		if (!previewMode) {
 			setColumnOrderState(getDefaultColumnOrder(config))
 		}
+		// oxlint-disable-next-line react/exhaustive-deps
 	}, [config.columnOrder, previewMode])
 
 	useEffect(() => {
 		if (!previewMode) {
 			setColumnVisibilityState(getDefaultColumnVisibility(config))
 		}
+		// oxlint-disable-next-line react/exhaustive-deps
 	}, [config.columnVisibility, previewMode])
 
 	useEffect(() => {
@@ -255,7 +279,7 @@ export const UnifiedTable = memo(function UnifiedTable({
 	useEffect(() => {
 		if (previewMode || isReadOnly) return
 		if (hydratingRef.current) return
-		const configOrder = config.columnOrder ?? []
+		const configOrder = config.columnOrder ?? EMPTY_COLUMN_ORDER
 		const configVisibility = config.columnVisibility ?? {}
 		const configSorting =
 			config.defaultSorting && config.defaultSorting.length ? config.defaultSorting : DEFAULT_UNIFIED_TABLE_SORTING
@@ -354,7 +378,15 @@ export const UnifiedTable = memo(function UnifiedTable({
 		if (!canEditFilters) {
 			return
 		}
-		if (!config.filters || !Object.keys(config.filters).length) {
+		if (!config.filters) {
+			return
+		}
+		let hasFilters = false
+		for (const _ in config.filters) {
+			hasFilters = true
+			break
+		}
+		if (!hasFilters) {
 			return
 		}
 		persistConfigChanges({ filters: undefined })
@@ -362,7 +394,7 @@ export const UnifiedTable = memo(function UnifiedTable({
 
 	const handleGroupingChange = useCallback(
 		(groupingId: string) => {
-			const option = groupingOptionMap.get(groupingId)
+			const option = PROTOCOL_GROUPING_OPTION_MAP.get(groupingId)
 			if (!option) {
 				return
 			}
@@ -370,10 +402,10 @@ export const UnifiedTable = memo(function UnifiedTable({
 			const nextVisibility = applyRowHeaderVisibilityRules(normalizedHeaders, { ...columnVisibilityState })
 			persistConfigChanges({ rowHeaders: normalizedHeaders, columnVisibility: nextVisibility })
 		},
-		[columnVisibilityState, groupingOptionMap, persistConfigChanges]
+		[columnVisibilityState, persistConfigChanges]
 	)
 
-	const handleExportClick = () => {
+	const handleExportClick = useCallback(() => {
 		const leafColumns = unifiedTable.table
 			.getAllLeafColumns()
 			.filter((column) => column.getIsVisible() && !isGroupingColumnId(column.id))
@@ -404,7 +436,7 @@ export const UnifiedTable = memo(function UnifiedTable({
 		})
 
 		downloadCSV(`unified-table.csv`, [headers, ...csvRows])
-	}
+	}, [config.customColumns, unifiedTable.table])
 
 	const handleCsvClick = () => {
 		if (!unifiedTable.leafRows.length) return
@@ -433,12 +465,12 @@ export const UnifiedTable = memo(function UnifiedTable({
 			const { headers, data } = buildGroupedCsvData(groupedRows, leafColumns, CSV_PERCENT_COLUMNS, level)
 			downloadCSV(`unified-table-${level}.csv`, [headers, ...data])
 		},
-		[unifiedTable.table, unifiedTable.leafRows.length]
+		[handleExportClick, unifiedTable.table, unifiedTable.leafRows.length]
 	)
 
 	const title = 'Protocols overview'
 	const scopeDescription = useMemo(() => {
-		const selectedChains = (config.params?.chains ?? []).filter((value): value is string => Boolean(value))
+		const selectedChains = (config.params?.chains ?? EMPTY_CHAINS).filter((value): value is string => Boolean(value))
 		if (!selectedChains.length || selectedChains.includes('All')) {
 			return 'Scope: All chains'
 		}
@@ -487,7 +519,7 @@ export const UnifiedTable = memo(function UnifiedTable({
 				filtersEditable={canEditFilters}
 				activeFilterCount={activeFilterCount}
 				onFiltersClick={onEdit ? () => onEdit('filters') : undefined}
-				groupingOptions={headerGroupingOptions}
+				groupingOptions={PROTOCOL_GROUPING_HEADERS}
 				selectedGroupingId={selectedGroupingId}
 				onGroupingChange={canEditGrouping ? handleGroupingChange : undefined}
 			/>

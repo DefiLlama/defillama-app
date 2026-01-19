@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { formatValue } from '../../utils'
 import { useAuthContext } from '../Subscribtion/auth'
@@ -25,7 +25,7 @@ interface CustomColumnModalProps {
 	displayAs?: string
 }
 
-function getFilteredSuggestions(word, beforeCursor) {
+function getFilteredSuggestions(word) {
 	const wordLower = word.toLowerCase()
 	const functionMatches = AVAILABLE_FUNCTIONS.filter((f) => f.name.toLowerCase().startsWith(wordLower))
 	const fieldMatches = AVAILABLE_FIELDS.filter((f) => f.toLowerCase().startsWith(wordLower))
@@ -39,7 +39,7 @@ export function CustomColumnModal({
 	name: initialName = '',
 	formula: initialFormula = '',
 	formatType: initialFormatType = 'auto',
-	displayAs: initialDisplayAs = 'auto'
+	displayAs: _initialDisplayAs = 'auto'
 }: CustomColumnModalProps) {
 	const [state, setState] = useState({
 		name: initialName,
@@ -53,7 +53,8 @@ export function CustomColumnModal({
 	})
 	const inputRef = useRef(null)
 	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
-	const subscribeModalStore = Ariakit.useDialogStore()
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 	useEffect(() => {
@@ -79,7 +80,7 @@ export function CustomColumnModal({
 		const match = beforeCursor.match(/([a-zA-Z0-9_]+)$/)
 		const word = match ? match[1] : ''
 		if (word) {
-			const filtered = getFilteredSuggestions(word, beforeCursor)
+			const filtered = getFilteredSuggestions(word)
 			setState((prev) => ({
 				...prev,
 				suggestions: filtered,
@@ -89,7 +90,7 @@ export function CustomColumnModal({
 					word &&
 					!AVAILABLE_FIELDS.some((f) => f.toLowerCase() === word.toLowerCase()) &&
 					!AVAILABLE_FUNCTIONS.some((f) => f.name.toLowerCase() === word.toLowerCase()) &&
-					isNaN(Number(word))
+						Number.isNaN(Number(word))
 						? `Field or function '${word}' is not available.`
 						: null
 			}))
@@ -233,7 +234,7 @@ export function CustomColumnModal({
 				<Ariakit.Dialog className="dialog gap-3" unmountOnHide>
 					<Ariakit.DialogDismiss
 						onClick={dialogStore.toggle}
-						className="absolute top-3 right-3 rounded-lg p-1.5 text-(--text-tertiary) transition-colors hover:bg-(--divider) hover:text-(--text-primary)"
+						className="absolute top-3 right-3 rounded-lg p-1.5 text-(--text-tertiary) hover:bg-(--divider) hover:text-(--text-primary)"
 						aria-label="Close modal"
 					>
 						<Icon name="x" height={20} width={20} />
@@ -369,13 +370,13 @@ export function CustomColumnModal({
 					</div>
 					<div className="mt-4 flex justify-end gap-2">
 						<button
-							className="rounded-lg bg-transparent px-4 py-2 text-(--text-secondary) transition-colors hover:bg-(--btn-hover-bg)"
+							className="rounded-lg bg-transparent px-4 py-2 text-(--text-secondary) hover:bg-(--btn-hover-bg)"
 							onClick={dialogStore.toggle}
 						>
 							Cancel
 						</button>
 						<button
-							className="rounded-lg bg-(--primary) px-4 py-2 text-white shadow-md transition-colors hover:bg-(--primary-hover)"
+							className="rounded-lg bg-(--primary) px-4 py-2 text-white shadow-md hover:bg-(--primary-hover)"
 							onClick={handleSave}
 						>
 							Save
@@ -383,9 +384,11 @@ export function CustomColumnModal({
 					</div>
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
-			<Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense>
+			{shouldRenderModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 		</>
 	)
 }

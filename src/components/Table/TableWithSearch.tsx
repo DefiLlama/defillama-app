@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -14,9 +13,10 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { alphanumericFalsyLast } from './utils'
 
 interface ITableWithSearchProps {
@@ -92,19 +92,19 @@ export function TableWithSearch({
 		return () => clearTimeout(id)
 	}, [projectName, instance, columnToSearch])
 
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	React.useEffect(() => {
 		if (columnSizes && Array.isArray(columnSizes)) {
-			const colSize = windowSize.width ? columnSizes.find((size) => windowSize.width > +size[0]) : columnSizes[0]
+			const colSize = columnSizes.find((size) => width > +size[0]) ?? columnSizes[0]
 			instance.setColumnSizing(colSize[1])
 		}
 
 		if (columnOrders && Array.isArray(columnOrders)) {
-			const colOrder = windowSize.width ? columnOrders.find((size) => windowSize.width > +size[0]) : columnOrders[0]
+			const colOrder = columnOrders.find((size) => width > +size[0]) ?? columnOrders[0]
 			instance.setColumnOrder(colOrder[1])
 		}
-	}, [instance, windowSize])
+	}, [instance, width, columnOrders, columnSizes])
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -124,7 +124,7 @@ export function TableWithSearch({
 							setProjectName(e.target.value)
 						}}
 						placeholder={placeholder}
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 				{customFilters}

@@ -5,7 +5,11 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`pool2/index`, async () => {
-	const data = await getPool2TVLByChain({ chain: 'All' })
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const data = await getPool2TVLByChain({
+		chain: 'All',
+		protocolMetadata: metadataCache.protocolMetadata
+	})
 
 	if (!data) return { notFound: true }
 

@@ -1,6 +1,6 @@
-import { useMemo, useRef } from 'react'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
+import { useMemo, useRef } from 'react'
 import { CHAINS_API, PROTOCOLS_API } from '~/constants'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { toDisplayName } from '~/utils/chainNormalizer'
@@ -366,7 +366,7 @@ function getChartQueryFn(
 			let direct: [number, number][] = []
 			try {
 				direct = await handler(item, geckoId, timePeriod, customPeriod)()
-			} catch (e) {
+			} catch {
 				direct = []
 			}
 			if (Array.isArray(direct) && direct.length > 0) return direct
@@ -378,7 +378,7 @@ function getChartQueryFn(
 				children.map(async (childSlug) => {
 					try {
 						return await handler(childSlug, undefined, timePeriod, customPeriod)()
-					} catch (e) {
+					} catch {
 						return [] as [number, number][]
 					}
 				})

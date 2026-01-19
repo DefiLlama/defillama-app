@@ -13,6 +13,8 @@ import {
 } from '~/containers/ProDashboard/components/UnifiedTable/utils/customColumns'
 import type { CustomColumnDefinition } from '~/containers/ProDashboard/types'
 
+const AVAILABLE_VARIABLES = getAvailableVariables()
+
 interface CustomColumnBuilderProps {
 	customColumns: CustomColumnDefinition[]
 	onAdd: (column: CustomColumnDefinition) => void
@@ -90,7 +92,7 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 	const inputRef = useRef<HTMLInputElement>(null)
 	const aggregationTouchedRef = useRef(false)
 
-	const availableVariables = useMemo(() => getAvailableVariables(), [])
+	const availableVariables = AVAILABLE_VARIABLES
 
 	const autocompleteSuggestions = useMemo<AutocompleteSuggestion[]>(() => {
 		const suggestions: AutocompleteSuggestion[] = [
@@ -321,7 +323,7 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 		return () => document.removeEventListener('click', handleClickOutside)
 	}, [])
 
-	const aggregationLabel = AGGREGATION_OPTIONS.find((a) => a.id === aggregation)?.label ?? aggregation
+	const _aggregationLabel = AGGREGATION_OPTIONS.find((a) => a.id === aggregation)?.label ?? aggregation
 
 	return (
 		<div className="space-y-4">

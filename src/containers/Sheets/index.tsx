@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '../Subscribtion/auth'
 
@@ -67,7 +67,7 @@ export default function SheetsContainer() {
 					className="absolute z-0 mx-auto aspect-square h-[132px] w-[132px] rounded-full object-contain"
 				/>
 				<img
-					src="/icons/llama.webp"
+					src="/assets/llama.webp"
 					height={118}
 					width={118}
 					className="z-10 mx-auto aspect-square rounded-full object-contain"
@@ -92,7 +92,7 @@ export default function SheetsContainer() {
 				<div className="rounded-xl border border-[#4a4a50] bg-[#22242930] p-6 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-[1.02] hover:transform">
 					<div className="mb-4 flex items-center gap-3">
 						<div className="rounded-lg bg-[#34a853]/10 p-3">
-							<img src="/icons/google-sheets.svg" alt="Google Sheets" className="h-8 w-8" />
+							<img src="/assets/google-sheets.svg" alt="Google Sheets" className="h-8 w-8" />
 						</div>
 						<h2 className="text-xl font-bold">Google Sheets</h2>
 					</div>
@@ -112,7 +112,7 @@ export default function SheetsContainer() {
 				<div className="flex flex-col justify-between rounded-xl border border-[#4a4a50] bg-[#22242930] p-6 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-[1.02] hover:transform">
 					<div className="mb-4 flex items-center gap-3">
 						<div className="rounded-lg bg-[#217346]/10 p-3">
-							<img src="/icons/microsoft-excel-v2.svg" alt="Microsoft Excel" className="h-8 w-8" />
+							<img src="/assets/microsoft-excel-v2.svg" alt="Microsoft Excel" className="h-8 w-8" />
 						</div>
 						<h2 className="text-xl font-bold">Microsoft Excel</h2>
 					</div>
@@ -134,8 +134,8 @@ export default function SheetsContainer() {
 				<div className="rounded-xl border border-[#4a4a50] bg-[#22242930] p-6 shadow-md backdrop-blur-md">
 					<h2 className="mb-4 text-xl font-bold">Data You Can Access</h2>
 					<ul className="space-y-6 text-[#b4b7bc]">
-						{dataPoints.map((point, idx) => (
-							<li key={idx} className="flex items-center gap-3">
+						{dataPoints.map((point) => (
+							<li key={`sheets-${point}`} className="flex items-center gap-3">
 								<Icon name="check-circle" height={16} width={16} className="shrink-0 text-[#5C5CF9]" />
 								<span>{point}</span>
 							</li>
@@ -146,8 +146,8 @@ export default function SheetsContainer() {
 				<div className="rounded-xl border border-[#4a4a50] bg-[#22242930] p-6 shadow-md backdrop-blur-md">
 					<h2 className="mb-4 text-xl font-bold">Examples</h2>
 					<div className="space-y-4">
-						{examples.map((func, idx) => (
-							<div key={idx}>
+						{examples.map((func) => (
+							<div key={`sheets-${func.signature}`}>
 								<div className="mb-2 rounded bg-[#13141a] px-3 py-2 font-mono text-sm text-[#5C5CF9]">
 									{func.signature}
 								</div>

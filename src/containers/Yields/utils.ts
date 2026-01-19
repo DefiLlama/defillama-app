@@ -45,7 +45,7 @@ export function toFilterPool({
 	let toFilter = true
 
 	// used in pages like /yields/stablecoins to filter some pools by default
-	attributeOptions.forEach((option) => {
+	for (const option of attributeOptions) {
 		// check if this page has default attribute filter function
 		if (option.defaultFilterFnOnPage[pathname]) {
 			// apply default attribute filter function
@@ -55,15 +55,15 @@ export function toFilterPool({
 		if (pathname === '/yields' && option.key === 'apy_zero' && !selectedAttributes.includes(option.key)) {
 			toFilter = toFilter && curr.apy > 0
 		}
-	})
+	}
 
-	selectedAttributes.forEach((attribute) => {
+	for (const attribute of selectedAttributes) {
 		const attributeOption = attributeOptionsMap.get(attribute)
 
 		if (attributeOption) {
 			toFilter = toFilter && attributeOption.filterFn(curr)
 		}
-	})
+	}
 
 	toFilter = toFilter && selectedProjectsSet.has(curr.projectName)
 
@@ -118,7 +118,7 @@ export function toFilterPool({
 			} else return false
 		})
 
-		toFilter = toFilter && (selectedChainsSet.has(curr.chain) && exactToken ? true : false)
+		toFilter = toFilter && !!(selectedChainsSet.has(curr.chain) && exactToken)
 	}
 
 	const isValidTvlRange = minTvl != null || maxTvl != null
@@ -126,7 +126,8 @@ export function toFilterPool({
 	const isValidApyRange = minApy != null || maxApy != null
 
 	if (isValidTvlRange) {
-		toFilter = toFilter && (minTvl != null ? curr.tvlUsd >= minTvl : true) && (maxTvl != null ? curr.tvlUsd <= maxTvl : true)
+		toFilter =
+			toFilter && (minTvl != null ? curr.tvlUsd >= minTvl : true) && (maxTvl != null ? curr.tvlUsd <= maxTvl : true)
 	}
 
 	if (isValidApyRange) {
@@ -525,19 +526,20 @@ export const filterPool = ({
 		toFilter = toFilter && selectedFarmProtocolsSet.has(pool.farmProjectName)
 	}
 	if (selectedAttributes) {
-		selectedAttributes.forEach((attribute) => {
+		for (const attribute of selectedAttributes) {
 			const attributeOption = attributeOptionsMap.get(attribute)
 
 			if (attributeOption) {
 				toFilter = toFilter && attributeOption.filterFn(pool)
 			}
-		})
+		}
 	}
 
 	const isValidTvlRange = minTvl != null || maxTvl != null
 
 	if (isValidTvlRange) {
-		toFilter = toFilter && (minTvl != null ? pool.farmTvlUsd >= minTvl : true) && (maxTvl != null ? pool.tvlUsd <= maxTvl : true)
+		toFilter =
+			toFilter && (minTvl != null ? pool.farmTvlUsd >= minTvl : true) && (maxTvl != null ? pool.tvlUsd <= maxTvl : true)
 	}
 
 	const isValidAvailableRange = minAvailable != null || maxAvailable != null

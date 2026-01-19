@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { forksColumn } from '~/components/Table/Defi/columns'
@@ -8,7 +9,6 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { getForkPageData } from '~/containers/Forks/queries'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import Layout from '~/layout'
-import { preparePieChartData } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -27,6 +27,7 @@ export const getStaticProps = withPerformanceLogging('forks', async () => {
 })
 
 const pageName = ['Protocols', 'ranked by', 'TVL in Forks']
+const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
 
 export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens, forkColors }) {
 	const forkedTokensData = useCalcStakePool2Tvl(parentTokens)
@@ -117,7 +118,7 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 					placeholder={'Search protocols...'}
 					columnToSearch={'name'}
 					header={'Protocol Rankings'}
-					sortingState={[{ id: 'tvl', desc: true }]}
+					sortingState={DEFAULT_SORTING_STATE}
 				/>
 			</React.Suspense>
 		</Layout>

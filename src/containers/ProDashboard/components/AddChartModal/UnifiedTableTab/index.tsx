@@ -1,5 +1,5 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '~/containers/ProDashboard/components/UnifiedTable/config/ColumnDictionary'
 import {
@@ -59,7 +59,7 @@ const countActiveFilters = (filters: TableFilters | undefined): number => {
 	if (!filters) return 0
 	let count = 0
 	for (const value of Object.values(filters)) {
-		if (value === undefined || value === null) continue
+		if (value == null) continue
 		if (Array.isArray(value)) {
 			if (value.length) count++
 			continue
@@ -87,7 +87,8 @@ const TABLE_TYPE_CARDS: Array<{
 	{
 		value: 'protocols',
 		label: 'Protocols',
-		description: 'Build custom protocol tables with advanced grouping by chain, category, or parent protocol. Filter by TVL, volume, fees, and 30+ metrics. Add custom calculated columns.',
+		description:
+			'Build custom protocol tables with advanced grouping by chain, category, or parent protocol. Filter by TVL, volume, fees, and 30+ metrics. Add custom calculated columns.',
 		icon: 'layers',
 		tags: ['Grouping', 'Chains', 'Categories', 'Custom Columns', '30+ Filters', 'Presets']
 	},
@@ -333,28 +334,34 @@ const TabContent = memo(function TabContent({
 		setSorting(newSorting)
 	}
 
-	const handleClearFilters = () => {
+	const _handleClearFilters = () => {
 		setFilters({})
 		setChains(['All'])
 	}
 
-	const handlePanelFiltersChange = useCallback((nextFilters: TableFilters) => {
-		setFilters(nextFilters ?? {})
-	}, [])
+	const handlePanelFiltersChange = useCallback(
+		(nextFilters: TableFilters) => {
+			setFilters(nextFilters ?? {})
+		},
+		[setFilters]
+	)
 
-	const handleRemoveArrayFilterValue = useCallback((key: ArrayFilterKey, value: string) => {
-		setFilters((prev) => {
-			const next: TableFilters = { ...(prev ?? {}) }
-			const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
-			const updated = current.filter((item) => item !== value)
-			if (updated.length > 0) {
-				next[key] = updated
-			} else {
-				delete next[key]
-			}
-			return next
-		})
-	}, [])
+	const _handleRemoveArrayFilterValue = useCallback(
+		(key: ArrayFilterKey, value: string) => {
+			setFilters((prev) => {
+				const next: TableFilters = { ...(prev ?? {}) }
+				const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
+				const updated = current.filter((item) => item !== value)
+				if (updated.length > 0) {
+					next[key] = updated
+				} else {
+					delete next[key]
+				}
+				return next
+			})
+		},
+		[setFilters]
+	)
 
 	const handleRemoveChainValue = useCallback(
 		(chainValue: string) => {
@@ -437,15 +444,13 @@ const TabContent = memo(function TabContent({
 	const activeFilterPills: FilterPill[] = useMemo(() => {
 		const pills: FilterPill[] = []
 
-		chains
-			.filter((chain) => chain !== 'All')
-			.forEach((chain) => {
-				pills.push({
-					id: `chain-${chain}`,
-					label: chainLabelMap.get(chain) ?? chain,
-					onRemove: () => handleRemoveChainValue(chain)
-				})
+		for (const chain of chains.filter((chain) => chain !== 'All')) {
+			pills.push({
+				id: `chain-${chain}`,
+				label: chainLabelMap.get(chain) ?? chain,
+				onRemove: () => handleRemoveChainValue(chain)
 			})
+		}
 
 		for (const chip of activeFilterChips) {
 			pills.push({
@@ -473,13 +478,13 @@ const TabContent = memo(function TabContent({
 	const filterCount = countActiveFilters(filters)
 	const totalFilterCount = scopeCount + filterCount
 
-	const headerTitle =
+	const _headerTitle =
 		focusedSectionOnly === 'filters'
 			? 'Configure Filters'
 			: focusedSectionOnly === 'columns'
 				? 'Customize Columns'
 				: 'Build ProTable'
-	const headerDescription =
+	const _headerDescription =
 		focusedSectionOnly === 'filters'
 			? 'Adjust filters to refine the data shown in your table.'
 			: focusedSectionOnly === 'columns'
@@ -756,7 +761,7 @@ const TabContent = memo(function TabContent({
 
 	return (
 		<div className="flex flex-col">
-			<header className="flex flex-shrink-0 flex-col gap-1 pb-3">
+			<header className="flex shrink-0 flex-col gap-1 pb-3">
 				{!isEditingUnifiedTable && (
 					<button
 						type="button"
@@ -811,7 +816,7 @@ const TabContent = memo(function TabContent({
 				<div className="flex h-full flex-col gap-3">{tabContent[activeTab]}</div>
 			</div>
 
-			<div className="sticky bottom-0 z-10 flex flex-shrink-0 items-center justify-end gap-3 border-t border-(--cards-border) bg-(--cards-bg) pt-3 pb-2 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.25)]">
+			<div className="sticky bottom-0 z-10 flex shrink-0 items-center justify-end gap-3 border-t border-(--cards-border) bg-(--cards-bg) pt-3 pb-2 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.25)]">
 				<button
 					type="button"
 					onClick={onClose}

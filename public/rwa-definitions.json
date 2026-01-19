@@ -1,0 +1,175 @@
+{
+	"type": {
+		"label": "Type",
+		"description": "Structural designation for the entry (Asset, Platform, or Wrapper)"
+	},
+	"category": {
+		"label": "Category",
+		"description": "High level economic bucket describing the type of RWA or financial product represented"
+	},
+	"assetClass": {
+		"label": "Asset Class",
+		"description": "Granular economic type within a Category describing how the exposure is structured",
+		"values": {
+			"USD fiat stablecoin": "Stablecoins pegged to USD and backed mainly by cash, bank deposits and short-term government paper held by a centralized issuer or custodian.",
+			"EUR fiat stablecoin": "Stablecoins pegged to EUR and backed mainly by euro cash, bank deposits and short-term government paper.",
+			"Other fiat stablecoin": "Stablecoins pegged to non-USD, non-EUR fiat currencies such as GBP, CHF, SGD or baskets of fiat.",
+			"Bank deposit token": "Tokens that represent a direct, redeemable claim on a bank or central bank deposit account at par value.",
+			"Yield-bearing fiat stablecoin": "Fiat-pegged stablecoins that pass through some or all of the yield on reserve assets directly to token holders.",
+			"RWA-backed fiat stablecoin (non-yielding)": "Fiat-pegged stablecoins whose reserves are primarily real-world assets such as Treasury bills, bonds or commodity holdings (e.g. gold), but where yield is retained by the issuer rather than paid directly to token holders.",
+			"Yield-bearing RWA stablecoin": "Fiat-pegged stablecoins whose reserves are real-world asset portfolios and where yield is paid directly to token holders via an increasing balance or rebase.",
+			"Hybrid / multi-asset RWA stablecoin": "Stablecoins backed by a mix of real-world assets and onchain collateral, where neither side is clearly dominant.",
+			"Crypto-collateralized stablecoin (non-RWA)": "Stablecoins backed primarily by onchain crypto collateral (e.g. ETH, stETH, LP tokens) with no material allocation to real-world assets.",
+			"Algorithmic / undercollateralized stablecoin": "Stablecoins that rely mainly on algorithmic mechanisms or undercollateralized backing rather than fully reserved collateral.",
+			"Tokenized T-bills": "Tokens that give direct or near-direct exposure to short-term government Treasury bills or ETFs that hold them.",
+			"Sovereign bond fund": "Tokenized vehicles that hold government notes and bonds with longer duration than T-bills.",
+			"Credit / corporate bond fund": "Tokenized funds that hold corporate bonds, securitized credit or similar corporate fixed-income instruments.",
+			"Money market fund": "Tokenized shares in a money market fund that holds short-duration, high-quality money market instruments.",
+			"Mixed RWA fund": "Tokenized funds that hold a planned mix of sovereign debt, credit and cash-like assets where no single type dominates.",
+			"Allocated gold token": "Gold tokens backed by specifically allocated bars or bar serial numbers held in custody for token holders.",
+			"Unallocated gold token": "Gold tokens backed by a pooled, unallocated claim on gold held by a custodian.",
+			"Silver token": "Tokens backed primarily by physical silver held in secure custody.",
+			"Platinum token": "Tokens backed primarily by physical platinum.",
+			"Palladium token": "Tokens backed primarily by physical palladium.",
+			"Uranium token": "Tokens backed primarily by uranium or uranium inventory.",
+			"Other metal token": "Tokens backed by a metal that is not gold, silver, platinum, palladium or uranium.",
+			"Commodity basket token": "Tokens backed by a basket of commodities rather than a single underlying asset.",
+			"Other commodity token": "Tokens backed primarily by a single physical commodity that is not a precious metal or uranium, such as crude oil, natural gas or agricultural products.",
+			"Single property equity token": "Tokens that give equity-style exposure to a single property or real estate project.",
+			"Real estate fund / REIT token": "Tokens that mirror units in a pooled real estate fund or REIT structure.",
+			"Real estate revenue share": "Tokens whose primary claim is to a share of rental income or other property revenue streams.",
+			"Real estate credit note": "Tokens backed primarily by loans to real estate projects or mortgages secured on property.",
+			"Real estate index / basket token": "Tokens that track an index or diversified basket of real estate exposures, such as city-level home price indices or composite property portfolios, rather than single properties or REIT units.",
+			"Single stock synthetic": "Tokens that track a single listed equity using synthetic replication rather than full custody of shares.",
+			"Single stock fully backed": "Tokens backed by held underlying shares in custody that map 1:1 to a single listed equity.",
+			"Equity index / basket token": "Tokens that track a basket or index of equities or equity ETFs.",
+			"Private equity / venture token": "Tokens that represent interests in private company equity, venture capital funds or similar vehicles.",
+			"Artwork / collectibles token": "Tokens backed by art, collectibles or other non-financial real assets such as luxury goods.",
+			"IP / royalty token": "Tokens whose primary claim is to intellectual property or revenue/royalties from IP such as music, patents or media catalogs.",
+			"Other exotic RWA": "Tokens backed by niche real-world assets that do not fit other categories, such as AI hardware, fleet assets or other specialized equipment.",
+			"Private credit pool": "Pools backed by diversified private loans such as SME, corporate or consumer credit exposures.",
+			"Trade finance / invoice pool": "Pools backed by invoices, receivables or other trade-finance assets.",
+			"Real estate credit": "Credit exposures where the primary collateral is real estate or land.",
+			"Specialty / structured credit": "Credit backed by niche or structured assets such as revenue-based finance, litigation finance, project finance or asset-backed fleet financing.",
+			"Other private credit": "Private credit pools that are clearly real world lending exposures but do not fit the more specific labels.",
+			"Reinsurance backed RWA pool": "Pools where the primary risk and return come from reinsurance or insurance underwriting exposure.",
+			"RWA lending market / venue": "Protocols or markets that primarily facilitate issuance, trading or lending against RWA collateral or private credit pools, rather than representing a single pool token.",
+			"Stablecoin yield wrapper": "Wrappers whose underlying is one or more stablecoins and that issue a yield-bearing receipt token.",
+			"Single asset RWA wrapper": "Wrappers that mainly hold one underlying RWA token or fund and issue a single receipt token.",
+			"RWA index / basket vault": "Wrappers that hold a basket of RWA tokens or funds and present them as one composite position or index-like exposure.",
+			"RWA LP wrapper": "Tokens that represent LP positions where the majority of exposure is to RWA tokens or RWA stablecoins.",
+			"Leveraged RWA vault": "Wrappers that apply leverage or active rebalancing on top of RWA collateral to modify yield or duration.",
+			"Structured RWA note": "Tokens that embed structured payouts or note-like features on top of underlying RWA collateral.",
+			"Yield bearing RWA pool": "Tokens that directly represent a yield-generating RWA pool that is not positioned as a stablecoin.",
+			"Carbon offset credit": "Tokens that represent carbon offsets from specific projects that can be retired against voluntary carbon goals.",
+			"Carbon allowance": "Tokens that represent allowances from regulated cap-and-trade schemes or compliance carbon markets.",
+			"Carbon-backed reserve asset": "Tokens that function as reserve or treasury assets and are backed by baskets of carbon credits or similar environmental units, rather than representing individual retireable offset claims.",
+			"Other environmental unit": "Tokens linked to other environmental or impact units such as renewable energy certificates or biodiversity credits.",
+			"Governance / voting token (RWA protocol)": "Tokens that confer governance rights, voting power or protocol control over an RWA platform or product suite, without being a direct 1:1 claim on the underlying assets.",
+			"Revenue / fee share token (RWA protocol)": "Tokens that entitle holders to a share of protocol revenues or fees from an RWA platform while not being a direct claim on underlying asset pools.",
+			"Synthetic backed stablecoin": "Stablecoins backed by synthetic crypto or derivatives strategies (such as delta-neutral basis trades or perp hedging) rather than direct fiat or real-world asset reserves."
+		}
+	},
+	"onChainMarketcap": {
+		"label": "On-chain Marketcap",
+		"description": "Total USD value of the asset that exists on chain across tracked chains"
+	},
+	"activeMarketcap": {
+		"label": "Active Marketcap",
+		"description": "Portion of on chain TVL taking real market risk in user or protocol hands"
+	},
+	"defiActiveTvl": {
+		"label": "DeFi Active TVL",
+		"description": "Subset of Active TVL deployed in third party DeFi protocols tracked by DeFiLlama"
+	},
+	"totalOnChainMarketcap": {
+		"label": "Total RWA On-chain",
+		"description": "Sum across assets of their On-chain Marketcap (the total USD value of each asset that exists on-chain across tracked chains)."
+	},
+	"totalActiveMarketcap": {
+		"label": "Total RWA Active Marketcap",
+		"description": "Sum across assets of their Active Marketcap (the portion of on-chain value taking real market risk in user or protocol hands)."
+	},
+	"totalDefiActiveTvl": {
+		"label": "DeFi Active TVL",
+		"description": "Sum across assets of their DeFi Active TVL (the subset of Active TVL deployed in tracked third-party DeFi protocols)."
+	},
+	"rwaClassification": {
+		"label": "RWA Classification",
+		"description": "High level classification describing the economic nature of the entry",
+		"values": {
+			"True RWA": "Tokenized real-world asset that is transferable and self-custodial, with both documented redemption and reserve or asset verification",
+			"RWA": "Tokenized real-world asset that is transferable and self-custodial, with either documented redemption or reserve or asset verification",
+			"Programmable Finance": "RWA-linked onchain products like wrappers, strategy/pool tokens, synthetics, or restricted fund tokens that aren't transferable or self-custodial",
+			"Non-RWA (Platform)": "Platform or infrastructure item related to RWAs, not an asset token or RWA exposure instrument",
+			"Non-RWA (Gov/Utility)": "Governance or utility token that is not a tokenized real-world asset or RWA exposure instrument"
+		}
+	},
+	"accessModel": {
+		"label": "Access Model",
+		"description": "Indicates how users interact with the asset",
+		"values": {
+			"Permissioned": "Requires KYC/AML verification to hold or transfer the asset",
+			"Permissionless": "Open to any wallet address without identity verification",
+			"Non-transferable": "Locked to the original wallet; cannot be transferred to other addresses",
+			"Custodial Only": "Must be held through an authorized custodian; no self-custody option",
+			"Unknown": "Access requirements have not been disclosed"
+		}
+	},
+	"issuer": {
+		"label": "Issuer",
+		"description": "Legal entity or organization responsible for issuing or controlling the asset"
+	},
+	"isin": {
+		"label": "ISIN",
+		"description": "International Securities Identification Number - a 12-character alphanumeric code that uniquely identifies a specific security"
+	},
+	"registryInformation": {
+		"label": "Registry Information",
+		"description": "Identifiers or registry data for the issuer from corporate or regulatory databases"
+	},
+	"source": {
+		"label": "Source",
+		"description": "Primary public reference confirming issuer information"
+	},
+	"primaryChain": {
+		"label": "Primary Chain",
+		"description": "Single chain slug representing the chain where the asset or platform is primarily issued or anchored"
+	},
+	"redeemable": {
+		"label": "Redeemable",
+		"description": "Indicates whether the token can be redeemed for underlying assets"
+	},
+	"attestations": {
+		"label": "Attestations",
+		"description": "Indicates whether the issuer provides periodic attestations or assurance reports regarding reserves or backing"
+	},
+	"cexListed": {
+		"label": "CEX Listed",
+		"description": "Indicates whether the token is listed on a centralized exchange"
+	},
+	"kycForMintRedeem": {
+		"label": "KYC to Mint or Redeem",
+		"description": "Indicates whether minting or redeeming the token through the issuer or primary market requires KYC/AML verification (KYC/KYB/onboarding)"
+	},
+	"kycAllowlistedWhitelistedToTransferHold": {
+		"label": "KYC/Allowlisted/Whitelisted to Transfer/Hold",
+		"description": "Indicates whether holding or transferring the token requires prior verification or allowlisting/whitelisting (issuer or transfer-agent permissioning), enforced at the token, contract, or venue level"
+	},
+	"transferable": {
+		"label": "Transferable",
+		"description": "Indicates whether the token can be transferred freely between on chain addresses"
+	},
+	"selfCustody": {
+		"label": "Self Custody",
+		"description": "Indicates whether the token can be held in a user controlled wallet"
+	},
+	"totalAssetIssuers": {
+		"label": "Total Asset Issuers",
+		"description": "Total number of unique issuers across all tracked real world assets in the current selection"
+	},
+	"totalStablecoinsValue": {
+		"label": "Total Stablecoins Value",
+		"description": "Total USD value of all stablecoins in the dataset that exist on chain across tracked chains in the current selection"
+	}
+}

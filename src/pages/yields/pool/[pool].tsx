@@ -1,6 +1,6 @@
-import { lazy, Suspense, useCallback, useMemo } from 'react'
-import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { lazy, Suspense, useCallback, useMemo } from 'react'
 import exponentialLogo from '~/assets/exponential.avif'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
@@ -14,7 +14,7 @@ import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { YIELD_RISK_API_EXPONENTIAL } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
-import type { YieldsChartConfig } from '~/containers/ProDashboard/types'
+import type { YieldsChartConfig, YieldChartType } from '~/containers/ProDashboard/types'
 import {
 	useYieldChartData,
 	useYieldChartLendBorrow,
@@ -31,6 +31,7 @@ const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
 const TVLAPYChart = lazy(() => import('~/components/ECharts/TVLAPYChart')) as React.FC<IChartProps>
+const EMPTY_CHART_DATA: any[] = []
 
 const getRatingColor = (rating) => {
 	switch (rating?.toLowerCase()) {
@@ -62,22 +63,22 @@ const getRatingDescription = (rating) => {
 	}
 }
 
-const PageView = (props) => {
+const PageView = (_props) => {
 	const { query, isReady } = useRouter()
 
 	const { data: pool, isLoading: fetchingPoolData } = useYieldPoolData(query.pool)
 	const poolData = pool?.data?.[0] ?? {}
 
 	const { chartInstance: tvlApyChartInstance, handleChartReady: handleTvlApyChartReady } = useChartImageExport()
-	const { chartInstance: supplyApyBarChartInstance, handleChartReady: handleSupplyApyBarChartReady } =
+	const { chartInstance: _supplyApyBarChartInstance, handleChartReady: handleSupplyApyBarChartReady } =
 		useChartImageExport()
-	const { chartInstance: supplyApy7dChartInstance, handleChartReady: handleSupplyApy7dChartReady } =
+	const { chartInstance: _supplyApy7dChartInstance, handleChartReady: handleSupplyApy7dChartReady } =
 		useChartImageExport()
-	const { chartInstance: borrowApyBarChartInstance, handleChartReady: handleBorrowApyBarChartReady } =
+	const { chartInstance: _borrowApyBarChartInstance, handleChartReady: handleBorrowApyBarChartReady } =
 		useChartImageExport()
-	const { chartInstance: netBorrowApyChartInstance, handleChartReady: handleNetBorrowApyChartReady } =
+	const { chartInstance: _netBorrowApyChartInstance, handleChartReady: handleNetBorrowApyChartReady } =
 		useChartImageExport()
-	const { chartInstance: poolLiquidityChartInstance, handleChartReady: handlePoolLiquidityChartReady } =
+	const { chartInstance: _poolLiquidityChartInstance, handleChartReady: _handlePoolLiquidityChartReady } =
 		useChartImageExport()
 
 	const riskUrl = poolData?.project
@@ -115,9 +116,9 @@ const PageView = (props) => {
 		if (!chart?.data || !query?.pool) return { filename: `yields.csv`, rows: [] }
 		const rows = [['APY', 'APY_BASE', 'APY_REWARD', 'TVL', 'DATE']]
 
-		chart?.data?.forEach((item) => {
+	for (const item of chart?.data ?? EMPTY_CHART_DATA) {
 			rows.push([item.apy, item.apyBase, item.apyReward, item.tvlUsd, item.timestamp])
-		})
+		}
 
 		return { filename: `${query.pool}.csv`, rows: rows as (string | number | boolean)[][] }
 	}, [chart?.data, query?.pool])
@@ -147,26 +148,28 @@ const PageView = (props) => {
 
 	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData || fetchingChartDataBorrow
 
-	const yieldsChartConfig: YieldsChartConfig | null = query.pool
-		? {
-				id: `yields-${query.pool}`,
-				kind: 'yields',
-				poolConfigId: query.pool as string,
-				poolName: poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? ''),
-				project: config?.name ?? poolData.project ?? '',
-				chain: poolData.chain ?? ''
-			}
-		: null
+	const getYieldsChartConfig = (chartType?: YieldChartType): YieldsChartConfig | null => {
+		if (!query.pool) return null
+		return {
+			id: chartType ? `yields-${query.pool}-${chartType}` : `yields-${query.pool}`,
+			kind: 'yields',
+			poolConfigId: query.pool as string,
+			poolName: poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? ''),
+			project: config?.name ?? poolData.project ?? '',
+			chain: poolData.chain ?? '',
+			chartType
+		}
+	}
 
 	const {
-		finalChartData = [],
-		barChartData = [],
-		areaChartData = [],
+		finalChartData = EMPTY_CHART_DATA,
+		barChartData = EMPTY_CHART_DATA,
+		areaChartData = EMPTY_CHART_DATA,
 		// borrow stuff
-		barChartDataSupply = [],
-		barChartDataBorrow = [],
-		areaChartDataBorrow = [],
-		netBorrowChartData = []
+		barChartDataSupply: _barChartDataSupply = EMPTY_CHART_DATA,
+		barChartDataBorrow = EMPTY_CHART_DATA,
+		areaChartDataBorrow = EMPTY_CHART_DATA,
+		netBorrowChartData = EMPTY_CHART_DATA
 	} = useMemo(() => {
 		if (!chart) return {}
 
@@ -194,7 +197,7 @@ const PageView = (props) => {
 			avg7Days[i]?.toFixed(2) ?? null
 		])
 
-		const dataBar = data?.filter((t) => t[3] !== null || t[4] !== null) ?? []
+		const dataBar = data?.filter((t) => t[3] !== null || t[4] !== null) ?? EMPTY_CHART_DATA
 
 		const barChartData = dataBar.length
 			? dataBar.map((item) => ({ date: item[0], Base: item[3], Reward: item[4] }))
@@ -219,30 +222,29 @@ const PageView = (props) => {
 						: el.totalSupplyUsd - el.totalBorrowUsd,
 			el.apyBase?.toFixed(2) ?? null,
 			el.apyReward?.toFixed(2) ?? null,
-			// @ts-expect-error - apyBaseBorrow is not typed
-			-el.apyBaseBorrow?.toFixed(2) ?? null,
+			el.apyBaseBorrow == null ? null : -Number(el.apyBaseBorrow.toFixed(2)),
 			el.apyRewardBorrow?.toFixed(2) ?? null,
 			el.apyBaseBorrow === null && el.apyRewardBorrow === null
 				? null
 				: ((-el.apyBaseBorrow + el.apyRewardBorrow).toFixed(2) ?? null)
 		])
 
-		const dataBarSupply = dataBorrow?.filter((t) => t[4] !== null || t[5] !== null) ?? []
+		const dataBarSupply = dataBorrow?.filter((t) => t[4] !== null || t[5] !== null) ?? EMPTY_CHART_DATA
 		const barChartDataSupply = dataBarSupply.length
 			? dataBarSupply.map((item) => ({ date: item[0], Base: item[4], Reward: item[5] }))
 			: []
 
-		const dataBarBorrow = dataBorrow?.filter((t) => Number.isFinite(t[6]) || t[7] !== null) ?? []
+		const dataBarBorrow = dataBorrow?.filter((t) => Number.isFinite(t[6]) || t[7] !== null) ?? EMPTY_CHART_DATA
 		const barChartDataBorrow = dataBarBorrow.length
 			? dataBarBorrow.map((item) => ({ date: item[0], Base: item[6], Reward: item[7] }))
 			: []
 
-		const dataArea = dataBorrow?.filter((t) => t[1] !== null && t[2] !== null && t[3] !== null) ?? []
+		const dataArea = dataBorrow?.filter((t) => t[1] !== null && t[2] !== null && t[3] !== null) ?? EMPTY_CHART_DATA
 		const areaChartDataBorrow = dataArea.length
 			? dataArea.map((t) => ({ date: t[0], Supplied: t[1], Borrowed: t[2], Available: t[3] }))
 			: []
 
-		const dataNetBorrowArea = dataBorrow?.filter((t) => t[8] !== null) ?? []
+		const dataNetBorrowArea = dataBorrow?.filter((t) => t[8] !== null) ?? EMPTY_CHART_DATA
 		const netBorrowChartData = dataNetBorrowArea.length ? dataNetBorrowArea.map((t) => [t[0], t[8]]) : []
 
 		return {
@@ -349,7 +351,7 @@ const PageView = (props) => {
 							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
 							smol
 						/>
-						<AddToDashboardButton chartConfig={yieldsChartConfig} smol />
+						<AddToDashboardButton chartConfig={getYieldsChartConfig()} smol />
 					</div>
 					<Suspense fallback={<></>}>
 						<TVLAPYChart
@@ -503,6 +505,7 @@ const PageView = (props) => {
 										imageExportFilename={`${query.pool}-supply-apy`}
 										imageExportTitle="Supply APY"
 										onReady={handleSupplyApyBarChartReady}
+										customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy')} smol />}
 									/>
 								</Suspense>
 							</LazyChart>
@@ -519,6 +522,7 @@ const PageView = (props) => {
 										imageExportFilename={`${query.pool}-supply-apy-7d-avg`}
 										imageExportTitle="7 day moving average of Supply APY"
 										onReady={handleSupplyApy7dChartReady}
+										customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy-7d')} smol />}
 									/>
 								</Suspense>
 							</LazyChart>
@@ -546,6 +550,7 @@ const PageView = (props) => {
 									imageExportFilename={`${query.pool}-borrow-apy`}
 									imageExportTitle="Borrow APY"
 									onReady={handleBorrowApyBarChartReady}
+									customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('borrow-apy')} smol />}
 								/>
 							</Suspense>
 						</LazyChart>
@@ -562,6 +567,7 @@ const PageView = (props) => {
 									imageExportFilename={`${query.pool}-net-borrow-apy`}
 									imageExportTitle="Net Borrow APY"
 									onReady={handleNetBorrowApyChartReady}
+									customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('net-borrow-apy')} smol />}
 								/>
 							</Suspense>
 						</LazyChart>
@@ -574,12 +580,13 @@ const PageView = (props) => {
 									chartData={areaChartDataBorrow}
 									title="Pool Liquidity"
 									customLegendName="Filter"
-									customLegendOptions={['Supplied', 'Borrowed', 'Available']}
+									customLegendOptions={LIQUIDITY_LEGEND_OPTIONS}
 									valueSymbol="$"
 									stackColors={liquidityChartColors}
 									enableImageExport={true}
 									imageExportFilename={`${query.pool}-pool-liquidity`}
 									imageExportTitle="Pool Liquidity"
+									customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('pool-liquidity')} smol />}
 								/>
 							</Suspense>
 						</LazyChart>
@@ -678,6 +685,8 @@ const liquidityChartColors = {
 	Borrowed: CHART_COLORS[1],
 	Available: CHART_COLORS[2]
 }
+
+const LIQUIDITY_LEGEND_OPTIONS: string[] = ['Supplied', 'Borrowed', 'Available']
 
 const barChartStacks = {
 	Base: 'a',

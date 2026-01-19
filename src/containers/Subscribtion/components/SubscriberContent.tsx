@@ -1,5 +1,5 @@
-import { lazy, Suspense, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -20,7 +20,6 @@ interface SubscriberContentProps {
 	isPortalSessionLoading: boolean
 	apiSubscription: Subscription
 	llamafeedSubscription: Subscription
-	legacySubscription: Subscription
 	enableOverage: () => void
 	isEnableOverageLoading: boolean
 }

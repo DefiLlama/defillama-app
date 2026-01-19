@@ -1,7 +1,7 @@
 import { keepNeededProperties } from '~/api/shared'
 import type { IFormattedProtocol } from '~/api/types'
 import { ILiteProtocol } from '~/containers/ChainOverview/types'
-import { DEFI_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getPercentChange } from '~/utils'
 
 export type BasicPropsToKeep = (keyof IFormattedProtocol)[]
@@ -134,11 +134,15 @@ export const formatProtocolsData = ({
 						p.extraTvl[prop].tvlPrevMonth += protocol.chainTvls[sectionName].tvlPrevMonth
 					}
 
-					p.chains = Object.keys(protocol.oraclesByChain).filter((chain) =>
-						protocol.oraclesByChain[chain].includes(oracle)
-					)
+					const filteredChains: string[] = []
+					for (const chain in protocol.oraclesByChain) {
+						if (protocol.oraclesByChain[chain].includes(oracle)) {
+							filteredChains.push(chain)
+						}
+					}
+					p.chains = filteredChains
 				} else {
-					if (DEFI_SETTINGS_KEYS_SET.has(sectionName) || sectionName === 'excludeParent') {
+					if (TVL_SETTINGS_KEYS_SET.has(sectionName) || sectionName === 'excludeParent') {
 						p.extraTvl[sectionName] = protocol.chainTvls[sectionName]
 					}
 				}

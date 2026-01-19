@@ -1,12 +1,12 @@
-import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { maxAgeForNext } from '~/api'
 import { LocalLoader } from '~/components/Loaders'
 import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/Chart/constants'
 import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/ProtocolChart'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import { IProtocolMetadata, IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
-import { DEFI_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -38,7 +38,8 @@ export const getStaticProps = withPerformanceLogging(
 
 		const data = await getProtocolOverviewPageData({
 			protocolId: metadata[0],
-			metadata: metadata[1]
+			currentProtocolMetadata: metadata[1],
+			chainMetadata: metadataCache.chainMetadata
 		})
 
 		if (!data) {
@@ -85,8 +86,8 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 
 		const tvlSettings = {}
 
-		for (const setting in DEFI_SETTINGS) {
-			tvlSettings[DEFI_SETTINGS[setting]] = queryParams[`include_${DEFI_SETTINGS[setting]}_in_tvl`]
+		for (const setting in TVL_SETTINGS) {
+			tvlSettings[TVL_SETTINGS[setting]] = queryParams[`include_${TVL_SETTINGS[setting]}_in_tvl`]
 		}
 
 		const feesSettings = {}
@@ -108,7 +109,7 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 		}
 	}, [queryParamsString, props])
 
-	const isThemeDark = router.query.theme === 'dark' ? true : false
+	const isThemeDark = router.query.theme === 'dark'
 
 	useEffect(() => {
 		if (!isThemeDark) {

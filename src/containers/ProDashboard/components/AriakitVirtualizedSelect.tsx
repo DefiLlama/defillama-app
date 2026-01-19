@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from './LoadingSpinner'
 
@@ -63,7 +63,7 @@ export function AriakitVirtualizedSelect({
 		if (filteredOptions.length > 0) {
 			virtualizer.scrollToIndex(0, { align: 'start' })
 		}
-	}, [isPopoverOpen, filteredOptions.length])
+	}, [isPopoverOpen, filteredOptions.length, virtualizer])
 
 	const selectedOption = useMemo(() => options.find((opt) => opt.value === selectedValue), [options, selectedValue])
 
@@ -98,7 +98,7 @@ export function AriakitVirtualizedSelect({
 							)}
 							<span className="truncate">{selectedLabel}</span>
 						</span>
-						<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+						<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 					</PopoverDisclosure>
 					<Popover
 						store={popover}
@@ -197,7 +197,7 @@ export function AriakitVirtualizedSelect({
 														</div>
 													</div>
 													{isActive && (
-														<Icon name="check" width={14} height={14} className="ml-2 flex-shrink-0 text-(--primary)" />
+														<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
 													)}
 												</button>
 											)

@@ -5,6 +5,8 @@ import {
 	CHART_TYPES,
 	ChartConfig,
 	DashboardItemConfig,
+	IncomeStatementConfig,
+	LlamaAIChartConfig,
 	MultiChartConfig,
 	Protocol,
 	ProtocolsTableConfig,
@@ -29,6 +31,7 @@ export function useModalActions(
 		handleAddStablecoinAssetChart,
 		handleAddAdvancedTvlChart,
 		handleAddBorrowedChart,
+		handleAddIncomeStatement,
 		handleAddTable,
 		handleAddMultiChart,
 		handleAddText,
@@ -137,7 +140,7 @@ export function useModalActions(
 	)
 
 	const handleAddToComposer = useCallback(
-		(typesToAdd?: string[]) => {
+		(typesToAdd?: string[], options?: { entity?: string; mode?: 'chain' | 'protocol' }) => {
 			const incomingTypes = typesToAdd ?? state.selectedChartTypes
 			const chartTypesToAdd = Array.from(new Set(incomingTypes))
 			let addedCount = 0
@@ -164,9 +167,16 @@ export function useModalActions(
 			const targetGrouping = resolveTargetGrouping()
 			const getNextColorIndex = () => state.composerItems.length
 
-			if (state.selectedChartTab === 'chain' && chartTypesToAdd.length > 0) {
-				const chainsToUse =
-					state.selectedChains.length > 0 ? state.selectedChains : state.selectedChain ? [state.selectedChain] : []
+			const effectiveMode = options?.mode ?? state.selectedChartTab
+
+			if (effectiveMode === 'chain' && chartTypesToAdd.length > 0) {
+				const chainsToUse = options?.entity
+					? [options.entity]
+					: state.selectedChains.length > 0
+						? state.selectedChains
+						: state.selectedChain
+							? [state.selectedChain]
+							: []
 				for (const chainName of chainsToUse) {
 					const chain = chains.find((c: Chain) => c.name === chainName)
 					const filteredTypes = chartTypesToAdd.filter((chartType) => {
@@ -187,9 +197,10 @@ export function useModalActions(
 						addedCount += filteredTypes.length
 					}
 				}
-			} else if (state.selectedChartTab === 'protocol' && chartTypesToAdd.length > 0) {
-				const protocolsToUse =
-					state.selectedProtocols && state.selectedProtocols.length > 0
+			} else if (effectiveMode === 'protocol' && chartTypesToAdd.length > 0) {
+				const protocolsToUse = options?.entity
+					? [options.entity]
+					: state.selectedProtocols && state.selectedProtocols.length > 0
 						? state.selectedProtocols
 						: state.selectedProtocol
 							? [state.selectedProtocol]
@@ -335,6 +346,18 @@ export function useModalActions(
 					protocolName: state.selectedBorrowedProtocolName,
 					chartType: state.selectedBorrowedChartType
 				} as any
+			} else if (
+				state.selectedMainTab === 'charts' &&
+				state.selectedChartTab === 'income-statement' &&
+				state.selectedIncomeStatementProtocol &&
+				state.selectedIncomeStatementProtocolName
+			) {
+				newItem = {
+					...editItem,
+					kind: 'income-statement',
+					protocol: state.selectedIncomeStatementProtocol,
+					protocolName: state.selectedIncomeStatementProtocolName
+				} as IncomeStatementConfig
 			} else if (
 				state.selectedMainTab === 'charts' &&
 				state.chartCreationMode === 'combined' &&
@@ -542,6 +565,13 @@ export function useModalActions(
 						label: state.metricLabel
 					} as any
 				}
+			} else if (state.selectedMainTab === 'llamaai' && state.selectedLlamaAIChart) {
+				newItem = {
+					...editItem,
+					kind: 'llamaai-chart',
+					savedChartId: state.selectedLlamaAIChart.id,
+					title: state.selectedLlamaAIChart.title || undefined
+				} as LlamaAIChartConfig
 			}
 
 			if (newItem) {
@@ -600,31 +630,39 @@ export function useModalActions(
 					state.selectedBorrowedProtocolName,
 					state.selectedBorrowedChartType
 				)
+			} else if (
+				state.selectedMainTab === 'charts' &&
+				state.chartMode === 'manual' &&
+				state.selectedChartTab === 'income-statement' &&
+				state.selectedIncomeStatementProtocol &&
+				state.selectedIncomeStatementProtocolName
+			) {
+				handleAddIncomeStatement(state.selectedIncomeStatementProtocol, state.selectedIncomeStatementProtocolName)
 			} else if (state.selectedMainTab === 'charts' && state.chartMode === 'manual') {
 				if (state.composerItems.length > 0) {
 					if (state.chartCreationMode === 'combined') {
 						handleAddMultiChart(state.composerItems, state.unifiedChartName.trim() || undefined)
 					} else {
-						state.composerItems.forEach((item) => {
+						for (const item of state.composerItems) {
 							if (item.chain) {
 								handleAddChart(item.chain, item.type, 'chain', item.geckoId, item.color)
 							} else if (item.protocol) {
 								handleAddChart(item.protocol, item.type, 'protocol', item.geckoId, item.color)
 							}
-						})
+						}
 					}
 				} else if (state.chartCreationMode === 'separate' && state.selectedChartTypes.length > 0) {
 					if (state.selectedChain) {
 						const chain = chains.find((c: Chain) => c.name === state.selectedChain)
-						state.selectedChartTypes.forEach((chartType) => {
+						for (const chartType of state.selectedChartTypes) {
 							const geckoId = ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
 							handleAddChart(state.selectedChain, chartType, 'chain', geckoId)
-						})
+						}
 					} else if (state.selectedProtocol) {
 						const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
-						state.selectedChartTypes.forEach((chartType) => {
+						for (const chartType of state.selectedChartTypes) {
 							handleAddChart(state.selectedProtocol, chartType, 'protocol', protocol?.geckoId)
-						})
+						}
 					}
 				}
 			} else if (state.selectedMainTab === 'table') {
@@ -715,6 +753,7 @@ export function useModalActions(
 		handleAddStablecoinAssetChart,
 		handleAddAdvancedTvlChart,
 		handleAddBorrowedChart,
+		handleAddIncomeStatement,
 		handleAddTable,
 		handleAddText,
 		handleAddMetric,

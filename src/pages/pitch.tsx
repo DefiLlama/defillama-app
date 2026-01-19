@@ -1,5 +1,5 @@
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
@@ -29,7 +29,7 @@ async function generateVCList(): Promise<VC[]> {
 		raises.reduce((acc, raise) => {
 			const defiCategory = protocolsCategoryById[raise.defillamaId]
 			const investors = raise.leadInvestors.concat(raise.otherInvestors)
-			investors.forEach((vc) => {
+			for (const vc of investors) {
 				if (!acc[vc]) {
 					acc[vc] = {
 						name: vc,
@@ -48,7 +48,7 @@ async function generateVCList(): Promise<VC[]> {
 					acc[vc].numInvestments += 1
 					acc[vc].defiCategories.add(defiCategory)
 				}
-			})
+			}
 			return acc
 		}, {})
 	)
@@ -89,7 +89,7 @@ export const getStaticProps = withPerformanceLogging('pitch', async () => {
 	}
 })
 
-const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRounds }) => {
+const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRounds: _lastRounds }) => {
 	const [filters, setFilters] = useState({
 		minimumInvestments: '',
 		chains: [],
@@ -99,8 +99,8 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		minLastRoundTime: ''
 	})
 
-	const [matchedInvestors, setMatchedInvestors] = useState(null)
-	const [totalCost, setTotalCost] = useState(null)
+	const [matchedInvestors, _setMatchedInvestors] = useState(null)
+	const [totalCost, _setTotalCost] = useState(null)
 	const [projectInfo, setProjectInfo] = useState({
 		projectName: '',
 		link: '',
@@ -111,11 +111,11 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 	const [paymentLink, setPaymentLink] = useState('')
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
-	const chainOptions = chains.map((chain) => ({ value: chain, label: chain }))
-	const roundTypeOptions = roundTypes.map((type) => ({ value: type, label: type }))
-	const defiCategoryOptions = defiCategories.map((category) => ({ value: category, label: category }))
-	const categoryOptions = categories.map((category) => ({ value: category, label: category }))
-	const hasSelectedFilters = Object.values(filters).some((v) => (Number.isInteger(v) ? true : v?.length))
+	const _chainOptions = chains.map((chain) => ({ value: chain, label: chain }))
+	const _roundTypeOptions = roundTypes.map((type) => ({ value: type, label: type }))
+	const _defiCategoryOptions = defiCategories.map((category) => ({ value: category, label: category }))
+	const _categoryOptions = categories.map((category) => ({ value: category, label: category }))
+	const hasSelectedFilters = Object.values(filters).some((v) => Number.isInteger(v) || v?.length)
 
 	const unixToDateString = (unixTimestamp) => {
 		if (!unixTimestamp) return ''
@@ -144,7 +144,13 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 	}
 
 	const fetchInvestors = async (filters) => {
-		const body = Object.fromEntries(Object.entries(filters).filter(([_, v]: any) => v && v.length !== 0))
+		const body: Record<string, any> = {}
+		for (const key in filters) {
+			const v = filters[key]
+			if (v && v.length !== 0) {
+				body[key] = v
+			}
+		}
 
 		const response = await fetch('https://vc-emails.llama.fi/vc-list', {
 			method: 'POST',
@@ -179,7 +185,13 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		e.preventDefault()
 		setIsSubmitting(true)
 		try {
-			const filtersData = Object.fromEntries(Object.entries(filters).filter(([_, v]: any) => v && v.length !== 0))
+			const filtersData: Record<string, any> = {}
+			for (const key in filters) {
+				const v = filters[key]
+				if (v && v.length !== 0) {
+					filtersData[key] = v
+				}
+			}
 			const response = await fetch('https://vc-emails.llama.fi/new-payment', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -279,7 +291,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 								onFocus={async (e) => {
 									try {
 										e.target.showPicker()
-									} catch (error) {}
+									} catch {}
 								}}
 							/>
 						</label>
@@ -365,18 +377,17 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 						{matchedInvestors > 100 && hasSelectedFilters ? (
 							<p className="text-red-500">To reduce costs, please filter further.</p>
 						) : null}
-						{paymentLink ||
-							(true && (
-								<>
-									<button
-										onClick={() => window.open(paymentLink, '_blank')}
-										disabled={isSubmitting}
-										className="w-full rounded-md bg-(--primary) px-6 py-2 text-lg font-semibold text-white disabled:bg-(--bg-tertiary) disabled:text-(--text-tertiary)"
-									>
-										{isSubmitting ? 'Processing...' : 'Go to Payment'}
-									</button>
-								</>
-							))}
+						{paymentLink ? (
+							<>
+								<button
+									onClick={() => window.open(paymentLink, '_blank')}
+									disabled={isSubmitting}
+									className="w-full rounded-md bg-(--primary) px-6 py-2 text-lg font-semibold text-white disabled:bg-(--bg-tertiary) disabled:text-(--text-tertiary)"
+								>
+									{isSubmitting ? 'Processing...' : 'Go to Payment'}
+								</button>
+							</>
+						) : null}
 					</div>
 				</div>
 			</div>

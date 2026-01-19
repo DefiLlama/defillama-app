@@ -1,28 +1,21 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import type { MultiSelectOption } from '~/components/selectTypes'
 import { LoadingSpinner } from './LoadingSpinner'
-
-export interface VirtualizedMultiSelectOption {
-	value: string
-	label: string
-	logo?: string
-	disabled?: boolean
-	isChild?: boolean
-}
 
 interface AriakitVirtualizedMultiSelectProps {
 	label: string
-	options: VirtualizedMultiSelectOption[]
+	options: ReadonlyArray<MultiSelectOption>
 	selectedValues: string[]
 	onChange: (values: string[]) => void
 	placeholder?: string
 	isLoading?: boolean
 	className?: string
 	maxSelections?: number
-	renderIcon?: (option: VirtualizedMultiSelectOption) => string | null
+	renderIcon?: (option: MultiSelectOption) => string | null
 	onSearchChange?: (value: string) => void
 }
 
@@ -123,7 +116,7 @@ export function AriakitVirtualizedMultiSelect({
 						className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					>
 						<span className={`truncate ${selectedValues.length > 0 ? 'pro-text1' : 'pro-text3'}`}>{buttonLabel}</span>
-						<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+						<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 					</PopoverDisclosure>
 					<Popover
 						store={popover}
@@ -201,7 +194,7 @@ export function AriakitVirtualizedMultiSelect({
 															<img
 																src={iconUrl}
 																alt={option.label}
-																className={`h-5 w-5 flex-shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
+																className={`h-5 w-5 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
 																	option.isChild ? 'opacity-70' : ''
 																}`}
 																onError={(e) => {
@@ -219,7 +212,7 @@ export function AriakitVirtualizedMultiSelect({
 														</div>
 													</div>
 													{isActive && (
-														<Icon name="check" width={14} height={14} className="ml-2 flex-shrink-0 text-(--primary)" />
+														<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
 													)}
 												</button>
 											)

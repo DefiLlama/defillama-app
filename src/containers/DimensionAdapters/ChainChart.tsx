@@ -1,10 +1,10 @@
-import * as React from 'react'
 import { useMutation } from '@tanstack/react-query'
+import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/formatters'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
-import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/useDefaults'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
@@ -344,13 +344,15 @@ const getChartDataByChainAndInterval = ({
 	chartType?: 'Volume' | 'Dominance'
 	selectedChains: string[]
 }) => {
+	const selectedChainsSet = new Set(selectedChains)
+
 	if (chartType === 'Dominance') {
 		const sumByDate = {}
 		for (const [date, chainsOnDate] of chartData) {
 			const finalDate = +date * 1e3
 
 			for (const chain in chainsOnDate) {
-				if (selectedChains.includes(chain)) {
+				if (selectedChainsSet.has(chain)) {
 					sumByDate[finalDate] = (sumByDate[finalDate] || 0) + (chainsOnDate[chain] || 0)
 				}
 			}
@@ -438,23 +440,23 @@ const getChartDataByChainAndInterval = ({
 		let others = 0
 		const topItems = []
 		for (const chain in chainsOnDate) {
-			if (selectedChains.includes(chain)) {
+			if (selectedChainsSet.has(chain)) {
 				topItems.push([chain, chainsOnDate[chain]])
 			}
 		}
-		topItems
-			.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
-			.forEach(([chain, value]: [string, number], index: number) => {
-				if (index < 10) {
-					topByDate[chain] = topByDate[chain] || {}
-					topByDate[chain][finalDate] = value ?? 0
-					uniqTopChains.add(chain)
-				} else {
-					topByDate[chain] = topByDate[chain] || {}
-					topByDate[chain][finalDate] = 0
-					others += value ?? 0
-				}
-			})
+		const sortedTopItems = topItems.toSorted((a: [string, number], b: [string, number]) => b[1] - a[1])
+		for (let index = 0; index < sortedTopItems.length; index++) {
+			const [chain, value] = sortedTopItems[index] as [string, number]
+			if (index < 10) {
+				topByDate[chain] = topByDate[chain] || {}
+				topByDate[chain][finalDate] = value ?? 0
+				uniqTopChains.add(chain)
+			} else {
+				topByDate[chain] = topByDate[chain] || {}
+				topByDate[chain][finalDate] = 0
+				others += value ?? 0
+			}
+		}
 
 		for (const chain of selectedChains) {
 			topByAllDates[chain] = topByAllDates[chain] || {}
@@ -472,7 +474,7 @@ const getChartDataByChainAndInterval = ({
 		for (const finalDate in topByAllDates[chain]) {
 			finalData[chain].push([+finalDate, topByAllDates[chain][finalDate]])
 		}
-		if (selectedChains.includes(chain)) {
+		if (selectedChainsSet.has(chain)) {
 			zeroesByChain[chain] = Math.max(
 				finalData[chain].findIndex((date) => date[1] !== 0),
 				0
@@ -480,7 +482,8 @@ const getChartDataByChainAndInterval = ({
 		}
 	}
 
-	let startingZeroDatesToSlice = Object.values(zeroesByChain).sort((a, b) => (a as number) - (b as number))[0]
+	const zeroValues = Object.values(zeroesByChain) as number[]
+	let startingZeroDatesToSlice = zeroValues.length > 0 ? Math.min(...zeroValues) : 0
 	for (const chain in finalData) {
 		if (!finalData[chain].length) delete finalData[chain]
 	}

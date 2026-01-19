@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useRef, useState, useEffect } from 'react'
 import { Icon, IIcon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Dashboard } from '../services/DashboardAPI'
@@ -24,12 +24,41 @@ export function DiscoverySection({
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const [canScrollLeft, setCanScrollLeft] = useState(false)
 	const [canScrollRight, setCanScrollRight] = useState(true)
+	const rafIdRef = useRef<number | null>(null)
+	// Cache previous values to avoid unnecessary state updates
+	const prevScrollStateRef = useRef({ canScrollLeft: false, canScrollRight: true })
 
 	const updateScrollState = useCallback(() => {
-		const container = scrollContainerRef.current
-		if (!container) return
-		setCanScrollLeft(container.scrollLeft > 0)
-		setCanScrollRight(container.scrollLeft < container.scrollWidth - container.clientWidth - 10)
+		// Cancel any pending RAF to avoid stacking
+		if (rafIdRef.current) return
+
+		rafIdRef.current = requestAnimationFrame(() => {
+			rafIdRef.current = null
+			const container = scrollContainerRef.current
+			if (!container) return
+
+			// Batch read all scroll properties at once
+			const { scrollLeft, scrollWidth, clientWidth } = container
+			const newCanScrollLeft = scrollLeft > 0
+			const newCanScrollRight = scrollLeft < scrollWidth - clientWidth - 10
+
+			// Only update state if values changed
+			if (newCanScrollLeft !== prevScrollStateRef.current.canScrollLeft) {
+				prevScrollStateRef.current.canScrollLeft = newCanScrollLeft
+				setCanScrollLeft(newCanScrollLeft)
+			}
+			if (newCanScrollRight !== prevScrollStateRef.current.canScrollRight) {
+				prevScrollStateRef.current.canScrollRight = newCanScrollRight
+				setCanScrollRight(newCanScrollRight)
+			}
+		})
+	}, [])
+
+	// Cleanup RAF on unmount
+	useEffect(() => {
+		return () => {
+			if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current)
+		}
 	}, [])
 
 	const scroll = (direction: 'left' | 'right') => {
@@ -79,35 +108,44 @@ export function DiscoverySection({
 				</BasicLink>
 			</div>
 
-			<div className="relative">
+			<div className="group relative">
 				{canScrollLeft && (
-					<button
-						onClick={() => scroll('left')}
-						className="absolute top-1/2 left-0 z-10 hidden -translate-y-1/2 rounded-full border border-(--cards-border) bg-(--cards-bg) p-2 shadow-md hover:bg-(--btn-hover-bg) md:block"
-					>
-						<Icon name="chevron-left" height={20} width={20} />
-					</button>
+					<>
+						<div className="pointer-events-none absolute inset-y-0 left-0 z-[5] hidden w-16 bg-gradient-to-r from-(--app-bg) to-transparent md:block" />
+						<button
+							onClick={() => scroll('left')}
+							className="absolute top-1/2 left-2 z-10 hidden -translate-y-1/2 rounded-full border border-(--cards-border) bg-(--cards-bg) p-2 shadow-md hover:bg-(--btn-hover-bg) md:block"
+						>
+							<Icon name="chevron-left" height={20} width={20} />
+						</button>
+					</>
 				)}
 
 				<div
 					ref={scrollContainerRef}
 					onScroll={updateScrollState}
-					className="no-scrollbar flex items-stretch gap-4 overflow-x-auto pb-2"
+					className="no-scrollbar flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto pb-2 md:snap-none"
 				>
 					{dashboards.map((dashboard) => (
-						<div key={dashboard.id} className="w-[300px] shrink-0 md:w-[320px]">
+						<div
+							key={dashboard.id}
+							className="w-[300px] shrink-0 snap-start scroll-ml-4 md:w-[320px] md:snap-align-none"
+						>
 							<DashboardCard dashboard={dashboard} onTagClick={onTagClick} viewMode="grid" className="h-full" />
 						</div>
 					))}
 				</div>
 
 				{canScrollRight && dashboards.length > 3 && (
-					<button
-						onClick={() => scroll('right')}
-						className="absolute top-1/2 right-0 z-10 hidden -translate-y-1/2 rounded-full border border-(--cards-border) bg-(--cards-bg) p-2 shadow-md hover:bg-(--btn-hover-bg) md:block"
-					>
-						<Icon name="chevron-right" height={20} width={20} />
-					</button>
+					<>
+						<div className="pointer-events-none absolute inset-y-0 right-0 z-[5] hidden w-16 bg-gradient-to-l from-(--app-bg) to-transparent md:block" />
+						<button
+							onClick={() => scroll('right')}
+							className="absolute top-1/2 right-2 z-10 hidden -translate-y-1/2 rounded-full border border-(--cards-border) bg-(--cards-bg) p-2 shadow-md hover:bg-(--btn-hover-bg) md:block"
+						>
+							<Icon name="chevron-right" height={20} width={20} />
+						</button>
+					</>
 				)}
 			</div>
 		</div>

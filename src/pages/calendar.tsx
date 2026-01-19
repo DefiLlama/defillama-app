@@ -1,5 +1,3 @@
-import * as React from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import {
 	ColumnDef,
@@ -10,6 +8,8 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
@@ -27,12 +27,12 @@ export const getStaticProps = withPerformanceLogging('calendar', async () => {
 
 	const emissions = res.map((protocol) => {
 		const unlocksByDate = {}
-		protocol.events?.forEach((e) => {
-			if (e.timestamp < Date.now() / 1000 || (e.noOfTokens.length === 1 && e.noOfTokens[0] === 0)) return
+		for (const e of protocol.events ?? []) {
+			if (e.timestamp < Date.now() / 1000 || (e.noOfTokens.length === 1 && e.noOfTokens[0] === 0)) continue
 			unlocksByDate[e.timestamp] =
 				(unlocksByDate[e.timestamp] ?? 0) +
 				(e.noOfTokens.length === 2 ? e.noOfTokens[1] - e.noOfTokens[0] : e.noOfTokens[0])
-		})
+		}
 		const unlocksList = Object.entries(unlocksByDate)
 		const maxUnlock = unlocksList.reduce((max, curr) => {
 			if (max[1] < curr[1]) {
@@ -256,7 +256,7 @@ export default function Protocols({ emissions }) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search events..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
 				</div>

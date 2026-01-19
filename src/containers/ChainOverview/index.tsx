@@ -1,5 +1,5 @@
-import { Fragment, lazy, Suspense } from 'react'
 import Link from 'next/link'
+import { lazy, Suspense } from 'react'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -15,16 +15,11 @@ const pageName = ['Overview']
 
 const Announcement = () => (
 	<>
-		Check out the{' '}
-		<a
-			href="https://x.com/dl_research/status/2001362971893862851"
-			className="underline"
-			target="_blank"
-			rel="noreferrer noopener"
-		>
-			2025 State of DeFi Report
-		</a>{' '}
-		by DL Research
+		Free 7-day{' '}
+		<Link href="/subscription" target="_blank" rel="noreferrer noopener" className="underline">
+			Pro subscription
+		</Link>{' '}
+		trials are now available.
 	</>
 )
 
@@ -114,7 +109,7 @@ const linksToOtherLlamaApps = [
 		description: 'No fees DEX aggregator',
 		href: 'https://swap.defillama.com',
 		icon: (
-			<img src="/icons/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
+			<img src="/assets/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
 		background: <span className="llama-app-background" />
 	},
@@ -123,7 +118,7 @@ const linksToOtherLlamaApps = [
 		description: 'The ultimate crypto feed',
 		href: 'https://llamafeed.io/',
 		icon: (
-			<img src="/icons/llamafeed.svg" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
+			<img src="/assets/llamafeed.svg" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
 		background: <span className="llama-app-background" />
 	},
@@ -132,7 +127,7 @@ const linksToOtherLlamaApps = [
 		description: 'Access to all our data',
 		href: 'https://defillama.com/pro-api/docs',
 		icon: (
-			<img src="/icons/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
+			<img src="/assets/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
 		background: <span className="llama-app-background" />
 	},
@@ -142,7 +137,7 @@ const linksToOtherLlamaApps = [
 		href: 'https://assets.dlnews.com/dlresearch/State-of-DeFi-2025.pdf',
 		icon: (
 			<svg width={44} height={44}>
-				<use href={`/icons/dlresearch.svg#dlresearch-logo`} />
+				<use href={`/assets/dlresearch.svg#dlresearch-logo`} />
 			</svg>
 		),
 		background: <span className="llama-app-background" />
@@ -153,7 +148,7 @@ const linksToOtherLlamaApps = [
 		href: 'https://www.dlnews.com',
 		icon: (
 			<svg width={44} height={44}>
-				<use href={`/icons/dlnews-smol.svg#dlnews-logo`} />
+				<use href={`/assets/dlnews-smol.svg#dlnews-logo`} />
 			</svg>
 		),
 		background: <span className="llama-app-background" />
@@ -164,7 +159,7 @@ const linksToOtherLlamaApps = [
 		href: 'https://www.dlnews.com/research',
 		icon: (
 			<svg width={44} height={44}>
-				<use href={`/icons/dlresearch.svg#dlresearch-logo`} />
+				<use href={`/assets/dlresearch.svg#dlresearch-logo`} />
 			</svg>
 		),
 		background: <span className="llama-app-background" />

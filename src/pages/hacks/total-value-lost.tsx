@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
@@ -15,7 +15,10 @@ import { formattedNum, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('protocols/total-value-lost-in-hacks', async () => {
-	const data = await getTotalValueLostInHacksByProtocol()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const data = await getTotalValueLostInHacksByProtocol({
+		protocolMetadata: metadataCache.protocolMetadata
+	})
 	return {
 		props: data,
 		revalidate: maxAgeForNext([22])
@@ -23,6 +26,7 @@ export const getStaticProps = withPerformanceLogging('protocols/total-value-lost
 })
 
 const pageName = ['Protocols', 'ranked by', 'Total Value Lost in Hacks']
+const DEFAULT_SORTING_STATE = [{ id: 'Net User Loss', desc: true }]
 
 export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostInHacksByProtocol) {
 	const [selectedColumns, setSelectedColumns] = React.useState<Array<string>>([
@@ -67,11 +71,11 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 				customFilters={
 					<>
 						<Select
-							allValues={columns.map((c) => c.id)}
+							allValues={columnIds}
 							selectedValues={selectedColumns}
 							setSelectedValues={setSelectedColumns}
 							clearAll={() => setSelectedColumns([])}
-							toggleAll={() => setSelectedColumns(columns.map((c) => c.id))}
+							toggleAll={() => setSelectedColumns(columnIds)}
 							label="Columns"
 							labelType="smol"
 							triggerProps={{
@@ -82,7 +86,7 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</>
 				}
-				sortingState={[{ id: 'Net User Loss', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)
@@ -142,3 +146,5 @@ const columns: ColumnDef<IProtocolTotalValueLostInHacksByProtocol['protocols'][n
 		}
 	}
 ]
+
+const columnIds = columns.map((c) => c.id)

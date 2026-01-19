@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import * as React from 'react'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { IChartProps as IAreaChartProps } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
@@ -17,16 +17,17 @@ const BarChart = React.lazy(() => import('~/components/ECharts/BarChart/NonTimeS
 const TreemapChart = React.lazy(() => import('~/components/ECharts/TreemapChart2')) as React.FC<IChartProps>
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IAreaChartProps>
+const DEFAULT_SORTING_STATE = [{ id: 'change', desc: true }]
 
 // for linechart
 function calculateDenominatedChange(data, denominatedCoin) {
 	const sortedData = data.sort((a, b) => a.date - b.date)
 	const denominatedReturns = []
 
-	sortedData.forEach((dayData) => {
+	for (const dayData of sortedData) {
 		const newDayData = { date: dayData.date }
 
-		Object.keys(dayData).forEach((category) => {
+		for (const category in dayData) {
 			if (category !== 'date' && category !== denominatedCoin) {
 				// calculate relative performance
 				const categoryPerformance = 1 + dayData[category] / 100
@@ -35,10 +36,10 @@ function calculateDenominatedChange(data, denominatedCoin) {
 
 				newDayData[category] = relativePerformance
 			}
-		})
+		}
 
 		denominatedReturns.push(newDayData)
-	})
+	}
 
 	return denominatedReturns
 }
@@ -49,18 +50,33 @@ function calculateDenominatedChange2(data, denominatedCoin, field) {
 
 	const denominatedCoinPerformance = 1 + data.find((i) => i.name === denominatedCoin)[field] / 100
 
-	data.forEach((i) => {
+	for (const i of data) {
 		const categoryPerformance = 1 + i[field] / 100
 		const relativePerformance = (categoryPerformance / denominatedCoinPerformance - 1) * 100
 
 		denominatedReturns.push({ ...i, [field]: relativePerformance })
-	})
+	}
 
 	return denominatedReturns
 }
 
 const PERIODS = ['7D', '30D', 'YTD', '365D'] as const
 const DENOMS = ['$', 'BTC', 'ETH', 'SOL'] as const
+
+// Unified period configuration to avoid redundant lookups
+const PERIOD_CONFIG: Record<(typeof PERIODS)[number], { field: string; seriesKey: string }> = {
+	'7D': { field: 'change1W', seriesKey: '7' },
+	'30D': { field: 'change1M', seriesKey: '30' },
+	YTD: { field: 'changeYtd', seriesKey: 'ytd' },
+	'365D': { field: 'change1Y', seriesKey: '365' }
+}
+
+const DENOM_COIN_MAP: Record<(typeof DENOMS)[number], string> = {
+	$: '$',
+	BTC: 'Bitcoin',
+	ETH: 'Ethereum',
+	SOL: 'Solana'
+}
 
 export const CategoryPerformanceContainer = ({
 	pctChanges,
@@ -74,26 +90,8 @@ export const CategoryPerformanceContainer = ({
 	const [groupByDenom, setGroupByDenom] = React.useState<(typeof DENOMS)[number]>('$')
 
 	const { sortedPctChanges, barChart, treemapChart, lineChart } = React.useMemo(() => {
-		const field = {
-			'7D': 'change1W',
-			'30D': 'change1M',
-			YTD: 'changeYtd',
-			'365D': 'change1Y'
-		}[groupBy]
-
-		const denomCoin = {
-			$: '$',
-			BTC: 'Bitcoin',
-			ETH: 'Ethereum',
-			SOL: 'Solana'
-		}[groupByDenom]
-
-		const cumulativeWindow = {
-			'7D': '7D',
-			'30D': '30D',
-			YTD: 'YTD',
-			'365D': '365D'
-		}[groupBy]
+		const { field, seriesKey } = PERIOD_CONFIG[groupBy]
+		const denomCoin = DENOM_COIN_MAP[groupByDenom]
 
 		let pctChangesDenom = denomCoin === '$' ? pctChanges : calculateDenominatedChange2(pctChanges, denomCoin, field)
 		pctChangesDenom = isCoinPage
@@ -104,15 +102,7 @@ export const CategoryPerformanceContainer = ({
 
 		const treemapChart = sorted.map((i) => ({ ...i, returnField: i[field] }))
 
-		let chart =
-			cumulativeWindow === '7D'
-				? performanceTimeSeries['7']
-				: cumulativeWindow === '30D'
-					? performanceTimeSeries['30']
-					: cumulativeWindow === 'YTD'
-						? performanceTimeSeries['ytd']
-						: performanceTimeSeries['365']
-
+		let chart = performanceTimeSeries[seriesKey]
 		chart = denomCoin === '$' ? chart : calculateDenominatedChange(chart, denomCoin)
 
 		return { sortedPctChanges: sorted, barChart: chart, treemapChart, lineChart: chart }
@@ -201,7 +191,7 @@ export const CategoryPerformanceContainer = ({
 				columnToSearch={'name'}
 				placeholder={'Search...'}
 				header="Categories"
-				sortingState={[{ id: 'change', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)

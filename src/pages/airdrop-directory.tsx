@@ -6,6 +6,8 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
+const DEFAULT_SORTING_STATE = [{ id: 'name', desc: true }]
+
 export const getStaticProps = withPerformanceLogging('airdrop-directory', async () => {
 	const airdrops = await getAirdropDirectoryData()
 
@@ -23,7 +25,7 @@ const PageView = ({ airdrops }) => {
 				columns={AirdropColumn}
 				columnToSearch={'name'}
 				placeholder={'Search Airdrop...'}
-				sortingState={[{ id: 'name', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)
