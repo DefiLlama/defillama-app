@@ -1,4 +1,5 @@
-import { lazy, memo, useMemo, useRef } from 'react'
+import { memo, useMemo, useRef } from 'react'
+import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -8,8 +9,6 @@ import type { ChartConfiguration } from '../types'
 import { getEntityUrl } from '../utils/entityLinks'
 import { ChartRenderer } from './ChartRenderer'
 import { CSVExportArtifact, CSVExportLoading, type CSVExport } from './CSVExportArtifact'
-
-const ReactMarkdown = lazy(() => import('react-markdown'))
 
 const MARKDOWN_REMARK_PLUGINS = [remarkGfm]
 const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]

@@ -5,8 +5,9 @@ export type DebouncedFunction<T extends (...args: any[]) => void> = ((...args: P
 	flush: () => void
 }
 
-const createDebounced = <T extends (...args: any[]) => void>(fn: T, delay: number): DebouncedFunction<T> => {
-	const wait = Number.isFinite(delay) && delay > 0 ? delay : 0
+const normalizeDelay = (delay: number) => (Number.isFinite(delay) && delay > 0 ? delay : 0)
+
+const createDebounced = <T extends (...args: any[]) => void>(fn: T, getDelay: () => number): DebouncedFunction<T> => {
 	let timeoutId: ReturnType<typeof setTimeout> | null = null
 	let lastArgs: Parameters<T> | null = null
 
@@ -15,6 +16,7 @@ const createDebounced = <T extends (...args: any[]) => void>(fn: T, delay: numbe
 		if (timeoutId !== null) {
 			clearTimeout(timeoutId)
 		}
+		const wait = getDelay()
 		timeoutId = setTimeout(() => {
 			timeoutId = null
 			if (lastArgs) {
@@ -51,13 +53,23 @@ export function useDebounce<T>(valueOrCallback: T, delay: number) {
 	const isCallback = typeof valueOrCallback === 'function'
 	const [debouncedValue, setDebouncedValue] = useState(() => valueOrCallback)
 	const handlerRef = useRef<(...args: any[]) => void>(() => {})
+	const delayRef = useRef(0)
+	const normalizedDelay = normalizeDelay(delay)
 	handlerRef.current = isCallback
 		? (valueOrCallback as (...args: any[]) => void)
 		: (nextValue: T) => {
 				setDebouncedValue(nextValue)
 			}
+	delayRef.current = normalizedDelay
 
-	const debounced = useMemo(() => createDebounced((...args: any[]) => handlerRef.current(...args), delay), [delay])
+	const debounced = useMemo(
+		() =>
+			createDebounced(
+				(...args: any[]) => handlerRef.current(...args),
+				() => delayRef.current
+			),
+		[]
+	)
 
 	useEffect(() => {
 		return () => {
@@ -66,10 +78,14 @@ export function useDebounce<T>(valueOrCallback: T, delay: number) {
 	}, [debounced])
 
 	useEffect(() => {
+		debounced.cancel()
+	}, [debounced, normalizedDelay])
+
+	useEffect(() => {
 		if (!isCallback) {
 			debounced(valueOrCallback)
 		}
-	}, [valueOrCallback, isCallback, debounced])
+	}, [valueOrCallback, isCallback, debounced, normalizedDelay])
 
 	return (isCallback ? debounced : debouncedValue) as typeof valueOrCallback
 }

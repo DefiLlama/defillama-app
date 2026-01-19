@@ -253,24 +253,24 @@ export const UnifiedTable = memo(function UnifiedTable({
 		return () => clearTimeout(timer)
 	}, [config.columnOrder, config.columnVisibility, config.defaultSorting, previewMode])
 
-	const onResetColumnOrder = useEffectEvent((nextConfig: UnifiedTableConfig) => {
+	const onResetColumnOrder = useEffectEvent(() => {
 		if (!previewMode) {
-			setColumnOrderState(getDefaultColumnOrder(nextConfig))
+			setColumnOrderState(getDefaultColumnOrder(config))
 		}
 	})
 
 	useEffect(() => {
-		onResetColumnOrder(config)
+		onResetColumnOrder()
 	}, [config.columnOrder, previewMode])
 
-	const onResetColumnVisibility = useEffectEvent((nextConfig: UnifiedTableConfig) => {
+	const onResetColumnVisibility = useEffectEvent(() => {
 		if (!previewMode) {
-			setColumnVisibilityState(getDefaultColumnVisibility(nextConfig))
+			setColumnVisibilityState(getDefaultColumnVisibility(config))
 		}
 	})
 
 	useEffect(() => {
-		onResetColumnVisibility(config)
+		onResetColumnVisibility()
 	}, [config.columnVisibility, previewMode])
 
 	useEffect(() => {
