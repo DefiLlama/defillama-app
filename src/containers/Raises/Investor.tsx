@@ -18,6 +18,7 @@ import { raisesColumnOrders, raisesColumns } from '~/components/Table/Defi/colum
 import { VirtualTable } from '~/components/Table/Table'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
+import { useDebounce } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { prepareRaisesCsv } from './download'
@@ -66,16 +67,13 @@ function RaisesTable({ raises, prepareCsv }) {
 	}, [width, instance])
 
 	const [projectName, setProjectName] = React.useState('')
+	const debouncedProjectName = useDebounce(projectName, 200)
 
 	React.useEffect(() => {
-		const projectsColumns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			projectsColumns.setFilterValue(projectName)
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance])
+		React.startTransition(() => {
+			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
+		})
+	}, [debouncedProjectName, instance])
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

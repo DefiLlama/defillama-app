@@ -17,6 +17,7 @@ import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
 import { PROTOCOL_EMISSIONS_API } from '~/constants'
 import calendarEvents from '~/constants/calendar'
+import { useDebounce } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { formatPercentage, slug, toNiceDayMonthYear, toNiceHour } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -121,16 +122,14 @@ export default function Protocols({ emissions }) {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
-
 	const [projectName, setProjectName] = React.useState('')
+	const debouncedProjectName = useDebounce(projectName, 200)
 
 	React.useEffect(() => {
-		const projectsColumns = instance.getColumn('name')
-		const id = setTimeout(() => {
-			projectsColumns.setFilterValue(projectName)
-		}, 200)
-		return () => clearTimeout(id)
-	}, [projectName, instance])
+		React.startTransition(() => {
+			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
+		})
+	}, [debouncedProjectName, instance])
 
 	return (
 		<Layout

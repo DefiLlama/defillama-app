@@ -19,6 +19,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
+import { useDebounce } from '~/hooks/useDebounce'
 import { alphanumericFalsyLast } from '../../utils'
 import {
 	columnOrders,
@@ -563,16 +564,8 @@ export function ProtocolsByChainTable({
 		<div className="rounded-md bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center justify-between gap-2 p-3">
 				<h3 className="mr-auto text-lg font-medium">Protocol Rankings</h3>
-				<TagGroup
-					setValue={setFilter('category')}
-					selectedValue={filterState}
-					values={TABLE_CATEGORIES_VALUES}
-				/>
-				<TagGroup
-					setValue={setFilter('period')}
-					selectedValue={filterState}
-					values={TABLE_PERIODS_VALUES}
-				/>
+				<TagGroup setValue={setFilter('category')} selectedValue={filterState} values={TABLE_CATEGORIES_VALUES} />
+				<TagGroup setValue={setFilter('period')} selectedValue={filterState} values={TABLE_PERIODS_VALUES} />
 				<SelectWithCombobox
 					allValues={protocolsByChainTableColumns}
 					selectedValues={selectedOptions}
@@ -660,16 +653,13 @@ export function ProtocolsTableWithSearch({
 	}, [width, instance])
 
 	const [projectName, setProjectName] = React.useState('')
+	const debouncedProjectName = useDebounce(projectName, 200)
 
 	React.useEffect(() => {
-		const columns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			columns.setFilterValue(projectName)
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance])
+		React.startTransition(() => {
+			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
+		})
+	}, [debouncedProjectName, instance])
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

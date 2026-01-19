@@ -627,24 +627,22 @@ export function useProTable(
 		return userConfig?.tableViews as CustomView[]
 	}, [userConfig])
 
-	const onApplyInitialCustomView = React.useEffectEvent(
-		(initialViewId: string | undefined, views: CustomView[]) => {
-			if (!initialViewId || views.length === 0) {
-				return
-			}
-			const view = views.find((v) => v.id === initialViewId)
-			let hasVisibility = false
-			for (const _ in columnVisibility) {
-				hasVisibility = true
-				break
-			}
-			if (view && !columnOrder.length && !hasVisibility) {
-				setColumnOrder(view.columnOrder)
-				setColumnVisibility(view.columnVisibility)
-				setCustomColumns(view.customColumns || [])
-			}
+	const onApplyInitialCustomView = React.useEffectEvent((initialViewId: string | undefined, views: CustomView[]) => {
+		if (!initialViewId || views.length === 0) {
+			return
 		}
-	)
+		const view = views.find((v) => v.id === initialViewId)
+		let hasVisibility = false
+		for (const _ in columnVisibility) {
+			hasVisibility = true
+			break
+		}
+		if (view && !columnOrder.length && !hasVisibility) {
+			setColumnOrder(view.columnOrder)
+			setColumnVisibility(view.columnVisibility)
+			setCustomColumns(view.customColumns || [])
+		}
+	})
 
 	React.useEffect(() => {
 		onApplyInitialCustomView(options?.initialActiveViewId, customViews)
@@ -1025,45 +1023,47 @@ export function useProTable(
 		}
 	}, [columnOrder, columnVisibility, customColumns, activeCustomView, selectedPreset, options])
 
-	const onApplyDefaultPreset = React.useEffectEvent(() => {
-		if (!options?.initialColumnVisibility && !options?.initialActivePresetId) {
-			applyPreset('essential')
-		}
-	})
-
-	React.useEffect(() => {
-		onApplyDefaultPreset()
-	}, [])
-
-	const addOption = (newOptions: string[]) => {
-		if (!table) return
-		const ops = Object.fromEntries(table.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)]))
-		setColumnVisibility(ops)
-	}
+	const addOption = React.useCallback(
+		(newOptions: string[]) => {
+			if (!table) return
+			const ops = Object.fromEntries(table.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)]))
+			setColumnVisibility(ops)
+		},
+		[table]
+	)
 
 	const columnPresets = COLUMN_PRESETS
 
-	const applyPreset = (presetId: string) => {
-		const preset = columnPresets.find((item) => item.id === presetId)
-		if (!preset) return
+	const applyPreset = React.useCallback(
+		(presetId: string) => {
+			const preset = columnPresets.find((item) => item.id === presetId)
+			if (!preset) return
 
-		addOption(preset.columns)
-		setColumnOrder(preset.columns)
-		setSorting(
-			(preset.sort && preset.sort.length > 0 ? preset.sort : defaultSortingRef.current).map((rule) => ({
-				...rule
-			}))
-		)
-		setShowColumnPanel(false)
-		setSelectedPreset(presetId)
-		setActiveCustomView(null)
+			addOption(preset.columns)
+			setColumnOrder(preset.columns)
+			setSorting(
+				(preset.sort && preset.sort.length > 0 ? preset.sort : defaultSortingRef.current).map((rule) => ({
+					...rule
+				}))
+			)
+			setShowColumnPanel(false)
+			setSelectedPreset(presetId)
+			setActiveCustomView(null)
 
-		if (preset.group === 'dataset' && preset.sort && preset.sort.length > 0) {
-			setActiveDatasetMetric(preset.sort[0].id)
-		} else {
-			setActiveDatasetMetric(null)
+			if (preset.group === 'dataset' && preset.sort && preset.sort.length > 0) {
+				setActiveDatasetMetric(preset.sort[0].id)
+			} else {
+				setActiveDatasetMetric(null)
+			}
+		},
+		[addOption, columnPresets]
+	)
+
+	React.useEffect(() => {
+		if (!options?.initialColumnVisibility && !options?.initialActivePresetId) {
+			applyPreset('essential')
 		}
-	}
+	}, [options?.initialColumnVisibility, options?.initialActivePresetId, applyPreset])
 
 	React.useEffect(() => {
 		if (options?.initialActivePresetId && !activeDatasetMetric) {

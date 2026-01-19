@@ -13,6 +13,7 @@ import {
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
+import { useDebounce } from '~/hooks/useDebounce'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -79,18 +80,13 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 	}, [instance, width])
 
 	const [projectName, setProjectName] = React.useState('')
+	const debouncedProjectName = useDebounce(projectName, 200)
 
 	React.useEffect(() => {
-		const columns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			if (columns) {
-				columns.setFilterValue(projectName)
-			}
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance])
+		React.startTransition(() => {
+			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
+		})
+	}, [debouncedProjectName, instance])
 
 	if (isLoading) {
 		return (

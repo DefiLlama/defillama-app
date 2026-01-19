@@ -17,6 +17,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
+import { useDebounce } from '~/hooks/useDebounce'
 import { alphanumericFalsyLast } from './utils'
 
 interface ITableWithSearchProps {
@@ -81,16 +82,13 @@ export function TableWithSearch({
 	})
 
 	const [projectName, setProjectName] = React.useState('')
+	const debouncedProjectName = useDebounce(projectName, 200)
 
 	React.useEffect(() => {
-		const columns = instance.getColumn(columnToSearch)
-
-		const id = setTimeout(() => {
-			columns.setFilterValue(projectName)
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance, columnToSearch])
+		React.startTransition(() => {
+			instance.getColumn(columnToSearch)?.setFilterValue(debouncedProjectName)
+		})
+	}, [debouncedProjectName, instance, columnToSearch])
 
 	const width = useBreakpointWidth()
 

@@ -21,6 +21,7 @@ import { columnSizes, protocolsColumns } from '~/components/Table/Defi/Protocols
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { VirtualTable } from '~/components/Table/Table'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
+import { useDebounce } from '~/hooks/useDebounce'
 import { formattedNum, toNiceDaysAgo } from '~/utils'
 
 export function RecentlyListedProtocolsTable({
@@ -73,17 +74,15 @@ export function RecentlyListedProtocolsTable({
 
 		instance.setColumnSizing(columnSizes[cSize])
 	}, [width, instance])
+
 	const [projectName, setProjectName] = React.useState('')
+	const debouncedProjectName = useDebounce(projectName, 200)
 
 	React.useEffect(() => {
-		const columns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			columns.setFilterValue(projectName)
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance])
+		React.startTransition(() => {
+			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
+		})
+	}, [debouncedProjectName, instance])
 
 	const selectChain = (newChain) => {
 		router.push(

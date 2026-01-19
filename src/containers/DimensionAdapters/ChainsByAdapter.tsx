@@ -10,7 +10,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { startTransition, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
@@ -20,6 +20,7 @@ import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
+import { useDebounce } from '~/hooks/useDebounce'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug } from '~/utils'
 import { ChainsByAdapterChart } from './ChainChart'
@@ -98,18 +99,13 @@ export function ChainsByAdapter(props: IProps) {
 	})
 
 	const [projectName, setProjectName] = useState('')
+	const debouncedProjectName = useDebounce(projectName, 200)
 
 	useEffect(() => {
-		const columns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			if (columns) {
-				columns.setFilterValue(projectName)
-			}
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance])
+		startTransition(() => {
+			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
+		})
+	}, [debouncedProjectName, instance])
 
 	const width = useBreakpointWidth()
 

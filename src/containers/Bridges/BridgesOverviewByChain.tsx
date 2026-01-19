@@ -8,6 +8,7 @@ import { BridgesTable } from '~/components/Table/Bridges'
 import { ChartSelector } from '~/containers/Bridges/ChartSelector'
 import { LargeTxsTable } from '~/containers/Bridges/LargeTxsTable'
 import { useBuildBridgeChartData } from '~/containers/Bridges/utils'
+import { useDebounce } from '~/hooks/useDebounce'
 import { formattedNum, getPrevVolumeFromChart, toNiceCsvDate } from '~/utils'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -46,6 +47,7 @@ export function BridgesOverviewByChain({
 	const [chartView, setChartView] = React.useState<'default' | 'netflow' | 'volume'>('netflow')
 	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging' | 'largeTxs'>('bridges')
 	const [searchValue, setSearchValue] = React.useState('')
+	const debouncedSearchValue = useDebounce(searchValue, 200)
 
 	const handleRouting = (selectedChain) => {
 		if (selectedChain === 'All') return `/bridges`
@@ -277,11 +279,7 @@ export function BridgesOverviewByChain({
 					) : (
 						<>
 							<div className="flex items-center justify-between overflow-x-auto p-3">
-								<ChartSelector
-									options={BRIDGE_CHAIN_CHART_OPTIONS}
-									selectedChart={chartType}
-									onClick={setChartType}
-								/>
+								<ChartSelector options={BRIDGE_CHAIN_CHART_OPTIONS} selectedChart={chartType} onClick={setChartType} />
 							</div>
 							{chartType === 'Bridge Volume' && (
 								<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="360px" />
@@ -384,8 +382,7 @@ export function BridgesOverviewByChain({
 				) : (
 					<BridgesTable
 						data={activeTab === 'bridges' ? filteredBridges : messagingProtocols}
-						searchValue={searchValue}
-						onSearchChange={setSearchValue}
+						searchValue={debouncedSearchValue}
 					/>
 				)}
 			</div>

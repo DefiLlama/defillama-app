@@ -17,6 +17,7 @@ import { IconsRow } from '~/components/IconsRow'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
+import { useDebounce } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { capitalizeFirstLetter, formattedNum, slug, toNiceDayMonthAndYear, toNumberOrNullFromQueryParam } from '~/utils'
 import { HacksFilters } from './filters'
@@ -32,7 +33,7 @@ const columnResizeMode = 'onChange'
 function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
-	const [projectName, setProjectName] = React.useState('')
+
 	const instance = useReactTable({
 		data: data,
 		columns: hacksColumns,
@@ -48,15 +49,14 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 		getSortedRowModel: getSortedRowModel()
 	})
 
+	const [projectName, setProjectName] = React.useState('')
+	const debouncedProjectName = useDebounce(projectName, 200)
+
 	React.useEffect(() => {
-		const projectsColumns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			projectsColumns.setFilterValue(projectName)
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance])
+		React.startTransition(() => {
+			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
+		})
+	}, [debouncedProjectName, instance])
 
 	const prepareCsv = React.useCallback(() => {
 		try {

@@ -13,6 +13,7 @@ import { Icon } from '~/components/Icon'
 import { governanceColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
 import { GOVERNANCE_COMPOUND_API, GOVERNANCE_SNAPSHOT_API, GOVERNANCE_TALLY_API } from '~/constants'
+import { useDebounce } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { capitalizeFirstLetter } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -59,14 +60,13 @@ export default function Governance({ data }) {
 	})
 
 	const [projectName, setProjectName] = React.useState('')
+	const debouncedProjectName = useDebounce(projectName, 200)
 
 	React.useEffect(() => {
-		const projectsColumns = instance.getColumn('name')
-		const id = setTimeout(() => {
-			projectsColumns.setFilterValue(projectName)
-		}, 200)
-		return () => clearTimeout(id)
-	}, [projectName, instance])
+		React.startTransition(() => {
+			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
+		})
+	}, [debouncedProjectName, instance])
 
 	return (
 		<Layout
@@ -105,10 +105,7 @@ export default function Governance({ data }) {
 }
 
 const RenderSubComponent = ({ row }) => {
-	const subRowEntries = React.useMemo(
-		() => Object.entries(row.original.subRowData),
-		[row.original.subRowData]
-	)
+	const subRowEntries = React.useMemo(() => Object.entries(row.original.subRowData), [row.original.subRowData])
 
 	return (
 		<span className="flex flex-col gap-1 pl-[72px]">

@@ -13,6 +13,7 @@ import { Icon } from '~/components/Icon'
 import { raisesColumnOrders, raisesColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
+import { useDebounce } from '~/hooks/useDebounce'
 
 const columnResizeMode = 'onChange'
 
@@ -51,16 +52,13 @@ export function RaisesTable({ raises, prepareCsv }) {
 	}, [width, instance])
 
 	const [projectName, setProjectName] = React.useState('')
+	const debouncedProjectName = useDebounce(projectName, 200)
 
 	React.useEffect(() => {
-		const projectsColumns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			projectsColumns.setFilterValue(projectName)
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance])
+		React.startTransition(() => {
+			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
+		})
+	}, [debouncedProjectName, instance])
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -92,10 +90,7 @@ export function RaisesTable({ raises, prepareCsv }) {
 					<span className="whitespace-nowrap">Methodology & biases</span>
 					<Icon name="external-link" height={12} width={12} />
 				</a>
-				<CSVDownloadButton
-					onClick={handleDownloadJson}
-					isLoading={false}
-				>
+				<CSVDownloadButton onClick={handleDownloadJson} isLoading={false}>
 					Download.json
 				</CSVDownloadButton>
 				<CSVDownloadButton prepareCsv={prepareCsv} />
