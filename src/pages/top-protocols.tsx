@@ -75,9 +75,9 @@ export const getStaticProps = withPerformanceLogging('top-protocols', async () =
 
 const pageName = ['Top Protocols']
 
-export default function TopProtocols({ data, chains, uniqueCategories }) {
-	const columnHelper = COLUMN_HELPER
+const columnHelper = COLUMN_HELPER
 
+export default function TopProtocols({ data, chains, uniqueCategories }) {
 	const columnOptions = React.useMemo(
 		() => uniqueCategories.map((cat) => ({ name: cat, key: cat })),
 		[uniqueCategories]

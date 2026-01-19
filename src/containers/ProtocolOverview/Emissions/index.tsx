@@ -145,18 +145,14 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		[data.categories, dataType]
 	)
 	const stackColors = useMemo(() => data.stackColors?.[dataType] ?? EMPTY_STACK_COLORS, [data.stackColors, dataType])
-	const tokenAllocation = useMemo(
-		() => data.tokenAllocation?.[dataType] ?? EMPTY_TOKEN_ALLOCATION,
-		[data.tokenAllocation, dataType]
-	)
-	const tokenAllocationCurrentChunks = useMemo(
-		() => chunkArray(Object.entries(tokenAllocation.current ?? EMPTY_ALLOCATION)),
-		[tokenAllocation.current]
-	)
-	const tokenAllocationFinalChunks = useMemo(
-		() => chunkArray(Object.entries(tokenAllocation.final ?? EMPTY_ALLOCATION)),
-		[tokenAllocation.final]
-	)
+	const { tokenAllocation, tokenAllocationCurrentChunks, tokenAllocationFinalChunks } = useMemo(() => {
+		const allocation = data.tokenAllocation?.[dataType] ?? EMPTY_TOKEN_ALLOCATION
+		return {
+			tokenAllocation: allocation,
+			tokenAllocationCurrentChunks: chunkArray(Object.entries(allocation.current ?? EMPTY_ALLOCATION)),
+			tokenAllocationFinalChunks: chunkArray(Object.entries(allocation.final ?? EMPTY_ALLOCATION))
+		}
+	}, [data.tokenAllocation, dataType])
 	const rawChartData = useMemo(() => data.chartData?.[dataType] ?? EMPTY_CHART_DATA, [data.chartData, dataType])
 	const pieChartData = useMemo(() => data.pieChartData?.[dataType] ?? EMPTY_CHART_DATA, [data.pieChartData, dataType])
 	const hallmarks = useMemo(() => data.hallmarks?.[dataType] ?? EMPTY_CHART_DATA, [data.hallmarks, dataType])

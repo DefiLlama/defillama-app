@@ -86,36 +86,36 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 		}
 	}, [chains, instance])
 
-	const csvData = React.useMemo(() => {
-		const rows = instance.getRowModel().rows
-		const headers = [
-			'Protocol',
-			'24h Change',
-			'7d Change',
-			'24h Volume',
-			'7d Volume',
-			'30d Volume',
-			'% of Total',
-			'Cumulative Volume'
-		]
+	// const csvData = React.useMemo(() => {
+	// 	const rows = instance.getRowModel().rows
+	// 	const headers = [
+	// 		'Protocol',
+	// 		'24h Change',
+	// 		'7d Change',
+	// 		'24h Volume',
+	// 		'7d Volume',
+	// 		'30d Volume',
+	// 		'% of Total',
+	// 		'Cumulative Volume'
+	// 	]
 
-		const data = rows.map((row, index) => {
-			const cumulativeVolume = rows.slice(0, index + 1).reduce((sum, r) => sum + (r.original.total24h || 0), 0)
+	// 	const data = rows.map((row, index) => {
+	// 		const cumulativeVolume = rows.slice(0, index + 1).reduce((sum, r) => sum + (r.original.total24h || 0), 0)
 
-			return [
-				row.original.name,
-				row.original.change_24h,
-				row.original.change_7d,
-				row.original.total24h,
-				row.original.total7d,
-				row.original.total30d,
-				row.original.dominance,
-				cumulativeVolume
-			]
-		})
+	// 		return [
+	// 			row.original.name,
+	// 			row.original.change_24h,
+	// 			row.original.change_7d,
+	// 			row.original.total24h,
+	// 			row.original.total7d,
+	// 			row.original.total30d,
+	// 			row.original.dominance,
+	// 			cumulativeVolume
+	// 		]
+	// 	})
 
-		return { headers, data }
-	}, [instance])
+	// 	return { headers, data }
+	// }, [instance])
 
 	if (isLoading) {
 		return (
