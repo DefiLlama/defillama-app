@@ -19,6 +19,15 @@ interface HacksFiltersProps {
 	setSelectedChains: (values: string[]) => void
 	setSelectedTechniques: (values: string[]) => void
 	setSelectedClassifications: (values: string[]) => void
+	clearAllChains: () => void
+	toggleAllChains: () => void
+	selectOnlyOneChain: (value: string) => void
+	clearAllTechniques: () => void
+	toggleAllTechniques: () => void
+	selectOnlyOneTechnique: (value: string) => void
+	clearAllClassifications: () => void
+	toggleAllClassifications: () => void
+	selectOnlyOneClassification: (value: string) => void
 	timeOptions: string[]
 	selectedTimeLabel: string
 	setSelectedTime: (label: string) => void
@@ -26,6 +35,7 @@ interface HacksFiltersProps {
 	maxLostVal: number | null
 	handleAmountSubmit: (e: any) => void
 	handleAmountClear: () => void
+	hasActiveFilters: boolean
 	onClearAll: () => void
 	isMobile?: boolean
 }
@@ -40,6 +50,15 @@ export function HacksFilters({
 	setSelectedChains,
 	setSelectedTechniques,
 	setSelectedClassifications,
+	clearAllChains,
+	toggleAllChains,
+	selectOnlyOneChain,
+	clearAllTechniques,
+	toggleAllTechniques,
+	selectOnlyOneTechnique,
+	clearAllClassifications,
+	toggleAllClassifications,
+	selectOnlyOneClassification,
 	timeOptions,
 	selectedTimeLabel,
 	setSelectedTime,
@@ -47,6 +66,7 @@ export function HacksFilters({
 	maxLostVal,
 	handleAmountSubmit,
 	handleAmountClear,
+	hasActiveFilters,
 	onClearAll
 }: HacksFiltersProps) {
 	return (
@@ -58,6 +78,9 @@ export function HacksFilters({
 							chainOptions={chainOptions}
 							selectedChains={selectedChains}
 							setSelectedChains={setSelectedChains}
+							clearAllChains={clearAllChains}
+							toggleAllChains={toggleAllChains}
+							selectOnlyOneChain={selectOnlyOneChain}
 							minLostVal={minLostVal}
 							maxLostVal={maxLostVal}
 							handleAmountSubmit={handleAmountSubmit}
@@ -65,12 +88,19 @@ export function HacksFilters({
 							classificationOptions={classificationOptions}
 							selectedClassifications={selectedClassifications}
 							setSelectedClassifications={setSelectedClassifications}
+							clearAllClassifications={clearAllClassifications}
+							toggleAllClassifications={toggleAllClassifications}
+							selectOnlyOneClassification={selectOnlyOneClassification}
 							techniqueOptions={techniqueOptions}
 							selectedTechniques={selectedTechniques}
 							setSelectedTechniques={setSelectedTechniques}
+							clearAllTechniques={clearAllTechniques}
+							toggleAllTechniques={toggleAllTechniques}
+							selectOnlyOneTechnique={selectOnlyOneTechnique}
 							timeOptions={timeOptions}
 							selectedTimeLabel={selectedTimeLabel}
 							setSelectedTime={setSelectedTime}
+							hasActiveFilters={hasActiveFilters}
 							onClearAll={onClearAll}
 							isMobile
 						/>
@@ -83,6 +113,9 @@ export function HacksFilters({
 					chainOptions={chainOptions}
 					selectedChains={selectedChains}
 					setSelectedChains={setSelectedChains}
+					clearAllChains={clearAllChains}
+					toggleAllChains={toggleAllChains}
+					selectOnlyOneChain={selectOnlyOneChain}
 					minLostVal={minLostVal}
 					maxLostVal={maxLostVal}
 					handleAmountSubmit={handleAmountSubmit}
@@ -90,12 +123,19 @@ export function HacksFilters({
 					classificationOptions={classificationOptions}
 					selectedClassifications={selectedClassifications}
 					setSelectedClassifications={setSelectedClassifications}
+					clearAllClassifications={clearAllClassifications}
+					toggleAllClassifications={toggleAllClassifications}
+					selectOnlyOneClassification={selectOnlyOneClassification}
 					techniqueOptions={techniqueOptions}
 					selectedTechniques={selectedTechniques}
 					setSelectedTechniques={setSelectedTechniques}
+					clearAllTechniques={clearAllTechniques}
+					toggleAllTechniques={toggleAllTechniques}
+					selectOnlyOneTechnique={selectOnlyOneTechnique}
 					timeOptions={timeOptions}
 					selectedTimeLabel={selectedTimeLabel}
 					setSelectedTime={setSelectedTime}
+					hasActiveFilters={hasActiveFilters}
 					onClearAll={onClearAll}
 				/>
 			</div>
@@ -107,6 +147,9 @@ const Filters = ({
 	chainOptions,
 	selectedChains,
 	setSelectedChains,
+	clearAllChains,
+	toggleAllChains,
+	selectOnlyOneChain,
 	minLostVal,
 	maxLostVal,
 	handleAmountSubmit,
@@ -114,12 +157,19 @@ const Filters = ({
 	classificationOptions,
 	selectedClassifications,
 	setSelectedClassifications,
+	clearAllClassifications,
+	toggleAllClassifications,
+	selectOnlyOneClassification,
 	techniqueOptions,
 	selectedTechniques,
 	setSelectedTechniques,
+	clearAllTechniques,
+	toggleAllTechniques,
+	selectOnlyOneTechnique,
 	timeOptions,
 	selectedTimeLabel,
 	setSelectedTime,
+	hasActiveFilters,
 	onClearAll,
 	isMobile = false
 }: HacksFiltersProps) => {
@@ -129,8 +179,11 @@ const Filters = ({
 				allValues={chainOptions}
 				selectedValues={selectedChains}
 				setSelectedValues={setSelectedChains}
+				clearAll={clearAllChains}
+				toggleAll={toggleAllChains}
+				selectOnlyOne={selectOnlyOneChain}
 				label="Chains"
-				labelType="regular"
+				labelType="smol"
 				nestedMenu={isMobile}
 			/>
 			<FilterBetweenRange
@@ -161,16 +214,22 @@ const Filters = ({
 				allValues={classificationOptions}
 				selectedValues={selectedClassifications}
 				setSelectedValues={setSelectedClassifications}
+				clearAll={clearAllClassifications}
+				toggleAll={toggleAllClassifications}
+				selectOnlyOne={selectOnlyOneClassification}
 				label="Classification"
-				labelType="regular"
+				labelType="smol"
 				nestedMenu={isMobile}
 			/>
 			<SelectWithCombobox
 				allValues={techniqueOptions}
 				selectedValues={selectedTechniques}
 				setSelectedValues={setSelectedTechniques}
+				clearAll={clearAllTechniques}
+				toggleAll={toggleAllTechniques}
+				selectOnlyOne={selectOnlyOneTechnique}
 				label="Techniques"
-				labelType="regular"
+				labelType="smol"
 				nestedMenu={isMobile}
 			/>
 
@@ -179,13 +238,7 @@ const Filters = ({
 			</div>
 			<button
 				onClick={onClearAll}
-				disabled={
-					selectedChains.length === 0 &&
-					selectedTechniques.length === 0 &&
-					selectedClassifications.length === 0 &&
-					!minLostVal &&
-					!maxLostVal
-				}
+				disabled={!hasActiveFilters}
 				className="rounded-md bg-(--btn2-bg) px-3 py-2 text-xs hover:bg-(--btn2-hover-bg) disabled:cursor-not-allowed disabled:opacity-40 max-sm:mx-3 max-sm:my-6"
 			>
 				Reset filters

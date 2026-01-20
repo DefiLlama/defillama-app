@@ -21,6 +21,8 @@ export function CompareTokens({
 }) {
 	const router = useRouter()
 	const [isModalOpen, setModalOpen] = useState(0)
+	const coinParam = router.query?.coin
+	const typeParam = router.query?.type
 
 	// Build lookup maps for O(1) access
 	const coinsDataById = useMemo(
@@ -37,11 +39,11 @@ export function CompareTokens({
 	)
 
 	const { selectedCoins, coins, compareType } = useMemo(() => {
-		const queryCoins = router.query?.coin || ([] as Array<string>)
+		const queryCoins = coinParam || ([] as Array<string>)
 
 		const coins = Array.isArray(queryCoins) ? queryCoins : [queryCoins]
 
-		const compareType = compareTypes.find((type) => type.value === (router.query?.type ?? 'fdv')) ?? {
+		const compareType = compareTypes.find((type) => type.value === (typeParam ?? 'fdv')) ?? {
 			label: 'FDV',
 			value: 'fdv'
 		}
@@ -50,7 +52,7 @@ export function CompareTokens({
 			coins,
 			compareType
 		}
-	}, [router.query, coinsDataById])
+	}, [coinParam, typeParam, coinsDataById])
 
 	const { data: fdvData = null, error: _fdvError } = useQuery({
 		queryKey: [`fdv-${coins.join('-')}`],

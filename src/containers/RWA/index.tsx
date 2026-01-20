@@ -13,7 +13,7 @@ import {
 } from '@tanstack/react-table'
 import clsx from 'clsx'
 import { matchSorter } from 'match-sorter'
-import { NextRouter, useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import { lazy, Suspense, useCallback, useDeferredValue, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IPieChartProps } from '~/components/ECharts/types'
@@ -1074,8 +1074,8 @@ const toNumberParam = (p: string | string[] | undefined): number | null => {
 	return parseNumberInput(p)
 }
 
-const updateArrayQuery = (key: string, values: string[] | 'None', router: NextRouter) => {
-	const nextQuery: Record<string, any> = { ...router.query }
+const updateArrayQuery = (key: string, values: string[] | 'None') => {
+	const nextQuery: Record<string, any> = { ...Router.query }
 	if (values === 'None') {
 		nextQuery[key] = 'None'
 	} else if (values.length > 0) {
@@ -1083,17 +1083,16 @@ const updateArrayQuery = (key: string, values: string[] | 'None', router: NextRo
 	} else {
 		delete nextQuery[key]
 	}
-	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
 }
 
 const updateNumberRangeQuery = (
 	minKey: string,
 	maxKey: string,
 	minValue: string | number | null | undefined,
-	maxValue: string | number | null | undefined,
-	router: NextRouter
+	maxValue: string | number | null | undefined
 ) => {
-	const nextQuery: Record<string, any> = { ...router.query }
+	const nextQuery: Record<string, any> = { ...Router.query }
 	const parsedMin = parseNumberInput(minValue)
 	const parsedMax = parseNumberInput(maxValue)
 	if (parsedMin == null) {
@@ -1106,7 +1105,7 @@ const updateNumberRangeQuery = (
 	} else {
 		nextQuery[maxKey] = String(parsedMax)
 	}
-	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
 }
 
 const useRWATableQueryParams = ({
@@ -1123,6 +1122,21 @@ const useRWATableQueryParams = ({
 	issuers: string[]
 }) => {
 	const router = useRouter()
+	const {
+		categories: categoriesQ,
+		assetClasses: assetClassesQ,
+		rwaClassifications: rwaClassificationsQ,
+		accessModels: accessModelsQ,
+		issuers: issuersQ,
+		minDefiActiveTvlToOnChainPct: minDefiActiveTvlToOnChainPctQ,
+		maxDefiActiveTvlToOnChainPct: maxDefiActiveTvlToOnChainPctQ,
+		minActiveMcapToOnChainPct: minActiveMcapToOnChainPctQ,
+		maxActiveMcapToOnChainPct: maxActiveMcapToOnChainPctQ,
+		minDefiActiveTvlToActiveMcapPct: minDefiActiveTvlToActiveMcapPctQ,
+		maxDefiActiveTvlToActiveMcapPct: maxDefiActiveTvlToActiveMcapPctQ,
+		includeStablecoins: stablecoinsQ,
+		includeGovernance: governanceQ
+	} = router.query
 
 	const {
 		selectedCategories,
@@ -1139,22 +1153,6 @@ const useRWATableQueryParams = ({
 		includeStablecoins,
 		includeGovernance
 	} = useMemo(() => {
-		const {
-			categories: categoriesQ,
-			assetClasses: assetClassesQ,
-			rwaClassifications: rwaClassificationsQ,
-			accessModels: accessModelsQ,
-			issuers: issuersQ,
-			minDefiActiveTvlToOnChainPct: minDefiActiveTvlToOnChainPctQ,
-			maxDefiActiveTvlToOnChainPct: maxDefiActiveTvlToOnChainPctQ,
-			minActiveMcapToOnChainPct: minActiveMcapToOnChainPctQ,
-			maxActiveMcapToOnChainPct: maxActiveMcapToOnChainPctQ,
-			minDefiActiveTvlToActiveMcapPct: minDefiActiveTvlToActiveMcapPctQ,
-			maxDefiActiveTvlToActiveMcapPct: maxDefiActiveTvlToActiveMcapPctQ,
-			includeStablecoins: stablecoinsQ,
-			includeGovernance: governanceQ
-		} = router.query
-
 		// If query param is 'None', return empty array. If no param, return all (default). Otherwise parse the array.
 		const parseArrayParam = (param: string | string[] | undefined, allValues: string[]): string[] => {
 			if (param === 'None') return []
@@ -1194,130 +1192,119 @@ const useRWATableQueryParams = ({
 			includeStablecoins,
 			includeGovernance
 		}
-	}, [router.query, categories, assetClasses, rwaClassifications, accessModels, issuers])
+	}, [
+		categoriesQ,
+		assetClassesQ,
+		rwaClassificationsQ,
+		accessModelsQ,
+		issuersQ,
+		minDefiActiveTvlToOnChainPctQ,
+		maxDefiActiveTvlToOnChainPctQ,
+		minActiveMcapToOnChainPctQ,
+		maxActiveMcapToOnChainPctQ,
+		minDefiActiveTvlToActiveMcapPctQ,
+		maxDefiActiveTvlToActiveMcapPctQ,
+		stablecoinsQ,
+		governanceQ,
+		categories,
+		assetClasses,
+		rwaClassifications,
+		accessModels,
+		issuers
+	])
 
-	const setSelectedCategories = useCallback(
-		(values: string[]) => updateArrayQuery('categories', values, router),
-		[router]
-	)
-	const selectOnlyOneCategory = useCallback(
-		(category: string) => updateArrayQuery('categories', [category], router),
-		[router]
-	)
+	const setSelectedCategories = useCallback((values: string[]) => updateArrayQuery('categories', values), [])
+	const selectOnlyOneCategory = useCallback((category: string) => updateArrayQuery('categories', [category]), [])
 	const toggleAllCategories = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
+		const nextQuery: Record<string, any> = { ...Router.query }
 		delete nextQuery.categories
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [router])
-	const clearAllCategories = useCallback(() => updateArrayQuery('categories', 'None', router), [router])
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [])
+	const clearAllCategories = useCallback(() => updateArrayQuery('categories', 'None'), [])
 
-	const setSelectedAssetClasses = useCallback(
-		(values: string[]) => updateArrayQuery('assetClasses', values, router),
-		[router]
-	)
+	const setSelectedAssetClasses = useCallback((values: string[]) => updateArrayQuery('assetClasses', values), [])
 	const selectOnlyOneAssetClass = useCallback(
-		(assetClass: string) => updateArrayQuery('assetClasses', [assetClass], router),
-		[router]
+		(assetClass: string) => updateArrayQuery('assetClasses', [assetClass]),
+		[]
 	)
 	const toggleAllAssetClasses = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
+		const nextQuery: Record<string, any> = { ...Router.query }
 		delete nextQuery.assetClasses
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [router])
-	const clearAllAssetClasses = useCallback(() => updateArrayQuery('assetClasses', 'None', router), [router])
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [])
+	const clearAllAssetClasses = useCallback(() => updateArrayQuery('assetClasses', 'None'), [])
 
 	const setSelectedRwaClassifications = useCallback(
-		(values: string[]) => updateArrayQuery('rwaClassifications', values, router),
-		[router]
+		(values: string[]) => updateArrayQuery('rwaClassifications', values),
+		[]
 	)
 	const selectOnlyOneRwaClassification = useCallback(
-		(rwaClassification: string) => updateArrayQuery('rwaClassifications', [rwaClassification], router),
-		[router]
+		(rwaClassification: string) => updateArrayQuery('rwaClassifications', [rwaClassification]),
+		[]
 	)
 	const toggleAllRwaClassifications = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
+		const nextQuery: Record<string, any> = { ...Router.query }
 		delete nextQuery.rwaClassifications
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [router])
-	const clearAllRwaClassifications = useCallback(() => updateArrayQuery('rwaClassifications', 'None', router), [router])
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [])
+	const clearAllRwaClassifications = useCallback(() => updateArrayQuery('rwaClassifications', 'None'), [])
 
-	const setSelectedAccessModels = useCallback(
-		(values: string[]) => updateArrayQuery('accessModels', values, router),
-		[router]
-	)
+	const setSelectedAccessModels = useCallback((values: string[]) => updateArrayQuery('accessModels', values), [])
 	const selectOnlyOneAccessModel = useCallback(
-		(accessModel: string) => updateArrayQuery('accessModels', [accessModel], router),
-		[router]
+		(accessModel: string) => updateArrayQuery('accessModels', [accessModel]),
+		[]
 	)
 	const toggleAllAccessModels = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
+		const nextQuery: Record<string, any> = { ...Router.query }
 		delete nextQuery.accessModels
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [router])
-	const clearAllAccessModels = useCallback(() => updateArrayQuery('accessModels', 'None', router), [router])
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [])
+	const clearAllAccessModels = useCallback(() => updateArrayQuery('accessModels', 'None'), [])
 
-	const setSelectedIssuers = useCallback((values: string[]) => updateArrayQuery('issuers', values, router), [router])
-	const selectOnlyOneIssuer = useCallback((issuer: string) => updateArrayQuery('issuers', [issuer], router), [router])
+	const setSelectedIssuers = useCallback((values: string[]) => updateArrayQuery('issuers', values), [])
+	const selectOnlyOneIssuer = useCallback((issuer: string) => updateArrayQuery('issuers', [issuer]), [])
 	const toggleAllIssuers = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
+		const nextQuery: Record<string, any> = { ...Router.query }
 		delete nextQuery.issuers
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [router])
-	const clearAllIssuers = useCallback(() => updateArrayQuery('issuers', 'None', router), [router])
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [])
+	const clearAllIssuers = useCallback(() => updateArrayQuery('issuers', 'None'), [])
 
 	const setDefiActiveTvlToOnChainPctRange = useCallback(
 		(minValue: string | number | null, maxValue: string | number | null) =>
-			updateNumberRangeQuery(
-				'minDefiActiveTvlToOnChainPct',
-				'maxDefiActiveTvlToOnChainPct',
-				minValue,
-				maxValue,
-				router
-			),
-		[router]
+			updateNumberRangeQuery('minDefiActiveTvlToOnChainPct', 'maxDefiActiveTvlToOnChainPct', minValue, maxValue),
+		[]
 	)
 	const setActiveMcapToOnChainPctRange = useCallback(
 		(minValue: string | number | null, maxValue: string | number | null) =>
-			updateNumberRangeQuery('minActiveMcapToOnChainPct', 'maxActiveMcapToOnChainPct', minValue, maxValue, router),
-		[router]
+			updateNumberRangeQuery('minActiveMcapToOnChainPct', 'maxActiveMcapToOnChainPct', minValue, maxValue),
+		[]
 	)
 	const setDefiActiveTvlToActiveMcapPctRange = useCallback(
 		(minValue: string | number | null, maxValue: string | number | null) =>
-			updateNumberRangeQuery(
-				'minDefiActiveTvlToActiveMcapPct',
-				'maxDefiActiveTvlToActiveMcapPct',
-				minValue,
-				maxValue,
-				router
-			),
-		[router]
+			updateNumberRangeQuery('minDefiActiveTvlToActiveMcapPct', 'maxDefiActiveTvlToActiveMcapPct', minValue, maxValue),
+		[]
 	)
 
-	const setIncludeStablecoins = useCallback(
-		(value: boolean) => {
-			const nextQuery: Record<string, any> = { ...router.query }
-			if (value) {
-				delete nextQuery.includeStablecoins
-			} else {
-				nextQuery.includeStablecoins = 'false'
-			}
-			router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-		},
-		[router]
-	)
+	const setIncludeStablecoins = useCallback((value: boolean) => {
+		const nextQuery: Record<string, any> = { ...Router.query }
+		if (value) {
+			delete nextQuery.includeStablecoins
+		} else {
+			nextQuery.includeStablecoins = 'false'
+		}
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [])
 
-	const setIncludeGovernance = useCallback(
-		(value: boolean) => {
-			const nextQuery: Record<string, any> = { ...router.query }
-			if (value) {
-				delete nextQuery.includeGovernance
-			} else {
-				nextQuery.includeGovernance = 'false'
-			}
-			router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-		},
-		[router]
-	)
+	const setIncludeGovernance = useCallback((value: boolean) => {
+		const nextQuery: Record<string, any> = { ...Router.query }
+		if (value) {
+			delete nextQuery.includeGovernance
+		} else {
+			nextQuery.includeGovernance = 'false'
+		}
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [])
 
 	return {
 		selectedCategories,

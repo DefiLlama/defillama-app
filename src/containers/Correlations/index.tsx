@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import { useEffect, useMemo, useState } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
@@ -154,7 +154,7 @@ export default function Correlations({ coinsData }) {
 		if (!router.isReady) return
 
 		if (!queryCoins?.length)
-			router.replace(
+			Router.replace(
 				{
 					pathname: router.pathname,
 					query: {
@@ -165,7 +165,7 @@ export default function Correlations({ coinsData }) {
 				undefined,
 				{ shallow: true }
 			)
-	}, [queryCoins, router, router.isReady])
+	}, [queryCoins, router.query, router.pathname, router.isReady])
 
 	const dialogStore = Ariakit.useDialogStore()
 

@@ -179,15 +179,16 @@ export function CompareChains({ chains }) {
 	const { selectedValues: selectedChartFilters } = useChainsChartFilterState()
 
 	const router = useRouter()
+	const chainsQuery = router.query?.chains
 
 	const { data, isLoading } = useCompare({ chains: router.query?.chains ? [router.query?.chains].flat() : [] })
 
 	const selectedChains = React.useMemo(() => {
-		return [router?.query?.chains]
+		return [chainsQuery]
 			.flat()
 			.filter(Boolean)
 			.map((chain) => ({ value: chain, label: chain }))
-	}, [router.query])
+	}, [chainsQuery])
 
 	const selectedChainValues = React.useMemo(() => selectedChains.map((chain) => chain.value), [selectedChains])
 

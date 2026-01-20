@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import { Icon } from '~/components/Icon'
 import { Toast } from '~/components/Toast'
@@ -29,7 +29,7 @@ function AuthContent() {
 		if (isAuthenticated && !isSubscriptionLoading) {
 			// google sheets auth, requiring redirect url
 			if (redirectUrl) {
-				router.push({
+				Router.push({
 					pathname: redirectUrl as string,
 					query: {
 						...router.query,
@@ -54,7 +54,7 @@ function AuthContent() {
 				window.close()
 			}
 		}
-	}, [isAuthenticated, redirectUrl, router, user, isSubscriptionLoading, subscription])
+	}, [isAuthenticated, redirectUrl, router.query, user, isSubscriptionLoading, subscription])
 
 	return (
 		<>

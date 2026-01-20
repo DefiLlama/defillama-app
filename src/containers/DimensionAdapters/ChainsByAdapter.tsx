@@ -72,7 +72,7 @@ export function ChainsByAdapter(props: IProps) {
 		}
 
 		return props.chains
-	}, [props, enabledSettings])
+	}, [props.adapterType, props.chains, enabledSettings.bribes, enabledSettings.tokentax])
 
 	const instance = useReactTable({
 		data: chains,

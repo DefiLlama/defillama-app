@@ -113,15 +113,17 @@ const getProtocolsByCategory = (protocols: IAdapterByChainPageData['protocols'],
 export function AdapterByChain(props: IProps) {
 	const router = useRouter()
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
+	const categoryParam = router.query.category
+	const hasCategoryParam = Object.prototype.hasOwnProperty.call(router.query, 'category')
 
 	const { selectedCategories, protocols, columnsOptions } = useMemo(() => {
 		const selectedCategories =
-			props.categories.length > 0 && router.query.hasOwnProperty('category') && router.query.category === ''
+			props.categories.length > 0 && hasCategoryParam && categoryParam === ''
 				? []
-				: router.query.category
-					? typeof router.query.category === 'string'
-						? [router.query.category]
-						: router.query.category
+				: categoryParam
+					? typeof categoryParam === 'string'
+						? [categoryParam]
+						: categoryParam
 					: props.categories
 
 		const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
@@ -212,7 +214,16 @@ export function AdapterByChain(props: IProps) {
 			protocols: finalProtocols,
 			columnsOptions: getColumnsOptions(props.type)
 		}
-	}, [router.query, props, enabledSettings])
+	}, [
+		categoryParam,
+		hasCategoryParam,
+		props.categories,
+		props.protocols,
+		props.adapterType,
+		props.type,
+		enabledSettings.bribes,
+		enabledSettings.tokentax
+	])
 
 	const [sorting, setSorting] = useState<SortingState>(defaultSortingByType[props.type] ?? defaultSortingByType.default)
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])

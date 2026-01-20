@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
+import Router from 'next/router'
 import { memo, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
@@ -797,11 +797,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		[sessionId, moveSessionToTop, submitPrompt, isStreaming]
 	)
 
-	const router = useRouter()
-
 	const handleNewChat = useCallback(async () => {
 		if (initialSessionId) {
-			router.push('/ai/chat', undefined, { shallow: true })
+			Router.push('/ai/chat', undefined, { shallow: true })
 			return
 		}
 
@@ -857,7 +855,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		streamingContentRef.current.reset()
 		setResizeTrigger((prev) => prev + 1)
 		promptInputRef.current?.focus()
-	}, [initialSessionId, sessionId, isStreaming, authorizedFetch, abortControllerRef, resetPrompt, router])
+	}, [initialSessionId, sessionId, isStreaming, authorizedFetch, abortControllerRef, resetPrompt])
 
 	const handleSessionSelect = async (selectedSessionId: string, data: { messages: any[]; pagination?: any }) => {
 		resetScrollState()
