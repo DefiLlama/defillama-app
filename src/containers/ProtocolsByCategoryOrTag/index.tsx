@@ -71,7 +71,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				TVL: { ...props.charts['TVL'], data: finalChartData }
 			} as ILineAndBarChartProps['charts']
 		}
-	}, [tvlSettings, props])
+	}, [tvlSettings, props.protocols, props.charts, props.extraTvlCharts])
 
 	const categoryColumns = useMemo(() => {
 		return columns(name, props.isRWA)

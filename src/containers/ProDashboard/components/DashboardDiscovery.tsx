@@ -32,6 +32,7 @@ type TimeFrameOption = (typeof timeFrameOptions)[number]
 
 export function DashboardDiscovery() {
 	const router = useRouter()
+	const { view, tag, sortBy, query, page, limit, timeFrame } = router.query
 
 	const {
 		isBrowseMode,
@@ -43,8 +44,6 @@ export function DashboardDiscovery() {
 		selectedPage,
 		itemsPerPage
 	} = useMemo(() => {
-		const { view, tag, sortBy, query, page, limit, timeFrame } = router.query
-
 		const viewMode = typeof view === 'string' && viewModes.includes(view as ViewMode) ? (view as ViewMode) : 'grid'
 		const selectedTags = tag ? (typeof tag === 'string' ? [tag] : tag) : []
 		const selectedSortBy =
@@ -78,7 +77,7 @@ export function DashboardDiscovery() {
 			selectedPage,
 			itemsPerPage
 		}
-	}, [router.query])
+	}, [view, tag, sortBy, query, page, limit, timeFrame])
 
 	const { dashboards, isLoading, totalPages, totalItems } = useDashboardDiscovery({
 		query: searchQuery,

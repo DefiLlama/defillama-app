@@ -195,19 +195,19 @@ export const HacksContainer = ({
 }: IHacksPageData) => {
 	const [chartType, setChartType] = React.useState('Monthly Sum')
 	const router = useRouter()
+	const {
+		chain: chainQ,
+		tech: techQ,
+		class: classQ,
+		time: timeQ,
+		minLost: minLostQuery,
+		maxLost: maxLostQuery
+	} = router.query
 
 	const chainOptions = React.useMemo(() => {
-		const {
-			tech: techQuery,
-			class: classQuery,
-			time: timeQuery,
-			minLost: minLostQuery,
-			maxLost: maxLostQuery
-		} = router.query
-
-		const selectedTechniquesLocal = Array.isArray(techQuery) ? techQuery : techQuery ? [techQuery] : []
-		const selectedClassificationsLocal = Array.isArray(classQuery) ? classQuery : classQuery ? [classQuery] : []
-		const timeQLocal = typeof timeQuery === 'string' ? timeQuery : undefined
+		const selectedTechniquesLocal = Array.isArray(techQ) ? techQ : techQ ? [techQ] : []
+		const selectedClassificationsLocal = Array.isArray(classQ) ? classQ : classQ ? [classQ] : []
+		const timeQLocal = typeof timeQ === 'string' ? timeQ : undefined
 
 		const since = getTimeSinceSeconds(timeQLocal)
 		const minLostValLocal = toNumberOrNullFromQueryParam(minLostQuery)
@@ -228,9 +228,7 @@ export const HacksContainer = ({
 			.filter(Boolean)
 			.sort((a, b) => a.localeCompare(b))
 			.map((name) => ({ key: slug(name), name }))
-	}, [data, router.query])
-
-	const { chain: chainQ, tech: techQ, class: classQ, time: timeQ } = router.query
+	}, [data, techQ, classQ, timeQ, minLostQuery, maxLostQuery])
 
 	const selectedChains = React.useMemo(() => {
 		const qs = toArrayParam(chainQ)

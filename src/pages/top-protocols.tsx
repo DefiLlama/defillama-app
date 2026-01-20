@@ -84,8 +84,8 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 	)
 
 	const router = useRouter()
+	const { chain, column } = router.query
 	const { selectedChains, selectedColumns, columnVisibility } = React.useMemo(() => {
-		const { chain, column } = router.query
 		const selectedChains = chain ? (Array.isArray(chain) ? chain : chain == 'All' ? chains : [chain]) : chains
 		const selectedColumns = column
 			? Array.isArray(column)
@@ -100,7 +100,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 			columnVisibility[col] = selectedColumnsSet.has(col)
 		}
 		return { selectedChains, selectedColumns, columnVisibility }
-	}, [router.query, chains, uniqueCategories])
+	}, [chain, column, chains, uniqueCategories])
 
 	const columns = React.useMemo(() => {
 		const baseColumns = [

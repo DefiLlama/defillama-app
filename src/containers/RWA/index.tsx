@@ -1123,6 +1123,21 @@ const useRWATableQueryParams = ({
 	issuers: string[]
 }) => {
 	const router = useRouter()
+	const {
+		categories: categoriesQ,
+		assetClasses: assetClassesQ,
+		rwaClassifications: rwaClassificationsQ,
+		accessModels: accessModelsQ,
+		issuers: issuersQ,
+		minDefiActiveTvlToOnChainPct: minDefiActiveTvlToOnChainPctQ,
+		maxDefiActiveTvlToOnChainPct: maxDefiActiveTvlToOnChainPctQ,
+		minActiveMcapToOnChainPct: minActiveMcapToOnChainPctQ,
+		maxActiveMcapToOnChainPct: maxActiveMcapToOnChainPctQ,
+		minDefiActiveTvlToActiveMcapPct: minDefiActiveTvlToActiveMcapPctQ,
+		maxDefiActiveTvlToActiveMcapPct: maxDefiActiveTvlToActiveMcapPctQ,
+		includeStablecoins: stablecoinsQ,
+		includeGovernance: governanceQ
+	} = router.query
 
 	const {
 		selectedCategories,
@@ -1139,22 +1154,6 @@ const useRWATableQueryParams = ({
 		includeStablecoins,
 		includeGovernance
 	} = useMemo(() => {
-		const {
-			categories: categoriesQ,
-			assetClasses: assetClassesQ,
-			rwaClassifications: rwaClassificationsQ,
-			accessModels: accessModelsQ,
-			issuers: issuersQ,
-			minDefiActiveTvlToOnChainPct: minDefiActiveTvlToOnChainPctQ,
-			maxDefiActiveTvlToOnChainPct: maxDefiActiveTvlToOnChainPctQ,
-			minActiveMcapToOnChainPct: minActiveMcapToOnChainPctQ,
-			maxActiveMcapToOnChainPct: maxActiveMcapToOnChainPctQ,
-			minDefiActiveTvlToActiveMcapPct: minDefiActiveTvlToActiveMcapPctQ,
-			maxDefiActiveTvlToActiveMcapPct: maxDefiActiveTvlToActiveMcapPctQ,
-			includeStablecoins: stablecoinsQ,
-			includeGovernance: governanceQ
-		} = router.query
-
 		// If query param is 'None', return empty array. If no param, return all (default). Otherwise parse the array.
 		const parseArrayParam = (param: string | string[] | undefined, allValues: string[]): string[] => {
 			if (param === 'None') return []
@@ -1194,7 +1193,26 @@ const useRWATableQueryParams = ({
 			includeStablecoins,
 			includeGovernance
 		}
-	}, [router.query, categories, assetClasses, rwaClassifications, accessModels, issuers])
+	}, [
+		categoriesQ,
+		assetClassesQ,
+		rwaClassificationsQ,
+		accessModelsQ,
+		issuersQ,
+		minDefiActiveTvlToOnChainPctQ,
+		maxDefiActiveTvlToOnChainPctQ,
+		minActiveMcapToOnChainPctQ,
+		maxActiveMcapToOnChainPctQ,
+		minDefiActiveTvlToActiveMcapPctQ,
+		maxDefiActiveTvlToActiveMcapPctQ,
+		stablecoinsQ,
+		governanceQ,
+		categories,
+		assetClasses,
+		rwaClassifications,
+		accessModels,
+		issuers
+	])
 
 	const setSelectedCategories = useCallback(
 		(values: string[]) => updateArrayQuery('categories', values, router),

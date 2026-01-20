@@ -8,8 +8,7 @@
 	"experimentalTailwindcss": {
 		"stylesheet": "./src/tailwind.css",
 		"attributes": ["class", "className"],
-		"functions": ["clsx", "cn", "cva", "tw"],
-		"preserveWhitespace": true
+		"functions": ["clsx", "cn", "cva", "tw"]
 	},
 	"experimentalSortImports": {
 		"groups": [["builtin"], ["external"], ["internal"], ["parent", "sibling", "index"]],

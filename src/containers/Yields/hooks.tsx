@@ -18,28 +18,27 @@ export const useFormatYieldQueryParams = ({
 	farmProtocols
 }: IFormatYieldQueryParams) => {
 	const router = useRouter()
+	const {
+		project,
+		lendingProtocol,
+		farmProtocol,
+		chain,
+		token,
+		excludeToken,
+		exactToken,
+		attribute,
+		category,
+		token_pair,
+		minTvl,
+		maxTvl,
+		minApy,
+		maxApy,
+		minAvailable,
+		maxAvailable,
+		customLTV
+	} = router.query
 
 	return React.useMemo(() => {
-		const {
-			project,
-			lendingProtocol,
-			farmProtocol,
-			chain,
-			token,
-			excludeToken,
-			exactToken,
-			attribute,
-			category,
-			token_pair,
-			minTvl,
-			maxTvl,
-			minApy,
-			maxApy,
-			minAvailable,
-			maxAvailable,
-			customLTV
-		} = router.query
-
 		let selectedProjects = [],
 			selectedChains = [],
 			selectedAttributes = [],
@@ -161,5 +160,28 @@ export const useFormatYieldQueryParams = ({
 			maxAvailable: maxAvailable ? toNumberOrNullFromQueryParam(maxAvailable) : null,
 			customLTV: toNumberOrNullFromQueryParam(customLTV)
 		}
-	}, [projectList, chainList, categoryList, lendingProtocols, farmProtocols, router.query])
+	}, [
+		projectList,
+		chainList,
+		categoryList,
+		lendingProtocols,
+		farmProtocols,
+		project,
+		lendingProtocol,
+		farmProtocol,
+		chain,
+		token,
+		excludeToken,
+		exactToken,
+		attribute,
+		category,
+		token_pair,
+		minTvl,
+		maxTvl,
+		minApy,
+		maxApy,
+		minAvailable,
+		maxAvailable,
+		customLTV
+	])
 }
