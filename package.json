@@ -32,7 +32,7 @@
 		"@tanstack/react-query-devtools": "5.91.2",
 		"@tanstack/react-table": "8.21.3",
 		"@tanstack/react-virtual": "3.13.18",
-		"babel-plugin-react-compiler": "1.0.0",
+		"babel-plugin-react-compiler": "^1.0.0",
 		"clsx": "2.1.1",
 		"dayjs": "1.11.19",
 		"dotenv": "17.2.1",
