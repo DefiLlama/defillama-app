@@ -86,6 +86,21 @@ export const MetricTab = memo(function MetricTab(props: MetricTabProps) {
 		return null
 	}, [metricSubjectType, metricProtocol, metricChain, protocolList, chainList])
 
+	const previewMetric = useMemo(() => {
+		if (!selectedSubject || !metricType) return null
+		return {
+			id: 'metric-preview',
+			kind: 'metric',
+			subject: selectedSubject,
+			type: metricType,
+			aggregator: metricAggregator,
+			window: metricWindow,
+			compare: { mode: 'previous_value', format: 'percent' },
+			showSparkline: metricShowSparkline,
+			label: metricLabel
+		} as const
+	}, [selectedSubject, metricType, metricAggregator, metricWindow, metricShowSparkline, metricLabel])
+
 	return (
 		<div className="flex h-full flex-col gap-3 lg:min-h-[360px] lg:flex-row lg:overflow-hidden">
 			<div className="flex w-full shrink-0 flex-col border pro-border lg:thin-scrollbar lg:w-[380px] lg:flex-shrink lg:overflow-y-auto xl:w-[420px]">
@@ -142,20 +157,8 @@ export const MetricTab = memo(function MetricTab(props: MetricTabProps) {
 
 			<div className="flex min-h-[280px] flex-1 shrink-0 flex-col overflow-hidden border pro-border lg:min-h-0 lg:flex-shrink">
 				<div className="flex-1 overflow-hidden rounded-md bg-(--cards-bg) p-2 sm:p-2.5">
-					{selectedSubject && metricType ? (
-						<MetricCard
-							metric={{
-								id: 'metric-preview',
-								kind: 'metric',
-								subject: selectedSubject as any,
-								type: metricType,
-								aggregator: metricAggregator,
-								window: metricWindow,
-								compare: { mode: 'previous_value', format: 'percent' },
-								showSparkline: metricShowSparkline,
-								label: metricLabel
-							}}
-						/>
+					{previewMetric ? (
+						<MetricCard metric={previewMetric} />
 					) : (
 						<div className="flex h-full items-center justify-center text-xs pro-text3 sm:text-sm">
 							<div className="text-center">

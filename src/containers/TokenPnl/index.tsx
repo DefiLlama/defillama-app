@@ -19,6 +19,7 @@ import { formatDateLabel, formatPercent } from './format'
 import { StatsCard } from './StatsCard'
 import type { ComparisonEntry, PricePoint, TimelinePoint } from './types'
 
+const EMPTY_SELECTED_COINS: Record<string, IResponseCGMarketsAPI> = {}
 const EMPTY_COMPARISON_ENTRIES: ComparisonEntry[] = []
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
@@ -655,7 +656,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 						<CoinsPicker
 							dialogStore={dialogStore}
 							coinsData={coinsData}
-							selectedCoins={{}}
+							selectedCoins={EMPTY_SELECTED_COINS}
 							queryCoins={selectedCoins}
 							selectCoin={(coin) => updateCoin(coin.id)}
 						/>

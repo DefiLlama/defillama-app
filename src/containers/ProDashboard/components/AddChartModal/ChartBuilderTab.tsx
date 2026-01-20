@@ -360,6 +360,93 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 			.filter((item) => item.value > 0)
 	}, [visibleSeries, resolveSeriesColor, treemapMode])
 
+	const previewChartOptions = useMemo(
+		() => ({
+			grid: {
+				top: 40,
+				bottom: 40,
+				left: 12,
+				right: 12,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
+			},
+			legend: {
+				show: true,
+				top: 10,
+				type: 'scroll',
+				selectedMode: 'multiple',
+				pageButtonItemGap: 5,
+				pageButtonGap: 20,
+				data: visibleSeries.map((s) => s.name)
+			},
+			tooltip: {
+				formatter: function (params: any) {
+					const rawTimestamp = params[0].value[0]
+					const millis = rawTimestamp < 10000000000 ? rawTimestamp * 1000 : rawTimestamp
+					const chartdate = new Date(millis).toLocaleDateString()
+
+					let filteredParams = params.filter(
+						(item: any) => item.value[1] !== '-' && item.value[1] !== null && item.value[1] !== undefined
+					)
+					filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
+
+					const formatValue = (value: number) => {
+						if (chartBuilder.displayAs === 'percentage') {
+							return `${Math.round(value * 100) / 100}%`
+						}
+						const absValue = Math.abs(value)
+						if (absValue >= 1e9) {
+							return '$' + (value / 1e9).toFixed(2) + 'B'
+						} else if (absValue >= 1e6) {
+							return '$' + (value / 1e6).toFixed(2) + 'M'
+						} else if (absValue >= 1e3) {
+							return '$' + (value / 1e3).toFixed(2) + 'K'
+						}
+						return '$' + value.toFixed(2)
+					}
+
+					const vals = filteredParams.reduce((prev: string, curr: any) => {
+						return (prev +=
+							'<li style="list-style:none">' +
+							curr.marker +
+							curr.seriesName +
+							'&nbsp;&nbsp;' +
+							formatValue(curr.value[1]) +
+							'</li>')
+					}, '')
+
+					return chartdate + vals
+				}
+			},
+			yAxis:
+				chartBuilder.displayAs === 'percentage'
+					? {
+							max: 100,
+							min: 0,
+							axisLabel: {
+								formatter: '{value}%'
+							}
+						}
+					: {
+							type: 'value',
+							axisLabel: {
+								formatter: (value: number) => {
+									const absValue = Math.abs(value)
+									if (absValue >= 1e9) {
+										return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
+									} else if (absValue >= 1e6) {
+										return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+									} else if (absValue >= 1e3) {
+										return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
+									}
+									return '$' + value.toFixed(0)
+								}
+							}
+						}
+		}),
+		[chartBuilder.displayAs, visibleSeries]
+	)
+
 	const protocolOptionsFiltered = useMemo(() => {
 		if (chartBuilder.mode !== 'protocol') return protocolOptions
 		const metric = chartBuilder.metric
@@ -924,90 +1011,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 											})()}
 											valueSymbol={chartBuilder.displayAs === 'percentage' ? '%' : '$'}
 											hideDataZoom={true}
-											chartOptions={{
-												grid: {
-													top: 40,
-													bottom: 40,
-													left: 12,
-													right: 12,
-													outerBoundsMode: 'same',
-													outerBoundsContain: 'axisLabel'
-												},
-												legend: {
-													show: true,
-													top: 10,
-													type: 'scroll',
-													selectedMode: 'multiple',
-													pageButtonItemGap: 5,
-													pageButtonGap: 20,
-													data: visibleSeries.map((s) => s.name)
-												},
-												tooltip: {
-													formatter: function (params: any) {
-														const rawTimestamp = params[0].value[0]
-														const millis = rawTimestamp < 10000000000 ? rawTimestamp * 1000 : rawTimestamp
-														const chartdate = new Date(millis).toLocaleDateString()
-
-														let filteredParams = params.filter(
-															(item: any) =>
-																item.value[1] !== '-' && item.value[1] !== null && item.value[1] !== undefined
-														)
-														filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
-
-														const formatValue = (value: number) => {
-															if (chartBuilder.displayAs === 'percentage') {
-																return `${Math.round(value * 100) / 100}%`
-															}
-															const absValue = Math.abs(value)
-															if (absValue >= 1e9) {
-																return '$' + (value / 1e9).toFixed(2) + 'B'
-															} else if (absValue >= 1e6) {
-																return '$' + (value / 1e6).toFixed(2) + 'M'
-															} else if (absValue >= 1e3) {
-																return '$' + (value / 1e3).toFixed(2) + 'K'
-															}
-															return '$' + value.toFixed(2)
-														}
-
-														const vals = filteredParams.reduce((prev: string, curr: any) => {
-															return (prev +=
-																'<li style="list-style:none">' +
-																curr.marker +
-																curr.seriesName +
-																'&nbsp;&nbsp;' +
-																formatValue(curr.value[1]) +
-																'</li>')
-														}, '')
-
-														return chartdate + vals
-													}
-												},
-												yAxis:
-													chartBuilder.displayAs === 'percentage'
-														? {
-																max: 100,
-																min: 0,
-																axisLabel: {
-																	formatter: '{value}%'
-																}
-															}
-														: {
-																type: 'value',
-																axisLabel: {
-																	formatter: (value: number) => {
-																		const absValue = Math.abs(value)
-																		if (absValue >= 1e9) {
-																			return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
-																		} else if (absValue >= 1e6) {
-																			return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
-																		} else if (absValue >= 1e3) {
-																			return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
-																		}
-																		return '$' + value.toFixed(0)
-																	}
-																}
-															}
-											}}
+											chartOptions={previewChartOptions}
 										/>
 									)}
 								</Suspense>
