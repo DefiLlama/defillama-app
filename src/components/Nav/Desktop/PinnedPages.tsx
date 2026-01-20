@@ -11,7 +11,7 @@ import { LinkToPage, NavItemContent } from './shared'
 
 const VERTICAL_SORTING_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
 
-export const PinnedPages = React.memo(function PinnedPages({
+export function PinnedPages({
 	pinnedPages,
 	asPath
 }: {
@@ -32,23 +32,20 @@ export const PinnedPages = React.memo(function PinnedPages({
 		})
 	)
 
-	const handleDragEnd = React.useCallback(
-		(event: DragEndEvent) => {
-			const { active, over } = event
-			if (!over || active.id === over.id) return
+	const handleDragEnd = (event: DragEndEvent) => {
+		const { active, over } = event
+		if (!over || active.id === over.id) return
 
-			const oldIndex = pinnedPages.findIndex(({ route }) => route === active.id)
-			const newIndex = pinnedPages.findIndex(({ route }) => route === over.id)
+		const oldIndex = pinnedPages.findIndex(({ route }) => route === active.id)
+		const newIndex = pinnedPages.findIndex(({ route }) => route === over.id)
 
-			if (oldIndex === -1 || newIndex === -1) return
+		if (oldIndex === -1 || newIndex === -1) return
 
-			const reordered = arrayMove(pinnedPages, oldIndex, newIndex)
-			mutatePinnedMetrics(() => reordered.map(({ route }) => route))
-		},
-		[pinnedPages]
-	)
+		const reordered = arrayMove(pinnedPages, oldIndex, newIndex)
+		mutatePinnedMetrics(() => reordered.map(({ route }) => route))
+	}
 
-	const sortableItems = React.useMemo(() => pinnedPages.map(({ route }) => route), [pinnedPages])
+	const sortableItems = pinnedPages.map(({ route }) => route)
 
 	return (
 		<div className="group/pinned flex flex-col">
@@ -86,7 +83,7 @@ export const PinnedPages = React.memo(function PinnedPages({
 			</DndContext>
 		</div>
 	)
-})
+}
 
 export const PinnedPageRow = ({
 	page,
@@ -107,9 +104,9 @@ export const PinnedPageRow = ({
 		transition
 	}
 
-	const handleUnpin = React.useCallback(() => {
+	const handleUnpin = () => {
 		mutatePinnedMetrics((routes) => routes.filter((route) => route !== page.route))
-	}, [page.route])
+	}
 
 	return (
 		<span

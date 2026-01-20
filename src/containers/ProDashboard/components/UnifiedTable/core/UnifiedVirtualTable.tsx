@@ -2,7 +2,7 @@ import type { Table } from '@tanstack/react-table'
 import { flexRender } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import * as React from 'react'
-import { memo, useRef } from 'react'
+import { useRef } from 'react'
 import { SortIcon } from '~/components/Table/SortIcon'
 import { Tooltip } from '~/components/Tooltip'
 import type { NormalizedRow } from '../types'
@@ -182,11 +182,11 @@ interface HeaderWithTooltipProps {
 	content?: string
 }
 
-const HeaderWithTooltip = memo(function HeaderWithTooltip({ children, content }: HeaderWithTooltipProps) {
+function HeaderWithTooltip({ children, content }: HeaderWithTooltipProps) {
 	if (!content) return <>{children}</>
 	return (
 		<Tooltip content={content} className="underline decoration-dotted">
 			{children}
 		</Tooltip>
 	)
-})
+}

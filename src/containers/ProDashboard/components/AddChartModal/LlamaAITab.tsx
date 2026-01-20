@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { memo, useState } from 'react'
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -20,7 +20,7 @@ interface LlamaAITabProps {
 	onChartSelect: (chart: SavedChart | null) => void
 }
 
-export const LlamaAITab = memo(function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
+export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 	const { authorizedFetch, user } = useAuthContext()
 	const queryClient = useQueryClient()
 	const [searchQuery, setSearchQuery] = useState('')
@@ -186,4 +186,4 @@ export const LlamaAITab = memo(function LlamaAITab({ selectedChart, onChartSelec
 			)}
 		</div>
 	)
-})
+}

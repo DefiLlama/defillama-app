@@ -1,6 +1,6 @@
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
-import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
@@ -105,17 +105,14 @@ interface UnifiedTableCardProps {
 	onEditItem?: (item: DashboardItemConfig, focusSection?: UnifiedTableFocusSection) => void
 }
 
-const UnifiedTableCard = memo(function UnifiedTableCard({ item, onEditItem }: UnifiedTableCardProps) {
-	const handleEdit = useCallback(
-		(focusSection?: UnifiedTableFocusSection) => {
-			onEditItem?.(item, focusSection)
-		},
-		[item, onEditItem]
-	)
+function UnifiedTableCard({ item, onEditItem }: UnifiedTableCardProps) {
+	const handleEdit = (focusSection?: UnifiedTableFocusSection) => {
+		onEditItem?.(item, focusSection)
+	}
 
-	const handleOpenColumnModal = useCallback(() => {
+	const handleOpenColumnModal = () => {
 		onEditItem?.(item, 'columns')
-	}, [item, onEditItem])
+	}
 
 	return (
 		<Suspense fallback={<div className="flex min-h-[360px] flex-col p-1 md:min-h-[380px]" />}>
@@ -126,7 +123,7 @@ const UnifiedTableCard = memo(function UnifiedTableCard({ item, onEditItem }: Un
 			/>
 		</Suspense>
 	)
-})
+}
 
 interface DashboardItemRendererProps {
 	item: DashboardItemConfig
@@ -134,26 +131,18 @@ interface DashboardItemRendererProps {
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
 }
 
-const DashboardItemRenderer = memo(function DashboardItemRenderer({
+function DashboardItemRenderer({
 	item,
 	onEditItem,
 	handleEditItem
 }: DashboardItemRendererProps) {
-	const handleConfigChange = useCallback(
-		(newConfig: DashboardItemConfig) => handleEditItem(item.id, newConfig),
-		[handleEditItem, item.id]
-	)
+	const handleConfigChange = (newConfig: DashboardItemConfig) => handleEditItem(item.id, newConfig)
 
-	const handleDatasetChainChange = useCallback(
-		(newChain: string) => handleEditItem(item.id, { ...item, datasetChain: newChain } as DashboardItemConfig),
-		[handleEditItem, item]
-	)
+	const handleDatasetChainChange = (newChain: string) =>
+		handleEditItem(item.id, { ...item, datasetChain: newChain } as DashboardItemConfig)
 
-	const handleDatasetTimeframeChange = useCallback(
-		(newTimeframe: string) =>
-			handleEditItem(item.id, { ...item, datasetTimeframe: newTimeframe } as DashboardItemConfig),
-		[handleEditItem, item]
-	)
+	const handleDatasetTimeframeChange = (newTimeframe: string) =>
+		handleEditItem(item.id, { ...item, datasetTimeframe: newTimeframe } as DashboardItemConfig)
 
 	if (item.kind === 'chart') {
 		return (
@@ -319,9 +308,9 @@ const DashboardItemRenderer = memo(function DashboardItemRenderer({
 	}
 
 	return null
-})
+}
 
-export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
+export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 	const { chartsWithData } = useProDashboardChartsData()
 	const { handleChartsReordered, handleRemoveItem, handleColSpanChange, handleEditItem } =
 		useProDashboardEditorActions()
@@ -331,7 +320,7 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 	const [deleteConfirmItem, setDeleteConfirmItem] = useState<string | null>(null)
 	const isSmallScreen = useMedia('(max-width: 768px)')
 
-	const sortableItemIds = useMemo(() => chartsWithData.map((c) => c.id), [chartsWithData])
+	const sortableItemIds = chartsWithData.map((c) => c.id)
 
 	const currentRatingSession = getCurrentRatingSession()
 	const currentSessionId = currentRatingSession?.sessionId
@@ -520,4 +509,4 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 			/>
 		</>
 	)
-})
+}

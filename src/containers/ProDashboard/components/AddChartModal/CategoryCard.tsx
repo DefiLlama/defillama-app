@@ -1,4 +1,3 @@
-import { memo } from 'react'
 import { Icon, type IIcon } from '~/components/Icon'
 import { ChartTabType } from './types'
 
@@ -62,7 +61,7 @@ interface CategoryCardProps {
 	onClick: () => void
 }
 
-export const CategoryCard = memo(function CategoryCard({ card, onClick }: CategoryCardProps) {
+export function CategoryCard({ card, onClick }: CategoryCardProps) {
 	return (
 		<button
 			onClick={onClick}
@@ -89,4 +88,4 @@ export const CategoryCard = memo(function CategoryCard({ card, onClick }: Catego
 			</div>
 		</button>
 	)
-})
+}
