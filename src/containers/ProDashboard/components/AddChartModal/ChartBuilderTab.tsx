@@ -94,6 +94,12 @@ const FILTER_MODE_OPTIONS = [
 	{ value: 'exclude', label: 'Exclude' }
 ]
 
+const resolveFilterMode = (value?: 'include' | 'exclude', fallback?: 'include' | 'exclude') => {
+	if (value === 'include' || value === 'exclude') return value
+	if (fallback === 'include' || fallback === 'exclude') return fallback
+	return 'include'
+}
+
 const FilterModeToggle = ({
 	value,
 	onChange
@@ -182,12 +188,6 @@ export function ChartBuilderTab({
 				option.value === chartBuilder.metric
 		)
 	}, [chartBuilder.mode, chartBuilder.metric])
-
-	const resolveFilterMode = (value?: 'include' | 'exclude', fallback?: 'include' | 'exclude') => {
-		if (value === 'include' || value === 'exclude') return value
-		if (fallback === 'include' || fallback === 'exclude') return fallback
-		return 'include'
-	}
 
 	const chainFilterMode = resolveFilterMode(chartBuilder.chainFilterMode, chartBuilder.filterMode)
 	const categoryFilterMode = resolveFilterMode(chartBuilder.categoryFilterMode, chartBuilder.filterMode)
@@ -715,7 +715,7 @@ export function ChartBuilderTab({
 										<label className="flex cursor-pointer items-center gap-1.5">
 											<Ariakit.Checkbox
 												onChange={(e) => onChartBuilderChange({ hideOthers: e.target.checked })}
-												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border pro-border data-[checked]:border-pro-blue-100 data-[checked]:bg-pro-blue-400 dark:data-[checked]:border-pro-blue-300/20 dark:data-[checked]:bg-pro-blue-300/20"
+												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border pro-border data-checked:border-pro-blue-100 data-checked:bg-pro-blue-400 dark:data-checked:border-pro-blue-300/20 dark:data-checked:bg-pro-blue-300/20"
 											/>
 											<span className="text-[10px] pro-text2">Hide "Others" (show only top {chartBuilder.limit})</span>
 										</label>
@@ -731,7 +731,7 @@ export function ChartBuilderTab({
 														groupByParent: e.target.checked
 													})
 												}
-												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border pro-border data-[checked]:border-pro-blue-100 data-[checked]:bg-pro-blue-400 dark:data-[checked]:border-pro-blue-300/20 dark:data-[checked]:bg-pro-blue-300/20"
+												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border pro-border data-checked:border-pro-blue-100 data-checked:bg-pro-blue-400 dark:data-checked:border-pro-blue-300/20 dark:data-checked:bg-pro-blue-300/20"
 											/>
 											<span className="text-[10px] pro-text2">Group by parent protocol</span>
 										</label>
@@ -844,7 +844,7 @@ export function ChartBuilderTab({
 															hideOthers: e.target.checked
 														})
 													}
-													className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-[checked]:bg-[#28a2b5]"
+													className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-checked:bg-[#28a2b5]"
 												/>
 												<span className="text-[10px] pro-text2">
 													Hide "Others" (show only top {chartBuilder.limit})

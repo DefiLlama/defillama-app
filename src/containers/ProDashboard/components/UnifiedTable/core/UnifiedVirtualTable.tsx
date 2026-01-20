@@ -14,6 +14,8 @@ interface UnifiedVirtualTableProps {
 	compact?: boolean
 }
 
+const isGroupingColumn = (columnId?: string) => typeof columnId === 'string' && columnId.startsWith('__group_')
+
 export function UnifiedVirtualTable({
 	table,
 	rowSize = 50,
@@ -23,7 +25,6 @@ export function UnifiedVirtualTable({
 	const containerRef = useRef<HTMLDivElement>(null)
 	const { rows } = table.getRowModel()
 
-	const isGroupingColumn = (columnId?: string) => typeof columnId === 'string' && columnId.startsWith('__group_')
 	const visibleLeafColumns = table.getVisibleLeafColumns().filter((column) => !isGroupingColumn(column.id))
 	const gridTemplateColumns =
 		visibleLeafColumns.map((column) => `minmax(${column.getSize() ?? 100}px, 1fr)`).join(' ') || '1fr'

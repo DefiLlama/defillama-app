@@ -31,13 +31,14 @@ const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as Re
 
 const columnResizeMode = 'onChange'
 
+const handleDownloadJson = () => {
+	window.open('https://api.llama.fi/raises')
+}
+
 function RaisesTable({ raises, prepareCsv }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-	const handleDownloadJson = () => {
-		window.open('https://api.llama.fi/raises')
-	}
 
 	const instance = useReactTable({
 		data: raises,

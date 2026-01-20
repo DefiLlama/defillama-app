@@ -30,6 +30,8 @@ declare module '@tanstack/table-core' {
 	}
 }
 
+const isGroupingColumn = (columnId?: string) => typeof columnId === 'string' && columnId.startsWith('__group_')
+
 export function VirtualTable({
 	instance,
 	skipVirtualization,
@@ -64,7 +66,6 @@ export function VirtualTable({
 	const isChainPage =
 		router.pathname === '/' || router.pathname.startsWith('/chain') || router.pathname.startsWith('/protocols')
 
-	const isGroupingColumn = (columnId?: string) => typeof columnId === 'string' && columnId.startsWith('__group_')
 	const visibleLeafColumns = instance.getVisibleLeafColumns().filter((column) => !isGroupingColumn(column.id))
 	const gridTemplateColumns =
 		visibleLeafColumns.map((column) => `minmax(${column.getSize() ?? 100}px, 1fr)`).join(' ') || '1fr'

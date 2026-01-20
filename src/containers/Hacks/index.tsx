@@ -180,6 +180,22 @@ const updateArrayQuery = (key: string, values: string[] | 'None') => {
 	Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
 }
 
+const setSelectedChains = (values: string[]) => updateArrayQuery('chain', values)
+const setSelectedTechniques = (values: string[]) => updateArrayQuery('tech', values)
+const setSelectedClassifications = (values: string[]) => updateArrayQuery('class', values)
+
+const clearAllChains = () => updateArrayQuery('chain', 'None')
+const toggleAllChains = () => updateArrayQuery('chain', [])
+const selectOnlyOneChain = (value: string) => updateArrayQuery('chain', [value])
+
+const clearAllTechniques = () => updateArrayQuery('tech', 'None')
+const toggleAllTechniques = () => updateArrayQuery('tech', [])
+const selectOnlyOneTechnique = (value: string) => updateArrayQuery('tech', [value])
+
+const clearAllClassifications = () => updateArrayQuery('class', 'None')
+const toggleAllClassifications = () => updateArrayQuery('class', [])
+const selectOnlyOneClassification = (value: string) => updateArrayQuery('class', [value])
+
 const timeOptions = ['All', '7D', '30D', '90D', '1Y'] as const
 const labelToKey = {
 	All: 'all',
@@ -265,22 +281,6 @@ export const HacksContainer = ({
 	const selectedClassifications = React.useMemo(() => {
 		return parseArrayParam(classQ, classificationOptionKeys)
 	}, [classQ, classificationOptionKeys])
-
-	const setSelectedChains = (values: string[]) => updateArrayQuery('chain', values)
-	const setSelectedTechniques = (values: string[]) => updateArrayQuery('tech', values)
-	const setSelectedClassifications = (values: string[]) => updateArrayQuery('class', values)
-
-	const clearAllChains = () => updateArrayQuery('chain', 'None')
-	const toggleAllChains = () => updateArrayQuery('chain', [])
-	const selectOnlyOneChain = (value: string) => updateArrayQuery('chain', [value])
-
-	const clearAllTechniques = () => updateArrayQuery('tech', 'None')
-	const toggleAllTechniques = () => updateArrayQuery('tech', [])
-	const selectOnlyOneTechnique = (value: string) => updateArrayQuery('tech', [value])
-
-	const clearAllClassifications = () => updateArrayQuery('class', 'None')
-	const toggleAllClassifications = () => updateArrayQuery('class', [])
-	const selectOnlyOneClassification = (value: string) => updateArrayQuery('class', [value])
 
 	const selectedTimeLabel = (typeof timeQ === 'string' && keyToLabel[timeQ]) || 'All'
 

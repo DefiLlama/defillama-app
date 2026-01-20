@@ -31,6 +31,11 @@ const BRIDGE_CHAIN_CHART_OPTIONS = [
 const EMPTY_CHAINS: string[] = []
 const EMPTY_PROTOCOLS: any[] = []
 
+const handleRouting = (selectedChain: string) => {
+	if (selectedChain === 'All') return `/bridges`
+	return `/bridges/${selectedChain}`
+}
+
 export function BridgesOverviewByChain({
 	selectedChain = 'All',
 	chains = EMPTY_CHAINS,
@@ -49,10 +54,6 @@ export function BridgesOverviewByChain({
 	const [searchValue, setSearchValue] = React.useState('')
 	const debouncedSearchValue = useDebounce(searchValue, 200)
 
-	const handleRouting = (selectedChain) => {
-		if (selectedChain === 'All') return `/bridges`
-		return `/bridges/${selectedChain}`
-	}
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
 
 	const { tokenDeposits, tokenWithdrawals } = useBuildBridgeChartData(bridgeStatsCurrentDay)

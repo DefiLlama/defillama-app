@@ -89,6 +89,42 @@ export const getStaticProps = withPerformanceLogging('pitch', async () => {
 	}
 })
 
+const unixToDateString = (unixTimestamp) => {
+	if (!unixTimestamp) return ''
+	const date = new Date(unixTimestamp * 1000)
+	return date.toISOString().split('T')[0]
+}
+
+const dateStringToUnix = (dateString) => {
+	if (!dateString) return ''
+	return Math.floor(new Date(dateString).getTime() / 1000)
+}
+
+const fetchInvestors = async (filters) => {
+	const body: Record<string, any> = {}
+	for (const key in filters) {
+		const v = filters[key]
+		if (v && v.length !== 0) {
+			body[key] = v
+		}
+	}
+
+	const response = await fetch('https://vc-emails.llama.fi/vc-list', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ filters: body })
+	})
+
+	const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+	await wait(500)
+
+	if (!response.ok) {
+		throw new Error('Network response was not ok')
+	}
+
+	return response.json()
+}
+
 const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRounds: _lastRounds }) => {
 	const [filters, setFilters] = useState({
 		minimumInvestments: '',
@@ -117,17 +153,6 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 	const _categoryOptions = categories.map((category) => ({ value: category, label: category }))
 	const hasSelectedFilters = Object.values(filters).some((v) => Number.isInteger(v) || v?.length)
 
-	const unixToDateString = (unixTimestamp) => {
-		if (!unixTimestamp) return ''
-		const date = new Date(unixTimestamp * 1000)
-		return date.toISOString().split('T')[0]
-	}
-
-	const dateStringToUnix = (dateString) => {
-		if (!dateString) return ''
-		return Math.floor(new Date(dateString).getTime() / 1000)
-	}
-
 	const handleDateChange = (e) => {
 		const dateString = e.target.value
 		const unixTimestamp = dateStringToUnix(dateString)
@@ -141,31 +166,6 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 	const handleProjectInfoChange = (e) => {
 		const { name, value } = e.target
 		setProjectInfo((prevInfo) => ({ ...prevInfo, [name]: value }))
-	}
-
-	const fetchInvestors = async (filters) => {
-		const body: Record<string, any> = {}
-		for (const key in filters) {
-			const v = filters[key]
-			if (v && v.length !== 0) {
-				body[key] = v
-			}
-		}
-
-		const response = await fetch('https://vc-emails.llama.fi/vc-list', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ filters: body })
-		})
-
-		const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-		await wait(500)
-
-		if (!response.ok) {
-			throw new Error('Network response was not ok')
-		}
-
-		return response.json()
 	}
 
 	const useInvestorsQuery = (filters, hasSelectedFilters) => {
@@ -284,7 +284,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 							<span className="">Minimum last investment time:</span>
 							<input
 								type="date"
-								className="cursor-pointer rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white dark:[color-scheme:dark]"
+								className="cursor-pointer rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white dark:scheme:dark"
 								value={unixToDateString(filters.minLastRoundTime)}
 								onChange={handleDateChange}
 								max={new Date().toISOString().split('T')[0]}

@@ -366,7 +366,7 @@ function NavItemContent({
 				</svg>
 			) : null}
 			<span className="relative flex min-w-0 flex-1 flex-wrap items-center gap-2 text-left leading-tight">
-				<span className="min-w-0 break-words">{name}</span>
+				<span className="min-w-0 wrap-break-word">{name}</span>
 				{attention ? (
 					<span
 						aria-hidden

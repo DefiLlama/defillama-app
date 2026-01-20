@@ -63,7 +63,7 @@ export const PaymentButton = ({
 				data-umami-event={`subscribe-${paymentMethod}-${type ?? ''}`}
 			>
 				{icon && <Icon name={icon} height={14} width={14} className="sm:h-4 sm:w-4" />}
-				<span className="break-words">{text}</span>
+				<span className="wrap-break-word">{text}</span>
 			</button>
 
 			{isStripe && (

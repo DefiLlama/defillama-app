@@ -440,6 +440,26 @@ export const defaultColumns = JSON.stringify({
 
 const optionsKey = 'protocolsTableColumns'
 
+const clearAllOptions = () => {
+	const ops = JSON.stringify(Object.fromEntries(protocolsByChainTableColumns.map((option) => [option.key, false])))
+	setStorageItem(optionsKey, ops)
+}
+
+const toggleAllOptions = () => {
+	const ops = JSON.stringify(Object.fromEntries(protocolsByChainTableColumns.map((option) => [option.key, true])))
+	setStorageItem(optionsKey, ops)
+}
+
+const addOption = (newOptions) => {
+	const ops = Object.fromEntries(protocolsByChainTableColumns.map((col) => [col.key, newOptions.includes(col.key)]))
+	setStorageItem(optionsKey, JSON.stringify(ops))
+}
+
+const addOnlyOneOption = (newOption) => {
+	const ops = Object.fromEntries(protocolsByChainTableColumns.map((col) => [col.key, col.key === newOption]))
+	setStorageItem(optionsKey, JSON.stringify(ops))
+}
+
 const ProtocolsTable = ({
 	data,
 	columnsInStorage,
@@ -514,24 +534,6 @@ export function ProtocolsByChainTable({
 
 	const [filterState, setFilterState] = React.useState(null)
 
-	const clearAllOptions = () => {
-		const ops = JSON.stringify(Object.fromEntries(protocolsByChainTableColumns.map((option) => [option.key, false])))
-		setStorageItem(optionsKey, ops)
-	}
-	const toggleAllOptions = () => {
-		const ops = JSON.stringify(Object.fromEntries(protocolsByChainTableColumns.map((option) => [option.key, true])))
-		setStorageItem(optionsKey, ops)
-	}
-
-	const addOption = (newOptions) => {
-		const ops = Object.fromEntries(protocolsByChainTableColumns.map((col) => [col.key, newOptions.includes(col.key)]))
-		setStorageItem(optionsKey, JSON.stringify(ops))
-	}
-
-	const addOnlyOneOption = (newOption) => {
-		const ops = Object.fromEntries(protocolsByChainTableColumns.map((col) => [col.key, col.key === newOption]))
-		setStorageItem(optionsKey, JSON.stringify(ops))
-	}
 	const setFilter = (key) => (newState) => {
 		const newOptions = Object.fromEntries(
 			protocolsByChainTableColumns.map((column) => [

@@ -32,6 +32,11 @@ const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
 
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
+const formatKeyMetricsValue = (value: number | string | null) => {
+	if (Number.isNaN(Number(value))) return null
+	return formattedNum(value, true)
+}
+
 interface IStatsProps extends IChainOverviewData {
 	hideChart?: boolean
 }
@@ -152,11 +157,6 @@ export function Stats(props: IStatsProps) {
 	const imageExportTitle = props.metadata.name === 'All' ? 'All Chains' : props.metadata.name
 	const keyMetricsTitle = imageExportTitle
 	const hasKeyMetricsPrimary = props.protocols.length > 0 && totalValueUSD != null
-
-	const formatKeyMetricsValue = (value: number | string | null) => {
-		if (Number.isNaN(Number(value))) return null
-		return formattedNum(value, true)
-	}
 
 	const { mutate: downloadAndPrepareChartCsv, isPending: isDownloadingChartCsv } = useMutation({
 		mutationFn: async () => {

@@ -32,6 +32,17 @@ const formatPreviewNumber = (value: number | null): string => {
 	}
 }
 
+const handleMouseDown = (e: React.MouseEvent) => {
+	// Prevent drag events from bubbling up to dashboard
+	e.stopPropagation()
+}
+
+const handleDragStart = (e: React.DragEvent) => {
+	// Prevent any drag operations within the panel
+	e.preventDefault()
+	e.stopPropagation()
+}
+
 export function CustomColumnPanel({
 	customColumns,
 	onAddCustomColumn,
@@ -373,17 +384,6 @@ export function CustomColumnPanel({
 			setLiveValidation({ isValid: false, error: error.message || 'Invalid expression' })
 		}
 	}, [newColumnExpression, sampleData])
-
-	const handleMouseDown = (e: React.MouseEvent) => {
-		// Prevent drag events from bubbling up to dashboard
-		e.stopPropagation()
-	}
-
-	const handleDragStart = (e: React.DragEvent) => {
-		// Prevent any drag operations within the panel
-		e.preventDefault()
-		e.stopPropagation()
-	}
 
 	return (
 		<div

@@ -29,6 +29,35 @@ export const getStaticProps = withPerformanceLogging('directory', async () => {
 
 const RECENTS_KEY = 'recent_protocols'
 
+const saveRecent = (protocol: { name: string; logo?: string; route: string }) => {
+	try {
+		const existingRaw = typeof window !== 'undefined' ? window.localStorage.getItem(RECENTS_KEY) : null
+		let arr: Array<{ name: string; logo?: string; route: string; count: number; lastVisited: number }> = existingRaw
+			? JSON.parse(existingRaw)
+			: []
+
+		const now = Date.now()
+		const idx = arr.findIndex((x) => x.route === protocol.route)
+		if (idx >= 0) {
+			arr[idx].count = (arr[idx].count || 0) + 1
+			arr[idx].lastVisited = now
+		} else {
+			arr.push({ ...protocol, count: 1, lastVisited: now })
+		}
+
+		arr = arr
+			.sort((a, b) => {
+				if (b.count !== a.count) return b.count - a.count
+				return b.lastVisited - a.lastVisited
+			})
+			.slice(0, 6)
+
+		setStorageItem(RECENTS_KEY, JSON.stringify(arr))
+	} catch (e) {
+		console.log('failed to save recent protocol', e)
+	}
+}
+
 export default function Protocols({ protocols }: { protocols: Array<{ name: string; logo: string; route: string }> }) {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
@@ -66,35 +95,6 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 				})
 				.slice(0, 6)
 		}, [recentProtocolsInStorage])
-
-	const saveRecent = (protocol: { name: string; logo?: string; route: string }) => {
-		try {
-			const existingRaw = typeof window !== 'undefined' ? window.localStorage.getItem(RECENTS_KEY) : null
-			let arr: Array<{ name: string; logo?: string; route: string; count: number; lastVisited: number }> = existingRaw
-				? JSON.parse(existingRaw)
-				: []
-
-			const now = Date.now()
-			const idx = arr.findIndex((x) => x.route === protocol.route)
-			if (idx >= 0) {
-				arr[idx].count = (arr[idx].count || 0) + 1
-				arr[idx].lastVisited = now
-			} else {
-				arr.push({ ...protocol, count: 1, lastVisited: now })
-			}
-
-			arr = arr
-				.sort((a, b) => {
-					if (b.count !== a.count) return b.count - a.count
-					return b.lastVisited - a.lastVisited
-				})
-				.slice(0, 6)
-
-			setStorageItem(RECENTS_KEY, JSON.stringify(arr))
-		} catch (e) {
-			console.log('failed to save recent protocol', e)
-		}
-	}
 
 	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
 		e.preventDefault()

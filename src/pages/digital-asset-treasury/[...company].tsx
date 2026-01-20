@@ -23,6 +23,38 @@ const SingleSeriesChart = lazy(
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 const CandlestickChart = lazy(() => import('~/components/ECharts/CandlestickChart')) as React.FC<ICandlestickChartProps>
 
+const getType = (type: string) => {
+	switch (type) {
+		case 'purchase':
+			return 'Purchase'
+		case 'sale':
+			return 'Sale'
+		case 'mined':
+			return 'Mined'
+		case 'staking_reward':
+			return 'Staking Reward'
+		default:
+			return type
+	}
+}
+
+const getSourceType = (sourceType: string) => {
+	switch (sourceType) {
+		case 'filing':
+			return 'Filing'
+		case 'twitter':
+			return 'Twitter'
+		case 'press-release':
+			return 'Press Release'
+		case 'site':
+			return 'Site'
+		case 'other':
+			return 'Other'
+		default:
+			return sourceType
+	}
+}
+
 interface IDATInstitution {
 	institutionId: number
 	ticker: string
@@ -600,20 +632,6 @@ const columns: ColumnDef<IDATInstitution['transactions'][0]>[] = [
 		header: 'Type',
 		accessorKey: 'type',
 		cell: ({ getValue }) => {
-			function getType(type: string) {
-				switch (type) {
-					case 'purchase':
-						return 'Purchase'
-					case 'sale':
-						return 'Sale'
-					case 'mined':
-						return 'Mined'
-					case 'staking_reward':
-						return 'Staking Reward'
-					default:
-						return type
-				}
-			}
 			return <>{getType(getValue() as string)}</>
 		},
 		enableSorting: false,
@@ -625,22 +643,6 @@ const columns: ColumnDef<IDATInstitution['transactions'][0]>[] = [
 		header: 'Source Type',
 		accessorKey: 'source_type',
 		cell: ({ getValue }) => {
-			function getSourceType(sourceType: string) {
-				switch (sourceType) {
-					case 'filing':
-						return 'Filing'
-					case 'twitter':
-						return 'Twitter'
-					case 'press-release':
-						return 'Press Release'
-					case 'site':
-						return 'Site'
-					case 'other':
-						return 'Other'
-					default:
-						return sourceType
-				}
-			}
 			return <>{getSourceType(getValue() as string)}</>
 		},
 		enableSorting: false,

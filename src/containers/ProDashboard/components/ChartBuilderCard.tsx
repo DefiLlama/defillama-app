@@ -45,6 +45,12 @@ const buildHideOthersOptions = (mode: 'chains' | 'protocol', limit: number) => [
 	}
 ]
 
+const resolveFilterMode = (value?: 'include' | 'exclude', fallback?: 'include' | 'exclude') => {
+	if (value === 'include' || value === 'exclude') return value
+	if (fallback === 'include' || fallback === 'exclude') return fallback
+	return 'include'
+}
+
 interface ChartBuilderCardProps {
 	builder: {
 		id: string
@@ -119,11 +125,6 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		break
 	}
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
-	const resolveFilterMode = (value?: 'include' | 'exclude', fallback?: 'include' | 'exclude') => {
-		if (value === 'include' || value === 'exclude') return value
-		if (fallback === 'include' || fallback === 'exclude') return fallback
-		return 'include'
-	}
 	const chainFilterMode = resolveFilterMode(config.chainFilterMode, config.filterMode)
 	const categoryFilterMode = resolveFilterMode(config.categoryFilterMode, config.filterMode)
 	const chainCategoryFilterMode = resolveFilterMode(config.chainCategoryFilterMode, config.filterMode)

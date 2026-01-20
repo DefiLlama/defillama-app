@@ -40,6 +40,12 @@ interface PromptInputProps {
 	externalDragging?: boolean
 }
 
+const trackSubmit = () => {
+	if (typeof window !== 'undefined' && (window as any).umami) {
+		;(window as any).umami.track('llamaai-prompt-submit')
+	}
+}
+
 export function PromptInput({
 	handleSubmit,
 	promptInputRef,
@@ -259,12 +265,6 @@ export function PromptInput({
 		}
 		entitiesRef.current.clear()
 		entitiesMapRef.current.clear()
-	}
-
-	const trackSubmit = () => {
-		if (typeof window !== 'undefined' && (window as any).umami) {
-			;(window as any).umami.track('llamaai-prompt-submit')
-		}
 	}
 
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -567,7 +567,7 @@ export function PromptInput({
 								onKeyDown={onKeyDown}
 								onPaste={handlePaste}
 								name="prompt"
-								className="relative z-[1] block thin-scrollbar min-h-4 w-full resize-none overflow-x-hidden overflow-y-auto border-0 bg-transparent p-0 leading-normal break-words whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] max-sm:text-base dark:caret-white placeholder:dark:text-[#919296]"
+								className="relative z-1 block thin-scrollbar min-h-4 w-full resize-none overflow-x-hidden overflow-y-auto border-0 bg-transparent p-0 leading-normal wrap-break-word whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] max-sm:text-base dark:caret-white placeholder:dark:text-[#919296]"
 								autoCorrect="off"
 								autoComplete="off"
 								spellCheck="false"
@@ -576,7 +576,7 @@ export function PromptInput({
 						disabled={isPending && !isStreaming}
 					/>
 					<div
-						className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-0 thin-scrollbar min-h-4 overflow-x-hidden overflow-y-auto p-0 leading-normal break-words whitespace-pre-wrap max-sm:text-base"
+						className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-0 thin-scrollbar min-h-4 overflow-x-hidden overflow-y-auto p-0 leading-normal wrap-break-word whitespace-pre-wrap max-sm:text-base"
 						ref={highlightRef}
 					/>
 				</div>
@@ -601,7 +601,7 @@ export function PromptInput({
 									value={id}
 									focusOnHover
 									onClick={onItemClick({ id, name, type })}
-									className="flex cursor-pointer items-center gap-1.5 border-t border-[#e6e6e6] px-3 py-2 first:border-t-0 hover:bg-[#e6e6e6] focus-visible:bg-[#e6e6e6] data-[active-item]:bg-[#e6e6e6] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] dark:data-[active-item]:bg-[#222324]"
+									className="flex cursor-pointer items-center gap-1.5 border-t border-[#e6e6e6] px-3 py-2 first:border-t-0 hover:bg-[#e6e6e6] focus-visible:bg-[#e6e6e6] data-active-item:bg-[#e6e6e6] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] dark:data-active-item:bg-[#222324]"
 								>
 									{logo && <TokenLogo logo={logo} size={20} />}
 									<span className="flex items-center gap-1.5">

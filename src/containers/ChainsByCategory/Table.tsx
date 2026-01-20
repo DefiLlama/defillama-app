@@ -33,6 +33,21 @@ import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 
 const optionsKey = 'chains-overview-table-columns'
 
+const clearAllColumns = () => {
+	const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))
+	setStorageItem(optionsKey, ops)
+}
+
+const toggleAllColumns = () => {
+	const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, true])))
+	setStorageItem(optionsKey, ops)
+}
+
+const addColumn = (newOptions) => {
+	const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key)]))
+	setStorageItem(optionsKey, JSON.stringify(ops))
+}
+
 export function ChainsByCategoryTable({
 	data,
 	useStickyHeader = true,
@@ -81,20 +96,6 @@ export function ChainsByCategoryTable({
 		instance,
 		columnOrders: chainsTableColumnOrders
 	})
-
-	const clearAllColumns = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))
-		setStorageItem(optionsKey, ops)
-	}
-	const toggleAllColumns = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, true])))
-		setStorageItem(optionsKey, ops)
-	}
-
-	const addColumn = (newOptions) => {
-		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key)]))
-		setStorageItem(optionsKey, JSON.stringify(ops))
-	}
 
 	const addOnlyOneColumn = (newOption) => {
 		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption]))
