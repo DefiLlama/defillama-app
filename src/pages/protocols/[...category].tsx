@@ -61,15 +61,18 @@ export async function getStaticPaths() {
 const toggleOptions = tvlOptions.filter((key) => !['doublecounted', 'liquidstaking'].includes(key.key))
 
 export default function Protocols(props) {
+	const categoryLabel = props.category ?? props.tag ?? ''
+	const rwaCategoryLabel = props.isRWA && props.category ? 'Real World Assets on Chain (RWA)' : categoryLabel
+	const titleLabel = props.isRWA ? rwaCategoryLabel : categoryLabel
+	const titleSuffix = props.isRWA ? 'Rankings' : 'Protocols Rankings'
+	const title = `${capitalizeFirstLetter(titleLabel)} ${titleSuffix} - DefiLlama`
+	const description = `${rwaCategoryLabel} Rankings on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
+	const keywords = `${rwaCategoryLabel} rankings, defi ${rwaCategoryLabel} rankings`.toLowerCase()
 	return (
 		<Layout
-			title={
-				props.isRWA
-					? `${capitalizeFirstLetter(props.category ? 'Real World Assets on Chain (RWA)' : props.tag)} Rankings - DefiLlama`
-					: `${capitalizeFirstLetter(props.category ?? props.tag)} Protocols Rankings - DefiLlama`
-			}
-			description={`${props.category ? 'Real World Assets on Chain (RWA)' : props.tag} Rankings on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${props.category ? 'Real World Assets on Chain (RWA)' : props.tag} rankings, defi ${props.category ? 'Real World Assets on Chain (RWA)' : props.tag} rankings`.toLowerCase()}
+			title={title}
+			description={description}
+			keywords={keywords}
 			canonicalUrl={`/protocols/${props.category ? props.category : props.tag}`}
 			metricFilters={toggleOptions}
 		>
