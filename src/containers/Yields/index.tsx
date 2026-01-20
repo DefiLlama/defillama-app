@@ -139,7 +139,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		pairTokens,
 		usdPeggedSymbols
 	])
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const headers = [
 			'Pool',
 			'Project',
@@ -207,7 +207,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 			filename: 'yields.csv',
 			rows: [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
 		}
-	}, [poolsData])
+	}
 
 	return (
 		<>

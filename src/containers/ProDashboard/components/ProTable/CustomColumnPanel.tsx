@@ -169,7 +169,7 @@ export function CustomColumnPanel({
 	}, [availableVariables])
 
 	// Format number for display - hoisted above sampleDataPreview to avoid TDZ
-	const formatPreviewNumber = React.useCallback((value: number | null): string => {
+	const formatPreviewNumber = (value: number | null): string => {
 		if (value == null) return '-'
 
 		if (Math.abs(value) >= 1e9) {
@@ -181,7 +181,7 @@ export function CustomColumnPanel({
 		} else {
 			return value.toFixed(2)
 		}
-	}, [])
+	}
 
 	const sampleDataPreview = React.useMemo(
 		() =>

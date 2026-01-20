@@ -151,7 +151,7 @@ export function ChainsByCategoryTable({
 		return CHAINS_CATEGORY_GROUP_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
 	}, [groupTvls])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const visibleColumns = instance.getVisibleFlatColumns().filter((col) => col.id !== 'custom_columns')
 		const headers = visibleColumns.map((col) => {
 			if (typeof col.columnDef.header === 'string') {
@@ -173,7 +173,7 @@ export function ChainsByCategoryTable({
 		})
 
 		return { filename: `defillama-chains.csv`, rows: [headers, ...rows] as (string | number | boolean)[][] }
-	}, [instance])
+	}
 
 	return (
 		<div className={`isolate ${borderless ? '' : 'rounded-md border border-(--cards-border) bg-(--cards-bg)'}`}>

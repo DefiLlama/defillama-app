@@ -1,5 +1,5 @@
 import * as echarts from 'echarts/core'
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
@@ -132,7 +132,7 @@ export default function NonTimeSeriesBarChart({
 		}
 	}, [id, defaultChartSettings, series, isThemeDark, chartOptions, valueSymbol, hideDataZoom])
 
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		let rows = [['Name', 'Value']]
 		for (const item of chartData ?? []) {
 			rows.push([item[0], item[1]])
@@ -140,7 +140,7 @@ export default function NonTimeSeriesBarChart({
 		const Mytitle = title ? slug(title) : 'data'
 		const filename = `bar-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
 		return { filename, rows }
-	}, [chartData, title])
+	}
 
 	return (
 		<div className="relative">

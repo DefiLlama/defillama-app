@@ -330,7 +330,7 @@ const ChartByType = ({
 		return { charts }
 	}, [breakdownNames, chartInterval, selectedTypes, data, bribeData, tokenTaxData])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		if (selectedTypes.length === 0) return { filename: '', rows: [] }
 
 		const rows: Array<Array<string | number | null>> = [['Timestamp', 'Date', ...selectedTypes]]
@@ -351,7 +351,7 @@ const ChartByType = ({
 		const csvTitle = `${protocolName}-${title ? slug(title) : chartType}`
 		const filename = `${csvTitle}-${chartInterval.toLowerCase()}-${new Date().toISOString().split('T')[0]}.csv`
 		return { filename, rows }
-	}, [mainChartData.charts, selectedTypes, title, chartInterval, chartType, protocolName])
+	}
 
 	return (
 		<>

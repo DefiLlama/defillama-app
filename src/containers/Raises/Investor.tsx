@@ -35,9 +35,9 @@ function RaisesTable({ raises, prepareCsv }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-	const handleDownloadJson = React.useCallback(() => {
+	const handleDownloadJson = () => {
 		window.open('https://api.llama.fi/raises')
-	}, [])
+	}
 
 	const instance = useReactTable({
 		data: raises,
@@ -115,9 +115,9 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 		chains
 	})
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		return prepareRaisesCsv({ raises: filteredRaisesList })
-	}, [filteredRaisesList])
+	}
 
 	return (
 		<Layout

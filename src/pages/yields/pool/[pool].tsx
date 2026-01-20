@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useCallback, useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -111,7 +111,7 @@ const PageView = (_props) => {
 	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
 
 	// prepare csv data
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		if (!chart?.data || !query?.pool) return { filename: `yields.csv`, rows: [] }
 		const rows = [['APY', 'APY_BASE', 'APY_REWARD', 'TVL', 'DATE']]
 
@@ -120,7 +120,7 @@ const PageView = (_props) => {
 		}
 
 		return { filename: `${query.pool}.csv`, rows: rows as (string | number | boolean)[][] }
-	}, [chart?.data, query?.pool])
+	}
 
 	const apy = poolData.apy?.toFixed(2) ?? 0
 	const apyMean30d = poolData.apyMean30d?.toFixed(2) ?? 0

@@ -76,7 +76,7 @@ export function BridgesOverviewByChain({
 		})
 	}, [chainVolumeData])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const resolvedFilteredBridges = filteredBridges ?? EMPTY_PROTOCOLS
 		const resolvedMessagingProtocols = messagingProtocols ?? EMPTY_PROTOCOLS
 		const allBridges = [...resolvedFilteredBridges, ...resolvedMessagingProtocols]
@@ -116,9 +116,9 @@ export function BridgesOverviewByChain({
 		}
 
 		return { filename: fileName, rows }
-	}, [filteredBridges, messagingProtocols, bridgeNameToChartDataIndex, chartDataByBridge])
+	}
 
-	const prepareChartCsv = React.useCallback(() => {
+	const prepareChartCsv = () => {
 		type CsvConfig = {
 			filename: string
 			headers: string[]
@@ -188,16 +188,7 @@ export function BridgesOverviewByChain({
 			filename: config.filename,
 			rows: config.headers.length > 0 ? [config.headers, ...config.getData()] : []
 		}
-	}, [
-		selectedChain,
-		chartView,
-		chartType,
-		chainVolumeData,
-		chainNetFlowData,
-		chainPercentageNet,
-		tokenDeposits,
-		tokenWithdrawals
-	])
+	}
 
 	const { dayTotalVolume, weekTotalVolume, monthTotalVolume } = React.useMemo(() => {
 		let dayTotalVolume, weekTotalVolume, monthTotalVolume

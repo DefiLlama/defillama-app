@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -172,13 +172,13 @@ export default function Protocols(props) {
 		return finalCharts
 	}, [charts, groupBy, props.charts])
 
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		const dataByChartType = {}
 		for (const chartType in finalCharts) {
 			dataByChartType[chartType] = finalCharts[chartType].data
 		}
 		return prepareChartCsv(dataByChartType, `${props.name}-total-options-volume.csv`)
-	}, [finalCharts, props.name])
+	}
 
 	return (
 		<ProtocolOverviewLayout

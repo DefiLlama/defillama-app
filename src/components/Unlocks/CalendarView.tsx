@@ -137,7 +137,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 		return max
 	}, [currentDate, viewMode, unlocksData, precomputedData])
 
-	const next = React.useCallback(() => {
+	const next = () => {
 		const duration = viewMode === 'List' ? 30 : 1
 		const unit = (viewMode === 'List' ? 'day' : viewMode === 'TreeMap' ? 'year' : viewMode.toLowerCase()) as
 			| 'day'
@@ -145,9 +145,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 			| 'month'
 			| 'year'
 		setCurrentDate((prev) => prev.add(duration, unit))
-	}, [viewMode])
+	}
 
-	const prev = React.useCallback(() => {
+	const prev = () => {
 		const duration = viewMode === 'List' ? 30 : 1
 		const unit = (viewMode === 'List' ? 'day' : viewMode === 'TreeMap' ? 'year' : viewMode.toLowerCase()) as
 			| 'day'
@@ -155,11 +155,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 			| 'month'
 			| 'year'
 		setCurrentDate((prev) => prev.subtract(duration, unit))
-	}, [viewMode])
+	}
 
-	const goToToday = React.useCallback(() => {
+	const goToToday = () => {
 		setCurrentDate(dayjs())
-	}, [])
+	}
 
 	return (
 		<div className="flex flex-col gap-6">

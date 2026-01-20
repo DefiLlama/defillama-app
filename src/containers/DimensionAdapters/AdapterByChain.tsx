@@ -11,7 +11,7 @@ import {
 	type SortingState
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
@@ -260,7 +260,7 @@ export function AdapterByChain(props: IProps) {
 		columnSizes,
 		columnOrders
 	})
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		const header = [
 			'Protocol',
 			'Category',
@@ -292,7 +292,7 @@ export function AdapterByChain(props: IProps) {
 		})
 
 		return { filename: `${props.type}-${props.chain}-protocols.csv`, rows: [header, ...csvdata] }
-	}, [props, protocols])
+	}
 
 	const { category: _category, chain, ...queries } = router.query
 

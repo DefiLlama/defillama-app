@@ -212,7 +212,6 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 						width={90}
 						height={30}
 						className="ml-auto"
-						unoptimized
 					/>
 				</BasicLink>
 			)

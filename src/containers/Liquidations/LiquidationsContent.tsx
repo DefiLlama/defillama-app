@@ -1,7 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import Image from 'next/image'
 import * as React from 'react'
-import boboLogo from '~/assets/boboSmug.png'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { ISearchItem } from '~/components/Search/types'
@@ -34,9 +32,9 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 			download(`${data.symbol}-all-positions.csv`, csvString)
 		}
 	})
-	const handleCsvDownload = React.useCallback(() => {
+	const handleCsvDownload = () => {
 		mutate()
-	}, [mutate])
+	}
 	return (
 		<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 			<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
@@ -74,7 +72,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 					className="absolute -bottom-9 left-0 z-1 xl:top-0 xl:right-0 xl:bottom-[initial] xl:left-[initial]"
 				>
 					<span className="sr-only">Enable Goblin Mode</span>
-					<Image src={boboLogo} width={34} height={34} alt="bobo cheers" className="min-h-[34px] w-[34px]" />
+					<img src="/assets/boboSmug.png" width={34} height={34} alt="bobo cheers" className="min-h-[34px] w-[34px]" />
 				</button>
 				<React.Suspense fallback={<></>}>
 					<LiquidationsChart chartData={data} uid={data.symbol} bobo={bobo} />

@@ -14,7 +14,7 @@ import {
 import clsx from 'clsx'
 import { matchSorter } from 'match-sorter'
 import Router, { useRouter } from 'next/router'
-import { lazy, Suspense, useCallback, useDeferredValue, useMemo, useState } from 'react'
+import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
@@ -307,7 +307,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 
 	useSortColumnSizesAndOrders({ instance, columnSizes })
 
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		const tableRows = instance.getSortedRowModel().rows
 		const headers: Array<string | number | boolean> = [
 			// Keep in sync with `columns` below (virtual table columns)
@@ -363,7 +363,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			filename: `rwa-assets${props.selectedChain !== 'All' ? `-${props.selectedChain.toLowerCase()}` : ''}.csv`,
 			rows: [headers, ...csvData]
 		}
-	}, [instance, props.selectedChain])
+	}
 
 	return (
 		<>
@@ -1225,80 +1225,60 @@ const useRWATableQueryParams = ({
 		issuers
 	])
 
-	const setSelectedCategories = useCallback((values: string[]) => updateArrayQuery('categories', values), [])
-	const selectOnlyOneCategory = useCallback((category: string) => updateArrayQuery('categories', [category]), [])
-	const toggleAllCategories = useCallback(() => {
+	const setSelectedCategories = (values: string[]) => updateArrayQuery('categories', values)
+	const selectOnlyOneCategory = (category: string) => updateArrayQuery('categories', [category])
+	const toggleAllCategories = () => {
 		const nextQuery: Record<string, any> = { ...Router.query }
 		delete nextQuery.categories
 		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [])
-	const clearAllCategories = useCallback(() => updateArrayQuery('categories', 'None'), [])
+	}
+	const clearAllCategories = () => updateArrayQuery('categories', 'None')
 
-	const setSelectedAssetClasses = useCallback((values: string[]) => updateArrayQuery('assetClasses', values), [])
-	const selectOnlyOneAssetClass = useCallback(
-		(assetClass: string) => updateArrayQuery('assetClasses', [assetClass]),
-		[]
-	)
-	const toggleAllAssetClasses = useCallback(() => {
+	const setSelectedAssetClasses = (values: string[]) => updateArrayQuery('assetClasses', values)
+	const selectOnlyOneAssetClass = (assetClass: string) => updateArrayQuery('assetClasses', [assetClass])
+	const toggleAllAssetClasses = () => {
 		const nextQuery: Record<string, any> = { ...Router.query }
 		delete nextQuery.assetClasses
 		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [])
-	const clearAllAssetClasses = useCallback(() => updateArrayQuery('assetClasses', 'None'), [])
+	}
+	const clearAllAssetClasses = () => updateArrayQuery('assetClasses', 'None')
 
-	const setSelectedRwaClassifications = useCallback(
-		(values: string[]) => updateArrayQuery('rwaClassifications', values),
-		[]
-	)
-	const selectOnlyOneRwaClassification = useCallback(
-		(rwaClassification: string) => updateArrayQuery('rwaClassifications', [rwaClassification]),
-		[]
-	)
-	const toggleAllRwaClassifications = useCallback(() => {
+	const setSelectedRwaClassifications = (values: string[]) => updateArrayQuery('rwaClassifications', values)
+	const selectOnlyOneRwaClassification = (rwaClassification: string) =>
+		updateArrayQuery('rwaClassifications', [rwaClassification])
+	const toggleAllRwaClassifications = () => {
 		const nextQuery: Record<string, any> = { ...Router.query }
 		delete nextQuery.rwaClassifications
 		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [])
-	const clearAllRwaClassifications = useCallback(() => updateArrayQuery('rwaClassifications', 'None'), [])
+	}
+	const clearAllRwaClassifications = () => updateArrayQuery('rwaClassifications', 'None')
 
-	const setSelectedAccessModels = useCallback((values: string[]) => updateArrayQuery('accessModels', values), [])
-	const selectOnlyOneAccessModel = useCallback(
-		(accessModel: string) => updateArrayQuery('accessModels', [accessModel]),
-		[]
-	)
-	const toggleAllAccessModels = useCallback(() => {
+	const setSelectedAccessModels = (values: string[]) => updateArrayQuery('accessModels', values)
+	const selectOnlyOneAccessModel = (accessModel: string) => updateArrayQuery('accessModels', [accessModel])
+	const toggleAllAccessModels = () => {
 		const nextQuery: Record<string, any> = { ...Router.query }
 		delete nextQuery.accessModels
 		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [])
-	const clearAllAccessModels = useCallback(() => updateArrayQuery('accessModels', 'None'), [])
+	}
+	const clearAllAccessModels = () => updateArrayQuery('accessModels', 'None')
 
-	const setSelectedIssuers = useCallback((values: string[]) => updateArrayQuery('issuers', values), [])
-	const selectOnlyOneIssuer = useCallback((issuer: string) => updateArrayQuery('issuers', [issuer]), [])
-	const toggleAllIssuers = useCallback(() => {
+	const setSelectedIssuers = (values: string[]) => updateArrayQuery('issuers', values)
+	const selectOnlyOneIssuer = (issuer: string) => updateArrayQuery('issuers', [issuer])
+	const toggleAllIssuers = () => {
 		const nextQuery: Record<string, any> = { ...Router.query }
 		delete nextQuery.issuers
 		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [])
-	const clearAllIssuers = useCallback(() => updateArrayQuery('issuers', 'None'), [])
+	}
+	const clearAllIssuers = () => updateArrayQuery('issuers', 'None')
 
-	const setDefiActiveTvlToOnChainPctRange = useCallback(
-		(minValue: string | number | null, maxValue: string | number | null) =>
-			updateNumberRangeQuery('minDefiActiveTvlToOnChainPct', 'maxDefiActiveTvlToOnChainPct', minValue, maxValue),
-		[]
-	)
-	const setActiveMcapToOnChainPctRange = useCallback(
-		(minValue: string | number | null, maxValue: string | number | null) =>
-			updateNumberRangeQuery('minActiveMcapToOnChainPct', 'maxActiveMcapToOnChainPct', minValue, maxValue),
-		[]
-	)
-	const setDefiActiveTvlToActiveMcapPctRange = useCallback(
-		(minValue: string | number | null, maxValue: string | number | null) =>
-			updateNumberRangeQuery('minDefiActiveTvlToActiveMcapPct', 'maxDefiActiveTvlToActiveMcapPct', minValue, maxValue),
-		[]
-	)
+	const setDefiActiveTvlToOnChainPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
+		updateNumberRangeQuery('minDefiActiveTvlToOnChainPct', 'maxDefiActiveTvlToOnChainPct', minValue, maxValue)
+	const setActiveMcapToOnChainPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
+		updateNumberRangeQuery('minActiveMcapToOnChainPct', 'maxActiveMcapToOnChainPct', minValue, maxValue)
+	const setDefiActiveTvlToActiveMcapPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
+		updateNumberRangeQuery('minDefiActiveTvlToActiveMcapPct', 'maxDefiActiveTvlToActiveMcapPct', minValue, maxValue)
 
-	const setIncludeStablecoins = useCallback((value: boolean) => {
+	const setIncludeStablecoins = (value: boolean) => {
 		const nextQuery: Record<string, any> = { ...Router.query }
 		if (value) {
 			delete nextQuery.includeStablecoins
@@ -1306,9 +1286,9 @@ const useRWATableQueryParams = ({
 			nextQuery.includeStablecoins = 'false'
 		}
 		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [])
+	}
 
-	const setIncludeGovernance = useCallback((value: boolean) => {
+	const setIncludeGovernance = (value: boolean) => {
 		const nextQuery: Record<string, any> = { ...Router.query }
 		if (value) {
 			delete nextQuery.includeGovernance
@@ -1316,7 +1296,7 @@ const useRWATableQueryParams = ({
 			nextQuery.includeGovernance = 'false'
 		}
 		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [])
+	}
 
 	return {
 		selectedCategories,

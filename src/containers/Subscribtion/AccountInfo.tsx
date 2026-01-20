@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useState } from 'react'
+import { FormEvent, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
@@ -33,33 +33,30 @@ export const AccountInfo = () => {
 	const isWalletUser = user?.email?.includes('@defillama.com')
 
 	const isVerified = user?.verified
-	const handleEmailChange = useCallback(
-		async (e: FormEvent<HTMLFormElement>) => {
-			e.preventDefault()
-			if (isWalletUser) {
-				await addEmail(newEmail)
-			} else {
-				changeEmail(newEmail)
-			}
-			setNewEmail('')
-			setShowEmailForm(false)
-		},
-		[addEmail, changeEmail, isWalletUser, newEmail, setNewEmail, setShowEmailForm]
-	)
+	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
+		if (isWalletUser) {
+			await addEmail(newEmail)
+		} else {
+			changeEmail(newEmail)
+		}
+		setNewEmail('')
+		setShowEmailForm(false)
+	}
 
-	const handleResendVerification = useCallback(async () => {
+	const handleResendVerification = async () => {
 		if (user?.email) {
 			resendVerification(user.email)
 		}
-	}, [resendVerification, user?.email])
+	}
 
-	const handleLogout = useCallback(async () => {
+	const handleLogout = async () => {
 		try {
 			logout()
 		} catch (error) {
 			console.log('Error logging out:', error)
 		}
-	}, [logout])
+	}
 
 	if (loaders.userLoading) {
 		return (

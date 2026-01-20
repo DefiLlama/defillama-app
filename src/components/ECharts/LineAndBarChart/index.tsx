@@ -1,5 +1,5 @@
 import * as echarts from 'echarts/core'
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
@@ -318,7 +318,7 @@ export default function LineAndBarChart({
 	const exportFilename = imageExportFilename || (title ? slug(title) : 'chart')
 	const exportTitle = imageExportTitle || title
 
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		const chartNames = Object.keys(charts)
 		const rows = [['Timestamp', 'Date', ...chartNames.map((key) => charts[key].name || key)]]
 
@@ -342,7 +342,7 @@ export default function LineAndBarChart({
 		const myTitle = title ? slug(title) : 'data'
 		const filename = `line-bar-chart-${myTitle}-${new Date().toISOString().split('T')[0]}.csv`
 		return { filename, rows }
-	}, [charts, title])
+	}
 
 	return (
 		<div className="relative">

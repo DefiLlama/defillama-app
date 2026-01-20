@@ -172,14 +172,14 @@ export const AdapterByChainChart = ({
 	const { mutate: downloadBreakdownChartMutation, isPending: isDownloadingBreakdownChart } = useMutation({
 		mutationFn: downloadBreakdownChart
 	})
-	const handleDownloadBreakdownCsv = React.useCallback(() => {
+	const handleDownloadBreakdownCsv = () => {
 		downloadBreakdownChartMutation({
 			adapterType,
 			chain,
 			dataType,
 			fileName: `${chain === 'All' ? 'All Chains' : chain} - ${chartName}`
 		})
-	}, [adapterType, chain, chartName, dataType, downloadBreakdownChartMutation])
+	}
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -236,7 +236,7 @@ export const ChainsByAdapterChart = ({
 		return getChartDataByChainAndInterval({ chartData, chartInterval, chartType, selectedChains })
 	}, [chartData, chartInterval, selectedChains, chartType])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const rows: any = [['Timestamp', 'Date', ...allChains]]
 
 		for (const [date, chainsOnDate] of chartData) {
@@ -248,7 +248,7 @@ export const ChainsByAdapterChart = ({
 		}
 
 		return { filename: `${type}-chains-${new Date().toISOString().split('T')[0]}.csv`, rows }
-	}, [chartData, allChains, type])
+	}
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">

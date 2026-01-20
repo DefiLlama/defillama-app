@@ -51,7 +51,7 @@ export const OraclesByChain = ({
 		return { tokenTvls, tokensList }
 	}, [chainsWithExtraTvlsByDay, tokensProtocols, chainsByOracle])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const headers = Object.keys(tokensList[0])
 		const rows = [headers].concat(
 			tokensList.map((row) =>
@@ -59,7 +59,7 @@ export const OraclesByChain = ({
 			)
 		)
 		return { filename: 'oracles.csv', rows }
-	}, [tokensList])
+	}
 
 	return (
 		<Layout

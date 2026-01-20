@@ -259,7 +259,7 @@ export default function BarChart({
 
 	const showLegend = Boolean(customLegendName && customLegendOptions?.length > 1)
 
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		let rows = []
 		if (!stackKeys || stackKeys.length === 0) {
 			rows = [['Timestamp', 'Date', 'Value']]
@@ -276,7 +276,7 @@ export default function BarChart({
 		const Mytitle = title ? slug(title) : 'data'
 		const filename = `bar-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
 		return { filename, rows }
-	}, [chartData, stackKeys, selectedStacks, title])
+	}
 
 	return (
 		<div className="relative">

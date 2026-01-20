@@ -40,7 +40,7 @@ export function ChainsByCategory({
 
 	const { showByGroup, chainsTableData } = useGroupAndFormatChains({ chains, category })
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const headers = ['Date', 'Timestamp']
 		for (const chain in dominanceCharts) {
 			headers.push(chain)
@@ -64,7 +64,7 @@ export function ChainsByCategory({
 		}
 
 		return { filename: `defillama-chains-dominance.csv`, rows: [headers, ...rows] as (string | number | boolean)[][] }
-	}, [dominanceCharts])
+	}
 
 	return (
 		<Layout

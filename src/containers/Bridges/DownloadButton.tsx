@@ -1,10 +1,9 @@
 import * as React from 'react'
-import { useCallback } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { toNiceCsvDate } from '~/utils'
 
 export const LargeTxDownloadButton = ({ data }: { data: any }) => {
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		const rows = [
 			[
 				'Timestamp',
@@ -40,7 +39,7 @@ export const LargeTxDownloadButton = ({ data }: { data: any }) => {
 		}
 
 		return { filename: 'bridge-transactions.csv', rows }
-	}, [data])
+	}
 
 	return <CSVDownloadButton prepareCsv={prepareCsv} smol className="mr-2" />
 }

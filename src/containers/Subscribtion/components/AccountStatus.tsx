@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -54,15 +54,15 @@ export const AccountStatus = ({
 			})
 	}, [getPortalSessionUrl, isAuthenticated])
 
-	const handleCloseWalletLinkModal = useCallback(() => {
+	const handleCloseWalletLinkModal = () => {
 		setIsModalOpen(false)
-	}, [])
+	}
 
-	const handleOpenWalletLinkModal = useCallback(() => {
+	const handleOpenWalletLinkModal = () => {
 		setIsModalOpen(true)
-	}, [])
+	}
 
-	const handleLinkWallet = useCallback(() => {
+	const handleLinkWallet = () => {
 		if (!address) {
 			openConnectModal?.()
 			return
@@ -75,7 +75,7 @@ export const AccountStatus = ({
 			.catch(() => {
 				return
 			})
-	}, [address, addWallet, openConnectModal, signMessageAsync])
+	}
 
 	return (
 		<>

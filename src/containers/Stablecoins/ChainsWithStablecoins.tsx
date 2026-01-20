@@ -56,7 +56,7 @@ export function ChainsWithStablecoins({
 
 	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
-	const prepareeCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const rows = [['Timestamp', 'Date', ...chainList, 'Total']]
 		const sortedData = stackedData.sort((a, b) => a.date - b.date)
 		for (const day of sortedData) {
@@ -70,7 +70,7 @@ export function ChainsWithStablecoins({
 			])
 		}
 		return { filename: 'stablecoinsChainTotals.csv', rows: rows as (string | number | boolean)[][] }
-	}, [stackedData, chainList])
+	}
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
 
@@ -159,7 +159,7 @@ export function ChainsWithStablecoins({
 						<span className="font-jetbrains text-2xl font-semibold">{dominance}%</span>
 					</p>
 
-					<CSVDownloadButton prepareCsv={prepareeCsv} smol className="mt-auto mr-auto" />
+					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 				<div className="col-span-2 flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					{chartType === 'Total Market Cap' && (

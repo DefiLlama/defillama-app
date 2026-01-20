@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { Icon, IIcon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Dashboard } from '../services/DashboardAPI'
@@ -28,7 +28,7 @@ export function DiscoverySection({
 	// Cache previous values to avoid unnecessary state updates
 	const prevScrollStateRef = useRef({ canScrollLeft: false, canScrollRight: true })
 
-	const updateScrollState = useCallback(() => {
+	const updateScrollState = () => {
 		// Cancel any pending RAF to avoid stacking
 		if (rafIdRef.current) return
 
@@ -52,7 +52,7 @@ export function DiscoverySection({
 				setCanScrollRight(newCanScrollRight)
 			}
 		})
-	}, [])
+	}
 
 	// Cleanup RAF on unmount
 	useEffect(() => {

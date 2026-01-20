@@ -35,9 +35,9 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 		chains
 	})
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		return prepareRaisesCsv({ raises: filteredRaisesList })
-	}, [filteredRaisesList])
+	}
 
 	return (
 		<Layout

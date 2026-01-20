@@ -205,72 +205,66 @@ export function ChainsDataset({
 		autoResetPageIndex: false
 	})
 
-	const applyPreset = React.useCallback(
-		(preset: string) => {
-			const presetColumns = CHAIN_COLUMN_PRESETS[preset as keyof typeof CHAIN_COLUMN_PRESETS]
-			if (presetColumns) {
-				const allColumns = instance.getAllColumns()
-				const newVisibility: Record<string, boolean> = {}
+	const applyPreset = (preset: string) => {
+		const presetColumns = CHAIN_COLUMN_PRESETS[preset as keyof typeof CHAIN_COLUMN_PRESETS]
+		if (presetColumns) {
+			const allColumns = instance.getAllColumns()
+			const newVisibility: Record<string, boolean> = {}
 
-				for (const column of allColumns) {
-					newVisibility[column.id] = presetColumns.includes(column.id)
+			for (const column of allColumns) {
+				newVisibility[column.id] = presetColumns.includes(column.id)
+			}
+
+			instance.setColumnVisibility(newVisibility)
+			instance.setColumnOrder(presetColumns)
+			setColumnVisibility(newVisibility)
+			setColumnOrder(presetColumns)
+			setSelectedPreset(preset)
+
+			if (uniqueTableId && handleTableColumnsChange) {
+				handleTableColumnsChange(uniqueTableId, presetColumns, newVisibility)
+			}
+		}
+	}
+
+	const toggleColumnVisibility = (columnId: string) => {
+		const column = instance.getColumn(columnId)
+		if (column) {
+			column.toggleVisibility()
+			setSelectedPreset(null)
+
+			const newVisibility = { ...columnVisibility, [columnId]: !columnVisibility[columnId] }
+			setColumnVisibility(newVisibility)
+
+			if (newVisibility[columnId] !== false && !columnOrder.includes(columnId)) {
+				const allColumns = instance.getAllLeafColumns().map((d) => d.id)
+				const originalIndex = allColumns.indexOf(columnId)
+
+				const newOrder = [...columnOrder]
+				let insertIndex = newOrder.length
+
+				for (let i = originalIndex + 1; i < allColumns.length; i++) {
+					const colId = allColumns[i]
+					const orderIndex = newOrder.indexOf(colId)
+					if (orderIndex !== -1) {
+						insertIndex = orderIndex
+						break
+					}
 				}
 
-				instance.setColumnVisibility(newVisibility)
-				instance.setColumnOrder(presetColumns)
-				setColumnVisibility(newVisibility)
-				setColumnOrder(presetColumns)
-				setSelectedPreset(preset)
+				newOrder.splice(insertIndex, 0, columnId)
+				setColumnOrder(newOrder)
 
 				if (uniqueTableId && handleTableColumnsChange) {
-					handleTableColumnsChange(uniqueTableId, presetColumns, newVisibility)
+					handleTableColumnsChange(uniqueTableId, newOrder, newVisibility)
+				}
+			} else {
+				if (uniqueTableId && handleTableColumnsChange) {
+					handleTableColumnsChange(uniqueTableId, columnOrder, newVisibility)
 				}
 			}
-		},
-		[instance, uniqueTableId, handleTableColumnsChange]
-	)
-
-	const toggleColumnVisibility = React.useCallback(
-		(columnId: string) => {
-			const column = instance.getColumn(columnId)
-			if (column) {
-				column.toggleVisibility()
-				setSelectedPreset(null)
-
-				const newVisibility = { ...columnVisibility, [columnId]: !columnVisibility[columnId] }
-				setColumnVisibility(newVisibility)
-
-				if (newVisibility[columnId] !== false && !columnOrder.includes(columnId)) {
-					const allColumns = instance.getAllLeafColumns().map((d) => d.id)
-					const originalIndex = allColumns.indexOf(columnId)
-
-					const newOrder = [...columnOrder]
-					let insertIndex = newOrder.length
-
-					for (let i = originalIndex + 1; i < allColumns.length; i++) {
-						const colId = allColumns[i]
-						const orderIndex = newOrder.indexOf(colId)
-						if (orderIndex !== -1) {
-							insertIndex = orderIndex
-							break
-						}
-					}
-
-					newOrder.splice(insertIndex, 0, columnId)
-					setColumnOrder(newOrder)
-
-					if (uniqueTableId && handleTableColumnsChange) {
-						handleTableColumnsChange(uniqueTableId, newOrder, newVisibility)
-					}
-				} else {
-					if (uniqueTableId && handleTableColumnsChange) {
-						handleTableColumnsChange(uniqueTableId, columnOrder, newVisibility)
-					}
-				}
-			}
-		},
-		[instance, uniqueTableId, handleTableColumnsChange, columnVisibility, columnOrder]
-	)
+		}
+	}
 
 	const onSyncInitialColumns = React.useEffectEvent(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
@@ -341,7 +335,7 @@ export function ChainsDataset({
 		onSyncInitialColumns()
 	}, [savedColumnOrder, savedColumnVisibility])
 
-	const handleExportCSV = React.useCallback(() => {
+	const handleExportCSV = () => {
 		const headers = instance
 			.getVisibleFlatColumns()
 			.filter((col) => col.id !== 'expand')
@@ -360,7 +354,7 @@ export function ChainsDataset({
 		})
 
 		downloadCSV('chains-data.csv', [headers, ...rows], { addTimestamp: true })
-	}, [instance])
+	}
 
 	const columnOptions = React.useMemo(
 		() =>
@@ -371,35 +365,29 @@ export function ChainsDataset({
 		[percentageShareColumns]
 	)
 
-	const moveColumnUp = React.useCallback(
-		(columnId: string) => {
-			const currentOrder = [...columnOrder]
-			const index = currentOrder.indexOf(columnId)
-			if (index > 0) {
-				;[currentOrder[index - 1], currentOrder[index]] = [currentOrder[index], currentOrder[index - 1]]
-				setColumnOrder(currentOrder)
-				if (uniqueTableId && handleTableColumnsChange) {
-					handleTableColumnsChange(uniqueTableId, currentOrder, columnVisibility)
-				}
+	const moveColumnUp = (columnId: string) => {
+		const currentOrder = [...columnOrder]
+		const index = currentOrder.indexOf(columnId)
+		if (index > 0) {
+			;[currentOrder[index - 1], currentOrder[index]] = [currentOrder[index], currentOrder[index - 1]]
+			setColumnOrder(currentOrder)
+			if (uniqueTableId && handleTableColumnsChange) {
+				handleTableColumnsChange(uniqueTableId, currentOrder, columnVisibility)
 			}
-		},
-		[columnOrder, uniqueTableId, handleTableColumnsChange, columnVisibility]
-	)
+		}
+	}
 
-	const moveColumnDown = React.useCallback(
-		(columnId: string) => {
-			const currentOrder = [...columnOrder]
-			const index = currentOrder.indexOf(columnId)
-			if (index < currentOrder.length - 1) {
-				;[currentOrder[index], currentOrder[index + 1]] = [currentOrder[index + 1], currentOrder[index]]
-				setColumnOrder(currentOrder)
-				if (uniqueTableId && handleTableColumnsChange) {
-					handleTableColumnsChange(uniqueTableId, currentOrder, columnVisibility)
-				}
+	const moveColumnDown = (columnId: string) => {
+		const currentOrder = [...columnOrder]
+		const index = currentOrder.indexOf(columnId)
+		if (index < currentOrder.length - 1) {
+			;[currentOrder[index], currentOrder[index + 1]] = [currentOrder[index + 1], currentOrder[index]]
+			setColumnOrder(currentOrder)
+			if (uniqueTableId && handleTableColumnsChange) {
+				handleTableColumnsChange(uniqueTableId, currentOrder, columnVisibility)
 			}
-		},
-		[columnOrder, uniqueTableId, handleTableColumnsChange, columnVisibility]
-	)
+		}
+	}
 
 	if (isLoading) {
 		return (

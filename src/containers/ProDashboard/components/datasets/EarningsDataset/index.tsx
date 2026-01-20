@@ -104,25 +104,22 @@ export function EarningsDataset({ chains, tableId, filters }: EarningsDatasetPro
 		})
 	}, [data, includeCategoriesSet, excludeCategoriesSet])
 
-	const handleApplyCategoryFilters = React.useCallback(
-		(include: string[], exclude: string[]) => {
-			const sanitizedInclude = include.filter((cat) => availableCategoriesSet.has(cat))
-			const sanitizedExclude = exclude.filter((cat) => availableCategoriesSet.has(cat))
-			setIncludeCategories(sanitizedInclude)
-			setExcludeCategories(sanitizedExclude)
-			if (tableId) {
-				handleTableFiltersChange(tableId, {
-					categories: sanitizedInclude.length ? sanitizedInclude : undefined,
-					excludedCategories: sanitizedExclude.length ? sanitizedExclude : undefined
-				})
-			}
-		},
-		[availableCategoriesSet, handleTableFiltersChange, tableId]
-	)
+	const handleApplyCategoryFilters = (include: string[], exclude: string[]) => {
+		const sanitizedInclude = include.filter((cat) => availableCategoriesSet.has(cat))
+		const sanitizedExclude = exclude.filter((cat) => availableCategoriesSet.has(cat))
+		setIncludeCategories(sanitizedInclude)
+		setExcludeCategories(sanitizedExclude)
+		if (tableId) {
+			handleTableFiltersChange(tableId, {
+				categories: sanitizedInclude.length ? sanitizedInclude : undefined,
+				excludedCategories: sanitizedExclude.length ? sanitizedExclude : undefined
+			})
+		}
+	}
 
-	const handleClearCategoryFilters = React.useCallback(() => {
+	const handleClearCategoryFilters = () => {
 		handleApplyCategoryFilters([], [])
-	}, [handleApplyCategoryFilters])
+	}
 
 	const columnsToUse = React.useMemo(() => {
 		if (chains && chains.length > 0) {

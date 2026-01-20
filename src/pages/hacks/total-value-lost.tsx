@@ -40,7 +40,7 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 		return columns.filter((c) => selectedColumns.includes(c.id))
 	}, [selectedColumns])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const rows: Array<Array<string | number>> = [['Name', 'Total Hacked', 'Returned Funds', 'Net User Loss']]
 		for (const protocol of protocols) {
 			rows.push([
@@ -51,7 +51,7 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 			])
 		}
 		return { filename: 'total-value-lost-in-hacks.csv', rows: rows as (string | number | boolean)[][] }
-	}, [protocols])
+	}
 
 	return (
 		<Layout
