@@ -97,7 +97,7 @@ export const ChartControls = memo(function ChartControls({
 						<Tooltip
 							content={capitalizeFirstLetter(interval)}
 							render={<button />}
-							className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue shrink-0 px-2 py-1 text-xs whitespace-nowrap data-[active=true]:bg-(--old-blue) data-[active=true]:font-medium data-[active=true]:text-white"
+							className="shrink-0 px-2 py-1 text-xs whitespace-nowrap hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue data-[active=true]:bg-(--old-blue) data-[active=true]:font-medium data-[active=true]:text-white"
 							data-active={grouping === interval}
 							onClick={() => onGroupingChange(interval)}
 							key={`grouping-${interval}`}

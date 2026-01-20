@@ -1,6 +1,6 @@
 import { RWA_ACTIVE_TVLS_API } from '~/constants'
 import definitions from '~/public/rwa-definitions.json'
-import { slug } from '~/utils'
+import { formatNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 interface IFetchedRWAProject {
@@ -35,6 +35,7 @@ interface IFetchedRWAProject {
 	defiActiveTvl: Record<string, Record<string, string>> | null
 	onChainMarketcap: Record<string, string> | null
 	activeMcap: Record<string, string> | null
+	price?: number | null
 }
 
 export interface IRWAProject extends Omit<
@@ -230,7 +231,8 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 					breakdown: Object.entries(
 						isChainFiltered ? finalDeFiActiveTvlBreakdownFiltered : finalDeFiActiveTvlBreakdown
 					).sort((a, b) => b[1] - a[1])
-				}
+				},
+				price: item.price != null ? Number(formatNum(item.price)) : null
 			}
 
 			// Only include asset if it exists on the selected chain (or no chain filter)
@@ -467,7 +469,8 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 					defiActiveTvl: {
 						total: totalDeFiActiveTvlForAsset,
 						breakdown: Object.entries(finalDeFiActiveTvlBreakdown).sort((a, b) => b[1] - a[1])
-					}
+					},
+					price: item.price != null ? Number(formatNum(item.price)) : null
 				}
 			}
 		}

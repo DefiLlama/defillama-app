@@ -30,7 +30,7 @@ export function BorrowedProtocolsTVLByChain(props: ITotalBorrowedByChainPageData
 						<p className="flex flex-col">
 							<span className="flex flex-col">
 								<span>Total Borrowed</span>
-								<span className="font-jetbrains min-h-8 overflow-hidden text-2xl font-semibold text-ellipsis whitespace-nowrap">
+								<span className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
 									{formattedNum(props.totalBorrowed, true)}
 								</span>
 							</span>
@@ -38,7 +38,7 @@ export function BorrowedProtocolsTVLByChain(props: ITotalBorrowedByChainPageData
 						{props.change24h != null ? (
 							<p className="relative bottom-0.5 flex flex-nowrap items-center gap-2 text-sm">
 								<span
-									className={`font-jetbrains text-right text-ellipsis ${
+									className={`text-right font-jetbrains text-ellipsis ${
 										props.change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
 									}`}
 								>

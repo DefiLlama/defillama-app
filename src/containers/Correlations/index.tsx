@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import { useEffect, useMemo, useState } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
@@ -154,7 +154,7 @@ export default function Correlations({ coinsData }) {
 		if (!router.isReady) return
 
 		if (!queryCoins?.length)
-			router.replace(
+			Router.replace(
 				{
 					pathname: router.pathname,
 					query: {
@@ -165,7 +165,7 @@ export default function Correlations({ coinsData }) {
 				undefined,
 				{ shallow: true }
 			)
-	}, [queryCoins, router, router.isReady])
+	}, [queryCoins, router.query, router.pathname, router.isReady])
 
 	const dialogStore = Ariakit.useDialogStore()
 
@@ -193,7 +193,7 @@ export default function Correlations({ coinsData }) {
 
 			<div className="flex flex-col items-center justify-center gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="flex flex-col sm:flex-row">
-					<div className="no-scrollbar mr-8 flex flex-col overflow-auto">
+					<div className="mr-8 no-scrollbar flex flex-col overflow-auto">
 						<h2 className="text-lg font-medium">Selected Coins</h2>
 						{coins.map((coin) =>
 							coin ? (

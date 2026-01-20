@@ -195,7 +195,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 	}
 	const handleChartTypeSelect = useCallback((type: string) => onChartTypesChange([type]), [onChartTypesChange])
 
-	const selectedChartTypeSingle = useMemo(() => selectedChartTypes[0] || null, [selectedChartTypes])
+	const selectedChartTypeSingle = selectedChartTypes[0] || null
 
 	const selectedEntitiesForCurrentType = useMemo(() => {
 		if (!selectedChartTypeSingle) return []
@@ -554,7 +554,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 					</div>
 
 					<div className="shrink-0">
-						<label className="pro-text2 mb-2 block text-xs font-medium">Select Chart Type</label>
+						<label className="mb-2 block text-xs font-medium pro-text2">Select Chart Type</label>
 						<ChartTypePills
 							chartTypes={chartTypeOptions}
 							selectedType={selectedChartTypeSingle}
@@ -582,7 +582,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 						value={unifiedChartName}
 						onChange={(e) => onUnifiedChartNameChange(e.target.value)}
 						placeholder="Chart name..."
-						className="pro-text1 placeholder:pro-text3 w-full shrink-0 rounded border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+						className="w-full shrink-0 rounded border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					/>
 
 					<div className="h-[450px] shrink-0 overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg)">
@@ -596,7 +596,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 					</div>
 
 					{composerItems.length > 0 && (
-						<div className="thin-scrollbar flex shrink-0 items-center gap-2 overflow-x-auto py-1">
+						<div className="flex thin-scrollbar shrink-0 items-center gap-2 overflow-x-auto py-1">
 							{composerItems.map((item) => (
 								<div
 									key={item.id}
@@ -608,7 +608,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 										onChange={(e) => onComposerItemColorChange(item.id, e.target.value)}
 										className="h-4 w-4 cursor-pointer rounded border-0 bg-transparent p-0"
 									/>
-									<span className="pro-text1 whitespace-nowrap">
+									<span className="whitespace-nowrap pro-text1">
 										{item.protocol || item.chain} - {CHART_TYPES[item.type]?.title || item.type}
 									</span>
 									<button

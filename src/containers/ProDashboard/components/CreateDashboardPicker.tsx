@@ -135,7 +135,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboard
 		return (
 			<Ariakit.Dialog
 				store={dialogStore}
-				className="pro-dashboard dialog w-full max-w-lg gap-0 border border-(--cards-border) bg-(--cards-bg) p-0 shadow-2xl"
+				className="dialog w-full max-w-lg gap-0 border pro-dashboard border-(--cards-border) bg-(--cards-bg) p-0 shadow-2xl"
 			>
 				<div className="flex items-center gap-2 border-b border-(--cards-border) px-6 py-4">
 					<button
@@ -164,7 +164,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboard
 		return (
 			<Ariakit.Dialog
 				store={dialogStore}
-				className="pro-dashboard dialog w-full max-w-4xl gap-0 border border-(--cards-border) bg-(--cards-bg) p-0 shadow-2xl"
+				className="dialog w-full max-w-4xl gap-0 border pro-dashboard border-(--cards-border) bg-(--cards-bg) p-0 shadow-2xl"
 			>
 				<div className="flex items-center justify-between border-b border-(--cards-border) px-6 py-4">
 					<div className="flex items-center gap-2">
@@ -200,7 +200,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboard
 	return (
 		<Ariakit.Dialog
 			store={dialogStore}
-			className="pro-dashboard dialog w-full max-w-3xl gap-0 border border-(--cards-border) bg-(--cards-bg) p-6 shadow-2xl"
+			className="dialog w-full max-w-3xl gap-0 border pro-dashboard border-(--cards-border) bg-(--cards-bg) p-6 shadow-2xl"
 		>
 			<div className="mb-6 flex items-center justify-between">
 				<h2 className="text-xl font-semibold text-(--text-primary)">Create New Dashboard</h2>

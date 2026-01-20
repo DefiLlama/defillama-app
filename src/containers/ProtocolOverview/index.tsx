@@ -296,7 +296,7 @@ const PrimaryValue = ({
 						className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 					/>
 				</span>
-				<span className="font-jetbrains min-h-8 text-2xl font-semibold" suppressHydrationWarning>
+				<span className="min-h-8 font-jetbrains text-2xl font-semibold" suppressHydrationWarning>
 					{formatPrice(value)}
 				</span>
 			</p>
@@ -316,7 +316,7 @@ const PrimaryValue = ({
 					/>
 				</span>
 				<span className="flex flex-nowrap items-center gap-2">
-					<span className="font-jetbrains min-h-8 text-2xl font-semibold" suppressHydrationWarning>
+					<span className="min-h-8 font-jetbrains text-2xl font-semibold" suppressHydrationWarning>
 						{formatPrice(value)}
 					</span>
 					<Icon
@@ -1357,7 +1357,7 @@ const Expenses = (props: IKeyMetricsProps) => {
 					isLending={props.category === 'Lending'}
 					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>
-				<span className="font-jetbrains ml-auto">{props.formatPrice(props.expenses.total)}</span>
+				<span className="ml-auto font-jetbrains">{props.formatPrice(props.expenses.total)}</span>
 			</summary>
 			<div className="mb-3 flex flex-col">
 				<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) py-1 group-last:border-none">
@@ -1431,7 +1431,7 @@ const TokenLiquidity = (props: IKeyMetricsProps) => {
 					isLending={props.category === 'Lending'}
 					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(props.tokenLiquidity.total, true)}</span>
+				<span className="ml-auto font-jetbrains">{formattedNum(props.tokenLiquidity.total, true)}</span>
 			</summary>
 			<div className="mb-3 flex flex-col">
 				{props.tokenLiquidity?.pools.map((pool) => (
@@ -1483,7 +1483,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 								isLending={props.category === 'Lending'}
 								className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 							/>
-							<span className="font-jetbrains ml-auto">{props.formatPrice(props.tokenCGData.price.current)}</span>
+							<span className="ml-auto font-jetbrains">{props.formatPrice(props.tokenCGData.price.current)}</span>
 						</summary>
 						<div className="mb-3 flex flex-col">
 							<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none">
@@ -1563,7 +1563,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 							isLending={props.category === 'Lending'}
 							className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 						/>
-						<span className="font-jetbrains ml-auto">{props.formatPrice(props.tokenCGData.volume24h.total)}</span>
+						<span className="ml-auto font-jetbrains">{props.formatPrice(props.tokenCGData.volume24h.total)}</span>
 					</summary>
 					<div className="mb-3 flex flex-col">
 						<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none">
@@ -1630,7 +1630,7 @@ const SmolStats = ({
 					isLending={category === 'Lending'}
 					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>
-				<span className="font-jetbrains ml-auto">{formatPrice(data[0].value)}</span>
+				<span className="ml-auto font-jetbrains">{formatPrice(data[0].value)}</span>
 			</p>
 		)
 	}
@@ -1657,7 +1657,7 @@ const SmolStats = ({
 					isLending={category === 'Lending'}
 					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>
-				<span className="font-jetbrains ml-auto">{formatPrice(data[0].value)}</span>
+				<span className="ml-auto font-jetbrains">{formatPrice(data[0].value)}</span>
 			</summary>
 			<div className="mb-3 flex flex-col">
 				{restOfData.map((metric) => (
@@ -1672,7 +1672,7 @@ const SmolStats = ({
 						) : (
 							<span className="text-(--text-label)">{metric.name}</span>
 						)}
-						<span className="font-jetbrains ml-auto">{formatPrice(metric.value)}</span>
+						<span className="ml-auto font-jetbrains">{formatPrice(metric.value)}</span>
 					</p>
 				))}
 			</div>
@@ -1742,7 +1742,7 @@ const Treasury = (props: IProtocolOverviewPageData) => {
 					isLending={props.category === 'Lending'}
 					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(props.treasury.total, true)}</span>
+				<span className="ml-auto font-jetbrains">{formattedNum(props.treasury.total, true)}</span>
 			</summary>
 			<div className="mb-3 flex flex-col">
 				{props.treasury.majors ? (
@@ -1796,7 +1796,7 @@ const Raises = (props: IProtocolOverviewPageData) => {
 					isLending={props.category === 'Lending'}
 					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>
-				<span className="font-jetbrains ml-auto">
+				<span className="ml-auto font-jetbrains">
 					{formattedNum(props.raises.reduce((sum, r) => sum + Number(r.amount), 0) * 1_000_000, true)}
 				</span>
 			</summary>

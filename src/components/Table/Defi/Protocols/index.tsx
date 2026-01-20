@@ -593,7 +593,7 @@ export function ProtocolsTableWithSearch({
 	removeColumns?: Array<string>
 	columns?: ColumnDef<any>[]
 }) {
-	const columnsToUse = React.useMemo(() => columns ?? protocolsColumns, [columns])
+	const columnsToUse = columns ?? protocolsColumns
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})

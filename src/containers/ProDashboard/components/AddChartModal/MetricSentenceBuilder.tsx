@@ -460,9 +460,9 @@ export function MetricSentenceBuilder({
 							/>
 						</div>
 						<div className="p-1.5">
-							{baseMetricTypes.length === 0 && <div className="pro-text3 px-2 py-3 text-sm">No metrics available.</div>}
+							{baseMetricTypes.length === 0 && <div className="px-2 py-3 text-sm pro-text3">No metrics available.</div>}
 							{baseMetricTypes.length > 0 && filteredMetrics.length === 0 && (
-								<div className="pro-text3 px-2 py-3 text-sm">No metrics match that search.</div>
+								<div className="px-2 py-3 text-sm pro-text3">No metrics match that search.</div>
 							)}
 							{filteredMetrics.map((value) => {
 								const label = CHART_TYPES[value as keyof typeof CHART_TYPES]?.title || value

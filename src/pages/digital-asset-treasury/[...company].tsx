@@ -325,18 +325,18 @@ export default function DigitalAssetTreasury(props: IProps) {
 							<>
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 									<span className="text-(--text-label)">Assets in Holdings</span>
-									<span className="font-jetbrains ml-auto">{props.assets.join(', ')}</span>
+									<span className="ml-auto font-jetbrains">{props.assets.join(', ')}</span>
 								</p>
 								{props.totalUsdValue != null ? (
 									<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Assets Today's Value (USD)</span>
-										<span className="font-jetbrains ml-auto">{formattedNum(props.totalUsdValue, true)}</span>
+										<span className="ml-auto font-jetbrains">{formattedNum(props.totalUsdValue, true)}</span>
 									</p>
 								) : null}
 								{props.totalCost != null && (
 									<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Assets Cost Basis</span>
-										<span className="font-jetbrains ml-auto">
+										<span className="ml-auto font-jetbrains">
 											{props.totalCost != null ? formattedNum(props.totalCost, true) : '-'}
 										</span>
 									</p>
@@ -357,26 +357,26 @@ export default function DigitalAssetTreasury(props: IProps) {
 										width={16}
 										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
-									<span className="font-jetbrains ml-auto">
+									<span className="ml-auto font-jetbrains">
 										{formattedNum(asset.amount, false)} {asset.ticker}
 									</span>
 								</summary>
 								<div className="mb-3 flex flex-col">
 									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Today's Value (USD)</span>
-										<span className="font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap">
+										<span className="ml-auto justify-end overflow-hidden font-jetbrains text-ellipsis whitespace-nowrap">
 											{asset.usdValue != null ? formattedNum(asset.usdValue, true) : null}
 										</span>
 									</p>
 									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Cost Basis</span>
-										<span className="font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap">
+										<span className="ml-auto justify-end overflow-hidden font-jetbrains text-ellipsis whitespace-nowrap">
 											{asset.cost != null ? formattedNum(asset.cost, true) : '-'}
 										</span>
 									</p>
 									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Average Purchase Price</span>
-										<span className="font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap">
+										<span className="ml-auto justify-end overflow-hidden font-jetbrains text-ellipsis whitespace-nowrap">
 											{asset.avgPrice != null ? formattedNum(asset.avgPrice, true) : '-'}
 										</span>
 									</p>
@@ -385,19 +385,19 @@ export default function DigitalAssetTreasury(props: IProps) {
 						))}
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">First Announcement</span>
-							<span className="font-jetbrains ml-auto">
+							<span className="ml-auto font-jetbrains">
 								{props.firstAnnouncementDate != null ? dayjs(props.firstAnnouncementDate).format('MMM D, YYYY') : null}
 							</span>
 						</p>
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">Latest Announcement</span>
-							<span className="font-jetbrains ml-auto">
+							<span className="ml-auto font-jetbrains">
 								{props.lastAnnouncementDate != null ? dayjs(props.lastAnnouncementDate).format('MMM D, YYYY') : null}
 							</span>
 						</p>
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">Total Transactions</span>
-							<span className="font-jetbrains ml-auto">{props.transactions.length}</span>
+							<span className="ml-auto font-jetbrains">{props.transactions.length}</span>
 						</p>
 						{props.price != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
@@ -412,12 +412,12 @@ export default function DigitalAssetTreasury(props: IProps) {
 												>{`${props.priceChange24h > 0 ? '+' : ''}${props.priceChange24h.toFixed(2)}%`}</span>
 											</>
 										}
-										className="font-jetbrains ml-auto underline decoration-dotted"
+										className="ml-auto font-jetbrains underline decoration-dotted"
 									>
 										${props.price}
 									</Tooltip>
 								) : (
-									<span className="font-jetbrains ml-auto">${props.price}</span>
+									<span className="ml-auto font-jetbrains">${props.price}</span>
 								)}
 							</p>
 						) : null}
@@ -429,7 +429,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 								>
 									Realized mNAV
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.realized_mNAV, false)}</span>
+								<span className="ml-auto font-jetbrains">{formattedNum(props.realized_mNAV, false)}</span>
 							</p>
 						) : null}
 						{props.realistic_mNAV != null ? (
@@ -440,7 +440,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 								>
 									Realistic mNAV
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.realistic_mNAV, false)}</span>
+								<span className="ml-auto font-jetbrains">{formattedNum(props.realistic_mNAV, false)}</span>
 							</p>
 						) : null}
 						{props.max_mNAV != null ? (
@@ -451,7 +451,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 								>
 									Max mNAV
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.max_mNAV, false)}</span>
+								<span className="ml-auto font-jetbrains">{formattedNum(props.max_mNAV, false)}</span>
 							</p>
 						) : null}
 					</div>

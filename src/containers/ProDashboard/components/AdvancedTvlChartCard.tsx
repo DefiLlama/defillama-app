@@ -392,8 +392,8 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 		<div className="flex min-h-[402px] flex-col p-2 md:min-h-[418px]">
 			<div className="mb-2 flex items-start justify-between gap-2">
 				<div className="flex flex-col gap-1">
-					<h3 className="pro-text1 text-sm font-semibold">{chartTypeLabel}</h3>
-					<p className="pro-text2 text-xs">{protocolName}</p>
+					<h3 className="text-sm font-semibold pro-text1">{chartTypeLabel}</h3>
+					<p className="text-xs pro-text2">{protocolName}</p>
 				</div>
 				{hasChartData && (
 					<div className="flex gap-2">
@@ -403,7 +403,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol
-							className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
+							className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 						/>
 					</div>
 				)}

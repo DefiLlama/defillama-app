@@ -254,18 +254,18 @@ export function GenerateDashboardModal({
 			}}
 		>
 			<Ariakit.Dialog
-				className="dialog pro-dashboard w-full max-w-lg gap-0 border border-(--cards-border) bg-(--cards-bg) p-6 shadow-2xl"
+				className="dialog w-full max-w-lg gap-0 border pro-dashboard border-(--cards-border) bg-(--cards-bg) p-6 shadow-2xl"
 				unmountOnHide
 				portal
 				hideOnInteractOutside
 			>
 				<div className="mb-6 flex items-center justify-between">
-					<h2 className="pro-text1 text-xl font-semibold">
+					<h2 className="text-xl font-semibold pro-text1">
 						{mode === 'iterate' ? 'Edit with LlamaAI' : 'Generate using LlamaAI'}
 					</h2>
 					<Ariakit.DialogDismiss
 						disabled={isLoading}
-						className="pro-hover-bg rounded-md p-1 transition-colors disabled:opacity-50"
+						className="rounded-md pro-hover-bg p-1 transition-colors disabled:opacity-50"
 					>
 						<Icon name="x" height={20} width={20} className="pro-text2" />
 						<span className="sr-only">Close dialog</span>
@@ -275,7 +275,7 @@ export function GenerateDashboardModal({
 				<div className="space-y-6">
 					{mode === 'create' && (
 						<div>
-							<label className="pro-text1 mb-3 block text-sm font-medium">Dashboard Name</label>
+							<label className="mb-3 block text-sm font-medium pro-text1">Dashboard Name</label>
 							<input
 								type="text"
 								value={dashboardName}
@@ -287,7 +287,7 @@ export function GenerateDashboardModal({
 								}}
 								onBlur={() => handleFieldBlur('dashboardName')}
 								placeholder="e.g., Ethereum vs Arbitrum Analysis"
-								className={`pro-text1 placeholder:pro-text3 w-full rounded-md border px-3 py-2 focus:outline-hidden ${
+								className={`w-full rounded-md border px-3 py-2 pro-text1 placeholder:pro-text3 focus:outline-hidden ${
 									touchedFields.dashboardName && errors.dashboardName
 										? 'border-red-500 focus:ring-1 focus:ring-red-500'
 										: 'pro-border focus:ring-1 focus:ring-(--primary)'
@@ -302,7 +302,7 @@ export function GenerateDashboardModal({
 					)}
 
 					<div>
-						<label className="pro-text1 mb-3 block text-sm font-medium">
+						<label className="mb-3 block text-sm font-medium pro-text1">
 							{mode === 'iterate'
 								? 'Describe what you want to add or change'
 								: 'Describe the dashboard you want to create'}
@@ -322,7 +322,7 @@ export function GenerateDashboardModal({
 									: 'e.g., Build a DeFi yields dashboard with top earning protocols, comparing different chains and showing historical performance...'
 							}
 							rows={4}
-							className={`pro-text1 placeholder:pro-text3 w-full resize-none rounded-md border px-3 py-2 focus:outline-hidden ${
+							className={`w-full resize-none rounded-md border px-3 py-2 pro-text1 placeholder:pro-text3 focus:outline-hidden ${
 								touchedFields.aiDescription && errors.aiDescription
 									? 'border-red-500 focus:ring-1 focus:ring-red-500'
 									: 'pro-border focus:ring-1 focus:ring-(--primary)'
@@ -333,7 +333,7 @@ export function GenerateDashboardModal({
 						{touchedFields.aiDescription && errors.aiDescription && (
 							<p className="mt-1 text-sm text-red-500">{errors.aiDescription}</p>
 						)}
-						<p className="pro-text3 mt-1 text-xs">
+						<p className="mt-1 text-xs pro-text3">
 							{mode === 'iterate'
 								? 'Be specific about what you want to add, remove, or modify'
 								: 'Be specific about what data, charts, and insights you want to see'}{' '}
@@ -343,7 +343,7 @@ export function GenerateDashboardModal({
 
 					{mode === 'create' && (
 						<div>
-							<label className="pro-text1 mb-3 block text-sm font-medium">Visibility</label>
+							<label className="mb-3 block text-sm font-medium pro-text1">Visibility</label>
 							<div className="flex gap-3">
 								<button
 									onClick={() => setVisibility('public')}
@@ -367,14 +367,14 @@ export function GenerateDashboardModal({
 								</button>
 							</div>
 							{visibility === 'public' && (
-								<p className="pro-text3 mt-2 text-sm">Public dashboards are visible in the Discover tab</p>
+								<p className="mt-2 text-sm pro-text3">Public dashboards are visible in the Discover tab</p>
 							)}
 						</div>
 					)}
 
 					{mode === 'create' && (
 						<div>
-							<label className="pro-text1 mb-3 block text-sm font-medium">Tags</label>
+							<label className="mb-3 block text-sm font-medium pro-text1">Tags</label>
 							<div className="flex gap-2">
 								<input
 									type="text"
@@ -382,28 +382,28 @@ export function GenerateDashboardModal({
 									onChange={(e) => setTagInput(e.target.value)}
 									onKeyDown={handleTagInputKeyDown}
 									placeholder="Enter tag name"
-									className={`pro-border pro-text1 placeholder:pro-text3 flex-1 rounded-md border px-3 py-2 focus:ring-1 focus:ring-(--primary) focus:outline-hidden ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+									className={`flex-1 rounded-md border pro-border px-3 py-2 pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
 									disabled={isLoading}
 								/>
 								<button
 									onClick={() => handleAddTag(tagInput)}
 									disabled={!tagInput.trim() || isLoading}
 									className={`rounded-md border px-4 py-2 transition-colors ${
-										tagInput.trim() && !isLoading ? 'pro-btn-blue-outline' : 'pro-border pro-text3 cursor-not-allowed'
+										tagInput.trim() && !isLoading ? 'pro-btn-blue-outline' : 'cursor-not-allowed pro-border pro-text3'
 									}`}
 								>
 									Add Tag
 								</button>
 							</div>
 
-							<p className="pro-text3 mt-2 text-xs">Press Enter to add tag</p>
+							<p className="mt-2 text-xs pro-text3">Press Enter to add tag</p>
 
 							{tags.length > 0 && (
 								<div className="mt-3 flex flex-wrap gap-2">
 									{tags.map((tag) => (
 										<span
 											key={tag}
-											className="pro-text2 pro-border flex items-center gap-1 rounded-md border px-3 py-1 text-sm"
+											className="flex items-center gap-1 rounded-md border pro-border px-3 py-1 text-sm pro-text2"
 										>
 											{tag}
 											<button
@@ -424,7 +424,7 @@ export function GenerateDashboardModal({
 				<div className="mt-8 flex gap-3">
 					<Ariakit.DialogDismiss
 						disabled={isLoading}
-						className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex-1 rounded-md border px-4 py-2 transition-colors disabled:opacity-50"
+						className="flex-1 rounded-md border pro-border pro-hover-bg px-4 py-2 pro-text2 transition-colors hover:pro-text1 disabled:opacity-50"
 					>
 						Cancel
 					</Ariakit.DialogDismiss>
@@ -432,7 +432,7 @@ export function GenerateDashboardModal({
 						onClick={handleGenerate}
 						disabled={isLoading}
 						className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 transition-colors ${
-							!isLoading ? 'animate-ai-glow pro-btn-blue' : 'pro-text3 pro-border cursor-not-allowed border'
+							!isLoading ? 'animate-ai-glow pro-btn-blue' : 'cursor-not-allowed border pro-border pro-text3'
 						}`}
 					>
 						{isLoading ? (

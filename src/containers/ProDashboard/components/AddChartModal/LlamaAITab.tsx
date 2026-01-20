@@ -53,7 +53,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 	if (!user) {
 		return (
 			<div className="flex min-h-[300px] flex-col items-center justify-center gap-3 text-center">
-				<p className="pro-text2 text-sm">Sign in to access your saved LlamaAI charts</p>
+				<p className="text-sm pro-text2">Sign in to access your saved LlamaAI charts</p>
 			</div>
 		)
 	}
@@ -70,7 +70,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 		return (
 			<div className="flex min-h-[300px] flex-col items-center justify-center gap-2">
 				<Icon name="alert-triangle" height={24} width={24} className="text-[#F2994A]" />
-				<p className="pro-text2 text-sm">Failed to load saved charts</p>
+				<p className="text-sm pro-text2">Failed to load saved charts</p>
 			</div>
 		)
 	}
@@ -89,8 +89,8 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 		return (
 			<div className="flex min-h-[300px] flex-col items-center justify-center gap-3 text-center">
 				<div>
-					<p className="pro-text1 font-medium">No saved charts yet</p>
-					<p className="pro-text3 mt-1 text-sm">Save charts from LlamaAI to add them to your dashboard</p>
+					<p className="font-medium pro-text1">No saved charts yet</p>
+					<p className="mt-1 text-sm pro-text3">Save charts from LlamaAI to add them to your dashboard</p>
 				</div>
 			</div>
 		)
@@ -104,7 +104,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 					placeholder="Search saved charts..."
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
-					className="pro-text1 placeholder:pro-text3 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+					className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 				/>
 			</div>
 
@@ -120,7 +120,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 						}`}
 					>
 						<div className="flex items-start justify-between gap-2">
-							<h4 className="pro-text1 line-clamp-1 font-medium">{chart.title}</h4>
+							<h4 className="line-clamp-1 font-medium pro-text1">{chart.title}</h4>
 							<div className="flex shrink-0 items-center gap-1">
 								{selectedChart?.id === chart.id && (
 									<Icon name="check" height={16} width={16} className="text-(--primary)" />
@@ -136,14 +136,14 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 								</button>
 							</div>
 						</div>
-						<p className="pro-text3 line-clamp-2 text-xs">{chart.original_query}</p>
+						<p className="line-clamp-2 text-xs pro-text3">{chart.original_query}</p>
 						{chart.session_id && (
 							<a
 								href={`/ai/chat/${chart.session_id}`}
 								target="_blank"
 								rel="noopener noreferrer"
 								onClick={(e) => e.stopPropagation()}
-								className="pro-text3 text-xs text-(--primary) hover:underline"
+								className="text-xs pro-text3 text-(--primary) hover:underline"
 							>
 								View chat →
 							</a>
@@ -153,7 +153,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 			</div>
 
 			{filteredCharts?.length === 0 && searchQuery && (
-				<p className="pro-text3 py-8 text-center text-sm">No charts match your search</p>
+				<p className="py-8 text-center text-sm pro-text3">No charts match your search</p>
 			)}
 
 			{deleteConfirmId && (
@@ -162,14 +162,14 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 					onClick={() => setDeleteConfirmId(null)}
 				>
 					<div className="pro-card mx-4 w-full max-w-sm rounded-lg p-4" onClick={(e) => e.stopPropagation()}>
-						<h3 className="pro-text1 font-medium">Delete chart?</h3>
-						<p className="pro-text3 mt-2 text-sm">
+						<h3 className="font-medium pro-text1">Delete chart?</h3>
+						<p className="mt-2 text-sm pro-text3">
 							This will permanently delete the chart. Dashboards using it will show an error.
 						</p>
 						<div className="mt-4 flex justify-end gap-2">
 							<button
 								onClick={() => setDeleteConfirmId(null)}
-								className="pro-text2 rounded px-3 py-1.5 text-sm hover:bg-black/5 dark:hover:bg-white/5"
+								className="rounded px-3 py-1.5 text-sm pro-text2 hover:bg-black/5 dark:hover:bg-white/5"
 							>
 								Cancel
 							</button>

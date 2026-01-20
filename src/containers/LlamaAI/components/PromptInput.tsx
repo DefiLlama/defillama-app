@@ -569,7 +569,7 @@ export const PromptInput = memo(function PromptInput({
 								onKeyDown={onKeyDown}
 								onPaste={handlePaste}
 								name="prompt"
-								className="thin-scrollbar relative z-[1] block min-h-4 w-full resize-none overflow-x-hidden overflow-y-auto border-0 bg-transparent p-0 leading-normal break-words whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] max-sm:text-base dark:caret-white placeholder:dark:text-[#919296]"
+								className="relative z-[1] block thin-scrollbar min-h-4 w-full resize-none overflow-x-hidden overflow-y-auto border-0 bg-transparent p-0 leading-normal break-words whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] max-sm:text-base dark:caret-white placeholder:dark:text-[#919296]"
 								autoCorrect="off"
 								autoComplete="off"
 								spellCheck="false"
@@ -578,7 +578,7 @@ export const PromptInput = memo(function PromptInput({
 						disabled={isPending && !isStreaming}
 					/>
 					<div
-						className="highlighted-text thin-scrollbar pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-0 min-h-4 overflow-x-hidden overflow-y-auto p-0 leading-normal break-words whitespace-pre-wrap max-sm:text-base"
+						className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-0 thin-scrollbar min-h-4 overflow-x-hidden overflow-y-auto p-0 leading-normal break-words whitespace-pre-wrap max-sm:text-base"
 						ref={highlightRef}
 					/>
 				</div>

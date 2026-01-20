@@ -6,6 +6,8 @@
 	"semi": false,
 	"printWidth": 120,
 	"experimentalTailwindcss": {
+		"stylesheet": "./src/tailwind.css",
+		"attributes": ["class", "className"],
 		"functions": ["clsx", "cn", "cva", "tw"]
 	},
 	"experimentalSortImports": {

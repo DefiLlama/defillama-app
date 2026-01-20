@@ -547,7 +547,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 							<Tooltip
 								content={capitalizeFirstLetter(dataInterval)}
 								render={<button />}
-								className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue shrink-0 px-2 py-1 text-xs whitespace-nowrap data-[active=true]:bg-(--old-blue) data-[active=true]:font-medium data-[active=true]:text-white"
+								className="shrink-0 px-2 py-1 text-xs whitespace-nowrap hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue data-[active=true]:bg-(--old-blue) data-[active=true]:font-medium data-[active=true]:text-white"
 								data-active={multi.grouping === dataInterval}
 								onClick={() => handleGroupingChange(multi.id, dataInterval)}
 								key={`${multi.id}-options-groupBy-${dataInterval}`}
@@ -634,7 +634,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol
-							className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
+							className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 						/>
 					</>
 				)}

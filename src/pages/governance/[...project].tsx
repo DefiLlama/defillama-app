@@ -124,7 +124,7 @@ export default function Protocol({ data, governanceType }) {
 					{data.stats.chainName ? (
 						<p className="flex flex-col gap-1">
 							<span className="text-sm font-semibold text-(--text-meta)">Chain</span>
-							<span className="font-jetbrains flex items-center gap-1 text-lg font-semibold">
+							<span className="flex items-center gap-1 font-jetbrains text-lg font-semibold">
 								<TokenLogo logo={chainIconUrl(data.stats.chainName)} size={32} />
 								<span>{data.stats.chainName}</span>
 							</span>

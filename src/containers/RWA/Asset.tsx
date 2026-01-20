@@ -222,6 +222,12 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					</Tooltip>
 					<span className="font-jetbrains text-xl font-semibold">{formattedNum(asset.defiActiveTvl.total, true)}</span>
 				</p>
+				{asset.price != null ? (
+					<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+						<span className="text-(--text-label)">{asset.ticker ?? 'Token'} Price</span>
+						<span className="font-jetbrains text-xl font-semibold">{formattedNum(asset.price, true)}</span>
+					</p>
+				) : null}
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<span className="text-(--text-label)">Chains</span>
 					<span className="font-jetbrains text-xl font-semibold">{asset.chain?.length ?? 0}</span>

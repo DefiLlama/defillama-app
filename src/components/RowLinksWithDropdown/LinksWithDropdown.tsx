@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { BasicLink } from '../Link'
 import { OtherLinks } from './OtherLinks'
 
@@ -94,13 +94,10 @@ export const LinksWithDropdown = React.memo(function LinksWithDropdown({
 		}
 	}, [calcOverflowIndex])
 
-	const isActiveLinkInList = useMemo(() => !!links.find((link) => link.label === activeLink), [links, activeLink])
+	const isActiveLinkInList = links.some((link) => link.label === activeLink)
 
-	const { hasOverflow, isLinkInDropdown } = useMemo(() => {
-		const hasOverflow = overflowIndex !== null && typeof overflowIndex === 'number' && overflowIndex > 0
-		const isLinkInDropdown = hasOverflow && !!links.slice(overflowIndex).find((link) => link.label === activeLink)
-		return { hasOverflow, isLinkInDropdown }
-	}, [overflowIndex, links, activeLink])
+	const hasOverflow = overflowIndex !== null && typeof overflowIndex === 'number' && overflowIndex > 0
+	const isLinkInDropdown = hasOverflow && links.slice(overflowIndex).some((link) => link.label === activeLink)
 
 	// For narrow screens, show only the dropdown
 	if (overflowIndex === 'renderMenu') {
@@ -117,11 +114,7 @@ export const LinksWithDropdown = React.memo(function LinksWithDropdown({
 	return (
 		<>
 			{/* Always render ALL links - CSS handles overflow hiding via max-height + overflow-hidden */}
-			<div
-				className="flex max-h-[calc(1.5rem+0.5rem)] flex-1 flex-wrap gap-2 overflow-hidden p-1"
-				id="priority-nav"
-				{...props}
-			>
+			<div className="flex max-h-8 flex-1 flex-wrap gap-2 overflow-hidden p-1" id="priority-nav" {...props}>
 				{links.map((option, index) => (
 					<LinkItem key={option.label} option={option} activeLink={activeLink} id={`priority-nav-el-${index}`} />
 				))}
@@ -154,7 +147,7 @@ export const LinkItem = React.memo(function LinkItem({
 	return (
 		<BasicLink
 			href={option.to}
-			className="rounded-md bg-(--link-bg) px-2.5 py-1 text-xs font-medium whitespace-nowrap text-(--link-text) [contain:layout_style_paint] [content-visibility:auto] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--link-active-bg) data-[active=true]:text-white"
+			className="rounded-md bg-(--link-bg) px-2.5 py-1 text-xs font-medium whitespace-nowrap text-(--link-text) contain-[layout_style_paint] [content-visibility:auto] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--link-active-bg) data-[active=true]:text-white"
 			data-active={isActive}
 			{...props}
 		>

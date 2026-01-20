@@ -180,44 +180,44 @@ const PageView = () => {
 					<h1 className="text-xl font-bold">APY Breakdown:</h1>
 					<h2 className="flex items-center justify-between gap-1">
 						<span className="font-bold">Strategy APY</span>
-						<span className="font-jetbrains ml-auto">
+						<span className="ml-auto font-jetbrains">
 							{isLoading || finalAPY == null ? '' : `${finalAPY.toFixed(2)}%`}
 						</span>
 					</h2>
 					<div className="flex flex-col gap-1">
 						<p className="flex items-center gap-1">
 							<span>Supply APY:</span>
-							<span className="font-jetbrains ml-auto">
+							<span className="ml-auto font-jetbrains">
 								{isLoading || lendApy == null ? '' : `${lendApy.toFixed(2)}%`}
 							</span>
 						</p>
 						<p className="flex items-center gap-1">
 							<span>Borrow APY:</span>
-							<span className="font-jetbrains ml-auto">
+							<span className="ml-auto font-jetbrains">
 								{isLoading || borrowApy == null ? '' : `${borrowApy.toFixed(2)}%`}
 							</span>
 						</p>
 						<p className="flex items-center gap-1">
 							<span>Farm APY:</span>
-							<span className="font-jetbrains ml-auto">
+							<span className="ml-auto font-jetbrains">
 								{isLoading || farmApy == null ? '' : `${farmApy.toFixed(2)}%`}
 							</span>
 						</p>
 						<p className="flex items-center gap-1">
 							<span>Max LTV:</span>
-							<span className="font-jetbrains ml-auto">
+							<span className="ml-auto font-jetbrains">
 								{isLoading || ltv == null ? '' : `${ltv.toFixed(2) * 100}%`}
 							</span>
 						</p>
 						<p className="flex items-center gap-1">
 							<span>Available Borrow Liquidity:</span>
-							<span className="font-jetbrains ml-auto">
+							<span className="ml-auto font-jetbrains">
 								{isLoading || borrowAvailable == null ? '' : formattedNum(borrowAvailable, true)}
 							</span>
 						</p>
 						<p className="flex items-center gap-1">
 							<span>Farm TVL:</span>
-							<span className="font-jetbrains ml-auto">
+							<span className="ml-auto font-jetbrains">
 								{isLoading || farmTVL == null ? '' : formattedNum(farmTVL, true)}
 							</span>
 						</p>

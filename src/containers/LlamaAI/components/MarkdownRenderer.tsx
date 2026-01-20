@@ -266,7 +266,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 	)
 
 	return (
-		<div className="prose llamaai-prose prose-sm dark:prose-invert prose-a:no-underline flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal">
+		<div className="llamaai-prose prose prose-sm flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline">
 			{inlineChartIds.size > 0 || inlineCsvIds.size > 0
 				? contentParts.map((part, index) => {
 						if (part.type === 'chart' && part.chartId) {

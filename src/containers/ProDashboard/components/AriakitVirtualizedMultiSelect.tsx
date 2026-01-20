@@ -63,14 +63,12 @@ export function AriakitVirtualizedMultiSelect({
 		}
 	}, [search, filteredOptions.length, isPopoverOpen, virtualizer])
 
-	const buttonLabel = useMemo(() => {
-		if (selectedValues.length === 0) return placeholder
-		if (selectedValues.length === 1) {
-			const selected = options.find((opt) => opt.value === selectedValues[0])
-			return selected?.label || selectedValues[0]
-		}
-		return `${selectedValues.length} selected`
-	}, [selectedValues, options, placeholder])
+	const buttonLabel =
+		selectedValues.length === 0
+			? placeholder
+			: selectedValues.length === 1
+				? options.find((opt) => opt.value === selectedValues[0])?.label || selectedValues[0]
+				: `${selectedValues.length} selected`
 
 	const toggleValue = (value: string) => {
 		if (selectedValues.includes(value)) {
@@ -96,10 +94,10 @@ export function AriakitVirtualizedMultiSelect({
 
 	return (
 		<div className={className}>
-			<label className="pro-text2 mb-1 block text-[11px] font-medium">
+			<label className="mb-1 block text-[11px] font-medium pro-text2">
 				{label}
 				{selectedValues.length > 0 && (
-					<span className="pro-text3 ml-1 text-xs">
+					<span className="ml-1 text-xs pro-text3">
 						({selectedValues.length}
 						{maxSelections < 100 && `/${maxSelections}`})
 					</span>
@@ -148,7 +146,7 @@ export function AriakitVirtualizedMultiSelect({
 								className="thin-scrollbar max-h-[280px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
 							>
 								{filteredOptions.length === 0 ? (
-									<div className="pro-text3 px-3 py-2 text-center text-xs">No results found.</div>
+									<div className="px-3 py-2 text-center text-xs pro-text3">No results found.</div>
 								) : (
 									<div
 										key={`virtual-${filteredOptions.length}`}
@@ -175,10 +173,10 @@ export function AriakitVirtualizedMultiSelect({
 													disabled={isDisabled}
 													className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs transition-colors ${
 														isDisabled
-															? 'pro-text3 cursor-not-allowed opacity-50'
+															? 'cursor-not-allowed pro-text3 opacity-50'
 															: isActive
 																? 'bg-(--primary)/10 font-semibold text-(--primary)'
-																: 'pro-text2 hover:pro-text1 hover:bg-(--cards-bg-alt)'
+																: 'pro-text2 hover:bg-(--cards-bg-alt) hover:pro-text1'
 													}`}
 													style={{
 														position: 'absolute',

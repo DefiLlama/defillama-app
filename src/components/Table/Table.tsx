@@ -288,7 +288,7 @@ export function VirtualTable({
 			{...props}
 			ref={tableContainerRef}
 			id="table-wrapper"
-			className="thin-scrollbar relative isolate w-full overflow-auto rounded-md bg-(--cards-bg)"
+			className="relative isolate thin-scrollbar w-full overflow-auto rounded-md bg-(--cards-bg)"
 			style={{ maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}
 		>
 			<div ref={tableHeaderRef} id="table-header" style={{ display: 'flex', flexDirection: 'column', zIndex: 10 }}>

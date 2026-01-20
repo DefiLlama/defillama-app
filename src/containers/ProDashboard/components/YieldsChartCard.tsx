@@ -135,21 +135,11 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 	const imageFilename = `${poolName.replace(/\s+/g, '_')}`
 	const imageTitle = `${poolName} - ${project} (${chain})`
 
-	const isLoading = useMemo(() => {
-		if (needsBorrowData) {
-			return fetchingChartData || fetchingBorrowData
-		}
-		return fetchingChartData
-	}, [needsBorrowData, fetchingChartData, fetchingBorrowData])
+	const isLoading = needsBorrowData ? fetchingChartData || fetchingBorrowData : fetchingChartData
 
-	const hasError = useMemo(() => {
-		if (needsBorrowData) {
-			return chartError || borrowError
-		}
-		return chartError
-	}, [needsBorrowData, chartError, borrowError])
+	const hasError = needsBorrowData ? chartError || borrowError : chartError
 
-	const hasRequiredData = useMemo(() => {
+	const hasRequiredData = (() => {
 		switch (chartType) {
 			case 'tvl-apy':
 				return tvlApyData.length > 0
@@ -166,7 +156,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 			default:
 				return tvlApyData.length > 0
 		}
-	}, [chartType, tvlApyData, supplyApyBarData, supplyApy7dData, borrowApyBarData, netBorrowApyData, poolLiquidityData])
+	})()
 
 	if (isLoading) {
 		return (
@@ -179,7 +169,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 	if (hasError) {
 		return (
 			<div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-2 text-center">
-				<span className="pro-text3 text-sm">Failed to load chart data</span>
+				<span className="text-sm pro-text3">Failed to load chart data</span>
 			</div>
 		)
 	}
@@ -187,7 +177,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 	if (!hasRequiredData) {
 		return (
 			<div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-2 text-center">
-				<span className="pro-text3 text-sm">No data available for this chart type</span>
+				<span className="text-sm pro-text3">No data available for this chart type</span>
 			</div>
 		)
 	}
@@ -206,8 +196,8 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 		<div className="flex h-full flex-col p-2">
 			<div className="mb-2 flex items-start justify-between gap-2">
 				<div className="flex flex-col gap-1">
-					<h3 className="pro-text1 text-sm font-semibold">{poolName}</h3>
-					<p className="pro-text2 text-xs">
+					<h3 className="text-sm font-semibold pro-text1">{poolName}</h3>
+					<p className="text-xs pro-text2">
 						{project} - {chain} {chartType !== 'tvl-apy' && <span className="pro-text3">({chartTitle})</span>}
 					</p>
 				</div>
@@ -217,7 +207,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol
-							className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
+							className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 						/>
 					</div>
 				)}
@@ -226,13 +216,13 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 			{chartType === 'tvl-apy' && latestData.apy !== null && latestData.tvl !== null && (
 				<div className="mb-2 flex gap-4">
 					<div className="flex flex-col">
-						<span className="pro-text3 text-[10px] uppercase">Latest APY</span>
+						<span className="text-[10px] pro-text3 uppercase">Latest APY</span>
 						<span className="font-jetbrains text-sm font-semibold" style={{ color: mainChartStackColors.APY }}>
 							{latestData.apy}%
 						</span>
 					</div>
 					<div className="flex flex-col">
-						<span className="pro-text3 text-[10px] uppercase">TVL</span>
+						<span className="text-[10px] pro-text3 uppercase">TVL</span>
 						<span className="font-jetbrains text-sm font-semibold" style={{ color: mainChartStackColors.TVL }}>
 							{formattedNum(latestData.tvl, true)}
 						</span>

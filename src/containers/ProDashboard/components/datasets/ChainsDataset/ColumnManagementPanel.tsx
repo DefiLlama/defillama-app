@@ -71,7 +71,7 @@ export function ColumnManagementPanel({
 	return (
 		<div className="mb-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 			<div className="mb-3 flex items-center justify-between">
-				<h4 className="pro-text1 text-sm font-medium">Customize Columns</h4>
+				<h4 className="text-sm font-medium pro-text1">Customize Columns</h4>
 				<div className="flex items-center gap-2">
 					<button
 						onClick={() => {
@@ -81,7 +81,7 @@ export function ColumnManagementPanel({
 								}
 							}
 						}}
-						className="pro-divider pro-hover-bg pro-text2 pro-bg2 rounded-md border px-2 py-1 text-xs transition-colors"
+						className="rounded-md border pro-divider pro-bg2 pro-hover-bg px-2 py-1 text-xs pro-text2 transition-colors"
 					>
 						Show All
 					</button>
@@ -93,7 +93,7 @@ export function ColumnManagementPanel({
 								}
 							}
 						}}
-						className="pro-divider pro-hover-bg pro-text2 pro-bg2 rounded-md border px-2 py-1 text-xs transition-colors"
+						className="rounded-md border pro-divider pro-bg2 pro-hover-bg px-2 py-1 text-xs pro-text2 transition-colors"
 					>
 						Hide All
 					</button>
@@ -105,24 +105,24 @@ export function ColumnManagementPanel({
 					name="search"
 					height={14}
 					width={14}
-					className="pro-text3 absolute top-1/2 left-3 -translate-y-1/2 transform"
+					className="absolute top-1/2 left-3 -translate-y-1/2 transform pro-text3"
 				/>
 				<input
 					type="text"
 					placeholder="Search columns..."
 					value={searchTerm}
 					onChange={(e) => setSearchTerm(e.target.value)}
-					className="pro-border pro-text1 placeholder:pro-text3 w-full rounded-md border bg-(--bg-glass) py-2 pr-3 pl-9 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+					className="w-full rounded-md border pro-border bg-(--bg-glass) py-2 pr-3 pl-9 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
 				/>
 			</div>
 
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 				<div>
-					<h5 className="pro-text2 mb-2 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
+					<h5 className="mb-2 flex items-center gap-2 text-xs font-medium tracking-wide pro-text2 uppercase">
 						<Icon name="eye" height={12} width={12} />
 						Active Columns ({activeColumns.length})
 					</h5>
-					<p className="pro-text3 mb-3 text-xs">Use arrows to reorder • Click × to hide</p>
+					<p className="mb-3 text-xs pro-text3">Use arrows to reorder • Click × to hide</p>
 					<div className="thin-scrollbar max-h-60 space-y-1 overflow-y-auto">
 						{activeColumns.map((columnId, index) => {
 							const column = columns.find((col) => col.id === columnId)
@@ -134,13 +134,13 @@ export function ColumnManagementPanel({
 							return (
 								<div
 									key={columnId}
-									className="pro-divider pro-hover-bg pro-bg2 flex items-center justify-between rounded-md border p-2 transition-colors"
+									className="flex items-center justify-between rounded-md border pro-divider pro-bg2 pro-hover-bg p-2 transition-colors"
 								>
 									<div className="flex items-center gap-2">
 										<Icon name="check" height={12} width={12} className="text-(--success)" />
-										<span className="pro-text1 text-xs">{column.name}</span>
+										<span className="text-xs pro-text1">{column.name}</span>
 										{columnId.endsWith('_share') && (
-											<span className="bg-pro-blue-100 text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 rounded-md px-1 py-0.5 text-xs">
+											<span className="rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
 												%
 											</span>
 										)}
@@ -149,7 +149,7 @@ export function ColumnManagementPanel({
 										{moveColumnUp && !isFirst && (
 											<button
 												onClick={() => moveColumnUp(columnId)}
-												className="pro-text3 hover:pro-text1 rounded-md p-1 transition-colors"
+												className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
 												title="Move up"
 											>
 												<Icon name="chevron-up" height={10} width={10} />
@@ -158,7 +158,7 @@ export function ColumnManagementPanel({
 										{moveColumnDown && !isLast && (
 											<button
 												onClick={() => moveColumnDown(columnId)}
-												className="pro-text3 hover:pro-text1 rounded-md p-1 transition-colors"
+												className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
 												title="Move down"
 											>
 												<Icon name="chevron-down" height={10} width={10} />
@@ -166,7 +166,7 @@ export function ColumnManagementPanel({
 										)}
 										<button
 											onClick={() => toggleColumnVisibility(columnId)}
-											className="pro-text3 hover:pro-text1 rounded-md p-1 transition-colors"
+											className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
 											disabled={columnId === 'name'}
 										>
 											<Icon name="x" height={12} width={12} />
@@ -179,15 +179,15 @@ export function ColumnManagementPanel({
 				</div>
 
 				<div>
-					<h5 className="pro-text2 mb-2 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
+					<h5 className="mb-2 flex items-center gap-2 text-xs font-medium tracking-wide pro-text2 uppercase">
 						<Icon name="plus" height={12} width={12} />
 						Available Columns
 					</h5>
-					<p className="pro-text3 mb-3 text-xs">Click to add to table</p>
+					<p className="mb-3 text-xs pro-text3">Click to add to table</p>
 					<div className="thin-scrollbar max-h-60 space-y-3 overflow-y-auto">
 						{columnGroups.map((group) => (
 							<div key={group.title}>
-								<h6 className="pro-text2 mb-1 text-xs font-medium">{group.title}</h6>
+								<h6 className="mb-1 text-xs font-medium pro-text2">{group.title}</h6>
 								<div className="space-y-1">
 									{group.columns
 										.filter((col) => columnVisibility[col.id] === false)
@@ -195,12 +195,12 @@ export function ColumnManagementPanel({
 											<button
 												key={column.id}
 												onClick={() => toggleColumnVisibility(column.id)}
-												className="pro-divider pro-hover-bg pro-bg2 flex w-full items-center gap-2 rounded-md border p-2 text-left transition-colors"
+												className="flex w-full items-center gap-2 rounded-md border pro-divider pro-bg2 pro-hover-bg p-2 text-left transition-colors"
 											>
 												<Icon name="plus" height={10} width={10} className="pro-text3" />
-												<span className="pro-text1 text-xs">{column.name}</span>
+												<span className="text-xs pro-text1">{column.name}</span>
 												{column.id.endsWith('_share') && (
-													<span className="bg-pro-blue-100 text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 ml-auto rounded-md px-1 py-0.5 text-xs">
+													<span className="ml-auto rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
 														%
 													</span>
 												)}
@@ -213,7 +213,7 @@ export function ColumnManagementPanel({
 				</div>
 			</div>
 
-			<div className="pro-divider mt-4 flex items-center justify-between border-t pt-3 text-xs">
+			<div className="mt-4 flex items-center justify-between border-t pro-divider pt-3 text-xs">
 				<span className="pro-text3">
 					{activeColumns.length} of {columns.length} columns visible
 				</span>

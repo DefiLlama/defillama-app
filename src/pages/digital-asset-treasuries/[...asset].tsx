@@ -142,20 +142,20 @@ export default function TreasuriesByAsset({
 					<div className="flex flex-col">
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">Total Institution</span>
-							<span className="font-jetbrains ml-auto">{metadata.companies}</span>
+							<span className="ml-auto font-jetbrains">{metadata.companies}</span>
 						</p>
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">Total Holdings</span>
-							<span className="font-jetbrains ml-auto">{`${formattedNum(metadata.totalAmount, false)} ${metadata.ticker}`}</span>
+							<span className="ml-auto font-jetbrains">{`${formattedNum(metadata.totalAmount, false)} ${metadata.ticker}`}</span>
 						</p>
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">Total USD Value</span>
-							<span className="font-jetbrains ml-auto">{formattedNum(metadata.totalUsdValue, true)}</span>
+							<span className="ml-auto font-jetbrains">{formattedNum(metadata.totalUsdValue, true)}</span>
 						</p>
 						{metadata.circSupplyPerc != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<span className="text-(--text-label)">% of {metadata.ticker} Circulating Supply</span>
-								<span className="font-jetbrains ml-auto">
+								<span className="ml-auto font-jetbrains">
 									{metadata.circSupplyPerc.toLocaleString(undefined, { maximumFractionDigits: 3 })}%
 								</span>
 							</p>

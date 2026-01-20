@@ -581,7 +581,7 @@ export function useLlamaAIWelcome(): [boolean, () => void] {
 	)
 
 	const parsedStore = useMemo(() => JSON.parse(store) as AppStorage, [store])
-	const shown = useMemo(() => parsedStore?.[LLAMA_AI_WELCOME_SHOWN] ?? false, [parsedStore])
+	const shown = parsedStore?.[LLAMA_AI_WELCOME_SHOWN] ?? false
 
 	const setShown = () => {
 		writeAppStorage({ ...parsedStore, [LLAMA_AI_WELCOME_SHOWN]: true })

@@ -245,7 +245,7 @@ const Search = () => {
 				hideOnInteractOutside
 				gutter={6}
 				sameWidth
-				className="thin-scrollbar z-10 flex max-h-(--popover-available-height) flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
+				className="z-10 flex thin-scrollbar max-h-(--popover-available-height) flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
 			>
 				{isLoading ? (
 					<p className="px-3 py-6 text-center text-(--text-primary)">Loading...</p>

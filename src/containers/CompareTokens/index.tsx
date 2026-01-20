@@ -10,6 +10,8 @@ import { CACHE_SERVER } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
 import { fetchJson } from '~/utils/async'
 
+const EMPTY_SELECTED_COINS: Record<string, IResponseCGMarketsAPI> = {}
+
 export function CompareTokens({
 	coinsData,
 	protocols
@@ -19,6 +21,8 @@ export function CompareTokens({
 }) {
 	const router = useRouter()
 	const [isModalOpen, setModalOpen] = useState(0)
+	const coinParam = router.query?.coin
+	const typeParam = router.query?.type
 
 	// Build lookup maps for O(1) access
 	const coinsDataById = useMemo(
@@ -35,11 +39,11 @@ export function CompareTokens({
 	)
 
 	const { selectedCoins, coins, compareType } = useMemo(() => {
-		const queryCoins = router.query?.coin || ([] as Array<string>)
+		const queryCoins = coinParam || ([] as Array<string>)
 
 		const coins = Array.isArray(queryCoins) ? queryCoins : [queryCoins]
 
-		const compareType = compareTypes.find((type) => type.value === (router.query?.type ?? 'fdv')) ?? {
+		const compareType = compareTypes.find((type) => type.value === (typeParam ?? 'fdv')) ?? {
 			label: 'FDV',
 			value: 'fdv'
 		}
@@ -48,7 +52,7 @@ export function CompareTokens({
 			coins,
 			compareType
 		}
-	}, [router.query, coinsDataById])
+	}, [coinParam, typeParam, coinsDataById])
 
 	const { data: fdvData = null, error: _fdvError } = useQuery({
 		queryKey: [`fdv-${coins.join('-')}`],
@@ -296,7 +300,7 @@ export function CompareTokens({
 						unmountOnHide
 						hideOnInteractOutside
 						sameWidth
-						className="max-sm:drawer thin-scrollbar z-10 flex max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
+						className="z-10 flex thin-scrollbar max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:drawer max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
 					>
 						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 							<Icon name="x" className="h-5 w-5" />
@@ -384,7 +388,7 @@ export function CompareTokens({
 				<CoinsPicker
 					coinsData={coinsData}
 					dialogStore={dialogStore}
-					selectedCoins={{}}
+					selectedCoins={EMPTY_SELECTED_COINS}
 					queryCoins={coins}
 					selectCoin={(coin) => {
 						const newCoins = coins.slice()

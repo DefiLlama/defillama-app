@@ -160,7 +160,7 @@ export const SubjectMultiPanel = memo(function SubjectMultiPanel({
 
 	return (
 		<div className="flex flex-col">
-			<label className="pro-text2 mb-2 text-xs font-medium">Select Chains & Protocols</label>
+			<label className="mb-2 text-xs font-medium pro-text2">Select Chains & Protocols</label>
 			<PopoverDisclosure
 				store={popover}
 				className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"

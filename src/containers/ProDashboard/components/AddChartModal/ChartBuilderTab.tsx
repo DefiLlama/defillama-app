@@ -360,6 +360,93 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 			.filter((item) => item.value > 0)
 	}, [visibleSeries, resolveSeriesColor, treemapMode])
 
+	const previewChartOptions = useMemo(
+		() => ({
+			grid: {
+				top: 40,
+				bottom: 40,
+				left: 12,
+				right: 12,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
+			},
+			legend: {
+				show: true,
+				top: 10,
+				type: 'scroll',
+				selectedMode: 'multiple',
+				pageButtonItemGap: 5,
+				pageButtonGap: 20,
+				data: visibleSeries.map((s) => s.name)
+			},
+			tooltip: {
+				formatter: function (params: any) {
+					const rawTimestamp = params[0].value[0]
+					const millis = rawTimestamp < 10000000000 ? rawTimestamp * 1000 : rawTimestamp
+					const chartdate = new Date(millis).toLocaleDateString()
+
+					let filteredParams = params.filter(
+						(item: any) => item.value[1] !== '-' && item.value[1] !== null && item.value[1] !== undefined
+					)
+					filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
+
+					const formatValue = (value: number) => {
+						if (chartBuilder.displayAs === 'percentage') {
+							return `${Math.round(value * 100) / 100}%`
+						}
+						const absValue = Math.abs(value)
+						if (absValue >= 1e9) {
+							return '$' + (value / 1e9).toFixed(2) + 'B'
+						} else if (absValue >= 1e6) {
+							return '$' + (value / 1e6).toFixed(2) + 'M'
+						} else if (absValue >= 1e3) {
+							return '$' + (value / 1e3).toFixed(2) + 'K'
+						}
+						return '$' + value.toFixed(2)
+					}
+
+					const vals = filteredParams.reduce((prev: string, curr: any) => {
+						return (prev +=
+							'<li style="list-style:none">' +
+							curr.marker +
+							curr.seriesName +
+							'&nbsp;&nbsp;' +
+							formatValue(curr.value[1]) +
+							'</li>')
+					}, '')
+
+					return chartdate + vals
+				}
+			},
+			yAxis:
+				chartBuilder.displayAs === 'percentage'
+					? {
+							max: 100,
+							min: 0,
+							axisLabel: {
+								formatter: '{value}%'
+							}
+						}
+					: {
+							type: 'value',
+							axisLabel: {
+								formatter: (value: number) => {
+									const absValue = Math.abs(value)
+									if (absValue >= 1e9) {
+										return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
+									} else if (absValue >= 1e6) {
+										return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+									} else if (absValue >= 1e3) {
+										return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
+									}
+									return '$' + value.toFixed(0)
+								}
+							}
+						}
+		}),
+		[chartBuilder.displayAs, visibleSeries]
+	)
+
 	const protocolOptionsFiltered = useMemo(() => {
 		if (chartBuilder.mode !== 'protocol') return protocolOptions
 		const metric = chartBuilder.metric
@@ -525,13 +612,13 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 					value={chartBuilderName}
 					onChange={(e) => onChartBuilderNameChange(e.target.value)}
 					placeholder="Enter chart name..."
-					className="pro-text1 placeholder:pro-text3 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+					className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-sm pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 				/>
 			</div>
 
 			<div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
 				<div className="max-h-[calc(100vh-200px)] w-full shrink-0 space-y-1.5 overflow-x-visible overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 lg:w-[320px] xl:w-[360px]">
-					<h3 className="pro-text1 text-[11px] font-semibold">Chart Configuration</h3>
+					<h3 className="text-[11px] font-semibold pro-text1">Chart Configuration</h3>
 
 					<div>
 						<AriakitSelect
@@ -544,8 +631,8 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 						/>
 					</div>
 
-					<div className="pro-border border-t pt-1.5">
-						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Mode</h4>
+					<div className="border-t pro-border pt-1.5">
+						<h4 className="mb-1 text-[11px] font-medium pro-text2">Mode</h4>
 						<div className="mb-1.5 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-0.5">
 							<div className="grid grid-cols-2 gap-0.5">
 								{MODE_OPTIONS.map((option) => (
@@ -565,14 +652,14 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 						</div>
 					</div>
 
-					<div className="pro-border border-t pt-1.5">
-						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Filters</h4>
+					<div className="border-t pro-border pt-1.5">
+						<h4 className="mb-1 text-[11px] font-medium pro-text2">Filters</h4>
 
 						{chartBuilder.mode === 'chains' ? (
 							<>
 								<div className="mb-1.5">
 									<div className="mb-1 flex items-center justify-between">
-										<span className="pro-text2 text-[10px] font-medium">Chains Filter</span>
+										<span className="text-[10px] font-medium pro-text2">Chains Filter</span>
 										<FilterModeToggle value={chainFilterMode} onChange={handleChainFilterModeChange} />
 									</div>
 									<AriakitVirtualizedMultiSelect
@@ -596,7 +683,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 
 								<div className="mb-1.5">
 									<div className="mb-1 flex items-center justify-between">
-										<span className="pro-text2 text-[10px] font-medium">Categories Filter</span>
+										<span className="text-[10px] font-medium pro-text2">Categories Filter</span>
 										<FilterModeToggle value={categoryFilterMode} onChange={handleCategoryFilterModeChange} />
 									</div>
 									<AriakitMultiSelect
@@ -628,9 +715,9 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 										<label className="flex cursor-pointer items-center gap-1.5">
 											<Ariakit.Checkbox
 												onChange={(e) => onChartBuilderChange({ hideOthers: e.target.checked })}
-												className="pro-border data-[checked]:bg-pro-blue-400 data-[checked]:border-pro-blue-100 dark:data-[checked]:bg-pro-blue-300/20 dark:data-[checked]:border-pro-blue-300/20 flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border"
+												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border pro-border data-[checked]:border-pro-blue-100 data-[checked]:bg-pro-blue-400 dark:data-[checked]:border-pro-blue-300/20 dark:data-[checked]:bg-pro-blue-300/20"
 											/>
-											<span className="pro-text2 text-[10px]">Hide "Others" (show only top {chartBuilder.limit})</span>
+											<span className="text-[10px] pro-text2">Hide "Others" (show only top {chartBuilder.limit})</span>
 										</label>
 									</Ariakit.CheckboxProvider>
 								</div>
@@ -644,9 +731,9 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 														groupByParent: e.target.checked
 													})
 												}
-												className="pro-border data-[checked]:bg-pro-blue-400 data-[checked]:border-pro-blue-100 dark:data-[checked]:bg-pro-blue-300/20 dark:data-[checked]:border-pro-blue-300/20 flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border"
+												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border pro-border data-[checked]:border-pro-blue-100 data-[checked]:bg-pro-blue-400 dark:data-[checked]:border-pro-blue-300/20 dark:data-[checked]:bg-pro-blue-300/20"
 											/>
-											<span className="pro-text2 text-[10px]">Group by parent protocol</span>
+											<span className="text-[10px] pro-text2">Group by parent protocol</span>
 										</label>
 									</Ariakit.CheckboxProvider>
 								</div>
@@ -655,7 +742,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 							<>
 								{isChainOnlyMetric ? (
 									<div className="mb-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2 py-1.5">
-										<p className="pro-text3 text-[10px]">This metric is available only for All Protocols.</p>
+										<p className="text-[10px] pro-text3">This metric is available only for All Protocols.</p>
 									</div>
 								) : (
 									<div className="mb-1.5">
@@ -673,7 +760,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 
 								<div className="mb-1.5">
 									<div className="mb-1 flex items-center justify-between">
-										<span className="pro-text2 text-[10px] font-medium">Chains Filter</span>
+										<span className="text-[10px] font-medium pro-text2">Chains Filter</span>
 										<FilterModeToggle value={chainFilterMode} onChange={handleChainFilterModeChange} />
 									</div>
 									<AriakitVirtualizedMultiSelect
@@ -697,7 +784,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 								{!isChainOnlyMetric && chartBuilder.metric !== 'tvl' && !chartBuilder.protocol && (
 									<div className="mb-1.5">
 										<div className="mb-1 flex items-center justify-between">
-											<span className="pro-text2 text-[10px] font-medium">Protocol Categories Filter</span>
+											<span className="text-[10px] font-medium pro-text2">Protocol Categories Filter</span>
 											<FilterModeToggle
 												value={protocolCategoryFilterMode}
 												onChange={handleProtocolCategoryFilterModeChange}
@@ -720,7 +807,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 								)}
 								<div className="mb-1.5">
 									<div className="mb-1 flex items-center justify-between">
-										<span className="pro-text2 text-[10px] font-medium">Chain Categories Filter</span>
+										<span className="text-[10px] font-medium pro-text2">Chain Categories Filter</span>
 										<FilterModeToggle value={chainCategoryFilterMode} onChange={handleChainCategoryFilterModeChange} />
 									</div>
 									<AriakitMultiSelect
@@ -759,7 +846,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 													}
 													className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-[checked]:bg-[#28a2b5]"
 												/>
-												<span className="pro-text2 text-[10px]">
+												<span className="text-[10px] pro-text2">
 													Hide "Others" (show only top {chartBuilder.limit})
 												</span>
 											</label>
@@ -770,8 +857,8 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 						)}
 					</div>
 
-					<div className="pro-border border-t pt-1.5">
-						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Chart type</h4>
+					<div className="border-t pro-border pt-1.5">
+						<h4 className="mb-1 text-[11px] font-medium pro-text2">Chart type</h4>
 						<div className="grid grid-cols-4 gap-1">
 							{CHART_TYPE_OPTIONS.map((option) => (
 								<button
@@ -791,7 +878,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 					</div>
 
 					{chartBuilder.chartType === 'treemap' && !isTvlMetric && (
-						<div className="pro-border border-t pt-1.5">
+						<div className="border-t pro-border pt-1.5">
 							<AriakitSelect
 								label="Treemap value"
 								options={TREEMAP_VALUE_OPTIONS}
@@ -803,8 +890,8 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 						</div>
 					)}
 
-					<div className="pro-border border-t pt-1.5">
-						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Display value as</h4>
+					<div className="border-t pro-border pt-1.5">
+						<h4 className="mb-1 text-[11px] font-medium pro-text2">Display value as</h4>
 						<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-0.5">
 							<div className="grid grid-cols-2 gap-0.5">
 								{DISPLAY_OPTIONS.map((option) => (
@@ -827,8 +914,8 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 
 				<div className="flex min-h-0 flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<div className="mb-2 flex shrink-0 items-center justify-between">
-						<h3 className="pro-text1 text-xs font-semibold">Preview</h3>
-						<div className="pro-text3 flex items-center gap-1 text-[10px]">
+						<h3 className="text-xs font-semibold pro-text1">Preview</h3>
+						<div className="flex items-center gap-1 text-[10px] pro-text3">
 							<span>ⓘ</span>
 							<span>Updates as you configure</span>
 						</div>
@@ -840,8 +927,8 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 					>
 						{previewLoading ? (
 							<div className="text-center">
-								<div className="border-pro-blue-100 dark:border-pro-blue-300/20 mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2"></div>
-								<p className="pro-text2 text-sm">Loading preview...</p>
+								<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-pro-blue-100 dark:border-pro-blue-300/20"></div>
+								<p className="text-sm pro-text2">Loading preview...</p>
 							</div>
 						) : previewData && previewData.series.length > 0 ? (
 							<div className="absolute inset-0 p-2">
@@ -924,99 +1011,16 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 											})()}
 											valueSymbol={chartBuilder.displayAs === 'percentage' ? '%' : '$'}
 											hideDataZoom={true}
-											chartOptions={{
-												grid: {
-													top: 40,
-													bottom: 40,
-													left: 12,
-													right: 12,
-													outerBoundsMode: 'same',
-													outerBoundsContain: 'axisLabel'
-												},
-												legend: {
-													show: true,
-													top: 10,
-													type: 'scroll',
-													selectedMode: 'multiple',
-													pageButtonItemGap: 5,
-													pageButtonGap: 20,
-													data: visibleSeries.map((s) => s.name)
-												},
-												tooltip: {
-													formatter: function (params: any) {
-														const rawTimestamp = params[0].value[0]
-														const millis = rawTimestamp < 10000000000 ? rawTimestamp * 1000 : rawTimestamp
-														const chartdate = new Date(millis).toLocaleDateString()
-
-														let filteredParams = params.filter(
-															(item: any) =>
-																item.value[1] !== '-' && item.value[1] !== null && item.value[1] !== undefined
-														)
-														filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
-
-														const formatValue = (value: number) => {
-															if (chartBuilder.displayAs === 'percentage') {
-																return `${Math.round(value * 100) / 100}%`
-															}
-															const absValue = Math.abs(value)
-															if (absValue >= 1e9) {
-																return '$' + (value / 1e9).toFixed(2) + 'B'
-															} else if (absValue >= 1e6) {
-																return '$' + (value / 1e6).toFixed(2) + 'M'
-															} else if (absValue >= 1e3) {
-																return '$' + (value / 1e3).toFixed(2) + 'K'
-															}
-															return '$' + value.toFixed(2)
-														}
-
-														const vals = filteredParams.reduce((prev: string, curr: any) => {
-															return (prev +=
-																'<li style="list-style:none">' +
-																curr.marker +
-																curr.seriesName +
-																'&nbsp;&nbsp;' +
-																formatValue(curr.value[1]) +
-																'</li>')
-														}, '')
-
-														return chartdate + vals
-													}
-												},
-												yAxis:
-													chartBuilder.displayAs === 'percentage'
-														? {
-																max: 100,
-																min: 0,
-																axisLabel: {
-																	formatter: '{value}%'
-																}
-															}
-														: {
-																type: 'value',
-																axisLabel: {
-																	formatter: (value: number) => {
-																		const absValue = Math.abs(value)
-																		if (absValue >= 1e9) {
-																			return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
-																		} else if (absValue >= 1e6) {
-																			return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
-																		} else if (absValue >= 1e3) {
-																			return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
-																		}
-																		return '$' + value.toFixed(0)
-																	}
-																}
-															}
-											}}
+											chartOptions={previewChartOptions}
 										/>
 									)}
 								</Suspense>
 							</div>
 						) : (
 							<div className="text-center">
-								<Icon name="bar-chart-2" height={48} width={48} className="pro-text3 mx-auto mb-2" />
-								<p className="pro-text2 text-sm">Configure chart settings to see preview</p>
-								<p className="pro-text3 mt-1 text-xs">Select a metric to generate chart (all chains by default)</p>
+								<Icon name="bar-chart-2" height={48} width={48} className="mx-auto mb-2 pro-text3" />
+								<p className="text-sm pro-text2">Configure chart settings to see preview</p>
+								<p className="mt-1 text-xs pro-text3">Select a metric to generate chart (all chains by default)</p>
 							</div>
 						)}
 					</div>
@@ -1024,19 +1028,19 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 					{visibleSeries.length > 0 && (
 						<div className="mt-2 flex flex-col gap-1">
 							<div className="flex items-center justify-between gap-2">
-								<h4 className="pro-text2 text-[11px] font-medium">Series Colors</h4>
+								<h4 className="text-[11px] font-medium pro-text2">Series Colors</h4>
 								<button
 									type="button"
 									onClick={handleResetAllSeriesColors}
 									disabled={!hasCustomSeriesColors}
 									className={`text-[10px] font-medium transition-colors disabled:cursor-not-allowed ${
-										hasCustomSeriesColors ? 'pro-text2 hover:pro-text1' : 'pro-text3 cursor-not-allowed'
+										hasCustomSeriesColors ? 'pro-text2 hover:pro-text1' : 'cursor-not-allowed pro-text3'
 									}`}
 								>
 									Reset All
 								</button>
 							</div>
-							<div className="thin-scrollbar flex items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-2">
+							<div className="flex thin-scrollbar items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-2">
 								{visibleSeries.map((series) => {
 									const activeColor = resolveSeriesColor(series.name, series.color)
 									const hasOverride = !!seriesColors[series.name]
@@ -1045,7 +1049,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 											key={series.name}
 											className="flex shrink-0 items-center gap-1.5 rounded border border-(--cards-border) bg-(--bg-input) px-2 py-1 text-xs"
 										>
-											<span className="pro-text2 max-w-[140px] truncate" title={series.name}>
+											<span className="max-w-[140px] truncate pro-text2" title={series.name}>
 												{series.name}
 											</span>
 											<input
@@ -1072,10 +1076,10 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 						</div>
 					)}
 
-					<div className="pro-bg2 mt-2 shrink-0 rounded p-2">
+					<div className="mt-2 shrink-0 rounded pro-bg2 p-2">
 						<div className="flex items-start gap-1">
-							<span className="pro-text3 text-[10px]">ⓘ</span>
-							<p className="pro-text3 text-[10px] leading-relaxed">
+							<span className="text-[10px] pro-text3">ⓘ</span>
+							<p className="text-[10px] leading-relaxed pro-text3">
 								This chart shows {chartBuilder.metric}
 								{chartBuilder.mode === 'protocol'
 									? ` for ${

@@ -246,7 +246,7 @@ export function MetricCard({ metric }: MetricCardProps) {
 					)}
 					<div className="flex flex-col">
 						<h2 className="text-base leading-tight font-semibold text-(--text-primary)">{displayTitle}</h2>
-						{hasCustomLabel && <div className="pro-text3 text-[11px] leading-tight">{baseTitle}</div>}
+						{hasCustomLabel && <div className="text-[11px] leading-tight pro-text3">{baseTitle}</div>}
 					</div>
 				</div>
 				{!isReadOnly && (

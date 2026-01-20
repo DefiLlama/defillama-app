@@ -154,7 +154,7 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 							<span>Add Metrics</span>
 							<Icon name="plus" className="h-3.5 w-3.5" />
 						</Ariakit.DialogDisclosure>
-						<Ariakit.Dialog className="dialog max-sm:drawer gap-3 sm:w-full" unmountOnHide>
+						<Ariakit.Dialog className="dialog gap-3 max-sm:drawer sm:w-full" unmountOnHide>
 							<span className="flex items-center justify-between gap-1">
 								<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
 								<Ariakit.DialogDismiss className="ml-auto p-2 opacity-50">

@@ -140,11 +140,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const [allocationMode, setAllocationMode] = useState<'current' | 'standard'>('current')
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 
-	const categoriesFromData = useMemo(
-		() => data.categories?.[dataType] ?? EMPTY_STRING_LIST,
-		[data.categories, dataType]
-	)
-	const stackColors = useMemo(() => data.stackColors?.[dataType] ?? EMPTY_STACK_COLORS, [data.stackColors, dataType])
+	const categoriesFromData = data.categories?.[dataType] ?? EMPTY_STRING_LIST
+	const stackColors = data.stackColors?.[dataType] ?? EMPTY_STACK_COLORS
 	const { tokenAllocation, tokenAllocationCurrentChunks, tokenAllocationFinalChunks } = useMemo(() => {
 		const allocation = data.tokenAllocation?.[dataType] ?? EMPTY_TOKEN_ALLOCATION
 		return {
@@ -153,9 +150,9 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			tokenAllocationFinalChunks: chunkArray(Object.entries(allocation.final ?? EMPTY_ALLOCATION))
 		}
 	}, [data.tokenAllocation, dataType])
-	const rawChartData = useMemo(() => data.chartData?.[dataType] ?? EMPTY_CHART_DATA, [data.chartData, dataType])
-	const pieChartData = useMemo(() => data.pieChartData?.[dataType] ?? EMPTY_CHART_DATA, [data.pieChartData, dataType])
-	const hallmarks = useMemo(() => data.hallmarks?.[dataType] ?? EMPTY_CHART_DATA, [data.hallmarks, dataType])
+	const rawChartData = data.chartData?.[dataType] ?? EMPTY_CHART_DATA
+	const pieChartData = data.pieChartData?.[dataType] ?? EMPTY_CHART_DATA
+	const hallmarks = data.hallmarks?.[dataType] ?? EMPTY_CHART_DATA
 
 	useEffect(() => {
 		if (categoriesFromData.length > 0) {

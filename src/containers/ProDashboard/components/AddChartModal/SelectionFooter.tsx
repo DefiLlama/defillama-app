@@ -33,11 +33,11 @@ export const SelectionFooter = memo(function SelectionFooter({
 					value={unifiedChartName}
 					onChange={(e) => onUnifiedChartNameChange(e.target.value)}
 					placeholder="Chart name..."
-					className="pro-text1 placeholder:pro-text3 w-full rounded border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+					className="w-full rounded border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 				/>
 			)}
-			<div className="thin-scrollbar flex flex-wrap items-center gap-2">
-				<label className="pro-text2 flex shrink-0 cursor-pointer items-center gap-1.5 text-xs">
+			<div className="flex thin-scrollbar flex-wrap items-center gap-2">
+				<label className="flex shrink-0 cursor-pointer items-center gap-1.5 text-xs pro-text2">
 					<input
 						type="checkbox"
 						checked={chartCreationMode === 'combined'}
@@ -71,7 +71,7 @@ export const SelectionFooter = memo(function SelectionFooter({
 					</div>
 				))}
 			</div>
-			<div className="pro-text3 text-[10px]">
+			<div className="text-[10px] pro-text3">
 				{chartCreationMode === 'combined'
 					? `Create 1 multi-chart with ${composerItems.length} chart${composerItems.length !== 1 ? 's' : ''}`
 					: `Create ${composerItems.length} separate chart${composerItems.length !== 1 ? 's' : ''}`}

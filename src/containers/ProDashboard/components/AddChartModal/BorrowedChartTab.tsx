@@ -244,34 +244,34 @@ export function BorrowedChartTab({
 				</Tooltip>
 
 				{hasProtocolSelection && isAddlLoading && (
-					<div className="pro-text3 text-xs">Loading available chart types...</div>
+					<div className="text-xs pro-text3">Loading available chart types...</div>
 				)}
 
 				{hasProtocolSelection && !isAddlLoading && availableChartTypes.size > 0 && (
-					<div className="pro-text3 text-xs">
+					<div className="text-xs pro-text3">
 						<p>
-							Available charts: <span className="pro-text1 font-semibold">{availableChartTypes.size}</span>
+							Available charts: <span className="font-semibold pro-text1">{availableChartTypes.size}</span>
 						</p>
 					</div>
 				)}
 
 				{hasProtocolSelection && !isAddlLoading && availableChartTypes.size === 0 && (
-					<div className="pro-text3 text-xs">No borrowed data available for this protocol.</div>
+					<div className="text-xs pro-text3">No borrowed data available for this protocol.</div>
 				)}
 			</div>
 
-			<div className="pro-border overflow-hidden rounded-lg border">
-				<div className="pro-text2 border-b border-(--cards-border) px-3 py-2 text-xs font-medium">Preview</div>
+			<div className="overflow-hidden rounded-lg border pro-border">
+				<div className="border-b border-(--cards-border) px-3 py-2 text-xs font-medium pro-text2">Preview</div>
 
 				{hasProtocolSelection ? (
 					<div className="bg-(--cards-bg) p-3">
 						<div className="mb-3">
-							<h3 className="pro-text1 mb-1 text-sm font-semibold">{previewTitle}</h3>
-							<p className="pro-text2 text-xs">Borrowed Chart</p>
+							<h3 className="mb-1 text-sm font-semibold pro-text1">{previewTitle}</h3>
+							<p className="text-xs pro-text2">Borrowed Chart</p>
 						</div>
 
 						{availableChartTypes.size === 0 && !isAddlLoading ? (
-							<div className="pro-text3 flex h-[320px] items-center justify-center text-center">
+							<div className="flex h-[320px] items-center justify-center text-center pro-text3">
 								No borrowed data available.
 							</div>
 						) : (
@@ -279,7 +279,7 @@ export function BorrowedChartTab({
 						)}
 					</div>
 				) : (
-					<div className="pro-text3 flex h-[320px] items-center justify-center text-center">
+					<div className="flex h-[320px] items-center justify-center text-center pro-text3">
 						<div>
 							<Icon name="trending-up" height={32} width={32} className="mx-auto mb-1" />
 							<div className="text-xs">Select a protocol to see available borrowed charts</div>

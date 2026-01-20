@@ -15,10 +15,11 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 	const router = useRouter()
 
 	const { category, chain, ...queries } = router.query
+	const hasCategoryParam = Object.prototype.hasOwnProperty.call(router.query, 'category')
 
 	const { selectedCategories, protocols } = useMemo(() => {
 		const selectedCategories =
-			props.categories.length > 0 && router.query.hasOwnProperty('category') && category === ''
+			props.categories.length > 0 && hasCategoryParam && category === ''
 				? []
 				: category
 					? typeof category === 'string'
@@ -41,7 +42,7 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 			selectedCategories,
 			protocols
 		}
-	}, [router.query, props, category])
+	}, [category, hasCategoryParam, props.categories, props.protocols])
 
 	const addCategory = (newCategory) => {
 		router.push(

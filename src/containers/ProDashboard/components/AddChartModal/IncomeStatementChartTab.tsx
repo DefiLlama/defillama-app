@@ -95,12 +95,12 @@ export function IncomeStatementChartTab({
 					isLoading={protocolsLoading}
 				/>
 				{!protocolsLoading && filteredProtocolOptions.length === 0 ? (
-					<div className="pro-text3 text-xs">No protocols with both fees and revenue.</div>
+					<div className="text-xs pro-text3">No protocols with both fees and revenue.</div>
 				) : null}
 			</div>
 
-			<div className="pro-border overflow-hidden rounded-lg border">
-				<div className="pro-text2 border-b border-(--cards-border) px-3 py-2 text-xs font-medium">Preview</div>
+			<div className="overflow-hidden rounded-lg border pro-border">
+				<div className="border-b border-(--cards-border) px-3 py-2 text-xs font-medium pro-text2">Preview</div>
 				{hasSelection ? (
 					<div className="bg-(--cards-bg) p-3">
 						{isLoading ? (
@@ -108,7 +108,7 @@ export function IncomeStatementChartTab({
 								<LocalLoader />
 							</div>
 						) : !hasData ? (
-							<div className="pro-text3 flex h-[360px] items-center justify-center text-center">
+							<div className="flex h-[360px] items-center justify-center text-center pro-text3">
 								No income statement data available.
 							</div>
 						) : (
@@ -125,7 +125,7 @@ export function IncomeStatementChartTab({
 						)}
 					</div>
 				) : (
-					<div className="pro-text3 flex h-[360px] items-center justify-center text-center">
+					<div className="flex h-[360px] items-center justify-center text-center pro-text3">
 						<div>
 							<Icon name="file-text" height={32} width={32} className="mx-auto mb-1" />
 							<div className="text-xs">Select a protocol to preview the income statement</div>

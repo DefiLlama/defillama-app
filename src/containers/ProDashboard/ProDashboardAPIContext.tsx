@@ -846,9 +846,7 @@ export function ProDashboardAPIProvider({
 		setCurrentDashboard
 	])
 
-	const canUndo = useMemo(() => {
-		return !!currentDashboard?.data?.aiUndoState?.items
-	}, [currentDashboard?.data?.aiUndoState])
+	const canUndo = !!currentDashboard?.data?.aiUndoState?.items
 
 	// Load dashboard
 	const allChartItems: ChartConfig[] = useMemo(() => {

@@ -274,11 +274,11 @@ export const SubscriberContent = ({
 											<div className="mb-2 h-3 overflow-hidden rounded-full bg-[#39393E]/20">
 												{credits && (
 													<div
-														className={`relative h-full w-[${((credits / creditsLimit) * 100).toFixed(
+														className={`w-[ relative h-full${((credits / creditsLimit) * 100).toFixed(
 															1
 														)}%] bg-linear-to-r from-[#5C5CF9]/80 to-[#5842C3]`}
 													>
-														<div className="animate-shimmer absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(92,92,249,0.4)_50%,transparent_75%)] bg-size-[1rem_1rem]"></div>
+														<div className="absolute inset-0 animate-shimmer bg-[linear-gradient(45deg,transparent_25%,rgba(92,92,249,0.4)_50%,transparent_75%)] bg-size-[1rem_1rem]"></div>
 													</div>
 												)}
 											</div>
@@ -303,7 +303,7 @@ export const SubscriberContent = ({
 
 											<div className="mb-2 h-3 overflow-hidden rounded-full bg-[#39393E]/20">
 												<div className="relative h-full w-full bg-linear-to-r from-[#5C5CF9]/80 to-[#5842C3]">
-													<div className="animate-shimmer absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(92,92,249,0.4)_50%,transparent_75%)] bg-size-[1rem_1rem]"></div>
+													<div className="absolute inset-0 animate-shimmer bg-[linear-gradient(45deg,transparent_25%,rgba(92,92,249,0.4)_50%,transparent_75%)] bg-size-[1rem_1rem]"></div>
 												</div>
 											</div>
 										</div>

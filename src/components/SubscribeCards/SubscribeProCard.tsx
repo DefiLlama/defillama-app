@@ -151,7 +151,7 @@ function EndTrialModal({ isOpen, onClose }: EndTrialModalProps) {
 		<Ariakit.Dialog
 			open={isOpen}
 			onClose={onClose}
-			className="dialog max-sm:drawer flex max-h-[90dvh] max-w-md flex-col gap-4 overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 text-white shadow-2xl max-sm:rounded-b-none"
+			className="dialog flex max-h-[90dvh] max-w-md flex-col gap-4 overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 text-white shadow-2xl max-sm:drawer max-sm:rounded-b-none"
 			portal
 			unmountOnHide
 		>
@@ -359,7 +359,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 		<WalletProvider>
 			<Ariakit.DialogProvider store={dialogStore}>
 				<Ariakit.Dialog
-					className="dialog max-sm:drawer flex max-h-[90dvh] max-w-md flex-col overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 text-white shadow-2xl max-sm:rounded-b-none sm:p-6"
+					className="dialog flex max-h-[90dvh] max-w-md flex-col overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 text-white shadow-2xl max-sm:drawer max-sm:rounded-b-none sm:p-6"
 					portal
 					unmountOnHide
 					onClose={() => setIsSignInModalOpen(false)}

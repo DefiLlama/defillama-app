@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -87,11 +87,12 @@ export default function Protocols(props) {
 	// Key to force chart remount when toggle changes, resetting internal selection state
 	const chartKey = includeOwnTokens ? 'with-own-token' : 'without-own-token'
 
-	const toggleIncludeOwnTokens = React.useCallback(() => {
-		const { cex: _cex, includeOwnTokens: _inc, ...restQuery } = router.query
-		const nextQuery = includeOwnTokens ? { ...restQuery, includeOwnTokens: 'false' } : restQuery
-		router.push({ pathname: router.asPath.split('?')[0], query: nextQuery }, undefined, { shallow: true })
-	}, [router, includeOwnTokens])
+	const toggleIncludeOwnTokens = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const nextIncludeOwnTokens = event.currentTarget.checked
+		const { includeOwnTokens: _inc, ...restQuery } = router.query
+		const nextQuery = nextIncludeOwnTokens ? restQuery : { ...restQuery, includeOwnTokens: 'false' }
+		Router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}
 
 	const { chainsSplit, chainsUnique } = React.useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }

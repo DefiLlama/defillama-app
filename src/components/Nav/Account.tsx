@@ -80,7 +80,7 @@ export const Account = memo(function Account() {
 					) : (
 						<BasicLink
 							href={`/subscription?returnUrl=${encodeURIComponent(asPath)}`}
-							className="pro-btn-purple flex items-center justify-center gap-2 rounded-md p-1 text-sm font-medium"
+							className="flex items-center justify-center gap-2 rounded-md pro-btn-purple p-1 text-sm font-medium"
 						>
 							<Icon name="users" className="h-4 w-4" />
 							Sign In / Subscribe

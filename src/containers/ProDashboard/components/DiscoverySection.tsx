@@ -83,7 +83,7 @@ export function DiscoverySection({
 							key={`skeleton-${title}-${i}`}
 							className="relative isolate min-h-[220px] w-[300px] shrink-0 overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) md:w-[320px]"
 						>
-							<div className="animate-shimmer pointer-events-none absolute inset-y-0 -right-1/2 -left-1/2 bg-[linear-gradient(99.97deg,transparent,rgba(0,0,0,0.08),transparent)] dark:bg-[linear-gradient(99.97deg,transparent,rgba(255,255,255,0.08),transparent)]" />
+							<div className="pointer-events-none absolute inset-y-0 -right-1/2 -left-1/2 animate-shimmer bg-[linear-gradient(99.97deg,transparent,rgba(0,0,0,0.08),transparent)] dark:bg-[linear-gradient(99.97deg,transparent,rgba(255,255,255,0.08),transparent)]" />
 						</div>
 					))}
 				</div>

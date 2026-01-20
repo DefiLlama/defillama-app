@@ -98,7 +98,7 @@ export function CustomTimePeriodPicker({
 		<Ariakit.PopoverProvider store={popover}>
 			<Ariakit.PopoverDisclosure
 				className={`-ml-px flex-1 rounded-none rounded-r-md border px-3 py-1.5 text-sm font-medium transition-colors duration-200 md:flex-initial md:px-4 md:py-2 ${
-					isActive ? 'pro-border pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1 pro-hover-bg'
+					isActive ? 'pro-border pro-btn-blue' : 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
 				} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
 				disabled={disabled}
 			>
@@ -120,7 +120,7 @@ export function CustomTimePeriodPicker({
 							className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
 								mode === 'relative'
 									? 'bg-(--primary) text-white'
-									: 'pro-border border bg-(--bg-input) text-(--text-secondary) hover:bg-(--cards-hover)'
+									: 'border pro-border bg-(--bg-input) text-(--text-secondary) hover:bg-(--cards-hover)'
 							}`}
 						>
 							Relative
@@ -130,7 +130,7 @@ export function CustomTimePeriodPicker({
 							className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
 								mode === 'absolute'
 									? 'bg-(--primary) text-white'
-									: 'pro-border border bg-(--bg-input) text-(--text-secondary) hover:bg-(--cards-hover)'
+									: 'border pro-border bg-(--bg-input) text-(--text-secondary) hover:bg-(--cards-hover)'
 							}`}
 						>
 							Absolute
@@ -151,7 +151,7 @@ export function CustomTimePeriodPicker({
 											setRelativeDays(value)
 										}
 									}}
-									className={`pro-border flex-1 rounded-md border bg-(--bg-input) px-3 py-2 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden ${
+									className={`flex-1 rounded-md border pro-border bg-(--bg-input) px-3 py-2 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden ${
 										relativeDays && !isValidRelative ? 'border-red-500' : ''
 									}`}
 									placeholder="Enter days"
@@ -171,7 +171,7 @@ export function CustomTimePeriodPicker({
 									value={startDate}
 									max={today}
 									onChange={(e) => setStartDate(e.target.value)}
-									className="pro-border rounded-md border bg-(--bg-input) px-3 py-2 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+									className="rounded-md border pro-border bg-(--bg-input) px-3 py-2 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 								/>
 							</div>
 							<div className="flex flex-col gap-2">
@@ -181,7 +181,7 @@ export function CustomTimePeriodPicker({
 									value={endDate}
 									max={today}
 									onChange={(e) => setEndDate(e.target.value)}
-									className="pro-border rounded-md border bg-(--bg-input) px-3 py-2 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+									className="rounded-md border pro-border bg-(--bg-input) px-3 py-2 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 								/>
 							</div>
 						</div>
@@ -190,14 +190,14 @@ export function CustomTimePeriodPicker({
 					<div className="flex gap-2 border-t border-(--cards-border) pt-2">
 						<button
 							onClick={handleClear}
-							className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors"
+							className="flex-1 rounded-md border pro-border pro-hover-bg px-3 py-2 text-sm font-medium pro-text2 transition-colors hover:pro-text1"
 						>
 							Clear
 						</button>
 						<button
 							onClick={handleApply}
 							disabled={!canApply}
-							className="pro-btn-blue flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+							className="flex-1 rounded-md pro-btn-blue px-3 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							Apply
 						</button>

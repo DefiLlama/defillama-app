@@ -188,7 +188,7 @@ export const ResponseControls = memo(function ResponseControls({
 			</div>
 			<Ariakit.DialogProvider open={showFeedback} setOpen={setShowFeedback}>
 				<Ariakit.Dialog
-					className="max-sm:drawer dialog w-full gap-0 border border-(--cards-border) bg-(--cards-bg) p-4 shadow-2xl sm:max-w-md"
+					className="dialog w-full gap-0 border border-(--cards-border) bg-(--cards-bg) p-4 shadow-2xl max-sm:drawer sm:max-w-md"
 					unmountOnHide
 					portal
 					hideOnInteractOutside
@@ -210,7 +210,7 @@ export const ResponseControls = memo(function ResponseControls({
 			</Ariakit.DialogProvider>
 			<Ariakit.DialogProvider open={showShareModal} setOpen={setShowShareModal}>
 				<Ariakit.Dialog
-					className="max-sm:drawer dialog w-full gap-0 border border-(--cards-border) bg-(--cards-bg) p-4 shadow-2xl sm:max-w-md"
+					className="dialog w-full gap-0 border border-(--cards-border) bg-(--cards-bg) p-4 shadow-2xl max-sm:drawer sm:max-w-md"
 					unmountOnHide
 					portal
 					hideOnInteractOutside

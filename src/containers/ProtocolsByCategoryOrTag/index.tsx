@@ -71,7 +71,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				TVL: { ...props.charts['TVL'], data: finalChartData }
 			} as ILineAndBarChartProps['charts']
 		}
-	}, [tvlSettings, props])
+	}, [tvlSettings, props.protocols, props.charts, props.extraTvlCharts])
 
 	const categoryColumns = useMemo(() => {
 		return columns(name, props.isRWA)
@@ -138,7 +138,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 									</Tooltip>
 								)}
 
-								<span className="font-jetbrains text-right">
+								<span className="text-right font-jetbrains">
 									{formattedNum(charts['TVL']?.data[charts['TVL']?.data.length - 1][1], true)}
 								</span>
 							</p>
@@ -151,7 +151,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								>
 									Premium Volume (7d)
 								</Tooltip>
-								<span className="font-jetbrains text-right">{formattedNum(props.optionsPremium7d, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.optionsPremium7d, true)}</span>
 							</p>
 						)}
 						{props.optionsNotional7d != null && (
@@ -162,7 +162,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								>
 									Notional Volume (7d)
 								</Tooltip>
-								<span className="font-jetbrains text-right">{formattedNum(props.optionsNotional7d, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.optionsNotional7d, true)}</span>
 							</p>
 						)}
 						{props.fees7d != null && (
@@ -173,7 +173,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								>
 									Fees (7d)
 								</Tooltip>
-								<span className="font-jetbrains text-right">{formattedNum(props.fees7d, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.fees7d, true)}</span>
 							</p>
 						)}
 						{props.revenue7d != null && (
@@ -184,7 +184,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								>
 									Revenue (7d)
 								</Tooltip>
-								<span className="font-jetbrains text-right">{formattedNum(props.revenue7d, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.revenue7d, true)}</span>
 							</p>
 						)}
 						{props.dexVolume7d != null && (
@@ -197,7 +197,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 										>
 											DEX Volume (7d)
 										</Tooltip>
-										<span className="font-jetbrains text-right">{formattedNum(props.dexVolume7d, true)}</span>
+										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 									</p>
 								) : props.category === 'DEX Aggregators' ? (
 									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
@@ -207,17 +207,17 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 										>
 											DEX Aggregator Volume (7d)
 										</Tooltip>
-										<span className="font-jetbrains text-right">{formattedNum(props.dexVolume7d, true)}</span>
+										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 									</p>
 								) : props.category === 'Prediction Market' ? (
 									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 										<span className="font-normal text-(--text-label)">Prediction Market Volume (7d)</span>
-										<span className="font-jetbrains text-right">{formattedNum(props.dexVolume7d, true)}</span>
+										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 									</p>
 								) : (
 									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 										<span className="font-normal text-(--text-label)">Volume (7d)</span>
-										<span className="font-jetbrains text-right">{formattedNum(props.dexVolume7d, true)}</span>
+										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 									</p>
 								)}
 							</>
@@ -230,7 +230,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								>
 									Perp Volume (7d)
 								</Tooltip>
-								<span className="font-jetbrains text-right">{formattedNum(props.perpVolume7d, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.perpVolume7d, true)}</span>
 							</p>
 						)}
 						{props.openInterest != null && (
@@ -241,7 +241,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								>
 									Open Interest
 								</Tooltip>
-								<span className="font-jetbrains text-right">{formattedNum(props.openInterest, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.openInterest, true)}</span>
 							</p>
 						)}
 						<CSVDownloadButton prepareCsv={prepareCsvFromChart} smol className="mt-auto mr-auto" />

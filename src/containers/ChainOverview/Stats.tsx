@@ -218,7 +218,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 							>
 								Total Value Locked in DeFi
 							</Tooltip>
-							<span className="font-jetbrains min-h-8 overflow-hidden text-2xl font-semibold text-ellipsis whitespace-nowrap">
+							<span className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
 								{formattedNum(totalValueUSD, true)}
 							</span>
 						</h2>
@@ -229,7 +229,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								className="relative bottom-0.5 flex flex-nowrap items-center gap-2"
 							>
 								<span
-									className={`font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
+									className={`overflow-hidden font-jetbrains text-ellipsis whitespace-nowrap underline decoration-dotted ${
 										change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
 									}`}
 								>
@@ -275,7 +275,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										width={16}
 										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
-									<span className="font-jetbrains ml-auto">{formattedNum(props.stablecoins.mcap, true)}</span>
+									<span className="ml-auto font-jetbrains">{formattedNum(props.stablecoins.mcap, true)}</span>
 								</summary>
 								<div className="mb-3 flex flex-col">
 									{props.stablecoins.change7d != null ? (
@@ -283,7 +283,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 											<span className="text-(--text-label)">Change (7d)</span>
 											<Tooltip
 												content={`${formattedNum(props.stablecoins.change7dUsd, true)}`}
-												className={`font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
+												className={`ml-auto justify-end overflow-hidden font-jetbrains text-ellipsis whitespace-nowrap underline decoration-dotted ${
 													+props.stablecoins.change7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 												}`}
 											>
@@ -294,7 +294,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 									{props.stablecoins.dominance != null ? (
 										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">{props.stablecoins.topToken.symbol} Dominance</span>
-											<span className="font-jetbrains ml-auto">{props.stablecoins.dominance}%</span>
+											<span className="ml-auto font-jetbrains">{props.stablecoins.dominance}%</span>
 										</p>
 									) : null}
 								</div>
@@ -303,7 +303,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						{props.chainStablecoins?.length > 0 ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<span className="text-(--text-label)">{`Native Stablecoin${props.chainStablecoins.length > 1 ? 's' : ''}`}</span>
-								<span className="font-jetbrains ml-auto">
+								<span className="ml-auto font-jetbrains">
 									{props.chainStablecoins.map((coin) => (
 										<BasicLink key={`native-stablecoin-${coin.name}`} href={coin.url} className="hover:underline">
 											{coin.symbol ?? coin.name}
@@ -320,7 +320,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								>
 									Chain Fees (24h)
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.chainFees?.total24h, true)}</span>
+								<span className="ml-auto font-jetbrains">{formattedNum(props.chainFees?.total24h, true)}</span>
 							</p>
 						) : null}
 						{props.chainRevenue?.total24h != null ? (
@@ -331,7 +331,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								>
 									Chain Revenue (24h)
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.chainRevenue?.total24h, true)}</span>
+								<span className="ml-auto font-jetbrains">{formattedNum(props.chainRevenue?.total24h, true)}</span>
 							</p>
 						) : null}
 						{props.chainFees?.totalREV24h != null ? (
@@ -342,7 +342,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								>
 									Chain REV (24h)
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.chainFees?.totalREV24h, true)}</span>
+								<span className="ml-auto font-jetbrains">{formattedNum(props.chainFees?.totalREV24h, true)}</span>
 							</p>
 						) : null}
 						{props.chainIncentives?.emissions24h != null ? (
@@ -353,7 +353,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								>
 									Token Incentives (24h)
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">
+								<span className="ml-auto font-jetbrains">
 									{formattedNum(props.chainIncentives?.emissions24h, true)}
 								</span>
 							</p>
@@ -366,7 +366,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								>
 									App Revenue (24h)
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.appRevenue?.total24h, true)}</span>
+								<span className="ml-auto font-jetbrains">{formattedNum(props.appRevenue?.total24h, true)}</span>
 							</p>
 						) : null}
 						{props.appFees?.total24h != null && props.appFees?.total24h > 1e3 ? (
@@ -377,7 +377,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								>
 									App Fees (24h)
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.appFees?.total24h, true)}</span>
+								<span className="ml-auto font-jetbrains">{formattedNum(props.appFees?.total24h, true)}</span>
 							</p>
 						) : null}
 						{props.dexs?.total24h != null ? (
@@ -395,7 +395,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										width={16}
 										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
-									<span className="font-jetbrains ml-auto">{formattedNum(props.dexs.total24h, true)}</span>
+									<span className="ml-auto font-jetbrains">{formattedNum(props.dexs.total24h, true)}</span>
 								</summary>
 								<div className="mb-3 flex flex-col">
 									{props.dexs.total7d != null ? (
@@ -406,7 +406,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 											>
 												Volume (7d)
 											</Tooltip>
-											<span className="font-jetbrains ml-auto">{formattedNum(props.dexs.total7d, true)}</span>
+											<span className="ml-auto font-jetbrains">{formattedNum(props.dexs.total7d, true)}</span>
 										</p>
 									) : null}
 									{props.dexs.change_7dover7d != null && (
@@ -418,7 +418,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 												Weekly Change
 											</Tooltip>
 											<span
-												className={`font-jetbrains ml-auto ${
+												className={`ml-auto font-jetbrains ${
 													props.dexs.change_7dover7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 												}`}
 											>
@@ -429,7 +429,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 									{props.dexs.dexsDominance != null ? (
 										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">DEX vs CEX dominance</span>
-											<span className="font-jetbrains ml-auto">{props.dexs.dexsDominance}%</span>
+											<span className="ml-auto font-jetbrains">{props.dexs.dexsDominance}%</span>
 										</p>
 									) : null}
 								</div>
@@ -450,7 +450,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										width={16}
 										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
-									<span className="font-jetbrains ml-auto">{formattedNum(props.perps.total24h, true)}</span>
+									<span className="ml-auto font-jetbrains">{formattedNum(props.perps.total24h, true)}</span>
 								</summary>
 								<div className="mb-3 flex flex-col">
 									{props.perps.total7d != null ? (
@@ -461,7 +461,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 											>
 												Volume (7d)
 											</Tooltip>
-											<span className="font-jetbrains ml-auto">{formattedNum(props.perps.total7d, true)}</span>
+											<span className="ml-auto font-jetbrains">{formattedNum(props.perps.total7d, true)}</span>
 										</p>
 									) : null}
 									{props.perps.change_7dover7d != null ? (
@@ -473,7 +473,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 												Weekly Change
 											</Tooltip>
 											<span
-												className={`font-jetbrains ml-auto ${
+												className={`ml-auto font-jetbrains ${
 													props.perps.change_7dover7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 												}`}
 											>
@@ -492,7 +492,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								>
 									Inflows (24h)
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.inflows.netInflows, true)}</span>
+								<span className="ml-auto font-jetbrains">{formattedNum(props.inflows.netInflows, true)}</span>
 							</p>
 						) : null}
 						{props.users.activeUsers != null ? (
@@ -526,19 +526,19 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 											width={16}
 											className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 										/>
-										<span className="font-jetbrains ml-auto">{formattedNum(props.users.activeUsers, false)}</span>
+										<span className="ml-auto font-jetbrains">{formattedNum(props.users.activeUsers, false)}</span>
 									</summary>
 									<div className="mb-3 flex flex-col">
 										{props.users.newUsers != null ? (
 											<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 												<span className="text-(--text-label)">New Addresses (24h)</span>
-												<span className="font-jetbrains ml-auto">{formattedNum(props.users.newUsers, false)}</span>
+												<span className="ml-auto font-jetbrains">{formattedNum(props.users.newUsers, false)}</span>
 											</p>
 										) : null}
 										{props.users.transactions != null ? (
 											<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 												<span className="text-(--text-label)">Transactions (24h)</span>
-												<span className="font-jetbrains ml-auto">{formattedNum(props.users.transactions, false)}</span>
+												<span className="ml-auto font-jetbrains">{formattedNum(props.users.transactions, false)}</span>
 											</p>
 										) : null}
 									</div>
@@ -564,7 +564,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 									>
 										Active Addresses (24h)
 									</Tooltip>
-									<span className="font-jetbrains ml-auto">{formattedNum(props.users.activeUsers, false)}</span>
+									<span className="ml-auto font-jetbrains">{formattedNum(props.users.activeUsers, false)}</span>
 								</p>
 							)
 						) : null}
@@ -578,13 +578,13 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										width={16}
 										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
-									<span className="font-jetbrains ml-auto">{formattedNum(props.treasury.tvl, true)}</span>
+									<span className="ml-auto font-jetbrains">{formattedNum(props.treasury.tvl, true)}</span>
 								</summary>
 								<div className="mb-3 flex flex-col">
 									{props.treasury.tokenBreakdowns?.stablecoins != null ? (
 										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">Stablecoins</span>
-											<span className="font-jetbrains ml-auto">
+											<span className="ml-auto font-jetbrains">
 												{formattedNum(props.treasury.tokenBreakdowns?.stablecoins, true)}
 											</span>
 										</p>
@@ -592,7 +592,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 									{props.treasury.tokenBreakdowns?.majors != null ? (
 										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">Major Tokens (ETH, BTC)</span>
-											<span className="font-jetbrains ml-auto">
+											<span className="ml-auto font-jetbrains">
 												{formattedNum(props.treasury.tokenBreakdowns?.majors, true)}
 											</span>
 										</p>
@@ -600,7 +600,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 									{props.treasury.tokenBreakdowns?.others != null ? (
 										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">Other Tokens</span>
-											<span className="font-jetbrains ml-auto">
+											<span className="ml-auto font-jetbrains">
 												{formattedNum(props.treasury.tokenBreakdowns?.others, true)}
 											</span>
 										</p>
@@ -608,7 +608,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 									{props.treasury.tokenBreakdowns?.ownTokens != null ? (
 										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">Own Tokens</span>
-											<span className="font-jetbrains ml-auto">
+											<span className="ml-auto font-jetbrains">
 												{formattedNum(props.treasury.tokenBreakdowns?.ownTokens, true)}
 											</span>
 										</p>
@@ -631,7 +631,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										width={16}
 										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
-									<span className="font-jetbrains ml-auto">
+									<span className="ml-auto font-jetbrains">
 										{formatRaisedAmount(props.chainRaises.reduce((sum, r) => sum + Number(r.amount), 0))}
 									</span>
 								</summary>
@@ -683,7 +683,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										width={16}
 										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
-									<span className="font-jetbrains ml-auto">
+									<span className="ml-auto font-jetbrains">
 										{formattedNum(
 											props.chainAssets.total.total +
 												(tvlSettings.govtokens ? +(props.chainAssets?.ownTokens?.total ?? 0) : 0),
@@ -700,7 +700,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 											>
 												Native
 											</Tooltip>
-											<span className="font-jetbrains ml-auto">
+											<span className="ml-auto font-jetbrains">
 												{formattedNum(props.chainAssets.native.total, true)}
 											</span>
 										</p>
@@ -713,7 +713,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 											>
 												Own Tokens
 											</Tooltip>
-											<span className="font-jetbrains ml-auto">
+											<span className="ml-auto font-jetbrains">
 												{formattedNum(props.chainAssets.ownTokens.total, true)}
 											</span>
 										</p>
@@ -726,7 +726,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 											>
 												Canonical
 											</Tooltip>
-											<span className="font-jetbrains ml-auto">
+											<span className="ml-auto font-jetbrains">
 												{formattedNum(props.chainAssets.canonical.total, true)}
 											</span>
 										</p>
@@ -739,7 +739,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 											>
 												Third Party
 											</Tooltip>
-											<span className="font-jetbrains ml-auto">
+											<span className="ml-auto font-jetbrains">
 												{formattedNum(props.chainAssets.thirdParty.total, true)}
 											</span>
 										</p>
@@ -755,13 +755,13 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								>
 									NFT Volume (24h)
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.nfts.total24h, true)}</span>
+								<span className="ml-auto font-jetbrains">{formattedNum(props.nfts.total24h, true)}</span>
 							</p>
 						) : null}
 						{props.chainTokenInfo?.token_symbol ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<span className="text-(--text-label)">${props.chainTokenInfo.token_symbol} Price</span>
-								<span className="font-jetbrains ml-auto">
+								<span className="ml-auto font-jetbrains">
 									{formattedNum(props.chainTokenInfo?.current_price, true)}
 								</span>
 							</p>
@@ -769,7 +769,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						{props.chainTokenInfo?.token_symbol ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<span className="text-(--text-label)">${props.chainTokenInfo.token_symbol} Market Cap</span>
-								<span className="font-jetbrains ml-auto">
+								<span className="ml-auto font-jetbrains">
 									{formattedNum(props.chainTokenInfo?.market_cap ?? 0, true)}
 								</span>
 							</p>
@@ -777,7 +777,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						{props.chainTokenInfo?.token_symbol ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<span className="text-(--text-label)">${props.chainTokenInfo.token_symbol} FDV</span>
-								<span className="font-jetbrains ml-auto">
+								<span className="ml-auto font-jetbrains">
 									{formattedNum(props.chainTokenInfo?.fully_diluted_valuation ?? 0, true)}
 								</span>
 							</p>
@@ -801,7 +801,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										<span>Add Metrics</span>
 										<Icon name="plus" className="h-3.5 w-3.5" />
 									</Ariakit.DialogDisclosure>
-									<Ariakit.Dialog className="dialog max-sm:drawer gap-3 sm:w-full" unmountOnHide>
+									<Ariakit.Dialog className="dialog gap-3 max-sm:drawer sm:w-full" unmountOnHide>
 										<span className="flex items-center justify-between gap-1">
 											<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
 											<Ariakit.DialogDismiss className="ml-auto p-2 opacity-50">

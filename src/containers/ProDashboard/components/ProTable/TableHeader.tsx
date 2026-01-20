@@ -83,9 +83,9 @@ export function TableHeader({
 
 			{colSpan === 2 && (
 				<div className="flex flex-nowrap items-center gap-2 overflow-x-auto" role="group">
-					<span className="pro-text3 text-[11px] font-semibold tracking-wide uppercase">Datasets</span>
+					<span className="text-[11px] font-semibold tracking-wide pro-text3 uppercase">Datasets</span>
 					{datasetPresets.length === 0 ? (
-						<span className="pro-text3 text-xs italic">No datasets available</span>
+						<span className="text-xs pro-text3 italic">No datasets available</span>
 					) : (
 						<>
 							{visibleDatasets.map((preset) => {
@@ -98,7 +98,7 @@ export function TableHeader({
 										className={`flex items-center gap-1 rounded-md border px-3 py-1.5 text-sm whitespace-nowrap transition-colors ${
 											isActive
 												? 'border-(--primary) bg-(--primary) text-white'
-												: 'pro-border pro-hover-bg pro-text1 pro-bg1'
+												: 'pro-border pro-bg1 pro-hover-bg pro-text1'
 										}`}
 										title={preset.description}
 										aria-pressed={isActive}
@@ -114,7 +114,7 @@ export function TableHeader({
 										className={`flex items-center gap-1 rounded-md border px-3 py-1.5 text-sm whitespace-nowrap transition-colors ${
 											moreDatasets.some((p) => p.id === activePreset)
 												? 'border-(--primary) bg-(--primary) text-white'
-												: 'pro-border pro-hover-bg pro-text1 pro-bg1'
+												: 'pro-border pro-bg1 pro-hover-bg pro-text1'
 										}`}
 									>
 										More...
@@ -125,7 +125,7 @@ export function TableHeader({
 										modal={false}
 										portal={true}
 										gutter={4}
-										className="pro-dashboard z-50 w-[260px] rounded-lg border border-(--cards-border) bg-(--cards-bg) shadow-xl"
+										className="z-50 w-[260px] rounded-lg border pro-dashboard border-(--cards-border) bg-(--cards-bg) shadow-xl"
 									>
 										<div className="thin-scrollbar max-h-[420px] overflow-y-auto p-1.5">
 											{moreDatasets.map((preset) => {
@@ -154,7 +154,7 @@ export function TableHeader({
 																	<Icon name="check" width={14} height={14} className="shrink-0 text-(--primary)" />
 																)}
 															</div>
-															<p className="pro-text3 text-xs leading-snug opacity-80">{preset.description}</p>
+															<p className="text-xs leading-snug pro-text3 opacity-80">{preset.description}</p>
 														</div>
 													</button>
 												)
@@ -175,14 +175,14 @@ export function TableHeader({
 					className={`flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors ${
 						activeCustomView
 							? 'border-(--primary) bg-(--primary) text-white'
-							: 'pro-border pro-hover-bg pro-text1 pro-bg1'
+							: 'pro-border pro-bg1 pro-hover-bg pro-text1'
 					}`}
 				>
 					<Icon name="eye" height={14} width={14} />
 					<span>{activeCustomView ? activeCustomView.name : 'Custom Views'}</span>
 					<Icon name={showCustomViewDropdown ? 'chevron-up' : 'chevron-down'} height={12} width={12} />
 					{customViews.length > 0 && !activeCustomView && (
-						<span className="bg-pro-blue-100 text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 ml-1 rounded-full px-1.5 py-0.5 text-xs">
+						<span className="ml-1 rounded-full bg-pro-blue-100 px-1.5 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
 							{customViews.length}
 						</span>
 					)}
@@ -190,25 +190,25 @@ export function TableHeader({
 
 				{showCustomViewDropdown && (
 					<div
-						className="pro-bg3 pro-divider absolute top-full right-0 mt-1 min-w-[200px] rounded-md border shadow-lg"
+						className="absolute top-full right-0 mt-1 min-w-[200px] rounded-md border pro-divider pro-bg3 shadow-lg"
 						style={{ zIndex: 9999 }}
 					>
 						{customViews.length > 0 ? (
 							<>
-								<div className="pro-text3 border-b border-(--bg-divider) px-3 py-2 text-xs font-medium uppercase">
+								<div className="border-b border-(--bg-divider) px-3 py-2 text-xs font-medium pro-text3 uppercase">
 									Saved Views
 								</div>
 								{customViews.map((view) => (
 									<div
 										key={view.id}
-										className="pro-hover-bg flex items-center justify-between px-3 py-2 transition-colors"
+										className="flex items-center justify-between pro-hover-bg px-3 py-2 transition-colors"
 									>
 										<button
 											onClick={() => {
 												onLoadView?.(view.id)
 												setShowCustomViewDropdown(false)
 											}}
-											className="pro-text1 flex flex-1 items-center gap-2 text-left text-sm"
+											className="flex flex-1 items-center gap-2 text-left text-sm pro-text1"
 										>
 											<span>{view.name}</span>
 											{activeCustomView?.id === view.id && (
@@ -223,7 +223,7 @@ export function TableHeader({
 														onDeleteView?.(view.id)
 													}
 												}}
-												className="pro-text3 rounded-md p-1 transition-colors hover:text-(--error)"
+												className="rounded-md p-1 pro-text3 transition-colors hover:text-(--error)"
 											>
 												<Icon name="trash-2" height={12} width={12} />
 											</button>
@@ -236,7 +236,7 @@ export function TableHeader({
 											setShowSaveModal(true)
 											setShowCustomViewDropdown(false)
 										}}
-										className="pro-hover-bg pro-text1 flex w-full items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors"
+										className="flex w-full items-center justify-center gap-2 rounded-md pro-hover-bg py-2 text-sm font-medium pro-text1 transition-colors"
 									>
 										<Icon name="plus" height={14} width={14} />
 										<span>Save Current View</span>
@@ -245,13 +245,13 @@ export function TableHeader({
 							</>
 						) : (
 							<div className="p-4 text-center">
-								<p className="pro-text3 mb-3 text-sm">No custom views yet</p>
+								<p className="mb-3 text-sm pro-text3">No custom views yet</p>
 								<button
 									onClick={() => {
 										setShowSaveModal(true)
 										setShowCustomViewDropdown(false)
 									}}
-									className="pro-border pro-hover-bg pro-text1 flex w-full items-center justify-center gap-2 rounded-md border py-2 text-sm font-medium transition-colors"
+									className="flex w-full items-center justify-center gap-2 rounded-md border pro-border pro-hover-bg py-2 text-sm font-medium pro-text1 transition-colors"
 								>
 									<Icon name="plus" height={14} width={14} />
 									<span>Save Current View</span>
@@ -267,7 +267,7 @@ export function TableHeader({
 			<Tooltip
 				content="Create custom calculated columns with formulas like 'tvl / mcap' or '(fees_24h + revenue_24h) * 365'"
 				render={<button onClick={() => setShowColumnPanel(!showColumnPanel)} />}
-				className="pro-border pro-hover-bg pro-text1 pro-bg1 relative flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors"
+				className="relative flex items-center gap-2 rounded-md border pro-border pro-bg1 pro-hover-bg px-3 py-1.5 text-sm pro-text1 transition-colors"
 			>
 				<Icon name="settings" height={14} width={14} />
 				<span className="flex items-center gap-1">

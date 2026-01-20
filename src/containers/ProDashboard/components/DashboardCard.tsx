@@ -71,7 +71,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 
 	return (
 		<div
-			className={`relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} hover:bg-pro-blue-300/5 hover:shadow-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 transition-all duration-200 ease-out hover:border-(--old-blue)/30 hover:shadow-md dark:hover:border-(--old-blue)/40 ${className ?? ''}`}
+			className={`relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 transition-all duration-200 ease-out hover:border-(--old-blue)/30 hover:bg-pro-blue-300/5 hover:shadow-md hover:shadow-pro-blue-300/5 dark:hover:border-(--old-blue)/40 dark:hover:bg-pro-blue-300/10 ${className ?? ''}`}
 		>
 			<div className="flex flex-wrap items-center justify-end gap-2">
 				<h2 className="mr-auto text-base leading-tight font-semibold text-wrap">
@@ -83,12 +83,12 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 				{onDelete ? (
 					<>
 						{dashboard.visibility === 'public' ? (
-							<p className="bg-pro-green-100 text-pro-green-400 dark:bg-pro-green-300/20 dark:text-pro-green-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
+							<p className="flex items-center gap-1 rounded-md bg-pro-green-100 px-2 py-1.25 text-xs text-pro-green-400 dark:bg-pro-green-300/20 dark:text-pro-green-200">
 								<Icon name="earth" height={12} width={12} />
 								<span>Public </span>
 							</p>
 						) : (
-							<p className="bg-pro-gold-100 text-pro-gold-400 dark:bg-pro-gold-300/20 dark:text-pro-gold-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
+							<p className="flex items-center gap-1 rounded-md bg-pro-gold-100 px-2 py-1.25 text-xs text-pro-gold-400 dark:bg-pro-gold-300/20 dark:text-pro-gold-200">
 								<Icon name="key" height={12} width={12} />
 								<span>Private</span>
 							</p>

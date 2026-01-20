@@ -19,6 +19,7 @@ import { formatDateLabel, formatPercent } from './format'
 import { StatsCard } from './StatsCard'
 import type { ComparisonEntry, PricePoint, TimelinePoint } from './types'
 
+const EMPTY_SELECTED_COINS: Record<string, IResponseCGMarketsAPI> = {}
 const EMPTY_COMPARISON_ENTRIES: ComparisonEntry[] = []
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
@@ -279,6 +280,7 @@ const isValidDate = (dateString: string | string[] | undefined): boolean => {
 export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) {
 	const router = useRouter()
 	const now = Math.floor(Date.now() / 1000) - 60
+	const coinParam = router.query?.coin
 
 	const coinInfoMap = useMemo(() => new Map(coinsData.map((coin) => [coin.id, coin])), [coinsData])
 
@@ -312,14 +314,14 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	const [quantityInput, setQuantityInput] = useState('')
 
 	const { selectedCoins, selectedCoinId, selectedCoinInfo } = useMemo(() => {
-		const queryCoins = router.query?.coin || ['bitcoin']
+		const queryCoins = coinParam || ['bitcoin']
 		const coins = Array.isArray(queryCoins) ? queryCoins : [queryCoins]
 		return {
 			selectedCoins: coins,
 			selectedCoinId: coins[0],
 			selectedCoinInfo: coins[0] ? coinInfoMap.get(coins[0]) : null
 		}
-	}, [router.query, coinInfoMap])
+	}, [coinParam, coinInfoMap])
 
 	const start = dateStringToUnix(startDate)
 	const end = dateStringToUnix(endDate)
@@ -655,7 +657,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 						<CoinsPicker
 							dialogStore={dialogStore}
 							coinsData={coinsData}
-							selectedCoins={{}}
+							selectedCoins={EMPTY_SELECTED_COINS}
 							queryCoins={selectedCoins}
 							selectCoin={(coin) => updateCoin(coin.id)}
 						/>

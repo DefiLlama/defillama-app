@@ -81,7 +81,7 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 				<p className="text-center text-base text-(--text-label)">
 					This dashboard does not exist or you don't have permission to view it
 				</p>
-				<BasicLink href="/pro" className="pro-btn-purple mt-7 rounded-md px-6 py-3 font-medium">
+				<BasicLink href="/pro" className="mt-7 rounded-md pro-btn-purple px-6 py-3 font-medium">
 					Browse Dashboards
 				</BasicLink>
 			</div>
@@ -95,7 +95,7 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 				<p className="text-center text-base text-(--text-label)">Please sign in to create a new dashboard</p>
 				<BasicLink
 					href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`}
-					className="pro-btn-purple mt-7 rounded-md px-6 py-3 font-medium"
+					className="mt-7 rounded-md pro-btn-purple px-6 py-3 font-medium"
 				>
 					Sign In
 				</BasicLink>
@@ -127,7 +127,7 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 				<p className="text-center text-base text-(--text-label)">Please sign in to view this dashboard</p>
 				<BasicLink
 					href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`}
-					className="pro-btn-purple mt-7 rounded-md px-6 py-3 font-medium"
+					className="mt-7 rounded-md pro-btn-purple px-6 py-3 font-medium"
 				>
 					Sign In
 				</BasicLink>
@@ -162,13 +162,13 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 					</div>
 				</div>
 
-				<h2 className="pro-text1 text-3xl font-bold">
-					$49<span className="pro-text2 text-lg font-normal">/month</span>
+				<h2 className="text-3xl font-bold pro-text1">
+					$49<span className="text-lg font-normal pro-text2">/month</span>
 				</h2>
 
 				<BasicLink
 					href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`}
-					className="pro-btn-purple rounded-md px-6 py-3 font-medium"
+					className="rounded-md pro-btn-purple px-6 py-3 font-medium"
 				>
 					Subscribe Now
 				</BasicLink>

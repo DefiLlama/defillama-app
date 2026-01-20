@@ -7,7 +7,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { NextRouter, useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -157,14 +157,27 @@ const toArrayParam = (p: string | string[] | undefined): string[] => {
 	return Array.isArray(p) ? p.filter(Boolean) : [p].filter(Boolean)
 }
 
-const updateArrayQuery = (key: string, values: string[], router: NextRouter) => {
-	const nextQuery: Record<string, any> = { ...router.query }
-	if (values.length > 0) {
+const isParamNone = (param: string | string[] | undefined) =>
+	param === 'None' || (Array.isArray(param) && param.includes('None'))
+
+const parseArrayParam = (param: string | string[] | undefined, allKeys: string[]): string[] => {
+	if (isParamNone(param)) return []
+	if (!param) return allKeys
+	const values = toArrayParam(param)
+	const validKeys = new Set(allKeys)
+	return values.filter((value) => validKeys.has(value))
+}
+
+const updateArrayQuery = (key: string, values: string[] | 'None') => {
+	const nextQuery: Record<string, any> = { ...Router.query }
+	if (values === 'None') {
+		nextQuery[key] = 'None'
+	} else if (values.length > 0) {
 		nextQuery[key] = values
 	} else {
 		delete nextQuery[key]
 	}
-	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
 }
 
 const timeOptions = ['All', '7D', '30D', '90D', '1Y'] as const
@@ -195,26 +208,35 @@ export const HacksContainer = ({
 }: IHacksPageData) => {
 	const [chartType, setChartType] = React.useState('Monthly Sum')
 	const router = useRouter()
+	const {
+		chain: chainQ,
+		tech: techQ,
+		class: classQ,
+		time: timeQ,
+		minLost: minLostQuery,
+		maxLost: maxLostQuery
+	} = router.query
+
+	const techniqueOptionKeys = React.useMemo(() => techniqueOptions.map((option) => option.key), [techniqueOptions])
+	const classificationOptionKeys = React.useMemo(
+		() => classificationOptions.map((option) => option.key),
+		[classificationOptions]
+	)
 
 	const chainOptions = React.useMemo(() => {
-		const {
-			tech: techQuery,
-			class: classQuery,
-			time: timeQuery,
-			minLost: minLostQuery,
-			maxLost: maxLostQuery
-		} = router.query
-
-		const selectedTechniquesLocal = Array.isArray(techQuery) ? techQuery : techQuery ? [techQuery] : []
-		const selectedClassificationsLocal = Array.isArray(classQuery) ? classQuery : classQuery ? [classQuery] : []
-		const timeQLocal = typeof timeQuery === 'string' ? timeQuery : undefined
+		const selectedTechniquesLocal = parseArrayParam(techQ, techniqueOptionKeys)
+		const selectedClassificationsLocal = parseArrayParam(classQ, classificationOptionKeys)
+		const timeQLocal = typeof timeQ === 'string' ? timeQ : undefined
 
 		const since = getTimeSinceSeconds(timeQLocal)
 		const minLostValLocal = toNumberOrNullFromQueryParam(minLostQuery)
 		const maxLostValLocal = toNumberOrNullFromQueryParam(maxLostQuery)
 
-		const techKeys = new Set(selectedTechniquesLocal)
-		const classKeys = new Set(selectedClassificationsLocal)
+		const techFilterEnabled = typeof techQ !== 'undefined' && !isParamNone(techQ)
+		const classFilterEnabled = typeof classQ !== 'undefined' && !isParamNone(classQ)
+
+		const techKeys = techFilterEnabled ? new Set(selectedTechniquesLocal) : undefined
+		const classKeys = classFilterEnabled ? new Set(selectedClassificationsLocal) : undefined
 
 		const eligible = applyFilters(data || [], {
 			techKeys,
@@ -228,78 +250,83 @@ export const HacksContainer = ({
 			.filter(Boolean)
 			.sort((a, b) => a.localeCompare(b))
 			.map((name) => ({ key: slug(name), name }))
-	}, [data, router.query])
+	}, [data, techQ, classQ, timeQ, minLostQuery, maxLostQuery, techniqueOptionKeys, classificationOptionKeys])
 
-	const { chain: chainQ, tech: techQ, class: classQ, time: timeQ } = router.query
+	const chainOptionKeys = React.useMemo(() => chainOptions.map((option) => option.key), [chainOptions])
 
 	const selectedChains = React.useMemo(() => {
-		const qs = toArrayParam(chainQ)
-		const validKeys = new Set(chainOptions.map((o) => o.key))
-		return qs.filter((k) => validKeys.has(k))
-	}, [chainQ, chainOptions])
+		return parseArrayParam(chainQ, chainOptionKeys)
+	}, [chainQ, chainOptionKeys])
 
 	const selectedTechniques = React.useMemo(() => {
-		const qs = toArrayParam(techQ)
-		const validKeys = new Set(techniqueOptions.map((o) => o.key))
-		return qs.filter((k) => validKeys.has(k))
-	}, [techQ, techniqueOptions])
+		return parseArrayParam(techQ, techniqueOptionKeys)
+	}, [techQ, techniqueOptionKeys])
 
 	const selectedClassifications = React.useMemo(() => {
-		const qs = toArrayParam(classQ)
-		const validKeys = new Set(classificationOptions.map((o) => o.key))
-		return qs.filter((k) => validKeys.has(k))
-	}, [classQ, classificationOptions])
+		return parseArrayParam(classQ, classificationOptionKeys)
+	}, [classQ, classificationOptionKeys])
 
-	const setSelectedChains = React.useCallback((values: string[]) => updateArrayQuery('chain', values, router), [router])
-	const setSelectedTechniques = React.useCallback(
-		(values: string[]) => updateArrayQuery('tech', values, router),
-		[router]
-	)
-	const setSelectedClassifications = React.useCallback(
-		(values: string[]) => updateArrayQuery('class', values, router),
-		[router]
-	)
+	const setSelectedChains = React.useCallback((values: string[]) => updateArrayQuery('chain', values), [])
+	const setSelectedTechniques = React.useCallback((values: string[]) => updateArrayQuery('tech', values), [])
+	const setSelectedClassifications = React.useCallback((values: string[]) => updateArrayQuery('class', values), [])
+
+	const clearAllChains = React.useCallback(() => updateArrayQuery('chain', 'None'), [])
+	const toggleAllChains = React.useCallback(() => updateArrayQuery('chain', []), [])
+	const selectOnlyOneChain = React.useCallback((value: string) => updateArrayQuery('chain', [value]), [])
+
+	const clearAllTechniques = React.useCallback(() => updateArrayQuery('tech', 'None'), [])
+	const toggleAllTechniques = React.useCallback(() => updateArrayQuery('tech', []), [])
+	const selectOnlyOneTechnique = React.useCallback((value: string) => updateArrayQuery('tech', [value]), [])
+
+	const clearAllClassifications = React.useCallback(() => updateArrayQuery('class', 'None'), [])
+	const toggleAllClassifications = React.useCallback(() => updateArrayQuery('class', []), [])
+	const selectOnlyOneClassification = React.useCallback((value: string) => updateArrayQuery('class', [value]), [])
 
 	const selectedTimeLabel = (typeof timeQ === 'string' && keyToLabel[timeQ]) || 'All'
 
-	const setSelectedTime = React.useCallback(
-		(label: (typeof timeOptions)[number]) => {
-			const key = labelToKey[label]
-			const nextQuery: Record<string, any> = { ...router.query }
-			if (key && key !== 'all') nextQuery.time = key
-			else delete nextQuery.time
-			router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-		},
-		[router]
-	)
+	const setSelectedTime = React.useCallback((label: (typeof timeOptions)[number]) => {
+		const key = labelToKey[label]
+		const nextQuery: Record<string, any> = { ...Router.query }
+		if (key && key !== 'all') nextQuery.time = key
+		else delete nextQuery.time
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [])
 
 	const { minLost, maxLost } = router.query
 
-	const handleAmountSubmit = React.useCallback(
-		(e) => {
-			e.preventDefault()
-			const form = e.target
-			const min = form.min?.value
-			const max = form.max?.value
-			router.push({ pathname: router.pathname, query: { ...router.query, minLost: min, maxLost: max } }, undefined, {
-				shallow: true
-			})
-		},
-		[router]
-	)
+	const handleAmountSubmit = React.useCallback((e) => {
+		e.preventDefault()
+		const form = e.target
+		const min = form.min?.value
+		const max = form.max?.value
+		Router.push({ pathname: Router.pathname, query: { ...Router.query, minLost: min, maxLost: max } }, undefined, {
+			shallow: true
+		})
+	}, [])
 
 	const handleAmountClear = React.useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
+		const nextQuery: Record<string, any> = { ...Router.query }
 		delete nextQuery.minLost
 		delete nextQuery.maxLost
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [router])
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [])
 
 	const minLostVal = toNumberOrNullFromQueryParam(minLost)
 	const maxLostVal = toNumberOrNullFromQueryParam(maxLost)
 
+	const hasActiveFilters = React.useMemo(() => {
+		return (
+			typeof chainQ !== 'undefined' ||
+			typeof techQ !== 'undefined' ||
+			typeof classQ !== 'undefined' ||
+			typeof timeQ !== 'undefined' ||
+			minLostVal != null ||
+			maxLostVal != null
+		)
+	}, [chainQ, techQ, classQ, timeQ, minLostVal, maxLostVal])
+
 	const clearAllFilters = React.useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
+		const nextQuery: Record<string, any> = { ...Router.query }
 		delete nextQuery.chain
 		delete nextQuery.tech
 		delete nextQuery.class
@@ -308,13 +335,22 @@ export const HacksContainer = ({
 		delete nextQuery.minLost
 		delete nextQuery.maxLost
 		delete nextQuery.time
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [router])
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [])
 
 	const filteredData = React.useMemo(() => {
-		const chainKeys = new Set(selectedChains)
-		const techKeys = new Set(selectedTechniques)
-		const classKeys = new Set(selectedClassifications)
+		const chainNone = isParamNone(chainQ)
+		const techNone = isParamNone(techQ)
+		const classNone = isParamNone(classQ)
+		if (chainNone || techNone || classNone) return []
+
+		const chainFilterEnabled = typeof chainQ !== 'undefined'
+		const techFilterEnabled = typeof techQ !== 'undefined'
+		const classFilterEnabled = typeof classQ !== 'undefined'
+
+		const chainKeys = chainFilterEnabled ? new Set(selectedChains) : undefined
+		const techKeys = techFilterEnabled ? new Set(selectedTechniques) : undefined
+		const classKeys = classFilterEnabled ? new Set(selectedClassifications) : undefined
 		const since = getTimeSinceSeconds(typeof timeQ === 'string' ? timeQ : undefined)
 
 		return applyFilters(data || [], {
@@ -325,7 +361,18 @@ export const HacksContainer = ({
 			minLost: minLostVal,
 			maxLost: maxLostVal
 		})
-	}, [data, selectedChains, selectedTechniques, selectedClassifications, timeQ, minLostVal, maxLostVal])
+	}, [
+		data,
+		chainQ,
+		techQ,
+		classQ,
+		selectedChains,
+		selectedTechniques,
+		selectedClassifications,
+		timeQ,
+		minLostVal,
+		maxLostVal
+	])
 
 	const prepareCsv = React.useCallback(() => {
 		if (chartType === 'Monthly Sum') {
@@ -391,6 +438,15 @@ export const HacksContainer = ({
 				setSelectedChains={setSelectedChains}
 				setSelectedTechniques={setSelectedTechniques}
 				setSelectedClassifications={setSelectedClassifications}
+				clearAllChains={clearAllChains}
+				toggleAllChains={toggleAllChains}
+				selectOnlyOneChain={selectOnlyOneChain}
+				clearAllTechniques={clearAllTechniques}
+				toggleAllTechniques={toggleAllTechniques}
+				selectOnlyOneTechnique={selectOnlyOneTechnique}
+				clearAllClassifications={clearAllClassifications}
+				toggleAllClassifications={toggleAllClassifications}
+				selectOnlyOneClassification={selectOnlyOneClassification}
 				timeOptions={timeOptions as unknown as string[]}
 				selectedTimeLabel={selectedTimeLabel}
 				setSelectedTime={setSelectedTime as any}
@@ -398,6 +454,7 @@ export const HacksContainer = ({
 				maxLostVal={maxLostVal}
 				handleAmountSubmit={handleAmountSubmit}
 				handleAmountClear={handleAmountClear}
+				hasActiveFilters={hasActiveFilters}
 				onClearAll={clearAllFilters}
 			/>
 			<HacksTable data={filteredData} />
