@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { lazy, memo, Suspense, useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import {
 	ChartBuilderConfig,
@@ -42,7 +42,7 @@ interface AddToDashboardButtonProps {
 	disabled?: boolean
 }
 
-export const AddToDashboardButton = memo(function AddToDashboardButton({
+export function AddToDashboardButton({
 	chartConfig,
 	multiChart,
 	llamaAIChart,
@@ -110,4 +110,4 @@ export const AddToDashboardButton = memo(function AddToDashboardButton({
 			)}
 		</>
 	)
-})
+}

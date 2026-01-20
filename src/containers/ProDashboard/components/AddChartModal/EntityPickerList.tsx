@@ -1,6 +1,6 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
-import { memo, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { getItemIconUrl } from '../../utils'
@@ -21,7 +21,7 @@ interface EntityPickerListProps {
 	isLoading?: boolean
 }
 
-export const EntityPickerList = memo(function EntityPickerList({
+export function EntityPickerList({
 	mode,
 	entities,
 	selectedEntities,
@@ -150,4 +150,4 @@ export const EntityPickerList = memo(function EntityPickerList({
 			</div>
 		</div>
 	)
-})
+}

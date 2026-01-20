@@ -1,7 +1,7 @@
 import { LegendComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { useRouter } from 'next/router'
-import { memo, useState } from 'react'
+import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -27,7 +27,7 @@ interface ChartExportButtonProps {
 
 echarts.use([LegendComponent])
 
-export const ChartExportButton = memo(function ChartExportButton({
+export function ChartExportButton({
 	chartInstance,
 	className,
 	smol,
@@ -388,4 +388,4 @@ export const ChartExportButton = memo(function ChartExportButton({
 			</button>
 		</>
 	)
-})
+}

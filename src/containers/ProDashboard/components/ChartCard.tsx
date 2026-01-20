@@ -1,5 +1,5 @@
 import type * as echarts from 'echarts/core'
-import { lazy, memo, Suspense, useCallback, useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select'
@@ -45,7 +45,7 @@ const CUMULATIVE_DISPLAY_OPTIONS = [
 	{ name: 'Show cumulative values', key: 'Cumulative' }
 ]
 
-const ChartRenderer = memo(function ChartRenderer({
+function ChartRenderer({
 	type,
 	showCumulative = false,
 	data,
@@ -101,11 +101,11 @@ const ChartRenderer = memo(function ChartRenderer({
 			/>
 		</Suspense>
 	)
-})
+}
 
 const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
 
-export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
+export function ChartCard({ chart }: ChartCardProps) {
 	const { getChainInfo, getProtocolInfo } = useProDashboardCatalog()
 	const { handleGroupingChange, handleCumulativeChange } = useProDashboardEditorActions()
 	const { isReadOnly } = useProDashboardPermissions()
@@ -158,7 +158,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 		}
 	}, [chart, getChainInfo, getProtocolInfo])
 
-	const handleCsvExport = useCallback(() => {
+	const handleCsvExport = () => {
 		if (!processedData || processedData.length === 0) return
 		const headers = ['Date', `${itemName} ${chartTypeDetails.title}`]
 		const rows = processedData.map(([timestamp, value]) => [new Date(Number(timestamp)).toLocaleDateString(), value])
@@ -167,7 +167,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 			new Date().toISOString().split('T')[0]
 		}.csv`
 		download(fileName, csvContent)
-	}, [processedData, itemName, chartTypeDetails])
+	}
 
 	const imageFilename = `${itemName}_${chartTypeDetails.title.replace(/\s+/g, '_')}`
 	const imageTitle = `${itemName} ${chartTypeDetails.title}`
@@ -249,4 +249,4 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 			/>
 		</div>
 	)
-})
+}

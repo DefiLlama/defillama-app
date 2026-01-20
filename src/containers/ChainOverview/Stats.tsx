@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useRouter } from 'next/router'
-import { Fragment, lazy, memo, Suspense, useCallback, useMemo, useRef } from 'react'
+import { Fragment, lazy, Suspense, useCallback, useMemo, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { Bookmark } from '~/components/Bookmark'
@@ -36,7 +36,7 @@ interface IStatsProps extends IChainOverviewData {
 	hideChart?: boolean
 }
 
-export const Stats = memo(function Stats(props: IStatsProps) {
+export function Stats(props: IStatsProps) {
 	const router = useRouter()
 	const queryParamsString = useMemo(() => {
 		const { tvl, ...rest } = router.query ?? {}
@@ -942,7 +942,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 			) : null}
 		</div>
 	)
-})
+}
 
 const updateRoute = (key, val, router) => {
 	router.push(

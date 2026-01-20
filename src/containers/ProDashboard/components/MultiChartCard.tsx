@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useCallback, useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select'
 import { Tooltip } from '~/components/Tooltip'
@@ -43,7 +43,7 @@ interface MultiChartCardProps {
 	multi: MultiChartConfig
 }
 
-const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardProps) {
+function MultiChartCard({ multi }: MultiChartCardProps) {
 	const { getProtocolInfo } = useProDashboardCatalog()
 	const {
 		handleGroupingChange,
@@ -342,7 +342,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		})
 	}, [baseSeries, chartTypeInfo, showPercentage, showStacked, showCumulative])
 
-	const handleCsvExport = useCallback(() => {
+	const handleCsvExport = () => {
 		if (!series || series.length === 0) return
 
 		const timestampSet = new Set<number>()
@@ -367,7 +367,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
 		const fileName = `${multi.name || 'multi_chart'}_${new Date().toISOString().split('T')[0]}.csv`
 		download(fileName, csvContent)
-	}, [series, multi.name])
+	}
 
 	const hasAnyData = validItems.length > 0
 	const isAllLoading = loadingItems.length === multi.items.length
@@ -689,6 +689,6 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			)}
 		</div>
 	)
-})
+}
 
 export default MultiChartCard

@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 
 interface ResearchProgressProps {
@@ -32,7 +32,7 @@ function AnimatedDots() {
 	)
 }
 
-export const ResearchProgress = memo(function ResearchProgress({
+export function ResearchProgress({
 	isActive,
 	startTime,
 	currentIteration: _currentIteration,
@@ -180,4 +180,4 @@ export const ResearchProgress = memo(function ResearchProgress({
 			)}
 		</div>
 	)
-})
+}

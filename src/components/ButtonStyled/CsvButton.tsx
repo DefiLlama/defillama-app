@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { lazy, memo, ReactNode, Suspense, useState } from 'react'
+import { lazy, ReactNode, Suspense, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -43,7 +43,7 @@ const hasPrepareCsv = (props: CSVDownloadButtonPropsUnion): props is CSVDownload
 const hasOnClick = (props: CSVDownloadButtonPropsUnion): props is CSVDownloadButtonWithOnClick => 'onClick' in props
 
 // use children to pass in the text
-export const CSVDownloadButton = memo(function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
+export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 	const { className, replaceClassName, smol, children } = props
 	const [staticLoading, setStaticLoading] = useState(false)
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
@@ -122,4 +122,4 @@ export const CSVDownloadButton = memo(function CSVDownloadButton(props: CSVDownl
 			) : null}
 		</>
 	)
-})
+}

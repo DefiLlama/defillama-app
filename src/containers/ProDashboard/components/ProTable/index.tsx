@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useProDashboardEditorActions } from '../../ProDashboardAPIContext'
 import { TableFilters } from '../../types'
 import { ColumnManagementPanel } from './ColumnManagementPanel'
@@ -8,7 +8,7 @@ import { TableHeader } from './TableHeader'
 import { TablePagination } from './TablePagination'
 import { useProTable } from './useProTable'
 
-export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
+export function ProtocolsByChainTable({
 	tableId,
 	chains = ['All'],
 	colSpan = 2,
@@ -143,4 +143,4 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 			)}
 		</div>
 	)
-})
+}

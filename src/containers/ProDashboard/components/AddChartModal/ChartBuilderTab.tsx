@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
-import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { CHAINS_API_V2, PROTOCOLS_API } from '~/constants'
 import { CustomTimePeriod, TimePeriod } from '~/containers/ProDashboard/ProDashboardAPIContext'
@@ -120,7 +120,7 @@ const FilterModeToggle = ({
 	</div>
 )
 
-export const ChartBuilderTab = memo(function ChartBuilderTab({
+export function ChartBuilderTab({
 	chartBuilder,
 	chartBuilderName,
 	chainOptions,
@@ -1120,4 +1120,4 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 			</div>
 		</div>
 	)
-})
+}

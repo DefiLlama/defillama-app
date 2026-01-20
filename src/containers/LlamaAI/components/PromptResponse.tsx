@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -58,7 +58,7 @@ interface PromptResponseProps {
 	} | null
 }
 
-export const SuggestedActions = memo(function SuggestedActions({
+export function SuggestedActions({
 	suggestions,
 	handleSuggestionClick,
 	isPending,
@@ -95,9 +95,9 @@ export const SuggestedActions = memo(function SuggestedActions({
 			</div>
 		</div>
 	)
-})
+}
 
-export const QueryMetadata = memo(function QueryMetadata({ metadata }: { metadata: any }) {
+export function QueryMetadata({ metadata }: { metadata: any }) {
 	const [copied, setCopied] = useState(false)
 	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	useEffect(() => {
@@ -140,9 +140,9 @@ export const QueryMetadata = memo(function QueryMetadata({ metadata }: { metadat
 			</pre>
 		</details>
 	)
-})
+}
 
-export const PromptResponse = memo(function PromptResponse({
+export function PromptResponse({
 	response,
 	error,
 	streamingError,
@@ -307,4 +307,4 @@ export const PromptResponse = memo(function PromptResponse({
 			{showMetadata && response?.metadata && <QueryMetadata metadata={response.metadata} />}
 		</>
 	)
-})
+}

@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import Router from 'next/router'
-import { memo, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -1465,7 +1465,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	)
 }
 
-const SentPrompt = memo(function SentPrompt({
+function SentPrompt({
 	prompt,
 	images
 }: {
@@ -1494,9 +1494,9 @@ const SentPrompt = memo(function SentPrompt({
 			<ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
 		</div>
 	)
-})
+}
 
-const ChatControls = memo(function ChatControls({
+function ChatControls({
 	handleSidebarToggle,
 	handleNewChat
 }: {
@@ -1523,4 +1523,4 @@ const ChatControls = memo(function ChatControls({
 			</Tooltip>
 		</div>
 	)
-})
+}

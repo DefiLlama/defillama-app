@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router'
-import { memo } from 'react'
 import { LoadingDots } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks/useIsClient'
@@ -19,7 +18,7 @@ const resolveUserHandle = (user: any): string => {
 	return resolveUserEmail(user) || formatEthAddress(user?.walletAddress) || ''
 }
 
-export const Account = memo(function Account() {
+export function Account() {
 	const { asPath } = useRouter()
 	const { isAuthenticated, user, logout, loaders, hasActiveSubscription } = useAuthContext()
 	const isClient = useIsClient()
@@ -90,4 +89,4 @@ export const Account = memo(function Account() {
 			)}
 		</>
 	)
-})
+}

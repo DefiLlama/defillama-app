@@ -1,4 +1,3 @@
-import { memo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { TextConfig } from '../types'
 
@@ -6,7 +5,7 @@ interface TextCardProps {
 	text: TextConfig
 }
 
-export const TextCard = memo(function TextCard({ text }: TextCardProps) {
+export function TextCard({ text }: TextCardProps) {
 	return (
 		<div className="prose prose-sm flex thin-scrollbar flex-col gap-2 overflow-y-auto p-4 prose-invert">
 			{text.title && <h1 className="text-lg font-semibold text-(--text-primary)">{text.title}</h1>}
@@ -51,4 +50,4 @@ export const TextCard = memo(function TextCard({ text }: TextCardProps) {
 			</ReactMarkdown>
 		</div>
 	)
-})
+}

@@ -1,5 +1,5 @@
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
-import { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '~/containers/ProDashboard/components/UnifiedTable/config/ColumnDictionary'
 import {
@@ -136,7 +136,7 @@ const TABLE_TYPE_CARDS: Array<{
 	}
 ]
 
-const TabContent = memo(function TabContent({
+function TabContent({
 	onClose,
 	chainOptions,
 	editItem,
@@ -831,13 +831,13 @@ const TabContent = memo(function TabContent({
 			</div>
 		</div>
 	)
-})
+}
 
-export const UnifiedTableTab = memo(function UnifiedTableTab(props: UnifiedTableTabProps) {
+export function UnifiedTableTab(props: UnifiedTableTabProps) {
 	const { editItem, focusedSectionOnly, ...rest } = props
 	return (
 		<UnifiedTableWizardProvider initialConfig={editItem}>
 			<TabContent {...rest} editItem={editItem} focusedSectionOnly={focusedSectionOnly} />
 		</UnifiedTableWizardProvider>
 	)
-})
+}

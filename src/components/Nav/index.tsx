@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
+import { lazy, Suspense, useMemo, useSyncExternalStore } from 'react'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { getStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
@@ -121,4 +121,4 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 	)
 }
 
-export const Nav = memo(NavComponent)
+export const Nav = NavComponent
