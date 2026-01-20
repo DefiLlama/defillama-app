@@ -10,6 +10,8 @@ import { CACHE_SERVER } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
 import { fetchJson } from '~/utils/async'
 
+const EMPTY_SELECTED_COINS: Record<string, IResponseCGMarketsAPI> = {}
+
 export function CompareTokens({
 	coinsData,
 	protocols
@@ -384,7 +386,7 @@ export function CompareTokens({
 				<CoinsPicker
 					coinsData={coinsData}
 					dialogStore={dialogStore}
-					selectedCoins={{}}
+					selectedCoins={EMPTY_SELECTED_COINS}
 					queryCoins={coins}
 					selectCoin={(coin) => {
 						const newCoins = coins.slice()

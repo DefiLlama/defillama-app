@@ -206,7 +206,7 @@ const TabContent = memo(function TabContent({
 		setActiveTab((current) => (current === initialTab ? current : initialTab))
 	}, [initialTab])
 
-	const activePreset = useMemo(() => UNIFIED_TABLE_PRESETS_BY_ID.get(activePresetId), [activePresetId])
+	const activePreset = UNIFIED_TABLE_PRESETS_BY_ID.get(activePresetId)
 
 	const allColumns = useMemo(() => {
 		const dictColumns = [
