@@ -65,3 +65,18 @@ export interface UploadedImage {
 	filename?: string
 	size: number
 }
+
+export interface SuggestedQuestionsResponse {
+	categories: {
+		find_alpha: string[]
+		analytics: string[]
+		speculative_guidance: string[]
+		learn: string[]
+		research_report: string[]
+	}
+	metadata: {
+		generatedAt: string
+		cacheExpiresAt: string
+		totalQuestions: number
+	}
+}
