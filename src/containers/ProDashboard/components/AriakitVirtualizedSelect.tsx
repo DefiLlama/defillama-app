@@ -65,7 +65,7 @@ export function AriakitVirtualizedSelect({
 		}
 	}, [isPopoverOpen, filteredOptions.length, virtualizer])
 
-	const selectedOption = useMemo(() => options.find((opt) => opt.value === selectedValue), [options, selectedValue])
+	const selectedOption = options.find((opt) => opt.value === selectedValue)
 
 	const selectedLabel = selectedOption?.label || placeholder
 

@@ -90,14 +90,11 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 			.sort((a, b) => a.date - b.date)
 	}, [data, timePeriod, metricType, viewType])
 
-	const customLegendOptions = useMemo(
-		() => (viewType === 'Split' ? SPLIT_LEGEND_OPTIONS : COMBINED_LEGEND_OPTIONS),
-		[viewType]
-	)
+	const customLegendOptions = viewType === 'Split' ? SPLIT_LEGEND_OPTIONS : COMBINED_LEGEND_OPTIONS
 
-	const stacks = useMemo(() => (viewType === 'Split' ? SPLIT_STACKS : undefined), [viewType])
+	const stacks = viewType === 'Split' ? SPLIT_STACKS : undefined
 
-	const stackColors = useMemo(() => (viewType === 'Split' ? SPLIT_STACK_COLORS : COMBINED_STACK_COLORS), [viewType])
+	const stackColors = viewType === 'Split' ? SPLIT_STACK_COLORS : COMBINED_STACK_COLORS
 
 	const chartOptions = useMemo(() => ({ overrides: { inflow: viewType === 'Split' } }), [viewType])
 

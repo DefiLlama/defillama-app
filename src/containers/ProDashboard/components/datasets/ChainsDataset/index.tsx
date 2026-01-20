@@ -95,7 +95,7 @@ export function ChainsDataset({
 	columnVisibility: savedColumnVisibility
 }: ChainsDatasetProps) {
 	const { handleTableColumnsChange } = useProDashboardEditorActions()
-	const uniqueTableId = React.useMemo(() => tableId || `chains-dataset-${category || 'all'}`, [tableId, category])
+	const uniqueTableId = tableId || `chains-dataset-${category || 'all'}`
 
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'tvl', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
