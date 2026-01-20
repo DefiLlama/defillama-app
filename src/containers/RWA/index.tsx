@@ -315,9 +315,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			definitions.type.label,
 			definitions.category.label,
 			definitions.assetClass.label,
-			definitions.onChainMarketcap.label,
-			definitions.activeMarketcap.label,
 			definitions.defiActiveTvl.label,
+			definitions.activeMarketcap.label,
+			definitions.onChainMarketcap.label,
+			'Token Price',
 			definitions.rwaClassification.label,
 			definitions.accessModel.label,
 			definitions.issuer.label,
@@ -337,9 +338,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				asset.type ?? '',
 				asset.category?.join(', ') ?? '',
 				asset.assetClass?.join(', ') ?? '',
-				asset.onChainMarketcap.total ?? '',
-				asset.activeMarketcap.total ?? '',
 				asset.defiActiveTvl.total ?? '',
+				asset.activeMarketcap.total ?? '',
+				asset.onChainMarketcap.total ?? '',
+				asset.price != null ? formattedNum(asset.price, true) : '',
 				asset.rwaClassification ?? '',
 				asset.accessModel ?? '',
 				asset.issuer ?? '',
@@ -811,6 +813,16 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		size: 168,
 		meta: {
 			headerHelperText: definitions.onChainMarketcap.description,
+			align: 'end'
+		}
+	},
+	{
+		id: 'tokenPrice',
+		header: 'Token Price',
+		accessorFn: (asset) => asset.price,
+		cell: (info) => (info.getValue() != null ? <span>{formattedNum(info.getValue() as number, true)}</span> : null),
+		size: 168,
+		meta: {
 			align: 'end'
 		}
 	},
