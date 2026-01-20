@@ -263,6 +263,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			})
 				.then((result) => {
 					setIsStreaming(false)
+					setLastFailedRequest(null)
 					if (result?.response) {
 						setMessages((prev) => [
 							...prev,
@@ -611,8 +612,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			} else if (!wasUserStopped) {
 				console.log('Request failed:', error)
 				setPendingImages([])
-				setLastFailedRequest(null)
-				lastInputRef.current = null
+				setLastFailedRequest({
+					userQuestion: variables.userQuestion,
+					suggestionContext: variables.suggestionContext,
+					preResolvedEntities: variables.preResolvedEntities
+				})
 			}
 
 			setCurrentMessageId(null)
@@ -621,6 +625,20 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			}, 100)
 		}
 	})
+
+	useEffect(() => {
+		const handleVisibilityChange = () => {
+			if (document.visibilityState !== 'visible') return
+			const currentSessionId = sessionIdRef.current
+			const isUserAbort = error?.message === 'Request aborted'
+			if (error && !isUserAbort && currentSessionId && !isStreaming && !isPending) {
+				resetPrompt()
+				reconnectToStream(currentSessionId, streamingResponse)
+			}
+		}
+		document.addEventListener('visibilitychange', handleVisibilityChange)
+		return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+	}, [error, isStreaming, isPending, reconnectToStream, streamingResponse, resetPrompt])
 
 	const handleStopRequest = useCallback(async () => {
 		if (!isStreaming) return
