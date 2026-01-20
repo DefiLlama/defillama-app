@@ -15,7 +15,7 @@ import { TNavLink, TNavLinks, TOldNavLink } from '../types'
 
 const VERTICAL_SORTING_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
 
-export const Menu = React.memo(function Menu({
+export function Menu({
 	mainLinks,
 	pinnedPages,
 	userDashboards,
@@ -152,9 +152,9 @@ export const Menu = React.memo(function Menu({
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
 	)
-})
+}
 
-const PinnedPagesSection = React.memo(function PinnedPagesSection({
+function PinnedPagesSection({
 	pinnedPages,
 	asPath,
 	setShow
@@ -177,23 +177,20 @@ const PinnedPagesSection = React.memo(function PinnedPagesSection({
 		})
 	)
 
-	const handleDragEnd = React.useCallback(
-		(event: DragEndEvent) => {
-			const { active, over } = event
-			if (!over || active.id === over.id) return
+	const handleDragEnd = (event: DragEndEvent) => {
+		const { active, over } = event
+		if (!over || active.id === over.id) return
 
-			const oldIndex = pinnedPages.findIndex(({ route }) => route === active.id)
-			const newIndex = pinnedPages.findIndex(({ route }) => route === over.id)
+		const oldIndex = pinnedPages.findIndex(({ route }) => route === active.id)
+		const newIndex = pinnedPages.findIndex(({ route }) => route === over.id)
 
-			if (oldIndex === -1 || newIndex === -1) return
+		if (oldIndex === -1 || newIndex === -1) return
 
-			const reordered = arrayMove(pinnedPages, oldIndex, newIndex)
-			mutatePinnedMetrics(() => reordered.map(({ route }) => route))
-		},
-		[pinnedPages]
-	)
+		const reordered = arrayMove(pinnedPages, oldIndex, newIndex)
+		mutatePinnedMetrics(() => reordered.map(({ route }) => route))
+	}
 
-	const sortableItems = React.useMemo(() => pinnedPages.map(({ route }) => route), [pinnedPages])
+	const sortableItems = pinnedPages.map(({ route }) => route)
 
 	return (
 		<div className="group/pinned mb-3 flex flex-col first:mb-auto">
@@ -235,7 +232,7 @@ const PinnedPagesSection = React.memo(function PinnedPagesSection({
 			</DndContext>
 		</div>
 	)
-})
+}
 
 const PinnedPageRow = ({
 	page,
@@ -258,9 +255,9 @@ const PinnedPageRow = ({
 		transition
 	}
 
-	const handleUnpin = React.useCallback(() => {
+	const handleUnpin = () => {
 		mutatePinnedMetrics((routes) => routes.filter((route) => route !== page.route))
-	}, [page.route])
+	}
 
 	return (
 		<div
@@ -310,7 +307,7 @@ const PinnedPageRow = ({
 	)
 }
 
-const LinkToPage = React.memo(function LinkToPage({
+function LinkToPage({
 	route,
 	name,
 	attention,
@@ -331,7 +328,7 @@ const LinkToPage = React.memo(function LinkToPage({
 }) {
 	const isActive = route === asPath.split('/?')[0].split('?')[0]
 	const isExternal = route.startsWith('http')
-	const handleClick = React.useCallback(() => setShow(false), [setShow])
+	const handleClick = () => setShow(false)
 
 	return (
 		<BasicLink
@@ -346,9 +343,9 @@ const LinkToPage = React.memo(function LinkToPage({
 			<NavItemContent name={name} icon={icon} attention={attention} freeTrial={freeTrial} />
 		</BasicLink>
 	)
-})
+}
 
-const NavItemContent = React.memo(function NavItemContent({
+function NavItemContent({
 	name,
 	icon,
 	attention,
@@ -384,4 +381,4 @@ const NavItemContent = React.memo(function NavItemContent({
 			</span>
 		</>
 	)
-})
+}

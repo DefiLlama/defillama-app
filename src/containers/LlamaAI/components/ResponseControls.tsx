@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
-import { memo, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -22,7 +22,7 @@ interface ResponseControlsProps {
 	charts?: Array<{ id: string; title: string }>
 }
 
-export const ResponseControls = memo(function ResponseControls({
+export function ResponseControls({
 	messageId,
 	content,
 	initialRating,
@@ -226,4 +226,4 @@ export const ResponseControls = memo(function ResponseControls({
 			</Ariakit.DialogProvider>
 		</>
 	)
-})
+}

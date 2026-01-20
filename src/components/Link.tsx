@@ -8,12 +8,10 @@ interface BasicLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
 	onClick?: React.MouseEventHandler<HTMLAnchorElement>
 }
 
-export const BasicLink = React.memo(
-	React.forwardRef<HTMLAnchorElement, BasicLinkProps>(function BasicLink(props, ref) {
-		return (
-			<RouterLink {...props} ref={ref} prefetch={props.prefetch ?? false}>
-				{props.children}
-			</RouterLink>
-		)
-	})
-)
+export const BasicLink = React.forwardRef<HTMLAnchorElement, BasicLinkProps>(function BasicLink(props, ref) {
+	return (
+		<RouterLink {...props} ref={ref} prefetch={props.prefetch ?? false}>
+			{props.children}
+		</RouterLink>
+	)
+})

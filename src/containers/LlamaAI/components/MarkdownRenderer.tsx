@@ -1,4 +1,4 @@
-import { memo, useMemo, useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
@@ -48,7 +48,7 @@ function getEntityIcon(type: string, slug: string): string {
 	}
 }
 
-const TableWrapper = memo(function TableWrapper({
+function TableWrapper({
 	children,
 	isStreaming = false
 }: {
@@ -95,7 +95,7 @@ const TableWrapper = memo(function TableWrapper({
 			</div>
 		</div>
 	)
-})
+}
 
 function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 	if (href?.startsWith('llama://')) {
@@ -128,7 +128,7 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 	)
 }
 
-export const MarkdownRenderer = memo(function MarkdownRenderer({
+export function MarkdownRenderer({
 	content,
 	citations,
 	isStreaming = false,
@@ -355,4 +355,4 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 			)}
 		</div>
 	)
-})
+}

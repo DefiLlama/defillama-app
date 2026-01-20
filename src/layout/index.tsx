@@ -61,7 +61,7 @@ function Layout({
 	)
 }
 
-const MetricFilters = React.memo(function MetricFilters({
+function MetricFilters({
 	options,
 	label
 }: {
@@ -88,9 +88,9 @@ const MetricFilters = React.memo(function MetricFilters({
 			/>
 		</>
 	)
-})
+}
 
-export default React.memo(Layout)
+export default Layout
 
 // sidebar + gap between nav & main + padding right
 // 228px + 4px + 16px = 248px

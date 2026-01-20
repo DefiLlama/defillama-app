@@ -1,8 +1,7 @@
-import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 
-export const LinkToPage = React.memo(function LinkToPage({
+export function LinkToPage({
 	route,
 	name,
 	icon,
@@ -34,9 +33,9 @@ export const LinkToPage = React.memo(function LinkToPage({
 			<NavItemContent name={name} icon={icon} attention={attention} freeTrial={freeTrial} />
 		</BasicLink>
 	)
-})
+}
 
-export const NavItemContent = React.memo(function NavItemContent({
+export function NavItemContent({
 	name,
 	icon,
 	attention,
@@ -72,4 +71,4 @@ export const NavItemContent = React.memo(function NavItemContent({
 			</span>
 		</>
 	)
-})
+}

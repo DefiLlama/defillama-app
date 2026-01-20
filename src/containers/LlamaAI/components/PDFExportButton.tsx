@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { lazy, memo, Suspense, useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -21,7 +21,7 @@ interface PDFExportButtonProps {
 	className?: string
 }
 
-export const PDFExportButton = memo(function PDFExportButton({
+export function PDFExportButton({
 	sessionId,
 	messageId,
 	charts = [],
@@ -128,4 +128,4 @@ export const PDFExportButton = memo(function PDFExportButton({
 			) : null}
 		</>
 	)
-})
+}

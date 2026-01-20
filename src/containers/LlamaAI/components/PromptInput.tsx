@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { Dispatch, memo, RefObject, SetStateAction, useCallback, useEffect, useRef, useState } from 'react'
+import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { errorToast } from '~/components/Toast'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -40,7 +40,7 @@ interface PromptInputProps {
 	externalDragging?: boolean
 }
 
-export const PromptInput = memo(function PromptInput({
+export function PromptInput({
 	handleSubmit,
 	promptInputRef,
 	isPending,
@@ -422,38 +422,36 @@ export const PromptInput = memo(function PromptInput({
 		}
 	}
 
-	const onItemClick = useCallback(
+	const onItemClick =
 		({ id, name, type }: { id: string; name: string; type: string }) =>
-			() => {
-				const textarea = promptInputRef.current
-				if (!textarea) return
+		() => {
+			const textarea = promptInputRef.current
+			if (!textarea) return
 
-				const offset = getTriggerOffset(textarea)
+			const offset = getTriggerOffset(textarea)
 
-				entitiesRef.current.add(name)
-				entitiesMapRef.current.set(name, { id, name, type })
+			entitiesRef.current.add(name)
+			entitiesMapRef.current.set(name, { id, name, type })
 
-				const getNewValue = replaceValue(offset, searchValue, name)
-				const newValue = getNewValue(textarea.value)
+			const getNewValue = replaceValue(offset, searchValue, name)
+			const newValue = getNewValue(textarea.value)
 
-				combobox.setValue('')
-				combobox.hide()
+			combobox.setValue('')
+			combobox.hide()
 
-				isProgrammaticUpdateRef.current = true
-				textarea.value = newValue
-				setInputSize(promptInputRef, highlightRef)
-				setValue(newValue)
+			isProgrammaticUpdateRef.current = true
+			textarea.value = newValue
+			setInputSize(promptInputRef, highlightRef)
+			setValue(newValue)
 
-				if (highlightRef.current) {
-					highlightRef.current.innerHTML = highlightWord(newValue, Array.from(entitiesRef.current))
-				}
+			if (highlightRef.current) {
+				highlightRef.current.innerHTML = highlightWord(newValue, Array.from(entitiesRef.current))
+			}
 
-				setTimeout(() => {
-					textarea.focus()
-				}, 0)
-			},
-		[combobox, searchValue, promptInputRef]
-	)
+			setTimeout(() => {
+				textarea.focus()
+			}, 0)
+		}
 
 	return (
 		<>
@@ -724,4 +722,4 @@ export const PromptInput = memo(function PromptInput({
 			</form>
 		</>
 	)
-})
+}
