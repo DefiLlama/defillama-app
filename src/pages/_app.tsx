@@ -51,9 +51,6 @@ function App({ Component, pageProps }: AppProps) {
 	useEffect(() => {
 		const handleRouteChange = () => {
 			NProgress.done()
-			if (typeof window !== 'undefined') {
-				sessionStorage.removeItem(CHUNK_LOAD_ERROR_KEY)
-			}
 			reloadInProgressRef.current = false
 		}
 
