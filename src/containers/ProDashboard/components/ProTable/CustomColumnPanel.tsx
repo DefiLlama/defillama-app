@@ -28,7 +28,7 @@ const formatPreviewNumber = (value: number | null): string => {
 	} else if (Math.abs(value) >= 1e3) {
 		return `$${(value / 1e3).toFixed(2)}K`
 	} else {
-		return value.toFixed(2)
+		return `$${value.toFixed(2)}`
 	}
 }
 

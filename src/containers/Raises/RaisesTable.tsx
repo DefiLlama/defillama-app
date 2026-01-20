@@ -17,7 +17,7 @@ import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/
 const columnResizeMode = 'onChange'
 
 const handleDownloadJson = () => {
-	window.open('https://api.llama.fi/raises')
+	window.open('https://api.llama.fi/raises', '_blank', 'noopener,noreferrer')
 }
 
 export function RaisesTable({ raises, prepareCsv }) {

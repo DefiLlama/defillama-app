@@ -115,9 +115,6 @@ const fetchInvestors = async (filters) => {
 		body: JSON.stringify({ filters: body })
 	})
 
-	const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-	await wait(500)
-
 	if (!response.ok) {
 		throw new Error('Network response was not ok')
 	}
@@ -284,7 +281,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 							<span className="">Minimum last investment time:</span>
 							<input
 								type="date"
-								className="cursor-pointer rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white dark:scheme:dark"
+								className="cursor-pointer rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white dark:scheme-dark"
 								value={unixToDateString(filters.minLastRoundTime)}
 								onChange={handleDateChange}
 								max={new Date().toISOString().split('T')[0]}

@@ -32,7 +32,7 @@ const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as Re
 const columnResizeMode = 'onChange'
 
 const handleDownloadJson = () => {
-	window.open('https://api.llama.fi/raises')
+	window.open('https://api.llama.fi/raises', '_blank', 'noopener,noreferrer')
 }
 
 function RaisesTable({ raises, prepareCsv }) {
