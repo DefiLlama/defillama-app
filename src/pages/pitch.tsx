@@ -94,10 +94,11 @@ const unixToDateString = (unixTimestamp) => {
 	const date = new Date(unixTimestamp * 1000)
 	return date.toISOString().split('T')[0]
 }
-
-const dateStringToUnix = (dateString) => {
-	if (!dateString) return ''
-	return Math.floor(new Date(dateString).getTime() / 1000)
+const dateStringToUnix = (dateString): number | null => {
+	if (!dateString) return null
+	const timestamp = new Date(dateString).getTime()
+	if (Number.isNaN(timestamp)) return null
+	return Math.floor(timestamp / 1000)
 }
 
 const fetchInvestors = async (filters) => {
@@ -114,6 +115,9 @@ const fetchInvestors = async (filters) => {
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ filters: body })
 	})
+
+	const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+	await wait(500)
 
 	if (!response.ok) {
 		throw new Error('Network response was not ok')
