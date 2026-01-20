@@ -66,9 +66,9 @@ export function VirtualTable({
 
 	const isGroupingColumn = (columnId?: string) => typeof columnId === 'string' && columnId.startsWith('__group_')
 	const visibleLeafColumns = instance.getVisibleLeafColumns().filter((column) => !isGroupingColumn(column.id))
+	
 	const gridTemplateColumns =
 		visibleLeafColumns.map((column) => `minmax(${column.getSize() ?? 100}px, 1fr)`).join(' ') || '1fr'
-
 	const hasNoVisibleColumns = visibleLeafColumns.length === 0
 
 	// useEffectEvent for keyboard handler - reads skipVirtualization without re-subscribing
@@ -293,19 +293,33 @@ export function VirtualTable({
 		>
 			<div ref={tableHeaderRef} id="table-header" style={{ display: 'flex', flexDirection: 'column', zIndex: 10 }}>
 				{instance.getHeaderGroups().map((headerGroup) => {
-					const headers = headerGroup.headers.filter((header) => !header.column.columnDef.meta?.hidden)
+					const headers = headerGroup.headers.filter((header) => {
+						// Always include spacer column for layout, but it will be visually hidden
+						if (header.column.id === '__spacer') return true
+						return !header.column.columnDef.meta?.hidden
+					})
 					if (!headers.length) {
 						return null
 					}
 					return (
 						<div
 							key={headerGroup.id}
-							style={{ display: 'grid', gridTemplateColumns, minWidth: `${totalTableWidth}px` }}
+							style={{ 
+								display: 'grid', 
+								gridTemplateColumns,
+								width: 'max-content',
+								minWidth: '100%'
+							}}
 						>
-							{headers.map((header) => {
+							{headers.map((header, headerIndex) => {
 								const meta = header.column.columnDef.meta
 								const value = flexRender(header.column.columnDef.header, header.getContext())
 								const isSticky = header.column.id === firstColumnId //first column is sticky
+								const isLeafColumn = !header.column.columns || header.column.columns.length === 0
+								const canResize = isLeafColumn && header.column.getCanResize()
+								const isSpacer = header.column.id === '__spacer'
+								const spacerSize = header.column.getSize() ?? 0
+								const isLastColumn = headerIndex === headers.length - 2 // Second to last (before spacer)
 
 								return (
 									<div
@@ -314,34 +328,114 @@ export function VirtualTable({
 										data-align={meta?.align ?? 'start'}
 										style={{
 											gridColumn: `span ${header.colSpan}`,
-											position: isSticky ? 'sticky' : undefined,
+											position: isSticky ? 'sticky' : 'relative',
 											left: isSticky ? 0 : undefined,
 											zIndex: isSticky ? 10 : undefined,
-											background: 'var(--cards-bg)'
+											background: 'var(--cards-bg)',
+											...(isSpacer ? { 
+												border: 'none', 
+												padding: 0, 
+												minWidth: 0,
+												pointerEvents: 'none' // Don't block events for spacer
+											} : {
+												overflow: 'visible',
+												minWidth: 0,
+												maxWidth: '100%'
+											})
 										}}
-										className={`overflow-hidden border-t border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap last:border-r-0 ${
-											compact
-												? 'flex min-h-[50px] items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10'
-												: ''
+										className={`${
+											isSpacer
+												? ''
+												: `border-t border-r border-(--divider) p-3 last:border-r-0 ${
+														compact
+															? 'flex min-h-[50px] items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10'
+															: ''
+													}`
 										}`}
 									>
-										<span
-											className="relative flex w-full flex-nowrap items-center justify-start gap-1 font-medium *:whitespace-nowrap data-[align=center]:justify-center data-[align=end]:justify-end"
-											data-align={
-												meta?.align ??
-												(headerGroup.depth === 0 && instance.getHeaderGroups().length > 1 ? 'center' : 'start')
-											}
-										>
-											{header.isPlaceholder ? null : (
-												<HeaderWithTooltip
-													content={meta?.headerHelperText}
-													onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : null}
-												>
-													{value}
-													{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
-												</HeaderWithTooltip>
-											)}
-										</span>
+										{!isSpacer && (
+											<span
+												className="relative flex w-full flex-nowrap items-center justify-start gap-1 font-medium *:whitespace-nowrap data-[align=center]:justify-center data-[align=end]:justify-end"
+												data-align={
+													meta?.align ??
+													(headerGroup.depth === 0 && instance.getHeaderGroups().length > 1 ? 'center' : 'start')
+												}
+												style={{
+													overflow: 'visible',
+													minWidth: 0,
+													width: '100%',
+													display: 'flex',
+													alignItems: 'center'
+												}}
+											>
+												{header.isPlaceholder ? null : (
+													<HeaderWithTooltip
+														content={meta?.headerHelperText}
+														onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : null}
+													>
+														<span style={{
+															overflow: 'hidden',
+															textOverflow: 'ellipsis',
+															whiteSpace: 'nowrap',
+															display: 'inline-block',
+															minWidth: 0,
+															flex: '1 1 auto',
+															verticalAlign: 'middle'
+														}}>
+															{value}
+														</span>
+														{header.column.getCanSort() && (
+															<span 
+																className="flex-shrink-0"
+																style={{ 
+																	marginLeft: '4px',
+																	flexShrink: 0,
+																	display: 'inline-block'
+																}}
+															>
+																<SortIcon dir={header.column.getIsSorted()} />
+															</span>
+														)}
+													</HeaderWithTooltip>
+												)}
+											</span>
+										)}
+										{canResize && (
+											<div
+												onMouseDown={(e) => {
+													e.preventDefault()
+													e.stopPropagation()
+													const handler = header.getResizeHandler()
+													if (handler) {
+														handler(e)
+													}
+												}}
+												onTouchStart={(e) => {
+													e.preventDefault()
+													e.stopPropagation()
+													const handler = header.getResizeHandler()
+													if (handler) {
+														handler(e)
+													}
+												}}
+												onMouseMove={(e) => {
+													// Prevent interference from other elements
+													if (e.buttons === 1) {
+														e.stopPropagation()
+													}
+												}}
+												className="absolute top-0 right-0 h-full w-2 cursor-col-resize touch-none select-none bg-transparent hover:bg-(--primary)/30 transition-colors group"
+												style={{
+													userSelect: 'none',
+													touchAction: 'none',
+													zIndex: isLastColumn ? 30 : 20, // Higher z-index for last column
+													pointerEvents: 'auto',
+													right: isLastColumn ? '-1px' : '0' // Extend slightly beyond for last column
+												}}
+											>
+												<div className="absolute top-0 right-0 h-full w-0.5 bg-(--divider) group-hover:bg-(--primary)" />
+											</div>
+										)}
 									</div>
 								)
 							})}
@@ -364,14 +458,16 @@ export function VirtualTable({
 					const trStyle: React.CSSProperties = {
 						display: 'grid',
 						gridTemplateColumns,
-						minWidth: `${totalTableWidth}px`,
+						width: 'max-content',
+						minWidth: '100%',
 						...(skipVirtualization
 							? { position: 'relative' }
 							: {
 									position: 'absolute',
 									top: 0,
 									left: 0,
-									width: '100%',
+									width: 'max-content',
+									minWidth: '100%',
 									height: `${row.size}px`,
 									opacity: rowTorender.original.disabled ? 0.3 : 1,
 									transform: `translateY(${row.start - rowVirtualizer.options.scrollMargin}px)`
@@ -383,23 +479,32 @@ export function VirtualTable({
 							<div style={trStyle}>
 								{rowTorender
 									.getVisibleCells()
-									.filter((cell) => !cell.column.columnDef.meta?.hidden)
+									.filter((cell) => {
+										// Always include spacer column for layout
+										if (cell.column.id === '__spacer') return true
+										return !cell.column.columnDef.meta?.hidden
+									})
 									.map((cell) => {
 										const textAlign = cell.column.columnDef.meta?.align ?? 'start'
 										const isSticky = cell.column.id === firstColumnId
+										const isSpacer = cell.column.id === '__spacer'
 										return (
 											<div
 												key={cell.id}
 												data-ligther={stripedBg && i % 2 === 0}
 												data-chainpage={isChainPage}
-												className={`overflow-hidden border-t border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap ${
-													compact
-														? 'flex items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10'
-														: ''
+												className={`${
+													isSpacer
+														? ''
+														: `border-t border-r border-(--divider) p-3 ${
+																compact
+																	? 'flex items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10'
+																	: ''
+															}`
 												}`}
 												style={{
 													textAlign,
-													justifyContent: compact
+													justifyContent: compact && !isSpacer
 														? textAlign === 'center'
 															? 'center'
 															: textAlign === 'end'
@@ -409,10 +514,28 @@ export function VirtualTable({
 													position: isSticky ? 'sticky' : undefined,
 													left: isSticky ? 0 : undefined,
 													zIndex: isSticky ? 1 : undefined,
-													background: isSticky ? 'var(--cards-bg)' : undefined
+													background: isSticky ? 'var(--cards-bg)' : undefined,
+													overflow: 'hidden',
+													textOverflow: 'ellipsis',
+													whiteSpace: 'nowrap',
+													minWidth: 0,
+													maxWidth: '100%',
+													...(isSpacer ? { border: 'none', padding: 0, minWidth: 0 } : {})
 												}}
 											>
-												{flexRender(cell.column.columnDef.cell, cell.getContext())}
+												{!isSpacer && (
+													<div 
+														style={{
+															overflow: 'hidden',
+															textOverflow: 'ellipsis',
+															whiteSpace: 'nowrap',
+															width: '100%',
+															minWidth: 0
+														}}
+													>
+														{flexRender(cell.column.columnDef.cell, cell.getContext())}
+													</div>
+												)}
 											</div>
 										)
 									})}
@@ -447,6 +570,15 @@ export function VirtualTable({
 }
 
 const HeaderWithTooltip = ({ children, content, onClick }) => {
+	const containerStyle = {
+		display: 'flex',
+		alignItems: 'center',
+		gap: '4px',
+		minWidth: 0,
+		width: '100%',
+		overflow: 'visible'
+	}
+	
 	if (onClick) {
 		if (!content)
 			return (
@@ -465,10 +597,15 @@ const HeaderWithTooltip = ({ children, content, onClick }) => {
 			</Tooltip>
 		)
 	}
-	if (!content) return children
+	if (!content) return <div style={containerStyle}>{children}</div>
 	return (
-		<Tooltip content={content} className="underline decoration-dotted">
-			{children}
+		<Tooltip 
+			content={content} 
+			className="underline decoration-dotted"
+		>
+			<div style={containerStyle}>
+				{children}
+			</div>
 		</Tooltip>
 	)
 }

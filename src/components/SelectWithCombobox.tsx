@@ -12,6 +12,7 @@ interface ISelectWithCombobox {
 	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string>>>
 	label: string
 	clearAll?: () => void
+	clearAllLabel?: string
 	toggleAll?: () => void
 	selectOnlyOne?: (value: string) => void
 	nestedMenu?: boolean
@@ -29,6 +30,7 @@ export function SelectWithCombobox({
 	setSelectedValues,
 	label,
 	clearAll,
+	clearAllLabel,
 	toggleAll,
 	selectOnlyOne,
 	nestedMenu,
@@ -104,7 +106,7 @@ export function SelectWithCombobox({
 							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
 								{clearAll ? (
 									<button onClick={clearAll} className="p-3">
-										Deselect All
+										{clearAllLabel || 'Deselect All'}
 									</button>
 								) : null}
 								{toggleAll ? (
@@ -225,7 +227,7 @@ export function SelectWithCombobox({
 								<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
 									{clearAll ? (
 										<button onClick={clearAll} className="p-3">
-											Deselect All
+											{clearAllLabel || 'Deselect All'}
 										</button>
 									) : null}
 									{toggleAll ? (
