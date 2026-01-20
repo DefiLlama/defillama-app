@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Icon, type IIcon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 
@@ -37,6 +37,10 @@ export function PromptCarousel({
 	const totalPages = Math.ceil(questions.length / ITEMS_PER_PAGE)
 	const startIndex = currentPage * ITEMS_PER_PAGE
 	const visibleQuestions = questions.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+
+	useEffect(() => {
+		setCurrentPage((prev) => Math.min(prev, Math.max(0, totalPages - 1)))
+	}, [totalPages])
 
 	const handlePreviousCategory = () => {
 		setCurrentCategoryIndex((prev) => (prev - 1 + categories.length) % categories.length)
