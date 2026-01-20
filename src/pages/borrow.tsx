@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import * as React from 'react'
 import { useMemo } from 'react'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
@@ -78,8 +78,8 @@ export default function YieldBorrow(data) {
 		if (newCollateral) nextQuery['collateral'] = newCollateral
 		else delete nextQuery['collateral']
 
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [borrowToken, collateralToken, router])
+		Router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [borrowToken, collateralToken, router.query, router.pathname])
 
 	const filteredPools = findOptimizerPools({
 		pools: data.pools,

@@ -5,7 +5,7 @@ import {
 	getFilteredRowModel,
 	useReactTable
 } from '@tanstack/react-table'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
@@ -181,7 +181,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 
 	const clearChainSelection = React.useCallback(() => {
 		const { chain: _chain, ...queries } = router.query
-		router.push(
+		Router.push(
 			{
 				pathname: router.pathname,
 				query: { ...queries, chain: 'None' }
@@ -189,11 +189,11 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 			undefined,
 			{ shallow: true }
 		)
-	}, [router])
+	}, [router.query, router.pathname])
 
 	const toggleAllChains = React.useCallback(() => {
 		const { chain: _chain, ...queries } = router.query
-		router.push(
+		Router.push(
 			{
 				pathname: router.pathname,
 				query: queries
@@ -201,12 +201,12 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 			undefined,
 			{ shallow: true }
 		)
-	}, [router])
+	}, [router.query, router.pathname])
 
 	const addChain = React.useCallback(
 		(newOptions: Array<string>) => {
 			const { chain: _chain, ...queries } = router.query
-			router.push(
+			Router.push(
 				{
 					pathname: router.pathname,
 					query: {
@@ -218,13 +218,13 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 				{ shallow: true }
 			)
 		},
-		[router]
+		[router.query, router.pathname]
 	)
 
 	const selectOnlyOneChain = React.useCallback(
 		(chain: string) => {
 			const { chain: _currentChain, ...queries } = router.query
-			router.push(
+			Router.push(
 				{
 					pathname: router.pathname,
 					query: {
@@ -236,12 +236,12 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 				{ shallow: true }
 			)
 		},
-		[router]
+		[router.query, router.pathname]
 	)
 
 	const clearAllColumns = React.useCallback(() => {
 		const { column: _column, ...queries } = router.query
-		router.push(
+		Router.push(
 			{
 				pathname: router.pathname,
 				query: {
@@ -252,11 +252,11 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 			undefined,
 			{ shallow: true }
 		)
-	}, [router])
+	}, [router.query, router.pathname])
 
 	const toggleAllColumns = React.useCallback(() => {
 		const { column: _column, ...queries } = router.query
-		router.push(
+		Router.push(
 			{
 				pathname: router.pathname,
 				query: queries
@@ -264,12 +264,12 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 			undefined,
 			{ shallow: true }
 		)
-	}, [router])
+	}, [router.query, router.pathname])
 
 	const addColumn = React.useCallback(
 		(newOptions: Array<string>) => {
 			const { column: _column, ...queries } = router.query
-			router.push(
+			Router.push(
 				{
 					pathname: router.pathname,
 					query: {
@@ -281,13 +281,13 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 				{ shallow: true }
 			)
 		},
-		[router]
+		[router.query, router.pathname]
 	)
 
 	const addOnlyOneColumn = React.useCallback(
 		(newOption: string) => {
 			const { column: _column, ...queries } = router.query
-			router.push(
+			Router.push(
 				{
 					pathname: router.pathname,
 					query: {
@@ -299,7 +299,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 				{ shallow: true }
 			)
 		},
-		[router]
+		[router.query, router.pathname]
 	)
 
 	const prepareCsv = React.useCallback(() => {

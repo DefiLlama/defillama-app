@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { AppProps } from 'next/app'
 import Head from 'next/head'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import '~/tailwind.css'
 import '~/nprogress.css'
 import Script from 'next/script'
@@ -39,14 +39,14 @@ function App({ Component, pageProps }: AppProps) {
 			NProgress.start()
 		}
 
-		router.events.on('routeChangeStart', handleRouteChange)
+		Router.events.on('routeChangeStart', handleRouteChange)
 
 		// If the component is unmounted, unsubscribe
 		// from the event with the `off` method:
 		return () => {
-			router.events.off('routeChangeStart', handleRouteChange)
+			Router.events.off('routeChangeStart', handleRouteChange)
 		}
-	}, [router])
+	}, [])
 
 	useEffect(() => {
 		const handleRouteChange = () => {
@@ -54,14 +54,14 @@ function App({ Component, pageProps }: AppProps) {
 			reloadInProgressRef.current = false
 		}
 
-		router.events.on('routeChangeComplete', handleRouteChange)
+		Router.events.on('routeChangeComplete', handleRouteChange)
 
 		// If the component is unmounted, unsubscribe
 		// from the event with the `off` method:
 		return () => {
-			router.events.off('routeChangeComplete', handleRouteChange)
+			Router.events.off('routeChangeComplete', handleRouteChange)
 		}
-	}, [router])
+	}, [])
 
 	useEffect(() => {
 		const reloadOnce = (url?: string) => {
@@ -97,16 +97,16 @@ function App({ Component, pageProps }: AppProps) {
 			reloadOnce()
 		}
 
-		router.events.on('routeChangeError', handleRouteChangeError)
+		Router.events.on('routeChangeError', handleRouteChangeError)
 		window.addEventListener('unhandledrejection', handleUnhandledRejection)
 		window.addEventListener('error', handleError)
 
 		return () => {
-			router.events.off('routeChangeError', handleRouteChangeError)
+			Router.events.off('routeChangeError', handleRouteChangeError)
 			window.removeEventListener('unhandledrejection', handleUnhandledRejection)
 			window.removeEventListener('error', handleError)
 		}
-	}, [router])
+	}, [])
 
 	// Scroll restoration for complete route changes (not shallow)
 	useEffect(() => {
@@ -117,12 +117,12 @@ function App({ Component, pageProps }: AppProps) {
 			}
 		}
 
-		router.events.on('routeChangeComplete', handleRouteChange)
+		Router.events.on('routeChangeComplete', handleRouteChange)
 
 		return () => {
-			router.events.off('routeChangeComplete', handleRouteChange)
+			Router.events.off('routeChangeComplete', handleRouteChange)
 		}
-	}, [router])
+	}, [])
 
 	const { userHash, email } = useUserHash()
 	const isDesktop = useMedia('(min-width: 769px)')
