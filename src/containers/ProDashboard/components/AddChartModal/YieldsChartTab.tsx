@@ -442,7 +442,7 @@ export function YieldsChartTab({
 				<div className="flex flex-col gap-4">
 					<div className="grid grid-cols-5 gap-2">
 						<div className="flex flex-col">
-							<label className="pro-text2 mb-1 block text-[11px] font-medium">Chains</label>
+							<label className="mb-1 block text-[11px] font-medium pro-text2">Chains</label>
 							<PopoverDisclosure
 								store={chainPopover}
 								className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
@@ -552,7 +552,7 @@ export function YieldsChartTab({
 						</div>
 
 						<div className="flex flex-col">
-							<label className="pro-text2 mb-1 block text-[11px] font-medium">Projects</label>
+							<label className="mb-1 block text-[11px] font-medium pro-text2">Projects</label>
 							<PopoverDisclosure
 								store={projectPopover}
 								className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
@@ -662,7 +662,7 @@ export function YieldsChartTab({
 						</div>
 
 						<div className="flex flex-col">
-							<label className="pro-text2 mb-1 block text-[11px] font-medium">Tokens</label>
+							<label className="mb-1 block text-[11px] font-medium pro-text2">Tokens</label>
 							<PopoverDisclosure
 								store={tokenPopover}
 								className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
@@ -770,21 +770,21 @@ export function YieldsChartTab({
 						/>
 
 						<div className="flex flex-col">
-							<label className="pro-text2 mb-1 block text-[11px] font-medium">TVL Range</label>
+							<label className="mb-1 block text-[11px] font-medium pro-text2">TVL Range</label>
 							<div className="flex gap-1">
 								<input
 									type="number"
 									placeholder="Min"
 									value={minTvl ?? ''}
 									onChange={(e) => onMinTvlChange(e.target.value ? Number(e.target.value) : null)}
-									className="pro-text1 placeholder:pro-text3 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+									className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs pro-text1 placeholder:pro-text3 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 								/>
 								<input
 									type="number"
 									placeholder="Max"
 									value={maxTvl ?? ''}
 									onChange={(e) => onMaxTvlChange(e.target.value ? Number(e.target.value) : null)}
-									className="pro-text1 placeholder:pro-text3 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+									className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs pro-text1 placeholder:pro-text3 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 								/>
 							</div>
 						</div>
@@ -805,7 +805,7 @@ export function YieldsChartTab({
 										/>
 									)}
 									<div className="min-w-0">
-										<div className="pro-text1 text-sm font-semibold">{selectedYieldPool.name}</div>
+										<div className="text-sm font-semibold pro-text1">{selectedYieldPool.name}</div>
 										<div className="flex items-center gap-2 text-xs text-(--text-tertiary)">
 											<span>{selectedYieldPool.project}</span>
 											<span>•</span>
@@ -864,7 +864,7 @@ export function YieldsChartTab({
 											className="w-48 rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										/>
 									</div>
-									<span className="pro-text3 text-xs">
+									<span className="text-xs pro-text3">
 										{filteredPools.length} pool{filteredPools.length !== 1 ? 's' : ''}
 									</span>
 								</div>
@@ -909,12 +909,12 @@ export function YieldsChartTab({
 										className={sortColumn === 'apy' ? 'opacity-100' : 'opacity-30'}
 									/>
 								</button>
-								<div className="pro-text3 text-right">Category</div>
+								<div className="text-right pro-text3">Category</div>
 							</div>
 
 							<div ref={poolListRef} className="thin-scrollbar h-[240px] overflow-y-auto">
 								{searchedAndSortedPools.length === 0 ? (
-									<div className="pro-text3 flex h-full items-center justify-center text-xs">
+									<div className="flex h-full items-center justify-center text-xs pro-text3">
 										No pools match your search
 									</div>
 								) : (
@@ -1007,7 +1007,7 @@ export function YieldsChartTab({
 					{/* Chart Preview */}
 					<div className="overflow-hidden rounded-lg border border-(--cards-border)">
 						<div className="flex items-center justify-between border-b border-(--cards-border) bg-(--cards-bg) px-3 py-2">
-							<span className="pro-text2 text-xs font-medium">
+							<span className="text-xs font-medium pro-text2">
 								{selectedYieldPool ? selectedYieldPool.name : 'Preview'}
 							</span>
 						</div>
@@ -1053,7 +1053,7 @@ export function YieldsChartTab({
 									latestYieldData.tvl !== null && (
 										<div className="mb-3 flex gap-4">
 											<div className="flex flex-col">
-												<span className="pro-text3 text-[10px] uppercase">Latest APY</span>
+												<span className="text-[10px] pro-text3 uppercase">Latest APY</span>
 												<span
 													className="font-jetbrains text-base font-semibold"
 													style={{ color: mainChartStackColors.APY }}
@@ -1062,7 +1062,7 @@ export function YieldsChartTab({
 												</span>
 											</div>
 											<div className="flex flex-col">
-												<span className="pro-text3 text-[10px] uppercase">TVL</span>
+												<span className="text-[10px] pro-text3 uppercase">TVL</span>
 												<span
 													className="font-jetbrains text-base font-semibold"
 													style={{ color: mainChartStackColors.TVL }}
@@ -1150,7 +1150,7 @@ export function YieldsChartTab({
 								</div>
 							</div>
 						) : (
-							<div className="pro-text3 flex h-[280px] items-center justify-center bg-(--cards-bg) text-center">
+							<div className="flex h-[280px] items-center justify-center bg-(--cards-bg) text-center pro-text3">
 								<div>
 									<Icon name="bar-chart-2" height={32} width={32} className="mx-auto mb-1" />
 									<div className="text-xs">Select a yield pool to see preview</div>

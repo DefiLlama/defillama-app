@@ -50,9 +50,9 @@ export const NavItemContent = React.memo(function NavItemContent({
 	return (
 		<>
 			{icon ? (
-				<Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4 shrink-0" />
+				<Icon name={icon as any} className="h-4 w-4 shrink-0 group-hover/link:animate-wiggle" />
 			) : name === 'LlamaAI' ? (
-				<svg className="group-hover/link:animate-wiggle h-4 w-4 shrink-0">
+				<svg className="h-4 w-4 shrink-0 group-hover/link:animate-wiggle">
 					<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 				</svg>
 			) : null}

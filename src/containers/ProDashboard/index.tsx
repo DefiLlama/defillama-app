@@ -134,7 +134,7 @@ function ProDashboardContent() {
 	}
 
 	return (
-		<div className="pro-dashboard flex flex-1 flex-col gap-2 p-2 lg:px-0">
+		<div className="flex flex-1 flex-col gap-2 pro-dashboard p-2 lg:px-0">
 			<BasicLink
 				href="/pro"
 				className="mr-auto mb-2 flex items-center gap-2 text-(--text-label) hover:text-(--link-text)"
@@ -149,18 +149,18 @@ function ProDashboardContent() {
 						<span className="flex flex-wrap items-center gap-2">
 							<h1 className="text-lg font-semibold">{dashboardName}</h1>
 							{currentDashboard?.visibility === 'public' ? (
-								<p className="bg-pro-green-100 text-pro-green-400 dark:bg-pro-green-300/20 dark:text-pro-green-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
+								<p className="flex items-center gap-1 rounded-md bg-pro-green-100 px-2 py-1.25 text-xs text-pro-green-400 dark:bg-pro-green-300/20 dark:text-pro-green-200">
 									<Icon name="earth" height={12} width={12} />
 									<span>Public </span>
 								</p>
 							) : (
-								<p className="bg-pro-gold-100 text-pro-gold-400 dark:bg-pro-gold-300/20 dark:text-pro-gold-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
+								<p className="flex items-center gap-1 rounded-md bg-pro-gold-100 px-2 py-1.25 text-xs text-pro-gold-400 dark:bg-pro-gold-300/20 dark:text-pro-gold-200">
 									<Icon name="key" height={12} width={12} />
 									<span>Private</span>
 								</p>
 							)}
 							{currentDashboard?.aiGenerated && Object.keys(currentDashboard.aiGenerated).length > 0 ? (
-								<p className="bg-pro-blue-100 text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
+								<p className="flex items-center gap-1 rounded-md bg-pro-blue-100 px-2 py-1.25 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
 									<Icon name="sparkles" height={14} width={14} />
 									<span className="text-xs font-medium">AI Generated</span>
 								</p>
@@ -196,7 +196,7 @@ function ProDashboardContent() {
 												subscribeModalStore.show()
 											}
 										}}
-										className="pro-btn-blue-outline flex items-center gap-1 rounded-md px-4 py-1"
+										className="flex items-center gap-1 rounded-md pro-btn-blue-outline px-4 py-1"
 									>
 										<Icon name="copy" height={16} width={16} />
 										<span>Copy Dashboard</span>
@@ -206,7 +206,7 @@ function ProDashboardContent() {
 									onClick={() => {
 										createDashboardDialogStore.show()
 									}}
-									className="pro-btn-purple-outline flex items-center gap-1 rounded-md px-4 py-1"
+									className="flex items-center gap-1 rounded-md pro-btn-purple-outline px-4 py-1"
 								>
 									<Icon name="plus" height={16} width={16} />
 									<span>New Dashboard</span>
@@ -265,7 +265,7 @@ function ProDashboardContent() {
 									className={`-ml-px flex-1 rounded-none border px-3 py-1.5 text-sm font-medium transition-colors duration-200 first:ml-0 first:rounded-l-md md:flex-initial md:px-4 md:py-2 ${
 										timePeriod === period.value
 											? 'pro-border pro-btn-blue'
-											: 'pro-border pro-text2 hover:pro-text1 pro-hover-bg'
+											: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
 									} ${!hasChartItems ? 'cursor-not-allowed opacity-50' : ''}`}
 									onClick={() => hasChartItems && setTimePeriod(period.value)}
 									disabled={!hasChartItems}
@@ -286,7 +286,7 @@ function ProDashboardContent() {
 						{dashboardId && (
 							<button
 								onClick={() => setShowSettingsModal(true)}
-								className="pro-glass pro-hover-bg hidden rounded-md p-2 transition-colors md:flex"
+								className="hidden rounded-md pro-glass pro-hover-bg p-2 transition-colors md:flex"
 								title="Dashboard Settings"
 							>
 								<Icon name="settings" height={20} width={20} className="pro-text1" />
@@ -294,7 +294,7 @@ function ProDashboardContent() {
 						)}
 						{items.length > 0 && (
 							<button
-								className="animate-ai-glow pro-btn-blue-outline hidden items-center gap-2 rounded-md px-4 py-2 text-base whitespace-nowrap md:flex"
+								className="hidden animate-ai-glow items-center gap-2 rounded-md pro-btn-blue-outline px-4 py-2 text-base whitespace-nowrap md:flex"
 								onClick={() => setShowIterateDashboardModal(true)}
 								title="Edit with LlamaAI"
 							>
@@ -304,7 +304,7 @@ function ProDashboardContent() {
 						)}
 						{canUndo && (
 							<button
-								className="pro-border pro-text2 hover:pro-text1 pro-hover-bg hidden items-center gap-2 rounded-md border px-4 py-2 text-base whitespace-nowrap transition-colors md:flex"
+								className="hidden items-center gap-2 rounded-md border pro-border pro-hover-bg px-4 py-2 text-base whitespace-nowrap pro-text2 transition-colors hover:pro-text1 md:flex"
 								onClick={undoAIGeneration}
 								title="Undo AI changes"
 							>
@@ -314,7 +314,7 @@ function ProDashboardContent() {
 						)}
 
 						<button
-							className="pro-btn-blue hidden items-center gap-2 rounded-md px-4 py-2 text-base whitespace-nowrap md:flex"
+							className="hidden items-center gap-2 rounded-md pro-btn-blue px-4 py-2 text-base whitespace-nowrap md:flex"
 							onClick={openAddModal}
 							disabled={isReadOnly}
 						>
@@ -427,7 +427,7 @@ const LikeDashboardButton = ({
 		<Tooltip
 			content={currentDashboard?.liked ? 'Unlike dashboard' : 'Like dashboard'}
 			render={<button onClick={() => toggleLike()} disabled={isLiking || !isAuthenticated} />}
-			className={`hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent`}
+			className={`flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue`}
 		>
 			{isLiking ? (
 				<LoadingSpinner size={14} />
@@ -502,7 +502,7 @@ const CopyDashboardLinkButton = ({
 
 	return (
 		<Ariakit.PopoverProvider store={popover}>
-			<Ariakit.PopoverDisclosure className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)">
+			<Ariakit.PopoverDisclosure className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)">
 				<Icon name="share" height={14} width={14} />
 				<span>Share</span>
 			</Ariakit.PopoverDisclosure>
@@ -524,7 +524,7 @@ const CopyDashboardLinkButton = ({
 							/>
 							<button
 								onClick={handleCopyLink}
-								className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs transition-colors"
+								className="flex items-center gap-1.5 rounded-md border pro-border pro-hover-bg px-2.5 py-1.5 text-xs pro-text2 transition-colors hover:pro-text1"
 								title="Copy link"
 							>
 								{copied ? (
@@ -541,7 +541,7 @@ const CopyDashboardLinkButton = ({
 						<div className="flex gap-2">
 							<button
 								onClick={() => handleShareTo('twitter')}
-								className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex flex-1 items-center justify-center gap-2 rounded-md border px-3 py-2 text-xs transition-colors"
+								className="flex flex-1 items-center justify-center gap-2 rounded-md border pro-border pro-hover-bg px-3 py-2 text-xs pro-text2 transition-colors hover:pro-text1"
 								title="Share on Twitter/X"
 							>
 								<Icon name="twitter" height={16} width={16} />
@@ -549,7 +549,7 @@ const CopyDashboardLinkButton = ({
 							</button>
 							<button
 								onClick={() => handleShareTo('telegram')}
-								className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex flex-1 items-center justify-center gap-2 rounded-md border px-3 py-2 text-xs transition-colors"
+								className="flex flex-1 items-center justify-center gap-2 rounded-md border pro-border pro-hover-bg px-3 py-2 text-xs pro-text2 transition-colors hover:pro-text1"
 								title="Share on Telegram"
 							>
 								<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">

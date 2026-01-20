@@ -416,7 +416,7 @@ export function ChainsDataset({
 				/>
 				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<LoadingSpinner />
-					<p className="pro-text2 text-sm">Loading chains data...</p>
+					<p className="text-sm pro-text2">Loading chains data...</p>
 				</div>
 			</div>
 		)
@@ -436,7 +436,7 @@ export function ChainsDataset({
 					category={category}
 				/>
 				<div className="flex min-h-[500px] flex-1 items-center justify-center">
-					<div className="pro-text2 text-center">Failed to load chains data</div>
+					<div className="text-center pro-text2">Failed to load chains data</div>
 				</div>
 			</div>
 		)
@@ -475,25 +475,25 @@ export function ChainsDataset({
 					<button
 						onClick={() => instance.previousPage()}
 						disabled={!instance.getCanPreviousPage()}
-						className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50"
+						className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						Previous
 					</button>
 					<button
 						onClick={() => instance.nextPage()}
 						disabled={!instance.getCanNextPage()}
-						className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50"
+						className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						Next
 					</button>
 				</div>
 
 				<div className="flex items-center gap-2">
-					<span className="pro-text2 text-sm">Rows per page:</span>
+					<span className="text-sm pro-text2">Rows per page:</span>
 					<select
 						value={pagination.pageSize}
 						onChange={(e) => setPagination((prev) => ({ ...prev, pageSize: Number(e.target.value), pageIndex: 0 }))}
-						className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+						className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 					>
 						<option value="10">10</option>
 						<option value="30">30</option>

@@ -6,7 +6,10 @@
 	"semi": false,
 	"printWidth": 120,
 	"experimentalTailwindcss": {
-		"functions": ["clsx", "cn", "cva", "tw"]
+		"stylesheet": "./src/tailwind.css",
+		"attributes": ["class", "className"],
+		"functions": ["clsx", "cn", "cva", "tw"],
+		"preserveWhitespace": true
 	},
 	"experimentalSortImports": {
 		"groups": [["builtin"], ["external"], ["internal"], ["parent", "sibling", "index"]],

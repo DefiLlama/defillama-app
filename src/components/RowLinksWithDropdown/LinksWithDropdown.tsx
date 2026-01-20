@@ -114,11 +114,7 @@ export const LinksWithDropdown = React.memo(function LinksWithDropdown({
 	return (
 		<>
 			{/* Always render ALL links - CSS handles overflow hiding via max-height + overflow-hidden */}
-			<div
-				className="flex max-h-[calc(1.5rem+0.5rem)] flex-1 flex-wrap gap-2 overflow-hidden p-1"
-				id="priority-nav"
-				{...props}
-			>
+			<div className="flex max-h-8 flex-1 flex-wrap gap-2 overflow-hidden p-1" id="priority-nav" {...props}>
 				{links.map((option, index) => (
 					<LinkItem key={option.label} option={option} activeLink={activeLink} id={`priority-nav-el-${index}`} />
 				))}
@@ -151,7 +147,7 @@ export const LinkItem = React.memo(function LinkItem({
 	return (
 		<BasicLink
 			href={option.to}
-			className="rounded-md bg-(--link-bg) px-2.5 py-1 text-xs font-medium whitespace-nowrap text-(--link-text) [contain:layout_style_paint] [content-visibility:auto] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--link-active-bg) data-[active=true]:text-white"
+			className="rounded-md bg-(--link-bg) px-2.5 py-1 text-xs font-medium whitespace-nowrap text-(--link-text) contain-[layout_style_paint] [content-visibility:auto] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--link-active-bg) data-[active=true]:text-white"
 			data-active={isActive}
 			{...props}
 		>

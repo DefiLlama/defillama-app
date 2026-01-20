@@ -190,7 +190,7 @@ export function Metrics({
 					))}
 				</div>
 			</div>
-			<div className="thin-scrollbar flex flex-col gap-4">
+			<div className="flex thin-scrollbar flex-col gap-4">
 				{pages.map(({ category, metrics }) => (
 					<div key={category} className="relative flex flex-col gap-2">
 						<div className="absolute -top-4" data-category={category} />
@@ -396,7 +396,7 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 					</svg>
 				</div>
 				<Ariakit.Dialog
-					className="dialog max-sm:drawer thin-scrollbar h-full max-h-[calc(100dvh-80px)] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)]"
+					className="dialog thin-scrollbar h-full max-h-[calc(100dvh-80px)] gap-3 max-sm:drawer sm:w-full sm:max-w-[min(85vw,1280px)]"
 					unmountOnHide
 					hideOnInteractOutside
 				>

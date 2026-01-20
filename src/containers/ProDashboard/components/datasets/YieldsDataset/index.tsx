@@ -98,7 +98,7 @@ export function YieldsDataset({
 				/>
 				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<LoadingSpinner />
-					<p className="pro-text2 text-sm">Loading yields data...</p>
+					<p className="text-sm pro-text2">Loading yields data...</p>
 				</div>
 			</div>
 		)
@@ -122,7 +122,7 @@ export function YieldsDataset({
 					activeFilterCount={0}
 				/>
 				<div className="flex min-h-[500px] flex-1 items-center justify-center">
-					<div className="pro-text2 text-center">Failed to load yields data</div>
+					<div className="text-center pro-text2">Failed to load yields data</div>
 				</div>
 			</div>
 		)

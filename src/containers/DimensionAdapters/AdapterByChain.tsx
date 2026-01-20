@@ -395,7 +395,7 @@ export function AdapterByChain(props: IProps) {
 									) : (
 										<span className="text-(--text-label)">{metricName} (24h)</span>
 									)}
-									<span className="font-jetbrains min-h-8 overflow-hidden text-2xl font-semibold text-ellipsis whitespace-nowrap">
+									<span className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
 										{formattedNum(props.total24h, true)}
 									</span>
 								</span>
@@ -411,7 +411,7 @@ export function AdapterByChain(props: IProps) {
 									>
 										Open Interest
 									</Tooltip>
-									<span className="font-jetbrains ml-auto">{formattedNum(props.openInterest, true)}</span>
+									<span className="ml-auto font-jetbrains">{formattedNum(props.openInterest, true)}</span>
 								</p>
 							) : null}
 							{props.total30d != null ? (
@@ -426,7 +426,7 @@ export function AdapterByChain(props: IProps) {
 									) : (
 										<span className="text-(--text-label)">{metricName} (30d)</span>
 									)}
-									<span className="font-jetbrains ml-auto">{formattedNum(props.total30d, true)}</span>
+									<span className="ml-auto font-jetbrains">{formattedNum(props.total30d, true)}</span>
 								</p>
 							) : null}
 							{props.change_7dover7d != null ? (
@@ -438,7 +438,7 @@ export function AdapterByChain(props: IProps) {
 										Weekly Change
 									</Tooltip>
 									<span
-										className={`font-jetbrains ml-auto ${
+										className={`ml-auto font-jetbrains ${
 											props.change_7dover7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 										}`}
 									>

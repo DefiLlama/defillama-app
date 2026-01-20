@@ -96,7 +96,7 @@ function ProContent({
 	}
 
 	return (
-		<div className="pro-dashboard flex flex-1 flex-col gap-4 p-2 lg:px-0">
+		<div className="flex flex-1 flex-col gap-4 pro-dashboard p-2 lg:px-0">
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="flex overflow-x-auto">
 					<BasicLink
@@ -138,7 +138,7 @@ function ProContent({
 										? () => setShowGenerateDashboardModal(true)
 										: () => subscribeModalStore.show()
 							}
-							className="pro-btn-blue flex items-center gap-1 rounded-md px-4 py-2"
+							className="flex items-center gap-1 rounded-md pro-btn-blue px-4 py-2"
 						>
 							<Icon name="sparkles" height={16} width={16} />
 							Generate with LlamaAI
@@ -152,7 +152,7 @@ function ProContent({
 									? () => createDashboardDialogStore.show()
 									: () => subscribeModalStore.show()
 						}
-						className="pro-btn-purple flex items-center gap-1 rounded-md px-4 py-2"
+						className="flex items-center gap-1 rounded-md pro-btn-purple px-4 py-2"
 					>
 						<Icon name="plus" height={16} width={16} />
 						<span className="sm:hidden">Create</span>

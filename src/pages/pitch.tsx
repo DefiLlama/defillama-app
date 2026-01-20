@@ -360,7 +360,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 					</div>
 					<div className="flex h-fit w-full max-w-xs flex-col gap-2 rounded-md bg-(--bg-secondary) p-4 shadow-sm lg:sticky lg:top-10">
 						<h2>Results</h2>
-						{isLoading ? <div className="animate-linebeat absolute top-0 left-0 h-1 w-[30%] bg-[#3498db]" /> : null}
+						{isLoading ? <div className="absolute top-0 left-0 h-1 w-[30%] animate-linebeat bg-[#3498db]" /> : null}
 
 						<p className="flex flex-wrap items-center justify-between gap-1 text-base">
 							<span>Matched Investors:</span>{' '}

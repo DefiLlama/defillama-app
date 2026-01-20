@@ -327,11 +327,11 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 
 	return (
 		<div className="space-y-4">
-			<div className="pro-border rounded-md border bg-(--cards-bg) p-4">
+			<div className="rounded-md border pro-border bg-(--cards-bg) p-4">
 				<div className="mb-3 flex items-center justify-between">
-					<h5 className="pro-text1 text-sm font-medium">{editingId ? 'Edit Column' : 'Create Custom Column'}</h5>
+					<h5 className="text-sm font-medium pro-text1">{editingId ? 'Edit Column' : 'Create Custom Column'}</h5>
 					{editingId && (
-						<button type="button" onClick={handleCancelEdit} className="pro-text3 text-xs hover:text-(--primary)">
+						<button type="button" onClick={handleCancelEdit} className="text-xs pro-text3 hover:text-(--primary)">
 							Cancel
 						</button>
 					)}
@@ -339,18 +339,18 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 
 				<div className="space-y-3">
 					<div>
-						<label className="pro-text2 mb-1 block text-xs font-medium">Column Name</label>
+						<label className="mb-1 block text-xs font-medium pro-text2">Column Name</label>
 						<input
 							type="text"
 							value={name}
 							onChange={(e) => setName(e.target.value)}
 							placeholder="e.g., P/E Ratio, Fee Yield"
-							className="pro-border pro-text1 placeholder:pro-text3 w-full rounded-md border bg-(--bg-glass) px-3 py-2 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+							className="w-full rounded-md border pro-border bg-(--bg-glass) px-3 py-2 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>
 
 					<div>
-						<label className="pro-text2 mb-1 block text-xs font-medium">Expression</label>
+						<label className="mb-1 block text-xs font-medium pro-text2">Expression</label>
 						<div className="relative" onClick={(e) => e.stopPropagation()}>
 							<input
 								ref={inputRef}
@@ -360,7 +360,7 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 								onKeyDown={handleKeyDown}
 								onFocus={() => expression && setShowAutocomplete(true)}
 								placeholder="e.g., tvl / mcap, fees24h * 365"
-								className={`pro-text1 placeholder:pro-text3 w-full rounded-md border bg-(--bg-glass) px-3 py-2 pr-8 font-mono text-sm transition-colors focus:outline-hidden ${
+								className={`w-full rounded-md border bg-(--bg-glass) px-3 py-2 pr-8 font-mono text-sm pro-text1 transition-colors placeholder:pro-text3 focus:outline-hidden ${
 									expression && !expressionValidation.isValid
 										? 'border-red-500 focus:border-red-500'
 										: expression && expressionValidation.isValid
@@ -379,7 +379,7 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 							)}
 
 							{showAutocomplete && filteredSuggestions.length > 0 && (
-								<div className="thin-scrollbar absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg">
+								<div className="absolute z-50 mt-1 thin-scrollbar max-h-48 w-full overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg">
 									{filteredSuggestions.map((suggestion, index) => (
 										<div
 											key={`${suggestion.type}-${suggestion.value}`}
@@ -399,27 +399,27 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 												}`}
 											/>
 											<code className="shrink-0 text-xs">{suggestion.display}</code>
-											<span className="pro-text3 ml-auto truncate text-xs">{suggestion.description}</span>
+											<span className="ml-auto truncate text-xs pro-text3">{suggestion.description}</span>
 										</div>
 									))}
 								</div>
 							)}
 						</div>
-						<p className="pro-text3 mt-1 text-[10px]">
+						<p className="mt-1 text-[10px] pro-text3">
 							Type to autocomplete · Ctrl+Space to show all · ↑↓ to navigate · Enter to select
 						</p>
 					</div>
 
 					<div className="flex gap-3">
 						<div className="w-[140px] shrink-0">
-							<label className="pro-text2 mb-1 block text-xs font-medium">Format</label>
+							<label className="mb-1 block text-xs font-medium pro-text2">Format</label>
 							<div className="flex gap-1">
 								{FORMAT_OPTIONS.map((opt) => (
 									<Tooltip key={opt.id} content={opt.description} placement="bottom" className="flex-1">
 										<button
 											type="button"
 											onClick={() => setFormat(opt.id)}
-											className={`pro-border w-full rounded-md border px-1.5 py-1.5 text-xs font-medium transition-colors ${
+											className={`w-full rounded-md border pro-border px-1.5 py-1.5 text-xs font-medium transition-colors ${
 												format === opt.id
 													? 'border-(--primary) bg-(--primary)/15 text-(--primary)'
 													: 'pro-hover-bg pro-text2'
@@ -433,9 +433,9 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 						</div>
 
 						<div className="flex-1">
-							<label className="pro-text2 mb-1 block text-xs font-medium">
+							<label className="mb-1 block text-xs font-medium pro-text2">
 								Aggregation
-								<span className="pro-text3 ml-1 font-normal">(grouped rows)</span>
+								<span className="ml-1 font-normal pro-text3">(grouped rows)</span>
 							</label>
 							<div className="flex gap-1">
 								{AGGREGATION_OPTIONS.map((opt) => (
@@ -446,7 +446,7 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 												aggregationTouchedRef.current = true
 												setAggregation(opt.id)
 											}}
-											className={`pro-border w-full rounded-md border px-1.5 py-1.5 text-xs font-medium transition-colors ${
+											className={`w-full rounded-md border pro-border px-1.5 py-1.5 text-xs font-medium transition-colors ${
 												aggregation === opt.id
 													? 'border-(--primary) bg-(--primary)/15 text-(--primary)'
 													: 'pro-hover-bg pro-text2'
@@ -469,7 +469,7 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 							}`}
 						>
 							<div className="flex items-center justify-between p-2">
-								<span className="pro-text2 font-medium">Result:</span>
+								<span className="font-medium pro-text2">Result:</span>
 								{preview !== null ? (
 									<span className="font-mono text-base font-semibold text-green-700 dark:text-green-300">
 										{preview}
@@ -510,8 +510,8 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 				</div>
 			</div>
 
-			<div className="pro-border rounded-md border bg-(--cards-bg) p-3">
-				<h5 className="pro-text2 mb-2 text-xs font-medium">Example Presets</h5>
+			<div className="rounded-md border pro-border bg-(--cards-bg) p-3">
+				<h5 className="mb-2 text-xs font-medium pro-text2">Example Presets</h5>
 				<div className="flex flex-wrap gap-1.5">
 					{EXAMPLE_PRESETS.map((preset) => (
 						<button
@@ -519,7 +519,7 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 							type="button"
 							onClick={() => handleApplyPreset(preset)}
 							title={`${preset.expression} — ${preset.description}`}
-							className="pro-border pro-hover-bg rounded-md border px-2 py-1 text-xs transition-colors"
+							className="rounded-md border pro-border pro-hover-bg px-2 py-1 text-xs transition-colors"
 						>
 							<span className="pro-text1">{preset.name}</span>
 						</button>
@@ -529,31 +529,31 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 
 			{customColumns.length > 0 && (
 				<div className="space-y-2">
-					<h5 className="pro-text2 text-xs font-medium">Custom Columns ({customColumns.length})</h5>
+					<h5 className="text-xs font-medium pro-text2">Custom Columns ({customColumns.length})</h5>
 					{customColumns.map((col) => (
 						<div
 							key={col.id}
-							className={`pro-border flex items-center justify-between rounded-md border p-3 ${
+							className={`flex items-center justify-between rounded-md border pro-border p-3 ${
 								editingId === col.id ? 'border-(--primary) bg-(--primary)/5' : 'bg-(--cards-bg)'
 							}`}
 						>
 							<div className="min-w-0 flex-1">
 								<div className="mb-1 flex items-center gap-2">
-									<span className="pro-text1 text-sm font-medium">{col.name}</span>
-									<span className="pro-border rounded-md border bg-(--bg-glass) px-1.5 py-0.5 text-[10px] font-medium uppercase">
+									<span className="text-sm font-medium pro-text1">{col.name}</span>
+									<span className="rounded-md border pro-border bg-(--bg-glass) px-1.5 py-0.5 text-[10px] font-medium uppercase">
 										{col.format}
 									</span>
-									<span className="pro-border rounded-md border bg-(--bg-glass) px-1.5 py-0.5 text-[10px] font-medium text-(--text-tertiary)">
+									<span className="rounded-md border pro-border bg-(--bg-glass) px-1.5 py-0.5 text-[10px] font-medium text-(--text-tertiary)">
 										{AGGREGATION_OPTIONS.find((a) => a.id === col.aggregation)?.label ?? col.aggregation}
 									</span>
 								</div>
-								<code className="pro-text3 block truncate text-xs">{col.expression}</code>
+								<code className="block truncate text-xs pro-text3">{col.expression}</code>
 							</div>
 							<div className="ml-3 flex shrink-0 items-center gap-1">
 								<button
 									type="button"
 									onClick={() => handleEdit(col)}
-									className="pro-text3 rounded-md p-1.5 transition-colors hover:bg-(--cards-bg-alt) hover:text-(--primary)"
+									className="rounded-md p-1.5 pro-text3 transition-colors hover:bg-(--cards-bg-alt) hover:text-(--primary)"
 									title="Edit"
 								>
 									<Icon name="pencil" height={14} width={14} />
@@ -561,7 +561,7 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 								<button
 									type="button"
 									onClick={() => onRemove(col.id)}
-									className="pro-text3 rounded-md p-1.5 transition-colors hover:bg-red-500/10 hover:text-red-500"
+									className="rounded-md p-1.5 pro-text3 transition-colors hover:bg-red-500/10 hover:text-red-500"
 									title="Delete"
 								>
 									<Icon name="trash-2" height={14} width={14} />

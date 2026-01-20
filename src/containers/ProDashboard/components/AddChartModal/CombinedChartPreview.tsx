@@ -97,13 +97,13 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 		return (
 			<div className="flex h-full w-full items-center justify-center">
 				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4 text-center">
-					<div className="pro-text2 mb-2 text-sm">Chart Preview</div>
-					<div className="pro-text3 text-xs">
+					<div className="mb-2 text-sm pro-text2">Chart Preview</div>
+					<div className="text-xs pro-text3">
 						{composerItems.length} chart{composerItems.length > 1 ? 's' : ''} selected
 					</div>
 					<div className="mt-3 space-y-1">
 						{composerItems.map((item) => (
-							<div key={item.id} className="pro-text3 text-xs">
+							<div key={item.id} className="text-xs pro-text3">
 								• {item.protocol || item.chain} - {CHART_TYPES[item.type]?.title || item.type}
 							</div>
 						))}

@@ -429,7 +429,7 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 											render={
 												<button onClick={() => handleColSpanChange(item.id, shrinkTarget)} disabled={disableShrink} />
 											}
-											className="hover:pro-btn-blue px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+											className="px-3 py-2 hover:pro-btn-blue disabled:cursor-not-allowed disabled:opacity-50"
 										>
 											<Icon name="minus" height={14} width={14} />
 											<span className="sr-only">Shrink width</span>
@@ -439,7 +439,7 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 											render={
 												<button onClick={() => handleColSpanChange(item.id, expandTarget)} disabled={disableExpand} />
 											}
-											className="hover:pro-btn-blue px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+											className="px-3 py-2 hover:pro-btn-blue disabled:cursor-not-allowed disabled:opacity-50"
 										>
 											<Icon name="plus" height={14} width={14} />
 											<span className="sr-only">Expand width</span>
@@ -448,7 +448,7 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 											<Tooltip
 												content="Edit item"
 												render={<button onClick={() => onEditItem(item)} />}
-												className="hover:pro-btn-blue px-3 py-2"
+												className="px-3 py-2 hover:pro-btn-blue"
 											>
 												<Icon name="pencil" height={14} width={14} />
 												<span className="sr-only">Edit item</span>
@@ -475,7 +475,7 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 							)
 						})}
 						{currentRatingSession && !isReadOnly && (
-							<div className="animate-ai-glow col-span-full flex flex-col items-center justify-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+							<div className="col-span-full flex animate-ai-glow flex-col items-center justify-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 								<Rating
 									sessionId={currentRatingSession.sessionId}
 									mode={currentRatingSession.mode}
@@ -488,7 +488,7 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 						)}
 						<button
 							onClick={onAddChartClick}
-							className="hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex min-h-[340px] flex-col items-center justify-center gap-1 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg) p-2.5 text-(--link-text)"
+							className="relative isolate flex min-h-[340px] flex-col items-center justify-center gap-1 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg) p-2.5 text-(--link-text) hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10"
 						>
 							<svg
 								width="40"

@@ -62,7 +62,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 			}}
 		>
 			<Ariakit.Dialog
-				className="pro-dashboard add-chart-dialog animate-slidein thin-scrollbar fixed top-0 right-0 bottom-0 z-50 flex h-full w-full max-w-6xl flex-col gap-3 overflow-hidden border-l border-(--cards-border) bg-(--cards-bg) p-3 shadow-xl md:p-4"
+				className="add-chart-dialog fixed top-0 right-0 bottom-0 z-50 flex thin-scrollbar h-full w-full max-w-6xl animate-slidein flex-col gap-3 overflow-hidden border-l pro-dashboard border-(--cards-border) bg-(--cards-bg) p-3 shadow-xl md:p-4"
 				unmountOnHide
 				portal
 				hideOnInteractOutside

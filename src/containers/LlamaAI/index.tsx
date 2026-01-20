@@ -1188,7 +1188,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						<>
 							<div
 								ref={scrollContainerRef}
-								className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5 max-lg:px-0"
+								className="relative thin-scrollbar flex-1 overflow-y-auto p-2.5 max-lg:px-0"
 							>
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 									{isRestoringSession && messages.length === 0 ? (

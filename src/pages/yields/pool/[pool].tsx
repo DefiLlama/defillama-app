@@ -290,15 +290,15 @@ const PageView = (_props) => {
 					<div className="flex flex-col gap-2 text-base">
 						<p className="flex items-center justify-between gap-1">
 							<span className="font-semibold">APY</span>
-							<span className="font-jetbrains ml-auto text-(--apy-pink)">{isLoading ? null : `${apy}%`}</span>
+							<span className="ml-auto font-jetbrains text-(--apy-pink)">{isLoading ? null : `${apy}%`}</span>
 						</p>
 						<p className="flex items-center justify-between gap-1">
 							<span className="font-semibold">30d Avg APY</span>
-							<span className="font-jetbrains ml-auto text-(--apy-pink)">{isLoading ? null : `${apyMean30d}%`}</span>
+							<span className="ml-auto font-jetbrains text-(--apy-pink)">{isLoading ? null : `${apyMean30d}%`}</span>
 						</p>
 						<p className="flex items-center justify-between gap-1">
 							<span className="font-semibold">Total Value Locked</span>
-							<span className="font-jetbrains ml-auto text-(--apy-blue)">
+							<span className="ml-auto font-jetbrains text-(--apy-blue)">
 								{isLoading ? null : formattedNum(poolData.tvlUsd ?? 0, true)}
 							</span>
 						</p>
@@ -320,7 +320,7 @@ const PageView = (_props) => {
 									href={riskData?.pool_url ? riskData?.pool_url : `https://exponential.fi/about-us`}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="font-jetbrains flex items-center gap-1 text-xl font-semibold hover:underline"
+									className="flex items-center gap-1 font-jetbrains text-xl font-semibold hover:underline"
 								>
 									<span>{getRatingDescription(riskData?.pool_rating)}</span>
 									<Icon name="external-link" height={16} width={16} />

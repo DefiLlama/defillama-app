@@ -211,7 +211,7 @@ export const PeggedAssetInfo = ({
 
 								<p className="flex flex-col gap-1">
 									<span className="text-base text-(--text-label)">Market Cap</span>
-									<span className="font-jetbrains min-h-8 text-2xl font-semibold">
+									<span className="min-h-8 font-jetbrains text-2xl font-semibold">
 										{formattedNum(mcap || '0', true)}
 									</span>
 								</p>
@@ -227,7 +227,7 @@ export const PeggedAssetInfo = ({
 										<tbody>
 											<tr>
 												<th className="text-left font-normal text-(--text-label)">Total Circulating</th>
-												<td className="font-jetbrains text-right">{formattedNum(totalCirculating)}</td>
+												<td className="text-right font-jetbrains">{formattedNum(totalCirculating)}</td>
 											</tr>
 										</tbody>
 									</table>
@@ -255,7 +255,7 @@ export const PeggedAssetInfo = ({
 															</span>
 														</label>
 													</th>
-													<td className="font-jetbrains text-right">{formattedNum(unreleased)}</td>
+													<td className="text-right font-jetbrains">{formattedNum(unreleased)}</td>
 												</tr>
 											))}
 										</tbody>

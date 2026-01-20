@@ -339,8 +339,8 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 		<div className="flex h-full flex-col p-2">
 			<div className="mb-2 flex items-start justify-between gap-2">
 				<div className="flex flex-col gap-1">
-					<h3 className="pro-text1 text-sm font-semibold">{chartTypeLabel}</h3>
-					<p className="pro-text2 text-xs">{chainLabel} Stablecoins</p>
+					<h3 className="text-sm font-semibold pro-text1">{chartTypeLabel}</h3>
+					<p className="text-xs pro-text2">{chainLabel} Stablecoins</p>
 				</div>
 				{hasChartData && (
 					<div className="flex gap-2">
@@ -350,7 +350,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol
-							className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
+							className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 						/>
 					</div>
 				)}
@@ -359,7 +359,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 			{latestMcap !== null && chartType === 'totalMcap' && (
 				<div className="mb-2 flex gap-4">
 					<div className="flex flex-col">
-						<span className="pro-text3 text-[10px] uppercase">Total Market Cap</span>
+						<span className="text-[10px] pro-text3 uppercase">Total Market Cap</span>
 						<span className="font-jetbrains text-sm font-semibold" style={{ color: '#4f8fea' }}>
 							{formattedNum(latestMcap, true)}
 						</span>

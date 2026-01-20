@@ -395,7 +395,7 @@
 }
 
 @utility pro-btn-purple-outline {
-	@apply border-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 focus-visible:bg-pro-purple-300/20 dark:border-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 focus-visible:dark:bg-pro-purple-300/30 border;
+	@apply border border-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 focus-visible:bg-pro-purple-300/20 dark:border-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 focus-visible:dark:bg-pro-purple-300/30;
 }
 
 @utility pro-btn-blue {
@@ -403,7 +403,7 @@
 }
 
 @utility pro-btn-blue-outline {
-	@apply border-pro-blue-100 text-pro-blue-400 hover:bg-pro-blue-300/20 focus-visible:bg-pro-blue-300/20 dark:border-pro-blue-300/20 dark:text-pro-blue-200 hover:dark:bg-pro-blue-300/30 focus-visible:dark:bg-pro-blue-300/30 border;
+	@apply border border-pro-blue-100 text-pro-blue-400 hover:bg-pro-blue-300/20 focus-visible:bg-pro-blue-300/20 dark:border-pro-blue-300/20 dark:text-pro-blue-200 hover:dark:bg-pro-blue-300/30 focus-visible:dark:bg-pro-blue-300/30;
 }
 
 .message-sent::before {
@@ -576,7 +576,7 @@
 	}
 
 	body {
-		@apply font-inter bg-(--app-bg) text-sm text-black dark:text-white;
+		@apply bg-(--app-bg) font-inter text-sm text-black dark:text-white;
 	}
 
 	#__next,

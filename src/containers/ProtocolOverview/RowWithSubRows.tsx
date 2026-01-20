@@ -32,7 +32,7 @@ export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, row
 						/>
 					) : null}
 				</th>
-				<td className="font-jetbrains text-right">{rowValue}</td>
+				<td className="text-right font-jetbrains">{rowValue}</td>
 			</tr>
 
 			{open && <>{subRows}</>}

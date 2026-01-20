@@ -54,10 +54,10 @@ export function AriakitMultiSelect({
 
 	return (
 		<div className={className}>
-			<label className="pro-text2 mb-1 block text-[11px] font-medium">
+			<label className="mb-1 block text-[11px] font-medium pro-text2">
 				{label}
 				{selectedValues.length > 0 && (
-					<span className="pro-text3 ml-1 text-xs">
+					<span className="ml-1 text-xs pro-text3">
 						({selectedValues.length}
 						{maxSelections < 100 && `/${maxSelections}`})
 					</span>
@@ -88,7 +88,7 @@ export function AriakitMultiSelect({
 						<div className="p-1">
 							<div className="thin-scrollbar max-h-[280px] overflow-y-auto">
 								{options.length === 0 && (
-									<div className="pro-text3 px-3 py-2 text-center text-xs">No options available.</div>
+									<div className="px-3 py-2 text-center text-xs pro-text3">No options available.</div>
 								)}
 								{options.map((option) => {
 									const isActive = selectedValues.includes(option.value)
@@ -105,7 +105,7 @@ export function AriakitMultiSelect({
 											disabled={isDisabled}
 											className={`flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs transition-colors ${
 												isDisabled
-													? 'pro-text3 cursor-not-allowed opacity-50'
+													? 'cursor-not-allowed pro-text3 opacity-50'
 													: isActive
 														? 'bg-(--primary)/10 text-(--primary)'
 														: 'pro-text2 hover:bg-(--cards-bg-alt)'
@@ -113,7 +113,7 @@ export function AriakitMultiSelect({
 										>
 											<div
 												className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border transition-colors ${
-													isActive ? 'border-(--primary) bg-(--primary)' : 'pro-border border'
+													isActive ? 'border-(--primary) bg-(--primary)' : 'border pro-border'
 												}`}
 											>
 												{isActive && <Icon name="check" width={10} height={10} className="text-white" />}
@@ -124,11 +124,11 @@ export function AriakitMultiSelect({
 								})}
 							</div>
 							{selectedValues.length > 0 && (
-								<div className="pro-border mt-1 border-t pt-1">
+								<div className="mt-1 border-t pro-border pt-1">
 									<button
 										type="button"
 										onClick={clearAll}
-										className="pro-text3 hover:pro-text1 w-full rounded-md px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-(--cards-bg-alt)"
+										className="w-full rounded-md px-2.5 py-1.5 text-left text-xs pro-text3 transition-colors hover:bg-(--cards-bg-alt) hover:pro-text1"
 									>
 										Clear all
 									</button>

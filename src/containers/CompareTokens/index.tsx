@@ -296,7 +296,7 @@ export function CompareTokens({
 						unmountOnHide
 						hideOnInteractOutside
 						sameWidth
-						className="max-sm:drawer thin-scrollbar z-10 flex max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
+						className="z-10 flex thin-scrollbar max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:drawer max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
 					>
 						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 							<Icon name="x" className="h-5 w-5" />

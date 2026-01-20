@@ -673,14 +673,14 @@ const TabContent = memo(function TabContent({
 				<button
 					type="button"
 					onClick={() => handleSelectTableType(heroCard.value)}
-					className="pro-border group relative flex flex-col rounded-xl border p-5 text-left transition-all hover:border-(--primary)/50 hover:bg-(--cards-bg-alt)"
+					className="group relative flex flex-col rounded-xl border pro-border p-5 text-left transition-all hover:border-(--primary)/50 hover:bg-(--cards-bg-alt)"
 				>
 					<div className="mb-3 flex items-center justify-between">
 						<div className="flex items-center gap-3">
 							<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--primary)/10">
 								<Icon name={heroCard.icon} height={22} width={22} className="text-(--primary)" />
 							</div>
-							<h3 className="pro-text1 text-lg font-semibold">{heroCard.label}</h3>
+							<h3 className="text-lg font-semibold pro-text1">{heroCard.label}</h3>
 						</div>
 						<Icon
 							name="arrow-right"
@@ -689,7 +689,7 @@ const TabContent = memo(function TabContent({
 							className="text-(--text-secondary) transition-transform group-hover:translate-x-1 group-hover:text-(--primary)"
 						/>
 					</div>
-					<p className="pro-text2 mb-4 text-sm">{heroCard.description}</p>
+					<p className="mb-4 text-sm pro-text2">{heroCard.description}</p>
 					<div className="flex flex-wrap gap-1.5">
 						{heroCard.tags.map((tag) => (
 							<span
@@ -703,14 +703,14 @@ const TabContent = memo(function TabContent({
 				</button>
 
 				<div className="mt-4">
-					<span className="pro-text2 mb-2.5 block text-xs font-medium tracking-wide uppercase">Other datasets</span>
+					<span className="mb-2.5 block text-xs font-medium tracking-wide pro-text2 uppercase">Other datasets</span>
 					<div className="grid grid-cols-2 gap-2">
 						{otherCards.map((card) => (
 							<button
 								key={card.value}
 								type="button"
 								onClick={() => handleSelectTableType(card.value)}
-								className="pro-border group flex items-start gap-2.5 rounded-lg border p-3 text-left transition-all hover:border-(--primary)/50 hover:bg-(--cards-bg-alt)"
+								className="group flex items-start gap-2.5 rounded-lg border pro-border p-3 text-left transition-all hover:border-(--primary)/50 hover:bg-(--cards-bg-alt)"
 							>
 								<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-(--cards-bg-alt) transition-colors group-hover:bg-(--primary)/10">
 									<Icon
@@ -721,8 +721,8 @@ const TabContent = memo(function TabContent({
 									/>
 								</div>
 								<div className="min-w-0 flex-1">
-									<span className="pro-text1 text-sm font-medium">{card.label}</span>
-									<p className="pro-text2 mt-0.5 line-clamp-1 text-xs">{card.description}</p>
+									<span className="text-sm font-medium pro-text1">{card.label}</span>
+									<p className="mt-0.5 line-clamp-1 text-xs pro-text2">{card.description}</p>
 								</div>
 							</button>
 						))}
@@ -762,7 +762,7 @@ const TabContent = memo(function TabContent({
 					<button
 						type="button"
 						onClick={() => setShowTypeSelector(true)}
-						className="pro-text2 hover:pro-text1 mb-2 flex items-center gap-1 text-sm transition-colors"
+						className="mb-2 flex items-center gap-1 text-sm pro-text2 transition-colors hover:pro-text1"
 					>
 						<span>←</span>
 						<span>Back to table type selection</span>
@@ -816,14 +816,14 @@ const TabContent = memo(function TabContent({
 				<button
 					type="button"
 					onClick={onClose}
-					className="pro-border pro-text2 hover:pro-text1 pro-hover-bg rounded-md border px-4 py-2 text-sm transition"
+					className="rounded-md border pro-border pro-hover-bg px-4 py-2 text-sm pro-text2 transition hover:pro-text1"
 				>
 					Cancel
 				</button>
 				<button
 					type="button"
 					onClick={handleAdd}
-					className="pro-btn-blue flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold"
+					className="flex items-center gap-2 rounded-md pro-btn-blue px-4 py-2 text-sm font-semibold"
 				>
 					{isEditing ? 'Save Changes' : 'Add Table'}
 					<Icon name={isEditing ? 'check' : 'plus'} height={14} width={14} />

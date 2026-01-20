@@ -226,7 +226,7 @@ export const SimpleTableConfig = memo(function SimpleTableConfig({
 			<button
 				type="button"
 				onClick={onBackToTypeSelector}
-				className="pro-text2 hover:pro-text1 flex items-center gap-1 text-sm transition-colors"
+				className="flex items-center gap-1 text-sm pro-text2 transition-colors hover:pro-text1"
 			>
 				<span>←</span>
 				<span>Back to table type selection</span>
@@ -327,11 +327,11 @@ export const SimpleTableConfig = memo(function SimpleTableConfig({
 										) : (
 											<div className="h-4 w-4 rounded-full bg-(--bg-tertiary)" />
 										)}
-										<span className="pro-text1 text-sm">{option?.label ?? token}</span>
+										<span className="text-sm pro-text1">{option?.label ?? token}</span>
 										<button
 											type="button"
 											onClick={() => onTokensChange(selectedTokens.filter((t) => t !== token))}
-											className="pro-text3 hover:pro-text1 ml-1 text-xs transition-colors"
+											className="ml-1 text-xs pro-text3 transition-colors hover:pro-text1"
 											aria-label={`Remove ${option?.label ?? token}`}
 										>
 											✕
@@ -342,7 +342,7 @@ export const SimpleTableConfig = memo(function SimpleTableConfig({
 						</div>
 					)}
 					<div
-						className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 transition-colors"
+						className="flex cursor-pointer items-center gap-2 rounded-md border pro-border pro-hover-bg px-3 py-1.5 pro-text2 transition-colors hover:pro-text1"
 						onClick={() => onIncludeCexChange(!includeCex)}
 					>
 						<div className="relative h-4 w-4">
@@ -365,7 +365,7 @@ export const SimpleTableConfig = memo(function SimpleTableConfig({
 								)}
 							</div>
 						</div>
-						<span className="pro-text2 text-sm font-medium">Include CEXs</span>
+						<span className="text-sm font-medium pro-text2">Include CEXs</span>
 					</div>
 				</>
 			) : null}

@@ -30,25 +30,25 @@ export function ConfirmationModal({
 			}}
 		>
 			<Ariakit.Dialog
-				className="dialog pro-dashboard w-full max-w-sm gap-0 border border-(--cards-border) bg-(--cards-bg) p-6 shadow-2xl"
+				className="dialog w-full max-w-sm gap-0 border pro-dashboard border-(--cards-border) bg-(--cards-bg) p-6 shadow-2xl"
 				unmountOnHide
 				portal
 				hideOnInteractOutside
 			>
 				<div className="mb-6 flex items-center justify-between">
-					<h2 className="pro-text1 text-xl font-semibold">{title}</h2>
+					<h2 className="text-xl font-semibold pro-text1">{title}</h2>
 					<Ariakit.DialogDismiss
-						className="pro-hover-bg pro-text1 rounded-md p-1 transition-colors"
+						className="rounded-md pro-hover-bg p-1 pro-text1 transition-colors"
 						aria-label="Close modal"
 					>
 						<Icon name="x" height={20} width={20} />
 					</Ariakit.DialogDismiss>
 				</div>
 
-				<p className="pro-text2 mb-6">{message}</p>
+				<p className="mb-6 pro-text2">{message}</p>
 
 				<div className="flex justify-end gap-3">
-					<Ariakit.DialogDismiss className="pro-border pro-text2 hover:pro-text1 pro-hover-bg rounded-md border px-4 py-2 text-sm transition-colors">
+					<Ariakit.DialogDismiss className="rounded-md border pro-border pro-hover-bg px-4 py-2 text-sm pro-text2 transition-colors hover:pro-text1">
 						{cancelText}
 					</Ariakit.DialogDismiss>
 					<button

@@ -90,7 +90,7 @@ export const MobileSearch = () => {
 				</Ariakit.DialogDisclosure>
 
 				<Ariakit.Dialog
-					className="dialog max-sm:drawer h-[calc(100dvh-80px)] max-h-(--popover-available-height) bg-(--bg-main) p-2"
+					className="dialog h-[calc(100dvh-80px)] max-h-(--popover-available-height) bg-(--bg-main) p-2 max-sm:drawer"
 					unmountOnHide
 					hideOnInteractOutside
 					portal
@@ -224,7 +224,7 @@ export const DesktopSearch = () => {
 					hideOnInteractOutside
 					gutter={6}
 					sameWidth
-					className="max-sm:drawer thin-scrollbar z-10 flex max-h-[min(var(--popover-available-height),60vh)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
+					className="z-10 flex thin-scrollbar max-h-[min(var(--popover-available-height),60vh)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)] max-sm:drawer"
 					portal
 				>
 					<Ariakit.ComboboxList alwaysVisible>

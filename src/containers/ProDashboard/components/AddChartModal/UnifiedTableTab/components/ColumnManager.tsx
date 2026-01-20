@@ -695,7 +695,7 @@ export function ColumnManager({
 								</div>
 							)}
 							{showAutocomplete && filteredSuggestions.length > 0 && (
-								<div className="thin-scrollbar absolute z-50 mt-1 max-h-40 w-full overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg">
+								<div className="absolute z-50 mt-1 thin-scrollbar max-h-40 w-full overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg">
 									{filteredSuggestions.map((suggestion, index) => (
 										<div
 											key={`${suggestion.type}-${suggestion.value}`}

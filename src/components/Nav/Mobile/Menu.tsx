@@ -40,7 +40,7 @@ export const Menu = React.memo(function Menu({
 			</Ariakit.DialogDisclosure>
 
 			<Ariakit.Dialog unmountOnHide>
-				<nav className="animate-slidein fixed top-0 right-0 bottom-0 z-10 flex w-full max-w-[300px] flex-col overflow-auto bg-(--bg-main) p-4 pl-5 text-black dark:text-white">
+				<nav className="fixed top-0 right-0 bottom-0 z-10 flex w-full max-w-[300px] animate-slidein flex-col overflow-auto bg-(--bg-main) p-4 pl-5 text-black dark:text-white">
 					<Ariakit.DialogDismiss className="ml-auto">
 						<span className="sr-only">Close Navigation Menu</span>
 						<Icon name="x" height={20} width={20} strokeWidth="4px" />
@@ -362,9 +362,9 @@ const NavItemContent = React.memo(function NavItemContent({
 	return (
 		<>
 			{icon ? (
-				<Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4 shrink-0" />
+				<Icon name={icon as any} className="h-4 w-4 shrink-0 group-hover/link:animate-wiggle" />
 			) : name === 'LlamaAI' ? (
-				<svg className="group-hover/link:animate-wiggle h-4 w-4 shrink-0">
+				<svg className="h-4 w-4 shrink-0 group-hover/link:animate-wiggle">
 					<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 				</svg>
 			) : null}

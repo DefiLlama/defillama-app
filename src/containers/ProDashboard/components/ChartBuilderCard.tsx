@@ -667,7 +667,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 									className={`px-2 py-1 text-xs font-medium transition-colors duration-150 ease-in-out sm:px-3 ${index > 0 ? 'border-l border-(--form-control-border)' : ''} ${
 										builder.grouping === option || (!builder.grouping && option === 'day')
 											? 'focus:ring-opacity-50 bg-(--primary) text-white focus:ring-2 focus:ring-(--primary) focus:outline-hidden'
-											: 'pro-hover-bg pro-text2 bg-transparent focus:ring-1 focus:ring-(--form-control-border) focus:outline-hidden'
+											: 'bg-transparent pro-hover-bg pro-text2 focus:ring-1 focus:ring-(--form-control-border) focus:outline-hidden'
 									}`}
 								>
 									{option.slice(0, 1).toUpperCase()}
@@ -735,7 +735,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							className={`flex items-center gap-1 rounded-md border px-1.5 py-1 text-xs transition-colors disabled:cursor-not-allowed ${
 								showColors
 									? 'border-transparent bg-(--primary) text-white'
-									: 'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue border-(--form-control-border)'
+									: 'border-(--form-control-border) hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue'
 							} disabled:border-(--cards-border) disabled:text-(--text-disabled)`}
 						>
 							Colors
@@ -769,13 +769,13 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							<ProTableCSVButton
 								onClick={handleCsvExport}
 								smol
-								className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
+								className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 							/>
 						</>
 					)}
 				</div>
 				{showColors && chartSeries.length > 0 && (
-					<div className="thin-scrollbar flex items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-2">
+					<div className="flex thin-scrollbar items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-2">
 						<span className="shrink-0 text-xs font-medium text-(--text-label)">Series Colors</span>
 						{chartSeries.map((series: any) => {
 							const colorValue = seriesColors[series.name] || series.color || DEFAULT_SERIES_COLOR

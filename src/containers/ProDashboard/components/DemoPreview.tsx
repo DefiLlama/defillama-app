@@ -430,7 +430,7 @@ export const DemoPreview = () => {
 	const router = useRouter()
 
 	return (
-		<div className="pro-dashboard relative min-h-screen">
+		<div className="relative min-h-screen pro-dashboard">
 			<div className="border-b border-(--divider) bg-(--bg) py-6">
 				<div className="mx-auto max-w-7xl space-y-6 px-4 sm:px-6">
 					<div className="text-center">
@@ -439,11 +439,11 @@ export const DemoPreview = () => {
 					</div>
 
 					<div className="flex items-center justify-center">
-						<div className="pro-dashboard grid gap-2 sm:grid-cols-2 lg:gap-6 xl:grid-cols-4">
+						<div className="grid gap-2 pro-dashboard sm:grid-cols-2 lg:gap-6 xl:grid-cols-4">
 							{features.map((feature, index) => (
 								<div
 									key={index}
-									className="pro-info-card flex flex-wrap items-center justify-center gap-2 px-8 py-15 text-sm text-(--text-secondary)"
+									className="flex flex-wrap items-center justify-center gap-2 pro-info-card px-8 py-15 text-sm text-(--text-secondary)"
 								>
 									<div className="align-center flex gap-2">
 										<Icon name={feature.icon as any} height={32} width={32} className="shrink-0 text-(--primary)" />
@@ -509,7 +509,7 @@ export const DemoPreview = () => {
 								<ul className="mb-8 flex-1 space-y-3 text-left text-sm">
 									<li className="flex items-start gap-2">
 										<Icon name="star" height={14} width={14} className="mt-0.5 shrink-0 text-(--primary)" />
-										<span className="pro-text1 font-semibold">Everything in Free, plus:</span>
+										<span className="font-semibold pro-text1">Everything in Free, plus:</span>
 									</li>
 									<li className="flex items-start gap-2">
 										<Icon name="check" height={14} width={14} className="mt-0.5 shrink-0 text-green-500" />

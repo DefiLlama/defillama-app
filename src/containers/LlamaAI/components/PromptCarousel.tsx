@@ -114,7 +114,7 @@ export function PromptCarousel({
 						disabled={isPending}
 						className="group relative flex w-full items-baseline gap-2.5 py-[7px] text-left transition-colors duration-150 first:pt-0 disabled:pointer-events-none disabled:opacity-40"
 					>
-						<span className="absolute left-0 top-1 bottom-1 w-px bg-[#2563eb]/0 transition-colors duration-150 group-hover:bg-[#2563eb]/30 dark:group-hover:bg-[#60a5fa]/25" />
+						<span className="absolute top-1 bottom-1 left-0 w-px bg-[#2563eb]/0 transition-colors duration-150 group-hover:bg-[#2563eb]/30 dark:group-hover:bg-[#60a5fa]/25" />
 						<span className="shrink-0 pt-px text-[10px] tracking-wide text-[#b0b0b0] transition-colors duration-150 group-hover:text-[#888] dark:text-[#505050] dark:group-hover:text-[#707070]">
 							{currentCategory.name}
 						</span>
@@ -125,7 +125,7 @@ export function PromptCarousel({
 							name="arrow-right"
 							height={10}
 							width={10}
-							className="shrink-0 translate-x-0 opacity-0 transition-all duration-150 text-[#2563eb]/50 group-hover:translate-x-0.5 group-hover:opacity-100 dark:text-[#60a5fa]/50"
+							className="shrink-0 translate-x-0 text-[#2563eb]/50 opacity-0 transition-all duration-150 group-hover:translate-x-0.5 group-hover:opacity-100 dark:text-[#60a5fa]/50"
 						/>
 					</button>
 				))}

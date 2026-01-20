@@ -22,7 +22,7 @@ export const aggregatorsDatasetColumns: ColumnDef<any>[] = [
 							}}
 						/>
 					)}
-					<span className="pro-text1 font-medium">{row.original.name}</span>
+					<span className="font-medium pro-text1">{row.original.name}</span>
 				</div>
 			)
 		}

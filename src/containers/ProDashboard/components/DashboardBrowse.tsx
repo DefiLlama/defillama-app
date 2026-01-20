@@ -44,7 +44,7 @@ export function DashboardBrowse({ onTagClick }: DashboardBrowseProps) {
 					<Icon name="tag" height={14} width={14} />
 					Trending Tags
 				</h3>
-				<div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-2">
+				<div className="-mx-4 no-scrollbar flex gap-2 overflow-x-auto px-4 pb-2">
 					{TRENDING_TAGS.map((tag) => (
 						<button
 							key={tag}

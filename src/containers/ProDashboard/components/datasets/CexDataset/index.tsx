@@ -88,12 +88,12 @@ export function CexDataset() {
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-lg font-semibold">Centralized Exchanges</h3>
+						<h3 className="text-lg font-semibold pro-text1">Centralized Exchanges</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<LoadingSpinner />
-					<p className="pro-text2 text-sm">Loading exchange data...</p>
+					<p className="text-sm pro-text2">Loading exchange data...</p>
 				</div>
 			</div>
 		)
@@ -104,11 +104,11 @@ export function CexDataset() {
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-lg font-semibold">Centralized Exchanges</h3>
+						<h3 className="text-lg font-semibold pro-text1">Centralized Exchanges</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 items-center justify-center">
-					<div className="pro-text2 text-center">Failed to load CEX data</div>
+					<div className="text-center pro-text2">Failed to load CEX data</div>
 				</div>
 			</div>
 		)
@@ -118,7 +118,7 @@ export function CexDataset() {
 		<div className="flex h-full w-full flex-col p-4">
 			<div className="mb-3">
 				<div className="flex flex-wrap items-center justify-end gap-4">
-					<h3 className="pro-text1 mr-auto text-lg font-semibold">Centralized Exchanges</h3>
+					<h3 className="mr-auto text-lg font-semibold pro-text1">Centralized Exchanges</h3>
 					<div className="flex flex-wrap items-center justify-end gap-2">
 						<ProTableCSVButton
 							onClick={() => {
@@ -161,7 +161,7 @@ export function CexDataset() {
 							placeholder="Search exchanges..."
 							value={exchangeName}
 							onChange={(e) => setExchangeName(e.target.value)}
-							className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+							className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>
 				</div>

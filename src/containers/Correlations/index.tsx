@@ -193,7 +193,7 @@ export default function Correlations({ coinsData }) {
 
 			<div className="flex flex-col items-center justify-center gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="flex flex-col sm:flex-row">
-					<div className="no-scrollbar mr-8 flex flex-col overflow-auto">
+					<div className="mr-8 no-scrollbar flex flex-col overflow-auto">
 						<h2 className="text-lg font-medium">Selected Coins</h2>
 						{coins.map((coin) =>
 							coin ? (
