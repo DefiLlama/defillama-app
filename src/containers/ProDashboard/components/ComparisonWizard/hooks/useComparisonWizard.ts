@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useReducer } from 'react'
+import { useCallback, useReducer } from 'react'
 import { useProDashboardCatalog } from '../../../ProDashboardAPIContext'
 import type {
 	ComparisonType,
@@ -217,7 +217,7 @@ export function useComparisonWizard() {
 		if (prev) setStep(prev)
 	}, [state.step, setStep])
 
-	const canProceed = useMemo(() => {
+	const canProceed = (() => {
 		switch (state.step) {
 			case 'select-type':
 				return state.comparisonType !== null
@@ -230,9 +230,9 @@ export function useComparisonWizard() {
 			default:
 				return false
 		}
-	}, [state])
+	})()
 
-	const canGoBack = useMemo(() => getPrevStep(state.step) !== null, [state.step])
+	const canGoBack = getPrevStep(state.step) !== null
 
 	return {
 		state,

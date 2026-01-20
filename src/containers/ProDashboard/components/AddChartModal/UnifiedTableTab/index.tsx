@@ -471,9 +471,7 @@ const TabContent = memo(function TabContent({
 
 	const activeFilterCount = activeFilterPills.length
 
-	const scopeCount = useMemo(() => {
-		return chains.includes('All') ? 0 : 1
-	}, [chains])
+	const scopeCount = chains.includes('All') ? 0 : 1
 
 	const filterCount = countActiveFilters(filters)
 	const totalFilterCount = scopeCount + filterCount
@@ -491,10 +489,7 @@ const TabContent = memo(function TabContent({
 				? 'Select and arrange columns to customize your table view.'
 				: ''
 
-	const setupBadge = useMemo(() => {
-		if (activePreset?.name) return `Protocols · ${activePreset.name}`
-		return 'Protocols'
-	}, [activePreset])
+	const setupBadge = activePreset?.name ? `Protocols · ${activePreset.name}` : 'Protocols'
 
 	const tabOptions = useMemo(
 		() => [

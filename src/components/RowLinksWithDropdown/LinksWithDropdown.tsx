@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { BasicLink } from '../Link'
 import { OtherLinks } from './OtherLinks'
 
@@ -94,13 +94,10 @@ export const LinksWithDropdown = React.memo(function LinksWithDropdown({
 		}
 	}, [calcOverflowIndex])
 
-	const isActiveLinkInList = useMemo(() => !!links.find((link) => link.label === activeLink), [links, activeLink])
+	const isActiveLinkInList = links.some((link) => link.label === activeLink)
 
-	const { hasOverflow, isLinkInDropdown } = useMemo(() => {
-		const hasOverflow = overflowIndex !== null && typeof overflowIndex === 'number' && overflowIndex > 0
-		const isLinkInDropdown = hasOverflow && !!links.slice(overflowIndex).find((link) => link.label === activeLink)
-		return { hasOverflow, isLinkInDropdown }
-	}, [overflowIndex, links, activeLink])
+	const hasOverflow = overflowIndex !== null && typeof overflowIndex === 'number' && overflowIndex > 0
+	const isLinkInDropdown = hasOverflow && links.slice(overflowIndex).some((link) => link.label === activeLink)
 
 	// For narrow screens, show only the dropdown
 	if (overflowIndex === 'renderMenu') {

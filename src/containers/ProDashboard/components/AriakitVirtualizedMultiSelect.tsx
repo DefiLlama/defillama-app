@@ -63,14 +63,12 @@ export function AriakitVirtualizedMultiSelect({
 		}
 	}, [search, filteredOptions.length, isPopoverOpen, virtualizer])
 
-	const buttonLabel = useMemo(() => {
-		if (selectedValues.length === 0) return placeholder
-		if (selectedValues.length === 1) {
-			const selected = options.find((opt) => opt.value === selectedValues[0])
-			return selected?.label || selectedValues[0]
-		}
-		return `${selectedValues.length} selected`
-	}, [selectedValues, options, placeholder])
+	const buttonLabel =
+		selectedValues.length === 0
+			? placeholder
+			: selectedValues.length === 1
+				? (options.find((opt) => opt.value === selectedValues[0])?.label || selectedValues[0])
+				: `${selectedValues.length} selected`
 
 	const toggleValue = (value: string) => {
 		if (selectedValues.includes(value)) {

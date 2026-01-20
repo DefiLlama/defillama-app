@@ -195,7 +195,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 	}
 	const handleChartTypeSelect = useCallback((type: string) => onChartTypesChange([type]), [onChartTypesChange])
 
-	const selectedChartTypeSingle = useMemo(() => selectedChartTypes[0] || null, [selectedChartTypes])
+	const selectedChartTypeSingle = selectedChartTypes[0] || null
 
 	const selectedEntitiesForCurrentType = useMemo(() => {
 		if (!selectedChartTypeSingle) return []

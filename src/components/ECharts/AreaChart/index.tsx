@@ -43,10 +43,7 @@ export default function AreaChart({
 	...props
 }: IChartProps) {
 	const id = useId()
-	const shouldEnableExport = useMemo(
-		() => enableImageExport ?? (!!title && !hideDownloadButton),
-		[enableImageExport, title, hideDownloadButton]
-	)
+	const shouldEnableExport = enableImageExport ?? (!!title && !hideDownloadButton)
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions)

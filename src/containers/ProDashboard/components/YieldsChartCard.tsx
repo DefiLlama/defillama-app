@@ -135,21 +135,11 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 	const imageFilename = `${poolName.replace(/\s+/g, '_')}`
 	const imageTitle = `${poolName} - ${project} (${chain})`
 
-	const isLoading = useMemo(() => {
-		if (needsBorrowData) {
-			return fetchingChartData || fetchingBorrowData
-		}
-		return fetchingChartData
-	}, [needsBorrowData, fetchingChartData, fetchingBorrowData])
+	const isLoading = needsBorrowData ? fetchingChartData || fetchingBorrowData : fetchingChartData
 
-	const hasError = useMemo(() => {
-		if (needsBorrowData) {
-			return chartError || borrowError
-		}
-		return chartError
-	}, [needsBorrowData, chartError, borrowError])
+	const hasError = needsBorrowData ? chartError || borrowError : chartError
 
-	const hasRequiredData = useMemo(() => {
+	const hasRequiredData = (() => {
 		switch (chartType) {
 			case 'tvl-apy':
 				return tvlApyData.length > 0
@@ -166,7 +156,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 			default:
 				return tvlApyData.length > 0
 		}
-	}, [chartType, tvlApyData, supplyApyBarData, supplyApy7dData, borrowApyBarData, netBorrowApyData, poolLiquidityData])
+	})()
 
 	if (isLoading) {
 		return (
