@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
@@ -78,7 +78,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 		}
 	}, [resolvedChainsSplit, resolvedTokenBreakdownUSD, resolvedTokenBreakdown, timePeriod, customTimePeriod])
 
-	const handleCsvExport = useCallback(() => {
+	const handleCsvExport = () => {
 		let rows: (string | number)[][] = []
 		let filename = ''
 		const protocolSlug = protocol.toLowerCase().replace(/\s+/g, '-')
@@ -124,7 +124,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 			const csvContent = rows.map((row) => row.join(',')).join('\n')
 			download(filename, csvContent)
 		}
-	}, [filteredChartData, resolvedTokenBreakdownPieChart, chainsUnique, resolvedTokensUnique, protocol, chartType])
+	}
 
 	const chartTypeLabel = BORROWED_CHART_TYPE_LABELS[chartType] || chartType
 	const imageTitle = `${protocolName} - ${chartTypeLabel}`

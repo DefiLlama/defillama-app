@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { useStablecoinsChartData } from '~/containers/ProDashboard/components/datasets/StablecoinsDataset/useStablecoinsChartData'
@@ -125,7 +125,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 		return data[data.length - 1]?.Mcap ?? null
 	}, [filteredChartData.peggedAreaTotalData])
 
-	const handleCsvExport = useCallback(() => {
+	const handleCsvExport = () => {
 		let rows: (string | number)[][] = []
 		let filename = ''
 
@@ -186,7 +186,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 			const csvContent = rows.map((row) => row.join(',')).join('\n')
 			download(filename, csvContent)
 		}
-	}, [filteredChartData, chainsCirculatingValues, peggedAssetNames, tokenInflowNames, chain, chartType])
+	}
 
 	const chartTypeLabel = CHART_TYPE_LABELS[chartType] || chartType
 	const chainLabel = chain === 'All' ? 'All Chains' : chain

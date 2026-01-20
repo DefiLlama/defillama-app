@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useCallback, useMemo } from 'react'
-import exponentialLogo from '~/assets/exponential.avif'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -371,7 +370,7 @@ const PageView = (_props) => {
 					<div className="col-span-2 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 						<h2 className="flex items-center text-lg font-bold">
 							Risk Rating by exponential.fi{' '}
-							<img src={exponentialLogo.src} height={24} width={24} style={{ marginBottom: 6 }} alt="" />
+							<img src="/assets/exponential.avif" height={24} width={24} style={{ marginBottom: 6 }} alt="" />
 						</h2>
 						<div className="relative flex flex-col items-start gap-3">
 							<div className="relative flex w-full flex-1 flex-col justify-between gap-3">

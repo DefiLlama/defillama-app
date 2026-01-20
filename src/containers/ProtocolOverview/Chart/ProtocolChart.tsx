@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useCallback, useDeferredValue, useMemo } from 'react'
+import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	useFetchProtocolActiveUsers,
@@ -130,9 +130,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 
 	const metricsDialogStore = Ariakit.useDialogStore()
 
-	const prepareCsv = useCallback(() => {
-		return prepareChartCsv(finalCharts, `${props.name}.csv`)
-	}, [finalCharts, props.name])
+	const prepareCsv = () => prepareChartCsv(finalCharts, `${props.name}.csv`)
 
 	const { multiChart, unsupportedMetrics } = useMemo(() => {
 		return serializeProtocolChartToMultiChart({

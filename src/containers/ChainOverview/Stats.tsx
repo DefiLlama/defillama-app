@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useRouter } from 'next/router'
-import { Fragment, lazy, Suspense, useCallback, useMemo, useRef } from 'react'
+import { Fragment, lazy, Suspense, useMemo, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { Bookmark } from '~/components/Bookmark'
@@ -145,9 +145,7 @@ export function Stats(props: IStatsProps) {
 
 	const metricsDialogStore = Ariakit.useDialogStore()
 
-	const prepareCsv = useCallback(() => {
-		return prepareChartCsv(finalCharts, `${props.chain}.csv`)
-	}, [finalCharts, props.chain])
+	const prepareCsv = () => prepareChartCsv(finalCharts, `${props.chain}.csv`)
 
 	const { chartInstance: chainChartInstance, handleChartReady } = useChartImageExport()
 	const imageExportFilename = slug(props.metadata.name)
@@ -155,10 +153,10 @@ export function Stats(props: IStatsProps) {
 	const keyMetricsTitle = imageExportTitle
 	const hasKeyMetricsPrimary = props.protocols.length > 0 && totalValueUSD != null
 
-	const formatKeyMetricsValue = useCallback((value: number | string | null) => {
+	const formatKeyMetricsValue = (value: number | string | null) => {
 		if (Number.isNaN(Number(value))) return null
 		return formattedNum(value, true)
-	}, [])
+	}
 
 	const { mutate: downloadAndPrepareChartCsv, isPending: isDownloadingChartCsv } = useMutation({
 		mutationFn: async () => {
@@ -189,7 +187,7 @@ export function Stats(props: IStatsProps) {
 			}
 		}
 	})
-	const handleDownloadChartCsv = useCallback(() => downloadAndPrepareChartCsv(), [downloadAndPrepareChartCsv])
+	const handleDownloadChartCsv = () => downloadAndPrepareChartCsv()
 
 	return (
 		<div className="relative isolate grid h-full grid-cols-2 gap-2 xl:grid-cols-3">

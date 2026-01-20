@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useCallback, useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { oldBlue } from '~/constants/colors'
@@ -160,7 +160,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 		return tvlData.filter((el) => filteredTimestamps.has(el.date))
 	}, [tvlData, timePeriod, customTimePeriod])
 
-	const handleCsvExport = useCallback(() => {
+	const handleCsvExport = () => {
 		let rows: (string | number)[][] = []
 		let filename = ''
 		const protocolSlug = protocol.toLowerCase().replace(/\s+/g, '-')
@@ -230,15 +230,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 			const csvContent = rows.map((row) => row.join(',')).join('\n')
 			download(filename, csvContent)
 		}
-	}, [
-		filteredChartData,
-		filteredTvlData,
-		resolvedTokenBreakdownPieChart,
-		chainsUnique,
-		resolvedTokensUnique,
-		protocol,
-		chartType
-	])
+	}
 
 	const chartTypeLabel = CHART_TYPE_LABELS[chartType] || chartType
 	const imageTitle = `${protocolName} - ${chartTypeLabel}`
