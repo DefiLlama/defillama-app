@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import {
@@ -177,7 +177,7 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 		}
 	}, [expression, expressionValidation.isValid, editingId])
 
-	const insertSuggestion = useCallback((suggestion: AutocompleteSuggestion) => {
+	const insertSuggestion = (suggestion: AutocompleteSuggestion) => {
 		if (!inputRef.current) return
 
 		const input = inputRef.current
@@ -202,7 +202,7 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 		setShowAutocomplete(false)
 		setAutocompleteIndex(-1)
 		setAutocompleteFilter('')
-	}, [])
+	}
 
 	const handleExpressionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const newValue = e.target.value
@@ -262,7 +262,7 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 		}
 	}
 
-	const handleAdd = useCallback(() => {
+	const handleAdd = () => {
 		if (!validation.isValid) return
 
 		const column: CustomColumnDefinition = {
@@ -290,32 +290,32 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 		setExpression('')
 		setFormat('number')
 		setAggregation('recalculate')
-	}, [validation.isValid, name, expression, format, aggregation, editingId, onAdd, onUpdate])
+	}
 
-	const handleApplyPreset = useCallback((preset: (typeof EXAMPLE_PRESETS)[0]) => {
+	const handleApplyPreset = (preset: (typeof EXAMPLE_PRESETS)[0]) => {
 		aggregationTouchedRef.current = false
 		setName(preset.name)
 		setExpression(preset.expression)
 		setFormat(preset.format)
 		setAggregation(getDefaultAggregation(preset.expression))
-	}, [])
+	}
 
-	const handleEdit = useCallback((col: CustomColumnDefinition) => {
+	const handleEdit = (col: CustomColumnDefinition) => {
 		setName(col.name)
 		setExpression(col.expression)
 		setFormat(col.format)
 		setAggregation(col.aggregation)
 		setEditingId(col.id)
-	}, [])
+	}
 
-	const handleCancelEdit = useCallback(() => {
+	const handleCancelEdit = () => {
 		aggregationTouchedRef.current = false
 		setName('')
 		setExpression('')
 		setFormat('number')
 		setAggregation('recalculate')
 		setEditingId(null)
-	}, [])
+	}
 
 	useEffect(() => {
 		const handleClickOutside = () => setShowAutocomplete(false)

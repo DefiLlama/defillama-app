@@ -111,7 +111,7 @@ export function DiscoverySection({
 			<div className="group relative">
 				{canScrollLeft && (
 					<>
-						<div className="pointer-events-none absolute inset-y-0 left-0 z-[5] hidden w-16 bg-gradient-to-r from-(--app-bg) to-transparent md:block" />
+						<div className="pointer-events-none absolute inset-y-0 left-0 z-5 hidden w-16 bg-linear-to-r from-(--app-bg) to-transparent md:block" />
 						<button
 							onClick={() => scroll('left')}
 							className="absolute top-1/2 left-2 z-10 hidden -translate-y-1/2 rounded-full border border-(--cards-border) bg-(--cards-bg) p-2 shadow-md hover:bg-(--btn-hover-bg) md:block"
@@ -138,7 +138,7 @@ export function DiscoverySection({
 
 				{canScrollRight && dashboards.length > 3 && (
 					<>
-						<div className="pointer-events-none absolute inset-y-0 right-0 z-[5] hidden w-16 bg-gradient-to-l from-(--app-bg) to-transparent md:block" />
+						<div className="pointer-events-none absolute inset-y-0 right-0 z-5 hidden w-16 bg-linear-to-l from-(--app-bg) to-transparent md:block" />
 						<button
 							onClick={() => scroll('right')}
 							className="absolute top-1/2 right-2 z-10 hidden -translate-y-1/2 rounded-full border border-(--cards-border) bg-(--cards-bg) p-2 shadow-md hover:bg-(--btn-hover-bg) md:block"

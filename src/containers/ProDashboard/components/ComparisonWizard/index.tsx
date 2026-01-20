@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import {
@@ -40,7 +40,7 @@ function ComparisonWizardContent({ onComplete }: ComparisonWizardProps) {
 		}
 	}, [reset])
 
-	const generateComparisonCharts = useCallback((): MultiChartConfig[] => {
+	const generateComparisonCharts = (): MultiChartConfig[] => {
 		const { selectedItems, selectedMetrics, comparisonType } = state
 
 		if (!comparisonType) return []
@@ -92,9 +92,9 @@ function ComparisonWizardContent({ onComplete }: ComparisonWizardProps) {
 				}
 			})
 			.filter(Boolean) as MultiChartConfig[]
-	}, [state, chainsByName, getProtocolInfo, availableMetrics])
+	}
 
-	const generateComparisonMetrics = useCallback((): MetricConfig[] => {
+	const generateComparisonMetrics = (): MetricConfig[] => {
 		const { selectedItems, metricsForCards, comparisonType, metricSettings } = state
 
 		if (!comparisonType || metricsForCards.length === 0) return []
@@ -138,9 +138,9 @@ function ComparisonWizardContent({ onComplete }: ComparisonWizardProps) {
 		}
 
 		return metrics
-	}, [state, chainsByName, getProtocolInfo])
+	}
 
-	const generateComparisonTable = useCallback((): UnifiedTableConfig | null => {
+	const generateComparisonTable = (): UnifiedTableConfig | null => {
 		if (!state.includeTable || !state.comparisonType) return null
 
 		const isChains = state.comparisonType === 'chains'
@@ -168,9 +168,9 @@ function ComparisonWizardContent({ onComplete }: ComparisonWizardProps) {
 			defaultSorting: [{ id: 'tvl', desc: true }],
 			colSpan: 2
 		}
-	}, [state.includeTable, state.comparisonType, state.selectedItems])
+	}
 
-	const handleGenerate = useCallback(async () => {
+	const handleGenerate = async () => {
 		if (!state.dashboardName.trim()) return
 
 		setIsGenerating(true)
@@ -198,7 +198,7 @@ function ComparisonWizardContent({ onComplete }: ComparisonWizardProps) {
 		} finally {
 			setIsGenerating(false)
 		}
-	}, [state, generateComparisonCharts, generateComparisonMetrics, generateComparisonTable, onComplete])
+	}
 
 	const renderStep = () => {
 		switch (state.step) {

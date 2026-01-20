@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useCallback, useMemo } from 'react'
+import { useMemo } from 'react'
 import type { VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
 import { ChartTab } from './ChartTab'
 import { LlamaAITab } from './LlamaAITab'
@@ -45,14 +45,9 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 		() => (PRIMARY_TABLE_TYPES_SET.has(state.selectedTableType) ? [] : [state.selectedTableType]),
 		[state.selectedTableType]
 	)
-	const handleMetricChainChange = useCallback(
-		(opt: { value: string; label: string }) => actions.setMetricChain(opt?.value ?? null),
-		[actions]
-	)
-	const handleMetricProtocolChange = useCallback(
-		(opt: { value: string; label: string }) => actions.setMetricProtocol(opt?.value ?? null),
-		[actions]
-	)
+	const handleMetricChainChange = (opt: { value: string; label: string }) => actions.setMetricChain(opt?.value ?? null)
+	const handleMetricProtocolChange = (opt: { value: string; label: string }) =>
+		actions.setMetricProtocol(opt?.value ?? null)
 
 	return (
 		<Ariakit.DialogProvider
