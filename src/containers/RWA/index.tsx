@@ -438,17 +438,17 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					}}
 				/>
 				<FilterBetweenRange
-					name="DeFi TVL / On-chain %"
+					name="DeFi TVL / Onchain %"
 					trigger={
 						minDefiActiveTvlToOnChainPct != null || maxDefiActiveTvlToOnChainPct != null ? (
 							<>
-								<span>DeFi TVL / On-chain: </span>
+								<span>DeFi TVL / Onchain: </span>
 								<span className="text-(--link)">
 									{formatPercentRange(minDefiActiveTvlToOnChainPct, maxDefiActiveTvlToOnChainPct)}
 								</span>
 							</>
 						) : (
-							<span>DeFi TVL / On-chain %</span>
+							<span>DeFi TVL / Onchain %</span>
 						)
 					}
 					onSubmit={(e) => {
@@ -467,17 +467,17 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					maxInputProps={ratioPercentInputProps}
 				/>
 				<FilterBetweenRange
-					name="Active Marketcap / On-chain %"
+					name="Active Marketcap / Onchain %"
 					trigger={
 						minActiveMcapToOnChainPct != null || maxActiveMcapToOnChainPct != null ? (
 							<>
-								<span>Active Marketcap / On-chain: </span>
+								<span>Active Marketcap / Onchain: </span>
 								<span className="text-(--link)">
 									{formatPercentRange(minActiveMcapToOnChainPct, maxActiveMcapToOnChainPct)}
 								</span>
 							</>
 						) : (
-							<span>Active Marketcap / On-chain %</span>
+							<span>Active Marketcap / Onchain %</span>
 						)
 					}
 					onSubmit={(e) => {
@@ -544,7 +544,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 						content={definitions.totalOnChainMarketcap.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
-						Total RWA On-chain
+						Total RWA Onchain
 					</Tooltip>
 					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainRwaValue, true)}</span>
 				</p>
@@ -587,7 +587,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			</div>
 			<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
 				<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<h2 className="px-3 text-lg font-semibold">Total RWA On-chain</h2>
+					<h2 className="px-3 text-lg font-semibold">Total RWA Onchain</h2>
 					<Suspense fallback={<div className="h-[360px]" />}>
 						<PieChart
 							chartData={totalOnChainRwaPieChartData}

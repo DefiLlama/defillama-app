@@ -367,7 +367,7 @@ const demoTextCard2: TextConfig = {
 - **Fees**: Protocol fees generated from user activity
 - **Revenue**: Net revenue earned by protocols
 - **Users**: Active user count on the platform
-- **Transactions**: Number of on-chain transactions
+- **Transactions**: Number of Onchain transactions
 
 *These metrics help assess protocol health, adoption, and market trends.*`,
 	colSpan: 1

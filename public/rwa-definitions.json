@@ -71,7 +71,7 @@
 		}
 	},
 	"onChainMarketcap": {
-		"label": "On-chain Marketcap",
+		"label": "Onchain Marketcap",
 		"description": "Total USD value of the asset that exists on chain across tracked chains"
 	},
 	"activeMarketcap": {
@@ -83,12 +83,12 @@
 		"description": "Subset of Active TVL deployed in third party DeFi protocols tracked by DeFiLlama"
 	},
 	"totalOnChainMarketcap": {
-		"label": "Total RWA On-chain",
-		"description": "Sum across assets of their On-chain Marketcap (the total USD value of each asset that exists on-chain across tracked chains)."
+		"label": "Total RWA Onchain",
+		"description": "Sum across assets of their Onchain Marketcap (the total USD value of each asset that exists Onchain across tracked chains)."
 	},
 	"totalActiveMarketcap": {
 		"label": "Total RWA Active Marketcap",
-		"description": "Sum across assets of their Active Marketcap (the portion of on-chain value taking real market risk in user or protocol hands)."
+		"description": "Sum across assets of their Active Marketcap (the portion of Onchain value taking real market risk in user or protocol hands)."
 	},
 	"totalDefiActiveTvl": {
 		"label": "DeFi Active TVL",

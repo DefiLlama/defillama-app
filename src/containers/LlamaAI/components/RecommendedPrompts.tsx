@@ -55,7 +55,7 @@ const fallbackPromptCategories: Array<{
 		icon: 'dollar-sign',
 		prompts: [
 			'Provide a price estimate for BTC using a blended methodology that includes technical indicators, Monte Carlo simulations, and time-series momentum with a 180-day lookback. Incorporate relevant prediction-market bets or implied probabilities where available, and conclude with a synthesized investment recommendation that integrates all signals.',
-			'Is the current market sentiment bullish or bearish based on on-chain data?',
+			'Is the current market sentiment bullish or bearish based on Onchain data?',
 			'What are the probabilities that ETH price will go lower?',
 			'Should I short Virtuals Protocol?'
 		]
