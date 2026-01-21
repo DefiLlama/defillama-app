@@ -1,4 +1,3 @@
-import { memo } from 'react'
 import { Icon } from '~/components/Icon'
 import { ChartBuilderTab } from './ChartBuilderTab'
 import { ChartModeType, ChartTabType } from './types'
@@ -84,7 +83,7 @@ interface ChartTabProps {
 	customTimePeriod?: any
 }
 
-export const ChartTab = memo(function ChartTab(props: ChartTabProps) {
+export function ChartTab(props: ChartTabProps) {
 	const { chartMode, onChartModeChange } = props
 
 	return (
@@ -217,4 +216,4 @@ export const ChartTab = memo(function ChartTab(props: ChartTabProps) {
 			)}
 		</div>
 	)
-})
+}

@@ -9,7 +9,7 @@ import {
 } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
-import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Switch } from '~/components/Switch'
 import { useMedia } from '~/hooks/useMedia'
@@ -171,12 +171,12 @@ export function MetricSentenceBuilder({
 		}
 	}, [isPopoverOpen, activeToken, metricSubjectType, subjectCombobox])
 
-	const closePopover = useCallback(() => {
+	const closePopover = () => {
 		popover.setOpen(false)
 		setActiveToken(null)
 		subjectCombobox.setValue('')
 		subjectCombobox.setOpen(false)
-	}, [popover, subjectCombobox])
+	}
 
 	const chainOptions = useMemo(
 		() =>
@@ -343,67 +343,49 @@ export function MetricSentenceBuilder({
 		})
 	}, [baseMetricTypes, searchTerm])
 
-	const handleTokenClick = useCallback(
-		(token: Exclude<ActiveToken, null>) => {
-			if (activeToken === token) {
-				closePopover()
-				return
-			}
-
-			const anchor = anchorRefs.current[token]
-			if (!anchor) return
-
-			if (token === 'subject') {
-				setSubjectTab(metricSubjectType)
-			}
-
-			setPopoverWidth(getTokenWidth(token, isMobile))
-			setActiveToken(token)
-			popover.setAnchorElement(anchor)
-			popover.setOpen(true)
-		},
-		[activeToken, closePopover, isMobile, metricSubjectType, popover]
-	)
-
-	const handleChainSelect = useCallback(
-		(option: any) => {
-			onSubjectTypeChange('chain')
-			onChainChange(option)
-		},
-		[onChainChange, onSubjectTypeChange]
-	)
-
-	const handleProtocolSelect = useCallback(
-		(option: any) => {
-			onSubjectTypeChange('protocol')
-			onProtocolChange(option)
-		},
-		[onProtocolChange, onSubjectTypeChange]
-	)
-
-	const handleSelectMetric = useCallback(
-		(value: string) => {
-			onMetricTypeChange(value)
+	const handleTokenClick = (token: Exclude<ActiveToken, null>) => {
+		if (activeToken === token) {
 			closePopover()
-		},
-		[closePopover, onMetricTypeChange]
-	)
+			return
+		}
 
-	const handleSelectAggregator = useCallback(
-		(value: MetricAggregator) => {
-			onAggregatorChange(value)
-			closePopover()
-		},
-		[closePopover, onAggregatorChange]
-	)
+		const anchor = anchorRefs.current[token]
+		if (!anchor) return
 
-	const handleSelectWindow = useCallback(
-		(value: MetricWindow) => {
-			onWindowChange(value)
-			closePopover()
-		},
-		[closePopover, onWindowChange]
-	)
+		if (token === 'subject') {
+			setSubjectTab(metricSubjectType)
+		}
+
+		setPopoverWidth(getTokenWidth(token, isMobile))
+		setActiveToken(token)
+		popover.setAnchorElement(anchor)
+		popover.setOpen(true)
+	}
+
+	const handleChainSelect = (option: any) => {
+		onSubjectTypeChange('chain')
+		onChainChange(option)
+	}
+
+	const handleProtocolSelect = (option: any) => {
+		onSubjectTypeChange('protocol')
+		onProtocolChange(option)
+	}
+
+	const handleSelectMetric = (value: string) => {
+		onMetricTypeChange(value)
+		closePopover()
+	}
+
+	const handleSelectAggregator = (value: MetricAggregator) => {
+		onAggregatorChange(value)
+		closePopover()
+	}
+
+	const handleSelectWindow = (value: MetricWindow) => {
+		onWindowChange(value)
+		closePopover()
+	}
 
 	const renderPopoverContent = () => {
 		switch (activeToken) {

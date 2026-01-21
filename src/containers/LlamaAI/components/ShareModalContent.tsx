@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { memo, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 
@@ -7,7 +7,7 @@ interface ShareModalContentProps {
 	shareData?: { isPublic: boolean; shareToken?: string }
 }
 
-export const ShareModalContent = memo(function ShareModalContent({ shareData }: ShareModalContentProps) {
+export function ShareModalContent({ shareData }: ShareModalContentProps) {
 	const [copied, setCopied] = useState(false)
 	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/chat/shared/${shareData.shareToken}` : ''
@@ -74,4 +74,4 @@ export const ShareModalContent = memo(function ShareModalContent({ shareData }: 
 			</div>
 		</div>
 	)
-})
+}

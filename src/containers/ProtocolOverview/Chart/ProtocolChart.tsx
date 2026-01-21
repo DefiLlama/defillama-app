@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { lazy, memo, Suspense, useCallback, useDeferredValue, useMemo } from 'react'
+import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	useFetchProtocolActiveUsers,
@@ -55,7 +55,7 @@ const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: s
 
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
-export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOverviewPageData) {
+export function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 	const [isThemeDark] = useDarkModeManager()
 	const { chartInstance: overviewChartInstance, handleChartReady: handleOverviewChartReady } = useChartImageExport()
@@ -130,9 +130,7 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 
 	const metricsDialogStore = Ariakit.useDialogStore()
 
-	const prepareCsv = useCallback(() => {
-		return prepareChartCsv(finalCharts, `${props.name}.csv`)
-	}, [finalCharts, props.name])
+	const prepareCsv = () => prepareChartCsv(finalCharts, `${props.name}.csv`)
 
 	const { multiChart, unsupportedMetrics } = useMemo(() => {
 		return serializeProtocolChartToMultiChart({
@@ -376,7 +374,7 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 			</div>
 		</div>
 	)
-})
+}
 
 export const useFetchAndFormatChartData = ({
 	name,

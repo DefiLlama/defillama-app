@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { useCallback, useMemo } from 'react'
+import { useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -17,7 +17,7 @@ export function Treasuries({ data, entity }) {
 		[entity]
 	)
 
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		const headers = [
 			'Name',
 			'Category',
@@ -50,7 +50,7 @@ export function Treasuries({ data, entity }) {
 		})
 		const rows = [headers].concat(dataToDownload.map((row) => headers.map((header) => row[header])))
 		return { filename: 'treasuries.csv', rows: rows as (string | number | boolean)[][] }
-	}, [data])
+	}
 
 	return (
 		<Layout

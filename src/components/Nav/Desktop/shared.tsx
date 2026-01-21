@@ -1,8 +1,7 @@
-import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 
-export const LinkToPage = React.memo(function LinkToPage({
+export function LinkToPage({
 	route,
 	name,
 	icon,
@@ -34,9 +33,9 @@ export const LinkToPage = React.memo(function LinkToPage({
 			<NavItemContent name={name} icon={icon} attention={attention} freeTrial={freeTrial} />
 		</BasicLink>
 	)
-})
+}
 
-export const NavItemContent = React.memo(function NavItemContent({
+export function NavItemContent({
 	name,
 	icon,
 	attention,
@@ -57,7 +56,7 @@ export const NavItemContent = React.memo(function NavItemContent({
 				</svg>
 			) : null}
 			<span className="relative flex min-w-0 flex-1 flex-wrap items-center gap-2 text-left leading-tight">
-				<span className="min-w-0 break-words">{name}</span>
+				<span className="min-w-0 wrap-break-word">{name}</span>
 				{attention ? (
 					<span
 						aria-hidden
@@ -72,4 +71,4 @@ export const NavItemContent = React.memo(function NavItemContent({
 			</span>
 		</>
 	)
-})
+}

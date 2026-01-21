@@ -19,6 +19,40 @@ import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/context
 const optionsKey = 'unlockTable'
 const filterStatekey = 'unlockTableFilterState'
 
+const clearAllOptions = () => {
+	const opsObj: Record<string, boolean> = {}
+	for (const option of columnOptions) {
+		opsObj[option.key] = false
+	}
+	const ops = JSON.stringify(opsObj)
+	setStorageItem(optionsKey, ops)
+}
+
+const toggleAllOptions = () => {
+	const opsObj: Record<string, boolean> = {}
+	for (const option of columnOptions) {
+		opsObj[option.key] = true
+	}
+	const ops = JSON.stringify(opsObj)
+	setStorageItem(optionsKey, ops)
+}
+
+const addOption = (newOptions) => {
+	const ops: Record<string, boolean> = {}
+	for (const col of columnOptions) {
+		ops[col.key] = newOptions.includes(col.key)
+	}
+	setStorageItem(optionsKey, JSON.stringify(ops))
+}
+
+const addOnlyOneOption = (newOption) => {
+	const ops: Record<string, boolean> = {}
+	for (const col of columnOptions) {
+		ops[col.key] = col.key === newOption
+	}
+	setStorageItem(optionsKey, JSON.stringify(ops))
+}
+
 interface IUnlocksTableProps {
 	protocols: Array<any>
 	showOnlyWatchlist: boolean
@@ -150,40 +184,6 @@ export const UnlocksTable = ({
 		() => getStorageItem(filterStatekey, null),
 		() => null
 	)
-
-	const clearAllOptions = () => {
-		const opsObj: Record<string, boolean> = {}
-		for (const option of columnOptions) {
-			opsObj[option.key] = false
-		}
-		const ops = JSON.stringify(opsObj)
-		setStorageItem(optionsKey, ops)
-	}
-
-	const toggleAllOptions = () => {
-		const opsObj: Record<string, boolean> = {}
-		for (const option of columnOptions) {
-			opsObj[option.key] = true
-		}
-		const ops = JSON.stringify(opsObj)
-		setStorageItem(optionsKey, ops)
-	}
-
-	const addOption = (newOptions) => {
-		const ops: Record<string, boolean> = {}
-		for (const col of columnOptions) {
-			ops[col.key] = newOptions.includes(col.key)
-		}
-		setStorageItem(optionsKey, JSON.stringify(ops))
-	}
-
-	const addOnlyOneOption = (newOption) => {
-		const ops: Record<string, boolean> = {}
-		for (const col of columnOptions) {
-			ops[col.key] = col.key === newOption
-		}
-		setStorageItem(optionsKey, JSON.stringify(ops))
-	}
 
 	const _setFilter = (key) => (newState) => {
 		const newOptions: Record<string, boolean> = {}

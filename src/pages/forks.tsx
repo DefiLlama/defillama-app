@@ -60,7 +60,7 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 		return { tokenTvls, tokensList }
 	}, [chainsWithExtraTvlsByDay, tokensProtocols, forkedTokensData])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const headers = ['Name', 'Forked Protocols', 'TVL', 'Forked TVL / Original TVL %']
 		const csvData = tokensList.map((row) => {
 			return {
@@ -72,7 +72,7 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 		})
 		const rows = [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
 		return { filename: 'forks.csv', rows: rows as (string | number | boolean)[][] }
-	}, [tokensList])
+	}
 
 	return (
 		<Layout

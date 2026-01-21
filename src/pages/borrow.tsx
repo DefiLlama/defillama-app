@@ -68,7 +68,7 @@ export default function YieldBorrow(data) {
 
 	const collateralToken = getQueryValue(router.query, 'collateral')
 
-	const handleSwap = React.useCallback(() => {
+	const handleSwap = () => {
 		const newBorrow = collateralToken ?? ''
 		const newCollateral = borrowToken ?? ''
 
@@ -79,7 +79,7 @@ export default function YieldBorrow(data) {
 		else delete nextQuery['collateral']
 
 		Router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [borrowToken, collateralToken, router.query, router.pathname])
+	}
 
 	const filteredPools = findOptimizerPools({
 		pools: data.pools,

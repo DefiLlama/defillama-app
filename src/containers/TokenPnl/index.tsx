@@ -60,9 +60,11 @@ const unixToDateString = (unixTimestamp?: number) => {
 	return date.toISOString().split('T')[0]
 }
 
-const dateStringToUnix = (dateString: string) => {
-	if (!dateString) return 0
-	return Math.floor(new Date(dateString).getTime() / 1000)
+const dateStringToUnix = (dateString): number | null => {
+	if (!dateString) return null
+	const timestamp = new Date(dateString).getTime()
+	if (Number.isNaN(timestamp)) return null
+	return Math.floor(timestamp / 1000)
 }
 
 const calculateMaxDrawdown = (series: PricePoint[]) => {
@@ -125,7 +127,7 @@ type RawPriceEntry = {
 	price?: number
 }
 
-const fetchPriceSeries = async (tokenId: string, start: number, end: number) => {
+const fetchPriceSeries = async (tokenId: string, start: number | null, end: number | null) => {
 	if (!tokenId || !start || !end || end <= start) return [] as PricePoint[]
 	const key = `coingecko:${tokenId}`
 	const spanInDays = Math.max(1, Math.ceil((end - start) / DAY_IN_SECONDS))
@@ -146,8 +148,8 @@ const fetchPriceSeries = async (tokenId: string, start: number, end: number) => 
 
 const computeTokenPnl = async (params: {
 	id: string
-	start: number
-	end: number
+	start: number | null
+	end: number | null
 	coinInfo?: IResponseCGMarketsAPI
 }): Promise<TokenPnlResult | null> => {
 	const { id, start, end, coinInfo } = params

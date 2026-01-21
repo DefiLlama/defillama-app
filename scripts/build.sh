@@ -5,9 +5,10 @@ set -a
 [ -f .env ] && . .env
 
 # find the last commit hash and commit comment and author
-COMMIT_AUTHOR="" #$(git log -1 --pretty=%an)
-COMMIT_HASH="" #$(git rev-parse HEAD)
-COMMIT_COMMENT="" #$(git log -1 --pretty=%B)
+COMMIT_AUTHOR=$(git log -1 --pretty=%an 2>/dev/null || true)
+COMMIT_HASH=$(git rev-parse HEAD 2>/dev/null || true)
+COMMIT_COMMENT=$(git log -1 --pretty=%B 2>/dev/null || true)
+BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)
 # starting time in UTC string and timestamp (for calculating build duration)
 START_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 START_TIME_TS=$(date -u +"%s")
@@ -15,13 +16,14 @@ START_TIME_TS=$(date -u +"%s")
 echo ""
 echo "======================="
 echo "🔨 New build started"
+echo "🌿 $BRANCH_NAME"
 echo "💬 $COMMIT_COMMENT"
 echo "🦙 $COMMIT_AUTHOR"
 echo "📸 $COMMIT_HASH"
 echo "======================="
 echo ""
 
-next build 2>&1 | tee build.log
+bunx next build 2>&1 | tee build.log
 BUILD_STATUS=${PIPESTATUS[0]}
 
 BUILD_TIME_SEC=$(($(date -u +"%s") - $START_TIME_TS))
@@ -46,26 +48,21 @@ if [ -n "$BUILD_ID" ]; then
   echo "📦 Build ID: $BUILD_ID"
 fi
 echo "======================="
+echo "🌿 [$BRANCH_NAME]"
 echo "💬 [$COMMIT_COMMENT]"
 echo "🦙 $COMMIT_AUTHOR"
 echo "📸 $COMMIT_HASH"
 echo "======================="
 echo ""
 
-rclone --config scripts/rclone.conf copy ./.next/static artifacts:defillama-app-artifacts
-rclone --config scripts/rclone.conf copy artifacts:defillama-app-artifacts ./.next/static
-
-if [ -z "$NOT_VERCEL" ]; then
-  echo "NOT_VERCEL is not set, skipping discord notification"
-  exit $BUILD_STATUS
+if [ $BUILD_STATUS -eq 0 ]; then
+  rclone --config scripts/rclone.conf copy ./.next/static artifacts:defillama-app-artifacts
+  rclone --config scripts/rclone.conf copy artifacts:defillama-app-artifacts ./.next/static
+else
+  echo "Build failed, skipping .next artifact sync"
 fi
 
-if [ -n "$IS_BACKUP" ]; then
-  echo "IS_BACKUP is set, skipping discord notification"
-  exit $BUILD_STATUS
-fi
-
-node ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$COMMIT_COMMENT" "$COMMIT_AUTHOR" "$COMMIT_HASH"
+bun ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$COMMIT_COMMENT" "$COMMIT_AUTHOR" "$COMMIT_HASH" "$BRANCH_NAME"
 
 # exit with the build status
 exit $BUILD_STATUS

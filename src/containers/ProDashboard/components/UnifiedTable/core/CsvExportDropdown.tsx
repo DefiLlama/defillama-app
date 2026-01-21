@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import type { UnifiedRowHeaderType } from '../../../types'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -42,18 +42,15 @@ export function CsvExportDropdown({ rowHeaders, onExport, isLoading, disabled }:
 		}
 	}, [isOpen])
 
-	const handleOptionClick = useCallback(
-		(level: CsvExportLevel) => {
-			setIsOpen(false)
-			onExport(level)
-		},
-		[onExport]
-	)
+	const handleOptionClick = (level: CsvExportLevel) => {
+		setIsOpen(false)
+		onExport(level)
+	}
 
-	const handleButtonClick = useCallback(() => {
+	const handleButtonClick = () => {
 		if (disabled) return
 		setIsOpen((prev) => !prev)
-	}, [disabled])
+	}
 
 	return (
 		<div ref={dropdownRef} className="relative">

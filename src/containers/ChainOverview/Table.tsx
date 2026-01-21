@@ -11,7 +11,7 @@ import {
 	type SortingState
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
+import { useMemo, useState, useSyncExternalStore } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
@@ -354,7 +354,7 @@ export const ChainProtocolsTable = ({
 		}
 	}
 
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		const visibleColumns = instance.getVisibleLeafColumns().filter((col) => col.id !== 'custom_columns')
 		const headers = visibleColumns.map((col) => {
 			if (typeof col.columnDef.header === 'string') {
@@ -396,7 +396,7 @@ export const ChainProtocolsTable = ({
 			filename: `defillama-${chainName}-protocols.csv`,
 			rows: [headers, ...rows] as (string | number | boolean)[][]
 		}
-	}, [instance, router.query.chain])
+	}
 
 	return (
 		<div className={borderless ? 'isolate' : 'isolate rounded-md border border-(--cards-border) bg-(--cards-bg)'}>

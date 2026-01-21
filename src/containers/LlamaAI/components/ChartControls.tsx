@@ -1,4 +1,3 @@
-import { memo } from 'react'
 import { Select } from '~/components/Select'
 import { Tooltip } from '~/components/Tooltip'
 import { capitalizeFirstLetter } from '~/utils'
@@ -48,7 +47,7 @@ interface ChartControlsProps {
 	onLabelsChange: (showLabels: boolean) => void
 }
 
-export const ChartControls = memo(function ChartControls({
+export function ChartControls({
 	displayOptions,
 	stacked,
 	percentage,
@@ -193,4 +192,4 @@ export const ChartControls = memo(function ChartControls({
 			)}
 		</div>
 	)
-})
+}

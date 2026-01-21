@@ -33,6 +33,21 @@ import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 
 const optionsKey = 'chains-overview-table-columns'
 
+const clearAllColumns = () => {
+	const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))
+	setStorageItem(optionsKey, ops)
+}
+
+const toggleAllColumns = () => {
+	const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, true])))
+	setStorageItem(optionsKey, ops)
+}
+
+const addColumn = (newOptions) => {
+	const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key)]))
+	setStorageItem(optionsKey, JSON.stringify(ops))
+}
+
 export function ChainsByCategoryTable({
 	data,
 	useStickyHeader = true,
@@ -81,20 +96,6 @@ export function ChainsByCategoryTable({
 		instance,
 		columnOrders: chainsTableColumnOrders
 	})
-
-	const clearAllColumns = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))
-		setStorageItem(optionsKey, ops)
-	}
-	const toggleAllColumns = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, true])))
-		setStorageItem(optionsKey, ops)
-	}
-
-	const addColumn = (newOptions) => {
-		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key)]))
-		setStorageItem(optionsKey, JSON.stringify(ops))
-	}
 
 	const addOnlyOneColumn = (newOption) => {
 		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption]))
@@ -151,7 +152,7 @@ export function ChainsByCategoryTable({
 		return CHAINS_CATEGORY_GROUP_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
 	}, [groupTvls])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const visibleColumns = instance.getVisibleFlatColumns().filter((col) => col.id !== 'custom_columns')
 		const headers = visibleColumns.map((col) => {
 			if (typeof col.columnDef.header === 'string') {
@@ -173,7 +174,7 @@ export function ChainsByCategoryTable({
 		})
 
 		return { filename: `defillama-chains.csv`, rows: [headers, ...rows] as (string | number | boolean)[][] }
-	}, [instance])
+	}
 
 	return (
 		<div className={`isolate ${borderless ? '' : 'rounded-md border border-(--cards-border) bg-(--cards-bg)'}`}>

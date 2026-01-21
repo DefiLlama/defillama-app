@@ -16,6 +16,14 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 const stripeInstance = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null
 
+const formatAmount = (cents: number, currency: string) => {
+	const amount = cents / 100
+	return new Intl.NumberFormat('en-US', {
+		style: 'currency',
+		currency: currency.toUpperCase()
+	}).format(amount)
+}
+
 interface StripeCheckoutModalProps {
 	isOpen: boolean
 	onClose: () => void
@@ -141,14 +149,6 @@ export function StripeCheckoutModal({
 
 	// Render upgrade payment form
 	if (isUpgrade && upgradeClientSecret && requiresPayment) {
-		const formatAmount = (cents: number, currency: string) => {
-			const amount = cents / 100
-			return new Intl.NumberFormat('en-US', {
-				style: 'currency',
-				currency: currency.toUpperCase()
-			}).format(amount)
-		}
-
 		const planName = type === 'api' ? 'API' : type === 'llamafeed' ? 'Pro' : type
 		const billingPeriod = billingInterval === 'year' ? 'Annual' : 'Monthly'
 

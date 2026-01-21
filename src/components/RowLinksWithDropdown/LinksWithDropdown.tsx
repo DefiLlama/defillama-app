@@ -1,5 +1,4 @@
-import * as React from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BasicLink } from '../Link'
 import { OtherLinks } from './OtherLinks'
 
@@ -17,7 +16,7 @@ interface IRowLinksProps {
 const EMPTY_LINKS: ILink[] = []
 
 // Renders a row of links and overflow links / links that not fit in viewport are shown in a dropdown
-export const LinksWithDropdown = React.memo(function LinksWithDropdown({
+export function LinksWithDropdown({
 	links = EMPTY_LINKS,
 	activeLink,
 	alternativeOthersText,
@@ -26,52 +25,52 @@ export const LinksWithDropdown = React.memo(function LinksWithDropdown({
 	// null = calculating, 'renderMenu' = narrow screen (show only dropdown), number = index to cut from
 	const [overflowIndex, setOverflowIndex] = useState<number | null | 'renderMenu'>(null)
 
-	const calcOverflowIndex = useCallback(() => {
-		if (typeof document !== 'undefined') {
-			// For very narrow screens, show only dropdown menu
-			// Use window.innerWidth so this works even when #priority-nav isn't rendered
-			if (links.length > 2 && window.innerWidth <= 640) {
-				return 'renderMenu'
-			}
-
-			const priorityNav = document.querySelector('#priority-nav')
-			if (!priorityNav) return null
-
-			// Batch all DOM reads upfront to avoid forced reflows
-			const wrapper = priorityNav.getBoundingClientRect()
-
-			// Collect all link elements and their rects in a single batch
-			const linkElements: Element[] = []
-			for (let i = 0; i < links.length; i++) {
-				const link = document.querySelector(`#priority-nav-el-${i}`)
-				if (link) linkElements.push(link)
-			}
-
-			// Batch read all bounding rects at once (single layout calculation)
-			const linkRects = linkElements.map((link) => link.getBoundingClientRect())
-
-			// Find first link that overflows (without any DOM reads)
-			for (let index = 0; index < linkRects.length; index++) {
-				const linkSize = linkRects[index]
-				// Check if link wrapped to next row OR extends past dropdown reserved space (180px)
-				if (linkSize.top - wrapper.top > wrapper.height || linkSize.left + 16 > wrapper.right - 180) {
-					return index
-				}
-			}
-
-			return null // All links fit
-		}
-		return null
-	}, [links.length])
-
 	useEffect(() => {
 		let timeoutId: ReturnType<typeof setTimeout>
 		let rafId: number | null = null
 
+		const calcOverflowIndex = (linkCount: number) => {
+			if (typeof document !== 'undefined') {
+				// For very narrow screens, show only dropdown menu
+				// Use window.innerWidth so this works even when #priority-nav isn't rendered
+				if (linkCount > 2 && window.innerWidth <= 640) {
+					return 'renderMenu'
+				}
+
+				const priorityNav = document.querySelector('#priority-nav')
+				if (!priorityNav) return null
+
+				// Batch all DOM reads upfront to avoid forced reflows
+				const wrapper = priorityNav.getBoundingClientRect()
+
+				// Collect all link elements and their rects in a single batch
+				const linkElements: Element[] = []
+				for (let i = 0; i < linkCount; i++) {
+					const link = document.querySelector(`#priority-nav-el-${i}`)
+					if (link) linkElements.push(link)
+				}
+
+				// Batch read all bounding rects at once (single layout calculation)
+				const linkRects = linkElements.map((link) => link.getBoundingClientRect())
+
+				// Find first link that overflows (without any DOM reads)
+				for (let index = 0; index < linkRects.length; index++) {
+					const linkSize = linkRects[index]
+					// Check if link wrapped to next row OR extends past dropdown reserved space (180px)
+					if (linkSize.top - wrapper.top > wrapper.height || linkSize.left + 16 > wrapper.right - 180) {
+						return index
+					}
+				}
+
+				return null // All links fit
+			}
+			return null
+		}
+
 		const updateOverflowIndex = () => {
 			if (rafId) cancelAnimationFrame(rafId)
 			rafId = requestAnimationFrame(() => {
-				const index = calcOverflowIndex()
+				const index = calcOverflowIndex(links.length)
 				setOverflowIndex(index)
 			})
 		}
@@ -92,7 +91,7 @@ export const LinksWithDropdown = React.memo(function LinksWithDropdown({
 			if (rafId) cancelAnimationFrame(rafId)
 			window.removeEventListener('resize', handleResize)
 		}
-	}, [calcOverflowIndex])
+	}, [links.length])
 
 	const isActiveLinkInList = links.some((link) => link.label === activeLink)
 
@@ -131,9 +130,9 @@ export const LinksWithDropdown = React.memo(function LinksWithDropdown({
 			) : null}
 		</>
 	)
-})
+}
 
-export const LinkItem = React.memo(function LinkItem({
+export function LinkItem({
 	option,
 	activeLink,
 	...props
@@ -154,4 +153,4 @@ export const LinkItem = React.memo(function LinkItem({
 			{option.label}
 		</BasicLink>
 	)
-})
+}

@@ -10,7 +10,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
@@ -103,14 +103,14 @@ export function ChainsByAdapter(props: IProps) {
 		columnSizes
 	})
 
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		const header = ['Chain', 'Total 1d', 'Total 1m']
 		const csvdata = chains.map((protocol) => {
 			return [protocol.name, protocol.total24h, protocol.total30d]
 		})
 
 		return { filename: `${props.type}-chains-protocols.csv`, rows: [header, ...csvdata] }
-	}, [props, chains])
+	}
 
 	return (
 		<>

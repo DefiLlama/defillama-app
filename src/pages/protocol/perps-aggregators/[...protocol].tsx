@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatBarChart, prepareChartCsv } from '~/components/ECharts/utils'
@@ -124,13 +124,13 @@ export default function Protocols(props) {
 		}
 	}, [props.chart, groupBy])
 
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		const dataByChartType = {}
 		for (const chartType in finalCharts) {
 			dataByChartType[chartType] = finalCharts[chartType].data
 		}
 		return prepareChartCsv(dataByChartType, `${props.name}-total-perp-aggregator-volume.csv`)
-	}, [finalCharts, props.name])
+	}
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}

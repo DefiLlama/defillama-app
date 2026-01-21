@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -185,8 +185,8 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 	}, [dailyFlowsByAsset, groupBy])
 
 	const { chartInstance, handleChartReady } = useChartImageExport()
-	const handlePrepareDailyFlowsCsv = useCallback(() => prepareDailyFlowsCsv(charts), [charts])
-	const handlePrepareInstitutionsCsv = useCallback(() => prepareInstitutionsCsv(institutions), [institutions])
+	const handlePrepareDailyFlowsCsv = () => prepareDailyFlowsCsv(charts)
+	const handlePrepareInstitutionsCsv = () => prepareInstitutionsCsv(institutions)
 
 	return (
 		<Layout

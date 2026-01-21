@@ -1,4 +1,3 @@
-import { memo } from 'react'
 import { Icon } from '~/components/Icon'
 import { CATEGORY_CARDS } from './CategoryCard'
 import { ChartTabType } from './types'
@@ -7,7 +6,7 @@ interface CategoryCardsGridProps {
 	onSelectCategory: (category: ChartTabType) => void
 }
 
-export const CategoryCardsGrid = memo(function CategoryCardsGrid({ onSelectCategory }: CategoryCardsGridProps) {
+export function CategoryCardsGrid({ onSelectCategory }: CategoryCardsGridProps) {
 	const heroCard = CATEGORY_CARDS[0]
 	const otherCards = CATEGORY_CARDS.slice(1)
 
@@ -71,4 +70,4 @@ export const CategoryCardsGrid = memo(function CategoryCardsGrid({ onSelectCateg
 			</div>
 		</div>
 	)
-})
+}

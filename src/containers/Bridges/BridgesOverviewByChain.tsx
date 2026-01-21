@@ -31,6 +31,11 @@ const BRIDGE_CHAIN_CHART_OPTIONS = [
 const EMPTY_CHAINS: string[] = []
 const EMPTY_PROTOCOLS: any[] = []
 
+const handleRouting = (selectedChain: string) => {
+	if (selectedChain === 'All') return `/bridges`
+	return `/bridges/${selectedChain}`
+}
+
 export function BridgesOverviewByChain({
 	selectedChain = 'All',
 	chains = EMPTY_CHAINS,
@@ -49,10 +54,6 @@ export function BridgesOverviewByChain({
 	const [searchValue, setSearchValue] = React.useState('')
 	const debouncedSearchValue = useDebounce(searchValue, 200)
 
-	const handleRouting = (selectedChain) => {
-		if (selectedChain === 'All') return `/bridges`
-		return `/bridges/${selectedChain}`
-	}
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
 
 	const { tokenDeposits, tokenWithdrawals } = useBuildBridgeChartData(bridgeStatsCurrentDay)
@@ -76,7 +77,7 @@ export function BridgesOverviewByChain({
 		})
 	}, [chainVolumeData])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const resolvedFilteredBridges = filteredBridges ?? EMPTY_PROTOCOLS
 		const resolvedMessagingProtocols = messagingProtocols ?? EMPTY_PROTOCOLS
 		const allBridges = [...resolvedFilteredBridges, ...resolvedMessagingProtocols]
@@ -116,9 +117,9 @@ export function BridgesOverviewByChain({
 		}
 
 		return { filename: fileName, rows }
-	}, [filteredBridges, messagingProtocols, bridgeNameToChartDataIndex, chartDataByBridge])
+	}
 
-	const prepareChartCsv = React.useCallback(() => {
+	const prepareChartCsv = () => {
 		type CsvConfig = {
 			filename: string
 			headers: string[]
@@ -188,16 +189,7 @@ export function BridgesOverviewByChain({
 			filename: config.filename,
 			rows: config.headers.length > 0 ? [config.headers, ...config.getData()] : []
 		}
-	}, [
-		selectedChain,
-		chartView,
-		chartType,
-		chainVolumeData,
-		chainNetFlowData,
-		chainPercentageNet,
-		tokenDeposits,
-		tokenWithdrawals
-	])
+	}
 
 	const { dayTotalVolume, weekTotalVolume, monthTotalVolume } = React.useMemo(() => {
 		let dayTotalVolume, weekTotalVolume, monthTotalVolume

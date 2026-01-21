@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
@@ -25,7 +25,7 @@ type MetricTabProps = {
 	onShowSparklineChange: (v: boolean) => void
 }
 
-export const MetricTab = memo(function MetricTab(props: MetricTabProps) {
+export function MetricTab(props: MetricTabProps) {
 	const {
 		metricSubjectType,
 		metricChain,
@@ -171,4 +171,4 @@ export const MetricTab = memo(function MetricTab(props: MetricTabProps) {
 			</div>
 		</div>
 	)
-})
+}

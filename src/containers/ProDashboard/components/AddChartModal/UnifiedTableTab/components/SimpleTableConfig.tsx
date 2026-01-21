@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { getItemIconUrl } from '../../../../utils'
 import { AriakitSelect } from '../../../AriakitSelect'
 import { AriakitVirtualizedMultiSelect } from '../../../AriakitVirtualizedMultiSelect'
@@ -151,7 +151,7 @@ const CHAIN_CATEGORY_OPTIONS = [
 	{ value: 'Cosmos', label: 'Cosmos' }
 ]
 
-export const SimpleTableConfig = memo(function SimpleTableConfig({
+export function SimpleTableConfig({
 	selectedChains,
 	chainOptions,
 	protocolsLoading,
@@ -371,4 +371,4 @@ export const SimpleTableConfig = memo(function SimpleTableConfig({
 			) : null}
 		</div>
 	)
-})
+}

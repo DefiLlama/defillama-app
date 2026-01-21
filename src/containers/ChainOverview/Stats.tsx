@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useRouter } from 'next/router'
-import { Fragment, lazy, memo, Suspense, useCallback, useMemo, useRef } from 'react'
+import { Fragment, lazy, Suspense, useMemo, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { Bookmark } from '~/components/Bookmark'
@@ -32,11 +32,16 @@ const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
 
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
+const formatKeyMetricsValue = (value: number | string | null) => {
+	if (Number.isNaN(Number(value))) return null
+	return formattedNum(value, true)
+}
+
 interface IStatsProps extends IChainOverviewData {
 	hideChart?: boolean
 }
 
-export const Stats = memo(function Stats(props: IStatsProps) {
+export function Stats(props: IStatsProps) {
 	const router = useRouter()
 	const queryParamsString = useMemo(() => {
 		const { tvl, ...rest } = router.query ?? {}
@@ -145,20 +150,13 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 
 	const metricsDialogStore = Ariakit.useDialogStore()
 
-	const prepareCsv = useCallback(() => {
-		return prepareChartCsv(finalCharts, `${props.chain}.csv`)
-	}, [finalCharts, props.chain])
+	const prepareCsv = () => prepareChartCsv(finalCharts, `${props.chain}.csv`)
 
 	const { chartInstance: chainChartInstance, handleChartReady } = useChartImageExport()
 	const imageExportFilename = slug(props.metadata.name)
 	const imageExportTitle = props.metadata.name === 'All' ? 'All Chains' : props.metadata.name
 	const keyMetricsTitle = imageExportTitle
 	const hasKeyMetricsPrimary = props.protocols.length > 0 && totalValueUSD != null
-
-	const formatKeyMetricsValue = useCallback((value: number | string | null) => {
-		if (Number.isNaN(Number(value))) return null
-		return formattedNum(value, true)
-	}, [])
 
 	const { mutate: downloadAndPrepareChartCsv, isPending: isDownloadingChartCsv } = useMutation({
 		mutationFn: async () => {
@@ -189,7 +187,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 			}
 		}
 	})
-	const handleDownloadChartCsv = useCallback(() => downloadAndPrepareChartCsv(), [downloadAndPrepareChartCsv])
+	const handleDownloadChartCsv = () => downloadAndPrepareChartCsv()
 
 	return (
 		<div className="relative isolate grid h-full grid-cols-2 gap-2 xl:grid-cols-3">
@@ -942,7 +940,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 			) : null}
 		</div>
 	)
-})
+}
 
 const updateRoute = (key, val, router) => {
 	router.push(

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'
@@ -79,7 +79,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 		}
 	}, [chartType, tvlApyData, supplyApyBarData, supplyApy7dData, borrowApyBarData, netBorrowApyData, poolLiquidityData])
 
-	const handleCsvExport = useCallback(() => {
+	const handleCsvExport = () => {
 		if (!currentChartData || currentChartData.length === 0) return
 
 		let headers: string[]
@@ -130,7 +130,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 		const chartTypeSuffix = chartType !== 'tvl-apy' ? `_${chartType}` : ''
 		const fileName = `${poolName.replace(/\s+/g, '_')}${chartTypeSuffix}_${new Date().toISOString().split('T')[0]}.csv`
 		download(fileName, csvContent)
-	}, [currentChartData, poolName, chartType])
+	}
 
 	const imageFilename = `${poolName.replace(/\s+/g, '_')}`
 	const imageTitle = `${poolName} - ${project} (${chain})`

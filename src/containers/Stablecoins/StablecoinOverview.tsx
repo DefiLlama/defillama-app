@@ -127,7 +127,7 @@ export const PeggedAssetInfo = ({
 
 	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const rows = [['Timestamp', 'Date', ...chainsUnique, 'Total']]
 		const sortedData = stackedData.sort((a, b) => a.date - b.date)
 		for (const day of sortedData) {
@@ -141,7 +141,7 @@ export const PeggedAssetInfo = ({
 			])
 		}
 		return { filename: 'stablecoinsChains.csv', rows: rows as (string | number | boolean)[][] }
-	}, [stackedData, chainsUnique])
+	}
 
 	const getImageExportTitle = () => {
 		const chartTypeMap = {

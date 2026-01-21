@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { Dispatch, memo, RefObject, SetStateAction, useCallback, useEffect, useRef, useState } from 'react'
+import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { errorToast } from '~/components/Toast'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -40,7 +40,13 @@ interface PromptInputProps {
 	externalDragging?: boolean
 }
 
-export const PromptInput = memo(function PromptInput({
+const trackSubmit = () => {
+	if (typeof window !== 'undefined' && (window as any).umami) {
+		;(window as any).umami.track('llamaai-prompt-submit')
+	}
+}
+
+export function PromptInput({
 	handleSubmit,
 	promptInputRef,
 	isPending,
@@ -261,12 +267,6 @@ export const PromptInput = memo(function PromptInput({
 		entitiesMapRef.current.clear()
 	}
 
-	const trackSubmit = () => {
-		if (typeof window !== 'undefined' && (window as any).umami) {
-			;(window as any).umami.track('llamaai-prompt-submit')
-		}
-	}
-
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		const textarea = promptInputRef.current
 		if (!textarea) return
@@ -422,38 +422,36 @@ export const PromptInput = memo(function PromptInput({
 		}
 	}
 
-	const onItemClick = useCallback(
+	const onItemClick =
 		({ id, name, type }: { id: string; name: string; type: string }) =>
-			() => {
-				const textarea = promptInputRef.current
-				if (!textarea) return
+		() => {
+			const textarea = promptInputRef.current
+			if (!textarea) return
 
-				const offset = getTriggerOffset(textarea)
+			const offset = getTriggerOffset(textarea)
 
-				entitiesRef.current.add(name)
-				entitiesMapRef.current.set(name, { id, name, type })
+			entitiesRef.current.add(name)
+			entitiesMapRef.current.set(name, { id, name, type })
 
-				const getNewValue = replaceValue(offset, searchValue, name)
-				const newValue = getNewValue(textarea.value)
+			const getNewValue = replaceValue(offset, searchValue, name)
+			const newValue = getNewValue(textarea.value)
 
-				combobox.setValue('')
-				combobox.hide()
+			combobox.setValue('')
+			combobox.hide()
 
-				isProgrammaticUpdateRef.current = true
-				textarea.value = newValue
-				setInputSize(promptInputRef, highlightRef)
-				setValue(newValue)
+			isProgrammaticUpdateRef.current = true
+			textarea.value = newValue
+			setInputSize(promptInputRef, highlightRef)
+			setValue(newValue)
 
-				if (highlightRef.current) {
-					highlightRef.current.innerHTML = highlightWord(newValue, Array.from(entitiesRef.current))
-				}
+			if (highlightRef.current) {
+				highlightRef.current.innerHTML = highlightWord(newValue, Array.from(entitiesRef.current))
+			}
 
-				setTimeout(() => {
-					textarea.focus()
-				}, 0)
-			},
-		[combobox, searchValue, promptInputRef]
-	)
+			setTimeout(() => {
+				textarea.focus()
+			}, 0)
+		}
 
 	return (
 		<>
@@ -569,7 +567,7 @@ export const PromptInput = memo(function PromptInput({
 								onKeyDown={onKeyDown}
 								onPaste={handlePaste}
 								name="prompt"
-								className="relative z-[1] block thin-scrollbar min-h-4 w-full resize-none overflow-x-hidden overflow-y-auto border-0 bg-transparent p-0 leading-normal break-words whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] max-sm:text-base dark:caret-white placeholder:dark:text-[#919296]"
+								className="relative z-1 block thin-scrollbar min-h-4 w-full resize-none overflow-x-hidden overflow-y-auto border-0 bg-transparent p-0 leading-normal wrap-break-word whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] max-sm:text-base dark:caret-white placeholder:dark:text-[#919296]"
 								autoCorrect="off"
 								autoComplete="off"
 								spellCheck="false"
@@ -578,7 +576,7 @@ export const PromptInput = memo(function PromptInput({
 						disabled={isPending && !isStreaming}
 					/>
 					<div
-						className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-0 thin-scrollbar min-h-4 overflow-x-hidden overflow-y-auto p-0 leading-normal break-words whitespace-pre-wrap max-sm:text-base"
+						className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-0 thin-scrollbar min-h-4 overflow-x-hidden overflow-y-auto p-0 leading-normal wrap-break-word whitespace-pre-wrap max-sm:text-base"
 						ref={highlightRef}
 					/>
 				</div>
@@ -603,7 +601,7 @@ export const PromptInput = memo(function PromptInput({
 									value={id}
 									focusOnHover
 									onClick={onItemClick({ id, name, type })}
-									className="flex cursor-pointer items-center gap-1.5 border-t border-[#e6e6e6] px-3 py-2 first:border-t-0 hover:bg-[#e6e6e6] focus-visible:bg-[#e6e6e6] data-[active-item]:bg-[#e6e6e6] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] dark:data-[active-item]:bg-[#222324]"
+									className="flex cursor-pointer items-center gap-1.5 border-t border-[#e6e6e6] px-3 py-2 first:border-t-0 hover:bg-[#e6e6e6] focus-visible:bg-[#e6e6e6] data-active-item:bg-[#e6e6e6] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] dark:data-active-item:bg-[#222324]"
 								>
 									{logo && <TokenLogo logo={logo} size={20} />}
 									<span className="flex items-center gap-1.5">
@@ -724,4 +722,4 @@ export const PromptInput = memo(function PromptInput({
 			</form>
 		</>
 	)
-})
+}

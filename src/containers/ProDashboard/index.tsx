@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -111,15 +111,15 @@ function ProDashboardContent() {
 
 	const currentRatingSession = getCurrentRatingSession()
 
-	const openAddModal = useCallback(() => {
+	const openAddModal = () => {
 		setShowAddModal(true)
-	}, [])
+	}
 
-	const handleEditItemModal = useCallback((item: DashboardItemConfig, focusSection?: UnifiedTableFocusSection) => {
+	const handleEditItemModal = (item: DashboardItemConfig, focusSection?: UnifiedTableFocusSection) => {
 		setEditItem(item)
 		setInitialUnifiedFocusSection(focusSection)
 		setShowAddModal(true)
-	}, [])
+	}
 
 	if (!isAuthenticated && !hasActiveSubscription && dashboardVisibility !== 'public') {
 		return (

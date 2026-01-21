@@ -54,7 +54,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 
 	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		try {
 			let rows: Array<Array<string | number | boolean>> = [
 				['Name', 'Date', 'Amount', 'Chains', 'Classification', 'Target', 'Technique', 'Bridge', 'Language', 'Link']
@@ -66,7 +66,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 		} catch (error) {
 			console.log('Error generating CSV:', error)
 		}
-	}, [data])
+	}
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -180,6 +180,22 @@ const updateArrayQuery = (key: string, values: string[] | 'None') => {
 	Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
 }
 
+const setSelectedChains = (values: string[]) => updateArrayQuery('chain', values)
+const setSelectedTechniques = (values: string[]) => updateArrayQuery('tech', values)
+const setSelectedClassifications = (values: string[]) => updateArrayQuery('class', values)
+
+const clearAllChains = () => updateArrayQuery('chain', 'None')
+const toggleAllChains = () => updateArrayQuery('chain', [])
+const selectOnlyOneChain = (value: string) => updateArrayQuery('chain', [value])
+
+const clearAllTechniques = () => updateArrayQuery('tech', 'None')
+const toggleAllTechniques = () => updateArrayQuery('tech', [])
+const selectOnlyOneTechnique = (value: string) => updateArrayQuery('tech', [value])
+
+const clearAllClassifications = () => updateArrayQuery('class', 'None')
+const toggleAllClassifications = () => updateArrayQuery('class', [])
+const selectOnlyOneClassification = (value: string) => updateArrayQuery('class', [value])
+
 const timeOptions = ['All', '7D', '30D', '90D', '1Y'] as const
 const labelToKey = {
 	All: 'all',
@@ -266,35 +282,19 @@ export const HacksContainer = ({
 		return parseArrayParam(classQ, classificationOptionKeys)
 	}, [classQ, classificationOptionKeys])
 
-	const setSelectedChains = React.useCallback((values: string[]) => updateArrayQuery('chain', values), [])
-	const setSelectedTechniques = React.useCallback((values: string[]) => updateArrayQuery('tech', values), [])
-	const setSelectedClassifications = React.useCallback((values: string[]) => updateArrayQuery('class', values), [])
-
-	const clearAllChains = React.useCallback(() => updateArrayQuery('chain', 'None'), [])
-	const toggleAllChains = React.useCallback(() => updateArrayQuery('chain', []), [])
-	const selectOnlyOneChain = React.useCallback((value: string) => updateArrayQuery('chain', [value]), [])
-
-	const clearAllTechniques = React.useCallback(() => updateArrayQuery('tech', 'None'), [])
-	const toggleAllTechniques = React.useCallback(() => updateArrayQuery('tech', []), [])
-	const selectOnlyOneTechnique = React.useCallback((value: string) => updateArrayQuery('tech', [value]), [])
-
-	const clearAllClassifications = React.useCallback(() => updateArrayQuery('class', 'None'), [])
-	const toggleAllClassifications = React.useCallback(() => updateArrayQuery('class', []), [])
-	const selectOnlyOneClassification = React.useCallback((value: string) => updateArrayQuery('class', [value]), [])
-
 	const selectedTimeLabel = (typeof timeQ === 'string' && keyToLabel[timeQ]) || 'All'
 
-	const setSelectedTime = React.useCallback((label: (typeof timeOptions)[number]) => {
+	const setSelectedTime = (label: (typeof timeOptions)[number]) => {
 		const key = labelToKey[label]
 		const nextQuery: Record<string, any> = { ...Router.query }
 		if (key && key !== 'all') nextQuery.time = key
 		else delete nextQuery.time
 		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [])
+	}
 
 	const { minLost, maxLost } = router.query
 
-	const handleAmountSubmit = React.useCallback((e) => {
+	const handleAmountSubmit = (e) => {
 		e.preventDefault()
 		const form = e.target
 		const min = form.min?.value
@@ -302,14 +302,14 @@ export const HacksContainer = ({
 		Router.push({ pathname: Router.pathname, query: { ...Router.query, minLost: min, maxLost: max } }, undefined, {
 			shallow: true
 		})
-	}, [])
+	}
 
-	const handleAmountClear = React.useCallback(() => {
+	const handleAmountClear = () => {
 		const nextQuery: Record<string, any> = { ...Router.query }
 		delete nextQuery.minLost
 		delete nextQuery.maxLost
 		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [])
+	}
 
 	const minLostVal = toNumberOrNullFromQueryParam(minLost)
 	const maxLostVal = toNumberOrNullFromQueryParam(maxLost)
@@ -325,7 +325,7 @@ export const HacksContainer = ({
 		)
 	}, [chainQ, techQ, classQ, timeQ, minLostVal, maxLostVal])
 
-	const clearAllFilters = React.useCallback(() => {
+	const clearAllFilters = () => {
 		const nextQuery: Record<string, any> = { ...Router.query }
 		delete nextQuery.chain
 		delete nextQuery.tech
@@ -336,7 +336,7 @@ export const HacksContainer = ({
 		delete nextQuery.maxLost
 		delete nextQuery.time
 		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [])
+	}
 
 	const filteredData = React.useMemo(() => {
 		const chainNone = isParamNone(chainQ)
@@ -374,7 +374,7 @@ export const HacksContainer = ({
 		maxLostVal
 	])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		if (chartType === 'Monthly Sum') {
 			return prepareChartCsv(
 				{ 'Total Value Hacked': monthlyHacksChartData['Total Value Hacked'].data },
@@ -387,7 +387,7 @@ export const HacksContainer = ({
 			}
 			return { filename: 'total-hacked-by-technique.csv', rows }
 		}
-	}, [monthlyHacksChartData, pieChartData, chartType])
+	}
 
 	return (
 		<Layout

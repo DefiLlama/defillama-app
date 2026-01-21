@@ -16,13 +16,14 @@ import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/
 
 const columnResizeMode = 'onChange'
 
+const handleDownloadJson = () => {
+	window.open('https://api.llama.fi/raises', '_blank', 'noopener,noreferrer')
+}
+
 export function RaisesTable({ raises, prepareCsv }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-	const handleDownloadJson = React.useCallback(() => {
-		window.open('https://api.llama.fi/raises')
-	}, [])
 
 	const instance = useReactTable({
 		data: raises,

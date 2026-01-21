@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
-import { Fragment, memo, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -58,13 +58,13 @@ export function Metrics({
 
 	const router = useRouter()
 
-	const currentCategory = useMemo(() => {
-		if (router.pathname === '/') return null
-		return metricsByCategory.find(
-			(category) =>
-				category.category !== 'Trending' && category.metrics.some((metric) => metric.route === router.pathname)
-		)?.category
-	}, [router.pathname])
+	const currentCategory =
+		router.pathname === '/'
+			? null
+			: metricsByCategory.find(
+					(category) =>
+						category.category !== 'Trending' && category.metrics.some((metric) => metric.route === router.pathname)
+				)?.category
 
 	const metricsInputRef = useRef<HTMLInputElement>(null)
 
@@ -216,7 +216,7 @@ export function Metrics({
 	)
 }
 
-export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage({
+export function LinkToMetricOrToolPage({
 	page,
 	totalTrackedByMetric
 }: {
@@ -229,10 +229,8 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 		() => '[]'
 	)
 
-	const isPinned = useMemo(() => {
-		const pinnedPages = JSON.parse(pinnedMetrics)
-		return pinnedPages.includes(page.route)
-	}, [pinnedMetrics, page.route])
+	const pinnedPages = JSON.parse(pinnedMetrics)
+	const isPinned = pinnedPages.includes(page.route)
 
 	const isExternalLink = page.route.startsWith('http')
 
@@ -301,7 +299,7 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 			</Tooltip>
 		</div>
 	)
-})
+}
 
 const getTotalTracked = (totalTrackedByMetric: any, totalTrackedKey: string) => {
 	const value = totalTrackedKey.split('.').reduce((obj, key) => obj?.[key], totalTrackedByMetric)
@@ -309,7 +307,7 @@ const getTotalTracked = (totalTrackedByMetric: any, totalTrackedKey: string) => 
 	return `${value} tracked`
 }
 
-export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: { currentMetric: Array<string> }) {
+export function MetricsAndTools({ currentMetric }: { currentMetric: Array<string> }) {
 	const dialogStore = Ariakit.useDialogStore()
 	const hasScrolledToCategoryRef = useRef('')
 	return (
@@ -405,4 +403,4 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 			</Ariakit.DialogProvider>
 		</>
 	)
-})
+}

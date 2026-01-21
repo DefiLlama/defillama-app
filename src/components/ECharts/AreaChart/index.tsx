@@ -418,7 +418,7 @@ export default function AreaChart({
 
 	const showLegend = !!(customLegendName && customLegendOptions?.length > 1)
 
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		let rows = []
 		if (!chartsStack || chartsStack.length === 0) {
 			rows = [['Timestamp', 'Date', 'Value']]
@@ -435,7 +435,7 @@ export default function AreaChart({
 		const Mytitle = title ? slug(title) : 'data'
 		const filename = `area-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
 		return { filename, rows }
-	}, [chartData, chartsStack, title])
+	}
 
 	return (
 		<div className="relative" {...props}>

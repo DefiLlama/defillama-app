@@ -1,5 +1,5 @@
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
-import { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '~/containers/ProDashboard/components/UnifiedTable/config/ColumnDictionary'
 import {
@@ -75,6 +75,30 @@ const countActiveFilters = (filters: TableFilters | undefined): number => {
 	return count
 }
 
+const arraysEqual = (a: string[], b: string[]) => {
+	if (a.length !== b.length) return false
+	return a.every((value, index) => value === b[index])
+}
+
+const visibilityEqual = (a: VisibilityState, b: VisibilityState) => {
+	const keys = new Set([...Object.keys(a), ...Object.keys(b)])
+	for (const key of keys) {
+		const aValue = key in a ? a[key] : true
+		const bValue = key in b ? b[key] : true
+		if (Boolean(aValue) !== Boolean(bValue)) return false
+	}
+	return true
+}
+
+const sortingEqual = (a: SortingState, b: SortingState) => {
+	if (a.length !== b.length) return false
+	return a.every((item, index) => {
+		const other = b[index]
+		if (!other) return false
+		return item.id === other.id && Boolean(item.desc) === Boolean(other.desc)
+	})
+}
+
 type TableTypeCardIcon = 'layers' | 'trending-up' | 'credit-card' | 'chain' | 'dollar-sign' | 'pie-chart' | 'flame'
 
 const TABLE_TYPE_CARDS: Array<{
@@ -136,7 +160,7 @@ const TABLE_TYPE_CARDS: Array<{
 	}
 ]
 
-const TabContent = memo(function TabContent({
+function TabContent({
 	onClose,
 	chainOptions,
 	editItem,
@@ -370,30 +394,6 @@ const TabContent = memo(function TabContent({
 		},
 		[chains, setChains]
 	)
-
-	const arraysEqual = (a: string[], b: string[]) => {
-		if (a.length !== b.length) return false
-		return a.every((value, index) => value === b[index])
-	}
-
-	const visibilityEqual = (a: VisibilityState, b: VisibilityState) => {
-		const keys = new Set([...Object.keys(a), ...Object.keys(b)])
-		for (const key of keys) {
-			const aValue = key in a ? a[key] : true
-			const bValue = key in b ? b[key] : true
-			if (Boolean(aValue) !== Boolean(bValue)) return false
-		}
-		return true
-	}
-
-	const sortingEqual = (a: SortingState, b: SortingState) => {
-		if (a.length !== b.length) return false
-		return a.every((item, index) => {
-			const other = b[index]
-			if (!other) return false
-			return item.id === other.id && Boolean(item.desc) === Boolean(other.desc)
-		})
-	}
 
 	const isModified =
 		!arraysEqual(localOrder, presetDefaults.order) ||
@@ -831,13 +831,13 @@ const TabContent = memo(function TabContent({
 			</div>
 		</div>
 	)
-})
+}
 
-export const UnifiedTableTab = memo(function UnifiedTableTab(props: UnifiedTableTabProps) {
+export function UnifiedTableTab(props: UnifiedTableTabProps) {
 	const { editItem, focusedSectionOnly, ...rest } = props
 	return (
 		<UnifiedTableWizardProvider initialConfig={editItem}>
 			<TabContent {...rest} editItem={editItem} focusedSectionOnly={focusedSectionOnly} />
 		</UnifiedTableWizardProvider>
 	)
-})
+}

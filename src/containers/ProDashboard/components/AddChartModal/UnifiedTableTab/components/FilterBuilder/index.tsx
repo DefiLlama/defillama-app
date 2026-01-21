@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import type { TableFilters } from '~/containers/ProDashboard/types'
@@ -345,7 +345,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 				<button
 					type="button"
 					onClick={onRemove}
-					className="rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-60 hover:!opacity-100"
+					className="rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-60 hover:opacity-100!"
 				>
 					<Icon name="x" className="h-3 w-3" />
 				</button>
@@ -375,7 +375,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 				<button
 					type="button"
 					onClick={onRemove}
-					className="rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-60 hover:!opacity-100"
+					className="rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-60 hover:opacity-100!"
 				>
 					<Icon name="x" className="h-3 w-3" />
 				</button>
@@ -452,7 +452,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 					portal
 					gutter={4}
 					sameWidth
-					className="z-[100] rounded border border-(--cards-border) bg-(--cards-bg) py-1 shadow-lg"
+					className="z-100 rounded border border-(--cards-border) bg-(--cards-bg) py-1 shadow-lg"
 				>
 					{OPERATORS.map((op) => (
 						<Ariakit.SelectItem
@@ -569,85 +569,76 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 		[filteredCategories, activeFilterIds]
 	)
 
-	const handleAddFilter = useCallback(
-		(config: FilterConfig) => {
-			if (activeFilterIds.has(config.id)) return
+	const handleAddFilter = (config: FilterConfig) => {
+		if (activeFilterIds.has(config.id)) return
 
-			if (config.type === 'boolean') {
-				const newFilter: ActiveFilter = { config, enabled: true }
-				let filtersToUse = savedFilters
-				if (config.booleanKey === 'parentProtocolsOnly') {
-					filtersToUse = savedFilters.filter((f) => f.config.booleanKey !== 'subProtocolsOnly')
-				} else if (config.booleanKey === 'subProtocolsOnly') {
-					filtersToUse = savedFilters.filter((f) => f.config.booleanKey !== 'parentProtocolsOnly')
-				}
-				const newFilters = activeFilterToTableFilters([...filtersToUse, newFilter], filters)
+		if (config.type === 'boolean') {
+			const newFilter: ActiveFilter = { config, enabled: true }
+			let filtersToUse = savedFilters
+			if (config.booleanKey === 'parentProtocolsOnly') {
+				filtersToUse = savedFilters.filter((f) => f.config.booleanKey !== 'subProtocolsOnly')
+			} else if (config.booleanKey === 'subProtocolsOnly') {
+				filtersToUse = savedFilters.filter((f) => f.config.booleanKey !== 'parentProtocolsOnly')
+			}
+			const newFilters = activeFilterToTableFilters([...filtersToUse, newFilter], filters)
+			onFiltersChange(newFilters)
+		} else {
+			const newFilter: ActiveFilter = {
+				config,
+				operator: '>=' as NumericOperator,
+				value: undefined,
+				minValue: undefined,
+				maxValue: undefined
+			}
+			setPendingFilters((prev) => [...prev, newFilter])
+			setEditingFilterId(config.id)
+		}
+	}
+
+	const handleUpdateFilter = (updatedFilter: ActiveFilter) => {
+		const isPending = pendingFilters.some((f) => f.config.id === updatedFilter.config.id)
+
+		if (isPending) {
+			const hasValue =
+				updatedFilter.value !== undefined ||
+				updatedFilter.minValue !== undefined ||
+				updatedFilter.maxValue !== undefined
+
+			if (hasValue) {
+				setPendingFilters((prev) => prev.filter((f) => f.config.id !== updatedFilter.config.id))
+				const newFilters = activeFilterToTableFilters([...savedFilters, updatedFilter], filters)
 				onFiltersChange(newFilters)
 			} else {
-				const newFilter: ActiveFilter = {
-					config,
-					operator: '>=' as NumericOperator,
-					value: undefined,
-					minValue: undefined,
-					maxValue: undefined
-				}
-				setPendingFilters((prev) => [...prev, newFilter])
-				setEditingFilterId(config.id)
+				setPendingFilters((prev) => prev.map((f) => (f.config.id === updatedFilter.config.id ? updatedFilter : f)))
 			}
-		},
-		[activeFilterIds, savedFilters, filters, onFiltersChange]
-	)
+		} else {
+			const newActiveFilters = savedFilters.map((f) => (f.config.id === updatedFilter.config.id ? updatedFilter : f))
+			const newFilters = activeFilterToTableFilters(newActiveFilters, filters)
+			onFiltersChange(newFilters)
+		}
+	}
 
-	const handleUpdateFilter = useCallback(
-		(updatedFilter: ActiveFilter) => {
-			const isPending = pendingFilters.some((f) => f.config.id === updatedFilter.config.id)
+	const handleRemoveFilter = (filterId: string) => {
+		const isPending = pendingFilters.some((f) => f.config.id === filterId)
 
-			if (isPending) {
-				const hasValue =
-					updatedFilter.value !== undefined ||
-					updatedFilter.minValue !== undefined ||
-					updatedFilter.maxValue !== undefined
+		if (isPending) {
+			setPendingFilters((prev) => prev.filter((f) => f.config.id !== filterId))
+		} else {
+			const newActiveFilters = savedFilters.filter((f) => f.config.id !== filterId)
+			const newFilters = activeFilterToTableFilters(newActiveFilters, filters)
+			onFiltersChange(newFilters)
+		}
+		if (editingFilterId === filterId) {
+			setEditingFilterId(null)
+		}
+	}
 
-				if (hasValue) {
-					setPendingFilters((prev) => prev.filter((f) => f.config.id !== updatedFilter.config.id))
-					const newFilters = activeFilterToTableFilters([...savedFilters, updatedFilter], filters)
-					onFiltersChange(newFilters)
-				} else {
-					setPendingFilters((prev) => prev.map((f) => (f.config.id === updatedFilter.config.id ? updatedFilter : f)))
-				}
-			} else {
-				const newActiveFilters = savedFilters.map((f) => (f.config.id === updatedFilter.config.id ? updatedFilter : f))
-				const newFilters = activeFilterToTableFilters(newActiveFilters, filters)
-				onFiltersChange(newFilters)
-			}
-		},
-		[pendingFilters, savedFilters, filters, onFiltersChange]
-	)
-
-	const handleRemoveFilter = useCallback(
-		(filterId: string) => {
-			const isPending = pendingFilters.some((f) => f.config.id === filterId)
-
-			if (isPending) {
-				setPendingFilters((prev) => prev.filter((f) => f.config.id !== filterId))
-			} else {
-				const newActiveFilters = savedFilters.filter((f) => f.config.id !== filterId)
-				const newFilters = activeFilterToTableFilters(newActiveFilters, filters)
-				onFiltersChange(newFilters)
-			}
-			if (editingFilterId === filterId) {
-				setEditingFilterId(null)
-			}
-		},
-		[pendingFilters, savedFilters, filters, onFiltersChange, editingFilterId]
-	)
-
-	const handleClearAll = useCallback(() => {
+	const handleClearAll = () => {
 		setPendingFilters([])
 		setEditingFilterId(null)
 		const clearedFilters = activeFilterToTableFilters([], filters)
 		onFiltersChange(clearedFilters)
-	}, [filters, onFiltersChange])
+	}
 
 	const toggleCategory = (category: FilterCategory) => {
 		setExpandedCategories((prev) => {
@@ -661,13 +652,13 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 		})
 	}
 
-	const expandAllCategories = useCallback(() => {
+	const expandAllCategories = () => {
 		setExpandedCategories(new Set(filtersByCategory.keys()))
-	}, [filtersByCategory])
+	}
 
-	const collapseAllCategories = useCallback(() => {
+	const collapseAllCategories = () => {
 		setExpandedCategories(new Set())
-	}, [])
+	}
 
 	return (
 		<div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-3 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-3">

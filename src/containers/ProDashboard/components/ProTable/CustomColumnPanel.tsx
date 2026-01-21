@@ -18,6 +18,31 @@ interface CustomColumnPanelProps {
 	onUpdateCustomColumn: (columnId: string, updates: Partial<CustomColumn>) => void
 }
 
+const formatPreviewNumber = (value: number | null): string => {
+	if (value == null) return '-'
+
+	if (Math.abs(value) >= 1e9) {
+		return `$${(value / 1e9).toFixed(2)}B`
+	} else if (Math.abs(value) >= 1e6) {
+		return `$${(value / 1e6).toFixed(2)}M`
+	} else if (Math.abs(value) >= 1e3) {
+		return `$${(value / 1e3).toFixed(2)}K`
+	} else {
+		return `$${value.toFixed(2)}`
+	}
+}
+
+const handleMouseDown = (e: React.MouseEvent) => {
+	// Prevent drag events from bubbling up to dashboard
+	e.stopPropagation()
+}
+
+const handleDragStart = (e: React.DragEvent) => {
+	// Prevent any drag operations within the panel
+	e.preventDefault()
+	e.stopPropagation()
+}
+
 export function CustomColumnPanel({
 	customColumns,
 	onAddCustomColumn,
@@ -168,28 +193,13 @@ export function CustomColumnPanel({
 		return sample
 	}, [availableVariables])
 
-	// Format number for display - hoisted above sampleDataPreview to avoid TDZ
-	const formatPreviewNumber = React.useCallback((value: number | null): string => {
-		if (value == null) return '-'
-
-		if (Math.abs(value) >= 1e9) {
-			return `$${(value / 1e9).toFixed(2)}B`
-		} else if (Math.abs(value) >= 1e6) {
-			return `$${(value / 1e6).toFixed(2)}M`
-		} else if (Math.abs(value) >= 1e3) {
-			return `$${(value / 1e3).toFixed(2)}K`
-		} else {
-			return value.toFixed(2)
-		}
-	}, [])
-
 	const sampleDataPreview = React.useMemo(
 		() =>
 			Object.entries(sampleData)
 				.slice(0, 3)
 				.map(([key, value]) => `${key}=${formatPreviewNumber(value)}`)
 				.join(', '),
-		[sampleData, formatPreviewNumber]
+		[sampleData]
 	)
 
 	const validateExpression = (expression: string): { isValid: boolean; error?: string } => {
@@ -375,17 +385,6 @@ export function CustomColumnPanel({
 		}
 	}, [newColumnExpression, sampleData])
 
-	const handleMouseDown = (e: React.MouseEvent) => {
-		// Prevent drag events from bubbling up to dashboard
-		e.stopPropagation()
-	}
-
-	const handleDragStart = (e: React.DragEvent) => {
-		// Prevent any drag operations within the panel
-		e.preventDefault()
-		e.stopPropagation()
-	}
-
 	return (
 		<div
 			className="space-y-6"
@@ -501,7 +500,7 @@ export function CustomColumnPanel({
 								className={`mt-2 rounded border p-2 text-xs ${
 									liveValidation.isValid
 										? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
-										: 'border-(--error) bg-[color:oklch(0.94_0.01_71.72_/0.08)]'
+										: 'border-(--error) bg-[oklch(0.94_0.01_71.72_/0.08)]'
 								}`}
 							>
 								<div className="flex items-center justify-between">
@@ -540,7 +539,7 @@ export function CustomColumnPanel({
 					</div>
 
 					{validationError && (
-						<div className="border border-(--error) bg-[color:oklch(0.94_0.01_71.72_/0.08)] p-2 text-xs text-(--error)">
+						<div className="border border-(--error) bg-[oklch(0.94_0.01_71.72_/0.08)] p-2 text-xs text-(--error)">
 							{validationError}
 						</div>
 					)}

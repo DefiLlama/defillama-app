@@ -2,7 +2,6 @@ import * as Ariakit from '@ariakit/react'
 import * as React from 'react'
 import { Icon } from './Icon'
 
-// oxlint-disable-next-line typescript/no-empty-object-type
 export interface NestedMenuItemProps extends Ariakit.MenuItemProps {}
 
 export const NestedMenuItem = React.forwardRef<HTMLDivElement, NestedMenuItemProps>(function MenuItem(props, ref) {

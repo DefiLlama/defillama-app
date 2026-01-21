@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useCallback, useMemo } from 'react'
-import exponentialLogo from '~/assets/exponential.avif'
+import { lazy, Suspense, useMemo } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -112,7 +111,7 @@ const PageView = (_props) => {
 	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
 
 	// prepare csv data
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		if (!chart?.data || !query?.pool) return { filename: `yields.csv`, rows: [] }
 		const rows = [['APY', 'APY_BASE', 'APY_REWARD', 'TVL', 'DATE']]
 
@@ -121,7 +120,7 @@ const PageView = (_props) => {
 		}
 
 		return { filename: `${query.pool}.csv`, rows: rows as (string | number | boolean)[][] }
-	}, [chart?.data, query?.pool])
+	}
 
 	const apy = poolData.apy?.toFixed(2) ?? 0
 	const apyMean30d = poolData.apyMean30d?.toFixed(2) ?? 0
@@ -371,7 +370,7 @@ const PageView = (_props) => {
 					<div className="col-span-2 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 						<h2 className="flex items-center text-lg font-bold">
 							Risk Rating by exponential.fi{' '}
-							<img src={exponentialLogo.src} height={24} width={24} style={{ marginBottom: 6 }} alt="" />
+							<img src="/assets/exponential.avif" height={24} width={24} style={{ marginBottom: 6 }} alt="" />
 						</h2>
 						<div className="relative flex flex-col items-start gap-3">
 							<div className="relative flex w-full flex-1 flex-col justify-between gap-3">

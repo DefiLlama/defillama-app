@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useCallback, useEffect, useReducer, useRef } from 'react'
+import { lazy, Suspense, useEffect, useReducer, useRef } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTooltipValue } from '~/components/ECharts/formatters'
@@ -78,7 +78,7 @@ const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
 	}
 }
 
-const SingleChart = memo(function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
+function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, {
 		stacked: config.displayOptions?.defaultStacked || false,
 		percentage: config.displayOptions?.defaultPercentage || false,
@@ -87,30 +87,14 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 		showHallmarks: true,
 		showLabels: config.displayOptions?.showLabels || false
 	})
-	const handleStackedChange = useCallback(
-		(stacked: boolean) => dispatch({ type: 'SET_STACKED', payload: stacked }),
-		[dispatch]
-	)
-	const handlePercentageChange = useCallback(
-		(percentage: boolean) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage }),
-		[dispatch]
-	)
-	const handleCumulativeChange = useCallback(
-		(cumulative: boolean) => dispatch({ type: 'SET_CUMULATIVE', payload: cumulative }),
-		[dispatch]
-	)
-	const handleGroupingChange = useCallback(
-		(grouping: ChartState['grouping']) => dispatch({ type: 'SET_GROUPING', payload: grouping }),
-		[dispatch]
-	)
-	const handleHallmarksChange = useCallback(
-		(showHallmarks: boolean) => dispatch({ type: 'SET_HALLMARKS', payload: showHallmarks }),
-		[dispatch]
-	)
-	const handleLabelsChange = useCallback(
-		(showLabels: boolean) => dispatch({ type: 'SET_LABELS', payload: showLabels }),
-		[dispatch]
-	)
+	const handleStackedChange = (stacked: boolean) => dispatch({ type: 'SET_STACKED', payload: stacked })
+	const handlePercentageChange = (percentage: boolean) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage })
+	const handleCumulativeChange = (cumulative: boolean) => dispatch({ type: 'SET_CUMULATIVE', payload: cumulative })
+	const handleGroupingChange = (grouping: ChartState['grouping']) =>
+		dispatch({ type: 'SET_GROUPING', payload: grouping })
+	const handleHallmarksChange = (showHallmarks: boolean) =>
+		dispatch({ type: 'SET_HALLMARKS', payload: showHallmarks })
+	const handleLabelsChange = (showLabels: boolean) => dispatch({ type: 'SET_LABELS', payload: showLabels })
 
 	if (!isActive) return null
 
@@ -539,7 +523,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 			</div>
 		)
 	}
-})
+}
 
 const ChartLoadingSpinner = () => <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-500"></div>
 
@@ -568,7 +552,7 @@ const ChartErrorPlaceholder = () => (
 	</div>
 )
 
-export const ChartRenderer = memo(function ChartRenderer({
+export function ChartRenderer({
 	charts,
 	chartData,
 	isLoading = false,
@@ -652,4 +636,4 @@ export const ChartRenderer = memo(function ChartRenderer({
 			))}
 		</div>
 	)
-})
+}

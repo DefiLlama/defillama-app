@@ -19,7 +19,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import {
@@ -227,44 +227,35 @@ export function ColumnManager({
 		useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
 	)
 
-	const applyChanges = useCallback(
-		(nextSelected: string[]) => {
-			const nextSelectedSet = new Set(nextSelected)
-			const remaining = allColumns.map((c) => c.id).filter((id) => id !== 'name' && !nextSelectedSet.has(id))
-			const nextOrder: ColumnOrderState = ['name', ...nextSelected, ...remaining]
-			const nextVisibility: VisibilityState = { name: true }
-			for (const column of allColumns) {
-				if (column.id === 'name') continue
-				nextVisibility[column.id] = nextSelectedSet.has(column.id)
-			}
-			onChange(nextOrder, nextVisibility)
-		},
-		[allColumns, onChange]
-	)
+	const applyChanges = (nextSelected: string[]) => {
+		const nextSelectedSet = new Set(nextSelected)
+		const remaining = allColumns.map((c) => c.id).filter((id) => id !== 'name' && !nextSelectedSet.has(id))
+		const nextOrder: ColumnOrderState = ['name', ...nextSelected, ...remaining]
+		const nextVisibility: VisibilityState = { name: true }
+		for (const column of allColumns) {
+			if (column.id === 'name') continue
+			nextVisibility[column.id] = nextSelectedSet.has(column.id)
+		}
+		onChange(nextOrder, nextVisibility)
+	}
 
-	const handleToggleColumn = useCallback(
-		(id: string) => {
-			if (id === 'name') return
-			const isSelected = selectedColumnsSet.has(id)
-			if (isSelected) {
-				applyChanges(selectedColumns.filter((c) => c !== id))
-			} else {
-				applyChanges([...selectedColumns, id])
-			}
-		},
-		[selectedColumns, selectedColumnsSet, applyChanges]
-	)
-
-	const handleRemoveColumn = useCallback(
-		(id: string) => {
+	const handleToggleColumn = (id: string) => {
+		if (id === 'name') return
+		const isSelected = selectedColumnsSet.has(id)
+		if (isSelected) {
 			applyChanges(selectedColumns.filter((c) => c !== id))
-		},
-		[selectedColumns, applyChanges]
-	)
+		} else {
+			applyChanges([...selectedColumns, id])
+		}
+	}
 
-	const handleClearAll = useCallback(() => {
+	const handleRemoveColumn = (id: string) => {
+		applyChanges(selectedColumns.filter((c) => c !== id))
+	}
+
+	const handleClearAll = () => {
 		applyChanges([])
-	}, [applyChanges])
+	}
 
 	const handleDragStart = (event: DragStartEvent) => setActiveId(event.active.id)
 	const handleDragEnd = (event: DragEndEvent) => {
@@ -355,7 +346,7 @@ export function ColumnManager({
 		}
 	}, [customExpression, expressionValidation.isValid, editingId])
 
-	const insertSuggestion = useCallback((suggestion: AutocompleteSuggestion) => {
+	const insertSuggestion = (suggestion: AutocompleteSuggestion) => {
 		if (!expressionInputRef.current) return
 		const input = expressionInputRef.current
 		const start = input.selectionStart || 0
@@ -377,7 +368,7 @@ export function ColumnManager({
 		setShowAutocomplete(false)
 		setAutocompleteIndex(-1)
 		setAutocompleteFilter('')
-	}, [])
+	}
 
 	const handleExpressionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const newValue = e.target.value
@@ -432,7 +423,7 @@ export function ColumnManager({
 		}
 	}
 
-	const handleAddOrUpdateCustomColumn = useCallback(() => {
+	const handleAddOrUpdateCustomColumn = () => {
 		if (!validation.isValid) return
 		const column: CustomColumnDefinition = {
 			id: editingId ?? generateCustomColumnId(),
@@ -458,16 +449,7 @@ export function ColumnManager({
 		setCustomFormat('number')
 		setCustomAggregation('recalculate')
 		setCustomColumnExpanded(false)
-	}, [
-		validation.isValid,
-		customName,
-		customExpression,
-		customFormat,
-		customAggregation,
-		editingId,
-		onAddCustomColumn,
-		onUpdateCustomColumn
-	])
+	}
 
 	const handleApplyPreset = (preset: (typeof EXAMPLE_PRESETS)[0]) => {
 		aggregationTouchedRef.current = false

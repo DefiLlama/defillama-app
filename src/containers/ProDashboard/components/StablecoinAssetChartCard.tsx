@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { useStablecoinAssetChartData } from '~/containers/ProDashboard/components/datasets/StablecoinAssetDataset/useStablecoinAssetChartData'
@@ -96,7 +96,7 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 		return data[data.length - 1]?.Circulating ?? null
 	}, [filteredChartData.peggedAreaTotalData])
 
-	const handleCsvExport = useCallback(() => {
+	const handleCsvExport = () => {
 		let rows: (string | number)[][] = []
 		let filename = ''
 
@@ -140,7 +140,7 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 			const csvContent = rows.map((row) => row.join(',')).join('\n')
 			download(filename, csvContent)
 		}
-	}, [filteredChartData, chainsCirculatingValues, chainsUnique, stablecoin, chartType])
+	}
 
 	const chartTypeLabel = CHART_TYPE_LABELS[chartType] || chartType
 	const displayName = stablecoinName || stablecoin

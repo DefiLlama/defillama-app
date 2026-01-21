@@ -10,7 +10,7 @@ import { LinkToPage } from './shared'
 
 const PinnedPages = React.lazy(() => import('./PinnedPages').then((mod) => ({ default: mod.PinnedPages })))
 
-export const DesktopNav = React.memo(function DesktopNav({
+export function DesktopNav({
 	mainLinks,
 	pinnedPages,
 	userDashboards,
@@ -131,9 +131,9 @@ export const DesktopNav = React.memo(function DesktopNav({
 			</nav>
 		</span>
 	)
-})
+}
 
-const NavDetailsSection = React.memo(function NavDetailsSection({
+function NavDetailsSection({
 	category,
 	pages,
 	asPath
@@ -168,4 +168,4 @@ const NavDetailsSection = React.memo(function NavDetailsSection({
 			</div>
 		</details>
 	)
-})
+}

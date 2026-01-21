@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Select } from '~/components/Select'
 import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
 import { download } from '~/utils'
@@ -44,6 +44,12 @@ const buildHideOthersOptions = (mode: 'chains' | 'protocol', limit: number) => [
 		key: `Top ${limit}`
 	}
 ]
+
+const resolveFilterMode = (value?: 'include' | 'exclude', fallback?: 'include' | 'exclude') => {
+	if (value === 'include' || value === 'exclude') return value
+	if (fallback === 'include' || fallback === 'exclude') return fallback
+	return 'include'
+}
 
 interface ChartBuilderCardProps {
 	builder: {
@@ -119,11 +125,6 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		break
 	}
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
-	const resolveFilterMode = (value?: 'include' | 'exclude', fallback?: 'include' | 'exclude') => {
-		if (value === 'include' || value === 'exclude') return value
-		if (fallback === 'include' || fallback === 'exclude') return fallback
-		return 'include'
-	}
 	const chainFilterMode = resolveFilterMode(config.chainFilterMode, config.filterMode)
 	const categoryFilterMode = resolveFilterMode(config.categoryFilterMode, config.filterMode)
 	const chainCategoryFilterMode = resolveFilterMode(config.chainCategoryFilterMode, config.filterMode)
@@ -402,137 +403,136 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			.filter((item: any) => item.value > 0)
 	}, [chartData, seriesColors, treemapMode])
 
-	const tooltipFormatter = useCallback(
-		(params: any) => {
-			const rawTimestamp = params[0].value[0]
-			const millis = rawTimestamp < 10000000000 ? rawTimestamp * 1000 : rawTimestamp
-			const date = new Date(millis)
-			const chartdate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
+	const chartOptions = useMemo(
+		() => {
+			const tooltipFormatter = (params: any) => {
+				const rawTimestamp = params[0].value[0]
+				const millis = rawTimestamp < 10000000000 ? rawTimestamp * 1000 : rawTimestamp
+				const date = new Date(millis)
+				const chartdate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
 
-			let filteredParams = params.filter(
-				(item: any) => item.value[1] !== '-' && item.value[1] !== null && item.value[1] !== undefined
-			)
-			filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
+				let filteredParams = params.filter(
+					(item: any) => item.value[1] !== '-' && item.value[1] !== null && item.value[1] !== undefined
+				)
+				filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
 
-			const formatValue = (value: number) => {
-				if (config.displayAs === 'percentage') {
-					return `${Math.round(value * 100) / 100}%`
+				const formatValue = (value: number) => {
+					if (config.displayAs === 'percentage') {
+						return `${Math.round(value * 100) / 100}%`
+					}
+					const absValue = Math.abs(value)
+					if (absValue >= 1e9) {
+						return '$' + (value / 1e9).toFixed(1) + 'B'
+					} else if (absValue >= 1e6) {
+						return '$' + (value / 1e6).toFixed(1) + 'M'
+					} else if (absValue >= 1e3) {
+						return '$' + (value / 1e3).toFixed(0) + 'K'
+					}
+					return '$' + value.toFixed(0)
 				}
-				const absValue = Math.abs(value)
-				if (absValue >= 1e9) {
-					return '$' + (value / 1e9).toFixed(1) + 'B'
-				} else if (absValue >= 1e6) {
-					return '$' + (value / 1e6).toFixed(1) + 'M'
-				} else if (absValue >= 1e3) {
-					return '$' + (value / 1e3).toFixed(0) + 'K'
+
+				const useTwoColumns = config.limit > 10
+
+				const createItem = (curr: any, nameLength: number = 20) => {
+					let name = curr.seriesName
+					if (name.length > nameLength) {
+						name = name.substring(0, nameLength - 2) + '..'
+					}
+
+					return (
+						'<div style="display:flex;align-items:center;font-size:11px;line-height:1.4;white-space:nowrap">' +
+						curr.marker +
+						'<span style="margin-right:4px">' +
+						name +
+						'</span>' +
+						'<span style="margin-left:auto;font-weight:500">' +
+						formatValue(curr.value[1]) +
+						'</span>' +
+						'</div>'
+					)
 				}
-				return '$' + value.toFixed(0)
-			}
 
-			const useTwoColumns = config.limit > 10
+				let content = ''
 
-			const createItem = (curr: any, nameLength: number = 20) => {
-				let name = curr.seriesName
-				if (name.length > nameLength) {
-					name = name.substring(0, nameLength - 2) + '..'
+				if (useTwoColumns) {
+					const midpoint = Math.ceil(filteredParams.length / 2)
+					const leftColumn = filteredParams.slice(0, midpoint)
+					const rightColumn = filteredParams.slice(midpoint)
+
+					const leftColumnHtml = leftColumn.map((item: any) => createItem(item, 15)).join('')
+					const rightColumnHtml = rightColumn.map((item: any) => createItem(item, 15)).join('')
+
+					content =
+						`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">` +
+						`<div>${leftColumnHtml}</div>` +
+						`<div>${rightColumnHtml}</div>` +
+						`</div>`
+				} else {
+					const singleColumnHtml = filteredParams.map((item: any) => createItem(item, 20)).join('')
+					content = `<div>${singleColumnHtml}</div>`
 				}
 
 				return (
-					'<div style="display:flex;align-items:center;font-size:11px;line-height:1.4;white-space:nowrap">' +
-					curr.marker +
-					'<span style="margin-right:4px">' +
-					name +
-					'</span>' +
-					'<span style="margin-left:auto;font-weight:500">' +
-					formatValue(curr.value[1]) +
-					'</span>' +
-					'</div>'
+					`<div style="max-width:${useTwoColumns ? '400px' : '300px'}">` +
+					`<div style="font-size:12px;margin-bottom:4px;font-weight:500">${chartdate}</div>` +
+					content +
+					`</div>`
 				)
 			}
 
-			let content = ''
-
-			if (useTwoColumns) {
-				const midpoint = Math.ceil(filteredParams.length / 2)
-				const leftColumn = filteredParams.slice(0, midpoint)
-				const rightColumn = filteredParams.slice(midpoint)
-
-				const leftColumnHtml = leftColumn.map((item: any) => createItem(item, 15)).join('')
-				const rightColumnHtml = rightColumn.map((item: any) => createItem(item, 15)).join('')
-
-				content =
-					`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">` +
-					`<div>${leftColumnHtml}</div>` +
-					`<div>${rightColumnHtml}</div>` +
-					`</div>`
-			} else {
-				const singleColumnHtml = filteredParams.map((item: any) => createItem(item, 20)).join('')
-				content = `<div>${singleColumnHtml}</div>`
-			}
-
-			return (
-				`<div style="max-width:${useTwoColumns ? '400px' : '300px'}">` +
-				`<div style="font-size:12px;margin-bottom:4px;font-weight:500">${chartdate}</div>` +
-				content +
-				`</div>`
-			)
-		},
-		[config.displayAs, config.limit]
-	)
-
-	const chartOptions = useMemo(
-		() => ({
-			grid: {
-				top: 40,
-				bottom: 12,
-				left: 12,
-				right: 12,
-				outerBoundsMode: 'same',
-				outerBoundsContain: 'axisLabel'
-			},
-			legend: {
-				show: true,
-				top: 0,
-				type: 'scroll',
-				selectedMode: 'multiple',
-				pageButtonItemGap: 5,
-				pageButtonGap: 20,
-				data: chartSeriesNames
-			},
-			tooltip: {
-				formatter: tooltipFormatter,
-				confine: true
-			},
-			yAxis:
-				config.displayAs === 'percentage'
-					? {
-							max: 100,
-							min: 0,
-							axisLabel: {
-								formatter: '{value}%'
-							}
-						}
-					: {
-							type: 'value',
-							axisLabel: {
-								formatter: (value: number) => {
-									const absValue = Math.abs(value)
-									if (absValue >= 1e9) {
-										return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
-									} else if (absValue >= 1e6) {
-										return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
-									} else if (absValue >= 1e3) {
-										return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
-									}
-									return '$' + value.toFixed(0)
+			return {
+				grid: {
+					top: 40,
+					bottom: 12,
+					left: 12,
+					right: 12,
+					outerBoundsMode: 'same',
+					outerBoundsContain: 'axisLabel'
+				},
+				legend: {
+					show: true,
+					top: 0,
+					type: 'scroll',
+					selectedMode: 'multiple',
+					pageButtonItemGap: 5,
+					pageButtonGap: 20,
+					data: chartSeriesNames
+				},
+				tooltip: {
+					formatter: tooltipFormatter,
+					confine: true
+				},
+				yAxis:
+					config.displayAs === 'percentage'
+						? {
+								max: 100,
+								min: 0,
+								axisLabel: {
+									formatter: '{value}%'
 								}
 							}
-						}
-		}),
-		[chartSeriesNames, tooltipFormatter, config.displayAs]
+						: {
+								type: 'value',
+								axisLabel: {
+									formatter: (value: number) => {
+										const absValue = Math.abs(value)
+										if (absValue >= 1e9) {
+											return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
+										} else if (absValue >= 1e6) {
+											return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+										} else if (absValue >= 1e3) {
+											return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
+										}
+										return '$' + value.toFixed(0)
+									}
+								}
+							}
+			}
+		},
+		[chartSeriesNames, config.displayAs, config.limit]
 	)
 
-	const handleCsvExport = useCallback(() => {
+	const handleCsvExport = () => {
 		if (!chartSeries || chartSeries.length === 0) return
 
 		const timestampSet = new Set<number>()
@@ -563,59 +563,42 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			config.protocolCategories && config.protocolCategories.length > 0 ? config.protocolCategories.join('-') + '_' : ''
 		}${new Date().toISOString().split('T')[0]}.csv`
 		download(fileName, csvContent)
-	}, [
-		chartSeries,
-		builder.name,
-		config.metric,
-		config.chains,
-		config.categories,
-		config.chainCategories,
-		config.protocolCategories
-	])
+	}
 
-	const updateSeriesColors = useCallback(
-		(nextColors: Record<string, string>) => {
-			if (isReadOnly) {
-				return
+	const updateSeriesColors = (nextColors: Record<string, string>) => {
+		if (isReadOnly) {
+			return
+		}
+		handleEditItem(builder.id, {
+			...builder,
+			config: {
+				...builder.config,
+				seriesColors: nextColors
 			}
-			handleEditItem(builder.id, {
-				...builder,
-				config: {
-					...builder.config,
-					seriesColors: nextColors
-				}
-			})
-		},
-		[builder, handleEditItem, isReadOnly]
-	)
+		})
+	}
 
-	const handleSeriesColorChange = useCallback(
-		(seriesName: string, colorValue: string) => {
-			const currentColors = builder.config.seriesColors || {}
-			if (currentColors[seriesName] === colorValue) {
-				return
-			}
-			updateSeriesColors({
-				...currentColors,
-				[seriesName]: colorValue
-			})
-		},
-		[builder.config.seriesColors, updateSeriesColors]
-	)
+	const handleSeriesColorChange = (seriesName: string, colorValue: string) => {
+		const currentColors = builder.config.seriesColors || {}
+		if (currentColors[seriesName] === colorValue) {
+			return
+		}
+		updateSeriesColors({
+			...currentColors,
+			[seriesName]: colorValue
+		})
+	}
 
-	const handleSeriesColorReset = useCallback(
-		(seriesName: string) => {
-			if (!builder.config.seriesColors || !(seriesName in builder.config.seriesColors)) {
-				return
-			}
-			const nextColors = { ...builder.config.seriesColors }
-			delete nextColors[seriesName]
-			updateSeriesColors(nextColors)
-		},
-		[builder.config.seriesColors, updateSeriesColors]
-	)
+	const handleSeriesColorReset = (seriesName: string) => {
+		if (!builder.config.seriesColors || !(seriesName in builder.config.seriesColors)) {
+			return
+		}
+		const nextColors = { ...builder.config.seriesColors }
+		delete nextColors[seriesName]
+		updateSeriesColors(nextColors)
+	}
 
-	const handleResetAllSeriesColors = useCallback(() => {
+	const handleResetAllSeriesColors = () => {
 		if (!builder.config.seriesColors) return
 		let hasColors = false
 		for (const _ in builder.config.seriesColors) {
@@ -624,29 +607,26 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		}
 		if (!hasColors) return
 		updateSeriesColors({})
-	}, [builder.config.seriesColors, updateSeriesColors])
+	}
 
-	const handleTreemapValueChange = useCallback(
-		(nextValue: string) => {
-			if (isReadOnly) {
-				return
+	const handleTreemapValueChange = (nextValue: string) => {
+		if (isReadOnly) {
+			return
+		}
+		if (nextValue !== 'latest' && nextValue !== 'sum7d' && nextValue !== 'sum30d') {
+			return
+		}
+		if (config.treemapValue === nextValue) {
+			return
+		}
+		handleEditItem(builder.id, {
+			...builder,
+			config: {
+				...builder.config,
+				treemapValue: nextValue
 			}
-			if (nextValue !== 'latest' && nextValue !== 'sum7d' && nextValue !== 'sum30d') {
-				return
-			}
-			if (config.treemapValue === nextValue) {
-				return
-			}
-			handleEditItem(builder.id, {
-				...builder,
-				config: {
-					...builder.config,
-					treemapValue: nextValue
-				}
-			})
-		},
-		[builder, config.treemapValue, handleEditItem, isReadOnly]
-	)
+		})
+	}
 
 	return (
 		<div className="flex min-h-[422px] flex-col p-1 md:min-h-[438px]">

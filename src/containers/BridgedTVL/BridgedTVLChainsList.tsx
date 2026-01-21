@@ -24,7 +24,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 		.filter((row) => row?.total)
 		.sort((a, b) => b.total.total - a.total.total)
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const csvData = data.map((row) => {
 			return {
 				Chain: row.name,
@@ -40,7 +40,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 		const rows = [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
 
 		return { filename: 'bridged-chains.csv', rows }
-	}, [data])
+	}
 
 	return (
 		<>

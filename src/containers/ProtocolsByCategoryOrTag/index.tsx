@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { lazy, Suspense, useCallback, useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
@@ -77,7 +77,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 		return columns(name, props.isRWA)
 	}, [name, props.isRWA])
 
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		const headers = categoryColumns.map((col) => col.header as string)
 		const rows = finalProtocols.map((protocol) => {
 			return categoryColumns.map((col: any) => {
@@ -96,9 +96,9 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 			filename: `defillama-${name}-${props.chain || 'all'}-protocols.csv`,
 			rows: [headers, ...rows] as (string | number | boolean)[][]
 		}
-	}, [finalProtocols, categoryColumns, name, props.chain])
+	}
 
-	const prepareCsvFromChart = useCallback(() => {
+	const prepareCsvFromChart = () => {
 		const rows: any = [['Timestamp', 'Date', name]]
 		for (const item of props.charts['TVL']?.data ?? []) {
 			rows.push([item[0], toNiceCsvDate(item[0] / 1000), item[1]])
@@ -107,7 +107,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 			filename: `${name}-TVL.csv`,
 			rows: rows as (string | number | boolean)[][]
 		}
-	}, [props.charts, name])
+	}
 
 	return (
 		<>

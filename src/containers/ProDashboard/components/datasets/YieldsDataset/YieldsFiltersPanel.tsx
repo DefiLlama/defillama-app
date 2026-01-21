@@ -21,6 +21,11 @@ const EMPTY_POOL_TYPES: string[] = []
 const EMPTY_PROTOCOLS: string[] = []
 const EMPTY_TOKENS: string[] = []
 
+const formatNumberWithCommas = (num: number | undefined): string => {
+	if (num == null) return ''
+	return num.toLocaleString('en-US', { maximumFractionDigits: 0 })
+}
+
 interface YieldsFiltersPanelProps {
 	showFiltersPanel: boolean
 	setShowFiltersPanel: (show: boolean) => void
@@ -62,11 +67,6 @@ export function YieldsFiltersPanel({
 			...prev,
 			[key]: value
 		}))
-	}
-
-	const formatNumberWithCommas = (num: number | undefined): string => {
-		if (num == null) return ''
-		return num.toLocaleString('en-US', { maximumFractionDigits: 0 })
 	}
 
 	const parseFormattedNumber = (value: string): number | undefined => {

@@ -25,13 +25,13 @@ cd defillama-app
 #### 2. Install dependencies:
 
 ```bash
-yarn
+bun install
 ```
 
 #### 3. Start the development server:
 
 ```bash
-yarn dev
+bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.

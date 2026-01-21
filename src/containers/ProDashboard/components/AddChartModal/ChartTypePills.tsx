@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { memo, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 
@@ -36,7 +36,7 @@ const CHAIN_GROUPS: Record<string, string[]> = {
 	'Native Token': ['chainMcap', 'chainPrice']
 }
 
-export const ChartTypePills = memo(function ChartTypePills({
+export function ChartTypePills({
 	chartTypes,
 	selectedType,
 	onSelect,
@@ -136,4 +136,4 @@ export const ChartTypePills = memo(function ChartTypePills({
 			</Ariakit.SelectPopover>
 		</Ariakit.SelectProvider>
 	)
-})
+}

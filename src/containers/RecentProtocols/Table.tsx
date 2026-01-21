@@ -130,7 +130,7 @@ export function RecentlyListedProtocolsTable({
 		)
 	}
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const headers = ['Name', 'TVL', 'Change 1d', 'Change 7d', 'Change 1m', 'Listed At', 'Chains']
 		const csvData = data.map((row) => {
 			return {
@@ -145,7 +145,7 @@ export function RecentlyListedProtocolsTable({
 		})
 		const rows = [headers, ...csvData.map((row) => headers.map((header) => row[header]))]
 		return { filename: 'protocols.csv', rows: rows as (string | number | boolean)[][] }
-	}, [data])
+	}
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

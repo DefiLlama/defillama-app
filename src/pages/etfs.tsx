@@ -144,7 +144,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 		return newCharts
 	}, [charts, tickers])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		let rows = []
 
 		rows = [['Timestamp', 'Date', 'Bitcoin', 'Ethereum']]
@@ -153,7 +153,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 		}
 		const filename = `etf-flows-${new Date().toISOString().split('T')[0]}.csv`
 		return { filename, rows: rows as (string | number | boolean)[][] }
-	}, [flows])
+	}
 
 	return (
 		<>
