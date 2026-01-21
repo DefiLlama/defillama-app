@@ -165,6 +165,16 @@ export const getStorageItem = (key: string, fallback: string | null = null) => {
 export const setStorageItem = (key: string, value: string) => {
 	if (!canUseStorage()) return
 
+	let previousValue: string | null = null
+	try {
+		previousValue = window.localStorage.getItem(key)
+	} catch {
+		// Ignore read errors and fall back to write attempt.
+	}
+
+	// Avoid redundant writes + notifications (can cause render/fetch loops).
+	if (previousValue === value) return
+
 	try {
 		window.localStorage.setItem(key, value)
 	} catch {
@@ -177,13 +187,23 @@ export const setStorageItem = (key: string, value: string) => {
 export const removeStorageItem = (key: string) => {
 	if (!canUseStorage()) return
 
+	let hadValue = false
+	try {
+		hadValue = window.localStorage.getItem(key) !== null
+	} catch {
+		// Ignore read errors and fall back to remove attempt.
+	}
+
 	try {
 		window.localStorage.removeItem(key)
 	} catch {
 		return
 	}
 
-	notifyKeyChange(key)
+	// Only notify if something actually changed.
+	if (hadValue) {
+		notifyKeyChange(key)
+	}
 }
 
 export const getStorageJSON = <T>(key: string, fallback: T) => {

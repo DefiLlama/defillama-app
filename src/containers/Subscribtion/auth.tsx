@@ -14,25 +14,25 @@ const AUTH_STORE_CHANGE_EVENT = 'pb-auth-store-change'
 let authStoreSnapshot = {
 	token: pb.authStore.token,
 	record: pb.authStore.record ? { ...pb.authStore.record } : null,
+	recordKey: pb.authStore.record ? `${pb.authStore.record.id}:${pb.authStore.record.updated}` : '',
 	isValid: pb.authStore.isValid
 }
 
-// Subscribe to PocketBase authStore changes and dispatch window events
+// Subscribe to PocketBase authStore changes and react to external events
 const subscribeToAuthStore = (callback: () => void) => {
 	const unsubscribe = pb.authStore.onChange((token, record) => {
+		const nextRecordKey = record ? `${record.id}:${record.updated}` : ''
 		const hasTokenChanged = authStoreSnapshot.token !== token
-		const hasRecordChanged = JSON.stringify(authStoreSnapshot.record) !== JSON.stringify(record)
+		const hasRecordChanged = authStoreSnapshot.recordKey !== nextRecordKey
 		const hasValidChanged = authStoreSnapshot.isValid !== pb.authStore.isValid
 
 		if (hasTokenChanged || hasRecordChanged || hasValidChanged) {
 			authStoreSnapshot = {
 				token,
 				record: record ? { ...record } : null,
+				recordKey: nextRecordKey,
 				isValid: pb.authStore.isValid
 			}
-			window.dispatchEvent(
-				new CustomEvent(AUTH_STORE_CHANGE_EVENT, { detail: { token, record, isValid: pb.authStore.isValid } })
-			)
 			callback()
 		}
 	})
