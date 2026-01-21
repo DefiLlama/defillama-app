@@ -376,11 +376,6 @@ const ChartByType = ({
 					selectedValues={selectedTypes}
 					setSelectedValues={setSelectedTypes}
 					label={chartType === 'version' ? 'Versions' : 'Chains'}
-					clearAll={() => setSelectedTypes([])}
-					toggleAll={() => setSelectedTypes(breakdownNames)}
-					selectOnlyOne={(newType) => {
-						setSelectedTypes([newType])
-					}}
 					labelType="smol"
 					triggerProps={{
 						className:

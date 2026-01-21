@@ -50,18 +50,12 @@ interface ISelectWithUrlParams extends ISelectBase {
 	includeQueryKey: string
 	excludeQueryKey: string
 	setSelectedValues?: never
-	clearAll?: never
-	toggleAll?: never
-	selectOnlyOne?: never
 }
 
 interface ISelectWithState extends ISelectBase {
 	includeQueryKey?: never
 	excludeQueryKey?: never
 	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string> | string>>
-	clearAll?: () => void
-	toggleAll?: () => void
-	selectOnlyOne?: (value: string) => void
 }
 
 type ISelect = ISelectWithUrlParams | ISelectWithState
@@ -71,9 +65,6 @@ export function Select({
 	selectedValues,
 	setSelectedValues: setSelectedValuesProp,
 	label,
-	clearAll: clearAllProp,
-	toggleAll: toggleAllProp,
-	selectOnlyOne: selectOnlyOneProp,
 	nestedMenu,
 	labelType = 'regular',
 	triggerProps,
@@ -81,13 +72,21 @@ export function Select({
 	placement = 'bottom-start',
 	includeQueryKey
 }: ISelect) {
-	// If includeQueryKey is provided, use URL-based functions instead of props
-	const setSelectedValues = includeQueryKey ? createUrlSetSelectedValues(includeQueryKey) : setSelectedValuesProp
-	const clearAll = includeQueryKey ? createUrlClearAll(includeQueryKey) : clearAllProp
-	const toggleAll = includeQueryKey ? createUrlToggleAll(includeQueryKey) : toggleAllProp
-	const selectOnlyOne = includeQueryKey ? createUrlSelectOnlyOne(includeQueryKey) : selectOnlyOneProp
-
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
+
+	// Helper to extract keys from allValues
+	const getAllKeys = React.useCallback(
+		() => allValues.map((v) => (typeof v === 'string' ? v : v.key)),
+		[allValues]
+	)
+
+	// If includeQueryKey is provided, use URL-based functions; otherwise derive from setSelectedValues
+	const setSelectedValues = includeQueryKey ? createUrlSetSelectedValues(includeQueryKey) : setSelectedValuesProp
+	const clearAll = includeQueryKey ? createUrlClearAll(includeQueryKey) : () => setSelectedValuesProp([])
+	const toggleAll = includeQueryKey ? createUrlToggleAll(includeQueryKey) : () => setSelectedValuesProp(getAllKeys())
+	const selectOnlyOne = includeQueryKey
+		? createUrlSelectOnlyOne(includeQueryKey)
+		: (value: string) => setSelectedValuesProp([value])
 
 	const [viewableMatches, setViewableMatches] = React.useState(6)
 
@@ -120,20 +119,14 @@ export function Select({
 				}}
 			>
 				<NestedMenu label={label} render={<Ariakit.Select />}>
-					{clearAll || toggleAll ? (
-						<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
-							{clearAll ? (
-								<button onClick={clearAll} className="p-3">
-									Deselect All
-								</button>
-							) : null}
-							{toggleAll ? (
-								<button onClick={toggleAll} className="p-3">
-									Select All
-								</button>
-							) : null}
-						</span>
-					) : null}
+					<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
+						<button onClick={clearAll} className="p-3">
+							Deselect All
+						</button>
+						<button onClick={toggleAll} className="p-3">
+							Select All
+						</button>
+					</span>
 					{allValues.slice(0, viewableMatches).map((option) => (
 						<NestedMenuItem
 							key={valuesAreAnArrayOfStrings ? option : option.key}
@@ -227,20 +220,14 @@ export function Select({
 
 				{allValues.length > 0 ? (
 					<>
-						{clearAll || toggleAll ? (
-							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
-								{clearAll ? (
-									<button onClick={clearAll} className="p-3">
-										Deselect All
-									</button>
-								) : null}
-								{toggleAll ? (
-									<button onClick={toggleAll} className="p-3">
-										Select All
-									</button>
-								) : null}
-							</span>
-						) : null}
+						<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
+							<button onClick={clearAll} className="p-3">
+								Deselect All
+							</button>
+							<button onClick={toggleAll} className="p-3">
+								Select All
+							</button>
+						</span>
 
 						{allValues.slice(0, viewableMatches).map((option) => (
 							<Ariakit.SelectItem
@@ -259,17 +246,15 @@ export function Select({
 									<span>{option.name}</span>
 								)}
 								<div className="flex items-center gap-2">
-									{selectOnlyOne ? (
-										<button
-											onClick={(e) => {
-												e.stopPropagation()
-												selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
-											}}
-											className="invisible text-xs font-medium text-(--link) underline group-hover:visible group-focus-visible:visible"
-										>
-											Only
-										</button>
-									) : null}
+									<button
+										onClick={(e) => {
+											e.stopPropagation()
+											selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
+										}}
+										className="invisible text-xs font-medium text-(--link) underline group-hover:visible group-focus-visible:visible"
+									>
+										Only
+									</button>
 									{canSelectOnlyOne ? (
 										<Ariakit.SelectItemCheck />
 									) : (

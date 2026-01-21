@@ -5,7 +5,7 @@ import {
 	getFilteredRowModel,
 	useReactTable
 } from '@tanstack/react-table'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
@@ -176,117 +176,6 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 
 	const [searchValue, setSearchValue] = useTableSearch({ instance: table, columnToSearch: 'name' })
 
-	const clearChainSelection = () => {
-		const { chain: _chain, ...queries } = router.query
-		Router.push(
-			{
-				pathname: router.pathname,
-				query: { ...queries, chain: 'None' }
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const toggleAllChains = () => {
-		const { chain: _chain, ...queries } = router.query
-		Router.push(
-			{
-				pathname: router.pathname,
-				query: queries
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const addChain = (newOptions: Array<string>) => {
-		const { chain: _chain, ...queries } = router.query
-		Router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					chain: newOptions
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const selectOnlyOneChain = (chain: string) => {
-		const { chain: _currentChain, ...queries } = router.query
-		Router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					chain: chain
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const clearAllColumns = () => {
-		const { column: _column, ...queries } = router.query
-		Router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					column: 'None'
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const toggleAllColumns = () => {
-		const { column: _column, ...queries } = router.query
-		Router.push(
-			{
-				pathname: router.pathname,
-				query: queries
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const addColumn = (newOptions: Array<string>) => {
-		const { column: _column, ...queries } = router.query
-		Router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					column: newOptions
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const addOnlyOneColumn = (newOption: string) => {
-		const { column: _column, ...queries } = router.query
-		Router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					column: newOption
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
 	const prepareCsv = () => {
 		const visibleColumns = table.getAllLeafColumns().filter((col) => col.getIsVisible())
 		const headers = visibleColumns.map((col) => {
@@ -341,10 +230,8 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 						<SelectWithCombobox
 							allValues={chains}
 							selectedValues={selectedChains}
-							setSelectedValues={addChain}
-							selectOnlyOne={selectOnlyOneChain}
-							toggleAll={toggleAllChains}
-							clearAll={clearChainSelection}
+							includeQueryKey="chain"
+							excludeQueryKey="chain"
 							nestedMenu={false}
 							label={'Chains'}
 							labelType="smol"
@@ -357,10 +244,8 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 						<SelectWithCombobox
 							allValues={columnOptions}
 							selectedValues={selectedColumns}
-							setSelectedValues={addColumn}
-							selectOnlyOne={addOnlyOneColumn}
-							toggleAll={toggleAllColumns}
-							clearAll={clearAllColumns}
+							includeQueryKey="column"
+							excludeQueryKey="column"
 							nestedMenu={false}
 							label={'Columns'}
 							labelType="smol"

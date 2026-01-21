@@ -76,9 +76,6 @@ function MetricFilters({
 				allValues={options}
 				selectedValues={selectedValues}
 				setSelectedValues={setSelectedValues}
-				selectOnlyOne={(newOption) => {
-					setSelectedValues([newOption])
-				}}
 				label={label || 'Include in TVL'}
 				triggerProps={{
 					className:

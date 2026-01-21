@@ -83,31 +83,11 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
 		includeGovernance,
-		setSelectedCategories,
-		setSelectedAssetClasses,
-		setSelectedRwaClassifications,
-		setSelectedAccessModels,
-		setSelectedIssuers,
 		setDefiActiveTvlToOnChainPctRange,
 		setActiveMcapToOnChainPctRange,
 		setDefiActiveTvlToActiveMcapPctRange,
 		setIncludeStablecoins,
-		setIncludeGovernance,
-		selectOnlyOneCategory,
-		toggleAllCategories,
-		clearAllCategories,
-		selectOnlyOneAssetClass,
-		toggleAllAssetClasses,
-		clearAllAssetClasses,
-		selectOnlyOneRwaClassification,
-		toggleAllRwaClassifications,
-		clearAllRwaClassifications,
-		selectOnlyOneAccessModel,
-		toggleAllAccessModels,
-		clearAllAccessModels,
-		selectOnlyOneIssuer,
-		toggleAllIssuers,
-		clearAllIssuers
+		setIncludeGovernance
 	} = useRWATableQueryParams({
 		categories: props.categories,
 		assetClasses: props.assetClasses,
@@ -373,10 +353,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				<SelectWithCombobox
 					allValues={props.categories}
 					selectedValues={selectedCategories}
-					setSelectedValues={setSelectedCategories}
-					selectOnlyOne={selectOnlyOneCategory}
-					toggleAll={toggleAllCategories}
-					clearAll={clearAllCategories}
+					includeQueryKey="categories"
+					excludeQueryKey="categories"
 					label={'Categories'}
 					labelType="smol"
 					triggerProps={{
@@ -387,10 +365,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				<SelectWithCombobox
 					allValues={props.assetClassOptions}
 					selectedValues={selectedAssetClasses}
-					setSelectedValues={setSelectedAssetClasses}
-					selectOnlyOne={selectOnlyOneAssetClass}
-					toggleAll={toggleAllAssetClasses}
-					clearAll={clearAllAssetClasses}
+					includeQueryKey="assetClasses"
+					excludeQueryKey="assetClasses"
 					label={'Asset Classes'}
 					labelType="smol"
 					triggerProps={{
@@ -401,10 +377,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				<SelectWithCombobox
 					allValues={props.rwaClassificationOptions}
 					selectedValues={selectedRwaClassifications}
-					setSelectedValues={setSelectedRwaClassifications}
-					selectOnlyOne={selectOnlyOneRwaClassification}
-					toggleAll={toggleAllRwaClassifications}
-					clearAll={clearAllRwaClassifications}
+					includeQueryKey="rwaClassifications"
+					excludeQueryKey="rwaClassifications"
 					label={'RWA Classification'}
 					labelType="smol"
 					triggerProps={{
@@ -415,10 +389,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				<SelectWithCombobox
 					allValues={props.accessModelOptions}
 					selectedValues={selectedAccessModels}
-					setSelectedValues={setSelectedAccessModels}
-					selectOnlyOne={selectOnlyOneAccessModel}
-					toggleAll={toggleAllAccessModels}
-					clearAll={clearAllAccessModels}
+					includeQueryKey="accessModels"
+					excludeQueryKey="accessModels"
 					label={'Access Model'}
 					labelType="smol"
 					triggerProps={{
@@ -429,10 +401,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				<SelectWithCombobox
 					allValues={props.issuers}
 					selectedValues={selectedIssuers}
-					setSelectedValues={setSelectedIssuers}
-					selectOnlyOne={selectOnlyOneIssuer}
-					toggleAll={toggleAllIssuers}
-					clearAll={clearAllIssuers}
+					includeQueryKey="issuers"
+					excludeQueryKey="issuers"
 					label={'Issuers'}
 					labelType="smol"
 					triggerProps={{
@@ -1090,18 +1060,6 @@ const toNumberParam = (p: string | string[] | undefined): number | null => {
 	return parseNumberInput(p)
 }
 
-const updateArrayQuery = (key: string, values: string[] | 'None') => {
-	const nextQuery: Record<string, any> = { ...Router.query }
-	if (values === 'None') {
-		nextQuery[key] = 'None'
-	} else if (values.length > 0) {
-		nextQuery[key] = values
-	} else {
-		delete nextQuery[key]
-	}
-	Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-}
-
 const updateNumberRangeQuery = (
 	minKey: string,
 	maxKey: string,
@@ -1229,52 +1187,6 @@ const useRWATableQueryParams = ({
 		issuers
 	])
 
-	const setSelectedCategories = (values: string[]) => updateArrayQuery('categories', values)
-	const selectOnlyOneCategory = (category: string) => updateArrayQuery('categories', [category])
-	const toggleAllCategories = () => {
-		const nextQuery: Record<string, any> = { ...Router.query }
-		delete nextQuery.categories
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}
-	const clearAllCategories = () => updateArrayQuery('categories', 'None')
-
-	const setSelectedAssetClasses = (values: string[]) => updateArrayQuery('assetClasses', values)
-	const selectOnlyOneAssetClass = (assetClass: string) => updateArrayQuery('assetClasses', [assetClass])
-	const toggleAllAssetClasses = () => {
-		const nextQuery: Record<string, any> = { ...Router.query }
-		delete nextQuery.assetClasses
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}
-	const clearAllAssetClasses = () => updateArrayQuery('assetClasses', 'None')
-
-	const setSelectedRwaClassifications = (values: string[]) => updateArrayQuery('rwaClassifications', values)
-	const selectOnlyOneRwaClassification = (rwaClassification: string) =>
-		updateArrayQuery('rwaClassifications', [rwaClassification])
-	const toggleAllRwaClassifications = () => {
-		const nextQuery: Record<string, any> = { ...Router.query }
-		delete nextQuery.rwaClassifications
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}
-	const clearAllRwaClassifications = () => updateArrayQuery('rwaClassifications', 'None')
-
-	const setSelectedAccessModels = (values: string[]) => updateArrayQuery('accessModels', values)
-	const selectOnlyOneAccessModel = (accessModel: string) => updateArrayQuery('accessModels', [accessModel])
-	const toggleAllAccessModels = () => {
-		const nextQuery: Record<string, any> = { ...Router.query }
-		delete nextQuery.accessModels
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}
-	const clearAllAccessModels = () => updateArrayQuery('accessModels', 'None')
-
-	const setSelectedIssuers = (values: string[]) => updateArrayQuery('issuers', values)
-	const selectOnlyOneIssuer = (issuer: string) => updateArrayQuery('issuers', [issuer])
-	const toggleAllIssuers = () => {
-		const nextQuery: Record<string, any> = { ...Router.query }
-		delete nextQuery.issuers
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}
-	const clearAllIssuers = () => updateArrayQuery('issuers', 'None')
-
 	const setDefiActiveTvlToOnChainPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
 		updateNumberRangeQuery('minDefiActiveTvlToOnChainPct', 'maxDefiActiveTvlToOnChainPct', minValue, maxValue)
 	const setActiveMcapToOnChainPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
@@ -1316,31 +1228,11 @@ const useRWATableQueryParams = ({
 		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
 		includeGovernance,
-		setSelectedCategories,
-		setSelectedAssetClasses,
-		setSelectedRwaClassifications,
-		setSelectedAccessModels,
-		setSelectedIssuers,
 		setDefiActiveTvlToOnChainPctRange,
 		setActiveMcapToOnChainPctRange,
 		setDefiActiveTvlToActiveMcapPctRange,
 		setIncludeStablecoins,
-		setIncludeGovernance,
-		selectOnlyOneCategory,
-		toggleAllCategories,
-		clearAllCategories,
-		selectOnlyOneAssetClass,
-		toggleAllAssetClasses,
-		clearAllAssetClasses,
-		selectOnlyOneRwaClassification,
-		toggleAllRwaClassifications,
-		clearAllRwaClassifications,
-		selectOnlyOneAccessModel,
-		toggleAllAccessModels,
-		clearAllAccessModels,
-		selectOnlyOneIssuer,
-		toggleAllIssuers,
-		clearAllIssuers
+		setIncludeGovernance
 	}
 }
 

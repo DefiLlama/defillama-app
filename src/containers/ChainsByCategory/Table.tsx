@@ -33,17 +33,7 @@ import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 
 const optionsKey = 'chains-overview-table-columns'
 
-const clearAllColumns = () => {
-	const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))
-	setStorageItem(optionsKey, ops)
-}
-
-const toggleAllColumns = () => {
-	const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, true])))
-	setStorageItem(optionsKey, ops)
-}
-
-const addColumn = (newOptions) => {
+const setColumnOptions = (newOptions: string[]) => {
 	const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key)]))
 	setStorageItem(optionsKey, JSON.stringify(ops))
 }
@@ -97,11 +87,6 @@ export function ChainsByCategoryTable({
 		columnOrders: chainsTableColumnOrders
 	})
 
-	const addOnlyOneColumn = (newOption) => {
-		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption]))
-		setStorageItem(optionsKey, JSON.stringify(ops))
-	}
-
 	const selectedColumns = instance
 		.getAllLeafColumns()
 		.filter((col) => col.getIsVisible())
@@ -109,39 +94,11 @@ export function ChainsByCategoryTable({
 
 	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 
-	const clearAllAggrOptions = () => {
-		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
-		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
-			if (selectedAggregateTypesSet.has(item.key)) {
-				updater(item.key)
-			}
-		}
-	}
-
-	const toggleAllAggrOptions = () => {
-		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
-		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
-			if (!selectedAggregateTypesSet.has(item.key)) {
-				updater(item.key)
-			}
-		}
-	}
-
-	const addAggrOption: React.Dispatch<React.SetStateAction<Array<string>>> = (selectedKeys) => {
+	const setAggrOptions: React.Dispatch<React.SetStateAction<Array<string>>> = (selectedKeys) => {
 		const nextSelectedKeys = typeof selectedKeys === 'function' ? selectedKeys(selectedAggregateTypes) : selectedKeys
 		const selectedKeysSet = new Set(nextSelectedKeys)
 		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
 			const shouldEnable = selectedKeysSet.has(item.key)
-			if (groupTvls[item.key] !== shouldEnable) {
-				updater(item.key)
-			}
-		}
-	}
-
-	const addOnlyOneAggrOption = (newOption: string) => {
-		if (!isChainsCategoryGroupKey(newOption)) return
-		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
-			const shouldEnable = item.key === newOption
 			if (groupTvls[item.key] !== shouldEnable) {
 				updater(item.key)
 			}
@@ -203,10 +160,7 @@ export function ChainsByCategoryTable({
 							<SelectWithCombobox
 								allValues={CHAINS_CATEGORY_GROUP_SETTINGS}
 								selectedValues={selectedAggregateTypes}
-								setSelectedValues={addAggrOption}
-								selectOnlyOne={addOnlyOneAggrOption}
-								toggleAll={toggleAllAggrOptions}
-								clearAll={clearAllAggrOptions}
+								setSelectedValues={setAggrOptions}
 								nestedMenu={false}
 								label={'Group Chains'}
 								labelType="smol"
@@ -219,10 +173,7 @@ export function ChainsByCategoryTable({
 						<SelectWithCombobox
 							allValues={columnOptions}
 							selectedValues={selectedColumns}
-							setSelectedValues={addColumn}
-							selectOnlyOne={addOnlyOneColumn}
-							toggleAll={toggleAllColumns}
-							clearAll={clearAllColumns}
+							setSelectedValues={setColumnOptions}
 							nestedMenu={false}
 							label={'Columns'}
 							labelType="smol"

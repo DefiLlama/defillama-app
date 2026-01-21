@@ -402,10 +402,7 @@ const MNAVChart = ({
 					allValues={institutionsNames}
 					selectedValues={selectedInstitution}
 					setSelectedValues={setSelectedInstitution}
-					selectOnlyOne={(institution) => setSelectedInstitution([institution])}
 					label="Institutions"
-					clearAll={() => setSelectedInstitution([])}
-					toggleAll={() => setSelectedInstitution(institutionsNames)}
 					labelType="smol"
 					triggerProps={{
 						className:

@@ -151,9 +151,6 @@ const ChartFilters = () => {
 			allValues={supportedCharts}
 			selectedValues={selectedValues}
 			setSelectedValues={setSelectedValues}
-			selectOnlyOne={(newOption) => {
-				setSelectedValues([newOption])
-			}}
 			labelType="none"
 			label={
 				<>

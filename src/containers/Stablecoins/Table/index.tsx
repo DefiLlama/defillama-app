@@ -182,38 +182,10 @@ export function PeggedChainsTable({ data }) {
 
 	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 
-	const clearAllAggrOptions = () => {
-		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
-		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
-			if (selectedAggregateTypesSet.has(item.key)) {
-				updater(item.key)
-			}
-		}
-	}
-
-	const toggleAllAggrOptions = () => {
-		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
-		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
-			if (!selectedAggregateTypesSet.has(item.key)) {
-				updater(item.key)
-			}
-		}
-	}
-
-	const addAggrOption = (selectedKeys: string[]) => {
+	const setAggrOptions = (selectedKeys: string[]) => {
 		const selectedSet = new Set(selectedKeys)
 		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
 			const shouldEnable = selectedSet.has(item.key)
-			if (groupTvls[item.key] !== shouldEnable) {
-				updater(item.key)
-			}
-		}
-	}
-
-	const addOnlyOneAggrOption = (newOption: string) => {
-		if (!isChainsCategoryGroupKey(newOption)) return
-		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
-			const shouldEnable = item.key === newOption
 			if (groupTvls[item.key] !== shouldEnable) {
 				updater(item.key)
 			}
@@ -247,10 +219,7 @@ export function PeggedChainsTable({ data }) {
 				<SelectWithCombobox
 					allValues={CHAINS_CATEGORY_GROUP_SETTINGS}
 					selectedValues={selectedAggregateTypes}
-					setSelectedValues={addAggrOption}
-					selectOnlyOne={addOnlyOneAggrOption}
-					toggleAll={toggleAllAggrOptions}
-					clearAll={clearAllAggrOptions}
+					setSelectedValues={setAggrOptions}
 					nestedMenu={false}
 					label={'Group Chains'}
 					labelType="smol"

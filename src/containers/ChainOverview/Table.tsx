@@ -71,34 +71,6 @@ export const ChainProtocolsTable = ({
 		() => null
 	)
 
-	const clearAllColumns = () => {
-		const ops = JSON.stringify(
-			Object.fromEntries(
-				[...columnOptions, ...customColumns.map((col, idx) => ({ key: `custom_formula_${idx}` }))].map((option) => [
-					option.key,
-					false
-				])
-			)
-		)
-		setStorageItem(tableColumnOptionsKey, ops)
-		if (instance && instance.setColumnVisibility) {
-			instance.setColumnVisibility(JSON.parse(ops))
-		}
-	}
-	const toggleAllColumns = () => {
-		const ops = JSON.stringify(
-			Object.fromEntries(
-				[...columnOptions, ...customColumns.map((col, idx) => ({ key: `custom_formula_${idx}` }))].map((option) => [
-					option.key,
-					true
-				])
-			)
-		)
-		setStorageItem(tableColumnOptionsKey, ops)
-		if (instance && instance.setColumnVisibility) {
-			instance.setColumnVisibility(JSON.parse(ops))
-		}
-	}
 
 	const [customColumnModalEditIndex, setCustomColumnModalEditIndex] = useState<number | null>(null)
 	const [customColumnModalInitialValues, setCustomColumnModalInitialValues] = useState<
@@ -166,7 +138,7 @@ export const ChainProtocolsTable = ({
 		]
 	}, [customColumns])
 
-	const addColumn = (newColumns) => {
+	const setColumnOptions = (newColumns: string[]) => {
 		const allKeys = mergedColumns.map((col) => col.key)
 		const ops = Object.fromEntries(allKeys.map((key) => [key, newColumns.includes(key)]))
 		setStorageItem(tableColumnOptionsKey, JSON.stringify(ops))
@@ -176,12 +148,8 @@ export const ChainProtocolsTable = ({
 		}
 	}
 
-	const addOnlyOneColumn = (newOption) => {
-		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption]))
-		setStorageItem(tableColumnOptionsKey, JSON.stringify(ops))
-		if (instance && instance.setColumnVisibility) {
-			instance.setColumnVisibility(ops)
-		}
+	const toggleAllColumns = () => {
+		setColumnOptions(mergedColumns.map((col) => col.key))
 	}
 
 	const columnVisibility = useMemo(() => JSON.parse(columnsInStorage), [columnsInStorage])
@@ -424,10 +392,7 @@ export const ChainProtocolsTable = ({
 				<SelectWithCombobox
 					allValues={mergedColumns}
 					selectedValues={selectedColumns}
-					setSelectedValues={addColumn}
-					selectOnlyOne={addOnlyOneColumn}
-					toggleAll={toggleAllColumns}
-					clearAll={clearAllColumns}
+					setSelectedValues={setColumnOptions}
 					nestedMenu={false}
 					label={'Columns'}
 					labelType="smol"

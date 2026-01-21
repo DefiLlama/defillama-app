@@ -295,58 +295,6 @@ export function AdapterByChain(props: IProps) {
 		return { filename: `${props.type}-${props.chain}-protocols.csv`, rows: [header, ...csvdata] }
 	}
 
-	const { category: _category, chain, ...queries } = router.query
-
-	const addCategory = (newCategory) => {
-		router.push(
-			{
-				pathname: router.basePath,
-				query: {
-					...queries,
-					...(!router.basePath.includes('/chain/') && chain ? { chain } : {}),
-					category: newCategory
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const toggleAllCategories = () => {
-		router.push(
-			{
-				pathname: router.basePath,
-				query: {
-					...queries,
-					...(!router.basePath.includes('/chain/') && chain ? { chain } : {}),
-					category: props.categories
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const clearAllCategories = () => {
-		const newQuery: any = {
-			...queries,
-			...(!router.basePath.includes('/chain/') && chain ? { chain } : {})
-		}
-
-		if (props.categories.length > 0) {
-			newQuery.category = ''
-		}
-
-		router.push(
-			{
-				pathname: router.basePath,
-				query: newQuery
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
 	const metricName = ['Fees', 'Revenue', 'Holders Revenue', 'Open Interest'].includes(props.type)
 		? props.type
 		: props.type.includes('Volume')
@@ -354,24 +302,8 @@ export function AdapterByChain(props: IProps) {
 			: `${props.type} Volume`
 	const columnsKey = `columns-${props.type}`
 
-	const clearAllColumns = () => {
-		setStorageItem(columnsKey, '{}')
-		instance.getToggleAllColumnsVisibilityHandler()({ checked: false } as any)
-	}
-	const toggleAllColumns = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnsOptions.map((option) => [option.key, true])))
-		setStorageItem(columnsKey, ops)
-		instance.getToggleAllColumnsVisibilityHandler()({ checked: true } as any)
-	}
-
-	const addColumn = (newOptions) => {
+	const setColumnOptions = (newOptions: string[]) => {
 		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)]))
-		setStorageItem(columnsKey, JSON.stringify(ops))
-		instance.setColumnVisibility(ops)
-	}
-
-	const addOnlyOneColumn = (newOption) => {
-		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption]))
 		setStorageItem(columnsKey, JSON.stringify(ops))
 		instance.setColumnVisibility(ops)
 	}
@@ -491,10 +423,7 @@ export function AdapterByChain(props: IProps) {
 					<SelectWithCombobox
 						allValues={columnsOptions}
 						selectedValues={selectedColumns}
-						setSelectedValues={addColumn}
-						selectOnlyOne={addOnlyOneColumn}
-						toggleAll={toggleAllColumns}
-						clearAll={clearAllColumns}
+						setSelectedValues={setColumnOptions}
 						nestedMenu={false}
 						label={'Columns'}
 						labelType="smol"
@@ -507,10 +436,8 @@ export function AdapterByChain(props: IProps) {
 						<SelectWithCombobox
 							allValues={props.categories}
 							selectedValues={selectedCategories}
-							setSelectedValues={addCategory}
-							selectOnlyOne={addCategory}
-							toggleAll={toggleAllCategories}
-							clearAll={clearAllCategories}
+							includeQueryKey="category"
+							excludeQueryKey="excludeCategory"
 							nestedMenu={false}
 							label={'Category'}
 							labelType="smol"

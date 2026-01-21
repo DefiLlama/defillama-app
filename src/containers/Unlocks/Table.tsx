@@ -19,25 +19,7 @@ import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/context
 const optionsKey = 'unlockTable'
 const filterStatekey = 'unlockTableFilterState'
 
-const clearAllOptions = () => {
-	const opsObj: Record<string, boolean> = {}
-	for (const option of columnOptions) {
-		opsObj[option.key] = false
-	}
-	const ops = JSON.stringify(opsObj)
-	setStorageItem(optionsKey, ops)
-}
-
-const toggleAllOptions = () => {
-	const opsObj: Record<string, boolean> = {}
-	for (const option of columnOptions) {
-		opsObj[option.key] = true
-	}
-	const ops = JSON.stringify(opsObj)
-	setStorageItem(optionsKey, ops)
-}
-
-const addOption = (newOptions) => {
+const setColumnOptions = (newOptions: string[]) => {
 	const ops: Record<string, boolean> = {}
 	for (const col of columnOptions) {
 		ops[col.key] = newOptions.includes(col.key)
@@ -45,12 +27,8 @@ const addOption = (newOptions) => {
 	setStorageItem(optionsKey, JSON.stringify(ops))
 }
 
-const addOnlyOneOption = (newOption) => {
-	const ops: Record<string, boolean> = {}
-	for (const col of columnOptions) {
-		ops[col.key] = col.key === newOption
-	}
-	setStorageItem(optionsKey, JSON.stringify(ops))
+const toggleAllOptions = () => {
+	setColumnOptions(columnOptions.map((col) => col.key))
 }
 
 interface IUnlocksTableProps {
@@ -372,10 +350,7 @@ export const UnlocksTable = ({
 				<SelectWithCombobox
 					allValues={columnOptions}
 					selectedValues={selectedOptions}
-					setSelectedValues={addOption}
-					selectOnlyOne={addOnlyOneOption}
-					toggleAll={toggleAllOptions}
-					clearAll={clearAllOptions}
+					setSelectedValues={setColumnOptions}
 					nestedMenu={false}
 					label={'Columns'}
 					labelType="smol"
@@ -389,9 +364,6 @@ export const UnlocksTable = ({
 					allValues={UNLOCK_TYPE_OPTIONS}
 					selectedValues={selectedUnlockTypes}
 					setSelectedValues={setSelectedUnlockTypes}
-					selectOnlyOne={(value) => setSelectedUnlockTypes([value])}
-					toggleAll={() => setSelectedUnlockTypes(UNLOCK_TYPES)}
-					clearAll={() => setSelectedUnlockTypes([])}
 					nestedMenu={false}
 					label={'Unlock Types'}
 					labelType="smol"
