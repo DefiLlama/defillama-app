@@ -448,6 +448,24 @@ export const bridgedChainColumns: ColumnDef<any>[] = [
 	}
 ]
 
+const ETHPegTooltipContent = ({ marketRate, expectedRate }: { marketRate: number; expectedRate: number }) => {
+	return (
+		<span className="flex flex-col gap-1">
+			<span>{`Market Rate: ${marketRate?.toFixed(4)}`}</span>
+			<span>{`Expected Rate: ${expectedRate?.toFixed(4)}`}</span>
+		</span>
+	)
+}
+
+const McapTooltipContent = ({ mcap, tvl }: { mcap: number; tvl: number }) => {
+	return (
+		<span className="flex flex-col gap-1">
+			<span>{`Market Cap: ${mcap?.toFixed(4)}`}</span>
+			<span>{`TVL: ${tvl?.toFixed(4)}`}</span>
+		</span>
+	)
+}
+
 export const LSDColumn: ColumnDef<ILSDRow>[] = [
 	{
 		header: 'Name',
@@ -542,16 +560,13 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		header: 'ETH Peg',
 		accessorKey: 'ethPeg',
 		cell: ({ getValue, row }) => {
-			const TooltipContent = () => {
-				return (
-					<span className="flex flex-col gap-1">
-						<span>{`Market Rate: ${row.original?.marketRate?.toFixed(4)}`}</span>
-						<span>{`Expected Rate: ${row.original?.expectedRate?.toFixed(4)}`}</span>
-					</span>
-				)
-			}
 			return (
-				<Tooltip content={<TooltipContent />} className="justify-end">
+				<Tooltip
+					content={
+						<ETHPegTooltipContent marketRate={row.original?.marketRate} expectedRate={row.original?.expectedRate} />
+					}
+					className="justify-end"
+				>
 					{getValue() ? formattedPercent(getValue()) : null}
 				</Tooltip>
 			)
@@ -567,11 +582,11 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		header: 'Mcap/TVL',
 		accessorKey: 'mcapOverTvl',
 		cell: ({ getValue, row }) => {
-			const TooltipContent = () => {
-				return <>{row.original.mcap ? <span>{`Market Cap: ${formattedNum(row.original.mcap, true)}`}</span> : null}</>
-			}
 			return (
-				<Tooltip content={<TooltipContent />} className="justify-end">
+				<Tooltip
+					content={<McapTooltipContent mcap={row.original.mcap} tvl={row.original.tvl} />}
+					className="justify-end"
+				>
 					{(getValue() ?? null) as string | null}
 				</Tooltip>
 			)

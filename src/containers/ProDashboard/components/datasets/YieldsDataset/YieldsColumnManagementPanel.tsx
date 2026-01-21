@@ -61,6 +61,91 @@ interface YieldsColumnManagementPanelProps {
 	moveColumnDown?: (columnKey: string) => void
 }
 
+const ColumnButton = ({
+	columnKey,
+	currentColumns,
+	columnOrder,
+	moveColumnUp,
+	moveColumnDown,
+	toggleColumnVisibility
+}: {
+	columnKey: string
+	currentColumns: Record<string, boolean>
+	columnOrder: string[]
+	moveColumnUp: (columnKey: string) => void
+	moveColumnDown: (columnKey: string) => void
+	toggleColumnVisibility: (columnKey: string, isVisible: boolean) => void
+}) => {
+	const metadata = yieldsColumnMetadata[columnKey]
+	const isActive = currentColumns[columnKey]
+
+	if (isActive) {
+		const visibleColumnsInOrder = columnOrder.filter((key) => currentColumns[key])
+		const actualIndex = visibleColumnsInOrder.indexOf(columnKey)
+		const isFirst = actualIndex === 0
+		const isLast = actualIndex === visibleColumnsInOrder.length - 1
+
+		return (
+			<div
+				className="flex w-full items-center justify-between rounded-md border pro-divider pro-bg2 pro-hover-bg p-2 transition-colors"
+				title={metadata.description}
+			>
+				<div className="flex items-center gap-2">
+					<Icon name="check" height={12} width={12} className="text-(--success)" />
+					<span className="text-xs pro-text1">{metadata.name}</span>
+				</div>
+				<div className="flex items-center gap-1">
+					{moveColumnUp && !isFirst && (
+						<button
+							onClick={(e) => {
+								e.stopPropagation()
+								moveColumnUp(columnKey)
+							}}
+							className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
+							title="Move up"
+						>
+							<Icon name="chevron-up" height={10} width={10} />
+						</button>
+					)}
+					{moveColumnDown && !isLast && (
+						<button
+							onClick={(e) => {
+								e.stopPropagation()
+								moveColumnDown(columnKey)
+							}}
+							className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
+							title="Move down"
+						>
+							<Icon name="chevron-down" height={10} width={10} />
+						</button>
+					)}
+					<button
+						onClick={(e) => {
+							e.stopPropagation()
+							toggleColumnVisibility(columnKey, false)
+						}}
+						className="p-1 pro-text3 transition-colors hover:pro-text1"
+						title="Remove column"
+					>
+						<Icon name="x" height={12} width={12} />
+					</button>
+				</div>
+			</div>
+		)
+	}
+
+	return (
+		<button
+			onClick={() => toggleColumnVisibility(columnKey, true)}
+			className="flex w-full items-center gap-2 rounded-md border pro-divider pro-bg2 pro-hover-bg p-2 text-left transition-colors"
+			title={metadata.description}
+		>
+			<Icon name="plus" height={10} width={10} className="pro-text3" />
+			<span className="text-xs pro-text1">{metadata.name}</span>
+		</button>
+	)
+}
+
 export function YieldsColumnManagementPanel({
 	showColumnPanel,
 	setShowColumnPanel,
@@ -96,77 +181,6 @@ export function YieldsColumnManagementPanel({
 		}
 		return count
 	}, [currentColumns])
-
-	const ColumnButton = ({ columnKey }: { columnKey: string }) => {
-		const metadata = yieldsColumnMetadata[columnKey]
-		const isActive = currentColumns[columnKey]
-
-		if (isActive) {
-			const visibleColumnsInOrder = columnOrder.filter((key) => currentColumns[key])
-			const actualIndex = visibleColumnsInOrder.indexOf(columnKey)
-			const isFirst = actualIndex === 0
-			const isLast = actualIndex === visibleColumnsInOrder.length - 1
-
-			return (
-				<div
-					className="flex w-full items-center justify-between rounded-md border pro-divider pro-bg2 pro-hover-bg p-2 transition-colors"
-					title={metadata.description}
-				>
-					<div className="flex items-center gap-2">
-						<Icon name="check" height={12} width={12} className="text-(--success)" />
-						<span className="text-xs pro-text1">{metadata.name}</span>
-					</div>
-					<div className="flex items-center gap-1">
-						{moveColumnUp && !isFirst && (
-							<button
-								onClick={(e) => {
-									e.stopPropagation()
-									moveColumnUp(columnKey)
-								}}
-								className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
-								title="Move up"
-							>
-								<Icon name="chevron-up" height={10} width={10} />
-							</button>
-						)}
-						{moveColumnDown && !isLast && (
-							<button
-								onClick={(e) => {
-									e.stopPropagation()
-									moveColumnDown(columnKey)
-								}}
-								className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
-								title="Move down"
-							>
-								<Icon name="chevron-down" height={10} width={10} />
-							</button>
-						)}
-						<button
-							onClick={(e) => {
-								e.stopPropagation()
-								toggleColumnVisibility(columnKey, false)
-							}}
-							className="p-1 pro-text3 transition-colors hover:pro-text1"
-							title="Remove column"
-						>
-							<Icon name="x" height={12} width={12} />
-						</button>
-					</div>
-				</div>
-			)
-		}
-
-		return (
-			<button
-				onClick={() => toggleColumnVisibility(columnKey, true)}
-				className="flex w-full items-center gap-2 rounded-md border pro-divider pro-bg2 pro-hover-bg p-2 text-left transition-colors"
-				title={metadata.description}
-			>
-				<Icon name="plus" height={10} width={10} className="pro-text3" />
-				<span className="text-xs pro-text1">{metadata.name}</span>
-			</button>
-		)
-	}
 
 	if (!showColumnPanel) return null
 
@@ -228,7 +242,15 @@ export function YieldsColumnManagementPanel({
 						{columnOrder
 							.filter((key) => currentColumns[key] && yieldsColumnMetadata[key])
 							.map((columnKey) => (
-								<ColumnButton key={columnKey} columnKey={columnKey} />
+								<ColumnButton
+									key={columnKey}
+									columnKey={columnKey}
+									currentColumns={currentColumns}
+									columnOrder={columnOrder}
+									moveColumnUp={moveColumnUp}
+									moveColumnDown={moveColumnDown}
+									toggleColumnVisibility={toggleColumnVisibility}
+								/>
 							))}
 					</div>
 				</div>
@@ -252,7 +274,15 @@ export function YieldsColumnManagementPanel({
 									<h6 className="mb-1 text-xs font-medium pro-text2">{group.title}</h6>
 									<div className="space-y-1">
 										{availableColumns.map((columnKey) => (
-											<ColumnButton key={columnKey} columnKey={columnKey} />
+											<ColumnButton
+												key={columnKey}
+												columnKey={columnKey}
+												currentColumns={currentColumns}
+												columnOrder={columnOrder}
+												moveColumnUp={moveColumnUp}
+												moveColumnDown={moveColumnDown}
+												toggleColumnVisibility={toggleColumnVisibility}
+											/>
 										))}
 									</div>
 								</div>

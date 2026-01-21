@@ -1005,16 +1005,6 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-			const Chains = () => (
-				<span className="flex flex-col gap-1">
-					{row.original.chains.map((chain) => (
-						<span key={`/protocolll/${value}/${chain}`} className="flex items-center gap-1">
-							<TokenLogo logo={chainIconUrl(chain)} size={14} />
-							<span>{chain}</span>
-						</span>
-					))}
-				</span>
-			)
 
 			return (
 				<span
@@ -1147,16 +1137,6 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		enableSorting: false,
 		cell: ({ getValue, row, table: _table }) => {
 			const value = getValue() as string
-			const Chains = () => (
-				<span className="flex flex-col gap-1">
-					{row.original.chains.map((chain) => (
-						<span key={`/protocolll/${value}/${chain}`} className="flex items-center gap-1">
-							<TokenLogo logo={chainIconUrl(chain)} size={14} />
-							<span>{chain}</span>
-						</span>
-					))}
-				</span>
-			)
 
 			return (
 				<span className="flex items-center gap-2">

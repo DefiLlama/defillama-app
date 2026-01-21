@@ -1029,6 +1029,16 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 	}
 ]
 
+const BreakdownTooltipContent = ({ breakdown }: { breakdown: Array<[string, number]> }) => (
+	<span className="flex flex-col gap-1">
+		{breakdown.map(([chain, tvl]) => (
+			<span key={`${chain}-${tvl}`}>
+				{chain}: {formattedNum(tvl, true)}
+			</span>
+		))}
+	</span>
+)
+
 const TVLBreakdownCell = ({
 	value,
 	breakdown
@@ -1044,18 +1054,11 @@ const TVLBreakdownCell = ({
 		return formattedNum(value, true)
 	}
 
-	const Breakdown = () => (
-		<span className="flex flex-col gap-1">
-			{breakdown.map(([chain, tvl]) => (
-				<span key={`${chain}-${tvl}`}>
-					{chain}: {formattedNum(tvl, true)}
-				</span>
-			))}
-		</span>
-	)
-
 	return (
-		<Tooltip content={<Breakdown />} className="justify-end underline decoration-dotted">
+		<Tooltip
+			content={<BreakdownTooltipContent breakdown={breakdown} />}
+			className="justify-end underline decoration-dotted"
+		>
 			{formattedNum(value, true)}
 		</Tooltip>
 	)

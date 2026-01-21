@@ -107,6 +107,100 @@ interface ColumnManagementPanelProps {
 	activeViewId?: string
 }
 
+// Helper component for column buttons
+const ColumnButton = ({
+	column,
+	isActive,
+	isCustom,
+	currentColumns,
+	columnOrder,
+	moveColumnUp,
+	moveColumnDown,
+	toggleColumnVisibility,
+	customColumns
+}: {
+	column: any
+	isActive: boolean
+	isCustom?: boolean
+	currentColumns: Record<string, boolean>
+	columnOrder: string[]
+	moveColumnUp: (columnKey: string) => void
+	moveColumnDown: (columnKey: string) => void
+	toggleColumnVisibility: (columnKey: string, isVisible: boolean) => void
+	customColumns: CustomColumn[]
+}) => {
+	const description = isCustom
+		? customColumns.find((c) => c.id === column.key)?.expression || 'Custom column'
+		: metricDescriptions[column.key] || ''
+
+	if (isActive) {
+		const visibleColumnsInOrder = columnOrder.filter((key) => currentColumns[key])
+		const actualIndex = visibleColumnsInOrder.indexOf(column.key)
+		const isFirst = actualIndex === 0
+		const isLast = actualIndex === visibleColumnsInOrder.length - 1
+
+		return (
+			<Tooltip key={column.key} content={description} className="w-full">
+				<div className="flex w-full items-center justify-between rounded-md border pro-divider pro-bg2 pro-hover-bg p-2 transition-colors">
+					<div className="flex items-center gap-2">
+						<Icon name="check" height={12} width={12} className="text-(--success)" />
+						<span className="text-xs pro-text1">{column.name}</span>
+						{isCustom && <span className="rounded-md bg-(--primary) px-1 py-0.5 text-xs text-white">Custom</span>}
+						{column.key?.endsWith('_share') && (
+							<span className="rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
+								%
+							</span>
+						)}
+					</div>
+					<div className="flex items-center gap-1">
+						{moveColumnUp && !isFirst && (
+							<button
+								onClick={() => moveColumnUp(column.key)}
+								className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
+								title="Move up"
+							>
+								<Icon name="chevron-up" height={10} width={10} />
+							</button>
+						)}
+						{moveColumnDown && !isLast && (
+							<button
+								onClick={() => moveColumnDown(column.key)}
+								className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
+								title="Move down"
+							>
+								<Icon name="chevron-down" height={10} width={10} />
+							</button>
+						)}
+						<button
+							onClick={() => toggleColumnVisibility(column.key, false)}
+							className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
+						>
+							<Icon name="x" height={12} width={12} />
+						</button>
+					</div>
+				</div>
+			</Tooltip>
+		)
+	}
+
+	return (
+		<Tooltip key={column.key} content={description}>
+			<button
+				onClick={() => toggleColumnVisibility(column.key, true)}
+				className="flex w-full items-center gap-2 rounded-md border pro-divider pro-bg2 pro-hover-bg p-2 text-left transition-colors"
+			>
+				<Icon name="plus" height={10} width={10} className="pro-text3" />
+				<span className="text-xs pro-text1">{column.name}</span>
+				{column.key?.endsWith('_share') && (
+					<span className="ml-auto rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
+						%
+					</span>
+				)}
+			</button>
+		</Tooltip>
+	)
+}
+
 export function ColumnManagementPanel({
 	showColumnPanel,
 	setShowColumnPanel,
@@ -173,80 +267,6 @@ export function ColumnManagementPanel({
 	const allColumnsForDisplay = React.useMemo(() => {
 		return [...protocolsByChainTableColumns, ...percentageShareColumns, ...customColumnsForStandardView]
 	}, [customColumnsForStandardView, percentageShareColumns])
-
-	// Helper component for column buttons
-	const ColumnButton = ({ column, isActive, isCustom }: { column: any; isActive: boolean; isCustom?: boolean }) => {
-		const description = isCustom
-			? customColumns.find((c) => c.id === column.key)?.expression || 'Custom column'
-			: metricDescriptions[column.key] || ''
-
-		if (isActive) {
-			const visibleColumnsInOrder = columnOrder.filter((key) => currentColumns[key])
-			const actualIndex = visibleColumnsInOrder.indexOf(column.key)
-			const isFirst = actualIndex === 0
-			const isLast = actualIndex === visibleColumnsInOrder.length - 1
-
-			return (
-				<Tooltip key={column.key} content={description} className="w-full">
-					<div className="flex w-full items-center justify-between rounded-md border pro-divider pro-bg2 pro-hover-bg p-2 transition-colors">
-						<div className="flex items-center gap-2">
-							<Icon name="check" height={12} width={12} className="text-(--success)" />
-							<span className="text-xs pro-text1">{column.name}</span>
-							{isCustom && <span className="rounded-md bg-(--primary) px-1 py-0.5 text-xs text-white">Custom</span>}
-							{column.key?.endsWith('_share') && (
-								<span className="rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
-									%
-								</span>
-							)}
-						</div>
-						<div className="flex items-center gap-1">
-							{moveColumnUp && !isFirst && (
-								<button
-									onClick={() => moveColumnUp(column.key)}
-									className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
-									title="Move up"
-								>
-									<Icon name="chevron-up" height={10} width={10} />
-								</button>
-							)}
-							{moveColumnDown && !isLast && (
-								<button
-									onClick={() => moveColumnDown(column.key)}
-									className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
-									title="Move down"
-								>
-									<Icon name="chevron-down" height={10} width={10} />
-								</button>
-							)}
-							<button
-								onClick={() => toggleColumnVisibility(column.key, false)}
-								className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
-							>
-								<Icon name="x" height={12} width={12} />
-							</button>
-						</div>
-					</div>
-				</Tooltip>
-			)
-		}
-
-		return (
-			<Tooltip key={column.key} content={description}>
-				<button
-					onClick={() => toggleColumnVisibility(column.key, true)}
-					className="flex w-full items-center gap-2 rounded-md border pro-divider pro-bg2 pro-hover-bg p-2 text-left transition-colors"
-				>
-					<Icon name="plus" height={10} width={10} className="pro-text3" />
-					<span className="text-xs pro-text1">{column.name}</span>
-					{column.key?.endsWith('_share') && (
-						<span className="ml-auto rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
-							%
-						</span>
-					)}
-				</button>
-			</Tooltip>
-		)
-	}
 
 	// Filter percentage share columns by search term
 	const filteredPercentageColumns = React.useMemo(() => {
@@ -382,7 +402,20 @@ export function ColumnManagementPanel({
 										const column = allColumnsForDisplay.find((col) => col.key === columnKey)
 										if (!column) return null
 										const isCustom = customColumns.some((customCol) => customCol.id === columnKey)
-										return <ColumnButton key={columnKey} column={column} isActive={true} isCustom={isCustom} />
+										return (
+											<ColumnButton
+												key={columnKey}
+												column={column}
+												isActive={true}
+												isCustom={isCustom}
+												currentColumns={currentColumns}
+												columnOrder={columnOrder}
+												moveColumnUp={moveColumnUp}
+												moveColumnDown={moveColumnDown}
+												toggleColumnVisibility={toggleColumnVisibility}
+												customColumns={customColumns}
+											/>
+										)
 									})}
 							</div>
 						</div>
@@ -403,7 +436,20 @@ export function ColumnManagementPanel({
 												.filter((col) => !currentColumns[col.key])
 												.map((column) => {
 													const isCustom = group.title === 'Custom Columns'
-													return <ColumnButton key={column.key} column={column} isActive={false} isCustom={isCustom} />
+													return (
+														<ColumnButton
+															key={column.key}
+															column={column}
+															isActive={false}
+															isCustom={isCustom}
+															currentColumns={currentColumns}
+															columnOrder={columnOrder}
+															moveColumnUp={moveColumnUp}
+															moveColumnDown={moveColumnDown}
+															toggleColumnVisibility={toggleColumnVisibility}
+															customColumns={customColumns}
+														/>
+													)
 												})}
 										</div>
 									</div>

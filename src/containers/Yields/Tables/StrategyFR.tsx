@@ -9,6 +9,16 @@ import { FRStrategyRoute, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
 import type { IYieldsStrategyTableRow } from './types'
 
+const FundingRateTooltipContent = ({ afr, afr7d, afr30d }: { afr: number; afr7d: number; afr30d: number }) => {
+	return (
+		<span className="flex flex-col gap-1">
+			<span>{`8h: ${afr?.toFixed(2)}%`}</span>
+			<span>{`7d: ${afr7d?.toFixed(2)}%`}</span>
+			<span>{`30d: ${afr30d?.toFixed(2)}%`}</span>
+		</span>
+	)
+}
+
 const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 	{
 		header: 'Strategy',
@@ -90,25 +100,35 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		accessorKey: 'afr',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
-			const TooltipContent = () => {
-				return (
-					<span className="flex flex-col gap-1">
-						<span>{`8h: ${row.original?.afr?.toFixed(2)}%`}</span>
-						<span>{`7d: ${row.original?.afr7d?.toFixed(2)}%`}</span>
-						<span>{`30d: ${row.original?.afr30d?.toFixed(2)}%`}</span>
-					</span>
-				)
-			}
-
 			return (
 				<>
 					{lockupsRewards.includes(row.original.projectName) ? (
 						<div className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
-							<Tooltip content={<TooltipContent />}>{formattedPercent(getValue(), true, 700)}</Tooltip>
+							<Tooltip
+								content={
+									<FundingRateTooltipContent
+										afr={row.original?.afr}
+										afr7d={row.original?.afr7d}
+										afr30d={row.original?.afr30d}
+									/>
+								}
+							>
+								{formattedPercent(getValue(), true, 700)}
+							</Tooltip>
 						</div>
 					) : (
-						<Tooltip content={<TooltipContent />}>{formattedPercent(getValue(), true, 700)}</Tooltip>
+						<Tooltip
+							content={
+								<FundingRateTooltipContent
+									afr={row.original?.afr}
+									afr7d={row.original?.afr7d}
+									afr30d={row.original?.afr30d}
+								/>
+							}
+						>
+							{formattedPercent(getValue(), true, 700)}
+						</Tooltip>
 					)}
 				</>
 			)
