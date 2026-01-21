@@ -72,27 +72,22 @@ export function YieldFilterDropdowns({
 				<FilterByToken
 					tokensList={tokensList}
 					selectedTokens={selectedTokens ?? EMPTY_TOKENS}
-					pathname={pathname || router.pathname}
 					nestedMenu={nestedMenu}
 				/>
 			)}
 
 			{chainList && chainList.length > 0 && (
-				<FilterByChain
-					chainList={chainList}
-					selectedChains={selectedChains ?? EMPTY_CHAINS}
-					pathname={pathname || router.pathname}
-					nestedMenu={nestedMenu}
-				/>
+				<FilterByChain chainList={chainList} selectedChains={selectedChains ?? EMPTY_CHAINS} nestedMenu={nestedMenu} />
 			)}
 
 			{projectList && projectList.length > 0 && (
 				<YieldProjects
 					projectList={projectList}
 					selectedProjects={selectedProjects ?? EMPTY_PROJECTS}
-					pathname={pathname || router.pathname}
 					label="Projects"
 					nestedMenu={nestedMenu}
+					includeQueryKey="project"
+					excludeQueryKey="excludeProject"
 				/>
 			)}
 
@@ -100,10 +95,10 @@ export function YieldFilterDropdowns({
 				<YieldProjects
 					projectList={lendingProtocols}
 					selectedProjects={selectedLendingProtocols ?? EMPTY_PROJECTS}
-					pathname={pathname || router.pathname}
 					label="Lending Protocols"
-					query="lendingProtocol"
 					nestedMenu={nestedMenu}
+					includeQueryKey="lendingProtocol"
+					excludeQueryKey="excludeLendingProtocol"
 				/>
 			)}
 
@@ -111,10 +106,10 @@ export function YieldFilterDropdowns({
 				<YieldProjects
 					projectList={farmProtocols}
 					selectedProjects={selectedFarmProtocols ?? EMPTY_PROJECTS}
-					pathname={pathname || router.pathname}
 					label="Farm Protocol"
-					query="farmProtocol"
 					nestedMenu={nestedMenu}
+					includeQueryKey="farmProtocol"
+					excludeQueryKey="excludeFarmProtocol"
 				/>
 			)}
 
@@ -122,7 +117,6 @@ export function YieldFilterDropdowns({
 				<FiltersByCategory
 					categoryList={categoryList}
 					selectedCategories={selectedCategories ?? EMPTY_CATEGORIES}
-					pathname={pathname || router.pathname}
 					nestedMenu={nestedMenu}
 				/>
 			)}

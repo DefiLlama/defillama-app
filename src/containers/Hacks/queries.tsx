@@ -40,8 +40,9 @@ export interface IHacksPageData {
 	totalHackedDefi: string
 	totalRugs: string
 	pieChartData: Array<{ name: string; value: number }>
-	techniqueOptions: Array<{ key: string; name: string }>
-	classificationOptions: Array<{ key: string; name: string }>
+	chainOptions: string[]
+	techniqueOptions: string[]
+	classificationOptions: string[]
 }
 
 export async function getHacksPageData(): Promise<IHacksPageData> {
@@ -58,64 +59,58 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 		language: h.language ?? ''
 	}))
 
-	const monthlyHacks = {}
+	const monthlyHacks: Record<number, number> = {}
+	const chainTotals = new Map<string, number>()
+	const techniqueTotals = new Map<string, number>()
+	const classificationTotals = new Map<string, number>()
+	let totalHackedRaw = 0
+	let totalHackedDefiRaw = 0
+	let totalRugsRaw = 0
+
+	const addToTotal = (m: Map<string, number>, key: string | null | undefined, amount: number) => {
+		if (!key) return
+		m.set(key, (m.get(key) ?? 0) + amount)
+	}
 
 	for (const hack of data) {
 		const monthlyDate = +firstDayOfMonth(hack.date * 1000) * 1e3
 		monthlyHacks[monthlyDate] = (monthlyHacks[monthlyDate] ?? 0) + hack.amount
+
+		totalHackedRaw += hack.amount
+		if (hack.target === 'DeFi Protocol') totalHackedDefiRaw += hack.amount
+		if (hack.bridge === true) totalRugsRaw += hack.amount
+
+		addToTotal(techniqueTotals, hack.technique, hack.amount)
+		addToTotal(classificationTotals, hack.classification, hack.amount)
+		for (const c of hack.chains || []) addToTotal(chainTotals, c, hack.amount)
 	}
 
-	const totalHacked = formattedNum(
-		data.map((hack) => hack.amount).reduce((acc, amount) => acc + amount, 0),
-		true
-	)
+	const totalHacked = formattedNum(totalHackedRaw, true)
+	const totalHackedDefi = formattedNum(totalHackedDefiRaw, true)
+	const totalRugs = formattedNum(totalRugsRaw, true)
 
-	const totalHackedDefi = formattedNum(
-		data
-			.filter((hack) => hack.target == 'DeFi Protocol')
-			.map((hack) => hack.amount)
-			.reduce((acc, amount) => acc + amount, 0),
-		true
-	)
-
-	const totalRugs = formattedNum(
-		data
-			.filter((hack) => hack.bridge === true)
-			.map((hack) => hack.amount)
-			.reduce((acc, amount) => acc + amount, 0),
-		true
-	)
-
-	const onlyHacksTechnique = data.map((hack) => ({
-		name: hack.technique,
-		value: hack.amount
-	}))
-
-	const sumDuplicates = (acc, obj) => {
-		const found = acc.find((o) => o.name === obj.name)
-		if (found) {
-			found.value += obj.value
-		} else {
-			acc.push({ ...obj, value: obj.value })
-		}
-		return acc
-	}
-
-	const groupedHacks = onlyHacksTechnique.reduce(sumDuplicates, [])
-
-	const pieChartData = preparePieChartData({ data: groupedHacks, limit: 15 })
+	const pieChartData = preparePieChartData({
+		data: Array.from(techniqueTotals.entries()).map(([name, value]) => ({ name, value })),
+		limit: 15
+	})
 	const monthlyHacksChartData = []
 	for (const date in monthlyHacks) {
 		monthlyHacksChartData.push([+date, monthlyHacks[date]])
 	}
 
-	const techniqueOptions = Array.from(new Set((data || []).map((d) => d.technique).filter(Boolean)))
-		.sort((a: string, b: string) => a.localeCompare(b))
-		.map((name: string) => ({ key: slug(name), name }))
+	const byTotalDescThenNameAsc = (a: [string, number], b: [string, number]) => b[1] - a[1] || a[0].localeCompare(b[0])
 
-	const classificationOptions = Array.from(new Set((data || []).map((d) => d.classification).filter(Boolean)))
-		.sort((a: string, b: string) => a.localeCompare(b))
-		.map((name: string) => ({ key: slug(name), name }))
+	const chainOptions = Array.from(chainTotals.entries())
+		.sort(byTotalDescThenNameAsc)
+		.map(([name]) => name)
+
+	const techniqueOptions = Array.from(techniqueTotals.entries())
+		.sort(byTotalDescThenNameAsc)
+		.map(([name]) => name)
+
+	const classificationOptions = Array.from(classificationTotals.entries())
+		.sort(byTotalDescThenNameAsc)
+		.map(([name]) => name)
 
 	return {
 		data,
@@ -132,6 +127,7 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 		totalHackedDefi,
 		totalRugs,
 		pieChartData,
+		chainOptions,
 		techniqueOptions,
 		classificationOptions
 	}

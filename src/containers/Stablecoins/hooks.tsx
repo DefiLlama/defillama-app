@@ -375,9 +375,7 @@ export const useFormatStablecoinQueryParams = ({
 			} else {
 				selectedAttributes = [...attribute]
 			}
-		} else {
-			selectedAttributes = [...stablecoinAttributeOptions.map((option) => option.key)]
-		}
+		} else selectedAttributes = [...stablecoinAttributeOptions.map((option) => option.key)]
 
 		if (pegtype) {
 			if (typeof pegtype === 'string') {

@@ -7,7 +7,6 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { useRouter } from 'next/router'
 import * as React from 'react'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -97,8 +96,6 @@ function RaisesTable({ raises, prepareCsv }) {
 const pageName = ['Deals by Investor']
 
 export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
-	const { pathname } = useRouter()
-
 	const {
 		filteredRaisesList,
 		selectedInvestors,
@@ -150,7 +147,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				selectedInvestors={selectedInvestors}
 				chains={chains}
 				selectedChains={selectedChains}
-				pathname={pathname}
+				pathname={`/raises/${slug(investorName)}`}
 			/>
 
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">

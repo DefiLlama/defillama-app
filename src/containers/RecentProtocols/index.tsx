@@ -49,7 +49,9 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 
 		const _chainsToSelectSet = new Set(selectedChains.map((t) => t.toLowerCase()))
 
-		const isValidTvlRange = minTvl != null && maxTvl != null
+		// TVL range should work with min-only, max-only, or both.
+		// Values are parsed via `toNumberOrNullFromQueryParam`, so invalid inputs become null.
+		const isValidTvlRange = minTvl != null || maxTvl != null
 
 		const data = protocols
 			.filter((protocol) => {

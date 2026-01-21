@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { CHART_COLORS } from '~/constants/colors'
-import { slug, toYearMonth } from '~/utils'
+import { toYearMonth } from '~/utils'
 
 export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 	const { query } = useRouter()
@@ -45,11 +45,10 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 
 		if (chain) {
 			if (typeof chain === 'string') {
-				selectedChains =
-					chain === 'All' ? [...chains] : chain === 'None' ? [] : [chains.find((c) => slug(c) === slug(chain)) ?? chain]
+				selectedChains = chain === 'All' ? [...chains] : chain === 'None' ? [] : [chain]
 			} else {
-				const schain = chains.map((c) => slug(c))
-				selectedChains = [...chains.filter((c) => schain.includes(slug(c)))]
+				// Case-sensitive: use query param values as-is
+				selectedChains = [...chain]
 			}
 		} else selectedChains = [...chains]
 
@@ -61,15 +60,18 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 
 		const isValidTvlRange = !!minimumAmountRaised || !!maximumAmountRaised
 
-		const selectedInvestorsSet = new Set(selectedInvestors)
-		const selectedChainsSet = new Set(selectedChains)
-		const selectedRoundsSet = new Set(selectedRounds)
-		const selectedSectorsSet = new Set(selectedSectors)
+		const isInvestorFilterActive = selectedInvestors.length !== investors.length
+		const isChainsFilterActive = selectedChains.length !== chains.length
+		const isRoundsFilterActive = selectedRounds.length !== rounds.length
+		const isSectorsFilterActive = selectedSectors.length !== sectors.length
+
+		const selectedInvestorsSet = isInvestorFilterActive ? new Set(selectedInvestors) : null
+		const selectedChainsSet = isChainsFilterActive ? new Set(selectedChains) : null
+		const selectedRoundsSet = isRoundsFilterActive ? new Set(selectedRounds) : null
+		const selectedSectorsSet = isSectorsFilterActive ? new Set(selectedSectors) : null
 
 		const filteredRaisesList = raises.filter((raise) => {
-			let toFilter = true
-
-			if (selectedInvestors.length !== investors.length) {
+			if (isInvestorFilterActive) {
 				if (raise.leadInvestors.length === 0 && raise.otherInvestors.length === 0) {
 					return false
 				}
@@ -77,60 +79,65 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 				let isAnInvestor = false
 
 				for (const lead of raise.leadInvestors) {
-					if (selectedInvestorsSet.has(lead)) {
+					if (selectedInvestorsSet!.has(lead)) {
 						isAnInvestor = true
+						break
 					}
 				}
 
-				for (const otherInv of raise.otherInvestors) {
-					if (selectedInvestorsSet.has(otherInv)) {
-						isAnInvestor = true
+				if (!isAnInvestor) {
+					for (const otherInv of raise.otherInvestors) {
+						if (selectedInvestorsSet!.has(otherInv)) {
+							isAnInvestor = true
+							break
+						}
 					}
 				}
 
 				// filter if investor is in either leadInvestors or otherInvestors
 				if (!isAnInvestor) {
-					toFilter = false
+					return false
 				}
 			}
 
-			if (selectedChains.length !== chains.length) {
+			if (isChainsFilterActive) {
 				// filter raises with no chains
 				if (raise.chains.length === 0) {
-					toFilter = false
+					return false
 				} else {
 					let raiseIncludesChain = false
 
 					for (const chain of raise.chains) {
-						if (selectedChainsSet.has(chain)) {
+						if (selectedChainsSet!.has(chain)) {
 							raiseIncludesChain = true
+							break
 						}
 					}
 
 					if (!raiseIncludesChain) {
-						toFilter = false
+						return false
 					}
 				}
 			}
 
-			if (selectedRounds.length !== rounds.length) {
+			if (isRoundsFilterActive) {
 				// filter raises with no round
 				if (!raise.round || raise.round === '') {
-					toFilter = false
+					return false
 				} else {
-					if (!selectedRoundsSet.has(raise.round)) {
-						toFilter = false
+					if (!selectedRoundsSet!.has(raise.round)) {
+						return false
 					}
 				}
 			}
 
-			if (selectedSectors.length !== sectors.length) {
+			if (isSectorsFilterActive) {
 				// filter raises with no sector
 				if (!raise.category || raise.category === '') {
-					toFilter = false
+					return false
 				} else {
-					if (!selectedSectorsSet.has(raise.category)) {
-						toFilter = false
+					if (!selectedSectorsSet!.has(raise.category)) {
+						return false
 					}
 				}
 			}
@@ -142,14 +149,14 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 				(maximumAmountRaised != null ? raisedAmount <= maximumAmountRaised : true)
 
 			if (isValidTvlRange && !isInRange) {
-				toFilter = false
+				return false
 			}
 
-			if (toFilter && raise.category) {
+			if (raise.category) {
 				raisesByCategory[raise.category] = (raisesByCategory[raise.category] || 0) + 1
 			}
 
-			return toFilter
+			return true
 		})
 
 		for (const r of filteredRaisesList) {
