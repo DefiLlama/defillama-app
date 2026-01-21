@@ -97,7 +97,7 @@ const buildLlamaUsers = BUILD_LLAMAS.split(',')
 const llamaNames = buildLlamaUsers.join(', ') || 'none'
 const llamaMentions = buildLlamaUsers.map((name) => (name.startsWith('@') ? name : `@${name}`)).join(' ')
 
-// node ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$COMMIT_COMMENT" "$COMMIT_AUTHOR" "$COMMIT_HASH"
+// node ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$COMMIT_COMMENT" "$COMMIT_AUTHOR" "$COMMIT_HASH" "$BRANCH_NAME"
 const BUILD_STATUS = process.argv[2]
 const BUILD_TIME_STR = process.argv[3]
 const START_TIME = process.argv[4]
@@ -132,6 +132,7 @@ const COMMIT_HASH = firstNonEmpty(
 	() => tryGit('git rev-parse HEAD')
 )
 const BRANCH_NAME = firstNonEmpty(
+	normalizeBranchName(process.argv[9]),
 	normalizeBranchName(process.env.BRANCH_NAME),
 	normalizeBranchName(process.env.GIT_BRANCH),
 	normalizeBranchName(process.env.CI_COMMIT_REF_NAME),
