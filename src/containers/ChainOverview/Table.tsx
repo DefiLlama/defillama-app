@@ -184,10 +184,11 @@ export const ChainProtocolsTable = ({
 		}
 	}
 
+	const columnVisibility = useMemo(() => JSON.parse(columnsInStorage), [columnsInStorage])
+
 	const selectedColumns = useMemo(() => {
-		const storage = JSON.parse(columnsInStorage)
-		return mergedColumns.filter((c) => !!storage[c.key]).map((c) => c.key)
-	}, [columnsInStorage, mergedColumns])
+		return mergedColumns.filter((c) => !!columnVisibility[c.key]).map((c) => c.key)
+	}, [columnVisibility, mergedColumns])
 
 	const [sorting, setSorting] = useState<SortingState>([
 		{ desc: true, id: MAIN_COLUMN_BY_CATEGORY[filterState] ?? 'tvl' }
@@ -301,7 +302,7 @@ export const ChainProtocolsTable = ({
 			sorting,
 			expanded,
 			columnSizing,
-			columnVisibility: JSON.parse(columnsInStorage)
+			columnVisibility
 		},
 		defaultColumn: {
 			sortUndefined: 'last'

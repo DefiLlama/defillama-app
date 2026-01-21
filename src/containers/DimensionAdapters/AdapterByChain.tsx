@@ -26,6 +26,7 @@ import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/compon
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { setStorageItem } from '~/contexts/localStorageStore'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { chainCharts } from '../ChainOverview/constants'
@@ -354,24 +355,24 @@ export function AdapterByChain(props: IProps) {
 	const columnsKey = `columns-${props.type}`
 
 	const clearAllColumns = () => {
-		window.localStorage.setItem(columnsKey, '{}')
+		setStorageItem(columnsKey, '{}')
 		instance.getToggleAllColumnsVisibilityHandler()({ checked: false } as any)
 	}
 	const toggleAllColumns = () => {
 		const ops = JSON.stringify(Object.fromEntries(columnsOptions.map((option) => [option.key, true])))
-		window.localStorage.setItem(columnsKey, ops)
+		setStorageItem(columnsKey, ops)
 		instance.getToggleAllColumnsVisibilityHandler()({ checked: true } as any)
 	}
 
 	const addColumn = (newOptions) => {
 		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)]))
-		window.localStorage.setItem(columnsKey, JSON.stringify(ops))
+		setStorageItem(columnsKey, JSON.stringify(ops))
 		instance.setColumnVisibility(ops)
 	}
 
 	const addOnlyOneColumn = (newOption) => {
 		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption]))
-		window.localStorage.setItem(columnsKey, JSON.stringify(ops))
+		setStorageItem(columnsKey, JSON.stringify(ops))
 		instance.setColumnVisibility(ops)
 	}
 
