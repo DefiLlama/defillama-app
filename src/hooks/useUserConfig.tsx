@@ -66,6 +66,7 @@ export function useUserConfig() {
 	const queryClient = useQueryClient()
 	const isSyncingRef = useRef(false)
 	const hasInitializedRef = useRef(false)
+	const lastSyncedRawRef = useRef<string | null>(null)
 
 	const fetchConfig = useCallback(async (): Promise<UserConfig | null> => {
 		if (!isAuthenticated || !authorizedFetch) {
@@ -85,6 +86,7 @@ export function useUserConfig() {
 					isSyncingRef.current = true
 
 					const localSettings = readAppStorage()
+					const localSettingsRaw = readAppStorageRaw()
 					const mergedSettings: AppStorage = { ...localSettings, ...config }
 
 					const watchlistKeys = [
@@ -116,7 +118,11 @@ export function useUserConfig() {
 						}
 					}
 
-					writeAppStorage(mergedSettings)
+					const mergedRaw = JSON.stringify(mergedSettings)
+					if (mergedRaw !== localSettingsRaw) {
+						writeAppStorage(mergedSettings)
+					}
+					lastSyncedRawRef.current = mergedRaw
 
 					setTimeout(() => {
 						isSyncingRef.current = false
@@ -195,8 +201,10 @@ export function useUserConfig() {
 		try {
 			const currentSettings = readAppStorageRaw()
 			if (!currentSettings) return
+			if (currentSettings === lastSyncedRawRef.current) return
 
 			await saveConfigAsyncRef.current(readAppStorage())
+			lastSyncedRawRef.current = currentSettings
 		} catch (error) {
 			console.log('Failed to sync settings:', error)
 		}
@@ -213,6 +221,7 @@ export function useUserConfig() {
 	useEffect(() => {
 		if (!isAuthenticated) {
 			hasInitializedRef.current = false
+			lastSyncedRawRef.current = null
 			syncSettings.cancel()
 			return
 		}

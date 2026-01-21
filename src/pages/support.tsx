@@ -20,6 +20,7 @@ async function submitSupportRequest(formData: FormData) {
 function Support() {
 	const { mutateAsync, isPending, error } = useMutation({ mutationFn: submitSupportRequest })
 	const [isSubmitted, setIsSubmitted] = React.useState(false)
+	const [frontChatReady, setFrontChatReady] = React.useState(false)
 
 	const onSubmit = async (e) => {
 		e.preventDefault()
@@ -54,6 +55,36 @@ function Support() {
 
 	const { userHash, email } = useUserHash()
 
+	React.useEffect(() => {
+		if (!frontChatReady || !userHash) return
+		if (typeof window === 'undefined' || !(window as any).FrontChat) return
+
+		const frontChat = (window as any).FrontChat
+		const lastUserHash = (window as any).__frontChatUserHash
+
+		if (lastUserHash === userHash) {
+			frontChat('show')
+			return
+		}
+
+		;(window as any).__frontChatUserHash = userHash
+		frontChat('init', {
+			chatId: '6fec3ab74da2261df3f3748a50dd3d6a',
+			shouldShowWindowOnLaunch: true, // open immediately
+			shouldExpandOnShowWindow: true, // start expanded
+			onInitCompleted: () => {
+				frontChat('show')
+			},
+			email,
+			userHash
+		})
+	}, [frontChatReady, userHash, email])
+
+	React.useEffect(() => {
+		if (userHash) return
+		setFrontChatReady(false)
+	}, [userHash])
+
 	return (
 		<Layout
 			title="Support - DefiLlama"
@@ -64,21 +95,9 @@ function Support() {
 			{userHash ? (
 				<Script
 					src="/assets/front-chat.js"
-					onLoad={() => {
-						if (typeof window !== 'undefined' && (window as any).FrontChat) {
-							;(window as any).FrontChat('init', {
-								chatId: '6fec3ab74da2261df3f3748a50dd3d6a',
-								shouldShowWindowOnLaunch: true, // open immediately
-								shouldExpandOnShowWindow: true, // start expanded
-
-								onInitCompleted: () => {
-									;(window as any).FrontChat('show')
-								},
-								email,
-								userHash
-							})
-						}
-					}}
+					id="front-chat-sdk"
+					strategy="afterInteractive"
+					onReady={() => setFrontChatReady(true)}
 				/>
 			) : null}
 
