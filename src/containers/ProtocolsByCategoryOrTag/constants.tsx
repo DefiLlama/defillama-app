@@ -254,5 +254,9 @@ export const protocolCategories = {
 	'Gamified Mining': {
 		description:
 			'Protocols that use probabilistic mining and participant stakes to issue and redistribute native tokens'
-	}
+	},
+	'Secondary Debt Markets': {
+		description:
+			'Markets that allow users to exchange or settle existing debt claims and distressed positions, providing liquidity and price discovery for outstanding obligations'
+	},
 } as const satisfies Record<string, { description: string; defaultChart?: ProtocolChartsQueryParams }>
