@@ -200,7 +200,7 @@ const commitAuthorLabel = withFallback(COMMIT_AUTHOR, 'unknown author')
 const commitHashLabel = withFallback(COMMIT_HASH, 'unknown commit id')
 const branchLabel = withFallback(BRANCH_NAME, 'unknown branch')
 
-let commitSummary = `📂 defillama-app\n🌿 ${branchLabel}\n💬 ${commitMessageLabel}\n🦙 ${commitAuthorLabel}\n📸 ${commitHashLabel}\n👥 Llamas: ${llamaNames}`
+let commitSummary = `📂 defillama-app\n🪾 ${branchLabel}\n💬 ${commitMessageLabel}\n🦙 ${commitAuthorLabel}\n📸 ${commitHashLabel}`
 
 async function checkWebhookResponse(bodyResponse) {
 	if (!bodyResponse.ok) {
@@ -213,8 +213,12 @@ const sendMessages = async () => {
 		console.log('BUILD_STATUS_WEBHOOK not set, skipping discord notification')
 		return
 	}
-	const message = `\`\`\`\n===== COMMIT SUMMARY =====\n${commitSummary}\n\n===== BUILD SUMMARY =====\n${buildSummary}\n\`\`\``
-	const body = { content: message }
+	const llamaSummary = llamaMentions ? `Build llamas: ${llamaMentions}` : `Build llamas: ${llamaNames}`
+	const message = `\`\`\`\n===== COMMIT SUMMARY =====\n${commitSummary}\n\n===== BUILD SUMMARY =====\n${buildSummary}\n\`\`\`\n${llamaSummary}`
+	const body = {
+		content: message,
+		allowed_mentions: { parse: ['users', 'roles'] }
+	}
 	await checkWebhookResponse(
 		await fetch(BUILD_STATUS_WEBHOOK, {
 			method: 'POST',
