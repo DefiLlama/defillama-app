@@ -1,4 +1,5 @@
 import { maxAgeForNext } from '~/api'
+import { stablecoinBackingOptions, stablecoinPegTypeOptions } from '~/containers/Stablecoins/Filters'
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { StablecoinsByChain } from '~/containers/Stablecoins/StablecoinsByChain'
 import Layout from '~/layout'
@@ -15,8 +16,16 @@ export const getStaticProps = withPerformanceLogging('stablecoins', async () => 
 		throw new Error('getPeggedOverviewPageData() no filteredPeggedAssets')
 	}
 
+	const availableBackings = stablecoinBackingOptions
+		.filter((opt) => props.filteredPeggedAssets.some((asset) => opt.filterFn(asset)))
+		.map((opt) => opt.key)
+
+	const availablePegTypes = stablecoinPegTypeOptions
+		.filter((opt) => props.filteredPeggedAssets.some((asset) => opt.filterFn(asset)))
+		.map((opt) => opt.key)
+
 	return {
-		props,
+		props: { ...props, availableBackings, availablePegTypes },
 		revalidate: maxAgeForNext([22])
 	}
 })
@@ -30,7 +39,9 @@ export default function PeggedAssets({
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
 	doublecountedIds,
-	chain
+	chain,
+	availableBackings,
+	availablePegTypes
 }) {
 	return (
 		<Layout
@@ -48,6 +59,8 @@ export default function PeggedAssets({
 				peggedNameToChartDataIndex={peggedNameToChartDataIndex}
 				chartDataByPeggedAsset={chartDataByPeggedAsset}
 				doublecountedIds={doublecountedIds}
+				availableBackings={availableBackings}
+				availablePegTypes={availablePegTypes}
 			/>
 		</Layout>
 	)

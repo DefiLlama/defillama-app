@@ -1,19 +1,41 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import Router from 'next/router'
 import * as React from 'react'
 import { Icon } from './Icon'
 import { NestedMenu, NestedMenuItem } from './NestedMenu'
 import type { SelectOption, SelectValues } from './selectTypes'
 import { Tooltip } from './Tooltip'
 
-interface ISelectWithCombobox {
+// URL update helpers - used when includeQueryKey is provided
+// Encoding:
+// - missing param => "all selected" (default)
+// - param="None" => "none selected"
+// - param=[...] => explicit selection(s)
+const updateQueryParam = (key: string, values: string[] | 'None' | null) => {
+	const nextQuery: Record<string, any> = { ...Router.query }
+	if (values === null) {
+		delete nextQuery[key]
+	} else if (values === 'None') {
+		nextQuery[key] = 'None'
+	} else if (values.length > 0) {
+		nextQuery[key] = values
+	} else {
+		// If user deselects everything, keep an explicit "None" sentinel
+		nextQuery[key] = 'None'
+	}
+	Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+}
+
+const createUrlSetSelectedValues = (key: string) => (values: string[]) => updateQueryParam(key, values)
+const createUrlClearAll = (key: string) => () => updateQueryParam(key, 'None')
+const createUrlToggleAll = (key: string) => () => updateQueryParam(key, null)
+const createUrlSelectOnlyOne = (key: string) => (value: string) => updateQueryParam(key, [value])
+
+interface ISelectWithComboboxBase {
 	allValues: SelectValues
 	selectedValues: Array<string>
-	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string>>>
 	label: string
-	clearAll?: () => void
-	toggleAll?: () => void
-	selectOnlyOne?: (value: string) => void
 	nestedMenu?: boolean
 	labelType?: 'regular' | 'smol' | 'none'
 	triggerProps?: Ariakit.SelectProps
@@ -23,22 +45,49 @@ interface ISelectWithCombobox {
 	portal?: boolean
 }
 
+interface ISelectWithComboboxUrlParams extends ISelectWithComboboxBase {
+	includeQueryKey: string
+	excludeQueryKey: string
+	setSelectedValues?: never
+	clearAll?: never
+	toggleAll?: never
+	selectOnlyOne?: never
+}
+
+interface ISelectWithComboboxState extends ISelectWithComboboxBase {
+	includeQueryKey?: never
+	excludeQueryKey?: never
+	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string>>>
+	clearAll?: () => void
+	toggleAll?: () => void
+	selectOnlyOne?: (value: string) => void
+}
+
+type ISelectWithCombobox = ISelectWithComboboxUrlParams | ISelectWithComboboxState
+
 export function SelectWithCombobox({
 	allValues,
 	selectedValues,
-	setSelectedValues,
+	setSelectedValues: setSelectedValuesProp,
 	label,
-	clearAll,
-	toggleAll,
-	selectOnlyOne,
+	clearAll: clearAllProp,
+	toggleAll: toggleAllProp,
+	selectOnlyOne: selectOnlyOneProp,
 	nestedMenu,
 	labelType,
 	triggerProps,
 	customFooter,
 	onEditCustomColumn,
 	onDeleteCustomColumn,
-	portal
+	portal,
+	includeQueryKey
 }: ISelectWithCombobox) {
+	// If includeQueryKey is provided, use URL-based functions instead of props
+	const setSelectedValues = includeQueryKey ? createUrlSetSelectedValues(includeQueryKey) : setSelectedValuesProp
+	const clearAll = includeQueryKey ? createUrlClearAll(includeQueryKey) : clearAllProp
+	const toggleAll = includeQueryKey ? createUrlToggleAll(includeQueryKey) : toggleAllProp
+	const selectOnlyOne = includeQueryKey ? createUrlSelectOnlyOne(includeQueryKey) : selectOnlyOneProp
+
 	const [searchValue, setSearchValue] = React.useState('')
 	const deferredSearchValue = React.useDeferredValue(searchValue)
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'

@@ -1,18 +1,44 @@
 import * as Ariakit from '@ariakit/react'
+import Router from 'next/router'
 import * as React from 'react'
 import { Icon } from './Icon'
 import { NestedMenu, NestedMenuItem } from './NestedMenu'
 import type { SelectValues } from './selectTypes'
 import { Tooltip } from './Tooltip'
 
-interface ISelect {
+// URL update helpers - used when includeQueryKey is provided
+// Encoding:
+// - missing param => "all selected" (default)
+// - param="None" => "none selected"
+// - param=[...] or param="..." => explicit selection(s)
+const updateQueryParam = (key: string, values: string[] | string | 'None' | null) => {
+	const nextQuery: Record<string, any> = { ...Router.query }
+	if (values === null) {
+		delete nextQuery[key]
+	} else if (values === 'None') {
+		nextQuery[key] = 'None'
+	} else if (Array.isArray(values) && values.length > 0) {
+		nextQuery[key] = values
+	} else if (Array.isArray(values) && values.length === 0) {
+		// If user deselects everything, keep an explicit "None" sentinel
+		nextQuery[key] = 'None'
+	} else if (typeof values === 'string' && values) {
+		nextQuery[key] = values
+	} else {
+		delete nextQuery[key]
+	}
+	Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+}
+
+const createUrlSetSelectedValues = (key: string) => (values: string[] | string) => updateQueryParam(key, values)
+const createUrlClearAll = (key: string) => () => updateQueryParam(key, 'None')
+const createUrlToggleAll = (key: string) => () => updateQueryParam(key, null)
+const createUrlSelectOnlyOne = (key: string) => (value: string) => updateQueryParam(key, [value])
+
+interface ISelectBase {
 	allValues: SelectValues
 	selectedValues: Array<string> | string
-	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string> | string>>
 	label: React.ReactNode
-	clearAll?: () => void
-	toggleAll?: () => void
-	selectOnlyOne?: (value: string) => void
 	nestedMenu?: boolean
 	labelType?: 'regular' | 'smol' | 'none'
 	triggerProps?: Ariakit.SelectProps
@@ -20,20 +46,47 @@ interface ISelect {
 	placement?: Ariakit.SelectProviderProps['placement']
 }
 
+interface ISelectWithUrlParams extends ISelectBase {
+	includeQueryKey: string
+	excludeQueryKey: string
+	setSelectedValues?: never
+	clearAll?: never
+	toggleAll?: never
+	selectOnlyOne?: never
+}
+
+interface ISelectWithState extends ISelectBase {
+	includeQueryKey?: never
+	excludeQueryKey?: never
+	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string> | string>>
+	clearAll?: () => void
+	toggleAll?: () => void
+	selectOnlyOne?: (value: string) => void
+}
+
+type ISelect = ISelectWithUrlParams | ISelectWithState
+
 export function Select({
 	allValues,
 	selectedValues,
-	setSelectedValues,
+	setSelectedValues: setSelectedValuesProp,
 	label,
-	clearAll,
-	toggleAll,
-	selectOnlyOne,
+	clearAll: clearAllProp,
+	toggleAll: toggleAllProp,
+	selectOnlyOne: selectOnlyOneProp,
 	nestedMenu,
 	labelType = 'regular',
 	triggerProps,
 	portal,
-	placement = 'bottom-start'
+	placement = 'bottom-start',
+	includeQueryKey
 }: ISelect) {
+	// If includeQueryKey is provided, use URL-based functions instead of props
+	const setSelectedValues = includeQueryKey ? createUrlSetSelectedValues(includeQueryKey) : setSelectedValuesProp
+	const clearAll = includeQueryKey ? createUrlClearAll(includeQueryKey) : clearAllProp
+	const toggleAll = includeQueryKey ? createUrlToggleAll(includeQueryKey) : toggleAllProp
+	const selectOnlyOne = includeQueryKey ? createUrlSelectOnlyOne(includeQueryKey) : selectOnlyOneProp
+
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 
 	const [viewableMatches, setViewableMatches] = React.useState(6)

@@ -7,9 +7,10 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { prepareChartCsv } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
@@ -18,9 +19,16 @@ import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
+import { CHART_COLORS } from '~/constants/colors'
 import Layout from '~/layout'
-import { capitalizeFirstLetter, formattedNum, slug, toNiceDayMonthAndYear, toNumberOrNullFromQueryParam } from '~/utils'
-import { HacksFilters } from './filters'
+import {
+	capitalizeFirstLetter,
+	firstDayOfMonth,
+	formattedNum,
+	toNiceDayMonthAndYear,
+	toNumberOrNullFromQueryParam
+} from '~/utils'
+import { HacksFilters } from './Filterss'
 import { IHacksPageData } from './queries'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -71,7 +79,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex items-center justify-end gap-2 p-3">
-				<label className="relative w-full sm:max-w-[280px]">
+				<label className="relative mr-auto w-full sm:max-w-[280px]">
 					<span className="sr-only">Search projects...</span>
 					<Icon
 						name="search"
@@ -125,26 +133,46 @@ const applyFilters = (
 		techKeys?: Set<string>
 		classKeys?: Set<string>
 		chainKeys?: Set<string>
+		techIncludeNone?: boolean
+		classIncludeNone?: boolean
+		chainIncludeNone?: boolean
 		since?: number | null
 		minLost?: number | null
 		maxLost?: number | null
 	}
 ) => {
+	const toFilterKey = (value: string | null | undefined) => (value ?? '').trim()
+
 	return data.filter((row) => {
-		if (filters.chainKeys && filters.chainKeys.size > 0) {
-			const rowChainKeys = new Set((row.chains || []).map((c) => slug(c)))
-			let hasAny = false
-			for (const k of filters.chainKeys) {
-				if (rowChainKeys.has(k)) {
-					hasAny = true
-					break
+		if (filters.chainKeys && (filters.chainKeys.size > 0 || filters.chainIncludeNone)) {
+			const chains = row.chains || []
+			const matchesNone = Boolean(filters.chainIncludeNone) && chains.length === 0
+			let matchesAny = false
+			if (filters.chainKeys.size > 0) {
+				for (const c of chains) {
+					if (filters.chainKeys.has(toFilterKey(c))) {
+						matchesAny = true
+						break
+					}
 				}
 			}
-			if (!hasAny) return false
+			if (!matchesNone && !matchesAny) return false
 		}
-		if (filters.techKeys && filters.techKeys.size > 0 && !filters.techKeys.has(slug(row.technique))) return false
-		if (filters.classKeys && filters.classKeys.size > 0 && !filters.classKeys.has(slug(row.classification)))
-			return false
+
+		if (filters.techKeys && (filters.techKeys.size > 0 || filters.techIncludeNone)) {
+			const techKey = toFilterKey(row.technique)
+			const matchesNone = Boolean(filters.techIncludeNone) && techKey === ''
+			const matchesAny = filters.techKeys.size > 0 && filters.techKeys.has(techKey)
+			if (!matchesNone && !matchesAny) return false
+		}
+
+		if (filters.classKeys && (filters.classKeys.size > 0 || filters.classIncludeNone)) {
+			const classKey = toFilterKey(row.classification)
+			const matchesNone = Boolean(filters.classIncludeNone) && classKey === ''
+			const matchesAny = filters.classKeys.size > 0 && filters.classKeys.has(classKey)
+			if (!matchesNone && !matchesAny) return false
+		}
+
 		if (filters.since != null && row.date < filters.since) return false
 		if (filters.minLost != null && row.amount < filters.minLost) return false
 		if (filters.maxLost != null && row.amount > filters.maxLost) return false
@@ -160,56 +188,11 @@ const toArrayParam = (p: string | string[] | undefined): string[] => {
 const isParamNone = (param: string | string[] | undefined) =>
 	param === 'None' || (Array.isArray(param) && param.includes('None'))
 
-const parseArrayParam = (param: string | string[] | undefined, allKeys: string[]): string[] => {
-	if (isParamNone(param)) return []
-	if (!param) return allKeys
-	const values = toArrayParam(param)
-	const validKeys = new Set(allKeys)
-	return values.filter((value) => validKeys.has(value))
-}
-
-const updateArrayQuery = (key: string, values: string[] | 'None') => {
-	const nextQuery: Record<string, any> = { ...Router.query }
-	if (values === 'None') {
-		nextQuery[key] = 'None'
-	} else if (values.length > 0) {
-		nextQuery[key] = values
-	} else {
-		delete nextQuery[key]
-	}
-	Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-}
-
-const setSelectedChains = (values: string[]) => updateArrayQuery('chain', values)
-const setSelectedTechniques = (values: string[]) => updateArrayQuery('tech', values)
-const setSelectedClassifications = (values: string[]) => updateArrayQuery('class', values)
-
-const clearAllChains = () => updateArrayQuery('chain', 'None')
-const toggleAllChains = () => updateArrayQuery('chain', [])
-const selectOnlyOneChain = (value: string) => updateArrayQuery('chain', [value])
-
-const clearAllTechniques = () => updateArrayQuery('tech', 'None')
-const toggleAllTechniques = () => updateArrayQuery('tech', [])
-const selectOnlyOneTechnique = (value: string) => updateArrayQuery('tech', [value])
-
-const clearAllClassifications = () => updateArrayQuery('class', 'None')
-const toggleAllClassifications = () => updateArrayQuery('class', [])
-const selectOnlyOneClassification = (value: string) => updateArrayQuery('class', [value])
-
-const timeOptions = ['All', '7D', '30D', '90D', '1Y'] as const
-const labelToKey = {
-	All: 'all',
-	'7D': '7d',
-	'30D': '30d',
-	'90D': '90d',
-	'1Y': '1y'
-} as const
-const keyToLabel: Record<string, (typeof timeOptions)[number]> = {
-	all: 'All',
-	'7d': '7D',
-	'30d': '30D',
-	'90d': '90D',
-	'1y': '1Y'
+const parseArrayParam = (param: string | string[] | undefined, allValues: string[]): string[] => {
+	if (!param) return allValues
+	const values = toArrayParam(param).filter((v) => v !== 'None')
+	const valid = new Set(allValues)
+	return values.filter((value) => valid.has(value))
 }
 
 export const HacksContainer = ({
@@ -219,130 +202,41 @@ export const HacksContainer = ({
 	totalHackedDefi,
 	totalRugs,
 	pieChartData,
+	chainOptions,
 	techniqueOptions,
 	classificationOptions
 }: IHacksPageData) => {
 	const [chartType, setChartType] = React.useState('Monthly Sum')
 	const router = useRouter()
-	const {
-		chain: chainQ,
-		tech: techQ,
-		class: classQ,
-		time: timeQ,
-		minLost: minLostQuery,
-		maxLost: maxLostQuery
-	} = router.query
-
-	const techniqueOptionKeys = React.useMemo(() => techniqueOptions.map((option) => option.key), [techniqueOptions])
-	const classificationOptionKeys = React.useMemo(
-		() => classificationOptions.map((option) => option.key),
-		[classificationOptions]
-	)
-
-	const chainOptions = React.useMemo(() => {
-		const selectedTechniquesLocal = parseArrayParam(techQ, techniqueOptionKeys)
-		const selectedClassificationsLocal = parseArrayParam(classQ, classificationOptionKeys)
-		const timeQLocal = typeof timeQ === 'string' ? timeQ : undefined
-
-		const since = getTimeSinceSeconds(timeQLocal)
-		const minLostValLocal = toNumberOrNullFromQueryParam(minLostQuery)
-		const maxLostValLocal = toNumberOrNullFromQueryParam(maxLostQuery)
-
-		const techFilterEnabled = typeof techQ !== 'undefined' && !isParamNone(techQ)
-		const classFilterEnabled = typeof classQ !== 'undefined' && !isParamNone(classQ)
-
-		const techKeys = techFilterEnabled ? new Set(selectedTechniquesLocal) : undefined
-		const classKeys = classFilterEnabled ? new Set(selectedClassificationsLocal) : undefined
-
-		const eligible = applyFilters(data || [], {
-			techKeys,
-			classKeys,
-			since,
-			minLost: minLostValLocal,
-			maxLost: maxLostValLocal
-		})
-
-		return Array.from(new Set(eligible.flatMap((d) => d.chains || [])))
-			.filter(Boolean)
-			.sort((a, b) => a.localeCompare(b))
-			.map((name) => ({ key: slug(name), name }))
-	}, [data, techQ, classQ, timeQ, minLostQuery, maxLostQuery, techniqueOptionKeys, classificationOptionKeys])
-
-	const chainOptionKeys = React.useMemo(() => chainOptions.map((option) => option.key), [chainOptions])
+	const { chain: chainQ, tech: techQ, class: classQ, time: timeQ, minLost, maxLost } = router.query
 
 	const selectedChains = React.useMemo(() => {
-		return parseArrayParam(chainQ, chainOptionKeys)
-	}, [chainQ, chainOptionKeys])
+		return parseArrayParam(chainQ, chainOptions)
+	}, [chainQ, chainOptions])
 
 	const selectedTechniques = React.useMemo(() => {
-		return parseArrayParam(techQ, techniqueOptionKeys)
-	}, [techQ, techniqueOptionKeys])
+		return parseArrayParam(techQ, techniqueOptions)
+	}, [techQ, techniqueOptions])
 
 	const selectedClassifications = React.useMemo(() => {
-		return parseArrayParam(classQ, classificationOptionKeys)
-	}, [classQ, classificationOptionKeys])
-
-	const selectedTimeLabel = (typeof timeQ === 'string' && keyToLabel[timeQ]) || 'All'
-
-	const setSelectedTime = (label: (typeof timeOptions)[number]) => {
-		const key = labelToKey[label]
-		const nextQuery: Record<string, any> = { ...Router.query }
-		if (key && key !== 'all') nextQuery.time = key
-		else delete nextQuery.time
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}
-
-	const { minLost, maxLost } = router.query
-
-	const handleAmountSubmit = (e) => {
-		e.preventDefault()
-		const form = e.target
-		const min = form.min?.value
-		const max = form.max?.value
-		Router.push({ pathname: Router.pathname, query: { ...Router.query, minLost: min, maxLost: max } }, undefined, {
-			shallow: true
-		})
-	}
-
-	const handleAmountClear = () => {
-		const nextQuery: Record<string, any> = { ...Router.query }
-		delete nextQuery.minLost
-		delete nextQuery.maxLost
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}
+		return parseArrayParam(classQ, classificationOptions)
+	}, [classQ, classificationOptions])
 
 	const minLostVal = toNumberOrNullFromQueryParam(minLost)
 	const maxLostVal = toNumberOrNullFromQueryParam(maxLost)
 
-	const hasActiveFilters = React.useMemo(() => {
-		return (
-			typeof chainQ !== 'undefined' ||
-			typeof techQ !== 'undefined' ||
-			typeof classQ !== 'undefined' ||
-			typeof timeQ !== 'undefined' ||
-			minLostVal != null ||
-			maxLostVal != null
-		)
-	}, [chainQ, techQ, classQ, timeQ, minLostVal, maxLostVal])
-
-	const clearAllFilters = () => {
-		const nextQuery: Record<string, any> = { ...Router.query }
-		delete nextQuery.chain
-		delete nextQuery.tech
-		delete nextQuery.class
-		delete nextQuery.start
-		delete nextQuery.end
-		delete nextQuery.minLost
-		delete nextQuery.maxLost
-		delete nextQuery.time
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}
+	const hasActiveFilters =
+		typeof chainQ !== 'undefined' ||
+		typeof techQ !== 'undefined' ||
+		typeof classQ !== 'undefined' ||
+		typeof timeQ !== 'undefined' ||
+		minLostVal != null ||
+		maxLostVal != null
 
 	const filteredData = React.useMemo(() => {
-		const chainNone = isParamNone(chainQ)
-		const techNone = isParamNone(techQ)
-		const classNone = isParamNone(classQ)
-		if (chainNone || techNone || classNone) return []
+		const chainIncludeNone = isParamNone(chainQ)
+		const techIncludeNone = isParamNone(techQ)
+		const classIncludeNone = isParamNone(classQ)
 
 		const chainFilterEnabled = typeof chainQ !== 'undefined'
 		const techFilterEnabled = typeof techQ !== 'undefined'
@@ -357,6 +251,9 @@ export const HacksContainer = ({
 			chainKeys,
 			techKeys,
 			classKeys,
+			chainIncludeNone,
+			techIncludeNone,
+			classIncludeNone,
 			since,
 			minLost: minLostVal,
 			maxLost: maxLostVal
@@ -374,15 +271,67 @@ export const HacksContainer = ({
 		maxLostVal
 	])
 
+	const derivedStats = React.useMemo(() => {
+		if (!hasActiveFilters) return null
+
+		const monthlyHacks = new Map<number, number>()
+		const techniqueTotals = new Map<string, number>()
+		let totalHackedRaw = 0
+		let totalHackedDefiRaw = 0
+		let totalRugsRaw = 0
+
+		for (const row of filteredData) {
+			const monthTsMs = firstDayOfMonth(row.date * 1000) * 1e3
+			monthlyHacks.set(monthTsMs, (monthlyHacks.get(monthTsMs) ?? 0) + row.amount)
+
+			totalHackedRaw += row.amount
+			if (row.target === 'DeFi Protocol') totalHackedDefiRaw += row.amount
+			if (row.bridge === true) totalRugsRaw += row.amount
+
+			if (row.technique) {
+				techniqueTotals.set(row.technique, (techniqueTotals.get(row.technique) ?? 0) + row.amount)
+			}
+		}
+
+		const monthlySeries = Array.from(monthlyHacks.entries())
+			.sort((a, b) => a[0] - b[0])
+			.map(([date, value]) => [date, value] as [number, number])
+
+		return {
+			totalHacked: formattedNum(totalHackedRaw, true),
+			totalHackedDefi: formattedNum(totalHackedDefiRaw, true),
+			totalRugs: formattedNum(totalRugsRaw, true),
+			monthlyHacksChartData: {
+				'Total Value Hacked': {
+					name: 'Total Value Hacked',
+					stack: 'Total Value Hacked',
+					type: 'bar',
+					data: monthlySeries,
+					color: CHART_COLORS[0]
+				}
+			} satisfies ILineAndBarChartProps['charts'],
+			pieChartData: preparePieChartData({
+				data: Array.from(techniqueTotals.entries()).map(([name, value]) => ({ name, value })),
+				limit: 15
+			})
+		}
+	}, [filteredData, hasActiveFilters])
+
+	const displayTotalHacked = derivedStats?.totalHacked ?? totalHacked
+	const displayTotalHackedDefi = derivedStats?.totalHackedDefi ?? totalHackedDefi
+	const displayTotalRugs = derivedStats?.totalRugs ?? totalRugs
+	const displayMonthlyHacksChartData = derivedStats?.monthlyHacksChartData ?? monthlyHacksChartData
+	const displayPieChartData = derivedStats?.pieChartData ?? pieChartData
+
 	const prepareCsv = () => {
 		if (chartType === 'Monthly Sum') {
 			return prepareChartCsv(
-				{ 'Total Value Hacked': monthlyHacksChartData['Total Value Hacked'].data },
+				{ 'Total Value Hacked': displayMonthlyHacksChartData['Total Value Hacked'].data },
 				`total-value-hacked.csv`
 			)
 		} else {
 			let rows: Array<Array<string | number>> = [['Technique', 'Value']]
-			for (const { name, value } of pieChartData) {
+			for (const { name, value } of displayPieChartData) {
 				rows.push([name, value])
 			}
 			return { filename: 'total-hacked-by-technique.csv', rows }
@@ -397,19 +346,27 @@ export const HacksContainer = ({
 			canonicalUrl={`/hacks`}
 			pageName={pageName}
 		>
+			<HacksFilters
+				chainOptions={chainOptions}
+				techniqueOptions={techniqueOptions}
+				classificationOptions={classificationOptions}
+				selectedChains={selectedChains}
+				selectedTechniques={selectedTechniques}
+				selectedClassifications={selectedClassifications}
+			/>
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Total Value Hacked (USD)</span>
-						<span className="font-jetbrains text-2xl font-semibold">{totalHacked}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{displayTotalHacked}</span>
 					</p>
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Total Value Hacked in DeFi (USD)</span>
-						<span className="font-jetbrains text-2xl font-semibold">{totalHackedDefi}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{displayTotalHackedDefi}</span>
 					</p>
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Total Value Hacked in Bridges (USD)</span>
-						<span className="font-jetbrains text-2xl font-semibold">{totalRugs}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{displayTotalRugs}</span>
 					</p>
 				</div>
 				<div className="col-span-2 flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -419,44 +376,15 @@ export const HacksContainer = ({
 					</div>
 					{chartType === 'Monthly Sum' ? (
 						<React.Suspense fallback={<></>}>
-							<LineAndBarChart charts={monthlyHacksChartData} groupBy="monthly" />
+							<LineAndBarChart charts={displayMonthlyHacksChartData} groupBy="monthly" />
 						</React.Suspense>
 					) : (
 						<React.Suspense fallback={<></>}>
-							<PieChart chartData={pieChartData} />
+							<PieChart chartData={displayPieChartData} />
 						</React.Suspense>
 					)}
 				</div>
 			</div>
-			<HacksFilters
-				chainOptions={chainOptions}
-				techniqueOptions={techniqueOptions}
-				classificationOptions={classificationOptions}
-				selectedChains={selectedChains}
-				selectedTechniques={selectedTechniques}
-				selectedClassifications={selectedClassifications}
-				setSelectedChains={setSelectedChains}
-				setSelectedTechniques={setSelectedTechniques}
-				setSelectedClassifications={setSelectedClassifications}
-				clearAllChains={clearAllChains}
-				toggleAllChains={toggleAllChains}
-				selectOnlyOneChain={selectOnlyOneChain}
-				clearAllTechniques={clearAllTechniques}
-				toggleAllTechniques={toggleAllTechniques}
-				selectOnlyOneTechnique={selectOnlyOneTechnique}
-				clearAllClassifications={clearAllClassifications}
-				toggleAllClassifications={toggleAllClassifications}
-				selectOnlyOneClassification={selectOnlyOneClassification}
-				timeOptions={timeOptions as unknown as string[]}
-				selectedTimeLabel={selectedTimeLabel}
-				setSelectedTime={setSelectedTime as any}
-				minLostVal={minLostVal}
-				maxLostVal={maxLostVal}
-				handleAmountSubmit={handleAmountSubmit}
-				handleAmountClear={handleAmountClear}
-				hasActiveFilters={hasActiveFilters}
-				onClearAll={clearAllFilters}
-			/>
 			<HacksTable data={filteredData} />
 		</Layout>
 	)
