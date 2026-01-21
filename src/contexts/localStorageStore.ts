@@ -5,6 +5,13 @@ const anyListeners = new Set<StorageListener>()
 let activeListenerCount = 0
 let isListening = false
 
+// Batching mechanism to prevent main thread blocking
+// When multiple storage changes happen in quick succession (e.g., after sign-in),
+// we batch all notifications into a single microtask to avoid cascading re-renders
+let pendingKeys = new Set<string>()
+let notifyAllPending = false
+let batchScheduled = false
+
 const canUseStorage = () => {
 	try {
 		return typeof window !== 'undefined' && !!window.localStorage
@@ -20,24 +27,45 @@ const addListeners = (target: Set<StorageListener>, listeners?: Set<StorageListe
 	}
 }
 
-const notifyAllKeys = () => {
+const flushPendingNotifications = () => {
+	batchScheduled = false
+	const keysToNotify = pendingKeys
+	const shouldNotifyAll = notifyAllPending
+	pendingKeys = new Set()
+	notifyAllPending = false
+
 	const uniqueListeners = new Set<StorageListener>()
-	for (const listeners of keyListeners.values()) {
-		addListeners(uniqueListeners, listeners)
+
+	if (shouldNotifyAll) {
+		for (const listeners of keyListeners.values()) {
+			addListeners(uniqueListeners, listeners)
+		}
+	} else {
+		for (const key of keysToNotify) {
+			addListeners(uniqueListeners, keyListeners.get(key))
+		}
 	}
 	addListeners(uniqueListeners, anyListeners)
+
 	for (const listener of uniqueListeners) {
 		listener()
 	}
 }
 
+const scheduleBatch = () => {
+	if (batchScheduled) return
+	batchScheduled = true
+	queueMicrotask(flushPendingNotifications)
+}
+
+const notifyAllKeys = () => {
+	notifyAllPending = true
+	scheduleBatch()
+}
+
 export const notifyKeyChange = (key: string) => {
-	const uniqueListeners = new Set<StorageListener>()
-	addListeners(uniqueListeners, keyListeners.get(key))
-	addListeners(uniqueListeners, anyListeners)
-	for (const listener of uniqueListeners) {
-		listener()
-	}
+	pendingKeys.add(key)
+	scheduleBatch()
 }
 
 const handleStorageEvent = (event: StorageEvent) => {
