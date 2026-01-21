@@ -440,24 +440,13 @@ export const defaultColumns = JSON.stringify({
 
 const optionsKey = 'protocolsTableColumns'
 
-const clearAllOptions = () => {
-	const ops = JSON.stringify(Object.fromEntries(protocolsByChainTableColumns.map((option) => [option.key, false])))
-	setStorageItem(optionsKey, ops)
-}
-
-const toggleAllOptions = () => {
-	const ops = JSON.stringify(Object.fromEntries(protocolsByChainTableColumns.map((option) => [option.key, true])))
-	setStorageItem(optionsKey, ops)
-}
-
-const addOption = (newOptions) => {
+const setColumnOptions = (newOptions: string[]) => {
 	const ops = Object.fromEntries(protocolsByChainTableColumns.map((col) => [col.key, newOptions.includes(col.key)]))
 	setStorageItem(optionsKey, JSON.stringify(ops))
 }
 
-const addOnlyOneOption = (newOption) => {
-	const ops = Object.fromEntries(protocolsByChainTableColumns.map((col) => [col.key, col.key === newOption]))
-	setStorageItem(optionsKey, JSON.stringify(ops))
+const toggleAllOptions = () => {
+	setColumnOptions(protocolsByChainTableColumns.map((col) => col.key))
 }
 
 const ProtocolsTable = ({
@@ -565,10 +554,7 @@ export function ProtocolsByChainTable({
 				<SelectWithCombobox
 					allValues={protocolsByChainTableColumns}
 					selectedValues={selectedOptions}
-					setSelectedValues={addOption}
-					selectOnlyOne={addOnlyOneOption}
-					toggleAll={toggleAllOptions}
-					clearAll={clearAllOptions}
+					setSelectedValues={setColumnOptions}
 					nestedMenu={false}
 					label={'Columns'}
 					labelType="smol"

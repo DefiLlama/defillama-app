@@ -60,7 +60,7 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 		return { options, selectedOptions }
 	}, [router.query, props])
 
-	const addOption = (newOptions) => {
+	const setSelectedOptions = (newOptions: string[]) => {
 		const optionsObj: Record<string, boolean> = {}
 		for (const op of newOptions) {
 			optionsObj[op] = true
@@ -77,58 +77,11 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 		)
 	}
 
-	const addOnlyOneOption = (newOption) => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: { ...queries, [newOption]: true }
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
-	}
-
-	const toggleAll = () => {
-		const optionsObj: Record<string, boolean> = {}
-		for (const op of options) {
-			optionsObj[op.key] = true
-		}
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					...optionsObj
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const clearAll = () => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
 	return (
 		<SelectWithCombobox
 			allValues={options}
 			selectedValues={selectedOptions}
-			setSelectedValues={addOption}
-			selectOnlyOne={addOnlyOneOption}
-			toggleAll={toggleAll}
-			clearAll={clearAll}
+			setSelectedValues={setSelectedOptions}
 			nestedMenu={nestedMenu}
 			label="Columns"
 			labelType="regular"

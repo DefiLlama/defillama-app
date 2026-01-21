@@ -14,7 +14,7 @@ import { IProtocolsWithTokensByChainPageData } from './queries'
 export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) {
 	const router = useRouter()
 
-	const { category, chain, ...queries } = router.query
+	const { category } = router.query
 	const hasCategoryParam = Object.prototype.hasOwnProperty.call(router.query, 'category')
 
 	const { selectedCategories, protocols } = useMemo(() => {
@@ -44,56 +44,6 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 		}
 	}, [category, hasCategoryParam, props.categories, props.protocols])
 
-	const addCategory = (newCategory) => {
-		router.push(
-			{
-				pathname: router.basePath,
-				query: {
-					...queries,
-					...(!router.basePath.includes('/chain/') && chain ? { chain } : {}),
-					category: newCategory
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const toggleAllCategories = () => {
-		router.push(
-			{
-				pathname: router.basePath,
-				query: {
-					...queries,
-					...(!router.basePath.includes('/chain/') && chain ? { chain } : {}),
-					category: props.categories
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const clearAllCategories = () => {
-		const newQuery: any = {
-			...queries,
-			...(!router.basePath.includes('/chain/') && chain ? { chain } : {})
-		}
-
-		if (props.categories.length > 0) {
-			newQuery.category = ''
-		}
-
-		router.push(
-			{
-				pathname: router.basePath,
-				query: newQuery
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
 	const { columns, sortingState } = getMetricNameAndColumns(props.type)
 
 	return (
@@ -112,10 +62,8 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 							<SelectWithCombobox
 								allValues={props.categories}
 								selectedValues={selectedCategories}
-								setSelectedValues={addCategory}
-								selectOnlyOne={addCategory}
-								toggleAll={toggleAllCategories}
-								clearAll={clearAllCategories}
+								includeQueryKey="category"
+								excludeQueryKey="excludeCategory"
 								nestedMenu={false}
 								label={'Category'}
 								labelType="smol"

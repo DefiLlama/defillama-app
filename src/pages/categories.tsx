@@ -227,15 +227,6 @@ const pageName = ['Protocol Categories']
 
 export default function Protocols({ categories, tableData, chartData, extraTvlCharts }) {
 	const [selectedCategories, setSelectedCategories] = React.useState<Array<string>>(categories)
-	const clearAll = () => {
-		setSelectedCategories([])
-	}
-	const toggleAll = () => {
-		setSelectedCategories(categories)
-	}
-	const selectOnlyOne = (category: string) => {
-		setSelectedCategories([category])
-	}
 	const [extaTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const enabledTvls = TVL_SETTINGS_KEYS.filter((key) => extaTvlsEnabled[key])
 
@@ -358,9 +349,6 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 						selectedValues={selectedCategories}
 						setSelectedValues={setSelectedCategories}
 						label="Categories"
-						clearAll={clearAll}
-						toggleAll={toggleAll}
-						selectOnlyOne={selectOnlyOne}
 						labelType="smol"
 					/>
 				</div>

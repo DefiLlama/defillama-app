@@ -188,12 +188,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 							allValues={ASSET_VALUES}
 							selectedValues={tickers}
 							setSelectedValues={setTickers}
-							selectOnlyOne={(newOption) => {
-								setTickers([newOption])
-							}}
 							label={'ETF'}
-							clearAll={() => setTickers([])}
-							toggleAll={() => setTickers([...ASSET_VALUES])}
 							labelType="smol"
 							triggerProps={{
 								className:

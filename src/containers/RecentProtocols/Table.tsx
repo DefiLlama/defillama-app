@@ -74,62 +74,6 @@ export function RecentlyListedProtocolsTable({
 
 	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
-	const selectChain = (newChain) => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					chain: newChain
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const clearAllChains = () => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					chain: 'None'
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const toggleAllChains = () => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					chain: 'All'
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const selectOnlyOneChain = (option: string) => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					chain: option
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
 	const prepareCsv = () => {
 		const headers = ['Name', 'TVL', 'Change 1d', 'Change 7d', 'Change 1m', 'Listed At', 'Chains']
 		const csvData = data.map((row) => {
@@ -173,11 +117,9 @@ export function RecentlyListedProtocolsTable({
 						<SelectWithCombobox
 							label="Chains"
 							allValues={chainList}
-							clearAll={clearAllChains}
-							toggleAll={toggleAllChains}
-							selectOnlyOne={selectOnlyOneChain}
 							selectedValues={selectedChains}
-							setSelectedValues={selectChain}
+							includeQueryKey="chain"
+							excludeQueryKey="chain"
 							labelType="smol"
 							triggerProps={{
 								className:

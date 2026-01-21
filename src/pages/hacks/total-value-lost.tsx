@@ -74,8 +74,6 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 							allValues={columnIds}
 							selectedValues={selectedColumns}
 							setSelectedValues={setSelectedColumns}
-							clearAll={() => setSelectedColumns([])}
-							toggleAll={() => setSelectedColumns(columnIds)}
 							label="Columns"
 							labelType="smol"
 							triggerProps={{

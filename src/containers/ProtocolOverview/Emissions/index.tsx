@@ -506,31 +506,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							<SelectWithCombobox
 								allValues={availableCategories}
 								selectedValues={selectedCategories}
-								setSelectedValues={(newCategories) => {
-									if (newCategories.length === 0) return
-									setSelectedCategories(newCategories)
-								}}
-								selectOnlyOne={(newCategory) => {
-									setSelectedCategories([newCategory])
-								}}
+								setSelectedValues={setSelectedCategories}
 								label="Categories"
-								clearAll={() => {
-									if (selectedCategories.length > 0) {
-										setSelectedCategories([selectedCategories[0]])
-									}
-								}}
-								toggleAll={() => {
-									if (allocationMode === 'standard' && data.categoriesBreakdown) {
-										setSelectedCategories(Object.keys(data.categoriesBreakdown))
-									} else {
-										const filteredCategories = categoriesFromData.filter(
-											(cat) =>
-												!['Market Cap', 'Price'].includes(cat) &&
-												!data.categoriesBreakdown?.noncirculating?.includes(cat)
-										)
-										setSelectedCategories(filteredCategories)
-									}
-								}}
 								labelType="smol"
 								triggerProps={{
 									className:

@@ -49,18 +49,12 @@ interface ISelectWithComboboxUrlParams extends ISelectWithComboboxBase {
 	includeQueryKey: string
 	excludeQueryKey: string
 	setSelectedValues?: never
-	clearAll?: never
-	toggleAll?: never
-	selectOnlyOne?: never
 }
 
 interface ISelectWithComboboxState extends ISelectWithComboboxBase {
 	includeQueryKey?: never
 	excludeQueryKey?: never
 	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string>>>
-	clearAll?: () => void
-	toggleAll?: () => void
-	selectOnlyOne?: (value: string) => void
 }
 
 type ISelectWithCombobox = ISelectWithComboboxUrlParams | ISelectWithComboboxState
@@ -70,9 +64,6 @@ export function SelectWithCombobox({
 	selectedValues,
 	setSelectedValues: setSelectedValuesProp,
 	label,
-	clearAll: clearAllProp,
-	toggleAll: toggleAllProp,
-	selectOnlyOne: selectOnlyOneProp,
 	nestedMenu,
 	labelType,
 	triggerProps,
@@ -82,15 +73,24 @@ export function SelectWithCombobox({
 	portal,
 	includeQueryKey
 }: ISelectWithCombobox) {
-	// If includeQueryKey is provided, use URL-based functions instead of props
+	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
+
+	// Helper to extract keys from allValues
+	const getAllKeys = React.useCallback(
+		() => allValues.map((v) => (typeof v === 'string' ? v : v.key)),
+		[allValues]
+	)
+
+	// If includeQueryKey is provided, use URL-based functions; otherwise derive from setSelectedValues
 	const setSelectedValues = includeQueryKey ? createUrlSetSelectedValues(includeQueryKey) : setSelectedValuesProp
-	const clearAll = includeQueryKey ? createUrlClearAll(includeQueryKey) : clearAllProp
-	const toggleAll = includeQueryKey ? createUrlToggleAll(includeQueryKey) : toggleAllProp
-	const selectOnlyOne = includeQueryKey ? createUrlSelectOnlyOne(includeQueryKey) : selectOnlyOneProp
+	const clearAll = includeQueryKey ? createUrlClearAll(includeQueryKey) : () => setSelectedValuesProp([])
+	const toggleAll = includeQueryKey ? createUrlToggleAll(includeQueryKey) : () => setSelectedValuesProp(getAllKeys())
+	const selectOnlyOne = includeQueryKey
+		? createUrlSelectOnlyOne(includeQueryKey)
+		: (value: string) => setSelectedValuesProp([value])
 
 	const [searchValue, setSearchValue] = React.useState('')
 	const deferredSearchValue = React.useDeferredValue(searchValue)
-	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 
 	const matches = React.useMemo(() => {
 		if (!deferredSearchValue) return allValues
@@ -149,20 +149,14 @@ export function SelectWithCombobox({
 							autoFocus
 							className="m-3 mb-0 rounded-md bg-white px-3 py-2 text-base dark:bg-black"
 						/>
-						{clearAll || toggleAll ? (
-							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
-								{clearAll ? (
-									<button onClick={clearAll} className="p-3">
-										Deselect All
-									</button>
-								) : null}
-								{toggleAll ? (
-									<button onClick={toggleAll} className="p-3">
-										Select All
-									</button>
-								) : null}
-							</span>
-						) : null}
+						<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
+							<button onClick={clearAll} className="p-3">
+								Deselect All
+							</button>
+							<button onClick={toggleAll} className="p-3">
+								Select All
+							</button>
+						</span>
 						<Ariakit.ComboboxList>
 							{matches.slice(0, viewableMatches).map((option) => (
 								<NestedMenuItem
@@ -270,20 +264,14 @@ export function SelectWithCombobox({
 					</span>
 					{matches.length > 0 ? (
 						<>
-							{clearAll || toggleAll ? (
-								<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
-									{clearAll ? (
-										<button onClick={clearAll} className="p-3">
-											Deselect All
-										</button>
-									) : null}
-									{toggleAll ? (
-										<button onClick={toggleAll} className="p-3">
-											Select All
-										</button>
-									) : null}
-								</span>
-							) : null}
+							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
+								<button onClick={clearAll} className="p-3">
+									Deselect All
+								</button>
+								<button onClick={toggleAll} className="p-3">
+									Select All
+								</button>
+							</span>
 							<Ariakit.ComboboxList ref={comboboxRef}>
 								{matches.slice(0, viewableMatches).map((option) => {
 									const isCustom = typeof option === 'object' && option.isCustom
@@ -332,17 +320,15 @@ export function SelectWithCombobox({
 													</button>
 												</span>
 											)}
-											{selectOnlyOne ? (
-												<button
-													onClick={(e) => {
-														e.stopPropagation()
-														selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
-													}}
-													className="invisible text-xs font-medium text-(--link) underline group-hover:visible group-focus-visible:visible"
-												>
-													Only
-												</button>
-											) : null}
+											<button
+												onClick={(e) => {
+													e.stopPropagation()
+													selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
+												}}
+												className="invisible text-xs font-medium text-(--link) underline group-hover:visible group-focus-visible:visible"
+											>
+												Only
+											</button>
 											<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
 										</Ariakit.SelectItem>
 									)
