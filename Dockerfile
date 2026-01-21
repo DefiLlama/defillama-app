@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 
 FROM oven/bun:1 AS base
 
@@ -26,19 +26,13 @@ FROM base AS builder
 COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 
-ARG LOGGER_API_KEY
-ARG LOGGER_API_URL
-ARG BUILD_STATUS_DASHBOARD
-ARG BUILD_STATUS_WEBHOOK
-ARG LLAMAS_LIST
+ARG BUILD_LLAMAS
 
-ENV LOGGER_API_KEY="${LOGGER_API_KEY}" \
-  LOGGER_API_URL="${LOGGER_API_URL}" \
-  BUILD_STATUS_DASHBOARD="${BUILD_STATUS_DASHBOARD}" \
-  BUILD_STATUS_WEBHOOK="${BUILD_STATUS_WEBHOOK}" \
-  LLAMAS_LIST="${LLAMAS_LIST}"
-
-RUN START_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ) && START_TIME_TS=$(date -u +%s) && bun run build 2>&1 | tee build.log; BUILD_STATUS=$? && BUILD_TIME_SEC=$(($(date -u +%s) - $START_TIME_TS)) && BUILD_TIME_MIN=$(($BUILD_TIME_SEC / 60)) && BUILD_TIME_STR=$(printf "%ss" $(($BUILD_TIME_SEC % 60))) && if [ $BUILD_TIME_MIN -gt 0 ]; then BUILD_TIME_STR=$(printf "%sm %s" $BUILD_TIME_MIN $BUILD_TIME_STR); fi && BUILD_ID=$(find .next -name _buildManifest.js 2>/dev/null | sed 's/\/_buildManifest.js//g' | sed 's/\.next\/static\///g' || echo '') && bun run ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "" "" "" && exit $BUILD_STATUS
+RUN --mount=type=secret,id=LOGGER_API_KEY \
+  --mount=type=secret,id=LOGGER_API_URL \
+  --mount=type=secret,id=BUILD_STATUS_DASHBOARD \
+  --mount=type=secret,id=BUILD_STATUS_WEBHOOK \
+  bash -lc 'set -o pipefail; export LOGGER_API_KEY="$(cat /run/secrets/LOGGER_API_KEY 2>/dev/null || true)" LOGGER_API_URL="$(cat /run/secrets/LOGGER_API_URL 2>/dev/null || true)" BUILD_STATUS_DASHBOARD="$(cat /run/secrets/BUILD_STATUS_DASHBOARD 2>/dev/null || true)" BUILD_STATUS_WEBHOOK="$(cat /run/secrets/BUILD_STATUS_WEBHOOK 2>/dev/null || true)" BUILD_LLAMAS="${BUILD_LLAMAS}"; START_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ); START_TIME_TS=$(date -u +%s); bun run build 2>&1 | tee build.log; BUILD_STATUS=${PIPESTATUS[0]}; BUILD_TIME_SEC=$(( $(date -u +%s) - START_TIME_TS )); BUILD_TIME_MIN=$(( BUILD_TIME_SEC / 60 )); BUILD_TIME_STR=$(printf "%ss" $(( BUILD_TIME_SEC % 60 ))); if [ $BUILD_TIME_MIN -gt 0 ]; then BUILD_TIME_STR=$(printf "%sm %s" $BUILD_TIME_MIN $BUILD_TIME_STR); fi; BUILD_ID=$(find .next -name _buildManifest.js 2>/dev/null | sed 's/\/_buildManifest.js//g' | sed 's/\.next\/static\///g' || echo ''); bun run ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "" "" ""; exit $BUILD_STATUS'
 
 FROM base AS runner
 
