@@ -373,7 +373,13 @@ export function useLocalStorageSettingsManager<T extends TSETTINGTYPE>(
 		() => '{}'
 	)
 
-	const settings: Record<KeysFor<T>, boolean> = JSON.parse(snapshot)
+	const settings = useMemo(() => {
+		try {
+			return JSON.parse(snapshot) as Record<KeysFor<T>, boolean>
+		} catch {
+			return {} as Record<KeysFor<T>, boolean>
+		}
+	}, [snapshot])
 
 	return [settings, (key: KeysFor<T>) => updateSetting(key)]
 }
@@ -544,9 +550,17 @@ export function useCustomColumns() {
 		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
 		() => '{}'
 	)
-	const parsedStore = JSON.parse(store) as AppStorage
+	const parsedStore = useMemo(() => {
+		try {
+			return JSON.parse(store) as AppStorage
+		} catch {
+			return {} as AppStorage
+		}
+	}, [store])
 
-	const customColumns: CustomColumnDef[] = parsedStore?.[CUSTOM_COLUMNS] ?? []
+	const customColumns = useMemo(() => {
+		return (parsedStore?.[CUSTOM_COLUMNS] as CustomColumnDef[] | undefined) ?? []
+	}, [parsedStore])
 
 	function setCustomColumns(cols: CustomColumnDef[]) {
 		writeAppStorage({ ...parsedStore, [CUSTOM_COLUMNS]: cols })
