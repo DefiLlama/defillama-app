@@ -97,18 +97,21 @@ export default function Correlations({ coinsData }) {
 	}, [queryParamString])
 
 	// Normalize queryCoins to always be an array for simpler filtering
-	const normalizedQueryCoins = !queryCoins ? [] : Array.isArray(queryCoins) ? queryCoins : [queryCoins]
+	const normalizedQueryCoins = useMemo(
+		() => (!queryCoins ? [] : Array.isArray(queryCoins) ? queryCoins : [queryCoins]),
+		[queryCoins]
+	)
 
-	const selectedCoins: Record<string, IResponseCGMarketsAPI> = (() => {
+	const selectedCoins = useMemo<Record<string, IResponseCGMarketsAPI>>(() => {
 		if (normalizedQueryCoins.length === 0) return {}
 		const queryCoinsSet = new Set(normalizedQueryCoins)
 		return Object.fromEntries(coinsData.filter((coin) => queryCoinsSet.has(coin.id)).map((coin) => [coin.id, coin]))
-	})()
+	}, [normalizedQueryCoins, coinsData])
 
 	const [period, setPeriod] = useState<Period>('1y')
-	const selectedCoinKeys = Object.keys(selectedCoins)
+	const selectedCoinKeys = useMemo(() => Object.keys(selectedCoins), [selectedCoins])
 	const { data: priceChart, isLoading } = usePriceCharts(selectedCoinKeys)
-	const coins = Object.values(selectedCoins).filter(Boolean)
+	const coins = useMemo(() => Object.values(selectedCoins).filter(Boolean), [selectedCoins])
 	const correlations = useMemo(
 		() =>
 			!isLoading
