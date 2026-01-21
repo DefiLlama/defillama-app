@@ -5,9 +5,9 @@ const anyListeners = new Set<StorageListener>()
 let activeListenerCount = 0
 let isListening = false
 
-// Batching mechanism to prevent main thread blocking
+// Batching mechanism to reduce main thread pressure.
 // When multiple storage changes happen in quick succession (e.g., after sign-in),
-// we batch all notifications into a single microtask to avoid cascading re-renders
+// we defer notifications to a later task so rendering can finish before listeners run.
 let pendingKeys = new Set<string>()
 let notifyAllPending = false
 let batchScheduled = false
@@ -48,22 +48,29 @@ const flushPendingNotifications = () => {
 	addListeners(uniqueListeners, anyListeners)
 
 	for (const listener of uniqueListeners) {
-		listener()
+		try {
+			listener()
+		} catch (error) {
+			console.error('Storage listener failed', error)
+		}
 	}
 }
 
 const scheduleBatch = () => {
 	if (batchScheduled) return
 	batchScheduled = true
-	queueMicrotask(flushPendingNotifications)
+	setTimeout(flushPendingNotifications, 0)
 }
 
 const notifyAllKeys = () => {
+	if (activeListenerCount === 0) return
 	notifyAllPending = true
 	scheduleBatch()
 }
 
 export const notifyKeyChange = (key: string) => {
+	if (activeListenerCount === 0) return
+	if (!keyListeners.get(key) && anyListeners.size === 0) return
 	pendingKeys.add(key)
 	scheduleBatch()
 }
