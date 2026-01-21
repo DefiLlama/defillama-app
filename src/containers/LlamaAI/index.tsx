@@ -1026,6 +1026,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		})
 	})
 
+	const hasScrollableView = messages.length > 0 || isRestoringSession || isPending || isStreaming
+
 	useEffect(() => {
 		const container = scrollContainerRef.current
 		if (!container) return
@@ -1052,7 +1054,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				cancelAnimationFrame(rafIdRef.current)
 			}
 		}
-	}, [])
+	}, [hasScrollableView])
 
 	useEffect(() => {
 		if (shouldAutoScrollRef.current && scrollContainerRef.current && (streamingResponse || isStreaming)) {
