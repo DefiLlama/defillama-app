@@ -229,7 +229,7 @@ export function LinkToMetricOrToolPage({
 		() => '[]'
 	)
 
-	const pinnedPages = JSON.parse(pinnedMetrics)
+	const pinnedPages = useMemo(() => JSON.parse(pinnedMetrics), [pinnedMetrics])
 	const isPinned = pinnedPages.includes(page.route)
 
 	const isExternalLink = page.route.startsWith('http')

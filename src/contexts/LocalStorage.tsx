@@ -395,7 +395,7 @@ export function useManageAppSettings(): [SettingsStore, (keys: Partial<Record<Se
 		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
 		() => '{}'
 	)
-	const toggledSettings = JSON.parse(store) as SettingsStore
+	const toggledSettings = useMemo(() => JSON.parse(store) as SettingsStore, [store])
 
 	return [toggledSettings, updateAllSettings]
 }
@@ -408,14 +408,14 @@ export function useYieldFilters() {
 		() => '{}'
 	)
 
-	const parsedStore = JSON.parse(store) as AppStorage
+	const parsedStore = useMemo(() => JSON.parse(store) as AppStorage, [store])
 	const savedFilters: YieldSavedFilters = parsedStore?.[YIELDS_SAVED_FILTERS] ?? {}
 
 	return {
 		savedFilters,
 		saveFilter: (name: string, filters: YieldSavedFilter) => {
 			writeAppStorage({
-				...parsedStore,
+				...readAppStorage(),
 				[YIELDS_SAVED_FILTERS]: { ...savedFilters, [name]: filters }
 			})
 		},
@@ -423,7 +423,7 @@ export function useYieldFilters() {
 			const newFilters = { ...savedFilters }
 			delete newFilters[name]
 			writeAppStorage({
-				...parsedStore,
+				...readAppStorage(),
 				[YIELDS_SAVED_FILTERS]: newFilters
 			})
 		}
@@ -436,7 +436,7 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
 		() => '{}'
 	)
-	const parsedStore = JSON.parse(store) as AppStorage
+	const parsedStore = useMemo(() => JSON.parse(store) as AppStorage, [store])
 
 	return useMemo(() => {
 		const watchlistKey = type === 'defi' ? DEFI_WATCHLIST : type === 'yields' ? YIELDS_WATCHLIST : CHAINS_WATCHLIST
@@ -594,11 +594,11 @@ export function useLlamaAIWelcome(): [boolean, () => void] {
 		() => '{}'
 	)
 
-	const parsedStore = JSON.parse(store) as AppStorage
+	const parsedStore = useMemo(() => JSON.parse(store) as AppStorage, [store])
 	const shown = parsedStore?.[LLAMA_AI_WELCOME_SHOWN] ?? false
 
 	const setShown = () => {
-		writeAppStorage({ ...parsedStore, [LLAMA_AI_WELCOME_SHOWN]: true })
+		writeAppStorage({ ...readAppStorage(), [LLAMA_AI_WELCOME_SHOWN]: true })
 	}
 
 	return [shown, setShown]
