@@ -231,7 +231,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 							allValues={chains}
 							selectedValues={selectedChains}
 							includeQueryKey="chain"
-							excludeQueryKey="chain"
+							excludeQueryKey="excludeChain"
 							nestedMenu={false}
 							label={'Chains'}
 							labelType="smol"
@@ -245,7 +245,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 							allValues={columnOptions}
 							selectedValues={selectedColumns}
 							includeQueryKey="column"
-							excludeQueryKey="column"
+							excludeQueryKey="excludeColumn"
 							nestedMenu={false}
 							label={'Columns'}
 							labelType="smol"

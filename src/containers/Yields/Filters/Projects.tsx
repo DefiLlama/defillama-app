@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import type { ExcludeQueryKey } from '~/components/selectTypes'
 
 interface IYieldProjectsProps {
 	projectList: Array<string>
@@ -7,7 +8,7 @@ interface IYieldProjectsProps {
 	label?: string
 	nestedMenu?: boolean
 	includeQueryKey: string
-	excludeQueryKey: string
+	excludeQueryKey: ExcludeQueryKey
 }
 
 export function YieldProjects({

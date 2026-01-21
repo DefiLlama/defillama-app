@@ -8,6 +8,8 @@ export type SelectOption = {
 
 export type SelectValues = ReadonlyArray<SelectOption> | ReadonlyArray<string>
 
+export type ExcludeQueryKey = `exclude${string}`
+
 export type MultiSelectOption = {
 	value: string
 	label: string

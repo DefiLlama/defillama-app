@@ -119,7 +119,7 @@ export function RecentlyListedProtocolsTable({
 							allValues={chainList}
 							selectedValues={selectedChains}
 							includeQueryKey="chain"
-							excludeQueryKey="chain"
+							excludeQueryKey="excludeChain"
 							labelType="smol"
 							triggerProps={{
 								className:

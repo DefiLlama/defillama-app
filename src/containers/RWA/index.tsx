@@ -354,7 +354,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					allValues={props.categories}
 					selectedValues={selectedCategories}
 					includeQueryKey="categories"
-					excludeQueryKey="categories"
+					excludeQueryKey="excludeCategories"
 					label={'Categories'}
 					labelType="smol"
 					triggerProps={{
@@ -366,7 +366,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					allValues={props.assetClassOptions}
 					selectedValues={selectedAssetClasses}
 					includeQueryKey="assetClasses"
-					excludeQueryKey="assetClasses"
+					excludeQueryKey="excludeAssetClasses"
 					label={'Asset Classes'}
 					labelType="smol"
 					triggerProps={{
@@ -378,7 +378,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					allValues={props.rwaClassificationOptions}
 					selectedValues={selectedRwaClassifications}
 					includeQueryKey="rwaClassifications"
-					excludeQueryKey="rwaClassifications"
+					excludeQueryKey="excludeRwaClassifications"
 					label={'RWA Classification'}
 					labelType="smol"
 					triggerProps={{
@@ -390,7 +390,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					allValues={props.accessModelOptions}
 					selectedValues={selectedAccessModels}
 					includeQueryKey="accessModels"
-					excludeQueryKey="accessModels"
+					excludeQueryKey="excludeAccessModels"
 					label={'Access Model'}
 					labelType="smol"
 					triggerProps={{
@@ -402,7 +402,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					allValues={props.issuers}
 					selectedValues={selectedIssuers}
 					includeQueryKey="issuers"
-					excludeQueryKey="issuers"
+					excludeQueryKey="excludeIssuers"
 					label={'Issuers'}
 					labelType="smol"
 					triggerProps={{

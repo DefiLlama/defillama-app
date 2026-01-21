@@ -3,7 +3,7 @@ import Router from 'next/router'
 import * as React from 'react'
 import { Icon } from './Icon'
 import { NestedMenu, NestedMenuItem } from './NestedMenu'
-import type { SelectValues } from './selectTypes'
+import type { ExcludeQueryKey, SelectValues } from './selectTypes'
 import { Tooltip } from './Tooltip'
 
 // URL update helpers - used when includeQueryKey is provided
@@ -48,7 +48,7 @@ interface ISelectBase {
 
 interface ISelectWithUrlParams extends ISelectBase {
 	includeQueryKey: string
-	excludeQueryKey: string
+	excludeQueryKey: ExcludeQueryKey
 	setSelectedValues?: never
 }
 
@@ -75,10 +75,7 @@ export function Select({
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 
 	// Helper to extract keys from allValues
-	const getAllKeys = React.useCallback(
-		() => allValues.map((v) => (typeof v === 'string' ? v : v.key)),
-		[allValues]
-	)
+	const getAllKeys = React.useCallback(() => allValues.map((v) => (typeof v === 'string' ? v : v.key)), [allValues])
 
 	// If includeQueryKey is provided, use URL-based functions; otherwise derive from setSelectedValues
 	const setSelectedValues = includeQueryKey ? createUrlSetSelectedValues(includeQueryKey) : setSelectedValuesProp
