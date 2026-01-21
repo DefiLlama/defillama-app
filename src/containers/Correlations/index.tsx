@@ -11,17 +11,15 @@ import { pearsonCorrelationCoefficient } from './util'
 
 export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins }: any) {
 	const [search, setSearch] = useState('')
-	const filteredCoins = useMemo(() => {
-		if (search === '') {
-			return coinsData
-		}
-		return coinsData.filter(
-			(coin) =>
-				(coin?.symbol?.toLowerCase().includes(search.toLowerCase()) ||
-					coin?.name?.toLowerCase().includes(search.toLowerCase())) &&
-				!selectedCoins[coin.id]
-		)
-	}, [search, selectedCoins, coinsData])
+	const filteredCoins =
+		search === ''
+			? coinsData
+			: coinsData.filter(
+					(coin) =>
+						(coin?.symbol?.toLowerCase().includes(search.toLowerCase()) ||
+							coin?.name?.toLowerCase().includes(search.toLowerCase())) &&
+						!selectedCoins[coin.id]
+				)
 
 	const [resultsLength, setResultsLength] = useState(10)
 
@@ -99,33 +97,18 @@ export default function Correlations({ coinsData }) {
 	}, [queryParamString])
 
 	// Normalize queryCoins to always be an array for simpler filtering
-	const normalizedQueryCoins = useMemo(() => {
-		if (!queryCoins) return []
-		return Array.isArray(queryCoins) ? queryCoins : [queryCoins]
-	}, [queryCoins])
+	const normalizedQueryCoins = !queryCoins ? [] : Array.isArray(queryCoins) ? queryCoins : [queryCoins]
 
-	const selectedCoins = useMemo<Record<string, IResponseCGMarketsAPI>>(() => {
+	const selectedCoins: Record<string, IResponseCGMarketsAPI> = (() => {
 		if (normalizedQueryCoins.length === 0) return {}
 		const queryCoinsSet = new Set(normalizedQueryCoins)
 		return Object.fromEntries(coinsData.filter((coin) => queryCoinsSet.has(coin.id)).map((coin) => [coin.id, coin]))
-	}, [normalizedQueryCoins, coinsData])
+	})()
 
 	const [period, setPeriod] = useState<Period>('1y')
-	const selectedCoinKeys = useMemo(() => {
-		const keys: string[] = []
-		for (const key in selectedCoins) {
-			keys.push(key)
-		}
-		return keys
-	}, [selectedCoins])
+	const selectedCoinKeys = Object.keys(selectedCoins)
 	const { data: priceChart, isLoading } = usePriceCharts(selectedCoinKeys)
-	const coins = useMemo(() => {
-		const result: (typeof selectedCoins)[keyof typeof selectedCoins][] = []
-		for (const key in selectedCoins) {
-			if (selectedCoins[key]) result.push(selectedCoins[key])
-		}
-		return result
-	}, [selectedCoins])
+	const coins = Object.values(selectedCoins).filter(Boolean)
 	const correlations = useMemo(
 		() =>
 			!isLoading

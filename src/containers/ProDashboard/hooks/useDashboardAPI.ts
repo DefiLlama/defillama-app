@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Router, { useRouter } from 'next/router'
-import { useCallback, useMemo, useSyncExternalStore } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
@@ -19,9 +19,7 @@ export function useGetLiteDashboards() {
 		() => '[]'
 	)
 
-	const liteDashboards = useMemo(() => {
-		return JSON.parse(liteDashboardsInStorage)
-	}, [liteDashboardsInStorage])
+	const liteDashboards = JSON.parse(liteDashboardsInStorage)
 
 	const { isLoading, error } = useQuery({
 		queryKey: ['lite-dashboards', user?.id],
@@ -162,9 +160,9 @@ export function useDashboardAPI() {
 	)
 
 	// Navigate to a dashboard
-	const navigateToDashboard = useCallback((id: string) => {
+	const navigateToDashboard = (id: string) => {
 		Router.push(`/pro/${id}`)
-	}, [])
+	}
 
 	// Delete dashboard with confirmation
 	const deleteDashboardWithConfirmation = useCallback(

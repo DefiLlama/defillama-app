@@ -78,10 +78,7 @@ const pageName = ['Top Protocols']
 const columnHelper = COLUMN_HELPER
 
 export default function TopProtocols({ data, chains, uniqueCategories }) {
-	const columnOptions = React.useMemo(
-		() => uniqueCategories.map((cat) => ({ name: cat, key: cat })),
-		[uniqueCategories]
-	)
+	const columnOptions = uniqueCategories.map((cat) => ({ name: cat, key: cat }))
 
 	const router = useRouter()
 	const { chain, column } = router.query

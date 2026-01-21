@@ -237,7 +237,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 		setSelectedCategories([category])
 	}
 	const [extaTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-	const enabledTvls = React.useMemo(() => TVL_SETTINGS_KEYS.filter((key) => extaTvlsEnabled[key]), [extaTvlsEnabled])
+	const enabledTvls = TVL_SETTINGS_KEYS.filter((key) => extaTvlsEnabled[key])
 
 	const charts = React.useMemo(() => {
 		const selectedCategoriesSet = new Set(selectedCategories)

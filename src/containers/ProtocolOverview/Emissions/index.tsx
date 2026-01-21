@@ -191,7 +191,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		return result
 	}, [priceChart.data?.data])
 
-	const groupedEvents = useMemo(() => groupByKey(data.events ?? [], (event) => event.timestamp), [data.events])
+	const groupedEvents = groupByKey(data.events ?? [], (event) => event.timestamp)
 
 	const sortedEvents = useMemo(() => {
 		const now = Date.now() / 1e3
@@ -260,12 +260,10 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'date') > 0)
 	}, [rawChartData, normilizePriceChart, isPriceEnabled])
 
-	const availableCategories = useMemo(() => {
-		if (allocationMode === 'standard') {
-			return Object.keys(data.categoriesBreakdown || {})
-		}
-		return categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
-	}, [allocationMode, data.categoriesBreakdown, categoriesFromData])
+	const availableCategories =
+		allocationMode === 'standard'
+			? Object.keys(data.categoriesBreakdown || {})
+			: categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
 
 	const displayData = useMemo(() => {
 		if (allocationMode === 'standard' && data.categoriesBreakdown) {
@@ -350,33 +348,27 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			? 100 - (data.meta.totalLocked / data.meta.maxSupply) * 100
 			: 0
 
-	const unlockedPieChartData = useMemo(
-		() => [
-			{ name: 'Unlocked', value: unlockedPercent },
-			{ name: 'Locked', value: 100 - unlockedPercent }
-		],
-		[unlockedPercent]
-	)
+	const unlockedPieChartData = [
+		{ name: 'Unlocked', value: unlockedPercent },
+		{ name: 'Locked', value: 100 - unlockedPercent }
+	]
 
-	const pieChartLegendPosition = useMemo(() => {
-		if (width < 640) return { left: 'center', top: 'bottom', orient: 'horizontal' as const }
-		return { left: 'right', top: 'center', orient: 'vertical' as const }
-	}, [width])
+	const pieChartLegendPosition =
+		width < 640
+			? { left: 'center', top: 'bottom', orient: 'horizontal' as const }
+			: { left: 'right', top: 'center', orient: 'vertical' as const }
 
-	const pieChartLegendTextStyle = useMemo(
-		() => ({
-			fontSize: width < 640 ? 12 : 20
-		}),
-		[width]
-	)
+	const pieChartLegendTextStyle = {
+		fontSize: width < 640 ? 12 : 20
+	}
 
-	const hasGroupAllocationData = useMemo(() => {
+	const hasGroupAllocationData = (() => {
 		if (!data.categoriesBreakdown || typeof data.categoriesBreakdown !== 'object') return false
 		for (const _ in data.categoriesBreakdown) {
 			return true
 		}
 		return false
-	}, [data.categoriesBreakdown])
+	})()
 
 	const prepareCsv = useMemo(() => {
 		return () => {

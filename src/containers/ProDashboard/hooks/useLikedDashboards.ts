@@ -28,9 +28,9 @@ export function useLikedDashboards() {
 		enabled: isAuthenticated
 	})
 
-	const goToPage = useCallback((newPage: number) => {
+	const goToPage = (newPage: number) => {
 		setPage(newPage)
-	}, [])
+	}
 
 	const nextPage = useCallback(() => {
 		if (data && page < data.totalPages) {
