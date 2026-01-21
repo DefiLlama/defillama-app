@@ -2,7 +2,6 @@ import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import Router, { useRouter } from 'next/router'
 import * as React from 'react'
-import { useMemo } from 'react'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
@@ -173,9 +172,7 @@ const TokensSelect = ({
 
 	const tokenInSearchData = selectedValue !== '' ? searchData[selectedValue.toUpperCase()] : null
 
-	const searchDataArray = useMemo(() => {
-		return Object.values(searchData)
-	}, [searchData])
+	const searchDataArray = Object.values(searchData)
 
 	const [searchValue, setSearchValue] = React.useState('')
 	const deferredSearchValue = React.useDeferredValue(searchValue)

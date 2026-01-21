@@ -101,7 +101,7 @@ export default function Governance({ data }) {
 }
 
 const RenderSubComponent = ({ row }) => {
-	const subRowEntries = React.useMemo(() => Object.entries(row.original.subRowData), [row.original.subRowData])
+	const subRowEntries = Object.entries(row.original.subRowData)
 
 	return (
 		<span className="flex flex-col gap-1 pl-[72px]">

@@ -119,16 +119,16 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
-	// Memoize filter arrays as Sets for O(1) lookups
-	const selectedCategoriesSet = useMemo(() => new Set(selectedCategories), [selectedCategories])
-	const selectedAssetClassesSet = useMemo(() => new Set(selectedAssetClasses), [selectedAssetClasses])
-	const selectedRwaClassificationsSet = useMemo(() => new Set(selectedRwaClassifications), [selectedRwaClassifications])
-	const selectedAccessModelsSet = useMemo(() => new Set(selectedAccessModels), [selectedAccessModels])
-	const selectedIssuersSet = useMemo(() => new Set(selectedIssuers), [selectedIssuers])
-
 	// Non-RWA Stablecoins
 	// Crypto-collateralized stablecoin (non-RWA)
 	const filteredAssets = useMemo(() => {
+		// Create Sets for O(1) lookups
+		const selectedCategoriesSet = new Set(selectedCategories)
+		const selectedAssetClassesSet = new Set(selectedAssetClasses)
+		const selectedRwaClassificationsSet = new Set(selectedRwaClassifications)
+		const selectedAccessModelsSet = new Set(selectedAccessModels)
+		const selectedIssuersSet = new Set(selectedIssuers)
+
 		return props.assets.filter((asset) => {
 			if (!includeStablecoins && asset.stablecoin) {
 				return false
@@ -181,11 +181,11 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		})
 	}, [
 		props.assets,
-		selectedCategoriesSet,
-		selectedAssetClassesSet,
-		selectedRwaClassificationsSet,
-		selectedAccessModelsSet,
-		selectedIssuersSet,
+		selectedCategories,
+		selectedAssetClasses,
+		selectedRwaClassifications,
+		selectedAccessModels,
+		selectedIssuers,
 		includeStablecoins,
 		includeGovernance,
 		minDefiActiveTvlToOnChainPct,
@@ -234,6 +234,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	// Pie charts (single pass): keep category colors consistent across all 3 charts via `stackColors`
 	const { totalOnChainRwaPieChartData, activeMarketcapPieChartData, defiActiveTvlPieChartData, pieChartStackColors } =
 		useMemo(() => {
+			const selectedCategoriesSet = new Set(selectedCategories)
 			const categoryTotals = new Map<string, { onChain: number; active: number; defi: number }>()
 
 			for (const asset of filteredAssets) {
@@ -268,7 +269,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				defiActiveTvlPieChartData: toSortedChartData('defi'),
 				pieChartStackColors
 			}
-		}, [filteredAssets, props.categories, selectedCategoriesSet])
+		}, [filteredAssets, props.categories, selectedCategories])
 
 	const assetsData = useMemo(() => {
 		if (!deferredSearchValue) return filteredAssets

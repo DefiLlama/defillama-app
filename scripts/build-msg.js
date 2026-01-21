@@ -44,27 +44,59 @@ const tryGit = (command) => {
 		return ''
 	}
 }
-const withFallback = (value, fallback = '') => (value ? value : fallback)
-const formatLlamaMention = (value) => {
-	const normalized = normalize(value)
-	if (!normalized) {
-		return ''
-	}
-	if (normalized.startsWith('<@') && normalized.endsWith('>')) {
-		return normalized
-	}
-	if (normalized.startsWith('@')) {
-		const handle = normalized.slice(1)
-		if (/^\d+$/.test(handle)) {
-			return `<@${handle}>`
-		}
-		return `@${handle}`
-	}
-	if (/^\d+$/.test(normalized)) {
-		return `<@${normalized}>`
-	}
-	return `@${normalized}`
+
+const parseGitHubRepo = (url) => {
+	if (!url) return ''
+	// Handle various GitHub URL formats:
+	// https://github.com/owner/repo.git
+	// git@github.com:owner/repo.git
+	// owner/repo
+	const httpsMatch = url.match(/github\.com\/([^/]+\/[^/]+?)(?:\.git)?$/)
+	if (httpsMatch) return httpsMatch[1]
+	const sshMatch = url.match(/github\.com:([^/]+\/[^/]+?)(?:\.git)?$/)
+	if (sshMatch) return sshMatch[1]
+	// Direct owner/repo format
+	if (/^[^/]+\/[^/]+$/.test(url)) return url
+	return ''
 }
+
+const fetchGitHubCommitInfo = async (sha) => {
+	const repoUrl = firstNonEmpty(
+		process.env.COOLIFY_GIT_REPOSITORY,
+		process.env.GIT_REPOSITORY,
+		process.env.GITHUB_REPOSITORY,
+		() => tryGit('git config --get remote.origin.url')
+	)
+	const repo = parseGitHubRepo(repoUrl)
+	if (!repo || !sha) {
+		console.log('GitHub API: Missing repo or SHA', { repo, sha: sha?.slice(0, 7) })
+		return null
+	}
+	try {
+		const url = `https://api.github.com/repos/${repo}/commits/${sha}`
+		console.log(`GitHub API: Fetching commit info from ${repo}`)
+		const headers = { Accept: 'application/vnd.github.v3+json', 'User-Agent': 'defillama-build' }
+		const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN
+		if (token) {
+			headers.Authorization = `Bearer ${token}`
+		}
+		const res = await fetch(url, { headers })
+		if (!res.ok) {
+			console.log(`GitHub API: Failed with status ${res.status}`)
+			return null
+		}
+		const data = await res.json()
+		return {
+			message: data.commit?.message?.split('\n')[0] || '',
+			author: data.commit?.author?.name || data.author?.login || '',
+			sha: data.sha || ''
+		}
+	} catch (error) {
+		console.log('GitHub API: Error fetching commit', error instanceof Error ? error.message : String(error))
+		return null
+	}
+}
+const withFallback = (value, fallback = '') => (value ? value : fallback)
 
 // read the build.log file into base64 string (optional)
 let buildLogBase64 = ''
@@ -131,15 +163,15 @@ const BUILD_STATUS_WEBHOOK = process.env.BUILD_STATUS_WEBHOOK
 const buildLlamaUsers = BUILD_LLAMAS.split(',')
 	.map((llama) => llama.trim())
 	.filter(Boolean)
-const llamaNames = buildLlamaUsers.join(', ') || 'none'
-const llamaMentions = buildLlamaUsers.map(formatLlamaMention).filter(Boolean).join(' ')
+	.map((llama) => `@${llama}`)
+	.join(' ')
 
 // node ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$COMMIT_COMMENT" "$COMMIT_AUTHOR" "$COMMIT_HASH" "$BRANCH_NAME"
 const BUILD_STATUS = process.argv[2]
 const BUILD_TIME_STR = process.argv[3]
 const START_TIME = process.argv[4]
 const BUILD_ID = process.argv[5]
-const COMMIT_COMMENT = firstNonEmptyLine(
+let COMMIT_COMMENT = firstNonEmptyLine(
 	process.argv[6],
 	process.env.COMMIT_COMMENT,
 	process.env.COMMIT_MESSAGE,
@@ -148,7 +180,7 @@ const COMMIT_COMMENT = firstNonEmptyLine(
 	process.env.GIT_COMMIT_MESSAGE,
 	() => tryGit('git log -1 --pretty=%B')
 )
-const COMMIT_AUTHOR = firstNonEmpty(
+let COMMIT_AUTHOR = firstNonEmpty(
 	process.argv[7],
 	process.env.COMMIT_AUTHOR,
 	process.env.CI_COMMIT_AUTHOR,
@@ -158,7 +190,7 @@ const COMMIT_AUTHOR = firstNonEmpty(
 	process.env.GITLAB_USER_NAME,
 	() => tryGit('git log -1 --pretty=%an')
 )
-const COMMIT_HASH = firstNonEmpty(
+let COMMIT_HASH = firstNonEmpty(
 	process.argv[8],
 	process.env.COMMIT_HASH,
 	process.env.SOURCE_COMMIT,
@@ -169,6 +201,40 @@ const COMMIT_HASH = firstNonEmpty(
 	process.env.SOURCE_VERSION,
 	() => tryGit('git rev-parse HEAD')
 )
+
+// Try to fetch missing commit info from GitHub API
+const enrichCommitInfo = async () => {
+	const needsMessage = !COMMIT_COMMENT
+	const needsAuthor = !COMMIT_AUTHOR
+	const needsHash = !COMMIT_HASH
+
+	if (!needsMessage && !needsAuthor) {
+		console.log('Commit info already available, skipping GitHub API')
+		return
+	}
+
+	// We need at least a hash to query GitHub
+	if (!COMMIT_HASH) {
+		console.log('No commit hash available, cannot fetch from GitHub API')
+		return
+	}
+
+	console.log('Fetching missing commit info from GitHub API...')
+	const info = await fetchGitHubCommitInfo(COMMIT_HASH)
+	if (!info) {
+		console.log('GitHub API returned no data')
+		return
+	}
+
+	if (needsMessage && info.message) {
+		COMMIT_COMMENT = info.message
+		console.log(`GitHub API: Got commit message: ${info.message.slice(0, 50)}...`)
+	}
+	if (needsAuthor && info.author) {
+		COMMIT_AUTHOR = info.author
+		console.log(`GitHub API: Got commit author: ${info.author}`)
+	}
+}
 const BRANCH_NAME = firstNonEmpty(
 	normalizeBranchName(process.argv[9]),
 	normalizeBranchName(process.env.BRANCH_NAME),
@@ -188,19 +254,23 @@ const BRANCH_NAME = firstNonEmpty(
 	() => normalizeBranchName(tryGit('git rev-parse --abbrev-ref HEAD'))
 )
 
-let buildSummary =
-	BUILD_STATUS === '0' ? `🎉 Build succeeded in ${BUILD_TIME_STR}` : `🚨 Build failed in ${BUILD_TIME_STR}`
-buildSummary += `\n📅 Build started at ${START_TIME}`
-if (BUILD_ID) {
-	buildSummary += `\n📦 Build ID: ${BUILD_ID}`
+const buildBuildSummary = () => {
+	let summary =
+		BUILD_STATUS === '0' ? `🎉 Build succeeded in ${BUILD_TIME_STR}` : `🚨 Build failed in ${BUILD_TIME_STR}`
+	summary += `\n📅 Build started at ${START_TIME}`
+	if (BUILD_ID) {
+		summary += `\n📦 Build ID: ${BUILD_ID}`
+	}
+	return summary
 }
 
-const commitMessageLabel = withFallback(COMMIT_COMMENT, 'unknown commit message')
-const commitAuthorLabel = withFallback(COMMIT_AUTHOR, 'unknown author')
-const commitHashLabel = withFallback(COMMIT_HASH, 'unknown commit id')
-const branchLabel = withFallback(BRANCH_NAME, 'unknown branch')
-
-let commitSummary = `📂 defillama-app\n🪾 ${branchLabel}\n💬 ${commitMessageLabel}\n🦙 ${commitAuthorLabel}\n📸 ${commitHashLabel}`
+const buildCommitSummary = () => {
+	const commitMessageLabel = withFallback(COMMIT_COMMENT, 'unknown commit message')
+	const commitAuthorLabel = withFallback(COMMIT_AUTHOR, 'unknown author')
+	const commitHashLabel = withFallback(COMMIT_HASH, 'unknown commit id')
+	const branchLabel = withFallback(BRANCH_NAME, 'unknown branch')
+	return `📂 defillama-app\n🪾 ${branchLabel}\n💬 ${commitMessageLabel}\n🦙 ${commitAuthorLabel}\n📸 ${commitHashLabel}`
+}
 
 async function checkWebhookResponse(bodyResponse) {
 	if (!bodyResponse.ok) {
@@ -209,12 +279,26 @@ async function checkWebhookResponse(bodyResponse) {
 }
 
 const sendMessages = async () => {
+	// Enrich commit info from GitHub API if needed
+	await enrichCommitInfo()
+
 	if (!BUILD_STATUS_WEBHOOK) {
 		console.log('BUILD_STATUS_WEBHOOK not set, skipping discord notification')
 		return
 	}
-	const llamaSummary = llamaMentions ? `Build llamas: ${llamaMentions}` : `Build llamas: ${llamaNames}`
-	const message = `\`\`\`\n===== COMMIT SUMMARY =====\n${commitSummary}\n\n===== BUILD SUMMARY =====\n${buildSummary}\n\`\`\`\n${llamaSummary}`
+
+	const buildSummary = buildBuildSummary()
+	const commitSummary = buildCommitSummary()
+
+	const message = [
+		'===== COMMIT SUMMARY =====',
+		commitSummary,
+		'===== BUILD SUMMARY =====',
+		buildSummary,
+		buildLlamaUsers || null
+	]
+		.filter(Boolean)
+		.join('\n')
 	const body = {
 		content: message,
 		allowed_mentions: { parse: ['users', 'roles'] }
@@ -244,12 +328,8 @@ const sendMessages = async () => {
 		console.log('Build log upload skipped')
 	}
 
-	if (BUILD_STATUS !== '0' && buildLlamaUsers.length > 0) {
-		const llamaMessage = [
-			'Build failed.',
-			llamaMentions ? `Build llamas: ${llamaMentions}` : `Build llamas: ${llamaNames}`,
-			BUILD_STATUS_DASHBOARD
-		]
+	if (BUILD_STATUS !== '0') {
+		const llamaMessage = ['Build failed.', buildLlamaUsers || null, BUILD_STATUS_DASHBOARD || null]
 			.filter(Boolean)
 			.join('\n')
 		const llamaBody = {
