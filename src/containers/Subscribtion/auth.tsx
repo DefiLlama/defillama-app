@@ -10,29 +10,57 @@ export type PromotionalEmailsValue = 'initial' | 'on' | 'off'
 // Custom event name for auth store changes
 const AUTH_STORE_CHANGE_EVENT = 'pb-auth-store-change'
 
+const stableStringify = (value: unknown) => {
+	try {
+		return JSON.stringify(value, (_key, val) => {
+			if (val && typeof val === 'object' && !Array.isArray(val)) {
+				const obj = val as Record<string, unknown>
+				return Object.keys(obj)
+					.sort()
+					.reduce<Record<string, unknown>>((acc, k) => {
+						acc[k] = obj[k]
+						return acc
+					}, {})
+			}
+			return val
+		})
+	} catch {
+		return ''
+	}
+}
+
+const getRecordKey = (record: RecordModel | null | undefined) => {
+	if (!record) return ''
+	const updatedOrCreated = (record as any)?.updated ?? (record as any)?.created
+	if (updatedOrCreated != null) return `${record.id}:${updatedOrCreated}`
+
+	const serialized = stableStringify(record)
+	return record.id ? `${record.id}:${serialized}` : serialized
+}
+
 // Store for tracking auth state changes
 let authStoreSnapshot = {
 	token: pb.authStore.token,
 	record: pb.authStore.record ? { ...pb.authStore.record } : null,
+	recordKey: getRecordKey(pb.authStore.record),
 	isValid: pb.authStore.isValid
 }
 
-// Subscribe to PocketBase authStore changes and dispatch window events
+// Subscribe to PocketBase authStore changes and react to external events
 const subscribeToAuthStore = (callback: () => void) => {
 	const unsubscribe = pb.authStore.onChange((token, record) => {
+		const nextRecordKey = getRecordKey(record)
 		const hasTokenChanged = authStoreSnapshot.token !== token
-		const hasRecordChanged = JSON.stringify(authStoreSnapshot.record) !== JSON.stringify(record)
+		const hasRecordChanged = authStoreSnapshot.recordKey !== nextRecordKey
 		const hasValidChanged = authStoreSnapshot.isValid !== pb.authStore.isValid
 
 		if (hasTokenChanged || hasRecordChanged || hasValidChanged) {
 			authStoreSnapshot = {
 				token,
 				record: record ? { ...record } : null,
+				recordKey: nextRecordKey,
 				isValid: pb.authStore.isValid
 			}
-			window.dispatchEvent(
-				new CustomEvent(AUTH_STORE_CHANGE_EVENT, { detail: { token, record, isValid: pb.authStore.isValid } })
-			)
 			callback()
 		}
 	})
@@ -673,16 +701,17 @@ export const useUserHash = () => {
 				})
 				.then((data) => {
 					const currentUserHash = localStorage.getItem('userHash')
-					localStorage.setItem('userHash', data.userHash)
+					// Avoid redundant localStorage writes (can be surprisingly costly in bursts).
 					if (currentUserHash !== data.userHash) {
+						localStorage.setItem('userHash', data.userHash)
 						window.dispatchEvent(new Event('userHashChange'))
 					}
 					return data.userHash
 				})
 				.catch(() => {
 					const currentUserHash = localStorage.getItem('userHash')
-					localStorage.removeItem('userHash')
 					if (currentUserHash !== null) {
+						localStorage.removeItem('userHash')
 						window.dispatchEvent(new Event('userHashChange'))
 					}
 					return null
