@@ -673,16 +673,17 @@ export const useUserHash = () => {
 				})
 				.then((data) => {
 					const currentUserHash = localStorage.getItem('userHash')
-					localStorage.setItem('userHash', data.userHash)
+					// Avoid redundant localStorage writes (can be surprisingly costly in bursts).
 					if (currentUserHash !== data.userHash) {
+						localStorage.setItem('userHash', data.userHash)
 						window.dispatchEvent(new Event('userHashChange'))
 					}
 					return data.userHash
 				})
 				.catch(() => {
 					const currentUserHash = localStorage.getItem('userHash')
-					localStorage.removeItem('userHash')
 					if (currentUserHash !== null) {
+						localStorage.removeItem('userHash')
 						window.dispatchEvent(new Event('userHashChange'))
 					}
 					return null
