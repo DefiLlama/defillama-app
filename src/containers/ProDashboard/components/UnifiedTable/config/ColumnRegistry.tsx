@@ -553,6 +553,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 		createUsdMetricColumn('revenue_30d' as MetricKey, '30d Revenue'),
 		createUsdMetricColumn('revenue_1y' as MetricKey, '1y Revenue'),
 		createUsdMetricColumn('average_revenue_1y' as MetricKey, '1y Monthly Avg Revenue'),
+		createUsdMetricColumn('cumulativeRevenue' as MetricKey, 'Cumulative Revenue'),
 		createPercentChangeColumn('revenueChange_1d' as MetricKey, '1d Revenue Change'),
 		createPercentChangeColumn('revenueChange_7d' as MetricKey, '7d Revenue Change'),
 		createPercentChangeColumn('revenueChange_1m' as MetricKey, '30d Revenue Change')

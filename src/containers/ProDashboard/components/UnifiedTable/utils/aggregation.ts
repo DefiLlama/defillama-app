@@ -31,6 +31,7 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 		'revenue_30d',
 		'revenue_1y',
 		'average_revenue_1y',
+		'cumulativeRevenue',
 		'perpsVolume24h',
 		'perps_volume_7d',
 		'perps_volume_30d',

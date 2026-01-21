@@ -256,6 +256,7 @@ export const SAMPLE_METRICS: NumericMetrics = {
 	revenue_30d: 4_500_000,
 	revenue_1y: 54_000_000,
 	average_revenue_1y: 4_500_000,
+	cumulativeRevenue: 650_000_000,
 	revenueChange_1d: 2.8,
 	revenueChange_7d: 6.3,
 	revenueChange_1m: 12.0,

@@ -61,6 +61,7 @@ export interface NumericMetrics {
 	revenue_30d?: number | null
 	revenue_1y?: number | null
 	average_revenue_1y?: number | null
+	cumulativeRevenue?: number | null
 	revenueChange_1d?: number | null
 	revenueChange_7d?: number | null
 	revenueChange_1m?: number | null

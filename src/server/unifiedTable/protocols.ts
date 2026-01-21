@@ -58,6 +58,7 @@ type ProtocolAggregateRow = {
 	revenue_30d: number | null
 	revenue_365d: number | null
 	revenue_annualised: number | null
+	revenue_alltime: number | null
 	revenue_1d_pct_change: number | null
 	revenue_7d_pct_change: number | null
 	revenue_30d_pct_change: number | null
@@ -211,6 +212,7 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		revenue_30d: row.revenue_30d ?? null,
 		revenue_1y: row.revenue_365d ?? null,
 		average_revenue_1y: row.revenue_annualised ? row.revenue_annualised / 12 : null,
+		cumulativeRevenue: row.revenue_alltime ?? null,
 		revenueChange_1d: toPercent(row.revenue_1d_pct_change),
 		revenueChange_7d: toPercent(row.revenue_7d_pct_change),
 		revenueChange_1m: toPercent(row.revenue_30d_pct_change),
@@ -371,6 +373,7 @@ const fetchProtocolAggregateRows = async (
 			mp.revenue_30d,
 			mp.revenue_365d,
 			mp.revenue_annualised,
+			mp.revenue_alltime,
 			mp.revenue_1d_pct_change,
 			mp.revenue_7d_pct_change,
 			mp.revenue_30d_pct_change,
@@ -503,6 +506,7 @@ const fetchSubProtocolRows = async (
 			msp.revenue_30d,
 			msp.revenue_365d,
 			msp.revenue_annualised,
+			msp.revenue_alltime,
 			msp.revenue_1d_pct_change,
 			msp.revenue_7d_pct_change,
 			msp.revenue_30d_pct_change,
@@ -656,6 +660,7 @@ const fetchParentProtocolsByChain = async (
 			mpc.revenue_30d,
 			mpc.revenue_365d,
 			mpc.revenue_annualised,
+			mpc.revenue_alltime,
 			mpc.revenue_1d_pct_change,
 			mpc.revenue_7d_pct_change,
 			mpc.revenue_30d_pct_change,
@@ -790,6 +795,7 @@ const fetchSubProtocolsByChain = async (
 			mspc.revenue_30d,
 			mspc.revenue_365d,
 			mspc.revenue_annualised,
+			mspc.revenue_alltime,
 			mspc.revenue_1d_pct_change,
 			mspc.revenue_7d_pct_change,
 			mspc.revenue_30d_pct_change,
