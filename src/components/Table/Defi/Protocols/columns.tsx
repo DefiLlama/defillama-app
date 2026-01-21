@@ -15,6 +15,17 @@ import { IProtocolRow, IProtocolRowWithCompare } from './types'
 
 const columnHelper = createColumnHelper<IProtocolRow>()
 
+const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
+	<span className="flex flex-col gap-1">
+		{chains.map((chain) => (
+			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
+				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<span>{chain}</span>
+			</span>
+		))}
+	</span>
+)
+
 export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		id: 'name',
@@ -24,16 +35,6 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-			const Chains = () => (
-				<span className="flex flex-col gap-1">
-					{row.original.chains.map((chain) => (
-						<span key={`/protocolll/${value}/${chain}`} className="flex items-center gap-1">
-							<TokenLogo logo={chainIconUrl(chain)} size={14} />
-							<span>{chain}</span>
-						</span>
-					))}
-				</span>
-			)
 
 			return (
 				<span
@@ -88,7 +89,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 							>{`${value}`}</BasicLink>
 						)}
 
-						<Tooltip content={<Chains />} className="text-[0.7rem]">
+						<Tooltip content={<ProtocolChainsComponent chains={row.original.chains} />} className="text-[0.7rem]">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>
@@ -865,16 +866,6 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-			const Chains = () => (
-				<span className="flex flex-col gap-1">
-					{row.original.chains.map((chain) => (
-						<span key={`/protocolll/${value}/${chain}`} className="flex items-center gap-1">
-							<TokenLogo logo={chainIconUrl(chain)} size={14} />
-							<span>{chain}</span>
-						</span>
-					))}
-				</span>
-			)
 
 			return (
 				<span
@@ -926,7 +917,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 							>{`${value}`}</BasicLink>
 						)}
 
-						<Tooltip content={<Chains />} className="text-[0.7rem]">
+						<Tooltip content={<ProtocolChainsComponent chains={row.original.chains} />} className="text-[0.7rem]">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>
@@ -1075,7 +1066,7 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 							>{`${value}`}</BasicLink>
 						)}
 
-						<Tooltip content={<Chains />} className="text-[0.7rem]">
+						<Tooltip content={<ProtocolChainsComponent chains={row.original.chains} />} className="text-[0.7rem]">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>
@@ -1210,7 +1201,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 							>{`${value}`}</BasicLink>
 						)}
 
-						<Tooltip content={<Chains />} className="text-[0.7rem]">
+						<Tooltip content={<ProtocolChainsComponent chains={row.original.chains} />} className="text-[0.7rem]">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>

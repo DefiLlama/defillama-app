@@ -277,6 +277,17 @@ type Column = ColumnDef<ProtocolRow>
 // Base Columns (used by most categories)
 // ============================================================================
 
+const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
+	<span className="flex flex-col gap-1">
+		{chains.map((chain) => (
+			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
+				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<span>{chain}</span>
+			</span>
+		))}
+	</span>
+)
+
 const nameColumn: Column = {
 	id: 'name',
 	header: 'Name',
@@ -285,16 +296,6 @@ const nameColumn: Column = {
 	cell: ({ getValue, row, table }) => {
 		const value = getValue() as string
 		const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-		const Chains = () => (
-			<span className="flex flex-col gap-1">
-				{row.original.chains.map((chain) => (
-					<span key={`/chain/${chain}/${row.original.slug}`} className="flex items-center gap-1">
-						<TokenLogo logo={chainIconUrl(chain)} size={14} />
-						<span>{chain}</span>
-					</span>
-				))}
-			</span>
-		)
 
 		return (
 			<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-8' : 'pl-4'}`}>
@@ -333,7 +334,10 @@ const nameColumn: Column = {
 						{value}
 					</BasicLink>
 
-					<Tooltip content={<Chains />} className="text-[0.7rem] text-(--text-disabled)">
+					<Tooltip
+						content={<ProtocolChainsComponent chains={row.original.chains} />}
+						className="text-[0.7rem] text-(--text-disabled)"
+					>
 						{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 					</Tooltip>
 				</span>
