@@ -57,25 +57,37 @@ try {
 const BUILD_LOG_CONTENT_TYPE = 'text/plain;charset=UTF-8'
 const LOGGER_API_KEY = process.env.LOGGER_API_KEY
 const LOGGER_API_URL = process.env.LOGGER_API_URL
+const loggerApiKey = normalize(LOGGER_API_KEY)
+const loggerApiUrl = normalize(LOGGER_API_URL)
 
 // upload the build.log file to the logger service
 const uploadBuildLog = async () => {
-	if (!buildLogBase64 || !LOGGER_API_URL || !LOGGER_API_KEY) {
+	if (!buildLogBase64) {
+		console.log('build.log missing or empty, skipping upload')
 		return ''
 	}
-	const response = await fetch(LOGGER_API_URL, {
+	if (!loggerApiUrl) {
+		console.log('LOGGER_API_URL not set, skipping upload')
+		return ''
+	}
+	const headers = { 'Content-Type': 'application/json' }
+	if (loggerApiKey) {
+		headers.apikey = loggerApiKey
+	}
+	const response = await fetch(loggerApiUrl, {
 		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			apikey: LOGGER_API_KEY
-		},
+		headers,
 		body: JSON.stringify({
 			data: buildLogBase64,
 			contentType: BUILD_LOG_CONTENT_TYPE
 		})
 	})
 	const res = await response.text()
-	return res
+	if (!response.ok) {
+		console.log('Build log upload failed', res)
+		return ''
+	}
+	return res.trim()
 }
 
 // convert the bash script above to JS
@@ -183,7 +195,7 @@ const sendMessages = async () => {
 
 	const buildLogId = await uploadBuildLog()
 	if (buildLogId) {
-		const buildLogUrl = `${LOGGER_API_URL}/get/${buildLogId}`
+		const buildLogUrl = `${loggerApiUrl}/get/${buildLogId}`
 		const buildLogMessage = `${EMOJI_PEPENOTES} ${buildLogUrl}`
 		console.log(buildLogMessage)
 		const buildLogBody = { content: buildLogMessage }
