@@ -74,20 +74,25 @@ const uploadBuildLog = async () => {
 	if (loggerApiKey) {
 		headers.apikey = loggerApiKey
 	}
-	const response = await fetch(loggerApiUrl, {
-		method: 'POST',
-		headers,
-		body: JSON.stringify({
-			data: buildLogBase64,
-			contentType: BUILD_LOG_CONTENT_TYPE
+	try {
+		const response = await fetch(loggerApiUrl, {
+			method: 'POST',
+			headers,
+			body: JSON.stringify({
+				data: buildLogBase64,
+				contentType: BUILD_LOG_CONTENT_TYPE
+			})
 		})
-	})
-	const res = await response.text()
-	if (!response.ok) {
-		console.log('Build log upload failed', res)
+		const res = await response.text()
+		if (!response.ok) {
+			console.log('Build log upload failed', res)
+			return ''
+		}
+		return res.trim()
+	} catch (error) {
+		console.log('Build log upload failed', error)
 		return ''
 	}
-	return res.trim()
 }
 
 // convert the bash script above to JS
