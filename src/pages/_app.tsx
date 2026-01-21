@@ -141,7 +141,7 @@ function App({ Component, pageProps }: AppProps) {
 				data-host-url="https://tasty.defillama.com"
 			/>
 
-			{userHash &&
+			{/* {userHash &&
 			typeof window !== 'undefined' &&
 			!(window as any).FrontChat &&
 			isDesktop &&
@@ -161,7 +161,7 @@ function App({ Component, pageProps }: AppProps) {
 						}
 					}}
 				/>
-			) : null}
+			) : null} */}
 
 			<Component {...pageProps} />
 		</>
