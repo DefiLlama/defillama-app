@@ -67,6 +67,8 @@ export const MobileSearch = () => {
 	const [searchValue, setSearchValue] = useState('')
 	const debouncedSearchValue = useDebounce(searchValue, 200)
 	const { data, isLoading, error } = useSearch(debouncedSearchValue)
+	const [dialogOpen, setDialogOpen] = useState(false)
+	const handleSelect = () => setDialogOpen(false)
 
 	return (
 		<>
@@ -83,7 +85,7 @@ export const MobileSearch = () => {
 					<span className="sr-only">Ask LlamaAI</span>
 				</BasicLink>
 			)}
-			<Ariakit.DialogProvider>
+			<Ariakit.DialogProvider open={dialogOpen} setOpen={setDialogOpen}>
 				<Ariakit.DialogDisclosure className="-my-0.5 rounded-md bg-[#445ed0] p-3 text-white shadow lg:hidden">
 					<span className="sr-only">Search</span>
 					<Icon name="search" height={16} width={16} />
@@ -125,7 +127,11 @@ export const MobileSearch = () => {
 									<p className="flex items-center justify-center p-4">No results found</p>
 								) : (
 									data.map((route: ISearchItem) => (
-										<SearchItem key={`global-search-${route.name}-${route.route}`} route={route} />
+										<SearchItem
+											key={`m-srch-data-${route.name}-${route.route}`}
+											route={route}
+											onSelect={handleSelect}
+										/>
 									))
 								)
 							) : isLoadingDefaultSearchList ? (
@@ -140,10 +146,19 @@ export const MobileSearch = () => {
 							) : (
 								<>
 									{recentSearchList.map((route: ISearchItem) => (
-										<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} recent />
+										<SearchItem
+											key={`m-search-rct-${route.name}-${route.route}`}
+											route={route}
+											recent
+											onSelect={handleSelect}
+										/>
 									))}
 									{defaultSearchList.map((route: ISearchItem) => (
-										<SearchItem key={`global-search-dl-${route.name}-${route.route}`} route={route} />
+										<SearchItem
+											key={`m-search-dl-${route.name}-${route.route}`}
+											route={route}
+											onSelect={handleSelect}
+										/>
 									))}
 								</>
 							)}
@@ -268,7 +283,7 @@ export const DesktopSearch = () => {
 			{!hideLlamaAI.has(router.pathname) && (
 				<BasicLink
 					href={hasActiveSubscription ? '/ai/chat' : '/ai'}
-					className="llamaai-glow relative mr-auto hidden items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-xs font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:flex"
+					className="llamaai-glow relative mr-auto hidden items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-xs font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:flex"
 					data-umami-event="llamaai-nav-link"
 					data-umami-event-subscribed={hasActiveSubscription ? 'true' : 'false'}
 				>
@@ -282,7 +297,15 @@ export const DesktopSearch = () => {
 	)
 }
 
-const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: boolean }) => {
+const SearchItem = ({
+	route,
+	recent = false,
+	onSelect
+}: {
+	route: ISearchItem
+	recent?: boolean
+	onSelect?: () => void
+}) => {
 	const router = useRouter()
 	return (
 		<Ariakit.ComboboxItem
@@ -299,6 +322,7 @@ const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: bo
 				if (!recent) {
 					setRecentSearch(route)
 				}
+				onSelect?.()
 			}}
 			value={route.route}
 		>

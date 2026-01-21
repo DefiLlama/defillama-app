@@ -156,15 +156,15 @@ const uploadBuildLog = async () => {
 }
 
 // convert the bash script above to JS
-const BUILD_LLAMAS = process.env.BUILD_LLAMAS || ''
+// const BUILD_LLAMAS = process.env.BUILD_LLAMAS || ''
 const BUILD_STATUS_DASHBOARD = process.env.BUILD_STATUS_DASHBOARD
 const BUILD_STATUS_WEBHOOK = process.env.BUILD_STATUS_WEBHOOK
 
-const buildLlamaUsers = BUILD_LLAMAS.split(',')
-	.map((llama) => llama.trim())
-	.filter(Boolean)
-	.map((llama) => `@${llama}`)
-	.join(' ')
+// const buildLlamaUsers = BUILD_LLAMAS.split(',')
+// 	.map((llama) => llama.trim())
+// 	.filter(Boolean)
+// 	.map((llama) => `@${llama}`)
+// 	.join(' ')
 
 // node ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$COMMIT_COMMENT" "$COMMIT_AUTHOR" "$COMMIT_HASH" "$BRANCH_NAME"
 const BUILD_STATUS = process.argv[2]
@@ -214,7 +214,7 @@ const enrichCommitInfo = async () => {
 	}
 
 	// We need at least a hash to query GitHub
-	if (!COMMIT_HASH) {
+	if (needsHash) {
 		console.log('No commit hash available, cannot fetch from GitHub API')
 		return
 	}
@@ -290,17 +290,11 @@ const sendMessages = async () => {
 	const buildSummary = buildBuildSummary()
 	const commitSummary = buildCommitSummary()
 
-	const message = [
-		'===== COMMIT SUMMARY =====',
-		commitSummary,
-		'===== BUILD SUMMARY =====',
-		buildSummary,
-		buildLlamaUsers || null
-	]
+	const message = ['===== COMMIT SUMMARY =====', commitSummary, '===== BUILD SUMMARY =====', buildSummary]
 		.filter(Boolean)
 		.join('\n')
 	const body = {
-		content: message,
+		content: `\`\`\`${message}\`\`\``,
 		allowed_mentions: { parse: ['users', 'roles'] }
 	}
 	await checkWebhookResponse(
@@ -329,11 +323,9 @@ const sendMessages = async () => {
 	}
 
 	if (BUILD_STATUS !== '0') {
-		const llamaMessage = ['Build failed.', buildLlamaUsers || null, BUILD_STATUS_DASHBOARD || null]
-			.filter(Boolean)
-			.join('\n')
+		const llamaMessage = ['Build failed.', BUILD_STATUS_DASHBOARD || null].filter(Boolean).join('\n')
 		const llamaBody = {
-			content: llamaMessage,
+			content: `\`\`\`${llamaMessage}\`\`\``,
 			allowed_mentions: { parse: ['users', 'roles'] }
 		}
 		await checkWebhookResponse(
