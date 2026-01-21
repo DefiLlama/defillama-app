@@ -91,17 +91,32 @@ export function UnifiedVirtualTable({
 										}`}
 									>
 										<span
-											className={`relative flex w-full flex-nowrap items-center justify-start gap-1 font-medium *:whitespace-nowrap data-[align=center]:justify-center data-[align=end]:justify-end ${header.column.getCanSort() ? 'cursor-pointer' : ''}`}
+											className="relative flex w-full flex-nowrap items-center justify-start gap-1 font-medium *:whitespace-nowrap data-[align=center]:justify-center data-[align=end]:justify-end"
 											data-align={
 												meta?.align ??
 												(headerGroup.depth === 0 && table.getHeaderGroups().length > 1 ? 'center' : 'start')
 											}
-											onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : undefined}
 										>
 											{header.isPlaceholder ? null : (
 												<HeaderWithTooltip content={meta?.headerHelperText}>{value}</HeaderWithTooltip>
 											)}
-											{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
+											{header.column.getCanSort() && (
+												<SortIcon
+													dir={header.column.getIsSorted()}
+													onClickAsc={(e) => {
+														e.stopPropagation()
+														if (header.column.getIsSorted() !== 'asc') {
+															header.column.toggleSorting(false)
+														}
+													}}
+													onClickDesc={(e) => {
+														e.stopPropagation()
+														if (header.column.getIsSorted() !== 'desc') {
+															header.column.toggleSorting(true)
+														}
+													}}
+												/>
+											)}
 										</span>
 									</div>
 								)

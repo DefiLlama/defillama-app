@@ -7,7 +7,8 @@ interface ReorderableHeaderProps {
 	columnId: string
 	canSort: boolean
 	isSorted: false | 'asc' | 'desc'
-	onSort: () => void
+	onSortAsc: () => void
+	onSortDesc: () => void
 	onMoveUp?: () => void
 	onMoveDown?: () => void
 	canMoveUp?: boolean
@@ -19,14 +20,15 @@ export function ReorderableHeader({
 	columnId,
 	canSort,
 	isSorted,
-	onSort,
+	onSortAsc,
+	onSortDesc,
 	onMoveUp,
 	onMoveDown,
 	canMoveUp = true,
 	canMoveDown = true
 }: ReorderableHeaderProps) {
 	return (
-		<div className="group relative flex w-full cursor-pointer items-center gap-1" onClick={onSort}>
+		<div className="group relative flex w-full items-center gap-1">
 			{onMoveUp && (
 				<div
 					className={`absolute top-0 bottom-0 left-0 flex items-center justify-start ${
@@ -51,7 +53,19 @@ export function ReorderableHeader({
 
 			<div className="flex flex-1 items-center justify-center gap-1 px-3">
 				{children}
-				{canSort && <SortIcon dir={isSorted} />}
+				{canSort && (
+					<SortIcon
+						dir={isSorted}
+						onClickAsc={(e) => {
+							e.stopPropagation()
+							onSortAsc()
+						}}
+						onClickDesc={(e) => {
+							e.stopPropagation()
+							onSortDesc()
+						}}
+					/>
+				)}
 			</div>
 
 			{onMoveDown && (
