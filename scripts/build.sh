@@ -21,7 +21,7 @@ echo "📸 $COMMIT_HASH"
 echo "======================="
 echo ""
 
-next build 2>&1 | tee build.log
+bunx next build 2>&1 | tee build.log
 BUILD_STATUS=${PIPESTATUS[0]}
 
 BUILD_TIME_SEC=$(($(date -u +"%s") - $START_TIME_TS))
@@ -65,7 +65,7 @@ if [ -n "$IS_BACKUP" ]; then
   exit $BUILD_STATUS
 fi
 
-node ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$COMMIT_COMMENT" "$COMMIT_AUTHOR" "$COMMIT_HASH"
+bun ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$COMMIT_COMMENT" "$COMMIT_AUTHOR" "$COMMIT_HASH"
 
 # exit with the build status
 exit $BUILD_STATUS
