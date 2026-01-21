@@ -180,7 +180,22 @@ export async function getChainOverviewData({
 			{ peggedAssets: Array<{ name: string; gecko_id: string; symbol: string }> } | null,
 			Array<string> | null
 		] = await Promise.all([
-			fetchJson(`${CHART_API}${chain === 'All' ? '' : `/${currentChainMetadata.name}`}`, { timeout: 2 * 60 * 1000 }),
+			fetchJson(`${CHART_API}${chain === 'All' ? '' : `/${currentChainMetadata.name}`}`, {
+				timeout: 2 * 60 * 1000
+			}).catch((err) => {
+				console.log(err)
+				return {
+					tvl: [],
+					staking: [],
+					borrowed: [],
+					pool2: [],
+					vesting: [],
+					offers: [],
+					doublecounted: [],
+					liquidstaking: [],
+					dcAndLsOverlap: []
+				}
+			}),
 			getProtocolsByChain({ chain, chainMetadata, protocolMetadata }),
 			currentChainMetadata.stablecoins
 				? getPeggedOverviewPageData(chain === 'All' ? null : currentChainMetadata.name)
