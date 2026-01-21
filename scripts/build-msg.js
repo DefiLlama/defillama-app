@@ -75,15 +75,23 @@ const uploadBuildLog = async () => {
 		headers.apikey = loggerApiKey
 	}
 	try {
-		const response = await fetch(loggerApiUrl, {
-			method: 'POST',
-			headers,
-			body: JSON.stringify({
-				data: buildLogBase64,
-				contentType: BUILD_LOG_CONTENT_TYPE
+		let response
+		let res = ''
+		try {
+			response = await fetch(loggerApiUrl, {
+				method: 'POST',
+				headers,
+				body: JSON.stringify({
+					data: buildLogBase64,
+					contentType: BUILD_LOG_CONTENT_TYPE
+				})
 			})
-		})
-		const res = await response.text()
+			res = await response.text()
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error)
+			console.log('Build log upload error', message)
+			return ''
+		}
 		if (!response.ok) {
 			console.log('Build log upload failed', res)
 			return ''
