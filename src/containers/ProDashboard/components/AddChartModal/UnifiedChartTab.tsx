@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
@@ -195,7 +195,19 @@ export function UnifiedChartTab({
 	}
 	const handleChartTypeSelect = useCallback((type: string) => onChartTypesChange([type]), [onChartTypesChange])
 
-	const selectedChartTypeSingle = selectedChartTypes[0] || null
+	const selectedChartTypeSingle = useMemo(() => selectedChartTypes[0] || null, [selectedChartTypes])
+	const defaultChartType = useMemo(() => {
+		if (composerItems.length === 0) return 'tvl'
+		const matchingItem = composerItems.find((item) => (selectedChartTab === 'chain' ? item.chain : item.protocol))
+		return (matchingItem || composerItems[0])?.type || 'tvl'
+	}, [composerItems, selectedChartTab])
+
+	useEffect(() => {
+		if (viewMode !== 'form') return
+		if (selectedChartTab !== 'chain' && selectedChartTab !== 'protocol') return
+		if (selectedChartTypes.length > 0) return
+		onChartTypesChange([defaultChartType])
+	}, [viewMode, selectedChartTab, selectedChartTypes.length, defaultChartType, onChartTypesChange])
 
 	const selectedEntitiesForCurrentType = useMemo(() => {
 		if (!selectedChartTypeSingle) return []

@@ -231,6 +231,8 @@ interface ProDashboardEditorActionsContextType {
 	handleAddUnifiedTable: (config?: Partial<UnifiedTableConfig>) => void
 	handleAddChartBuilder: (name: string | undefined, config: ChartBuilderConfig['config']) => void
 	handleAddLlamaAIChart: (savedChartId: string, title?: string) => void
+	handleDuplicateChartBuilder: (builder: ChartBuilderConfig) => void
+	handleDuplicateMultiChart: (multi: MultiChartConfig) => void
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
 	handleRemoveItem: (itemId: string) => void
 	handleChartsReordered: (newCharts: DashboardItemConfig[]) => void
@@ -359,6 +361,8 @@ export function ProDashboardAPIProvider({
 		handleAddText,
 		handleAddChartBuilder,
 		handleAddLlamaAIChart,
+		handleDuplicateChartBuilder,
+		handleDuplicateMultiChart,
 		handleEditItem,
 		handleRemoveItem,
 		handleAddMetric,
@@ -986,6 +990,8 @@ export function ProDashboardAPIProvider({
 		handleAddUnifiedTable: typeof handleAddUnifiedTable
 		handleAddChartBuilder: typeof handleAddChartBuilder
 		handleAddLlamaAIChart: typeof handleAddLlamaAIChart
+		handleDuplicateChartBuilder: typeof handleDuplicateChartBuilder
+		handleDuplicateMultiChart: typeof handleDuplicateMultiChart
 		handleEditItem: typeof handleEditItem
 		handleRemoveItem: typeof handleRemoveItem
 		handleChartsReordered: typeof handleChartsReordered
@@ -1017,6 +1023,8 @@ export function ProDashboardAPIProvider({
 			handleAddUnifiedTable,
 			handleAddChartBuilder,
 			handleAddLlamaAIChart,
+			handleDuplicateChartBuilder,
+			handleDuplicateMultiChart,
 			handleEditItem,
 			handleRemoveItem,
 			handleChartsReordered,
@@ -1173,6 +1181,10 @@ export function ProDashboardAPIProvider({
 				handlersRef.current.handleAddChartBuilder(...args),
 			handleAddLlamaAIChart: (...args: Parameters<typeof handleAddLlamaAIChart>) =>
 				handlersRef.current.handleAddLlamaAIChart(...args),
+			handleDuplicateChartBuilder: (...args: Parameters<typeof handleDuplicateChartBuilder>) =>
+				handlersRef.current.handleDuplicateChartBuilder(...args),
+			handleDuplicateMultiChart: (...args: Parameters<typeof handleDuplicateMultiChart>) =>
+				handlersRef.current.handleDuplicateMultiChart(...args),
 			handleEditItem: (...args: Parameters<typeof handleEditItem>) => handlersRef.current.handleEditItem(...args),
 			handleRemoveItem: (...args: Parameters<typeof handleRemoveItem>) => handlersRef.current.handleRemoveItem(...args),
 			handleChartsReordered: (...args: Parameters<typeof handleChartsReordered>) =>

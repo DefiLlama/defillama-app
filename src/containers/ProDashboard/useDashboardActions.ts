@@ -356,6 +356,33 @@ export function useDashboardActions(
 		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
 	)
 
+	const handleDuplicateChartBuilder = useCallback(
+		(builder: ChartBuilderConfig) => {
+			if (isReadOnlyUntilDashboardLoaded) return
+
+			const clonedConfig: ChartBuilderConfig['config'] = {
+				...builder.config,
+				chains: [...builder.config.chains],
+				categories: [...builder.config.categories],
+				chainCategories: builder.config.chainCategories ? [...builder.config.chainCategories] : undefined,
+				protocolCategories: builder.config.protocolCategories ? [...builder.config.protocolCategories] : undefined,
+				additionalFilters: builder.config.additionalFilters ? { ...builder.config.additionalFilters } : undefined,
+				seriesColors: builder.config.seriesColors ? { ...builder.config.seriesColors } : undefined
+			}
+
+			dispatchItemsAndSave((prev) => {
+				const newBuilder: ChartBuilderConfig = {
+					...builder,
+					id: generateItemId('builder', ''),
+					name: builder.name ? `${builder.name} (Duplicate)` : builder.name,
+					config: clonedConfig
+				}
+				return [...prev, newBuilder]
+			})
+		},
+		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
+	)
+
 	const handleAddLlamaAIChart = useCallback(
 		(savedChartId: string, title?: string) => {
 			if (isReadOnlyUntilDashboardLoaded) return
@@ -369,6 +396,30 @@ export function useDashboardActions(
 			}
 
 			dispatchItemsAndSave((prev) => [...prev, newChart])
+		},
+		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
+	)
+
+	const handleDuplicateMultiChart = useCallback(
+		(multi: MultiChartConfig) => {
+			if (isReadOnlyUntilDashboardLoaded) return
+
+			dispatchItemsAndSave((prev) => {
+				const newItems = multi.items.map((item) => {
+					const { data: _data, isLoading: _isLoading, hasError: _hasError, refetch: _refetch, ...rest } = item
+					return {
+						...rest,
+						id: generateItemId('chart', `${item.protocol || item.chain || 'chart'}-${item.type}`)
+					}
+				})
+				const newMulti: MultiChartConfig = {
+					...multi,
+					id: generateItemId('multi', ''),
+					name: multi.name ? `${multi.name} (Duplicate)` : multi.name,
+					items: newItems
+				}
+				return [...prev, newMulti]
+			})
 		},
 		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
 	)
@@ -730,6 +781,8 @@ export function useDashboardActions(
 		handleAddText,
 		handleAddChartBuilder,
 		handleAddLlamaAIChart,
+		handleDuplicateChartBuilder,
+		handleDuplicateMultiChart,
 		handleEditItem,
 		handleRemoveItem,
 		handleAddMetric,

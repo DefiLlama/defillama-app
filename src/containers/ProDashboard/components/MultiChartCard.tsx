@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select'
 import { Tooltip } from '~/components/Tooltip'
@@ -13,6 +13,7 @@ import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { CHART_TYPES, MultiChartConfig } from '../types'
 import { convertToCumulative, generateChartColor } from '../utils'
 import { COLOR_PALETTE_2, EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
+import { ConfirmationModal } from './ConfirmationModal'
 import { ChartExportButton } from './ProTable/ChartExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
@@ -43,18 +44,20 @@ interface MultiChartCardProps {
 	multi: MultiChartConfig
 }
 
-function MultiChartCard({ multi }: MultiChartCardProps) {
+const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardProps) {
 	const { getProtocolInfo } = useProDashboardCatalog()
 	const {
 		handleGroupingChange,
 		handleCumulativeChange,
 		handlePercentageChange,
 		handleStackedChange,
-		handleTreemapChange
+		handleTreemapChange,
+		handleDuplicateMultiChart
 	} = useProDashboardEditorActions()
 	const { isReadOnly } = useProDashboardPermissions()
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const { chartInstance, handleChartReady } = useChartImageExport()
+	const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false)
 	const showStacked = multi.showStacked !== false
 	const showCumulative = multi.showCumulative || false
 	const showPercentage = multi.showPercentage || false
@@ -342,7 +345,7 @@ function MultiChartCard({ multi }: MultiChartCardProps) {
 		})
 	}, [baseSeries, chartTypeInfo, showPercentage, showStacked, showCumulative])
 
-	const handleCsvExport = () => {
+	const handleCsvExport = useCallback(() => {
 		if (!series || series.length === 0) return
 
 		const timestampSet = new Set<number>()
@@ -367,7 +370,7 @@ function MultiChartCard({ multi }: MultiChartCardProps) {
 		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
 		const fileName = `${multi.name || 'multi_chart'}_${new Date().toISOString().split('T')[0]}.csv`
 		download(fileName, csvContent)
-	}
+	}, [series, multi.name])
 
 	const hasAnyData = validItems.length > 0
 	const isAllLoading = loadingItems.length === multi.items.length
@@ -623,6 +626,16 @@ function MultiChartCard({ multi }: MultiChartCardProps) {
 						}}
 					/>
 				)}
+				{!isReadOnly && (
+					<button
+						type="button"
+						onClick={() => setShowDuplicateConfirm(true)}
+						className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
+					>
+						<Icon name="copy" height={14} width={14} />
+						<span>Duplicate</span>
+					</button>
+				)}
 				{series.length > 0 && (
 					<>
 						<ChartExportButton
@@ -687,8 +700,18 @@ function MultiChartCard({ multi }: MultiChartCardProps) {
 					/>
 				</Suspense>
 			)}
+			<ConfirmationModal
+				isOpen={showDuplicateConfirm}
+				onClose={() => setShowDuplicateConfirm(false)}
+				onConfirm={() => handleDuplicateMultiChart(multi)}
+				title="Duplicate Chart"
+				message="Create a duplicate of this chart in the dashboard?"
+				confirmText="Duplicate"
+				cancelText="Cancel"
+				confirmButtonClass="pro-btn-blue"
+			/>
 		</div>
 	)
-}
+})
 
 export default MultiChartCard
