@@ -11,3 +11,6 @@ cmds = [
 
 [start]
 cmd = "./scripts/prestart.sh & bun run start"
+
+[variables]
+NIXPACKS_NODE_VERSION = "22"
