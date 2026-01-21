@@ -44,7 +44,27 @@ const tryGit = (command) => {
 		return ''
 	}
 }
-const withFallback = (value, fallback = 'unknown') => (value ? value : fallback)
+const withFallback = (value, fallback = '') => (value ? value : fallback)
+const formatLlamaMention = (value) => {
+	const normalized = normalize(value)
+	if (!normalized) {
+		return ''
+	}
+	if (normalized.startsWith('<@') && normalized.endsWith('>')) {
+		return normalized
+	}
+	if (normalized.startsWith('@')) {
+		const handle = normalized.slice(1)
+		if (/^\d+$/.test(handle)) {
+			return `<@${handle}>`
+		}
+		return `@${handle}`
+	}
+	if (/^\d+$/.test(normalized)) {
+		return `<@${normalized}>`
+	}
+	return `@${normalized}`
+}
 
 // read the build.log file into base64 string (optional)
 let buildLogBase64 = ''
@@ -107,20 +127,12 @@ const uploadBuildLog = async () => {
 const BUILD_LLAMAS = process.env.BUILD_LLAMAS || ''
 const BUILD_STATUS_DASHBOARD = process.env.BUILD_STATUS_DASHBOARD
 const BUILD_STATUS_WEBHOOK = process.env.BUILD_STATUS_WEBHOOK
-const EMOJI_BINOCULARS = '<:binoculars:1012832136459456582>'
-const EMOJI_CRINGE = '<:llamacringe:1073375066164822159>'
-const EMOJI_LLAMACHEER = '<:llamacheer:1012832279195832331>'
-const EMOJI_BONG = '<:bong:970440561087631360>'
-const EMOJI_BEEGLUBB = '<:beeglubb:1027125046281502740>'
-const EMOJI_UPLLAMA = '<:upllama:996096214841950269>'
-const EMOJI_EVIL = '<:evilllama:1011045461030879353>'
-const EMOJI_PEPENOTES = '<a:pepenotes:1061068916140544052>'
 
 const buildLlamaUsers = BUILD_LLAMAS.split(',')
 	.map((llama) => llama.trim())
 	.filter(Boolean)
 const llamaNames = buildLlamaUsers.join(', ') || 'none'
-const llamaMentions = buildLlamaUsers.map((name) => (name.startsWith('@') ? name : `@${name}`)).join(' ')
+const llamaMentions = buildLlamaUsers.map(formatLlamaMention).filter(Boolean).join(' ')
 
 // node ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$COMMIT_COMMENT" "$COMMIT_AUTHOR" "$COMMIT_HASH" "$BRANCH_NAME"
 const BUILD_STATUS = process.argv[2]
@@ -149,6 +161,7 @@ const COMMIT_AUTHOR = firstNonEmpty(
 const COMMIT_HASH = firstNonEmpty(
 	process.argv[8],
 	process.env.COMMIT_HASH,
+	process.env.SOURCE_COMMIT,
 	process.env.CI_COMMIT_SHA,
 	process.env.VERCEL_GIT_COMMIT_SHA,
 	process.env.GITHUB_SHA,
@@ -159,6 +172,7 @@ const COMMIT_HASH = firstNonEmpty(
 const BRANCH_NAME = firstNonEmpty(
 	normalizeBranchName(process.argv[9]),
 	normalizeBranchName(process.env.BRANCH_NAME),
+	normalizeBranchName(process.env.COOLIFY_BRANCH),
 	normalizeBranchName(process.env.GIT_BRANCH),
 	normalizeBranchName(process.env.CI_COMMIT_REF_NAME),
 	normalizeBranchName(process.env.GITHUB_HEAD_REF),
@@ -181,9 +195,12 @@ if (BUILD_ID) {
 	buildSummary += `\n📦 Build ID: ${BUILD_ID}`
 }
 
-let commitSummary = `📂 defillama-app\n💬 ${withFallback(COMMIT_COMMENT)}\n🦙 ${withFallback(
-	COMMIT_AUTHOR
-)}\n📸 ${withFallback(COMMIT_HASH)}\n🌿 ${withFallback(BRANCH_NAME)}\n👥 Llamas: ${llamaNames}`
+const commitMessageLabel = withFallback(COMMIT_COMMENT, 'unknown commit message')
+const commitAuthorLabel = withFallback(COMMIT_AUTHOR, 'unknown author')
+const commitHashLabel = withFallback(COMMIT_HASH, 'unknown commit id')
+const branchLabel = withFallback(BRANCH_NAME, 'unknown branch')
+
+let commitSummary = `📂 defillama-app\n🌿 ${branchLabel}\n💬 ${commitMessageLabel}\n🦙 ${commitAuthorLabel}\n📸 ${commitHashLabel}\n👥 Llamas: ${llamaNames}`
 
 async function checkWebhookResponse(bodyResponse) {
 	if (!bodyResponse.ok) {
@@ -209,7 +226,7 @@ const sendMessages = async () => {
 	const buildLogId = await uploadBuildLog()
 	if (buildLogId) {
 		const buildLogUrl = `${loggerApiUrl}/get/${buildLogId}`
-		const buildLogMessage = `${EMOJI_PEPENOTES} ${buildLogUrl}`
+		const buildLogMessage = buildLogUrl
 		console.log(buildLogMessage)
 		const buildLogBody = { content: buildLogMessage }
 		await checkWebhookResponse(
@@ -223,23 +240,18 @@ const sendMessages = async () => {
 		console.log('Build log upload skipped')
 	}
 
-	if (BUILD_STATUS !== '0') {
-		if (buildLlamaUsers.length > 0) {
-			const llamaMessage = `${EMOJI_CRINGE} ${llamaMentions}\n${EMOJI_BINOCULARS} ${BUILD_STATUS_DASHBOARD}`
-			const llamaBody = { content: llamaMessage }
-			await checkWebhookResponse(
-				await fetch(BUILD_STATUS_WEBHOOK, {
-					method: 'POST',
-					body: JSON.stringify(llamaBody),
-					headers: { 'Content-Type': 'application/json' }
-				})
-			)
+	if (BUILD_STATUS !== '0' && buildLlamaUsers.length > 0) {
+		const llamaMessage = [
+			'Build failed.',
+			llamaMentions ? `Build llamas: ${llamaMentions}` : `Build llamas: ${llamaNames}`,
+			BUILD_STATUS_DASHBOARD
+		]
+			.filter(Boolean)
+			.join('\n')
+		const llamaBody = {
+			content: llamaMessage,
+			allowed_mentions: { parse: ['users', 'roles'] }
 		}
-	} else {
-		const emojis = [EMOJI_LLAMACHEER, EMOJI_BONG, EMOJI_BEEGLUBB, EMOJI_UPLLAMA, EMOJI_EVIL]
-		const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)]
-		const llamaMessage = `${randomEmoji}`
-		const llamaBody = { content: llamaMessage }
 		await checkWebhookResponse(
 			await fetch(BUILD_STATUS_WEBHOOK, {
 				method: 'POST',
