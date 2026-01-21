@@ -188,10 +188,12 @@ export const removeStorageItem = (key: string) => {
 	if (!canUseStorage()) return
 
 	let hadValue = false
+	let readFailed = false
 	try {
 		hadValue = window.localStorage.getItem(key) !== null
 	} catch {
-		// Ignore read errors and fall back to remove attempt.
+		// If reads are unreliable, we still want removals to notify subscribers.
+		readFailed = true
 	}
 
 	try {
@@ -200,8 +202,8 @@ export const removeStorageItem = (key: string) => {
 		return
 	}
 
-	// Only notify if something actually changed.
-	if (hadValue) {
+	// Only notify if something actually changed, or the initial read failed.
+	if (hadValue || readFailed) {
 		notifyKeyChange(key)
 	}
 }
