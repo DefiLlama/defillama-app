@@ -1,9 +1,10 @@
 import * as Ariakit from '@ariakit/react'
 import { RefObject, useEffect, useEffectEvent, useRef, useState } from 'react'
-import { getAnchorRect, getSearchValue, getTrigger, getTriggerOffset, replaceValue } from '../utils/entitySuggestions'
+import { getAnchorRect, replaceValue } from '../utils/entitySuggestions'
 import { setInputSize } from '../utils/scrollUtils'
 import { highlightWord } from '../utils/textUtils'
 import { useGetEntities } from './useGetEntities'
+import { detectTrigger, calculateComboboxPlacement } from './useTriggerDetection'
 
 export interface EntityData {
 	id: string
@@ -43,37 +44,26 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 	}, [combobox])
 
 	const updatePlacement = (textarea: HTMLTextAreaElement) => {
-		if (typeof window !== 'undefined') {
-			const anchor = getAnchorRect(textarea)
-			const spaceBelow = window.innerHeight - (anchor.y + anchor.height)
-			const spaceAbove = anchor.y
-			const nextPlacement = spaceBelow < 220 && spaceAbove > spaceBelow ? 'top-start' : 'bottom-start'
-			if (combobox.getState().placement !== nextPlacement) {
-				combobox.setState('placement', nextPlacement)
-			}
+		const nextPlacement = calculateComboboxPlacement(textarea, getAnchorRect)
+		if (combobox.getState().placement !== nextPlacement) {
+			combobox.setState('placement', nextPlacement)
 		}
 	}
 
-	// Extracted trigger detection logic (DRY principle)
 	const runTriggerDetection = (textarea: HTMLTextAreaElement) => {
-		const trigger = getTrigger(textarea)
-		const searchValue = getSearchValue(textarea)
-		const triggerOffset = getTriggerOffset(textarea)
-		const actualTrigger = triggerOffset !== -1 ? textarea.value[triggerOffset] : null
-		const searchValueWithTrigger =
-			actualTrigger === '$' ? `$${searchValue}` : actualTrigger === '@' ? `@${searchValue}` : searchValue
+		const triggerState = detectTrigger(textarea)
 
 		updatePlacement(textarea)
 
-		if (triggerOffset !== -1 && searchValue.length > 0) {
+		if (triggerState.isActive && !triggerState.isTriggerOnly) {
 			setIsTriggerOnly(false)
 			combobox.show()
-			combobox.setValue(searchValueWithTrigger)
-		} else if (trigger && searchValue.length === 0) {
+			combobox.setValue(triggerState.searchValueWithTrigger)
+		} else if (triggerState.isActive && triggerState.isTriggerOnly) {
 			setIsTriggerOnly(true)
 			combobox.show()
-			combobox.setValue(actualTrigger === '$' ? '$' : '@')
-		} else if (triggerOffset === -1) {
+			combobox.setValue(triggerState.searchValueWithTrigger)
+		} else {
 			setIsTriggerOnly(false)
 			combobox.setValue('')
 			combobox.hide()
@@ -102,7 +92,6 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 		}
 
 		// Skip trigger detection during IME composition (Japanese/Chinese/Korean input)
-		// This prevents lag and interference with IME
 		if (isComposingRef.current) {
 			return
 		}
@@ -178,12 +167,12 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 		const textarea = promptInputRef.current
 		if (!textarea) return
 
-		const offset = getTriggerOffset(textarea)
+		const triggerState = detectTrigger(textarea)
 
 		entitiesRef.current.add(name)
 		entitiesMapRef.current.set(name, { id, name, type })
 
-		const getNewValue = replaceValue(offset, searchValue, name)
+		const getNewValue = replaceValue(triggerState.triggerOffset, searchValue, name)
 		const newValue = getNewValue(textarea.value)
 
 		combobox.setValue('')

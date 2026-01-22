@@ -6,7 +6,8 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import type { ChartConfiguration, ChartItem, CsvItem } from '../types'
-import { getEntityUrl } from '../utils/entityLinks'
+import { getEntityIcon, getEntityUrl } from '../utils/entityLinks'
+import { extractLlamaLinks, parseArtifactPlaceholders, processCitationMarkers } from '../utils/markdownHelpers'
 import { ChartRenderer } from './ChartRenderer'
 import { CSVExportArtifact, CSVExportLoading, type CSVExport } from './CSVExportArtifact'
 
@@ -39,18 +40,6 @@ interface EntityLinkProps {
 	href?: string
 	children?: any
 	[key: string]: any
-}
-
-function getEntityIcon(type: string, slug: string): string {
-	switch (type) {
-		case 'protocol':
-		case 'subprotocol':
-			return `https://icons.llamao.fi/icons/protocols/${slug}?w=48&h=48`
-		case 'chain':
-			return `https://icons.llamao.fi/icons/chains/rsz_${slug}?w=48&h=48`
-		default:
-			return ''
-	}
 }
 
 function TableWrapper({ children, isStreaming = false }: { children: React.ReactNode; isStreaming: boolean }) {
@@ -138,90 +127,15 @@ export function MarkdownRenderer({
 	artifactIndex
 }: MarkdownRendererProps) {
 	const { contentParts, inlineChartIds, inlineCsvIds } = useMemo(() => {
-		const chartPlaceholderPattern = /\[CHART:([^\]]+)\]/g
-		const csvPlaceholderPattern = /\[CSV:([^\]]+)\]/g
-		const parts: Array<{ type: 'text' | 'chart' | 'csv'; content: string; chartId?: string; csvId?: string }> = []
-		const foundChartIds = new Set<string>()
-		const foundCsvIds = new Set<string>()
-
-		const allMatches: Array<{ index: number; length: number; type: 'chart' | 'csv'; id: string }> = []
-
-		let match: RegExpExecArray | null
-		while ((match = chartPlaceholderPattern.exec(content)) !== null) {
-			allMatches.push({ index: match.index, length: match[0].length, type: 'chart', id: match[1] })
-			foundChartIds.add(match[1])
-		}
-		while ((match = csvPlaceholderPattern.exec(content)) !== null) {
-			allMatches.push({ index: match.index, length: match[0].length, type: 'csv', id: match[1] })
-			foundCsvIds.add(match[1])
-		}
-
-		allMatches.sort((a, b) => a.index - b.index)
-
-		let lastIndex = 0
-		for (const m of allMatches) {
-			if (m.index > lastIndex) {
-				parts.push({ type: 'text', content: content.slice(lastIndex, m.index) })
-			}
-			if (m.type === 'chart') {
-				parts.push({ type: 'chart', content: '', chartId: m.id })
-			} else {
-				parts.push({ type: 'csv', content: '', csvId: m.id })
-			}
-			lastIndex = m.index + m.length
-		}
-
-		if (lastIndex < content.length) {
-			parts.push({ type: 'text', content: content.slice(lastIndex) })
-		}
-
-		if (parts.length === 0) {
-			parts.push({ type: 'text', content })
-		}
-
-		return { contentParts: parts, inlineChartIds: foundChartIds, inlineCsvIds: foundCsvIds }
+		const parsed = parseArtifactPlaceholders(content)
+		return { contentParts: parsed.parts, inlineChartIds: parsed.chartIds, inlineCsvIds: parsed.csvIds }
 	}, [content])
 
-	const processCitations = useMemo(() => {
-		return (text: string): string => {
-			if (!citations || citations.length === 0) {
-				return text.replace(/\[(\d+(?:(?:-\d+)|(?:,\s*\d+))*)\]/g, '')
-			}
-			return text.replace(/\[(\d+(?:(?:-\d+)|(?:,\s*\d+))*)\]/g, (_, nums) => {
-				const parts = nums.split(',').map((p: string) => p.trim())
-				const expandedNums: number[] = []
-				for (const part of parts) {
-					if (part.includes('-')) {
-						const [start, end] = part.split('-').map((n: string) => parseInt(n.trim()))
-						if (!Number.isNaN(start) && !Number.isNaN(end) && start <= end) {
-							for (let i = start; i <= end; i++) expandedNums.push(i)
-						}
-					} else {
-						const num = parseInt(part.trim())
-						if (!Number.isNaN(num)) expandedNums.push(num)
-					}
-				}
-				return expandedNums
-					.map((num) => {
-						const idx = num - 1
-						return citations[idx]
-							? `<a href="${citations[idx]}" target="_blank" rel="noopener noreferrer" class="citation-badge">${num}</a>`
-							: `<span class="citation-badge">${num}</span>`
-					})
-					.join('')
-			})
-		}
-	}, [citations])
-
 	const processedData = useMemo(() => {
-		const linkMap = new Map<string, string>()
-		const llamaLinkPattern = /\[([^\]]+)\]\((llama:\/\/[^)]*)\)/g
-		let match: RegExpExecArray | null
-		while ((match = llamaLinkPattern.exec(content)) !== null) {
-			linkMap.set(match[1], match[2])
-		}
-		return { content: processCitations(content), linkMap }
-	}, [content, processCitations])
+		const linkMap = extractLlamaLinks(content)
+		const processedContent = processCitationMarkers(content, citations)
+		return { content: processedContent, linkMap }
+	}, [content, citations])
 
 	const linkMapRef = useRef(processedData.linkMap)
 	linkMapRef.current = processedData.linkMap
@@ -351,7 +265,7 @@ export function MarkdownRenderer({
 							return null
 						}
 						if (part.content.trim()) {
-							return renderMarkdownSection(processCitations(part.content), `text-${index}`)
+							return renderMarkdownSection(processCitationMarkers(part.content, citations), `text-${index}`)
 						}
 						return null
 					})

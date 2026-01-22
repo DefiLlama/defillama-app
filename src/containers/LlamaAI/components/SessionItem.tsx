@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { useEffect, useRef, useState } from 'react'
+import { memo, useRef, useState } from 'react'
 import * as React from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
@@ -10,6 +10,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
+import { useClickOutside } from '../hooks/useClickOutside'
 
 interface SessionItemProps {
 	session: ChatSession
@@ -19,7 +20,7 @@ interface SessionItemProps {
 	style: React.CSSProperties
 }
 
-export function SessionItem({
+export const SessionItem = memo(function SessionItem({
 	session,
 	isActive,
 	onSessionSelect: _onSessionSelect,
@@ -60,21 +61,8 @@ export function SessionItem({
 		}
 	})
 
-	useEffect(() => {
-		const handleClickOutside = (event: MouseEvent) => {
-			if (formRef.current && !formRef.current.contains(event.target as Node)) {
-				setIsEditing(false)
-			}
-		}
-
-		if (isEditing) {
-			document.addEventListener('mousedown', handleClickOutside)
-		}
-
-		return () => {
-			document.removeEventListener('mousedown', handleClickOutside)
-		}
-	}, [isEditing])
+	// Use shared hook for click outside detection
+	useClickOutside(formRef, () => setIsEditing(false), isEditing)
 
 	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
@@ -263,4 +251,4 @@ export function SessionItem({
 			) : null}
 		</div>
 	)
-}
+})

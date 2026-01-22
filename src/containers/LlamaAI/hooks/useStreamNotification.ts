@@ -42,7 +42,12 @@ export function useStreamNotification() {
 	const playSound = useCallback(() => {
 		if (!audioRef.current) return
 		audioRef.current.currentTime = 0
-		audioRef.current.play().catch(() => {})
+		audioRef.current.play().catch((error) => {
+			// Audio playback can fail due to autoplay policies - this is expected behavior
+			if (error.name !== 'NotAllowedError') {
+				console.warn('Failed to play notification sound:', error)
+			}
+		})
 	}, [])
 
 	const showNotification = useCallback(() => {
@@ -81,11 +86,20 @@ export function useStreamNotification() {
 					audioRef.current.currentTime = 0
 					audioRef.current.volume = vol
 				})
-				.catch(() => {})
+				.catch((error) => {
+					// Expected when autoplay is blocked - silently ignore
+					if (error.name !== 'NotAllowedError') {
+						console.warn('Failed to initialize audio:', error)
+					}
+				})
 		}
 		if (typeof Notification === 'undefined') return
 		if (Notification.permission === 'default') {
-			Notification.requestPermission()
+			Notification.requestPermission().then((permission) => {
+				if (permission === 'denied') {
+					console.warn('Notification permission was denied by user')
+				}
+			})
 		}
 	}, [])
 

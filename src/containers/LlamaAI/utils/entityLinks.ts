@@ -14,6 +14,22 @@ export function getEntityUrl(type: string, slug: string): string {
 	}
 }
 
+/**
+ * Get the icon URL for an entity based on type and slug.
+ * Returns empty string for unsupported types.
+ */
+export function getEntityIcon(type: string, slug: string): string {
+	switch (type) {
+		case 'protocol':
+		case 'subprotocol':
+			return `https://icons.llamao.fi/icons/protocols/${slug}?w=48&h=48`
+		case 'chain':
+			return `https://icons.llamao.fi/icons/chains/rsz_${slug}?w=48&h=48`
+		default:
+			return ''
+	}
+}
+
 export function convertLlamaLinksToDefillama(content: string): string {
 	const llamaLinkPattern = /\[([^\]]+)\]\((llama:\/\/([^/)]+)\/([^)]*?))\)/g
 	return content.replace(llamaLinkPattern, (_, text, __, type, slug) => {
