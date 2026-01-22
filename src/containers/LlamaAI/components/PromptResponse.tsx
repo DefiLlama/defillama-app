@@ -1,40 +1,21 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
-import { ChartRenderer } from './ChartRenderer'
-import { InlineSuggestions } from './InlineSuggestions'
-import { MarkdownRenderer } from './MarkdownRenderer'
-import { ResearchProgress } from './ResearchProgress'
-
-const EMPTY_CHARTS: any[] = []
-const EMPTY_CHART_DATA: any[] = []
+import type { StreamItem, ChartItem, CsvItem, MarkdownItem } from '../types'
+import { StreamItemRenderer } from './StreamItemRenderer'
 
 interface PromptResponseProps {
-	response?: {
-		answer: string
-		metadata?: any
-		suggestions?: any[]
-		charts?: any[]
-		chartData?: any[]
-		citations?: string[]
-		inlineSuggestions?: string
-		csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
-	}
+	/** Items-based rendering */
+	items?: StreamItem[]
 	error?: string
 	streamingError?: string
 	isPending: boolean
-	streamingResponse?: string
 	isStreaming?: boolean
 	progressMessage?: string
 	onSuggestionClick?: (suggestion: any) => void
 	onRetry?: () => void
 	canRetry?: boolean
-	isGeneratingCharts?: boolean
-	isAnalyzingForCharts?: boolean
-	hasChartError?: boolean
-	isGeneratingSuggestions?: boolean
-	expectedChartInfo?: { count?: number; types?: string[] } | null
 	resizeTrigger?: number
 	showMetadata?: boolean
 	readOnly?: boolean
@@ -44,18 +25,6 @@ interface PromptResponseProps {
 		savedChartIds?: string[]
 		messageId?: string
 	}
-	streamingCsvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }> | null
-	researchState?: {
-		isActive: boolean
-		startTime: number
-		currentIteration: number
-		totalIterations: number
-		phase: 'planning' | 'fetching' | 'analyzing' | 'synthesizing'
-		dimensionsCovered: string[]
-		dimensionsPending: string[]
-		discoveries: string[]
-		toolsExecuted: number
-	} | null
 }
 
 export function SuggestedActions({
@@ -67,15 +36,15 @@ export function SuggestedActions({
 	suggestions: any[]
 	handleSuggestionClick: (suggestion: any) => void
 	isPending: boolean
-	isStreaming: boolean
+	isStreaming?: boolean
 }) {
 	return (
 		<div className="mt-4 grid gap-2 text-[#666] dark:text-[#919296]">
 			<h1>Suggested actions:</h1>
 			<div className="grid gap-2">
-				{suggestions.map((suggestion) => (
+				{suggestions.map((suggestion, index) => (
 					<button
-						key={`${suggestion.title}-${suggestion.description}`}
+						key={`suggestion-${index}-${suggestion.title || ''}`}
 						onClick={() => handleSuggestionClick(suggestion)}
 						disabled={isPending || isStreaming}
 						data-umami-event="llamaai-suggestion-click"
@@ -143,28 +112,75 @@ export function QueryMetadata({ metadata }: { metadata: any }) {
 }
 
 export function PromptResponse({
-	response,
+	items,
 	error,
 	streamingError,
 	isPending,
-	streamingResponse,
 	isStreaming,
 	progressMessage,
 	onSuggestionClick,
 	onRetry,
 	canRetry,
-	isGeneratingCharts = false,
-	isAnalyzingForCharts = false,
-	hasChartError = false,
-	isGeneratingSuggestions = false,
-	expectedChartInfo,
 	resizeTrigger = 0,
-	showMetadata = false,
+	showMetadata: _showMetadata = false,
 	readOnly = false,
-	inlineChartConfig,
-	streamingCsvExports,
-	researchState
+	inlineChartConfig
 }: PromptResponseProps) {
+	// Build artifact index for O(1) lookup
+	// Charts and CSVs go in artifactIndex for inline rendering via markdown [CHART:id]/[CSV:id] refs
+	// Artifacts referenced inline are NOT in renderableItems (to avoid duplicates)
+	// Artifacts NOT referenced inline ARE added to renderableItems (to be rendered standalone)
+	const { artifactIndex, renderableItems } = useMemo(() => {
+		if (!items || items.length === 0) {
+			return { artifactIndex: new Map<string, ChartItem | CsvItem>(), renderableItems: [] }
+		}
+
+		const index = new Map<string, ChartItem | CsvItem>()
+		const renderable: StreamItem[] = []
+		const artifacts: Array<ChartItem | CsvItem> = []
+
+		// First pass: collect all items and find inline artifact references
+		const allMarkdownContent = items
+			.filter((item): item is MarkdownItem => item.type === 'markdown')
+			.map((item) => item.text)
+			.join('')
+
+		// Find all artifact IDs referenced in markdown
+		// Backend uses [CHART:id] and [CSV:id] patterns
+		const referencedIds = new Set<string>()
+		const chartRefPattern = /\[CHART:([^\]]+)\]/g
+		const csvRefPattern = /\[CSV:([^\]]+)\]/g
+		let match
+		while ((match = chartRefPattern.exec(allMarkdownContent)) !== null) {
+			referencedIds.add(match[1])
+		}
+		while ((match = csvRefPattern.exec(allMarkdownContent)) !== null) {
+			referencedIds.add(match[1])
+		}
+
+		for (const item of items) {
+			if (item.type === 'chart' || item.type === 'csv') {
+				// All artifacts go in index for potential inline rendering
+				index.set(item.id, item)
+				artifacts.push(item)
+			} else if (item.type !== 'metadata' && item.type !== 'suggestions') {
+				// Non-artifact, non-metadata, non-suggestions items are rendered directly
+				// Suggestions are filtered out so parent can render them after ResponseControls
+				renderable.push(item)
+			}
+		}
+
+		// Add artifacts that are NOT referenced inline to renderableItems
+		for (const artifact of artifacts) {
+			if (!referencedIds.has(artifact.id)) {
+				renderable.push(artifact)
+			}
+		}
+
+		return { artifactIndex: index, renderableItems: renderable }
+	}, [items])
+
+	// Handle error with retry
 	if (error && canRetry) {
 		return (
 			<div className="flex flex-col gap-2">
@@ -181,130 +197,46 @@ export function PromptResponse({
 		)
 	}
 
+	// Handle error without retry
 	if (error) {
 		return <p className="text-(--error)">{error}</p>
 	}
-	if (isPending || isStreaming) {
+
+	// Handle streaming error
+	if (streamingError) {
+		return <div className="text-(--error)">{streamingError}</div>
+	}
+
+	// No items yet - show initial loading
+	if (renderableItems.length === 0 && (isPending || isStreaming)) {
 		return (
-			<>
-				{streamingError ? (
-					<div className="text-(--error)">{streamingError}</div>
-				) : isStreaming && streamingResponse ? (
-					<MarkdownRenderer
-						content={streamingResponse}
-						citations={response?.citations}
-						isStreaming={isStreaming}
-						charts={response?.charts}
-						chartData={response?.chartData}
-						inlineChartConfig={inlineChartConfig}
-						csvExports={streamingCsvExports || undefined}
-					/>
-				) : isStreaming && researchState?.isActive ? (
-					<ResearchProgress
-						isActive={researchState.isActive}
-						startTime={researchState.startTime}
-						currentIteration={researchState.currentIteration}
-						totalIterations={researchState.totalIterations}
-						phase={researchState.phase}
-						dimensionsCovered={researchState.dimensionsCovered}
-						dimensionsPending={researchState.dimensionsPending}
-						discoveries={researchState.discoveries}
-						toolsExecuted={researchState.toolsExecuted}
-						progressMessage={progressMessage || ''}
-					/>
-				) : isStreaming && progressMessage ? (
-					<p
-						className={`flex items-center justify-start gap-2 py-2 ${
-							progressMessage.includes('encountered an issue') ? 'text-(--error)' : 'text-[#666] dark:text-[#919296]'
-						}`}
-					>
-						{progressMessage.includes('encountered an issue') ? (
-							<Icon name="alert-triangle" height={16} width={16} className="text-(--error)" />
-						) : (
-							<img src="/assets/llamaai/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
-						)}
-						<span className="flex flex-wrap items-center gap-1">{progressMessage}</span>
-					</p>
-				) : (
-					<p className="flex min-h-9 items-center gap-1 py-2 text-[#666] dark:text-[#919296]">
-						Thinking
-						<LoadingDots />
-					</p>
-				)}
-				{(isAnalyzingForCharts || isGeneratingCharts || hasChartError) && !streamingResponse?.includes('[CHART:') && (
-					<ChartRenderer
-						charts={EMPTY_CHARTS}
-						chartData={EMPTY_CHART_DATA}
-						isLoading={isAnalyzingForCharts || isGeneratingCharts}
-						isAnalyzing={isAnalyzingForCharts}
-						hasError={hasChartError}
-						expectedChartCount={expectedChartInfo?.count}
-						chartTypes={expectedChartInfo?.types}
-						resizeTrigger={resizeTrigger}
-					/>
-				)}
-				{!readOnly && isGeneratingSuggestions && (
-					<div className="mt-4 grid gap-2">
-						<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
-						<p className="flex items-center gap-2 text-[#666] dark:text-[#919296]">
-							<img src="/assets/llamaai/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
-							<span>Generating follow-up suggestions...</span>
-						</p>
-					</div>
-				)}
-			</>
+			<p className="flex min-h-9 items-center gap-1 py-2 text-[#666] dark:text-[#919296]">
+				Thinking
+				<LoadingDots />
+			</p>
 		)
 	}
 
-	const remainingCharts = (() => {
-		if (!response?.charts?.length) return null
-		const inlineIds = new Set<string>()
-		const pattern = /\[CHART:([^\]]+)\]/g
-		let match: RegExpExecArray | null
-		while ((match = pattern.exec(response.answer || '')) !== null) {
-			inlineIds.add(match[1])
-		}
-		const filtered = response.charts.filter((c: any) => !inlineIds.has(c.id))
-		if (!filtered.length) return null
-		const data = Array.isArray(response.chartData)
-			? response.chartData
-			: filtered.flatMap((c: any) => response.chartData?.[c.id] || [])
-		return { charts: filtered, data }
-	})()
-
+	// Render items
 	return (
 		<>
-			{response?.answer && (
-				<MarkdownRenderer
-					content={response.answer}
-					citations={response.citations}
-					charts={response.charts}
-					chartData={response.chartData}
-					inlineChartConfig={inlineChartConfig}
-					csvExports={response.csvExports}
-				/>
-			)}
-			{remainingCharts && (
-				<ChartRenderer
-					charts={remainingCharts.charts}
-					chartData={remainingCharts.data}
-					isLoading={false}
-					isAnalyzing={false}
-					expectedChartCount={expectedChartInfo?.count}
-					chartTypes={expectedChartInfo?.types}
-					resizeTrigger={resizeTrigger}
-				/>
-			)}
-			{response?.inlineSuggestions && <InlineSuggestions text={response.inlineSuggestions} />}
-			{!readOnly && response?.suggestions && response.suggestions.length > 0 && (
-				<SuggestedActions
-					suggestions={response.suggestions}
-					handleSuggestionClick={onSuggestionClick}
-					isPending={isPending}
+			{renderableItems.map((item) => (
+				<StreamItemRenderer
+					key={item.id}
+					item={item}
+					artifactIndex={artifactIndex}
 					isStreaming={isStreaming}
+					isPending={isPending}
+					onSuggestionClick={readOnly ? undefined : onSuggestionClick}
+					onRetry={onRetry}
+					canRetry={canRetry}
+					resizeTrigger={inlineChartConfig?.resizeTrigger ?? resizeTrigger}
+					messageId={inlineChartConfig?.messageId}
+					saveableChartIds={inlineChartConfig?.saveableChartIds}
+					savedChartIds={inlineChartConfig?.savedChartIds}
+					progressMessage={progressMessage}
 				/>
-			)}
-			{showMetadata && response?.metadata && <QueryMetadata metadata={response.metadata} />}
+			))}
 		</>
 	)
 }

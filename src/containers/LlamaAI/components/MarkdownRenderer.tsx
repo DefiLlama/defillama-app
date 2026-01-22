@@ -5,7 +5,7 @@ import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
-import type { ChartConfiguration } from '../types'
+import type { ChartConfiguration, ChartItem, CsvItem } from '../types'
 import { getEntityUrl } from '../utils/entityLinks'
 import { ChartRenderer } from './ChartRenderer'
 import { CSVExportArtifact, CSVExportLoading, type CSVExport } from './CSVExportArtifact'
@@ -24,10 +24,15 @@ interface MarkdownRendererProps {
 	content: string
 	citations?: string[]
 	isStreaming?: boolean
+	/** @deprecated Use artifactIndex instead for O(1) lookup */
 	charts?: ChartConfiguration[]
+	/** @deprecated Use artifactIndex instead for O(1) lookup */
 	chartData?: any[] | Record<string, any[]>
 	inlineChartConfig?: InlineChartConfig
+	/** @deprecated Use artifactIndex instead for O(1) lookup */
 	csvExports?: CSVExport[]
+	/** New: Map of artifact IDs to ChartItem | CsvItem for O(1) lookup */
+	artifactIndex?: Map<string, ChartItem | CsvItem>
 }
 
 interface EntityLinkProps {
@@ -135,7 +140,8 @@ export function MarkdownRenderer({
 	charts,
 	chartData,
 	inlineChartConfig,
-	csvExports
+	csvExports,
+	artifactIndex
 }: MarkdownRendererProps) {
 	const { contentParts, inlineChartIds, inlineCsvIds } = useMemo(() => {
 		const chartPlaceholderPattern = /\[CHART:([^\]]+)\]/g
@@ -270,6 +276,29 @@ export function MarkdownRenderer({
 			{inlineChartIds.size > 0 || inlineCsvIds.size > 0
 				? contentParts.map((part, index) => {
 						if (part.type === 'chart' && part.chartId) {
+							// New: O(1) lookup via artifactIndex
+							const artifactItem = artifactIndex?.get(part.chartId)
+							if (artifactItem?.type === 'chart') {
+								const chartItem = artifactItem as ChartItem
+								// Normalize chartData to array format for ChartRenderer
+								const normalizedData = Array.isArray(chartItem.chartData)
+									? chartItem.chartData
+									: chartItem.chartData?.[chartItem.chart.id] || []
+								return (
+									<div key={`chart-${part.chartId}-${index}`} className="my-4">
+										<ChartRenderer
+											charts={[chartItem.chart]}
+											chartData={normalizedData}
+											isLoading={false}
+											isAnalyzing={false}
+											resizeTrigger={inlineChartConfig?.resizeTrigger}
+											messageId={inlineChartConfig?.messageId}
+										/>
+									</div>
+								)
+							}
+
+							// Legacy: O(n) lookup via charts array (backward compatibility)
 							const chart = charts?.find((c) => c.id === part.chartId)
 							if (chart && inlineChartConfig) {
 								const data = !chartData ? [] : Array.isArray(chartData) ? chartData : chartData[part.chartId] || []
@@ -286,7 +315,7 @@ export function MarkdownRenderer({
 									</div>
 								)
 							}
-							if (isStreaming || !charts || charts.length === 0) {
+							if (isStreaming || (!artifactIndex && (!charts || charts.length === 0))) {
 								return (
 									<div
 										key={`chart-loading-${part.chartId}-${index}`}
@@ -299,11 +328,30 @@ export function MarkdownRenderer({
 							return null
 						}
 						if (part.type === 'csv' && part.csvId) {
+							// New: O(1) lookup via artifactIndex
+							const artifactItem = artifactIndex?.get(part.csvId)
+							if (artifactItem?.type === 'csv') {
+								const csvItem = artifactItem as CsvItem
+								return (
+									<CSVExportArtifact
+										key={`csv-${part.csvId}-${index}`}
+										csvExport={{
+											id: csvItem.id,
+											title: csvItem.title,
+											url: csvItem.url,
+											rowCount: csvItem.rowCount,
+											filename: csvItem.filename
+										}}
+									/>
+								)
+							}
+
+							// Legacy: O(n) lookup via csvExports array (backward compatibility)
 							const csvExport = csvExports?.find((e) => e.id === part.csvId)
 							if (csvExport) {
 								return <CSVExportArtifact key={`csv-${part.csvId}-${index}`} csvExport={csvExport} />
 							}
-							if (isStreaming || !csvExports) {
+							if (isStreaming || (!artifactIndex && !csvExports)) {
 								return <CSVExportLoading key={`csv-loading-${part.csvId}-${index}`} />
 							}
 							return null
@@ -338,7 +386,7 @@ export function MarkdownRenderer({
 					<div className="flex flex-col gap-2.5 pt-2.5">
 						{citations.map((url, index) => (
 							<a
-								key={`citation-${url}`}
+								key={`citation-${index}-${url}`}
 								href={url}
 								target="_blank"
 								rel="noopener noreferrer"
