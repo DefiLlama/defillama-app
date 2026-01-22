@@ -163,6 +163,10 @@ export async function getYieldMedianData() {
 
 export type YieldsData = Awaited<ReturnType<typeof getYieldPageData>>
 
+// restrict pool data to lending and cdp
+const categoriesToKeepSet = new Set(['Lending', 'Undercollateralized Lending', 'CDP', 'NFT Lending'])
+const categoriesToKeepWithoutUndercollateralizedSet = new Set(['Lending', 'CDP', 'NFT Lending'])
+
 export async function getLendBorrowData() {
 	const props = (await getYieldPageData()).props
 	// treating fraxlend as cdp category otherwise the output
@@ -175,9 +179,7 @@ export async function getLendBorrowData() {
 		apyBase: p.project === 'fraxlend' ? null : p.apyBase
 	}))
 
-	// restrict pool data to lending and cdp
-	const categoriesToKeep = ['Lending', 'Undercollateralized Lending', 'CDP', 'NFT Lending']
-	let pools = props.pools.filter((p) => categoriesToKeep.includes(p.category))
+	let pools = props.pools.filter((p) => p.category && categoriesToKeepSet.has(p.category))
 
 	// get new borrow fields
 	let dataBorrow = (await fetchApi([YIELD_LEND_BORROW_API]))[0]
@@ -267,7 +269,7 @@ export async function getLendBorrowData() {
 	for (const pool of props.pools) {
 		projectsList.add(pool.projectName)
 		// remove undercollateralised cause we cannot borrow on those
-		if (['Lending', 'CDP', 'NFT Lending'].includes(pool.category)) {
+		if (pool.category && categoriesToKeepWithoutUndercollateralizedSet.has(pool.category)) {
 			lendingProtocols.add(pool.projectName)
 		}
 		farmProtocols.add(pool.projectName)
@@ -287,7 +289,7 @@ export async function getLendBorrowData() {
 			projectList: Array.from(projectsList),
 			lendingProtocols: Array.from(lendingProtocols),
 			farmProtocols: Array.from(farmProtocols),
-			categoryList: categoriesToKeep,
+			categoryList: Array.from(categoriesToKeepSet),
 			tokenNameMapping: props.tokenNameMapping,
 			allPools: props.pools,
 			symbols: [...tokenSymbols]

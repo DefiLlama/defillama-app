@@ -20,10 +20,10 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	// add projectName and audit fields from config to pools array
 	_pools = _pools.map((p) => ({
 		...p,
-		projectName: _config[p.project]?.name,
-		audits: _config[p.project]?.audits,
+		projectName: _config[p.project]?.name ?? null,
+		audits: _config[p.project]?.audits ?? null,
 		airdrop: _config[p.project]?.symbol === null || _config[p.project]?.symbol === '-',
-		category: _config[p.project]?.category,
+		category: _config[p.project]?.category ?? null,
 		url: _urls[p.pool] ?? '',
 		apyReward: p.apyReward > 0 ? p.apyReward : null,
 		rewardTokens: p.apyReward > 0 ? p.rewardTokens : [],
@@ -78,7 +78,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		if (pool.projectName) {
 			poolsList.push(pool)
 			chainList.add(pool.chain)
-			categoryList.add(pool.category)
+			if (pool.category) categoryList.add(pool.category)
 			projectList.add(pool.projectName)
 		}
 	}
