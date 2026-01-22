@@ -17,7 +17,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		selectedChains,
 		selectedAttributes,
 		includeTokens,
-		excludeTokens,
+		excludeTokens, // Keep this since token matching is substring-based
 		exactTokens,
 		selectedCategories,
 		pairTokens,
@@ -58,6 +58,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		const excludeTokensSet = new Set(excludeTokens.map((token) => token.toLowerCase()))
 		const exact_tokens = exactTokens.map((token) => token.toLowerCase())
 
+		// Selected sets already have excludes filtered out at hook level
 		const selectedProjectsSet = new Set(selectedProjects)
 		const selectedChainsSet = new Set(selectedChains)
 		const selectedCategoriesSet = new Set(selectedCategories)

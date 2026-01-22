@@ -9,7 +9,7 @@ interface IToFilterPool {
 	includeTokens: string[]
 	exactTokens: string[]
 	selectedCategoriesSet: Set<string>
-	excludeTokensSet: Set<string>
+	excludeTokensSet: Set<string> // Keep this since token matching is substring-based
 	pathname: string
 	minTvl: number | null
 	maxTvl: number | null
@@ -65,8 +65,10 @@ export function toFilterPool({
 		}
 	}
 
+	// selectedProjectsSet already has excludes filtered out at hook level
 	toFilter = toFilter && selectedProjectsSet.has(curr.projectName)
 
+	// selectedCategoriesSet already has excludes filtered out at hook level
 	toFilter = toFilter && selectedCategoriesSet.has(curr.category)
 
 	const tokensInPool: string[] = tokensInPoolArray
@@ -108,6 +110,7 @@ export function toFilterPool({
 		// Check if any excludeToken exists in tokensInPoolSet using Set intersection
 		const excludeToken = !Array.from(excludeTokensSet).some((token: string) => tokensInPoolSet.has(token))
 
+		// selectedChainsSet already has excludes filtered out at hook level
 		toFilter = toFilter && selectedChainsSet.has(curr.chain) && includeToken && excludeToken
 	} else {
 		const exactToken = exactTokens.find((token) => {
@@ -118,6 +121,7 @@ export function toFilterPool({
 			} else return false
 		})
 
+		// selectedChainsSet already has excludes filtered out at hook level
 		toFilter = toFilter && !!(selectedChainsSet.has(curr.chain) && exactToken)
 	}
 

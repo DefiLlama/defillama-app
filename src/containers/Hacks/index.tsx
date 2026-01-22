@@ -195,6 +195,13 @@ const parseArrayParam = (param: string | string[] | undefined, allValues: string
 	return values.filter((value) => valid.has(value))
 }
 
+// Helper to parse exclude query param to Set
+const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
+	if (!param) return new Set()
+	if (typeof param === 'string') return new Set([param])
+	return new Set(param)
+}
+
 export const HacksContainer = ({
 	data,
 	monthlyHacksChartData,
@@ -208,27 +215,46 @@ export const HacksContainer = ({
 }: IHacksPageData) => {
 	const [chartType, setChartType] = React.useState('Monthly Sum')
 	const router = useRouter()
-	const { chain: chainQ, tech: techQ, class: classQ, time: timeQ, minLost, maxLost } = router.query
+	const {
+		chain: chainQ,
+		excludeChain,
+		tech: techQ,
+		excludeTech,
+		class: classQ,
+		excludeClass,
+		time: timeQ,
+		minLost,
+		maxLost
+	} = router.query
 
 	const selectedChains = React.useMemo(() => {
-		return parseArrayParam(chainQ, chainOptions)
-	}, [chainQ, chainOptions])
+		const excludeSet = parseExcludeParam(excludeChain)
+		const selected = parseArrayParam(chainQ, chainOptions)
+		return excludeSet.size > 0 ? selected.filter((c) => !excludeSet.has(c)) : selected
+	}, [chainQ, excludeChain, chainOptions])
 
 	const selectedTechniques = React.useMemo(() => {
-		return parseArrayParam(techQ, techniqueOptions)
-	}, [techQ, techniqueOptions])
+		const excludeSet = parseExcludeParam(excludeTech)
+		const selected = parseArrayParam(techQ, techniqueOptions)
+		return excludeSet.size > 0 ? selected.filter((t) => !excludeSet.has(t)) : selected
+	}, [techQ, excludeTech, techniqueOptions])
 
 	const selectedClassifications = React.useMemo(() => {
-		return parseArrayParam(classQ, classificationOptions)
-	}, [classQ, classificationOptions])
+		const excludeSet = parseExcludeParam(excludeClass)
+		const selected = parseArrayParam(classQ, classificationOptions)
+		return excludeSet.size > 0 ? selected.filter((c) => !excludeSet.has(c)) : selected
+	}, [classQ, excludeClass, classificationOptions])
 
 	const minLostVal = toNumberOrNullFromQueryParam(minLost)
 	const maxLostVal = toNumberOrNullFromQueryParam(maxLost)
 
 	const hasActiveFilters =
 		typeof chainQ !== 'undefined' ||
+		typeof excludeChain !== 'undefined' ||
 		typeof techQ !== 'undefined' ||
+		typeof excludeTech !== 'undefined' ||
 		typeof classQ !== 'undefined' ||
+		typeof excludeClass !== 'undefined' ||
 		typeof timeQ !== 'undefined' ||
 		minLostVal != null ||
 		maxLostVal != null
@@ -238,9 +264,9 @@ export const HacksContainer = ({
 		const techIncludeNone = isParamNone(techQ)
 		const classIncludeNone = isParamNone(classQ)
 
-		const chainFilterEnabled = typeof chainQ !== 'undefined'
-		const techFilterEnabled = typeof techQ !== 'undefined'
-		const classFilterEnabled = typeof classQ !== 'undefined'
+		const chainFilterEnabled = typeof chainQ !== 'undefined' || typeof excludeChain !== 'undefined'
+		const techFilterEnabled = typeof techQ !== 'undefined' || typeof excludeTech !== 'undefined'
+		const classFilterEnabled = typeof classQ !== 'undefined' || typeof excludeClass !== 'undefined'
 
 		const chainKeys = chainFilterEnabled ? new Set(selectedChains) : undefined
 		const techKeys = techFilterEnabled ? new Set(selectedTechniques) : undefined
@@ -261,8 +287,11 @@ export const HacksContainer = ({
 	}, [
 		data,
 		chainQ,
+		excludeChain,
 		techQ,
+		excludeTech,
 		classQ,
+		excludeClass,
 		selectedChains,
 		selectedTechniques,
 		selectedClassifications,

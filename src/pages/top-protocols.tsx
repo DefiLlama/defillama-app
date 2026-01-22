@@ -22,9 +22,16 @@ import Layout from '~/layout'
 import { chainIconUrl, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const excludeChains = new Set([...TVL_SETTINGS_KEYS, 'offers', 'dcAndLsOverlap', 'excludeParent'])
+const excludeChainsStatic = new Set([...TVL_SETTINGS_KEYS, 'offers', 'dcAndLsOverlap', 'excludeParent'])
 const excludeCategories = new Set(['Bridge', 'Canonical Bridge'])
 const COLUMN_HELPER = createColumnHelper<any>()
+
+// Helper to parse exclude query param to Set
+const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
+	if (!param) return new Set()
+	if (typeof param === 'string') return new Set([param])
+	return new Set(param)
+}
 export const getStaticProps = withPerformanceLogging('top-protocols', async () => {
 	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
 	const topProtocolPerChainAndCategory = {}
@@ -35,7 +42,7 @@ export const getStaticProps = withPerformanceLogging('top-protocols', async () =
 			continue
 		}
 		for (const chain in chainTvls) {
-			if (chain.includes('-') || excludeChains.has(chain)) {
+			if (chain.includes('-') || excludeChainsStatic.has(chain)) {
 				continue
 			}
 			const tvl = chainTvls[chain].tvl
@@ -81,23 +88,33 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 	const columnOptions = uniqueCategories.map((cat) => ({ name: cat, key: cat }))
 
 	const router = useRouter()
-	const { chain, column } = router.query
+	const { chain, excludeChain, column, excludeColumn } = router.query
 	const { selectedChains, selectedColumns, columnVisibility } = React.useMemo(() => {
-		const selectedChains = chain ? (Array.isArray(chain) ? chain : chain == 'All' ? chains : [chain]) : chains
-		const selectedColumns = column
+		const excludeChainSet = parseExcludeParam(excludeChain)
+		const excludeColumnSet = parseExcludeParam(excludeColumn)
+
+		let selectedChains = chain ? (Array.isArray(chain) ? chain : chain == 'All' ? chains : [chain]) : chains
+		// Filter out excludes
+		selectedChains = excludeChainSet.size > 0 ? selectedChains.filter((c) => !excludeChainSet.has(c)) : selectedChains
+
+		let selectedColumns = column
 			? Array.isArray(column)
 				? column
 				: column == 'All'
 					? uniqueCategories
 					: [column]
 			: uniqueCategories
+		// Filter out excludes
+		selectedColumns =
+			excludeColumnSet.size > 0 ? selectedColumns.filter((c) => !excludeColumnSet.has(c)) : selectedColumns
+
 		const selectedColumnsSet = new Set(selectedColumns)
 		const columnVisibility = {}
 		for (const col of uniqueCategories) {
 			columnVisibility[col] = selectedColumnsSet.has(col)
 		}
 		return { selectedChains, selectedColumns, columnVisibility }
-	}, [chain, column, chains, uniqueCategories])
+	}, [chain, excludeChain, column, excludeColumn, chains, uniqueCategories])
 
 	const columns = React.useMemo(() => {
 		const baseColumns = [

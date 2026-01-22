@@ -1044,6 +1044,13 @@ const toArrayParam = (p: string | string[] | undefined): string[] => {
 	return Array.isArray(p) ? p.filter(Boolean) : [p].filter(Boolean)
 }
 
+// Helper to parse exclude query param to Set
+const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
+	if (!param) return new Set()
+	if (typeof param === 'string') return new Set([param])
+	return new Set(param)
+}
+
 const parseNumberInput = (value: string | number | null | undefined): number | null => {
 	if (value == null) return null
 	if (typeof value === 'number') return Number.isFinite(value) ? value : null
@@ -1098,10 +1105,15 @@ const useRWATableQueryParams = ({
 	const router = useRouter()
 	const {
 		categories: categoriesQ,
+		excludeCategories: excludeCategoriesQ,
 		assetClasses: assetClassesQ,
+		excludeAssetClasses: excludeAssetClassesQ,
 		rwaClassifications: rwaClassificationsQ,
+		excludeRwaClassifications: excludeRwaClassificationsQ,
 		accessModels: accessModelsQ,
+		excludeAccessModels: excludeAccessModelsQ,
 		issuers: issuersQ,
+		excludeIssuers: excludeIssuersQ,
 		minDefiActiveTvlToOnChainPct: minDefiActiveTvlToOnChainPctQ,
 		maxDefiActiveTvlToOnChainPct: maxDefiActiveTvlToOnChainPctQ,
 		minActiveMcapToOnChainPct: minActiveMcapToOnChainPctQ,
@@ -1136,11 +1148,40 @@ const useRWATableQueryParams = ({
 			return arr.filter((v) => validSet.has(v))
 		}
 
-		const selectedCategories = parseArrayParam(categoriesQ, categories)
-		const selectedAssetClasses = parseArrayParam(assetClassesQ, assetClasses)
-		const selectedRwaClassifications = parseArrayParam(rwaClassificationsQ, rwaClassifications)
-		const selectedAccessModels = parseArrayParam(accessModelsQ, accessModels)
-		const selectedIssuers = parseArrayParam(issuersQ, issuers)
+		// Parse exclude sets
+		const excludeCategoriesSet = parseExcludeParam(excludeCategoriesQ)
+		const excludeAssetClassesSet = parseExcludeParam(excludeAssetClassesQ)
+		const excludeRwaClassificationsSet = parseExcludeParam(excludeRwaClassificationsQ)
+		const excludeAccessModelsSet = parseExcludeParam(excludeAccessModelsQ)
+		const excludeIssuersSet = parseExcludeParam(excludeIssuersQ)
+
+		// Build selected arrays and filter out excludes
+		let selectedCategories = parseArrayParam(categoriesQ, categories)
+		selectedCategories =
+			excludeCategoriesSet.size > 0 ? selectedCategories.filter((c) => !excludeCategoriesSet.has(c)) : selectedCategories
+
+		let selectedAssetClasses = parseArrayParam(assetClassesQ, assetClasses)
+		selectedAssetClasses =
+			excludeAssetClassesSet.size > 0
+				? selectedAssetClasses.filter((a) => !excludeAssetClassesSet.has(a))
+				: selectedAssetClasses
+
+		let selectedRwaClassifications = parseArrayParam(rwaClassificationsQ, rwaClassifications)
+		selectedRwaClassifications =
+			excludeRwaClassificationsSet.size > 0
+				? selectedRwaClassifications.filter((r) => !excludeRwaClassificationsSet.has(r))
+				: selectedRwaClassifications
+
+		let selectedAccessModels = parseArrayParam(accessModelsQ, accessModels)
+		selectedAccessModels =
+			excludeAccessModelsSet.size > 0
+				? selectedAccessModels.filter((a) => !excludeAccessModelsSet.has(a))
+				: selectedAccessModels
+
+		let selectedIssuers = parseArrayParam(issuersQ, issuers)
+		selectedIssuers =
+			excludeIssuersSet.size > 0 ? selectedIssuers.filter((i) => !excludeIssuersSet.has(i)) : selectedIssuers
+
 		const minDefiActiveTvlToOnChainPct = toNumberParam(minDefiActiveTvlToOnChainPctQ)
 		const maxDefiActiveTvlToOnChainPct = toNumberParam(maxDefiActiveTvlToOnChainPctQ)
 		const minActiveMcapToOnChainPct = toNumberParam(minActiveMcapToOnChainPctQ)
@@ -1168,10 +1209,15 @@ const useRWATableQueryParams = ({
 		}
 	}, [
 		categoriesQ,
+		excludeCategoriesQ,
 		assetClassesQ,
+		excludeAssetClassesQ,
 		rwaClassificationsQ,
+		excludeRwaClassificationsQ,
 		accessModelsQ,
+		excludeAccessModelsQ,
 		issuersQ,
+		excludeIssuersQ,
 		minDefiActiveTvlToOnChainPctQ,
 		maxDefiActiveTvlToOnChainPctQ,
 		minActiveMcapToOnChainPctQ,

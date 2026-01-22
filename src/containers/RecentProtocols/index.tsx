@@ -18,6 +18,13 @@ function getSelectedChainFilters(chainQueryParam, allChains): string[] {
 	} else return allChains
 }
 
+// Helper to parse exclude query param to Set
+const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
+	if (!param) return new Set()
+	if (typeof param === 'string') return new Set([param])
+	return new Set(param)
+}
+
 function _getSelectedCategoryFilters(categoryQueryParam, allCategories): string[] {
 	if (categoryQueryParam) {
 		if (typeof categoryQueryParam === 'string') {
@@ -37,7 +44,7 @@ interface IRecentProtocolProps {
 
 export function RecentProtocols({ protocols, chainList, forkedList, claimableAirdrops }: IRecentProtocolProps) {
 	const router = useRouter()
-	const { chain, hideForks, minTvl: minTvlQuery, maxTvl: maxTvlQuery, ...queries } = router.query
+	const { chain, excludeChain, hideForks, minTvl: minTvlQuery, maxTvl: maxTvlQuery, ...queries } = router.query
 
 	const minTvl = toNumberOrNullFromQueryParam(minTvlQuery)
 	const maxTvl = toNumberOrNullFromQueryParam(maxTvlQuery)
@@ -45,7 +52,9 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 	const toHideForkedProtocols = hideForks && typeof hideForks === 'string' && hideForks === 'true'
 
 	const { selectedChains, data } = useMemo(() => {
-		const selectedChains = getSelectedChainFilters(chain, chainList)
+		const excludeSet = parseExcludeParam(excludeChain)
+		let selectedChains = getSelectedChainFilters(chain, chainList)
+		selectedChains = excludeSet.size > 0 ? selectedChains.filter((c) => !excludeSet.has(c)) : selectedChains
 
 		const _chainsToSelectSet = new Set(selectedChains.map((t) => t.toLowerCase()))
 
@@ -141,7 +150,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 		}
 
 		return { data, selectedChains }
-	}, [protocols, chain, chainList, forkedList, toHideForkedProtocols, minTvl, maxTvl])
+	}, [protocols, chain, excludeChain, chainList, forkedList, toHideForkedProtocols, minTvl, maxTvl])
 
 	const protocolsData = useCalcStakePool2Tvl(data)
 

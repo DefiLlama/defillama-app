@@ -7,30 +7,68 @@ import { NestedMenu, NestedMenuItem } from './NestedMenu'
 import type { ExcludeQueryKey, SelectOption, SelectValues } from './selectTypes'
 import { Tooltip } from './Tooltip'
 
-// URL update helpers - used when includeQueryKey is provided
+// URL update helpers - used when includeQueryKey/excludeQueryKey is provided
 // Encoding:
-// - missing param => "all selected" (default)
-// - param="None" => "none selected"
-// - param=[...] => explicit selection(s)
-const updateQueryParam = (key: string, values: string[] | 'None' | null) => {
+// - missing include+exclude => "all selected" (default)
+// - include="None" => "none selected"
+// - include=[...] or include="..." => explicit include selection(s)
+// - exclude=[...] or exclude="..." => start from all, then remove excludes
+const updateQueryFromSelected = (
+	includeKey: string,
+	excludeKey: ExcludeQueryKey,
+	allKeys: string[],
+	values: string[] | 'None' | null
+) => {
 	const nextQuery: Record<string, any> = { ...Router.query }
-	if (values === null) {
-		delete nextQuery[key]
-	} else if (values === 'None') {
-		nextQuery[key] = 'None'
-	} else if (values.length > 0) {
-		nextQuery[key] = values
-	} else {
-		// If user deselects everything, keep an explicit "None" sentinel
-		nextQuery[key] = 'None'
+
+	const setOrDelete = (key: string, value: string | string[] | null) => {
+		if (value === null) delete nextQuery[key]
+		else nextQuery[key] = value
 	}
+
+	// Select all => default (no params)
+	if (values === null) {
+		setOrDelete(includeKey, null)
+		setOrDelete(excludeKey, null)
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+		return
+	}
+
+	// None selected => explicit sentinel (and clear excludes)
+	if (values === 'None' || values.length === 0) {
+		setOrDelete(includeKey, 'None')
+		setOrDelete(excludeKey, null)
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+		return
+	}
+
+	const validSet = new Set(allKeys)
+	const selected = values.filter((v) => validSet.has(v))
+	const selectedSet = new Set(selected)
+
+	// All selected => default (no params)
+	if (selected.length === allKeys.length) {
+		setOrDelete(includeKey, null)
+		setOrDelete(excludeKey, null)
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+		return
+	}
+
+	const excluded = allKeys.filter((k) => !selectedSet.has(k))
+
+	// Prefer whichever is shorter; if user deselects only a few from mostly-all, this flips to excludeKey
+	const useExclude = excluded.length < selected.length
+
+	if (useExclude) {
+		setOrDelete(includeKey, null) // completely remove includeKey when using excludeKey
+		setOrDelete(excludeKey, excluded.length === 1 ? excluded[0] : excluded)
+	} else {
+		setOrDelete(excludeKey, null)
+		setOrDelete(includeKey, selected.length === 1 ? selected[0] : selected)
+	}
+
 	Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
 }
-
-const createUrlSetSelectedValues = (key: string) => (values: string[]) => updateQueryParam(key, values)
-const createUrlClearAll = (key: string) => () => updateQueryParam(key, 'None')
-const createUrlToggleAll = (key: string) => () => updateQueryParam(key, null)
-const createUrlSelectOnlyOne = (key: string) => (value: string) => updateQueryParam(key, [value])
 
 interface ISelectWithComboboxBase {
 	allValues: SelectValues
@@ -71,7 +109,8 @@ export function SelectWithCombobox({
 	onEditCustomColumn,
 	onDeleteCustomColumn,
 	portal,
-	includeQueryKey
+	includeQueryKey,
+	excludeQueryKey
 }: ISelectWithCombobox) {
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 
@@ -79,11 +118,17 @@ export function SelectWithCombobox({
 	const getAllKeys = React.useCallback(() => allValues.map((v) => (typeof v === 'string' ? v : v.key)), [allValues])
 
 	// If includeQueryKey is provided, use URL-based functions; otherwise derive from setSelectedValues
-	const setSelectedValues = includeQueryKey ? createUrlSetSelectedValues(includeQueryKey) : setSelectedValuesProp
-	const clearAll = includeQueryKey ? createUrlClearAll(includeQueryKey) : () => setSelectedValuesProp([])
-	const toggleAll = includeQueryKey ? createUrlToggleAll(includeQueryKey) : () => setSelectedValuesProp(getAllKeys())
+	const setSelectedValues = includeQueryKey
+		? (values: string[]) => updateQueryFromSelected(includeQueryKey, excludeQueryKey!, getAllKeys(), values)
+		: setSelectedValuesProp
+	const clearAll = includeQueryKey
+		? () => updateQueryFromSelected(includeQueryKey, excludeQueryKey!, getAllKeys(), 'None')
+		: () => setSelectedValuesProp([])
+	const toggleAll = includeQueryKey
+		? () => updateQueryFromSelected(includeQueryKey, excludeQueryKey!, getAllKeys(), null)
+		: () => setSelectedValuesProp(getAllKeys())
 	const selectOnlyOne = includeQueryKey
-		? createUrlSelectOnlyOne(includeQueryKey)
+		? (value: string) => updateQueryFromSelected(includeQueryKey, excludeQueryKey!, getAllKeys(), [value])
 		: (value: string) => setSelectedValuesProp([value])
 
 	const [searchValue, setSearchValue] = React.useState('')
