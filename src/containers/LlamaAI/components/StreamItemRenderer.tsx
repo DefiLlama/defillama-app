@@ -223,12 +223,24 @@ interface LoadingItemRendererProps {
 
 const LoadingItemRenderer = memo(function LoadingItemRenderer({ item, progressMessage }: LoadingItemRendererProps) {
 	const message = progressMessage || item.message || 'Processing...'
+	const isError = message.includes('encountered an issue')
 
 	return (
-		<div className="flex items-center gap-2 py-2 text-[#666] dark:text-[#919296]">
-			<LoadingDots />
-			<span>{message}</span>
-		</div>
+		<p
+			className={`flex items-center justify-start gap-2 py-2 ${
+				isError ? 'text-(--error)' : 'text-[#666] dark:text-[#919296]'
+			}`}
+		>
+			{isError ? (
+				<Icon name="alert-triangle" height={16} width={16} className="text-(--error)" />
+			) : (
+				<img src="/assets/llamaai/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
+			)}
+			<span className="flex flex-wrap items-center gap-1">
+				{message}
+				{!isError ? <LoadingDots /> : null}
+			</span>
+		</p>
 	)
 })
 
