@@ -137,9 +137,8 @@ export function PromptResponse({
 
 		const index = new Map<string, ChartItem | CsvItem>()
 		const renderable: StreamItem[] = []
-		const artifacts: Array<ChartItem | CsvItem> = []
 
-		// First pass: collect all items and find inline artifact references
+		// First pass: collect all markdown content to find inline artifact references
 		const allMarkdownContent = items
 			.filter((item): item is MarkdownItem => item.type === 'markdown')
 			.map((item) => item.text)
@@ -158,15 +157,19 @@ export function PromptResponse({
 			referencedIds.add(match[1])
 		}
 
-			// Check if we have actual content (markdown with text) - if so, skip loading/research items
+		// Check if we have actual content (markdown with text) - if so, skip loading/research items
 		// The streaming text itself indicates content is being generated, no need for extra loading UI
 		const hasMarkdownContent = allMarkdownContent.trim().length > 0
 
+		// Single pass: preserve original item order while filtering
 		for (const item of items) {
 			if (item.type === 'chart' || item.type === 'csv') {
 				// All artifacts go in index for potential inline rendering
 				index.set(item.id, item)
-				artifacts.push(item)
+				// Only add to renderable if NOT referenced inline (preserves original order)
+				if (!referencedIds.has(item.id)) {
+					renderable.push(item)
+				}
 			} else if ((item.type === 'loading' || item.type === 'research') && hasMarkdownContent) {
 				// Skip loading/research items when we have actual content streaming
 				// The streaming text itself is the indicator that content is being generated
@@ -175,13 +178,6 @@ export function PromptResponse({
 				// Non-artifact, non-metadata, non-suggestions items are rendered directly
 				// Suggestions are filtered out so parent can render them after ResponseControls
 				renderable.push(item)
-			}
-		}
-
-		// Add artifacts that are NOT referenced inline to renderableItems
-		for (const artifact of artifacts) {
-			if (!referencedIds.has(artifact.id)) {
-				renderable.push(artifact)
 			}
 		}
 

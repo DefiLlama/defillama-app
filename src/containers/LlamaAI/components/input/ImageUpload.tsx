@@ -71,6 +71,7 @@ export function ImageUploadButton({ onClick }: ImageUploadButtonProps) {
 				<button
 					type="button"
 					onClick={onClick}
+					aria-label="Add image"
 					className="group flex h-7 w-7 items-center justify-center rounded-lg border border-[#DEDEDE] hover:bg-(--old-blue)/10 disabled:opacity-25 dark:border-[#2F3336] dark:hover:bg-(--old-blue)/15"
 				/>
 			}

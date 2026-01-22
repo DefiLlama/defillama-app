@@ -86,6 +86,8 @@ export function useImageUpload({
 	const handleImageSelect = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
 			if (e.target.files) addImages(Array.from(e.target.files))
+			// Reset input to allow re-selecting the same file
+			e.currentTarget.value = ''
 		},
 		[addImages]
 	)
