@@ -11,14 +11,23 @@ import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { IProtocolsWithTokensByChainPageData } from './queries'
 
+// Helper to parse exclude query param to Set
+const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
+	if (!param) return new Set()
+	if (typeof param === 'string') return new Set([param])
+	return new Set(param)
+}
+
 export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) {
 	const router = useRouter()
 
-	const { category } = router.query
+	const { category, excludeCategory } = router.query
 	const hasCategoryParam = Object.prototype.hasOwnProperty.call(router.query, 'category')
 
 	const { selectedCategories, protocols } = useMemo(() => {
-		const selectedCategories =
+		const excludeSet = parseExcludeParam(excludeCategory)
+
+		let selectedCategories =
 			props.categories.length > 0 && hasCategoryParam && category === ''
 				? []
 				: category
@@ -26,6 +35,9 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 						? [category]
 						: category
 					: props.categories
+
+		// Filter out excludes
+		selectedCategories = excludeSet.size > 0 ? selectedCategories.filter((c) => !excludeSet.has(c)) : selectedCategories
 
 		const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
 
@@ -42,7 +54,7 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 			selectedCategories,
 			protocols
 		}
-	}, [category, hasCategoryParam, props.categories, props.protocols])
+	}, [category, excludeCategory, hasCategoryParam, props.categories, props.protocols])
 
 	const { columns, sortingState } = getMetricNameAndColumns(props.type)
 

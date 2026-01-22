@@ -4,53 +4,99 @@ import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { CHART_COLORS } from '~/constants/colors'
 import { toYearMonth } from '~/utils'
 
+// Helper to parse exclude query param to Set
+const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
+	if (!param) return new Set()
+	if (typeof param === 'string') return new Set([param])
+	return new Set(param)
+}
+
 export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 	const { query } = useRouter()
 
-	const { investor, round, sector, chain, minRaised, maxRaised } = query
+	const {
+		investor,
+		excludeInvestor,
+		round,
+		excludeRound,
+		sector,
+		excludeSector,
+		chain,
+		excludeChain,
+		minRaised,
+		maxRaised
+	} = query
 
 	const data = useMemo(() => {
-		let selectedInvestors = []
-		let selectedRounds = []
-		let selectedSectors = []
-		let selectedChains = []
-		const raisesByCategory: { [category: string]: number } = {}
-		const fundingRoundsByMonth = {}
-		const monthlyInvestment = {}
-		const investmentByRounds: { [round: string]: number } = {}
+		// Parse exclude sets upfront
+		// Note: For investors and chains, we need separate exclude sets because we're checking
+		// "exclude if ANY item in array matches", which can't be combined with the selection logic
+		const excludeInvestorsSet = parseExcludeParam(excludeInvestor)
+		const excludeChainsSet = parseExcludeParam(excludeChain)
+		const excludeRoundsSet = parseExcludeParam(excludeRound)
+		const excludeSectorsSet = parseExcludeParam(excludeSector)
 
+		// Build selectedInvestors
+		let selectedInvestors: string[]
 		if (investor) {
 			if (typeof investor === 'string') {
 				selectedInvestors = investor === 'All' ? [...investors] : investor === 'None' ? [] : [investor]
 			} else {
 				selectedInvestors = [...investor]
 			}
-		} else selectedInvestors = [...investors]
+		} else {
+			selectedInvestors = [...investors]
+		}
+		// Filter out excludes from selectedInvestors
+		selectedInvestors =
+			excludeInvestorsSet.size > 0 ? selectedInvestors.filter((i) => !excludeInvestorsSet.has(i)) : selectedInvestors
 
+		// Build selectedRounds and filter out excludes inline
+		let selectedRounds: string[]
 		if (round) {
 			if (typeof round === 'string') {
 				selectedRounds = round === 'All' ? [...rounds] : round === 'None' ? [] : [round]
 			} else {
 				selectedRounds = [...round]
 			}
-		} else selectedRounds = [...rounds]
+		} else {
+			selectedRounds = [...rounds]
+		}
+		selectedRounds = excludeRoundsSet.size > 0 ? selectedRounds.filter((r) => !excludeRoundsSet.has(r)) : selectedRounds
 
+		// Build selectedSectors and filter out excludes inline
+		let selectedSectors: string[]
 		if (sector) {
 			if (typeof sector === 'string') {
 				selectedSectors = sector === 'All' ? [...sectors] : sector === 'None' ? [] : [sector]
 			} else {
 				selectedSectors = [...sector]
 			}
-		} else selectedSectors = [...sectors]
+		} else {
+			selectedSectors = [...sectors]
+		}
+		selectedSectors =
+			excludeSectorsSet.size > 0 ? selectedSectors.filter((s) => !excludeSectorsSet.has(s)) : selectedSectors
 
+		// Build selectedChains
+		let selectedChains: string[]
 		if (chain) {
 			if (typeof chain === 'string') {
 				selectedChains = chain === 'All' ? [...chains] : chain === 'None' ? [] : [chain]
 			} else {
-				// Case-sensitive: use query param values as-is
 				selectedChains = [...chain]
 			}
-		} else selectedChains = [...chains]
+		} else {
+			selectedChains = [...chains]
+		}
+		// Filter out excludes from selectedChains
+		selectedChains =
+			excludeChainsSet.size > 0 ? selectedChains.filter((c) => !excludeChainsSet.has(c)) : selectedChains
+
+		const raisesByCategory: { [category: string]: number } = {}
+		const fundingRoundsByMonth = {}
+		const monthlyInvestment = {}
+		const investmentByRounds: { [round: string]: number } = {}
 
 		const minimumAmountRaised =
 			typeof minRaised === 'string' && !Number.isNaN(Number(minRaised)) ? Number(minRaised) : 0
@@ -94,34 +140,32 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 					}
 				}
 
-				// filter if investor is in either leadInvestors or otherInvestors
 				if (!isAnInvestor) {
 					return false
 				}
 			}
 
 			if (isChainsFilterActive) {
-				// filter raises with no chains
 				if (raise.chains.length === 0) {
 					return false
-				} else {
-					let raiseIncludesChain = false
+				}
 
-					for (const chain of raise.chains) {
-						if (selectedChainsSet!.has(chain)) {
-							raiseIncludesChain = true
-							break
-						}
-					}
+				let raiseIncludesChain = false
 
-					if (!raiseIncludesChain) {
-						return false
+				for (const chain of raise.chains) {
+					if (selectedChainsSet!.has(chain)) {
+						raiseIncludesChain = true
+						break
 					}
+				}
+
+				if (!raiseIncludesChain) {
+					return false
 				}
 			}
 
+			// selectedRoundsSet already has excludes filtered out
 			if (isRoundsFilterActive) {
-				// filter raises with no round
 				if (!raise.round || raise.round === '') {
 					return false
 				} else {
@@ -131,8 +175,8 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 				}
 			}
 
+			// selectedSectorsSet already has excludes filtered out
 			if (isSectorsFilterActive) {
-				// filter raises with no sector
 				if (!raise.category || raise.category === '') {
 					return false
 				} else {
@@ -231,7 +275,23 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 			fundingRoundsByMonthChart,
 			totalAmountRaised
 		}
-	}, [investor, investors, round, rounds, sector, sectors, chain, chains, raises, minRaised, maxRaised])
+	}, [
+		investor,
+		excludeInvestor,
+		investors,
+		round,
+		excludeRound,
+		rounds,
+		sector,
+		excludeSector,
+		sectors,
+		chain,
+		excludeChain,
+		chains,
+		raises,
+		minRaised,
+		maxRaised
+	])
 
 	return data
 }

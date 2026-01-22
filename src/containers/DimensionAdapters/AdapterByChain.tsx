@@ -12,6 +12,13 @@ import {
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useMemo, useState } from 'react'
+
+// Helper to parse exclude query param to Set
+const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
+	if (!param) return new Set()
+	if (typeof param === 'string') return new Set([param])
+	return new Set(param)
+}
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
@@ -115,10 +122,13 @@ export function AdapterByChain(props: IProps) {
 	const router = useRouter()
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
 	const categoryParam = router.query.category
+	const excludeCategoryParam = router.query.excludeCategory
 	const hasCategoryParam = Object.prototype.hasOwnProperty.call(router.query, 'category')
 
 	const { selectedCategories, protocols, columnsOptions } = useMemo(() => {
-		const selectedCategories =
+		const excludeSet = parseExcludeParam(excludeCategoryParam)
+
+		let selectedCategories =
 			props.categories.length > 0 && hasCategoryParam && categoryParam === ''
 				? []
 				: categoryParam
@@ -126,6 +136,9 @@ export function AdapterByChain(props: IProps) {
 						? [categoryParam]
 						: categoryParam
 					: props.categories
+
+		// Filter out excludes
+		selectedCategories = excludeSet.size > 0 ? selectedCategories.filter((c) => !excludeSet.has(c)) : selectedCategories
 
 		const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
 
@@ -217,6 +230,7 @@ export function AdapterByChain(props: IProps) {
 		}
 	}, [
 		categoryParam,
+		excludeCategoryParam,
 		hasCategoryParam,
 		props.categories,
 		props.protocols,

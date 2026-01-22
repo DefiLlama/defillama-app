@@ -68,6 +68,7 @@ export function StablecoinsByChain({
 	const minMcap = toNumberOrNullFromQueryParam(router.query.minMcap)
 	const maxMcap = toNumberOrNullFromQueryParam(router.query.maxMcap)
 
+	// Selected arrays already have excludes filtered out at hook level
 	const { selectedAttributes, selectedPegTypes, selectedBackings } = useFormatStablecoinQueryParams({
 		stablecoinAttributeOptions,
 		stablecoinPegTypeOptions,
@@ -75,8 +76,12 @@ export function StablecoinsByChain({
 	})
 
 	const peggedAssets = React.useMemo(() => {
-		const pegTypeOptionsMap = new Map(stablecoinPegTypeOptions.map((option) => [option.key, option]))
-		const backingOptionsMap = new Map(stablecoinBackingOptions.map((option) => [option.key, option]))
+		const pegTypeOptionsMap = new Map<string, (typeof stablecoinPegTypeOptions)[number]>(
+			stablecoinPegTypeOptions.map((option) => [option.key, option])
+		)
+		const backingOptionsMap = new Map<string, (typeof stablecoinBackingOptions)[number]>(
+			stablecoinBackingOptions.map((option) => [option.key, option])
+		)
 
 		let chartDataIndexes = []
 		const peggedAssets = filteredPeggedAssets.reduce((acc, curr) => {
@@ -85,6 +90,7 @@ export function StablecoinsByChain({
 			// Attribute filter:
 			// - Missing param => all selected (handled in `useFormatStablecoinQueryParams`)
 			// - Param="None" => none selected
+			// - selectedAttributes already has excludes filtered out
 			if (!selectedAttributes || selectedAttributes.length === 0) {
 				toFilter = false
 			} else {
@@ -92,6 +98,7 @@ export function StablecoinsByChain({
 				toFilter = stablecoinAttributeOptions.some((opt) => selectedAttrSet.has(opt.key) && opt.filterFn(curr))
 			}
 
+			// selectedPegTypes already has excludes filtered out
 			toFilter =
 				toFilter &&
 				selectedPegTypes
@@ -101,6 +108,7 @@ export function StablecoinsByChain({
 					})
 					.some((bool) => bool)
 
+			// selectedBackings already has excludes filtered out
 			toFilter =
 				toFilter &&
 				selectedBackings
@@ -127,15 +135,7 @@ export function StablecoinsByChain({
 		setFilteredIndexes(chartDataIndexes)
 
 		return peggedAssets
-	}, [
-		filteredPeggedAssets,
-		peggedNameToChartDataIndex,
-		minMcap,
-		maxMcap,
-		selectedAttributes,
-		selectedPegTypes,
-		selectedBackings
-	])
+	}, [filteredPeggedAssets, peggedNameToChartDataIndex, minMcap, maxMcap, selectedAttributes, selectedPegTypes, selectedBackings])
 
 	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows } =
 		React.useMemo(() => {
