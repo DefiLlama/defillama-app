@@ -70,8 +70,9 @@ export async function fetchCoins(query: string, limit: number = 10): Promise<Ent
 	})
 
 	// Transform coin results to standard format
+	// Use replaceAll to convert all underscores to colons (matching project's ID normalization pattern)
 	return hits.map((hit) => ({
-		id: hit.id.replace('_', ':'),
+		id: hit.id.replaceAll('_', ':'),
 		name: hit.name,
 		logo: null,
 		type: 'Coin'

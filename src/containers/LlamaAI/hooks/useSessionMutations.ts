@@ -68,6 +68,13 @@ export function useSessionMutations() {
 			}
 		},
 		onMutate: async (sessionId) => {
+			// Cancel any outgoing refetches
+			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
+
+			// Snapshot previous value for rollback
+			const previous = queryClient.getQueryData<SessionListData>([SESSIONS_QUERY_KEY, user?.id])
+
+			// Optimistically update
 			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListData | undefined) => {
 				if (!old) return { sessions: [], usage: null }
 				return {
@@ -75,8 +82,17 @@ export function useSessionMutations() {
 					sessions: old.sessions.filter((session) => session.sessionId !== sessionId)
 				}
 			})
+
+			return { previous }
 		},
-		onSuccess: () => {
+		onError: (_err, _sessionId, context) => {
+			// Rollback to previous state on error
+			if (context?.previous) {
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], context.previous)
+			}
+		},
+		onSettled: () => {
+			// Always invalidate after mutation settles (success or error)
 			queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 		}
 	})
@@ -94,6 +110,13 @@ export function useSessionMutations() {
 			return response
 		},
 		onMutate: async ({ sessionId, title }) => {
+			// Cancel any outgoing refetches
+			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
+
+			// Snapshot previous value for rollback
+			const previous = queryClient.getQueryData<SessionListData>([SESSIONS_QUERY_KEY, user?.id])
+
+			// Optimistically update
 			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListData | undefined) => {
 				if (!old) return { sessions: [], usage: null }
 				return {
@@ -106,8 +129,17 @@ export function useSessionMutations() {
 					})
 				}
 			})
+
+			return { previous }
 		},
-		onSuccess: () => {
+		onError: (_err, _variables, context) => {
+			// Rollback to previous state on error
+			if (context?.previous) {
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], context.previous)
+			}
+		},
+		onSettled: () => {
+			// Always invalidate after mutation settles (success or error)
 			queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 		}
 	})

@@ -2,6 +2,48 @@
  * Utility functions for markdown processing in LlamaAI.
  */
 
+/**
+ * Allowed URL protocols for citation links.
+ * Prevents dangerous schemes like javascript:, data:, etc.
+ */
+const ALLOWED_PROTOCOLS = ['https:', 'http:', 'mailto:']
+
+/**
+ * Validate and sanitize a URL for safe use in href attributes.
+ * Returns null if the URL is unsafe or malformed.
+ */
+function sanitizeUrl(url: string): string | null {
+	if (!url || typeof url !== 'string') return null
+
+	// Trim whitespace
+	const trimmed = url.trim()
+	if (!trimmed) return null
+
+	try {
+		// Try to parse as absolute URL
+		const parsed = new URL(trimmed)
+
+		// Check if protocol is whitelisted
+		if (!ALLOWED_PROTOCOLS.includes(parsed.protocol)) {
+			return null
+		}
+
+		// Return the href (properly encoded by URL constructor)
+		return parsed.href
+	} catch {
+		// If parsing fails, try prepending https:// for URLs that look like domains
+		if (/^[a-zA-Z0-9][a-zA-Z0-9-]*\.[a-zA-Z]{2,}/.test(trimmed) && !trimmed.includes(' ')) {
+			try {
+				const withProtocol = new URL(`https://${trimmed}`)
+				return withProtocol.href
+			} catch {
+				return null
+			}
+		}
+		return null
+	}
+}
+
 interface ArtifactMatch {
 	index: number
 	length: number
@@ -100,9 +142,20 @@ export function processCitationMarkers(text: string, citations?: string[]): stri
 		return expandedNums
 			.map((num) => {
 				const idx = num - 1
-				return citations[idx]
-					? `<a href="${citations[idx]}" target="_blank" rel="noopener noreferrer" class="citation-badge">${num}</a>`
-					: `<span class="citation-badge">${num}</span>`
+				const rawUrl = citations[idx]
+
+				if (!rawUrl) {
+					return `<span class="citation-badge">${num}</span>`
+				}
+
+				// Validate and sanitize the URL to prevent XSS
+				const safeUrl = sanitizeUrl(rawUrl)
+				if (safeUrl) {
+					return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="citation-badge">${num}</a>`
+				}
+
+				// URL is unsafe or malformed - render as non-clickable span
+				return `<span class="citation-badge">${num}</span>`
 			})
 			.join('')
 	})

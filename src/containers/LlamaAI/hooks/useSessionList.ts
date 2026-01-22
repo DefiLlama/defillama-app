@@ -53,11 +53,15 @@ export function useSessionList() {
 				const sessionIndex = old.sessions.findIndex((s) => s.sessionId === sessionId)
 				if (sessionIndex === -1) return old
 
-				const updatedSessions = [...old.sessions]
-				const [movedSession] = updatedSessions.splice(sessionIndex, 1)
-				movedSession.lastActivity = new Date().toISOString()
+				// Create a new array without the moved session
+				const updatedSessions = old.sessions.filter((_, idx) => idx !== sessionIndex)
+				// Create a new session object with updated lastActivity (avoid mutating the original)
+				const movedSessionCopy: ChatSession = {
+					...old.sessions[sessionIndex],
+					lastActivity: new Date().toISOString()
+				}
 
-				return { ...old, sessions: [movedSession, ...updatedSessions] }
+				return { ...old, sessions: [movedSessionCopy, ...updatedSessions] }
 			})
 		},
 		[user, queryClient]

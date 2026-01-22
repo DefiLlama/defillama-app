@@ -15,8 +15,10 @@ export function useSidebarVisibility() {
 	)
 
 	const toggleSidebarDesktop = useCallback(() => {
-		const currentVisible = localStorage.getItem(SIDEBAR_STORAGE_KEY) === 'true'
-		setStorageItem(SIDEBAR_STORAGE_KEY, String(!currentVisible))
+		// Use getStorageItem to read consistently, treat missing/null as default 'true' (sidebar hidden by default)
+		const currentValue = getStorageItem(SIDEBAR_STORAGE_KEY, 'true') ?? 'true'
+		const currentHidden = currentValue === 'true'
+		setStorageItem(SIDEBAR_STORAGE_KEY, String(!currentHidden))
 	}, [])
 
 	// Mobile: uses local state (no persistence needed)
