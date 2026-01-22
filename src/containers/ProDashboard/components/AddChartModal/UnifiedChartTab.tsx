@@ -14,6 +14,7 @@ import { IncomeStatementChartTab } from './IncomeStatementChartTab'
 import { SelectionFooter } from './SelectionFooter'
 import { StablecoinsChartTab } from './StablecoinsChartTab'
 import { ChartTabType, ManualChartViewMode } from './types'
+import { UnlocksChartTab } from './UnlocksChartTab'
 import { YieldsChartTab } from './YieldsChartTab'
 
 const PROTOCOL_CHART_TYPES = getProtocolChartTypes()
@@ -92,6 +93,12 @@ interface UnifiedChartTabPropsExtended extends UnifiedChartTabProps {
 	selectedIncomeStatementProtocolName?: string | null
 	onSelectedIncomeStatementProtocolChange?: (protocol: string | null) => void
 	onSelectedIncomeStatementProtocolNameChange?: (name: string | null) => void
+	selectedUnlocksProtocol?: string | null
+	selectedUnlocksProtocolName?: string | null
+	selectedUnlocksChartType?: 'total' | 'schedule' | 'allocation' | 'locked-unlocked'
+	onSelectedUnlocksProtocolChange?: (protocol: string | null) => void
+	onSelectedUnlocksProtocolNameChange?: (name: string | null) => void
+	onSelectedUnlocksChartTypeChange?: (type: 'total' | 'schedule' | 'allocation' | 'locked-unlocked') => void
 }
 
 export function UnifiedChartTab({
@@ -163,9 +170,15 @@ export function UnifiedChartTab({
 	selectedIncomeStatementProtocol = null,
 	selectedIncomeStatementProtocolName = null,
 	onSelectedIncomeStatementProtocolChange,
-	onSelectedIncomeStatementProtocolNameChange
+	onSelectedIncomeStatementProtocolNameChange,
+	selectedUnlocksProtocol = null,
+	selectedUnlocksProtocolName = null,
+	selectedUnlocksChartType = 'total',
+	onSelectedUnlocksProtocolChange,
+	onSelectedUnlocksProtocolNameChange,
+	onSelectedUnlocksChartTypeChange
 }: UnifiedChartTabPropsExtended) {
-	const specialtyTabs = ['yields', 'stablecoins', 'advanced-tvl', 'borrowed', 'income-statement']
+	const specialtyTabs = ['yields', 'stablecoins', 'advanced-tvl', 'borrowed', 'income-statement', 'unlocks']
 	const [viewMode, setViewMode] = useState<ManualChartViewMode>(() =>
 		specialtyTabs.includes(selectedChartTab) || composerItems.length > 0 ? 'form' : 'cards'
 	)
@@ -495,6 +508,35 @@ export function UnifiedChartTab({
 						selectedIncomeStatementProtocolName={selectedIncomeStatementProtocolName}
 						onSelectedIncomeStatementProtocolChange={onSelectedIncomeStatementProtocolChange || (() => {})}
 						onSelectedIncomeStatementProtocolNameChange={onSelectedIncomeStatementProtocolNameChange || (() => {})}
+						protocolOptions={protocolOptions as any}
+						protocolsLoading={protocolsLoading}
+					/>
+				</div>
+				<SelectionFooter
+					composerItems={composerItems}
+					chartCreationMode={chartCreationMode}
+					unifiedChartName={unifiedChartName}
+					onChartCreationModeChange={onChartCreationModeChange}
+					onUnifiedChartNameChange={onUnifiedChartNameChange}
+					onComposerItemColorChange={onComposerItemColorChange}
+					onRemoveFromComposer={onRemoveFromComposer}
+				/>
+			</div>
+		)
+	}
+
+	if (selectedChartTab === 'unlocks') {
+		return (
+			<div className="flex h-full flex-col">
+				<CategoryFormHeader category={selectedChartTab} onBack={handleBackToCards} />
+				<div className="min-h-0 flex-1">
+					<UnlocksChartTab
+						selectedUnlocksProtocol={selectedUnlocksProtocol}
+						selectedUnlocksProtocolName={selectedUnlocksProtocolName}
+						selectedUnlocksChartType={selectedUnlocksChartType}
+						onSelectedUnlocksProtocolChange={onSelectedUnlocksProtocolChange || (() => {})}
+						onSelectedUnlocksProtocolNameChange={onSelectedUnlocksProtocolNameChange || (() => {})}
+						onSelectedUnlocksChartTypeChange={onSelectedUnlocksChartTypeChange || (() => {})}
 						protocolOptions={protocolOptions as any}
 						protocolsLoading={protocolsLoading}
 					/>

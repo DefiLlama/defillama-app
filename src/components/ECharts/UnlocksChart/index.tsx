@@ -350,7 +350,7 @@ export default function AreaChart({
 					}
 				}))
 			].filter(Boolean),
-			dataZoom,
+			dataZoom: hideDataZoom ? [] : dataZoom,
 			series
 		})
 

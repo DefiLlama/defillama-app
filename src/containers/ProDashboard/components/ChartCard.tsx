@@ -4,7 +4,7 @@ import { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select'
 import { Tooltip } from '~/components/Tooltip'
-import { capitalizeFirstLetter, download } from '~/utils'
+import { capitalizeFirstLetter, download, toNiceDayMonthYear } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import {
 	useProDashboardCatalog,
@@ -87,6 +87,9 @@ function ChartRenderer({
 			: percentMetricTypes.includes(type)
 				? '%'
 				: '$'
+	const todayTimestamp = Math.floor(Date.now() / 1000)
+	const todayHallmarks: [number, string][] | null =
+		type === 'unlocks' ? [[todayTimestamp, toNiceDayMonthYear(todayTimestamp)]] : null
 
 	return (
 		<Suspense fallback={<div className="h-[300px]" />}>
@@ -94,9 +97,10 @@ function ChartRenderer({
 				chartType={chartType.chartType === 'bar' && !showCumulative ? 'bar' : 'line'}
 				chartData={data}
 				valueSymbol={valueSymbol}
-				height="300px"
+				height={type === 'unlocks' ? '360px' : '300px'}
 				color={color}
 				hideDataZoom
+				hallmarks={todayHallmarks}
 				onReady={onChartReady}
 			/>
 		</Suspense>

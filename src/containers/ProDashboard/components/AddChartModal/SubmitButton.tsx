@@ -35,6 +35,8 @@ interface SubmitButtonProps {
 	selectedBorrowedChartType?: string
 	selectedIncomeStatementProtocol?: string | null
 	selectedLlamaAIChart?: { id: string; title: string } | null
+	selectedUnlocksProtocol?: string | null
+	selectedUnlocksChartType?: 'total' | 'schedule' | 'allocation' | 'locked-unlocked'
 	onSubmit: () => void
 }
 
@@ -72,6 +74,8 @@ export function SubmitButton({
 	selectedBorrowedChartType,
 	selectedIncomeStatementProtocol,
 	selectedLlamaAIChart,
+	selectedUnlocksProtocol,
+	selectedUnlocksChartType,
 	onSubmit
 }: SubmitButtonProps) {
 	const isStablecoinChainModeInvalid =
@@ -82,6 +86,7 @@ export function SubmitButton({
 	const isAdvancedTvlInvalid = !selectedAdvancedTvlProtocol || !selectedAdvancedTvlChartType
 	const isBorrowedInvalid = !selectedBorrowedProtocol || !selectedBorrowedChartType
 	const isIncomeStatementInvalid = !selectedIncomeStatementProtocol
+	const isUnlocksInvalid = !selectedUnlocksProtocol
 
 	const isDisabled =
 		chartTypesLoading ||
@@ -99,6 +104,7 @@ export function SubmitButton({
 			chartMode === 'manual' &&
 			selectedChartTab === 'income-statement' &&
 			isIncomeStatementInvalid) ||
+		(selectedMainTab === 'charts' && chartMode === 'manual' && selectedChartTab === 'unlocks' && isUnlocksInvalid) ||
 		(selectedMainTab === 'charts' &&
 			chartMode === 'manual' &&
 			selectedChartTab !== 'yields' &&
@@ -106,6 +112,7 @@ export function SubmitButton({
 			selectedChartTab !== 'advanced-tvl' &&
 			selectedChartTab !== 'borrowed' &&
 			selectedChartTab !== 'income-statement' &&
+			selectedChartTab !== 'unlocks' &&
 			composerItems.length === 0) ||
 		(selectedMainTab === 'charts' && chartMode === 'builder' && !chartBuilder?.metric) ||
 		(selectedMainTab === 'table' && selectedTableType === 'stablecoins' && !selectedDatasetChain) ||

@@ -206,6 +206,28 @@ export interface LlamaAIChartConfig {
 
 export type UnifiedRowHeaderType = 'parent-protocol' | 'protocol' | 'chain' | 'category'
 
+export type UnlocksDataType = 'documented' | 'realtime'
+
+export interface UnlocksScheduleConfig {
+	id: string
+	kind: 'unlocks-schedule'
+	protocol: string
+	protocolName: string
+	dataType: UnlocksDataType
+	colSpan?: StoredColSpan
+}
+
+export type UnlocksPieChartType = 'allocation' | 'locked-unlocked'
+
+export interface UnlocksPieConfig {
+	id: string
+	kind: 'unlocks-pie'
+	protocol: string
+	protocolName: string
+	chartType: UnlocksPieChartType
+	colSpan?: StoredColSpan
+}
+
 export type DashboardItemConfig =
 	| ChartConfig
 	| ProtocolsTableConfig
@@ -219,6 +241,8 @@ export type DashboardItemConfig =
 	| AdvancedTvlChartConfig
 	| BorrowedChartConfig
 	| IncomeStatementConfig
+	| UnlocksScheduleConfig
+	| UnlocksPieConfig
 	| UnifiedTableConfig
 	| LlamaAIChartConfig
 
@@ -235,6 +259,7 @@ export interface ChartConfig {
 	refetch?: () => void
 	grouping?: 'day' | 'week' | 'month' | 'quarter'
 	geckoId?: string | null
+	dataType?: UnlocksDataType
 	colSpan?: StoredColSpan
 	showCumulative?: boolean
 }
@@ -455,6 +480,7 @@ export const CHART_TYPES = {
 	options: { id: 'options', title: 'Options', chartType: 'bar', color: '#F472B6', groupable: true },
 	revenue: { id: 'revenue', title: 'Revenue', chartType: 'bar', color: '#E59421', groupable: true },
 	incentives: { id: 'incentives', title: 'Incentives', chartType: 'bar', color: '#10B981', groupable: true },
+	unlocks: { id: 'unlocks', title: 'Unlocks', chartType: 'line', color: '#0c5dff' },
 	liquidity: { id: 'liquidity', title: 'Liquidity', chartType: 'area', color: '#0EA5E9' },
 	treasury: { id: 'treasury', title: 'Treasury', chartType: 'area', color: '#64748B' },
 	aggregators: {
@@ -535,6 +561,7 @@ export const getProtocolChartTypes = (): string[] => {
 		'volume',
 		'fees',
 		'revenue',
+		'unlocks',
 		'incentives',
 		'treasury',
 		'holdersRevenue',

@@ -54,6 +54,10 @@ const BorrowedChartCard = lazy(() => import('./BorrowedChartCard').then((mod) =>
 const IncomeStatementCard = lazy(() =>
 	import('./IncomeStatementCard').then((mod) => ({ default: mod.IncomeStatementCard }))
 )
+const UnlocksScheduleCard = lazy(() =>
+	import('./UnlocksScheduleCard').then((mod) => ({ default: mod.UnlocksScheduleCard }))
+)
+const UnlocksPieCard = lazy(() => import('./UnlocksPieCard').then((mod) => ({ default: mod.UnlocksPieCard })))
 const LlamaAIChartCard = lazy(() => import('./LlamaAIChartCard'))
 
 const STORED_COL_SPANS = [0.5, 1, 1.5, 2] as const satisfies readonly StoredColSpan[]
@@ -220,6 +224,22 @@ function DashboardItemRenderer({
 		return (
 			<Suspense fallback={<div className="flex min-h-[360px] flex-col p-1" />}>
 				<IncomeStatementCard config={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'unlocks-schedule') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[360px] flex-col p-1" />}>
+				<UnlocksScheduleCard config={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'unlocks-pie') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[360px] flex-col p-1" />}>
+				<UnlocksPieCard config={item} />
 			</Suspense>
 		)
 	}

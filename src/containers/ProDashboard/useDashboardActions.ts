@@ -28,6 +28,8 @@ import {
 	TableFilters,
 	TextConfig,
 	UnifiedTableConfig,
+	UnlocksScheduleConfig,
+	UnlocksPieConfig,
 	YieldsChartConfig
 } from './types'
 import { generateItemId } from './utils/dashboardUtils'
@@ -71,7 +73,14 @@ export function useDashboardActions(
 	)
 
 	const handleAddChart = useCallback(
-		(item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null, color?: string) => {
+		(
+			item: string,
+			chartType: string,
+			itemType: 'chain' | 'protocol',
+			geckoId?: string | null,
+			color?: string,
+			dataType?: 'documented' | 'realtime'
+		) => {
 			if (isReadOnlyUntilDashboardLoaded) return
 
 			const newChartId = generateItemId(chartType, item)
@@ -82,7 +91,8 @@ export function useDashboardActions(
 				kind: 'chart',
 				type: chartType,
 				colSpan: 1,
-				color
+				color,
+				dataType
 			}
 
 			if (chartTypeDetails?.groupable) {
@@ -106,6 +116,42 @@ export function useDashboardActions(
 			}
 
 			dispatchItemsAndSave((prev) => [...prev, newChart])
+		},
+		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
+	)
+
+	const handleAddUnlocksSchedule = useCallback(
+		(protocol: string, protocolName: string) => {
+			if (isReadOnlyUntilDashboardLoaded) return
+
+			const newUnlocksSchedule: UnlocksScheduleConfig = {
+				id: generateItemId('unlocks-schedule', protocol),
+				kind: 'unlocks-schedule',
+				protocol,
+				protocolName,
+				dataType: 'documented',
+				colSpan: 2
+			}
+
+			dispatchItemsAndSave((prev) => [...prev, newUnlocksSchedule])
+		},
+		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
+	)
+
+	const handleAddUnlocksPie = useCallback(
+		(protocol: string, protocolName: string, chartType: 'allocation' | 'locked-unlocked') => {
+			if (isReadOnlyUntilDashboardLoaded) return
+
+			const newUnlocksPie: UnlocksPieConfig = {
+				id: generateItemId('unlocks-pie', `${protocol}-${chartType}`),
+				kind: 'unlocks-pie',
+				protocol,
+				protocolName,
+				chartType,
+				colSpan: 1
+			}
+
+			dispatchItemsAndSave((prev) => [...prev, newUnlocksPie])
 		},
 		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
 	)
@@ -769,6 +815,8 @@ export function useDashboardActions(
 
 	return {
 		handleAddChart,
+		handleAddUnlocksSchedule,
+		handleAddUnlocksPie,
 		handleAddYieldChart,
 		handleAddStablecoinsChart,
 		handleAddStablecoinAssetChart,

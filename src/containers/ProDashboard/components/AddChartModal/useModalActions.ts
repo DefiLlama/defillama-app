@@ -11,7 +11,8 @@ import {
 	Protocol,
 	ProtocolsTableConfig,
 	StoredColSpan,
-	TextConfig
+	TextConfig,
+	UnlocksScheduleConfig
 } from '../../types'
 import { EXTENDED_COLOR_PALETTE } from '../../utils/colorManager'
 import { ChartTabType, MainTabType } from './types'
@@ -32,6 +33,8 @@ export function useModalActions(
 		handleAddAdvancedTvlChart,
 		handleAddBorrowedChart,
 		handleAddIncomeStatement,
+		handleAddUnlocksSchedule,
+		handleAddUnlocksPie,
 		handleAddTable,
 		handleAddMultiChart,
 		handleAddText,
@@ -220,7 +223,8 @@ export function useModalActions(
 							type: chartType,
 							grouping: targetGrouping,
 							geckoId: protocol?.geckoId,
-							color: EXTENDED_COLOR_PALETTE[(colorStartIndex + idx) % EXTENDED_COLOR_PALETTE.length]
+							color: EXTENDED_COLOR_PALETTE[(colorStartIndex + idx) % EXTENDED_COLOR_PALETTE.length],
+							dataType: chartType === 'unlocks' ? ('documented' as const) : undefined
 						}))
 						actions.setComposerItems((prev) => [...prev, ...newCharts])
 						addedCount += filteredTypes.length
@@ -278,6 +282,11 @@ export function useModalActions(
 			actions.setSelectedChain(null)
 			actions.setSelectedProtocol(null)
 			actions.setSelectedChartType('tvl')
+			if (tab === 'unlocks') {
+				actions.setSelectedUnlocksProtocol(null)
+				actions.setSelectedUnlocksProtocolName(null)
+				actions.setSelectedUnlocksChartType('total')
+			}
 		},
 		[actions]
 	)
@@ -318,6 +327,45 @@ export function useModalActions(
 						chain: state.selectedStablecoinChain,
 						chartType: state.selectedStablecoinChartType
 					} as any
+				}
+			} else if (
+				state.selectedMainTab === 'charts' &&
+				state.selectedChartTab === 'unlocks' &&
+				state.selectedUnlocksProtocol
+			) {
+				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedUnlocksProtocol)
+				if (state.selectedUnlocksChartType === 'schedule') {
+					newItem = {
+						id: editItem.id,
+						kind: 'unlocks-schedule',
+						protocol: state.selectedUnlocksProtocol,
+						protocolName: state.selectedUnlocksProtocolName || protocol?.name || state.selectedUnlocksProtocol,
+						dataType: 'documented',
+						colSpan: editItem.colSpan
+					} as UnlocksScheduleConfig
+				} else if (
+					state.selectedUnlocksChartType === 'allocation' ||
+					state.selectedUnlocksChartType === 'locked-unlocked'
+				) {
+					newItem = {
+						id: editItem.id,
+						kind: 'unlocks-pie',
+						protocol: state.selectedUnlocksProtocol,
+						protocolName: state.selectedUnlocksProtocolName || protocol?.name || state.selectedUnlocksProtocol,
+						chartType: state.selectedUnlocksChartType,
+						colSpan: editItem.colSpan
+					}
+				} else {
+					newItem = {
+						id: editItem.id,
+						kind: 'chart',
+						chain: '',
+						protocol: state.selectedUnlocksProtocol,
+						type: 'unlocks',
+						dataType: 'documented',
+						geckoId: protocol?.geckoId,
+						colSpan: editItem.colSpan
+					} as ChartConfig
 				}
 			} else if (
 				state.selectedMainTab === 'charts' &&
@@ -594,6 +642,37 @@ export function useModalActions(
 			} else if (
 				state.selectedMainTab === 'charts' &&
 				state.chartMode === 'manual' &&
+				state.selectedChartTab === 'unlocks' &&
+				state.selectedUnlocksProtocol
+			) {
+				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedUnlocksProtocol)
+				if (state.selectedUnlocksChartType === 'schedule') {
+					handleAddUnlocksSchedule(
+						state.selectedUnlocksProtocol,
+						state.selectedUnlocksProtocolName || protocol?.name || state.selectedUnlocksProtocol
+					)
+				} else if (
+					state.selectedUnlocksChartType === 'allocation' ||
+					state.selectedUnlocksChartType === 'locked-unlocked'
+				) {
+					handleAddUnlocksPie(
+						state.selectedUnlocksProtocol,
+						state.selectedUnlocksProtocolName || protocol?.name || state.selectedUnlocksProtocol,
+						state.selectedUnlocksChartType
+					)
+				} else {
+					handleAddChart(
+						state.selectedUnlocksProtocol,
+						'unlocks',
+						'protocol',
+						protocol?.geckoId,
+						undefined,
+						'documented'
+					)
+				}
+			} else if (
+				state.selectedMainTab === 'charts' &&
+				state.chartMode === 'manual' &&
 				state.selectedChartTab === 'stablecoins'
 			) {
 				if (state.stablecoinMode === 'asset' && state.selectedStablecoinAsset && state.selectedStablecoinAssetId) {
@@ -645,9 +724,9 @@ export function useModalActions(
 					} else {
 						for (const item of state.composerItems) {
 							if (item.chain) {
-								handleAddChart(item.chain, item.type, 'chain', item.geckoId, item.color)
+								handleAddChart(item.chain, item.type, 'chain', item.geckoId, item.color, item.dataType)
 							} else if (item.protocol) {
-								handleAddChart(item.protocol, item.type, 'protocol', item.geckoId, item.color)
+								handleAddChart(item.protocol, item.type, 'protocol', item.geckoId, item.color, item.dataType)
 							}
 						}
 					}
@@ -661,7 +740,14 @@ export function useModalActions(
 					} else if (state.selectedProtocol) {
 						const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
 						for (const chartType of state.selectedChartTypes) {
-							handleAddChart(state.selectedProtocol, chartType, 'protocol', protocol?.geckoId)
+							handleAddChart(
+								state.selectedProtocol,
+								chartType,
+								'protocol',
+								protocol?.geckoId,
+								undefined,
+								chartType === 'unlocks' ? 'documented' : undefined
+							)
 						}
 					}
 				}
@@ -754,6 +840,8 @@ export function useModalActions(
 		handleAddAdvancedTvlChart,
 		handleAddBorrowedChart,
 		handleAddIncomeStatement,
+		handleAddUnlocksSchedule,
+		handleAddUnlocksPie,
 		handleAddTable,
 		handleAddText,
 		handleAddMetric,
