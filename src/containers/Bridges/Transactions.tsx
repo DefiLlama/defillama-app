@@ -346,7 +346,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 							<CSVDownloadButton prepareCsv={prepareCsv} />
 						</div>
 					}
-					sortingState={[{ id: 'timestamp', desc: true }]}
+					sortingState={[{ id: 'date', desc: true }]}
 				/>
 			)}
 		</div>
