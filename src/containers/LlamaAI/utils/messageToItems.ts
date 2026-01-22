@@ -14,7 +14,7 @@ import type {
  * Response fields that can be converted to items.
  * These are the fields on an assistant message that contain renderable content.
  */
-export interface ResponseFields {
+interface ResponseFields {
 	content?: string
 	charts?: ChartConfiguration[]
 	chartData?: any[] | Record<string, any[]>

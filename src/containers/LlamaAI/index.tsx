@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import Router from 'next/router'
-import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -725,45 +725,48 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		promptInputRef.current?.focus()
 	}, [initialSessionId, sessionId, isStreaming, authorizedFetch, abortControllerRef, resetPrompt])
 
-	const handleSessionSelect = async (selectedSessionId: string, data: { messages: any[]; pagination?: any }) => {
-		resetScrollState()
+	const handleSessionSelect = useCallback(
+		async (selectedSessionId: string, data: { messages: any[]; pagination?: any }) => {
+			resetScrollState()
 
-		if (sessionId && isStreaming) {
-			try {
-				await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						sessionId: sessionId
+			if (sessionId && isStreaming) {
+				try {
+					await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							sessionId: sessionId
+						})
 					})
-				})
-			} catch (error) {
-				console.log('Error stopping streaming session:', error)
+				} catch (error) {
+					console.log('Error stopping streaming session:', error)
+				}
+
+				if (abortControllerRef.current) {
+					abortControllerRef.current.abort()
+				}
 			}
 
-			if (abortControllerRef.current) {
-				abortControllerRef.current.abort()
-			}
-		}
+			setSessionId(selectedSessionId)
+			setHasRestoredSession(selectedSessionId)
+			setMessages(data.messages)
+			setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
+			setPrompt('')
+			resetPrompt()
+			setStreamingItems([])
+			setCurrentMessageId(null) // Clear message ID when switching sessions
+			setIsResearchMode(false) // Reset research mode when switching sessions
+			setIsStreaming(false) // Ensure streaming state is cleared
+			setStreamingError('')
+			setProgressMessage('')
+			setResizeTrigger((prev) => prev + 1)
 
-		setSessionId(selectedSessionId)
-		setHasRestoredSession(selectedSessionId)
-		setMessages(data.messages)
-		setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
-		setPrompt('')
-		resetPrompt()
-		setStreamingItems([])
-		setCurrentMessageId(null) // Clear message ID when switching sessions
-		setIsResearchMode(false) // Reset research mode when switching sessions
-		setIsStreaming(false) // Ensure streaming state is cleared
-		setStreamingError('')
-		setProgressMessage('')
-		setResizeTrigger((prev) => prev + 1)
-
-		promptInputRef.current?.focus()
-	}
+			promptInputRef.current?.focus()
+		},
+		[sessionId, isStreaming, authorizedFetch, resetScrollState, resetPrompt]
+	)
 
 	const handleLoadMoreMessages = useCallback(async () => {
 		if (!sessionId || !paginationState.hasMore || paginationState.isLoadingMore || !paginationState.cursor) return
@@ -1282,7 +1285,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	)
 }
 
-function SentPrompt({
+const SentPrompt = memo(function SentPrompt({
 	prompt,
 	images
 }: {
@@ -1311,9 +1314,9 @@ function SentPrompt({
 			<ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
 		</div>
 	)
-}
+})
 
-function ChatControls({
+const ChatControls = memo(function ChatControls({
 	handleSidebarToggle,
 	handleNewChat
 }: {
@@ -1340,4 +1343,4 @@ function ChatControls({
 			</Tooltip>
 		</div>
 	)
-}
+})

@@ -1,10 +1,59 @@
 import { MCP_SERVER } from '~/constants'
 import { handleSimpleFetchResponse } from '~/utils/async'
-import type { UploadedImage, StreamItem, ChartConfiguration } from '../types'
+import type { StreamItem } from '../types'
 import { ItemStreamBuffer } from './itemStreamBuffer'
 
+/**
+ * Server-Side Improvements for Frontend Performance
+ * =================================================
+ *
+ * Current Architecture:
+ * - Server sends discrete SSE events: token, charts, citations, suggestions, etc.
+ * - Frontend uses ItemStreamBuffer to assemble these into a unified `items[]` array
+ * - This requires client-side iteration, grouping, and normalization for each event type
+ *
+ * Recommended Server Changes:
+ *
+ * 1. NATIVE ITEMS-BASED SSE FORMAT
+ *    Instead of: { type: 'token', content: '...' }, { type: 'charts', charts: [...] }
+ *    Send:       { type: 'items', items: StreamItem[] }
+ *
+ *    Server maintains the items array and sends deltas or full snapshots.
+ *    Frontend simply does: setStreamingItems(data.items) — no buffer needed.
+ *
+ * 2. PRE-RESOLVED ARTIFACT REFERENCES
+ *    Instead of sending [CHART:id] placeholders in markdown + separate chart events,
+ *    server injects chart items at the correct position in the items array.
+ *    Eliminates O(n) placeholder parsing in MarkdownRenderer.
+ *
+ * 3. BATCH MULTIPLE EVENTS
+ *    Server batches related events (e.g., chart + chartData + loading clear)
+ *    into a single SSE message to reduce network overhead and render cycles.
+ *
+ * 4. CONSISTENT ITEM FORMAT
+ *    Normalize suggestion formats server-side:
+ *    Always send: { label, action?, params? }
+ *    Instead of: { title, toolName, arguments } or { label, action, params } or strings
+ *    Eliminates frontend normalization in setSuggestions().
+ *
+ * 5. MESSAGE ID UPFRONT
+ *    Send message_id in the first SSE event (or HTTP response headers)
+ *    instead of mid-stream. Eliminates ID instability during streaming.
+ *
+ * 6. ITEMS DELTA MODE (Advanced)
+ *    For large responses, send item deltas: { op: 'append', item: {...} }
+ *    or { op: 'update', id: '...', patch: {...} }
+ *    Reduces payload size after initial items are established.
+ *
+ * Benefits:
+ * - Eliminate ItemStreamBuffer class entirely (~320 lines)
+ * - Reduce CPU usage during streaming (no client-side assembly)
+ * - Simplify error handling (server owns item state)
+ * - Enable server-side persistence of items format for faster restore
+ */
+
 // Progress callback type for progress/error/reset events only
-export interface ProgressData {
+interface ProgressData {
 	type: 'progress' | 'error' | 'reset'
 	content: string
 	stage?: string
@@ -19,7 +68,7 @@ export interface ProgressData {
 	}
 }
 
-export interface FetchPromptResponseParams {
+interface FetchPromptResponseParams {
 	prompt?: string
 	userQuestion: string
 	/** Called for progress messages, errors, and reset events */
