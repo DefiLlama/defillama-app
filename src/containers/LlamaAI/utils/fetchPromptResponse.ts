@@ -1,47 +1,37 @@
 import { MCP_SERVER } from '~/constants'
 import { handleSimpleFetchResponse } from '~/utils/async'
-import type { UploadedImage } from '../types'
+import type { UploadedImage, StreamItem, ChartConfiguration } from '../types'
+import { ItemStreamBuffer } from './itemStreamBuffer'
+
+// Progress callback type for progress/error/reset events only
+export interface ProgressData {
+	type: 'progress' | 'error' | 'reset'
+	content: string
+	stage?: string
+	researchProgress?: {
+		iteration: number
+		totalIterations: number
+		phase: string
+		dimensionsCovered: string[]
+		dimensionsPending: string[]
+		discoveries: string[]
+		toolsExecuted: number
+	}
+}
 
 export interface FetchPromptResponseParams {
 	prompt?: string
 	userQuestion: string
-	onProgress?: (data: {
-		type:
-			| 'token'
-			| 'progress'
-			| 'session'
-			| 'inline_suggestions'
-			| 'suggestions'
-			| 'charts'
-			| 'citations'
-			| 'error'
-			| 'title'
-			| 'message_id'
-			| 'reset'
-			| 'csv_export'
-			| 'images'
-		content: string
-		stage?: string
-		sessionId?: string
-		inlineSuggestions?: string
-		suggestions?: any[]
-		charts?: any[]
-		chartData?: any[]
-		citations?: string[]
-		title?: string
-		messageId?: string
-		csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
-		images?: UploadedImage[]
-		researchProgress?: {
-			iteration: number
-			totalIterations: number
-			phase: string
-			dimensionsCovered: string[]
-			dimensionsPending: string[]
-			discoveries: string[]
-			toolsExecuted: number
-		}
-	}) => void
+	/** Called for progress messages, errors, and reset events */
+	onProgress?: (data: ProgressData) => void
+	/** Items-based callback - receives the full items array on each update */
+	onItems?: (items: StreamItem[]) => void
+	/** Called when session ID is received from server */
+	onSessionId?: (sessionId: string) => void
+	/** Called when title is received from server */
+	onTitle?: (title: string) => void
+	/** Called when message ID is received from server */
+	onMessageId?: (messageId: string) => void
 	abortSignal?: AbortSignal
 	sessionId?: string | null
 	suggestionContext?: any
@@ -51,12 +41,18 @@ export interface FetchPromptResponseParams {
 	authorizedFetch: any
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
 	resume?: boolean
+	/** Initial markdown content for stream resumption - ensures continuity when reconnecting */
+	initialContent?: string
 }
 
 export async function fetchPromptResponse({
 	prompt,
 	userQuestion,
 	onProgress,
+	onItems,
+	onSessionId,
+	onTitle,
+	onMessageId,
 	abortSignal,
 	sessionId,
 	suggestionContext,
@@ -65,9 +61,22 @@ export async function fetchPromptResponse({
 	forceIntent,
 	authorizedFetch,
 	images,
-	resume
+	resume,
+	initialContent
 }: FetchPromptResponseParams) {
 	let reader: ReadableStreamDefaultReader<Uint8Array> | null = null
+
+	// Generate a temporary message ID for item IDs (will be replaced by server-provided ID)
+	let messageId = `msg-${Date.now()}`
+
+	// Create item stream buffer for batched updates
+	// Pass initialContent for stream resumption - ensures continuity when reconnecting
+	const itemBuffer = new ItemStreamBuffer(messageId, initialContent)
+
+	// Set up the emit callback
+	if (onItems) {
+		itemBuffer.setEmitCallback(onItems)
+	}
 
 	try {
 		const requestBody: any = {
@@ -129,14 +138,6 @@ export async function fetchPromptResponse({
 
 		reader = response.body.getReader()
 		const decoder = new TextDecoder()
-		let fullResponse = ''
-		let metadata = null
-		let inlineSuggestions = null
-		let suggestions = null
-		let charts = null
-		let chartData = null
-		let citations = null
-		let csvExports = null
 		let lineBuffer = ''
 
 		while (true) {
@@ -166,15 +167,40 @@ export async function fetchPromptResponse({
 						const data = JSON.parse(jsonStr)
 
 						if (data.type === 'token') {
-							fullResponse += data.content
-							if (onProgress && !abortSignal?.aborted) {
-								onProgress({ type: 'token', content: data.content })
-							}
+							// Add token to item buffer (batched)
+							itemBuffer.addToken(data.content)
 						} else if (data.type === 'message_id') {
-							if (onProgress && !abortSignal?.aborted) {
-								onProgress({ type: 'message_id', content: data.content, messageId: data.messageId })
+							messageId = data.messageId
+
+							// Notify about message ID
+							if (onMessageId && !abortSignal?.aborted) {
+								onMessageId(data.messageId)
 							}
 						} else if (data.type === 'progress') {
+							// Handle progress as loading or research item
+							// Uses stable internal IDs to avoid stale items when message_id changes mid-stream
+							if (!abortSignal?.aborted) {
+								if (data.researchProgress) {
+									// Research mode progress
+									const rp = data.researchProgress
+									itemBuffer.setResearch({
+										isActive: true,
+										startTime: Date.now(),
+										currentIteration: rp.iteration,
+										totalIterations: rp.totalIterations,
+										phase: rp.phase as 'planning' | 'fetching' | 'analyzing' | 'synthesizing',
+										dimensionsCovered: rp.dimensionsCovered || [],
+										dimensionsPending: rp.dimensionsPending || [],
+										discoveries: rp.discoveries || [],
+										toolsExecuted: rp.toolsExecuted || 0
+									})
+								} else {
+									// Regular loading progress
+									itemBuffer.setLoading(data.stage || 'processing', data.content)
+								}
+							}
+
+							// Call onProgress for progress message display
 							if (onProgress && !abortSignal?.aborted) {
 								onProgress({
 									type: 'progress',
@@ -184,64 +210,75 @@ export async function fetchPromptResponse({
 								})
 							}
 						} else if (data.type === 'session') {
-							if (onProgress && !abortSignal?.aborted) {
-								onProgress({ type: 'session', content: '', sessionId: data.sessionId })
+							// Notify about session ID (not an item - metadata)
+							if (onSessionId && !abortSignal?.aborted) {
+								onSessionId(data.sessionId)
 							}
 						} else if (data.type === 'metadata') {
-							metadata = data.metadata
-						} else if (data.type === 'inline_suggestions') {
-							inlineSuggestions = data.content
-							if (onProgress && !abortSignal?.aborted) {
-								onProgress({ type: 'inline_suggestions', content: data.content, inlineSuggestions: data.content })
-							}
+							// Add metadata item
+							itemBuffer.setMetadata(data.metadata, messageId)
 						} else if (data.type === 'suggestions') {
-							suggestions = data.suggestions
+							// Add suggestions item
+							// Normalize suggestions: backend may send { title, toolName, arguments } or { label, action, params } or strings
+							if (data.suggestions?.length) {
+								itemBuffer.setSuggestions(
+									data.suggestions.map((s: any) => {
+										if (typeof s === 'string') return { label: s }
+										// Normalize various backend formats to { label, action?, params? }
+										return {
+											label: s.label || s.title || s.text || '',
+											action: s.action || s.toolName || s.description,
+											params: s.params || s.arguments
+										}
+									}),
+									messageId
+								)
+							}
 						} else if (data.type === 'charts') {
-							charts = data.charts
-							chartData = data.chartData
-							if (onProgress && !abortSignal?.aborted) {
-								onProgress({
-									type: 'charts',
-									content: `Generated ${data.charts?.length || 0} chart(s)`,
-									charts: data.charts,
-									chartData: data.chartData
-								})
+							// Add chart items
+							// For object-shaped chartData, use specific chart's data if available,
+							// otherwise use the whole object (some charts need multiple data keys)
+							if (data.charts?.length) {
+								for (const chart of data.charts) {
+									const cData = Array.isArray(data.chartData)
+										? data.chartData
+										: data.chartData?.[chart.id] || data.chartData || []
+									itemBuffer.addChart(chart, cData)
+								}
 							}
+
+							// Clear loading state when charts arrive
+							itemBuffer.clearLoading()
 						} else if (data.type === 'citations') {
-							citations = data.citations
-							if (onProgress && !abortSignal?.aborted) {
-								onProgress({
-									type: 'citations',
-									content: '',
-									citations: data.citations
-								})
-							}
+							// Update citations on markdown item
+							itemBuffer.setCitations(data.citations || [])
 						} else if (data.type === 'csv_export') {
-							csvExports = data.exports
-							if (onProgress && !abortSignal?.aborted) {
-								onProgress({
-									type: 'csv_export',
-									content: `Generated ${data.exports?.length || 0} CSV export(s)`,
-									csvExports: data.exports
-								})
+							// Add CSV items
+							if (data.exports?.length) {
+								for (const csv of data.exports) {
+									itemBuffer.addCsv(csv)
+								}
 							}
 						} else if (data.type === 'images') {
-							if (onProgress && !abortSignal?.aborted) {
-								onProgress({
-									type: 'images',
-									content: '',
-									images: data.images
-								})
+							// Add images item
+							if (data.images?.length) {
+								itemBuffer.addImages(data.images, messageId)
 							}
 						} else if (data.type === 'error') {
+							// Add error item
+							itemBuffer.addError(data.content, data.code, data.recoverable, messageId)
+
+							// Call onProgress for error display
 							if (onProgress && !abortSignal?.aborted) {
 								onProgress({ type: 'error', content: data.content })
 							}
 						} else if (data.type === 'title') {
-							if (onProgress && !abortSignal?.aborted) {
-								onProgress({ type: 'title', content: data.content, title: data.content })
+							// Notify about title (not an item - metadata)
+							if (onTitle && !abortSignal?.aborted) {
+								onTitle(data.content)
 							}
 						} else if (data.type === 'reset') {
+							// Call onProgress for reset message display
 							if (onProgress && !abortSignal?.aborted) {
 								onProgress({
 									type: 'reset',
@@ -256,20 +293,24 @@ export async function fetchPromptResponse({
 			}
 		}
 
+		// Final flush to ensure all buffered content is emitted
+		itemBuffer.flush()
+
+		// Clear transient states (loading, research)
+		itemBuffer.clearLoading()
+		itemBuffer.clearResearch()
+
+		// Get final items for return value
+		const finalItems = itemBuffer.getCommittableItems()
+
 		return {
 			prompt: prompt ?? userQuestion,
-			response: {
-				answer: fullResponse,
-				metadata,
-				inlineSuggestions,
-				suggestions,
-				charts,
-				chartData,
-				citations,
-				csvExports
-			}
+			items: finalItems
 		}
 	} catch (error: any) {
+		// Clean up buffer on error
+		itemBuffer.destroy()
+
 		if (reader && !reader.closed) {
 			try {
 				reader.releaseLock()
