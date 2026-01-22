@@ -171,6 +171,10 @@ export const TRADFI_API = process.env.TRADFI_API
 
 export const RWA_ACTIVE_TVLS_API = `${SERVER_URL}/rwa/active-tvls`
 
+export const MCP_SERVER = 'https://mcp.llama.fi'
+export const SEARCH_API_URL = 'https://search.defillama.com/multi-search'
+export const SEARCH_API_TOKEN = process.env.NEXT_PUBLIC_SEARCH_API_TOKEN
+
 export const removedCategoriesFromChainTvl = [
 	'Chain',
 	'CEX',
@@ -211,7 +215,5 @@ export const REV_PROTOCOLS = {
 	polygon: ['fastlane'],
 	bsc: ['bloxroute']
 }
-
-export const MCP_SERVER = 'https://mcp.llama.fi'
 
 export const ZERO_FEE_PERPS = new Set(['Lighter Perps', 'Paradex Perps'])

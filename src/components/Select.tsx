@@ -137,6 +137,8 @@ export function Select({
 	const [viewableMatches, setViewableMatches] = React.useState(6)
 
 	const canSelectOnlyOne = typeof selectedValues === 'string'
+	const showCheckboxes = !canSelectOnlyOne
+	const selectedCount = canSelectOnlyOne ? (selectedValues ? 1 : 0) : selectedValues.length
 
 	const selectRef = React.useRef<HTMLDivElement>(null)
 
@@ -165,14 +167,16 @@ export function Select({
 				}}
 			>
 				<NestedMenu label={label} render={<Ariakit.Select />}>
-					<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
-						<button onClick={clearAll} className="p-3">
-							Deselect All
-						</button>
-						<button onClick={toggleAll} className="p-3">
-							Select All
-						</button>
-					</span>
+					{showCheckboxes ? (
+						<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
+							<button onClick={clearAll} className="p-3">
+								Deselect All
+							</button>
+							<button onClick={toggleAll} className="p-3">
+								Select All
+							</button>
+						</span>
+					) : null}
 					{allValues.slice(0, viewableMatches).map((option) => (
 						<NestedMenuItem
 							key={valuesAreAnArrayOfStrings ? option : option.key}
@@ -190,7 +194,11 @@ export function Select({
 							) : (
 								<span>{option.name}</span>
 							)}
-							<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+							{showCheckboxes ? (
+								<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+							) : (
+								<Ariakit.SelectItemCheck />
+							)}
 						</NestedMenuItem>
 					))}
 					{allValues.length > viewableMatches ? (
@@ -229,11 +237,11 @@ export function Select({
 				{labelType === 'smol' ? (
 					<span className="flex items-center gap-1">
 						<span className="flex min-w-4 items-center justify-center rounded-full border border-(--form-control-border) px-1 py-0.25 text-[10px] leading-none">
-							{selectedValues.length}
+							{selectedCount}
 						</span>
 						<span>{label}</span>
 					</span>
-				) : labelType === 'regular' && selectedValues.length > 0 ? (
+				) : labelType === 'regular' && selectedCount > 0 ? (
 					<>
 						<span>{label}: </span>
 						<span className="text-(--link)">
@@ -266,14 +274,16 @@ export function Select({
 
 				{allValues.length > 0 ? (
 					<>
-						<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
-							<button onClick={clearAll} className="p-3">
-								Deselect All
-							</button>
-							<button onClick={toggleAll} className="p-3">
-								Select All
-							</button>
-						</span>
+						{showCheckboxes ? (
+							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
+								<button onClick={clearAll} className="p-3">
+									Deselect All
+								</button>
+								<button onClick={toggleAll} className="p-3">
+									Select All
+								</button>
+							</span>
+						) : null}
 
 						{allValues.slice(0, viewableMatches).map((option) => (
 							<Ariakit.SelectItem
@@ -292,15 +302,17 @@ export function Select({
 									<span>{option.name}</span>
 								)}
 								<div className="flex items-center gap-2">
-									<button
-										onClick={(e) => {
-											e.stopPropagation()
-											selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
-										}}
-										className="invisible text-xs font-medium text-(--link) underline group-hover:visible group-focus-visible:visible"
-									>
-										Only
-									</button>
+									{showCheckboxes ? (
+										<button
+											onClick={(e) => {
+												e.stopPropagation()
+												selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
+											}}
+											className="invisible text-xs font-medium text-(--link) underline group-hover:visible group-focus-visible:visible"
+										>
+											Only
+										</button>
+									) : null}
 									{canSelectOnlyOne ? (
 										<Ariakit.SelectItemCheck />
 									) : (

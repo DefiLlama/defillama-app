@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { LoadingDots } from '~/components/Loaders'
+import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { useDebounce } from '~/hooks/useDebounce'
@@ -19,11 +20,11 @@ async function getDefaultSearchList() {
 	}
 }
 async function fetchSearchList(query: string) {
-	const response: Array<ISearchItem> = await fetch('https://search.defillama.com/multi-search', {
+	const response: Array<ISearchItem> = await fetch(SEARCH_API_URL, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ee4d49e767f84c0d1c4eabd841e015f02d403e5abf7ea2a523827a46b02d5ad5`
+			Authorization: `Bearer ${SEARCH_API_TOKEN}`
 		},
 		body: JSON.stringify({
 			queries: [

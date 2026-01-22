@@ -1,10 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
+import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
 import { useDebounce } from '~/hooks/useDebounce'
 import { handleSimpleFetchResponse } from '~/utils/async'
-
-const SEARCH_API_URL = 'https://search.defillama.com/multi-search'
-// Public API token for DefiLlama search endpoint (client-side, intentionally public)
-const SEARCH_API_TOKEN = 'ee4d49e767f84c0d1c4eabd841e015f02d403e5abf7ea2a523827a46b02d5ad5'
 
 export interface EntityResult {
 	id: string

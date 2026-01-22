@@ -113,6 +113,7 @@ export function SelectWithCombobox({
 	excludeQueryKey
 }: ISelectWithCombobox) {
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
+	const showCheckboxes = Array.isArray(selectedValues)
 
 	// Helper to extract keys from allValues
 	const getAllKeys = React.useCallback(() => allValues.map((v) => (typeof v === 'string' ? v : v.key)), [allValues])
@@ -191,14 +192,16 @@ export function SelectWithCombobox({
 							autoFocus
 							className="m-3 mb-0 rounded-md bg-white px-3 py-2 text-base dark:bg-black"
 						/>
-						<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
-							<button onClick={clearAll} className="p-3">
-								Deselect All
-							</button>
-							<button onClick={toggleAll} className="p-3">
-								Select All
-							</button>
-						</span>
+						{showCheckboxes ? (
+							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
+								<button onClick={clearAll} className="p-3">
+									Deselect All
+								</button>
+								<button onClick={toggleAll} className="p-3">
+									Select All
+								</button>
+							</span>
+						) : null}
 						<Ariakit.ComboboxList>
 							{matches.slice(0, viewableMatches).map((option) => (
 								<NestedMenuItem
@@ -217,7 +220,11 @@ export function SelectWithCombobox({
 									) : (
 										<span>{option.name}</span>
 									)}
-									<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+									{showCheckboxes ? (
+										<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+									) : (
+										<Ariakit.SelectItemCheck />
+									)}
 								</NestedMenuItem>
 							))}
 							{matches.length > viewableMatches ? (
@@ -306,14 +313,16 @@ export function SelectWithCombobox({
 					</span>
 					{matches.length > 0 ? (
 						<>
-							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
-								<button onClick={clearAll} className="p-3">
-									Deselect All
-								</button>
-								<button onClick={toggleAll} className="p-3">
-									Select All
-								</button>
-							</span>
+							{showCheckboxes ? (
+								<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
+									<button onClick={clearAll} className="p-3">
+										Deselect All
+									</button>
+									<button onClick={toggleAll} className="p-3">
+										Select All
+									</button>
+								</span>
+							) : null}
 							<Ariakit.ComboboxList ref={comboboxRef}>
 								{matches.slice(0, viewableMatches).map((option) => {
 									const isCustom = typeof option === 'object' && option.isCustom
@@ -362,16 +371,22 @@ export function SelectWithCombobox({
 													</button>
 												</span>
 											)}
-											<button
-												onClick={(e) => {
-													e.stopPropagation()
-													selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
-												}}
-												className="invisible text-xs font-medium text-(--link) underline group-hover:visible group-focus-visible:visible"
-											>
-												Only
-											</button>
-											<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+											{showCheckboxes ? (
+												<button
+													onClick={(e) => {
+														e.stopPropagation()
+														selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
+													}}
+													className="invisible text-xs font-medium text-(--link) underline group-hover:visible group-focus-visible:visible"
+												>
+													Only
+												</button>
+											) : null}
+											{showCheckboxes ? (
+												<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+											) : (
+												<Ariakit.SelectItemCheck className="ml-auto" />
+											)}
 										</Ariakit.SelectItem>
 									)
 								})}
