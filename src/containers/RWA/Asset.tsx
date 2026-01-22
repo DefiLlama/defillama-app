@@ -411,7 +411,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									<span className="font-medium">{asset.issuerRegistryInfo.join('; ')}</span>
 								</p>
 							)}
-							{asset.issuerSourceLink && (
+							{asset.issuerSourceLink ? (
 								<p className="flex flex-col gap-1">
 									<Tooltip
 										content={definitions.source.description}
@@ -419,17 +419,20 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									>
 										{definitions.source.label}
 									</Tooltip>
-									<a
-										href={asset.issuerSourceLink}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="flex items-center gap-1 font-medium break-all text-(--link-text) hover:underline"
-									>
-										<Icon name="external-link" className="h-4 w-4 shrink-0" />
-										{asset.issuerSourceLink}
-									</a>
+									{asset.issuerSourceLink.map((link) => (
+										<a
+											key={link}
+											href={link}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="flex items-center gap-1 font-medium break-all text-(--link-text) hover:underline"
+										>
+											<Icon name="external-link" className="h-4 w-4 shrink-0" />
+											{link}
+										</a>
+									))}
 								</p>
-							)}
+							) : null}
 						</div>
 					</SectionCard>
 

@@ -294,14 +294,14 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			// Keep in sync with `columns` below (virtual table columns)
 			'Name',
 			definitions.type.label,
+			definitions.rwaClassification.label,
+			definitions.accessModel.label,
 			definitions.category.label,
 			definitions.assetClass.label,
 			definitions.defiActiveTvl.label,
 			definitions.activeMarketcap.label,
 			definitions.onChainMarketcap.label,
 			'Token Price',
-			definitions.rwaClassification.label,
-			definitions.accessModel.label,
 			definitions.issuer.label,
 			definitions.redeemable.label,
 			definitions.attestations.label,
@@ -317,14 +317,14 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			return [
 				asset.name ?? asset.ticker ?? '',
 				asset.type ?? '',
+				asset.rwaClassification ?? '',
+				asset.accessModel ?? '',
 				asset.category?.join(', ') ?? '',
 				asset.assetClass?.join(', ') ?? '',
 				asset.defiActiveTvl.total ?? '',
 				asset.activeMarketcap.total ?? '',
 				asset.onChainMarketcap.total ?? '',
 				asset.price != null ? formattedNum(asset.price, true) : '',
-				asset.rwaClassification ?? '',
-				asset.accessModel ?? '',
 				asset.issuer ?? '',
 				asset.redeemable != null ? (asset.redeemable ? 'Yes' : 'No') : '',
 				asset.attestations != null ? (asset.attestations ? 'Yes' : 'No') : '',
@@ -682,6 +682,83 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		}
 	},
 	{
+		id: 'rwaClassification',
+		header: definitions.rwaClassification.label,
+		accessorFn: (asset) => asset.rwaClassification,
+		cell: (info) => {
+			const value = info.getValue() as string
+			const isTrueRWA = info.row.original.trueRWA
+			// If trueRWA flag, show green color with True RWA definition but display "RWA"
+			const tooltipContent = isTrueRWA
+				? definitions.rwaClassification.values?.['True RWA']
+				: definitions.rwaClassification.values?.[value]
+			if (tooltipContent) {
+				return (
+					<Tooltip
+						content={tooltipContent}
+						className={`inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${isTrueRWA ? 'text-(--success)' : ''}`}
+					>
+						{value}
+					</Tooltip>
+				)
+			}
+			return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
+		},
+		size: 180,
+		meta: {
+			align: 'end',
+			headerHelperText: definitions.rwaClassification.description
+		}
+	},
+	{
+		id: 'accessModel',
+		header: definitions.accessModel.label,
+		accessorFn: (asset) => asset.accessModel,
+		cell: (info) => {
+			const value = info.getValue() as
+				| 'Permissioned'
+				| 'Permissionless'
+				| 'Non-transferable'
+				| 'Custodial Only'
+				| 'Unknown'
+			const valueDescription = definitions.accessModel.values?.[value]
+			if (valueDescription) {
+				return (
+					<Tooltip
+						content={valueDescription}
+						className={clsx(
+							'justify-end underline decoration-dotted',
+							value === 'Permissioned' && 'text-(--warning)',
+							value === 'Permissionless' && 'text-(--success)',
+							value === 'Non-transferable' && 'text-(--error)',
+							value === 'Custodial Only' && 'text-(--error)'
+						)}
+					>
+						{value}
+					</Tooltip>
+				)
+			}
+			return (
+				<span
+					className={clsx(
+						'inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap',
+						value === 'Permissioned' && 'text-(--warning)',
+						value === 'Permissionless' && 'text-(--success)',
+						value === 'Non-transferable' && 'text-(--error)',
+						value === 'Custodial Only' && 'text-(--error)'
+					)}
+				>
+					{value}
+				</span>
+			)
+		},
+		size: 180,
+		meta: {
+			align: 'end',
+			headerHelperText: definitions.accessModel.description
+		}
+	},
+	{
 		id: 'category',
 		header: definitions.category.label,
 		accessorFn: (asset) => asset.category?.join(', ') ?? '',
@@ -795,83 +872,6 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		size: 168,
 		meta: {
 			align: 'end'
-		}
-	},
-	{
-		id: 'rwaClassification',
-		header: definitions.rwaClassification.label,
-		accessorFn: (asset) => asset.rwaClassification,
-		cell: (info) => {
-			const value = info.getValue() as string
-			const isTrueRWA = info.row.original.trueRWA
-			// If trueRWA flag, show green color with True RWA definition but display "RWA"
-			const tooltipContent = isTrueRWA
-				? definitions.rwaClassification.values?.['True RWA']
-				: definitions.rwaClassification.values?.[value]
-			if (tooltipContent) {
-				return (
-					<Tooltip
-						content={tooltipContent}
-						className={`inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${isTrueRWA ? 'text-(--success)' : ''}`}
-					>
-						{value}
-					</Tooltip>
-				)
-			}
-			return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
-		},
-		size: 180,
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.rwaClassification.description
-		}
-	},
-	{
-		id: 'accessModel',
-		header: definitions.accessModel.label,
-		accessorFn: (asset) => asset.accessModel,
-		cell: (info) => {
-			const value = info.getValue() as
-				| 'Permissioned'
-				| 'Permissionless'
-				| 'Non-transferable'
-				| 'Custodial Only'
-				| 'Unknown'
-			const valueDescription = definitions.accessModel.values?.[value]
-			if (valueDescription) {
-				return (
-					<Tooltip
-						content={valueDescription}
-						className={clsx(
-							'justify-end underline decoration-dotted',
-							value === 'Permissioned' && 'text-(--warning)',
-							value === 'Permissionless' && 'text-(--success)',
-							value === 'Non-transferable' && 'text-(--error)',
-							value === 'Custodial Only' && 'text-(--error)'
-						)}
-					>
-						{value}
-					</Tooltip>
-				)
-			}
-			return (
-				<span
-					className={clsx(
-						'inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap',
-						value === 'Permissioned' && 'text-(--warning)',
-						value === 'Permissionless' && 'text-(--success)',
-						value === 'Non-transferable' && 'text-(--error)',
-						value === 'Custodial Only' && 'text-(--error)'
-					)}
-				>
-					{value}
-				</span>
-			)
-		},
-		size: 180,
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.accessModel.description
 		}
 	},
 	{

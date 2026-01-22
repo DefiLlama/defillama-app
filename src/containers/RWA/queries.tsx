@@ -17,7 +17,7 @@ interface IFetchedRWAProject {
 	rwaClassification: string | null
 	accessModel: string | null
 	issuer: string | null
-	issuerSourceLink: string | null
+	issuerSourceLink: string | string[] | null
 	issuerRegistryInfo: string | string[] | null
 	isin: string | null
 	attestationLinks: string | string[] | null
@@ -40,11 +40,18 @@ interface IFetchedRWAProject {
 
 export interface IRWAProject extends Omit<
 	IFetchedRWAProject,
-	'onChainMarketcap' | 'activeMcap' | 'defiActiveTvl' | 'website' | 'issuerRegistryInfo' | 'accessModel'
+	| 'onChainMarketcap'
+	| 'activeMcap'
+	| 'defiActiveTvl'
+	| 'website'
+	| 'issuerRegistryInfo'
+	| 'accessModel'
+	| 'issuerSourceLink'
 > {
 	accessModel: 'Permissioned' | 'Permissionless' | 'Non-transferable' | 'Custodial Only' | 'Unknown'
 	website: string[] | null
 	issuerRegistryInfo: string[] | null
+	issuerSourceLink: string[] | null
 	trueRWA: boolean
 	onChainMarketcap: {
 		total: number
@@ -194,7 +201,12 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				trueRWA: isTrueRWA,
 				accessModel: getAccessModel(item),
 				issuer: item.issuer ?? null,
-				issuerSourceLink: item.issuerSourceLink ?? null,
+				issuerSourceLink:
+					item.issuerSourceLink == null
+						? null
+						: Array.isArray(item.issuerSourceLink)
+							? item.issuerSourceLink
+							: [item.issuerSourceLink],
 				issuerRegistryInfo:
 					item.issuerRegistryInfo == null
 						? null
@@ -438,7 +450,12 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 					accessModel,
 					accessModelDescription,
 					issuer: item.issuer ?? null,
-					issuerSourceLink: item.issuerSourceLink ?? null,
+					issuerSourceLink:
+						item.issuerSourceLink == null
+							? null
+							: Array.isArray(item.issuerSourceLink)
+								? item.issuerSourceLink
+								: [item.issuerSourceLink],
 					issuerRegistryInfo:
 						item.issuerRegistryInfo == null
 							? null
