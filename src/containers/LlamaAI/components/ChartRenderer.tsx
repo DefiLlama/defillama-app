@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useReducer, useRef } from 'react'
+import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTooltipValue } from '~/components/ECharts/formatters'
@@ -92,8 +92,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 	const handleCumulativeChange = (cumulative: boolean) => dispatch({ type: 'SET_CUMULATIVE', payload: cumulative })
 	const handleGroupingChange = (grouping: ChartState['grouping']) =>
 		dispatch({ type: 'SET_GROUPING', payload: grouping })
-	const handleHallmarksChange = (showHallmarks: boolean) =>
-		dispatch({ type: 'SET_HALLMARKS', payload: showHallmarks })
+	const handleHallmarksChange = (showHallmarks: boolean) => dispatch({ type: 'SET_HALLMARKS', payload: showHallmarks })
 	const handleLabelsChange = (showLabels: boolean) => dispatch({ type: 'SET_LABELS', payload: showLabels })
 
 	if (!isActive) return null
@@ -563,6 +562,24 @@ export function ChartRenderer({
 	resizeTrigger = 0,
 	messageId
 }: ChartRendererProps) {
+	return (
+		<ChartRendererMemoized
+			{...{ charts, chartData, isLoading, isAnalyzing, hasError, chartTypes, resizeTrigger, messageId }}
+		/>
+	)
+}
+
+function ChartRendererImpl({
+	charts,
+	chartData,
+	isLoading = false,
+	isAnalyzing = false,
+	hasError = false,
+	expectedChartCount: _expectedChartCount,
+	chartTypes,
+	resizeTrigger = 0,
+	messageId
+}: ChartRendererProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [activeTabIndex, setActiveTab] = useReducer((state: number, action: number) => action, 0)
 
@@ -637,3 +654,50 @@ export function ChartRenderer({
 		</div>
 	)
 }
+
+function areStringArraysEqual(a?: string[], b?: string[]) {
+	if (a === b) return true
+	if (!a || !b) return false
+	if (a.length !== b.length) return false
+	for (let i = 0; i < a.length; i++) {
+		if (a[i] !== b[i]) return false
+	}
+	return true
+}
+
+function areChartsEqual(a: ChartConfiguration[] | undefined, b: ChartConfiguration[] | undefined) {
+	if (a === b) return true
+	if (!a || !b) return false
+	if (a.length !== b.length) return false
+	for (let i = 0; i < a.length; i++) {
+		// Compare minimal identity; chart objects are fairly large and stable.
+		if (a[i]?.id !== b[i]?.id) return false
+		if (a[i]?.type !== b[i]?.type) return false
+		if (a[i]?.title !== b[i]?.title) return false
+	}
+	return true
+}
+
+function areChartDataEqual(a: any, b: any) {
+	if (a === b) return true
+	// Treat "new []" as equal to "[]"
+	if (Array.isArray(a) && Array.isArray(b) && a.length === 0 && b.length === 0) return true
+	// Treat undefined/null similarly
+	if ((a == null || a === false) && (b == null || b === false)) return true
+	return false
+}
+
+const ChartRendererMemoized = memo(ChartRendererImpl, (prev, next) => {
+	return (
+		prev.isLoading === next.isLoading &&
+		prev.isAnalyzing === next.isAnalyzing &&
+		prev.hasError === next.hasError &&
+		prev.resizeTrigger === next.resizeTrigger &&
+		prev.messageId === next.messageId &&
+		areStringArraysEqual(prev.chartTypes, next.chartTypes) &&
+		areChartsEqual(prev.charts, next.charts) &&
+		areChartDataEqual(prev.chartData, next.chartData)
+	)
+})
+
+ChartRendererMemoized.displayName = 'ChartRenderer'
