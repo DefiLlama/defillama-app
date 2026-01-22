@@ -74,11 +74,14 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 				<div className="col-span-1 row-[2/3] hidden flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:row-[1/2] xl:flex xl:min-h-[360px]">
 					<h1 className="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
-						<span className="font-bold">
-							{props.name ? `${props.name}${props.deprecated ? ' (*Deprecated*)' : ''} ` : ''}
-						</span>
+						<span className="font-bold">{props.name}</span>
 						{props.token.symbol && props.token.symbol !== '-' ? (
-							<span className="mr-auto font-normal">({props.token.symbol})</span>
+							<span className="font-normal">({props.token.symbol})</span>
+						) : null}
+						{props.deprecated ? (
+							<Tooltip content="Deprecated protocol" className="text-(--error)">
+								<Icon name="alert-triangle" height={18} width={18} />
+							</Tooltip>
 						) : null}
 						<Bookmark readableName={props.name} />
 					</h1>
@@ -108,11 +111,14 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						<div className="flex flex-col gap-6 xl:hidden">
 							<h1 className="flex flex-wrap items-center gap-2 text-xl">
 								<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
-								<span className="font-bold">
-									{props.name ? `${props.name}${props.deprecated ? ' (*Deprecated*)' : ''} ` : ''}
-								</span>
+								<span className="font-bold">{props.name}</span>
 								{props.token.symbol && props.token.symbol !== '-' ? (
-									<span className="mr-auto font-normal">({props.token.symbol})</span>
+									<span className="font-normal">({props.token.symbol})</span>
+								) : null}
+								{props.deprecated ? (
+									<Tooltip content="Deprecated protocol" className="text-(--error)">
+										<Icon name="alert-triangle" height={18} width={18} />
+									</Tooltip>
 								) : null}
 								<Bookmark readableName={props.name} />
 							</h1>

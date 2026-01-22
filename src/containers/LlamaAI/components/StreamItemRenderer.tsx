@@ -1,4 +1,6 @@
 import { memo } from 'react'
+import { Icon } from '~/components/Icon'
+import { LoadingDots } from '~/components/Loaders'
 import type {
 	StreamItem,
 	MarkdownItem,
@@ -13,10 +15,8 @@ import type {
 import { ChartRenderer } from './ChartRenderer'
 import { CSVExportArtifact } from './CSVExportArtifact'
 import { MarkdownRenderer } from './MarkdownRenderer'
-import { ResearchProgress } from './ResearchProgress'
 import { SuggestedActions } from './PromptResponse'
-import { LoadingDots } from '~/components/Loaders'
-import { Icon } from '~/components/Icon'
+import { ResearchProgress } from './ResearchProgress'
 
 export interface StreamItemRendererProps {
 	item: StreamItem
@@ -77,13 +77,7 @@ export const StreamItemRenderer = memo(function StreamItemRenderer({
 			)
 
 		case 'chart':
-			return (
-				<ChartItemRenderer
-					item={item}
-					resizeTrigger={resizeTrigger}
-					messageId={messageId}
-				/>
-			)
+			return <ChartItemRenderer item={item} resizeTrigger={resizeTrigger} messageId={messageId} />
 
 		case 'csv':
 			return <CsvItemRenderer item={item} />
@@ -166,11 +160,7 @@ interface ChartItemRendererProps {
 	messageId?: string
 }
 
-const ChartItemRenderer = memo(function ChartItemRenderer({
-	item,
-	resizeTrigger,
-	messageId
-}: ChartItemRendererProps) {
+const ChartItemRenderer = memo(function ChartItemRenderer({ item, resizeTrigger, messageId }: ChartItemRendererProps) {
 	// Pass chartData as-is - ChartRenderer handles both array and object formats internally
 	// For arrays: data is used directly
 	// For objects: ChartRenderer extracts chartData[chart.id] or uses the whole object for multi-key charts
@@ -215,12 +205,11 @@ const ImagesItemRenderer = memo(function ImagesItemRenderer({ item }: ImagesItem
 	return (
 		<div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
 			{item.images.map((image, index) => (
-				<div key={image.id || index} className="relative aspect-square overflow-hidden rounded-lg border border-[#e6e6e6] dark:border-[#222324]">
-					<img
-						src={image.url}
-						alt={image.filename || `Image ${index + 1}`}
-						className="h-full w-full object-cover"
-					/>
+				<div
+					key={image.id || index}
+					className="relative aspect-square overflow-hidden rounded-lg border border-[#e6e6e6] dark:border-[#222324]"
+				>
+					<img src={image.url} alt={image.filename || `Image ${index + 1}`} className="h-full w-full object-cover" />
 				</div>
 			))}
 		</div>
@@ -281,9 +270,7 @@ const ErrorItemRenderer = memo(function ErrorItemRenderer({ item, onRetry, canRe
 				<span className="font-medium">Error</span>
 			</div>
 			<p className="text-sm text-red-700 dark:text-red-300">{item.message}</p>
-			{item.code && (
-				<p className="text-xs text-red-500 dark:text-red-400">Code: {item.code}</p>
-			)}
+			{item.code && <p className="text-xs text-red-500 dark:text-red-400">Code: {item.code}</p>}
 			{canRetry && item.recoverable !== false && onRetry && (
 				<button
 					onClick={onRetry}

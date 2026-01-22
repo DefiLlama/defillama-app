@@ -216,13 +216,7 @@ export function Metrics({
 	)
 }
 
-export function LinkToMetricOrToolPage({
-	page,
-	totalTrackedByMetric
-}: {
-	page: IPage
-	totalTrackedByMetric: any
-}) {
+export function LinkToMetricOrToolPage({ page, totalTrackedByMetric }: { page: IPage; totalTrackedByMetric: any }) {
 	const pinnedMetrics = useSyncExternalStore(
 		(callback) => subscribeToStorageKey('pinned-metrics', callback),
 		() => getStorageItem('pinned-metrics', '[]') ?? '[]',

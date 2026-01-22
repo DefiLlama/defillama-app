@@ -197,15 +197,9 @@ export const PeggedAssetInfo = ({
 									<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 									<span className="mr-auto font-normal">{symbol && symbol !== '-' ? `(${symbol})` : ''}</span>
 									{peggedAssetData.deprecated ? (
-										<span className="flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
-											<Tooltip
-												content="Deprecated"
-												className="flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-[10px] text-white dark:bg-red-400"
-											>
-												!
-											</Tooltip>
-											<span>Deprecated</span>
-										</span>
+										<Tooltip content="Deprecated protocol" className="text-(--error)">
+											<Icon name="alert-triangle" height={16} width={16} />
+										</Tooltip>
 									) : null}
 								</h1>
 

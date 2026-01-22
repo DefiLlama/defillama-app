@@ -4,6 +4,7 @@ import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatBarChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { feesOptions } from '~/components/Filters/options'
+import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -341,9 +342,12 @@ export default function Protocols(props) {
 				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">
 					<h1 className="flex flex-wrap items-center gap-2 text-xl">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
-						<span className="font-bold">
-							{props.name ? `${props.name}${props.deprecated ? ' (*Deprecated*)' : ''} ` : ''}
-						</span>
+						<span className="font-bold">{props.name}</span>
+						{props.deprecated ? (
+							<Tooltip content="Deprecated protocol" className="text-(--error)">
+								<Icon name="alert-triangle" height={16} width={16} />
+							</Tooltip>
+						) : null}
 					</h1>
 					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />
 				</div>

@@ -402,8 +402,7 @@ export const useFormatStablecoinQueryParams = ({
 		} else {
 			pegTypes = stablecoinPegTypeOptions.map((option) => option.key)
 		}
-		const selectedPegTypes =
-			excludePegtypeSet.size > 0 ? pegTypes.filter((p) => !excludePegtypeSet.has(p)) : pegTypes
+		const selectedPegTypes = excludePegtypeSet.size > 0 ? pegTypes.filter((p) => !excludePegtypeSet.has(p)) : pegTypes
 
 		// Build selectedBackings and filter out excludes inline
 		let backings: string[]
@@ -416,8 +415,7 @@ export const useFormatStablecoinQueryParams = ({
 		} else {
 			backings = stablecoinBackingOptions.map((option) => option.key)
 		}
-		const selectedBackings =
-			excludeBackingSet.size > 0 ? backings.filter((b) => !excludeBackingSet.has(b)) : backings
+		const selectedBackings = excludeBackingSet.size > 0 ? backings.filter((b) => !excludeBackingSet.has(b)) : backings
 
 		return {
 			selectedAttributes,

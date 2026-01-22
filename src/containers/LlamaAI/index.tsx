@@ -462,9 +462,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			const wasUserStopped = error?.message === 'Request aborted'
 
 			// Check if we have any meaningful content in streaming items
-			const hasContent = streamingItems.some(
-				(item) => item.type === 'markdown' && (item as any).text?.trim()
-			)
+			const hasContent = streamingItems.some((item) => item.type === 'markdown' && (item as any).text?.trim())
 
 			if (wasUserStopped && hasContent) {
 				setLastFailedRequest(null)
@@ -566,9 +564,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		// Check if we have any meaningful content in streaming items
-		const hasContent = streamingItems.some(
-			(item) => item.type === 'markdown' && (item as any).text?.trim()
-		)
+		const hasContent = streamingItems.some((item) => item.type === 'markdown' && (item as any).text?.trim())
 
 		if (hasContent) {
 			setMessages((prev) => [
@@ -1079,20 +1075,24 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														}
 														if (item.role === 'assistant') {
 															// Use items if available, otherwise convert response fields to items
-															const messageItems = item.items && item.items.length > 0
-																? item.items
-																: item.content
-																	? responseToItems({
-																			content: item.content,
-																			charts: item.charts,
-																			chartData: item.chartData,
-																			citations: item.citations,
-																			csvExports: item.csvExports,
-																			suggestions: item.suggestions,
-																			metadata: item.metadata,
-																			inlineSuggestions: item.inlineSuggestions
-																		}, item.messageId)
-																	: []
+															const messageItems =
+																item.items && item.items.length > 0
+																	? item.items
+																	: item.content
+																		? responseToItems(
+																				{
+																					content: item.content,
+																					charts: item.charts,
+																					chartData: item.chartData,
+																					citations: item.citations,
+																					csvExports: item.csvExports,
+																					suggestions: item.suggestions,
+																					metadata: item.metadata,
+																					inlineSuggestions: item.inlineSuggestions
+																				},
+																				item.messageId
+																			)
+																		: []
 
 															// Extract content for ResponseControls
 															const textContent = messageItems
@@ -1106,7 +1106,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																.map((c) => ({ id: c.chart.id, title: c.chart.title }))
 
 															// Extract suggestions for rendering after ResponseControls
-															const msgSuggestions = messageItems.find((i): i is SuggestionsItem => i.type === 'suggestions')
+															const msgSuggestions = messageItems.find(
+																(i): i is SuggestionsItem => i.type === 'suggestions'
+															)
 
 															// Extract metadata for rendering
 															const msgMetadata = messageItems.find((i): i is MetadataItem => i.type === 'metadata')
@@ -1158,46 +1160,49 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 													})}
 												</div>
 											)}
-											{(isPending || isStreaming || error) && (() => {
-												// Extract suggestions from streaming items for rendering after content
-												const streamingSuggestions = streamingItems.find((i): i is SuggestionsItem => i.type === 'suggestions')
+											{(isPending || isStreaming || error) &&
+												(() => {
+													// Extract suggestions from streaming items for rendering after content
+													const streamingSuggestions = streamingItems.find(
+														(i): i is SuggestionsItem => i.type === 'suggestions'
+													)
 
-												return (
-													<div className="flex min-h-[calc(100dvh-272px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-215px)]">
-														{prompt && <SentPrompt prompt={prompt} images={pendingImages} />}
-														<PromptResponse
-															// New: Use items-based rendering
-															items={streamingItems}
-															error={error?.message}
-															streamingError={streamingError}
-															isPending={isPending}
-															isStreaming={isStreaming}
-															progressMessage={progressMessage}
-															onRetry={handleRetry}
-															canRetry={!!lastFailedRequest}
-															resizeTrigger={resizeTrigger}
-															showMetadata={showDebug}
-															readOnly={readOnly}
-															inlineChartConfig={{
-																resizeTrigger,
-																messageId: currentMessageId ?? undefined
-															}}
-														/>
-														{streamingSuggestions?.suggestions?.length && !isStreaming ? (
-															<SuggestedActions
-																suggestions={streamingSuggestions.suggestions.map((s) => ({
-																	title: s.label,
-																	toolName: s.action,
-																	arguments: s.params
-																}))}
-																handleSuggestionClick={handleSuggestionClick}
+													return (
+														<div className="flex min-h-[calc(100dvh-272px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-215px)]">
+															{prompt && <SentPrompt prompt={prompt} images={pendingImages} />}
+															<PromptResponse
+																// New: Use items-based rendering
+																items={streamingItems}
+																error={error?.message}
+																streamingError={streamingError}
 																isPending={isPending}
 																isStreaming={isStreaming}
+																progressMessage={progressMessage}
+																onRetry={handleRetry}
+																canRetry={!!lastFailedRequest}
+																resizeTrigger={resizeTrigger}
+																showMetadata={showDebug}
+																readOnly={readOnly}
+																inlineChartConfig={{
+																	resizeTrigger,
+																	messageId: currentMessageId ?? undefined
+																}}
 															/>
-														) : null}
-													</div>
-												)
-											})()}
+															{streamingSuggestions?.suggestions?.length && !isStreaming ? (
+																<SuggestedActions
+																	suggestions={streamingSuggestions.suggestions.map((s) => ({
+																		title: s.label,
+																		toolName: s.action,
+																		arguments: s.params
+																	}))}
+																	handleSuggestionClick={handleSuggestionClick}
+																	isPending={isPending}
+																	isStreaming={isStreaming}
+																/>
+															) : null}
+														</div>
+													)
+												})()}
 										</div>
 									) : (
 										<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">

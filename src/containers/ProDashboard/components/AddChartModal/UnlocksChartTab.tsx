@@ -223,7 +223,7 @@ export function UnlocksChartTab({
 
 		if (selectedUnlocksChartType === 'total') {
 			if (totalSeries.length === 0) {
-				return <div className="pro-text3 flex h-[320px] items-center justify-center text-center">No unlocks data.</div>
+				return <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
 			}
 			return (
 				<Suspense fallback={<div className="h-[320px]" />}>
@@ -240,7 +240,7 @@ export function UnlocksChartTab({
 
 		if (selectedUnlocksChartType === 'schedule') {
 			if (chartData.length === 0 || stacks.length === 0) {
-				return <div className="pro-text3 flex h-[320px] items-center justify-center text-center">No unlocks data.</div>
+				return <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
 			}
 
 			return (
@@ -261,7 +261,7 @@ export function UnlocksChartTab({
 
 		if (selectedUnlocksChartType === 'allocation') {
 			if (allocationPieChartData.length === 0) {
-				return <div className="pro-text3 flex h-[320px] items-center justify-center text-center">No unlocks data.</div>
+				return <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
 			}
 			return (
 				<Suspense fallback={<div className="h-[320px]" />}>
@@ -272,7 +272,7 @@ export function UnlocksChartTab({
 
 		if (selectedUnlocksChartType === 'locked-unlocked') {
 			if (lockedUnlockedPieChartData.length === 0) {
-				return <div className="pro-text3 flex h-[320px] items-center justify-center text-center">No unlocks data.</div>
+				return <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
 			}
 			return (
 				<Suspense fallback={<div className="h-[320px]" />}>
@@ -281,7 +281,7 @@ export function UnlocksChartTab({
 			)
 		}
 
-		return <div className="pro-text3 flex h-[320px] items-center justify-center text-center">No unlocks data.</div>
+		return <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
 	}
 
 	return (
@@ -309,24 +309,24 @@ export function UnlocksChartTab({
 				</div>
 
 				{hasSelection && !isLoading && availableChartTypes.size === 0 && (
-					<div className="pro-text3 text-xs">No unlocks data available for this protocol.</div>
+					<div className="text-xs pro-text3">No unlocks data available for this protocol.</div>
 				)}
 			</div>
 
-			<div className="pro-border overflow-hidden rounded-lg border">
-				<div className="pro-text2 border-b border-(--cards-border) px-3 py-2 text-xs font-medium">Preview</div>
+			<div className="overflow-hidden rounded-lg border pro-border">
+				<div className="border-b border-(--cards-border) px-3 py-2 text-xs font-medium pro-text2">Preview</div>
 				{hasSelection ? (
 					<div className="bg-(--cards-bg) p-3">
 						<div className="mb-3">
-							<h3 className="pro-text1 mb-1 text-sm font-semibold">
+							<h3 className="mb-1 text-sm font-semibold pro-text1">
 								{previewTitle} - {selectedChartLabel}
 							</h3>
-							<p className="pro-text2 text-xs">Unlocks</p>
+							<p className="text-xs pro-text2">Unlocks</p>
 						</div>
 						{renderChart()}
 					</div>
 				) : (
-					<div className="pro-text3 flex h-[320px] items-center justify-center text-center">
+					<div className="flex h-[320px] items-center justify-center text-center pro-text3">
 						<div>
 							<Icon name="linear-unlock" height={32} width={32} className="mx-auto mb-1" />
 							<div className="text-xs">Select a protocol to preview unlocks</div>

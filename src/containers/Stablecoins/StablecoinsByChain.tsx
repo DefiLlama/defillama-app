@@ -135,7 +135,15 @@ export function StablecoinsByChain({
 		setFilteredIndexes(chartDataIndexes)
 
 		return peggedAssets
-	}, [filteredPeggedAssets, peggedNameToChartDataIndex, minMcap, maxMcap, selectedAttributes, selectedPegTypes, selectedBackings])
+	}, [
+		filteredPeggedAssets,
+		peggedNameToChartDataIndex,
+		minMcap,
+		maxMcap,
+		selectedAttributes,
+		selectedPegTypes,
+		selectedBackings
+	])
 
 	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows } =
 		React.useMemo(() => {

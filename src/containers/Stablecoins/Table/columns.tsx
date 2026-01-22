@@ -184,15 +184,9 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 							<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">
 								{getValue() as string}
 							</span>
-							<span className="flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
-								<Tooltip
-									content="Deprecated"
-									className="flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-[10px] text-white dark:bg-red-400"
-								>
-									!
-								</Tooltip>
-								<span>Deprecated</span>
-							</span>
+							<Tooltip content="Deprecated" className="text-(--error)">
+								<Icon name="alert-triangle" height={14} width={14} />
+							</Tooltip>
 						</BasicLink>
 					) : (
 						<BasicLink

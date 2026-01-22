@@ -1158,7 +1158,9 @@ const useRWATableQueryParams = ({
 		// Build selected arrays and filter out excludes
 		let selectedCategories = parseArrayParam(categoriesQ, categories)
 		selectedCategories =
-			excludeCategoriesSet.size > 0 ? selectedCategories.filter((c) => !excludeCategoriesSet.has(c)) : selectedCategories
+			excludeCategoriesSet.size > 0
+				? selectedCategories.filter((c) => !excludeCategoriesSet.has(c))
+				: selectedCategories
 
 		let selectedAssetClasses = parseArrayParam(assetClassesQ, assetClasses)
 		selectedAssetClasses =

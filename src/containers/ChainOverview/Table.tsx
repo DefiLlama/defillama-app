@@ -71,7 +71,6 @@ export const ChainProtocolsTable = ({
 		() => null
 	)
 
-
 	const [customColumnModalEditIndex, setCustomColumnModalEditIndex] = useState<number | null>(null)
 	const [customColumnModalInitialValues, setCustomColumnModalInitialValues] = useState<
 		Partial<CustomColumnDef> | undefined

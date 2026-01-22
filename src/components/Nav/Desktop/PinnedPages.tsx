@@ -11,13 +11,7 @@ import { LinkToPage, NavItemContent } from './shared'
 
 const VERTICAL_SORTING_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
 
-export function PinnedPages({
-	pinnedPages,
-	asPath
-}: {
-	pinnedPages: Array<TNavLink>
-	asPath: string
-}) {
+export function PinnedPages({ pinnedPages, asPath }: { pinnedPages: Array<TNavLink>; asPath: string }) {
 	const [isReordering, setIsReordering] = React.useState(false)
 
 	React.useEffect(() => {

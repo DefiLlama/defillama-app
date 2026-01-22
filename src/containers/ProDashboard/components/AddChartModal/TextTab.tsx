@@ -5,12 +5,7 @@ interface TextTabProps {
 	onTextContentChange: (content: string) => void
 }
 
-export function TextTab({
-	textTitle,
-	textContent,
-	onTextTitleChange,
-	onTextContentChange
-}: TextTabProps) {
+export function TextTab({ textTitle, textContent, onTextTitleChange, onTextContentChange }: TextTabProps) {
 	return (
 		<div className="space-y-3 md:space-y-4">
 			<div>

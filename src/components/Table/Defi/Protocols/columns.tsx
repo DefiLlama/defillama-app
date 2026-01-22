@@ -75,11 +75,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 								className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
 								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
-								<Tooltip
-									content="Deprecated"
-									className="flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-[10px] text-white dark:bg-red-400"
-								>
-									!
+								<Tooltip content="Deprecated" className="text-(--error)">
+									<Icon name="alert-triangle" height={14} width={14} />
 								</Tooltip>
 							</BasicLink>
 						) : (
@@ -906,9 +903,9 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 								className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
 								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
-								<span className="overflow-hidden text-xs font-medium text-ellipsis whitespace-nowrap text-red-600 hover:underline dark:text-red-400">
-									Deprecated
-								</span>
+								<Tooltip content="Deprecated" className="text-(--error)">
+									<Icon name="alert-triangle" height={14} width={14} />
+								</Tooltip>
 							</BasicLink>
 						) : (
 							<BasicLink
@@ -1045,9 +1042,9 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 								className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
 								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
-								<span className="overflow-hidden text-xs font-medium text-ellipsis whitespace-nowrap text-red-600 hover:underline dark:text-red-400">
-									Deprecated
-								</span>
+								<Tooltip content="Deprecated" className="text-(--error)">
+									<Icon name="alert-triangle" height={14} width={14} />
+								</Tooltip>
 							</BasicLink>
 						) : (
 							<BasicLink
@@ -1170,9 +1167,9 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 								className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
 								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
-								<span className="overflow-hidden text-xs font-medium text-ellipsis whitespace-nowrap text-red-600 hover:underline dark:text-red-400">
-									Deprecated
-								</span>
+								<Tooltip content="Deprecated" className="text-(--error)">
+									<Icon name="alert-triangle" height={14} width={14} />
+								</Tooltip>
 							</BasicLink>
 						) : (
 							<BasicLink

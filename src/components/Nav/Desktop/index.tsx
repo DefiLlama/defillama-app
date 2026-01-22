@@ -133,15 +133,7 @@ export function DesktopNav({
 	)
 }
 
-function NavDetailsSection({
-	category,
-	pages,
-	asPath
-}: {
-	category: string
-	pages: TNavLink[]
-	asPath: string
-}) {
+function NavDetailsSection({ category, pages, asPath }: { category: string; pages: TNavLink[]; asPath: string }) {
 	const lastItemRef = React.useRef<HTMLDivElement>(null)
 
 	return (

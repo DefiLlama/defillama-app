@@ -135,11 +135,7 @@ interface DashboardItemRendererProps {
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
 }
 
-function DashboardItemRenderer({
-	item,
-	onEditItem,
-	handleEditItem
-}: DashboardItemRendererProps) {
+function DashboardItemRenderer({ item, onEditItem, handleEditItem }: DashboardItemRendererProps) {
 	const handleConfigChange = (newConfig: DashboardItemConfig) => handleEditItem(item.id, newConfig)
 
 	const handleDatasetChainChange = (newChain: string) =>

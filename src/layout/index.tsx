@@ -61,13 +61,7 @@ function Layout({
 	)
 }
 
-function MetricFilters({
-	options,
-	label
-}: {
-	options: { name: string; key: string }[]
-	label?: string
-}) {
+function MetricFilters({ options, label }: { options: { name: string; key: string }[]; label?: string }) {
 	const { selectedValues, setSelectedValues } = useProtocolsFilterState(options)
 
 	return (

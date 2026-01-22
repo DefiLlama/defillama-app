@@ -53,13 +53,7 @@ function getEntityIcon(type: string, slug: string): string {
 	}
 }
 
-function TableWrapper({
-	children,
-	isStreaming = false
-}: {
-	children: React.ReactNode
-	isStreaming: boolean
-}) {
+function TableWrapper({ children, isStreaming = false }: { children: React.ReactNode; isStreaming: boolean }) {
 	const tableRef = useRef<HTMLDivElement>(null)
 
 	const prepareCsv = () => {

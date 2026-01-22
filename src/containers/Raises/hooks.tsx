@@ -90,8 +90,7 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 			selectedChains = [...chains]
 		}
 		// Filter out excludes from selectedChains
-		selectedChains =
-			excludeChainsSet.size > 0 ? selectedChains.filter((c) => !excludeChainsSet.has(c)) : selectedChains
+		selectedChains = excludeChainsSet.size > 0 ? selectedChains.filter((c) => !excludeChainsSet.has(c)) : selectedChains
 
 		const raisesByCategory: { [category: string]: number } = {}
 		const fundingRoundsByMonth = {}

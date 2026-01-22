@@ -87,15 +87,15 @@ export function UnlocksPieCard({ config }: UnlocksPieCardProps) {
 		<div className="flex h-full flex-col p-2">
 			<div className="mb-2 flex items-start justify-between gap-2">
 				<div className="flex flex-col gap-1">
-					<h3 className="pro-text1 text-sm font-semibold">{chartTitle}</h3>
-					<p className="pro-text2 text-xs">{protocolName}</p>
+					<h3 className="text-sm font-semibold pro-text1">{chartTitle}</h3>
+					<p className="text-xs pro-text2">{protocolName}</p>
 				</div>
 				{hasChartData && (
 					<div className="flex gap-2">
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol
-							className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
+							className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 						/>
 					</div>
 				)}
@@ -112,7 +112,7 @@ export function UnlocksPieCard({ config }: UnlocksPieCardProps) {
 						<PieChart chartData={chartData} stackColors={stackColors} valueSymbol={valueSymbol} />
 					</Suspense>
 				) : (
-					<div className="pro-text3 flex h-[320px] items-center justify-center text-center">No unlocks data.</div>
+					<div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
 				)}
 			</div>
 		</div>

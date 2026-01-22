@@ -1,9 +1,9 @@
 import * as Ariakit from '@ariakit/react'
 import { RefObject, useEffect, useEffectEvent, useRef, useState } from 'react'
-import { useGetEntities } from './useGetEntities'
 import { getAnchorRect, getSearchValue, getTrigger, getTriggerOffset, replaceValue } from '../utils/entitySuggestions'
 import { setInputSize } from '../utils/scrollUtils'
 import { highlightWord } from '../utils/textUtils'
+import { useGetEntities } from './useGetEntities'
 
 export interface EntityData {
 	id: string
@@ -17,11 +17,7 @@ export interface UseEntityComboboxOptions {
 	setValue: (value: string) => void
 }
 
-export function useEntityCombobox({
-	promptInputRef,
-	highlightRef,
-	setValue
-}: UseEntityComboboxOptions) {
+export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: UseEntityComboboxOptions) {
 	const [isTriggerOnly, setIsTriggerOnly] = useState(false)
 	const entitiesRef = useRef<Set<string>>(new Set())
 	const entitiesMapRef = useRef<Map<string, EntityData>>(new Map())

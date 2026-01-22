@@ -4,10 +4,10 @@ import { useEntityCombobox } from '../hooks/useEntityCombobox'
 import { useImageUpload, fileToBase64 } from '../hooks/useImageUpload'
 import { setInputSize, syncHighlightScroll } from '../utils/scrollUtils'
 import { highlightWord } from '../utils/textUtils'
-import { DragOverlay, ImageUpload, ImageUploadButton } from './input/ImageUpload'
-import { ModeToggle, type ResearchUsage } from './input/ModeToggle'
-import { InputTextarea } from './input/InputTextarea'
 import { EntityComboboxPopover } from './input/EntityCombobox'
+import { DragOverlay, ImageUpload, ImageUploadButton } from './input/ImageUpload'
+import { InputTextarea } from './input/InputTextarea'
+import { ModeToggle, type ResearchUsage } from './input/ModeToggle'
 import { SubmitButton } from './input/SubmitButton'
 
 interface PromptInputProps {

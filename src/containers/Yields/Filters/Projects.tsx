@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import type { ExcludeQueryKey } from '~/components/selectTypes'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
 interface IYieldProjectsProps {
 	projectList: Array<string>
