@@ -20,8 +20,8 @@ import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from './utils'
 interface ITableWithSearchProps {
 	data: any[]
 	columns: ColumnDef<any>[]
-	placeholder: string
-	columnToSearch: string
+	placeholder?: string
+	columnToSearch?: string
 	customFilters?: React.ReactNode
 	header?: string
 	renderSubComponent?: (row: any) => React.ReactNode
@@ -86,7 +86,7 @@ export function TableWithSearch({
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
 				{header ? <h1 className="mr-auto text-lg font-semibold">{header}</h1> : null}
-				<label className="relative w-full sm:max-w-[280px]">
+				{columnToSearch && <label className="relative w-full sm:max-w-70">
 					<span className="sr-only">{placeholder}</span>
 					<Icon
 						name="search"
@@ -102,7 +102,7 @@ export function TableWithSearch({
 						placeholder={placeholder}
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
-				</label>
+				</label>}
 				{customFilters}
 			</div>
 			<VirtualTable instance={instance} renderSubComponent={renderSubComponent} rowSize={rowSize} compact={compact} />
