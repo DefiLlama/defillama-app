@@ -15,7 +15,7 @@ interface IFetchedRWAProject {
 	assetClass: string[] | null
 	type: string | null
 	rwaClassification: string | null
-	accessModel: string | null
+	accessModel: 'Permissioned' | 'Permissionless' | 'Non-transferable' | 'Custodial Only' | 'Unknown' | null
 	issuer: string | null
 	issuerSourceLink: string | string[] | null
 	issuerRegistryInfo: string | string[] | null
@@ -199,7 +199,7 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				type: item.type ?? null,
 				rwaClassification: isTrueRWA ? 'RWA' : (item.rwaClassification ?? null),
 				trueRWA: isTrueRWA,
-				accessModel: getAccessModel(item),
+				accessModel: item.accessModel ?? 'Unknown',
 				issuer: item.issuer ?? null,
 				issuerSourceLink:
 					item.issuerSourceLink == null
@@ -421,7 +421,7 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 					? (definitions.rwaClassification.values?.[classificationKey] ?? null)
 					: null
 				// Get access model and its description
-				const accessModel = getAccessModel(item)
+				const accessModel = item.accessModel ?? 'Unknown'
 				const accessModelDescription = definitions.accessModel.values?.[accessModel] ?? null
 				// Get asset class descriptions
 				const assetClassDescriptions: Record<string, string> = {}
@@ -499,40 +499,24 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 }
 
 export async function getRWAAssetsList(): Promise<string[]> {
-	const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
-	const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
-	if (!data || typeof data !== 'object') return []
-	const assets: string[] = []
-
-	for (const rwaId in data) {
-		if (typeof data[rwaId].ticker === 'string' && data[rwaId].ticker !== '-') {
-			assets.push(slug(data[rwaId].ticker))
+	try {
+		const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
+		const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
+		if (!data || typeof data !== 'object') {
+			throw new Error('Failed to get RWA assets list')
 		}
+		const assets: string[] = []
+
+		for (const rwaId in data) {
+			if (typeof data[rwaId].ticker === 'string' && data[rwaId].ticker !== '-') {
+				assets.push(slug(data[rwaId].ticker))
+			}
+		}
+
+		return assets
+	} catch (error) {
+		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA assets list')
 	}
-
-	return assets
-}
-
-function getAccessModel(
-	asset: IFetchedRWAProject
-): 'Permissioned' | 'Permissionless' | 'Non-transferable' | 'Custodial Only' | 'Unknown' {
-	if (asset.kycAllowlistedWhitelistedToTransferHold) {
-		return 'Permissioned'
-	}
-
-	if (asset.transferable && asset.selfCustody) {
-		return 'Permissionless'
-	}
-
-	if (!asset.transferable && asset.selfCustody) {
-		return 'Non-transferable'
-	}
-
-	if (asset.transferable != null && !asset.transferable && asset.selfCustody != null && !asset.selfCustody) {
-		return 'Custodial Only'
-	}
-
-	return 'Unknown'
 }
 
 function safeNumber(value: unknown): number {
