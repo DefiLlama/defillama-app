@@ -158,11 +158,18 @@ export function PromptResponse({
 			referencedIds.add(match[1])
 		}
 
+			// Check if we have a research item - if so, we'll skip loading items
+		// since the research UI already shows its own progress state
+		const hasResearchItem = items.some((item) => item.type === 'research')
+
 		for (const item of items) {
 			if (item.type === 'chart' || item.type === 'csv') {
 				// All artifacts go in index for potential inline rendering
 				index.set(item.id, item)
 				artifacts.push(item)
+			} else if (item.type === 'loading' && hasResearchItem) {
+				// Skip loading items when research UI is active (it has its own progress display)
+				continue
 			} else if (item.type !== 'metadata' && item.type !== 'suggestions') {
 				// Non-artifact, non-metadata, non-suggestions items are rendered directly
 				// Suggestions are filtered out so parent can render them after ResponseControls
