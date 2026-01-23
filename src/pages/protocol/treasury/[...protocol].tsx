@@ -1,6 +1,7 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
 import { LocalLoader } from '~/components/Loaders'
@@ -9,9 +10,11 @@ import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 import { buildProtocolAddlChartsData, getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
-import { preparePieChartData, slug } from '~/utils'
+import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const EMPTY_TOGGLE_OPTIONS = []
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
@@ -119,7 +122,7 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="treasury"
 			warningBanners={props.warningBanners}
-			toggleOptions={[]}
+			toggleOptions={EMPTY_TOGGLE_OPTIONS}
 		>
 			<div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="treasury">

@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from './LoadingSpinner'
 
@@ -39,7 +39,7 @@ export function AriakitSelect({
 
 	return (
 		<div className={className}>
-			{label && <label className="pro-text2 mb-1 block text-[11px] font-medium">{label}</label>}
+			{label && <label className="mb-1 block text-[11px] font-medium pro-text2">{label}</label>}
 			{isLoading ? (
 				<div className="flex h-9 items-center justify-center rounded-md border border-(--form-control-border) bg-(--bg-input)">
 					<LoadingSpinner size="sm" />
@@ -51,7 +51,7 @@ export function AriakitSelect({
 						className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					>
 						<span className={`truncate ${selectedValue ? 'pro-text1' : 'pro-text3'}`}>{selectedLabel}</span>
-						<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+						<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 					</PopoverDisclosure>
 					<Popover
 						store={popover}
@@ -64,7 +64,7 @@ export function AriakitSelect({
 					>
 						<div className="thin-scrollbar max-h-[280px] overflow-y-auto p-1">
 							{options.length === 0 && (
-								<div className="pro-text3 px-3 py-2 text-center text-xs">No options available.</div>
+								<div className="px-3 py-2 text-center text-xs pro-text3">No options available.</div>
 							)}
 							{options.map((option) => {
 								const isActive = option.value === selectedValue
@@ -81,7 +81,7 @@ export function AriakitSelect({
 										disabled={option.disabled}
 										className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs transition-colors ${
 											option.disabled
-												? 'pro-text3 cursor-not-allowed opacity-50'
+												? 'cursor-not-allowed pro-text3 opacity-50'
 												: isActive
 													? 'bg-(--primary)/10 font-semibold text-(--primary)'
 													: 'pro-text2 hover:bg-(--cards-bg-alt)'
@@ -92,7 +92,7 @@ export function AriakitSelect({
 											<span className="truncate">{option.label}</span>
 										</div>
 										{isActive && (
-											<Icon name="check" width={12} height={12} className="ml-2 flex-shrink-0 text-(--primary)" />
+											<Icon name="check" width={12} height={12} className="ml-2 shrink-0 text-(--primary)" />
 										)}
 									</button>
 								)

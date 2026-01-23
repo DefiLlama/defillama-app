@@ -1,6 +1,6 @@
-import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import type { ChartConfig, MultiChartConfig, TextConfig } from '../types'
 import { CHART_TYPES } from '../types'
@@ -12,6 +12,8 @@ const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart'))
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart'))
 
 const MultiSeriesChart = React.lazy(() => import('~/components/ECharts/MultiSeriesChart'))
+
+const DEMO_CHAINS = ['Ethereum']
 
 const generateFakeChartData = (baseValue: number, volatility: number = 0.1): [string, number][] => {
 	const data: [string, number][] = []
@@ -88,70 +90,74 @@ const DemoChartCard = ({ chart }: { chart: ChartConfig }) => {
 	)
 }
 
+const DEMO_CHART_COLORS = ['#2172E5', '#5CCA93', '#F2994A']
+
+const formatDemoValue = (value: number) => {
+	const absValue = Math.abs(value)
+	if (absValue >= 1e9) {
+		return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
+	} else if (absValue >= 1e6) {
+		return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+	} else if (absValue >= 1e3) {
+		return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
+	}
+	return '$' + value.toString()
+}
+
 const DemoMultiChartCard = ({ multi }: { multi: MultiChartConfig }) => {
-	const colors = ['#2172E5', '#5CCA93', '#F2994A']
+	const series = React.useMemo(
+		() =>
+			multi.items.map((item, index) => {
+				const fakeData = generateFakeChartData(
+					30000000 + index * 10000000, // Different base values for each series
+					0.08
+				)
 
-	const series = multi.items.map((item, index) => {
-		const fakeData = generateFakeChartData(
-			30000000 + index * 10000000, // Different base values for each series
-			0.08
-		)
+				const data: [number, number][] = fakeData.map(([timestamp, value]) => [parseInt(timestamp), value])
 
-		const data: [number, number][] = fakeData.map(([timestamp, value]) => [parseInt(timestamp), value])
+				const chartType = CHART_TYPES[item.type] || { title: item.type, chartType: 'line' }
 
-		const chartType = CHART_TYPES[item.type] || { title: item.type, chartType: 'line' }
+				return {
+					name: `${item.chain} ${chartType.title}`,
+					type: (chartType.chartType === 'bar' ? 'bar' : 'line') as 'bar' | 'line',
+					data,
+					color: DEMO_CHART_COLORS[index] || DEMO_CHART_COLORS[0]
+				}
+			}),
+		[multi.items]
+	)
 
-		return {
-			name: `${item.chain} ${chartType.title}`,
-			type: (chartType.chartType === 'bar' ? 'bar' : 'line') as 'bar' | 'line',
-			data,
-			color: colors[index] || colors[0]
-		}
-	})
+	const chartOptions = React.useMemo(
+		() => ({
+			yAxis: {
+				max: undefined,
+				min: undefined,
+				axisLabel: { formatter: formatDemoValue }
+			},
+			grid: {
+				top: series.length > 5 ? 80 : 40,
+				bottom: 12,
+				left: 12,
+				right: 12,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
+			},
+			legend: {
+				top: 0,
+				type: 'scroll',
+				pageButtonPosition: 'end',
+				height: series.length > 5 ? 80 : 40
+			}
+		}),
+		[series.length]
+	)
 
 	return (
 		<div className="flex min-h-[400px] flex-col p-1 md:min-h-[416px]">
 			<h1 className="p-1 text-base font-semibold md:p-3">{multi.name}</h1>
 			<div className="flex-1">
 				<React.Suspense fallback={<></>}>
-					<MultiSeriesChart
-						series={series}
-						valueSymbol="$"
-						hideDataZoom={true}
-						chartOptions={{
-							yAxis: {
-								max: undefined,
-								min: undefined,
-								axisLabel: {
-									formatter: (value: number) => {
-										const absValue = Math.abs(value)
-										if (absValue >= 1e9) {
-											return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
-										} else if (absValue >= 1e6) {
-											return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
-										} else if (absValue >= 1e3) {
-											return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
-										}
-										return '$' + value.toString()
-									}
-								}
-							},
-							grid: {
-								top: series.length > 5 ? 80 : 40,
-								bottom: 12,
-								left: 12,
-								right: 12,
-								outerBoundsMode: 'same',
-								outerBoundsContain: 'axisLabel'
-							},
-							legend: {
-								top: 0,
-								type: 'scroll',
-								pageButtonPosition: 'end',
-								height: series.length > 5 ? 80 : 40
-							}
-						}}
-					/>
+					<MultiSeriesChart series={series} valueSymbol="$" hideDataZoom={true} chartOptions={chartOptions} />
 				</React.Suspense>
 			</div>
 		</div>
@@ -361,7 +367,7 @@ const demoTextCard2: TextConfig = {
 - **Fees**: Protocol fees generated from user activity
 - **Revenue**: Net revenue earned by protocols
 - **Users**: Active user count on the platform
-- **Transactions**: Number of on-chain transactions
+- **Transactions**: Number of Onchain transactions
 
 *These metrics help assess protocol health, adoption, and market trends.*`,
 	colSpan: 1
@@ -424,7 +430,7 @@ export const DemoPreview = () => {
 	const router = useRouter()
 
 	return (
-		<div className="pro-dashboard relative min-h-screen">
+		<div className="relative min-h-screen pro-dashboard">
 			<div className="border-b border-(--divider) bg-(--bg) py-6">
 				<div className="mx-auto max-w-7xl space-y-6 px-4 sm:px-6">
 					<div className="text-center">
@@ -433,11 +439,11 @@ export const DemoPreview = () => {
 					</div>
 
 					<div className="flex items-center justify-center">
-						<div className="pro-dashboard grid gap-2 sm:grid-cols-2 lg:gap-6 xl:grid-cols-4">
+						<div className="grid gap-2 pro-dashboard sm:grid-cols-2 lg:gap-6 xl:grid-cols-4">
 							{features.map((feature, index) => (
 								<div
 									key={index}
-									className="pro-info-card flex flex-wrap items-center justify-center gap-2 px-8 py-15 text-sm text-(--text-secondary)"
+									className="flex flex-wrap items-center justify-center gap-2 pro-info-card px-8 py-15 text-sm text-(--text-secondary)"
 								>
 									<div className="align-center flex gap-2">
 										<Icon name={feature.icon as any} height={32} width={32} className="shrink-0 text-(--primary)" />
@@ -503,7 +509,7 @@ export const DemoPreview = () => {
 								<ul className="mb-8 flex-1 space-y-3 text-left text-sm">
 									<li className="flex items-start gap-2">
 										<Icon name="star" height={14} width={14} className="mt-0.5 shrink-0 text-(--primary)" />
-										<span className="pro-text1 font-semibold">Everything in Free, plus:</span>
+										<span className="font-semibold pro-text1">Everything in Free, plus:</span>
 									</li>
 									<li className="flex items-start gap-2">
 										<Icon name="check" height={14} width={14} className="mt-0.5 shrink-0 text-green-500" />
@@ -574,7 +580,7 @@ export const DemoPreview = () => {
 				))}
 
 				<div className={`col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)`}>
-					<ProtocolsByChainTable tableId="demo-ethereum-protocols" chains={['Ethereum']} colSpan={2} />
+					<ProtocolsByChainTable tableId="demo-ethereum-protocols" chains={DEMO_CHAINS} colSpan={2} />
 				</div>
 
 				<div

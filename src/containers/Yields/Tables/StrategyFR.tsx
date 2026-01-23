@@ -1,7 +1,6 @@
-import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { formatColumnOrder, getColumnSizesKeys } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
 import { formattedNum, formattedPercent } from '~/utils'
@@ -10,37 +9,46 @@ import { FRStrategyRoute, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
 import type { IYieldsStrategyTableRow } from './types'
 
+const FundingRateTooltipContent = ({ afr, afr7d, afr30d }: { afr: number; afr7d: number; afr30d: number }) => {
+	return (
+		<span className="flex flex-col gap-1">
+			<span>{`8h: ${afr?.toFixed(2)}%`}</span>
+			<span>{`7d: ${afr7d?.toFixed(2)}%`}</span>
+			<span>{`30d: ${afr30d?.toFixed(2)}%`}</span>
+		</span>
+	)
+}
+
 const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 	{
 		header: 'Strategy',
 		accessorKey: 'strategy',
 		enableSorting: false,
-		cell: ({ row, table }) => {
+		cell: ({ row }) => {
 			const name = `Long ${row.original.symbol} | Short ${row.original.symbolPerp}`
 
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
 			return (
-				<div className="flex flex-col gap-2 text-xs">
-					<NameYieldPool
-						value={name}
-						configID={row.original.pool}
-						withoutLink={true}
-						url={row.original.url}
-						index={index + 1}
-						strategy={true}
-						maxCharacters={50}
-						bookmark={false}
-					/>
-					<FRStrategyRoute
-						project1={row.original.projectName}
-						airdropProject1={row.original.airdrop}
-						project2={row.original.marketplace}
-						airdropProject2={false}
-						chain={row.original.chains[0]}
-						index={index + 1}
-					/>
-				</div>
+				<span className="grid grid-cols-[auto_1fr] gap-2 text-xs">
+					<span className="vf-row-index shrink-0 lg:pt-1.25" aria-hidden="true" />
+					<span className="flex min-w-0 flex-col gap-2">
+						<NameYieldPool
+							value={name}
+							configID={row.original.pool}
+							withoutLink={true}
+							url={row.original.url}
+							strategy={true}
+							maxCharacters={50}
+							bookmark={false}
+						/>
+						<FRStrategyRoute
+							project1={row.original.projectName}
+							airdropProject1={row.original.airdrop}
+							project2={row.original.marketplace}
+							airdropProject2={false}
+							chain={row.original.chains[0]}
+						/>
+					</span>
+				</span>
 			)
 		},
 		size: 400
@@ -91,25 +99,35 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		accessorKey: 'afr',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
-			const TooltipContent = () => {
-				return (
-					<span className="flex flex-col gap-1">
-						<span>{`8h: ${row.original?.afr?.toFixed(2)}%`}</span>
-						<span>{`7d: ${row.original?.afr7d?.toFixed(2)}%`}</span>
-						<span>{`30d: ${row.original?.afr30d?.toFixed(2)}%`}</span>
-					</span>
-				)
-			}
-
 			return (
 				<>
 					{lockupsRewards.includes(row.original.projectName) ? (
 						<div className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
-							<Tooltip content={<TooltipContent />}>{formattedPercent(getValue(), true, 700)}</Tooltip>
+							<Tooltip
+								content={
+									<FundingRateTooltipContent
+										afr={row.original?.afr}
+										afr7d={row.original?.afr7d}
+										afr30d={row.original?.afr30d}
+									/>
+								}
+							>
+								{formattedPercent(getValue(), true, 700)}
+							</Tooltip>
 						</div>
 					) : (
-						<Tooltip content={<TooltipContent />}>{formattedPercent(getValue(), true, 700)}</Tooltip>
+						<Tooltip
+							content={
+								<FundingRateTooltipContent
+									afr={row.original?.afr}
+									afr7d={row.original?.afr7d}
+									afr30d={row.original?.afr30d}
+								/>
+							}
+						>
+							{formattedPercent(getValue(), true, 700)}
+						</Tooltip>
 					)}
 				</>
 			)
@@ -188,16 +206,14 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 	}
 ]
 
-// key: min width of window/screen
-// values: table columns order
-const columnOrders = {
+const columnOrders: ColumnOrdersByBreakpoint = {
 	0: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
 	400: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
 	640: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
 	1280: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest']
 }
 
-const columnSizes = {
+const columnSizes: ColumnSizesByBreakpoint = {
 	0: {
 		strategy: 250,
 		strategyAPY: 145,
@@ -220,18 +236,13 @@ const columnSizes = {
 	}
 }
 
-const yieldsColumnOrders = formatColumnOrder(columnOrders)
-
-const columnSizesKeys = getColumnSizesKeys(columnSizes)
-
 export function YieldsStrategyTableFR({ data }) {
 	return (
 		<YieldsTableWrapper
 			data={data}
 			columns={columns}
 			columnSizes={columnSizes}
-			columnSizesKeys={columnSizesKeys}
-			columnOrders={yieldsColumnOrders}
+			columnOrders={columnOrders}
 			rowSize={80}
 		/>
 	)

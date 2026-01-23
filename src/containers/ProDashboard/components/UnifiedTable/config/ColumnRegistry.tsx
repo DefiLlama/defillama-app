@@ -1,5 +1,5 @@
-import { type ReactNode } from 'react'
 import { ColumnDef, Row, type CellContext } from '@tanstack/react-table'
+import { type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
@@ -12,7 +12,6 @@ import { getChainMetricsByName } from '../core/chainMetricsStore'
 import { ROW_HEADER_GROUPING_COLUMN_IDS } from '../core/grouping'
 import {
 	getAggregationContextFromLeafRows,
-	getChainNameForRow,
 	getGroupingKeyForRow,
 	getRowDisplayProps,
 	getRowHeaderFromGroupingColumn
@@ -32,35 +31,35 @@ declare module '@tanstack/table-core' {
 const renderDash = () => <span className="pro-text3">-</span>
 
 const renderUsd = (value: number | null | undefined) => {
-	if (value === null || value === undefined) {
+	if (value == null) {
 		return renderDash()
 	}
 	return <span className="pro-text2">{formattedNum(value, true)}</span>
 }
 
 const renderNumber = (value: number | null | undefined) => {
-	if (value === null || value === undefined) {
+	if (value == null) {
 		return renderDash()
 	}
 	return <span className="pro-text2">{formattedNum(value, false)}</span>
 }
 
 const renderPercent = (value: number | null | undefined) => {
-	if (value === null || value === undefined) {
+	if (value == null) {
 		return renderDash()
 	}
 	return <span className="pro-text2">{formattedPercent(value, true)}</span>
 }
 
 const renderPercentChange = (value: number | null | undefined) => {
-	if (value === null || value === undefined) {
+	if (value == null) {
 		return renderDash()
 	}
 	return <span className="pro-text2">{formattedPercent(value, false)}</span>
 }
 
 const renderRatio = (value: number | null | undefined) => {
-	if (value === null || value === undefined) {
+	if (value == null) {
 		return renderDash()
 	}
 	return <span className="pro-text2">{`${formattedNum(value, false)}x`}</span>
@@ -76,10 +75,10 @@ const renderMetricCell = (
 }
 
 const numericSorting = (a: number | null | undefined, b: number | null | undefined) => {
-	if (a === null || a === undefined) {
-		return b === null || b === undefined ? 0 : -1
+	if (a == null) {
+		return b == null ? 0 : -1
 	}
-	if (b === null || b === undefined) {
+	if (b == null) {
 		return 1
 	}
 	return a - b
@@ -272,7 +271,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 						)}
 						{display.header !== 'category' &&
 							(shouldShowProtocolLogo || shouldShowChainIcon ? (
-								<TokenLogo logo={iconSource ?? undefined} fallbackLogo="/icons/placeholder.png" size={24} />
+								<TokenLogo logo={iconSource ?? undefined} fallbackLogo="/assets/placeholder.png" size={24} />
 							) : (
 								<span className="inline-block h-6 w-6 shrink-0" />
 							))}
@@ -554,6 +553,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 		createUsdMetricColumn('revenue_30d' as MetricKey, '30d Revenue'),
 		createUsdMetricColumn('revenue_1y' as MetricKey, '1y Revenue'),
 		createUsdMetricColumn('average_revenue_1y' as MetricKey, '1y Monthly Avg Revenue'),
+		createUsdMetricColumn('cumulativeRevenue' as MetricKey, 'Cumulative Revenue'),
 		createPercentChangeColumn('revenueChange_1d' as MetricKey, '1d Revenue Change'),
 		createPercentChangeColumn('revenueChange_7d' as MetricKey, '7d Revenue Change'),
 		createPercentChangeColumn('revenueChange_1m' as MetricKey, '30d Revenue Change')
@@ -645,10 +645,10 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 
 	const columnsByGroup = new Map<MetricGroup, ColumnDef<NormalizedRow>[]>()
 
-	allColumns.forEach((col) => {
+	for (const col of allColumns) {
 		const columnId = String(col.id)
 		const dictEntry = COLUMN_DICTIONARY_BY_ID.get(columnId)
-		if (!dictEntry || dictEntry.group === 'meta') return
+		if (!dictEntry || dictEntry.group === 'meta') continue
 
 		const group = dictEntry.group as MetricGroup
 
@@ -656,7 +656,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 			columnsByGroup.set(group, [])
 		}
 		columnsByGroup.get(group)!.push(col)
-	})
+	}
 
 	const groupedColumns: ColumnDef<NormalizedRow>[] = []
 

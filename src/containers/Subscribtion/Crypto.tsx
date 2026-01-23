@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { AUTH_SERVER } from '~/constants'
@@ -17,7 +17,7 @@ export const PaymentButton = ({
 	billingInterval = 'month'
 }: {
 	paymentMethod: 'stripe' | 'llamapay'
-	type?: 'api' | 'contributor' | 'llamafeed'
+	type?: 'api' | 'llamafeed'
 	billingInterval?: 'year' | 'month'
 }) => {
 	const { handleSubscribe, loading } = useSubscribe()
@@ -63,7 +63,7 @@ export const PaymentButton = ({
 				data-umami-event={`subscribe-${paymentMethod}-${type ?? ''}`}
 			>
 				{icon && <Icon name={icon} height={14} width={14} className="sm:h-4 sm:w-4" />}
-				<span className="break-words">{text}</span>
+				<span className="wrap-break-word">{text}</span>
 			</button>
 
 			{isStripe && (

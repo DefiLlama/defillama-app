@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -11,15 +10,16 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import { useMemo, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
-import { alphanumericFalsyLast } from '~/components/Table/utils'
+import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import useWindowSize from '~/hooks/useWindowSize'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug } from '~/utils'
 import { ChainsByAdapterChart } from './ChainChart'
@@ -72,7 +72,7 @@ export function ChainsByAdapter(props: IProps) {
 		}
 
 		return props.chains
-	}, [props, enabledSettings])
+	}, [props.adapterType, props.chains, enabledSettings.bribes, enabledSettings.tokentax])
 
 	const instance = useReactTable({
 		data: chains,
@@ -83,8 +83,8 @@ export function ChainsByAdapter(props: IProps) {
 			columnSizing,
 			columnOrder
 		},
-		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		filterFromLeafRows: true,
 		onSortingChange: setSorting,
@@ -97,37 +97,20 @@ export function ChainsByAdapter(props: IProps) {
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [projectName, setProjectName] = useState('')
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	useSortColumnSizesAndOrders({
+		instance,
+		columnSizes
+	})
 
-	useEffect(() => {
-		const columns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			if (columns) {
-				columns.setFilterValue(projectName)
-			}
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance])
-
-	const windowSize = useWindowSize()
-
-	useEffect(() => {
-		const colSize = windowSize.width ? columnSizes.find((size) => windowSize.width > +size[0]) : columnSizes[0]
-		// const colOrder = windowSize.width ? columnOrders.find((size) => windowSize.width > +size[0]) : columnOrders[0]
-		// instance.setColumnOrder(colOrder[1])
-		instance.setColumnSizing(colSize[1])
-	}, [instance, windowSize])
-
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		const header = ['Chain', 'Total 1d', 'Total 1m']
 		const csvdata = chains.map((protocol) => {
 			return [protocol.name, protocol.total24h, protocol.total30d]
 		})
 
 		return { filename: `${props.type}-chains-protocols.csv`, rows: [header, ...csvdata] }
-	}, [props, chains])
+	}
 
 	return (
 		<>
@@ -163,7 +146,7 @@ export function ChainsByAdapter(props: IProps) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
 					<CSVDownloadButton prepareCsv={prepareCsv} />
@@ -174,9 +157,7 @@ export function ChainsByAdapter(props: IProps) {
 	)
 }
 
-const columnSizes = Object.entries({ 0: { name: 180 }, 640: { name: 240 }, 768: { name: 280 } }).sort(
-	(a, b) => Number(b[0]) - Number(a[0])
-)
+const columnSizes: ColumnSizesByBreakpoint = { 0: { name: 180 }, 640: { name: 240 }, 768: { name: 280 } }
 
 const NameColumn = (route: string): ColumnDef<IChainsByAdapterPageData['chains'][0]> => {
 	return {
@@ -184,13 +165,12 @@ const NameColumn = (route: string): ColumnDef<IChainsByAdapterPageData['chains']
 		header: 'Name',
 		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
@@ -215,8 +195,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Fees 24h',
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.fees.chain['24h']
@@ -228,8 +206,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Fees 7d',
 			accessorFn: (protocol) => protocol.total7d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.fees.chain['7d']
@@ -241,8 +217,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Fees 30d',
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.fees.chain['30d']
@@ -257,8 +231,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Revenue 24h',
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.revenue.chain['24h']
@@ -270,8 +242,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Revenue 7d',
 			accessorFn: (protocol) => protocol.total7d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.revenue.chain['7d']
@@ -283,8 +253,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Revenue 30d',
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.revenue.chain['30d']
@@ -299,8 +267,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Holders Revenue 24h',
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.holdersRevenue.chain['24h']
@@ -312,8 +278,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Holders Revenue 7d',
 			accessorFn: (protocol) => protocol.total7d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.holdersRevenue.chain['7d']
@@ -325,8 +289,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Holders Revenue 30d',
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.holdersRevenue.chain['30d']
@@ -341,8 +303,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'App Revenue 24h',
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.appRevenue.chain['24h']
@@ -354,8 +314,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'App Revenue 7d',
 			accessorFn: (protocol) => protocol.total7d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.appRevenue.chain['7d']
@@ -367,8 +325,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'App Revenue 30d',
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.appRevenue.chain['30d']
@@ -383,8 +339,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'App Fees 24h',
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.appFees.chain['24h']
@@ -396,8 +350,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'App Fees 7d',
 			accessorFn: (protocol) => protocol.total7d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.appFees.chain['7d']
@@ -409,8 +361,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'App Fees 30d',
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.appFees.chain['30d']
@@ -425,8 +375,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Premium Volume 24h',
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.optionsPremium.chain['24h']
@@ -438,8 +386,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Premium Volume 7d',
 			accessorFn: (protocol) => protocol.total7d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.optionsPremium.chain['7d']
@@ -451,8 +397,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Premium Volume 30d',
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.optionsPremium.chain['30d']
@@ -467,8 +411,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Notional Volume 24h',
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.optionsNotional.chain['24h']
@@ -480,8 +422,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Notional Volume 7d',
 			accessorFn: (protocol) => protocol.total7d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.optionsNotional.chain['7d']
@@ -493,8 +433,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Notional Volume 30d',
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.optionsNotional.chain['30d']
@@ -509,8 +447,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'DEX Volume 24h',
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.dexs.chain['24h']
@@ -522,8 +458,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'DEX Volume 7d',
 			accessorFn: (protocol) => protocol.total7d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.dexs.chain['7d']
@@ -535,8 +469,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'DEX Volume 30d',
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.dexs.chain['30d']
@@ -551,8 +483,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Perp Volume 24h',
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.perps.chain['24h']
@@ -564,8 +494,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Perp Volume 7d',
 			accessorFn: (protocol) => protocol.total7d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.perps.chain['7d']
@@ -577,8 +505,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Perp Volume 30d',
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.perps.chain['30d']
@@ -590,8 +516,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			id: 'open_interest',
 			accessorFn: (protocol) => protocol.openInterest,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.openInterest.chain
@@ -611,8 +535,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			),
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.perpsAggregators.chain['24h']
@@ -624,8 +546,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Perp Aggregator Volume 7d',
 			accessorFn: (protocol) => protocol.total7d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.perpsAggregators.chain['7d']
@@ -642,8 +562,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			),
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.perpsAggregators.chain['30d']
@@ -663,8 +581,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			),
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.bridgeAggregators.chain['24h']
@@ -676,8 +592,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'Bridge Aggregator Volume 7d',
 			accessorFn: (protocol) => protocol.total7d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.bridgeAggregators.chain['7d']
@@ -694,8 +608,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			),
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.bridgeAggregators.chain['30d']
@@ -715,8 +627,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			),
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.dexAggregators.chain['24h']
@@ -728,8 +638,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			header: 'DEX Aggregator Volume 7d',
 			accessorFn: (protocol) => protocol.total7d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.dexAggregators.chain['7d']
@@ -746,8 +654,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			),
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.dexAggregators.chain['30d']

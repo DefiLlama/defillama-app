@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
+import * as React from 'react'
 import { Announcement } from '~/components/Announcement'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'

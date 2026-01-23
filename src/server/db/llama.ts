@@ -10,7 +10,7 @@ const connectionString = process.env.LLAMA_DB_URL
 type DbInstance = pgPromise.IDatabase<unknown>
 
 declare global {
-	// eslint-disable-next-line no-var
+	// oxlint-disable-next-line eslint/no-var
 	var __LLAMA_DB__: DbInstance | undefined
 }
 

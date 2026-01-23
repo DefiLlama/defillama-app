@@ -1,5 +1,6 @@
-import { IIcon } from '~/components/Icon'
+import { Icon, IIcon } from '~/components/Icon'
 import { useDiscoveryCategories } from '../hooks/useDiscoveryCategories'
+import { Dashboard } from '../services/DashboardAPI'
 import { DiscoverySection } from './DiscoverySection'
 
 interface SectionConfig {
@@ -8,6 +9,9 @@ interface SectionConfig {
 	icon: IIcon['name']
 	seeAllHref: string
 }
+
+const TRENDING_TAGS = ['DeFi', 'NFT', 'L2', 'Stablecoins', 'DEX', 'Lending', 'Bridges', 'Staking']
+const EMPTY_DASHBOARDS: Dashboard[] = []
 
 const SECTIONS: SectionConfig[] = [
 	{
@@ -34,7 +38,25 @@ export function DashboardBrowse({ onTagClick }: DashboardBrowseProps) {
 	const { categories } = useDiscoveryCategories()
 
 	return (
-		<div className="flex flex-col gap-8">
+		<div className="flex flex-col gap-4">
+			<div>
+				<h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-(--text-label)">
+					<Icon name="tag" height={14} width={14} />
+					Trending Tags
+				</h3>
+				<div className="-mx-4 no-scrollbar flex gap-2 overflow-x-auto px-4 pb-2">
+					{TRENDING_TAGS.map((tag) => (
+						<button
+							key={tag}
+							onClick={() => onTagClick(tag)}
+							className="shrink-0 rounded-full border border-(--switch-border) px-3 py-1.5 text-xs text-(--text-form) transition-colors duration-150 hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
+						>
+							{tag}
+						</button>
+					))}
+				</div>
+			</div>
+
 			{SECTIONS.map((section) => {
 				const categoryData = categories[section.key]
 				return (
@@ -42,7 +64,7 @@ export function DashboardBrowse({ onTagClick }: DashboardBrowseProps) {
 						key={section.key}
 						title={section.title}
 						icon={section.icon}
-						dashboards={categoryData?.dashboards || []}
+						dashboards={categoryData?.dashboards ?? EMPTY_DASHBOARDS}
 						isLoading={categoryData?.isLoading ?? true}
 						seeAllHref={section.seeAllHref}
 						onTagClick={onTagClick}

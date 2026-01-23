@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { CHAINS_API_V2 } from '~/constants'
 import { useProDashboardCatalog } from '../../../ProDashboardAPIContext'
@@ -74,7 +74,7 @@ export function SelectItemsStep() {
 		const parentsOrSolo: typeof protocols = []
 		const parentIdToSlug = new Map<string, string>()
 
-		protocols.forEach((protocol) => {
+		for (const protocol of protocols) {
 			if (protocol.parentProtocol) {
 				const existing = childrenByParentId.get(protocol.parentProtocol) || []
 				childrenByParentId.set(protocol.parentProtocol, [...existing, protocol])
@@ -82,7 +82,7 @@ export function SelectItemsStep() {
 				parentsOrSolo.push(protocol)
 				parentIdToSlug.set(protocol.id, protocol.slug)
 			}
-		})
+		}
 
 		parentsOrSolo.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
 
@@ -114,27 +114,32 @@ export function SelectItemsStep() {
 
 	const protocolCategoryOptions = useMemo(() => {
 		const categoriesSet = new Set<string>()
-		protocols.forEach((protocol) => {
+		for (const protocol of protocols) {
 			if (protocol.category) {
 				categoriesSet.add(protocol.category)
 			}
-		})
+		}
 		return Array.from(categoriesSet)
 			.sort()
 			.map((cat) => ({ value: cat, label: cat }))
 	}, [protocols])
 
+	const selectedCategoriesSet = useMemo(() => new Set(selectedCategories), [selectedCategories])
+
 	const filteredOptions = useMemo(() => {
 		let filtered: Option[] = options
 
-		if (selectedCategories.length > 0) {
+		if (selectedCategoriesSet.size > 0) {
 			if (state.comparisonType === 'chains') {
 				filtered = filtered.filter((o) => {
-					return selectedCategories.some((cat) => chainCategoryData?.get(cat)?.has(o.value))
+					for (const cat of selectedCategoriesSet) {
+						if (chainCategoryData?.get(cat)?.has(o.value)) return true
+					}
+					return false
 				})
 			} else {
 				const matchingProtocols = protocols
-					.filter((p) => p.category && selectedCategories.includes(p.category))
+					.filter((p) => p.category && selectedCategoriesSet.has(p.category))
 					.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
 
 				filtered = matchingProtocols.map((protocol) => ({
@@ -151,7 +156,7 @@ export function SelectItemsStep() {
 		}
 
 		return filtered
-	}, [options, search, selectedCategories, state.comparisonType, chainCategoryData, protocols])
+	}, [options, search, selectedCategoriesSet, state.comparisonType, chainCategoryData, protocols])
 
 	const virtualizer = useVirtualizer({
 		count: filteredOptions.length,
@@ -163,23 +168,23 @@ export function SelectItemsStep() {
 	const typeLabel = state.comparisonType === 'chains' ? 'Chains' : 'Protocols'
 
 	const handleToggle = (value: string) => {
-		if (state.selectedItems.includes(value)) {
-			actions.setSelectedItems(state.selectedItems.filter((i) => i !== value))
-		} else if (state.selectedItems.length < 10) {
-			actions.setSelectedItems([...state.selectedItems, value])
-		}
+		actions.toggleSelectedItem(value, 10)
 	}
 
 	const handleRemoveItem = (item: string) => {
-		actions.setSelectedItems(state.selectedItems.filter((i) => i !== item))
+		actions.toggleSelectedItem(item)
 	}
+
+	const optionsMap = useMemo(() => new Map(options.map((o) => [o.value, o])), [options])
 
 	const selectedLabels = useMemo(() => {
 		return state.selectedItems.map((item) => {
-			const option = options.find((o) => o.value === item)
+			const option = optionsMap.get(item)
 			return { value: item, label: option?.label || item, logo: option?.logo }
 		})
-	}, [state.selectedItems, options])
+	}, [state.selectedItems, optionsMap])
+
+	const selectedItemsSet = useMemo(() => new Set(state.selectedItems), [state.selectedItems])
 
 	useEffect(() => {
 		setSelectedCategories([])
@@ -211,7 +216,7 @@ export function SelectItemsStep() {
 							selectedLabels.map((item) => (
 								<div
 									key={item.value}
-									className="flex flex-shrink-0 items-center gap-2 rounded-full border border-(--cards-border) bg-(--cards-bg-alt)/50 py-1 pr-1 pl-2 text-sm"
+									className="flex shrink-0 items-center gap-2 rounded-full border border-(--cards-border) bg-(--cards-bg-alt)/50 py-1 pr-1 pl-2 text-sm"
 								>
 									{item.logo && (
 										<img
@@ -229,7 +234,7 @@ export function SelectItemsStep() {
 									<button
 										type="button"
 										onClick={() => handleRemoveItem(item.value)}
-										className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-(--cards-bg-alt) text-(--text-tertiary) transition-colors hover:bg-red-500/20 hover:text-red-500"
+										className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-(--cards-bg-alt) text-(--text-tertiary) transition-colors hover:bg-red-500/20 hover:text-red-500"
 									>
 										<Icon name="x" height={12} width={12} />
 									</button>
@@ -298,12 +303,11 @@ export function SelectItemsStep() {
 						>
 							{virtualizer.getVirtualItems().map((virtualRow) => {
 								const option = filteredOptions[virtualRow.index]
-								const isDirectlySelected = state.selectedItems.includes(option.value)
-								const isParentSelected =
-									option.isChild && option.parentSlug && state.selectedItems.includes(option.parentSlug)
+								const isDirectlySelected = selectedItemsSet.has(option.value)
+								const isParentSelected = option.isChild && option.parentSlug && selectedItemsSet.has(option.parentSlug)
 								const isSelected = isDirectlySelected || isParentSelected
 								const isDisabledByParent = isParentSelected && !isDirectlySelected
-								const isDisabledByLimit = !isSelected && state.selectedItems.length >= 10
+								const isDisabledByLimit = !isSelected && selectedItemsSet.size >= 10
 								const isDisabled = isDisabledByParent || isDisabledByLimit
 
 								return (
@@ -325,7 +329,7 @@ export function SelectItemsStep() {
 										}}
 									>
 										<div
-											className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors ${
+											className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
 												isSelected
 													? 'border-(--primary) bg-(--primary)'
 													: 'border-(--form-control-border) bg-(--bg-input)'
@@ -339,7 +343,7 @@ export function SelectItemsStep() {
 											loading="lazy"
 											decoding="async"
 											alt={option.label}
-											className={`h-6 w-6 flex-shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
+											className={`h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
 												option.isChild ? 'opacity-70' : ''
 											}`}
 											onError={(e) => {

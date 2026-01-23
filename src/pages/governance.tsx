@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnFiltersState,
 	getCoreRowModel,
@@ -8,10 +7,12 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
 import { governanceColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
+import { useTableSearch } from '~/components/Table/utils'
 import { GOVERNANCE_COMPOUND_API, GOVERNANCE_SNAPSHOT_API, GOVERNANCE_TALLY_API } from '~/constants'
 import Layout from '~/layout'
 import { capitalizeFirstLetter } from '~/utils'
@@ -49,6 +50,9 @@ export default function Governance({ data }) {
 			columnFilters,
 			sorting
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
@@ -58,15 +62,7 @@ export default function Governance({ data }) {
 		getRowCanExpand: () => true
 	})
 
-	const [projectName, setProjectName] = React.useState('')
-
-	React.useEffect(() => {
-		const projectsColumns = instance.getColumn('name')
-		const id = setTimeout(() => {
-			projectsColumns.setFilterValue(projectName)
-		}, 200)
-		return () => clearTimeout(id)
-	}, [projectName, instance])
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	return (
 		<Layout
@@ -94,7 +90,7 @@ export default function Governance({ data }) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search projects..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
 				</div>
@@ -104,12 +100,16 @@ export default function Governance({ data }) {
 	)
 }
 
-const renderSubComponent = ({ row }) => {
+const RenderSubComponent = ({ row }) => {
+	const subRowEntries = Object.entries(row.original.subRowData)
+
 	return (
 		<span className="flex flex-col gap-1 pl-[72px]">
-			{Object.entries(row.original.subRowData).map(([type, value]) => (
+			{subRowEntries.map(([type, value]) => (
 				<span key={row.original.name + type + value}>{capitalizeFirstLetter(type) + ' Proposals : ' + value}</span>
 			))}
 		</span>
 	)
 }
+
+const renderSubComponent = ({ row }) => <RenderSubComponent row={row} />

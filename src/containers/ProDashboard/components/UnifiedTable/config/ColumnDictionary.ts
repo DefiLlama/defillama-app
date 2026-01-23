@@ -212,6 +212,13 @@ const revenueColumns: ColumnDictionaryItem[] = [
 		tags: ['derived']
 	},
 	{
+		id: 'cumulativeRevenue',
+		header: 'Cumulative Revenue',
+		group: 'revenue',
+		render: 'usd',
+		tags: ['cumulative']
+	},
+	{
 		id: 'revenueChange_1d',
 		header: '1d Revenue Change',
 		group: 'revenue',

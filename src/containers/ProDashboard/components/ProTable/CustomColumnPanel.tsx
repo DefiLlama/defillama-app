@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { Parser } from 'expr-eval'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
 
@@ -18,11 +18,36 @@ interface CustomColumnPanelProps {
 	onUpdateCustomColumn: (columnId: string, updates: Partial<CustomColumn>) => void
 }
 
+const formatPreviewNumber = (value: number | null): string => {
+	if (value == null) return '-'
+
+	if (Math.abs(value) >= 1e9) {
+		return `$${(value / 1e9).toFixed(2)}B`
+	} else if (Math.abs(value) >= 1e6) {
+		return `$${(value / 1e6).toFixed(2)}M`
+	} else if (Math.abs(value) >= 1e3) {
+		return `$${(value / 1e3).toFixed(2)}K`
+	} else {
+		return `$${value.toFixed(2)}`
+	}
+}
+
+const handleMouseDown = (e: React.MouseEvent) => {
+	// Prevent drag events from bubbling up to dashboard
+	e.stopPropagation()
+}
+
+const handleDragStart = (e: React.DragEvent) => {
+	// Prevent any drag operations within the panel
+	e.preventDefault()
+	e.stopPropagation()
+}
+
 export function CustomColumnPanel({
 	customColumns,
 	onAddCustomColumn,
 	onRemoveCustomColumn,
-	onUpdateCustomColumn
+	onUpdateCustomColumn: _onUpdateCustomColumn
 }: CustomColumnPanelProps) {
 	const [newColumnName, setNewColumnName] = React.useState('')
 	const [newColumnExpression, setNewColumnExpression] = React.useState('')
@@ -34,7 +59,7 @@ export function CustomColumnPanel({
 	// Autocomplete state
 	const [showAutocomplete, setShowAutocomplete] = React.useState(false)
 	const [autocompleteIndex, setAutocompleteIndex] = React.useState(-1)
-	const [cursorPosition, setCursorPosition] = React.useState(0)
+	const [_cursorPosition, setCursorPosition] = React.useState(0)
 	const [autocompleteFilter, setAutocompleteFilter] = React.useState('')
 	const inputRef = React.useRef<HTMLInputElement>(null)
 
@@ -132,57 +157,50 @@ export function CustomColumnPanel({
 
 	// Sample data for live preview
 	const sampleData = React.useMemo(() => {
+		// Fixed sample values for known keys
+		const FIXED_SAMPLE_VALUES: Record<string, number> = {
+			tvl: 1500000000, // 1.5B
+			mcap: 2000000000, // 2B
+			fees_24h: 250000, // 250K
+			fees_7d: 1750000, // 1.75M
+			revenue_24h: 150000, // 150K
+			revenue_7d: 1050000, // 1.05M
+			volume_24h: 50000000, // 50M
+			volume_7d: 350000000, // 350M
+			change_1d: 5.2,
+			change_7d: -12.8
+		}
+
+		// Pattern-based sample value generation for unknown keys
+		const SAMPLE_PATTERNS: Array<{ test: RegExp; getValue: () => number }> = [
+			{ test: /tvl|mcap/, getValue: () => Math.floor(Math.random() * 5000000000) },
+			{ test: /volume/, getValue: () => Math.floor(Math.random() * 100000000) },
+			{ test: /fees|revenue/, getValue: () => Math.floor(Math.random() * 2000000) },
+			{ test: /change/, getValue: () => (Math.random() - 0.5) * 40 }
+		]
+
+		const getSampleValue = (key: string): number => {
+			if (key in FIXED_SAMPLE_VALUES) return FIXED_SAMPLE_VALUES[key]
+			const pattern = SAMPLE_PATTERNS.find((p) => p.test.test(key))
+			if (pattern) return pattern.getValue()
+			return Math.floor(Math.random() * 1000000) // Default up to 1M
+		}
+
 		const sample: Record<string, number> = {}
-		availableVariables.forEach((variable) => {
-			// Create realistic sample data
-			switch (variable.key) {
-				case 'tvl':
-					sample[variable.key] = 1500000000 // 1.5B
-					break
-				case 'mcap':
-					sample[variable.key] = 2000000000 // 2B
-					break
-				case 'fees_24h':
-					sample[variable.key] = 250000 // 250K
-					break
-				case 'fees_7d':
-					sample[variable.key] = 1750000 // 1.75M
-					break
-				case 'revenue_24h':
-					sample[variable.key] = 150000 // 150K
-					break
-				case 'revenue_7d':
-					sample[variable.key] = 1050000 // 1.05M
-					break
-				case 'volume_24h':
-					sample[variable.key] = 50000000 // 50M
-					break
-				case 'volume_7d':
-					sample[variable.key] = 350000000 // 350M
-					break
-				case 'change_1d':
-					sample[variable.key] = 5.2
-					break
-				case 'change_7d':
-					sample[variable.key] = -12.8
-					break
-				default:
-					// Generate realistic random numbers based on the variable name
-					if (variable.key.includes('tvl') || variable.key.includes('mcap')) {
-						sample[variable.key] = Math.floor(Math.random() * 5000000000) // Up to 5B
-					} else if (variable.key.includes('volume')) {
-						sample[variable.key] = Math.floor(Math.random() * 100000000) // Up to 100M
-					} else if (variable.key.includes('fees') || variable.key.includes('revenue')) {
-						sample[variable.key] = Math.floor(Math.random() * 2000000) // Up to 2M
-					} else if (variable.key.includes('change')) {
-						sample[variable.key] = (Math.random() - 0.5) * 40 // -20% to +20%
-					} else {
-						sample[variable.key] = Math.floor(Math.random() * 1000000) // Default up to 1M
-					}
-			}
-		})
+		for (const variable of availableVariables) {
+			sample[variable.key] = getSampleValue(variable.key)
+		}
 		return sample
 	}, [availableVariables])
+
+	const sampleDataPreview = React.useMemo(
+		() =>
+			Object.entries(sampleData)
+				.slice(0, 3)
+				.map(([key, value]) => `${key}=${formatPreviewNumber(value)}`)
+				.join(', '),
+		[sampleData]
+	)
 
 	const validateExpression = (expression: string): { isValid: boolean; error?: string } => {
 		if (!expression.trim()) {
@@ -195,9 +213,9 @@ export function CustomColumnPanel({
 
 			// Test with dummy data to catch variable issues
 			const testData: Record<string, number> = {}
-			availableVariables.forEach((variable) => {
+			for (const variable of availableVariables) {
 				testData[variable.key] = 100
-			})
+			}
 
 			expr.evaluate(testData)
 			return { isValid: true }
@@ -367,32 +385,6 @@ export function CustomColumnPanel({
 		}
 	}, [newColumnExpression, sampleData])
 
-	// Format number for display
-	const formatPreviewNumber = (value: number | null): string => {
-		if (value === null || value === undefined) return '-'
-
-		if (Math.abs(value) >= 1e9) {
-			return `$${(value / 1e9).toFixed(2)}B`
-		} else if (Math.abs(value) >= 1e6) {
-			return `$${(value / 1e6).toFixed(2)}M`
-		} else if (Math.abs(value) >= 1e3) {
-			return `$${(value / 1e3).toFixed(2)}K`
-		} else {
-			return value.toFixed(2)
-		}
-	}
-
-	const handleMouseDown = (e: React.MouseEvent) => {
-		// Prevent drag events from bubbling up to dashboard
-		e.stopPropagation()
-	}
-
-	const handleDragStart = (e: React.DragEvent) => {
-		// Prevent any drag operations within the panel
-		e.preventDefault()
-		e.stopPropagation()
-	}
-
 	return (
 		<div
 			className="space-y-6"
@@ -402,17 +394,17 @@ export function CustomColumnPanel({
 		>
 			{/* Add New Custom Column */}
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-				<h5 className="pro-text1 mb-3 text-sm font-medium">Create Custom Column</h5>
+				<h5 className="mb-3 text-sm font-medium pro-text1">Create Custom Column</h5>
 
 				<div className="space-y-3">
 					<div>
-						<label className="pro-text2 mb-1 block text-xs font-medium">Column Name</label>
+						<label className="mb-1 block text-xs font-medium pro-text2">Column Name</label>
 						<input
 							type="text"
 							value={newColumnName}
 							onChange={(e) => setNewColumnName(e.target.value)}
 							placeholder="e.g., P/E Ratio, Custom Metric"
-							className="pro-border pro-text1 placeholder:pro-text3 w-full rounded-md border bg-(--bg-glass) px-3 py-2 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+							className="w-full rounded-md border pro-border bg-(--bg-glass) px-3 py-2 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
 							onMouseDown={(e) => e.stopPropagation()}
 							onDragStart={(e) => e.preventDefault()}
 							draggable={false}
@@ -420,7 +412,7 @@ export function CustomColumnPanel({
 					</div>
 
 					<div>
-						<label className="pro-text2 mb-1 block text-xs font-medium">Expression</label>
+						<label className="mb-1 block text-xs font-medium pro-text2">Expression</label>
 						<div className="relative">
 							<input
 								ref={inputRef}
@@ -433,7 +425,7 @@ export function CustomColumnPanel({
 									setTimeout(() => setShowAutocomplete(false), 150)
 								}}
 								placeholder="e.g., tvl / mcap, (fees_24h + revenue_24h) * 365, tvl * 0.1"
-								className={`pro-text1 placeholder:pro-text3 w-full rounded-md border bg-(--bg-glass) px-3 py-2 text-sm transition-colors focus:outline-hidden ${
+								className={`w-full rounded-md border bg-(--bg-glass) px-3 py-2 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:outline-hidden ${
 									newColumnExpression && !liveValidation.isValid
 										? 'border-red-500 focus:border-red-500'
 										: newColumnExpression && liveValidation.isValid
@@ -448,7 +440,7 @@ export function CustomColumnPanel({
 							{/* Autocomplete dropdown */}
 							{showAutocomplete && filteredSuggestions.length > 0 && (
 								<div
-									className="thin-scrollbar absolute z-50 mt-1 max-h-64 overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg"
+									className="absolute z-50 mt-1 thin-scrollbar max-h-64 overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg"
 									style={{
 										width: '320px',
 										minWidth: '280px',
@@ -477,11 +469,11 @@ export function CustomColumnPanel({
 												}`}
 											/>
 											<code className="min-w-0 shrink-0 text-sm">{suggestion.display}</code>
-											<span className="pro-text3 ml-auto truncate text-xs">{suggestion.description}</span>
+											<span className="ml-auto truncate text-xs pro-text3">{suggestion.description}</span>
 										</div>
 									))}
 									{filteredSuggestions.length === 0 && autocompleteFilter && (
-										<div className="pro-text3 px-3 py-2 text-sm">No suggestions found for "{autocompleteFilter}"</div>
+										<div className="px-3 py-2 text-sm pro-text3">No suggestions found for "{autocompleteFilter}"</div>
 									)}
 								</div>
 							)}
@@ -497,7 +489,7 @@ export function CustomColumnPanel({
 							)}
 						</div>
 
-						<p className="pro-text3 mt-1 text-xs">
+						<p className="mt-1 text-xs pro-text3">
 							💡 Start typing to see autocomplete suggestions. Use ↑↓ to navigate, Enter/Tab to select, Esc to close, or
 							Ctrl+Space to open.
 						</p>
@@ -508,11 +500,11 @@ export function CustomColumnPanel({
 								className={`mt-2 rounded border p-2 text-xs ${
 									liveValidation.isValid
 										? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
-										: 'border-(--error) bg-[color:oklch(0.94_0.01_71.72_/0.08)]'
+										: 'border-(--error) bg-[oklch(0.94_0.01_71.72_/0.08)]'
 								}`}
 							>
 								<div className="flex items-center justify-between">
-									<span className="pro-text2 font-medium">Live Preview:</span>
+									<span className="font-medium pro-text2">Live Preview:</span>
 									{liveValidation.isValid ? (
 										<span className="text-green-700 dark:text-green-300">
 											{formatPreviewNumber(liveValidation.result || null)}
@@ -522,27 +514,20 @@ export function CustomColumnPanel({
 									)}
 								</div>
 								{liveValidation.isValid && (
-									<div className="pro-text3 mt-1 text-xs">
-										Using sample data:{' '}
-										{Object.entries(sampleData)
-											.slice(0, 3)
-											.map(([key, value]) => `${key}=${formatPreviewNumber(value)}`)
-											.join(', ')}
-										...
-									</div>
+									<div className="mt-1 text-xs pro-text3">Using sample data: {sampleDataPreview}...</div>
 								)}
 							</div>
 						)}
 
 						{/* Quick Operator Buttons - Compact */}
 						<div className="mt-2 flex flex-wrap gap-1">
-							<span className="pro-text3 mr-2 text-xs">Quick operators:</span>
+							<span className="mr-2 text-xs pro-text3">Quick operators:</span>
 							{['+', '-', '*', '/', '(', ')'].map((operator) => (
 								<button
 									key={operator}
 									type="button"
 									onClick={() => insertOperator(operator)}
-									className="pro-border pro-hover-bg pro-text2 rounded-md border bg-(--bg-glass) px-2 py-1 text-xs transition-colors"
+									className="rounded-md border pro-border bg-(--bg-glass) pro-hover-bg px-2 py-1 text-xs pro-text2 transition-colors"
 									onMouseDown={(e) => e.stopPropagation()}
 									onDragStart={(e) => e.preventDefault()}
 									draggable={false}
@@ -554,7 +539,7 @@ export function CustomColumnPanel({
 					</div>
 
 					{validationError && (
-						<div className="border border-(--error) bg-[color:oklch(0.94_0.01_71.72_/0.08)] p-2 text-xs text-(--error)">
+						<div className="border border-(--error) bg-[oklch(0.94_0.01_71.72_/0.08)] p-2 text-xs text-(--error)">
 							{validationError}
 						</div>
 					)}
@@ -571,16 +556,16 @@ export function CustomColumnPanel({
 
 			{/* Available Variables Reference - Compact */}
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<h5 className="pro-text2 mb-2 text-sm font-medium">Available Variables</h5>
-				<p className="pro-text3 mb-2 text-xs">Click any variable to add it to your expression</p>
-				<div className="thin-scrollbar grid max-h-32 grid-cols-3 gap-1 overflow-y-auto md:grid-cols-4 lg:grid-cols-6">
+				<h5 className="mb-2 text-sm font-medium pro-text2">Available Variables</h5>
+				<p className="mb-2 text-xs pro-text3">Click any variable to add it to your expression</p>
+				<div className="grid thin-scrollbar max-h-32 grid-cols-3 gap-1 overflow-y-auto md:grid-cols-4 lg:grid-cols-6">
 					{availableVariables.map((variable) => (
 						<button
 							key={variable.key}
 							type="button"
 							onClick={() => insertVariable(variable.key)}
 							title={variable.name}
-							className="pro-border pro-hover-bg rounded-md border bg-(--bg-glass) p-1 text-center text-xs transition-colors"
+							className="rounded-md border pro-border bg-(--bg-glass) pro-hover-bg p-1 text-center text-xs transition-colors"
 							onMouseDown={(e) => e.stopPropagation()}
 							onDragStart={(e) => e.preventDefault()}
 							draggable={false}
@@ -589,7 +574,7 @@ export function CustomColumnPanel({
 						</button>
 					))}
 				</div>
-				<div className="pro-text3 mt-2 text-xs">
+				<div className="mt-2 text-xs pro-text3">
 					Sample values:{' '}
 					{Object.entries(sampleData)
 						.slice(0, 4)
@@ -601,20 +586,20 @@ export function CustomColumnPanel({
 			{/* Existing Custom Columns - Read Only */}
 			{customColumns.length > 0 && (
 				<div className="space-y-3">
-					<h5 className="pro-text2 text-sm font-medium">Custom Columns ({customColumns.length})</h5>
+					<h5 className="text-sm font-medium pro-text2">Custom Columns ({customColumns.length})</h5>
 					{customColumns.map((column) => (
 						<div key={column.id} className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 							<div className="flex items-center justify-between">
 								<div className="flex-1">
 									<div className="mb-1 flex items-center gap-2">
-										<span className="pro-text1 text-sm font-medium">{column.name}</span>
+										<span className="text-sm font-medium pro-text1">{column.name}</span>
 										{column.isValid ? (
 											<Icon name="check" height={12} width={12} className="text-(--success)" />
 										) : (
 											<Icon name="x" height={12} width={12} className="text-(--error)" />
 										)}
 									</div>
-									<div className="pro-text2 pro-border rounded-md border bg-(--bg-glass) px-2 py-1 text-xs">
+									<div className="rounded-md border pro-border bg-(--bg-glass) px-2 py-1 text-xs pro-text2">
 										{column.expression}
 									</div>
 									{!column.isValid && column.errorMessage && (
@@ -623,7 +608,7 @@ export function CustomColumnPanel({
 								</div>
 								<button
 									onClick={() => onRemoveCustomColumn(column.id)}
-									className="pro-text3 ml-3 rounded-md transition-colors hover:text-(--error)"
+									className="ml-3 rounded-md pro-text3 transition-colors hover:text-(--error)"
 									title="Delete custom column"
 								>
 									<Icon name="trash-2" height={14} width={14} />
@@ -636,19 +621,19 @@ export function CustomColumnPanel({
 
 			{/* Examples */}
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-				<h5 className="pro-text2 mb-3 text-sm font-medium">Example Expressions</h5>
+				<h5 className="mb-3 text-sm font-medium pro-text2">Example Expressions</h5>
 				<div className="space-y-2 text-xs">
 					<div>
 						<code className="text-(--primary)">(fees_24h + revenue_24h) * 365</code>
-						<span className="pro-text3 ml-2">Annualized fees + revenue</span>
+						<span className="ml-2 pro-text3">Annualized fees + revenue</span>
 					</div>
 					<div>
 						<code className="text-(--primary)">volume_24h / tvl</code>
-						<span className="pro-text3 ml-2">Volume to TVL ratio</span>
+						<span className="ml-2 pro-text3">Volume to TVL ratio</span>
 					</div>
 					<div>
 						<code className="text-(--primary)">(change_1d + change_7d) / 2</code>
-						<span className="pro-text3 ml-2">Average price change</span>
+						<span className="ml-2 pro-text3">Average price change</span>
 					</div>
 				</div>
 			</div>

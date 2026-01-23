@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -12,9 +11,9 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { Icon } from '~/components/Icon'
-import { TagGroup } from '~/components/TagGroup'
-import useWindowSize from '~/hooks/useWindowSize'
+import * as React from 'react'
+import { useTableSearch } from '~/components/Table/utils'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -27,6 +26,8 @@ interface StablecoinsDatasetProps {
 	chain: string
 }
 
+const EMPTY_DATA: any[] = []
+
 export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'mcap', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -38,10 +39,10 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 	})
 
 	const { data, isLoading, error } = useStablecoinsData(chain)
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
-		data: data || [],
+		data: data ?? EMPTY_DATA,
 		columns: stablecoinsDatasetColumns as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -58,7 +59,8 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {
@@ -75,33 +77,21 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [windowSize])
+	}, [instance, width])
 
-	const [projectName, setProjectName] = React.useState('')
-
-	React.useEffect(() => {
-		const columns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			if (columns) {
-				columns.setFilterValue(projectName)
-			}
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance])
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	if (isLoading) {
 		return (
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-lg font-semibold">{chain} Stablecoins</h3>
+						<h3 className="text-lg font-semibold pro-text1">{chain} Stablecoins</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<LoadingSpinner />
-					<p className="pro-text2 text-sm">Loading stablecoin data...</p>
+					<p className="text-sm pro-text2">Loading stablecoin data...</p>
 				</div>
 			</div>
 		)
@@ -112,11 +102,11 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-lg font-semibold">{chain} Stablecoins</h3>
+						<h3 className="text-lg font-semibold pro-text1">{chain} Stablecoins</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 items-center justify-center">
-					<div className="pro-text2 text-center">Failed to load stablecoins data</div>
+					<div className="text-center pro-text2">Failed to load stablecoins data</div>
 				</div>
 			</div>
 		)
@@ -126,7 +116,7 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 		<div className="flex h-full w-full flex-col p-4">
 			<div className="mb-3">
 				<div className="flex flex-wrap items-center justify-end gap-4">
-					<h3 className="pro-text1 mr-auto text-lg font-semibold">{chain} Stablecoins</h3>
+					<h3 className="mr-auto text-lg font-semibold pro-text1">{chain} Stablecoins</h3>
 					<div className="flex flex-wrap items-center justify-end gap-2">
 						<ProTableCSVButton
 							onClick={() => {
@@ -157,7 +147,7 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 							placeholder="Search stablecoins..."
 							value={projectName}
 							onChange={(e) => setProjectName(e.target.value)}
-							className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+							className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>
 				</div>

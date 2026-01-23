@@ -1,16 +1,19 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
-import { dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
+import { type Dashboard, dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
 import type { LlamaAIChartConfig } from '~/containers/ProDashboard/types'
 import { addItemToDashboard } from '~/containers/ProDashboard/utils/dashboardItemsUtils'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import type { DashboardChartConfig, LlamaAIChartInput } from './AddToDashboardButton'
+
+const EMPTY_DASHBOARDS: Dashboard[] = []
+const EMPTY_UNSUPPORTED_METRICS: string[] = []
 
 interface AddToDashboardModalProps {
 	dialogStore: Ariakit.DialogStore
@@ -57,12 +60,13 @@ export function AddToDashboardModal({
 	dialogStore,
 	chartConfig,
 	llamaAIChart,
-	unsupportedMetrics = []
+	unsupportedMetrics = EMPTY_UNSUPPORTED_METRICS
 }: AddToDashboardModalProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
 	const { authorizedFetch, isAuthenticated, hasActiveSubscription } = useAuthContext()
-	const { data: dashboards = [], isLoading: isLoadingDashboards } = useGetLiteDashboards()
+	const { data: dashboardsData, isLoading: isLoadingDashboards } = useGetLiteDashboards()
+	const dashboards = dashboardsData ?? EMPTY_DASHBOARDS
 
 	const [search, setSearch] = useState('')
 	const [selectedDashboardId, setSelectedDashboardId] = useState<string | null>(null)
@@ -237,38 +241,38 @@ export function AddToDashboardModal({
 	return (
 		<Ariakit.Dialog
 			store={dialogStore}
-			className="dialog pro-dashboard w-full max-w-md gap-0 border border-(--cards-border) bg-(--cards-bg) p-4 shadow-2xl"
+			className="dialog w-full max-w-md gap-0 border pro-dashboard border-(--cards-border) bg-(--cards-bg) p-4 shadow-2xl"
 			unmountOnHide
 			portal
 			hideOnInteractOutside
 		>
 			<div className="mb-4 flex items-center justify-between">
-				<h2 className="pro-text1 text-base font-semibold">Add to Dashboard</h2>
-				<Ariakit.DialogDismiss className="pro-hover-bg pro-text2 rounded-md p-1 transition-colors">
+				<h2 className="text-base font-semibold pro-text1">Add to Dashboard</h2>
+				<Ariakit.DialogDismiss className="rounded-md pro-hover-bg p-1 pro-text2">
 					<Icon name="x" height={18} width={18} />
 				</Ariakit.DialogDismiss>
 			</div>
 
 			<div className="relative mb-3">
-				<Icon name="search" className="pro-text3 absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2" />
+				<Icon name="search" className="absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 pro-text3" />
 				<input
 					type="text"
 					value={search}
 					onChange={(e) => setSearch(e.target.value)}
 					placeholder="Search dashboards..."
-					className="pro-border pro-text1 placeholder:pro-text3 w-full rounded-md border py-2 pr-3 pl-9 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+					className="w-full rounded-md border pro-border py-2 pr-3 pl-9 text-sm pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 				/>
 			</div>
 
-			<div className="thin-scrollbar mb-3 max-h-60 overflow-y-auto">
+			<div className="mb-3 thin-scrollbar max-h-60 overflow-y-auto">
 				{isLoadingDashboards ? (
 					<div className="flex items-center justify-center py-6">
 						<div className="h-5 w-5 animate-spin rounded-full border-2 border-(--primary) border-t-transparent" />
 					</div>
 				) : filteredDashboards.length === 0 && !search ? (
-					<p className="pro-text3 py-4 text-center text-sm">No dashboards yet</p>
+					<p className="py-4 text-center text-sm pro-text3">No dashboards yet</p>
 				) : filteredDashboards.length === 0 ? (
-					<p className="pro-text3 py-4 text-center text-sm">No matches found</p>
+					<p className="py-4 text-center text-sm pro-text3">No matches found</p>
 				) : (
 					<div className="space-y-1">
 						{filteredDashboards.map((dashboard) => (
@@ -276,12 +280,12 @@ export function AddToDashboardModal({
 								key={dashboard.id}
 								type="button"
 								onClick={() => handleSelectDashboard(dashboard.id)}
-								className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
-									selectedDashboardId === dashboard.id ? 'bg-(--primary)/10 text-(--primary)' : 'pro-text1 pro-hover-bg'
+								className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${
+									selectedDashboardId === dashboard.id ? 'bg-(--primary)/10 text-(--primary)' : 'pro-hover-bg pro-text1'
 								}`}
 							>
 								<div
-									className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border ${
+									className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
 										selectedDashboardId === dashboard.id ? 'border-(--primary) bg-(--primary)' : 'pro-border'
 									}`}
 								>
@@ -295,9 +299,9 @@ export function AddToDashboardModal({
 			</div>
 
 			<div className="mb-3 flex items-center gap-2">
-				<div className="pro-border h-px flex-1 border-t" />
-				<span className="pro-text3 text-xs">or</span>
-				<div className="pro-border h-px flex-1 border-t" />
+				<div className="h-px flex-1 border-t pro-border" />
+				<span className="text-xs pro-text3">or</span>
+				<div className="h-px flex-1 border-t pro-border" />
 			</div>
 
 			<div className="mb-4">
@@ -308,13 +312,13 @@ export function AddToDashboardModal({
 						onChange={(e) => setNewDashboardName(e.target.value)}
 						placeholder="New dashboard name..."
 						autoFocus
-						className="pro-text1 placeholder:pro-text3 w-full rounded-md border border-(--primary) px-3 py-2 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+						className="w-full rounded-md border border-(--primary) px-3 py-2 text-sm pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					/>
 				) : (
 					<button
 						type="button"
 						onClick={handleCreateNew}
-						className="pro-text2 hover:pro-text1 pro-hover-bg flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
+						className="flex w-full items-center gap-2 rounded-md pro-hover-bg px-2 py-1.5 text-sm pro-text2 hover:pro-text1"
 					>
 						<Icon name="plus" className="h-4 w-4" />
 						<span>Create new dashboard</span>
@@ -322,14 +326,14 @@ export function AddToDashboardModal({
 				)}
 			</div>
 
-			<div className="pro-border mb-4 border-t pt-4">
-				<label className="pro-text3 mb-1.5 block text-xs">Chart name (optional)</label>
+			<div className="mb-4 border-t pro-border pt-4">
+				<label className="mb-1.5 block text-xs pro-text3">Chart name (optional)</label>
 				<input
 					type="text"
 					value={chartName}
 					onChange={(e) => setChartName(e.target.value)}
 					placeholder={configName || 'Enter chart name...'}
-					className="pro-border pro-text1 placeholder:pro-text3 w-full rounded-md border px-3 py-2 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+					className="w-full rounded-md border pro-border px-3 py-2 text-sm pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 				/>
 			</div>
 
@@ -345,7 +349,7 @@ export function AddToDashboardModal({
 			<div className="flex gap-2">
 				<Ariakit.DialogDismiss
 					disabled={isAdding}
-					className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex-1 rounded-md border px-3 py-2 text-sm transition-colors disabled:opacity-50"
+					className="flex-1 rounded-md border pro-border pro-hover-bg px-3 py-2 text-sm pro-text2 hover:pro-text1 disabled:opacity-50"
 				>
 					Cancel
 				</Ariakit.DialogDismiss>
@@ -353,8 +357,8 @@ export function AddToDashboardModal({
 					type="button"
 					onClick={handleAdd}
 					disabled={isAdding || !canSubmit}
-					className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-						canSubmit ? 'pro-btn-purple' : 'pro-border pro-text3 cursor-not-allowed border'
+					className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${
+						canSubmit ? 'pro-btn-purple' : 'cursor-not-allowed border pro-border pro-text3'
 					}`}
 				>
 					{isAdding ? (

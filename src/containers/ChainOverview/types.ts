@@ -1,4 +1,4 @@
-import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 import { ChainChartLabels } from './constants'
 
 export interface IChainMetadata {
@@ -33,6 +33,13 @@ export interface IChainOverviewData {
 	metadata: IChainMetadata
 	protocols: Array<IProtocol>
 	tvlChart: Array<[number, number]>
+	/** Pre-computed TVL values to avoid client-side iteration */
+	tvlChartSummary: {
+		totalValueUSD: number | null
+		tvlPrevDay: number | null
+		valueChange24hUSD: number | null
+		change24h: number | null
+	}
 	extraTvlCharts: {
 		staking: Record<string, number>
 		borrowed: Record<string, number>
@@ -138,7 +145,7 @@ export interface ILiteProtocol {
 	tvlPrevWeek: number
 	tvlPrevMonth: number
 	chainTvls: Record<
-		(typeof DEFI_SETTINGS)[keyof typeof DEFI_SETTINGS],
+		(typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS],
 		{
 			tvl: number
 			tvlPrevDay: number
@@ -174,7 +181,7 @@ export interface ILiteParentProtocol {
 	mcap: number
 }
 
-export type TVL_TYPES = (typeof DEFI_SETTINGS)[keyof typeof DEFI_SETTINGS] | 'default' | 'excludeParent'
+export type TVL_TYPES = (typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS] | 'default' | 'excludeParent'
 
 export interface IChildProtocol {
 	name: string

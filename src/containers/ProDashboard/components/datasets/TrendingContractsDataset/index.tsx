@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -13,8 +12,10 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
+import * as React from 'react'
+import { useTableSearch } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -22,6 +23,17 @@ import { TableBody } from '../../ProTable/TableBody'
 import { TablePagination } from '../../ProTable/TablePagination'
 import { trendingContractsColumns } from './columns'
 import { useTrendingContractsData } from './useTrendingContractsData'
+
+const TIME_VALUES = ['1d', '7d', '30d'] as const
+const CHAIN_VALUES = ['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base'] as const
+const EMPTY_RESULTS: any[] = []
+const TRENDING_CONTRACTS_COLUMNS_BY_CHAIN = {
+	ethereum: trendingContractsColumns('ethereum'),
+	arbitrum: trendingContractsColumns('arbitrum'),
+	polygon: trendingContractsColumns('polygon'),
+	optimism: trendingContractsColumns('optimism'),
+	base: trendingContractsColumns('base')
+} as const
 
 interface TrendingContractsDatasetProps {
 	chain?: string
@@ -34,7 +46,7 @@ interface TrendingContractsDatasetProps {
 export function TrendingContractsDataset({
 	chain: initialChain = 'Ethereum',
 	timeframe: initialTimeframe = '1d',
-	tableId,
+	tableId: _tableId,
 	onChainChange,
 	onTimeframeChange
 }: TrendingContractsDatasetProps) {
@@ -53,13 +65,16 @@ export function TrendingContractsDataset({
 
 	const activeChain = chain.toLowerCase()
 	const { data, isLoading, error } = useTrendingContractsData(activeChain, timeframe)
-	const results = data?.results ?? []
+	const results = data?.results ?? EMPTY_RESULTS
+	const columns =
+		TRENDING_CONTRACTS_COLUMNS_BY_CHAIN[activeChain as keyof typeof TRENDING_CONTRACTS_COLUMNS_BY_CHAIN] ??
+		trendingContractsColumns(activeChain)
 
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data: results,
-		columns: trendingContractsColumns(activeChain) as ColumnDef<any>[],
+		columns: columns as ColumnDef<any>[],
 		state: {
 			sorting,
 			columnOrder,
@@ -77,7 +92,8 @@ export function TrendingContractsDataset({
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {
@@ -94,33 +110,21 @@ export function TrendingContractsDataset({
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [windowSize, instance])
+	}, [width, instance])
 
-	const [contractSearch, setContractSearch] = React.useState('')
-
-	React.useEffect(() => {
-		const columns = instance.getColumn('contract')
-
-		const id = setTimeout(() => {
-			if (columns) {
-				columns.setFilterValue(contractSearch)
-			}
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [contractSearch, instance])
+	const [contractSearch, setContractSearch] = useTableSearch({ instance, columnToSearch: 'contract' })
 
 	if (isLoading) {
 		return (
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-lg font-semibold">Trending Contracts</h3>
+						<h3 className="text-lg font-semibold pro-text1">Trending Contracts</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<LoadingSpinner />
-					<p className="pro-text2 text-sm">Loading trending contracts...</p>
+					<p className="text-sm pro-text2">Loading trending contracts...</p>
 				</div>
 			</div>
 		)
@@ -131,11 +135,11 @@ export function TrendingContractsDataset({
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-lg font-semibold">Trending Contracts</h3>
+						<h3 className="text-lg font-semibold pro-text1">Trending Contracts</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 items-center justify-center">
-					<div className="pro-text2 text-center">Failed to load trending contracts</div>
+					<div className="text-center pro-text2">Failed to load trending contracts</div>
 				</div>
 			</div>
 		)
@@ -145,7 +149,7 @@ export function TrendingContractsDataset({
 		<div className="flex h-full w-full flex-col p-4">
 			<div className="mb-3">
 				<div className="flex flex-wrap items-center justify-end gap-4">
-					<h3 className="pro-text1 mr-auto text-lg font-semibold">Trending Contracts</h3>
+					<h3 className="mr-auto text-lg font-semibold pro-text1">Trending Contracts</h3>
 					<div className="flex flex-wrap items-center justify-end gap-2">
 						<TagGroup
 							selectedValue={timeframe}
@@ -155,7 +159,7 @@ export function TrendingContractsDataset({
 									onTimeframeChange(val)
 								}
 							}}
-							values={['1d', '7d', '30d']}
+							values={TIME_VALUES}
 							containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
 							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary) data-[active=true]:text-white"
 						/>
@@ -167,7 +171,7 @@ export function TrendingContractsDataset({
 									onChainChange(val)
 								}
 							}}
-							values={['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base']}
+							values={CHAIN_VALUES}
 							containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
 							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary) data-[active=true]:text-white"
 						/>
@@ -210,7 +214,7 @@ export function TrendingContractsDataset({
 							placeholder="Search contracts..."
 							value={contractSearch}
 							onChange={(e) => setContractSearch(e.target.value)}
-							className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+							className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>
 				</div>

@@ -35,13 +35,13 @@ function AnimatedDots() {
 export const ResearchProgress = memo(function ResearchProgress({
 	isActive,
 	startTime,
-	currentIteration,
-	totalIterations,
+	currentIteration: _currentIteration,
+	totalIterations: _totalIterations,
 	phase,
 	dimensionsCovered,
 	dimensionsPending,
 	discoveries,
-	toolsExecuted,
+	toolsExecuted: _toolsExecuted,
 	progressMessage
 }: ResearchProgressProps) {
 	const [elapsed, setElapsed] = useState(0)
@@ -67,7 +67,7 @@ export const ResearchProgress = memo(function ResearchProgress({
 				onClick={() => setIsExpanded(!isExpanded)}
 				className="flex items-center gap-2 text-left sm:gap-3"
 			>
-				<img src="/assets/llamaai_animation.webp" alt="" className="h-6 w-6 shrink-0" />
+				<img src="/assets/llamaai/llamaai_animation.webp" alt="" className="h-6 w-6 shrink-0" />
 
 				<div className="flex flex-1 flex-col gap-0.5 overflow-hidden">
 					<span className="truncate text-xs text-[#666] sm:text-sm dark:text-[#919296]">{progressMessage}</span>

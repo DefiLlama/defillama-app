@@ -29,12 +29,13 @@ export const getStaticProps = withPerformanceLogging(
 
 		const data = await getProtocolOverviewPageData({
 			protocolId: slug(exchangeData.slug),
-			metadata: {
+			currentProtocolMetadata: {
 				displayName: exchangeData.slug?.split('-')?.join(' ') ?? exchangeData.name,
 				tvl: true,
 				stablecoins: true
 			},
-			isCEX: true
+			isCEX: true,
+			chainMetadata: metadataCache.chainMetadata
 		})
 
 		if (!data) {

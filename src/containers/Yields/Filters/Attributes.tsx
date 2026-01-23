@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { badDebt, lockupsCollateral } from '~/containers/Yields/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
@@ -169,8 +169,7 @@ function filterAttributeOptions(option, pathname) {
 
 export function YieldAttributes({ pathname, nestedMenu }: { pathname: string; nestedMenu?: boolean }) {
 	const router = useRouter()
-
-	const { attribute = [], ...queries } = router.query
+	const { attribute = [] } = router.query
 
 	const { attributeOptionsFiltered, selectedAttributes } = useMemo(() => {
 		const attributeOptionsFiltered = attributeOptions.filter((option) => filterAttributeOptions(option, pathname))
@@ -195,59 +194,15 @@ export function YieldAttributes({ pathname, nestedMenu }: { pathname: string; ne
 		return { attributeOptionsFiltered, values, selectedAttributes }
 	}, [attribute, pathname, router.pathname])
 
-	const setSelectedValues = (newFilters) => {
-		router.push(
-			{
-				pathname,
-				query: {
-					...queries,
-					attribute: newFilters
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const toggleAll = () => {
-		router.push(
-			{
-				pathname,
-				query: {
-					...queries,
-					attribute: attributeOptionsFiltered.map((o) => o.key)
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const clearAll = () => {
-		router.push(
-			{
-				pathname,
-				query: {
-					...queries,
-					attribute: []
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
 	return (
 		<SelectWithCombobox
 			allValues={attributeOptionsFiltered}
 			selectedValues={selectedAttributes}
-			setSelectedValues={setSelectedValues}
-			toggleAll={toggleAll}
-			clearAll={clearAll}
-			selectOnlyOne={setSelectedValues}
 			label="Attributes"
 			labelType="regular"
 			nestedMenu={nestedMenu}
+			includeQueryKey="attribute"
+			excludeQueryKey="excludeAttribute"
 		/>
 	)
 }

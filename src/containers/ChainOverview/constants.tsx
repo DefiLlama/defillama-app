@@ -73,8 +73,11 @@ export const BAR_CHARTS: ChainChartLabels[] = [
 
 export const DISABLED_CUMULATIVE_CHARTS: ChainChartLabels[] = ['Core Developers', 'Devs Commits']
 
-export const chainOverviewChartColors = Object.fromEntries(
-	Object.keys(chainCharts).map((chart, index) => [chart as ChainChartLabels, CHART_COLORS[index]])
-) as {
+const chainOverviewChartColorsRecord: Record<string, string> = {}
+let chartColorIndex = 0
+for (const chart in chainCharts) {
+	chainOverviewChartColorsRecord[chart] = CHART_COLORS[chartColorIndex++]
+}
+export const chainOverviewChartColors = chainOverviewChartColorsRecord as {
 	[K in keyof typeof chainCharts]: string
 }

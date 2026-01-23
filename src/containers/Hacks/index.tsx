@@ -1,5 +1,3 @@
-import * as React from 'react'
-import { NextRouter, useRouter } from 'next/router'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -9,17 +7,28 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { prepareChartCsv } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { VirtualTable } from '~/components/Table/Table'
+import { useTableSearch } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
+import { CHART_COLORS } from '~/constants/colors'
 import Layout from '~/layout'
-import { capitalizeFirstLetter, formattedNum, slug, toNiceDayMonthAndYear, toNumberOrNullFromQueryParam } from '~/utils'
-import { HacksFilters } from './filters'
+import {
+	capitalizeFirstLetter,
+	firstDayOfMonth,
+	formattedNum,
+	toNiceDayMonthAndYear,
+	toNumberOrNullFromQueryParam
+} from '~/utils'
+import { HacksFilters } from './Filterss'
 import { IHacksPageData } from './queries'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -32,7 +41,7 @@ const columnResizeMode = 'onChange'
 function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
-	const [projectName, setProjectName] = React.useState('')
+
 	const instance = useReactTable({
 		data: data,
 		columns: hacksColumns,
@@ -41,6 +50,9 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 			columnFilters,
 			sorting
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
 		getFilteredRowModel: getFilteredRowModel(),
@@ -48,17 +60,9 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 		getSortedRowModel: getSortedRowModel()
 	})
 
-	React.useEffect(() => {
-		const projectsColumns = instance.getColumn('name')
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
-		const id = setTimeout(() => {
-			projectsColumns.setFilterValue(projectName)
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance])
-
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		try {
 			let rows: Array<Array<string | number | boolean>> = [
 				['Name', 'Date', 'Amount', 'Chains', 'Classification', 'Target', 'Technique', 'Bridge', 'Language', 'Link']
@@ -70,12 +74,12 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 		} catch (error) {
 			console.log('Error generating CSV:', error)
 		}
-	}, [data])
+	}
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex items-center justify-end gap-2 p-3">
-				<label className="relative w-full sm:max-w-[280px]">
+				<label className="relative mr-auto w-full sm:max-w-[280px]">
 					<span className="sr-only">Search projects...</span>
 					<Icon
 						name="search"
@@ -90,7 +94,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 
@@ -129,26 +133,46 @@ const applyFilters = (
 		techKeys?: Set<string>
 		classKeys?: Set<string>
 		chainKeys?: Set<string>
+		techIncludeNone?: boolean
+		classIncludeNone?: boolean
+		chainIncludeNone?: boolean
 		since?: number | null
 		minLost?: number | null
 		maxLost?: number | null
 	}
 ) => {
+	const toFilterKey = (value: string | null | undefined) => (value ?? '').trim()
+
 	return data.filter((row) => {
-		if (filters.chainKeys && filters.chainKeys.size > 0) {
-			const rowChainKeys = new Set((row.chains || []).map((c) => slug(c)))
-			let hasAny = false
-			for (const k of filters.chainKeys) {
-				if (rowChainKeys.has(k)) {
-					hasAny = true
-					break
+		if (filters.chainKeys && (filters.chainKeys.size > 0 || filters.chainIncludeNone)) {
+			const chains = row.chains || []
+			const matchesNone = Boolean(filters.chainIncludeNone) && chains.length === 0
+			let matchesAny = false
+			if (filters.chainKeys.size > 0) {
+				for (const c of chains) {
+					if (filters.chainKeys.has(toFilterKey(c))) {
+						matchesAny = true
+						break
+					}
 				}
 			}
-			if (!hasAny) return false
+			if (!matchesNone && !matchesAny) return false
 		}
-		if (filters.techKeys && filters.techKeys.size > 0 && !filters.techKeys.has(slug(row.technique))) return false
-		if (filters.classKeys && filters.classKeys.size > 0 && !filters.classKeys.has(slug(row.classification)))
-			return false
+
+		if (filters.techKeys && (filters.techKeys.size > 0 || filters.techIncludeNone)) {
+			const techKey = toFilterKey(row.technique)
+			const matchesNone = Boolean(filters.techIncludeNone) && techKey === ''
+			const matchesAny = filters.techKeys.size > 0 && filters.techKeys.has(techKey)
+			if (!matchesNone && !matchesAny) return false
+		}
+
+		if (filters.classKeys && (filters.classKeys.size > 0 || filters.classIncludeNone)) {
+			const classKey = toFilterKey(row.classification)
+			const matchesNone = Boolean(filters.classIncludeNone) && classKey === ''
+			const matchesAny = filters.classKeys.size > 0 && filters.classKeys.has(classKey)
+			if (!matchesNone && !matchesAny) return false
+		}
+
 		if (filters.since != null && row.date < filters.since) return false
 		if (filters.minLost != null && row.amount < filters.minLost) return false
 		if (filters.maxLost != null && row.amount > filters.maxLost) return false
@@ -161,30 +185,21 @@ const toArrayParam = (p: string | string[] | undefined): string[] => {
 	return Array.isArray(p) ? p.filter(Boolean) : [p].filter(Boolean)
 }
 
-const updateArrayQuery = (key: string, values: string[], router: NextRouter) => {
-	const nextQuery: Record<string, any> = { ...router.query }
-	if (values.length > 0) {
-		nextQuery[key] = values
-	} else {
-		delete nextQuery[key]
-	}
-	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+const isParamNone = (param: string | string[] | undefined) =>
+	param === 'None' || (Array.isArray(param) && param.includes('None'))
+
+const parseArrayParam = (param: string | string[] | undefined, allValues: string[]): string[] => {
+	if (!param) return allValues
+	const values = toArrayParam(param).filter((v) => v !== 'None')
+	const valid = new Set(allValues)
+	return values.filter((value) => valid.has(value))
 }
 
-const timeOptions = ['All', '7D', '30D', '90D', '1Y'] as const
-const labelToKey = {
-	All: 'all',
-	'7D': '7d',
-	'30D': '30d',
-	'90D': '90d',
-	'1Y': '1y'
-} as const
-const keyToLabel: Record<string, (typeof timeOptions)[number]> = {
-	all: 'All',
-	'7d': '7D',
-	'30d': '30D',
-	'90d': '90D',
-	'1y': '1Y'
+// Helper to parse exclude query param to Set
+const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
+	if (!param) return new Set()
+	if (typeof param === 'string') return new Set([param])
+	return new Set(param)
 }
 
 export const HacksContainer = ({
@@ -194,157 +209,163 @@ export const HacksContainer = ({
 	totalHackedDefi,
 	totalRugs,
 	pieChartData,
+	chainOptions,
 	techniqueOptions,
 	classificationOptions
 }: IHacksPageData) => {
 	const [chartType, setChartType] = React.useState('Monthly Sum')
 	const router = useRouter()
-
-	const chainOptions = React.useMemo(() => {
-		const {
-			tech: techQuery,
-			class: classQuery,
-			time: timeQuery,
-			minLost: minLostQuery,
-			maxLost: maxLostQuery
-		} = router.query
-
-		const selectedTechniquesLocal = Array.isArray(techQuery) ? techQuery : techQuery ? [techQuery] : []
-		const selectedClassificationsLocal = Array.isArray(classQuery) ? classQuery : classQuery ? [classQuery] : []
-		const timeQLocal = typeof timeQuery === 'string' ? timeQuery : undefined
-
-		const since = getTimeSinceSeconds(timeQLocal)
-		const minLostValLocal = toNumberOrNullFromQueryParam(minLostQuery)
-		const maxLostValLocal = toNumberOrNullFromQueryParam(maxLostQuery)
-
-		const techKeys = new Set(selectedTechniquesLocal)
-		const classKeys = new Set(selectedClassificationsLocal)
-
-		const eligible = applyFilters(data || [], {
-			techKeys,
-			classKeys,
-			since,
-			minLost: minLostValLocal,
-			maxLost: maxLostValLocal
-		})
-
-		return Array.from(new Set(eligible.flatMap((d) => d.chains || [])))
-			.filter(Boolean)
-			.sort((a, b) => a.localeCompare(b))
-			.map((name) => ({ key: slug(name), name }))
-	}, [data, router.query])
-
-	const { chain: chainQ, tech: techQ, class: classQ, time: timeQ } = router.query
+	const {
+		chain: chainQ,
+		excludeChain,
+		tech: techQ,
+		excludeTech,
+		class: classQ,
+		excludeClass,
+		time: timeQ,
+		minLost,
+		maxLost
+	} = router.query
 
 	const selectedChains = React.useMemo(() => {
-		const qs = toArrayParam(chainQ)
-		const validKeys = new Set(chainOptions.map((o) => o.key))
-		return qs.filter((k) => validKeys.has(k))
-	}, [chainQ, chainOptions])
+		const excludeSet = parseExcludeParam(excludeChain)
+		const selected = parseArrayParam(chainQ, chainOptions)
+		return excludeSet.size > 0 ? selected.filter((c) => !excludeSet.has(c)) : selected
+	}, [chainQ, excludeChain, chainOptions])
 
 	const selectedTechniques = React.useMemo(() => {
-		const qs = toArrayParam(techQ)
-		const validKeys = new Set(techniqueOptions.map((o) => o.key))
-		return qs.filter((k) => validKeys.has(k))
-	}, [techQ, techniqueOptions])
+		const excludeSet = parseExcludeParam(excludeTech)
+		const selected = parseArrayParam(techQ, techniqueOptions)
+		return excludeSet.size > 0 ? selected.filter((t) => !excludeSet.has(t)) : selected
+	}, [techQ, excludeTech, techniqueOptions])
 
 	const selectedClassifications = React.useMemo(() => {
-		const qs = toArrayParam(classQ)
-		const validKeys = new Set(classificationOptions.map((o) => o.key))
-		return qs.filter((k) => validKeys.has(k))
-	}, [classQ, classificationOptions])
-
-	const setSelectedChains = React.useCallback((values: string[]) => updateArrayQuery('chain', values, router), [router])
-	const setSelectedTechniques = React.useCallback(
-		(values: string[]) => updateArrayQuery('tech', values, router),
-		[router]
-	)
-	const setSelectedClassifications = React.useCallback(
-		(values: string[]) => updateArrayQuery('class', values, router),
-		[router]
-	)
-
-	const selectedTimeLabel = (typeof timeQ === 'string' && keyToLabel[timeQ]) || 'All'
-
-	const setSelectedTime = React.useCallback(
-		(label: (typeof timeOptions)[number]) => {
-			const key = labelToKey[label]
-			const nextQuery: Record<string, any> = { ...router.query }
-			if (key && key !== 'all') nextQuery.time = key
-			else delete nextQuery.time
-			router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-		},
-		[router]
-	)
-
-	const { minLost, maxLost } = router.query
-
-	const handleAmountSubmit = React.useCallback(
-		(e) => {
-			e.preventDefault()
-			const form = e.target
-			const min = form.min?.value
-			const max = form.max?.value
-			router.push({ pathname: router.pathname, query: { ...router.query, minLost: min, maxLost: max } }, undefined, {
-				shallow: true
-			})
-		},
-		[router]
-	)
-
-	const handleAmountClear = React.useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		delete nextQuery.minLost
-		delete nextQuery.maxLost
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [router])
+		const excludeSet = parseExcludeParam(excludeClass)
+		const selected = parseArrayParam(classQ, classificationOptions)
+		return excludeSet.size > 0 ? selected.filter((c) => !excludeSet.has(c)) : selected
+	}, [classQ, excludeClass, classificationOptions])
 
 	const minLostVal = toNumberOrNullFromQueryParam(minLost)
 	const maxLostVal = toNumberOrNullFromQueryParam(maxLost)
 
-	const clearAllFilters = React.useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		delete nextQuery.chain
-		delete nextQuery.tech
-		delete nextQuery.class
-		delete nextQuery.start
-		delete nextQuery.end
-		delete nextQuery.minLost
-		delete nextQuery.maxLost
-		delete nextQuery.time
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [router])
+	const hasActiveFilters =
+		typeof chainQ !== 'undefined' ||
+		typeof excludeChain !== 'undefined' ||
+		typeof techQ !== 'undefined' ||
+		typeof excludeTech !== 'undefined' ||
+		typeof classQ !== 'undefined' ||
+		typeof excludeClass !== 'undefined' ||
+		typeof timeQ !== 'undefined' ||
+		minLostVal != null ||
+		maxLostVal != null
 
 	const filteredData = React.useMemo(() => {
-		const chainKeys = new Set(selectedChains)
-		const techKeys = new Set(selectedTechniques)
-		const classKeys = new Set(selectedClassifications)
+		const chainIncludeNone = isParamNone(chainQ)
+		const techIncludeNone = isParamNone(techQ)
+		const classIncludeNone = isParamNone(classQ)
+
+		const chainFilterEnabled = typeof chainQ !== 'undefined' || typeof excludeChain !== 'undefined'
+		const techFilterEnabled = typeof techQ !== 'undefined' || typeof excludeTech !== 'undefined'
+		const classFilterEnabled = typeof classQ !== 'undefined' || typeof excludeClass !== 'undefined'
+
+		const chainKeys = chainFilterEnabled ? new Set(selectedChains) : undefined
+		const techKeys = techFilterEnabled ? new Set(selectedTechniques) : undefined
+		const classKeys = classFilterEnabled ? new Set(selectedClassifications) : undefined
 		const since = getTimeSinceSeconds(typeof timeQ === 'string' ? timeQ : undefined)
 
 		return applyFilters(data || [], {
 			chainKeys,
 			techKeys,
 			classKeys,
+			chainIncludeNone,
+			techIncludeNone,
+			classIncludeNone,
 			since,
 			minLost: minLostVal,
 			maxLost: maxLostVal
 		})
-	}, [data, selectedChains, selectedTechniques, selectedClassifications, timeQ, minLostVal, maxLostVal])
+	}, [
+		data,
+		chainQ,
+		excludeChain,
+		techQ,
+		excludeTech,
+		classQ,
+		excludeClass,
+		selectedChains,
+		selectedTechniques,
+		selectedClassifications,
+		timeQ,
+		minLostVal,
+		maxLostVal
+	])
 
-	const prepareCsv = React.useCallback(() => {
+	const derivedStats = React.useMemo(() => {
+		if (!hasActiveFilters) return null
+
+		const monthlyHacks = new Map<number, number>()
+		const techniqueTotals = new Map<string, number>()
+		let totalHackedRaw = 0
+		let totalHackedDefiRaw = 0
+		let totalRugsRaw = 0
+
+		for (const row of filteredData) {
+			const monthTsMs = firstDayOfMonth(row.date * 1000) * 1e3
+			monthlyHacks.set(monthTsMs, (monthlyHacks.get(monthTsMs) ?? 0) + row.amount)
+
+			totalHackedRaw += row.amount
+			if (row.target === 'DeFi Protocol') totalHackedDefiRaw += row.amount
+			if (row.bridge === true) totalRugsRaw += row.amount
+
+			if (row.technique) {
+				techniqueTotals.set(row.technique, (techniqueTotals.get(row.technique) ?? 0) + row.amount)
+			}
+		}
+
+		const monthlySeries = Array.from(monthlyHacks.entries())
+			.sort((a, b) => a[0] - b[0])
+			.map(([date, value]) => [date, value] as [number, number])
+
+		return {
+			totalHacked: formattedNum(totalHackedRaw, true),
+			totalHackedDefi: formattedNum(totalHackedDefiRaw, true),
+			totalRugs: formattedNum(totalRugsRaw, true),
+			monthlyHacksChartData: {
+				'Total Value Hacked': {
+					name: 'Total Value Hacked',
+					stack: 'Total Value Hacked',
+					type: 'bar',
+					data: monthlySeries,
+					color: CHART_COLORS[0]
+				}
+			} satisfies ILineAndBarChartProps['charts'],
+			pieChartData: preparePieChartData({
+				data: Array.from(techniqueTotals.entries()).map(([name, value]) => ({ name, value })),
+				limit: 15
+			})
+		}
+	}, [filteredData, hasActiveFilters])
+
+	const displayTotalHacked = derivedStats?.totalHacked ?? totalHacked
+	const displayTotalHackedDefi = derivedStats?.totalHackedDefi ?? totalHackedDefi
+	const displayTotalRugs = derivedStats?.totalRugs ?? totalRugs
+	const displayMonthlyHacksChartData = derivedStats?.monthlyHacksChartData ?? monthlyHacksChartData
+	const displayPieChartData = derivedStats?.pieChartData ?? pieChartData
+
+	const prepareCsv = () => {
 		if (chartType === 'Monthly Sum') {
 			return prepareChartCsv(
-				{ 'Total Value Hacked': monthlyHacksChartData['Total Value Hacked'].data },
+				{ 'Total Value Hacked': displayMonthlyHacksChartData['Total Value Hacked'].data },
 				`total-value-hacked.csv`
 			)
 		} else {
 			let rows: Array<Array<string | number>> = [['Technique', 'Value']]
-			for (const { name, value } of pieChartData) {
+			for (const { name, value } of displayPieChartData) {
 				rows.push([name, value])
 			}
 			return { filename: 'total-hacked-by-technique.csv', rows }
 		}
-	}, [monthlyHacksChartData, pieChartData, chartType])
+	}
 
 	return (
 		<Layout
@@ -354,19 +375,27 @@ export const HacksContainer = ({
 			canonicalUrl={`/hacks`}
 			pageName={pageName}
 		>
+			<HacksFilters
+				chainOptions={chainOptions}
+				techniqueOptions={techniqueOptions}
+				classificationOptions={classificationOptions}
+				selectedChains={selectedChains}
+				selectedTechniques={selectedTechniques}
+				selectedClassifications={selectedClassifications}
+			/>
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Total Value Hacked (USD)</span>
-						<span className="font-jetbrains text-2xl font-semibold">{totalHacked}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{displayTotalHacked}</span>
 					</p>
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Total Value Hacked in DeFi (USD)</span>
-						<span className="font-jetbrains text-2xl font-semibold">{totalHackedDefi}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{displayTotalHackedDefi}</span>
 					</p>
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Total Value Hacked in Bridges (USD)</span>
-						<span className="font-jetbrains text-2xl font-semibold">{totalRugs}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{displayTotalRugs}</span>
 					</p>
 				</div>
 				<div className="col-span-2 flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -376,34 +405,15 @@ export const HacksContainer = ({
 					</div>
 					{chartType === 'Monthly Sum' ? (
 						<React.Suspense fallback={<></>}>
-							<LineAndBarChart charts={monthlyHacksChartData} groupBy="monthly" />
+							<LineAndBarChart charts={displayMonthlyHacksChartData} groupBy="monthly" />
 						</React.Suspense>
 					) : (
 						<React.Suspense fallback={<></>}>
-							<PieChart chartData={pieChartData} />
+							<PieChart chartData={displayPieChartData} />
 						</React.Suspense>
 					)}
 				</div>
 			</div>
-			<HacksFilters
-				chainOptions={chainOptions}
-				techniqueOptions={techniqueOptions}
-				classificationOptions={classificationOptions}
-				selectedChains={selectedChains}
-				selectedTechniques={selectedTechniques}
-				selectedClassifications={selectedClassifications}
-				setSelectedChains={setSelectedChains}
-				setSelectedTechniques={setSelectedTechniques}
-				setSelectedClassifications={setSelectedClassifications}
-				timeOptions={timeOptions as unknown as string[]}
-				selectedTimeLabel={selectedTimeLabel}
-				setSelectedTime={setSelectedTime as any}
-				minLostVal={minLostVal}
-				maxLostVal={maxLostVal}
-				handleAmountSubmit={handleAmountSubmit}
-				handleAmountClear={handleAmountClear}
-				onClearAll={clearAllFilters}
-			/>
 			<HacksTable data={filteredData} />
 		</Layout>
 	)

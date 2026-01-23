@@ -1,11 +1,8 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
 	ColumnOrderState,
-	ColumnOrderTableState,
 	ColumnSizingState,
-	ColumnSizingTableState,
 	ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -14,10 +11,11 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
-import useWindowSize from '~/hooks/useWindowSize'
-import { alphanumericFalsyLast } from './utils'
+import { useSortColumnSizesAndOrders, useTableSearch } from './utils'
+import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from './utils'
 
 interface ITableWithSearchProps {
 	data: any[]
@@ -27,8 +25,8 @@ interface ITableWithSearchProps {
 	customFilters?: React.ReactNode
 	header?: string
 	renderSubComponent?: (row: any) => React.ReactNode
-	columnSizes?: ColumnSizingTableState
-	columnOrders?: ColumnOrderTableState
+	columnSizes?: ColumnSizesByBreakpoint | null
+	columnOrders?: ColumnOrdersByBreakpoint | null
 	sortingState: SortingState
 	rowSize?: number
 	compact?: boolean
@@ -64,8 +62,8 @@ export function TableWithSearch({
 			columnSizing,
 			columnOrder
 		},
-		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
@@ -80,31 +78,9 @@ export function TableWithSearch({
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	const [projectName, setProjectName] = React.useState('')
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch })
 
-	React.useEffect(() => {
-		const columns = instance.getColumn(columnToSearch)
-
-		const id = setTimeout(() => {
-			columns.setFilterValue(projectName)
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance, columnToSearch])
-
-	const windowSize = useWindowSize()
-
-	React.useEffect(() => {
-		if (columnSizes && Array.isArray(columnSizes)) {
-			const colSize = windowSize.width ? columnSizes.find((size) => windowSize.width > +size[0]) : columnSizes[0]
-			instance.setColumnSizing(colSize[1])
-		}
-
-		if (columnOrders && Array.isArray(columnOrders)) {
-			const colOrder = windowSize.width ? columnOrders.find((size) => windowSize.width > +size[0]) : columnOrders[0]
-			instance.setColumnOrder(colOrder[1])
-		}
-	}, [instance, windowSize])
+	useSortColumnSizesAndOrders({ instance, columnSizes, columnOrders })
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -124,7 +100,7 @@ export function TableWithSearch({
 							setProjectName(e.target.value)
 						}}
 						placeholder={placeholder}
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 				{customFilters}

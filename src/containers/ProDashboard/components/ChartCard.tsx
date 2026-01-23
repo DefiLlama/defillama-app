@@ -1,10 +1,11 @@
-import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react'
-import * as echarts from 'echarts/core'
+import type * as echarts from 'echarts/core'
+import { lazy, Suspense, useMemo } from 'react'
 import { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select'
 import { Tooltip } from '~/components/Tooltip'
-import { capitalizeFirstLetter, download } from '~/utils'
+import { capitalizeFirstLetter, download, toNiceDayMonthYear } from '~/utils'
+import { useChartImageExport } from '../hooks/useChartImageExport'
 import {
 	useProDashboardCatalog,
 	useProDashboardEditorActions,
@@ -39,8 +40,12 @@ interface ChartRendererProps {
 const userMetricTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
 const percentMetricTypes = ['medianApy']
 const ratioMetricTypes = ['pfRatio', 'psRatio']
+const CUMULATIVE_DISPLAY_OPTIONS = [
+	{ name: 'Show individual values', key: 'Individual' },
+	{ name: 'Show cumulative values', key: 'Cumulative' }
+]
 
-const ChartRenderer = memo(function ChartRenderer({
+function ChartRenderer({
 	type,
 	showCumulative = false,
 	data,
@@ -82,6 +87,9 @@ const ChartRenderer = memo(function ChartRenderer({
 			: percentMetricTypes.includes(type)
 				? '%'
 				: '$'
+	const todayTimestamp = Math.floor(Date.now() / 1000)
+	const todayHallmarks: [number, string][] | null =
+		type === 'unlocks' ? [[todayTimestamp, toNiceDayMonthYear(todayTimestamp)]] : null
 
 	return (
 		<Suspense fallback={<div className="h-[300px]" />}>
@@ -89,22 +97,23 @@ const ChartRenderer = memo(function ChartRenderer({
 				chartType={chartType.chartType === 'bar' && !showCumulative ? 'bar' : 'line'}
 				chartData={data}
 				valueSymbol={valueSymbol}
-				height="300px"
+				height={type === 'unlocks' ? '360px' : '300px'}
 				color={color}
 				hideDataZoom
+				hallmarks={todayHallmarks}
 				onReady={onChartReady}
 			/>
 		</Suspense>
 	)
-})
+}
 
 const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
 
-export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
+export function ChartCard({ chart }: ChartCardProps) {
 	const { getChainInfo, getProtocolInfo } = useProDashboardCatalog()
 	const { handleGroupingChange, handleCumulativeChange } = useProDashboardEditorActions()
 	const { isReadOnly } = useProDashboardPermissions()
-	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
+	const { chartInstance, handleChartReady } = useChartImageExport()
 
 	const {
 		itemName,
@@ -153,7 +162,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 		}
 	}, [chart, getChainInfo, getProtocolInfo])
 
-	const handleCsvExport = useCallback(() => {
+	const handleCsvExport = () => {
 		if (!processedData || processedData.length === 0) return
 		const headers = ['Date', `${itemName} ${chartTypeDetails.title}`]
 		const rows = processedData.map(([timestamp, value]) => [new Date(Number(timestamp)).toLocaleDateString(), value])
@@ -162,7 +171,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 			new Date().toISOString().split('T')[0]
 		}.csv`
 		download(fileName, csvContent)
-	}, [processedData, itemName, chartTypeDetails])
+	}
 
 	const imageFilename = `${itemName}_${chartTypeDetails.title.replace(/\s+/g, '_')}`
 	const imageTitle = `${itemName} ${chartTypeDetails.title}`
@@ -192,7 +201,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 										<Tooltip
 											content={capitalizeFirstLetter(dataInterval)}
 											render={<button />}
-											className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue shrink-0 px-2 py-1 text-xs whitespace-nowrap data-[active=true]:bg-(--old-blue) data-[active=true]:font-medium data-[active=true]:text-white"
+											className="shrink-0 px-2 py-1 text-xs whitespace-nowrap hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue data-[active=true]:bg-(--old-blue) data-[active=true]:font-medium data-[active=true]:text-white"
 											data-active={chart.grouping === dataInterval}
 											onClick={() => handleGroupingChange(chart.id, dataInterval)}
 											key={`${chart.id}-options-groupBy-${dataInterval}`}
@@ -204,13 +213,10 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 							)}
 							{isBarChart && (
 								<Select
-									allValues={[
-										{ name: 'Show individual values', key: 'Individual' },
-										{ name: `Show cumulative values`, key: `Cumulative` }
-									]}
+									allValues={CUMULATIVE_DISPLAY_OPTIONS}
 									selectedValues={showCumulative ? 'Cumulative' : 'Individual'}
 									setSelectedValues={(value) => {
-										handleCumulativeChange(chart.id, value === 'Cumulative' ? true : false)
+										handleCumulativeChange(chart.id, value === 'Cumulative')
 									}}
 									label={showCumulative ? 'Cumulative' : 'Individual'}
 									labelType="none"
@@ -228,7 +234,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 							<ProTableCSVButton
 								onClick={handleCsvExport}
 								smol
-								className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
+								className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 							/>
 						</>
 					)}
@@ -243,8 +249,8 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 				hasError={chart.hasError}
 				refetch={chart.refetch}
 				color={chartColor}
-				onChartReady={setChartInstance}
+				onChartReady={handleChartReady}
 			/>
 		</div>
 	)
-})
+}

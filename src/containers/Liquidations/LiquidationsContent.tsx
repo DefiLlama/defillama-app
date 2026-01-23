@@ -1,7 +1,5 @@
-import * as React from 'react'
-import Image from 'next/image'
 import { useMutation } from '@tanstack/react-query'
-import boboLogo from '~/assets/boboSmug.png'
+import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { ISearchItem } from '~/components/Search/types'
@@ -34,6 +32,9 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 			download(`${data.symbol}-all-positions.csv`, csvString)
 		}
 	})
+	const handleCsvDownload = () => {
+		mutate()
+	}
 	return (
 		<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 			<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
@@ -58,7 +59,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 				<p className="hidden flex-col md:flex">
 					<DangerousPositionsAmount data={data} />
 				</p>
-				<CSVDownloadButton onClick={() => mutate()} isLoading={isPending} smol className="mt-auto mr-auto" />
+				<CSVDownloadButton onClick={handleCsvDownload} isLoading={isPending} smol className="mt-auto mr-auto" />
 			</div>
 			<div className="col-span-2 flex min-h-[458px] flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="flex flex-wrap items-center gap-4">
@@ -71,7 +72,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 					className="absolute -bottom-9 left-0 z-1 xl:top-0 xl:right-0 xl:bottom-[initial] xl:left-[initial]"
 				>
 					<span className="sr-only">Enable Goblin Mode</span>
-					<Image src={boboLogo} width={34} height={34} alt="bobo cheers" className="min-h-[34px] w-[34px]" />
+					<img src="/assets/boboSmug.png" width={34} height={34} alt="bobo cheers" className="min-h-[34px] w-[34px]" />
 				</button>
 				<React.Suspense fallback={<></>}>
 					<LiquidationsChart chartData={data} uid={data.symbol} bobo={bobo} />
@@ -150,38 +151,50 @@ const getDangerousPositionsAmount = (
 	if (!selectedSeries) {
 		dangerousPositionsAmount = data.dangerousPositionsAmount
 	} else if (stackBy === 'chains') {
-		Object.keys(selectedSeries)
-			.filter((chain) => selectedSeries[chain])
-			.forEach((chain) => {
-				const _chain = PROTOCOL_NAMES_MAP_REVERSE[chain]
-				const binSize = data.chartDataBins.chains[_chain]?.binSize ?? 0
-				dangerousPositionsAmount += Object.entries(data.chartDataBins.chains[_chain]?.bins ?? {})
-					.filter(([bin]) => binSize * parseInt(bin) >= priceThreshold)
-					.reduce((acc, [, value]) => acc + value['usd'], 0)
-			})
+		for (const chain in selectedSeries) {
+			if (!selectedSeries[chain]) continue
+			const _chain = PROTOCOL_NAMES_MAP_REVERSE[chain]
+			const binSize = data.chartDataBins.chains[_chain]?.binSize ?? 0
+			const bins = data.chartDataBins.chains[_chain]?.bins ?? {}
+			for (const bin in bins) {
+				if (binSize * parseInt(bin) >= priceThreshold) {
+					dangerousPositionsAmount += bins[bin]['usd']
+				}
+			}
+		}
 	} else {
-		Object.keys(selectedSeries)
-			.filter((protocol) => selectedSeries[protocol])
-			.forEach((protocol) => {
-				const _protocol = PROTOCOL_NAMES_MAP_REVERSE[protocol]
-				const binSize = data.chartDataBins.protocols[_protocol]?.binSize ?? 0
-				dangerousPositionsAmount += Object.entries(data.chartDataBins.protocols[_protocol]?.bins ?? {})
-					.filter(([bin]) => binSize * parseInt(bin) >= priceThreshold)
-					.reduce((acc, [, value]) => acc + value['usd'], 0)
-			})
+		for (const protocol in selectedSeries) {
+			if (!selectedSeries[protocol]) continue
+			const _protocol = PROTOCOL_NAMES_MAP_REVERSE[protocol]
+			const binSize = data.chartDataBins.protocols[_protocol]?.binSize ?? 0
+			const bins = data.chartDataBins.protocols[_protocol]?.bins ?? {}
+			for (const bin in bins) {
+				if (binSize * parseInt(bin) >= priceThreshold) {
+					dangerousPositionsAmount += bins[bin]['usd']
+				}
+			}
+		}
 	}
 	return dangerousPositionsAmount
 }
 
 const LastUpdated = ({ data }) => {
-	const [minutesAgo, setMinutesAgo] = React.useState(Math.round((Date.now() - data?.time * 1000) / 1000 / 60))
+	const [minutesAgo, setMinutesAgo] = React.useState(() =>
+		Math.round((Date.now() - (data?.time ?? 0) * 1000) / 1000 / 60)
+	)
+
+	const onUpdateMinutesAgo = React.useEffectEvent(() => {
+		const baseTime = data?.time != null ? data.time * 1000 : Date.now()
+		setMinutesAgo(Math.round((Date.now() - baseTime) / 1000 / 60))
+	})
 
 	React.useEffect(() => {
+		onUpdateMinutesAgo()
 		const interval = setInterval(() => {
-			setMinutesAgo((x) => x + 1)
+			onUpdateMinutesAgo()
 		}, 1000 * 60)
 		return () => clearInterval(interval)
-	}, [])
+	}, [data?.time])
 
 	return (
 		<>

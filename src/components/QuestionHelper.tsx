@@ -1,19 +1,10 @@
-import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 
-export const QuestionHelper = React.memo(function QuestionHelper({
-	text,
-	disabled,
-	...props
-}: {
-	text: string
-	disabled?: boolean
-	className?: string
-}) {
+export function QuestionHelper({ text, disabled, ...props }: { text: string; disabled?: boolean; className?: string }) {
 	return (
 		<Tooltip content={disabled ? null : text}>
 			<Icon name="help-circle" height={16} width={16} {...props} />
 		</Tooltip>
 	)
-})
+}

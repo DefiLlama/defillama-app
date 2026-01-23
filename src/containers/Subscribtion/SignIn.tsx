@@ -1,7 +1,7 @@
-import { FormEvent, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
+import { useRouter } from 'next/router'
+import { FormEvent, useState } from 'react'
 import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -63,8 +63,8 @@ export const SignInModal = ({
 
 			<Ariakit.Dialog
 				store={dialogStore}
-				hideOnInteractOutside={showOnlyAuthDialog ? false : true}
-				className="dialog max-sm:drawer flex max-h-[90dvh] max-w-md flex-col overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 shadow-2xl max-sm:rounded-b-none sm:p-6"
+				hideOnInteractOutside={!showOnlyAuthDialog}
+				className="dialog flex max-h-[90dvh] max-w-md flex-col overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 shadow-2xl max-sm:drawer max-sm:rounded-b-none sm:p-6"
 				style={{
 					backgroundImage: 'radial-gradient(circle at center, rgba(92, 92, 249, 0.05), transparent 80%)'
 				}}

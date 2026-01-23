@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
@@ -13,7 +13,7 @@ const EXAMPLE_CONVERSATIONS = [
 		prompt: 'Show me the top 5 protocols with growing TVL but declining token prices',
 		description: 'Table + chart analysis identifying potential value opportunities and key insights',
 		url: 'https://defillama.com/ai/chat/shared/34525e47-528e-4b20-8ab4-4d2dd5d31252',
-		screenshot: '/assets/llamaai-3'
+		screenshot: '/assets/llamaai/llamaai-3'
 	},
 	{
 		id: 'research',
@@ -21,7 +21,7 @@ const EXAMPLE_CONVERSATIONS = [
 		prompt: 'Provide an overview of the stablecoin sector with focus on CBDCs',
 		description: 'In-depth research report covering market trends, legislation, and adoption',
 		url: 'https://defillama.com/ai/chat/shared/9634371a-d385-4e28-bcd8-d758f0bbcd30',
-		screenshot: '/assets/llamaai-1'
+		screenshot: '/assets/llamaai/llamaai-1'
 	},
 	{
 		id: 'speculative',
@@ -29,7 +29,7 @@ const EXAMPLE_CONVERSATIONS = [
 		prompt: 'Price estimate for BTC using technicals, Monte Carlo, and prediction markets',
 		description: 'Blended analysis with charts, simulation outcomes, and Polymarket probabilities',
 		url: 'https://defillama.com/ai/chat/shared/b60a2440-445e-4755-b227-7127557a4d79',
-		screenshot: '/assets/llamaai-2'
+		screenshot: '/assets/llamaai/llamaai-2'
 	}
 ] as const
 
@@ -112,60 +112,77 @@ const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
 
-export default function LlamaAIGetStarted() {
-	const subscribeModalStore = Ariakit.useDialogStore()
+const TrialBadge = ({ centered = false }: { centered?: boolean }) => {
 	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
+
+	return (
+		<>
+			{!isAuthenticated || !hasActiveSubscription ? (
+				<div className={cn('mt-3 flex flex-col gap-1.5', centered ? 'items-center' : 'items-center md:items-start')}>
+					<span className="inline-flex items-center rounded-full border border-[#C99A4A]/40 bg-linear-to-r from-[#C99A4A]/10 via-[#C99A4A]/5 to-[#C99A4A]/10 px-3.5 py-2 text-[13px] font-semibold text-[#C99A4A] dark:border-[#FDE0A9]/40 dark:from-[#FDE0A9]/10 dark:via-[#FDE0A9]/5 dark:to-[#FDE0A9]/10 dark:text-[#FDE0A9]">
+						7 days free · Cancel anytime
+					</span>
+					<span className="text-[13px] text-[#666] dark:text-[#919296]">No charge until trial ends</span>
+				</div>
+			) : null}
+		</>
+	)
+}
+
+const CTAButton = ({
+	className = '',
+	label,
+	subscribeModalStore
+}: {
+	className?: string
+	label?: string
+	subscribeModalStore: Ariakit.DialogStore
+}) => {
+	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
+	const defaultLabel = isAuthenticated && hasActiveSubscription ? 'Ask LlamaAI' : 'Try LlamaAI for free'
+	const displayLabel = label ?? defaultLabel
+
+	return isAuthenticated && hasActiveSubscription ? (
+		<BasicLink
+			href="/ai/chat"
+			data-umami-event="llamaai-landing-cta-subscribed"
+			className={cn(
+				'llamaai-glow relative z-10 inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0px_0px_40px_0px_rgba(253,224,169,0.7)]',
+				className
+			)}
+		>
+			<svg className="h-4 w-4 shrink-0">
+				<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
+			</svg>
+			<span className="whitespace-nowrap">{displayLabel}</span>
+		</BasicLink>
+	) : (
+		<button
+			onClick={() => subscribeModalStore.show()}
+			data-umami-event="llamaai-landing-cta-unsubscribed"
+			className={cn(
+				'animate-cta-glow llamaai-glow relative z-10 inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3.5 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0px_0px_50px_0px_rgba(253,224,169,0.8)]',
+				className
+			)}
+		>
+			<svg className="h-4 w-4 shrink-0">
+				<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
+			</svg>
+			<span className="whitespace-nowrap">{displayLabel}</span>
+		</button>
+	)
+}
+
+export default function LlamaAIGetStarted() {
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
+
 	const [mounted, setMounted] = useState(false)
 	const [isVideoPlaying, setIsVideoPlaying] = useState(false)
 
 	useEffect(() => {
 		setMounted(true)
 	}, [])
-
-	const TrialBadge = ({ centered = false }: { centered?: boolean }) =>
-		!isAuthenticated || !hasActiveSubscription ? (
-			<div className={cn('mt-3 flex flex-col gap-1.5', centered ? 'items-center' : 'items-center md:items-start')}>
-				<span className="inline-flex items-center rounded-full border border-[#C99A4A]/40 bg-gradient-to-r from-[#C99A4A]/10 via-[#C99A4A]/5 to-[#C99A4A]/10 px-3.5 py-2 text-[13px] font-semibold text-[#C99A4A] dark:border-[#FDE0A9]/40 dark:from-[#FDE0A9]/10 dark:via-[#FDE0A9]/5 dark:to-[#FDE0A9]/10 dark:text-[#FDE0A9]">
-					7 days free · Cancel anytime
-				</span>
-				<span className="text-[13px] text-[#666] dark:text-[#919296]">No charge until trial ends</span>
-			</div>
-		) : null
-
-	const CTAButton = ({ className = '', label }: { className?: string; label?: string }) => {
-		const defaultLabel = isAuthenticated && hasActiveSubscription ? 'Ask LlamaAI' : 'Try LlamaAI for free'
-		const displayLabel = label ?? defaultLabel
-
-		return isAuthenticated && hasActiveSubscription ? (
-			<BasicLink
-				href="/ai/chat"
-				data-umami-event="llamaai-landing-cta-subscribed"
-				className={cn(
-					'llamaai-glow relative z-10 inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0px_0px_40px_0px_rgba(253,224,169,0.7)]',
-					className
-				)}
-			>
-				<svg className="h-4 w-4 shrink-0">
-					<use href="/icons/ask-llamaai-3.svg#ai-icon" />
-				</svg>
-				<span className="whitespace-nowrap">{displayLabel}</span>
-			</BasicLink>
-		) : (
-			<button
-				onClick={() => subscribeModalStore.show()}
-				data-umami-event="llamaai-landing-cta-unsubscribed"
-				className={cn(
-					'animate-cta-glow llamaai-glow relative z-10 inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3.5 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0px_0px_50px_0px_rgba(253,224,169,0.8)]',
-					className
-				)}
-			>
-				<svg className="h-4 w-4 shrink-0">
-					<use href="/icons/ask-llamaai-3.svg#ai-icon" />
-				</svg>
-				<span className="whitespace-nowrap">{displayLabel}</span>
-			</button>
-		)
-	}
 
 	return (
 		<>
@@ -243,13 +260,13 @@ export default function LlamaAIGetStarted() {
 									}}
 								/>
 								<img
-									src="/assets/llama-ai.svg"
+									src="/assets/llamaai/llama-ai.svg"
 									alt=""
 									className="relative h-20 w-20 object-contain drop-shadow-[0_0_20px_rgba(253,224,169,0.4)] md:h-24 md:w-24"
 								/>
 							</div>
 							<h1 className="mb-6 text-[3rem] leading-[1.05] font-extrabold tracking-[-0.03em] text-black md:text-[4rem] lg:text-[4.5rem] dark:text-white">
-								<span className="bg-gradient-to-r from-[#C99A4A] to-[#8B6914] bg-clip-text text-transparent dark:from-[#FDE0A9] dark:to-[#C99A4A]">
+								<span className="bg-linear-to-r from-[#C99A4A] to-[#8B6914] bg-clip-text text-transparent dark:from-[#FDE0A9] dark:to-[#C99A4A]">
 									LlamaAI
 								</span>
 							</h1>
@@ -257,7 +274,7 @@ export default function LlamaAIGetStarted() {
 								AI-powered DeFi research: deep data, live insights, actionable analysis.
 							</p>
 							<div className="relative z-20">
-								<CTAButton />
+								<CTAButton subscribeModalStore={subscribeModalStore} />
 								<TrialBadge />
 							</div>
 						</div>
@@ -286,9 +303,9 @@ export default function LlamaAIGetStarted() {
 												className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
 											/>
 											{/* Overlay gradient */}
-											<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/10 transition-opacity duration-300 group-hover:opacity-70" />
+											<div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-black/10 transition-opacity duration-300 group-hover:opacity-70" />
 											{/* Play button */}
-											<div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#FDE0A9] to-[#C99A4A] shadow-[0_8px_32px_rgba(253,224,169,0.4)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_12px_48px_rgba(253,224,169,0.6)] md:h-20 md:w-20">
+											<div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-[#FDE0A9] to-[#C99A4A] shadow-[0_8px_32px_rgba(253,224,169,0.4)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_12px_48px_rgba(253,224,169,0.6)] md:h-20 md:w-20">
 												<svg
 													xmlns="http://www.w3.org/2000/svg"
 													viewBox="0 0 24 24"
@@ -321,7 +338,7 @@ export default function LlamaAIGetStarted() {
 
 				{/* Subtle section divider */}
 				<div className="relative z-10 mx-auto max-w-4xl px-4 md:px-8">
-					<div className="h-px bg-gradient-to-r from-transparent via-[#E8E8E8] to-transparent dark:via-[#2a2a2e]" />
+					<div className="h-px bg-linear-to-r from-transparent via-[#E8E8E8] to-transparent dark:via-[#2a2a2e]" />
 				</div>
 
 				{/* Examples */}
@@ -354,7 +371,7 @@ export default function LlamaAIGetStarted() {
 											'dark:border-[#2a2a2e] dark:bg-[#1e1f23] dark:hover:border-[#FDE0A9]/30 dark:hover:shadow-[0_24px_64px_rgba(253,224,169,0.12)]'
 										)}
 									>
-										<div className="relative aspect-[4/3] w-full overflow-hidden bg-[#131516]">
+										<div className="relative aspect-4/3 w-full overflow-hidden bg-[#131516]">
 											<img
 												src={`${example.screenshot}.png`}
 												alt=""
@@ -365,8 +382,8 @@ export default function LlamaAIGetStarted() {
 												alt=""
 												className="block h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-110 dark:hidden"
 											/>
-											<div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 transition-all duration-500 group-hover:opacity-100">
-												<span className="flex translate-y-4 items-center gap-2 rounded-full bg-gradient-to-r from-[#FDE0A9] to-[#F5D08C] px-6 py-3 text-sm font-semibold text-[#5C4A1F] shadow-[0_8px_32px_rgba(253,224,169,0.5)] transition-all duration-500 group-hover:translate-y-0">
+											<div className="absolute inset-0 flex items-center justify-center bg-linear-to-t from-black/60 via-black/0 to-black/0 opacity-0 transition-all duration-500 group-hover:opacity-100">
+												<span className="flex translate-y-4 items-center gap-2 rounded-full bg-linear-to-r from-[#FDE0A9] to-[#F5D08C] px-6 py-3 text-sm font-semibold text-[#5C4A1F] shadow-[0_8px_32px_rgba(253,224,169,0.5)] transition-all duration-500 group-hover:translate-y-0">
 													View analysis
 													<Icon name="arrow-up-right" height={16} width={16} />
 												</span>
@@ -483,7 +500,7 @@ export default function LlamaAIGetStarted() {
 				{/* Final CTA */}
 				<section className="relative z-10 px-4 pb-16 md:px-8 md:pb-24">
 					<div className="mx-auto max-w-3xl">
-						<div className="relative overflow-hidden rounded-2xl border border-[#E8E8E8] bg-gradient-to-br from-white via-[#FEFDFB] to-[#FDF8EF] dark:border-[#2a2a2e] dark:from-[#1e1f23] dark:via-[#1e1f23] dark:to-[#252218]">
+						<div className="relative overflow-hidden rounded-2xl border border-[#E8E8E8] bg-linear-to-br from-white via-[#FEFDFB] to-[#FDF8EF] dark:border-[#2a2a2e] dark:from-[#1e1f23] dark:via-[#1e1f23] dark:to-[#252218]">
 							<div className="pointer-events-none absolute inset-0 overflow-hidden">
 								<div
 									className="absolute -right-16 -bottom-16 h-48 w-48 rounded-full opacity-30"
@@ -508,7 +525,7 @@ export default function LlamaAIGetStarted() {
 								<p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-[#555] md:text-base dark:text-[#9a9a9f]">
 									Research protocols, generate charts, and stay ahead of the market.
 								</p>
-								<CTAButton />
+								<CTAButton subscribeModalStore={subscribeModalStore} />
 								<TrialBadge centered />
 							</div>
 						</div>
@@ -516,9 +533,11 @@ export default function LlamaAIGetStarted() {
 				</section>
 			</div>
 
-			<Suspense fallback={null}>
-				<SubscribeProModal dialogStore={subscribeModalStore} returnUrl="/ai/chat" />
-			</Suspense>
+			{shouldRenderModal ? (
+				<Suspense fallback={null}>
+					<SubscribeProModal dialogStore={subscribeModalStore} returnUrl="/ai/chat" />
+				</Suspense>
+			) : null}
 		</>
 	)
 }

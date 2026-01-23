@@ -1,3 +1,5 @@
+import { setStorageItem } from '~/contexts/localStorageStore'
+
 export const PINNED_METRICS_KEY = 'pinned-metrics'
 
 const getStoredPinnedMetrics = () => {
@@ -18,6 +20,5 @@ export const mutatePinnedMetrics = (mutator: (currentRoutes: string[]) => string
 	const currentRoutes = getStoredPinnedMetrics()
 	const nextRoutes = mutator([...currentRoutes])
 
-	window.localStorage.setItem(PINNED_METRICS_KEY, JSON.stringify(nextRoutes))
-	window.dispatchEvent(new Event('pinnedMetricsChange'))
+	setStorageItem(PINNED_METRICS_KEY, JSON.stringify(nextRoutes))
 }

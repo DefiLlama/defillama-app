@@ -1,57 +1,101 @@
-import { useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { CHART_COLORS } from '~/constants/colors'
-import { slug, toYearMonth } from '~/utils'
+import { toYearMonth } from '~/utils'
+
+// Helper to parse exclude query param to Set
+const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
+	if (!param) return new Set()
+	if (typeof param === 'string') return new Set([param])
+	return new Set(param)
+}
 
 export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 	const { query } = useRouter()
 
-	const { investor, round, sector, chain, minRaised, maxRaised } = query
+	const {
+		investor,
+		excludeInvestor,
+		round,
+		excludeRound,
+		sector,
+		excludeSector,
+		chain,
+		excludeChain,
+		minRaised,
+		maxRaised
+	} = query
 
 	const data = useMemo(() => {
-		let selectedInvestors = []
-		let selectedRounds = []
-		let selectedSectors = []
-		let selectedChains = []
-		const raisesByCategory: { [category: string]: number } = {}
-		const fundingRoundsByMonth = {}
-		const monthlyInvestment = {}
-		const investmentByRounds: { [round: string]: number } = {}
+		// Parse exclude sets upfront
+		// Note: For investors and chains, we need separate exclude sets because we're checking
+		// "exclude if ANY item in array matches", which can't be combined with the selection logic
+		const excludeInvestorsSet = parseExcludeParam(excludeInvestor)
+		const excludeChainsSet = parseExcludeParam(excludeChain)
+		const excludeRoundsSet = parseExcludeParam(excludeRound)
+		const excludeSectorsSet = parseExcludeParam(excludeSector)
 
+		// Build selectedInvestors
+		let selectedInvestors: string[]
 		if (investor) {
 			if (typeof investor === 'string') {
 				selectedInvestors = investor === 'All' ? [...investors] : investor === 'None' ? [] : [investor]
 			} else {
 				selectedInvestors = [...investor]
 			}
-		} else selectedInvestors = [...investors]
+		} else {
+			selectedInvestors = [...investors]
+		}
+		// Filter out excludes from selectedInvestors
+		selectedInvestors =
+			excludeInvestorsSet.size > 0 ? selectedInvestors.filter((i) => !excludeInvestorsSet.has(i)) : selectedInvestors
 
+		// Build selectedRounds and filter out excludes inline
+		let selectedRounds: string[]
 		if (round) {
 			if (typeof round === 'string') {
 				selectedRounds = round === 'All' ? [...rounds] : round === 'None' ? [] : [round]
 			} else {
 				selectedRounds = [...round]
 			}
-		} else selectedRounds = [...rounds]
+		} else {
+			selectedRounds = [...rounds]
+		}
+		selectedRounds = excludeRoundsSet.size > 0 ? selectedRounds.filter((r) => !excludeRoundsSet.has(r)) : selectedRounds
 
+		// Build selectedSectors and filter out excludes inline
+		let selectedSectors: string[]
 		if (sector) {
 			if (typeof sector === 'string') {
 				selectedSectors = sector === 'All' ? [...sectors] : sector === 'None' ? [] : [sector]
 			} else {
 				selectedSectors = [...sector]
 			}
-		} else selectedSectors = [...sectors]
+		} else {
+			selectedSectors = [...sectors]
+		}
+		selectedSectors =
+			excludeSectorsSet.size > 0 ? selectedSectors.filter((s) => !excludeSectorsSet.has(s)) : selectedSectors
 
+		// Build selectedChains
+		let selectedChains: string[]
 		if (chain) {
 			if (typeof chain === 'string') {
-				selectedChains =
-					chain === 'All' ? [...chains] : chain === 'None' ? [] : [chains.find((c) => slug(c) === slug(chain)) ?? chain]
+				selectedChains = chain === 'All' ? [...chains] : chain === 'None' ? [] : [chain]
 			} else {
-				const schain = chains.map((c) => slug(c))
-				selectedChains = [...chains.filter((c) => schain.includes(slug(c)))]
+				selectedChains = [...chain]
 			}
-		} else selectedChains = [...chains]
+		} else {
+			selectedChains = [...chains]
+		}
+		// Filter out excludes from selectedChains
+		selectedChains = excludeChainsSet.size > 0 ? selectedChains.filter((c) => !excludeChainsSet.has(c)) : selectedChains
+
+		const raisesByCategory: { [category: string]: number } = {}
+		const fundingRoundsByMonth = {}
+		const monthlyInvestment = {}
+		const investmentByRounds: { [round: string]: number } = {}
 
 		const minimumAmountRaised =
 			typeof minRaised === 'string' && !Number.isNaN(Number(minRaised)) ? Number(minRaised) : 0
@@ -61,76 +105,82 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 
 		const isValidTvlRange = !!minimumAmountRaised || !!maximumAmountRaised
 
-		const selectedInvestorsSet = new Set(selectedInvestors)
-		const selectedChainsSet = new Set(selectedChains)
-		const selectedRoundsSet = new Set(selectedRounds)
-		const selectedSectorsSet = new Set(selectedSectors)
+		const isInvestorFilterActive = selectedInvestors.length !== investors.length
+		const isChainsFilterActive = selectedChains.length !== chains.length
+		const isRoundsFilterActive = selectedRounds.length !== rounds.length
+		const isSectorsFilterActive = selectedSectors.length !== sectors.length
+
+		const selectedInvestorsSet = isInvestorFilterActive ? new Set(selectedInvestors) : null
+		const selectedChainsSet = isChainsFilterActive ? new Set(selectedChains) : null
+		const selectedRoundsSet = isRoundsFilterActive ? new Set(selectedRounds) : null
+		const selectedSectorsSet = isSectorsFilterActive ? new Set(selectedSectors) : null
 
 		const filteredRaisesList = raises.filter((raise) => {
-			let toFilter = true
-
-			if (selectedInvestors.length !== investors.length) {
+			if (isInvestorFilterActive) {
 				if (raise.leadInvestors.length === 0 && raise.otherInvestors.length === 0) {
 					return false
 				}
 
 				let isAnInvestor = false
 
-				raise.leadInvestors.forEach((lead) => {
-					if (selectedInvestorsSet.has(lead)) {
+				for (const lead of raise.leadInvestors) {
+					if (selectedInvestorsSet!.has(lead)) {
 						isAnInvestor = true
+						break
 					}
-				})
+				}
 
-				raise.otherInvestors.forEach((otherInv) => {
-					if (selectedInvestorsSet.has(otherInv)) {
-						isAnInvestor = true
-					}
-				})
-
-				// filter if investor is in either leadInvestors or otherInvestors
 				if (!isAnInvestor) {
-					toFilter = false
-				}
-			}
-
-			if (selectedChains.length !== chains.length) {
-				// filter raises with no chains
-				if (raise.chains.length === 0) {
-					toFilter = false
-				} else {
-					let raiseIncludesChain = false
-
-					raise.chains.forEach((chain) => {
-						if (selectedChainsSet.has(chain)) {
-							raiseIncludesChain = true
+					for (const otherInv of raise.otherInvestors) {
+						if (selectedInvestorsSet!.has(otherInv)) {
+							isAnInvestor = true
+							break
 						}
-					})
-
-					if (!raiseIncludesChain) {
-						toFilter = false
 					}
+				}
+
+				if (!isAnInvestor) {
+					return false
 				}
 			}
 
-			if (selectedRounds.length !== rounds.length) {
-				// filter raises with no round
+			if (isChainsFilterActive) {
+				if (raise.chains.length === 0) {
+					return false
+				}
+
+				let raiseIncludesChain = false
+
+				for (const chain of raise.chains) {
+					if (selectedChainsSet!.has(chain)) {
+						raiseIncludesChain = true
+						break
+					}
+				}
+
+				if (!raiseIncludesChain) {
+					return false
+				}
+			}
+
+			// selectedRoundsSet already has excludes filtered out
+			if (isRoundsFilterActive) {
 				if (!raise.round || raise.round === '') {
-					toFilter = false
+					return false
 				} else {
-					if (!selectedRoundsSet.has(raise.round)) {
-						toFilter = false
+					if (!selectedRoundsSet!.has(raise.round)) {
+						return false
 					}
 				}
 			}
 
-			if (selectedSectors.length !== sectors.length) {
-				// filter raises with no sector
+			// selectedSectorsSet already has excludes filtered out
+			if (isSectorsFilterActive) {
 				if (!raise.category || raise.category === '') {
-					toFilter = false
+					return false
 				} else {
-					if (!selectedSectorsSet.has(raise.category)) {
-						toFilter = false
+					if (!selectedSectorsSet!.has(raise.category)) {
+						return false
 					}
 				}
 			}
@@ -138,21 +188,21 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 			const raisedAmount = raise.amount ? Number(raise.amount) * 1_000_000 : 0
 
 			const isInRange =
-				(minimumAmountRaised != null ? raisedAmount >= minimumAmountRaised : true) &&
-				(maximumAmountRaised != null ? raisedAmount <= maximumAmountRaised : true)
+				(minimumAmountRaised ? raisedAmount >= minimumAmountRaised : true) &&
+				(maximumAmountRaised ? raisedAmount <= maximumAmountRaised : true)
 
 			if (isValidTvlRange && !isInRange) {
-				toFilter = false
+				return false
 			}
 
-			if (toFilter && raise.category) {
+			if (raise.category) {
 				raisesByCategory[raise.category] = (raisesByCategory[raise.category] || 0) + 1
 			}
 
-			return toFilter
+			return true
 		})
 
-		filteredRaisesList.forEach((r) => {
+		for (const r of filteredRaisesList) {
 			// split EOS raised amount between 13 months
 			if (r.name === 'EOS') {
 				for (let month = 0; month < 13; month++) {
@@ -170,7 +220,7 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 			if (r.round) {
 				investmentByRounds[r.round] = (investmentByRounds[r.round] ?? 0) + 1
 			}
-		})
+		}
 
 		const finalMonthlyInvestment = []
 		const finalRaisesByCategory = []
@@ -224,7 +274,23 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 			fundingRoundsByMonthChart,
 			totalAmountRaised
 		}
-	}, [investor, investors, round, rounds, sector, sectors, chain, chains, raises, minRaised, maxRaised])
+	}, [
+		investor,
+		excludeInvestor,
+		investors,
+		round,
+		excludeRound,
+		rounds,
+		sector,
+		excludeSector,
+		sectors,
+		chain,
+		excludeChain,
+		chains,
+		raises,
+		minRaised,
+		maxRaised
+	])
 
 	return data
 }

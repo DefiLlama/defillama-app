@@ -1,4 +1,6 @@
 import * as Ariakit from '@ariakit/react'
+import { useMemo } from 'react'
+import type { VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
 import { ChartTab } from './ChartTab'
 import { LlamaAITab } from './LlamaAITab'
 import { MetricTab } from './MetricTab'
@@ -11,10 +13,23 @@ import { UnifiedTableTab } from './UnifiedTableTab'
 import { useComposerItemsData } from './useComposerItemsData'
 import { useModalActions } from './useModalActions'
 
+const EMPTY_CHAIN_OPTIONS: VirtualizedSelectOption[] = []
+const EMPTY_CHART_TYPES: string[] = []
+const PRIMARY_TABLE_TYPES: CombinedTableType[] = [
+	'protocols',
+	'stablecoins',
+	'cex',
+	'token-usage',
+	'yields',
+	'trending-contracts',
+	'chains'
+]
+const PRIMARY_TABLE_TYPES_SET = new Set(PRIMARY_TABLE_TYPES)
+
 export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSection }: AddChartModalProps) {
 	const { state, actions, computed } = useModalActions(editItem, isOpen, onClose)
 
-	const getCurrentItemType = () => {
+	const _getCurrentItemType = () => {
 		if (state.selectedMainTab === 'charts') {
 			return state.selectedChartTab
 		} else {
@@ -22,21 +37,17 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 		}
 	}
 
-	const availableChartTypes: string[] = []
 	const chartTypesLoading = false
 
 	const composerItemsWithData = useComposerItemsData(state.composerItems, computed.timePeriod)
 
-	const primaryTableTypes: CombinedTableType[] = [
-		'protocols',
-		'stablecoins',
-		'cex',
-		'token-usage',
-		'yields',
-		'trending-contracts',
-		'chains'
-	]
-	const legacyTableTypes = primaryTableTypes.includes(state.selectedTableType) ? [] : [state.selectedTableType]
+	const legacyTableTypes = useMemo(
+		() => (PRIMARY_TABLE_TYPES_SET.has(state.selectedTableType) ? [] : [state.selectedTableType]),
+		[state.selectedTableType]
+	)
+	const handleMetricChainChange = (opt: { value: string; label: string }) => actions.setMetricChain(opt?.value ?? null)
+	const handleMetricProtocolChange = (opt: { value: string; label: string }) =>
+		actions.setMetricProtocol(opt?.value ?? null)
 
 	return (
 		<Ariakit.DialogProvider
@@ -46,7 +57,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 			}}
 		>
 			<Ariakit.Dialog
-				className="pro-dashboard add-chart-dialog animate-slidein thin-scrollbar fixed top-0 right-0 bottom-0 z-50 flex h-full w-full max-w-6xl flex-col gap-3 overflow-hidden border-l border-(--cards-border) bg-(--cards-bg) p-3 shadow-xl md:p-4"
+				className="add-chart-dialog fixed top-0 right-0 bottom-0 z-50 flex thin-scrollbar h-full w-full max-w-6xl animate-slidein flex-col gap-3 overflow-hidden border-l pro-dashboard border-(--cards-border) bg-(--cards-bg) p-3 shadow-xl md:p-4"
 				unmountOnHide
 				portal
 				hideOnInteractOutside
@@ -73,7 +84,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							selectedYieldPool={state.selectedYieldPool}
 							chainOptions={computed.chainOptions}
 							protocolOptions={computed.protocolOptions}
-							availableChartTypes={availableChartTypes}
+							availableChartTypes={EMPTY_CHART_TYPES}
 							chartTypesLoading={chartTypesLoading}
 							protocolsLoading={computed.protocolsLoading}
 							unifiedChartName={state.unifiedChartName}
@@ -124,6 +135,16 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onSelectedBorrowedProtocolChange={actions.setSelectedBorrowedProtocol}
 							onSelectedBorrowedProtocolNameChange={actions.setSelectedBorrowedProtocolName}
 							onSelectedBorrowedChartTypeChange={actions.setSelectedBorrowedChartType}
+							selectedIncomeStatementProtocol={state.selectedIncomeStatementProtocol}
+							selectedIncomeStatementProtocolName={state.selectedIncomeStatementProtocolName}
+							onSelectedIncomeStatementProtocolChange={actions.setSelectedIncomeStatementProtocol}
+							onSelectedIncomeStatementProtocolNameChange={actions.setSelectedIncomeStatementProtocolName}
+							selectedUnlocksProtocol={state.selectedUnlocksProtocol}
+							selectedUnlocksProtocolName={state.selectedUnlocksProtocolName}
+							selectedUnlocksChartType={state.selectedUnlocksChartType}
+							onSelectedUnlocksProtocolChange={actions.setSelectedUnlocksProtocol}
+							onSelectedUnlocksProtocolNameChange={actions.setSelectedUnlocksProtocolName}
+							onSelectedUnlocksChartTypeChange={actions.setSelectedUnlocksChartType}
 							onUnifiedChartNameChange={actions.setUnifiedChartName}
 							onChartCreationModeChange={actions.setChartCreationMode}
 							onComposerItemColorChange={actions.handleUpdateComposerItemColor}
@@ -149,8 +170,8 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							metricLabel={state.metricLabel}
 							metricShowSparkline={state.metricShowSparkline}
 							onSubjectTypeChange={actions.setMetricSubjectType}
-							onChainChange={(opt) => actions.setMetricChain(opt?.value ?? null)}
-							onProtocolChange={(opt) => actions.setMetricProtocol(opt?.value ?? null)}
+							onChainChange={handleMetricChainChange}
+							onProtocolChange={handleMetricProtocolChange}
 							onTypeChange={actions.setMetricType}
 							onAggregatorChange={actions.setMetricAggregator}
 							onWindowChange={actions.setMetricWindow}
@@ -162,7 +183,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 					{state.selectedMainTab === 'table' && (
 						<UnifiedTableTab
 							onClose={onClose}
-							chainOptions={computed.chainOptions ?? []}
+							chainOptions={computed.chainOptions ?? EMPTY_CHAIN_OPTIONS}
 							editItem={editItem?.kind === 'unified-table' ? editItem : undefined}
 							initialFocusSection={editItem?.kind === 'unified-table' ? initialUnifiedFocusSection : undefined}
 							selectedTableType={state.selectedTableType}
@@ -197,7 +218,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 				</div>
 
 				{(state.selectedMainTab !== 'table' || state.selectedTableType !== 'protocols') && (
-					<div className="flex-shrink-0">
+					<div className="shrink-0">
 						<SubmitButton
 							editItem={editItem}
 							selectedMainTab={state.selectedMainTab}
@@ -230,7 +251,10 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							selectedAdvancedTvlChartType={state.selectedAdvancedTvlChartType}
 							selectedBorrowedProtocol={state.selectedBorrowedProtocol}
 							selectedBorrowedChartType={state.selectedBorrowedChartType}
+							selectedIncomeStatementProtocol={state.selectedIncomeStatementProtocol}
 							selectedLlamaAIChart={state.selectedLlamaAIChart}
+							selectedUnlocksProtocol={state.selectedUnlocksProtocol}
+							selectedUnlocksChartType={state.selectedUnlocksChartType}
 							onSubmit={actions.handleSubmit}
 						/>
 					</div>

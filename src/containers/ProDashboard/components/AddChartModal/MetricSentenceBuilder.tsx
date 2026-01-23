@@ -1,4 +1,3 @@
-import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	Combobox,
 	ComboboxItem,
@@ -10,8 +9,10 @@ import {
 } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
+import { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Switch } from '~/components/Switch'
+import { useMedia } from '~/hooks/useMedia'
 import { useAppMetadata } from '../../AppMetadataContext'
 import type { Chain, MetricAggregator, MetricWindow, Protocol } from '../../types'
 import { CHART_TYPES } from '../../types'
@@ -62,10 +63,11 @@ interface MetricSentenceBuilderProps {
 	onShowSparklineChange: (value: boolean) => void
 }
 
-const getTokenWidth = (token: Exclude<ActiveToken, null>): number => {
-	const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
+const getTokenWidth = (token: Exclude<ActiveToken, null>, isMobile: boolean): number => {
 	if (isMobile) {
-		return Math.min(window.innerWidth - 32, token === 'subject' ? 340 : 280)
+		// Use window.innerWidth for dynamic sizing when popover opens (one-time read, not subscribed)
+		const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 320
+		return Math.min(viewportWidth - 32, token === 'subject' ? 340 : 280)
 	}
 	switch (token) {
 		case 'aggregator':
@@ -103,7 +105,7 @@ const TokenButton = forwardRef<HTMLButtonElement, TokenButtonProps>(function Tok
 			}`}
 		>
 			<span className="max-w-[100px] truncate sm:max-w-[180px]">{label}</span>
-			<Icon name="chevron-down" width={10} height={10} className="flex-shrink-0 opacity-70 sm:h-3 sm:w-3" />
+			<Icon name="chevron-down" width={10} height={10} className="shrink-0 opacity-70 sm:h-3 sm:w-3" />
 			{secondary && <span className="sr-only">{secondary}</span>}
 		</button>
 	)
@@ -131,8 +133,9 @@ export function MetricSentenceBuilder({
 	const [activeToken, setActiveToken] = useState<ActiveToken>(null)
 	const [searchTerm, setSearchTerm] = useState('')
 	const [subjectTab, setSubjectTab] = useState<'chain' | 'protocol'>(metricSubjectType)
+	const isMobile = useMedia('(max-width: 639px)')
 	const popover = usePopoverStore({
-		placement: typeof window !== 'undefined' && window.innerWidth < 640 ? 'bottom' : 'right-start'
+		placement: isMobile ? 'bottom' : 'right-start'
 	})
 	const subjectCombobox = useComboboxStore({ resetValueOnHide: true })
 	const anchorRefs = useRef<Record<Exclude<ActiveToken, null>, HTMLButtonElement | null>>({
@@ -168,12 +171,12 @@ export function MetricSentenceBuilder({
 		}
 	}, [isPopoverOpen, activeToken, metricSubjectType, subjectCombobox])
 
-	const closePopover = useCallback(() => {
+	const closePopover = () => {
 		popover.setOpen(false)
 		setActiveToken(null)
 		subjectCombobox.setValue('')
 		subjectCombobox.setOpen(false)
-	}, [popover, subjectCombobox])
+	}
 
 	const chainOptions = useMemo(
 		() =>
@@ -183,7 +186,7 @@ export function MetricSentenceBuilder({
 		[chains]
 	)
 
-	const { protocolOptions, protocolFamilySet } = useMemo(() => {
+	const { protocolOptions, protocolFamilySet: _protocolFamilySet } = useMemo(() => {
 		const childrenByParentId = new Map<string, Protocol[]>()
 		const parentsOrSolo: Protocol[] = []
 
@@ -243,7 +246,7 @@ export function MetricSentenceBuilder({
 		return availableMetricTypes.length > 0 ? availableMetricTypes : globalAvailableMetricTypes
 	}, [availableMetricTypes, globalAvailableMetricTypes])
 
-	const selectedProtocolOption = useMemo(
+	const _selectedProtocolOption = useMemo(
 		() => protocolOptions.find((option) => option.value === metricProtocol) || null,
 		[protocolOptions, metricProtocol]
 	)
@@ -329,7 +332,7 @@ export function MetricSentenceBuilder({
 		const option = protocolOptions.find((opt) => opt.value === metricProtocol)
 		if (!option) return metricProtocol
 		return option.label
-	}, [metricSubjectType, metricChain, metricProtocol, protocolOptions, protocolFamilySet])
+	}, [metricSubjectType, metricChain, metricProtocol, protocolOptions])
 
 	const filteredMetrics = useMemo(() => {
 		if (!searchTerm) return baseMetricTypes
@@ -340,67 +343,49 @@ export function MetricSentenceBuilder({
 		})
 	}, [baseMetricTypes, searchTerm])
 
-	const handleTokenClick = useCallback(
-		(token: Exclude<ActiveToken, null>) => {
-			if (activeToken === token) {
-				closePopover()
-				return
-			}
-
-			const anchor = anchorRefs.current[token]
-			if (!anchor) return
-
-			if (token === 'subject') {
-				setSubjectTab(metricSubjectType)
-			}
-
-			setPopoverWidth(getTokenWidth(token))
-			setActiveToken(token)
-			popover.setAnchorElement(anchor)
-			popover.setOpen(true)
-		},
-		[activeToken, closePopover, metricSubjectType, popover, subjectCombobox]
-	)
-
-	const handleChainSelect = useCallback(
-		(option: any) => {
-			onSubjectTypeChange('chain')
-			onChainChange(option)
-		},
-		[onChainChange, onSubjectTypeChange]
-	)
-
-	const handleProtocolSelect = useCallback(
-		(option: any) => {
-			onSubjectTypeChange('protocol')
-			onProtocolChange(option)
-		},
-		[onProtocolChange, onSubjectTypeChange]
-	)
-
-	const handleSelectMetric = useCallback(
-		(value: string) => {
-			onMetricTypeChange(value)
+	const handleTokenClick = (token: Exclude<ActiveToken, null>) => {
+		if (activeToken === token) {
 			closePopover()
-		},
-		[closePopover, onMetricTypeChange]
-	)
+			return
+		}
 
-	const handleSelectAggregator = useCallback(
-		(value: MetricAggregator) => {
-			onAggregatorChange(value)
-			closePopover()
-		},
-		[closePopover, onAggregatorChange]
-	)
+		const anchor = anchorRefs.current[token]
+		if (!anchor) return
 
-	const handleSelectWindow = useCallback(
-		(value: MetricWindow) => {
-			onWindowChange(value)
-			closePopover()
-		},
-		[closePopover, onWindowChange]
-	)
+		if (token === 'subject') {
+			setSubjectTab(metricSubjectType)
+		}
+
+		setPopoverWidth(getTokenWidth(token, isMobile))
+		setActiveToken(token)
+		popover.setAnchorElement(anchor)
+		popover.setOpen(true)
+	}
+
+	const handleChainSelect = (option: any) => {
+		onSubjectTypeChange('chain')
+		onChainChange(option)
+	}
+
+	const handleProtocolSelect = (option: any) => {
+		onSubjectTypeChange('protocol')
+		onProtocolChange(option)
+	}
+
+	const handleSelectMetric = (value: string) => {
+		onMetricTypeChange(value)
+		closePopover()
+	}
+
+	const handleSelectAggregator = (value: MetricAggregator) => {
+		onAggregatorChange(value)
+		closePopover()
+	}
+
+	const handleSelectWindow = (value: MetricWindow) => {
+		onWindowChange(value)
+		closePopover()
+	}
 
 	const renderPopoverContent = () => {
 		switch (activeToken) {
@@ -457,9 +442,9 @@ export function MetricSentenceBuilder({
 							/>
 						</div>
 						<div className="p-1.5">
-							{baseMetricTypes.length === 0 && <div className="pro-text3 px-2 py-3 text-sm">No metrics available.</div>}
+							{baseMetricTypes.length === 0 && <div className="px-2 py-3 text-sm pro-text3">No metrics available.</div>}
 							{baseMetricTypes.length > 0 && filteredMetrics.length === 0 && (
-								<div className="pro-text3 px-2 py-3 text-sm">No metrics match that search.</div>
+								<div className="px-2 py-3 text-sm pro-text3">No metrics match that search.</div>
 							)}
 							{filteredMetrics.map((value) => {
 								const label = CHART_TYPES[value as keyof typeof CHART_TYPES]?.title || value
@@ -679,9 +664,9 @@ export function MetricSentenceBuilder({
 
 	return (
 		<div className="flex flex-col gap-2.5 sm:gap-3">
-			<div className="rounded-lg border border-(--cards-border) bg-gradient-to-br from-(--cards-bg) via-(--cards-bg) to-(--cards-bg-alt) p-2.5 shadow-sm sm:p-3">
+			<div className="rounded-lg border border-(--cards-border) bg-linear-to-br from-(--cards-bg) via-(--cards-bg) to-(--cards-bg-alt) p-2.5 shadow-sm sm:p-3">
 				<div className="flex items-center gap-2 sm:gap-2.5">
-					<div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary) sm:h-8 sm:w-8">
+					<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary) sm:h-8 sm:w-8">
 						<Icon name="sparkles" width={14} height={14} className="sm:h-4 sm:w-4" />
 					</div>
 					<div className="min-w-0">

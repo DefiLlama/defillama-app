@@ -1,20 +1,72 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import debounce from 'lodash/debounce'
+import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
+import {
+	readAppStorage,
+	readAppStorageRaw,
+	subscribeToLocalStorage,
+	THEME_SYNC_KEY,
+	WATCHLIST_KEYS,
+	type AppStorage,
+	type WatchlistStore,
+	writeAppStorage
+} from '~/contexts/LocalStorage'
+import { subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { AUTH_SERVER } from '../constants'
 import { useAuthContext } from '../containers/Subscribtion/auth'
+import { useDebounce } from './useDebounce'
 
 const USER_CONFIG_QUERY_KEY = ['userConfig']
-const DEFILLAMA = 'DEFILLAMA'
 const SYNC_DEBOUNCE_MS = 2000
+type UserConfig = Partial<AppStorage>
 
-type UserConfig = Record<string, any>
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+	typeof value === 'object' && value !== null && !Array.isArray(value)
+
+const normalizeWatchlistStore = (value: unknown): WatchlistStore | null => {
+	if (!isRecord(value)) return null
+
+	const normalized: WatchlistStore = {}
+	for (const [portfolio, protocols] of Object.entries(value)) {
+		if (!isRecord(protocols)) continue
+		const normalizedProtocols: Record<string, string> = {}
+		for (const [slug, name] of Object.entries(protocols)) {
+			if (typeof name === 'string') {
+				normalizedProtocols[slug] = name
+			}
+		}
+		if (Object.keys(normalizedProtocols).length > 0) {
+			normalized[portfolio] = normalizedProtocols
+		}
+	}
+
+	return Object.keys(normalized).length > 0 ? normalized : null
+}
+
+const mergeWatchlists = (local: WatchlistStore | null, remote: WatchlistStore | null): WatchlistStore | null => {
+	if (!local && !remote) return null
+	if (!local) return remote
+	if (!remote) return local
+
+	const merged: WatchlistStore = { ...remote }
+	for (const [portfolio, protocols] of Object.entries(local)) {
+		merged[portfolio] = { ...(remote[portfolio] ?? {}), ...protocols }
+	}
+
+	return merged
+}
+
+const mergeSelectedPortfolio = (local: unknown, remote: unknown): string | undefined => {
+	if (typeof local === 'string' && local.length > 0) return local
+	if (typeof remote === 'string' && remote.length > 0) return remote
+	return undefined
+}
 
 export function useUserConfig() {
 	const { isAuthenticated, authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
 	const isSyncingRef = useRef(false)
 	const hasInitializedRef = useRef(false)
+	const lastSyncedRawRef = useRef<string | null>(null)
 
 	const fetchConfig = useCallback(async (): Promise<UserConfig | null> => {
 		if (!isAuthenticated || !authorizedFetch) {
@@ -23,17 +75,54 @@ export function useUserConfig() {
 		try {
 			const response = await authorizedFetch(`${AUTH_SERVER}/user/config`)
 			if (response?.ok) {
-				const config = await response.json()
+				const config: UserConfig = await response.json()
 
-				if (Object.keys(config).length > 0) {
+				let hasConfig = false
+				for (const _ in config) {
+					hasConfig = true
+					break
+				}
+				if (hasConfig) {
 					isSyncingRef.current = true
 
-					const currentLocal = localStorage.getItem(DEFILLAMA)
-					const localSettings = currentLocal ? JSON.parse(currentLocal) : {}
-					const mergedSettings = { ...localSettings, ...config }
+					const localSettings = readAppStorage()
+					const localSettingsRaw = readAppStorageRaw()
+					const mergedSettings: AppStorage = { ...localSettings, ...config }
 
-					localStorage.setItem(DEFILLAMA, JSON.stringify(mergedSettings))
-					window.dispatchEvent(new Event('storage'))
+					const watchlistKeys = [
+						WATCHLIST_KEYS.DEFI_WATCHLIST,
+						WATCHLIST_KEYS.YIELDS_WATCHLIST,
+						WATCHLIST_KEYS.CHAINS_WATCHLIST
+					] as const
+
+					for (const key of watchlistKeys) {
+						const merged = mergeWatchlists(
+							normalizeWatchlistStore(localSettings[key]),
+							normalizeWatchlistStore(config[key])
+						)
+						if (merged) {
+							mergedSettings[key] = merged
+						}
+					}
+
+					const selectedKeys = [
+						WATCHLIST_KEYS.DEFI_SELECTED_PORTFOLIO,
+						WATCHLIST_KEYS.YIELDS_SELECTED_PORTFOLIO,
+						WATCHLIST_KEYS.CHAINS_SELECTED_PORTFOLIO
+					] as const
+
+					for (const key of selectedKeys) {
+						const mergedSelected = mergeSelectedPortfolio(localSettings[key], config[key])
+						if (mergedSelected) {
+							mergedSettings[key] = mergedSelected
+						}
+					}
+
+					const mergedRaw = JSON.stringify(mergedSettings)
+					if (mergedRaw !== localSettingsRaw) {
+						writeAppStorage(mergedSettings)
+					}
+					lastSyncedRawRef.current = mergedRaw
 
 					setTimeout(() => {
 						isSyncingRef.current = false
@@ -91,7 +180,11 @@ export function useUserConfig() {
 		refetchOnWindowFocus: true
 	})
 
-	const mutation = useMutation<UserConfig, Error, UserConfig>({
+	const {
+		mutateAsync: saveConfigAsync,
+		isPending: isSavingConfig,
+		isError: isErrorSavingConfig
+	} = useMutation<UserConfig, Error, UserConfig>({
 		mutationFn: saveConfig,
 		onSuccess: (savedConfig) => {
 			queryClient.setQueryData(USER_CONFIG_QUERY_KEY, savedConfig)
@@ -101,42 +194,44 @@ export function useUserConfig() {
 		}
 	})
 
-	const syncSettings = useMemo(
-		() =>
-			debounce(async () => {
-				try {
-					const currentSettings = localStorage.getItem(DEFILLAMA)
-					if (!currentSettings) return
+	const saveConfigAsyncRef = useRef(saveConfigAsync)
+	saveConfigAsyncRef.current = saveConfigAsync
 
-					const settings = JSON.parse(currentSettings)
-					await mutation.mutateAsync(settings)
-				} catch (error) {
-					console.log('Failed to sync settings:', error)
-				}
-			}, SYNC_DEBOUNCE_MS),
-		[mutation]
-	)
+	const syncSettings = useDebounce(async () => {
+		try {
+			const currentSettings = readAppStorageRaw()
+			if (!currentSettings) return
+			if (currentSettings === lastSyncedRawRef.current) return
+
+			await saveConfigAsyncRef.current(readAppStorage())
+			lastSyncedRawRef.current = currentSettings
+		} catch (error) {
+			console.log('Failed to sync settings:', error)
+		}
+	}, SYNC_DEBOUNCE_MS)
+
+	// useEffectEvent ensures we call the latest syncSettings without re-subscribing listeners
+	const onStorageChange = useEffectEvent(() => {
+		if (isSyncingRef.current || !hasInitializedRef.current) {
+			return
+		}
+		syncSettings()
+	})
 
 	useEffect(() => {
 		if (!isAuthenticated) {
 			hasInitializedRef.current = false
+			lastSyncedRawRef.current = null
 			syncSettings.cancel()
 			return
 		}
 
-		const handleStorageChange = () => {
-			if (isSyncingRef.current || !hasInitializedRef.current) {
-				return
-			}
-			syncSettings()
-		}
-
-		window.addEventListener('storage', handleStorageChange)
-		window.addEventListener('themeChange', handleStorageChange)
+		const unsubscribeLocalStorage = subscribeToLocalStorage(onStorageChange)
+		const unsubscribeTheme = subscribeToStorageKey(THEME_SYNC_KEY, onStorageChange)
 
 		return () => {
-			window.removeEventListener('storage', handleStorageChange)
-			window.removeEventListener('themeChange', handleStorageChange)
+			unsubscribeLocalStorage()
+			unsubscribeTheme()
 			syncSettings.cancel()
 		}
 	}, [isAuthenticated, syncSettings])
@@ -145,9 +240,9 @@ export function useUserConfig() {
 		userConfig,
 		isLoadingConfig,
 		isErrorLoadingConfig,
-		saveUserConfig: mutation.mutateAsync,
-		isSavingConfig: mutation.isPending,
-		isErrorSavingConfig: mutation.isError,
+		saveUserConfig: saveConfigAsync,
+		isSavingConfig,
+		isErrorSavingConfig,
 		refetchConfig
 	}
 }

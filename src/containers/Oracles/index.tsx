@@ -1,6 +1,7 @@
-import * as React from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
+import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { tvlOptions } from '~/components/Filters/options'
 import { IconsRow } from '~/components/IconsRow'
@@ -9,13 +10,14 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
 import Layout from '~/layout'
-import { formattedNum, preparePieChartData } from '~/utils'
+import { formattedNum } from '~/utils'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
 const pageName = ['Oracles', 'ranked by', 'TVS']
+const DEFAULT_SORTING_STATE = [{ id: 'tvs', desc: true }]
 
 export const OraclesByChain = ({
 	chartData,
@@ -49,7 +51,7 @@ export const OraclesByChain = ({
 		return { tokenTvls, tokensList }
 	}, [chainsWithExtraTvlsByDay, tokensProtocols, chainsByOracle])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const headers = Object.keys(tokensList[0])
 		const rows = [headers].concat(
 			tokensList.map((row) =>
@@ -57,7 +59,7 @@ export const OraclesByChain = ({
 			)
 		)
 		return { filename: 'oracles.csv', rows }
-	}, [tokensList])
+	}
 
 	return (
 		<Layout
@@ -105,7 +107,7 @@ export const OraclesByChain = ({
 					columnToSearch={'name'}
 					placeholder={'Search oracles...'}
 					header={'Oracle Rankings'}
-					sortingState={[{ id: 'tvs', desc: true }]}
+					sortingState={DEFAULT_SORTING_STATE}
 				/>
 			</React.Suspense>
 		</Layout>
@@ -123,12 +125,10 @@ const columns: ColumnDef<IOraclesRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue }) => {
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<BasicLink
 						href={`/oracles/${getValue()}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
@@ -143,7 +143,7 @@ const columns: ColumnDef<IOraclesRow>[] = [
 		header: 'Chains',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
+		cell: ({ getValue }) => {
 			return <IconsRow links={getValue() as Array<string>} url="/oracles/chain" iconType="chain" />
 		},
 		size: 200,

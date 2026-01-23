@@ -1,10 +1,11 @@
-import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { LoadingDots } from '~/components/Loaders'
+import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { useDebounce } from '~/hooks/useDebounce'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
 import { Icon } from '../Icon'
@@ -19,11 +20,11 @@ async function getDefaultSearchList() {
 	}
 }
 async function fetchSearchList(query: string) {
-	const response: Array<ISearchItem> = await fetch('https://search.defillama.com/multi-search', {
+	const response: Array<ISearchItem> = await fetch(SEARCH_API_URL, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ee4d49e767f84c0d1c4eabd841e015f02d403e5abf7ea2a523827a46b02d5ad5`
+			Authorization: `Bearer ${SEARCH_API_TOKEN}`
 		},
 		body: JSON.stringify({
 			queries: [
@@ -67,6 +68,8 @@ export const MobileSearch = () => {
 	const [searchValue, setSearchValue] = useState('')
 	const debouncedSearchValue = useDebounce(searchValue, 200)
 	const { data, isLoading, error } = useSearch(debouncedSearchValue)
+	const [dialogOpen, setDialogOpen] = useState(false)
+	const handleSelect = () => setDialogOpen(false)
 
 	return (
 		<>
@@ -78,19 +81,19 @@ export const MobileSearch = () => {
 					data-umami-event-subscribed={hasActiveSubscription ? 'true' : 'false'}
 				>
 					<svg className="h-4 w-4 shrink-0">
-						<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+						<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 					</svg>
 					<span className="sr-only">Ask LlamaAI</span>
 				</BasicLink>
 			)}
-			<Ariakit.DialogProvider>
+			<Ariakit.DialogProvider open={dialogOpen} setOpen={setDialogOpen}>
 				<Ariakit.DialogDisclosure className="-my-0.5 rounded-md bg-[#445ed0] p-3 text-white shadow lg:hidden">
 					<span className="sr-only">Search</span>
 					<Icon name="search" height={16} width={16} />
 				</Ariakit.DialogDisclosure>
 
 				<Ariakit.Dialog
-					className="dialog max-sm:drawer h-[calc(100dvh-80px)] max-h-(--popover-available-height) bg-(--bg-main) p-2"
+					className="dialog h-[calc(100dvh-80px)] max-h-(--popover-available-height) bg-(--bg-main) p-2 max-sm:drawer"
 					unmountOnHide
 					hideOnInteractOutside
 					portal
@@ -125,7 +128,11 @@ export const MobileSearch = () => {
 									<p className="flex items-center justify-center p-4">No results found</p>
 								) : (
 									data.map((route: ISearchItem) => (
-										<SearchItem key={`global-search-${route.name}-${route.route}`} route={route} />
+										<SearchItem
+											key={`m-srch-data-${route.name}-${route.route}`}
+											route={route}
+											onSelect={handleSelect}
+										/>
 									))
 								)
 							) : isLoadingDefaultSearchList ? (
@@ -140,10 +147,19 @@ export const MobileSearch = () => {
 							) : (
 								<>
 									{recentSearchList.map((route: ISearchItem) => (
-										<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} recent />
+										<SearchItem
+											key={`m-search-rct-${route.name}-${route.route}`}
+											route={route}
+											recent
+											onSelect={handleSelect}
+										/>
 									))}
 									{defaultSearchList.map((route: ISearchItem) => (
-										<SearchItem key={`global-search-dl-${route.name}-${route.route}`} route={route} />
+										<SearchItem
+											key={`m-search-dl-${route.name}-${route.route}`}
+											route={route}
+											onSelect={handleSelect}
+										/>
 									))}
 								</>
 							)}
@@ -224,7 +240,7 @@ export const DesktopSearch = () => {
 					hideOnInteractOutside
 					gutter={6}
 					sameWidth
-					className="max-sm:drawer thin-scrollbar z-10 flex max-h-[min(var(--popover-available-height),60vh)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
+					className="z-10 flex thin-scrollbar max-h-[min(var(--popover-available-height),60vh)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)] max-sm:drawer"
 					portal
 				>
 					<Ariakit.ComboboxList alwaysVisible>
@@ -268,12 +284,12 @@ export const DesktopSearch = () => {
 			{!hideLlamaAI.has(router.pathname) && (
 				<BasicLink
 					href={hasActiveSubscription ? '/ai/chat' : '/ai'}
-					className="llamaai-glow relative mr-auto hidden items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-xs font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:flex"
+					className="llamaai-glow relative mr-auto hidden items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-xs font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:flex"
 					data-umami-event="llamaai-nav-link"
 					data-umami-event-subscribed={hasActiveSubscription ? 'true' : 'false'}
 				>
 					<svg className="h-4 w-4 shrink-0">
-						<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+						<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 					</svg>
 					<span className="whitespace-nowrap">Ask LlamaAI</span>
 				</BasicLink>
@@ -282,7 +298,15 @@ export const DesktopSearch = () => {
 	)
 }
 
-const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: boolean }) => {
+const SearchItem = ({
+	route,
+	recent = false,
+	onSelect
+}: {
+	route: ISearchItem
+	recent?: boolean
+	onSelect?: () => void
+}) => {
 	const router = useRouter()
 	return (
 		<Ariakit.ComboboxItem
@@ -291,9 +315,7 @@ const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: bo
 				<BasicLink
 					href={route.route}
 					shallow={
-						route.subName && route.route.includes('?') && router.asPath.startsWith(route.route.split('?')[0])
-							? true
-							: false
+						!!(route.subName && route.route.includes('?') && router.asPath.startsWith(route.route.split('?')[0]))
 					}
 				/>
 			}
@@ -301,6 +323,7 @@ const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: bo
 				if (!recent) {
 					setRecentSearch(route)
 				}
+				onSelect?.()
 			}}
 			value={route.route}
 		>
@@ -329,7 +352,7 @@ const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: bo
 const setRecentSearch = (route: ISearchItem) => {
 	const recentSearch = window.localStorage.getItem('recentSearch')
 	const recentSearchArray = JSON.parse(recentSearch ?? '[]')
-	window.localStorage.setItem(
+	setStorageItem(
 		'recentSearch',
 		JSON.stringify([route, ...recentSearchArray.filter((r: ISearchItem) => r.route !== route.route).slice(0, 2)])
 	)
@@ -345,8 +368,8 @@ const useDefaultSearchList = () => {
 	})
 
 	const recentSearch = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => window.localStorage.getItem('recentSearch') ?? '[]',
+		(callback) => subscribeToStorageKey('recentSearch', callback),
+		() => getStorageItem('recentSearch', '[]') ?? '[]',
 		() => '[]'
 	)
 

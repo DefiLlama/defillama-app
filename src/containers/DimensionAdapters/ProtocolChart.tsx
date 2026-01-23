@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
+import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -78,7 +78,7 @@ export const DimensionProtocolChartByType = ({
 						type: chartType
 					})
 			: () => Promise.resolve(null),
-		enabled: metadata?.bribeRevenue && feesSettings.bribes ? true : false,
+		enabled: !!(metadata?.bribeRevenue && feesSettings.bribes),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0
@@ -107,7 +107,7 @@ export const DimensionProtocolChartByType = ({
 						type: chartType
 					})
 			: () => Promise.resolve(null),
-		enabled: metadata?.tokenTax && feesSettings.tokentax ? true : false,
+		enabled: !!(metadata?.tokenTax && feesSettings.tokentax),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0
@@ -305,7 +305,10 @@ const ChartByType = ({
 
 		// Build chart config
 		const allColors = getNDistinctColors(breakdownNames.length + 1)
-		const stackColors = Object.fromEntries(breakdownNames.map((type, i) => [type, allColors[i]]))
+		const stackColors: Record<string, string> = {}
+		for (let i = 0; i < breakdownNames.length; i++) {
+			stackColors[breakdownNames[i]] = allColors[i]
+		}
 		stackColors['Others'] = allColors[allColors.length - 1]
 
 		const chartType2: 'line' | 'bar' = isCumulative ? 'line' : 'bar'
@@ -327,7 +330,7 @@ const ChartByType = ({
 		return { charts }
 	}, [breakdownNames, chartInterval, selectedTypes, data, bribeData, tokenTaxData])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		if (selectedTypes.length === 0) return { filename: '', rows: [] }
 
 		const rows: Array<Array<string | number | null>> = [['Timestamp', 'Date', ...selectedTypes]]
@@ -348,7 +351,7 @@ const ChartByType = ({
 		const csvTitle = `${protocolName}-${title ? slug(title) : chartType}`
 		const filename = `${csvTitle}-${chartInterval.toLowerCase()}-${new Date().toISOString().split('T')[0]}.csv`
 		return { filename, rows }
-	}, [mainChartData.charts, selectedTypes, title, chartInterval, chartType, protocolName])
+	}
 
 	return (
 		<>
@@ -373,11 +376,6 @@ const ChartByType = ({
 					selectedValues={selectedTypes}
 					setSelectedValues={setSelectedTypes}
 					label={chartType === 'version' ? 'Versions' : 'Chains'}
-					clearAll={() => setSelectedTypes([])}
-					toggleAll={() => setSelectedTypes(breakdownNames)}
-					selectOnlyOne={(newType) => {
-						setSelectedTypes([newType])
-					}}
 					labelType="smol"
 					triggerProps={{
 						className:

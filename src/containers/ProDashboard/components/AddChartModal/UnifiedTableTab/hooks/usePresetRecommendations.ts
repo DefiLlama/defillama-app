@@ -96,19 +96,24 @@ export function usePresetRecommendations({ filters, chains }: UsePresetRecommend
 		addPreset('fees-protocols')
 		addPreset('revenue-protocols')
 
-		combinedCategories.forEach((categoryValue) => {
-			Object.entries(CATEGORY_PRESET_MAP).forEach(([matchKey, presets]) => {
+		for (const categoryValue of combinedCategories) {
+			for (const matchKey in CATEGORY_PRESET_MAP) {
+				const presets = CATEGORY_PRESET_MAP[matchKey]
 				if (categoryValue.includes(matchKey)) {
-					presets.forEach(addPreset)
+					for (const preset of presets) {
+						addPreset(preset)
+					}
 				}
-			})
-		})
-
-		PROTOCOL_KEYWORD_PRESETS.forEach(({ keywords, presets }) => {
-			if (keywords.some((keyword) => normalizedProtocols.some((protocol) => protocol.includes(keyword)))) {
-				presets.forEach(addPreset)
 			}
-		})
+		}
+
+		for (const { keywords, presets } of PROTOCOL_KEYWORD_PRESETS) {
+			if (keywords.some((keyword) => normalizedProtocols.some((protocol) => protocol.includes(keyword)))) {
+				for (const preset of presets) {
+					addPreset(preset)
+				}
+			}
+		}
 
 		if (normalizedCategorySet.has('dex aggregator')) {
 			addPreset('aggregators-protocols')

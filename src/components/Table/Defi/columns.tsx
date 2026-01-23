@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import { lazy, Suspense } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
@@ -8,8 +8,8 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
-import { formattedNum, formattedPercent, slug, tokenIconUrl, toNiceDayMonthAndYear, toNiceDayMonthYear } from '~/utils'
-import { formatColumnOrder } from '../utils'
+import { formattedNum, formattedPercent, slug, tokenIconUrl, toNiceDayMonthYear } from '~/utils'
+import type { ColumnOrdersByBreakpoint } from '../utils'
 import type { AirdropRow, IEmission, IForksRow, IGovernance, ILSDRow } from './types'
 
 const UnconstrainedSmolLineChart = lazy(() =>
@@ -20,12 +20,10 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue }) => {
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 
@@ -59,7 +57,7 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 		accessorKey: 'ftot',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value && value.toFixed(2) + '%'}</>
+			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
 			align: 'end'
@@ -206,7 +204,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		header: 'Price',
 		accessorKey: 'tPrice',
 		accessorFn: (row) => (row.tPrice ? +row.tPrice : undefined),
-		sortUndefined: 'last',
 		cell: ({ getValue }) => {
 			return <>{getValue() ? '$' + (+getValue()).toFixed(2) : ''}</>
 		},
@@ -219,7 +216,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		header: 'MCap',
 		accessorKey: 'mcap',
 		accessorFn: (row) => (row.mcap ? +row.mcap : undefined),
-		sortUndefined: 'last',
 		cell: ({ getValue }) => {
 			if (!getValue()) return null
 			return <>{formattedNum(getValue(), true)}</>
@@ -259,7 +255,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Prev. Unlock Analysis',
 		id: 'prevUnlock',
-		sortUndefined: 'last',
 		accessorFn: (row) => (row.historicalPrice ? row.historicalPrice : undefined),
 
 		cell: ({ row }) => {
@@ -296,7 +291,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: '7d Post Unlock',
 		id: 'postUnlock',
-		sortUndefined: 'last',
 		accessorFn: (row) => {
 			if (!row.historicalPrice?.length || row.historicalPrice.length < 8) return undefined
 			const priceAtUnlock = row.historicalPrice[7][1]
@@ -315,7 +309,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Daily Unlocks',
 		id: 'nextEvent',
-		sortUndefined: 'last',
 		accessorFn: (row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : undefined),
 		cell: ({ getValue, row }) => {
 			if (!row.original.unlocksPerDay) return '-'
@@ -339,7 +332,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			if (!timestamp || timestamp < Date.now() / 1e3) return undefined
 			return timestamp
 		},
-		sortUndefined: 'last',
 		cell: ({ row }) => {
 			let { timestamp } = row.original.upcomingEvent[0]
 
@@ -371,9 +363,7 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue, row }) => {
 			return (
 				<span
 					className="relative flex items-center gap-2"
@@ -399,7 +389,7 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 							)}
 						</button>
 					) : null}
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<BasicLink
 						href={`/governance/${slug(getValue() as string)}`}
@@ -450,23 +440,40 @@ export const bridgedChainColumns: ColumnDef<any>[] = [
 		accessorFn: (row) => (row.value ? +row.value : undefined),
 		cell: ({ getValue }) => {
 			return <>${formattedNum(getValue())}</>
-		},
-		sortUndefined: 'last'
+		}
 	}
 ]
+
+const ETHPegTooltipContent = ({ marketRate, expectedRate }: { marketRate: number; expectedRate: number }) => {
+	return (
+		<span className="flex flex-col gap-1">
+			<span>{`Market Rate: ${marketRate?.toFixed(4)}`}</span>
+			<span>{`Expected Rate: ${expectedRate?.toFixed(4)}`}</span>
+		</span>
+	)
+}
+
+const McapTooltipContent = ({ mcap, tvl }: { mcap: number; tvl: number }) => {
+	return (
+		<span className="flex flex-col gap-1">
+			<span>{`Market Cap: ${mcap?.toFixed(4)}`}</span>
+			<span>{`TVL: ${tvl?.toFixed(4)}`}</span>
+		</span>
+	)
+}
 
 export const LSDColumn: ColumnDef<ILSDRow>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+		cell: ({ getValue, row }) => {
 			const nameSlug = row.original.name.replace(/\s+/g, '-').toLowerCase()
 
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span> <TokenLogo logo={row.original.logo} data-lgonly />
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
+					<TokenLogo logo={row.original.logo} data-lgonly />
 					<BasicLink
 						href={`/protocol/${nameSlug}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
@@ -519,7 +526,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		accessorKey: 'marketShare',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value && value.toFixed(2) + '%'}</>
+			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
 			align: 'end'
@@ -549,16 +556,13 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		header: 'ETH Peg',
 		accessorKey: 'ethPeg',
 		cell: ({ getValue, row }) => {
-			const TooltipContent = () => {
-				return (
-					<span className="flex flex-col gap-1">
-						<span>{`Market Rate: ${row.original?.marketRate?.toFixed(4)}`}</span>
-						<span>{`Expected Rate: ${row.original?.expectedRate?.toFixed(4)}`}</span>
-					</span>
-				)
-			}
 			return (
-				<Tooltip content={<TooltipContent />} className="justify-end">
+				<Tooltip
+					content={
+						<ETHPegTooltipContent marketRate={row.original?.marketRate} expectedRate={row.original?.expectedRate} />
+					}
+					className="justify-end"
+				>
 					{getValue() ? formattedPercent(getValue()) : null}
 				</Tooltip>
 			)
@@ -574,11 +578,11 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		header: 'Mcap/TVL',
 		accessorKey: 'mcapOverTvl',
 		cell: ({ getValue, row }) => {
-			const TooltipContent = () => {
-				return <>{row.original.mcap ? <span>{`Market Cap: ${formattedNum(row.original.mcap, true)}`}</span> : null}</>
-			}
 			return (
-				<Tooltip content={<TooltipContent />} className="justify-end">
+				<Tooltip
+					content={<McapTooltipContent mcap={row.original.mcap} tvl={row.original.tvl} />}
+					className="justify-end"
+				>
 					{(getValue() ?? null) as string | null}
 				</Tooltip>
 			)
@@ -593,7 +597,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		accessorKey: 'apy',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value && value.toFixed(2) + '%'}</>
+			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
 			align: 'end'
@@ -605,7 +609,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		accessorKey: 'fee',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value && value.toFixed(2) + '%'}</>
+			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
 			align: 'end',
@@ -695,7 +699,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 	}
 ]
 
-export const raisesColumnOrders = formatColumnOrder({
+export const raisesColumnOrders: ColumnOrdersByBreakpoint = {
 	0: [
 		'name',
 		'amount',
@@ -722,4 +726,4 @@ export const raisesColumnOrders = formatColumnOrder({
 		'chains',
 		'otherInvestors'
 	]
-})
+}

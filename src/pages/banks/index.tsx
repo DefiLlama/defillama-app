@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { ColumnDef, sortingFns } from '@tanstack/react-table'
+import * as React from 'react'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CHART_COLORS } from '~/constants/colors'
 import Layout from '~/layout'
@@ -53,13 +53,19 @@ const tableData = data.banks.map((b: any) => {
 	return b
 })
 
+const chartData: Array<[number, number]> = []
+for (const year in data.years) {
+	chartData.push([new Date(year).getTime() / 1e3, (data.years[year] as number) * 1e6])
+}
+const DEFAULT_SORTING_STATE = [{ id: 'date', desc: true }]
+
 const Banks = () => {
 	return (
 		<Layout title="Bank Failures - DefiLlama">
 			<div className="relative col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 				<React.Suspense fallback={<></>}>
 					<BarChart
-						chartData={Object.entries(data.years).map((t) => [new Date(t[0]).getTime() / 1e3, t[1] * 1e6])}
+						chartData={chartData}
 						title="Assets of failed banks (inflation adjusted)"
 						valueSymbol="$"
 						color={CHART_COLORS[0]}
@@ -71,7 +77,7 @@ const Banks = () => {
 				columns={banksTableColumns}
 				placeholder="Search banks..."
 				columnToSearch={'1'}
-				sortingState={[{ id: 'date', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)

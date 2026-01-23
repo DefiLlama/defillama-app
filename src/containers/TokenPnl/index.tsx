@@ -1,10 +1,10 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQueries, useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
+import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/formatters'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
-import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/useDefaults'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { COINS_CHART_API } from '~/constants'
@@ -18,6 +18,9 @@ import { DateInput } from './DateInput'
 import { formatDateLabel, formatPercent } from './format'
 import { StatsCard } from './StatsCard'
 import type { ComparisonEntry, PricePoint, TimelinePoint } from './types'
+
+const EMPTY_SELECTED_COINS: Record<string, IResponseCGMarketsAPI> = {}
+const EMPTY_COMPARISON_ENTRIES: ComparisonEntry[] = []
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
@@ -57,9 +60,11 @@ const unixToDateString = (unixTimestamp?: number) => {
 	return date.toISOString().split('T')[0]
 }
 
-const dateStringToUnix = (dateString: string) => {
-	if (!dateString) return 0
-	return Math.floor(new Date(dateString).getTime() / 1000)
+const dateStringToUnix = (dateString): number | null => {
+	if (!dateString) return null
+	const timestamp = new Date(dateString).getTime()
+	if (Number.isNaN(timestamp)) return null
+	return Math.floor(timestamp / 1000)
 }
 
 const calculateMaxDrawdown = (series: PricePoint[]) => {
@@ -122,7 +127,7 @@ type RawPriceEntry = {
 	price?: number
 }
 
-const fetchPriceSeries = async (tokenId: string, start: number, end: number) => {
+const fetchPriceSeries = async (tokenId: string, start: number | null, end: number | null) => {
 	if (!tokenId || !start || !end || end <= start) return [] as PricePoint[]
 	const key = `coingecko:${tokenId}`
 	const spanInDays = Math.max(1, Math.ceil((end - start) / DAY_IN_SECONDS))
@@ -143,8 +148,8 @@ const fetchPriceSeries = async (tokenId: string, start: number, end: number) => 
 
 const computeTokenPnl = async (params: {
 	id: string
-	start: number
-	end: number
+	start: number | null
+	end: number | null
 	coinInfo?: IResponseCGMarketsAPI
 }): Promise<TokenPnlResult | null> => {
 	const { id, start, end, coinInfo } = params
@@ -206,7 +211,8 @@ const computeTokenPnl = async (params: {
 		dataPoints.push([start * 1000, firstPoint.price])
 	}
 
-	series.forEach((point, index) => {
+	for (let index = 0; index < series.length; index++) {
+		const point = series[index]
 		prices.push(point.price)
 
 		if (index === 0) {
@@ -220,7 +226,7 @@ const computeTokenPnl = async (params: {
 
 		// Prepare chart data
 		dataPoints.push([point.timestamp * 1000, point.price])
-	})
+	}
 
 	const lastPoint = series[series.length - 1]
 	if (lastPoint && lastPoint.timestamp !== end) {
@@ -270,12 +276,13 @@ const computeTokenPnl = async (params: {
 const isValidDate = (dateString: string | string[] | undefined): boolean => {
 	if (!dateString || typeof dateString !== 'string') return false
 	const date = new Date(+dateString * 1000)
-	return !isNaN(date.getTime())
+	return !Number.isNaN(date.getTime())
 }
 
 export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) {
 	const router = useRouter()
 	const now = Math.floor(Date.now() / 1000) - 60
+	const coinParam = router.query?.coin
 
 	const coinInfoMap = useMemo(() => new Map(coinsData.map((coin) => [coin.id, coin])), [coinsData])
 
@@ -309,14 +316,14 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	const [quantityInput, setQuantityInput] = useState('')
 
 	const { selectedCoins, selectedCoinId, selectedCoinInfo } = useMemo(() => {
-		const queryCoins = router.query?.coin || ['bitcoin']
+		const queryCoins = coinParam || ['bitcoin']
 		const coins = Array.isArray(queryCoins) ? queryCoins : [queryCoins]
 		return {
 			selectedCoins: coins,
 			selectedCoinId: coins[0],
 			selectedCoinInfo: coins[0] ? coinInfoMap.get(coins[0]) : null
 		}
-	}, [router.query, coinInfoMap])
+	}, [coinParam, coinInfoMap])
 
 	const start = dateStringToUnix(startDate)
 	const end = dateStringToUnix(endDate)
@@ -331,7 +338,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	} = useQuery({
 		queryKey: ['token-pnl', selectedCoinId, start, end],
 		queryFn: () => computeTokenPnl({ id: selectedCoinId, start, end, coinInfo: selectedCoinInfo }),
-		enabled: router.isReady && Boolean(selectedCoinId && start && end && end > start) ? true : false,
+		enabled: !!(router.isReady && selectedCoinId && start && end && end > start),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0
@@ -359,7 +366,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 						endPrice
 					} as ComparisonEntry
 				}),
-			enabled: router.isReady && Boolean(start && end && end > start) ? true : false,
+			enabled: !!(router.isReady && start && end && end > start),
 			staleTime: 60 * 60 * 1000,
 			refetchOnWindowFocus: false,
 			retry: 0
@@ -599,7 +606,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 
 				<DailyPnLGrid timeline={timeline} />
 
-				<ComparisonPanel entries={comparisonData ?? []} activeId={selectedCoinId} />
+				<ComparisonPanel entries={comparisonData ?? EMPTY_COMPARISON_ENTRIES} activeId={selectedCoinId} />
 			</div>
 		)
 	}
@@ -652,7 +659,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 						<CoinsPicker
 							dialogStore={dialogStore}
 							coinsData={coinsData}
-							selectedCoins={{}}
+							selectedCoins={EMPTY_SELECTED_COINS}
 							queryCoins={selectedCoins}
 							selectCoin={(coin) => updateCoin(coin.id)}
 						/>

@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
+import * as React from 'react'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { ILineAndBarChartProps } from '~/components/ECharts/types'
@@ -13,6 +13,8 @@ import { RaisesTable } from './RaisesTable'
 const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')
 ) as React.FC<ILineAndBarChartProps>
+
+const RAISES_PAGE_NAME = ['Raises Overview']
 
 const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
 	const { pathname } = useRouter()
@@ -33,9 +35,9 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 		chains
 	})
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		return prepareRaisesCsv({ raises: filteredRaisesList })
-	}, [filteredRaisesList])
+	}
 
 	return (
 		<Layout
@@ -43,7 +45,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 			description={`Track recent raises, total funding amount, and total funding rounds on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`recent raises, total funding amount, total funding rounds`}
 			canonicalUrl={`/raises`}
-			pageName={['Raises Overview']}
+			pageName={RAISES_PAGE_NAME}
 		>
 			<Announcement notCancellable>
 				<span>Are we missing any funding round?</span>{' '}

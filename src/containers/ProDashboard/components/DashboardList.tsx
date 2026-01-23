@@ -28,7 +28,7 @@ export function DashboardList({ dashboards, isLoading, onCreateNew, onDeleteDash
 					<p className="text-center text-(--text-label)">Create your first dashboard to get started</p>
 					<button
 						onClick={onCreateNew}
-						className="pro-btn-purple mt-7 flex items-center gap-1 rounded-md px-6 py-3 font-medium"
+						className="mt-7 flex items-center gap-1 rounded-md pro-btn-purple px-6 py-3 font-medium"
 					>
 						<Icon name="plus" height={16} width={16} />
 						Create Dashboard

@@ -1,6 +1,6 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import dayjs from 'dayjs'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { ICandlestickChartProps, ILineAndBarChartProps, ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
@@ -15,11 +15,45 @@ import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
+const DEFAULT_SORTING_STATE = [{ id: 'report_date', desc: true }]
+
 const SingleSeriesChart = lazy(
 	() => import('~/components/ECharts/SingleSeriesChart')
 ) as React.FC<ISingleSeriesChartProps>
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 const CandlestickChart = lazy(() => import('~/components/ECharts/CandlestickChart')) as React.FC<ICandlestickChartProps>
+
+const getType = (type: string) => {
+	switch (type) {
+		case 'purchase':
+			return 'Purchase'
+		case 'sale':
+			return 'Sale'
+		case 'mined':
+			return 'Mined'
+		case 'staking_reward':
+			return 'Staking Reward'
+		default:
+			return type
+	}
+}
+
+const getSourceType = (sourceType: string) => {
+	switch (sourceType) {
+		case 'filing':
+			return 'Filing'
+		case 'twitter':
+			return 'Twitter'
+		case 'press-release':
+			return 'Press Release'
+		case 'site':
+			return 'Site'
+		case 'other':
+			return 'Other'
+		default:
+			return sourceType
+	}
+}
 
 interface IDATInstitution {
 	institutionId: number
@@ -85,10 +119,11 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const chartByAsset = Object.keys(data.assets).map((assetKey) => {
+		const chartByAsset = []
+		for (const assetKey in data.assets) {
 			let totalAmount = 0
 			const assetMeta = data.assetsMeta[assetKey]
-			return {
+			chartByAsset.push({
 				asset: assetKey,
 				name: assetMeta.name,
 				ticker: assetMeta.ticker,
@@ -108,8 +143,8 @@ export const getStaticProps = withPerformanceLogging(
 						avg_price,
 						usd_value
 					])
-			}
-		})
+			})
+		}
 
 		const mNAVChart: ILineAndBarChartProps['charts'] = {
 			'Realized mNAV': {
@@ -165,9 +200,9 @@ export const getStaticProps = withPerformanceLogging(
 				fd_realized,
 				fd_realistic,
 				fd_maximum,
-				mcap_realized,
-				mcap_realistic,
-				mcap_max,
+				_mcap_realized,
+				_mcap_realistic,
+				_mcap_max,
 				mNAV_realized,
 				mNAV_realistic,
 				mNAV_max
@@ -199,6 +234,39 @@ export const getStaticProps = withPerformanceLogging(
 			volume
 		])
 
+		// Compute sorted assets
+		const assetEntries: [string, (typeof data.assets)[string]][] = []
+		for (const key in data.assets) {
+			assetEntries.push([key, data.assets[key]])
+		}
+		assetEntries.sort((a, b) => (b[1].usdValue ?? 0) - (a[1].usdValue ?? 0))
+		const sortedAssetTickers: string[] = []
+		for (const [asset] of assetEntries) {
+			sortedAssetTickers.push(data.assetsMeta[asset].ticker)
+		}
+
+		// Compute assets breakdown
+		const assetsBreakdownData: Array<{
+			name: string
+			ticker: string
+			amount: number
+			cost: number | null
+			usdValue: number | null
+			avgPrice: number | null
+		}> = []
+		for (const asset in data.assets) {
+			const { amount, cost, usdValue, avgPrice } = data.assets[asset]
+			assetsBreakdownData.push({
+				name: data.assetsMeta[asset].name,
+				ticker: data.assetsMeta[asset].ticker,
+				amount: amount,
+				cost: cost ?? null,
+				usdValue: usdValue ?? null,
+				avgPrice: avgPrice ?? null
+			})
+		}
+		assetsBreakdownData.sort((a, b) => (b.usdValue ?? 0) - (a.usdValue ?? 0))
+
 		return {
 			props: {
 				name: data.name,
@@ -213,19 +281,8 @@ export const getStaticProps = withPerformanceLogging(
 				realized_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][7] : null,
 				realistic_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][8] : null,
 				max_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][9] : null,
-				assets: Object.entries(data.assets)
-					.sort((a, b) => (b[1].usdValue ?? 0) - (a[1].usdValue ?? 0))
-					.map(([asset]) => data.assetsMeta[asset].ticker),
-				assetsBreakdown: Object.entries(data.assets)
-					.map(([asset, { amount, cost, usdValue, avgPrice }]) => ({
-						name: data.assetsMeta[asset].name,
-						ticker: data.assetsMeta[asset].ticker,
-						amount: amount,
-						cost: cost ?? null,
-						usdValue: usdValue ?? null,
-						avgPrice: avgPrice ?? null
-					}))
-					.sort((a, b) => (b.usdValue ?? 0) - (a.usdValue ?? 0)),
+				assets: sortedAssetTickers,
+				assetsBreakdown: assetsBreakdownData,
 				chartByAsset,
 				mNAVChart: data.stats.length > 0 ? mNAVChart : null,
 				fdChart: data.stats.length > 0 ? fdChart : null,
@@ -249,11 +306,10 @@ export async function getStaticPaths() {
 	return { paths, fallback: false }
 }
 
-interface IProps
-	extends Pick<
-		IDATInstitution,
-		'name' | 'ticker' | 'price' | 'priceChange24h' | 'transactions' | 'totalCost' | 'totalUsdValue'
-	> {
+interface IProps extends Pick<
+	IDATInstitution,
+	'name' | 'ticker' | 'price' | 'priceChange24h' | 'transactions' | 'totalCost' | 'totalUsdValue'
+> {
 	firstAnnouncementDate: string
 	lastAnnouncementDate: string
 	realized_mNAV: number | null
@@ -301,18 +357,18 @@ export default function DigitalAssetTreasury(props: IProps) {
 							<>
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 									<span className="text-(--text-label)">Assets in Holdings</span>
-									<span className="font-jetbrains ml-auto">{props.assets.join(', ')}</span>
+									<span className="ml-auto font-jetbrains">{props.assets.join(', ')}</span>
 								</p>
 								{props.totalUsdValue != null ? (
 									<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Assets Today's Value (USD)</span>
-										<span className="font-jetbrains ml-auto">{formattedNum(props.totalUsdValue, true)}</span>
+										<span className="ml-auto font-jetbrains">{formattedNum(props.totalUsdValue, true)}</span>
 									</p>
 								) : null}
 								{props.totalCost != null && (
 									<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Assets Cost Basis</span>
-										<span className="font-jetbrains ml-auto">
+										<span className="ml-auto font-jetbrains">
 											{props.totalCost != null ? formattedNum(props.totalCost, true) : '-'}
 										</span>
 									</p>
@@ -333,26 +389,26 @@ export default function DigitalAssetTreasury(props: IProps) {
 										width={16}
 										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
-									<span className="font-jetbrains ml-auto">
+									<span className="ml-auto font-jetbrains">
 										{formattedNum(asset.amount, false)} {asset.ticker}
 									</span>
 								</summary>
 								<div className="mb-3 flex flex-col">
 									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Today's Value (USD)</span>
-										<span className="font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap">
+										<span className="ml-auto justify-end overflow-hidden font-jetbrains text-ellipsis whitespace-nowrap">
 											{asset.usdValue != null ? formattedNum(asset.usdValue, true) : null}
 										</span>
 									</p>
 									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Cost Basis</span>
-										<span className="font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap">
+										<span className="ml-auto justify-end overflow-hidden font-jetbrains text-ellipsis whitespace-nowrap">
 											{asset.cost != null ? formattedNum(asset.cost, true) : '-'}
 										</span>
 									</p>
 									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Average Purchase Price</span>
-										<span className="font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap">
+										<span className="ml-auto justify-end overflow-hidden font-jetbrains text-ellipsis whitespace-nowrap">
 											{asset.avgPrice != null ? formattedNum(asset.avgPrice, true) : '-'}
 										</span>
 									</p>
@@ -361,19 +417,19 @@ export default function DigitalAssetTreasury(props: IProps) {
 						))}
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">First Announcement</span>
-							<span className="font-jetbrains ml-auto">
+							<span className="ml-auto font-jetbrains">
 								{props.firstAnnouncementDate != null ? dayjs(props.firstAnnouncementDate).format('MMM D, YYYY') : null}
 							</span>
 						</p>
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">Latest Announcement</span>
-							<span className="font-jetbrains ml-auto">
+							<span className="ml-auto font-jetbrains">
 								{props.lastAnnouncementDate != null ? dayjs(props.lastAnnouncementDate).format('MMM D, YYYY') : null}
 							</span>
 						</p>
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">Total Transactions</span>
-							<span className="font-jetbrains ml-auto">{props.transactions.length}</span>
+							<span className="ml-auto font-jetbrains">{props.transactions.length}</span>
 						</p>
 						{props.price != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
@@ -388,12 +444,12 @@ export default function DigitalAssetTreasury(props: IProps) {
 												>{`${props.priceChange24h > 0 ? '+' : ''}${props.priceChange24h.toFixed(2)}%`}</span>
 											</>
 										}
-										className="font-jetbrains ml-auto underline decoration-dotted"
+										className="ml-auto font-jetbrains underline decoration-dotted"
 									>
 										${props.price}
 									</Tooltip>
 								) : (
-									<span className="font-jetbrains ml-auto">${props.price}</span>
+									<span className="ml-auto font-jetbrains">${props.price}</span>
 								)}
 							</p>
 						) : null}
@@ -405,7 +461,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 								>
 									Realized mNAV
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.realized_mNAV, false)}</span>
+								<span className="ml-auto font-jetbrains">{formattedNum(props.realized_mNAV, false)}</span>
 							</p>
 						) : null}
 						{props.realistic_mNAV != null ? (
@@ -416,7 +472,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 								>
 									Realistic mNAV
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.realistic_mNAV, false)}</span>
+								<span className="ml-auto font-jetbrains">{formattedNum(props.realistic_mNAV, false)}</span>
 							</p>
 						) : null}
 						{props.max_mNAV != null ? (
@@ -427,7 +483,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 								>
 									Max mNAV
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.max_mNAV, false)}</span>
+								<span className="ml-auto font-jetbrains">{formattedNum(props.max_mNAV, false)}</span>
 							</p>
 						) : null}
 					</div>
@@ -506,7 +562,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 				columns={columns}
 				placeholder="Search assets"
 				columnToSearch="assetName"
-				sortingState={[{ id: 'report_date', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)
@@ -576,20 +632,6 @@ const columns: ColumnDef<IDATInstitution['transactions'][0]>[] = [
 		header: 'Type',
 		accessorKey: 'type',
 		cell: ({ getValue }) => {
-			function getType(type: string) {
-				switch (type) {
-					case 'purchase':
-						return 'Purchase'
-					case 'sale':
-						return 'Sale'
-					case 'mined':
-						return 'Mined'
-					case 'staking_reward':
-						return 'Staking Reward'
-					default:
-						return type
-				}
-			}
 			return <>{getType(getValue() as string)}</>
 		},
 		enableSorting: false,
@@ -601,22 +643,6 @@ const columns: ColumnDef<IDATInstitution['transactions'][0]>[] = [
 		header: 'Source Type',
 		accessorKey: 'source_type',
 		cell: ({ getValue }) => {
-			function getSourceType(sourceType: string) {
-				switch (sourceType) {
-					case 'filing':
-						return 'Filing'
-					case 'twitter':
-						return 'Twitter'
-					case 'press-release':
-						return 'Press Release'
-					case 'site':
-						return 'Site'
-					case 'other':
-						return 'Other'
-					default:
-						return sourceType
-				}
-			}
 			return <>{getSourceType(getValue() as string)}</>
 		},
 		enableSorting: false,

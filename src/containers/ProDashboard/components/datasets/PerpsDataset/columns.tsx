@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import * as React from 'react'
 import { formattedNum, formattedPercent } from '~/utils'
 import { percentageSortingFn } from '../../../utils/tableSorting'
 
@@ -22,7 +22,7 @@ export const perpsDatasetColumns: ColumnDef<any>[] = [
 							}}
 						/>
 					)}
-					<span className="pro-text1 font-medium">{row.original.name}</span>
+					<span className="font-medium pro-text1">{row.original.name}</span>
 				</div>
 			)
 		}

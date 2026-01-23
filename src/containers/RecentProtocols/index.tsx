@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { getPercentChange, toNumberOrNullFromQueryParam } from '~/utils'
@@ -18,7 +18,14 @@ function getSelectedChainFilters(chainQueryParam, allChains): string[] {
 	} else return allChains
 }
 
-function getSelectedCategoryFilters(categoryQueryParam, allCategories): string[] {
+// Helper to parse exclude query param to Set
+const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
+	if (!param) return new Set()
+	if (typeof param === 'string') return new Set([param])
+	return new Set(param)
+}
+
+function _getSelectedCategoryFilters(categoryQueryParam, allCategories): string[] {
 	if (categoryQueryParam) {
 		if (typeof categoryQueryParam === 'string') {
 			return categoryQueryParam === 'All' ? allCategories : categoryQueryParam === 'None' ? [] : [categoryQueryParam]
@@ -37,19 +44,23 @@ interface IRecentProtocolProps {
 
 export function RecentProtocols({ protocols, chainList, forkedList, claimableAirdrops }: IRecentProtocolProps) {
 	const router = useRouter()
-	const { chain, hideForks, minTvl: minTvlQuery, maxTvl: maxTvlQuery, ...queries } = router.query
+	const { chain, excludeChain, hideForks, minTvl: minTvlQuery, maxTvl: maxTvlQuery, ...queries } = router.query
 
 	const minTvl = toNumberOrNullFromQueryParam(minTvlQuery)
 	const maxTvl = toNumberOrNullFromQueryParam(maxTvlQuery)
 
-	const toHideForkedProtocols = hideForks && typeof hideForks === 'string' && hideForks === 'true' ? true : false
+	const toHideForkedProtocols = hideForks && typeof hideForks === 'string' && hideForks === 'true'
 
 	const { selectedChains, data } = useMemo(() => {
-		const selectedChains = getSelectedChainFilters(chain, chainList)
+		const excludeSet = parseExcludeParam(excludeChain)
+		let selectedChains = getSelectedChainFilters(chain, chainList)
+		selectedChains = excludeSet.size > 0 ? selectedChains.filter((c) => !excludeSet.has(c)) : selectedChains
 
-		const _chainsToSelect = selectedChains.map((t) => t.toLowerCase())
+		const _chainsToSelectSet = new Set(selectedChains.map((t) => t.toLowerCase()))
 
-		const isValidTvlRange = minTvl != null && maxTvl != null
+		// TVL range should work with min-only, max-only, or both.
+		// Values are parsed via `toNumberOrNullFromQueryParam`, so invalid inputs become null.
+		const isValidTvlRange = minTvl != null || maxTvl != null
 
 		const data = protocols
 			.filter((protocol) => {
@@ -61,12 +72,12 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 				}
 
 				let includesChain = false
-				protocol.chains.forEach((chain) => {
+				for (const chain of protocol.chains) {
 					// filter if a protocol has at least of one selected chain
 					if (!includesChain) {
-						includesChain = _chainsToSelect.includes(chain.toLowerCase())
+						includesChain = _chainsToSelectSet.has(chain.toLowerCase())
 					}
-				})
+				}
 
 				toFilter = toFilter && includesChain
 
@@ -79,10 +90,10 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 				let tvlPrevMonth = null
 				let extraTvl = {}
 
-				p.chains.forEach((chainName) => {
-					// return if chainsToSelect does not include chainName
-					if (!_chainsToSelect.includes(chainName.toLowerCase())) {
-						return
+				for (const chainName of p.chains) {
+					// continue if chainsToSelect does not include chainName
+					if (!_chainsToSelectSet.has(chainName.toLowerCase())) {
+						continue
 					}
 
 					for (const sectionName in p.chainTvls) {
@@ -91,7 +102,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 							: sectionName.toLowerCase()
 
 						// add only if chainsToSelect includes sanitisedChainName and chainName equals sanitisedChainName
-						if (_chainsToSelect.includes(_sanitisedChainName) && chainName.toLowerCase() === _sanitisedChainName) {
+						if (_chainsToSelectSet.has(_sanitisedChainName) && chainName.toLowerCase() === _sanitisedChainName) {
 							const _values = p.chainTvls[sectionName]
 
 							// only add tvl values where chainName is strictly equal to sectionName, else check if its extraTvl and add
@@ -114,7 +125,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 							}
 						}
 					}
-				})
+				}
 
 				return {
 					...p,
@@ -139,7 +150,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 		}
 
 		return { data, selectedChains }
-	}, [protocols, chain, chainList, forkedList, toHideForkedProtocols, minTvl, maxTvl])
+	}, [protocols, chain, excludeChain, chainList, forkedList, toHideForkedProtocols, minTvl, maxTvl])
 
 	const protocolsData = useCalcStakePool2Tvl(data)
 

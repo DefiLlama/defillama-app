@@ -1,5 +1,3 @@
-import * as React from 'react'
-import { useRouter } from 'next/router'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -12,6 +10,8 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
@@ -20,7 +20,7 @@ import { Switch } from '~/components/Switch'
 import { columnSizes, protocolsColumns } from '~/components/Table/Defi/Protocols/columns'
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { VirtualTable } from '~/components/Table/Table'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { formattedNum, toNiceDaysAgo } from '~/utils'
 
 export function RecentlyListedProtocolsTable({
@@ -43,7 +43,6 @@ export function RecentlyListedProtocolsTable({
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'listedAt' }])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const windowSize = useWindowSize()
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
 	const router = useRouter()
@@ -57,6 +56,9 @@ export function RecentlyListedProtocolsTable({
 			columnSizing,
 			columnFilters
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IProtocolRow) => row.subRows,
 		onSortingChange: setSorting,
@@ -68,82 +70,11 @@ export function RecentlyListedProtocolsTable({
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	React.useEffect(() => {
-		const cSize = windowSize.width
-			? columnSizesKeys.find((size) => windowSize.width > Number(size))
-			: columnSizesKeys[0]
+	useSortColumnSizesAndOrders({ instance, columnSizes })
 
-		instance.setColumnSizing(columnSizes[cSize])
-	}, [windowSize, instance])
-	const [projectName, setProjectName] = React.useState('')
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
-	React.useEffect(() => {
-		const columns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			columns.setFilterValue(projectName)
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance])
-
-	const selectChain = (newChain) => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					chain: newChain
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const clearAllChains = () => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					chain: 'None'
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const toggleAllChains = () => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					chain: 'All'
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const selectOnlyOneChain = (option: string) => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					chain: option
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const headers = ['Name', 'TVL', 'Change 1d', 'Change 7d', 'Change 1m', 'Listed At', 'Chains']
 		const csvData = data.map((row) => {
 			return {
@@ -158,7 +89,7 @@ export function RecentlyListedProtocolsTable({
 		})
 		const rows = [headers, ...csvData.map((row) => headers.map((header) => row[header]))]
 		return { filename: 'protocols.csv', rows: rows as (string | number | boolean)[][] }
-	}, [data])
+	}
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -177,7 +108,7 @@ export function RecentlyListedProtocolsTable({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search protocols..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 
@@ -186,11 +117,9 @@ export function RecentlyListedProtocolsTable({
 						<SelectWithCombobox
 							label="Chains"
 							allValues={chainList}
-							clearAll={clearAllChains}
-							toggleAll={toggleAllChains}
-							selectOnlyOne={selectOnlyOneChain}
 							selectedValues={selectedChains}
-							setSelectedValues={selectChain}
+							includeQueryKey="chain"
+							excludeQueryKey="excludeChain"
 							labelType="smol"
 							triggerProps={{
 								className:
@@ -214,7 +143,6 @@ const listedAtColumn: ColumnDef<IProtocolRow> = {
 	header: 'Listed At',
 	accessorKey: 'listedAt',
 	cell: ({ getValue }) => toNiceDaysAgo(getValue()),
-	sortUndefined: 'last' as const,
 	size: 140,
 	meta: {
 		align: 'end' as const
@@ -233,7 +161,6 @@ const airdropsColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Total Money Raised',
 		accessorKey: 'totalRaised',
 		cell: ({ getValue }) => <>{getValue() ? formattedNum(getValue(), true) : ''}</>,
-		sortUndefined: 'last',
 		size: 180,
 		meta: {
 			align: 'end' as const
@@ -243,16 +170,12 @@ const airdropsColumns: ColumnDef<IProtocolRow>[] = [
 	...protocolsColumns.slice(3, -1).filter((c: any) => !['volume_7d', 'fees_7d', 'revenue_7d'].includes(c.accessorKey))
 ]
 
-const columnSizesKeys = Object.keys(columnSizes)
-	.map((x) => Number(x))
-	.sort((a, b) => Number(b) - Number(a))
-
 function HideForkedProtocols() {
 	const router = useRouter()
 
 	const { hideForks } = router.query
 
-	const toHide = hideForks && typeof hideForks === 'string' && hideForks === 'true' ? false : true
+	const toHide = !(hideForks && typeof hideForks === 'string' && hideForks === 'true')
 
 	const hide = () => {
 		router.push(

@@ -1,6 +1,6 @@
-import { memo, useState, useDeferredValue } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
+import { useDeferredValue, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
@@ -15,7 +15,7 @@ interface FeedbackFormProps {
 	onRatingSubmitted: (rating: 'good' | 'bad' | null) => void
 }
 
-export const FeedbackForm = memo(function FeedbackForm({
+export function FeedbackForm({
 	messageId,
 	selectedRating,
 	setSelectedRating,
@@ -121,4 +121,4 @@ export const FeedbackForm = memo(function FeedbackForm({
 			</div>
 		</form>
 	)
-})
+}

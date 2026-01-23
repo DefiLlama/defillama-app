@@ -1,6 +1,6 @@
-import * as React from 'react'
-import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import * as React from 'react'
 import { IChartProps } from '~/components/ECharts/types'
 import { FormattedName } from '~/components/FormattedName'
 import { Icon } from '~/components/Icon'
@@ -50,7 +50,7 @@ export function NFTCollectionContainer() {
 	const floorPrice = floorHistory ? floorHistory[floorHistory.length - 1]?.[1] : null
 	const volume24h = stats ? stats[stats.length - 1]?.[1] : null
 
-	const includeOutliers = router.isReady && router.query.includeOutliers === 'true' ? true : false
+	const includeOutliers = router.isReady && router.query.includeOutliers === 'true'
 
 	return (
 		<Layout

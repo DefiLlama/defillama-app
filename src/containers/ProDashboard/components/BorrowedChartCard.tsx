@@ -1,10 +1,10 @@
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
-import * as echarts from 'echarts/core'
+import { lazy, Suspense, useMemo } from 'react'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { download, toNiceCsvDate } from '~/utils'
 import { BORROWED_CHART_OPTIONS, BORROWED_CHART_TYPE_LABELS } from '../borrowedChartConstants'
+import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { BorrowedChartConfig } from '../types'
@@ -13,6 +13,14 @@ import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+const EMPTY_CHART_DATA: any[] = []
+const EMPTY_STACKS: string[] = []
+const EMPTY_ADDL_DATA: {
+	tokensUnique?: string[]
+	tokenBreakdownUSD?: any[]
+	tokenBreakdownPieChart?: any[]
+	tokenBreakdown?: any[]
+} = {}
 
 interface BorrowedChartCardProps {
 	config: BorrowedChartConfig
@@ -21,25 +29,34 @@ interface BorrowedChartCardProps {
 export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 	const { protocol, protocolName, chartType } = config
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
-	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
+	const { chartInstance, handleChartReady } = useChartImageExport()
 
 	const { data: addlData, historicalChainTvls, isLoading } = useFetchProtocolAddlChartsData(protocolName, true)
 
 	const { chainsSplit, chainsUnique } = useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
 		const chainsSplit = formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled: {} })
-		const chainsUnique = Object.keys(chainsSplit[chainsSplit.length - 1] ?? {}).filter((c) => c !== 'date')
+		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
+		const chainsUnique: string[] = []
+		for (const key in lastEntry) {
+			if (key !== 'date') chainsUnique.push(key)
+		}
 		return { chainsSplit, chainsUnique }
 	}, [historicalChainTvls])
 
-	const { tokensUnique, tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = addlData ?? {}
+	const { tokensUnique, tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = addlData ?? EMPTY_ADDL_DATA
+	const resolvedTokensUnique = tokensUnique ?? EMPTY_STACKS
+	const resolvedTokenBreakdownUSD = tokenBreakdownUSD ?? EMPTY_CHART_DATA
+	const resolvedTokenBreakdownPieChart = tokenBreakdownPieChart ?? EMPTY_CHART_DATA
+	const resolvedTokenBreakdown = tokenBreakdown ?? EMPTY_CHART_DATA
+	const resolvedChainsSplit = chainsSplit ?? EMPTY_CHART_DATA
 
 	const filteredChartData = useMemo(() => {
 		if (!timePeriod || timePeriod === 'all') {
 			return {
-				chainsSplit,
-				tokenBreakdownUSD,
-				tokenBreakdown
+				chainsSplit: resolvedChainsSplit,
+				tokenBreakdownUSD: resolvedTokenBreakdownUSD,
+				tokenBreakdown: resolvedTokenBreakdown
 			}
 		}
 
@@ -55,13 +72,13 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 		}
 
 		return {
-			chainsSplit: filterTimeSeries(chainsSplit ?? []),
-			tokenBreakdownUSD: filterTimeSeries(tokenBreakdownUSD ?? []),
-			tokenBreakdown: filterTimeSeries(tokenBreakdown ?? [])
+			chainsSplit: filterTimeSeries(resolvedChainsSplit),
+			tokenBreakdownUSD: filterTimeSeries(resolvedTokenBreakdownUSD),
+			tokenBreakdown: filterTimeSeries(resolvedTokenBreakdown)
 		}
-	}, [chainsSplit, tokenBreakdownUSD, tokenBreakdown, timePeriod, customTimePeriod])
+	}, [resolvedChainsSplit, resolvedTokenBreakdownUSD, resolvedTokenBreakdown, timePeriod, customTimePeriod])
 
-	const handleCsvExport = useCallback(() => {
+	const handleCsvExport = () => {
 		let rows: (string | number)[][] = []
 		let filename = ''
 		const protocolSlug = protocol.toLowerCase().replace(/\s+/g, '-')
@@ -79,24 +96,24 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 				break
 			case 'tokenBorrowedUsd':
 				rows = [
-					['Date', ...(tokensUnique ?? [])],
+					['Date', ...resolvedTokensUnique],
 					...(filteredChartData.tokenBreakdownUSD?.map((el: any) => [
 						toNiceCsvDate(el.date),
-						...(tokensUnique ?? []).map((t) => el[t] ?? '')
+						...resolvedTokensUnique.map((t) => el[t] ?? '')
 					]) ?? [])
 				]
 				filename = `${protocolSlug}-borrowed-by-token-usd.csv`
 				break
 			case 'tokensBorrowedPie':
-				rows = [['Token', 'Value'], ...(tokenBreakdownPieChart?.map((el: any) => [el.name, el.value]) ?? [])]
+				rows = [['Token', 'Value'], ...(resolvedTokenBreakdownPieChart.map((el: any) => [el.name, el.value]) ?? [])]
 				filename = `${protocolSlug}-borrowed-tokens-breakdown.csv`
 				break
 			case 'tokenBorrowedRaw':
 				rows = [
-					['Date', ...(tokensUnique ?? [])],
+					['Date', ...resolvedTokensUnique],
 					...(filteredChartData.tokenBreakdown?.map((el: any) => [
 						toNiceCsvDate(el.date),
-						...(tokensUnique ?? []).map((t) => el[t] ?? '')
+						...resolvedTokensUnique.map((t) => el[t] ?? '')
 					]) ?? [])
 				]
 				filename = `${protocolSlug}-borrowed-by-token-raw.csv`
@@ -107,7 +124,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 			const csvContent = rows.map((row) => row.join(',')).join('\n')
 			download(filename, csvContent)
 		}
-	}, [filteredChartData, tokenBreakdownPieChart, chainsUnique, tokensUnique, protocol, chartType])
+	}
 
 	const chartTypeLabel = BORROWED_CHART_TYPE_LABELS[chartType] || chartType
 	const imageTitle = `${protocolName} - ${chartTypeLabel}`
@@ -134,7 +151,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 					>
 						<AreaChart
 							title=""
-							chartData={filteredChartData.chainsSplit ?? []}
+							chartData={filteredChartData.chainsSplit ?? EMPTY_CHART_DATA}
 							stacks={chainsUnique}
 							valueSymbol="$"
 							customLegendName="Chain"
@@ -142,7 +159,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 							hideDownloadButton={true}
 							hideGradient={true}
 							chartOptions={BORROWED_CHART_OPTIONS}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -157,15 +174,15 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 					>
 						<AreaChart
 							title=""
-							chartData={filteredChartData.tokenBreakdownUSD ?? []}
-							stacks={tokensUnique ?? []}
+							chartData={filteredChartData.tokenBreakdownUSD ?? EMPTY_CHART_DATA}
+							stacks={resolvedTokensUnique}
 							valueSymbol="$"
 							customLegendName="Token"
-							customLegendOptions={tokensUnique ?? []}
+							customLegendOptions={resolvedTokensUnique}
 							hideDownloadButton={true}
 							hideGradient={true}
 							chartOptions={BORROWED_CHART_OPTIONS}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -179,7 +196,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 						}
 					>
 						<PieChart
-							chartData={tokenBreakdownPieChart ?? []}
+							chartData={resolvedTokenBreakdownPieChart}
 							enableImageExport
 							imageExportFilename={imageFilename}
 							imageExportTitle={imageTitle}
@@ -197,14 +214,14 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 					>
 						<AreaChart
 							title=""
-							chartData={filteredChartData.tokenBreakdown ?? []}
-							stacks={tokensUnique ?? []}
+							chartData={filteredChartData.tokenBreakdown ?? EMPTY_CHART_DATA}
+							stacks={resolvedTokensUnique}
 							customLegendName="Token"
-							customLegendOptions={tokensUnique ?? []}
+							customLegendOptions={resolvedTokensUnique}
 							hideDownloadButton={true}
 							hideGradient={true}
 							chartOptions={BORROWED_CHART_OPTIONS}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -223,8 +240,8 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 		<div className="flex h-full flex-col p-2">
 			<div className="mb-2 flex items-start justify-between gap-2">
 				<div className="flex flex-col gap-1">
-					<h3 className="pro-text1 text-sm font-semibold">{chartTypeLabel}</h3>
-					<p className="pro-text2 text-xs">{protocolName}</p>
+					<h3 className="text-sm font-semibold pro-text1">{chartTypeLabel}</h3>
+					<p className="text-xs pro-text2">{protocolName}</p>
 				</div>
 				{hasChartData && (
 					<div className="flex gap-2">
@@ -234,7 +251,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol
-							className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
+							className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 						/>
 					</div>
 				)}

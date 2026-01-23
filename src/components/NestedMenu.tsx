@@ -1,8 +1,7 @@
-import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
+import * as React from 'react'
 import { Icon } from './Icon'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface NestedMenuItemProps extends Ariakit.MenuItemProps {}
 
 export const NestedMenuItem = React.forwardRef<HTMLDivElement, NestedMenuItemProps>(function MenuItem(props, ref) {
@@ -42,7 +41,7 @@ export const NestedMenu = React.forwardRef<HTMLDivElement, NestedMenuProps>(func
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className={`thin-scrollbar z-10 flex h-[calc(100dvh-80px)] flex-col overflow-x-auto rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 max-sm:rounded-b-none sm:max-h-[60dvh] dark:border-[hsl(204,3%,32%)] ${
+				className={`z-10 flex thin-scrollbar h-[calc(100dvh-80px)] flex-col overflow-x-auto rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 max-sm:rounded-b-none sm:max-h-[60dvh] dark:border-[hsl(204,3%,32%)] ${
 					menu.parent ? 'max-sm:drawer-to-left' : 'max-sm:drawer'
 				}`}
 			>

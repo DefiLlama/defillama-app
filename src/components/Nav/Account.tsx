@@ -1,4 +1,3 @@
-import { memo } from 'react'
 import { useRouter } from 'next/router'
 import { LoadingDots } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -19,7 +18,7 @@ const resolveUserHandle = (user: any): string => {
 	return resolveUserEmail(user) || formatEthAddress(user?.walletAddress) || ''
 }
 
-export const Account = memo(function Account() {
+export function Account() {
 	const { asPath } = useRouter()
 	const { isAuthenticated, user, logout, loaders, hasActiveSubscription } = useAuthContext()
 	const isClient = useIsClient()
@@ -80,7 +79,7 @@ export const Account = memo(function Account() {
 					) : (
 						<BasicLink
 							href={`/subscription?returnUrl=${encodeURIComponent(asPath)}`}
-							className="pro-btn-purple flex items-center justify-center gap-2 rounded-md p-1 text-sm font-medium"
+							className="flex items-center justify-center gap-2 rounded-md pro-btn-purple p-1 text-sm font-medium"
 						>
 							<Icon name="users" className="h-4 w-4" />
 							Sign In / Subscribe
@@ -90,4 +89,4 @@ export const Account = memo(function Account() {
 			)}
 		</>
 	)
-})
+}

@@ -1,8 +1,7 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
 import { useMutation, UseMutationResult, useQuery, useQueryClient } from '@tanstack/react-query'
 import { RecordAuthResponse, RecordModel } from 'pocketbase'
+import { createContext, ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
-import { createSiweMessage } from 'viem/siwe'
 import { AUTH_SERVER } from '~/constants'
 import pb, { AuthModel } from '~/utils/pocketbase'
 
@@ -11,29 +10,57 @@ export type PromotionalEmailsValue = 'initial' | 'on' | 'off'
 // Custom event name for auth store changes
 const AUTH_STORE_CHANGE_EVENT = 'pb-auth-store-change'
 
+const stableStringify = (value: unknown) => {
+	try {
+		return JSON.stringify(value, (_key, val) => {
+			if (val && typeof val === 'object' && !Array.isArray(val)) {
+				const obj = val as Record<string, unknown>
+				return Object.keys(obj)
+					.sort()
+					.reduce<Record<string, unknown>>((acc, k) => {
+						acc[k] = obj[k]
+						return acc
+					}, {})
+			}
+			return val
+		})
+	} catch {
+		return ''
+	}
+}
+
+const getRecordKey = (record: RecordModel | null | undefined) => {
+	if (!record) return ''
+	const updatedOrCreated = (record as any)?.updated ?? (record as any)?.created
+	if (updatedOrCreated != null) return `${record.id}:${updatedOrCreated}`
+
+	const serialized = stableStringify(record)
+	return record.id ? `${record.id}:${serialized}` : serialized
+}
+
 // Store for tracking auth state changes
 let authStoreSnapshot = {
 	token: pb.authStore.token,
 	record: pb.authStore.record ? { ...pb.authStore.record } : null,
+	recordKey: getRecordKey(pb.authStore.record),
 	isValid: pb.authStore.isValid
 }
 
-// Subscribe to PocketBase authStore changes and dispatch window events
+// Subscribe to PocketBase authStore changes and react to external events
 const subscribeToAuthStore = (callback: () => void) => {
 	const unsubscribe = pb.authStore.onChange((token, record) => {
+		const nextRecordKey = getRecordKey(record)
 		const hasTokenChanged = authStoreSnapshot.token !== token
-		const hasRecordChanged = JSON.stringify(authStoreSnapshot.record) !== JSON.stringify(record)
+		const hasRecordChanged = authStoreSnapshot.recordKey !== nextRecordKey
 		const hasValidChanged = authStoreSnapshot.isValid !== pb.authStore.isValid
 
 		if (hasTokenChanged || hasRecordChanged || hasValidChanged) {
 			authStoreSnapshot = {
 				token,
 				record: record ? { ...record } : null,
+				recordKey: nextRecordKey,
 				isValid: pb.authStore.isValid
 			}
-			window.dispatchEvent(
-				new CustomEvent(AUTH_STORE_CHANGE_EVENT, { detail: { token, record, isValid: pb.authStore.isValid } })
-			)
 			callback()
 		}
 	})
@@ -75,6 +102,9 @@ const clearUserSession = () => {
 	pb.authStore.clear()
 	localStorage.removeItem('userHash')
 	localStorage.removeItem('lite-dashboards')
+	if (typeof window !== 'undefined') {
+		;(window as any).__frontChatUserHash = null
+	}
 	if (typeof window !== 'undefined' && (window as any).FrontChat) {
 		;(window as any).FrontChat('shutdown', { clearSession: true })
 	}
@@ -192,7 +222,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		}
 	})
 
-	const userLoading = Boolean(!authStoreState.token || !authStoreState.record) ? userQueryIsLoading : false
+	const userLoading = !authStoreState.token || !authStoreState.record ? userQueryIsLoading : false
 
 	const login = useCallback(
 		async (email: string, password: string, onSuccess?: () => void) => {
@@ -335,6 +365,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const signInWithEthereumMutation = useMutation({
 		mutationFn: async ({ address, signMessageFunction }: { address: string; signMessageFunction: any }) => {
+			const { createSiweMessage } = await import('viem/siwe')
 			const { nonce } = await getNonce(address)
 			const issuedAt = new Date()
 			const message = createSiweMessage({
@@ -406,6 +437,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				throw new Error('User not authenticated')
 			}
 
+			const { createSiweMessage } = await import('viem/siwe')
 			const { nonce } = await getNonce(address)
 			const issuedAt = new Date()
 			const message = createSiweMessage({
@@ -438,7 +470,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				try {
 					const data = await response.json()
 					reason = data?.message || data?.error || reason
-				} catch (e) {}
+				} catch {}
 				throw new Error(reason)
 			}
 
@@ -447,7 +479,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		onSuccess: async () => {
 			try {
 				await pb.collection('users').authRefresh()
-			} catch {}
+			} catch {
+				/* ignore refresh error */
+			}
 			toast.success('Wallet linked successfully')
 		},
 		onError: (error) => {
@@ -482,7 +516,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			try {
 				await pb.collection('users').requestEmailChange(email)
 				toast.success('Email change request sent')
-			} catch (error) {
+			} catch {
 				toast.error('User with this email already exists')
 			}
 		}
@@ -504,7 +538,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				throw error
 			}
 		},
-		onError: (error) => {
+		onError: () => {
 			toast.error('Failed to send verification email. Please try again.')
 		}
 	})
@@ -667,22 +701,22 @@ export const useUserHash = () => {
 				})
 				.then((data) => {
 					const currentUserHash = localStorage.getItem('userHash')
-					localStorage.setItem('userHash', data.userHash)
+					// Avoid redundant localStorage writes (can be surprisingly costly in bursts).
 					if (currentUserHash !== data.userHash) {
+						localStorage.setItem('userHash', data.userHash)
 						window.dispatchEvent(new Event('userHashChange'))
 					}
 					return data.userHash
 				})
-				.catch((err) => {
-					console.log('Error fetching user hash:', err)
+				.catch(() => {
 					const currentUserHash = localStorage.getItem('userHash')
-					localStorage.removeItem('userHash')
 					if (currentUserHash !== null) {
+						localStorage.removeItem('userHash')
 						window.dispatchEvent(new Event('userHashChange'))
 					}
 					return null
 				}),
-		enabled: email && hasActiveSubscription ? true : false,
+		enabled: !!(email && hasActiveSubscription),
 		staleTime: 1000 * 60 * 60 * 24,
 		refetchOnWindowFocus: false,
 		retry: 3

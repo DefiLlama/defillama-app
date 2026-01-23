@@ -1,7 +1,7 @@
-import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import { useRouter } from 'next/router'
+import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 
@@ -215,6 +215,7 @@ export function IncludeExcludeTokens({
 				{tab === 'Tokens' ? (
 					<>
 						<Ariakit.ComboboxProvider
+							value={searchValue}
 							setValue={(value) => {
 								startTransition(() => {
 									setSearchValue(value)
@@ -236,8 +237,8 @@ export function IncludeExcludeTokens({
 								/>
 							</div>
 							{matches.length ? (
-								<Ariakit.ComboboxList className="flex flex-col gap-2" ref={tokensComboboxRef}>
-									{matches.slice(0, tokensViewableMatches + 1).map((token) => (
+								<Ariakit.ComboboxList alwaysVisible className="flex flex-col gap-2" ref={tokensComboboxRef}>
+									{matches.slice(0, tokensViewableMatches).map((token) => (
 										<Ariakit.ComboboxItem
 											key={token.name}
 											onClick={() => {
@@ -327,8 +328,8 @@ export function IncludeExcludeTokens({
 								/>
 							</div>
 							{matches.length ? (
-								<Ariakit.ComboboxList className="flex flex-col gap-2" ref={pairsComboboxRef}>
-									{matches.slice(0, pairsViewableMatches + 1).map((token) => (
+								<Ariakit.ComboboxList alwaysVisible className="flex flex-col gap-2" ref={pairsComboboxRef}>
+									{matches.slice(0, pairsViewableMatches).map((token) => (
 										<Ariakit.ComboboxItem
 											key={token.name}
 											onClick={() => {

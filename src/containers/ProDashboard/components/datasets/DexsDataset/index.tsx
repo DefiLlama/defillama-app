@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -13,9 +12,10 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
-import { TagGroup } from '~/components/TagGroup'
+import * as React from 'react'
+import { useTableSearch } from '~/components/Table/utils'
 import { DexItem } from '~/containers/ProDashboard/types'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -39,8 +39,8 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 		pageSize: 10
 	})
 
-	const { data, isLoading, error, refetch } = useDexsData(chains)
-	const windowSize = useWindowSize()
+	const { data, isLoading, error } = useDexsData(chains)
+	const width = useBreakpointWidth()
 
 	const enrichedData = React.useMemo<DexItemWithMarketShare[]>(() => {
 		if (!data || data.length === 0) return []
@@ -73,8 +73,20 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
+
+	// Guard against stale page index when data or filters change
+	React.useEffect(() => {
+		const pageSize = instance.getState().pagination.pageSize
+		const currentPageIndex = instance.getState().pagination.pageIndex
+		const filteredRowCount = instance.getFilteredRowModel().rows.length
+		const maxPage = Math.max(0, Math.ceil(filteredRowCount / pageSize) - 1)
+		if (currentPageIndex > maxPage) {
+			instance.setPageIndex(maxPage)
+		}
+	}, [enrichedData.length, columnFilters, instance])
 
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
@@ -98,35 +110,23 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
 		instance.setColumnVisibility(defaultVisibility)
-	}, [windowSize, chains, instance])
+	}, [width, chains, instance])
 
-	const [protocolName, setProtocolName] = React.useState('')
-
-	React.useEffect(() => {
-		const columns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			if (columns) {
-				columns.setFilterValue(protocolName)
-			}
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [protocolName, instance])
+	const [protocolName, setProtocolName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	if (isLoading) {
 		return (
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-lg font-semibold">
+						<h3 className="text-lg font-semibold pro-text1">
 							{chains && chains.length > 0 ? `${chains.join(', ')} DEXs` : 'DEX Volume'}
 						</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<LoadingSpinner />
-					<p className="pro-text2 text-sm">Loading DEX data...</p>
+					<p className="text-sm pro-text2">Loading DEX data...</p>
 				</div>
 			</div>
 		)
@@ -137,13 +137,13 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-lg font-semibold">
+						<h3 className="text-lg font-semibold pro-text1">
 							{chains && chains.length > 0 ? `${chains.join(', ')} DEXs` : 'DEX Volume'}
 						</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 items-center justify-center">
-					<div className="pro-text2 text-center">Failed to load DEX data</div>
+					<div className="text-center pro-text2">Failed to load DEX data</div>
 				</div>
 			</div>
 		)
@@ -153,7 +153,7 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 		<div className="flex h-full w-full flex-col p-4">
 			<div className="mb-3">
 				<div className="flex flex-wrap items-center justify-end gap-4">
-					<h3 className="pro-text1 mr-auto text-lg font-semibold">
+					<h3 className="mr-auto text-lg font-semibold pro-text1">
 						{chains && chains.length > 0 ? `${chains.join(', ')} DEXs` : 'DEX Volume'}
 					</h3>
 					<div className="flex flex-wrap items-center justify-end gap-2">
@@ -201,7 +201,7 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 							placeholder="Search protocols..."
 							value={protocolName}
 							onChange={(e) => setProtocolName(e.target.value)}
-							className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+							className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>
 				</div>

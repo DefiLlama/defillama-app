@@ -1,5 +1,4 @@
-import * as React from 'react'
-import { memo, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useProDashboardEditorActions } from '../../ProDashboardAPIContext'
 import { TableFilters } from '../../types'
 import { ColumnManagementPanel } from './ColumnManagementPanel'
@@ -9,7 +8,7 @@ import { TableHeader } from './TableHeader'
 import { TablePagination } from './TablePagination'
 import { useProTable } from './useProTable'
 
-export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
+export function ProtocolsByChainTable({
 	tableId,
 	chains = ['All'],
 	colSpan = 2,
@@ -32,6 +31,7 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 }) {
 	const { handleTableFiltersChange, handleTableColumnsChange } = useProDashboardEditorActions()
 	const [showFilterModal, setShowFilterModal] = useState(false)
+	// oxlint-disable-next-line react/exhaustive-deps
 	const memoizedChains = useMemo(() => chains, [chains.join(',')])
 	const proDashboardElement = typeof window !== 'undefined' ? document.querySelector('.pro-dashboard') : null
 
@@ -143,4 +143,4 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 			)}
 		</div>
 	)
-})
+}

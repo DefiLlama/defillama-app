@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import * as React from 'react'
 import { getETFData } from '~/api/categories/protocols'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { ILineAndBarChartProps } from '~/components/ECharts/types'
@@ -78,6 +78,8 @@ interface PageViewProps {
 }
 
 const groupByList = ['Daily', 'Weekly', 'Monthly', 'Cumulative']
+const ASSET_VALUES = ['Bitcoin', 'Ethereum'] as const
+const DEFAULT_SORTING_STATE = [{ id: 'aum', desc: true }]
 const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps) => {
 	const [groupBy, setGroupBy] = React.useState<(typeof groupByList)[number]>('Weekly')
 	const [tickers, setTickers] = React.useState(['Bitcoin', 'Ethereum'])
@@ -142,7 +144,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 		return newCharts
 	}, [charts, tickers])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		let rows = []
 
 		rows = [['Timestamp', 'Date', 'Bitcoin', 'Ethereum']]
@@ -151,7 +153,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 		}
 		const filename = `etf-flows-${new Date().toISOString().split('T')[0]}.csv`
 		return { filename, rows: rows as (string | number | boolean)[][] }
-	}, [flows])
+	}
 
 	return (
 		<>
@@ -183,15 +185,10 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 						<h2 className="mr-auto text-lg font-semibold">Flows (Source: Farside)</h2>
 						<TagGroup setValue={(val) => setGroupBy(val)} values={groupByList} selectedValue={groupBy} />
 						<Select
-							allValues={['Bitcoin', 'Ethereum']}
+							allValues={ASSET_VALUES}
 							selectedValues={tickers}
 							setSelectedValues={setTickers}
-							selectOnlyOne={(newOption) => {
-								setTickers([newOption])
-							}}
 							label={'ETF'}
-							clearAll={() => setTickers([])}
-							toggleAll={() => setTickers(['Bitcoin', 'Ethereum'])}
 							labelType="smol"
 							triggerProps={{
 								className:
@@ -215,7 +212,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 				columnToSearch={'ticker'}
 				placeholder={'Search ETF...'}
 				header="Exchange Traded Funds"
-				sortingState={[{ id: 'aum', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)
@@ -257,12 +254,10 @@ export const columns: ColumnDef<IETFRow>[] = [
 		header: 'Ticker',
 		accessorKey: 'ticker',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue, row }) => {
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<BasicLink
 						href={row.original.url}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

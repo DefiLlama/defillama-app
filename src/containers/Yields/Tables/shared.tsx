@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnOrderState,
 	ColumnSizingState,
@@ -8,15 +7,16 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { VirtualTable } from '~/components/Table/Table'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 
 interface IYieldsTableWrapper {
 	data: any
 	columns: any
-	columnSizes: any
-	columnSizesKeys: any
-	columnOrders: any
+	columnSizes: ColumnSizesByBreakpoint
+	columnOrders: ColumnOrdersByBreakpoint
 	rowSize?: number
 	columnVisibility?: Record<string, boolean>
 	setColumnVisibility?: (value: React.SetStateAction<VisibilityState>) => void
@@ -27,7 +27,6 @@ export const YieldsTableWrapper = ({
 	data,
 	columns,
 	columnSizes,
-	columnSizesKeys,
 	columnOrders,
 	rowSize,
 	columnVisibility,
@@ -38,8 +37,6 @@ export const YieldsTableWrapper = ({
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 
-	const windowSize = useWindowSize()
-
 	const instance = useReactTable({
 		data,
 		columns,
@@ -49,6 +46,9 @@ export const YieldsTableWrapper = ({
 			columnSizing,
 			columnVisibility
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
@@ -57,21 +57,7 @@ export const YieldsTableWrapper = ({
 		getSortedRowModel: getSortedRowModel()
 	})
 
-	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = windowSize.width
-			? (columnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
-			: defaultOrder
-
-		const cSize = windowSize.width
-			? columnSizesKeys.find((size) => windowSize.width > Number(size))
-			: columnSizesKeys[0]
-
-		instance.setColumnSizing(columnSizes[cSize])
-
-		instance.setColumnOrder(order)
-	}, [windowSize, instance, columnSizes, columnSizesKeys, columnOrders])
+	useSortColumnSizesAndOrders({ instance, columnSizes, columnOrders })
 
 	return (
 		<span className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

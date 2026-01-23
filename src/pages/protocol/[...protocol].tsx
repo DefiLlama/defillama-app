@@ -33,7 +33,8 @@ export const getStaticProps = withPerformanceLogging(
 
 		const data = await getProtocolOverviewPageData({
 			protocolId: metadata[0],
-			metadata: metadata[1]
+			currentProtocolMetadata: metadata[1],
+			chainMetadata: metadataCache.chainMetadata
 		})
 
 		if (!data) {

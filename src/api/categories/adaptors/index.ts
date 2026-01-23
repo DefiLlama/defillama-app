@@ -5,9 +5,13 @@ import { fetchJson } from '~/utils/async'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummaryResponse } from './types'
 
 export const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
-	if (numerator && denominator && numerator !== null && denominator !== null)
-		return Number((numerator / (denominator * 12)).toFixed(2))
-	return null
+	if (numerator == null || denominator == null) {
+		return null
+	}
+	if (denominator === 0) {
+		return null
+	}
+	return Number((numerator / (denominator * 12)).toFixed(2))
 }
 
 export interface IOverviewProps {

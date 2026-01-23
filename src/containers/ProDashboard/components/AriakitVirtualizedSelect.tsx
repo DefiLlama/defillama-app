@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from './LoadingSpinner'
 
@@ -63,9 +63,9 @@ export function AriakitVirtualizedSelect({
 		if (filteredOptions.length > 0) {
 			virtualizer.scrollToIndex(0, { align: 'start' })
 		}
-	}, [isPopoverOpen, filteredOptions.length])
+	}, [isPopoverOpen, filteredOptions.length, virtualizer])
 
-	const selectedOption = useMemo(() => options.find((opt) => opt.value === selectedValue), [options, selectedValue])
+	const selectedOption = options.find((opt) => opt.value === selectedValue)
 
 	const selectedLabel = selectedOption?.label || placeholder
 
@@ -79,7 +79,7 @@ export function AriakitVirtualizedSelect({
 
 	return (
 		<div className={className}>
-			<label className="pro-text2 mb-1 block text-[11px] font-medium">{label}</label>
+			<label className="mb-1 block text-[11px] font-medium pro-text2">{label}</label>
 			{isLoading ? (
 				<div className="flex h-9 items-center justify-center rounded-md border border-(--form-control-border) bg-(--bg-input)">
 					<LoadingSpinner size="sm" />
@@ -98,7 +98,7 @@ export function AriakitVirtualizedSelect({
 							)}
 							<span className="truncate">{selectedLabel}</span>
 						</span>
-						<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+						<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 					</PopoverDisclosure>
 					<Popover
 						store={popover}
@@ -130,7 +130,7 @@ export function AriakitVirtualizedSelect({
 								className="thin-scrollbar max-h-[280px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
 							>
 								{filteredOptions.length === 0 ? (
-									<div className="pro-text3 px-3 py-2 text-center text-xs">No results found.</div>
+									<div className="px-3 py-2 text-center text-xs pro-text3">No results found.</div>
 								) : (
 									<div
 										className="p-1"
@@ -151,10 +151,10 @@ export function AriakitVirtualizedSelect({
 													disabled={option.disabled}
 													className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs transition-all ${
 														option.disabled
-															? 'pro-text3 cursor-not-allowed opacity-50'
+															? 'cursor-not-allowed pro-text3 opacity-50'
 															: isActive
 																? 'bg-(--primary)/10 font-semibold text-(--primary) shadow-sm'
-																: 'pro-text2 hover:pro-text1 hover:bg-(--cards-bg-alt)'
+																: 'pro-text2 hover:bg-(--cards-bg-alt) hover:pro-text1'
 													}`}
 													style={{
 														position: 'absolute',
@@ -197,7 +197,7 @@ export function AriakitVirtualizedSelect({
 														</div>
 													</div>
 													{isActive && (
-														<Icon name="check" width={14} height={14} className="ml-2 flex-shrink-0 text-(--primary)" />
+														<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
 													)}
 												</button>
 											)

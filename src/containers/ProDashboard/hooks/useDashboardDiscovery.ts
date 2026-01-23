@@ -3,6 +3,9 @@ import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
 
+const EMPTY_DASHBOARDS: Dashboard[] = []
+const EMPTY_TAGS: string[] = []
+
 interface SearchParams {
 	query?: string
 	tags?: string[]
@@ -17,7 +20,7 @@ export function useDashboardDiscovery(params: SearchParams) {
 	const queryClient = useQueryClient()
 	const { authorizedFetch, isAuthenticated } = useAuthContext()
 
-	const isSearchMode = params.query || params.tags?.length > 0 ? true : false
+	const isSearchMode = !!(params.query || params.tags?.length)
 
 	const discoverQuery = useQuery({
 		queryKey: ['dashboard-discover', isSearchMode, params.page, params.limit, params.sortBy, params.timeFrame],
@@ -58,7 +61,7 @@ export function useDashboardDiscovery(params: SearchParams) {
 		enabled: isSearchMode
 	})
 
-	const { data: popularTags = [] } = useQuery({
+	const { data: popularTagsData } = useQuery({
 		queryKey: ['popular-tags'],
 		queryFn: async () => {
 			return [
@@ -118,9 +121,11 @@ export function useDashboardDiscovery(params: SearchParams) {
 
 	const activeQuery = isSearchMode ? searchQuery : discoverQuery
 	const data = activeQuery.data
+	const dashboards = data?.items ?? EMPTY_DASHBOARDS
+	const popularTags = popularTagsData ?? EMPTY_TAGS
 
 	return {
-		dashboards: data?.items || [],
+		dashboards,
 		isLoading: activeQuery.isLoading,
 		error: activeQuery.error as Error | null,
 		totalPages: data?.totalPages || 1,

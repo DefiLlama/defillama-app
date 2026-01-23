@@ -1,10 +1,13 @@
-import { memo, Suspense, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { Tooltip } from '~/components/Tooltip'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
@@ -18,13 +21,7 @@ interface PDFExportButtonProps {
 	className?: string
 }
 
-export const PDFExportButton = memo(function PDFExportButton({
-	sessionId,
-	messageId,
-	charts = [],
-	exportType,
-	className
-}: PDFExportButtonProps) {
+export function PDFExportButton({ sessionId, messageId, charts = [], exportType, className }: PDFExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const { loaders, authorizedFetch, hasActiveSubscription } = useAuthContext()
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
@@ -110,7 +107,7 @@ export const PDFExportButton = memo(function PDFExportButton({
 					data-umami-event="pdf-export"
 					className={
 						className ??
-						'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+						'flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)'
 					}
 					onClick={handlePDFExport}
 					disabled={loading}
@@ -118,11 +115,11 @@ export const PDFExportButton = memo(function PDFExportButton({
 					{isLoading ? <LoadingSpinner size={12} /> : <Icon name="download-paper" height={14} width={14} />}
 				</button>
 			</Tooltip>
-			{shouldRenderModal && (
+			{shouldRenderModal ? (
 				<Suspense fallback={<></>}>
 					<SubscribeProModal dialogStore={subscribeModalStore} />
 				</Suspense>
-			)}
+			) : null}
 		</>
 	)
-})
+}

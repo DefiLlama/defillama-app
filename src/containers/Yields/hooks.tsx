@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
+import * as React from 'react'
 import { toNumberOrNullFromQueryParam } from '~/utils'
 
 interface IFormatYieldQueryParams {
@@ -10,6 +10,13 @@ interface IFormatYieldQueryParams {
 	categoryList?: Array<string>
 }
 
+// Helper to parse exclude query param to Set
+const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
+	if (!param) return new Set()
+	if (typeof param === 'string') return new Set([param])
+	return new Set(param)
+}
+
 export const useFormatYieldQueryParams = ({
 	projectList,
 	chainList,
@@ -18,98 +25,150 @@ export const useFormatYieldQueryParams = ({
 	farmProtocols
 }: IFormatYieldQueryParams) => {
 	const router = useRouter()
+	const {
+		project,
+		excludeProject,
+		lendingProtocol,
+		excludeLendingProtocol,
+		farmProtocol,
+		excludeFarmProtocol,
+		chain,
+		excludeChain,
+		token,
+		excludeToken,
+		exactToken,
+		attribute,
+		excludeAttribute,
+		category,
+		excludeCategory,
+		token_pair,
+		minTvl,
+		maxTvl,
+		minApy,
+		maxApy,
+		minAvailable,
+		maxAvailable,
+		customLTV
+	} = router.query
 
 	return React.useMemo(() => {
-		const {
-			project,
-			lendingProtocol,
-			farmProtocol,
-			chain,
-			token,
-			excludeToken,
-			exactToken,
-			attribute,
-			category,
-			token_pair,
-			minTvl,
-			maxTvl,
-			minApy,
-			maxApy,
-			minAvailable,
-			maxAvailable,
-			customLTV
-		} = router.query
+		let selectedProjects: string[] = [],
+			selectedChains: string[] = [],
+			selectedAttributes: string[] = [],
+			includeTokens: string[] = [],
+			excludeTokens: string[] = [],
+			exactTokens: string[] = [],
+			selectedCategories: string[] = [],
+			selectedLendingProtocols: string[] = [],
+			selectedFarmProtocols: string[] = [],
+			pairTokens: string[] = []
 
-		let selectedProjects = [],
-			selectedChains = [],
-			selectedAttributes = [],
-			includeTokens = [],
-			excludeTokens = [],
-			exactTokens = [],
-			selectedCategories = [],
-			selectedLendingProtocols = [],
-			selectedFarmProtocols = [],
-			pairTokens = []
+		// Parse exclude sets upfront
+		const excludeProjectSet = parseExcludeParam(excludeProject)
+		const excludeChainSet = parseExcludeParam(excludeChain)
+		const excludeCategorySet = parseExcludeParam(excludeCategory)
+		const excludeAttributeSet = parseExcludeParam(excludeAttribute)
+		const excludeLendingProtocolSet = parseExcludeParam(excludeLendingProtocol)
+		const excludeFarmProtocolSet = parseExcludeParam(excludeFarmProtocol)
 
+		// Projects - apply exclusion inline
 		if (projectList) {
+			let projects: string[]
 			if (project) {
 				if (typeof project === 'string') {
-					selectedProjects = project === 'All' ? projectList : project === 'None' ? [] : [project]
+					projects = project === 'All' ? [...projectList] : project === 'None' ? [] : [project]
 				} else {
-					selectedProjects = [...project]
+					projects = [...project]
 				}
-			} else selectedProjects = projectList
+			} else {
+				projects = [...projectList]
+			}
+			// Filter out excluded projects
+			selectedProjects = excludeProjectSet.size > 0 ? projects.filter((p) => !excludeProjectSet.has(p)) : projects
 		}
 
+		// Lending Protocols - apply exclusion inline
 		if (lendingProtocols) {
+			let protocols: string[]
 			if (lendingProtocol) {
 				if (typeof lendingProtocol === 'string') {
-					selectedLendingProtocols =
-						lendingProtocol === 'All' ? lendingProtocols : lendingProtocol === 'None' ? [] : [lendingProtocol]
+					protocols =
+						lendingProtocol === 'All' ? [...lendingProtocols] : lendingProtocol === 'None' ? [] : [lendingProtocol]
 				} else {
-					selectedLendingProtocols = [...lendingProtocol]
+					protocols = [...lendingProtocol]
 				}
-			} else selectedLendingProtocols = lendingProtocols
+			} else {
+				protocols = [...lendingProtocols]
+			}
+			// Filter out excluded lending protocols
+			selectedLendingProtocols =
+				excludeLendingProtocolSet.size > 0 ? protocols.filter((p) => !excludeLendingProtocolSet.has(p)) : protocols
 		}
 
+		// Farm Protocols - apply exclusion inline
 		if (farmProtocols) {
+			let protocols: string[]
 			if (farmProtocol) {
 				if (typeof farmProtocol === 'string') {
-					selectedFarmProtocols = farmProtocol === 'All' ? farmProtocols : farmProtocol === 'None' ? [] : [farmProtocol]
+					protocols = farmProtocol === 'All' ? [...farmProtocols] : farmProtocol === 'None' ? [] : [farmProtocol]
 				} else {
-					selectedFarmProtocols = [...farmProtocol]
+					protocols = [...farmProtocol]
 				}
-			} else selectedFarmProtocols = farmProtocols
+			} else {
+				protocols = [...farmProtocols]
+			}
+			// Filter out excluded farm protocols
+			selectedFarmProtocols =
+				excludeFarmProtocolSet.size > 0 ? protocols.filter((p) => !excludeFarmProtocolSet.has(p)) : protocols
 		}
 
+		// Categories - apply exclusion inline
 		if (categoryList) {
+			let categories: string[]
 			if (category) {
 				if (typeof category === 'string') {
-					selectedCategories = category === 'All' ? categoryList : category === 'None' ? [] : [category]
+					categories = category === 'All' ? [...categoryList] : category === 'None' ? [] : [category]
 				} else {
-					selectedCategories = [...category]
+					categories = [...category]
 				}
-			} else selectedCategories = categoryList
+			} else {
+				categories = [...categoryList]
+			}
+			// Filter out excluded categories
+			selectedCategories =
+				excludeCategorySet.size > 0 ? categories.filter((c) => !excludeCategorySet.has(c)) : categories
 		}
 
+		// Chains - apply exclusion inline
 		if (chainList) {
+			let chains: string[]
 			if (chain) {
 				if (typeof chain === 'string') {
-					selectedChains = chain === 'All' ? chainList : chain === 'None' ? [] : [chain]
+					chains = chain === 'All' ? [...chainList] : chain === 'None' ? [] : [chain]
 				} else {
-					selectedChains = [...chain]
+					chains = [...chain]
 				}
-			} else selectedChains = chainList
-		}
-
-		if (attribute) {
-			if (typeof attribute === 'string') {
-				selectedAttributes = [attribute]
 			} else {
-				selectedAttributes = [...attribute]
+				chains = [...chainList]
 			}
+			// Filter out excluded chains
+			selectedChains = excludeChainSet.size > 0 ? chains.filter((c) => !excludeChainSet.has(c)) : chains
 		}
 
+		// Attributes - apply exclusion inline
+		if (attribute) {
+			let attributes: string[]
+			if (typeof attribute === 'string') {
+				attributes = [attribute]
+			} else {
+				attributes = [...attribute]
+			}
+			// Filter out excluded attributes
+			selectedAttributes =
+				excludeAttributeSet.size > 0 ? attributes.filter((a) => !excludeAttributeSet.has(a)) : attributes
+		}
+
+		// Tokens - keep excludeTokens separate since token matching is substring-based
 		if (token) {
 			if (typeof token === 'string') {
 				includeTokens = [token]
@@ -147,7 +206,7 @@ export const useFormatYieldQueryParams = ({
 			selectedChains,
 			selectedAttributes,
 			includeTokens,
-			excludeTokens,
+			excludeTokens, // Keep this since token matching is substring-based
 			exactTokens,
 			selectedCategories,
 			selectedLendingProtocols,
@@ -161,5 +220,34 @@ export const useFormatYieldQueryParams = ({
 			maxAvailable: maxAvailable ? toNumberOrNullFromQueryParam(maxAvailable) : null,
 			customLTV: toNumberOrNullFromQueryParam(customLTV)
 		}
-	}, [projectList, chainList, categoryList, lendingProtocols, farmProtocols, router.query])
+	}, [
+		projectList,
+		chainList,
+		categoryList,
+		lendingProtocols,
+		farmProtocols,
+		project,
+		excludeProject,
+		lendingProtocol,
+		excludeLendingProtocol,
+		farmProtocol,
+		excludeFarmProtocol,
+		chain,
+		excludeChain,
+		token,
+		excludeToken,
+		exactToken,
+		attribute,
+		excludeAttribute,
+		category,
+		excludeCategory,
+		token_pair,
+		minTvl,
+		maxTvl,
+		minApy,
+		maxApy,
+		minAvailable,
+		maxAvailable,
+		customLTV
+	])
 }

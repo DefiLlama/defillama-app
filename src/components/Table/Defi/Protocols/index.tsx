@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -12,14 +11,14 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
-import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
-import useWindowSize from '~/hooks/useWindowSize'
-import { alphanumericFalsyLast } from '../../utils'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { useSortColumnSizesAndOrders, useTableSearch } from '../../utils'
 import {
 	columnOrders,
 	columnSizes,
@@ -29,10 +28,6 @@ import {
 	topGainersAndLosersColumns
 } from './columns'
 import { IProtocolRow } from './types'
-
-const columnSizesKeys = Object.keys(columnSizes)
-	.map((x) => Number(x))
-	.sort((a, b) => Number(b) - Number(a))
 
 export enum TABLE_CATEGORIES {
 	FEES = 'Fees',
@@ -46,6 +41,9 @@ export enum TABLE_PERIODS {
 	SEVEN_DAYS = '7d',
 	ONE_MONTH = '1m'
 }
+
+export const TABLE_CATEGORIES_VALUES = Object.values(TABLE_CATEGORIES) as Array<string>
+export const TABLE_PERIODS_VALUES = Object.values(TABLE_PERIODS) as Array<string>
 
 export const protocolsByChainTableColumns = [
 	{ name: 'Name', key: 'name' },
@@ -442,6 +440,15 @@ export const defaultColumns = JSON.stringify({
 
 const optionsKey = 'protocolsTableColumns'
 
+const setColumnOptions = (newOptions: string[]) => {
+	const ops = Object.fromEntries(protocolsByChainTableColumns.map((col) => [col.key, newOptions.includes(col.key)]))
+	setStorageItem(optionsKey, JSON.stringify(ops))
+}
+
+const toggleAllOptions = () => {
+	setColumnOptions(protocolsByChainTableColumns.map((col) => col.key))
+}
+
 const ProtocolsTable = ({
 	data,
 	columnsInStorage,
@@ -464,8 +471,8 @@ const ProtocolsTable = ({
 			columnSizing,
 			columnVisibility: JSON.parse(columnsInStorage)
 		},
-		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
@@ -509,39 +516,13 @@ export function ProtocolsByChainTable({
 	useStickyHeader?: boolean
 }) {
 	const columnsInStorage = React.useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(optionsKey) ?? defaultColumns,
+		(callback) => subscribeToStorageKey(optionsKey, callback),
+		() => getStorageItem(optionsKey, defaultColumns) ?? defaultColumns,
 		() => defaultColumns
 	)
 
 	const [filterState, setFilterState] = React.useState(null)
 
-	const clearAllOptions = () => {
-		const ops = JSON.stringify(Object.fromEntries(protocolsByChainTableColumns.map((option) => [option.key, false])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
-	}
-	const toggleAllOptions = () => {
-		const ops = JSON.stringify(Object.fromEntries(protocolsByChainTableColumns.map((option) => [option.key, true])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
-	}
-
-	const addOption = (newOptions) => {
-		const ops = Object.fromEntries(
-			protocolsByChainTableColumns.map((col) => [col.key, newOptions.includes(col.key) ? true : false])
-		)
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
-	}
-
-	const addOnlyOneOption = (newOption) => {
-		const ops = Object.fromEntries(
-			protocolsByChainTableColumns.map((col) => [col.key, col.key === newOption ? true : false])
-		)
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
-	}
 	const setFilter = (key) => (newState) => {
 		const newOptions = Object.fromEntries(
 			protocolsByChainTableColumns.map((column) => [
@@ -554,38 +535,26 @@ export function ProtocolsByChainTable({
 			toggleAllOptions()
 			setFilterState(null)
 		} else {
-			window.localStorage.setItem(optionsKey, JSON.stringify(newOptions))
-			window.dispatchEvent(new Event('storage'))
+			setStorageItem(optionsKey, JSON.stringify(newOptions))
 			setFilterState(newState)
 		}
 	}
 
 	const selectedOptions = React.useMemo(() => {
 		const storage = JSON.parse(columnsInStorage)
-		return protocolsByChainTableColumns.filter((c) => (storage[c.key] ? true : false)).map((c) => c.key)
+		return protocolsByChainTableColumns.filter((c) => !!storage[c.key]).map((c) => c.key)
 	}, [columnsInStorage])
 
 	return (
 		<div className="rounded-md bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center justify-between gap-2 p-3">
 				<h3 className="mr-auto text-lg font-medium">Protocol Rankings</h3>
-				<TagGroup
-					setValue={setFilter('category')}
-					selectedValue={filterState}
-					values={Object.values(TABLE_CATEGORIES) as Array<string>}
-				/>
-				<TagGroup
-					setValue={setFilter('period')}
-					selectedValue={filterState}
-					values={Object.values(TABLE_PERIODS) as Array<string>}
-				/>
+				<TagGroup setValue={setFilter('category')} selectedValue={filterState} values={TABLE_CATEGORIES_VALUES} />
+				<TagGroup setValue={setFilter('period')} selectedValue={filterState} values={TABLE_PERIODS_VALUES} />
 				<SelectWithCombobox
 					allValues={protocolsByChainTableColumns}
 					selectedValues={selectedOptions}
-					setSelectedValues={addOption}
-					selectOnlyOne={addOnlyOneOption}
-					toggleAll={toggleAllOptions}
-					clearAll={clearAllOptions}
+					setSelectedValues={setColumnOptions}
 					nestedMenu={false}
 					label={'Columns'}
 					labelType="smol"
@@ -612,25 +581,22 @@ export function ProtocolsTableWithSearch({
 	removeColumns?: Array<string>
 	columns?: ColumnDef<any>[]
 }) {
-	const columnsToUse = React.useMemo(() => columns ?? protocolsColumns, [columns])
+	const columnsToUse = columns ?? protocolsColumns
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const windowSize = useWindowSize()
 
-	const columnsData = React.useMemo(
-		() =>
-			addlColumns || removeColumns
-				? [
-						...(columnsToUse as any).filter((c) => !(removeColumns ?? []).includes((c as any).accessorKey)),
-						...(addlColumns ?? []).map((x) => protocolAddlColumns[x])
-					]
-				: columnsToUse,
-		[addlColumns, removeColumns, columnsToUse]
-	)
+	const columnsData = React.useMemo(() => {
+		if (!addlColumns && !removeColumns) return columnsToUse
+		const removeColumnsSet = removeColumns ? new Set(removeColumns) : null
+		return [
+			...(columnsToUse as any).filter((c) => !removeColumnsSet || !removeColumnsSet.has((c as any).accessorKey)),
+			...(addlColumns ?? []).map((x) => protocolAddlColumns[x])
+		]
+	}, [addlColumns, removeColumns, columnsToUse])
 
 	const instance = useReactTable({
 		data,
@@ -641,6 +607,9 @@ export function ProtocolsTableWithSearch({
 			columnOrder,
 			columnSizing,
 			columnFilters
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
@@ -655,33 +624,12 @@ export function ProtocolsTableWithSearch({
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = windowSize.width
-			? (columnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
-			: defaultOrder
-
-		const cSize = windowSize.width
-			? columnSizesKeys.find((size) => windowSize.width > Number(size))
-			: columnSizesKeys[0]
-
-		instance.setColumnSizing(columnSizes[cSize])
-
-		instance.setColumnOrder(order)
-	}, [windowSize, instance])
-
-	const [projectName, setProjectName] = React.useState('')
-
-	React.useEffect(() => {
-		const columns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			columns.setFilterValue(projectName)
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance])
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	useSortColumnSizesAndOrders({
+		instance,
+		columnSizes,
+		columnOrders
+	})
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -700,7 +648,7 @@ export function ProtocolsTableWithSearch({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search protocols..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</div>
 			</div>
@@ -717,6 +665,9 @@ export function TopGainersAndLosers({ data, sortingState }: { data: Array<IProto
 		columns: topGainersAndLosersColumns,
 		state: {
 			sorting
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),

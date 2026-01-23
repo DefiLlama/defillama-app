@@ -1,15 +1,16 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
+import { PremiumHeader } from '../PremiumHeader'
 import { ThemeSwitch } from '../ThemeSwitch'
 import { TNavLink, TNavLinks, TOldNavLink } from '../types'
 import { LinkToPage } from './shared'
 
 const PinnedPages = React.lazy(() => import('./PinnedPages').then((mod) => ({ default: mod.PinnedPages })))
 
-export const DesktopNav = React.memo(function DesktopNav({
+export function DesktopNav({
 	mainLinks,
 	pinnedPages,
 	userDashboards,
@@ -26,7 +27,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 
 	return (
 		<span className="col-span-1 max-lg:hidden">
-			<nav className="thin-scrollbar sticky top-0 bottom-0 left-0 isolate z-10 col-span-1 flex h-screen flex-col gap-1 overflow-y-auto bg-(--app-bg) py-4 *:pl-4">
+			<nav className="sticky top-0 bottom-0 left-0 isolate col-span-1 flex thin-scrollbar h-screen flex-col gap-1 overflow-y-auto bg-(--app-bg) py-4 *:pl-4">
 				<BasicLink href="/" className="mb-4 w-fit shrink-0">
 					<span className="sr-only">Navigate to Home Page</span>
 					<img
@@ -50,7 +51,8 @@ export const DesktopNav = React.memo(function DesktopNav({
 				<div className="flex flex-1 flex-col gap-1 overflow-y-auto">
 					{mainLinks.map(({ category, pages }) => (
 						<div key={`desktop-nav-${category}`} className="group flex flex-col">
-							{pages.map(({ name, route, icon, attention }) => (
+							{category === 'Premium' ? <PremiumHeader /> : null}
+							{pages.map(({ name, route, icon, attention, umamiEvent }) => (
 								<LinkToPage
 									key={`desktop-nav-${name}-${route}`}
 									route={route}
@@ -58,6 +60,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 									icon={icon}
 									attention={attention}
 									asPath={asPath}
+									umamiEvent={umamiEvent}
 								/>
 							))}
 						</div>
@@ -128,17 +131,9 @@ export const DesktopNav = React.memo(function DesktopNav({
 			</nav>
 		</span>
 	)
-})
+}
 
-const NavDetailsSection = React.memo(function NavDetailsSection({
-	category,
-	pages,
-	asPath
-}: {
-	category: string
-	pages: TNavLink[]
-	asPath: string
-}) {
+function NavDetailsSection({ category, pages, asPath }: { category: string; pages: TNavLink[]; asPath: string }) {
 	const lastItemRef = React.useRef<HTMLDivElement>(null)
 
 	return (
@@ -165,4 +160,4 @@ const NavDetailsSection = React.memo(function NavDetailsSection({
 			</div>
 		</details>
 	)
-})
+}

@@ -78,9 +78,9 @@ export const getStaticProps = withPerformanceLogging(
 		const recentMonth = Object.keys(data.stats.months).sort().pop()
 		const missingMonths = getDateRange(recentMonth)
 
-		missingMonths.forEach((month) => {
+		for (const month of missingMonths) {
 			data.stats.months[month] = { total: 0, successful: 0, proposals: [] }
-		})
+		}
 
 		const { proposals, activity, maxVotes } = formatGovernanceData(data as any)
 
@@ -124,7 +124,7 @@ export default function Protocol({ data, governanceType }) {
 					{data.stats.chainName ? (
 						<p className="flex flex-col gap-1">
 							<span className="text-sm font-semibold text-(--text-meta)">Chain</span>
-							<span className="font-jetbrains flex items-center gap-1 text-lg font-semibold">
+							<span className="flex items-center gap-1 font-jetbrains text-lg font-semibold">
 								<TokenLogo logo={chainIconUrl(data.stats.chainName)} size={32} />
 								<span>{data.stats.chainName}</span>
 							</span>

@@ -1,11 +1,12 @@
-import * as React from 'react'
-import { useEffect, useRef } from 'react'
-import { useRouter } from 'next/router'
 import { flexRender, RowData, Table } from '@tanstack/react-table'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
+import { useRouter } from 'next/router'
+import * as React from 'react'
+import { useEffect, useEffectEvent, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { SortIcon } from '~/components/Table/SortIcon'
+import { useMedia } from '~/hooks/useMedia'
 import { Tooltip } from '../Tooltip'
 
 interface ITableProps {
@@ -26,13 +27,20 @@ declare module '@tanstack/table-core' {
 		align?: 'start' | 'end' | 'center'
 		headerHelperText?: string
 		hidden?: boolean
+		/**
+		 * Type-only field to satisfy linters about unused generics.
+		 * Not used at runtime.
+		 */
+		__vfType?: [TData, TValue]
 	}
 }
+
+const isGroupingColumn = (columnId?: string) => typeof columnId === 'string' && columnId.startsWith('__group_')
 
 export function VirtualTable({
 	instance,
 	skipVirtualization,
-	columnResizeMode,
+	columnResizeMode: _columnResizeMode,
 	rowSize,
 	renderSubComponent,
 	stripedBg = false,
@@ -42,8 +50,27 @@ export function VirtualTable({
 	...props
 }: ITableProps) {
 	const router = useRouter()
+	const isSmallScreen = useMedia('(max-width: 768px)')
 	const tableContainerRef = useRef<HTMLTableSectionElement>(null)
 	const { rows } = instance.getRowModel()
+
+	const subRowOrdinalById = React.useMemo(() => {
+		const ordById = new Map<string, number>()
+		const perParent = new Map<string, number>()
+
+		for (const r of rows) {
+			if (r.depth > 0) {
+				const parentId =
+					(r as any).getParentRow?.()?.id ??
+					(typeof r.id === 'string' ? r.id.split('.').slice(0, -1).join('.') : String(r.id))
+				const next = (perParent.get(parentId) ?? 0) + 1
+				perParent.set(parentId, next)
+				ordById.set(r.id, next)
+			}
+		}
+
+		return ordById
+	}, [rows])
 
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
@@ -62,27 +89,29 @@ export function VirtualTable({
 	const isChainPage =
 		router.pathname === '/' || router.pathname.startsWith('/chain') || router.pathname.startsWith('/protocols')
 
-	const isGroupingColumn = (columnId?: string) => typeof columnId === 'string' && columnId.startsWith('__group_')
 	const visibleLeafColumns = instance.getVisibleLeafColumns().filter((column) => !isGroupingColumn(column.id))
 	const gridTemplateColumns =
 		visibleLeafColumns.map((column) => `minmax(${column.getSize() ?? 100}px, 1fr)`).join(' ') || '1fr'
 
 	const hasNoVisibleColumns = visibleLeafColumns.length === 0
 
-	useEffect(() => {
-		function focusSearchBar(e: KeyboardEvent) {
-			if (!skipVirtualization && (e.ctrlKey || e.metaKey) && e.code === 'KeyF') {
-				toast.error("Native browser search isn't well supported, please use search boxes / ctrl-k / cmd-k instead", {
-					id: 'native-search-warn',
-					icon: <Icon name="alert-triangle" color="red" height={16} width={16} style={{ flexShrink: 0 }} />
-				})
-			}
+	// useEffectEvent for keyboard handler - reads skipVirtualization without re-subscribing
+	const onKeyDown = useEffectEvent((e: KeyboardEvent) => {
+		if (!skipVirtualization && (e.ctrlKey || e.metaKey) && e.code === 'KeyF') {
+			toast.error("Native browser search isn't well supported, please use search boxes / ctrl-k / cmd-k instead", {
+				id: 'native-search-warn',
+				icon: <Icon name="alert-triangle" color="red" height={16} width={16} style={{ flexShrink: 0 }} />
+			})
 		}
-		window.addEventListener('keydown', focusSearchBar)
-		return () => window.removeEventListener('keydown', focusSearchBar)
+	})
+
+	useEffect(() => {
+		window.addEventListener('keydown', onKeyDown)
+		return () => window.removeEventListener('keydown', onKeyDown)
 	}, [])
 
-	const onScrollOrResize = React.useCallback(() => {
+	// useEffectEvent for scroll/resize - always reads latest props without re-subscribing
+	const onScrollOrResize = useEffectEvent(() => {
 		if (!useStickyHeader) return
 
 		const tableWrapperEl = document.getElementById('table-wrapper')
@@ -95,32 +124,65 @@ export function VirtualTable({
 			tableWrapperEl.getBoundingClientRect().top <= 20 &&
 			tableHeaderDuplicate
 		) {
-			// Batch DOM writes
+			// Batch DOM reads first
 			const scrollLeft = tableWrapperEl.scrollLeft
 			const offsetWidth = tableWrapperEl.offsetWidth
 			const headerHeight = instance.getHeaderGroups().length * 45
 
-			tableHeaderRef.current.style.position = 'fixed'
-			tableHeaderRef.current.style.top = '0px'
-			tableHeaderRef.current.style.width = `${offsetWidth}px`
-			tableHeaderRef.current.style['overflow-x'] = 'overlay'
-			tableHeaderDuplicate.style.height = `${headerHeight}px`
+			// Batch DOM writes using cssText for single reflow
+			tableHeaderRef.current.style.cssText = `
+				display: flex;
+				flex-direction: column;
+				z-index: 10;
+				position: fixed;
+				top: 0px;
+				width: ${offsetWidth}px;
+				overflow-x: overlay;
+			`
+			tableHeaderDuplicate.style.cssText = `height: ${headerHeight}px;`
 			tableHeaderRef.current.scrollLeft = scrollLeft
 		} else if (tableHeaderRef.current) {
 			const offsetWidth = tableWrapperEl?.offsetWidth || 0
-			tableHeaderRef.current.style.position = 'relative'
-			tableHeaderRef.current.style.width = `${offsetWidth}px`
-			tableHeaderRef.current.style['overflow-x'] = 'initial'
-			tableHeaderDuplicate.style.height = '0px'
+			// Batch DOM writes using cssText for single reflow
+			tableHeaderRef.current.style.cssText = `
+				display: flex;
+				flex-direction: column;
+				z-index: 10;
+				position: relative;
+				width: ${offsetWidth}px;
+				overflow-x: initial;
+			`
+			if (tableHeaderDuplicate) {
+				tableHeaderDuplicate.style.cssText = 'height: 0px;'
+			}
 		}
-	}, [instance, skipVirtualization, useStickyHeader])
+	})
+
+	// useEffectEvent for table scroll - reads skipVirtualization without re-subscribing
+	const onTableScroll = useEffectEvent((tableWrapperEl: HTMLElement, isMobile: boolean) => {
+		const scrollLeft = tableWrapperEl.scrollLeft
+
+		// Sync header horizontal scroll
+		if (tableHeaderRef.current) {
+			if (!skipVirtualization) {
+				tableHeaderRef.current.scrollLeft = scrollLeft
+			} else {
+				tableHeaderRef.current.scrollLeft = 0
+			}
+		}
+
+		// Sync sticky scrollbar (desktop only)
+		if (!isMobile && stickyScrollbarRef.current) {
+			stickyScrollbarRef.current.scrollLeft = scrollLeft
+		}
+	})
 
 	// Consolidated scroll/resize handlers with RAF optimization
 	useEffect(() => {
 		const tableWrapperEl = document.getElementById('table-wrapper')
 		if (!tableWrapperEl) return
 
-		const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window
+		const isMobile = isSmallScreen || 'ontouchstart' in window
 		const stickyScrollbar = stickyScrollbarRef.current // Capture ref value for cleanup
 		let scrollRaf: number | null = null
 		let resizeTimeout: ReturnType<typeof setTimeout>
@@ -132,21 +194,7 @@ export function VirtualTable({
 
 			scrollRaf = requestAnimationFrame(() => {
 				scrollRaf = null
-				const scrollLeft = tableWrapperEl.scrollLeft
-
-				// Sync header horizontal scroll
-				if (tableHeaderRef.current) {
-					if (!skipVirtualization) {
-						tableHeaderRef.current.scrollLeft = scrollLeft
-					} else {
-						tableHeaderRef.current.scrollLeft = 0
-					}
-				}
-
-				// Sync sticky scrollbar (desktop only)
-				if (!isMobile && stickyScrollbarRef.current) {
-					stickyScrollbarRef.current.scrollLeft = scrollLeft
-				}
+				onTableScroll(tableWrapperEl, isMobile)
 			})
 		}
 
@@ -168,13 +216,36 @@ export function VirtualTable({
 					const isTableBelowViewport = tableRect.top > window.innerHeight
 
 					if (hasHorizontalScroll && isTableAboveViewport && !isTableBelowViewport) {
-						// Batch all DOM writes together
-						stickyScrollbarRef.current.style.display = 'block'
-						stickyScrollbarRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
-						stickyScrollbarRef.current.style.left = `${tableRect.left}px`
-						stickyScrollbarContentRef.current.style.width = `${tableWrapperEl.scrollWidth}px`
+						// Batch DOM reads first
+						const scrollbarWidth = tableWrapperEl.offsetWidth
+						const scrollbarLeft = tableRect.left
+						const contentWidth = tableWrapperEl.scrollWidth
+
+						// Batch DOM writes using cssText for single reflow
+						stickyScrollbarRef.current.style.cssText = `
+							position: fixed;
+							bottom: 0;
+							height: 12px;
+							overflow-x: auto;
+							overflow-y: hidden;
+							z-index: 999;
+							background-color: var(--cards-bg);
+							display: block;
+							width: ${scrollbarWidth}px;
+							left: ${scrollbarLeft}px;
+						`
+						stickyScrollbarContentRef.current.style.cssText = `height: 1px; width: ${contentWidth}px;`
 					} else {
-						stickyScrollbarRef.current.style.display = 'none'
+						stickyScrollbarRef.current.style.cssText = `
+							position: fixed;
+							bottom: 0;
+							height: 12px;
+							overflow-x: auto;
+							overflow-y: hidden;
+							z-index: 999;
+							background-color: var(--cards-bg);
+							display: none;
+						`
 					}
 				}
 			})
@@ -220,7 +291,7 @@ export function VirtualTable({
 				stickyScrollbar.removeEventListener('scroll', handleStickyScroll)
 			}
 		}
-	}, [skipVirtualization, onScrollOrResize, totalTableWidth, rows.length])
+	}, [totalTableWidth, rows.length, isSmallScreen])
 
 	if (hasNoVisibleColumns) {
 		return (
@@ -241,7 +312,7 @@ export function VirtualTable({
 			{...props}
 			ref={tableContainerRef}
 			id="table-wrapper"
-			className="thin-scrollbar relative isolate w-full overflow-auto rounded-md bg-(--cards-bg)"
+			className="relative isolate thin-scrollbar w-full overflow-auto rounded-md bg-(--cards-bg)"
 			style={{ maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}
 		>
 			<div ref={tableHeaderRef} id="table-header" style={{ display: 'flex', flexDirection: 'column', zIndex: 10 }}>
@@ -306,10 +377,16 @@ export function VirtualTable({
 			<div id="table-header-dup"></div>
 
 			<div
+				className="vf-row-counter"
 				style={
 					skipVirtualization
-						? undefined
-						: { height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }
+						? { ['--vf-row-offset' as any]: '0' }
+						: {
+								height: `${rowVirtualizer.getTotalSize()}px`,
+								width: '100%',
+								position: 'relative',
+								['--vf-row-offset' as any]: `${virtualItems?.[0]?.index ?? 0}`
+							}
 				}
 			>
 				{(skipVirtualization ? rows : virtualItems).map((row, i) => {
@@ -333,7 +410,18 @@ export function VirtualTable({
 
 					return (
 						<React.Fragment key={rowTorender.id}>
-							<div style={trStyle}>
+							<div
+								style={{
+									...trStyle,
+									...(rowTorender.depth > 0
+										? {
+												['--vf-subrow-index' as any]: `"${subRowOrdinalById.get(rowTorender.id) ?? rowTorender.index + 1}"`
+											}
+										: null)
+								}}
+								data-depth={rowTorender.depth}
+								className="vf-row"
+							>
 								{rowTorender
 									.getVisibleCells()
 									.filter((cell) => !cell.column.columnDef.meta?.hidden)
@@ -370,9 +458,7 @@ export function VirtualTable({
 										)
 									})}
 							</div>
-							{renderSubComponent && rowTorender.getIsExpanded() && (
-								<div>{renderSubComponent({ row: rowTorender })}</div>
-							)}
+							{renderSubComponent && rowTorender.getIsExpanded() && <>{renderSubComponent({ row: rowTorender })}</>}
 						</React.Fragment>
 					)
 				})}

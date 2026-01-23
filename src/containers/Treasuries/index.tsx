@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import { useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -17,7 +17,7 @@ export function Treasuries({ data, entity }) {
 		[entity]
 	)
 
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		const headers = [
 			'Name',
 			'Category',
@@ -50,7 +50,7 @@ export function Treasuries({ data, entity }) {
 		})
 		const rows = [headers].concat(dataToDownload.map((row) => headers.map((header) => row[header])))
 		return { filename: 'treasuries.csv', rows: rows as (string | number | boolean)[][] }
-	}, [data])
+	}
 
 	return (
 		<Layout
@@ -82,15 +82,13 @@ export const columns: ColumnDef<any>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue, row }) => {
 			const name = (getValue() as string).split(' (treasury)')[0]
 			const slug = (row.original.slug as string).split('-(treasury)')[0]
 
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
 					<BasicLink
 						href={`/protocol/${slug}?treasury=true&tvl=false`}
@@ -138,7 +136,7 @@ export const columns: ColumnDef<any>[] = [
 				>
 					{dominance.map((dom) => {
 						const color = breakdownColor(dom[0])
-						const name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
+						const _name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
 
 						return (
 							<div

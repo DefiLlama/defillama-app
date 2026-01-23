@@ -1,28 +1,21 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import type { MultiSelectOption } from '~/components/selectTypes'
 import { LoadingSpinner } from './LoadingSpinner'
-
-export interface VirtualizedMultiSelectOption {
-	value: string
-	label: string
-	logo?: string
-	disabled?: boolean
-	isChild?: boolean
-}
 
 interface AriakitVirtualizedMultiSelectProps {
 	label: string
-	options: VirtualizedMultiSelectOption[]
+	options: ReadonlyArray<MultiSelectOption>
 	selectedValues: string[]
 	onChange: (values: string[]) => void
 	placeholder?: string
 	isLoading?: boolean
 	className?: string
 	maxSelections?: number
-	renderIcon?: (option: VirtualizedMultiSelectOption) => string | null
+	renderIcon?: (option: MultiSelectOption) => string | null
 	onSearchChange?: (value: string) => void
 }
 
@@ -70,14 +63,12 @@ export function AriakitVirtualizedMultiSelect({
 		}
 	}, [search, filteredOptions.length, isPopoverOpen, virtualizer])
 
-	const buttonLabel = useMemo(() => {
-		if (selectedValues.length === 0) return placeholder
-		if (selectedValues.length === 1) {
-			const selected = options.find((opt) => opt.value === selectedValues[0])
-			return selected?.label || selectedValues[0]
-		}
-		return `${selectedValues.length} selected`
-	}, [selectedValues, options, placeholder])
+	const buttonLabel =
+		selectedValues.length === 0
+			? placeholder
+			: selectedValues.length === 1
+				? options.find((opt) => opt.value === selectedValues[0])?.label || selectedValues[0]
+				: `${selectedValues.length} selected`
 
 	const toggleValue = (value: string) => {
 		if (selectedValues.includes(value)) {
@@ -103,10 +94,10 @@ export function AriakitVirtualizedMultiSelect({
 
 	return (
 		<div className={className}>
-			<label className="pro-text2 mb-1 block text-[11px] font-medium">
+			<label className="mb-1 block text-[11px] font-medium pro-text2">
 				{label}
 				{selectedValues.length > 0 && (
-					<span className="pro-text3 ml-1 text-xs">
+					<span className="ml-1 text-xs pro-text3">
 						({selectedValues.length}
 						{maxSelections < 100 && `/${maxSelections}`})
 					</span>
@@ -123,7 +114,7 @@ export function AriakitVirtualizedMultiSelect({
 						className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					>
 						<span className={`truncate ${selectedValues.length > 0 ? 'pro-text1' : 'pro-text3'}`}>{buttonLabel}</span>
-						<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+						<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 					</PopoverDisclosure>
 					<Popover
 						store={popover}
@@ -155,7 +146,7 @@ export function AriakitVirtualizedMultiSelect({
 								className="thin-scrollbar max-h-[280px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
 							>
 								{filteredOptions.length === 0 ? (
-									<div className="pro-text3 px-3 py-2 text-center text-xs">No results found.</div>
+									<div className="px-3 py-2 text-center text-xs pro-text3">No results found.</div>
 								) : (
 									<div
 										key={`virtual-${filteredOptions.length}`}
@@ -182,10 +173,10 @@ export function AriakitVirtualizedMultiSelect({
 													disabled={isDisabled}
 													className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs transition-colors ${
 														isDisabled
-															? 'pro-text3 cursor-not-allowed opacity-50'
+															? 'cursor-not-allowed pro-text3 opacity-50'
 															: isActive
 																? 'bg-(--primary)/10 font-semibold text-(--primary)'
-																: 'pro-text2 hover:pro-text1 hover:bg-(--cards-bg-alt)'
+																: 'pro-text2 hover:bg-(--cards-bg-alt) hover:pro-text1'
 													}`}
 													style={{
 														position: 'absolute',
@@ -201,7 +192,7 @@ export function AriakitVirtualizedMultiSelect({
 															<img
 																src={iconUrl}
 																alt={option.label}
-																className={`h-5 w-5 flex-shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
+																className={`h-5 w-5 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
 																	option.isChild ? 'opacity-70' : ''
 																}`}
 																onError={(e) => {
@@ -219,7 +210,7 @@ export function AriakitVirtualizedMultiSelect({
 														</div>
 													</div>
 													{isActive && (
-														<Icon name="check" width={14} height={14} className="ml-2 flex-shrink-0 text-(--primary)" />
+														<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
 													)}
 												</button>
 											)

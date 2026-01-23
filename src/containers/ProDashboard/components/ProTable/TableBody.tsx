@@ -1,7 +1,5 @@
-import * as React from 'react'
 import { flexRender, Table } from '@tanstack/react-table'
-import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
-import { SortIcon } from '~/components/Table/SortIcon'
+import type { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { ReorderableHeader } from './ReorderableHeader'
 
 interface TableBodyProps {
@@ -14,7 +12,7 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 	if (!table) {
 		return (
 			<div
-				className="thin-scrollbar relative min-h-0 w-full flex-1 overflow-x-auto overflow-y-auto"
+				className="relative thin-scrollbar min-h-0 w-full flex-1 overflow-x-auto overflow-y-auto"
 				style={{ height: '100%' }}
 			>
 				<div className="flex h-32 items-center justify-center">
@@ -26,14 +24,14 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 
 	return (
 		<div
-			className="thin-scrollbar relative -mx-2 min-h-0 w-full flex-1 overflow-auto px-2 sm:mx-0 sm:px-0"
+			className="relative -mx-2 thin-scrollbar min-h-0 w-full flex-1 overflow-auto px-2 sm:mx-0 sm:px-0"
 			style={{ height: '100%' }}
 		>
 			<table className="w-full min-w-[600px] border-collapse text-xs text-(--text-primary) sm:text-sm">
 				<thead className="sticky top-0 z-10">
 					{table.getHeaderGroups().map((headerGroup) => (
 						<tr key={headerGroup.id}>
-							{headerGroup.headers.map((header, index) => {
+							{headerGroup.headers.map((header, _index) => {
 								const visibleColumns = headerGroup.headers.filter((h) => !h.isPlaceholder)
 								const columnIndex = visibleColumns.indexOf(header)
 								const isFirst = columnIndex === 0

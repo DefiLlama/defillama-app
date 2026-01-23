@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
 
-interface TokenUsageData {
+export interface TokenUsageData {
 	name: string
 	category: string
 	amountUsd: number
@@ -30,32 +30,34 @@ export function useTokenUsageData(tokenSymbols: string[], includeCex: boolean = 
 
 				const protocolMap = new Map<string, TokenUsageData>()
 
-				results.forEach(({ symbol, data }) => {
-					data?.forEach((p: any) => {
-						const key = p.name
+				for (const { symbol, data } of results) {
+					if (data) {
+						for (const p of data) {
+							const key = p.name
 
-						if (protocolMap.has(key)) {
-							const existing = protocolMap.get(key)!
-							existing.tokens = existing.tokens || {}
-							existing.tokens[symbol] = Object.values(p.amountUsd as Record<string, number>).reduce(
-								(s: number, a: number) => s + a,
-								0
-							)
-							existing.amountUsd += existing.tokens[symbol]
-						} else {
-							const tokenAmount = Object.values(p.amountUsd as Record<string, number>).reduce(
-								(s: number, a: number) => s + a,
-								0
-							)
-							protocolMap.set(key, {
-								...p,
-								amountUsdByChain: p.amountUsd,
-								amountUsd: tokenAmount,
-								tokens: { [symbol]: tokenAmount }
-							})
+							if (protocolMap.has(key)) {
+								const existing = protocolMap.get(key)!
+								existing.tokens = existing.tokens || {}
+								existing.tokens[symbol] = Object.values(p.amountUsd as Record<string, number>).reduce(
+									(s: number, a: number) => s + a,
+									0
+								)
+								existing.amountUsd += existing.tokens[symbol]
+							} else {
+								const tokenAmount = Object.values(p.amountUsd as Record<string, number>).reduce(
+									(s: number, a: number) => s + a,
+									0
+								)
+								protocolMap.set(key, {
+									...p,
+									amountUsdByChain: p.amountUsd,
+									amountUsd: tokenAmount,
+									tokens: { [symbol]: tokenAmount }
+								})
+							}
 						}
-					})
-				})
+					}
+				}
 
 				const processed = Array.from(protocolMap.values())
 

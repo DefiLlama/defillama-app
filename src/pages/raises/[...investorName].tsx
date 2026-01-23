@@ -49,7 +49,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		const filters = getRaisesFiltersList({ raises })
+		const filters = getRaisesFiltersList({ raises: data.raises, investorName: name })
 
 		return {
 			props: {

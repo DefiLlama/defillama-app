@@ -1,6 +1,7 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
+import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -8,24 +9,16 @@ import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/ProDashboard/types'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
-import { PeggedFilters } from '~/containers/Stablecoins/Filters'
-import { stablecoinAttributeOptions } from '~/containers/Stablecoins/Filters/Attribute'
-import { stablecoinBackingOptions } from '~/containers/Stablecoins/Filters/BackingType'
-import { stablecoinPegTypeOptions } from '~/containers/Stablecoins/Filters/PegType'
+import {
+	PeggedFilters,
+	stablecoinAttributeOptions,
+	stablecoinBackingOptions,
+	stablecoinPegTypeOptions
+} from '~/containers/Stablecoins/Filters'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from '~/containers/Stablecoins/hooks'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
-import {
-	useCalcCirculating,
-	useCalcGroupExtraPeggedByDay,
-	useFormatStablecoinQueryParams
-} from '~/hooks/data/stablecoins'
-import {
-	formattedNum,
-	getPercentChange,
-	preparePieChartData,
-	slug,
-	toNiceCsvDate,
-	toNumberOrNullFromQueryParam
-} from '~/utils'
+import { formattedNum, getPercentChange, slug, toNiceCsvDate, toNumberOrNullFromQueryParam } from '~/utils'
+import { useFormatStablecoinQueryParams } from './hooks'
 import { PeggedAssetsTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -33,6 +26,9 @@ const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+
+const EMPTY_HALLMARKS: [] = []
+const EMPTY_CHAINS: string[] = []
 
 const mapChartTypeToConfig = (displayType: string): StablecoinChartType => {
 	const mapping: Record<string, StablecoinChartType> = {
@@ -49,12 +45,14 @@ const mapChartTypeToConfig = (displayType: string): StablecoinChartType => {
 
 export function StablecoinsByChain({
 	selectedChain = 'All',
-	chains = [],
+	chains = EMPTY_CHAINS,
 	filteredPeggedAssets,
 	peggedAssetNames,
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
-	doublecountedIds
+	doublecountedIds,
+	availableBackings,
+	availablePegTypes
 }) {
 	const [chartType, setChartType] = React.useState('Total Market Cap')
 
@@ -70,6 +68,7 @@ export function StablecoinsByChain({
 	const minMcap = toNumberOrNullFromQueryParam(router.query.minMcap)
 	const maxMcap = toNumberOrNullFromQueryParam(router.query.maxMcap)
 
+	// Selected arrays already have excludes filtered out at hook level
 	const { selectedAttributes, selectedPegTypes, selectedBackings } = useFormatStablecoinQueryParams({
 		stablecoinAttributeOptions,
 		stablecoinPegTypeOptions,
@@ -77,24 +76,29 @@ export function StablecoinsByChain({
 	})
 
 	const peggedAssets = React.useMemo(() => {
-		const attributeOptionsMap = new Map(stablecoinAttributeOptions.map((option) => [option.key, option]))
-		const pegTypeOptionsMap = new Map(stablecoinPegTypeOptions.map((option) => [option.key, option]))
-		const backingOptionsMap = new Map(stablecoinBackingOptions.map((option) => [option.key, option]))
+		const pegTypeOptionsMap = new Map<string, (typeof stablecoinPegTypeOptions)[number]>(
+			stablecoinPegTypeOptions.map((option) => [option.key, option])
+		)
+		const backingOptionsMap = new Map<string, (typeof stablecoinBackingOptions)[number]>(
+			stablecoinBackingOptions.map((option) => [option.key, option])
+		)
 
 		let chartDataIndexes = []
 		const peggedAssets = filteredPeggedAssets.reduce((acc, curr) => {
 			let toFilter = false
 
-			// These together filter depegged. Need to refactor once any other attributes are added.
-			toFilter = Math.abs(curr.pegDeviation) < 10 || !(typeof curr.pegDeviation === 'number')
-			selectedAttributes.forEach((attribute) => {
-				const attributeOption = attributeOptionsMap.get(attribute)
+			// Attribute filter:
+			// - Missing param => all selected (handled in `useFormatStablecoinQueryParams`)
+			// - Param="None" => none selected
+			// - selectedAttributes already has excludes filtered out
+			if (!selectedAttributes || selectedAttributes.length === 0) {
+				toFilter = false
+			} else {
+				const selectedAttrSet = new Set(selectedAttributes)
+				toFilter = stablecoinAttributeOptions.some((opt) => selectedAttrSet.has(opt.key) && opt.filterFn(curr))
+			}
 
-				if (attributeOption) {
-					toFilter = attributeOption.filterFn(curr)
-				}
-			})
-
+			// selectedPegTypes already has excludes filtered out
 			toFilter =
 				toFilter &&
 				selectedPegTypes
@@ -104,6 +108,7 @@ export function StablecoinsByChain({
 					})
 					.some((bool) => bool)
 
+			// selectedBackings already has excludes filtered out
 			toFilter =
 				toFilter &&
 				selectedBackings
@@ -113,11 +118,11 @@ export function StablecoinsByChain({
 					})
 					.some((bool) => bool)
 
-			const isValidMcapRange = minMcap != null && maxMcap != null
-
-			if (isValidMcapRange) {
+			// Mcap range should work with min-only, max-only, or both.
+			// Values are parsed via `toNumberOrNullFromQueryParam`, so invalid inputs become null.
+			if (minMcap != null || maxMcap != null) {
 				toFilter =
-					toFilter && (minMcap != null ? curr.mcap > minMcap : true) && (maxMcap != null ? curr.mcap < maxMcap : true)
+					toFilter && (minMcap != null ? curr.mcap >= minMcap : true) && (maxMcap != null ? curr.mcap <= maxMcap : true)
 			}
 
 			if (toFilter) {
@@ -165,18 +170,17 @@ export function StablecoinsByChain({
 	const prepareCsv = () => {
 		const filteredPeggedNames = peggedAssetNames.filter((name, i) => filteredIndexes.includes(i))
 		const rows = [['Timestamp', 'Date', ...filteredPeggedNames, 'Total']]
-		stackedData
-			.sort((a, b) => a.date - b.date)
-			.forEach((day) => {
-				rows.push([
-					day.date,
-					toNiceCsvDate(day.date),
-					...filteredPeggedNames.map((peggedAsset) => day[peggedAsset] ?? ''),
-					filteredPeggedNames.reduce((acc, curr) => {
-						return (acc += day[curr] ?? 0)
-					}, 0)
-				])
-			})
+		const sortedData = stackedData.sort((a, b) => a.date - b.date)
+		for (const day of sortedData) {
+			rows.push([
+				day.date,
+				toNiceCsvDate(day.date),
+				...filteredPeggedNames.map((peggedAsset) => day[peggedAsset] ?? ''),
+				filteredPeggedNames.reduce((acc, curr) => {
+					return (acc += day[curr] ?? 0)
+				}, 0)
+			])
+		}
 		return { filename: 'stablecoins.csv', rows: rows as (string | number | boolean)[][] }
 	}
 
@@ -253,8 +257,6 @@ export function StablecoinsByChain({
 
 	const totalMcapLabel = ['Mcap']
 
-	const path = selectedChain === 'All' ? '/stablecoins' : `/stablecoins/${selectedChain}`
-
 	const getImageExportTitle = () => {
 		const chainPrefix = selectedChain !== 'All' ? `${selectedChain} ` : ''
 		return `${chainPrefix}Stablecoins - ${chartType}`
@@ -270,7 +272,12 @@ export function StablecoinsByChain({
 		<>
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 
-			<PeggedFilters pathname={path} prepareCsv={prepareCsv} />
+			<PeggedFilters
+				pathname={selectedChain === 'All' ? '/stablecoins' : `/stablecoins/${selectedChain}`}
+				prepareCsv={prepareCsv}
+				availableBackings={availableBackings}
+				availablePegTypes={availablePegTypes}
+			/>
 
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
@@ -294,7 +301,7 @@ export function StablecoinsByChain({
 									<span
 										className={`${
 											change7d.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
-										} font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap`}
+										} overflow-hidden font-jetbrains text-ellipsis whitespace-nowrap`}
 									>{`${change7d}%`}</span>
 								</span>
 							</span>
@@ -304,7 +311,7 @@ export function StablecoinsByChain({
 							<span className="text-(--text-label)">Change (1d)</span>
 							<Tooltip
 								content={change1d_nol}
-								className={`font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
+								className={`overflow-hidden font-jetbrains text-ellipsis whitespace-nowrap underline decoration-dotted ${
 									change1d.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 								}`}
 							>
@@ -315,7 +322,7 @@ export function StablecoinsByChain({
 							<span className="text-(--text-label)">Change (30d)</span>
 							<Tooltip
 								content={change30d_nol}
-								className={`font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
+								className={`overflow-hidden font-jetbrains text-ellipsis whitespace-nowrap underline decoration-dotted ${
 									change30d.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 								}`}
 							>
@@ -341,7 +348,7 @@ export function StablecoinsByChain({
 								stacks={totalMcapLabel}
 								valueSymbol="$"
 								hideDefaultLegend={true}
-								hallmarks={[]}
+								hallmarks={EMPTY_HALLMARKS}
 								color={CHART_COLORS[0]}
 								customComponents={
 									<>
@@ -470,11 +477,13 @@ export function StablecoinsByChain({
 }
 
 function handleRouting(selectedChain, queryParams) {
-	const { chain, ...filters } = queryParams
+	const { chain: _chain, ...filters } = queryParams
 
 	let params = ''
 
-	Object.keys(filters).forEach((filter, index) => {
+	const filterKeys = Object.keys(filters)
+	for (let index = 0; index < filterKeys.length; index++) {
+		const filter = filterKeys[index]
 		// append '?' before all query params and '&' bertween diff params
 		if (index === 0) {
 			params += '?'
@@ -482,17 +491,18 @@ function handleRouting(selectedChain, queryParams) {
 
 		// query params of same query like pegType will return in array form - pegType=['USD','EUR'], expected output is pegType=USD&pegType=EUR
 		if (Array.isArray(filters[filter])) {
-			filters[filter].forEach((f, i) => {
+			for (let i = 0; i < filters[filter].length; i++) {
+				const f = filters[filter][i]
 				if (i > 0) {
 					params += '&'
 				}
 
 				params += `${filter}=${f}`
-			})
+			}
 		} else {
 			params += `${filter}=${filters[filter]}`
 		}
-	})
+	}
 
 	if (selectedChain === 'All') return `/stablecoins${params}`
 	return `/stablecoins/${slug(selectedChain)}${params}`

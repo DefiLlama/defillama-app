@@ -12,23 +12,23 @@ const GROUPING_ICON_BY_KEY: Partial<Record<UnifiedRowHeaderType, IconName>> = {
 	'parent-protocol': 'protocol'
 }
 
+const formatGroupingLabel = (header: UnifiedRowHeaderType) => {
+	if (header === 'parent-protocol') {
+		return 'Protocol'
+	}
+
+	return header
+		.split('-')
+		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+		.join(' ')
+}
+
 interface GroupingOptionsProps {
 	rowHeaders: UnifiedRowHeaderType[]
 	onToggleRowHeader: (header: UnifiedRowHeaderType) => void
 }
 
 export function GroupingOptions({ rowHeaders, onToggleRowHeader }: GroupingOptionsProps) {
-	const formatGroupingLabel = (header: UnifiedRowHeaderType) => {
-		if (header === 'parent-protocol') {
-			return 'Protocol'
-		}
-
-		return header
-			.split('-')
-			.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-			.join(' ')
-	}
-
 	const groupingOptions = useMemo(() => {
 		return PROTOCOL_ROW_HEADER_ORDER.map((header) => ({
 			value: header,
@@ -63,7 +63,7 @@ export function GroupingOptions({ rowHeaders, onToggleRowHeader }: GroupingOptio
 							type="button"
 							onClick={() => onToggleRowHeader(option.value)}
 							aria-pressed={active}
-							className={`group flex h-full flex-col gap-1 rounded-lg border p-2 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--primary) ${
+							className={`group flex h-full flex-col gap-1 rounded-lg border p-2 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--primary) ${
 								active
 									? 'border-(--primary) bg-(--primary)/12 shadow-[0_2px_6px_rgba(91,133,255,0.1)]'
 									: 'border-(--cards-border) hover:border-(--primary) hover:bg-(--primary)/6'

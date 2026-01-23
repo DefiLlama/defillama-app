@@ -3,7 +3,7 @@ import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { formatColumnOrder } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, formattedPercent, peggedAssetIconUrl, slug } from '~/utils'
@@ -15,8 +15,7 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 		id: 'name',
 		accessorFn: (row) => `${row.name}${row.symbol && row.symbol !== '-' ? ` (${row.symbol})` : ''}`,
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+		cell: ({ getValue, row }) => {
 			const isSubRow = row.original.name.startsWith('Bridged from')
 
 			return (
@@ -52,7 +51,7 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 						</>
 					) : (
 						<>
-							<span className="shrink-0">{index + 1}</span>
+							<span className="vf-row-index shrink-0" aria-hidden="true" />
 							<TokenLogo logo={chainIconUrl(row.original.name)} data-lgonly />
 							<BasicLink
 								href={`/stablecoins/${row.original.name}`}
@@ -94,8 +93,6 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 		header: 'Bridged Amount',
 		accessorKey: 'bridgedAmount',
 		size: 145,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -105,8 +102,6 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 		accessorKey: 'change_1d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 110,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -116,8 +111,6 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 		accessorKey: 'change_7d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 110,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -127,8 +120,6 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 		accessorKey: 'change_1m',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 110,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -138,23 +129,19 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 		accessorKey: 'circulating',
 		cell: (info) => <>{formattedNum(info.getValue())}</>,
 		size: 145,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
 	}
 ]
 
-// key: min width of window/screen
-// values: table columns order
-export const assetsByChainColumnOrders = formatColumnOrder({
+export const assetsByChainColumnOrders: ColumnOrdersByBreakpoint = {
 	0: ['name', 'change_7d', 'circulating', 'change_1d', 'change_1m', 'bridgeInfo', 'bridgedAmount'],
 	480: ['name', 'change_7d', 'circulating', 'change_1d', 'change_1m', 'bridgeInfo', 'bridgedAmount'],
 	1024: ['name', 'bridgeInfo', 'bridgedAmount', 'change_1d', 'change_7d', 'change_1m', 'circulating']
-})
+}
 
-export const assetsByChainColumnSizes = {
+export const assetsByChainColumnSizes: ColumnSizesByBreakpoint = {
 	0: {
 		name: 160,
 		bridgeInfo: 240,
@@ -181,12 +168,10 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 		id: 'name',
 		accessorFn: (row) => `${row.name}${row.symbol && row.symbol !== '-' ? ` (${row.symbol})` : ''}`,
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue, row }) => {
 			return (
 				<span className="flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo logo={peggedAssetIconUrl(row.original.name)} data-lgonly />
 					{row.original?.deprecated ? (
 						<BasicLink
@@ -196,15 +181,9 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 							<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">
 								{getValue() as string}
 							</span>
-							<span className="flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
-								<Tooltip
-									content="Deprecated"
-									className="flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-[10px] text-white dark:bg-red-400"
-								>
-									!
-								</Tooltip>
-								<span>Deprecated</span>
-							</span>
+							<Tooltip content="Deprecated" className="text-(--error)">
+								<Icon name="alert-triangle" height={14} width={14} />
+							</Tooltip>
 						</BasicLink>
 					) : (
 						<BasicLink
@@ -248,8 +227,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 				</span>
 			)
 		},
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -272,8 +249,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 				</span>
 			)
 		},
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Shows greatest % price deviation from peg over the past month'
@@ -293,8 +268,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 				</span>
 			)
 		},
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -316,8 +289,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 			) : (
 				'-'
 			),
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		size: 120,
 		meta: {
 			align: 'end'
@@ -340,8 +311,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 			) : (
 				'-'
 			),
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		size: 160,
 		meta: {
 			align: 'end'
@@ -364,8 +333,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 			) : (
 				'-'
 			),
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		size: 160,
 		meta: {
 			align: 'end'
@@ -376,8 +343,6 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 		accessorKey: 'mcap',
 		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 120,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -386,12 +351,12 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 
 // key: min width of window/screen
 // values: table columns order
-export const assetsColumnOrders = formatColumnOrder({
+export const assetsColumnOrders: ColumnOrdersByBreakpoint = {
 	0: ['name', 'mcap', 'change_1d', 'change_7d', 'change_1m', 'price', 'pegDeviation', 'pegDeviation_1m', 'chains'],
 	1024: ['name', 'chains', 'pegDeviation', 'pegDeviation_1m', 'price', 'change_1d', 'change_7d', 'change_1m', 'mcap']
-})
+}
 
-export const assetsColumnSizes = {
+export const assetsColumnSizes: ColumnSizesByBreakpoint = {
 	0: {
 		name: 180,
 		chains: 180,
@@ -529,9 +494,9 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
 			const isSubRow = value.startsWith('Bridged from')
 
 			return (
@@ -562,12 +527,12 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 
 					{isSubRow ? (
 						<>
-							<span className="shrink-0">{index + 1}</span>
+							<span className="vf-row-index shrink-0" aria-hidden="true" />
 							<span>{value}</span>
 						</>
 					) : (
 						<>
-							<span className="shrink-0">{index + 1}</span>
+							<span className="vf-row-index shrink-0" aria-hidden="true" />
 							<TokenLogo logo={chainIconUrl(value)} data-lgonly />
 							<BasicLink
 								href={`/stablecoins/${value}`}
@@ -587,8 +552,6 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 		accessorKey: 'change_7d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 120,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -598,8 +561,6 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 		accessorKey: 'mcap',
 		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
 		size: 132,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -632,8 +593,6 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 		accessorKey: 'minted',
 		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
 		size: 180,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -643,8 +602,6 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 		accessorKey: 'bridgedTo',
 		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
 		size: 185,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}
@@ -654,8 +611,6 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 		accessorKey: 'mcaptvl',
 		cell: ({ getValue }) => <>{getValue() && formattedNum(getValue(), false)}</>,
 		size: 195,
-		sortUndefined: 'last',
-		sortingFn: 'alphanumericFalsyLast' as any,
 		meta: {
 			align: 'end'
 		}

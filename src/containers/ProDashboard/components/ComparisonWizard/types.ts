@@ -43,6 +43,7 @@ export type WizardAction =
 	| { type: 'SET_STEP'; step: WizardStep }
 	| { type: 'SET_COMPARISON_TYPE'; comparisonType: ComparisonType }
 	| { type: 'SET_SELECTED_ITEMS'; items: string[] }
+	| { type: 'TOGGLE_SELECTED_ITEM'; item: string; maxItems?: number }
 	| { type: 'TOGGLE_METRIC'; metric: string }
 	| { type: 'CLEAR_METRICS' }
 	| { type: 'SELECT_ALL_METRICS'; metrics: string[] }
@@ -52,6 +53,8 @@ export type WizardAction =
 	| { type: 'SET_DASHBOARD_NAME'; name: string }
 	| { type: 'SET_VISIBILITY'; visibility: 'private' | 'public' }
 	| { type: 'SET_TAGS'; tags: string[] }
+	| { type: 'ADD_TAG'; tag: string }
+	| { type: 'REMOVE_TAG'; tag: string }
 	| { type: 'SET_DESCRIPTION'; description: string }
 	| { type: 'SET_GROUPING'; grouping: GroupingInterval }
 	| { type: 'SET_DISPLAY_MODE'; displayMode: DisplayMode }

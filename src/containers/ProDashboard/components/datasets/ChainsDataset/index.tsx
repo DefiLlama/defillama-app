@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -13,7 +12,7 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
-import useWindowSize from '~/hooks/useWindowSize'
+import * as React from 'react'
 import { downloadCSV } from '~/utils'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
 import { LoadingSpinner } from '../../LoadingSpinner'
@@ -22,6 +21,65 @@ import { ChainsTableHeader } from './ChainsTableHeader'
 import { ColumnManagementPanel } from './ColumnManagementPanel'
 import { chainsDatasetColumns } from './columns'
 import { useChainsData } from './useChainsData'
+
+const EMPTY_DATA: any[] = []
+const CHAIN_COLUMN_PRESETS: Record<string, string[]> = {
+	essential: ['name', 'protocols', 'users', 'change_1d', 'change_7d', 'tvl', 'stablesMcap'],
+	defi: [
+		'name',
+		'protocols',
+		'tvl',
+		'change_1d',
+		'change_7d',
+		'change_1m',
+		'bridgedTvl',
+		'stablesMcap',
+		'mcaptvl',
+		'mcap'
+	],
+	volume: [
+		'name',
+		'tvl',
+		'totalVolume24h',
+		'totalVolume30d',
+		'totalFees24h',
+		'totalFees30d',
+		'totalAppRevenue24h',
+		'totalAppRevenue30d',
+		'totalRevenue30d',
+		'users',
+		'nftVolume'
+	],
+	advanced: [
+		'name',
+		'protocols',
+		'users',
+		'change_1d',
+		'change_7d',
+		'change_1m',
+		'tvl',
+		'bridgedTvl',
+		'stablesMcap',
+		'totalVolume24h',
+		'totalVolume30d',
+		'totalFees24h',
+		'totalFees30d',
+		'totalAppRevenue24h',
+		'totalAppRevenue30d',
+		'totalRevenue30d',
+		'mcaptvl',
+		'mcap',
+		'nftVolume'
+	],
+	shares: [
+		'name',
+		'tvl_share',
+		'stablesMcap_share',
+		'totalVolume24h_share',
+		'totalFees24h_share',
+		'totalAppRevenue24h_share'
+	]
+}
 
 interface ChainsDatasetProps {
 	category?: string
@@ -37,7 +95,7 @@ export function ChainsDataset({
 	columnVisibility: savedColumnVisibility
 }: ChainsDatasetProps) {
 	const { handleTableColumnsChange } = useProDashboardEditorActions()
-	const uniqueTableId = React.useMemo(() => tableId || `chains-dataset-${category || 'all'}`, [tableId, category])
+	const uniqueTableId = tableId || `chains-dataset-${category || 'all'}`
 
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'tvl', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -54,25 +112,24 @@ export function ChainsDataset({
 	const [showColumnPanel, setShowColumnPanel] = React.useState(false)
 
 	const { data, isLoading, error } = useChainsData(category)
-	const windowSize = useWindowSize()
 
 	const totals = React.useMemo(() => {
 		const sums: Record<string, number> = {}
 		const metrics = ['tvl', 'stablesMcap', 'totalVolume24h', 'totalFees24h', 'totalAppRevenue24h', 'nftVolume']
 
-		metrics.forEach((metric) => {
+		for (const metric of metrics) {
 			sums[metric] = 0
-		})
+		}
 
 		if (data && Array.isArray(data)) {
-			data.forEach((chain) => {
-				metrics.forEach((metric) => {
+			for (const chain of data) {
+				for (const metric of metrics) {
 					const value = chain[metric]
 					if (typeof value === 'number' && value > 0) {
 						sums[metric] += value
 					}
-				})
-			})
+				}
+			}
 		}
 
 		return sums
@@ -104,7 +161,7 @@ export function ChainsDataset({
 				},
 				cell: ({ getValue }) => {
 					const value = getValue() as number | null
-					if (value === null || value === undefined) return <span className="pro-text2">-</span>
+					if (value == null) return <span className="pro-text2">-</span>
 
 					return <span className="pro-text2">{value.toFixed(2)}%</span>
 				},
@@ -125,7 +182,7 @@ export function ChainsDataset({
 	}, [percentageShareColumns])
 
 	const instance = useReactTable({
-		data: data || [],
+		data: data ?? EMPTY_DATA,
 		columns: allColumns,
 		state: {
 			sorting,
@@ -144,138 +201,72 @@ export function ChainsDataset({
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
-	const columnPresets = React.useMemo(
-		() => ({
-			essential: ['name', 'protocols', 'users', 'change_1d', 'change_7d', 'tvl', 'stablesMcap'],
-			defi: [
-				'name',
-				'protocols',
-				'tvl',
-				'change_1d',
-				'change_7d',
-				'change_1m',
-				'bridgedTvl',
-				'stablesMcap',
-				'mcaptvl',
-				'mcap'
-			],
-			volume: [
-				'name',
-				'tvl',
-				'totalVolume24h',
-				'totalVolume30d',
-				'totalFees24h',
-				'totalFees30d',
-				'totalAppRevenue24h',
-				'totalAppRevenue30d',
-				'totalRevenue30d',
-				'users',
-				'nftVolume'
-			],
-			advanced: [
-				'name',
-				'protocols',
-				'users',
-				'change_1d',
-				'change_7d',
-				'change_1m',
-				'tvl',
-				'bridgedTvl',
-				'stablesMcap',
-				'totalVolume24h',
-				'totalVolume30d',
-				'totalFees24h',
-				'totalFees30d',
-				'totalAppRevenue24h',
-				'totalAppRevenue30d',
-				'totalRevenue30d',
-				'mcaptvl',
-				'mcap',
-				'nftVolume'
-			],
-			shares: [
-				'name',
-				'tvl_share',
-				'stablesMcap_share',
-				'totalVolume24h_share',
-				'totalFees24h_share',
-				'totalAppRevenue24h_share'
-			]
-		}),
-		[]
-	)
+	const applyPreset = (preset: string) => {
+		const presetColumns = CHAIN_COLUMN_PRESETS[preset as keyof typeof CHAIN_COLUMN_PRESETS]
+		if (presetColumns) {
+			const allColumns = instance.getAllColumns()
+			const newVisibility: Record<string, boolean> = {}
 
-	const applyPreset = React.useCallback(
-		(preset: string) => {
-			const presetColumns = columnPresets[preset]
-			if (presetColumns) {
-				const allColumns = instance.getAllColumns()
-				const newVisibility: Record<string, boolean> = {}
+			for (const column of allColumns) {
+				newVisibility[column.id] = presetColumns.includes(column.id)
+			}
 
-				allColumns.forEach((column) => {
-					newVisibility[column.id] = presetColumns.includes(column.id)
-				})
+			instance.setColumnVisibility(newVisibility)
+			instance.setColumnOrder(presetColumns)
+			setColumnVisibility(newVisibility)
+			setColumnOrder(presetColumns)
+			setSelectedPreset(preset)
 
-				instance.setColumnVisibility(newVisibility)
-				instance.setColumnOrder(presetColumns)
-				setColumnVisibility(newVisibility)
-				setColumnOrder(presetColumns)
-				setSelectedPreset(preset)
+			if (uniqueTableId && handleTableColumnsChange) {
+				handleTableColumnsChange(uniqueTableId, presetColumns, newVisibility)
+			}
+		}
+	}
+
+	const toggleColumnVisibility = (columnId: string) => {
+		const column = instance.getColumn(columnId)
+		if (column) {
+			column.toggleVisibility()
+			setSelectedPreset(null)
+
+			const newVisibility = { ...columnVisibility, [columnId]: !columnVisibility[columnId] }
+			setColumnVisibility(newVisibility)
+
+			if (newVisibility[columnId] !== false && !columnOrder.includes(columnId)) {
+				const allColumns = instance.getAllLeafColumns().map((d) => d.id)
+				const originalIndex = allColumns.indexOf(columnId)
+
+				const newOrder = [...columnOrder]
+				let insertIndex = newOrder.length
+
+				for (let i = originalIndex + 1; i < allColumns.length; i++) {
+					const colId = allColumns[i]
+					const orderIndex = newOrder.indexOf(colId)
+					if (orderIndex !== -1) {
+						insertIndex = orderIndex
+						break
+					}
+				}
+
+				newOrder.splice(insertIndex, 0, columnId)
+				setColumnOrder(newOrder)
 
 				if (uniqueTableId && handleTableColumnsChange) {
-					handleTableColumnsChange(uniqueTableId, presetColumns, newVisibility)
+					handleTableColumnsChange(uniqueTableId, newOrder, newVisibility)
+				}
+			} else {
+				if (uniqueTableId && handleTableColumnsChange) {
+					handleTableColumnsChange(uniqueTableId, columnOrder, newVisibility)
 				}
 			}
-		},
-		[columnPresets, instance, uniqueTableId, handleTableColumnsChange]
-	)
+		}
+	}
 
-	const toggleColumnVisibility = React.useCallback(
-		(columnId: string) => {
-			const column = instance.getColumn(columnId)
-			if (column) {
-				column.toggleVisibility()
-				setSelectedPreset(null)
-
-				const newVisibility = { ...columnVisibility, [columnId]: !columnVisibility[columnId] }
-				setColumnVisibility(newVisibility)
-
-				if (newVisibility[columnId] !== false && !columnOrder.includes(columnId)) {
-					const allColumns = instance.getAllLeafColumns().map((d) => d.id)
-					const originalIndex = allColumns.indexOf(columnId)
-
-					const newOrder = [...columnOrder]
-					let insertIndex = newOrder.length
-
-					for (let i = originalIndex + 1; i < allColumns.length; i++) {
-						const colId = allColumns[i]
-						const orderIndex = newOrder.indexOf(colId)
-						if (orderIndex !== -1) {
-							insertIndex = orderIndex
-							break
-						}
-					}
-
-					newOrder.splice(insertIndex, 0, columnId)
-					setColumnOrder(newOrder)
-
-					if (uniqueTableId && handleTableColumnsChange) {
-						handleTableColumnsChange(uniqueTableId, newOrder, newVisibility)
-					}
-				} else {
-					if (uniqueTableId && handleTableColumnsChange) {
-						handleTableColumnsChange(uniqueTableId, columnOrder, newVisibility)
-					}
-				}
-			}
-		},
-		[instance, uniqueTableId, handleTableColumnsChange, columnVisibility, columnOrder]
-	)
-
-	React.useEffect(() => {
+	const onSyncInitialColumns = React.useEffectEvent(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 		const defaultSizing = {
 			name: 200,
@@ -309,26 +300,42 @@ export function ChainsDataset({
 			instance.setColumnOrder(defaultOrder)
 		}
 
-		if (savedColumnVisibility && Object.keys(savedColumnVisibility).length > 0) {
+		let hasSavedVisibility = false
+		if (savedColumnVisibility) {
+			for (const _ in savedColumnVisibility) {
+				hasSavedVisibility = true
+				break
+			}
+		}
+		let hasCurrentVisibility = false
+		for (const _ in columnVisibility) {
+			hasCurrentVisibility = true
+			break
+		}
+		if (savedColumnVisibility && hasSavedVisibility) {
 			setColumnVisibility(savedColumnVisibility)
 			instance.setColumnVisibility(savedColumnVisibility)
-		} else if (Object.keys(columnVisibility).length === 0 && selectedPreset === 'essential') {
-			const presetColumns = columnPresets['essential']
+		} else if (!hasCurrentVisibility && selectedPreset === 'essential') {
+			const presetColumns = CHAIN_COLUMN_PRESETS.essential
 			if (presetColumns) {
 				const allColumns = instance.getAllColumns()
 				const newVisibility: Record<string, boolean> = {}
-				allColumns.forEach((column) => {
+				for (const column of allColumns) {
 					newVisibility[column.id] = presetColumns.includes(column.id)
-				})
+				}
 				setColumnVisibility(newVisibility)
 				setColumnOrder(presetColumns)
 				instance.setColumnVisibility(newVisibility)
 				instance.setColumnOrder(presetColumns)
 			}
 		}
-	}, [savedColumnOrder, savedColumnVisibility, selectedPreset, columnPresets, instance])
+	})
 
-	const handleExportCSV = React.useCallback(() => {
+	React.useEffect(() => {
+		onSyncInitialColumns()
+	}, [savedColumnOrder, savedColumnVisibility])
+
+	const handleExportCSV = () => {
 		const headers = instance
 			.getVisibleFlatColumns()
 			.filter((col) => col.id !== 'expand')
@@ -340,14 +347,14 @@ export function ChainsDataset({
 				.filter((col) => col.id !== 'expand')
 				.map((col) => {
 					const value = row.getValue(col.id)
-					if (value === null || value === undefined) return ''
+					if (value == null) return ''
 					if (typeof value === 'object') return JSON.stringify(value)
 					return String(value)
 				})
 		})
 
 		downloadCSV('chains-data.csv', [headers, ...rows], { addTimestamp: true })
-	}, [instance])
+	}
 
 	const columnOptions = React.useMemo(
 		() =>
@@ -358,35 +365,29 @@ export function ChainsDataset({
 		[percentageShareColumns]
 	)
 
-	const moveColumnUp = React.useCallback(
-		(columnId: string) => {
-			const currentOrder = [...columnOrder]
-			const index = currentOrder.indexOf(columnId)
-			if (index > 0) {
-				;[currentOrder[index - 1], currentOrder[index]] = [currentOrder[index], currentOrder[index - 1]]
-				setColumnOrder(currentOrder)
-				if (uniqueTableId && handleTableColumnsChange) {
-					handleTableColumnsChange(uniqueTableId, currentOrder, columnVisibility)
-				}
+	const moveColumnUp = (columnId: string) => {
+		const currentOrder = [...columnOrder]
+		const index = currentOrder.indexOf(columnId)
+		if (index > 0) {
+			;[currentOrder[index - 1], currentOrder[index]] = [currentOrder[index], currentOrder[index - 1]]
+			setColumnOrder(currentOrder)
+			if (uniqueTableId && handleTableColumnsChange) {
+				handleTableColumnsChange(uniqueTableId, currentOrder, columnVisibility)
 			}
-		},
-		[columnOrder, uniqueTableId, handleTableColumnsChange, columnVisibility]
-	)
+		}
+	}
 
-	const moveColumnDown = React.useCallback(
-		(columnId: string) => {
-			const currentOrder = [...columnOrder]
-			const index = currentOrder.indexOf(columnId)
-			if (index < currentOrder.length - 1) {
-				;[currentOrder[index], currentOrder[index + 1]] = [currentOrder[index + 1], currentOrder[index]]
-				setColumnOrder(currentOrder)
-				if (uniqueTableId && handleTableColumnsChange) {
-					handleTableColumnsChange(uniqueTableId, currentOrder, columnVisibility)
-				}
+	const moveColumnDown = (columnId: string) => {
+		const currentOrder = [...columnOrder]
+		const index = currentOrder.indexOf(columnId)
+		if (index < currentOrder.length - 1) {
+			;[currentOrder[index], currentOrder[index + 1]] = [currentOrder[index + 1], currentOrder[index]]
+			setColumnOrder(currentOrder)
+			if (uniqueTableId && handleTableColumnsChange) {
+				handleTableColumnsChange(uniqueTableId, currentOrder, columnVisibility)
 			}
-		},
-		[columnOrder, uniqueTableId, handleTableColumnsChange, columnVisibility]
-	)
+		}
+	}
 
 	if (isLoading) {
 		return (
@@ -394,7 +395,7 @@ export function ChainsDataset({
 				<ChainsTableHeader
 					selectedPreset="essential"
 					setSelectedPreset={() => {}}
-					columnPresets={columnPresets}
+					columnPresets={CHAIN_COLUMN_PRESETS}
 					applyPreset={() => {}}
 					showColumnSelector={false}
 					setShowColumnSelector={() => {}}
@@ -403,7 +404,7 @@ export function ChainsDataset({
 				/>
 				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<LoadingSpinner />
-					<p className="pro-text2 text-sm">Loading chains data...</p>
+					<p className="text-sm pro-text2">Loading chains data...</p>
 				</div>
 			</div>
 		)
@@ -415,7 +416,7 @@ export function ChainsDataset({
 				<ChainsTableHeader
 					selectedPreset="essential"
 					setSelectedPreset={() => {}}
-					columnPresets={columnPresets}
+					columnPresets={CHAIN_COLUMN_PRESETS}
 					applyPreset={() => {}}
 					showColumnSelector={false}
 					setShowColumnSelector={() => {}}
@@ -423,7 +424,7 @@ export function ChainsDataset({
 					category={category}
 				/>
 				<div className="flex min-h-[500px] flex-1 items-center justify-center">
-					<div className="pro-text2 text-center">Failed to load chains data</div>
+					<div className="text-center pro-text2">Failed to load chains data</div>
 				</div>
 			</div>
 		)
@@ -434,7 +435,7 @@ export function ChainsDataset({
 			<ChainsTableHeader
 				selectedPreset={selectedPreset}
 				setSelectedPreset={setSelectedPreset}
-				columnPresets={columnPresets}
+				columnPresets={CHAIN_COLUMN_PRESETS}
 				applyPreset={applyPreset}
 				showColumnSelector={showColumnPanel}
 				setShowColumnSelector={setShowColumnPanel}
@@ -462,25 +463,25 @@ export function ChainsDataset({
 					<button
 						onClick={() => instance.previousPage()}
 						disabled={!instance.getCanPreviousPage()}
-						className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50"
+						className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						Previous
 					</button>
 					<button
 						onClick={() => instance.nextPage()}
 						disabled={!instance.getCanNextPage()}
-						className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50"
+						className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						Next
 					</button>
 				</div>
 
 				<div className="flex items-center gap-2">
-					<span className="pro-text2 text-sm">Rows per page:</span>
+					<span className="text-sm pro-text2">Rows per page:</span>
 					<select
 						value={pagination.pageSize}
 						onChange={(e) => setPagination((prev) => ({ ...prev, pageSize: Number(e.target.value), pageIndex: 0 }))}
-						className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+						className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 					>
 						<option value="10">10</option>
 						<option value="30">30</option>

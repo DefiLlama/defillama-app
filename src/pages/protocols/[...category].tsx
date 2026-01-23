@@ -19,8 +19,10 @@ export const getStaticProps = withPerformanceLogging(
 		const { categoriesAndTags } = metadataCache
 		const categoryName = categoriesAndTags.categories.find((c) => slug(c) === slug(category))
 		let tagName = null
+		let tagCategory = null
 		if (!categoryName) {
 			tagName = categoriesAndTags.tags.find((t) => slug(t) === slug(category))
+			tagCategory = categoriesAndTags.tagCategoryMap[tagName]
 		}
 
 		if (!categoryName && !tagName) {
@@ -29,7 +31,27 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		const props = await getProtocolsByCategoryOrTag({ category: categoryName, tag: tagName, chain })
+		// `getProtocolsByCategoryOrTag` is typed as a discriminated union:
+		// - kind=category requires `category`
+		// - kind=tag requires `tag` + `tagCategory`
+		if (tagName && !tagCategory) {
+			return { notFound: true }
+		}
+
+		const props = categoryName
+			? await getProtocolsByCategoryOrTag({
+					kind: 'category',
+					category: categoryName,
+					chain,
+					chainMetadata: metadataCache.chainMetadata
+				})
+			: await getProtocolsByCategoryOrTag({
+					kind: 'tag',
+					tag: tagName,
+					tagCategory,
+					chain,
+					chainMetadata: metadataCache.chainMetadata
+				})
 
 		if (!props)
 			return {
@@ -56,15 +78,19 @@ export async function getStaticPaths() {
 const toggleOptions = tvlOptions.filter((key) => !['doublecounted', 'liquidstaking'].includes(key.key))
 
 export default function Protocols(props) {
+	const categoryLabel = props.category ?? props.tag ?? ''
+	const displayCategoryLabel =
+		props.effectiveCategory === 'RWA' && props.category ? 'Real World Assets on Chain (RWA)' : categoryLabel
+	const titleLabel = props.effectiveCategory === 'RWA' ? displayCategoryLabel : categoryLabel
+	const titleSuffix = props.effectiveCategory === 'RWA' ? 'Rankings' : 'Protocols Rankings'
+	const title = `${capitalizeFirstLetter(titleLabel)} ${titleSuffix} - DefiLlama`
+	const description = `${displayCategoryLabel} Rankings on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
+	const keywords = `${displayCategoryLabel} rankings, defi ${displayCategoryLabel} rankings`.toLowerCase()
 	return (
 		<Layout
-			title={
-				props.isRWA
-					? `${capitalizeFirstLetter(props.category ? 'Real World Assets on Chain (RWA)' : props.tag)} Rankings - DefiLlama`
-					: `${capitalizeFirstLetter(props.category ?? props.tag)} Protocols Rankings - DefiLlama`
-			}
-			description={`${props.category ? 'Real World Assets on Chain (RWA)' : props.tag} Rankings on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${props.category ? 'Real World Assets on Chain (RWA)' : props.tag} rankings, defi ${props.category ? 'Real World Assets on Chain (RWA)' : props.tag} rankings`.toLowerCase()}
+			title={title}
+			description={description}
+			keywords={keywords}
 			canonicalUrl={`/protocols/${props.category ? props.category : props.tag}`}
 			metricFilters={toggleOptions}
 		>

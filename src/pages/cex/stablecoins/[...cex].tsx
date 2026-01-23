@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
+import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { IChartProps } from '~/components/ECharts/types'
@@ -16,6 +16,10 @@ import { withPerformanceLogging } from '~/utils/perf'
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart'))
+
+const TOTAL_LEGEND_OPTIONS: string[] = ['Total']
+const EMPTY_OTHER_PROTOCOLS: string[] = []
+const EMPTY_TOTAL_STABLECOINS: Array<{ date: number; Total: number }> = []
 
 export const getStaticProps = withPerformanceLogging(
 	'cex/stablecoins/[...cex]',
@@ -44,7 +48,7 @@ export const getStaticProps = withPerformanceLogging(
 			props: {
 				name: protocolData.name,
 				parentProtocol: protocolData.parentProtocol ?? null,
-				otherProtocols: protocolData.otherProtocols ?? [],
+				otherProtocols: protocolData.otherProtocols ?? EMPTY_OTHER_PROTOCOLS,
 				category: protocolData.category ?? null,
 				metrics: {
 					stablecoins: true,
@@ -145,6 +149,11 @@ export default function CEXStablecoins(props: {
 		return breakdown.sort((a, b) => b.value - a.value)
 	}, [data])
 
+	const totalStablecoinsChartData = React.useMemo(
+		() => data?.totalStablecoins?.map(({ date, value }) => ({ date, Total: value })) ?? EMPTY_TOTAL_STABLECOINS,
+		[data?.totalStablecoins]
+	)
+
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
@@ -197,10 +206,10 @@ export default function CEXStablecoins(props: {
 							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<React.Suspense fallback={<></>}>
 									<AreaChart
-										chartData={data.totalStablecoins.map(({ date, value }) => ({ date, Total: value }))}
+										chartData={totalStablecoinsChartData}
 										title="Total Stablecoin in CEX"
 										customLegendName="Stablecoins"
-										customLegendOptions={['Total']}
+										customLegendOptions={TOTAL_LEGEND_OPTIONS}
 										valueSymbol="$"
 									/>
 								</React.Suspense>

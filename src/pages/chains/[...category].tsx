@@ -11,7 +11,8 @@ export const getStaticProps = withPerformanceLogging(
 			category: [category]
 		}
 	}) => {
-		const data = await getChainsByCategory({ category })
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const data = await getChainsByCategory({ chainMetadata: metadataCache.chainMetadata, category })
 		return {
 			props: data,
 			revalidate: maxAgeForNext([22])

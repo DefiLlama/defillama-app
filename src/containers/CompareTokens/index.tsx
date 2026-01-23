@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { useMemo, useState } from 'react'
 import { fetchCoinPrices } from '~/api'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
@@ -10,33 +10,57 @@ import { CACHE_SERVER } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
 import { fetchJson } from '~/utils/async'
 
-export default function CompareFdv({ coinsData, protocols }) {
+const EMPTY_SELECTED_COINS: Record<string, IResponseCGMarketsAPI> = {}
+
+export function CompareTokens({
+	coinsData,
+	protocols
+}: {
+	coinsData: IResponseCGMarketsAPI[]
+	protocols: Array<{ geckoId?: string; name: string; tvl?: number; fees?: number; revenue?: number }>
+}) {
 	const router = useRouter()
 	const [isModalOpen, setModalOpen] = useState(0)
+	const coinParam = router.query?.coin
+	const typeParam = router.query?.type
+
+	// Build lookup maps for O(1) access
+	const coinsDataById = useMemo(
+		() => new Map<string, IResponseCGMarketsAPI>(coinsData.map((c) => [c.id, c])),
+		[coinsData]
+	)
+	const protocolsByGeckoId = useMemo(
+		() => new Map<string, (typeof protocols)[number]>(protocols.filter((p) => p.geckoId).map((p) => [p.geckoId!, p])),
+		[protocols]
+	)
+	const protocolsByName = useMemo(
+		() => new Map<string, (typeof protocols)[number]>(protocols.map((p) => [p.name, p])),
+		[protocols]
+	)
+
 	const { selectedCoins, coins, compareType } = useMemo(() => {
-		const queryCoins = router.query?.coin || ([] as Array<string>)
+		const queryCoins = coinParam || ([] as Array<string>)
 
 		const coins = Array.isArray(queryCoins) ? queryCoins : [queryCoins]
 
-		const compareType = compareTypes.find((type) => type.value === (router.query?.type ?? 'fdv')) ?? {
+		const compareType = compareTypes.find((type) => type.value === (typeParam ?? 'fdv')) ?? {
 			label: 'FDV',
 			value: 'fdv'
 		}
 		return {
-			selectedCoins:
-				(queryCoins && coins.map((coin) => coinsData.find((c) => c.id === coin))) || ([] as IResponseCGMarketsAPI[]),
+			selectedCoins: (queryCoins && coins.map((coin) => coinsDataById.get(coin))) || ([] as IResponseCGMarketsAPI[]),
 			coins,
 			compareType
 		}
-	}, [router.query])
+	}, [coinParam, typeParam, coinsDataById])
 
-	const { data: fdvData = null, error: fdvError } = useQuery({
+	const { data: fdvData = null, error: _fdvError } = useQuery({
 		queryKey: [`fdv-${coins.join('-')}`],
 		queryFn:
 			coins.length == 2
 				? () =>
 						Promise.all([
-							fetchCoinPrices(coins.map((c) => 'coingecko:' + c)).then((coins) => ({ coins })),
+							fetchCoinPrices(coins.map((c) => `coingecko:${c}`)).then((coins) => ({ coins })),
 							fetchJson(`${CACHE_SERVER}/supply/${coins[0]}`),
 							fetchJson(`${CACHE_SERVER}/supply/${coins[1]}`)
 						])
@@ -49,7 +73,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 	let newPrice, increase
 
 	if (fdvData !== null) {
-		let coinPrices = coins.map((c) => fdvData[0].coins['coingecko:' + c].price)
+		let coinPrices = coins.map((c) => fdvData[0].coins[`coingecko:${c}`].price)
 
 		if (compareType.value === 'mcap') {
 			if (selectedCoins[0]['market_cap'] && selectedCoins[1]['market_cap']) {
@@ -71,14 +95,9 @@ export default function CompareFdv({ coinsData, protocols }) {
 		}
 
 		if (compareType.value === 'tvl') {
-			const tvlData = [
-				protocols.find(
-					(protocol) => protocol.geckoId === selectedCoins[0].id || protocol.name === selectedCoins[0].name
-				)?.tvl ?? null,
-				protocols.find(
-					(protocol) => protocol.geckoId === selectedCoins[1].id || protocol.name === selectedCoins[1].name
-				)?.tvl ?? null
-			]
+			const protocol0 = protocolsByGeckoId.get(selectedCoins[0].id) ?? protocolsByName.get(selectedCoins[0].name)
+			const protocol1 = protocolsByGeckoId.get(selectedCoins[1].id) ?? protocolsByName.get(selectedCoins[1].name)
+			const tvlData = [protocol0?.tvl ?? null, protocol1?.tvl ?? null]
 			if (tvlData[0] !== null && tvlData[1] !== null) {
 				newPrice = (coinPrices[1] * tvlData[1]) / tvlData[0]
 				increase = newPrice / coinPrices[0]
@@ -86,14 +105,9 @@ export default function CompareFdv({ coinsData, protocols }) {
 		}
 
 		if (compareType.value === 'fees') {
-			const feesData = [
-				protocols.find(
-					(protocol) => protocol.geckoId === selectedCoins[0].id || protocol.name === selectedCoins[0].name
-				)?.fees ?? null,
-				protocols.find(
-					(protocol) => protocol.geckoId === selectedCoins[1].id || protocol.name === selectedCoins[1].name
-				)?.fees ?? null
-			]
+			const protocol0 = protocolsByGeckoId.get(selectedCoins[0].id) ?? protocolsByName.get(selectedCoins[0].name)
+			const protocol1 = protocolsByGeckoId.get(selectedCoins[1].id) ?? protocolsByName.get(selectedCoins[1].name)
+			const feesData = [protocol0?.fees ?? null, protocol1?.fees ?? null]
 			if (feesData[0] !== null && feesData[1] !== null) {
 				newPrice = (coinPrices[1] * feesData[1]) / feesData[0]
 				increase = newPrice / coinPrices[0]
@@ -101,14 +115,9 @@ export default function CompareFdv({ coinsData, protocols }) {
 		}
 
 		if (compareType.value === 'revenue') {
-			const revenueData = [
-				protocols.find(
-					(protocol) => protocol.geckoId === selectedCoins[0].id || protocol.name === selectedCoins[0].name
-				)?.revenue ?? null,
-				protocols.find(
-					(protocol) => protocol.geckoId === selectedCoins[1].id || protocol.name === selectedCoins[1].name
-				)?.revenue ?? null
-			]
+			const protocol0 = protocolsByGeckoId.get(selectedCoins[0].id) ?? protocolsByName.get(selectedCoins[0].name)
+			const protocol1 = protocolsByGeckoId.get(selectedCoins[1].id) ?? protocolsByName.get(selectedCoins[1].name)
+			const revenueData = [protocol0?.revenue ?? null, protocol1?.revenue ?? null]
 			if (revenueData[0] !== null && revenueData[1] !== null) {
 				newPrice = (coinPrices[1] * revenueData[1]) / revenueData[0]
 				increase = newPrice / coinPrices[0]
@@ -134,7 +143,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								width={16}
 								loading="lazy"
 								onError={(e) => {
-									e.currentTarget.src = '/icons/placeholder.png'
+									e.currentTarget.src = '/assets/placeholder.png'
 								}}
 								className="absolute top-0 bottom-0 left-2 my-auto inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 							/>
@@ -153,7 +162,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
-							className="min-h-8 w-full rounded-md border border-(--form-control-border) bg-white px-2 py-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							className="min-h-8 w-full rounded-md border border-(--form-control-border) bg-white px-2 py-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</div>
 					{/* <ReactSelect
@@ -259,7 +268,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								width={16}
 								loading="lazy"
 								onError={(e) => {
-									e.currentTarget.src = '/icons/placeholder.png'
+									e.currentTarget.src = '/assets/placeholder.png'
 								}}
 								className="absolute top-0 bottom-0 left-2 my-auto inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 							/>
@@ -278,7 +287,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
-							className="min-h-8 w-full rounded-md border border-(--form-control-border) bg-white px-2 py-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							className="min-h-8 w-full rounded-md border border-(--form-control-border) bg-white px-2 py-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</div>
 				</div>
@@ -291,7 +300,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 						unmountOnHide
 						hideOnInteractOutside
 						sameWidth
-						className="max-sm:drawer thin-scrollbar z-10 flex max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
+						className="z-10 flex thin-scrollbar max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:drawer max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
 					>
 						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 							<Icon name="x" className="h-5 w-5" />
@@ -338,7 +347,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 										width={'20px'}
 										loading="lazy"
 										onError={(e) => {
-											e.currentTarget.src = '/icons/placeholder.png'
+											e.currentTarget.src = '/assets/placeholder.png'
 										}}
 										className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 									/>
@@ -353,7 +362,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 										width={'20px'}
 										loading="lazy"
 										onError={(e) => {
-											e.currentTarget.src = '/icons/placeholder.png'
+											e.currentTarget.src = '/assets/placeholder.png'
 										}}
 										className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 									/>
@@ -379,7 +388,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 				<CoinsPicker
 					coinsData={coinsData}
 					dialogStore={dialogStore}
-					selectedCoins={{}}
+					selectedCoins={EMPTY_SELECTED_COINS}
 					queryCoins={coins}
 					selectCoin={(coin) => {
 						const newCoins = coins.slice()

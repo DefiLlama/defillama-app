@@ -1,9 +1,10 @@
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatBarChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { feesOptions } from '~/components/Filters/options'
+import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -124,20 +125,20 @@ export const getStaticProps = withPerformanceLogging(
 			totalAllTime: tokenTaxData?.totalAllTime ?? null
 		}
 
-		const linkedProtocols = (feesData?.linkedProtocols ?? []).slice(1)
+		const linkedProtocolsSet = new Set((feesData?.linkedProtocols ?? []).slice(1))
 		const linkedProtocolsWithFeesData = []
 		const linkedProtocolsWithRevenueData = []
 		if (protocolData.isParentProtocol) {
 			for (const key in protocolMetadata) {
-				if (linkedProtocols.length === 0) break
-				if (linkedProtocols.includes(protocolMetadata[key].displayName)) {
+				if (linkedProtocolsSet.size === 0) break
+				if (linkedProtocolsSet.has(protocolMetadata[key].displayName)) {
 					if (protocolMetadata[key].fees) {
 						linkedProtocolsWithFeesData.push(protocolMetadata[key])
 					}
 					if (protocolMetadata[key].revenue) {
 						linkedProtocolsWithRevenueData.push(protocolMetadata[key])
 					}
-					linkedProtocols.splice(linkedProtocols.indexOf(protocolMetadata[key].displayName), 1)
+					linkedProtocolsSet.delete(protocolMetadata[key].displayName)
 				}
 			}
 		}
@@ -319,13 +320,13 @@ export default function Protocols(props) {
 		return finalCharts
 	}, [props.charts, charts, feesSettings, groupBy, props.bribeRevenue?.totalAllTime, props.tokenTax?.totalAllTime])
 
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		const dataByChartType = {}
 		for (const chartType in finalCharts) {
 			dataByChartType[chartType] = finalCharts[chartType].data
 		}
 		return prepareChartCsv(dataByChartType, `${props.name}-total-fees-revenue.csv`)
-	}, [finalCharts, props.name])
+	}
 
 	return (
 		<ProtocolOverviewLayout
@@ -341,9 +342,12 @@ export default function Protocols(props) {
 				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">
 					<h1 className="flex flex-wrap items-center gap-2 text-xl">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
-						<span className="font-bold">
-							{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
-						</span>
+						<span className="font-bold">{props.name}</span>
+						{props.deprecated ? (
+							<Tooltip content="Deprecated protocol" className="text-(--error)">
+								<Icon name="alert-triangle" height={16} width={16} />
+							</Tooltip>
+						) : null}
 					</h1>
 					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />
 				</div>
@@ -371,11 +375,6 @@ export default function Protocols(props) {
 								selectedValues={charts}
 								setSelectedValues={setCharts}
 								label="Charts"
-								clearAll={() => setCharts([])}
-								toggleAll={() => setCharts(props.defaultCharts)}
-								selectOnlyOne={(newChart) => {
-									setCharts([newChart])
-								}}
 								triggerProps={{
 									className:
 										'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'

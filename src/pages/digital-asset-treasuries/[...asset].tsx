@@ -1,5 +1,5 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
@@ -55,6 +55,7 @@ export async function getStaticPaths() {
 }
 
 const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
+const DEFAULT_SORTING_STATE = [{ id: 'totalAssetAmount', desc: true }]
 
 const prepareAssetBreakdownCsv = (
 	institutions: IDATOverviewDataByAssetProps['institutions'],
@@ -115,6 +116,8 @@ export default function TreasuriesByAsset({
 	mNAVMaxChart,
 	institutionsNames
 }: IDATOverviewDataByAssetProps) {
+	const handlePrepareAssetBreakdownCsv = () => prepareAssetBreakdownCsv(institutions, metadata.name, metadata.ticker)
+
 	return (
 		<Layout
 			title={`${metadata.name} Treasury Holdings - DefiLlama`}
@@ -136,20 +139,20 @@ export default function TreasuriesByAsset({
 					<div className="flex flex-col">
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">Total Institution</span>
-							<span className="font-jetbrains ml-auto">{metadata.companies}</span>
+							<span className="ml-auto font-jetbrains">{metadata.companies}</span>
 						</p>
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">Total Holdings</span>
-							<span className="font-jetbrains ml-auto">{`${formattedNum(metadata.totalAmount, false)} ${metadata.ticker}`}</span>
+							<span className="ml-auto font-jetbrains">{`${formattedNum(metadata.totalAmount, false)} ${metadata.ticker}`}</span>
 						</p>
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">Total USD Value</span>
-							<span className="font-jetbrains ml-auto">{formattedNum(metadata.totalUsdValue, true)}</span>
+							<span className="ml-auto font-jetbrains">{formattedNum(metadata.totalUsdValue, true)}</span>
 						</p>
 						{metadata.circSupplyPerc != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<span className="text-(--text-label)">% of {metadata.ticker} Circulating Supply</span>
-								<span className="font-jetbrains ml-auto">
+								<span className="ml-auto font-jetbrains">
 									{metadata.circSupplyPerc.toLocaleString(undefined, { maximumFractionDigits: 3 })}%
 								</span>
 							</p>
@@ -180,19 +183,15 @@ export default function TreasuriesByAsset({
 				columns={columns({ name: metadata.name, symbol: metadata.ticker })}
 				placeholder="Search institutions"
 				columnToSearch="name"
-				sortingState={[{ id: 'totalAssetAmount', desc: true }]}
-				customFilters={
-					<CSVDownloadButton
-						prepareCsv={() => prepareAssetBreakdownCsv(institutions, metadata.name, metadata.ticker)}
-					/>
-				}
+				sortingState={DEFAULT_SORTING_STATE}
+				customFilters={<CSVDownloadButton prepareCsv={handlePrepareAssetBreakdownCsv} />}
 			/>
 		</Layout>
 	)
 }
 
 const columns = ({
-	name,
+	name: _name,
 	symbol
 }: {
 	name: string
@@ -202,12 +201,12 @@ const columns = ({
 		header: 'Institution',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const name = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<BasicLink
 						href={`/digital-asset-treasury/${slug(row.original.ticker)}`}
 						title={name}
@@ -403,10 +402,7 @@ const MNAVChart = ({
 					allValues={institutionsNames}
 					selectedValues={selectedInstitution}
 					setSelectedValues={setSelectedInstitution}
-					selectOnlyOne={(institution) => setSelectedInstitution([institution])}
 					label="Institutions"
-					clearAll={() => setSelectedInstitution([])}
-					toggleAll={() => setSelectedInstitution(institutionsNames)}
 					labelType="smol"
 					triggerProps={{
 						className:

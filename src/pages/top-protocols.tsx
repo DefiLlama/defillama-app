@@ -1,5 +1,3 @@
-import * as React from 'react'
-import { useRouter } from 'next/router'
 import {
 	ColumnFiltersState,
 	createColumnHelper,
@@ -7,6 +5,8 @@ import {
 	getFilteredRowModel,
 	useReactTable
 } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -14,16 +14,24 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
+import { useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
-import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { useDebounce } from '~/hooks/useDebounce'
+import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { chainIconUrl, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const excludeChains = new Set([...DEFI_SETTINGS_KEYS, 'offers', 'dcAndLsOverlap', 'excludeParent'])
+const excludeChainsStatic = new Set([...TVL_SETTINGS_KEYS, 'offers', 'dcAndLsOverlap', 'excludeParent'])
 const excludeCategories = new Set(['Bridge', 'Canonical Bridge'])
+const COLUMN_HELPER = createColumnHelper<any>()
+
+// Helper to parse exclude query param to Set
+const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
+	if (!param) return new Set()
+	if (typeof param === 'string') return new Set([param])
+	return new Set(param)
+}
 export const getStaticProps = withPerformanceLogging('top-protocols', async () => {
 	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
 	const topProtocolPerChainAndCategory = {}
@@ -34,7 +42,7 @@ export const getStaticProps = withPerformanceLogging('top-protocols', async () =
 			continue
 		}
 		for (const chain in chainTvls) {
-			if (chain.includes('-') || excludeChains.has(chain)) {
+			if (chain.includes('-') || excludeChainsStatic.has(chain)) {
 				continue
 			}
 			const tvl = chainTvls[chain].tvl
@@ -74,55 +82,51 @@ export const getStaticProps = withPerformanceLogging('top-protocols', async () =
 
 const pageName = ['Top Protocols']
 
-export default function TopProtocols({ data, chains, uniqueCategories }) {
-	const columnHelper = React.useMemo(() => createColumnHelper<any>(), [])
+const columnHelper = COLUMN_HELPER
 
-	const columnOptions = React.useMemo(
-		() => uniqueCategories.map((cat) => ({ name: cat, key: cat })),
-		[uniqueCategories]
-	)
+export default function TopProtocols({ data, chains, uniqueCategories }) {
+	const columnOptions = uniqueCategories.map((cat) => ({ name: cat, key: cat }))
 
 	const router = useRouter()
+	const { chain, excludeChain, column, excludeColumn } = router.query
 	const { selectedChains, selectedColumns, columnVisibility } = React.useMemo(() => {
-		const { chain, column } = router.query
-		const selectedChains = chain ? (Array.isArray(chain) ? chain : chain == 'All' ? chains : [chain]) : chains
-		const selectedColumns = column
+		const excludeChainSet = parseExcludeParam(excludeChain)
+		const excludeColumnSet = parseExcludeParam(excludeColumn)
+
+		let selectedChains = chain ? (Array.isArray(chain) ? chain : chain == 'All' ? chains : [chain]) : chains
+		// Filter out excludes
+		selectedChains = excludeChainSet.size > 0 ? selectedChains.filter((c) => !excludeChainSet.has(c)) : selectedChains
+
+		let selectedColumns = column
 			? Array.isArray(column)
 				? column
 				: column == 'All'
 					? uniqueCategories
 					: [column]
 			: uniqueCategories
+		// Filter out excludes
+		selectedColumns =
+			excludeColumnSet.size > 0 ? selectedColumns.filter((c) => !excludeColumnSet.has(c)) : selectedColumns
+
 		const selectedColumnsSet = new Set(selectedColumns)
 		const columnVisibility = {}
 		for (const col of uniqueCategories) {
 			columnVisibility[col] = selectedColumnsSet.has(col)
 		}
 		return { selectedChains, selectedColumns, columnVisibility }
-	}, [router.query, chains, uniqueCategories])
+	}, [chain, excludeChain, column, excludeColumn, chains, uniqueCategories])
 
 	const columns = React.useMemo(() => {
 		const baseColumns = [
 			columnHelper.accessor('chain', {
 				header: 'Chain',
+				id: 'chain',
 				enableSorting: false,
-				filterFn: (row, id, filterValue) => {
-					const value = (row.getValue(id) as string) ?? ''
-					if (!filterValue || typeof filterValue !== 'object') {
-						return true
-					}
-					const { search = '', selected = [] } = filterValue as { search?: string; selected?: string[] }
-					const normalizedValue = value.toLowerCase()
-					const matchesSearch = search ? normalizedValue.includes(search.toLowerCase()) : true
-					const matchesSelection = Array.isArray(selected) && selected.length > 0 ? selected.includes(value) : true
-					return matchesSearch && matchesSelection
-				},
 				cell: (info) => {
 					const chain = info.getValue()
-					const rowIndex = info.row.index
 					return (
 						<span className="flex items-center gap-2">
-							<span className="shrink-0">{rowIndex + 1}</span>
+							<span className="vf-row-index shrink-0" aria-hidden="true" />
 							<TokenLogo logo={chainIconUrl(chain)} />
 							<BasicLink
 								href={`/chain/${slug(chain)}`}
@@ -157,11 +161,9 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 		)
 
 		return [...baseColumns, ...categoryColumns]
-	}, [columnHelper, uniqueCategories])
+	}, [uniqueCategories])
 
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [searchValue, setSearchValue] = React.useState('')
-	const debouncedSearch = useDebounce(searchValue, 200)
 
 	const table = useReactTable({
 		data,
@@ -170,142 +172,17 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 			columnFilters,
 			columnVisibility
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	React.useEffect(() => {
-		const column = table.getColumn('chain')
-		if (!column) return
+	const [searchValue, setSearchValue] = useTableSearch({ instance: table, columnToSearch: 'chain' })
 
-		column.setFilterValue({ search: debouncedSearch, selected: selectedChains })
-	}, [debouncedSearch, selectedChains, table])
-
-	const clearChainSelection = React.useCallback(() => {
-		const { chain, ...queries } = router.query
-		router.push(
-			{
-				pathname: router.pathname,
-				query: { ...queries, chain: 'None' }
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}, [router])
-
-	const toggleAllChains = React.useCallback(() => {
-		const { chain, ...queries } = router.query
-		router.push(
-			{
-				pathname: router.pathname,
-				query: queries
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}, [router])
-
-	const addChain = React.useCallback(
-		(newOptions: Array<string>) => {
-			const { chain, ...queries } = router.query
-			router.push(
-				{
-					pathname: router.pathname,
-					query: {
-						...queries,
-						chain: newOptions
-					}
-				},
-				undefined,
-				{ shallow: true }
-			)
-		},
-		[router]
-	)
-
-	const selectOnlyOneChain = React.useCallback(
-		(chain: string) => {
-			const { chain: currentChain, ...queries } = router.query
-			router.push(
-				{
-					pathname: router.pathname,
-					query: {
-						...queries,
-						chain: chain
-					}
-				},
-				undefined,
-				{ shallow: true }
-			)
-		},
-		[router]
-	)
-
-	const clearAllColumns = React.useCallback(() => {
-		const { column, ...queries } = router.query
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					column: 'None'
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}, [router])
-
-	const toggleAllColumns = React.useCallback(() => {
-		const { column, ...queries } = router.query
-		router.push(
-			{
-				pathname: router.pathname,
-				query: queries
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}, [router])
-
-	const addColumn = React.useCallback(
-		(newOptions: Array<string>) => {
-			const { column, ...queries } = router.query
-			router.push(
-				{
-					pathname: router.pathname,
-					query: {
-						...queries,
-						column: newOptions
-					}
-				},
-				undefined,
-				{ shallow: true }
-			)
-		},
-		[router]
-	)
-
-	const addOnlyOneColumn = React.useCallback(
-		(newOption: string) => {
-			const { column, ...queries } = router.query
-			router.push(
-				{
-					pathname: router.pathname,
-					query: {
-						...queries,
-						column: newOption
-					}
-				},
-				undefined,
-				{ shallow: true }
-			)
-		},
-		[router]
-	)
-
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const visibleColumns = table.getAllLeafColumns().filter((col) => col.getIsVisible())
 		const headers = visibleColumns.map((col) => {
 			if (typeof col.columnDef.header === 'string') {
@@ -322,7 +199,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 		)
 
 		return { filename: 'top-protocols.csv', rows: [headers, ...dataRows] as (string | number | boolean)[][] }
-	}, [table])
+	}
 
 	return (
 		<Layout
@@ -350,8 +227,8 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 							onChange={(e) => {
 								setSearchValue(e.target.value)
 							}}
-							placeholder="Search..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							placeholder="Search chains..."
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
 
@@ -359,10 +236,8 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 						<SelectWithCombobox
 							allValues={chains}
 							selectedValues={selectedChains}
-							setSelectedValues={addChain}
-							selectOnlyOne={selectOnlyOneChain}
-							toggleAll={toggleAllChains}
-							clearAll={clearChainSelection}
+							includeQueryKey="chain"
+							excludeQueryKey="excludeChain"
 							nestedMenu={false}
 							label={'Chains'}
 							labelType="smol"
@@ -375,10 +250,8 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 						<SelectWithCombobox
 							allValues={columnOptions}
 							selectedValues={selectedColumns}
-							setSelectedValues={addColumn}
-							selectOnlyOne={addOnlyOneColumn}
-							toggleAll={toggleAllColumns}
-							clearAll={clearAllColumns}
+							includeQueryKey="column"
+							excludeQueryKey="excludeColumn"
 							nestedMenu={false}
 							label={'Columns'}
 							labelType="smol"

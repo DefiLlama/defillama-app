@@ -1,6 +1,6 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { CHAINS_API_V2 } from '~/constants'
 import { useAppMetadata } from '../AppMetadataContext'
@@ -15,7 +15,7 @@ import {
 import type { DashboardItemConfig } from '../types'
 import { CHART_TYPES } from '../types'
 
-const CreateDashboardModal = lazy(() =>
+const _CreateDashboardModal = lazy(() =>
 	import('./CreateDashboardModal').then((m) => ({ default: m.CreateDashboardModal }))
 )
 
@@ -135,7 +135,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboard
 		return (
 			<Ariakit.Dialog
 				store={dialogStore}
-				className="pro-dashboard dialog w-full max-w-lg gap-0 border border-(--cards-border) bg-(--cards-bg) p-0 shadow-2xl"
+				className="dialog w-full max-w-lg gap-0 border pro-dashboard border-(--cards-border) bg-(--cards-bg) p-0 shadow-2xl"
 			>
 				<div className="flex items-center gap-2 border-b border-(--cards-border) px-6 py-4">
 					<button
@@ -164,7 +164,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboard
 		return (
 			<Ariakit.Dialog
 				store={dialogStore}
-				className="pro-dashboard dialog w-full max-w-4xl gap-0 border border-(--cards-border) bg-(--cards-bg) p-0 shadow-2xl"
+				className="dialog w-full max-w-4xl gap-0 border pro-dashboard border-(--cards-border) bg-(--cards-bg) p-0 shadow-2xl"
 			>
 				<div className="flex items-center justify-between border-b border-(--cards-border) px-6 py-4">
 					<div className="flex items-center gap-2">
@@ -200,7 +200,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboard
 	return (
 		<Ariakit.Dialog
 			store={dialogStore}
-			className="pro-dashboard dialog w-full max-w-3xl gap-0 border border-(--cards-border) bg-(--cards-bg) p-6 shadow-2xl"
+			className="dialog w-full max-w-3xl gap-0 border pro-dashboard border-(--cards-border) bg-(--cards-bg) p-6 shadow-2xl"
 		>
 			<div className="mb-6 flex items-center justify-between">
 				<h2 className="text-xl font-semibold text-(--text-primary)">Create New Dashboard</h2>
@@ -294,14 +294,14 @@ function CreateDashboardModalContent({
 
 	const handleAddTag = (tag: string) => {
 		const trimmedTag = tag.trim().toLowerCase()
-		if (trimmedTag && !tags.includes(trimmedTag)) {
-			setTags([...tags, trimmedTag])
+		if (trimmedTag) {
+			setTags((prev) => (prev.includes(trimmedTag) ? prev : [...prev, trimmedTag]))
 		}
 		setTagInput('')
 	}
 
 	const handleRemoveTag = (tag: string) => {
-		setTags(tags.filter((t) => t !== tag))
+		setTags((prev) => prev.filter((t) => t !== tag))
 	}
 
 	const handleTagInputKeyDown = (e: React.KeyboardEvent) => {

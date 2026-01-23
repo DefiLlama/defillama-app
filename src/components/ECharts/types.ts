@@ -1,5 +1,5 @@
-import * as React from 'react'
 import * as echarts from 'echarts/core'
+import * as React from 'react'
 
 type Value = string | number | boolean
 
@@ -47,22 +47,21 @@ export interface IChartProps {
 	imageExportTitle?: string
 }
 
-export interface ISingleSeriesChartProps
-	extends Omit<
-		IChartProps,
-		| 'stacks'
-		| 'stackColors'
-		| 'customLegendOptions'
-		| 'customLegendName'
-		| 'customYAxis'
-		| 'groupBy'
-		| 'tooltipOrderBottomUp'
-		| 'hideDownloadButton'
-		| 'containerClassName'
-		| 'enableImageExport'
-		| 'imageExportFilename'
-		| 'imageExportTitle'
-	> {
+export interface ISingleSeriesChartProps extends Omit<
+	IChartProps,
+	| 'stacks'
+	| 'stackColors'
+	| 'customLegendOptions'
+	| 'customLegendName'
+	| 'customYAxis'
+	| 'groupBy'
+	| 'tooltipOrderBottomUp'
+	| 'hideDownloadButton'
+	| 'containerClassName'
+	| 'enableImageExport'
+	| 'imageExportFilename'
+	| 'imageExportTitle'
+> {
 	chartName?: string
 	chartType: 'line' | 'bar'
 	symbolOnChart?: 'circle' | 'rect' | 'roundRect' | 'triangle' | 'diamond' | 'pin' | 'arrow' | 'none'

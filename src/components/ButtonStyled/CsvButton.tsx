@@ -1,6 +1,6 @@
-import { lazy, memo, ReactNode, Suspense, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useRouter } from 'next/router'
+import { lazy, ReactNode, Suspense, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -37,20 +37,18 @@ interface CSVDownloadButtonWithOnClick extends CSVDownloadButtonProps {
 // Union type
 type CSVDownloadButtonPropsUnion = CSVDownloadButtonWithPrepareCsv | CSVDownloadButtonWithOnClick
 
+const hasPrepareCsv = (props: CSVDownloadButtonPropsUnion): props is CSVDownloadButtonWithPrepareCsv =>
+	'prepareCsv' in props
+
+const hasOnClick = (props: CSVDownloadButtonPropsUnion): props is CSVDownloadButtonWithOnClick => 'onClick' in props
+
 // use children to pass in the text
-export const CSVDownloadButton = memo(function CSVDownloadButton({
-	className,
-	replaceClassName,
-	smol,
-	children,
-	onClick,
-	isLoading: loading,
-	prepareCsv
-}: CSVDownloadButtonPropsUnion) {
+export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
+	const { className, replaceClassName, smol, children } = props
 	const [staticLoading, setStaticLoading] = useState(false)
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const { isAuthenticated, loaders, hasActiveSubscription, isTrial } = useAuthContext()
-	const isLoading = loaders.userLoading || loading || staticLoading ? true : false
+	const isLoading = !!(loaders.userLoading || (hasOnClick(props) ? props.isLoading : undefined) || staticLoading)
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 	const isClient = useIsClient()
 	const router = useRouter()
@@ -76,12 +74,12 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 					}
 
 					if (!loaders.userLoading && isAuthenticated && hasActiveSubscription) {
-						if (onClick) {
-							onClick()
-						} else {
+						if (hasOnClick(props)) {
+							props.onClick()
+						} else if (hasPrepareCsv(props)) {
 							try {
 								setStaticLoading(true)
-								const { filename, rows } = prepareCsv()
+								const { filename, rows } = props.prepareCsv()
 
 								const escapeCell = (value: string | number | boolean | null | undefined) => {
 									if (value == null) return ''
@@ -99,6 +97,8 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 							} finally {
 								setStaticLoading(false)
 							}
+						} else {
+							toast.error('CSV download is not configured')
 						}
 					} else if (!isLoading) {
 						subscribeModalStore.show()
@@ -115,11 +115,11 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 					<span className="overflow-hidden text-ellipsis whitespace-nowrap">{smol ? '.csv' : 'Download .csv'}</span>
 				)}
 			</button>
-			{shouldRenderModal && (
+			{shouldRenderModal ? (
 				<Suspense fallback={<></>}>
 					<SubscribeProModal dialogStore={subscribeModalStore} />
 				</Suspense>
-			)}
+			) : null}
 		</>
 	)
-})
+}

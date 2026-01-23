@@ -1,14 +1,15 @@
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IChartProps, ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/ProDashboard/types'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/containers/Stablecoins/hooks'
 import { getStablecoinDominance } from '~/containers/Stablecoins/utils'
-import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
-import { formattedNum, preparePieChartData, toNiceCsvDate } from '~/utils'
+import { formattedNum, toNiceCsvDate } from '~/utils'
 import { PeggedChainsTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -55,22 +56,21 @@ export function ChainsWithStablecoins({
 
 	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
-	const prepareeCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const rows = [['Timestamp', 'Date', ...chainList, 'Total']]
-		stackedData
-			.sort((a, b) => a.date - b.date)
-			.forEach((day) => {
-				rows.push([
-					day.date,
-					toNiceCsvDate(day.date),
-					...chainList.map((chain) => day[chain] ?? ''),
-					chainList.reduce((acc, curr) => {
-						return (acc += day[curr] ?? 0)
-					}, 0)
-				])
-			})
+		const sortedData = stackedData.sort((a, b) => a.date - b.date)
+		for (const day of sortedData) {
+			rows.push([
+				day.date,
+				toNiceCsvDate(day.date),
+				...chainList.map((chain) => day[chain] ?? ''),
+				chainList.reduce((acc, curr) => {
+					return (acc += day[curr] ?? 0)
+				}, 0)
+			])
+		}
 		return { filename: 'stablecoinsChainTotals.csv', rows: rows as (string | number | boolean)[][] }
-	}, [stackedData, chainList])
+	}
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
 
@@ -124,7 +124,7 @@ export function ChainsWithStablecoins({
 									<span
 										className={`${
 											change7d.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
-										} font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap`}
+										} overflow-hidden font-jetbrains text-ellipsis whitespace-nowrap`}
 									>{`${change7d}%`}</span>
 								</span>
 							</span>
@@ -134,7 +134,7 @@ export function ChainsWithStablecoins({
 							<span className="text-(--text-label)">Change (1d)</span>
 							<Tooltip
 								content={change1d_nol}
-								className={`font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
+								className={`overflow-hidden font-jetbrains text-ellipsis whitespace-nowrap underline decoration-dotted ${
 									change1d.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 								}`}
 							>
@@ -145,7 +145,7 @@ export function ChainsWithStablecoins({
 							<span className="text-(--text-label)">Change (30d)</span>
 							<Tooltip
 								content={change30d_nol}
-								className={`font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
+								className={`overflow-hidden font-jetbrains text-ellipsis whitespace-nowrap underline decoration-dotted ${
 									change30d.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 								}`}
 							>
@@ -159,7 +159,7 @@ export function ChainsWithStablecoins({
 						<span className="font-jetbrains text-2xl font-semibold">{dominance}%</span>
 					</p>
 
-					<CSVDownloadButton prepareCsv={prepareeCsv} smol className="mt-auto mr-auto" />
+					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 				<div className="col-span-2 flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					{chartType === 'Total Market Cap' && (

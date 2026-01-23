@@ -1,6 +1,6 @@
-import { memo, useMemo, useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
+import { useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { getItemIconUrl } from '../../utils'
@@ -21,7 +21,7 @@ interface EntityPickerListProps {
 	isLoading?: boolean
 }
 
-export const EntityPickerList = memo(function EntityPickerList({
+export function EntityPickerList({
 	mode,
 	entities,
 	selectedEntities,
@@ -71,9 +71,7 @@ export const EntityPickerList = memo(function EntityPickerList({
 				</div>
 				{selectedEntities.length > 0 && (
 					<div className="ml-3 flex items-center gap-2">
-						<span className="text-xs font-medium text-(--text-secondary)">
-							{selectedEntities.length} selected
-						</span>
+						<span className="text-xs font-medium text-(--text-secondary)">{selectedEntities.length} selected</span>
 						<button
 							type="button"
 							onClick={onClear}
@@ -121,7 +119,7 @@ export const EntityPickerList = memo(function EntityPickerList({
 									}}
 								>
 									<div
-										className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors ${
+										className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
 											isSelected
 												? 'border-(--primary) bg-(--primary)'
 												: 'border-(--form-control-border) bg-(--bg-input)'
@@ -134,7 +132,7 @@ export const EntityPickerList = memo(function EntityPickerList({
 										<img
 											src={iconUrl}
 											alt={entity.label}
-											className="h-5 w-5 flex-shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
+											className="h-5 w-5 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
 											onError={(e) => {
 												e.currentTarget.style.display = 'none'
 											}}
@@ -152,4 +150,4 @@ export const EntityPickerList = memo(function EntityPickerList({
 			</div>
 		</div>
 	)
-})
+}

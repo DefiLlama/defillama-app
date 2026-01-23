@@ -9,7 +9,7 @@ interface IToFilterPool {
 	includeTokens: string[]
 	exactTokens: string[]
 	selectedCategoriesSet: Set<string>
-	excludeTokensSet: Set<string>
+	excludeTokensSet: Set<string> // Keep this since token matching is substring-based
 	pathname: string
 	minTvl: number | null
 	maxTvl: number | null
@@ -45,7 +45,7 @@ export function toFilterPool({
 	let toFilter = true
 
 	// used in pages like /yields/stablecoins to filter some pools by default
-	attributeOptions.forEach((option) => {
+	for (const option of attributeOptions) {
 		// check if this page has default attribute filter function
 		if (option.defaultFilterFnOnPage[pathname]) {
 			// apply default attribute filter function
@@ -55,18 +55,20 @@ export function toFilterPool({
 		if (pathname === '/yields' && option.key === 'apy_zero' && !selectedAttributes.includes(option.key)) {
 			toFilter = toFilter && curr.apy > 0
 		}
-	})
+	}
 
-	selectedAttributes.forEach((attribute) => {
+	for (const attribute of selectedAttributes) {
 		const attributeOption = attributeOptionsMap.get(attribute)
 
 		if (attributeOption) {
 			toFilter = toFilter && attributeOption.filterFn(curr)
 		}
-	})
+	}
 
+	// selectedProjectsSet already has excludes filtered out at hook level
 	toFilter = toFilter && selectedProjectsSet.has(curr.projectName)
 
+	// selectedCategoriesSet already has excludes filtered out at hook level
 	toFilter = toFilter && selectedCategoriesSet.has(curr.category)
 
 	const tokensInPool: string[] = tokensInPoolArray
@@ -108,6 +110,7 @@ export function toFilterPool({
 		// Check if any excludeToken exists in tokensInPoolSet using Set intersection
 		const excludeToken = !Array.from(excludeTokensSet).some((token: string) => tokensInPoolSet.has(token))
 
+		// selectedChainsSet already has excludes filtered out at hook level
 		toFilter = toFilter && selectedChainsSet.has(curr.chain) && includeToken && excludeToken
 	} else {
 		const exactToken = exactTokens.find((token) => {
@@ -118,7 +121,8 @@ export function toFilterPool({
 			} else return false
 		})
 
-		toFilter = toFilter && (selectedChainsSet.has(curr.chain) && exactToken ? true : false)
+		// selectedChainsSet already has excludes filtered out at hook level
+		toFilter = toFilter && !!(selectedChainsSet.has(curr.chain) && exactToken)
 	}
 
 	const isValidTvlRange = minTvl != null || maxTvl != null
@@ -526,13 +530,13 @@ export const filterPool = ({
 		toFilter = toFilter && selectedFarmProtocolsSet.has(pool.farmProjectName)
 	}
 	if (selectedAttributes) {
-		selectedAttributes.forEach((attribute) => {
+		for (const attribute of selectedAttributes) {
 			const attributeOption = attributeOptionsMap.get(attribute)
 
 			if (attributeOption) {
 				toFilter = toFilter && attributeOption.filterFn(pool)
 			}
-		})
+		}
 	}
 
 	const isValidTvlRange = minTvl != null || maxTvl != null

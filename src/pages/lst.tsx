@@ -1,13 +1,14 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getLSDPageData } from '~/api/categories/protocols'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LSDColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { COINS_PRICES_API } from '~/constants'
 import Layout from '~/layout'
-import { firstDayOfMonth, formatNum, formattedNum, lastDayOfWeek, preparePieChartData } from '~/utils'
+import { firstDayOfMonth, formatNum, formattedNum, lastDayOfWeek } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -30,6 +31,7 @@ export const getStaticProps = withPerformanceLogging('lsd', async () => {
 
 const GROUP_BY = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 type GroupByType = (typeof GROUP_BY)[number]
+const DEFAULT_SORTING_STATE = [{ id: 'stakedEth', desc: true }]
 
 const PageView = ({
 	areaChartData,
@@ -172,7 +174,7 @@ const PageView = ({
 				columnToSearch={'name'}
 				placeholder={'Search protocols...'}
 				header="Liquid Staking Protocols"
-				sortingState={[{ id: 'stakedEth', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)
@@ -248,13 +250,13 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 				if (i > 0 && date(arr[i - 1]) == date(t)) {
 					return { value: 0 }
 				}
-				// get all ETH related token keys
-				const ethKeys = Object.keys(t.tokens).filter((k) => k.includes('ETH'))
-
 				// sum up all ETH token values
-				const totalEthValue = ethKeys.reduce((sum, key) => {
-					return sum + t.tokens[key]
-				}, 0)
+				let totalEthValue = 0
+				for (const key in t.tokens) {
+					if (key.includes('ETH')) {
+						totalEthValue += t.tokens[key]
+					}
+				}
 
 				//
 				return {
@@ -331,8 +333,12 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 			const lastTokens30d = p.tokens.find((x) => x.date === offset30d)?.tokens
 
 			const getETH = (obj: any) => {
-				const potentialETH = Object.keys(obj).filter((k) => k.includes('ETH'))
-				const eth = potentialETH.reduce((max, item) => (obj[item] > max ? obj[item] : max), 0)
+				let eth = 0
+				for (const key in obj) {
+					if (key.includes('ETH') && obj[key] > eth) {
+						eth = obj[key]
+					}
+				}
 				return eth
 			}
 
@@ -405,23 +411,24 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 	const barChartStacks = {}
 
 	// calc daily inflow per LSD
-	tokens.forEach((protocol) => {
+	for (const protocol of tokens) {
 		// sort ascending
 		const X = historicData.filter((i) => i.name === protocol).sort((a, b) => a.date - b.date)
 
 		const current = X.slice(1)
 		const previous = X.slice(0, -1)
 
-		current.forEach((c, i) => {
+		for (let i = 0; i < current.length; i++) {
+			const c = current[i]
 			if (!inflowsChartData[c.date]) {
 				inflowsChartData[c.date] = {}
 			}
 
 			inflowsChartData[c.date][c.name] = c.value - previous[i].value
-		})
+		}
 
 		barChartStacks[protocol] = 'A'
-	})
+	}
 
 	return {
 		areaChartData,

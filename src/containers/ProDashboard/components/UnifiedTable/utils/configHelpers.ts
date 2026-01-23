@@ -1,4 +1,4 @@
-import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
+import type { SortingState, VisibilityState } from '@tanstack/react-table'
 import type { CustomColumnDefinition, UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '../config/ColumnDictionary'
 import { sanitizeConfigColumns } from '../config/metricCapabilities'
@@ -54,13 +54,22 @@ export function getDefaultColumnVisibility(
 			...(fallbackPreset?.columnVisibility ?? {}),
 			...(config.columnVisibility ?? {})
 		}
-	} else if (config.columnVisibility && Object.keys(config.columnVisibility).length > 0) {
-		visibility = {
-			...ALL_COLUMNS_HIDDEN,
-			...config.columnVisibility
-		}
 	} else {
-		visibility = {}
+		let hasColumnVisibility = false
+		if (config.columnVisibility) {
+			for (const _ in config.columnVisibility) {
+				hasColumnVisibility = true
+				break
+			}
+		}
+		if (config.columnVisibility && hasColumnVisibility) {
+			visibility = {
+				...ALL_COLUMNS_HIDDEN,
+				...config.columnVisibility
+			}
+		} else {
+			visibility = {}
+		}
 	}
 
 	const sanitized = sanitizeConfigColumns({

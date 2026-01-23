@@ -52,7 +52,7 @@ export const protocolCategories = {
 			'Protocols that enable you to earn staking rewards on your tokens while also providing a tradeable and liquid receipt for your staked position'
 	},
 	Oracle: {
-		description: 'Protocols that connect data from the outside world (off-chain) with the blockchain world (on-chain)'
+		description: 'Protocols that connect data from the outside world (off-chain) with the blockchain world (Onchain)'
 	},
 	'Leveraged Farming': { description: 'Protocols that allow you to leverage yield farm with borrowed money' },
 	'Options Vault': {
@@ -194,7 +194,7 @@ export const protocolCategories = {
 			'Decentralized Offered Rates - The DOR mechanism provides a decentralized benchmark rate for crypto assets'
 	},
 	'Collateral Management': {
-		description: 'Protocols that manage or leverage on-chain collateral for financial applications'
+		description: 'Protocols that manage or leverage Onchain collateral for financial applications'
 	},
 	Meme: {
 		description:
@@ -224,7 +224,7 @@ export const protocolCategories = {
 	},
 	DePIN: {
 		description:
-			'Protocols that provide decentralized infrastructure for physical assets, such as sensors, devices, or networks, enabling real-world data collection and processing via on-chain rewards and governance'
+			'Protocols that provide decentralized infrastructure for physical assets, such as sensors, devices, or networks, enabling real-world data collection and processing via Onchain rewards and governance'
 	},
 	'Dual-Token Stablecoin': {
 		description:
@@ -245,14 +245,18 @@ export const protocolCategories = {
 	},
 	'Decentralized AI': {
 		description:
-			'Protocols that provide decentralized machine-learning or AI inference networks, allowing models or agents to contribute, evaluate, and serve intelligence on-chain'
+			'Protocols that provide decentralized machine-learning or AI inference networks, allowing models or agents to contribute, evaluate, and serve intelligence Onchain'
 	},
 	'Identity & Reputation': {
 		description:
-			'Protocols that provide decentralized identity, credentialing, attestations, or reputation systems used by users and applications to verify trust, eligibility, or behavior on-chain'
+			'Protocols that provide decentralized identity, credentialing, attestations, or reputation systems used by users and applications to verify trust, eligibility, or behavior Onchain'
 	},
 	'Gamified Mining': {
 		description:
 			'Protocols that use probabilistic mining and participant stakes to issue and redistribute native tokens'
+	},
+	'Secondary Debt Markets': {
+		description:
+			'Markets that allow users to exchange or settle existing debt claims and distressed positions, providing liquidity and price discovery for outstanding obligations'
 	}
 } as const satisfies Record<string, { description: string; defaultChart?: ProtocolChartsQueryParams }>

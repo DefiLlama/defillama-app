@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, useMemo } from 'react'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -33,7 +33,13 @@ const ClassificationItem = ({ label, value, positive, description }: Classificat
 		>
 			<div className="flex flex-col gap-1">
 				<span
-					className={`font-medium ${isBoolean ? (positive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400') : 'text-(--text-label)'}`}
+					className={`font-medium ${
+						isBoolean
+							? positive
+								? 'text-green-700 dark:text-green-400'
+								: 'text-red-700 dark:text-red-400'
+							: 'text-(--text-label)'
+					}`}
 				>
 					{label}
 				</span>
@@ -146,6 +152,8 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			: [asset.attestationLinks]
 		: []
 
+	const contractsEntries = useMemo(() => (asset.contracts ? Object.entries(asset.contracts) : []), [asset.contracts])
+
 	return (
 		<div className="flex flex-col gap-2">
 			{/* Header */}
@@ -196,6 +204,17 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<Tooltip
+						content={definitions.activeMarketcap.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						{definitions.activeMarketcap.label}
+					</Tooltip>
+					<span className="font-jetbrains text-xl font-semibold">
+						{formattedNum(asset.activeMarketcap.total, true)}
+					</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<Tooltip
 						content={definitions.defiActiveTvl.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
@@ -203,6 +222,12 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					</Tooltip>
 					<span className="font-jetbrains text-xl font-semibold">{formattedNum(asset.defiActiveTvl.total, true)}</span>
 				</p>
+				{asset.price != null ? (
+					<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+						<span className="text-(--text-label)">{asset.ticker ?? 'Token'} Price</span>
+						<span className="font-jetbrains text-xl font-semibold">{formattedNum(asset.price, true)}</span>
+					</p>
+				) : null}
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<span className="text-(--text-label)">Chains</span>
 					<span className="font-jetbrains text-xl font-semibold">{asset.chain?.length ?? 0}</span>
@@ -331,10 +356,10 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					</SectionCard>
 
 					{/* Contracts */}
-					{asset.contracts && (
+					{contractsEntries.length > 0 && (
 						<SectionCard title="Contracts">
 							<div className="grid grid-cols-2 gap-2">
-								{Object.entries(asset.contracts).map(([chain, contracts]) => (
+								{contractsEntries.map(([chain, contracts]) => (
 									<Fragment key={`${asset.name}-contracts-${chain}`}>
 										{contracts.map((contract) => (
 											<ContractItem
@@ -386,7 +411,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									<span className="font-medium">{asset.issuerRegistryInfo.join('; ')}</span>
 								</p>
 							)}
-							{asset.issuerSourceLink && (
+							{asset.issuerSourceLink ? (
 								<p className="flex flex-col gap-1">
 									<Tooltip
 										content={definitions.source.description}
@@ -394,17 +419,20 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									>
 										{definitions.source.label}
 									</Tooltip>
-									<a
-										href={asset.issuerSourceLink}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="flex items-center gap-1 font-medium break-all text-(--link-text) hover:underline"
-									>
-										<Icon name="external-link" className="h-4 w-4 shrink-0" />
-										{asset.issuerSourceLink}
-									</a>
+									{asset.issuerSourceLink.map((link) => (
+										<a
+											key={link}
+											href={link}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="flex items-center gap-1 font-medium break-all text-(--link-text) hover:underline"
+										>
+											<Icon name="external-link" className="h-4 w-4 shrink-0" />
+											{link}
+										</a>
+									))}
 								</p>
-							)}
+							) : null}
 						</div>
 					</SectionCard>
 

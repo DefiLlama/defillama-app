@@ -7,16 +7,16 @@ export async function getCategoryInfo() {
 }
 
 export async function getCategoryPerformance() {
-	const performanceTimeSeries = Object.fromEntries(
-		await Promise.all(
+	const [performanceEntries, info] = await Promise.all([
+		Promise.all(
 			['7', '30', 'ytd', '365'].map(async (period) => [
 				period,
 				await fetchJson(`${CATEGORY_PERFORMANCE_API}/${period}`).catch(() => [])
 			])
-		)
-	)
-
-	const info = await fetchJson(CATEGORY_INFO_API).catch(() => [])
+		),
+		fetchJson(CATEGORY_INFO_API).catch(() => [])
+	])
+	const performanceTimeSeries = Object.fromEntries(performanceEntries)
 	const getCumulativeChangeOfPeriod = (period, name) => performanceTimeSeries[period].slice(-1)?.[0]?.[name] ?? null
 	const pctChanges = info.map((i) => ({
 		...i,
@@ -70,25 +70,32 @@ export async function getCoinPerformance(categoryId) {
 
 		// calculate cumulative percentage change for each id
 		const results = {}
-		Object.keys(groupedData).forEach((id) => {
+		for (const id in groupedData) {
 			const prices = groupedData[id]
 			const initialPrice = prices[0].price
-			prices.forEach(({ timestamp, price }) => {
+			for (const { timestamp, price } of prices) {
 				if (!results[timestamp]) results[timestamp] = {}
 				const percentageChange = ((price - initialPrice) / initialPrice) * 100
 				results[timestamp][mapping[id]] = percentageChange
-			})
-		})
+			}
+		}
 
 		// format for chart
-		return Object.entries(results).map(([timestamp, changes]) => ({
-			date: parseInt(timestamp),
-			...(changes as object)
-		}))
+		const chartData: Array<{ date: number } & object> = []
+		for (const timestamp in results) {
+			chartData.push({
+				date: parseInt(timestamp),
+				...(results[timestamp] as object)
+			})
+		}
+		return chartData
 	}
 
-	const prices = await fetchJson(`${CATEGORY_COIN_PRICES_API}/${categoryId}`)
-	const coinInfo = await fetchJson(`${COINS_INFO_API}/${categoryId}`)
+	const [prices, coinInfo, categories] = await Promise.all([
+		fetchJson(`${CATEGORY_COIN_PRICES_API}/${categoryId}`),
+		fetchJson(`${COINS_INFO_API}/${categoryId}`),
+		getCategoryInfo()
+	])
 
 	const coinsInCategory = coinInfo.map((c) => [c.id, c.name])
 
@@ -119,6 +126,6 @@ export async function getCoinPerformance(categoryId) {
 		performanceTimeSeries,
 		areaChartLegend: coinInfo.filter((i) => !['Bitcoin', 'Ethereum', 'Solana'].includes(i.name)).map((i) => i.name),
 		isCoinPage: true,
-		categoryName: (await getCategoryInfo()).find((i) => i.id === categoryId).name
+		categoryName: categories.find((i) => i.id === categoryId)?.name
 	}
 }

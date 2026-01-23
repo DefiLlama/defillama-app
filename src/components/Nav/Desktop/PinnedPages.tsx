@@ -1,21 +1,17 @@
-import * as React from 'react'
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '../../Tooltip'
 import { mutatePinnedMetrics } from '../pinnedUtils'
 import { TNavLink } from '../types'
 import { LinkToPage, NavItemContent } from './shared'
 
-export const PinnedPages = React.memo(function PinnedPages({
-	pinnedPages,
-	asPath
-}: {
-	pinnedPages: Array<TNavLink>
-	asPath: string
-}) {
+const VERTICAL_SORTING_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
+
+export function PinnedPages({ pinnedPages, asPath }: { pinnedPages: Array<TNavLink>; asPath: string }) {
 	const [isReordering, setIsReordering] = React.useState(false)
 
 	React.useEffect(() => {
@@ -30,21 +26,20 @@ export const PinnedPages = React.memo(function PinnedPages({
 		})
 	)
 
-	const handleDragEnd = React.useCallback(
-		(event: DragEndEvent) => {
-			const { active, over } = event
-			if (!over || active.id === over.id) return
+	const handleDragEnd = (event: DragEndEvent) => {
+		const { active, over } = event
+		if (!over || active.id === over.id) return
 
-			const oldIndex = pinnedPages.findIndex(({ route }) => route === active.id)
-			const newIndex = pinnedPages.findIndex(({ route }) => route === over.id)
+		const oldIndex = pinnedPages.findIndex(({ route }) => route === active.id)
+		const newIndex = pinnedPages.findIndex(({ route }) => route === over.id)
 
-			if (oldIndex === -1 || newIndex === -1) return
+		if (oldIndex === -1 || newIndex === -1) return
 
-			const reordered = arrayMove(pinnedPages, oldIndex, newIndex)
-			mutatePinnedMetrics(() => reordered.map(({ route }) => route))
-		},
-		[pinnedPages]
-	)
+		const reordered = arrayMove(pinnedPages, oldIndex, newIndex)
+		mutatePinnedMetrics(() => reordered.map(({ route }) => route))
+	}
+
+	const sortableItems = pinnedPages.map(({ route }) => route)
 
 	return (
 		<div className="group/pinned flex flex-col">
@@ -66,12 +61,8 @@ export const PinnedPages = React.memo(function PinnedPages({
 				) : null}
 			</div>
 			{isReordering ? <p className="text-[11px] text-(--text-tertiary)">Drag to reorder, click X to unpin</p> : null}
-			<DndContext
-				sensors={sensors}
-				onDragEnd={handleDragEnd}
-				modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-			>
-				<SortableContext items={pinnedPages.map(({ route }) => route)} strategy={verticalListSortingStrategy}>
+			<DndContext sensors={sensors} onDragEnd={handleDragEnd} modifiers={VERTICAL_SORTING_MODIFIERS}>
+				<SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
 					<div className="flex flex-col">
 						{pinnedPages.map((page) => (
 							<PinnedPageRow
@@ -86,7 +77,7 @@ export const PinnedPages = React.memo(function PinnedPages({
 			</DndContext>
 		</div>
 	)
-})
+}
 
 export const PinnedPageRow = ({
 	page,
@@ -107,9 +98,9 @@ export const PinnedPageRow = ({
 		transition
 	}
 
-	const handleUnpin = React.useCallback(() => {
+	const handleUnpin = () => {
 		mutatePinnedMetrics((routes) => routes.filter((route) => route !== page.route))
-	}, [page.route])
+	}
 
 	return (
 		<span

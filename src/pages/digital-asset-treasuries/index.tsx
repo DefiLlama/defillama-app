@@ -1,10 +1,10 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
-import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -31,6 +31,7 @@ export const getStaticProps = withPerformanceLogging('digital-asset-treasuries/i
 })
 
 const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
+const DEFAULT_SORTING_STATE = [{ id: 'totalUsdValue', desc: true }]
 
 const prepareInstitutionsCsv = (institutions: IDATOverviewPageProps['institutions']) => {
 	const headers = [
@@ -184,6 +185,8 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 	}, [dailyFlowsByAsset, groupBy])
 
 	const { chartInstance, handleChartReady } = useChartImageExport()
+	const handlePrepareDailyFlowsCsv = () => prepareDailyFlowsCsv(charts)
+	const handlePrepareInstitutionsCsv = () => prepareInstitutionsCsv(institutions)
 
 	return (
 		<Layout
@@ -203,7 +206,7 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 						values={GROUP_BY}
 						className="ml-auto"
 					/>
-					<CSVDownloadButton prepareCsv={() => prepareDailyFlowsCsv(charts)} smol />
+					<CSVDownloadButton prepareCsv={handlePrepareDailyFlowsCsv} smol />
 					<ChartExportButton
 						chartInstance={chartInstance}
 						filename="digital-asset-treasuries-inflows-by-asset"
@@ -221,8 +224,8 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 				columns={columns}
 				placeholder="Search institutions"
 				columnToSearch="name"
-				sortingState={[{ id: 'totalUsdValue', desc: true }]}
-				customFilters={<CSVDownloadButton prepareCsv={() => prepareInstitutionsCsv(institutions)} />}
+				sortingState={DEFAULT_SORTING_STATE}
+				customFilters={<CSVDownloadButton prepareCsv={handlePrepareInstitutionsCsv} />}
 			/>
 		</Layout>
 	)
@@ -233,12 +236,12 @@ const columns: ColumnDef<IDATOverviewPageProps['institutions'][0]>[] = [
 		header: 'Institution',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const name = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<BasicLink
 						href={`/digital-asset-treasury/${slug(row.original.ticker)}`}
 						title={name}
@@ -422,10 +425,10 @@ const Breakdown = ({
 	return (
 		<span className="flex flex-col gap-1 border-l-3 pl-1 text-xs" style={{ borderColor: data.color }}>
 			<span>{name}</span>
-			{data.amount && <span>{`Amount: ${formattedNum(data.amount, false)} ${data.ticker}`}</span>}
-			{data.usdValue && <span>{`Today's Value: ${formattedNum(data.usdValue, true)}`}</span>}
-			{data.cost && <span>{`Cost Basis: ${formattedNum(data.cost, true)}`}</span>}
-			{data.avgPrice && <span>{`Average Purchase Price: ${formattedNum(data.avgPrice, true)}`}</span>}
+			{data.amount != null ? <span>{`Amount: ${formattedNum(data.amount, false)} ${data.ticker}`}</span> : null}
+			{data.usdValue != null ? <span>{`Today's Value: ${formattedNum(data.usdValue, true)}`}</span> : null}
+			{data.cost != null ? <span>{`Cost Basis: ${formattedNum(data.cost, true)}`}</span> : null}
+			{data.avgPrice != null ? <span>{`Average Purchase Price: ${formattedNum(data.avgPrice, true)}`}</span> : null}
 		</span>
 	)
 }

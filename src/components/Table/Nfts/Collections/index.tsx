@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnFiltersState,
 	getCoreRowModel,
@@ -7,8 +6,10 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
+import { useTableSearch } from '../../utils'
 import type { INftCollection } from '../types'
 import { columns } from './columns'
 
@@ -23,6 +24,9 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 			columnFilters,
 			sorting
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
@@ -30,15 +34,7 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [collectionName, setCollectionName] = React.useState('')
-
-	React.useEffect(() => {
-		const collectionsColumns = instance.getColumn('name')
-		const id = setTimeout(() => {
-			collectionsColumns.setFilterValue(collectionName)
-		}, 200)
-		return () => clearTimeout(id)
-	}, [collectionName, instance])
+	const [collectionName, setCollectionName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -59,7 +55,7 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 							setCollectionName(e.target.value)
 						}}
 						placeholder="Search collections..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 			</div>

@@ -1,9 +1,8 @@
-import { memo, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import type { Chain, MetricAggregator, Protocol } from '../../types'
-import { CHART_TYPES } from '../../types'
 import { MetricCard } from '../MetricCard'
 import { MetricSentenceBuilder } from './MetricSentenceBuilder'
 
@@ -26,7 +25,7 @@ type MetricTabProps = {
 	onShowSparklineChange: (v: boolean) => void
 }
 
-export const MetricTab = memo(function MetricTab(props: MetricTabProps) {
+export function MetricTab(props: MetricTabProps) {
 	const {
 		metricSubjectType,
 		metricChain,
@@ -46,7 +45,7 @@ export const MetricTab = memo(function MetricTab(props: MetricTabProps) {
 		onShowSparklineChange
 	} = props
 
-	const { protocols, chains, protocolsLoading } = useProDashboardCatalog()
+	const { protocols, chains } = useProDashboardCatalog()
 	const protocolList = protocols as Protocol[]
 	const chainList = chains as Chain[]
 	const { availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
@@ -87,9 +86,24 @@ export const MetricTab = memo(function MetricTab(props: MetricTabProps) {
 		return null
 	}, [metricSubjectType, metricProtocol, metricChain, protocolList, chainList])
 
+	const previewMetric = useMemo(() => {
+		if (!selectedSubject || !metricType) return null
+		return {
+			id: 'metric-preview',
+			kind: 'metric',
+			subject: selectedSubject,
+			type: metricType,
+			aggregator: metricAggregator,
+			window: metricWindow,
+			compare: { mode: 'previous_value', format: 'percent' },
+			showSparkline: metricShowSparkline,
+			label: metricLabel
+		} as const
+	}, [selectedSubject, metricType, metricAggregator, metricWindow, metricShowSparkline, metricLabel])
+
 	return (
 		<div className="flex h-full flex-col gap-3 lg:min-h-[360px] lg:flex-row lg:overflow-hidden">
-			<div className="pro-border lg:thin-scrollbar flex w-full flex-shrink-0 flex-col border lg:w-[380px] lg:flex-shrink lg:overflow-y-auto xl:w-[420px]">
+			<div className="flex w-full shrink-0 flex-col border pro-border lg:thin-scrollbar lg:w-[380px] lg:flex-shrink lg:overflow-y-auto xl:w-[420px]">
 				<div className="flex flex-col gap-3 p-2.5 sm:p-3">
 					<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-2.5 shadow-sm sm:p-3">
 						<div className="flex items-start justify-between gap-2 sm:gap-3">
@@ -99,7 +113,7 @@ export const MetricTab = memo(function MetricTab(props: MetricTabProps) {
 									Shown above the metric tile across your dashboards.
 								</div>
 							</div>
-							<div className="hidden h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary) md:flex">
+							<div className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary) md:flex">
 								<Icon name="pencil" width={14} height={14} />
 							</div>
 						</div>
@@ -141,24 +155,12 @@ export const MetricTab = memo(function MetricTab(props: MetricTabProps) {
 				</div>
 			</div>
 
-			<div className="pro-border flex min-h-[280px] flex-1 flex-shrink-0 flex-col overflow-hidden border lg:min-h-0 lg:flex-shrink">
+			<div className="flex min-h-[280px] flex-1 shrink-0 flex-col overflow-hidden border pro-border lg:min-h-0 lg:flex-shrink">
 				<div className="flex-1 overflow-hidden rounded-md bg-(--cards-bg) p-2 sm:p-2.5">
-					{selectedSubject && metricType ? (
-						<MetricCard
-							metric={{
-								id: 'metric-preview',
-								kind: 'metric',
-								subject: selectedSubject as any,
-								type: metricType,
-								aggregator: metricAggregator,
-								window: metricWindow,
-								compare: { mode: 'previous_value', format: 'percent' },
-								showSparkline: metricShowSparkline,
-								label: metricLabel
-							}}
-						/>
+					{previewMetric ? (
+						<MetricCard metric={previewMetric} />
 					) : (
-						<div className="pro-text3 flex h-full items-center justify-center text-xs sm:text-sm">
+						<div className="flex h-full items-center justify-center text-xs pro-text3 sm:text-sm">
 							<div className="text-center">
 								<Icon name="activity" height={28} width={28} className="mx-auto mb-1 sm:h-8 sm:w-8" />
 								<div>Select subject and metric to preview</div>
@@ -169,4 +171,4 @@ export const MetricTab = memo(function MetricTab(props: MetricTabProps) {
 			</div>
 		</div>
 	)
-})
+}

@@ -1,11 +1,13 @@
-import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
+
+const DEFAULT_SORTING_STATE = [{ id: 'total', desc: true }]
 
 export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 	const data = Object.keys(assets)
@@ -22,7 +24,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 		.filter((row) => row?.total)
 		.sort((a, b) => b.total.total - a.total.total)
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const csvData = data.map((row) => {
 			return {
 				Chain: row.name,
@@ -38,7 +40,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 		const rows = [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
 
 		return { filename: 'bridged-chains.csv', rows }
-	}, [data])
+	}
 
 	return (
 		<>
@@ -53,7 +55,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</>
 				}
-				sortingState={[{ id: 'total', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)
@@ -74,12 +76,10 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 		header: () => 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue }) => {
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo logo={chainIconUrl(getValue())} />
 					<BasicLink
 						href={`/bridged/${slug(getValue() as string)}`}
@@ -101,7 +101,6 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
 		},
-		sortUndefined: 'last',
 		meta: { align: 'end', headerHelperText: 'Total value of assets on the chain, excluding own tokens' }
 	},
 	{
@@ -113,7 +112,6 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
 		},
-		sortUndefined: 'last',
 		meta: { align: 'end', headerHelperText: 'Assets minted natively on the chain' }
 	},
 	{
@@ -125,7 +123,6 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
 		},
-		sortUndefined: 'last',
 		meta: { align: 'end', headerHelperText: 'Assets bridged through the official canonical bridge' }
 	},
 	{
@@ -137,7 +134,6 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
 		},
-		sortUndefined: 'last',
 		meta: { align: 'end', headerHelperText: 'The chains own token, either for gas or for governance ' }
 	},
 	{
@@ -149,7 +145,6 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 			if (!value) return <></>
 			return <>${formattedNum(value)}</>
 		},
-		sortUndefined: 'last',
 		meta: { align: 'end', headerHelperText: 'Assets bridged through bridges that aren’t the canonical bridge' }
 	}
 ]

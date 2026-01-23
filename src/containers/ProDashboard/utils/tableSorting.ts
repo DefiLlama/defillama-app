@@ -8,15 +8,15 @@ export const percentageSortingFn = <T extends Record<string, any>>(
 	const a = rowA.getValue(columnId) as number | null | undefined
 	const b = rowB.getValue(columnId) as number | null | undefined
 
-	if ((a === null || a === undefined) && (b === null || b === undefined)) {
+	if (a == null && b == null) {
 		return 0
 	}
 
-	if (a === null || a === undefined) {
+	if (a == null) {
 		return 1
 	}
 
-	if (b === null || b === undefined) {
+	if (b == null) {
 		return -1
 	}
 

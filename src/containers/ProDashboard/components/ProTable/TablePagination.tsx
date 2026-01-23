@@ -1,11 +1,14 @@
-import * as React from 'react'
 import { Table } from '@tanstack/react-table'
+import * as React from 'react'
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { TagGroup } from '~/components/TagGroup'
 
 interface TablePaginationProps {
 	table: Table<IProtocolRow> | null
 }
+
+const PAGINATION_VALUES = ['Previous', 'Next'] as const
+const PAGE_SIZES = ['10', '30', '50'] as const
 
 export function TablePagination({ table }: TablePaginationProps) {
 	if (!table) return null
@@ -19,14 +22,14 @@ export function TablePagination({ table }: TablePaginationProps) {
 						? table.getCanNextPage() && table.nextPage()
 						: table.getCanPreviousPage() && table.previousPage()
 				}
-				values={['Previous', 'Next']}
+				values={PAGINATION_VALUES}
 				disabledValues={[!table.getCanNextPage() && 'Next', !table.getCanPreviousPage() && 'Previous']}
 			/>
 			<div className="flex items-center">
 				<div className="mr-2 text-xs">Per page</div>
 				<TagGroup
 					selectedValue={String(table.getState().pagination.pageSize)}
-					values={['10', '30', '50']}
+					values={PAGE_SIZES}
 					setValue={(val) => table.setPageSize(Number(val))}
 				/>
 			</div>

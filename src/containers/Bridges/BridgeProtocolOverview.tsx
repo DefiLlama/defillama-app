@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
+import * as React from 'react'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
@@ -21,6 +21,8 @@ const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as Re
 const CHART_TYPES = ['Inflows', 'Volume', 'Tokens To', 'Tokens From'] as const
 type ChartType = (typeof CHART_TYPES)[number]
 
+const GROUP_BY_VALUES = ['daily', 'weekly', 'monthly'] as const
+
 const BridgeInfo = ({
 	displayName,
 	logo,
@@ -30,7 +32,7 @@ const BridgeInfo = ({
 	tableDataByChain,
 	config = {} as Record<string, string>
 }) => {
-	const [chartType, setChartType] = React.useState<ChartType>('Inflows')
+	const [chartType, setChartType] = React.useState<ChartType>('Volume')
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly'>('daily')
 	const [currentChain, setChain] = React.useState(defaultChain)
 
@@ -92,11 +94,6 @@ const BridgeInfo = ({
 		return 0
 	}, [isAllChains, allChainsVolumePairs])
 
-	React.useEffect(() => {
-		if (isAllChains && chartType === 'Inflows') setChartType('Volume')
-		if (!isAllChains && chartType === 'Volume') setChartType('Inflows')
-	}, [isAllChains])
-
 	const chartTypes = (
 		isAllChains ? (['Volume', 'Tokens To', 'Tokens From'] as const) : (['Inflows', 'Tokens To', 'Tokens From'] as const)
 	) as readonly ChartType[]
@@ -124,7 +121,18 @@ const BridgeInfo = ({
 					<TokenLogo logo={logo} size={24} />
 					<span>{displayName}</span>
 				</h1>
-				<BridgeChainSelector currentChain={currentChain} options={chainOptions} handleClick={setChain} />
+				<BridgeChainSelector
+					currentChain={currentChain}
+					options={chainOptions}
+					handleClick={(chain) => {
+						setChain(chain)
+						if (chain === 'All Chains') {
+							setChartType('Volume')
+						} else {
+							setChartType('Inflows')
+						}
+					}}
+				/>
 			</div>
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
@@ -192,7 +200,7 @@ const BridgeInfo = ({
 							<TagGroup
 								selectedValue={groupBy}
 								setValue={(v) => setGroupBy(v as any)}
-								values={['daily', 'weekly', 'monthly'] as const}
+								values={GROUP_BY_VALUES}
 								className="ml-auto"
 							/>
 						)}

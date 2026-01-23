@@ -34,7 +34,7 @@ export const getStaticProps = withPerformanceLogging('yields/strategyLongShort',
 	const tokens = []
 	const tokenSymbolsList = []
 
-	cgTokens.forEach((token) => {
+	for (const token of cgTokens) {
 		if (token.symbol) {
 			tokens.push({
 				name: token.name,
@@ -44,7 +44,7 @@ export const getStaticProps = withPerformanceLogging('yields/strategyLongShort',
 			})
 			tokenSymbolsList.push(token.symbol?.toUpperCase())
 		}
-	})
+	}
 
 	return {
 		props: {

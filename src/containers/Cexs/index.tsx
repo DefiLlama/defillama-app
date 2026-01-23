@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
-import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import toast from 'react-hot-toast'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -11,6 +11,8 @@ import { formattedNum, slug, toNiceDayMonthAndYear } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { DateFilter } from './DateFilter'
 import { ICex } from './types'
+
+const DEFAULT_SORTING_STATE = [{ id: 'cleanAssetsTvl', desc: true }]
 
 const getOutflowsByTimerange = async (startTime, endTime, cexData) => {
 	let loadingToastId
@@ -44,7 +46,7 @@ const getOutflowsByTimerange = async (startTime, endTime, cexData) => {
 
 			return cexs.length ? Object.fromEntries(cexs) : {}
 		}
-	} catch (error) {
+	} catch {
 		toast.dismiss(loadingToastId)
 		toast.error('Failed to fetch inflows data')
 		return {}
@@ -89,7 +91,7 @@ export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 				customFilters={
 					<DateFilter startDate={startDate} endDate={endDate} key={`cexs-date-filter-${startDate}-${endDate}`} />
 				}
-				sortingState={[{ id: 'cleanAssetsTvl', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)
@@ -100,12 +102,10 @@ const columns: ColumnDef<ICex>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue, row }) => {
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					{row.original.slug === undefined ? (
 						(getValue() as string | null)
 					) : (
@@ -131,7 +131,6 @@ const columns: ColumnDef<ICex>[] = [
 			}
 			return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 		},
-		sortUndefined: 'last',
 		size: 120,
 		meta: {
 			align: 'end',
@@ -149,24 +148,20 @@ const columns: ColumnDef<ICex>[] = [
 					<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" className="ml-auto" />
 				)
 			}
+			if (info.getValue() == null) return null
+
+			const helperText =
+				coinSymbol === undefined
+					? `Original TVL doesn't contain any coin issued by this CEX`
+					: `This excludes all TVL from ${coinSymbol}, which is a token issued by this CEX`
+
 			return (
 				<span className="flex items-center justify-end gap-1">
-					{info.getValue() != null ? (
-						<>
-							{coinSymbol === undefined ? (
-								<QuestionHelper text={`Original TVL doesn't contain any coin issued by this CEX`} />
-							) : (
-								<QuestionHelper
-									text={`This excludes all TVL from ${info.row.original.coinSymbol}, which is a token issued by this CEX`}
-								/>
-							)}
-							<span>{formattedNum(info.getValue(), true)}</span>
-						</>
-					) : null}
+					<QuestionHelper text={helperText} />
+					<span>{formattedNum(info.getValue(), true)}</span>
 				</span>
 			)
 		},
-		sortUndefined: 'last',
 		size: 145,
 		meta: {
 			align: 'end',
@@ -177,16 +172,14 @@ const columns: ColumnDef<ICex>[] = [
 		header: '24h Inflows',
 		accessorKey: 'inflows_24h',
 		size: 120,
-		cell: (info) => (
-			<span
-				className={`${
-					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
-				}`}
-			>
-				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
-			</span>
-		),
-		sortUndefined: 'last',
+		cell: (info) => {
+			const value = info.getValue() as number | null
+			return (
+				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
+					{value != null ? formattedNum(value, true) : ''}
+				</span>
+			)
+		},
 		meta: {
 			align: 'end'
 		}
@@ -195,16 +188,14 @@ const columns: ColumnDef<ICex>[] = [
 		header: '7d Inflows',
 		accessorKey: 'inflows_1w',
 		size: 120,
-		cell: (info) => (
-			<span
-				className={`${
-					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
-				}`}
-			>
-				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
-			</span>
-		),
-		sortUndefined: 'last',
+		cell: (info) => {
+			const value = info.getValue() as number | null
+			return (
+				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
+					{value != null ? formattedNum(value, true) : ''}
+				</span>
+			)
+		},
 		meta: {
 			align: 'end'
 		}
@@ -213,16 +204,14 @@ const columns: ColumnDef<ICex>[] = [
 		header: '1m Inflows',
 		accessorKey: 'inflows_1m',
 		size: 120,
-		cell: (info) => (
-			<span
-				className={`${
-					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
-				}`}
-			>
-				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
-			</span>
-		),
-		sortUndefined: 'last',
+		cell: (info) => {
+			const value = info.getValue() as number | null
+			return (
+				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
+					{value != null ? formattedNum(value, true) : ''}
+				</span>
+			)
+		},
 		meta: {
 			align: 'end'
 		}
@@ -231,7 +220,6 @@ const columns: ColumnDef<ICex>[] = [
 		header: 'Spot Volume',
 		accessorKey: 'spotVolume',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		sortUndefined: 'last',
 		size: 125,
 		meta: {
 			align: 'end'
@@ -241,7 +229,6 @@ const columns: ColumnDef<ICex>[] = [
 		header: '24h Open Interest',
 		accessorKey: 'oi',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		sortUndefined: 'last',
 		size: 160,
 		meta: {
 			align: 'end'
@@ -251,7 +238,6 @@ const columns: ColumnDef<ICex>[] = [
 		header: 'Avg Leverage',
 		accessorKey: 'leverage',
 		cell: (info) => (info.getValue() != null ? Number(Number(info.getValue()).toFixed(2)) + 'x' : null),
-		sortUndefined: 'last',
 		size: 130,
 		meta: {
 			align: 'end'
@@ -262,16 +248,14 @@ const columns: ColumnDef<ICex>[] = [
 		accessorKey: 'customRange',
 		accessorFn: (row) => row.customRange ?? undefined,
 		size: 200,
-		cell: (info) => (
-			<span
-				className={`${
-					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
-				}`}
-			>
-				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
-			</span>
-		),
-		sortUndefined: 'last',
+		cell: (info) => {
+			const value = info.getValue() as number | null
+			return (
+				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
+					{value != null ? formattedNum(value, true) : ''}
+				</span>
+			)
+		},
 		meta: {
 			align: 'end'
 		}

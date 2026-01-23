@@ -1,4 +1,3 @@
-import { memo, useMemo } from 'react'
 import Head from 'next/head'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
@@ -46,7 +45,7 @@ export const LinkPreviewCard = ({
 
 	const isVolumeChangeValid = volumeChange && volumeChange !== 'NaN%' && volumeChange !== 'undefined%'
 
-	const cardURL = useMemo(() => {
+	const cardURL = (() => {
 		let cardSrc = new URL(`https://og-cards-chi.vercel.app/`)
 
 		// If text is default, the image will only have the logo in the center, without any tvl numbers, chain or token name etc
@@ -86,9 +85,13 @@ export const LinkPreviewCard = ({
 
 		cardSrc.searchParams.append('valueHeader', valueHeader)
 
-		isTvlValid && cardSrc.searchParams.append('tvl', tvl)
+		if (isTvlValid) {
+			cardSrc.searchParams.append('tvl', tvl)
+		}
 
-		isVolumeChangeValid && cardSrc.searchParams.append('volumeChange', volumeChange)
+		if (isVolumeChangeValid) {
+			cardSrc.searchParams.append('volumeChange', volumeChange)
+		}
 
 		cardSrc.searchParams.append('footerURL', encodeURIComponent(windowURL))
 
@@ -113,24 +116,7 @@ export const LinkPreviewCard = ({
 		}
 
 		return cardSrc.toString()
-	}, [
-		cardName,
-		chain,
-		token,
-		tvl,
-		volumeChange,
-		logo,
-		nftPage,
-		unlockPage,
-		unlockAmount,
-		windowURL,
-		isTvlValid,
-		isVolumeChangeValid,
-		pageType,
-		liqsPage,
-		isCEX,
-		stablePage
-	])
+	})()
 
 	return (
 		<Head>
@@ -147,7 +133,7 @@ export interface ISEOProps {
 	canonicalUrl?: string
 }
 
-export const SEO = memo(function SEO({ title, description, keywords, canonicalUrl }: ISEOProps) {
+export function SEO({ title, description, keywords, canonicalUrl }: ISEOProps) {
 	const url = `https://defillama.com${slug(canonicalUrl ?? '')}`
 	return (
 		<Head>
@@ -171,4 +157,4 @@ export const SEO = memo(function SEO({ title, description, keywords, canonicalUr
 			{/* <meta name="twitter:image" content={cardURL} /> */}
 		</Head>
 	)
-})
+}

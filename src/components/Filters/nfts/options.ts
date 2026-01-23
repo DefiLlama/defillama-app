@@ -1,6 +1,7 @@
-import { NFT_SETTINGS } from '~/contexts/LocalStorage'
+import { NFT_SETTINGS, type NftSettingKey } from '~/contexts/LocalStorage'
+import type { ToggleOption } from '../types'
 
-export const nftOptions = [
+export const nftOptions: Array<ToggleOption<NftSettingKey>> = [
 	{
 		name: 'Display in USD',
 		key: NFT_SETTINGS.DISPLAY_USD,

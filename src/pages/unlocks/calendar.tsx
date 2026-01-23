@@ -1,5 +1,5 @@
-import * as React from 'react'
 import dayjs from 'dayjs'
+import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getAllProtocolEmissionsWithHistory } from '~/api/categories/protocols'
 import { Announcement } from '~/components/Announcement'
@@ -52,9 +52,9 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 		listEvents: {} as { [startDateKey: string]: Array<{ date: string; event: any }> }
 	}
 
-	data?.forEach((protocol) => {
-		if (!protocol.events || protocol.tPrice === null || protocol.tPrice === undefined) {
-			return
+	for (const protocol of data ?? []) {
+		if (!protocol.events || protocol.tPrice == null) {
+			continue
 		}
 
 		const processedEvents: Array<{
@@ -69,10 +69,10 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 			(event) => event.timestamp !== null && event.noOfTokens && event.noOfTokens.length > 0
 		)
 
-		validEvents.forEach((event) => {
+		for (const event of validEvents) {
 			const totalTokens = event.noOfTokens.reduce((sum, amount) => sum + amount, 0)
 			if (totalTokens === 0) {
-				return
+				continue
 			}
 
 			const valueUSD = totalTokens * protocol.tPrice
@@ -86,12 +86,12 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 				unlockType: unlockType,
 				category: event.category || ''
 			})
-		})
+		}
 
 		const protocolUnlocksByDate: {
 			[date: string]: { value: number; details: string[]; unlockTypes: string[]; category?: string }
 		} = {}
-		processedEvents.forEach((processedEvent) => {
+		for (const processedEvent of processedEvents) {
 			if (!protocolUnlocksByDate[processedEvent.dateStr]) {
 				protocolUnlocksByDate[processedEvent.dateStr] = { value: 0, details: [], unlockTypes: [] }
 			}
@@ -99,9 +99,10 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 			protocolUnlocksByDate[processedEvent.dateStr].details.push(processedEvent.details)
 			protocolUnlocksByDate[processedEvent.dateStr].unlockTypes.push(processedEvent.unlockType)
 			protocolUnlocksByDate[processedEvent.dateStr].category = processedEvent.category
-		})
+		}
 
-		Object.entries(protocolUnlocksByDate).forEach(([dateStr, dailyData]) => {
+		for (const dateStr in protocolUnlocksByDate) {
+			const dailyData = protocolUnlocksByDate[dateStr]
 			if (!unlocksData[dateStr]) {
 				unlocksData[dateStr] = {
 					totalValue: 0,
@@ -116,12 +117,12 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 				unlockType: dailyData.unlockTypes.find((type) => type !== '') || '',
 				category: dailyData.category
 			})
-		})
-	})
+		}
+	}
 
-	Object.keys(unlocksData).forEach((date) => {
-		unlocksData[date].events.sort((a, b) => b.value - a.value)
-	})
+	for (const date in unlocksData) {
+		unlocksData[date].events = unlocksData[date].events.toSorted((a, b) => b.value - a.value)
+	}
 
 	const currentYear = new Date().getFullYear()
 	for (let year = currentYear - 1; year <= currentYear + 2; year++) {
@@ -131,14 +132,15 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 			const monthKey = `${year}-${month.toString().padStart(2, '0')}`
 
 			let maxValue = 0
-			Object.entries(unlocksData).forEach(([dateStr, dailyData]) => {
+			for (const dateStr in unlocksData) {
+				const dailyData = unlocksData[dateStr]
 				const date = dayjs(dateStr)
 				if (date.isBetween(startOfMonth.subtract(1, 'day'), endOfMonth.add(1, 'day'))) {
 					if (dailyData.totalValue > maxValue) {
 						maxValue = dailyData.totalValue
 					}
 				}
-			})
+			}
 			precomputedData.monthlyMaxValues[monthKey] = maxValue
 		}
 	}
@@ -150,17 +152,18 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 		const startDateKey = startDate.format('YYYY-MM-DD')
 
 		const events: Array<{ date: string; event: any }> = []
-		Object.entries(unlocksData).forEach(([dateStr, dailyData]) => {
+		for (const dateStr in unlocksData) {
+			const dailyData = unlocksData[dateStr]
 			const date = dayjs(dateStr)
 			if (date.isBetween(startDate.subtract(1, 'day'), endDate)) {
-				dailyData.events.forEach((event) => {
+				for (const event of dailyData.events) {
 					events.push({ date: dateStr, event })
-				})
+				}
 			}
-		})
+		}
 
-		events.sort((a, b) => dayjs(a.date).valueOf() - dayjs(b.date).valueOf())
-		precomputedData.listEvents[startDateKey] = events
+		const sortedEvents = events.toSorted((a, b) => dayjs(a.date).valueOf() - dayjs(b.date).valueOf())
+		precomputedData.listEvents[startDateKey] = sortedEvents
 	}
 
 	return {

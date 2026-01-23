@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSkeleton } from '~/components/LoadingSkeleton'
 import { Select } from '~/components/Select'
@@ -32,6 +32,7 @@ type TimeFrameOption = (typeof timeFrameOptions)[number]
 
 export function DashboardDiscovery() {
 	const router = useRouter()
+	const { view, tag, sortBy, query, page, limit, timeFrame } = router.query
 
 	const {
 		isBrowseMode,
@@ -43,8 +44,6 @@ export function DashboardDiscovery() {
 		selectedPage,
 		itemsPerPage
 	} = useMemo(() => {
-		const { view, tag, sortBy, query, page, limit, timeFrame } = router.query
-
 		const viewMode = typeof view === 'string' && viewModes.includes(view as ViewMode) ? (view as ViewMode) : 'grid'
 		const selectedTags = tag ? (typeof tag === 'string' ? [tag] : tag) : []
 		const selectedSortBy =
@@ -78,7 +77,7 @@ export function DashboardDiscovery() {
 			selectedPage,
 			itemsPerPage
 		}
-	}, [router.query])
+	}, [view, tag, sortBy, query, page, limit, timeFrame])
 
 	const { dashboards, isLoading, totalPages, totalItems } = useDashboardDiscovery({
 		query: searchQuery,
@@ -96,7 +95,7 @@ export function DashboardDiscovery() {
 		}
 
 		// remove page from query
-		const { page, ...queryWithoutPage } = router.query
+		const { page: _page, ...queryWithoutPage } = router.query
 
 		router.push(
 			{
@@ -113,7 +112,7 @@ export function DashboardDiscovery() {
 
 	const handleItemsPerPageChange = (value: string) => {
 		const newItemsPerPage = parseInt(value, 10)
-		const { page, ...queryWithoutPage } = router.query
+		const { page: _page, ...queryWithoutPage } = router.query
 		router.push(
 			{
 				pathname: '/pro',
@@ -190,7 +189,7 @@ export function DashboardDiscovery() {
 								allValues={sortOptions}
 								selectedValues={selectedSortBy.key}
 								setSelectedValues={(value) => {
-									const { ...queryWithoutPage } = router.query
+									const { page: _page, ...queryWithoutPage } = router.query
 									const newQuery: Record<string, any> = { ...queryWithoutPage, sortBy: value as SortOption['key'] }
 									if (value === 'trending') {
 										newQuery.timeFrame = '7d'
@@ -222,7 +221,7 @@ export function DashboardDiscovery() {
 									allValues={timeFrameOptions}
 									selectedValues={selectedTimeFrame.key}
 									setSelectedValues={(value) => {
-										const { page, ...queryWithoutPage } = router.query
+										const { page: _page, ...queryWithoutPage } = router.query
 										router.push(
 											{
 												pathname: '/pro',
@@ -306,7 +305,7 @@ export function DashboardDiscovery() {
 									key={`pro-dashboard-tag-${tag}`}
 									onClick={() => {
 										const { tag: currentTag, ...query } = router.query
-										const newQuery = query
+										const newQuery: Record<string, any> = query
 										if (currentTag && currentTag.includes(tag)) {
 											// If the tag is an array, filter it to remove the tag
 											if (Array.isArray(currentTag)) {
@@ -336,7 +335,7 @@ export function DashboardDiscovery() {
 						</div>
 						<button
 							onClick={() => {
-								const { tag, ...query } = router.query
+								const { tag: _tag, ...query } = router.query
 
 								// Clear all tags
 								router.push(
@@ -396,7 +395,7 @@ export function DashboardDiscovery() {
 							<div className="flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
 								<button
 									onClick={() => {
-										const { page, ...query } = router.query
+										const { page: _page, ...query } = router.query
 										router.push(
 											{
 												pathname: '/pro',
@@ -443,7 +442,7 @@ export function DashboardDiscovery() {
 												)
 											}}
 											data-active={isActive}
-											className="h-[32px] min-w-[32px] flex-shrink-0 rounded-md px-2 py-1.5 transition-colors hover:bg-(--btn-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+											className="h-[32px] min-w-[32px] shrink-0 rounded-md px-2 py-1.5 transition-colors hover:bg-(--btn-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 										>
 											{pageNum}
 										</button>

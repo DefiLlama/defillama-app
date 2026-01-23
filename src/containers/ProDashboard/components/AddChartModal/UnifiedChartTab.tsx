@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
@@ -10,10 +10,15 @@ import { CategoryFormHeader } from './CategoryFormHeader'
 import { ChartTypePills } from './ChartTypePills'
 import { CombinedChartPreview } from './CombinedChartPreview'
 import { EntityPickerList } from './EntityPickerList'
+import { IncomeStatementChartTab } from './IncomeStatementChartTab'
 import { SelectionFooter } from './SelectionFooter'
 import { StablecoinsChartTab } from './StablecoinsChartTab'
 import { ChartTabType, ManualChartViewMode } from './types'
+import { UnlocksChartTab } from './UnlocksChartTab'
 import { YieldsChartTab } from './YieldsChartTab'
+
+const PROTOCOL_CHART_TYPES = getProtocolChartTypes()
+const CHAIN_CHART_TYPES = getChainChartTypes()
 
 interface UnifiedChartTabProps {
 	selectedChartTab: ChartTabType
@@ -84,35 +89,45 @@ interface UnifiedChartTabPropsExtended extends UnifiedChartTabProps {
 	onSelectedBorrowedProtocolChange?: (protocol: string | null) => void
 	onSelectedBorrowedProtocolNameChange?: (name: string | null) => void
 	onSelectedBorrowedChartTypeChange?: (chartType: string) => void
+	selectedIncomeStatementProtocol?: string | null
+	selectedIncomeStatementProtocolName?: string | null
+	onSelectedIncomeStatementProtocolChange?: (protocol: string | null) => void
+	onSelectedIncomeStatementProtocolNameChange?: (name: string | null) => void
+	selectedUnlocksProtocol?: string | null
+	selectedUnlocksProtocolName?: string | null
+	selectedUnlocksChartType?: 'total' | 'schedule' | 'allocation' | 'locked-unlocked'
+	onSelectedUnlocksProtocolChange?: (protocol: string | null) => void
+	onSelectedUnlocksProtocolNameChange?: (name: string | null) => void
+	onSelectedUnlocksChartTypeChange?: (type: 'total' | 'schedule' | 'allocation' | 'locked-unlocked') => void
 }
 
-export const UnifiedChartTab = memo(function UnifiedChartTab({
+export function UnifiedChartTab({
 	selectedChartTab,
 	selectedChain,
 	selectedProtocol,
 	selectedChartTypes,
 	chainOptions,
 	protocolOptions,
-	availableChartTypes,
-	chartTypesLoading,
+	availableChartTypes: _availableChartTypes,
+	chartTypesLoading: _chartTypesLoading,
 	protocolsLoading,
 	unifiedChartName,
 	chartCreationMode,
 	composerItems,
 	onChartTabChange,
-	onChainChange,
-	onProtocolChange,
+	onChainChange: _onChainChange,
+	onProtocolChange: _onProtocolChange,
 	onChartTypesChange,
 	onUnifiedChartNameChange,
 	onChartCreationModeChange,
 	onComposerItemColorChange,
 	onAddToComposer,
 	onRemoveFromComposer,
-	selectedChains = [],
-	selectedProtocols = [],
+	selectedChains: _selectedChains = [],
+	selectedProtocols: _selectedProtocols = [],
 	selectedYieldPool = null,
-	onSelectedChainsChange,
-	onSelectedProtocolsChange,
+	onSelectedChainsChange: _onSelectedChainsChange,
+	onSelectedProtocolsChange: _onSelectedProtocolsChange,
 	onSelectedYieldPoolChange,
 	selectedYieldChains = [],
 	selectedYieldProjects = [],
@@ -151,15 +166,25 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 	selectedBorrowedChartType = 'chainsBorrowed',
 	onSelectedBorrowedProtocolChange,
 	onSelectedBorrowedProtocolNameChange,
-	onSelectedBorrowedChartTypeChange
+	onSelectedBorrowedChartTypeChange,
+	selectedIncomeStatementProtocol = null,
+	selectedIncomeStatementProtocolName = null,
+	onSelectedIncomeStatementProtocolChange,
+	onSelectedIncomeStatementProtocolNameChange,
+	selectedUnlocksProtocol = null,
+	selectedUnlocksProtocolName = null,
+	selectedUnlocksChartType = 'total',
+	onSelectedUnlocksProtocolChange,
+	onSelectedUnlocksProtocolNameChange,
+	onSelectedUnlocksChartTypeChange
 }: UnifiedChartTabPropsExtended) {
-	const specialtyTabs = ['yields', 'stablecoins', 'advanced-tvl', 'borrowed']
+	const specialtyTabs = ['yields', 'stablecoins', 'advanced-tvl', 'borrowed', 'income-statement', 'unlocks']
 	const [viewMode, setViewMode] = useState<ManualChartViewMode>(() =>
 		specialtyTabs.includes(selectedChartTab) || composerItems.length > 0 ? 'form' : 'cards'
 	)
 
-	const protocolChartTypes = useMemo(() => getProtocolChartTypes(), [])
-	const chainChartTypes = useMemo(() => getChainChartTypes(), [])
+	const protocolChartTypes = PROTOCOL_CHART_TYPES
+	const chainChartTypes = CHAIN_CHART_TYPES
 	const { loading: metaLoading, availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
 	const { protocols, chains } = useProDashboardCatalog()
 
@@ -181,8 +206,21 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 			onChartTypesChange(['tvl'])
 		}
 	}
+	const handleChartTypeSelect = useCallback((type: string) => onChartTypesChange([type]), [onChartTypesChange])
 
 	const selectedChartTypeSingle = useMemo(() => selectedChartTypes[0] || null, [selectedChartTypes])
+	const defaultChartType = useMemo(() => {
+		if (composerItems.length === 0) return 'tvl'
+		const matchingItem = composerItems.find((item) => (selectedChartTab === 'chain' ? item.chain : item.protocol))
+		return (matchingItem || composerItems[0])?.type || 'tvl'
+	}, [composerItems, selectedChartTab])
+
+	useEffect(() => {
+		if (viewMode !== 'form') return
+		if (selectedChartTab !== 'chain' && selectedChartTab !== 'protocol') return
+		if (selectedChartTypes.length > 0) return
+		onChartTypesChange([defaultChartType])
+	}, [viewMode, selectedChartTab, selectedChartTypes.length, defaultChartType, onChartTypesChange])
 
 	const selectedEntitiesForCurrentType = useMemo(() => {
 		if (!selectedChartTypeSingle) return []
@@ -214,16 +252,25 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 				})
 			}
 		},
-		[selectedChartTypeSingle, selectedEntitiesForCurrentType, composerItems, selectedChartTab, onRemoveFromComposer, onAddToComposer]
+		[
+			selectedChartTypeSingle,
+			selectedEntitiesForCurrentType,
+			composerItems,
+			selectedChartTab,
+			onRemoveFromComposer,
+			onAddToComposer
+		]
 	)
 
 	const handleClearSelection = useCallback(() => {
 		if (!selectedChartTypeSingle) return
 		const itemsToRemove = composerItems.filter((item) => item.type === selectedChartTypeSingle)
-		itemsToRemove.forEach((item) => onRemoveFromComposer(item.id))
+		for (const item of itemsToRemove) {
+			onRemoveFromComposer(item.id)
+		}
 	}, [selectedChartTypeSingle, composerItems, onRemoveFromComposer])
 
-	const instantAvailableChartTypes = useMemo(() => {
+	const _instantAvailableChartTypes = useMemo(() => {
 		let available: string[] = []
 		if (selectedChartTab === 'protocol' && selectedProtocol) {
 			const geckoId = protocols.find((p: any) => p.slug === selectedProtocol)?.geckoId
@@ -451,13 +498,69 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 		)
 	}
 
+	if (selectedChartTab === 'income-statement') {
+		return (
+			<div className="flex h-full flex-col">
+				<CategoryFormHeader category={selectedChartTab} onBack={handleBackToCards} />
+				<div className="min-h-0 flex-1">
+					<IncomeStatementChartTab
+						selectedIncomeStatementProtocol={selectedIncomeStatementProtocol}
+						selectedIncomeStatementProtocolName={selectedIncomeStatementProtocolName}
+						onSelectedIncomeStatementProtocolChange={onSelectedIncomeStatementProtocolChange || (() => {})}
+						onSelectedIncomeStatementProtocolNameChange={onSelectedIncomeStatementProtocolNameChange || (() => {})}
+						protocolOptions={protocolOptions as any}
+						protocolsLoading={protocolsLoading}
+					/>
+				</div>
+				<SelectionFooter
+					composerItems={composerItems}
+					chartCreationMode={chartCreationMode}
+					unifiedChartName={unifiedChartName}
+					onChartCreationModeChange={onChartCreationModeChange}
+					onUnifiedChartNameChange={onUnifiedChartNameChange}
+					onComposerItemColorChange={onComposerItemColorChange}
+					onRemoveFromComposer={onRemoveFromComposer}
+				/>
+			</div>
+		)
+	}
+
+	if (selectedChartTab === 'unlocks') {
+		return (
+			<div className="flex h-full flex-col">
+				<CategoryFormHeader category={selectedChartTab} onBack={handleBackToCards} />
+				<div className="min-h-0 flex-1">
+					<UnlocksChartTab
+						selectedUnlocksProtocol={selectedUnlocksProtocol}
+						selectedUnlocksProtocolName={selectedUnlocksProtocolName}
+						selectedUnlocksChartType={selectedUnlocksChartType}
+						onSelectedUnlocksProtocolChange={onSelectedUnlocksProtocolChange || (() => {})}
+						onSelectedUnlocksProtocolNameChange={onSelectedUnlocksProtocolNameChange || (() => {})}
+						onSelectedUnlocksChartTypeChange={onSelectedUnlocksChartTypeChange || (() => {})}
+						protocolOptions={protocolOptions as any}
+						protocolsLoading={protocolsLoading}
+					/>
+				</div>
+				<SelectionFooter
+					composerItems={composerItems}
+					chartCreationMode={chartCreationMode}
+					unifiedChartName={unifiedChartName}
+					onChartCreationModeChange={onChartCreationModeChange}
+					onUnifiedChartNameChange={onUnifiedChartNameChange}
+					onComposerItemColorChange={onComposerItemColorChange}
+					onRemoveFromComposer={onRemoveFromComposer}
+				/>
+			</div>
+		)
+	}
+
 	return (
 		<div className="flex h-full flex-col gap-3">
 			<CategoryFormHeader category={selectedChartTab} onBack={handleBackToCards} />
 
 			<div className="grid min-h-0 flex-1 grid-cols-2 gap-4">
 				<div className="flex min-h-0 flex-col gap-3">
-					<div className="flex-shrink-0 rounded-xl border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1 shadow-sm">
+					<div className="shrink-0 rounded-xl border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1 shadow-sm">
 						<div className="grid grid-cols-2 gap-1">
 							<button
 								type="button"
@@ -504,12 +607,12 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 						</div>
 					</div>
 
-					<div className="flex-shrink-0">
-						<label className="pro-text2 mb-2 block text-xs font-medium">Select Chart Type</label>
+					<div className="shrink-0">
+						<label className="mb-2 block text-xs font-medium pro-text2">Select Chart Type</label>
 						<ChartTypePills
 							chartTypes={chartTypeOptions}
 							selectedType={selectedChartTypeSingle}
-							onSelect={(type) => onChartTypesChange([type])}
+							onSelect={handleChartTypeSelect}
 							isLoading={metaLoading}
 							mode={selectedChartTab as 'chain' | 'protocol'}
 						/>
@@ -533,10 +636,10 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 						value={unifiedChartName}
 						onChange={(e) => onUnifiedChartNameChange(e.target.value)}
 						placeholder="Chart name..."
-						className="pro-text1 placeholder:pro-text3 w-full flex-shrink-0 rounded border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+						className="w-full shrink-0 rounded border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					/>
 
-					<div className="h-[450px] flex-shrink-0 overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg)">
+					<div className="h-[450px] shrink-0 overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg)">
 						{composerItems.length > 0 ? (
 							<CombinedChartPreview composerItems={composerItems} />
 						) : (
@@ -547,7 +650,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 					</div>
 
 					{composerItems.length > 0 && (
-						<div className="thin-scrollbar flex flex-shrink-0 items-center gap-2 overflow-x-auto py-1">
+						<div className="flex thin-scrollbar shrink-0 items-center gap-2 overflow-x-auto py-1">
 							{composerItems.map((item) => (
 								<div
 									key={item.id}
@@ -559,7 +662,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 										onChange={(e) => onComposerItemColorChange(item.id, e.target.value)}
 										className="h-4 w-4 cursor-pointer rounded border-0 bg-transparent p-0"
 									/>
-									<span className="pro-text1 whitespace-nowrap">
+									<span className="whitespace-nowrap pro-text1">
 										{item.protocol || item.chain} - {CHART_TYPES[item.type]?.title || item.type}
 									</span>
 									<button
@@ -576,4 +679,4 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 			</div>
 		</div>
 	)
-})
+}

@@ -1,4 +1,3 @@
-import { memo } from 'react'
 import { Icon, type IIcon } from '~/components/Icon'
 import { ChartTabType } from './types'
 
@@ -19,6 +18,20 @@ export const CATEGORY_CARDS: CategoryCardData[] = [
 		description: 'TVL, Fees, Revenue, Volume, Users across 5000+ protocols and 450+ chains',
 		icon: 'layers',
 		tags: ['TVL', 'Fees', 'Revenue', 'Volume', 'Users']
+	},
+	{
+		id: 'income-statement',
+		title: 'Income Statement',
+		description: 'Financial flows with table and Sankey views for protocols with fees and revenue',
+		icon: 'file-text',
+		tags: ['Table', 'Sankey', 'Fees', 'Revenue']
+	},
+	{
+		id: 'unlocks',
+		title: 'Unlocks',
+		description: 'Token unlock schedules and total unlocks by protocol',
+		icon: 'linear-unlock',
+		tags: ['Schedule', 'Total Unlocks', 'Emissions']
 	},
 	{
 		id: 'yields',
@@ -55,19 +68,19 @@ interface CategoryCardProps {
 	onClick: () => void
 }
 
-export const CategoryCard = memo(function CategoryCard({ card, onClick }: CategoryCardProps) {
+export function CategoryCard({ card, onClick }: CategoryCardProps) {
 	return (
 		<button
 			onClick={onClick}
-			className="pro-border flex h-full flex-col items-start justify-between rounded-lg border p-4 text-left transition-all hover:border-(--primary)/40 hover:bg-(--cards-bg-alt)"
+			className="flex h-full flex-col items-start justify-between rounded-lg border pro-border p-4 text-left transition-all hover:border-(--primary)/40 hover:bg-(--cards-bg-alt)"
 		>
 			<div className="flex flex-col items-start gap-3">
 				<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--primary)/10">
 					<Icon name={card.icon} height={22} width={22} className="text-(--primary)" />
 				</div>
 				<div>
-					<h3 className="pro-text1 text-base font-semibold">{card.title}</h3>
-					<p className="pro-text2 mt-1 text-sm leading-relaxed">{card.description}</p>
+					<h3 className="text-base font-semibold pro-text1">{card.title}</h3>
+					<p className="mt-1 text-sm leading-relaxed pro-text2">{card.description}</p>
 				</div>
 			</div>
 			<div className="flex flex-wrap gap-1.5 pt-3">
@@ -82,4 +95,4 @@ export const CategoryCard = memo(function CategoryCard({ card, onClick }: Catego
 			</div>
 		</button>
 	)
-})
+}

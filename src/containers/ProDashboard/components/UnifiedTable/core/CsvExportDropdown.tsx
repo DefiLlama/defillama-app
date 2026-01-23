@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import type { UnifiedRowHeaderType } from '../../../types'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -42,25 +42,22 @@ export function CsvExportDropdown({ rowHeaders, onExport, isLoading, disabled }:
 		}
 	}, [isOpen])
 
-	const handleOptionClick = useCallback(
-		(level: CsvExportLevel) => {
-			setIsOpen(false)
-			onExport(level)
-		},
-		[onExport]
-	)
+	const handleOptionClick = (level: CsvExportLevel) => {
+		setIsOpen(false)
+		onExport(level)
+	}
 
-	const handleButtonClick = useCallback(() => {
+	const handleButtonClick = () => {
 		if (disabled) return
 		setIsOpen((prev) => !prev)
-	}, [disabled])
+	}
 
 	return (
 		<div ref={dropdownRef} className="relative">
 			<ProTableCSVButton
 				onClick={handleButtonClick}
 				isLoading={isLoading}
-				className={`pro-border pro-bg1 pro-hover-bg pro-text1 flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors ${
+				className={`flex items-center gap-2 rounded-md border pro-border pro-bg1 pro-hover-bg px-3 py-1.5 text-sm pro-text1 transition-colors ${
 					disabled ? 'cursor-not-allowed opacity-60' : ''
 				}`}
 			/>

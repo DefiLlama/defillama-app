@@ -1,7 +1,7 @@
-import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import { useRouter } from 'next/router'
+import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { slug } from '~/utils'
@@ -59,7 +59,7 @@ export function RaisesSearch({ list }) {
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! w-full!'
 					}}
-					className="max-sm:drawer thin-scrollbar z-10 flex max-h-(--popover-available-height) flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
+					className="z-10 flex thin-scrollbar max-h-(--popover-available-height) flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)] max-sm:drawer"
 				>
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 						<Icon name="x" className="h-5 w-5" />
@@ -141,7 +141,7 @@ const Row = ({ name, setOpen }) => {
 	return (
 		<Ariakit.ComboboxItem
 			value={name}
-			onClick={(e) => {
+			onClick={(_e) => {
 				setLoading(true)
 
 				router.push(`/raises/${slug(name.toLowerCase())}`).then(() => {

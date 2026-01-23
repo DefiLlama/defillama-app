@@ -12,7 +12,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
-	const data = (await fetchJson(TEMP_CHAIN_NFTS)) as Promise<Record<string, number>>
+	const data = await fetchJson<Record<string, number>>(TEMP_CHAIN_NFTS)
 
 	if (!data) return { notFound: true }
 
@@ -36,6 +36,7 @@ export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => 
 })
 
 const pageName = ['Chains', 'ranked by', 'NFT Volume']
+const DEFAULT_SORTING_STATE = [{ id: 'total24h', desc: true }]
 
 export default function NftsOnAllChains(props) {
 	return (
@@ -52,7 +53,7 @@ export default function NftsOnAllChains(props) {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
-				sortingState={[{ id: 'total24h', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)
@@ -64,13 +65,12 @@ const columns: ColumnDef<any>[] = [
 		header: 'Name',
 		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
@@ -90,7 +90,6 @@ const columns: ColumnDef<any>[] = [
 		header: 'NFT Volume 24h',
 		accessorFn: (protocol) => protocol.total24h,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: 'Sum of volume across all NFT exchanges on the chain in the last 24 hours'

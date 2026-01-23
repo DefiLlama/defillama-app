@@ -2,6 +2,7 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
+	reactCompiler: true,
 	// Increase timeout for static page generation (default is 60 seconds)
 	staticPageGenerationTimeout: 300, // 5 minutes
 	async redirects() {
@@ -572,7 +573,7 @@ const nextConfig: NextConfig = {
 				]
 			},
 			{
-				source: '/assets/llamaai.mp4',
+				source: '/assets/llamaai/llamaai.mp4',
 				headers: [
 					{
 						key: 'Accept-Ranges',

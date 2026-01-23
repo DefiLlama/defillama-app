@@ -9,7 +9,7 @@ export async function getStaticPaths() {
 
 	return {
 		paths: assets.map((asset) => ({ params: { asset: [asset] } })),
-		fallback: 'blocking'
+		fallback: false
 	}
 }
 

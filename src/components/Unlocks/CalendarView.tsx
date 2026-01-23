@@ -1,8 +1,8 @@
-import * as React from 'react'
-import { lazy, Suspense } from 'react'
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import isBetween from 'dayjs/plugin/isBetween'
+import * as React from 'react'
+import { lazy, Suspense } from 'react'
 import { useWatchlistManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
 import { Icon } from '../Icon'
@@ -38,7 +38,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 
 		if (showOnlyWatchlist || showOnlyInsider) {
 			filteredData = {}
-			Object.entries(initialUnlocksData).forEach(([date, dailyData]) => {
+			for (const date in initialUnlocksData) {
+				const dailyData = initialUnlocksData[date]
 				let filteredEvents = dailyData.events
 
 				if (showOnlyWatchlist) {
@@ -56,7 +57,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 						totalValue: filteredEvents.reduce((sum, event) => sum + event.value, 0)
 					}
 				}
-			})
+			}
 		}
 
 		return filteredData
@@ -88,18 +89,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 		const endDate = startDate.add(listDurationDays, 'days')
 		const events: Array<{ date: Dayjs; event: any }> = []
 
-		Object.entries(unlocksData || {}).forEach(([dateStr, dailyData]) => {
+		for (const dateStr in unlocksData || {}) {
+			const dailyData = (unlocksData || {})[dateStr]
 			const date = dayjs(dateStr)
 			if (date.isBetween(startDate.subtract(1, 'day'), endDate)) {
-				dailyData.events.forEach((event) => {
+				for (const event of dailyData.events) {
 					events.push({ date, event })
-				})
+				}
 			}
-		})
+		}
 
-		events.sort((a, b) => a.date.valueOf() - b.date.valueOf())
-
-		return events
+		return events.toSorted((a, b) => a.date.valueOf() - b.date.valueOf())
 	}, [currentDate, viewMode, unlocksData, precomputedData])
 
 	const { weeklyChartData, monthlyChartData } = useUnlockChartData({
@@ -121,7 +121,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 		const startOfMonth = currentDate.startOf('month')
 		const endOfMonth = currentDate.endOf('month')
 		let max = 0
-		Object.entries(unlocksData || {}).forEach(([dateStr, dailyData]) => {
+		for (const dateStr in unlocksData || {}) {
+			const dailyData = (unlocksData || {})[dateStr]
 			const date = dayjs(dateStr)
 			if (
 				date.isSame(startOfMonth, 'day') ||
@@ -132,11 +133,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 					max = dailyData.totalValue
 				}
 			}
-		})
+		}
 		return max
 	}, [currentDate, viewMode, unlocksData, precomputedData])
 
-	const next = React.useCallback(() => {
+	const next = () => {
 		const duration = viewMode === 'List' ? 30 : 1
 		const unit = (viewMode === 'List' ? 'day' : viewMode === 'TreeMap' ? 'year' : viewMode.toLowerCase()) as
 			| 'day'
@@ -144,9 +145,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 			| 'month'
 			| 'year'
 		setCurrentDate((prev) => prev.add(duration, unit))
-	}, [viewMode])
+	}
 
-	const prev = React.useCallback(() => {
+	const prev = () => {
 		const duration = viewMode === 'List' ? 30 : 1
 		const unit = (viewMode === 'List' ? 'day' : viewMode === 'TreeMap' ? 'year' : viewMode.toLowerCase()) as
 			| 'day'
@@ -154,11 +155,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 			| 'month'
 			| 'year'
 		setCurrentDate((prev) => prev.subtract(duration, unit))
-	}, [viewMode])
+	}
 
-	const goToToday = React.useCallback(() => {
+	const goToToday = () => {
 		setCurrentDate(dayjs())
-	}, [])
+	}
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -268,7 +269,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 			) : viewMode === 'Week' ? (
 				<>
 					<div className="grid grid-cols-1 gap-px border border-(--divider) bg-(--divider) md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
-						{calendarDays.map((day, i) => (
+						{calendarDays.map((day) => (
 							<React.Fragment key={day.date!.format('YYYY-MM-DD')}>
 								<WeekDayColumn dayInfo={day as { date: Dayjs; isCurrentMonth: boolean }} unlocksData={unlocksData} />
 							</React.Fragment>
@@ -294,19 +295,19 @@ const chartOptions = {
 
 			const validParams = params
 				.filter((param) => param.value && param.value[1] > 0)
-				.sort((a, b) => b.value[1] - a.value[1])
+				.toSorted((a, b) => b.value[1] - a.value[1])
 
 			if (validParams.length === 0) {
 				tooltipContent += 'No unlocks'
 			} else {
-				validParams.forEach((param) => {
+				for (const param of validParams) {
 					const value = param.value[1]
 					totalValue += value
 					tooltipContent += `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
 					<span>${param.marker} ${param.seriesName}</span>
 					<span style="font-weight: 500;">${formattedNum(value, true)}</span>
 				</div>`
-				})
+				}
 				if (validParams.length > 1) {
 					tooltipContent += `<div style="border-top: 1px solid var(--divider); margin-top: 4px; padding-top: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
 					<span><strong>Total</strong></span>

@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import * as React from 'react'
 import { VirtualTable } from '~/components/Table/Table'
 import { Tooltip } from '~/components/Tooltip'
 import { formattedNum, formattedPercent } from '~/utils'
@@ -89,6 +89,9 @@ export function YieldsProjectsTable({ data }: { data: Array<IYieldsProjectsTable
 		columns,
 		state: {
 			sorting
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),

@@ -1,9 +1,11 @@
-import { useMemo } from 'react'
 import { useQueries } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { TimePeriod } from '../../ProDashboardAPIContext'
 import { getChartQueryFn, getChartQueryKey } from '../../queries'
 import { ChartConfig } from '../../types'
 import { groupData } from '../../utils'
+
+const EMPTY_SERIES: [string, number][] = []
 
 export function useComposerItemsData(composerItems: ChartConfig[], timePeriod: TimePeriod) {
 	const queries = useQueries({
@@ -29,7 +31,7 @@ export function useComposerItemsData(composerItems: ChartConfig[], timePeriod: T
 	const itemsWithData = useMemo(() => {
 		return composerItems.map((item, index) => {
 			const queryResult = queries[index]
-			const rawData = (queryResult?.data || []) as [string, number][]
+			const rawData = (queryResult?.data ?? EMPTY_SERIES) as [string, number][]
 
 			const shouldGroup = item.grouping && item.grouping !== 'day'
 			const groupedData =

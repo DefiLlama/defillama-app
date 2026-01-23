@@ -1,13 +1,13 @@
-import { Fragment, memo, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import * as React from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { matchSorter } from 'match-sorter'
+import { useRouter } from 'next/router'
+import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
-import { subscribeToPinnedMetrics } from '~/contexts/LocalStorage'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import defillamaPages from '~/public/pages.json'
 import trendingPages from '~/public/trending.json'
 import { fetchJson } from '~/utils/async'
@@ -58,13 +58,13 @@ export function Metrics({
 
 	const router = useRouter()
 
-	const currentCategory = useMemo(() => {
-		if (router.pathname === '/') return null
-		return metricsByCategory.find(
-			(category) =>
-				category.category !== 'Trending' && category.metrics.some((metric) => metric.route === router.pathname)
-		)?.category
-	}, [router.pathname])
+	const currentCategory =
+		router.pathname === '/'
+			? null
+			: metricsByCategory.find(
+					(category) =>
+						category.category !== 'Trending' && category.metrics.some((metric) => metric.route === router.pathname)
+				)?.category
 
 	const metricsInputRef = useRef<HTMLInputElement>(null)
 
@@ -190,7 +190,7 @@ export function Metrics({
 					))}
 				</div>
 			</div>
-			<div className="thin-scrollbar flex flex-col gap-4">
+			<div className="flex thin-scrollbar flex-col gap-4">
 				{pages.map(({ category, metrics }) => (
 					<div key={category} className="relative flex flex-col gap-2">
 						<div className="absolute -top-4" data-category={category} />
@@ -216,23 +216,15 @@ export function Metrics({
 	)
 }
 
-export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage({
-	page,
-	totalTrackedByMetric
-}: {
-	page: IPage
-	totalTrackedByMetric: any
-}) {
+export function LinkToMetricOrToolPage({ page, totalTrackedByMetric }: { page: IPage; totalTrackedByMetric: any }) {
 	const pinnedMetrics = useSyncExternalStore(
-		subscribeToPinnedMetrics,
-		() => localStorage.getItem('pinned-metrics') ?? '[]',
+		(callback) => subscribeToStorageKey('pinned-metrics', callback),
+		() => getStorageItem('pinned-metrics', '[]') ?? '[]',
 		() => '[]'
 	)
 
-	const isPinned = useMemo(() => {
-		const pinnedPages = JSON.parse(pinnedMetrics)
-		return pinnedPages.includes(page.route)
-	}, [pinnedMetrics, page.route])
+	const pinnedPages = useMemo(() => JSON.parse(pinnedMetrics), [pinnedMetrics])
+	const isPinned = pinnedPages.includes(page.route)
 
 	const isExternalLink = page.route.startsWith('http')
 
@@ -282,7 +274,7 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 					<button
 						onClick={(e) => {
 							const currentPinnedMetrics = JSON.parse(window.localStorage.getItem('pinned-metrics') || '[]')
-							window.localStorage.setItem(
+							setStorageItem(
 								'pinned-metrics',
 								JSON.stringify(
 									currentPinnedMetrics.includes(page.route)
@@ -290,7 +282,6 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 										: [...currentPinnedMetrics, page.route]
 								)
 							)
-							window.dispatchEvent(new Event('pinnedMetricsChange'))
 							e.preventDefault()
 							e.stopPropagation()
 						}}
@@ -302,7 +293,7 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 			</Tooltip>
 		</div>
 	)
-})
+}
 
 const getTotalTracked = (totalTrackedByMetric: any, totalTrackedKey: string) => {
 	const value = totalTrackedKey.split('.').reduce((obj, key) => obj?.[key], totalTrackedByMetric)
@@ -310,7 +301,7 @@ const getTotalTracked = (totalTrackedByMetric: any, totalTrackedKey: string) => 
 	return `${value} tracked`
 }
 
-export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: { currentMetric: Array<string> }) {
+export function MetricsAndTools({ currentMetric }: { currentMetric: Array<string> }) {
 	const dialogStore = Ariakit.useDialogStore()
 	const hasScrolledToCategoryRef = useRef('')
 	return (
@@ -319,7 +310,7 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 				<div className="relative isolate w-full rounded-md bg-(--cards-bg) p-1">
 					{/* Left decorative dot pattern */}
 					<div
-						className="absolute top-[1px] left-[1px] hidden h-[calc(100%-2px)] w-48 overflow-hidden rounded-l-[6px] md:block"
+						className="pointer-events-none absolute top-[1px] left-[1px] h-[calc(100%-2px)] w-16 overflow-hidden rounded-l-[6px] sm:w-24 md:w-48"
 						aria-hidden="true"
 					>
 						<div
@@ -355,7 +346,7 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 					</div>
 					{/* Right decorative dot pattern */}
 					<div
-						className="absolute top-[1px] right-[1px] hidden h-[calc(100%-2px)] w-48 overflow-hidden rounded-r-[6px] md:block"
+						className="pointer-events-none absolute top-[1px] right-[1px] h-[calc(100%-2px)] w-16 overflow-hidden rounded-r-[6px] sm:w-24 md:w-48"
 						aria-hidden="true"
 					>
 						<div
@@ -397,7 +388,7 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 					</svg>
 				</div>
 				<Ariakit.Dialog
-					className="dialog max-sm:drawer thin-scrollbar h-full max-h-[calc(100dvh-80px)] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)]"
+					className="dialog thin-scrollbar h-full max-h-[calc(100dvh-80px)] gap-3 max-sm:drawer sm:w-full sm:max-w-[min(85vw,1280px)]"
 					unmountOnHide
 					hideOnInteractOutside
 				>
@@ -406,4 +397,4 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 			</Ariakit.DialogProvider>
 		</>
 	)
-})
+}

@@ -4,6 +4,8 @@ import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import { CHART_TYPES, ChartConfig } from '../../types'
 import { ChartPreview } from '../ChartPreview'
 
+const EMPTY_ITEM_DATA: any[] = []
+
 interface ComposerItemsCarouselProps {
 	composerItems: ChartConfig[]
 }
@@ -17,6 +19,16 @@ export function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselPr
 		[composerItems]
 	)
 
+	const currentItem = validItems[currentIndex]
+
+	const chartPreviewData = useMemo(
+		() =>
+			(currentItem?.data ?? EMPTY_ITEM_DATA).map(
+				(d) => [typeof d[0] === 'string' ? Number(d[0]) : d[0], d[1]] as [number, number]
+			),
+		[currentItem?.data]
+	)
+
 	const handlePrevious = () => {
 		setCurrentIndex((prev) => (prev - 1 + validItems.length) % validItems.length)
 	}
@@ -27,7 +39,7 @@ export function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselPr
 
 	if (validItems.length === 0) {
 		return (
-			<div className="pro-text3 flex h-full min-h-[150px] items-center justify-center text-center">
+			<div className="flex h-full min-h-[150px] items-center justify-center text-center pro-text3">
 				<div>
 					<Icon name="bar-chart-2" height={32} width={32} className="mx-auto mb-2" />
 					<div className="text-sm">No chart data available</div>
@@ -36,7 +48,6 @@ export function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselPr
 		)
 	}
 
-	const currentItem = validItems[currentIndex]
 	const chartType = CHART_TYPES[currentItem.type]
 	const itemName = currentItem.protocol
 		? getProtocolInfo(currentItem.protocol)?.name || currentItem.protocol
@@ -49,29 +60,29 @@ export function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselPr
 					<button
 						onClick={handlePrevious}
 						disabled={validItems.length <= 1}
-						className="pro-hover-bg pro-text2 disabled:pro-text3 flex h-6 w-6 items-center justify-center rounded-md text-xs disabled:cursor-not-allowed"
+						className="flex h-6 w-6 items-center justify-center rounded-md pro-hover-bg text-xs pro-text2 disabled:cursor-not-allowed disabled:pro-text3"
 					>
 						<Icon name="chevron-left" height={14} width={14} />
 					</button>
-					<span className="pro-text2 text-xs">
+					<span className="text-xs pro-text2">
 						{currentIndex + 1} / {validItems.length}
 					</span>
 					<button
 						onClick={handleNext}
 						disabled={validItems.length <= 1}
-						className="pro-hover-bg pro-text2 disabled:pro-text3 flex h-6 w-6 items-center justify-center rounded-md text-xs disabled:cursor-not-allowed"
+						className="flex h-6 w-6 items-center justify-center rounded-md pro-hover-bg text-xs pro-text2 disabled:cursor-not-allowed disabled:pro-text3"
 					>
 						<Icon name="chevron-right" height={14} width={14} />
 					</button>
 				</div>
-				<span className="pro-text1 text-xs font-medium">
+				<span className="text-xs font-medium pro-text1">
 					{itemName} - {chartType?.title || currentItem.type}
 				</span>
 			</div>
 			<div className="flex-1">
 				<ChartPreview
 					chartType={currentItem.type}
-					data={(currentItem.data || []).map((d) => [typeof d[0] === 'string' ? Number(d[0]) : d[0], d[1]])}
+					data={chartPreviewData}
 					color={currentItem.color}
 					itemName={itemName}
 				/>

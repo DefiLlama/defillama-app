@@ -1,6 +1,6 @@
-import * as React from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useRouter } from 'next/router'
+import * as React from 'react'
 import { DialogForm } from '~/components/DialogForm'
 import { Icon } from '~/components/Icon'
 import { NestedMenu } from '~/components/NestedMenu'
@@ -21,6 +21,8 @@ function SavedFilters({ currentFilters }) {
 	const [dialogOpen, setDialogOpen] = React.useState(false)
 	const [deleteOpen, setDeleteOpen] = React.useState(false)
 	const [filterToDelete, setFilterToDelete] = React.useState('')
+
+	const savedFiltersEntries = React.useMemo(() => Object.entries(savedFilters), [savedFilters])
 
 	const handleLoad = (name: string) => {
 		const filters = savedFilters[name]
@@ -69,13 +71,13 @@ function SavedFilters({ currentFilters }) {
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="max-sm:drawer thin-scrollbar z-10 flex max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-w-md dark:border-[hsl(204,3%,32%)]"
+					className="z-10 flex thin-scrollbar max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:drawer max-sm:rounded-b-none sm:max-w-md dark:border-[hsl(204,3%,32%)]"
 				>
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 						<Icon name="x" className="h-5 w-5" />
 					</Ariakit.PopoverDismiss>
 
-					{Object.entries(savedFilters).map(([name], i) => (
+					{savedFiltersEntries.map(([name], i) => (
 						<Ariakit.MenuItem
 							key={`custom-filter-${name}-${i}`}
 							onClick={() => handleLoad(name)}
@@ -95,7 +97,7 @@ function SavedFilters({ currentFilters }) {
 							</button>
 						</Ariakit.MenuItem>
 					))}
-					{Object.keys(savedFilters).length === 0 && <p className="p-4 text-center text-xs">No saved filters</p>}
+					{savedFiltersEntries.length === 0 && <p className="p-4 text-center text-xs">No saved filters</p>}
 				</Ariakit.Menu>
 			</Ariakit.MenuProvider>
 		</div>
@@ -143,7 +145,7 @@ export function YieldFiltersV2({
 					<StrategySearch lend={lend} borrow={borrow} searchData={strategyInputsData} ltvPlaceholder={ltvPlaceholder} />
 				) : null}
 				{tokens && (showSearchOnMobile || !isSmall) ? (
-					<IncludeExcludeTokens tokens={tokens} data-alwaysdisplay={showSearchOnMobile ? true : false} />
+					<IncludeExcludeTokens tokens={tokens} data-alwaysdisplay={showSearchOnMobile} />
 				) : null}
 				<div className="flex min-h-9 flex-wrap gap-2 *:flex-1 sm:hidden">
 					{isSmall && isClient ? (

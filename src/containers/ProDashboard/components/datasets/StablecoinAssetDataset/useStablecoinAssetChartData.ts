@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import { PEGGED_API, PEGGEDCONFIG_API, PEGGEDS_API } from '~/constants'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
-import { getDominancePercent, preparePieChartData, slug } from '~/utils'
+import { getDominancePercent } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 interface UseStablecoinAssetChartDataResult {
@@ -100,20 +101,23 @@ export function useStablecoinAssetChartData(stablecoinSlug: string): UseStableco
 		if (stackedDataset.length === 0) return []
 
 		const daySum: Record<string, number> = {}
-		stackedDataset.forEach(([date, values]: [string, any]) => {
+		for (const entry of stackedDataset as [string, any][]) {
+			const date = entry[0]
+			const values = entry[1]
 			let totalDaySum = 0
-			Object.values(values).forEach((chainCirculating: any) => {
+			for (const chainCirculating of Object.values(values) as any[]) {
 				totalDaySum += chainCirculating?.circulating || 0
-			})
+			}
 			daySum[date] = totalDaySum
-		})
+		}
 
 		return stackedDataset.map(([date, values]: [string, any]) => {
 			const shares: Record<string, number> = {}
-			Object.entries(values).forEach(([name, chainCirculating]: [string, any]) => {
+			for (const name in values) {
+				const chainCirculating = values[name] as any
 				const circulating = chainCirculating?.circulating || 0
 				shares[name] = getDominancePercent(circulating, daySum[date]) || 0
-			})
+			}
 			return { date, ...shares }
 		})
 	}, [chartData.stackedDataset])

@@ -1,5 +1,3 @@
-import * as React from 'react'
-import { useRouter } from 'next/router'
 import {
 	ColumnFiltersState,
 	ColumnOrderState,
@@ -9,6 +7,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -16,8 +15,8 @@ import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
 import { raisesColumnOrders, raisesColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
+import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { RaisesFilters } from '~/containers/Raises/Filters'
-import useWindowSize from '~/hooks/useWindowSize'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { prepareRaisesCsv } from './download'
@@ -31,11 +30,14 @@ const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as Re
 
 const columnResizeMode = 'onChange'
 
+const handleDownloadJson = () => {
+	window.open('https://api.llama.fi/raises', '_blank', 'noopener,noreferrer')
+}
+
 function RaisesTable({ raises, prepareCsv }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-	const windowSize = useWindowSize()
 
 	const instance = useReactTable({
 		data: raises,
@@ -46,6 +48,9 @@ function RaisesTable({ raises, prepareCsv }) {
 			columnOrder,
 			sorting
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		onColumnOrderChange: setColumnOrder,
 		onColumnFiltersChange: setColumnFilters,
@@ -54,27 +59,8 @@ function RaisesTable({ raises, prepareCsv }) {
 		getSortedRowModel: getSortedRowModel()
 	})
 
-	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = windowSize.width
-			? (raisesColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
-			: defaultOrder
-
-		instance.setColumnOrder(order)
-	}, [windowSize, instance])
-
-	const [projectName, setProjectName] = React.useState('')
-
-	React.useEffect(() => {
-		const projectsColumns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			projectsColumns.setFilterValue(projectName)
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance])
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	useSortColumnSizesAndOrders({ instance, columnOrders: raisesColumnOrders })
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -94,11 +80,11 @@ function RaisesTable({ raises, prepareCsv }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 				<CSVDownloadButton prepareCsv={prepareCsv} />
-				<CSVDownloadButton onClick={() => window.open('https://api.llama.fi/raises')} isLoading={false}>
+				<CSVDownloadButton onClick={handleDownloadJson} isLoading={false}>
 					Download.json
 				</CSVDownloadButton>
 			</div>
@@ -110,8 +96,6 @@ function RaisesTable({ raises, prepareCsv }) {
 const pageName = ['Deals by Investor']
 
 export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
-	const { pathname } = useRouter()
-
 	const {
 		filteredRaisesList,
 		selectedInvestors,
@@ -129,9 +113,9 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 		chains
 	})
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		return prepareRaisesCsv({ raises: filteredRaisesList })
-	}, [filteredRaisesList])
+	}
 
 	return (
 		<Layout
@@ -163,7 +147,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				selectedInvestors={selectedInvestors}
 				chains={chains}
 				selectedChains={selectedChains}
-				pathname={pathname}
+				pathname={`/raises/${slug(investorName)}`}
 			/>
 
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">

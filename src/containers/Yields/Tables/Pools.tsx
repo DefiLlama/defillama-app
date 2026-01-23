@@ -1,10 +1,10 @@
-import { useRouter } from 'next/router'
 import { ColumnDef } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
 import { IconsRow } from '~/components/IconsRow'
 import { ImageWithFallback } from '~/components/ImageWithFallback'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { formatColumnOrder, getColumnSizesKeys } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
 import { formattedNum, formattedPercent } from '~/utils'
 import { NameYield, NameYieldPool } from './Name'
@@ -18,14 +18,12 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		header: 'Pool',
 		accessorKey: 'pool',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+		cell: ({ getValue, row }) => {
 			return (
 				<NameYieldPool
 					value={getValue() as string}
 					configID={row.original.configID}
 					url={row.original.url}
-					index={index + 1}
 					poolMeta={row.original.poolMeta}
 				/>
 			)
@@ -212,7 +210,6 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 						width={90}
 						height={30}
 						className="ml-auto"
-						unoptimized
 					/>
 				</BasicLink>
 			)
@@ -433,9 +430,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 	}
 ]
 
-// key: min width of window/screen
-// values: table columns order
-const columnOrders = {
+const columnOrders: ColumnOrdersByBreakpoint = {
 	0: [
 		'pool',
 		'apy',
@@ -542,7 +537,7 @@ const columnOrders = {
 	]
 }
 
-const columnSizes = {
+const columnSizes: ColumnSizesByBreakpoint = {
 	0: {
 		pool: 120,
 		project: 200,
@@ -727,10 +722,6 @@ const columnSizes = {
 	}
 }
 
-const yieldsColumnOrders = formatColumnOrder(columnOrders)
-
-const columnSizesKeys = getColumnSizesKeys(columnSizes)
-
 export function YieldsPoolsTable(props: IYieldsTableProps) {
 	const router = useRouter()
 	const {
@@ -793,8 +784,7 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 			{...props}
 			columns={columns}
 			columnSizes={columnSizes}
-			columnSizesKeys={columnSizesKeys}
-			columnOrders={yieldsColumnOrders}
+			columnOrders={columnOrders}
 			columnVisibility={columnVisibility}
 		/>
 	)

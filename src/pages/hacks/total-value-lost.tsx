@@ -1,7 +1,8 @@
-import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Select } from '~/components/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -15,7 +16,10 @@ import { formattedNum, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('protocols/total-value-lost-in-hacks', async () => {
-	const data = await getTotalValueLostInHacksByProtocol()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const data = await getTotalValueLostInHacksByProtocol({
+		protocolMetadata: metadataCache.protocolMetadata
+	})
 	return {
 		props: data,
 		revalidate: maxAgeForNext([22])
@@ -23,6 +27,7 @@ export const getStaticProps = withPerformanceLogging('protocols/total-value-lost
 })
 
 const pageName = ['Protocols', 'ranked by', 'Total Value Lost in Hacks']
+const DEFAULT_SORTING_STATE = [{ id: 'Net User Loss', desc: true }]
 
 export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostInHacksByProtocol) {
 	const [selectedColumns, setSelectedColumns] = React.useState<Array<string>>([
@@ -36,7 +41,7 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 		return columns.filter((c) => selectedColumns.includes(c.id))
 	}, [selectedColumns])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const rows: Array<Array<string | number>> = [['Name', 'Total Hacked', 'Returned Funds', 'Net User Loss']]
 		for (const protocol of protocols) {
 			rows.push([
@@ -47,7 +52,7 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 			])
 		}
 		return { filename: 'total-value-lost-in-hacks.csv', rows: rows as (string | number | boolean)[][] }
-	}, [protocols])
+	}
 
 	return (
 		<Layout
@@ -67,11 +72,9 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 				customFilters={
 					<>
 						<Select
-							allValues={columns.map((c) => c.id)}
+							allValues={columnIds}
 							selectedValues={selectedColumns}
 							setSelectedValues={setSelectedColumns}
-							clearAll={() => setSelectedColumns([])}
-							toggleAll={() => setSelectedColumns(columns.map((c) => c.id))}
 							label="Columns"
 							labelType="smol"
 							triggerProps={{
@@ -82,7 +85,7 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</>
 				}
-				sortingState={[{ id: 'Net User Loss', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)
@@ -93,13 +96,30 @@ const columns: ColumnDef<IProtocolTotalValueLostInHacksByProtocol['protocols'][n
 		header: 'Name',
 		accessorFn: (row) => row.name,
 		id: 'Name',
-		cell: ({ row, getValue, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+		cell: ({ row, getValue }) => {
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
-					<span className="shrink-0" onClick={row.getToggleExpandedHandler()}>
-						{index + 1}
-					</span>
+					{row.subRows?.length > 0 ? (
+						<button
+							className="absolute -left-4.5"
+							{...{
+								onClick: row.getToggleExpandedHandler()
+							}}
+						>
+							{row.getIsExpanded() ? (
+								<>
+									<Icon name="chevron-down" height={16} width={16} />
+									<span className="sr-only">View child protocols</span>
+								</>
+							) : (
+								<>
+									<Icon name="chevron-right" height={16} width={16} />
+									<span className="sr-only">Hide child protocols</span>
+								</>
+							)}
+						</button>
+					) : null}
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={tokenIconUrl(row.original.slug)} data-lgonly />
 
@@ -142,3 +162,5 @@ const columns: ColumnDef<IProtocolTotalValueLostInHacksByProtocol['protocols'][n
 		}
 	}
 ]
+
+const columnIds = columns.map((c) => c.id)

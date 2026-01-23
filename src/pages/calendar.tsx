@@ -1,5 +1,3 @@
-import * as React from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import {
 	ColumnDef,
@@ -10,11 +8,14 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
+import { useTableSearch } from '~/components/Table/utils'
 import { PROTOCOL_EMISSIONS_API } from '~/constants'
 import calendarEvents from '~/constants/calendar'
 import Layout from '~/layout'
@@ -27,12 +28,12 @@ export const getStaticProps = withPerformanceLogging('calendar', async () => {
 
 	const emissions = res.map((protocol) => {
 		const unlocksByDate = {}
-		protocol.events?.forEach((e) => {
-			if (e.timestamp < Date.now() / 1000 || (e.noOfTokens.length === 1 && e.noOfTokens[0] === 0)) return
+		for (const e of protocol.events ?? []) {
+			if (e.timestamp < Date.now() / 1000 || (e.noOfTokens.length === 1 && e.noOfTokens[0] === 0)) continue
 			unlocksByDate[e.timestamp] =
 				(unlocksByDate[e.timestamp] ?? 0) +
 				(e.noOfTokens.length === 2 ? e.noOfTokens[1] - e.noOfTokens[0] : e.noOfTokens[0])
-		})
+		}
 		const unlocksList = Object.entries(unlocksByDate)
 		const maxUnlock = unlocksList.reduce((max, curr) => {
 			if (max[1] < curr[1]) {
@@ -115,22 +116,16 @@ export default function Protocols({ emissions }) {
 			columnFilters,
 			sorting
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
-
-	const [projectName, setProjectName] = React.useState('')
-
-	React.useEffect(() => {
-		const projectsColumns = instance.getColumn('name')
-		const id = setTimeout(() => {
-			projectsColumns.setFilterValue(projectName)
-		}, 200)
-		return () => clearTimeout(id)
-	}, [projectName, instance])
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	return (
 		<Layout
@@ -183,7 +178,7 @@ export default function Protocols({ emissions }) {
 							wrapperProps={{
 								className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 							}}
-							className="max-sm:drawer z-10 flex max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
+							className="z-10 flex max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:drawer max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
 						>
 							<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 								<Icon name="x" className="h-5 w-5" />
@@ -256,7 +251,7 @@ export default function Protocols({ emissions }) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search events..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
 				</div>
@@ -271,12 +266,10 @@ export const calendarColumns: ColumnDef<any>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue, row }) => {
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					{row.original.type === 'Unlock' ? (
 						<BasicLink
 							href={`/unlocks/${slug(row.original.link)}`}

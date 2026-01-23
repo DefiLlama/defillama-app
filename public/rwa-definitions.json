@@ -71,7 +71,7 @@
 		}
 	},
 	"onChainMarketcap": {
-		"label": "On-chain Marketcap",
+		"label": "Onchain Marketcap",
 		"description": "Total USD value of the asset that exists on chain across tracked chains"
 	},
 	"activeMarketcap": {
@@ -81,6 +81,18 @@
 	"defiActiveTvl": {
 		"label": "DeFi Active TVL",
 		"description": "Subset of Active TVL deployed in third party DeFi protocols tracked by DeFiLlama"
+	},
+	"totalOnChainMarketcap": {
+		"label": "Total RWA Onchain",
+		"description": "Sum across assets of their Onchain Marketcap (the total USD value of each asset that exists Onchain across tracked chains)."
+	},
+	"totalActiveMarketcap": {
+		"label": "Total RWA Active Marketcap",
+		"description": "Sum across assets of their Active Marketcap (the portion of Onchain value taking real market risk in user or protocol hands)."
+	},
+	"totalDefiActiveTvl": {
+		"label": "DeFi Active TVL",
+		"description": "Sum across assets of their DeFi Active TVL (the subset of Active TVL deployed in tracked third-party DeFi protocols)."
 	},
 	"rwaClassification": {
 		"label": "RWA Classification",
@@ -151,5 +163,13 @@
 	"selfCustody": {
 		"label": "Self Custody",
 		"description": "Indicates whether the token can be held in a user controlled wallet"
+	},
+	"totalAssetIssuers": {
+		"label": "Total Asset Issuers",
+		"description": "Total number of unique issuers across all tracked real world assets in the current selection"
+	},
+	"totalStablecoinsValue": {
+		"label": "Total Stablecoins Value",
+		"description": "Total USD value of all stablecoins in the dataset that exist on chain across tracked chains in the current selection"
 	}
 }

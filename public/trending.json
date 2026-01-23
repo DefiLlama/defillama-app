@@ -22,6 +22,17 @@
     "totalTrackedKey": "yields.pools"
   },
   {
+    "name": "Stablecoins by Market Cap",
+    "route": "/stablecoins",
+    "category": "Trending",
+    "description": "Total market cap of stable assets",
+    "totalTrackedKey": "stablecoins.protocols",
+    "keys": [
+      "pegged"
+    ],
+    "tab": "Protocols"
+  },
+  {
     "name": "Perp Volume by Protocol",
     "route": "/perps",
     "category": "Trending",
@@ -30,17 +41,6 @@
     "keys": [
       "derivatives",
       "futures"
-    ],
-    "tab": "Protocols"
-  },
-  {
-    "name": "Stablecoins by Market Cap",
-    "route": "/stablecoins",
-    "category": "Trending",
-    "description": "Total market cap of stable assets",
-    "totalTrackedKey": "stablecoins.protocols",
-    "keys": [
-      "pegged"
     ],
     "tab": "Protocols"
   }

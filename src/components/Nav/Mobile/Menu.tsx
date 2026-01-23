@@ -1,18 +1,21 @@
-import * as React from 'react'
-import { Suspense, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { useRouter } from 'next/router'
+import * as React from 'react'
+import { Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
 import { mutatePinnedMetrics } from '../pinnedUtils'
+import { PremiumHeader } from '../PremiumHeader'
 import { TNavLink, TNavLinks, TOldNavLink } from '../types'
 
-export const Menu = React.memo(function Menu({
+const VERTICAL_SORTING_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
+
+export function Menu({
 	mainLinks,
 	pinnedPages,
 	userDashboards,
@@ -37,7 +40,7 @@ export const Menu = React.memo(function Menu({
 			</Ariakit.DialogDisclosure>
 
 			<Ariakit.Dialog unmountOnHide>
-				<nav className="animate-slidein fixed top-0 right-0 bottom-0 z-10 flex w-full max-w-[300px] flex-col overflow-auto bg-(--bg-main) p-4 pl-5 text-black dark:text-white">
+				<nav className="fixed top-0 right-0 bottom-0 z-10 flex w-full max-w-[300px] animate-slidein flex-col overflow-auto bg-(--bg-main) p-4 pl-5 text-black dark:text-white">
 					<Ariakit.DialogDismiss className="ml-auto">
 						<span className="sr-only">Close Navigation Menu</span>
 						<Icon name="x" height={20} width={20} strokeWidth="4px" />
@@ -45,9 +48,9 @@ export const Menu = React.memo(function Menu({
 
 					{mainLinks.map(({ category, pages }) => (
 						<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
-							<p className="mb-1 text-xs opacity-65">{category}</p>
+							{category === 'Premium' ? <PremiumHeader /> : <p className="mb-1 text-xs opacity-65">{category}</p>}
 							<hr className="border-black/20 dark:border-white/20" />
-							{pages.map(({ name, route, icon, attention }) => (
+							{pages.map(({ name, route, icon, attention, umamiEvent }) => (
 								<LinkToPage
 									route={route}
 									name={name}
@@ -56,6 +59,7 @@ export const Menu = React.memo(function Menu({
 									key={`mobile-nav-${name}-${route}`}
 									asPath={asPath}
 									setShow={setShow}
+									umamiEvent={umamiEvent}
 								/>
 							))}
 						</div>
@@ -148,9 +152,9 @@ export const Menu = React.memo(function Menu({
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
 	)
-})
+}
 
-const PinnedPagesSection = React.memo(function PinnedPagesSection({
+function PinnedPagesSection({
 	pinnedPages,
 	asPath,
 	setShow
@@ -173,21 +177,20 @@ const PinnedPagesSection = React.memo(function PinnedPagesSection({
 		})
 	)
 
-	const handleDragEnd = React.useCallback(
-		(event: DragEndEvent) => {
-			const { active, over } = event
-			if (!over || active.id === over.id) return
+	const handleDragEnd = (event: DragEndEvent) => {
+		const { active, over } = event
+		if (!over || active.id === over.id) return
 
-			const oldIndex = pinnedPages.findIndex(({ route }) => route === active.id)
-			const newIndex = pinnedPages.findIndex(({ route }) => route === over.id)
+		const oldIndex = pinnedPages.findIndex(({ route }) => route === active.id)
+		const newIndex = pinnedPages.findIndex(({ route }) => route === over.id)
 
-			if (oldIndex === -1 || newIndex === -1) return
+		if (oldIndex === -1 || newIndex === -1) return
 
-			const reordered = arrayMove(pinnedPages, oldIndex, newIndex)
-			mutatePinnedMetrics(() => reordered.map(({ route }) => route))
-		},
-		[pinnedPages]
-	)
+		const reordered = arrayMove(pinnedPages, oldIndex, newIndex)
+		mutatePinnedMetrics(() => reordered.map(({ route }) => route))
+	}
+
+	const sortableItems = pinnedPages.map(({ route }) => route)
 
 	return (
 		<div className="group/pinned mb-3 flex flex-col first:mb-auto">
@@ -212,12 +215,8 @@ const PinnedPagesSection = React.memo(function PinnedPagesSection({
 			{isReordering ? (
 				<p className="mt-1 text-[11px] text-(--text-tertiary)">Drag to reorder, tap remove to unpin</p>
 			) : null}
-			<DndContext
-				sensors={sensors}
-				onDragEnd={handleDragEnd}
-				modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-			>
-				<SortableContext items={pinnedPages.map(({ route }) => route)} strategy={verticalListSortingStrategy}>
+			<DndContext sensors={sensors} onDragEnd={handleDragEnd} modifiers={VERTICAL_SORTING_MODIFIERS}>
+				<SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
 					<div className="mt-1 flex flex-col gap-1">
 						{pinnedPages.map((page) => (
 							<PinnedPageRow
@@ -233,7 +232,7 @@ const PinnedPagesSection = React.memo(function PinnedPagesSection({
 			</DndContext>
 		</div>
 	)
-})
+}
 
 const PinnedPageRow = ({
 	page,
@@ -256,9 +255,9 @@ const PinnedPageRow = ({
 		transition
 	}
 
-	const handleUnpin = React.useCallback(() => {
+	const handleUnpin = () => {
 		mutatePinnedMetrics((routes) => routes.filter((route) => route !== page.route))
-	}, [page.route])
+	}
 
 	return (
 		<div
@@ -308,23 +307,28 @@ const PinnedPageRow = ({
 	)
 }
 
-const LinkToPage = React.memo(function LinkToPage({
+function LinkToPage({
 	route,
 	name,
 	attention,
+	freeTrial,
 	icon,
 	asPath,
-	setShow
+	setShow,
+	umamiEvent
 }: {
 	route: string
 	name: string
 	attention?: boolean
+	freeTrial?: boolean
 	icon?: string
 	asPath: string
 	setShow: (show: boolean) => void
+	umamiEvent?: string
 }) {
 	const isActive = route === asPath.split('/?')[0].split('?')[0]
 	const isExternal = route.startsWith('http')
+	const handleClick = () => setShow(false)
 
 	return (
 		<BasicLink
@@ -332,41 +336,49 @@ const LinkToPage = React.memo(function LinkToPage({
 			target={isExternal ? '_blank' : undefined}
 			rel={isExternal ? 'noopener noreferrer' : undefined}
 			data-linkactive={isActive}
+			data-umami-event={umamiEvent}
 			className="group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-			onClick={() => setShow(false)}
+			onClick={handleClick}
 		>
-			<NavItemContent name={name} icon={icon} attention={attention} />
+			<NavItemContent name={name} icon={icon} attention={attention} freeTrial={freeTrial} />
 		</BasicLink>
 	)
-})
+}
 
-const NavItemContent = React.memo(function NavItemContent({
+function NavItemContent({
 	name,
 	icon,
-	attention
+	attention,
+	freeTrial
 }: {
 	name: string
 	icon?: string
 	attention?: boolean
+	freeTrial?: boolean
 }) {
 	return (
 		<>
 			{icon ? (
-				<Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4 shrink-0" />
+				<Icon name={icon as any} className="h-4 w-4 shrink-0 group-hover/link:animate-wiggle" />
 			) : name === 'LlamaAI' ? (
-				<svg className="group-hover/link:animate-wiggle h-4 w-4 shrink-0">
-					<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+				<svg className="h-4 w-4 shrink-0 group-hover/link:animate-wiggle">
+					<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 				</svg>
 			) : null}
 			<span className="relative flex min-w-0 flex-1 flex-wrap items-center gap-2 text-left leading-tight">
-				<span className="min-w-0 break-words">{name}</span>
+				<span className="min-w-0 wrap-break-word">{name}</span>
 				{attention ? (
 					<span
 						aria-hidden
 						className="inline-block h-2 w-2 shrink-0 rounded-full bg-(--error) shadow-[0_0_0_2px_var(--bg-main)]"
 					/>
 				) : null}
+				{freeTrial ? (
+					<span className="relative inline-flex items-center rounded-full border border-[#C99A4A]/50 bg-gradient-to-r from-[#C99A4A]/15 via-[#C99A4A]/5 to-[#C99A4A]/15 px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#996F1F] shadow-[0_0_8px_rgba(201,154,74,0.3)] dark:border-[#FDE0A9]/50 dark:from-[#FDE0A9]/20 dark:via-[#FDE0A9]/10 dark:to-[#FDE0A9]/20 dark:text-[#FDE0A9] dark:shadow-[0_0_8px_rgba(253,224,169,0.25)]">
+						Try free
+					</span>
+				) : null}
 			</span>
 		</>
 	)
-})
+}

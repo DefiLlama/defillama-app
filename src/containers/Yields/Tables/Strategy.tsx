@@ -1,7 +1,6 @@
-import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { formatColumnOrder, getColumnSizesKeys } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
 import { formattedNum, formattedPercent } from '~/utils'
@@ -15,32 +14,31 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		header: 'Strategy',
 		accessorKey: 'strategy',
 		enableSorting: false,
-		cell: ({ row, table }) => {
+		cell: ({ row }) => {
 			const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol} ➞ ${row.original.farmSymbol}`
 
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
 			return (
-				<div className="flex flex-col gap-2 text-xs">
-					<NameYieldPool
-						value={name}
-						// in case of cdp row.original.pool === row.original.borrow.pool
-						configID={`${row.original.pool}_${row.original.borrow.pool}_${row.original.farmPool}`}
-						url={row.original.url}
-						index={index + 1}
-						strategy={true}
-						maxCharacters={50}
-						bookmark={false}
-					/>
-					<PoolStrategyRoute
-						project1={row.original.projectName}
-						airdropProject1={row.original.airdrop}
-						project2={row.original.farmProjectName}
-						airdropProject2={false}
-						chain={row.original.chains[0]}
-						index={index + 1}
-					/>
-				</div>
+				<span className="grid grid-cols-[auto_1fr] gap-2 text-xs">
+					<span className="vf-row-index shrink-0 lg:pt-1.25" aria-hidden="true" />
+					<span className="flex min-w-0 flex-col gap-2">
+						<NameYieldPool
+							value={name}
+							// in case of cdp row.original.pool === row.original.borrow.pool
+							configID={`${row.original.pool}_${row.original.borrow.pool}_${row.original.farmPool}`}
+							url={row.original.url}
+							strategy={true}
+							maxCharacters={50}
+							bookmark={false}
+						/>
+						<PoolStrategyRoute
+							project1={row.original.projectName}
+							airdropProject1={row.original.airdrop}
+							project2={row.original.farmProjectName}
+							airdropProject2={false}
+							chain={row.original.chains[0]}
+						/>
+					</span>
+				</span>
 			)
 		},
 		size: 400
@@ -167,16 +165,14 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 	}
 ]
 
-// key: min width of window/screen
-// values: table columns order
-const columnOrders = {
+const columnOrders: ColumnOrdersByBreakpoint = {
 	0: ['strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
 	400: ['strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
 	640: ['strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
 	1280: ['strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd']
 }
 
-const columnSizes = {
+const columnSizes: ColumnSizesByBreakpoint = {
 	0: {
 		strategy: 250,
 		totalApy: 150,
@@ -195,18 +191,13 @@ const columnSizes = {
 	}
 }
 
-const yieldsColumnOrders = formatColumnOrder(columnOrders)
-
-const columnSizesKeys = getColumnSizesKeys(columnSizes)
-
 export function YieldsStrategyTable({ data }) {
 	return (
 		<YieldsTableWrapper
 			data={data}
 			columns={columns}
 			columnSizes={columnSizes}
-			columnSizesKeys={columnSizesKeys}
-			columnOrders={yieldsColumnOrders}
+			columnOrders={columnOrders}
 			rowSize={80}
 		/>
 	)

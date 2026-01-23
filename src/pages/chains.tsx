@@ -5,7 +5,12 @@ import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('chains', async () => {
-	const data = await getChainsByCategory({ category: 'All', sampledChart: true })
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const data = await getChainsByCategory({
+		chainMetadata: metadataCache.chainMetadata,
+		category: 'All',
+		sampledChart: true
+	})
 
 	return {
 		props: data,
