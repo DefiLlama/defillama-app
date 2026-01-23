@@ -15,20 +15,11 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		header: 'Pool',
 		accessorKey: 'pool',
 		enableSorting: false,
-		cell: ({ row, table }) => {
+		cell: ({ row }) => {
 			const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol}`
 
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
 			return (
-				<NameYieldPool
-					withoutLink
-					value={name}
-					configID={row.original.configID}
-					url={row.original.url}
-					index={index + 1}
-					borrow={true}
-				/>
+				<NameYieldPool withoutLink value={name} configID={row.original.configID} url={row.original.url} borrow={true} />
 			)
 		},
 		size: 400

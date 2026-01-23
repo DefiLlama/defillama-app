@@ -72,12 +72,10 @@ const columns: ColumnDef<any>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue }) => {
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<BasicLink
 						href={`/protocol/${slug(getValue() as string)}`}

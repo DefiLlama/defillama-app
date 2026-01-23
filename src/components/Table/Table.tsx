@@ -27,6 +27,11 @@ declare module '@tanstack/table-core' {
 		align?: 'start' | 'end' | 'center'
 		headerHelperText?: string
 		hidden?: boolean
+		/**
+		 * Type-only field to satisfy linters about unused generics.
+		 * Not used at runtime.
+		 */
+		__vfType?: [TData, TValue]
 	}
 }
 
@@ -48,6 +53,24 @@ export function VirtualTable({
 	const isSmallScreen = useMedia('(max-width: 768px)')
 	const tableContainerRef = useRef<HTMLTableSectionElement>(null)
 	const { rows } = instance.getRowModel()
+
+	const subRowOrdinalById = React.useMemo(() => {
+		const ordById = new Map<string, number>()
+		const perParent = new Map<string, number>()
+
+		for (const r of rows) {
+			if (r.depth > 0) {
+				const parentId =
+					(r as any).getParentRow?.()?.id ??
+					(typeof r.id === 'string' ? r.id.split('.').slice(0, -1).join('.') : String(r.id))
+				const next = (perParent.get(parentId) ?? 0) + 1
+				perParent.set(parentId, next)
+				ordById.set(r.id, next)
+			}
+		}
+
+		return ordById
+	}, [rows])
 
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
@@ -354,10 +377,16 @@ export function VirtualTable({
 			<div id="table-header-dup"></div>
 
 			<div
+				className="vf-row-counter"
 				style={
 					skipVirtualization
-						? undefined
-						: { height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }
+						? { ['--vf-row-offset' as any]: '0' }
+						: {
+								height: `${rowVirtualizer.getTotalSize()}px`,
+								width: '100%',
+								position: 'relative',
+								['--vf-row-offset' as any]: `${virtualItems?.[0]?.index ?? 0}`
+							}
 				}
 			>
 				{(skipVirtualization ? rows : virtualItems).map((row, i) => {
@@ -381,7 +410,18 @@ export function VirtualTable({
 
 					return (
 						<React.Fragment key={rowTorender.id}>
-							<div style={trStyle}>
+							<div
+								style={{
+									...trStyle,
+									...(rowTorender.depth > 0
+										? {
+												['--vf-subrow-index' as any]: `"${subRowOrdinalById.get(rowTorender.id) ?? rowTorender.index + 1}"`
+											}
+										: null)
+								}}
+								data-depth={rowTorender.depth}
+								className="vf-row"
+							>
 								{rowTorender
 									.getVisibleCells()
 									.filter((cell) => !cell.column.columnDef.meta?.hidden)
@@ -418,9 +458,7 @@ export function VirtualTable({
 										)
 									})}
 							</div>
-							{renderSubComponent && rowTorender.getIsExpanded() && (
-								<div>{renderSubComponent({ row: rowTorender })}</div>
-							)}
+							{renderSubComponent && rowTorender.getIsExpanded() && <>{renderSubComponent({ row: rowTorender })}</>}
 						</React.Fragment>
 					)
 				})}

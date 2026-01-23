@@ -21,10 +21,9 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 		header: 'Name',
 		accessorKey: 'displayName',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
 			const linkValue = slug(value)
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const rowValues = row.original
 			const icon = rowValues.icon
 			let iconLink
@@ -35,7 +34,7 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 
 			return (
 				<span className="flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					{icon && <TokenLogo logo={iconLink} data-lgonly />}
 					<BasicLink
 						href={`/bridge/${linkValue}`}
@@ -110,12 +109,11 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			return (
 				<span className="flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo logo={chainIconUrl(value)} data-lgonly />
 					<BasicLink
 						href={`/bridges/${value}`}

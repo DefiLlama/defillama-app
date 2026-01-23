@@ -32,9 +32,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span
@@ -64,7 +63,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 						<Bookmark readableName={value} data-lgonly data-bookmark />
 					)}
 
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
@@ -860,9 +859,8 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span
@@ -892,7 +890,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 						<Bookmark readableName={value} data-lgonly data-bookmark />
 					)}
 
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
@@ -999,9 +997,8 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span
@@ -1031,7 +1028,7 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 						<Bookmark readableName={value} data-lgonly data-bookmark />
 					)}
 
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
@@ -1099,7 +1096,6 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		size: 80,
 		enableSorting: false,
 		cell: ({ row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			return <span className="font-bold">{index + 1}</span>
 		},
 		meta: {
@@ -1263,9 +1259,8 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span
@@ -1273,7 +1268,7 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
 					<Bookmark readableName={value} data-lgonly data-bookmark />
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 					<BasicLink
 						href={`/protocol/${slug(value)}`}

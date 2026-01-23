@@ -64,9 +64,9 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
 			const logo = row.original.logo ?? row.subRows?.[0]?.original?.logo
 
 			return (
@@ -95,7 +95,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 						</button>
 					) : null}
 
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					{logo ? <TokenLogo logo={logo} data-lgonly /> : <FallbackLogo />}
 

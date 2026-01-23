@@ -27,11 +27,10 @@ export const revenueDatasetColumns: ColumnDef<IRevenueRow>[] = [
 		accessorFn: (row) => row.displayName || row.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const index = row.index
 			const name = getValue() as string
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo size={20} logo={tokenIconUrl(slug(name))} data-lgonly />
 					<BasicLink
 						href={`/revenue/${row.original.slug}`}

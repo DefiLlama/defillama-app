@@ -14,32 +14,31 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		header: 'Strategy',
 		accessorKey: 'strategy',
 		enableSorting: false,
-		cell: ({ row, table }) => {
+		cell: ({ row }) => {
 			const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol} ➞ ${row.original.farmSymbol}`
 
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
 			return (
-				<div className="flex flex-col gap-2 text-xs">
-					<NameYieldPool
-						value={name}
-						// in case of cdp row.original.pool === row.original.borrow.pool
-						configID={`${row.original.pool}_${row.original.borrow.pool}_${row.original.farmPool}`}
-						url={row.original.url}
-						index={index + 1}
-						strategy={true}
-						maxCharacters={50}
-						bookmark={false}
-					/>
-					<PoolStrategyRoute
-						project1={row.original.projectName}
-						airdropProject1={row.original.airdrop}
-						project2={row.original.farmProjectName}
-						airdropProject2={false}
-						chain={row.original.chains[0]}
-						index={index + 1}
-					/>
-				</div>
+				<span className="grid grid-cols-[auto_1fr] gap-2 text-xs">
+					<span className="vf-row-index shrink-0 lg:pt-1.25" aria-hidden="true" />
+					<span className="flex min-w-0 flex-col gap-2">
+						<NameYieldPool
+							value={name}
+							// in case of cdp row.original.pool === row.original.borrow.pool
+							configID={`${row.original.pool}_${row.original.borrow.pool}_${row.original.farmPool}`}
+							url={row.original.url}
+							strategy={true}
+							maxCharacters={50}
+							bookmark={false}
+						/>
+						<PoolStrategyRoute
+							project1={row.original.projectName}
+							airdropProject1={row.original.airdrop}
+							project2={row.original.farmProjectName}
+							airdropProject2={false}
+							chain={row.original.chains[0]}
+						/>
+					</span>
+				</span>
 			)
 		},
 		size: 400

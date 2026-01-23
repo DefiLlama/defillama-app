@@ -11,7 +11,6 @@ interface INameYieldPoolProps {
 	value: string
 	configID: string
 	url: string
-	index: number
 	borrow?: boolean
 	withoutLink?: boolean
 	maxCharacters?: number
@@ -32,7 +31,6 @@ export function NameYieldPool({
 	value,
 	configID,
 	url,
-	index,
 	borrow: _borrow,
 	strategy,
 	withoutLink,
@@ -48,7 +46,7 @@ export function NameYieldPool({
 		<span className="flex items-center gap-2">
 			{bookmark ? <Bookmark readableName={value} configID={configID} data-lgonly /> : null}
 
-			<span className="shrink-0">{index}</span>
+			{strategy ? null : <span className="vf-row-index shrink-0" aria-hidden="true" />}
 
 			<a
 				href={url}
@@ -171,14 +169,13 @@ export function YieldsProject({ project, projectslug }: INameYield) {
 	)
 }
 
-export function PoolStrategyRoute({ project1, airdropProject1, project2, airdropProject2, chain, index }) {
+export function PoolStrategyRoute({ project1, airdropProject1, project2, airdropProject2, chain }) {
 	const iconUrl1 = tokenIconUrl(project1)
 	const iconUrl2 = tokenIconUrl(project2)
 	const chainIcon = chainIconUrl(chain)
 
 	return (
 		<span className="flex items-center gap-1">
-			<span className="shrink-0 opacity-0">{index}</span>
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">
@@ -200,21 +197,13 @@ export function PoolStrategyRoute({ project1, airdropProject1, project2, airdrop
 	)
 }
 
-export function FRStrategyRoute({
-	project1,
-	airdropProject1,
-	project2,
-	airdropProject2: _airdropProject2,
-	chain,
-	index
-}) {
+export function FRStrategyRoute({ project1, airdropProject1, project2, airdropProject2: _airdropProject2, chain }) {
 	const iconUrl1 = tokenIconUrl(project1)
 	const iconUrl2 = tokenIconUrl(project2)
 	const chainIcon = chainIconUrl(chain)
 
 	return (
-		<span className="ml-1 flex items-center gap-1">
-			<span className="shrink-0 opacity-0">{index}</span>
+		<span className="flex items-center gap-1">
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">

@@ -15,8 +15,7 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 		id: 'name',
 		accessorFn: (row) => `${row.name}${row.symbol && row.symbol !== '-' ? ` (${row.symbol})` : ''}`,
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+		cell: ({ getValue, row }) => {
 			const isSubRow = row.original.name.startsWith('Bridged from')
 
 			return (
@@ -52,7 +51,7 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 						</>
 					) : (
 						<>
-							<span className="shrink-0">{index + 1}</span>
+							<span className="vf-row-index shrink-0" aria-hidden="true" />
 							<TokenLogo logo={chainIconUrl(row.original.name)} data-lgonly />
 							<BasicLink
 								href={`/stablecoins/${row.original.name}`}
@@ -169,12 +168,10 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 		id: 'name',
 		accessorFn: (row) => `${row.name}${row.symbol && row.symbol !== '-' ? ` (${row.symbol})` : ''}`,
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue, row }) => {
 			return (
 				<span className="flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo logo={peggedAssetIconUrl(row.original.name)} data-lgonly />
 					{row.original?.deprecated ? (
 						<BasicLink
@@ -497,9 +494,9 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
 			const isSubRow = value.startsWith('Bridged from')
 
 			return (
@@ -530,12 +527,12 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 
 					{isSubRow ? (
 						<>
-							<span className="shrink-0">{index + 1}</span>
+							<span className="vf-row-index shrink-0" aria-hidden="true" />
 							<span>{value}</span>
 						</>
 					) : (
 						<>
-							<span className="shrink-0">{index + 1}</span>
+							<span className="vf-row-index shrink-0" aria-hidden="true" />
 							<TokenLogo logo={chainIconUrl(value)} data-lgonly />
 							<BasicLink
 								href={`/stablecoins/${value}`}

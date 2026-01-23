@@ -156,7 +156,6 @@ const defaultColumns = (
 			enableSorting: false,
 			cell: ({ getValue, row, table }) => {
 				const value = getValue() as string
-				const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 				const basePath = ['Chain', 'Rollup'].includes(row.original.category) ? 'chain' : 'protocol'
 				const chartKey =
@@ -185,10 +184,7 @@ const defaultColumns = (
 								)}
 							</button>
 						) : null}
-
-						<span className="shrink-0" onClick={row.getToggleExpandedHandler()}>
-							{index + 1}
-						</span>
+						<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 						<TokenLogo logo={row.original.logo} data-lgonly />
 

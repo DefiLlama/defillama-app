@@ -20,12 +20,10 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue }) => {
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 
@@ -365,9 +363,7 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue, row }) => {
 			return (
 				<span
 					className="relative flex items-center gap-2"
@@ -393,7 +389,7 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 							)}
 						</button>
 					) : null}
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<BasicLink
 						href={`/governance/${slug(getValue() as string)}`}
@@ -471,13 +467,13 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+		cell: ({ getValue, row }) => {
 			const nameSlug = row.original.name.replace(/\s+/g, '-').toLowerCase()
 
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span> <TokenLogo logo={row.original.logo} data-lgonly />
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
+					<TokenLogo logo={row.original.logo} data-lgonly />
 					<BasicLink
 						href={`/protocol/${nameSlug}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

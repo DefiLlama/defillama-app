@@ -570,9 +570,8 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 		header: 'Name',
 		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			const basePath =
 				['Chain', 'Rollup'].includes(row.original.category) && row.original.slug !== 'berachain-incentive-buys'
@@ -606,9 +605,7 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 						</button>
 					) : null}
 
-					<span className="shrink-0" onClick={row.getToggleExpandedHandler()}>
-						{index + 1}
-					</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
