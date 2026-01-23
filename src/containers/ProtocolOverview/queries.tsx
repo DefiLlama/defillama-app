@@ -1355,6 +1355,17 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 			}
 		}
 
+		// set timestamps
+		for (const groupBy in aggregates) {
+			for (const period in aggregates[groupBy]) {
+				aggregates[groupBy][period].timestamp = period.includes('Q')
+					? new Date(
+							`${period.split('-')[0]}-${((parseInt(period.split('-')[1].replace('Q', '')) - 1) * 3 + 1).toString().padStart(2, '0')}`
+						).getTime()
+					: new Date(period.length === 4 ? `${period}-01-01` : period).getTime()
+			}
+		}
+
 		return {
 			data: aggregates,
 			labelsByType: finalLabelsByType,
