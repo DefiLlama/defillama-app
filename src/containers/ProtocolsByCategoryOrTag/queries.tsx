@@ -7,24 +7,32 @@ import { IChainMetadata, ILiteParentProtocol, ILiteProtocol } from '../ChainOver
 import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
 import { IProtocolByCategoryOrTagPageData, IRWAStats } from './types'
 
-export async function getProtocolsByCategoryOrTag({
-	category,
-	tag,
-	chain,
-	chainMetadata
-}: {
-	category?: string
-	tag?: string
+type GetProtocolsByCategoryOrTagParams = {
 	chain?: string
 	chainMetadata: Record<string, IChainMetadata>
-}): Promise<IProtocolByCategoryOrTagPageData> {
-	if (category && tag) {
-		return null
-	}
+} & (
+	| {
+			kind: 'category'
+			category: string
+			tag?: never
+			tagCategory?: never
+	  }
+	| {
+			kind: 'tag'
+			tag: string
+			tagCategory: string
+			category?: never
+	  }
+)
 
-	if (!category && !tag) {
-		return null
-	}
+export async function getProtocolsByCategoryOrTag(
+	params: GetProtocolsByCategoryOrTagParams
+): Promise<IProtocolByCategoryOrTagPageData | null> {
+	const { chain, chainMetadata } = params
+	const category = params.kind === 'category' ? params.category : undefined
+	const tag = params.kind === 'tag' ? params.tag : undefined
+	// For tag pages, we use the tag's parent category for category-specific logic.
+	const effectiveCategory = params.kind === 'category' ? params.category : params.tagCategory
 
 	const currentChainMetadata: IChainMetadata = chain
 		? chainMetadata[slug(chain)]
@@ -41,9 +49,6 @@ export async function getProtocolsByCategoryOrTag({
 	if (!currentChainMetadata) {
 		return null
 	}
-
-	// todo need to use parent category of tag
-	const isRWA = Boolean(category === 'RWA' || tag)
 
 	const [
 		{ protocols, parentProtocols },
@@ -86,21 +91,23 @@ export async function getProtocolsByCategoryOrTag({
 					excludeTotalDataChart: true
 				})
 			: null,
-		currentChainMetadata?.dexs && category && ['Dexs', 'DEX Aggregators', 'Prediction Market'].includes(category)
+		currentChainMetadata?.dexs &&
+		effectiveCategory &&
+		['Dexs', 'DEX Aggregators', 'Prediction Market'].includes(effectiveCategory)
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
-					adapterType: category === 'DEX Aggregators' ? 'aggregators' : 'dexs',
+					adapterType: effectiveCategory === 'DEX Aggregators' ? 'aggregators' : 'dexs',
 					excludeTotalDataChart: true
 				})
 			: null,
-		currentChainMetadata?.perps && category && ['Derivatives', 'Interface'].includes(category)
+		currentChainMetadata?.perps && effectiveCategory && ['Derivatives', 'Interface'].includes(effectiveCategory)
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'derivatives',
 					excludeTotalDataChart: true
 				})
 			: null,
-		currentChainMetadata?.perps && category && ['Derivatives', 'Prediction Market'].includes(category)
+		currentChainMetadata?.perps && effectiveCategory && ['Derivatives', 'Prediction Market'].includes(effectiveCategory)
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'open-interest',
@@ -111,7 +118,7 @@ export async function getProtocolsByCategoryOrTag({
 					return null
 				})
 			: null,
-		currentChainMetadata?.optionsPremiumVolume && category === 'Options'
+		currentChainMetadata?.optionsPremiumVolume && effectiveCategory === 'Options'
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'options',
@@ -119,7 +126,7 @@ export async function getProtocolsByCategoryOrTag({
 					excludeTotalDataChart: true
 				})
 			: null,
-		currentChainMetadata?.optionsNotionalVolume && category === 'Options'
+		currentChainMetadata?.optionsNotionalVolume && effectiveCategory === 'Options'
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'options',
@@ -133,7 +140,7 @@ export async function getProtocolsByCategoryOrTag({
 		tag
 			? fetchJson('https://api.llama.fi/lite/chains-by-tags').catch(() => null)
 			: fetchJson('https://api.llama.fi/lite/chains-by-categories').catch(() => null),
-		isRWA ? fetchJson(RWA_STATS_API) : null
+		effectiveCategory === 'RWA' ? fetchJson(RWA_STATS_API) : null
 	])
 
 	const chains = chainsByCategoriesOrTags?.[tag ?? category] ?? []
@@ -321,7 +328,7 @@ export async function getProtocolsByCategoryOrTag({
 				tvl,
 				extraTvls,
 				mcap: protocol.mcap ?? null,
-				...(category && ['Lending'].includes(category) ? { borrowed, supplied, suppliedTvl } : {}),
+				...(effectiveCategory && ['Lending'].includes(effectiveCategory) ? { borrowed, supplied, suppliedTvl } : {}),
 				fees,
 				revenue,
 				dexVolume,
@@ -330,7 +337,7 @@ export async function getProtocolsByCategoryOrTag({
 				optionsPremium,
 				optionsNotional,
 				tags: protocol.tags ?? [],
-				...(isRWA ? { rwaStats: rwaStats[protocol.defillamaId] ?? null } : {})
+				...(effectiveCategory === 'RWA' ? { rwaStats: rwaStats[protocol.defillamaId] ?? null } : {})
 			}
 			if (protocol.parentProtocol) {
 				parentProtocolsStore[protocol.parentProtocol] = [
@@ -483,7 +490,7 @@ export async function getProtocolsByCategoryOrTag({
 				chains: parentProtocol.chains,
 				mcap: parentProtocol.mcap ?? null,
 				tvl,
-				...(category && ['Lending'].includes(category) ? { borrowed, supplied, suppliedTvl } : {}),
+				...(effectiveCategory && ['Lending'].includes(effectiveCategory) ? { borrowed, supplied, suppliedTvl } : {}),
 				extraTvls,
 				fees: fees.total24h == 0 && fees.total7d == 0 && fees.total30d == 0 ? null : fees,
 				revenue: revenue.total24h == 0 && revenue.total7d == 0 && revenue.total30d == 0 ? null : revenue,
@@ -561,7 +568,7 @@ export async function getProtocolsByCategoryOrTag({
 		).sort((a, b) => b.tvl - a.tvl),
 		category: category ?? null,
 		tag: tag ?? null,
-		isRWA,
+		effectiveCategory,
 		chains: [
 			{ label: 'All', to: `/protocols/${slug(category ?? tag)}` },
 			...chains.map((c) => ({ label: c, to: `/protocols/${slug(category ?? tag)}/${slug(c)}` }))

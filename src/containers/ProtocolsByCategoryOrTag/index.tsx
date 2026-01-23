@@ -74,8 +74,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 	}, [tvlSettings, props.protocols, props.charts, props.extraTvlCharts])
 
 	const categoryColumns = useMemo(() => {
-		return columns(name, props.isRWA)
-	}, [name, props.isRWA])
+		return columns(props.effectiveCategory)
+	}, [props.effectiveCategory])
 
 	const prepareCsv = () => {
 		const headers = categoryColumns.map((col) => col.header as string)
@@ -122,7 +122,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 					<div className="mb-auto flex flex-1 flex-col gap-2">
 						{props.charts['TVL']?.data.length > 0 && (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-								{props.isRWA ? (
+								{props.effectiveCategory === 'RWA' ? (
 									<Tooltip
 										content="Sum of value of all real world assets on chain"
 										className="font-normal text-(--text-label) underline decoration-dotted"
@@ -189,7 +189,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 						)}
 						{props.dexVolume7d != null && (
 							<>
-								{props.category === 'Dexs' ? (
+								{props.effectiveCategory === 'Dexs' ? (
 									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 										<Tooltip
 											content={definitions.dexs.protocol['7d']}
@@ -199,7 +199,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 										</Tooltip>
 										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 									</p>
-								) : props.category === 'DEX Aggregators' ? (
+								) : props.effectiveCategory === 'DEX Aggregators' ? (
 									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 										<Tooltip
 											content={definitions.dexAggregators.protocol['7d']}
@@ -209,7 +209,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 										</Tooltip>
 										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 									</p>
-								) : props.category === 'Prediction Market' ? (
+								) : props.effectiveCategory === 'Prediction Market' ? (
 									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 										<span className="font-normal text-(--text-label)">Prediction Market Volume (7d)</span>
 										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
@@ -258,7 +258,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				columns={categoryColumns}
 				placeholder="Search protocols..."
 				columnToSearch="name"
-				header={props.isRWA ? 'Assets Rankings' : 'Protocol Rankings'}
+				header={props.effectiveCategory === 'RWA' ? 'Assets Rankings' : 'Protocol Rankings'}
 				sortingState={defaultSortingState[name] ?? [{ id: 'tvl', desc: true }]}
 				customFilters={
 					<>
@@ -344,9 +344,9 @@ const nameColumn: Column = {
 	size: 280
 }
 
-const tvlColumn = (isRWA: boolean): Column => ({
+const tvlColumn = (effectiveCategory: string | null): Column => ({
 	id: 'tvl',
-	header: isRWA ? 'Total Assets' : 'TVL',
+	header: effectiveCategory === 'RWA' ? 'Total Assets' : 'TVL',
 	accessorFn: (protocol) => protocol.tvl,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 	meta: {
@@ -1015,32 +1015,29 @@ const getVolumeColumn = (category: string | null, period: '7d' | '30d' | '24h'):
 	return volumeColumns[category]?.[period] ?? null
 }
 
-const columns = (
-	category: IProtocolByCategoryOrTagPageData['category'],
-	isRWA: IProtocolByCategoryOrTagPageData['isRWA']
-): Column[] =>
-	[
+const columns = (effectiveCategory: IProtocolByCategoryOrTagPageData['effectiveCategory']): Column[] => {
+	return [
 		// Base
 		nameColumn,
 
 		// RWA Asset Class
-		category === 'RWA' ? rwaAssetClassColumn(category) : null,
+		effectiveCategory === 'RWA' ? rwaAssetClassColumn('RWA') : null,
 
 		// Perp columns (Derivatives & Interface)
-		category === 'Derivatives' || category === 'Interface' ? perpVolume24hColumn : null,
-		category === 'Derivatives' ? openInterestColumn : null,
-		category === 'Derivatives' || category === 'Interface' ? perpVolume7dColumn : null,
-		category === 'Derivatives' || category === 'Interface' ? perpVolume30dColumn : null,
+		effectiveCategory === 'Derivatives' || effectiveCategory === 'Interface' ? perpVolume24hColumn : null,
+		effectiveCategory === 'Derivatives' ? openInterestColumn : null,
+		effectiveCategory === 'Derivatives' || effectiveCategory === 'Interface' ? perpVolume7dColumn : null,
+		effectiveCategory === 'Derivatives' || effectiveCategory === 'Interface' ? perpVolume30dColumn : null,
 
 		// TVL (not for Interface)
-		category !== 'Interface' ? tvlColumn(isRWA) : null,
+		effectiveCategory !== 'Interface' ? tvlColumn(effectiveCategory) : null,
 
 		// RWA stats
-		...(isRWA ? rwaStatsColumns : []),
+		...(effectiveCategory === 'RWA' ? rwaStatsColumns : []),
 
 		// Volume & Fees & Revenue 7d
-		getVolumeColumn(category, '7d'),
-		...(category === 'Options' ? [optionsPremium7dColumn, optionsNotional7dColumn] : []),
+		getVolumeColumn(effectiveCategory, '7d'),
+		...(effectiveCategory === 'Options' ? [optionsPremium7dColumn, optionsNotional7dColumn] : []),
 		fees7dColumn,
 		revenue7dColumn,
 
@@ -1048,17 +1045,18 @@ const columns = (
 		mcapTvlColumn,
 
 		// Volume & Fees & Revenue 30d
-		getVolumeColumn(category, '30d'),
-		...(category === 'Options' ? [optionsPremium30dColumn, optionsNotional30dColumn] : []),
+		getVolumeColumn(effectiveCategory, '30d'),
+		...(effectiveCategory === 'Options' ? [optionsPremium30dColumn, optionsNotional30dColumn] : []),
 		fees30dColumn,
 		revenue30dColumn,
 
 		// Volume & Fees & Revenue 24h
-		getVolumeColumn(category, '24h'),
-		...(category === 'Options' ? [optionsPremium24hColumn, optionsNotional24hColumn] : []),
+		getVolumeColumn(effectiveCategory, '24h'),
+		...(effectiveCategory === 'Options' ? [optionsPremium24hColumn, optionsNotional24hColumn] : []),
 		fees24hColumn,
 		revenue24hColumn,
 
 		// Lending
-		...(category === 'Lending' ? lendingColumns : [])
+		...(effectiveCategory === 'Lending' ? lendingColumns : [])
 	].filter((col): col is Column => col !== null)
+}

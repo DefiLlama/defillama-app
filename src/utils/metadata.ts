@@ -87,6 +87,7 @@ const metadataCache: {
 	categoriesAndTags: {
 		categories: Array<string>
 		tags: Array<string>
+		tagCategoryMap: Record<string, string>
 	}
 	cexs: Array<ICexItem>
 } = {
