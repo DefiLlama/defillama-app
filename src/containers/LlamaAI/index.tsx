@@ -979,13 +979,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 									currentSessionId={sessionId}
 									onSessionSelect={handleSessionSelect}
 									onNewChat={handleNewChat}
-									onOpenAlerts={() => setShowAlertsModal(true)}
 									shouldAnimate={shouldAnimateSidebar}
 								/>
 								<div className="flex min-h-11 lg:hidden" />
 							</>
 						) : (
-							<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} onOpenAlerts={() => setShowAlertsModal(true)} />
+							<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
 						)}
 					</>
 				)}
@@ -1040,6 +1039,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											droppedFiles={droppedFiles}
 											clearDroppedFiles={clearDroppedFiles}
 											externalDragging={isDraggingOnChat}
+											onOpenAlerts={() => setShowAlertsModal(true)}
 										/>
 										<RecommendedPrompts
 											setPrompt={setPrompt}
@@ -1179,9 +1179,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														(i): i is SuggestionsItem => i.type === 'suggestions'
 													)
 													// Extract metadata from streaming items for alert intent
-													const streamingMetadata = streamingItems.find(
-														(i): i is MetadataItem => i.type === 'metadata'
-													)
+													const streamingMetadata = streamingItems.find((i): i is MetadataItem => i.type === 'metadata')
 
 													return (
 														<div className="flex min-h-[calc(100dvh-272px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-215px)]">
@@ -1279,6 +1277,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										droppedFiles={droppedFiles}
 										clearDroppedFiles={clearDroppedFiles}
 										externalDragging={isDraggingOnChat}
+										onOpenAlerts={() => setShowAlertsModal(true)}
 									/>
 								)}
 							</div>
@@ -1333,12 +1332,10 @@ const SentPrompt = memo(function SentPrompt({
 
 const ChatControls = memo(function ChatControls({
 	handleSidebarToggle,
-	handleNewChat,
-	onOpenAlerts
+	handleNewChat
 }: {
 	handleSidebarToggle: () => void
 	handleNewChat: () => void
-	onOpenAlerts: () => void
 }) {
 	return (
 		<div className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col">
@@ -1357,14 +1354,6 @@ const ChatControls = memo(function ChatControls({
 			>
 				<Icon name="message-square-plus" height={16} width={16} />
 				<span className="sr-only">New Chat</span>
-			</Tooltip>
-			<Tooltip
-				content="Manage Alerts"
-				render={<button onClick={onOpenAlerts} />}
-				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-amber-500/12 text-amber-500 hover:bg-amber-500 hover:text-white focus-visible:bg-amber-500 focus-visible:text-white"
-			>
-				<Icon name="calendar-plus" height={16} width={16} />
-				<span className="sr-only">Manage Alerts</span>
 			</Tooltip>
 		</div>
 	)

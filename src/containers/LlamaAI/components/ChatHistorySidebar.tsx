@@ -12,7 +12,6 @@ interface ChatHistorySidebarProps {
 	currentSessionId: string | null
 	onSessionSelect: (sessionId: string, data: { messages: any[]; pagination?: any }) => void
 	onNewChat: () => void
-	onOpenAlerts: () => void
 	shouldAnimate?: boolean
 }
 
@@ -37,7 +36,6 @@ export function ChatHistorySidebar({
 	currentSessionId,
 	onSessionSelect,
 	onNewChat,
-	onOpenAlerts,
 	shouldAnimate = false
 }: ChatHistorySidebarProps) {
 	const { user } = useAuthContext()
@@ -116,23 +114,13 @@ export function ChatHistorySidebar({
 					<span className="sr-only">Close Chat History</span>
 				</Tooltip>
 
-				<div className="flex gap-2">
-					<button
-						onClick={onNewChat}
-						className="flex flex-1 items-center justify-center gap-2 rounded-sm border border-(--old-blue) bg-(--old-blue)/12 px-2 py-0.75 text-xs text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
-					>
-						<Icon name="message-square-plus" height={16} width={16} />
-						<span>New Chat</span>
-					</button>
-					<Tooltip
-						content="Manage Alerts"
-						render={<button onClick={onOpenAlerts} />}
-						className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-amber-500/12 text-amber-500 hover:bg-amber-500 hover:text-white focus-visible:bg-amber-500 focus-visible:text-white"
-					>
-						<Icon name="calendar-plus" height={16} width={16} />
-						<span className="sr-only">Manage Alerts</span>
-					</Tooltip>
-				</div>
+				<button
+					onClick={onNewChat}
+					className="flex items-center justify-center gap-2 rounded-sm border border-(--old-blue) bg-(--old-blue)/12 px-2 py-0.75 text-xs text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+				>
+					<Icon name="message-square-plus" height={16} width={16} />
+					<span>New Chat</span>
+				</button>
 			</div>
 
 			<div ref={scrollContainerRef} className="thin-scrollbar flex-1 overflow-auto p-4 pt-0 pr-1">
