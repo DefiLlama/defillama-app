@@ -1095,8 +1095,8 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		accessorKey: 'rank',
 		size: 80,
 		enableSorting: false,
-		cell: ({ row, table }) => {
-			return <span className="font-bold">{index + 1}</span>
+		cell: () => {
+			return <span className="vf-row-index font-bold" aria-hidden="true" />
 		},
 		meta: {
 			align: 'center' as const

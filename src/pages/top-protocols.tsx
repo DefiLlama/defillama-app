@@ -120,24 +120,13 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 		const baseColumns = [
 			columnHelper.accessor('chain', {
 				header: 'Chain',
+				id: 'chain',
 				enableSorting: false,
-				filterFn: (row, id, filterValue) => {
-					const value = (row.getValue(id) as string) ?? ''
-					if (!filterValue || typeof filterValue !== 'object') {
-						return true
-					}
-					const { search = '', selected = [] } = filterValue as { search?: string; selected?: string[] }
-					const normalizedValue = value.toLowerCase()
-					const matchesSearch = search ? normalizedValue.includes(search.toLowerCase()) : true
-					const matchesSelection = Array.isArray(selected) && selected.length > 0 ? selected.includes(value) : true
-					return matchesSearch && matchesSelection
-				},
 				cell: (info) => {
 					const chain = info.getValue()
-					const rowIndex = info.row.index
 					return (
 						<span className="flex items-center gap-2">
-							<span className="shrink-0">{rowIndex + 1}</span>
+							<span className="vf-row-index shrink-0" aria-hidden="true" />
 							<TokenLogo logo={chainIconUrl(chain)} />
 							<BasicLink
 								href={`/chain/${slug(chain)}`}
@@ -191,7 +180,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [searchValue, setSearchValue] = useTableSearch({ instance: table, columnToSearch: 'name' })
+	const [searchValue, setSearchValue] = useTableSearch({ instance: table, columnToSearch: 'chain' })
 
 	const prepareCsv = () => {
 		const visibleColumns = table.getAllLeafColumns().filter((col) => col.getIsVisible())
@@ -238,7 +227,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 							onChange={(e) => {
 								setSearchValue(e.target.value)
 							}}
-							placeholder="Search..."
+							placeholder="Search chains..."
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
