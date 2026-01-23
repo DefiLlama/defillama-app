@@ -12,7 +12,7 @@ import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import Pagination from './Pagination'
 import { IEmission } from './types'
 
@@ -82,6 +82,65 @@ function processGroupedChartData(
 const DATA_TYPES = ['documented', 'realtime'] as const
 type DataType = (typeof DATA_TYPES)[number]
 
+const TIME_GROUPINGS = ['D', 'W', 'M', 'Q', 'Y'] as const
+type TimeGrouping = (typeof TIME_GROUPINGS)[number]
+
+function getQuarterStart(timestamp: number): number {
+	const date = new Date(timestamp)
+	const quarter = Math.floor(date.getMonth() / 3)
+	return new Date(date.getFullYear(), quarter * 3, 1).getTime() / 1000
+}
+
+function getYearStart(timestamp: number): number {
+	const date = new Date(timestamp)
+	return new Date(date.getFullYear(), 0, 1).getTime() / 1000
+}
+
+function groupChartDataByTime(
+	chartData: Array<{ date: string } & Record<string, number | string>>,
+	groupBy: TimeGrouping
+): Array<{ date: string } & Record<string, number | string>> {
+	if (groupBy === 'D') return chartData
+
+	const grouped: Record<string, Record<string, number>> = {}
+
+	for (const entry of chartData) {
+		const timestamp = +entry.date * 1000
+		let groupKey: number
+
+		switch (groupBy) {
+			case 'W':
+				groupKey = lastDayOfWeek(timestamp)
+				break
+			case 'M':
+				groupKey = firstDayOfMonth(timestamp)
+				break
+			case 'Q':
+				groupKey = getQuarterStart(timestamp)
+				break
+			case 'Y':
+				groupKey = getYearStart(timestamp)
+				break
+			default:
+				groupKey = +entry.date
+		}
+
+		if (!grouped[groupKey]) {
+			grouped[groupKey] = {}
+		}
+
+		for (const key in entry) {
+			if (key === 'date') continue
+			const value = Number(entry[key]) || 0
+			grouped[groupKey][key] = value
+		}
+	}
+
+	return Object.entries(grouped)
+		.map(([date, values]) => ({ date, ...values }))
+		.sort((a, b) => +a.date - +b.date)
+}
+
 const unlockedPieChartRadius = ['50%', '70%'] as [string, string]
 
 const unlockedPieChartStackColors = {
@@ -139,6 +198,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const [isPriceEnabled, setIsPriceEnabled] = useState(false)
 	const [allocationMode, setAllocationMode] = useState<'current' | 'standard'>('current')
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+	const [chartType, setChartType] = useState<'bar' | 'line'>('line')
+	const [timeGrouping, setTimeGrouping] = useState<TimeGrouping>('D')
 
 	const categoriesFromData = data.categories?.[dataType] ?? EMPTY_STRING_LIST
 	const stackColors = data.stackColors?.[dataType] ?? EMPTY_STACK_COLORS
@@ -266,11 +327,12 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			: categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
 
 	const displayData = useMemo(() => {
+		let result = chartData
 		if (allocationMode === 'standard' && data.categoriesBreakdown) {
-			return processGroupedChartData(chartData || ([] as any), data.categoriesBreakdown)
+			result = processGroupedChartData(chartData || ([] as any), data.categoriesBreakdown)
 		}
-		return chartData
-	}, [allocationMode, chartData, data.categoriesBreakdown])
+		return groupChartDataByTime(result || [], timeGrouping)
+	}, [allocationMode, chartData, data.categoriesBreakdown, timeGrouping])
 
 	useEffect(() => {
 		setSelectedCategories(() => {
@@ -418,6 +480,13 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 						/>
 					)}
 
+					<Switch
+						label="Bar Chart"
+						value="bar-chart"
+						onChange={() => setChartType((prev) => (prev === 'bar' ? 'line' : 'bar'))}
+						checked={chartType === 'bar'}
+					/>
+
 					{normilizePriceChart?.prices ? (
 						<Switch
 							label="Show Price and Market Cap"
@@ -502,6 +571,11 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					<LazyChart className="relative min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 						<div className="m-2 flex items-center justify-end gap-2">
 							<h1 className="mr-auto text-lg font-bold">Schedule</h1>
+							<TagGroup
+								selectedValue={timeGrouping}
+								setValue={(v) => setTimeGrouping(v as TimeGrouping)}
+								values={TIME_GROUPINGS}
+							/>
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 							<SelectWithCombobox
 								allValues={availableCategories}
@@ -523,6 +597,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								hallmarks={hallmarks}
 								stackColors={chartConfig.colors}
 								isStackedChart
+								chartType={chartType}
+								expandTo100Percent={chartType === 'bar'}
 							/>
 						</Suspense>
 					</LazyChart>
