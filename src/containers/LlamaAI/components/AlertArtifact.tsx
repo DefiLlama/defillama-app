@@ -63,10 +63,10 @@ export const AlertArtifact = memo(function AlertArtifact({
 }: AlertArtifactProps) {
 	const { authorizedFetch, isAuthenticated } = useAuthContext()
 	const [title, setTitle] = useState(alertId.replace(/_/g, ' '))
-	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(alertIntent.frequency || 'daily')
-	const [hour, setHour] = useState(alertIntent.hour || 9)
-	const [dayOfWeek, setDayOfWeek] = useState(alertIntent.dayOfWeek || 1)
-	const [timezone] = useState(() => getUserTimezone())
+	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(alertIntent.frequency ?? 'daily')
+	const [hour, setHour] = useState(alertIntent.hour ?? 9)
+	const [dayOfWeek, setDayOfWeek] = useState(alertIntent.dayOfWeek ?? 1)
+	const [timezone] = useState(alertIntent.timezone ?? getUserTimezone())
 	const [saving, setSaving] = useState(false)
 	const [saved, setSaved] = useState(savedAlertIds?.includes(alertId) || false)
 
