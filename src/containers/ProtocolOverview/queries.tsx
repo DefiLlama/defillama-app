@@ -1,4 +1,3 @@
-import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	ACTIVE_USERS_API,
 	BRIDGEVOLUME_API_SLUG,
@@ -23,7 +22,7 @@ import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
-import { capitalizeFirstLetter, firstDayOfMonth, firstDayOfQuarter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
+import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { IChainMetadata } from '../ChainOverview/types'
 import { getAdapterProtocolSummary, IAdapterSummary } from '../DimensionAdapters/queries'
@@ -1225,20 +1224,9 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 			return fetchJson(`/api/income-statement?protocol=${encodeURIComponent(protocol)}`).catch(() => null)
 		}
 
-		const [incomeStatement, incentives] = await Promise.all([
-			fetchJson(`${V2_SERVER_URL}/metrics/financial-statement/protocol/${slug(metadata.displayName)}?q=30`).catch(
-				() => null
-			),
-			metadata.incentives
-				? getProtocolEmissons(slug(metadata.displayName))
-						.then((data) => data.unlockUsdChart ?? [])
-						.then((chart) => {
-							const nonZeroIndex = chart.findIndex(([_, value]) => value > 0)
-							return chart.slice(nonZeroIndex)
-						})
-						.catch(() => null)
-				: Promise.resolve(null)
-		])
+		const incomeStatement = await fetchJson(
+			`${V2_SERVER_URL}/metrics/financial-statement/protocol/${slug(metadata.displayName)}?q=30`
+		).catch(() => null)
 
 		if (!incomeStatement) {
 			return null
@@ -1252,37 +1240,6 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 				yearly: {}
 			} as IProtocolOverviewPageData['incomeStatement']['data'])
 
-		for (const [date, value] of incentives ?? []) {
-			const firstDayOfMonthDate = +firstDayOfMonth(+date * 1e3) * 1e3
-			const firstDayOfQuarterDate = +firstDayOfQuarter(firstDayOfMonthDate) * 1e3
-
-			const monthKey = `${new Date(firstDayOfMonthDate).toISOString().slice(0, 7)}`
-			const quarterKey = `${new Date(firstDayOfMonthDate).getUTCFullYear()}-Q${Math.ceil((new Date(firstDayOfQuarterDate).getUTCMonth() + 1) / 3)}`
-			const yearKey = new Date(firstDayOfMonthDate).getUTCFullYear()
-
-			aggregates.monthly[monthKey] = {
-				...(aggregates.monthly[monthKey] ?? {}),
-				Incentives: {
-					value: (aggregates.monthly[monthKey]?.['Incentives']?.value ?? 0) + value,
-					'by-label': {}
-				}
-			}
-			aggregates.quarterly[quarterKey] = {
-				...(aggregates.quarterly[quarterKey] ?? {}),
-				Incentives: {
-					value: (aggregates.quarterly[quarterKey]?.['Incentives']?.value ?? 0) + value,
-					'by-label': {}
-				}
-			}
-			aggregates.yearly[yearKey] = {
-				...(aggregates.yearly[yearKey] ?? {}),
-				Incentives: {
-					value: (aggregates.yearly[yearKey]?.['Incentives']?.value ?? 0) + value,
-					'by-label': {}
-				}
-			}
-		}
-
 		if (protocolsWithFalsyBreakdownMetrics.has(metadata.displayName)) {
 			for (const groupBy in aggregates) {
 				for (const period in aggregates[groupBy]) {
@@ -1294,29 +1251,6 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 		}
 
 		const labelsByType: Record<string, Set<string>> = {}
-
-		for (const group in aggregates) {
-			for (const date in aggregates[group]) {
-				aggregates[group][date].timestamp = date.includes('Q')
-					? new Date(
-							`${date.split('-')[0]}-${((parseInt(date.split('-')[1].replace('Q', '')) - 1) * 3 + 1).toString().padStart(2, '0')}`
-						).getTime()
-					: new Date(date.length === 4 ? `${date}-01-01` : date).getTime()
-
-				for (const label in aggregates[group][date]) {
-					for (const type in aggregates[group][date][label]['by-label'] ?? {}) {
-						labelsByType[label] = (labelsByType[label] ?? new Set()).add(type)
-					}
-				}
-
-				aggregates[group][date]['Earnings'] = {
-					value:
-						(aggregates[group][date]?.['Gross Profit']?.value ?? 0) -
-						(aggregates[group][date]?.['Incentives']?.value ?? 0),
-					'by-label': {}
-				}
-			}
-		}
 
 		const finalLabelsByType = {}
 		for (const label in labelsByType) {
