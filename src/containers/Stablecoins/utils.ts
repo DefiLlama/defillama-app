@@ -321,6 +321,11 @@ export const formatPeggedAssetsData = ({
 				}
 			}
 			pegged.pegDeviation_1m = getPercentChange(targetPrice + greatestDeviation, targetPrice)
+		} else {
+			// Avoid leaking stale peg data into filters/table (e.g. when price is missing or peg is variable).
+			pegged.pegDeviation = undefined
+			pegged.pegDeviation_1m = undefined
+			pegged.pegDeviationInfo = undefined
 		}
 		return keepNeededProperties(pegged, peggedAssetProps)
 	})

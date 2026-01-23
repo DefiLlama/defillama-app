@@ -18,10 +18,7 @@ export function areStringArraysEqual(a?: string[], b?: string[]): boolean {
  * Compare two chart configuration arrays for equality.
  * Compares by id, type, and title - chart objects are fairly large but stable.
  */
-export function areChartsEqual(
-	a: ChartConfiguration[] | undefined,
-	b: ChartConfiguration[] | undefined
-): boolean {
+export function areChartsEqual(a: ChartConfiguration[] | undefined, b: ChartConfiguration[] | undefined): boolean {
 	if (a === b) return true
 	if (!a || !b) return false
 	if (a.length !== b.length) return false

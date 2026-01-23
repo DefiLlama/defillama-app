@@ -1,7 +1,7 @@
+import { useResearchUsage } from './useResearchUsage'
 import { useSessionList } from './useSessionList'
 import { useSessionMutations } from './useSessionMutations'
 import { useSidebarVisibility } from './useSidebarVisibility'
-import { useResearchUsage } from './useResearchUsage'
 
 // Re-export types for backward compatibility
 export interface ChatSession {

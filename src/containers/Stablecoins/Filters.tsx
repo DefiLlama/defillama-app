@@ -26,7 +26,13 @@ export const stablecoinAttributeOptions = [
 	{
 		name: 'Depegged',
 		key: 'DEPEGGED',
-		filterFn: (item) => typeof item?.pegDeviation === 'number' && Math.abs(item.pegDeviation) > 10,
+		// Yield-bearing assets intentionally render '-' for peg deviation columns,
+		// so exclude them from the "Depegged" filter to avoid showing "no peg data" rows.
+		filterFn: (item) =>
+			!item?.yieldBearing &&
+			typeof item?.pegDeviation === 'number' &&
+			Number.isFinite(item.pegDeviation) &&
+			Math.abs(item.pegDeviation) > 10,
 		help: 'Show stablecoins depegged by more than 10%'
 	}
 ]
