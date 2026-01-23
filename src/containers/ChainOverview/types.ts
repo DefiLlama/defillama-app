@@ -12,6 +12,7 @@ export interface IChainMetadata {
 	chainRevenue?: boolean
 	perps?: boolean
 	openInterest?: boolean
+	normalizedVolume?: boolean
 	dexAggregators?: boolean
 	optionsPremiumVolume?: boolean
 	optionsNotionalVolume?: boolean
