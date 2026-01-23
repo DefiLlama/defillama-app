@@ -1,5 +1,5 @@
-import { memo, useCallback, useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { memo, useCallback, useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -99,7 +99,23 @@ const getBlockedLocalHours = (timezone: string): number[] => {
 const getTimezoneLabel = (timezone: string): string => {
 	if (timezone === 'UTC') return 'UTC'
 	const found = GMT_OFFSETS.find((g) => g.value === timezone)
-	return found?.label || timezone
+	if (found) return found.label
+	try {
+		const now = new Date()
+		const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' })
+		const parts = formatter.formatToParts(now)
+		const tzPart = parts.find((p) => p.type === 'timeZoneName')
+		if (tzPart?.value) {
+			return tzPart.value.replace('GMT', 'GMT+').replace('+-', '-').replace('++', '+')
+		}
+	} catch {}
+	return timezone
+}
+
+const formatScheduleExpression = (expression: string): string => {
+	return expression.replace(/([A-Za-z]+\/[A-Za-z_]+)/g, (match) => {
+		return getTimezoneLabel(match)
+	})
 }
 
 export const AlertsModal = memo(function AlertsModal({ isOpen, onClose }: AlertsModalProps) {
@@ -260,7 +276,9 @@ const AlertRow = memo(function AlertRow({
 }: AlertRowProps) {
 	const { authorizedFetch } = useAuthContext()
 	const [title, setTitle] = useState(alert.title)
-	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(alert.schedule_expression.includes('Weekly') ? 'weekly' : 'daily')
+	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(
+		alert.schedule_expression.includes('Weekly') ? 'weekly' : 'daily'
+	)
 	const [hour, setHour] = useState(() => {
 		const match = alert.schedule_expression.match(/at (\d+)/)
 		return match ? parseInt(match[1]) : 9
@@ -300,7 +318,9 @@ const AlertRow = memo(function AlertRow({
 			if (res.ok) {
 				const tzLabel = getTimezoneLabel(timezone)
 				const newExpression =
-					frequency === 'weekly' ? `Weekly on ${DAYS_OF_WEEK[dayOfWeek]} at ${hour}:00 ${tzLabel}` : `Daily at ${hour}:00 ${tzLabel}`
+					frequency === 'weekly'
+						? `Weekly on ${DAYS_OF_WEEK[dayOfWeek]} at ${hour}:00 ${tzLabel}`
+						: `Daily at ${hour}:00 ${tzLabel}`
 				onSave({ title, schedule_expression: newExpression })
 				toast.success('Alert updated')
 			} else {
@@ -336,7 +356,10 @@ const AlertRow = memo(function AlertRow({
 					>
 						Cancel
 					</button>
-					<button onClick={onDeleteConfirm} className="rounded-md bg-red-500 px-3 py-1.5 text-xs text-white hover:bg-red-600">
+					<button
+						onClick={onDeleteConfirm}
+						className="rounded-md bg-red-500 px-3 py-1.5 text-xs text-white hover:bg-red-600"
+					>
 						Delete
 					</button>
 				</div>
@@ -354,7 +377,9 @@ const AlertRow = memo(function AlertRow({
 							<span className="shrink-0 rounded bg-red-500/10 px-1.5 py-0.5 text-[10px] text-red-500">Error</span>
 						)}
 					</div>
-					<p className="mt-0.5 text-xs text-[#666] dark:text-[#919296]">{alert.schedule_expression.replace('Etc/', '')}</p>
+					<p className="mt-0.5 text-xs text-[#666] dark:text-[#919296]">
+						{formatScheduleExpression(alert.schedule_expression)}
+					</p>
 					<p className="mt-1 text-[10px] text-[#999] dark:text-[#666]">
 						{alert.enabled ? `Next run ${formatNextRun(alert.next_run_at)}` : 'Paused'} · {alert.run_count} runs
 					</p>

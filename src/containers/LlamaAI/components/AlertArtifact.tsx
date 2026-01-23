@@ -34,13 +34,25 @@ interface AlertArtifactProps {
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
-// Get user's timezone
 const getUserTimezone = () => {
 	try {
 		return Intl.DateTimeFormat().resolvedOptions().timeZone
 	} catch {
 		return 'UTC'
 	}
+}
+
+const getTimezoneLabel = (timezone: string): string => {
+	if (timezone === 'UTC') return 'UTC'
+	try {
+		const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' })
+		const parts = formatter.formatToParts(new Date())
+		const tzPart = parts.find((p) => p.type === 'timeZoneName')
+		if (tzPart?.value) {
+			return tzPart.value.replace('GMT', 'GMT+').replace('+-', '-').replace('++', '+')
+		}
+	} catch {}
+	return timezone.split('/').pop()?.replace(/_/g, ' ') || timezone
 }
 
 export const AlertArtifact = memo(function AlertArtifact({
@@ -163,7 +175,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 					))}
 				</select>
 
-				<span className="text-xs text-(--text3)">({timezone.split('/').pop()?.replace(/_/g, ' ') || timezone})</span>
+				<span className="text-xs text-(--text3)">({getTimezoneLabel(timezone)})</span>
 
 				<button
 					onClick={handleSave}

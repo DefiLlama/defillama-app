@@ -421,6 +421,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			const currentImages = pendingImages.length > 0 ? [...pendingImages] : undefined
 			// New: Use items from the response, or convert legacy response to items
 			const finalItems = data?.items && data.items.length > 0 ? data.items : streamingItems
+			// Extract metadata from items for the message object
+			const finalMetadata = finalItems.find((i): i is MetadataItem => i.type === 'metadata')?.metadata
 
 			setMessages((prev) => [
 				...prev,
@@ -434,7 +436,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					role: 'assistant',
 					items: finalItems,
 					messageId: currentMessageId,
-					timestamp: Date.now()
+					timestamp: Date.now(),
+					metadata: finalMetadata
 				}
 			])
 
@@ -1135,7 +1138,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																		inlineChartConfig={{
 																			resizeTrigger,
 																			messageId: item.messageId,
-																			alertIntent: item.metadata?.alertIntent,
+																			alertIntent: msgMetadata?.metadata?.alertIntent || item.metadata?.alertIntent,
 																			savedAlertIds: item.savedAlertIds || item.metadata?.savedAlertIds
 																		}}
 																	/>
@@ -1175,6 +1178,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 													const streamingSuggestions = streamingItems.find(
 														(i): i is SuggestionsItem => i.type === 'suggestions'
 													)
+													// Extract metadata from streaming items for alert intent
+													const streamingMetadata = streamingItems.find(
+														(i): i is MetadataItem => i.type === 'metadata'
+													)
 
 													return (
 														<div className="flex min-h-[calc(100dvh-272px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-215px)]">
@@ -1194,7 +1201,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																readOnly={readOnly}
 																inlineChartConfig={{
 																	resizeTrigger,
-																	messageId: currentMessageId ?? undefined
+																	messageId: currentMessageId ?? undefined,
+																	alertIntent: streamingMetadata?.metadata?.alertIntent
 																}}
 															/>
 															{streamingSuggestions?.suggestions?.length && !isStreaming ? (
