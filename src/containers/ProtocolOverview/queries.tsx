@@ -1252,6 +1252,30 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 
 		const labelsByType: Record<string, Set<string>> = {}
 
+		// Collect all breakdown labels present in the raw aggregates.
+		// The table UI renders breakdown rows based on `labelsByType`, while the Sankey reads `by-label` directly.
+		// If this isn't computed, breakdown rows will be missing in the table even when `by-label` data exists.
+		for (const groupBy in aggregates) {
+			for (const period in aggregates[groupBy]) {
+				aggregates[groupBy][period].timestamp = period.includes('Q')
+					? new Date(
+							`${period.split('-')[0]}-${((parseInt(period.split('-')[1].replace('Q', '')) - 1) * 3 + 1).toString().padStart(2, '0')}`
+						).getTime()
+					: new Date(period.length === 4 ? `${period}-01-01` : period).getTime()
+
+				const periodData = aggregates[groupBy][period]
+				for (const type in periodData) {
+					if (type === 'timestamp') continue
+					const byLabel = periodData?.[type]?.['by-label']
+					if (!byLabel) continue
+					for (const breakdownLabel in byLabel) {
+						if (!labelsByType[type]) labelsByType[type] = new Set()
+						labelsByType[type].add(breakdownLabel)
+					}
+				}
+			}
+		}
+
 		const finalLabelsByType = {}
 		for (const label in labelsByType) {
 			finalLabelsByType[label] = Array.from(labelsByType[label])
@@ -1352,17 +1376,6 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 						break
 					}
 				}
-			}
-		}
-
-		// set timestamps
-		for (const groupBy in aggregates) {
-			for (const period in aggregates[groupBy]) {
-				aggregates[groupBy][period].timestamp = period.includes('Q')
-					? new Date(
-							`${period.split('-')[0]}-${((parseInt(period.split('-')[1].replace('Q', '')) - 1) * 3 + 1).toString().padStart(2, '0')}`
-						).getTime()
-					: new Date(period.length === 4 ? `${period}-01-01` : period).getTime()
 			}
 		}
 
