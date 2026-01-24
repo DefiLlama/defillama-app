@@ -158,7 +158,7 @@ export const TokenRights = ({ tokenRights }: { tokenRights: ITokenRights }) => {
 				</h2>
 				{rights.length > 0 ? (
 					<SectionCard title="Overview">
-						<div className="grid gap-2 sm:grid-cols-2">
+						<div className="flex flex-col gap-2">
 							{rights.map((r) => {
 								const tone: StatusTone = r.hasRight ? 'positive' : 'negative'
 								const styles = getToneStyles(tone)
