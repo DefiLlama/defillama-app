@@ -30,6 +30,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
+import { DownloadPieChartCsv } from './DownloadPieChartCsv'
 import { IRWAAssetsOverview } from './queries'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -616,8 +617,30 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			</div>
 			{isCategoryMode ? (
 				<div className="grid grid-cols-1 gap-2">
-					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-						<h2 className="px-3 text-lg font-semibold">Asset Classes</h2>
+					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<div className="flex flex-wrap items-center justify-between gap-2 p-4 pb-0">
+							<Tooltip
+								content={definitions.assetClass.description}
+								className="text-lg font-semibold underline decoration-dotted"
+								render={<h2 />}
+							>
+								Asset Classes
+							</Tooltip>
+							<DownloadPieChartCsv
+								filename={
+									[
+										'rwa-pie',
+										slug('Asset Classes (Onchain)'),
+										props.selectedChain !== 'All' ? props.selectedChain.toLowerCase() : null,
+										props.selectedCategory !== 'All' ? slug(props.selectedCategory) : null
+									]
+										.filter(Boolean)
+										.join('-') + '.csv'
+								}
+								chartData={assetClassOnChainPieChartData}
+								smol
+							/>
+						</div>
 						<Suspense fallback={<div className="h-[360px]" />}>
 							<PieChart
 								chartData={assetClassOnChainPieChartData}
@@ -631,8 +654,30 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				</div>
 			) : (
 				<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<h2 className="px-3 text-lg font-semibold">Total RWA Onchain</h2>
+					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<div className="flex flex-wrap items-center justify-between gap-2 p-4 pb-0">
+							<Tooltip
+								content={definitions.totalOnChainMarketcap.description}
+								className="text-lg font-semibold underline decoration-dotted"
+								render={<h2 />}
+							>
+								{definitions.totalOnChainMarketcap.label}
+							</Tooltip>
+							<DownloadPieChartCsv
+								filename={
+									[
+										'rwa-pie',
+										slug(definitions.totalOnChainMarketcap.label),
+										props.selectedChain !== 'All' ? props.selectedChain.toLowerCase() : null,
+										props.selectedCategory !== 'All' ? slug(props.selectedCategory) : null
+									]
+										.filter(Boolean)
+										.join('-') + '.csv'
+								}
+								chartData={totalOnChainRwaPieChartData}
+								smol
+							/>
+						</div>
 						<Suspense fallback={<div className="h-[360px]" />}>
 							<PieChart
 								chartData={totalOnChainRwaPieChartData}
@@ -643,8 +688,30 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 							/>
 						</Suspense>
 					</div>
-					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<h2 className="px-3 text-lg font-semibold">Active Marketcap</h2>
+					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<div className="flex flex-wrap items-center justify-between gap-2 p-4 pb-0">
+							<Tooltip
+								content={definitions.totalActiveMarketcap.description}
+								className="text-lg font-semibold underline decoration-dotted"
+								render={<h2 />}
+							>
+								{definitions.totalActiveMarketcap.label}
+							</Tooltip>
+							<DownloadPieChartCsv
+								filename={
+									[
+										'rwa-pie',
+										slug(definitions.totalActiveMarketcap.label),
+										props.selectedChain !== 'All' ? props.selectedChain.toLowerCase() : null,
+										props.selectedCategory !== 'All' ? slug(props.selectedCategory) : null
+									]
+										.filter(Boolean)
+										.join('-') + '.csv'
+								}
+								chartData={activeMarketcapPieChartData}
+								smol
+							/>
+						</div>
 						<Suspense fallback={<div className="h-[360px]" />}>
 							<PieChart
 								chartData={activeMarketcapPieChartData}
@@ -655,8 +722,30 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 							/>
 						</Suspense>
 					</div>
-					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<h2 className="px-3 text-lg font-semibold">DeFi Active TVL</h2>
+					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<div className="flex flex-wrap items-center justify-between gap-2 p-4 pb-0">
+							<Tooltip
+								content={definitions.totalDefiActiveTvl.description}
+								className="text-lg font-semibold underline decoration-dotted"
+								render={<h2 />}
+							>
+								{definitions.totalDefiActiveTvl.label}
+							</Tooltip>
+							<DownloadPieChartCsv
+								filename={
+									[
+										'rwa-pie',
+										slug(definitions.totalDefiActiveTvl.label),
+										props.selectedChain !== 'All' ? props.selectedChain.toLowerCase() : null,
+										props.selectedCategory !== 'All' ? slug(props.selectedCategory) : null
+									]
+										.filter(Boolean)
+										.join('-') + '.csv'
+								}
+								chartData={defiActiveTvlPieChartData}
+								smol
+							/>
+						</div>
 						<Suspense fallback={<div className="h-[360px]" />}>
 							<PieChart
 								chartData={defiActiveTvlPieChartData}

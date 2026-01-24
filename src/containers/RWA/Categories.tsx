@@ -1,4 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
@@ -40,11 +41,19 @@ const columns: ColumnDef<IRWACategoriesOverviewRow>[] = [
 		size: 240
 	},
 	{
-		id: 'totalOnChainMarketcap',
-		header: definitions.totalOnChainMarketcap.label,
-		accessorKey: 'totalOnChainMarketcap',
+		id: 'totalAssetIssuers',
+		header: definitions.totalAssetIssuers.label,
+		accessorKey: 'totalAssetIssuers',
+		cell: (info) => formattedNum(info.getValue() as number, false),
+		meta: { align: 'end', headerHelperText: definitions.totalAssetIssuers.description },
+		size: 180
+	},
+	{
+		id: 'totalDefiActiveTvl',
+		header: definitions.totalDefiActiveTvl.label,
+		accessorKey: 'totalDefiActiveTvl',
 		cell: (info) => formattedNum(info.getValue() as number, true),
-		meta: { align: 'end', headerHelperText: definitions.totalOnChainMarketcap.description },
+		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
 		size: 200
 	},
 	{
@@ -56,12 +65,12 @@ const columns: ColumnDef<IRWACategoriesOverviewRow>[] = [
 		size: 220
 	},
 	{
-		id: 'totalAssetIssuers',
-		header: definitions.totalAssetIssuers.label,
-		accessorKey: 'totalAssetIssuers',
-		cell: (info) => formattedNum(info.getValue() as number, false),
-		meta: { align: 'end', headerHelperText: definitions.totalAssetIssuers.description },
-		size: 180
+		id: 'totalOnChainMarketcap',
+		header: definitions.totalOnChainMarketcap.label,
+		accessorKey: 'totalOnChainMarketcap',
+		cell: (info) => formattedNum(info.getValue() as number, true),
+		meta: { align: 'end', headerHelperText: definitions.totalOnChainMarketcap.description },
+		size: 200
 	},
 	{
 		id: 'totalStablecoinsValue',
@@ -70,14 +79,6 @@ const columns: ColumnDef<IRWACategoriesOverviewRow>[] = [
 		cell: (info) => formattedNum(info.getValue() as number, true),
 		meta: { align: 'end', headerHelperText: definitions.totalStablecoinsValue.description },
 		size: 220
-	},
-	{
-		id: 'totalDefiActiveTvl',
-		header: definitions.totalDefiActiveTvl.label,
-		accessorKey: 'totalDefiActiveTvl',
-		cell: (info) => formattedNum(info.getValue() as number, true),
-		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
-		size: 200
 	}
 ]
 
@@ -95,6 +96,24 @@ export function RWACategoriesTable({ categories }: { categories: IRWACategoriesO
 			columnToSearch="category"
 			header="Categories"
 			columnSizes={columnSizes}
+			customFilters={({ instance }) => (
+				<CSVDownloadButton
+					prepareCsv={() => {
+						const filename = 'rwa-categories.csv'
+
+						const headers = columns.map((c) => (typeof c.header === 'string' ? c.header : (c.id ?? '')))
+						const columnIds = columns.map((c) => c.id as string)
+
+						const rows = instance
+							.getRowModel()
+							.rows.map((row) =>
+								columnIds.map((columnId) => (row.getValue(columnId) ?? '') as string | number | boolean)
+							)
+
+						return { filename, rows: [headers, ...rows] }
+					}}
+				/>
+			)}
 			sortingState={[{ id: 'totalOnChainMarketcap', desc: true }]}
 		/>
 	)

@@ -122,6 +122,14 @@ export interface IRWACategoriesOverviewRow {
 	totalDefiActiveTvl: number
 }
 
+export interface IRWAPlatformsOverviewRow {
+	platform: string
+	totalOnChainMarketcap: number
+	totalActiveMarketcap: number
+	totalStablecoinsValue: number
+	totalDefiActiveTvl: number
+}
+
 const stablecoinCategories = ['Fiat-Backed Stablecoins', 'Stablecoins backed by RWAs', 'Non-RWA Stablecoins']
 const stablecoinAssetClasses: string[] = [
 	'USD fiat stablecoin',
@@ -736,6 +744,81 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 			totalOnChainMarketcap: v.totalOnChainMarketcap,
 			totalActiveMarketcap: v.totalActiveMarketcap,
 			totalAssetIssuers: v.issuers.size,
+			totalStablecoinsValue: v.totalStablecoinsValue,
+			totalDefiActiveTvl: v.totalDefiActiveTvl
+		}))
+		.sort((a, b) => b.totalOnChainMarketcap - a.totalOnChainMarketcap)
+}
+
+export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRow[] | null> {
+	const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
+	const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
+	if (!data || typeof data !== 'object') return null
+
+	const totalsByPlatform = new Map<
+		string,
+		{
+			platform: string
+			totalOnChainMarketcap: number
+			totalActiveMarketcap: number
+			totalStablecoinsValue: number
+			totalDefiActiveTvl: number
+		}
+	>()
+
+	// Prefer a "human" display label when multiple raw platform strings map to the same slug.
+	const pickDisplayPlatform = (prev: string, next: string) => {
+		const looksSluggy = (s: string) => s.includes('-') && !s.includes(' ')
+		if (looksSluggy(prev) && !looksSluggy(next)) return next
+		return prev
+	}
+
+	const getOrInit = (platformSlug: string, displayPlatform: string) => {
+		const prev = totalsByPlatform.get(platformSlug)
+		if (prev) return prev
+		const next = {
+			platform: displayPlatform,
+			totalOnChainMarketcap: 0,
+			totalActiveMarketcap: 0,
+			totalStablecoinsValue: 0,
+			totalDefiActiveTvl: 0
+		}
+		totalsByPlatform.set(platformSlug, next)
+		return next
+	}
+
+	for (const rwaId in data) {
+		const item = data[rwaId]
+		// Platforms page should only list entries explicitly marked as `type === 'Platform'`.
+		if ((item.type ?? '').toLowerCase() !== 'platform') continue
+
+		const platform = item.name ?? item.ticker ?? null
+		if (!platform) continue
+
+		const platformSlug = rwaSlug(platform)
+		if (!platformSlug) continue
+
+		const isStablecoin = !!item.stablecoin
+		const totalOnChain = sumRecordNumbers(item.onChainMarketcap)
+		const totalActive = sumRecordNumbers(item.activeMcap)
+		const totalDefi = sumDefiAllChains(item.defiActiveTvl)
+
+		// Skip completely empty rows (no totals + no platform label).
+		if (totalOnChain === 0 && totalActive === 0 && totalDefi === 0) continue
+
+		const agg = getOrInit(platformSlug, platform)
+		agg.platform = pickDisplayPlatform(agg.platform, platform)
+		agg.totalOnChainMarketcap += totalOnChain
+		agg.totalActiveMarketcap += totalActive
+		agg.totalDefiActiveTvl += totalDefi
+		if (isStablecoin) agg.totalStablecoinsValue += totalOnChain
+	}
+
+	return Array.from(totalsByPlatform.entries())
+		.map(([, v]) => ({
+			platform: v.platform,
+			totalOnChainMarketcap: v.totalOnChainMarketcap,
+			totalActiveMarketcap: v.totalActiveMarketcap,
 			totalStablecoinsValue: v.totalStablecoinsValue,
 			totalDefiActiveTvl: v.totalDefiActiveTvl
 		}))
