@@ -76,6 +76,13 @@ export interface IRWAAssetsOverview {
 	accessModels: Array<string>
 	accessModelOptions: Array<{ key: string; name: string; help?: string }>
 	categories: Array<string>
+	categoriesOptions: Array<{ key: string; name: string; help?: string }>
+	stablecoinCategories: Array<string>
+	stablecoinAssetClasses: Array<string>
+	stablecoinClassifications: Array<string>
+	governanceCategories: Array<string>
+	governanceAssetClasses: Array<string>
+	governanceClassifications: Array<string>
 	categoryValues: Array<{ name: string; value: number }>
 	issuers: Array<string>
 	chains: Array<{ label: string; to: string }>
@@ -85,6 +92,27 @@ export interface IRWAAssetsOverview {
 	totalOnChainStablecoinValue: number
 	totalOnChainDeFiActiveTvl: number
 }
+
+const stablecoinCategories = ['Fiat-Backed Stablecoins', 'Stablecoins backed by RWAs', 'Non-RWA Stablecoins']
+const stablecoinAssetClasses: string[] = [
+	'USD fiat stablecoin',
+	'Synthetic backed stablecoin',
+	'Crypto-collateralized stablecoin (non-RWA)',
+	'Hybrid / multi-asset RWA stablecoin',
+	'Yield-bearing RWA stablecoin',
+	'Stablecoin yield wrapper',
+	'Other fiat stablecoin',
+	'EUR fiat stablecoin',
+	'Algorithmic / undercollateralized stablecoin',
+	'RWA-backed fiat stablecoin (non-yielding)',
+	'Yield-bearing fiat stablecoin',
+	'Bank deposit token'
+]
+const stablecoinClassifications = []
+
+const governanceCategories = ['Governance & Protocol Tokens']
+const governanceAssetClasses = ['Governance / voting token (RWA protocol)', 'Revenue / fee share token (RWA protocol)']
+const governanceClassifications = ['Non-RWA (Gov/Utility)']
 
 export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWAAssetsOverview | null> {
 	try {
@@ -304,6 +332,9 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 			.sort((a, b) => b[1] - a[1])
 			.map(([key]) => key)
 
+		const formattedCategories = Array.from(categories.entries())
+			.sort((a, b) => b[1] - a[1])
+			.map(([key]) => key)
 		return {
 			assets: assets.sort((a, b) => b.onChainMarketcap.total - a.onChainMarketcap.total),
 			assetClasses: formattedAssetClasses,
@@ -324,9 +355,18 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				name: accessModel,
 				help: definitions.accessModel.values?.[accessModel] ?? null
 			})),
-			categories: Array.from(categories.entries())
-				.sort((a, b) => b[1] - a[1])
-				.map(([key]) => key),
+			categories: formattedCategories,
+			categoriesOptions: formattedCategories.map((category) => ({
+				key: category,
+				name: category,
+				help: definitions.category.values?.[category] ?? null
+			})),
+			stablecoinAssetClasses,
+			stablecoinCategories,
+			stablecoinClassifications,
+			governanceCategories,
+			governanceAssetClasses,
+			governanceClassifications,
 			categoryValues: Array.from(categories.entries())
 				.sort((a, b) => b[1] - a[1])
 				.map(([name, value]) => ({ name, value })),

@@ -5,7 +5,22 @@
 	},
 	"category": {
 		"label": "Category",
-		"description": "High level economic bucket describing the type of RWA or financial product represented"
+		"description": "High level economic bucket describing the type of RWA or financial product represented",
+		"values": {
+			"Fiat-Backed Stablecoins": "Stablecoins designed to track a fiat currency, backed mainly by cash, deposits, and short-dated government securities.",
+			"Stablecoins backed by RWAs": "Fiat-pegged stablecoins whose primary backing is RWAs, commonly tokenized Treasuries, credit instruments, or other yield-bearing RWAs.",
+			"Non-RWA Stablecoins": "Stablecoins targeting a peg using onchain collateral or mechanisms, rather than direct backing by real-world assets.",
+			"Tokenized Funds (T-Bills, Bonds, MMFs)": "Tokenized shares or units of investment funds, including money market funds (MMFs), Treasury (T-bill/bond) funds, and similar cash-like vehicles.",
+			"Governance & Protocol Tokens": "Tokens used to govern RWA-related protocols. They do not represent direct claims on RWAs.",
+			"Tokenized Gold & Commodities": "Tokens representing commodity exposure, including gold, other precious metals, energy, industrial metals, and related baskets.",
+			"RWA Yield / Wrapper": "Yield-bearing wrappers, vaults, and strategy tokens whose underlying is primarily RWAs (or RWA-backed stablecoins), packaging exposure or yield into a single onchain token.",
+			"Tokenized Stocks & Equities": "Tokens representing exposure to publicly traded equities, ETFs, and other listed securities.",
+			"RWA Lending / Private Credit": "Tokens representing loans, receivables, invoices, and other private credit instruments backed by off-chain cashflows.",
+			"Other / Exotic RWAs": "Tokens representing alternative or niche real-world assets that do not fit other categories, such as collectibles and royalties.",
+			"Tokenized Crypto Funds": "Tokenized shares or units of funds that hold crypto assets or crypto-linked strategies (e.g. index funds, diversified portfolios, or managed strategies).",
+			"Tokenized Real Estate": "Tokens representing real estate interests, fractional ownership, or revenue participation linked to property assets.",
+			"Carbon Credits & Environmental Assets": "Tokenized carbon credits and other environmental assets, including avoidance and removal instruments."
+		}
 	},
 	"assetClass": {
 		"label": "Asset Class",

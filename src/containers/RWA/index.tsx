@@ -63,6 +63,7 @@ const formatPercentRange = (minPercent: number | null, maxPercent: number | null
 }
 
 export const RWAOverview = (props: IRWAAssetsOverview) => {
+	const router = useRouter()
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = useState<SortingState>([{ id: 'onChainMarketcap.total', desc: true }])
 	const [expanded, setExpanded] = useState<ExpandedState>({})
@@ -90,6 +91,12 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		setIncludeGovernance
 	} = useRWATableQueryParams({
 		categories: props.categories,
+		stablecoinCategories: props.stablecoinCategories,
+		governanceCategories: props.governanceCategories,
+		stablecoinAssetClasses: props.stablecoinAssetClasses,
+		governanceAssetClasses: props.governanceAssetClasses,
+		stablecoinClassifications: props.stablecoinClassifications,
+		governanceClassifications: props.governanceClassifications,
 		assetClasses: props.assetClasses,
 		rwaClassifications: props.rwaClassifications,
 		accessModels: props.accessModels,
@@ -110,10 +117,20 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		const selectedIssuersSet = new Set(selectedIssuers)
 
 		return props.assets.filter((asset) => {
-			if (!includeStablecoins && asset.stablecoin) {
+			const hasSelectedCategory = asset.category?.some((category) => selectedCategoriesSet.has(category)) ?? false
+			const hasSelectedAssetClass =
+				asset.assetClass?.some((assetClass) => selectedAssetClassesSet.has(assetClass)) ?? false
+			const hasSelectedClassification = asset.rwaClassification
+				? selectedRwaClassificationsSet.has(asset.rwaClassification)
+				: false
+			const bypassToggles = hasSelectedCategory || hasSelectedAssetClass || hasSelectedClassification
+
+			// Only bypass stablecoin/governance exclusion if this *asset* matches a selected category.
+			// Otherwise keep excluding them when toggles are off (default behavior).
+			if (!includeStablecoins && asset.stablecoin && !bypassToggles) {
 				return false
 			}
-			if (!includeGovernance && asset.governance) {
+			if (!includeGovernance && asset.governance && !bypassToggles) {
 				return false
 			}
 
@@ -346,12 +363,21 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		}
 	}
 
+	// Preserve filter/toggle query params when switching between chains.
+	// (The chain itself is in the pathname, so we strip the dynamic `chain` param from the query object.)
+	const chainLinks = useMemo(() => {
+		const { chain: _chain, ...restQuery } = router.query
+		const qs = toQueryString(restQuery as Record<string, string | string[] | undefined>)
+		if (!qs) return props.chains
+		return props.chains.map((link) => ({ ...link, to: `${link.to}${qs}` }))
+	}, [props.chains, router.query])
+
 	return (
 		<>
-			<RowLinksWithDropdown links={props.chains} activeLink={props.selectedChain} />
+			<RowLinksWithDropdown links={chainLinks} activeLink={props.selectedChain} />
 			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 md:flex-row md:flex-wrap md:items-center">
 				<SelectWithCombobox
-					allValues={props.categories}
+					allValues={props.categoriesOptions}
 					selectedValues={selectedCategories}
 					includeQueryKey="categories"
 					excludeQueryKey="excludeCategories"
@@ -501,6 +527,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					label="Stablecoins"
 					value="includeStablecoins"
 					checked={includeStablecoins}
+					help="If you select a stablecoin-related category, asset class, or classification, matching stablecoin assets may still be included even when this toggle is off."
 					onChange={() => setIncludeStablecoins(!includeStablecoins)}
 					className="ml-auto"
 				/>
@@ -508,6 +535,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					label="Governance Tokens"
 					value="includeGovernance"
 					checked={includeGovernance}
+					help="If you select a governance-related category, asset class, or classification, matching governance-token assets may still be included even when this toggle is off."
 					onChange={() => setIncludeGovernance(!includeGovernance)}
 				/>
 			</div>
@@ -1062,6 +1090,28 @@ const toNumberParam = (p: string | string[] | undefined): number | null => {
 	return parseNumberInput(p)
 }
 
+const toBooleanParam = (p: string | string[] | undefined): boolean => {
+	if (Array.isArray(p)) return p[0] === 'true'
+	return p === 'true'
+}
+
+const toQueryString = (query: Record<string, string | string[] | undefined>): string => {
+	const params = new URLSearchParams()
+	for (const [key, value] of Object.entries(query)) {
+		if (value == null) continue
+		if (Array.isArray(value)) {
+			for (const v of value) {
+				if (!v) continue
+				params.append(key, String(v))
+			}
+		} else if (value) {
+			params.set(key, String(value))
+		}
+	}
+	const qs = params.toString()
+	return qs ? `?${qs}` : ''
+}
+
 const updateNumberRangeQuery = (
 	minKey: string,
 	maxKey: string,
@@ -1086,12 +1136,24 @@ const updateNumberRangeQuery = (
 
 const useRWATableQueryParams = ({
 	categories,
+	stablecoinCategories,
+	governanceCategories,
+	stablecoinAssetClasses,
+	governanceAssetClasses,
+	stablecoinClassifications,
+	governanceClassifications,
 	assetClasses,
 	rwaClassifications,
 	accessModels,
 	issuers
 }: {
 	categories: string[]
+	stablecoinCategories: string[]
+	governanceCategories: string[]
+	stablecoinAssetClasses: string[]
+	governanceAssetClasses: string[]
+	stablecoinClassifications: string[]
+	governanceClassifications: string[]
 	assetClasses: string[]
 	rwaClassifications: string[]
 	accessModels: string[]
@@ -1150,20 +1212,56 @@ const useRWATableQueryParams = ({
 		const excludeAccessModelsSet = parseExcludeParam(excludeAccessModelsQ)
 		const excludeIssuersSet = parseExcludeParam(excludeIssuersQ)
 
+		// Default both toggles to OFF unless explicitly set to 'true'
+		const includeStablecoins = toBooleanParam(stablecoinsQ)
+		const includeGovernance = toBooleanParam(governanceQ)
+
+		const stablecoinCategoriesSet = new Set(stablecoinCategories)
+		const governanceCategoriesSet = new Set(governanceCategories)
+		const stablecoinAssetClassesSet = new Set(stablecoinAssetClasses)
+		const governanceAssetClassesSet = new Set(governanceAssetClasses)
+		const stablecoinClassificationsSet = new Set(stablecoinClassifications)
+		const governanceClassificationsSet = new Set(governanceClassifications)
+
+		const defaultSelectedCategories = categories.filter((c) => {
+			if (!c) return false
+			if (!includeStablecoins && stablecoinCategoriesSet.has(c)) return false
+			if (!includeGovernance && governanceCategoriesSet.has(c)) return false
+			return true
+		})
+
+		const defaultSelectedAssetClasses = assetClasses.filter((a) => {
+			if (!a) return false
+			if (!includeStablecoins && stablecoinAssetClassesSet.has(a)) return false
+			if (!includeGovernance && governanceAssetClassesSet.has(a)) return false
+			return true
+		})
+
+		const defaultSelectedRwaClassifications = rwaClassifications.filter((r) => {
+			if (!r) return false
+			if (!includeStablecoins && stablecoinClassificationsSet.has(r)) return false
+			if (!includeGovernance && governanceClassificationsSet.has(r)) return false
+			return true
+		})
+
 		// Build selected arrays and filter out excludes
-		let selectedCategories = parseArrayParam(categoriesQ, categories)
+		let selectedCategories = categoriesQ == null ? defaultSelectedCategories : parseArrayParam(categoriesQ, categories)
 		selectedCategories =
 			excludeCategoriesSet.size > 0
 				? selectedCategories.filter((c) => !excludeCategoriesSet.has(c))
 				: selectedCategories
 
-		let selectedAssetClasses = parseArrayParam(assetClassesQ, assetClasses)
+		let selectedAssetClasses =
+			assetClassesQ == null ? defaultSelectedAssetClasses : parseArrayParam(assetClassesQ, assetClasses)
 		selectedAssetClasses =
 			excludeAssetClassesSet.size > 0
 				? selectedAssetClasses.filter((a) => !excludeAssetClassesSet.has(a))
 				: selectedAssetClasses
 
-		let selectedRwaClassifications = parseArrayParam(rwaClassificationsQ, rwaClassifications)
+		let selectedRwaClassifications =
+			rwaClassificationsQ == null
+				? defaultSelectedRwaClassifications
+				: parseArrayParam(rwaClassificationsQ, rwaClassifications)
 		selectedRwaClassifications =
 			excludeRwaClassificationsSet.size > 0
 				? selectedRwaClassifications.filter((r) => !excludeRwaClassificationsSet.has(r))
@@ -1186,9 +1284,6 @@ const useRWATableQueryParams = ({
 		const minDefiActiveTvlToActiveMcapPct = toNumberParam(minDefiActiveTvlToActiveMcapPctQ)
 		const maxDefiActiveTvlToActiveMcapPct = toNumberParam(maxDefiActiveTvlToActiveMcapPctQ)
 
-		// includeStablecoins is true by default, unless explicitly set to 'false'
-		const includeStablecoins = stablecoinsQ !== 'false'
-		const includeGovernance = governanceQ !== 'false'
 		return {
 			selectedCategories,
 			selectedAssetClasses,
@@ -1224,6 +1319,12 @@ const useRWATableQueryParams = ({
 		stablecoinsQ,
 		governanceQ,
 		categories,
+		stablecoinCategories,
+		governanceCategories,
+		stablecoinAssetClasses,
+		governanceAssetClasses,
+		stablecoinClassifications,
+		governanceClassifications,
 		assetClasses,
 		rwaClassifications,
 		accessModels,
@@ -1240,9 +1341,9 @@ const useRWATableQueryParams = ({
 	const setIncludeStablecoins = (value: boolean) => {
 		const nextQuery: Record<string, any> = { ...Router.query }
 		if (value) {
-			delete nextQuery.includeStablecoins
+			nextQuery.includeStablecoins = 'true'
 		} else {
-			nextQuery.includeStablecoins = 'false'
+			delete nextQuery.includeStablecoins
 		}
 		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}
@@ -1250,9 +1351,9 @@ const useRWATableQueryParams = ({
 	const setIncludeGovernance = (value: boolean) => {
 		const nextQuery: Record<string, any> = { ...Router.query }
 		if (value) {
-			delete nextQuery.includeGovernance
+			nextQuery.includeGovernance = 'true'
 		} else {
-			nextQuery.includeGovernance = 'false'
+			delete nextQuery.includeGovernance
 		}
 		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}
