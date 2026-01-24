@@ -668,6 +668,7 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 	const totalsByCategory = new Map<
 		string,
 		{
+			category: string
 			totalOnChainMarketcap: number
 			totalActiveMarketcap: number
 			totalStablecoinsValue: number
@@ -676,17 +677,26 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 		}
 	>()
 
-	const getOrInit = (category: string) => {
-		const prev = totalsByCategory.get(category)
+	// Prefer a "human" display label when multiple raw category strings map to the same slug.
+	const pickDisplayCategory = (prev: string, next: string) => {
+		// If the current label looks slug-like but the new one looks human, prefer the new one.
+		const looksSluggy = (s: string) => s.includes('-') && !s.includes(' ')
+		if (looksSluggy(prev) && !looksSluggy(next)) return next
+		return prev
+	}
+
+	const getOrInit = (categorySlug: string, displayCategory: string) => {
+		const prev = totalsByCategory.get(categorySlug)
 		if (prev) return prev
 		const next = {
+			category: displayCategory,
 			totalOnChainMarketcap: 0,
 			totalActiveMarketcap: 0,
 			totalStablecoinsValue: 0,
 			totalDefiActiveTvl: 0,
 			issuers: new Set<string>()
 		}
-		totalsByCategory.set(category, next)
+		totalsByCategory.set(categorySlug, next)
 		return next
 	}
 
@@ -701,11 +711,17 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 		const totalActive = sumRecordNumbers(item.activeMcap)
 		const totalDefi = sumDefiAllChains(item.defiActiveTvl)
 
-		if (totalOnChain === 0 && totalActive === 0 && totalDefi === 0) continue
+		// Keep issuer counts consistent with the detail page:
+		// even if an asset currently has 0 on-chain/active/DeFi values, it should still contribute
+		// to unique issuer counts for its category (but it won't affect totals since we add 0s).
+		if (!issuer && totalOnChain === 0 && totalActive === 0 && totalDefi === 0) continue
 
 		for (const category of categories) {
 			if (!category) continue
-			const agg = getOrInit(category)
+			const categorySlug = rwaSlug(category)
+			if (!categorySlug) continue
+			const agg = getOrInit(categorySlug, category)
+			agg.category = pickDisplayCategory(agg.category, category)
 			agg.totalOnChainMarketcap += totalOnChain
 			agg.totalActiveMarketcap += totalActive
 			agg.totalDefiActiveTvl += totalDefi
@@ -715,8 +731,8 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 	}
 
 	return Array.from(totalsByCategory.entries())
-		.map(([category, v]) => ({
-			category,
+		.map(([, v]) => ({
+			category: v.category,
 			totalOnChainMarketcap: v.totalOnChainMarketcap,
 			totalActiveMarketcap: v.totalActiveMarketcap,
 			totalAssetIssuers: v.issuers.size,
