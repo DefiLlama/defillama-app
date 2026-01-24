@@ -1,21 +1,21 @@
 import { maxAgeForNext } from '~/api'
 import { RWAOverview } from '~/containers/RWA'
-import { getRWAAssetsOverview, getRWAChainsList } from '~/containers/RWA/queries'
+import { getRWAAssetsOverview, getRWACategoriesList } from '~/containers/RWA/queries'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export async function getStaticPaths() {
-	const chains = await getRWAChainsList()
+	const categories = await getRWACategoriesList()
 
 	return {
-		paths: chains.map((chain) => ({ params: { chain: [chain] } })),
+		paths: categories.map((category) => ({ params: { category: [category] } })),
 		fallback: 'blocking'
 	}
 }
 
-export const getStaticProps = withPerformanceLogging(`rwa/chain/[...chain]`, async ({ params: { chain } }) => {
-	const chainSlug = Array.isArray(chain) ? chain.join('/') : chain
-	const props = await getRWAAssetsOverview({ chain: chainSlug })
+export const getStaticProps = withPerformanceLogging(`rwa/category/[...category]`, async ({ params: { category } }) => {
+	const categorySlug = Array.isArray(category) ? category.join('/') : category
+	const props = await getRWAAssetsOverview({ category: categorySlug })
 
 	if (!props) return { notFound: true }
 

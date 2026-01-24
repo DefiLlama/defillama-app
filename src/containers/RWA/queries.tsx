@@ -2,6 +2,7 @@ import { RWA_ACTIVE_TVLS_API } from '~/constants'
 import definitions from '~/public/rwa-definitions.json'
 import { formatNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { rwaSlug } from './rwaSlug'
 
 interface IFetchedRWAProject {
 	ticker: string
@@ -87,10 +88,38 @@ export interface IRWAAssetsOverview {
 	issuers: Array<string>
 	chains: Array<{ label: string; to: string }>
 	selectedChain: string
+	categoryLinks: Array<{ label: string; to: string }>
+	selectedCategory: string
 	totalOnChainMarketcap: number
 	totalActiveMarketcap: number
 	totalOnChainStablecoinValue: number
 	totalOnChainDeFiActiveTvl: number
+}
+
+export interface IRWAChainsOverviewRow {
+	chain: string
+	totalOnChainMarketcap: number
+	totalActiveMarketcap: number
+	totalAssetIssuers: number
+	totalDefiActiveTvl: number
+	stablecoinOnChainMarketcap: number
+	governanceOnChainMarketcap: number
+	stablecoinActiveMarketcap: number
+	governanceActiveMarketcap: number
+	stablecoinDefiActiveTvl: number
+	governanceDefiActiveTvl: number
+	totalAssetIssuersWithStablecoins: number
+	totalAssetIssuersWithGovernance: number
+	totalAssetIssuersWithStablecoinsAndGovernance: number
+}
+
+export interface IRWACategoriesOverviewRow {
+	category: string
+	totalOnChainMarketcap: number
+	totalActiveMarketcap: number
+	totalAssetIssuers: number
+	totalStablecoinsValue: number
+	totalDefiActiveTvl: number
 }
 
 const stablecoinCategories = ['Fiat-Backed Stablecoins', 'Stablecoins backed by RWAs', 'Non-RWA Stablecoins']
@@ -114,8 +143,46 @@ const governanceCategories = ['Governance & Protocol Tokens']
 const governanceAssetClasses = ['Governance / voting token (RWA protocol)', 'Revenue / fee share token (RWA protocol)']
 const governanceClassifications = ['Non-RWA (Gov/Utility)']
 
-export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWAAssetsOverview | null> {
+const sumRecordNumbers = (record: Record<string, unknown> | null | undefined): number => {
+	if (!record) return 0
+	let total = 0
+	for (const key in record) {
+		total += safeNumber((record as any)[key])
+	}
+	return total
+}
+
+const sumDefiByChain = (defi: Record<string, Record<string, string>> | null | undefined, chain: string): number => {
+	if (!defi) return 0
+	const protocols = defi[chain]
+	if (!protocols) return 0
+	let total = 0
+	for (const protocol in protocols) {
+		total += safeNumber(protocols[protocol])
+	}
+	return total
+}
+
+const sumDefiAllChains = (defi: Record<string, Record<string, string>> | null | undefined): number => {
+	if (!defi) return 0
+	let total = 0
+	for (const chain in defi) {
+		total += sumDefiByChain(defi, chain)
+	}
+	return total
+}
+
+export async function getRWAAssetsOverview(params?: {
+	chain?: string
+	category?: string
+}): Promise<IRWAAssetsOverview | null> {
 	try {
+		const selectedChain = params?.chain ? rwaSlug(params.chain) : undefined
+		const selectedCategory = params?.category ? rwaSlug(params.category) : undefined
+
+		// Route-level filtering supports chain OR category, not both.
+		if (selectedChain && selectedCategory) return null
+
 		const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
 		const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
 
@@ -128,7 +195,7 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 		let actualChainName: string | null = null
 		if (selectedChain) {
 			for (const rwaId in data) {
-				const match = data[rwaId].chain?.find((c) => slug(c) === selectedChain)
+				const match = data[rwaId].chain?.find((c) => rwaSlug(c) === selectedChain)
 				if (match) {
 					actualChainName = match
 					break
@@ -139,11 +206,27 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 			}
 		}
 
+		// `selectedCategory` comes from the URL and is slugified; resolve a display name (original casing/spaces)
+		let actualCategoryName: string | null = null
+		if (selectedCategory) {
+			for (const rwaId in data) {
+				const match = data[rwaId].category?.find((c) => rwaSlug(c) === selectedCategory)
+				if (match) {
+					actualCategoryName = match
+					break
+				}
+			}
+			if (!actualCategoryName) {
+				return null
+			}
+		}
+
 		const assets: Array<IRWAProject> = []
 		const assetClasses = new Map<string, number>()
 		const rwaClassifications = new Map<string, number>()
 		const accessModels = new Map<string, number>()
 		const categories = new Map<string, number>()
+		const categoryNavValues = new Map<string, number>()
 		const issuers = new Map<string, number>()
 		const chains = new Map<string, number>()
 		let totalOnChainMarketcapAllAssets = 0
@@ -168,13 +251,23 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 			const finalDeFiActiveTvlBreakdown: Record<string, number> = {}
 			const finalDeFiActiveTvlBreakdownFiltered: Record<string, number> = {}
 			const isChainFiltered = !!selectedChain
+			const hasCategoryMatch = selectedCategory
+				? (item.category ?? []).some((c) => c && rwaSlug(c) === selectedCategory)
+				: true
 
 			for (const chain in onChainMarketcapBreakdown) {
 				const value = safeNumber(onChainMarketcapBreakdown[chain])
 				finalOnChainMarketcapBreakdown[chain] = (finalOnChainMarketcapBreakdown[chain] || 0) + value
 				totalOnChainMarketcapForAsset += value
-				if (selectedChain && slug(chain) === selectedChain) {
+				if (selectedChain && rwaSlug(chain) === selectedChain) {
 					filteredOnChainMarketcapForAsset += value
+				}
+			}
+
+			// For category navigation, we always use total on-chain marketcap (not filtered) so ordering stays consistent.
+			for (const category of item.category ?? []) {
+				if (category) {
+					categoryNavValues.set(category, (categoryNavValues.get(category) ?? 0) + totalOnChainMarketcapForAsset)
 				}
 			}
 
@@ -182,13 +275,13 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				const value = safeNumber(activeMarketcapBreakdown[chain])
 				finalActiveMarketcapBreakdown[chain] = (finalActiveMarketcapBreakdown[chain] || 0) + value
 				totalActiveMarketcapForAsset += value
-				if (selectedChain && slug(chain) === selectedChain) {
+				if (selectedChain && rwaSlug(chain) === selectedChain) {
 					filteredActiveMarketcapForAsset += value
 				}
 			}
 
 			for (const chain in defiActiveTvlBreakdown) {
-				const isSelectedChain = !isChainFiltered || slug(chain) === selectedChain
+				const isSelectedChain = !isChainFiltered || rwaSlug(chain) === selectedChain
 				for (const protocolName in defiActiveTvlBreakdown[chain]) {
 					const value = safeNumber(defiActiveTvlBreakdown[chain][protocolName])
 					finalDeFiActiveTvlBreakdown[protocolName] = (finalDeFiActiveTvlBreakdown[protocolName] || 0) + value
@@ -214,6 +307,13 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 			const effectiveDeFiActiveTvl = selectedChain ? filteredDeFiActiveTvlForAsset : totalDeFiActiveTvlForAsset
 
 			const isTrueRWA = item.rwaClassification === 'True RWA'
+			const sortedCategories =
+				selectedCategory && Array.isArray(item.category)
+					? [
+							...item.category.filter((c) => c && rwaSlug(c) === selectedCategory),
+							...item.category.filter((c) => c && rwaSlug(c) !== selectedCategory)
+						]
+					: (item.category ?? null)
 			const asset: IRWAProject = {
 				ticker: typeof item.ticker === 'string' && item.ticker !== '-' ? item.ticker : null,
 				name: typeof item.name === 'string' && item.name !== '-' ? item.name : null,
@@ -222,7 +322,7 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				primaryChain: item.primaryChain ?? null,
 				chain: item.chain ?? null,
 				contracts: item.contracts ?? null,
-				category: item.category ?? null,
+				category: sortedCategories,
 				assetClass: item.assetClass ?? null,
 				type: item.type ?? null,
 				rwaClassification: isTrueRWA ? 'RWA' : (item.rwaClassification ?? null),
@@ -257,13 +357,13 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				onChainMarketcap: {
 					total: effectiveOnChainMarketcap,
 					breakdown: Object.entries(finalOnChainMarketcapBreakdown)
-						.filter(([chain]) => !selectedChain || slug(chain) === selectedChain)
+						.filter(([chain]) => !selectedChain || rwaSlug(chain) === selectedChain)
 						.sort((a, b) => b[1] - a[1])
 				},
 				activeMarketcap: {
 					total: effectiveActiveMarketcap,
 					breakdown: Object.entries(finalActiveMarketcapBreakdown)
-						.filter(([chain]) => !selectedChain || slug(chain) === selectedChain)
+						.filter(([chain]) => !selectedChain || rwaSlug(chain) === selectedChain)
 						.sort((a, b) => b[1] - a[1])
 				},
 				defiActiveTvl: {
@@ -275,8 +375,8 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				price: item.price != null ? Number(formatNum(item.price)) : null
 			}
 
-			// Only include asset if it exists on the selected chain (or no chain filter)
-			if (hasChainInTvl && asset.name) {
+			// Only include asset if it exists on the selected chain/category (or no route filter)
+			if (hasChainInTvl && hasCategoryMatch && asset.name) {
 				assets.push(asset)
 
 				// Track total values
@@ -335,6 +435,7 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 		const formattedCategories = Array.from(categories.entries())
 			.sort((a, b) => b[1] - a[1])
 			.map(([key]) => key)
+
 		return {
 			assets: assets.sort((a, b) => b.onChainMarketcap.total - a.onChainMarketcap.total),
 			assetClasses: formattedAssetClasses,
@@ -374,12 +475,25 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				.sort((a, b) => b[1] - a[1])
 				.map(([key]) => key),
 			selectedChain: actualChainName ?? 'All',
-			chains: [
-				{ label: 'All', to: '/rwa' },
-				...Array.from(chains.entries())
-					.sort((a, b) => b[1] - a[1])
-					.map(([key]) => ({ label: key, to: `/rwa/chain/${slug(key)}` }))
-			],
+			chains: selectedCategory
+				? []
+				: [
+						{ label: 'All', to: '/rwa' },
+						...Array.from(chains.entries())
+							.sort((a, b) => b[1] - a[1])
+							.map(([key]) => ({ label: key, to: `/rwa/chain/${rwaSlug(key)}` }))
+					],
+			// Category navigation should always include *all* categories in a stable global order,
+			// even on a filtered category page.
+			categoryLinks: selectedCategory
+				? [
+						{ label: 'All', to: '/rwa/categories' },
+						...Array.from(categoryNavValues.entries())
+							.sort((a, b) => b[1] - a[1])
+							.map(([key]) => ({ label: key, to: `/rwa/category/${rwaSlug(key)}` }))
+					]
+				: [],
+			selectedCategory: actualCategoryName ?? 'All',
 			totalOnChainMarketcap: totalOnChainMarketcapAllAssets,
 			totalActiveMarketcap: totalActiveMarketcapAllAssets,
 			totalOnChainStablecoinValue: totalOnChainStablecoinValueAllAssets,
@@ -399,12 +513,217 @@ export async function getRWAChainsList(): Promise<string[]> {
 	for (const rwaId in data) {
 		for (const chain of data[rwaId].chain ?? []) {
 			if (chain) {
-				chains.add(slug(chain))
+				chains.add(rwaSlug(chain))
 			}
 		}
 	}
 
 	return Array.from(chains)
+}
+
+export async function getRWACategoriesList(): Promise<string[]> {
+	const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
+	const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
+	if (!data || typeof data !== 'object') return []
+	const categories = new Set<string>()
+
+	for (const rwaId in data) {
+		for (const category of data[rwaId].category ?? []) {
+			if (category) {
+				categories.add(rwaSlug(category))
+			}
+		}
+	}
+
+	return Array.from(categories)
+}
+
+export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[] | null> {
+	const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
+	const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
+	if (!data || typeof data !== 'object') return null
+
+	const totalsByChain = new Map<
+		string,
+		{
+			// Default behavior: exclude stablecoins + governance assets from these base totals.
+			baseOnChainMarketcap: number
+			baseActiveMarketcap: number
+			baseDefiActiveTvl: number
+			baseIssuers: Set<string>
+
+			// Separate buckets so UI can optionally include them without double counting.
+			stablecoinOnChainMarketcap: number
+			stablecoinActiveMarketcap: number
+			stablecoinDefiActiveTvl: number
+			stablecoinIssuers: Set<string>
+
+			governanceOnChainMarketcap: number
+			governanceActiveMarketcap: number
+			governanceDefiActiveTvl: number
+			governanceIssuers: Set<string>
+		}
+	>()
+
+	const getOrInit = (chain: string) => {
+		const prev = totalsByChain.get(chain)
+		if (prev) return prev
+		const next = {
+			baseOnChainMarketcap: 0,
+			baseActiveMarketcap: 0,
+			baseDefiActiveTvl: 0,
+			baseIssuers: new Set<string>(),
+
+			stablecoinOnChainMarketcap: 0,
+			stablecoinActiveMarketcap: 0,
+			stablecoinDefiActiveTvl: 0,
+			stablecoinIssuers: new Set<string>(),
+
+			governanceOnChainMarketcap: 0,
+			governanceActiveMarketcap: 0,
+			governanceDefiActiveTvl: 0,
+			governanceIssuers: new Set<string>()
+		}
+		totalsByChain.set(chain, next)
+		return next
+	}
+
+	for (const rwaId in data) {
+		const item = data[rwaId]
+		const issuer = item.issuer ?? null
+		const isStablecoin = !!item.stablecoin
+		const isGovernance = !!item.governance
+		const onChainByChain = item.onChainMarketcap ?? {}
+		const activeByChain = item.activeMcap ?? {}
+		const defiByChain = item.defiActiveTvl ?? {}
+
+		const chainKeys = new Set<string>([
+			...Object.keys(onChainByChain),
+			...Object.keys(activeByChain),
+			...Object.keys(defiByChain)
+		])
+
+		for (const chain of chainKeys) {
+			const onChain = safeNumber((onChainByChain as any)[chain])
+			const active = safeNumber((activeByChain as any)[chain])
+			const defi = sumDefiByChain(defiByChain, chain)
+
+			if (onChain === 0 && active === 0 && defi === 0) continue
+
+			const agg = getOrInit(chain)
+
+			// Assign each asset to exactly one bucket to keep toggling logic simple:
+			// stablecoin > governance > base
+			if (isStablecoin) {
+				agg.stablecoinOnChainMarketcap += onChain
+				agg.stablecoinActiveMarketcap += active
+				agg.stablecoinDefiActiveTvl += defi
+				if (issuer) agg.stablecoinIssuers.add(issuer)
+			} else if (isGovernance) {
+				agg.governanceOnChainMarketcap += onChain
+				agg.governanceActiveMarketcap += active
+				agg.governanceDefiActiveTvl += defi
+				if (issuer) agg.governanceIssuers.add(issuer)
+			} else {
+				agg.baseOnChainMarketcap += onChain
+				agg.baseActiveMarketcap += active
+				agg.baseDefiActiveTvl += defi
+				if (issuer) agg.baseIssuers.add(issuer)
+			}
+		}
+	}
+
+	return Array.from(totalsByChain.entries())
+		.map(([chain, v]) => {
+			const issuersBase = v.baseIssuers
+			const issuersStablecoin = new Set<string>([...issuersBase, ...v.stablecoinIssuers])
+			const issuersGovernance = new Set<string>([...issuersBase, ...v.governanceIssuers])
+			const issuersBoth = new Set<string>([...issuersBase, ...v.stablecoinIssuers, ...v.governanceIssuers])
+
+			return {
+				chain,
+				totalOnChainMarketcap: v.baseOnChainMarketcap,
+				totalActiveMarketcap: v.baseActiveMarketcap,
+				totalAssetIssuers: issuersBase.size,
+				totalDefiActiveTvl: v.baseDefiActiveTvl,
+				stablecoinOnChainMarketcap: v.stablecoinOnChainMarketcap,
+				governanceOnChainMarketcap: v.governanceOnChainMarketcap,
+				stablecoinActiveMarketcap: v.stablecoinActiveMarketcap,
+				governanceActiveMarketcap: v.governanceActiveMarketcap,
+				stablecoinDefiActiveTvl: v.stablecoinDefiActiveTvl,
+				governanceDefiActiveTvl: v.governanceDefiActiveTvl,
+				totalAssetIssuersWithStablecoins: issuersStablecoin.size,
+				totalAssetIssuersWithGovernance: issuersGovernance.size,
+				totalAssetIssuersWithStablecoinsAndGovernance: issuersBoth.size
+			}
+		})
+		.sort((a, b) => b.totalOnChainMarketcap - a.totalOnChainMarketcap)
+}
+
+export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverviewRow[] | null> {
+	const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
+	const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
+	if (!data || typeof data !== 'object') return null
+
+	const totalsByCategory = new Map<
+		string,
+		{
+			totalOnChainMarketcap: number
+			totalActiveMarketcap: number
+			totalStablecoinsValue: number
+			totalDefiActiveTvl: number
+			issuers: Set<string>
+		}
+	>()
+
+	const getOrInit = (category: string) => {
+		const prev = totalsByCategory.get(category)
+		if (prev) return prev
+		const next = {
+			totalOnChainMarketcap: 0,
+			totalActiveMarketcap: 0,
+			totalStablecoinsValue: 0,
+			totalDefiActiveTvl: 0,
+			issuers: new Set<string>()
+		}
+		totalsByCategory.set(category, next)
+		return next
+	}
+
+	for (const rwaId in data) {
+		const item = data[rwaId]
+		const categories = item.category ?? []
+		if (!categories || categories.length === 0) continue
+
+		const issuer = item.issuer ?? null
+		const isStablecoin = !!item.stablecoin
+		const totalOnChain = sumRecordNumbers(item.onChainMarketcap)
+		const totalActive = sumRecordNumbers(item.activeMcap)
+		const totalDefi = sumDefiAllChains(item.defiActiveTvl)
+
+		if (totalOnChain === 0 && totalActive === 0 && totalDefi === 0) continue
+
+		for (const category of categories) {
+			if (!category) continue
+			const agg = getOrInit(category)
+			agg.totalOnChainMarketcap += totalOnChain
+			agg.totalActiveMarketcap += totalActive
+			agg.totalDefiActiveTvl += totalDefi
+			if (isStablecoin) agg.totalStablecoinsValue += totalOnChain
+			if (issuer) agg.issuers.add(issuer)
+		}
+	}
+
+	return Array.from(totalsByCategory.entries())
+		.map(([category, v]) => ({
+			category,
+			totalOnChainMarketcap: v.totalOnChainMarketcap,
+			totalActiveMarketcap: v.totalActiveMarketcap,
+			totalAssetIssuers: v.issuers.size,
+			totalStablecoinsValue: v.totalStablecoinsValue,
+			totalDefiActiveTvl: v.totalDefiActiveTvl
+		}))
+		.sort((a, b) => b.totalOnChainMarketcap - a.totalOnChainMarketcap)
 }
 
 export interface IRWAAssetData extends IRWAProject {

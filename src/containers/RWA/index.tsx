@@ -70,6 +70,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
 
+	const isCategoryMode = props.categoryLinks.length > 0
+
 	const {
 		selectedCategories,
 		selectedAssetClasses,
@@ -94,7 +96,9 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		assetClasses: props.assetClasses,
 		rwaClassifications: props.rwaClassifications,
 		accessModels: props.accessModels,
-		issuers: props.issuers
+		issuers: props.issuers,
+		defaultIncludeStablecoins: isCategoryMode,
+		defaultIncludeGovernance: isCategoryMode
 	})
 
 	const [searchValue, setSearchValue] = useState('')
@@ -213,45 +217,74 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		}
 	}, [filteredAssets])
 
-	// Pie charts (single pass): keep category colors consistent across all 3 charts via `stackColors`
-	const { totalOnChainRwaPieChartData, activeMarketcapPieChartData, defiActiveTvlPieChartData, pieChartStackColors } =
-		useMemo(() => {
-			const selectedCategoriesSet = new Set(selectedCategories)
-			const categoryTotals = new Map<string, { onChain: number; active: number; defi: number }>()
+	// Pie charts (single pass):
+	// - keep category colors consistent across all 3 category charts via `stackColors`
+	// - optionally compute an asset-class breakdown off the same `filteredAssets` pass
+	const {
+		totalOnChainRwaPieChartData,
+		activeMarketcapPieChartData,
+		defiActiveTvlPieChartData,
+		pieChartStackColors,
+		assetClassOnChainPieChartData,
+		assetClassPieChartStackColors
+	} = useMemo(() => {
+		const selectedCategoriesSet = new Set(selectedCategories)
+		const selectedAssetClassesSet = new Set(selectedAssetClasses)
+		const categoryTotals = new Map<string, { onChain: number; active: number; defi: number }>()
+		const assetClassTotals = new Map<string, number>()
 
-			for (const asset of filteredAssets) {
-				for (const category of asset.category ?? []) {
-					if (!category || !selectedCategoriesSet.has(category)) continue
+		for (const asset of filteredAssets) {
+			for (const category of asset.category ?? []) {
+				if (!category || !selectedCategoriesSet.has(category)) continue
 
-					const prev = categoryTotals.get(category) ?? { onChain: 0, active: 0, defi: 0 }
-					prev.onChain += asset.onChainMarketcap.total
-					prev.active += asset.activeMarketcap.total
-					prev.defi += asset.defiActiveTvl.total
-					categoryTotals.set(category, prev)
-				}
+				const prev = categoryTotals.get(category) ?? { onChain: 0, active: 0, defi: 0 }
+				prev.onChain += asset.onChainMarketcap.total
+				prev.active += asset.activeMarketcap.total
+				prev.defi += asset.defiActiveTvl.total
+				categoryTotals.set(category, prev)
 			}
 
-			// Stable mapping so the same category renders with the same color on all pie charts
-			// Respect the category order we already use in the UI (`props.categories`)
-			// so colors match the same "category list" order consistently.
-			const pieChartStackColors: Record<string, string> = {}
-			for (const [idx, category] of props.categories.entries()) {
-				pieChartStackColors[category] = CHART_COLORS[idx % CHART_COLORS.length]
+			for (const assetClass of asset.assetClass ?? []) {
+				if (!assetClass || !selectedAssetClassesSet.has(assetClass)) continue
+				assetClassTotals.set(assetClass, (assetClassTotals.get(assetClass) ?? 0) + asset.onChainMarketcap.total)
 			}
+		}
 
-			const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
-				Array.from(categoryTotals.entries())
-					.map(([name, totals]) => ({ name, value: totals[metric] }))
-					.filter((x) => x.value > 0)
-					.sort((a, b) => b.value - a.value)
+		// Stable mapping so the same category renders with the same color on all pie charts
+		// Respect the category order we already use in the UI (`props.categories`)
+		// so colors match the same "category list" order consistently.
+		const pieChartStackColors: Record<string, string> = {}
+		for (const [idx, category] of props.categories.entries()) {
+			pieChartStackColors[category] = CHART_COLORS[idx % CHART_COLORS.length]
+		}
 
-			return {
-				totalOnChainRwaPieChartData: toSortedChartData('onChain'),
-				activeMarketcapPieChartData: toSortedChartData('active'),
-				defiActiveTvlPieChartData: toSortedChartData('defi'),
-				pieChartStackColors
-			}
-		}, [filteredAssets, props.categories, selectedCategories])
+		// Stable mapping so the same asset class renders with the same color.
+		// Respect the asset class order we already use in the UI (`props.assetClasses`).
+		const assetClassPieChartStackColors: Record<string, string> = {}
+		for (const [idx, assetClass] of props.assetClasses.entries()) {
+			assetClassPieChartStackColors[assetClass] = CHART_COLORS[idx % CHART_COLORS.length]
+		}
+
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
+			Array.from(categoryTotals.entries())
+				.map(([name, totals]) => ({ name, value: totals[metric] }))
+				.filter((x) => x.value > 0)
+				.sort((a, b) => b.value - a.value)
+
+		const assetClassOnChainPieChartData = Array.from(assetClassTotals.entries())
+			.map(([name, value]) => ({ name, value }))
+			.filter((x) => x.value > 0)
+			.sort((a, b) => b.value - a.value)
+
+		return {
+			totalOnChainRwaPieChartData: toSortedChartData('onChain'),
+			activeMarketcapPieChartData: toSortedChartData('active'),
+			defiActiveTvlPieChartData: toSortedChartData('defi'),
+			pieChartStackColors,
+			assetClassOnChainPieChartData,
+			assetClassPieChartStackColors
+		}
+	}, [filteredAssets, props.assetClasses, props.categories, selectedAssetClasses, selectedCategories])
 
 	const assetsData = useMemo(() => {
 		if (!deferredSearchValue) return filteredAssets
@@ -348,31 +381,37 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		}
 	}
 
-	// Preserve filter/toggle query params when switching between chains.
-	// (The chain itself is in the pathname, so we strip the dynamic `chain` param from the query object.)
-	const chainLinks = useMemo(() => {
-		const { chain: _chain, ...restQuery } = router.query
+	// Preserve filter/toggle query params when switching between chains/categories.
+	// (The chain/category itself is in the pathname, so we strip the dynamic param from the query object.)
+	const navLinks = useMemo(() => {
+		const { chain: _chain, category: _category, ...restQuery } = router.query
 		const qs = toQueryString(restQuery as Record<string, string | string[] | undefined>)
-		if (!qs) return props.chains
-		return props.chains.map((link) => ({ ...link, to: `${link.to}${qs}` }))
-	}, [props.chains, router.query])
+		const baseLinks = isCategoryMode ? props.categoryLinks : props.chains
+		if (!qs) return baseLinks
+		return baseLinks.map((link) => ({ ...link, to: `${link.to}${qs}` }))
+	}, [isCategoryMode, props.categoryLinks, props.chains, router.query])
 
 	return (
 		<>
-			<RowLinksWithDropdown links={chainLinks} activeLink={props.selectedChain} />
+			<RowLinksWithDropdown
+				links={navLinks}
+				activeLink={isCategoryMode ? props.selectedCategory : props.selectedChain}
+			/>
 			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 md:flex-row md:flex-wrap md:items-center">
-				<SelectWithCombobox
-					allValues={props.categoriesOptions}
-					selectedValues={selectedCategories}
-					includeQueryKey="categories"
-					excludeQueryKey="excludeCategories"
-					label={'Categories'}
-					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-					}}
-				/>
+				{!isCategoryMode ? (
+					<SelectWithCombobox
+						allValues={props.categoriesOptions}
+						selectedValues={selectedCategories}
+						includeQueryKey="categories"
+						excludeQueryKey="excludeCategories"
+						label={'Categories'}
+						labelType="smol"
+						triggerProps={{
+							className:
+								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+						}}
+					/>
+				) : null}
 				<SelectWithCombobox
 					allValues={props.assetClassOptions}
 					selectedValues={selectedAssetClasses}
@@ -508,21 +547,25 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					minInputProps={ratioPercentInputProps}
 					maxInputProps={ratioPercentInputProps}
 				/>
-				<Switch
-					label="Stablecoins"
-					value="includeStablecoins"
-					checked={includeStablecoins}
-					help="Include stablecoin assets in the table."
-					onChange={() => setIncludeStablecoins(!includeStablecoins)}
-					className="ml-auto"
-				/>
-				<Switch
-					label="Governance Tokens"
-					value="includeGovernance"
-					checked={includeGovernance}
-					help="Include governance-token assets in the table."
-					onChange={() => setIncludeGovernance(!includeGovernance)}
-				/>
+				{!isCategoryMode ? (
+					<>
+						<Switch
+							label="Stablecoins"
+							value="includeStablecoins"
+							checked={includeStablecoins}
+							help="Include stablecoin assets in the table."
+							onChange={() => setIncludeStablecoins(!includeStablecoins)}
+							className="ml-auto"
+						/>
+						<Switch
+							label="Governance Tokens"
+							value="includeGovernance"
+							checked={includeGovernance}
+							help="Include governance-token assets in the table."
+							onChange={() => setIncludeGovernance(!includeGovernance)}
+						/>
+					</>
+				) : null}
 			</div>
 			<div className="flex flex-col gap-2 md:flex-row md:items-center">
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
@@ -571,44 +614,61 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainDeFiActiveTvl, true)}</span>
 				</p>
 			</div>
-			<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-				<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<h2 className="px-3 text-lg font-semibold">Total RWA Onchain</h2>
-					<Suspense fallback={<div className="h-[360px]" />}>
-						<PieChart
-							chartData={totalOnChainRwaPieChartData}
-							stackColors={pieChartStackColors}
-							radius={pieChartRadius}
-							legendPosition={pieChartLegendPosition}
-							legendTextStyle={pieChartLegendTextStyle}
-						/>
-					</Suspense>
+			{isCategoryMode ? (
+				<div className="grid grid-cols-1 gap-2">
+					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+						<h2 className="px-3 text-lg font-semibold">Asset Classes</h2>
+						<Suspense fallback={<div className="h-[360px]" />}>
+							<PieChart
+								chartData={assetClassOnChainPieChartData}
+								stackColors={assetClassPieChartStackColors}
+								radius={pieChartRadius}
+								legendPosition={pieChartLegendPosition}
+								legendTextStyle={pieChartLegendTextStyle}
+							/>
+						</Suspense>
+					</div>
 				</div>
-				<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<h2 className="px-3 text-lg font-semibold">Active Marketcap</h2>
-					<Suspense fallback={<div className="h-[360px]" />}>
-						<PieChart
-							chartData={activeMarketcapPieChartData}
-							stackColors={pieChartStackColors}
-							radius={pieChartRadius}
-							legendPosition={pieChartLegendPosition}
-							legendTextStyle={pieChartLegendTextStyle}
-						/>
-					</Suspense>
+			) : (
+				<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<h2 className="px-3 text-lg font-semibold">Total RWA Onchain</h2>
+						<Suspense fallback={<div className="h-[360px]" />}>
+							<PieChart
+								chartData={totalOnChainRwaPieChartData}
+								stackColors={pieChartStackColors}
+								radius={pieChartRadius}
+								legendPosition={pieChartLegendPosition}
+								legendTextStyle={pieChartLegendTextStyle}
+							/>
+						</Suspense>
+					</div>
+					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<h2 className="px-3 text-lg font-semibold">Active Marketcap</h2>
+						<Suspense fallback={<div className="h-[360px]" />}>
+							<PieChart
+								chartData={activeMarketcapPieChartData}
+								stackColors={pieChartStackColors}
+								radius={pieChartRadius}
+								legendPosition={pieChartLegendPosition}
+								legendTextStyle={pieChartLegendTextStyle}
+							/>
+						</Suspense>
+					</div>
+					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<h2 className="px-3 text-lg font-semibold">DeFi Active TVL</h2>
+						<Suspense fallback={<div className="h-[360px]" />}>
+							<PieChart
+								chartData={defiActiveTvlPieChartData}
+								stackColors={pieChartStackColors}
+								radius={pieChartRadius}
+								legendPosition={pieChartLegendPosition}
+								legendTextStyle={pieChartLegendTextStyle}
+							/>
+						</Suspense>
+					</div>
 				</div>
-				<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<h2 className="px-3 text-lg font-semibold">DeFi Active TVL</h2>
-					<Suspense fallback={<div className="h-[360px]" />}>
-						<PieChart
-							chartData={defiActiveTvlPieChartData}
-							stackColors={pieChartStackColors}
-							radius={pieChartRadius}
-							legendPosition={pieChartLegendPosition}
-							legendTextStyle={pieChartLegendTextStyle}
-						/>
-					</Suspense>
-				</div>
-			</div>
+			)}
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<h1 className="mr-auto p-3 text-lg font-semibold">Assets Rankings</h1>
 				<div className="flex flex-wrap items-center justify-end gap-2 p-3">
@@ -1124,13 +1184,17 @@ const useRWATableQueryParams = ({
 	assetClasses,
 	rwaClassifications,
 	accessModels,
-	issuers
+	issuers,
+	defaultIncludeStablecoins,
+	defaultIncludeGovernance
 }: {
 	categories: string[]
 	assetClasses: string[]
 	rwaClassifications: string[]
 	accessModels: string[]
 	issuers: string[]
+	defaultIncludeStablecoins: boolean
+	defaultIncludeGovernance: boolean
 }) => {
 	const router = useRouter()
 	const {
@@ -1185,9 +1249,11 @@ const useRWATableQueryParams = ({
 		const excludeAccessModelsSet = parseExcludeParam(excludeAccessModelsQ)
 		const excludeIssuersSet = parseExcludeParam(excludeIssuersQ)
 
-		// Default both toggles to OFF unless explicitly set to 'true'
-		const includeStablecoins = toBooleanParam(stablecoinsQ)
-		const includeGovernance = toBooleanParam(governanceQ)
+		// Default toggles:
+		// - category pages: ON (include stablecoins + governance by default)
+		// - other pages: OFF (unless explicitly set in the URL)
+		const includeStablecoins = stablecoinsQ != null ? toBooleanParam(stablecoinsQ) : defaultIncludeStablecoins
+		const includeGovernance = governanceQ != null ? toBooleanParam(governanceQ) : defaultIncludeGovernance
 
 		// Build selected arrays with correct "exclude" semantics:
 		// - if include param missing but exclude param exists, selection is (all - excluded), NOT "defaults - excluded"
@@ -1273,6 +1339,8 @@ const useRWATableQueryParams = ({
 		maxDefiActiveTvlToActiveMcapPctQ,
 		stablecoinsQ,
 		governanceQ,
+		defaultIncludeStablecoins,
+		defaultIncludeGovernance,
 		categories,
 		assetClasses,
 		rwaClassifications,
