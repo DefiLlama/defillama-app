@@ -161,7 +161,8 @@ export const getProtocolMetrics = ({
 		inflows: inflowsExist,
 		liquidity: !!metadata.liquidity,
 		activeUsers: !!metadata.activeUsers,
-		borrowed: !!metadata.borrowed
+		borrowed: !!metadata.borrowed,
+		tokenRights: !!protocolData.tokenRights
 	}
 }
 

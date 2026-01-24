@@ -107,7 +107,9 @@ export async function getProtocolsByCategoryOrTag(
 					excludeTotalDataChart: true
 				})
 			: null,
-		currentChainMetadata?.perps && effectiveCategory && ['Derivatives', 'Prediction Market'].includes(effectiveCategory)
+		currentChainMetadata?.openInterest &&
+		effectiveCategory &&
+		['Derivatives', 'Prediction Market'].includes(effectiveCategory)
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'open-interest',
