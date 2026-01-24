@@ -91,12 +91,6 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		setIncludeGovernance
 	} = useRWATableQueryParams({
 		categories: props.categories,
-		stablecoinCategories: props.stablecoinCategories,
-		governanceCategories: props.governanceCategories,
-		stablecoinAssetClasses: props.stablecoinAssetClasses,
-		governanceAssetClasses: props.governanceAssetClasses,
-		stablecoinClassifications: props.stablecoinClassifications,
-		governanceClassifications: props.governanceClassifications,
 		assetClasses: props.assetClasses,
 		rwaClassifications: props.rwaClassifications,
 		accessModels: props.accessModels,
@@ -117,20 +111,11 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		const selectedIssuersSet = new Set(selectedIssuers)
 
 		return props.assets.filter((asset) => {
-			const hasSelectedCategory = asset.category?.some((category) => selectedCategoriesSet.has(category)) ?? false
-			const hasSelectedAssetClass =
-				asset.assetClass?.some((assetClass) => selectedAssetClassesSet.has(assetClass)) ?? false
-			const hasSelectedClassification = asset.rwaClassification
-				? selectedRwaClassificationsSet.has(asset.rwaClassification)
-				: false
-			const bypassToggles = hasSelectedCategory || hasSelectedAssetClass || hasSelectedClassification
-
-			// Only bypass stablecoin/governance exclusion if this *asset* matches a selected category.
-			// Otherwise keep excluding them when toggles are off (default behavior).
-			if (!includeStablecoins && asset.stablecoin && !bypassToggles) {
+			// By default, stablecoins & governance-token assets are excluded unless explicitly enabled.
+			if (!includeStablecoins && asset.stablecoin) {
 				return false
 			}
-			if (!includeGovernance && asset.governance && !bypassToggles) {
+			if (!includeGovernance && asset.governance) {
 				return false
 			}
 
@@ -527,7 +512,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					label="Stablecoins"
 					value="includeStablecoins"
 					checked={includeStablecoins}
-					help="If you select a stablecoin-related category, asset class, or classification, matching stablecoin assets may still be included even when this toggle is off."
+					help="Include stablecoin assets in the table."
 					onChange={() => setIncludeStablecoins(!includeStablecoins)}
 					className="ml-auto"
 				/>
@@ -535,7 +520,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					label="Governance Tokens"
 					value="includeGovernance"
 					checked={includeGovernance}
-					help="If you select a governance-related category, asset class, or classification, matching governance-token assets may still be included even when this toggle is off."
+					help="Include governance-token assets in the table."
 					onChange={() => setIncludeGovernance(!includeGovernance)}
 				/>
 			</div>
@@ -1136,24 +1121,12 @@ const updateNumberRangeQuery = (
 
 const useRWATableQueryParams = ({
 	categories,
-	stablecoinCategories,
-	governanceCategories,
-	stablecoinAssetClasses,
-	governanceAssetClasses,
-	stablecoinClassifications,
-	governanceClassifications,
 	assetClasses,
 	rwaClassifications,
 	accessModels,
 	issuers
 }: {
 	categories: string[]
-	stablecoinCategories: string[]
-	governanceCategories: string[]
-	stablecoinAssetClasses: string[]
-	governanceAssetClasses: string[]
-	stablecoinClassifications: string[]
-	governanceClassifications: string[]
 	assetClasses: string[]
 	rwaClassifications: string[]
 	accessModels: string[]
@@ -1216,66 +1189,48 @@ const useRWATableQueryParams = ({
 		const includeStablecoins = toBooleanParam(stablecoinsQ)
 		const includeGovernance = toBooleanParam(governanceQ)
 
-		const stablecoinCategoriesSet = new Set(stablecoinCategories)
-		const governanceCategoriesSet = new Set(governanceCategories)
-		const stablecoinAssetClassesSet = new Set(stablecoinAssetClasses)
-		const governanceAssetClassesSet = new Set(governanceAssetClasses)
-		const stablecoinClassificationsSet = new Set(stablecoinClassifications)
-		const governanceClassificationsSet = new Set(governanceClassifications)
+		// Build selected arrays with correct "exclude" semantics:
+		// - if include param missing but exclude param exists, selection is (all - excluded), NOT "defaults - excluded"
+		const baseCategories =
+			categoriesQ != null
+				? parseArrayParam(categoriesQ, categories)
+				: excludeCategoriesSet.size > 0
+					? categories
+					: categories
+		let selectedCategories =
+			excludeCategoriesSet.size > 0 ? baseCategories.filter((c) => !excludeCategoriesSet.has(c)) : baseCategories
 
-		const defaultSelectedCategories = categories.filter((c) => {
-			if (!c) return false
-			if (!includeStablecoins && stablecoinCategoriesSet.has(c)) return false
-			if (!includeGovernance && governanceCategoriesSet.has(c)) return false
-			return true
-		})
-
-		const defaultSelectedAssetClasses = assetClasses.filter((a) => {
-			if (!a) return false
-			if (!includeStablecoins && stablecoinAssetClassesSet.has(a)) return false
-			if (!includeGovernance && governanceAssetClassesSet.has(a)) return false
-			return true
-		})
-
-		const defaultSelectedRwaClassifications = rwaClassifications.filter((r) => {
-			if (!r) return false
-			if (!includeStablecoins && stablecoinClassificationsSet.has(r)) return false
-			if (!includeGovernance && governanceClassificationsSet.has(r)) return false
-			return true
-		})
-
-		// Build selected arrays and filter out excludes
-		let selectedCategories = categoriesQ == null ? defaultSelectedCategories : parseArrayParam(categoriesQ, categories)
-		selectedCategories =
-			excludeCategoriesSet.size > 0
-				? selectedCategories.filter((c) => !excludeCategoriesSet.has(c))
-				: selectedCategories
-
+		const baseAssetClasses =
+			assetClassesQ != null
+				? parseArrayParam(assetClassesQ, assetClasses)
+				: excludeAssetClassesSet.size > 0
+					? assetClasses
+					: assetClasses
 		let selectedAssetClasses =
-			assetClassesQ == null ? defaultSelectedAssetClasses : parseArrayParam(assetClassesQ, assetClasses)
-		selectedAssetClasses =
 			excludeAssetClassesSet.size > 0
-				? selectedAssetClasses.filter((a) => !excludeAssetClassesSet.has(a))
-				: selectedAssetClasses
+				? baseAssetClasses.filter((a) => !excludeAssetClassesSet.has(a))
+				: baseAssetClasses
 
+		const baseRwaClassifications =
+			rwaClassificationsQ != null
+				? parseArrayParam(rwaClassificationsQ, rwaClassifications)
+				: excludeRwaClassificationsSet.size > 0
+					? rwaClassifications
+					: rwaClassifications
 		let selectedRwaClassifications =
-			rwaClassificationsQ == null
-				? defaultSelectedRwaClassifications
-				: parseArrayParam(rwaClassificationsQ, rwaClassifications)
-		selectedRwaClassifications =
 			excludeRwaClassificationsSet.size > 0
-				? selectedRwaClassifications.filter((r) => !excludeRwaClassificationsSet.has(r))
-				: selectedRwaClassifications
+				? baseRwaClassifications.filter((r) => !excludeRwaClassificationsSet.has(r))
+				: baseRwaClassifications
 
-		let selectedAccessModels = parseArrayParam(accessModelsQ, accessModels)
-		selectedAccessModels =
+		const baseAccessModels = parseArrayParam(accessModelsQ, accessModels)
+		let selectedAccessModels =
 			excludeAccessModelsSet.size > 0
-				? selectedAccessModels.filter((a) => !excludeAccessModelsSet.has(a))
-				: selectedAccessModels
+				? baseAccessModels.filter((a) => !excludeAccessModelsSet.has(a))
+				: baseAccessModels
 
-		let selectedIssuers = parseArrayParam(issuersQ, issuers)
-		selectedIssuers =
-			excludeIssuersSet.size > 0 ? selectedIssuers.filter((i) => !excludeIssuersSet.has(i)) : selectedIssuers
+		const baseIssuers = parseArrayParam(issuersQ, issuers)
+		let selectedIssuers =
+			excludeIssuersSet.size > 0 ? baseIssuers.filter((i) => !excludeIssuersSet.has(i)) : baseIssuers
 
 		const minDefiActiveTvlToOnChainPct = toNumberParam(minDefiActiveTvlToOnChainPctQ)
 		const maxDefiActiveTvlToOnChainPct = toNumberParam(maxDefiActiveTvlToOnChainPctQ)
@@ -1319,12 +1274,6 @@ const useRWATableQueryParams = ({
 		stablecoinsQ,
 		governanceQ,
 		categories,
-		stablecoinCategories,
-		governanceCategories,
-		stablecoinAssetClasses,
-		governanceAssetClasses,
-		stablecoinClassifications,
-		governanceClassifications,
 		assetClasses,
 		rwaClassifications,
 		accessModels,
