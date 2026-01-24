@@ -4,8 +4,10 @@ import { BasicLink } from '~/components/Link'
 import { Switch } from '~/components/Switch'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import { TokenLogo } from '~/components/TokenLogo'
 import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum } from '~/utils'
+import { chainIconUrl } from '~/utils'
 import type { IRWAChainsOverviewRow } from './queries'
 import { rwaSlug } from './rwaSlug'
 
@@ -27,7 +29,7 @@ type RWAChainsTableRow = IRWAChainsOverviewRow & {
 const columns: ColumnDef<RWAChainsTableRow>[] = [
 	{
 		id: 'chain',
-		header: 'Chain',
+		header: 'Name',
 		accessorKey: 'chain',
 		enableSorting: false,
 		cell: (info) => {
@@ -35,6 +37,7 @@ const columns: ColumnDef<RWAChainsTableRow>[] = [
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
+					<TokenLogo logo={chainIconUrl(chain)} data-lgonly />
 					<BasicLink
 						href={`/rwa/chain/${rwaSlug(chain)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
