@@ -180,7 +180,6 @@ export const getProtocolOverviewPageData = async ({
 	const [
 		protocolData,
 		feesData,
-		supplySideRevenueData,
 		revenueData,
 		holdersRevenueData,
 		bribesData,
@@ -238,7 +237,6 @@ export const getProtocolOverviewPageData = async ({
 			}
 		},
 		IProtocolOverviewPageData['fees'],
-		IProtocolOverviewPageData['supplySideRevenue'],
 		IProtocolOverviewPageData['revenue'],
 		IProtocolOverviewPageData['holdersRevenue'],
 		IProtocolOverviewPageData['bribeRevenue'],
@@ -296,16 +294,6 @@ export const getProtocolOverviewPageData = async ({
 					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'Fees' }))
-					.catch(() => null)
-			: Promise.resolve(null),
-		currentProtocolMetadata.fees
-			? getAdapterProtocolSummary({
-					adapterType: 'fees',
-					dataType: 'dailySupplySideRevenue',
-					protocol: currentProtocolMetadata.displayName,
-					excludeTotalDataChart: true
-				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'SupplySideRevenue' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.revenue
@@ -980,7 +968,6 @@ export const getProtocolOverviewPageData = async ({
 		fees: feesData,
 		revenue: revenueData,
 		holdersRevenue: holdersRevenueData,
-		supplySideRevenue: supplySideRevenueData,
 		bribeRevenue: bribesData,
 		tokenTax: tokenTaxData,
 		dexVolume: dexVolumeData,
