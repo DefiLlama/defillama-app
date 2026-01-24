@@ -1,6 +1,7 @@
 import { Fragment, useMemo } from 'react'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
+import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
 import definitions from '~/public/rwa-definitions.json'
@@ -163,29 +164,48 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					{asset.ticker && <span className="text-(--text-disabled)">({asset.ticker})</span>}
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
-					{asset.website?.map((url) => (
-						<a
-							key={url}
-							href={url}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-						>
-							<Icon name="external-link" className="h-3 w-3" />
-							Website
-						</a>
-					))}
-					{asset.twitter && (
-						<a
-							href={`https://twitter.com/${asset.twitter}`}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-						>
-							<Icon name="external-link" className="h-3 w-3" />
-							Twitter
-						</a>
-					)}
+					{asset.website ? (
+						asset.website.length > 1 ? (
+							<Menu
+								name="Website"
+								options={asset.website}
+								isExternal
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							/>
+						) : (
+							<a
+								key={asset.website[0]}
+								href={asset.website[0]}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							>
+								<Icon name="external-link" className="h-3 w-3" />
+								Website
+							</a>
+						)
+					) : null}
+					{asset.twitter ? (
+						asset.twitter.length > 1 ? (
+							<Menu
+								name="Twitter"
+								options={asset.twitter}
+								isExternal
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							/>
+						) : (
+							<a
+								key={asset.twitter[0]}
+								href={asset.twitter[0]}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							>
+								<Icon name="external-link" className="h-3 w-3" />
+								Website
+							</a>
+						)
+					) : null}
 				</div>
 			</div>
 
