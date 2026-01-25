@@ -6,8 +6,7 @@ export enum ADAPTER_TYPES {
 	PERPS_AGGREGATOR = 'aggregator-derivatives',
 	OPTIONS = 'options',
 	BRIDGE_AGGREGATORS = 'bridge-aggregators',
-	OPEN_INTEREST = 'open-interest',
-	NORMALIZED_VOLUME = 'normalized-volume'
+	OPEN_INTEREST = 'open-interest'
 }
 
 export enum ADAPTER_DATA_TYPES {

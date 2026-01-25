@@ -19,7 +19,6 @@ interface IChainMetadata {
 	chainRevenue?: boolean
 	perps?: boolean
 	openInterest?: boolean
-	normalizedVolume?: boolean
 	dexAggregators?: boolean
 	optionsPremiumVolume?: boolean
 	optionsNotionalVolume?: boolean
@@ -48,7 +47,6 @@ interface IProtocolMetadata {
 	dexs?: boolean
 	perps?: boolean
 	openInterest?: boolean
-	normalizedVolume?: boolean
 	dexAggregators?: boolean
 	options?: boolean
 	perpsAggregators?: boolean

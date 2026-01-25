@@ -27,13 +27,6 @@ interface IProtocol {
 		totalAllTime: number | null
 	}
 	openInterest?: number | null
-	normalizedVolume?: {
-		total24h: number | null
-		total7d: number | null
-		total30d: number | null
-		total1y: number | null
-		totalAllTime: number | null
-	} | null
 	pf?: number | null
 	ps?: number | null
 	methodology?: string | null
@@ -61,13 +54,6 @@ export interface IAdapterByChainPageData {
 	change_1m: number | null
 	change_7dover7d: number | null
 	openInterest: number | null
-	normalizedVolume: {
-		total24h: number | null
-		total7d: number | null
-		total30d: number | null
-		total1y: number | null
-		totalAllTime: number | null
-	} | null
 }
 
 export interface IChainsByAdapterPageData {
