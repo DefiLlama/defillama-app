@@ -78,6 +78,7 @@ export interface IRWAAssetsOverview {
 	accessModelOptions: Array<{ key: string; name: string; help?: string }>
 	categories: Array<string>
 	categoriesOptions: Array<{ key: string; name: string; help?: string }>
+	assetNames: Array<string>
 	stablecoinCategories: Array<string>
 	stablecoinAssetClasses: Array<string>
 	stablecoinClassifications: Array<string>
@@ -86,6 +87,8 @@ export interface IRWAAssetsOverview {
 	governanceClassifications: Array<string>
 	categoryValues: Array<{ name: string; value: number }>
 	issuers: Array<string>
+	platformLinks: Array<{ label: string; to: string }>
+	selectedPlatform: string
 	chains: Array<{ label: string; to: string }>
 	selectedChain: string
 	categoryLinks: Array<{ label: string; to: string }>
@@ -180,16 +183,21 @@ const sumDefiAllChains = (defi: Record<string, Record<string, string>> | null | 
 	return total
 }
 
-export async function getRWAAssetsOverview(params?: {
+export type RWAAssetsOverviewParams = {
 	chain?: string
 	category?: string
-}): Promise<IRWAAssetsOverview | null> {
+	platform?: string
+}
+
+export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Promise<IRWAAssetsOverview | null> {
 	try {
 		const selectedChain = params?.chain ? rwaSlug(params.chain) : undefined
 		const selectedCategory = params?.category ? rwaSlug(params.category) : undefined
+		const selectedPlatform = params?.platform ? rwaSlug(params.platform) : undefined
 
-		// Route-level filtering supports chain OR category, not both.
-		if (selectedChain && selectedCategory) return null
+		// Route-level filtering supports chain OR category OR platform, not multiple at once.
+		const selectedCount = Number(!!selectedChain) + Number(!!selectedCategory) + Number(!!selectedPlatform)
+		if (selectedCount > 1) return null
 
 		const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
 		const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
@@ -229,12 +237,29 @@ export async function getRWAAssetsOverview(params?: {
 			}
 		}
 
+		// `selectedPlatform` comes from the URL and is slugified; resolve a display name (original casing/spaces)
+		let actualPlatformName: string | null = null
+		if (selectedPlatform) {
+			for (const rwaId in data) {
+				const platform = data[rwaId].parentPlatform
+				if (platform && rwaSlug(platform) === selectedPlatform) {
+					actualPlatformName = platform
+					break
+				}
+			}
+			if (!actualPlatformName) {
+				return null
+			}
+		}
+
 		const assets: Array<IRWAProject> = []
 		const assetClasses = new Map<string, number>()
 		const rwaClassifications = new Map<string, number>()
 		const accessModels = new Map<string, number>()
 		const categories = new Map<string, number>()
+		const assetNames = new Map<string, number>()
 		const categoryNavValues = new Map<string, number>()
+		const platformNavValues = new Map<string, number>()
 		const issuers = new Map<string, number>()
 		const chains = new Map<string, number>()
 		let totalOnChainMarketcapAllAssets = 0
@@ -262,6 +287,9 @@ export async function getRWAAssetsOverview(params?: {
 			const hasCategoryMatch = selectedCategory
 				? (item.category ?? []).some((c) => c && rwaSlug(c) === selectedCategory)
 				: true
+			const hasPlatformMatch = selectedPlatform
+				? !!item.parentPlatform && rwaSlug(item.parentPlatform) === selectedPlatform
+				: true
 
 			for (const chain in onChainMarketcapBreakdown) {
 				const value = safeNumber(onChainMarketcapBreakdown[chain])
@@ -277,6 +305,14 @@ export async function getRWAAssetsOverview(params?: {
 				if (category) {
 					categoryNavValues.set(category, (categoryNavValues.get(category) ?? 0) + totalOnChainMarketcapForAsset)
 				}
+			}
+
+			// For platform navigation, we always use total on-chain marketcap (not filtered) so ordering stays consistent.
+			if (item.parentPlatform) {
+				platformNavValues.set(
+					item.parentPlatform,
+					(platformNavValues.get(item.parentPlatform) ?? 0) + totalOnChainMarketcapForAsset
+				)
 			}
 
 			for (const chain in activeMarketcapBreakdown) {
@@ -384,8 +420,12 @@ export async function getRWAAssetsOverview(params?: {
 			}
 
 			// Only include asset if it exists on the selected chain/category (or no route filter)
-			if (hasChainInTvl && hasCategoryMatch && asset.name) {
+			if (hasChainInTvl && hasCategoryMatch && hasPlatformMatch && asset.name) {
 				assets.push(asset)
+				// Only expose `assetNames` when filtering by platform (used for platform-level UI filters).
+				if (selectedPlatform) {
+					assetNames.set(asset.name, (assetNames.get(asset.name) ?? 0) + effectiveOnChainMarketcap)
+				}
 
 				// Track total values
 				totalOnChainMarketcapAllAssets += effectiveOnChainMarketcap
@@ -470,6 +510,11 @@ export async function getRWAAssetsOverview(params?: {
 				name: category,
 				help: definitions.category.values?.[category] ?? null
 			})),
+			assetNames: selectedPlatform
+				? Array.from(assetNames.entries())
+						.sort((a, b) => b[1] - a[1])
+						.map(([key]) => key)
+				: [],
 			stablecoinAssetClasses,
 			stablecoinCategories,
 			stablecoinClassifications,
@@ -483,14 +528,15 @@ export async function getRWAAssetsOverview(params?: {
 				.sort((a, b) => b[1] - a[1])
 				.map(([key]) => key),
 			selectedChain: actualChainName ?? 'All',
-			chains: selectedCategory
-				? []
-				: [
-						{ label: 'All', to: '/rwa' },
-						...Array.from(chains.entries())
-							.sort((a, b) => b[1] - a[1])
-							.map(([key]) => ({ label: key, to: `/rwa/chain/${rwaSlug(key)}` }))
-					],
+			chains:
+				selectedCategory || selectedPlatform
+					? []
+					: [
+							{ label: 'All', to: '/rwa' },
+							...Array.from(chains.entries())
+								.sort((a, b) => b[1] - a[1])
+								.map(([key]) => ({ label: key, to: `/rwa/chain/${rwaSlug(key)}` }))
+						],
 			// Category navigation should always include *all* categories in a stable global order,
 			// even on a filtered category page.
 			categoryLinks: selectedCategory
@@ -502,6 +548,15 @@ export async function getRWAAssetsOverview(params?: {
 					]
 				: [],
 			selectedCategory: actualCategoryName ?? 'All',
+			platformLinks: selectedPlatform
+				? [
+						{ label: 'All', to: '/rwa/platforms' },
+						...Array.from(platformNavValues.entries())
+							.sort((a, b) => b[1] - a[1])
+							.map(([key]) => ({ label: key, to: `/rwa/platform/${rwaSlug(key)}` }))
+					]
+				: [],
+			selectedPlatform: actualPlatformName ?? 'All',
 			totalOnChainMarketcap: totalOnChainMarketcapAllAssets,
 			totalActiveMarketcap: totalActiveMarketcapAllAssets,
 			totalOnChainStablecoinValue: totalOnChainStablecoinValueAllAssets,

@@ -1,9 +1,11 @@
 import { ColumnDef } from '@tanstack/react-table'
+import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum } from '~/utils'
 import type { IRWAPlatformsOverviewRow } from './queries'
+import { rwaSlug } from './rwaSlug'
 
 type RWADefinitions = typeof rwaDefinitionsJson & {
 	totalOnChainMarketcap: { label: string; description: string }
@@ -25,7 +27,12 @@ const columns: ColumnDef<IRWAPlatformsOverviewRow>[] = [
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<span className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap">{platform}</span>
+					<BasicLink
+						href={`/rwa/platform/${rwaSlug(platform)}`}
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+					>
+						{platform}
+					</BasicLink>
 				</span>
 			)
 		},

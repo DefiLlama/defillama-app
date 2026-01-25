@@ -9,7 +9,7 @@ export async function getStaticPaths() {
 
 	return {
 		paths: categories.map((category) => ({ params: { category: [category] } })),
-		fallback: 'blocking'
+		fallback: false
 	}
 }
 
@@ -34,7 +34,7 @@ export default function RWAPage(props) {
 			description={`Real World Assets on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`real world assets, defi rwa rankings, rwa on chain`}
 			pageName={pageName}
-			canonicalUrl={`/rwa`}
+			canonicalUrl={`/rwa/categories`}
 		>
 			<RWAOverview {...props} />
 		</Layout>

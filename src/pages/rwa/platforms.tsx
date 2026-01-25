@@ -1,6 +1,8 @@
 import { maxAgeForNext } from '~/api'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { RWAPlatformsTable } from '~/containers/RWA/Platforms'
 import { getRWAPlatformsOverview } from '~/containers/RWA/queries'
+import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -10,14 +12,23 @@ export const getStaticProps = withPerformanceLogging(`rwa/platforms`, async () =
 	if (!platforms) return { notFound: true }
 
 	return {
-		props: { platforms },
+		props: {
+			platforms,
+			platformLinks: [
+				{ label: 'All', to: '/rwa/platforms' },
+				...platforms.map((platform) => ({
+					label: platform.platform,
+					to: `/rwa/platform/${rwaSlug(platform.platform)}`
+				}))
+			]
+		},
 		revalidate: maxAgeForNext([22])
 	}
 })
 
 const pageName = ['RWA Platforms']
 
-export default function RWAPlatformsPage({ platforms }) {
+export default function RWAPlatformsPage({ platforms, platformLinks }) {
 	return (
 		<Layout
 			title="RWA Platforms - DefiLlama"
@@ -26,6 +37,7 @@ export default function RWAPlatformsPage({ platforms }) {
 			pageName={pageName}
 			canonicalUrl={`/rwa/platform`}
 		>
+			<RowLinksWithDropdown links={platformLinks} activeLink={'All'} />
 			<RWAPlatformsTable platforms={platforms} />
 		</Layout>
 	)

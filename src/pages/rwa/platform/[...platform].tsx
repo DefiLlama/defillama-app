@@ -1,21 +1,22 @@
 import { maxAgeForNext } from '~/api'
 import { RWAOverview } from '~/containers/RWA'
-import { getRWAAssetsOverview, getRWAChainsList } from '~/containers/RWA/queries'
+import { getRWAAssetsOverview, getRWAPlatformsOverview } from '~/containers/RWA/queries'
+import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export async function getStaticPaths() {
-	const chains = await getRWAChainsList()
+	const platforms = await getRWAPlatformsOverview()
 
 	return {
-		paths: chains.map((chain) => ({ params: { chain: [chain] } })),
+		paths: platforms.map(({ platform }) => ({ params: { platform: [rwaSlug(platform)] } })),
 		fallback: false
 	}
 }
 
-export const getStaticProps = withPerformanceLogging(`rwa/chain/[...chain]`, async ({ params: { chain } }) => {
-	const chainSlug = Array.isArray(chain) ? chain.join('/') : chain
-	const props = await getRWAAssetsOverview({ chain: chainSlug })
+export const getStaticProps = withPerformanceLogging(`rwa/platform/[...platform]`, async ({ params: { platform } }) => {
+	const platformSlug = Array.isArray(platform) ? platform.join('/') : platform
+	const props = await getRWAAssetsOverview({ platform: platformSlug })
 
 	if (!props) return { notFound: true }
 
@@ -34,7 +35,7 @@ export default function RWAPage(props) {
 			description={`Real World Assets on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`real world assets, defi rwa rankings, rwa on chain`}
 			pageName={pageName}
-			canonicalUrl={`/rwa/chains`}
+			canonicalUrl={`/rwa`}
 		>
 			<RWAOverview {...props} />
 		</Layout>

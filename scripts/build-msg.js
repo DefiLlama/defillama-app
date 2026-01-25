@@ -116,6 +116,7 @@ const BRANCH_NAME = firstNonEmpty(
 const buildBuildSummary = () => {
 	let summary =
 		BUILD_STATUS === '0' ? `🎉 Build succeeded in ${BUILD_TIME_STR}` : `🚨 Build failed in ${BUILD_TIME_STR}`
+	summary += '\n📂 defillama-app\n'
 	if (BRANCH_NAME) {
 		summary = `🪾 ${BRANCH_NAME}\n` + summary
 	}
