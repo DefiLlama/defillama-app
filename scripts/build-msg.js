@@ -51,19 +51,23 @@ const parseGitHubRepo = (url) => {
 	// https://github.com/owner/repo.git
 	// git@github.com:owner/repo.git
 	// owner/repo
-	const httpsMatch = url.match(/github\.com\/([^/]+\/[^/]+?)(?:\.git)?$/)
+	const cleaned = String(url).trim().replace(/\/+$/, '')
+	const httpsMatch = cleaned.match(/github\.com\/([^/]+\/[^/]+?)(?:\.git)?$/)
 	if (httpsMatch) return httpsMatch[1]
-	const sshMatch = url.match(/github\.com:([^/]+\/[^/]+?)(?:\.git)?$/)
+	const sshMatch = cleaned.match(/github\.com:([^/]+\/[^/]+?)(?:\.git)?$/)
 	if (sshMatch) return sshMatch[1]
 	// Direct owner/repo format
-	if (/^[^/]+\/[^/]+$/.test(url)) return url
+	if (/^[^/]+\/[^/]+$/.test(cleaned)) return cleaned
 	return ''
 }
 
 const fetchGitHubCommitInfo = async (sha) => {
 	const repoUrl = firstNonEmpty(
 		process.env.COOLIFY_GIT_REPOSITORY,
+		process.env.COOLIFY_GIT_URL,
 		process.env.GIT_REPOSITORY,
+		process.env.REPOSITORY_URL,
+		process.env.GIT_URL,
 		process.env.GITHUB_REPOSITORY,
 		() => tryGit('git config --get remote.origin.url')
 	)
@@ -175,6 +179,9 @@ let COMMIT_COMMENT = firstNonEmptyLine(
 	process.argv[6],
 	process.env.COMMIT_COMMENT,
 	process.env.COMMIT_MESSAGE,
+	process.env.COOLIFY_COMMIT_MESSAGE,
+	process.env.COOLIFY_GIT_COMMIT_MESSAGE,
+	process.env.COOLIFY_GIT_MESSAGE,
 	process.env.CI_COMMIT_MESSAGE,
 	process.env.VERCEL_GIT_COMMIT_MESSAGE,
 	process.env.GIT_COMMIT_MESSAGE,
@@ -185,6 +192,9 @@ let COMMIT_AUTHOR = firstNonEmpty(
 	process.env.COMMIT_AUTHOR,
 	process.env.CI_COMMIT_AUTHOR,
 	process.env.GIT_AUTHOR_NAME,
+	process.env.COOLIFY_COMMIT_AUTHOR,
+	process.env.COOLIFY_GIT_COMMIT_AUTHOR,
+	process.env.COOLIFY_GIT_AUTHOR,
 	process.env.VERCEL_GIT_COMMIT_AUTHOR_LOGIN,
 	process.env.GITHUB_ACTOR,
 	process.env.GITLAB_USER_NAME,
@@ -194,6 +204,9 @@ let COMMIT_HASH = firstNonEmpty(
 	process.argv[8],
 	process.env.COMMIT_HASH,
 	process.env.SOURCE_COMMIT,
+	process.env.COOLIFY_COMMIT_SHA,
+	process.env.COOLIFY_GIT_COMMIT,
+	process.env.COOLIFY_GIT_COMMIT_SHA,
 	process.env.CI_COMMIT_SHA,
 	process.env.VERCEL_GIT_COMMIT_SHA,
 	process.env.GITHUB_SHA,
@@ -201,6 +214,10 @@ let COMMIT_HASH = firstNonEmpty(
 	process.env.SOURCE_VERSION,
 	() => tryGit('git rev-parse HEAD')
 )
+const shortSha = (sha) => {
+	const s = normalize(sha)
+	return s ? s.slice(0, 7) : ''
+}
 
 // Try to fetch missing commit info from GitHub API
 const enrichCommitInfo = async () => {
@@ -216,6 +233,22 @@ const enrichCommitInfo = async () => {
 	// We need at least a hash to query GitHub
 	if (needsHash) {
 		console.log('No commit hash available, cannot fetch from GitHub API')
+		return
+	}
+
+	// And we need to know which repo to query
+	const repoUrl = firstNonEmpty(
+		process.env.COOLIFY_GIT_REPOSITORY,
+		process.env.COOLIFY_GIT_URL,
+		process.env.GIT_REPOSITORY,
+		process.env.REPOSITORY_URL,
+		process.env.GIT_URL,
+		process.env.GITHUB_REPOSITORY,
+		() => tryGit('git config --get remote.origin.url')
+	)
+	const repo = parseGitHubRepo(repoUrl)
+	if (!repo) {
+		console.log('No GitHub repo detected, skipping GitHub API')
 		return
 	}
 
@@ -265,7 +298,10 @@ const buildBuildSummary = () => {
 }
 
 const buildCommitSummary = () => {
-	const commitMessageLabel = withFallback(COMMIT_COMMENT, 'unknown commit message')
+	const commitMessageLabel = withFallback(
+		COMMIT_COMMENT,
+		shortSha(COMMIT_HASH) ? `commit ${shortSha(COMMIT_HASH)}` : 'unknown commit message'
+	)
 	const commitAuthorLabel = withFallback(COMMIT_AUTHOR, 'unknown author')
 	const commitHashLabel = withFallback(COMMIT_HASH, 'unknown commit id')
 	const branchLabel = withFallback(BRANCH_NAME, 'unknown branch')
