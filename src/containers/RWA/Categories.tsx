@@ -21,7 +21,7 @@ const definitions = rwaDefinitionsJson as RWADefinitions
 const columns: ColumnDef<IRWACategoriesOverviewRow>[] = [
 	{
 		id: 'category',
-		header: 'Category',
+		header: 'Name',
 		accessorKey: 'category',
 		enableSorting: false,
 		cell: (info) => {

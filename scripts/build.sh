@@ -8,22 +8,9 @@ cd "$REPO_ROOT"
 set -a
 [ -f .env ] && . .env
 
-# find the last commit hash and commit comment and author
-COMMIT_AUTHOR="${COMMIT_AUTHOR:-${CI_COMMIT_AUTHOR:-${GIT_AUTHOR_NAME:-${VERCEL_GIT_COMMIT_AUTHOR_LOGIN:-${GITHUB_ACTOR:-${GITLAB_USER_NAME:-}}}}}}"
-COMMIT_HASH="${COMMIT_HASH:-${SOURCE_COMMIT:-${CI_COMMIT_SHA:-${VERCEL_GIT_COMMIT_SHA:-${GITHUB_SHA:-${COMMIT_REF:-${SOURCE_VERSION:-}}}}}}}"
-COMMIT_COMMENT="${COMMIT_COMMENT:-${COMMIT_MESSAGE:-${CI_COMMIT_MESSAGE:-${VERCEL_GIT_COMMIT_MESSAGE:-${GIT_COMMIT_MESSAGE:-}}}}}"
 BRANCH_NAME="${BRANCH_NAME:-${COOLIFY_BRANCH:-${GIT_BRANCH:-${CI_COMMIT_REF_NAME:-${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-${GITHUB_REF:-${VERCEL_GIT_COMMIT_REF:-}}}}}}}}"
 
 # fallback to git if available (often absent in Docker builds)
-if [ -z "$COMMIT_AUTHOR" ] && [ -d .git ]; then
-  COMMIT_AUTHOR="$(git log -1 --pretty=%an 2>/dev/null || true)"
-fi
-if [ -z "$COMMIT_HASH" ] && [ -d .git ]; then
-  COMMIT_HASH="$(git rev-parse HEAD 2>/dev/null || true)"
-fi
-if [ -z "$COMMIT_COMMENT" ] && [ -d .git ]; then
-  COMMIT_COMMENT="$(git log -1 --pretty=%B 2>/dev/null || true)"
-fi
 if [ -z "$BRANCH_NAME" ] && [ -d .git ]; then
   BRANCH_NAME="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
 fi
@@ -40,9 +27,6 @@ echo ""
 echo "======================="
 echo "🔨 New build started"
 echo "🌿 $BRANCH_NAME"
-echo "💬 $COMMIT_COMMENT"
-echo "🦙 $COMMIT_AUTHOR"
-echo "📸 $COMMIT_HASH"
 echo "======================="
 echo ""
 
@@ -72,9 +56,6 @@ if [ -n "$BUILD_ID" ]; then
 fi
 echo "======================="
 echo "🌿 [$BRANCH_NAME]"
-echo "💬 [$COMMIT_COMMENT]"
-echo "🦙 $COMMIT_AUTHOR"
-echo "📸 $COMMIT_HASH"
 echo "======================="
 echo ""
 
@@ -85,7 +66,7 @@ else
   echo "Build failed, skipping .next artifact sync"
 fi
 
-bun ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$COMMIT_COMMENT" "$COMMIT_AUTHOR" "$COMMIT_HASH" "$BRANCH_NAME"
+bun ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$BRANCH_NAME"
 
 # exit with the build status
 exit $BUILD_STATUS

@@ -789,10 +789,9 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRo
 
 	for (const rwaId in data) {
 		const item = data[rwaId]
-		// Platforms page should only list entries explicitly marked as `type === 'Platform'`.
-		if ((item.type ?? '').toLowerCase() !== 'platform') continue
-
-		const platform = item.name ?? item.ticker ?? null
+		// Platforms overview is derived from assets' `parentPlatform` only.
+		// (Ignore `type === 'Platform'` entirely.)
+		const platform = item.parentPlatform ?? null
 		if (!platform) continue
 
 		const platformSlug = rwaSlug(platform)
