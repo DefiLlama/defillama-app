@@ -125,6 +125,18 @@ export function AdapterByChain(props: IProps) {
 	const excludeCategoryParam = router.query.excludeCategory
 	const hasCategoryParam = Object.prototype.hasOwnProperty.call(router.query, 'category')
 
+	const columns = useMemo(() => {
+		const baseColumns = getColumnsByType(props.chain !== 'All')[props.type] as ColumnDef<
+			IAdapterByChainPageData['protocols'][0]
+		>[]
+
+		// If the page data doesn't include normalized volume, do not show the normalized volume columns at all.
+		if (props.type !== 'Perp Volume' || props.normalizedVolume != null) return baseColumns
+
+		const hiddenIds = new Set(['normalizedVolume24h', 'normalizedVolume7d', 'normalizedVolume30d'])
+		return baseColumns.filter((c: any) => !hiddenIds.has(c?.id ?? c?.accessorKey))
+	}, [props.chain, props.type, props.normalizedVolume])
+
 	const { selectedCategories, protocols, columnsOptions } = useMemo(() => {
 		const excludeSet = parseExcludeParam(excludeCategoryParam)
 
@@ -226,7 +238,7 @@ export function AdapterByChain(props: IProps) {
 		return {
 			selectedCategories,
 			protocols: finalProtocols,
-			columnsOptions: getColumnsOptions(props.type)
+			columnsOptions: getColumnsOptions(props.type, columns)
 		}
 	}, [
 		categoryParam,
@@ -236,6 +248,7 @@ export function AdapterByChain(props: IProps) {
 		props.protocols,
 		props.adapterType,
 		props.type,
+		columns,
 		enabledSettings.bribes,
 		enabledSettings.tokentax
 	])
@@ -247,7 +260,7 @@ export function AdapterByChain(props: IProps) {
 
 	const instance = useReactTable({
 		data: protocols,
-		columns: getColumnsByType(props.chain !== 'All')[props.type] as any,
+		columns: columns as any,
 		state: {
 			sorting,
 			columnFilters,
@@ -270,6 +283,7 @@ export function AdapterByChain(props: IProps) {
 	})
 
 	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+
 	useSortColumnSizesAndOrders({
 		instance,
 		columnSizes,
@@ -361,6 +375,69 @@ export function AdapterByChain(props: IProps) {
 						) : null}
 
 						<div className="flex flex-col">
+							{props.normalizedVolume?.total24h != null ? (
+								props.normalizedVolume?.total7d != null || props.normalizedVolume?.total30d != null ? (
+									<details className="group">
+										<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
+											<Tooltip
+												content={definitions.normalizedVolume.chain['24h']}
+												className="text-(--text-label) underline decoration-dotted"
+											>
+												Normalized Volume (24h)
+											</Tooltip>
+											<Icon
+												name="chevron-down"
+												height={16}
+												width={16}
+												className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
+											/>
+											<span className="ml-auto font-jetbrains">
+												{formattedNum(props.normalizedVolume.total24h, true)}
+											</span>
+										</summary>
+										<div className="mb-3 flex flex-col">
+											{props.normalizedVolume?.total7d != null ? (
+												<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
+													<Tooltip
+														content={definitions.normalizedVolume.chain['7d']}
+														className="text-(--text-label) underline decoration-dotted"
+													>
+														Normalized Volume (7d)
+													</Tooltip>
+													<span className="ml-auto font-jetbrains">
+														{formattedNum(props.normalizedVolume.total7d, true)}
+													</span>
+												</p>
+											) : null}
+											{props.normalizedVolume?.total30d != null ? (
+												<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
+													<Tooltip
+														content={definitions.normalizedVolume.chain['30d']}
+														className="text-(--text-label) underline decoration-dotted"
+													>
+														Normalized Volume (30d)
+													</Tooltip>
+													<span className="ml-auto font-jetbrains">
+														{formattedNum(props.normalizedVolume.total30d, true)}
+													</span>
+												</p>
+											) : null}
+										</div>
+									</details>
+								) : (
+									<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+										<Tooltip
+											content={definitions.normalizedVolume.chain['24h']}
+											className="text-(--text-label) underline decoration-dotted"
+										>
+											Normalized Volume (24h)
+										</Tooltip>
+										<span className="ml-auto font-jetbrains">
+											{formattedNum(props.normalizedVolume.total24h, true)}
+										</span>
+									</p>
+								)
+							) : null}
 							{props.openInterest ? (
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 									<Tooltip
@@ -373,19 +450,58 @@ export function AdapterByChain(props: IProps) {
 								</p>
 							) : null}
 							{props.total30d != null ? (
-								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
-									{pageTypeByDefinition[props.type]?.['30d'] ? (
-										<Tooltip
-											content={pageTypeByDefinition[props.type]['30d']}
-											className="text-(--text-label) underline decoration-dotted"
-										>
-											{metricName} (30d)
-										</Tooltip>
-									) : (
-										<span className="text-(--text-label)">{metricName} (30d)</span>
-									)}
-									<span className="ml-auto font-jetbrains">{formattedNum(props.total30d, true)}</span>
-								</p>
+								props.total7d != null ? (
+									<details className="group">
+										<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
+											{pageTypeByDefinition[props.type]?.['30d'] ? (
+												<Tooltip
+													content={pageTypeByDefinition[props.type]['30d']}
+													className="text-(--text-label) underline decoration-dotted"
+												>
+													{metricName} (30d)
+												</Tooltip>
+											) : (
+												<span className="text-(--text-label)">{metricName} (30d)</span>
+											)}
+											<Icon
+												name="chevron-down"
+												height={16}
+												width={16}
+												className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
+											/>
+											<span className="ml-auto font-jetbrains">{formattedNum(props.total30d, true)}</span>
+										</summary>
+										<div className="mb-3 flex flex-col">
+											<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
+												{pageTypeByDefinition[props.type]?.['7d'] ? (
+													<Tooltip
+														content={pageTypeByDefinition[props.type]['7d']}
+														className="text-(--text-label) underline decoration-dotted"
+													>
+														{metricName} (7d)
+													</Tooltip>
+												) : (
+													<span className="text-(--text-label)">{metricName} (7d)</span>
+												)}
+												<span className="ml-auto font-jetbrains">{formattedNum(props.total7d, true)}</span>
+											</p>
+										</div>
+									</details>
+								) : (
+									<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+										{pageTypeByDefinition[props.type]?.['30d'] ? (
+											<Tooltip
+												content={pageTypeByDefinition[props.type]['30d']}
+												className="text-(--text-label) underline decoration-dotted"
+											>
+												{metricName} (30d)
+											</Tooltip>
+										) : (
+											<span className="text-(--text-label)">{metricName} (30d)</span>
+										)}
+										<span className="ml-auto font-jetbrains">{formattedNum(props.total30d, true)}</span>
+									</p>
+								)
 							) : null}
 							{props.change_7dover7d != null ? (
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
@@ -479,8 +595,30 @@ const columnSizes: ColumnSizesByBreakpoint = {
 }
 
 const columnOrders: ColumnOrdersByBreakpoint = {
-	0: ['name', 'total24h', 'open_interest', 'total7d', 'total30d', 'category', 'definition'],
-	640: ['name', 'category', 'definition', 'total24h', 'open_interest', 'total7d', 'total30d']
+	0: [
+		'name',
+		'total24h',
+		'normalizedVolume24h',
+		'open_interest',
+		'total7d',
+		'normalizedVolume7d',
+		'total30d',
+		'normalizedVolume30d',
+		'category',
+		'definition'
+	],
+	640: [
+		'name',
+		'category',
+		'definition',
+		'total24h',
+		'normalizedVolume24h',
+		'open_interest',
+		'total7d',
+		'normalizedVolume7d',
+		'total30d',
+		'normalizedVolume30d'
+	]
 }
 
 const protocolChartsKeys: Partial<Record<IProps['type'], (typeof protocolCharts)[keyof typeof protocolCharts]>> = {
@@ -505,8 +643,8 @@ const chainChartsKeys: Partial<Record<IProps['type'], (typeof chainCharts)[keyof
 	'Perp Volume': 'perpsVolume'
 }
 
-const getColumnsOptions = (type) =>
-	columnsByType[type].map((c: any) => {
+const getColumnsOptions = (type: IProps['type'], columns: Array<ColumnDef<IAdapterByChainPageData['protocols'][0]>>) =>
+	columns.map((c: any) => {
 		let headerName: string
 		if (typeof c.header === 'function') {
 			switch (c.id) {
@@ -1017,6 +1155,17 @@ const getColumnsByType = (
 				size: 160
 			},
 			{
+				id: 'normalizedVolume24h',
+				header: 'Normalized Volume 24h',
+				accessorFn: (protocol) => protocol.normalizedVolume?.total24h,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				meta: {
+					align: 'center',
+					headerHelperText: definitions.normalizedVolume.protocol['24h']
+				},
+				size: 180
+			},
+			{
 				header: 'Open Interest',
 				id: 'open_interest',
 				accessorFn: (protocol) => protocol.openInterest,
@@ -1065,6 +1214,17 @@ const getColumnsByType = (
 				size: 160
 			},
 			{
+				id: 'normalizedVolume7d',
+				header: 'Normalized Volume 7d',
+				accessorFn: (protocol) => protocol.normalizedVolume?.total7d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				meta: {
+					align: 'center',
+					headerHelperText: definitions.normalizedVolume.protocol['7d']
+				},
+				size: 180
+			},
+			{
 				id: 'total30d',
 				header: 'Perp Volume 30d',
 				accessorFn: (protocol) => protocol.total30d,
@@ -1100,6 +1260,17 @@ const getColumnsByType = (
 					headerHelperText: definitions.perps.protocol['30d']
 				},
 				size: 160
+			},
+			{
+				id: 'normalizedVolume30d',
+				header: 'Normalized Volume 30d',
+				accessorFn: (protocol) => protocol.normalizedVolume?.total30d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				meta: {
+					align: 'center',
+					headerHelperText: definitions.normalizedVolume.protocol['30d']
+				},
+				size: 180
 			}
 		],
 		'Open Interest': [
@@ -1380,5 +1551,3 @@ const getColumnsByType = (
 		]
 	}
 }
-
-const columnsByType = getColumnsByType()

@@ -368,12 +368,16 @@ export async function getAdapterProtocolSummary({
 	adapterType,
 	protocol,
 	excludeTotalDataChart,
-	dataType
+	dataType,
+	hasOpenInterest,
+	hasNormalizedVolume
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	protocol: string
 	excludeTotalDataChart: boolean
 	dataType?: `${ADAPTER_DATA_TYPES}`
+	hasOpenInterest?: boolean
+	hasNormalizedVolume?: boolean
 }) {
 	if (protocol == 'All') throw new Error('Protocol cannot be All')
 
@@ -590,19 +594,24 @@ export const getAdapterByChainPageData = async ({
 	adapterType,
 	chain,
 	dataType,
-	route
+	route,
+	hasOpenInterest,
+	hasNormalizedVolume
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	chain: string
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 	route: string
+	hasOpenInterest?: boolean
+	hasNormalizedVolume?: boolean
 }): Promise<IAdapterByChainPageData | null> => {
-	const [data, protocolsData, bribesData, tokenTaxesData, openInterestData]: [
+	const [data, protocolsData, bribesData, tokenTaxesData, openInterestData, normalizedVolumeData]: [
 		IAdapterOverview,
 		{
 			protocols: Array<{ name: string; mcap: number | null }>
 			parentProtocols: Array<{ name: string; mcap: number | null }>
 		},
+		IAdapterOverview | null,
 		IAdapterOverview | null,
 		IAdapterOverview | null,
 		IAdapterOverview | null
@@ -630,11 +639,18 @@ export const getAdapterByChainPageData = async ({
 					excludeTotalDataChart: true
 				})
 			: Promise.resolve(null),
-		adapterType === 'derivatives'
+		hasOpenInterest
 			? getAdapterChainOverview({
 					adapterType: 'open-interest',
 					chain,
 					dataType: 'openInterestAtEnd',
+					excludeTotalDataChart: true
+				})
+			: Promise.resolve(null),
+		hasNormalizedVolume
+			? getAdapterChainOverview({
+					adapterType: 'normalized-volume',
+					chain,
 					excludeTotalDataChart: true
 				})
 			: Promise.resolve(null)
@@ -653,6 +669,7 @@ export const getAdapterByChainPageData = async ({
 	let bribesProtocols = {}
 	let tokenTaxesProtocols = {}
 	let openInterestProtocols = {}
+	let normalizedVolumeProtocols = {}
 
 	if (dataType === 'dailyEarnings') {
 		if (bribesData) {
@@ -716,9 +733,37 @@ export const getAdapterByChainPageData = async ({
 			}, {}) ?? {}
 	}
 
+	let openInterest = 0
+
 	if (openInterestData) {
 		openInterestProtocols = openInterestData.protocols.reduce((acc, p) => {
 			acc[p.name] = p.total24h ?? null
+			openInterest += p.total24h ?? 0
+			return acc
+		}, {})
+	}
+
+	let normalizedVolume = {
+		total24h: 0,
+		total7d: 0,
+		total30d: 0,
+		total1y: 0,
+		totalAllTime: 0
+	}
+	if (normalizedVolumeData) {
+		normalizedVolumeProtocols = normalizedVolumeData.protocols.reduce((acc, p) => {
+			acc[p.name] = {
+				total24h: p.total24h ?? null,
+				total7d: p.total7d ?? null,
+				total30d: p.total30d ?? null,
+				total1y: p.total1y ?? null,
+				totalAllTime: p.totalAllTime ?? null
+			}
+			normalizedVolume.total24h += p.total24h ?? 0
+			normalizedVolume.total7d += p.total7d ?? 0
+			normalizedVolume.total30d += p.total30d ?? 0
+			normalizedVolume.total1y += p.total1y ?? 0
+			normalizedVolume.totalAllTime += p.totalAllTime ?? 0
 			return acc
 		}, {})
 	}
@@ -772,7 +817,10 @@ export const getAdapterByChainPageData = async ({
 			...(methodology ? { methodology: methodology.endsWith('.') ? methodology.slice(0, -1) : methodology } : {}),
 			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
 			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {}),
-			...(openInterestProtocols[protocol.name] ? { openInterest: openInterestProtocols[protocol.name] } : {})
+			...(openInterestProtocols[protocol.name] ? { openInterest: openInterestProtocols[protocol.name] } : {}),
+			...(normalizedVolumeProtocols[protocol.name]
+				? { normalizedVolume: normalizedVolumeProtocols[protocol.name] }
+				: {})
 		}
 
 		if (protocol.linkedProtocols?.length > 1) {
@@ -855,6 +903,26 @@ export const getAdapterByChainPageData = async ({
 			? parentProtocols[protocol].reduce((acc, p) => acc + (p.openInterest ?? 0), 0)
 			: null
 
+		const normalizedVolume = parentProtocols[protocol].some((p) => p.normalizedVolume != null)
+			? parentProtocols[protocol].reduce(
+					(acc, p) => {
+						acc.total24h += p.normalizedVolume?.total24h ?? 0
+						acc.total7d += p.normalizedVolume?.total7d ?? 0
+						acc.total30d += p.normalizedVolume?.total30d ?? 0
+						acc.total1y += p.normalizedVolume?.total1y ?? 0
+						acc.totalAllTime += p.normalizedVolume?.totalAllTime ?? 0
+						return acc
+					},
+					{
+						total24h: 0,
+						total7d: 0,
+						total30d: 0,
+						total1y: 0,
+						totalAllTime: 0
+					}
+				)
+			: null
+
 		const methodology: Array<string> = Array.from(
 			new Set(parentProtocols[protocol].filter((p) => p.methodology).map((p) => p.methodology))
 		)
@@ -901,7 +969,8 @@ export const getAdapterByChainPageData = async ({
 				: {}),
 			...(doublecounted ? { doublecounted } : {}),
 			...(zeroFeePerp ? { zeroFeePerp } : {}),
-			...(openInterest ? { openInterest } : {})
+			...(openInterest ? { openInterest } : {}),
+			...(normalizedVolume ? { normalizedVolume } : {})
 		}
 	}
 
@@ -941,12 +1010,6 @@ export const getAdapterByChainPageData = async ({
 		)
 	}
 
-	let openInterest = 0
-
-	for (const protocol in openInterestProtocols) {
-		openInterest += openInterestProtocols[protocol] ?? 0
-	}
-
 	return {
 		chain,
 		chains: [
@@ -965,7 +1028,8 @@ export const getAdapterByChainPageData = async ({
 		change_7d: data.change_7d ?? null,
 		change_1m: data.change_1m ?? null,
 		change_7dover7d: data.change_7dover7d ?? null,
-		openInterest
+		openInterest: hasOpenInterest ? openInterest : null,
+		normalizedVolume: hasNormalizedVolume ? normalizedVolume : null
 	}
 }
 
