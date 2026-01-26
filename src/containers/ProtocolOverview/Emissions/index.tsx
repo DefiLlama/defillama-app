@@ -141,6 +141,24 @@ function groupChartDataByTime(
 		.sort((a, b) => +a.date - +b.date)
 }
 
+function sortStacksByVolatility(
+	stacks: string[],
+	chartData: Array<{ date: string } & Record<string, number | string>>
+): string[] {
+	if (!chartData || chartData.length < 2) return stacks
+
+	const volatility: Record<string, number> = {}
+
+	for (const stack of stacks) {
+		const values = chartData.map((d) => Number(d[stack]) || 0)
+		const min = Math.min(...values)
+		const max = Math.max(...values)
+		volatility[stack] = max - min
+	}
+
+	return [...stacks].sort((a, b) => volatility[b] - volatility[a])
+}
+
 const unlockedPieChartRadius = ['50%', '70%'] as [string, string]
 
 const unlockedPieChartStackColors = {
@@ -394,16 +412,17 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				}
 			}
 		}
+		const finalStacks = chartType === 'bar' ? sortStacksByVolatility(stacks, displayData) : stacks
 		const extendedColors = getExtendedColors(stackColors, isPriceEnabled)
 		return {
-			stacks: [...stacks, ...(isPriceEnabled ? ['Market Cap', 'Price'] : [])].filter(Boolean),
+			stacks: [...finalStacks, ...(isPriceEnabled ? ['Market Cap', 'Price'] : [])].filter(Boolean),
 			customYAxis: isPriceEnabled ? ['Market Cap', 'Price'] : [],
 			colors:
 				allocationMode === 'standard'
 					? { ...standardGroupColors, Price: '#ff4e21', 'Market Cap': '#0c5dff' }
 					: extendedColors
 		}
-	}, [isPriceEnabled, selectedCategories, stackColors, allocationMode, displayData])
+	}, [isPriceEnabled, selectedCategories, stackColors, allocationMode, displayData, chartType])
 
 	const unlockedPercent =
 		data.meta?.totalLocked != null && data.meta?.maxSupply != null
