@@ -29,6 +29,7 @@ export interface IChartProps {
 	}
 	expandTo100Percent?: boolean
 	isStackedChart?: boolean
+	chartType?: 'line' | 'bar'
 	hideGradient?: boolean
 	unlockTokenSymbol?: string
 	isThemeDark?: boolean
