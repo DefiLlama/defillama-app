@@ -590,12 +590,14 @@ export const getAdapterByChainPageData = async ({
 	adapterType,
 	chain,
 	dataType,
-	route
+	route,
+	hasOpenInterest
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	chain: string
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 	route: string
+	hasOpenInterest?: boolean
 }): Promise<IAdapterByChainPageData | null> => {
 	const [data, protocolsData, bribesData, tokenTaxesData, openInterestData]: [
 		IAdapterOverview,
@@ -630,7 +632,7 @@ export const getAdapterByChainPageData = async ({
 					excludeTotalDataChart: true
 				})
 			: Promise.resolve(null),
-		adapterType === 'derivatives'
+		hasOpenInterest
 			? getAdapterChainOverview({
 					adapterType: 'open-interest',
 					chain,
