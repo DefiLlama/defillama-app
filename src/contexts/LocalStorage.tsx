@@ -74,32 +74,6 @@ export const YIELDS_SETTINGS = {
 	LSD_ONLY: 'LSD_ONLY'
 } as const
 
-// STABLECOINS
-export const STABLECOINS_SETTINGS = {
-	PEGGEDUSD: 'PEGGEDUSD',
-	PEGGEDEUR: 'PEGGEDEUR',
-	PEGGEDSGD: 'PEGGEDSGD',
-	PEGGEDJPY: 'PEGGEDJPY',
-	PEGGEDCNY: 'PEGGEDCNY',
-	PEGGEDUAH: 'PEGGEDUAH',
-	PEGGEDARS: 'PEGGEDARS',
-	PEGGEDGBP: 'PEGGEDGBP',
-	PEGGEDVAR: 'PEGGEDVAR',
-	PEGGEDCAD: 'PEGGEDCAD',
-	PEGGEDAUD: 'PEGGEDAUD',
-	PEGGEDTRY: 'PEGGEDTRY',
-	PEGGEDCHF: 'PEGGEDCHF',
-	PEGGEDCOP: 'PEGGEDCOP',
-	PEGGEDREAL: 'PEGGEDREAL',
-	PEGGEDRUB: 'PEGGEDRUB',
-	PEGGEDPHP: 'PEGGEDPHP',
-	FIATSTABLES: 'FIATSTABLES',
-	CRYPTOSTABLES: 'CRYPTOSTABLES',
-	ALGOSTABLES: 'ALGOSTABLES',
-	DEPEGGED: 'DEPEGGED',
-	UNRELEASED
-} as const
-
 // NFT
 export const NFT_SETTINGS = {
 	DISPLAY_USD: 'DISPLAY_USD',
@@ -142,7 +116,6 @@ export const BRIDGES_SETTINGS = { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES
 export type TvlSettingsKey = (typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS]
 export type FeesSettingKey = (typeof FEES_SETTINGS)[keyof typeof FEES_SETTINGS]
 export type YieldsSettingKey = (typeof YIELDS_SETTINGS)[keyof typeof YIELDS_SETTINGS]
-export type StablecoinsSettingKey = (typeof STABLECOINS_SETTINGS)[keyof typeof STABLECOINS_SETTINGS]
 export type NftSettingKey = (typeof NFT_SETTINGS)[keyof typeof NFT_SETTINGS]
 export type LiquidationsSettingKey = (typeof LIQS_SETTINGS)[keyof typeof LIQS_SETTINGS]
 export type BridgesSettingKey = (typeof BRIDGES_SETTINGS)[keyof typeof BRIDGES_SETTINGS]
@@ -151,7 +124,6 @@ export type ChainsCategoryGroupKey = (typeof CHAINS_CATEGORY_GROUP_SETTINGS)[num
 export type SettingKey =
 	| TvlSettingsKey
 	| FeesSettingKey
-	| StablecoinsSettingKey
 	| NftSettingKey
 	| LiquidationsSettingKey
 	| BridgesSettingKey
@@ -165,15 +137,13 @@ export type KeysFor<T extends TSETTINGTYPE> = T extends 'tvl'
 			? TvlSettingsKey | FeesSettingKey
 			: T extends 'tvl_chains'
 				? ChainsCategoryGroupKey
-				: T extends 'stablecoins'
-					? StablecoinsSettingKey
-					: T extends 'nfts'
-						? NftSettingKey
-						: T extends 'liquidations'
-							? LiquidationsSettingKey
-							: T extends 'bridges'
-								? BridgesSettingKey
-								: string
+				: T extends 'nfts'
+					? NftSettingKey
+					: T extends 'liquidations'
+						? LiquidationsSettingKey
+						: T extends 'bridges'
+							? BridgesSettingKey
+							: string
 
 type YieldFilterValue = string | number | boolean
 type YieldSavedFilter = Record<string, YieldFilterValue>
@@ -208,7 +178,6 @@ export const TVL_SETTINGS_KEYS = valuesOf(TVL_SETTINGS)
 export const TVL_SETTINGS_KEYS_SET = new Set<string>(TVL_SETTINGS_KEYS)
 export const FEES_SETTINGS_KEYS = valuesOf(FEES_SETTINGS)
 export const FEES_SETTINGS_KEYS_SET = new Set<string>(FEES_SETTINGS_KEYS)
-export const STABLECOINS_SETTINGS_KEYS = valuesOf(STABLECOINS_SETTINGS)
 export const NFT_SETTINGS_KEYS = valuesOf(NFT_SETTINGS)
 export const LIQS_SETTINGS_KEYS = valuesOf(LIQS_SETTINGS)
 export const BRIDGES_SETTINGS_KEYS = valuesOf(BRIDGES_SETTINGS)
@@ -331,8 +300,6 @@ function getSettingKeys<T extends TSETTINGTYPE>(type: T): KeysFor<T>[] {
 			return [...TVL_SETTINGS_KEYS, ...FEES_SETTINGS_KEYS] as KeysFor<T>[]
 		case 'tvl_chains':
 			return CHAINS_CATEGORY_GROUP_KEYS as KeysFor<T>[]
-		case 'stablecoins':
-			return STABLECOINS_SETTINGS_KEYS as KeysFor<T>[]
 		case 'nfts':
 			return NFT_SETTINGS_KEYS as KeysFor<T>[]
 		case 'liquidations':
