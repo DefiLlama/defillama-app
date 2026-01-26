@@ -167,6 +167,7 @@ export interface ModalActions {
 	handleAddToComposer: (typesToAdd?: string[], options?: { entity?: string; mode?: 'chain' | 'protocol' }) => void
 	handleRemoveFromComposer: (id: string) => void
 	handleUpdateComposerItemColor: (id: string, color: string) => void
+	handleBulkChartTypeChange: (nextType: string) => void
 	handleMainTabChange: (tab: MainTabType) => void
 	handleSubmit: () => void
 	handleChartTabChange: (tab: ChartTabType) => void
