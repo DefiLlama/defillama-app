@@ -2,6 +2,7 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { useSidebarCollapsed } from '~/hooks/useSidebarCollapsed'
 import { Account } from '../Account'
 import { PremiumHeader } from '../PremiumHeader'
 import { ThemeSwitch } from '../ThemeSwitch'
@@ -24,112 +25,145 @@ export function DesktopNav({
 	oldMetricLinks: Array<TOldNavLink>
 }) {
 	const { asPath } = useRouter()
+	const { isCollapsed, toggleCollapsed } = useSidebarCollapsed()
+
+	const handleToggle = React.useCallback(() => {
+		toggleCollapsed()
+		
+		setTimeout(() => {
+			window.dispatchEvent(new Event('resize'))
+		}, 300)
+	}, [toggleCollapsed])
 
 	return (
-		<span className="col-span-1 max-lg:hidden">
-			<nav className="sticky top-0 bottom-0 left-0 isolate col-span-1 flex thin-scrollbar h-screen flex-col gap-1 overflow-y-auto bg-(--app-bg) py-4 *:pl-4">
-				<BasicLink href="/" className="mb-4 w-fit shrink-0">
-					<span className="sr-only">Navigate to Home Page</span>
-					<img
-						src="/assets/defillama.webp"
-						height={53}
-						width={155}
-						className="mr-auto hidden object-contain object-left dark:block"
-						alt=""
-						fetchPriority="high"
-					/>
-					<img
-						src="/assets/defillama-dark.webp"
-						height={53}
-						width={155}
-						className="mr-auto object-contain object-left dark:hidden"
-						alt=""
-						fetchPriority="high"
-					/>
-				</BasicLink>
+		<>
+			<button
+				onClick={handleToggle}
+				className={`fixed top-1/2 z-50 flex h-12 w-6 -translate-y-1/2 items-center justify-center rounded-r-md border border-(--cards-border) bg-(--cards-bg) shadow-md transition-all duration-300 ease-in-out hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) max-lg:hidden ${
+					isCollapsed ? 'left-0 border-l-0' : 'rounded-l-md left-[228px]'
+				}`}
+				aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+				title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+			>
+				<Icon
+					name="chevron-right"
+					className={`h-4 w-4 transition-transform duration-300 ${isCollapsed ? '' : 'rotate-180'}`}
+				/>
+			</button>
 
-				<div className="flex flex-1 flex-col gap-1 overflow-y-auto">
-					{mainLinks.map(({ category, pages }) => (
-						<div key={`desktop-nav-${category}`} className="group flex flex-col">
-							{category === 'Premium' ? <PremiumHeader /> : null}
-							{pages.map(({ name, route, icon, attention, umamiEvent }) => (
-								<LinkToPage
-									key={`desktop-nav-${name}-${route}`}
-									route={route}
-									name={name}
-									icon={icon}
-									attention={attention}
-									asPath={asPath}
-									umamiEvent={umamiEvent}
-								/>
-							))}
-						</div>
-					))}
+			<span
+				className={`col-span-1 max-lg:hidden transition-[width,margin] duration-300 ease-in-out ${
+					isCollapsed ? 'w-0' : 'w-[228px]'
+				}`}
+			>
+				<nav
+					className={`sticky top-0 bottom-0 left-0 isolate col-span-1 flex thin-scrollbar h-screen flex-col gap-1 overflow-y-auto bg-(--app-bg) py-4 *:pl-4 w-[228px] transition-transform duration-300 ease-in-out ${
+						isCollapsed ? '-translate-x-full' : 'translate-x-0'
+					}`}
+				>
+					<BasicLink href="/" className="mb-4 w-fit shrink-0">
+						<span className="sr-only">Navigate to Home Page</span>
+						<img
+							src="/assets/defillama.webp"
+							height={53}
+							width={155}
+							className="mr-auto hidden object-contain object-left dark:block"
+							alt=""
+							fetchPriority="high"
+						/>
+						<img
+							src="/assets/defillama-dark.webp"
+							height={53}
+							width={155}
+							className="mr-auto object-contain object-left dark:hidden"
+							alt=""
+							fetchPriority="high"
+						/>
+					</BasicLink>
 
-					<details className="group">
-						<summary className="-ml-1.5 flex items-center justify-between gap-3 rounded-md p-1.5 text-xs opacity-65 hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10">
-							<span>Old Menu</span>
-							<Icon name="chevron-down" className="h-4 w-4 shrink-0 group-open:rotate-180" />
-						</summary>
-						<div className="border-l border-black/20 pl-2 dark:border-white/20">
-							{oldMetricLinks.map(({ name, route, pages }: TOldNavLink) => (
-								<React.Fragment key={`old-nav-desktop-${name}-${route ?? ''}`}>
-									{pages ? (
-										<details className="group/second">
-											<summary className="-ml-1.5 flex items-center justify-between gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10">
-												<span>{name}</span>
-												<Icon name="chevron-down" className="h-4 w-4 shrink-0 group-open/second:rotate-180" />
-											</summary>
-											<div className="border-l border-black/20 pl-2 dark:border-white/20">
-												{pages.map(({ name, route }) => (
-													<LinkToPage
-														key={`old-desktop-nav-${name}-${route}`}
-														route={route}
-														name={name}
-														asPath={asPath}
-													/>
-												))}
-											</div>
-										</details>
-									) : route ? (
-										<LinkToPage key={`old-desktop-nav-${name}-${route}`} route={route} name={name} asPath={asPath} />
-									) : null}
-								</React.Fragment>
-							))}
-						</div>
-					</details>
-
-					{pinnedPages.length > 0 ? (
-						<React.Suspense>
-							<PinnedPages pinnedPages={pinnedPages} asPath={asPath} />
-						</React.Suspense>
-					) : null}
-
-					{userDashboards.length > 0 ? (
-						<div className="group">
-							<p className="flex items-center justify-between gap-3 rounded-md pt-1.5 text-xs opacity-65">
-								Your Dashboards
-							</p>
-							<div>
-								{userDashboards.map(({ name, route }) => (
-									<LinkToPage key={`desktop-nav-${name}-${route}`} route={route} name={name} asPath={asPath} />
+					<div className="flex flex-1 flex-col gap-1 overflow-y-auto">
+						{mainLinks.map(({ category, pages }) => (
+							<div key={`desktop-nav-${category}`} className="group flex flex-col">
+								{category === 'Premium' ? <PremiumHeader /> : null}
+								{pages.map(({ name, route, icon, attention, umamiEvent }) => (
+									<LinkToPage
+										key={`desktop-nav-${name}-${route}`}
+										route={route}
+										name={name}
+										icon={icon}
+										attention={attention}
+										asPath={asPath}
+										umamiEvent={umamiEvent}
+									/>
 								))}
 							</div>
-						</div>
-					) : null}
+						))}
 
-					{footerLinks.map(({ category, pages }) => (
-						<NavDetailsSection key={`desktop-nav-${category}`} category={category} pages={pages} asPath={asPath} />
-					))}
-				</div>
+						<details className="group">
+							<summary className="-ml-1.5 flex items-center justify-between gap-3 rounded-md p-1.5 text-xs opacity-65 hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10">
+								<span>Old Menu</span>
+								<Icon name="chevron-down" className="h-4 w-4 shrink-0 group-open:rotate-180" />
+							</summary>
+							<div className="border-l border-black/20 pl-2 dark:border-white/20">
+								{oldMetricLinks.map(({ name, route, pages }: TOldNavLink) => (
+									<React.Fragment key={`old-nav-desktop-${name}-${route ?? ''}`}>
+										{pages ? (
+											<details className="group/second">
+												<summary className="-ml-1.5 flex items-center justify-between gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10">
+													<span>{name}</span>
+													<Icon name="chevron-down" className="h-4 w-4 shrink-0 group-open/second:rotate-180" />
+												</summary>
+												<div className="border-l border-black/20 pl-2 dark:border-white/20">
+													{pages.map(({ name, route }) => (
+														<LinkToPage
+															key={`old-desktop-nav-${name}-${route}`}
+															route={route}
+															name={name}
+															asPath={asPath}
+														/>
+													))}
+												</div>
+											</details>
+										) : route ? (
+											<LinkToPage key={`old-desktop-nav-${name}-${route}`} route={route} name={name} asPath={asPath} />
+										) : null}
+									</React.Fragment>
+								))}
+							</div>
+						</details>
 
-				<div className="sticky bottom-0 flex w-full flex-col gap-2 bg-(--app-bg)">
-					<hr className="-ml-1.5 border-black/20 pb-1 dark:border-white/20" />
-					<Account />
-					<ThemeSwitch />
-				</div>
-			</nav>
-		</span>
+						{pinnedPages.length > 0 ? (
+							<React.Suspense>
+								<PinnedPages pinnedPages={pinnedPages} asPath={asPath} />
+							</React.Suspense>
+						) : null}
+
+						{userDashboards.length > 0 ? (
+							<div className="group">
+								<p className="flex items-center justify-between gap-3 rounded-md pt-1.5 text-xs opacity-65">
+									Your Dashboards
+								</p>
+								<div>
+									{userDashboards.map(({ name, route }) => (
+										<LinkToPage key={`desktop-nav-${name}-${route}`} route={route} name={name} asPath={asPath} />
+									))}
+								</div>
+							</div>
+						) : null}
+
+						{footerLinks.map(({ category, pages }) => (
+							<NavDetailsSection key={`desktop-nav-${category}`} category={category} pages={pages} asPath={asPath} />
+						))}
+					</div>
+
+					<div className="sticky bottom-0 flex w-full flex-col gap-2 bg-(--app-bg)">
+						<hr className="-ml-1.5 border-black/20 pb-1 dark:border-white/20" />
+						<Account />
+						<ThemeSwitch />
+					</div>
+				</nav>
+			</span>
+		</>
 	)
 }
 

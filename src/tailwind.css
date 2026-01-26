@@ -596,7 +596,7 @@
 
 	#__next,
 	#__next > [data-rk] {
-		@apply relative isolate col-span-full grid min-h-full grid-cols-[228px_1fr] lg:gap-4;
+		@apply relative isolate col-span-full grid min-h-full grid-cols-[auto_1fr] lg:gap-4;
 	}
 
 	#__next > *:only-child,
