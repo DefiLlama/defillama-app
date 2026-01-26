@@ -1,4 +1,6 @@
 import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState } from 'react'
+import { Icon } from '~/components/Icon'
+import { Tooltip } from '~/components/Tooltip'
 import { useMedia } from '~/hooks/useMedia'
 import { useEntityCombobox } from '../hooks/useEntityCombobox'
 import { useImageUpload, fileToBase64 } from '../hooks/useImageUpload'
@@ -32,6 +34,7 @@ interface PromptInputProps {
 	droppedFiles?: File[] | null
 	clearDroppedFiles?: () => void
 	externalDragging?: boolean
+	onOpenAlerts?: () => void
 }
 
 const trackSubmit = () => {
@@ -53,7 +56,8 @@ export function PromptInput({
 	researchUsage,
 	droppedFiles,
 	clearDroppedFiles,
-	externalDragging
+	externalDragging,
+	onOpenAlerts
 }: PromptInputProps) {
 	const [value, setValue] = useState('')
 	const highlightRef = useRef<HTMLDivElement>(null)
@@ -243,11 +247,23 @@ export function PromptInput({
 			/>
 
 			<div className="flex flex-wrap items-center justify-between gap-4 p-0">
-				<ModeToggle
-					isResearchMode={isResearchMode}
-					setIsResearchMode={setIsResearchMode}
-					researchUsage={researchUsage}
-				/>
+				<div className="flex items-center gap-2">
+					<ModeToggle
+						isResearchMode={isResearchMode}
+						setIsResearchMode={setIsResearchMode}
+						researchUsage={researchUsage}
+					/>
+					{onOpenAlerts && (
+						<Tooltip
+							content="Manage Alerts"
+							render={<button type="button" onClick={onOpenAlerts} />}
+							className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-500/12 text-amber-500 hover:bg-amber-500 hover:text-white"
+						>
+							<Icon name="calendar-plus" height={14} width={14} />
+							<span className="sr-only">Manage Alerts</span>
+						</Tooltip>
+					)}
+				</div>
 				<div className="flex items-center gap-2">
 					<ImageUploadButton onClick={imageUpload.openFilePicker} />
 					<SubmitButton

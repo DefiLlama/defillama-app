@@ -7,6 +7,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
+import { AlertsModal } from './components/AlertsModal'
 import { ChatHistorySidebar } from './components/ChatHistorySidebar'
 import { ImagePreviewModal } from './components/ImagePreviewModal'
 import { PromptInput } from './components/PromptInput'
@@ -103,6 +104,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			citations?: string[]
 			inlineSuggestions?: string
 			csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
+			savedAlertIds?: string[]
 		}>
 	>([])
 	const [paginationState, setPaginationState] = useState<{
@@ -126,6 +128,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [prompt, setPrompt] = useState('')
 	const [isResearchMode, setIsResearchMode] = useState(false)
 	const [showRateLimitModal, setShowRateLimitModal] = useState(false)
+	const [showAlertsModal, setShowAlertsModal] = useState(false)
 	const [rateLimitDetails, setRateLimitDetails] = useState<{
 		period: string
 		limit: number
@@ -418,6 +421,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			const currentImages = pendingImages.length > 0 ? [...pendingImages] : undefined
 			// New: Use items from the response, or convert legacy response to items
 			const finalItems = data?.items && data.items.length > 0 ? data.items : streamingItems
+			// Extract metadata from items for the message object
+			const finalMetadata = finalItems.find((i): i is MetadataItem => i.type === 'metadata')?.metadata
 
 			setMessages((prev) => [
 				...prev,
@@ -431,7 +436,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					role: 'assistant',
 					items: finalItems,
 					messageId: currentMessageId,
-					timestamp: Date.now()
+					timestamp: Date.now(),
+					metadata: finalMetadata
 				}
 			])
 
@@ -1033,6 +1039,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											droppedFiles={droppedFiles}
 											clearDroppedFiles={clearDroppedFiles}
 											externalDragging={isDraggingOnChat}
+											onOpenAlerts={() => setShowAlertsModal(true)}
 										/>
 										<RecommendedPrompts
 											setPrompt={setPrompt}
@@ -1130,7 +1137,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																		readOnly={readOnly}
 																		inlineChartConfig={{
 																			resizeTrigger,
-																			messageId: item.messageId
+																			messageId: item.messageId,
+																			alertIntent: msgMetadata?.metadata?.alertIntent || item.metadata?.alertIntent,
+																			savedAlertIds: item.savedAlertIds || item.metadata?.savedAlertIds
 																		}}
 																	/>
 																	<ResponseControls
@@ -1169,6 +1178,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 													const streamingSuggestions = streamingItems.find(
 														(i): i is SuggestionsItem => i.type === 'suggestions'
 													)
+													// Extract metadata from streaming items for alert intent
+													const streamingMetadata = streamingItems.find((i): i is MetadataItem => i.type === 'metadata')
 
 													return (
 														<div className="flex min-h-[calc(100dvh-272px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-215px)]">
@@ -1188,7 +1199,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																readOnly={readOnly}
 																inlineChartConfig={{
 																	resizeTrigger,
-																	messageId: currentMessageId ?? undefined
+																	messageId: currentMessageId ?? undefined,
+																	alertIntent: streamingMetadata?.metadata?.alertIntent
 																}}
 															/>
 															{streamingSuggestions?.suggestions?.length && !isStreaming ? (
@@ -1265,6 +1277,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										droppedFiles={droppedFiles}
 										clearDroppedFiles={clearDroppedFiles}
 										externalDragging={isDraggingOnChat}
+										onOpenAlerts={() => setShowAlertsModal(true)}
 									/>
 								)}
 							</div>
@@ -1281,6 +1294,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					resetTime={rateLimitDetails.resetTime}
 				/>
 			)}
+			<AlertsModal isOpen={showAlertsModal} onClose={() => setShowAlertsModal(false)} />
 		</Layout>
 	)
 }

@@ -42,6 +42,10 @@ export interface StreamItemRendererProps {
 	savedChartIds?: string[]
 	/** Progress message for loading states */
 	progressMessage?: string
+	/** Alert intent for scheduled alerts */
+	alertIntent?: import('../types').AlertIntent
+	/** IDs of alerts already saved */
+	savedAlertIds?: string[]
 }
 
 /**
@@ -60,7 +64,9 @@ export const StreamItemRenderer = memo(function StreamItemRenderer({
 	messageId,
 	saveableChartIds,
 	savedChartIds,
-	progressMessage
+	progressMessage,
+	alertIntent,
+	savedAlertIds
 }: StreamItemRendererProps) {
 	switch (item.type) {
 		case 'markdown':
@@ -73,6 +79,8 @@ export const StreamItemRenderer = memo(function StreamItemRenderer({
 					messageId={messageId}
 					saveableChartIds={saveableChartIds}
 					savedChartIds={savedChartIds}
+					alertIntent={alertIntent}
+					savedAlertIds={savedAlertIds}
 				/>
 			)
 
@@ -127,6 +135,8 @@ interface MarkdownItemRendererProps {
 	messageId?: string
 	saveableChartIds?: string[]
 	savedChartIds?: string[]
+	alertIntent?: import('../types').AlertIntent
+	savedAlertIds?: string[]
 }
 
 const MarkdownItemRenderer = memo(function MarkdownItemRenderer({
@@ -136,7 +146,9 @@ const MarkdownItemRenderer = memo(function MarkdownItemRenderer({
 	resizeTrigger,
 	messageId,
 	saveableChartIds,
-	savedChartIds
+	savedChartIds,
+	alertIntent,
+	savedAlertIds
 }: MarkdownItemRendererProps) {
 	return (
 		<MarkdownRenderer
@@ -148,7 +160,9 @@ const MarkdownItemRenderer = memo(function MarkdownItemRenderer({
 				resizeTrigger,
 				messageId,
 				saveableChartIds,
-				savedChartIds
+				savedChartIds,
+				alertIntent,
+				savedAlertIds
 			}}
 		/>
 	)

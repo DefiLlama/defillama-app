@@ -24,6 +24,8 @@ interface PromptResponseProps {
 		saveableChartIds?: string[]
 		savedChartIds?: string[]
 		messageId?: string
+		alertIntent?: import('../types').AlertIntent
+		savedAlertIds?: string[]
 	}
 }
 
@@ -239,6 +241,8 @@ export function PromptResponse({
 					saveableChartIds={inlineChartConfig?.saveableChartIds}
 					savedChartIds={inlineChartConfig?.savedChartIds}
 					progressMessage={progressMessage}
+					alertIntent={inlineChartConfig?.alertIntent}
+					savedAlertIds={inlineChartConfig?.savedAlertIds}
 				/>
 			))}
 		</>
