@@ -95,14 +95,16 @@ export function DashboardDiscovery() {
 		}
 
 		// remove page from query
-		const { page: _page, ...queryWithoutPage } = router.query
+		const { page: _page, tag: currentTag, ...queryWithoutPage } = router.query
+
+		const existingTags = currentTag ? (Array.isArray(currentTag) ? currentTag : [currentTag]) : []
 
 		router.push(
 			{
 				pathname: '/pro',
 				query: {
 					...queryWithoutPage,
-					tag: tag
+					tag: [...existingTags, tag]
 				}
 			},
 			undefined,
