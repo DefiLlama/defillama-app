@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 export function YieldsSearch({
 	lend = false,
@@ -36,6 +37,8 @@ export function YieldsSearch({
 		e.stopPropagation()
 		const previousCount = viewableMatches
 		setViewableMatches((prev) => prev + 20)
+
+		trackYieldsEvent(YIELDS_EVENTS.SEARCH_SEE_MORE, { type: 'strategy' })
 
 		// Focus on the first newly loaded item after a brief delay
 		setTimeout(() => {
@@ -158,6 +161,10 @@ const Row = ({ data, lend, setOpen }) => {
 			value={data.name}
 			onClick={() => {
 				setLoading(true)
+				trackYieldsEvent(YIELDS_EVENTS.SEARCH_SELECT, {
+					token: data.symbol,
+					type: lend ? 'lend' : 'borrow'
+				})
 				router
 					.push(
 						{

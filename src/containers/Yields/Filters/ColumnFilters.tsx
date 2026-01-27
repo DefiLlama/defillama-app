@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IColumnFiltersProps {
 	nestedMenu?: boolean
@@ -65,6 +66,12 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 		for (const op of newOptions) {
 			optionsObj[op] = true
 		}
+
+		trackYieldsEvent(YIELDS_EVENTS.FILTER_COLUMN, {
+			count: newOptions.length,
+			columns: newOptions.join(',')
+		})
+
 		router.push(
 			{
 				pathname: router.pathname,

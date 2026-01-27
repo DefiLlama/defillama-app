@@ -8,6 +8,7 @@ import { ConfirmationModal } from '~/containers/ProDashboard/components/Confirma
 import { useYieldFilters } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { useMedia } from '~/hooks/useMedia'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 import { YieldsSearch } from '../Search'
 import { InputFilter } from './Amount'
 import { YieldFilterDropdowns } from './Dropdowns'
@@ -27,6 +28,7 @@ function SavedFilters({ currentFilters }) {
 	const handleLoad = (name: string) => {
 		const filters = savedFilters[name]
 		if (filters) {
+			trackYieldsEvent(YIELDS_EVENTS.SAVED_FILTER_LOAD, { filter: name })
 			router.push(
 				{
 					pathname: router.pathname,
@@ -51,13 +53,19 @@ function SavedFilters({ currentFilters }) {
 				description="Enter a name for this filter configuration"
 				open={dialogOpen}
 				setOpen={setDialogOpen}
-				onSubmit={(name) => saveFilter(name, currentFilters)}
+				onSubmit={(filterName) => {
+					saveFilter(filterName, currentFilters)
+					trackYieldsEvent(YIELDS_EVENTS.SAVED_FILTER_CREATE, { filter: filterName })
+				}}
 			/>
 			<ConfirmationModal
 				title={`Deleting saved filter "${filterToDelete}"`}
 				isOpen={deleteOpen}
 				onClose={() => setDeleteOpen(false)}
-				onConfirm={() => deleteFilter(filterToDelete)}
+				onConfirm={() => {
+					deleteFilter(filterToDelete)
+					trackYieldsEvent(YIELDS_EVENTS.SAVED_FILTER_DELETE, { filter: filterToDelete })
+				}}
 			/>
 			<Ariakit.MenuProvider>
 				<Ariakit.MenuButton className="flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)">

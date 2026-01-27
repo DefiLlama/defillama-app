@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IFiltersByTokensProps {
 	tokensList: Array<string>
@@ -20,6 +21,12 @@ export function FilterByToken({ tokensList = [], selectedTokens, nestedMenu }: I
 			labelType={!token || token === 'All' ? 'none' : 'regular'}
 			includeQueryKey="token"
 			excludeQueryKey="excludeToken"
+			onValuesChange={(values) => {
+				trackYieldsEvent(YIELDS_EVENTS.FILTER_TOKEN_INCLUDE, {
+					count: values.length,
+					tokens: values.join(',')
+				})
+			}}
 		/>
 	)
 }

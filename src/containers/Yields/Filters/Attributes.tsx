@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { badDebt, lockupsCollateral } from '~/containers/Yields/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 export const attributeOptions = [
 	{
@@ -203,6 +204,12 @@ export function YieldAttributes({ pathname, nestedMenu }: { pathname: string; ne
 			nestedMenu={nestedMenu}
 			includeQueryKey="attribute"
 			excludeQueryKey="excludeAttribute"
+			onValuesChange={(values) => {
+				trackYieldsEvent(YIELDS_EVENTS.FILTER_ATTRIBUTE, {
+					count: values.length,
+					attributes: values.join(',')
+				})
+			}}
 		/>
 	)
 }

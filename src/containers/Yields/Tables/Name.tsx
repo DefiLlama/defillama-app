@@ -52,6 +52,8 @@ export function NameYieldPool({
 				href={url}
 				target="_blank"
 				rel="noopener noreferrer"
+				data-umami-event="yields-pool-external-link"
+				data-umami-event-pool={value}
 				className="hidden shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover) lg:flex"
 			>
 				<Icon name="arrow-up-right" height={14} width={14} />
@@ -85,7 +87,14 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 			<>
 				{url ? (
 					<Tooltip
-						render={<a href={url} target="_blank" rel="noopener noreferrer" />}
+						render={
+							<a
+								href={url}
+								target="_blank"
+								rel="noopener noreferrer"
+								data-umami-event="yields-pool-click"
+							/>
+						}
 						className="flex shrink! items-center overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 						content={children}
 						data-fullwidth
@@ -111,6 +120,7 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 				<BasicLink
 					href={url}
 					target="_blank"
+					data-umami-event="yields-pool-click"
 					className="flex items-center overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 				>
 					{children}
@@ -142,6 +152,8 @@ export function NameYield({ project, projectslug, airdrop, borrow: _borrow, with
 			) : (
 				<BasicLink
 					href={tokenUrl}
+					data-umami-event="yields-project-filter-click"
+					data-umami-event-project={project}
 					className="ml-2 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 				>
 					{project}
@@ -161,6 +173,8 @@ export function YieldsProject({ project, projectslug }: INameYield) {
 			<TokenLogo logo={iconUrl} />
 			<BasicLink
 				href={tokenUrl}
+				data-umami-event="yields-project-filter-click"
+				data-umami-event-project={project}
 				className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 			>
 				{project}

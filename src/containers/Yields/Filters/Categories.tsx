@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IFiltersByCategoryProps {
 	categoryList: Array<string>
@@ -26,6 +27,12 @@ export function FiltersByCategory({
 			labelType={labelType ? labelType : !category || category === 'All' ? 'none' : 'regular'}
 			includeQueryKey="category"
 			excludeQueryKey="excludeCategory"
+			onValuesChange={(values) => {
+				trackYieldsEvent(YIELDS_EVENTS.FILTER_CATEGORY, {
+					count: values.length,
+					categories: values.join(',')
+				})
+			}}
 		/>
 	)
 }

@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IFiltersByChainProps {
 	chainList: string[]
@@ -20,6 +21,12 @@ export function FilterByChain({ chainList = [], selectedChains, nestedMenu }: IF
 			labelType={!chain || chain === 'All' ? 'none' : 'regular'}
 			includeQueryKey="chain"
 			excludeQueryKey="excludeChain"
+			onValuesChange={(values) => {
+				trackYieldsEvent(YIELDS_EVENTS.FILTER_CHAIN, {
+					count: values.length,
+					chains: values.join(',')
+				})
+			}}
 		/>
 	)
 }

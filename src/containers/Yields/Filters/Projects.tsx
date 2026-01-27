@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router'
 import type { ExcludeQueryKey } from '~/components/selectTypes'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IYieldProjectsProps {
 	projectList: Array<string>
@@ -32,6 +33,12 @@ export function YieldProjects({
 			labelType={!project || project === 'All' ? 'none' : 'regular'}
 			includeQueryKey={includeQueryKey}
 			excludeQueryKey={excludeQueryKey}
+			onValuesChange={(values) => {
+				trackYieldsEvent(YIELDS_EVENTS.FILTER_PROJECT, {
+					count: values.length,
+					projects: values.join(',')
+				})
+			}}
 		/>
 	)
 }
