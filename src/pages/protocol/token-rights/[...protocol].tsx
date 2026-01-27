@@ -46,7 +46,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		if (!metadata) {
+		if (!metadata || !metadata[1].tokenRights) {
 			return { notFound: true, props: null }
 		}
 

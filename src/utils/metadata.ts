@@ -66,6 +66,7 @@ interface IProtocolMetadata {
 	stablecoins?: boolean
 	safeHarbor?: boolean
 	borrowed?: boolean
+	tokenRights?: boolean
 }
 
 interface ICexItem {

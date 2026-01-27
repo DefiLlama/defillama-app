@@ -162,7 +162,7 @@ export const getProtocolMetrics = ({
 		liquidity: !!metadata.liquidity,
 		activeUsers: !!metadata.activeUsers,
 		borrowed: !!metadata.borrowed,
-		tokenRights: !!protocolData.tokenRights
+		tokenRights: !!metadata.tokenRights
 	}
 }
 

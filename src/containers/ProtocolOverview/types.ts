@@ -34,6 +34,7 @@ export interface IProtocolMetadata {
 	stablecoins?: boolean
 	safeHarbor?: boolean
 	borrowed?: boolean
+	tokenRights?: boolean
 }
 
 export interface IProtocolPageMetrics {
