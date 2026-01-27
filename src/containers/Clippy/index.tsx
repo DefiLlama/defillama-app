@@ -39,30 +39,6 @@ export function ClippyProvider({ children }: { children: React.ReactNode }) {
 
 	return (
 		<ClippyContext.Provider value={contextValue}>
-			<style jsx global>{`
-				@keyframes clippy-glow {
-					0% {
-						box-shadow: 0 0 0 0px rgba(59, 130, 246, 0);
-						background-color: transparent;
-					}
-					15% {
-						box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.7);
-						background-color: rgba(59, 130, 246, 0.06);
-					}
-					85% {
-						box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.7);
-						background-color: rgba(59, 130, 246, 0.06);
-					}
-					100% {
-						box-shadow: 0 0 0 0px rgba(59, 130, 246, 0);
-						background-color: transparent;
-					}
-				}
-				.clippy-highlight {
-					animation: clippy-glow 4.5s ease-in-out;
-					border-radius: 6px;
-				}
-			`}</style>
 			{children}
 			{pageContext && <ClippyInner pageContext={pageContext} chartContextRef={chartContextRef} />}
 		</ClippyContext.Provider>
