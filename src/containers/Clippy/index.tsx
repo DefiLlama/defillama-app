@@ -154,6 +154,7 @@ function ClippyInner({
 					error={error}
 					onSend={sendMessage}
 					onClose={handleClose}
+					onClear={clearMessages}
 					onOpenInLlamaAI={handleOpenInLlamaAI}
 					entityName={pageContext.entity?.name}
 				/>

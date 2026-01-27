@@ -9,6 +9,7 @@ interface ClippyChatProps {
 	error: string | null
 	onSend: (message: string) => void
 	onClose: () => void
+	onClear: () => void
 	onOpenInLlamaAI?: (query: string) => void
 	entityName?: string
 }
@@ -19,6 +20,7 @@ export function ClippyChat({
 	error,
 	onSend,
 	onClose,
+	onClear,
 	onOpenInLlamaAI,
 	entityName
 }: ClippyChatProps) {
@@ -40,11 +42,20 @@ export function ClippyChat({
 						{entityName && <p className="text-xs text-(--text3)">Viewing {entityName}</p>}
 					</div>
 				</div>
-				<button onClick={onClose} className="rounded-lg p-1 hover:bg-(--bg6)" aria-label="Close">
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-						<path d="M18 6L6 18M6 6l12 12" />
-					</svg>
-				</button>
+				<div className="flex items-center gap-1">
+					{messages.length > 0 && (
+						<button onClick={onClear} className="rounded-lg p-1 hover:bg-(--bg6)" aria-label="Clear chat">
+							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+								<path d="M3 6h18M8 6V4h8v2M5 6v14a2 2 0 002 2h10a2 2 0 002-2V6" />
+							</svg>
+						</button>
+					)}
+					<button onClick={onClose} className="rounded-lg p-1 hover:bg-(--bg6)" aria-label="Close">
+						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+							<path d="M18 6L6 18M6 6l12 12" />
+						</svg>
+					</button>
+				</div>
 			</div>
 
 			<div className="flex-1 overflow-y-auto p-4">
