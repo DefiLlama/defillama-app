@@ -8,7 +8,7 @@ interface IFetchedRWAProject {
 	ticker: string
 	name: string
 	website: string | string[] | null
-	twitter: string | null
+	twitter: string | string[] | null
 	primaryChain: string | null
 	chain: string[] | null
 	contracts: Record<string, Array<string>> | null
@@ -45,12 +45,14 @@ export interface IRWAProject extends Omit<
 	| 'activeMcap'
 	| 'defiActiveTvl'
 	| 'website'
+	| 'twitter'
 	| 'issuerRegistryInfo'
 	| 'accessModel'
 	| 'issuerSourceLink'
 > {
 	accessModel: 'Permissioned' | 'Permissionless' | 'Non-transferable' | 'Custodial Only' | 'Unknown'
 	website: string[] | null
+	twitter: string[] | null
 	issuerRegistryInfo: string[] | null
 	issuerSourceLink: string[] | null
 	trueRWA: boolean
@@ -362,7 +364,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				ticker: typeof item.ticker === 'string' && item.ticker !== '-' ? item.ticker : null,
 				name: typeof item.name === 'string' && item.name !== '-' ? item.name : null,
 				website: item.website == null ? null : Array.isArray(item.website) ? item.website : [item.website],
-				twitter: item.twitter ?? null,
+				twitter: item.twitter == null ? null : Array.isArray(item.twitter) ? item.twitter : [item.twitter],
 				primaryChain: item.primaryChain ?? null,
 				chain: item.chain ?? null,
 				contracts: item.contracts ?? null,
@@ -948,7 +950,7 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 					ticker: typeof item.ticker === 'string' && item.ticker !== '-' ? item.ticker : null,
 					name: typeof item.name === 'string' && item.name !== '-' ? item.name : null,
 					website: item.website == null ? null : Array.isArray(item.website) ? item.website : [item.website],
-					twitter: item.twitter ?? null,
+					twitter: item.twitter == null ? null : Array.isArray(item.twitter) ? item.twitter : [item.twitter],
 					primaryChain: item.primaryChain ?? null,
 					chain: item.chain ?? null,
 					contracts: item.contracts ?? null,
