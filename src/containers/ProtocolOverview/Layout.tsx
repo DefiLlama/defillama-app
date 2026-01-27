@@ -1,15 +1,18 @@
 import * as Ariakit from '@ariakit/react'
+import { useRouter } from 'next/router'
 import * as React from 'react'
 import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
+import { useSetClippyPageContext } from '~/containers/Clippy/ClippyContext'
+import type { ClippyPageContext } from '~/containers/Clippy/types'
 import { TVL_SETTINGS_KEYS_SET, FEES_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { slug, tokenIconUrl } from '~/utils'
 import { IProtocolPageMetrics } from './types'
 
-const tabs = {
+export const tabs = {
 	information: { id: 'information', name: 'Information', route: '/protocol' },
 	assets: { id: 'assets', name: 'Assets', route: '/protocol/assets' },
 	tvl: { id: 'tvl', name: 'TVL', route: '/protocol/tvl' },
@@ -46,7 +49,8 @@ export function ProtocolOverviewLayout({
 	tab,
 	warningBanners,
 	seoDescription,
-	seoKeywords
+	seoKeywords,
+	clippyEntity
 }: {
 	children: React.ReactNode
 	isCEX?: boolean
@@ -66,7 +70,38 @@ export function ProtocolOverviewLayout({
 	}>
 	seoDescription?: string
 	seoKeywords?: string
+	clippyEntity?: ClippyPageContext['entity']
 }) {
+	const router = useRouter()
+
+	const clippyContext = useMemo<ClippyPageContext>(
+		() => ({
+			route: router.asPath,
+			pageType: 'protocol',
+			entity: clippyEntity ?? {
+				type: 'protocol' as const,
+				slug: slug(name),
+				name
+			},
+			availableTabs: [
+				'information',
+				...(metrics.tvlTab ? ['tvl'] : []),
+				...(metrics.borrowed ? ['borrowed'] : []),
+				...(metrics.treasury ? ['treasury'] : []),
+				...(metrics.unlocks ? ['unlocks'] : []),
+				...(metrics.yields ? ['yields'] : []),
+				...(metrics.fees ? ['fees'] : []),
+				...(metrics.dexs ? ['dexs'] : []),
+				...(metrics.perps ? ['perps'] : []),
+				...(metrics.governance ? ['governance'] : []),
+				...(metrics.forks ? ['forks'] : [])
+			]
+		}),
+		[router.asPath, name, clippyEntity, metrics]
+	)
+
+	useSetClippyPageContext(clippyContext)
+
 	const metricFiltersLabel = useMemo(() => {
 		const hasTvl = toggleOptions?.some((option) => TVL_SETTINGS_KEYS_SET.has(option.key))
 		const hasFees = toggleOptions?.some((option) => FEES_SETTINGS_KEYS_SET.has(option.key))

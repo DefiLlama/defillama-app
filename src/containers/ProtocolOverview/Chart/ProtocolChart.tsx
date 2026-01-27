@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
+import { lazy, Suspense, useDeferredValue, useMemo, useCallback } from 'react'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	useFetchProtocolActiveUsers,
@@ -25,6 +25,8 @@ import {
 	PROTOCOL_TREASURY_API,
 	TOKEN_LIQUIDITY_API
 } from '~/constants'
+import { useSetClippyChartContext } from '~/containers/Clippy/ClippyContext'
+import type { ClippyChartContext } from '~/containers/Clippy/ClippyContext'
 import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/queries'
 import { serializeProtocolChartToMultiChart } from '~/containers/ProDashboard/utils/chartSerializer'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -142,6 +144,36 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			groupBy
 		})
 	}, [props.name, props.geckoId, toggledCharts, props.chartColors, groupBy])
+
+	const toggleMetric = useCallback(
+		(key: string, enabled: boolean) => {
+			router.push(updateQueryParamInUrl(router.asPath, key, enabled ? 'true' : 'false'), undefined, { shallow: true })
+		},
+		[router]
+	)
+
+	const clippyChartContext = useMemo<ClippyChartContext>(
+		() => ({
+			getImage: () => {
+				const instance = overviewChartInstance()
+				if (!instance) return null
+				return instance.getDataURL({
+					type: 'png',
+					pixelRatio: 1,
+					backgroundColor: isThemeDark ? '#0b1214' : '#ffffff',
+					excludeComponents: ['toolbox', 'dataZoom']
+				})
+			},
+			availableMetrics: props.availableCharts.map((c) => protocolCharts[c]),
+			activeMetrics: Object.entries(toggledMetrics)
+				.filter(([_, v]) => v === 'true')
+				.map(([k]) => k),
+			toggleMetric
+		}),
+		[overviewChartInstance, isThemeDark, props.availableCharts, toggledMetrics, toggleMetric]
+	)
+
+	useSetClippyChartContext(clippyChartContext)
 
 	return (
 		<div className="flex flex-col gap-3">

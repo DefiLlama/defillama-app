@@ -2,15 +2,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { AppProps } from 'next/app'
 import Head from 'next/head'
-import Router, { useRouter } from 'next/router'
+import Router from 'next/router'
 import '~/tailwind.css'
 import '~/nprogress.css'
 import Script from 'next/script'
 import NProgress from 'nprogress'
 import { useEffect, useRef } from 'react'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
-import { AuthProvider, useUserHash } from '~/containers/Subscribtion/auth'
-import { useMedia } from '~/hooks/useMedia'
+import { ClippyProvider } from '~/containers/Clippy'
+import { AuthProvider } from '~/containers/Subscribtion/auth'
 
 NProgress.configure({ showSpinner: false })
 
@@ -31,7 +31,6 @@ const isChunkLoadError = (error: unknown) => {
 const client = new QueryClient()
 
 function App({ Component, pageProps }: AppProps) {
-	const router = useRouter()
 	const reloadInProgressRef = useRef(false)
 
 	useEffect(() => {
@@ -124,9 +123,6 @@ function App({ Component, pageProps }: AppProps) {
 		}
 	}, [])
 
-	const { userHash, email } = useUserHash()
-	const isDesktop = useMedia('(min-width: 769px)')
-
 	return (
 		<>
 			<Head>
@@ -141,27 +137,7 @@ function App({ Component, pageProps }: AppProps) {
 				data-host-url="https://tasty.defillama.com"
 			/>
 
-			{userHash &&
-			typeof window !== 'undefined' &&
-			!(window as any).FrontChat &&
-			isDesktop &&
-			// hide support icon on ai chat page because it can block the dialog button
-			!router.pathname.includes('/ai/chat') ? (
-				<Script
-					src="/assets/front-chat.js"
-					strategy="afterInteractive"
-					onLoad={() => {
-						if (typeof window !== 'undefined' && (window as any).FrontChat) {
-							;(window as any).FrontChat('init', {
-								chatId: '6fec3ab74da2261df3f3748a50dd3d6a',
-								useDefaultLauncher: true,
-								email,
-								userHash
-							})
-						}
-					}}
-				/>
-			) : null}
+			{/* Front chat disabled - replaced by Clippy */}
 
 			<Component {...pageProps} />
 		</>
@@ -174,7 +150,9 @@ const AppWrapper = (props: AppProps) => {
 			<QueryClientProvider client={client}>
 				<AuthProvider>
 					<UserSettingsSync />
-					<App {...props} />
+					<ClippyProvider>
+						<App {...props} />
+					</ClippyProvider>
 				</AuthProvider>
 				<ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
 			</QueryClientProvider>

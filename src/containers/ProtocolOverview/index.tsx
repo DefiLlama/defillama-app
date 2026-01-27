@@ -62,6 +62,17 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			tab="information"
 			seoDescription={props.seoDescription}
 			seoKeywords={props.seoKeywords}
+			clippyEntity={{
+				type: 'protocol',
+				slug: props.id,
+				name: props.name,
+				tokenSymbol: props.token?.symbol || undefined,
+				geckoId:
+					props.geckoId || props.token?.gecko_id ? `coingecko:${props.geckoId || props.token?.gecko_id}` : undefined,
+				chains: props.chains || undefined,
+				category: props.category || undefined,
+				description: props.description || undefined
+			}}
 		>
 			<LinkPreviewCard
 				cardName={props.name}
@@ -71,7 +82,10 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 				isCEX={props.isCEX}
 			/>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
-				<div className="col-span-1 row-[2/3] hidden flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:row-[1/2] xl:flex xl:min-h-[360px]">
+				<div
+					data-highlight="key-metrics"
+					className="col-span-1 row-[2/3] hidden flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:row-[1/2] xl:flex xl:min-h-[360px]"
+				>
 					<h1 className="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
 						<span className="font-bold">{props.name}</span>
@@ -107,7 +121,10 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 					<KeyMetrics {...props} formatPrice={formatPrice} tvl={tvl} computedOracleTvs={oracleTvs} />
 				</div>
 				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
-					<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+					<div
+						data-highlight="chart"
+						className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2"
+					>
 						<div className="flex flex-col gap-6 xl:hidden">
 							<h1 className="flex flex-wrap items-center gap-2 text-xl">
 								<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
@@ -408,7 +425,13 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				<OptionsNotionalVolume formatPrice={props.formatPrice} {...props} />
 				<TokenCGData formatPrice={props.formatPrice} {...props} />
 				{props.currentTvlByChain?.staking != null ? (
-					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
+					<p
+						data-highlight="staked"
+						data-highlight-value={JSON.stringify({
+							Staked: String(props.formatPrice(props.currentTvlByChain.staking))
+						})}
+						className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0"
+					>
 						<span className="text-(--text-label)">Staked</span>
 						<Flag
 							protocol={props.name}
@@ -430,7 +453,13 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 					</p>
 				) : null}
 				{props.currentTvlByChain?.borrowed != null ? (
-					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
+					<p
+						data-highlight="borrowed"
+						data-highlight-value={JSON.stringify({
+							Borrowed: String(props.formatPrice(props.currentTvlByChain.borrowed))
+						})}
+						className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0"
+					>
 						<span className="text-(--text-label)">Borrowed</span>
 						<Flag
 							protocol={props.name}
@@ -455,7 +484,13 @@ const Articles = (props: IProtocolOverviewPageData) => {
 	if (!props.articles?.length) return null
 
 	return (
-		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+		<div
+			data-highlight="dl-news"
+			data-highlight-value={JSON.stringify({
+				Articles: props.articles.map((a) => `${a.headline} (${dayjs.utc(a.date).format('MMM D, YYYY')})`).join('; ')
+			})}
+			className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4"
+		>
 			<div className="flex items-center justify-between">
 				<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="dl-news">
 					Latest from DL News
@@ -1617,12 +1652,24 @@ const SmolStats = ({
 	dataType: string
 }) => {
 	const restOfData = useMemo(() => data.slice(1), [data])
+	const highlightId = dataType.toLowerCase().replace(/\s+/g, '-')
+	const highlightValue = useMemo(() => {
+		const values: Record<string, string> = {}
+		for (const item of data) {
+			values[item.name] = String(formatPrice(item.value) ?? '')
+		}
+		return JSON.stringify(values)
+	}, [data, formatPrice])
 
 	if (data.length === 0) return null
 
 	if (data.length === 1) {
 		return (
-			<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+			<p
+				data-highlight={highlightId}
+				data-highlight-value={highlightValue}
+				className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none"
+			>
 				{data[0].tooltipContent ? (
 					<Tooltip content={data[0].tooltipContent} className="text-(--text-label) underline decoration-dotted">
 						{data[0].name}
@@ -1642,7 +1689,12 @@ const SmolStats = ({
 	}
 
 	return (
-		<details className="group" open={openSmolStatsSummaryByDefault}>
+		<details
+			data-highlight={highlightId}
+			data-highlight-value={highlightValue}
+			className="group"
+			open={openSmolStatsSummaryByDefault}
+		>
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 				{data[0].tooltipContent ? (
 					<Tooltip content={data[0].tooltipContent} className="text-(--text-label) underline decoration-dotted">
@@ -1690,7 +1742,15 @@ function Users(props: IProtocolOverviewPageData) {
 	const users = props.users
 	if (!users) return null
 	return (
-		<div>
+		<div
+			data-highlight="user-activity"
+			data-highlight-value={JSON.stringify({
+				...(users.activeUsers != null ? { 'Active Addresses (24h)': formattedNum(users.activeUsers, false) } : {}),
+				...(users.newUsers != null ? { 'New Addresses (24h)': formattedNum(users.newUsers, false) } : {}),
+				...(users.transactions != null ? { 'Transactions (24h)': formattedNum(users.transactions, false) } : {}),
+				...(users.gasUsd != null ? { 'Gas Used (24h)': formattedNum(users.gasUsd, true) } : {})
+			})}
+		>
 			<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
 				<Tooltip
 					content="This only counts users that interact with protocol directly (so not through another contract, such as a DEX aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon."
@@ -1733,7 +1793,17 @@ function Users(props: IProtocolOverviewPageData) {
 const Treasury = (props: IProtocolOverviewPageData) => {
 	if (!props.treasury) return null
 	return (
-		<details className="group">
+		<details
+			data-highlight="treasury"
+			data-highlight-value={JSON.stringify({
+				'Treasury Total': formattedNum(props.treasury.total, true),
+				...(props.treasury.majors ? { Majors: formattedNum(props.treasury.majors, true) } : {}),
+				...(props.treasury.stablecoins ? { Stablecoins: formattedNum(props.treasury.stablecoins, true) } : {}),
+				...(props.treasury.ownTokens ? { 'Own Tokens': formattedNum(props.treasury.ownTokens, true) } : {}),
+				...(props.treasury.others ? { Others: formattedNum(props.treasury.others, true) } : {})
+			})}
+			className="group"
+		>
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 				<span className="text-(--text-label)">Treasury</span>
 				<Icon
@@ -1787,7 +1857,19 @@ const Treasury = (props: IProtocolOverviewPageData) => {
 const Raises = (props: IProtocolOverviewPageData) => {
 	if (!props.raises) return null
 	return (
-		<details className="group">
+		<details
+			data-highlight="raises"
+			data-highlight-value={JSON.stringify({
+				'Total Raised': formattedNum(props.raises.reduce((sum, r) => sum + Number(r.amount), 0) * 1_000_000, true),
+				Rounds: props.raises
+					.map(
+						(r) =>
+							`${r.round || 'Unknown'}${r.amount ? ` ${formattedNum(r.amount * 1_000_000, true)}` : ''}${r.date ? ` (${dayjs.utc(r.date * 1000).format('MMM YYYY')})` : ''}${r.investors?.length ? ` - ${r.investors.join(', ')}` : ''}`
+					)
+					.join('; ')
+			})}
+			className="group"
+		>
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 				<span className="text-(--text-label)">Total Raised</span>
 				<Icon
@@ -1886,7 +1968,25 @@ const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 
 const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 	return (
-		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+		<div
+			data-highlight="protocol-information"
+			data-highlight-value={JSON.stringify({
+				...(props.description ? { Description: props.description } : {}),
+				...(props.category ? { Category: props.category } : {}),
+				...(props.tags?.length ? { Tags: props.tags.join(', ') } : {}),
+				...(props.audits
+					? {
+							Audits: props.audits.auditLinks.length > 0 ? `${props.audits.total} audits` : 'No audits',
+							...(props.audits.note ? { 'Audit Note': props.audits.note } : {})
+						}
+					: {}),
+				...(props.website ? { Website: props.website } : {}),
+				...(props.twitter ? { Twitter: `https://x.com/${props.twitter}` } : {}),
+				...(props.github?.length ? { GitHub: props.github.map((g) => `https://github.com/${g}`).join(', ') } : {}),
+				...(props.safeHarbor ? { 'Safe Harbor': 'Yes' } : {})
+			})}
+			className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4"
+		>
 			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="protocol-information">
 				{props.isCEX ? 'Exchange Information' : 'Protocol Information'}
 				<a
@@ -1984,7 +2084,17 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 
 const Methodology = (props: IProtocolOverviewPageData) => {
 	return (
-		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+		<div
+			data-highlight="methodology"
+			data-highlight-value={JSON.stringify({
+				...(props.methodology ? { TVL: props.methodology } : {}),
+				...(props.fees?.methodology ? { Fees: props.fees.methodology } : {}),
+				...(props.revenue?.methodology ? { Revenue: props.revenue.methodology } : {}),
+				...(props.holdersRevenue?.methodology ? { 'Holders Revenue': props.holdersRevenue.methodology } : {}),
+				...(props.incentives?.methodology ? { Incentives: props.incentives.methodology } : {})
+			})}
+			className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4"
+		>
 			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="methodology">
 				Methodology
 				<a
@@ -2192,7 +2302,14 @@ function Yields(props: IProtocolOverviewPageData) {
 	const yields = props.yields
 	if (!yields) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+		<div
+			data-highlight="yields"
+			data-highlight-value={JSON.stringify({
+				'Pools Tracked': String(yields.noOfPoolsTracked),
+				'Average APY': `${formattedNum(yields.averageAPY, false)}%`
+			})}
+			className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4"
+		>
 			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="yields">
 				Yields
 				<a
@@ -2227,7 +2344,29 @@ function Yields(props: IProtocolOverviewPageData) {
 const Hacks = (props: IProtocolOverviewPageData) => {
 	if (!props.hacks?.length) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+		<div
+			data-highlight="hacks"
+			data-highlight-value={JSON.stringify({
+				'Total Hacks': String(props.hacks.length),
+				'Total Amount Lost': formattedNum(
+					props.hacks.reduce((sum, h) => sum + (h.amount || 0), 0),
+					true
+				),
+				Events: props.hacks
+					.map((h) =>
+						[
+							h.date ? dayjs.utc(h.date * 1e3).format('MMM D, YYYY') : '',
+							h.amount ? formattedNum(h.amount, true) : '',
+							h.classification || '',
+							h.technique || ''
+						]
+							.filter(Boolean)
+							.join(' - ')
+					)
+					.join('; ')
+			})}
+			className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4"
+		>
 			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="hacks">
 				Hacks
 				<a
@@ -2305,7 +2444,15 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 const Competitors = (props: IProtocolOverviewPageData) => {
 	if (!props.competitors?.length) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+		<div
+			data-highlight="competitors"
+			data-highlight-value={JSON.stringify({
+				Competitors: props.competitors
+					.map((c) => `${c.name}${c.tvl ? ` (${formattedNum(c.tvl, true)})` : ''}`)
+					.join(', ')
+			})}
+			className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4"
+		>
 			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="competitors">
 				Competitors
 				<a
