@@ -245,7 +245,20 @@ export function useMetricData(metric: MetricConfig) {
 			}
 		}
 
-		const sparklineData = inWindow.length > 60 ? inWindow.slice(inWindow.length - 60) : inWindow
+		// Scale data points based on window size for better visualization
+		const maxPoints =
+			window === '7d'
+				? 7
+				: window === '30d'
+					? 30
+					: window === '90d'
+						? 90
+						: window === '365d'
+							? 365
+							: window === '3y'
+								? 365
+								: 90 // ytd and all get reasonable defaults
+		const sparklineData = inWindow.length > maxPoints ? inWindow.slice(inWindow.length - maxPoints) : inWindow
 		const lastUpdatedTs =
 			inWindow.length > 0
 				? inWindow[inWindow.length - 1][0]

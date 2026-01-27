@@ -3,11 +3,14 @@ import { lazy, Suspense, useMemo } from 'react'
 const SparklineChart = lazy(() =>
 	import('~/components/ECharts/SparklineChart').then((m) => ({ default: m.SparklineChart }))
 )
+const BarSparkline = lazy(() =>
+	import('~/components/ECharts/BarSparkline').then((m) => ({ default: m.BarSparkline }))
+)
 import { Icon } from '~/components/Icon'
 import { formattedNum } from '~/utils'
 import { useMetricData } from '../hooks/useMetricData'
 import { useProDashboardCatalog, useProDashboardPermissions } from '../ProDashboardAPIContext'
-import type { MetricAggregator, MetricConfig, MetricWindow } from '../types'
+import type { MetricAggregator, MetricChartType, MetricConfig, MetricWindow } from '../types'
 import { CHART_TYPES } from '../types'
 import { getItemIconUrl } from '../utils'
 
@@ -171,12 +174,18 @@ export function MetricCard({ metric }: MetricCardProps) {
 
 	const hasCustomLabel = Boolean(metric.label?.trim())
 
-	const shouldShowSparkline = metric.showSparkline ?? true
+	// Determine chart type with backward compatibility for showSparkline
+	const chartType: MetricChartType = useMemo(() => {
+		if (metric.chartType) return metric.chartType
+		// Legacy support: showSparkline true/undefined -> sparkline, false -> none
+		if (metric.showSparkline === false) return 'none'
+		return 'sparkline'
+	}, [metric.chartType, metric.showSparkline])
 
-	const sparklineSeries = useMemo(() => {
-		if (!shouldShowSparkline || !Array.isArray(sparklineData)) return []
+	const chartSeries = useMemo(() => {
+		if (chartType === 'none' || !Array.isArray(sparklineData)) return []
 		return sparklineData.filter(([, v]) => Number.isFinite(v))
-	}, [shouldShowSparkline, sparklineData])
+	}, [chartType, sparklineData])
 
 	const sparklineColor = deltaPositive ? 'var(--success)' : deltaNegative ? 'var(--error)' : 'var(--primary)'
 
@@ -201,10 +210,14 @@ export function MetricCard({ metric }: MetricCardProps) {
 		return (
 			<div className="flex h-full flex-1 flex-col items-center justify-center gap-3 text-center">
 				<div className="text-4xl leading-tight font-semibold">{displayValue}</div>
-				{sparklineSeries.length > 1 && (
+				{chartSeries.length > 1 && (
 					<Suspense fallback={<div className="h-16 w-full max-w-[280px]" />}>
 						<div className="w-full max-w-[280px]">
-							<SparklineChart data={sparklineSeries} color={sparklineColor} height={64} smooth />
+							{chartType === 'bar' ? (
+								<BarSparkline data={chartSeries} height={64} />
+							) : (
+								<SparklineChart data={chartSeries} color={sparklineColor} height={64} smooth />
+							)}
 						</div>
 					</Suspense>
 				)}
@@ -221,6 +234,7 @@ export function MetricCard({ metric }: MetricCardProps) {
 			</div>
 		)
 	}, [
+		chartType,
 		deltaNegative,
 		deltaPositive,
 		deltaText,
@@ -228,7 +242,7 @@ export function MetricCard({ metric }: MetricCardProps) {
 		isError,
 		isLoading,
 		metric.aggregator,
-		sparklineSeries,
+		chartSeries,
 		sparklineColor,
 		summaryText
 	])
