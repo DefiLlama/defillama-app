@@ -31,6 +31,7 @@ type TPageType =
 	| 'Holders Revenue'
 	| 'DEX Volume'
 	| 'Perp Volume'
+	| 'Normalized Volume'
 	| 'Bridge Aggregator Volume'
 	| 'Perp Aggregator Volume'
 	| 'DEX Aggregator Volume'
@@ -519,6 +520,42 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.openInterest.chain
+			},
+			size: 160
+		}
+	],
+	'Normalized Volume': [
+		NameColumn('normalized-volume'),
+		{
+			id: 'total24h',
+			header: 'Normalized Volume 24h',
+			accessorFn: (protocol) => protocol.total24h,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.normalizedVolume.chain['24h']
+			},
+			size: 160
+		},
+		{
+			id: 'total7d',
+			header: 'Normalized Volume 7d',
+			accessorFn: (protocol) => protocol.total7d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.normalizedVolume.chain['7d']
+			},
+			size: 160
+		},
+		{
+			id: 'total30d',
+			header: 'Normalized Volume 30d',
+			accessorFn: (protocol) => protocol.total30d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.normalizedVolume.chain['30d']
 			},
 			size: 160
 		}
