@@ -11,6 +11,7 @@ import * as React from 'react'
 import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IYieldsTableWrapper {
 	data: any
@@ -49,7 +50,16 @@ export const YieldsTableWrapper = ({
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
+		onSortingChange: (updater) => {
+			const newSorting = typeof updater === 'function' ? updater(sorting) : updater
+			setSorting(newSorting)
+			if (newSorting.length > 0) {
+				trackYieldsEvent(YIELDS_EVENTS.TABLE_SORT, {
+					column: newSorting[0].id,
+					direction: newSorting[0].desc ? 'desc' : 'asc'
+				})
+			}
+		},
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		onColumnVisibilityChange: setColumnVisibility,

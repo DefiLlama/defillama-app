@@ -86,8 +86,11 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 					<Menu
 						name={selectedPortfolio}
 						options={portfolios}
-						onItemClick={(value) => setSelectedPortfolio(value)}
+						onItemClick={(value) => {
+							setSelectedPortfolio(value)
+						}}
 						className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) p-2 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+						data-umami-event="yields-watchlist-portfolio-switch"
 					/>
 					<DialogForm
 						title="New Portfolio"
@@ -96,11 +99,11 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 						setOpen={setOpen}
 						onSubmit={addPortfolio}
 					/>
-					<button onClick={() => setOpen(true)}>
+					<button onClick={() => setOpen(true)} data-umami-event="yields-watchlist-portfolio-create">
 						<Icon name="folder-plus" height={24} width={24} />
 					</button>
 					{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
-						<button onClick={() => removePortfolio(selectedPortfolio)}>
+						<button onClick={() => removePortfolio(selectedPortfolio)} data-umami-event="yields-watchlist-portfolio-delete">
 							<Icon name="trash-2" height={24} width={24} />
 						</button>
 					)}

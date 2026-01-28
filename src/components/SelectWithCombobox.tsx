@@ -81,6 +81,7 @@ interface ISelectWithComboboxBase {
 	onEditCustomColumn?: (idx: number) => void
 	onDeleteCustomColumn?: (idx: number) => void
 	portal?: boolean
+	onValuesChange?: (values: string[], label: string) => void
 }
 
 interface ISelectWithComboboxUrlParams extends ISelectWithComboboxBase {
@@ -110,7 +111,8 @@ export function SelectWithCombobox({
 	onDeleteCustomColumn,
 	portal,
 	includeQueryKey,
-	excludeQueryKey
+	excludeQueryKey,
+	onValuesChange
 }: ISelectWithCombobox) {
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 	const showCheckboxes = Array.isArray(selectedValues)
@@ -184,6 +186,7 @@ export function SelectWithCombobox({
 					value={selectedValues}
 					setValue={(values) => {
 						setSelectedValues(values)
+						onValuesChange?.(values, label)
 					}}
 				>
 					<NestedMenu label={label} render={<Ariakit.Select />}>
@@ -262,6 +265,7 @@ export function SelectWithCombobox({
 				value={selectedValues}
 				setValue={(values) => {
 					setSelectedValues(values)
+					onValuesChange?.(values, label)
 				}}
 			>
 				<Ariakit.Select

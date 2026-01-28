@@ -4,6 +4,7 @@ import { AvailableRange } from '~/components/Filters/AvailableRange'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Switch } from '~/components/Switch'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 import { APYRange } from './APYRange'
 import { YieldAttributes } from './Attributes'
 import { FiltersByCategory } from './Categories'
@@ -123,7 +124,21 @@ export function YieldFilterDropdowns({
 
 			{attributes && <YieldAttributes pathname={pathname || router.pathname} nestedMenu={nestedMenu} />}
 
-			{tvlRange && <TVLRange nestedMenu={nestedMenu} variant="secondary" placement="bottom-start" />}
+			{tvlRange && (
+				<TVLRange
+					nestedMenu={nestedMenu}
+					variant="secondary"
+					placement="bottom-start"
+					onValueChange={(min, max) => {
+						const eventData: Record<string, number> = {}
+						if (min != null) eventData.min = min
+						if (max != null) eventData.max = max
+						if (Object.keys(eventData).length > 0) {
+							trackYieldsEvent(YIELDS_EVENTS.FILTER_TVL_RANGE, eventData)
+						}
+					}}
+				/>
+			)}
 
 			{apyRange && <APYRange nestedMenu={nestedMenu} placement="bottom-start" />}
 

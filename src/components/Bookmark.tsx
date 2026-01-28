@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { useBookmarks } from '~/hooks/useBookmarks'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IBookmarkProps {
 	readableName: string
@@ -43,6 +44,9 @@ export function Bookmark({ readableName, configID, isChain, ...props }: IBookmar
 		: () => {
 				addProtocol(watchlistNameKey)
 				showToast('Added')
+				if (isYieldsPage) {
+					trackYieldsEvent(YIELDS_EVENTS.WATCHLIST_POOL_ADD, { pool: readableName })
+				}
 			}
 
 	return (
