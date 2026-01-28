@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import { useRef } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
@@ -11,6 +12,7 @@ interface IFiltersByTokensProps {
 export function FilterByToken({ tokensList = [], selectedTokens, nestedMenu }: IFiltersByTokensProps) {
 	const router = useRouter()
 	const { token } = router.query
+	const prevSelectionRef = useRef<Set<string>>(new Set(selectedTokens))
 
 	return (
 		<SelectWithCombobox
@@ -22,9 +24,13 @@ export function FilterByToken({ tokensList = [], selectedTokens, nestedMenu }: I
 			includeQueryKey="token"
 			excludeQueryKey="excludeToken"
 			onValuesChange={(values) => {
+				const prevSet = prevSelectionRef.current
 				values.forEach((token) => {
-					trackYieldsEvent(YIELDS_EVENTS.FILTER_TOKEN, { token })
+					if (!prevSet.has(token)) {
+						trackYieldsEvent(YIELDS_EVENTS.FILTER_TOKEN, { token })
+					}
 				})
+				prevSelectionRef.current = new Set(values)
 			}}
 		/>
 	)

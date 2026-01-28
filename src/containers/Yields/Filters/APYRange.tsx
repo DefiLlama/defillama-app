@@ -17,10 +17,12 @@ export function APYRange({ nestedMenu, placement }: IAPYRange) {
 		const minApy = form.min?.value
 		const maxApy = form.max?.value
 
-		trackYieldsEvent(YIELDS_EVENTS.FILTER_APY_RANGE, {
-			min: minApy ? Number(minApy) : 0,
-			max: maxApy ? Number(maxApy) : 0
-		})
+		const eventData: Record<string, number> = {}
+		if (minApy) eventData.min = Number(minApy)
+		if (maxApy) eventData.max = Number(maxApy)
+		if (Object.keys(eventData).length > 0) {
+			trackYieldsEvent(YIELDS_EVENTS.FILTER_APY_RANGE, eventData)
+		}
 
 		const params = new URLSearchParams(window.location.search)
 		if (minApy) params.set('minApy', minApy)

@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import { useRef } from 'react'
 import type { ExcludeQueryKey } from '~/components/selectTypes'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
@@ -21,8 +22,8 @@ export function YieldProjects({
 	excludeQueryKey
 }: IYieldProjectsProps) {
 	const router = useRouter()
-
 	const { project } = router.query
+	const prevSelectionRef = useRef<Set<string>>(new Set(selectedProjects))
 
 	return (
 		<SelectWithCombobox
@@ -34,9 +35,13 @@ export function YieldProjects({
 			includeQueryKey={includeQueryKey}
 			excludeQueryKey={excludeQueryKey}
 			onValuesChange={(values) => {
+				const prevSet = prevSelectionRef.current
 				values.forEach((project) => {
-					trackYieldsEvent(YIELDS_EVENTS.FILTER_PROJECT, { project })
+					if (!prevSet.has(project)) {
+						trackYieldsEvent(YIELDS_EVENTS.FILTER_PROJECT, { project })
+					}
 				})
+				prevSelectionRef.current = new Set(values)
 			}}
 		/>
 	)

@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import { useRef } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
@@ -11,6 +12,7 @@ interface IFiltersByChainProps {
 export function FilterByChain({ chainList = [], selectedChains, nestedMenu }: IFiltersByChainProps) {
 	const router = useRouter()
 	const { chain } = router.query
+	const prevSelectionRef = useRef<Set<string>>(new Set(selectedChains))
 
 	return (
 		<SelectWithCombobox
@@ -22,9 +24,13 @@ export function FilterByChain({ chainList = [], selectedChains, nestedMenu }: IF
 			includeQueryKey="chain"
 			excludeQueryKey="excludeChain"
 			onValuesChange={(values) => {
+				const prevSet = prevSelectionRef.current
 				values.forEach((chain) => {
-					trackYieldsEvent(YIELDS_EVENTS.FILTER_CHAIN, { chain })
+					if (!prevSet.has(chain)) {
+						trackYieldsEvent(YIELDS_EVENTS.FILTER_CHAIN, { chain })
+					}
 				})
+				prevSelectionRef.current = new Set(values)
 			}}
 		/>
 	)

@@ -130,10 +130,12 @@ export function YieldFilterDropdowns({
 					variant="secondary"
 					placement="bottom-start"
 					onValueChange={(min, max) => {
-						trackYieldsEvent(YIELDS_EVENTS.FILTER_TVL_RANGE, {
-							min: min ?? 0,
-							max: max ?? 0
-						})
+						const eventData: Record<string, number> = {}
+						if (min != null) eventData.min = min
+						if (max != null) eventData.max = max
+						if (Object.keys(eventData).length > 0) {
+							trackYieldsEvent(YIELDS_EVENTS.FILTER_TVL_RANGE, eventData)
+						}
 					}}
 				/>
 			)}
