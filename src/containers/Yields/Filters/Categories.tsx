@@ -28,9 +28,8 @@ export function FiltersByCategory({
 			includeQueryKey="category"
 			excludeQueryKey="excludeCategory"
 			onValuesChange={(values) => {
-				trackYieldsEvent(YIELDS_EVENTS.FILTER_CATEGORY, {
-					count: values.length,
-					categories: values.join(',')
+				values.forEach((category) => {
+					trackYieldsEvent(YIELDS_EVENTS.FILTER_CATEGORY, { category })
 				})
 			}}
 		/>

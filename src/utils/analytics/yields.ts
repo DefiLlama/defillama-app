@@ -12,7 +12,6 @@ export const YIELDS_EVENTS = {
 	// Saved Filters
 	SAVED_FILTER_CREATE: 'yields-saved-filter-create',
 	SAVED_FILTER_LOAD: 'yields-saved-filter-load',
-	SAVED_FILTER_DELETE: 'yields-saved-filter-delete',
 	// Search (token search dialog)
 	SEARCH_TOKEN_INCLUDE: 'yields-search-token-include',
 	SEARCH_TOKEN_EXCLUDE: 'yields-search-token-exclude',
@@ -20,13 +19,8 @@ export const YIELDS_EVENTS = {
 	SEARCH_TOKEN_PAIR: 'yields-search-token-pair',
 	// Search (strategy search)
 	SEARCH_SELECT: 'yields-search-select',
-	SEARCH_SEE_MORE: 'yields-search-see-more',
 	// Watchlist
-	WATCHLIST_PORTFOLIO_CREATE: 'yields-watchlist-portfolio-create',
-	WATCHLIST_PORTFOLIO_DELETE: 'yields-watchlist-portfolio-delete',
-	WATCHLIST_PORTFOLIO_SWITCH: 'yields-watchlist-portfolio-switch',
 	WATCHLIST_POOL_ADD: 'yields-watchlist-pool-add',
-	WATCHLIST_POOL_REMOVE: 'yields-watchlist-pool-remove',
 	// Table
 	TABLE_SORT: 'yields-table-sort',
 	POOL_CLICK: 'yields-pool-click',

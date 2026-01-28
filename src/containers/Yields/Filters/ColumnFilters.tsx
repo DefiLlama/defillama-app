@@ -67,9 +67,8 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 			optionsObj[op] = true
 		}
 
-		trackYieldsEvent(YIELDS_EVENTS.FILTER_COLUMN, {
-			count: newOptions.length,
-			columns: newOptions.join(',')
+		newOptions.forEach((column) => {
+			trackYieldsEvent(YIELDS_EVENTS.FILTER_COLUMN, { column })
 		})
 
 		router.push(

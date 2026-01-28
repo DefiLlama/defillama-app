@@ -22,9 +22,8 @@ export function FilterByChain({ chainList = [], selectedChains, nestedMenu }: IF
 			includeQueryKey="chain"
 			excludeQueryKey="excludeChain"
 			onValuesChange={(values) => {
-				trackYieldsEvent(YIELDS_EVENTS.FILTER_CHAIN, {
-					count: values.length,
-					chains: values.join(',')
+				values.forEach((chain) => {
+					trackYieldsEvent(YIELDS_EVENTS.FILTER_CHAIN, { chain })
 				})
 			}}
 		/>

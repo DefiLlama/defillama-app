@@ -38,8 +38,6 @@ export function YieldsSearch({
 		const previousCount = viewableMatches
 		setViewableMatches((prev) => prev + 20)
 
-		trackYieldsEvent(YIELDS_EVENTS.SEARCH_SEE_MORE, { type: 'strategy' })
-
 		// Focus on the first newly loaded item after a brief delay
 		setTimeout(() => {
 			const items = comboboxRef.current?.querySelectorAll('[role="option"]')

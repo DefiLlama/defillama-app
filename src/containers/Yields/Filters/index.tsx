@@ -64,7 +64,6 @@ function SavedFilters({ currentFilters }) {
 				onClose={() => setDeleteOpen(false)}
 				onConfirm={() => {
 					deleteFilter(filterToDelete)
-					trackYieldsEvent(YIELDS_EVENTS.SAVED_FILTER_DELETE, { filter: filterToDelete })
 				}}
 			/>
 			<Ariakit.MenuProvider>

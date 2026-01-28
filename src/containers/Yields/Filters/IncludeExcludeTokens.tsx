@@ -112,8 +112,6 @@ export function IncludeExcludeTokens({
 		const previousCount = tokensViewableMatches
 		setTokensViewableMatches((prev) => prev + 20)
 
-		trackYieldsEvent(YIELDS_EVENTS.SEARCH_SEE_MORE, { type: 'tokens' })
-
 		// Focus on the first newly loaded item after a brief delay
 		setTimeout(() => {
 			const items = tokensComboboxRef.current?.querySelectorAll('[role="option"]')
@@ -129,8 +127,6 @@ export function IncludeExcludeTokens({
 		e.stopPropagation()
 		const previousCount = pairsViewableMatches
 		setPairsViewableMatches((prev) => prev + 20)
-
-		trackYieldsEvent(YIELDS_EVENTS.SEARCH_SEE_MORE, { type: 'pairs' })
 
 		// Focus on the first newly loaded item after a brief delay
 		setTimeout(() => {

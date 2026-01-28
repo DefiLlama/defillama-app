@@ -34,9 +34,8 @@ export function YieldProjects({
 			includeQueryKey={includeQueryKey}
 			excludeQueryKey={excludeQueryKey}
 			onValuesChange={(values) => {
-				trackYieldsEvent(YIELDS_EVENTS.FILTER_PROJECT, {
-					count: values.length,
-					projects: values.join(',')
+				values.forEach((project) => {
+					trackYieldsEvent(YIELDS_EVENTS.FILTER_PROJECT, { project })
 				})
 			}}
 		/>

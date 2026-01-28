@@ -40,9 +40,6 @@ export function Bookmark({ readableName, configID, isChain, ...props }: IBookmar
 		? () => {
 				removeProtocol(watchlistNameKey)
 				showToast('Removed')
-				if (isYieldsPage) {
-					trackYieldsEvent(YIELDS_EVENTS.WATCHLIST_POOL_REMOVE, { pool: readableName })
-				}
 			}
 		: () => {
 				addProtocol(watchlistNameKey)

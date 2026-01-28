@@ -9,7 +9,6 @@ import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import { DEFAULT_PORTFOLIO_NAME } from '~/contexts/LocalStorage'
 import { useBookmarks } from '~/hooks/useBookmarks'
 import { useIsClient } from '~/hooks/useIsClient'
-import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
 	const { query, pathname, push } = useRouter()
@@ -89,30 +88,22 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 						options={portfolios}
 						onItemClick={(value) => {
 							setSelectedPortfolio(value)
-							trackYieldsEvent(YIELDS_EVENTS.WATCHLIST_PORTFOLIO_SWITCH, { portfolio: value })
 						}}
 						className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) p-2 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+						data-umami-event="yields-watchlist-portfolio-switch"
 					/>
 					<DialogForm
 						title="New Portfolio"
 						description="Enter the name of your new portfolio"
 						open={open}
 						setOpen={setOpen}
-						onSubmit={(portfolioName) => {
-							addPortfolio(portfolioName)
-							trackYieldsEvent(YIELDS_EVENTS.WATCHLIST_PORTFOLIO_CREATE, { portfolio: portfolioName })
-						}}
+						onSubmit={addPortfolio}
 					/>
-					<button onClick={() => setOpen(true)}>
+					<button onClick={() => setOpen(true)} data-umami-event="yields-watchlist-portfolio-create">
 						<Icon name="folder-plus" height={24} width={24} />
 					</button>
 					{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
-						<button
-							onClick={() => {
-								trackYieldsEvent(YIELDS_EVENTS.WATCHLIST_PORTFOLIO_DELETE, { portfolio: selectedPortfolio })
-								removePortfolio(selectedPortfolio)
-							}}
-						>
+						<button onClick={() => removePortfolio(selectedPortfolio)} data-umami-event="yields-watchlist-portfolio-delete">
 							<Icon name="trash-2" height={24} width={24} />
 						</button>
 					)}

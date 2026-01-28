@@ -205,9 +205,8 @@ export function YieldAttributes({ pathname, nestedMenu }: { pathname: string; ne
 			includeQueryKey="attribute"
 			excludeQueryKey="excludeAttribute"
 			onValuesChange={(values) => {
-				trackYieldsEvent(YIELDS_EVENTS.FILTER_ATTRIBUTE, {
-					count: values.length,
-					attributes: values.join(',')
+				values.forEach((attribute) => {
+					trackYieldsEvent(YIELDS_EVENTS.FILTER_ATTRIBUTE, { attribute })
 				})
 			}}
 		/>
