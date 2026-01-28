@@ -29,10 +29,9 @@ export function IncludeExcludeTokens({
 		const tokenQueryParams =
 			action === 'delete' ? tokensToInclude.filter((x) => x !== token) : [...tokensToInclude, token]
 
-		trackYieldsEvent(YIELDS_EVENTS.FILTER_TOKEN_INCLUDE, {
-			token,
-			action: action === 'delete' ? 'remove' : 'add'
-		})
+		if (action !== 'delete') {
+			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_INCLUDE, { token })
+		}
 
 		router
 			.push({ pathname: router.pathname, query: { ...router.query, token: tokenQueryParams } }, undefined, {
@@ -47,10 +46,9 @@ export function IncludeExcludeTokens({
 		const tokenQueryParams =
 			action === 'delete' ? tokensToExclude.filter((x) => x !== token) : [...tokensToExclude, token]
 
-		trackYieldsEvent(YIELDS_EVENTS.FILTER_TOKEN_EXCLUDE, {
-			token,
-			action: action === 'delete' ? 'remove' : 'add'
-		})
+		if (action !== 'delete') {
+			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_EXCLUDE, { token })
+		}
 
 		router
 			.push({ pathname: router.pathname, query: { ...router.query, excludeToken: tokenQueryParams } }, undefined, {
@@ -65,10 +63,9 @@ export function IncludeExcludeTokens({
 		const tokenQueryParams =
 			action === 'delete' ? tokensThatMatchExactly.filter((x) => x !== token) : [...tokensThatMatchExactly, token]
 
-		trackYieldsEvent(YIELDS_EVENTS.FILTER_TOKEN_EXACT, {
-			token,
-			action: action === 'delete' ? 'remove' : 'add'
-		})
+		if (action !== 'delete') {
+			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_EXACT, { token })
+		}
 
 		router
 			.push({ pathname: router.pathname, query: { ...router.query, exactToken: tokenQueryParams } }, undefined, {
@@ -97,10 +94,9 @@ export function IncludeExcludeTokens({
 	const handlePairTokens = (pair: string, action?: 'delete') => {
 		const pairQueryParams = action === 'delete' ? pairTokens.filter((x) => x !== pair) : [...pairTokens, pair]
 
-		trackYieldsEvent(YIELDS_EVENTS.FILTER_TOKEN_PAIR, {
-			pair,
-			action: action === 'delete' ? 'remove' : 'add'
-		})
+		if (action !== 'delete') {
+			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_PAIR, { pair })
+		}
 
 		router.push({ pathname: router.pathname, query: { ...router.query, token_pair: pairQueryParams } }, undefined, {
 			shallow: true

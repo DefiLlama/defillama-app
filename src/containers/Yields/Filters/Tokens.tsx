@@ -22,7 +22,7 @@ export function FilterByToken({ tokensList = [], selectedTokens, nestedMenu }: I
 			includeQueryKey="token"
 			excludeQueryKey="excludeToken"
 			onValuesChange={(values) => {
-				trackYieldsEvent(YIELDS_EVENTS.FILTER_TOKEN_INCLUDE, {
+				trackYieldsEvent(YIELDS_EVENTS.FILTER_TOKEN, {
 					count: values.length,
 					tokens: values.join(',')
 				})

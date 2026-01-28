@@ -3,10 +3,7 @@ export const YIELDS_EVENTS = {
 	FILTER_CHAIN: 'yields-filter-chain',
 	FILTER_PROJECT: 'yields-filter-project',
 	FILTER_CATEGORY: 'yields-filter-category',
-	FILTER_TOKEN_INCLUDE: 'yields-filter-token-include',
-	FILTER_TOKEN_EXCLUDE: 'yields-filter-token-exclude',
-	FILTER_TOKEN_EXACT: 'yields-filter-token-exact',
-	FILTER_TOKEN_PAIR: 'yields-filter-token-pair',
+	FILTER_TOKEN: 'yields-filter-token',
 	FILTER_ATTRIBUTE: 'yields-filter-attribute',
 	FILTER_TVL_RANGE: 'yields-filter-tvl-range',
 	FILTER_APY_RANGE: 'yields-filter-apy-range',
@@ -16,7 +13,12 @@ export const YIELDS_EVENTS = {
 	SAVED_FILTER_CREATE: 'yields-saved-filter-create',
 	SAVED_FILTER_LOAD: 'yields-saved-filter-load',
 	SAVED_FILTER_DELETE: 'yields-saved-filter-delete',
-	// Search
+	// Search (token search dialog)
+	SEARCH_TOKEN_INCLUDE: 'yields-search-token-include',
+	SEARCH_TOKEN_EXCLUDE: 'yields-search-token-exclude',
+	SEARCH_TOKEN_EXACT: 'yields-search-token-exact',
+	SEARCH_TOKEN_PAIR: 'yields-search-token-pair',
+	// Search (strategy search)
 	SEARCH_SELECT: 'yields-search-select',
 	SEARCH_SEE_MORE: 'yields-search-see-more',
 	// Watchlist
