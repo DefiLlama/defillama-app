@@ -3,9 +3,7 @@ import { lazy, Suspense, useMemo } from 'react'
 const SparklineChart = lazy(() =>
 	import('~/components/ECharts/SparklineChart').then((m) => ({ default: m.SparklineChart }))
 )
-const BarSparkline = lazy(() =>
-	import('~/components/ECharts/BarSparkline').then((m) => ({ default: m.BarSparkline }))
-)
+const BarSparkline = lazy(() => import('~/components/ECharts/BarSparkline').then((m) => ({ default: m.BarSparkline })))
 import { Icon } from '~/components/Icon'
 import { formattedNum } from '~/utils'
 import { useMetricData } from '../hooks/useMetricData'
