@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
-import type { Chain, MetricAggregator, Protocol } from '../../types'
+import type { Chain, MetricAggregator, MetricChartType, Protocol } from '../../types'
 import { MetricCard } from '../MetricCard'
 import { MetricSentenceBuilder } from './MetricSentenceBuilder'
 
@@ -14,7 +14,7 @@ type MetricTabProps = {
 	metricAggregator: MetricAggregator
 	metricWindow: '7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'
 	metricLabel: string
-	metricShowSparkline: boolean
+	metricChartType: MetricChartType
 	onSubjectTypeChange: (t: 'chain' | 'protocol') => void
 	onChainChange: (opt: { value: string; label: string }) => void
 	onProtocolChange: (opt: { value: string; label: string }) => void
@@ -22,7 +22,7 @@ type MetricTabProps = {
 	onAggregatorChange: (a: MetricAggregator) => void
 	onWindowChange: (w: '7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all') => void
 	onLabelChange: (s: string) => void
-	onShowSparklineChange: (v: boolean) => void
+	onChartTypeChange: (v: MetricChartType) => void
 }
 
 export function MetricTab(props: MetricTabProps) {
@@ -34,7 +34,7 @@ export function MetricTab(props: MetricTabProps) {
 		metricAggregator,
 		metricWindow,
 		metricLabel,
-		metricShowSparkline,
+		metricChartType,
 		onSubjectTypeChange,
 		onChainChange,
 		onProtocolChange,
@@ -42,7 +42,7 @@ export function MetricTab(props: MetricTabProps) {
 		onAggregatorChange,
 		onWindowChange,
 		onLabelChange,
-		onShowSparklineChange
+		onChartTypeChange
 	} = props
 
 	const { protocols, chains } = useProDashboardCatalog()
@@ -96,10 +96,10 @@ export function MetricTab(props: MetricTabProps) {
 			aggregator: metricAggregator,
 			window: metricWindow,
 			compare: { mode: 'previous_value', format: 'percent' },
-			showSparkline: metricShowSparkline,
+			chartType: metricChartType,
 			label: metricLabel
 		} as const
-	}, [selectedSubject, metricType, metricAggregator, metricWindow, metricShowSparkline, metricLabel])
+	}, [selectedSubject, metricType, metricAggregator, metricWindow, metricChartType, metricLabel])
 
 	return (
 		<div className="flex h-full flex-col gap-3 lg:min-h-[360px] lg:flex-row lg:overflow-hidden">
@@ -140,7 +140,7 @@ export function MetricTab(props: MetricTabProps) {
 						metricChain={metricChain}
 						metricProtocol={metricProtocol}
 						metricWindow={metricWindow}
-						showSparkline={metricShowSparkline}
+						chartType={metricChartType}
 						availableMetricTypes={availableTypes}
 						chains={chainList}
 						protocols={protocolList}
@@ -150,7 +150,7 @@ export function MetricTab(props: MetricTabProps) {
 						onChainChange={onChainChange}
 						onProtocolChange={onProtocolChange}
 						onWindowChange={onWindowChange}
-						onShowSparklineChange={onShowSparklineChange}
+						onChartTypeChange={onChartTypeChange}
 					/>
 				</div>
 			</div>

@@ -1,4 +1,4 @@
-import { ChartConfig, DashboardItemConfig, MetricAggregator } from '../../types'
+import { ChartConfig, DashboardItemConfig, MetricAggregator, MetricChartType } from '../../types'
 import { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType, ModalState } from './types'
 
 type SetStateAction<T> = T | ((prev: T) => T)
@@ -32,7 +32,7 @@ export type ModalAction =
 	| { type: 'SET_METRIC_AGGREGATOR'; payload: MetricAggregator }
 	| { type: 'SET_METRIC_WINDOW'; payload: '7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all' }
 	| { type: 'SET_METRIC_LABEL'; payload: string }
-	| { type: 'SET_METRIC_SHOW_SPARKLINE'; payload: boolean }
+	| { type: 'SET_METRIC_CHART_TYPE'; payload: MetricChartType }
 	| {
 			type: 'SET_SELECTED_YIELD_POOL'
 			payload: { configID: string; name: string; project: string; chain: string } | null
@@ -145,7 +145,7 @@ export const INITIAL_MODAL_STATE: ModalState = {
 	metricAggregator: 'latest',
 	metricWindow: '30d',
 	metricLabel: '',
-	metricShowSparkline: true,
+	metricChartType: 'sparkline',
 	selectedYieldPool: null,
 	selectedYieldChartType: 'tvl-apy',
 	selectedYieldChains: [],
@@ -312,7 +312,7 @@ export function initializeFromEditItem(editItem: DashboardItemConfig | null | un
 			metricAggregator: editItem.aggregator,
 			metricWindow: editItem.window,
 			metricLabel: editItem.label || '',
-			metricShowSparkline: editItem.showSparkline !== false
+			metricChartType: editItem.chartType ?? (editItem.showSparkline === false ? 'none' : 'sparkline')
 		}
 	}
 
@@ -523,8 +523,8 @@ export function modalReducer(state: ModalState, action: ModalAction): ModalState
 		case 'SET_METRIC_LABEL':
 			return { ...state, metricLabel: action.payload }
 
-		case 'SET_METRIC_SHOW_SPARKLINE':
-			return { ...state, metricShowSparkline: action.payload }
+		case 'SET_METRIC_CHART_TYPE':
+			return { ...state, metricChartType: action.payload }
 
 		case 'SET_SELECTED_YIELD_POOL':
 			return { ...state, selectedYieldPool: action.payload }
