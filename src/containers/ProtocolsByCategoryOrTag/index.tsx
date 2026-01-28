@@ -86,7 +86,6 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 						? col?.accessorFn?.(protocol)
 						: protocol[col.id as keyof typeof protocol]
 				if (value == null) return ''
-				if (col.id === 'name') return `"${protocol.name}"`
 				if (typeof value === 'number') return value
 				return String(value).includes(',') ? `"${String(value)}"` : String(value)
 			})
@@ -451,7 +450,7 @@ const revenue24hColumn: Column = {
 const rwaAssetClassColumn = (category: string): Column => ({
 	id: 'asset_class',
 	header: 'Asset Class',
-	accessorFn: (protocol) => protocol.tvl,
+	accessorFn: (protocol) => protocol.tags?.join(', '),
 	enableSorting: false,
 	cell: (info) => {
 		if (info.row.original.tags.length === 0) return null
