@@ -169,7 +169,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							metricAggregator={state.metricAggregator}
 							metricWindow={state.metricWindow}
 							metricLabel={state.metricLabel}
-							metricShowSparkline={state.metricShowSparkline}
+							metricChartType={state.metricChartType}
 							onSubjectTypeChange={actions.setMetricSubjectType}
 							onChainChange={handleMetricChainChange}
 							onProtocolChange={handleMetricProtocolChange}
@@ -177,7 +177,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onAggregatorChange={actions.setMetricAggregator}
 							onWindowChange={actions.setMetricWindow}
 							onLabelChange={actions.setMetricLabel}
-							onShowSparklineChange={actions.setMetricShowSparkline}
+							onChartTypeChange={actions.setMetricChartType}
 						/>
 					)}
 

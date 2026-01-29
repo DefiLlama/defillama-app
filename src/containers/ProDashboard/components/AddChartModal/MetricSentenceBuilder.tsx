@@ -11,10 +11,9 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { Switch } from '~/components/Switch'
 import { useMedia } from '~/hooks/useMedia'
 import { useAppMetadata } from '../../AppMetadataContext'
-import type { Chain, MetricAggregator, MetricWindow, Protocol } from '../../types'
+import type { Chain, MetricAggregator, MetricChartType, MetricWindow, Protocol } from '../../types'
 import { CHART_TYPES } from '../../types'
 import { getItemIconUrl } from '../../utils'
 
@@ -50,7 +49,7 @@ interface MetricSentenceBuilderProps {
 	metricChain: string | null
 	metricProtocol: string | null
 	metricWindow: MetricWindow
-	showSparkline: boolean
+	chartType: MetricChartType
 	availableMetricTypes: string[]
 	chains: Chain[]
 	protocols: Protocol[]
@@ -60,7 +59,7 @@ interface MetricSentenceBuilderProps {
 	onChainChange: (option: { value: string; label: string }) => void
 	onProtocolChange: (option: { value: string; label: string }) => void
 	onWindowChange: (value: MetricWindow) => void
-	onShowSparklineChange: (value: boolean) => void
+	onChartTypeChange: (value: MetricChartType) => void
 }
 
 const getTokenWidth = (token: Exclude<ActiveToken, null>, isMobile: boolean): number => {
@@ -118,7 +117,7 @@ export function MetricSentenceBuilder({
 	metricChain,
 	metricProtocol,
 	metricWindow,
-	showSparkline,
+	chartType,
 	availableMetricTypes,
 	chains,
 	protocols,
@@ -128,7 +127,7 @@ export function MetricSentenceBuilder({
 	onChainChange,
 	onProtocolChange,
 	onWindowChange,
-	onShowSparklineChange
+	onChartTypeChange
 }: MetricSentenceBuilderProps) {
 	const [activeToken, setActiveToken] = useState<ActiveToken>(null)
 	const [searchTerm, setSearchTerm] = useState('')
@@ -665,7 +664,7 @@ export function MetricSentenceBuilder({
 	return (
 		<div className="flex flex-col gap-2.5 sm:gap-3">
 			<div className="rounded-lg border border-(--cards-border) bg-linear-to-br from-(--cards-bg) via-(--cards-bg) to-(--cards-bg-alt) p-2.5 shadow-sm sm:p-3">
-				<div className="flex items-center gap-2 sm:gap-2.5">
+				<div className="mb-4 flex items-center gap-2 sm:gap-2.5">
 					<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary) sm:h-8 sm:w-8">
 						<Icon name="sparkles" width={14} height={14} className="sm:h-4 sm:w-4" />
 					</div>
@@ -676,8 +675,6 @@ export function MetricSentenceBuilder({
 						</div>
 					</div>
 				</div>
-			</div>
-			<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-2.5 text-sm text-(--text-secondary) shadow-sm sm:p-3">
 				<div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-(--text-primary) sm:gap-x-2.5 sm:gap-y-2">
 					<span className="text-xs text-(--text-tertiary) sm:text-sm">Show</span>
 					<TokenButton
@@ -715,15 +712,52 @@ export function MetricSentenceBuilder({
 						}}
 					/>
 				</div>
-				<div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg-alt)/50 px-2 py-1.5 sm:mt-3 sm:px-2.5">
-					<Switch
-						label="Sparkline"
-						checked={showSparkline}
-						onChange={() => onShowSparklineChange(!showSparkline)}
-						value="sparkline"
-						help="Display a tiny trendline inside your metric tile."
-						className="text-[11px] font-medium text-(--text-secondary) sm:text-xs"
-					/>
+				<div className="mt-2.5 flex flex-wrap items-center gap-2 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg-alt)/50 px-2 py-1.5 sm:mt-3 sm:px-2.5">
+					<span className="text-[11px] font-medium text-(--text-secondary) sm:text-xs">Chart:</span>
+					<div className="flex items-center gap-1 rounded-md bg-(--bg-input) p-0.5">
+						<button
+							type="button"
+							onClick={() => onChartTypeChange('sparkline')}
+							aria-pressed={chartType === 'sparkline'}
+							title="Line chart"
+							className={`flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors sm:text-xs ${
+								chartType === 'sparkline'
+									? 'bg-(--primary) text-white'
+									: 'text-(--text-secondary) hover:text-(--text-primary)'
+							}`}
+						>
+							<Icon name="activity" width={12} height={12} />
+							<span>Line</span>
+						</button>
+						<button
+							type="button"
+							onClick={() => onChartTypeChange('bar')}
+							aria-pressed={chartType === 'bar'}
+							title="Bar chart"
+							className={`flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors sm:text-xs ${
+								chartType === 'bar'
+									? 'bg-(--primary) text-white'
+									: 'text-(--text-secondary) hover:text-(--text-primary)'
+							}`}
+						>
+							<Icon name="bar-chart-2" width={12} height={12} />
+							<span>Bar</span>
+						</button>
+						<button
+							type="button"
+							onClick={() => onChartTypeChange('none')}
+							aria-pressed={chartType === 'none'}
+							title="No chart"
+							className={`flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors sm:text-xs ${
+								chartType === 'none'
+									? 'bg-(--primary) text-white'
+									: 'text-(--text-secondary) hover:text-(--text-primary)'
+							}`}
+						>
+							<Icon name="x" width={12} height={12} />
+							<span>None</span>
+						</button>
+					</div>
 				</div>
 			</div>
 			<Popover

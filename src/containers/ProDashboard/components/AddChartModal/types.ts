@@ -1,4 +1,4 @@
-import { ChartConfig, DashboardItemConfig, MetricAggregator } from '../../types'
+import { ChartConfig, DashboardItemConfig, MetricAggregator, MetricChartType } from '../../types'
 import type { UnifiedTableFocusSection } from '../UnifiedTable/types'
 
 export interface AddChartModalProps {
@@ -109,7 +109,7 @@ export interface ModalState {
 	metricAggregator: MetricAggregator
 	metricWindow: '7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'
 	metricLabel: string
-	metricShowSparkline: boolean
+	metricChartType: MetricChartType
 	selectedYieldPool: { configID: string; name: string; project: string; chain: string } | null
 	selectedYieldChartType: string
 	selectedYieldChains: string[]
@@ -180,7 +180,7 @@ export interface ModalActions {
 	setMetricAggregator: (a: MetricAggregator) => void
 	setMetricWindow: (w: '7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all') => void
 	setMetricLabel: (s: string) => void
-	setMetricShowSparkline: (v: boolean) => void
+	setMetricChartType: (v: MetricChartType) => void
 	setSelectedYieldPool: (pool: { configID: string; name: string; project: string; chain: string } | null) => void
 	setSelectedYieldChartType: (chartType: string) => void
 	setSelectedYieldChains: (chains: string[]) => void
