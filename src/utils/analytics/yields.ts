@@ -8,7 +8,6 @@ export const YIELDS_EVENTS = {
 	FILTER_TVL_RANGE: 'yields-filter-tvl-range',
 	FILTER_APY_RANGE: 'yields-filter-apy-range',
 	FILTER_COLUMN: 'yields-filter-column',
-	FILTER_RESET: 'yields-filter-reset',
 	// Saved Filters
 	SAVED_FILTER_CREATE: 'yields-saved-filter-create',
 	SAVED_FILTER_LOAD: 'yields-saved-filter-load',
@@ -23,6 +22,7 @@ export const YIELDS_EVENTS = {
 	WATCHLIST_POOL_ADD: 'yields-watchlist-pool-add',
 	// Table
 	TABLE_SORT: 'yields-table-sort',
+	// Pool
 	POOL_CLICK: 'yields-pool-click',
 	POOL_EXTERNAL_LINK: 'yields-pool-external-link',
 	PROJECT_FILTER_CLICK: 'yields-project-filter-click'
