@@ -51,15 +51,15 @@ export function InputTextarea({
 						onScroll={onScroll}
 						onPointerDown={combobox.hide}
 						onChange={onChange}
-						onKeyDown={onKeyDown}
 						onPaste={onPaste}
 						onCompositionStart={onCompositionStart}
 						onCompositionEnd={onCompositionEnd}
 						name="prompt"
 						className="relative z-1 block thin-scrollbar min-h-4 w-full resize-none overflow-x-hidden overflow-y-auto border-0 bg-transparent p-0 leading-normal wrap-break-word whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] max-sm:text-base dark:caret-white placeholder:dark:text-[#919296]"
-						autoCorrect="off"
+						autoCorrect="on"
+						autoCapitalize="none"
 						autoComplete="off"
-						spellCheck="false"
+						spellCheck
 					/>
 				}
 				disabled={isPending && !isStreaming}
