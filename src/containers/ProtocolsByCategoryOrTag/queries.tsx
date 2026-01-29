@@ -41,6 +41,7 @@ export async function getProtocolsByCategoryOrTag(
 				fees: true,
 				dexs: true,
 				perps: true,
+				openInterest: true,
 				optionsPremiumVolume: true,
 				optionsNotionalVolume: true,
 				id: 'all'
