@@ -140,7 +140,7 @@ function App({ Component, pageProps }: AppProps) {
 				data-host-url="https://tasty.defillama.com"
 			/>
 
-			{showFloatingButton ? <LlamaAIFloatingButton /> : null}
+			{showFloatingButton ? <LlamaAIFloatingButton pageProps={pageProps} /> : null}
 
 			<Component {...pageProps} />
 		</>
