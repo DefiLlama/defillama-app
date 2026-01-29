@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import Router from 'next/router'
 import { memo, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { consumePendingPrompt } from '~/components/LlamaAIFloatingButton'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
@@ -675,6 +676,19 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		},
 		[sessionId, moveSessionToTop, submitPrompt, isStreaming]
 	)
+
+	const pendingPromptConsumedRef = useRef(false)
+	useEffect(() => {
+		if (pendingPromptConsumedRef.current) return
+		if (isRestoringSession || isPending || isStreaming) return
+		if (initialSessionId || sharedSession || readOnly) return
+
+		const pendingPrompt = consumePendingPrompt()
+		if (pendingPrompt) {
+			pendingPromptConsumedRef.current = true
+			handleSubmit(pendingPrompt)
+		}
+	}, [isRestoringSession, isPending, isStreaming, initialSessionId, sharedSession, readOnly, handleSubmit])
 
 	const handleNewChat = useCallback(async () => {
 		if (initialSessionId) {
