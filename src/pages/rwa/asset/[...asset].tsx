@@ -47,13 +47,6 @@
 // 	)
 // }
 
-export async function getStaticPaths() {
-	return {
-		paths: [],
-		fallback: false
-	}
-}
-
 export default function RWAPage() {
 	return <></>
 }
