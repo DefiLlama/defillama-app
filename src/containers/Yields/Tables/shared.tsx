@@ -54,10 +54,7 @@ export const YieldsTableWrapper = ({
 			const newSorting = typeof updater === 'function' ? updater(sorting) : updater
 			setSorting(newSorting)
 			if (newSorting.length > 0) {
-				trackYieldsEvent(YIELDS_EVENTS.TABLE_SORT, {
-					column: newSorting[0].id,
-					direction: newSorting[0].desc ? 'desc' : 'asc'
-				})
+				trackYieldsEvent(YIELDS_EVENTS.TABLE_SORT, { column: newSorting[0].id })
 			}
 		},
 		onColumnOrderChange: setColumnOrder,
