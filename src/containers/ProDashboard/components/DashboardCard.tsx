@@ -158,7 +158,8 @@ const Tags = ({ dashboard, onTagClick }: { dashboard: Dashboard; onTagClick?: (t
 						e.stopPropagation()
 						onTagClick?.(tag)
 					}}
-					className="z-10 rounded-full border border-(--switch-border) px-2 py-1 text-xs text-(--text-form) transition-colors duration-150 hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
+					title={tag}
+					className="z-10 rounded-full border border-(--switch-border) px-2 py-1 text-xs text-(--text-form) transition-colors duration-150 hover:border-transparent hover:bg-(--link-active-bg) hover:text-white max-w-[200px] truncate"
 				>
 					{tag}
 				</button>
