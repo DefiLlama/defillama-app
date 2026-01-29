@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { useSuggestedQuestions } from '~/containers/LlamaAI/hooks/useSuggestedQuestions'
 import { useMedia } from '~/hooks/useMedia'
 
@@ -31,7 +31,7 @@ export function LlamaAIFloatingButton() {
 	const router = useRouter()
 	const [isOpen, setIsOpen] = useState(false)
 	const [value, setValue] = useState('')
-	const inputRef = useRef<HTMLTextAreaElement>(null)
+	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const isDesktop = useMedia('(min-width: 768px)')
 	const { data: suggestedData } = useSuggestedQuestions(isOpen)
 
@@ -47,12 +47,6 @@ export function LlamaAIFloatingButton() {
 
 		return allPrompts.length > 0 ? allPrompts.slice(0, 4) : FALLBACK_SUGGESTIONS
 	}, [suggestedData])
-
-	useEffect(() => {
-		if (isOpen && inputRef.current) {
-			setTimeout(() => inputRef.current?.focus(), 100)
-		}
-	}, [isOpen])
 
 	const handleSubmit = useCallback(
 		(e?: React.FormEvent) => {
@@ -94,27 +88,40 @@ export function LlamaAIFloatingButton() {
 
 	return (
 		<>
-			<button
-				onClick={handleButtonClick}
-				className="fixed right-6 bottom-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95"
-				style={{
-					background: 'linear-gradient(135deg, #FDE0A9 0%, #FBEDCB 50%, #FDE0A9 100%)',
-					boxShadow: '0 4px 20px rgba(253, 224, 169, 0.5), 0 2px 8px rgba(0, 0, 0, 0.1)'
-				}}
-				aria-label="Ask LlamaAI"
-			>
-				<img
-					src="/assets/llamaai/llama-ai.svg"
-					alt=""
-					className="h-8 w-8 object-contain"
-					style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))' }}
+			<Ariakit.TooltipProvider>
+				<Ariakit.TooltipAnchor
+					render={
+						<button
+							onClick={handleButtonClick}
+							className="fixed right-6 bottom-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95"
+							style={{
+								background: 'linear-gradient(135deg, #FDE0A9 0%, #FBEDCB 50%, #FDE0A9 100%)',
+								boxShadow: '0 4px 20px rgba(253, 224, 169, 0.5), 0 2px 8px rgba(0, 0, 0, 0.1)'
+							}}
+							aria-label="Ask LlamaAI"
+						>
+							<img
+								src="/assets/llamaai/llama-ai.svg"
+								alt=""
+								className="h-8 w-8 object-contain"
+								style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))' }}
+							/>
+						</button>
+					}
 				/>
-			</button>
+				<Ariakit.Tooltip className="z-50 rounded-lg bg-[#222] px-3 py-2 text-sm text-white shadow-lg dark:bg-[#f5f5f5] dark:text-black">
+					Ask LlamaAI
+				</Ariakit.Tooltip>
+			</Ariakit.TooltipProvider>
 
 			<Ariakit.DialogProvider open={isOpen} setOpen={setIsOpen}>
 				<Ariakit.Dialog
 					portal
 					unmountOnHide
+					autoFocusOnShow={() => {
+						textareaRef.current?.focus()
+						return false
+					}}
 					backdrop={<div className="fixed inset-0 z-40 bg-black/30" />}
 					className={
 						isDesktop
@@ -162,7 +169,7 @@ export function LlamaAIFloatingButton() {
 						<form onSubmit={handleSubmit} className="border-t border-[#e6e6e6] p-4 dark:border-[#39393E]">
 							<div className="relative">
 								<textarea
-									ref={inputRef}
+									ref={textareaRef}
 									value={value}
 									onChange={(e) => setValue(e.target.value)}
 									onKeyDown={handleKeyDown}
