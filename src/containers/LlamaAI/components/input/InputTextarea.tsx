@@ -51,6 +51,7 @@ export function InputTextarea({
 						onScroll={onScroll}
 						onPointerDown={combobox.hide}
 						onChange={onChange}
+						onKeyDown={onKeyDown}
 						onPaste={onPaste}
 						onCompositionStart={onCompositionStart}
 						onCompositionEnd={onCompositionEnd}
