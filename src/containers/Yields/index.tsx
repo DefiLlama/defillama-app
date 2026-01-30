@@ -15,7 +15,8 @@ const YieldPage = ({
 	tokens,
 	tokenSymbolsList,
 	usdPeggedSymbols,
-	tokenCategories
+	tokenCategories,
+	evmChains
 }) => {
 	const { query, pathname, push } = useRouter()
 
@@ -34,7 +35,7 @@ const YieldPage = ({
 		maxTvl,
 		minApy,
 		maxApy
-	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
+	} = useFormatYieldQueryParams({ projectList, chainList, categoryList, evmChains })
 
 	React.useEffect(() => {
 		const timer = setTimeout(() => setLoading(false), 1000)
@@ -257,6 +258,7 @@ const YieldPage = ({
 				selectedTokens={includeTokens}
 				chainList={chainList}
 				selectedChains={selectedChains}
+				evmChains={evmChains}
 				projectList={projectList}
 				selectedProjects={selectedProjects}
 				categoryList={categoryList}

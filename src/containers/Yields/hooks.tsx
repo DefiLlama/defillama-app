@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
+import { EVM_CHAINS_FALLBACK_SET } from '~/constants/chains'
 import { toNumberOrNullFromQueryParam } from '~/utils'
 
 interface IFormatYieldQueryParams {
@@ -8,6 +9,7 @@ interface IFormatYieldQueryParams {
 	farmProtocols?: Array<string>
 	chainList?: Array<string>
 	categoryList?: Array<string>
+	evmChains?: Array<string>
 }
 
 // Helper to parse exclude query param to Set
@@ -22,8 +24,14 @@ export const useFormatYieldQueryParams = ({
 	chainList,
 	categoryList,
 	lendingProtocols,
-	farmProtocols
+	farmProtocols,
+	evmChains
 }: IFormatYieldQueryParams) => {
+	// Use dynamic EVM chains from props, or fall back to static list
+	const evmChainsSet = React.useMemo(
+		() => (evmChains && evmChains.length > 0 ? new Set(evmChains) : EVM_CHAINS_FALLBACK_SET),
+		[evmChains]
+	)
 	const router = useRouter()
 	const {
 		project,
@@ -141,12 +149,29 @@ export const useFormatYieldQueryParams = ({
 
 		// Chains - apply exclusion inline
 		if (chainList) {
+			const isEvmChain = (c: string) => evmChainsSet.has(c) || evmChainsSet.has(c.toLowerCase())
+
 			let chains: string[]
 			if (chain) {
 				if (typeof chain === 'string') {
-					chains = chain === 'All' ? [...chainList] : chain === 'None' ? [] : [chain]
+					if (chain === 'All') {
+						chains = [...chainList]
+					} else if (chain === 'None') {
+						chains = []
+					} else if (chain === 'ALL_EVM') {
+						chains = chainList.filter(isEvmChain)
+					} else {
+						chains = [chain]
+					}
 				} else {
-					chains = [...chain]
+					// Handle array of chains - expand ALL_EVM if present
+					if (chain.includes('ALL_EVM')) {
+						const evmChainsFromList = chainList.filter(isEvmChain)
+						const otherChains = chain.filter((c) => c !== 'ALL_EVM')
+						chains = [...new Set([...otherChains, ...evmChainsFromList])]
+					} else {
+						chains = [...chain]
+					}
 				}
 			} else {
 				chains = [...chainList]
@@ -248,6 +273,7 @@ export const useFormatYieldQueryParams = ({
 		maxApy,
 		minAvailable,
 		maxAvailable,
-		customLTV
+		customLTV,
+		evmChainsSet
 	])
 }
