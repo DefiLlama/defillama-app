@@ -146,6 +146,9 @@ const ContractItem = ({ chain, address }: { chain: string; address: string }) =>
 }
 
 export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
+	const displayName = asset.name ?? asset.ticker ?? 'Unknown asset'
+	const keyBase = asset.ticker ?? asset.name ?? 'asset'
+
 	// Get attestation links as array
 	const attestationLinks = asset.attestationLinks
 		? Array.isArray(asset.attestationLinks)
@@ -160,7 +163,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			{/* Header */}
 			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="flex flex-wrap items-center gap-2">
-					<h1 className="text-xl font-bold">{asset.name}</h1>
+					<h1 className="text-xl font-bold">{displayName}</h1>
 					{asset.ticker && <span className="text-(--text-disabled)">({asset.ticker})</span>}
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
@@ -202,7 +205,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 							>
 								<Icon name="external-link" className="h-3 w-3" />
-								Website
+								Twitter
 							</a>
 						)
 					) : null}
@@ -394,13 +397,9 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 						<SectionCard title="Contracts">
 							<div className="grid grid-cols-2 gap-2">
 								{contractsEntries.map(([chain, contracts]) => (
-									<Fragment key={`${asset.name}-contracts-${chain}`}>
+									<Fragment key={`${keyBase}-contracts-${chain}`}>
 										{contracts.map((contract) => (
-											<ContractItem
-												key={`${asset.name}-contract-${chain}-${contract}`}
-												chain={chain}
-												address={contract}
-											/>
+											<ContractItem key={`${keyBase}-contract-${chain}-${contract}`} chain={chain} address={contract} />
 										))}
 									</Fragment>
 								))}
@@ -539,11 +538,15 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			</div>
 
 			{/* Description Notes */}
-			{asset.descriptionNotes && (
+			{asset.descriptionNotes ? (
 				<SectionCard title="Notes">
-					<p className="text-sm text-(--text-secondary)">{asset.descriptionNotes}</p>
+					<ul className="list-disc space-y-1 pl-5 text-sm text-(--text-secondary)">
+						{asset.descriptionNotes.map((note, idx) => (
+							<li key={`${keyBase}-note-${idx}`}>{note}</li>
+						))}
+					</ul>
 				</SectionCard>
-			)}
+			) : null}
 		</div>
 	)
 }

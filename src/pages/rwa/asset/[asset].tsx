@@ -1,16 +1,19 @@
 import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
+import { RWA_ID_MAP_API } from '~/constants'
 import { RWAAssetPage } from '~/containers/RWA/Asset'
 import { getRWAAssetData, getRWAAssetsList } from '~/containers/RWA/queries'
+import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import Layout from '~/layout'
+import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export async function getStaticPaths() {
 	const assets = await getRWAAssetsList()
 
 	return {
-		paths: assets.map((asset) => ({ params: { asset } })),
-		fallback: false
+		paths: assets.slice(0, 10).map((asset) => ({ params: { asset } })),
+		fallback: 'blocking'
 	}
 }
 
@@ -21,7 +24,23 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const assetSlug = params.asset
+		const assetSlug = rwaSlug(params.asset)
+
+		// const idMap = await fetchJson<Record<string, string>>(RWA_ID_MAP_API)
+		// if (!idMap) {
+		// 	throw new Error('Failed to get RWA ID map')
+		// }
+		// let assetId = null
+		// for (const assetName in idMap) {
+		// 	if (rwaSlug(assetName) === assetSlug) {
+		// 		assetId = idMap[assetName]
+		// 		break
+		// 	}
+		// }
+		// if (!assetId) {
+		// 	return { notFound: true, props: null }
+		// }
+
 		const asset = await getRWAAssetData(assetSlug)
 
 		if (!asset) return { notFound: true }
@@ -36,11 +55,12 @@ export const getStaticProps = withPerformanceLogging(
 const pageName = ['RWA']
 
 export default function RWAAssetDetailPage({ asset }) {
+	const displayName = asset?.name ?? asset?.ticker ?? asset?.slug ?? 'RWA Asset'
 	return (
 		<Layout
-			title={`${asset.name} - Real World Assets - DefiLlama`}
-			description={`${asset.name} RWA details on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${asset.name}, real world assets, defi rwa, rwa on chain`}
+			title={`${displayName} - Real World Assets - DefiLlama`}
+			description={`${displayName} RWA details on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${displayName}, real world assets, defi rwa, rwa on chain`}
 			pageName={pageName}
 			canonicalUrl={`/rwa/asset/${asset.slug}`}
 		>
