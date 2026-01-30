@@ -14,7 +14,7 @@ export async function fetchCoreMetadata(): Promise<{
 	cexs: Array<any>
 	rwaList: any
 }> {
-	const rwaServerUrl = process.env.RWA_SERVER_URL
+	const rwaServerUrl = process.env.RWA_SERVER_URL ?? 'https://api.llama.fi/rwa'
 	if (!rwaServerUrl) {
 		throw new Error('Missing required env var: RWA_SERVER_URL')
 	}
@@ -24,7 +24,7 @@ export async function fetchCoreMetadata(): Promise<{
 		fetchJson(CHAINS_DATA_URL),
 		fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
 		fetchJson(CEXS_DATA_URL),
-		fetchJson(`${rwaServerUrl}/list?q=2`)
+		fetchJson(`${rwaServerUrl}/list?q=2`).catch(() => ({}))
 	])
 
 	const cexs = (cexResp as any)?.cexs ?? []
