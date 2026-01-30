@@ -160,11 +160,10 @@ export async function getYieldPageData() {
 		if (memeTokenData) {
 			const memeAddresses = new Set(memeTokenData.addresses || [])
 			const memeSymbols = new Set(memeTokenData.symbols || [])
-			const chainMapping: Record<string, string> = { binance: 'bsc', avalanche: 'avax', gnosis: 'xdai' }
 
 			data.pools = data.pools.map((p) => {
 				let hasMemeToken = false
-				const chain = chainMapping[p.chain?.toLowerCase()] ?? p.chain?.toLowerCase()
+				const chain = priceChainMapping[p.chain?.toLowerCase()] ?? p.chain?.toLowerCase()
 				const underlyingTokens = p.underlyingTokens ?? []
 
 				// Check by address first

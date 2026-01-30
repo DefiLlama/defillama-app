@@ -111,7 +111,6 @@ export function toFilterPool({
 								const underlyingTokens = curr.underlyingTokens ?? []
 								// chain name mapping to match llama-ai database format
 								const chainMapping: Record<string, string> = {
-									binance: 'bsc',
 									avalanche: 'avax',
 									gnosis: 'xdai'
 								}
