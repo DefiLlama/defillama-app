@@ -75,9 +75,9 @@ async function pullData() {
 						.then((res) => res.json())
 						.catch((e) => {
 							console.log('Error fetching rwa list', e)
-							return null
+							return {}
 						})
-				: Promise.resolve(null)
+				: Promise.resolve({})
 		])
 
 		if (!fs.existsSync(CACHE_DIR)) {
@@ -88,12 +88,7 @@ async function pullData() {
 		fs.writeFileSync(path.join(CACHE_DIR, 'protocols.json'), JSON.stringify(protocols))
 		fs.writeFileSync(path.join(CACHE_DIR, 'categoriesAndTags.json'), JSON.stringify(categoriesAndTags))
 		fs.writeFileSync(path.join(CACHE_DIR, 'cexs.json'), JSON.stringify(cexs))
-		if (rwaList) {
-			console.log(rwaList)
-			fs.writeFileSync(path.join(CACHE_DIR, 'rwa.json'), JSON.stringify(rwaList))
-		} else {
-			console.log('No rwa server url provided, skipping rwa list')
-		}
+		fs.writeFileSync(path.join(CACHE_DIR, 'rwa.json'), JSON.stringify(rwaList))
 		fs.writeFileSync(CACHE_FILE, JSON.stringify({ lastPull: Date.now() }, null, 2))
 
 		// Group routes by category and sort each category by tasty metrics

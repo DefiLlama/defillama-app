@@ -183,6 +183,10 @@
 		"label": "Total Asset Issuers",
 		"description": "Total number of unique issuers across all tracked real world assets in the current selection"
 	},
+	"totalAssetsCount": {
+		"label": "Total Assets Count",
+		"description": "Total number of real world assets in the current selection"
+	},
 	"totalStablecoinsValue": {
 		"label": "Total Stablecoins Value",
 		"description": "Total USD value of all stablecoins in the dataset that exist on chain across tracked chains in the current selection"

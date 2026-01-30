@@ -49,6 +49,14 @@ const columns: ColumnDef<IRWACategoriesOverviewRow>[] = [
 		size: 180
 	},
 	{
+		id: 'totalAssetsCount',
+		header: definitions.totalAssetsCount.label,
+		accessorKey: 'totalAssetsCount',
+		cell: (info) => formattedNum(info.getValue() as number, false),
+		meta: { align: 'end', headerHelperText: definitions.totalAssetsCount.description },
+		size: 180
+	},
+	{
 		id: 'totalDefiActiveTvl',
 		header: definitions.totalDefiActiveTvl.label,
 		accessorKey: 'totalDefiActiveTvl',
@@ -71,14 +79,6 @@ const columns: ColumnDef<IRWACategoriesOverviewRow>[] = [
 		cell: (info) => formattedNum(info.getValue() as number, true),
 		meta: { align: 'end', headerHelperText: definitions.totalOnChainMarketcap.description },
 		size: 200
-	},
-	{
-		id: 'totalStablecoinsValue',
-		header: definitions.totalStablecoinsValue.label,
-		accessorKey: 'totalStablecoinsValue',
-		cell: (info) => formattedNum(info.getValue() as number, true),
-		meta: { align: 'end', headerHelperText: definitions.totalStablecoinsValue.description },
-		size: 220
 	}
 ]
 
