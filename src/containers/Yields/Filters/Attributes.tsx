@@ -43,6 +43,14 @@ export const attributeOptions = [
 		disabledOnPages: ['/yields/stablecoins', '/borrow', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
+		name: 'No Memecoins',
+		key: YIELDS_SETTINGS.NO_MEMECOINS.toLowerCase(),
+		help: 'Exclude pools containing meme tokens',
+		filterFn: (item) => item.hasMemeToken !== true,
+		defaultFilterFnOnPage: {},
+		disabledOnPages: []
+	},
+	{
 		name: 'Million Dollar',
 		key: YIELDS_SETTINGS.MILLION_DOLLAR.toLowerCase(),
 		help: 'Select pools with at least one million dollar in TVL',

@@ -7,7 +7,7 @@ import { useFormatYieldQueryParams } from './hooks'
 import { YieldsPoolsTable } from './Tables/Pools'
 import { toFilterPool } from './utils'
 
-const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList, usdPeggedSymbols }) => {
+const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList, usdPeggedSymbols, tokenCategories }) => {
 	const { query, pathname, push } = useRouter()
 
 	const [loading, setLoading] = React.useState(true)
@@ -79,7 +79,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				minApy,
 				maxApy,
 				pairTokens: pair_tokens,
-				usdPeggedSymbols
+				usdPeggedSymbols,
+				tokenCategories: tokenCategories ?? {}
 			})
 
 			if (toFilter) {
@@ -138,7 +139,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		exactTokens,
 		pathname,
 		pairTokens,
-		usdPeggedSymbols
+		usdPeggedSymbols,
+		tokenCategories
 	])
 	const prepareCsv = () => {
 		const headers = [

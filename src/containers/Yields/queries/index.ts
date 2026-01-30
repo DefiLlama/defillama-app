@@ -2,6 +2,7 @@ import { fetchCoinPrices } from '~/api'
 import {
 	PEGGEDS_API,
 	PROTOCOLS_API,
+	YIELD_TOKEN_CATEGORIES_API,
 	YIELD_CHAIN_API,
 	YIELD_CONFIG_API,
 	YIELD_LEND_BORROW_API,
@@ -126,6 +127,64 @@ export async function getYieldPageData() {
 		data['usdPeggedSymbols'] = usdPeggedSymbols
 	} catch {
 		data['usdPeggedSymbols'] = []
+	}
+
+	// fetch token categories for yields filtering (tokenized assets, meme tokens, etc.)
+	try {
+		const tokenCategories = await fetchApi(YIELD_TOKEN_CATEGORIES_API)
+		data['tokenCategories'] = tokenCategories && typeof tokenCategories === 'object' ? tokenCategories : {}
+
+		// Dynamically add token filter options for non-meme categories
+		// Insert after ALL_BITCOINS and ALL_USD_STABLES (index 2) so they appear near the top
+		const categoryTokens: Array<{ name: string; symbol: string; logo: null; fallbackLogo: null }> = []
+		const categorySymbols: string[] = []
+		for (const [slug, categoryData] of Object.entries(data['tokenCategories'])) {
+			if (slug === 'meme-token') continue // meme-token is handled as an attribute, not token filter
+			const { label, filterKey } = categoryData as { label: string; filterKey: string }
+			if (filterKey && label) {
+				categoryTokens.push({
+					name: label,
+					symbol: filterKey,
+					logo: null,
+					fallbackLogo: null
+				})
+				categorySymbols.push(filterKey)
+			}
+		}
+		// Insert at position 2 (after ALL_BITCOINS, ALL_USD_STABLES)
+		data.tokens.splice(2, 0, ...categoryTokens)
+		data.tokenSymbolsList.splice(2, 0, ...categorySymbols)
+
+		// Add hasMemeToken flag to pools for the "No Memecoins" attribute filter
+		const memeTokenData = data['tokenCategories']['meme-token']
+		if (memeTokenData) {
+			const memeAddresses = new Set(memeTokenData.addresses || [])
+			const memeSymbols = new Set(memeTokenData.symbols || [])
+			const chainMapping: Record<string, string> = { binance: 'bsc', avalanche: 'avax', gnosis: 'xdai' }
+
+			data.pools = data.pools.map((p) => {
+				let hasMemeToken = false
+				const chain = chainMapping[p.chain?.toLowerCase()] ?? p.chain?.toLowerCase()
+				const underlyingTokens = p.underlyingTokens ?? []
+
+				// Check by address first
+				if (underlyingTokens.length > 0 && memeAddresses.size > 0) {
+					hasMemeToken = underlyingTokens.some(
+						(addr: string) => memeAddresses.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
+					)
+				}
+
+				// Fallback to symbol check
+				if (!hasMemeToken && memeSymbols.size > 0) {
+					const tokensInPool = p.symbol.split('-').map((s: string) => s.toLowerCase())
+					hasMemeToken = tokensInPool.some((sym: string) => memeSymbols.has(sym))
+				}
+
+				return { ...p, hasMemeToken }
+			})
+		}
+	} catch {
+		data['tokenCategories'] = {}
 	}
 
 	return {
