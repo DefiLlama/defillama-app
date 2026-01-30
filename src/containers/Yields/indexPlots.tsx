@@ -21,8 +21,7 @@ export const PlotsPage = ({
 	median,
 	tokens,
 	tokenSymbolsList,
-	usdPeggedSymbols,
-	tokenCategories
+	usdPeggedSymbols
 }) => {
 	const { pathname } = useRouter()
 
@@ -67,8 +66,7 @@ export const PlotsPage = ({
 				minApy,
 				maxApy,
 				pairTokens: pair_tokens,
-				usdPeggedSymbols,
-				tokenCategories: tokenCategories ?? {}
+				usdPeggedSymbols
 			})
 
 			if (toFilter) {
@@ -90,8 +88,7 @@ export const PlotsPage = ({
 		selectedCategories,
 		pathname,
 		pairTokens,
-		usdPeggedSymbols,
-		tokenCategories
+		usdPeggedSymbols
 	])
 
 	const nonOutlierPoolsData = React.useMemo(() => poolsData.filter((p) => !p.outlier), [poolsData])

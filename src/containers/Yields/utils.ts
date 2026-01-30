@@ -17,7 +17,7 @@ interface IToFilterPool {
 	maxApy: number | null
 	pairTokens: string[]
 	usdPeggedSymbols: string[]
-	tokenCategories: Record<string, { addresses: string[]; symbols: string[]; label: string; filterKey: string }>
+	tokenCategories?: Record<string, { addresses: string[]; symbols: string[]; label: string; filterKey: string }>
 }
 
 export function toFilterPool({
@@ -36,7 +36,7 @@ export function toFilterPool({
 	maxApy,
 	pairTokens,
 	usdPeggedSymbols,
-	tokenCategories
+	tokenCategories = {}
 }: IToFilterPool) {
 	const tokensInPoolArray = curr.symbol
 		.split('(')[0]
