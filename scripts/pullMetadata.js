@@ -15,7 +15,7 @@ const PROTOCOLS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-protoco
 const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.json'
 const CATEGORIES_AND_TAGS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-categoriesAndTags.json'
 const CEXS_DATA_URL = 'https://api.llama.fi/cexs'
-const RWA_LIST_DATA_URL = `${process.env.RWA_SERVER_URL}/list?q=2`
+
 const FIVE_MINUTES = 5 * 60 * 1000
 let defillamaPages
 try {
@@ -70,7 +70,14 @@ async function pullData() {
 							return { tastyMetrics: {}, trendingRoutes: [] }
 						})
 				: Promise.resolve({ tastyMetrics: {}, trendingRoutes: [] }),
-			fetchJson(RWA_LIST_DATA_URL)
+			process.env.RWA_SERVER_URL
+				? fetch(`${process.env.RWA_SERVER_URL}/list?q=2`)
+						.then((res) => res.json())
+						.catch((e) => {
+							console.log('Error fetching rwa list', e)
+							return null
+						})
+				: Promise.resolve(null)
 		])
 
 		if (!fs.existsSync(CACHE_DIR)) {
@@ -81,7 +88,9 @@ async function pullData() {
 		fs.writeFileSync(path.join(CACHE_DIR, 'protocols.json'), JSON.stringify(protocols))
 		fs.writeFileSync(path.join(CACHE_DIR, 'categoriesAndTags.json'), JSON.stringify(categoriesAndTags))
 		fs.writeFileSync(path.join(CACHE_DIR, 'cexs.json'), JSON.stringify(cexs))
-		fs.writeFileSync(path.join(CACHE_DIR, 'rwa.json'), JSON.stringify(rwaList))
+		if (rwaList) {
+			fs.writeFileSync(path.join(CACHE_DIR, 'rwa.json'), JSON.stringify(rwaList))
+		}
 		fs.writeFileSync(CACHE_FILE, JSON.stringify({ lastPull: Date.now() }, null, 2))
 
 		// Group routes by category and sort each category by tasty metrics

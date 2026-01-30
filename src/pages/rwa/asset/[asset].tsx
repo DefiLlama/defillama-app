@@ -10,7 +10,7 @@ export async function getStaticPaths() {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
 	return {
-		paths: metadataCache.rwaList.tickers.slice(0, 10).map((ticker) => ({ params: { asset: ticker } })),
+		paths: metadataCache.rwaList.tickers.slice(0, 10).map((ticker) => ({ params: { asset: rwaSlug(ticker) } })),
 		fallback: 'blocking'
 	}
 }

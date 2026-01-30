@@ -1,17 +1,15 @@
 import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { RWA_STATS_API } from '~/constants'
 import { RWAOverview } from '~/containers/RWA'
 import { getRWAAssetsOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import Layout from '~/layout'
-import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export async function getStaticPaths() {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	return {
-		paths: metadataCache.rwaList.chains.slice(0, 10).map((chain) => ({ params: { chain } })),
+		paths: metadataCache.rwaList.chains.slice(0, 10).map((chain) => ({ params: { chain: rwaSlug(chain) } })),
 		fallback: 'blocking'
 	}
 }
