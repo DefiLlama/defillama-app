@@ -71,7 +71,7 @@ async function pullData() {
 						})
 				: Promise.resolve({ tastyMetrics: {}, trendingRoutes: [] }),
 			process.env.RWA_SERVER_URL
-				? fetch(`${process.env.RWA_SERVER_URL}/list?q=2`)
+				? fetch(`${process.env.RWA_SERVER_URL}/list`)
 						.then((res) => res.json())
 						.catch((e) => {
 							console.log('Error fetching rwa list', e)
@@ -90,6 +90,8 @@ async function pullData() {
 		fs.writeFileSync(path.join(CACHE_DIR, 'cexs.json'), JSON.stringify(cexs))
 		if (rwaList) {
 			fs.writeFileSync(path.join(CACHE_DIR, 'rwa.json'), JSON.stringify(rwaList))
+		} else {
+			console.log('No rwa server url provided, skipping rwa list')
 		}
 		fs.writeFileSync(CACHE_FILE, JSON.stringify({ lastPull: Date.now() }, null, 2))
 
