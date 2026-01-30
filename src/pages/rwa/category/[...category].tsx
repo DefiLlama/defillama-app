@@ -1,46 +1,42 @@
-// import { maxAgeForNext } from '~/api'
-// import { RWAOverview } from '~/containers/RWA'
-// import { getRWAAssetsOverview, getRWACategoriesList } from '~/containers/RWA/queries'
-// import Layout from '~/layout'
-// import { withPerformanceLogging } from '~/utils/perf'
+import { maxAgeForNext } from '~/api'
+import { RWAOverview } from '~/containers/RWA'
+import { getRWAAssetsOverview, getRWACategoriesList } from '~/containers/RWA/queries'
+import Layout from '~/layout'
+import { withPerformanceLogging } from '~/utils/perf'
 
-// export async function getStaticPaths() {
-// 	const categories = await getRWACategoriesList()
+export async function getStaticPaths() {
+	const categories = await getRWACategoriesList()
 
-// 	return {
-// 		paths: categories.map((category) => ({ params: { category: [category] } })),
-// 		fallback: false
-// 	}
-// }
+	return {
+		paths: categories.map((category) => ({ params: { category: [category] } })),
+		fallback: false
+	}
+}
 
-// export const getStaticProps = withPerformanceLogging(`rwa/category/[...category]`, async ({ params: { category } }) => {
-// 	const categorySlug = Array.isArray(category) ? category.join('/') : category
-// 	const props = await getRWAAssetsOverview({ category: categorySlug })
+export const getStaticProps = withPerformanceLogging(`rwa/category/[...category]`, async ({ params: { category } }) => {
+	const categorySlug = Array.isArray(category) ? category.join('/') : category
+	const props = await getRWAAssetsOverview({ category: categorySlug })
 
-// 	if (!props) return { notFound: true }
+	if (!props) return { notFound: true }
 
-// 	return {
-// 		props,
-// 		revalidate: maxAgeForNext([22])
-// 	}
-// })
+	return {
+		props,
+		revalidate: maxAgeForNext([22])
+	}
+})
 
-// const pageName = ['RWA']
+const pageName = ['RWA']
 
-// export default function RWAPage(props) {
-// 	return (
-// 		<Layout
-// 			title="Real World Assets - DefiLlama"
-// 			description={`Real World Assets on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-// 			keywords={`real world assets, defi rwa rankings, rwa on chain`}
-// 			pageName={pageName}
-// 			canonicalUrl={`/rwa/categories`}
-// 		>
-// 			<RWAOverview {...props} />
-// 		</Layout>
-// 	)
-// }
-
-export default function RWAPage() {
-	return <></>
+export default function RWAPage(props) {
+	return (
+		<Layout
+			title="Real World Assets - DefiLlama"
+			description={`Real World Assets on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`real world assets, defi rwa rankings, rwa on chain`}
+			pageName={pageName}
+			canonicalUrl={`/rwa/categories`}
+		>
+			<RWAOverview {...props} />
+		</Layout>
+	)
 }

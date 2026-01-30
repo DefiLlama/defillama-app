@@ -103,7 +103,10 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 						<Icon name="folder-plus" height={24} width={24} />
 					</button>
 					{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
-						<button onClick={() => removePortfolio(selectedPortfolio)} data-umami-event="yields-watchlist-portfolio-delete">
+						<button
+							onClick={() => removePortfolio(selectedPortfolio)}
+							data-umami-event="yields-watchlist-portfolio-delete"
+						>
 							<Icon name="trash-2" height={24} width={24} />
 						</button>
 					)}

@@ -87,14 +87,7 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 			<>
 				{url ? (
 					<Tooltip
-						render={
-							<a
-								href={url}
-								target="_blank"
-								rel="noopener noreferrer"
-								data-umami-event="yields-pool-click"
-							/>
-						}
+						render={<a href={url} target="_blank" rel="noopener noreferrer" data-umami-event="yields-pool-click" />}
 						className="flex shrink! items-center overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 						content={children}
 						data-fullwidth

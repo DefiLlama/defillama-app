@@ -33,17 +33,17 @@ interface IFetchedRWAProject {
 	parentPlatform: string | null
 	stablecoin: boolean | null
 	governance: boolean | null
-	defiActiveTvl: Record<string, Record<string, string>> | null
-	onChainMarketcap: Record<string, string> | null
-	activeMcap: Record<string, string> | null
+	defiactivetvl: Record<string, Record<string, string>> | null
+	mcap: Record<string, string> | null
+	activemcap: Record<string, string> | null
 	price?: number | null
 }
 
 export interface IRWAProject extends Omit<
 	IFetchedRWAProject,
-	| 'onChainMarketcap'
-	| 'activeMcap'
-	| 'defiActiveTvl'
+	| 'mcap'
+	| 'activemcap'
+	| 'defiactivetvl'
 	| 'website'
 	| 'twitter'
 	| 'issuerRegistryInfo'
@@ -201,11 +201,9 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		const selectedCount = Number(!!selectedChain) + Number(!!selectedCategory) + Number(!!selectedPlatform)
 		if (selectedCount > 1) return null
 
-		const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
-		const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
-
-		if (!data || typeof data !== 'object') {
-			return null
+		const { data } = await fetchJson<{ data: Record<string, IFetchedRWAProject> }>(RWA_ACTIVE_TVLS_API)
+		if (!data) {
+			throw new Error('Failed to get RWA assets list')
 		}
 
 		// `selectedChain` comes from the URL and is slugified; resolve a display name (original casing/spaces)
@@ -278,9 +276,9 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			let filteredOnChainMarketcapForAsset = 0
 			let filteredActiveMarketcapForAsset = 0
 			let filteredDeFiActiveTvlForAsset = 0
-			const onChainMarketcapBreakdown = item.onChainMarketcap ?? {}
-			const activeMarketcapBreakdown = item.activeMcap ?? {}
-			const defiActiveTvlBreakdown = item.defiActiveTvl ?? {}
+			const onChainMarketcapBreakdown = item.mcap ?? {}
+			const activeMarketcapBreakdown = item.activemcap ?? {}
+			const defiActiveTvlBreakdown = item.defiactivetvl ?? {}
 			const finalOnChainMarketcapBreakdown: Record<string, number> = {}
 			const finalActiveMarketcapBreakdown: Record<string, number> = {}
 			const finalDeFiActiveTvlBreakdown: Record<string, number> = {}
@@ -570,9 +568,10 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 }
 
 export async function getRWAChainsList(): Promise<string[]> {
-	const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
-	const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
-	if (!data || typeof data !== 'object') return []
+	const { data } = await fetchJson<{ data: Record<string, IFetchedRWAProject> }>(RWA_ACTIVE_TVLS_API)
+	if (!data) {
+		throw new Error('Failed to get RWA assets list')
+	}
 	const chains = new Set<string>()
 
 	for (const rwaId in data) {
@@ -587,9 +586,10 @@ export async function getRWAChainsList(): Promise<string[]> {
 }
 
 export async function getRWACategoriesList(): Promise<string[]> {
-	const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
-	const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
-	if (!data || typeof data !== 'object') return []
+	const { data } = await fetchJson<{ data: Record<string, IFetchedRWAProject> }>(RWA_ACTIVE_TVLS_API)
+	if (!data) {
+		throw new Error('Failed to get RWA assets list')
+	}
 	const categories = new Set<string>()
 
 	for (const rwaId in data) {
@@ -604,9 +604,10 @@ export async function getRWACategoriesList(): Promise<string[]> {
 }
 
 export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[] | null> {
-	const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
-	const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
-	if (!data || typeof data !== 'object') return null
+	const { data } = await fetchJson<{ data: Record<string, IFetchedRWAProject> }>(RWA_ACTIVE_TVLS_API)
+	if (!data) {
+		throw new Error('Failed to get RWA assets list')
+	}
 
 	const totalsByChain = new Map<
 		string,
@@ -658,9 +659,9 @@ export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[] | 
 		const issuer = item.issuer ?? null
 		const isStablecoin = !!item.stablecoin
 		const isGovernance = !!item.governance
-		const onChainByChain = item.onChainMarketcap ?? {}
-		const activeByChain = item.activeMcap ?? {}
-		const defiByChain = item.defiActiveTvl ?? {}
+		const onChainByChain = item.mcap ?? {}
+		const activeByChain = item.activemcap ?? {}
+		const defiByChain = item.defiactivetvl ?? {}
 
 		const chainKeys = new Set<string>([
 			...Object.keys(onChainByChain),
@@ -726,9 +727,10 @@ export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[] | 
 }
 
 export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverviewRow[] | null> {
-	const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
-	const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
-	if (!data || typeof data !== 'object') return null
+	const { data } = await fetchJson<{ data: Record<string, IFetchedRWAProject> }>(RWA_ACTIVE_TVLS_API)
+	if (!data) {
+		throw new Error('Failed to get RWA assets list')
+	}
 
 	const totalsByCategory = new Map<
 		string,
@@ -772,9 +774,9 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 
 		const issuer = item.issuer ?? null
 		const isStablecoin = !!item.stablecoin
-		const totalOnChain = sumRecordNumbers(item.onChainMarketcap)
-		const totalActive = sumRecordNumbers(item.activeMcap)
-		const totalDefi = sumDefiAllChains(item.defiActiveTvl)
+		const totalOnChain = sumRecordNumbers(item.mcap)
+		const totalActive = sumRecordNumbers(item.activemcap)
+		const totalDefi = sumDefiAllChains(item.defiactivetvl)
 
 		// Keep issuer counts consistent with the detail page:
 		// even if an asset currently has 0 on-chain/active/DeFi values, it should still contribute
@@ -808,9 +810,10 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 }
 
 export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRow[] | null> {
-	const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
-	const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
-	if (!data || typeof data !== 'object') return null
+	const { data } = await fetchJson<{ data: Record<string, IFetchedRWAProject> }>(RWA_ACTIVE_TVLS_API)
+	if (!data) {
+		throw new Error('Failed to get RWA assets list')
+	}
 
 	const totalsByPlatform = new Map<
 		string,
@@ -855,9 +858,9 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRo
 		if (!platformSlug) continue
 
 		const isStablecoin = !!item.stablecoin
-		const totalOnChain = sumRecordNumbers(item.onChainMarketcap)
-		const totalActive = sumRecordNumbers(item.activeMcap)
-		const totalDefi = sumDefiAllChains(item.defiActiveTvl)
+		const totalOnChain = sumRecordNumbers(item.mcap)
+		const totalActive = sumRecordNumbers(item.activemcap)
+		const totalDefi = sumDefiAllChains(item.defiactivetvl)
 
 		// Skip completely empty rows (no totals + no platform label).
 		if (totalOnChain === 0 && totalActive === 0 && totalDefi === 0) continue
@@ -890,9 +893,10 @@ export interface IRWAAssetData extends IRWAProject {
 
 export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData | null> {
 	try {
-		const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
-		const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
-		if (!data || typeof data !== 'object') return null
+		const { data } = await fetchJson<{ data: Record<string, IFetchedRWAProject> }>(RWA_ACTIVE_TVLS_API)
+		if (!data) {
+			throw new Error('Failed to get RWA assets list')
+		}
 
 		// Find the asset by comparing ticker slugs
 		for (const rwaId in data) {
@@ -901,9 +905,9 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 				let totalOnChainMarketcapForAsset = 0
 				let totalActiveMarketcapForAsset = 0
 				let totalDeFiActiveTvlForAsset = 0
-				const onChainMarketcapBreakdown = item.onChainMarketcap ?? {}
-				const activeMarketcapBreakdown = item.activeMcap ?? {}
-				const defiActiveTvlBreakdown = item.defiActiveTvl ?? {}
+				const onChainMarketcapBreakdown = item.mcap ?? {}
+				const activeMarketcapBreakdown = item.activemcap ?? {}
+				const defiActiveTvlBreakdown = item.defiactivetvl ?? {}
 				const finalOnChainMarketcapBreakdown: Record<string, number> = {}
 				const finalActiveMarketcapBreakdown: Record<string, number> = {}
 				const finalDeFiActiveTvlBreakdown: Record<string, number> = {}
@@ -1014,9 +1018,8 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 
 export async function getRWAAssetsList(): Promise<string[]> {
 	try {
-		const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
-		const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
-		if (!data || typeof data !== 'object') {
+		const { data } = await fetchJson<{ data: Record<string, IFetchedRWAProject> }>(RWA_ACTIVE_TVLS_API)
+		if (!data) {
 			throw new Error('Failed to get RWA assets list')
 		}
 		const assets: string[] = []

@@ -44,7 +44,9 @@ const AssetSection = ({ name, iconUrl, flows, aum }: AssetSectionProps) => (
 		<div className="grid grid-cols-2 gap-2 text-sm">
 			<div className="flex flex-col">
 				<span className="text-xs opacity-60">Flows</span>
-				<span className={`font-jetbrains font-medium ${flows > 0 ? 'text-green-500' : flows < 0 ? 'text-red-500' : ''}`}>
+				<span
+					className={`font-jetbrains font-medium ${flows > 0 ? 'text-green-500' : flows < 0 ? 'text-red-500' : ''}`}
+				>
 					{formattedNum(flows || 0, true)}
 				</span>
 			</div>
@@ -168,7 +170,13 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 
 		rows = [['Timestamp', 'Date', 'Bitcoin', 'Ethereum', 'Solana']]
 		for (const date in flows) {
-			rows.push([date, toNiceCsvDate(date), flows[date]['Bitcoin'] ?? '', flows[date]['Ethereum'] ?? '', flows[date]['Solana'] ?? ''])
+			rows.push([
+				date,
+				toNiceCsvDate(date),
+				flows[date]['Bitcoin'] ?? '',
+				flows[date]['Ethereum'] ?? '',
+				flows[date]['Solana'] ?? ''
+			])
 		}
 		const filename = `etf-flows-${new Date().toISOString().split('T')[0]}.csv`
 		return { filename, rows: rows as (string | number | boolean)[][] }
