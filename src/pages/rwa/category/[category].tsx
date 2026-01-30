@@ -2,17 +2,17 @@ import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { RWA_STATS_API } from '~/constants'
 import { RWAOverview } from '~/containers/RWA'
-import { getRWAAssetsOverview, getRWACategoriesList } from '~/containers/RWA/queries'
+import { getRWAAssetsOverview, getRWACategoriesOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export async function getStaticPaths() {
-	const categories = await getRWACategoriesList()
+	const categories = await getRWACategoriesOverview()
 
 	return {
-		paths: categories.slice(0, 10).map((category) => ({ params: { category } })),
+		paths: categories.slice(0, 10).map((category) => ({ params: { category: category.category } })),
 		fallback: 'blocking'
 	}
 }

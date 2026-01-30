@@ -62,6 +62,17 @@ interface IRWAStatsResponse {
 			count: number
 		}
 	>
+	byPlatform?: Record<
+		string,
+		{
+			mcap: number
+			activeMcap: number
+			defiActiveTvl: number
+			// Optional extras some deployments may include.
+			count?: number
+			stablecoinMcap?: number
+		}
+	>
 }
 
 export interface IRWAProject extends Omit<
@@ -184,35 +195,6 @@ const stablecoinClassifications = []
 const governanceCategories = ['Governance & Protocol Tokens']
 const governanceAssetClasses = ['Governance / voting token (RWA protocol)', 'Revenue / fee share token (RWA protocol)']
 const governanceClassifications = ['Non-RWA (Gov/Utility)']
-
-const sumRecordNumbers = (record: Record<string, unknown> | null | undefined): number => {
-	if (!record) return 0
-	let total = 0
-	for (const key in record) {
-		total += safeNumber((record as any)[key])
-	}
-	return total
-}
-
-const sumDefiByChain = (defi: Record<string, Record<string, string>> | null | undefined, chain: string): number => {
-	if (!defi) return 0
-	const protocols = defi[chain]
-	if (!protocols) return 0
-	let total = 0
-	for (const protocol in protocols) {
-		total += safeNumber(protocols[protocol])
-	}
-	return total
-}
-
-const sumDefiAllChains = (defi: Record<string, Record<string, string>> | null | undefined): number => {
-	if (!defi) return 0
-	let total = 0
-	for (const chain in defi) {
-		total += sumDefiByChain(defi, chain)
-	}
-	return total
-}
 
 export type RWAAssetsOverviewParams = {
 	chain?: string
@@ -601,47 +583,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 	}
 }
 
-export async function getRWAChainsList(): Promise<string[]> {
-	const data = await fetchJson<IRWAStatsResponse>(RWA_STATS_API)
-	if (!data?.byChain) {
-		throw new Error('Failed to get RWA stats')
-	}
-
-	const chainSlugToMcap = new Map<string, number>()
-	for (const chain in data.byChain) {
-		const stats = data.byChain[chain]
-		const chainSlug = rwaSlug(chain)
-		if (!chainSlug) continue
-		const mcap = safeNumber(stats.mcap)
-		chainSlugToMcap.set(chainSlug, (chainSlugToMcap.get(chainSlug) ?? 0) + mcap)
-	}
-
-	return Array.from(chainSlugToMcap.entries())
-		.sort((a, b) => b[1] - a[1])
-		.map(([chainSlug]) => chainSlug)
-}
-
-export async function getRWACategoriesList(): Promise<string[]> {
-	const data = await fetchJson<IRWAStatsResponse>(RWA_STATS_API)
-	if (!data?.byCategory) {
-		throw new Error('Failed to get RWA stats')
-	}
-
-	const categorySlugToMcap = new Map<string, number>()
-	for (const category in data.byCategory) {
-		const stats = data.byCategory[category]
-		const categorySlug = rwaSlug(category)
-		if (!categorySlug) continue
-		const mcap = safeNumber(stats.mcap)
-		categorySlugToMcap.set(categorySlug, (categorySlugToMcap.get(categorySlug) ?? 0) + mcap)
-	}
-
-	return Array.from(categorySlugToMcap.entries())
-		.sort((a, b) => b[1] - a[1])
-		.map(([categorySlug]) => categorySlug)
-}
-
-export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[] | null> {
+export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[]> {
 	const data = await fetchJson<IRWAStatsResponse>(RWA_STATS_API)
 	if (!data?.byChain) {
 		throw new Error('Failed to get RWA stats')
@@ -674,7 +616,7 @@ export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[] | 
 	return rows.sort((a, b) => b.totalOnChainMarketcap - a.totalOnChainMarketcap)
 }
 
-export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverviewRow[] | null> {
+export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverviewRow[]> {
 	const data = await fetchJson<IRWAStatsResponse>(RWA_STATS_API)
 	if (!data?.byCategory) {
 		throw new Error('Failed to get RWA stats')
@@ -705,79 +647,35 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 	return rows.sort((a, b) => b.totalOnChainMarketcap - a.totalOnChainMarketcap)
 }
 
-export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRow[] | null> {
-	const { data } = await fetchJson<{ data: Record<string, IFetchedRWAProject> }>(RWA_ACTIVE_TVLS_API)
-	if (!data) {
-		throw new Error('Failed to get RWA assets list')
+export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRow[]> {
+	const data = await fetchJson<IRWAStatsResponse>(RWA_STATS_API)
+	if (!data?.byPlatform) {
+		throw new Error('Failed to get RWA stats')
 	}
 
-	const totalsByPlatform = new Map<
-		string,
-		{
-			platform: string
-			totalOnChainMarketcap: number
-			totalActiveMarketcap: number
-			totalStablecoinsValue: number
-			totalDefiActiveTvl: number
-		}
-	>()
+	const rows: IRWAPlatformsOverviewRow[] = []
+	for (const platform in data.byPlatform) {
+		const stats = data.byPlatform[platform]
+		const totalOnChainMarketcap = safeNumber(stats.mcap)
+		const totalActiveMarketcap = safeNumber(stats.activeMcap)
+		const totalDefiActiveTvl = safeNumber(stats.defiActiveTvl)
 
-	// Prefer a "human" display label when multiple raw platform strings map to the same slug.
-	const pickDisplayPlatform = (prev: string, next: string) => {
-		const looksSluggy = (s: string) => s.includes('-') && !s.includes(' ')
-		if (looksSluggy(prev) && !looksSluggy(next)) return next
-		return prev
-	}
-
-	const getOrInit = (platformSlug: string, displayPlatform: string) => {
-		const prev = totalsByPlatform.get(platformSlug)
-		if (prev) return prev
-		const next = {
-			platform: displayPlatform,
-			totalOnChainMarketcap: 0,
-			totalActiveMarketcap: 0,
-			totalStablecoinsValue: 0,
-			totalDefiActiveTvl: 0
-		}
-		totalsByPlatform.set(platformSlug, next)
-		return next
-	}
-
-	for (const rwaId in data) {
-		const item = data[rwaId]
-		// Platforms overview is derived from assets' `parentPlatform` only.
-		// (Ignore `type === 'Platform'` entirely.)
-		const platform = item.parentPlatform ?? null
-		if (!platform) continue
-
-		const platformSlug = rwaSlug(platform)
-		if (!platformSlug) continue
-
-		const isStablecoin = !!item.stablecoin
-		const totalOnChain = sumRecordNumbers(item.mcap)
-		const totalActive = sumRecordNumbers(item.activemcap)
-		const totalDefi = sumDefiAllChains(item.defiactivetvl)
+		// Stats API may provide stablecoin subtotals; if not, default to 0.
+		const totalStablecoinsValue = safeNumber(stats.stablecoinMcap ?? 0)
 
 		// Skip completely empty rows (no totals + no platform label).
-		if (totalOnChain === 0 && totalActive === 0 && totalDefi === 0) continue
+		if (!platform || (totalOnChainMarketcap === 0 && totalActiveMarketcap === 0 && totalDefiActiveTvl === 0)) continue
 
-		const agg = getOrInit(platformSlug, platform)
-		agg.platform = pickDisplayPlatform(agg.platform, platform)
-		agg.totalOnChainMarketcap += totalOnChain
-		agg.totalActiveMarketcap += totalActive
-		agg.totalDefiActiveTvl += totalDefi
-		if (isStablecoin) agg.totalStablecoinsValue += totalOnChain
+		rows.push({
+			platform,
+			totalOnChainMarketcap,
+			totalActiveMarketcap,
+			totalStablecoinsValue,
+			totalDefiActiveTvl
+		})
 	}
 
-	return Array.from(totalsByPlatform.entries())
-		.map(([, v]) => ({
-			platform: v.platform,
-			totalOnChainMarketcap: v.totalOnChainMarketcap,
-			totalActiveMarketcap: v.totalActiveMarketcap,
-			totalStablecoinsValue: v.totalStablecoinsValue,
-			totalDefiActiveTvl: v.totalDefiActiveTvl
-		}))
-		.sort((a, b) => b.totalOnChainMarketcap - a.totalOnChainMarketcap)
+	return rows.sort((a, b) => b.totalOnChainMarketcap - a.totalOnChainMarketcap)
 }
 
 export interface IRWAAssetData extends IRWAProject {
