@@ -1,16 +1,18 @@
 import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { RWAOverview } from '~/containers/RWA'
-import { getRWAAssetsOverview, getRWAPlatformsOverview } from '~/containers/RWA/queries'
+import { getRWAAssetsOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export async function getStaticPaths() {
-	const platforms = await getRWAPlatformsOverview()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
 	return {
-		paths: platforms.map(({ platform }) => ({ params: { platform: rwaSlug(platform) } })),
+		paths: metadataCache.rwaList.platforms
+			.slice(0, 10)
+			.map((platform) => ({ params: { platform: rwaSlug(platform) } })),
 		fallback: false
 	}
 }
@@ -23,9 +25,21 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const platformSlug = params.platform
-		const props = await getRWAAssetsOverview({ platform: platformSlug })
 
-		if (!props) return { notFound: true }
+		let platformExists = false
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const rwaList = metadataCache.rwaList
+		for (const platform of rwaList.platforms) {
+			if (rwaSlug(platform) === platformSlug) {
+				platformExists = true
+				break
+			}
+		}
+		if (!platformExists) {
+			return { notFound: true, props: null }
+		}
+
+		const props = await getRWAAssetsOverview({ platform: platformSlug })
 
 		return {
 			props,

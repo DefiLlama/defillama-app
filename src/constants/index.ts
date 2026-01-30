@@ -173,6 +173,7 @@ export const RWA_SERVER_URL = process.env.RWA_SERVER_URL ?? 'https://api.llama.f
 export const RWA_ACTIVE_TVLS_API = `${RWA_SERVER_URL}/current?q=2`
 export const RWA_STATS_API = `${RWA_SERVER_URL}/stats?q=2`
 export const RWA_ID_MAP_API = `${RWA_SERVER_URL}/id-map?q=2`
+export const RWA_LIST_API = `${RWA_SERVER_URL}/list?q=2`
 
 export const MCP_SERVER = 'https://mcp.llama.fi'
 export const SEARCH_API_URL = 'https://search.defillama.com/multi-search'

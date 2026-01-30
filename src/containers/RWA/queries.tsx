@@ -815,28 +815,6 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 	}
 }
 
-export async function getRWAAssetsList(): Promise<string[]> {
-	try {
-		const { data } = await fetchJson<{ data: Record<string, IFetchedRWAProject> }>(RWA_ACTIVE_TVLS_API)
-		if (!data) {
-			throw new Error('Failed to get RWA assets list')
-		}
-		const assets = new Map<string, number>()
-
-		for (const assetid in data) {
-			const assetSlug = slug(data[assetid].ticker)
-			if (!assetSlug) continue
-			assets.set(assetSlug, safeNumber(data[assetid].mcap))
-		}
-
-		return Array.from(assets.entries())
-			.sort((a, b) => b[1] - a[1])
-			.map(([assetSlug]) => assetSlug)
-	} catch (error) {
-		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA assets list')
-	}
-}
-
 function safeNumber(value: unknown): number {
 	const n = typeof value === 'number' ? value : Number(value)
 	return Number.isFinite(n) ? n : 0

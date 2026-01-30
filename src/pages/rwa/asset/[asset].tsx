@@ -1,18 +1,16 @@
 import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { RWA_ID_MAP_API } from '~/constants'
 import { RWAAssetPage } from '~/containers/RWA/Asset'
-import { getRWAAssetData, getRWAAssetsList } from '~/containers/RWA/queries'
+import { getRWAAssetData } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import Layout from '~/layout'
-import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export async function getStaticPaths() {
-	const assets = await getRWAAssetsList()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
 	return {
-		paths: assets.slice(0, 10).map((asset) => ({ params: { asset } })),
+		paths: metadataCache.rwaList.tickers.slice(0, 10).map((ticker) => ({ params: { asset: ticker } })),
 		fallback: 'blocking'
 	}
 }
@@ -26,24 +24,21 @@ export const getStaticProps = withPerformanceLogging(
 
 		const assetSlug = rwaSlug(params.asset)
 
-		// const idMap = await fetchJson<Record<string, string>>(RWA_ID_MAP_API)
-		// if (!idMap) {
-		// 	throw new Error('Failed to get RWA ID map')
-		// }
-		// let assetId = null
-		// for (const assetName in idMap) {
-		// 	if (rwaSlug(assetName) === assetSlug) {
-		// 		assetId = idMap[assetName]
-		// 		break
-		// 	}
-		// }
-		// if (!assetId) {
-		// 	return { notFound: true, props: null }
-		// }
+		let assetExists = false
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const rwaList = metadataCache.rwaList
+
+		for (const ticker of rwaList.tickers) {
+			if (rwaSlug(ticker) === assetSlug) {
+				assetExists = true
+				break
+			}
+		}
+		if (!assetExists) {
+			return { notFound: true, props: null }
+		}
 
 		const asset = await getRWAAssetData(assetSlug)
-
-		if (!asset) return { notFound: true }
 
 		return {
 			props: { asset },

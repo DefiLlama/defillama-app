@@ -2,17 +2,17 @@ import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { RWA_STATS_API } from '~/constants'
 import { RWAOverview } from '~/containers/RWA'
-import { getRWAAssetsOverview, getRWACategoriesOverview } from '~/containers/RWA/queries'
+import { getRWAAssetsOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export async function getStaticPaths() {
-	const categories = await getRWACategoriesOverview()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
 	return {
-		paths: categories.slice(0, 10).map((category) => ({ params: { category: category.category } })),
+		paths: metadataCache.rwaList.categories.slice(0, 10).map((category) => ({ params: { category } })),
 		fallback: 'blocking'
 	}
 }
@@ -26,13 +26,10 @@ export const getStaticProps = withPerformanceLogging(
 
 		const categorySlug = rwaSlug(params.category)
 
-		const stats = await fetchJson<{ byCategory?: Record<string, unknown> }>(RWA_STATS_API)
-		if (!stats?.byCategory) {
-			throw new Error('Failed to get RWA stats')
-		}
-
 		let categoryExists = false
-		for (const category in stats.byCategory) {
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const rwaList = metadataCache.rwaList
+		for (const category of rwaList.categories) {
 			if (rwaSlug(category) === categorySlug) {
 				categoryExists = true
 				break
@@ -43,8 +40,6 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const props = await getRWAAssetsOverview({ category: categorySlug })
-
-		if (!props) return { notFound: true }
 
 		return {
 			props,

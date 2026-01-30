@@ -2,11 +2,13 @@ import categoriesAndTags from '../../.cache/categoriesAndTags.json'
 import cexs from '../../.cache/cexs.json'
 import chainMetadata from '../../.cache/chains.json'
 import protocolMetadata from '../../.cache/protocols.json'
+import rwaList from '../../.cache/rwa.json'
 
 const PROTOCOLS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-protocols.json'
 const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.json'
 const CATEGORIES_AND_TAGS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-categoriesAndTags.json'
 const CEXS_DATA_URL = 'https://api.llama.fi/cexs'
+const RWA_LIST_DATA_URL = `${process.env.RWA_SERVER_URL}/list?q=2`
 
 interface IChainMetadata {
 	stablecoins?: boolean
@@ -93,11 +95,18 @@ const metadataCache: {
 		tagCategoryMap: Record<string, string>
 	}
 	cexs: Array<ICexItem>
+	rwaList: {
+		tickers: Array<string>
+		platforms: Array<string>
+		chains: Array<string>
+		categories: Array<string>
+	}
 } = {
 	chainMetadata,
 	protocolMetadata,
 	categoriesAndTags,
-	cexs
+	cexs,
+	rwaList
 }
 
 // On-demand refresh with TTL (1 hour) and concurrency-safe deduplication
@@ -109,17 +118,19 @@ async function doRefresh(): Promise<void> {
 	const fetchJson = async (url: string) => fetch(url).then((res) => res.json())
 
 	try {
-		const [protocols, chains, catAndTags, cexData] = await Promise.all([
+		const [protocols, chains, catAndTags, cexData, rwaListData] = await Promise.all([
 			fetchJson(PROTOCOLS_DATA_URL),
 			fetchJson(CHAINS_DATA_URL),
 			fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
-			fetchJson(CEXS_DATA_URL)
+			fetchJson(CEXS_DATA_URL),
+			fetchJson(RWA_LIST_DATA_URL)
 		])
 
 		metadataCache.protocolMetadata = protocols
 		metadataCache.chainMetadata = chains
 		metadataCache.categoriesAndTags = catAndTags
 		metadataCache.cexs = cexData.cexs
+		metadataCache.rwaList = rwaListData.rwaList
 
 		lastRefreshMs = Date.now()
 	} catch (err) {
