@@ -8,9 +8,9 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 export async function getStaticPaths() {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-
+	const rwaList = metadataCache.rwaList
 	return {
-		paths: metadataCache.rwaList.tickers.slice(0, 10).map((ticker) => ({ params: { asset: rwaSlug(ticker) } })),
+		paths: rwaList.tickers.slice(0, 10).map((ticker) => ({ params: { asset: rwaSlug(ticker) } })),
 		fallback: 'blocking'
 	}
 }

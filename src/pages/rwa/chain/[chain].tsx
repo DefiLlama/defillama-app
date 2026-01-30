@@ -8,8 +8,9 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 export async function getStaticPaths() {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const rwaList = metadataCache.rwaList
 	return {
-		paths: metadataCache.rwaList.chains.slice(0, 10).map((chain) => ({ params: { chain: rwaSlug(chain) } })),
+		paths: rwaList.chains.slice(0, 10).map((chain) => ({ params: { chain: rwaSlug(chain) } })),
 		fallback: 'blocking'
 	}
 }

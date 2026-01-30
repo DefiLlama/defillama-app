@@ -89,6 +89,7 @@ async function pullData() {
 		fs.writeFileSync(path.join(CACHE_DIR, 'categoriesAndTags.json'), JSON.stringify(categoriesAndTags))
 		fs.writeFileSync(path.join(CACHE_DIR, 'cexs.json'), JSON.stringify(cexs))
 		if (rwaList) {
+			console.log(rwaList)
 			fs.writeFileSync(path.join(CACHE_DIR, 'rwa.json'), JSON.stringify(rwaList))
 		} else {
 			console.log('No rwa server url provided, skipping rwa list')
