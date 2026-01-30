@@ -8,6 +8,10 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends curl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
+# Install dotenvx (for loading env at runtime inside Docker)
+RUN curl -fsS https://dotenvx.sh | sh
+RUN dotenvx ext prebuild
+
 # install dependencies into temp directory
 # this will cache them and speed up future builds
 FROM base AS install
@@ -55,4 +59,4 @@ COPY --from=builder /usr/src/app/scripts ./scripts
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "./scripts/prestart.sh & bun run start"]
+CMD ["dotenvx", "run", "--", "sh", "-c", "./scripts/prestart.sh & bun run start"]

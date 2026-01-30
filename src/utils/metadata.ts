@@ -3,12 +3,7 @@ import cexs from '../../.cache/cexs.json'
 import chainMetadata from '../../.cache/chains.json'
 import protocolMetadata from '../../.cache/protocols.json'
 import rwaList from '../../.cache/rwa.json'
-
-const PROTOCOLS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-protocols.json'
-const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.json'
-const CATEGORIES_AND_TAGS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-categoriesAndTags.json'
-const CEXS_DATA_URL = 'https://api.llama.fi/cexs'
-const RWA_LIST_DATA_URL = `${process.env.RWA_SERVER_URL}/list?q=2`
+import { fetchCoreMetadata } from './metadata/fetch'
 
 interface IChainMetadata {
 	stablecoins?: boolean
@@ -115,22 +110,20 @@ let lastRefreshMs = 0
 let refreshInFlight: Promise<void> | null = null
 
 async function doRefresh(): Promise<void> {
-	const fetchJson = async (url: string) => fetch(url).then((res) => res.json())
-
 	try {
-		const [protocols, chains, catAndTags, cexData, rwaListData] = await Promise.all([
-			fetchJson(PROTOCOLS_DATA_URL),
-			fetchJson(CHAINS_DATA_URL),
-			fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
-			fetchJson(CEXS_DATA_URL),
-			fetchJson(RWA_LIST_DATA_URL)
-		])
+		const {
+			protocols,
+			chains,
+			categoriesAndTags: catAndTags,
+			cexs: cexData,
+			rwaList: rwaListData
+		} = await fetchCoreMetadata()
 
 		metadataCache.protocolMetadata = protocols
 		metadataCache.chainMetadata = chains
 		metadataCache.categoriesAndTags = catAndTags
-		metadataCache.cexs = cexData.cexs
-		metadataCache.rwaList = rwaListData.rwaList
+		metadataCache.cexs = cexData
+		metadataCache.rwaList = rwaListData
 
 		lastRefreshMs = Date.now()
 	} catch (err) {
