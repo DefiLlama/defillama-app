@@ -8,6 +8,12 @@ import { LocalLoader } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'
 import { useYieldsData } from '~/containers/ProDashboard/components/datasets/YieldsDataset/useYieldsData'
 import { useYieldChartData, useYieldChartLendBorrow } from '~/containers/Yields/queries/client'
+import {
+	TOKENIZED_GOLD_UNIVERSAL,
+	TOKENIZED_SILVER_UNIVERSAL,
+	CHAIN_RESTRICTED_GOLD,
+	CHAIN_RESTRICTED_SILVER
+} from '~/containers/Yields/utils'
 import { formattedNum } from '~/utils'
 import { getItemIconUrl } from '../../utils'
 import { AriakitMultiSelect } from '../AriakitMultiSelect'
@@ -133,7 +139,9 @@ export function YieldsChartTab({
 
 		const baseOptions = [
 			{ value: 'ALL_BITCOINS', label: 'All Bitcoins' },
-			{ value: 'ALL_USD_STABLES', label: 'All USD Stablecoins' }
+			{ value: 'ALL_USD_STABLES', label: 'All USD Stablecoins' },
+			{ value: 'ALL_GOLD', label: 'All Gold' },
+			{ value: 'ALL_TOKENIZED_COMMODITIES', label: 'All Tokenized Commodities' }
 		]
 
 		const tokenOptionList = Array.from(tokenTvlMap.entries())
@@ -271,6 +279,26 @@ export function YieldsChartTab({
 								t.includes('cust') ||
 								t.includes('usds')
 						)
+					}
+					if (token === 'all_gold') {
+						const chain = pool.chains?.[0]
+						return tokensInPool.some((t: string) => {
+							if (TOKENIZED_GOLD_UNIVERSAL.has(t)) return true
+							const allowedChains = CHAIN_RESTRICTED_GOLD.get(t)
+							return allowedChains && chain && allowedChains.has(chain)
+						})
+					}
+					if (token === 'all_tokenized_commodities') {
+						const chain = pool.chains?.[0]
+						return tokensInPool.some((t: string) => {
+							if (TOKENIZED_GOLD_UNIVERSAL.has(t) || TOKENIZED_SILVER_UNIVERSAL.has(t)) return true
+							const goldAllowedChains = CHAIN_RESTRICTED_GOLD.get(t)
+							const silverAllowedChains = CHAIN_RESTRICTED_SILVER.get(t)
+							return (
+								(goldAllowedChains && chain && goldAllowedChains.has(chain)) ||
+								(silverAllowedChains && chain && silverAllowedChains.has(chain))
+							)
+						})
 					}
 					if (token === 'eth') {
 						return tokensInPool.some((t) => t === 'eth' || t.includes('weth'))

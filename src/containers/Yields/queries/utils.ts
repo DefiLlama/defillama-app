@@ -1,9 +1,14 @@
+import { buildEvmChainsSet, EVM_CHAINS_FALLBACK_SET } from '~/constants/chains'
+
 export function formatYieldsPageData(poolsAndConfig: any) {
 	let _pools = poolsAndConfig[0]?.data ?? []
 	let _config = poolsAndConfig[1]?.protocols ?? []
 	let _urls = poolsAndConfig[2] ?? []
 	let _chains = poolsAndConfig[3] ?? []
 	let _lite = poolsAndConfig[4] ?? []
+
+	// Build EVM chains set from API data (chains with chainId are EVM)
+	const evmChainsSet = _chains.length > 0 ? buildEvmChainsSet(_chains) : EVM_CHAINS_FALLBACK_SET
 
 	// symbol in _config doesn't account for potential parentProtocol token, updating this here
 	for (const i of Object.values(_config)) {
@@ -118,10 +123,22 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 			symbol: 'ALL_USD_STABLES',
 			logo: null,
 			fallbackLogo: null
+		},
+		{
+			name: 'All Gold',
+			symbol: 'ALL_GOLD',
+			logo: null,
+			fallbackLogo: null
+		},
+		{
+			name: 'All Tokenized Commodities',
+			symbol: 'ALL_TOKENIZED_COMMODITIES',
+			logo: null,
+			fallbackLogo: null
 		}
 	]
 
-	const tokenSymbolsList = ['ALL_BITCOINS', 'ALL_USD_STABLES']
+	const tokenSymbolsList = ['ALL_BITCOINS', 'ALL_USD_STABLES', 'ALL_GOLD', 'ALL_TOKENIZED_COMMODITIES']
 
 	for (const token of symbols as string[]) {
 		if (token) {
@@ -142,6 +159,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		categoryList: Array.from(categoryList),
 		tokenNameMapping,
 		tokens,
-		tokenSymbolsList
+		tokenSymbolsList,
+		evmChains: Array.from(evmChainsSet)
 	}
 }

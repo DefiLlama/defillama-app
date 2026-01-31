@@ -5,7 +5,7 @@ import { useFormatYieldQueryParams } from './hooks'
 import { YieldsLoopTable } from './Tables/Loop'
 import { toFilterPool } from './utils'
 
-const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens, usdPeggedSymbols }) => {
+const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens, usdPeggedSymbols, evmChains }) => {
 	const { pathname } = useRouter()
 
 	const {
@@ -21,7 +21,7 @@ const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens, us
 		maxTvl,
 		minApy,
 		maxApy
-	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
+	} = useFormatYieldQueryParams({ projectList, chainList, categoryList, evmChains })
 
 	const poolsData = React.useMemo(() => {
 		const pair_tokens = pairTokens.map((token) => token.toLowerCase())
@@ -106,6 +106,7 @@ const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens, us
 				tokens={tokens}
 				chainList={chainList}
 				selectedChains={selectedChains}
+				evmChains={evmChains}
 				projectList={projectList}
 				selectedProjects={selectedProjects}
 				attributes={true}

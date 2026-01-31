@@ -7,7 +7,16 @@ import { useFormatYieldQueryParams } from './hooks'
 import { YieldsPoolsTable } from './Tables/Pools'
 import { toFilterPool } from './utils'
 
-const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList, usdPeggedSymbols }) => {
+const YieldPage = ({
+	pools,
+	projectList,
+	chainList,
+	categoryList,
+	tokens,
+	tokenSymbolsList,
+	usdPeggedSymbols,
+	evmChains
+}) => {
 	const { query, pathname, push } = useRouter()
 
 	const [loading, setLoading] = React.useState(true)
@@ -25,7 +34,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		maxTvl,
 		minApy,
 		maxApy
-	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
+	} = useFormatYieldQueryParams({ projectList, chainList, categoryList, evmChains })
 
 	React.useEffect(() => {
 		const timer = setTimeout(() => setLoading(false), 1000)
@@ -246,6 +255,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				selectedTokens={includeTokens}
 				chainList={chainList}
 				selectedChains={selectedChains}
+				evmChains={evmChains}
 				projectList={projectList}
 				selectedProjects={selectedProjects}
 				categoryList={categoryList}

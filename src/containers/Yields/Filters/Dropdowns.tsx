@@ -27,6 +27,7 @@ export function YieldFilterDropdowns({
 	selectedTokens,
 	chainList,
 	selectedChains,
+	evmChains,
 	projectList,
 	selectedProjects,
 	lendingProtocols,
@@ -78,7 +79,12 @@ export function YieldFilterDropdowns({
 			)}
 
 			{chainList && chainList.length > 0 && (
-				<FilterByChain chainList={chainList} selectedChains={selectedChains ?? EMPTY_CHAINS} nestedMenu={nestedMenu} />
+				<FilterByChain
+					chainList={chainList}
+					selectedChains={selectedChains ?? EMPTY_CHAINS}
+					evmChains={evmChains}
+					nestedMenu={nestedMenu}
+				/>
 			)}
 
 			{projectList && projectList.length > 0 && (

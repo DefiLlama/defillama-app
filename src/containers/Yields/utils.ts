@@ -1,6 +1,54 @@
 import { calculateLoopAPY, YieldsData } from '~/containers/Yields/queries/index'
 import { attributeOptions, attributeOptionsMap } from './Filters/Attributes'
 
+// Tokenized Gold tokens - universally allowed on all chains
+export const TOKENIZED_GOLD_UNIVERSAL = new Set([
+	'paxg', // Pax Gold
+	'xaut', // Tether Gold
+	'xaut0', // Tether Gold (some chains)
+	'dgld', // Digital Gold
+	'gldt' // Gold Token (ICP)
+])
+
+export const TOKENIZED_SILVER_UNIVERSAL = new Set([
+	'xag', // Silver (standard symbol)
+	'xags', // Silver variant
+	'slvr' // Silver token
+])
+
+// Generic tokens that are only legitimate on specific chains
+// These would match meme coins on Solana, so we restrict them
+export const CHAIN_RESTRICTED_GOLD = new Map<string, Set<string>>([
+	['gold', new Set(['Algorand', 'Ethereum', 'Base', 'Arbitrum', 'Polygon', 'Optimism'])]
+])
+
+export const CHAIN_RESTRICTED_SILVER = new Map<string, Set<string>>([
+	['silver', new Set(['Algorand', 'Ethereum', 'Base', 'Arbitrum', 'Polygon', 'Optimism'])]
+])
+
+const tokenMatchesGoldWhitelist = (token: string, chain?: string): boolean => {
+	if (TOKENIZED_GOLD_UNIVERSAL.has(token)) return true
+	const allowedChains = CHAIN_RESTRICTED_GOLD.get(token)
+	if (allowedChains && chain && allowedChains.has(chain)) return true
+	return false
+}
+
+const tokenMatchesSilverWhitelist = (token: string, chain?: string): boolean => {
+	if (TOKENIZED_SILVER_UNIVERSAL.has(token)) return true
+	const allowedChains = CHAIN_RESTRICTED_SILVER.get(token)
+	if (allowedChains && chain && allowedChains.has(chain)) return true
+	return false
+}
+
+const tokenMatchesCommoditiesWhitelist = (token: string, chain?: string): boolean => {
+	return tokenMatchesGoldWhitelist(token, chain) || tokenMatchesSilverWhitelist(token, chain)
+}
+
+// Legacy exports for backward compatibility (without chain restriction)
+export const TOKENIZED_GOLD = new Set([...TOKENIZED_GOLD_UNIVERSAL, ...CHAIN_RESTRICTED_GOLD.keys()])
+export const TOKENIZED_SILVER = new Set([...TOKENIZED_SILVER_UNIVERSAL, ...CHAIN_RESTRICTED_SILVER.keys()])
+export const TOKENIZED_COMMODITIES = new Set([...TOKENIZED_GOLD, ...TOKENIZED_SILVER])
+
 interface IToFilterPool {
 	curr: YieldsData['props']['pools'][number]
 	selectedProjectsSet: Set<string>
@@ -99,6 +147,12 @@ export function toFilterPool({
 								tokensInPool.length > 0 &&
 								tokensInPool.every((sym) => usdPeggedSymbols.some((usd) => sym.includes(usd)))
 							)
+						} else if (token === 'all_gold') {
+							// Match whitelisted tokenized gold tokens only (with chain restriction for generic tokens)
+							return tokensInPool.some((x) => tokenMatchesGoldWhitelist(x, curr.chain))
+						} else if (token === 'all_tokenized_commodities') {
+							// Match whitelisted tokenized commodities (gold + silver, with chain restriction)
+							return tokensInPool.some((x) => tokenMatchesCommoditiesWhitelist(x, curr.chain))
 						} else if (tokensInPool.some((x) => x.includes(token))) {
 							return true
 						} else if (token === 'eth') {
@@ -424,21 +478,31 @@ export const findStrategyPoolsFR = ({ token, filteredPools, perps }) => {
 	const pools = filteredPools.filter((p) => {
 		// remove poolMeta from symbol string
 		const farmSymbol = p.symbol.replace(/ *\([^)]*\) */g, '')
+		const matchToken = (t: string, symbol: string, isStablecoin: boolean, chain?: string) => {
+			if (t === 'ALL_USD_STABLES') return isStablecoin
+			if (t === 'ALL_BITCOINS') return symbol.includes('BTC')
+			if (t === 'ALL_GOLD') {
+				// Check if any token in the symbol matches the gold whitelist (with chain restriction)
+				const tokens = symbol
+					.toLowerCase()
+					.split('-')
+					.map((x) => x.trim())
+				return tokens.some((token) => tokenMatchesGoldWhitelist(token, chain))
+			}
+			if (t === 'ALL_TOKENIZED_COMMODITIES') {
+				// Check if any token in the symbol matches the commodities whitelist (with chain restriction)
+				const tokens = symbol
+					.toLowerCase()
+					.split('-')
+					.map((x) => x.trim())
+				return tokens.some((token) => tokenMatchesCommoditiesWhitelist(token, chain))
+			}
+			return symbol.includes(t)
+		}
+
 		return (
-			tokensToInclude?.some((t) =>
-				t === 'ALL_USD_STABLES'
-					? p.stablecoin
-					: t === 'ALL_BITCOINS'
-						? farmSymbol.includes('BTC')
-						: farmSymbol.includes(t)
-			) &&
-			!tokensToExclude?.some((t) =>
-				t === 'ALL_USD_STABLES'
-					? p.stablecoin
-					: t === 'ALL_BITCOINS'
-						? farmSymbol.includes('BTC')
-						: farmSymbol.includes(t)
-			) &&
+			tokensToInclude?.some((t) => matchToken(t, farmSymbol, p.stablecoin, p.chain)) &&
+			!tokensToExclude?.some((t) => matchToken(t, farmSymbol, p.stablecoin, p.chain)) &&
 			p.apy > 0
 		)
 	})

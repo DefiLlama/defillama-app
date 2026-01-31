@@ -4,6 +4,7 @@ export interface IDropdownMenusProps {
 	selectedTokens?: Array<string>
 	chainList?: Array<string>
 	selectedChains?: Array<string>
+	evmChains?: Array<string>
 	projectList?: Array<string>
 	selectedProjects?: Array<string>
 	lendingProtocols?: Array<string>
