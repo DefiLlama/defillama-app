@@ -55,10 +55,10 @@ const columns: ColumnDef<IRWAChainsOverviewRow>[] = [
 	},
 	{
 		id: 'totalAssetsCount',
-		header: definitions.totalAssetsCount.label,
-		accessorKey: 'totalAssetsCount',
+		header: definitions.totalAssetCount.label,
+		accessorKey: 'totalAssetCount',
 		cell: (info) => formattedNum(info.getValue() as number, false),
-		meta: { align: 'end', headerHelperText: definitions.totalAssetsCount.description },
+		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
 		size: 180
 	},
 	{
@@ -116,14 +116,14 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 				(includeStablecoins ? row.stablecoinDefiActiveTvl : 0) +
 				(includeGovernance ? row.governanceDefiActiveTvl : 0)
 
-			let totalAssetsCount = row.totalAssetsCount
+			let totalAssetCount = row.totalAssetCount
 			let totalAssetIssuers = row.totalAssetIssuers
 			if (includeStablecoins) {
-				totalAssetsCount += row.totalAssetsCountWithStablecoins
+				totalAssetCount += row.totalAssetCountWithStablecoins
 				totalAssetIssuers += row.totalAssetIssuersWithStablecoins
 			}
 			if (includeGovernance) {
-				totalAssetsCount += row.totalAssetsCountWithGovernance
+				totalAssetCount += row.totalAssetCountWithGovernance
 				totalAssetIssuers += row.totalAssetIssuersWithGovernance
 			}
 
@@ -133,7 +133,7 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 				totalActiveMarketcap,
 				totalDefiActiveTvl,
 				totalAssetIssuers,
-				totalAssetsCount
+				totalAssetCount
 			}
 		})
 	}, [chains, includeGovernance, includeStablecoins])

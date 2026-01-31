@@ -40,10 +40,10 @@ const columns: ColumnDef<IRWAPlatformsOverviewRow>[] = [
 	},
 	{
 		id: 'totalAssetsCount',
-		header: definitions.totalAssetsCount.label,
+		header: definitions.totalAssetCount.label,
 		accessorKey: 'totalAssetsCount',
 		cell: (info) => formattedNum(info.getValue() as number, false),
-		meta: { align: 'end', headerHelperText: definitions.totalAssetsCount.description },
+		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
 		size: 180
 	},
 	{

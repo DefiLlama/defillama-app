@@ -52,7 +52,7 @@ interface IRWAStatsResponse {
 			activeMcap: number
 			defiActiveTvl: number
 			assetsCount: number
-			assetsIssuers: number
+			assetIssuers: number
 		}
 	>
 	byCategory: Record<
@@ -62,7 +62,7 @@ interface IRWAStatsResponse {
 			activeMcap: number
 			defiActiveTvl: number
 			assetsCount: number
-			assetsIssuers: number
+			assetIssuers: number
 		}
 	>
 	byPlatform?: Record<
@@ -72,7 +72,7 @@ interface IRWAStatsResponse {
 			activeMcap: number
 			defiActiveTvl: number
 			assetsCount: number
-			assetsIssuers: number
+			assetIssuers: number
 		}
 	>
 }
@@ -149,7 +149,7 @@ export interface IRWAChainsOverviewRow {
 	totalActiveMarketcap: number
 	totalDefiActiveTvl: number
 	totalAssetIssuers: number
-	totalAssetsCount: number
+	totalAssetCount: number
 	stablecoinOnChainMarketcap: number
 	governanceOnChainMarketcap: number
 	stablecoinActiveMarketcap: number
@@ -158,8 +158,8 @@ export interface IRWAChainsOverviewRow {
 	governanceDefiActiveTvl: number
 	totalAssetIssuersWithStablecoins: number
 	totalAssetIssuersWithGovernance: number
-	totalAssetsCountWithStablecoins: number
-	totalAssetsCountWithGovernance: number
+	totalAssetCountWithStablecoins: number
+	totalAssetCountWithGovernance: number
 }
 
 export interface IRWACategoriesOverviewRow {
@@ -168,7 +168,7 @@ export interface IRWACategoriesOverviewRow {
 	totalActiveMarketcap: number
 	totalDefiActiveTvl: number
 	totalAssetIssuers: number
-	totalAssetsCount: number
+	totalAssetCount: number
 }
 
 export interface IRWAPlatformsOverviewRow {
@@ -177,7 +177,7 @@ export interface IRWAPlatformsOverviewRow {
 	totalActiveMarketcap: number
 	totalDefiActiveTvl: number
 	totalAssetIssuers: number
-	totalAssetsCount: number
+	totalAssetCount: number
 }
 
 const stablecoinCategories = ['Fiat-Backed Stablecoins', 'Stablecoins backed by RWAs', 'Non-RWA Stablecoins']
@@ -603,8 +603,8 @@ export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[]> {
 			totalOnChainMarketcap: safeNumber(stats.mcap),
 			totalActiveMarketcap: safeNumber(stats.activeMcap),
 			totalDefiActiveTvl: safeNumber(stats.defiActiveTvl),
-			totalAssetIssuers: safeNumber(stats.assetsIssuers),
-			totalAssetsCount: safeNumber(stats.assetsCount),
+			totalAssetIssuers: safeNumber(stats.assetIssuers),
+			totalAssetCount: safeNumber(stats.assetsCount),
 			stablecoinOnChainMarketcap: 0,
 			governanceOnChainMarketcap: 0,
 			stablecoinActiveMarketcap: 0,
@@ -613,8 +613,8 @@ export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[]> {
 			governanceDefiActiveTvl: 0,
 			totalAssetIssuersWithStablecoins: 0,
 			totalAssetIssuersWithGovernance: 0,
-			totalAssetsCountWithStablecoins: 0,
-			totalAssetsCountWithGovernance: 0
+			totalAssetCountWithStablecoins: 0,
+			totalAssetCountWithGovernance: 0
 		})
 	}
 
@@ -636,8 +636,8 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 			totalOnChainMarketcap: safeNumber(stats.mcap),
 			totalActiveMarketcap: safeNumber(stats.activeMcap),
 			totalDefiActiveTvl: safeNumber(stats.defiActiveTvl),
-			totalAssetIssuers: safeNumber(stats.assetsIssuers),
-			totalAssetsCount: safeNumber(stats.assetsCount)
+			totalAssetIssuers: safeNumber(stats.assetIssuers),
+			totalAssetCount: safeNumber(stats.assetsCount)
 		})
 	}
 
@@ -659,8 +659,8 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRo
 			totalOnChainMarketcap: safeNumber(stats.mcap),
 			totalActiveMarketcap: safeNumber(stats.activeMcap),
 			totalDefiActiveTvl: safeNumber(stats.defiActiveTvl),
-			totalAssetIssuers: safeNumber(stats.assetsIssuers),
-			totalAssetsCount: safeNumber(stats.assetsCount)
+			totalAssetIssuers: safeNumber(stats.assetIssuers),
+			totalAssetCount: safeNumber(stats.assetsCount)
 		})
 	}
 
