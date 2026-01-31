@@ -121,8 +121,10 @@ export async function getPeggedOverviewPageData(chain) {
 		let lastTimestamp = 0
 		const doublecountedIds = []
 		chartDataByPeggedAsset = peggedAssets.map((elem, i) => {
-			if (peggedAssetNamesSet.has(elem.symbol)) peggedAssetNamesSet.add(`${elem.name}`)
-			else peggedAssetNamesSet.add(elem.symbol)
+			let key = elem.symbol
+			if (peggedAssetNamesSet.has(key)) key = elem.name
+			if (!peggedAssetNamesSet.has(key)) peggedAssetNamesSet.add(key)
+			else peggedAssetNamesSet.add(elem.gecko_id)
 
 			peggedNameToChartDataIndex[elem.name] = i
 			let charts = breakdown[elem.id] ?? []
