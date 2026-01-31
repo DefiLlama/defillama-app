@@ -40,41 +40,41 @@ const columns: ColumnDef<IRWACategoriesOverviewRow>[] = [
 		size: 240
 	},
 	{
-		id: 'totalAssetIssuers',
+		id: 'assetIssuers',
 		header: definitions.totalAssetIssuers.label,
-		accessorKey: 'totalAssetIssuers',
+		accessorKey: 'assetIssuers',
 		cell: (info) => formattedNum(info.getValue() as number, false),
 		meta: { align: 'end', headerHelperText: definitions.totalAssetIssuers.description },
 		size: 168
 	},
 	{
-		id: 'totalAssetCount',
+		id: 'assetCount',
 		header: definitions.totalAssetCount.label,
-		accessorKey: 'totalAssetCount',
+		accessorKey: 'assetCount',
 		cell: (info) => formattedNum(info.getValue() as number, false),
 		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
 		size: 148
 	},
 	{
-		id: 'totalDefiActiveTvl',
+		id: 'defiActiveTvl',
 		header: definitions.totalDefiActiveTvl.label,
-		accessorKey: 'totalDefiActiveTvl',
+		accessorKey: 'defiActiveTvl',
 		cell: (info) => formattedNum(info.getValue() as number, true),
 		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
 		size: 148
 	},
 	{
-		id: 'totalActiveMcap',
+		id: 'activeMcap',
 		header: definitions.totalActiveMcap.label,
-		accessorKey: 'totalActiveMcap',
+		accessorKey: 'activeMcap',
 		cell: (info) => formattedNum(info.getValue() as number, true),
 		meta: { align: 'end', headerHelperText: definitions.totalActiveMcap.description },
 		size: 228
 	},
 	{
-		id: 'totalOnChainMcap',
+		id: 'onChainMcap',
 		header: definitions.totalOnChainMcap.label,
-		accessorKey: 'totalOnChainMcap',
+		accessorKey: 'onChainMcap',
 		cell: (info) => formattedNum(info.getValue() as number, true),
 		meta: { align: 'end', headerHelperText: definitions.totalOnChainMcap.description },
 		size: 168
@@ -113,7 +113,7 @@ export function RWACategoriesTable({ categories }: { categories: IRWACategoriesO
 					}}
 				/>
 			)}
-			sortingState={[{ id: 'totalOnChainMcap', desc: true }]}
+			sortingState={[{ id: 'onChainMcap', desc: true }]}
 		/>
 	)
 }

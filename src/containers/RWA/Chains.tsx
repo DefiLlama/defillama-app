@@ -21,7 +21,14 @@ type RWADefinitions = typeof rwaDefinitionsJson & {
 
 const definitions = rwaDefinitionsJson as RWADefinitions
 
-const columns: ColumnDef<IRWAChainsOverviewRow>[] = [
+const columns: ColumnDef<{
+	chain: string
+	totalOnChainMcap: number
+	totalActiveMcap: number
+	totalDefiActiveTvl: number
+	totalAssetIssuers: number
+	totalAssetCount: number
+}>[] = [
 	{
 		id: 'chain',
 		header: 'Name',
@@ -98,41 +105,70 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 	const onToggleStablecoins = useCallback(() => setIncludeStablecoins((v) => !v), [])
 	const onToggleGovernance = useCallback(() => setIncludeGovernance((v) => !v), [])
 
-	const data = useMemo<IRWAChainsOverviewRow[]>(() => {
+	const data = useMemo(() => {
 		return chains.map((row) => {
-			const totalOnChainMcap =
-				row.totalOnChainMcap +
-				(includeStablecoins ? row.stablecoinOnChainMcap : 0) +
-				(includeGovernance ? row.governanceOnChainMcap : 0)
+			// let totalOnChainMcap = row.base.onChainMcap
+			// if (includeStablecoins) {
+			// 	totalOnChainMcap += row.stablecoinsOnly.onChainMcap
+			// }
+			// if (includeGovernance) {
+			// 	totalOnChainMcap += row.governanceOnly.onChainMcap
+			// }
+			// if (includeStablecoins || includeGovernance) {
+			// 	totalOnChainMcap += row.stablecoinsAndGovernance.onChainMcap
+			// }
 
-			const totalActiveMcap =
-				row.totalActiveMcap +
-				(includeStablecoins ? row.stablecoinActiveMcap : 0) +
-				(includeGovernance ? row.governanceActiveMcap : 0)
+			// let totalActiveMcap = row.base.activeMcap
+			// if (includeStablecoins) {
+			// 	totalActiveMcap += row.stablecoinsOnly.activeMcap
+			// }
+			// if (includeGovernance) {
+			// 	totalActiveMcap += row.governanceOnly.activeMcap
+			// }
+			// if (includeStablecoins || includeGovernance) {
+			// 	totalActiveMcap += row.stablecoinsAndGovernance.activeMcap
+			// }
 
-			const totalDefiActiveTvl =
-				row.totalDefiActiveTvl +
-				(includeStablecoins ? row.stablecoinDefiActiveTvl : 0) +
-				(includeGovernance ? row.governanceDefiActiveTvl : 0)
+			// let totalDefiActiveTvl = row.base.defiActiveTvl
+			// if (includeStablecoins) {
+			// 	totalDefiActiveTvl += row.stablecoinsOnly.defiActiveTvl
+			// }
+			// if (includeGovernance) {
+			// 	totalDefiActiveTvl += row.governanceOnly.defiActiveTvl
+			// }
+			// if (includeStablecoins || includeGovernance) {
+			// 	totalDefiActiveTvl += row.stablecoinsAndGovernance.defiActiveTvl
+			// }
 
-			let totalAssetCount = row.totalAssetCount
-			let totalAssetIssuers = row.totalAssetIssuers
-			if (includeStablecoins) {
-				totalAssetCount += row.totalAssetCountWithStablecoins
-				totalAssetIssuers += row.totalAssetIssuersWithStablecoins
-			}
-			if (includeGovernance) {
-				totalAssetCount += row.totalAssetCountWithGovernance
-				totalAssetIssuers += row.totalAssetIssuersWithGovernance
-			}
+			// let totalAssetCount = row.base.assetCount
+			// if (includeStablecoins) {
+			// 	totalAssetCount += row.stablecoinsOnly.assetCount
+			// }
+			// if (includeGovernance) {
+			// 	totalAssetCount += row.governanceOnly.assetCount
+			// }
+			// if (includeStablecoins || includeGovernance) {
+			// 	totalAssetCount += row.stablecoinsAndGovernance.assetCount
+			// }
+
+			// let totalAssetIssuers = row.base.assetIssuers
+			// if (includeStablecoins) {
+			// 	totalAssetIssuers += row.stablecoinsOnly.assetIssuers
+			// }
+			// if (includeGovernance) {
+			// 	totalAssetIssuers += row.governanceOnly.assetIssuers
+			// }
+			// if (includeStablecoins || includeGovernance) {
+			// 	totalAssetIssuers += row.stablecoinsAndGovernance.assetIssuers
+			// }
 
 			return {
-				...row,
-				totalOnChainMcap,
-				totalActiveMcap,
-				totalDefiActiveTvl,
-				totalAssetIssuers,
-				totalAssetCount
+				chain: row.chain,
+				totalOnChainMcap: 0,
+				totalActiveMcap: 0,
+				totalDefiActiveTvl: 0,
+				totalAssetIssuers: 0,
+				totalAssetCount: 0
 			}
 		})
 	}, [chains, includeGovernance, includeStablecoins])

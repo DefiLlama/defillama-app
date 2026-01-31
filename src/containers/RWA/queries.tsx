@@ -40,24 +40,48 @@ interface IFetchedRWAProject {
 }
 
 interface IRWAStatsResponse {
-	totalMcap: number
+	totalOnChainMcap: number
 	totalActiveMcap: number
 	totalDefiActiveTvl: number
 	totalAssets: number
+	totalIssuers: number
 	byChain: Record<
 		string,
 		{
-			mcap: number
-			activeMcap: number
-			defiActiveTvl: number
-			assetCount: number
-			assetIssuers: number
+			base: {
+				onChainMcap: number
+				activeMcap: number
+				defiActiveTvl: number
+				assetCount: number
+				assetIssuers: number
+			}
+			stablecoinsOnly: {
+				onChainMcap: number
+				activeMcap: number
+				defiActiveTvl: number
+				assetCount: number
+				assetIssuers: number
+			}
+			governanceOnly: {
+				onChainMcap: number
+				activeMcap: number
+				defiActiveTvl: number
+				assetCount: number
+				assetIssuers: number
+			}
+			stablecoinsAndGovernance: {
+				onChainMcap: number
+				activeMcap: number
+				defiActiveTvl: number
+				assetCount: number
+				assetIssuers: number
+			}
 		}
 	>
 	byCategory: Record<
 		string,
 		{
-			mcap: number
+			onChainMcap: number
 			activeMcap: number
 			defiActiveTvl: number
 			assetCount: number
@@ -67,7 +91,7 @@ interface IRWAStatsResponse {
 	byPlatform?: Record<
 		string,
 		{
-			mcap: number
+			onChainMcap: number
 			activeMcap: number
 			defiActiveTvl: number
 			assetCount: number
@@ -125,39 +149,52 @@ export interface IRWAAssetsOverview {
 
 export interface IRWAChainsOverviewRow {
 	chain: string
-	totalOnChainMcap: number
-	totalActiveMcap: number
-	totalDefiActiveTvl: number
-	totalAssetIssuers: number
-	totalAssetCount: number
-	stablecoinOnChainMcap: number
-	governanceOnChainMcap: number
-	stablecoinActiveMcap: number
-	governanceActiveMcap: number
-	stablecoinDefiActiveTvl: number
-	governanceDefiActiveTvl: number
-	totalAssetIssuersWithStablecoins: number
-	totalAssetIssuersWithGovernance: number
-	totalAssetCountWithStablecoins: number
-	totalAssetCountWithGovernance: number
+	base: {
+		onChainMcap: number
+		activeMcap: number
+		defiActiveTvl: number
+		assetCount: number
+		assetIssuers: number
+	}
+	stablecoinsOnly: {
+		onChainMcap: number
+		activeMcap: number
+		defiActiveTvl: number
+		assetCount: number
+		assetIssuers: number
+	}
+	governanceOnly: {
+		onChainMcap: number
+		activeMcap: number
+		defiActiveTvl: number
+		assetCount: number
+		assetIssuers: number
+	}
+	stablecoinsAndGovernance: {
+		onChainMcap: number
+		activeMcap: number
+		defiActiveTvl: number
+		assetCount: number
+		assetIssuers: number
+	}
 }
 
 export interface IRWACategoriesOverviewRow {
 	category: string
-	totalOnChainMcap: number
-	totalActiveMcap: number
-	totalDefiActiveTvl: number
-	totalAssetIssuers: number
-	totalAssetCount: number
+	onChainMcap: number
+	activeMcap: number
+	defiActiveTvl: number
+	assetIssuers: number
+	assetCount: number
 }
 
 export interface IRWAPlatformsOverviewRow {
 	platform: string
-	totalOnChainMcap: number
-	totalActiveMcap: number
-	totalDefiActiveTvl: number
-	totalAssetIssuers: number
-	totalAssetCount: number
+	onChainMcap: number
+	activeMcap: number
+	defiActiveTvl: number
+	assetIssuers: number
+	assetCount: number
 }
 
 const stablecoinCategories = ['Fiat-Backed Stablecoins', 'Stablecoins backed by RWAs', 'Non-RWA Stablecoins']
@@ -280,6 +317,9 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			const finalDeFiActiveTvlBreakdown: Record<string, number> = {}
 			const finalDeFiActiveTvlBreakdownFiltered: Record<string, number> = {}
 			const isChainFiltered = !!selectedChain
+			let hasSelectedChainInOnChainMcap = false
+			let hasSelectedChainInActiveMcap = false
+			let hasSelectedChainInDeFiActiveTvl = false
 			const hasCategoryMatch = selectedCategory
 				? (item.category ?? []).some((c) => c && rwaSlug(c) === selectedCategory)
 				: true
@@ -292,6 +332,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				finalOnChainMcapBreakdown[chain] = (finalOnChainMcapBreakdown[chain] || 0) + value
 				totalOnChainMcapForAsset += value
 				if (selectedChain && rwaSlug(chain) === selectedChain) {
+					hasSelectedChainInOnChainMcap = true
 					filteredOnChainMcapForAsset += value
 				}
 			}
@@ -319,12 +360,17 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				finalActiveMcapBreakdown[chain] = (finalActiveMcapBreakdown[chain] || 0) + value
 				totalActiveMcapForAsset += value
 				if (selectedChain && rwaSlug(chain) === selectedChain) {
+					hasSelectedChainInActiveMcap = true
 					filteredActiveMcapForAsset += value
 				}
 			}
 
 			for (const chain in defiActiveTvlBreakdown) {
 				const isSelectedChain = !isChainFiltered || rwaSlug(chain) === selectedChain
+				if (selectedChain && isSelectedChain) {
+					// Chain exists as a key in the object, even if its value totals to 0.
+					hasSelectedChainInDeFiActiveTvl = true
+				}
 				for (const protocolName in defiActiveTvlBreakdown[chain]) {
 					const value = safeNumber(defiActiveTvlBreakdown[chain][protocolName])
 					finalDeFiActiveTvlBreakdown[protocolName] = (finalDeFiActiveTvlBreakdown[protocolName] || 0) + value
@@ -339,7 +385,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 
 			// Check if asset has actual TVL on the selected chain (from TVL data, not just chain array)
 			const hasChainInTvl = selectedChain
-				? filteredOnChainMcapForAsset > 0 || filteredActiveMcapForAsset > 0 || filteredDeFiActiveTvlForAsset > 0
+				? hasSelectedChainInOnChainMcap || hasSelectedChainInActiveMcap || hasSelectedChainInDeFiActiveTvl
 				: true
 
 			// Use filtered values if chain is selected, otherwise use totals
@@ -532,26 +578,12 @@ export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[]> {
 		const stats = data.byChain[chain]
 
 		rows.push({
-			chain,
-			totalOnChainMcap: safeNumber(stats.mcap),
-			totalActiveMcap: safeNumber(stats.activeMcap),
-			totalDefiActiveTvl: safeNumber(stats.defiActiveTvl),
-			totalAssetIssuers: safeNumber(stats.assetIssuers),
-			totalAssetCount: safeNumber(stats.assetCount),
-			stablecoinOnChainMcap: 0,
-			governanceOnChainMcap: 0,
-			stablecoinActiveMcap: 0,
-			governanceActiveMcap: 0,
-			stablecoinDefiActiveTvl: 0,
-			governanceDefiActiveTvl: 0,
-			totalAssetIssuersWithStablecoins: 0,
-			totalAssetIssuersWithGovernance: 0,
-			totalAssetCountWithStablecoins: 0,
-			totalAssetCountWithGovernance: 0
+			...stats,
+			chain
 		})
 	}
 
-	return rows.sort((a, b) => b.totalOnChainMcap - a.totalOnChainMcap)
+	return rows.sort((a, b) => (b.base?.onChainMcap ?? 0) - (a.base?.onChainMcap ?? 0))
 }
 
 export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverviewRow[]> {
@@ -565,16 +597,12 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 		const stats = data.byCategory[category]
 
 		rows.push({
-			category,
-			totalOnChainMcap: safeNumber(stats.mcap),
-			totalActiveMcap: safeNumber(stats.activeMcap),
-			totalDefiActiveTvl: safeNumber(stats.defiActiveTvl),
-			totalAssetIssuers: safeNumber(stats.assetIssuers),
-			totalAssetCount: safeNumber(stats.assetCount)
+			...stats,
+			category
 		})
 	}
 
-	return rows.sort((a, b) => b.totalOnChainMcap - a.totalOnChainMcap)
+	return rows.sort((a, b) => b.onChainMcap - a.onChainMcap)
 }
 
 export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRow[]> {
@@ -588,16 +616,12 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRo
 		const stats = data.byPlatform[platform]
 
 		rows.push({
-			platform,
-			totalOnChainMcap: safeNumber(stats.mcap),
-			totalActiveMcap: safeNumber(stats.activeMcap),
-			totalDefiActiveTvl: safeNumber(stats.defiActiveTvl),
-			totalAssetIssuers: safeNumber(stats.assetIssuers),
-			totalAssetCount: safeNumber(stats.assetCount)
+			...stats,
+			platform
 		})
 	}
 
-	return rows.sort((a, b) => b.totalOnChainMcap - a.totalOnChainMcap)
+	return rows.sort((a, b) => b.onChainMcap - a.onChainMcap)
 }
 
 export interface IRWAAssetData extends IRWAProject {

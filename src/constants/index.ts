@@ -170,10 +170,10 @@ export const RWA_STATS_API_OLD = 'https://api.llama.fi/rwa/stats'
 export const TRADFI_API = process.env.TRADFI_API ?? 'https://api.llama.fi/tradfi'
 
 export const RWA_SERVER_URL = process.env.RWA_SERVER_URL ?? 'https://api.llama.fi/rwa'
-export const RWA_ACTIVE_TVLS_API = `${RWA_SERVER_URL}/current?x=11`
-export const RWA_STATS_API = `${RWA_SERVER_URL}/stats?x=11`
-export const RWA_ID_MAP_API = `${RWA_SERVER_URL}/id-map?x=11`
-export const RWA_LIST_API = `${RWA_SERVER_URL}/list?x=11`
+export const RWA_ACTIVE_TVLS_API = `${RWA_SERVER_URL}/current?z=0`
+export const RWA_STATS_API = `${RWA_SERVER_URL}/stats?z=0`
+export const RWA_ID_MAP_API = `${RWA_SERVER_URL}/id-map?z=0`
+export const RWA_LIST_API = `${RWA_SERVER_URL}/list?z=0`
 
 export const MCP_SERVER = 'https://mcp.llama.fi'
 export const SEARCH_API_URL = 'https://search.defillama.com/multi-search'
