@@ -21,11 +21,7 @@ import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/
 import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import {
-	CHAINS_CATEGORY_GROUP_SETTINGS,
-	isChainsCategoryGroupKey,
-	useLocalStorageSettingsManager
-} from '~/contexts/LocalStorage'
+import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
 import { definitions } from '~/public/definitions'

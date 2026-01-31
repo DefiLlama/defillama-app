@@ -9,10 +9,9 @@ import type { IRWACategoriesOverviewRow } from './queries'
 import { rwaSlug } from './rwaSlug'
 
 type RWADefinitions = typeof rwaDefinitionsJson & {
-	totalOnChainMarketcap: { label: string; description: string }
-	totalActiveMarketcap: { label: string; description: string }
+	totalOnChainMcap: { label: string; description: string }
+	totalActiveMcap: { label: string; description: string }
 	totalAssetIssuers: { label: string; description: string }
-	totalStablecoinsValue: { label: string; description: string }
 	totalDefiActiveTvl: { label: string; description: string }
 }
 
@@ -65,19 +64,19 @@ const columns: ColumnDef<IRWACategoriesOverviewRow>[] = [
 		size: 148
 	},
 	{
-		id: 'totalActiveMarketcap',
-		header: definitions.totalActiveMarketcap.label,
-		accessorKey: 'totalActiveMarketcap',
+		id: 'totalActiveMcap',
+		header: definitions.totalActiveMcap.label,
+		accessorKey: 'totalActiveMcap',
 		cell: (info) => formattedNum(info.getValue() as number, true),
-		meta: { align: 'end', headerHelperText: definitions.totalActiveMarketcap.description },
+		meta: { align: 'end', headerHelperText: definitions.totalActiveMcap.description },
 		size: 228
 	},
 	{
-		id: 'totalOnChainMarketcap',
-		header: definitions.totalOnChainMarketcap.label,
-		accessorKey: 'totalOnChainMarketcap',
+		id: 'totalOnChainMcap',
+		header: definitions.totalOnChainMcap.label,
+		accessorKey: 'totalOnChainMcap',
 		cell: (info) => formattedNum(info.getValue() as number, true),
-		meta: { align: 'end', headerHelperText: definitions.totalOnChainMarketcap.description },
+		meta: { align: 'end', headerHelperText: definitions.totalOnChainMcap.description },
 		size: 168
 	}
 ]
@@ -114,7 +113,7 @@ export function RWACategoriesTable({ categories }: { categories: IRWACategoriesO
 					}}
 				/>
 			)}
-			sortingState={[{ id: 'totalOnChainMarketcap', desc: true }]}
+			sortingState={[{ id: 'totalOnChainMcap', desc: true }]}
 		/>
 	)
 }

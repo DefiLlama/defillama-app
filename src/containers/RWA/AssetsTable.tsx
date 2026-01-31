@@ -38,7 +38,7 @@ export function RWAAssetsTable({
 	selectedChain: string
 }) {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = useState<SortingState>([{ id: 'onChainMarketcap.total', desc: true }])
+	const [sorting, setSorting] = useState<SortingState>([{ id: 'onChainMcap.total', desc: true }])
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
@@ -113,8 +113,8 @@ export function RWAAssetsTable({
 			definitions.category.label,
 			definitions.assetClass.label,
 			definitions.defiActiveTvl.label,
-			definitions.activeMarketcap.label,
-			definitions.onChainMarketcap.label,
+			definitions.activeMcap.label,
+			definitions.onChainMcap.label,
 			'Token Price',
 			definitions.issuer.label,
 			definitions.redeemable.label,
@@ -136,8 +136,8 @@ export function RWAAssetsTable({
 				asset.category?.join(', ') ?? '',
 				asset.assetClass?.join(', ') ?? '',
 				asset.defiActiveTvl.total ?? '',
-				asset.activeMarketcap.total ?? '',
-				asset.onChainMarketcap.total ?? '',
+				asset.activeMcap.total ?? '',
+				asset.onChainMcap.total ?? '',
 				asset.price != null ? formattedNum(asset.price, true) : '',
 				asset.issuer ?? '',
 				asset.redeemable != null ? (asset.redeemable ? 'Yes' : 'No') : '',
@@ -411,27 +411,27 @@ const columns: ColumnDef<AssetRow>[] = [
 		}
 	},
 	{
-		id: 'activeMarketcap.total',
-		header: definitions.activeMarketcap.label,
-		accessorFn: (asset) => asset.activeMarketcap.total,
+		id: 'activeMcap.total',
+		header: definitions.activeMcap.label,
+		accessorFn: (asset) => asset.activeMcap.total,
 		cell: (info) => (
-			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.activeMarketcap.breakdown} />
+			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.activeMcap.breakdown} />
 		),
 		meta: {
-			headerHelperText: definitions.activeMarketcap.description,
+			headerHelperText: definitions.activeMcap.description,
 			align: 'end'
 		}
 	},
 	{
-		id: 'onChainMarketcap.total',
-		header: definitions.onChainMarketcap.label,
-		accessorFn: (asset) => asset.onChainMarketcap.total,
+		id: 'onChainMcap.total',
+		header: definitions.onChainMcap.label,
+		accessorFn: (asset) => asset.onChainMcap.total,
 		cell: (info) => (
-			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.onChainMarketcap.breakdown} />
+			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.onChainMcap.breakdown} />
 		),
 		size: 168,
 		meta: {
-			headerHelperText: definitions.onChainMarketcap.description,
+			headerHelperText: definitions.onChainMcap.description,
 			align: 'end'
 		}
 	},

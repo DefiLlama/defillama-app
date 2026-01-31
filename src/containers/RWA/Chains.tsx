@@ -13,10 +13,9 @@ import type { IRWAChainsOverviewRow } from './queries'
 import { rwaSlug } from './rwaSlug'
 
 type RWADefinitions = typeof rwaDefinitionsJson & {
-	totalOnChainMarketcap: { label: string; description: string }
-	totalActiveMarketcap: { label: string; description: string }
+	totalOnChainMcap: { label: string; description: string }
+	totalActiveMcap: { label: string; description: string }
 	totalAssetIssuers: { label: string; description: string }
-	totalStablecoinsValue: { label: string; description: string }
 	totalDefiActiveTvl: { label: string; description: string }
 }
 
@@ -70,19 +69,19 @@ const columns: ColumnDef<IRWAChainsOverviewRow>[] = [
 		size: 148
 	},
 	{
-		id: 'totalActiveMarketcap',
-		header: definitions.totalActiveMarketcap.label,
-		accessorKey: 'totalActiveMarketcap',
+		id: 'totalActiveMcap',
+		header: definitions.totalActiveMcap.label,
+		accessorKey: 'totalActiveMcap',
 		cell: (info) => formattedNum(info.getValue() as number, true),
-		meta: { align: 'end', headerHelperText: definitions.totalActiveMarketcap.description },
+		meta: { align: 'end', headerHelperText: definitions.totalActiveMcap.description },
 		size: 228
 	},
 	{
-		id: 'totalOnChainMarketcap',
-		header: definitions.totalOnChainMarketcap.label,
-		accessorKey: 'totalOnChainMarketcap',
+		id: 'totalOnChainMcap',
+		header: definitions.totalOnChainMcap.label,
+		accessorKey: 'totalOnChainMcap',
 		cell: (info) => formattedNum(info.getValue() as number, true),
-		meta: { align: 'end', headerHelperText: definitions.totalOnChainMarketcap.description },
+		meta: { align: 'end', headerHelperText: definitions.totalOnChainMcap.description },
 		size: 168
 	}
 ]
@@ -101,15 +100,15 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 
 	const data = useMemo<IRWAChainsOverviewRow[]>(() => {
 		return chains.map((row) => {
-			const totalOnChainMarketcap =
-				row.totalOnChainMarketcap +
-				(includeStablecoins ? row.stablecoinOnChainMarketcap : 0) +
-				(includeGovernance ? row.governanceOnChainMarketcap : 0)
+			const totalOnChainMcap =
+				row.totalOnChainMcap +
+				(includeStablecoins ? row.stablecoinOnChainMcap : 0) +
+				(includeGovernance ? row.governanceOnChainMcap : 0)
 
-			const totalActiveMarketcap =
-				row.totalActiveMarketcap +
-				(includeStablecoins ? row.stablecoinActiveMarketcap : 0) +
-				(includeGovernance ? row.governanceActiveMarketcap : 0)
+			const totalActiveMcap =
+				row.totalActiveMcap +
+				(includeStablecoins ? row.stablecoinActiveMcap : 0) +
+				(includeGovernance ? row.governanceActiveMcap : 0)
 
 			const totalDefiActiveTvl =
 				row.totalDefiActiveTvl +
@@ -129,8 +128,8 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 
 			return {
 				...row,
-				totalOnChainMarketcap,
-				totalActiveMarketcap,
+				totalOnChainMcap,
+				totalActiveMcap,
 				totalDefiActiveTvl,
 				totalAssetIssuers,
 				totalAssetCount
@@ -183,7 +182,7 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 					/>
 				</>
 			)}
-			sortingState={[{ id: 'totalOnChainMarketcap', desc: true }]}
+			sortingState={[{ id: 'totalOnChainMcap', desc: true }]}
 		/>
 	)
 }

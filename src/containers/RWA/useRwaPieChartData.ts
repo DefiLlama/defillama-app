@@ -26,8 +26,8 @@ export function useRwaChainPieChartData({
 	return useMemo(() => {
 		if (!enabled) {
 			return {
-				totalOnChainRwaPieChartData: [] as PieChartDatum[],
-				activeMarketcapPieChartData: [] as PieChartDatum[],
+				totalOnChainMcapPieChartData: [] as PieChartDatum[],
+				activeMcapPieChartData: [] as PieChartDatum[],
 				defiActiveTvlPieChartData: [] as PieChartDatum[],
 				pieChartStackColors: {}
 			}
@@ -41,8 +41,8 @@ export function useRwaChainPieChartData({
 				if (!category || !selectedCategoriesSet.has(category)) continue
 
 				const prev = categoryTotals.get(category) ?? { onChain: 0, active: 0, defi: 0 }
-				prev.onChain += asset.onChainMarketcap.total
-				prev.active += asset.activeMarketcap.total
+				prev.onChain += asset.onChainMcap.total
+				prev.active += asset.activeMcap.total
 				prev.defi += asset.defiActiveTvl.total
 				categoryTotals.set(category, prev)
 			}
@@ -55,8 +55,8 @@ export function useRwaChainPieChartData({
 				.sort((a, b) => b.value - a.value)
 
 		return {
-			totalOnChainRwaPieChartData: toSortedChartData('onChain'),
-			activeMarketcapPieChartData: toSortedChartData('active'),
+			totalOnChainMcapPieChartData: toSortedChartData('onChain'),
+			activeMcapPieChartData: toSortedChartData('active'),
 			defiActiveTvlPieChartData: toSortedChartData('defi'),
 			pieChartStackColors
 		}
@@ -77,8 +77,8 @@ export function useRwaCategoryAssetClassPieChartData({
 	return useMemo(() => {
 		if (!enabled) {
 			return {
-				assetClassOnChainPieChartData: [] as PieChartDatum[],
-				assetClassActiveMarketcapPieChartData: [] as PieChartDatum[],
+				assetClassOnChainMcapPieChartData: [] as PieChartDatum[],
+				assetClassActiveMcapPieChartData: [] as PieChartDatum[],
 				assetClassDefiActiveTvlPieChartData: [] as PieChartDatum[],
 				assetClassPieChartStackColors: {}
 			}
@@ -93,8 +93,8 @@ export function useRwaCategoryAssetClassPieChartData({
 				if (!assetClass || !selectedAssetClassesSet.has(assetClass)) continue
 
 				const prev = assetClassTotals.get(assetClass) ?? { onChain: 0, active: 0, defi: 0 }
-				prev.onChain += asset.onChainMarketcap.total
-				prev.active += asset.activeMarketcap.total
+				prev.onChain += asset.onChainMcap.total
+				prev.active += asset.activeMcap.total
 				prev.defi += asset.defiActiveTvl.total
 				assetClassTotals.set(assetClass, prev)
 			}
@@ -107,8 +107,8 @@ export function useRwaCategoryAssetClassPieChartData({
 				.sort((a, b) => b.value - a.value)
 
 		return {
-			assetClassOnChainPieChartData: toSortedChartData('onChain'),
-			assetClassActiveMarketcapPieChartData: toSortedChartData('active'),
+			assetClassOnChainMcapPieChartData: toSortedChartData('onChain'),
+			assetClassActiveMcapPieChartData: toSortedChartData('active'),
 			assetClassDefiActiveTvlPieChartData: toSortedChartData('defi'),
 			assetClassPieChartStackColors
 		}
@@ -131,8 +131,8 @@ export function useRwaAssetNamePieChartData({
 
 		if (!enabled) {
 			return {
-				assetNameOnChainPieChartData: [] as PieChartDatum[],
-				assetNameActiveMarketcapPieChartData: [] as PieChartDatum[],
+				assetNameOnChainMcapPieChartData: [] as PieChartDatum[],
+				assetNameActiveMcapPieChartData: [] as PieChartDatum[],
 				assetNameDefiActiveTvlPieChartData: [] as PieChartDatum[],
 				assetNamePieChartStackColors: {}
 			}
@@ -141,8 +141,8 @@ export function useRwaAssetNamePieChartData({
 		const selectedAssetNamesSet = new Set(selectedAssetNames)
 		if (selectedAssetNamesSet.size === 0) {
 			return {
-				assetNameOnChainPieChartData: [] as PieChartDatum[],
-				assetNameActiveMarketcapPieChartData: [] as PieChartDatum[],
+				assetNameOnChainMcapPieChartData: [] as PieChartDatum[],
+				assetNameActiveMcapPieChartData: [] as PieChartDatum[],
 				assetNameDefiActiveTvlPieChartData: [] as PieChartDatum[],
 				assetNamePieChartStackColors: {}
 			}
@@ -167,8 +167,8 @@ export function useRwaAssetNamePieChartData({
 		for (const asset of selectedAssets) {
 			const name = asset.name?.trim() || asset.ticker?.trim() || UNKNOWN
 			const prev = totals.get(name) ?? { onChain: 0, active: 0, defi: 0 }
-			prev.onChain += asset.onChainMarketcap.total
-			prev.active += asset.activeMarketcap.total
+			prev.onChain += asset.onChainMcap.total
+			prev.active += asset.activeMcap.total
 			prev.defi += asset.defiActiveTvl.total
 			totals.set(name, prev)
 		}
@@ -189,8 +189,8 @@ export function useRwaAssetNamePieChartData({
 			)
 
 		return {
-			assetNameOnChainPieChartData: toSortedChartData('onChain'),
-			assetNameActiveMarketcapPieChartData: toSortedChartData('active'),
+			assetNameOnChainMcapPieChartData: toSortedChartData('onChain'),
+			assetNameActiveMcapPieChartData: toSortedChartData('active'),
 			assetNameDefiActiveTvlPieChartData: toSortedChartData('defi'),
 			assetNamePieChartStackColors
 		}

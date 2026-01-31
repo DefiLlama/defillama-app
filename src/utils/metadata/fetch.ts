@@ -20,7 +20,7 @@ export async function fetchCoreMetadata(): Promise<{
 		fetchJson(CHAINS_DATA_URL),
 		fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
 		fetchJson(CEXS_DATA_URL).then((res) => res.cexs ?? []),
-		fetchJson(`${RWA_SERVER_URL}/list?q=4`).catch(() => ({}))
+		fetchJson(`${RWA_SERVER_URL}/list?x=11`).catch(() => ({}))
 	])
 
 	return { protocols, chains, categoriesAndTags, cexs, rwaList }

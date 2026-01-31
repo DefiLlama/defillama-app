@@ -216,25 +216,21 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			<div className="flex flex-wrap gap-2">
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<Tooltip
-						content={definitions.onChainMarketcap.description}
+						content={definitions.onChainMcap.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
-						{definitions.onChainMarketcap.label}
+						{definitions.onChainMcap.label}
 					</Tooltip>
-					<span className="font-jetbrains text-xl font-semibold">
-						{formattedNum(asset.onChainMarketcap.total, true)}
-					</span>
+					<span className="font-jetbrains text-xl font-semibold">{formattedNum(asset.onChainMcap.total, true)}</span>
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<Tooltip
-						content={definitions.activeMarketcap.description}
+						content={definitions.activeMcap.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
-						{definitions.activeMarketcap.label}
+						{definitions.activeMcap.label}
 					</Tooltip>
-					<span className="font-jetbrains text-xl font-semibold">
-						{formattedNum(asset.activeMarketcap.total, true)}
-					</span>
+					<span className="font-jetbrains text-xl font-semibold">{formattedNum(asset.activeMcap.total, true)}</span>
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<Tooltip

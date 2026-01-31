@@ -19,8 +19,8 @@ import {
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 type RWADefinitions = typeof rwaDefinitionsJson & {
-	totalOnChainMarketcap: { label: string; description: string }
-	totalActiveMarketcap: { label: string; description: string }
+	totalOnChainMcap: { label: string; description: string }
+	totalActiveMcap: { label: string; description: string }
 	totalDefiActiveTvl: { label: string; description: string }
 }
 
@@ -29,7 +29,7 @@ const definitions = rwaDefinitionsJson as RWADefinitions
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const router = useRouter()
 
-	const isChainMode = props.chains.length > 0
+	const isChainMode = props.chainLinks.length > 0
 	const isCategoryMode = props.categoryLinks.length > 0
 	const isPlatformMode = props.platformLinks.length > 0
 
@@ -40,16 +40,16 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
-		minDefiActiveTvlToOnChainPct,
-		maxDefiActiveTvlToOnChainPct,
-		minActiveMcapToOnChainPct,
-		maxActiveMcapToOnChainPct,
+		minDefiActiveTvlToOnChainMcapPct,
+		maxDefiActiveTvlToOnChainMcapPct,
+		minActiveMcapToOnChainMcapPct,
+		maxActiveMcapToOnChainMcapPct,
 		minDefiActiveTvlToActiveMcapPct,
 		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
 		includeGovernance,
-		setDefiActiveTvlToOnChainPctRange,
-		setActiveMcapToOnChainPctRange,
+		setDefiActiveTvlToOnChainMcapPctRange,
+		setActiveMcapToOnChainMcapPctRange,
 		setDefiActiveTvlToActiveMcapPctRange,
 		setIncludeStablecoins,
 		setIncludeGovernance
@@ -75,25 +75,20 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		selectedIssuers,
 		includeStablecoins,
 		includeGovernance,
-		minDefiActiveTvlToOnChainPct,
-		maxDefiActiveTvlToOnChainPct,
-		minActiveMcapToOnChainPct,
-		maxActiveMcapToOnChainPct,
+		minDefiActiveTvlToOnChainMcapPct,
+		maxDefiActiveTvlToOnChainMcapPct,
+		minActiveMcapToOnChainMcapPct,
+		maxActiveMcapToOnChainMcapPct,
 		minDefiActiveTvlToActiveMcapPct,
 		maxDefiActiveTvlToActiveMcapPct
 	})
 
-	const {
-		totalOnChainRwaValue,
-		totalActiveMarketcap,
-		totalOnChainStablecoinValue,
-		totalOnChainDeFiActiveTvl,
-		issuersCount
-	} = useRwaAssetsSummary(filteredAssets)
+	const { totalOnChainMcap, totalActiveMcap, totalOnChainStablecoinMcap, totalOnChainDeFiActiveTvl, issuersCount } =
+		useRwaAssetsSummary(filteredAssets)
 
 	const {
-		totalOnChainRwaPieChartData: chainOnChainPieChartData,
-		activeMarketcapPieChartData: chainActiveMarketcapPieChartData,
+		totalOnChainMcapPieChartData: chainOnChainMcapPieChartData,
+		activeMcapPieChartData: chainActiveMcapPieChartData,
 		defiActiveTvlPieChartData: chainDefiActiveTvlPieChartData,
 		pieChartStackColors: chainPieChartStackColors
 	} = useRwaChainPieChartData({
@@ -104,8 +99,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	})
 
 	const {
-		assetClassOnChainPieChartData,
-		assetClassActiveMarketcapPieChartData,
+		assetClassOnChainMcapPieChartData,
+		assetClassActiveMcapPieChartData,
 		assetClassDefiActiveTvlPieChartData,
 		assetClassPieChartStackColors
 	} = useRwaCategoryAssetClassPieChartData({
@@ -116,8 +111,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	})
 
 	const {
-		assetNameOnChainPieChartData,
-		assetNameActiveMarketcapPieChartData,
+		assetNameOnChainMcapPieChartData,
+		assetNameActiveMcapPieChartData,
 		assetNameDefiActiveTvlPieChartData,
 		assetNamePieChartStackColors
 	} = useRwaAssetNamePieChartData({
@@ -127,12 +122,12 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	})
 
 	// Select pie chart breakdown based on route mode (same precedence as nav links).
-	const { onChainPieChartData, activeMarketcapPieChartData, defiActiveTvlPieChartData, pieChartStackColors } =
+	const { onChainPieChartData, activeMcapPieChartData, defiActiveTvlPieChartData, pieChartStackColors } =
 		useMemo(() => {
 			if (isCategoryMode) {
 				return {
-					onChainPieChartData: assetClassOnChainPieChartData,
-					activeMarketcapPieChartData: assetClassActiveMarketcapPieChartData,
+					onChainPieChartData: assetClassOnChainMcapPieChartData,
+					activeMcapPieChartData: assetClassActiveMcapPieChartData,
 					defiActiveTvlPieChartData: assetClassDefiActiveTvlPieChartData,
 					pieChartStackColors: assetClassPieChartStackColors
 				}
@@ -140,31 +135,31 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 
 			if (isPlatformMode) {
 				return {
-					onChainPieChartData: assetNameOnChainPieChartData,
-					activeMarketcapPieChartData: assetNameActiveMarketcapPieChartData,
+					onChainPieChartData: assetNameOnChainMcapPieChartData,
+					activeMcapPieChartData: assetNameActiveMcapPieChartData,
 					defiActiveTvlPieChartData: assetNameDefiActiveTvlPieChartData,
 					pieChartStackColors: assetNamePieChartStackColors
 				}
 			}
 
 			return {
-				onChainPieChartData: chainOnChainPieChartData,
-				activeMarketcapPieChartData: chainActiveMarketcapPieChartData,
+				onChainPieChartData: chainOnChainMcapPieChartData,
+				activeMcapPieChartData: chainActiveMcapPieChartData,
 				defiActiveTvlPieChartData: chainDefiActiveTvlPieChartData,
 				pieChartStackColors: chainPieChartStackColors
 			}
 		}, [
-			assetClassActiveMarketcapPieChartData,
+			assetClassActiveMcapPieChartData,
 			assetClassDefiActiveTvlPieChartData,
-			assetClassOnChainPieChartData,
+			assetClassOnChainMcapPieChartData,
 			assetClassPieChartStackColors,
-			assetNameActiveMarketcapPieChartData,
+			assetNameActiveMcapPieChartData,
 			assetNameDefiActiveTvlPieChartData,
-			assetNameOnChainPieChartData,
+			assetNameOnChainMcapPieChartData,
 			assetNamePieChartStackColors,
-			chainActiveMarketcapPieChartData,
+			chainActiveMcapPieChartData,
 			chainDefiActiveTvlPieChartData,
-			chainOnChainPieChartData,
+			chainOnChainMcapPieChartData,
 			chainPieChartStackColors,
 			isCategoryMode,
 			isPlatformMode
@@ -173,7 +168,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	// Preserve filter/toggle query params only in chain mode.
 	// (The chain/category/platform itself is in the pathname, so we strip the dynamic param from the query object.)
 	const navLinks = useMemo(() => {
-		const baseLinks = isCategoryMode ? props.categoryLinks : isPlatformMode ? props.platformLinks : props.chains
+		const baseLinks = isCategoryMode ? props.categoryLinks : isPlatformMode ? props.platformLinks : props.chainLinks
 
 		// Only preserve query filters/toggles on chain mode. In category/platform mode, links should be "clean".
 		const shouldPreserveQuery = isChainMode && !isCategoryMode && !isPlatformMode
@@ -189,7 +184,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		isPlatformMode,
 		props.categoryLinks,
 		props.platformLinks,
-		props.chains,
+		props.chainLinks,
 		router.query
 	])
 
@@ -226,14 +221,14 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				selectedRwaClassifications={selectedRwaClassifications}
 				selectedAccessModels={selectedAccessModels}
 				selectedIssuers={selectedIssuers}
-				minDefiActiveTvlToOnChainPct={minDefiActiveTvlToOnChainPct}
-				maxDefiActiveTvlToOnChainPct={maxDefiActiveTvlToOnChainPct}
-				minActiveMcapToOnChainPct={minActiveMcapToOnChainPct}
-				maxActiveMcapToOnChainPct={maxActiveMcapToOnChainPct}
+				minDefiActiveTvlToOnChainMcapPct={minDefiActiveTvlToOnChainMcapPct}
+				maxDefiActiveTvlToOnChainMcapPct={maxDefiActiveTvlToOnChainMcapPct}
+				minActiveMcapToOnChainMcapPct={minActiveMcapToOnChainMcapPct}
+				maxActiveMcapToOnChainMcapPct={maxActiveMcapToOnChainMcapPct}
 				minDefiActiveTvlToActiveMcapPct={minDefiActiveTvlToActiveMcapPct}
 				maxDefiActiveTvlToActiveMcapPct={maxDefiActiveTvlToActiveMcapPct}
-				setDefiActiveTvlToOnChainPctRange={setDefiActiveTvlToOnChainPctRange}
-				setActiveMcapToOnChainPctRange={setActiveMcapToOnChainPctRange}
+				setDefiActiveTvlToOnChainMcapPctRange={setDefiActiveTvlToOnChainMcapPctRange}
+				setActiveMcapToOnChainMcapPctRange={setActiveMcapToOnChainMcapPctRange}
 				setDefiActiveTvlToActiveMcapPctRange={setDefiActiveTvlToActiveMcapPctRange}
 				includeStablecoins={includeStablecoins}
 				includeGovernance={includeGovernance}
@@ -243,21 +238,21 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			<div className="flex flex-col gap-2 md:flex-row md:items-center">
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
-						content={definitions.totalOnChainMarketcap.description}
+						content={definitions.totalOnChainMcap.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
 						Total RWA Onchain
 					</Tooltip>
-					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainRwaValue, true)}</span>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainMcap, true)}</span>
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
-						content={definitions.totalActiveMarketcap.description}
+						content={definitions.totalActiveMcap.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
 						Total RWA Active Marketcap
 					</Tooltip>
-					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalActiveMarketcap, true)}</span>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalActiveMcap, true)}</span>
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
@@ -271,13 +266,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				{isChainMode ? (
 					<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 						<Tooltip
-							content={definitions.totalStablecoinsValue.description}
+							content={definitions.totalStablecoinsMcap.description}
 							className="text-(--text-label) underline decoration-dotted"
 						>
-							Total Stablecoins Value
+							Total Stablecoins Marketcap
 						</Tooltip>
 						<span className="font-jetbrains text-2xl font-medium">
-							{formattedNum(totalOnChainStablecoinValue, true)}
+							{formattedNum(totalOnChainStablecoinMcap, true)}
 						</span>
 					</p>
 				) : null}
@@ -296,17 +291,17 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<div className="flex flex-wrap items-center justify-between gap-2 p-4 pb-0">
 							<Tooltip
-								content={definitions.totalOnChainMarketcap.description}
+								content={definitions.totalOnChainMcap.description}
 								className="text-lg font-semibold underline decoration-dotted"
 								render={<h2 />}
 							>
-								{definitions.totalOnChainMarketcap.label}
+								{definitions.totalOnChainMcap.label}
 							</Tooltip>
 							<DownloadPieChartCsv
 								filename={
 									[
 										'rwa-pie',
-										slug(definitions.totalOnChainMarketcap.label),
+										slug(definitions.totalOnChainMcap.label),
 										props.selectedChain !== 'All' ? props.selectedChain.toLowerCase() : null,
 										props.selectedCategory !== 'All' ? slug(props.selectedCategory) : null,
 										props.selectedPlatform !== 'All' ? slug(props.selectedPlatform) : null
@@ -331,17 +326,17 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<div className="flex flex-wrap items-center justify-between gap-2 p-4 pb-0">
 							<Tooltip
-								content={definitions.totalActiveMarketcap.description}
+								content={definitions.totalActiveMcap.description}
 								className="text-lg font-semibold underline decoration-dotted"
 								render={<h2 />}
 							>
-								{definitions.totalActiveMarketcap.label}
+								{definitions.totalActiveMcap.label}
 							</Tooltip>
 							<DownloadPieChartCsv
 								filename={
 									[
 										'rwa-pie',
-										slug(definitions.totalActiveMarketcap.label),
+										slug(definitions.totalActiveMcap.label),
 										props.selectedChain !== 'All' ? props.selectedChain.toLowerCase() : null,
 										props.selectedCategory !== 'All' ? slug(props.selectedCategory) : null,
 										props.selectedPlatform !== 'All' ? slug(props.selectedPlatform) : null
@@ -349,13 +344,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 										.filter(Boolean)
 										.join('-') + '.csv'
 								}
-								chartData={activeMarketcapPieChartData}
+								chartData={activeMcapPieChartData}
 								smol
 							/>
 						</div>
 						<Suspense fallback={<div className="h-[360px]" />}>
 							<PieChart
-								chartData={activeMarketcapPieChartData}
+								chartData={activeMcapPieChartData}
 								stackColors={pieChartStackColors}
 								radius={pieChartRadius}
 								legendPosition={pieChartLegendPosition}

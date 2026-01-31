@@ -85,11 +85,11 @@
 			"Synthetic backed stablecoin": "Stablecoins backed by synthetic crypto or derivatives strategies (such as delta-neutral basis trades or perp hedging) rather than direct fiat or real-world asset reserves."
 		}
 	},
-	"onChainMarketcap": {
+	"onChainMcap": {
 		"label": "Onchain Marketcap",
 		"description": "Total USD value of the asset that exists on chain across tracked chains"
 	},
-	"activeMarketcap": {
+	"activeMcap": {
 		"label": "Active Marketcap",
 		"description": "Portion of on chain TVL taking real market risk in user or protocol hands"
 	},
@@ -97,11 +97,11 @@
 		"label": "DeFi Active TVL",
 		"description": "Subset of Active TVL deployed in third party DeFi protocols tracked by DeFiLlama"
 	},
-	"totalOnChainMarketcap": {
+	"totalOnChainMcap": {
 		"label": "Total RWA Onchain",
 		"description": "Sum across assets of their Onchain Marketcap (the total USD value of each asset that exists Onchain across tracked chains)."
 	},
-	"totalActiveMarketcap": {
+	"totalActiveMcap": {
 		"label": "Total RWA Active Marketcap",
 		"description": "Sum across assets of their Active Marketcap (the portion of Onchain value taking real market risk in user or protocol hands)."
 	},
@@ -187,8 +187,8 @@
 		"label": "Total Asset Count",
 		"description": "Total number of real world assets in the current selection"
 	},
-	"totalStablecoinsValue": {
-		"label": "Total Stablecoins Value",
+	"totalStablecoinsMcap": {
+		"label": "Total Stablecoins Marketcap",
 		"description": "Total USD value of all stablecoins in the dataset that exist on chain across tracked chains in the current selection"
 	}
 }

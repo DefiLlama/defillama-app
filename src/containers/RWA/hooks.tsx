@@ -90,10 +90,10 @@ export const useRWATableQueryParams = ({
 		excludeAccessModels: excludeAccessModelsQ,
 		issuers: issuersQ,
 		excludeIssuers: excludeIssuersQ,
-		minDefiActiveTvlToOnChainPct: minDefiActiveTvlToOnChainPctQ,
-		maxDefiActiveTvlToOnChainPct: maxDefiActiveTvlToOnChainPctQ,
-		minActiveMcapToOnChainPct: minActiveMcapToOnChainPctQ,
-		maxActiveMcapToOnChainPct: maxActiveMcapToOnChainPctQ,
+		minDefiActiveTvlToOnChainMcapPct: minDefiActiveTvlToOnChainMcapPctQ,
+		maxDefiActiveTvlToOnChainMcapPct: maxDefiActiveTvlToOnChainMcapPctQ,
+		minActiveMcapToOnChainMcapPct: minActiveMcapToOnChainMcapPctQ,
+		maxActiveMcapToOnChainMcapPct: maxActiveMcapToOnChainMcapPctQ,
 		minDefiActiveTvlToActiveMcapPct: minDefiActiveTvlToActiveMcapPctQ,
 		maxDefiActiveTvlToActiveMcapPct: maxDefiActiveTvlToActiveMcapPctQ,
 		includeStablecoins: stablecoinsQ,
@@ -107,10 +107,10 @@ export const useRWATableQueryParams = ({
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
-		minDefiActiveTvlToOnChainPct,
-		maxDefiActiveTvlToOnChainPct,
-		minActiveMcapToOnChainPct,
-		maxActiveMcapToOnChainPct,
+		minDefiActiveTvlToOnChainMcapPct,
+		maxDefiActiveTvlToOnChainMcapPct,
+		minActiveMcapToOnChainMcapPct,
+		maxActiveMcapToOnChainMcapPct,
 		minDefiActiveTvlToActiveMcapPct,
 		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
@@ -191,10 +191,10 @@ export const useRWATableQueryParams = ({
 		let selectedIssuers =
 			excludeIssuersSet.size > 0 ? baseIssuers.filter((i) => !excludeIssuersSet.has(i)) : baseIssuers
 
-		const minDefiActiveTvlToOnChainPct = toNumberParam(minDefiActiveTvlToOnChainPctQ)
-		const maxDefiActiveTvlToOnChainPct = toNumberParam(maxDefiActiveTvlToOnChainPctQ)
-		const minActiveMcapToOnChainPct = toNumberParam(minActiveMcapToOnChainPctQ)
-		const maxActiveMcapToOnChainPct = toNumberParam(maxActiveMcapToOnChainPctQ)
+		const minDefiActiveTvlToOnChainMcapPct = toNumberParam(minDefiActiveTvlToOnChainMcapPctQ)
+		const maxDefiActiveTvlToOnChainMcapPct = toNumberParam(maxDefiActiveTvlToOnChainMcapPctQ)
+		const minActiveMcapToOnChainMcapPct = toNumberParam(minActiveMcapToOnChainMcapPctQ)
+		const maxActiveMcapToOnChainMcapPct = toNumberParam(maxActiveMcapToOnChainMcapPctQ)
 		const minDefiActiveTvlToActiveMcapPct = toNumberParam(minDefiActiveTvlToActiveMcapPctQ)
 		const maxDefiActiveTvlToActiveMcapPct = toNumberParam(maxDefiActiveTvlToActiveMcapPctQ)
 
@@ -205,10 +205,10 @@ export const useRWATableQueryParams = ({
 			selectedRwaClassifications,
 			selectedAccessModels,
 			selectedIssuers,
-			minDefiActiveTvlToOnChainPct,
-			maxDefiActiveTvlToOnChainPct,
-			minActiveMcapToOnChainPct,
-			maxActiveMcapToOnChainPct,
+			minDefiActiveTvlToOnChainMcapPct,
+			maxDefiActiveTvlToOnChainMcapPct,
+			minActiveMcapToOnChainMcapPct,
+			maxActiveMcapToOnChainMcapPct,
 			minDefiActiveTvlToActiveMcapPct,
 			maxDefiActiveTvlToActiveMcapPct,
 			includeStablecoins,
@@ -227,10 +227,10 @@ export const useRWATableQueryParams = ({
 		excludeAccessModelsQ,
 		issuersQ,
 		excludeIssuersQ,
-		minDefiActiveTvlToOnChainPctQ,
-		maxDefiActiveTvlToOnChainPctQ,
-		minActiveMcapToOnChainPctQ,
-		maxActiveMcapToOnChainPctQ,
+		minDefiActiveTvlToOnChainMcapPctQ,
+		maxDefiActiveTvlToOnChainMcapPctQ,
+		minActiveMcapToOnChainMcapPctQ,
+		maxActiveMcapToOnChainMcapPctQ,
 		minDefiActiveTvlToActiveMcapPctQ,
 		maxDefiActiveTvlToActiveMcapPctQ,
 		stablecoinsQ,
@@ -245,10 +245,10 @@ export const useRWATableQueryParams = ({
 		issuers
 	])
 
-	const setDefiActiveTvlToOnChainPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
-		updateNumberRangeQuery('minDefiActiveTvlToOnChainPct', 'maxDefiActiveTvlToOnChainPct', minValue, maxValue)
-	const setActiveMcapToOnChainPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
-		updateNumberRangeQuery('minActiveMcapToOnChainPct', 'maxActiveMcapToOnChainPct', minValue, maxValue)
+	const setDefiActiveTvlToOnChainMcapPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
+		updateNumberRangeQuery('minDefiActiveTvlToOnChainMcapPct', 'maxDefiActiveTvlToOnChainMcapPct', minValue, maxValue)
+	const setActiveMcapToOnChainMcapPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
+		updateNumberRangeQuery('minActiveMcapToOnChainMcapPct', 'maxActiveMcapToOnChainMcapPct', minValue, maxValue)
 	const setDefiActiveTvlToActiveMcapPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
 		updateNumberRangeQuery('minDefiActiveTvlToActiveMcapPct', 'maxDefiActiveTvlToActiveMcapPct', minValue, maxValue)
 
@@ -279,16 +279,16 @@ export const useRWATableQueryParams = ({
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
-		minDefiActiveTvlToOnChainPct,
-		maxDefiActiveTvlToOnChainPct,
-		minActiveMcapToOnChainPct,
-		maxActiveMcapToOnChainPct,
+		minDefiActiveTvlToOnChainMcapPct,
+		maxDefiActiveTvlToOnChainMcapPct,
+		minActiveMcapToOnChainMcapPct,
+		maxActiveMcapToOnChainMcapPct,
 		minDefiActiveTvlToActiveMcapPct,
 		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
 		includeGovernance,
-		setDefiActiveTvlToOnChainPctRange,
-		setActiveMcapToOnChainPctRange,
+		setDefiActiveTvlToOnChainMcapPctRange,
+		setActiveMcapToOnChainMcapPctRange,
 		setDefiActiveTvlToActiveMcapPctRange,
 		setIncludeStablecoins,
 		setIncludeGovernance
@@ -322,10 +322,10 @@ export const useFilteredRwaAssets = ({
 	selectedIssuers,
 	includeStablecoins,
 	includeGovernance,
-	minDefiActiveTvlToOnChainPct,
-	maxDefiActiveTvlToOnChainPct,
-	minActiveMcapToOnChainPct,
-	maxActiveMcapToOnChainPct,
+	minDefiActiveTvlToOnChainMcapPct,
+	maxDefiActiveTvlToOnChainMcapPct,
+	minActiveMcapToOnChainMcapPct,
+	maxActiveMcapToOnChainMcapPct,
 	minDefiActiveTvlToActiveMcapPct,
 	maxDefiActiveTvlToActiveMcapPct
 }: {
@@ -339,10 +339,10 @@ export const useFilteredRwaAssets = ({
 	selectedIssuers: string[]
 	includeStablecoins: boolean
 	includeGovernance: boolean
-	minDefiActiveTvlToOnChainPct: number | null
-	maxDefiActiveTvlToOnChainPct: number | null
-	minActiveMcapToOnChainPct: number | null
-	maxActiveMcapToOnChainPct: number | null
+	minDefiActiveTvlToOnChainMcapPct: number | null
+	maxDefiActiveTvlToOnChainMcapPct: number | null
+	minActiveMcapToOnChainMcapPct: number | null
+	maxActiveMcapToOnChainMcapPct: number | null
 	minDefiActiveTvlToActiveMcapPct: number | null
 	maxDefiActiveTvlToActiveMcapPct: number | null
 }) => {
@@ -376,23 +376,23 @@ export const useFilteredRwaAssets = ({
 				return false
 			}
 
-			const onChainMarketcap = asset.onChainMarketcap.total
+			const onChainMcap = asset.onChainMcap.total
 			if (
 				!meetsRatioPercent(
 					asset.defiActiveTvl.total,
-					onChainMarketcap,
-					minDefiActiveTvlToOnChainPct,
-					maxDefiActiveTvlToOnChainPct
+					onChainMcap,
+					minDefiActiveTvlToOnChainMcapPct,
+					maxDefiActiveTvlToOnChainMcapPct
 				)
 			) {
 				return false
 			}
 			if (
 				!meetsRatioPercent(
-					asset.activeMarketcap.total,
-					onChainMarketcap,
-					minActiveMcapToOnChainPct,
-					maxActiveMcapToOnChainPct
+					asset.activeMcap.total,
+					onChainMcap,
+					minActiveMcapToOnChainMcapPct,
+					maxActiveMcapToOnChainMcapPct
 				)
 			) {
 				return false
@@ -400,7 +400,7 @@ export const useFilteredRwaAssets = ({
 			if (
 				!meetsRatioPercent(
 					asset.defiActiveTvl.total,
-					asset.activeMarketcap.total,
+					asset.activeMcap.total,
 					minDefiActiveTvlToActiveMcapPct,
 					maxDefiActiveTvlToActiveMcapPct
 				)
@@ -429,10 +429,10 @@ export const useFilteredRwaAssets = ({
 		selectedIssuers,
 		includeStablecoins,
 		includeGovernance,
-		minDefiActiveTvlToOnChainPct,
-		maxDefiActiveTvlToOnChainPct,
-		minActiveMcapToOnChainPct,
-		maxActiveMcapToOnChainPct,
+		minDefiActiveTvlToOnChainMcapPct,
+		maxDefiActiveTvlToOnChainMcapPct,
+		minActiveMcapToOnChainMcapPct,
+		maxActiveMcapToOnChainMcapPct,
 		minDefiActiveTvlToActiveMcapPct,
 		maxDefiActiveTvlToActiveMcapPct
 	])
@@ -440,17 +440,17 @@ export const useFilteredRwaAssets = ({
 
 export const useRwaAssetsSummary = (filteredAssets: RWAAsset[]) => {
 	return useMemo(() => {
-		let rwaValue = 0
-		let activeMarketcap = 0
-		let stablecoinValue = 0
+		let onChainMcap = 0
+		let activeMcap = 0
+		let stablecoinMcap = 0
 		let defiTvl = 0
 		const issuersSet = new Set<string>()
 
 		for (const asset of filteredAssets) {
-			rwaValue += asset.onChainMarketcap.total
-			activeMarketcap += asset.activeMarketcap.total
+			onChainMcap += asset.onChainMcap.total
+			activeMcap += asset.activeMcap.total
 			if (asset.stablecoin) {
-				stablecoinValue += asset.onChainMarketcap.total
+				stablecoinMcap += asset.onChainMcap.total
 			}
 			defiTvl += asset.defiActiveTvl.total
 			if (asset.issuer) {
@@ -459,9 +459,9 @@ export const useRwaAssetsSummary = (filteredAssets: RWAAsset[]) => {
 		}
 
 		return {
-			totalOnChainRwaValue: rwaValue,
-			totalActiveMarketcap: activeMarketcap,
-			totalOnChainStablecoinValue: stablecoinValue,
+			totalOnChainMcap: onChainMcap,
+			totalActiveMcap: activeMcap,
+			totalOnChainStablecoinMcap: stablecoinMcap,
 			totalOnChainDeFiActiveTvl: defiTvl,
 			issuersCount: issuersSet.size
 		}

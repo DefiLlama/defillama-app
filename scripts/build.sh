@@ -7,6 +7,7 @@ cd "$REPO_ROOT"
 # source .env if it exists
 set -a
 [ -f .env ] && . .env
+set +a
 
 BRANCH_NAME="${BRANCH_NAME:-${COOLIFY_BRANCH:-${GIT_BRANCH:-${CI_COMMIT_REF_NAME:-${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-${GITHUB_REF:-${VERCEL_GIT_COMMIT_REF:-}}}}}}}}"
 
@@ -66,7 +67,9 @@ else
   echo "Build failed, skipping .next artifact sync"
 fi
 
-bun ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$BRANCH_NAME"
+# Provide build metadata via env vars for build-msg.js.
+export BUILD_STATUS BUILD_TIME_STR START_TIME BUILD_ID BRANCH_NAME
+bun ./scripts/build-msg.js
 
 # exit with the build status
 exit $BUILD_STATUS

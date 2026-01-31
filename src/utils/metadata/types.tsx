@@ -81,4 +81,5 @@ export interface IRWAList {
 	platforms: Array<string>
 	chains: Array<string>
 	categories: Array<string>
+	idMap: Record<string, string>
 }

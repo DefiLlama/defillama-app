@@ -24,17 +24,17 @@ export const getStaticProps = withPerformanceLogging(
 
 		const assetSlug = rwaSlug(params.asset)
 
-		let assetExists = false
+		let assetId = null
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const rwaList = metadataCache.rwaList
 
-		for (const ticker of rwaList.tickers) {
+		for (const ticker in rwaList.idMap) {
 			if (rwaSlug(ticker) === assetSlug) {
-				assetExists = true
+				assetId = rwaList.idMap[ticker]
 				break
 			}
 		}
-		if (!assetExists) {
+		if (!assetId) {
 			return { notFound: true, props: null }
 		}
 
