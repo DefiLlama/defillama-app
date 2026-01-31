@@ -14,10 +14,11 @@ import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/querie
 import { KeyMetrics } from '~/containers/ProtocolOverview'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
-import { IProtocolMetadata, IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
+import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_TOGGLE_OPTIONS = []
@@ -90,7 +91,7 @@ export const getStaticProps = withPerformanceLogging(
 			for (const key in protocolMetadata) {
 				if (linkedProtocolsSet.size === 0) break
 				if (linkedProtocolsSet.has(protocolMetadata[key].displayName)) {
-					if (protocolMetadata[key].options) {
+					if (protocolMetadata[key].optionsPremiumVolume || protocolMetadata[key].optionsNotionalVolume) {
 						linkedProtocolsWithAdapterData.push(protocolMetadata[key])
 					}
 					linkedProtocolsSet.delete(protocolMetadata[key].displayName)

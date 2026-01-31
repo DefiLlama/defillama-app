@@ -3,9 +3,9 @@ import { maxAgeForNext } from '~/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { StablecoinInfo } from '~/containers/ProtocolOverview/Stablecoin'
-import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { slug } from '~/utils'
+import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_TOGGLE_OPTIONS = []

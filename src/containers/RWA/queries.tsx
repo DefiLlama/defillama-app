@@ -33,9 +33,9 @@ interface IFetchedRWAProject {
 	parentPlatform: string | null
 	stablecoin: boolean | null
 	governance: boolean | null
-	defiactivetvl: Record<string, Record<string, string>> | null
+	defiActiveTvl: Record<string, Record<string, string>> | null
 	mcap: Record<string, string> | null
-	activemcap: Record<string, string> | null
+	activeMcap: Record<string, string> | null
 	// Some sources provide stringified numbers; we normalize to number|null in UI.
 	price?: number | string | null
 }
@@ -51,7 +51,7 @@ interface IRWAStatsResponse {
 			mcap: number
 			activeMcap: number
 			defiActiveTvl: number
-			assetsCount: number
+			assetCount: number
 			assetIssuers: number
 		}
 	>
@@ -61,7 +61,7 @@ interface IRWAStatsResponse {
 			mcap: number
 			activeMcap: number
 			defiActiveTvl: number
-			assetsCount: number
+			assetCount: number
 			assetIssuers: number
 		}
 	>
@@ -71,7 +71,7 @@ interface IRWAStatsResponse {
 			mcap: number
 			activeMcap: number
 			defiActiveTvl: number
-			assetsCount: number
+			assetCount: number
 			assetIssuers: number
 		}
 	>
@@ -80,8 +80,8 @@ interface IRWAStatsResponse {
 export interface IRWAProject extends Omit<
 	IFetchedRWAProject,
 	| 'mcap'
-	| 'activemcap'
-	| 'defiactivetvl'
+	| 'activeMcap'
+	| 'defiActiveTvl'
 	| 'website'
 	| 'twitter'
 	| 'issuerRegistryInfo'
@@ -293,8 +293,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			let filteredActiveMarketcapForAsset = 0
 			let filteredDeFiActiveTvlForAsset = 0
 			const onChainMarketcapBreakdown = item.mcap ?? {}
-			const activeMarketcapBreakdown = item.activemcap ?? {}
-			const defiActiveTvlBreakdown = item.defiactivetvl ?? {}
+			const activeMarketcapBreakdown = item.activeMcap ?? {}
+			const defiActiveTvlBreakdown = item.defiActiveTvl ?? {}
 			const finalOnChainMarketcapBreakdown: Record<string, number> = {}
 			const finalActiveMarketcapBreakdown: Record<string, number> = {}
 			const finalDeFiActiveTvlBreakdown: Record<string, number> = {}
@@ -604,7 +604,7 @@ export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[]> {
 			totalActiveMarketcap: safeNumber(stats.activeMcap),
 			totalDefiActiveTvl: safeNumber(stats.defiActiveTvl),
 			totalAssetIssuers: safeNumber(stats.assetIssuers),
-			totalAssetCount: safeNumber(stats.assetsCount),
+			totalAssetCount: safeNumber(stats.assetCount),
 			stablecoinOnChainMarketcap: 0,
 			governanceOnChainMarketcap: 0,
 			stablecoinActiveMarketcap: 0,
@@ -637,7 +637,7 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 			totalActiveMarketcap: safeNumber(stats.activeMcap),
 			totalDefiActiveTvl: safeNumber(stats.defiActiveTvl),
 			totalAssetIssuers: safeNumber(stats.assetIssuers),
-			totalAssetCount: safeNumber(stats.assetsCount)
+			totalAssetCount: safeNumber(stats.assetCount)
 		})
 	}
 
@@ -660,7 +660,7 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRo
 			totalActiveMarketcap: safeNumber(stats.activeMcap),
 			totalDefiActiveTvl: safeNumber(stats.defiActiveTvl),
 			totalAssetIssuers: safeNumber(stats.assetIssuers),
-			totalAssetCount: safeNumber(stats.assetsCount)
+			totalAssetCount: safeNumber(stats.assetCount)
 		})
 	}
 
@@ -689,8 +689,8 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 				let totalActiveMarketcapForAsset = 0
 				let totalDeFiActiveTvlForAsset = 0
 				const onChainMarketcapBreakdown = item.mcap ?? {}
-				const activeMarketcapBreakdown = item.activemcap ?? {}
-				const defiActiveTvlBreakdown = item.defiactivetvl ?? {}
+				const activeMarketcapBreakdown = item.activeMcap ?? {}
+				const defiActiveTvlBreakdown = item.defiActiveTvl ?? {}
 				const finalOnChainMarketcapBreakdown: Record<string, number> = {}
 				const finalActiveMarketcapBreakdown: Record<string, number> = {}
 				const finalDeFiActiveTvlBreakdown: Record<string, number> = {}

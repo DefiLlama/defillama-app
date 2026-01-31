@@ -24,7 +24,7 @@ import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
-import { IChainMetadata } from '../ChainOverview/types'
+import { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import { getAdapterProtocolSummary, IAdapterSummary } from '../DimensionAdapters/queries'
 import { IHack } from '../Hacks/queries'
 import { protocolCategories } from '../ProtocolsByCategoryOrTag/constants'
@@ -33,7 +33,6 @@ import {
 	IArticle,
 	IArticlesResponse,
 	IProtocolExpenses,
-	IProtocolMetadata,
 	IProtocolOverviewPageData,
 	IProtocolPageMetrics,
 	IUpdatedProtocol

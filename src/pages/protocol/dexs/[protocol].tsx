@@ -13,10 +13,11 @@ import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/querie
 import { KeyMetrics } from '~/containers/ProtocolOverview'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
-import { IProtocolMetadata, IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
+import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_TOGGLE_OPTIONS = []

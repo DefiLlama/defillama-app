@@ -8,7 +8,6 @@ import { LocalLoader } from '~/components/Loaders'
 import { oldBlue } from '~/constants/colors'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
-import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 import {
 	formatTvlsByChain,
 	getProtocolWarningBanners,
@@ -16,6 +15,7 @@ import {
 } from '~/containers/ProtocolOverview/utils'
 import { TVL_SETTINGS_KEYS_SET, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { slug } from '~/utils'
+import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>

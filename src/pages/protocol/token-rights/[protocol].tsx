@@ -4,15 +4,11 @@ import { tvlOptionsMap } from '~/components/Filters/options'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { TokenRights } from '~/containers/ProtocolOverview/TokenRights'
-import type {
-	IProtocolMetadata,
-	IProtocolOverviewPageData,
-	IProtocolPageMetrics,
-	ITokenRights
-} from '~/containers/ProtocolOverview/types'
+import type { IProtocolOverviewPageData, IProtocolPageMetrics, ITokenRights } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { slug } from '~/utils'
+import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_OTHER_PROTOCOLS: string[] = []

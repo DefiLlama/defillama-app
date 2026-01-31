@@ -28,11 +28,10 @@ import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/S
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getNDistinctColors, getPercentChange, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { IProtocolMetadata } from '../ProtocolOverview/types'
+import { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import { ChainChartLabels } from './constants'
 import type {
 	IChainAsset,
-	IChainMetadata,
 	IChainOverviewData,
 	IChildProtocol,
 	ILiteChart,

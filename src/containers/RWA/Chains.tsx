@@ -54,7 +54,7 @@ const columns: ColumnDef<IRWAChainsOverviewRow>[] = [
 		size: 180
 	},
 	{
-		id: 'totalAssetsCount',
+		id: 'totalAssetCount',
 		header: definitions.totalAssetCount.label,
 		accessorKey: 'totalAssetCount',
 		cell: (info) => formattedNum(info.getValue() as number, false),

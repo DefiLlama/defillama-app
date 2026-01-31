@@ -6,9 +6,10 @@ import { LocalLoader } from '~/components/Loaders'
 import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/Chart/constants'
 import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/ProtocolChart'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
-import { IProtocolMetadata, IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
+import { IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
 import { TVL_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
 import { slug } from '~/utils'
+import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const ProtocolLineBarChart = lazy(() => import('~/containers/ProtocolOverview/Chart/Chart')) as React.FC<any>

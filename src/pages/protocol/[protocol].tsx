@@ -3,9 +3,10 @@ import { maxAgeForNext } from '~/api'
 import { PROTOCOLS_API } from '~/constants'
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
-import { IProtocolMetadata, IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
+import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(

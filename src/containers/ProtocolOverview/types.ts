@@ -1,43 +1,6 @@
 import { IHack } from '../Hacks/queries'
 import { protocolCharts, ProtocolChartsLabels } from './Chart/constants'
 
-export interface IProtocolMetadata {
-	tvl?: boolean
-	yields?: boolean
-	forks?: boolean
-	liquidity?: boolean
-	raises?: boolean
-	fees?: boolean
-	revenue?: boolean
-	holdersRevenue?: boolean
-	dexs?: boolean
-	perps?: boolean
-	openInterest?: boolean
-	normalizedVolume?: boolean
-	dexAggregators?: boolean
-	optionsPremiumVolume?: boolean
-	optionsNotionalVolume?: boolean
-	perpsAggregators?: boolean
-	bridgeAggregators?: boolean
-	displayName?: string
-	chains?: Array<string>
-	hacks?: boolean
-	activeUsers?: boolean
-	governance?: boolean
-	expenses?: boolean
-	treasury?: boolean
-	nfts?: boolean
-	emissions?: boolean
-	incentives?: boolean
-	bribeRevenue?: boolean
-	tokenTax?: boolean
-	bridge?: boolean
-	stablecoins?: boolean
-	safeHarbor?: boolean
-	borrowed?: boolean
-	tokenRights?: boolean
-}
-
 export interface IProtocolPageMetrics {
 	tvl: boolean
 	tvlTab: boolean
