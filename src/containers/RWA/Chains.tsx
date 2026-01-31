@@ -51,7 +51,7 @@ const columns: ColumnDef<IRWAChainsOverviewRow>[] = [
 		accessorKey: 'totalAssetIssuers',
 		cell: (info) => formattedNum(info.getValue() as number, false),
 		meta: { align: 'end', headerHelperText: definitions.totalAssetIssuers.description },
-		size: 180
+		size: 168
 	},
 	{
 		id: 'totalAssetCount',
@@ -59,7 +59,7 @@ const columns: ColumnDef<IRWAChainsOverviewRow>[] = [
 		accessorKey: 'totalAssetCount',
 		cell: (info) => formattedNum(info.getValue() as number, false),
 		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
-		size: 180
+		size: 148
 	},
 	{
 		id: 'totalDefiActiveTvl',
@@ -67,7 +67,7 @@ const columns: ColumnDef<IRWAChainsOverviewRow>[] = [
 		accessorKey: 'totalDefiActiveTvl',
 		cell: (info) => formattedNum(info.getValue() as number, true),
 		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
-		size: 200
+		size: 148
 	},
 	{
 		id: 'totalActiveMarketcap',
@@ -75,7 +75,7 @@ const columns: ColumnDef<IRWAChainsOverviewRow>[] = [
 		accessorKey: 'totalActiveMarketcap',
 		cell: (info) => formattedNum(info.getValue() as number, true),
 		meta: { align: 'end', headerHelperText: definitions.totalActiveMarketcap.description },
-		size: 220
+		size: 228
 	},
 	{
 		id: 'totalOnChainMarketcap',
@@ -83,7 +83,7 @@ const columns: ColumnDef<IRWAChainsOverviewRow>[] = [
 		accessorKey: 'totalOnChainMarketcap',
 		cell: (info) => formattedNum(info.getValue() as number, true),
 		meta: { align: 'end', headerHelperText: definitions.totalOnChainMarketcap.description },
-		size: 200
+		size: 168
 	}
 ]
 
