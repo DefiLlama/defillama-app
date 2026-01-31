@@ -12,6 +12,22 @@ const FALLBACK_SUGGESTIONS = [
 	'Chart Pump.fun percentage share of total revenue across all launchpads'
 ]
 
+// Config for contextual pages and where to find the entity name in pageProps
+const CONTEXTUAL_PAGE_CONFIG = [
+	{ prefix: '/protocol/', getName: (props: any) => props?.name },
+	{ prefix: '/chain/', getName: (props: any) => props?.metadata?.name },
+	{ prefix: '/stablecoin/', getName: (props: any) => props?.peggedAssetData?.name }
+]
+
+function getEntityName(pathname: string, pageProps: any): string | null {
+	for (const { prefix, getName } of CONTEXTUAL_PAGE_CONFIG) {
+		if (pathname.startsWith(prefix)) {
+			return getName(pageProps) || null
+		}
+	}
+	return null
+}
+
 export function setPendingPrompt(prompt: string) {
 	if (typeof window !== 'undefined') {
 		localStorage.setItem(PENDING_PROMPT_KEY, prompt)
@@ -27,7 +43,7 @@ export function consumePendingPrompt(): string | null {
 	return prompt
 }
 
-export function LlamaAIFloatingButton() {
+export function LlamaAIFloatingButton({ pageProps }: { pageProps?: any }) {
 	const router = useRouter()
 	const [isOpen, setIsOpen] = useState(false)
 	const [value, setValue] = useState('')
@@ -35,18 +51,34 @@ export function LlamaAIFloatingButton() {
 	const isDesktop = useMedia('(min-width: 768px)')
 	const { data: suggestedData } = useSuggestedQuestions(isOpen)
 
+	const entityName = useMemo(() => getEntityName(router.pathname, pageProps), [router.pathname, pageProps])
+
+	const contextualPrompt = useMemo(() => {
+		if (!entityName) return null
+		return `Give me a comprehensive overview of ${entityName}.`
+	}, [entityName])
+
 	const suggestions = useMemo(() => {
-		if (!suggestedData?.categories) return FALLBACK_SUGGESTIONS
+		let basePrompts: string[]
 
-		const allPrompts: string[] = []
-		Object.values(suggestedData.categories).forEach((prompts) => {
-			if (Array.isArray(prompts)) {
-				allPrompts.push(...prompts.slice(0, 2))
-			}
-		})
+		if (!suggestedData?.categories) {
+			basePrompts = FALLBACK_SUGGESTIONS
+		} else {
+			const allPrompts: string[] = []
+			Object.values(suggestedData.categories).forEach((prompts) => {
+				if (Array.isArray(prompts)) {
+					allPrompts.push(...prompts.slice(0, 2))
+				}
+			})
+			basePrompts = allPrompts.length > 0 ? allPrompts.slice(0, 4) : FALLBACK_SUGGESTIONS
+		}
 
-		return allPrompts.length > 0 ? allPrompts.slice(0, 4) : FALLBACK_SUGGESTIONS
-	}, [suggestedData])
+		if (contextualPrompt) {
+			return [contextualPrompt, ...basePrompts.slice(0, 4)]
+		}
+
+		return basePrompts.slice(0, 4)
+	}, [suggestedData, contextualPrompt])
 
 	const handleSubmit = useCallback(
 		(e?: React.FormEvent) => {
