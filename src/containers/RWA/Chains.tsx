@@ -107,68 +107,68 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 
 	const data = useMemo(() => {
 		return chains.map((row) => {
-			// let totalOnChainMcap = row.base.onChainMcap
-			// if (includeStablecoins) {
-			// 	totalOnChainMcap += row.stablecoinsOnly.onChainMcap
-			// }
-			// if (includeGovernance) {
-			// 	totalOnChainMcap += row.governanceOnly.onChainMcap
-			// }
-			// if (includeStablecoins || includeGovernance) {
-			// 	totalOnChainMcap += row.stablecoinsAndGovernance.onChainMcap
-			// }
+			let totalOnChainMcap = row.base.onChainMcap
+			if (includeStablecoins) {
+				totalOnChainMcap += row.stablecoinsOnly.onChainMcap
+			}
+			if (includeGovernance) {
+				totalOnChainMcap += row.governanceOnly.onChainMcap
+			}
+			if (includeStablecoins || includeGovernance) {
+				totalOnChainMcap += row.stablecoinsAndGovernance.onChainMcap
+			}
 
-			// let totalActiveMcap = row.base.activeMcap
-			// if (includeStablecoins) {
-			// 	totalActiveMcap += row.stablecoinsOnly.activeMcap
-			// }
-			// if (includeGovernance) {
-			// 	totalActiveMcap += row.governanceOnly.activeMcap
-			// }
-			// if (includeStablecoins || includeGovernance) {
-			// 	totalActiveMcap += row.stablecoinsAndGovernance.activeMcap
-			// }
+			let totalActiveMcap = row.base.activeMcap
+			if (includeStablecoins) {
+				totalActiveMcap += row.stablecoinsOnly.activeMcap
+			}
+			if (includeGovernance) {
+				totalActiveMcap += row.governanceOnly.activeMcap
+			}
+			if (includeStablecoins || includeGovernance) {
+				totalActiveMcap += row.stablecoinsAndGovernance.activeMcap
+			}
 
-			// let totalDefiActiveTvl = row.base.defiActiveTvl
-			// if (includeStablecoins) {
-			// 	totalDefiActiveTvl += row.stablecoinsOnly.defiActiveTvl
-			// }
-			// if (includeGovernance) {
-			// 	totalDefiActiveTvl += row.governanceOnly.defiActiveTvl
-			// }
-			// if (includeStablecoins || includeGovernance) {
-			// 	totalDefiActiveTvl += row.stablecoinsAndGovernance.defiActiveTvl
-			// }
+			let totalDefiActiveTvl = row.base.defiActiveTvl
+			if (includeStablecoins) {
+				totalDefiActiveTvl += row.stablecoinsOnly.defiActiveTvl
+			}
+			if (includeGovernance) {
+				totalDefiActiveTvl += row.governanceOnly.defiActiveTvl
+			}
+			if (includeStablecoins || includeGovernance) {
+				totalDefiActiveTvl += row.stablecoinsAndGovernance.defiActiveTvl
+			}
 
-			// let totalAssetCount = row.base.assetCount
-			// if (includeStablecoins) {
-			// 	totalAssetCount += row.stablecoinsOnly.assetCount
-			// }
-			// if (includeGovernance) {
-			// 	totalAssetCount += row.governanceOnly.assetCount
-			// }
-			// if (includeStablecoins || includeGovernance) {
-			// 	totalAssetCount += row.stablecoinsAndGovernance.assetCount
-			// }
+			let totalAssetCount = row.base.assetCount
+			if (includeStablecoins) {
+				totalAssetCount += row.stablecoinsOnly.assetCount
+			}
+			if (includeGovernance) {
+				totalAssetCount += row.governanceOnly.assetCount
+			}
+			if (includeStablecoins || includeGovernance) {
+				totalAssetCount += row.stablecoinsAndGovernance.assetCount
+			}
 
-			// let totalAssetIssuers = row.base.assetIssuers
-			// if (includeStablecoins) {
-			// 	totalAssetIssuers += row.stablecoinsOnly.assetIssuers
-			// }
-			// if (includeGovernance) {
-			// 	totalAssetIssuers += row.governanceOnly.assetIssuers
-			// }
-			// if (includeStablecoins || includeGovernance) {
-			// 	totalAssetIssuers += row.stablecoinsAndGovernance.assetIssuers
-			// }
+			let totalAssetIssuers = row.base.assetIssuers
+			if (includeStablecoins) {
+				totalAssetIssuers += row.stablecoinsOnly.assetIssuers
+			}
+			if (includeGovernance) {
+				totalAssetIssuers += row.governanceOnly.assetIssuers
+			}
+			if (includeStablecoins || includeGovernance) {
+				totalAssetIssuers += row.stablecoinsAndGovernance.assetIssuers
+			}
 
 			return {
 				chain: row.chain,
-				totalOnChainMcap: 0,
-				totalActiveMcap: 0,
-				totalDefiActiveTvl: 0,
-				totalAssetIssuers: 0,
-				totalAssetCount: 0
+				totalOnChainMcap,
+				totalActiveMcap,
+				totalDefiActiveTvl,
+				totalAssetIssuers,
+				totalAssetCount
 			}
 		})
 	}, [chains, includeGovernance, includeStablecoins])
