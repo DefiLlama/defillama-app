@@ -49,7 +49,14 @@ export const getStaticProps = withPerformanceLogging(
 							? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1].replace(/(:|’|')/g, '/')}.json`
 							: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replace(/(:|’|')/g, '/')}.json`
 			) ?? []
-		).map((g) => g.toLowerCase())
+		)
+			.map((g) =>
+				g.replace(
+					process.env.DATASETS_SERVER_URL ?? 'https://defillama-datasets.llama.fi',
+					'https://defillama-datasets.llama.fi'
+				)
+			)
+			.map((g) => g.toLowerCase())
 
 		return {
 			props: {
