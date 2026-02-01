@@ -1,5 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { useCallback, useMemo, useState } from 'react'
+import Router, { useRouter } from 'next/router'
+import { useCallback, useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { Switch } from '~/components/Switch'
@@ -98,12 +99,38 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	640: { chain: 220 }
 }
 
-export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) {
-	const [includeStablecoins, setIncludeStablecoins] = useState(false)
-	const [includeGovernance, setIncludeGovernance] = useState(false)
+const toBooleanParam = (p: string | string[] | undefined): boolean => {
+	if (Array.isArray(p)) return p[0] === 'true'
+	return p === 'true'
+}
 
-	const onToggleStablecoins = useCallback(() => setIncludeStablecoins((v) => !v), [])
-	const onToggleGovernance = useCallback(() => setIncludeGovernance((v) => !v), [])
+export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) {
+	const router = useRouter()
+	const stablecoinsQ = router.query.includeStablecoins as string | string[] | undefined
+	const governanceQ = router.query.includeGovernance as string | string[] | undefined
+
+	const includeStablecoins = stablecoinsQ != null ? toBooleanParam(stablecoinsQ) : false
+	const includeGovernance = governanceQ != null ? toBooleanParam(governanceQ) : false
+
+	const onToggleStablecoins = useCallback(() => {
+		const nextQuery: Record<string, any> = { ...Router.query }
+		if (!includeStablecoins) {
+			nextQuery.includeStablecoins = 'true'
+		} else {
+			delete nextQuery.includeStablecoins
+		}
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [includeStablecoins])
+
+	const onToggleGovernance = useCallback(() => {
+		const nextQuery: Record<string, any> = { ...Router.query }
+		if (!includeGovernance) {
+			nextQuery.includeGovernance = 'true'
+		} else {
+			delete nextQuery.includeGovernance
+		}
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [includeGovernance])
 
 	const data = useMemo(() => {
 		return chains.map((row) => {
