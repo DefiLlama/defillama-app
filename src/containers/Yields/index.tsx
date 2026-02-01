@@ -270,6 +270,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				showAvailable={true}
 				showLTV={true}
 				prepareCsv={prepareCsv}
+				pools={pools}
+				showPresetFilters
 			/>
 
 			{loading ? (

@@ -14,6 +14,7 @@ import { InputFilter } from './Amount'
 import { YieldFilterDropdowns } from './Dropdowns'
 import { IncludeExcludeTokens } from './IncludeExcludeTokens'
 import { LTV } from './LTV'
+import { PresetFilters } from './PresetFilters'
 import type { IYieldFiltersProps } from './types'
 
 function SavedFilters({ currentFilters }) {
@@ -121,6 +122,8 @@ export function YieldFiltersV2({
 	strategyInputsData,
 	ltvPlaceholder,
 	showSearchOnMobile,
+	pools,
+	showPresetFilters,
 	...props
 }: IYieldFiltersProps) {
 	const trackingStats =
@@ -147,7 +150,13 @@ export function YieldFiltersV2({
 				{trackingStats ? <p>{trackingStats}</p> : null}
 				<SavedFilters currentFilters={query} />
 			</div>
-			<div className="flex flex-col gap-2 rounded-b-md p-3">
+			<div className="flex flex-col gap-3 rounded-b-md p-3">
+				{showPresetFilters && (
+					<>
+						<PresetFilters pools={pools} totalPools={poolsNumber} />
+						<div className="border-t border-(--form-control-border)" />
+					</>
+				)}
 				{strategyInputsData ? (
 					<StrategySearch lend={lend} borrow={borrow} searchData={strategyInputsData} ltvPlaceholder={ltvPlaceholder} />
 				) : null}
