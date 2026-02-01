@@ -291,7 +291,7 @@ export function DashboardDiscovery() {
 									data-active={viewMode === 'list'}
 									className="rounded-r-md p-2 text-(--text-label) transition-colors duration-150 data-[active=false]:hover:bg-(--bg-hover) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								>
-									<Icon name="list" height={16} width={16} />
+									<Icon name="menu" height={16} width={16} />
 									<span className="sr-only">View as list</span>
 								</button>
 							</div>
