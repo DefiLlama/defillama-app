@@ -51,9 +51,9 @@ const pageName = ['RWA']
 export default function RWAPage(props) {
 	return (
 		<Layout
-			title="Real World Assets - DefiLlama"
-			description={`Real World Assets on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`real world assets, defi rwa rankings, rwa on chain`}
+			title={`${props.chain} - RWA - DefiLlama`}
+			description={`${props.chain} RWA on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${props.chain}, real world assets, defi rwa rankings, rwa on chain`}
 			pageName={pageName}
 			canonicalUrl={`/rwa/chains`}
 		>

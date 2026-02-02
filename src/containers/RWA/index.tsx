@@ -208,14 +208,6 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					isCategoryMode ? props.selectedCategory : isPlatformMode ? props.selectedPlatform : props.selectedChain
 				}
 			/>
-
-			{props.chartData && props.chartData.length > 0 ? (
-				<div className="min-h-[372px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3">
-					<Suspense fallback={<></>}>
-						<MultiSeriesChart2 charts={timeSeriesCharts} data={props.chartData} hideDefaultLegend={false} />
-					</Suspense>
-				</div>
-			) : null}
 			<RWAOverviewFilters
 				enabled={showFilters}
 				isChainMode={isChainMode}
@@ -267,12 +259,12 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
-						content={definitions.totalAssetIssuers.description}
+						content={definitions.totalDefiActiveTvl.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
-						Total Asset Issuers
+						DeFi Active TVL
 					</Tooltip>
-					<span className="font-jetbrains text-2xl font-medium">{formattedNum(issuersCount, false)}</span>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainDeFiActiveTvl, true)}</span>
 				</p>
 				{isChainMode ? (
 					<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
@@ -289,14 +281,25 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				) : null}
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
-						content={definitions.totalDefiActiveTvl.description}
+						content={definitions.totalAssetIssuers.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
-						DeFi Active TVL
+						Total Asset Issuers
 					</Tooltip>
-					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainDeFiActiveTvl, true)}</span>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(issuersCount, false)}</span>
 				</p>
 			</div>
+			{props.chartData && props.chartData.length > 0 ? (
+				<div className="min-h-[372px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3">
+					<Suspense fallback={<></>}>
+						<MultiSeriesChart2
+							charts={isChainMode ? chainTimeSeriesCharts : timeSeriesCharts}
+							data={props.chartData}
+							hideDefaultLegend={false}
+						/>
+					</Suspense>
+				</div>
+			) : null}
 			{showCharts ? (
 				<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
 					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
@@ -438,6 +441,17 @@ const pieChartLegendPosition = {
 	}
 } as any
 const pieChartLegendTextStyle = { fontSize: 14 }
+
+const chainTimeSeriesCharts: Array<{
+	type: 'line' | 'bar'
+	name: string
+	stack: string
+	encode: { x: number | Array<number>; y: number | Array<number> }
+	color?: string
+}> = [
+	{ type: 'line', name: 'Active Mcap', stack: 'activeMcap', encode: { x: 0, y: 2 }, color: CHART_COLORS[1] },
+	{ type: 'line', name: 'Onchain Mcap', stack: 'onchainMcap', encode: { x: 0, y: 3 }, color: CHART_COLORS[2] }
+]
 
 const timeSeriesCharts: Array<{
 	type: 'line' | 'bar'
