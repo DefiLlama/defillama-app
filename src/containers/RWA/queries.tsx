@@ -144,6 +144,7 @@ export interface IRWAAssetsOverview {
 	totalActiveMcap: number
 	totalOnChainStablecoinValue: number
 	totalOnChainDeFiActiveTvl: number
+	chartData: Array<[number, number | null, number | null, number | null]> | null
 }
 
 export interface IRWAChainsOverviewRow {
@@ -233,7 +234,35 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		const selectedCount = Number(!!selectedChain) + Number(!!selectedCategory) + Number(!!selectedPlatform)
 		if (selectedCount > 1) return null
 
-		const { data } = await fetchJson<{ data: Record<string, IFetchedRWAProject> }>(RWA_ACTIVE_TVLS_API)
+		const chartUrl = selectedChain
+			? `${RWA_CHART_API}/chain/${selectedChain}`
+			: selectedCategory
+				? `${RWA_CHART_API}/category/${selectedCategory}`
+				: selectedPlatform
+					? `${RWA_CHART_API}/platform/${selectedPlatform}`
+					: `${RWA_CHART_API}/chain/All`
+
+		const [{ data }, chartData]: [
+			{ data: Record<string, IFetchedRWAProject> },
+			Array<[number, number | null, number | null, number | null]> | null
+		] = await Promise.all([
+			fetchJson<{ data: Record<string, IFetchedRWAProject> }>(RWA_ACTIVE_TVLS_API),
+			fetchJson(chartUrl)
+				.then((data: IRWAChartData) => {
+					const finalChartData = []
+					for (const item of data?.data ?? []) {
+						finalChartData.push([
+							item.timestamp * 1e3,
+							item.defiActiveTvl ?? null,
+							item.activeMcap ?? null,
+							item.onChainMcap ?? null
+						])
+					}
+					return finalChartData.sort((a, b) => a[0] - b[0])
+				})
+				.catch(() => null)
+		])
+
 		if (!data) {
 			throw new Error('Failed to get RWA assets list')
 		}
@@ -559,7 +588,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			totalOnChainMcap: totalOnChainMcapAllAssets,
 			totalActiveMcap: totalActiveMcapAllAssets,
 			totalOnChainStablecoinValue: totalOnChainStablecoinValueAllAssets,
-			totalOnChainDeFiActiveTvl: totalOnChainDeFiActiveTvlAllAssets
+			totalOnChainDeFiActiveTvl: totalOnChainDeFiActiveTvlAllAssets,
+			chartData
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA assets overview')
@@ -637,10 +667,24 @@ export interface IRWAAssetData extends IRWAProject {
 
 export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {
 	try {
-		const [data, chartData]: [IFetchedRWAProject, IRWAChartData | null] = await Promise.all([
-			fetchJson(`${RWA_ASSET_DATA_API}/${assetId}`),
-			fetchJson(`${RWA_CHART_API}/${assetId}`).catch(() => null)
-		])
+		const [data, chartData]: [IFetchedRWAProject, Array<[number, number | null, number | null, number | null]> | null] =
+			await Promise.all([
+				fetchJson(`${RWA_ASSET_DATA_API}/${assetId}`),
+				fetchJson(`${RWA_CHART_API}/${assetId}`)
+					.then((data: IRWAChartData) => {
+						const finalChartData = []
+						for (const item of data?.data ?? []) {
+							finalChartData.push([
+								item.timestamp * 1e3,
+								item.defiActiveTvl ?? null,
+								item.activeMcap ?? null,
+								item.onChainMcap ?? null
+							])
+						}
+						return finalChartData.sort((a, b) => a[0] - b[0])
+					})
+					.catch(() => null)
+			])
 
 		if (!data) {
 			throw new Error('Failed to get RWA assets list')
@@ -700,16 +744,6 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			return null
 		}
 
-		const finalChartData = []
-		for (const item of chartData?.data ?? []) {
-			finalChartData.push([
-				item.timestamp * 1e3,
-				item.defiActiveTvl ?? null,
-				item.activeMcap ?? null,
-				item.onChainMcap ?? null
-			])
-		}
-
 		return {
 			...data,
 			slug: rwaSlug(ticker ?? name ?? ''),
@@ -732,7 +766,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 				total: totalDeFiActiveTvlForAsset,
 				breakdown: Object.entries(finalDeFiActiveTvlBreakdown).sort((a, b) => b[1] - a[1])
 			},
-			chartData: finalChartData.sort((a, b) => a[0] - b[0])
+			chartData
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA asset data')

@@ -3,6 +3,7 @@ import { lazy, Suspense, useMemo } from 'react'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Tooltip } from '~/components/Tooltip'
+import { CHART_COLORS } from '~/constants/colors'
 import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
 import { RWAAssetsTable } from './AssetsTable'
@@ -15,6 +16,8 @@ import {
 	useRwaCategoryAssetClassPieChartData,
 	useRwaChainPieChartData
 } from './useRwaPieChartData'
+
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
@@ -205,6 +208,14 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					isCategoryMode ? props.selectedCategory : isPlatformMode ? props.selectedPlatform : props.selectedChain
 				}
 			/>
+
+			{props.chartData && props.chartData.length > 0 ? (
+				<div className="min-h-[372px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3">
+					<Suspense fallback={<></>}>
+						<MultiSeriesChart2 charts={timeSeriesCharts} data={props.chartData} hideDefaultLegend={false} />
+					</Suspense>
+				</div>
+			) : null}
 			<RWAOverviewFilters
 				enabled={showFilters}
 				isChainMode={isChainMode}
@@ -427,3 +438,16 @@ const pieChartLegendPosition = {
 	}
 } as any
 const pieChartLegendTextStyle = { fontSize: 14 }
+
+const timeSeriesCharts: Array<{
+	type: 'line' | 'bar'
+	name: string
+	stack: string
+	encode: { x: number | Array<number>; y: number | Array<number> }
+	color?: string
+}> = [
+	// Use distinct stack keys so ECharts doesn't cumulatively stack these series.
+	{ type: 'line', name: 'DeFi Active TVL', stack: 'defiActiveTvl', encode: { x: 0, y: 1 }, color: CHART_COLORS[0] },
+	{ type: 'line', name: 'Active Mcap', stack: 'activeMcap', encode: { x: 0, y: 2 }, color: CHART_COLORS[1] },
+	{ type: 'line', name: 'Onchain Mcap', stack: 'onchainMcap', encode: { x: 0, y: 3 }, color: CHART_COLORS[2] }
+]
