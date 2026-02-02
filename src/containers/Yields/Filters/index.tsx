@@ -122,7 +122,6 @@ export function YieldFiltersV2({
 	strategyInputsData,
 	ltvPlaceholder,
 	showSearchOnMobile,
-	pools,
 	showPresetFilters,
 	...props
 }: IYieldFiltersProps) {
@@ -153,7 +152,7 @@ export function YieldFiltersV2({
 			<div className="flex flex-col gap-3 rounded-b-md p-3">
 				{showPresetFilters && (
 					<>
-						<PresetFilters pools={pools} totalPools={poolsNumber} />
+						<PresetFilters />
 						<div className="border-t border-(--form-control-border)" />
 					</>
 				)}
