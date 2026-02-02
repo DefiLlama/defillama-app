@@ -9,20 +9,20 @@ const toArray = <T,>(value: T | T[]): T[] => (Array.isArray(value) ? value : [va
 export const YIELD_PRESETS = {
 	stables: {
 		label: 'Stables',
-		description: 'EURC, USD stablecoins with single exposure, $1M+ TVL',
+		description: 'USD, EURC stablecoins with single exposure, $1M+ TVL',
 		icon: 'dollar-sign' as const,
 		filters: {
-			token: ['EURC', 'ALL_USD_STABLES'],
+			token: ['ALL_USD_STABLES', 'EURC'],
 			attribute: ['single_exposure', 'no_memecoins'],
 			minTvl: '1000000'
 		}
 	},
 	majors: {
 		label: 'Majors',
-		description: 'ETH, BTC & stables on audited protocols with $10M+ TVL',
+		description: 'BTC, ETH, SOL & stables on audited protocols with $10M+ TVL',
 		icon: 'layers' as const,
 		filters: {
-			token: ['ETH', 'BTC', 'ALL_USD_STABLES'],
+			token: ['BTC', 'ETH', 'SOL', 'ALL_USD_STABLES', 'EURC'],
 			attribute: ['audited', 'no_memecoins'],
 			minTvl: '10000000'
 		}
