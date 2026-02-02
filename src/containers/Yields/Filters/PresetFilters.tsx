@@ -38,7 +38,7 @@ export const YIELD_PRESETS = {
 	},
 	liquidStaking: {
 		label: 'Liquid Staking',
-		description: 'LST tokens (stETH, wstETH, etc.) on audited protocols with $10M+ TVL',
+		description: 'LST tokens (stETH, wstETH, etc.) on audited protocols with $1M+ TVL',
 		icon: 'activity' as const,
 		filters: {
 			token: ['STETH', 'WSTETH', 'WEETH', 'WBETH', 'CBETH'],
@@ -66,6 +66,10 @@ export const YIELD_PRESETS = {
 		}
 	}
 } as const
+
+const ALL_PRESET_FILTER_KEYS = new Set(
+	Object.values(YIELD_PRESETS).flatMap((preset) => Object.keys(preset.filters))
+)
 
 type PresetKey = keyof typeof YIELD_PRESETS
 
@@ -100,28 +104,22 @@ export function PresetFilters({ className }: PresetFiltersProps) {
 		(presetKey: PresetKey) => {
 			const preset = YIELD_PRESETS[presetKey]
 			const isActive = activePresets.has(presetKey)
-			let newQuery = { ...query }
+
+			const newQuery: Record<string, string | string[]> = {}
+			for (const [key, value] of Object.entries(query)) {
+				if (!ALL_PRESET_FILTER_KEYS.has(key)) {
+					newQuery[key] = value as string | string[]
+				}
+			}
 
 			if (!isActive) {
 				trackYieldsEvent(YIELDS_EVENTS.FILTER_PRESET, { preset: presetKey })
-			}
-
-			if (isActive) {
 				for (const [filterKey, filterValue] of Object.entries(preset.filters)) {
-					const expected = toArray(filterValue)
-					const current = query[filterKey] ? toArray(query[filterKey]) : []
-					const remaining = current.filter((v) => !expected.includes(v))
-					if (remaining.length === 0) delete newQuery[filterKey]
-					else newQuery[filterKey] = remaining.length === 1 ? remaining[0] : remaining
-				}
-			} else {
-				for (const [filterKey, filterValue] of Object.entries(preset.filters)) {
-					const expected = toArray(filterValue)
-					const current = query[filterKey] ? toArray(query[filterKey]) : []
-					const merged = [...new Set([...current, ...expected])]
-					newQuery[filterKey] = merged.length === 1 ? merged[0] : merged
+					const values = toArray(filterValue)
+					newQuery[filterKey] = values.length === 1 ? values[0] : values
 				}
 			}
+			// If clicking active preset, just clear (already done above)
 
 			router.push({ pathname, query: newQuery }, undefined, { shallow: true })
 		},
@@ -140,7 +138,7 @@ export function PresetFilters({ className }: PresetFiltersProps) {
 					<Tooltip key={key} content={preset.description} placement="bottom">
 						<button
 							onClick={() => handlePresetClick(key)}
-							className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium transition-colors ${
+							className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium ${
 								isActive
 									? 'bg-(--old-blue) text-white'
 									: 'bg-(--btn-bg) text-(--text-primary) hover:bg-(--btn-hover-bg) border border-(--form-control-border)'
