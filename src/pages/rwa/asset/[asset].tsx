@@ -57,8 +57,8 @@ export default function RWAAssetDetailPage({ asset }) {
 	const displayName = asset?.name ?? asset?.ticker ?? asset?.slug ?? 'RWA Asset'
 	return (
 		<Layout
-			title={`${displayName} - Real World Assets - DefiLlama`}
-			description={`${displayName} RWA details on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title={`${displayName} - RWA - DefiLlama`}
+			description={`${displayName} on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`${displayName}, real world assets, defi rwa, rwa on chain`}
 			pageName={pageName}
 			canonicalUrl={`/rwa/asset/${asset.slug}`}

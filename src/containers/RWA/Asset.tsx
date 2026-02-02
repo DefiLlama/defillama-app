@@ -565,7 +565,8 @@ const timeSeriesCharts: Array<{
 	encode: { x: number | Array<number>; y: number | Array<number> }
 	color?: string
 }> = [
-	{ type: 'line', name: 'DeFi Active TVL', stack: 'A', encode: { x: 0, y: 1 }, color: CHART_COLORS[0] },
-	{ type: 'line', name: 'Active MCap', stack: 'A', encode: { x: 0, y: 2 }, color: CHART_COLORS[1] },
-	{ type: 'line', name: 'On-Chain MCap', stack: 'A', encode: { x: 0, y: 3 }, color: CHART_COLORS[2] }
+	// Use distinct stack keys so ECharts doesn't cumulatively stack these series.
+	{ type: 'line', name: 'DeFi Active TVL', stack: 'defiActiveTvl', encode: { x: 0, y: 1 }, color: CHART_COLORS[0] },
+	{ type: 'line', name: 'Active Mcap', stack: 'activeMcap', encode: { x: 0, y: 2 }, color: CHART_COLORS[1] },
+	{ type: 'line', name: 'Onchain Mcap', stack: 'onchainMcap', encode: { x: 0, y: 3 }, color: CHART_COLORS[2] }
 ]

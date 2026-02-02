@@ -113,7 +113,7 @@ export interface IMultiSeriesChart2Props {
 	charts?: Array<{
 		type: 'line' | 'bar'
 		name: string
-		stack: string
+		stack?: string
 		encode: {
 			x: number | Array<number>
 			y: number | Array<number>

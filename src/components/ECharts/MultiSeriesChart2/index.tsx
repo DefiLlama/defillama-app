@@ -92,7 +92,7 @@ export default function MultiSeriesChart2({
 				...(chart.yAxisIndex != null ? { yAxisIndex: chart.yAxisIndex } : {})
 			})
 		}
-		if (hallmarks) {
+		if (hallmarks && series.length > 0) {
 			series[0].markLine =
 				hallmarks.length > 8
 					? {
@@ -171,19 +171,22 @@ export default function MultiSeriesChart2({
 			onReady(instance)
 		}
 
+		// avoid mutating memoized defaults
+		const mergedChartSettings: any = { ...defaultChartSettings }
+
 		// override default chart settings
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
 				// update tooltip formatter
-				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
-			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
+				mergedChartSettings['tooltip'] = { ...mergedChartSettings['inflowsTooltip'] }
+			} else if (mergedChartSettings[option]) {
+				mergedChartSettings[option] = mergeDeep(mergedChartSettings[option], chartOptions[option])
 			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
+				mergedChartSettings[option] = { ...chartOptions[option] }
 			}
 		}
 
-		const { legend, graphic, titleDefaults, xAxis, yAxis, dataZoom } = defaultChartSettings
+		const { legend, graphic, titleDefaults, xAxis, yAxis, dataZoom } = mergedChartSettings
 
 		const finalYAxis = []
 		if (series.some((item) => item.yAxisIndex != null)) {
@@ -226,6 +229,7 @@ export default function MultiSeriesChart2({
 		}
 
 		const shouldHideDataZoom = data.length < 2 || hideDataZoom
+		const groupByForTooltip = (groupBy ?? 'daily') as 'daily' | 'weekly' | 'monthly'
 
 		instance.setOption({
 			...(hideDefaultLegend ? {} : { legend }),
@@ -234,15 +238,38 @@ export default function MultiSeriesChart2({
 				trigger: 'axis',
 				confine: true,
 				formatter: (params: any) => {
-					let chartdate = formatTooltipChartDate(params[0].axisValue, groupBy)
+					const items = Array.isArray(params) ? params : params ? [params] : []
+					if (items.length === 0) return ''
 
-					let vals = params
-						.map((param) => {
-							const name = param.dimensionNames[param.componentIndex]
-							// first value is the date
-							const value = param.value[param.componentIndex + 1]
-							if (value == null) return null
-							return [param.marker, name, value]
+					const first = items[0]
+					const axisValue =
+						typeof first?.axisValue === 'number'
+							? first.axisValue
+							: Array.isArray(first?.value)
+								? first.value[0]
+								: Number(first?.axisValue)
+
+					const chartdate = formatTooltipChartDate(axisValue, groupByForTooltip)
+
+					const vals = items
+						.map((item) => {
+							const name = item?.seriesName
+							const row = Array.isArray(item?.value) ? item.value : Array.isArray(item?.data) ? item.data : null
+							const yIndex = Array.isArray(item?.encode?.y)
+								? item.encode.y[0]
+								: typeof item?.encode?.y === 'number'
+									? item.encode.y
+									: undefined
+							const rawValue =
+								row && typeof yIndex === 'number'
+									? row[yIndex]
+									: Array.isArray(item?.value)
+										? item.value[1]
+										: item?.value
+							const value =
+								rawValue == null || rawValue === '-' ? null : typeof rawValue === 'number' ? rawValue : Number(rawValue)
+							if (!name || value == null || Number.isNaN(value)) return null
+							return [item.marker, name, value] as const
 						})
 						.filter(Boolean)
 						.sort((a, b) => b[2] - a[2])
@@ -278,36 +305,34 @@ export default function MultiSeriesChart2({
 			...(shouldHideDataZoom ? {} : { dataZoom }),
 			series,
 			dataset: {
-				source: data,
-				dimensions:
-					charts?.map((chart) => chart.name)?.filter((name) => (selectedCharts ? selectedCharts.has(name) : true)) ?? []
+				source: data
 			}
 		})
 
-		if (alwaysShowTooltip) {
-			instance.dispatchAction({
-				type: 'showTip',
-				// index of series, which is optional when trigger of tooltip is axis
-				seriesIndex: 0,
-				// data index; could assign by name attribute when not defined
-				dataIndex: series[0].data.length - 1,
-				// Position of tooltip. Only works in this action.
-				// Use tooltip.position in option by default.
-				position: [60, 0]
-			})
-
-			instance.on('globalout', () => {
+		if (alwaysShowTooltip && series.length > 0 && data.length > 0) {
+			const dataIndex = data.length - 1
+			const showTip = () =>
 				instance.dispatchAction({
 					type: 'showTip',
 					// index of series, which is optional when trigger of tooltip is axis
 					seriesIndex: 0,
 					// data index; could assign by name attribute when not defined
-					dataIndex: series[0].data.length - 1,
+					dataIndex,
 					// Position of tooltip. Only works in this action.
 					// Use tooltip.position in option by default.
 					position: [60, 0]
 				})
-			})
+
+			showTip()
+
+			const onGlobalOut = () => showTip()
+			instance.on('globalout', onGlobalOut)
+
+			return () => {
+				instance.off('globalout', onGlobalOut)
+				chartRef.current = null
+				instance.dispose()
+			}
 		}
 
 		return () => {
