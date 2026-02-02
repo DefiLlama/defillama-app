@@ -47,7 +47,8 @@ export function ProtocolOverviewLayout({
 	tab,
 	warningBanners,
 	seoDescription,
-	seoKeywords
+	seoKeywords,
+	entityQuestions
 }: {
 	children: React.ReactNode
 	isCEX?: boolean
@@ -67,6 +68,7 @@ export function ProtocolOverviewLayout({
 	}>
 	seoDescription?: string
 	seoKeywords?: string
+	entityQuestions?: string[]
 }) {
 	const metricFiltersLabel = useMemo(() => {
 		const hasTvl = toggleOptions?.some((option) => TVL_SETTINGS_KEYS_SET.has(option.key))
@@ -299,7 +301,7 @@ export function ProtocolOverviewLayout({
 							</BasicLink>
 						))}
 				</div>
-				<EntityQuestionsStrip entitySlug={slug(name)} entityType="protocol" entityName={name} />
+				<EntityQuestionsStrip questions={entityQuestions || []} entitySlug={slug(name)} entityType="protocol" entityName={name} />
 				{children}
 			</div>
 		</Layout>

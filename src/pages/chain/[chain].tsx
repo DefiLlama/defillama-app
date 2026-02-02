@@ -2,6 +2,7 @@ import { maxAgeForNext } from '~/api'
 import { PROTOCOLS_API } from '~/constants/index'
 import { ChainOverview } from '~/containers/ChainOverview'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
+import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -27,8 +28,10 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 		return { notFound: true }
 	}
 
+	const entityQuestions = chain.toLowerCase() !== 'all' ? await fetchEntityQuestions(chain, 'chain') : []
+
 	return {
-		props: data,
+		props: { ...data, entityQuestions },
 		revalidate: maxAgeForNext([22])
 	}
 })

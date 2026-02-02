@@ -62,6 +62,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			tab="information"
 			seoDescription={props.seoDescription}
 			seoKeywords={props.seoKeywords}
+			entityQuestions={props.entityQuestions}
 		>
 			<LinkPreviewCard
 				cardName={props.name}

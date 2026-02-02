@@ -10,7 +10,9 @@ async function fetchEntityQuestions(
 	entitySlug: string,
 	entityType: 'protocol' | 'chain'
 ): Promise<EntityQuestionsResponse> {
-	const response = await fetch(`${MCP_SERVER}/suggested-questions?entity=${entitySlug}&entityType=${entityType}`)
+	const response = await fetch(
+		`${MCP_SERVER}/suggested-questions?entity=${encodeURIComponent(entitySlug)}&entityType=${encodeURIComponent(entityType)}`
+	)
 	if (!response.ok) {
 		throw new Error('Failed to fetch entity questions')
 	}

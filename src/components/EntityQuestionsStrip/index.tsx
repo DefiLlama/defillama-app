@@ -1,18 +1,17 @@
 import { useRouter } from 'next/router'
-import { useEntityQuestions } from '~/containers/LlamaAI/hooks/useEntityQuestions'
 import { setPendingPrompt } from '~/components/LlamaAIFloatingButton'
 
 interface Props {
+	questions: string[]
 	entitySlug: string
 	entityType: 'protocol' | 'chain'
 	entityName?: string
 }
 
-export function EntityQuestionsStrip({ entitySlug, entityType, entityName }: Props) {
+export function EntityQuestionsStrip({ questions, entitySlug, entityType, entityName }: Props) {
 	const router = useRouter()
-	const { data, isLoading } = useEntityQuestions(entitySlug, entityType, true)
 
-	if (isLoading || !data?.questions?.length) return null
+	if (!questions?.length) return null
 
 	const handleClick = (question: string) => {
 		if (typeof window !== 'undefined' && (window as any).umami) {
@@ -42,7 +41,7 @@ export function EntityQuestionsStrip({ entitySlug, entityType, entityName }: Pro
 
 				{/* Question chips */}
 				<div className="flex gap-2">
-					{data.questions.slice(0, 5).map((question, i) => (
+					{questions.slice(0, 5).map((question, i) => (
 						<button
 							key={i}
 							onClick={() => handleClick(question)}
