@@ -1,6 +1,5 @@
-import { RWA_ACTIVE_TVLS_API, RWA_STATS_API } from '~/constants'
+import { RWA_ACTIVE_TVLS_API, RWA_ASSET_DATA_API, RWA_STATS_API } from '~/constants'
 import definitions from '~/public/rwa-definitions.json'
-import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { rwaSlug } from './rwaSlug'
 
@@ -631,90 +630,90 @@ export interface IRWAAssetData extends IRWAProject {
 	assetClassDescriptions: Record<string, string>
 }
 
-export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData | null> {
+export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {
 	try {
-		const { data } = await fetchJson<{ data: Record<string, IFetchedRWAProject> }>(RWA_ACTIVE_TVLS_API)
+		const data = await fetchJson<IFetchedRWAProject>(`${RWA_ASSET_DATA_API}/${assetId}`)
 		if (!data) {
 			throw new Error('Failed to get RWA assets list')
 		}
 
-		// Find the asset by comparing ticker slugs
-		for (const rwaId in data) {
-			const item = data[rwaId]
-			if (typeof item.ticker === 'string' && item.ticker !== '-' && slug(item.ticker) === assetSlug) {
-				let totalOnChainMcapForAsset = 0
-				let totalActiveMcapForAsset = 0
-				let totalDeFiActiveTvlForAsset = 0
-				const onChainMcapBreakdown = item.onChainMcap ?? {}
-				const activeMcapBreakdown = item.activeMcap ?? {}
-				const defiActiveTvlBreakdown = item.defiActiveTvl ?? {}
-				const finalOnChainMcapBreakdown: Record<string, number> = {}
-				const finalActiveMcapBreakdown: Record<string, number> = {}
-				const finalDeFiActiveTvlBreakdown: Record<string, number> = {}
+		let totalOnChainMcapForAsset = 0
+		let totalActiveMcapForAsset = 0
+		let totalDeFiActiveTvlForAsset = 0
+		const onChainMcapBreakdown = data.onChainMcap ?? {}
+		const activeMcapBreakdown = data.activeMcap ?? {}
+		const defiActiveTvlBreakdown = data.defiActiveTvl ?? {}
+		const finalOnChainMcapBreakdown: Record<string, number> = {}
+		const finalActiveMcapBreakdown: Record<string, number> = {}
+		const finalDeFiActiveTvlBreakdown: Record<string, number> = {}
 
-				for (const chain in onChainMcapBreakdown) {
-					const value = safeNumber(onChainMcapBreakdown[chain])
-					finalOnChainMcapBreakdown[chain] = (finalOnChainMcapBreakdown[chain] || 0) + value
-					totalOnChainMcapForAsset += value
-				}
+		for (const chain in onChainMcapBreakdown) {
+			const value = safeNumber(onChainMcapBreakdown[chain])
+			finalOnChainMcapBreakdown[chain] = (finalOnChainMcapBreakdown[chain] || 0) + value
+			totalOnChainMcapForAsset += value
+		}
 
-				for (const chain in activeMcapBreakdown) {
-					const value = safeNumber(activeMcapBreakdown[chain])
-					finalActiveMcapBreakdown[chain] = (finalActiveMcapBreakdown[chain] || 0) + value
-					totalActiveMcapForAsset += value
-				}
+		for (const chain in activeMcapBreakdown) {
+			const value = safeNumber(activeMcapBreakdown[chain])
+			finalActiveMcapBreakdown[chain] = (finalActiveMcapBreakdown[chain] || 0) + value
+			totalActiveMcapForAsset += value
+		}
 
-				for (const chain in defiActiveTvlBreakdown) {
-					for (const protocolName in defiActiveTvlBreakdown[chain]) {
-						const value = safeNumber(defiActiveTvlBreakdown[chain][protocolName])
-						finalDeFiActiveTvlBreakdown[protocolName] = (finalDeFiActiveTvlBreakdown[protocolName] || 0) + value
-						totalDeFiActiveTvlForAsset += value
-					}
-				}
-
-				const isTrueRWA = item.rwaClassification === 'True RWA'
-				// Get the classification description - use True RWA definition if trueRWA flag
-				const classificationKey = isTrueRWA ? 'True RWA' : item.rwaClassification
-				const rwaClassificationDescription = classificationKey
-					? (definitions.rwaClassification.values?.[classificationKey] ?? null)
-					: null
-
-				const accessModelDescription = definitions.accessModel.values?.[item.accessModel] ?? null
-				// Get asset class descriptions
-				const assetClassDescriptions: Record<string, string> = {}
-				for (const ac of item.assetClass ?? []) {
-					const description = ac ? definitions.assetClass.values?.[ac] : null
-					if (description) {
-						assetClassDescriptions[ac] = description
-					}
-				}
-				return {
-					...item,
-					slug: assetSlug,
-					ticker: typeof item.ticker === 'string' && item.ticker !== '-' ? item.ticker : null,
-					name: typeof item.name === 'string' && item.name !== '-' ? item.name : null,
-					trueRWA: isTrueRWA,
-					rwaClassification: isTrueRWA ? 'RWA' : (item.rwaClassification ?? null),
-					rwaClassificationDescription,
-					accessModelDescription,
-					assetClassDescriptions,
-					onChainMcap: {
-						total: totalOnChainMcapForAsset,
-						breakdown: Object.entries(finalOnChainMcapBreakdown).sort((a, b) => b[1] - a[1])
-					},
-					activeMcap: {
-						total: totalActiveMcapForAsset,
-						breakdown: Object.entries(finalActiveMcapBreakdown).sort((a, b) => b[1] - a[1])
-					},
-					defiActiveTvl: {
-						total: totalDeFiActiveTvlForAsset,
-						breakdown: Object.entries(finalDeFiActiveTvlBreakdown).sort((a, b) => b[1] - a[1])
-					}
-				}
+		for (const chain in defiActiveTvlBreakdown) {
+			for (const protocolName in defiActiveTvlBreakdown[chain]) {
+				const value = safeNumber(defiActiveTvlBreakdown[chain][protocolName])
+				finalDeFiActiveTvlBreakdown[protocolName] = (finalDeFiActiveTvlBreakdown[protocolName] || 0) + value
+				totalDeFiActiveTvlForAsset += value
 			}
 		}
 
-		return null
+		const isTrueRWA = data.rwaClassification === 'True RWA'
+		// Get the classification description - use True RWA definition if trueRWA flag
+		const classificationKey = isTrueRWA ? 'True RWA' : data.rwaClassification
+		const rwaClassificationDescription = classificationKey
+			? (definitions.rwaClassification.values?.[classificationKey] ?? null)
+			: null
+
+		const accessModelDescription = definitions.accessModel.values?.[data.accessModel] ?? null
+		// Get asset class descriptions
+		const assetClassDescriptions: Record<string, string> = {}
+		for (const ac of data.assetClass ?? []) {
+			const description = ac ? definitions.assetClass.values?.[ac] : null
+			if (description) {
+				assetClassDescriptions[ac] = description
+			}
+		}
+
+		const ticker = typeof data.ticker === 'string' && data.ticker !== '-' ? data.ticker : null
+		const name = typeof data.name === 'string' && data.name !== '-' ? data.name : null
+
+		if (!ticker) {
+			return null
+		}
+
+		return {
+			...data,
+			slug: rwaSlug(ticker ?? name ?? ''),
+			ticker,
+			name,
+			trueRWA: isTrueRWA,
+			rwaClassification: isTrueRWA ? 'RWA' : (data.rwaClassification ?? null),
+			rwaClassificationDescription,
+			accessModelDescription,
+			assetClassDescriptions,
+			onChainMcap: {
+				total: totalOnChainMcapForAsset,
+				breakdown: Object.entries(finalOnChainMcapBreakdown).sort((a, b) => b[1] - a[1])
+			},
+			activeMcap: {
+				total: totalActiveMcapForAsset,
+				breakdown: Object.entries(finalActiveMcapBreakdown).sort((a, b) => b[1] - a[1])
+			},
+			defiActiveTvl: {
+				total: totalDeFiActiveTvlForAsset,
+				breakdown: Object.entries(finalDeFiActiveTvlBreakdown).sort((a, b) => b[1] - a[1])
+			}
+		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA asset data')
 	}
