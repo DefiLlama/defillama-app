@@ -17,15 +17,6 @@ export const getStaticProps = withPerformanceLogging(
 		const category = params.category
 		const chain = params.chain
 
-		if (slug(category) === 'rwa') {
-			return {
-				redirect: {
-					destination: `/rwa/chain/${slug(chain)}`,
-					permanent: true
-				}
-			}
-		}
-
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const { categoriesAndTags } = metadataCache
 		const categoryName = categoriesAndTags.categories.find((c) => slug(c) === slug(category))
@@ -65,15 +56,6 @@ export const getStaticProps = withPerformanceLogging(
 			return {
 				notFound: true
 			}
-
-		if (props.effectiveCategory === 'RWA') {
-			return {
-				redirect: {
-					destination: `/rwa`,
-					permanent: true
-				}
-			}
-		}
 
 		return {
 			props,
