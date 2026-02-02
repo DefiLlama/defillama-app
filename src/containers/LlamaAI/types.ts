@@ -82,6 +82,17 @@ export interface SuggestedQuestionsResponse {
 	}
 }
 
+export interface EntityQuestionsResponse {
+	questions: string[]
+	suggestGlobal: boolean
+	entityNotFound?: boolean
+	metadata?: {
+		entitySlug: string
+		entityType: 'protocol' | 'chain'
+		generatedAt: string
+	}
+}
+
 // ============================================
 // Stream Item Types (Items-Only Architecture)
 // ============================================

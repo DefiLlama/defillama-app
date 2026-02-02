@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import * as React from 'react'
 import { useMemo } from 'react'
+import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -298,6 +299,7 @@ export function ProtocolOverviewLayout({
 							</BasicLink>
 						))}
 				</div>
+				<EntityQuestionsStrip entitySlug={slug(name)} entityType="protocol" entityName={name} />
 				{children}
 			</div>
 		</Layout>
