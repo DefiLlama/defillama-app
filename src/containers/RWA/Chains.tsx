@@ -228,6 +228,7 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 
 							return { filename, rows: [headers, ...rows] }
 						}}
+						smol
 					/>
 					<Switch
 						label="Stablecoins"
