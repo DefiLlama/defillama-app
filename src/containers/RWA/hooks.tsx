@@ -360,7 +360,7 @@ export const useFilteredRwaAssets = ({
 		const selectedAccessModelsSet = new Set(selectedAccessModels)
 		const selectedIssuersSet = new Set(selectedIssuers)
 
-		return assets.filter((asset) => {
+		const filteredAssets = assets.filter((asset) => {
 			// Only filter by asset name in platform mode.
 			if (selectedAssetNamesSet) {
 				// Keep the name mapping consistent with the pie chart logic.
@@ -418,6 +418,8 @@ export const useFilteredRwaAssets = ({
 				(asset.issuer ? selectedIssuersSet.has(asset.issuer) : true)
 			)
 		})
+
+		return filteredAssets
 	}, [
 		assets,
 		isPlatformMode,
@@ -436,34 +438,4 @@ export const useFilteredRwaAssets = ({
 		minDefiActiveTvlToActiveMcapPct,
 		maxDefiActiveTvlToActiveMcapPct
 	])
-}
-
-export const useRwaAssetsSummary = (filteredAssets: RWAAsset[]) => {
-	return useMemo(() => {
-		let onChainMcap = 0
-		let activeMcap = 0
-		let stablecoinMcap = 0
-		let defiTvl = 0
-		const issuersSet = new Set<string>()
-
-		for (const asset of filteredAssets) {
-			onChainMcap += asset.onChainMcap.total
-			activeMcap += asset.activeMcap.total
-			if (asset.stablecoin) {
-				stablecoinMcap += asset.onChainMcap.total
-			}
-			defiTvl += asset.defiActiveTvl.total
-			if (asset.issuer) {
-				issuersSet.add(asset.issuer)
-			}
-		}
-
-		return {
-			totalOnChainMcap: onChainMcap,
-			totalActiveMcap: activeMcap,
-			totalOnChainStablecoinMcap: stablecoinMcap,
-			totalOnChainDeFiActiveTvl: defiTvl,
-			issuersCount: issuersSet.size
-		}
-	}, [filteredAssets])
 }

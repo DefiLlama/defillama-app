@@ -123,7 +123,12 @@ export default function PieChart({
 			tooltip: {
 				trigger: 'item',
 				confine: true,
-				valueFormatter: (value) => formatTooltipValue(value, valueSymbol)
+				formatter: (params: any) => {
+					const p = Array.isArray(params) ? params[0] : params
+					const rawValue = typeof p?.value === 'number' ? p.value : Number(p?.value ?? 0)
+					const formattedValue = formatTooltipValue(rawValue, valueSymbol)
+					return `${p?.marker ?? ''}${p?.name ?? ''}: <b>${formattedValue}</b> (${params.percent}%)`
+				}
 			},
 			grid: {
 				left: 0,

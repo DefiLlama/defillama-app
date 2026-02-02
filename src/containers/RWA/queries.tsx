@@ -140,10 +140,30 @@ export interface IRWAAssetsOverview {
 	selectedChain: string
 	categoryLinks: Array<{ label: string; to: string }>
 	selectedCategory: string
-	totalOnChainMcap: number
-	totalActiveMcap: number
-	totalOnChainStablecoinValue: number
-	totalOnChainDeFiActiveTvl: number
+	totals: {
+		onChainMcap: number
+		activeMcap: number
+		defiActiveTvl: number
+		issuers: string[]
+		stablecoins: {
+			onChainMcap: number
+			activeMcap: number
+			defiActiveTvl: number
+			issuers: string[]
+		}
+		governance: {
+			onChainMcap: number
+			activeMcap: number
+			defiActiveTvl: number
+			issuers: string[]
+		}
+		stablecoinsAndGovernance: {
+			onChainMcap: number
+			activeMcap: number
+			defiActiveTvl: number
+			issuers: string[]
+		}
+	}
 	chartData: Array<[number, number | null, number | null, number | null]> | null
 }
 
@@ -323,10 +343,22 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		const categoryNavValues = new Map<string, number>()
 		const platformNavValues = new Map<string, number>()
 		const issuers = new Map<string, number>()
-		let totalOnChainMcapAllAssets = 0
-		let totalActiveMcapAllAssets = 0
-		let totalOnChainStablecoinValueAllAssets = 0
-		let totalOnChainDeFiActiveTvlAllAssets = 0
+		const issuerSet = new Set<string>()
+		const issuerSetStablecoinsOnly = new Set<string>()
+		const issuerSetGovernanceOnly = new Set<string>()
+		const issuerSetStablecoinsAndGovernance = new Set<string>()
+		let totalOnChainMcap = 0
+		let totalActiveMcap = 0
+		let totalDeFiActiveTvl = 0
+		let totalOnChainMcapStablecoinsOnly = 0
+		let totalActiveMcapStablecoinsOnly = 0
+		let totalDeFiActiveTvlStablecoinsOnly = 0
+		let totalOnChainMcapGovernanceOnly = 0
+		let totalActiveMcapGovernanceOnly = 0
+		let totalDeFiActiveTvlGovernanceOnly = 0
+		let totalOnChainMcapStablecoinsAndGovernance = 0
+		let totalActiveMcapStablecoinsAndGovernance = 0
+		let totalDeFiActiveTvlStablecoinsAndGovernance = 0
 
 		for (const rwaId in data) {
 			const item = data[rwaId]
@@ -458,19 +490,39 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 
 			// Only include asset if it exists on the selected chain/category (or no route filter)
 			if (hasChainInTvl && hasCategoryMatch && hasPlatformMatch && asset.name) {
+				const isStablecoin = !!item.stablecoin
+				const isGovernance = !!item.governance
+				const isStablecoinOnly = isStablecoin && !isGovernance
+				const isGovernanceOnly = isGovernance && !isStablecoin
+				const isStablecoinAndGovernance = isStablecoin && isGovernance
+				const isBaseAsset = !isStablecoin && !isGovernance
+
 				assets.push(asset)
 				// Only expose `assetNames` when filtering by platform (used for platform-level UI filters).
 				if (selectedPlatform) {
 					assetNames.set(asset.name, (assetNames.get(asset.name) ?? 0) + effectiveOnChainMcap)
 				}
 
-				// Track total values
-				totalOnChainMcapAllAssets += effectiveOnChainMcap
-				totalActiveMcapAllAssets += effectiveActiveMcap
-				if (item.stablecoin) {
-					totalOnChainStablecoinValueAllAssets += effectiveOnChainMcap
+				// Track base totals (exclude stablecoin/governance buckets entirely)
+				if (isBaseAsset) {
+					totalOnChainMcap += effectiveOnChainMcap
+					totalActiveMcap += effectiveActiveMcap
+					totalDeFiActiveTvl += effectiveDeFiActiveTvl
 				}
-				totalOnChainDeFiActiveTvlAllAssets += effectiveDeFiActiveTvl
+
+				if (isStablecoinOnly) {
+					totalOnChainMcapStablecoinsOnly += effectiveOnChainMcap
+					totalActiveMcapStablecoinsOnly += effectiveActiveMcap
+					totalDeFiActiveTvlStablecoinsOnly += effectiveDeFiActiveTvl
+				} else if (isGovernanceOnly) {
+					totalOnChainMcapGovernanceOnly += effectiveOnChainMcap
+					totalActiveMcapGovernanceOnly += effectiveActiveMcap
+					totalDeFiActiveTvlGovernanceOnly += effectiveDeFiActiveTvl
+				} else if (isStablecoinAndGovernance) {
+					totalOnChainMcapStablecoinsAndGovernance += effectiveOnChainMcap
+					totalActiveMcapStablecoinsAndGovernance += effectiveActiveMcap
+					totalDeFiActiveTvlStablecoinsAndGovernance += effectiveDeFiActiveTvl
+				}
 
 				// Add to categories/issuers/assetClasses/rwaClassifications/accessModels for assets on this chain
 				for (const assetClass of asset.assetClass ?? []) {
@@ -493,6 +545,16 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 					accessModels.set(asset.accessModel, (accessModels.get(asset.accessModel) ?? 0) + effectiveOnChainMcap)
 				}
 				if (asset.issuer) {
+					// issuerSet is used for *base* issuer count (exclude stablecoin/governance buckets)
+					if (isBaseAsset) {
+						issuerSet.add(asset.issuer)
+					} else if (isStablecoinOnly) {
+						issuerSetStablecoinsOnly.add(asset.issuer)
+					} else if (isGovernanceOnly) {
+						issuerSetGovernanceOnly.add(asset.issuer)
+					} else if (isStablecoinAndGovernance) {
+						issuerSetStablecoinsAndGovernance.add(asset.issuer)
+					}
 					issuers.set(asset.issuer, (issuers.get(asset.issuer) ?? 0) + effectiveOnChainMcap)
 				}
 			}
@@ -513,6 +575,13 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		const formattedCategories = Array.from(categories.entries())
 			.sort((a, b) => b[1] - a[1])
 			.map(([key]) => key)
+
+		console.log(
+			Array.from(issuerSet),
+			Array.from(issuerSetStablecoinsOnly),
+			Array.from(issuerSetGovernanceOnly),
+			Array.from(issuerSetStablecoinsAndGovernance)
+		)
 
 		return {
 			assets: assets.sort((a, b) => b.onChainMcap.total - a.onChainMcap.total),
@@ -585,10 +654,30 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 					]
 				: [],
 			selectedPlatform: actualPlatformName ?? 'All',
-			totalOnChainMcap: totalOnChainMcapAllAssets,
-			totalActiveMcap: totalActiveMcapAllAssets,
-			totalOnChainStablecoinValue: totalOnChainStablecoinValueAllAssets,
-			totalOnChainDeFiActiveTvl: totalOnChainDeFiActiveTvlAllAssets,
+			totals: {
+				onChainMcap: totalOnChainMcap,
+				activeMcap: totalActiveMcap,
+				defiActiveTvl: totalDeFiActiveTvl,
+				issuers: Array.from(issuerSet),
+				stablecoins: {
+					onChainMcap: totalOnChainMcapStablecoinsOnly,
+					activeMcap: totalActiveMcapStablecoinsOnly,
+					defiActiveTvl: totalDeFiActiveTvlStablecoinsOnly,
+					issuers: Array.from(issuerSetStablecoinsOnly)
+				},
+				governance: {
+					onChainMcap: totalOnChainMcapGovernanceOnly,
+					activeMcap: totalActiveMcapGovernanceOnly,
+					defiActiveTvl: totalDeFiActiveTvlGovernanceOnly,
+					issuers: Array.from(issuerSetGovernanceOnly)
+				},
+				stablecoinsAndGovernance: {
+					onChainMcap: totalOnChainMcapStablecoinsAndGovernance,
+					activeMcap: totalActiveMcapStablecoinsAndGovernance,
+					defiActiveTvl: totalDeFiActiveTvlStablecoinsAndGovernance,
+					issuers: Array.from(issuerSetStablecoinsAndGovernance)
+				}
+			},
 			chartData
 		}
 	} catch (error) {

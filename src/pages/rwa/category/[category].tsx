@@ -24,23 +24,23 @@ export const getStaticProps = withPerformanceLogging(
 
 		const categorySlug = rwaSlug(params.category)
 
-		let categoryExists = false
+		let categoryName = null
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const rwaList = metadataCache.rwaList
 		for (const category of rwaList.categories) {
 			if (rwaSlug(category) === categorySlug) {
-				categoryExists = true
+				categoryName = category
 				break
 			}
 		}
-		if (!categoryExists) {
+		if (!categoryName) {
 			return { notFound: true, props: null }
 		}
 
 		const props = await getRWAAssetsOverview({ category: categorySlug })
 
 		return {
-			props,
+			props: { ...props, categoryName },
 			revalidate: maxAgeForNext([22])
 		}
 	}
@@ -51,9 +51,9 @@ const pageName = ['RWA']
 export default function RWAPage(props) {
 	return (
 		<Layout
-			title={`${props.category} - RWA - DefiLlama`}
-			description={`${props.category} RWA on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${props.category}, real world assets, defi rwa rankings, rwa on chain`}
+			title={`${props.categoryName} - RWA - DefiLlama`}
+			description={`${props.categoryName} RWA on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${props.categoryName}, real world assets, defi rwa rankings, rwa on chain`}
 			pageName={pageName}
 			canonicalUrl={`/rwa/categories`}
 		>
