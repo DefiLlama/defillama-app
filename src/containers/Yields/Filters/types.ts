@@ -48,4 +48,5 @@ export interface IYieldFiltersProps extends IDropdownMenusProps {
 	noOfStrategies?: number
 	showSearchOnMobile?: boolean
 	prepareCsv?: () => { filename: string; rows: Array<Array<string | number | boolean>> }
+	showPresetFilters?: boolean
 }

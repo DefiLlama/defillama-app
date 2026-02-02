@@ -8,6 +8,7 @@ export const YIELDS_EVENTS = {
 	FILTER_TVL_RANGE: 'yields-filter-tvl-range',
 	FILTER_APY_RANGE: 'yields-filter-apy-range',
 	FILTER_COLUMN: 'yields-filter-column',
+	FILTER_PRESET: 'yields-filter-preset',
 	// Saved Filters
 	SAVED_FILTER_CREATE: 'yields-saved-filter-create',
 	SAVED_FILTER_LOAD: 'yields-saved-filter-load',
