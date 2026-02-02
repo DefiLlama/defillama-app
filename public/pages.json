@@ -672,6 +672,30 @@
       "category": "Others",
       "description": "Overview of protocols with Safe Harbor Agreements",
       "totalTrackedKey": "safeHarbor.protocols"
+    }, 
+    {
+      "name": "RWA: Overview",
+      "route": "/rwa",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs)"
+    },
+    {
+      "name": "RWA by Chain",
+      "route": "/rwa/chains",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by chain"
+    },
+    {
+      "name": "RWA by Category",
+      "route": "/rwa/categories",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by category"
+    },
+    {
+      "name": "RWA by Platform",
+      "route": "/rwa/platforms",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by platform"
     }
   ],
   "Tools": [

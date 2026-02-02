@@ -1,4 +1,4 @@
-import { RWA_ACTIVE_TVLS_API, RWA_ASSET_DATA_API, RWA_STATS_API } from '~/constants'
+import { RWA_ACTIVE_TVLS_API, RWA_ASSET_DATA_API, RWA_CHART_API, RWA_STATS_API } from '~/constants'
 import definitions from '~/public/rwa-definitions.json'
 import { fetchJson } from '~/utils/async'
 import { rwaSlug } from './rwaSlug'
@@ -623,16 +623,25 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRo
 	return rows.sort((a, b) => b.onChainMcap - a.onChainMcap)
 }
 
+interface IRWAChartData {
+	data: Array<{ timestamp: number; onChainMcap: number; activeMcap: number; defiActiveTvl: number }>
+}
+
 export interface IRWAAssetData extends IRWAProject {
 	slug: string
 	rwaClassificationDescription: string | null
 	accessModelDescription: string | null
 	assetClassDescriptions: Record<string, string>
+	chartData: Array<[number, number | null, number | null, number | null]>
 }
 
 export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {
 	try {
-		const data = await fetchJson<IFetchedRWAProject>(`${RWA_ASSET_DATA_API}/${assetId}`)
+		const [data, chartData]: [IFetchedRWAProject, IRWAChartData | null] = await Promise.all([
+			fetchJson(`${RWA_ASSET_DATA_API}/${assetId}`),
+			fetchJson(`${RWA_CHART_API}/${assetId}`).catch(() => null)
+		])
+
 		if (!data) {
 			throw new Error('Failed to get RWA assets list')
 		}
@@ -691,6 +700,16 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			return null
 		}
 
+		const finalChartData = []
+		for (const item of chartData?.data ?? []) {
+			finalChartData.push([
+				item.timestamp * 1e3,
+				item.defiActiveTvl ?? null,
+				item.activeMcap ?? null,
+				item.onChainMcap ?? null
+			])
+		}
+
 		return {
 			...data,
 			slug: rwaSlug(ticker ?? name ?? ''),
@@ -712,7 +731,8 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			defiActiveTvl: {
 				total: totalDeFiActiveTvlForAsset,
 				breakdown: Object.entries(finalDeFiActiveTvlBreakdown).sort((a, b) => b[1] - a[1])
-			}
+			},
+			chartData: finalChartData.sort((a, b) => a[0] - b[0])
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA asset data')

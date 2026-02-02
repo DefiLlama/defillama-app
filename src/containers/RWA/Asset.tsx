@@ -1,13 +1,16 @@
-import { Fragment, useMemo } from 'react'
+import { Fragment, lazy, Suspense, useMemo } from 'react'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
+import { CHART_COLORS } from '~/constants/colors'
 import definitions from '~/public/rwa-definitions.json'
 import { chainIconUrl, formattedNum } from '~/utils'
 import { getBlockExplorer } from '~/utils/blockExplorers'
 import type { IRWAAssetData } from './queries'
+
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 interface ClassificationItemProps {
 	label: string
@@ -252,6 +255,14 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					<span className="font-jetbrains text-xl font-semibold">{asset.chain?.length ?? 0}</span>
 				</p>
 			</div>
+
+			{asset.chartData.length > 0 ? (
+				<div className="min-h-[372px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3">
+					<Suspense fallback={<></>}>
+						<MultiSeriesChart2 charts={timeSeriesCharts} data={asset.chartData} hideDefaultLegend={false} />
+					</Suspense>
+				</div>
+			) : null}
 
 			<div className="grid gap-2 lg:grid-cols-2">
 				{/* Left Column */}
@@ -546,3 +557,15 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 		</div>
 	)
 }
+
+const timeSeriesCharts: Array<{
+	type: 'line' | 'bar'
+	name: string
+	stack: string
+	encode: { x: number | Array<number>; y: number | Array<number> }
+	color?: string
+}> = [
+	{ type: 'line', name: 'DeFi Active TVL', stack: 'A', encode: { x: 0, y: 1 }, color: CHART_COLORS[0] },
+	{ type: 'line', name: 'Active MCap', stack: 'A', encode: { x: 0, y: 2 }, color: CHART_COLORS[1] },
+	{ type: 'line', name: 'On-Chain MCap', stack: 'A', encode: { x: 0, y: 3 }, color: CHART_COLORS[2] }
+]
