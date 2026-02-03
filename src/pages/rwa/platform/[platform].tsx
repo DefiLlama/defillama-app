@@ -11,7 +11,7 @@ export async function getStaticPaths() {
 	const rwaList = metadataCache.rwaList
 	return {
 		paths: rwaList.platforms.slice(0, 10).map((platform) => ({ params: { platform: rwaSlug(platform) } })),
-		fallback: false
+		fallback: 'blocking'
 	}
 }
 
@@ -22,7 +22,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const platformSlug = params.platform
+		const platformSlug = rwaSlug(params.platform)
 
 		let platformName = null
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
@@ -33,6 +33,7 @@ export const getStaticProps = withPerformanceLogging(
 				break
 			}
 		}
+
 		if (!platformName) {
 			return { notFound: true, props: null }
 		}
