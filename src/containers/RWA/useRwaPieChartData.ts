@@ -12,7 +12,7 @@ const buildStackColors = (order: string[]) => {
 	return stackColors
 }
 
-export function useRwaChainPieChartData({
+export function useRWAAssetCategoryPieChartData({
 	enabled,
 	assets,
 	categories,
@@ -26,9 +26,9 @@ export function useRwaChainPieChartData({
 	return useMemo(() => {
 		if (!enabled) {
 			return {
-				totalOnChainMcapPieChartData: [] as PieChartDatum[],
-				activeMcapPieChartData: [] as PieChartDatum[],
-				defiActiveTvlPieChartData: [] as PieChartDatum[],
+				assetCategoryOnChainMcapPieChartData: [] as PieChartDatum[],
+				assetCategoryActiveMcapPieChartData: [] as PieChartDatum[],
+				assetCategoryDefiActiveTvlPieChartData: [] as PieChartDatum[],
 				pieChartStackColors: {}
 			}
 		}
@@ -55,9 +55,9 @@ export function useRwaChainPieChartData({
 				.sort((a, b) => b.value - a.value)
 
 		return {
-			totalOnChainMcapPieChartData: toSortedChartData('onChain'),
-			activeMcapPieChartData: toSortedChartData('active'),
-			defiActiveTvlPieChartData: toSortedChartData('defi'),
+			assetCategoryOnChainMcapPieChartData: toSortedChartData('onChain'),
+			assetCategoryActiveMcapPieChartData: toSortedChartData('active'),
+			assetCategoryDefiActiveTvlPieChartData: toSortedChartData('defi'),
 			pieChartStackColors
 		}
 	}, [assets, categories, enabled, selectedCategories])
@@ -195,4 +195,82 @@ export function useRwaAssetNamePieChartData({
 			assetNamePieChartStackColors
 		}
 	}, [assets, enabled, selectedAssetNames])
+}
+
+export function useRwaChainBreakdownPieChartData({
+	enabled,
+	assets
+}: {
+	enabled: boolean
+	assets: IRWAAssetsOverview['assets']
+}) {
+	return useMemo(() => {
+		const MAX_LABELS = 10
+		const UNKNOWN = 'Unknown'
+		const OTHERS = 'Others'
+
+		if (!enabled) {
+			return {
+				chainOnChainMcapPieChartData: [] as PieChartDatum[],
+				chainActiveMcapPieChartData: [] as PieChartDatum[],
+				chainDefiActiveTvlPieChartData: [] as PieChartDatum[],
+				chainPieChartStackColors: {}
+			}
+		}
+
+		if (assets.length === 0) {
+			return {
+				chainOnChainMcapPieChartData: [] as PieChartDatum[],
+				chainActiveMcapPieChartData: [] as PieChartDatum[],
+				chainDefiActiveTvlPieChartData: [] as PieChartDatum[],
+				chainPieChartStackColors: {}
+			}
+		}
+
+		// Attribute each asset to a single chain (primary chain preferred) to avoid double counting
+		// across multi-chain assets.
+		const getAssetChain = (asset: IRWAAssetsOverview['assets'][number]) =>
+			asset.primaryChain?.trim() || asset.chain?.find((c) => c && c.trim())?.trim() || UNKNOWN
+
+		const totals = new Map<string, { onChain: number; active: number; defi: number }>()
+		const discoveredChains = new Set<string>()
+
+		for (const asset of assets) {
+			const chain = getAssetChain(asset)
+			discoveredChains.add(chain)
+
+			const prev = totals.get(chain) ?? { onChain: 0, active: 0, defi: 0 }
+			prev.onChain += asset.onChainMcap.total
+			prev.active += asset.activeMcap.total
+			prev.defi += asset.defiActiveTvl.total
+			totals.set(chain, prev)
+		}
+
+		const colorOrder = Array.from(discoveredChains).sort()
+		// Keep existing label colors stable while ensuring "Others" exists.
+		if (!colorOrder.includes(OTHERS)) colorOrder.push(OTHERS)
+		const chainPieChartStackColors = buildStackColors(colorOrder)
+
+		const limitChartData = (data: PieChartDatum[]) => {
+			if (data.length <= MAX_LABELS) return data
+			const head = data.slice(0, MAX_LABELS - 1)
+			const othersValue = data.slice(MAX_LABELS - 1).reduce((sum, d) => sum + d.value, 0)
+			return othersValue > 0 ? [...head, { name: OTHERS, value: othersValue }] : head
+		}
+
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
+			limitChartData(
+				Array.from(totals.entries())
+					.map(([name, v]) => ({ name, value: v[metric] }))
+					.filter((x) => x.value > 0)
+					.sort((a, b) => b.value - a.value)
+			)
+
+		return {
+			chainOnChainMcapPieChartData: toSortedChartData('onChain'),
+			chainActiveMcapPieChartData: toSortedChartData('active'),
+			chainDefiActiveTvlPieChartData: toSortedChartData('defi'),
+			chainPieChartStackColors
+		}
+	}, [assets, enabled])
 }

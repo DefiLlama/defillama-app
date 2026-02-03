@@ -12,9 +12,10 @@ import { RWAOverviewFilters, StablecoingAndGovernanceFilters } from './Filters'
 import { useFilteredRwaAssets, useRWATableQueryParams } from './hooks'
 import { IRWAAssetsOverview } from './queries'
 import {
+	useRWAAssetCategoryPieChartData,
 	useRwaAssetNamePieChartData,
 	useRwaCategoryAssetClassPieChartData,
-	useRwaChainPieChartData
+	useRwaChainBreakdownPieChartData
 } from './useRwaPieChartData'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -35,6 +36,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const isChainMode = props.chainLinks.length > 0
 	const isCategoryMode = props.categoryLinks.length > 0
 	const isPlatformMode = props.platformLinks.length > 0
+	const pieChartBreakdown = router.query.pieChartBreakdown
 
 	const {
 		selectedAssetNames,
@@ -139,11 +141,11 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	})
 
 	const {
-		totalOnChainMcapPieChartData: chainOnChainMcapPieChartData,
-		activeMcapPieChartData: chainActiveMcapPieChartData,
-		defiActiveTvlPieChartData: chainDefiActiveTvlPieChartData,
-		pieChartStackColors: chainPieChartStackColors
-	} = useRwaChainPieChartData({
+		assetCategoryOnChainMcapPieChartData,
+		assetCategoryActiveMcapPieChartData,
+		assetCategoryDefiActiveTvlPieChartData,
+		pieChartStackColors: assetCategoryPieChartStackColors
+	} = useRWAAssetCategoryPieChartData({
 		enabled: isChainMode,
 		assets: filteredAssets,
 		categories: props.categories,
@@ -173,9 +175,29 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		selectedAssetNames
 	})
 
+	const isChainBreakdownEnabled = isCategoryMode || isPlatformMode || props.selectedChain === 'All'
+	const {
+		chainOnChainMcapPieChartData,
+		chainActiveMcapPieChartData,
+		chainDefiActiveTvlPieChartData,
+		chainPieChartStackColors
+	} = useRwaChainBreakdownPieChartData({
+		enabled: isChainBreakdownEnabled,
+		assets: filteredAssets
+	})
+
 	// Select pie chart breakdown based on route mode (same precedence as nav links).
 	const { onChainPieChartData, activeMcapPieChartData, defiActiveTvlPieChartData, pieChartStackColors } =
 		useMemo(() => {
+			if (isChainBreakdownEnabled && pieChartBreakdown === 'chain') {
+				return {
+					onChainPieChartData: chainOnChainMcapPieChartData,
+					activeMcapPieChartData: chainActiveMcapPieChartData,
+					defiActiveTvlPieChartData: chainDefiActiveTvlPieChartData,
+					pieChartStackColors: chainPieChartStackColors
+				}
+			}
+
 			if (isCategoryMode) {
 				return {
 					onChainPieChartData: assetClassOnChainMcapPieChartData,
@@ -195,10 +217,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			}
 
 			return {
-				onChainPieChartData: chainOnChainMcapPieChartData,
-				activeMcapPieChartData: chainActiveMcapPieChartData,
-				defiActiveTvlPieChartData: chainDefiActiveTvlPieChartData,
-				pieChartStackColors: chainPieChartStackColors
+				onChainPieChartData: assetCategoryOnChainMcapPieChartData,
+				activeMcapPieChartData: assetCategoryActiveMcapPieChartData,
+				defiActiveTvlPieChartData: assetCategoryDefiActiveTvlPieChartData,
+				pieChartStackColors: assetCategoryPieChartStackColors
 			}
 		}, [
 			assetClassActiveMcapPieChartData,
@@ -209,12 +231,18 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			assetNameDefiActiveTvlPieChartData,
 			assetNameOnChainMcapPieChartData,
 			assetNamePieChartStackColors,
+			assetCategoryActiveMcapPieChartData,
+			assetCategoryDefiActiveTvlPieChartData,
+			assetCategoryOnChainMcapPieChartData,
+			assetCategoryPieChartStackColors,
+			isCategoryMode,
+			isPlatformMode,
+			isChainBreakdownEnabled,
+			pieChartBreakdown,
+			chainOnChainMcapPieChartData,
 			chainActiveMcapPieChartData,
 			chainDefiActiveTvlPieChartData,
-			chainOnChainMcapPieChartData,
-			chainPieChartStackColors,
-			isCategoryMode,
-			isPlatformMode
+			chainPieChartStackColors
 		])
 
 	// Preserve filter/toggle query params only in chain mode.
@@ -341,111 +369,145 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				setDefiActiveTvlToActiveMcapPctRange={setDefiActiveTvlToActiveMcapPctRange}
 			/>
 			{showCharts ? (
-				<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<div className="flex flex-wrap items-center justify-between gap-2 p-4 pb-0">
-							<Tooltip
-								content={definitions.totalOnChainMcap.description}
-								className="text-lg font-semibold underline decoration-dotted"
-								render={<h2 />}
-							>
-								{definitions.totalOnChainMcap.label}
-							</Tooltip>
-							<DownloadPieChartCsv
-								filename={
-									[
-										'rwa-pie',
-										slug(definitions.totalOnChainMcap.label),
-										props.selectedChain !== 'All' ? props.selectedChain.toLowerCase() : null,
-										props.selectedCategory !== 'All' ? slug(props.selectedCategory) : null,
-										props.selectedPlatform !== 'All' ? slug(props.selectedPlatform) : null
-									]
-										.filter(Boolean)
-										.join('-') + '.csv'
-								}
-								chartData={onChainPieChartData}
-								smol
-							/>
-						</div>
-						<Suspense fallback={<div className="h-[360px]" />}>
-							<PieChart
-								chartData={onChainPieChartData}
-								stackColors={pieChartStackColors}
-								radius={pieChartRadius}
-								legendPosition={pieChartLegendPosition}
-								legendTextStyle={pieChartLegendTextStyle}
-							/>
-						</Suspense>
+				<div className="flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="m-3 mb-0 flex flex-nowrap items-center self-end overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+						<button
+							className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+							data-active={pieChartBreakdown !== 'chain'}
+							onClick={() => {
+								const { pieChartBreakdown: _pieChartBreakdown, ...restQuery } = router.query
+								router.push(
+									{
+										pathname: router.pathname,
+										query: { ...restQuery }
+									},
+									undefined,
+									{ shallow: true }
+								)
+							}}
+						>
+							{isChainMode ? 'Asset Category' : isCategoryMode ? 'Asset Class' : 'Asset Name'}
+						</button>
+						<button
+							className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+							data-active={pieChartBreakdown === 'chain'}
+							onClick={() => {
+								router.push(
+									{ pathname: router.pathname, query: { ...router.query, pieChartBreakdown: 'chain' } },
+									undefined,
+									{ shallow: true }
+								)
+							}}
+						>
+							Chain
+						</button>
 					</div>
-					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<div className="flex flex-wrap items-center justify-between gap-2 p-4 pb-0">
-							<Tooltip
-								content={definitions.totalActiveMcap.description}
-								className="text-lg font-semibold underline decoration-dotted"
-								render={<h2 />}
-							>
-								{definitions.totalActiveMcap.label}
-							</Tooltip>
-							<DownloadPieChartCsv
-								filename={
-									[
-										'rwa-pie',
-										slug(definitions.totalActiveMcap.label),
-										props.selectedChain !== 'All' ? props.selectedChain.toLowerCase() : null,
-										props.selectedCategory !== 'All' ? slug(props.selectedCategory) : null,
-										props.selectedPlatform !== 'All' ? slug(props.selectedPlatform) : null
-									]
-										.filter(Boolean)
-										.join('-') + '.csv'
-								}
-								chartData={activeMcapPieChartData}
-								smol
-							/>
+					<div className="grid grid-cols-1 lg:grid-cols-2">
+						<div className="relative col-span-1 min-h-[368px] lg:after:absolute lg:after:top-3 lg:after:right-0 lg:after:bottom-3 lg:after:w-px lg:after:bg-(--cards-border) lg:after:content-[''] lg:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<div className="flex flex-wrap items-center justify-between gap-2 p-3 pb-0">
+								<Tooltip
+									content={definitions.totalOnChainMcap.description}
+									className="text-lg font-semibold underline decoration-dotted"
+									render={<h2 />}
+								>
+									{definitions.totalOnChainMcap.label}
+								</Tooltip>
+								<DownloadPieChartCsv
+									filename={
+										[
+											'rwa-pie',
+											slug(definitions.totalOnChainMcap.label),
+											props.selectedChain !== 'All' ? props.selectedChain.toLowerCase() : null,
+											props.selectedCategory !== 'All' ? slug(props.selectedCategory) : null,
+											props.selectedPlatform !== 'All' ? slug(props.selectedPlatform) : null
+										]
+											.filter(Boolean)
+											.join('-') + '.csv'
+									}
+									chartData={onChainPieChartData}
+									smol
+								/>
+							</div>
+							<Suspense fallback={<div className="h-[360px]" />}>
+								<PieChart
+									chartData={onChainPieChartData}
+									stackColors={pieChartStackColors}
+									radius={pieChartRadius}
+									legendPosition={pieChartLegendPosition}
+									legendTextStyle={pieChartLegendTextStyle}
+								/>
+							</Suspense>
 						</div>
-						<Suspense fallback={<div className="h-[360px]" />}>
-							<PieChart
-								chartData={activeMcapPieChartData}
-								stackColors={pieChartStackColors}
-								radius={pieChartRadius}
-								legendPosition={pieChartLegendPosition}
-								legendTextStyle={pieChartLegendTextStyle}
-							/>
-						</Suspense>
-					</div>
-					<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<div className="flex flex-wrap items-center justify-between gap-2 p-4 pb-0">
-							<Tooltip
-								content={definitions.totalDefiActiveTvl.description}
-								className="text-lg font-semibold underline decoration-dotted"
-								render={<h2 />}
-							>
-								{definitions.totalDefiActiveTvl.label}
-							</Tooltip>
-							<DownloadPieChartCsv
-								filename={
-									[
-										'rwa-pie',
-										slug(definitions.totalDefiActiveTvl.label),
-										props.selectedChain !== 'All' ? props.selectedChain.toLowerCase() : null,
-										props.selectedCategory !== 'All' ? slug(props.selectedCategory) : null,
-										props.selectedPlatform !== 'All' ? slug(props.selectedPlatform) : null
-									]
-										.filter(Boolean)
-										.join('-') + '.csv'
-								}
-								chartData={defiActiveTvlPieChartData}
-								smol
-							/>
+						<div className="relative col-span-1 min-h-[368px] before:absolute before:top-0 before:right-3 before:left-3 before:h-px before:bg-(--cards-border) before:content-[''] lg:before:hidden lg:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<div className="flex flex-wrap items-center justify-between gap-2 p-3 pb-0">
+								<Tooltip
+									content={definitions.totalActiveMcap.description}
+									className="text-lg font-semibold underline decoration-dotted"
+									render={<h2 />}
+								>
+									{definitions.totalActiveMcap.label}
+								</Tooltip>
+								<DownloadPieChartCsv
+									filename={
+										[
+											'rwa-pie',
+											slug(definitions.totalActiveMcap.label),
+											props.selectedChain !== 'All' ? props.selectedChain.toLowerCase() : null,
+											props.selectedCategory !== 'All' ? slug(props.selectedCategory) : null,
+											props.selectedPlatform !== 'All' ? slug(props.selectedPlatform) : null
+										]
+											.filter(Boolean)
+											.join('-') + '.csv'
+									}
+									chartData={activeMcapPieChartData}
+									smol
+								/>
+							</div>
+							<Suspense fallback={<div className="h-[360px]" />}>
+								<PieChart
+									chartData={activeMcapPieChartData}
+									stackColors={pieChartStackColors}
+									radius={pieChartRadius}
+									legendPosition={pieChartLegendPosition}
+									legendTextStyle={pieChartLegendTextStyle}
+								/>
+							</Suspense>
 						</div>
-						<Suspense fallback={<div className="h-[360px]" />}>
-							<PieChart
-								chartData={defiActiveTvlPieChartData}
-								stackColors={pieChartStackColors}
-								radius={pieChartRadius}
-								legendPosition={pieChartLegendPosition}
-								legendTextStyle={pieChartLegendTextStyle}
-							/>
-						</Suspense>
+						<div className="relative col-span-1 min-h-[368px] before:absolute before:top-0 before:right-3 before:left-3 before:h-px before:bg-(--cards-border) before:content-[''] lg:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<div className="flex flex-wrap items-center justify-between gap-2 p-3 pb-0">
+								<Tooltip
+									content={definitions.totalDefiActiveTvl.description}
+									className="text-lg font-semibold underline decoration-dotted"
+									render={<h2 />}
+								>
+									{definitions.totalDefiActiveTvl.label}
+								</Tooltip>
+								<DownloadPieChartCsv
+									filename={
+										[
+											'rwa-pie',
+											slug(definitions.totalDefiActiveTvl.label),
+											props.selectedChain !== 'All' ? props.selectedChain.toLowerCase() : null,
+											props.selectedCategory !== 'All' ? slug(props.selectedCategory) : null,
+											props.selectedPlatform !== 'All' ? slug(props.selectedPlatform) : null
+										]
+											.filter(Boolean)
+											.join('-') + '.csv'
+									}
+									chartData={defiActiveTvlPieChartData}
+									smol
+								/>
+							</div>
+							<Suspense fallback={<div className="h-[360px]" />}>
+								<PieChart
+									chartData={defiActiveTvlPieChartData}
+									stackColors={pieChartStackColors}
+									radius={pieChartRadius}
+									legendPosition={pieChartLegendPosition}
+									legendTextStyle={pieChartLegendTextStyle}
+								/>
+							</Suspense>
+						</div>
 					</div>
 				</div>
 			) : null}
