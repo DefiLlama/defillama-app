@@ -348,6 +348,9 @@ export function UnifiedTable({
 			setSortingState((prev) => (typeof updater === 'function' ? updater(prev) : updater))
 		}
 	})
+	const rowCount = unifiedTable.table.getRowModel().rows.length
+	const expandedCount = Object.keys(unifiedTable.expanded).length
+	const rowStateVersion = `${rowCount}:${expandedCount}`
 
 	const persistConfigChanges = useCallback(
 		(overrides: Partial<UnifiedTableConfig>) => {
@@ -541,6 +544,7 @@ export function UnifiedTable({
 				isLoading={unifiedTable.isLoading}
 				isEmpty={!unifiedTable.leafRows.length}
 				emptyMessage="No rows match your scope or filters."
+				rowStateVersion={rowStateVersion}
 			/>
 			<UnifiedTablePagination table={unifiedTable.table} />
 		</div>

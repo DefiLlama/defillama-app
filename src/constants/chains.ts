@@ -61,4 +61,3 @@ export function buildEvmChainsSet(chainData: Array<{ name: string; chainId: numb
 
 	return evmChains
 }
-
