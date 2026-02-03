@@ -6,6 +6,11 @@ export type WizardStep = 'select-type' | 'select-items' | 'select-metrics' | 'pr
 export type GroupingInterval = 'day' | 'week' | 'month' | 'quarter'
 export type DisplayMode = 'default' | 'stacked' | 'cumulative' | 'percentage'
 
+export type ComparisonPreset = {
+	comparisonType: ComparisonType
+	items: string[]
+}
+
 export interface MetricSettings {
 	aggregator: MetricAggregator
 	window: MetricWindow
