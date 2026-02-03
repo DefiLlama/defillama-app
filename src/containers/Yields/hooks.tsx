@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { EVM_CHAINS_FALLBACK_SET } from '~/constants/chains'
 import { toNumberOrNullFromQueryParam } from '~/utils'
 
 interface IFormatYieldQueryParams {
@@ -27,11 +26,7 @@ export const useFormatYieldQueryParams = ({
 	farmProtocols,
 	evmChains
 }: IFormatYieldQueryParams) => {
-	// Use dynamic EVM chains from props, or fall back to static list
-	const evmChainsSet = React.useMemo(
-		() => (evmChains && evmChains.length > 0 ? new Set(evmChains) : EVM_CHAINS_FALLBACK_SET),
-		[evmChains]
-	)
+	const evmChainsSet = React.useMemo(() => new Set(evmChains ?? []), [evmChains])
 	const router = useRouter()
 	const {
 		project,

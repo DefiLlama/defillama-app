@@ -1,4 +1,4 @@
-import { buildEvmChainsSet, EVM_CHAINS_FALLBACK_SET } from '~/constants/chains'
+import { buildEvmChainsSet } from '~/constants/chains'
 
 export function formatYieldsPageData(poolsAndConfig: any) {
 	let _pools = poolsAndConfig[0]?.data ?? []
@@ -8,7 +8,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	let _lite = poolsAndConfig[4] ?? []
 
 	// Build EVM chains set from API data (chains with chainId are EVM)
-	const evmChainsSet = _chains.length > 0 ? buildEvmChainsSet(_chains) : EVM_CHAINS_FALLBACK_SET
+	const evmChainsSet = buildEvmChainsSet(_chains)
 
 	// symbol in _config doesn't account for potential parentProtocol token, updating this here
 	for (const i of Object.values(_config)) {

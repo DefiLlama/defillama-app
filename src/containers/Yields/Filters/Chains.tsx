@@ -1,7 +1,6 @@
 import { useRouter } from 'next/router'
 import { useCallback, useMemo, useRef } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { EVM_CHAINS_FALLBACK_SET } from '~/constants/chains'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IFiltersByChainProps {
@@ -16,10 +15,7 @@ export function FilterByChain({ chainList = [], selectedChains, evmChains, neste
 	const { chain } = router.query
 	const prevSelectionRef = useRef<Set<string>>(new Set(selectedChains))
 
-	const evmChainsSet = useMemo(
-		() => (evmChains && evmChains.length > 0 ? new Set(evmChains) : EVM_CHAINS_FALLBACK_SET),
-		[evmChains]
-	)
+	const evmChainsSet = useMemo(() => new Set(evmChains ?? []), [evmChains])
 
 	const isEvmChain = useCallback(
 		(c: string) => evmChainsSet.has(c) || evmChainsSet.has(c.toLowerCase()),
