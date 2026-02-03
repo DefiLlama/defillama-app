@@ -123,7 +123,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 			symbol: 'ALL_USD_STABLES',
 			logo: null,
 			fallbackLogo: null
-		},
+		}
 	]
 
 	const tokenSymbolsList = ['ALL_BITCOINS', 'ALL_USD_STABLES']
