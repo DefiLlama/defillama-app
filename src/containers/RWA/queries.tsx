@@ -38,6 +38,8 @@ interface IFetchedRWAProject {
 	price?: number | null
 }
 
+type IRWAChartData = Array<{ timestamp: number; onChainMcap: number; activeMcap: number; defiActiveTvl: number }>
+
 interface IRWAStatsResponse {
 	totalOnChainMcap: number
 	totalActiveMcap: number
@@ -164,10 +166,14 @@ export interface IRWAAssetsOverview {
 			issuers: string[]
 		}
 	}
-	chartData: Array<[number, number | null, number | null, number | null]> | null
+	chartData: IRWAChartDataByTicker | null
 }
 
-type IRWAChartData = Array<{ timestamp: number; onChainMcap: number; activeMcap: number; defiActiveTvl: number }>
+interface IRWAChartDataByTicker {
+	onChainMcap: Array<{ timestamp: number } & Record<string, number>>
+	activeMcap: Array<{ timestamp: number } & Record<string, number>>
+	defiActiveTvl: Array<{ timestamp: number } & Record<string, number>>
+}
 
 export type IRWAChainsOverviewRow = NonNullable<IRWAStatsResponse['byChain']>[string] & { chain: string }
 export type IRWACategoriesOverviewRow = NonNullable<IRWAStatsResponse['byCategory']>[string] & { category: string }
@@ -216,27 +222,11 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				? `${RWA_CHART_API}/category/${selectedCategory}`
 				: selectedPlatform
 					? `${RWA_CHART_API}/platform/${selectedPlatform}`
-					: `${RWA_CHART_API}/chain/All`
+					: `${RWA_CHART_API}/chain/all`
 
-		const [data, chartData]: [
-			Record<string, IFetchedRWAProject>,
-			Array<[number, number | null, number | null, number | null]> | null
-		] = await Promise.all([
+		const [data, chartData]: [Record<string, IFetchedRWAProject>, IRWAChartDataByTicker | null] = await Promise.all([
 			fetchJson(RWA_ACTIVE_TVLS_API),
-			fetchJson(chartUrl)
-				.then((data: IRWAChartData) => {
-					const finalChartData = []
-					for (const item of data ?? []) {
-						finalChartData.push([
-							item.timestamp * 1e3,
-							item.defiActiveTvl ?? null,
-							item.activeMcap ?? null,
-							item.onChainMcap ?? null
-						])
-					}
-					return finalChartData.sort((a, b) => a[0] - b[0])
-				})
-				.catch(() => null)
+			fetchJson(`${chartUrl}/ticker-breakdown`).catch(() => null)
 		])
 
 		if (!data) {
@@ -627,7 +617,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 					issuers: Array.from(issuerSetStablecoinsAndGovernance)
 				}
 			},
-			chartData
+			chartData: null
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA assets overview')
