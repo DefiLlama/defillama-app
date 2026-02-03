@@ -103,9 +103,7 @@ export function toFilterPool({
 							)
 						} else {
 							// Check if token matches a dynamic token category (e.g., TOKENIZED_GOLD, TOKENIZED_SILVER)
-							const categoryEntry = Object.values(tokenCategories).find(
-								(cat) => cat.filterKey?.toLowerCase() === token
-							)
+							const categoryEntry = Object.values(tokenCategories).find((cat) => cat.filterKey?.toLowerCase() === token)
 							if (categoryEntry) {
 								const { addresses: catAddresses, symbols: catSymbols } = categoryEntry
 								const underlyingTokens = curr.underlyingTokens ?? []
@@ -120,8 +118,8 @@ export function toFilterPool({
 								// Strategy 1: Address-based matching (preferred, no false positives)
 								if (underlyingTokens.length > 0 && catAddresses?.length > 0) {
 									const addressSet = new Set(catAddresses)
-									const hasAddressMatch = underlyingTokens.some(
-										(addr: string) => addressSet.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
+									const hasAddressMatch = underlyingTokens.some((addr: string) =>
+										addressSet.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
 									)
 									if (hasAddressMatch) return true
 								}

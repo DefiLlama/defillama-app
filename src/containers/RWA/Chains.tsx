@@ -178,15 +178,15 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 				totalAssetCount += row.stablecoinsAndGovernance.assetCount
 			}
 
-			let totalAssetIssuers = row.base.assetIssuers
+			let totalAssetIssuers = [...row.base.assetIssuers]
 			if (includeStablecoins) {
-				totalAssetIssuers += row.stablecoinsOnly.assetIssuers
+				totalAssetIssuers.push(...row.stablecoinsOnly.assetIssuers)
 			}
 			if (includeGovernance) {
-				totalAssetIssuers += row.governanceOnly.assetIssuers
+				totalAssetIssuers.push(...row.governanceOnly.assetIssuers)
 			}
 			if (includeStablecoins || includeGovernance) {
-				totalAssetIssuers += row.stablecoinsAndGovernance.assetIssuers
+				totalAssetIssuers.push(...row.stablecoinsAndGovernance.assetIssuers)
 			}
 
 			return {
@@ -194,7 +194,7 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 				totalOnChainMcap,
 				totalActiveMcap,
 				totalDefiActiveTvl,
-				totalAssetIssuers,
+				totalAssetIssuers: Array.from(new Set(totalAssetIssuers)).length,
 				totalAssetCount
 			}
 		})

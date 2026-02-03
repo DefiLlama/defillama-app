@@ -168,8 +168,8 @@ export async function getYieldPageData() {
 
 				// Check by address first
 				if (underlyingTokens.length > 0 && memeAddresses.size > 0) {
-					hasMemeToken = underlyingTokens.some(
-						(addr: string) => memeAddresses.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
+					hasMemeToken = underlyingTokens.some((addr: string) =>
+						memeAddresses.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
 					)
 				}
 

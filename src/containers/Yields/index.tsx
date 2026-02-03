@@ -7,7 +7,16 @@ import { useFormatYieldQueryParams } from './hooks'
 import { YieldsPoolsTable } from './Tables/Pools'
 import { toFilterPool } from './utils'
 
-const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList, usdPeggedSymbols, tokenCategories }) => {
+const YieldPage = ({
+	pools,
+	projectList,
+	chainList,
+	categoryList,
+	tokens,
+	tokenSymbolsList,
+	usdPeggedSymbols,
+	tokenCategories
+}) => {
 	const { query, pathname, push } = useRouter()
 
 	const [loading, setLoading] = React.useState(true)

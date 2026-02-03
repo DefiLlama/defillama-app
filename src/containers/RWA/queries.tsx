@@ -52,28 +52,28 @@ interface IRWAStatsResponse {
 				activeMcap: number
 				defiActiveTvl: number
 				assetCount: number
-				assetIssuers: number
+				assetIssuers: Array<string>
 			}
 			stablecoinsOnly: {
 				onChainMcap: number
 				activeMcap: number
 				defiActiveTvl: number
 				assetCount: number
-				assetIssuers: number
+				assetIssuers: Array<string>
 			}
 			governanceOnly: {
 				onChainMcap: number
 				activeMcap: number
 				defiActiveTvl: number
 				assetCount: number
-				assetIssuers: number
+				assetIssuers: Array<string>
 			}
 			stablecoinsAndGovernance: {
 				onChainMcap: number
 				activeMcap: number
 				defiActiveTvl: number
 				assetCount: number
-				assetIssuers: number
+				assetIssuers: Array<string>
 			}
 		}
 	>
@@ -167,55 +167,11 @@ export interface IRWAAssetsOverview {
 	chartData: Array<[number, number | null, number | null, number | null]> | null
 }
 
-export interface IRWAChainsOverviewRow {
-	chain: string
-	base: {
-		onChainMcap: number
-		activeMcap: number
-		defiActiveTvl: number
-		assetCount: number
-		assetIssuers: number
-	}
-	stablecoinsOnly: {
-		onChainMcap: number
-		activeMcap: number
-		defiActiveTvl: number
-		assetCount: number
-		assetIssuers: number
-	}
-	governanceOnly: {
-		onChainMcap: number
-		activeMcap: number
-		defiActiveTvl: number
-		assetCount: number
-		assetIssuers: number
-	}
-	stablecoinsAndGovernance: {
-		onChainMcap: number
-		activeMcap: number
-		defiActiveTvl: number
-		assetCount: number
-		assetIssuers: number
-	}
-}
+type IRWAChartData = Array<{ timestamp: number; onChainMcap: number; activeMcap: number; defiActiveTvl: number }>
 
-export interface IRWACategoriesOverviewRow {
-	category: string
-	onChainMcap: number
-	activeMcap: number
-	defiActiveTvl: number
-	assetIssuers: number
-	assetCount: number
-}
-
-export interface IRWAPlatformsOverviewRow {
-	platform: string
-	onChainMcap: number
-	activeMcap: number
-	defiActiveTvl: number
-	assetIssuers: number
-	assetCount: number
-}
+export type IRWAChainsOverviewRow = NonNullable<IRWAStatsResponse['byChain']>[string] & { chain: string }
+export type IRWACategoriesOverviewRow = NonNullable<IRWAStatsResponse['byCategory']>[string] & { category: string }
+export type IRWAPlatformsOverviewRow = NonNullable<IRWAStatsResponse['byPlatform']>[string] & { platform: string }
 
 const stablecoinCategories = ['Fiat-Backed Stablecoins', 'Stablecoins backed by RWAs', 'Non-RWA Stablecoins']
 const stablecoinAssetClasses: string[] = [
@@ -262,15 +218,15 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 					? `${RWA_CHART_API}/platform/${selectedPlatform}`
 					: `${RWA_CHART_API}/chain/All`
 
-		const [{ data }, chartData]: [
-			{ data: Record<string, IFetchedRWAProject> },
+		const [data, chartData]: [
+			Record<string, IFetchedRWAProject>,
 			Array<[number, number | null, number | null, number | null]> | null
 		] = await Promise.all([
-			fetchJson<{ data: Record<string, IFetchedRWAProject> }>(RWA_ACTIVE_TVLS_API),
+			fetchJson(RWA_ACTIVE_TVLS_API),
 			fetchJson(chartUrl)
 				.then((data: IRWAChartData) => {
 					const finalChartData = []
-					for (const item of data?.data ?? []) {
+					for (const item of data ?? []) {
 						finalChartData.push([
 							item.timestamp * 1e3,
 							item.defiActiveTvl ?? null,
@@ -576,13 +532,6 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			.sort((a, b) => b[1] - a[1])
 			.map(([key]) => key)
 
-		console.log(
-			Array.from(issuerSet),
-			Array.from(issuerSetStablecoinsOnly),
-			Array.from(issuerSetGovernanceOnly),
-			Array.from(issuerSetStablecoinsAndGovernance)
-		)
-
 		return {
 			assets: assets.sort((a, b) => b.onChainMcap.total - a.onChainMcap.total),
 			assetClasses: formattedAssetClasses,
@@ -742,10 +691,6 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRo
 	return rows.sort((a, b) => b.onChainMcap - a.onChainMcap)
 }
 
-interface IRWAChartData {
-	data: Array<{ timestamp: number; onChainMcap: number; activeMcap: number; defiActiveTvl: number }>
-}
-
 export interface IRWAAssetData extends IRWAProject {
 	slug: string
 	rwaClassificationDescription: string | null
@@ -762,7 +707,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 				fetchJson(`${RWA_CHART_API}/${assetId}`)
 					.then((data: IRWAChartData) => {
 						const finalChartData = []
-						for (const item of data?.data ?? []) {
+						for (const item of data ?? []) {
 							finalChartData.push([
 								item.timestamp * 1e3,
 								item.defiActiveTvl ?? null,
