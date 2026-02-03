@@ -5,7 +5,15 @@ import { useFormatYieldQueryParams } from './hooks'
 import { YieldsStrategyTableFR } from './Tables/StrategyFR'
 import { filterPool, findStrategyPoolsFR } from './utils'
 
-const YieldsStrategyPageLongShort = ({ filteredPools, perps, tokens, projectList, chainList, categoryList }) => {
+const YieldsStrategyPageLongShort = ({
+	filteredPools,
+	perps,
+	tokens,
+	projectList,
+	chainList,
+	categoryList,
+	evmChains
+}) => {
 	const { query } = useRouter()
 
 	const token = typeof query.token === 'string' || typeof query.token === 'object' ? query.token : null
@@ -13,7 +21,8 @@ const YieldsStrategyPageLongShort = ({ filteredPools, perps, tokens, projectList
 	const { selectedChains, selectedAttributes, minTvl, maxTvl } = useFormatYieldQueryParams({
 		projectList,
 		chainList,
-		categoryList
+		categoryList,
+		evmChains
 	})
 
 	const poolsData = React.useMemo(() => {
@@ -46,6 +55,7 @@ const YieldsStrategyPageLongShort = ({ filteredPools, perps, tokens, projectList
 				chainsNumber={selectedChains.length}
 				chainList={chainList}
 				selectedChains={selectedChains}
+				evmChains={evmChains}
 				attributes={true}
 				tvlRange={true}
 				showSearchOnMobile

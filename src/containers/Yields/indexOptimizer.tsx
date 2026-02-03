@@ -13,7 +13,8 @@ export const BorrowAggregatorAdvanced = ({
 	categoryList,
 	lendingProtocols,
 	searchData,
-	unboundedDebtCeilingProjects = []
+	unboundedDebtCeilingProjects = [],
+	evmChains
 }) => {
 	const unlimitedDebtProjects = React.useMemo(
 		() => new Set(unboundedDebtCeilingProjects),
@@ -30,7 +31,8 @@ export const BorrowAggregatorAdvanced = ({
 			projectList,
 			chainList,
 			lendingProtocols,
-			categoryList
+			categoryList,
+			evmChains
 		})
 
 	const { cdpPools, lendingPools } = React.useMemo(() => {
@@ -231,6 +233,7 @@ export const BorrowAggregatorAdvanced = ({
 				header={header}
 				chainList={chainList}
 				selectedChains={selectedChains}
+				evmChains={evmChains}
 				lendingProtocols={lendingProtocols}
 				selectedLendingProtocols={selectedLendingProtocols}
 				attributes={true}
