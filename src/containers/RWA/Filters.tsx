@@ -38,7 +38,11 @@ export function RWAOverviewFilters({
 	maxDefiActiveTvlToActiveMcapPct,
 	setDefiActiveTvlToOnChainMcapPctRange,
 	setActiveMcapToOnChainMcapPctRange,
-	setDefiActiveTvlToActiveMcapPctRange
+	setDefiActiveTvlToActiveMcapPctRange,
+	includeStablecoins,
+	includeGovernance,
+	setIncludeStablecoins,
+	setIncludeGovernance
 }: {
 	enabled: boolean
 	isChainMode: boolean
@@ -64,6 +68,10 @@ export function RWAOverviewFilters({
 	setDefiActiveTvlToOnChainMcapPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
 	setActiveMcapToOnChainMcapPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
 	setDefiActiveTvlToActiveMcapPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
+	includeStablecoins: boolean
+	includeGovernance: boolean
+	setIncludeStablecoins: (value: boolean) => void
+	setIncludeGovernance: (value: boolean) => void
 }) {
 	if (!enabled) return null
 
@@ -234,23 +242,6 @@ export function RWAOverviewFilters({
 				minInputProps={ratioPercentInputProps}
 				maxInputProps={ratioPercentInputProps}
 			/>
-		</div>
-	)
-}
-
-export function StablecoingAndGovernanceFilters({
-	includeStablecoins,
-	includeGovernance,
-	setIncludeStablecoins,
-	setIncludeGovernance
-}: {
-	includeStablecoins: boolean
-	includeGovernance: boolean
-	setIncludeStablecoins: (value: boolean) => void
-	setIncludeGovernance: (value: boolean) => void
-}) {
-	return (
-		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 md:flex-row md:flex-wrap md:items-center">
 			<Switch
 				label="Stablecoins"
 				value="includeStablecoins"

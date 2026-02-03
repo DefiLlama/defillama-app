@@ -8,15 +8,16 @@ import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
 import { RWAAssetsTable } from './AssetsTable'
 import { DownloadPieChartCsv } from './DownloadPieChartCsv'
-import { RWAOverviewFilters, StablecoingAndGovernanceFilters } from './Filters'
-import { useFilteredRwaAssets, useRWATableQueryParams } from './hooks'
-import { IRWAAssetsOverview } from './queries'
+import { RWAOverviewFilters } from './Filters'
 import {
+	useFilteredRwaAssets,
+	useRWATableQueryParams,
 	useRWAAssetCategoryPieChartData,
 	useRwaAssetNamePieChartData,
 	useRwaCategoryAssetClassPieChartData,
 	useRwaChainBreakdownPieChartData
-} from './useRwaPieChartData'
+} from './hooks'
+import { IRWAAssetsOverview } from './queries'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -69,76 +70,25 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		defaultIncludeGovernance: !isChainMode
 	})
 
-	const { totalOnChainMcap, totalActiveMcap, totalOnChainDeFiActiveTvl, issuersCount } = useMemo(() => {
-		if (isChainMode) {
-			return {
-				totalOnChainMcap:
-					props.totals.onChainMcap +
-					(includeStablecoins ? props.totals.stablecoins.onChainMcap : 0) +
-					(includeGovernance ? props.totals.governance.onChainMcap : 0) +
-					(includeStablecoins || includeGovernance ? props.totals.stablecoinsAndGovernance.onChainMcap : 0),
-				totalActiveMcap:
-					props.totals.activeMcap +
-					(includeStablecoins ? props.totals.stablecoins.activeMcap : 0) +
-					(includeGovernance ? props.totals.governance.activeMcap : 0) +
-					(includeStablecoins || includeGovernance ? props.totals.stablecoinsAndGovernance.activeMcap : 0),
-				totalOnChainDeFiActiveTvl:
-					props.totals.defiActiveTvl +
-					(includeStablecoins ? props.totals.stablecoins.defiActiveTvl : 0) +
-					(includeGovernance ? props.totals.governance.defiActiveTvl : 0) +
-					(includeStablecoins || includeGovernance ? props.totals.stablecoinsAndGovernance.defiActiveTvl : 0),
-				issuersCount: new Set([
-					...props.totals.issuers,
-					...(includeStablecoins ? props.totals.stablecoins.issuers : []),
-					...(includeGovernance ? props.totals.governance.issuers : []),
-					...(includeStablecoins || includeGovernance ? props.totals.stablecoinsAndGovernance.issuers : [])
-				]).size
-			}
-		}
-
-		return {
-			totalActiveMcap:
-				props.totals.activeMcap +
-				props.totals.stablecoins.activeMcap +
-				props.totals.governance.activeMcap +
-				props.totals.stablecoinsAndGovernance.activeMcap,
-			totalOnChainMcap:
-				props.totals.onChainMcap +
-				props.totals.stablecoins.onChainMcap +
-				props.totals.governance.onChainMcap +
-				props.totals.stablecoinsAndGovernance.onChainMcap,
-			totalOnChainDeFiActiveTvl:
-				props.totals.defiActiveTvl +
-				props.totals.stablecoins.defiActiveTvl +
-				props.totals.governance.defiActiveTvl +
-				props.totals.stablecoinsAndGovernance.defiActiveTvl,
-			issuersCount: new Set([
-				...props.totals.issuers,
-				...(includeStablecoins ? props.totals.stablecoins.issuers : []),
-				...(includeGovernance ? props.totals.governance.issuers : []),
-				...(includeStablecoins || includeGovernance ? props.totals.stablecoinsAndGovernance.issuers : [])
-			]).size
-		}
-	}, [props, includeStablecoins, includeGovernance, isChainMode])
-
-	const filteredAssets = useFilteredRwaAssets({
-		assets: props.assets,
-		isPlatformMode,
-		selectedAssetNames,
-		selectedCategories,
-		selectedAssetClasses,
-		selectedRwaClassifications,
-		selectedAccessModels,
-		selectedIssuers,
-		includeStablecoins,
-		includeGovernance,
-		minDefiActiveTvlToOnChainMcapPct,
-		maxDefiActiveTvlToOnChainMcapPct,
-		minActiveMcapToOnChainMcapPct,
-		maxActiveMcapToOnChainMcapPct,
-		minDefiActiveTvlToActiveMcapPct,
-		maxDefiActiveTvlToActiveMcapPct
-	})
+	const { filteredAssets, totalOnChainMcap, totalActiveMcap, totalOnChainDeFiActiveTvl, totalIssuersCount } =
+		useFilteredRwaAssets({
+			assets: props.assets,
+			isPlatformMode,
+			selectedAssetNames,
+			selectedCategories,
+			selectedAssetClasses,
+			selectedRwaClassifications,
+			selectedAccessModels,
+			selectedIssuers,
+			includeStablecoins,
+			includeGovernance,
+			minDefiActiveTvlToOnChainMcapPct,
+			maxDefiActiveTvlToOnChainMcapPct,
+			minActiveMcapToOnChainMcapPct,
+			maxActiveMcapToOnChainMcapPct,
+			minDefiActiveTvlToActiveMcapPct,
+			maxDefiActiveTvlToActiveMcapPct
+		})
 
 	const {
 		assetCategoryOnChainMcapPieChartData,
@@ -285,14 +235,36 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					isCategoryMode ? props.selectedCategory : isPlatformMode ? props.selectedPlatform : props.selectedChain
 				}
 			/>
-			{isChainMode ? (
-				<StablecoingAndGovernanceFilters
-					includeStablecoins={includeStablecoins}
-					includeGovernance={includeGovernance}
-					setIncludeStablecoins={setIncludeStablecoins}
-					setIncludeGovernance={setIncludeGovernance}
-				/>
-			) : null}
+			<RWAOverviewFilters
+				enabled={showFilters}
+				isChainMode={isChainMode}
+				isPlatformMode={isPlatformMode}
+				assetNames={props.assetNames}
+				selectedAssetNames={selectedAssetNames}
+				categoriesOptions={props.categoriesOptions}
+				assetClassOptions={props.assetClassOptions}
+				rwaClassificationOptions={props.rwaClassificationOptions}
+				accessModelOptions={props.accessModelOptions}
+				issuers={props.issuers}
+				selectedCategories={selectedCategories}
+				selectedAssetClasses={selectedAssetClasses}
+				selectedRwaClassifications={selectedRwaClassifications}
+				selectedAccessModels={selectedAccessModels}
+				selectedIssuers={selectedIssuers}
+				minDefiActiveTvlToOnChainMcapPct={minDefiActiveTvlToOnChainMcapPct}
+				maxDefiActiveTvlToOnChainMcapPct={maxDefiActiveTvlToOnChainMcapPct}
+				minActiveMcapToOnChainMcapPct={minActiveMcapToOnChainMcapPct}
+				maxActiveMcapToOnChainMcapPct={maxActiveMcapToOnChainMcapPct}
+				minDefiActiveTvlToActiveMcapPct={minDefiActiveTvlToActiveMcapPct}
+				maxDefiActiveTvlToActiveMcapPct={maxDefiActiveTvlToActiveMcapPct}
+				setDefiActiveTvlToOnChainMcapPctRange={setDefiActiveTvlToOnChainMcapPctRange}
+				setActiveMcapToOnChainMcapPctRange={setActiveMcapToOnChainMcapPctRange}
+				setDefiActiveTvlToActiveMcapPctRange={setDefiActiveTvlToActiveMcapPctRange}
+				includeStablecoins={includeStablecoins}
+				includeGovernance={includeGovernance}
+				setIncludeStablecoins={setIncludeStablecoins}
+				setIncludeGovernance={setIncludeGovernance}
+			/>
 			<div className="flex flex-col gap-2 md:flex-row md:items-center">
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
@@ -328,7 +300,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					>
 						Total Asset Issuers
 					</Tooltip>
-					<span className="font-jetbrains text-2xl font-medium">{formattedNum(issuersCount, false)}</span>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalIssuersCount, false)}</span>
 				</p>
 			</div>
 			{props.chartData && props.chartData.length > 0 ? (
@@ -342,66 +314,42 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					</Suspense>
 				</div>
 			) : null}
-			<RWAOverviewFilters
-				enabled={showFilters}
-				isChainMode={isChainMode}
-				isPlatformMode={isPlatformMode}
-				assetNames={props.assetNames}
-				selectedAssetNames={selectedAssetNames}
-				categoriesOptions={props.categoriesOptions}
-				assetClassOptions={props.assetClassOptions}
-				rwaClassificationOptions={props.rwaClassificationOptions}
-				accessModelOptions={props.accessModelOptions}
-				issuers={props.issuers}
-				selectedCategories={selectedCategories}
-				selectedAssetClasses={selectedAssetClasses}
-				selectedRwaClassifications={selectedRwaClassifications}
-				selectedAccessModels={selectedAccessModels}
-				selectedIssuers={selectedIssuers}
-				minDefiActiveTvlToOnChainMcapPct={minDefiActiveTvlToOnChainMcapPct}
-				maxDefiActiveTvlToOnChainMcapPct={maxDefiActiveTvlToOnChainMcapPct}
-				minActiveMcapToOnChainMcapPct={minActiveMcapToOnChainMcapPct}
-				maxActiveMcapToOnChainMcapPct={maxActiveMcapToOnChainMcapPct}
-				minDefiActiveTvlToActiveMcapPct={minDefiActiveTvlToActiveMcapPct}
-				maxDefiActiveTvlToActiveMcapPct={maxDefiActiveTvlToActiveMcapPct}
-				setDefiActiveTvlToOnChainMcapPctRange={setDefiActiveTvlToOnChainMcapPctRange}
-				setActiveMcapToOnChainMcapPctRange={setActiveMcapToOnChainMcapPctRange}
-				setDefiActiveTvlToActiveMcapPctRange={setDefiActiveTvlToActiveMcapPctRange}
-			/>
 			{showCharts ? (
 				<div className="flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="m-3 mb-0 flex flex-nowrap items-center self-end overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-						<button
-							className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-							data-active={pieChartBreakdown !== 'chain'}
-							onClick={() => {
-								const { pieChartBreakdown: _pieChartBreakdown, ...restQuery } = router.query
-								router.push(
-									{
-										pathname: router.pathname,
-										query: { ...restQuery }
-									},
-									undefined,
-									{ shallow: true }
-								)
-							}}
-						>
-							{isChainMode ? 'Asset Category' : isCategoryMode ? 'Asset Class' : 'Asset Name'}
-						</button>
-						<button
-							className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-							data-active={pieChartBreakdown === 'chain'}
-							onClick={() => {
-								router.push(
-									{ pathname: router.pathname, query: { ...router.query, pieChartBreakdown: 'chain' } },
-									undefined,
-									{ shallow: true }
-								)
-							}}
-						>
-							Chain
-						</button>
-					</div>
+					{isChainBreakdownEnabled ? (
+						<div className="m-3 mb-0 flex flex-nowrap items-center self-end overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+							<button
+								className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+								data-active={pieChartBreakdown !== 'chain'}
+								onClick={() => {
+									const { pieChartBreakdown: _pieChartBreakdown, ...restQuery } = router.query
+									router.push(
+										{
+											pathname: router.pathname,
+											query: { ...restQuery }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}}
+							>
+								{isChainMode ? 'Asset Category' : isCategoryMode ? 'Asset Class' : 'Asset Name'}
+							</button>
+							<button
+								className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+								data-active={pieChartBreakdown === 'chain'}
+								onClick={() => {
+									router.push(
+										{ pathname: router.pathname, query: { ...router.query, pieChartBreakdown: 'chain' } },
+										undefined,
+										{ shallow: true }
+									)
+								}}
+							>
+								Chain
+							</button>
+						</div>
+					) : null}
 					<div className="grid grid-cols-1 lg:grid-cols-2">
 						<div className="relative col-span-1 min-h-[368px] lg:after:absolute lg:after:top-3 lg:after:right-0 lg:after:bottom-3 lg:after:w-px lg:after:bg-(--cards-border) lg:after:content-[''] lg:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<div className="flex flex-wrap items-center justify-between gap-2 p-3 pb-0">
