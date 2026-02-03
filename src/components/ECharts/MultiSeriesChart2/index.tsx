@@ -415,6 +415,29 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		const datasetLength = Array.isArray(datasetSource) ? datasetSource.length : 0
 		const shouldHideDataZoom = datasetLength < 2 || hideDataZoom
 
+		// Always use a scroll legend when the default legend is enabled.
+		const finalLegend = hideDefaultLegend
+			? undefined
+			: Array.isArray(legend)
+				? legend.map((l) => ({
+						...l,
+						type: 'scroll',
+						orient: l?.orient ?? 'horizontal',
+						pageButtonPosition: l?.pageButtonPosition ?? 'end',
+						left: l?.left ?? 12,
+						right: l?.right ?? 12
+					}))
+				: legend
+					? {
+							...legend,
+							type: 'scroll',
+							orient: (legend as any)?.orient ?? 'horizontal',
+							pageButtonPosition: (legend as any)?.pageButtonPosition ?? 'end',
+							left: (legend as any)?.left ?? 12,
+							right: (legend as any)?.right ?? 12
+						}
+					: undefined
+
 		const defaultGrid = {
 			left: 12,
 			bottom: shouldHideDataZoom ? 12 : 68,
@@ -425,7 +448,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		}
 		const mergedGrid = gridFromSettings ? mergeDeep(defaultGrid, gridFromSettings) : defaultGrid
 		// Preserve existing behavior: when dataZoom is shown, keep enough bottom padding unless explicitly overridden.
-		const finalGrid = {
+		let finalGrid: any = {
 			...mergedGrid,
 			bottom: mergedGrid.bottom ?? (shouldHideDataZoom ? 12 : 68)
 		}
@@ -439,7 +462,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		}
 
 		instance.setOption({
-			...(hideDefaultLegend ? {} : { legend }),
+			...(hideDefaultLegend ? {} : { legend: finalLegend ?? legend }),
 			graphic,
 			tooltip: {
 				trigger: 'axis',
