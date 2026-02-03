@@ -617,7 +617,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 					issuers: Array.from(issuerSetStablecoinsAndGovernance)
 				}
 			},
-			chartData: null
+			chartData
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA assets overview')

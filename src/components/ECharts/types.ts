@@ -203,6 +203,7 @@ export interface IPieChartProps {
 	enableImageExport?: boolean
 	imageExportFilename?: string
 	imageExportTitle?: string
+	onReady?: (instance: echarts.ECharts | null) => void
 }
 
 export interface IScatterChartProps {

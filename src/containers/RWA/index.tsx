@@ -1,8 +1,10 @@
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo } from 'react'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Tooltip } from '~/components/Tooltip'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
 import { RWAAssetsTable } from './AssetsTable'
@@ -17,6 +19,7 @@ import {
 	useRwaChainBreakdownPieChartData
 } from './hooks'
 import { IRWAAssetsOverview } from './queries'
+import { rwaSlug } from './rwaSlug'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
@@ -34,7 +37,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const isChainMode = props.chainLinks.length > 0
 	const isCategoryMode = props.categoryLinks.length > 0
 	const isPlatformMode = props.platformLinks.length > 0
-	const pieChartBreakdown = router.query.pieChartBreakdown
+	const pieChartBreakdown = typeof router.query.pieChartBreakdown === 'string' ? router.query.pieChartBreakdown : null
 	const pieChartType =
 		typeof router.query.pieChartType === 'string' && validPieChartTypes.has(router.query.pieChartType)
 			? router.query.pieChartType
@@ -228,6 +231,12 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		props.assets.length > 1
 
 	const showCharts = props.assets.length > 1
+
+	const { chartInstance: pieChartInstance, handleChartReady: handlePieChartReady } = useChartImageExport()
+	const pieChartTitle =
+		pieChartType === 'onChainMcap' ? 'Onchain Mcap' : pieChartType === 'activeMcap' ? 'Active Mcap' : 'DeFi Active TVL'
+	const pieChartFilename = `rwa-pie-${slug(pieChartTitle)}-${rwaSlug(isChainMode ? props.selectedChain : isCategoryMode ? props.selectedCategory : props.selectedPlatform)}`
+
 	return (
 		<>
 			<RowLinksWithDropdown
@@ -272,7 +281,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 						content={definitions.totalOnChainMcap.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
-						Total RWA Onchain
+						{definitions.totalOnChainMcap.label}
 					</Tooltip>
 					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainMcap, true)}</span>
 				</p>
@@ -281,7 +290,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 						content={definitions.totalActiveMcap.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
-						Total RWA Active Marketcap
+						{definitions.totalActiveMcap.label}
 					</Tooltip>
 					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalActiveMcap, true)}</span>
 				</p>
@@ -290,7 +299,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 						content={definitions.totalDefiActiveTvl.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
-						DeFi Active TVL
+						{definitions.totalDefiActiveTvl.label}
 					</Tooltip>
 					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainDeFiActiveTvl, true)}</span>
 				</p>
@@ -299,14 +308,14 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 						content={definitions.totalAssetIssuers.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
-						Total Asset Issuers
+						{definitions.totalAssetIssuers.label}
 					</Tooltip>
 					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalIssuersCount, false)}</span>
 				</p>
 			</div>
 			{showCharts ? (
-				<div className="flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="m-3 mb-0 flex items-center justify-end gap-3">
+				<div className="flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="flex items-center justify-end gap-2 p-3 pb-0">
 						<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 							{PIE_CHART_TYPES.map(({ key, label }) => (
 								<button
@@ -317,7 +326,9 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 										router.push(
 											{ pathname: router.pathname, query: { ...router.query, pieChartType: key } },
 											undefined,
-											{ shallow: true }
+											{
+												shallow: true
+											}
 										)
 									}}
 								>
@@ -360,91 +371,53 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 							</div>
 						) : null}
 						{pieChartType === 'onChainMcap' ? (
-							<DownloadPieChartCsv
-								filename={
-									[
-										'rwa-pie',
-										slug(definitions.totalOnChainMcap.label),
-										props.selectedChain !== 'All' ? props.selectedChain.toLowerCase() : null,
-										props.selectedCategory !== 'All' ? slug(props.selectedCategory) : null,
-										props.selectedPlatform !== 'All' ? slug(props.selectedPlatform) : null
-									]
-										.filter(Boolean)
-										.join('-') + '.csv'
-								}
-								chartData={onChainPieChartData}
-								smol
-							/>
+							<DownloadPieChartCsv filename={`${pieChartFilename}.csv`} chartData={onChainPieChartData} smol />
 						) : pieChartType === 'activeMcap' ? (
-							<DownloadPieChartCsv
-								filename={
-									[
-										'rwa-pie',
-										slug(definitions.totalActiveMcap.label),
-										props.selectedChain !== 'All' ? props.selectedChain.toLowerCase() : null,
-										props.selectedCategory !== 'All' ? slug(props.selectedCategory) : null,
-										props.selectedPlatform !== 'All' ? slug(props.selectedPlatform) : null
-									]
-										.filter(Boolean)
-										.join('-') + '.csv'
-								}
-								chartData={activeMcapPieChartData}
-								smol
-							/>
+							<DownloadPieChartCsv filename={`${pieChartFilename}.csv`} chartData={activeMcapPieChartData} smol />
 						) : pieChartType === 'defiActiveTvl' ? (
-							<DownloadPieChartCsv
-								filename={
-									[
-										'rwa-pie',
-										slug(definitions.totalDefiActiveTvl.label),
-										props.selectedChain !== 'All' ? props.selectedChain.toLowerCase() : null,
-										props.selectedCategory !== 'All' ? slug(props.selectedCategory) : null,
-										props.selectedPlatform !== 'All' ? slug(props.selectedPlatform) : null
-									]
-										.filter(Boolean)
-										.join('-') + '.csv'
-								}
-								chartData={defiActiveTvlPieChartData}
-								smol
-							/>
+							<DownloadPieChartCsv filename={`${pieChartFilename}.csv`} chartData={defiActiveTvlPieChartData} smol />
 						) : null}
+						<ChartExportButton
+							chartInstance={pieChartInstance}
+							filename={`${pieChartFilename}.png`}
+							title={pieChartTitle}
+							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+							smol
+						/>
 					</div>
 					{pieChartType === 'onChainMcap' ? (
-						<div className="relative col-span-1 min-h-[368px]">
-							<Suspense fallback={<div className="h-[360px]" />}>
-								<PieChart
-									chartData={onChainPieChartData}
-									stackColors={pieChartStackColors}
-									radius={pieChartRadius}
-									legendPosition={pieChartLegendPosition}
-									legendTextStyle={pieChartLegendTextStyle}
-								/>
-							</Suspense>
-						</div>
+						<Suspense fallback={<div className="h-[360px]" />}>
+							<PieChart
+								chartData={onChainPieChartData}
+								stackColors={pieChartStackColors}
+								radius={pieChartRadius}
+								legendPosition={pieChartLegendPosition}
+								legendTextStyle={pieChartLegendTextStyle}
+								onReady={handlePieChartReady}
+							/>
+						</Suspense>
 					) : pieChartType === 'activeMcap' ? (
-						<div className="relative col-span-1 min-h-[368px]">
-							<Suspense fallback={<div className="h-[360px]" />}>
-								<PieChart
-									chartData={activeMcapPieChartData}
-									stackColors={pieChartStackColors}
-									radius={pieChartRadius}
-									legendPosition={pieChartLegendPosition}
-									legendTextStyle={pieChartLegendTextStyle}
-								/>
-							</Suspense>
-						</div>
+						<Suspense fallback={<div className="h-[360px]" />}>
+							<PieChart
+								chartData={activeMcapPieChartData}
+								stackColors={pieChartStackColors}
+								radius={pieChartRadius}
+								legendPosition={pieChartLegendPosition}
+								legendTextStyle={pieChartLegendTextStyle}
+								onReady={handlePieChartReady}
+							/>
+						</Suspense>
 					) : pieChartType === 'defiActiveTvl' ? (
-						<div className="relative col-span-1 min-h-[368px]">
-							<Suspense fallback={<div className="h-[360px]" />}>
-								<PieChart
-									chartData={defiActiveTvlPieChartData}
-									stackColors={pieChartStackColors}
-									radius={pieChartRadius}
-									legendPosition={pieChartLegendPosition}
-									legendTextStyle={pieChartLegendTextStyle}
-								/>
-							</Suspense>
-						</div>
+						<Suspense fallback={<div className="h-[360px]" />}>
+							<PieChart
+								chartData={defiActiveTvlPieChartData}
+								stackColors={pieChartStackColors}
+								radius={pieChartRadius}
+								legendPosition={pieChartLegendPosition}
+								legendTextStyle={pieChartLegendTextStyle}
+								onReady={handlePieChartReady}
+							/>
+						</Suspense>
 					) : null}
 				</div>
 			) : null}

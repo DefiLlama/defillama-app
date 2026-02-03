@@ -361,7 +361,7 @@ export const useFilteredRwaAssets = ({
 	// Crypto-collateralized stablecoin (non-RWA)
 	return useMemo(() => {
 		const filteredAssets: RWAAsset[] = []
-
+		const filteredTickers = new Set<string>()
 		let totalOnChainMcap = 0
 		let totalActiveMcap = 0
 		let totalOnChainStablecoinMcap = 0
@@ -376,7 +376,8 @@ export const useFilteredRwaAssets = ({
 				totalActiveMcap,
 				totalOnChainStablecoinMcap,
 				totalOnChainDeFiActiveTvl,
-				totalIssuersCount: totalIssuersSet.size
+				totalIssuersCount: totalIssuersSet.size,
+				filteredTickers
 			}
 
 		// Create Sets for O(1) lookups
@@ -446,6 +447,7 @@ export const useFilteredRwaAssets = ({
 
 			if (toFilter) {
 				filteredAssets.push(asset)
+				filteredTickers.add(asset.ticker)
 				totalOnChainMcap += asset.onChainMcap.total
 				totalActiveMcap += asset.activeMcap.total
 				if (asset.stablecoin) {
@@ -464,7 +466,8 @@ export const useFilteredRwaAssets = ({
 			totalActiveMcap,
 			totalOnChainStablecoinMcap,
 			totalOnChainDeFiActiveTvl,
-			totalIssuersCount: totalIssuersSet.size
+			totalIssuersCount: totalIssuersSet.size,
+			filteredTickers
 		}
 	}, [
 		assets,

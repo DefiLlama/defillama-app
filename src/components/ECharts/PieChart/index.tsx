@@ -36,6 +36,7 @@ export default function PieChart({
 	enableImageExport = false,
 	imageExportFilename,
 	imageExportTitle,
+	onReady,
 	...props
 }: IPieChartProps) {
 	const id = useId()
@@ -105,6 +106,10 @@ export default function PieChart({
 		if (!el) return
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
 		chartRef.current = instance
+
+		if (onReady) {
+			onReady(instance)
+		}
 
 		const graphic = {
 			type: 'image',
@@ -178,7 +183,8 @@ export default function PieChart({
 		legendPosition,
 		legendTextStyle,
 		isSmall,
-		handleChartReady
+		handleChartReady,
+		onReady
 	])
 
 	return (
