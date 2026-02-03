@@ -175,6 +175,12 @@ interface IRWAChartDataByTicker {
 	defiActiveTvl: Array<{ timestamp: number } & Record<string, number>>
 }
 
+function toUnixMsTimestamp(ts: number): number {
+	// API timestamps are historically in unix seconds. Normalize to ms for ECharts time axis.
+	// Keep this tolerant to already-ms values to avoid double conversion.
+	return Number.isFinite(ts) && ts > 0 && ts < 1e12 ? ts * 1e3 : ts
+}
+
 export type IRWAChainsOverviewRow = NonNullable<IRWAStatsResponse['byChain']>[string] & { chain: string }
 export type IRWACategoriesOverviewRow = NonNullable<IRWAStatsResponse['byCategory']>[string] & { category: string }
 export type IRWAPlatformsOverviewRow = NonNullable<IRWAStatsResponse['byPlatform']>[string] & { platform: string }
@@ -232,6 +238,20 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		if (!data) {
 			throw new Error('Failed to get RWA assets list')
 		}
+
+		const chartDataMs: IRWAChartDataByTicker | null = chartData
+			? {
+					onChainMcap: (chartData.onChainMcap ?? [])
+						.map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
+						.sort((a, b) => a.timestamp - b.timestamp),
+					activeMcap: (chartData.activeMcap ?? [])
+						.map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
+						.sort((a, b) => a.timestamp - b.timestamp),
+					defiActiveTvl: (chartData.defiActiveTvl ?? [])
+						.map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
+						.sort((a, b) => a.timestamp - b.timestamp)
+				}
+			: null
 
 		// `selectedChain` comes from the URL and is slugified; resolve a display name (original casing/spaces)
 		// while still filtering breakdown keys by slug for robustness.
@@ -617,7 +637,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 					issuers: Array.from(issuerSetStablecoinsAndGovernance)
 				}
 			},
-			chartData
+			chartData: chartDataMs
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA assets overview')
@@ -686,29 +706,38 @@ export interface IRWAAssetData extends IRWAProject {
 	rwaClassificationDescription: string | null
 	accessModelDescription: string | null
 	assetClassDescriptions: Record<string, string>
-	chartData: Array<[number, number | null, number | null, number | null]>
+	chartDataset: {
+		source: Array<{
+			timestamp: number
+			'DeFi Active TVL': number | null
+			'Active Mcap': number | null
+			'Onchain Mcap': number | null
+		}>
+		dimensions: ['timestamp', 'DeFi Active TVL', 'Active Mcap', 'Onchain Mcap']
+	} | null
 }
+
+const RWA_ASSET_CHART_DIMENSIONS = ['timestamp', 'DeFi Active TVL', 'Active Mcap', 'Onchain Mcap'] as const
 
 export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {
 	try {
-		const [data, chartData]: [IFetchedRWAProject, Array<[number, number | null, number | null, number | null]> | null] =
-			await Promise.all([
-				fetchJson(`${RWA_ASSET_DATA_API}/${assetId}`),
-				fetchJson(`${RWA_CHART_API}/${assetId}`)
-					.then((data: IRWAChartData) => {
-						const finalChartData = []
-						for (const item of data ?? []) {
-							finalChartData.push([
-								item.timestamp * 1e3,
-								item.defiActiveTvl ?? null,
-								item.activeMcap ?? null,
-								item.onChainMcap ?? null
-							])
-						}
-						return finalChartData.sort((a, b) => a[0] - b[0])
-					})
-					.catch(() => null)
-			])
+		const [data, chartDataset]: [IFetchedRWAProject, IRWAAssetData['chartDataset']] = await Promise.all([
+			fetchJson(`${RWA_ASSET_DATA_API}/${assetId}`),
+			fetchJson(`${RWA_CHART_API}/asset/${assetId}`)
+				.then((data: IRWAChartData) => {
+					const source =
+						(data ?? []).map((item) => ({
+							timestamp: item.timestamp * 1e3,
+							'DeFi Active TVL': item.defiActiveTvl ?? null,
+							'Active Mcap': item.activeMcap ?? null,
+							'Onchain Mcap': item.onChainMcap ?? null
+						})) ?? []
+
+					source.sort((a, b) => a.timestamp - b.timestamp)
+					return { source, dimensions: RWA_ASSET_CHART_DIMENSIONS }
+				})
+				.catch(() => null)
+		])
 
 		if (!data) {
 			throw new Error('Failed to get RWA assets list')
@@ -790,7 +819,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 				total: totalDeFiActiveTvlForAsset,
 				breakdown: Object.entries(finalDeFiActiveTvlBreakdown).sort((a, b) => b[1] - a[1])
 			},
-			chartData
+			chartDataset
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA asset data')

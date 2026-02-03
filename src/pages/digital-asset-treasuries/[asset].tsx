@@ -407,9 +407,9 @@ const MNAVChart = ({
 				<MultiSeriesChart2
 					charts={data.charts}
 					selectedCharts={selectedCharts}
-					data={data.data}
+					dataset={data.dataset}
 					valueSymbol=""
-					hideDataZoom={data.data.length < 2}
+					hideDataZoom={data.dataset.source.length < 2}
 				/>
 			</Suspense>
 		</div>

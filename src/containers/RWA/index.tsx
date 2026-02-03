@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo } from 'react'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
-import type { IPieChartProps } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Tooltip } from '~/components/Tooltip'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
@@ -16,12 +16,20 @@ import {
 	useRWAAssetCategoryPieChartData,
 	useRwaAssetNamePieChartData,
 	useRwaCategoryAssetClassPieChartData,
-	useRwaChainBreakdownPieChartData
+	useRwaChainBreakdownPieChartData,
+	useRwaChartDataByAssetClass,
+	useRwaChartDataByAssetName,
+	useRwaChartDataByCategory
 } from './hooks'
 import { IRWAAssetsOverview } from './queries'
 import { rwaSlug } from './rwaSlug'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+const MultiSeriesChart2 = lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
+
+type RWAChartType = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 
 type RWADefinitions = typeof rwaDefinitionsJson & {
 	totalOnChainMcap: { label: string; description: string }
@@ -38,10 +46,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const isCategoryMode = props.categoryLinks.length > 0
 	const isPlatformMode = props.platformLinks.length > 0
 	const pieChartBreakdown = typeof router.query.pieChartBreakdown === 'string' ? router.query.pieChartBreakdown : null
-	const pieChartType =
-		typeof router.query.pieChartType === 'string' && validPieChartTypes.has(router.query.pieChartType)
-			? router.query.pieChartType
+	const chartType =
+		typeof router.query.chartType === 'string' && validPieChartTypes.has(router.query.chartType)
+			? router.query.chartType
 			: 'onChainMcap'
+	const chartView =
+		typeof router.query.chartView === 'string' && router.query.chartView === 'pie' ? 'pie' : 'timeSeries'
+	const chartTypeKey = chartType as RWAChartType
 
 	const {
 		selectedAssetNames,
@@ -93,6 +104,23 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			minDefiActiveTvlToActiveMcapPct,
 			maxDefiActiveTvlToActiveMcapPct
 		})
+
+	const { chartDatasetByCategory } = useRwaChartDataByCategory({
+		assets: filteredAssets,
+		chartDataByTicker: props.chartData
+	})
+
+	const { chartDatasetByAssetClass } = useRwaChartDataByAssetClass({
+		enabled: isCategoryMode,
+		assets: filteredAssets,
+		chartDataByTicker: props.chartData
+	})
+
+	const { chartDatasetByAssetName } = useRwaChartDataByAssetName({
+		enabled: isPlatformMode,
+		assets: filteredAssets,
+		chartDataByTicker: props.chartData
+	})
 
 	const {
 		assetCategoryOnChainMcapPieChartData,
@@ -232,10 +260,74 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 
 	const showCharts = props.assets.length > 1
 
+	const { chartInstance: multiSeriesChart2Instance, handleChartReady: handleMultiSeriesChart2Ready } =
+		useChartImageExport()
+	const timeSeriesChartTitle =
+		chartType === 'onChainMcap' ? 'Onchain Mcap' : chartType === 'activeMcap' ? 'Active Mcap' : 'DeFi Active TVL'
+	const timeSeriesChartFilename = `rwa-time-series-chart-${slug(timeSeriesChartTitle)}-${rwaSlug(isChainMode ? props.selectedChain : isCategoryMode ? props.selectedCategory : props.selectedPlatform)}`
 	const { chartInstance: pieChartInstance, handleChartReady: handlePieChartReady } = useChartImageExport()
 	const pieChartTitle =
-		pieChartType === 'onChainMcap' ? 'Onchain Mcap' : pieChartType === 'activeMcap' ? 'Active Mcap' : 'DeFi Active TVL'
+		chartType === 'onChainMcap' ? 'Onchain Mcap' : chartType === 'activeMcap' ? 'Active Mcap' : 'DeFi Active TVL'
 	const pieChartFilename = `rwa-pie-${slug(pieChartTitle)}-${rwaSlug(isChainMode ? props.selectedChain : isCategoryMode ? props.selectedCategory : props.selectedPlatform)}`
+
+	const chartDatasetByMode = isCategoryMode
+		? chartDatasetByAssetClass
+		: isPlatformMode
+			? chartDatasetByAssetName
+			: chartDatasetByCategory
+
+	const selectedTimeSeriesDataset = chartDatasetByMode[chartTypeKey] ?? chartDatasetByMode.onChainMcap
+	const selectedPieChartData =
+		chartTypeKey === 'onChainMcap'
+			? onChainPieChartData
+			: chartTypeKey === 'activeMcap'
+				? activeMcapPieChartData
+				: defiActiveTvlPieChartData
+
+	const chartTypeSwitch = (
+		<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+			{PIE_CHART_TYPES.map(({ key, label }) => (
+				<button
+					key={`pie-chart-type-${key}`}
+					className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+					data-active={chartType === key}
+					onClick={() => {
+						router.push({ pathname: router.pathname, query: { ...router.query, chartType: key } }, undefined, {
+							shallow: true
+						})
+					}}
+				>
+					{label}
+				</button>
+			))}
+		</div>
+	)
+
+	const chartViewSwitch = (
+		<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+			<button
+				className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+				data-active={chartView === 'timeSeries'}
+				onClick={() => {
+					const { chartView: _chartView, ...restQuery } = router.query
+					router.push({ pathname: router.pathname, query: { ...restQuery } }, undefined, { shallow: true })
+				}}
+			>
+				Time Series
+			</button>
+			<button
+				className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+				data-active={chartView === 'pie'}
+				onClick={() => {
+					router.push({ pathname: router.pathname, query: { ...router.query, chartView: 'pie' } }, undefined, {
+						shallow: true
+					})
+				}}
+			>
+				Pie Chart
+			</button>
+		</div>
+	)
 
 	return (
 		<>
@@ -314,112 +406,94 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				</p>
 			</div>
 			{showCharts ? (
-				<div className="flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="flex items-center justify-end gap-2 p-3 pb-0">
-						<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-							{PIE_CHART_TYPES.map(({ key, label }) => (
-								<button
-									key={`pie-chart-type-${key}`}
-									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-									data-active={pieChartType === key}
-									onClick={() => {
-										router.push(
-											{ pathname: router.pathname, query: { ...router.query, pieChartType: key } },
-											undefined,
-											{
-												shallow: true
-											}
-										)
-									}}
-								>
-									{label}
-								</button>
-							))}
-						</div>
-						{isChainBreakdownEnabled ? (
-							<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-								<button
-									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-									data-active={pieChartBreakdown !== 'chain'}
-									onClick={() => {
-										const { pieChartBreakdown: _pieChartBreakdown, ...restQuery } = router.query
-										router.push(
-											{
-												pathname: router.pathname,
-												query: { ...restQuery }
-											},
-											undefined,
-											{ shallow: true }
-										)
-									}}
-								>
-									{isChainMode ? 'Asset Category' : isCategoryMode ? 'Asset Class' : 'Asset Name'}
-								</button>
-								<button
-									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-									data-active={pieChartBreakdown === 'chain'}
-									onClick={() => {
-										router.push(
-											{ pathname: router.pathname, query: { ...router.query, pieChartBreakdown: 'chain' } },
-											undefined,
-											{ shallow: true }
-										)
-									}}
-								>
-									Chain
-								</button>
+				<>
+					{chartView === 'timeSeries' ? (
+						<div className="min-h-[416px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+							<div className="flex items-center justify-end gap-2 p-3">
+								{chartTypeSwitch}
+								{chartViewSwitch}
+								<ChartExportButton
+									chartInstance={multiSeriesChart2Instance}
+									filename={`${timeSeriesChartFilename}.png`}
+									title={timeSeriesChartTitle}
+									className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+									smol
+								/>
 							</div>
-						) : null}
-						{pieChartType === 'onChainMcap' ? (
-							<DownloadPieChartCsv filename={`${pieChartFilename}.csv`} chartData={onChainPieChartData} smol />
-						) : pieChartType === 'activeMcap' ? (
-							<DownloadPieChartCsv filename={`${pieChartFilename}.csv`} chartData={activeMcapPieChartData} smol />
-						) : pieChartType === 'defiActiveTvl' ? (
-							<DownloadPieChartCsv filename={`${pieChartFilename}.csv`} chartData={defiActiveTvlPieChartData} smol />
-						) : null}
-						<ChartExportButton
-							chartInstance={pieChartInstance}
-							filename={`${pieChartFilename}.png`}
-							title={pieChartTitle}
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-							smol
-						/>
-					</div>
-					{pieChartType === 'onChainMcap' ? (
-						<Suspense fallback={<div className="h-[360px]" />}>
-							<PieChart
-								chartData={onChainPieChartData}
-								stackColors={pieChartStackColors}
-								radius={pieChartRadius}
-								legendPosition={pieChartLegendPosition}
-								legendTextStyle={pieChartLegendTextStyle}
-								onReady={handlePieChartReady}
-							/>
-						</Suspense>
-					) : pieChartType === 'activeMcap' ? (
-						<Suspense fallback={<div className="h-[360px]" />}>
-							<PieChart
-								chartData={activeMcapPieChartData}
-								stackColors={pieChartStackColors}
-								radius={pieChartRadius}
-								legendPosition={pieChartLegendPosition}
-								legendTextStyle={pieChartLegendTextStyle}
-								onReady={handlePieChartReady}
-							/>
-						</Suspense>
-					) : pieChartType === 'defiActiveTvl' ? (
-						<Suspense fallback={<div className="h-[360px]" />}>
-							<PieChart
-								chartData={defiActiveTvlPieChartData}
-								stackColors={pieChartStackColors}
-								radius={pieChartRadius}
-								legendPosition={pieChartLegendPosition}
-								legendTextStyle={pieChartLegendTextStyle}
-								onReady={handlePieChartReady}
-							/>
-						</Suspense>
+							<Suspense fallback={<div className="h-[360px]" />}>
+								<MultiSeriesChart2
+									dataset={selectedTimeSeriesDataset}
+									hideDefaultLegend={false}
+									chartOptions={timeSeriesChartOptions}
+									onReady={handleMultiSeriesChart2Ready}
+								/>
+							</Suspense>
+						</div>
 					) : null}
-				</div>
+					{chartView === 'pie' ? (
+						<div className="flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+							<div className="flex items-center justify-end gap-2 p-3 pb-0">
+								{chartTypeSwitch}
+								{chartViewSwitch}
+								{isChainBreakdownEnabled ? (
+									<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+										<button
+											className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+											data-active={pieChartBreakdown !== 'chain'}
+											onClick={() => {
+												const { pieChartBreakdown: _pieChartBreakdown, ...restQuery } = router.query
+												router.push(
+													{
+														pathname: router.pathname,
+														query: { ...restQuery }
+													},
+													undefined,
+													{ shallow: true }
+												)
+											}}
+										>
+											{isChainMode ? 'Asset Category' : isCategoryMode ? 'Asset Class' : 'Asset Name'}
+										</button>
+										<button
+											className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+											data-active={pieChartBreakdown === 'chain'}
+											onClick={() => {
+												router.push(
+													{
+														pathname: router.pathname,
+														query: { ...router.query, pieChartBreakdown: 'chain' }
+													},
+													undefined,
+													{ shallow: true }
+												)
+											}}
+										>
+											Chain
+										</button>
+									</div>
+								) : null}
+								<DownloadPieChartCsv filename={`${pieChartFilename}.csv`} chartData={selectedPieChartData} smol />
+								<ChartExportButton
+									chartInstance={pieChartInstance}
+									filename={`${pieChartFilename}.png`}
+									title={pieChartTitle}
+									className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+									smol
+								/>
+							</div>
+							<Suspense fallback={<div className="h-[360px]" />}>
+								<PieChart
+									chartData={selectedPieChartData}
+									stackColors={pieChartStackColors}
+									radius={pieChartRadius}
+									legendPosition={pieChartLegendPosition}
+									legendTextStyle={pieChartLegendTextStyle}
+									onReady={handlePieChartReady}
+								/>
+							</Suspense>
+						</div>
+					) : null}
+				</>
 			) : null}
 			<RWAAssetsTable assets={filteredAssets} selectedChain={props.selectedChain} />
 		</>
@@ -461,3 +535,8 @@ const PIE_CHART_TYPES = [
 ]
 
 const validPieChartTypes = new Set(PIE_CHART_TYPES.map(({ key }) => key))
+
+const timeSeriesChartOptions = {
+	legend: { top: 0, left: 12, right: 12 },
+	grid: { top: 56 }
+}

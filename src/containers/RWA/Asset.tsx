@@ -149,6 +149,7 @@ const ContractItem = ({ chain, address }: { chain: string; address: string }) =>
 }
 
 export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
+	console.log(asset.chartDataset)
 	const displayName = asset.name ?? asset.ticker ?? 'Unknown asset'
 	const keyBase = asset.ticker ?? asset.name ?? 'asset'
 
@@ -256,10 +257,18 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 				</p>
 			</div>
 
-			{asset.chartData && asset.chartData.length > 0 ? (
+			{asset.chartDataset && asset.chartDataset.source.length > 0 ? (
 				<div className="min-h-[372px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3">
 					<Suspense fallback={<></>}>
-						<MultiSeriesChart2 charts={timeSeriesCharts} data={asset.chartData} hideDefaultLegend={false} />
+						<MultiSeriesChart2
+							charts={timeSeriesCharts}
+							dataset={asset.chartDataset}
+							hideDefaultLegend={false}
+							shouldEnableCSVDownload
+							shouldEnableImageExport
+							imageExportFilename={`${asset.ticker ?? asset.name ?? 'asset'}`}
+							imageExportTitle={`${asset.ticker ?? asset.name ?? 'Asset'}`}
+						/>
 					</Suspense>
 				</div>
 			) : null}
@@ -562,11 +571,29 @@ const timeSeriesCharts: Array<{
 	type: 'line' | 'bar'
 	name: string
 	stack: string
-	encode: { x: number | Array<number>; y: number | Array<number> }
+	encode: { x: number | Array<number> | string | Array<string>; y: number | Array<number> | string | Array<string> }
 	color?: string
 }> = [
 	// Use distinct stack keys so ECharts doesn't cumulatively stack these series.
-	{ type: 'line', name: 'DeFi Active TVL', stack: 'defiActiveTvl', encode: { x: 0, y: 1 }, color: CHART_COLORS[0] },
-	{ type: 'line', name: 'Active Mcap', stack: 'activeMcap', encode: { x: 0, y: 2 }, color: CHART_COLORS[1] },
-	{ type: 'line', name: 'Onchain Mcap', stack: 'onchainMcap', encode: { x: 0, y: 3 }, color: CHART_COLORS[2] }
+	{
+		type: 'line',
+		name: 'DeFi Active TVL',
+		stack: 'defiActiveTvl',
+		encode: { x: 'timestamp', y: 'DeFi Active TVL' },
+		color: CHART_COLORS[0]
+	},
+	{
+		type: 'line',
+		name: 'Active Mcap',
+		stack: 'activeMcap',
+		encode: { x: 'timestamp', y: 'Active Mcap' },
+		color: CHART_COLORS[1]
+	},
+	{
+		type: 'line',
+		name: 'Onchain Mcap',
+		stack: 'onchainMcap',
+		encode: { x: 'timestamp', y: 'Onchain Mcap' },
+		color: CHART_COLORS[2]
+	}
 ]
