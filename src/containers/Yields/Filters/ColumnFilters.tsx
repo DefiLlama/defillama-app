@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router'
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IColumnFiltersProps {
 	nestedMenu?: boolean
@@ -60,11 +61,22 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 		return { options, selectedOptions }
 	}, [router.query, props])
 
+	const prevSelectionRef = useRef<Set<string>>(new Set(selectedOptions))
+
 	const setSelectedOptions = (newOptions: string[]) => {
 		const optionsObj: Record<string, boolean> = {}
 		for (const op of newOptions) {
 			optionsObj[op] = true
 		}
+
+		const prevSet = prevSelectionRef.current
+		newOptions.forEach((column) => {
+			if (!prevSet.has(column)) {
+				trackYieldsEvent(YIELDS_EVENTS.FILTER_COLUMN, { column })
+			}
+		})
+		prevSelectionRef.current = new Set(newOptions)
+
 		router.push(
 			{
 				pathname: router.pathname,

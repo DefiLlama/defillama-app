@@ -71,6 +71,7 @@ interface ProgressData {
 interface FetchPromptResponseParams {
 	prompt?: string
 	userQuestion: string
+	timezone?: string
 	/** Called for progress messages, errors, and reset events */
 	onProgress?: (data: ProgressData) => void
 	/** Items-based callback - receives the full items array on each update */
@@ -97,6 +98,7 @@ interface FetchPromptResponseParams {
 export async function fetchPromptResponse({
 	prompt,
 	userQuestion,
+	timezone,
 	onProgress,
 	onItems,
 	onSessionId,
@@ -131,7 +133,8 @@ export async function fetchPromptResponse({
 		const requestBody: any = {
 			message: userQuestion,
 			stream: true,
-			mode: mode
+			mode: mode,
+			timezone: timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
 		}
 
 		if (resume) {

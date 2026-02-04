@@ -143,7 +143,10 @@ export function CompareTokens({
 								width={16}
 								loading="lazy"
 								onError={(e) => {
-									e.currentTarget.src = '/assets/placeholder.png'
+									const img = e.currentTarget
+									// Prevent infinite error loops if the fallback also fails
+									img.onerror = null
+									img.src = '/assets/placeholder.png'
 								}}
 								className="absolute top-0 bottom-0 left-2 my-auto inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 							/>
@@ -268,7 +271,10 @@ export function CompareTokens({
 								width={16}
 								loading="lazy"
 								onError={(e) => {
-									e.currentTarget.src = '/assets/placeholder.png'
+									const img = e.currentTarget
+									// Prevent infinite error loops if the fallback also fails
+									img.onerror = null
+									img.src = '/assets/placeholder.png'
 								}}
 								className="absolute top-0 bottom-0 left-2 my-auto inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 							/>

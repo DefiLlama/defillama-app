@@ -7,7 +7,7 @@ export function SortableItem(props) {
 		transform: CSS.Translate.toString(transform),
 		transition,
 		cursor: isDragging ? 'grabbing' : 'pointer',
-		gridColumn: props.isTable ? '1/-1' : 'auto',
+		gridColumn: props.isTable ? '1/-1' : undefined,
 		zIndex: isDragging ? 50 : 'auto',
 		boxShadow: isDragging ? '0 12px 24px rgba(0, 0, 0, 0.25)' : 'none',
 		scale: isDragging ? '1.02' : '1',

@@ -48,6 +48,7 @@ type TPageType =
 	| 'DEX Volume'
 	| 'Perp Volume'
 	| 'Open Interest'
+	| 'Normalized Volume'
 	| 'Bridge Aggregator Volume'
 	| 'Perp Aggregator Volume'
 	| 'DEX Aggregator Volume'
@@ -82,6 +83,7 @@ const pageTypeByDefinition: Partial<Record<TPageType, Record<string, string>>> =
 	'Holders Revenue': definitions.holdersRevenue.chain,
 	'DEX Volume': definitions.dexs.chain,
 	'Perp Volume': definitions.perps.chain,
+	'Normalized Volume': definitions.normalizedVolume.chain,
 	'Bridge Aggregator Volume': definitions.bridgeAggregators.chain,
 	'Perp Aggregator Volume': definitions.perpsAggregators.chain,
 	'DEX Aggregator Volume': definitions.dexAggregators.chain,
@@ -1112,6 +1114,120 @@ const getColumnsByType = (
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.openInterest.protocol
+				},
+				size: 160
+			}
+		],
+		'Normalized Volume': [
+			NameColumn('Normalized Volume'),
+			{
+				id: 'total24h',
+				header: 'Normalized Volume 24h',
+				accessorFn: (protocol) => protocol.total24h,
+				cell: (info) => {
+					if (info.getValue() == null) return null
+					const helpers = []
+					if (info.row.original.zeroFeePerp) {
+						helpers.push('This protocol charges no fees for most of its users')
+					}
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						helpers.push(
+							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+						)
+					}
+
+					if (helpers.length > 0) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								{helpers.map((helper) => (
+									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+								))}
+								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
+									{formattedNum(info.getValue(), true)}
+								</span>
+							</span>
+						)
+					}
+
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
+				meta: {
+					align: 'center',
+					headerHelperText: definitions.normalizedVolume.protocol['24h']
+				},
+				size: 160
+			},
+			{
+				id: 'total7d',
+				header: 'Normalized Volume 7d',
+				accessorFn: (protocol) => protocol.total7d,
+				cell: (info) => {
+					if (info.getValue() == null) return null
+					const helpers = []
+					if (info.row.original.zeroFeePerp) {
+						helpers.push('This protocol charges no fees for most of its users')
+					}
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						helpers.push(
+							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+						)
+					}
+
+					if (helpers.length > 0) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								{helpers.map((helper) => (
+									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+								))}
+								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
+									{formattedNum(info.getValue(), true)}
+								</span>
+							</span>
+						)
+					}
+
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
+				meta: {
+					align: 'center',
+					headerHelperText: definitions.normalizedVolume.protocol['7d']
+				},
+				size: 160
+			},
+			{
+				id: 'total30d',
+				header: 'Normalized Volume 30d',
+				accessorFn: (protocol) => protocol.total30d,
+				cell: (info) => {
+					if (info.getValue() == null) return null
+					const helpers = []
+					if (info.row.original.zeroFeePerp) {
+						helpers.push('This protocol charges no fees for most of its users')
+					}
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						helpers.push(
+							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+						)
+					}
+
+					if (helpers.length > 0) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								{helpers.map((helper) => (
+									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+								))}
+								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
+									{formattedNum(info.getValue(), true)}
+								</span>
+							</span>
+						)
+					}
+
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
+				meta: {
+					align: 'center',
+					headerHelperText: definitions.normalizedVolume.protocol['30d']
 				},
 				size: 160
 			}

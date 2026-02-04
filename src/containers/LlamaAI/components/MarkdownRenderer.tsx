@@ -5,9 +5,10 @@ import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
-import type { ChartConfiguration, ChartItem, CsvItem } from '../types'
+import type { AlertIntent, ChartConfiguration, ChartItem, CsvItem } from '../types'
 import { getEntityIcon, getEntityUrl } from '../utils/entityLinks'
 import { extractLlamaLinks, parseArtifactPlaceholders, processCitationMarkers } from '../utils/markdownHelpers'
+import { AlertArtifact, AlertArtifactLoading } from './AlertArtifact'
 import { ChartRenderer } from './ChartRenderer'
 import { CSVExportArtifact, CSVExportLoading, type CSVExport } from './CSVExportArtifact'
 
@@ -19,6 +20,8 @@ interface InlineChartConfig {
 	saveableChartIds?: string[]
 	savedChartIds?: string[]
 	messageId?: string
+	alertIntent?: AlertIntent
+	savedAlertIds?: string[]
 }
 
 interface MarkdownRendererProps {
@@ -126,9 +129,14 @@ export function MarkdownRenderer({
 	csvExports,
 	artifactIndex
 }: MarkdownRendererProps) {
-	const { contentParts, inlineChartIds, inlineCsvIds } = useMemo(() => {
+	const { contentParts, inlineChartIds, inlineCsvIds, inlineAlertIds } = useMemo(() => {
 		const parsed = parseArtifactPlaceholders(content)
-		return { contentParts: parsed.parts, inlineChartIds: parsed.chartIds, inlineCsvIds: parsed.csvIds }
+		return {
+			contentParts: parsed.parts,
+			inlineChartIds: parsed.chartIds,
+			inlineCsvIds: parsed.csvIds,
+			inlineAlertIds: parsed.alertIds
+		}
 	}, [content])
 
 	const processedData = useMemo(() => {
@@ -181,7 +189,7 @@ export function MarkdownRenderer({
 
 	return (
 		<div className="llamaai-prose prose prose-sm flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline">
-			{inlineChartIds.size > 0 || inlineCsvIds.size > 0
+			{inlineChartIds.size > 0 || inlineCsvIds.size > 0 || inlineAlertIds.size > 0
 				? contentParts.map((part, index) => {
 						if (part.type === 'chart' && part.chartId) {
 							// New: O(1) lookup via artifactIndex
@@ -261,6 +269,23 @@ export function MarkdownRenderer({
 							}
 							if (isStreaming || (!artifactIndex && !csvExports)) {
 								return <CSVExportLoading key={`csv-loading-${part.csvId}-${index}`} />
+							}
+							return null
+						}
+						if (part.type === 'alert' && part.alertId) {
+							if (inlineChartConfig?.alertIntent) {
+								return (
+									<AlertArtifact
+										key={`alert-${part.alertId}-${index}`}
+										alertId={part.alertId}
+										alertIntent={inlineChartConfig.alertIntent}
+										messageId={inlineChartConfig.messageId}
+										savedAlertIds={inlineChartConfig.savedAlertIds}
+									/>
+								)
+							}
+							if (isStreaming) {
+								return <AlertArtifactLoading key={`alert-loading-${part.alertId}-${index}`} />
 							}
 							return null
 						}

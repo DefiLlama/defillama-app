@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import Router, { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IAPYRange {
 	nestedMenu?: boolean
@@ -15,6 +16,13 @@ export function APYRange({ nestedMenu, placement }: IAPYRange) {
 		const form = e.target
 		const minApy = form.min?.value
 		const maxApy = form.max?.value
+
+		const eventData: Record<string, number> = {}
+		if (minApy) eventData.min = Number(minApy)
+		if (maxApy) eventData.max = Number(maxApy)
+		if (Object.keys(eventData).length > 0) {
+			trackYieldsEvent(YIELDS_EVENTS.FILTER_APY_RANGE, eventData)
+		}
 
 		const params = new URLSearchParams(window.location.search)
 		if (minApy) params.set('minApy', minApy)

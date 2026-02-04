@@ -154,7 +154,7 @@ const defaultColumns = (
 			header: 'Name',
 			accessorFn: (protocol) => protocol.name,
 			enableSorting: false,
-			cell: ({ getValue, row, table }) => {
+			cell: ({ getValue, row }) => {
 				const value = getValue() as string
 
 				const basePath = ['Chain', 'Rollup'].includes(row.original.category) ? 'chain' : 'protocol'

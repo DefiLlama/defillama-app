@@ -1,4 +1,3 @@
-import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	ACTIVE_USERS_API,
 	BRIDGEVOLUME_API_SLUG,
@@ -23,9 +22,9 @@ import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
-import { capitalizeFirstLetter, firstDayOfMonth, firstDayOfQuarter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
+import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
-import { IChainMetadata } from '../ChainOverview/types'
+import { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import { getAdapterProtocolSummary, IAdapterSummary } from '../DimensionAdapters/queries'
 import { IHack } from '../Hacks/queries'
 import { protocolCategories } from '../ProtocolsByCategoryOrTag/constants'
@@ -34,7 +33,6 @@ import {
 	IArticle,
 	IArticlesResponse,
 	IProtocolExpenses,
-	IProtocolMetadata,
 	IProtocolOverviewPageData,
 	IProtocolPageMetrics,
 	IUpdatedProtocol
@@ -162,7 +160,8 @@ export const getProtocolMetrics = ({
 		inflows: inflowsExist,
 		liquidity: !!metadata.liquidity,
 		activeUsers: !!metadata.activeUsers,
-		borrowed: !!metadata.borrowed
+		borrowed: !!metadata.borrowed,
+		tokenRights: !!metadata.tokenRights
 	}
 }
 
@@ -180,7 +179,6 @@ export const getProtocolOverviewPageData = async ({
 	const [
 		protocolData,
 		feesData,
-		supplySideRevenueData,
 		revenueData,
 		holdersRevenueData,
 		bribesData,
@@ -238,7 +236,6 @@ export const getProtocolOverviewPageData = async ({
 			}
 		},
 		IProtocolOverviewPageData['fees'],
-		IProtocolOverviewPageData['supplySideRevenue'],
 		IProtocolOverviewPageData['revenue'],
 		IProtocolOverviewPageData['holdersRevenue'],
 		IProtocolOverviewPageData['bribeRevenue'],
@@ -296,16 +293,6 @@ export const getProtocolOverviewPageData = async ({
 					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'Fees' }))
-					.catch(() => null)
-			: Promise.resolve(null),
-		currentProtocolMetadata.fees
-			? getAdapterProtocolSummary({
-					adapterType: 'fees',
-					dataType: 'dailySupplySideRevenue',
-					protocol: currentProtocolMetadata.displayName,
-					excludeTotalDataChart: true
-				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'SupplySideRevenue' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.revenue
@@ -980,7 +967,6 @@ export const getProtocolOverviewPageData = async ({
 		fees: feesData,
 		revenue: revenueData,
 		holdersRevenue: holdersRevenueData,
-		supplySideRevenue: supplySideRevenueData,
 		bribeRevenue: bribesData,
 		tokenTax: tokenTaxData,
 		dexVolume: dexVolumeData,
@@ -1210,7 +1196,14 @@ const governanceApis = (governanceID) =>
 						? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1].replace(/(:|' |')/g, '/')}.json`
 						: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replace(/(:|' |')/g, '/')}.json`
 		) ?? []
-	).map((g) => g.toLowerCase())
+	)
+		.map((g) =>
+			g.replace(
+				process.env.DATASETS_SERVER_URL ?? 'https://defillama-datasets.llama.fi',
+				'https://defillama-datasets.llama.fi'
+			)
+		)
+		.map((g) => g.toLowerCase())
 
 const protocolsWithFalsyBreakdownMetrics = new Set(['Jupiter'])
 
@@ -1225,20 +1218,9 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 			return fetchJson(`/api/income-statement?protocol=${encodeURIComponent(protocol)}`).catch(() => null)
 		}
 
-		const [incomeStatement, incentives] = await Promise.all([
-			fetchJson(`${V2_SERVER_URL}/metrics/financial-statement/protocol/${slug(metadata.displayName)}?q=30`).catch(
-				() => null
-			),
-			metadata.incentives
-				? getProtocolEmissons(slug(metadata.displayName))
-						.then((data) => data.unlockUsdChart ?? [])
-						.then((chart) => {
-							const nonZeroIndex = chart.findIndex(([_, value]) => value > 0)
-							return chart.slice(nonZeroIndex)
-						})
-						.catch(() => null)
-				: Promise.resolve(null)
-		])
+		const incomeStatement = await fetchJson(
+			`${V2_SERVER_URL}/metrics/financial-statement/protocol/${slug(metadata.displayName)}?q=30`
+		).catch(() => null)
 
 		if (!incomeStatement) {
 			return null
@@ -1252,37 +1234,6 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 				yearly: {}
 			} as IProtocolOverviewPageData['incomeStatement']['data'])
 
-		for (const [date, value] of incentives ?? []) {
-			const firstDayOfMonthDate = +firstDayOfMonth(+date * 1e3) * 1e3
-			const firstDayOfQuarterDate = +firstDayOfQuarter(firstDayOfMonthDate) * 1e3
-
-			const monthKey = `${new Date(firstDayOfMonthDate).toISOString().slice(0, 7)}`
-			const quarterKey = `${new Date(firstDayOfMonthDate).getUTCFullYear()}-Q${Math.ceil((new Date(firstDayOfQuarterDate).getUTCMonth() + 1) / 3)}`
-			const yearKey = new Date(firstDayOfMonthDate).getUTCFullYear()
-
-			aggregates.monthly[monthKey] = {
-				...(aggregates.monthly[monthKey] ?? {}),
-				Incentives: {
-					value: (aggregates.monthly[monthKey]?.['Incentives']?.value ?? 0) + value,
-					'by-label': {}
-				}
-			}
-			aggregates.quarterly[quarterKey] = {
-				...(aggregates.quarterly[quarterKey] ?? {}),
-				Incentives: {
-					value: (aggregates.quarterly[quarterKey]?.['Incentives']?.value ?? 0) + value,
-					'by-label': {}
-				}
-			}
-			aggregates.yearly[yearKey] = {
-				...(aggregates.yearly[yearKey] ?? {}),
-				Incentives: {
-					value: (aggregates.yearly[yearKey]?.['Incentives']?.value ?? 0) + value,
-					'by-label': {}
-				}
-			}
-		}
-
 		if (protocolsWithFalsyBreakdownMetrics.has(metadata.displayName)) {
 			for (const groupBy in aggregates) {
 				for (const period in aggregates[groupBy]) {
@@ -1295,25 +1246,26 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 
 		const labelsByType: Record<string, Set<string>> = {}
 
-		for (const group in aggregates) {
-			for (const date in aggregates[group]) {
-				aggregates[group][date].timestamp = date.includes('Q')
+		// Collect all breakdown labels present in the raw aggregates.
+		// The table UI renders breakdown rows based on `labelsByType`, while the Sankey reads `by-label` directly.
+		// If this isn't computed, breakdown rows will be missing in the table even when `by-label` data exists.
+		for (const groupBy in aggregates) {
+			for (const period in aggregates[groupBy]) {
+				aggregates[groupBy][period].timestamp = period.includes('Q')
 					? new Date(
-							`${date.split('-')[0]}-${((parseInt(date.split('-')[1].replace('Q', '')) - 1) * 3 + 1).toString().padStart(2, '0')}`
+							`${period.split('-')[0]}-${((parseInt(period.split('-')[1].replace('Q', '')) - 1) * 3 + 1).toString().padStart(2, '0')}`
 						).getTime()
-					: new Date(date.length === 4 ? `${date}-01-01` : date).getTime()
+					: new Date(period.length === 4 ? `${period}-01-01` : period).getTime()
 
-				for (const label in aggregates[group][date]) {
-					for (const type in aggregates[group][date][label]['by-label'] ?? {}) {
-						labelsByType[label] = (labelsByType[label] ?? new Set()).add(type)
+				const periodData = aggregates[groupBy][period]
+				for (const type in periodData) {
+					if (type === 'timestamp') continue
+					const byLabel = periodData?.[type]?.['by-label']
+					if (!byLabel) continue
+					for (const breakdownLabel in byLabel) {
+						if (!labelsByType[type]) labelsByType[type] = new Set()
+						labelsByType[type].add(breakdownLabel)
 					}
-				}
-
-				aggregates[group][date]['Earnings'] = {
-					value:
-						(aggregates[group][date]?.['Gross Profit']?.value ?? 0) -
-						(aggregates[group][date]?.['Incentives']?.value ?? 0),
-					'by-label': {}
 				}
 			}
 		}

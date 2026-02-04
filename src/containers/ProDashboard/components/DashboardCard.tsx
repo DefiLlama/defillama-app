@@ -71,74 +71,84 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 
 	return (
 		<div
-			className={`relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 transition-all duration-200 ease-out hover:border-(--old-blue)/30 hover:bg-pro-blue-300/5 hover:shadow-md hover:shadow-pro-blue-300/5 dark:hover:border-(--old-blue)/40 dark:hover:bg-pro-blue-300/10 ${className ?? ''}`}
+			className={`relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) transition-[border-color,box-shadow,background-color] duration-200 ease-out hover:border-(--old-blue)/30 hover:bg-pro-blue-300/5 hover:shadow-lg hover:shadow-pro-blue-300/10 dark:hover:border-(--old-blue)/40 dark:hover:bg-pro-blue-300/10 ${className ?? ''}`}
 		>
-			<div className="flex flex-wrap items-center justify-end gap-2">
-				<h2 className="mr-auto text-base leading-tight font-semibold text-wrap">
-					{dashboard.data.dashboardName || 'Untitled Dashboard'}
-				</h2>
+			<div className="h-1.5 w-full bg-gradient-to-r from-(--old-blue)/20 via-(--old-blue)/10 to-transparent" />
 
-				{viewMode !== 'grid' && <Tags dashboard={dashboard} onTagClick={onTagClick} />}
+			<div className="flex flex-1 flex-col gap-1.5 p-3">
+				<div className="flex flex-wrap items-center justify-end gap-2">
+					<h2 className="mr-auto line-clamp-1 text-lg leading-tight font-bold">
+						{dashboard.data.dashboardName || 'Untitled Dashboard'}
+					</h2>
 
-				{onDelete ? (
-					<>
-						{dashboard.visibility === 'public' ? (
-							<p className="flex items-center gap-1 rounded-md bg-pro-green-100 px-2 py-1.25 text-xs text-pro-green-400 dark:bg-pro-green-300/20 dark:text-pro-green-200">
-								<Icon name="earth" height={12} width={12} />
-								<span>Public </span>
-							</p>
-						) : (
-							<p className="flex items-center gap-1 rounded-md bg-pro-gold-100 px-2 py-1.25 text-xs text-pro-gold-400 dark:bg-pro-gold-300/20 dark:text-pro-gold-200">
-								<Icon name="key" height={12} width={12} />
-								<span>Private</span>
-							</p>
-						)}
-						<Tooltip
-							content="Delete dashboard"
-							render={<button disabled={isDeleting} onClick={(e) => handleDelete(dashboard.id, e)} />}
-							className="z-10 flex items-center justify-center gap-2 rounded-md bg-red-500/10 px-2 py-1.75 text-sm font-medium text-(--error)"
-						>
-							{isDeleting ? <LoadingSpinner size={12} /> : <Icon name="trash-2" height={12} width={12} />}
-						</Tooltip>
-					</>
-				) : null}
-			</div>
+					{viewMode !== 'grid' && <Tags dashboard={dashboard} onTagClick={onTagClick} />}
 
-			{viewMode === 'grid' && <Tags dashboard={dashboard} onTagClick={onTagClick} />}
-
-			{dashboard.description ? (
-				<p className="mt-1 line-clamp-2 text-sm leading-snug text-(--text-label)">{dashboard.description}</p>
-			) : null}
-
-			<div className={`mt-auto flex flex-col gap-2 ${viewMode === 'grid' ? 'pt-4' : 'pt-2'}`}>
-				<div className="flex flex-wrap items-center gap-3 text-xs text-(--text-form)">
-					{dashboard.data.items?.length ? (
-						<span className="flex items-center gap-1" title={itemTypes}>
-							<Icon name="layers" height={12} width={12} />
-							{dashboard.data.items.length} items
-						</span>
+					{onDelete ? (
+						<>
+							{dashboard.visibility === 'public' ? (
+								<p className="flex items-center gap-1 rounded-md bg-pro-green-100 px-2 py-1.25 text-xs text-pro-green-400 dark:bg-pro-green-300/20 dark:text-pro-green-200">
+									<Icon name="earth" height={12} width={12} />
+									<span>Public</span>
+								</p>
+							) : (
+								<p className="flex items-center gap-1 rounded-md bg-pro-gold-100 px-2 py-1.25 text-xs text-pro-gold-400 dark:bg-pro-gold-300/20 dark:text-pro-gold-200">
+									<Icon name="key" height={12} width={12} />
+									<span>Private</span>
+								</p>
+							)}
+							<Tooltip
+								content="Delete dashboard"
+								render={<button disabled={isDeleting} onClick={(e) => handleDelete(dashboard.id, e)} />}
+								className="z-10 flex items-center justify-center gap-2 rounded-md bg-red-500/10 px-2 py-1.75 text-sm font-medium text-(--error)"
+							>
+								{isDeleting ? <LoadingSpinner size={12} /> : <Icon name="trash-2" height={12} width={12} />}
+							</Tooltip>
+						</>
 					) : null}
-					<span className="flex items-center gap-1" title="Views">
-						<Icon name="eye" height={12} width={12} />
-						{dashboard.viewCount || 0}
-					</span>
-					<span className="flex items-center gap-1" title="Likes">
-						<Icon
-							name="star"
-							height={12}
-							width={12}
-							className={dashboard.liked ? 'fill-current text-yellow-400' : 'fill-none'}
-						/>
-						{dashboard.likeCount || 0}
-					</span>
 				</div>
-				<p
-					className="flex items-center gap-1 text-xs text-(--text-form)"
-					title={new Date(dashboard.editedAt || dashboard.updated).toLocaleString()}
-				>
-					<Icon name="clock" height={10} width={10} />
-					<span>Updated {new Date(dashboard.editedAt || dashboard.updated).toLocaleDateString()}</span>
-				</p>
+
+				{viewMode === 'grid' && <Tags dashboard={dashboard} onTagClick={onTagClick} />}
+
+				{dashboard.description ? (
+					<p className="mt-0.5 line-clamp-2 text-sm leading-snug text-(--text-label) opacity-80">
+						{dashboard.description}
+					</p>
+				) : null}
+
+				<div className={`mt-auto flex flex-col gap-2.5 ${viewMode === 'grid' ? 'pt-4' : 'pt-2'}`}>
+					<div className="flex flex-wrap items-center gap-2">
+						{dashboard.data.items?.length ? (
+							<span
+								className="flex items-center gap-1.5 rounded-md bg-blue-500/15 px-2 py-1 text-xs font-medium text-blue-600 tabular-nums dark:text-blue-400"
+								title={itemTypes}
+							>
+								<Icon name="layers" height={12} width={12} />
+								{dashboard.data.items.length} items
+							</span>
+						) : null}
+						<span
+							className="flex items-center gap-1.5 rounded-md bg-blue-500/15 px-2 py-1 text-xs font-medium text-blue-600 tabular-nums dark:text-blue-400"
+							title="Views"
+						>
+							<Icon name="eye" height={12} width={12} />
+							{dashboard.viewCount || 0}
+						</span>
+						<span
+							className="flex items-center gap-1.5 rounded-md bg-blue-500/15 px-2 py-1 text-xs font-medium text-blue-600 tabular-nums dark:text-blue-400"
+							title="Likes"
+						>
+							<Icon name="star" height={12} width={12} className={dashboard.liked ? 'fill-current' : 'fill-none'} />
+							{dashboard.likeCount || 0}
+						</span>
+					</div>
+					<p
+						className="flex items-center gap-1.5 text-xs text-(--text-form)"
+						title={new Date(dashboard.editedAt || dashboard.updated).toLocaleString()}
+					>
+						<Icon name="clock" height={10} width={10} />
+						<span>Updated {new Date(dashboard.editedAt || dashboard.updated).toLocaleDateString()}</span>
+					</p>
+				</div>
 			</div>
 			<BasicLink href={`/pro/${dashboard.id}`} className="absolute inset-0">
 				<span className="sr-only">View dashboard</span>
@@ -150,7 +160,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 const Tags = ({ dashboard, onTagClick }: { dashboard: Dashboard; onTagClick?: (tag: string) => void }) => {
 	if (!dashboard.tags || dashboard.tags.length === 0) return null
 	return (
-		<div className="flex max-w-[60%] flex-wrap items-center gap-1">
+		<div className="flex max-w-[65%] flex-wrap items-center gap-1.5">
 			{dashboard.tags.slice(0, 2).map((tag) => (
 				<button
 					key={tag}
@@ -158,12 +168,16 @@ const Tags = ({ dashboard, onTagClick }: { dashboard: Dashboard; onTagClick?: (t
 						e.stopPropagation()
 						onTagClick?.(tag)
 					}}
-					className="z-10 rounded-full border border-(--switch-border) px-2 py-1 text-xs text-(--text-form) transition-colors duration-150 hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
+					className="z-10 rounded-full border border-(--switch-border) bg-(--cards-bg) px-2.5 py-1 text-xs font-medium text-(--text-form) transition-all duration-150 hover:scale-105 hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
 				>
 					{tag}
 				</button>
 			))}
-			{dashboard.tags.length > 2 && <span className="text-xs">+{dashboard.tags.length - 2}</span>}
+			{dashboard.tags.length > 2 && (
+				<span className="rounded-full bg-(--bg-hover) px-2 py-1 text-xs text-(--text-label)">
+					+{dashboard.tags.length - 2}
+				</span>
+			)}
 		</div>
 	)
 }

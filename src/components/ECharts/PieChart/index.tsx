@@ -36,6 +36,7 @@ export default function PieChart({
 	enableImageExport = false,
 	imageExportFilename,
 	imageExportTitle,
+	onReady,
 	...props
 }: IPieChartProps) {
 	const id = useId()
@@ -106,6 +107,10 @@ export default function PieChart({
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
 		chartRef.current = instance
 
+		if (onReady) {
+			onReady(instance)
+		}
+
 		const graphic = {
 			type: 'image',
 			z: 999,
@@ -123,7 +128,12 @@ export default function PieChart({
 			tooltip: {
 				trigger: 'item',
 				confine: true,
-				valueFormatter: (value) => formatTooltipValue(value, valueSymbol)
+				formatter: (params: any) => {
+					const p = Array.isArray(params) ? params[0] : params
+					const rawValue = typeof p?.value === 'number' ? p.value : Number(p?.value ?? 0)
+					const formattedValue = formatTooltipValue(rawValue, valueSymbol)
+					return `${p?.marker ?? ''}${p?.name ?? ''}: <b>${formattedValue}</b> (${params.percent}%)`
+				}
 			},
 			grid: {
 				left: 0,
@@ -173,13 +183,14 @@ export default function PieChart({
 		legendPosition,
 		legendTextStyle,
 		isSmall,
-		handleChartReady
+		handleChartReady,
+		onReady
 	])
 
 	return (
 		<div className="relative" {...props}>
 			{title || customComponents || enableImageExport ? (
-				<div className="mb-2 flex items-center justify-end gap-2 px-2">
+				<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
 					{title ? <h1 className="mr-auto px-2 text-lg font-bold">{title}</h1> : null}
 					{customComponents ?? null}
 					{enableImageExport && (

@@ -2,7 +2,7 @@ import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { PROTOCOLS_API, REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
-import { IChainMetadata } from '../ChainOverview/types'
+import { IChainMetadata } from '~/utils/metadata/types'
 import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
 import { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
 
@@ -590,12 +590,14 @@ export const getAdapterByChainPageData = async ({
 	adapterType,
 	chain,
 	dataType,
-	route
+	route,
+	hasOpenInterest
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	chain: string
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 	route: string
+	hasOpenInterest?: boolean
 }): Promise<IAdapterByChainPageData | null> => {
 	const [data, protocolsData, bribesData, tokenTaxesData, openInterestData]: [
 		IAdapterOverview,
@@ -630,7 +632,7 @@ export const getAdapterByChainPageData = async ({
 					excludeTotalDataChart: true
 				})
 			: Promise.resolve(null),
-		adapterType === 'derivatives'
+		hasOpenInterest
 			? getAdapterChainOverview({
 					adapterType: 'open-interest',
 					chain,

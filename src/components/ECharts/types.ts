@@ -110,20 +110,31 @@ export interface ILineAndBarChartProps {
 	title?: string
 }
 
+export type MultiSeriesChart2Dataset = {
+	source: Array<
+		Record<
+			string,
+			// ECharts dataset.source supports objects; keep permissive for mixed/null values.
+			string | number | null | undefined
+		>
+	>
+	// Strongly required so the chart never has to infer keys.
+	dimensions: string[]
+}
+
 export interface IMultiSeriesChart2Props {
 	charts?: Array<{
 		type: 'line' | 'bar'
 		name: string
-		stack: string
+		stack?: string
 		encode: {
-			x: number | Array<number>
-			y: number | Array<number>
+			x: number | Array<number> | string | Array<string>
+			y: number | Array<number> | string | Array<string>
 		}
 		color?: string
 		yAxisIndex?: number
 	}>
 	selectedCharts?: Set<string>
-	data: Array<[number, ...(number | null)[]]>
 	chartOptions?: {
 		[key: string]: {
 			[key: string]: Value | Array<Value> | ((params: any) => string | number)
@@ -136,10 +147,17 @@ export interface IMultiSeriesChart2Props {
 	valueSymbol?: string
 	alwaysShowTooltip?: boolean
 	containerClassName?: string
+	stacked?: boolean
 	solidChartAreaStyle?: boolean
 	hideDataZoom?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
 	hideDefaultLegend?: boolean
+	shouldEnableImageExport?: boolean
+	imageExportFilename?: string
+	imageExportTitle?: string
+	shouldEnableCSVDownload?: boolean
+	// Canonical (and only) input shape.
+	dataset: MultiSeriesChart2Dataset
 }
 
 export interface ICandlestickChartProps {
@@ -204,6 +222,7 @@ export interface IPieChartProps {
 	enableImageExport?: boolean
 	imageExportFilename?: string
 	imageExportTitle?: string
+	onReady?: (instance: echarts.ECharts | null) => void
 }
 
 export interface IScatterChartProps {

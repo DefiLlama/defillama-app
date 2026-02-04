@@ -12,7 +12,7 @@ export interface AuthModel extends RecordModel {
 	created: string
 	updated: string
 	has_active_subscription: boolean
-	flags: Record<string, boolean>
+	flags: Record<string, boolean | number>
 	promotionalEmails?: 'initial' | 'on' | 'off'
 }
 
