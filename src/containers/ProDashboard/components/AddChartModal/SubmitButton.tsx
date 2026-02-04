@@ -75,7 +75,6 @@ export function SubmitButton({
 	selectedIncomeStatementProtocol,
 	selectedLlamaAIChart,
 	selectedUnlocksProtocol,
-	selectedUnlocksChartType,
 	onSubmit
 }: SubmitButtonProps) {
 	const isStablecoinChainModeInvalid =

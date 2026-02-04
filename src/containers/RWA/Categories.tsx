@@ -9,10 +9,9 @@ import type { IRWACategoriesOverviewRow } from './queries'
 import { rwaSlug } from './rwaSlug'
 
 type RWADefinitions = typeof rwaDefinitionsJson & {
-	totalOnChainMarketcap: { label: string; description: string }
-	totalActiveMarketcap: { label: string; description: string }
+	totalOnChainMcap: { label: string; description: string }
+	totalActiveMcap: { label: string; description: string }
 	totalAssetIssuers: { label: string; description: string }
-	totalStablecoinsValue: { label: string; description: string }
 	totalDefiActiveTvl: { label: string; description: string }
 }
 
@@ -41,44 +40,44 @@ const columns: ColumnDef<IRWACategoriesOverviewRow>[] = [
 		size: 240
 	},
 	{
-		id: 'totalAssetIssuers',
+		id: 'assetIssuers',
 		header: definitions.totalAssetIssuers.label,
-		accessorKey: 'totalAssetIssuers',
+		accessorKey: 'assetIssuers',
 		cell: (info) => formattedNum(info.getValue() as number, false),
 		meta: { align: 'end', headerHelperText: definitions.totalAssetIssuers.description },
-		size: 180
+		size: 168
 	},
 	{
-		id: 'totalDefiActiveTvl',
+		id: 'assetCount',
+		header: definitions.totalAssetCount.label,
+		accessorKey: 'assetCount',
+		cell: (info) => formattedNum(info.getValue() as number, false),
+		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
+		size: 148
+	},
+	{
+		id: 'defiActiveTvl',
 		header: definitions.totalDefiActiveTvl.label,
-		accessorKey: 'totalDefiActiveTvl',
+		accessorKey: 'defiActiveTvl',
 		cell: (info) => formattedNum(info.getValue() as number, true),
 		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
-		size: 200
+		size: 148
 	},
 	{
-		id: 'totalActiveMarketcap',
-		header: definitions.totalActiveMarketcap.label,
-		accessorKey: 'totalActiveMarketcap',
+		id: 'activeMcap',
+		header: definitions.totalActiveMcap.label,
+		accessorKey: 'activeMcap',
 		cell: (info) => formattedNum(info.getValue() as number, true),
-		meta: { align: 'end', headerHelperText: definitions.totalActiveMarketcap.description },
-		size: 220
+		meta: { align: 'end', headerHelperText: definitions.totalActiveMcap.description },
+		size: 228
 	},
 	{
-		id: 'totalOnChainMarketcap',
-		header: definitions.totalOnChainMarketcap.label,
-		accessorKey: 'totalOnChainMarketcap',
+		id: 'onChainMcap',
+		header: definitions.totalOnChainMcap.label,
+		accessorKey: 'onChainMcap',
 		cell: (info) => formattedNum(info.getValue() as number, true),
-		meta: { align: 'end', headerHelperText: definitions.totalOnChainMarketcap.description },
-		size: 200
-	},
-	{
-		id: 'totalStablecoinsValue',
-		header: definitions.totalStablecoinsValue.label,
-		accessorKey: 'totalStablecoinsValue',
-		cell: (info) => formattedNum(info.getValue() as number, true),
-		meta: { align: 'end', headerHelperText: definitions.totalStablecoinsValue.description },
-		size: 220
+		meta: { align: 'end', headerHelperText: definitions.totalOnChainMcap.description },
+		size: 168
 	}
 ]
 
@@ -112,9 +111,10 @@ export function RWACategoriesTable({ categories }: { categories: IRWACategoriesO
 
 						return { filename, rows: [headers, ...rows] }
 					}}
+					smol
 				/>
 			)}
-			sortingState={[{ id: 'totalOnChainMarketcap', desc: true }]}
+			sortingState={[{ id: 'onChainMcap', desc: true }]}
 		/>
 	)
 }

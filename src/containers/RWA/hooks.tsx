@@ -1,6 +1,17 @@
 import Router, { useRouter } from 'next/router'
 import { useMemo } from 'react'
+import { CHART_COLORS } from '~/constants/colors'
 import type { IRWAAssetsOverview } from './queries'
+
+type PieChartDatum = { name: string; value: number }
+
+const buildStackColors = (order: string[]) => {
+	const stackColors: Record<string, string> = {}
+	for (const [idx, key] of order.entries()) {
+		stackColors[key] = CHART_COLORS[idx % CHART_COLORS.length]
+	}
+	return stackColors
+}
 
 const toArrayParam = (p: string | string[] | undefined): string[] => {
 	if (!p) return []
@@ -59,6 +70,7 @@ const updateNumberRangeQuery = (
 
 export const useRWATableQueryParams = ({
 	assetNames,
+	types,
 	categories,
 	assetClasses,
 	rwaClassifications,
@@ -68,6 +80,7 @@ export const useRWATableQueryParams = ({
 	defaultIncludeGovernance
 }: {
 	assetNames: string[]
+	types: string[]
 	categories: string[]
 	assetClasses: string[]
 	rwaClassifications: string[]
@@ -80,6 +93,8 @@ export const useRWATableQueryParams = ({
 	const {
 		assetNames: assetNamesQ,
 		excludeAssetNames: excludeAssetNamesQ,
+		types: typesQ,
+		excludeTypes: excludeTypesQ,
 		categories: categoriesQ,
 		excludeCategories: excludeCategoriesQ,
 		assetClasses: assetClassesQ,
@@ -90,10 +105,10 @@ export const useRWATableQueryParams = ({
 		excludeAccessModels: excludeAccessModelsQ,
 		issuers: issuersQ,
 		excludeIssuers: excludeIssuersQ,
-		minDefiActiveTvlToOnChainPct: minDefiActiveTvlToOnChainPctQ,
-		maxDefiActiveTvlToOnChainPct: maxDefiActiveTvlToOnChainPctQ,
-		minActiveMcapToOnChainPct: minActiveMcapToOnChainPctQ,
-		maxActiveMcapToOnChainPct: maxActiveMcapToOnChainPctQ,
+		minDefiActiveTvlToOnChainMcapPct: minDefiActiveTvlToOnChainMcapPctQ,
+		maxDefiActiveTvlToOnChainMcapPct: maxDefiActiveTvlToOnChainMcapPctQ,
+		minActiveMcapToOnChainMcapPct: minActiveMcapToOnChainMcapPctQ,
+		maxActiveMcapToOnChainMcapPct: maxActiveMcapToOnChainMcapPctQ,
 		minDefiActiveTvlToActiveMcapPct: minDefiActiveTvlToActiveMcapPctQ,
 		maxDefiActiveTvlToActiveMcapPct: maxDefiActiveTvlToActiveMcapPctQ,
 		includeStablecoins: stablecoinsQ,
@@ -102,15 +117,16 @@ export const useRWATableQueryParams = ({
 
 	const {
 		selectedAssetNames,
+		selectedTypes,
 		selectedCategories,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
-		minDefiActiveTvlToOnChainPct,
-		maxDefiActiveTvlToOnChainPct,
-		minActiveMcapToOnChainPct,
-		maxActiveMcapToOnChainPct,
+		minDefiActiveTvlToOnChainMcapPct,
+		maxDefiActiveTvlToOnChainMcapPct,
+		minActiveMcapToOnChainMcapPct,
+		maxActiveMcapToOnChainMcapPct,
 		minDefiActiveTvlToActiveMcapPct,
 		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
@@ -127,6 +143,7 @@ export const useRWATableQueryParams = ({
 
 		// Parse exclude sets
 		const excludeAssetNamesSet = parseExcludeParam(excludeAssetNamesQ)
+		const excludeTypesSet = parseExcludeParam(excludeTypesQ)
 		const excludeCategoriesSet = parseExcludeParam(excludeCategoriesQ)
 		const excludeAssetClassesSet = parseExcludeParam(excludeAssetClassesQ)
 		const excludeRwaClassificationsSet = parseExcludeParam(excludeRwaClassificationsQ)
@@ -149,6 +166,15 @@ export const useRWATableQueryParams = ({
 					: assetNames
 		const selectedAssetNames =
 			excludeAssetNamesSet.size > 0 ? baseAssetNames.filter((a) => !excludeAssetNamesSet.has(a)) : baseAssetNames
+
+		const DEFAULT_EXCLUDED_TYPES = new Set(['Wrapper'])
+		const baseTypes =
+			typesQ != null
+				? parseArrayParam(typesQ, types)
+				: excludeTypesSet.size > 0
+					? types
+					: types.filter((t) => !DEFAULT_EXCLUDED_TYPES.has(t))
+		const selectedTypes = excludeTypesSet.size > 0 ? baseTypes.filter((t) => !excludeTypesSet.has(t)) : baseTypes
 
 		const baseCategories =
 			categoriesQ != null
@@ -191,24 +217,25 @@ export const useRWATableQueryParams = ({
 		let selectedIssuers =
 			excludeIssuersSet.size > 0 ? baseIssuers.filter((i) => !excludeIssuersSet.has(i)) : baseIssuers
 
-		const minDefiActiveTvlToOnChainPct = toNumberParam(minDefiActiveTvlToOnChainPctQ)
-		const maxDefiActiveTvlToOnChainPct = toNumberParam(maxDefiActiveTvlToOnChainPctQ)
-		const minActiveMcapToOnChainPct = toNumberParam(minActiveMcapToOnChainPctQ)
-		const maxActiveMcapToOnChainPct = toNumberParam(maxActiveMcapToOnChainPctQ)
+		const minDefiActiveTvlToOnChainMcapPct = toNumberParam(minDefiActiveTvlToOnChainMcapPctQ)
+		const maxDefiActiveTvlToOnChainMcapPct = toNumberParam(maxDefiActiveTvlToOnChainMcapPctQ)
+		const minActiveMcapToOnChainMcapPct = toNumberParam(minActiveMcapToOnChainMcapPctQ)
+		const maxActiveMcapToOnChainMcapPct = toNumberParam(maxActiveMcapToOnChainMcapPctQ)
 		const minDefiActiveTvlToActiveMcapPct = toNumberParam(minDefiActiveTvlToActiveMcapPctQ)
 		const maxDefiActiveTvlToActiveMcapPct = toNumberParam(maxDefiActiveTvlToActiveMcapPctQ)
 
 		return {
 			selectedAssetNames,
+			selectedTypes,
 			selectedCategories,
 			selectedAssetClasses,
 			selectedRwaClassifications,
 			selectedAccessModels,
 			selectedIssuers,
-			minDefiActiveTvlToOnChainPct,
-			maxDefiActiveTvlToOnChainPct,
-			minActiveMcapToOnChainPct,
-			maxActiveMcapToOnChainPct,
+			minDefiActiveTvlToOnChainMcapPct,
+			maxDefiActiveTvlToOnChainMcapPct,
+			minActiveMcapToOnChainMcapPct,
+			maxActiveMcapToOnChainMcapPct,
 			minDefiActiveTvlToActiveMcapPct,
 			maxDefiActiveTvlToActiveMcapPct,
 			includeStablecoins,
@@ -217,6 +244,8 @@ export const useRWATableQueryParams = ({
 	}, [
 		assetNamesQ,
 		excludeAssetNamesQ,
+		typesQ,
+		excludeTypesQ,
 		categoriesQ,
 		excludeCategoriesQ,
 		assetClassesQ,
@@ -227,10 +256,10 @@ export const useRWATableQueryParams = ({
 		excludeAccessModelsQ,
 		issuersQ,
 		excludeIssuersQ,
-		minDefiActiveTvlToOnChainPctQ,
-		maxDefiActiveTvlToOnChainPctQ,
-		minActiveMcapToOnChainPctQ,
-		maxActiveMcapToOnChainPctQ,
+		minDefiActiveTvlToOnChainMcapPctQ,
+		maxDefiActiveTvlToOnChainMcapPctQ,
+		minActiveMcapToOnChainMcapPctQ,
+		maxActiveMcapToOnChainMcapPctQ,
 		minDefiActiveTvlToActiveMcapPctQ,
 		maxDefiActiveTvlToActiveMcapPctQ,
 		stablecoinsQ,
@@ -238,6 +267,7 @@ export const useRWATableQueryParams = ({
 		defaultIncludeStablecoins,
 		defaultIncludeGovernance,
 		assetNames,
+		types,
 		categories,
 		assetClasses,
 		rwaClassifications,
@@ -245,10 +275,10 @@ export const useRWATableQueryParams = ({
 		issuers
 	])
 
-	const setDefiActiveTvlToOnChainPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
-		updateNumberRangeQuery('minDefiActiveTvlToOnChainPct', 'maxDefiActiveTvlToOnChainPct', minValue, maxValue)
-	const setActiveMcapToOnChainPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
-		updateNumberRangeQuery('minActiveMcapToOnChainPct', 'maxActiveMcapToOnChainPct', minValue, maxValue)
+	const setDefiActiveTvlToOnChainMcapPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
+		updateNumberRangeQuery('minDefiActiveTvlToOnChainMcapPct', 'maxDefiActiveTvlToOnChainMcapPct', minValue, maxValue)
+	const setActiveMcapToOnChainMcapPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
+		updateNumberRangeQuery('minActiveMcapToOnChainMcapPct', 'maxActiveMcapToOnChainMcapPct', minValue, maxValue)
 	const setDefiActiveTvlToActiveMcapPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
 		updateNumberRangeQuery('minDefiActiveTvlToActiveMcapPct', 'maxDefiActiveTvlToActiveMcapPct', minValue, maxValue)
 
@@ -274,21 +304,22 @@ export const useRWATableQueryParams = ({
 
 	return {
 		selectedAssetNames,
+		selectedTypes,
 		selectedCategories,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
-		minDefiActiveTvlToOnChainPct,
-		maxDefiActiveTvlToOnChainPct,
-		minActiveMcapToOnChainPct,
-		maxActiveMcapToOnChainPct,
+		minDefiActiveTvlToOnChainMcapPct,
+		maxDefiActiveTvlToOnChainMcapPct,
+		minActiveMcapToOnChainMcapPct,
+		maxActiveMcapToOnChainMcapPct,
 		minDefiActiveTvlToActiveMcapPct,
 		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
 		includeGovernance,
-		setDefiActiveTvlToOnChainPctRange,
-		setActiveMcapToOnChainPctRange,
+		setDefiActiveTvlToOnChainMcapPctRange,
+		setActiveMcapToOnChainMcapPctRange,
 		setDefiActiveTvlToActiveMcapPctRange,
 		setIncludeStablecoins,
 		setIncludeGovernance
@@ -315,6 +346,7 @@ export const useFilteredRwaAssets = ({
 	assets,
 	isPlatformMode,
 	selectedAssetNames,
+	selectedTypes,
 	selectedCategories,
 	selectedAssetClasses,
 	selectedRwaClassifications,
@@ -322,16 +354,17 @@ export const useFilteredRwaAssets = ({
 	selectedIssuers,
 	includeStablecoins,
 	includeGovernance,
-	minDefiActiveTvlToOnChainPct,
-	maxDefiActiveTvlToOnChainPct,
-	minActiveMcapToOnChainPct,
-	maxActiveMcapToOnChainPct,
+	minDefiActiveTvlToOnChainMcapPct,
+	maxDefiActiveTvlToOnChainMcapPct,
+	minActiveMcapToOnChainMcapPct,
+	maxActiveMcapToOnChainMcapPct,
 	minDefiActiveTvlToActiveMcapPct,
 	maxDefiActiveTvlToActiveMcapPct
 }: {
 	assets: RWAAsset[]
 	isPlatformMode: boolean
 	selectedAssetNames: string[]
+	selectedTypes: string[]
 	selectedCategories: string[]
 	selectedAssetClasses: string[]
 	selectedRwaClassifications: string[]
@@ -339,89 +372,121 @@ export const useFilteredRwaAssets = ({
 	selectedIssuers: string[]
 	includeStablecoins: boolean
 	includeGovernance: boolean
-	minDefiActiveTvlToOnChainPct: number | null
-	maxDefiActiveTvlToOnChainPct: number | null
-	minActiveMcapToOnChainPct: number | null
-	maxActiveMcapToOnChainPct: number | null
+	minDefiActiveTvlToOnChainMcapPct: number | null
+	maxDefiActiveTvlToOnChainMcapPct: number | null
+	minActiveMcapToOnChainMcapPct: number | null
+	maxActiveMcapToOnChainMcapPct: number | null
 	minDefiActiveTvlToActiveMcapPct: number | null
 	maxDefiActiveTvlToActiveMcapPct: number | null
 }) => {
 	// Non-RWA Stablecoins
 	// Crypto-collateralized stablecoin (non-RWA)
 	return useMemo(() => {
+		const filteredAssets: RWAAsset[] = []
+
+		let totalOnChainMcap = 0
+		let totalActiveMcap = 0
+		let totalOnChainStablecoinMcap = 0
+		let totalOnChainDeFiActiveTvl = 0
+		const totalIssuersSet = new Set<string>()
+
 		// In platform mode, allow selecting "None" to show no assets.
-		if (isPlatformMode && selectedAssetNames.length === 0) return []
+		if (isPlatformMode && selectedAssetNames.length === 0)
+			return {
+				filteredAssets,
+				totalOnChainMcap,
+				totalActiveMcap,
+				totalOnChainStablecoinMcap,
+				totalOnChainDeFiActiveTvl,
+				totalIssuersCount: totalIssuersSet.size
+			}
 
 		// Create Sets for O(1) lookups
 		const selectedAssetNamesSet = isPlatformMode ? new Set(selectedAssetNames) : null
+		const selectedTypesSet = new Set(selectedTypes)
 		const selectedCategoriesSet = new Set(selectedCategories)
 		const selectedAssetClassesSet = new Set(selectedAssetClasses)
 		const selectedRwaClassificationsSet = new Set(selectedRwaClassifications)
 		const selectedAccessModelsSet = new Set(selectedAccessModels)
 		const selectedIssuersSet = new Set(selectedIssuers)
 
-		return assets.filter((asset) => {
+		for (const asset of assets) {
 			// Only filter by asset name in platform mode.
 			if (selectedAssetNamesSet) {
 				// Keep the name mapping consistent with the pie chart logic.
 				const name = asset.name?.trim() || asset.ticker?.trim() || 'Unknown'
-				if (!selectedAssetNamesSet.has(name)) return false
+				if (!selectedAssetNamesSet.has(name)) continue
 			}
 
 			// By default, stablecoins & governance-token assets are excluded unless explicitly enabled.
 			if (!includeStablecoins && asset.stablecoin) {
-				return false
+				continue
 			}
 			if (!includeGovernance && asset.governance) {
-				return false
+				continue
 			}
 
-			const onChainMarketcap = asset.onChainMarketcap.total
+			const onChainMcap = asset.onChainMcap?.total ?? 0
+			const activeMcap = asset.activeMcap?.total ?? 0
+			const defiActiveTvl = asset.defiActiveTvl?.total ?? 0
 			if (
 				!meetsRatioPercent(
-					asset.defiActiveTvl.total,
-					onChainMarketcap,
-					minDefiActiveTvlToOnChainPct,
-					maxDefiActiveTvlToOnChainPct
+					defiActiveTvl,
+					onChainMcap,
+					minDefiActiveTvlToOnChainMcapPct,
+					maxDefiActiveTvlToOnChainMcapPct
 				)
 			) {
-				return false
+				continue
+			}
+			if (!meetsRatioPercent(activeMcap, onChainMcap, minActiveMcapToOnChainMcapPct, maxActiveMcapToOnChainMcapPct)) {
+				continue
 			}
 			if (
-				!meetsRatioPercent(
-					asset.activeMarketcap.total,
-					onChainMarketcap,
-					minActiveMcapToOnChainPct,
-					maxActiveMcapToOnChainPct
-				)
+				!meetsRatioPercent(defiActiveTvl, activeMcap, minDefiActiveTvlToActiveMcapPct, maxDefiActiveTvlToActiveMcapPct)
 			) {
-				return false
-			}
-			if (
-				!meetsRatioPercent(
-					asset.defiActiveTvl.total,
-					asset.activeMarketcap.total,
-					minDefiActiveTvlToActiveMcapPct,
-					maxDefiActiveTvlToActiveMcapPct
-				)
-			) {
-				return false
+				continue
 			}
 
-			return (
+			const assetType = asset.type?.trim() || 'Unknown'
+			const toFilter =
 				(asset.category?.length ? asset.category.some((category) => selectedCategoriesSet.has(category)) : true) &&
 				(asset.assetClass?.length
 					? asset.assetClass.some((assetClass) => selectedAssetClassesSet.has(assetClass))
 					: true) &&
 				(asset.rwaClassification ? selectedRwaClassificationsSet.has(asset.rwaClassification) : true) &&
 				(asset.accessModel ? selectedAccessModelsSet.has(asset.accessModel) : true) &&
-				(asset.issuer ? selectedIssuersSet.has(asset.issuer) : true)
-			)
-		})
+				(asset.issuer ? selectedIssuersSet.has(asset.issuer) : true) &&
+				selectedTypesSet.has(assetType)
+
+			if (toFilter) {
+				filteredAssets.push(asset)
+
+				totalOnChainMcap += onChainMcap
+				totalActiveMcap += activeMcap
+				if (asset.stablecoin) {
+					totalOnChainStablecoinMcap += onChainMcap
+				}
+				totalOnChainDeFiActiveTvl += defiActiveTvl
+				if (asset.issuer) {
+					totalIssuersSet.add(asset.issuer)
+				}
+			}
+		}
+
+		return {
+			filteredAssets,
+			totalOnChainMcap,
+			totalActiveMcap,
+			totalOnChainStablecoinMcap,
+			totalOnChainDeFiActiveTvl,
+			totalIssuersCount: totalIssuersSet.size
+		}
 	}, [
 		assets,
 		isPlatformMode,
 		selectedAssetNames,
+		selectedTypes,
 		selectedCategories,
 		selectedAssetClasses,
 		selectedRwaClassifications,
@@ -429,41 +494,520 @@ export const useFilteredRwaAssets = ({
 		selectedIssuers,
 		includeStablecoins,
 		includeGovernance,
-		minDefiActiveTvlToOnChainPct,
-		maxDefiActiveTvlToOnChainPct,
-		minActiveMcapToOnChainPct,
-		maxActiveMcapToOnChainPct,
+		minDefiActiveTvlToOnChainMcapPct,
+		maxDefiActiveTvlToOnChainMcapPct,
+		minActiveMcapToOnChainMcapPct,
+		maxActiveMcapToOnChainMcapPct,
 		minDefiActiveTvlToActiveMcapPct,
 		maxDefiActiveTvlToActiveMcapPct
 	])
 }
 
-export const useRwaAssetsSummary = (filteredAssets: RWAAsset[]) => {
+export function useRWAAssetCategoryPieChartData({
+	enabled,
+	assets,
+	categories,
+	selectedCategories
+}: {
+	enabled: boolean
+	assets: IRWAAssetsOverview['assets']
+	categories: string[]
+	selectedCategories: string[]
+}) {
 	return useMemo(() => {
-		let rwaValue = 0
-		let activeMarketcap = 0
-		let stablecoinValue = 0
-		let defiTvl = 0
-		const issuersSet = new Set<string>()
-
-		for (const asset of filteredAssets) {
-			rwaValue += asset.onChainMarketcap.total
-			activeMarketcap += asset.activeMarketcap.total
-			if (asset.stablecoin) {
-				stablecoinValue += asset.onChainMarketcap.total
-			}
-			defiTvl += asset.defiActiveTvl.total
-			if (asset.issuer) {
-				issuersSet.add(asset.issuer)
+		if (!enabled) {
+			return {
+				assetCategoryOnChainMcapPieChartData: [] as PieChartDatum[],
+				assetCategoryActiveMcapPieChartData: [] as PieChartDatum[],
+				assetCategoryDefiActiveTvlPieChartData: [] as PieChartDatum[],
+				pieChartStackColors: {}
 			}
 		}
+		const pieChartStackColors = buildStackColors(categories)
+		const selectedCategoriesSet = new Set(selectedCategories)
+		const categoryTotals = new Map<string, { onChain: number; active: number; defi: number }>()
+
+		for (const asset of assets) {
+			for (const category of asset.category ?? []) {
+				if (!category || !selectedCategoriesSet.has(category)) continue
+
+				const prev = categoryTotals.get(category) ?? { onChain: 0, active: 0, defi: 0 }
+				prev.onChain += asset.onChainMcap?.total ?? 0
+				prev.active += asset.activeMcap?.total ?? 0
+				prev.defi += asset.defiActiveTvl?.total ?? 0
+				categoryTotals.set(category, prev)
+			}
+		}
+
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
+			Array.from(categoryTotals.entries())
+				.map(([name, totals]) => ({ name, value: totals[metric] }))
+				.filter((x) => x.value > 0)
+				.sort((a, b) => b.value - a.value)
 
 		return {
-			totalOnChainRwaValue: rwaValue,
-			totalActiveMarketcap: activeMarketcap,
-			totalOnChainStablecoinValue: stablecoinValue,
-			totalOnChainDeFiActiveTvl: defiTvl,
-			issuersCount: issuersSet.size
+			assetCategoryOnChainMcapPieChartData: toSortedChartData('onChain'),
+			assetCategoryActiveMcapPieChartData: toSortedChartData('active'),
+			assetCategoryDefiActiveTvlPieChartData: toSortedChartData('defi'),
+			pieChartStackColors
 		}
-	}, [filteredAssets])
+	}, [assets, categories, enabled, selectedCategories])
+}
+
+export function useRwaCategoryAssetClassPieChartData({
+	enabled,
+	assets,
+	assetClasses,
+	selectedAssetClasses
+}: {
+	enabled: boolean
+	assets: IRWAAssetsOverview['assets']
+	assetClasses: string[]
+	selectedAssetClasses: string[]
+}) {
+	return useMemo(() => {
+		if (!enabled) {
+			return {
+				assetClassOnChainMcapPieChartData: [] as PieChartDatum[],
+				assetClassActiveMcapPieChartData: [] as PieChartDatum[],
+				assetClassDefiActiveTvlPieChartData: [] as PieChartDatum[],
+				assetClassPieChartStackColors: {}
+			}
+		}
+
+		const assetClassPieChartStackColors = buildStackColors(assetClasses)
+		const selectedAssetClassesSet = new Set(selectedAssetClasses)
+		const assetClassTotals = new Map<string, { onChain: number; active: number; defi: number }>()
+
+		for (const asset of assets) {
+			for (const assetClass of asset.assetClass ?? []) {
+				if (!assetClass || !selectedAssetClassesSet.has(assetClass)) continue
+
+				const prev = assetClassTotals.get(assetClass) ?? { onChain: 0, active: 0, defi: 0 }
+				prev.onChain += asset.onChainMcap?.total ?? 0
+				prev.active += asset.activeMcap?.total ?? 0
+				prev.defi += asset.defiActiveTvl?.total ?? 0
+				assetClassTotals.set(assetClass, prev)
+			}
+		}
+
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
+			Array.from(assetClassTotals.entries())
+				.map(([name, totals]) => ({ name, value: totals[metric] }))
+				.filter((x) => x.value > 0)
+				.sort((a, b) => b.value - a.value)
+
+		return {
+			assetClassOnChainMcapPieChartData: toSortedChartData('onChain'),
+			assetClassActiveMcapPieChartData: toSortedChartData('active'),
+			assetClassDefiActiveTvlPieChartData: toSortedChartData('defi'),
+			assetClassPieChartStackColors
+		}
+	}, [assetClasses, assets, enabled, selectedAssetClasses])
+}
+
+export function useRwaAssetNamePieChartData({
+	enabled,
+	assets,
+	selectedAssetNames
+}: {
+	enabled: boolean
+	assets: IRWAAssetsOverview['assets']
+	selectedAssetNames: string[]
+}) {
+	return useMemo(() => {
+		const MAX_LABELS = 24
+		const UNKNOWN = 'Unknown'
+		const OTHERS = 'Others'
+
+		if (!enabled) {
+			return {
+				assetNameOnChainMcapPieChartData: [] as PieChartDatum[],
+				assetNameActiveMcapPieChartData: [] as PieChartDatum[],
+				assetNameDefiActiveTvlPieChartData: [] as PieChartDatum[],
+				assetNamePieChartStackColors: {}
+			}
+		}
+
+		const selectedAssetNamesSet = new Set(selectedAssetNames)
+		if (selectedAssetNamesSet.size === 0) {
+			return {
+				assetNameOnChainMcapPieChartData: [] as PieChartDatum[],
+				assetNameActiveMcapPieChartData: [] as PieChartDatum[],
+				assetNameDefiActiveTvlPieChartData: [] as PieChartDatum[],
+				assetNamePieChartStackColors: {}
+			}
+		}
+
+		const selectedAssets = assets.filter((asset) => {
+			const name = asset.name?.trim() || asset.ticker?.trim() || UNKNOWN
+			return selectedAssetNamesSet.has(name)
+		})
+
+		const discoveredNames = new Set<string>()
+		for (const asset of selectedAssets) {
+			discoveredNames.add(asset.name?.trim() || asset.ticker?.trim() || UNKNOWN)
+		}
+
+		const colorOrder = Array.from(discoveredNames).sort()
+		// Keep existing label colors stable while ensuring "Others" exists.
+		if (!colorOrder.includes(OTHERS)) colorOrder.push(OTHERS)
+		const assetNamePieChartStackColors = buildStackColors(colorOrder)
+
+		const totals = new Map<string, { onChain: number; active: number; defi: number }>()
+		for (const asset of selectedAssets) {
+			const name = asset.name?.trim() || asset.ticker?.trim() || UNKNOWN
+			const prev = totals.get(name) ?? { onChain: 0, active: 0, defi: 0 }
+			prev.onChain += asset.onChainMcap?.total ?? 0
+			prev.active += asset.activeMcap?.total ?? 0
+			prev.defi += asset.defiActiveTvl?.total ?? 0
+			totals.set(name, prev)
+		}
+
+		const limitChartData = (data: PieChartDatum[]) => {
+			if (data.length <= MAX_LABELS) return data
+			const head = data.slice(0, MAX_LABELS - 1)
+			const othersValue = data.slice(MAX_LABELS - 1).reduce((sum, d) => sum + d.value, 0)
+			return othersValue > 0 ? [...head, { name: OTHERS, value: othersValue }] : head
+		}
+
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
+			limitChartData(
+				Array.from(totals.entries())
+					.map(([name, v]) => ({ name, value: v[metric] }))
+					.filter((x) => x.value > 0)
+					.sort((a, b) => b.value - a.value)
+			)
+
+		return {
+			assetNameOnChainMcapPieChartData: toSortedChartData('onChain'),
+			assetNameActiveMcapPieChartData: toSortedChartData('active'),
+			assetNameDefiActiveTvlPieChartData: toSortedChartData('defi'),
+			assetNamePieChartStackColors
+		}
+	}, [assets, enabled, selectedAssetNames])
+}
+
+export function useRwaChainBreakdownPieChartData({
+	enabled,
+	assets
+}: {
+	enabled: boolean
+	assets: IRWAAssetsOverview['assets']
+}) {
+	return useMemo(() => {
+		const MAX_LABELS = 10
+		const UNKNOWN = 'Unknown'
+		const OTHERS = 'Others'
+
+		if (!enabled) {
+			return {
+				chainOnChainMcapPieChartData: [] as PieChartDatum[],
+				chainActiveMcapPieChartData: [] as PieChartDatum[],
+				chainDefiActiveTvlPieChartData: [] as PieChartDatum[],
+				chainPieChartStackColors: {}
+			}
+		}
+
+		if (assets.length === 0) {
+			return {
+				chainOnChainMcapPieChartData: [] as PieChartDatum[],
+				chainActiveMcapPieChartData: [] as PieChartDatum[],
+				chainDefiActiveTvlPieChartData: [] as PieChartDatum[],
+				chainPieChartStackColors: {}
+			}
+		}
+
+		// Attribute each asset to a single chain (primary chain preferred) to avoid double counting
+		// across multi-chain assets.
+		const getAssetChain = (asset: IRWAAssetsOverview['assets'][number]) =>
+			asset.primaryChain?.trim() || asset.chain?.find((c) => c && c.trim())?.trim() || UNKNOWN
+
+		const totals = new Map<string, { onChain: number; active: number; defi: number }>()
+		const discoveredChains = new Set<string>()
+
+		for (const asset of assets) {
+			const chain = getAssetChain(asset)
+			discoveredChains.add(chain)
+
+			const prev = totals.get(chain) ?? { onChain: 0, active: 0, defi: 0 }
+			prev.onChain += asset.onChainMcap?.total ?? 0
+			prev.active += asset.activeMcap?.total ?? 0
+			prev.defi += asset.defiActiveTvl?.total ?? 0
+			totals.set(chain, prev)
+		}
+
+		const colorOrder = Array.from(discoveredChains).sort()
+		// Keep existing label colors stable while ensuring "Others" exists.
+		if (!colorOrder.includes(OTHERS)) colorOrder.push(OTHERS)
+		const chainPieChartStackColors = buildStackColors(colorOrder)
+
+		const limitChartData = (data: PieChartDatum[]) => {
+			if (data.length <= MAX_LABELS) return data
+			const head = data.slice(0, MAX_LABELS - 1)
+			const othersValue = data.slice(MAX_LABELS - 1).reduce((sum, d) => sum + d.value, 0)
+			return othersValue > 0 ? [...head, { name: OTHERS, value: othersValue }] : head
+		}
+
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
+			limitChartData(
+				Array.from(totals.entries())
+					.map(([name, v]) => ({ name, value: v[metric] }))
+					.filter((x) => x.value > 0)
+					.sort((a, b) => b.value - a.value)
+			)
+
+		return {
+			chainOnChainMcapPieChartData: toSortedChartData('onChain'),
+			chainActiveMcapPieChartData: toSortedChartData('active'),
+			chainDefiActiveTvlPieChartData: toSortedChartData('defi'),
+			chainPieChartStackColors
+		}
+	}, [assets, enabled])
+}
+
+type RWAChartMetric = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
+
+type RWAChartRowByTicker = { timestamp: number } & Record<string, number>
+
+type RWAChartRowByCategory = { timestamp: number } & Record<string, number>
+
+type RWAChartRowByAssetClass = { timestamp: number } & Record<string, number>
+
+type RWAChartRowByAssetName = { timestamp: number } & Record<string, number>
+
+function sortKeysWithOthersLast(keys: Iterable<string>): string[] {
+	const arr = Array.from(keys).filter(Boolean)
+	return arr.sort((a, b) => {
+		if (a === 'Others') return 1
+		if (b === 'Others') return -1
+		return a.localeCompare(b)
+	})
+}
+
+export function useRwaChartDataByCategory({
+	enabled,
+	assets,
+	chartDataByTicker
+}: {
+	enabled: boolean
+	assets: IRWAAssetsOverview['assets']
+	chartDataByTicker: IRWAAssetsOverview['chartData']
+}): {
+	chartDatasetByCategory: Record<RWAChartMetric, { source: RWAChartRowByCategory[]; dimensions: string[] }>
+} {
+	return useMemo(() => {
+		const empty = {
+			chartDatasetByCategory: {
+				onChainMcap: { source: [] as RWAChartRowByCategory[], dimensions: ['timestamp'] },
+				activeMcap: { source: [] as RWAChartRowByCategory[], dimensions: ['timestamp'] },
+				defiActiveTvl: { source: [] as RWAChartRowByCategory[], dimensions: ['timestamp'] }
+			}
+		}
+
+		if (!enabled) return empty
+		if (!chartDataByTicker) return empty
+
+		// Build ticker -> categories lookup from filtered assets.
+		const tickerToCategories = new Map<string, string[]>()
+		for (const asset of assets) {
+			const ticker = asset.ticker?.trim()
+			if (!ticker) continue
+			const categories = (asset.category ?? []).map((c) => c?.trim()).filter(Boolean) as string[]
+			if (categories.length === 0) continue
+			tickerToCategories.set(ticker, categories)
+		}
+
+		const aggregate = (rows: RWAChartRowByTicker[], seenCategories: Set<string>): RWAChartRowByCategory[] => {
+			const out: RWAChartRowByCategory[] = []
+
+			for (const row of rows ?? []) {
+				const outRow: RWAChartRowByCategory = { timestamp: row.timestamp }
+
+				for (const [ticker, value] of Object.entries(row)) {
+					if (ticker === 'timestamp') continue
+					if (!Number.isFinite(value) || value === 0) continue
+
+					const categories = tickerToCategories.get(ticker)
+					if (!categories) continue
+
+					for (const category of categories) {
+						seenCategories.add(category)
+						outRow[category] = (outRow[category] ?? 0) + value
+					}
+				}
+
+				out.push(outRow)
+			}
+
+			return out
+		}
+
+		const seenOnChain = new Set<string>()
+		const seenActive = new Set<string>()
+		const seenDefi = new Set<string>()
+
+		const onChainMcap = aggregate(chartDataByTicker.onChainMcap, seenOnChain)
+		const activeMcap = aggregate(chartDataByTicker.activeMcap, seenActive)
+		const defiActiveTvl = aggregate(chartDataByTicker.defiActiveTvl, seenDefi)
+
+		return {
+			chartDatasetByCategory: {
+				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenOnChain)] },
+				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenActive)] },
+				defiActiveTvl: { source: defiActiveTvl, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenDefi)] }
+			}
+		}
+	}, [assets, chartDataByTicker, enabled])
+}
+
+export function useRwaChartDataByAssetClass({
+	enabled,
+	assets,
+	chartDataByTicker
+}: {
+	enabled: boolean
+	assets: IRWAAssetsOverview['assets']
+	chartDataByTicker: IRWAAssetsOverview['chartData']
+}): {
+	chartDatasetByAssetClass: Record<RWAChartMetric, { source: RWAChartRowByAssetClass[]; dimensions: string[] }>
+} {
+	return useMemo(() => {
+		const empty = {
+			chartDatasetByAssetClass: {
+				onChainMcap: { source: [] as RWAChartRowByAssetClass[], dimensions: ['timestamp'] },
+				activeMcap: { source: [] as RWAChartRowByAssetClass[], dimensions: ['timestamp'] },
+				defiActiveTvl: { source: [] as RWAChartRowByAssetClass[], dimensions: ['timestamp'] }
+			}
+		}
+
+		if (!enabled) return empty
+		if (!chartDataByTicker) return empty
+
+		// Build ticker -> asset classes lookup from filtered assets.
+		const tickerToAssetClasses = new Map<string, string[]>()
+		for (const asset of assets) {
+			const ticker = asset.ticker?.trim()
+			if (!ticker) continue
+			const assetClasses = (asset.assetClass ?? []).map((c) => c?.trim()).filter(Boolean) as string[]
+			if (assetClasses.length === 0) continue
+			tickerToAssetClasses.set(ticker, assetClasses)
+		}
+
+		const aggregate = (rows: RWAChartRowByTicker[], seenAssetClasses: Set<string>): RWAChartRowByAssetClass[] => {
+			const out: RWAChartRowByAssetClass[] = []
+
+			for (const row of rows ?? []) {
+				const outRow: RWAChartRowByAssetClass = { timestamp: row.timestamp }
+
+				for (const [ticker, value] of Object.entries(row)) {
+					if (ticker === 'timestamp') continue
+					if (!Number.isFinite(value) || value === 0) continue
+
+					const assetClasses = tickerToAssetClasses.get(ticker)
+					if (!assetClasses) continue
+
+					for (const assetClass of assetClasses) {
+						seenAssetClasses.add(assetClass)
+						outRow[assetClass] = (outRow[assetClass] ?? 0) + value
+					}
+				}
+
+				out.push(outRow)
+			}
+
+			return out
+		}
+
+		const seenOnChain = new Set<string>()
+		const seenActive = new Set<string>()
+		const seenDefi = new Set<string>()
+
+		const onChainMcap = aggregate(chartDataByTicker.onChainMcap, seenOnChain)
+		const activeMcap = aggregate(chartDataByTicker.activeMcap, seenActive)
+		const defiActiveTvl = aggregate(chartDataByTicker.defiActiveTvl, seenDefi)
+
+		return {
+			chartDatasetByAssetClass: {
+				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenOnChain)] },
+				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenActive)] },
+				defiActiveTvl: { source: defiActiveTvl, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenDefi)] }
+			}
+		}
+	}, [assets, chartDataByTicker, enabled])
+}
+
+export function useRwaChartDataByAssetName({
+	enabled,
+	assets,
+	chartDataByTicker
+}: {
+	enabled: boolean
+	assets: IRWAAssetsOverview['assets']
+	chartDataByTicker: IRWAAssetsOverview['chartData']
+}): {
+	chartDatasetByAssetName: Record<RWAChartMetric, { source: RWAChartRowByAssetName[]; dimensions: string[] }>
+} {
+	return useMemo(() => {
+		const empty = {
+			chartDatasetByAssetName: {
+				onChainMcap: { source: [] as RWAChartRowByAssetName[], dimensions: ['timestamp'] },
+				activeMcap: { source: [] as RWAChartRowByAssetName[], dimensions: ['timestamp'] },
+				defiActiveTvl: { source: [] as RWAChartRowByAssetName[], dimensions: ['timestamp'] }
+			}
+		}
+
+		if (!enabled) return empty
+		if (!chartDataByTicker) return empty
+
+		const UNKNOWN = 'Unknown'
+
+		// Build ticker -> asset name lookup from filtered assets.
+		const tickerToAssetName = new Map<string, string>()
+		for (const asset of assets) {
+			const ticker = asset.ticker?.trim()
+			if (!ticker) continue
+			const name = asset.name?.trim() || asset.ticker?.trim() || UNKNOWN
+			tickerToAssetName.set(ticker, name)
+		}
+
+		const aggregate = (rows: RWAChartRowByTicker[], seenAssetNames: Set<string>): RWAChartRowByAssetName[] => {
+			const out: RWAChartRowByAssetName[] = []
+
+			for (const row of rows ?? []) {
+				const outRow: RWAChartRowByAssetName = { timestamp: row.timestamp }
+
+				for (const [ticker, value] of Object.entries(row)) {
+					if (ticker === 'timestamp') continue
+					if (!Number.isFinite(value) || value === 0) continue
+
+					const assetName = tickerToAssetName.get(ticker)
+					if (!assetName) continue
+
+					seenAssetNames.add(assetName)
+					outRow[assetName] = (outRow[assetName] ?? 0) + value
+				}
+
+				out.push(outRow)
+			}
+
+			return out
+		}
+
+		const seenOnChain = new Set<string>()
+		const seenActive = new Set<string>()
+		const seenDefi = new Set<string>()
+
+		const onChainMcap = aggregate(chartDataByTicker.onChainMcap, seenOnChain)
+		const activeMcap = aggregate(chartDataByTicker.activeMcap, seenActive)
+		const defiActiveTvl = aggregate(chartDataByTicker.defiActiveTvl, seenDefi)
+
+		return {
+			chartDatasetByAssetName: {
+				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenOnChain)] },
+				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenActive)] },
+				defiActiveTvl: { source: defiActiveTvl, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenDefi)] }
+			}
+		}
+	}, [assets, chartDataByTicker, enabled])
 }

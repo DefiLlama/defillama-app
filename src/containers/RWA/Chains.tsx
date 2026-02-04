@@ -1,5 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { useCallback, useMemo, useState } from 'react'
+import Router, { useRouter } from 'next/router'
+import { useCallback, useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { Switch } from '~/components/Switch'
@@ -13,21 +14,22 @@ import type { IRWAChainsOverviewRow } from './queries'
 import { rwaSlug } from './rwaSlug'
 
 type RWADefinitions = typeof rwaDefinitionsJson & {
-	totalOnChainMarketcap: { label: string; description: string }
-	totalActiveMarketcap: { label: string; description: string }
+	totalOnChainMcap: { label: string; description: string }
+	totalActiveMcap: { label: string; description: string }
 	totalAssetIssuers: { label: string; description: string }
-	totalStablecoinsValue: { label: string; description: string }
 	totalDefiActiveTvl: { label: string; description: string }
 }
 
 const definitions = rwaDefinitionsJson as RWADefinitions
 
-type RWAChainsTableRow = IRWAChainsOverviewRow & {
-	// Display-only field used for the stablecoins column in this table
-	totalStablecoinsValue: number
-}
-
-const columns: ColumnDef<RWAChainsTableRow>[] = [
+const columns: ColumnDef<{
+	chain: string
+	totalOnChainMcap: number
+	totalActiveMcap: number
+	totalDefiActiveTvl: number
+	totalAssetIssuers: number
+	totalAssetCount: number
+}>[] = [
 	{
 		id: 'chain',
 		header: 'Name',
@@ -56,7 +58,15 @@ const columns: ColumnDef<RWAChainsTableRow>[] = [
 		accessorKey: 'totalAssetIssuers',
 		cell: (info) => formattedNum(info.getValue() as number, false),
 		meta: { align: 'end', headerHelperText: definitions.totalAssetIssuers.description },
-		size: 180
+		size: 168
+	},
+	{
+		id: 'totalAssetCount',
+		header: definitions.totalAssetCount.label,
+		accessorKey: 'totalAssetCount',
+		cell: (info) => formattedNum(info.getValue() as number, false),
+		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
+		size: 148
 	},
 	{
 		id: 'totalDefiActiveTvl',
@@ -64,31 +74,23 @@ const columns: ColumnDef<RWAChainsTableRow>[] = [
 		accessorKey: 'totalDefiActiveTvl',
 		cell: (info) => formattedNum(info.getValue() as number, true),
 		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
-		size: 200
+		size: 148
 	},
 	{
-		id: 'totalActiveMarketcap',
-		header: definitions.totalActiveMarketcap.label,
-		accessorKey: 'totalActiveMarketcap',
+		id: 'totalActiveMcap',
+		header: definitions.totalActiveMcap.label,
+		accessorKey: 'totalActiveMcap',
 		cell: (info) => formattedNum(info.getValue() as number, true),
-		meta: { align: 'end', headerHelperText: definitions.totalActiveMarketcap.description },
-		size: 220
+		meta: { align: 'end', headerHelperText: definitions.totalActiveMcap.description },
+		size: 228
 	},
 	{
-		id: 'totalOnChainMarketcap',
-		header: definitions.totalOnChainMarketcap.label,
-		accessorKey: 'totalOnChainMarketcap',
+		id: 'totalOnChainMcap',
+		header: definitions.totalOnChainMcap.label,
+		accessorKey: 'totalOnChainMcap',
 		cell: (info) => formattedNum(info.getValue() as number, true),
-		meta: { align: 'end', headerHelperText: definitions.totalOnChainMarketcap.description },
-		size: 200
-	},
-	{
-		id: 'totalStablecoinsValue',
-		header: definitions.totalStablecoinsValue.label,
-		accessorKey: 'totalStablecoinsValue',
-		cell: (info) => formattedNum(info.getValue() as number, true),
-		meta: { align: 'end', headerHelperText: definitions.totalStablecoinsValue.description },
-		size: 220
+		meta: { align: 'end', headerHelperText: definitions.totalOnChainMcap.description },
+		size: 168
 	}
 ]
 
@@ -97,48 +99,103 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	640: { chain: 220 }
 }
 
+const toBooleanParam = (p: string | string[] | undefined): boolean => {
+	if (Array.isArray(p)) return p[0] === 'true'
+	return p === 'true'
+}
+
 export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) {
-	const [includeStablecoins, setIncludeStablecoins] = useState(false)
-	const [includeGovernance, setIncludeGovernance] = useState(false)
+	const router = useRouter()
+	const stablecoinsQ = router.query.includeStablecoins as string | string[] | undefined
+	const governanceQ = router.query.includeGovernance as string | string[] | undefined
 
-	const onToggleStablecoins = useCallback(() => setIncludeStablecoins((v) => !v), [])
-	const onToggleGovernance = useCallback(() => setIncludeGovernance((v) => !v), [])
+	const includeStablecoins = stablecoinsQ != null ? toBooleanParam(stablecoinsQ) : false
+	const includeGovernance = governanceQ != null ? toBooleanParam(governanceQ) : false
 
-	const data = useMemo<RWAChainsTableRow[]>(() => {
+	const onToggleStablecoins = useCallback(() => {
+		const nextQuery: Record<string, any> = { ...Router.query }
+		if (!includeStablecoins) {
+			nextQuery.includeStablecoins = 'true'
+		} else {
+			delete nextQuery.includeStablecoins
+		}
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [includeStablecoins])
+
+	const onToggleGovernance = useCallback(() => {
+		const nextQuery: Record<string, any> = { ...Router.query }
+		if (!includeGovernance) {
+			nextQuery.includeGovernance = 'true'
+		} else {
+			delete nextQuery.includeGovernance
+		}
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [includeGovernance])
+
+	const data = useMemo(() => {
 		return chains.map((row) => {
-			const totalOnChainMarketcap =
-				row.totalOnChainMarketcap +
-				(includeStablecoins ? row.stablecoinOnChainMarketcap : 0) +
-				(includeGovernance ? row.governanceOnChainMarketcap : 0)
+			let totalOnChainMcap = row.base.onChainMcap
+			if (includeStablecoins) {
+				totalOnChainMcap += row.stablecoinsOnly.onChainMcap
+			}
+			if (includeGovernance) {
+				totalOnChainMcap += row.governanceOnly.onChainMcap
+			}
+			if (includeStablecoins || includeGovernance) {
+				totalOnChainMcap += row.stablecoinsAndGovernance.onChainMcap
+			}
 
-			const totalActiveMarketcap =
-				row.totalActiveMarketcap +
-				(includeStablecoins ? row.stablecoinActiveMarketcap : 0) +
-				(includeGovernance ? row.governanceActiveMarketcap : 0)
+			let totalActiveMcap = row.base.activeMcap
+			if (includeStablecoins) {
+				totalActiveMcap += row.stablecoinsOnly.activeMcap
+			}
+			if (includeGovernance) {
+				totalActiveMcap += row.governanceOnly.activeMcap
+			}
+			if (includeStablecoins || includeGovernance) {
+				totalActiveMcap += row.stablecoinsAndGovernance.activeMcap
+			}
 
-			const totalDefiActiveTvl =
-				row.totalDefiActiveTvl +
-				(includeStablecoins ? row.stablecoinDefiActiveTvl : 0) +
-				(includeGovernance ? row.governanceDefiActiveTvl : 0)
+			let totalDefiActiveTvl = row.base.defiActiveTvl
+			if (includeStablecoins) {
+				totalDefiActiveTvl += row.stablecoinsOnly.defiActiveTvl
+			}
+			if (includeGovernance) {
+				totalDefiActiveTvl += row.governanceOnly.defiActiveTvl
+			}
+			if (includeStablecoins || includeGovernance) {
+				totalDefiActiveTvl += row.stablecoinsAndGovernance.defiActiveTvl
+			}
 
-			const totalAssetIssuers =
-				includeStablecoins && includeGovernance
-					? row.totalAssetIssuersWithStablecoinsAndGovernance
-					: includeStablecoins
-						? row.totalAssetIssuersWithStablecoins
-						: includeGovernance
-							? row.totalAssetIssuersWithGovernance
-							: row.totalAssetIssuers
+			let totalAssetCount = row.base.assetCount
+			if (includeStablecoins) {
+				totalAssetCount += row.stablecoinsOnly.assetCount
+			}
+			if (includeGovernance) {
+				totalAssetCount += row.governanceOnly.assetCount
+			}
+			if (includeStablecoins || includeGovernance) {
+				totalAssetCount += row.stablecoinsAndGovernance.assetCount
+			}
 
-			const totalStablecoinsValue = includeStablecoins ? row.stablecoinOnChainMarketcap : 0
+			let totalAssetIssuers = [...row.base.assetIssuers]
+			if (includeStablecoins) {
+				totalAssetIssuers.push(...row.stablecoinsOnly.assetIssuers)
+			}
+			if (includeGovernance) {
+				totalAssetIssuers.push(...row.governanceOnly.assetIssuers)
+			}
+			if (includeStablecoins || includeGovernance) {
+				totalAssetIssuers.push(...row.stablecoinsAndGovernance.assetIssuers)
+			}
 
 			return {
-				...row,
-				totalOnChainMarketcap,
-				totalActiveMarketcap,
+				chain: row.chain,
+				totalOnChainMcap,
+				totalActiveMcap,
 				totalDefiActiveTvl,
-				totalAssetIssuers,
-				totalStablecoinsValue
+				totalAssetIssuers: Array.from(new Set(totalAssetIssuers)).length,
+				totalAssetCount
 			}
 		})
 	}, [chains, includeGovernance, includeStablecoins])
@@ -171,6 +228,7 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 
 							return { filename, rows: [headers, ...rows] }
 						}}
+						smol
 					/>
 					<Switch
 						label="Stablecoins"
@@ -188,7 +246,7 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 					/>
 				</>
 			)}
-			sortingState={[{ id: 'totalOnChainMarketcap', desc: true }]}
+			sortingState={[{ id: 'totalOnChainMcap', desc: true }]}
 		/>
 	)
 }

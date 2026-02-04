@@ -19,25 +19,27 @@ export function RWAOverviewFilters({
 	isChainMode,
 	isPlatformMode,
 	assetNames,
+	typeOptions,
 	categoriesOptions,
 	assetClassOptions,
 	rwaClassificationOptions,
 	accessModelOptions,
 	issuers,
 	selectedAssetNames,
+	selectedTypes,
 	selectedCategories,
 	selectedAssetClasses,
 	selectedRwaClassifications,
 	selectedAccessModels,
 	selectedIssuers,
-	minDefiActiveTvlToOnChainPct,
-	maxDefiActiveTvlToOnChainPct,
-	minActiveMcapToOnChainPct,
-	maxActiveMcapToOnChainPct,
+	minDefiActiveTvlToOnChainMcapPct,
+	maxDefiActiveTvlToOnChainMcapPct,
+	minActiveMcapToOnChainMcapPct,
+	maxActiveMcapToOnChainMcapPct,
 	minDefiActiveTvlToActiveMcapPct,
 	maxDefiActiveTvlToActiveMcapPct,
-	setDefiActiveTvlToOnChainPctRange,
-	setActiveMcapToOnChainPctRange,
+	setDefiActiveTvlToOnChainMcapPctRange,
+	setActiveMcapToOnChainMcapPctRange,
 	setDefiActiveTvlToActiveMcapPctRange,
 	includeStablecoins,
 	includeGovernance,
@@ -48,25 +50,27 @@ export function RWAOverviewFilters({
 	isChainMode: boolean
 	isPlatformMode: boolean
 	assetNames: IRWAAssetsOverview['assetNames']
+	typeOptions: IRWAAssetsOverview['typeOptions']
 	categoriesOptions: IRWAAssetsOverview['categoriesOptions']
 	assetClassOptions: IRWAAssetsOverview['assetClassOptions']
 	rwaClassificationOptions: IRWAAssetsOverview['rwaClassificationOptions']
 	accessModelOptions: IRWAAssetsOverview['accessModelOptions']
 	issuers: IRWAAssetsOverview['issuers']
 	selectedAssetNames: string[]
+	selectedTypes: string[]
 	selectedCategories: string[]
 	selectedAssetClasses: string[]
 	selectedRwaClassifications: string[]
 	selectedAccessModels: string[]
 	selectedIssuers: string[]
-	minDefiActiveTvlToOnChainPct: number | null
-	maxDefiActiveTvlToOnChainPct: number | null
-	minActiveMcapToOnChainPct: number | null
-	maxActiveMcapToOnChainPct: number | null
+	minDefiActiveTvlToOnChainMcapPct: number | null
+	maxDefiActiveTvlToOnChainMcapPct: number | null
+	minActiveMcapToOnChainMcapPct: number | null
+	maxActiveMcapToOnChainMcapPct: number | null
 	minDefiActiveTvlToActiveMcapPct: number | null
 	maxDefiActiveTvlToActiveMcapPct: number | null
-	setDefiActiveTvlToOnChainPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
-	setActiveMcapToOnChainPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
+	setDefiActiveTvlToOnChainMcapPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
+	setActiveMcapToOnChainMcapPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
 	setDefiActiveTvlToActiveMcapPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
 	includeStablecoins: boolean
 	includeGovernance: boolean
@@ -75,8 +79,24 @@ export function RWAOverviewFilters({
 }) {
 	if (!enabled) return null
 
+	const defaultSelectedTypes = typeOptions.map((option) => option.key).filter((type) => type !== 'Wrapper')
+
 	return (
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 md:flex-row md:flex-wrap md:items-center">
+			{typeOptions.length > 1 ? (
+				<SelectWithCombobox
+					allValues={typeOptions}
+					selectedValues={selectedTypes}
+					includeQueryKey="types"
+					excludeQueryKey="excludeTypes"
+					defaultSelectedValues={defaultSelectedTypes}
+					label={'Types'}
+					labelType="smol"
+					triggerProps={{
+						className: filterTriggerClassName
+					}}
+				/>
+			) : null}
 			{isPlatformMode && assetNames.length > 1 ? (
 				<SelectWithCombobox
 					allValues={assetNames}
@@ -158,11 +178,11 @@ export function RWAOverviewFilters({
 			<FilterBetweenRange
 				name="DeFi TVL / Onchain %"
 				trigger={
-					minDefiActiveTvlToOnChainPct != null || maxDefiActiveTvlToOnChainPct != null ? (
+					minDefiActiveTvlToOnChainMcapPct != null || maxDefiActiveTvlToOnChainMcapPct != null ? (
 						<>
 							<span>DeFi TVL / Onchain: </span>
 							<span className="text-(--link)">
-								{formatPercentRange(minDefiActiveTvlToOnChainPct, maxDefiActiveTvlToOnChainPct)}
+								{formatPercentRange(minDefiActiveTvlToOnChainMcapPct, maxDefiActiveTvlToOnChainMcapPct)}
 							</span>
 						</>
 					) : (
@@ -174,11 +194,11 @@ export function RWAOverviewFilters({
 					const form = e.currentTarget
 					const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
 					const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
-					setDefiActiveTvlToOnChainPctRange(minValue, maxValue)
+					setDefiActiveTvlToOnChainMcapPctRange(minValue, maxValue)
 				}}
-				onClear={() => setDefiActiveTvlToOnChainPctRange(null, null)}
-				min={minDefiActiveTvlToOnChainPct}
-				max={maxDefiActiveTvlToOnChainPct}
+				onClear={() => setDefiActiveTvlToOnChainMcapPctRange(null, null)}
+				min={minDefiActiveTvlToOnChainMcapPct}
+				max={maxDefiActiveTvlToOnChainMcapPct}
 				minLabel="Min %"
 				maxLabel="Max %"
 				minInputProps={ratioPercentInputProps}
@@ -187,11 +207,11 @@ export function RWAOverviewFilters({
 			<FilterBetweenRange
 				name="Active Marketcap / Onchain %"
 				trigger={
-					minActiveMcapToOnChainPct != null || maxActiveMcapToOnChainPct != null ? (
+					minActiveMcapToOnChainMcapPct != null || maxActiveMcapToOnChainMcapPct != null ? (
 						<>
 							<span>Active Marketcap / Onchain: </span>
 							<span className="text-(--link)">
-								{formatPercentRange(minActiveMcapToOnChainPct, maxActiveMcapToOnChainPct)}
+								{formatPercentRange(minActiveMcapToOnChainMcapPct, maxActiveMcapToOnChainMcapPct)}
 							</span>
 						</>
 					) : (
@@ -203,11 +223,11 @@ export function RWAOverviewFilters({
 					const form = e.currentTarget
 					const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
 					const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
-					setActiveMcapToOnChainPctRange(minValue, maxValue)
+					setActiveMcapToOnChainMcapPctRange(minValue, maxValue)
 				}}
-				onClear={() => setActiveMcapToOnChainPctRange(null, null)}
-				min={minActiveMcapToOnChainPct}
-				max={maxActiveMcapToOnChainPct}
+				onClear={() => setActiveMcapToOnChainMcapPctRange(null, null)}
+				min={minActiveMcapToOnChainMcapPct}
+				max={maxActiveMcapToOnChainMcapPct}
 				minLabel="Min %"
 				maxLabel="Max %"
 				minInputProps={ratioPercentInputProps}
@@ -242,25 +262,19 @@ export function RWAOverviewFilters({
 				minInputProps={ratioPercentInputProps}
 				maxInputProps={ratioPercentInputProps}
 			/>
-			{isChainMode ? (
-				<>
-					<Switch
-						label="Stablecoins"
-						value="includeStablecoins"
-						checked={includeStablecoins}
-						help="Include stablecoin assets in the table."
-						onChange={() => setIncludeStablecoins(!includeStablecoins)}
-						className="ml-auto"
-					/>
-					<Switch
-						label="Governance Tokens"
-						value="includeGovernance"
-						checked={includeGovernance}
-						help="Include governance-token assets in the table."
-						onChange={() => setIncludeGovernance(!includeGovernance)}
-					/>
-				</>
-			) : null}
+			<Switch
+				label="Stablecoins"
+				value="includeStablecoins"
+				checked={includeStablecoins}
+				onChange={() => setIncludeStablecoins(!includeStablecoins)}
+				className="ml-auto"
+			/>
+			<Switch
+				label="Governance Tokens"
+				value="includeGovernance"
+				checked={includeGovernance}
+				onChange={() => setIncludeGovernance(!includeGovernance)}
+			/>
 		</div>
 	)
 }

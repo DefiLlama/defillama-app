@@ -1,8 +1,9 @@
 import { useRouter } from 'next/router'
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { badDebt, lockupsCollateral } from '~/containers/Yields/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 export const attributeOptions = [
 	{
@@ -40,6 +41,14 @@ export const attributeOptions = [
 			'/yields/stablecoins': (item) => item.ilRisk === 'no'
 		},
 		disabledOnPages: ['/yields/stablecoins', '/borrow', '/yields/strategy', '/yields/strategyFR']
+	},
+	{
+		name: 'No Memecoins',
+		key: YIELDS_SETTINGS.NO_MEMECOINS.toLowerCase(),
+		help: 'Exclude pools containing meme tokens',
+		filterFn: (item) => item.hasMemeToken !== true,
+		defaultFilterFnOnPage: {},
+		disabledOnPages: []
 	},
 	{
 		name: 'Million Dollar',
@@ -194,6 +203,8 @@ export function YieldAttributes({ pathname, nestedMenu }: { pathname: string; ne
 		return { attributeOptionsFiltered, values, selectedAttributes }
 	}, [attribute, pathname, router.pathname])
 
+	const prevSelectionRef = useRef<Set<string>>(new Set(selectedAttributes))
+
 	return (
 		<SelectWithCombobox
 			allValues={attributeOptionsFiltered}
@@ -203,6 +214,15 @@ export function YieldAttributes({ pathname, nestedMenu }: { pathname: string; ne
 			nestedMenu={nestedMenu}
 			includeQueryKey="attribute"
 			excludeQueryKey="excludeAttribute"
+			onValuesChange={(values) => {
+				const prevSet = prevSelectionRef.current
+				values.forEach((attribute) => {
+					if (!prevSet.has(attribute)) {
+						trackYieldsEvent(YIELDS_EVENTS.FILTER_ATTRIBUTE, { attribute })
+					}
+				})
+				prevSelectionRef.current = new Set(values)
+			}}
 		/>
 	)
 }

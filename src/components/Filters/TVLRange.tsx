@@ -6,12 +6,14 @@ export function TVLRange({
 	variant = 'primary',
 	nestedMenu,
 	triggerClassName,
-	placement
+	placement,
+	onValueChange
 }: {
 	variant?: 'primary' | 'secondary'
 	nestedMenu?: boolean
 	triggerClassName?: string
 	placement?: Ariakit.PopoverStoreProps['placement']
+	onValueChange?: (min: number | null, max: number | null) => void
 }) {
 	const router = useRouter()
 
@@ -20,6 +22,8 @@ export function TVLRange({
 		const form = e.target
 		const minTvl = form.min?.value
 		const maxTvl = form.max?.value
+
+		onValueChange?.(minTvl ? Number(minTvl) : null, maxTvl ? Number(maxTvl) : null)
 
 		const params = new URLSearchParams(window.location.search)
 		if (minTvl) params.set('minTvl', minTvl)

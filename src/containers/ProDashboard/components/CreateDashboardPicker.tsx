@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { CHAINS_API_V2 } from '~/constants'
 import { useAppMetadata } from '../AppMetadataContext'
@@ -14,6 +14,7 @@ import {
 } from '../templates'
 import type { DashboardItemConfig } from '../types'
 import { CHART_TYPES } from '../types'
+import type { ComparisonPreset } from './ComparisonWizard/types'
 
 const _CreateDashboardModal = lazy(() =>
 	import('./CreateDashboardModal').then((m) => ({ default: m.CreateDashboardModal }))
@@ -32,13 +33,15 @@ interface CreateDashboardPickerProps {
 		description: string
 		items?: DashboardItemConfig[]
 	}) => void
+	comparisonPreset?: ComparisonPreset | null
 }
 
-export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboardPickerProps) {
+export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset }: CreateDashboardPickerProps) {
 	const [mode, setMode] = useState<PickerMode>('picker')
 	const isOpen = dialogStore.useState('open')
 	const { protocols, chains } = useProDashboardCatalog()
 	const { protocolsBySlug } = useAppMetadata()
+	const appliedPresetRef = useRef(false)
 
 	const { data: chainCategoriesData } = useQuery({
 		queryKey: ['chain-categories-for-templates'],
@@ -76,8 +79,14 @@ export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboard
 	useEffect(() => {
 		if (!isOpen) {
 			setMode('picker')
+			appliedPresetRef.current = false
+			return
 		}
-	}, [isOpen])
+		if (comparisonPreset && !appliedPresetRef.current) {
+			setMode('comparison')
+			appliedPresetRef.current = true
+		}
+	}, [comparisonPreset, isOpen])
 
 	const handleClose = () => {
 		setMode('picker')
@@ -191,7 +200,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboard
 						</div>
 					}
 				>
-					<ComparisonWizard onComplete={handleCreateComparison} />
+					<ComparisonWizard onComplete={handleCreateComparison} comparisonPreset={comparisonPreset ?? undefined} />
 				</Suspense>
 			</Ariakit.Dialog>
 		)

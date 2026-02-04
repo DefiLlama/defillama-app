@@ -9,11 +9,9 @@ const normalizeBranchName = (value) => {
 	const stripped = normalized.replace(/^refs\/(heads|tags)\//, '').replace(/^refs\//, '')
 	return stripped === 'HEAD' ? '' : stripped
 }
-const resolveValue = (value) => (typeof value === 'function' ? value() : value)
 const firstNonEmpty = (...values) => {
 	for (const value of values) {
-		const resolved = resolveValue(value)
-		const normalized = normalize(resolved)
+		const normalized = normalize(value)
 		if (normalized) {
 			return normalized
 		}
@@ -89,13 +87,14 @@ const BUILD_STATUS_WEBHOOK = process.env.BUILD_STATUS_WEBHOOK
 // 	.map((llama) => `@${llama}`)
 // 	.join(' ')
 
-// bun ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$BRANCH_NAME"
-const BUILD_STATUS = process.argv[2]
-const BUILD_TIME_STR = process.argv[3]
-const START_TIME = process.argv[4]
-const BUILD_ID = process.argv[5]
+// Inputs are env vars (works best for Docker/CI).
+// Example:
+//   BUILD_STATUS=0 BUILD_TIME_STR="1m 2s" START_TIME="..." BUILD_ID="..." BRANCH_NAME="..." bun ./scripts/build-msg.js
+const BUILD_STATUS = normalize(process.env.BUILD_STATUS)
+const BUILD_TIME_STR = normalize(process.env.BUILD_TIME_STR)
+const START_TIME = normalize(process.env.START_TIME)
+const BUILD_ID = normalize(process.env.BUILD_ID)
 const BRANCH_NAME = firstNonEmpty(
-	normalizeBranchName(process.argv[6]),
 	normalizeBranchName(process.env.BRANCH_NAME),
 	normalizeBranchName(process.env.COOLIFY_BRANCH),
 	normalizeBranchName(process.env.GIT_BRANCH),
@@ -112,6 +111,13 @@ const BRANCH_NAME = firstNonEmpty(
 	normalizeBranchName(process.env.CF_PAGES_BRANCH),
 	''
 )
+
+if (!BUILD_STATUS || !BUILD_TIME_STR || !START_TIME) {
+	console.log(
+		'Missing required env vars for build message:',
+		['BUILD_STATUS', 'BUILD_TIME_STR', 'START_TIME'].filter((k) => !normalize(process.env[k])).join(', ')
+	)
+}
 
 const buildBuildSummary = () => {
 	let summary =

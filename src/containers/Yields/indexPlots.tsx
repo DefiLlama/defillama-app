@@ -21,7 +21,8 @@ export const PlotsPage = ({
 	median,
 	tokens,
 	tokenSymbolsList,
-	usdPeggedSymbols
+	usdPeggedSymbols,
+	evmChains
 }) => {
 	const { pathname } = useRouter()
 
@@ -38,7 +39,7 @@ export const PlotsPage = ({
 		maxTvl,
 		minApy,
 		maxApy
-	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
+	} = useFormatYieldQueryParams({ projectList, chainList, categoryList, evmChains })
 
 	const poolsData = React.useMemo(() => {
 		const pair_tokens = pairTokens.map((token) => token.toLowerCase())
@@ -102,6 +103,7 @@ export const PlotsPage = ({
 				selectedTokens={includeTokens}
 				chainList={chainList}
 				selectedChains={selectedChains}
+				evmChains={evmChains}
 				projectList={projectList}
 				selectedProjects={selectedProjects}
 				categoryList={categoryList}

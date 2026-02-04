@@ -25,7 +25,6 @@ import { formattedNum, toNiceDaysAgo } from '~/utils'
 
 export function RecentlyListedProtocolsTable({
 	data,
-	queries,
 	selectedChains,
 	chainList,
 	forkedList

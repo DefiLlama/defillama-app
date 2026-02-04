@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import { lazy, Suspense } from 'react'
+import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TokenLogo } from '~/components/TokenLogo'
 import Layout from '~/layout'
-import { chainIconUrl } from '~/utils'
+import { chainIconUrl, slug } from '~/utils'
 import { SmolStats } from './SmolStats'
 import { Stats } from './Stats'
 import type { IChainOverviewData } from './types'
@@ -15,11 +16,10 @@ const pageName = ['Overview']
 
 const Announcement = () => (
 	<>
-		Free 7-day{' '}
-		<Link href="/subscription" target="_blank" rel="noreferrer noopener" className="underline">
-			Pro subscription
-		</Link>{' '}
-		trials are now available.
+		NEW!{' '}
+		<Link href="/rwa" className="underline">
+			RWA dashboard
+		</Link>
 	</>
 )
 
@@ -36,6 +36,14 @@ export function ChainOverview(props: IChainOverviewData) {
 			annonuncement={<Announcement />}
 		>
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />
+			{props.metadata.name !== 'All' && (
+				<EntityQuestionsStrip
+					questions={props.entityQuestions || []}
+					entitySlug={slug(props.metadata.name)}
+					entityType="chain"
+					entityName={props.metadata.name}
+				/>
+			)}
 			{props.isDataAvailable ? (
 				<>
 					<Stats {...props} />

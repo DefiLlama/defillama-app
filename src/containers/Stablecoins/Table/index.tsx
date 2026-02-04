@@ -15,11 +15,7 @@ import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
-import {
-	CHAINS_CATEGORY_GROUP_SETTINGS,
-	isChainsCategoryGroupKey,
-	useLocalStorageSettingsManager
-} from '~/contexts/LocalStorage'
+import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import {
 	assetsByChainColumnOrders,
 	assetsByChainColumnSizes,

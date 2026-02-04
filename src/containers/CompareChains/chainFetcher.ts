@@ -1,7 +1,6 @@
+import { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import { getChainOverviewData } from '../ChainOverview/queries.server'
-import { IChainMetadata } from '../ChainOverview/types'
 import { getAdapterChainOverview, getAdapterProtocolSummary } from '../DimensionAdapters/queries'
-import { IProtocolMetadata } from '../ProtocolOverview/types'
 
 export const fetchChain = async ({
 	chain,

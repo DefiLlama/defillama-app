@@ -165,13 +165,20 @@ export const POCKETBASE_URL = 'https://pb.llama.fi'
 export const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
 
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
-export const RWA_STATS_API = 'https://api.llama.fi/rwa/stats'
+export const RWA_STATS_API_OLD = 'https://api.llama.fi/rwa/stats'
 
-export const TRADFI_API = process.env.TRADFI_API
+export const TRADFI_API = process.env.TRADFI_API ?? 'https://api.llama.fi/tradfi'
 
-export const RWA_ACTIVE_TVLS_API = `${SERVER_URL}/rwa/active-tvls`
+export const RWA_SERVER_URL = process.env.RWA_SERVER_URL ?? 'https://api.llama.fi/rwa'
+export const RWA_ACTIVE_TVLS_API = `${RWA_SERVER_URL}/current?z=0`
+export const RWA_STATS_API = `${RWA_SERVER_URL}/stats?z=0`
+export const RWA_ID_MAP_API = `${RWA_SERVER_URL}/id-map?z=0`
+export const RWA_LIST_API = `${RWA_SERVER_URL}/list?z=0`
+export const RWA_ASSET_DATA_API = `${RWA_SERVER_URL}/rwa`
+export const RWA_CHART_API = `${RWA_SERVER_URL}/chart`
 
 export const MCP_SERVER = 'https://mcp.llama.fi'
+export const YIELD_TOKEN_CATEGORIES_API = 'https://ask.llama.fi/token-categories/yields'
 export const SEARCH_API_URL = 'https://search.defillama.com/multi-search'
 export const SEARCH_API_TOKEN = process.env.NEXT_PUBLIC_SEARCH_API_TOKEN
 

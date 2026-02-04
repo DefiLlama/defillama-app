@@ -1,9 +1,10 @@
-import { CATEGORY_CHART_API, PROTOCOLS_API, RWA_STATS_API, TAGS_CHART_API, ZERO_FEE_PERPS } from '~/constants'
+import { CATEGORY_CHART_API, PROTOCOLS_API, RWA_STATS_API_OLD, TAGS_CHART_API, ZERO_FEE_PERPS } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { IChainMetadata, ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
+import { IChainMetadata } from '~/utils/metadata/types'
+import { ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
 import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
 import { IProtocolByCategoryOrTagPageData, IRWAStats } from './types'
 
@@ -41,6 +42,7 @@ export async function getProtocolsByCategoryOrTag(
 				fees: true,
 				dexs: true,
 				perps: true,
+				openInterest: true,
 				optionsPremiumVolume: true,
 				optionsNotionalVolume: true,
 				id: 'all'
@@ -142,7 +144,7 @@ export async function getProtocolsByCategoryOrTag(
 		tag
 			? fetchJson('https://api.llama.fi/lite/chains-by-tags').catch(() => null)
 			: fetchJson('https://api.llama.fi/lite/chains-by-categories').catch(() => null),
-		effectiveCategory === 'RWA' ? fetchJson(RWA_STATS_API) : null
+		effectiveCategory === 'RWA' ? fetchJson(RWA_STATS_API_OLD) : null
 	])
 
 	const chains = chainsByCategoriesOrTags?.[tag ?? category] ?? []

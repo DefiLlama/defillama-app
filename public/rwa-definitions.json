@@ -1,7 +1,12 @@
 {
 	"type": {
 		"label": "Type",
-		"description": "Structural designation for the entry (Asset, Platform, or Wrapper)"
+		"description": "Structural designation for the entry (Asset, Platform, or Wrapper)",
+		"values": {
+			"Asset": "Primary token representing real-world asset exposure being tracked, not the platform enabling issuance, and not a wrapper of another tracked asset.",
+			"Platform": "Protocol, issuer, or infrastructure entry that enables issuance, custody, trading, or management of RWAs, but is not the RWA exposure token itself.",
+			"Wrapper": "Token that wraps, pools, tranches, or strategies one or more underlying assets, creating RWA exposure via a derivative or structured product."
+		}
 	},
 	"category": {
 		"label": "Category",
@@ -85,11 +90,11 @@
 			"Synthetic backed stablecoin": "Stablecoins backed by synthetic crypto or derivatives strategies (such as delta-neutral basis trades or perp hedging) rather than direct fiat or real-world asset reserves."
 		}
 	},
-	"onChainMarketcap": {
+	"onChainMcap": {
 		"label": "Onchain Marketcap",
 		"description": "Total USD value of the asset that exists on chain across tracked chains"
 	},
-	"activeMarketcap": {
+	"activeMcap": {
 		"label": "Active Marketcap",
 		"description": "Portion of on chain TVL taking real market risk in user or protocol hands"
 	},
@@ -97,12 +102,12 @@
 		"label": "DeFi Active TVL",
 		"description": "Subset of Active TVL deployed in third party DeFi protocols tracked by DeFiLlama"
 	},
-	"totalOnChainMarketcap": {
-		"label": "Total RWA Onchain",
+	"totalOnChainMcap": {
+		"label": "Total RWA Onchain Mcap",
 		"description": "Sum across assets of their Onchain Marketcap (the total USD value of each asset that exists Onchain across tracked chains)."
 	},
-	"totalActiveMarketcap": {
-		"label": "Total RWA Active Marketcap",
+	"totalActiveMcap": {
+		"label": "Total RWA Active Mcap",
 		"description": "Sum across assets of their Active Marketcap (the portion of Onchain value taking real market risk in user or protocol hands)."
 	},
 	"totalDefiActiveTvl": {
@@ -183,8 +188,12 @@
 		"label": "Total Asset Issuers",
 		"description": "Total number of unique issuers across all tracked real world assets in the current selection"
 	},
-	"totalStablecoinsValue": {
-		"label": "Total Stablecoins Value",
+	"totalAssetCount": {
+		"label": "Total Asset Count",
+		"description": "Total number of real world assets in the current selection"
+	},
+	"totalStablecoinsMcap": {
+		"label": "Total Stablecoins Marketcap",
 		"description": "Total USD value of all stablecoins in the dataset that exist on chain across tracked chains in the current selection"
 	}
 }

@@ -72,11 +72,13 @@ function sanitizeUrlForLogs(input: RequestInfo | URL): string {
 	const serverUrl = process.env.SERVER_URL
 	if (!serverUrl) return raw
 
-	const base = serverUrl.replace(/\/+$/, '')
+	// Normalize SERVER_URL for log-sanitizing:
+	// - strip trailing slashes
+	// - if it ends with `/api` (or `/api/`), strip that too
+	const base = serverUrl.replace(/\/+$/, '').replace(/\/api$/, '')
 	if (!base) return raw
 
 	if (raw.startsWith(base)) return raw.slice(base.length) || '/'
-	if (raw.startsWith(`${base}/`)) return raw.slice(base.length) || '/'
 	return raw
 }
 
