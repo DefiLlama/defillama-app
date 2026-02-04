@@ -249,7 +249,7 @@ const columns: ColumnDef<AssetRow>[] = [
 				return (
 					<Tooltip
 						content={tooltipContent}
-						className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted"
+						className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
 					>
 						{value}
 					</Tooltip>
@@ -279,7 +279,7 @@ const columns: ColumnDef<AssetRow>[] = [
 				return (
 					<Tooltip
 						content={tooltipContent}
-						className={`inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${isTrueRWA ? 'text-(--success)' : ''}`}
+						className={`inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap ${isTrueRWA ? 'text-(--success)' : ''}`}
 					>
 						{value}
 					</Tooltip>
@@ -311,7 +311,7 @@ const columns: ColumnDef<AssetRow>[] = [
 					<Tooltip
 						content={valueDescription}
 						className={clsx(
-							'justify-end underline decoration-dotted',
+							'justify-end',
 							value === 'Permissioned' && 'text-(--warning)',
 							value === 'Permissionless' && 'text-(--success)',
 							value === 'Non-transferable' && 'text-(--error)',
@@ -349,6 +349,17 @@ const columns: ColumnDef<AssetRow>[] = [
 		accessorFn: (asset) => asset.category?.join(', ') ?? '',
 		cell: (info) => {
 			const value = info.getValue() as string
+			const tooltipContent = definitions.category.values?.[value]
+			if (tooltipContent) {
+				return (
+					<Tooltip
+						content={tooltipContent}
+						className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
+					>
+						{value}
+					</Tooltip>
+				)
+			}
 			return (
 				<span title={value} className="overflow-hidden text-ellipsis whitespace-nowrap">
 					{value}
@@ -377,7 +388,7 @@ const columns: ColumnDef<AssetRow>[] = [
 					return (
 						<Tooltip
 							content={description}
-							className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted"
+							className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
 						>
 							{ac}
 						</Tooltip>
@@ -401,7 +412,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			return (
 				<Tooltip
 					content={tooltipContent}
-					className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted"
+					className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
 				>
 					{assetClasses.join(', ')}
 				</Tooltip>
