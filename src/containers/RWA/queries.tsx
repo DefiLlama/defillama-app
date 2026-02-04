@@ -119,6 +119,8 @@ export interface IRWAProject extends Omit<IFetchedRWAProject, 'onChainMcap' | 'a
 
 export interface IRWAAssetsOverview {
 	assets: Array<IRWAProject>
+	types: Array<string>
+	typeOptions: Array<{ key: string; name: string; help?: string }>
 	assetClasses: Array<string>
 	assetClassOptions: Array<{ key: string; name: string; help?: string }>
 	rwaClassifications: Array<string>
@@ -300,6 +302,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		}
 
 		const assets: Array<IRWAProject> = []
+		const types = new Map<string, number>()
 		const assetClasses = new Map<string, number>()
 		const rwaClassifications = new Map<string, number>()
 		const accessModels = new Map<string, number>()
@@ -419,6 +422,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			const effectiveActiveMcap = selectedChain ? filteredActiveMcapForAsset : totalActiveMcapForAsset
 			const effectiveDeFiActiveTvl = selectedChain ? filteredDeFiActiveTvlForAsset : totalDeFiActiveTvlForAsset
 
+			const normalizedType =
+				typeof item.type === 'string' && item.type.trim() && item.type !== '-' ? item.type.trim() : 'Unknown'
 			const isTrueRWA = item.rwaClassification === 'True RWA'
 			const sortedCategories =
 				selectedCategory && Array.isArray(item.category)
@@ -431,6 +436,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				...item,
 				ticker: typeof item.ticker === 'string' && item.ticker !== '-' ? item.ticker : null,
 				name: typeof item.name === 'string' && item.name !== '-' ? item.name : null,
+				type: normalizedType,
 				rwaClassification: isTrueRWA ? 'RWA' : (item.rwaClassification ?? null),
 				trueRWA: isTrueRWA,
 				category: sortedCategories,
@@ -491,6 +497,9 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				}
 
 				// Add to categories/issuers/assetClasses/rwaClassifications/accessModels for assets on this chain
+				if (asset.type) {
+					types.set(asset.type, (types.get(asset.type) ?? 0) + effectiveOnChainMcap)
+				}
 				for (const assetClass of asset.assetClass ?? []) {
 					if (assetClass) {
 						assetClasses.set(assetClass, (assetClasses.get(assetClass) ?? 0) + effectiveOnChainMcap)
@@ -534,6 +543,10 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			.sort((a, b) => b[1] - a[1])
 			.map(([key]) => key)
 
+		const formattedTypes = Array.from(types.entries())
+			.sort((a, b) => b[1] - a[1])
+			.map(([key]) => key)
+
 		const formattedAssetClasses = Array.from(assetClasses.entries())
 			.sort((a, b) => b[1] - a[1])
 			.map(([key]) => key)
@@ -544,6 +557,12 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 
 		return {
 			assets: assets.sort((a, b) => b.onChainMcap.total - a.onChainMcap.total),
+			types: formattedTypes,
+			typeOptions: formattedTypes.map((type) => ({
+				key: type,
+				name: type,
+				help: definitions.type.values?.[type] ?? null
+			})),
 			assetClasses: formattedAssetClasses,
 			assetClassOptions: formattedAssetClasses.map((assetClass) => ({
 				key: assetClass,
@@ -790,6 +809,8 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			}
 		}
 
+		const normalizedType =
+			typeof data.type === 'string' && data.type.trim() && data.type !== '-' ? data.type.trim() : 'Unknown'
 		const ticker = typeof data.ticker === 'string' && data.ticker !== '-' ? data.ticker : null
 		const name = typeof data.name === 'string' && data.name !== '-' ? data.name : null
 
@@ -802,6 +823,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			slug: rwaSlug(ticker ?? name ?? ''),
 			ticker,
 			name,
+			type: normalizedType,
 			trueRWA: isTrueRWA,
 			rwaClassification: isTrueRWA ? 'RWA' : (data.rwaClassification ?? null),
 			rwaClassificationDescription,

@@ -19,12 +19,14 @@ export function RWAOverviewFilters({
 	isChainMode,
 	isPlatformMode,
 	assetNames,
+	typeOptions,
 	categoriesOptions,
 	assetClassOptions,
 	rwaClassificationOptions,
 	accessModelOptions,
 	issuers,
 	selectedAssetNames,
+	selectedTypes,
 	selectedCategories,
 	selectedAssetClasses,
 	selectedRwaClassifications,
@@ -48,12 +50,14 @@ export function RWAOverviewFilters({
 	isChainMode: boolean
 	isPlatformMode: boolean
 	assetNames: IRWAAssetsOverview['assetNames']
+	typeOptions: IRWAAssetsOverview['typeOptions']
 	categoriesOptions: IRWAAssetsOverview['categoriesOptions']
 	assetClassOptions: IRWAAssetsOverview['assetClassOptions']
 	rwaClassificationOptions: IRWAAssetsOverview['rwaClassificationOptions']
 	accessModelOptions: IRWAAssetsOverview['accessModelOptions']
 	issuers: IRWAAssetsOverview['issuers']
 	selectedAssetNames: string[]
+	selectedTypes: string[]
 	selectedCategories: string[]
 	selectedAssetClasses: string[]
 	selectedRwaClassifications: string[]
@@ -75,8 +79,24 @@ export function RWAOverviewFilters({
 }) {
 	if (!enabled) return null
 
+	const defaultSelectedTypes = typeOptions.map((option) => option.key).filter((type) => type !== 'Wrapper')
+
 	return (
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 md:flex-row md:flex-wrap md:items-center">
+			{typeOptions.length > 1 ? (
+				<SelectWithCombobox
+					allValues={typeOptions}
+					selectedValues={selectedTypes}
+					includeQueryKey="types"
+					excludeQueryKey="excludeTypes"
+					defaultSelectedValues={defaultSelectedTypes}
+					label={'Types'}
+					labelType="smol"
+					triggerProps={{
+						className: filterTriggerClassName
+					}}
+				/>
+			) : null}
 			{isPlatformMode && assetNames.length > 1 ? (
 				<SelectWithCombobox
 					allValues={assetNames}

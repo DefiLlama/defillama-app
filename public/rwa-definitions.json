@@ -1,7 +1,12 @@
 {
 	"type": {
 		"label": "Type",
-		"description": "Structural designation for the entry (Asset, Platform, or Wrapper)"
+		"description": "Structural designation for the entry (Asset, Platform, or Wrapper)",
+		"values": {
+			"Asset": "Primary token representing real-world asset exposure being tracked, not the platform enabling issuance, and not a wrapper of another tracked asset.",
+			"Platform": "Protocol, issuer, or infrastructure entry that enables issuance, custody, trading, or management of RWAs, but is not the RWA exposure token itself.",
+			"Wrapper": "Token that wraps, pools, tranches, or strategies one or more underlying assets, creating RWA exposure via a derivative or structured product."
+		}
 	},
 	"category": {
 		"label": "Category",

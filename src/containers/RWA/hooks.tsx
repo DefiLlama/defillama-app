@@ -70,6 +70,7 @@ const updateNumberRangeQuery = (
 
 export const useRWATableQueryParams = ({
 	assetNames,
+	types,
 	categories,
 	assetClasses,
 	rwaClassifications,
@@ -79,6 +80,7 @@ export const useRWATableQueryParams = ({
 	defaultIncludeGovernance
 }: {
 	assetNames: string[]
+	types: string[]
 	categories: string[]
 	assetClasses: string[]
 	rwaClassifications: string[]
@@ -91,6 +93,8 @@ export const useRWATableQueryParams = ({
 	const {
 		assetNames: assetNamesQ,
 		excludeAssetNames: excludeAssetNamesQ,
+		types: typesQ,
+		excludeTypes: excludeTypesQ,
 		categories: categoriesQ,
 		excludeCategories: excludeCategoriesQ,
 		assetClasses: assetClassesQ,
@@ -113,6 +117,7 @@ export const useRWATableQueryParams = ({
 
 	const {
 		selectedAssetNames,
+		selectedTypes,
 		selectedCategories,
 		selectedAssetClasses,
 		selectedRwaClassifications,
@@ -138,6 +143,7 @@ export const useRWATableQueryParams = ({
 
 		// Parse exclude sets
 		const excludeAssetNamesSet = parseExcludeParam(excludeAssetNamesQ)
+		const excludeTypesSet = parseExcludeParam(excludeTypesQ)
 		const excludeCategoriesSet = parseExcludeParam(excludeCategoriesQ)
 		const excludeAssetClassesSet = parseExcludeParam(excludeAssetClassesQ)
 		const excludeRwaClassificationsSet = parseExcludeParam(excludeRwaClassificationsQ)
@@ -160,6 +166,15 @@ export const useRWATableQueryParams = ({
 					: assetNames
 		const selectedAssetNames =
 			excludeAssetNamesSet.size > 0 ? baseAssetNames.filter((a) => !excludeAssetNamesSet.has(a)) : baseAssetNames
+
+		const DEFAULT_EXCLUDED_TYPES = new Set(['Wrapper'])
+		const baseTypes =
+			typesQ != null
+				? parseArrayParam(typesQ, types)
+				: excludeTypesSet.size > 0
+					? types
+					: types.filter((t) => !DEFAULT_EXCLUDED_TYPES.has(t))
+		const selectedTypes = excludeTypesSet.size > 0 ? baseTypes.filter((t) => !excludeTypesSet.has(t)) : baseTypes
 
 		const baseCategories =
 			categoriesQ != null
@@ -211,6 +226,7 @@ export const useRWATableQueryParams = ({
 
 		return {
 			selectedAssetNames,
+			selectedTypes,
 			selectedCategories,
 			selectedAssetClasses,
 			selectedRwaClassifications,
@@ -228,6 +244,8 @@ export const useRWATableQueryParams = ({
 	}, [
 		assetNamesQ,
 		excludeAssetNamesQ,
+		typesQ,
+		excludeTypesQ,
 		categoriesQ,
 		excludeCategoriesQ,
 		assetClassesQ,
@@ -249,6 +267,7 @@ export const useRWATableQueryParams = ({
 		defaultIncludeStablecoins,
 		defaultIncludeGovernance,
 		assetNames,
+		types,
 		categories,
 		assetClasses,
 		rwaClassifications,
@@ -285,6 +304,7 @@ export const useRWATableQueryParams = ({
 
 	return {
 		selectedAssetNames,
+		selectedTypes,
 		selectedCategories,
 		selectedAssetClasses,
 		selectedRwaClassifications,
@@ -326,6 +346,7 @@ export const useFilteredRwaAssets = ({
 	assets,
 	isPlatformMode,
 	selectedAssetNames,
+	selectedTypes,
 	selectedCategories,
 	selectedAssetClasses,
 	selectedRwaClassifications,
@@ -343,6 +364,7 @@ export const useFilteredRwaAssets = ({
 	assets: RWAAsset[]
 	isPlatformMode: boolean
 	selectedAssetNames: string[]
+	selectedTypes: string[]
 	selectedCategories: string[]
 	selectedAssetClasses: string[]
 	selectedRwaClassifications: string[]
@@ -381,6 +403,7 @@ export const useFilteredRwaAssets = ({
 
 		// Create Sets for O(1) lookups
 		const selectedAssetNamesSet = isPlatformMode ? new Set(selectedAssetNames) : null
+		const selectedTypesSet = new Set(selectedTypes)
 		const selectedCategoriesSet = new Set(selectedCategories)
 		const selectedAssetClassesSet = new Set(selectedAssetClasses)
 		const selectedRwaClassificationsSet = new Set(selectedRwaClassifications)
@@ -435,6 +458,7 @@ export const useFilteredRwaAssets = ({
 				continue
 			}
 
+			const assetType = asset.type?.trim() || 'Unknown'
 			const toFilter =
 				(asset.category?.length ? asset.category.some((category) => selectedCategoriesSet.has(category)) : true) &&
 				(asset.assetClass?.length
@@ -442,7 +466,8 @@ export const useFilteredRwaAssets = ({
 					: true) &&
 				(asset.rwaClassification ? selectedRwaClassificationsSet.has(asset.rwaClassification) : true) &&
 				(asset.accessModel ? selectedAccessModelsSet.has(asset.accessModel) : true) &&
-				(asset.issuer ? selectedIssuersSet.has(asset.issuer) : true)
+				(asset.issuer ? selectedIssuersSet.has(asset.issuer) : true) &&
+				selectedTypesSet.has(assetType)
 
 			if (toFilter) {
 				filteredAssets.push(asset)
@@ -471,6 +496,7 @@ export const useFilteredRwaAssets = ({
 		assets,
 		isPlatformMode,
 		selectedAssetNames,
+		selectedTypes,
 		selectedCategories,
 		selectedAssetClasses,
 		selectedRwaClassifications,
