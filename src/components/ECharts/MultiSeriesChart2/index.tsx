@@ -512,7 +512,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	return (
 		<div className="relative">
 			{shouldEnableCSVDownload || shouldEnableImageExport ? (
-				<div className="mb-2 flex items-center justify-end gap-2 px-2">
+				<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
 					{shouldEnableCSVDownload ? (
 						<ChartCsvExportButton
 							chartInstance={exportChartCsvInstance}
