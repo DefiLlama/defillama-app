@@ -130,12 +130,6 @@ export interface IRWAAssetsOverview {
 	categories: Array<string>
 	categoriesOptions: Array<{ key: string; name: string; help?: string }>
 	assetNames: Array<string>
-	stablecoinCategories: Array<string>
-	stablecoinAssetClasses: Array<string>
-	stablecoinClassifications: Array<string>
-	governanceCategories: Array<string>
-	governanceAssetClasses: Array<string>
-	governanceClassifications: Array<string>
 	categoryValues: Array<{ name: string; value: number }>
 	issuers: Array<string>
 	platformLinks: Array<{ label: string; to: string }>
@@ -186,27 +180,6 @@ function toUnixMsTimestamp(ts: number): number {
 export type IRWAChainsOverviewRow = NonNullable<IRWAStatsResponse['byChain']>[string] & { chain: string }
 export type IRWACategoriesOverviewRow = NonNullable<IRWAStatsResponse['byCategory']>[string] & { category: string }
 export type IRWAPlatformsOverviewRow = NonNullable<IRWAStatsResponse['byPlatform']>[string] & { platform: string }
-
-const stablecoinCategories = ['Fiat-Backed Stablecoins', 'Stablecoins backed by RWAs', 'Non-RWA Stablecoins']
-const stablecoinAssetClasses: string[] = [
-	'USD fiat stablecoin',
-	'Synthetic backed stablecoin',
-	'Crypto-collateralized stablecoin (non-RWA)',
-	'Hybrid / multi-asset RWA stablecoin',
-	'Yield-bearing RWA stablecoin',
-	'Stablecoin yield wrapper',
-	'Other fiat stablecoin',
-	'EUR fiat stablecoin',
-	'Algorithmic / undercollateralized stablecoin',
-	'RWA-backed fiat stablecoin (non-yielding)',
-	'Yield-bearing fiat stablecoin',
-	'Bank deposit token'
-]
-const stablecoinClassifications = []
-
-const governanceCategories = ['Governance & Protocol Tokens']
-const governanceAssetClasses = ['Governance / voting token (RWA protocol)', 'Revenue / fee share token (RWA protocol)']
-const governanceClassifications = ['Non-RWA (Gov/Utility)']
 
 export type RWAAssetsOverviewParams = {
 	chain?: string
@@ -604,12 +577,6 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 						.sort((a, b) => b[1] - a[1])
 						.map(([key]) => key)
 				: [],
-			stablecoinAssetClasses,
-			stablecoinCategories,
-			stablecoinClassifications,
-			governanceCategories,
-			governanceAssetClasses,
-			governanceClassifications,
 			categoryValues: Array.from(categories.entries())
 				.sort((a, b) => b[1] - a[1])
 				.map(([name, value]) => ({ name, value })),
