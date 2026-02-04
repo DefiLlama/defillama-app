@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import * as React from 'react'
 import { useMemo } from 'react'
+import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -46,7 +47,8 @@ export function ProtocolOverviewLayout({
 	tab,
 	warningBanners,
 	seoDescription,
-	seoKeywords
+	seoKeywords,
+	entityQuestions
 }: {
 	children: React.ReactNode
 	isCEX?: boolean
@@ -66,6 +68,7 @@ export function ProtocolOverviewLayout({
 	}>
 	seoDescription?: string
 	seoKeywords?: string
+	entityQuestions?: string[]
 }) {
 	const metricFiltersLabel = useMemo(() => {
 		const hasTvl = toggleOptions?.some((option) => TVL_SETTINGS_KEYS_SET.has(option.key))
@@ -298,6 +301,7 @@ export function ProtocolOverviewLayout({
 							</BasicLink>
 						))}
 				</div>
+				<EntityQuestionsStrip questions={entityQuestions || []} entitySlug={slug(name)} entityType="protocol" entityName={name} />
 				{children}
 			</div>
 		</Layout>
