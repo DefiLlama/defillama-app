@@ -250,7 +250,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 						{definitions.defiActiveTvl.label}
 					</Tooltip>
 					<span className="font-jetbrains text-xl font-semibold">
-						{defiActiveTvlTotal != null ? formattedNum(defiActiveTvlTotal, true) : '-'}
+						{defiActiveTvlTotal != null ? formattedNum(defiActiveTvlTotal, true) : '$0'}
 					</span>
 				</p>
 				{asset.price != null ? (

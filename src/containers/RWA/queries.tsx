@@ -442,7 +442,10 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 								isChainFiltered ? finalDeFiActiveTvlBreakdownFiltered : finalDeFiActiveTvlBreakdown
 							).sort((a, b) => b[1] - a[1])
 						}
-					: null
+					: {
+							total: 0,
+							breakdown: []
+						}
 			}
 
 			// Only include asset if it exists on the selected chain/category (or no route filter)
