@@ -1,23 +1,10 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query'
-import { MCP_SERVER } from '~/constants'
+import { fetchEntityQuestions } from '../api'
 import type { EntityQuestionsResponse } from '../types'
 
 /** Query key for entity-specific questions */
-export const getEntityQuestionsQueryKey = (entitySlug: string, entityType: 'protocol' | 'chain') =>
+const getEntityQuestionsQueryKey = (entitySlug: string, entityType: 'protocol' | 'chain') =>
 	['entity-questions', entitySlug, entityType] as const
-
-async function fetchEntityQuestions(
-	entitySlug: string,
-	entityType: 'protocol' | 'chain'
-): Promise<EntityQuestionsResponse> {
-	const response = await fetch(
-		`${MCP_SERVER}/suggested-questions?entity=${encodeURIComponent(entitySlug)}&entityType=${encodeURIComponent(entityType)}`
-	)
-	if (!response.ok) {
-		throw new Error('Failed to fetch entity questions')
-	}
-	return response.json()
-}
 
 export function useEntityQuestions(
 	entitySlug: string | null,

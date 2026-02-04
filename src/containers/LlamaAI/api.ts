@@ -1,23 +1,17 @@
 import { MCP_SERVER } from '~/constants'
-
-export interface EntityQuestionsResponse {
-	questions: string[]
-	suggestGlobal: boolean
-	entityNotFound?: boolean
-}
+import { fetchJson } from '~/utils/async'
+import { EntityQuestionsResponse } from './types'
 
 export async function fetchEntityQuestions(
 	entitySlug: string,
 	entityType: 'protocol' | 'chain'
-): Promise<string[]> {
+): Promise<EntityQuestionsResponse> {
 	try {
-		const res = await fetch(
+		const data = await fetchJson<EntityQuestionsResponse>(
 			`${MCP_SERVER}/suggested-questions?entity=${encodeURIComponent(entitySlug)}&entityType=${encodeURIComponent(entityType)}`
 		)
-		if (!res.ok) return []
-		const data: EntityQuestionsResponse = await res.json()
-		return data.questions || []
+		return data
 	} catch {
-		return [] // Fail silently - no questions is fine
+		return { questions: [], suggestGlobal: false } // Fail silently - no questions is fine
 	}
 }

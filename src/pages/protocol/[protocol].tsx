@@ -44,7 +44,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const entityQuestions = await fetchEntityQuestions(normalizedName, 'protocol')
+		const { questions: entityQuestions } = await fetchEntityQuestions(normalizedName, 'protocol')
 
 		return { props: { ...data, entityQuestions }, revalidate: maxAgeForNext([22]) }
 	}

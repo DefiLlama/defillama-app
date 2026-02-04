@@ -28,7 +28,8 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 		return { notFound: true }
 	}
 
-	const entityQuestions = chain.toLowerCase() !== 'all' ? await fetchEntityQuestions(chain, 'chain') : []
+	const { questions: entityQuestions } =
+		chain.toLowerCase() !== 'all' ? await fetchEntityQuestions(chain, 'chain') : { questions: [] }
 
 	return {
 		props: { ...data, entityQuestions },
