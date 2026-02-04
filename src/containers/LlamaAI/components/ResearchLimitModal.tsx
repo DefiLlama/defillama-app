@@ -3,18 +3,17 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 
 interface ResearchLimitModalProps {
-	isOpen: boolean
-	onClose: () => void
+	dialogStore: Ariakit.DialogStore
 	period: string
 	limit: number
 	resetTime: string | null
 }
 
-export function ResearchLimitModal({ isOpen, onClose, period, limit, resetTime: _resetTime }: ResearchLimitModalProps) {
+export function ResearchLimitModal({ dialogStore, period, limit, resetTime: _resetTime }: ResearchLimitModalProps) {
 	const isLifetime = period === 'lifetime'
 
 	return (
-		<Ariakit.DialogProvider open={isOpen} setOpen={(open) => !open && onClose()}>
+		<Ariakit.DialogProvider store={dialogStore}>
 			<Ariakit.Dialog
 				className="dialog fixed inset-0 z-50 m-auto h-fit w-full max-w-md overflow-hidden rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-0 shadow-xl dark:border-[#39393E] dark:bg-[#222429]"
 				backdrop={<div className="backdrop fixed inset-0 bg-black/60 backdrop-blur-sm" />}
@@ -45,7 +44,7 @@ export function ResearchLimitModal({ isOpen, onClose, period, limit, resetTime: 
 						href="/subscription"
 						data-umami-event="research-limit-upgrade"
 						className="mx-auto flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-6 py-3.5 text-center text-base font-semibold text-white transition-colors hover:bg-[#4A4AF0]"
-						onClick={onClose}
+						onClick={dialogStore.hide}
 					>
 						Upgrade to Pro
 					</BasicLink>

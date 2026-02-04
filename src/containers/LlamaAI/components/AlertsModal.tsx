@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
-import { memo, useCallback, useEffect, useState } from 'react'
-import toast from 'react-hot-toast'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { memo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { MCP_SERVER } from '~/constants'
@@ -20,8 +20,7 @@ interface Alert {
 }
 
 interface AlertsModalProps {
-	isOpen: boolean
-	onClose: () => void
+	dialogStore: Ariakit.DialogStore
 }
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -55,6 +54,7 @@ const GMT_OFFSETS = [
 	{ label: 'GMT+13', value: 'Etc/GMT-13' },
 	{ label: 'GMT+14', value: 'Etc/GMT-14' }
 ]
+const ALERTS_QUERY_KEY = 'llamaai-alerts'
 
 const getUserTimezone = (): string => {
 	try {
@@ -96,6 +96,20 @@ const getBlockedLocalHours = (timezone: string): number[] => {
 	return blocked
 }
 
+const getFirstAvailableHour = (blockedHours: number[]): number | undefined => {
+	for (let h = 0; h < 24; h++) {
+		if (!blockedHours.includes(h)) return h
+	}
+	return undefined
+}
+
+const getValidHourForTimezone = (hour: number, timezone: string): number => {
+	const blockedHours = getBlockedLocalHours(timezone)
+	if (!blockedHours.includes(hour)) return hour
+	const firstAvailable = getFirstAvailableHour(blockedHours)
+	return firstAvailable ?? hour
+}
+
 const getTimezoneLabel = (timezone: string): string => {
 	if (timezone === 'UTC') return 'UTC'
 	const found = GMT_OFFSETS.find((g) => g.value === timezone)
@@ -118,79 +132,36 @@ const formatScheduleExpression = (expression: string): string => {
 	})
 }
 
-export const AlertsModal = memo(function AlertsModal({ isOpen, onClose }: AlertsModalProps) {
-	const { authorizedFetch } = useAuthContext()
-	const [alerts, setAlerts] = useState<Alert[]>([])
-	const [isLoading, setIsLoading] = useState(true)
-	const [editingAlert, setEditingAlert] = useState<Alert | null>(null)
-	const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModalProps) {
+	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
+	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
+	const alertsQueryKey = [ALERTS_QUERY_KEY, user?.id ?? null]
 
-	const fetchAlerts = useCallback(async () => {
-		if (!authorizedFetch) return
-		setIsLoading(true)
-		try {
-			const res = await authorizedFetch(`${MCP_SERVER}/alerts`)
-			if (res.ok) {
-				const data = await res.json()
-				setAlerts(data.alerts || [])
-			}
-		} catch (e) {
-			console.log('Failed to fetch alerts:', e)
-		} finally {
-			setIsLoading(false)
-		}
-	}, [authorizedFetch])
-
-	useEffect(() => {
-		if (isOpen) {
-			fetchAlerts()
-		}
-	}, [isOpen, fetchAlerts])
-
-	const handleToggleEnabled = useCallback(
-		async (alert: Alert) => {
-			if (!authorizedFetch) return
-			const newEnabled = !alert.enabled
-			setAlerts((prev) => prev.map((a) => (a.id === alert.id ? { ...a, enabled: newEnabled } : a)))
+	const {
+		data: alerts = [],
+		isLoading,
+		error: alertsError
+	} = useQuery<Alert[]>({
+		queryKey: alertsQueryKey,
+		queryFn: async () => {
+			if (!authorizedFetch) return []
 			try {
-				const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alert.id}`, {
-					method: 'PATCH',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ enabled: newEnabled })
-				})
+				const res = await authorizedFetch(`${MCP_SERVER}/alerts`)
 				if (!res.ok) {
-					setAlerts((prev) => prev.map((a) => (a.id === alert.id ? { ...a, enabled: !newEnabled } : a)))
-					toast.error('Failed to update alert')
+					throw new Error('Failed to fetch alerts')
 				}
-			} catch (e) {
-				setAlerts((prev) => prev.map((a) => (a.id === alert.id ? { ...a, enabled: !newEnabled } : a)))
-				toast.error('Failed to update alert')
+				const data = await res.json()
+				return data.alerts || []
+			} catch (error) {
+				console.log('Failed to fetch alerts:', error)
+				throw new Error('Failed to fetch alerts')
 			}
 		},
-		[authorizedFetch]
-	)
-
-	const handleDelete = useCallback(
-		async (alertId: string) => {
-			if (!authorizedFetch) return
-			try {
-				const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alertId}`, { method: 'DELETE' })
-				if (res.ok) {
-					setAlerts((prev) => prev.filter((a) => a.id !== alertId))
-					toast.success('Alert deleted')
-				} else {
-					toast.error('Failed to delete alert')
-				}
-			} catch (e) {
-				toast.error('Failed to delete alert')
-			}
-			setDeleteConfirm(null)
-		},
-		[authorizedFetch]
-	)
+		enabled: isOpen && isAuthenticated && !!user
+	})
 
 	return (
-		<Ariakit.DialogProvider open={isOpen} setOpen={(open) => !open && onClose()}>
+		<Ariakit.DialogProvider store={dialogStore}>
 			<Ariakit.Dialog
 				className="dialog max-h-[85vh] max-w-lg gap-0 overflow-hidden rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-0 shadow-xl dark:border-[#39393E] dark:bg-[#222429]"
 				backdrop={<div className="backdrop fixed inset-0 bg-black/60 backdrop-blur-sm" />}
@@ -210,38 +181,31 @@ export const AlertsModal = memo(function AlertsModal({ isOpen, onClose }: Alerts
 				</div>
 
 				<div className="thin-scrollbar max-h-[calc(85vh-73px)] overflow-y-auto">
+					{alertsError && (
+						<div className="px-5 py-3 text-xs text-red-500">
+							{alertsError instanceof Error ? alertsError.message : 'Failed to fetch alerts'}
+						</div>
+					)}
 					{isLoading ? (
 						<div className="flex items-center justify-center py-16">
 							<LoadingSpinner size={24} />
 						</div>
 					) : alerts.length === 0 ? (
-						<div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-							<div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f7f7f7] dark:bg-[#333]">
-								<Icon name="calendar" className="h-7 w-7 text-[#999]" />
+						alertsError ? null : (
+							<div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+								<div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f7f7f7] dark:bg-[#333]">
+									<Icon name="calendar" className="h-7 w-7 text-[#999]" />
+								</div>
+								<p className="text-sm text-[#666] dark:text-[#919296]">No alerts yet</p>
+								<p className="max-w-xs text-xs text-[#999] dark:text-[#666]">
+									Ask LlamaAI to set up alerts like "Send me AAVE TVL daily at 9 AM"
+								</p>
 							</div>
-							<p className="text-sm text-[#666] dark:text-[#919296]">No alerts yet</p>
-							<p className="max-w-xs text-xs text-[#999] dark:text-[#666]">
-								Ask LlamaAI to set up alerts like "Send me AAVE TVL daily at 9 AM"
-							</p>
-						</div>
+						)
 					) : (
 						<div className="flex flex-col">
 							{alerts.map((alert) => (
-								<AlertRow
-									key={alert.id}
-									alert={alert}
-									isEditing={editingAlert?.id === alert.id}
-									isDeleting={deleteConfirm === alert.id}
-									onToggle={() => handleToggleEnabled(alert)}
-									onEdit={() => setEditingAlert(editingAlert?.id === alert.id ? null : alert)}
-									onDelete={() => setDeleteConfirm(alert.id)}
-									onDeleteConfirm={() => handleDelete(alert.id)}
-									onDeleteCancel={() => setDeleteConfirm(null)}
-									onSave={(updates) => {
-										setAlerts((prev) => prev.map((a) => (a.id === alert.id ? { ...a, ...updates } : a)))
-										setEditingAlert(null)
-									}}
-								/>
+								<AlertRow key={alert.id} alert={alert} />
 							))}
 						</div>
 					)}
@@ -253,35 +217,20 @@ export const AlertsModal = memo(function AlertsModal({ isOpen, onClose }: Alerts
 
 interface AlertRowProps {
 	alert: Alert
-	isEditing: boolean
-	isDeleting: boolean
-	onToggle: () => void
-	onEdit: () => void
-	onDelete: () => void
-	onDeleteConfirm: () => void
-	onDeleteCancel: () => void
-	onSave: (updates: Partial<Alert>) => void
 }
 
-const AlertRow = memo(function AlertRow({
-	alert,
-	isEditing,
-	isDeleting,
-	onToggle,
-	onEdit,
-	onDelete,
-	onDeleteConfirm,
-	onDeleteCancel,
-	onSave
-}: AlertRowProps) {
-	const { authorizedFetch } = useAuthContext()
+const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
+	const { authorizedFetch, user } = useAuthContext()
+	const queryClient = useQueryClient()
 	const [title, setTitle] = useState(alert.title)
 	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(
 		alert.schedule_expression.includes('Weekly') ? 'weekly' : 'daily'
 	)
+	const [timezone, setTimezone] = useState(() => getUserTimezone())
 	const [hour, setHour] = useState(() => {
 		const match = alert.schedule_expression.match(/at (\d+)/)
-		return match ? parseInt(match[1]) : 9
+		const initialHour = match ? parseInt(match[1]) : 9
+		return getValidHourForTimezone(initialHour, timezone)
 	})
 	const [dayOfWeek, setDayOfWeek] = useState(() => {
 		const match = alert.schedule_expression.match(/on (\w+)/)
@@ -291,47 +240,144 @@ const AlertRow = memo(function AlertRow({
 		}
 		return 1
 	})
-	const [isSaving, setIsSaving] = useState(false)
-	const [timezone, setTimezone] = useState(() => getUserTimezone())
+	const [isEditing, setIsEditing] = useState(false)
+	const [isDeleting, setIsDeleting] = useState(false)
+	const alertsQueryKey = [ALERTS_QUERY_KEY, user?.id ?? null]
 
 	const blockedHours = getBlockedLocalHours(timezone)
 
-	useEffect(() => {
-		if (blockedHours.includes(hour)) {
-			const firstAvailable = Array.from({ length: 24 }, (_, i) => i).find((h) => !blockedHours.includes(h))
-			if (firstAvailable !== undefined) setHour(firstAvailable)
-		}
-	}, [timezone, blockedHours, hour])
+	const handleTimezoneChange = (nextTimezone: string) => {
+		setTimezone(nextTimezone)
+		setHour((currentHour) => getValidHourForTimezone(currentHour, nextTimezone))
+	}
 
-	const handleSave = async () => {
-		if (!authorizedFetch) return
-		setIsSaving(true)
-		try {
-			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alert.id}`, {
+	const toggleAlertMutation = useMutation<
+		boolean,
+		Error,
+		{ alertId: string; enabled: boolean },
+		{ previous?: Alert[] }
+	>({
+		mutationFn: async ({ alertId, enabled }: { alertId: string; enabled: boolean }) => {
+			throw new Error('Not implemented')
+			if (!authorizedFetch) {
+				throw new Error('Not authenticated')
+			}
+			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alertId}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ enabled })
+			})
+			if (!res.ok) {
+				throw new Error('Failed to update alert')
+			}
+			return enabled
+		},
+		onMutate: async ({ alertId, enabled }) => {
+			await queryClient.cancelQueries({ queryKey: alertsQueryKey })
+			const previous = queryClient.getQueryData<Alert[]>(alertsQueryKey)
+			queryClient.setQueryData(alertsQueryKey, (old: Alert[] | undefined) => {
+				if (!old) return []
+				return old.map((item) => (item.id === alertId ? { ...item, enabled } : item))
+			})
+			return { previous }
+		},
+		onError: (error, _variables, context) => {
+			if (context?.previous) {
+				queryClient.setQueryData(alertsQueryKey, context.previous)
+			}
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
+		}
+	})
+
+	const deleteAlertMutation = useMutation<string, Error, string, { previous?: Alert[] }>({
+		mutationFn: async (alertId: string) => {
+			if (!authorizedFetch) {
+				throw new Error('Not authenticated')
+			}
+			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alertId}`, { method: 'DELETE' })
+			if (!res.ok) {
+				throw new Error('Failed to delete alert')
+			}
+			return alertId
+		},
+		onMutate: async (alertId: string) => {
+			await queryClient.cancelQueries({ queryKey: alertsQueryKey })
+			const previous = queryClient.getQueryData<Alert[]>(alertsQueryKey)
+			queryClient.setQueryData(alertsQueryKey, (old: Alert[] | undefined) => {
+				if (!old) return []
+				return old.filter((item) => item.id !== alertId)
+			})
+			return { previous }
+		},
+		onError: (error, _alertId, context) => {
+			if (context?.previous) {
+				queryClient.setQueryData(alertsQueryKey, context.previous)
+			}
+		},
+		onSuccess: () => {
+			setIsDeleting(false)
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
+		}
+	})
+
+	const updateAlertMutation = useMutation<
+		{ frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string },
+		Error,
+		{
+			alertId: string
+			title: string
+			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
+		}
+	>({
+		mutationFn: async ({
+			alertId,
+			title,
+			alertConfig
+		}: {
+			alertId: string
+			title: string
+			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
+		}) => {
+			if (!authorizedFetch) {
+				throw new Error('Not authenticated')
+			}
+			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alertId}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					title,
-					alertConfig: { frequency, hour, dayOfWeek, timezone }
+					alertConfig
 				})
 			})
-			if (res.ok) {
-				const tzLabel = getTimezoneLabel(timezone)
-				const newExpression =
-					frequency === 'weekly'
-						? `Weekly on ${DAYS_OF_WEEK[dayOfWeek]} at ${hour}:00 ${tzLabel}`
-						: `Daily at ${hour}:00 ${tzLabel}`
-				onSave({ title, schedule_expression: newExpression })
-				toast.success('Alert updated')
-			} else {
-				toast.error('Failed to update alert')
+			if (!res.ok) {
+				throw new Error('Failed to update alert')
 			}
-		} catch (e) {
-			toast.error('Failed to update alert')
-		} finally {
-			setIsSaving(false)
+			return alertConfig
+		},
+		onSuccess: (_data, { alertId, title, alertConfig }) => {
+			const tzLabel = getTimezoneLabel(alertConfig.timezone)
+			const newExpression =
+				alertConfig.frequency === 'weekly'
+					? `Weekly on ${DAYS_OF_WEEK[alertConfig.dayOfWeek]} at ${alertConfig.hour}:00 ${tzLabel}`
+					: `Daily at ${alertConfig.hour}:00 ${tzLabel}`
+			queryClient.setQueryData(alertsQueryKey, (old: Alert[] | undefined) => {
+				if (!old) return []
+				return old.map((item) => (item.id === alertId ? { ...item, title, schedule_expression: newExpression } : item))
+			})
+			setIsEditing(false)
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
 		}
-	}
+	})
+
+	const toggleErrorMessage = toggleAlertMutation.error?.message
+	const updateErrorMessage = updateAlertMutation.error?.message
+	const deleteErrorMessage = deleteAlertMutation.error?.message
 
 	const formatNextRun = (date: string) => {
 		const d = new Date(date)
@@ -347,22 +393,30 @@ const AlertRow = memo(function AlertRow({
 
 	if (isDeleting) {
 		return (
-			<div className="flex items-center justify-between gap-3 border-b border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
-				<p className="text-sm text-[#666] dark:text-[#919296]">Delete "{alert.title}"?</p>
-				<div className="flex gap-2">
-					<button
-						onClick={onDeleteCancel}
-						className="rounded-md px-3 py-1.5 text-xs text-[#666] hover:bg-[#f7f7f7] dark:text-[#919296] dark:hover:bg-[#333]"
-					>
-						Cancel
-					</button>
-					<button
-						onClick={onDeleteConfirm}
-						className="rounded-md bg-red-500 px-3 py-1.5 text-xs text-white hover:bg-red-600"
-					>
-						Delete
-					</button>
+			<div className="flex flex-col gap-2 border-b border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
+				<div className="flex items-center justify-between gap-3">
+					<p className="text-sm text-[#666] dark:text-[#919296]">Delete "{alert.title}"?</p>
+					<div className="flex gap-2">
+						<button
+							onClick={() => {
+								toggleAlertMutation.reset()
+								updateAlertMutation.reset()
+								deleteAlertMutation.reset()
+								setIsDeleting(false)
+							}}
+							className="rounded-md px-3 py-1.5 text-xs text-[#666] hover:bg-[#f7f7f7] dark:text-[#919296] dark:hover:bg-[#333]"
+						>
+							Cancel
+						</button>
+						<button
+							onClick={() => deleteAlertMutation.mutate(alert.id)}
+							className="rounded-md bg-red-500 px-3 py-1.5 text-xs text-white hover:bg-red-600"
+						>
+							Delete
+						</button>
+					</div>
 				</div>
+				{deleteErrorMessage && <p className="text-center text-xs text-red-500">{deleteErrorMessage}</p>}
 			</div>
 		)
 	}
@@ -386,21 +440,31 @@ const AlertRow = memo(function AlertRow({
 				</div>
 				<div className="flex shrink-0 items-center gap-1">
 					<button
-						onClick={onEdit}
+						onClick={() => {
+							toggleAlertMutation.reset()
+							updateAlertMutation.reset()
+							deleteAlertMutation.reset()
+							setIsEditing((current) => !current)
+						}}
 						className={`flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#333] dark:hover:text-white ${isEditing ? 'bg-[#f7f7f7] text-black dark:bg-[#333] dark:text-white' : ''}`}
 						title="Edit"
 					>
 						<Icon name="pencil" className="h-3.5 w-3.5" />
 					</button>
 					<button
-						onClick={onDelete}
+						onClick={() => {
+							toggleAlertMutation.reset()
+							updateAlertMutation.reset()
+							deleteAlertMutation.reset()
+							setIsDeleting(true)
+						}}
 						className="flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-red-500/10 hover:text-red-500 dark:text-[#919296]"
 						title="Delete"
 					>
 						<Icon name="trash-2" className="h-3.5 w-3.5" />
 					</button>
 					<button
-						onClick={onToggle}
+						onClick={() => toggleAlertMutation.mutate({ alertId: alert.id, enabled: !alert.enabled })}
 						className={`ml-1 flex h-7 w-12 items-center rounded-full px-0.5 transition-colors ${alert.enabled ? 'bg-[#2172E5]' : 'bg-[#ccc] dark:bg-[#444]'}`}
 						title={alert.enabled ? 'Disable' : 'Enable'}
 					>
@@ -410,6 +474,8 @@ const AlertRow = memo(function AlertRow({
 					</button>
 				</div>
 			</div>
+
+			{toggleErrorMessage && !isEditing && <p className="mt-2 text-xs text-red-500">{toggleErrorMessage}</p>}
 
 			{isEditing && (
 				<div className="mt-4 flex flex-col gap-3 rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3 dark:border-[#333] dark:bg-[#1a1a1a]">
@@ -456,7 +522,7 @@ const AlertRow = memo(function AlertRow({
 						</select>
 						<select
 							value={timezone}
-							onChange={(e) => setTimezone(e.target.value)}
+							onChange={(e) => handleTimezoneChange(e.target.value)}
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-none dark:border-[#333] dark:bg-[#222]"
 						>
 							{GMT_OFFSETS.map((tz) => (
@@ -468,20 +534,36 @@ const AlertRow = memo(function AlertRow({
 					</div>
 					<div className="flex justify-end gap-2">
 						<button
-							onClick={onEdit}
+							onClick={() => {
+								toggleAlertMutation.reset()
+								updateAlertMutation.reset()
+								deleteAlertMutation.reset()
+								setIsEditing(false)
+							}}
 							className="rounded-md px-3 py-1.5 text-xs text-[#666] hover:bg-[#eee] dark:text-[#919296] dark:hover:bg-[#333]"
 						>
 							Cancel
 						</button>
 						<button
-							onClick={handleSave}
-							disabled={isSaving || !title.trim()}
+							onClick={() =>
+								updateAlertMutation.mutate({
+									alertId: alert.id,
+									title,
+									alertConfig: { frequency, hour, dayOfWeek, timezone }
+								})
+							}
+							disabled={updateAlertMutation.isPending || !title.trim()}
 							className="flex items-center gap-1.5 rounded-md bg-[#2172E5] px-3 py-1.5 text-xs text-white hover:bg-[#1a5cc7] disabled:opacity-50"
 						>
-							{isSaving ? <LoadingSpinner size={12} /> : <Icon name="check" className="h-3.5 w-3.5" />}
+							{updateAlertMutation.isPending ? (
+								<LoadingSpinner size={12} />
+							) : (
+								<Icon name="check" className="h-3.5 w-3.5" />
+							)}
 							Save
 						</button>
 					</div>
+					{updateErrorMessage && <p className="text-center text-xs text-red-500">{updateErrorMessage}</p>}
 				</div>
 			)}
 		</div>

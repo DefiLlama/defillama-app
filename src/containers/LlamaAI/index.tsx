@@ -1,3 +1,4 @@
+import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import Router from 'next/router'
 import { memo, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
@@ -128,8 +129,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const [prompt, setPrompt] = useState('')
 	const [isResearchMode, setIsResearchMode] = useState(false)
-	const [showRateLimitModal, setShowRateLimitModal] = useState(false)
-	const [showAlertsModal, setShowAlertsModal] = useState(false)
+	const alertsModalStore = Ariakit.useDialogStore()
+	const researchModalStore = Ariakit.useDialogStore()
 	const [rateLimitDetails, setRateLimitDetails] = useState<{
 		period: string
 		limit: number
@@ -461,7 +462,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					limit: error.details?.limit || 0,
 					resetTime: error.details?.resetTime || null
 				})
-				setShowRateLimitModal(true)
+				researchModalStore.show()
 				setLastFailedRequest(null)
 				return
 			}
@@ -1053,7 +1054,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											droppedFiles={droppedFiles}
 											clearDroppedFiles={clearDroppedFiles}
 											externalDragging={isDraggingOnChat}
-											onOpenAlerts={() => setShowAlertsModal(true)}
+											onOpenAlerts={alertsModalStore.show}
 										/>
 										<RecommendedPrompts
 											setPrompt={setPrompt}
@@ -1291,7 +1292,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										droppedFiles={droppedFiles}
 										clearDroppedFiles={clearDroppedFiles}
 										externalDragging={isDraggingOnChat}
-										onOpenAlerts={() => setShowAlertsModal(true)}
+										onOpenAlerts={alertsModalStore.show}
 									/>
 								)}
 							</div>
@@ -1299,16 +1300,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					)}
 				</div>
 			</div>
-			{showRateLimitModal && rateLimitDetails && (
+			{rateLimitDetails ? (
 				<ResearchLimitModal
-					isOpen={showRateLimitModal}
-					onClose={() => setShowRateLimitModal(false)}
+					dialogStore={researchModalStore}
 					period={rateLimitDetails.period}
 					limit={rateLimitDetails.limit}
 					resetTime={rateLimitDetails.resetTime}
 				/>
-			)}
-			<AlertsModal isOpen={showAlertsModal} onClose={() => setShowAlertsModal(false)} />
+			) : null}
+			<AlertsModal dialogStore={alertsModalStore} />
 		</Layout>
 	)
 }

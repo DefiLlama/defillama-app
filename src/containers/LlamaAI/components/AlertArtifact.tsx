@@ -1,8 +1,9 @@
+import { useMutation } from '@tanstack/react-query'
 import { memo, useState } from 'react'
-import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { handleSimpleFetchResponse } from '~/utils/async'
 import type { AlertIntent } from '../types'
 
 export const AlertArtifactLoading = memo(function AlertArtifactLoading() {
@@ -67,38 +68,41 @@ export const AlertArtifact = memo(function AlertArtifact({
 	const [hour, setHour] = useState(alertIntent.hour ?? 9)
 	const [dayOfWeek, setDayOfWeek] = useState(alertIntent.dayOfWeek ?? 1)
 	const [timezone] = useState(alertIntent.timezone ?? getUserTimezone())
-	const [saving, setSaving] = useState(false)
 	const [saved, setSaved] = useState(savedAlertIds?.includes(alertId) || false)
 
-	const handleSave = async () => {
-		if (!messageId || !authorizedFetch) return
-
-		setSaving(true)
-		try {
-			const res = await authorizedFetch(`${MCP_SERVER}/alerts`, {
+	const {
+		mutate: saveAlert,
+		isPending: isSaving,
+		error: saveError
+	} = useMutation({
+		mutationFn: async (payload: {
+			messageId: string
+			alertId: string
+			title: string
+			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
+		}) => {
+			return authorizedFetch(`${MCP_SERVER}/alerts`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					messageId,
-					alertId,
-					title,
-					alertConfig: { frequency, hour, dayOfWeek, timezone }
-				})
-			})
-
-			if (res.ok) {
-				setSaved(true)
-				toast.success('Alert saved!')
-			} else {
-				const err = await res.json()
-				toast.error(err.error || 'Failed to save alert')
-			}
-		} catch (e) {
-			toast.error('Failed to save alert')
-		} finally {
-			setSaving(false)
+				body: JSON.stringify(payload)
+			}).then(handleSimpleFetchResponse)
+		},
+		onSuccess: () => {
+			setSaved(true)
 		}
+	})
+
+	const handleSave = () => {
+		if (!messageId) return
+		saveAlert({
+			messageId,
+			alertId,
+			title: title.trim(),
+			alertConfig: { frequency, hour, dayOfWeek, timezone }
+		})
 	}
+
+	const saveErrorMessage = saveError ? (saveError instanceof Error ? saveError.message : String(saveError)) : null
 
 	if (!isAuthenticated) {
 		return (
@@ -179,7 +183,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 
 				<button
 					onClick={handleSave}
-					disabled={saving || saved || !title.trim()}
+					disabled={isSaving || saved || !title.trim()}
 					className="ml-auto flex items-center gap-1.5 rounded-md bg-[#2172E5] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1a5cc7] disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{saved ? (
@@ -187,7 +191,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 							<Icon name="check" className="h-4 w-4" />
 							<span>Saved</span>
 						</>
-					) : saving ? (
+					) : isSaving ? (
 						<span>Saving...</span>
 					) : (
 						<>
@@ -197,6 +201,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 					)}
 				</button>
 			</div>
+			{saveErrorMessage ? <p className="text-center text-xs text-(--error)">{saveErrorMessage}</p> : null}
 		</div>
 	)
 })
