@@ -16,11 +16,10 @@ const pageName = ['Overview']
 
 const Announcement = () => (
 	<>
-		Free 7-day{' '}
-		<Link href="/subscription" target="_blank" rel="noreferrer noopener" className="underline">
-			Pro subscription
-		</Link>{' '}
-		trials are now available.
+		NEW!{' '}
+		<Link href="/rwa" className="underline">
+			RWA dashboard
+		</Link>
 	</>
 )
 
