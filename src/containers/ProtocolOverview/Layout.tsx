@@ -301,7 +301,12 @@ export function ProtocolOverviewLayout({
 							</BasicLink>
 						))}
 				</div>
-				<EntityQuestionsStrip questions={entityQuestions || []} entitySlug={slug(name)} entityType="protocol" entityName={name} />
+				<EntityQuestionsStrip
+					questions={entityQuestions || []}
+					entitySlug={slug(name)}
+					entityType="protocol"
+					entityName={name}
+				/>
 				{children}
 			</div>
 		</Layout>

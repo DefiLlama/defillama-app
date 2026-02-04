@@ -346,23 +346,28 @@ const columns: ColumnDef<AssetRow>[] = [
 	{
 		id: 'category',
 		header: definitions.category.label,
-		accessorFn: (asset) => asset.category?.join(', ') ?? '',
+		accessorFn: (asset) => asset.category,
 		cell: (info) => {
-			const value = info.getValue() as string
-			const tooltipContent = definitions.category.values?.[value]
+			const value = info.getValue() as string[]
+			const tooltipContent = value
+				.map((category) => {
+					const description = definitions.category.values?.[category]
+					return `${category}:\n${description || '-'}`
+				})
+				.join('\n\n')
 			if (tooltipContent) {
 				return (
 					<Tooltip
 						content={tooltipContent}
 						className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
 					>
-						{value}
+						{value.join(', ')}
 					</Tooltip>
 				)
 			}
 			return (
-				<span title={value} className="overflow-hidden text-ellipsis whitespace-nowrap">
-					{value}
+				<span title={value.join(', ')} className="overflow-hidden text-ellipsis whitespace-nowrap">
+					{value.join(', ')}
 				</span>
 			)
 		},

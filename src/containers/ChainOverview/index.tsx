@@ -38,7 +38,12 @@ export function ChainOverview(props: IChainOverviewData) {
 		>
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />
 			{props.metadata.name !== 'All' && (
-				<EntityQuestionsStrip questions={props.entityQuestions || []} entitySlug={slug(props.metadata.name)} entityType="chain" entityName={props.metadata.name} />
+				<EntityQuestionsStrip
+					questions={props.entityQuestions || []}
+					entitySlug={slug(props.metadata.name)}
+					entityType="chain"
+					entityName={props.metadata.name}
+				/>
 			)}
 			{props.isDataAvailable ? (
 				<>
