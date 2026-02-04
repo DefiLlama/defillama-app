@@ -55,6 +55,7 @@ export function FilterByChain({ chainList = [], selectedChains, evmChains, neste
 			if (isSelectAll) {
 				// Select all - use all actual chains, not ALL_EVM
 				finalValues = [...chainList]
+				prevSelectionRef.current = new Set(finalValues)
 			} else if (justAddedAllEvm) {
 				finalValues = ['ALL_EVM']
 
