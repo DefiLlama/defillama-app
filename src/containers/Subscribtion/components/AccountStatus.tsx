@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import { useEffect, useState } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
 import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -8,13 +8,13 @@ import { resolveUserEmail } from '~/components/Nav/Account'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { formatEthAddress } from '~/utils'
 import { AuthModel } from '~/utils/pocketbase'
+import { EmailChangeModal } from './EmailChangeModal'
 
 interface AccountStatusProps {
 	user: AuthModel
 	isVerified: boolean
 	isSubscribed: boolean
 	isAuthenticated: boolean
-	onEmailChange: () => void
 	subscription: any
 	getPortalSessionUrl: () => Promise<string | null>
 }
@@ -23,20 +23,22 @@ export const AccountStatus = ({
 	user,
 	isVerified,
 	isSubscribed,
-	onEmailChange,
 	subscription,
 	getPortalSessionUrl
 }: AccountStatusProps) => {
-	const { addWallet, isTrial, loaders, setPromotionalEmails, isAuthenticated } = useAuthContext()
+	const { addWallet, isTrial, loaders, setPromotionalEmails, isAuthenticated, changeEmail, addEmail } = useAuthContext()
+	const [showEmailForm, setShowEmailForm] = useState(false)
+	const [newEmail, setNewEmail] = useState('')
 	const { address } = useAccount()
 	const { signMessageAsync } = useSignMessage()
 	const { openConnectModal } = useConnectModal()
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [portalUrl, setPortalUrl] = useState<string | null>(null)
-
+	
 	const resolvedEmail = resolveUserEmail(user)
 	const hasEmail = Boolean(resolvedEmail)
 	const hasWallet = Boolean(user?.walletAddress)
+	const isWalletUser = user?.email?.includes('@defillama.com')
 
 	useEffect(() => {
 		if (!isAuthenticated) return
@@ -77,6 +79,17 @@ export const AccountStatus = ({
 			})
 	}
 
+	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
+		if (isWalletUser) {
+			await addEmail(newEmail)
+		} else {
+			changeEmail(newEmail)
+		}
+		setNewEmail('')
+		setShowEmailForm(false)
+	}
+
 	return (
 		<>
 			<div className="overflow-hidden rounded-xl border border-[#39393E]/30 bg-linear-to-r from-[#1a1b1f]/90 to-[#1a1b1f]/70 shadow-[0_4px_20px_rgba(0,0,0,0.2)] backdrop-blur-md backdrop-filter transition-shadow duration-300 hover:shadow-[0_8px_30px_rgba(92,92,249,0.1)]">
@@ -109,7 +122,7 @@ export const AccountStatus = ({
 						</div>
 
 						<button
-							onClick={onEmailChange}
+							onClick={() => setShowEmailForm(true)}
 							className="group flex items-center gap-2 rounded-lg border border-[#39393E]/50 bg-[#222429]/70 px-4 py-2 text-sm shadow-md transition-all duration-200 hover:border-[#5C5CF9]/50 hover:bg-[#222429] hover:shadow-[0_4px_12px_rgba(92,92,249,0.15)]"
 						>
 							<Icon
@@ -253,7 +266,7 @@ export const AccountStatus = ({
 							<div className="flex items-center justify-between">
 								<p className="truncate text-sm text-[#b4b7bc]">{resolvedEmail || 'No email linked'}</p>
 								<button
-									onClick={onEmailChange}
+									onClick={() => setShowEmailForm(true)}
 									className="group flex items-center gap-2 rounded-lg border border-[#39393E]/50 bg-[#222429]/70 px-4 py-2 text-sm shadow-md transition-all duration-200 hover:border-[#5C5CF9]/50 hover:bg-[#222429] hover:shadow-[0_4px_12px_rgba(92,92,249,0.15)]"
 								>
 									<Icon
@@ -338,6 +351,15 @@ export const AccountStatus = ({
 					</div>
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
+			<EmailChangeModal
+				isOpen={showEmailForm}
+				onClose={() => setShowEmailForm(false)}
+				onSubmit={handleEmailChange}
+				email={newEmail}
+				onEmailChange={setNewEmail}
+				isLoading={isWalletUser ? loaders.addEmail : loaders.changeEmail}
+				isWalletUser={isWalletUser}
+			/>
 		</>
 	)
 }
