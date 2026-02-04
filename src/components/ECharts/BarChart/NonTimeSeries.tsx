@@ -145,7 +145,7 @@ export default function NonTimeSeriesBarChart({
 	return (
 		<div className="relative">
 			{title || !hideDownloadButton ? (
-				<div className="mb-2 flex items-center justify-end gap-2 px-2">
+				<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
 					{title && <h1 className="mr-auto text-lg font-bold">{title}</h1>}
 					{customComponents ?? null}
 					{hideDownloadButton ? null : <CSVDownloadButton prepareCsv={prepareCsv} smol />}

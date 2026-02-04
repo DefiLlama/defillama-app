@@ -165,7 +165,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 						chartOptions={chartOptions}
 						groupBy={timePeriod.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
 						customComponents={
-							<div className="ml-auto flex gap-2">
+							<>
 								<TagGroup
 									selectedValue={timePeriod}
 									setValue={(value: TimePeriod) => setTimePeriod(value)}
@@ -176,7 +176,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 									setValue={(value: ViewMode) => setViewMode(value)}
 									values={VIEW_MODES as unknown as string[]}
 								/>
-							</div>
+							</>
 						}
 					/>
 				</Suspense>
