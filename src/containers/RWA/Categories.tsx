@@ -111,6 +111,7 @@ export function RWACategoriesTable({ categories }: { categories: IRWACategoriesO
 
 						return { filename, rows: [headers, ...rows] }
 					}}
+					smol
 				/>
 			)}
 			sortingState={[{ id: 'onChainMcap', desc: true }]}

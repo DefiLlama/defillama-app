@@ -11,7 +11,7 @@ export async function getStaticPaths() {
 	const rwaList = metadataCache.rwaList
 	return {
 		paths: rwaList.platforms.slice(0, 10).map((platform) => ({ params: { platform: rwaSlug(platform) } })),
-		fallback: false
+		fallback: 'blocking'
 	}
 }
 
@@ -22,25 +22,26 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const platformSlug = params.platform
+		const platformSlug = rwaSlug(params.platform)
 
-		let platformExists = false
+		let platformName = null
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const rwaList = metadataCache.rwaList
 		for (const platform of rwaList.platforms) {
 			if (rwaSlug(platform) === platformSlug) {
-				platformExists = true
+				platformName = platform
 				break
 			}
 		}
-		if (!platformExists) {
+
+		if (!platformName) {
 			return { notFound: true, props: null }
 		}
 
 		const props = await getRWAAssetsOverview({ platform: platformSlug })
 
 		return {
-			props,
+			props: { ...props, platformName },
 			revalidate: maxAgeForNext([22])
 		}
 	}
@@ -51,9 +52,9 @@ const pageName = ['RWA']
 export default function RWAPage(props) {
 	return (
 		<Layout
-			title="Real World Assets - DefiLlama"
-			description={`Real World Assets on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`real world assets, defi rwa rankings, rwa on chain`}
+			title={`${props.platformName} - RWA - DefiLlama`}
+			description={`${props.platformName} RWA on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${props.platformName}, real world assets, defi rwa rankings, rwa on chain`}
 			pageName={pageName}
 			canonicalUrl={`/rwa`}
 		>

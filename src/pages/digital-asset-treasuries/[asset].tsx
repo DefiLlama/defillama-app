@@ -2,6 +2,8 @@ import { ColumnDef } from '@tanstack/react-table'
 import type { GetStaticPropsContext } from 'next'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
@@ -11,6 +13,8 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import { TRADFI_API } from '~/constants'
 import { getDATOverviewDataByAsset, IDATInstitutions, IDATOverviewDataByAssetProps } from '~/containers/DAT/queries'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -175,9 +179,19 @@ export default function TreasuriesByAsset({
 				</div>
 			</div>
 			<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-				<MNAVChart title="mNAV Realized" data={mNAVRealizedChart} institutionsNames={institutionsNames} />
-				<MNAVChart title="mNAV Realistic" data={mNAVRealisticChart} institutionsNames={institutionsNames} />
-				<MNAVChart title="mNAV Max" data={mNAVMaxChart} institutionsNames={institutionsNames} />
+				<MNAVChart
+					metadata={metadata}
+					title="mNAV Realized"
+					data={mNAVRealizedChart}
+					institutionsNames={institutionsNames}
+				/>
+				<MNAVChart
+					metadata={metadata}
+					title="mNAV Realistic"
+					data={mNAVRealisticChart}
+					institutionsNames={institutionsNames}
+				/>
+				<MNAVChart metadata={metadata} title="mNAV Max" data={mNAVMaxChart} institutionsNames={institutionsNames} />
 			</div>
 			<TableWithSearch
 				data={institutions}
@@ -374,11 +388,13 @@ const columns = ({
 const MNAVChart = ({
 	title,
 	data,
-	institutionsNames
+	institutionsNames,
+	metadata
 }: {
 	title: string
 	data: IDATOverviewDataByAssetProps['mNAVRealizedChart']
 	institutionsNames: string[]
+	metadata: IDATOverviewDataByAssetProps['metadata']
 }) => {
 	const [selectedInstitution, setSelectedInstitution] = useState<Array<string>>(institutionsNames)
 
@@ -386,10 +402,13 @@ const MNAVChart = ({
 		return new Set(selectedInstitution)
 	}, [selectedInstitution])
 
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+
 	return (
 		<div className="col-span-1 min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-			<div className="flex items-center justify-between gap-2 p-2">
-				<h2 className="text-lg font-bold">{title}</h2>
+			<div className="flex items-center justify-end gap-2 p-2">
+				<h2 className="mr-auto text-lg font-bold">{title}</h2>
 				<SelectWithCombobox
 					allValues={institutionsNames}
 					selectedValues={selectedInstitution}
@@ -402,14 +421,31 @@ const MNAVChart = ({
 					}}
 					portal
 				/>
+				<ChartCsvExportButton
+					chartInstance={exportChartCsvInstance}
+					filename={`${slug(metadata.name)}-${slug(title)}`}
+					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+					smol
+				/>
+				<ChartExportButton
+					chartInstance={exportChartInstance}
+					filename={`${slug(metadata.name)}-${slug(title)}`}
+					title={`${metadata.name} ${title}`}
+					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+					smol
+				/>
 			</div>
 			<Suspense fallback={<div className="h-[360px]" />}>
 				<MultiSeriesChart2
 					charts={data.charts}
 					selectedCharts={selectedCharts}
-					data={data.data}
+					dataset={data.dataset}
 					valueSymbol=""
-					hideDataZoom={data.data.length < 2}
+					hideDataZoom={data.dataset.source.length < 2}
+					onReady={(instance) => {
+						handleChartReady(instance)
+						handleChartCsvReady(instance)
+					}}
 				/>
 			</Suspense>
 		</div>

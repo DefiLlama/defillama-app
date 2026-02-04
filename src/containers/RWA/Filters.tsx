@@ -242,25 +242,19 @@ export function RWAOverviewFilters({
 				minInputProps={ratioPercentInputProps}
 				maxInputProps={ratioPercentInputProps}
 			/>
-			{isChainMode ? (
-				<>
-					<Switch
-						label="Stablecoins"
-						value="includeStablecoins"
-						checked={includeStablecoins}
-						help="Include stablecoin assets in the table."
-						onChange={() => setIncludeStablecoins(!includeStablecoins)}
-						className="ml-auto"
-					/>
-					<Switch
-						label="Governance Tokens"
-						value="includeGovernance"
-						checked={includeGovernance}
-						help="Include governance-token assets in the table."
-						onChange={() => setIncludeGovernance(!includeGovernance)}
-					/>
-				</>
-			) : null}
+			<Switch
+				label="Stablecoins"
+				value="includeStablecoins"
+				checked={includeStablecoins}
+				onChange={() => setIncludeStablecoins(!includeStablecoins)}
+				className="ml-auto"
+			/>
+			<Switch
+				label="Governance Tokens"
+				value="includeGovernance"
+				checked={includeGovernance}
+				onChange={() => setIncludeGovernance(!includeGovernance)}
+			/>
 		</div>
 	)
 }

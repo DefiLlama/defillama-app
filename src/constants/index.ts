@@ -174,8 +174,11 @@ export const RWA_ACTIVE_TVLS_API = `${RWA_SERVER_URL}/current?z=0`
 export const RWA_STATS_API = `${RWA_SERVER_URL}/stats?z=0`
 export const RWA_ID_MAP_API = `${RWA_SERVER_URL}/id-map?z=0`
 export const RWA_LIST_API = `${RWA_SERVER_URL}/list?z=0`
+export const RWA_ASSET_DATA_API = `${RWA_SERVER_URL}/rwa`
+export const RWA_CHART_API = `${RWA_SERVER_URL}/chart`
 
 export const MCP_SERVER = 'https://mcp.llama.fi'
+export const YIELD_TOKEN_CATEGORIES_API = 'https://ask.llama.fi/token-categories/yields'
 export const SEARCH_API_URL = 'https://search.defillama.com/multi-search'
 export const SEARCH_API_TOKEN = process.env.NEXT_PUBLIC_SEARCH_API_TOKEN
 

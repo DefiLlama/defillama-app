@@ -18,6 +18,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const category = params.category
 		const chain = undefined
+
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const { categoriesAndTags } = metadataCache
 		const categoryName = categoriesAndTags.categories.find((c) => slug(c) === slug(category))

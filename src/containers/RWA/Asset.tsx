@@ -1,13 +1,16 @@
-import { Fragment, useMemo } from 'react'
+import { Fragment, lazy, Suspense, useMemo } from 'react'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
+import { CHART_COLORS } from '~/constants/colors'
 import definitions from '~/public/rwa-definitions.json'
 import { chainIconUrl, formattedNum } from '~/utils'
 import { getBlockExplorer } from '~/utils/blockExplorers'
 import type { IRWAAssetData } from './queries'
+
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 interface ClassificationItemProps {
 	label: string
@@ -146,6 +149,7 @@ const ContractItem = ({ chain, address }: { chain: string; address: string }) =>
 }
 
 export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
+	console.log(asset.chartDataset)
 	const displayName = asset.name ?? asset.ticker ?? 'Unknown asset'
 	const keyBase = asset.ticker ?? asset.name ?? 'asset'
 
@@ -252,6 +256,22 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					<span className="font-jetbrains text-xl font-semibold">{asset.chain?.length ?? 0}</span>
 				</p>
 			</div>
+
+			{asset.chartDataset && asset.chartDataset.source.length > 0 ? (
+				<div className="min-h-[412px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3">
+					<Suspense fallback={<></>}>
+						<MultiSeriesChart2
+							charts={timeSeriesCharts}
+							dataset={asset.chartDataset}
+							hideDefaultLegend={false}
+							shouldEnableCSVDownload
+							shouldEnableImageExport
+							imageExportFilename={`${asset.ticker ?? asset.name ?? 'asset'}`}
+							imageExportTitle={`${asset.ticker ?? asset.name ?? 'Asset'}`}
+						/>
+					</Suspense>
+				</div>
+			) : null}
 
 			<div className="grid gap-2 lg:grid-cols-2">
 				{/* Left Column */}
@@ -546,3 +566,34 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 		</div>
 	)
 }
+
+const timeSeriesCharts: Array<{
+	type: 'line' | 'bar'
+	name: string
+	stack: string
+	encode: { x: number | Array<number> | string | Array<string>; y: number | Array<number> | string | Array<string> }
+	color?: string
+}> = [
+	// Use distinct stack keys so ECharts doesn't cumulatively stack these series.
+	{
+		type: 'line',
+		name: 'DeFi Active TVL',
+		stack: 'defiActiveTvl',
+		encode: { x: 'timestamp', y: 'DeFi Active TVL' },
+		color: CHART_COLORS[0]
+	},
+	{
+		type: 'line',
+		name: 'Active Mcap',
+		stack: 'activeMcap',
+		encode: { x: 'timestamp', y: 'Active Mcap' },
+		color: CHART_COLORS[1]
+	},
+	{
+		type: 'line',
+		name: 'Onchain Mcap',
+		stack: 'onchainMcap',
+		encode: { x: 'timestamp', y: 'Onchain Mcap' },
+		color: CHART_COLORS[2]
+	}
+]

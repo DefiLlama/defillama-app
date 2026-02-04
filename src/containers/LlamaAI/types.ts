@@ -67,6 +67,27 @@ export interface UploadedImage {
 	size: number
 }
 
+// Alert-related types for scheduled data delivery
+export interface AlertIntent {
+	detected: boolean
+	frequency: 'daily' | 'weekly'
+	hour: number
+	timezone: string
+	dayOfWeek?: number
+	toolExecutions: Array<{
+		toolName: string
+		arguments: Record<string, any>
+		sqlQuery: string | null
+	}>
+}
+
+export interface AlertConfig {
+	frequency: 'daily' | 'weekly'
+	hour: number
+	timezone: string
+	dayOfWeek?: number
+}
+
 export interface SuggestedQuestionsResponse {
 	categories: {
 		find_alpha: string[]
@@ -173,6 +194,13 @@ export interface MetadataItem {
 	metadata: any
 }
 
+export interface AlertItem {
+	type: 'alert'
+	id: string
+	alertId: string
+	alertIntent: AlertIntent
+}
+
 export type StreamItem =
 	| MarkdownItem
 	| ChartItem
@@ -183,6 +211,7 @@ export type StreamItem =
 	| ErrorItem
 	| SuggestionsItem
 	| MetadataItem
+	| AlertItem
 
 // Type guards for stream items
 export function isMarkdownItem(item: StreamItem): item is MarkdownItem {
@@ -195,6 +224,10 @@ export function isChartItem(item: StreamItem): item is ChartItem {
 
 export function isCsvItem(item: StreamItem): item is CsvItem {
 	return item.type === 'csv'
+}
+
+export function isAlertItem(item: StreamItem): item is AlertItem {
+	return item.type === 'alert'
 }
 
 export function isArtifactItem(item: StreamItem): item is ChartItem | CsvItem {

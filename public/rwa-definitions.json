@@ -98,11 +98,11 @@
 		"description": "Subset of Active TVL deployed in third party DeFi protocols tracked by DeFiLlama"
 	},
 	"totalOnChainMcap": {
-		"label": "Total RWA Onchain",
+		"label": "Total RWA Onchain Mcap",
 		"description": "Sum across assets of their Onchain Marketcap (the total USD value of each asset that exists Onchain across tracked chains)."
 	},
 	"totalActiveMcap": {
-		"label": "Total RWA Active Marketcap",
+		"label": "Total RWA Active Mcap",
 		"description": "Sum across assets of their Active Marketcap (the portion of Onchain value taking real market risk in user or protocol hands)."
 	},
 	"totalDefiActiveTvl": {

@@ -193,7 +193,7 @@ export function RWAAssetsTable({
 							'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 					}}
 				/>
-				<CSVDownloadButton prepareCsv={prepareCsv} />
+				<CSVDownloadButton prepareCsv={prepareCsv} smol />
 			</div>
 			<VirtualTable instance={instance} />
 		</div>
@@ -247,6 +247,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			return <span>{value}</span>
 		},
 		size: 120,
+		enableSorting: false,
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.type.description
@@ -276,6 +277,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
 		},
 		size: 180,
+		enableSorting: false,
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.rwaClassification.description
@@ -324,6 +326,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			)
 		},
 		size: 180,
+		enableSorting: false,
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.accessModel.description
@@ -342,6 +345,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			)
 		},
 		size: 168,
+		enableSorting: false,
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.category.description
@@ -393,6 +397,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			)
 		},
 		size: 168,
+		enableSorting: false,
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.assetClass.description
@@ -458,6 +463,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			)
 		},
 		size: 120,
+		enableSorting: false,
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.issuer.description

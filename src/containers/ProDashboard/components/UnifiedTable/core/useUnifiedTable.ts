@@ -43,6 +43,7 @@ interface UseUnifiedTableResult {
 	rowHeaders: UnifiedRowHeaderType[]
 	leafRows: NormalizedRow[]
 	columns: ReturnType<typeof getUnifiedTableColumns>
+	expanded: Record<string, boolean>
 }
 
 type UnifiedTableApiResponse = {
@@ -95,7 +96,7 @@ export function useUnifiedTable({
 	) => {
 		setExpandedInternal((prevExpanded) => {
 			const next = typeof updater === 'function' ? updater(prevExpanded) : updater
-			return next
+			return next === prevExpanded ? { ...next } : next
 		})
 	}
 
@@ -247,6 +248,7 @@ export function useUnifiedTable({
 		isLoading,
 		rowHeaders: sanitizedHeaders,
 		leafRows: filteredRows,
-		columns
+		columns,
+		expanded
 	}
 }

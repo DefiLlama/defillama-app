@@ -131,11 +131,11 @@ function fundraisingTone(status?: string | null): StatusTone {
 function equityRevenueCaptureTone(status?: string | null): StatusTone {
 	switch (status) {
 		case 'ACTIVE':
-			return 'positive'
+			return 'negative'
 		case 'PARTIAL':
 			return 'warning'
 		case 'INACTIVE':
-			return 'negative'
+			return 'positive'
 		default:
 			return 'neutral'
 	}

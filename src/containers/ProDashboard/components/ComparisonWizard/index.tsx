@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import {
@@ -16,6 +16,7 @@ import { PreviewStep } from './steps/PreviewStep'
 import { SelectItemsStep } from './steps/SelectItemsStep'
 import { SelectMetricsStep } from './steps/SelectMetricsStep'
 import { SelectTypeStep } from './steps/SelectTypeStep'
+import type { ComparisonPreset } from './types'
 
 interface ComparisonWizardProps {
 	onComplete: (data: {
@@ -25,20 +26,32 @@ interface ComparisonWizardProps {
 		description: string
 		items: DashboardItemConfig[]
 	}) => void
+	comparisonPreset?: ComparisonPreset
 }
 
-function ComparisonWizardContent({ onComplete }: ComparisonWizardProps) {
+function ComparisonWizardContent({ onComplete, comparisonPreset }: ComparisonWizardProps) {
 	const { state, actions, derived, availableMetrics } = useComparisonWizardContext()
 	const { getProtocolInfo } = useProDashboardCatalog()
 	const { chainsByName } = useAppMetadata()
 	const [isGenerating, setIsGenerating] = useState(false)
-	const { reset } = actions
+	const { setComparisonType, setSelectedItems, setStep } = actions
+	const appliedPresetRef = useRef(false)
 
 	useEffect(() => {
-		return () => {
-			reset()
+		if (!comparisonPreset || appliedPresetRef.current) return
+		const items = comparisonPreset.items
+			.map((item) => item.trim())
+			.filter(Boolean)
+			.slice(0, 10)
+		setComparisonType(comparisonPreset.comparisonType)
+		if (items.length > 0) {
+			setSelectedItems(items)
+			setStep('select-metrics')
+		} else {
+			setStep('select-items')
 		}
-	}, [reset])
+		appliedPresetRef.current = true
+	}, [comparisonPreset, setComparisonType, setSelectedItems, setStep])
 
 	const generateComparisonCharts = (): MultiChartConfig[] => {
 		const { selectedItems, selectedMetrics, comparisonType } = state
@@ -233,10 +246,10 @@ function ComparisonWizardContent({ onComplete }: ComparisonWizardProps) {
 	)
 }
 
-export function ComparisonWizard({ onComplete }: ComparisonWizardProps) {
+export function ComparisonWizard({ onComplete, comparisonPreset }: ComparisonWizardProps) {
 	return (
 		<ComparisonWizardProvider>
-			<ComparisonWizardContent onComplete={onComplete} />
+			<ComparisonWizardContent onComplete={onComplete} comparisonPreset={comparisonPreset} />
 		</ComparisonWizardProvider>
 	)
 }
