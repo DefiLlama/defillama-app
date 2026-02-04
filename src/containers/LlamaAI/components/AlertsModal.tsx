@@ -258,7 +258,6 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 		{ previous?: Alert[] }
 	>({
 		mutationFn: async ({ alertId, enabled }: { alertId: string; enabled: boolean }) => {
-			throw new Error('Not implemented')
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
 			}
