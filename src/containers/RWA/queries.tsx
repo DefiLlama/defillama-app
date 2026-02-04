@@ -242,13 +242,28 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		const chartDataMs: IRWAChartDataByTicker | null = chartData
 			? {
 					onChainMcap: (chartData.onChainMcap ?? [])
-						.map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
+						.map((row) => {
+							if (row.timestamp === 1761523200 && row['CASH+']) {
+								row['CASH+'] = 0
+							}
+							return { ...row, timestamp: toUnixMsTimestamp(row.timestamp) }
+						})
 						.sort((a, b) => a.timestamp - b.timestamp),
 					activeMcap: (chartData.activeMcap ?? [])
-						.map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
+						.map((row) => {
+							if (row.timestamp === 1761523200 && row['CASH+']) {
+								row['CASH+'] = 0
+							}
+							return { ...row, timestamp: toUnixMsTimestamp(row.timestamp) }
+						})
 						.sort((a, b) => a.timestamp - b.timestamp),
 					defiActiveTvl: (chartData.defiActiveTvl ?? [])
-						.map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
+						.map((row) => {
+							if (row.timestamp === 1761523200 && row['CASH+']) {
+								row['CASH+'] = 0
+							}
+							return { ...row, timestamp: toUnixMsTimestamp(row.timestamp) }
+						})
 						.sort((a, b) => a.timestamp - b.timestamp)
 				}
 			: null

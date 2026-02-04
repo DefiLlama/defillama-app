@@ -106,6 +106,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		})
 
 	const { chartDatasetByCategory } = useRwaChartDataByCategory({
+		enabled: isChainMode,
 		assets: filteredAssets,
 		chartDataByTicker: props.chartData
 	})

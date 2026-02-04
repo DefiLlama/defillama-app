@@ -770,9 +770,11 @@ function sortKeysWithOthersLast(keys: Iterable<string>): string[] {
 }
 
 export function useRwaChartDataByCategory({
+	enabled,
 	assets,
 	chartDataByTicker
 }: {
+	enabled: boolean
 	assets: IRWAAssetsOverview['assets']
 	chartDataByTicker: IRWAAssetsOverview['chartData']
 }): {
@@ -787,6 +789,7 @@ export function useRwaChartDataByCategory({
 			}
 		}
 
+		if (!enabled) return empty
 		if (!chartDataByTicker) return empty
 
 		// Build ticker -> categories lookup from filtered assets.
@@ -839,7 +842,7 @@ export function useRwaChartDataByCategory({
 				defiActiveTvl: { source: defiActiveTvl, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenDefi)] }
 			}
 		}
-	}, [assets, chartDataByTicker])
+	}, [assets, chartDataByTicker, enabled])
 }
 
 export function useRwaChartDataByAssetClass({
