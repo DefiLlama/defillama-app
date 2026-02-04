@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
 import { PieChart as EPieChart } from 'echarts/charts'
 import { GraphicComponent, GridComponent, LegendComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
 import { formattedNum } from '~/utils'
 import type { IPieChartProps } from '../types'
@@ -35,6 +36,7 @@ export default function PieChart({
 	enableImageExport = false,
 	imageExportFilename,
 	imageExportTitle,
+	onReady,
 	...props
 }: IPieChartProps) {
 	const id = useId()
@@ -43,6 +45,10 @@ export default function PieChart({
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 	const exportFilename = imageExportFilename || (title ? title.replace(/\s+/g, '-').toLowerCase() : 'pie-chart')
 	const exportTitle = imageExportTitle || title
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const series = useMemo(() => {
 		const total = chartData.reduce((acc, item) => acc + item.value, 0)
@@ -65,7 +71,7 @@ export default function PieChart({
 				formatter: (x) => {
 					return `${x.name}: (${formatPercent(x.value)})`
 				},
-				show: showLegend ? false : true
+				show: !showLegend
 			},
 			emphasis: {
 				itemStyle: {
@@ -74,7 +80,7 @@ export default function PieChart({
 					shadowColor: 'rgba(0, 0, 0, 0.5)'
 				}
 			},
-			data: chartData.map((item, idx) => ({
+			data: chartData.map((item) => ({
 				name: item.name,
 				value: item.value,
 				itemStyle: {
@@ -94,15 +100,16 @@ export default function PieChart({
 		return series
 	}, [isDark, showLegend, chartData, radius, stackColors, isSmall])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
 		// create instance
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
+
+		if (onReady) {
+			onReady(instance)
+		}
 
 		const graphic = {
 			type: 'image',
@@ -116,12 +123,17 @@ export default function PieChart({
 			top: '160px'
 		}
 
-		chartInstance.setOption({
+		instance.setOption({
 			graphic,
 			tooltip: {
 				trigger: 'item',
 				confine: true,
-				valueFormatter: (value) => formatTooltipValue(value, valueSymbol)
+				formatter: (params: any) => {
+					const p = Array.isArray(params) ? params[0] : params
+					const rawValue = typeof p?.value === 'number' ? p.value : Number(p?.value ?? 0)
+					const formattedValue = formatTooltipValue(rawValue, valueSymbol)
+					return `${p?.marker ?? ''}${p?.name ?? ''}: <b>${formattedValue}</b> (${params.percent}%)`
+				}
 			},
 			grid: {
 				left: 0,
@@ -153,21 +165,15 @@ export default function PieChart({
 			series
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		handleChartReady(chartInstance)
-
-		window.addEventListener('resize', resize)
+		handleChartReady(instance)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 			handleChartReady(null)
 		}
 	}, [
-		createInstance,
+		id,
 		series,
 		isDark,
 		title,
@@ -176,7 +182,9 @@ export default function PieChart({
 		chartData,
 		legendPosition,
 		legendTextStyle,
-		isSmall
+		isSmall,
+		handleChartReady,
+		onReady
 	])
 
 	return (

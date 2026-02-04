@@ -1,9 +1,10 @@
 import { fetchCoinPrices, getAllCGTokensList } from '~/api'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { EMISSION_SUPPLY_METRICS, PROTOCOLS_API } from '~/constants'
+import { ILiteProtocol } from '~/containers/ChainOverview/types'
 import { slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { ILiteProtocol } from '../ChainOverview/types'
+import { IProtocolMetadata } from '~/utils/metadata/types'
 
 export interface IProtocolsWithTokensByChainPageData {
 	protocols: Array<{
@@ -31,9 +32,11 @@ export interface IProtocolsWithTokensByChainPageData {
 const excludeCategories = new Set(['Bridge', 'Canonical Bridge', 'Foundation', 'Meme'])
 
 export async function getProtocolsMarketCapsByChain({
-	chain
+	chain,
+	protocolMetadata
 }: {
 	chain: string
+	protocolMetadata: Record<string, IProtocolMetadata>
 }): Promise<IProtocolsWithTokensByChainPageData | null> {
 	const {
 		protocols,
@@ -45,7 +48,7 @@ export async function getProtocolsMarketCapsByChain({
 		parentProtocols: Array<{ id: string; name: string; chains: Array<string>; mcap?: number }>
 	} = await fetchJson(PROTOCOLS_API)
 
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const parentProtocolsMap = new Map(parentProtocols.map((p) => [p.id, p]))
 
 	const finalProtocols = []
 	const finalParentProtocols = {}
@@ -63,10 +66,7 @@ export async function getProtocolsMarketCapsByChain({
 			logo: tokenIconUrl(slug(protocol.name)),
 			slug: slug(protocol.name),
 			category: protocol.category,
-			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
-				protocol.chains ??
-				[],
+			chains: (protocol.defillamaId ? protocolMetadata[protocol.defillamaId]?.chains : null) ?? protocol.chains ?? [],
 			value: protocol.mcap ?? null
 		}
 
@@ -78,7 +78,7 @@ export async function getProtocolsMarketCapsByChain({
 	}
 
 	for (const parent in finalParentProtocols) {
-		const p = parentProtocols.find((p) => p.id === parent)
+		const p = parentProtocolsMap.get(parent)
 		if (p) {
 			const categories = Array.from(
 				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))
@@ -111,9 +111,11 @@ export async function getProtocolsMarketCapsByChain({
 }
 
 export async function getProtocolsFDVsByChain({
-	chain
+	chain,
+	protocolMetadata
 }: {
 	chain: string
+	protocolMetadata: Record<string, IProtocolMetadata>
 }): Promise<IProtocolsWithTokensByChainPageData | null> {
 	const [{ protocols, chains, parentProtocols }, tokenList]: [
 		{
@@ -124,7 +126,8 @@ export async function getProtocolsFDVsByChain({
 		Array<IResponseCGMarketsAPI>
 	] = await Promise.all([fetchJson(PROTOCOLS_API), getAllCGTokensList()])
 
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const parentProtocolsMap = new Map(parentProtocols.map((p) => [p.id, p]))
+	const tokenListMap = new Map(tokenList.map((t) => [t.id, t]))
 
 	const finalProtocols = []
 	const finalParentProtocols = {}
@@ -133,7 +136,7 @@ export async function getProtocolsFDVsByChain({
 	for (const protocol of protocols) {
 		if (excludeCategories.has(protocol.category ?? '')) continue
 
-		const fdv = protocol.geckoId ? tokenList.find((t) => t.id === protocol.geckoId)?.['fully_diluted_valuation'] : null
+		const fdv = protocol.geckoId ? tokenListMap.get(protocol.geckoId)?.['fully_diluted_valuation'] : null
 
 		if (protocol.category) {
 			categories.add(protocol.category)
@@ -144,10 +147,7 @@ export async function getProtocolsFDVsByChain({
 			logo: tokenIconUrl(slug(protocol.name)),
 			slug: slug(protocol.name),
 			category: protocol.category,
-			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
-				protocol.chains ??
-				[],
+			chains: (protocol.defillamaId ? protocolMetadata[protocol.defillamaId]?.chains : null) ?? protocol.chains ?? [],
 			value: fdv ?? null
 		}
 
@@ -159,13 +159,13 @@ export async function getProtocolsFDVsByChain({
 	}
 
 	for (const parent in finalParentProtocols) {
-		const p = parentProtocols.find((p) => p.id === parent)
+		const p = parentProtocolsMap.get(parent)
 		if (p) {
 			const categories = Array.from(
 				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))
 			)
 
-			const fdv = p.gecko_id ? tokenList.find((t) => t.id === p.gecko_id)?.['fully_diluted_valuation'] : null
+			const fdv = p.gecko_id ? tokenListMap.get(p.gecko_id)?.['fully_diluted_valuation'] : null
 
 			finalProtocols.push({
 				name: p.name,
@@ -194,9 +194,11 @@ export async function getProtocolsFDVsByChain({
 }
 
 export async function getProtocolsTokenPricesByChain({
-	chain
+	chain,
+	protocolMetadata
 }: {
 	chain: string
+	protocolMetadata: Record<string, IProtocolMetadata>
 }): Promise<IProtocolsWithTokensByChainPageData | null> {
 	const {
 		protocols,
@@ -208,7 +210,7 @@ export async function getProtocolsTokenPricesByChain({
 		parentProtocols: Array<{ id: string; name: string; chains: Array<string>; gecko_id?: string }>
 	} = await fetchJson(PROTOCOLS_API)
 
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const parentProtocolsMap = new Map(parentProtocols.map((p) => [p.id, p]))
 
 	const finalProtocols = []
 	const finalParentProtocols = {}
@@ -240,10 +242,7 @@ export async function getProtocolsTokenPricesByChain({
 			logo: tokenIconUrl(slug(protocol.name)),
 			slug: slug(protocol.name),
 			category: protocol.category,
-			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
-				protocol.chains ??
-				[],
+			chains: (protocol.defillamaId ? protocolMetadata[protocol.defillamaId]?.chains : null) ?? protocol.chains ?? [],
 			value: protocol.geckoId ? (prices[`coingecko:${protocol.geckoId}`]?.price ?? null) : null
 		}
 
@@ -255,7 +254,7 @@ export async function getProtocolsTokenPricesByChain({
 	}
 
 	for (const parent in finalParentProtocols) {
-		const p = parentProtocols.find((p) => p.id === parent)
+		const p = parentProtocolsMap.get(parent)
 		if (p) {
 			const categories = Array.from(
 				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))
@@ -288,9 +287,11 @@ export async function getProtocolsTokenPricesByChain({
 }
 
 export async function getProtocolsAdjustedFDVsByChain({
-	chain
+	chain,
+	protocolMetadata
 }: {
 	chain: string
+	protocolMetadata: Record<string, IProtocolMetadata>
 }): Promise<IProtocolsWithTokensByChainPageData | null> {
 	const [{ protocols, chains, parentProtocols }, emissionsSupplyMetrics]: [
 		{
@@ -313,7 +314,7 @@ export async function getProtocolsAdjustedFDVsByChain({
 		>
 	] = await Promise.all([fetchJson(PROTOCOLS_API), fetchJson(EMISSION_SUPPLY_METRICS)])
 
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const parentProtocolsMap = new Map(parentProtocols.map((p) => [p.id, p]))
 
 	const finalProtocols = []
 	const finalParentProtocols = {}
@@ -354,17 +355,16 @@ export async function getProtocolsAdjustedFDVsByChain({
 			categories.add(protocol.category)
 		}
 
-		protocol.chains.forEach((chain) => chainsWithEmissions.add(chain))
+		for (const chain of protocol.chains) {
+			chainsWithEmissions.add(chain)
+		}
 
 		const p = {
 			name: protocol.name,
 			logo: tokenIconUrl(slugName),
 			slug: slugName,
 			category: protocol.category,
-			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
-				protocol.chains ??
-				[],
+			chains: (protocol.defillamaId ? protocolMetadata[protocol.defillamaId]?.chains : null) ?? protocol.chains ?? [],
 			value: adjustedFDV
 		}
 
@@ -376,7 +376,7 @@ export async function getProtocolsAdjustedFDVsByChain({
 	}
 
 	for (const parent in finalParentProtocols) {
-		const p = parentProtocols.find((p) => p.id === parent)
+		const p = parentProtocolsMap.get(parent)
 		if (p) {
 			const categories = Array.from(
 				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))

@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
 	ColumnOrderState,
@@ -13,6 +12,7 @@ import {
 	VisibilityState,
 	type Table
 } from '@tanstack/react-table'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
 import type { UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { getUnifiedTableColumns } from '../config/ColumnRegistry'
@@ -22,6 +22,9 @@ import { sanitizeRowHeaders } from '../utils/rowHeaders'
 import { setChainMetrics } from './chainMetricsStore'
 import { getGroupingColumnIdsForHeaders } from './grouping'
 import { getRowHeaderFromGroupingColumn, isSelfGroupingValue } from './groupingUtils'
+
+const EMPTY_CHAINS: string[] = []
+const EMPTY_ROWS: NormalizedRow[] = []
 
 interface UseUnifiedTableArgs {
 	config: UnifiedTableConfig
@@ -40,6 +43,7 @@ interface UseUnifiedTableResult {
 	rowHeaders: UnifiedRowHeaderType[]
 	leafRows: NormalizedRow[]
 	columns: ReturnType<typeof getUnifiedTableColumns>
+	expanded: Record<string, boolean>
 }
 
 type UnifiedTableApiResponse = {
@@ -50,10 +54,14 @@ type UnifiedTableApiResponse = {
 const buildQueryString = (config: UnifiedTableConfig, rowHeaders: UnifiedRowHeaderType[]): string => {
 	const params = new URLSearchParams()
 
-	rowHeaders.forEach((header) => params.append('rowHeaders[]', header))
+	for (const header of rowHeaders) {
+		params.append('rowHeaders[]', header)
+	}
 
 	if (config.params?.chains) {
-		config.params.chains.forEach((chain) => params.append('chains[]', chain))
+		for (const chain of config.params.chains) {
+			params.append('chains[]', chain)
+		}
 	}
 
 	return params.toString()
@@ -88,14 +96,15 @@ export function useUnifiedTable({
 	) => {
 		setExpandedInternal((prevExpanded) => {
 			const next = typeof updater === 'function' ? updater(prevExpanded) : updater
-			return next
+			return next === prevExpanded ? { ...next } : next
 		})
 	}
 
 	const sanitizedHeaders = useMemo(() => sanitizeRowHeaders(config.rowHeaders), [config.rowHeaders])
 
-	const paramsKey = useMemo(() => JSON.stringify({ chains: config.params?.chains ?? [] }), [config.params?.chains])
-	const headersKey = useMemo(() => sanitizedHeaders.join('|'), [sanitizedHeaders])
+	const paramsChains = config.params?.chains ?? EMPTY_CHAINS
+	const paramsKey = JSON.stringify({ chains: paramsChains })
+	const headersKey = sanitizedHeaders.join('|')
 
 	const { data, isLoading } = useQuery({
 		queryKey: ['unified-table', paramsKey, headersKey],
@@ -107,12 +116,10 @@ export function useUnifiedTable({
 		setChainMetrics(data?.chainMetrics)
 	}, [data?.chainMetrics])
 
-	const rows = data?.rows ?? []
-
 	const filteredRows = useMemo(() => {
-		const withFilters = filterRowsByConfig(rows, config.filters)
+		const withFilters = filterRowsByConfig(data?.rows ?? EMPTY_ROWS, config.filters)
 		return filterRowsBySearch(withFilters, searchTerm)
-	}, [rows, config.filters, searchTerm])
+	}, [data?.rows, config.filters, searchTerm])
 
 	const columns = useMemo(() => getUnifiedTableColumns(config.customColumns), [config.customColumns])
 	const groupingColumnIds = useMemo(() => getGroupingColumnIdsForHeaders(sanitizedHeaders), [sanitizedHeaders])
@@ -241,6 +248,7 @@ export function useUnifiedTable({
 		isLoading,
 		rowHeaders: sanitizedHeaders,
 		leafRows: filteredRows,
-		columns
+		columns,
+		expanded
 	}
 }

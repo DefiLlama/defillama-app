@@ -1,9 +1,14 @@
+import { buildEvmChainsSet } from '~/constants/chains'
+
 export function formatYieldsPageData(poolsAndConfig: any) {
 	let _pools = poolsAndConfig[0]?.data ?? []
 	let _config = poolsAndConfig[1]?.protocols ?? []
 	let _urls = poolsAndConfig[2] ?? []
 	let _chains = poolsAndConfig[3] ?? []
 	let _lite = poolsAndConfig[4] ?? []
+
+	// Build EVM chains set from API data (chains with chainId are EVM)
+	const evmChainsSet = buildEvmChainsSet(_chains)
 
 	// symbol in _config doesn't account for potential parentProtocol token, updating this here
 	for (const i of Object.values(_config)) {
@@ -20,10 +25,10 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	// add projectName and audit fields from config to pools array
 	_pools = _pools.map((p) => ({
 		...p,
-		projectName: _config[p.project]?.name,
-		audits: _config[p.project]?.audits,
+		projectName: _config[p.project]?.name ?? null,
+		audits: _config[p.project]?.audits ?? null,
 		airdrop: _config[p.project]?.symbol === null || _config[p.project]?.symbol === '-',
-		category: _config[p.project]?.category,
+		category: _config[p.project]?.category ?? null,
 		url: _urls[p.pool] ?? '',
 		apyReward: p.apyReward > 0 ? p.apyReward : null,
 		rewardTokens: p.apyReward > 0 ? p.rewardTokens : [],
@@ -73,18 +78,18 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 
 	const categoryList: Set<string> = new Set()
 
-	_pools.forEach((pool) => {
+	for (const pool of _pools) {
 		// remove potential undefined on projectName
 		if (pool.projectName) {
 			poolsList.push(pool)
 			chainList.add(pool.chain)
-			categoryList.add(pool.category)
+			if (pool.category) categoryList.add(pool.category)
 			projectList.add(pool.projectName)
 		}
-	})
+	}
 
 	let tokenNameMapping = {}
-	for (const key of Object.keys(_config)) {
+	for (const key in _config) {
 		if (key === 'cakedao') continue
 		tokenNameMapping[_config[key].symbol] = _config[key].name
 	}
@@ -96,7 +101,13 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	tokenNameMapping['USDC'] = 'USD Coin'
 	tokenNameMapping['VELO'] = 'Velodrome'
 	// remove any null keys (where no token)
-	tokenNameMapping = Object.fromEntries(Object.entries(tokenNameMapping).filter(([k, _]) => k !== 'null'))
+	const filteredTokenNameMapping: Record<string, string> = {}
+	for (const k in tokenNameMapping) {
+		if (k !== 'null') {
+			filteredTokenNameMapping[k] = tokenNameMapping[k]
+		}
+	}
+	tokenNameMapping = filteredTokenNameMapping
 
 	const symbols = [...new Set(_pools.map((p) => p.symbol.split(' ')[0].split('-')).flat())]
 
@@ -117,7 +128,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 
 	const tokenSymbolsList = ['ALL_BITCOINS', 'ALL_USD_STABLES']
 
-	symbols.forEach((token: string) => {
+	for (const token of symbols as string[]) {
 		if (token) {
 			tokens.push({
 				name: token,
@@ -127,7 +138,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 			})
 			tokenSymbolsList.push(token)
 		}
-	})
+	}
 
 	return {
 		pools: poolsList,
@@ -136,6 +147,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		categoryList: Array.from(categoryList),
 		tokenNameMapping,
 		tokens,
-		tokenSymbolsList
+		tokenSymbolsList,
+		evmChains: Array.from(evmChainsSet)
 	}
 }

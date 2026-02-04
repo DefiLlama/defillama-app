@@ -1,5 +1,5 @@
-import { useDeferredValue, useMemo, useState } from 'react'
 import { matchSorter } from 'match-sorter'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LinkToMetricOrToolPage } from '~/components/Metrics'
 import Layout from '~/layout'

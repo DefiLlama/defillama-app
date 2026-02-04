@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -12,9 +11,10 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { TagGroup } from '~/components/TagGroup'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useTableSearch } from '~/components/Table/utils'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
 import { TableFilters } from '../../../types'
@@ -25,6 +25,9 @@ import { TableBody } from '../../ProTable/TableBody'
 import { TablePagination } from '../../ProTable/TablePagination'
 import { revenueDatasetColumns } from './columns'
 import { useRevenueData } from './useRevenueData'
+
+const EMPTY_CATEGORIES: string[] = []
+const EMPTY_TABLE_DATA: any[] = []
 
 interface RevenueDatasetProps {
 	chains?: string[]
@@ -43,68 +46,80 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 	})
 
 	const { handleTableFiltersChange } = useProDashboardEditorActions()
-	const { data, isLoading, error, refetch } = useRevenueData(chains)
-	const windowSize = useWindowSize()
+	const { data, isLoading, error } = useRevenueData(chains)
+	const width = useBreakpointWidth()
 
 	const [showFilterModal, setShowFilterModal] = React.useState(false)
-	const [includeCategories, setIncludeCategories] = React.useState<string[]>(filters?.categories || [])
-	const [excludeCategories, setExcludeCategories] = React.useState<string[]>(filters?.excludedCategories || [])
+	const [includeCategories, setIncludeCategories] = React.useState<string[]>(filters?.categories ?? EMPTY_CATEGORIES)
+	const [excludeCategories, setExcludeCategories] = React.useState<string[]>(
+		filters?.excludedCategories ?? EMPTY_CATEGORIES
+	)
 
 	React.useEffect(() => {
-		setIncludeCategories(filters?.categories || [])
-		setExcludeCategories(filters?.excludedCategories || [])
+		setIncludeCategories(filters?.categories ?? EMPTY_CATEGORIES)
+		setExcludeCategories(filters?.excludedCategories ?? EMPTY_CATEGORIES)
 	}, [filters?.categories, filters?.excludedCategories])
 
 	const availableCategories = React.useMemo(() => {
 		if (!data || data.length === 0) return [] as string[]
 		const unique = new Set<string>()
-		data.forEach((row: any) => {
+		for (const row of data) {
 			if (row?.category) {
 				unique.add(row.category)
 			}
-		})
+		}
 		return Array.from(unique).sort((a, b) => a.localeCompare(b))
 	}, [data])
 
+	const availableCategoriesSet = React.useMemo(() => new Set(availableCategories), [availableCategories])
+
 	React.useEffect(() => {
-		if (!availableCategories.length) return
-		setIncludeCategories((prev) => prev.filter((cat) => availableCategories.includes(cat)))
-		setExcludeCategories((prev) => prev.filter((cat) => availableCategories.includes(cat)))
-	}, [availableCategories])
+		if (!availableCategoriesSet.size) return
+		setIncludeCategories((prev) => prev.filter((cat) => availableCategoriesSet.has(cat)))
+		setExcludeCategories((prev) => prev.filter((cat) => availableCategoriesSet.has(cat)))
+	}, [availableCategoriesSet])
+
+	const includeCategoriesSet = React.useMemo(() => new Set(includeCategories), [includeCategories])
+	const excludeCategoriesSet = React.useMemo(() => new Set(excludeCategories), [excludeCategories])
+
+	const { filteredIncludeCategories, filteredExcludeCategories } = React.useMemo(
+		() => ({
+			filteredIncludeCategories: includeCategories.filter((cat) => availableCategoriesSet.has(cat)),
+			filteredExcludeCategories: excludeCategories.filter((cat) => availableCategoriesSet.has(cat))
+		}),
+		[includeCategories, excludeCategories, availableCategoriesSet]
+	)
 
 	const filteredData = React.useMemo(() => {
 		if (!data) return []
 		return data.filter((row: any) => {
 			const category = row?.category ?? ''
-			if (includeCategories.length > 0 && !includeCategories.includes(category)) {
+			if (includeCategoriesSet.size > 0 && !includeCategoriesSet.has(category)) {
 				return false
 			}
-			if (excludeCategories.length > 0 && excludeCategories.includes(category)) {
+			if (excludeCategoriesSet.size > 0 && excludeCategoriesSet.has(category)) {
 				return false
 			}
 			return true
 		})
-	}, [data, includeCategories, excludeCategories])
+	}, [data, includeCategoriesSet, excludeCategoriesSet])
 
-	const handleApplyCategoryFilters = React.useCallback(
-		(include: string[], exclude: string[]) => {
-			const sanitizedInclude = include.filter((cat) => availableCategories.includes(cat))
-			const sanitizedExclude = exclude.filter((cat) => availableCategories.includes(cat))
-			setIncludeCategories(sanitizedInclude)
-			setExcludeCategories(sanitizedExclude)
-			if (tableId) {
-				handleTableFiltersChange(tableId, {
-					categories: sanitizedInclude.length ? sanitizedInclude : undefined,
-					excludedCategories: sanitizedExclude.length ? sanitizedExclude : undefined
-				})
-			}
-		},
-		[availableCategories, handleTableFiltersChange, tableId]
-	)
+	const handleApplyCategoryFilters = (include: string[], exclude: string[]) => {
+		const sanitizedInclude = include.filter((cat) => availableCategoriesSet.has(cat))
+		const sanitizedExclude = exclude.filter((cat) => availableCategoriesSet.has(cat))
+		setIncludeCategories(sanitizedInclude)
+		setExcludeCategories(sanitizedExclude)
+		if (tableId) {
+			handleTableFiltersChange(tableId, {
+				categories: sanitizedInclude.length ? sanitizedInclude : undefined,
+				excludedCategories: sanitizedExclude.length ? sanitizedExclude : undefined
+			})
+		}
+	}
 
-	const handleClearCategoryFilters = React.useCallback(() => {
+	const handleClearCategoryFilters = () => {
 		handleApplyCategoryFilters([], [])
-	}, [handleApplyCategoryFilters])
+	}
 
 	const columnsToUse = React.useMemo(() => {
 		if (chains && chains.length > 0) {
@@ -145,10 +160,10 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 			}
 			return col
 		})
-	}, [columnsToUse, filterButtonIsActive, activeCategoryFilterCount])
+	}, [columnsToUse, filterButtonIsActive])
 
 	const instance = useReactTable({
-		data: filteredData || [],
+		data: filteredData.length > 0 ? filteredData : EMPTY_TABLE_DATA,
 		columns: columnsWithFilterButton as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -165,7 +180,8 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {
@@ -183,35 +199,23 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [windowSize])
+	}, [width, instance])
 
-	const [protocolName, setProtocolName] = React.useState('')
-
-	React.useEffect(() => {
-		const columns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			if (columns) {
-				columns.setFilterValue(protocolName)
-			}
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [protocolName, instance])
+	const [protocolName, setProtocolName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	if (isLoading) {
 		return (
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-lg font-semibold">
+						<h3 className="text-lg font-semibold pro-text1">
 							{chains && chains.length > 0 ? `${chains.join(', ')} Revenue` : 'Protocol Revenue'}
 						</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<LoadingSpinner />
-					<p className="pro-text2 text-sm">Loading revenue data...</p>
+					<p className="text-sm pro-text2">Loading revenue data...</p>
 				</div>
 			</div>
 		)
@@ -222,13 +226,13 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-lg font-semibold">
+						<h3 className="text-lg font-semibold pro-text1">
 							{chains && chains.length > 0 ? `${chains.join(', ')} Revenue` : 'Protocol Revenue'}
 						</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 items-center justify-center">
-					<div className="pro-text2 text-center">Failed to load revenue data</div>
+					<div className="text-center pro-text2">Failed to load revenue data</div>
 				</div>
 			</div>
 		)
@@ -238,7 +242,7 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 		<div className="flex h-full w-full flex-col p-4">
 			<div className="mb-3">
 				<div className="flex flex-wrap items-center justify-end gap-4">
-					<h3 className="pro-text1 mr-auto text-lg font-semibold">
+					<h3 className="mr-auto text-lg font-semibold pro-text1">
 						{chains && chains.length > 0 ? `${chains.join(', ')} Revenue` : 'Protocol Revenue'}
 					</h3>
 					<div className="flex flex-wrap items-center justify-end gap-2">
@@ -281,7 +285,7 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 							placeholder="Search protocols..."
 							value={protocolName}
 							onChange={(e) => setProtocolName(e.target.value)}
-							className="pro-border pro-bg1 pro-text1 border px-3 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+							className="border pro-border pro-bg1 px-3 py-1.5 text-sm pro-text1 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 						/>
 					</div>
 				</div>
@@ -294,8 +298,8 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 				onApply={(include, exclude) => handleApplyCategoryFilters(include, exclude)}
 				onClear={handleClearCategoryFilters}
 				categories={availableCategories}
-				initialInclude={includeCategories.filter((cat) => availableCategories.includes(cat))}
-				initialExclude={excludeCategories.filter((cat) => availableCategories.includes(cat))}
+				initialInclude={filteredIncludeCategories}
+				initialExclude={filteredExcludeCategories}
 			/>
 		</div>
 	)

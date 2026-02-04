@@ -7,7 +7,9 @@ const CATEGORY_TITLES: Record<ChartTabType, string> = {
 	yields: 'Yields',
 	stablecoins: 'Stablecoins',
 	'advanced-tvl': 'Advanced TVL',
-	borrowed: 'Borrowed'
+	borrowed: 'Borrowed',
+	'income-statement': 'Income Statement',
+	unlocks: 'Unlocks'
 }
 
 interface CategoryFormHeaderProps {
@@ -17,15 +19,15 @@ interface CategoryFormHeaderProps {
 
 export function CategoryFormHeader({ category, onBack }: CategoryFormHeaderProps) {
 	return (
-		<div className="pro-border mb-3 flex items-center gap-2 border-b pb-3">
+		<div className="mb-3 flex items-center gap-2 border-b pro-border pb-3">
 			<button
 				onClick={onBack}
-				className="pro-hover-bg flex items-center justify-center rounded p-1.5 transition-colors"
+				className="flex items-center justify-center rounded pro-hover-bg p-1.5 transition-colors"
 				title="Back to categories"
 			>
 				<Icon name="arrow-left" height={18} width={18} />
 			</button>
-			<span className="pro-text1 text-sm font-medium">{CATEGORY_TITLES[category]}</span>
+			<span className="text-sm font-medium pro-text1">{CATEGORY_TITLES[category]}</span>
 		</div>
 	)
 }

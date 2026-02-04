@@ -1,17 +1,19 @@
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import Router, { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 
 export function TVLRange({
 	variant = 'primary',
 	nestedMenu,
 	triggerClassName,
-	placement
+	placement,
+	onValueChange
 }: {
 	variant?: 'primary' | 'secondary'
 	nestedMenu?: boolean
 	triggerClassName?: string
 	placement?: Ariakit.PopoverStoreProps['placement']
+	onValueChange?: (min: number | null, max: number | null) => void
 }) {
 	const router = useRouter()
 
@@ -21,35 +23,27 @@ export function TVLRange({
 		const minTvl = form.min?.value
 		const maxTvl = form.max?.value
 
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...router.query,
-					minTvl,
-					maxTvl
-				}
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
+		onValueChange?.(minTvl ? Number(minTvl) : null, maxTvl ? Number(maxTvl) : null)
+
+		const params = new URLSearchParams(window.location.search)
+		if (minTvl) params.set('minTvl', minTvl)
+		else params.delete('minTvl')
+		if (maxTvl) params.set('maxTvl', maxTvl)
+		else params.delete('maxTvl')
+		const queryString = params.toString()
+		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
+		Router.push(newUrl, undefined, { shallow: true })
 	}
 
-	const { minTvl, maxTvl, ...restQuery } = router.query
+	const { minTvl, maxTvl } = router.query
 
 	const handleClear = () => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: restQuery
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
+		const params = new URLSearchParams(window.location.search)
+		params.delete('minTvl')
+		params.delete('maxTvl')
+		const queryString = params.toString()
+		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
+		Router.push(newUrl, undefined, { shallow: true })
 	}
 
 	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl) : null

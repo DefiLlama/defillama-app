@@ -1,10 +1,11 @@
+import * as Ariakit from '@ariakit/react'
 import * as React from 'react'
 import { useMemo } from 'react'
-import * as Ariakit from '@ariakit/react'
+import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
-import { DEFI_SETTINGS_KEYS_SET, FEES_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS_SET, FEES_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { slug, tokenIconUrl } from '~/utils'
 import { IProtocolPageMetrics } from './types'
@@ -30,6 +31,7 @@ const tabs = {
 		route: '/protocol/bridge-aggregators'
 	},
 	options: { id: 'options', name: 'Options Volume', route: '/protocol/options' },
+	tokenRights: { id: 'tokenRights', name: 'Token Rights', route: '/protocol/token-rights' },
 	governance: { id: 'governance', name: 'Governance', route: '/protocol/governance' },
 	forks: { id: 'forks', name: 'Forks', route: '/protocol/forks' }
 } as const
@@ -45,7 +47,8 @@ export function ProtocolOverviewLayout({
 	tab,
 	warningBanners,
 	seoDescription,
-	seoKeywords
+	seoKeywords,
+	entityQuestions
 }: {
 	children: React.ReactNode
 	isCEX?: boolean
@@ -65,9 +68,10 @@ export function ProtocolOverviewLayout({
 	}>
 	seoDescription?: string
 	seoKeywords?: string
+	entityQuestions?: string[]
 }) {
 	const metricFiltersLabel = useMemo(() => {
-		const hasTvl = toggleOptions?.some((option) => DEFI_SETTINGS_KEYS_SET.has(option.key))
+		const hasTvl = toggleOptions?.some((option) => TVL_SETTINGS_KEYS_SET.has(option.key))
 		const hasFees = toggleOptions?.some((option) => FEES_SETTINGS_KEYS_SET.has(option.key))
 
 		if (hasTvl && hasFees) {
@@ -125,6 +129,9 @@ export function ProtocolOverviewLayout({
 		}
 		if (metrics.optionsPremiumVolume || metrics.optionsNotionalVolume) {
 			final.push(tabs.options)
+		}
+		if (metrics.tokenRights) {
+			final.push(tabs.tokenRights)
 		}
 		if (metrics.governance) {
 			final.push(tabs.governance)
@@ -194,7 +201,7 @@ export function ProtocolOverviewLayout({
 								wrapperProps={{
 									className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 								}}
-								className="max-sm:drawer thin-scrollbar z-10 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60dvh] lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
+								className="z-10 flex thin-scrollbar h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:drawer max-sm:rounded-b-none sm:max-h-[60dvh] lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 								portal
 							>
 								<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
@@ -204,7 +211,7 @@ export function ProtocolOverviewLayout({
 								{otherProtocols.map((value, i) => {
 									return (
 										<Ariakit.MenuItem
-											key={'navigate to ' + `/protocol/${slug(value)}`}
+											key={`navigate to /protocol/${slug(value)}`}
 											render={<BasicLink href={`/protocol/${slug(value)}`} />}
 											data-active={name === value}
 											className={`group relative flex items-center gap-2 py-2 ${
@@ -294,6 +301,12 @@ export function ProtocolOverviewLayout({
 							</BasicLink>
 						))}
 				</div>
+				<EntityQuestionsStrip
+					questions={entityQuestions || []}
+					entitySlug={slug(name)}
+					entityType="protocol"
+					entityName={name}
+				/>
 				{children}
 			</div>
 		</Layout>

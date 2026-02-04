@@ -31,6 +31,7 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 		'revenue_30d',
 		'revenue_1y',
 		'average_revenue_1y',
+		'cumulativeRevenue',
 		'perpsVolume24h',
 		'perps_volume_7d',
 		'perps_volume_30d',
@@ -43,24 +44,29 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 		'derivatives_aggregators_volume_30d',
 		'options_volume_24h',
 		'options_volume_7d',
-		'options_volume_30d',
-		'mcap',
-		'fdv'
+		'options_volume_30d'
 	]
 
 	const totals: Partial<Record<keyof NumericMetrics, number>> = {}
 	const seen: Partial<Record<keyof NumericMetrics, boolean>> = {}
 
 	const protocolIds = new Set<string>()
+	const uniqueMcapValues = new Map<string, number>()
+	const uniqueFdvValues = new Map<string, number>()
 
 	for (const row of rows) {
 		const { metrics } = row
 		if (!metrics) continue
 
-		if (row.protocolId) {
-			protocolIds.add(row.protocolId)
-		} else {
-			protocolIds.add(row.id)
+		const protocolKey = row.protocolId ?? row.id
+		protocolIds.add(protocolKey)
+
+		const uniqueKey = row.parentProtocolId ?? protocolKey
+		if (metrics.mcap !== null && metrics.mcap !== undefined && !uniqueMcapValues.has(uniqueKey)) {
+			uniqueMcapValues.set(uniqueKey, metrics.mcap)
+		}
+		if (metrics.fdv !== null && metrics.fdv !== undefined && !uniqueFdvValues.has(uniqueKey)) {
+			uniqueFdvValues.set(uniqueKey, metrics.fdv)
 		}
 
 		for (const key of sumKeys) {
@@ -77,6 +83,13 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 	for (const key of sumKeys) {
 		;(aggregated as any)[key] = seen[key] ? (totals[key] ?? null) : null
 	}
+
+	aggregated.mcap = uniqueMcapValues.size
+		? Array.from(uniqueMcapValues.values()).reduce((total, value) => total + value, 0)
+		: null
+	aggregated.fdv = uniqueFdvValues.size
+		? Array.from(uniqueFdvValues.values()).reduce((total, value) => total + value, 0)
+		: null
 
 	type WeightedChange = {
 		changeKey: keyof NumericMetrics

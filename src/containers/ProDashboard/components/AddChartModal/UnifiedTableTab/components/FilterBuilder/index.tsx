@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import type { TableFilters } from '~/containers/ProDashboard/types'
@@ -168,6 +168,9 @@ const CATEGORY_LABELS: Record<FilterCategory, string> = FILTER_CATEGORIES.reduce
 	{} as Record<FilterCategory, string>
 )
 
+const FILTERS_BY_CATEGORY = getFiltersByCategory()
+const EMPTY_CATEGORY_FILTERS: FilterConfig[] = []
+
 function buildDisplayValue(filter: ActiveFilter): string {
 	const { config, operator, value, minValue, maxValue } = filter
 	const format = config.format || 'currency'
@@ -311,7 +314,6 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 		}
 	}
 
-	const colorClass = CATEGORY_COLORS[config.category]
 	const isBetween = filter.operator === 'between'
 	const displayValue = buildDisplayValue(filter)
 	const hasValue = filter.value !== undefined || filter.minValue !== undefined || filter.maxValue !== undefined
@@ -321,12 +323,11 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 			{categoryLabel}
 		</span>
 	)
-	const editingEmphasis = isEditing ? 'ring-1 ring-(--primary)/60 shadow-sm' : ''
 
 	if (config.type === 'boolean') {
 		return (
 			<div
-				className={`group flex items-start justify-between rounded-md border px-2.5 py-2 ${colorClass} ${editingEmphasis}`}
+				className={`group flex items-start justify-between rounded-md border px-2.5 py-2 ${CATEGORY_COLORS[config.category]} ${isEditing ? 'shadow-sm ring-1 ring-(--primary)/60' : ''}`}
 			>
 				<div className="flex min-w-0 flex-col gap-0.5">
 					<div className="flex items-center gap-1.5">
@@ -344,7 +345,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 				<button
 					type="button"
 					onClick={onRemove}
-					className="rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-60 hover:!opacity-100"
+					className="rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-60 hover:opacity-100!"
 				>
 					<Icon name="x" className="h-3 w-3" />
 				</button>
@@ -355,7 +356,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 	if (!isEditing && hasValue) {
 		return (
 			<div
-				className={`group flex items-start justify-between rounded-md border px-2.5 py-2 ${colorClass} ${editingEmphasis}`}
+				className={`group flex items-start justify-between rounded-md border px-2.5 py-2 ${CATEGORY_COLORS[config.category]} ${isEditing ? 'shadow-sm ring-1 ring-(--primary)/60' : ''}`}
 			>
 				<button type="button" onClick={onStartEdit} className="flex min-w-0 flex-1 items-start gap-1.5 text-left">
 					<div className="flex min-w-0 flex-col gap-0.5">
@@ -374,7 +375,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 				<button
 					type="button"
 					onClick={onRemove}
-					className="rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-60 hover:!opacity-100"
+					className="rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-60 hover:opacity-100!"
 				>
 					<Icon name="x" className="h-3 w-3" />
 				</button>
@@ -384,7 +385,9 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 
 	if (config.type === 'numeric-single') {
 		return (
-			<div className={`flex flex-col gap-1.5 rounded-md border p-2 ${colorClass} ${editingEmphasis}`}>
+			<div
+				className={`flex flex-col gap-1.5 rounded-md border p-2 ${CATEGORY_COLORS[config.category]} ${isEditing ? 'shadow-sm ring-1 ring-(--primary)/60' : ''}`}
+			>
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex min-w-0 items-center gap-1.5">
 						<span className="truncate text-xs font-semibold">{config.label}</span>
@@ -425,7 +428,9 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 	}
 
 	return (
-		<div className={`flex flex-col gap-1.5 rounded-md border p-2 ${colorClass} ${editingEmphasis}`}>
+		<div
+			className={`flex flex-col gap-1.5 rounded-md border p-2 ${CATEGORY_COLORS[config.category]} ${isEditing ? 'shadow-sm ring-1 ring-(--primary)/60' : ''}`}
+		>
 			<div className="flex items-center justify-between gap-2">
 				<div className="flex min-w-0 items-center gap-1.5">
 					<span className="truncate text-xs font-semibold">{config.label}</span>
@@ -447,7 +452,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 					portal
 					gutter={4}
 					sameWidth
-					className="z-[100] rounded border border-(--cards-border) bg-(--cards-bg) py-1 shadow-lg"
+					className="z-100 rounded border border-(--cards-border) bg-(--cards-bg) py-1 shadow-lg"
 				>
 					{OPERATORS.map((op) => (
 						<Ariakit.SelectItem
@@ -527,14 +532,14 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 	}, [savedFilters, pendingFilters])
 
 	const activeFilterIds = useMemo(() => new Set(allActiveFilters.map((f) => f.config.id)), [allActiveFilters])
-	const filtersByCategory = useMemo(() => getFiltersByCategory(), [])
+	const filtersByCategory = FILTERS_BY_CATEGORY
 
 	const filteredCategories = useMemo(() => {
 		const searchLower = search.toLowerCase()
 		const result: Array<{ category: FilterCategory; label: string; filters: FilterConfig[] }> = []
 
 		for (const { key, label } of FILTER_CATEGORIES) {
-			const categoryFilters = filtersByCategory.get(key) || []
+			const categoryFilters = filtersByCategory.get(key) ?? EMPTY_CATEGORY_FILTERS
 			const matchingFilters = categoryFilters.filter((f) => f.label.toLowerCase().includes(searchLower))
 
 			if (matchingFilters.length > 0) {
@@ -547,9 +552,9 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 
 	const totalFiltersAvailable = useMemo(() => {
 		let total = 0
-		filtersByCategory.forEach((categoryFilters) => {
+		for (const categoryFilters of filtersByCategory.values()) {
 			total += categoryFilters.length
-		})
+		}
 		return total
 	}, [filtersByCategory])
 
@@ -564,85 +569,76 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 		[filteredCategories, activeFilterIds]
 	)
 
-	const handleAddFilter = useCallback(
-		(config: FilterConfig) => {
-			if (activeFilterIds.has(config.id)) return
+	const handleAddFilter = (config: FilterConfig) => {
+		if (activeFilterIds.has(config.id)) return
 
-			if (config.type === 'boolean') {
-				const newFilter: ActiveFilter = { config, enabled: true }
-				let filtersToUse = savedFilters
-				if (config.booleanKey === 'parentProtocolsOnly') {
-					filtersToUse = savedFilters.filter((f) => f.config.booleanKey !== 'subProtocolsOnly')
-				} else if (config.booleanKey === 'subProtocolsOnly') {
-					filtersToUse = savedFilters.filter((f) => f.config.booleanKey !== 'parentProtocolsOnly')
-				}
-				const newFilters = activeFilterToTableFilters([...filtersToUse, newFilter], filters)
+		if (config.type === 'boolean') {
+			const newFilter: ActiveFilter = { config, enabled: true }
+			let filtersToUse = savedFilters
+			if (config.booleanKey === 'parentProtocolsOnly') {
+				filtersToUse = savedFilters.filter((f) => f.config.booleanKey !== 'subProtocolsOnly')
+			} else if (config.booleanKey === 'subProtocolsOnly') {
+				filtersToUse = savedFilters.filter((f) => f.config.booleanKey !== 'parentProtocolsOnly')
+			}
+			const newFilters = activeFilterToTableFilters([...filtersToUse, newFilter], filters)
+			onFiltersChange(newFilters)
+		} else {
+			const newFilter: ActiveFilter = {
+				config,
+				operator: '>=' as NumericOperator,
+				value: undefined,
+				minValue: undefined,
+				maxValue: undefined
+			}
+			setPendingFilters((prev) => [...prev, newFilter])
+			setEditingFilterId(config.id)
+		}
+	}
+
+	const handleUpdateFilter = (updatedFilter: ActiveFilter) => {
+		const isPending = pendingFilters.some((f) => f.config.id === updatedFilter.config.id)
+
+		if (isPending) {
+			const hasValue =
+				updatedFilter.value !== undefined ||
+				updatedFilter.minValue !== undefined ||
+				updatedFilter.maxValue !== undefined
+
+			if (hasValue) {
+				setPendingFilters((prev) => prev.filter((f) => f.config.id !== updatedFilter.config.id))
+				const newFilters = activeFilterToTableFilters([...savedFilters, updatedFilter], filters)
 				onFiltersChange(newFilters)
 			} else {
-				const newFilter: ActiveFilter = {
-					config,
-					operator: '>=' as NumericOperator,
-					value: undefined,
-					minValue: undefined,
-					maxValue: undefined
-				}
-				setPendingFilters((prev) => [...prev, newFilter])
-				setEditingFilterId(config.id)
+				setPendingFilters((prev) => prev.map((f) => (f.config.id === updatedFilter.config.id ? updatedFilter : f)))
 			}
-		},
-		[activeFilterIds, savedFilters, filters, onFiltersChange]
-	)
+		} else {
+			const newActiveFilters = savedFilters.map((f) => (f.config.id === updatedFilter.config.id ? updatedFilter : f))
+			const newFilters = activeFilterToTableFilters(newActiveFilters, filters)
+			onFiltersChange(newFilters)
+		}
+	}
 
-	const handleUpdateFilter = useCallback(
-		(updatedFilter: ActiveFilter) => {
-			const isPending = pendingFilters.some((f) => f.config.id === updatedFilter.config.id)
+	const handleRemoveFilter = (filterId: string) => {
+		const isPending = pendingFilters.some((f) => f.config.id === filterId)
 
-			if (isPending) {
-				const hasValue =
-					updatedFilter.value !== undefined ||
-					updatedFilter.minValue !== undefined ||
-					updatedFilter.maxValue !== undefined
+		if (isPending) {
+			setPendingFilters((prev) => prev.filter((f) => f.config.id !== filterId))
+		} else {
+			const newActiveFilters = savedFilters.filter((f) => f.config.id !== filterId)
+			const newFilters = activeFilterToTableFilters(newActiveFilters, filters)
+			onFiltersChange(newFilters)
+		}
+		if (editingFilterId === filterId) {
+			setEditingFilterId(null)
+		}
+	}
 
-				if (hasValue) {
-					setPendingFilters((prev) => prev.filter((f) => f.config.id !== updatedFilter.config.id))
-					const newFilters = activeFilterToTableFilters([...savedFilters, updatedFilter], filters)
-					onFiltersChange(newFilters)
-				} else {
-					setPendingFilters((prev) => prev.map((f) => (f.config.id === updatedFilter.config.id ? updatedFilter : f)))
-				}
-			} else {
-				const newActiveFilters = savedFilters.map((f) => (f.config.id === updatedFilter.config.id ? updatedFilter : f))
-				const newFilters = activeFilterToTableFilters(newActiveFilters, filters)
-				onFiltersChange(newFilters)
-			}
-		},
-		[pendingFilters, savedFilters, filters, onFiltersChange]
-	)
-
-	const handleRemoveFilter = useCallback(
-		(filterId: string) => {
-			const isPending = pendingFilters.some((f) => f.config.id === filterId)
-
-			if (isPending) {
-				setPendingFilters((prev) => prev.filter((f) => f.config.id !== filterId))
-			} else {
-				const newActiveFilters = savedFilters.filter((f) => f.config.id !== filterId)
-				const newFilters = activeFilterToTableFilters(newActiveFilters, filters)
-				onFiltersChange(newFilters)
-			}
-			if (editingFilterId === filterId) {
-				setEditingFilterId(null)
-			}
-		},
-		[pendingFilters, savedFilters, filters, onFiltersChange, editingFilterId]
-	)
-
-	const handleClearAll = useCallback(() => {
+	const handleClearAll = () => {
 		setPendingFilters([])
 		setEditingFilterId(null)
 		const clearedFilters = activeFilterToTableFilters([], filters)
 		onFiltersChange(clearedFilters)
-	}, [filters, onFiltersChange])
+	}
 
 	const toggleCategory = (category: FilterCategory) => {
 		setExpandedCategories((prev) => {
@@ -656,13 +652,13 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 		})
 	}
 
-	const expandAllCategories = useCallback(() => {
+	const expandAllCategories = () => {
 		setExpandedCategories(new Set(filtersByCategory.keys()))
-	}, [filtersByCategory])
+	}
 
-	const collapseAllCategories = useCallback(() => {
+	const collapseAllCategories = () => {
 		setExpandedCategories(new Set())
-	}, [])
+	}
 
 	return (
 		<div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-3 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-3">
@@ -718,7 +714,7 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 						</button>
 					)}
 				</div>
-				<div className="thin-scrollbar flex max-h-[260px] flex-col gap-1.5 overflow-y-auto pr-1">
+				<div className="flex thin-scrollbar max-h-[260px] flex-col gap-1.5 overflow-y-auto pr-1">
 					{filteredCategories.map(({ category, label, filters: categoryFilters }) => {
 						const isExpanded = expandedCategories.has(category) || search.length > 0
 						const availableFilters = categoryFilters.filter((f) => !activeFilterIds.has(f.id))
@@ -800,7 +796,7 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 						</button>
 					)}
 				</div>
-				<div className="thin-scrollbar grid max-h-[260px] grid-cols-[repeat(auto-fit,minmax(220px,1fr))] items-start gap-1.5 overflow-y-auto pr-1">
+				<div className="grid thin-scrollbar max-h-[260px] grid-cols-[repeat(auto-fit,minmax(220px,1fr))] items-start gap-1.5 overflow-y-auto pr-1">
 					{allActiveFilters.length === 0 ? (
 						<div className="flex flex-col items-center justify-center rounded-md border border-dashed border-(--cards-border) py-6 text-center">
 							<Icon name="settings" className="mb-2 h-5 w-5 text-(--text-tertiary)" />

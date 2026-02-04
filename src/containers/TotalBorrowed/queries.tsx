@@ -3,6 +3,7 @@ import { CHART_API, PROTOCOLS_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
+import { IProtocolMetadata } from '~/utils/metadata/types'
 import { ILiteChart, ILiteProtocol } from '../ChainOverview/types'
 
 export interface ITotalBorrowedByChainPageData {
@@ -32,9 +33,11 @@ export interface ITotalBorrowedByChainPageData {
 }
 
 export async function getTotalBorrowedByChain({
-	chain
+	chain,
+	protocolMetadata
 }: {
 	chain: string
+	protocolMetadata: Record<string, IProtocolMetadata>
 }): Promise<ITotalBorrowedByChainPageData | null> {
 	const [{ protocols, parentProtocols }, chart, chains]: [
 		{
@@ -52,13 +55,11 @@ export async function getTotalBorrowedByChain({
 				return null
 			}),
 		fetchJson('https://api.llama.fi/chains2/All').then((data) =>
-			data.chainTvls.filter((chain) => (chain.extraTvl?.borrowed?.tvl ? true : false)).map((chain) => chain.name)
+			data.chainTvls.filter((chain) => !!chain.extraTvl?.borrowed?.tvl).map((chain) => chain.name)
 		)
 	])
 
 	if (!chart || chart.length === 0) return null
-
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
 	const finalProtocols = []
 	const finalParentProtocols = {}
@@ -79,10 +80,7 @@ export async function getTotalBorrowedByChain({
 			logo: tokenIconUrl(slug(protocol.name)),
 			slug: slug(protocol.name),
 			category: protocol.category,
-			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
-				protocol.chains ??
-				[],
+			chains: (protocol.defillamaId ? protocolMetadata[protocol.defillamaId]?.chains : null) ?? protocol.chains ?? [],
 			totalBorrowed,
 			totalPrevMonth,
 			change_1m:

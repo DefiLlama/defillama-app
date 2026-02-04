@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import * as echarts from 'echarts/core'
+import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import type { ISingleSeriesChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { mergeDeep, stringToColour } from '../utils'
@@ -133,6 +134,9 @@ export default function SingleSeriesChart({
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
 
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
+
 	const updateChartInstance = useCallback(
 		(instance: echarts.ECharts | null) => {
 			chartRef.current = instance
@@ -147,13 +151,12 @@ export default function SingleSeriesChart({
 		const chartDom = document.getElementById(id)
 		if (!chartDom) return
 
-		let chartInstance = echarts.getInstanceByDom(chartDom)
-		const isNewInstance = !chartInstance
-		if (!chartInstance) {
-			chartInstance = echarts.init(chartDom)
+		let instance = echarts.getInstanceByDom(chartDom)
+		if (!instance) {
+			instance = echarts.init(chartDom)
 		}
 
-		updateChartInstance(chartInstance)
+		updateChartInstance(instance)
 
 		// override default chart settings
 		for (const option in chartOptions) {
@@ -171,7 +174,7 @@ export default function SingleSeriesChart({
 
 		const shouldHideDataZoom = series.data.length < 2 || hideDataZoom
 
-		chartInstance.setOption({
+		instance.setOption({
 			graphic,
 			tooltip,
 			title: titleDefaults,
@@ -192,15 +195,7 @@ export default function SingleSeriesChart({
 			series
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
 			updateChartInstance(null)
 		}
 	}, [id, defaultChartSettings, series, chartOptions, expandTo100Percent, hideDataZoom, updateChartInstance])

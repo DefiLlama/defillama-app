@@ -1,11 +1,11 @@
-import * as React from 'react'
+import { useQueries } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
-import { useQueries } from '@tanstack/react-query'
+import * as React from 'react'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/MultiSelectCombobox'
 import { Select } from '~/components/Select'
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { getNDistinctColors, getPercentChange, getPrevTvlFromChart } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { Stats } from '../ChainOverview/Stats'
@@ -94,6 +94,9 @@ export const useCompare = ({ chains = [] }: { chains?: string[] }) => {
 	}
 }
 
+// Build chart lookup map for O(1) access
+const chartsMap = new Map(supportedCharts.map((c) => [c.key, c]))
+
 const formatChartData = (chainsData: any, selectedCharts: string[]) => {
 	if (!chainsData || !chainsData.length || !chainsData.every(Boolean)) return []
 
@@ -102,7 +105,7 @@ const formatChartData = (chainsData: any, selectedCharts: string[]) => {
 	let colors = getNDistinctColors(selectedCharts.length * chainsData.length)
 	let colorIndex = 0
 	for (const chart of selectedCharts) {
-		const targetChart = supportedCharts.find((c) => c.key === chart)
+		const targetChart = chartsMap.get(chart)
 		if (!targetChart) continue
 
 		const dateInMs = chart === 'tvlChart'
@@ -140,7 +143,7 @@ const ChartFilters = () => {
 	const { selectedValues, setSelectedValues } = useChainsChartFilterState()
 
 	const selectedChartsNames = React.useMemo(() => {
-		return selectedValues.map((value) => supportedCharts.find((chart) => chart.key === value)?.name ?? '')
+		return selectedValues.map((value) => chartsMap.get(value)?.name ?? '')
 	}, [selectedValues])
 
 	return (
@@ -148,9 +151,6 @@ const ChartFilters = () => {
 			allValues={supportedCharts}
 			selectedValues={selectedValues}
 			setSelectedValues={setSelectedValues}
-			selectOnlyOne={(newOption) => {
-				setSelectedValues([newOption])
-			}}
 			labelType="none"
 			label={
 				<>
@@ -176,15 +176,18 @@ export function CompareChains({ chains }) {
 	const { selectedValues: selectedChartFilters } = useChainsChartFilterState()
 
 	const router = useRouter()
+	const chainsQuery = router.query?.chains
 
 	const { data, isLoading } = useCompare({ chains: router.query?.chains ? [router.query?.chains].flat() : [] })
 
 	const selectedChains = React.useMemo(() => {
-		return [router?.query?.chains]
+		return [chainsQuery]
 			.flat()
 			.filter(Boolean)
 			.map((chain) => ({ value: chain, label: chain }))
-	}, [router.query])
+	}, [chainsQuery])
+
+	const selectedChainValues = React.useMemo(() => selectedChains.map((chain) => chain.value), [selectedChains])
 
 	const tvlCharts = React.useMemo(() => {
 		const charts = {}
@@ -215,7 +218,7 @@ export function CompareChains({ chains }) {
 					<MultiSelectCombobox
 						data={chains}
 						placeholder="Select Chains..."
-						selectedValues={selectedChains.map((chain) => chain.value)}
+						selectedValues={selectedChainValues}
 						setSelectedValues={(values) => {
 							updateRoute('chains', values, router)
 						}}
@@ -285,9 +288,7 @@ const formatTvlChart = ({
 	tvlSettings: Record<string, boolean>
 	extraTvlCharts: IChainOverviewData['extraTvlCharts']
 }) => {
-	const toggledTvlSettings = Object.entries(tvlSettings)
-		.filter(([key, value]) => value)
-		.map(([key]) => key)
+	const toggledTvlSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 
 	if (toggledTvlSettings.length === 0) {
 		const totalValueUSD = getPrevTvlFromChart(tvlChart, 0)
@@ -296,6 +297,8 @@ const formatTvlChart = ({
 		const change24h = getPercentChange(totalValueUSD, tvlPrevDay)
 		return { finalTvlChart: tvlChart, totalValueUSD, valueChange24hUSD, change24h }
 	}
+
+	const toggledTvlSettingsSet = new Set(toggledTvlSettings)
 
 	const store: Record<string, number> = {}
 	for (const [date, tvl] of tvlChart) {
@@ -307,7 +310,7 @@ const formatTvlChart = ({
 	}
 
 	// if liquidstaking and doublecounted are toggled, we need to subtract the overlapping tvl so you don't add twice
-	if (toggledTvlSettings.includes('liquidstaking') && toggledTvlSettings.includes('doublecounted')) {
+	if (toggledTvlSettingsSet.has('liquidstaking') && toggledTvlSettingsSet.has('doublecounted')) {
 		for (const date in store) {
 			store[date] -= extraTvlCharts['dcAndLsOverlap']?.[date] ?? 0
 		}
@@ -322,7 +325,7 @@ const formatTvlChart = ({
 	const tvlPrevDay = getPrevTvlFromChart(finalTvlChart, 1)
 	const valueChange24hUSD = totalValueUSD - tvlPrevDay
 	const change24h = getPercentChange(totalValueUSD, tvlPrevDay)
-	const isGovTokensEnabled = tvlSettings?.govtokens ? true : false
+	const isGovTokensEnabled = !!tvlSettings?.govtokens
 	return { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled }
 }
 

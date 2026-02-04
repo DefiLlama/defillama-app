@@ -11,10 +11,12 @@ import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('expenses', async () => {
-	const { protocols, parentProtocols } = await fetchJson(PROTOCOLS_API)
-	const expenses = await fetchJson(
-		'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
-	)
+	const [{ protocols, parentProtocols }, expenses] = await Promise.all([
+		fetchJson(PROTOCOLS_API),
+		fetchJson(
+			'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
+		)
+	])
 
 	return {
 		props: {
@@ -42,6 +44,7 @@ export const getStaticProps = withPerformanceLogging('expenses', async () => {
 })
 
 const pageName = ['Protocols', 'ranked by', 'Expenses']
+const DEFAULT_SORTING_STATE = [{ id: 'sumAnnualUsdExpenses', desc: true }]
 
 export default function Protocols(props) {
 	return (
@@ -58,7 +61,7 @@ export default function Protocols(props) {
 				columnToSearch={'name'}
 				placeholder={'Search protocol...'}
 				header={'Protocol Expenses'}
-				sortingState={[{ id: 'sumAnnualUsdExpenses', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)
@@ -69,12 +72,10 @@ const columns: ColumnDef<any>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue }) => {
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<BasicLink
 						href={`/protocol/${slug(getValue() as string)}`}

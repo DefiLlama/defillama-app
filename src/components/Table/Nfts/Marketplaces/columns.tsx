@@ -8,15 +8,13 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		header: 'Name',
 		accessorKey: 'exchangeName',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue, row }) => {
 			const name = getValue()
 			const icon = row.original.exchangeName.toLowerCase().replace(' aggregator', '').replace(' ', '-')
 
 			return (
 				<span className="flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo logo={`https://icons.llamao.fi/icons/protocols/${icon}`} data-lgonly />
 					<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{name as string}</span>
 				</span>

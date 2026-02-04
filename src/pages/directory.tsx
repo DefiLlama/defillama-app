@@ -1,11 +1,12 @@
-import { startTransition, useDeferredValue, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import { startTransition, useDeferredValue, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import Layout from '~/layout'
 import { tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -20,7 +21,7 @@ export const getStaticProps = withPerformanceLogging('directory', async () => {
 					logo: tokenIconUrl(protocol.name),
 					route: protocol.url
 				}))
-				.filter((p) => (p.name && p.route ? true : false))
+				.filter((p) => !!(p.name && p.route))
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -28,12 +29,32 @@ export const getStaticProps = withPerformanceLogging('directory', async () => {
 
 const RECENTS_KEY = 'recent_protocols'
 
-export function subscribeToRecentProtocols(callback: () => void) {
-	// Listen for localStorage changes (for other settings)
-	window.addEventListener('recentProtocolsChange', callback)
+const saveRecent = (protocol: { name: string; logo?: string; route: string }) => {
+	try {
+		const existingRaw = typeof window !== 'undefined' ? window.localStorage.getItem(RECENTS_KEY) : null
+		let arr: Array<{ name: string; logo?: string; route: string; count: number; lastVisited: number }> = existingRaw
+			? JSON.parse(existingRaw)
+			: []
 
-	return () => {
-		window.removeEventListener('recentProtocolsChange', callback)
+		const now = Date.now()
+		const idx = arr.findIndex((x) => x.route === protocol.route)
+		if (idx >= 0) {
+			arr[idx].count = (arr[idx].count || 0) + 1
+			arr[idx].lastVisited = now
+		} else {
+			arr.push({ ...protocol, count: 1, lastVisited: now })
+		}
+
+		arr = arr
+			.sort((a, b) => {
+				if (b.count !== a.count) return b.count - a.count
+				return b.lastVisited - a.lastVisited
+			})
+			.slice(0, 6)
+
+		setStorageItem(RECENTS_KEY, JSON.stringify(arr))
+	} catch (e) {
+		console.log('failed to save recent protocol', e)
 	}
 }
 
@@ -53,8 +74,8 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 	const comboboxRef = useRef<HTMLDivElement>(null)
 
 	const recentProtocolsInStorage = useSyncExternalStore(
-		subscribeToRecentProtocols,
-		() => window.localStorage.getItem(RECENTS_KEY) ?? '[]',
+		(callback) => subscribeToStorageKey(RECENTS_KEY, callback),
+		() => getStorageItem(RECENTS_KEY, '[]') ?? '[]',
 		() => '[]'
 	)
 
@@ -74,36 +95,6 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 				})
 				.slice(0, 6)
 		}, [recentProtocolsInStorage])
-
-	const saveRecent = (protocol: { name: string; logo?: string; route: string }) => {
-		try {
-			const existingRaw = typeof window !== 'undefined' ? window.localStorage.getItem(RECENTS_KEY) : null
-			let arr: Array<{ name: string; logo?: string; route: string; count: number; lastVisited: number }> = existingRaw
-				? JSON.parse(existingRaw)
-				: []
-
-			const now = Date.now()
-			const idx = arr.findIndex((x) => x.route === protocol.route)
-			if (idx >= 0) {
-				arr[idx].count = (arr[idx].count || 0) + 1
-				arr[idx].lastVisited = now
-			} else {
-				arr.push({ ...protocol, count: 1, lastVisited: now })
-			}
-
-			arr = arr
-				.sort((a, b) => {
-					if (b.count !== a.count) return b.count - a.count
-					return b.lastVisited - a.lastVisited
-				})
-				.slice(0, 6)
-
-			window.localStorage.setItem(RECENTS_KEY, JSON.stringify(arr))
-			window.dispatchEvent(new Event('recentProtocolsChange'))
-		} catch (e) {
-			console.log('failed to save recent protocol', e)
-		}
-	}
 
 	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
 		e.preventDefault()
@@ -178,7 +169,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 				<Ariakit.ComboboxPopover
 					sameWidth
 					open={true}
-					className="thin-scrollbar top-1 z-10 h-full max-h-[320px] overflow-y-auto rounded-b-md border border-[hsl(204,20%,88%)] bg-(--bg-main) shadow-sm dark:border-[hsl(204,3%,32%)]"
+					className="top-1 z-10 thin-scrollbar h-full max-h-[320px] overflow-y-auto rounded-b-md border border-[hsl(204,20%,88%)] bg-(--bg-main) shadow-sm dark:border-[hsl(204,3%,32%)]"
 				>
 					{matches.length ? (
 						<Ariakit.ComboboxList ref={comboboxRef}>

@@ -1,7 +1,8 @@
-import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
+import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { FormattedName } from '~/components/FormattedName'
 import { Icon } from '~/components/Icon'
@@ -13,19 +14,11 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import { StablecoinAssetChartConfig, StablecoinAssetChartType } from '~/containers/ProDashboard/types'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/containers/Stablecoins/hooks'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { UNRELEASED, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/hooks/data/stablecoins'
 import Layout from '~/layout'
-import {
-	capitalizeFirstLetter,
-	formattedNum,
-	getBlockExplorer,
-	peggedAssetIconUrl,
-	preparePieChartData,
-	slug,
-	toNiceCsvDate
-} from '~/utils'
+import { capitalizeFirstLetter, formattedNum, getBlockExplorer, peggedAssetIconUrl, slug, toNiceCsvDate } from '~/utils'
 import { PeggedAssetByChainTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -40,6 +33,15 @@ const risksHelperTexts = {
 	'crypto-backed':
 		'Crypto-backed assets are backed by cryptoassets locked in a smart contract as collateral. Risks of crypto-backed assets include smart contract risk, collateral volatility and liquidation, and de-pegging.'
 }
+
+const CHART_TYPE_TO_API_TYPE: Record<string, StablecoinAssetChartType> = {
+	'Total Circ': 'totalCirc',
+	Pie: 'chainPie',
+	Dominance: 'chainDominance',
+	Area: 'chainMcaps'
+}
+
+const CHART_TYPE_VALUES = ['Total Circ', 'Pie', 'Dominance', 'Area'] as const
 
 export default function PeggedContainer(props) {
 	let { name, symbol } = props.peggedAssetData
@@ -112,7 +114,7 @@ export const PeggedAssetInfo = ({
 		[chainsData, chainsUnique]
 	)
 
-	const extraPeggeds = [UNRELEASED]
+	const extraPeggeds = [UNRELEASED] as const
 	const [extraPeggedsEnabled, updater] = useLocalStorageSettingsManager('stablecoins')
 
 	const chainTotals = useCalcCirculating(chainCirculatings)
@@ -125,22 +127,21 @@ export const PeggedAssetInfo = ({
 
 	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const rows = [['Timestamp', 'Date', ...chainsUnique, 'Total']]
-		stackedData
-			.sort((a, b) => a.date - b.date)
-			.forEach((day) => {
-				rows.push([
-					day.date,
-					toNiceCsvDate(day.date),
-					...chainsUnique.map((chain) => day[chain] ?? ''),
-					chainsUnique.reduce((acc, curr) => {
-						return (acc += day[curr] ?? 0)
-					}, 0)
-				])
-			})
+		const sortedData = stackedData.sort((a, b) => a.date - b.date)
+		for (const day of sortedData) {
+			rows.push([
+				day.date,
+				toNiceCsvDate(day.date),
+				...chainsUnique.map((chain) => day[chain] ?? ''),
+				chainsUnique.reduce((acc, curr) => {
+					return (acc += day[curr] ?? 0)
+				}, 0)
+			])
+		}
 		return { filename: 'stablecoinsChains.csv', rows: rows as (string | number | boolean)[][] }
-	}, [stackedData, chainsUnique])
+	}
 
 	const getImageExportTitle = () => {
 		const chartTypeMap = {
@@ -157,20 +158,13 @@ export const PeggedAssetInfo = ({
 		return `${slug(name)}-${chartSlug}`
 	}
 
-	const chartTypeToApiType: Record<string, StablecoinAssetChartType> = {
-		'Total Circ': 'totalCirc',
-		Pie: 'chainPie',
-		Dominance: 'chainDominance',
-		Area: 'chainMcaps'
-	}
-
 	const dashboardChartConfig: StablecoinAssetChartConfig = React.useMemo(
 		() => ({
-			id: `stablecoin-asset-${slug(name)}-${chartTypeToApiType[chartType]}`,
+			id: `stablecoin-asset-${slug(name)}-${CHART_TYPE_TO_API_TYPE[chartType]}`,
 			kind: 'stablecoin-asset',
 			stablecoin: name,
 			stablecoinId: slug(name),
-			chartType: chartTypeToApiType[chartType],
+			chartType: CHART_TYPE_TO_API_TYPE[chartType],
 			colSpan: 1
 		}),
 		[name, chartType]
@@ -203,21 +197,15 @@ export const PeggedAssetInfo = ({
 									<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 									<span className="mr-auto font-normal">{symbol && symbol !== '-' ? `(${symbol})` : ''}</span>
 									{peggedAssetData.deprecated ? (
-										<span className="flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
-											<Tooltip
-												content="Deprecated"
-												className="flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-[10px] text-white dark:bg-red-400"
-											>
-												!
-											</Tooltip>
-											<span>Deprecated</span>
-										</span>
+										<Tooltip content="Deprecated protocol" className="text-(--error)">
+											<Icon name="alert-triangle" height={16} width={16} />
+										</Tooltip>
 									) : null}
 								</h1>
 
 								<p className="flex flex-col gap-1">
 									<span className="text-base text-(--text-label)">Market Cap</span>
-									<span className="font-jetbrains min-h-8 text-2xl font-semibold">
+									<span className="min-h-8 font-jetbrains text-2xl font-semibold">
 										{formattedNum(mcap || '0', true)}
 									</span>
 								</p>
@@ -227,17 +215,17 @@ export const PeggedAssetInfo = ({
 									<span className="font-jetbrains">{price === null ? '-' : formattedNum(price, true)}</span>
 								</p>
 
-								{totalCirculating && (
+								{totalCirculating != null ? (
 									<table className="w-full border-collapse text-base">
 										<caption className="pb-1 text-left text-xs text-(--text-label)">Issuance Stats</caption>
 										<tbody>
 											<tr>
 												<th className="text-left font-normal text-(--text-label)">Total Circulating</th>
-												<td className="font-jetbrains text-right">{formattedNum(totalCirculating)}</td>
+												<td className="text-right font-jetbrains">{formattedNum(totalCirculating)}</td>
 											</tr>
 										</tbody>
 									</table>
-								)}
+								) : null}
 
 								{extraPeggeds.length > 0 && (
 									<table className="w-full border-collapse text-base">
@@ -261,7 +249,7 @@ export const PeggedAssetInfo = ({
 															</span>
 														</label>
 													</th>
-													<td className="font-jetbrains text-right">{formattedNum(unreleased)}</td>
+													<td className="text-right font-jetbrains">{formattedNum(unreleased)}</td>
 												</tr>
 											))}
 										</tbody>
@@ -390,7 +378,7 @@ export const PeggedAssetInfo = ({
 					<TagGroup
 						setValue={setChartType}
 						selectedValue={chartType}
-						values={['Total Circ', 'Pie', 'Dominance', 'Area']}
+						values={CHART_TYPE_VALUES}
 						className="m-2 max-sm:w-full"
 						triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 					/>

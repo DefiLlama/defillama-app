@@ -1,6 +1,7 @@
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import Router, { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IAPYRange {
 	nestedMenu?: boolean
@@ -16,35 +17,30 @@ export function APYRange({ nestedMenu, placement }: IAPYRange) {
 		const minApy = form.min?.value
 		const maxApy = form.max?.value
 
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...router.query,
-					minApy,
-					maxApy
-				}
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
+		const eventData: Record<string, number> = {}
+		if (minApy) eventData.min = Number(minApy)
+		if (maxApy) eventData.max = Number(maxApy)
+		if (Object.keys(eventData).length > 0) {
+			trackYieldsEvent(YIELDS_EVENTS.FILTER_APY_RANGE, eventData)
+		}
+
+		const params = new URLSearchParams(window.location.search)
+		if (minApy) params.set('minApy', minApy)
+		else params.delete('minApy')
+		if (maxApy) params.set('maxApy', maxApy)
+		else params.delete('maxApy')
+		const queryString = params.toString()
+		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
+		Router.push(newUrl, undefined, { shallow: true })
 	}
 
 	const handleClear = () => {
-		const { minApy, maxApy, ...restQuery } = router.query
-
-		router.push(
-			{
-				pathname: router.pathname,
-				query: restQuery
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
+		const params = new URLSearchParams(window.location.search)
+		params.delete('minApy')
+		params.delete('maxApy')
+		const queryString = params.toString()
+		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
+		Router.push(newUrl, undefined, { shallow: true })
 	}
 
 	const { minApy, maxApy } = router.query

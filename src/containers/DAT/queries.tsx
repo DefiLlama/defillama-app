@@ -115,10 +115,17 @@ const breakdownColor = (type) => {
 export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
 	const res: IDATInstitutions = await fetchJson(`${TRADFI_API}/institutions`)
 
-	const allAssets = Object.keys(res.assetMetadata).sort(
-		(a, b) => (res.assetMetadata[b].totalUsdValue ?? 0) - (res.assetMetadata[a].totalUsdValue ?? 0)
-	)
-	const colorByAsset = {}
+	// Build array with cached values to avoid lookups during sort
+	const assetEntries: [string, number][] = []
+	for (const key in res.assetMetadata) {
+		assetEntries.push([key, res.assetMetadata[key].totalUsdValue ?? 0])
+	}
+	assetEntries.sort((a, b) => b[1] - a[1])
+	const allAssets: string[] = []
+	for (const [key] of assetEntries) {
+		allAssets.push(key)
+	}
+	const colorByAsset: Record<string, string> = {}
 	let i = 0
 	const colors = getNDistinctColors(allAssets.length + 7).filter((color) => color !== '#673AB7')
 	for (const asset in res.assetMetadata) {
@@ -142,7 +149,7 @@ export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
 			color: colorByAsset[asset],
 			data: []
 		}
-		for (const [date, net, inflow, outflow, purchasePrice, usdValueOfPurchase] of res.flows[asset]) {
+		for (const [date, net, _inflow, _outflow, purchasePrice, usdValueOfPurchase] of res.flows[asset]) {
 			inflowsByAssetByDate[date] = inflowsByAssetByDate[date] ?? {}
 			inflowsByAssetByDate[date][asset] = [purchasePrice || usdValueOfPurchase || 0, net]
 		}
@@ -190,8 +197,10 @@ export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
 	}
 }
 
-interface IInstitutionOverviewByAsset
-	extends Omit<IDATInstitutions['institutionMetadata'][number], 'holdings' | 'totalUsdValue' | 'totalCost'> {
+interface IInstitutionOverviewByAsset extends Omit<
+	IDATInstitutions['institutionMetadata'][number],
+	'holdings' | 'totalUsdValue' | 'totalCost'
+> {
 	realized_mNAV: number | null
 	realistic_mNAV: number | null
 	max_mNAV: number | null
@@ -206,24 +215,44 @@ export interface IDATOverviewDataByAssetProps {
 	dailyFlowsChart: ILineAndBarChartProps['charts']
 	mNAVRealizedChart: {
 		charts: IMultiSeriesChart2Props['charts']
-		data: Array<[number, ...(number | null)[]]>
+		dataset: {
+			source: Array<Record<string, number | null>>
+			dimensions: string[]
+		}
 	}
 	mNAVRealisticChart: {
 		charts: IMultiSeriesChart2Props['charts']
-		data: Array<[number, ...(number | null)[]]>
+		dataset: {
+			source: Array<Record<string, number | null>>
+			dimensions: string[]
+		}
 	}
 	mNAVMaxChart: {
 		charts: IMultiSeriesChart2Props['charts']
-		data: Array<[number, ...(number | null)[]]>
+		dataset: {
+			source: Array<Record<string, number | null>>
+			dimensions: string[]
+		}
 	}
 	institutionsNames: string[]
 }
 
+function toUnixMsTimestamp(ts: number): number {
+	return Number.isFinite(ts) && ts > 0 && ts < 1e12 ? ts * 1e3 : ts
+}
+
 export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOverviewDataByAssetProps | null> {
 	const res: IDATInstitutions = await fetchJson(`${TRADFI_API}/institutions`)
-	const allAssets = Object.keys(res.assetMetadata).sort(
-		(a, b) => (res.assetMetadata[b].totalUsdValue ?? 0) - (res.assetMetadata[a].totalUsdValue ?? 0)
-	)
+	// Build array with cached values to avoid lookups during sort
+	const assetEntries: [string, number][] = []
+	for (const key in res.assetMetadata) {
+		assetEntries.push([key, res.assetMetadata[key].totalUsdValue ?? 0])
+	}
+	assetEntries.sort((a, b) => b[1] - a[1])
+	const allAssets: string[] = []
+	for (const [key] of assetEntries) {
+		allAssets.push(key)
+	}
 	const metadata = res.assetMetadata[asset]
 	const institutions = res.assets[asset]
 
@@ -264,29 +293,21 @@ export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOver
 			mNAV_max[date][institution] = max
 		}
 	}
-	const mNAVRealizedChart = []
-	for (const date in mNAV_realized) {
-		const arr = [+date]
-		for (const inst of finalInstitutions) {
-			arr.push(mNAV_realized[date][inst.ticker] ?? null)
+	const dimensions = ['timestamp', ...finalInstitutions.map((inst) => inst.ticker)]
+
+	const buildDataset = (mnavByDate: Record<string, Record<string, number | null | undefined>>) => {
+		const source: Array<Record<string, number | null>> = []
+
+		for (const date in mnavByDate) {
+			const row: Record<string, number | null> = { timestamp: toUnixMsTimestamp(+date) } as any
+			for (const inst of finalInstitutions) {
+				row[inst.ticker] = (mnavByDate[date] as any)?.[inst.ticker] ?? null
+			}
+			source.push(row)
 		}
-		mNAVRealizedChart.push(arr)
-	}
-	const mNAVRealisticChart = []
-	for (const date in mNAV_realistic) {
-		const arr = [+date]
-		for (const inst of finalInstitutions) {
-			arr.push(mNAV_realistic[date][inst.ticker] ?? null)
-		}
-		mNAVRealisticChart.push(arr)
-	}
-	const mNAVMaxChart = []
-	for (const date in mNAV_max) {
-		const arr = [+date]
-		for (const inst of finalInstitutions) {
-			arr.push(mNAV_max[date][inst.ticker] ?? null)
-		}
-		mNAVMaxChart.push(arr)
+
+		source.sort((a: any, b: any) => (a.timestamp as number) - (b.timestamp as number))
+		return { source, dimensions }
 	}
 
 	const chartColors = getNDistinctColors(finalInstitutions.length)
@@ -319,12 +340,12 @@ export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOver
 					type: 'line',
 					color: chartColors[i],
 					encode: {
-						x: 0,
-						y: i + 1
+						x: 'timestamp',
+						y: inst.ticker
 					}
 				}
 			}),
-			data: mNAVRealizedChart.sort((a, b) => a[0] - b[0])
+			dataset: buildDataset(mNAV_realized)
 		},
 		mNAVRealisticChart: {
 			charts: finalInstitutions.map((inst, i) => {
@@ -334,12 +355,12 @@ export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOver
 					type: 'line',
 					color: chartColors[i],
 					encode: {
-						x: 0,
-						y: i + 1
+						x: 'timestamp',
+						y: inst.ticker
 					}
 				}
 			}),
-			data: mNAVRealisticChart.sort((a, b) => a[0] - b[0])
+			dataset: buildDataset(mNAV_realistic)
 		},
 		mNAVMaxChart: {
 			charts: finalInstitutions.map((inst, i) => {
@@ -349,12 +370,12 @@ export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOver
 					type: 'line',
 					color: chartColors[i],
 					encode: {
-						x: 0,
-						y: i + 1
+						x: 'timestamp',
+						y: inst.ticker
 					}
 				}
 			}),
-			data: mNAVMaxChart.sort((a, b) => a[0] - b[0])
+			dataset: buildDataset(mNAV_max)
 		}
 	}
 }

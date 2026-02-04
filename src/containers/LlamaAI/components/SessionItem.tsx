@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { memo, useRef, useState } from 'react'
+import * as React from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -9,6 +10,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
+import { useClickOutside } from '../hooks/useClickOutside'
 
 interface SessionItemProps {
 	session: ChatSession
@@ -18,7 +20,13 @@ interface SessionItemProps {
 	style: React.CSSProperties
 }
 
-export function SessionItem({ session, isActive, onSessionSelect, handleSidebarToggle, style }: SessionItemProps) {
+export const SessionItem = memo(function SessionItem({
+	session,
+	isActive,
+	onSessionSelect: _onSessionSelect,
+	handleSidebarToggle,
+	style
+}: SessionItemProps) {
 	const router = useRouter()
 	const { authorizedFetch } = useAuthContext()
 	const { deleteSession, updateSessionTitle, isRestoringSession, isDeletingSession, isUpdatingTitle } = useChatHistory()
@@ -53,21 +61,8 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 		}
 	})
 
-	useEffect(() => {
-		const handleClickOutside = (event: MouseEvent) => {
-			if (formRef.current && !formRef.current.contains(event.target as Node)) {
-				setIsEditing(false)
-			}
-		}
-
-		if (isEditing) {
-			document.addEventListener('mousedown', handleClickOutside)
-		}
-
-		return () => {
-			document.removeEventListener('mousedown', handleClickOutside)
-		}
-	}, [isEditing])
+	// Use shared hook for click outside detection
+	useClickOutside(formRef, () => setIsEditing(false), isEditing)
 
 	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
@@ -180,7 +175,7 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 						wrapperProps={{
 							className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 						}}
-						className="max-sm:drawer thin-scrollbar z-50 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) text-(--text-primary) max-sm:rounded-b-none sm:max-h-[60dvh] sm:max-w-md lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
+						className="z-50 flex thin-scrollbar h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) text-(--text-primary) max-sm:drawer max-sm:rounded-b-none sm:max-h-[60dvh] sm:max-w-md lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 					>
 						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 							<Icon name="x" className="h-5 w-5" />
@@ -256,4 +251,4 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 			) : null}
 		</div>
 	)
-}
+})

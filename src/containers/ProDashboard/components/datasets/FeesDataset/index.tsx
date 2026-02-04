@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -12,8 +11,9 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { TagGroup } from '~/components/TagGroup'
-import useWindowSize from '~/hooks/useWindowSize'
+import * as React from 'react'
+import { useTableSearch } from '~/components/Table/utils'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -21,6 +21,8 @@ import { TableBody } from '../../ProTable/TableBody'
 import { TablePagination } from '../../ProTable/TablePagination'
 import { feesDatasetColumns } from './columns'
 import { useFeesData } from './useFeesData'
+
+const EMPTY_DATA: any[] = []
 
 export function FeesDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
@@ -33,10 +35,10 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 	})
 
 	const { data, isLoading, error } = useFeesData(chains)
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
-		data: data || [],
+		data: data ?? EMPTY_DATA,
 		columns: feesDatasetColumns as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -53,7 +55,8 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {
@@ -71,35 +74,23 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [windowSize])
+	}, [instance, width])
 
-	const [protocolName, setProtocolName] = React.useState('')
-
-	React.useEffect(() => {
-		const columns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			if (columns) {
-				columns.setFilterValue(protocolName)
-			}
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [protocolName, instance])
+	const [protocolName, setProtocolName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	if (isLoading) {
 		return (
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-lg font-semibold">
+						<h3 className="text-lg font-semibold pro-text1">
 							{chains && chains.length > 0 ? `${chains.join(', ')} Fees` : 'Protocol Fees'}
 						</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<LoadingSpinner />
-					<p className="pro-text2 text-sm">Loading fees data...</p>
+					<p className="text-sm pro-text2">Loading fees data...</p>
 				</div>
 			</div>
 		)
@@ -110,13 +101,13 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-lg font-semibold">
+						<h3 className="text-lg font-semibold pro-text1">
 							{chains && chains.length > 0 ? `${chains.join(', ')} Fees` : 'Protocol Fees'}
 						</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 items-center justify-center">
-					<div className="pro-text2 text-center">Failed to load fees data</div>
+					<div className="text-center pro-text2">Failed to load fees data</div>
 				</div>
 			</div>
 		)
@@ -126,7 +117,7 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 		<div className="flex h-full w-full flex-col p-4">
 			<div className="mb-3">
 				<div className="flex flex-wrap items-center justify-end gap-4">
-					<h3 className="pro-text1 mr-auto text-lg font-semibold">
+					<h3 className="mr-auto text-lg font-semibold pro-text1">
 						{chains && chains.length > 0 ? `${chains.join(', ')} Fees` : 'Protocol Fees'}
 					</h3>
 					<div className="flex flex-wrap items-center justify-end gap-2">
@@ -169,7 +160,7 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 							placeholder="Search protocols..."
 							value={protocolName}
 							onChange={(e) => setProtocolName(e.target.value)}
-							className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+							className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>
 				</div>

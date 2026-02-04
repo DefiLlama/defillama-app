@@ -39,7 +39,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				const data = await getAdapterByChainPageData({
 					adapterType,
 					chain: chainData.name,
-					route: 'perps'
+					route: 'perps',
+					hasOpenInterest: chainData.openInterest
 				}).catch((e) => {
 					console.info(`Chain page data not found ${adapterType} : chain:${chainName}`, e)
 					return null
@@ -50,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					continue
 				}
 
-				data.protocols.forEach((protocol: any) => {
+				for (const protocol of data.protocols) {
 					const key = protocol.defillamaId || protocol.name
 					if (allProtocolsMap.has(key)) {
 						const existing = allProtocolsMap.get(key)
@@ -65,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 							slug: protocol.slug
 						})
 					}
-				})
+				}
 			}
 
 			const aggregatedProtocols = Array.from(allProtocolsMap.values())

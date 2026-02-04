@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -13,7 +12,7 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
-import { TagGroup } from '~/components/TagGroup'
+import * as React from 'react'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -21,6 +20,8 @@ import { TableBody } from '../../ProTable/TableBody'
 import { TablePagination } from '../../ProTable/TablePagination'
 import { bridgeAggregatorsDatasetColumns } from './columns'
 import { useBridgeAggregatorsData } from './useBridgeAggregatorsData'
+
+const EMPTY_DATA: any[] = []
 
 export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
@@ -36,7 +37,7 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 	const { data, isLoading, error } = useBridgeAggregatorsData(chains)
 
 	const instance = useReactTable({
-		data: data || [],
+		data: data ?? EMPTY_DATA,
 		columns: bridgeAggregatorsDatasetColumns as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -55,7 +56,8 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {
@@ -65,11 +67,11 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 
 	React.useEffect(() => {
 		const columnSizes = {}
-		bridgeAggregatorsDatasetColumns.forEach((column) => {
+		for (const column of bridgeAggregatorsDatasetColumns) {
 			if (column.size) {
 				columnSizes[column.id as string] = column.size
 			}
-		})
+		}
 		instance.setColumnSizing(columnSizes)
 	}, [instance])
 
@@ -84,50 +86,50 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 		}
 	}, [chains, instance])
 
-	const csvData = React.useMemo(() => {
-		const rows = instance.getRowModel().rows
-		const headers = [
-			'Protocol',
-			'24h Change',
-			'7d Change',
-			'24h Volume',
-			'7d Volume',
-			'30d Volume',
-			'% of Total',
-			'Cumulative Volume'
-		]
+	// const csvData = React.useMemo(() => {
+	// 	const rows = instance.getRowModel().rows
+	// 	const headers = [
+	// 		'Protocol',
+	// 		'24h Change',
+	// 		'7d Change',
+	// 		'24h Volume',
+	// 		'7d Volume',
+	// 		'30d Volume',
+	// 		'% of Total',
+	// 		'Cumulative Volume'
+	// 	]
 
-		const data = rows.map((row, index) => {
-			const cumulativeVolume = rows.slice(0, index + 1).reduce((sum, r) => sum + (r.original.total24h || 0), 0)
+	// 	const data = rows.map((row, index) => {
+	// 		const cumulativeVolume = rows.slice(0, index + 1).reduce((sum, r) => sum + (r.original.total24h || 0), 0)
 
-			return [
-				row.original.name,
-				row.original.change_24h,
-				row.original.change_7d,
-				row.original.total24h,
-				row.original.total7d,
-				row.original.total30d,
-				row.original.dominance,
-				cumulativeVolume
-			]
-		})
+	// 		return [
+	// 			row.original.name,
+	// 			row.original.change_24h,
+	// 			row.original.change_7d,
+	// 			row.original.total24h,
+	// 			row.original.total7d,
+	// 			row.original.total30d,
+	// 			row.original.dominance,
+	// 			cumulativeVolume
+	// 		]
+	// 	})
 
-		return { headers, data }
-	}, [instance])
+	// 	return { headers, data }
+	// }, [instance])
 
 	if (isLoading) {
 		return (
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-lg font-semibold">
+						<h3 className="text-lg font-semibold pro-text1">
 							{chains && chains.length > 0 ? `${chains.join(', ')} Bridge Aggregators` : 'Bridge Aggregators Volume'}
 						</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<LoadingSpinner />
-					<p className="pro-text2 text-sm">Loading aggregators data...</p>
+					<p className="text-sm pro-text2">Loading aggregators data...</p>
 				</div>
 			</div>
 		)
@@ -138,13 +140,13 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-lg font-semibold">
+						<h3 className="text-lg font-semibold pro-text1">
 							{chains && chains.length > 0 ? `${chains.join(', ')} Bridge Aggregators` : 'Bridge Aggregators Volume'}
 						</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 items-center justify-center">
-					<div className="pro-text2 text-center">Failed to load aggregators data</div>
+					<div className="text-center pro-text2">Failed to load aggregators data</div>
 				</div>
 			</div>
 		)
@@ -154,7 +156,7 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 		<div className="flex h-full w-full flex-col p-4">
 			<div className="mb-3">
 				<div className="flex flex-wrap items-center justify-end gap-4">
-					<h3 className="pro-text1 mr-auto text-lg font-semibold">
+					<h3 className="mr-auto text-lg font-semibold pro-text1">
 						{chains && chains.length > 0 ? `${chains.join(', ')} Bridge Aggregators` : 'Bridge Aggregators Volume'}
 					</h3>
 					<div className="flex flex-wrap items-center justify-end gap-2">
@@ -200,7 +202,7 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 							placeholder="Search protocols..."
 							value={protocolName}
 							onChange={(e) => setProtocolName(e.target.value)}
-							className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+							className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>
 				</div>

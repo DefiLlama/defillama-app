@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
-import { useRouter } from 'next/router'
 import { ColumnDef, SortingState } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -11,20 +11,33 @@ import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { IProtocolsWithTokensByChainPageData } from './queries'
 
+// Helper to parse exclude query param to Set
+const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
+	if (!param) return new Set()
+	if (typeof param === 'string') return new Set([param])
+	return new Set(param)
+}
+
 export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) {
 	const router = useRouter()
 
-	const { category, chain, ...queries } = router.query
+	const { category, excludeCategory } = router.query
+	const hasCategoryParam = Object.prototype.hasOwnProperty.call(router.query, 'category')
 
 	const { selectedCategories, protocols } = useMemo(() => {
-		const selectedCategories =
-			props.categories.length > 0 && router.query.hasOwnProperty('category') && category === ''
+		const excludeSet = parseExcludeParam(excludeCategory)
+
+		let selectedCategories =
+			props.categories.length > 0 && hasCategoryParam && category === ''
 				? []
 				: category
 					? typeof category === 'string'
 						? [category]
 						: category
 					: props.categories
+
+		// Filter out excludes
+		selectedCategories = excludeSet.size > 0 ? selectedCategories.filter((c) => !excludeSet.has(c)) : selectedCategories
 
 		const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
 
@@ -41,57 +54,7 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 			selectedCategories,
 			protocols
 		}
-	}, [router.query, props, category])
-
-	const addCategory = (newCategory) => {
-		router.push(
-			{
-				pathname: router.basePath,
-				query: {
-					...queries,
-					...(!router.basePath.includes('/chain/') && chain ? { chain } : {}),
-					category: newCategory
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const toggleAllCategories = () => {
-		router.push(
-			{
-				pathname: router.basePath,
-				query: {
-					...queries,
-					...(!router.basePath.includes('/chain/') && chain ? { chain } : {}),
-					category: props.categories
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const clearAllCategories = () => {
-		const newQuery: any = {
-			...queries,
-			...(!router.basePath.includes('/chain/') && chain ? { chain } : {})
-		}
-
-		if (props.categories.length > 0) {
-			newQuery.category = ''
-		}
-
-		router.push(
-			{
-				pathname: router.basePath,
-				query: newQuery
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
+	}, [category, excludeCategory, hasCategoryParam, props.categories, props.protocols])
 
 	const { columns, sortingState } = getMetricNameAndColumns(props.type)
 
@@ -111,10 +74,8 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 							<SelectWithCombobox
 								allValues={props.categories}
 								selectedValues={selectedCategories}
-								setSelectedValues={addCategory}
-								selectOnlyOne={addCategory}
-								toggleAll={toggleAllCategories}
-								clearAll={clearAllCategories}
+								includeQueryKey="category"
+								excludeQueryKey="excludeCategory"
 								nestedMenu={false}
 								label={'Category'}
 								labelType="smol"
@@ -137,11 +98,12 @@ const getProtocolsByCategory = (
 	categoriesToFilter: Array<string>
 ) => {
 	const final = []
+	const categoriesToFilterSet = new Set(categoriesToFilter)
 
 	for (const protocol of protocols) {
 		if (protocol.subRows) {
 			const childProtocols = protocol.subRows.filter((childProtocol) =>
-				categoriesToFilter.includes(childProtocol.category)
+				categoriesToFilterSet.has(childProtocol.category)
 			)
 
 			if (childProtocols.length) {
@@ -151,7 +113,7 @@ const getProtocolsByCategory = (
 			continue
 		}
 
-		if (categoriesToFilter.includes(protocol.category)) {
+		if (categoriesToFilterSet.has(protocol.category)) {
 			final.push(protocol)
 			continue
 		}
@@ -172,6 +134,17 @@ const protocolChartsKeys = {
 	fdv: 'fdv'
 }
 
+const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
+	<span className="flex flex-col gap-1">
+		{chains.map((chain) => (
+			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
+				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<span>{chain}</span>
+			</span>
+		))}
+	</span>
+)
+
 const defaultColumns = (
 	type: IProtocolsWithTokensByChainPageData['type']
 ): ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] => {
@@ -181,19 +154,8 @@ const defaultColumns = (
 			header: 'Name',
 			accessorFn: (protocol) => protocol.name,
 			enableSorting: false,
-			cell: ({ getValue, row, table }) => {
+			cell: ({ getValue, row }) => {
 				const value = getValue() as string
-				const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-				const Chains = () => (
-					<span className="flex flex-col gap-1">
-						{row.original.chains.map((chain) => (
-							<span key={`/chain/${chain}/${row.original.slug}`} className="flex items-center gap-1">
-								<TokenLogo logo={chainIconUrl(chain)} size={14} />
-								<span>{chain}</span>
-							</span>
-						))}
-					</span>
-				)
 
 				const basePath = ['Chain', 'Rollup'].includes(row.original.category) ? 'chain' : 'protocol'
 				const chartKey =
@@ -222,10 +184,7 @@ const defaultColumns = (
 								)}
 							</button>
 						) : null}
-
-						<span className="shrink-0" onClick={row.getToggleExpandedHandler()}>
-							{index + 1}
-						</span>
+						<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 						<TokenLogo logo={row.original.logo} data-lgonly />
 
@@ -240,7 +199,10 @@ const defaultColumns = (
 									{value}
 								</BasicLink>
 
-								<Tooltip content={<Chains />} className="text-[0.7rem] text-(--text-disabled)">
+								<Tooltip
+									content={<ProtocolChainsComponent chains={row.original.chains} />}
+									className="text-[0.7rem] text-(--text-disabled)"
+								>
 									{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 								</Tooltip>
 							</span>
@@ -288,7 +250,6 @@ const mcapColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]
 		header: 'Market Cap',
 		accessorFn: (protocol) => protocol.value,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -303,7 +264,6 @@ const fdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>
 		header: 'FDV',
 		accessorFn: (protocol) => protocol.value,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -318,7 +278,6 @@ const priceColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0
 		header: 'Token Price',
 		accessorFn: (protocol) => protocol.value,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
@@ -333,7 +292,6 @@ const outstandingFdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['prot
 		header: 'Outstanding FDV',
 		accessorFn: (protocol) => protocol.value,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText:

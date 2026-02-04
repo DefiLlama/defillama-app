@@ -1,6 +1,7 @@
-import { lazy, Suspense, useMemo } from 'react'
-import { useRouter } from 'next/router'
+import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
+import { useRouter } from 'next/router'
+import { lazy, Suspense, useMemo, useRef, useState } from 'react'
 import { useGetTokenPrice } from '~/api/categories/protocols/client'
 import { Bookmark } from '~/components/Bookmark'
 import { feesOptionsMap, tvlOptionsMap } from '~/components/Filters/options'
@@ -11,15 +12,27 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { DEFI_SETTINGS_KEYS_SET, FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import {
+	TVL_SETTINGS_KEYS_SET,
+	FEES_SETTINGS,
+	isTvlSettingsKey,
+	useLocalStorageSettingsManager
+} from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { ProtocolChart } from './Chart/ProtocolChart'
 import { Flag } from './Flag'
+import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import { ProtocolOverviewLayout } from './Layout'
 import { IProtocolOverviewPageData } from './types'
 
+const EMPTY_COMPETITORS: Array<{ name: string; tvl: number }> = []
+
 const IncomeStatement = lazy(() => import('./IncomeStatement').then((module) => ({ default: module.IncomeStatement })))
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((module) => ({ default: module.SubscribeProModal }))
+)
 
 export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	const router = useRouter()
@@ -56,6 +69,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			tab="information"
 			seoDescription={props.seoDescription}
 			seoKeywords={props.seoKeywords}
+			entityQuestions={props.entityQuestions}
 		>
 			<LinkPreviewCard
 				cardName={props.name}
@@ -68,11 +82,14 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 				<div className="col-span-1 row-[2/3] hidden flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:row-[1/2] xl:flex xl:min-h-[360px]">
 					<h1 className="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
-						<span className="font-bold">
-							{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
-						</span>
+						<span className="font-bold">{props.name}</span>
 						{props.token.symbol && props.token.symbol !== '-' ? (
-							<span className="mr-auto font-normal">({props.token.symbol})</span>
+							<span className="font-normal">({props.token.symbol})</span>
+						) : null}
+						{props.deprecated ? (
+							<Tooltip content="Deprecated protocol" className="text-(--error)">
+								<Icon name="alert-triangle" height={18} width={18} />
+							</Tooltip>
 						) : null}
 						<Bookmark readableName={props.name} />
 					</h1>
@@ -95,18 +112,21 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 							formatPrice={formatPrice}
 						/>
 					)}
-					<KeyMetrics {...props} formatPrice={formatPrice} />
+					<KeyMetrics {...props} formatPrice={formatPrice} tvl={tvl} computedOracleTvs={oracleTvs} />
 				</div>
 				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
 					<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 						<div className="flex flex-col gap-6 xl:hidden">
 							<h1 className="flex flex-wrap items-center gap-2 text-xl">
 								<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
-								<span className="font-bold">
-									{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
-								</span>
+								<span className="font-bold">{props.name}</span>
 								{props.token.symbol && props.token.symbol !== '-' ? (
-									<span className="mr-auto font-normal">({props.token.symbol})</span>
+									<span className="font-normal">({props.token.symbol})</span>
+								) : null}
+								{props.deprecated ? (
+									<Tooltip content="Deprecated protocol" className="text-(--error)">
+										<Icon name="alert-triangle" height={18} width={18} />
+									</Tooltip>
 								) : null}
 								<Bookmark readableName={props.name} />
 							</h1>
@@ -134,14 +154,18 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 					</div>
 					{props.hasKeyMetrics ? (
 						<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:hidden">
-							<KeyMetrics {...props} formatPrice={formatPrice} />
+							<KeyMetrics {...props} formatPrice={formatPrice} tvl={tvl} computedOracleTvs={oracleTvs} />
 						</div>
 					) : null}
 				</div>
 				<AdditionalInfo {...props} />
 				{props.incomeStatement?.data ? (
 					<Suspense fallback={<></>}>
-						<IncomeStatement {...props} />
+						<IncomeStatement
+							name={props.name}
+							incomeStatement={props.incomeStatement}
+							hasIncentives={props.metrics?.incentives}
+						/>
 					</Suspense>
 				) : null}
 			</div>
@@ -160,7 +184,7 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 		const oracleTvsByChainMap = {}
 
 		for (const chain in props.currentTvlByChain ?? {}) {
-			if (DEFI_SETTINGS_KEYS_SET.has(chain)) {
+			if (TVL_SETTINGS_KEYS_SET.has(chain)) {
 				const option = tvlOptionsMap.get(chain as any)
 				if (option && chain !== 'offers') {
 					toggleOptions.push(option)
@@ -175,7 +199,8 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 				continue
 			}
 
-			if (extraTvlsEnabled[extraTvlKey.toLowerCase()]) {
+			const normalizedExtraKey = extraTvlKey.toLowerCase()
+			if (isTvlSettingsKey(normalizedExtraKey) && extraTvlsEnabled[normalizedExtraKey]) {
 				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + props.currentTvlByChain[chain]
 				continue
 			}
@@ -187,7 +212,7 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 
 		// Process oracle TVS by chain
 		for (const chain in props.oracleTvs ?? {}) {
-			if (DEFI_SETTINGS_KEYS_SET.has(chain)) {
+			if (TVL_SETTINGS_KEYS_SET.has(chain)) {
 				const option = tvlOptionsMap.get(chain as any)
 				if (option && chain !== 'offers') {
 					if (!toggleOptions.some((o) => o.key === option.key)) {
@@ -204,7 +229,8 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 				continue
 			}
 
-			if (extraTvlsEnabled[extraTvlKey.toLowerCase()]) {
+			const normalizedExtraKey = extraTvlKey.toLowerCase()
+			if (isTvlSettingsKey(normalizedExtraKey) && extraTvlsEnabled[normalizedExtraKey]) {
 				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + props.oracleTvs[chain]
 				continue
 			}
@@ -284,7 +310,7 @@ const PrimaryValue = ({
 						className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 					/>
 				</span>
-				<span className="font-jetbrains min-h-8 text-2xl font-semibold" suppressHydrationWarning>
+				<span className="min-h-8 font-jetbrains text-2xl font-semibold" suppressHydrationWarning>
 					{formatPrice(value)}
 				</span>
 			</p>
@@ -304,7 +330,7 @@ const PrimaryValue = ({
 					/>
 				</span>
 				<span className="flex flex-nowrap items-center gap-2">
-					<span className="font-jetbrains min-h-8 text-2xl font-semibold" suppressHydrationWarning>
+					<span className="min-h-8 font-jetbrains text-2xl font-semibold" suppressHydrationWarning>
 						{formatPrice(value)}
 					</span>
 					<Icon
@@ -333,23 +359,46 @@ const PrimaryValue = ({
 
 interface IKeyMetricsProps extends IProtocolOverviewPageData {
 	formatPrice: (value: number | string | null) => string | number | null
+	tvl?: number
+	computedOracleTvs?: number
 }
 
 export const KeyMetrics = (props: IKeyMetricsProps) => {
+	const containerRef = useRef<HTMLDivElement>(null)
+
 	if (!props.hasKeyMetrics) return null
+
+	const isOracleProtocol = props.oracleTvs != null
+	const primaryValue = isOracleProtocol ? props.computedOracleTvs : props.tvl
+	const { title: primaryLabel } = getPrimaryValueLabelType(isOracleProtocol ? 'Oracle' : props.category)
+
+	const hasTvlData = isOracleProtocol
+		? props.oracleTvs != null
+		: props.metrics.tvl && props.currentTvlByChain != null && Object.keys(props.currentTvlByChain).length > 0
+
 	return (
 		<div className="flex flex-1 flex-col gap-2">
-			<h2 className="group relative flex items-center gap-1 font-semibold" id="key-metrics">
-				Key Metrics
-				<a
-					aria-hidden="true"
-					tabIndex={-1}
-					href="#key-metrics"
-					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+			<div className="flex items-center justify-between">
+				<h2 className="group relative flex items-center gap-1 font-semibold" id="key-metrics">
+					Key Metrics
+					<a
+						aria-hidden="true"
+						tabIndex={-1}
+						href="#key-metrics"
+						className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+					/>
+					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+				</h2>
+				<KeyMetricsPngExportButton
+					containerRef={containerRef}
+					protocolName={props.name}
+					primaryValue={primaryValue}
+					primaryLabel={primaryLabel}
+					formatPrice={props.formatPrice}
+					hasTvlData={hasTvlData}
 				/>
-				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
-			</h2>
-			<div className="flex flex-col">
+			</div>
+			<div className="flex flex-col" ref={containerRef}>
 				{props.oracleTvs ? <TVL formatPrice={props.formatPrice} {...props} /> : null}
 				<Fees formatPrice={props.formatPrice} {...props} />
 				<Revenue formatPrice={props.formatPrice} {...props} />
@@ -428,7 +477,7 @@ const Articles = (props: IProtocolOverviewPageData) => {
 				</h2>
 				<a href="https://www.dlnews.com">
 					<svg width={72} height={18}>
-						<use href={`/icons/dlnews.svg#dlnews-logo`} />
+						<use href={`/assets/dlnews.svg#dlnews-logo`} />
 					</svg>
 				</a>
 			</div>
@@ -1152,7 +1201,7 @@ function BridgeVolume(props: IKeyMetricsProps) {
 	let total30d = 0
 	let totalAllTime = 0
 
-	props.bridgeVolume.forEach((item) => {
+	for (const item of props.bridgeVolume) {
 		const volume = (item.depositUSD + item.withdrawUSD) / 2
 		const timestamp = new Date(+item.date * 1000).getTime()
 
@@ -1169,7 +1218,7 @@ function BridgeVolume(props: IKeyMetricsProps) {
 		if (timestamp >= oneDayAgo) {
 			total24h += volume
 		}
-	})
+	}
 
 	if (total30d > 0) {
 		metrics.push({
@@ -1322,7 +1371,7 @@ const Expenses = (props: IKeyMetricsProps) => {
 					isLending={props.category === 'Lending'}
 					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>
-				<span className="font-jetbrains ml-auto">{props.formatPrice(props.expenses.total)}</span>
+				<span className="ml-auto font-jetbrains">{props.formatPrice(props.expenses.total)}</span>
 			</summary>
 			<div className="mb-3 flex flex-col">
 				<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) py-1 group-last:border-none">
@@ -1396,7 +1445,7 @@ const TokenLiquidity = (props: IKeyMetricsProps) => {
 					isLending={props.category === 'Lending'}
 					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(props.tokenLiquidity.total, true)}</span>
+				<span className="ml-auto font-jetbrains">{formattedNum(props.tokenLiquidity.total, true)}</span>
 			</summary>
 			<div className="mb-3 flex flex-col">
 				{props.tokenLiquidity?.pools.map((pool) => (
@@ -1448,7 +1497,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 								isLending={props.category === 'Lending'}
 								className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 							/>
-							<span className="font-jetbrains ml-auto">{props.formatPrice(props.tokenCGData.price.current)}</span>
+							<span className="ml-auto font-jetbrains">{props.formatPrice(props.tokenCGData.price.current)}</span>
 						</summary>
 						<div className="mb-3 flex flex-col">
 							<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none">
@@ -1528,7 +1577,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 							isLending={props.category === 'Lending'}
 							className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 						/>
-						<span className="font-jetbrains ml-auto">{props.formatPrice(props.tokenCGData.volume24h.total)}</span>
+						<span className="ml-auto font-jetbrains">{props.formatPrice(props.tokenCGData.volume24h.total)}</span>
 					</summary>
 					<div className="mb-3 flex flex-col">
 						<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none">
@@ -1575,6 +1624,8 @@ const SmolStats = ({
 	openSmolStatsSummaryByDefault?: boolean
 	dataType: string
 }) => {
+	const restOfData = useMemo(() => data.slice(1), [data])
+
 	if (data.length === 0) return null
 
 	if (data.length === 1) {
@@ -1593,7 +1644,7 @@ const SmolStats = ({
 					isLending={category === 'Lending'}
 					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>
-				<span className="font-jetbrains ml-auto">{formatPrice(data[0].value)}</span>
+				<span className="ml-auto font-jetbrains">{formatPrice(data[0].value)}</span>
 			</p>
 		)
 	}
@@ -1620,10 +1671,10 @@ const SmolStats = ({
 					isLending={category === 'Lending'}
 					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>
-				<span className="font-jetbrains ml-auto">{formatPrice(data[0].value)}</span>
+				<span className="ml-auto font-jetbrains">{formatPrice(data[0].value)}</span>
 			</summary>
 			<div className="mb-3 flex flex-col">
-				{data.slice(1).map((metric) => (
+				{restOfData.map((metric) => (
 					<p
 						className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none"
 						key={`${metric.name}-${metric.value}-${protocolName}`}
@@ -1635,7 +1686,7 @@ const SmolStats = ({
 						) : (
 							<span className="text-(--text-label)">{metric.name}</span>
 						)}
-						<span className="font-jetbrains ml-auto">{formatPrice(metric.value)}</span>
+						<span className="ml-auto font-jetbrains">{formatPrice(metric.value)}</span>
 					</p>
 				))}
 			</div>
@@ -1705,7 +1756,7 @@ const Treasury = (props: IProtocolOverviewPageData) => {
 					isLending={props.category === 'Lending'}
 					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(props.treasury.total, true)}</span>
+				<span className="ml-auto font-jetbrains">{formattedNum(props.treasury.total, true)}</span>
 			</summary>
 			<div className="mb-3 flex flex-col">
 				{props.treasury.majors ? (
@@ -1759,7 +1810,7 @@ const Raises = (props: IProtocolOverviewPageData) => {
 					isLending={props.category === 'Lending'}
 					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>
-				<span className="font-jetbrains ml-auto">
+				<span className="ml-auto font-jetbrains">
 					{formattedNum(props.raises.reduce((sum, r) => sum + Number(r.amount), 0) * 1_000_000, true)}
 				</span>
 			</summary>
@@ -2070,7 +2121,7 @@ const MethodologyByAdapter = ({
 	)
 }
 
-function Unlocks(props: IProtocolOverviewPageData) {
+function _Unlocks(props: IProtocolOverviewPageData) {
 	const unlocks = props.unlocks
 	if (!unlocks) return null
 	return (
@@ -2113,7 +2164,7 @@ function Unlocks(props: IProtocolOverviewPageData) {
 	)
 }
 
-function Governance(props: IProtocolOverviewPageData) {
+function _Governance(props: IProtocolOverviewPageData) {
 	const governance = props.governance
 	if (!governance) return null
 	return (
@@ -2260,21 +2311,72 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 }
 
 const Competitors = (props: IProtocolOverviewPageData) => {
-	if (!props.competitors?.length) return null
+	const competitors = props.competitors ?? EMPTY_COMPETITORS
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
+	const { isAuthenticated, hasActiveSubscription, loaders } = useAuthContext()
+	const comparisonHref = useMemo(() => {
+		const latestTvl = props.tvlChartData?.[props.tvlChartData.length - 1]?.[1]
+		const entries = [
+			{
+				slug: slug(props.name),
+				tvl: typeof latestTvl === 'number' ? latestTvl : 0
+			},
+			...competitors.map((similarProtocol) => ({
+				slug: slug(similarProtocol.name),
+				tvl: typeof similarProtocol.tvl === 'number' ? similarProtocol.tvl : 0
+			}))
+		]
+		const bySlug = new Map<string, number>()
+		for (const entry of entries) {
+			const prev = bySlug.get(entry.slug)
+			if (prev === undefined || entry.tvl > prev) {
+				bySlug.set(entry.slug, entry.tvl)
+			}
+		}
+		const slugs = Array.from(bySlug, ([itemSlug, tvl]) => ({ slug: itemSlug, tvl }))
+			.sort((a, b) => b.tvl - a.tvl)
+			.slice(0, 10)
+			.map((item) => item.slug)
+		if (slugs.length === 0) return null
+		const params = new URLSearchParams({
+			comparison: 'protocols',
+			items: slugs.join(','),
+			step: 'select-metrics'
+		})
+		return `/pro?${params.toString()}`
+	}, [competitors, props.name, props.tvlChartData])
+	const canOpenComparison = !loaders.userLoading && isAuthenticated && hasActiveSubscription
+	if (competitors.length === 0) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
-			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="competitors">
-				Competitors
-				<a
-					aria-hidden="true"
-					tabIndex={-1}
-					href="#competitors"
-					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
-				/>
-				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
-			</h2>
+			<div className="flex items-center justify-between gap-2">
+				<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="competitors">
+					Competitors
+					<a
+						aria-hidden="true"
+						tabIndex={-1}
+						href="#competitors"
+						className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+					/>
+					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+				</h2>
+				{comparisonHref ? (
+					<BasicLink
+						href={comparisonHref}
+						onClick={(event) => {
+							if (canOpenComparison) return
+							event.preventDefault()
+							subscribeModalStore.show()
+						}}
+						className="rounded-md border border-(--primary) px-2 py-1.5 text-xs text-(--primary) hover:bg-(--primary)/10 focus-visible:bg-(--primary)/10"
+					>
+						Create comparison dashboard
+					</BasicLink>
+				) : null}
+			</div>
 			<div className="flex flex-wrap items-center gap-4">
-				{props.competitors.map((similarProtocol) => (
+				{competitors.map((similarProtocol) => (
 					<a
 						href={`/protocol/${slug(similarProtocol.name)}`}
 						key={`${props.name}-competitors-${similarProtocol.name}`}
@@ -2284,6 +2386,11 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 					>{`${similarProtocol.name}${similarProtocol.tvl ? ` (${formattedNum(similarProtocol.tvl, true)})` : ''}`}</a>
 				))}
 			</div>
+			{shouldRenderModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 		</div>
 	)
 }

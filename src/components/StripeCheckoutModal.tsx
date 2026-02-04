@@ -1,4 +1,3 @@
-import { useCallback, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import {
 	Elements,
@@ -10,17 +9,26 @@ import {
 } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { useQueryClient } from '@tanstack/react-query'
+import { useCallback, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { AUTH_SERVER, STRIPE_PUBLISHABLE_KEY } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 const stripeInstance = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null
 
+const formatAmount = (cents: number, currency: string) => {
+	const amount = cents / 100
+	return new Intl.NumberFormat('en-US', {
+		style: 'currency',
+		currency: currency.toUpperCase()
+	}).format(amount)
+}
+
 interface StripeCheckoutModalProps {
 	isOpen: boolean
 	onClose: () => void
 	paymentMethod: 'stripe'
-	type: 'api' | 'contributor' | 'llamafeed'
+	type: 'api' | 'llamafeed'
 	billingInterval?: 'year' | 'month'
 	isTrial?: boolean
 }
@@ -141,14 +149,6 @@ export function StripeCheckoutModal({
 
 	// Render upgrade payment form
 	if (isUpgrade && upgradeClientSecret && requiresPayment) {
-		const formatAmount = (cents: number, currency: string) => {
-			const amount = cents / 100
-			return new Intl.NumberFormat('en-US', {
-				style: 'currency',
-				currency: currency.toUpperCase()
-			}).format(amount)
-		}
-
 		const planName = type === 'api' ? 'API' : type === 'llamafeed' ? 'Pro' : type
 		const billingPeriod = billingInterval === 'year' ? 'Annual' : 'Monthly'
 

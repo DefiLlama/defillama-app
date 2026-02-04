@@ -22,7 +22,10 @@ export function TokenLogo({ logo = null, size = 24, fallbackLogo, ...rest }: Tok
 			className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover data-[lgonly=true]:hidden lg:data-[lgonly=true]:inline-block"
 			loading="lazy"
 			onError={(e) => {
-				e.currentTarget.src = fallbackLogo || '/icons/placeholder.png'
+				const img = e.currentTarget
+				// Prevent infinite error loops if the fallback also fails
+				img.onerror = null
+				img.src = fallbackLogo || '/assets/placeholder.png'
 			}}
 		/>
 	)

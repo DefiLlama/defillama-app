@@ -24,6 +24,8 @@ export const yieldsColumnMetadata = {
 	ltv: { name: 'LTV', description: 'Loan-to-Value ratio - Maximum borrowing capacity' }
 }
 
+const yieldsColumnKeys = Object.keys(yieldsColumnMetadata)
+
 const columnGroups = [
 	{
 		title: 'Core Metrics',
@@ -59,6 +61,91 @@ interface YieldsColumnManagementPanelProps {
 	moveColumnDown?: (columnKey: string) => void
 }
 
+const ColumnButton = ({
+	columnKey,
+	currentColumns,
+	columnOrder,
+	moveColumnUp,
+	moveColumnDown,
+	toggleColumnVisibility
+}: {
+	columnKey: string
+	currentColumns: Record<string, boolean>
+	columnOrder: string[]
+	moveColumnUp: (columnKey: string) => void
+	moveColumnDown: (columnKey: string) => void
+	toggleColumnVisibility: (columnKey: string, isVisible: boolean) => void
+}) => {
+	const metadata = yieldsColumnMetadata[columnKey]
+	const isActive = currentColumns[columnKey]
+
+	if (isActive) {
+		const visibleColumnsInOrder = columnOrder.filter((key) => currentColumns[key])
+		const actualIndex = visibleColumnsInOrder.indexOf(columnKey)
+		const isFirst = actualIndex === 0
+		const isLast = actualIndex === visibleColumnsInOrder.length - 1
+
+		return (
+			<div
+				className="flex w-full items-center justify-between rounded-md border pro-divider pro-bg2 pro-hover-bg p-2 transition-colors"
+				title={metadata.description}
+			>
+				<div className="flex items-center gap-2">
+					<Icon name="check" height={12} width={12} className="text-(--success)" />
+					<span className="text-xs pro-text1">{metadata.name}</span>
+				</div>
+				<div className="flex items-center gap-1">
+					{moveColumnUp && !isFirst && (
+						<button
+							onClick={(e) => {
+								e.stopPropagation()
+								moveColumnUp(columnKey)
+							}}
+							className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
+							title="Move up"
+						>
+							<Icon name="chevron-up" height={10} width={10} />
+						</button>
+					)}
+					{moveColumnDown && !isLast && (
+						<button
+							onClick={(e) => {
+								e.stopPropagation()
+								moveColumnDown(columnKey)
+							}}
+							className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
+							title="Move down"
+						>
+							<Icon name="chevron-down" height={10} width={10} />
+						</button>
+					)}
+					<button
+						onClick={(e) => {
+							e.stopPropagation()
+							toggleColumnVisibility(columnKey, false)
+						}}
+						className="p-1 pro-text3 transition-colors hover:pro-text1"
+						title="Remove column"
+					>
+						<Icon name="x" height={12} width={12} />
+					</button>
+				</div>
+			</div>
+		)
+	}
+
+	return (
+		<button
+			onClick={() => toggleColumnVisibility(columnKey, true)}
+			className="flex w-full items-center gap-2 rounded-md border pro-divider pro-bg2 pro-hover-bg p-2 text-left transition-colors"
+			title={metadata.description}
+		>
+			<Icon name="plus" height={10} width={10} className="pro-text3" />
+			<span className="text-xs pro-text1">{metadata.name}</span>
+		</button>
+	)
+}
+
 export function YieldsColumnManagementPanel({
 	showColumnPanel,
 	setShowColumnPanel,
@@ -71,87 +158,29 @@ export function YieldsColumnManagementPanel({
 	moveColumnDown
 }: YieldsColumnManagementPanelProps) {
 	const filteredColumns = React.useMemo(() => {
-		if (!searchTerm) return Object.keys(yieldsColumnMetadata)
+		if (!searchTerm) return yieldsColumnKeys
 
-		return Object.keys(yieldsColumnMetadata).filter((key) => {
+		const lowerSearch = searchTerm.toLowerCase()
+		const result: string[] = []
+		for (const key of yieldsColumnKeys) {
 			const metadata = yieldsColumnMetadata[key]
-			return (
-				metadata.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				metadata.description.toLowerCase().includes(searchTerm.toLowerCase())
-			)
-		})
+			if (
+				metadata.name.toLowerCase().includes(lowerSearch) ||
+				metadata.description.toLowerCase().includes(lowerSearch)
+			) {
+				result.push(key)
+			}
+		}
+		return result
 	}, [searchTerm])
 
-	const ColumnButton = ({ columnKey }: { columnKey: string }) => {
-		const metadata = yieldsColumnMetadata[columnKey]
-		const isActive = currentColumns[columnKey]
-
-		if (isActive) {
-			const visibleColumnsInOrder = columnOrder.filter((key) => currentColumns[key])
-			const actualIndex = visibleColumnsInOrder.indexOf(columnKey)
-			const isFirst = actualIndex === 0
-			const isLast = actualIndex === visibleColumnsInOrder.length - 1
-
-			return (
-				<div
-					className="pro-divider pro-hover-bg pro-bg2 flex w-full items-center justify-between rounded-md border p-2 transition-colors"
-					title={metadata.description}
-				>
-					<div className="flex items-center gap-2">
-						<Icon name="check" height={12} width={12} className="text-(--success)" />
-						<span className="pro-text1 text-xs">{metadata.name}</span>
-					</div>
-					<div className="flex items-center gap-1">
-						{moveColumnUp && !isFirst && (
-							<button
-								onClick={(e) => {
-									e.stopPropagation()
-									moveColumnUp(columnKey)
-								}}
-								className="pro-text3 hover:pro-text1 rounded-md p-1 transition-colors"
-								title="Move up"
-							>
-								<Icon name="chevron-up" height={10} width={10} />
-							</button>
-						)}
-						{moveColumnDown && !isLast && (
-							<button
-								onClick={(e) => {
-									e.stopPropagation()
-									moveColumnDown(columnKey)
-								}}
-								className="pro-text3 hover:pro-text1 rounded-md p-1 transition-colors"
-								title="Move down"
-							>
-								<Icon name="chevron-down" height={10} width={10} />
-							</button>
-						)}
-						<button
-							onClick={(e) => {
-								e.stopPropagation()
-								toggleColumnVisibility(columnKey, false)
-							}}
-							className="pro-text3 hover:pro-text1 p-1 transition-colors"
-							title="Remove column"
-						>
-							<Icon name="x" height={12} width={12} />
-						</button>
-					</div>
-				</div>
-			)
+	const visibleColumnCount = React.useMemo(() => {
+		let count = 0
+		for (const k in currentColumns) {
+			if (currentColumns[k]) count++
 		}
-
-		return (
-			<button
-				onClick={() => toggleColumnVisibility(columnKey, true)}
-				className="pro-divider pro-hover-bg pro-bg2 flex w-full items-center gap-2 rounded-md border p-2 text-left transition-colors"
-				title={metadata.description}
-			>
-				<Icon name="plus" height={10} width={10} className="pro-text3" />
-				<span className="pro-text1 text-xs">{metadata.name}</span>
-			</button>
-		)
-	}
+		return count
+	}, [currentColumns])
 
 	if (!showColumnPanel) return null
 
@@ -161,25 +190,25 @@ export function YieldsColumnManagementPanel({
 			style={{ zIndex: 50, pointerEvents: 'auto' }}
 		>
 			<div className="mb-3 flex items-center justify-between">
-				<h4 className="pro-text1 text-sm font-medium">Customize Columns</h4>
+				<h4 className="text-sm font-medium pro-text1">Customize Columns</h4>
 				<div className="flex items-center gap-2">
 					<button
 						onClick={() => {
-							Object.keys(yieldsColumnMetadata).forEach((key) => {
+							for (const key in yieldsColumnMetadata) {
 								toggleColumnVisibility(key, true)
-							})
+							}
 						}}
-						className="pro-divider pro-hover-bg pro-text2 pro-bg2 rounded-md border px-2 py-1 text-xs transition-colors"
+						className="rounded-md border pro-divider pro-bg2 pro-hover-bg px-2 py-1 text-xs pro-text2 transition-colors"
 					>
 						Show All
 					</button>
 					<button
 						onClick={() => {
-							Object.keys(yieldsColumnMetadata).forEach((key) => {
+							for (const key in yieldsColumnMetadata) {
 								toggleColumnVisibility(key, ['pool', 'project', 'chains', 'tvl'].includes(key))
-							})
+							}
 						}}
-						className="pro-divider pro-hover-bg pro-text2 pro-bg2 rounded-md border px-2 py-1 text-xs transition-colors"
+						className="rounded-md border pro-divider pro-bg2 pro-hover-bg px-2 py-1 text-xs pro-text2 transition-colors"
 					>
 						Hide All
 					</button>
@@ -191,39 +220,47 @@ export function YieldsColumnManagementPanel({
 					name="search"
 					height={14}
 					width={14}
-					className="pro-text3 absolute top-1/2 left-3 -translate-y-1/2 transform"
+					className="absolute top-1/2 left-3 -translate-y-1/2 transform pro-text3"
 				/>
 				<input
 					type="text"
 					placeholder="Search columns..."
 					value={searchTerm}
 					onChange={(e) => setSearchTerm(e.target.value)}
-					className="pro-border pro-text1 placeholder:pro-text3 w-full rounded-md border bg-(--bg-glass) py-2 pr-3 pl-9 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+					className="w-full rounded-md border pro-border bg-(--bg-glass) py-2 pr-3 pl-9 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
 				/>
 			</div>
 
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 				<div>
-					<h5 className="pro-text2 mb-2 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
+					<h5 className="mb-2 flex items-center gap-2 text-xs font-medium tracking-wide pro-text2 uppercase">
 						<Icon name="eye" height={12} width={12} />
-						Active Columns ({Object.values(currentColumns).filter(Boolean).length})
+						Active Columns ({visibleColumnCount})
 					</h5>
-					<p className="pro-text3 mb-3 text-xs">Use arrows to reorder • Click × to hide</p>
+					<p className="mb-3 text-xs pro-text3">Use arrows to reorder • Click × to hide</p>
 					<div className="thin-scrollbar max-h-60 space-y-1 overflow-y-auto">
 						{columnOrder
 							.filter((key) => currentColumns[key] && yieldsColumnMetadata[key])
 							.map((columnKey) => (
-								<ColumnButton key={columnKey} columnKey={columnKey} />
+								<ColumnButton
+									key={columnKey}
+									columnKey={columnKey}
+									currentColumns={currentColumns}
+									columnOrder={columnOrder}
+									moveColumnUp={moveColumnUp}
+									moveColumnDown={moveColumnDown}
+									toggleColumnVisibility={toggleColumnVisibility}
+								/>
 							))}
 					</div>
 				</div>
 
 				<div>
-					<h5 className="pro-text2 mb-2 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
+					<h5 className="mb-2 flex items-center gap-2 text-xs font-medium tracking-wide pro-text2 uppercase">
 						<Icon name="plus" height={12} width={12} />
 						Available Columns
 					</h5>
-					<p className="pro-text3 mb-3 text-xs">Click to add to table</p>
+					<p className="mb-3 text-xs pro-text3">Click to add to table</p>
 					<div className="thin-scrollbar max-h-60 space-y-3 overflow-y-auto">
 						{columnGroups.map((group) => {
 							const availableColumns = group.columns.filter(
@@ -234,10 +271,18 @@ export function YieldsColumnManagementPanel({
 
 							return (
 								<div key={group.title}>
-									<h6 className="pro-text2 mb-1 text-xs font-medium">{group.title}</h6>
+									<h6 className="mb-1 text-xs font-medium pro-text2">{group.title}</h6>
 									<div className="space-y-1">
 										{availableColumns.map((columnKey) => (
-											<ColumnButton key={columnKey} columnKey={columnKey} />
+											<ColumnButton
+												key={columnKey}
+												columnKey={columnKey}
+												currentColumns={currentColumns}
+												columnOrder={columnOrder}
+												moveColumnUp={moveColumnUp}
+												moveColumnDown={moveColumnDown}
+												toggleColumnVisibility={toggleColumnVisibility}
+											/>
 										))}
 									</div>
 								</div>
@@ -247,10 +292,9 @@ export function YieldsColumnManagementPanel({
 				</div>
 			</div>
 
-			<div className="pro-divider mt-4 flex items-center justify-between border-t pt-3 text-xs">
+			<div className="mt-4 flex items-center justify-between border-t pro-divider pt-3 text-xs">
 				<span className="pro-text3">
-					{Object.values(currentColumns).filter(Boolean).length} of {Object.keys(yieldsColumnMetadata).length} columns
-					visible
+					{visibleColumnCount} of {yieldsColumnKeys.length} columns visible
 				</span>
 				<button
 					onClick={() => setShowColumnPanel(false)}

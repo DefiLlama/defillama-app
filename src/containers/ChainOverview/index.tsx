@@ -1,10 +1,11 @@
-import { lazy, Suspense } from 'react'
 import Link from 'next/link'
+import { lazy, Suspense } from 'react'
+import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TokenLogo } from '~/components/TokenLogo'
 import Layout from '~/layout'
-import { chainIconUrl } from '~/utils'
+import { chainIconUrl, slug } from '~/utils'
 import { SmolStats } from './SmolStats'
 import { Stats } from './Stats'
 import type { IChainOverviewData } from './types'
@@ -36,6 +37,14 @@ export function ChainOverview(props: IChainOverviewData) {
 			annonuncement={<Announcement />}
 		>
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />
+			{props.metadata.name !== 'All' && (
+				<EntityQuestionsStrip
+					questions={props.entityQuestions || []}
+					entitySlug={slug(props.metadata.name)}
+					entityType="chain"
+					entityName={props.metadata.name}
+				/>
+			)}
 			{props.isDataAvailable ? (
 				<>
 					<Stats {...props} />
@@ -57,7 +66,7 @@ export function ChainOverview(props: IChainOverviewData) {
 				</>
 			)}
 			{props.metadata.name === 'All' ? (
-				<div className="thin-scrollbar relative isolate flex shrink-0 flex-nowrap items-center gap-1 overflow-x-auto overflow-y-hidden">
+				<div className="relative isolate flex thin-scrollbar shrink-0 flex-nowrap items-center gap-1 overflow-x-auto overflow-y-hidden">
 					{linksToOtherLlamaApps.map((app) => (
 						<a
 							target="_blank"
@@ -133,7 +142,7 @@ const linksToOtherLlamaApps = [
 		href: 'https://assets.dlnews.com/dlresearch/State-of-DeFi-2025.pdf',
 		icon: (
 			<svg width={44} height={44}>
-				<use href={`/icons/dlresearch.svg#dlresearch-logo`} />
+				<use href={`/assets/dlresearch.svg#dlresearch-logo`} />
 			</svg>
 		),
 		background: <span className="llama-app-background" />
@@ -144,7 +153,7 @@ const linksToOtherLlamaApps = [
 		href: 'https://www.dlnews.com',
 		icon: (
 			<svg width={44} height={44}>
-				<use href={`/icons/dlnews-smol.svg#dlnews-logo`} />
+				<use href={`/assets/dlnews-smol.svg#dlnews-logo`} />
 			</svg>
 		),
 		background: <span className="llama-app-background" />
@@ -155,7 +164,7 @@ const linksToOtherLlamaApps = [
 		href: 'https://www.dlnews.com/research',
 		icon: (
 			<svg width={44} height={44}>
-				<use href={`/icons/dlresearch.svg#dlresearch-logo`} />
+				<use href={`/assets/dlresearch.svg#dlresearch-logo`} />
 			</svg>
 		),
 		background: <span className="llama-app-background" />

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -10,6 +9,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
@@ -17,16 +17,22 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { formatColumnOrder } from '~/components/Table/utils'
+import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { DEFI_CHAINS_SETTINGS, subscribeToLocalStorage, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
-import useWindowSize from '~/hooks/useWindowSize'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 
 const optionsKey = 'chains-overview-table-columns'
+
+const setColumnOptions = (newOptions: string[]) => {
+	const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key)]))
+	setStorageItem(optionsKey, JSON.stringify(ops))
+}
 
 export function ChainsByCategoryTable({
 	data,
@@ -40,15 +46,14 @@ export function ChainsByCategoryTable({
 	showByGroup: boolean
 }) {
 	const columnsInStorage = React.useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(optionsKey) ?? defaultColumns,
+		(callback) => subscribeToStorageKey(optionsKey, callback),
+		() => getStorageItem(optionsKey, defaultColumns) ?? defaultColumns,
 		() => defaultColumns
 	)
 
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'tvl', desc: true }])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const windowSize = useWindowSize()
 
 	const instance = useReactTable({
 		data,
@@ -58,6 +63,9 @@ export function ChainsByCategoryTable({
 			expanded,
 			columnFilters,
 			columnVisibility: JSON.parse(columnsInStorage)
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
 		},
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IFormattedDataWithExtraTvl) => row.subRows,
@@ -69,52 +77,11 @@ export function ChainsByCategoryTable({
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [projectName, setProjectName] = React.useState('')
-
-	React.useEffect(() => {
-		const columns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			columns.setFilterValue(projectName)
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [projectName, instance])
-
-	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = windowSize.width
-			? (chainsTableColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
-			: defaultOrder
-
-		instance.setColumnOrder(order)
-	}, [windowSize, instance])
-
-	const clearAllColumns = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
-	}
-	const toggleAllColumns = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, true])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
-	}
-
-	const addColumn = (newOptions) => {
-		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key) ? true : false]))
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
-	}
-
-	const addOnlyOneColumn = (newOption) => {
-		const ops = Object.fromEntries(
-			instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption ? true : false])
-		)
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
-	}
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	useSortColumnSizesAndOrders({
+		instance,
+		columnOrders: chainsTableColumnOrders
+	})
 
 	const selectedColumns = instance
 		.getAllLeafColumns()
@@ -123,55 +90,22 @@ export function ChainsByCategoryTable({
 
 	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 
-	const clearAllAggrOptions = () => {
-		DEFI_CHAINS_SETTINGS.forEach((item) => {
-			if (selectedAggregateTypes.includes(item.key)) {
+	const setAggrOptions: React.Dispatch<React.SetStateAction<Array<string>>> = (selectedKeys) => {
+		const nextSelectedKeys = typeof selectedKeys === 'function' ? selectedKeys(selectedAggregateTypes) : selectedKeys
+		const selectedKeysSet = new Set(nextSelectedKeys)
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
+			const shouldEnable = selectedKeysSet.has(item.key)
+			if (groupTvls[item.key] !== shouldEnable) {
 				updater(item.key)
-			}
-		})
-	}
-
-	const toggleAllAggrOptions = () => {
-		DEFI_CHAINS_SETTINGS.forEach((item) => {
-			if (!selectedAggregateTypes.includes(item.key)) {
-				updater(item.key)
-			}
-		})
-	}
-
-	const addAggrOption = (selectedKeys) => {
-		for (const item in groupTvls) {
-			// toggle on
-			if (!groupTvls[item] && selectedKeys.includes(item)) {
-				updater(item)
-			}
-
-			// toggle off
-			if (groupTvls[item] && !selectedKeys.includes(item)) {
-				updater(item)
 			}
 		}
 	}
 
-	const addOnlyOneAggrOption = (newOption) => {
-		DEFI_CHAINS_SETTINGS.forEach((item) => {
-			if (item.key === newOption) {
-				if (!selectedAggregateTypes.includes(item.key)) {
-					updater(item.key)
-				}
-			} else {
-				if (selectedAggregateTypes.includes(item.key)) {
-					updater(item.key)
-				}
-			}
-		})
-	}
-
 	const selectedAggregateTypes = React.useMemo(() => {
-		return DEFI_CHAINS_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
+		return CHAINS_CATEGORY_GROUP_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
 	}, [groupTvls])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const visibleColumns = instance.getVisibleFlatColumns().filter((col) => col.id !== 'custom_columns')
 		const headers = visibleColumns.map((col) => {
 			if (typeof col.columnDef.header === 'string') {
@@ -186,14 +120,14 @@ export function ChainsByCategoryTable({
 				if (!cell) return ''
 
 				const value = cell.getValue()
-				if (value === null || value === undefined) return ''
+				if (value == null) return ''
 
 				return value
 			})
 		})
 
 		return { filename: `defillama-chains.csv`, rows: [headers, ...rows] as (string | number | boolean)[][] }
-	}, [instance])
+	}
 
 	return (
 		<div className={`isolate ${borderless ? '' : 'rounded-md border border-(--cards-border) bg-(--cards-bg)'}`}>
@@ -212,7 +146,7 @@ export function ChainsByCategoryTable({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 
@@ -220,12 +154,9 @@ export function ChainsByCategoryTable({
 					<div className="flex w-full items-center gap-2 sm:w-auto">
 						{showByGroup ? (
 							<SelectWithCombobox
-								allValues={DEFI_CHAINS_SETTINGS}
+								allValues={CHAINS_CATEGORY_GROUP_SETTINGS}
 								selectedValues={selectedAggregateTypes}
-								setSelectedValues={addAggrOption}
-								selectOnlyOne={addOnlyOneAggrOption}
-								toggleAll={toggleAllAggrOptions}
-								clearAll={clearAllAggrOptions}
+								setSelectedValues={setAggrOptions}
 								nestedMenu={false}
 								label={'Group Chains'}
 								labelType="smol"
@@ -238,10 +169,7 @@ export function ChainsByCategoryTable({
 						<SelectWithCombobox
 							allValues={columnOptions}
 							selectedValues={selectedColumns}
-							setSelectedValues={addColumn}
-							selectOnlyOne={addOnlyOneColumn}
-							toggleAll={toggleAllColumns}
-							clearAll={clearAllColumns}
+							setSelectedValues={setColumnOptions}
 							nestedMenu={false}
 							label={'Columns'}
 							labelType="smol"
@@ -261,9 +189,7 @@ export function ChainsByCategoryTable({
 	)
 }
 
-// key: min width of window/screen
-// values: table columns order
-const chainsTableColumnOrders = formatColumnOrder({
+const chainsTableColumnOrders: ColumnOrdersByBreakpoint = {
 	0: [
 		'name',
 		'tvl',
@@ -324,16 +250,14 @@ const chainsTableColumnOrders = formatColumnOrder({
 		'users',
 		'mcaptvl'
 	]
-})
+}
 
 const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: true,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue, row }) => {
 			return (
 				<span
 					className="relative flex items-center gap-2"
@@ -361,7 +285,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 					) : (
 						<Bookmark readableName={getValue() as string} isChain data-bookmark className="absolute -left-0.5" />
 					)}
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={chainIconUrl(getValue())} />
 					<BasicLink
@@ -468,7 +392,6 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 				</Tooltip>
 			)
 		},
-		sortUndefined: 'last',
 		size: 120,
 		meta: {
 			align: 'end',

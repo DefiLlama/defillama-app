@@ -1,31 +1,25 @@
-import { useCallback, useMemo, useSyncExternalStore } from 'react'
-import { useRouter } from 'next/router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import Router, { useRouter } from 'next/router'
+import { useCallback, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { TimePeriod } from '../ProDashboardAPIContext'
 import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
 import { DashboardItemConfig } from '../types'
 
-function subscribeToLiteDashboardsChange(callback: () => void) {
-	window.addEventListener('liteDashboardsChange', callback)
-	return () => {
-		window.removeEventListener('liteDashboardsChange', callback)
-	}
-}
+const EMPTY_DASHBOARDS: Dashboard[] = []
 
 export function useGetLiteDashboards() {
 	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
 
 	const liteDashboardsInStorage = useSyncExternalStore(
-		subscribeToLiteDashboardsChange,
-		() => window.localStorage.getItem('lite-dashboards') ?? '[]',
+		(callback) => subscribeToStorageKey('lite-dashboards', callback),
+		() => getStorageItem('lite-dashboards', '[]') ?? '[]',
 		() => '[]'
 	)
 
-	const liteDashboards = useMemo(() => {
-		return JSON.parse(liteDashboardsInStorage)
-	}, [liteDashboardsInStorage])
+	const liteDashboards = JSON.parse(liteDashboardsInStorage)
 
 	const { isLoading, error } = useQuery({
 		queryKey: ['lite-dashboards', user?.id],
@@ -33,15 +27,13 @@ export function useGetLiteDashboards() {
 			if (!isAuthenticated) return []
 			try {
 				const data = await dashboardAPI.listLiteDashboards(authorizedFetch)
-				window.localStorage.setItem('lite-dashboards', JSON.stringify(data))
+				setStorageItem('lite-dashboards', JSON.stringify(data))
 				return data
 			} catch (error) {
 				console.log('Failed to load lite dashboards:', error)
-				window.localStorage.setItem('lite-dashboards', '[]')
+				setStorageItem('lite-dashboards', '[]')
 
 				return []
-			} finally {
-				window.dispatchEvent(new Event('liteDashboardsChange'))
 			}
 		},
 		staleTime: 24 * 60 * 60 * 1000, // 24 hours
@@ -63,7 +55,7 @@ export function useDashboardAPI() {
 
 	// Query for fetching dashboards list
 	const {
-		data: dashboards = [],
+		data: dashboardsData,
 		isLoading: isLoadingDashboards,
 		error: dashboardsError
 	} = useQuery({
@@ -80,6 +72,7 @@ export function useDashboardAPI() {
 		staleTime: 1000 * 60 * 5,
 		enabled: isAuthenticated && !!user?.id
 	})
+	const dashboards = dashboardsData ?? EMPTY_DASHBOARDS
 
 	const createDashboardMutation = useMutation({
 		mutationFn: async (data: {
@@ -167,12 +160,9 @@ export function useDashboardAPI() {
 	)
 
 	// Navigate to a dashboard
-	const navigateToDashboard = useCallback(
-		(id: string) => {
-			router.push(`/pro/${id}`)
-		},
-		[router]
-	)
+	const navigateToDashboard = (id: string) => {
+		Router.push(`/pro/${id}`)
+	}
 
 	// Delete dashboard with confirmation
 	const deleteDashboardWithConfirmation = useCallback(

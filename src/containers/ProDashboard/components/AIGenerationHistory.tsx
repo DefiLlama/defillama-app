@@ -32,7 +32,7 @@ export function AIGenerationHistory({ aiGenerated }: AIGenerationHistoryProps) {
 							name="sparkles"
 							height={14}
 							width={14}
-							className="text-pro-blue-400 dark:text-pro-blue-200 shrink-0"
+							className="shrink-0 text-pro-blue-400 dark:text-pro-blue-200"
 						/>
 						<div className="flex flex-col gap-1">
 							<div className="-mt-0.5 flex flex-wrap items-center gap-2 text-xs">

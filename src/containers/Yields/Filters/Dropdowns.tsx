@@ -4,6 +4,7 @@ import { AvailableRange } from '~/components/Filters/AvailableRange'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Switch } from '~/components/Switch'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 import { APYRange } from './APYRange'
 import { YieldAttributes } from './Attributes'
 import { FiltersByCategory } from './Categories'
@@ -15,6 +16,10 @@ import { FilterByToken } from './Tokens'
 import type { IDropdownMenusProps } from './types'
 
 const BAD_DEBT_KEY = YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()
+const EMPTY_TOKENS: string[] = []
+const EMPTY_CHAINS: string[] = []
+const EMPTY_PROJECTS: string[] = []
+const EMPTY_CATEGORIES: string[] = []
 
 export function YieldFilterDropdowns({
 	pathname,
@@ -22,6 +27,7 @@ export function YieldFilterDropdowns({
 	selectedTokens,
 	chainList,
 	selectedChains,
+	evmChains,
 	projectList,
 	selectedProjects,
 	lendingProtocols,
@@ -58,17 +64,16 @@ export function YieldFilterDropdowns({
 
 	const isBadDebtToggled = selectedAttributes ? selectedAttributes.includes(BAD_DEBT_KEY) : false
 
-	const shouldExlcudeRewardApy = router.query.excludeRewardApy === 'true' ? true : false
+	const shouldExlcudeRewardApy = router.query.excludeRewardApy === 'true'
 
-	const shouldIncludeLsdApy = router.query.includeLsdApy === 'true' ? true : false
+	const shouldIncludeLsdApy = router.query.includeLsdApy === 'true'
 
 	return (
 		<>
 			{tokensList && tokensList.length > 0 && (
 				<FilterByToken
 					tokensList={tokensList}
-					selectedTokens={selectedTokens || []}
-					pathname={pathname || router.pathname}
+					selectedTokens={selectedTokens ?? EMPTY_TOKENS}
 					nestedMenu={nestedMenu}
 				/>
 			)}
@@ -76,8 +81,8 @@ export function YieldFilterDropdowns({
 			{chainList && chainList.length > 0 && (
 				<FilterByChain
 					chainList={chainList}
-					selectedChains={selectedChains || []}
-					pathname={pathname || router.pathname}
+					selectedChains={selectedChains ?? EMPTY_CHAINS}
+					evmChains={evmChains}
 					nestedMenu={nestedMenu}
 				/>
 			)}
@@ -85,47 +90,61 @@ export function YieldFilterDropdowns({
 			{projectList && projectList.length > 0 && (
 				<YieldProjects
 					projectList={projectList}
-					selectedProjects={selectedProjects || []}
-					pathname={pathname || router.pathname}
+					selectedProjects={selectedProjects ?? EMPTY_PROJECTS}
 					label="Projects"
 					nestedMenu={nestedMenu}
+					includeQueryKey="project"
+					excludeQueryKey="excludeProject"
 				/>
 			)}
 
 			{lendingProtocols && lendingProtocols.length > 0 && (
 				<YieldProjects
 					projectList={lendingProtocols}
-					selectedProjects={selectedLendingProtocols || []}
-					pathname={pathname || router.pathname}
+					selectedProjects={selectedLendingProtocols ?? EMPTY_PROJECTS}
 					label="Lending Protocols"
-					query="lendingProtocol"
 					nestedMenu={nestedMenu}
+					includeQueryKey="lendingProtocol"
+					excludeQueryKey="excludeLendingProtocol"
 				/>
 			)}
 
 			{farmProtocols && farmProtocols.length > 0 && (
 				<YieldProjects
 					projectList={farmProtocols}
-					selectedProjects={selectedFarmProtocols || []}
-					pathname={pathname || router.pathname}
+					selectedProjects={selectedFarmProtocols ?? EMPTY_PROJECTS}
 					label="Farm Protocol"
-					query="farmProtocol"
 					nestedMenu={nestedMenu}
+					includeQueryKey="farmProtocol"
+					excludeQueryKey="excludeFarmProtocol"
 				/>
 			)}
 
 			{categoryList && categoryList.length > 0 && (
 				<FiltersByCategory
 					categoryList={categoryList}
-					selectedCategories={selectedCategories || []}
-					pathname={pathname || router.pathname}
+					selectedCategories={selectedCategories ?? EMPTY_CATEGORIES}
 					nestedMenu={nestedMenu}
 				/>
 			)}
 
 			{attributes && <YieldAttributes pathname={pathname || router.pathname} nestedMenu={nestedMenu} />}
 
-			{tvlRange && <TVLRange nestedMenu={nestedMenu} variant="secondary" placement="bottom-start" />}
+			{tvlRange && (
+				<TVLRange
+					nestedMenu={nestedMenu}
+					variant="secondary"
+					placement="bottom-start"
+					onValueChange={(min, max) => {
+						const eventData: Record<string, number> = {}
+						if (min != null) eventData.min = min
+						if (max != null) eventData.max = max
+						if (Object.keys(eventData).length > 0) {
+							trackYieldsEvent(YIELDS_EVENTS.FILTER_TVL_RANGE, eventData)
+						}
+					}}
+				/>
+			)}
 
 			{apyRange && <APYRange nestedMenu={nestedMenu} placement="bottom-start" />}
 

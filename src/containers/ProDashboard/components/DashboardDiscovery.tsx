@@ -1,12 +1,15 @@
-import { useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LoadingSkeleton } from '~/components/LoadingSkeleton'
 import { Select } from '~/components/Select'
 import { useDashboardDiscovery } from '../hooks/useDashboardDiscovery'
 import { DashboardBrowse } from './DashboardBrowse'
 import { DashboardCard } from './DashboardCard'
 import { DashboardSearch } from './DashboardSearch'
+
+const SUGGESTED_TAGS = ['DeFi', 'NFT', 'Analytics', 'DEX', 'Lending', 'L2']
 
 const viewModes = ['grid', 'list'] as const
 type ViewMode = (typeof viewModes)[number]
@@ -32,6 +35,7 @@ type TimeFrameOption = (typeof timeFrameOptions)[number]
 
 export function DashboardDiscovery() {
 	const router = useRouter()
+	const { view, tag, sortBy, query, page, limit, timeFrame } = router.query
 
 	const {
 		isBrowseMode,
@@ -43,8 +47,6 @@ export function DashboardDiscovery() {
 		selectedPage,
 		itemsPerPage
 	} = useMemo(() => {
-		const { view, tag, sortBy, query, page, limit, timeFrame } = router.query
-
 		const viewMode = typeof view === 'string' && viewModes.includes(view as ViewMode) ? (view as ViewMode) : 'grid'
 		const selectedTags = tag ? (typeof tag === 'string' ? [tag] : tag) : []
 		const selectedSortBy =
@@ -78,7 +80,7 @@ export function DashboardDiscovery() {
 			selectedPage,
 			itemsPerPage
 		}
-	}, [router.query])
+	}, [view, tag, sortBy, query, page, limit, timeFrame])
 
 	const { dashboards, isLoading, totalPages, totalItems } = useDashboardDiscovery({
 		query: searchQuery,
@@ -96,7 +98,7 @@ export function DashboardDiscovery() {
 		}
 
 		// remove page from query
-		const { page, ...queryWithoutPage } = router.query
+		const { page: _page, ...queryWithoutPage } = router.query
 
 		router.push(
 			{
@@ -113,7 +115,7 @@ export function DashboardDiscovery() {
 
 	const handleItemsPerPageChange = (value: string) => {
 		const newItemsPerPage = parseInt(value, 10)
-		const { page, ...queryWithoutPage } = router.query
+		const { page: _page, ...queryWithoutPage } = router.query
 		router.push(
 			{
 				pathname: '/pro',
@@ -190,7 +192,7 @@ export function DashboardDiscovery() {
 								allValues={sortOptions}
 								selectedValues={selectedSortBy.key}
 								setSelectedValues={(value) => {
-									const { ...queryWithoutPage } = router.query
+									const { page: _page, ...queryWithoutPage } = router.query
 									const newQuery: Record<string, any> = { ...queryWithoutPage, sortBy: value as SortOption['key'] }
 									if (value === 'trending') {
 										newQuery.timeFrame = '7d'
@@ -222,7 +224,7 @@ export function DashboardDiscovery() {
 									allValues={timeFrameOptions}
 									selectedValues={selectedTimeFrame.key}
 									setSelectedValues={(value) => {
-										const { page, ...queryWithoutPage } = router.query
+										const { page: _page, ...queryWithoutPage } = router.query
 										router.push(
 											{
 												pathname: '/pro',
@@ -247,7 +249,7 @@ export function DashboardDiscovery() {
 								/>
 							)}
 
-							<div className="flex items-center rounded-md border border-(--form-control-border)">
+							<div className="flex items-center rounded-md border border-(--form-control-border) bg-(--cards-bg)">
 								<button
 									onClick={() => {
 										router.push(
@@ -265,9 +267,9 @@ export function DashboardDiscovery() {
 										)
 									}}
 									data-active={viewMode === 'grid'}
-									className="rounded-l-md border-r border-(--form-control-border) p-2 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+									className="rounded-l-md border-r border-(--form-control-border) p-2 text-(--text-label) transition-colors duration-150 data-[active=false]:hover:bg-(--bg-hover) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								>
-									<Icon name="layers" height={16} width={16} />
+									<Icon name="layout-grid" height={16} width={16} />
 									<span className="sr-only">View as grid</span>
 								</button>
 								<button
@@ -287,9 +289,9 @@ export function DashboardDiscovery() {
 										)
 									}}
 									data-active={viewMode === 'list'}
-									className="rounded-r-md border-(--form-control-border) p-2 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+									className="rounded-r-md p-2 text-(--text-label) transition-colors duration-150 data-[active=false]:hover:bg-(--bg-hover) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								>
-									<Icon name="align-left" height={16} width={16} />
+									<Icon name="menu" height={16} width={16} />
 									<span className="sr-only">View as list</span>
 								</button>
 							</div>
@@ -298,21 +300,19 @@ export function DashboardDiscovery() {
 				</div>
 
 				{selectedTags.length > 0 && (
-					<div className="mt-1 flex items-center gap-2 text-xs">
-						<h2 className="text-(--text-label)">Active filters:</h2>
+					<div className="mt-2 flex items-center gap-3 text-xs">
+						<h2 className="font-medium text-(--text-label)">Active filters:</h2>
 						<div className="flex flex-wrap gap-2">
 							{selectedTags.map((tag) => (
 								<button
 									key={`pro-dashboard-tag-${tag}`}
 									onClick={() => {
 										const { tag: currentTag, ...query } = router.query
-										const newQuery = query
+										const newQuery: Record<string, any> = query
 										if (currentTag && currentTag.includes(tag)) {
-											// If the tag is an array, filter it to remove the tag
 											if (Array.isArray(currentTag)) {
 												newQuery.tag = currentTag.filter((t) => t !== tag)
 											} else {
-												// If the tag is a string, completely remove the key
 												delete newQuery.tag
 											}
 										}
@@ -326,19 +326,18 @@ export function DashboardDiscovery() {
 											{ shallow: true }
 										)
 									}}
-									className="flex items-center gap-1 rounded-full border border-(--switch-border) px-2 py-1 text-xs hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
+									className="flex items-center gap-1.5 rounded-full bg-(--old-blue)/15 px-2.5 py-1 text-xs font-medium text-(--old-blue) transition-all duration-150 hover:scale-105 hover:bg-(--old-blue) hover:text-white"
 								>
-									<span className="sr-only">Remove</span>
 									<span>{tag}</span>
 									<Icon name="x" height={12} width={12} />
+									<span className="sr-only">Remove {tag} filter</span>
 								</button>
 							))}
 						</div>
 						<button
 							onClick={() => {
-								const { tag, ...query } = router.query
+								const { tag: _tag, ...query } = router.query
 
-								// Clear all tags
 								router.push(
 									{
 										pathname: '/pro',
@@ -350,7 +349,7 @@ export function DashboardDiscovery() {
 									}
 								)
 							}}
-							className="text-(--text-label) hover:text-(--error)"
+							className="font-medium text-(--text-label) underline-offset-2 transition-colors hover:text-(--error) hover:underline"
 						>
 							Clear all
 						</button>
@@ -366,14 +365,50 @@ export function DashboardDiscovery() {
 					<LoadingSkeleton viewMode={viewMode} items={DEFAULT_PAGE_LIMIT} />
 				</>
 			) : dashboards.length === 0 ? (
-				<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
-					<Icon name="search" height={48} width={48} className="text-(--text-label)" />
-					<h1 className="text-center text-2xl font-bold">No dashboards found</h1>
-					<p className="text-center text-(--text-label)">
-						{searchQuery || selectedTags.length > 0
-							? 'Try adjusting your search criteria'
-							: 'Be the first to share a public dashboard!'}
-					</p>
+				<div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border border-(--cards-border) bg-(--cards-bg) px-6 py-16">
+					<div className="flex h-20 w-20 items-center justify-center rounded-full bg-(--bg-hover)">
+						<Icon name="search" height={40} width={40} className="text-(--text-label)" />
+					</div>
+
+					<div className="flex flex-col items-center gap-1.5">
+						<h1 className="text-center text-2xl font-bold">No Dashboards Found</h1>
+						<p className="max-w-md text-center text-(--text-label)">
+							{searchQuery || selectedTags.length > 0
+								? "We couldn't find any dashboards matching your search. Try different keywords or explore popular tags below."
+								: 'Be the first to share a public dashboard with the community!'}
+						</p>
+					</div>
+
+					{(searchQuery || selectedTags.length > 0) && (
+						<div className="flex flex-col items-center gap-3">
+							<p className="text-sm font-medium text-(--text-label)">Try these popular tags:</p>
+							<div className="flex flex-wrap justify-center gap-2">
+								{SUGGESTED_TAGS.map((tag) => (
+									<button
+										key={tag}
+										onClick={() => handleTagClick(tag)}
+										className="rounded-full border border-(--switch-border) bg-(--cards-bg) px-3 py-1.5 text-sm font-medium text-(--text-form) transition-all duration-150 hover:scale-105 hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
+									>
+										{tag}
+									</button>
+								))}
+							</div>
+						</div>
+					)}
+
+					<div className="mt-2 flex items-center gap-3">
+						<div className="h-px w-12 bg-(--cards-border)" />
+						<span className="text-xs text-(--text-label)">or</span>
+						<div className="h-px w-12 bg-(--cards-border)" />
+					</div>
+
+					<BasicLink
+						href="/pro?tab=dashboard"
+						className="flex items-center gap-2 rounded-md bg-(--old-blue) px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+					>
+						<Icon name="plus" height={16} width={16} />
+						Create Your First Dashboard
+					</BasicLink>
 				</div>
 			) : (
 				<>
@@ -396,7 +431,7 @@ export function DashboardDiscovery() {
 							<div className="flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
 								<button
 									onClick={() => {
-										const { page, ...query } = router.query
+										const { page: _page, ...query } = router.query
 										router.push(
 											{
 												pathname: '/pro',
@@ -443,7 +478,7 @@ export function DashboardDiscovery() {
 												)
 											}}
 											data-active={isActive}
-											className="h-[32px] min-w-[32px] flex-shrink-0 rounded-md px-2 py-1.5 transition-colors hover:bg-(--btn-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+											className="h-[32px] min-w-[32px] shrink-0 rounded-md px-2 py-1.5 transition-colors hover:bg-(--btn-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 										>
 											{pageNum}
 										</button>

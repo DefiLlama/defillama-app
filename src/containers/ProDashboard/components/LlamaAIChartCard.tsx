@@ -1,4 +1,3 @@
-import { memo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
@@ -10,7 +9,7 @@ interface LlamaAIChartCardProps {
 	config: LlamaAIChartConfig
 }
 
-export default memo(function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
+export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 	const { data, isLoading, error, refetch } = useQuery({
 		queryKey: ['saved-chart', config.savedChartId],
 		queryFn: async () => {
@@ -59,4 +58,4 @@ export default memo(function LlamaAIChartCard({ config }: LlamaAIChartCardProps)
 			<ChartRenderer charts={[data.chartConfig]} chartData={data.chartData} />
 		</div>
 	)
-})
+}

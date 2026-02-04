@@ -1,4 +1,3 @@
-import { memo } from 'react'
 import { Icon } from '~/components/Icon'
 
 export interface CSVExport {
@@ -13,7 +12,7 @@ interface CSVExportArtifactProps {
 	csvExport: CSVExport
 }
 
-export const CSVExportArtifact = memo(function CSVExportArtifact({ csvExport }: CSVExportArtifactProps) {
+export function CSVExportArtifact({ csvExport }: CSVExportArtifactProps) {
 	return (
 		<a
 			href={csvExport.url}
@@ -33,9 +32,9 @@ export const CSVExportArtifact = memo(function CSVExportArtifact({ csvExport }: 
 			</div>
 		</a>
 	)
-})
+}
 
-export const CSVExportLoading = memo(function CSVExportLoading() {
+export function CSVExportLoading() {
 	return (
 		<div className="my-2 flex animate-pulse items-center gap-3 rounded-lg border border-[#e6e6e6] bg-white p-3 dark:border-[#222324] dark:bg-[#181A1C]">
 			<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
@@ -48,4 +47,4 @@ export const CSVExportLoading = memo(function CSVExportLoading() {
 			<span className="text-xs text-gray-400">Generating...</span>
 		</div>
 	)
-})
+}

@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
+import * as React from 'react'
 import { YieldFiltersV2 } from './Filters'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
@@ -21,7 +21,8 @@ export const PlotsPage = ({
 	median,
 	tokens,
 	tokenSymbolsList,
-	usdPeggedSymbols
+	usdPeggedSymbols,
+	evmChains
 }) => {
 	const { pathname } = useRouter()
 
@@ -38,7 +39,7 @@ export const PlotsPage = ({
 		maxTvl,
 		minApy,
 		maxApy
-	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
+	} = useFormatYieldQueryParams({ projectList, chainList, categoryList, evmChains })
 
 	const poolsData = React.useMemo(() => {
 		const pair_tokens = pairTokens.map((token) => token.toLowerCase())
@@ -91,6 +92,8 @@ export const PlotsPage = ({
 		usdPeggedSymbols
 	])
 
+	const nonOutlierPoolsData = React.useMemo(() => poolsData.filter((p) => !p.outlier), [poolsData])
+
 	return (
 		<>
 			<YieldFiltersV2
@@ -100,6 +103,7 @@ export const PlotsPage = ({
 				selectedTokens={includeTokens}
 				chainList={chainList}
 				selectedChains={selectedChains}
+				evmChains={evmChains}
 				projectList={projectList}
 				selectedProjects={selectedProjects}
 				categoryList={categoryList}
@@ -118,11 +122,11 @@ export const PlotsPage = ({
 			</React.Suspense>
 			<React.Suspense fallback={<></>}>
 				<div className="relative rounded-md bg-(--cards-bg) p-3">
-					<ScatterChart chartData={poolsData.filter((p) => !p.outlier)} />
+					<ScatterChart chartData={nonOutlierPoolsData} />
 				</div>
 			</React.Suspense>
 			<React.Suspense fallback={<></>}>
-				<BoxplotChart chartData={poolsData.filter((p) => !p.outlier)} />
+				<BoxplotChart chartData={nonOutlierPoolsData} />
 			</React.Suspense>
 		</>
 	)

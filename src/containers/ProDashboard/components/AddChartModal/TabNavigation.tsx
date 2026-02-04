@@ -1,4 +1,3 @@
-import { memo } from 'react'
 import { DashboardItemConfig } from '../../types'
 import { MainTabType } from './types'
 
@@ -8,11 +7,7 @@ interface TabNavigationProps {
 	onTabChange: (tab: MainTabType) => void
 }
 
-export const TabNavigation = memo(function TabNavigation({
-	selectedMainTab,
-	editItem,
-	onTabChange
-}: TabNavigationProps) {
+export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNavigationProps) {
 	const allTabs = [
 		{ id: 'charts' as const, label: 'Charts', subtitle: '', mobileLabel: 'Charts' },
 		{ id: 'metric' as const, label: 'Metric', mobileLabel: 'Metric' },
@@ -45,4 +40,4 @@ export const TabNavigation = memo(function TabNavigation({
 			</div>
 		</div>
 	)
-})
+}

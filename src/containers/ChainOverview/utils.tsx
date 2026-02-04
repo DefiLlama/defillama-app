@@ -1,5 +1,5 @@
 import { removedCategoriesFromChainTvlSet } from '~/constants'
-import { IProtocolMetadata } from '../ProtocolOverview/types'
+import { IProtocolMetadata } from '~/utils/metadata/types'
 import type { IChainAsset, IFormattedChainAsset, ILiteProtocol } from './types'
 
 const excludedCategoriesSet = new Set(['Canonical Bridge'])
@@ -15,12 +15,12 @@ export const toFilterProtocol = ({
 }): boolean => {
 	const combinedChainsSet = new Set([...(protocolMetadata.chains ?? []), ...(protocolData.chains ?? [])])
 
-	return protocolMetadata.displayName &&
+	return !!(
+		protocolMetadata.displayName &&
 		protocolMetadata.chains &&
 		(chainDisplayName !== 'All' ? combinedChainsSet.has(chainDisplayName) : true) &&
 		!excludedCategoriesSet.has(protocolData.category)
-		? true
-		: false
+	)
 }
 
 export const toStrikeTvl = (protocol, toggledSettings) => {
@@ -54,16 +54,21 @@ export function groupByTimeFrame(data, timeFrame) {
 				acc[timeFrameStart] = values.map(() => 0)
 			}
 
-			values.forEach((value, index) => {
+			for (let index = 0; index < values.length; index++) {
+				const value = values[index]
 				acc[timeFrameStart][index] += Number(value)
-			})
+			}
 
 			return acc
 		},
 		{} as Record<number, number[]>
 	)
 
-	return Object.entries(groupedData)
+	const result: [string, number[]][] = []
+	for (const key in groupedData) {
+		result.push([key, groupedData[key]])
+	}
+	return result
 }
 
 export function cumulativeSum(data) {
@@ -85,7 +90,9 @@ export function cumulativeSum(data) {
 export function formatChainAssets(chainAsset: IChainAsset | null) {
 	if (!chainAsset) return null
 
-	return Object.entries(chainAsset).reduce((acc, [type, asset]) => {
+	const acc = {} as IFormattedChainAsset
+	for (const type in chainAsset) {
+		const asset = chainAsset[type]
 		const formatted = {} as any
 		formatted.total = Number(asset.total.split('.')[0])
 		const breakdown = {}
@@ -94,6 +101,6 @@ export function formatChainAssets(chainAsset: IChainAsset | null) {
 		}
 		formatted.breakdown = breakdown
 		acc[type] = formatted
-		return acc
-	}, {} as IFormattedChainAsset)
+	}
+	return acc
 }

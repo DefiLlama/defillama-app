@@ -71,11 +71,11 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 			}
 
 			if (curr?.extraTvl?.excludeParent) {
-				;['tvl', 'tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'].forEach((key) => {
+				for (const key of ['tvl', 'tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth']) {
 					if (curr.extraTvl.excludeParent[key]) {
 						acc[key] -= curr.extraTvl.excludeParent[key]
 					}
-				})
+				}
 			}
 			// for protocols with null historical values, propagate null to parent
 			for (const key of ['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'] as const) {
@@ -190,19 +190,29 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 	const oracleSet = new Set<string>()
 	const oraclesByChainAgg: Record<string, Set<string>> = {}
 	const addOracles = (obj: any) => {
-		if (Array.isArray(obj?.oracles)) obj.oracles.forEach((o: string) => oracleSet.add(o))
+		if (Array.isArray(obj?.oracles)) {
+			for (const o of obj.oracles as string[]) {
+				oracleSet.add(o)
+			}
+		}
 		if (obj?.oraclesByChain) {
-			for (const k of Object.keys(obj.oraclesByChain as Record<string, string[]>)) {
+			for (const k in obj.oraclesByChain as Record<string, string[]>) {
 				const set = (oraclesByChainAgg[k] = oraclesByChainAgg[k] || new Set<string>())
-				;(obj.oraclesByChain[k] || []).forEach((o: string) => set.add(o))
+				for (const o of obj.oraclesByChain[k] || []) {
+					set.add(o)
+				}
 			}
 		}
 	}
 	addOracles(parent)
-	protocols.forEach(addOracles)
-	const aggregatedOraclesByChain = Object.fromEntries(
-		Object.entries(oraclesByChainAgg).map(([k, v]) => [k, Array.from(v).sort((a, b) => a.localeCompare(b))])
-	)
+	for (const protocol of protocols) {
+		addOracles(protocol)
+	}
+	const aggregatedOraclesByChain: Record<string, string[]> = {}
+	for (const k in oraclesByChainAgg) {
+		const v = oraclesByChainAgg[k]
+		aggregatedOraclesByChain[k] = Array.from(v).sort((a, b) => a.localeCompare(b))
+	}
 
 	return {
 		name: parent.name,
@@ -265,7 +275,7 @@ export const groupProtocols = (
 ) => {
 	let data = [...protocols]
 
-	parentProtocols.forEach((item) => {
+	for (const item of parentProtocols) {
 		const list = protocols.filter((p) => p.parentProtocol === item.id)
 
 		if (list.length >= 2) {
@@ -275,7 +285,7 @@ export const groupProtocols = (
 
 			data.push(groupData(list, item, noSubrows))
 		}
-	})
+	}
 
 	return data.sort((a, b) => b.tvl - a.tvl)
 }

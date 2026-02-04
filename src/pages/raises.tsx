@@ -9,7 +9,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging('raises', async () => {
 	const data = await fetchJson(RAISES_API)
 
-	const filters = getRaisesFiltersList(data)
+	const filters = getRaisesFiltersList({ raises: data.raises })
 
 	return {
 		props: {

@@ -11,16 +11,18 @@ import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 export async function getStaticProps() {
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const protocolMetadata = metadataCache.protocolMetadata
+
 	const [safeHarborProtocols, { protocols }]: [Record<string, boolean>, { protocols: Array<IProtocol> }] =
 		await Promise.all([
 			fetchJson('https://api.llama.fi/_fe/static/safe-harbor-projects'),
 			getProtocolsByChain({
 				chain: 'All',
-				metadata: { name: 'All', stablecoins: true, fees: true, dexs: true, perps: true, id: 'all' }
+				chainMetadata: metadataCache.chainMetadata,
+				protocolMetadata: metadataCache.protocolMetadata
 			})
 		])
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const protocolMetadata = metadataCache.protocolMetadata
 
 	const tvlByProtocol = {}
 	const feesByProtocol = {}
@@ -60,6 +62,7 @@ export async function getStaticProps() {
 }
 
 const pageName = ['Safe Harbor Agreements']
+const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
 
 export default function SafeHarborAgreements({ protocols }) {
 	return (
@@ -76,11 +79,22 @@ export default function SafeHarborAgreements({ protocols }) {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				compact
-				sortingState={[{ id: 'tvl', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)
 }
+
+const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
+	<span className="flex flex-col gap-1">
+		{chains.map((chain) => (
+			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
+				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<span>{chain}</span>
+			</span>
+		))}
+	</span>
+)
 
 const columns: ColumnDef<{
 	name: string
@@ -98,19 +112,8 @@ const columns: ColumnDef<{
 		header: 'Name',
 		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-			const Chains = () => (
-				<span className="flex flex-col gap-1">
-					{row.original.chains.map((chain) => (
-						<span key={`/chain/${chain}/${row.original.slug}`} className="flex items-center gap-1">
-							<TokenLogo logo={chainIconUrl(chain)} size={14} />
-							<span>{chain}</span>
-						</span>
-					))}
-				</span>
-			)
 
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
@@ -135,9 +138,7 @@ const columns: ColumnDef<{
 						</button>
 					) : null}
 
-					<span className="shrink-0" onClick={row.getToggleExpandedHandler()}>
-						{index + 1}
-					</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
@@ -150,7 +151,10 @@ const columns: ColumnDef<{
 								{value}
 							</BasicLink>
 
-							<Tooltip content={<Chains />} className="text-[0.7rem] text-(--text-disabled)">
+							<Tooltip
+								content={<ProtocolChainsComponent chains={row.original.chains} />}
+								className="text-[0.7rem] text-(--text-disabled)"
+							>
 								{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 							</Tooltip>
 						</span>

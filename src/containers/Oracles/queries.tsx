@@ -1,7 +1,7 @@
 import { formatProtocolsData } from '~/api/categories/protocols/utils'
 import { ORACLE_API, PROTOCOLS_API } from '~/constants'
 import { ILiteParentProtocol, ILiteProtocol } from '~/containers/ChainOverview/types'
-import { DEFI_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
@@ -95,19 +95,21 @@ export async function getOraclePageData(oracle = null, chain = null) {
 
 		if (oracle) {
 			let data = []
-			chartData.forEach(([date, tokens]) => {
+			for (const [date, tokens] of chartData) {
 				const value = tokens[oracle]
 				if (value) {
 					data.push([date, value])
 				}
-			})
+			}
 			chartData = data
 		}
 
 		const oraclesProtocols: IOracleProtocols = {}
 
 		for (const orc in oraclesTVS) {
-			oraclesProtocols[orc] = Object.keys(oraclesTVS[orc] || {}).length
+			let count = 0
+			for (const _ in oraclesTVS[orc] || {}) count++
+			oraclesProtocols[orc] = count
 		}
 
 		const latestOracleTvlByChain = Object.entries(chainChart)[Object.entries(chainChart).length - 1][1] as Record<
@@ -118,7 +120,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 		const latestTvlByChain: Record<string, number> = {}
 		for (const oracle in latestOracleTvlByChain) {
 			for (const ochain in latestOracleTvlByChain[oracle]) {
-				if (!ochain.includes('-') && !DEFI_SETTINGS_KEYS_SET.has(ochain)) {
+				if (!ochain.includes('-') && !TVL_SETTINGS_KEYS_SET.has(ochain)) {
 					latestTvlByChain[ochain] = (latestTvlByChain[ochain] ?? 0) + latestOracleTvlByChain[oracle][ochain]
 				}
 			}
@@ -174,7 +176,7 @@ export async function getOraclePageDataByChain(chain: string) {
 				extraTvl: {}
 			}
 
-			for (const oracleKey of Object.keys(oraclesTVS)) {
+			for (const oracleKey in oraclesTVS) {
 				const protocolData = oraclesTVS[oracleKey]?.[protocol.name]
 				if (protocolData) {
 					for (const key in protocolData) {
@@ -244,7 +246,7 @@ export async function getOraclePageDataByChain(chain: string) {
 		const latestTvlByChain: Record<string, number> = {}
 		for (const oracle in latestOracleTvlByChain) {
 			for (const ochain in latestOracleTvlByChain[oracle]) {
-				if (!ochain.includes('-') && !DEFI_SETTINGS_KEYS_SET.has(ochain)) {
+				if (!ochain.includes('-') && !TVL_SETTINGS_KEYS_SET.has(ochain)) {
 					latestTvlByChain[ochain] = (latestTvlByChain[ochain] ?? 0) + latestOracleTvlByChain[oracle][ochain]
 				}
 			}

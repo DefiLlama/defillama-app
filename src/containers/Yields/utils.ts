@@ -9,7 +9,7 @@ interface IToFilterPool {
 	includeTokens: string[]
 	exactTokens: string[]
 	selectedCategoriesSet: Set<string>
-	excludeTokensSet: Set<string>
+	excludeTokensSet: Set<string> // Keep this since token matching is substring-based
 	pathname: string
 	minTvl: number | null
 	maxTvl: number | null
@@ -17,6 +17,7 @@ interface IToFilterPool {
 	maxApy: number | null
 	pairTokens: string[]
 	usdPeggedSymbols: string[]
+	tokenCategories?: Record<string, { addresses: string[]; symbols: string[]; label: string; filterKey: string }>
 }
 
 export function toFilterPool({
@@ -34,7 +35,8 @@ export function toFilterPool({
 	minApy,
 	maxApy,
 	pairTokens,
-	usdPeggedSymbols
+	usdPeggedSymbols,
+	tokenCategories = {}
 }: IToFilterPool) {
 	const tokensInPoolArray = curr.symbol
 		.split('(')[0]
@@ -45,7 +47,7 @@ export function toFilterPool({
 	let toFilter = true
 
 	// used in pages like /yields/stablecoins to filter some pools by default
-	attributeOptions.forEach((option) => {
+	for (const option of attributeOptions) {
 		// check if this page has default attribute filter function
 		if (option.defaultFilterFnOnPage[pathname]) {
 			// apply default attribute filter function
@@ -55,18 +57,20 @@ export function toFilterPool({
 		if (pathname === '/yields' && option.key === 'apy_zero' && !selectedAttributes.includes(option.key)) {
 			toFilter = toFilter && curr.apy > 0
 		}
-	})
+	}
 
-	selectedAttributes.forEach((attribute) => {
+	for (const attribute of selectedAttributes) {
 		const attributeOption = attributeOptionsMap.get(attribute)
 
 		if (attributeOption) {
 			toFilter = toFilter && attributeOption.filterFn(curr)
 		}
-	})
+	}
 
+	// selectedProjectsSet already has excludes filtered out at hook level
 	toFilter = toFilter && selectedProjectsSet.has(curr.projectName)
 
+	// selectedCategoriesSet already has excludes filtered out at hook level
 	toFilter = toFilter && selectedCategoriesSet.has(curr.category)
 
 	const tokensInPool: string[] = tokensInPoolArray
@@ -97,17 +101,52 @@ export function toFilterPool({
 								tokensInPool.length > 0 &&
 								tokensInPool.every((sym) => usdPeggedSymbols.some((usd) => sym.includes(usd)))
 							)
-						} else if (tokensInPool.some((x) => x.includes(token))) {
-							return true
-						} else if (token === 'eth') {
-							return tokensInPool.find((x) => x.includes('weth') && x.includes(token))
-						} else return false
+						} else {
+							// Check if token matches a dynamic token category (e.g., TOKENIZED_GOLD, TOKENIZED_SILVER)
+							const categoryEntry = Object.values(tokenCategories).find((cat) => cat.filterKey?.toLowerCase() === token)
+							if (categoryEntry) {
+								const { addresses: catAddresses, symbols: catSymbols } = categoryEntry
+								const underlyingTokens = curr.underlyingTokens ?? []
+								// chain name mapping to match llama-ai database format
+								const chainMapping: Record<string, string> = {
+									avalanche: 'avax',
+									gnosis: 'xdai'
+								}
+								let chain = curr.chain?.toLowerCase()
+								chain = chainMapping[chain] ?? chain
+
+								// Strategy 1: Address-based matching (preferred, no false positives)
+								if (underlyingTokens.length > 0 && catAddresses?.length > 0) {
+									const addressSet = new Set(catAddresses)
+									const hasAddressMatch = underlyingTokens.some((addr: string) =>
+										addressSet.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
+									)
+									if (hasAddressMatch) return true
+								}
+
+								// Strategy 2: Exact symbol matching (fallback for pools without underlyingTokens)
+								if (catSymbols?.length > 0) {
+									const symbolSet = new Set(catSymbols)
+									return tokensInPool.some((sym) => symbolSet.has(sym))
+								}
+
+								return false
+							}
+
+							// Default: substring match on pool symbol
+							if (tokensInPool.some((x) => x.includes(token))) {
+								return true
+							} else if (token === 'eth') {
+								return tokensInPool.find((x) => x.includes('weth') && x.includes(token))
+							} else return false
+						}
 					})
 				: true
 
 		// Check if any excludeToken exists in tokensInPoolSet using Set intersection
 		const excludeToken = !Array.from(excludeTokensSet).some((token: string) => tokensInPoolSet.has(token))
 
+		// selectedChainsSet already has excludes filtered out at hook level
 		toFilter = toFilter && selectedChainsSet.has(curr.chain) && includeToken && excludeToken
 	} else {
 		const exactToken = exactTokens.find((token) => {
@@ -118,7 +157,8 @@ export function toFilterPool({
 			} else return false
 		})
 
-		toFilter = toFilter && (selectedChainsSet.has(curr.chain) && exactToken ? true : false)
+		// selectedChainsSet already has excludes filtered out at hook level
+		toFilter = toFilter && !!(selectedChainsSet.has(curr.chain) && exactToken)
 	}
 
 	const isValidTvlRange = minTvl != null || maxTvl != null
@@ -526,13 +566,13 @@ export const filterPool = ({
 		toFilter = toFilter && selectedFarmProtocolsSet.has(pool.farmProjectName)
 	}
 	if (selectedAttributes) {
-		selectedAttributes.forEach((attribute) => {
+		for (const attribute of selectedAttributes) {
 			const attributeOption = attributeOptionsMap.get(attribute)
 
 			if (attributeOption) {
 				toFilter = toFilter && attributeOption.filterFn(pool)
 			}
-		})
+		}
 	}
 
 	const isValidTvlRange = minTvl != null || maxTvl != null

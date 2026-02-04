@@ -1,9 +1,8 @@
-import * as React from 'react'
-import { useRouter } from 'next/router'
 import { ColumnDef } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
 import { IconsRow } from '~/components/IconsRow'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { formatColumnOrder, getColumnSizesKeys } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
 import { formattedNum, formattedPercent } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
@@ -16,20 +15,11 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		header: 'Pool',
 		accessorKey: 'pool',
 		enableSorting: false,
-		cell: ({ row, table }) => {
+		cell: ({ row }) => {
 			const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol}`
 
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
 			return (
-				<NameYieldPool
-					withoutLink
-					value={name}
-					configID={row.original.configID}
-					url={row.original.url}
-					index={index + 1}
-					borrow={true}
-				/>
+				<NameYieldPool withoutLink value={name} configID={row.original.configID} url={row.original.url} borrow={true} />
 			)
 		},
 		size: 400
@@ -304,7 +294,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 
 // key: min width of window/screen
 // values: table columns order
-const columnOrders = {
+const columnOrders: ColumnOrdersByBreakpoint = {
 	0: [
 		'pool',
 		'project',
@@ -375,7 +365,7 @@ const columnOrders = {
 	]
 }
 
-const columnSizes = {
+const columnSizes: ColumnSizesByBreakpoint = {
 	0: {
 		pool: 160,
 		project: 180,
@@ -468,10 +458,6 @@ const columnSizes = {
 	}
 }
 
-const yieldsColumnOrders = formatColumnOrder(columnOrders)
-
-const columnSizesKeys = getColumnSizesKeys(columnSizes)
-
 const defaultSortingState = [{ id: 'borrowAvailableUsd', desc: true }]
 
 export function YieldsOptimizerTable({ data }) {
@@ -510,8 +496,7 @@ export function YieldsOptimizerTable({ data }) {
 			data={data}
 			columns={columns}
 			columnSizes={columnSizes}
-			columnSizesKeys={columnSizesKeys}
-			columnOrders={yieldsColumnOrders}
+			columnOrders={columnOrders}
 			sortingState={defaultSortingState}
 			columnVisibility={columnVisibility}
 		/>

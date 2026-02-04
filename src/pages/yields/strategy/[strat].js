@@ -1,5 +1,5 @@
-import { lazy, Suspense, useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { lazy, Suspense, useMemo } from 'react'
 import { LazyChart } from '~/components/LazyChart'
 import { LoadingDots } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'
@@ -85,14 +85,14 @@ const PageView = () => {
 		]
 
 		let merged = []
-		uniqueDates.forEach((d) => {
+		for (const d of uniqueDates) {
 			merged.push({
 				timestamp: d,
 				lendData: lendDataMap.get(d),
 				borrowData: borrowDataMap.get(d),
 				farmData: farmDataMap.get(d)
 			})
-		})
+		}
 		merged = merged.filter((t) => !Object.values(t).includes(undefined))
 		// filter merged to length where all 3 components (lend/borrow/farm values) are not null
 		merged = merged.filter(
@@ -115,7 +115,8 @@ const PageView = () => {
 		// make sure this is the most recent value
 		const latestValues = merged?.slice(-1)[0] ?? []
 		const farmTVL = latestValues?.farmData?.tvlUsd ?? 0
-		const borrowAvailable = latestValues?.borrowData?.totalSupplyUsd - latestValues?.borrowData?.totalBorrowUsd ?? 0
+		const borrowAvailable =
+			(latestValues?.borrowData?.totalSupplyUsd ?? 0) - (latestValues?.borrowData?.totalBorrowUsd ?? 0)
 
 		const lendApy = latestValues?.lendData?.apy ?? 0
 
@@ -168,7 +169,7 @@ const PageView = () => {
 			farmTVL,
 			borrowAvailable
 		}
-	}, [lendHistory, borrowHistory, farmHistory, configsMap, lendToken, borrowToken, lendProjectCategory])
+	}, [lendHistory, borrowHistory, farmHistory, configData, configsMap, lendToken, borrowToken, lendProjectCategory])
 
 	const isLoading = fetchingLendData || fetchingBorrowData || fetchingFarmData || fetchingConfigData || fetchingConfig
 
@@ -179,44 +180,44 @@ const PageView = () => {
 					<h1 className="text-xl font-bold">APY Breakdown:</h1>
 					<h2 className="flex items-center justify-between gap-1">
 						<span className="font-bold">Strategy APY</span>
-						<span className="font-jetbrains ml-auto">
+						<span className="ml-auto font-jetbrains">
 							{isLoading || finalAPY == null ? '' : `${finalAPY.toFixed(2)}%`}
 						</span>
 					</h2>
 					<div className="flex flex-col gap-1">
 						<p className="flex items-center gap-1">
 							<span>Supply APY:</span>
-							<span className="font-jetbrains ml-auto">
+							<span className="ml-auto font-jetbrains">
 								{isLoading || lendApy == null ? '' : `${lendApy.toFixed(2)}%`}
 							</span>
 						</p>
 						<p className="flex items-center gap-1">
 							<span>Borrow APY:</span>
-							<span className="font-jetbrains ml-auto">
+							<span className="ml-auto font-jetbrains">
 								{isLoading || borrowApy == null ? '' : `${borrowApy.toFixed(2)}%`}
 							</span>
 						</p>
 						<p className="flex items-center gap-1">
 							<span>Farm APY:</span>
-							<span className="font-jetbrains ml-auto">
+							<span className="ml-auto font-jetbrains">
 								{isLoading || farmApy == null ? '' : `${farmApy.toFixed(2)}%`}
 							</span>
 						</p>
 						<p className="flex items-center gap-1">
 							<span>Max LTV:</span>
-							<span className="font-jetbrains ml-auto">
+							<span className="ml-auto font-jetbrains">
 								{isLoading || ltv == null ? '' : `${ltv.toFixed(2) * 100}%`}
 							</span>
 						</p>
 						<p className="flex items-center gap-1">
 							<span>Available Borrow Liquidity:</span>
-							<span className="font-jetbrains ml-auto">
+							<span className="ml-auto font-jetbrains">
 								{isLoading || borrowAvailable == null ? '' : formattedNum(borrowAvailable, true)}
 							</span>
 						</p>
 						<p className="flex items-center gap-1">
 							<span>Farm TVL:</span>
-							<span className="font-jetbrains ml-auto">
+							<span className="ml-auto font-jetbrains">
 								{isLoading || farmTVL == null ? '' : formattedNum(farmTVL, true)}
 							</span>
 						</p>

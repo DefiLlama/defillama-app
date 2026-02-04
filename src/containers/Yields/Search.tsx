@@ -1,9 +1,10 @@
-import * as React from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import { useRouter } from 'next/router'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 export function YieldsSearch({
 	lend = false,
@@ -68,7 +69,7 @@ export function YieldsSearch({
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="max-sm:drawer thin-scrollbar z-10 flex max-h-(--popover-available-height) flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
+					className="z-10 flex thin-scrollbar max-h-(--popover-available-height) flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)] max-sm:drawer"
 				>
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 						<Icon name="x" className="h-5 w-5" />
@@ -149,7 +150,7 @@ const Row = ({ data, lend, setOpen }) => {
 	const [loading, setLoading] = React.useState(false)
 	const router = useRouter()
 
-	const { lend: lendQuery, borrow, ...queryParams } = router.query
+	const { lend: _lendQuery, borrow: _borrow, ...queryParams } = router.query
 
 	const [targetParam, restParam] = lend ? ['lend', 'borrow'] : ['borrow', 'lend']
 
@@ -158,6 +159,10 @@ const Row = ({ data, lend, setOpen }) => {
 			value={data.name}
 			onClick={() => {
 				setLoading(true)
+				trackYieldsEvent(YIELDS_EVENTS.SEARCH_SELECT, {
+					token: data.symbol,
+					type: lend ? 'lend' : 'borrow'
+				})
 				router
 					.push(
 						{

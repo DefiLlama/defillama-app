@@ -1,6 +1,6 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { TagGroup } from '../TagGroup'
 
@@ -47,31 +47,31 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 		const endTimestamp = dayjs('2031-01-01').unix()
 		const now = Date.now() / 1000
 
-		protocols.forEach((protocol) => {
-			if (!protocol.events || protocol.tPrice === null || protocol.tPrice === undefined || protocol.tPrice <= 0) {
-				return
+		for (const protocol of protocols) {
+			if (!protocol.events || protocol.tPrice == null || protocol.tPrice <= 0) {
+				continue
 			}
 
 			const futureEvents = protocol.events.filter((event) => {
 				return event.timestamp !== null && event.timestamp >= now && (isFullView || event.timestamp < endTimestamp)
 			})
 
-			futureEvents.forEach((event) => {
+			for (const event of futureEvents) {
 				if (event.timestamp === null || !event.noOfTokens || event.noOfTokens.length === 0) {
-					return
+					continue
 				}
 
 				const totalTokens = event.noOfTokens.reduce((sum, amount) => sum + (amount || 0), 0)
 				if (totalTokens === 0) {
-					return
+					continue
 				}
 
 				const valueUSD = totalTokens * protocol.tPrice
 				if (valueUSD > 0) {
 					upcomingUnlocks.push({ timestamp: event.timestamp, valueUSD, protocolName: protocol.name })
 				}
-			})
-		})
+			}
+		}
 
 		let processedChartData: Array<Record<string, number | string>> = []
 		let finalStacks = {}
@@ -81,7 +81,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 		if (viewMode === 'Total View') {
 			const groupedData = new Map<number, number>()
 
-			upcomingUnlocks.forEach((unlock) => {
+			for (const unlock of upcomingUnlocks) {
 				const date = dayjs.unix(unlock.timestamp)
 				if (!date.isValid()) return
 				const key =
@@ -92,7 +92,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 							: date.startOf('month').unix()
 				const existingValue = groupedData.get(key) || 0
 				groupedData.set(key, existingValue + unlock.valueUSD)
-			})
+			}
 
 			processedChartData = Array.from(groupedData.entries())
 				.map(([date, totalUpcomingUnlockValueUSD]) => ({
@@ -108,7 +108,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 			const groupedData = new Map<number, Record<string, number>>()
 			const allProtocolNames = new Set<string>()
 
-			upcomingUnlocks.forEach((unlock) => {
+			for (const unlock of upcomingUnlocks) {
 				const date = dayjs.unix(unlock.timestamp)
 				if (!date.isValid()) return
 				const key =
@@ -124,7 +124,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 
 				groupedData.set(key, existingRecord)
 				allProtocolNames.add(unlock.protocolName)
-			})
+			}
 
 			processedChartData = Array.from(groupedData.entries())
 				.map(([date, protocolValues]) => ({

@@ -1,5 +1,5 @@
-import { lazy, Suspense, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { lazy, Suspense, useMemo } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
@@ -7,7 +7,6 @@ import { Tooltip } from '~/components/Tooltip'
 import { oldBlue } from '~/constants/colors'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import ProtocolCharts from '../../services/ProtocolCharts'
 import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
@@ -56,6 +55,16 @@ const inflowsChartOptions = {
 
 const TVL_STACKS = ['TVL']
 const EMPTY_HALLMARKS: [number, string][] = []
+const EMPTY_CHART_DATA: any[] = []
+const EMPTY_STACKS: string[] = []
+const EMPTY_ADDL_DATA: {
+	tokensUnique?: string[]
+	tokenBreakdownUSD?: any[]
+	tokenBreakdownPieChart?: any[]
+	tokenBreakdown?: any[]
+	usdInflows?: any[]
+	tokenInflows?: any[]
+} = {}
 
 export function AdvancedTvlChartTab({
 	selectedAdvancedTvlProtocol,
@@ -68,16 +77,7 @@ export function AdvancedTvlChartTab({
 	protocolsLoading
 }: AdvancedTvlChartTabProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
-	const { protocols } = useProDashboardCatalog()
-
-	const filteredProtocolOptions = useMemo(() => {
-		const parentIds = new Set(protocols.filter((p: any) => p.parentProtocol).map((p: any) => p.parentProtocol))
-		const parentIdToSlug = new Map(protocols.filter((p: any) => parentIds.has(p.id)).map((p: any) => [p.id, p.slug]))
-		const parentSlugs = new Set(parentIdToSlug.values())
-		return protocolOptions
-			.filter((opt: any) => !parentSlugs.has(opt.value))
-			.map((opt: any) => ({ ...opt, isChild: false }))
-	}, [protocolOptions, protocols])
+	const filteredProtocolOptions = protocolOptions
 
 	const { data: basicTvlData, isLoading: isBasicTvlLoading } = useQuery({
 		queryKey: ['advanced-tvl-preview-basic', selectedAdvancedTvlProtocol],
@@ -90,17 +90,29 @@ export function AdvancedTvlChartTab({
 		data: addlData,
 		historicalChainTvls,
 		isLoading: isAddlLoading
-	} = useFetchProtocolAddlChartsData(selectedAdvancedTvlProtocolName || '')
+	} = useFetchProtocolAddlChartsData(selectedAdvancedTvlProtocol || '')
 
 	const { chainsSplit, chainsUnique } = useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
 		const chainsSplit = formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled })
-		const chainsUnique = Object.keys(chainsSplit[chainsSplit.length - 1] ?? {}).filter((c) => c !== 'date')
+		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
+		const chainsUnique: string[] = []
+		for (const key in lastEntry) {
+			if (!Object.prototype.hasOwnProperty.call(lastEntry, key)) continue
+			if (key !== 'date') chainsUnique.push(key)
+		}
 		return { chainsSplit, chainsUnique }
 	}, [historicalChainTvls, extraTvlsEnabled])
 
 	const { tokensUnique, tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown, usdInflows, tokenInflows } =
-		addlData ?? {}
+		addlData ?? EMPTY_ADDL_DATA
+	const resolvedTokensUnique = tokensUnique ?? EMPTY_STACKS
+	const resolvedTokenBreakdownUSD = tokenBreakdownUSD ?? EMPTY_CHART_DATA
+	const resolvedTokenBreakdownPieChart = tokenBreakdownPieChart ?? EMPTY_CHART_DATA
+	const resolvedTokenBreakdown = tokenBreakdown ?? EMPTY_CHART_DATA
+	const resolvedUsdInflows = usdInflows ?? EMPTY_CHART_DATA
+	const resolvedTokenInflows = tokenInflows ?? EMPTY_CHART_DATA
+	const resolvedChainsSplit = chainsSplit ?? EMPTY_CHART_DATA
 
 	const availableChartTypes = useMemo(() => {
 		const available = new Set<string>(['tvl'])
@@ -164,7 +176,7 @@ export function AdvancedTvlChartTab({
 
 		switch (selectedAdvancedTvlChartType) {
 			case 'tvl': {
-				const tvlData = basicTvlData?.map(([ts, val]) => ({ date: ts, TVL: val })) ?? []
+				const tvlData = basicTvlData ? basicTvlData.map(([ts, val]) => ({ date: ts, TVL: val })) : EMPTY_CHART_DATA
 				return (
 					<Suspense
 						fallback={
@@ -197,7 +209,7 @@ export function AdvancedTvlChartTab({
 					>
 						<AreaChart
 							title=""
-							chartData={chainsSplit ?? []}
+							chartData={resolvedChainsSplit}
 							stacks={chainsUnique}
 							valueSymbol="$"
 							hideDefaultLegend={true}
@@ -217,8 +229,8 @@ export function AdvancedTvlChartTab({
 					>
 						<AreaChart
 							title=""
-							chartData={tokenBreakdownUSD ?? []}
-							stacks={tokensUnique ?? []}
+							chartData={resolvedTokenBreakdownUSD}
+							stacks={resolvedTokensUnique}
 							valueSymbol="$"
 							hideDefaultLegend={true}
 							hideGradient={true}
@@ -235,7 +247,7 @@ export function AdvancedTvlChartTab({
 							</div>
 						}
 					>
-						<PieChart chartData={tokenBreakdownPieChart ?? []} />
+						<PieChart chartData={resolvedTokenBreakdownPieChart} />
 					</Suspense>
 				)
 			case 'tokenBalances':
@@ -249,8 +261,8 @@ export function AdvancedTvlChartTab({
 					>
 						<AreaChart
 							title=""
-							chartData={tokenBreakdown ?? []}
-							stacks={tokensUnique ?? []}
+							chartData={resolvedTokenBreakdown}
+							stacks={resolvedTokensUnique}
 							hideDefaultLegend={true}
 							hideGradient={true}
 							chartOptions={chartOptions}
@@ -266,7 +278,7 @@ export function AdvancedTvlChartTab({
 							</div>
 						}
 					>
-						<BarChart chartData={usdInflows ?? []} color={oldBlue} title="" chartOptions={inflowsChartOptions} />
+						<BarChart chartData={resolvedUsdInflows} color={oldBlue} title="" chartOptions={inflowsChartOptions} />
 					</Suspense>
 				)
 			case 'tokenInflows':
@@ -279,11 +291,11 @@ export function AdvancedTvlChartTab({
 						}
 					>
 						<BarChart
-							chartData={tokenInflows ?? []}
+							chartData={resolvedTokenInflows}
 							title=""
 							hideDefaultLegend={true}
 							customLegendName="Token"
-							customLegendOptions={tokensUnique ?? []}
+							customLegendOptions={resolvedTokensUnique}
 							chartOptions={inflowsChartOptions}
 						/>
 					</Suspense>
@@ -320,34 +332,34 @@ export function AdvancedTvlChartTab({
 				</Tooltip>
 
 				{hasProtocolSelection && isAddlLoading && (
-					<div className="pro-text3 text-xs">Loading available chart types...</div>
+					<div className="text-xs pro-text3">Loading available chart types...</div>
 				)}
 
 				{hasProtocolSelection && !isAddlLoading && (
-					<div className="pro-text3 text-xs">
+					<div className="text-xs pro-text3">
 						<p>
-							Available charts: <span className="pro-text1 font-semibold">{availableChartTypes.size}</span>
+							Available charts: <span className="font-semibold pro-text1">{availableChartTypes.size}</span>
 						</p>
 					</div>
 				)}
 			</div>
 
-			<div className="pro-border overflow-hidden rounded-lg border">
-				<div className="pro-text2 border-b border-(--cards-border) px-3 py-2 text-xs font-medium">Preview</div>
+			<div className="overflow-hidden rounded-lg border pro-border">
+				<div className="border-b border-(--cards-border) px-3 py-2 text-xs font-medium pro-text2">Preview</div>
 
 				{hasProtocolSelection ? (
 					<div className="bg-(--cards-bg) p-3">
 						<div className="mb-3">
-							<h3 className="pro-text1 mb-1 text-sm font-semibold">
+							<h3 className="mb-1 text-sm font-semibold pro-text1">
 								{selectedAdvancedTvlProtocolName} - {chartTypeLabel}
 							</h3>
-							<p className="pro-text2 text-xs">Advanced TVL Chart</p>
+							<p className="text-xs pro-text2">Advanced TVL Chart</p>
 						</div>
 
 						<div className="h-[320px]">{renderChart()}</div>
 					</div>
 				) : (
-					<div className="pro-text3 flex h-[320px] items-center justify-center text-center">
+					<div className="flex h-[320px] items-center justify-center text-center pro-text3">
 						<div>
 							<Icon name="trending-up" height={32} width={32} className="mx-auto mb-1" />
 							<div className="text-xs">Select a protocol to see available TVL charts</div>

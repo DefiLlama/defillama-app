@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
 import { useQueryClient } from '@tanstack/react-query'
+import Router, { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { AccountInfo } from '~/containers/Subscribtion/AccountInfo'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -22,9 +22,9 @@ export default function Account() {
 		if (success === 'true' && isAuthenticated && !hasProcessedSuccess) {
 			queryClient.invalidateQueries({ queryKey: ['subscription'] })
 			setHasProcessedSuccess(true)
-			router.replace('/account', undefined, { shallow: true })
+			Router.replace('/account', undefined, { shallow: true })
 		}
-	}, [success, isAuthenticated, hasProcessedSuccess, queryClient, router])
+	}, [success, isAuthenticated, hasProcessedSuccess, queryClient, router.query, router.pathname])
 
 	useEffect(() => {
 		if (hasProcessedSuccess && !isSubscriptionLoading && hasActiveSubscription && !hasShownSuccessModal) {

@@ -17,6 +17,15 @@ export interface YieldsFilters {
 	poolTypes?: string[]
 }
 
+const EMPTY_POOL_TYPES: string[] = []
+const EMPTY_PROTOCOLS: string[] = []
+const EMPTY_TOKENS: string[] = []
+
+const formatNumberWithCommas = (num: number | undefined): string => {
+	if (num == null) return ''
+	return num.toLocaleString('en-US', { maximumFractionDigits: 0 })
+}
+
 interface YieldsFiltersPanelProps {
 	showFiltersPanel: boolean
 	setShowFiltersPanel: (show: boolean) => void
@@ -35,7 +44,7 @@ export function YieldsFiltersPanel({
 	setShowFiltersPanel,
 	filters,
 	setFilters,
-	availableChains,
+	availableChains: _availableChains,
 	availableProtocols,
 	availableTokens,
 	onApplyFilters,
@@ -43,6 +52,11 @@ export function YieldsFiltersPanel({
 	activeFilterCount
 }: YieldsFiltersPanelProps) {
 	const [localFilters, setLocalFilters] = React.useState<YieldsFilters>(filters)
+
+	const tokenOptions = React.useMemo(
+		() => availableTokens.map((token) => ({ value: token, label: token })),
+		[availableTokens]
+	)
 
 	React.useEffect(() => {
 		setLocalFilters(filters)
@@ -55,15 +69,10 @@ export function YieldsFiltersPanel({
 		}))
 	}
 
-	const formatNumberWithCommas = (num: number | undefined): string => {
-		if (num === undefined || num === null) return ''
-		return num.toLocaleString('en-US', { maximumFractionDigits: 0 })
-	}
-
 	const parseFormattedNumber = (value: string): number | undefined => {
 		const cleaned = value.replace(/,/g, '')
 		const parsed = Number(cleaned)
-		return cleaned && !isNaN(parsed) ? parsed : undefined
+		return cleaned && !Number.isNaN(parsed) ? parsed : undefined
 	}
 
 	const handleApply = () => {
@@ -87,12 +96,12 @@ export function YieldsFiltersPanel({
 			style={{ zIndex: 50, pointerEvents: 'auto' }}
 		>
 			<div className="mb-3 flex items-center justify-between">
-				<h4 className="pro-text1 text-sm font-medium">Filter Yields</h4>
+				<h4 className="text-sm font-medium pro-text1">Filter Yields</h4>
 				<div className="flex items-center gap-2">
 					{activeFilterCount > 0 && (
 						<button
 							onClick={handleReset}
-							className="pro-divider pro-hover-bg pro-text2 pro-bg2 rounded-md border px-2 py-1 text-xs transition-colors"
+							className="rounded-md border pro-divider pro-bg2 pro-hover-bg px-2 py-1 text-xs pro-text2 transition-colors"
 						>
 							Clear All ({activeFilterCount})
 						</button>
@@ -102,18 +111,18 @@ export function YieldsFiltersPanel({
 
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
 				<div>
-					<h5 className="pro-text2 mb-3 text-xs font-medium tracking-wide uppercase">Yield Filters</h5>
+					<h5 className="mb-3 text-xs font-medium tracking-wide pro-text2 uppercase">Yield Filters</h5>
 
 					<div className="space-y-3">
 						<div>
-							<label className="pro-text2 mb-2 block text-xs font-medium">Total APY Range</label>
+							<label className="mb-2 block text-xs font-medium pro-text2">Total APY Range</label>
 							<div className="flex items-center gap-2">
 								<input
 									type="number"
 									placeholder="Min %"
 									value={localFilters.apyMin || ''}
 									onChange={(e) => updateFilter('apyMin', e.target.value ? Number(e.target.value) : undefined)}
-									className="pro-border pro-text1 placeholder:pro-text3 flex-1 rounded-md border bg-(--bg-glass) px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+									className="flex-1 rounded-md border pro-border bg-(--bg-glass) px-2 py-1.5 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
 								/>
 								<span className="pro-text3">-</span>
 								<input
@@ -121,20 +130,20 @@ export function YieldsFiltersPanel({
 									placeholder="Max %"
 									value={localFilters.apyMax || ''}
 									onChange={(e) => updateFilter('apyMax', e.target.value ? Number(e.target.value) : undefined)}
-									className="pro-border pro-text1 placeholder:pro-text3 flex-1 rounded-md border bg-(--bg-glass) px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+									className="flex-1 rounded-md border pro-border bg-(--bg-glass) px-2 py-1.5 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
 								/>
 							</div>
 						</div>
 
 						<div>
-							<label className="pro-text2 mb-2 block text-xs font-medium">Base APY Range</label>
+							<label className="mb-2 block text-xs font-medium pro-text2">Base APY Range</label>
 							<div className="flex items-center gap-2">
 								<input
 									type="number"
 									placeholder="Min %"
 									value={localFilters.baseApyMin || ''}
 									onChange={(e) => updateFilter('baseApyMin', e.target.value ? Number(e.target.value) : undefined)}
-									className="pro-border pro-text1 placeholder:pro-text3 flex-1 rounded-md border bg-(--bg-glass) px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+									className="flex-1 rounded-md border pro-border bg-(--bg-glass) px-2 py-1.5 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
 								/>
 								<span className="pro-text3">-</span>
 								<input
@@ -142,7 +151,7 @@ export function YieldsFiltersPanel({
 									placeholder="Max %"
 									value={localFilters.baseApyMax || ''}
 									onChange={(e) => updateFilter('baseApyMax', e.target.value ? Number(e.target.value) : undefined)}
-									className="pro-border pro-text1 placeholder:pro-text3 flex-1 rounded-md border bg-(--bg-glass) px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+									className="flex-1 rounded-md border pro-border bg-(--bg-glass) px-2 py-1.5 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
 								/>
 							</div>
 						</div>
@@ -173,24 +182,24 @@ export function YieldsFiltersPanel({
 									)}
 								</div>
 							</div>
-							<span className="pro-text1 text-sm">Has Reward Incentives</span>
+							<span className="text-sm pro-text1">Has Reward Incentives</span>
 						</label>
 					</div>
 				</div>
 
 				<div>
-					<h5 className="pro-text2 mb-3 text-xs font-medium tracking-wide uppercase">Pool Filters</h5>
+					<h5 className="mb-3 text-xs font-medium tracking-wide pro-text2 uppercase">Pool Filters</h5>
 
 					<div className="space-y-3">
 						<div>
-							<label className="pro-text2 mb-2 block text-xs font-medium">TVL Range (USD)</label>
+							<label className="mb-2 block text-xs font-medium pro-text2">TVL Range (USD)</label>
 							<div className="flex items-center gap-2">
 								<input
 									type="text"
 									placeholder="Min"
 									value={formatNumberWithCommas(localFilters.tvlMin)}
 									onChange={(e) => updateFilter('tvlMin', parseFormattedNumber(e.target.value))}
-									className="pro-border pro-text1 placeholder:pro-text3 flex-1 rounded-md border bg-(--bg-glass) px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+									className="flex-1 rounded-md border pro-border bg-(--bg-glass) px-2 py-1.5 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
 								/>
 								<span className="pro-text3">-</span>
 								<input
@@ -198,7 +207,7 @@ export function YieldsFiltersPanel({
 									placeholder="Max"
 									value={formatNumberWithCommas(localFilters.tvlMax)}
 									onChange={(e) => updateFilter('tvlMax', parseFormattedNumber(e.target.value))}
-									className="pro-border pro-text1 placeholder:pro-text3 flex-1 rounded-md border bg-(--bg-glass) px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+									className="flex-1 rounded-md border pro-border bg-(--bg-glass) px-2 py-1.5 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
 								/>
 							</div>
 						</div>
@@ -206,7 +215,7 @@ export function YieldsFiltersPanel({
 				</div>
 
 				<div>
-					<h5 className="pro-text2 mb-3 text-xs font-medium tracking-wide uppercase">Pool Types</h5>
+					<h5 className="mb-3 text-xs font-medium tracking-wide pro-text2 uppercase">Pool Types</h5>
 
 					<div className="space-y-2">
 						<label className="group flex cursor-pointer items-center gap-2">
@@ -235,11 +244,11 @@ export function YieldsFiltersPanel({
 									)}
 								</div>
 							</div>
-							<span className="pro-text1 text-sm">Stablecoins Only</span>
+							<span className="text-sm pro-text1">Stablecoins Only</span>
 						</label>
 
 						<div className="mt-4">
-							<label className="pro-text2 mb-3 block text-xs font-medium">Pool Categories</label>
+							<label className="mb-3 block text-xs font-medium pro-text2">Pool Categories</label>
 							<div className="space-y-2">
 								{['DEX', 'Lending', 'Staking', 'CDP', 'Bridge', 'Yield Aggregator'].map((type) => (
 									<label key={type} className="group flex cursor-pointer items-center gap-2">
@@ -248,7 +257,7 @@ export function YieldsFiltersPanel({
 												type="checkbox"
 												checked={localFilters.poolTypes?.includes(type) || false}
 												onChange={(e) => {
-													const currentTypes = localFilters.poolTypes || []
+													const currentTypes = localFilters.poolTypes ?? EMPTY_POOL_TYPES
 													if (e.target.checked) {
 														updateFilter('poolTypes', [...currentTypes, type])
 													} else {
@@ -276,7 +285,7 @@ export function YieldsFiltersPanel({
 												)}
 											</div>
 										</div>
-										<span className="pro-text1 text-sm">{type}</span>
+										<span className="text-sm pro-text1">{type}</span>
 									</label>
 								))}
 							</div>
@@ -285,13 +294,13 @@ export function YieldsFiltersPanel({
 				</div>
 
 				<div>
-					<h5 className="pro-text2 mb-3 text-xs font-medium tracking-wide uppercase">Protocol & Token Filters</h5>
+					<h5 className="mb-3 text-xs font-medium tracking-wide pro-text2 uppercase">Protocol & Token Filters</h5>
 
 					<div className="space-y-3">
 						<AriakitVirtualizedMultiSelect
 							label="Protocols"
 							options={availableProtocols}
-							selectedValues={localFilters.protocols || []}
+							selectedValues={localFilters.protocols ?? EMPTY_PROTOCOLS}
 							onChange={(values) => updateFilter('protocols', values.length > 0 ? values : undefined)}
 							placeholder="Select protocols..."
 							renderIcon={(option) => option.logo || null}
@@ -299,8 +308,8 @@ export function YieldsFiltersPanel({
 
 						<AriakitVirtualizedMultiSelect
 							label="Pool Tokens"
-							options={availableTokens.map((token) => ({ value: token, label: token }))}
-							selectedValues={localFilters.tokens || []}
+							options={tokenOptions}
+							selectedValues={localFilters.tokens ?? EMPTY_TOKENS}
 							onChange={(values) => updateFilter('tokens', values.length > 0 ? values : undefined)}
 							placeholder="Select tokens..."
 						/>
@@ -308,8 +317,8 @@ export function YieldsFiltersPanel({
 				</div>
 			</div>
 
-			<div className="pro-divider mt-4 flex items-center justify-between border-t pt-3">
-				<button onClick={() => setShowFiltersPanel(false)} className="pro-text2 px-3 py-1 text-xs">
+			<div className="mt-4 flex items-center justify-between border-t pro-divider pt-3">
+				<button onClick={() => setShowFiltersPanel(false)} className="px-3 py-1 text-xs pro-text2">
 					Cancel
 				</button>
 				<button

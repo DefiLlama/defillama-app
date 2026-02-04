@@ -12,7 +12,13 @@ const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'
 export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
-	const { protocolsData, parentForks, charts, totalValueUSD, volumeChangeUSD } = useMemo(() => {
+	const {
+		protocolsData,
+		parentForks: _parentForks,
+		charts,
+		totalValueUSD,
+		volumeChangeUSD
+	} = useMemo(() => {
 		const protocolsData = formatDataWithExtraTvls({
 			data: filteredProtocols,
 			extraTvlsEnabled

@@ -2,6 +2,7 @@ import { fetchCoinPrices } from '~/api'
 import {
 	PEGGEDS_API,
 	PROTOCOLS_API,
+	YIELD_TOKEN_CATEGORIES_API,
 	YIELD_CHAIN_API,
 	YIELD_CONFIG_API,
 	YIELD_LEND_BORROW_API,
@@ -34,6 +35,7 @@ export async function getYieldPageData() {
 		avalanche: 'avax',
 		gnosis: 'xdai'
 	}
+	const priceChainMappingKeys = new Set(Object.keys(priceChainMapping))
 
 	// get Price data
 	//
@@ -44,9 +46,7 @@ export async function getYieldPageData() {
 
 		if (rewardTokens?.length) {
 			let priceChainName = p.chain.toLowerCase()
-			priceChainName = Object.keys(priceChainMapping).includes(priceChainName)
-				? priceChainMapping[priceChainName]
-				: priceChainName
+			priceChainName = priceChainMappingKeys.has(priceChainName) ? priceChainMapping[priceChainName] : priceChainName
 
 			// using coingecko ids for projects on Neo, otherwise empty object
 			pricesList.push(
@@ -64,9 +64,7 @@ export async function getYieldPageData() {
 		let priceChainName = p.chain.toLowerCase()
 		const rewardTokens = p.rewardTokens?.filter((t) => !!t)
 
-		priceChainName = Object.keys(priceChainMapping).includes(priceChainName)
-			? priceChainMapping[priceChainName]
-			: priceChainName
+		priceChainName = priceChainMappingKeys.has(priceChainName) ? priceChainMapping[priceChainName] : priceChainName
 
 		p['rewardTokensSymbols'] =
 			p.chain === 'Neo'
@@ -127,8 +125,65 @@ export async function getYieldPageData() {
 			)
 		)
 		data['usdPeggedSymbols'] = usdPeggedSymbols
-	} catch (e) {
+	} catch {
 		data['usdPeggedSymbols'] = []
+	}
+
+	// fetch token categories for yields filtering (tokenized assets, meme tokens, etc.)
+	try {
+		const tokenCategories = await fetchApi(YIELD_TOKEN_CATEGORIES_API)
+		data['tokenCategories'] = tokenCategories && typeof tokenCategories === 'object' ? tokenCategories : {}
+
+		// Dynamically add token filter options for non-meme categories
+		// Insert after ALL_BITCOINS and ALL_USD_STABLES (index 2) so they appear near the top
+		const categoryTokens: Array<{ name: string; symbol: string; logo: null; fallbackLogo: null }> = []
+		const categorySymbols: string[] = []
+		for (const [slug, categoryData] of Object.entries(data['tokenCategories'])) {
+			if (slug === 'meme-token') continue // meme-token is handled as an attribute, not token filter
+			const { label, filterKey } = categoryData as { label: string; filterKey: string }
+			if (filterKey && label) {
+				categoryTokens.push({
+					name: label,
+					symbol: filterKey,
+					logo: null,
+					fallbackLogo: null
+				})
+				categorySymbols.push(filterKey)
+			}
+		}
+		// Insert at position 2 (after ALL_BITCOINS, ALL_USD_STABLES)
+		data.tokens.splice(2, 0, ...categoryTokens)
+		data.tokenSymbolsList.splice(2, 0, ...categorySymbols)
+
+		// Add hasMemeToken flag to pools for the "No Memecoins" attribute filter
+		const memeTokenData = data['tokenCategories']['meme-token']
+		if (memeTokenData) {
+			const memeAddresses = new Set(memeTokenData.addresses || [])
+			const memeSymbols = new Set(memeTokenData.symbols || [])
+
+			data.pools = data.pools.map((p) => {
+				let hasMemeToken = false
+				const chain = priceChainMapping[p.chain?.toLowerCase()] ?? p.chain?.toLowerCase()
+				const underlyingTokens = p.underlyingTokens ?? []
+
+				// Check by address first
+				if (underlyingTokens.length > 0 && memeAddresses.size > 0) {
+					hasMemeToken = underlyingTokens.some((addr: string) =>
+						memeAddresses.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
+					)
+				}
+
+				// Fallback to symbol check
+				if (!hasMemeToken && memeSymbols.size > 0) {
+					const tokensInPool = p.symbol.split('-').map((s: string) => s.toLowerCase())
+					hasMemeToken = tokensInPool.some((sym: string) => memeSymbols.has(sym))
+				}
+
+				return { ...p, hasMemeToken }
+			})
+		}
+	} catch {
+		data['tokenCategories'] = {}
 	}
 
 	return {
@@ -166,6 +221,10 @@ export async function getYieldMedianData() {
 
 export type YieldsData = Awaited<ReturnType<typeof getYieldPageData>>
 
+// restrict pool data to lending and cdp
+const categoriesToKeepSet = new Set(['Lending', 'Undercollateralized Lending', 'CDP', 'NFT Lending'])
+const categoriesToKeepWithoutUndercollateralizedSet = new Set(['Lending', 'CDP', 'NFT Lending'])
+
 export async function getLendBorrowData() {
 	const props = (await getYieldPageData()).props
 	// treating fraxlend as cdp category otherwise the output
@@ -178,9 +237,7 @@ export async function getLendBorrowData() {
 		apyBase: p.project === 'fraxlend' ? null : p.apyBase
 	}))
 
-	// restrict pool data to lending and cdp
-	const categoriesToKeep = ['Lending', 'Undercollateralized Lending', 'CDP', 'NFT Lending']
-	let pools = props.pools.filter((p) => categoriesToKeep.includes(p.category))
+	let pools = props.pools.filter((p) => p.category && categoriesToKeepSet.has(p.category))
 
 	// get new borrow fields
 	let dataBorrow = (await fetchApi([YIELD_LEND_BORROW_API]))[0]
@@ -267,19 +324,21 @@ export async function getLendBorrowData() {
 	const lendingProtocols = new Set()
 	const farmProtocols = new Set()
 
-	props.pools.forEach((pool) => {
+	for (const pool of props.pools) {
 		projectsList.add(pool.projectName)
 		// remove undercollateralised cause we cannot borrow on those
-		if (['Lending', 'CDP', 'NFT Lending'].includes(pool.category)) {
+		if (pool.category && categoriesToKeepWithoutUndercollateralizedSet.has(pool.category)) {
 			lendingProtocols.add(pool.projectName)
 		}
 		farmProtocols.add(pool.projectName)
 
-		pool.rewardTokensNames?.forEach((rewardName) => {
-			projectsList.add(rewardName)
-			farmProtocols.add(rewardName)
-		})
-	})
+		if (pool.rewardTokensNames) {
+			for (const rewardName of pool.rewardTokensNames) {
+				projectsList.add(rewardName)
+				farmProtocols.add(rewardName)
+			}
+		}
+	}
 
 	return {
 		props: {
@@ -288,7 +347,7 @@ export async function getLendBorrowData() {
 			projectList: Array.from(projectsList),
 			lendingProtocols: Array.from(lendingProtocols),
 			farmProtocols: Array.from(farmProtocols),
-			categoryList: categoriesToKeep,
+			categoryList: Array.from(categoriesToKeepSet),
 			tokenNameMapping: props.tokenNameMapping,
 			allPools: props.pools,
 			symbols: [...tokenSymbols]

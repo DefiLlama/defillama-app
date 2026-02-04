@@ -1,20 +1,92 @@
-import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import Router from 'next/router'
+import * as React from 'react'
 import { Icon } from './Icon'
 import { NestedMenu, NestedMenuItem } from './NestedMenu'
+import type { ExcludeQueryKey, SelectOption, SelectValues } from './selectTypes'
 import { Tooltip } from './Tooltip'
 
-interface ISelectWithCombobox {
-	allValues:
-		| Array<{ key: string; name: string; help?: string; isCustom?: boolean; customIndex?: number }>
-		| Array<string>
+// URL update helpers - used when includeQueryKey/excludeQueryKey is provided
+// Encoding:
+// - missing include+exclude => "all selected" (default)
+// - include="None" => "none selected"
+// - include=[...] or include="..." => explicit include selection(s)
+// - exclude=[...] or exclude="..." => start from all, then remove excludes
+const updateQueryFromSelected = (
+	includeKey: string,
+	excludeKey: ExcludeQueryKey,
+	allKeys: string[],
+	values: string[] | 'None' | null,
+	defaultSelectedValues?: string[]
+) => {
+	const nextQuery: Record<string, any> = { ...Router.query }
+
+	const setOrDelete = (key: string, value: string | string[] | null) => {
+		if (value === null) delete nextQuery[key]
+		else nextQuery[key] = value
+	}
+
+	const validSet = new Set(allKeys)
+	const defaultSelected = defaultSelectedValues ? defaultSelectedValues.filter((value) => validSet.has(value)) : null
+	const defaultIsAll = !defaultSelected || defaultSelected.length === allKeys.length
+
+	let nextValues = values
+
+	// Select all => default (no params)
+	if (nextValues === null) {
+		if (defaultIsAll) {
+			setOrDelete(includeKey, null)
+			setOrDelete(excludeKey, null)
+			Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+			return
+		}
+		nextValues = allKeys
+	}
+
+	// None selected => explicit sentinel (and clear excludes)
+	if (nextValues === 'None' || nextValues.length === 0) {
+		setOrDelete(includeKey, 'None')
+		setOrDelete(excludeKey, null)
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+		return
+	}
+
+	const selected = nextValues.filter((v) => validSet.has(v))
+	const selectedSet = new Set(selected)
+
+	// Default selection => no params
+	const defaultSelection = defaultSelected ?? allKeys
+	const defaultSelectionSet = new Set(defaultSelection)
+	const isDefaultSelection =
+		selected.length === defaultSelection.length && selected.every((value) => defaultSelectionSet.has(value))
+	if (isDefaultSelection) {
+		setOrDelete(includeKey, null)
+		setOrDelete(excludeKey, null)
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+		return
+	}
+
+	const excluded = allKeys.filter((k) => !selectedSet.has(k))
+
+	// Prefer whichever is shorter; if user deselects only a few from mostly-all, this flips to excludeKey
+	const useExclude = excluded.length > 0 && excluded.length < selected.length
+
+	if (useExclude) {
+		setOrDelete(includeKey, null) // completely remove includeKey when using excludeKey
+		setOrDelete(excludeKey, excluded.length === 1 ? excluded[0] : excluded)
+	} else {
+		setOrDelete(excludeKey, null)
+		setOrDelete(includeKey, selected.length === 1 ? selected[0] : selected)
+	}
+
+	Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+}
+
+interface ISelectWithComboboxBase {
+	allValues: SelectValues
 	selectedValues: Array<string>
-	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string>>>
 	label: string
-	clearAll?: () => void
-	toggleAll?: () => void
-	selectOnlyOne?: (value: string) => void
 	nestedMenu?: boolean
 	labelType?: 'regular' | 'smol' | 'none'
 	triggerProps?: Ariakit.SelectProps
@@ -22,38 +94,77 @@ interface ISelectWithCombobox {
 	onEditCustomColumn?: (idx: number) => void
 	onDeleteCustomColumn?: (idx: number) => void
 	portal?: boolean
+	onValuesChange?: (values: string[], label: string) => void
+	defaultSelectedValues?: string[]
 }
+
+interface ISelectWithComboboxUrlParams extends ISelectWithComboboxBase {
+	includeQueryKey: string
+	excludeQueryKey: ExcludeQueryKey
+	defaultSelectedValues?: string[]
+	setSelectedValues?: never
+}
+
+interface ISelectWithComboboxState extends ISelectWithComboboxBase {
+	includeQueryKey?: never
+	excludeQueryKey?: never
+	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string>>>
+}
+
+type ISelectWithCombobox = ISelectWithComboboxUrlParams | ISelectWithComboboxState
 
 export function SelectWithCombobox({
 	allValues,
 	selectedValues,
-	setSelectedValues,
+	setSelectedValues: setSelectedValuesProp,
 	label,
-	clearAll,
-	toggleAll,
-	selectOnlyOne,
 	nestedMenu,
 	labelType,
 	triggerProps,
 	customFooter,
 	onEditCustomColumn,
 	onDeleteCustomColumn,
-	portal
+	portal,
+	includeQueryKey,
+	excludeQueryKey,
+	onValuesChange,
+	defaultSelectedValues
 }: ISelectWithCombobox) {
+	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
+	const showCheckboxes = Array.isArray(selectedValues)
+
+	// Helper to extract keys from allValues
+	const getAllKeys = React.useCallback(() => allValues.map((v) => (typeof v === 'string' ? v : v.key)), [allValues])
+
+	// If includeQueryKey is provided, use URL-based functions; otherwise derive from setSelectedValues
+	const setSelectedValues = includeQueryKey
+		? (values: string[]) =>
+				updateQueryFromSelected(includeQueryKey, excludeQueryKey!, getAllKeys(), values, defaultSelectedValues)
+		: setSelectedValuesProp
+	const clearAll = includeQueryKey
+		? () => updateQueryFromSelected(includeQueryKey, excludeQueryKey!, getAllKeys(), 'None', defaultSelectedValues)
+		: () => setSelectedValuesProp([])
+	const toggleAll = includeQueryKey
+		? () => updateQueryFromSelected(includeQueryKey, excludeQueryKey!, getAllKeys(), null, defaultSelectedValues)
+		: () => setSelectedValuesProp(getAllKeys())
+	const selectOnlyOne = includeQueryKey
+		? (value: string) =>
+				updateQueryFromSelected(includeQueryKey, excludeQueryKey!, getAllKeys(), [value], defaultSelectedValues)
+		: (value: string) => setSelectedValuesProp([value])
+
 	const [searchValue, setSearchValue] = React.useState('')
 	const deferredSearchValue = React.useDeferredValue(searchValue)
-	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 
 	const matches = React.useMemo(() => {
 		if (!deferredSearchValue) return allValues
 
 		if (valuesAreAnArrayOfStrings) {
-			return matchSorter(allValues as Array<string>, deferredSearchValue, {
+			return matchSorter(allValues as ReadonlyArray<string>, deferredSearchValue, {
 				threshold: matchSorter.rankings.CONTAINS
 			})
 		}
 
-		return matchSorter(allValues as Array<{ name: string }>, deferredSearchValue, {
+		return matchSorter(allValues as ReadonlyArray<SelectOption>, deferredSearchValue, {
 			keys: ['name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
@@ -93,6 +204,7 @@ export function SelectWithCombobox({
 					value={selectedValues}
 					setValue={(values) => {
 						setSelectedValues(values)
+						onValuesChange?.(values, label)
 					}}
 				>
 					<NestedMenu label={label} render={<Ariakit.Select />}>
@@ -101,18 +213,14 @@ export function SelectWithCombobox({
 							autoFocus
 							className="m-3 mb-0 rounded-md bg-white px-3 py-2 text-base dark:bg-black"
 						/>
-						{clearAll || toggleAll ? (
+						{showCheckboxes ? (
 							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
-								{clearAll ? (
-									<button onClick={clearAll} className="p-3">
-										Deselect All
-									</button>
-								) : null}
-								{toggleAll ? (
-									<button onClick={toggleAll} className="p-3">
-										Select All
-									</button>
-								) : null}
+								<button onClick={clearAll} className="p-3">
+									Deselect All
+								</button>
+								<button onClick={toggleAll} className="p-3">
+									Select All
+								</button>
 							</span>
 						) : null}
 						<Ariakit.ComboboxList>
@@ -133,7 +241,11 @@ export function SelectWithCombobox({
 									) : (
 										<span>{option.name}</span>
 									)}
-									<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+									{showCheckboxes ? (
+										<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+									) : (
+										<Ariakit.SelectItemCheck />
+									)}
 								</NestedMenuItem>
 							))}
 							{matches.length > viewableMatches ? (
@@ -171,6 +283,7 @@ export function SelectWithCombobox({
 				value={selectedValues}
 				setValue={(values) => {
 					setSelectedValues(values)
+					onValuesChange?.(values, label)
 				}}
 			>
 				<Ariakit.Select
@@ -206,7 +319,7 @@ export function SelectWithCombobox({
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="max-sm:drawer z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
+					className="z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:drawer max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 					portal={portal || false}
 				>
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
@@ -222,18 +335,14 @@ export function SelectWithCombobox({
 					</span>
 					{matches.length > 0 ? (
 						<>
-							{clearAll || toggleAll ? (
+							{showCheckboxes ? (
 								<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
-									{clearAll ? (
-										<button onClick={clearAll} className="p-3">
-											Deselect All
-										</button>
-									) : null}
-									{toggleAll ? (
-										<button onClick={toggleAll} className="p-3">
-											Select All
-										</button>
-									) : null}
+									<button onClick={clearAll} className="p-3">
+										Deselect All
+									</button>
+									<button onClick={toggleAll} className="p-3">
+										Select All
+									</button>
 								</span>
 							) : null}
 							<Ariakit.ComboboxList ref={comboboxRef}>
@@ -264,7 +373,7 @@ export function SelectWithCombobox({
 														className="rounded-sm p-1 hover:bg-(--btn-hover-bg)"
 														onClick={(e) => {
 															e.stopPropagation()
-															onEditCustomColumn && onEditCustomColumn(option.customIndex!)
+															onEditCustomColumn?.(option.customIndex)
 														}}
 														title="Edit custom column"
 													>
@@ -276,7 +385,7 @@ export function SelectWithCombobox({
 														className="rounded-sm p-1 hover:bg-red-100 dark:hover:bg-red-900"
 														onClick={(e) => {
 															e.stopPropagation()
-															onDeleteCustomColumn && onDeleteCustomColumn(option.customIndex!)
+															onDeleteCustomColumn?.(option.customIndex)
 														}}
 														title="Delete custom column"
 													>
@@ -284,7 +393,7 @@ export function SelectWithCombobox({
 													</button>
 												</span>
 											)}
-											{selectOnlyOne ? (
+											{showCheckboxes ? (
 												<button
 													onClick={(e) => {
 														e.stopPropagation()
@@ -295,7 +404,11 @@ export function SelectWithCombobox({
 													Only
 												</button>
 											) : null}
-											<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+											{showCheckboxes ? (
+												<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+											) : (
+												<Ariakit.SelectItemCheck className="ml-auto" />
+											)}
 										</Ariakit.SelectItem>
 									)
 								})}

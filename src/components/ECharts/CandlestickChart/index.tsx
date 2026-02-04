@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
 import { BarChart, CandlestickChart, LineChart } from 'echarts/charts'
 import {
 	DatasetComponent,
@@ -11,8 +10,10 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { oldBlue } from '~/constants/colors'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
 import type { ICandlestickChartProps } from '../types'
 import { formatChartEmphasisDate, formatTooltipChartDate, formatTooltipValue } from '../useDefaults'
@@ -42,6 +43,10 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const overlays = useMemo(() => indicators.filter((i) => i.category === 'overlay'), [indicators])
 	const panels = useMemo(() => indicators.filter((i) => i.category === 'panel'), [indicators])
@@ -57,8 +62,23 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 		const priceBottom = volumeBottom + VOLUME_HEIGHT + 20
 
 		const grids: any[] = [
-			{ left: 12, bottom: priceBottom, top: 12, right: 12 },
-			{ height: VOLUME_HEIGHT, left: 54, right: 12, bottom: volumeBottom }
+			{
+				left: 12,
+				bottom: priceBottom,
+				top: 12,
+				right: 12,
+				// Match AreaChart behavior: keep axis labels within the chart bounds
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
+			},
+			{
+				height: VOLUME_HEIGHT,
+				left: 54,
+				right: 12,
+				bottom: volumeBottom,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
+			}
 		]
 
 		const xAxes: any[] = [
@@ -115,11 +135,19 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 			}
 		]
 
-		panels.forEach((panel, idx) => {
+		for (let idx = 0; idx < panels.length; idx++) {
+			const panel = panels[idx]
 			const gridIdx = idx + 2
 			const bottom = BASE_BOTTOM + (panelCount - idx - 1) * PANEL_HEIGHT
 
-			grids.push({ height: PANEL_HEIGHT - 10, left: 54, right: 12, bottom })
+			grids.push({
+				height: PANEL_HEIGHT - 10,
+				left: 54,
+				right: 12,
+				bottom,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
+			})
 
 			xAxes.push({
 				type: 'time',
@@ -145,7 +173,7 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 				axisTick: { show: false },
 				splitLine: { lineStyle: { color: isThemeDark ? '#fff' : '#000', opacity: 0.05 } }
 			})
-		})
+		}
 
 		const allAxisIndices = Array.from({ length: grids.length }, (_, i) => i)
 
@@ -211,16 +239,7 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 					fillerColor: isThemeDark ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)',
 					labelFormatter: formatChartEmphasisDate
 				}
-			],
-			visualMap: {
-				show: false,
-				seriesIndex: 1,
-				dimension: 6,
-				pieces: [
-					{ value: 1, color: isThemeDark ? '#3eb84f' : '#018a13' },
-					{ value: -1, color: isThemeDark ? '#e24a42' : '#e60d02' }
-				]
-			}
+			]
 		}
 	}, [isSmall, isThemeDark, panels, overlays.length])
 
@@ -250,7 +269,8 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 			}
 		]
 
-		overlays.forEach((ind, idx) => {
+		for (let idx = 0; idx < overlays.length; idx++) {
+			const ind = overlays[idx]
 			const color = ind.color || INDICATOR_COLORS[idx % INDICATOR_COLORS.length]
 			if (ind.values && ind.name.toLowerCase().includes('bband')) {
 				result.push({
@@ -286,9 +306,10 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 					symbol: 'none'
 				})
 			}
-		})
+		}
 
-		panels.forEach((panel, idx) => {
+		for (let idx = 0; idx < panels.length; idx++) {
+			const panel = panels[idx]
 			const gridIdx = idx + 2
 			const color = panel.color || INDICATOR_COLORS[(overlays.length + idx) % INDICATOR_COLORS.length]
 
@@ -349,36 +370,34 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 					symbol: 'none'
 				})
 			}
-		})
+		}
 
 		return result
 	}, [isThemeDark, overlays, panels])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
 
-		chartInstance.setOption({
-			...defaultChartSettings,
-			dataset: { source: data },
-			series
-		})
-
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
+		instance.setOption(
+			{
+				...defaultChartSettings,
+				dataset: { source: data },
+				series
+			},
+			// When indicators change we change the number of grids/axes/series.
+			// ECharts merges arrays by index by default, which can leave stale layout components
+			// (making grid.left/right look like they "don't apply"). Replace-merge fixes that.
+			{ replaceMerge: ['grid', 'xAxis', 'yAxis', 'series', 'dataZoom', 'dataset'] }
+		)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [createInstance, series, data, defaultChartSettings])
+	}, [id, series, data, defaultChartSettings])
 
 	return <div id={id} style={{ height: `${chartHeight}px` }}></div>
 }

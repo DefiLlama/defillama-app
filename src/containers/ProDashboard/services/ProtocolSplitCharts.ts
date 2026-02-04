@@ -26,9 +26,10 @@ export default class SProtocolSplitCharts {
 		limit: number,
 		categories: string[],
 		groupByParent?: boolean,
-		filterMode: 'include' | 'exclude' = 'include'
+		chainFilterMode: 'include' | 'exclude' = 'include',
+		categoryFilterMode: 'include' | 'exclude' = 'include'
 	): string {
-		return `${metric}-${chains.join(',')}-${limit}-${categories.join(',') || 'all'}-${groupByParent || false}-${filterMode}`
+		return `${metric}-${chains.join(',')}-${limit}-${categories.join(',') || 'all'}-${groupByParent || false}-${chainFilterMode}-${categoryFilterMode}`
 	}
 
 	private static async fetchSplitData(
@@ -37,7 +38,8 @@ export default class SProtocolSplitCharts {
 		limit: number,
 		categories: string[],
 		groupByParent?: boolean,
-		filterMode: 'include' | 'exclude' = 'include'
+		chainFilterMode: 'include' | 'exclude' = 'include',
+		categoryFilterMode: 'include' | 'exclude' = 'include'
 	): Promise<ProtocolSplitData> {
 		const params = new URLSearchParams()
 
@@ -55,8 +57,11 @@ export default class SProtocolSplitCharts {
 			params.append('groupByParent', 'true')
 		}
 
-		if (filterMode) {
-			params.append('filterMode', filterMode)
+		if (chainFilterMode) {
+			params.append('chainFilterMode', chainFilterMode)
+		}
+		if (categoryFilterMode) {
+			params.append('categoryFilterMode', categoryFilterMode)
 		}
 
 		const response = await fetch(`/api/protocols/split/${metric}?${params.toString()}`)
@@ -90,9 +95,18 @@ export default class SProtocolSplitCharts {
 		limit: number = 10,
 		categories: string[] = [],
 		groupByParent?: boolean,
-		filterMode: 'include' | 'exclude' = 'include'
+		chainFilterMode: 'include' | 'exclude' = 'include',
+		categoryFilterMode: 'include' | 'exclude' = 'include'
 	): Promise<ProtocolSplitData> {
-		const cacheKey = this.getCacheKey(metric, chains, limit, categories, groupByParent, filterMode)
+		const cacheKey = this.getCacheKey(
+			metric,
+			chains,
+			limit,
+			categories,
+			groupByParent,
+			chainFilterMode,
+			categoryFilterMode
+		)
 		const cached = this.cache.get(cacheKey)
 
 		if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
@@ -100,7 +114,15 @@ export default class SProtocolSplitCharts {
 		}
 
 		try {
-			const data = await this.fetchSplitData(metric, chains, limit, categories, groupByParent, filterMode)
+			const data = await this.fetchSplitData(
+				metric,
+				chains,
+				limit,
+				categories,
+				groupByParent,
+				chainFilterMode,
+				categoryFilterMode
+			)
 
 			this.cache.set(cacheKey, {
 				data,
@@ -177,9 +199,11 @@ export default class SProtocolSplitCharts {
 			| 'chain-revenue',
 		chains?: string[],
 		limit: number = 5,
-		filterMode: 'include' | 'exclude' = 'include',
+		chainFilterMode: 'include' | 'exclude' = 'include',
 		chainCategories?: string[],
-		protocolCategories?: string[]
+		protocolCategories?: string[],
+		chainCategoryFilterMode: 'include' | 'exclude' = 'include',
+		protocolCategoryFilterMode: 'include' | 'exclude' = 'include'
 	): Promise<any> {
 		const params = new URLSearchParams()
 		if (protocol) params.append('protocol', protocol)
@@ -191,14 +215,16 @@ export default class SProtocolSplitCharts {
 		if (limit) {
 			params.append('limit', String(limit))
 		}
-		if (filterMode) {
-			params.append('filterMode', filterMode)
+		if (chainFilterMode) {
+			params.append('chainFilterMode', chainFilterMode)
 		}
 		if (chainCategories && chainCategories.length > 0) {
 			params.append('chainCategories', chainCategories.join(','))
+			params.append('chainCategoryFilterMode', chainCategoryFilterMode)
 		}
 		if (protocolCategories && protocolCategories.length > 0) {
 			params.append('protocolCategories', protocolCategories.join(','))
+			params.append('protocolCategoryFilterMode', protocolCategoryFilterMode)
 		}
 
 		try {

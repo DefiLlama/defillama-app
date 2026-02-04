@@ -1,85 +1,37 @@
 import { useRouter } from 'next/router'
+import { useRef } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IFiltersByTokensProps {
 	tokensList: Array<string>
 	selectedTokens: Array<string>
-	pathname: string
-	variant?: 'primary' | 'secondary'
 	nestedMenu?: boolean
 }
 
-export function FilterByToken({ tokensList = [], selectedTokens, pathname, nestedMenu }: IFiltersByTokensProps) {
+export function FilterByToken({ tokensList = [], selectedTokens, nestedMenu }: IFiltersByTokensProps) {
 	const router = useRouter()
-
-	const { token, ...queries } = router.query
-
-	const setSelectedValue = (newToken) => {
-		router.push(
-			{
-				pathname,
-				query: {
-					...queries,
-					token: newToken
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const toggleAll = () => {
-		router.push(
-			{
-				pathname,
-				query: {
-					...queries,
-					token: 'All'
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const clearAll = () => {
-		router.push(
-			{
-				pathname,
-				query: {
-					...queries
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const selectOnlyOne = (option: string) => {
-		router.push(
-			{
-				pathname,
-				query: {
-					...queries,
-					token: option
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
+	const { token } = router.query
+	const prevSelectionRef = useRef<Set<string>>(new Set(selectedTokens))
 
 	return (
 		<SelectWithCombobox
 			label="Tokens"
 			allValues={tokensList}
-			clearAll={clearAll}
-			toggleAll={toggleAll}
-			selectOnlyOne={selectOnlyOne}
 			selectedValues={selectedTokens}
-			setSelectedValues={setSelectedValue}
 			nestedMenu={nestedMenu}
 			labelType={!token || token === 'All' ? 'none' : 'regular'}
+			includeQueryKey="token"
+			excludeQueryKey="excludeToken"
+			onValuesChange={(values) => {
+				const prevSet = prevSelectionRef.current
+				values.forEach((token) => {
+					if (!prevSet.has(token)) {
+						trackYieldsEvent(YIELDS_EVENTS.FILTER_TOKEN, { token })
+					}
+				})
+				prevSelectionRef.current = new Set(values)
+			}}
 		/>
 	)
 }

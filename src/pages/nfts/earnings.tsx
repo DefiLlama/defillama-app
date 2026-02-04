@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -21,6 +21,7 @@ export const getStaticProps = withPerformanceLogging('nfts/earnings', async () =
 })
 
 const pageName = ['Earnings', 'by', 'NFTs']
+const DEFAULT_SORTING_STATE = [{ id: 'totalEarnings', desc: true }]
 
 function Earnings({ earnings }) {
 	//x
@@ -38,7 +39,7 @@ function Earnings({ earnings }) {
 				columnToSearch={'name'}
 				placeholder={'Search collections...'}
 				header="NFT Collection Earnings"
-				sortingState={[{ id: 'totalEarnings', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)
@@ -63,9 +64,9 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
 			const logo = row.original.logo ?? row.subRows?.[0]?.original?.logo
 
 			return (
@@ -94,7 +95,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 						</button>
 					) : null}
 
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					{logo ? <TokenLogo logo={logo} data-lgonly /> : <FallbackLogo />}
 

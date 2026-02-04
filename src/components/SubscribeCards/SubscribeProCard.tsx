@@ -1,7 +1,7 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import * as Ariakit from '@ariakit/react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
@@ -28,18 +28,20 @@ interface SubscribeProCardProps {
 function SubscribeProCardContent({
 	billingInterval = 'month',
 	isTrialAvailable = false,
-	isAuthenticated = false
+	isAuthenticated = false,
+	isTrialActive = false
 }: {
 	billingInterval?: 'year' | 'month'
 	isTrialAvailable?: boolean
 	isAuthenticated?: boolean
+	isTrialActive?: boolean
 }) {
 	const monthlyPrice = 49
 	const yearlyPrice = monthlyPrice * 10
 	const displayPrice = billingInterval === 'year' ? yearlyPrice : monthlyPrice
 	const displayPeriod = billingInterval === 'year' ? '/year' : '/month'
 
-	const showTrialAvailable = !isAuthenticated || isTrialAvailable
+	const showTrialAvailable = !isAuthenticated || isTrialAvailable || isTrialActive
 
 	return (
 		<>
@@ -76,18 +78,26 @@ function SubscribeProCardContent({
 								LlamaAI
 							</Link>{' '}
 							<svg className="relative mx-1 inline-block h-4 w-4">
-								<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+								<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 							</svg>{' '}
 							- conversational analysis of DefiLlama data
 						</span>
+					</li>
+					<li className="group ml-6 flex items-center gap-2.5">
+						<Icon name="check" height={16} width={16} className="shrink-0 text-green-400" />
+						<span>Deep research: 5/day</span>
+						{showTrialAvailable ? (
+							<QuestionHelper text="During trial, deep research is limited to 3 questions. Full subscription includes 5/day." />
+						) : null}
 					</li>
 					<li className="flex flex-nowrap items-start gap-2.5">
 						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
 						<span>DefiLlama Pro Dashboards - build custom dashboards</span>
 					</li>
-					<li className="flex flex-nowrap items-start gap-2.5">
-						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+					<li className="flex flex-nowrap items-center gap-2.5">
+						<Icon name="check" height={16} width={16} className="shrink-0 text-green-400" />
 						<span>CSV Downloads - export any dataset</span>
+						{showTrialAvailable ? <QuestionHelper text="Trial accounts include 1 CSV download." /> : null}
 					</li>
 					<li className="flex flex-nowrap items-start gap-2.5">
 						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
@@ -120,18 +130,102 @@ function SubscribeProCardContent({
 	)
 }
 
+interface EndTrialModalProps {
+	isOpen: boolean
+	onClose: () => void
+}
+
+function EndTrialModal({ isOpen, onClose }: EndTrialModalProps) {
+	const { endTrialSubscription, isEndTrialLoading } = useSubscribe()
+
+	const handleEndTrial = async () => {
+		try {
+			await endTrialSubscription()
+			onClose()
+		} catch (error) {
+			console.error('Failed to end trial:', error)
+		}
+	}
+
+	return (
+		<Ariakit.Dialog
+			open={isOpen}
+			onClose={onClose}
+			className="dialog flex max-h-[90dvh] max-w-md flex-col gap-4 overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 text-white shadow-2xl max-sm:drawer max-sm:rounded-b-none"
+			portal
+			unmountOnHide
+		>
+			<div className="flex items-center justify-between">
+				<h3 className="text-xl font-bold">Upgrade to Full Access</h3>
+				<button
+					onClick={onClose}
+					className="rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white"
+				>
+					<Icon name="x" height={18} width={18} />
+				</button>
+			</div>
+			<div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4">
+				<div className="flex items-start gap-3">
+					<Icon name="alert-triangle" height={20} width={20} className="mt-0.5 shrink-0 text-yellow-500" />
+					<div className="flex flex-col gap-2">
+						<p className="font-semibold text-yellow-500">This is NOT a subscription cancellation</p>
+						<p className="text-sm text-[#c5c5c5]">
+							By proceeding, you will end your free trial early and convert to a paid subscription immediately.
+							You&apos;ll be charged the full subscription amount ($49/month).
+						</p>
+					</div>
+				</div>
+			</div>
+			<div className="mt-2 flex flex-col gap-2">
+				<p className="text-sm text-[#8a8c90]">Benefits of converting now:</p>
+				<ul className="flex flex-col gap-1 text-sm">
+					<li className="flex items-center gap-2">
+						<Icon name="check" height={14} width={14} className="text-green-400" />
+						<span>Full CSV download access</span>
+					</li>
+					<li className="flex items-center gap-2">
+						<Icon name="check" height={14} width={14} className="text-green-400" />
+						<span>5 deep research questions per day (instead of 3)</span>
+					</li>
+					<li className="flex items-center gap-2">
+						<Icon name="check" height={14} width={14} className="text-green-400" />
+						<span>All Pro features without limitations</span>
+					</li>
+				</ul>
+			</div>
+			<div className="mt-2 flex flex-col gap-3">
+				<button
+					onClick={handleEndTrial}
+					disabled={isEndTrialLoading}
+					className="w-full rounded-lg bg-[#5C5CF9] px-4 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70"
+				>
+					{isEndTrialLoading ? 'Processing...' : 'Confirm & Upgrade Now'}
+				</button>
+				<button
+					onClick={onClose}
+					disabled={isEndTrialLoading}
+					className="w-full rounded-lg border border-[#39393E] px-4 py-2 text-[#8a8c90] transition-colors hover:bg-[#2a2b30] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+				>
+					Close
+				</button>
+			</div>
+		</Ariakit.Dialog>
+	)
+}
+
 export function SubscribeProCard({
 	context = 'page',
 	active = false,
 	onCancelSubscription,
-	returnUrl,
+	returnUrl: _returnUrl,
 	billingInterval = 'month',
 	currentBillingInterval
 }: SubscribeProCardProps) {
 	const { loading, isTrialAvailable } = useSubscribe()
-	const { isAuthenticated } = useAuthContext()
+	const { isAuthenticated, isTrial } = useAuthContext()
 	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 	const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
+	const [isEndingTrialModalOpen, setIsEndingTrialModalOpen] = useState(false)
 
 	const handleUpgradeToYearly = () => {
 		setIsUpgradeModalOpen(true)
@@ -142,6 +236,7 @@ export function SubscribeProCard({
 			<SubscribeProCardContent
 				billingInterval={billingInterval}
 				isTrialAvailable={isTrialAvailable}
+				isTrialActive={isTrial}
 				isAuthenticated={isAuthenticated}
 			/>
 			<div className="relative z-10 mx-auto flex w-full max-w-[408px] flex-col gap-3">
@@ -159,6 +254,14 @@ export function SubscribeProCard({
 								</button>
 								<p className="text-center text-xs text-[#8a8c90]">Switch to annual billing and get 2 months free</p>
 							</div>
+						)}
+						{isTrial && (
+							<button
+								className="mt-2 w-full rounded-lg bg-[#5C5CF9] px-4 py-2 font-medium text-white transition-colors hover:bg-[#4A4AF0]"
+								onClick={() => setIsEndingTrialModalOpen(true)}
+							>
+								Upgrade to Full Access
+							</button>
 						)}
 						{onCancelSubscription && (
 							<button
@@ -228,6 +331,7 @@ export function SubscribeProCard({
 					/>
 				</Suspense>
 			)}
+			<EndTrialModal isOpen={isEndingTrialModalOpen} onClose={() => setIsEndingTrialModalOpen(false)} />
 		</>
 	)
 }
@@ -239,7 +343,7 @@ interface SubscribeProModalProps extends SubscribeProCardProps {
 
 export function SubscribeProModal({ dialogStore, returnUrl, ...props }: SubscribeProModalProps) {
 	const router = useRouter()
-	const { isAuthenticated } = useAuthContext()
+	const { isAuthenticated, isTrial } = useAuthContext()
 
 	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
@@ -249,13 +353,13 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 		}
 	}, [dialogStore])
 
-	const finalReturnUrl = returnUrl ? returnUrl : router.asPath
+	const _finalReturnUrl = returnUrl ?? router.asPath
 
 	return (
 		<WalletProvider>
 			<Ariakit.DialogProvider store={dialogStore}>
 				<Ariakit.Dialog
-					className="dialog max-sm:drawer flex max-h-[90dvh] max-w-md flex-col overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 text-white shadow-2xl max-sm:rounded-b-none sm:p-6"
+					className="dialog flex max-h-[90dvh] max-w-md flex-col overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 text-white shadow-2xl max-sm:drawer max-sm:rounded-b-none sm:p-6"
 					portal
 					unmountOnHide
 					onClose={() => setIsSignInModalOpen(false)}
@@ -271,6 +375,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 								</Ariakit.DialogDismiss>
 								<SubscribeProCardContent
 									isAuthenticated={isAuthenticated}
+									isTrialActive={isTrial}
 									billingInterval={props.billingInterval}
 									isTrialAvailable={true}
 								/>

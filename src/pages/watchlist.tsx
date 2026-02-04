@@ -7,9 +7,19 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('watchlist', async () => {
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
 	const [{ protocols }, { chains }] = await Promise.all([
-		getChainOverviewData({ chain: 'All' }),
-		getChainsByCategory({ category: 'All', sampledChart: true })
+		getChainOverviewData({
+			chain: 'All',
+			chainMetadata: metadataCache.chainMetadata,
+			protocolMetadata: metadataCache.protocolMetadata
+		}),
+		getChainsByCategory({
+			chainMetadata: metadataCache.chainMetadata,
+			category: 'All',
+			sampledChart: true
+		})
 	])
 
 	return {

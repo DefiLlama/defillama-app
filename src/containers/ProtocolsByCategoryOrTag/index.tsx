@@ -1,5 +1,5 @@
-import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import { lazy, Suspense, useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
@@ -9,7 +9,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formatNum, formattedNum, slug, toNiceCsvDate } from '~/utils'
 import { protocolCategories } from './constants'
@@ -43,9 +43,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 
 	const { finalProtocols, charts } = useMemo(() => {
-		const toggledSettings = Object.entries(tvlSettings)
-			.filter(([key, value]) => value === true)
-			.map(([key]) => key)
+		const toggledSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 
 		if (toggledSettings.length === 0) return { finalProtocols: props.protocols, charts: props.charts }
 
@@ -73,13 +71,13 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				TVL: { ...props.charts['TVL'], data: finalChartData }
 			} as ILineAndBarChartProps['charts']
 		}
-	}, [tvlSettings, props])
+	}, [tvlSettings, props.protocols, props.charts, props.extraTvlCharts])
 
 	const categoryColumns = useMemo(() => {
-		return columns(name, props.isRWA)
-	}, [name, props.isRWA])
+		return columns(props.effectiveCategory)
+	}, [props.effectiveCategory])
 
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		const headers = categoryColumns.map((col) => col.header as string)
 		const rows = finalProtocols.map((protocol) => {
 			return categoryColumns.map((col: any) => {
@@ -87,8 +85,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 					'accessorFn' in col && col.accessorFn
 						? col?.accessorFn?.(protocol)
 						: protocol[col.id as keyof typeof protocol]
-				if (value === null || value === undefined) return ''
-				if (col.id === 'name') return `"${protocol.name}"`
+				if (value == null) return ''
 				if (typeof value === 'number') return value
 				return String(value).includes(',') ? `"${String(value)}"` : String(value)
 			})
@@ -98,9 +95,9 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 			filename: `defillama-${name}-${props.chain || 'all'}-protocols.csv`,
 			rows: [headers, ...rows] as (string | number | boolean)[][]
 		}
-	}, [finalProtocols, categoryColumns, name, props.chain])
+	}
 
-	const prepareCsvFromChart = useCallback(() => {
+	const prepareCsvFromChart = () => {
 		const rows: any = [['Timestamp', 'Date', name]]
 		for (const item of props.charts['TVL']?.data ?? []) {
 			rows.push([item[0], toNiceCsvDate(item[0] / 1000), item[1]])
@@ -109,7 +106,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 			filename: `${name}-TVL.csv`,
 			rows: rows as (string | number | boolean)[][]
 		}
-	}, [props.charts, name])
+	}
 
 	return (
 		<>
@@ -124,7 +121,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 					<div className="mb-auto flex flex-1 flex-col gap-2">
 						{props.charts['TVL']?.data.length > 0 && (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-								{props.isRWA ? (
+								{props.effectiveCategory === 'RWA' ? (
 									<Tooltip
 										content="Sum of value of all real world assets on chain"
 										className="font-normal text-(--text-label) underline decoration-dotted"
@@ -140,7 +137,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 									</Tooltip>
 								)}
 
-								<span className="font-jetbrains text-right">
+								<span className="text-right font-jetbrains">
 									{formattedNum(charts['TVL']?.data[charts['TVL']?.data.length - 1][1], true)}
 								</span>
 							</p>
@@ -153,7 +150,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								>
 									Premium Volume (7d)
 								</Tooltip>
-								<span className="font-jetbrains text-right">{formattedNum(props.optionsPremium7d, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.optionsPremium7d, true)}</span>
 							</p>
 						)}
 						{props.optionsNotional7d != null && (
@@ -164,7 +161,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								>
 									Notional Volume (7d)
 								</Tooltip>
-								<span className="font-jetbrains text-right">{formattedNum(props.optionsNotional7d, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.optionsNotional7d, true)}</span>
 							</p>
 						)}
 						{props.fees7d != null && (
@@ -175,7 +172,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								>
 									Fees (7d)
 								</Tooltip>
-								<span className="font-jetbrains text-right">{formattedNum(props.fees7d, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.fees7d, true)}</span>
 							</p>
 						)}
 						{props.revenue7d != null && (
@@ -186,12 +183,12 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								>
 									Revenue (7d)
 								</Tooltip>
-								<span className="font-jetbrains text-right">{formattedNum(props.revenue7d, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.revenue7d, true)}</span>
 							</p>
 						)}
 						{props.dexVolume7d != null && (
 							<>
-								{props.category === 'Dexs' ? (
+								{props.effectiveCategory === 'Dexs' ? (
 									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 										<Tooltip
 											content={definitions.dexs.protocol['7d']}
@@ -199,9 +196,9 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 										>
 											DEX Volume (7d)
 										</Tooltip>
-										<span className="font-jetbrains text-right">{formattedNum(props.dexVolume7d, true)}</span>
+										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 									</p>
-								) : props.category === 'DEX Aggregators' ? (
+								) : props.effectiveCategory === 'DEX Aggregators' ? (
 									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 										<Tooltip
 											content={definitions.dexAggregators.protocol['7d']}
@@ -209,17 +206,17 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 										>
 											DEX Aggregator Volume (7d)
 										</Tooltip>
-										<span className="font-jetbrains text-right">{formattedNum(props.dexVolume7d, true)}</span>
+										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 									</p>
-								) : props.category === 'Prediction Market' ? (
+								) : props.effectiveCategory === 'Prediction Market' ? (
 									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 										<span className="font-normal text-(--text-label)">Prediction Market Volume (7d)</span>
-										<span className="font-jetbrains text-right">{formattedNum(props.dexVolume7d, true)}</span>
+										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 									</p>
 								) : (
 									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 										<span className="font-normal text-(--text-label)">Volume (7d)</span>
-										<span className="font-jetbrains text-right">{formattedNum(props.dexVolume7d, true)}</span>
+										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 									</p>
 								)}
 							</>
@@ -232,7 +229,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								>
 									Perp Volume (7d)
 								</Tooltip>
-								<span className="font-jetbrains text-right">{formattedNum(props.perpVolume7d, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.perpVolume7d, true)}</span>
 							</p>
 						)}
 						{props.openInterest != null && (
@@ -243,7 +240,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								>
 									Open Interest
 								</Tooltip>
-								<span className="font-jetbrains text-right">{formattedNum(props.openInterest, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.openInterest, true)}</span>
 							</p>
 						)}
 						<CSVDownloadButton prepareCsv={prepareCsvFromChart} smol className="mt-auto mr-auto" />
@@ -260,7 +257,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				columns={categoryColumns}
 				placeholder="Search protocols..."
 				columnToSearch="name"
-				header={props.isRWA ? 'Assets Rankings' : 'Protocol Rankings'}
+				header={props.effectiveCategory === 'RWA' ? 'Assets Rankings' : 'Protocol Rankings'}
 				sortingState={defaultSortingState[name] ?? [{ id: 'tvl', desc: true }]}
 				customFilters={
 					<>
@@ -279,24 +276,24 @@ type Column = ColumnDef<ProtocolRow>
 // Base Columns (used by most categories)
 // ============================================================================
 
+const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
+	<span className="flex flex-col gap-1">
+		{chains.map((chain) => (
+			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
+				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<span>{chain}</span>
+			</span>
+		))}
+	</span>
+)
+
 const nameColumn: Column = {
 	id: 'name',
 	header: 'Name',
 	accessorFn: (protocol) => protocol.name,
 	enableSorting: false,
-	cell: ({ getValue, row, table }) => {
+	cell: ({ getValue, row }) => {
 		const value = getValue() as string
-		const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-		const Chains = () => (
-			<span className="flex flex-col gap-1">
-				{row.original.chains.map((chain) => (
-					<span key={`/chain/${chain}/${row.original.slug}`} className="flex items-center gap-1">
-						<TokenLogo logo={chainIconUrl(chain)} size={14} />
-						<span>{chain}</span>
-					</span>
-				))}
-			</span>
-		)
 
 		return (
 			<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-8' : 'pl-4'}`}>
@@ -321,9 +318,7 @@ const nameColumn: Column = {
 					</button>
 				) : null}
 
-				<span className="shrink-0" onClick={row.getToggleExpandedHandler()}>
-					{index + 1}
-				</span>
+				<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 				<TokenLogo logo={row.original.logo} data-lgonly />
 
@@ -335,7 +330,10 @@ const nameColumn: Column = {
 						{value}
 					</BasicLink>
 
-					<Tooltip content={<Chains />} className="text-[0.7rem] text-(--text-disabled)">
+					<Tooltip
+						content={<ProtocolChainsComponent chains={row.original.chains} />}
+						className="text-[0.7rem] text-(--text-disabled)"
+					>
 						{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 					</Tooltip>
 				</span>
@@ -345,12 +343,11 @@ const nameColumn: Column = {
 	size: 280
 }
 
-const tvlColumn = (isRWA: boolean): Column => ({
+const tvlColumn = (effectiveCategory: string | null): Column => ({
 	id: 'tvl',
-	header: isRWA ? 'Total Assets' : 'TVL',
+	header: effectiveCategory === 'RWA' ? 'Total Assets' : 'TVL',
 	accessorFn: (protocol) => protocol.tvl,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: 'Sum of value of all coins held in smart contracts of the protocol'
@@ -363,7 +360,6 @@ const mcapTvlColumn: Column = {
 	header: 'Mcap/TVL',
 	accessorFn: (protocol) => (protocol.mcap && protocol.tvl ? formatNum(protocol.mcap / protocol.tvl) : null),
 	cell: (info) => <>{info.getValue() != null ? info.getValue() : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: 'Market cap / TVL ratio'
@@ -380,7 +376,6 @@ const fees7dColumn: Column = {
 	header: 'Fees 7d',
 	accessorFn: (protocol) => protocol.fees?.total7d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.fees.protocol['7d']
@@ -393,7 +388,6 @@ const revenue7dColumn: Column = {
 	header: 'Revenue 7d',
 	accessorFn: (protocol) => protocol.revenue?.total7d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.revenue.protocol['7d']
@@ -406,7 +400,6 @@ const fees30dColumn: Column = {
 	header: 'Fees 30d',
 	accessorFn: (protocol) => protocol.fees?.total30d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.fees.protocol['30d']
@@ -419,7 +412,6 @@ const revenue30dColumn: Column = {
 	header: 'Revenue 30d',
 	accessorFn: (protocol) => protocol.revenue?.total30d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.revenue.protocol['30d']
@@ -432,7 +424,6 @@ const fees24hColumn: Column = {
 	header: 'Fees 24h',
 	accessorFn: (protocol) => protocol.fees?.total24h,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.fees.protocol['24h']
@@ -445,7 +436,6 @@ const revenue24hColumn: Column = {
 	header: 'Revenue 24h',
 	accessorFn: (protocol) => protocol.revenue?.total24h,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.revenue.protocol['24h']
@@ -460,7 +450,7 @@ const revenue24hColumn: Column = {
 const rwaAssetClassColumn = (category: string): Column => ({
 	id: 'asset_class',
 	header: 'Asset Class',
-	accessorFn: (protocol) => protocol.tvl,
+	accessorFn: (protocol) => protocol.tags?.join(', '),
 	enableSorting: false,
 	cell: (info) => {
 		if (info.row.original.tags.length === 0) return null
@@ -512,7 +502,7 @@ const rwaStatsColumns: Column[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Whether the asset can be redeemed for the underlying'
@@ -528,7 +518,7 @@ const rwaStatsColumns: Column[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Whether the platform publishes holdings reports'
@@ -544,7 +534,7 @@ const rwaStatsColumns: Column[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Whether the asset is listed on a CEX'
@@ -560,7 +550,7 @@ const rwaStatsColumns: Column[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Whether the asset requires KYC to mint and redeem'
@@ -576,7 +566,7 @@ const rwaStatsColumns: Column[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Whether the asset can be transferred freely to third parties'
@@ -592,7 +582,7 @@ const rwaStatsColumns: Column[] = [
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Whether the asset can be self-custodied'
@@ -604,7 +594,7 @@ const rwaStatsColumns: Column[] = [
 		header: 'Liquidity',
 		accessorFn: (protocol) => protocol.rwaStats?.tvlUsd,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Liquidity of the asset in tracked pools'
@@ -616,7 +606,7 @@ const rwaStatsColumns: Column[] = [
 		header: 'Volume 7d',
 		accessorFn: (protocol) => protocol.rwaStats?.volumeUsd7d,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Volume of trades across tracked pools in the last 7 days'
@@ -628,7 +618,7 @@ const rwaStatsColumns: Column[] = [
 		header: 'Volume 24h',
 		accessorFn: (protocol) => protocol.rwaStats?.volumeUsd1d,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Volume of trades across tracked pools in the last 24 hours'
@@ -672,7 +662,6 @@ const perpVolume24hColumn: Column = {
 
 		return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 	},
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.perps.protocol['24h']
@@ -685,8 +674,6 @@ const openInterestColumn: Column = {
 	id: 'open_interest',
 	accessorFn: (protocol) => protocol.openInterest?.total24h,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
-	sortingFn: 'alphanumericFalsyLast' as any,
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.openInterest.protocol
@@ -725,7 +712,6 @@ const perpVolume7dColumn: Column = {
 
 		return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 	},
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.perps.protocol['7d']
@@ -764,7 +750,6 @@ const perpVolume30dColumn: Column = {
 
 		return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 	},
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.perps.protocol['30d']
@@ -781,7 +766,6 @@ const dexVolume7dColumn: Column = {
 	header: 'DEX Volume 7d',
 	accessorFn: (protocol) => protocol.dexVolume?.total7d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.dexs.protocol['7d']
@@ -794,7 +778,6 @@ const dexVolume30dColumn: Column = {
 	header: 'DEX Volume 30d',
 	accessorFn: (protocol) => protocol.dexVolume?.total30d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.dexs.protocol['30d']
@@ -807,7 +790,6 @@ const dexVolume24hColumn: Column = {
 	header: 'DEX Volume 24h',
 	accessorFn: (protocol) => protocol.dexVolume?.total24h,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.dexs.protocol['24h']
@@ -824,7 +806,6 @@ const dexAggregatorVolume7dColumn: Column = {
 	header: 'DEX Aggregator Volume 7d',
 	accessorFn: (protocol) => protocol.dexVolume?.total7d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.dexAggregators.protocol['7d']
@@ -837,7 +818,6 @@ const dexAggregatorVolume30dColumn: Column = {
 	header: 'DEX Aggregator Volume 30d',
 	accessorFn: (protocol) => protocol.dexVolume?.total30d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.dexAggregators.protocol['30d']
@@ -850,7 +830,6 @@ const dexAggregatorVolume24hColumn: Column = {
 	header: 'DEX Aggregator Volume 24h',
 	accessorFn: (protocol) => protocol.dexVolume?.total24h,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.dexAggregators.protocol['24h']
@@ -867,7 +846,6 @@ const predictionMarketVolume7dColumn: Column = {
 	header: 'Volume 7d',
 	accessorFn: (protocol) => protocol.dexVolume?.total7d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end'
 	},
@@ -879,7 +857,6 @@ const predictionMarketVolume30dColumn: Column = {
 	header: 'Volume 30d',
 	accessorFn: (protocol) => protocol.dexVolume?.total30d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end'
 	},
@@ -891,7 +868,6 @@ const predictionMarketVolume24hColumn: Column = {
 	header: 'Volume 24h',
 	accessorFn: (protocol) => protocol.dexVolume?.total24h,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end'
 	},
@@ -908,7 +884,7 @@ const lendingColumns: Column[] = [
 		header: 'Borrowed',
 		accessorFn: (protocol) => protocol.borrowed,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Total amount borrowed from the protocol'
@@ -920,7 +896,7 @@ const lendingColumns: Column[] = [
 		header: 'Supplied',
 		accessorFn: (protocol) => protocol.supplied,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: 'Total amount supplied to the protocol'
@@ -932,7 +908,7 @@ const lendingColumns: Column[] = [
 		header: 'Supplied/TVL',
 		accessorFn: (protocol) => protocol.suppliedTvl,
 		cell: (info) => <>{info.getValue() ?? null}</>,
-		sortUndefined: 'last',
+
 		meta: {
 			align: 'end',
 			headerHelperText: '(Total amount supplied / Total value locked) ratio'
@@ -950,7 +926,6 @@ const optionsPremium24hColumn: Column = {
 	header: 'Premium Volume 24h',
 	accessorFn: (protocol) => protocol.optionsPremium?.total24h,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.optionsPremium.protocol['24h']
@@ -963,7 +938,6 @@ const optionsPremium7dColumn: Column = {
 	header: 'Premium Volume 7d',
 	accessorFn: (protocol) => protocol.optionsPremium?.total7d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.optionsPremium.protocol['7d']
@@ -976,7 +950,6 @@ const optionsPremium30dColumn: Column = {
 	header: 'Premium Volume 30d',
 	accessorFn: (protocol) => protocol.optionsPremium?.total30d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.optionsPremium.protocol['30d']
@@ -989,7 +962,6 @@ const optionsNotional24hColumn: Column = {
 	header: 'Notional Volume 24h',
 	accessorFn: (protocol) => protocol.optionsNotional?.total24h,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.optionsNotional.protocol['24h']
@@ -1002,7 +974,6 @@ const optionsNotional7dColumn: Column = {
 	header: 'Notional Volume 7d',
 	accessorFn: (protocol) => protocol.optionsNotional?.total7d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.optionsNotional.protocol['7d']
@@ -1015,7 +986,6 @@ const optionsNotional30dColumn: Column = {
 	header: 'Notional Volume 30d',
 	accessorFn: (protocol) => protocol.optionsNotional?.total30d,
 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-	sortUndefined: 'last',
 	meta: {
 		align: 'end',
 		headerHelperText: definitions.optionsNotional.protocol['30d']
@@ -1044,32 +1014,29 @@ const getVolumeColumn = (category: string | null, period: '7d' | '30d' | '24h'):
 	return volumeColumns[category]?.[period] ?? null
 }
 
-const columns = (
-	category: IProtocolByCategoryOrTagPageData['category'],
-	isRWA: IProtocolByCategoryOrTagPageData['isRWA']
-): Column[] =>
-	[
+const columns = (effectiveCategory: IProtocolByCategoryOrTagPageData['effectiveCategory']): Column[] => {
+	return [
 		// Base
 		nameColumn,
 
 		// RWA Asset Class
-		category === 'RWA' ? rwaAssetClassColumn(category) : null,
+		effectiveCategory === 'RWA' ? rwaAssetClassColumn('RWA') : null,
 
 		// Perp columns (Derivatives & Interface)
-		category === 'Derivatives' || category === 'Interface' ? perpVolume24hColumn : null,
-		category === 'Derivatives' ? openInterestColumn : null,
-		category === 'Derivatives' || category === 'Interface' ? perpVolume7dColumn : null,
-		category === 'Derivatives' || category === 'Interface' ? perpVolume30dColumn : null,
+		effectiveCategory === 'Derivatives' || effectiveCategory === 'Interface' ? perpVolume24hColumn : null,
+		effectiveCategory === 'Derivatives' ? openInterestColumn : null,
+		effectiveCategory === 'Derivatives' || effectiveCategory === 'Interface' ? perpVolume7dColumn : null,
+		effectiveCategory === 'Derivatives' || effectiveCategory === 'Interface' ? perpVolume30dColumn : null,
 
 		// TVL (not for Interface)
-		category !== 'Interface' ? tvlColumn(isRWA) : null,
+		effectiveCategory !== 'Interface' ? tvlColumn(effectiveCategory) : null,
 
 		// RWA stats
-		...(isRWA ? rwaStatsColumns : []),
+		...(effectiveCategory === 'RWA' ? rwaStatsColumns : []),
 
 		// Volume & Fees & Revenue 7d
-		getVolumeColumn(category, '7d'),
-		...(category === 'Options' ? [optionsPremium7dColumn, optionsNotional7dColumn] : []),
+		getVolumeColumn(effectiveCategory, '7d'),
+		...(effectiveCategory === 'Options' ? [optionsPremium7dColumn, optionsNotional7dColumn] : []),
 		fees7dColumn,
 		revenue7dColumn,
 
@@ -1077,17 +1044,18 @@ const columns = (
 		mcapTvlColumn,
 
 		// Volume & Fees & Revenue 30d
-		getVolumeColumn(category, '30d'),
-		...(category === 'Options' ? [optionsPremium30dColumn, optionsNotional30dColumn] : []),
+		getVolumeColumn(effectiveCategory, '30d'),
+		...(effectiveCategory === 'Options' ? [optionsPremium30dColumn, optionsNotional30dColumn] : []),
 		fees30dColumn,
 		revenue30dColumn,
 
 		// Volume & Fees & Revenue 24h
-		getVolumeColumn(category, '24h'),
-		...(category === 'Options' ? [optionsPremium24hColumn, optionsNotional24hColumn] : []),
+		getVolumeColumn(effectiveCategory, '24h'),
+		...(effectiveCategory === 'Options' ? [optionsPremium24hColumn, optionsNotional24hColumn] : []),
 		fees24hColumn,
 		revenue24hColumn,
 
 		// Lending
-		...(category === 'Lending' ? lendingColumns : [])
+		...(effectiveCategory === 'Lending' ? lendingColumns : [])
 	].filter((col): col is Column => col !== null)
+}

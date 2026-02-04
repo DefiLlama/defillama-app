@@ -8,12 +8,15 @@ import {
 import { getPeggedAssets } from '~/containers/Stablecoins/queries.server'
 import { getNDistinctColors, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { IChainMetadata } from '~/utils/metadata/types'
 import { IChainsByCategory, IChainsByCategoryData } from './types'
 
 export const getChainsByCategory = async ({
+	chainMetadata,
 	category,
 	sampledChart
 }: {
+	chainMetadata: Record<string, IChainMetadata>
 	category: string
 	sampledChart?: boolean
 }): Promise<IChainsByCategoryData> => {
@@ -29,7 +32,7 @@ export const getChainsByCategory = async ({
 		appRevenue
 	] = await Promise.all([
 		fetchJson(`https://api.llama.fi/chains2/${category}`) as Promise<IChainsByCategory>,
-		getDimensionAdapterOverviewOfAllChains({ adapterType: 'dexs', dataType: 'dailyVolume' }),
+		getDimensionAdapterOverviewOfAllChains({ adapterType: 'dexs', dataType: 'dailyVolume', chainMetadata }),
 		getAdapterChainOverview({
 			adapterType: 'fees',
 			chain: 'All',
@@ -61,7 +64,7 @@ export const getChainsByCategory = async ({
 		>,
 		fetchJson(CHAINS_ASSETS) as Promise<IChainAssets>,
 		fetchJson(TEMP_CHAIN_NFTS) as Promise<Record<string, number>>,
-		getDimensionAdapterOverviewOfAllChains({ adapterType: 'fees', dataType: 'dailyAppRevenue' })
+		getDimensionAdapterOverviewOfAllChains({ adapterType: 'fees', dataType: 'dailyAppRevenue', chainMetadata })
 	])
 
 	const categoryLinks = [
@@ -127,8 +130,6 @@ export const getChainsByCategory = async ({
 		}
 	}
 
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-
 	return {
 		tvlChartsByChain,
 		totalTvlByDate,
@@ -152,7 +153,7 @@ export const getChainsByCategory = async ({
 			const totalVolume30d = dexs?.[chain.name]?.['30d'] ?? null
 			const stablesMcap = stablesChainMcaps.find((x) => slug(x.name) === name)?.mcap ?? null
 			const users = activeUsers['chain#' + name]?.users?.value
-			const protocols = metadataCache.chainMetadata[name]?.protocolCount ?? chain.protocols ?? 0
+			const protocols = chainMetadata[name]?.protocolCount ?? chain.protocols ?? 0
 			const tvl =
 				(chain.tvl ?? 0) -
 				(chain.extraTvl?.doublecounted?.tvl ?? 0) -

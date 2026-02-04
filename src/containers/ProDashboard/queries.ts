@@ -1,6 +1,6 @@
-import { useMemo, useRef } from 'react'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
+import { useMemo, useRef } from 'react'
 import { CHAINS_API, PROTOCOLS_API } from '~/constants'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { toDisplayName } from '~/utils/chainNormalizer'
@@ -15,12 +15,14 @@ function generateChartKey(
 	itemType: 'chain' | 'protocol',
 	item: string,
 	geckoId?: string | null,
-	timePeriod?: TimePeriod
+	timePeriod?: TimePeriod,
+	dataType?: string
 ): string {
 	const baseKey = `${type}-${itemType}-${item}`
 	const keyWithGecko =
 		geckoId && ['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(type) ? `${baseKey}-${geckoId}` : baseKey
-	return timePeriod ? `${keyWithGecko}-${timePeriod}` : keyWithGecko
+	const keyWithDataType = dataType ? `${keyWithGecko}-${dataType}` : keyWithGecko
+	return timePeriod ? `${keyWithDataType}-${timePeriod}` : keyWithDataType
 }
 
 export function useParentChildMapping() {
@@ -103,12 +105,14 @@ function getChartQueryKey(
 	item: string,
 	geckoId?: string | null,
 	timePeriod?: TimePeriod,
-	customPeriod?: CustomTimePeriod | null
+	customPeriod?: CustomTimePeriod | null,
+	dataType?: string
 ): (string | undefined | number)[] {
 	if (itemType === 'protocol') {
 		const tokenChartTypes = ['tokenMcap', 'tokenPrice', 'tokenVolume']
-		const baseKey =
+		const baseKeyParts =
 			tokenChartTypes.includes(type) && geckoId ? [type, undefined, item, geckoId] : [type, undefined, item]
+		const baseKey = dataType ? [...baseKeyParts, dataType] : baseKeyParts
 		if (timePeriod === 'custom' && customPeriod) {
 			if (customPeriod.type === 'relative') {
 				return [...baseKey, 'custom-relative', customPeriod.relativeDays]
@@ -118,7 +122,8 @@ function getChartQueryKey(
 		return timePeriod ? [...baseKey, timePeriod] : baseKey
 	} else {
 		const chainTokenChartTypes = ['chainMcap', 'chainPrice']
-		const baseKey = chainTokenChartTypes.includes(type) && geckoId ? [type, item, geckoId] : [type, item]
+		const baseKeyParts = chainTokenChartTypes.includes(type) && geckoId ? [type, item, geckoId] : [type, item]
+		const baseKey = dataType ? [...baseKeyParts, dataType] : baseKeyParts
 		if (timePeriod === 'custom' && customPeriod) {
 			if (customPeriod.type === 'relative') {
 				return [...baseKey, 'custom-relative', customPeriod.relativeDays]
@@ -136,7 +141,8 @@ const protocolChartHandlers: Record<
 		item: string,
 		geckoId?: string | null,
 		timePeriod?: TimePeriod,
-		customPeriod?: CustomTimePeriod | null
+		customPeriod?: CustomTimePeriod | null,
+		dataType?: string
 	) => () => Promise<[number, number][]>
 > = {
 	tvl: (item, geckoId, timePeriod, customPeriod) => async () => {
@@ -161,6 +167,10 @@ const protocolChartHandlers: Record<
 	},
 	incentives: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.incentives(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
+	},
+	unlocks: (item, geckoId, timePeriod, customPeriod, dataType) => async () => {
+		const data = await ProtocolCharts.unlocks(item, (dataType as 'documented' | 'realtime') || 'documented')
 		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
 	revenue: (item, geckoId, timePeriod, customPeriod) => async () => {
@@ -243,7 +253,8 @@ const chainChartHandlers: Record<
 		item: string,
 		geckoId?: string | null,
 		timePeriod?: TimePeriod,
-		customPeriod?: CustomTimePeriod | null
+		customPeriod?: CustomTimePeriod | null,
+		dataType?: string
 	) => () => Promise<[number, number][]>
 > = {
 	tvl: (item, geckoId, timePeriod, customPeriod) => async () => {
@@ -347,7 +358,8 @@ function getChartQueryFn(
 	geckoId?: string | null,
 	timePeriod?: TimePeriod,
 	parentMapping?: Map<string, string[]>,
-	customPeriod?: CustomTimePeriod | null
+	customPeriod?: CustomTimePeriod | null,
+	dataType?: string
 ) {
 	if (itemType === 'protocol') {
 		const handler = protocolChartHandlers[type]
@@ -360,13 +372,13 @@ function getChartQueryFn(
 
 		return async () => {
 			if (tokenTypes.has(type)) {
-				return handler(item, geckoId, timePeriod, customPeriod)()
+				return handler(item, geckoId, timePeriod, customPeriod, dataType)()
 			}
 
 			let direct: [number, number][] = []
 			try {
-				direct = await handler(item, geckoId, timePeriod, customPeriod)()
-			} catch (e) {
+				direct = await handler(item, geckoId, timePeriod, customPeriod, dataType)()
+			} catch {
 				direct = []
 			}
 			if (Array.isArray(direct) && direct.length > 0) return direct
@@ -377,8 +389,8 @@ function getChartQueryFn(
 			const settled = await Promise.allSettled(
 				children.map(async (childSlug) => {
 					try {
-						return await handler(childSlug, undefined, timePeriod, customPeriod)()
-					} catch (e) {
+						return await handler(childSlug, undefined, timePeriod, customPeriod, dataType)()
+					} catch {
 						return [] as [number, number][]
 					}
 				})
@@ -398,7 +410,7 @@ function getChartQueryFn(
 	} else {
 		const handler = chainChartHandlers[type]
 		if (handler) {
-			return handler(item, geckoId, timePeriod, customPeriod)
+			return handler(item, geckoId, timePeriod, customPeriod, dataType)
 		}
 		console.log(`Unknown chart type for chain: ${type}`)
 		return async () => {
@@ -413,12 +425,13 @@ export function useChartData(
 	itemType: 'chain' | 'protocol',
 	item: string,
 	geckoId?: string | null,
-	timePeriod?: TimePeriod
+	timePeriod?: TimePeriod,
+	dataType?: string
 ) {
 	const { data: parentMapping } = useParentChildMapping()
 	return useQuery({
-		queryKey: getChartQueryKey(type, itemType, item, geckoId, timePeriod),
-		queryFn: getChartQueryFn(type, itemType, item, geckoId, timePeriod, parentMapping),
+		queryKey: getChartQueryKey(type, itemType, item, geckoId, timePeriod, undefined, dataType),
+		queryFn: getChartQueryFn(type, itemType, item, geckoId, timePeriod, parentMapping, undefined, dataType),
 		staleTime: 1000 * 60 * 5,
 		gcTime: 1000 * 60 * 30,
 		refetchOnWindowFocus: false,
@@ -540,11 +553,20 @@ export function useChartsData(charts, timePeriod?: TimePeriod, customPeriod?: Cu
 
 			return {
 				queryKey: [
-					...getChartQueryKey(chart.type, itemType, item, chart.geckoId, timePeriod, customPeriod),
+					...getChartQueryKey(chart.type, itemType, item, chart.geckoId, timePeriod, customPeriod, chart.dataType),
 					chart.grouping,
 					chart.id
 				],
-				queryFn: getChartQueryFn(chart.type, itemType, item, chart.geckoId, timePeriod, parentMapping, customPeriod),
+				queryFn: getChartQueryFn(
+					chart.type,
+					itemType,
+					item,
+					chart.geckoId,
+					timePeriod,
+					parentMapping,
+					customPeriod,
+					chart.dataType
+				),
 				staleTime: 1000 * 60 * 5,
 				gcTime: 1000 * 60 * 30,
 				refetchOnWindowFocus: false,

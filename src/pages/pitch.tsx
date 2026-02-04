@@ -1,5 +1,5 @@
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
@@ -29,7 +29,7 @@ async function generateVCList(): Promise<VC[]> {
 		raises.reduce((acc, raise) => {
 			const defiCategory = protocolsCategoryById[raise.defillamaId]
 			const investors = raise.leadInvestors.concat(raise.otherInvestors)
-			investors.forEach((vc) => {
+			for (const vc of investors) {
 				if (!acc[vc]) {
 					acc[vc] = {
 						name: vc,
@@ -48,7 +48,7 @@ async function generateVCList(): Promise<VC[]> {
 					acc[vc].numInvestments += 1
 					acc[vc].defiCategories.add(defiCategory)
 				}
-			})
+			}
 			return acc
 		}, {})
 	)
@@ -89,7 +89,44 @@ export const getStaticProps = withPerformanceLogging('pitch', async () => {
 	}
 })
 
-const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRounds }) => {
+const unixToDateString = (unixTimestamp) => {
+	if (!unixTimestamp) return ''
+	const date = new Date(unixTimestamp * 1000)
+	return date.toISOString().split('T')[0]
+}
+const dateStringToUnix = (dateString): number | null => {
+	if (!dateString) return null
+	const timestamp = new Date(dateString).getTime()
+	if (Number.isNaN(timestamp)) return null
+	return Math.floor(timestamp / 1000)
+}
+
+const fetchInvestors = async (filters) => {
+	const body: Record<string, any> = {}
+	for (const key in filters) {
+		const v = filters[key]
+		if (v && v.length !== 0) {
+			body[key] = v
+		}
+	}
+
+	const response = await fetch('https://vc-emails.llama.fi/vc-list', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ filters: body })
+	})
+
+	const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+	await wait(500)
+
+	if (!response.ok) {
+		throw new Error('Network response was not ok')
+	}
+
+	return response.json()
+}
+
+const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRounds: _lastRounds }) => {
 	const [filters, setFilters] = useState({
 		minimumInvestments: '',
 		chains: [],
@@ -99,8 +136,8 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		minLastRoundTime: ''
 	})
 
-	const [matchedInvestors, setMatchedInvestors] = useState(null)
-	const [totalCost, setTotalCost] = useState(null)
+	const [matchedInvestors, _setMatchedInvestors] = useState(null)
+	const [totalCost, _setTotalCost] = useState(null)
 	const [projectInfo, setProjectInfo] = useState({
 		projectName: '',
 		link: '',
@@ -111,22 +148,11 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 	const [paymentLink, setPaymentLink] = useState('')
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
-	const chainOptions = chains.map((chain) => ({ value: chain, label: chain }))
-	const roundTypeOptions = roundTypes.map((type) => ({ value: type, label: type }))
-	const defiCategoryOptions = defiCategories.map((category) => ({ value: category, label: category }))
-	const categoryOptions = categories.map((category) => ({ value: category, label: category }))
-	const hasSelectedFilters = Object.values(filters).some((v) => (Number.isInteger(v) ? true : v?.length))
-
-	const unixToDateString = (unixTimestamp) => {
-		if (!unixTimestamp) return ''
-		const date = new Date(unixTimestamp * 1000)
-		return date.toISOString().split('T')[0]
-	}
-
-	const dateStringToUnix = (dateString) => {
-		if (!dateString) return ''
-		return Math.floor(new Date(dateString).getTime() / 1000)
-	}
+	const _chainOptions = chains.map((chain) => ({ value: chain, label: chain }))
+	const _roundTypeOptions = roundTypes.map((type) => ({ value: type, label: type }))
+	const _defiCategoryOptions = defiCategories.map((category) => ({ value: category, label: category }))
+	const _categoryOptions = categories.map((category) => ({ value: category, label: category }))
+	const hasSelectedFilters = Object.values(filters).some((v) => Number.isInteger(v) || v?.length)
 
 	const handleDateChange = (e) => {
 		const dateString = e.target.value
@@ -141,25 +167,6 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 	const handleProjectInfoChange = (e) => {
 		const { name, value } = e.target
 		setProjectInfo((prevInfo) => ({ ...prevInfo, [name]: value }))
-	}
-
-	const fetchInvestors = async (filters) => {
-		const body = Object.fromEntries(Object.entries(filters).filter(([_, v]: any) => v && v.length !== 0))
-
-		const response = await fetch('https://vc-emails.llama.fi/vc-list', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ filters: body })
-		})
-
-		const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-		await wait(500)
-
-		if (!response.ok) {
-			throw new Error('Network response was not ok')
-		}
-
-		return response.json()
 	}
 
 	const useInvestorsQuery = (filters, hasSelectedFilters) => {
@@ -179,7 +186,13 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		e.preventDefault()
 		setIsSubmitting(true)
 		try {
-			const filtersData = Object.fromEntries(Object.entries(filters).filter(([_, v]: any) => v && v.length !== 0))
+			const filtersData: Record<string, any> = {}
+			for (const key in filters) {
+				const v = filters[key]
+				if (v && v.length !== 0) {
+					filtersData[key] = v
+				}
+			}
 			const response = await fetch('https://vc-emails.llama.fi/new-payment', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -272,14 +285,14 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 							<span className="">Minimum last investment time:</span>
 							<input
 								type="date"
-								className="cursor-pointer rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white dark:[color-scheme:dark]"
+								className="cursor-pointer rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white dark:scheme-dark"
 								value={unixToDateString(filters.minLastRoundTime)}
 								onChange={handleDateChange}
 								max={new Date().toISOString().split('T')[0]}
 								onFocus={async (e) => {
 									try {
 										e.target.showPicker()
-									} catch (error) {}
+									} catch {}
 								}}
 							/>
 						</label>
@@ -348,7 +361,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 					</div>
 					<div className="flex h-fit w-full max-w-xs flex-col gap-2 rounded-md bg-(--bg-secondary) p-4 shadow-sm lg:sticky lg:top-10">
 						<h2>Results</h2>
-						{isLoading ? <div className="animate-linebeat absolute top-0 left-0 h-1 w-[30%] bg-[#3498db]" /> : null}
+						{isLoading ? <div className="absolute top-0 left-0 h-1 w-[30%] animate-linebeat bg-[#3498db]" /> : null}
 
 						<p className="flex flex-wrap items-center justify-between gap-1 text-base">
 							<span>Matched Investors:</span>{' '}
@@ -365,18 +378,17 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 						{matchedInvestors > 100 && hasSelectedFilters ? (
 							<p className="text-red-500">To reduce costs, please filter further.</p>
 						) : null}
-						{paymentLink ||
-							(true && (
-								<>
-									<button
-										onClick={() => window.open(paymentLink, '_blank')}
-										disabled={isSubmitting}
-										className="w-full rounded-md bg-(--primary) px-6 py-2 text-lg font-semibold text-white disabled:bg-(--bg-tertiary) disabled:text-(--text-tertiary)"
-									>
-										{isSubmitting ? 'Processing...' : 'Go to Payment'}
-									</button>
-								</>
-							))}
+						{paymentLink ? (
+							<>
+								<button
+									onClick={() => window.open(paymentLink, '_blank')}
+									disabled={isSubmitting}
+									className="w-full rounded-md bg-(--primary) px-6 py-2 text-lg font-semibold text-white disabled:bg-(--bg-tertiary) disabled:text-(--text-tertiary)"
+								>
+									{isSubmitting ? 'Processing...' : 'Go to Payment'}
+								</button>
+							</>
+						) : null}
 					</div>
 				</div>
 			</div>

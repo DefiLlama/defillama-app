@@ -17,8 +17,10 @@ interface YieldsTableHeaderProps {
 	activeFilterCount: number
 }
 
+const EMPTY_CHAINS: string[] = []
+
 export function YieldsTableHeader({
-	chains = [],
+	chains = EMPTY_CHAINS,
 	columnPresets,
 	applyPreset,
 	activePreset,
@@ -44,31 +46,33 @@ export function YieldsTableHeader({
 		return `${chains.length} Chains Yields`
 	}, [chains])
 
+	const presetKeys = React.useMemo(() => Object.keys(columnPresets), [columnPresets])
+
 	return (
 		<div className="mb-3">
 			<div className="mb-3 flex items-center justify-between gap-4">
-				<h3 className="pro-text1 text-lg font-semibold">{displayTitle}</h3>
+				<h3 className="text-lg font-semibold pro-text1">{displayTitle}</h3>
 				<div className="flex items-center gap-2">
 					<input
 						type="text"
 						placeholder="Search pools..."
 						value={poolName}
 						onChange={(e) => setPoolName(e.target.value)}
-						className="pro-border pro-text1 w-full rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm focus:border-(--primary) focus:outline-hidden"
+						className="w-full rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 focus:border-(--primary) focus:outline-hidden"
 					/>
 				</div>
 			</div>
 
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="flex items-center gap-2">
-					{Object.keys(columnPresets).map((preset) => (
+					{presetKeys.map((preset) => (
 						<button
 							key={preset}
 							onClick={() => applyPreset(preset)}
 							className={`flex items-center gap-1 rounded-md border px-3 py-1.5 text-sm capitalize transition-colors ${
 								activePreset === preset
 									? 'border-(--primary) bg-(--primary) text-white'
-									: 'pro-border pro-hover-bg pro-text1 pro-bg1'
+									: 'pro-border pro-bg1 pro-hover-bg pro-text1'
 							}`}
 						>
 							{preset}
@@ -81,7 +85,7 @@ export function YieldsTableHeader({
 
 					<button
 						onClick={() => setShowFiltersPanel(!showFiltersPanel)}
-						className="pro-border pro-hover-bg pro-text1 pro-bg1 relative flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors"
+						className="relative flex items-center gap-2 rounded-md border pro-border pro-bg1 pro-hover-bg px-3 py-1.5 text-sm pro-text1 transition-colors"
 					>
 						<Icon name="align-left" height={14} width={14} />
 						Filters
@@ -94,7 +98,7 @@ export function YieldsTableHeader({
 					</button>
 					<button
 						onClick={() => setShowColumnPanel(!showColumnPanel)}
-						className="pro-border pro-hover-bg pro-text1 pro-bg1 flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors"
+						className="flex items-center gap-2 rounded-md border pro-border pro-bg1 pro-hover-bg px-3 py-1.5 text-sm pro-text1 transition-colors"
 					>
 						<Icon name="settings" height={14} width={14} />
 						Customize Table

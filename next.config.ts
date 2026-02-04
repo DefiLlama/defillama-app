@@ -2,6 +2,7 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
+	reactCompiler: true,
 	// Increase timeout for static page generation (default is 60 seconds)
 	staticPageGenerationTimeout: 300, // 5 minutes
 	async redirects() {
@@ -556,6 +557,16 @@ const nextConfig: NextConfig = {
 				source: '/digital-asset-treasury',
 				destination: '/digital-asset-treasuries',
 				permanent: true
+			},
+			{
+				source: '/protocols/rwa',
+				destination: '/rwa',
+				permanent: true
+			},
+			{
+				source: '/protocols/rwa/:chain',
+				destination: '/rwa/chain/:chain',
+				permanent: true
 			}
 		]
 	},
@@ -572,7 +583,7 @@ const nextConfig: NextConfig = {
 				]
 			},
 			{
-				source: '/assets/llamaai.mp4',
+				source: '/assets/llamaai/llamaai.mp4',
 				headers: [
 					{
 						key: 'Accept-Ranges',

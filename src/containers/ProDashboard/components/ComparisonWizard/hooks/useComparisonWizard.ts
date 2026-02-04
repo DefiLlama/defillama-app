@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useReducer } from 'react'
+import { useCallback, useReducer } from 'react'
 import { useProDashboardCatalog } from '../../../ProDashboardAPIContext'
 import type {
 	ComparisonType,
@@ -50,6 +50,27 @@ function reducer(state: ComparisonWizardState, action: WizardAction): Comparison
 				selectedMetrics: [],
 				metricsForCards: []
 			}
+		case 'TOGGLE_SELECTED_ITEM': {
+			const isRemoving = state.selectedItems.includes(action.item)
+			if (isRemoving) {
+				return {
+					...state,
+					selectedItems: state.selectedItems.filter((i) => i !== action.item),
+					selectedMetrics: [],
+					metricsForCards: []
+				}
+			}
+			const maxItems = action.maxItems ?? 10
+			if (state.selectedItems.length >= maxItems) {
+				return state
+			}
+			return {
+				...state,
+				selectedItems: [...state.selectedItems, action.item],
+				selectedMetrics: [],
+				metricsForCards: []
+			}
+		}
 		case 'TOGGLE_METRIC': {
 			const isRemoving = state.selectedMetrics.includes(action.metric)
 			const metrics = isRemoving
@@ -80,6 +101,10 @@ function reducer(state: ComparisonWizardState, action: WizardAction): Comparison
 			return { ...state, visibility: action.visibility }
 		case 'SET_TAGS':
 			return { ...state, tags: action.tags }
+		case 'ADD_TAG':
+			return state.tags.includes(action.tag) ? state : { ...state, tags: [...state.tags, action.tag] }
+		case 'REMOVE_TAG':
+			return { ...state, tags: state.tags.filter((t) => t !== action.tag) }
 		case 'SET_DESCRIPTION':
 			return { ...state, description: action.description }
 		case 'SET_GROUPING':
@@ -108,6 +133,11 @@ export function useComparisonWizard() {
 
 	const setSelectedItems = useCallback((items: string[]) => dispatch({ type: 'SET_SELECTED_ITEMS', items }), [])
 
+	const toggleSelectedItem = useCallback(
+		(item: string, maxItems?: number) => dispatch({ type: 'TOGGLE_SELECTED_ITEM', item, maxItems }),
+		[]
+	)
+
 	const toggleMetric = useCallback((metric: string) => dispatch({ type: 'TOGGLE_METRIC', metric }), [])
 
 	const clearMetrics = useCallback(() => dispatch({ type: 'CLEAR_METRICS' }), [])
@@ -135,6 +165,10 @@ export function useComparisonWizard() {
 
 	const setTags = useCallback((tags: string[]) => dispatch({ type: 'SET_TAGS', tags }), [])
 
+	const addTag = useCallback((tag: string) => dispatch({ type: 'ADD_TAG', tag }), [])
+
+	const removeTag = useCallback((tag: string) => dispatch({ type: 'REMOVE_TAG', tag }), [])
+
 	const setDescription = useCallback((description: string) => dispatch({ type: 'SET_DESCRIPTION', description }), [])
 
 	const setGrouping = useCallback((grouping: GroupingInterval) => dispatch({ type: 'SET_GROUPING', grouping }), [])
@@ -157,7 +191,12 @@ export function useComparisonWizard() {
 					return getProtocolInfo(item)?.name || item
 				})
 				if (!state.dashboardName) {
-					const defaultName = displayNames.length === 1 ? displayNames[0] : `Comparison of ${displayNames.join(', ')}`
+					const defaultName =
+						displayNames.length === 1
+							? displayNames[0]
+							: displayNames.length === 2
+								? `${displayNames[0]} vs ${displayNames[1]}`
+								: `${displayNames[0]} vs ${displayNames.length - 1} competitors`
 					setDashboardName(defaultName)
 				}
 				if (state.tags.length === 0) {
@@ -183,7 +222,7 @@ export function useComparisonWizard() {
 		if (prev) setStep(prev)
 	}, [state.step, setStep])
 
-	const canProceed = useMemo(() => {
+	const canProceed = (() => {
 		switch (state.step) {
 			case 'select-type':
 				return state.comparisonType !== null
@@ -196,9 +235,9 @@ export function useComparisonWizard() {
 			default:
 				return false
 		}
-	}, [state])
+	})()
 
-	const canGoBack = useMemo(() => getPrevStep(state.step) !== null, [state.step])
+	const canGoBack = getPrevStep(state.step) !== null
 
 	return {
 		state,
@@ -206,6 +245,7 @@ export function useComparisonWizard() {
 			setStep,
 			setComparisonType,
 			setSelectedItems,
+			toggleSelectedItem,
 			toggleMetric,
 			clearMetrics,
 			selectAllMetrics,
@@ -215,6 +255,8 @@ export function useComparisonWizard() {
 			setDashboardName,
 			setVisibility,
 			setTags,
+			addTag,
+			removeTag,
 			setDescription,
 			setGrouping,
 			setDisplayMode,

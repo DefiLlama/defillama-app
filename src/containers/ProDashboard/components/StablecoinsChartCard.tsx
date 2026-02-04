@@ -1,10 +1,10 @@
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
-import * as echarts from 'echarts/core'
+import { lazy, Suspense, useMemo } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { useStablecoinsChartData } from '~/containers/ProDashboard/components/datasets/StablecoinsDataset/useStablecoinsChartData'
 import { generateConsistentChartColor, STABLECOIN_TOKEN_COLORS } from '~/containers/ProDashboard/utils/colorManager'
 import { download, formattedNum, toNiceCsvDate } from '~/utils'
+import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { StablecoinsChartConfig } from '../types'
@@ -51,7 +51,7 @@ const EMPTY_HALLMARKS: [number, string][] = []
 export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 	const { chain, chartType } = config
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
-	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
+	const { chartInstance, handleChartReady } = useChartImageExport()
 
 	const {
 		peggedAreaTotalData,
@@ -125,7 +125,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 		return data[data.length - 1]?.Mcap ?? null
 	}, [filteredChartData.peggedAreaTotalData])
 
-	const handleCsvExport = useCallback(() => {
+	const handleCsvExport = () => {
 		let rows: (string | number)[][] = []
 		let filename = ''
 
@@ -186,7 +186,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 			const csvContent = rows.map((row) => row.join(',')).join('\n')
 			download(filename, csvContent)
 		}
-	}, [filteredChartData, chainsCirculatingValues, peggedAssetNames, tokenInflowNames, chain, chartType])
+	}
 
 	const chartTypeLabel = CHART_TYPE_LABELS[chartType] || chartType
 	const chainLabel = chain === 'All' ? 'All Chains' : chain
@@ -222,7 +222,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 							hallmarks={EMPTY_HALLMARKS}
 							color="#4f8fea"
 							chartOptions={chartOptions}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -245,7 +245,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 							hideGradient={true}
 							stackColors={stackColors}
 							chartOptions={chartOptions}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -281,7 +281,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 							expandTo100Percent={true}
 							stackColors={stackColors}
 							chartOptions={chartOptions}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -299,7 +299,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 							color="#4f8fea"
 							title=""
 							hideDownloadButton={true}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -321,7 +321,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 							customLegendOptions={tokenInflowNames}
 							chartOptions={inflowsChartOptions}
 							stackColors={stackColors}
-							onReady={setChartInstance}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				)
@@ -339,8 +339,8 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 		<div className="flex h-full flex-col p-2">
 			<div className="mb-2 flex items-start justify-between gap-2">
 				<div className="flex flex-col gap-1">
-					<h3 className="pro-text1 text-sm font-semibold">{chartTypeLabel}</h3>
-					<p className="pro-text2 text-xs">{chainLabel} Stablecoins</p>
+					<h3 className="text-sm font-semibold pro-text1">{chartTypeLabel}</h3>
+					<p className="text-xs pro-text2">{chainLabel} Stablecoins</p>
 				</div>
 				{hasChartData && (
 					<div className="flex gap-2">
@@ -350,7 +350,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol
-							className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
+							className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 						/>
 					</div>
 				)}
@@ -359,7 +359,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 			{latestMcap !== null && chartType === 'totalMcap' && (
 				<div className="mb-2 flex gap-4">
 					<div className="flex flex-col">
-						<span className="pro-text3 text-[10px] uppercase">Total Market Cap</span>
+						<span className="text-[10px] pro-text3 uppercase">Total Market Cap</span>
 						<span className="font-jetbrains text-sm font-semibold" style={{ color: '#4f8fea' }}>
 							{formattedNum(latestMcap, true)}
 						</span>

@@ -1,5 +1,3 @@
-import { useMemo, useState, useSyncExternalStore } from 'react'
-import { useRouter } from 'next/router'
 import {
 	ColumnSizingState,
 	ExpandedState,
@@ -9,15 +7,29 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import { useMemo, useState, useSyncExternalStore } from 'react'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { emissionsColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
-import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 
 const optionsKey = 'unlockTable'
 const filterStatekey = 'unlockTableFilterState'
+
+const setColumnOptions = (newOptions: string[]) => {
+	const ops: Record<string, boolean> = {}
+	for (const col of columnOptions) {
+		ops[col.key] = newOptions.includes(col.key)
+	}
+	setStorageItem(optionsKey, JSON.stringify(ops))
+}
+
+const toggleAllOptions = () => {
+	setColumnOptions(columnOptions.map((col) => col.key))
+}
 
 interface IUnlocksTableProps {
 	protocols: Array<any>
@@ -40,6 +52,11 @@ const UNLOCK_TYPES = [
 	'liquidity',
 	'uncategorized'
 ]
+
+const UNLOCK_TYPE_OPTIONS = UNLOCK_TYPES.map((type) => ({
+	name: type.charAt(0).toUpperCase() + type.slice(1),
+	key: type
+}))
 
 export const UnlocksTable = ({
 	protocols,
@@ -86,7 +103,7 @@ export const UnlocksTable = ({
 	}
 
 	const handleUnlockValueClear = () => {
-		const { minUnlockValue, maxUnlockValue, ...restQuery } = router.query
+		const { minUnlockValue: _minUnlockValue, maxUnlockValue: _maxUnlockValue, ...restQuery } = router.query
 
 		router.push(
 			{
@@ -120,7 +137,7 @@ export const UnlocksTable = ({
 	}
 
 	const handleUnlockPercClear = () => {
-		const { minUnlockPerc, maxUnlockPerc, ...restQuery } = router.query
+		const { minUnlockPerc: _minUnlockPerc, maxUnlockPerc: _maxUnlockPerc, ...restQuery } = router.query
 
 		router.push(
 			{
@@ -135,63 +152,35 @@ export const UnlocksTable = ({
 	}
 
 	const columnsInStorage = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(optionsKey) ?? defaultColumns,
+		(callback) => subscribeToStorageKey(optionsKey, callback),
+		() => getStorageItem(optionsKey, defaultColumns) ?? defaultColumns,
 		() => defaultColumns
 	)
 
-	const filterState = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(filterStatekey) ?? null,
+	const _filterState = useSyncExternalStore(
+		(callback) => subscribeToStorageKey(filterStatekey, callback),
+		() => getStorageItem(filterStatekey, null),
 		() => null
 	)
 
-	const clearAllOptions = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
-	}
-
-	const toggleAllOptions = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, true])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
-	}
-
-	const addOption = (newOptions) => {
-		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key) ? true : false]))
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
-	}
-
-	const addOnlyOneOption = (newOption) => {
-		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, col.key === newOption ? true : false]))
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
-	}
-
-	const setFilter = (key) => (newState) => {
-		const newOptions = Object.fromEntries(
-			columnOptions.map((column) => [
-				[column.key],
-				['name', 'category'].includes(column.key) ? true : column[key] === newState
-			])
-		)
+	const _setFilter = (key) => (newState) => {
+		const newOptions: Record<string, boolean> = {}
+		for (const column of columnOptions) {
+			newOptions[column.key] = ['name', 'category'].includes(column.key) ? true : column[key] === newState
+		}
 
 		if (columnsInStorage === JSON.stringify(newOptions)) {
 			toggleAllOptions()
-			window.localStorage.setItem(filterStatekey, null)
-			window.dispatchEvent(new Event('storage'))
+			setStorageItem(filterStatekey, 'null')
 		} else {
-			window.localStorage.setItem(optionsKey, JSON.stringify(newOptions))
-			window.localStorage.setItem(filterStatekey, newState)
-			window.dispatchEvent(new Event('storage'))
+			setStorageItem(optionsKey, JSON.stringify(newOptions))
+			setStorageItem(filterStatekey, newState)
 		}
 	}
 
 	const selectedOptions = useMemo(() => {
 		const storage = JSON.parse(columnsInStorage)
-		return columnOptions.filter((c) => (storage[c.key] ? true : false)).map((c) => c.key)
+		return columnOptions.filter((c) => !!storage[c.key]).map((c) => c.key)
 	}, [columnsInStorage])
 
 	const [sorting, setSorting] = useState<SortingState>([{ id: 'upcomingEvent', desc: false }])
@@ -309,6 +298,9 @@ export const UnlocksTable = ({
 			columnSizing,
 			columnVisibility: JSON.parse(columnsInStorage)
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		onColumnSizingChange: setColumnSizing,
 		onExpandedChange: setExpanded,
@@ -358,10 +350,7 @@ export const UnlocksTable = ({
 				<SelectWithCombobox
 					allValues={columnOptions}
 					selectedValues={selectedOptions}
-					setSelectedValues={addOption}
-					selectOnlyOne={addOnlyOneOption}
-					toggleAll={toggleAllOptions}
-					clearAll={clearAllOptions}
+					setSelectedValues={setColumnOptions}
 					nestedMenu={false}
 					label={'Columns'}
 					labelType="smol"
@@ -372,12 +361,9 @@ export const UnlocksTable = ({
 				/>
 
 				<SelectWithCombobox
-					allValues={UNLOCK_TYPES.map((type) => ({ name: type.charAt(0).toUpperCase() + type.slice(1), key: type }))}
+					allValues={UNLOCK_TYPE_OPTIONS}
 					selectedValues={selectedUnlockTypes}
 					setSelectedValues={setSelectedUnlockTypes}
-					selectOnlyOne={(value) => setSelectedUnlockTypes([value])}
-					toggleAll={() => setSelectedUnlockTypes(UNLOCK_TYPES)}
-					clearAll={() => setSelectedUnlockTypes([])}
 					nestedMenu={false}
 					label={'Unlock Types'}
 					labelType="smol"
@@ -402,7 +388,7 @@ export const UnlocksTable = ({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 			</div>

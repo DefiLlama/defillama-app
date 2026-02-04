@@ -30,7 +30,13 @@ export function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProp
 								className="absolute block h-24.5 w-24.5 shrink-0"
 								style={{ background: 'linear-gradient(90deg, #FEE2AD 0%, #FEE2AD 100%)', filter: 'blur(32px)' }}
 							></span>
-							<img src="/assets/llama-ai.svg" alt="LlamaAI" className="z-10 object-contain" width={83} height={99} />
+							<img
+								src="/assets/llamaai/llama-ai.svg"
+								alt="LlamaAI"
+								className="z-10 object-contain"
+								width={83}
+								height={99}
+							/>
 						</span>
 					</div>
 
@@ -49,7 +55,7 @@ export function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProp
 						onClick={onClose}
 					>
 						<svg className="h-4 w-4 shrink-0">
-							<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+							<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 						</svg>
 						<span className="whitespace-nowrap">Try LlamaAI</span>
 					</BasicLink>

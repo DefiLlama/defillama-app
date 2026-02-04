@@ -50,12 +50,12 @@ export function CustomViewModal({ isOpen, onClose, onSave, existingViewNames }: 
 			onClick={onClose}
 		>
 			<div
-				className="pro-bg1 pro-border w-full max-w-lg rounded-md border shadow-lg"
+				className="w-full max-w-lg rounded-md border pro-border pro-bg1 shadow-lg"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div className="p-6">
 					<div className="mb-6 flex items-center justify-between">
-						<h2 className="pro-text1 text-xl font-semibold">Save Custom View</h2>
+						<h2 className="text-xl font-semibold pro-text1">Save Custom View</h2>
 						<button onClick={onClose} className="pro-hover-bg p-1 transition-colors">
 							<Icon name="x" height={20} width={20} className="pro-text2" />
 						</button>
@@ -63,7 +63,7 @@ export function CustomViewModal({ isOpen, onClose, onSave, existingViewNames }: 
 
 					<div className="space-y-6">
 						<div>
-							<label htmlFor="view-name" className="pro-text1 mb-3 block text-sm font-medium">
+							<label htmlFor="view-name" className="mb-3 block text-sm font-medium pro-text1">
 								View Name
 							</label>
 							<input
@@ -76,14 +76,14 @@ export function CustomViewModal({ isOpen, onClose, onSave, existingViewNames }: 
 								}}
 								onKeyDown={handleKeyDown}
 								placeholder="Enter a name for this view..."
-								className="bg-opacity-50 pro-border pro-text1 placeholder:pro-text3 w-full rounded-md border bg-(--bg-glass) px-3 py-2 focus:border-(--primary) focus:outline-hidden"
+								className="bg-opacity-50 w-full rounded-md border pro-border bg-(--bg-glass) px-3 py-2 pro-text1 placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
 								autoFocus
 							/>
 							{error && <p className="mt-2 text-sm text-(--error)">{error}</p>}
 						</div>
 
-						<div className="pro-bg2 bg-opacity-50 p-4">
-							<p className="pro-text3 text-sm">
+						<div className="bg-opacity-50 pro-bg2 p-4">
+							<p className="text-sm pro-text3">
 								This will save your current column configuration including visibility, order, and any custom columns.
 							</p>
 						</div>
@@ -92,7 +92,7 @@ export function CustomViewModal({ isOpen, onClose, onSave, existingViewNames }: 
 					<div className="mt-8 flex justify-end gap-3">
 						<button
 							onClick={onClose}
-							className="pro-border pro-hover-bg pro-text2 rounded-md border px-6 py-2.5 font-medium transition-colors"
+							className="rounded-md border pro-border pro-hover-bg px-6 py-2.5 font-medium pro-text2 transition-colors"
 						>
 							Cancel
 						</button>

@@ -1,6 +1,6 @@
-import * as React from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useRouter } from 'next/router'
+import * as React from 'react'
 import { DialogForm } from '~/components/DialogForm'
 import { Icon } from '~/components/Icon'
 import { NestedMenu } from '~/components/NestedMenu'
@@ -8,11 +8,13 @@ import { ConfirmationModal } from '~/containers/ProDashboard/components/Confirma
 import { useYieldFilters } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { useMedia } from '~/hooks/useMedia'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 import { YieldsSearch } from '../Search'
 import { InputFilter } from './Amount'
 import { YieldFilterDropdowns } from './Dropdowns'
 import { IncludeExcludeTokens } from './IncludeExcludeTokens'
 import { LTV } from './LTV'
+import { PresetFilters } from './PresetFilters'
 import type { IYieldFiltersProps } from './types'
 
 function SavedFilters({ currentFilters }) {
@@ -22,9 +24,12 @@ function SavedFilters({ currentFilters }) {
 	const [deleteOpen, setDeleteOpen] = React.useState(false)
 	const [filterToDelete, setFilterToDelete] = React.useState('')
 
+	const savedFiltersEntries = React.useMemo(() => Object.entries(savedFilters), [savedFilters])
+
 	const handleLoad = (name: string) => {
 		const filters = savedFilters[name]
 		if (filters) {
+			trackYieldsEvent(YIELDS_EVENTS.SAVED_FILTER_LOAD, { filter: name })
 			router.push(
 				{
 					pathname: router.pathname,
@@ -49,13 +54,18 @@ function SavedFilters({ currentFilters }) {
 				description="Enter a name for this filter configuration"
 				open={dialogOpen}
 				setOpen={setDialogOpen}
-				onSubmit={(name) => saveFilter(name, currentFilters)}
+				onSubmit={(filterName) => {
+					saveFilter(filterName, currentFilters)
+					trackYieldsEvent(YIELDS_EVENTS.SAVED_FILTER_CREATE, { filter: filterName })
+				}}
 			/>
 			<ConfirmationModal
 				title={`Deleting saved filter "${filterToDelete}"`}
 				isOpen={deleteOpen}
 				onClose={() => setDeleteOpen(false)}
-				onConfirm={() => deleteFilter(filterToDelete)}
+				onConfirm={() => {
+					deleteFilter(filterToDelete)
+				}}
 			/>
 			<Ariakit.MenuProvider>
 				<Ariakit.MenuButton className="flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)">
@@ -69,13 +79,13 @@ function SavedFilters({ currentFilters }) {
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="max-sm:drawer thin-scrollbar z-10 flex max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-w-md dark:border-[hsl(204,3%,32%)]"
+					className="z-10 flex thin-scrollbar max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:drawer max-sm:rounded-b-none sm:max-w-md dark:border-[hsl(204,3%,32%)]"
 				>
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 						<Icon name="x" className="h-5 w-5" />
 					</Ariakit.PopoverDismiss>
 
-					{Object.entries(savedFilters).map(([name], i) => (
+					{savedFiltersEntries.map(([name], i) => (
 						<Ariakit.MenuItem
 							key={`custom-filter-${name}-${i}`}
 							onClick={() => handleLoad(name)}
@@ -95,7 +105,7 @@ function SavedFilters({ currentFilters }) {
 							</button>
 						</Ariakit.MenuItem>
 					))}
-					{Object.keys(savedFilters).length === 0 && <p className="p-4 text-center text-xs">No saved filters</p>}
+					{savedFiltersEntries.length === 0 && <p className="p-4 text-center text-xs">No saved filters</p>}
 				</Ariakit.Menu>
 			</Ariakit.MenuProvider>
 		</div>
@@ -112,6 +122,7 @@ export function YieldFiltersV2({
 	strategyInputsData,
 	ltvPlaceholder,
 	showSearchOnMobile,
+	showPresetFilters,
 	...props
 }: IYieldFiltersProps) {
 	const trackingStats =
@@ -138,12 +149,18 @@ export function YieldFiltersV2({
 				{trackingStats ? <p>{trackingStats}</p> : null}
 				<SavedFilters currentFilters={query} />
 			</div>
-			<div className="flex flex-col gap-2 rounded-b-md p-3">
+			<div className="flex flex-col gap-3 rounded-b-md p-3">
+				{showPresetFilters && (
+					<>
+						<PresetFilters />
+						<div className="border-t border-(--form-control-border)" />
+					</>
+				)}
 				{strategyInputsData ? (
 					<StrategySearch lend={lend} borrow={borrow} searchData={strategyInputsData} ltvPlaceholder={ltvPlaceholder} />
 				) : null}
 				{tokens && (showSearchOnMobile || !isSmall) ? (
-					<IncludeExcludeTokens tokens={tokens} data-alwaysdisplay={showSearchOnMobile ? true : false} />
+					<IncludeExcludeTokens tokens={tokens} data-alwaysdisplay={showSearchOnMobile} />
 				) : null}
 				<div className="flex min-h-9 flex-wrap gap-2 *:flex-1 sm:hidden">
 					{isSmall && isClient ? (

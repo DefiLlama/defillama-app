@@ -18,8 +18,8 @@ const httpsAgent = new HttpsAgent({
 	timeout: 60000
 })
 
-// Custom fetch function with connection pooling
-export const fetchWithConnectionPooling = async (url: string | URL, options: RequestInit = {}): Promise<Response> => {
+// Internal fetch with connection pooling (not exported)
+const fetchWithConnectionPooling = async (url: string | URL, options: RequestInit = {}): Promise<Response> => {
 	const urlObj = typeof url === 'string' ? new URL(url) : url
 	const agent = urlObj.protocol === 'https:' ? httpsAgent : httpAgent
 
@@ -30,14 +30,36 @@ export const fetchWithConnectionPooling = async (url: string | URL, options: Req
 	})
 }
 
-// Cleanup function to close connections when shutting down
-export const cleanupHttpAgents = () => {
+// Cleanup function for process termination
+const cleanupHttpAgents = () => {
 	httpAgent.destroy()
 	httpsAgent.destroy()
 }
 
-// Handle process termination to clean up connections
 if (typeof process !== 'undefined') {
 	process.on('SIGTERM', cleanupHttpAgents)
 	process.on('SIGINT', cleanupHttpAgents)
+}
+
+// Fetch with connection pooling and timeout support
+export type FetchWithPoolingOnServerOptions = RequestInit & { timeout?: number }
+
+export const fetchWithPoolingOnServer = async (
+	url: RequestInfo | URL,
+	options?: FetchWithPoolingOnServerOptions
+): Promise<Response> => {
+	const isServer = typeof window === 'undefined'
+	const controller = new AbortController()
+	const timeout = options?.timeout ?? 60_000
+	const id = setTimeout(() => controller.abort(), timeout)
+
+	try {
+		const response =
+			isServer && typeof url === 'string'
+				? await fetchWithConnectionPooling(url, { ...options, signal: controller.signal })
+				: await fetch(url, { ...options, signal: controller.signal })
+		return response
+	} finally {
+		clearTimeout(id)
+	}
 }

@@ -16,21 +16,21 @@ const MAX_CHAIN_NAME_LENGTH = 200
 const ALLOWED_CHAIN_PATTERN = /^[a-z0-9- ]+$/i
 
 export const toPercent = (value: number | null | undefined): number | null => {
-	if (value === null || value === undefined) return null
+	if (value == null) return null
 	return value * 100
 }
 
 export const derivePreviousValue = (current: number | null | undefined, change: number | null | undefined) => {
-	if (current === null || current === undefined) return null
-	if (change === null || change === undefined) return null
+	if (current == null) return null
+	if (change == null) return null
 	const denominator = 1 + change
 	if (!Number.isFinite(denominator) || denominator === 0) return null
 	return current / denominator
 }
 
 export const computeShare = (part: number | null | undefined, total: number | null | undefined): number | null => {
-	if (part === null || part === undefined) return null
-	if (total === null || total === undefined || total <= 0) return null
+	if (part == null) return null
+	if (total == null || total <= 0) return null
 	return (part / total) * 100
 }
 

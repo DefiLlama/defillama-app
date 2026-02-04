@@ -5,6 +5,11 @@ import { EXTENDED_COLOR_PALETTE } from '../../utils/colorManager'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 
+const CHART_OPTIONS = {
+	xAxis: { show: true },
+	yAxis: { show: true }
+}
+
 interface CombinedChartPreviewProps {
 	composerItems: ChartConfig[]
 }
@@ -42,7 +47,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 		let hasNonMonetaryMetrics = false
 		let allPercentMetrics = true
 
-		composerItems.forEach((item) => {
+		for (const item of composerItems) {
 			if (item.data && Array.isArray(item.data) && item.data.length > 0) {
 				const meta = CHART_TYPES[item.type]
 				const displayName = item.protocol ? getProtocolInfo(item.protocol)?.name || item.protocol : item.chain || ''
@@ -81,7 +86,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 					colorIndex++
 				}
 			}
-		})
+		}
 
 		const symbol = result.length > 0 && allPercentMetrics ? '%' : hasNonMonetaryMetrics ? '' : '$'
 
@@ -92,13 +97,13 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 		return (
 			<div className="flex h-full w-full items-center justify-center">
 				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4 text-center">
-					<div className="pro-text2 mb-2 text-sm">Chart Preview</div>
-					<div className="pro-text3 text-xs">
+					<div className="mb-2 text-sm pro-text2">Chart Preview</div>
+					<div className="text-xs pro-text3">
 						{composerItems.length} chart{composerItems.length > 1 ? 's' : ''} selected
 					</div>
 					<div className="mt-3 space-y-1">
 						{composerItems.map((item) => (
-							<div key={item.id} className="pro-text3 text-xs">
+							<div key={item.id} className="text-xs pro-text3">
 								• {item.protocol || item.chain} - {CHART_TYPES[item.type]?.title || item.type}
 							</div>
 						))}
@@ -124,14 +129,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 					groupBy={mapGroupingToGroupBy(previewGrouping)}
 					hideDataZoom={true}
 					height="450px"
-					chartOptions={{
-						xAxis: {
-							show: true
-						},
-						yAxis: {
-							show: true
-						}
-					}}
+					chartOptions={CHART_OPTIONS}
 				/>
 			</Suspense>
 		</div>

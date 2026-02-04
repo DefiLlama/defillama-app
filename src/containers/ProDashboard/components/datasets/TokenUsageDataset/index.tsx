@@ -1,4 +1,3 @@
-import { useEffect, useMemo, useState } from 'react'
 import {
 	flexRender,
 	getCoreRowModel,
@@ -9,6 +8,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import { useEffect, useMemo, useState } from 'react'
 import { components } from 'react-select'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { SortIcon } from '~/components/Table/SortIcon'
@@ -18,13 +18,21 @@ import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { getColumns } from './columns'
 import { useTokenSearch } from './useTokenSearch'
-import { useTokenUsageData } from './useTokenUsageData'
+import { type TokenUsageData, useTokenUsageData } from './useTokenUsageData'
 
-interface TokenOption {
+interface _TokenOption {
 	value: string
 	label: string
 	logo?: string
 }
+
+const EMPTY_TOKEN_OPTIONS: _TokenOption[] = []
+const EMPTY_SELECTED_TOKENS: _TokenOption[] = []
+const EMPTY_USAGE_DATA: TokenUsageData[] = []
+const EMPTY_TOKEN_SYMBOLS: string[] = []
+
+type CategoryStats = { count: number; amount: number }
+type CategoryBreakdown = Record<string, CategoryStats>
 
 interface TokenUsageDatasetProps {
 	config: {
@@ -84,15 +92,24 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 	const [tokenSearchInput, setTokenSearchInput] = useState('')
 	const [localIncludeCex, setLocalIncludeCex] = useState(config.includeCex ?? false)
 
-	const tokenSymbols = config.tokenSymbols || []
+	const tokenSymbols = config.tokenSymbols ?? EMPTY_TOKEN_SYMBOLS
+
+	const tokenSymbolSelectValue = useMemo(
+		() => tokenSymbols.map((symbol) => ({ label: symbol.toUpperCase(), value: symbol })),
+		[tokenSymbols]
+	)
 
 	useEffect(() => {
 		setLocalIncludeCex(config.includeCex ?? false)
 	}, [config.includeCex])
 
-	const { data: rawData = [], isLoading, isError, refetch } = useTokenUsageData(tokenSymbols, localIncludeCex)
-	const { data: tokenOptions = [], isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
-	const { data: defaultTokens = [] } = useTokenSearch('')
+	const { data: rawDataResponse, isLoading, isError, refetch } = useTokenUsageData(tokenSymbols, localIncludeCex)
+	const { data: tokenOptionsResponse, isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
+	const { data: defaultTokensResponse } = useTokenSearch('')
+
+	const rawData = rawDataResponse ?? EMPTY_USAGE_DATA
+	const tokenOptions = tokenOptionsResponse ?? EMPTY_TOKEN_OPTIONS
+	const defaultTokens = defaultTokensResponse ?? EMPTY_TOKEN_OPTIONS
 
 	const filteredData = useMemo(() => {
 		if (!search) return rawData
@@ -118,7 +135,8 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
-		getFilteredRowModel: getFilteredRowModel()
+		getFilteredRowModel: getFilteredRowModel(),
+		autoResetPageIndex: false
 	})
 
 	const handleTokenChange = (selectedOptions: any) => {
@@ -144,28 +162,29 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 		if (tokenSymbols.length <= 1) return null
 
 		const stats: Record<string, { total: number; protocols: number }> = {}
-		tokenSymbols.forEach((symbol) => {
+		for (const symbol of tokenSymbols) {
 			stats[symbol] = { total: 0, protocols: 0 }
-		})
+		}
 
-		rawData.forEach((item) => {
+		for (const item of rawData) {
 			if (item.tokens) {
-				Object.entries(item.tokens).forEach(([symbol, amount]) => {
+				for (const symbol in item.tokens) {
+					const amount = item.tokens[symbol]
 					if (stats[symbol]) {
 						stats[symbol].total += amount
 						stats[symbol].protocols++
 					}
-				})
+				}
 			}
-		})
+		}
 
 		return stats
 	}, [rawData, tokenSymbols])
 
 	const totalAmount = useMemo(() => rawData.reduce((sum, item) => sum + item.amountUsd, 0), [rawData])
 	const protocolCount = rawData.length
-	const categoryBreakdown = useMemo(() => {
-		return rawData.reduce(
+	const categoryBreakdown = useMemo<CategoryBreakdown>(() => {
+		return rawData.reduce<CategoryBreakdown>(
 			(acc, item) => {
 				const category = item.category || 'Unknown'
 				if (!acc[category]) {
@@ -180,7 +199,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 	}, [rawData])
 
 	const topCategories = useMemo(() => {
-		return Object.entries(categoryBreakdown)
+		return (Object.entries(categoryBreakdown) as Array<[string, CategoryStats]>)
 			.sort(([, a], [, b]) => b.amount - a.amount)
 			.slice(0, 3)
 	}, [categoryBreakdown])
@@ -193,11 +212,11 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			shared: 0
 		}
 
-		tokenSymbols.forEach((symbol) => {
+		for (const symbol of tokenSymbols) {
 			overlap[`${symbol}_only`] = 0
-		})
+		}
 
-		rawData.forEach((protocol) => {
+		for (const protocol of rawData) {
 			const usedTokens = tokenSymbols.filter((symbol) => protocol.tokens?.[symbol] && protocol.tokens[symbol] > 0)
 
 			if (usedTokens.length === 1) {
@@ -206,7 +225,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			} else if (usedTokens.length > 1) {
 				overlap.shared++
 			}
-		})
+		}
 
 		return overlap
 	}, [rawData, tokenSymbols])
@@ -216,20 +235,22 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 		const headers = ['Protocol', 'Category']
 
 		if (isMultiToken) {
-			tokenSymbols.forEach((symbol) => headers.push(`${symbol.toUpperCase()} (USD)`))
+			for (const symbol of tokenSymbols) {
+				headers.push(`${symbol.toUpperCase()} (USD)`)
+			}
 		}
 		headers.push('Total Amount (USD)')
 
 		const csvData = table.getRowModel().rows.map((row) => {
-			const data: any = {
+			const data: Record<string, any> = {
 				Protocol: row.original.name,
 				Category: row.original.category || ''
 			}
 
 			if (isMultiToken) {
-				tokenSymbols.forEach((symbol) => {
+				for (const symbol of tokenSymbols) {
 					data[`${symbol.toUpperCase()} (USD)`] = row.original.tokens?.[symbol] || 0
-				})
+				}
 			}
 
 			data['Total Amount (USD)'] = row.original.amountUsd
@@ -246,15 +267,15 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-base font-semibold md:text-lg">Token Usage Comparison</h3>
+						<h3 className="text-base font-semibold pro-text1 md:text-lg">Token Usage Comparison</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4 px-4">
-					<h3 className="pro-text1 text-center text-lg font-medium md:text-xl">Select Tokens to Compare</h3>
+					<h3 className="text-center text-lg font-medium pro-text1 md:text-xl">Select Tokens to Compare</h3>
 					<div className="w-full max-w-md">
 						<ReactSelect
 							placeholder="Search tokens..."
-							value={[]}
+							value={EMPTY_SELECTED_TOKENS}
 							onChange={handleTokenChange}
 							options={tokenSearchInput ? tokenOptions : defaultTokens}
 							onInputChange={(value) => setTokenSearchInput(value)}
@@ -300,14 +321,14 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-base font-semibold md:text-lg">
+						<h3 className="text-base font-semibold pro-text1 md:text-lg">
 							{tokenSymbols.length > 0 ? `Token Usage Comparison` : 'Token Usage'}
 						</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<LoadingSpinner />
-					<p className="pro-text2 text-sm">Loading token usage data...</p>
+					<p className="text-sm pro-text2">Loading token usage data...</p>
 				</div>
 			</div>
 		)
@@ -318,11 +339,11 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="pro-text1 text-base font-semibold md:text-lg">Token Usage Comparison</h3>
+						<h3 className="text-base font-semibold pro-text1 md:text-lg">Token Usage Comparison</h3>
 					</div>
 				</div>
 				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
-					<p className="pro-text2 mb-2 text-sm">Failed to load token usage data</p>
+					<p className="mb-2 text-sm pro-text2">Failed to load token usage data</p>
 					<button
 						onClick={() => refetch()}
 						className="rounded-sm bg-(--primary) px-4 py-2 text-white hover:bg-(--primary-hover)"
@@ -338,7 +359,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 		<div className="flex h-full w-full flex-col p-4">
 			<div className="mb-3">
 				<div className="flex items-center justify-between gap-4">
-					<h3 className="pro-text1 truncate text-base font-semibold md:text-lg">
+					<h3 className="truncate text-base font-semibold pro-text1 md:text-lg">
 						Token Usage {tokenSymbols.length > 0 ? `- ${tokenSymbols.map((s) => s.toUpperCase()).join(', ')}` : ''}
 					</h3>
 				</div>
@@ -348,22 +369,22 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 				<div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-4">
 					<div className="border border-(--divider) p-3">
 						<div className="mb-1 text-xs text-(--text-tertiary)">Total Value</div>
-						<div className="pro-text1 text-lg font-semibold">{formattedNum(totalAmount, true)}</div>
+						<div className="text-lg font-semibold pro-text1">{formattedNum(totalAmount, true)}</div>
 					</div>
 					<div className="border border-(--divider) p-3">
 						<div className="mb-1 text-xs text-(--text-tertiary)">Protocols</div>
-						<div className="pro-text1 text-lg font-semibold">{protocolCount}</div>
+						<div className="text-lg font-semibold pro-text1">{protocolCount}</div>
 					</div>
 					<div className="border border-(--divider) p-3">
 						<div className="mb-1 text-xs text-(--text-tertiary)">Top Category</div>
-						<div className="pro-text1 text-lg font-semibold">{topCategories[0] ? topCategories[0][0] : '-'}</div>
+						<div className="text-lg font-semibold pro-text1">{topCategories[0] ? topCategories[0][0] : '-'}</div>
 						<div className="text-xs text-(--text-tertiary)">
 							{topCategories[0] ? `${topCategories[0][1].count} protocols` : ''}
 						</div>
 					</div>
 					<div className="border border-(--divider) p-3">
 						<div className="mb-1 text-xs text-(--text-tertiary)">Avg per Protocol</div>
-						<div className="pro-text1 text-lg font-semibold">
+						<div className="text-lg font-semibold pro-text1">
 							{protocolCount > 0 ? formattedNum(totalAmount / protocolCount, true) : '-'}
 						</div>
 					</div>
@@ -374,7 +395,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 						{tokenSymbols.map((symbol) => (
 							<div key={symbol} className="border border-(--divider) p-3">
 								<div className="mb-1 text-xs text-(--text-tertiary)">{symbol.toUpperCase()} Value</div>
-								<div className="pro-text1 text-lg font-semibold">
+								<div className="text-lg font-semibold pro-text1">
 									{tokenStats && tokenStats[symbol] ? formattedNum(tokenStats[symbol].total, true) : '$0'}
 								</div>
 								<div className="text-xs text-(--text-tertiary)">
@@ -408,7 +429,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 						{tokenSymbols.length <= 2 && (
 							<div className="border border-(--divider) p-3">
 								<div className="mb-1 text-xs text-(--text-tertiary)">Total Combined</div>
-								<div className="pro-text1 text-lg font-semibold">{formattedNum(totalAmount, true)}</div>
+								<div className="text-lg font-semibold pro-text1">{formattedNum(totalAmount, true)}</div>
 								<div className="text-xs text-(--text-tertiary)">All tokens</div>
 							</div>
 						)}
@@ -416,7 +437,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 						{tokenSymbols.length <= 3 && (
 							<div className="border border-(--divider) p-3">
 								<div className="mb-1 text-xs text-(--text-tertiary)">Unique Protocols</div>
-								<div className="pro-text1 text-lg font-semibold">{protocolCount}</div>
+								<div className="text-lg font-semibold pro-text1">{protocolCount}</div>
 								<div className="text-xs text-(--text-tertiary)">
 									{(() => {
 										const overlap = rawData.filter((p) => p.tokens && Object.keys(p.tokens).length > 1).length
@@ -468,7 +489,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 
 			<div className="mb-3">
 				<div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-					<h3 className="pro-text1 truncate text-base font-semibold md:text-lg">
+					<h3 className="truncate text-base font-semibold pro-text1 md:text-lg">
 						{tokenSymbols.length === 1
 							? `${tokenSymbols[0].toUpperCase()} Usage`
 							: `Comparing ${tokenSymbols.map((t) => t.toUpperCase()).join(', ')}`}
@@ -477,7 +498,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 						<div className="order-2 w-full sm:order-1 sm:w-64 lg:w-96">
 							<ReactSelect
 								placeholder="Add or remove tokens (max 4)..."
-								value={tokenSymbols.map((symbol) => ({ label: symbol.toUpperCase(), value: symbol }))}
+								value={tokenSymbolSelectValue}
 								onChange={handleTokenChange}
 								options={tokenSearchInput ? tokenOptions : defaultTokens}
 								onInputChange={(value) => setTokenSearchInput(value)}
@@ -532,11 +553,11 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 										)}
 									</div>
 								</div>
-								<span className="pro-text1 text-xs font-medium whitespace-nowrap sm:text-sm">Include CEXs</span>
+								<span className="text-xs font-medium whitespace-nowrap pro-text1 sm:text-sm">Include CEXs</span>
 							</div>
 							<ProTableCSVButton
 								onClick={downloadCSV}
-								className="pro-border flex h-[38px] items-center gap-2 border bg-(--bg-main) px-3 text-sm text-(--text-primary) transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#070e0f]"
+								className="flex h-[38px] items-center gap-2 border pro-border bg-(--bg-main) px-3 text-sm text-(--text-primary) transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#070e0f]"
 							/>
 						</div>
 					</div>
@@ -546,13 +567,13 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 						placeholder="Search protocols..."
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
-						className="pro-border pro-bg1 pro-text1 w-full max-w-xs rounded border px-2 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden sm:w-auto sm:px-3"
+						className="w-full max-w-xs rounded border pro-border pro-bg1 px-2 py-1.5 text-sm pro-text1 focus:ring-1 focus:ring-(--primary) focus:outline-hidden sm:w-auto sm:px-3"
 					/>
 				</div>
 			</div>
 
 			<div
-				className="thin-scrollbar relative min-h-0 w-full flex-1 overflow-x-auto overflow-y-auto"
+				className="relative thin-scrollbar min-h-0 w-full flex-1 overflow-x-auto overflow-y-auto"
 				style={{ height: '100%' }}
 			>
 				<table className="min-w-full border-collapse text-sm text-(--text-primary)">
@@ -597,41 +618,41 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 				<div className="mt-2 flex w-full items-center justify-between px-2 py-2">
 					<div className="flex items-center gap-2">
 						<button
-							className="pro-border pro-bg1 pro-text1 hover:pro-bg2 border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+							className="border pro-border pro-bg1 px-3 py-1 text-sm pro-text1 hover:pro-bg2 disabled:cursor-not-allowed disabled:opacity-50"
 							onClick={() => table.setPageIndex(0)}
 							disabled={!table.getCanPreviousPage()}
 						>
 							{'<<'}
 						</button>
 						<button
-							className="pro-border pro-bg1 pro-text1 hover:pro-bg2 border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+							className="border pro-border pro-bg1 px-3 py-1 text-sm pro-text1 hover:pro-bg2 disabled:cursor-not-allowed disabled:opacity-50"
 							onClick={() => table.previousPage()}
 							disabled={!table.getCanPreviousPage()}
 						>
 							Previous
 						</button>
 						<button
-							className="pro-border pro-bg1 pro-text1 hover:pro-bg2 border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+							className="border pro-border pro-bg1 px-3 py-1 text-sm pro-text1 hover:pro-bg2 disabled:cursor-not-allowed disabled:opacity-50"
 							onClick={() => table.nextPage()}
 							disabled={!table.getCanNextPage()}
 						>
 							Next
 						</button>
 						<button
-							className="pro-border pro-bg1 pro-text1 hover:pro-bg2 border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+							className="border pro-border pro-bg1 px-3 py-1 text-sm pro-text1 hover:pro-bg2 disabled:cursor-not-allowed disabled:opacity-50"
 							onClick={() => table.setPageIndex(table.getPageCount() - 1)}
 							disabled={!table.getCanNextPage()}
 						>
 							{'>>'}
 						</button>
 					</div>
-					<span className="pro-text2 text-sm">
+					<span className="text-sm pro-text2">
 						Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
 					</span>
 					<select
 						value={table.getState().pagination.pageSize}
 						onChange={(e) => table.setPageSize(Number(e.target.value))}
-						className="pro-border pro-bg1 pro-text1 border px-3 py-1 text-sm"
+						className="border pro-border pro-bg1 px-3 py-1 text-sm pro-text1"
 					>
 						{[10, 25, 50, 100].map((pageSize) => (
 							<option key={pageSize} value={pageSize}>

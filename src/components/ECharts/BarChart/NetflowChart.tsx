@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { TagGroup } from '~/components/TagGroup'
 import { NETFLOWS_API } from '~/constants'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { capitalizeFirstLetter, formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
@@ -24,6 +25,10 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
 	const [period, setPeriod] = useState('month')
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const { data = [] } = useQuery({
 		queryKey: ['netflowData', period],
@@ -56,14 +61,11 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 		}
 	}, [data])
 
-	const createInstance = useCallback(() => {
-		if (!echarts) return null
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
 
 		const option = {
 			tooltip: {
@@ -173,19 +175,13 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 			]
 		}
 
-		chartInstance.setOption(option)
-
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
+		instance.setOption(option)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [createInstance, chains, positiveData, negativeData, isThemeDark, height])
+	}, [id, chains, positiveData, negativeData, isThemeDark, height])
 
 	return (
 		<div className="relative min-h-[600px] pr-5">

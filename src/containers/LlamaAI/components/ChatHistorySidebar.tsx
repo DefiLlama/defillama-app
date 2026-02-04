@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { useEffect, useEffectEvent, useMemo, useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -57,12 +57,13 @@ export function ChatHistorySidebar({
 
 	const virtualItems = useMemo(() => {
 		const items: VirtualItem[] = []
-		groupedSessions.forEach(([groupName, groupSessions], groupIndex) => {
+		for (let groupIndex = 0; groupIndex < groupedSessions.length; groupIndex++) {
+			const [groupName, groupSessions] = groupedSessions[groupIndex]
 			items.push({ type: 'header', groupName, isFirst: groupIndex === 0 })
-			groupSessions.forEach((session) => {
+			for (const session of groupSessions) {
 				items.push({ type: 'session', session, groupName })
-			})
-		})
+			}
+		}
 		return items
 	}, [groupedSessions])
 
@@ -79,21 +80,22 @@ export function ChatHistorySidebar({
 		overscan: 5
 	})
 
-	useEffect(() => {
-		const handleClickOutside = (event: MouseEvent) => {
-			// Check if event.target is a Node and if click is outside the sidebar
-			if (
-				event.target instanceof Node &&
-				sidebarRef.current &&
-				!sidebarRef.current.contains(event.target) &&
-				document.documentElement.clientWidth < 1024
-			) {
-				handleSidebarToggle()
-			}
+	const onClickOutside = useEffectEvent((event: MouseEvent) => {
+		// Check if event.target is a Node and if click is outside the sidebar
+		if (
+			event.target instanceof Node &&
+			sidebarRef.current &&
+			!sidebarRef.current.contains(event.target) &&
+			document.documentElement.clientWidth < 1024
+		) {
+			handleSidebarToggle()
 		}
-		document.addEventListener('mousedown', handleClickOutside)
-		return () => document.removeEventListener('mousedown', handleClickOutside)
-	}, [handleSidebarToggle])
+	})
+
+	useEffect(() => {
+		document.addEventListener('mousedown', onClickOutside)
+		return () => document.removeEventListener('mousedown', onClickOutside)
+	}, [])
 
 	if (!user) return null
 
@@ -114,7 +116,7 @@ export function ChatHistorySidebar({
 
 				<button
 					onClick={onNewChat}
-					className="flex flex-1 items-center justify-center gap-2 rounded-sm border border-(--old-blue) bg-(--old-blue)/12 px-2 py-0.75 text-xs text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+					className="flex items-center justify-center gap-2 rounded-sm border border-(--old-blue) bg-(--old-blue)/12 px-2 py-0.75 text-xs text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 				>
 					<Icon name="message-square-plus" height={16} width={16} />
 					<span>New Chat</span>

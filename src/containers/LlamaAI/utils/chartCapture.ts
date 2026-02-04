@@ -21,11 +21,14 @@ export async function captureChartById(chartId: string, title: string, isDark: b
 	if (!existingChart) return null
 
 	const tempContainer = document.createElement('div')
-	tempContainer.style.width = `${CAPTURE_WIDTH}px`
-	tempContainer.style.height = `${CAPTURE_HEIGHT}px`
-	tempContainer.style.position = 'absolute'
-	tempContainer.style.left = '-99999px'
-	tempContainer.style.top = '0'
+	// Batch DOM writes using cssText for single reflow
+	tempContainer.style.cssText = `
+		width: ${CAPTURE_WIDTH}px;
+		height: ${CAPTURE_HEIGHT}px;
+		position: absolute;
+		left: -99999px;
+		top: 0;
+	`
 	document.body.appendChild(tempContainer)
 
 	try {

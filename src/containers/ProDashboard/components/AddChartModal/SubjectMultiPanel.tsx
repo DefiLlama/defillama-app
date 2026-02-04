@@ -1,7 +1,7 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
@@ -29,7 +29,7 @@ interface SubjectMultiPanelProps {
 	hideTabToggle?: boolean
 }
 
-export const SubjectMultiPanel = memo(function SubjectMultiPanel({
+export function SubjectMultiPanel({
 	activeTab,
 	onTabChange,
 	selectedChartType,
@@ -39,7 +39,7 @@ export const SubjectMultiPanel = memo(function SubjectMultiPanel({
 	onSelectedChainsChange,
 	selectedProtocols,
 	onSelectedProtocolsChange,
-	isLoading,
+	isLoading: _isLoading,
 	hideTabToggle = false
 }: SubjectMultiPanelProps) {
 	const [search, setSearch] = useState('')
@@ -116,7 +116,14 @@ export const SubjectMultiPanel = memo(function SubjectMultiPanel({
 		if (activeTab === 'protocol' && filteredProtocolOptions.length > 0) {
 			protocolVirtualizer.scrollToIndex(0, { align: 'start' })
 		}
-	}, [isPopoverOpen, activeTab, filteredChainOptions.length, filteredProtocolOptions.length])
+	}, [
+		isPopoverOpen,
+		activeTab,
+		filteredChainOptions.length,
+		filteredProtocolOptions.length,
+		chainVirtualizer,
+		protocolVirtualizer
+	])
 
 	const toggleChain = (value: string) => {
 		if (selectedChains.includes(value)) {
@@ -153,7 +160,7 @@ export const SubjectMultiPanel = memo(function SubjectMultiPanel({
 
 	return (
 		<div className="flex flex-col">
-			<label className="pro-text2 mb-2 text-xs font-medium">Select Chains & Protocols</label>
+			<label className="mb-2 text-xs font-medium pro-text2">Select Chains & Protocols</label>
 			<PopoverDisclosure
 				store={popover}
 				className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
@@ -161,7 +168,7 @@ export const SubjectMultiPanel = memo(function SubjectMultiPanel({
 				<span className={`truncate ${hasSelection ? 'text-(--text-primary)' : 'text-(--text-tertiary)'}`}>
 					{getButtonLabel()}
 				</span>
-				<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+				<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 			</PopoverDisclosure>
 			<Popover
 				store={popover}
@@ -314,7 +321,7 @@ export const SubjectMultiPanel = memo(function SubjectMultiPanel({
 													<span className="truncate">{option.label}</span>
 												</div>
 												{isActive && (
-													<Icon name="check" width={14} height={14} className="ml-2 flex-shrink-0 text-(--primary)" />
+													<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
 												)}
 											</button>
 										)
@@ -365,7 +372,7 @@ export const SubjectMultiPanel = memo(function SubjectMultiPanel({
 													</div>
 												</div>
 												{isActive && (
-													<Icon name="check" width={14} height={14} className="ml-2 flex-shrink-0 text-(--primary)" />
+													<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
 												)}
 											</button>
 										)
@@ -402,4 +409,4 @@ export const SubjectMultiPanel = memo(function SubjectMultiPanel({
 			</Popover>
 		</div>
 	)
-})
+}

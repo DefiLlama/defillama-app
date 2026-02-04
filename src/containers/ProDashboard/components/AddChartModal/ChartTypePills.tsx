@@ -1,7 +1,7 @@
-import { memo, useMemo } from 'react'
 import * as Ariakit from '@ariakit/react'
-import { LocalLoader } from '~/components/Loaders'
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
+import { LocalLoader } from '~/components/Loaders'
 
 interface ChartTypeOption {
 	value: string
@@ -20,7 +20,7 @@ interface ChartTypePillsProps {
 const PROTOCOL_GROUPS: Record<string, string[]> = {
 	Value: ['tvl', 'treasury'],
 	Volume: ['volume', 'aggregators', 'perps', 'perpsAggregators', 'bridgeAggregators'],
-	'Fees & Revenue': ['fees', 'revenue', 'incentives', 'holdersRevenue', 'bribes', 'tokenTax'],
+	'Fees & Revenue': ['fees', 'revenue', 'unlocks', 'incentives', 'holdersRevenue', 'bribes', 'tokenTax'],
 	Derivatives: ['openInterest', 'optionsPremium', 'optionsNotional'],
 	Token: ['tokenMcap', 'tokenPrice', 'tokenVolume'],
 	DeFi: ['medianApy', 'borrowed'],
@@ -36,7 +36,7 @@ const CHAIN_GROUPS: Record<string, string[]> = {
 	'Native Token': ['chainMcap', 'chainPrice']
 }
 
-export const ChartTypePills = memo(function ChartTypePills({
+export function ChartTypePills({
 	chartTypes,
 	selectedType,
 	onSelect,
@@ -45,7 +45,9 @@ export const ChartTypePills = memo(function ChartTypePills({
 }: ChartTypePillsProps) {
 	const chartTypeMap = useMemo(() => {
 		const map = new Map<string, ChartTypeOption>()
-		chartTypes.forEach((ct) => map.set(ct.value, ct))
+		for (const ct of chartTypes) {
+			map.set(ct.value, ct)
+		}
 		return map
 	}, [chartTypes])
 
@@ -54,7 +56,8 @@ export const ChartTypePills = memo(function ChartTypePills({
 	const groupedOptions = useMemo(() => {
 		const result: Array<{ group: string; options: ChartTypeOption[] }> = []
 
-		for (const [groupName, typeIds] of Object.entries(groups)) {
+		for (const groupName in groups) {
+			const typeIds = groups[groupName]
 			const options: ChartTypeOption[] = []
 			for (const id of typeIds) {
 				const chartType = chartTypeMap.get(id)
@@ -124,9 +127,7 @@ export const ChartTypePills = memo(function ChartTypePills({
 									}`}
 								>
 									<span>{option.label}</span>
-									{isSelected && (
-										<Icon name="check" height={14} width={14} className="text-(--old-blue)" />
-									)}
+									{isSelected && <Icon name="check" height={14} width={14} className="text-(--old-blue)" />}
 								</Ariakit.SelectItem>
 							)
 						})}
@@ -135,4 +136,4 @@ export const ChartTypePills = memo(function ChartTypePills({
 			</Ariakit.SelectPopover>
 		</Ariakit.SelectProvider>
 	)
-})
+}

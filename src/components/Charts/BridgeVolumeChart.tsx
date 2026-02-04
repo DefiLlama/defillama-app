@@ -1,5 +1,5 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { TagGroup } from '~/components/TagGroup'
@@ -18,6 +18,12 @@ const VIEW_TYPES = ['Split', 'Combined'] as const
 type ViewType = (typeof VIEW_TYPES)[number]
 const METRIC_TYPES = ['Volume', 'Transactions'] as const
 type MetricType = (typeof METRIC_TYPES)[number]
+
+const SPLIT_LEGEND_OPTIONS = ['Deposits', 'Withdrawals']
+const COMBINED_LEGEND_OPTIONS = ['Total']
+const SPLIT_STACKS = { Deposits: 'metric', Withdrawals: 'metric' }
+const SPLIT_STACK_COLORS = { Deposits: '#3b82f6', Withdrawals: '#ef4444' }
+const COMBINED_STACK_COLORS = { Total: '#22c55e' }
 
 export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartProps) {
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
@@ -58,7 +64,7 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 			}
 		>()
 
-		rawData.forEach((item) => {
+		for (const item of rawData) {
 			const date = dayjs.unix(item.timestamp)
 			const key = (timePeriod === 'Weekly' ? date.startOf('week') : date.startOf('month')).unix()
 
@@ -67,7 +73,7 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 				deposits: existing.deposits + item.deposits,
 				withdrawals: existing.withdrawals + item.withdrawals
 			})
-		})
+		}
 
 		return Array.from(groupedData.entries())
 			.map(([date, values]) => ({
@@ -83,6 +89,14 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 			}))
 			.sort((a, b) => a.date - b.date)
 	}, [data, timePeriod, metricType, viewType])
+
+	const customLegendOptions = viewType === 'Split' ? SPLIT_LEGEND_OPTIONS : COMBINED_LEGEND_OPTIONS
+
+	const stacks = viewType === 'Split' ? SPLIT_STACKS : undefined
+
+	const stackColors = viewType === 'Split' ? SPLIT_STACK_COLORS : COMBINED_STACK_COLORS
+
+	const chartOptions = useMemo(() => ({ overrides: { inflow: viewType === 'Split' } }), [viewType])
 
 	if (isLoading)
 		return (
@@ -138,30 +152,10 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 					title=""
 					height={height}
 					hideDefaultLegend={false}
-					customLegendOptions={viewType === 'Split' ? ['Deposits', 'Withdrawals'] : ['Total']}
-					stacks={
-						viewType === 'Split'
-							? {
-									Deposits: 'metric',
-									Withdrawals: 'metric'
-								}
-							: undefined
-					}
-					stackColors={
-						viewType === 'Split'
-							? {
-									Deposits: '#3b82f6',
-									Withdrawals: '#ef4444'
-								}
-							: {
-									Total: '#22c55e'
-								}
-					}
-					chartOptions={{
-						overrides: {
-							inflow: viewType === 'Split'
-						}
-					}}
+					customLegendOptions={customLegendOptions}
+					stacks={stacks}
+					stackColors={stackColors}
+					chartOptions={chartOptions}
 				/>
 			</Suspense>
 		</>

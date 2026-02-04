@@ -15,26 +15,35 @@ function formatDataForChart(langs) {
 
 	const dominance = []
 
-	const formattedLangs = Object.entries(langs)
-		.sort((a, b) => Number(a[0]) - Number(b[0]))
-		.map(([date, tvlByLang]: [string, { [lang: string]: number }]) => {
-			Object.keys(tvlByLang).map((l) => langsUnique.add(l))
+	const langEntries: [string, { [lang: string]: number }][] = []
+	for (const date in langs) {
+		langEntries.push([date, langs[date]])
+	}
+	langEntries.sort((a, b) => Number(a[0]) - Number(b[0]))
 
-			const daySum = Object.values(tvlByLang).reduce((t, a) => t + a, 0)
+	const formattedLangs = langEntries.map(([date, tvlByLang]) => {
+		for (const l in tvlByLang) {
+			langsUnique.add(l)
+		}
 
-			const shares = {}
+		let daySum = 0
+		for (const lang in tvlByLang) {
+			daySum += tvlByLang[lang]
+		}
 
-			for (const lang in tvlByLang) {
-				shares[lang] = getDominancePercent(tvlByLang[lang], daySum)
-			}
+		const shares = {}
 
-			dominance.push({ date, ...shares })
+		for (const lang in tvlByLang) {
+			shares[lang] = getDominancePercent(tvlByLang[lang], daySum)
+		}
 
-			return {
-				...tvlByLang,
-				date
-			}
-		})
+		dominance.push({ date, ...shares })
+
+		return {
+			...tvlByLang,
+			date
+		}
+	})
 
 	return {
 		formatted: formattedLangs,
@@ -76,7 +85,15 @@ export const getStaticProps = withPerformanceLogging('languages', async () => {
 
 const pageName = ['TVL', 'by', 'Smart Contract Languages']
 
-export default function Protocols({ langs, langsUnique, langsDominance, osUnique, osLangs, osDominance, colors }) {
+export default function Protocols({
+	langs,
+	langsUnique,
+	langsDominance,
+	osUnique,
+	osLangs: _osLangs,
+	osDominance,
+	colors
+}) {
 	return (
 		<Layout
 			title={`Languages - DefiLlama`}

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -6,6 +5,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { VirtualTable } from '~/components/Table/Table'
 import { liquidatablePositionsColumns, liquidatableProtocolsColumns } from './columns'
 
@@ -18,7 +18,9 @@ export function LiquidatableProtocolsTable({ data }) {
 		state: {
 			sorting
 		},
-
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
@@ -37,7 +39,9 @@ export function LiquidatablePositionsTable({ data }) {
 		state: {
 			sorting
 		},
-
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),

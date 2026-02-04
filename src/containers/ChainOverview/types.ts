@@ -1,38 +1,19 @@
-import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS } from '~/contexts/LocalStorage'
+import { IChainMetadata } from '~/utils/metadata/types'
 import { ChainChartLabels } from './constants'
-
-export interface IChainMetadata {
-	stablecoins?: boolean
-	dexs?: boolean
-	name: string
-	activeUsers?: boolean
-	fees?: boolean
-	revenue?: boolean
-	chainFees?: boolean
-	chainRevenue?: boolean
-	perps?: boolean
-	openInterest?: boolean
-	dexAggregators?: boolean
-	optionsPremiumVolume?: boolean
-	optionsNotionalVolume?: boolean
-	perpsAggregators?: boolean
-	bridgeAggregators?: boolean
-	inflows?: boolean
-	chainAssets?: boolean
-	gecko_id?: string
-	tokenSymbol?: string
-	github?: boolean
-	id: string
-	protocolCount?: number
-	incentives?: boolean
-	dimAgg?: Record<string, Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>>
-}
 
 export interface IChainOverviewData {
 	chain: string
 	metadata: IChainMetadata
 	protocols: Array<IProtocol>
 	tvlChart: Array<[number, number]>
+	/** Pre-computed TVL values to avoid client-side iteration */
+	tvlChartSummary: {
+		totalValueUSD: number | null
+		tvlPrevDay: number | null
+		valueChange24hUSD: number | null
+		change24h: number | null
+	}
 	extraTvlCharts: {
 		staking: Record<string, number>
 		borrowed: Record<string, number>
@@ -109,6 +90,7 @@ export interface IChainOverviewData {
 		total30d: number
 	} | null
 	chainStablecoins: Array<{ name: string; url: string; symbol: string | null }> | null
+	entityQuestions?: string[]
 }
 
 export interface ILiteChart {
@@ -138,7 +120,7 @@ export interface ILiteProtocol {
 	tvlPrevWeek: number
 	tvlPrevMonth: number
 	chainTvls: Record<
-		(typeof DEFI_SETTINGS)[keyof typeof DEFI_SETTINGS],
+		(typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS],
 		{
 			tvl: number
 			tvlPrevDay: number
@@ -174,7 +156,7 @@ export interface ILiteParentProtocol {
 	mcap: number
 }
 
-export type TVL_TYPES = (typeof DEFI_SETTINGS)[keyof typeof DEFI_SETTINGS] | 'default' | 'excludeParent'
+export type TVL_TYPES = (typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS] | 'default' | 'excludeParent'
 
 export interface IChildProtocol {
 	name: string

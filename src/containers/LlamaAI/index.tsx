@@ -1,16 +1,17 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
+import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
+import Router from 'next/router'
+import { memo, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { consumePendingPrompt } from '~/components/LlamaAIFloatingButton'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
-import { ChartRenderer } from './components/ChartRenderer'
+import { AlertsModal } from './components/AlertsModal'
 import { ChatHistorySidebar } from './components/ChatHistorySidebar'
-import { InlineSuggestions } from './components/InlineSuggestions'
-import { MarkdownRenderer } from './components/MarkdownRenderer'
+import { ImagePreviewModal } from './components/ImagePreviewModal'
 import { PromptInput } from './components/PromptInput'
 import { PromptResponse, QueryMetadata, SuggestedActions } from './components/PromptResponse'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
@@ -18,10 +19,10 @@ import { ResearchLimitModal } from './components/ResearchLimitModal'
 import { ResponseControls } from './components/ResponseControls'
 import { useChatHistory } from './hooks/useChatHistory'
 import { useStreamNotification } from './hooks/useStreamNotification'
+import type { StreamItem, ChartItem, SuggestionsItem, MetadataItem } from './types'
 import { fetchPromptResponse } from './utils/fetchPromptResponse'
-import { parseChartInfo } from './utils/parseChartInfo'
+import { responseToItems } from './utils/messageToItems'
 import { debounce, throttle } from './utils/scrollUtils'
-import { StreamingContent } from './utils/textUtils'
 
 interface SharedSession {
 	session: {
@@ -30,19 +31,21 @@ interface SharedSession {
 		createdAt: string
 		isPublic: boolean
 	}
+	// Shared sessions now use role-based format (same as regular sessions)
 	messages: Array<{
-		question: string
-		response: {
-			answer: string
-			metadata?: any
-			suggestions?: any[]
-			charts?: any[]
-			chartData?: any[]
-			citations?: string[]
-			csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
-		}
+		role: 'user' | 'assistant'
+		content: string
 		messageId?: string
 		timestamp: number
+		sequenceNumber?: number
+		images?: Array<{ url: string; mimeType: string; filename?: string }>
+		// Assistant-specific fields
+		metadata?: any
+		suggestions?: any[]
+		charts?: any[]
+		chartData?: any[] | Record<string, any[]>
+		citations?: string[]
+		csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
 	}>
 	isPublicView: true
 }
@@ -81,6 +84,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			content?: string
 			question?: string
 			images?: Array<{ url: string; mimeType: string; filename?: string }>
+			// New: Items-based message content
+			items?: StreamItem[]
 			response?: {
 				answer: string
 				metadata?: any
@@ -97,10 +102,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			metadata?: any
 			suggestions?: any[]
 			charts?: any[]
-			chartData?: any[]
+			chartData?: any[] | Record<string, any[]>
 			citations?: string[]
 			inlineSuggestions?: string
 			csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
+			savedAlertIds?: string[]
 		}>
 	>([])
 	const [paginationState, setPaginationState] = useState<{
@@ -111,50 +117,24 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	}>({ hasMore: false, isLoadingMore: false })
 
 	const [hasRestoredSession, setHasRestoredSession] = useState<string | null>(null)
-	const [streamingResponse, setStreamingResponse] = useState('')
+	// New: Items-based streaming state (replaces 15+ streaming-related states)
+	const [streamingItems, setStreamingItems] = useState<StreamItem[]>([])
 	const [streamingError, setStreamingError] = useState('')
 	const [isStreaming, setIsStreaming] = useState(false)
 	const [progressMessage, setProgressMessage] = useState('')
-	const [_progressStage, setProgressStage] = useState('')
-	const [streamingSuggestions, setStreamingSuggestions] = useState<any[] | null>(null)
-	const [streamingCharts, setStreamingCharts] = useState<any[] | null>(null)
-	const [streamingChartData, setStreamingChartData] = useState<any[] | null>(null)
-	const [streamingCitations, setStreamingCitations] = useState<string[] | null>(null)
-	const [streamingCsvExports, setStreamingCsvExports] = useState<Array<{
-		id: string
-		title: string
-		url: string
-		rowCount: number
-		filename: string
-	}> | null>(null)
 	const [pendingImages, setPendingImages] = useState<Array<{ url: string; mimeType: string; filename?: string }>>([])
-	const [isGeneratingCharts, setIsGeneratingCharts] = useState(false)
-	const [isAnalyzingForCharts, setIsAnalyzingForCharts] = useState(false)
-	const [hasChartError, setHasChartError] = useState(false)
-	const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false)
-	const [expectedChartInfo, setExpectedChartInfo] = useState<{ count?: number; types?: string[] } | null>(null)
 	const [resizeTrigger, setResizeTrigger] = useState(0)
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const [prompt, setPrompt] = useState('')
 	const [isResearchMode, setIsResearchMode] = useState(false)
-	const [showRateLimitModal, setShowRateLimitModal] = useState(false)
+	const alertsModalStore = Ariakit.useDialogStore()
+	const researchModalStore = Ariakit.useDialogStore()
 	const [rateLimitDetails, setRateLimitDetails] = useState<{
 		period: string
 		limit: number
 		resetTime: string | null
-	} | null>(null)
-	const [researchState, setResearchState] = useState<{
-		isActive: boolean
-		startTime: number
-		currentIteration: number
-		totalIterations: number
-		phase: 'planning' | 'fetching' | 'analyzing' | 'synthesizing'
-		dimensionsCovered: string[]
-		dimensionsPending: string[]
-		discoveries: string[]
-		toolsExecuted: number
 	} | null>(null)
 	const [lastFailedRequest, setLastFailedRequest] = useState<{
 		userQuestion: string
@@ -170,10 +150,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		text: string
 		entities?: Array<{ term: string; slug: string }>
 	} | null>(null)
+	const [isDraggingOnChat, setIsDraggingOnChat] = useState(false)
+	const [droppedFiles, setDroppedFiles] = useState<File[] | null>(null)
+	const chatDragCounterRef = useRef(0)
 
 	const abortControllerRef = useRef<AbortController | null>(null)
-	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
-	const researchStartTimeRef = useRef<number | null>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const shouldAutoScrollRef = useRef(true)
 	const rafIdRef = useRef<number | null>(null)
@@ -202,6 +183,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	useEffect(() => {
 		if (sharedSession) {
 			resetScrollState()
+			// Shared sessions now use role-based format - use messages as-is
 			setMessages(sharedSession.messages)
 			setSessionId(sharedSession.session.sessionId)
 		}
@@ -209,77 +191,66 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 	const reconnectToStream = useCallback(
 		(sid: string, initialContent: string) => {
+			// Create a new AbortController for this reconnection
+			if (abortControllerRef.current) {
+				abortControllerRef.current.abort()
+			}
+			const abortController = new AbortController()
+			abortControllerRef.current = abortController
+
 			setIsStreaming(true)
-			setStreamingResponse(initialContent)
+			// Note: initialContent is passed to fetchPromptResponse which initializes ItemStreamBuffer
+			// The buffer will emit the initial content immediately when onItems callback is set,
+			// ensuring continuity between previous stream content and new tokens
 
 			fetchPromptResponse({
+				abortSignal: abortController.signal,
 				userQuestion: '',
 				sessionId: sid,
 				mode: 'auto',
 				resume: true,
 				authorizedFetch,
+				// Pass initial content to ensure buffer starts with existing content
+				initialContent: initialContent || undefined,
+				// New: Use onItems callback for items-based streaming
+				onItems: (items) => {
+					setStreamingItems(items)
+				},
+				onTitle: (title) => {
+					updateSessionTitle({ sessionId: sid, title })
+				},
+				// Keep onProgress for progress messages only
 				onProgress: (data) => {
-					if (data.type === 'token') {
-						setStreamingResponse((prev) => prev + data.content)
-					} else if (data.type === 'progress') {
+					if (data.type === 'progress') {
 						setProgressMessage(data.content || '')
-						if (data.stage) setProgressStage(data.stage)
-						if (data.stage === 'research' && (data as any).researchProgress) {
-							const rp = (data as any).researchProgress
-							const serverStartTime = (data as any).startedAt ? new Date((data as any).startedAt).getTime() : null
-							if (!researchStartTimeRef.current || serverStartTime) {
-								researchStartTimeRef.current = serverStartTime || Date.now()
-							}
-							setResearchState({
-								isActive: true,
-								startTime: researchStartTimeRef.current,
-								currentIteration: rp.iteration,
-								totalIterations: rp.totalIterations,
-								phase: rp.phase,
-								dimensionsCovered: rp.dimensionsCovered || [],
-								dimensionsPending: rp.dimensionsPending || [],
-								discoveries: rp.discoveries || [],
-								toolsExecuted: rp.toolsExecuted || 0
-							})
-						}
-					} else if (data.type === 'suggestions' && data.suggestions) {
-						setStreamingSuggestions(data.suggestions)
-					} else if (data.type === 'charts' && data.charts) {
-						setStreamingCharts(data.charts)
-						if (data.chartData) setStreamingChartData(data.chartData)
-					} else if (data.type === 'citations' && data.citations) {
-						setStreamingCitations(data.citations)
 					} else if (data.type === 'error') {
 						setIsStreaming(false)
 						setStreamingError(data.content || 'Generation failed')
-					} else if (data.type === 'title') {
-						updateSessionTitle({ sessionId: sid, title: data.title || data.content })
 					}
 				}
 			})
 				.then((result) => {
 					setIsStreaming(false)
-					if (result?.response) {
+					setLastFailedRequest(null)
+					if (result?.items && result.items.length > 0) {
 						setMessages((prev) => [
 							...prev,
 							{
 								role: 'assistant',
-								content: result.response.answer,
-								charts: result.response.charts,
-								chartData: result.response.chartData,
-								suggestions: result.response.suggestions,
-								citations: result.response.citations,
+								items: result.items,
 								timestamp: Date.now()
 							}
 						])
 					}
+					setStreamingItems([])
 				})
 				.catch((err) => {
 					console.log('Reconnect stream error:', err)
 					setIsStreaming(false)
+					setStreamingItems([])
 				})
 		},
-		[authorizedFetch]
+		[authorizedFetch, updateSessionTitle]
 	)
 
 	useEffect(() => {
@@ -367,24 +338,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 			requestPermission()
 			setIsStreaming(true)
-			setStreamingResponse('')
+			setStreamingItems([]) // Reset items-based streaming state
 			setStreamingError('')
 			setProgressMessage('')
-			setProgressStage('')
-			setStreamingSuggestions(null)
-			setStreamingCharts(null)
-			setStreamingChartData(null)
-			setStreamingCitations(null)
-			setStreamingCsvExports(null)
-			setIsGeneratingCharts(false)
-			setIsAnalyzingForCharts(false)
-			setHasChartError(false)
-			setIsGeneratingSuggestions(false)
-			setExpectedChartInfo(null)
 
-			streamingContentRef.current.reset()
-
-			// et pendingImages immediately so they display during streaming
+			// Set pendingImages immediately so they display during streaming
 			if (images && images.length > 0) {
 				setPendingImages(
 					images.map((img) => ({
@@ -406,76 +364,32 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				mode: 'auto',
 				forceIntent: isResearchMode ? 'comprehensive_report' : undefined,
 				authorizedFetch,
+				// New: Use onItems for items-based streaming
+				onItems: (items) => {
+					setStreamingItems(items)
+				},
+				onSessionId: (newSessionId) => {
+					newlyCreatedSessionsRef.current.add(newSessionId)
+					setSessionId(newSessionId)
+					sessionIdRef.current = newSessionId
+					// Mark as restored to prevent restoration after streaming completes
+					setHasRestoredSession(newSessionId)
+				},
+				onTitle: (title) => {
+					updateSessionTitle({ sessionId: currentSessionId, title })
+				},
+				onMessageId: (messageId) => {
+					setCurrentMessageId(messageId)
+				},
+				// Keep onProgress for progress messages and errors only
+				// Note: SSE 'images' events are response images, handled by items system (itemBuffer.addImages)
+				// pendingImages is only for USER uploaded images shown in SentPrompt
 				onProgress: (data) => {
-					if (data.type === 'token') {
-						const processedContent = streamingContentRef.current.addChunk(data.content)
-						setStreamingResponse(processedContent)
-					} else if (data.type === 'message_id') {
-						setCurrentMessageId(data.messageId || null)
-					} else if (data.type === 'progress') {
+					if (data.type === 'progress') {
 						setProgressMessage(data.content)
-						setProgressStage(data.stage || '')
-
-						if (data.stage === 'chart_pre_analysis') {
-							setIsAnalyzingForCharts(true)
-							const chartInfo = parseChartInfo(data.content)
-							setExpectedChartInfo(chartInfo)
-						} else if (data.stage === 'chart_generation') {
-							if (data.content.includes('encountered an issue')) {
-								setIsAnalyzingForCharts(false)
-								setIsGeneratingCharts(false)
-								setHasChartError(true)
-							} else {
-								setIsAnalyzingForCharts(false)
-								setIsGeneratingCharts(true)
-							}
-						} else if (data.stage === 'suggestions_loading') {
-							setIsGeneratingSuggestions(true)
-						} else if (data.stage === 'research' && (data as any).researchProgress) {
-							const rp = (data as any).researchProgress
-							if (!researchStartTimeRef.current) {
-								researchStartTimeRef.current = Date.now()
-							}
-							setResearchState({
-								isActive: true,
-								startTime: researchStartTimeRef.current,
-								currentIteration: rp.iteration,
-								totalIterations: rp.totalIterations,
-								phase: rp.phase,
-								dimensionsCovered: rp.dimensionsCovered || [],
-								dimensionsPending: rp.dimensionsPending || [],
-								discoveries: rp.discoveries || [],
-								toolsExecuted: rp.toolsExecuted || 0
-							})
-						}
-					} else if (data.type === 'session' && data.sessionId) {
-						newlyCreatedSessionsRef.current.add(data.sessionId)
-						setSessionId(data.sessionId)
-						sessionIdRef.current = data.sessionId
-						// Mark as restored to prevent restoration after streaming completes
-						setHasRestoredSession(data.sessionId)
-					} else if (data.type === 'suggestions') {
-						setStreamingSuggestions(data.suggestions)
-						setIsGeneratingSuggestions(false)
-					} else if (data.type === 'charts') {
-						setStreamingCharts(data.charts)
-						setStreamingChartData(data.chartData)
-						setIsGeneratingCharts(false)
-						setIsAnalyzingForCharts(false)
-					} else if (data.type === 'citations') {
-						setStreamingCitations(data.citations)
-					} else if (data.type === 'csv_export') {
-						setStreamingCsvExports(data.csvExports || null)
-					} else if (data.type === 'images') {
-						setPendingImages(data.images || [])
 					} else if (data.type === 'error') {
 						setStreamingError(data.content)
-					} else if (data.type === 'title') {
-						updateSessionTitle({ sessionId: currentSessionId, title: data.title || data.content })
 					} else if (data.type === 'reset') {
-						// Don't clear the streaming response on a "reset" hint from the server.
-						// This was causing the visible answer area to blank out mid-stream even
-						// though the backend wasn't actually restarting the whole response.
 						setProgressMessage(data.content || 'Retrying due to output error...')
 					}
 				},
@@ -496,8 +410,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		},
 		onSuccess: (data, variables) => {
 			setIsStreaming(false)
-			setResearchState(null)
-			researchStartTimeRef.current = null
 			abortControllerRef.current = null
 			setLastFailedRequest(null)
 			lastInputRef.current = null
@@ -506,14 +418,14 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				decrementResearchUsage()
 			}
 
-			const finalContent = streamingContentRef.current.getContent()
-			if (finalContent !== streamingResponse) {
-				setStreamingResponse(finalContent)
-			}
-
 			notify()
 
 			const currentImages = pendingImages.length > 0 ? [...pendingImages] : undefined
+			// New: Use items from the response, or convert legacy response to items
+			const finalItems = data?.items && data.items.length > 0 ? data.items : streamingItems
+			// Extract metadata from items for the message object
+			const finalMetadata = finalItems.find((i): i is MetadataItem => i.type === 'metadata')?.metadata
+
 			setMessages((prev) => [
 				...prev,
 				{
@@ -524,20 +436,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				},
 				{
 					role: 'assistant',
-					content: data?.response?.answer || finalContent,
-					metadata: data?.response?.metadata,
-					inlineSuggestions: data?.response?.inlineSuggestions,
-					suggestions: data?.response?.suggestions,
-					charts: data?.response?.charts,
-					chartData: data?.response?.chartData,
-					citations: data?.response?.citations,
-					csvExports: data?.response?.csvExports,
+					items: finalItems,
 					messageId: currentMessageId,
-					timestamp: Date.now()
+					timestamp: Date.now(),
+					metadata: finalMetadata
 				}
 			])
 
 			setPendingImages([])
+			setStreamingItems([])
 			setPrompt('')
 			resetPrompt()
 			setCurrentMessageId(null)
@@ -547,8 +454,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		},
 		onError: (error: any, variables) => {
 			setIsStreaming(false)
-			setResearchState(null)
-			researchStartTimeRef.current = null
 			abortControllerRef.current = null
 
 			if (error?.code === 'USAGE_LIMIT_EXCEEDED') {
@@ -557,19 +462,17 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					limit: error.details?.limit || 0,
 					resetTime: error.details?.resetTime || null
 				})
-				setShowRateLimitModal(true)
+				researchModalStore.show()
 				setLastFailedRequest(null)
 				return
 			}
 
-			const finalContent = streamingContentRef.current.getContent()
-			if (finalContent !== streamingResponse) {
-				setStreamingResponse(finalContent)
-			}
-
 			const wasUserStopped = error?.message === 'Request aborted'
 
-			if (wasUserStopped && finalContent.trim()) {
+			// Check if we have any meaningful content in streaming items
+			const hasContent = streamingItems.some((item) => item.type === 'markdown' && (item as any).text?.trim())
+
+			if (wasUserStopped && hasContent) {
 				setLastFailedRequest(null)
 				lastInputRef.current = null
 				const stoppedImages = pendingImages.length > 0 ? [...pendingImages] : undefined
@@ -583,32 +486,30 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					},
 					{
 						role: 'assistant',
-						content: finalContent,
+						items: streamingItems,
 						metadata: { stopped: true, partial: true },
-						suggestions: streamingSuggestions,
-						charts: streamingCharts,
-						chartData: streamingChartData,
 						messageId: currentMessageId,
 						timestamp: Date.now()
 					}
 				])
 
 				setPendingImages([])
-				setStreamingResponse('')
-				setStreamingSuggestions(null)
-				setStreamingCharts(null)
-				setStreamingChartData(null)
-				setStreamingCitations(null)
+				setStreamingItems([])
 				setPrompt('')
-			} else if (wasUserStopped && !finalContent.trim()) {
+			} else if (wasUserStopped && !hasContent) {
 				setPendingImages([])
+				setStreamingItems([])
 				setPrompt(variables.userQuestion)
 				setLastFailedRequest(null)
 			} else if (!wasUserStopped) {
 				console.log('Request failed:', error)
 				setPendingImages([])
-				setLastFailedRequest(null)
-				lastInputRef.current = null
+				setStreamingItems([])
+				setLastFailedRequest({
+					userQuestion: variables.userQuestion,
+					suggestionContext: variables.suggestionContext,
+					preResolvedEntities: variables.preResolvedEntities
+				})
 			}
 
 			setCurrentMessageId(null)
@@ -618,11 +519,29 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 	})
 
+	useEffect(() => {
+		const handleVisibilityChange = () => {
+			if (document.visibilityState !== 'visible') return
+			const currentSessionId = sessionIdRef.current
+			const isUserAbort = error?.message === 'Request aborted'
+			if (error && !isUserAbort && currentSessionId && !isStreaming && !isPending) {
+				resetPrompt()
+				// Get existing markdown content from streaming items for reconnection
+				const existingContent = streamingItems
+					.filter((item) => item.type === 'markdown')
+					.map((item) => (item as any).text)
+					.join('')
+				reconnectToStream(currentSessionId, existingContent)
+			}
+		}
+		document.addEventListener('visibilitychange', handleVisibilityChange)
+		return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+	}, [error, isStreaming, isPending, reconnectToStream, streamingItems, resetPrompt])
+
 	const handleStopRequest = useCallback(async () => {
 		if (!isStreaming) return
 
 		const currentSessionId = sessionIdRef.current
-		const finalContent = streamingContentRef.current.getContent()
 		setIsStreaming(false)
 
 		if (currentSessionId) {
@@ -652,7 +571,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			abortControllerRef.current.abort()
 		}
 
-		if (finalContent.trim()) {
+		// Check if we have any meaningful content in streaming items
+		const hasContent = streamingItems.some((item) => item.type === 'markdown' && (item as any).text?.trim())
+
+		if (hasContent) {
 			setMessages((prev) => [
 				...prev,
 				{
@@ -662,12 +584,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				},
 				{
 					role: 'assistant',
-					content: finalContent,
+					items: streamingItems,
 					metadata: { stopped: true, partial: true },
-					suggestions: streamingSuggestions,
-					charts: streamingCharts,
-					chartData: streamingChartData,
-					citations: streamingCitations,
 					messageId: currentMessageId,
 					timestamp: Date.now()
 				}
@@ -687,33 +605,24 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			}
 		}
 
-		setStreamingResponse('')
-		setStreamingSuggestions(null)
-		setStreamingCharts(null)
-		setStreamingChartData(null)
-		setStreamingCitations(null)
+		setStreamingItems([])
 		setCurrentMessageId(null)
+		setIsResearchMode(false) // Reset research mode on stop to prevent state leak
 		resetPrompt()
 		setTimeout(() => {
 			promptInputRef.current?.focus()
 		}, 100)
 	}, [
 		isStreaming,
-		streamingSuggestions,
-		streamingCharts,
-		streamingChartData,
-		streamingCitations,
+		streamingItems,
 		currentMessageId,
 		prompt,
 		lastInputRef,
 		setRestoreRequest,
 		setMessages,
-		setStreamingResponse,
-		setStreamingSuggestions,
-		setStreamingCharts,
-		setStreamingChartData,
-		setStreamingCitations,
+		setStreamingItems,
 		setCurrentMessageId,
+		setIsResearchMode,
 		resetPrompt,
 		promptInputRef,
 		authorizedFetch
@@ -775,11 +684,22 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		[sessionId, moveSessionToTop, submitPrompt, isStreaming]
 	)
 
-	const router = useRouter()
+	const pendingPromptConsumedRef = useRef(false)
+	useEffect(() => {
+		if (pendingPromptConsumedRef.current) return
+		if (isRestoringSession || isPending || isStreaming) return
+		if (initialSessionId || sharedSession || readOnly) return
+
+		const pendingPrompt = consumePendingPrompt()
+		if (pendingPrompt) {
+			pendingPromptConsumedRef.current = true
+			handleSubmit(pendingPrompt)
+		}
+	}, [isRestoringSession, isPending, isStreaming, initialSessionId, sharedSession, readOnly, handleSubmit])
 
 	const handleNewChat = useCallback(async () => {
 		if (initialSessionId) {
-			router.push('/ai/chat', undefined, { shallow: true })
+			Router.push('/ai/chat', undefined, { shallow: true })
 			return
 		}
 
@@ -818,72 +738,56 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		newlyCreatedSessionsRef.current.clear()
 		setPrompt('')
 		resetPrompt()
-		setStreamingResponse('')
+		setStreamingItems([])
 		setStreamingError('')
 		setProgressMessage('')
-		setProgressStage('')
-		setStreamingSuggestions(null)
-		setStreamingCharts(null)
-		setStreamingChartData(null)
-		setStreamingCitations(null)
-		setIsGeneratingCharts(false)
-		setIsAnalyzingForCharts(false)
-		setHasChartError(false)
-		setIsGeneratingSuggestions(false)
-		setExpectedChartInfo(null)
 		setMessages([])
-		streamingContentRef.current.reset()
 		setResizeTrigger((prev) => prev + 1)
 		promptInputRef.current?.focus()
-	}, [initialSessionId, sessionId, isStreaming, authorizedFetch, abortControllerRef, resetPrompt, router])
+	}, [initialSessionId, sessionId, isStreaming, authorizedFetch, abortControllerRef, resetPrompt])
 
-	const handleSessionSelect = async (selectedSessionId: string, data: { messages: any[]; pagination?: any }) => {
-		resetScrollState()
+	const handleSessionSelect = useCallback(
+		async (selectedSessionId: string, data: { messages: any[]; pagination?: any }) => {
+			resetScrollState()
 
-		if (sessionId && isStreaming) {
-			try {
-				await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						sessionId: sessionId
+			if (sessionId && isStreaming) {
+				try {
+					await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							sessionId: sessionId
+						})
 					})
-				})
-			} catch (error) {
-				console.log('Error stopping streaming session:', error)
+				} catch (error) {
+					console.log('Error stopping streaming session:', error)
+				}
+
+				if (abortControllerRef.current) {
+					abortControllerRef.current.abort()
+				}
 			}
 
-			if (abortControllerRef.current) {
-				abortControllerRef.current.abort()
-			}
-		}
+			setSessionId(selectedSessionId)
+			setHasRestoredSession(selectedSessionId)
+			setMessages(data.messages)
+			setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
+			setPrompt('')
+			resetPrompt()
+			setStreamingItems([])
+			setCurrentMessageId(null) // Clear message ID when switching sessions
+			setIsResearchMode(false) // Reset research mode when switching sessions
+			setIsStreaming(false) // Ensure streaming state is cleared
+			setStreamingError('')
+			setProgressMessage('')
+			setResizeTrigger((prev) => prev + 1)
 
-		setSessionId(selectedSessionId)
-		setHasRestoredSession(selectedSessionId)
-		setMessages(data.messages)
-		setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
-		setPrompt('')
-		resetPrompt()
-		setStreamingResponse('')
-		setStreamingError('')
-		setProgressMessage('')
-		setProgressStage('')
-		setStreamingSuggestions(null)
-		setStreamingCharts(null)
-		setStreamingChartData(null)
-		setStreamingCitations(null)
-		setIsGeneratingCharts(false)
-		setIsAnalyzingForCharts(false)
-		setHasChartError(false)
-		setIsGeneratingSuggestions(false)
-		setExpectedChartInfo(null)
-		streamingContentRef.current.reset()
-		setResizeTrigger((prev) => prev + 1)
-
-		promptInputRef.current?.focus()
-	}
+			promptInputRef.current?.focus()
+		},
+		[sessionId, isStreaming, authorizedFetch, resetScrollState, resetPrompt]
+	)
 
 	const handleLoadMoreMessages = useCallback(async () => {
 		if (!sessionId || !paginationState.hasMore || paginationState.isLoadingMore || !paginationState.cursor) return
@@ -899,13 +803,16 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setMessages((prev) => [...result.messages, ...prev])
 			setPaginationState(result.pagination)
 
-			setTimeout(() => {
+			// Use RAF to batch layout reads/writes with browser paint cycle
+			requestAnimationFrame(() => {
 				if (scrollContainer) {
+					// Batch read: get both values in single layout calculation
 					const newScrollHeight = scrollContainer.scrollHeight
-					const heightDifference = newScrollHeight - previousScrollHeight
-					scrollContainer.scrollTop = scrollContainer.scrollTop + heightDifference
+					const currentScrollTop = scrollContainer.scrollTop
+					// Single write after reads
+					scrollContainer.scrollTop = currentScrollTop + (newScrollHeight - previousScrollHeight)
 				}
-			}, 0)
+			})
 		} catch (error) {
 			console.log('Failed to load more messages:', error)
 			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
@@ -914,10 +821,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 	const handleSuggestionClick = useCallback(
 		(suggestion: any) => {
-			let promptText = ''
-
-			promptText = suggestion.title || suggestion.description
-
+			const promptText = suggestion.title || suggestion.description || ''
 			handleSubmitWithSuggestion(promptText, suggestion)
 		},
 		[handleSubmitWithSuggestion]
@@ -929,45 +833,88 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setResizeTrigger((prev) => prev + 1)
 	}, [toggleSidebar])
 
+	const handleChatDragEnter = useCallback((e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		chatDragCounterRef.current++
+		if (e.dataTransfer.types.includes('Files')) {
+			setIsDraggingOnChat(true)
+		}
+	}, [])
+
+	const handleChatDragLeave = useCallback((e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		chatDragCounterRef.current--
+		if (chatDragCounterRef.current === 0) {
+			setIsDraggingOnChat(false)
+		}
+	}, [])
+
+	const handleChatDragOver = useCallback((e: React.DragEvent) => {
+		e.preventDefault()
+	}, [])
+
+	const handleChatDrop = useCallback((e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		chatDragCounterRef.current = 0
+		setIsDraggingOnChat(false)
+		const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'))
+		if (files.length > 0) {
+			setDroppedFiles(files)
+		}
+	}, [])
+
+	const clearDroppedFiles = useCallback(() => {
+		setDroppedFiles(null)
+	}, [])
+
+	const onCheckScrollState = useEffectEvent(() => {
+		const container = scrollContainerRef.current
+		if (!container) return
+
+		if (rafIdRef.current) {
+			cancelAnimationFrame(rafIdRef.current)
+		}
+
+		rafIdRef.current = requestAnimationFrame(() => {
+			const activeContainer = scrollContainerRef.current
+			if (!activeContainer) return
+			const { scrollTop, scrollHeight, clientHeight } = activeContainer
+
+			const scrollBottom = Math.ceil(scrollTop + clientHeight)
+			const threshold = scrollHeight - 150
+			const isAtBottom = scrollBottom >= threshold
+			const hasScrollableContent = scrollHeight > clientHeight
+
+			if (isAutoScrollingRef.current && hasScrollableContent) {
+				activeContainer.scrollTop = scrollHeight
+				setTimeout(() => {
+					isAutoScrollingRef.current = false
+				}, 300)
+				return
+			}
+
+			shouldAutoScrollRef.current = isAtBottom
+
+			const shouldShowButton = hasScrollableContent && !isAtBottom && !isStreaming && !isAutoScrollingRef.current
+			setShowScrollToBottom(shouldShowButton)
+
+			if (sessionId && paginationState.hasMore && !paginationState.isLoadingMore && scrollTop <= 50) {
+				handleLoadMoreMessages()
+			}
+		})
+	})
+
+	const hasScrollableView = messages.length > 0 || isRestoringSession || isPending || isStreaming
+
 	useEffect(() => {
 		const container = scrollContainerRef.current
 		if (!container) return
 
-		const checkScrollState = () => {
-			if (rafIdRef.current) {
-				cancelAnimationFrame(rafIdRef.current)
-			}
-
-			rafIdRef.current = requestAnimationFrame(() => {
-				if (!container) return
-				const { scrollTop, scrollHeight, clientHeight } = container
-
-				const scrollBottom = Math.ceil(scrollTop + clientHeight)
-				const threshold = scrollHeight - 150
-				const isAtBottom = scrollBottom >= threshold
-				const hasScrollableContent = scrollHeight > clientHeight
-
-				if (isAutoScrollingRef.current && hasScrollableContent) {
-					container.scrollTop = scrollHeight
-					setTimeout(() => {
-						isAutoScrollingRef.current = false
-					}, 300)
-					return
-				}
-
-				shouldAutoScrollRef.current = isAtBottom
-
-				const shouldShowButton = hasScrollableContent && !isAtBottom && !isStreaming && !isAutoScrollingRef.current
-				setShowScrollToBottom(shouldShowButton)
-
-				if (sessionId && paginationState.hasMore && !paginationState.isLoadingMore && scrollTop <= 50) {
-					handleLoadMoreMessages()
-				}
-			})
-		}
-
-		const throttledScroll = throttle(checkScrollState, 150)
-		const debouncedResize = debounce(checkScrollState, 100)
+		const throttledScroll = throttle(onCheckScrollState, 150)
+		const debouncedResize = debounce(onCheckScrollState, 100)
 
 		if ('ResizeObserver' in window) {
 			resizeObserverRef.current = new ResizeObserver(debouncedResize)
@@ -975,12 +922,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		container.addEventListener('scroll', throttledScroll, { passive: true })
-		container.addEventListener('scrollend', checkScrollState, { passive: true })
-		checkScrollState()
+		container.addEventListener('scrollend', onCheckScrollState, { passive: true })
+		onCheckScrollState()
 
 		return () => {
 			container.removeEventListener('scroll', throttledScroll)
-			container.removeEventListener('scrollend', checkScrollState)
+			container.removeEventListener('scrollend', onCheckScrollState)
 			if (resizeObserverRef.current) {
 				resizeObserverRef.current.disconnect()
 			}
@@ -988,10 +935,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				cancelAnimationFrame(rafIdRef.current)
 			}
 		}
-	}, [sessionId, paginationState.hasMore, paginationState.isLoadingMore, handleLoadMoreMessages, isStreaming])
+	}, [hasScrollableView])
 
 	useEffect(() => {
-		if (shouldAutoScrollRef.current && scrollContainerRef.current && (streamingResponse || isStreaming)) {
+		if (shouldAutoScrollRef.current && scrollContainerRef.current && (streamingItems.length > 0 || isStreaming)) {
 			requestAnimationFrame(() => {
 				if (scrollContainerRef.current) {
 					scrollContainerRef.current.scrollTo({
@@ -1001,7 +948,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				}
 			})
 		}
-	}, [streamingResponse, isStreaming])
+	}, [streamingItems, isStreaming])
 
 	useEffect(() => {
 		if (shouldAutoScrollRef.current && scrollContainerRef.current && messages.length > 0) {
@@ -1030,7 +977,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 	}, [shouldAnimateSidebar])
 
-	const isSubmitted = isPending || isStreaming || error || promptResponse ? true : false
+	const isSubmitted = !!(isPending || isStreaming || error || promptResponse)
 
 	return (
 		<Layout
@@ -1058,6 +1005,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				)}
 				<div
 					className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
+					onDragEnter={handleChatDragEnter}
+					onDragLeave={handleChatDragLeave}
+					onDragOver={handleChatDragOver}
+					onDrop={handleChatDrop}
 				>
 					{messages.length === 0 && prompt.length === 0 && !isRestoringSession && !isPending && !isStreaming ? (
 						initialSessionId ? (
@@ -1078,7 +1029,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						) : (
 							<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
 								<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
-									<img src="/assets/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
+									<img
+										src="/assets/llamaai/llama-ai.svg"
+										alt="LlamaAI"
+										className="object-contain"
+										width={64}
+										height={77}
+									/>
 									<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 								</div>
 								{!readOnly && (
@@ -1094,6 +1051,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											isResearchMode={isResearchMode}
 											setIsResearchMode={setIsResearchMode}
 											researchUsage={researchUsage}
+											droppedFiles={droppedFiles}
+											clearDroppedFiles={clearDroppedFiles}
+											externalDragging={isDraggingOnChat}
+											onOpenAlerts={alertsModalStore.show}
 										/>
 										<RecommendedPrompts
 											setPrompt={setPrompt}
@@ -1109,7 +1070,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						<>
 							<div
 								ref={scrollContainerRef}
-								className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5 max-lg:px-0"
+								className="relative thin-scrollbar flex-1 overflow-y-auto p-2.5 max-lg:px-0"
 							>
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 									{isRestoringSession && messages.length === 0 ? (
@@ -1138,125 +1099,87 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 															)
 														}
 														if (item.role === 'assistant') {
-															const hasInlineCharts = item.content?.includes('[CHART:')
+															// Use items if available, otherwise convert response fields to items
+															const messageItems =
+																item.items && item.items.length > 0
+																	? item.items
+																	: item.content
+																		? responseToItems(
+																				{
+																					content: item.content,
+																					charts: item.charts,
+																					chartData: item.chartData,
+																					citations: item.citations,
+																					csvExports: item.csvExports,
+																					suggestions: item.suggestions,
+																					metadata: item.metadata,
+																					inlineSuggestions: item.inlineSuggestions
+																				},
+																				item.messageId
+																			)
+																		: []
+
+															// Extract content for ResponseControls
+															const textContent = messageItems
+																.filter((i): i is StreamItem & { type: 'markdown' } => i.type === 'markdown')
+																.map((i) => i.text)
+																.join('')
+
+															// Extract charts for ResponseControls
+															const msgCharts = messageItems
+																.filter((i): i is ChartItem => i.type === 'chart')
+																.map((c) => ({ id: c.chart.id, title: c.chart.title }))
+
+															// Extract suggestions for rendering after ResponseControls
+															const msgSuggestions = messageItems.find(
+																(i): i is SuggestionsItem => i.type === 'suggestions'
+															)
+
+															// Extract metadata for rendering
+															const msgMetadata = messageItems.find((i): i is MetadataItem => i.type === 'metadata')
+
 															return (
 																<div
 																	key={`assistant-${item.messageId || item.timestamp}-${index}`}
 																	className="flex flex-col gap-2.5"
 																>
-																	<MarkdownRenderer
-																		content={item.content}
-																		citations={item.citations}
-																		charts={hasInlineCharts ? item.charts : undefined}
-																		chartData={hasInlineCharts ? item.chartData : undefined}
-																		inlineChartConfig={
-																			hasInlineCharts
-																				? {
-																						resizeTrigger,
-																						saveableChartIds:
-																							readOnly || !showDebug ? [] : item.metadata?.saveableChartIds,
-																						savedChartIds: item.metadata?.savedChartIds,
-																						messageId: item.messageId
-																					}
-																				: undefined
-																		}
-																		csvExports={item.csvExports}
+																	<PromptResponse
+																		items={messageItems}
+																		isPending={false}
+																		isStreaming={false}
+																		resizeTrigger={resizeTrigger}
+																		showMetadata={showDebug}
+																		readOnly={readOnly}
+																		inlineChartConfig={{
+																			resizeTrigger,
+																			messageId: item.messageId,
+																			alertIntent: msgMetadata?.metadata?.alertIntent || item.metadata?.alertIntent,
+																			savedAlertIds: item.savedAlertIds || item.metadata?.savedAlertIds
+																		}}
 																	/>
-																	{!hasInlineCharts && item.charts && item.charts.length > 0 && (
-																		<ChartRenderer
-																			charts={item.charts}
-																			chartData={item.chartData || []}
-																			resizeTrigger={resizeTrigger}
-																			messageId={item.messageId}
-																		/>
-																	)}
-																	{item.inlineSuggestions && <InlineSuggestions text={item.inlineSuggestions} />}
 																	<ResponseControls
 																		messageId={item.messageId}
-																		content={item.content}
+																		content={textContent}
 																		initialRating={item.userRating}
 																		sessionId={sessionId}
 																		readOnly={readOnly}
-																		charts={item.charts?.map((c: any) => ({ id: c.id, title: c.title }))}
+																		charts={msgCharts}
 																	/>
-																	{!readOnly && item.suggestions && item.suggestions.length > 0 && (
+																	{msgSuggestions?.suggestions?.length && !readOnly ? (
 																		<SuggestedActions
-																			suggestions={item.suggestions}
+																			suggestions={msgSuggestions.suggestions.map((s) => ({
+																				title: s.label,
+																				toolName: s.action,
+																				arguments: s.params
+																			}))}
 																			handleSuggestionClick={handleSuggestionClick}
 																			isPending={isPending}
-																			isStreaming={isStreaming}
+																			isStreaming={false}
 																		/>
-																	)}
-																	{showDebug && item.metadata && <QueryMetadata metadata={item.metadata} />}
-																</div>
-															)
-														}
-														if (item.question) {
-															const hasInlineCharts = item.response?.answer?.includes('[CHART:')
-															const itemCharts = item.response?.charts || item.charts || []
-															const itemChartData = item.response?.chartData || item.chartData
-															return (
-																<div key={`${item.messageId}-${item.timestamp}`} className="flex flex-col gap-2.5">
-																	<SentPrompt prompt={item.question} images={item.images} />
-																	<div className="flex flex-col gap-2.5">
-																		<MarkdownRenderer
-																			content={item.response?.answer || ''}
-																			citations={item.response?.citations || item.citations}
-																			charts={hasInlineCharts ? itemCharts : undefined}
-																			chartData={hasInlineCharts ? itemChartData : undefined}
-																			inlineChartConfig={
-																				hasInlineCharts
-																					? {
-																							resizeTrigger,
-																							saveableChartIds:
-																								readOnly || !showDebug ? [] : item.response?.metadata?.saveableChartIds,
-																							savedChartIds: item.response?.metadata?.savedChartIds,
-																							messageId: item.messageId
-																						}
-																					: undefined
-																			}
-																			csvExports={item.response?.csvExports || item.csvExports}
-																		/>
-																		{!hasInlineCharts &&
-																			((item.response?.charts && item.response.charts.length > 0) ||
-																				(item.charts && item.charts.length > 0)) && (
-																				<ChartRenderer
-																					charts={itemCharts}
-																					chartData={itemChartData}
-																					resizeTrigger={resizeTrigger}
-																					messageId={item.messageId}
-																				/>
-																			)}
-																		{(item.response?.inlineSuggestions || item.inlineSuggestions) && (
-																			<InlineSuggestions
-																				text={item.response?.inlineSuggestions || item.inlineSuggestions}
-																			/>
-																		)}
-																		<ResponseControls
-																			messageId={item.messageId}
-																			content={item.response?.answer}
-																			initialRating={item.userRating}
-																			sessionId={sessionId}
-																			readOnly={readOnly}
-																			charts={(item.response?.charts || item.charts)?.map((c: any) => ({
-																				id: c.id,
-																				title: c.title
-																			}))}
-																		/>
-																		{!readOnly &&
-																			((item.response?.suggestions && item.response.suggestions.length > 0) ||
-																				(item.suggestions && item.suggestions.length > 0)) && (
-																				<SuggestedActions
-																					suggestions={item.response?.suggestions || item.suggestions || []}
-																					handleSuggestionClick={handleSuggestionClick}
-																					isPending={isPending}
-																					isStreaming={isStreaming}
-																				/>
-																			)}
-																		{showDebug && (item.response?.metadata || item.metadata) && (
-																			<QueryMetadata metadata={item.response?.metadata || item.metadata} />
-																		)}
-																	</div>
+																	) : null}
+																	{showDebug && msgMetadata?.metadata ? (
+																		<QueryMetadata metadata={msgMetadata.metadata} />
+																	) : null}
 																</div>
 															)
 														}
@@ -1264,62 +1187,69 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 													})}
 												</div>
 											)}
-											{(isPending || isStreaming || promptResponse || error) && (
-												<div className="flex min-h-[calc(100dvh-272px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-215px)]">
-													{prompt && <SentPrompt prompt={prompt} images={pendingImages} />}
-													<PromptResponse
-														response={
-															promptResponse?.response ||
-															(streamingSuggestions || streamingCharts || streamingCitations
-																? {
-																		answer: '',
-																		suggestions: streamingSuggestions,
-																		charts: streamingCharts,
-																		chartData: streamingChartData,
-																		citations: streamingCitations
-																	}
-																: undefined)
-														}
-														error={error?.message}
-														streamingError={streamingError}
-														isPending={isPending}
-														streamingResponse={streamingResponse}
-														isStreaming={isStreaming}
-														progressMessage={progressMessage}
-														onSuggestionClick={handleSuggestionClick}
-														onRetry={handleRetry}
-														canRetry={!!lastFailedRequest}
-														isGeneratingCharts={isGeneratingCharts}
-														isAnalyzingForCharts={isAnalyzingForCharts}
-														hasChartError={hasChartError}
-														isGeneratingSuggestions={isGeneratingSuggestions}
-														expectedChartInfo={expectedChartInfo}
-														resizeTrigger={resizeTrigger}
-														showMetadata={showDebug}
-														readOnly={readOnly}
-														inlineChartConfig={{
-															resizeTrigger,
-															saveableChartIds:
-																readOnly || !showDebug ? [] : promptResponse?.response?.metadata?.saveableChartIds,
-															savedChartIds: promptResponse?.response?.metadata?.savedChartIds,
-															messageId: currentMessageId ?? undefined
-														}}
-														streamingCsvExports={streamingCsvExports}
-														researchState={researchState}
-													/>
-												</div>
-											)}
+											{(isPending || isStreaming || error) &&
+												(() => {
+													// Extract suggestions from streaming items for rendering after content
+													const streamingSuggestions = streamingItems.find(
+														(i): i is SuggestionsItem => i.type === 'suggestions'
+													)
+													// Extract metadata from streaming items for alert intent
+													const streamingMetadata = streamingItems.find((i): i is MetadataItem => i.type === 'metadata')
+
+													return (
+														<div className="flex min-h-[calc(100dvh-272px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-215px)]">
+															{prompt && <SentPrompt prompt={prompt} images={pendingImages} />}
+															<PromptResponse
+																// New: Use items-based rendering
+																items={streamingItems}
+																error={error?.message}
+																streamingError={streamingError}
+																isPending={isPending}
+																isStreaming={isStreaming}
+																progressMessage={progressMessage}
+																onRetry={handleRetry}
+																canRetry={!!lastFailedRequest}
+																resizeTrigger={resizeTrigger}
+																showMetadata={showDebug}
+																readOnly={readOnly}
+																inlineChartConfig={{
+																	resizeTrigger,
+																	messageId: currentMessageId ?? undefined,
+																	alertIntent: streamingMetadata?.metadata?.alertIntent
+																}}
+															/>
+															{streamingSuggestions?.suggestions?.length && !isStreaming ? (
+																<SuggestedActions
+																	suggestions={streamingSuggestions.suggestions.map((s) => ({
+																		title: s.label,
+																		toolName: s.action,
+																		arguments: s.params
+																	}))}
+																	handleSuggestionClick={handleSuggestionClick}
+																	isPending={isPending}
+																	isStreaming={isStreaming}
+																/>
+															) : null}
+														</div>
+													)
+												})()}
 										</div>
 									) : (
 										<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
-											<img src="/assets/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
+											<img
+												src="/assets/llamaai/llama-ai.svg"
+												alt="LlamaAI"
+												className="object-contain"
+												width={64}
+												height={77}
+											/>
 											<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 										</div>
 									)}
 								</div>
 							</div>
 							<div
-								className={`pointer-events-none sticky ${readOnly ? 'bottom-6.5' : 'bottom-26.5'} z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
+								className={`pointer-events-none sticky ${readOnly ? 'bottom-10' : 'bottom-32'} z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
 							>
 								<Tooltip
 									content="Scroll to bottom"
@@ -1359,6 +1289,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										isResearchMode={isResearchMode}
 										setIsResearchMode={setIsResearchMode}
 										researchUsage={researchUsage}
+										droppedFiles={droppedFiles}
+										clearDroppedFiles={clearDroppedFiles}
+										externalDragging={isDraggingOnChat}
+										onOpenAlerts={alertsModalStore.show}
 									/>
 								)}
 							</div>
@@ -1366,15 +1300,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					)}
 				</div>
 			</div>
-			{showRateLimitModal && rateLimitDetails && (
+			{rateLimitDetails ? (
 				<ResearchLimitModal
-					isOpen={showRateLimitModal}
-					onClose={() => setShowRateLimitModal(false)}
+					dialogStore={researchModalStore}
 					period={rateLimitDetails.period}
 					limit={rateLimitDetails.limit}
 					resetTime={rateLimitDetails.resetTime}
 				/>
-			)}
+			) : null}
+			<AlertsModal dialogStore={alertsModalStore} />
 		</Layout>
 	)
 }
@@ -1386,21 +1320,26 @@ const SentPrompt = memo(function SentPrompt({
 	prompt: string
 	images?: Array<{ url: string; mimeType: string; filename?: string }>
 }) {
+	const [previewImage, setPreviewImage] = useState<string | null>(null)
+
 	return (
 		<div className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
 			{images && images.length > 0 && (
 				<div className="mb-2.5 flex flex-wrap gap-3">
 					{images.map((img) => (
-						<img
+						<button
 							key={`sent-prompt-image-${img.url}`}
-							src={img.url}
-							alt={img.filename || 'Uploaded image'}
-							className="h-16 w-16 rounded-lg object-cover"
-						/>
+							type="button"
+							onClick={() => setPreviewImage(img.url)}
+							className="h-16 w-16 cursor-pointer overflow-hidden rounded-lg"
+						>
+							<img src={img.url} alt={img.filename || 'Uploaded image'} className="h-full w-full object-cover" />
+						</button>
 					))}
 				</div>
 			)}
 			<p>{prompt}</p>
+			<ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
 		</div>
 	)
 })

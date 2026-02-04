@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { getItemIconUrl } from '../../../../utils'
 import { AriakitSelect } from '../../../AriakitSelect'
 import { AriakitVirtualizedMultiSelect } from '../../../AriakitVirtualizedMultiSelect'
@@ -133,7 +133,25 @@ const tableTypeOptions: Array<{
 	}
 ]
 
-export const SimpleTableConfig = memo(function SimpleTableConfig({
+const TRENDING_TIME_PERIOD_OPTIONS = [
+	{ value: '1d', label: '1 Day' },
+	{ value: '7d', label: '7 Days' },
+	{ value: '30d', label: '30 Days' }
+]
+
+const EMPTY_LEGACY_TABLE_TYPES: CombinedTableType[] = []
+const EMPTY_TOKEN_OPTIONS: Array<{ value: string; label: string; logo?: string }> = []
+const CHAIN_CATEGORY_OPTIONS = [
+	{ value: 'All', label: 'All Chains' },
+	{ value: 'EVM', label: 'EVM Chains' },
+	{ value: 'non-EVM', label: 'Non-EVM Chains' },
+	{ value: 'Layer 2', label: 'Layer 2' },
+	{ value: 'Rollup', label: 'Rollups' },
+	{ value: 'Parachain', label: 'Parachains' },
+	{ value: 'Cosmos', label: 'Cosmos' }
+]
+
+export function SimpleTableConfig({
 	selectedChains,
 	chainOptions,
 	protocolsLoading,
@@ -148,13 +166,14 @@ export const SimpleTableConfig = memo(function SimpleTableConfig({
 	onTokensChange,
 	includeCex,
 	onIncludeCexChange,
-	legacyTableTypes = [],
+	legacyTableTypes = EMPTY_LEGACY_TABLE_TYPES,
 	onBackToTypeSelector
 }: SimpleTableConfigProps) {
 	const [tokenSearchInput, setTokenSearchInput] = useState('')
-	const { data: tokenOptions = [], isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
-
-	const { data: defaultTokens = [] } = useTokenSearch('')
+	const { data: tokenOptionsData, isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
+	const { data: defaultTokensData } = useTokenSearch('')
+	const tokenOptions = tokenOptionsData ?? EMPTY_TOKEN_OPTIONS
+	const defaultTokens = defaultTokensData ?? EMPTY_TOKEN_OPTIONS
 
 	const mergedTokenOptions = useMemo(() => {
 		const baseOptions = tokenSearchInput ? tokenOptions : defaultTokens
@@ -192,18 +211,7 @@ export const SimpleTableConfig = memo(function SimpleTableConfig({
 		[chainOptions]
 	)
 
-	const chainCategoryOptions = useMemo(
-		() => [
-			{ value: 'All', label: 'All Chains' },
-			{ value: 'EVM', label: 'EVM Chains' },
-			{ value: 'non-EVM', label: 'Non-EVM Chains' },
-			{ value: 'Layer 2', label: 'Layer 2' },
-			{ value: 'Rollup', label: 'Rollups' },
-			{ value: 'Parachain', label: 'Parachains' },
-			{ value: 'Cosmos', label: 'Cosmos' }
-		],
-		[]
-	)
+	const chainCategoryOptions = CHAIN_CATEGORY_OPTIONS
 
 	const tokenOptionMap = useMemo(() => {
 		const map = new Map<string, { value: string; label: string; logo?: string }>()
@@ -218,7 +226,7 @@ export const SimpleTableConfig = memo(function SimpleTableConfig({
 			<button
 				type="button"
 				onClick={onBackToTypeSelector}
-				className="pro-text2 hover:pro-text1 flex items-center gap-1 text-sm transition-colors"
+				className="flex items-center gap-1 text-sm pro-text2 transition-colors hover:pro-text1"
 			>
 				<span>←</span>
 				<span>Back to table type selection</span>
@@ -282,11 +290,7 @@ export const SimpleTableConfig = memo(function SimpleTableConfig({
 					/>
 					<AriakitSelect
 						label="Time Period"
-						options={[
-							{ value: '1d', label: '1 Day' },
-							{ value: '7d', label: '7 Days' },
-							{ value: '30d', label: '30 Days' }
-						]}
+						options={TRENDING_TIME_PERIOD_OPTIONS}
 						selectedValue={selectedDatasetTimeframe}
 						onChange={(option) => onDatasetTimeframeChange(option.value)}
 						placeholder="Select time period..."
@@ -323,11 +327,11 @@ export const SimpleTableConfig = memo(function SimpleTableConfig({
 										) : (
 											<div className="h-4 w-4 rounded-full bg-(--bg-tertiary)" />
 										)}
-										<span className="pro-text1 text-sm">{option?.label ?? token}</span>
+										<span className="text-sm pro-text1">{option?.label ?? token}</span>
 										<button
 											type="button"
 											onClick={() => onTokensChange(selectedTokens.filter((t) => t !== token))}
-											className="pro-text3 hover:pro-text1 ml-1 text-xs transition-colors"
+											className="ml-1 text-xs pro-text3 transition-colors hover:pro-text1"
 											aria-label={`Remove ${option?.label ?? token}`}
 										>
 											✕
@@ -338,7 +342,7 @@ export const SimpleTableConfig = memo(function SimpleTableConfig({
 						</div>
 					)}
 					<div
-						className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 transition-colors"
+						className="flex cursor-pointer items-center gap-2 rounded-md border pro-border pro-hover-bg px-3 py-1.5 pro-text2 transition-colors hover:pro-text1"
 						onClick={() => onIncludeCexChange(!includeCex)}
 					>
 						<div className="relative h-4 w-4">
@@ -361,10 +365,10 @@ export const SimpleTableConfig = memo(function SimpleTableConfig({
 								)}
 							</div>
 						</div>
-						<span className="pro-text2 text-sm font-medium">Include CEXs</span>
+						<span className="text-sm font-medium pro-text2">Include CEXs</span>
 					</div>
 				</>
 			) : null}
 		</div>
 	)
-})
+}

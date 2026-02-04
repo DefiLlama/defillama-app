@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					continue
 				}
 
-				data.protocols.forEach((protocol: any) => {
+				for (const protocol of data.protocols) {
 					const key = protocol.defillamaId || protocol.name
 					const normalizedChainKey = chainName.trim().toLowerCase()
 
@@ -78,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 							slug: protocol.slug
 						})
 					}
-				})
+				}
 			}
 
 			const aggregatedProtocols = Array.from(allProtocolsMap.values())

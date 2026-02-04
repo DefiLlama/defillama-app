@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import Head from 'next/head'
 import * as Ariakit from '@ariakit/react'
+import Head from 'next/head'
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LinkPreviewCard } from '~/components/SEO'

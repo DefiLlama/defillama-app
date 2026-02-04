@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import * as echarts from 'echarts/core'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useChartResize } from '~/hooks/useChartResize'
 import { slug, toNiceCsvDate } from '~/utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
@@ -42,10 +43,7 @@ export default function AreaChart({
 	...props
 }: IChartProps) {
 	const id = useId()
-	const shouldEnableExport = useMemo(
-		() => enableImageExport ?? (!!title && !hideDownloadButton),
-		[enableImageExport, title, hideDownloadButton]
-	)
+	const shouldEnableExport = enableImageExport ?? (!!title && !hideDownloadButton)
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
@@ -302,6 +300,10 @@ export default function AreaChart({
 	])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
+
 	const exportFilename = imageExportFilename || (title ? slug(title) : 'chart')
 	const exportTitle = imageExportTitle || title
 	const updateExportInstance = useCallback(
@@ -317,16 +319,16 @@ export default function AreaChart({
 		const chartDom = document.getElementById(id)
 		if (!chartDom) return
 
-		let chartInstance = echarts.getInstanceByDom(chartDom)
-		const isNewInstance = !chartInstance
-		if (!chartInstance) {
-			chartInstance = echarts.init(chartDom)
+		let instance = echarts.getInstanceByDom(chartDom)
+		const isNewInstance = !instance
+		if (!instance) {
+			instance = echarts.init(chartDom)
 		}
-		chartRef.current = chartInstance
-		updateExportInstance(chartInstance)
+		chartRef.current = instance
+		updateExportInstance(instance)
 
 		if (onReady && isNewInstance) {
-			onReady(chartInstance)
+			onReady(instance)
 		}
 
 		for (const option in chartOptions) {
@@ -350,7 +352,7 @@ export default function AreaChart({
 
 		const { grid, graphic, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
 
-		chartInstance.setOption({
+		instance.setOption({
 			graphic,
 			tooltip,
 			grid,
@@ -375,15 +377,9 @@ export default function AreaChart({
 			series
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 			updateExportInstance(null)
 		}
 	}, [
@@ -395,7 +391,8 @@ export default function AreaChart({
 		hideDataZoom,
 		id,
 		chartsStack,
-		updateExportInstance
+		updateExportInstance,
+		onReady
 	])
 
 	useEffect(() => {
@@ -419,9 +416,9 @@ export default function AreaChart({
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName
 
-	const showLegend = customLegendName && customLegendOptions?.length > 1 ? true : false
+	const showLegend = !!(customLegendName && customLegendOptions?.length > 1)
 
-	const prepareCsv = useCallback(() => {
+	const prepareCsv = () => {
 		let rows = []
 		if (!chartsStack || chartsStack.length === 0) {
 			rows = [['Timestamp', 'Date', 'Value']]
@@ -438,7 +435,7 @@ export default function AreaChart({
 		const Mytitle = title ? slug(title) : 'data'
 		const filename = `area-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
 		return { filename, rows }
-	}, [chartData, chartsStack, title])
+	}
 
 	return (
 		<div className="relative" {...props}>
@@ -451,12 +448,7 @@ export default function AreaChart({
 							allValues={customLegendOptions}
 							selectedValues={legendOptions}
 							setSelectedValues={setLegendOptions}
-							selectOnlyOne={(newOption) => {
-								setLegendOptions([newOption])
-							}}
 							label={legendTitle}
-							clearAll={() => setLegendOptions([])}
-							toggleAll={() => setLegendOptions(customLegendOptions)}
 							labelType="smol"
 							triggerProps={{
 								className:

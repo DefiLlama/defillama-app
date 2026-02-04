@@ -1,9 +1,10 @@
-import { useEffect, useId, useRef } from 'react'
 import { TreemapChart as EChartTreemap } from 'echarts/charts'
 import { GraphicComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useEffect, useId, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
 
 echarts.use([TooltipComponent, GraphicComponent, EChartTreemap, CanvasRenderer])
@@ -18,7 +19,8 @@ interface TreeMapBuilderChartProps {
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 
-const formatValue = (value: number) => {
+const formatValue = (rawValue?: number) => {
+	const value = typeof rawValue === 'number' && Number.isFinite(rawValue) ? rawValue : 0
 	const absValue = Math.abs(value)
 	if (absValue >= 1e9) {
 		return '$' + (value / 1e9).toFixed(1) + 'B'
@@ -38,23 +40,19 @@ export default function TreeMapBuilderChart({ data, height = '450px', onReady }:
 	const onReadyRef = useRef(onReady)
 	onReadyRef.current = onReady
 
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
+
 	useEffect(() => {
 		const container = document.getElementById(id)
 		if (!container) return
 
-		const chartInstance = echarts.init(container)
-		chartRef.current = chartInstance
-		onReadyRef.current?.(chartInstance)
-
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
+		const instance = echarts.init(container)
+		chartRef.current = instance
+		onReadyRef.current?.(instance)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			instance.dispose()
 			chartRef.current = null
 			onReadyRef.current?.(null)
 		}
@@ -63,7 +61,10 @@ export default function TreeMapBuilderChart({ data, height = '450px', onReady }:
 	useEffect(() => {
 		if (!chartRef.current || !data || data.length === 0) return
 
-		const total = data.reduce((sum, item) => sum + item.value, 0)
+		const total = data.reduce(
+			(sum, item) => sum + (typeof item.value === 'number' && Number.isFinite(item.value) ? item.value : 0),
+			0
+		)
 
 		const graphic = {
 			type: 'image',
@@ -81,8 +82,9 @@ export default function TreeMapBuilderChart({ data, height = '450px', onReady }:
 			graphic,
 			tooltip: {
 				formatter: function (info: any) {
-					const pct = total > 0 ? ((info.value / total) * 100).toFixed(1) : '0'
-					return `<div style="font-weight:600">${info.name}</div><div>${formatValue(info.value)} (${pct}%)</div>`
+					const rawValue = typeof info?.value === 'number' && Number.isFinite(info.value) ? info.value : 0
+					const pct = total > 0 ? ((rawValue / total) * 100).toFixed(1) : '0'
+					return `<div style="font-weight:600">${info.name}</div><div>${formatValue(rawValue)} (${pct}%)</div>`
 				}
 			},
 			series: [
@@ -103,8 +105,9 @@ export default function TreeMapBuilderChart({ data, height = '450px', onReady }:
 						position: 'insideTopLeft',
 						padding: [4, 6],
 						formatter: function (params: any) {
-							const pct = total > 0 ? ((params.value / total) * 100).toFixed(1) : '0'
-							return `{name|${params.name}}\n{value|${formatValue(params.value)} (${pct}%)}`
+							const rawValue = typeof params?.value === 'number' && Number.isFinite(params.value) ? params.value : 0
+							const pct = total > 0 ? ((rawValue / total) * 100).toFixed(1) : '0'
+							return `{name|${params.name}}\n{value|${formatValue(rawValue)} (${pct}%)}`
 						},
 						rich: {
 							name: {
@@ -148,7 +151,7 @@ export default function TreeMapBuilderChart({ data, height = '450px', onReady }:
 	if (!data || data.length === 0) {
 		return (
 			<div className="flex h-full items-center justify-center">
-				<p className="pro-text2 text-sm">No data available for treemap</p>
+				<p className="text-sm pro-text2">No data available for treemap</p>
 			</div>
 		)
 	}

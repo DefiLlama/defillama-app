@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useReducer } from 'react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
+import { useCallback, useMemo, useReducer } from 'react'
 import { sanitizeConfigColumns } from '~/containers/ProDashboard/components/UnifiedTable/config/metricCapabilities'
 import { UNIFIED_TABLE_PRESETS_BY_ID } from '~/containers/ProDashboard/components/UnifiedTable/config/PresetRegistry'
 import {
@@ -139,9 +139,10 @@ const reducer = (state: WizardState, action: WizardAction): WizardState => {
 				customColumns: state.customColumns
 			})
 			const customColumnIds = getOrderedCustomColumnIds(state.columnOrder, state.customColumns)
-			const customColumnVisibility = Object.fromEntries(
-				customColumnIds.map((id) => [id, state.columnVisibility[id] ?? true])
-			)
+			const customColumnVisibility: Record<string, boolean> = {}
+			for (const id of customColumnIds) {
+				customColumnVisibility[id] = state.columnVisibility[id] ?? true
+			}
 			const nextOrderSet = new Set(sanitized.order)
 			return {
 				...state,

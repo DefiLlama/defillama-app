@@ -1,3 +1,10 @@
+import {
+	NON_WORD_SLASH_REGEX,
+	NON_WORD_SLASH_DOT_REGEX,
+	LEADING_DASH_REGEX,
+	TRAILING_DASH_REGEX
+} from './regex-constants'
+
 // let redis = null as null | import('ioredis').Redis
 let redis = null
 const REDIS_URL = process.env.REDIS_URL as string
@@ -9,7 +16,7 @@ if (typeof window === 'undefined' && USE_REDIS) {
 	// Server-side execution
 	const redisUrl = IS_RUNTIME ? REDIS_URL : EXT_REDIS_URL
 
-	redisUrl &&
+	if (redisUrl) {
 		import('ioredis').then((Redis) => {
 			console.log('[cache] [connecting to redis]', redisUrl)
 
@@ -24,20 +31,17 @@ if (typeof window === 'undefined' && USE_REDIS) {
 				console.log('[cache] [redis connection error]', e)
 			}
 		})
+	}
 }
 
 export const sluggify = (input: string) => {
-	const slug = decodeURIComponent(input)
-		.toLowerCase()
-		.replace(/[^\w\/]+/g, '-')
-	return slug.replace(/^-+/, '').replace(/-+$/, '')
+	const slug = decodeURIComponent(input).toLowerCase().replace(NON_WORD_SLASH_REGEX, '-')
+	return slug.replace(LEADING_DASH_REGEX, '').replace(TRAILING_DASH_REGEX, '')
 }
 
 export const sluggifyProtocol = (input: string) => {
-	const slug = decodeURIComponent(input)
-		.toLowerCase()
-		.replace(/[^\w\/.]+/g, '-')
-	return slug.replace(/^-+/, '').replace(/-+$/, '')
+	const slug = decodeURIComponent(input).toLowerCase().replace(NON_WORD_SLASH_DOT_REGEX, '-')
+	return slug.replace(LEADING_DASH_REGEX, '').replace(TRAILING_DASH_REGEX, '')
 }
 
 /**

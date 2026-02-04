@@ -14,7 +14,8 @@ import { withPerformanceLogging } from '~/utils/perf'
 const adapterType = ADAPTER_TYPES.FEES
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
-	const data = await getChainsByREVPageData()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const data = await getChainsByREVPageData({ chainMetadata: metadataCache.chainMetadata })
 
 	return {
 		props: data,
@@ -23,6 +24,7 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 })
 
 const pageName = ['Chains', 'ranked by', 'REV']
+const DEFAULT_SORTING_STATE = [{ id: 'total24h', desc: true }]
 
 const REVByChain = (props: IChainsByREVPageData) => {
 	return (
@@ -41,7 +43,7 @@ const REVByChain = (props: IChainsByREVPageData) => {
 				header="Protocol Rankings"
 				rowSize={64}
 				compact
-				sortingState={[{ id: 'total24h', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)
@@ -53,13 +55,12 @@ const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
 		header: 'Name',
 		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
@@ -81,7 +82,6 @@ const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
 		header: 'REV 24h',
 		accessorFn: (protocol) => protocol.total24h,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'center',
 			headerHelperText: definitions.rev.chain['24h']
@@ -93,7 +93,6 @@ const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
 		header: 'REV 30d',
 		accessorFn: (protocol) => protocol.total30d,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'center',
 			headerHelperText: definitions.rev.chain['30d']

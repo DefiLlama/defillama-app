@@ -1,8 +1,8 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 
 // change 'value' for new announcements
 export const ANNOUNCEMENT = {
@@ -53,13 +53,12 @@ export function Announcement({
 	const routeAnnouncementValue = router.pathname + value
 
 	const closeAnnouncement = () => {
-		localStorage.setItem(routeAnnouncementKey, JSON.stringify({ value: routeAnnouncementValue }))
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(routeAnnouncementKey, JSON.stringify({ value: routeAnnouncementValue }))
 	}
 
 	const store = React.useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(routeAnnouncementKey) ?? null,
+		(callback) => subscribeToStorageKey(routeAnnouncementKey, callback),
+		() => getStorageItem(routeAnnouncementKey, null),
 		() => null
 	)
 
@@ -75,7 +74,7 @@ export function Announcement({
 			<span className="flex-1 text-center">{children}</span>
 			{!notCancellable ? (
 				<button
-					className="flex h-6 w-6 flex-shrink-0 items-center justify-center self-start rounded-md hover:bg-(--bg-input)"
+					className="flex h-6 w-6 shrink-0 items-center justify-center self-start rounded-md hover:bg-(--bg-input)"
 					onClick={closeAnnouncement}
 				>
 					<Icon name="x" height={16} width={16} />

@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
+import * as React from 'react'
 import { Announcement } from '~/components/Announcement'
 import { LocalLoader } from '~/components/Loaders'
 import { YieldFiltersV2 } from './Filters'
@@ -7,7 +7,17 @@ import { useFormatYieldQueryParams } from './hooks'
 import { YieldsPoolsTable } from './Tables/Pools'
 import { toFilterPool } from './utils'
 
-const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList, usdPeggedSymbols }) => {
+const YieldPage = ({
+	pools,
+	projectList,
+	chainList,
+	categoryList,
+	tokens,
+	tokenSymbolsList,
+	usdPeggedSymbols,
+	tokenCategories,
+	evmChains
+}) => {
 	const { query, pathname, push } = useRouter()
 
 	const [loading, setLoading] = React.useState(true)
@@ -17,7 +27,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		selectedChains,
 		selectedAttributes,
 		includeTokens,
-		excludeTokens,
+		excludeTokens, // Keep this since token matching is substring-based
 		exactTokens,
 		selectedCategories,
 		pairTokens,
@@ -25,7 +35,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		maxTvl,
 		minApy,
 		maxApy
-	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
+	} = useFormatYieldQueryParams({ projectList, chainList, categoryList, evmChains })
 
 	React.useEffect(() => {
 		const timer = setTimeout(() => setLoading(false), 1000)
@@ -58,6 +68,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		const excludeTokensSet = new Set(excludeTokens.map((token) => token.toLowerCase()))
 		const exact_tokens = exactTokens.map((token) => token.toLowerCase())
 
+		// Selected sets already have excludes filtered out at hook level
 		const selectedProjectsSet = new Set(selectedProjects)
 		const selectedChainsSet = new Set(selectedChains)
 		const selectedCategoriesSet = new Set(selectedCategories)
@@ -78,7 +89,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				minApy,
 				maxApy,
 				pairTokens: pair_tokens,
-				usdPeggedSymbols
+				usdPeggedSymbols,
+				tokenCategories: tokenCategories ?? {}
 			})
 
 			if (toFilter) {
@@ -137,9 +149,10 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		exactTokens,
 		pathname,
 		pairTokens,
-		usdPeggedSymbols
+		usdPeggedSymbols,
+		tokenCategories
 	])
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const headers = [
 			'Pool',
 			'Project',
@@ -207,7 +220,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 			filename: 'yields.csv',
 			rows: [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
 		}
-	}, [poolsData])
+	}
 
 	return (
 		<>
@@ -245,6 +258,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				selectedTokens={includeTokens}
 				chainList={chainList}
 				selectedChains={selectedChains}
+				evmChains={evmChains}
 				projectList={projectList}
 				selectedProjects={selectedProjects}
 				categoryList={categoryList}
@@ -267,6 +281,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				showAvailable={true}
 				showLTV={true}
 				prepareCsv={prepareCsv}
+				showPresetFilters
 			/>
 
 			{loading ? (

@@ -1,12 +1,11 @@
-import { memo, useState } from 'react'
-import { useRouter } from 'next/router'
 import { LegendComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
+import { useRouter } from 'next/router'
+import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { useIsClient } from '~/hooks/useIsClient'
 import { downloadDataURL } from '~/utils'
 
 const IMAGE_EXPORT_WIDTH = 1280
@@ -17,7 +16,7 @@ const approximateTextWidth = (text: string, fontSize: number) => {
 }
 
 interface ChartExportButtonProps {
-	chartInstance: echarts.ECharts | null
+	chartInstance: () => echarts.ECharts | null
 	className?: string
 	smol?: boolean
 	title?: string
@@ -28,7 +27,7 @@ interface ChartExportButtonProps {
 
 echarts.use([LegendComponent])
 
-export const ChartExportButton = memo(function ChartExportButton({
+export function ChartExportButton({
 	chartInstance,
 	className,
 	smol,
@@ -39,14 +38,19 @@ export const ChartExportButton = memo(function ChartExportButton({
 }: ChartExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const router = useRouter()
-	const isClient = useIsClient()
 
 	const [isDark] = useDarkModeManager()
 
 	const handleImageExport = async () => {
-		if (isLoading || !chartInstance) return
+		if (isLoading) return
 
 		try {
+			const _chartInstance = chartInstance()
+
+			if (!_chartInstance) {
+				toast.error('Failed to get chart instnce')
+				return
+			}
 			setIsLoading(true)
 
 			// Create a temporary container for the cloned chart
@@ -67,12 +71,15 @@ export const ChartExportButton = memo(function ChartExportButton({
 				})
 
 				// Get the current options from the original chart
-				const currentOptions = chartInstance.getOption()
+				const currentOptions = _chartInstance.getOption()
 
 				let iconBase64: string | null = null
 				if (iconUrl) {
 					try {
-						const proxyUrl = `/api/protocol-icon?url=${encodeURIComponent(iconUrl)}`
+						const slugMatch = iconUrl.match(/\/protocols\/([^?]+)/)
+						const slug = slugMatch?.[1]
+						if (!slug) throw new Error('Could not extract slug from icon URL')
+						const proxyUrl = `/api/protocol-icon?slug=${encodeURIComponent(slug)}`
 						const response = await fetch(proxyUrl)
 						if (!response.ok) throw new Error('Network response was not ok')
 						const blob = await response.blob()
@@ -170,6 +177,8 @@ export const ChartExportButton = memo(function ChartExportButton({
 				// Handle Sankey chart series - scale up labels for export
 				const isSankeyChart =
 					Array.isArray(currentOptions.series) && currentOptions.series.some((s: any) => s.type === 'sankey')
+				const isPieChart =
+					Array.isArray(currentOptions.series) && currentOptions.series.some((s: any) => s.type === 'pie')
 
 				if (isSankeyChart && Array.isArray(currentOptions.series)) {
 					currentOptions.series = currentOptions.series.map((series: any) => {
@@ -207,10 +216,22 @@ export const ChartExportButton = memo(function ChartExportButton({
 				const legendItemGap = 20
 				const legendFontSize = 24
 				const legendItemWidth = 48
-				const seriesNames: string[] = Array.isArray(currentOptions.series)
-					? currentOptions.series.map((s: any) => s.name || '').filter(Boolean)
-					: []
-				const totalLegendWidth = seriesNames.reduce(
+				const originalLegendShow = legendArray.length > 0 ? legendArray.some((l: any) => l?.show !== false) : false
+				const shouldShowLegendForExport = !isSankeyChart && (!isPieChart || originalLegendShow)
+
+				// Legend sizing needs legend item names, not series names (pie legend uses data item names).
+				const legendItems: string[] =
+					legendArray.length > 0 && Array.isArray(legendArray[0]?.data)
+						? legendArray[0].data.filter((x: any) => typeof x === 'string')
+						: isPieChart && Array.isArray(currentOptions.series)
+							? currentOptions.series
+									.filter((s: any) => s.type === 'pie')
+									.flatMap((s: any) => (Array.isArray(s.data) ? s.data.map((d: any) => d?.name).filter(Boolean) : []))
+							: Array.isArray(currentOptions.series)
+								? currentOptions.series.map((s: any) => s.name || '').filter(Boolean)
+								: []
+
+				const totalLegendWidth = legendItems.reduce(
 					(total, name) => total + approximateTextWidth(name, legendFontSize) + legendItemWidth + legendItemGap,
 					0
 				)
@@ -218,9 +239,7 @@ export const ChartExportButton = memo(function ChartExportButton({
 				// If there is no legend on the original chart, we'll still be adding one
 				// below (scroll legend), so treat "has legend" based on either existing
 				// legend config or presence of series.
-				const hasLegend =
-					legendArray.length > 0 ||
-					(Array.isArray(currentOptions.series) ? currentOptions.series.length > 0 : !!currentOptions.series)
+				const hasLegend = shouldShowLegendForExport
 
 				const availableWidth = IMAGE_EXPORT_WIDTH - 32
 				let legendRows = 1
@@ -266,6 +285,30 @@ export const ChartExportButton = memo(function ChartExportButton({
 					}
 				}
 
+				// Pie charts frequently show labels when legend is hidden. The export code used to
+				// force-show a legend, which could cause the exported image to show BOTH labels and
+				// legend at once, overlapping. Keep pie legend behavior consistent with the chart:
+				// only show a legend if the original chart did, and hide labels when a legend is shown.
+				if (isPieChart && shouldShowLegendForExport && Array.isArray(currentOptions.series)) {
+					currentOptions.series = currentOptions.series.map((series: any) => {
+						if (series?.type !== 'pie') return series
+
+						const existingLabelLayout = series.labelLayout
+						const nextLabelLayout =
+							typeof existingLabelLayout === 'function'
+								? existingLabelLayout
+								: { ...(existingLabelLayout ?? {}), hideOverlap: true }
+
+						return {
+							...series,
+							avoidLabelOverlap: true,
+							labelLayout: nextLabelLayout,
+							label: { ...(series.label ?? {}), show: false },
+							labelLine: { ...(series.labelLine ?? {}), show: false }
+						}
+					})
+				}
+
 				currentOptions.title = {
 					text: iconBase64 ? `{icon|} ${title}` : title,
 					textStyle: {
@@ -292,7 +335,7 @@ export const ChartExportButton = memo(function ChartExportButton({
 				tempChart.setOption(currentOptions)
 
 				// Only set legend for non-Sankey charts (Sankey doesn't use legends)
-				if (!isSankeyChart) {
+				if (shouldShowLegendForExport) {
 					tempChart.setOption({
 						legend: {
 							show: true,
@@ -365,22 +408,15 @@ export const ChartExportButton = memo(function ChartExportButton({
 		}
 	}
 
-	const baseClassName =
-		className ??
-		'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md px-1.5 py-1 text-xs disabled:text-(--text-disabled)'
-
-	// temporary change to attract attention to the button
-	const highlightClassName = '!border-1 !border-blue-500 !text-blue-500 hover:!text-white focus-visible:!text-white'
-
 	return (
 		<>
 			<button
 				data-umami-event="image-export"
 				data-umami-event-page={router.pathname}
-				className={`${baseClassName} ${highlightClassName}`}
+				className={`${className ?? 'flex items-center gap-1 rounded-md px-1.5 py-1 text-xs hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue disabled:text-(--text-disabled)'} !border-1 !border-blue-500 !text-blue-500 hover:!text-white focus-visible:!text-white`}
 				onClick={handleImageExport}
-				data-loading={isClient ? isLoading : true}
-				disabled={isClient ? isLoading || !chartInstance : true}
+				data-loading={isLoading}
+				disabled={isLoading}
 				title="Download chart as image"
 			>
 				{isLoading ? <LoadingSpinner size={12} /> : <Icon name="download-paper" height={12} width={12} />}
@@ -388,4 +424,4 @@ export const ChartExportButton = memo(function ChartExportButton({
 			</button>
 		</>
 	)
-})
+}

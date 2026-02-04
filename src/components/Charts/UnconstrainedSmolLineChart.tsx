@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useId } from 'react'
 import { LineChart } from 'echarts/charts'
 import { GridComponent, MarkLineComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
-import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
+import { useEffect, useId, useRef } from 'react'
+import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
 
 echarts.use([SVGRenderer, LineChart, TooltipComponent, GridComponent, MarkLineComponent])
@@ -23,16 +24,20 @@ export function UnconstrainedSmolLineChart({
 }) {
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-		return instance || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
-	}, [id])
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	useEffect(() => {
 		if (!series?.length || series.length < 8) return
 
-		const chartInstance = createInstance()
-		chartInstance.setOption({
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'svg' })
+		chartRef.current = instance
+
+		instance.setOption({
 			animation: false,
 			grid: {
 				left: 0,
@@ -180,17 +185,11 @@ export function UnconstrainedSmolLineChart({
 			}
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			instance.dispose()
+			chartRef.current = null
 		}
-	}, [createInstance, series, color, isThemeDark, name, extraData.lastEvent])
+	}, [id, series, color, isThemeDark, name, extraData?.lastEvent])
 
 	return (
 		<div className="relative overflow-visible">

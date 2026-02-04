@@ -1,4 +1,3 @@
-import { useCallback, useContext, useEffect } from 'react'
 import { BarChart } from 'echarts/charts'
 import {
 	DataZoomComponent,
@@ -9,9 +8,11 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useContext, useEffect, useRef } from 'react'
 import { LiquidationsContext } from '~/containers/Liquidations/context'
 import { ChartData } from '~/containers/Liquidations/utils'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
 import { getOption, useStackBy } from './utils'
 
@@ -34,32 +35,28 @@ export const LiquidationsChart = ({ chartData, uid, bobo }: { chartData: ChartDa
 	const stackBy = useStackBy()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 	const [isDark] = useDarkModeManager()
+	const chartRef = useRef<echarts.ECharts | null>(null)
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(uid))
-		return instance || echarts.init(document.getElementById(uid))
-	}, [uid])
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	useEffect(() => {
 		setSelectedSeries(null)
-		const chartInstance = createInstance()
+		const el = document.getElementById(uid)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
 		const option = getOption(chartData, stackBy, isSmall, isDark, isLiqsUsingUsd, isLiqsCumulative)
-		chartInstance.on('legendselectchanged', (params: any) => {
+		instance.on('legendselectchanged', (params: any) => {
 			setSelectedSeries(params.selected)
 		})
-		chartInstance.setOption(option)
-
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
+		instance.setOption(option)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [uid, chartData, createInstance, stackBy, isSmall, isDark, setSelectedSeries, isLiqsUsingUsd, isLiqsCumulative])
+	}, [uid, chartData, stackBy, isSmall, isDark, setSelectedSeries, isLiqsUsingUsd, isLiqsCumulative])
 
 	return (
 		<>

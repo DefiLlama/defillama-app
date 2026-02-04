@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useRouter } from 'next/router'
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { toNiceDayMonthAndYear, toNiceDayMonthAndYearAndTime } from '~/utils'
 
@@ -107,7 +107,7 @@ export const DateFilter = ({ startDate, endDate }) => {
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className="max-sm:drawer z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
+				className="z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:drawer max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 			>
 				<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 					<Icon name="x" className="h-5 w-5" />
@@ -146,7 +146,7 @@ export const DateFilter = ({ startDate, endDate }) => {
 							<input
 								type="date"
 								name="startDate"
-								className="h-9 w-full cursor-pointer rounded-md border border-(--form-control-border) bg-white px-3 py-1 text-black disabled:opacity-50 dark:bg-black dark:text-white dark:[color-scheme:dark]"
+								className="h-9 w-full cursor-pointer rounded-md border border-(--form-control-border) bg-white px-3 py-1 text-black disabled:opacity-50 dark:bg-black dark:text-white dark:scheme-dark"
 								value={localStartDate}
 								max={maxDate}
 								onChange={handleStartDateChange}
@@ -173,7 +173,7 @@ export const DateFilter = ({ startDate, endDate }) => {
 							<input
 								type="date"
 								name="endDate"
-								className="h-9 w-full cursor-pointer rounded-md border border-(--form-control-border) bg-white px-3 py-1 text-black disabled:opacity-50 dark:bg-black dark:text-white dark:[color-scheme:dark]"
+								className="h-9 w-full cursor-pointer rounded-md border border-(--form-control-border) bg-white px-3 py-1 text-black disabled:opacity-50 dark:bg-black dark:text-white dark:scheme-dark"
 								value={localEndDate}
 								max={maxDate}
 								onChange={handleEndDateChange}
@@ -198,7 +198,7 @@ export const DateFilter = ({ startDate, endDate }) => {
 						<div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row">
 							<button
 								type="reset"
-								className="inline-flex h-9 w-full items-center justify-center rounded-md bg-black/5 px-4 text-sm font-medium whitespace-nowrap transition-colors hover:bg-black/10 disabled:opacity-50 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 dark:focus-visible:bg-white/20"
+								className="inline-flex h-9 w-full items-center justify-center rounded-md bg-black/5 px-4 text-sm font-medium whitespace-nowrap hover:bg-black/10 disabled:opacity-50 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 dark:focus-visible:bg-white/20"
 							>
 								Clear
 							</button>

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { useEffect } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BridgeVolumeChart } from '~/components/Charts/BridgeVolumeChart'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -9,6 +8,7 @@ import { BridgesTable } from '~/components/Table/Bridges'
 import { ChartSelector } from '~/containers/Bridges/ChartSelector'
 import { LargeTxsTable } from '~/containers/Bridges/LargeTxsTable'
 import { useBuildBridgeChartData } from '~/containers/Bridges/utils'
+import { useDebounce } from '~/hooks/useDebounce'
 import { formattedNum, getPrevVolumeFromChart, toNiceCsvDate } from '~/utils'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -17,62 +17,44 @@ const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as Re
 
 const NetflowChart = React.lazy(() => import('~/components/ECharts/BarChart/NetflowChart')) as React.FC<any>
 
+const NET_FLOW_LEGEND_OPTIONS: string[] = ['Net Flow']
+const INFLOWS_OUTFLOWS_LEGEND_OPTIONS: string[] = ['Inflows', 'Outflows']
+const INFLOWS_OUTFLOWS_STACKS = { Inflows: 'stackA', Outflows: 'stackA' }
+const BRIDGE_CHAIN_CHART_OPTIONS = [
+	'Bridge Volume',
+	'Net Flow',
+	'Net Flow (%)',
+	'Inflows',
+	'24h Tokens Deposited',
+	'24h Tokens Withdrawn'
+]
+const EMPTY_CHAINS: string[] = []
+const EMPTY_PROTOCOLS: any[] = []
+
+const handleRouting = (selectedChain: string) => {
+	if (selectedChain === 'All') return `/bridges`
+	return `/bridges/${selectedChain}`
+}
+
 export function BridgesOverviewByChain({
 	selectedChain = 'All',
-	chains = [],
+	chains = EMPTY_CHAINS,
 	filteredBridges,
-	messagingProtocols = [],
-	bridgeNames,
+	messagingProtocols = EMPTY_PROTOCOLS,
+	bridgeNames: _bridgeNames,
 	bridgeNameToChartDataIndex,
 	chartDataByBridge,
 	chainVolumeData,
 	bridgeStatsCurrentDay,
 	largeTxsData
 }) {
-	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
 	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Volumes' : 'Bridge Volume')
 	const [chartView, setChartView] = React.useState<'default' | 'netflow' | 'volume'>('netflow')
 	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging' | 'largeTxs'>('bridges')
 	const [searchValue, setSearchValue] = React.useState('')
+	const debouncedSearchValue = useDebounce(searchValue, 200)
 
-	useEffect(() => {
-		setChartView('netflow')
-	}, [])
-
-	const handleRouting = (selectedChain) => {
-		if (selectedChain === 'All') return `/bridges`
-		return `/bridges/${selectedChain}`
-	}
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
-
-	const chartData = React.useMemo(() => {
-		const secondsOffset = 3600 * 12 * 1000 // added 12 hours so date will match charts that use unix timestamp
-		if (enableBreakdownChart) {
-			let unformattedChartData = {}
-			bridgeNames.map((name) => {
-				const chartDataIndex = bridgeNameToChartDataIndex[name]
-				const charts = chartDataByBridge[chartDataIndex]
-				charts.map((chart) => {
-					const date = chart.date
-					const volume = chart.volume
-					unformattedChartData[date] = unformattedChartData[date] || {}
-					unformattedChartData[date][name] = volume
-				})
-			})
-			const chartDates = Object.keys(unformattedChartData)
-			return bridgeNames
-				.map((name) => {
-					return {
-						name: name,
-						data: chartDates.map((date) => [
-							new Date(parseInt(date) * 1000 + secondsOffset),
-							unformattedChartData[date][name] ?? 0
-						])
-					}
-				})
-				.filter((chart) => chart.data.length !== 0)
-		} else return chainVolumeData.map((chart) => [new Date(chart.date * 1000 + secondsOffset), chart.volume])
-	}, [bridgeNames, bridgeNameToChartDataIndex, chartDataByBridge, chainVolumeData, enableBreakdownChart])
 
 	const { tokenDeposits, tokenWithdrawals } = useBuildBridgeChartData(bridgeStatsCurrentDay)
 
@@ -95,8 +77,10 @@ export function BridgesOverviewByChain({
 		})
 	}, [chainVolumeData])
 
-	const prepareCsv = React.useCallback(() => {
-		const allBridges = [...(filteredBridges || []), ...(messagingProtocols || [])]
+	const prepareCsv = () => {
+		const resolvedFilteredBridges = filteredBridges ?? EMPTY_PROTOCOLS
+		const resolvedMessagingProtocols = messagingProtocols ?? EMPTY_PROTOCOLS
+		const allBridges = [...resolvedFilteredBridges, ...resolvedMessagingProtocols]
 		const allBridgeNames = allBridges.map((bridge) => bridge.displayName)
 
 		const filteredBridgeNames = allBridgeNames.filter((bridgeName) => {
@@ -108,88 +92,104 @@ export function BridgesOverviewByChain({
 		const fileName = 'bridge-and-messaging-volumes.csv'
 		const rows = [['Timestamp', 'Date', ...filteredBridgeNames, 'Total']]
 		let stackedDatasetObject = {} as any
-		filteredBridgeNames.map((bridgeName) => {
+		for (const bridgeName of filteredBridgeNames) {
 			const chartDataIndex = bridgeNameToChartDataIndex[bridgeName]
 			const charts = chartDataByBridge[chartDataIndex]
-			charts.map((chart) => {
+			for (const chart of charts) {
 				const date = chart.date
 				stackedDatasetObject[date] = stackedDatasetObject[date] || {}
 				stackedDatasetObject[date][bridgeName] = chart.volume
-			})
-		})
+			}
+		}
 		const stackedData = Object.entries(stackedDatasetObject).map((data: [string, object]) => {
 			return { date: parseInt(data[0]), ...data[1] }
 		})
-		stackedData
-			.sort((a, b) => a.date - b.date)
-			.forEach((day) => {
-				rows.push([
-					day.date,
-					toNiceCsvDate(day.date),
-					...filteredBridgeNames.map((chain) => day[chain] ?? ''),
-					filteredBridgeNames.reduce((acc, curr) => {
-						return (acc += day[curr] ?? 0)
-					}, 0)
-				])
-			})
-
-		return { filename: fileName, rows }
-	}, [filteredBridges, messagingProtocols, bridgeNameToChartDataIndex, chartDataByBridge])
-
-	const prepareChartCsv = React.useCallback(() => {
-		let rows = []
-		let fileName = 'bridge-chart-data.csv'
-
-		if (selectedChain === 'All' && chartView === 'volume') {
-			fileName = 'bridge-volume-data.csv'
-			// For volume chart
-			rows = [['Timestamp', 'Date', 'Volume']]
-			chainVolumeData.forEach((entry) => {
-				rows.push([entry.date, toNiceCsvDate(entry.date), entry.volume])
-			})
-		} else if (chartType === 'Bridge Volume') {
-			fileName = `${selectedChain}-bridge-volume.csv`
-			rows = [['Timestamp', 'Date', 'Volume']]
-			chainVolumeData.forEach((entry) => {
-				rows.push([entry.date, toNiceCsvDate(entry.date), entry.volume])
-			})
-		} else if (chartType === 'Net Flow') {
-			fileName = `${selectedChain}-netflow.csv`
-			rows = [['Timestamp', 'Date', 'Net Flow']]
-			chainNetFlowData.forEach((entry) => {
-				rows.push([entry.date, toNiceCsvDate(entry.date), entry['Net Flow']])
-			})
-		} else if (chartType === 'Net Flow (%)') {
-			fileName = `${selectedChain}-netflow-percentage.csv`
-			rows = [['Timestamp', 'Date', 'Inflows (%)', 'Outflows (%)']]
-			chainPercentageNet.forEach((entry) => {
-				rows.push([entry.date, toNiceCsvDate(entry.date), entry.Inflows, entry.Outflows])
-			})
-		} else if (chartType === '24h Tokens Deposited') {
-			fileName = `${selectedChain}-tokens-deposited.csv`
-			rows = [['Token', 'Amount']]
-			tokenDeposits.forEach((entry) => {
-				rows.push([entry.name, entry.value])
-			})
-		} else if (chartType === '24h Tokens Withdrawn') {
-			fileName = `${selectedChain}-tokens-withdrawn.csv`
-			rows = [['Token', 'Amount']]
-			tokenWithdrawals.forEach((entry) => {
-				rows.push([entry.name, entry.value])
-			})
+		const sortedStackedData = stackedData.sort((a, b) => a.date - b.date)
+		for (const day of sortedStackedData) {
+			rows.push([
+				day.date,
+				toNiceCsvDate(day.date),
+				...filteredBridgeNames.map((chain) => day[chain] ?? ''),
+				filteredBridgeNames.reduce((acc, curr) => {
+					return (acc += day[curr] ?? 0)
+				}, 0)
+			])
 		}
 
 		return { filename: fileName, rows }
-	}, [
-		selectedChain,
-		chartView,
-		chartType,
-		chainVolumeData,
-		chainNetFlowData,
-		chainPercentageNet,
-		tokenDeposits,
-		tokenWithdrawals
-	])
+	}
+
+	const prepareChartCsv = () => {
+		type CsvConfig = {
+			filename: string
+			headers: string[]
+			getData: () => Array<(string | number)[]>
+		}
+
+		const getChartCsvConfig = (): CsvConfig => {
+			// Handle "All chains" volume view
+			if (selectedChain === 'All' && chartView === 'volume') {
+				return {
+					filename: 'bridge-volume-data.csv',
+					headers: ['Timestamp', 'Date', 'Volume'],
+					getData: () => chainVolumeData.map((entry) => [entry.date, toNiceCsvDate(entry.date), entry.volume])
+				}
+			}
+
+			// Handle specific chart types
+			switch (chartType) {
+				case 'Bridge Volume':
+					return {
+						filename: `${selectedChain}-bridge-volume.csv`,
+						headers: ['Timestamp', 'Date', 'Volume'],
+						getData: () => chainVolumeData.map((entry) => [entry.date, toNiceCsvDate(entry.date), entry.volume])
+					}
+				case 'Net Flow':
+					return {
+						filename: `${selectedChain}-netflow.csv`,
+						headers: ['Timestamp', 'Date', 'Net Flow'],
+						getData: () => chainNetFlowData.map((entry) => [entry.date, toNiceCsvDate(entry.date), entry['Net Flow']])
+					}
+				case 'Net Flow (%)':
+					return {
+						filename: `${selectedChain}-netflow-percentage.csv`,
+						headers: ['Timestamp', 'Date', 'Inflows (%)', 'Outflows (%)'],
+						getData: () =>
+							chainPercentageNet.map((entry) => [entry.date, toNiceCsvDate(entry.date), entry.Inflows, entry.Outflows])
+					}
+				case '24h Tokens Deposited':
+					return {
+						filename: `${selectedChain}-tokens-deposited.csv`,
+						headers: ['Token', 'Amount'],
+						getData: () => tokenDeposits.map((entry) => [entry.name, entry.value])
+					}
+				case '24h Tokens Withdrawn':
+					return {
+						filename: `${selectedChain}-tokens-withdrawn.csv`,
+						headers: ['Token', 'Amount'],
+						getData: () => tokenWithdrawals.map((entry) => [entry.name, entry.value])
+					}
+				case 'Inflows':
+					return {
+						filename: `${selectedChain}-inflows.csv`,
+						headers: ['Timestamp', 'Date', 'Volume'],
+						getData: () => chainVolumeData.map((entry) => [entry.date, toNiceCsvDate(entry.date), entry.volume])
+					}
+				default:
+					return {
+						filename: 'bridge-chart-data.csv',
+						headers: [],
+						getData: () => []
+					}
+			}
+		}
+
+		const config = getChartCsvConfig()
+		return {
+			filename: config.filename,
+			rows: config.headers.length > 0 ? [config.headers, ...config.getData()] : []
+		}
+	}
 
 	const { dayTotalVolume, weekTotalVolume, monthTotalVolume } = React.useMemo(() => {
 		let dayTotalVolume, weekTotalVolume, monthTotalVolume
@@ -198,11 +198,11 @@ export function BridgesOverviewByChain({
 		const bridgesToCalculate = activeTab === 'bridges' ? filteredBridges : messagingProtocols
 
 		if (bridgesToCalculate) {
-			bridgesToCalculate?.forEach((bridge) => {
+			for (const bridge of bridgesToCalculate ?? []) {
 				dayTotalVolume += Number(bridge?.lastDailyVolume) || 0
 				weekTotalVolume += Number(bridge?.weeklyVolume) || 0
 				monthTotalVolume += Number(bridge?.monthlyVolume) || 0
-			})
+			}
 		} else {
 			for (let i = 1; i < 31; i++) {
 				const dailyVolume = getPrevVolumeFromChart(chainVolumeData, i, false, selectedChain !== 'All')
@@ -271,18 +271,7 @@ export function BridgesOverviewByChain({
 					) : (
 						<>
 							<div className="flex items-center justify-between overflow-x-auto p-3">
-								<ChartSelector
-									options={[
-										'Bridge Volume',
-										'Net Flow',
-										'Net Flow (%)',
-										'Inflows',
-										'24h Tokens Deposited',
-										'24h Tokens Withdrawn'
-									]}
-									selectedChart={chartType}
-									onClick={setChartType}
-								/>
+								<ChartSelector options={BRIDGE_CHAIN_CHART_OPTIONS} selectedChart={chartType} onClick={setChartType} />
 							</div>
 							{chartType === 'Bridge Volume' && (
 								<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="360px" />
@@ -294,7 +283,7 @@ export function BridgesOverviewByChain({
 										title=""
 										hideDefaultLegend={true}
 										customLegendName="Volume"
-										customLegendOptions={['Net Flow']}
+										customLegendOptions={NET_FLOW_LEGEND_OPTIONS}
 									/>
 								</React.Suspense>
 							)}
@@ -304,10 +293,10 @@ export function BridgesOverviewByChain({
 										chartData={chainPercentageNet}
 										title=""
 										valueSymbol="%"
-										stacks={{ Inflows: 'stackA', Outflows: 'stackA' }}
+										stacks={INFLOWS_OUTFLOWS_STACKS}
 										hideDefaultLegend={true}
 										customLegendName="Volume"
-										customLegendOptions={['Inflows', 'Outflows']}
+										customLegendOptions={INFLOWS_OUTFLOWS_LEGEND_OPTIONS}
 									/>
 								</React.Suspense>
 							)}
@@ -375,7 +364,7 @@ export function BridgesOverviewByChain({
 							value={searchValue}
 							onChange={(e) => setSearchValue(e.target.value)}
 							placeholder="Search..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
 				</div>
@@ -385,17 +374,10 @@ export function BridgesOverviewByChain({
 				) : (
 					<BridgesTable
 						data={activeTab === 'bridges' ? filteredBridges : messagingProtocols}
-						searchValue={searchValue}
-						onSearchChange={setSearchValue}
+						searchValue={debouncedSearchValue}
 					/>
 				)}
 			</div>
 		</>
 	)
-}
-
-const volumeChartOptions = {
-	overrides: {
-		inflow: true
-	}
 }

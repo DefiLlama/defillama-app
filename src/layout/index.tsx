@@ -61,13 +61,7 @@ function Layout({
 	)
 }
 
-const MetricFilters = React.memo(function MetricFilters({
-	options,
-	label
-}: {
-	options: { name: string; key: string }[]
-	label?: string
-}) {
+function MetricFilters({ options, label }: { options: { name: string; key: string }[]; label?: string }) {
 	const { selectedValues, setSelectedValues } = useProtocolsFilterState(options)
 
 	return (
@@ -76,9 +70,6 @@ const MetricFilters = React.memo(function MetricFilters({
 				allValues={options}
 				selectedValues={selectedValues}
 				setSelectedValues={setSelectedValues}
-				selectOnlyOne={(newOption) => {
-					setSelectedValues([newOption])
-				}}
 				label={label || 'Include in TVL'}
 				triggerProps={{
 					className:
@@ -88,9 +79,9 @@ const MetricFilters = React.memo(function MetricFilters({
 			/>
 		</>
 	)
-})
+}
 
-export default React.memo(Layout)
+export default Layout
 
 // sidebar + gap between nav & main + padding right
 // 228px + 4px + 16px = 248px

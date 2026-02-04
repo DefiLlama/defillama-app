@@ -76,6 +76,8 @@ const inflowsChartOptions = {
 const MCAP_STACKS = ['Mcap']
 const CIRC_STACKS = ['Circulating']
 const EMPTY_HALLMARKS: [number, string][] = []
+const EMPTY_CHAIN_LIST: StablecoinChainInfo[] = []
+const EMPTY_ASSET_LIST: StablecoinAssetInfo[] = []
 
 export function StablecoinsChartTab({
 	selectedStablecoinChain,
@@ -91,19 +93,21 @@ export function StablecoinsChartTab({
 	onSelectedStablecoinAssetIdChange,
 	onSelectedStablecoinAssetChartTypeChange
 }: StablecoinsChartTabProps) {
-	const { data: chainsList = [], isLoading: chainsLoading } = useStablecoinChainsList()
-	const { data: assetsList = [], isLoading: assetsLoading } = useStablecoinAssetsList()
+	const { data: chainsListData, isLoading: chainsLoading } = useStablecoinChainsList()
+	const { data: assetsListData, isLoading: assetsLoading } = useStablecoinAssetsList()
+	const chainsList = chainsListData ?? EMPTY_CHAIN_LIST
+	const assetsList = assetsListData ?? EMPTY_ASSET_LIST
 
 	const chainOptions: VirtualizedSelectOption[] = useMemo(() => {
 		const options: VirtualizedSelectOption[] = [{ value: 'All', label: 'All Chains', icon: '🌐' }]
-		;(chainsList as StablecoinChainInfo[]).forEach((chain) => {
+		for (const chain of chainsList as StablecoinChainInfo[]) {
 			options.push({
 				value: chain.name,
 				label: chain.name,
 				logo: chainIconUrl(chain.name),
 				description: formattedNum(chain.tvl, true)
 			})
-		})
+		}
 		return options
 	}, [chainsList])
 
@@ -144,9 +148,9 @@ export function StablecoinsChartTab({
 
 	const assetChainColors = useMemo(() => {
 		const colors: Record<string, string> = {}
-		chainsUnique.forEach((chain) => {
+		for (const chain of chainsUnique) {
 			colors[chain] = colorManager.getItemColor(chain, 'chain')
-		})
+		}
 		return colors
 	}, [chainsUnique])
 
@@ -463,32 +467,32 @@ export function StablecoinsChartTab({
 					</>
 				)}
 
-				<div className="pro-text3 text-xs">
+				<div className="text-xs pro-text3">
 					{stablecoinMode === 'chain' && totalMcapCurrent !== null && (
 						<p>
-							Total Market Cap: <span className="pro-text1 font-semibold">{formattedNum(totalMcapCurrent, true)}</span>
+							Total Market Cap: <span className="font-semibold pro-text1">{formattedNum(totalMcapCurrent, true)}</span>
 						</p>
 					)}
 					{stablecoinMode === 'asset' && totalCirculating !== null && (
 						<p>
-							Total Circulating: <span className="pro-text1 font-semibold">{formattedNum(totalCirculating, true)}</span>
+							Total Circulating: <span className="font-semibold pro-text1">{formattedNum(totalCirculating, true)}</span>
 						</p>
 					)}
 				</div>
 			</div>
 
-			<div className="pro-border overflow-hidden rounded-lg border">
-				<div className="pro-text2 border-b border-(--cards-border) px-3 py-2 text-xs font-medium">Preview</div>
+			<div className="overflow-hidden rounded-lg border pro-border">
+				<div className="border-b border-(--cards-border) px-3 py-2 text-xs font-medium pro-text2">Preview</div>
 
 				{(stablecoinMode === 'chain' && hasChainSelection) || (stablecoinMode === 'asset' && hasAssetSelection) ? (
 					<div className="bg-(--cards-bg) p-3">
 						<div className="mb-3">
-							<h3 className="pro-text1 mb-1 text-sm font-semibold">
+							<h3 className="mb-1 text-sm font-semibold pro-text1">
 								{stablecoinMode === 'chain'
 									? `${selectedStablecoinChain === 'All' ? 'All Chains' : selectedStablecoinChain} - ${chartTypeLabel}`
 									: `${stablecoinName || selectedStablecoinAsset}${stablecoinSymbol ? ` (${stablecoinSymbol})` : ''} - ${chartTypeLabel}`}
 							</h3>
-							<p className="pro-text2 text-xs">
+							<p className="text-xs pro-text2">
 								{stablecoinMode === 'chain' ? 'Stablecoins Market Cap' : 'Circulating by Chain'}
 							</p>
 						</div>
@@ -496,7 +500,7 @@ export function StablecoinsChartTab({
 						<div className="h-[320px]">{stablecoinMode === 'chain' ? renderChainChart() : renderAssetChart()}</div>
 					</div>
 				) : (
-					<div className="pro-text3 flex h-[320px] items-center justify-center text-center">
+					<div className="flex h-[320px] items-center justify-center text-center pro-text3">
 						<div>
 							<Icon name="dollar-sign" height={32} width={32} className="mx-auto mb-1" />
 							<div className="text-xs">

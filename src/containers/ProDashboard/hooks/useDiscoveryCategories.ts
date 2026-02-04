@@ -2,6 +2,8 @@ import { useQueries } from '@tanstack/react-query'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
 
+const EMPTY_DASHBOARDS: Dashboard[] = []
+
 interface CategoryConfig {
 	key: string
 	title: string
@@ -46,13 +48,14 @@ export function useDiscoveryCategories() {
 	})
 
 	const categories: Record<string, CategoryData> = {}
-	CATEGORIES.forEach((category, index) => {
+	for (let index = 0; index < CATEGORIES.length; index++) {
+		const category = CATEGORIES[index]
 		categories[category.key] = {
-			dashboards: queries[index].data?.items || [],
+			dashboards: queries[index].data?.items ?? EMPTY_DASHBOARDS,
 			isLoading: queries[index].isLoading,
 			error: queries[index].error as Error | null
 		}
-	})
+	}
 
 	return {
 		categories,

@@ -1,17 +1,12 @@
-import { useMemo } from 'react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
+import type { MultiSelectOption } from '~/components/selectTypes'
 import { LoadingSpinner } from './LoadingSpinner'
-
-export interface MultiSelectOption {
-	value: string
-	label: string
-	disabled?: boolean
-}
 
 interface AriakitMultiSelectProps {
 	label: string
-	options: MultiSelectOption[]
+	options: ReadonlyArray<MultiSelectOption>
 	selectedValues: string[]
 	onChange: (values: string[]) => void
 	placeholder?: string
@@ -59,10 +54,10 @@ export function AriakitMultiSelect({
 
 	return (
 		<div className={className}>
-			<label className="pro-text2 mb-1 block text-[11px] font-medium">
+			<label className="mb-1 block text-[11px] font-medium pro-text2">
 				{label}
 				{selectedValues.length > 0 && (
-					<span className="pro-text3 ml-1 text-xs">
+					<span className="ml-1 text-xs pro-text3">
 						({selectedValues.length}
 						{maxSelections < 100 && `/${maxSelections}`})
 					</span>
@@ -79,7 +74,7 @@ export function AriakitMultiSelect({
 						className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					>
 						<span className={`truncate ${selectedValues.length > 0 ? 'pro-text1' : 'pro-text3'}`}>{buttonLabel}</span>
-						<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+						<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 					</PopoverDisclosure>
 					<Popover
 						store={popover}
@@ -93,7 +88,7 @@ export function AriakitMultiSelect({
 						<div className="p-1">
 							<div className="thin-scrollbar max-h-[280px] overflow-y-auto">
 								{options.length === 0 && (
-									<div className="pro-text3 px-3 py-2 text-center text-xs">No options available.</div>
+									<div className="px-3 py-2 text-center text-xs pro-text3">No options available.</div>
 								)}
 								{options.map((option) => {
 									const isActive = selectedValues.includes(option.value)
@@ -110,15 +105,15 @@ export function AriakitMultiSelect({
 											disabled={isDisabled}
 											className={`flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs transition-colors ${
 												isDisabled
-													? 'pro-text3 cursor-not-allowed opacity-50'
+													? 'cursor-not-allowed pro-text3 opacity-50'
 													: isActive
 														? 'bg-(--primary)/10 text-(--primary)'
 														: 'pro-text2 hover:bg-(--cards-bg-alt)'
 											}`}
 										>
 											<div
-												className={`flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-sm border transition-colors ${
-													isActive ? 'border-(--primary) bg-(--primary)' : 'pro-border border'
+												className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border transition-colors ${
+													isActive ? 'border-(--primary) bg-(--primary)' : 'border pro-border'
 												}`}
 											>
 												{isActive && <Icon name="check" width={10} height={10} className="text-white" />}
@@ -129,11 +124,11 @@ export function AriakitMultiSelect({
 								})}
 							</div>
 							{selectedValues.length > 0 && (
-								<div className="pro-border mt-1 border-t pt-1">
+								<div className="mt-1 border-t pro-border pt-1">
 									<button
 										type="button"
 										onClick={clearAll}
-										className="pro-text3 hover:pro-text1 w-full rounded-md px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-(--cards-bg-alt)"
+										className="w-full rounded-md px-2.5 py-1.5 text-left text-xs pro-text3 transition-colors hover:bg-(--cards-bg-alt) hover:pro-text1"
 									>
 										Clear all
 									</button>

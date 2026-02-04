@@ -15,6 +15,7 @@ import {
 	ChartBuilderConfig,
 	ChartConfig,
 	DashboardItemConfig,
+	IncomeStatementConfig,
 	LlamaAIChartConfig,
 	MetricConfig,
 	MultiChartConfig,
@@ -27,6 +28,8 @@ import {
 	TableFilters,
 	TextConfig,
 	UnifiedTableConfig,
+	UnlocksScheduleConfig,
+	UnlocksPieConfig,
 	YieldsChartConfig
 } from './types'
 import { generateItemId } from './utils/dashboardUtils'
@@ -70,7 +73,14 @@ export function useDashboardActions(
 	)
 
 	const handleAddChart = useCallback(
-		(item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null, color?: string) => {
+		(
+			item: string,
+			chartType: string,
+			itemType: 'chain' | 'protocol',
+			geckoId?: string | null,
+			color?: string,
+			dataType?: 'documented' | 'realtime'
+		) => {
 			if (isReadOnlyUntilDashboardLoaded) return
 
 			const newChartId = generateItemId(chartType, item)
@@ -81,7 +91,8 @@ export function useDashboardActions(
 				kind: 'chart',
 				type: chartType,
 				colSpan: 1,
-				color
+				color,
+				dataType
 			}
 
 			if (chartTypeDetails?.groupable) {
@@ -105,6 +116,42 @@ export function useDashboardActions(
 			}
 
 			dispatchItemsAndSave((prev) => [...prev, newChart])
+		},
+		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
+	)
+
+	const handleAddUnlocksSchedule = useCallback(
+		(protocol: string, protocolName: string) => {
+			if (isReadOnlyUntilDashboardLoaded) return
+
+			const newUnlocksSchedule: UnlocksScheduleConfig = {
+				id: generateItemId('unlocks-schedule', protocol),
+				kind: 'unlocks-schedule',
+				protocol,
+				protocolName,
+				dataType: 'documented',
+				colSpan: 2
+			}
+
+			dispatchItemsAndSave((prev) => [...prev, newUnlocksSchedule])
+		},
+		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
+	)
+
+	const handleAddUnlocksPie = useCallback(
+		(protocol: string, protocolName: string, chartType: 'allocation' | 'locked-unlocked') => {
+			if (isReadOnlyUntilDashboardLoaded) return
+
+			const newUnlocksPie: UnlocksPieConfig = {
+				id: generateItemId('unlocks-pie', `${protocol}-${chartType}`),
+				kind: 'unlocks-pie',
+				protocol,
+				protocolName,
+				chartType,
+				colSpan: 1
+			}
+
+			dispatchItemsAndSave((prev) => [...prev, newUnlocksPie])
 		},
 		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
 	)
@@ -196,6 +243,23 @@ export function useDashboardActions(
 			}
 
 			dispatchItemsAndSave((prev) => [...prev, newBorrowedChart])
+		},
+		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
+	)
+
+	const handleAddIncomeStatement = useCallback(
+		(protocol: string, protocolName: string) => {
+			if (isReadOnlyUntilDashboardLoaded) return
+
+			const newIncomeStatement: IncomeStatementConfig = {
+				id: generateItemId('income-statement', protocol),
+				kind: 'income-statement',
+				protocol,
+				protocolName,
+				colSpan: 2
+			}
+
+			dispatchItemsAndSave((prev) => [...prev, newIncomeStatement])
 		},
 		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
 	)
@@ -338,6 +402,33 @@ export function useDashboardActions(
 		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
 	)
 
+	const handleDuplicateChartBuilder = useCallback(
+		(builder: ChartBuilderConfig) => {
+			if (isReadOnlyUntilDashboardLoaded) return
+
+			const clonedConfig: ChartBuilderConfig['config'] = {
+				...builder.config,
+				chains: [...builder.config.chains],
+				categories: [...builder.config.categories],
+				chainCategories: builder.config.chainCategories ? [...builder.config.chainCategories] : undefined,
+				protocolCategories: builder.config.protocolCategories ? [...builder.config.protocolCategories] : undefined,
+				additionalFilters: builder.config.additionalFilters ? { ...builder.config.additionalFilters } : undefined,
+				seriesColors: builder.config.seriesColors ? { ...builder.config.seriesColors } : undefined
+			}
+
+			dispatchItemsAndSave((prev) => {
+				const newBuilder: ChartBuilderConfig = {
+					...builder,
+					id: generateItemId('builder', ''),
+					name: builder.name ? `${builder.name} (Duplicate)` : builder.name,
+					config: clonedConfig
+				}
+				return [...prev, newBuilder]
+			})
+		},
+		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
+	)
+
 	const handleAddLlamaAIChart = useCallback(
 		(savedChartId: string, title?: string) => {
 			if (isReadOnlyUntilDashboardLoaded) return
@@ -351,6 +442,30 @@ export function useDashboardActions(
 			}
 
 			dispatchItemsAndSave((prev) => [...prev, newChart])
+		},
+		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
+	)
+
+	const handleDuplicateMultiChart = useCallback(
+		(multi: MultiChartConfig) => {
+			if (isReadOnlyUntilDashboardLoaded) return
+
+			dispatchItemsAndSave((prev) => {
+				const newItems = multi.items.map((item) => {
+					const { data: _data, isLoading: _isLoading, hasError: _hasError, refetch: _refetch, ...rest } = item
+					return {
+						...rest,
+						id: generateItemId('chart', `${item.protocol || item.chain || 'chart'}-${item.type}`)
+					}
+				})
+				const newMulti: MultiChartConfig = {
+					...multi,
+					id: generateItemId('multi', ''),
+					name: multi.name ? `${multi.name} (Duplicate)` : multi.name,
+					items: newItems
+				}
+				return [...prev, newMulti]
+			})
 		},
 		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
 	)
@@ -700,17 +815,22 @@ export function useDashboardActions(
 
 	return {
 		handleAddChart,
+		handleAddUnlocksSchedule,
+		handleAddUnlocksPie,
 		handleAddYieldChart,
 		handleAddStablecoinsChart,
 		handleAddStablecoinAssetChart,
 		handleAddAdvancedTvlChart,
 		handleAddBorrowedChart,
+		handleAddIncomeStatement,
 		handleAddTable,
 		handleAddUnifiedTable,
 		handleAddMultiChart,
 		handleAddText,
 		handleAddChartBuilder,
 		handleAddLlamaAIChart,
+		handleDuplicateChartBuilder,
+		handleDuplicateMultiChart,
 		handleEditItem,
 		handleRemoveItem,
 		handleAddMetric,

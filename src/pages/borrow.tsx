@@ -1,8 +1,7 @@
-import * as React from 'react'
-import { useMemo } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import Router, { useRouter } from 'next/router'
+import * as React from 'react'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
@@ -29,18 +28,17 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 		}
 	}
 
-	data.symbols
-		.sort((a, b) => cgPositions[a] - cgPositions[b])
-		.forEach((sRaw) => {
-			const s = sRaw.replaceAll(/\(.*\)/g, '').trim()
+	const sortedSymbols = data.symbols.sort((a, b) => cgPositions[a] - cgPositions[b])
+	for (const sRaw of sortedSymbols) {
+		const s = sRaw.replaceAll(/\(.*\)/g, '').trim()
 
-			// const cgToken = cgTokens.find((x) => x.symbol === sRaw.toLowerCase() || x.symbol === s.toLowerCase())
+		// const cgToken = cgTokens.find((x) => x.symbol === sRaw.toLowerCase() || x.symbol === s.toLowerCase())
 
-			searchData[s] = {
-				name: s,
-				symbol: s
-			}
-		})
+		searchData[s] = {
+			name: s,
+			symbol: s
+		}
+	}
 
 	return {
 		props: {
@@ -69,7 +67,7 @@ export default function YieldBorrow(data) {
 
 	const collateralToken = getQueryValue(router.query, 'collateral')
 
-	const handleSwap = React.useCallback(() => {
+	const handleSwap = () => {
 		const newBorrow = collateralToken ?? ''
 		const newCollateral = borrowToken ?? ''
 
@@ -79,8 +77,8 @@ export default function YieldBorrow(data) {
 		if (newCollateral) nextQuery['collateral'] = newCollateral
 		else delete nextQuery['collateral']
 
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [borrowToken, collateralToken, router])
+		Router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}
 
 	const filteredPools = findOptimizerPools({
 		pools: data.pools,
@@ -174,9 +172,7 @@ const TokensSelect = ({
 
 	const tokenInSearchData = selectedValue !== '' ? searchData[selectedValue.toUpperCase()] : null
 
-	const searchDataArray = useMemo(() => {
-		return Object.values(searchData)
-	}, [searchData])
+	const searchDataArray = Object.values(searchData)
 
 	const [searchValue, setSearchValue] = React.useState('')
 	const deferredSearchValue = React.useDeferredValue(searchValue)
@@ -240,7 +236,7 @@ const TokensSelect = ({
 						wrapperProps={{
 							className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 						}}
-						className="max-sm:drawer z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
+						className="z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:drawer max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 					>
 						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 							<Icon name="x" className="h-5 w-5" />
@@ -359,11 +355,11 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 
 	const filteredPools2 = {}
 
-	filteredPools.forEach((pool) => {
+	for (const pool of filteredPools) {
 		if (!filteredPools2[pool.projectName + pool.chain]) {
 			filteredPools2[pool.projectName + pool.chain] = pool
 		}
-	})
+	}
 
 	const finalPools: Array<IPool> = Object.values(filteredPools2)
 

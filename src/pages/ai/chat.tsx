@@ -1,6 +1,6 @@
-import { lazy, Suspense, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useRouter } from 'next/router'
+import { lazy, Suspense, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
@@ -65,11 +65,11 @@ export default function LlamaAIPage() {
 						to access this page.
 					</p>
 				</div>
-				{shouldRenderModal && (
+				{shouldRenderModal ? (
 					<Suspense fallback={<></>}>
 						<SubscribeProModal dialogStore={subscribeModalStore} />
 					</Suspense>
-				)}
+				) : null}
 			</Layout>
 		)
 	}
@@ -93,5 +93,5 @@ export default function LlamaAIPage() {
 		)
 	}
 
-	return <LlamaAI showDebug={user?.flags?.['is_llama'] ?? false} />
+	return <LlamaAI showDebug={Boolean(user?.flags?.['is_llama'])} />
 }

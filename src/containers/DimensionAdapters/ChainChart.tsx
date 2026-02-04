@@ -1,10 +1,10 @@
-import * as React from 'react'
 import { useMutation } from '@tanstack/react-query'
+import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/formatters'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
-import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/useDefaults'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
@@ -172,6 +172,14 @@ export const AdapterByChainChart = ({
 	const { mutate: downloadBreakdownChartMutation, isPending: isDownloadingBreakdownChart } = useMutation({
 		mutationFn: downloadBreakdownChart
 	})
+	const handleDownloadBreakdownCsv = () => {
+		downloadBreakdownChartMutation({
+			adapterType,
+			chain,
+			dataType,
+			fileName: `${chain === 'All' ? 'All Chains' : chain} - ${chartName}`
+		})
+	}
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -192,18 +200,7 @@ export const AdapterByChainChart = ({
 								</Tooltip>
 							))}
 				</div>
-				<CSVDownloadButton
-					onClick={() => {
-						downloadBreakdownChartMutation({
-							adapterType,
-							chain,
-							dataType,
-							fileName: `${chain === 'All' ? 'All Chains' : chain} - ${chartName}`
-						})
-					}}
-					isLoading={isDownloadingBreakdownChart}
-					smol
-				/>
+				<CSVDownloadButton onClick={handleDownloadBreakdownCsv} isLoading={isDownloadingBreakdownChart} smol />
 				<ChartExportButton
 					chartInstance={exportChartInstance}
 					filename={`${slug(chain)}-${adapterType}-${chartName}`}
@@ -239,7 +236,7 @@ export const ChainsByAdapterChart = ({
 		return getChartDataByChainAndInterval({ chartData, chartInterval, chartType, selectedChains })
 	}, [chartData, chartInterval, selectedChains, chartType])
 
-	const prepareCsv = React.useCallback(() => {
+	const prepareCsv = () => {
 		const rows: any = [['Timestamp', 'Date', ...allChains]]
 
 		for (const [date, chainsOnDate] of chartData) {
@@ -251,7 +248,7 @@ export const ChainsByAdapterChart = ({
 		}
 
 		return { filename: `${type}-chains-${new Date().toISOString().split('T')[0]}.csv`, rows }
-	}, [chartData, allChains, type])
+	}
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -285,12 +282,7 @@ export const ChainsByAdapterChart = ({
 						allValues={allChains}
 						selectedValues={selectedChains}
 						setSelectedValues={setSelectedChains}
-						selectOnlyOne={(newChain) => {
-							setSelectedChains([newChain])
-						}}
 						label="Chains"
-						clearAll={() => setSelectedChains([])}
-						toggleAll={() => setSelectedChains(allChains)}
 						labelType="smol"
 						triggerProps={{
 							className:
@@ -344,13 +336,15 @@ const getChartDataByChainAndInterval = ({
 	chartType?: 'Volume' | 'Dominance'
 	selectedChains: string[]
 }) => {
+	const selectedChainsSet = new Set(selectedChains)
+
 	if (chartType === 'Dominance') {
 		const sumByDate = {}
 		for (const [date, chainsOnDate] of chartData) {
 			const finalDate = +date * 1e3
 
 			for (const chain in chainsOnDate) {
-				if (selectedChains.includes(chain)) {
+				if (selectedChainsSet.has(chain)) {
 					sumByDate[finalDate] = (sumByDate[finalDate] || 0) + (chainsOnDate[chain] || 0)
 				}
 			}
@@ -438,23 +432,23 @@ const getChartDataByChainAndInterval = ({
 		let others = 0
 		const topItems = []
 		for (const chain in chainsOnDate) {
-			if (selectedChains.includes(chain)) {
+			if (selectedChainsSet.has(chain)) {
 				topItems.push([chain, chainsOnDate[chain]])
 			}
 		}
-		topItems
-			.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
-			.forEach(([chain, value]: [string, number], index: number) => {
-				if (index < 10) {
-					topByDate[chain] = topByDate[chain] || {}
-					topByDate[chain][finalDate] = value ?? 0
-					uniqTopChains.add(chain)
-				} else {
-					topByDate[chain] = topByDate[chain] || {}
-					topByDate[chain][finalDate] = 0
-					others += value ?? 0
-				}
-			})
+		const sortedTopItems = topItems.toSorted((a: [string, number], b: [string, number]) => b[1] - a[1])
+		for (let index = 0; index < sortedTopItems.length; index++) {
+			const [chain, value] = sortedTopItems[index] as [string, number]
+			if (index < 10) {
+				topByDate[chain] = topByDate[chain] || {}
+				topByDate[chain][finalDate] = value ?? 0
+				uniqTopChains.add(chain)
+			} else {
+				topByDate[chain] = topByDate[chain] || {}
+				topByDate[chain][finalDate] = 0
+				others += value ?? 0
+			}
+		}
 
 		for (const chain of selectedChains) {
 			topByAllDates[chain] = topByAllDates[chain] || {}
@@ -472,7 +466,7 @@ const getChartDataByChainAndInterval = ({
 		for (const finalDate in topByAllDates[chain]) {
 			finalData[chain].push([+finalDate, topByAllDates[chain][finalDate]])
 		}
-		if (selectedChains.includes(chain)) {
+		if (selectedChainsSet.has(chain)) {
 			zeroesByChain[chain] = Math.max(
 				finalData[chain].findIndex((date) => date[1] !== 0),
 				0
@@ -480,7 +474,8 @@ const getChartDataByChainAndInterval = ({
 		}
 	}
 
-	let startingZeroDatesToSlice = Object.values(zeroesByChain).sort((a, b) => (a as number) - (b as number))[0]
+	const zeroValues = Object.values(zeroesByChain) as number[]
+	let startingZeroDatesToSlice = zeroValues.length > 0 ? Math.min(...zeroValues) : 0
 	for (const chain in finalData) {
 		if (!finalData[chain].length) delete finalData[chain]
 	}

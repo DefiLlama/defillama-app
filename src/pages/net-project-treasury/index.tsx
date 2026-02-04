@@ -42,6 +42,7 @@ export const getStaticProps = withPerformanceLogging(`net-project-treasury/index
 })
 
 const pageName = ['Protocols', 'ranked by', 'Net Project Treasury']
+const DEFAULT_SORTING_STATE = [{ id: 'netTreasury', desc: true }]
 
 const NetProjectTreasuries = (props) => {
 	return (
@@ -58,7 +59,7 @@ const NetProjectTreasuries = (props) => {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
-				sortingState={[{ id: 'netTreasury', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)
@@ -70,13 +71,12 @@ const columns: ColumnDef<INetProjectTreasuryByChain['protocols'][0]>[] = [
 		header: 'Name',
 		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
@@ -98,7 +98,6 @@ const columns: ColumnDef<INetProjectTreasuryByChain['protocols'][0]>[] = [
 		header: 'Net Treasury',
 		accessorFn: (protocol) => protocol.netTreasury,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: "Value of tokens owned by a protocol, excluding it's own token"

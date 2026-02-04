@@ -1,9 +1,10 @@
-import { lazy, Suspense } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useRouter } from 'next/router'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
+import type { ComparisonPreset } from '~/containers/ProDashboard/components/ComparisonWizard/types'
 import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashboards'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { useMyDashboards } from '~/containers/ProDashboard/hooks'
@@ -76,9 +77,13 @@ function ProContent({
 	const { tab } = router.query
 	const activeTab = typeof tab === 'string' && tabs.includes(tab as any) ? tab : 'discover'
 
-	const subscribeModalStore = Ariakit.useDialogStore()
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 	const { deleteDashboard, handleCreateDashboard, handleGenerateDashboard } = useProDashboardDashboard()
 	const { createDashboardDialogStore, showGenerateDashboardModal, setShowGenerateDashboardModal } = useProDashboardUI()
+	const [comparisonPreset, setComparisonPreset] = useState<ComparisonPreset | null>(null)
+	const createDialogOpen = createDashboardDialogStore.useState('open')
+	const [dialogWasOpen, setDialogWasOpen] = useState(false)
 
 	const selectedPage =
 		typeof router.query.page === 'string' && !Number.isNaN(Number(router.query.page)) ? parseInt(router.query.page) : 1
@@ -90,12 +95,41 @@ function ProContent({
 		goToPage
 	} = useMyDashboards({ page: selectedPage, limit: 20, enabled: activeTab === 'my-dashboards' })
 
+	useEffect(() => {
+		if (createDialogOpen && !dialogWasOpen) {
+			setDialogWasOpen(true)
+			return
+		}
+		if (!createDialogOpen && dialogWasOpen) {
+			setComparisonPreset(null)
+			setDialogWasOpen(false)
+		}
+	}, [createDialogOpen, dialogWasOpen])
+
+	useEffect(() => {
+		if (!router.isReady) return
+		const comparison = router.query.comparison
+		const items = router.query.items
+		if (comparison !== 'protocols' || typeof items !== 'string') return
+		if (comparisonPreset) return
+		const parsedItems = items
+			.split(',')
+			.map((item) => item.trim())
+			.filter(Boolean)
+		const { comparison: _comparison, items: _items, step: _step, ...rest } = router.query
+		if (parsedItems.length > 0) {
+			setComparisonPreset({ comparisonType: 'protocols', items: parsedItems })
+		}
+		createDashboardDialogStore.show()
+		router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
+	}, [comparisonPreset, createDashboardDialogStore, router, router.isReady, router.query])
+
 	const handleDeleteDashboard = async (dashboardId: string) => {
 		await deleteDashboard(dashboardId)
 	}
 
 	return (
-		<div className="pro-dashboard flex flex-1 flex-col gap-4 p-2 lg:px-0">
+		<div className="flex flex-1 flex-col gap-4 pro-dashboard p-2 lg:px-0">
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="flex overflow-x-auto">
 					<BasicLink
@@ -137,7 +171,7 @@ function ProContent({
 										? () => setShowGenerateDashboardModal(true)
 										: () => subscribeModalStore.show()
 							}
-							className="pro-btn-blue flex items-center gap-1 rounded-md px-4 py-2"
+							className="flex items-center gap-1 rounded-md pro-btn-blue px-4 py-2"
 						>
 							<Icon name="sparkles" height={16} width={16} />
 							Generate with LlamaAI
@@ -151,10 +185,11 @@ function ProContent({
 									? () => createDashboardDialogStore.show()
 									: () => subscribeModalStore.show()
 						}
-						className="pro-btn-purple flex items-center gap-1 rounded-md px-4 py-2"
+						className="flex items-center gap-1 rounded-md pro-btn-purple px-4 py-2"
 					>
 						<Icon name="plus" height={16} width={16} />
-						Create New Dashboard
+						<span className="sm:hidden">Create</span>
+						<span className="hidden sm:inline">Create New Dashboard</span>
 					</button>
 				</div>
 			</div>
@@ -211,7 +246,7 @@ function ProContent({
 													key={`my-dashboard-page-${pageNum}`}
 													onClick={() => goToPage(pageNum)}
 													data-active={isActive}
-													className="h-[32px] min-w-[32px] flex-shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+													className="h-[32px] min-w-[32px] shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 												>
 													{pageNum}
 												</button>
@@ -248,7 +283,11 @@ function ProContent({
 			)}
 
 			<Suspense fallback={<></>}>
-				<CreateDashboardPicker dialogStore={createDashboardDialogStore} onCreate={handleCreateDashboard} />
+				<CreateDashboardPicker
+					dialogStore={createDashboardDialogStore}
+					onCreate={handleCreateDashboard}
+					comparisonPreset={comparisonPreset}
+				/>
 			</Suspense>
 
 			<Suspense fallback={<></>}>
@@ -259,9 +298,11 @@ function ProContent({
 				/>
 			</Suspense>
 
-			<Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense>
+			{shouldRenderModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 		</div>
 	)
 }

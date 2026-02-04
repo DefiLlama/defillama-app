@@ -1,5 +1,5 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '~/containers/ProDashboard/components/UnifiedTable/config/ColumnDictionary'
 import {
@@ -59,7 +59,7 @@ const countActiveFilters = (filters: TableFilters | undefined): number => {
 	if (!filters) return 0
 	let count = 0
 	for (const value of Object.values(filters)) {
-		if (value === undefined || value === null) continue
+		if (value == null) continue
 		if (Array.isArray(value)) {
 			if (value.length) count++
 			continue
@@ -73,6 +73,30 @@ const countActiveFilters = (filters: TableFilters | undefined): number => {
 		}
 	}
 	return count
+}
+
+const arraysEqual = (a: string[], b: string[]) => {
+	if (a.length !== b.length) return false
+	return a.every((value, index) => value === b[index])
+}
+
+const visibilityEqual = (a: VisibilityState, b: VisibilityState) => {
+	const keys = new Set([...Object.keys(a), ...Object.keys(b)])
+	for (const key of keys) {
+		const aValue = key in a ? a[key] : true
+		const bValue = key in b ? b[key] : true
+		if (Boolean(aValue) !== Boolean(bValue)) return false
+	}
+	return true
+}
+
+const sortingEqual = (a: SortingState, b: SortingState) => {
+	if (a.length !== b.length) return false
+	return a.every((item, index) => {
+		const other = b[index]
+		if (!other) return false
+		return item.id === other.id && Boolean(item.desc) === Boolean(other.desc)
+	})
 }
 
 type TableTypeCardIcon = 'layers' | 'trending-up' | 'credit-card' | 'chain' | 'dollar-sign' | 'pie-chart' | 'flame'
@@ -136,7 +160,7 @@ const TABLE_TYPE_CARDS: Array<{
 	}
 ]
 
-const TabContent = memo(function TabContent({
+function TabContent({
 	onClose,
 	chainOptions,
 	editItem,
@@ -206,7 +230,7 @@ const TabContent = memo(function TabContent({
 		setActiveTab((current) => (current === initialTab ? current : initialTab))
 	}, [initialTab])
 
-	const activePreset = useMemo(() => UNIFIED_TABLE_PRESETS_BY_ID.get(activePresetId), [activePresetId])
+	const activePreset = UNIFIED_TABLE_PRESETS_BY_ID.get(activePresetId)
 
 	const allColumns = useMemo(() => {
 		const dictColumns = [
@@ -334,28 +358,34 @@ const TabContent = memo(function TabContent({
 		setSorting(newSorting)
 	}
 
-	const handleClearFilters = () => {
+	const _handleClearFilters = () => {
 		setFilters({})
 		setChains(['All'])
 	}
 
-	const handlePanelFiltersChange = useCallback((nextFilters: TableFilters) => {
-		setFilters(nextFilters ?? {})
-	}, [])
+	const handlePanelFiltersChange = useCallback(
+		(nextFilters: TableFilters) => {
+			setFilters(nextFilters ?? {})
+		},
+		[setFilters]
+	)
 
-	const handleRemoveArrayFilterValue = useCallback((key: ArrayFilterKey, value: string) => {
-		setFilters((prev) => {
-			const next: TableFilters = { ...(prev ?? {}) }
-			const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
-			const updated = current.filter((item) => item !== value)
-			if (updated.length > 0) {
-				next[key] = updated
-			} else {
-				delete next[key]
-			}
-			return next
-		})
-	}, [])
+	const _handleRemoveArrayFilterValue = useCallback(
+		(key: ArrayFilterKey, value: string) => {
+			setFilters((prev) => {
+				const next: TableFilters = { ...(prev ?? {}) }
+				const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
+				const updated = current.filter((item) => item !== value)
+				if (updated.length > 0) {
+					next[key] = updated
+				} else {
+					delete next[key]
+				}
+				return next
+			})
+		},
+		[setFilters]
+	)
 
 	const handleRemoveChainValue = useCallback(
 		(chainValue: string) => {
@@ -364,30 +394,6 @@ const TabContent = memo(function TabContent({
 		},
 		[chains, setChains]
 	)
-
-	const arraysEqual = (a: string[], b: string[]) => {
-		if (a.length !== b.length) return false
-		return a.every((value, index) => value === b[index])
-	}
-
-	const visibilityEqual = (a: VisibilityState, b: VisibilityState) => {
-		const keys = new Set([...Object.keys(a), ...Object.keys(b)])
-		for (const key of keys) {
-			const aValue = key in a ? a[key] : true
-			const bValue = key in b ? b[key] : true
-			if (Boolean(aValue) !== Boolean(bValue)) return false
-		}
-		return true
-	}
-
-	const sortingEqual = (a: SortingState, b: SortingState) => {
-		if (a.length !== b.length) return false
-		return a.every((item, index) => {
-			const other = b[index]
-			if (!other) return false
-			return item.id === other.id && Boolean(item.desc) === Boolean(other.desc)
-		})
-	}
 
 	const isModified =
 		!arraysEqual(localOrder, presetDefaults.order) ||
@@ -438,15 +444,13 @@ const TabContent = memo(function TabContent({
 	const activeFilterPills: FilterPill[] = useMemo(() => {
 		const pills: FilterPill[] = []
 
-		chains
-			.filter((chain) => chain !== 'All')
-			.forEach((chain) => {
-				pills.push({
-					id: `chain-${chain}`,
-					label: chainLabelMap.get(chain) ?? chain,
-					onRemove: () => handleRemoveChainValue(chain)
-				})
+		for (const chain of chains.filter((chain) => chain !== 'All')) {
+			pills.push({
+				id: `chain-${chain}`,
+				label: chainLabelMap.get(chain) ?? chain,
+				onRemove: () => handleRemoveChainValue(chain)
 			})
+		}
 
 		for (const chip of activeFilterChips) {
 			pills.push({
@@ -467,30 +471,25 @@ const TabContent = memo(function TabContent({
 
 	const activeFilterCount = activeFilterPills.length
 
-	const scopeCount = useMemo(() => {
-		return chains.includes('All') ? 0 : 1
-	}, [chains])
+	const scopeCount = chains.includes('All') ? 0 : 1
 
 	const filterCount = countActiveFilters(filters)
 	const totalFilterCount = scopeCount + filterCount
 
-	const headerTitle =
+	const _headerTitle =
 		focusedSectionOnly === 'filters'
 			? 'Configure Filters'
 			: focusedSectionOnly === 'columns'
 				? 'Customize Columns'
 				: 'Build ProTable'
-	const headerDescription =
+	const _headerDescription =
 		focusedSectionOnly === 'filters'
 			? 'Adjust filters to refine the data shown in your table.'
 			: focusedSectionOnly === 'columns'
 				? 'Select and arrange columns to customize your table view.'
 				: ''
 
-	const setupBadge = useMemo(() => {
-		if (activePreset?.name) return `Protocols · ${activePreset.name}`
-		return 'Protocols'
-	}, [activePreset])
+	const setupBadge = activePreset?.name ? `Protocols · ${activePreset.name}` : 'Protocols'
 
 	const tabOptions = useMemo(
 		() => [
@@ -663,6 +662,7 @@ const TabContent = memo(function TabContent({
 		onTableTypeChange(type)
 		setShowTypeSelector(false)
 	}
+	const handleBackToTypeSelector = useCallback(() => setShowTypeSelector(true), [setShowTypeSelector])
 
 	if (showTypeSelector) {
 		const heroCard = TABLE_TYPE_CARDS[0]
@@ -673,14 +673,14 @@ const TabContent = memo(function TabContent({
 				<button
 					type="button"
 					onClick={() => handleSelectTableType(heroCard.value)}
-					className="pro-border group relative flex flex-col rounded-xl border p-5 text-left transition-all hover:border-(--primary)/50 hover:bg-(--cards-bg-alt)"
+					className="group relative flex flex-col rounded-xl border pro-border p-5 text-left transition-all hover:border-(--primary)/50 hover:bg-(--cards-bg-alt)"
 				>
 					<div className="mb-3 flex items-center justify-between">
 						<div className="flex items-center gap-3">
 							<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--primary)/10">
 								<Icon name={heroCard.icon} height={22} width={22} className="text-(--primary)" />
 							</div>
-							<h3 className="pro-text1 text-lg font-semibold">{heroCard.label}</h3>
+							<h3 className="text-lg font-semibold pro-text1">{heroCard.label}</h3>
 						</div>
 						<Icon
 							name="arrow-right"
@@ -689,7 +689,7 @@ const TabContent = memo(function TabContent({
 							className="text-(--text-secondary) transition-transform group-hover:translate-x-1 group-hover:text-(--primary)"
 						/>
 					</div>
-					<p className="pro-text2 mb-4 text-sm">{heroCard.description}</p>
+					<p className="mb-4 text-sm pro-text2">{heroCard.description}</p>
 					<div className="flex flex-wrap gap-1.5">
 						{heroCard.tags.map((tag) => (
 							<span
@@ -703,14 +703,14 @@ const TabContent = memo(function TabContent({
 				</button>
 
 				<div className="mt-4">
-					<span className="pro-text2 mb-2.5 block text-xs font-medium tracking-wide uppercase">Other datasets</span>
+					<span className="mb-2.5 block text-xs font-medium tracking-wide pro-text2 uppercase">Other datasets</span>
 					<div className="grid grid-cols-2 gap-2">
 						{otherCards.map((card) => (
 							<button
 								key={card.value}
 								type="button"
 								onClick={() => handleSelectTableType(card.value)}
-								className="pro-border group flex items-start gap-2.5 rounded-lg border p-3 text-left transition-all hover:border-(--primary)/50 hover:bg-(--cards-bg-alt)"
+								className="group flex items-start gap-2.5 rounded-lg border pro-border p-3 text-left transition-all hover:border-(--primary)/50 hover:bg-(--cards-bg-alt)"
 							>
 								<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-(--cards-bg-alt) transition-colors group-hover:bg-(--primary)/10">
 									<Icon
@@ -721,8 +721,8 @@ const TabContent = memo(function TabContent({
 									/>
 								</div>
 								<div className="min-w-0 flex-1">
-									<span className="pro-text1 text-sm font-medium">{card.label}</span>
-									<p className="pro-text2 mt-0.5 line-clamp-1 text-xs">{card.description}</p>
+									<span className="text-sm font-medium pro-text1">{card.label}</span>
+									<p className="mt-0.5 line-clamp-1 text-xs pro-text2">{card.description}</p>
 								</div>
 							</button>
 						))}
@@ -750,19 +750,19 @@ const TabContent = memo(function TabContent({
 				includeCex={includeCex}
 				onIncludeCexChange={onIncludeCexChange}
 				legacyTableTypes={legacyTableTypes}
-				onBackToTypeSelector={() => setShowTypeSelector(true)}
+				onBackToTypeSelector={handleBackToTypeSelector}
 			/>
 		)
 	}
 
 	return (
 		<div className="flex flex-col">
-			<header className="flex flex-shrink-0 flex-col gap-1 pb-3">
+			<header className="flex shrink-0 flex-col gap-1 pb-3">
 				{!isEditingUnifiedTable && (
 					<button
 						type="button"
 						onClick={() => setShowTypeSelector(true)}
-						className="pro-text2 hover:pro-text1 mb-2 flex items-center gap-1 text-sm transition-colors"
+						className="mb-2 flex items-center gap-1 text-sm pro-text2 transition-colors hover:pro-text1"
 					>
 						<span>←</span>
 						<span>Back to table type selection</span>
@@ -812,18 +812,18 @@ const TabContent = memo(function TabContent({
 				<div className="flex h-full flex-col gap-3">{tabContent[activeTab]}</div>
 			</div>
 
-			<div className="sticky bottom-0 z-10 flex flex-shrink-0 items-center justify-end gap-3 border-t border-(--cards-border) bg-(--cards-bg) pt-3 pb-2 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.25)]">
+			<div className="sticky bottom-0 z-10 flex shrink-0 items-center justify-end gap-3 border-t border-(--cards-border) bg-(--cards-bg) pt-3 pb-2 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.25)]">
 				<button
 					type="button"
 					onClick={onClose}
-					className="pro-border pro-text2 hover:pro-text1 pro-hover-bg rounded-md border px-4 py-2 text-sm transition"
+					className="rounded-md border pro-border pro-hover-bg px-4 py-2 text-sm pro-text2 transition hover:pro-text1"
 				>
 					Cancel
 				</button>
 				<button
 					type="button"
 					onClick={handleAdd}
-					className="pro-btn-blue flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold"
+					className="flex items-center gap-2 rounded-md pro-btn-blue px-4 py-2 text-sm font-semibold"
 				>
 					{isEditing ? 'Save Changes' : 'Add Table'}
 					<Icon name={isEditing ? 'check' : 'plus'} height={14} width={14} />
@@ -831,13 +831,13 @@ const TabContent = memo(function TabContent({
 			</div>
 		</div>
 	)
-})
+}
 
-export const UnifiedTableTab = memo(function UnifiedTableTab(props: UnifiedTableTabProps) {
+export function UnifiedTableTab(props: UnifiedTableTabProps) {
 	const { editItem, focusedSectionOnly, ...rest } = props
 	return (
 		<UnifiedTableWizardProvider initialConfig={editItem}>
 			<TabContent {...rest} editItem={editItem} focusedSectionOnly={focusedSectionOnly} />
 		</UnifiedTableWizardProvider>
 	)
-})
+}

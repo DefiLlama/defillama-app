@@ -6,6 +6,7 @@ export const useResize = (myRef: React.RefObject<HTMLDivElement>) => {
 
 	useEffect(() => {
 		const handleResize = () => {
+			// Ref objects are stable - reading .current always gets the latest value
 			if (myRef.current) {
 				setWidth(myRef.current.offsetWidth)
 				setHeight(myRef.current.offsetHeight)

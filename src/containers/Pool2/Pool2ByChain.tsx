@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import { lazy, Suspense } from 'react'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -11,6 +11,8 @@ import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 import { IPool2ProtocolsTVLByChainPageData } from './queries'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
+
+const DEFAULT_SORTING_STATE = [{ id: 'pool2Tvl', desc: true }]
 
 export function Pool2ProtocolsTVLByChain(props: IPool2ProtocolsTVLByChainPageData) {
 	return (
@@ -28,7 +30,7 @@ export function Pool2ProtocolsTVLByChain(props: IPool2ProtocolsTVLByChainPageDat
 						<p className="flex flex-col">
 							<span className="flex flex-col">
 								<span>Pool2 TVL</span>
-								<span className="font-jetbrains min-h-8 overflow-hidden text-2xl font-semibold text-ellipsis whitespace-nowrap">
+								<span className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
 									{formattedNum(props.pool2Tvl, true)}
 								</span>
 							</span>
@@ -36,7 +38,7 @@ export function Pool2ProtocolsTVLByChain(props: IPool2ProtocolsTVLByChainPageDat
 						{props.change24h != null ? (
 							<p className="relative bottom-0.5 flex flex-nowrap items-center gap-2 text-sm">
 								<span
-									className={`font-jetbrains text-right text-ellipsis ${
+									className={`text-right font-jetbrains text-ellipsis ${
 										props.change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
 									}`}
 								>
@@ -59,11 +61,22 @@ export function Pool2ProtocolsTVLByChain(props: IPool2ProtocolsTVLByChainPageDat
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
-				sortingState={[{ id: 'pool2Tvl', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)
 }
+
+const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
+	<span className="flex flex-col gap-1">
+		{chains.map((chain) => (
+			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
+				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<span>{chain}</span>
+			</span>
+		))}
+	</span>
+)
 
 const columns: ColumnDef<IPool2ProtocolsTVLByChainPageData['protocols'][0]>[] = [
 	{
@@ -71,19 +84,8 @@ const columns: ColumnDef<IPool2ProtocolsTVLByChainPageData['protocols'][0]>[] = 
 		header: 'Name',
 		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-			const Chains = () => (
-				<span className="flex flex-col gap-1">
-					{row.original.chains.map((chain) => (
-						<span key={`/chain/${chain}/${row.original.slug}`} className="flex items-center gap-1">
-							<TokenLogo logo={chainIconUrl(chain)} size={14} />
-							<span>{chain}</span>
-						</span>
-					))}
-				</span>
-			)
 
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-12' : 'pl-6'}`}>
@@ -108,7 +110,7 @@ const columns: ColumnDef<IPool2ProtocolsTVLByChainPageData['protocols'][0]>[] = 
 						</button>
 					) : null}
 
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
@@ -120,7 +122,10 @@ const columns: ColumnDef<IPool2ProtocolsTVLByChainPageData['protocols'][0]>[] = 
 							{value}
 						</BasicLink>
 
-						<Tooltip content={<Chains />} className="text-[0.7rem] text-(--text-disabled)">
+						<Tooltip
+							content={<ProtocolChainsComponent chains={row.original.chains} />}
+							className="text-[0.7rem] text-(--text-disabled)"
+						>
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>
@@ -152,7 +157,6 @@ const columns: ColumnDef<IPool2ProtocolsTVLByChainPageData['protocols'][0]>[] = 
 		header: 'Pool2 TVL',
 		accessorFn: (protocol) => protocol.pool2Tvl,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: 'Total value locked in pool2'

@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
 import { TreemapChart as EChartTreemap } from 'echarts/charts'
 import { DataZoomComponent, TitleComponent, ToolboxComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
 
 echarts.use([TitleComponent, TooltipComponent, ToolboxComponent, DataZoomComponent, EChartTreemap, CanvasRenderer])
@@ -24,8 +25,12 @@ function addColorGradientField(chartDataTree) {
 		let node = chartDataTree[i]
 		if (node) {
 			let value = node.value
-			value[2] != null && value[2] < min && (min = value[2])
-			value[2] != null && value[2] > max && (max = value[2])
+			if (value[2] != null && value[2] < min) {
+				min = value[2]
+			}
+			if (value[2] != null && value[2] > max) {
+				max = value[2]
+			}
 		}
 	}
 	for (let i = 0; i < chartDataTree.length; i++) {
@@ -55,6 +60,10 @@ export default function TreemapChart({ chartData }: IChartProps) {
 	const id = useId()
 
 	const [isDark] = useDarkModeManager()
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const chartDataTree = useMemo(() => {
 		const treeData = []
@@ -83,14 +92,11 @@ export default function TreemapChart({ chartData }: IChartProps) {
 		return treeData
 	}, [chartData])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
 
 		const option = {
 			title: {
@@ -110,14 +116,14 @@ export default function TreemapChart({ chartData }: IChartProps) {
 					}
 					if (treePath.length > 1) {
 						return [
-							'Project: ' + treePath[0] + '<br>',
-							'Pool: ' + treePath[1] + '<br>',
-							'TVL: ' + formattedNum(info.value[0], true) + '<br>',
-							'APY: ' + info.value[1] + '%' + '<br>',
-							'1d Change: ' + info.value[2] + '%'
+							`Project: ${treePath[0]}<br>`,
+							`Pool: ${treePath[1]}<br>`,
+							`TVL: ${formattedNum(info.value[0], true)}<br>`,
+							`APY: ${info.value[1]}%<br>`,
+							`1d Change: ${info.value[2]}%`
 						].join('')
 					} else {
-						return ['Project: ' + treePath[0]].join('')
+						return `Project: ${treePath[0]}`
 					}
 				}
 			},
@@ -139,9 +145,9 @@ export default function TreemapChart({ chartData }: IChartProps) {
 							let arr
 							if (params?.data?.path?.split('/')?.length > 1) {
 								arr = [
-									'{name|' + params.data.path.split('/').slice(-1)[0] + '}',
-									'Spot: {apy| ' + params.value[1] + '%' + '}',
-									'Change {apy| ' + params.value[2] + '%' + '}'
+									`{name|${params.data.path.split('/').slice(-1)[0]}}`,
+									`Spot: {apy| ${params.value[1]}%}`,
+									`Change {apy| ${params.value[2]}%}`
 								]
 							} else {
 								arr = [params.name]
@@ -217,19 +223,13 @@ export default function TreemapChart({ chartData }: IChartProps) {
 				}
 			]
 		}
-		chartInstance.setOption(option)
-
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
+		instance.setOption(option)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [id, chartDataTree, createInstance, isDark])
+	}, [id, chartDataTree, isDark])
 
 	return (
 		<div className="relative flex flex-col items-end rounded-md bg-(--cards-bg) p-3">

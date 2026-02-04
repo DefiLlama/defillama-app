@@ -1,1109 +1,535 @@
-import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { NextRouter, useRouter } from 'next/router'
-import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
-	ExpandedState,
-	getCoreRowModel,
-	getExpandedRowModel,
-	getFilteredRowModel,
-	getSortedRowModel,
-	SortingState,
-	useReactTable
-} from '@tanstack/react-table'
-import clsx from 'clsx'
-import { matchSorter } from 'match-sorter'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { IPieChartProps } from '~/components/ECharts/types'
-import { Icon } from '~/components/Icon'
-import { BasicLink } from '~/components/Link'
+import { useRouter } from 'next/router'
+import { lazy, Suspense, useMemo } from 'react'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { VirtualTable } from '~/components/Table/Table'
-import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
-import useWindowSize from '~/hooks/useWindowSize'
-import definitions from '~/public/rwa-definitions.json'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
+import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
+import { RWAAssetsTable } from './AssetsTable'
+import { DownloadPieChartCsv } from './DownloadPieChartCsv'
+import { RWAOverviewFilters } from './Filters'
+import {
+	useFilteredRwaAssets,
+	useRWATableQueryParams,
+	useRWAAssetCategoryPieChartData,
+	useRwaAssetNamePieChartData,
+	useRwaCategoryAssetClassPieChartData,
+	useRwaChainBreakdownPieChartData,
+	useRwaChartDataByAssetClass,
+	useRwaChartDataByAssetName,
+	useRwaChartDataByCategory
+} from './hooks'
 import { IRWAAssetsOverview } from './queries'
+import { rwaSlug } from './rwaSlug'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+const MultiSeriesChart2 = lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
+
+type RWAChartType = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
+
+type RWADefinitions = typeof rwaDefinitionsJson & {
+	totalOnChainMcap: { label: string; description: string }
+	totalActiveMcap: { label: string; description: string }
+	totalDefiActiveTvl: { label: string; description: string }
+}
+
+const definitions = rwaDefinitionsJson as RWADefinitions
 
 export const RWAOverview = (props: IRWAAssetsOverview) => {
-	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = useState<SortingState>([{ id: 'onChainMarketcap.total', desc: true }])
-	const [expanded, setExpanded] = useState<ExpandedState>({})
-	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
-	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
+	const router = useRouter()
+
+	const isChainMode = props.chainLinks.length > 0
+	const isCategoryMode = props.categoryLinks.length > 0
+	const isPlatformMode = props.platformLinks.length > 0
+	const pieChartBreakdown = typeof router.query.pieChartBreakdown === 'string' ? router.query.pieChartBreakdown : null
+	const chartType =
+		typeof router.query.chartType === 'string' && validPieChartTypes.has(router.query.chartType)
+			? router.query.chartType
+			: 'activeMcap'
+	const chartView =
+		typeof router.query.chartView === 'string' && router.query.chartView === 'pie' ? 'pie' : 'timeSeries'
+	const chartTypeKey = chartType as RWAChartType
 
 	const {
+		selectedAssetNames,
+		selectedTypes,
 		selectedCategories,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
+		minDefiActiveTvlToOnChainMcapPct,
+		maxDefiActiveTvlToOnChainMcapPct,
+		minActiveMcapToOnChainMcapPct,
+		maxActiveMcapToOnChainMcapPct,
+		minDefiActiveTvlToActiveMcapPct,
+		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
 		includeGovernance,
-		setSelectedCategories,
-		setSelectedAssetClasses,
-		setSelectedRwaClassifications,
-		setSelectedAccessModels,
-		setSelectedIssuers,
+		setDefiActiveTvlToOnChainMcapPctRange,
+		setActiveMcapToOnChainMcapPctRange,
+		setDefiActiveTvlToActiveMcapPctRange,
 		setIncludeStablecoins,
-		setIncludeGovernance,
-		selectOnlyOneCategory,
-		toggleAllCategories,
-		clearAllCategories,
-		selectOnlyOneAssetClass,
-		toggleAllAssetClasses,
-		clearAllAssetClasses,
-		selectOnlyOneRwaClassification,
-		toggleAllRwaClassifications,
-		clearAllRwaClassifications,
-		selectOnlyOneAccessModel,
-		toggleAllAccessModels,
-		clearAllAccessModels,
-		selectOnlyOneIssuer,
-		toggleAllIssuers,
-		clearAllIssuers
+		setIncludeGovernance
 	} = useRWATableQueryParams({
+		assetNames: props.assetNames,
+		types: props.types,
 		categories: props.categories,
 		assetClasses: props.assetClasses,
 		rwaClassifications: props.rwaClassifications,
 		accessModels: props.accessModels,
-		issuers: props.issuers
+		issuers: props.issuers,
+		defaultIncludeStablecoins: !isChainMode,
+		defaultIncludeGovernance: !isChainMode
 	})
 
-	// Recalculate summary values based on all filters
-	const { totalOnChainRwaValue, totalOnChainStablecoinValue, totalOnChainDeFiActiveTvl, issuersCount } = useMemo(() => {
-		// Filter assets based on all filters
-		const filteredAssets = props.assets.filter((asset) => {
-			if (!includeStablecoins && asset.stablecoin) return false
-			if (!includeGovernance && asset.governance) return false
-			return (
-				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
-				(asset.assetClass?.length
-					? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
-					: true) &&
-				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
-				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
-				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
-			)
-		})
-
-		let rwaValue = 0
-		let stablecoinValue = 0
-		let defiTvl = 0
-		const issuersSet = new Set<string>()
-
-		for (const asset of filteredAssets) {
-			rwaValue += asset.onChainMarketcap.total
-			if (asset.stablecoin) {
-				stablecoinValue += asset.onChainMarketcap.total
-			}
-			defiTvl += asset.defiActiveTvl.total
-			if (asset.issuer) {
-				issuersSet.add(asset.issuer)
-			}
-		}
-
-		return {
-			totalOnChainRwaValue: rwaValue,
-			totalOnChainStablecoinValue: stablecoinValue,
-			totalOnChainDeFiActiveTvl: defiTvl,
-			issuersCount: issuersSet.size
-		}
-	}, [
-		props.assets,
-		selectedCategories,
-		selectedAssetClasses,
-		selectedRwaClassifications,
-		selectedAccessModels,
-		selectedIssuers,
-		includeStablecoins,
-		includeGovernance
-	])
-
-	// Pie chart data - recalculate category values based on all filters
-	const pieChartData = useMemo(() => {
-		// Filter assets based on all filters (same as filteredAssets but we need to calculate category breakdown)
-		const filteredForPie = props.assets.filter((asset) => {
-			if (!includeStablecoins && asset.stablecoin) return false
-			if (!includeGovernance && asset.governance) return false
-			return (
-				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
-				(asset.assetClass?.length
-					? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
-					: true) &&
-				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
-				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
-				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
-			)
-		})
-
-		// Build category breakdown from filtered assets
-		const categoryMap = new Map<string, number>()
-		for (const asset of filteredForPie) {
-			asset.category?.forEach((category) => {
-				if (category && selectedCategories.includes(category)) {
-					categoryMap.set(category, (categoryMap.get(category) ?? 0) + asset.onChainMarketcap.total)
-				}
-			})
-		}
-
-		return Array.from(categoryMap.entries())
-			.sort((a, b) => b[1] - a[1])
-			.map(([name, value]) => ({ name, value }))
-	}, [
-		props.assets,
-		selectedCategories,
-		selectedAssetClasses,
-		selectedRwaClassifications,
-		selectedAccessModels,
-		selectedIssuers,
-		includeStablecoins,
-		includeGovernance
-	])
-
-	const [searchValue, setSearchValue] = useState('')
-	const deferredSearchValue = useDeferredValue(searchValue)
-
-	// Non-RWA Stablecoins
-	// Crypto-collateralized stablecoin (non-RWA)
-	const filteredAssets = useMemo(() => {
-		return props.assets.filter((asset) => {
-			if (!includeStablecoins && asset.stablecoin) {
-				return false
-			}
-			if (!includeGovernance && asset.governance) {
-				return false
-			}
-			return (
-				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
-				(asset.assetClass?.length
-					? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
-					: true) &&
-				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
-				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
-				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
-			)
-		})
-	}, [
-		props.assets,
-		selectedCategories,
-		selectedAssetClasses,
-		selectedRwaClassifications,
-		selectedAccessModels,
-		selectedIssuers,
-		includeStablecoins,
-		includeGovernance
-	])
-
-	const assetsData = useMemo(() => {
-		if (!deferredSearchValue) return filteredAssets
-
-		return matchSorter(filteredAssets, deferredSearchValue, {
-			keys: ['name', 'ticker'],
-			threshold: matchSorter.rankings.CONTAINS
-		})
-	}, [filteredAssets, deferredSearchValue])
-
-	const instance = useReactTable({
-		data: assetsData,
-		columns,
-		state: {
-			sorting,
-			columnFilters,
-			expanded,
-			columnSizing,
-			columnOrder
-		},
-		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
-		},
-		filterFromLeafRows: true,
-		onExpandedChange: setExpanded,
-		getSubRows: (row: any) => row.subRows,
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
-		onColumnSizingChange: setColumnSizing,
-		onColumnOrderChange: setColumnOrder,
-		getFilteredRowModel: getFilteredRowModel(),
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getExpandedRowModel: getExpandedRowModel()
-	})
-
-	const windowSize = useWindowSize()
-
-	useEffect(() => {
-		const colSize = windowSize.width ? columnSizes.find((size) => windowSize.width > +size[0]) : columnSizes[0]
-		const colOrder = windowSize.width ? columnOrders.find((size) => windowSize.width > +size[0]) : columnOrders[0]
-		if (colSize) {
-			instance.setColumnSizing(colSize[1])
-		}
-		if (colOrder) {
-			instance.setColumnOrder(colOrder[1])
-		}
-	}, [instance, windowSize])
-
-	const prepareCsv = useCallback(() => {
-		const tableRows = instance.getSortedRowModel().rows
-		const headers: Array<string | number | boolean> = [
-			'Name',
-			'Ticker',
-			'Type',
-			'Category',
-			'Asset Class',
-			'On-chain Marketcap',
-			'DeFi Active TVL',
-			'RWA Classification',
-			'Issuer',
-			'Primary Chain',
-			'Chains',
-			'Redeemable',
-			'Attestations',
-			'CEX Listed',
-			'KYC',
-			'Transferable',
-			'Self Custody'
-		]
-
-		const csvData: Array<Array<string | number | boolean>> = tableRows.map((row) => {
-			const asset = row.original
-			return [
-				asset.name ?? '',
-				asset.ticker ?? '',
-				asset.type ?? '',
-				asset.category?.join(', ') ?? '',
-				asset.assetClass?.join(', ') ?? '',
-				asset.onChainMarketcap.total,
-				asset.defiActiveTvl.total,
-				asset.rwaClassification ?? '',
-				asset.issuer ?? '',
-				asset.primaryChain ?? '',
-				asset.chain?.join(', ') ?? '',
-				asset.redeemable != null ? (asset.redeemable ? 'Yes' : 'No') : '',
-				asset.attestations != null ? (asset.attestations ? 'Yes' : 'No') : '',
-				asset.cexListed != null ? (asset.cexListed ? 'Yes' : 'No') : '',
-				asset.kyc != null ? (typeof asset.kyc === 'boolean' ? (asset.kyc ? 'Yes' : 'No') : asset.kyc.join(', ')) : '',
-				asset.transferable != null ? (asset.transferable ? 'Yes' : 'No') : '',
-				asset.selfCustody != null ? (asset.selfCustody ? 'Yes' : 'No') : ''
-			]
-		})
-
-		return {
-			filename: `rwa-assets${props.selectedChain !== 'All' ? `-${props.selectedChain.toLowerCase()}` : ''}.csv`,
-			rows: [headers, ...csvData]
-		}
-	}, [instance, props.selectedChain])
-
-	return (
-		<>
-			<RowLinksWithDropdown links={props.chains} activeLink={props.selectedChain} />
-			<div className="flex flex-col gap-2 md:flex-row md:items-center">
-				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-					<Tooltip
-						content="Sum of value of all real world assets on chain"
-						className="text-(--text-label) underline decoration-dotted"
-					>
-						Total RWA On-chain
-					</Tooltip>
-					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainRwaValue, true)}</span>
-				</p>
-				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-					<Tooltip
-						content="Total number of issuers of real world assets on chain"
-						className="text-(--text-label) underline decoration-dotted"
-					>
-						Total Asset Issuers
-					</Tooltip>
-					<span className="font-jetbrains text-2xl font-medium">{formattedNum(issuersCount, false)}</span>
-				</p>
-				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-					<Tooltip
-						content="Sum of value of all stablecoins on chain"
-						className="text-(--text-label) underline decoration-dotted"
-					>
-						Total Stablecoins Value
-					</Tooltip>
-					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainStablecoinValue, true)}</span>
-				</p>
-				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-					<Tooltip
-						content="Sum of value of all real world assets on chain that are deployed into third-party DeFi protocols tracked by DeFiLlama"
-						className="text-(--text-label) underline decoration-dotted"
-					>
-						DeFi Active TVL
-					</Tooltip>
-					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainDeFiActiveTvl, true)}</span>
-				</p>
-			</div>
-			<div className="relative flex min-h-[360px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-				<h2 className="px-3 text-lg font-semibold">Total RWA Value - Repartition</h2>
-				<Suspense fallback={<div className="h-[360px]" />}>
-					<PieChart
-						chartData={pieChartData}
-						radius={pieChartRadius}
-						legendPosition={pieChartLegendPosition}
-						legendTextStyle={pieChartLegendTextStyle}
-					/>
-				</Suspense>
-			</div>
-			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<h1 className="mr-auto p-3 text-lg font-semibold">Assets Rankings</h1>
-				<div className="flex flex-wrap items-center justify-end gap-2 p-3">
-					<label className="relative mr-auto w-full sm:max-w-[280px]">
-						<span className="sr-only">Search assets</span>
-						<Icon
-							name="search"
-							height={16}
-							width={16}
-							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
-						/>
-						<input
-							value={searchValue}
-							onChange={(e) => {
-								setSearchValue(e.target.value)
-							}}
-							placeholder="Search assets..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
-						/>
-					</label>
-					<SelectWithCombobox
-						allValues={props.categories}
-						selectedValues={selectedCategories}
-						setSelectedValues={setSelectedCategories}
-						selectOnlyOne={selectOnlyOneCategory}
-						toggleAll={toggleAllCategories}
-						clearAll={clearAllCategories}
-						label={'Categories'}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-					/>
-					<SelectWithCombobox
-						allValues={props.assetClassOptions}
-						selectedValues={selectedAssetClasses}
-						setSelectedValues={setSelectedAssetClasses}
-						selectOnlyOne={selectOnlyOneAssetClass}
-						toggleAll={toggleAllAssetClasses}
-						clearAll={clearAllAssetClasses}
-						label={'Asset Classes'}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-					/>
-					<SelectWithCombobox
-						allValues={props.rwaClassificationOptions}
-						selectedValues={selectedRwaClassifications}
-						setSelectedValues={setSelectedRwaClassifications}
-						selectOnlyOne={selectOnlyOneRwaClassification}
-						toggleAll={toggleAllRwaClassifications}
-						clearAll={clearAllRwaClassifications}
-						label={'RWA Classification'}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-					/>
-					<SelectWithCombobox
-						allValues={props.accessModelOptions}
-						selectedValues={selectedAccessModels}
-						setSelectedValues={setSelectedAccessModels}
-						selectOnlyOne={selectOnlyOneAccessModel}
-						toggleAll={toggleAllAccessModels}
-						clearAll={clearAllAccessModels}
-						label={'Access Model'}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-					/>
-					<SelectWithCombobox
-						allValues={props.issuers}
-						selectedValues={selectedIssuers}
-						setSelectedValues={setSelectedIssuers}
-						selectOnlyOne={selectOnlyOneIssuer}
-						toggleAll={toggleAllIssuers}
-						clearAll={clearAllIssuers}
-						label={'Issuers'}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-					/>
-					<label className="flex items-center gap-2">
-						<input
-							type="checkbox"
-							checked={includeStablecoins}
-							onChange={(e) => setIncludeStablecoins(e.target.checked)}
-						/>
-						<span>Include Stablecoins</span>
-					</label>
-					<label className="flex items-center gap-2">
-						<input
-							type="checkbox"
-							checked={includeGovernance}
-							onChange={(e) => setIncludeGovernance(e.target.checked)}
-						/>
-						<span>Include Governance Tokens</span>
-					</label>
-					<CSVDownloadButton prepareCsv={prepareCsv} />
-				</div>
-				<VirtualTable instance={instance} />
-			</div>
-		</>
-	)
-}
-
-const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
-	{
-		id: 'name',
-		header: 'Name',
-		accessorFn: (asset) => asset.name ?? asset.ticker,
-		enableSorting: false,
-		cell: (info) => {
-			const index =
-				info.row.depth === 0
-					? info.table.getSortedRowModel().rows.findIndex((x) => x.id === info.row.id)
-					: info.row.index
-
-			return (
-				<span className="flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
-					<span className="-my-1.5 flex flex-col overflow-hidden">
-						{info.row.original.ticker ? (
-							<>
-								<BasicLink
-									href={`/rwa/asset/${slug(info.row.original.ticker)}`}
-									className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-								>
-									{info.row.original.name ?? info.row.original.ticker}
-								</BasicLink>
-								{info.row.original.name ? (
-									<span className="text-[0.7rem] text-(--text-disabled)">{info.row.original.ticker}</span>
-								) : null}
-							</>
-						) : (
-							<>
-								{info.row.original.name && (
-									<span className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap">
-										{info.row.original.name}
-									</span>
-								)}
-							</>
-						)}
-					</span>
-				</span>
-			)
-		},
-		size: 240
-	},
-	{
-		id: 'type',
-		header: definitions.type.label,
-		accessorFn: (asset) => asset.type,
-		cell: (info) => {
-			const value = info.getValue() as string
-			return <span>{value}</span>
-		},
-		size: 120,
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.type.description
-		}
-	},
-	{
-		id: 'category',
-		header: definitions.category.label,
-		accessorFn: (asset) => asset.category?.join(', ') ?? '',
-		cell: (info) => {
-			const value = info.getValue() as string
-			return (
-				<span title={value} className="overflow-hidden text-ellipsis whitespace-nowrap">
-					{value}
-				</span>
-			)
-		},
-		size: 168,
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.category.description
-		}
-	},
-	{
-		id: 'assetClass',
-		header: definitions.assetClass.label,
-		accessorFn: (asset) => asset.assetClass?.join(', ') ?? '',
-		cell: (info) => {
-			const assetClasses = info.row.original.assetClass
-			if (!assetClasses || assetClasses.length === 0) return null
-			// For single asset class with definition, show tooltip
-			if (assetClasses.length === 1) {
-				const ac = assetClasses[0]
-				const description = definitions.assetClass.values?.[ac]
-				if (description) {
-					return (
-						<Tooltip
-							content={description}
-							className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted"
-						>
-							{ac}
-						</Tooltip>
-					)
-				}
-				return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{ac}</span>
-			}
-			// For multiple asset classes, show combined tooltip
-			const tooltipContent = (
-				<span className="flex flex-col gap-1">
-					{assetClasses.map((ac) => {
-						const description = definitions.assetClass.values?.[ac]
-						return (
-							<span key={ac}>
-								<strong>{ac}</strong>: {description || 'No description'}
-							</span>
-						)
-					})}
-				</span>
-			)
-			return (
-				<Tooltip
-					content={tooltipContent}
-					className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted"
-				>
-					{assetClasses.join(', ')}
-				</Tooltip>
-			)
-		},
-		size: 168,
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.assetClass.description
-		}
-	},
-	{
-		id: 'onChainMarketcap.total',
-		header: definitions.onChainMarketcap.label,
-		accessorFn: (asset) => asset.onChainMarketcap.total,
-		cell: (info) => (
-			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.onChainMarketcap.breakdown} />
-		),
-		size: 168,
-		meta: {
-			headerHelperText: definitions.onChainMarketcap.description,
-			align: 'end'
-		}
-	},
-	{
-		id: 'activeMarketcap.total',
-		header: definitions.activeMarketcap.label,
-		cell: () => null,
-		meta: {
-			headerHelperText: definitions.activeMarketcap.description,
-			align: 'end'
-		}
-	},
-	{
-		id: 'defiActiveTvl.total',
-		header: definitions.defiActiveTvl.label,
-		accessorFn: (asset) => asset.defiActiveTvl.total,
-		cell: (info) => (
-			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.defiActiveTvl.breakdown} />
-		),
-		meta: {
-			headerHelperText: definitions.defiActiveTvl.description,
-			align: 'end'
-		}
-	},
-	{
-		id: 'rwaClassification',
-		header: definitions.rwaClassification.label,
-		accessorFn: (asset) => asset.rwaClassification,
-		cell: (info) => {
-			const value = info.getValue() as string
-			const isTrueRWA = info.row.original.trueRWA
-			// If trueRWA flag, show green color with True RWA definition but display "RWA"
-			const tooltipContent = isTrueRWA
-				? definitions.rwaClassification.values?.['True RWA']
-				: definitions.rwaClassification.values?.[value]
-			if (tooltipContent) {
-				return (
-					<Tooltip
-						content={tooltipContent}
-						className={`inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${isTrueRWA ? 'text-(--success)' : ''}`}
-					>
-						{value}
-					</Tooltip>
-				)
-			}
-			return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
-		},
-		size: 180,
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.rwaClassification.description
-		}
-	},
-	{
-		id: 'accessModel',
-		header: definitions.accessModel.label,
-		accessorFn: (asset) => asset.accessModel,
-		cell: (info) => {
-			const value = info.getValue() as
-				| 'Permissioned'
-				| 'Permissionless'
-				| 'Non-transferable'
-				| 'Custodial Only'
-				| 'Unknown'
-			const valueDescription = definitions.accessModel.values?.[value]
-			const colorClass = clsx(
-				value === 'Permissioned' && 'text-(--warning)',
-				value === 'Permissionless' && 'text-(--success)',
-				value === 'Non-transferable' && 'text-(--error)',
-				value === 'Custodial Only' && 'text-(--error)'
-			)
-			if (valueDescription) {
-				return (
-					<Tooltip content={valueDescription} className={`justify-end underline decoration-dotted ${colorClass}`}>
-						{value}
-					</Tooltip>
-				)
-			}
-			return <span className={colorClass}>{value}</span>
-		},
-		size: 180,
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.accessModel.description
-		}
-	},
-	{
-		id: 'issuer',
-		header: definitions.issuer.label,
-		accessorFn: (asset) => asset.issuer,
-		cell: (info) => {
-			const value = info.getValue() as string
-			return (
-				<span title={value} className="overflow-hidden text-ellipsis whitespace-nowrap">
-					{value}
-				</span>
-			)
-		},
-		size: 120,
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.issuer.description
-		}
-	},
-	{
-		id: 'redeemable',
-		header: definitions.redeemable.label,
-		accessorFn: (asset) => asset.redeemable,
-		cell: (info) => (
-			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
-				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
-			</span>
-		),
-		sortUndefined: 'last',
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.redeemable.description
-		},
-		size: 120
-	},
-	{
-		id: 'attestations',
-		header: definitions.attestations.label,
-		accessorFn: (asset) => asset.attestations,
-		cell: (info) => (
-			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
-				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
-			</span>
-		),
-		sortUndefined: 'last',
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.attestations.description
-		},
-		size: 120
-	},
-	{
-		id: 'cex_listed',
-		header: definitions.cexListed.label,
-		accessorFn: (asset) => asset.cexListed,
-		cell: (info) => (
-			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
-				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
-			</span>
-		),
-		sortUndefined: 'last',
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.cexListed.description
-		},
-		size: 120
-	},
-	{
-		id: 'kycForMintRedeem',
-		header: definitions.kycForMintRedeem.label,
-		accessorFn: (asset) => asset.kycForMintRedeem,
-		cell: (info) => (
-			<span className={info.getValue() ? 'text-(--warning)' : 'text-(--success)'}>
-				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
-			</span>
-		),
-		sortUndefined: 'last',
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.kycForMintRedeem.description
-		},
-		size: 188
-	},
-	{
-		id: 'kycAllowlistedWhitelistedToTransferHold',
-		header: definitions.kycAllowlistedWhitelistedToTransferHold.label,
-		accessorFn: (asset) => asset.kycAllowlistedWhitelistedToTransferHold,
-		cell: (info) => (
-			<span className={info.getValue() ? 'text-(--warning)' : 'text-(--success)'}>
-				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
-			</span>
-		),
-		sortUndefined: 'last',
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.kycAllowlistedWhitelistedToTransferHold.description
-		},
-		size: 332
-	},
-	{
-		id: 'transferable',
-		header: definitions.transferable.label,
-		accessorFn: (asset) => asset.transferable,
-		cell: (info) => (
-			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
-				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
-			</span>
-		),
-		sortUndefined: 'last',
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.transferable.description
-		},
-		size: 120
-	},
-	{
-		id: 'self_custody',
-		header: definitions.selfCustody.label,
-		accessorFn: (asset) => asset.selfCustody,
-		cell: (info) => (
-			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
-				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
-			</span>
-		),
-		sortUndefined: 'last',
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.selfCustody.description
-		},
-		size: 120
-	}
-]
-
-const TVLBreakdownCell = ({
-	value,
-	breakdown
-}: {
-	value: number | null
-	breakdown: Array<[string, number]> | null
-}) => {
-	if (value == null) {
-		return null
-	}
-
-	if (!breakdown || breakdown.length === 0) {
-		return formattedNum(value, true)
-	}
-
-	const Breakdown = () => (
-		<span className="flex flex-col gap-1">
-			{breakdown.map(([chain, tvl]) => (
-				<span key={`${chain}-${tvl}`}>
-					{chain}: {formattedNum(tvl, true)}
-				</span>
-			))}
-		</span>
-	)
-
-	return (
-		<Tooltip content={<Breakdown />} className="justify-end underline decoration-dotted">
-			{formattedNum(value, true)}
-		</Tooltip>
-	)
-}
-
-const columnSizes = Object.entries({
-	0: { name: 180 },
-	640: { name: 240 }
-}).sort((a, b) => Number(b[0]) - Number(a[0]))
-
-const columnOrders = Object.entries({
-	0: [
-		'name',
-		'onChainMarketcap.total',
-		'category',
-		'assetClass',
-		'activeMarketcap.total',
-		'defiActiveTvl.total',
-		'type',
-		'rwaClassification',
-		'accessModel',
-		'issuer',
-		'redeemable',
-		'attestations',
-		'cex_listed',
-		'kycForMintRedeem',
-		'kycAllowlistedWhitelistedToTransferHold',
-		'transferable',
-		'self_custody'
-	],
-	640: [
-		'name',
-		'type',
-		'category',
-		'assetClass',
-		'onChainMarketcap.total',
-		'activeMarketcap.total',
-		'defiActiveTvl.total',
-		'rwaClassification',
-		'accessModel',
-		'issuer',
-		'redeemable',
-		'attestations',
-		'cex_listed',
-		'kycForMintRedeem',
-		'kycAllowlistedWhitelistedToTransferHold',
-		'transferable',
-		'self_custody'
-	]
-}).sort((a, b) => Number(b[0]) - Number(a[0]))
-
-const toArrayParam = (p: string | string[] | undefined): string[] => {
-	if (!p) return []
-	return Array.isArray(p) ? p.filter(Boolean) : [p].filter(Boolean)
-}
-
-const updateArrayQuery = (key: string, values: string[] | 'None', router: NextRouter) => {
-	const nextQuery: Record<string, any> = { ...router.query }
-	if (values === 'None') {
-		nextQuery[key] = 'None'
-	} else if (values.length > 0) {
-		nextQuery[key] = values
-	} else {
-		delete nextQuery[key]
-	}
-	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-}
-
-const useRWATableQueryParams = ({
-	categories,
-	assetClasses,
-	rwaClassifications,
-	accessModels,
-	issuers
-}: {
-	categories: string[]
-	assetClasses: string[]
-	rwaClassifications: string[]
-	accessModels: string[]
-	issuers: string[]
-}) => {
-	const router = useRouter()
-
-	const {
-		selectedCategories,
-		selectedAssetClasses,
-		selectedRwaClassifications,
-		selectedAccessModels,
-		selectedIssuers,
-		includeStablecoins,
-		includeGovernance
-	} = useMemo(() => {
-		const {
-			categories: categoriesQ,
-			assetClasses: assetClassesQ,
-			rwaClassifications: rwaClassificationsQ,
-			accessModels: accessModelsQ,
-			issuers: issuersQ,
-			includeStablecoins: stablecoinsQ,
-			includeGovernance: governanceQ
-		} = router.query
-
-		// If query param is 'None', return empty array. If no param, return all (default). Otherwise parse the array.
-		const parseArrayParam = (param: string | string[] | undefined, allValues: string[]): string[] => {
-			if (param === 'None') return []
-			if (!param) return allValues
-			const arr = toArrayParam(param)
-			const validSet = new Set(allValues)
-			return arr.filter((v) => validSet.has(v))
-		}
-
-		const selectedCategories = parseArrayParam(categoriesQ, categories)
-		const selectedAssetClasses = parseArrayParam(assetClassesQ, assetClasses)
-		const selectedRwaClassifications = parseArrayParam(rwaClassificationsQ, rwaClassifications)
-		const selectedAccessModels = parseArrayParam(accessModelsQ, accessModels)
-		const selectedIssuers = parseArrayParam(issuersQ, issuers)
-
-		// includeStablecoins is true by default, unless explicitly set to 'false'
-		const includeStablecoins = stablecoinsQ !== 'false'
-		const includeGovernance = governanceQ !== 'false'
-		return {
+	const { filteredAssets, totalOnChainMcap, totalActiveMcap, totalOnChainDeFiActiveTvl, totalIssuersCount } =
+		useFilteredRwaAssets({
+			assets: props.assets,
+			isPlatformMode,
+			selectedAssetNames,
 			selectedCategories,
 			selectedAssetClasses,
 			selectedRwaClassifications,
 			selectedAccessModels,
 			selectedIssuers,
+			selectedTypes,
 			includeStablecoins,
-			includeGovernance
+			includeGovernance,
+			minDefiActiveTvlToOnChainMcapPct,
+			maxDefiActiveTvlToOnChainMcapPct,
+			minActiveMcapToOnChainMcapPct,
+			maxActiveMcapToOnChainMcapPct,
+			minDefiActiveTvlToActiveMcapPct,
+			maxDefiActiveTvlToActiveMcapPct
+		})
+
+	const { chartDatasetByCategory } = useRwaChartDataByCategory({
+		enabled: isChainMode,
+		assets: filteredAssets,
+		chartDataByTicker: props.chartData
+	})
+
+	const { chartDatasetByAssetClass } = useRwaChartDataByAssetClass({
+		enabled: isCategoryMode,
+		assets: filteredAssets,
+		chartDataByTicker: props.chartData
+	})
+
+	const { chartDatasetByAssetName } = useRwaChartDataByAssetName({
+		enabled: isPlatformMode,
+		assets: filteredAssets,
+		chartDataByTicker: props.chartData
+	})
+
+	const {
+		assetCategoryOnChainMcapPieChartData,
+		assetCategoryActiveMcapPieChartData,
+		assetCategoryDefiActiveTvlPieChartData,
+		pieChartStackColors: assetCategoryPieChartStackColors
+	} = useRWAAssetCategoryPieChartData({
+		enabled: isChainMode,
+		assets: filteredAssets,
+		categories: props.categories,
+		selectedCategories
+	})
+
+	const {
+		assetClassOnChainMcapPieChartData,
+		assetClassActiveMcapPieChartData,
+		assetClassDefiActiveTvlPieChartData,
+		assetClassPieChartStackColors
+	} = useRwaCategoryAssetClassPieChartData({
+		enabled: isCategoryMode,
+		assets: filteredAssets,
+		assetClasses: props.assetClasses,
+		selectedAssetClasses
+	})
+
+	const {
+		assetNameOnChainMcapPieChartData,
+		assetNameActiveMcapPieChartData,
+		assetNameDefiActiveTvlPieChartData,
+		assetNamePieChartStackColors
+	} = useRwaAssetNamePieChartData({
+		enabled: isPlatformMode,
+		assets: filteredAssets,
+		selectedAssetNames
+	})
+
+	const isChainBreakdownEnabled = isCategoryMode || isPlatformMode || props.selectedChain === 'All'
+	const {
+		chainOnChainMcapPieChartData,
+		chainActiveMcapPieChartData,
+		chainDefiActiveTvlPieChartData,
+		chainPieChartStackColors
+	} = useRwaChainBreakdownPieChartData({
+		enabled: isChainBreakdownEnabled,
+		assets: filteredAssets
+	})
+
+	// Select pie chart breakdown based on route mode (same precedence as nav links).
+	const { onChainPieChartData, activeMcapPieChartData, defiActiveTvlPieChartData, pieChartStackColors } =
+		useMemo(() => {
+			if (isChainBreakdownEnabled && pieChartBreakdown === 'chain') {
+				return {
+					onChainPieChartData: chainOnChainMcapPieChartData,
+					activeMcapPieChartData: chainActiveMcapPieChartData,
+					defiActiveTvlPieChartData: chainDefiActiveTvlPieChartData,
+					pieChartStackColors: chainPieChartStackColors
+				}
+			}
+
+			if (isCategoryMode) {
+				return {
+					onChainPieChartData: assetClassOnChainMcapPieChartData,
+					activeMcapPieChartData: assetClassActiveMcapPieChartData,
+					defiActiveTvlPieChartData: assetClassDefiActiveTvlPieChartData,
+					pieChartStackColors: assetClassPieChartStackColors
+				}
+			}
+
+			if (isPlatformMode) {
+				return {
+					onChainPieChartData: assetNameOnChainMcapPieChartData,
+					activeMcapPieChartData: assetNameActiveMcapPieChartData,
+					defiActiveTvlPieChartData: assetNameDefiActiveTvlPieChartData,
+					pieChartStackColors: assetNamePieChartStackColors
+				}
+			}
+
+			return {
+				onChainPieChartData: assetCategoryOnChainMcapPieChartData,
+				activeMcapPieChartData: assetCategoryActiveMcapPieChartData,
+				defiActiveTvlPieChartData: assetCategoryDefiActiveTvlPieChartData,
+				pieChartStackColors: assetCategoryPieChartStackColors
+			}
+		}, [
+			assetClassActiveMcapPieChartData,
+			assetClassDefiActiveTvlPieChartData,
+			assetClassOnChainMcapPieChartData,
+			assetClassPieChartStackColors,
+			assetNameActiveMcapPieChartData,
+			assetNameDefiActiveTvlPieChartData,
+			assetNameOnChainMcapPieChartData,
+			assetNamePieChartStackColors,
+			assetCategoryActiveMcapPieChartData,
+			assetCategoryDefiActiveTvlPieChartData,
+			assetCategoryOnChainMcapPieChartData,
+			assetCategoryPieChartStackColors,
+			isCategoryMode,
+			isPlatformMode,
+			isChainBreakdownEnabled,
+			pieChartBreakdown,
+			chainOnChainMcapPieChartData,
+			chainActiveMcapPieChartData,
+			chainDefiActiveTvlPieChartData,
+			chainPieChartStackColors
+		])
+
+	// Preserve filter/toggle query params only in chain mode.
+	// (The chain/category/platform itself is in the pathname, so we strip the dynamic param from the query object.)
+	const navLinks = useMemo(() => {
+		const baseLinks = isCategoryMode ? props.categoryLinks : isPlatformMode ? props.platformLinks : props.chainLinks
+
+		// Only preserve query filters/toggles on chain mode. In category/platform mode, links should be "clean".
+		const shouldPreserveQuery = isChainMode && !isCategoryMode && !isPlatformMode
+		if (!shouldPreserveQuery) return baseLinks
+
+		const { chain: _chain, category: _category, platform: _platform, ...restQuery } = router.query
+		const qs = toQueryString(restQuery as Record<string, string | string[] | undefined>)
+		if (!qs) return baseLinks
+		return baseLinks.map((link) => ({ ...link, to: `${link.to}${qs}` }))
+	}, [
+		isChainMode,
+		isCategoryMode,
+		isPlatformMode,
+		props.categoryLinks,
+		props.platformLinks,
+		props.chainLinks,
+		router.query
+	])
+
+	const showFilters =
+		(props.typeOptions.length > 1 ||
+			props.categoriesOptions.length > 1 ||
+			props.assetClassOptions.length > 1 ||
+			props.rwaClassificationOptions.length > 1 ||
+			props.accessModelOptions.length > 1 ||
+			props.issuers.length > 1) &&
+		props.assets.length > 1
+
+	const showCharts = props.assets.length > 1
+
+	const { chartInstance: multiSeriesChart2Instance, handleChartReady: handleMultiSeriesChart2Ready } =
+		useChartImageExport()
+	const timeSeriesChartTitle =
+		chartType === 'onChainMcap' ? 'Onchain Mcap' : chartType === 'activeMcap' ? 'Active Mcap' : 'DeFi Active TVL'
+	const timeSeriesChartFilename = `rwa-time-series-chart-${slug(timeSeriesChartTitle)}-${rwaSlug(isChainMode ? props.selectedChain : isCategoryMode ? props.selectedCategory : props.selectedPlatform)}`
+	const { chartInstance: pieChartInstance, handleChartReady: handlePieChartReady } = useChartImageExport()
+	const pieChartTitle =
+		chartType === 'onChainMcap' ? 'Onchain Mcap' : chartType === 'activeMcap' ? 'Active Mcap' : 'DeFi Active TVL'
+	const pieChartFilename = `rwa-pie-${slug(pieChartTitle)}-${rwaSlug(isChainMode ? props.selectedChain : isCategoryMode ? props.selectedCategory : props.selectedPlatform)}`
+
+	const chartDatasetByMode = isCategoryMode
+		? chartDatasetByAssetClass
+		: isPlatformMode
+			? chartDatasetByAssetName
+			: chartDatasetByCategory
+
+	const selectedTimeSeriesDataset = chartDatasetByMode[chartTypeKey] ?? chartDatasetByMode.onChainMcap
+	const selectedPieChartData =
+		chartTypeKey === 'onChainMcap'
+			? onChainPieChartData
+			: chartTypeKey === 'activeMcap'
+				? activeMcapPieChartData
+				: defiActiveTvlPieChartData
+
+	const chartTypeSwitch = (
+		<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+			{PIE_CHART_TYPES.map(({ key, label }) => (
+				<button
+					key={`pie-chart-type-${key}`}
+					className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+					data-active={chartType === key}
+					onClick={() => {
+						router.push({ pathname: router.pathname, query: { ...router.query, chartType: key } }, undefined, {
+							shallow: true
+						})
+					}}
+				>
+					{label}
+				</button>
+			))}
+		</div>
+	)
+
+	const chartViewSwitch = (
+		<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+			<button
+				className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+				data-active={chartView === 'timeSeries'}
+				onClick={() => {
+					const { chartView: _chartView, ...restQuery } = router.query
+					router.push({ pathname: router.pathname, query: { ...restQuery } }, undefined, { shallow: true })
+				}}
+			>
+				Time Series
+			</button>
+			<button
+				className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+				data-active={chartView === 'pie'}
+				onClick={() => {
+					router.push({ pathname: router.pathname, query: { ...router.query, chartView: 'pie' } }, undefined, {
+						shallow: true
+					})
+				}}
+			>
+				Pie Chart
+			</button>
+		</div>
+	)
+
+	return (
+		<>
+			<RowLinksWithDropdown
+				links={navLinks}
+				activeLink={
+					isCategoryMode ? props.selectedCategory : isPlatformMode ? props.selectedPlatform : props.selectedChain
+				}
+			/>
+			<RWAOverviewFilters
+				enabled={showFilters}
+				isChainMode={isChainMode}
+				isPlatformMode={isPlatformMode}
+				assetNames={props.assetNames}
+				selectedAssetNames={selectedAssetNames}
+				typeOptions={props.typeOptions}
+				categoriesOptions={props.categoriesOptions}
+				assetClassOptions={props.assetClassOptions}
+				rwaClassificationOptions={props.rwaClassificationOptions}
+				accessModelOptions={props.accessModelOptions}
+				issuers={props.issuers}
+				selectedTypes={selectedTypes}
+				selectedCategories={selectedCategories}
+				selectedAssetClasses={selectedAssetClasses}
+				selectedRwaClassifications={selectedRwaClassifications}
+				selectedAccessModels={selectedAccessModels}
+				selectedIssuers={selectedIssuers}
+				minDefiActiveTvlToOnChainMcapPct={minDefiActiveTvlToOnChainMcapPct}
+				maxDefiActiveTvlToOnChainMcapPct={maxDefiActiveTvlToOnChainMcapPct}
+				minActiveMcapToOnChainMcapPct={minActiveMcapToOnChainMcapPct}
+				maxActiveMcapToOnChainMcapPct={maxActiveMcapToOnChainMcapPct}
+				minDefiActiveTvlToActiveMcapPct={minDefiActiveTvlToActiveMcapPct}
+				maxDefiActiveTvlToActiveMcapPct={maxDefiActiveTvlToActiveMcapPct}
+				setDefiActiveTvlToOnChainMcapPctRange={setDefiActiveTvlToOnChainMcapPctRange}
+				setActiveMcapToOnChainMcapPctRange={setActiveMcapToOnChainMcapPctRange}
+				setDefiActiveTvlToActiveMcapPctRange={setDefiActiveTvlToActiveMcapPctRange}
+				includeStablecoins={includeStablecoins}
+				includeGovernance={includeGovernance}
+				setIncludeStablecoins={setIncludeStablecoins}
+				setIncludeGovernance={setIncludeGovernance}
+			/>
+			<div className="flex flex-col gap-2 md:flex-row md:items-center">
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<Tooltip
+						content={definitions.totalOnChainMcap.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						{definitions.totalOnChainMcap.label}
+					</Tooltip>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainMcap, true)}</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<Tooltip
+						content={definitions.totalActiveMcap.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						{definitions.totalActiveMcap.label}
+					</Tooltip>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalActiveMcap, true)}</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<Tooltip
+						content={definitions.totalDefiActiveTvl.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						{definitions.totalDefiActiveTvl.label}
+					</Tooltip>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainDeFiActiveTvl, true)}</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<Tooltip
+						content={definitions.totalAssetIssuers.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						{definitions.totalAssetIssuers.label}
+					</Tooltip>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalIssuersCount, false)}</span>
+				</p>
+			</div>
+			{showCharts ? (
+				<>
+					{chartView === 'timeSeries' ? (
+						<div className="min-h-[416px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+							<div className="flex items-center justify-end gap-2 p-3">
+								{chartTypeSwitch}
+								{chartViewSwitch}
+								<ChartCsvExportButton
+									chartInstance={multiSeriesChart2Instance}
+									filename={timeSeriesChartFilename}
+									className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+									smol
+								/>
+								<ChartExportButton
+									chartInstance={multiSeriesChart2Instance}
+									filename={timeSeriesChartFilename}
+									title={timeSeriesChartTitle}
+									className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+									smol
+								/>
+							</div>
+							<Suspense fallback={<div className="h-[360px]" />}>
+								<MultiSeriesChart2
+									dataset={selectedTimeSeriesDataset}
+									hideDefaultLegend={false}
+									stacked
+									chartOptions={timeSeriesChartOptions}
+									onReady={handleMultiSeriesChart2Ready}
+								/>
+							</Suspense>
+						</div>
+					) : null}
+					{chartView === 'pie' ? (
+						<div className="flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+							<div className="flex items-center justify-end gap-2 p-3 pb-0">
+								{chartTypeSwitch}
+								{chartViewSwitch}
+								{isChainBreakdownEnabled ? (
+									<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+										<button
+											className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+											data-active={pieChartBreakdown !== 'chain'}
+											onClick={() => {
+												const { pieChartBreakdown: _pieChartBreakdown, ...restQuery } = router.query
+												router.push(
+													{
+														pathname: router.pathname,
+														query: { ...restQuery }
+													},
+													undefined,
+													{ shallow: true }
+												)
+											}}
+										>
+											{isChainMode ? 'Asset Category' : isCategoryMode ? 'Asset Class' : 'Asset Name'}
+										</button>
+										<button
+											className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+											data-active={pieChartBreakdown === 'chain'}
+											onClick={() => {
+												router.push(
+													{
+														pathname: router.pathname,
+														query: { ...router.query, pieChartBreakdown: 'chain' }
+													},
+													undefined,
+													{ shallow: true }
+												)
+											}}
+										>
+											Chain
+										</button>
+									</div>
+								) : null}
+								<DownloadPieChartCsv filename={`${pieChartFilename}.csv`} chartData={selectedPieChartData} smol />
+								<ChartExportButton
+									chartInstance={pieChartInstance}
+									filename={`${pieChartFilename}.png`}
+									title={pieChartTitle}
+									className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+									smol
+								/>
+							</div>
+							<Suspense fallback={<div className="h-[360px]" />}>
+								<PieChart
+									chartData={selectedPieChartData}
+									stackColors={pieChartStackColors}
+									radius={pieChartRadius}
+									legendPosition={pieChartLegendPosition}
+									legendTextStyle={pieChartLegendTextStyle}
+									onReady={handlePieChartReady}
+								/>
+							</Suspense>
+						</div>
+					) : null}
+				</>
+			) : null}
+			<RWAAssetsTable assets={filteredAssets} selectedChain={props.selectedChain} />
+		</>
+	)
+}
+
+const toQueryString = (query: Record<string, string | string[] | undefined>): string => {
+	const params = new URLSearchParams()
+	for (const [key, value] of Object.entries(query)) {
+		if (value == null) continue
+		if (Array.isArray(value)) {
+			for (const v of value) {
+				if (!v) continue
+				params.append(key, String(v))
+			}
+		} else if (value) {
+			params.set(key, String(value))
 		}
-	}, [router.query, categories, assetClasses, rwaClassifications, accessModels, issuers])
-
-	const setSelectedCategories = useCallback(
-		(values: string[]) => updateArrayQuery('categories', values, router),
-		[router]
-	)
-	const selectOnlyOneCategory = useCallback(
-		(category: string) => updateArrayQuery('categories', [category], router),
-		[router]
-	)
-	const toggleAllCategories = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		delete nextQuery.categories
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [router])
-	const clearAllCategories = useCallback(() => updateArrayQuery('categories', 'None', router), [router])
-
-	const setSelectedAssetClasses = useCallback(
-		(values: string[]) => updateArrayQuery('assetClasses', values, router),
-		[router]
-	)
-	const selectOnlyOneAssetClass = useCallback(
-		(assetClass: string) => updateArrayQuery('assetClasses', [assetClass], router),
-		[router]
-	)
-	const toggleAllAssetClasses = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		delete nextQuery.assetClasses
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [router])
-	const clearAllAssetClasses = useCallback(() => updateArrayQuery('assetClasses', 'None', router), [router])
-
-	const setSelectedRwaClassifications = useCallback(
-		(values: string[]) => updateArrayQuery('rwaClassifications', values, router),
-		[router]
-	)
-	const selectOnlyOneRwaClassification = useCallback(
-		(rwaClassification: string) => updateArrayQuery('rwaClassifications', [rwaClassification], router),
-		[router]
-	)
-	const toggleAllRwaClassifications = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		delete nextQuery.rwaClassifications
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [router])
-	const clearAllRwaClassifications = useCallback(() => updateArrayQuery('rwaClassifications', 'None', router), [router])
-
-	const setSelectedAccessModels = useCallback(
-		(values: string[]) => updateArrayQuery('accessModels', values, router),
-		[router]
-	)
-	const selectOnlyOneAccessModel = useCallback(
-		(accessModel: string) => updateArrayQuery('accessModels', [accessModel], router),
-		[router]
-	)
-	const toggleAllAccessModels = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		delete nextQuery.accessModels
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [router])
-	const clearAllAccessModels = useCallback(() => updateArrayQuery('accessModels', 'None', router), [router])
-
-	const setSelectedIssuers = useCallback((values: string[]) => updateArrayQuery('issuers', values, router), [router])
-	const selectOnlyOneIssuer = useCallback((issuer: string) => updateArrayQuery('issuers', [issuer], router), [router])
-	const toggleAllIssuers = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		delete nextQuery.issuers
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [router])
-	const clearAllIssuers = useCallback(() => updateArrayQuery('issuers', 'None', router), [router])
-
-	const setIncludeStablecoins = useCallback(
-		(value: boolean) => {
-			const nextQuery: Record<string, any> = { ...router.query }
-			if (value) {
-				delete nextQuery.includeStablecoins
-			} else {
-				nextQuery.includeStablecoins = 'false'
-			}
-			router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-		},
-		[router]
-	)
-
-	const setIncludeGovernance = useCallback(
-		(value: boolean) => {
-			const nextQuery: Record<string, any> = { ...router.query }
-			if (value) {
-				delete nextQuery.includeGovernance
-			} else {
-				nextQuery.includeGovernance = 'false'
-			}
-			router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-		},
-		[router]
-	)
-
-	return {
-		selectedCategories,
-		selectedAssetClasses,
-		selectedRwaClassifications,
-		selectedAccessModels,
-		selectedIssuers,
-		includeStablecoins,
-		includeGovernance,
-		setSelectedCategories,
-		setSelectedAssetClasses,
-		setSelectedRwaClassifications,
-		setSelectedAccessModels,
-		setSelectedIssuers,
-		setIncludeStablecoins,
-		setIncludeGovernance,
-		selectOnlyOneCategory,
-		toggleAllCategories,
-		clearAllCategories,
-		selectOnlyOneAssetClass,
-		toggleAllAssetClasses,
-		clearAllAssetClasses,
-		selectOnlyOneRwaClassification,
-		toggleAllRwaClassifications,
-		clearAllRwaClassifications,
-		selectOnlyOneAccessModel,
-		toggleAllAccessModels,
-		clearAllAccessModels,
-		selectOnlyOneIssuer,
-		toggleAllIssuers,
-		clearAllIssuers
 	}
+	const qs = params.toString()
+	return qs ? `?${qs}` : ''
 }
 
 const pieChartRadius = ['50%', '70%'] as [string, string]
@@ -1116,3 +542,16 @@ const pieChartLegendPosition = {
 	}
 } as any
 const pieChartLegendTextStyle = { fontSize: 14 }
+
+const PIE_CHART_TYPES = [
+	{ key: 'activeMcap', label: 'Active Mcap' },
+	{ key: 'onChainMcap', label: 'Onchain Mcap' },
+	{ key: 'defiActiveTvl', label: 'DeFi Active TVL' }
+]
+
+const validPieChartTypes = new Set(PIE_CHART_TYPES.map(({ key }) => key))
+
+const timeSeriesChartOptions = {
+	legend: { top: 0, left: 12, right: 12 },
+	grid: { top: 56 }
+}

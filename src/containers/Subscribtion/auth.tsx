@@ -1,8 +1,7 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
 import { useMutation, UseMutationResult, useQuery, useQueryClient } from '@tanstack/react-query'
 import { RecordAuthResponse, RecordModel } from 'pocketbase'
+import { createContext, ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
-import { createSiweMessage } from 'viem/siwe'
 import { AUTH_SERVER } from '~/constants'
 import pb, { AuthModel } from '~/utils/pocketbase'
 
@@ -31,9 +30,9 @@ const subscribeToAuthStore = (callback: () => void) => {
 				record: record ? { ...record } : null,
 				isValid: pb.authStore.isValid
 			}
-			window.dispatchEvent(
-				new CustomEvent(AUTH_STORE_CHANGE_EVENT, { detail: { token, record, isValid: pb.authStore.isValid } })
-			)
+			// window.dispatchEvent(
+			// 	new CustomEvent(AUTH_STORE_CHANGE_EVENT, { detail: { token, record, isValid: pb.authStore.isValid } })
+			// )
 			callback()
 		}
 	})
@@ -75,6 +74,9 @@ const clearUserSession = () => {
 	pb.authStore.clear()
 	localStorage.removeItem('userHash')
 	localStorage.removeItem('lite-dashboards')
+	if (typeof window !== 'undefined') {
+		;(window as any).__frontChatUserHash = null
+	}
 	if (typeof window !== 'undefined' && (window as any).FrontChat) {
 		;(window as any).FrontChat('shutdown', { clearSession: true })
 	}
@@ -192,7 +194,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		}
 	})
 
-	const userLoading = Boolean(!authStoreState.token || !authStoreState.record) ? userQueryIsLoading : false
+	const userLoading = !authStoreState.token || !authStoreState.record ? userQueryIsLoading : false
 
 	const login = useCallback(
 		async (email: string, password: string, onSuccess?: () => void) => {
@@ -335,6 +337,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const signInWithEthereumMutation = useMutation({
 		mutationFn: async ({ address, signMessageFunction }: { address: string; signMessageFunction: any }) => {
+			const { createSiweMessage } = await import('viem/siwe')
 			const { nonce } = await getNonce(address)
 			const issuedAt = new Date()
 			const message = createSiweMessage({
@@ -406,6 +409,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				throw new Error('User not authenticated')
 			}
 
+			const { createSiweMessage } = await import('viem/siwe')
 			const { nonce } = await getNonce(address)
 			const issuedAt = new Date()
 			const message = createSiweMessage({
@@ -438,7 +442,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				try {
 					const data = await response.json()
 					reason = data?.message || data?.error || reason
-				} catch (e) {}
+				} catch {}
 				throw new Error(reason)
 			}
 
@@ -447,7 +451,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		onSuccess: async () => {
 			try {
 				await pb.collection('users').authRefresh()
-			} catch {}
+			} catch {
+				/* ignore refresh error */
+			}
 			toast.success('Wallet linked successfully')
 		},
 		onError: (error) => {
@@ -482,7 +488,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			try {
 				await pb.collection('users').requestEmailChange(email)
 				toast.success('Email change request sent')
-			} catch (error) {
+			} catch {
 				toast.error('User with this email already exists')
 			}
 		}
@@ -504,7 +510,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				throw error
 			}
 		},
-		onError: (error) => {
+		onError: () => {
 			toast.error('Failed to send verification email. Please try again.')
 		}
 	})
@@ -609,7 +615,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		setPromotionalEmails: setPromotionalEmails.mutate,
 		isAuthenticated,
 		hasActiveSubscription: userData?.has_active_subscription ?? false,
-		isTrial: userData?.flags?.is_trial ?? false,
+		isTrial: Boolean(userData?.flags?.is_trial),
 		loaders: {
 			login: loginMutation.isPending,
 			signup: signupMutation.isPending,
@@ -667,22 +673,22 @@ export const useUserHash = () => {
 				})
 				.then((data) => {
 					const currentUserHash = localStorage.getItem('userHash')
-					localStorage.setItem('userHash', data.userHash)
+					// Avoid redundant localStorage writes (can be surprisingly costly in bursts).
 					if (currentUserHash !== data.userHash) {
+						localStorage.setItem('userHash', data.userHash)
 						window.dispatchEvent(new Event('userHashChange'))
 					}
 					return data.userHash
 				})
-				.catch((err) => {
-					console.log('Error fetching user hash:', err)
+				.catch(() => {
 					const currentUserHash = localStorage.getItem('userHash')
-					localStorage.removeItem('userHash')
 					if (currentUserHash !== null) {
+						localStorage.removeItem('userHash')
 						window.dispatchEvent(new Event('userHashChange'))
 					}
 					return null
 				}),
-		enabled: email && hasActiveSubscription ? true : false,
+		enabled: !!(email && hasActiveSubscription),
 		staleTime: 1000 * 60 * 60 * 24,
 		refetchOnWindowFocus: false,
 		retry: 3

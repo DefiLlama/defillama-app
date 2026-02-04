@@ -6,7 +6,8 @@ interface UnifiedTablePaginationProps {
 	table: Table<NormalizedRow>
 }
 
-const PAGE_SIZES = ['10', '30', '50']
+const PAGE_SIZES = ['10', '30', '50'] as const
+const PAGINATION_VALUES = ['Previous', 'Next'] as const
 
 export function UnifiedTablePagination({ table }: UnifiedTablePaginationProps) {
 	if (!table.getCanPreviousPage() && !table.getCanNextPage()) {
@@ -26,7 +27,7 @@ export function UnifiedTablePagination({ table }: UnifiedTablePaginationProps) {
 			<TagGroup
 				selectedValue={null}
 				setValue={(val) => (val === 'Next' ? table.nextPage() : table.previousPage())}
-				values={['Previous', 'Next']}
+				values={PAGINATION_VALUES}
 			/>
 			<div className="flex items-center">
 				<div className="mr-2 text-xs">Per page</div>

@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
+import * as React from 'react'
 import { YieldFiltersV2 } from './Filters'
 import { useFormatYieldQueryParams } from './hooks'
 import { YieldsBorrowTable } from './Tables/Borrow'
@@ -12,7 +12,8 @@ const YieldPageBorrow = ({
 	categoryList,
 	tokens,
 	tokenSymbolsList,
-	usdPeggedSymbols
+	usdPeggedSymbols,
+	evmChains
 }) => {
 	const { pathname } = useRouter()
 
@@ -29,7 +30,7 @@ const YieldPageBorrow = ({
 		maxTvl,
 		minApy,
 		maxApy
-	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
+	} = useFormatYieldQueryParams({ projectList, chainList, categoryList, evmChains })
 
 	const poolsData = React.useMemo(() => {
 		const pair_tokens = pairTokens.map((token) => token.toLowerCase())
@@ -113,6 +114,7 @@ const YieldPageBorrow = ({
 				selectedTokens={includeTokens}
 				chainList={chainList}
 				selectedChains={selectedChains}
+				evmChains={evmChains}
 				projectList={projectList}
 				selectedProjects={selectedProjects}
 				attributes={true}

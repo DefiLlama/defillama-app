@@ -1,6 +1,112 @@
+/**
+ * Server-Side Improvements for Chart Data Pipeline
+ * =================================================
+ *
+ * CURRENT FRONTEND BURDEN:
+ * The client currently handles significant data transformation and type detection:
+ *
+ * 1. FORMAT DETECTION (chartAdapter.ts, ChartRenderer.tsx)
+ *    - Check if chartData is array vs object: `Array.isArray(chartData) ? chartData : chartData?.[chart.id]`
+ *    - Detect keyed vs flat data structures
+ *    - Handle missing/undefined data gracefully
+ *
+ * 2. CHART TYPE INFERENCE (chartAdapter.ts ~680 lines)
+ *    - Detect if data is time-series vs categorical
+ *    - Infer pie chart data from value/name/label fields
+ *    - Detect scatter plot dimensions (x, y, size, color)
+ *    - Identify candlestick OHLCV fields
+ *
+ * 3. DATA NORMALIZATION (chartAdapter.ts, chartDataTransformer.ts)
+ *    - Normalize timestamps (unix seconds/ms → Date objects)
+ *    - Convert string numbers to actual numbers
+ *    - Fill missing values with nulls/zeros
+ *    - Align multi-series data to common time axis
+ *
+ * RECOMMENDED SERVER CHANGES:
+ *
+ * 1. PRE-ADAPTED CHART DATA FORMAT
+ *    Instead of sending raw query results, send render-ready data:
+ *    ```json
+ *    {
+ *      "type": "charts",
+ *      "charts": [{
+ *        "id": "tvl-chart",
+ *        "chartType": "area",           // Explicit, no inference needed
+ *        "renderConfig": {              // Ready for ECharts
+ *          "xAxisType": "time",
+ *          "yAxisType": "value",
+ *          "seriesType": "line",
+ *          "areaStyle": true
+ *        },
+ *        "data": [                      // Always array, always for THIS chart
+ *          { "date": 1704067200000, "value": 50000000000 }
+ *        ],
+ *        "series": ["TVL"],             // Pre-extracted series names
+ *        "colors": ["#2172E5"]          // Pre-assigned colors
+ *      }]
+ *    }
+ *    ```
+ *
+ * 2. ELIMINATE chartData OBJECT KEYING
+ *    Current: `chartData: { "chart-1": [...], "chart-2": [...] }` OR `chartData: [...]`
+ *    Proposed: Each chart carries its own data, no lookup needed:
+ *    ```json
+ *    { "id": "chart-1", "data": [...] }  // Data embedded in chart object
+ *    ```
+ *    This eliminates: `Array.isArray(chartData) ? chartData : chartData?.[chart.id]`
+ *
+ * 3. PRE-COMPUTED TRANSFORMATIONS
+ *    If server knows the chart supports stacking/cumulative, pre-compute:
+ *    ```json
+ *    {
+ *      "data": [...],
+ *      "transformedData": {
+ *        "stacked": [...],
+ *        "cumulative": [...],
+ *        "percentage": [...]
+ *      }
+ *    }
+ *    ```
+ *    Frontend simply swaps data arrays instead of recomputing.
+ *
+ * 4. EXPLICIT FIELD MAPPING
+ *    Instead of inferring fields, server specifies them:
+ *    ```json
+ *    {
+ *      "fieldMapping": {
+ *        "x": "date",
+ *        "y": ["tvl", "volume"],
+ *        "tooltip": ["tvl", "volume", "change24h"]
+ *      }
+ *    }
+ *    ```
+ *
+ * 5. NORMALIZED TIMESTAMPS
+ *    Always send timestamps as milliseconds (JS-native), not seconds.
+ *    Current adapter does: `timestamp * 1000` detection. Server should normalize.
+ *
+ * CURRENT PIPELINE ASSESSMENT:
+ * ============================
+ * The current pipeline is FUNCTIONAL but has O(n) overhead per chart:
+ * - adaptChartData: ~50 lines of type inference
+ * - Time detection: Check first few values for timestamp format
+ * - Series extraction: Iterate to find all unique keys
+ * - Color assignment: Iterate to map series to colors
+ *
+ * For typical responses (1-3 charts, <1000 data points), this is acceptable.
+ * For large responses (5+ charts, 10k+ points), server pre-processing would help.
+ *
+ * MIGRATION PATH:
+ * 1. Server adds optional `renderConfig` to chart objects
+ * 2. Frontend checks for `renderConfig` → skip adaptation if present
+ * 3. Gradually migrate chart types to server-side formatting
+ * 4. Remove adapter fallback code once all charts migrated
+ */
+
 import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { formatTooltipValue } from '~/components/ECharts/formatters'
 import type {
 	IBarChartProps,
 	ICandlestickChartProps,
@@ -8,10 +114,10 @@ import type {
 	IPieChartProps,
 	IScatterChartProps
 } from '~/components/ECharts/types'
-import { formatTooltipValue } from '~/components/ECharts/useDefaults'
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
 import { adaptCandlestickData, adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
+import { areChartDataEqual, areChartsEqual, areStringArraysEqual } from '../utils/chartComparison'
 import { ChartDataTransformer } from '../utils/chartDataTransformer'
 import { ChartControls } from './ChartControls'
 
@@ -78,7 +184,7 @@ const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
 	}
 }
 
-const SingleChart = memo(function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
+function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, {
 		stacked: config.displayOptions?.defaultStacked || false,
 		percentage: config.displayOptions?.defaultPercentage || false,
@@ -87,6 +193,13 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 		showHallmarks: true,
 		showLabels: config.displayOptions?.showLabels || false
 	})
+	const handleStackedChange = (stacked: boolean) => dispatch({ type: 'SET_STACKED', payload: stacked })
+	const handlePercentageChange = (percentage: boolean) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage })
+	const handleCumulativeChange = (cumulative: boolean) => dispatch({ type: 'SET_CUMULATIVE', payload: cumulative })
+	const handleGroupingChange = (grouping: ChartState['grouping']) =>
+		dispatch({ type: 'SET_GROUPING', payload: grouping })
+	const handleHallmarksChange = (showHallmarks: boolean) => dispatch({ type: 'SET_HALLMARKS', payload: showHallmarks })
+	const handleLabelsChange = (showLabels: boolean) => dispatch({ type: 'SET_LABELS', payload: showLabels })
 
 	if (!isActive) return null
 
@@ -205,43 +318,64 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 
 		const prepareCsv = () => {
 			const filename = `${adaptedChart.title}-${adaptedChart.chartType}-${new Date().toISOString().split('T')[0]}.csv`
+			const isTimeSeries = config.axes.x.type === 'time'
+			const xLabel = config.axes.x.label || (isTimeSeries ? 'Date' : 'Category')
+			const yLabel = config.axes.yAxes?.[0]?.label || config.series?.[0]?.name || 'Value'
+
 			if (['multi-series', 'combo'].includes(adaptedChart.chartType)) {
-				const rows = [['Timestamp', 'Date', ...(adaptedChart.props as any).series.map((series: any) => series.name)]]
-				const valuesByDate = {}
-				for (const adaptedSeries of (adaptedChart.props as any).series ?? []) {
-					for (const item of adaptedSeries.data ?? []) {
-						valuesByDate[item[0]] = valuesByDate[item[0]] || {}
-						valuesByDate[item[0]][adaptedSeries.name] = item[1]
+				const seriesNames = (adaptedChart.props as any).series.map((s: any) => s.name)
+				const rows: Array<Array<string | number | boolean>> = [
+					isTimeSeries ? ['Timestamp', 'Date', ...seriesNames] : [xLabel, ...seriesNames]
+				]
+				const valuesByKey: Record<string | number, Record<string, number>> = {}
+				for (const s of (adaptedChart.props as any).series ?? []) {
+					for (const [key, val] of s.data ?? []) {
+						valuesByKey[key] = valuesByKey[key] || {}
+						valuesByKey[key][s.name] = val
 					}
 				}
-				for (const date in valuesByDate) {
-					const row = [date, new Date(+date * 1e3).toLocaleDateString()]
-					for (const series of (adaptedChart.props as any).series ?? []) {
-						row.push(valuesByDate[date][series.name] ?? '')
-					}
-					rows.push(row)
+				for (const key of Object.keys(valuesByKey).sort((a, b) => +a - +b)) {
+					const base = isTimeSeries ? [key, new Date(+key * 1e3).toLocaleDateString()] : [key]
+					rows.push([...base, ...seriesNames.map((name: string) => valuesByKey[key][name] ?? '')])
 				}
-				return {
-					filename,
-					rows
-				}
+				return { filename, rows }
 			}
 
 			if (adaptedChart.chartType === 'pie') {
-				const rows = [['Name', 'Value']]
+				const rows: Array<Array<string | number | boolean>> = [['Name', 'Value']]
 				for (const item of (adaptedChart.props as any).chartData ?? []) {
 					rows.push([item.name, item.value])
 				}
-				return {
-					filename,
-					rows
-				}
+				return { filename, rows }
 			}
 
-			return {
-				filename,
-				rows: []
+			if (adaptedChart.chartType === 'scatter') {
+				const xAxisLabel = config.axes.x.label || 'X'
+				const yAxisLabel = config.axes.yAxes?.[0]?.label || 'Y'
+				const rows: Array<Array<string | number | boolean>> = [[xAxisLabel, yAxisLabel, 'Entity']]
+				for (const point of (adaptedChart.props as any).chartData ?? []) {
+					rows.push([point[0], point[1], point[2] ?? ''])
+				}
+				return { filename, rows }
 			}
+
+			if (['area', 'line', 'bar', 'hbar'].includes(adaptedChart.chartType)) {
+				const chartData = adaptedChart.data as Array<[string | number, number | null]>
+				if (isTimeSeries) {
+					const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', yLabel]]
+					for (const [ts, val] of chartData) {
+						rows.push([ts, new Date(+ts * 1e3).toLocaleDateString(), val ?? ''])
+					}
+					return { filename, rows }
+				}
+				const rows: Array<Array<string | number | boolean>> = [[xLabel, yLabel]]
+				for (const [category, val] of chartData) {
+					rows.push([category, val ?? ''])
+				}
+				return { filename, rows }
+			}
+
+			return { filename, rows: [] }
 		}
 
 		if (!hasData) {
@@ -474,12 +608,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 						hasHallmarks={!!config.hallmarks?.length}
 						showLabels={chartState.showLabels}
 						isScatter={adaptedChart.chartType === 'scatter'}
-						onStackedChange={(stacked) => dispatch({ type: 'SET_STACKED', payload: stacked })}
-						onPercentageChange={(percentage) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage })}
-						onCumulativeChange={(cumulative) => dispatch({ type: 'SET_CUMULATIVE', payload: cumulative })}
-						onGroupingChange={(grouping) => dispatch({ type: 'SET_GROUPING', payload: grouping })}
-						onHallmarksChange={(showHallmarks) => dispatch({ type: 'SET_HALLMARKS', payload: showHallmarks })}
-						onLabelsChange={(showLabels) => dispatch({ type: 'SET_LABELS', payload: showLabels })}
+						onStackedChange={handleStackedChange}
+						onPercentageChange={handlePercentageChange}
+						onCumulativeChange={handleCumulativeChange}
+						onGroupingChange={handleGroupingChange}
+						onHallmarksChange={handleHallmarksChange}
+						onLabelsChange={handleLabelsChange}
 					/>
 				)}
 				{chartContent}
@@ -494,7 +628,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 			</div>
 		)
 	}
-})
+}
 
 const ChartLoadingSpinner = () => <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-500"></div>
 
@@ -523,13 +657,31 @@ const ChartErrorPlaceholder = () => (
 	</div>
 )
 
-export const ChartRenderer = memo(function ChartRenderer({
+export function ChartRenderer({
 	charts,
 	chartData,
 	isLoading = false,
 	isAnalyzing = false,
 	hasError = false,
-	expectedChartCount,
+	expectedChartCount: _expectedChartCount,
+	chartTypes,
+	resizeTrigger = 0,
+	messageId
+}: ChartRendererProps) {
+	return (
+		<ChartRendererMemoized
+			{...{ charts, chartData, isLoading, isAnalyzing, hasError, chartTypes, resizeTrigger, messageId }}
+		/>
+	)
+}
+
+function ChartRendererImpl({
+	charts,
+	chartData,
+	isLoading = false,
+	isAnalyzing = false,
+	hasError = false,
+	expectedChartCount: _expectedChartCount,
 	chartTypes,
 	resizeTrigger = 0,
 	messageId
@@ -600,11 +752,26 @@ export const ChartRenderer = memo(function ChartRenderer({
 				<SingleChart
 					key={chart.id}
 					config={chart}
-					data={Array.isArray(chartData) ? chartData : chartData?.[chart.id] || []}
+					data={Array.isArray(chartData) ? chartData : chartData?.[chart.datasetName || chart.id] || []}
 					isActive={!hasMultipleCharts || activeTabIndex === index}
 					messageId={messageId}
 				/>
 			))}
 		</div>
 	)
+}
+
+const ChartRendererMemoized = memo(ChartRendererImpl, (prev, next) => {
+	return (
+		prev.isLoading === next.isLoading &&
+		prev.isAnalyzing === next.isAnalyzing &&
+		prev.hasError === next.hasError &&
+		prev.resizeTrigger === next.resizeTrigger &&
+		prev.messageId === next.messageId &&
+		areStringArraysEqual(prev.chartTypes, next.chartTypes) &&
+		areChartsEqual(prev.charts, next.charts) &&
+		areChartDataEqual(prev.chartData, next.chartData)
+	)
 })
+
+ChartRendererMemoized.displayName = 'ChartRenderer'

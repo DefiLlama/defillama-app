@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnFiltersState,
 	getCoreRowModel,
@@ -7,8 +6,10 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
+import { useTableSearch } from '../../utils'
 import type { INftMarketplace } from '../types'
 import { columns } from './columns'
 
@@ -23,6 +24,9 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 			columnFilters,
 			sorting
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
@@ -30,15 +34,7 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [collectionName, setCollectionName] = React.useState('')
-
-	React.useEffect(() => {
-		const collectionsColumns = instance.getColumn('exchangeName')
-		const id = setTimeout(() => {
-			collectionsColumns.setFilterValue(collectionName)
-		}, 200)
-		return () => clearTimeout(id)
-	}, [collectionName, instance])
+	const [collectionName, setCollectionName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	return (
 		<>
@@ -55,7 +51,7 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 						setCollectionName(e.target.value)
 					}}
 					placeholder="Search marketplace..."
-					className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+					className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 				/>
 			</div>
 			<VirtualTable instance={instance} />

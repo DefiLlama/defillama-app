@@ -1,6 +1,7 @@
-import { useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { useMemo, useRef } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IColumnFiltersProps {
 	nestedMenu?: boolean
@@ -37,18 +38,18 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 	const router = useRouter()
 
 	const {
-		show7dBaseApy,
-		show7dIL,
-		show1dVolume,
-		show7dVolume,
-		showInceptionApy,
-		showNetBorrowApy,
-		showBorrowBaseApy,
-		showBorrowRewardApy,
-		showLTV,
-		showTotalSupplied,
-		showTotalBorrowed,
-		showAvailable,
+		show7dBaseApy: _show7dBaseApy,
+		show7dIL: _show7dIL,
+		show1dVolume: _show1dVolume,
+		show7dVolume: _show7dVolume,
+		showInceptionApy: _showInceptionApy,
+		showNetBorrowApy: _showNetBorrowApy,
+		showBorrowBaseApy: _showBorrowBaseApy,
+		showBorrowRewardApy: _showBorrowRewardApy,
+		showLTV: _showLTV,
+		showTotalSupplied: _showTotalSupplied,
+		showTotalBorrowed: _showTotalBorrowed,
+		showAvailable: _showAvailable,
 		...queries
 	} = router.query
 
@@ -58,58 +59,33 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 		const selectedOptions = options.filter((option) => router.query[option.key] === 'true').map((op) => op.key)
 
 		return { options, selectedOptions }
-	}, [router.query])
+	}, [router.query, props])
 
-	const addOption = (newOptions) => {
+	const prevSelectionRef = useRef<Set<string>>(new Set(selectedOptions))
+
+	const setSelectedOptions = (newOptions: string[]) => {
+		const optionsObj: Record<string, boolean> = {}
+		for (const op of newOptions) {
+			optionsObj[op] = true
+		}
+
+		const prevSet = prevSelectionRef.current
+		newOptions.forEach((column) => {
+			if (!prevSet.has(column)) {
+				trackYieldsEvent(YIELDS_EVENTS.FILTER_COLUMN, { column })
+			}
+		})
+		prevSelectionRef.current = new Set(newOptions)
+
 		router.push(
 			{
 				pathname: router.pathname,
-				query: { ...queries, ...Object.fromEntries(newOptions.map((op) => [op, true])) }
+				query: { ...queries, ...optionsObj }
 			},
 			undefined,
 			{
 				shallow: true
 			}
-		)
-	}
-
-	const addOnlyOneOption = (newOption) => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: { ...queries, [newOption]: true }
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
-	}
-
-	const toggleAll = () => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries,
-					...Object.fromEntries(options.map((op) => [op.key, true]))
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const clearAll = () => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...queries
-				}
-			},
-			undefined,
-			{ shallow: true }
 		)
 	}
 
@@ -117,10 +93,7 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 		<SelectWithCombobox
 			allValues={options}
 			selectedValues={selectedOptions}
-			setSelectedValues={addOption}
-			selectOnlyOne={addOnlyOneOption}
-			toggleAll={toggleAll}
-			clearAll={clearAll}
+			setSelectedValues={setSelectedOptions}
 			nestedMenu={nestedMenu}
 			label="Columns"
 			labelType="regular"

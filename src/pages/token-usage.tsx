@@ -1,8 +1,8 @@
-import { startTransition, Suspense, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import { startTransition, Suspense, useMemo, useRef, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
@@ -25,7 +25,7 @@ export default function Tokens() {
 	const { token, includecex } = router.query
 
 	const tokenSymbol = token ? (typeof token === 'string' ? token : token[0]) : null
-	const includeCentraliseExchanges = includecex === 'true' ? true : false
+	const includeCentraliseExchanges = includecex === 'true'
 
 	const { data: protocols, isLoading } = useQuery({
 		queryKey: ['protocols-by-token', tokenSymbol],
@@ -141,6 +141,9 @@ function Table({ data }: { data: Array<{ name: string; amountUsd: number }> }) {
 		state: {
 			sorting
 		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
 		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
@@ -154,13 +157,12 @@ const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span className="flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 					<BasicLink
 						href={`/protocol/${slug(value)}`}
@@ -242,7 +244,7 @@ const Search = () => {
 				hideOnInteractOutside
 				gutter={6}
 				sameWidth
-				className="thin-scrollbar z-10 flex max-h-(--popover-available-height) flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
+				className="z-10 flex thin-scrollbar max-h-(--popover-available-height) flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
 			>
 				{isLoading ? (
 					<p className="px-3 py-6 text-center text-(--text-primary)">Loading...</p>

@@ -1,21 +1,25 @@
-import * as React from 'react'
-import { memo, useRef } from 'react'
 import type { Table } from '@tanstack/react-table'
 import { flexRender } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import * as React from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { SortIcon } from '~/components/Table/SortIcon'
 import { Tooltip } from '~/components/Tooltip'
 import type { NormalizedRow } from '../types'
 
 interface UnifiedVirtualTableProps {
 	table: Table<NormalizedRow>
+	rowStateVersion?: string
 	rowSize?: number
 	stripedBg?: boolean
 	compact?: boolean
 }
 
+const isGroupingColumn = (columnId?: string) => typeof columnId === 'string' && columnId.startsWith('__group_')
+
 export function UnifiedVirtualTable({
 	table,
+	rowStateVersion,
 	rowSize = 50,
 	stripedBg = false,
 	compact = false
@@ -23,7 +27,6 @@ export function UnifiedVirtualTable({
 	const containerRef = useRef<HTMLDivElement>(null)
 	const { rows } = table.getRowModel()
 
-	const isGroupingColumn = (columnId?: string) => typeof columnId === 'string' && columnId.startsWith('__group_')
 	const visibleLeafColumns = table.getVisibleLeafColumns().filter((column) => !isGroupingColumn(column.id))
 	const gridTemplateColumns =
 		visibleLeafColumns.map((column) => `minmax(${column.getSize() ?? 100}px, 1fr)`).join(' ') || '1fr'
@@ -40,11 +43,17 @@ export function UnifiedVirtualTable({
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
+	const expandedCount = Object.keys(table.getState().expanded ?? {}).length
+
+	useLayoutEffect(() => {
+		rowVirtualizer.measure()
+		rowVirtualizer.scrollToOffset(rowVirtualizer.scrollOffset, { align: 'start' })
+	}, [expandedCount, rowStateVersion, rowVirtualizer])
 
 	return (
 		<div
 			ref={containerRef}
-			className="thin-scrollbar relative isolate min-h-0 w-full flex-1 overflow-auto rounded-md bg-(--cards-bg)"
+			className="relative isolate thin-scrollbar min-h-0 w-full flex-1 overflow-auto rounded-md bg-(--cards-bg)"
 			style={{ maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}
 		>
 			<div
@@ -182,11 +191,11 @@ interface HeaderWithTooltipProps {
 	content?: string
 }
 
-const HeaderWithTooltip = memo(function HeaderWithTooltip({ children, content }: HeaderWithTooltipProps) {
+function HeaderWithTooltip({ children, content }: HeaderWithTooltipProps) {
 	if (!content) return <>{children}</>
 	return (
 		<Tooltip content={content} className="underline decoration-dotted">
 			{children}
 		</Tooltip>
 	)
-})
+}

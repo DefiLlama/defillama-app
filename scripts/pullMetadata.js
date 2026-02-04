@@ -4,31 +4,24 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import dotenv from 'dotenv'
-
-dotenv.config()
+import { fetchCoreMetadata } from '../src/utils/metadata/fetch'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CACHE_DIR = path.join(__dirname, '../.cache')
 const CACHE_FILE = path.join(CACHE_DIR, 'lastPull.json')
-const PROTOCOLS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-protocols.json'
-const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.json'
-const CATEGORIES_AND_TAGS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-categoriesAndTags.json'
-const CEXS_DATA_URL = 'https://api.llama.fi/cexs'
+
 const FIVE_MINUTES = 5 * 60 * 1000
 let defillamaPages
 try {
 	const fileContent = fs.readFileSync(path.join('public', 'pages.json'), 'utf8')
 	defillamaPages = JSON.parse(fileContent)
-} catch (error) {
+} catch {
 	console.log('Could not load pages.json, using empty structure')
 	defillamaPages = {
 		Metrics: [],
 		Tools: []
 	}
 }
-
-const fetchJson = async (url) => fetch(url).then((res) => res.json())
 
 const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
 
@@ -37,39 +30,35 @@ async function pullData() {
 	const startAt = endAt - 1000 * 60 * 60 * 24 * 90
 
 	try {
-		const [protocols, chains, categoriesAndTags, cexs, { tastyMetrics, trendingRoutes }] = await Promise.all([
-			fetchJson(PROTOCOLS_DATA_URL),
-			fetchJson(CHAINS_DATA_URL),
-			fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
-			fetchJson(CEXS_DATA_URL)
-				.then((data) => data.cexs ?? [])
-				.catch(() => []),
-			process.env.TASTY_API_URL
-				? fetch(`${process.env.TASTY_API_URL}/metrics?startAt=${startAt}&endAt=${endAt}&unit=day&type=url`, {
-						headers: {
-							Authorization: `Bearer ${process.env.TASTY_API_KEY}`
-						}
-					})
-						.then((res) => res.json())
-						.then((res) => {
-							const tastyMetrics = {}
-							const trendingRoutes = []
-							let i = 0
-							for (const xy of res) {
-								if (i <= 20) {
-									trendingRoutes.push([xy.x, xy.y])
-								}
-								tastyMetrics[xy.x] = xy.y
-								i++
+		const [{ protocols, chains, categoriesAndTags, cexs, rwaList }, { tastyMetrics, trendingRoutes }] =
+			await Promise.all([
+				fetchCoreMetadata(),
+				process.env.TASTY_API_URL
+					? fetch(`${process.env.TASTY_API_URL}/metrics?startAt=${startAt}&endAt=${endAt}&unit=day&type=url`, {
+							headers: {
+								Authorization: `Bearer ${process.env.TASTY_API_KEY}`
 							}
-							return { tastyMetrics, trendingRoutes }
 						})
-						.catch((e) => {
-							console.log('Error fetching tasty metrics', e)
-							return { tastyMetrics: {}, trendingRoutes: [] }
-						})
-				: Promise.resolve({ tastyMetrics: {}, trendingRoutes: [] })
-		])
+							.then((res) => res.json())
+							.then((res) => {
+								const tastyMetrics = {}
+								const trendingRoutes = []
+								let i = 0
+								for (const xy of res) {
+									if (i <= 20) {
+										trendingRoutes.push([xy.x, xy.y])
+									}
+									tastyMetrics[xy.x] = xy.y
+									i++
+								}
+								return { tastyMetrics, trendingRoutes }
+							})
+							.catch((e) => {
+								console.log('Error fetching tasty metrics', e)
+								return { tastyMetrics: {}, trendingRoutes: [] }
+							})
+					: Promise.resolve({ tastyMetrics: {}, trendingRoutes: [] })
+			])
 
 		if (!fs.existsSync(CACHE_DIR)) {
 			fs.mkdirSync(CACHE_DIR)
@@ -79,6 +68,7 @@ async function pullData() {
 		fs.writeFileSync(path.join(CACHE_DIR, 'protocols.json'), JSON.stringify(protocols))
 		fs.writeFileSync(path.join(CACHE_DIR, 'categoriesAndTags.json'), JSON.stringify(categoriesAndTags))
 		fs.writeFileSync(path.join(CACHE_DIR, 'cexs.json'), JSON.stringify(cexs))
+		fs.writeFileSync(path.join(CACHE_DIR, 'rwa.json'), JSON.stringify(rwaList))
 		fs.writeFileSync(CACHE_FILE, JSON.stringify({ lastPull: Date.now() }, null, 2))
 
 		// Group routes by category and sort each category by tasty metrics

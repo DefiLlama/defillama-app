@@ -1,6 +1,6 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useRouter } from 'next/router'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { DialogForm } from '~/components/DialogForm'
 import { Icon } from '~/components/Icon'
@@ -20,6 +20,9 @@ import { useGroupAndFormatChains } from '../ChainsByCategory'
 import { useAuthContext } from '../Subscribtion/auth'
 import { WatchListTabs } from '../Yields/Watchlist'
 import { chainMetrics, protocolMetrics } from './constants'
+
+const EMPTY_PROTOCOLS: IProtocol[] = []
+const EMPTY_CHAINS: Array<{ name: string }> = []
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -50,9 +53,10 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 	} = useBookmarks('chains')
 
 	const { protocolOptions, savedProtocolsList, selectedProtocolNames } = useMemo(() => {
+		const resolvedProtocols = protocols ?? EMPTY_PROTOCOLS
 		return {
-			protocolOptions: (protocols || []).map((c) => ({ key: c.name, name: c.name })),
-			savedProtocolsList: protocols.filter(
+			protocolOptions: resolvedProtocols.map((c) => ({ key: c.name, name: c.name })),
+			savedProtocolsList: resolvedProtocols.filter(
 				(c) => savedProtocols.has(c.name) || c.childProtocols?.some((cp) => savedProtocols.has(cp.name))
 			),
 			selectedProtocolNames: Array.from(savedProtocols)
@@ -75,14 +79,15 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 		const toAdd = selectedValues.filter((name) => !currentSet.has(name))
 		const toRemove = selectedProtocolNames.filter((name) => !newSet.has(name))
 
-		toAdd.forEach((name) => addProtocol(name))
-		toRemove.forEach((name) => removeProtocol(name))
+		for (const name of toAdd) addProtocol(name)
+		for (const name of toRemove) removeProtocol(name)
 	}
 
 	const { chainOptions, savedChainsList, selectedChainNames } = useMemo(() => {
+		const resolvedChains = chains ?? EMPTY_CHAINS
 		return {
-			chainOptions: (chains || []).map((c) => ({ key: c.name, name: c.name })),
-			savedChainsList: chains.filter((c) => savedChains.has(c.name)),
+			chainOptions: resolvedChains.map((c) => ({ key: c.name, name: c.name })),
+			savedChainsList: resolvedChains.filter((c) => savedChains.has(c.name)),
 			selectedChainNames: Array.from(savedChains)
 		}
 	}, [chains, savedChains])
@@ -94,8 +99,8 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 		const newSet = new Set(selectedValues)
 		const toAdd = selectedValues.filter((name) => !currentSet.has(name))
 		const toRemove = selectedChainNames.filter((name) => !newSet.has(name))
-		toAdd.forEach((name) => addChain(name))
-		toRemove.forEach((name) => removeChain(name))
+		for (const name of toAdd) addChain(name)
+		for (const name of toRemove) removeChain(name)
 	}
 
 	if (isLoadingWatchlist) {
@@ -238,7 +243,19 @@ function PortfolioNotifications({
 		deletePreferences,
 		isDeleting
 	} = useEmailNotifications(selectedPortfolio)
-	const subscribeModalStore = Ariakit.useDialogStore()
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
+
+	const { protocolsCount, protocolsFirstMetrics, chainsCount, chainsFirstMetrics } = useMemo(() => {
+		const protocols = preferences?.settings?.protocols
+		const chains = preferences?.settings?.chains
+		return {
+			protocolsCount: protocols ? Object.keys(protocols).length : 0,
+			protocolsFirstMetrics: protocols ? Object.values(protocols)[0]?.map(mapAPIMetricToUI).join(', ') : '',
+			chainsCount: chains ? Object.keys(chains).length : 0,
+			chainsFirstMetrics: chains ? Object.values(chains)[0]?.map(mapAPIMetricToUI).join(', ') : ''
+		}
+	}, [preferences?.settings?.protocols, preferences?.settings?.chains])
 
 	const formStore = Ariakit.useFormStore({
 		defaultValues: {
@@ -265,7 +282,7 @@ function PortfolioNotifications({
 				if (preferences.settings.protocols) {
 					const allProtocolEntries = Object.entries(preferences.settings.protocols)
 					if (allProtocolEntries.length > 0) {
-						const [protocolId, firstMetrics] = allProtocolEntries[0]
+						const [_protocolId, firstMetrics] = allProtocolEntries[0]
 
 						if (Array.isArray(firstMetrics)) {
 							const uiMetrics = firstMetrics.map(mapAPIMetricToUI)
@@ -280,7 +297,7 @@ function PortfolioNotifications({
 				if (preferences.settings.chains) {
 					const allChainEntries = Object.entries(preferences.settings.chains)
 					if (allChainEntries.length > 0) {
-						const [chainName, firstMetrics] = allChainEntries[0]
+						const [_chainName, firstMetrics] = allChainEntries[0]
 
 						if (Array.isArray(firstMetrics)) {
 							const uiMetrics = firstMetrics.map(mapAPIMetricToUI)
@@ -306,17 +323,17 @@ function PortfolioNotifications({
 
 			if (protocolMetrics?.length > 0 && filteredProtocols.length > 0) {
 				settings.protocols = {}
-				filteredProtocols.forEach((protocol) => {
+				for (const protocol of filteredProtocols) {
 					const identifier = protocol.slug
 					settings.protocols![identifier] = protocolMetrics.map(mapUIMetricToAPI)
-				})
+				}
 			}
 
 			if (chainMetrics?.length > 0 && filteredChains.length > 0) {
 				settings.chains = {}
-				filteredChains.forEach((chain) => {
+				for (const chain of filteredChains) {
 					settings.chains![chain.name] = chainMetrics.map(mapUIMetricToAPI)
-				})
+				}
 			}
 
 			if (!settings.protocols && !settings.chains) {
@@ -382,22 +399,18 @@ function PortfolioNotifications({
 				{preferences?.settings && (
 					<div className="mb-3 rounded-md bg-(--bg-glass) p-3">
 						<div className="space-y-1 text-xs text-(--text-secondary)">
-							{preferences.settings.protocols && Object.keys(preferences.settings.protocols).length > 0 && (
+							{protocolsCount > 0 && (
 								<div>
-									<span className="font-medium">
-										Tracking {Object.keys(preferences.settings.protocols).length} protocol(s)
-									</span>
+									<span className="font-medium">Tracking {protocolsCount} protocol(s)</span>
 									{' - '}
-									<span>{Object.values(preferences.settings.protocols)[0]?.map(mapAPIMetricToUI).join(', ')}</span>
+									<span>{protocolsFirstMetrics}</span>
 								</div>
 							)}
-							{preferences.settings.chains && Object.keys(preferences.settings.chains).length > 0 && (
+							{chainsCount > 0 && (
 								<div>
-									<span className="font-medium">
-										Tracking {Object.keys(preferences.settings.chains).length} chain(s)
-									</span>
+									<span className="font-medium">Tracking {chainsCount} chain(s)</span>
 									{' - '}
-									<span>{Object.values(preferences.settings.chains)[0]?.map(mapAPIMetricToUI).join(', ')}</span>
+									<span>{chainsFirstMetrics}</span>
 								</div>
 							)}
 							<div className="mt-1 text-xs opacity-75">
@@ -412,7 +425,7 @@ function PortfolioNotifications({
 					<button
 						onClick={handleNotificationsButtonClick}
 						disabled={loaders.userLoading || isLoading}
-						className="flex items-center gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm text-(--text-primary) transition-colors hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50"
+						className="flex items-center gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm text-(--text-primary) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						<Icon name="mail" height={16} width={16} />
 						<span>{preferences ? 'Update settings' : 'Set up notifications'}</span>
@@ -424,7 +437,7 @@ function PortfolioNotifications({
 								<button
 									onClick={handleDisableNotifications}
 									disabled={loaders.userLoading || isUpdatingStatus}
-									className="flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm text-(--text-secondary) transition-colors hover:bg-gray-100 focus-visible:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:focus-visible:bg-gray-800"
+									className="flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm text-(--text-secondary) hover:bg-gray-100 focus-visible:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:focus-visible:bg-gray-800"
 									title="Temporarily disable notifications"
 								>
 									<Icon name="pause" height={16} width={16} />
@@ -435,7 +448,7 @@ function PortfolioNotifications({
 								<button
 									onClick={() => updateStatus({ portfolioName: selectedPortfolio, active: true })}
 									disabled={loaders.userLoading || isUpdatingStatus}
-									className="flex items-center gap-2 rounded-md border border-green-200 px-3 py-2 text-sm text-green-600 transition-colors hover:bg-green-50 focus-visible:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20 dark:focus-visible:bg-green-900/20"
+									className="flex items-center gap-2 rounded-md border border-green-200 px-3 py-2 text-sm text-green-600 hover:bg-green-50 focus-visible:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20 dark:focus-visible:bg-green-900/20"
 									title="Re-enable notifications"
 								>
 									<Icon name="check-circle" height={16} width={16} />
@@ -445,7 +458,7 @@ function PortfolioNotifications({
 							<button
 								onClick={handleDeleteNotifications}
 								disabled={loaders.userLoading || isDeleting}
-								className="flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 focus-visible:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
+								className="flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 hover:bg-red-50 focus-visible:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
 								title="Permanently delete notification preferences"
 							>
 								<Icon name="trash-2" height={16} width={16} />
@@ -455,9 +468,11 @@ function PortfolioNotifications({
 					)}
 				</div>
 			</div>
-			<Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense>
+			{shouldRenderModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 
 			<Ariakit.Dialog
 				store={dialogStore}
@@ -485,7 +500,7 @@ function PortfolioNotifications({
 								Configure weekly email alerts for "{selectedPortfolio}" portfolio
 							</p>
 						</div>
-						<Ariakit.DialogDismiss className="rounded-md p-2 transition-colors hover:bg-(--primary-hover)">
+						<Ariakit.DialogDismiss className="rounded-md p-2 hover:bg-(--primary-hover)">
 							<Icon name="x" height={20} width={20} className="text-(--text-secondary)" />
 						</Ariakit.DialogDismiss>
 					</div>
@@ -576,7 +591,7 @@ function PortfolioNotifications({
 												type="button"
 												onClick={handleDisableNotifications}
 												disabled={isUpdatingStatus}
-												className="flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm text-(--text-secondary) transition-colors hover:bg-gray-100 focus-visible:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:focus-visible:bg-gray-800"
+												className="flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm text-(--text-secondary) hover:bg-gray-100 focus-visible:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:focus-visible:bg-gray-800"
 											>
 												<Icon name="pause" height={14} width={14} />
 												<span>{isUpdatingStatus ? 'Disabling...' : 'Disable Notifications'}</span>
@@ -586,7 +601,7 @@ function PortfolioNotifications({
 											type="button"
 											onClick={handleDeleteNotifications}
 											disabled={isDeleting}
-											className="flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 focus-visible:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
+											className="flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 hover:bg-red-50 focus-visible:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
 										>
 											<Icon name="trash-2" height={14} width={14} />
 											<span>{isDeleting ? 'Deleting...' : 'Delete Permanently'}</span>
@@ -599,12 +614,12 @@ function PortfolioNotifications({
 								)}
 							</div>
 							<div className="flex gap-3">
-								<Ariakit.DialogDismiss className="rounded-md border border-(--form-control-border) px-4 py-2 text-sm text-(--text-secondary) transition-colors hover:bg-(--primary-hover)">
+								<Ariakit.DialogDismiss className="rounded-md border border-(--form-control-border) px-4 py-2 text-sm text-(--text-secondary) hover:bg-(--primary-hover)">
 									Cancel
 								</Ariakit.DialogDismiss>
 								<Ariakit.FormSubmit
 									disabled={isSaving}
-									className="rounded-md bg-(--primary-bg) px-4 py-2 text-sm font-medium text-(--primary-text) transition-colors hover:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-50"
+									className="rounded-md bg-(--primary-bg) px-4 py-2 text-sm font-medium text-(--primary-text) hover:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-50"
 								>
 									{isSaving ? 'Saving...' : preferences ? 'Update Settings' : 'Enable Notifications'}
 								</Ariakit.FormSubmit>
@@ -654,7 +669,7 @@ function PortfolioSelection({
 				/>
 				<button
 					onClick={() => setOpen(true)}
-					className="flex items-center gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm text-(--text-primary) transition-colors hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+					className="flex items-center gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm text-(--text-primary) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					title="Create new portfolio"
 				>
 					<Icon name="folder-plus" height={16} width={16} />
@@ -663,7 +678,7 @@ function PortfolioSelection({
 				{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
 					<button
 						onClick={() => removePortfolio(selectedPortfolio)}
-						className="flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 focus-visible:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
+						className="flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 hover:bg-red-50 focus-visible:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
 						title="Delete current portfolio"
 					>
 						<Icon name="trash-2" height={16} width={16} />
@@ -686,9 +701,11 @@ function TopMovers({ protocols }: TopMoversProps) {
 
 	const availableChains = useMemo(() => {
 		const chainSet = new Set<string>()
-		protocols.forEach((protocol) => {
-			protocol.chains?.forEach((chain) => chainSet.add(chain))
-		})
+		for (const protocol of protocols) {
+			if (protocol.chains) {
+				for (const chain of protocol.chains) chainSet.add(chain)
+			}
+		}
 		return Array.from(chainSet).sort()
 	}, [protocols])
 
@@ -696,7 +713,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 		const periods = ['1d', '7d', '1m']
 		const movers: Record<string, Array<{ name: string; change: number; chains: string[] }>> = {}
 
-		periods.forEach((period) => {
+		for (const period of periods) {
 			const changeKey = `change${period}`
 			let candidates = protocols
 				.filter((p) => p.tvlChange?.[changeKey] != null && p.tvlChange[changeKey] != null)
@@ -720,7 +737,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 
 			candidates.sort((a, b) => Math.abs(b.change) - Math.abs(a.change))
 			movers[period] = candidates.slice(0, 3)
-		})
+		}
 
 		return movers
 	}, [protocols, showPositiveMoves, showNegativeMoves, selectedChains])
@@ -792,10 +809,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 						{topMovers[period].length > 0 ? (
 							<div className="space-y-2">
 								{topMovers[period].map((mover, index) => (
-									<div
-										key={mover.name}
-										className="flex items-center justify-between rounded bg-(--bg-main) p-2 transition-colors"
-									>
+									<div key={mover.name} className="flex items-center justify-between rounded bg-(--bg-main) p-2">
 										<div className="flex min-w-0 flex-1 items-center gap-2">
 											<span className="w-4 shrink-0 text-xs font-medium text-(--text-secondary)">#{index + 1}</span>
 											<span className="truncate text-sm font-medium text-(--text-primary)">{mover.name}</span>

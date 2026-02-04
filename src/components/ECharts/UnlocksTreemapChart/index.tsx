@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import { TreemapChart as EChartTreemap } from 'echarts/charts'
 import { TitleComponent, ToolboxComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { TagGroup } from '~/components/TagGroup'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum, tokenIconUrl } from '~/utils'
 
 echarts.use([TitleComponent, TooltipComponent, ToolboxComponent, EChartTreemap, CanvasRenderer])
@@ -46,10 +47,14 @@ const TIME_VIEWS = ['Month', 'Current Year', 'All Years'] as const
 type TimeView = (typeof TIME_VIEWS)[number]
 
 export default function UnlocksTreemapChart({ unlocksData, height = '600px', filterYear }: UnlocksTreemapProps) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+	const id = useId()
 	const [isDark] = useDarkModeManager()
 	const [timeView, setTimeView] = useState<TimeView>('Current Year')
 	const [selectedDate, setSelectedDate] = useState(dayjs())
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const currentYear = filterYear || dayjs().year()
 
@@ -57,16 +62,20 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 		const treeData = []
 		const yearData: YearDataMap = {}
 
-		Object.entries(unlocksData).forEach(([dateStr, dailyData]) => {
+		for (const dateStr in unlocksData) {
+			const dailyData = unlocksData[dateStr]
 			const date = dayjs(dateStr)
 			const year = date.year()
 			const monthIndex = date.month()
 			const monthName = date.format('MMMM')
 
-			if (year < currentYear) return
-
-			if (timeView === 'Current Year' && year > currentYear) return
-			if (timeView === 'Month' && monthIndex !== selectedDate.month()) return
+			if (timeView === 'Month') {
+				if (monthIndex !== selectedDate.month() || year !== selectedDate.year()) continue
+			} else if (timeView === 'Current Year') {
+				if (year !== currentYear) continue
+			} else if (timeView === 'All Years') {
+				if (year < currentYear) continue
+			}
 
 			if (!yearData[year]) {
 				yearData[year] = {
@@ -82,7 +91,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 				}
 			}
 
-			dailyData.events.forEach((event) => {
+			for (const event of dailyData.events) {
 				if (!yearData[year].children[monthName].protocols[event.protocol]) {
 					yearData[year].children[monthName].protocols[event.protocol] = 0
 				}
@@ -90,8 +99,8 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 				yearData[year].children[monthName].protocols[event.protocol] += event.value
 				yearData[year].children[monthName].value += event.value
 				yearData[year].value += event.value
-			})
-		})
+			}
+		}
 
 		if (timeView === 'Month') {
 			const targetYear = selectedDate.year()
@@ -110,35 +119,36 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 								formatter: `{icon|}\n{name|${protocol}}\n{value|${formattedNum(value, true)}}`,
 								position: 'inside',
 								color: '#fff',
-								textShadowBlur: 1,
-								textShadowColor: 'rgba(0, 0, 0, 0.6)',
+								textShadowBlur: 2,
+								textShadowColor: 'rgba(0, 0, 0, 0.8)',
 								rich: {
 									icon: {
-										height: 20,
-										width: 20,
+										height: 22,
+										width: 22,
 										align: 'center',
 										backgroundColor: { image: iconUrl },
-										lineHeight: 25
+										lineHeight: 26
 									},
 									name: {
-										fontSize: 11,
+										fontSize: 12,
 										fontWeight: 600,
-										color: isDark ? '#f0f0f0' : '#333',
+										color: isDark ? '#ffffff' : '#1a1a1a',
 										align: 'center',
-										lineHeight: 14
+										lineHeight: 16,
+										padding: [2, 0, 0, 0]
 									},
 									value: {
-										fontSize: 10,
-										color: isDark ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.7)',
+										fontSize: 11,
+										fontWeight: 500,
+										color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.75)',
 										align: 'center',
-										lineHeight: 12
-									},
-									borderRadius: 50
+										lineHeight: 14
+									}
 								}
 							}
 						}
 					})
-					.sort((a, b) => b.value - a.value)
+					.toSorted((a, b) => b.value - a.value)
 				return protocolsData
 			} else {
 				return []
@@ -156,11 +166,15 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						children: [],
 						upperLabel: {
 							show: true,
-							formatter: `${month} - ${formattedNum(monthInfo.value, true)}`
+							formatter: `${month} - ${formattedNum(monthInfo.value, true)}`,
+							color: isDark ? '#ffffff' : '#000000',
+							fontSize: 13,
+							fontWeight: 600
 						}
 					}
 
-					Object.entries(monthInfo.protocols).forEach(([protocol, value]) => {
+					for (const protocol in monthInfo.protocols) {
+						const value = monthInfo.protocols[protocol]
 						const iconUrl = tokenIconUrl(protocol)
 						monthNode.children.push({
 							name: protocol,
@@ -171,67 +185,77 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 								formatter: `{icon|}\n{name|${protocol}}\n{value|${formattedNum(value, true)}}`,
 								position: 'inside',
 								color: '#fff',
-								textShadowBlur: 1,
-								textShadowColor: 'rgba(0, 0, 0, 0.6)',
+								textShadowBlur: 2,
+								textShadowColor: 'rgba(0, 0, 0, 0.8)',
 								rich: {
 									icon: {
-										height: 20,
-										width: 20,
+										height: 22,
+										width: 22,
 										align: 'center',
 										backgroundColor: {
 											image: iconUrl
 										},
-										lineHeight: 25
+										lineHeight: 26
 									},
 									name: {
-										fontSize: 11,
+										fontSize: 12,
 										fontWeight: 600,
-										color: isDark ? '#f0f0f0' : '#333',
+										color: isDark ? '#ffffff' : '#1a1a1a',
 										align: 'center',
-										lineHeight: 14
+										lineHeight: 16,
+										padding: [2, 0, 0, 0]
 									},
 									value: {
-										fontSize: 10,
-										color: isDark ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.7)',
+										fontSize: 11,
+										fontWeight: 500,
+										color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.75)',
 										align: 'center',
-										lineHeight: 12
-									},
-									borderRadius: 50
+										lineHeight: 14
+									}
 								}
 							}
 						})
-					})
+					}
 
-					monthNode.children.sort((a, b) => b.value - a.value)
+					monthNode.children = monthNode.children.toSorted((a, b) => b.value - a.value)
 					return monthNode
 				})
-				.sort((a, b) => b.value - a.value)
+				.toSorted((a, b) => b.value - a.value)
 		}
 
 		if (timeView === 'All Years') {
-			Object.entries(yearData).forEach(([year, yearInfo]) => {
+			for (const year in yearData) {
+				const yearInfo = yearData[year]
 				const yearNode: any = {
 					name: year,
 					value: yearInfo.value,
 					children: [],
 					upperLabel: {
 						show: true,
-						formatter: `${year} - ${formattedNum(yearInfo.value, true)}`
+						formatter: `${year} - ${formattedNum(yearInfo.value, true)}`,
+						color: isDark ? '#ffffff' : '#000000',
+						fontSize: 14,
+						fontWeight: 700
 					}
 				}
 
-				Object.entries(yearInfo.children).forEach(([month, monthInfo]) => {
+				for (const month in yearInfo.children) {
+					const monthInfo = yearInfo.children[month]
 					const monthNode: any = {
 						name: month,
 						value: monthInfo.value,
 						children: [],
 						upperLabel: {
 							show: true,
-							formatter: `${month} - ${formattedNum(monthInfo.value, true)}`
+							formatter: `${month} - ${formattedNum(monthInfo.value, true)}`,
+							color: isDark ? '#ffffff' : '#000000',
+							fontSize: 12,
+							fontWeight: 600
 						}
 					}
 
-					Object.entries(monthInfo.protocols).forEach(([protocol, value]) => {
+					for (const protocol in monthInfo.protocols) {
+						const value = monthInfo.protocols[protocol]
 						const iconUrl = tokenIconUrl(protocol)
 						monthNode.children.push({
 							name: protocol,
@@ -242,44 +266,45 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 								formatter: `{icon|}\n{name|${protocol}}\n{value|${formattedNum(value, true)}}`,
 								position: 'inside',
 								color: '#fff',
-								textShadowBlur: 1,
-								textShadowColor: 'rgba(0, 0, 0, 0.6)',
+								textShadowBlur: 2,
+								textShadowColor: 'rgba(0, 0, 0, 0.8)',
 								rich: {
 									icon: {
-										height: 20,
-										width: 20,
+										height: 22,
+										width: 22,
 										align: 'center',
 										backgroundColor: {
 											image: iconUrl
 										},
-										lineHeight: 25
+										lineHeight: 26
 									},
 									name: {
-										fontSize: 11,
+										fontSize: 12,
 										fontWeight: 600,
-										color: isDark ? '#f0f0f0' : '#333',
+										color: isDark ? '#ffffff' : '#1a1a1a',
 										align: 'center',
-										lineHeight: 14
+										lineHeight: 16,
+										padding: [2, 0, 0, 0]
 									},
 									value: {
-										fontSize: 10,
-										color: isDark ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.7)',
+										fontSize: 11,
+										fontWeight: 500,
+										color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.75)',
 										align: 'center',
-										lineHeight: 12
-									},
-									borderRadius: 50
+										lineHeight: 14
+									}
 								}
 							}
 						})
-					})
+					}
 
-					monthNode.children.sort((a, b) => b.value - a.value)
+					monthNode.children = monthNode.children.toSorted((a, b) => b.value - a.value)
 					yearNode.children.push(monthNode)
-				})
+				}
 
-				yearNode.children.sort((a, b) => b.value - a.value)
+				yearNode.children = yearNode.children.toSorted((a, b) => b.value - a.value)
 				treeData.push(yearNode)
-			})
+			}
 
 			treeData.sort((a, b) => Number(a.name) - Number(b.name))
 			return treeData
@@ -288,13 +313,11 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 		return []
 	}, [unlocksData, currentYear, timeView, isDark, selectedDate])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
 
 		const option = {
 			title: {
@@ -317,19 +340,35 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						pathDisplay += ' > '
 					}
 
-					let content = `<div style="font-size: 12px; line-height: 1.5;">`
+					let content = `<div style="font-size: 12px; line-height: 1.5; padding: 4px;">`
 					if (iconUrl) {
-						content += `<img src="${iconUrl}" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> `
+						content += `<img src="${iconUrl}" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; border-radius: 50%;" /> `
 					}
-					content += `<strong>${pathDisplay}${name}</strong><br/>`
-					content += `Value: <strong>${formattedNum(value, true)}</strong>`
+					content += `<strong style="font-weight: 600;">${pathDisplay}${name}</strong><br/>`
+					content += `<span style="opacity: 0.85;">Value:</span> <strong style="font-weight: 600;">${formattedNum(value, true)}</strong>`
 					content += `</div>`
 					return content
+				},
+				backgroundColor: isDark ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+				borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)',
+				borderWidth: 1,
+				textStyle: {
+					color: isDark ? '#ffffff' : '#000000'
 				}
 			},
 			toolbox: {
 				feature: {
-					restore: {}
+					restore: {
+						title: 'Reset'
+					}
+				},
+				iconStyle: {
+					borderColor: isDark ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)'
+				},
+				emphasis: {
+					iconStyle: {
+						borderColor: isDark ? '#ffffff' : '#000000'
+					}
 				},
 				right: 8,
 				top: 8
@@ -352,24 +391,24 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					},
 					upperLabel: {
 						show: true,
-						height: 25,
-						color: isDark ? '#fff' : '#000',
+						height: 28,
+						color: isDark ? '#ffffff' : '#000000',
 						fontSize: 13,
 						fontWeight: 600,
 						textShadowBlur: 2,
-						textShadowColor: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.5)'
+						textShadowColor: isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)'
 					},
 					itemStyle: {
-						borderColor: isDark ? '#444' : '#eee',
-						borderWidth: 1,
-						gapWidth: 1
+						borderColor: isDark ? '#555555' : '#d0d0d0',
+						borderWidth: 2,
+						gapWidth: 2
 					},
 					levels: [
 						{
 							itemStyle: {
-								borderColor: isDark ? '#666' : '#aaa',
+								borderColor: isDark ? '#777777' : '#999999',
 								borderWidth: 0,
-								gapWidth: 1
+								gapWidth: 2
 							},
 							upperLabel: {
 								show: false
@@ -377,47 +416,58 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						},
 						{
 							itemStyle: {
-								borderWidth: 1,
-								gapWidth: 1,
-								borderColorSaturation: 0.5
+								borderWidth: 2,
+								gapWidth: 2,
+								borderColorSaturation: 0.6
 							},
 							upperLabel: {
 								show: true,
-								height: 22,
-								color: isDark ? '#fff' : '#000',
+								height: 26,
+								color: isDark ? '#ffffff' : '#000000',
 								fontSize: 12,
-								fontWeight: 500
+								fontWeight: 600
 							},
 							emphasis: {
 								itemStyle: {
-									borderColor: isDark ? '#fff' : '#000'
+									borderColor: isDark ? '#ffffff' : '#000000',
+									borderWidth: 3
 								}
 							}
 						},
 						{
-							colorSaturation: [0.3, 0.7],
+							colorSaturation: [0.4, 0.75],
 							itemStyle: {
-								borderWidth: 1,
+								borderWidth: 2,
 								gapWidth: 1,
-								borderColorSaturation: 0.5
+								borderColorSaturation: 0.65
+							},
+							emphasis: {
+								itemStyle: {
+									borderWidth: 3,
+									shadowBlur: 8,
+									shadowColor: isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'
+								}
 							}
 						}
 					],
 					breadcrumb: {
 						itemStyle: {
-							color: isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.15)',
+							color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.12)',
+							borderColor: isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)',
+							borderWidth: 1,
 							textStyle: {
 								fontFamily: 'sans-serif',
 								fontWeight: 500,
-								color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
+								color: isDark ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.95)'
 							}
 						},
 						emphasis: {
 							itemStyle: {
-								color: isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.3)'
+								color: isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.25)',
+								borderColor: isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.4)'
 							},
 							textStyle: {
-								color: isDark ? '#fff' : '#000'
+								color: isDark ? '#ffffff' : '#000000'
 							}
 						}
 					}
@@ -425,19 +475,13 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 			]
 		}
 
-		chartInstance.setOption(option)
-
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
+		instance.setOption(option)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [id, chartDataTree, createInstance, isDark, timeView, selectedDate])
+	}, [id, chartDataTree, isDark, timeView, selectedDate])
 
 	const goToPrevMonth = () => setSelectedDate((d) => d.subtract(1, 'month'))
 	const goToNextMonth = () => setSelectedDate((d) => d.add(1, 'month'))
@@ -449,7 +493,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					<div className="order-1 flex items-center gap-2 md:order-0">
 						<button
 							onClick={goToPrevMonth}
-							className="rounded-sm p-1.5 text-(--text-secondary) hover:bg-(--bg-glass) hover:text-(--text-primary)"
+							className="rounded-md p-1.5 text-(--text-secondary) hover:bg-(--bg-glass) hover:text-(--text-primary)"
 							aria-label="Previous Month"
 						>
 							←
@@ -460,7 +504,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						</span>
 						<button
 							onClick={goToNextMonth}
-							className="rounded-sm p-1.5 text-(--text-secondary) hover:bg-(--bg-glass) hover:text-(--text-primary)"
+							className="rounded-md p-1.5 text-(--text-secondary) hover:bg-(--bg-glass) hover:text-(--text-primary)"
 							aria-label="Next Month"
 						>
 							→
