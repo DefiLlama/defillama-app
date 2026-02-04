@@ -118,7 +118,7 @@ function buildSeries({
 			...(expandTo100Percent
 				? { stack: 'A', lineStyle: { width: 0 } }
 				: {
-						stack: chart.stack,
+						...(chart.stack != null ? { stack: chart.stack } : {}),
 						areaStyle: solidChartAreaStyle
 							? { color: baseColor, opacity: 0.7 }
 							: {
@@ -305,7 +305,6 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			? seriesKeys.map((name, i) => ({
 					type: 'line' as const,
 					name,
-					stack: 'A',
 					encode: { x: 'timestamp', y: name },
 					color: CHART_COLORS[i % CHART_COLORS.length],
 					yAxisIndex: undefined
