@@ -284,9 +284,10 @@ export function MarkdownRenderer({
 									/>
 								)
 							}
-							if (isStreaming || !inlineChartConfig?.alertIntent) {
+							if (isStreaming) {
 								return <AlertArtifactLoading key={`alert-loading-${part.alertId}-${index}`} />
 							}
+							return null
 						}
 						if (part.content.trim()) {
 							return renderMarkdownSection(processCitationMarkers(part.content, citations), `text-${index}`)

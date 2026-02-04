@@ -56,6 +56,73 @@ const GMT_OFFSETS = [
 ]
 const ALERTS_QUERY_KEY = 'llamaai-alerts'
 
+const parseOffsetHours = (value: string): number | null => {
+	const normalized = value.replace('UTC', 'GMT')
+	if (normalized === 'GMT') return 0
+	const match = normalized.match(/GMT([+-]\d{1,2})/)
+	if (!match) return null
+	const hours = parseInt(match[1], 10)
+	return Number.isNaN(hours) ? null : hours
+}
+
+const getOffsetHoursFromTimezone = (timezone: string): number | null => {
+	try {
+		const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' })
+		const parts = formatter.formatToParts(new Date())
+		const tzPart = parts.find((p) => p.type === 'timeZoneName')?.value
+		return tzPart ? parseOffsetHours(tzPart) : null
+	} catch {
+		return null
+	}
+}
+
+const offsetHoursToEtc = (offsetHours: number): string | undefined => {
+	if (offsetHours === 0) return 'UTC'
+	const sign = offsetHours > 0 ? '-' : '+'
+	const etcValue = `Etc/GMT${sign}${Math.abs(offsetHours)}`
+	return GMT_OFFSETS.some((g) => g.value === etcValue) ? etcValue : undefined
+}
+
+const parseTimezoneFromExpression = (expression: string): string | undefined => {
+	const etcMatch = expression.match(/\bEtc\/GMT[+-]\d{1,2}\b/)
+	if (etcMatch && GMT_OFFSETS.some((g) => g.value === etcMatch[0])) return etcMatch[0]
+
+	const offsetMatch = expression.match(/\b(?:GMT|UTC)[+-]\d{1,2}\b/)
+	if (offsetMatch) {
+		const offsetHours = parseOffsetHours(offsetMatch[0])
+		if (offsetHours !== null) return offsetHoursToEtc(offsetHours)
+	}
+
+	if (/\bUTC\b/.test(expression)) return 'UTC'
+
+	const ianaMatch = expression.match(/\b[A-Za-z]+\/[A-Za-z_]+\b/)
+	if (ianaMatch) {
+		const offsetHours = getOffsetHoursFromTimezone(ianaMatch[0])
+		if (offsetHours !== null) return offsetHoursToEtc(offsetHours)
+	}
+
+	return undefined
+}
+
+const parseScheduleExpression = (
+	expression: string
+): {
+	hour?: number
+	dayOfWeek?: number
+	timezone?: string
+} => {
+	const hourMatch = expression.match(/at (\d+)/)
+	const dayMatch = expression.match(/on (\w+)/)
+	const hour = hourMatch ? parseInt(hourMatch[1], 10) : undefined
+	let dayOfWeek: number | undefined
+	if (dayMatch) {
+		const idx = DAYS_OF_WEEK.findIndex((d) => d.toLowerCase() === dayMatch[1].toLowerCase())
+		if (idx >= 0) dayOfWeek = idx
+	}
+	const timezone = parseTimezoneFromExpression(expression)
+	return { hour, dayOfWeek, timezone }
+}
+
 const getUserTimezone = (): string => {
 	try {
 		const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -226,19 +293,15 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(
 		alert.schedule_expression.includes('Weekly') ? 'weekly' : 'daily'
 	)
-	const [timezone, setTimezone] = useState(() => getUserTimezone())
+	const parsedSchedule = parseScheduleExpression(alert.schedule_expression)
+	const initialTimezone = parsedSchedule.timezone ?? getUserTimezone()
+	const [timezone, setTimezone] = useState(() => initialTimezone)
 	const [hour, setHour] = useState(() => {
-		const match = alert.schedule_expression.match(/at (\d+)/)
-		const initialHour = match ? parseInt(match[1]) : 9
-		return getValidHourForTimezone(initialHour, timezone)
+		const initialHour = parsedSchedule.hour ?? 9
+		return getValidHourForTimezone(initialHour, initialTimezone)
 	})
 	const [dayOfWeek, setDayOfWeek] = useState(() => {
-		const match = alert.schedule_expression.match(/on (\w+)/)
-		if (match) {
-			const idx = DAYS_OF_WEEK.findIndex((d) => d.toLowerCase() === match[1].toLowerCase())
-			return idx >= 0 ? idx : 1
-		}
-		return 1
+		return parsedSchedule.dayOfWeek ?? 1
 	})
 	const [isEditing, setIsEditing] = useState(false)
 	const [isDeleting, setIsDeleting] = useState(false)
