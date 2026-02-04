@@ -111,7 +111,7 @@ export default function SharedConversationPage() {
 			sharedSession={session}
 			isPublicView={true}
 			readOnly={true}
-			showDebug={user?.flags?.['is_llama'] ?? false}
+			showDebug={Boolean(user?.flags?.['is_llama'])}
 		/>
 	)
 }
