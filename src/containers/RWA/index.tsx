@@ -415,7 +415,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 								{chartViewSwitch}
 								<ChartExportButton
 									chartInstance={multiSeriesChart2Instance}
-									filename={`${timeSeriesChartFilename}.png`}
+									filename={timeSeriesChartFilename}
 									title={timeSeriesChartTitle}
 									className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
 									smol
