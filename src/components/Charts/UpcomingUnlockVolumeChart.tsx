@@ -83,7 +83,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 
 			for (const unlock of upcomingUnlocks) {
 				const date = dayjs.unix(unlock.timestamp)
-				if (!date.isValid()) return
+				if (!date.isValid()) continue
 				const key =
 					timePeriod === 'Daily'
 						? date.startOf('day').unix()
@@ -110,7 +110,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 
 			for (const unlock of upcomingUnlocks) {
 				const date = dayjs.unix(unlock.timestamp)
-				if (!date.isValid()) return
+				if (!date.isValid()) continue
 				const key =
 					timePeriod === 'Daily'
 						? date.startOf('day').unix()
