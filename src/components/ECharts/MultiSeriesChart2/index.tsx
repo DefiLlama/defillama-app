@@ -267,6 +267,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		valueSymbol = '$',
 		groupBy,
 		alwaysShowTooltip,
+		stacked = false,
 		solidChartAreaStyle = false,
 		hideDataZoom,
 		onReady,
@@ -309,12 +310,13 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 					name,
 					encode: { x: 'timestamp', y: name },
 					color: CHART_COLORS[i % CHART_COLORS.length],
-					yAxisIndex: undefined
+					yAxisIndex: undefined,
+					...(stacked ? { stack: 'A' } : {})
 				}))
 			: charts
 
 		return { datasetSource, datasetDimensions, effectiveCharts }
-	}, [dataset, charts])
+	}, [dataset, charts, stacked])
 
 	const series = useMemo(() => {
 		return buildSeries({

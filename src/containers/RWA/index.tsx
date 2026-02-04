@@ -50,7 +50,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const chartType =
 		typeof router.query.chartType === 'string' && validPieChartTypes.has(router.query.chartType)
 			? router.query.chartType
-			: 'onChainMcap'
+			: 'activeMcap'
 	const chartView =
 		typeof router.query.chartView === 'string' && router.query.chartView === 'pie' ? 'pie' : 'timeSeries'
 	const chartTypeKey = chartType as RWAChartType
@@ -438,6 +438,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 								<MultiSeriesChart2
 									dataset={selectedTimeSeriesDataset}
 									hideDefaultLegend={false}
+									stacked
 									chartOptions={timeSeriesChartOptions}
 									onReady={handleMultiSeriesChart2Ready}
 								/>
@@ -543,8 +544,8 @@ const pieChartLegendPosition = {
 const pieChartLegendTextStyle = { fontSize: 14 }
 
 const PIE_CHART_TYPES = [
-	{ key: 'onChainMcap', label: 'Onchain Mcap' },
 	{ key: 'activeMcap', label: 'Active Mcap' },
+	{ key: 'onChainMcap', label: 'Onchain Mcap' },
 	{ key: 'defiActiveTvl', label: 'DeFi Active TVL' }
 ]
 

@@ -146,6 +146,7 @@ export interface IMultiSeriesChart2Props {
 	valueSymbol?: string
 	alwaysShowTooltip?: boolean
 	containerClassName?: string
+	stacked?: boolean
 	solidChartAreaStyle?: boolean
 	hideDataZoom?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
