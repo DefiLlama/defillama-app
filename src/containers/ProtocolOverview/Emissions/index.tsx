@@ -12,7 +12,7 @@ import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import Pagination from './Pagination'
 import { IEmission } from './types'
 
@@ -82,6 +82,139 @@ function processGroupedChartData(
 const DATA_TYPES = ['documented', 'realtime'] as const
 type DataType = (typeof DATA_TYPES)[number]
 
+const TIME_GROUPINGS = ['D', 'W', 'M', 'Q', 'Y'] as const
+type TimeGrouping = (typeof TIME_GROUPINGS)[number]
+
+function getQuarterStart(timestamp: number): number {
+	const date = new Date(timestamp)
+	const quarter = Math.floor(date.getUTCMonth() / 3)
+	return Math.trunc(Date.UTC(date.getUTCFullYear(), quarter * 3, 1) / 1000)
+}
+
+function getYearStart(timestamp: number): number {
+	const date = new Date(timestamp)
+	return Math.trunc(Date.UTC(date.getUTCFullYear(), 0, 1) / 1000)
+}
+
+function groupChartDataByTime(
+	chartData: Array<{ date: string } & Record<string, number | string>>,
+	groupBy: TimeGrouping
+): Array<{ date: string } & Record<string, number | string>> {
+	if (groupBy === 'D') return chartData
+
+	// Most series (unlock amounts, allocations) are additive within a time bucket, but
+	// some series (e.g. Price/Market Cap) are not and should not be summed.
+	const NON_ADDITIVE_STRATEGIES: Record<string, 'avg' | 'last'> = {
+		Price: 'avg',
+		'Market Cap': 'avg'
+	}
+
+	const grouped: Record<string, Record<string, number>> = {}
+	const avgSums: Record<string, Record<string, number>> = {}
+	const avgCounts: Record<string, Record<string, number>> = {}
+	const lastValues: Record<string, Record<string, number>> = {}
+	const lastDates: Record<string, Record<string, number>> = {}
+
+	for (const entry of chartData) {
+		const timestamp = +entry.date * 1000
+		let groupKey: number
+
+		switch (groupBy) {
+			case 'W':
+				groupKey = lastDayOfWeek(timestamp)
+				break
+			case 'M':
+				groupKey = firstDayOfMonth(timestamp)
+				break
+			case 'Q':
+				groupKey = getQuarterStart(timestamp)
+				break
+			case 'Y':
+				groupKey = getYearStart(timestamp)
+				break
+			default:
+				groupKey = +entry.date
+		}
+
+		const bucketKey = String(groupKey)
+
+		if (!grouped[bucketKey]) {
+			grouped[bucketKey] = {}
+		}
+
+		for (const key in entry) {
+			if (key === 'date') continue
+			const raw = entry[key]
+			const value = typeof raw === 'number' ? raw : Number(raw)
+			if (!Number.isFinite(value)) continue
+
+			const strategy = NON_ADDITIVE_STRATEGIES[key]
+			if (strategy === 'avg') {
+				if (!avgSums[bucketKey]) avgSums[bucketKey] = {}
+				if (!avgCounts[bucketKey]) avgCounts[bucketKey] = {}
+				avgSums[bucketKey][key] = (avgSums[bucketKey][key] ?? 0) + value
+				avgCounts[bucketKey][key] = (avgCounts[bucketKey][key] ?? 0) + 1
+				continue
+			}
+
+			if (strategy === 'last') {
+				const entryDate = typeof entry.date === 'string' ? Number(entry.date) : (entry.date as any)
+				if (!lastValues[bucketKey]) lastValues[bucketKey] = {}
+				if (!lastDates[bucketKey]) lastDates[bucketKey] = {}
+
+				const prevDate = lastDates[bucketKey][key]
+				if (prevDate == null || (Number.isFinite(entryDate) && entryDate >= prevDate)) {
+					lastDates[bucketKey][key] = Number.isFinite(entryDate) ? entryDate : (prevDate ?? 0)
+					lastValues[bucketKey][key] = value
+				}
+				continue
+			}
+
+			// Additive series: sum within the bucket.
+			grouped[bucketKey][key] = (grouped[bucketKey][key] ?? 0) + value
+		}
+	}
+
+	// Merge non-additive results into the grouped output.
+	for (const bucketKey in avgSums) {
+		const sums = avgSums[bucketKey]
+		const counts = avgCounts[bucketKey]
+		for (const key in sums) {
+			const count = counts?.[key] ?? 0
+			if (count > 0) grouped[bucketKey][key] = sums[key] / count
+		}
+	}
+
+	for (const bucketKey in lastValues) {
+		const values = lastValues[bucketKey]
+		for (const key in values) {
+			grouped[bucketKey][key] = values[key]
+		}
+	}
+
+	return Object.entries(grouped)
+		.map(([date, values]) => ({ date, ...values }))
+		.sort((a, b) => +a.date - +b.date)
+}
+
+function sortStacksByVolatility(
+	stacks: string[],
+	chartData: Array<{ date: string } & Record<string, number | string>>
+): string[] {
+	if (!chartData || chartData.length < 2) return stacks
+
+	const volatility: Record<string, number> = {}
+
+	for (const stack of stacks) {
+		const values = chartData.map((d) => Number(d[stack]) || 0)
+		const min = Math.min(...values)
+		const max = Math.max(...values)
+		volatility[stack] = max - min
+	}
+
+	return [...stacks].sort((a, b) => volatility[b] - volatility[a])
+}
+
 const unlockedPieChartRadius = ['50%', '70%'] as [string, string]
 
 const unlockedPieChartStackColors = {
@@ -139,6 +272,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const [isPriceEnabled, setIsPriceEnabled] = useState(false)
 	const [allocationMode, setAllocationMode] = useState<'current' | 'standard'>('current')
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+	const [chartType, setChartType] = useState<'bar' | 'line'>('line')
+	const [timeGrouping, setTimeGrouping] = useState<TimeGrouping>('D')
 
 	const categoriesFromData = data.categories?.[dataType] ?? EMPTY_STRING_LIST
 	const stackColors = data.stackColors?.[dataType] ?? EMPTY_STACK_COLORS
@@ -266,11 +401,12 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			: categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
 
 	const displayData = useMemo(() => {
+		let result = chartData
 		if (allocationMode === 'standard' && data.categoriesBreakdown) {
-			return processGroupedChartData(chartData || ([] as any), data.categoriesBreakdown)
+			result = processGroupedChartData(chartData || ([] as any), data.categoriesBreakdown)
 		}
-		return chartData
-	}, [allocationMode, chartData, data.categoriesBreakdown])
+		return groupChartDataByTime(result || [], timeGrouping)
+	}, [allocationMode, chartData, data.categoriesBreakdown, timeGrouping])
 
 	useEffect(() => {
 		setSelectedCategories(() => {
@@ -332,16 +468,17 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				}
 			}
 		}
+		const finalStacks = chartType === 'bar' ? sortStacksByVolatility(stacks, displayData) : stacks
 		const extendedColors = getExtendedColors(stackColors, isPriceEnabled)
 		return {
-			stacks: [...stacks, ...(isPriceEnabled ? ['Market Cap', 'Price'] : [])].filter(Boolean),
+			stacks: [...finalStacks, ...(isPriceEnabled ? ['Market Cap', 'Price'] : [])].filter(Boolean),
 			customYAxis: isPriceEnabled ? ['Market Cap', 'Price'] : [],
 			colors:
 				allocationMode === 'standard'
 					? { ...standardGroupColors, Price: '#ff4e21', 'Market Cap': '#0c5dff' }
 					: extendedColors
 		}
-	}, [isPriceEnabled, selectedCategories, stackColors, allocationMode, displayData])
+	}, [isPriceEnabled, selectedCategories, stackColors, allocationMode, displayData, chartType])
 
 	const unlockedPercent =
 		data.meta?.totalLocked != null && data.meta?.maxSupply != null
@@ -417,6 +554,13 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							checked={allocationMode === 'standard'}
 						/>
 					)}
+
+					<Switch
+						label="Bar Chart"
+						value="bar-chart"
+						onChange={() => setChartType((prev) => (prev === 'bar' ? 'line' : 'bar'))}
+						checked={chartType === 'bar'}
+					/>
 
 					{normilizePriceChart?.prices ? (
 						<Switch
@@ -502,6 +646,11 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					<LazyChart className="relative min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 						<div className="m-2 flex items-center justify-end gap-2">
 							<h1 className="mr-auto text-lg font-bold">Schedule</h1>
+							<TagGroup
+								selectedValue={timeGrouping}
+								setValue={(v) => setTimeGrouping(v as TimeGrouping)}
+								values={TIME_GROUPINGS}
+							/>
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 							<SelectWithCombobox
 								allValues={availableCategories}
@@ -523,6 +672,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								hallmarks={hallmarks}
 								stackColors={chartConfig.colors}
 								isStackedChart
+								chartType={chartType}
+								expandTo100Percent={chartType === 'bar'}
 							/>
 						</Suspense>
 					</LazyChart>
