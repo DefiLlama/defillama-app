@@ -12,11 +12,25 @@ export const useDateRangeValidation = (options?: DateRangeValidationOptions) => 
 	const [endDate, setEndDate] = useState(options?.initialEndDate || '')
 	const [dateError, setDateError] = useState('')
 
+	const parseDateOnlyLocal = (value: string) => {
+		const [yearStr, monthStr, dayStr] = value.split('-')
+		const year = Number(yearStr)
+		const month = Number(monthStr)
+		const day = Number(dayStr)
+		return new Date(year, month - 1, day)
+	}
+
+	const startOfTodayLocal = () => {
+		const d = new Date()
+		d.setHours(0, 0, 0, 0)
+		return d
+	}
+
 	const handleStartDateChange = useCallback((value: string) => {
 		setDateError('')
 		setStartDate(value)
 		setEndDate((currentEndDate) => {
-			if (currentEndDate && value && new Date(currentEndDate) < new Date(value)) {
+			if (currentEndDate && value && parseDateOnlyLocal(currentEndDate) < parseDateOnlyLocal(value)) {
 				return ''
 			}
 			return currentEndDate
@@ -36,9 +50,10 @@ export const useDateRangeValidation = (options?: DateRangeValidationOptions) => 
 			return false
 		}
 
-		const start = new Date(startDateValue)
-		const end = new Date(endDateValue)
-		const today = new Date()
+		// Normalize all dates to local midnight to avoid UTC/local off-by-one errors
+		const start = parseDateOnlyLocal(startDateValue)
+		const end = parseDateOnlyLocal(endDateValue)
+		const today = startOfTodayLocal()
 
 		if (end < start) {
 			const errorMsg = 'End date cannot be before start date'

@@ -23,7 +23,9 @@ type BridgeTransaction = {
 	usd_value: string
 }
 
-interface TransformeddTransaction {
+const MAX_ITERATIONS = 50
+
+interface TransformedTransaction {
 	date: string
 	bridge_name: string
 	chain: string
@@ -36,9 +38,7 @@ interface TransformeddTransaction {
 	tx_hash: string
 }
 
-const MAX_ITERATIONS = 50
-
-const bridgeTransactionsColumns: ColumnDef<TransformeddTransaction>[] = [
+const bridgeTransactionsColumns: ColumnDef<TransformedTransaction>[] = [
 	{
 		header: 'Date',
 		accessorKey: 'date',
@@ -61,9 +61,7 @@ const bridgeTransactionsColumns: ColumnDef<TransformeddTransaction>[] = [
 		header: 'Type',
 		accessorKey: 'type',
 		cell: ({ getValue }) => (
-			<span className={getValue() === 'deposit' ? 'text-green-600' : 'text-red-600'}>
-				{getValue() as string}
-			</span>
+			<span className={getValue() === 'deposit' ? 'text-green-600' : 'text-red-600'}>{getValue() as string}</span>
 		),
 		size: 100
 	},
@@ -76,9 +74,11 @@ const bridgeTransactionsColumns: ColumnDef<TransformeddTransaction>[] = [
 	{
 		header: 'Amount',
 		accessorKey: 'amount',
-		cell: ({ getValue }) => <span className="truncate max-w-30 inline-block" title={getValue() as string}>
-			{getValue() as string}
-		</span>,
+		cell: ({ getValue }) => (
+			<span className="inline-block max-w-30 truncate" title={getValue() as string}>
+				{getValue() as string}
+			</span>
+		),
 		size: 150
 	},
 	{
@@ -97,7 +97,7 @@ const bridgeTransactionsColumns: ColumnDef<TransformeddTransaction>[] = [
 		header: 'From',
 		accessorKey: 'tx_from',
 		cell: ({ getValue }) => (
-			<span className="truncate max-w-30 inline-block" title={getValue() as string}>
+			<span className="inline-block max-w-30 truncate" title={getValue() as string}>
 				{getValue() as string}
 			</span>
 		),
@@ -107,7 +107,7 @@ const bridgeTransactionsColumns: ColumnDef<TransformeddTransaction>[] = [
 		header: 'To',
 		accessorKey: 'tx_to',
 		cell: ({ getValue }) => (
-			<span className="truncate max-w-30 inline-block" title={getValue() as string}>
+			<span className="inline-block max-w-30 truncate" title={getValue() as string}>
 				{getValue() as string}
 			</span>
 		),
@@ -117,7 +117,7 @@ const bridgeTransactionsColumns: ColumnDef<TransformeddTransaction>[] = [
 		header: 'Hash',
 		accessorKey: 'tx_hash',
 		cell: ({ getValue }) => (
-			<span className="truncate max-w-30 inline-block" title={getValue() as string}>
+			<span className="inline-block max-w-30 truncate" title={getValue() as string}>
 				{getValue() as string}
 			</span>
 		),
@@ -125,10 +125,10 @@ const bridgeTransactionsColumns: ColumnDef<TransformeddTransaction>[] = [
 	}
 ]
 
-const transformTransactionForTable = (tx: BridgeTransaction): TransformeddTransaction => {
+const transformTransactionForTable = (tx: BridgeTransaction): TransformedTransaction => {
 	const timestamp = Math.floor(new Date(tx.ts).getTime() / 1000)
 	return {
-		date: toNiceDayAndHour(timestamp.toString()),
+		date: toNiceDayAndHour(timestamp),
 		bridge_name: tx.bridge_name,
 		chain: tx.chain,
 		type: tx.is_deposit ? 'deposit' : 'withdrawal',
@@ -181,7 +181,11 @@ const fetchTransactions = async ({ bridges, startDate, endDate, selectedBridge }
 			break
 		}
 
-		currentEndTimestamp = earliestTimestamp
+		// Make end bound exclusive to avoid duplicating boundary timestamps
+		currentEndTimestamp = earliestTimestamp - 1
+		if (currentEndTimestamp <= startTimestamp) {
+			break
+		}
 		iterations++
 	}
 
@@ -189,13 +193,22 @@ const fetchTransactions = async ({ bridges, startDate, endDate, selectedBridge }
 		console.warn(`Reached maximum iterations (${MAX_ITERATIONS}). Some transactions may be missing.`)
 	}
 
-	allTransactions.sort((a, b) => {
+	// Dedupe across pagination boundaries
+	const seen = new Set<string>()
+	const dedupedTransactions: BridgeTransaction[] = []
+	for (const tx of allTransactions) {
+		if (seen.has(tx.tx_hash)) continue
+		seen.add(tx.tx_hash)
+		dedupedTransactions.push(tx)
+	}
+
+	dedupedTransactions.sort((a, b) => {
 		const tsA = Math.floor(new Date(a.ts).getTime() / 1000)
 		const tsB = Math.floor(new Date(b.ts).getTime() / 1000)
 		return tsB - tsA
 	})
 
-	return allTransactions
+	return dedupedTransactions
 }
 
 export const BridgeTransactionsPage = ({ bridges }) => {
@@ -240,19 +253,17 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 
 	const maxDate = new Date().toISOString().split('T')[0]
 
-	const tableData = useMemo(
-		() => transactions.map(transformTransactionForTable),
-		[transactions]
-	)
+	const tableData = useMemo(() => transactions.map(transformTransactionForTable), [transactions])
 
 	const prepareCsv = useCallback(() => {
-		if (transactions.length === 0) return null
+		const filename = `bridge-transactions_${startDate}_${endDate}.csv`
+		if (transactions.length === 0) return { filename, rows: [] }
 
 		const csvData = transactions.map((tx) => {
 			const timestamp = Math.floor(new Date(tx.ts).getTime() / 1000)
 			return {
 				Timestamp: timestamp,
-				Date: toNiceCsvDate(timestamp.toString()),
+				Date: toNiceCsvDate(timestamp),
 				Bridge: tx.bridge_name,
 				Chain: tx.chain,
 				Type: tx.is_deposit ? 'deposit' : 'withdrawal',
@@ -268,17 +279,17 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 		const headers = Object.keys(csvData[0])
 		const rows = [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
 
-		return { filename: `bridge-transactions_${startDate}_${endDate}.csv`, rows }
-	}, [transactions])
+		return { filename, rows }
+	}, [transactions, startDate, endDate])
 
 	return (
-		<div className="flex flex-col gap-4 mt-4 lg:mt-10">
+		<div className="mt-4 flex flex-col gap-4 lg:mt-10">
 			<div className="flex w-full max-w-sm flex-col items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 xl:mx-auto">
 				<h1 className="text-xl font-semibold">Bridge Transactions</h1>
 
-				<form className="mx-auto my-4 flex flex-col gap-4 w-full" onSubmit={handleSubmit}>
+				<form className="mx-auto my-4 flex w-full flex-col gap-4" onSubmit={handleSubmit}>
 					<span className="flex flex-wrap gap-4">
-						<label className="flex flex-col flex-1 min-w-35 gap-2">
+						<label className="flex min-w-35 flex-1 flex-col gap-2">
 							<span className="text-base font-medium">Start Date</span>
 							<input
 								type="date"
@@ -290,7 +301,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 								className="placeholder:text-opacity-40 cursor-pointer rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black dark:bg-black dark:text-white dark:scheme-dark"
 							/>
 						</label>
-						<label className="flex flex-col flex-1 min-w-35 gap-2">
+						<label className="flex min-w-35 flex-1 flex-col gap-2">
 							<span className="text-base font-medium">End Date</span>
 							<input
 								type="date"
