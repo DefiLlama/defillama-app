@@ -47,33 +47,37 @@ function sanitizeUrl(url: string): string | null {
 interface ArtifactMatch {
 	index: number
 	length: number
-	type: 'chart' | 'csv'
+	type: 'chart' | 'csv' | 'alert'
 	id: string
 }
 
 interface ContentPart {
-	type: 'text' | 'chart' | 'csv'
+	type: 'text' | 'chart' | 'csv' | 'alert'
 	content: string
 	chartId?: string
 	csvId?: string
+	alertId?: string
 }
 
 interface ParsedContent {
 	parts: ContentPart[]
 	chartIds: Set<string>
 	csvIds: Set<string>
+	alertIds: Set<string>
 }
 
 /**
- * Parse markdown content to extract chart and CSV artifact placeholders.
- * Placeholders follow the format [CHART:id] and [CSV:id].
+ * Parse markdown content to extract chart, CSV, and alert artifact placeholders.
+ * Placeholders follow the format [CHART:id], [CSV:id], and [ALERT:id].
  */
 export function parseArtifactPlaceholders(content: string): ParsedContent {
 	const chartPlaceholderPattern = /\[CHART:([^\]]+)\]/g
 	const csvPlaceholderPattern = /\[CSV:([^\]]+)\]/g
+	const alertPlaceholderPattern = /\[ALERT:([^\]]+)\]/g
 	const parts: ContentPart[] = []
 	const chartIds = new Set<string>()
 	const csvIds = new Set<string>()
+	const alertIds = new Set<string>()
 
 	const allMatches: ArtifactMatch[] = []
 
@@ -86,6 +90,10 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 		allMatches.push({ index: match.index, length: match[0].length, type: 'csv', id: match[1] })
 		csvIds.add(match[1])
 	}
+	while ((match = alertPlaceholderPattern.exec(content)) !== null) {
+		allMatches.push({ index: match.index, length: match[0].length, type: 'alert', id: match[1] })
+		alertIds.add(match[1])
+	}
 
 	allMatches.sort((a, b) => a.index - b.index)
 
@@ -96,8 +104,10 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 		}
 		if (m.type === 'chart') {
 			parts.push({ type: 'chart', content: '', chartId: m.id })
-		} else {
+		} else if (m.type === 'csv') {
 			parts.push({ type: 'csv', content: '', csvId: m.id })
+		} else {
+			parts.push({ type: 'alert', content: '', alertId: m.id })
 		}
 		lastIndex = m.index + m.length
 	}
@@ -110,7 +120,7 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 		parts.push({ type: 'text', content })
 	}
 
-	return { parts, chartIds, csvIds }
+	return { parts, chartIds, csvIds, alertIds }
 }
 
 /**
