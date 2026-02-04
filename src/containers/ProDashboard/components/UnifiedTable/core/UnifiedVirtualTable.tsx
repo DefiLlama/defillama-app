@@ -2,13 +2,14 @@ import type { Table } from '@tanstack/react-table'
 import { flexRender } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import * as React from 'react'
-import { useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { SortIcon } from '~/components/Table/SortIcon'
 import { Tooltip } from '~/components/Tooltip'
 import type { NormalizedRow } from '../types'
 
 interface UnifiedVirtualTableProps {
 	table: Table<NormalizedRow>
+	rowStateVersion?: string
 	rowSize?: number
 	stripedBg?: boolean
 	compact?: boolean
@@ -18,6 +19,7 @@ const isGroupingColumn = (columnId?: string) => typeof columnId === 'string' && 
 
 export function UnifiedVirtualTable({
 	table,
+	rowStateVersion,
 	rowSize = 50,
 	stripedBg = false,
 	compact = false
@@ -41,6 +43,12 @@ export function UnifiedVirtualTable({
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
+	const expandedCount = Object.keys(table.getState().expanded ?? {}).length
+
+	useLayoutEffect(() => {
+		rowVirtualizer.measure()
+		rowVirtualizer.scrollToOffset(rowVirtualizer.scrollOffset, { align: 'start' })
+	}, [expandedCount, rowStateVersion, rowVirtualizer])
 
 	return (
 		<div

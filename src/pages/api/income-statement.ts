@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
-import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 import { slug } from '~/utils'
+import { IProtocolMetadata } from '~/utils/metadata/types'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {

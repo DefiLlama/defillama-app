@@ -475,26 +475,6 @@
       "oldName": "ETFs"
     },
     {
-      "name": "Bridges by Volume",
-      "route": "/bridges",
-      "category": "Bridge",
-      "description": "Sum of the value of all assets that were bridged through the protocol",
-      "totalTrackedKey": "bridges.protocols",
-      "tab": "Protocols",
-      "oldCategory": "Bridges",
-      "oldName": "Overview"
-    },
-    {
-      "name": "Bridge Volume by Chain",
-      "route": "/bridges/chains",
-      "category": "Bridge",
-      "description": "Sum of the value of all assets that were bridged through the protocol on each chain",
-      "totalTrackedKey": "bridges.chains",
-      "tab": "Chains",
-      "oldCategory": "Bridges",
-      "oldName": "Chains"
-    },
-    {
       "name": "NFTs: Collections",
       "route": "/nfts",
       "category": "NFTs",
@@ -528,6 +508,26 @@
       "totalTrackedKey": "nfts.chains",
       "oldCategory": "NFTs",
       "oldName": "Volume (Chains)"
+    },
+    {
+      "name": "Bridges by Volume",
+      "route": "/bridges",
+      "category": "Bridge",
+      "description": "Sum of the value of all assets that were bridged through the protocol",
+      "totalTrackedKey": "bridges.protocols",
+      "tab": "Protocols",
+      "oldCategory": "Bridges",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Bridge Volume by Chain",
+      "route": "/bridges/chains",
+      "category": "Bridge",
+      "description": "Sum of the value of all assets that were bridged through the protocol on each chain",
+      "totalTrackedKey": "bridges.chains",
+      "tab": "Chains",
+      "oldCategory": "Bridges",
+      "oldName": "Chains"
     },
     {
       "name": "Hacks: Overview",
@@ -613,10 +613,31 @@
       "oldName": "Investors"
     },
     {
-      "name": "Sheets",
-      "route": "/sheets",
-      "category": "Sheets",
-      "description": "Access DeFi data right in your spreadsheets"
+      "name": "RWA: Overview",
+      "route": "/rwa",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs)",
+      "tags": [
+        "New"
+      ]
+    },
+    {
+      "name": "RWA by Chain",
+      "route": "/rwa/chains",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by chain"
+    },
+    {
+      "name": "RWA by Category",
+      "route": "/rwa/categories",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by category"
+    },
+    {
+      "name": "RWA by Platform",
+      "route": "/rwa/platforms",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by platform"
     },
     {
       "name": "CEXs",
@@ -699,6 +720,12 @@
       "oldName": "Watchlist"
     },
     {
+      "name": "Sheets",
+      "route": "/sheets",
+      "category": "Tools",
+      "description": "Access DeFi data right in your spreadsheets"
+    },
+    {
       "name": "Yields: Watchlist",
       "route": "/yields/watchlist",
       "category": "Tools",
@@ -756,10 +783,7 @@
       "name": "Report Error",
       "route": "/report-error",
       "category": "Tools",
-      "description": "Report errors in methodology, protocol metrics, or suggest site improvements",
-      "tags": [
-        "New"
-      ]
+      "description": "Report errors in methodology, protocol metrics, or suggest site improvements"
     },
     {
       "name": "Compare Chains",

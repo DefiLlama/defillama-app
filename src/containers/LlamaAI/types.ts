@@ -1,6 +1,7 @@
 // Chart-related types from backend
 export interface ChartConfiguration {
 	id: string
+	datasetName?: string
 	type: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
 	title: string
 	description: string

@@ -1,12 +1,16 @@
-import { Fragment, useMemo } from 'react'
+import { Fragment, lazy, Suspense, useMemo } from 'react'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
+import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
+import { CHART_COLORS } from '~/constants/colors'
 import definitions from '~/public/rwa-definitions.json'
 import { chainIconUrl, formattedNum } from '~/utils'
 import { getBlockExplorer } from '~/utils/blockExplorers'
 import type { IRWAAssetData } from './queries'
+
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 interface ClassificationItemProps {
 	label: string
@@ -145,6 +149,10 @@ const ContractItem = ({ chain, address }: { chain: string; address: string }) =>
 }
 
 export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
+	console.log(asset.chartDataset)
+	const displayName = asset.name ?? asset.ticker ?? 'Unknown asset'
+	const keyBase = asset.ticker ?? asset.name ?? 'asset'
+
 	// Get attestation links as array
 	const attestationLinks = asset.attestationLinks
 		? Array.isArray(asset.attestationLinks)
@@ -159,33 +167,52 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			{/* Header */}
 			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="flex flex-wrap items-center gap-2">
-					<h1 className="text-xl font-bold">{asset.name}</h1>
+					<h1 className="text-xl font-bold">{displayName}</h1>
 					{asset.ticker && <span className="text-(--text-disabled)">({asset.ticker})</span>}
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
-					{asset.website?.map((url) => (
-						<a
-							key={url}
-							href={url}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-						>
-							<Icon name="external-link" className="h-3 w-3" />
-							Website
-						</a>
-					))}
-					{asset.twitter && (
-						<a
-							href={`https://twitter.com/${asset.twitter}`}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-						>
-							<Icon name="external-link" className="h-3 w-3" />
-							Twitter
-						</a>
-					)}
+					{asset.website ? (
+						asset.website.length > 1 ? (
+							<Menu
+								name="Website"
+								options={asset.website}
+								isExternal
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							/>
+						) : (
+							<a
+								key={asset.website[0]}
+								href={asset.website[0]}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							>
+								<Icon name="external-link" className="h-3 w-3" />
+								Website
+							</a>
+						)
+					) : null}
+					{asset.twitter ? (
+						asset.twitter.length > 1 ? (
+							<Menu
+								name="Twitter"
+								options={asset.twitter}
+								isExternal
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							/>
+						) : (
+							<a
+								key={asset.twitter[0]}
+								href={asset.twitter[0]}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							>
+								<Icon name="external-link" className="h-3 w-3" />
+								Twitter
+							</a>
+						)
+					) : null}
 				</div>
 			</div>
 
@@ -193,25 +220,21 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			<div className="flex flex-wrap gap-2">
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<Tooltip
-						content={definitions.onChainMarketcap.description}
+						content={definitions.onChainMcap.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
-						{definitions.onChainMarketcap.label}
+						{definitions.onChainMcap.label}
 					</Tooltip>
-					<span className="font-jetbrains text-xl font-semibold">
-						{formattedNum(asset.onChainMarketcap.total, true)}
-					</span>
+					<span className="font-jetbrains text-xl font-semibold">{formattedNum(asset.onChainMcap.total, true)}</span>
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<Tooltip
-						content={definitions.activeMarketcap.description}
+						content={definitions.activeMcap.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
-						{definitions.activeMarketcap.label}
+						{definitions.activeMcap.label}
 					</Tooltip>
-					<span className="font-jetbrains text-xl font-semibold">
-						{formattedNum(asset.activeMarketcap.total, true)}
-					</span>
+					<span className="font-jetbrains text-xl font-semibold">{formattedNum(asset.activeMcap.total, true)}</span>
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<Tooltip
@@ -234,6 +257,22 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 				</p>
 			</div>
 
+			{asset.chartDataset && asset.chartDataset.source.length > 0 ? (
+				<div className="min-h-[412px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3">
+					<Suspense fallback={<></>}>
+						<MultiSeriesChart2
+							charts={timeSeriesCharts}
+							dataset={asset.chartDataset}
+							hideDefaultLegend={false}
+							shouldEnableCSVDownload
+							shouldEnableImageExport
+							imageExportFilename={`${asset.ticker ?? asset.name ?? 'asset'}`}
+							imageExportTitle={`${asset.ticker ?? asset.name ?? 'Asset'}`}
+						/>
+					</Suspense>
+				</div>
+			) : null}
+
 			<div className="grid gap-2 lg:grid-cols-2">
 				{/* Left Column */}
 				<div className="flex flex-col gap-2">
@@ -247,7 +286,21 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								>
 									{definitions.category.label}
 								</Tooltip>
-								<span className="font-medium">{asset.category?.join(', ') || '-'}</span>
+								{asset.category && asset.category.length > 0 ? (
+									<span className="flex flex-wrap items-center gap-1 font-medium">
+										{asset.category.map((category, idx) => (
+											<span key={category} className="flex items-center gap-0.5">
+												{category}
+												{definitions.category.values?.[category] && (
+													<QuestionHelper text={definitions.category.values[category]} />
+												)}
+												{idx < asset.category!.length - 1 && ','}
+											</span>
+										))}
+									</span>
+								) : (
+									<span className="font-medium">-</span>
+								)}
 							</p>
 							<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 								<Tooltip
@@ -360,13 +413,9 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 						<SectionCard title="Contracts">
 							<div className="grid grid-cols-2 gap-2">
 								{contractsEntries.map(([chain, contracts]) => (
-									<Fragment key={`${asset.name}-contracts-${chain}`}>
+									<Fragment key={`${keyBase}-contracts-${chain}`}>
 										{contracts.map((contract) => (
-											<ContractItem
-												key={`${asset.name}-contract-${chain}-${contract}`}
-												chain={chain}
-												address={contract}
-											/>
+											<ContractItem key={`${keyBase}-contract-${chain}-${contract}`} chain={chain} address={contract} />
 										))}
 									</Fragment>
 								))}
@@ -505,11 +554,46 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			</div>
 
 			{/* Description Notes */}
-			{asset.descriptionNotes && (
+			{asset.descriptionNotes ? (
 				<SectionCard title="Notes">
-					<p className="text-sm text-(--text-secondary)">{asset.descriptionNotes}</p>
+					<ul className="list-disc space-y-1 pl-5 text-sm text-(--text-secondary)">
+						{asset.descriptionNotes.map((note, idx) => (
+							<li key={`${keyBase}-note-${idx}`}>{note}</li>
+						))}
+					</ul>
 				</SectionCard>
-			)}
+			) : null}
 		</div>
 	)
 }
+
+const timeSeriesCharts: Array<{
+	type: 'line' | 'bar'
+	name: string
+	stack: string
+	encode: { x: number | Array<number> | string | Array<string>; y: number | Array<number> | string | Array<string> }
+	color?: string
+}> = [
+	// Use distinct stack keys so ECharts doesn't cumulatively stack these series.
+	{
+		type: 'line',
+		name: 'DeFi Active TVL',
+		stack: 'defiActiveTvl',
+		encode: { x: 'timestamp', y: 'DeFi Active TVL' },
+		color: CHART_COLORS[0]
+	},
+	{
+		type: 'line',
+		name: 'Active Mcap',
+		stack: 'activeMcap',
+		encode: { x: 'timestamp', y: 'Active Mcap' },
+		color: CHART_COLORS[1]
+	},
+	{
+		type: 'line',
+		name: 'Onchain Mcap',
+		stack: 'onchainMcap',
+		encode: { x: 'timestamp', y: 'Onchain Mcap' },
+		color: CHART_COLORS[2]
+	}
+]

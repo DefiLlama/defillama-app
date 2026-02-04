@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
@@ -37,6 +37,7 @@ interface UnifiedChartTabProps {
 	onChainChange: (option: any) => void
 	onProtocolChange: (option: any) => void
 	onChartTypesChange: (types: string[]) => void
+	onBulkChartTypeChange: (nextType: string) => void
 	onUnifiedChartNameChange: (name: string) => void
 	onChartCreationModeChange: (mode: 'separate' | 'combined') => void
 	onComposerItemColorChange: (id: string, color: string) => void
@@ -118,6 +119,7 @@ export function UnifiedChartTab({
 	onChainChange: _onChainChange,
 	onProtocolChange: _onProtocolChange,
 	onChartTypesChange,
+	onBulkChartTypeChange,
 	onUnifiedChartNameChange,
 	onChartCreationModeChange,
 	onComposerItemColorChange,
@@ -207,8 +209,18 @@ export function UnifiedChartTab({
 		}
 	}
 	const handleChartTypeSelect = useCallback((type: string) => onChartTypesChange([type]), [onChartTypesChange])
+	const handleBulkChartTypeSelect = useCallback((type: string) => onBulkChartTypeChange(type), [onBulkChartTypeChange])
 
 	const selectedChartTypeSingle = useMemo(() => selectedChartTypes[0] || null, [selectedChartTypes])
+	const bulkChartType = useMemo(() => {
+		if (composerItems.length === 0) return null
+		const firstType = composerItems[0]?.type
+		if (!firstType) return null
+		for (const item of composerItems) {
+			if (item.type !== firstType) return null
+		}
+		return firstType
+	}, [composerItems])
 	const defaultChartType = useMemo(() => {
 		if (composerItems.length === 0) return 'tvl'
 		const matchingItem = composerItems.find((item) => (selectedChartTab === 'chain' ? item.chain : item.protocol))
@@ -321,6 +333,41 @@ export function UnifiedChartTab({
 			available: globalAvailableChartTypes.includes(type)
 		}))
 	}, [globalAvailableChartTypes, selectedChartTab, chainChartTypes, protocolChartTypes])
+
+	const bulkAvailableChartTypes = useMemo(() => {
+		if (!bulkChartType) return new Set<string>()
+		const getAvailableTypes = (item: ChartConfig) => {
+			if (item.chain) {
+				const geckoId = chains.find((c: any) => c.name === item.chain)?.gecko_id
+				return availableChainChartTypes(item.chain, { hasGeckoId: !!geckoId })
+			}
+			if (item.protocol) {
+				const geckoId = protocols.find((p: any) => p.slug === item.protocol)?.geckoId
+				return availableProtocolChartTypes(item.protocol, { hasGeckoId: !!geckoId })
+			}
+			return []
+		}
+		const [firstItem, ...restItems] = composerItems
+		if (!firstItem) return new Set<string>()
+		const intersection = new Set(getAvailableTypes(firstItem))
+		for (const item of restItems) {
+			const available = getAvailableTypes(item)
+			for (const type of Array.from(intersection)) {
+				if (!available.includes(type)) {
+					intersection.delete(type)
+				}
+			}
+		}
+		return intersection
+	}, [bulkChartType, composerItems, chains, protocols, availableChainChartTypes, availableProtocolChartTypes])
+
+	const bulkChartTypeOptions = useMemo(() => {
+		if (!bulkChartType) return []
+		return chartTypeOptions.map((option) => ({
+			...option,
+			available: bulkAvailableChartTypes.has(option.value)
+		}))
+	}, [bulkChartType, chartTypeOptions, bulkAvailableChartTypes])
 
 	const filteredEntities = useMemo(() => {
 		if (!selectedChartTypeSingle) {
@@ -638,6 +685,19 @@ export function UnifiedChartTab({
 						placeholder="Chart name..."
 						className="w-full shrink-0 rounded border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					/>
+
+					{(selectedChartTab === 'chain' || selectedChartTab === 'protocol') && bulkChartType && (
+						<div className="shrink-0">
+							<label className="mb-2 block text-xs font-medium pro-text2">Change All Chart Types</label>
+							<ChartTypePills
+								chartTypes={bulkChartTypeOptions}
+								selectedType={bulkChartType}
+								onSelect={handleBulkChartTypeSelect}
+								isLoading={metaLoading}
+								mode={selectedChartTab as 'chain' | 'protocol'}
+							/>
+						</div>
+					)}
 
 					<div className="h-[450px] shrink-0 overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg)">
 						{composerItems.length > 0 ? (

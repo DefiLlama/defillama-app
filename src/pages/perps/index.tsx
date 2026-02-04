@@ -12,7 +12,8 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 	const data = await getAdapterByChainPageData({
 		adapterType,
 		chain: 'All',
-		route: 'perps'
+		route: 'perps',
+		hasOpenInterest: true
 	}).catch((e) => console.info(`Chain page data not found ${adapterType} : ALL_CHAINS`, e))
 
 	if (!data) return { notFound: true }

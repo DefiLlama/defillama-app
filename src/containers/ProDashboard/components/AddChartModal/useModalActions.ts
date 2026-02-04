@@ -261,6 +261,34 @@ export function useModalActions(
 		[actions]
 	)
 
+	const handleBulkChartTypeChange = useCallback(
+		(nextType: string) => {
+			actions.setComposerItems((prev) =>
+				prev.map((item) => {
+					const isGroupable = CHART_TYPES[nextType]?.groupable
+					let geckoId: string | null | undefined
+					if (item.chain) {
+						const chain = chains.find((c: Chain) => c.name === item.chain)
+						geckoId = ['chainMcap', 'chainPrice'].includes(nextType) ? chain?.gecko_id : undefined
+					} else if (item.protocol) {
+						const protocol = protocols.find((p: Protocol) => p.slug === item.protocol)
+						geckoId = protocol?.geckoId
+					}
+					return {
+						...item,
+						type: nextType,
+						geckoId,
+						dataType: nextType === 'unlocks' ? ('documented' as const) : undefined,
+						grouping: isGroupable ? item.grouping : undefined
+					}
+				})
+			)
+			actions.setSelectedChartType(nextType)
+			actions.setSelectedChartTypes([nextType])
+		},
+		[actions, chains, protocols]
+	)
+
 	const handleMainTabChange = useCallback(
 		(tab: MainTabType) => {
 			actions.setSelectedMainTab(tab)
@@ -861,6 +889,7 @@ export function useModalActions(
 			handleAddToComposer,
 			handleRemoveFromComposer,
 			handleUpdateComposerItemColor,
+			handleBulkChartTypeChange,
 			handleMainTabChange,
 			handleChartTabChange,
 			handleSubmit,
@@ -877,6 +906,7 @@ export function useModalActions(
 			handleAddToComposer,
 			handleRemoveFromComposer,
 			handleUpdateComposerItemColor,
+			handleBulkChartTypeChange,
 			handleMainTabChange,
 			handleChartTabChange,
 			handleSubmit,

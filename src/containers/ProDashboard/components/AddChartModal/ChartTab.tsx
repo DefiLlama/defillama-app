@@ -25,6 +25,7 @@ interface ChartTabProps {
 	onChainChange: (option: any) => void
 	onProtocolChange: (option: any) => void
 	onChartTypesChange: (types: string[]) => void
+	onBulkChartTypeChange: (nextType: string) => void
 	onSelectedChainsChange?: (chains: string[]) => void
 	onSelectedProtocolsChange?: (protocols: string[]) => void
 	onSelectedYieldPoolChange?: (pool: { configID: string; name: string; project: string; chain: string } | null) => void
@@ -168,6 +169,7 @@ export function ChartTab(props: ChartTabProps) {
 					onChainChange={props.onChainChange}
 					onProtocolChange={props.onProtocolChange}
 					onChartTypesChange={props.onChartTypesChange}
+					onBulkChartTypeChange={props.onBulkChartTypeChange}
 					onSelectedChainsChange={props.onSelectedChainsChange}
 					onSelectedProtocolsChange={props.onSelectedProtocolsChange}
 					onSelectedYieldPoolChange={props.onSelectedYieldPoolChange}

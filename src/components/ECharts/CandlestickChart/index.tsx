@@ -62,8 +62,23 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 		const priceBottom = volumeBottom + VOLUME_HEIGHT + 20
 
 		const grids: any[] = [
-			{ left: 12, bottom: priceBottom, top: 12, right: 12 },
-			{ height: VOLUME_HEIGHT, left: 54, right: 12, bottom: volumeBottom }
+			{
+				left: 12,
+				bottom: priceBottom,
+				top: 12,
+				right: 12,
+				// Match AreaChart behavior: keep axis labels within the chart bounds
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
+			},
+			{
+				height: VOLUME_HEIGHT,
+				left: 54,
+				right: 12,
+				bottom: volumeBottom,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
+			}
 		]
 
 		const xAxes: any[] = [
@@ -125,7 +140,14 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 			const gridIdx = idx + 2
 			const bottom = BASE_BOTTOM + (panelCount - idx - 1) * PANEL_HEIGHT
 
-			grids.push({ height: PANEL_HEIGHT - 10, left: 54, right: 12, bottom })
+			grids.push({
+				height: PANEL_HEIGHT - 10,
+				left: 54,
+				right: 12,
+				bottom,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
+			})
 
 			xAxes.push({
 				type: 'time',
@@ -217,16 +239,7 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 					fillerColor: isThemeDark ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)',
 					labelFormatter: formatChartEmphasisDate
 				}
-			],
-			visualMap: {
-				show: false,
-				seriesIndex: 1,
-				dimension: 6,
-				pieces: [
-					{ value: 1, color: isThemeDark ? '#3eb84f' : '#018a13' },
-					{ value: -1, color: isThemeDark ? '#e24a42' : '#e60d02' }
-				]
-			}
+			]
 		}
 	}, [isSmall, isThemeDark, panels, overlays.length])
 
@@ -368,11 +381,17 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
 		chartRef.current = instance
 
-		instance.setOption({
-			...defaultChartSettings,
-			dataset: { source: data },
-			series
-		})
+		instance.setOption(
+			{
+				...defaultChartSettings,
+				dataset: { source: data },
+				series
+			},
+			// When indicators change we change the number of grids/axes/series.
+			// ECharts merges arrays by index by default, which can leave stale layout components
+			// (making grid.left/right look like they "don't apply"). Replace-merge fixes that.
+			{ replaceMerge: ['grid', 'xAxis', 'yAxis', 'series', 'dataZoom', 'dataset'] }
+		)
 
 		return () => {
 			chartRef.current = null

@@ -6,7 +6,8 @@ export enum ADAPTER_TYPES {
 	PERPS_AGGREGATOR = 'aggregator-derivatives',
 	OPTIONS = 'options',
 	BRIDGE_AGGREGATORS = 'bridge-aggregators',
-	OPEN_INTEREST = 'open-interest'
+	OPEN_INTEREST = 'open-interest',
+	NORMALIZED_VOLUME = 'normalized-volume'
 }
 
 export enum ADAPTER_DATA_TYPES {
@@ -23,7 +24,8 @@ export enum ADAPTER_DATA_TYPES {
 	DAILY_EARNINGS = 'dailyEarnings',
 	OPEN_INTEREST_AT_END = 'openInterestAtEnd',
 	DAILY_VOLUME = 'dailyVolume',
-	DAILY_BRIDGE_VOLUME = 'dailyBridgeVolume'
+	DAILY_BRIDGE_VOLUME = 'dailyBridgeVolume',
+	DAILY_NORMALIZED_VOLUME = 'dailyNormalizedVolume'
 }
 
 export enum ADAPTER_DATA_TYPE_KEYS {
@@ -39,7 +41,8 @@ export enum ADAPTER_DATA_TYPE_KEYS {
 	'dailyPremiumVolume' = 'dpv',
 	'openInterestAtEnd' = 'doi',
 	'dailyVolume' = 'dv',
-	'dailyBridgeVolume' = 'dbv'
+	'dailyBridgeVolume' = 'dbv',
+	'dailyNormalizedVolume' = 'dnvol'
 }
 
 export const VOLUME_TYPE_ADAPTERS = [
@@ -48,7 +51,8 @@ export const VOLUME_TYPE_ADAPTERS = [
 	'options',
 	'aggregators',
 	'aggregator-derivatives',
-	'bridge-aggregators'
+	'bridge-aggregators',
+	'normalized-volume'
 ]
 
 export const ADAPTER_TYPES_TO_METADATA_TYPE = {
@@ -59,5 +63,6 @@ export const ADAPTER_TYPES_TO_METADATA_TYPE = {
 	[ADAPTER_TYPES.PERPS_AGGREGATOR]: 'perpsAggregators',
 	[ADAPTER_TYPES.OPTIONS]: 'options',
 	[ADAPTER_TYPES.BRIDGE_AGGREGATORS]: 'bridgeAggregators',
-	[ADAPTER_TYPES.OPEN_INTEREST]: 'openInterest'
+	[ADAPTER_TYPES.OPEN_INTEREST]: 'openInterest',
+	[ADAPTER_TYPES.NORMALIZED_VOLUME]: 'normalizedVolume'
 }

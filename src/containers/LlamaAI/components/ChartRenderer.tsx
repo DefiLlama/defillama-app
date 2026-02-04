@@ -752,7 +752,7 @@ function ChartRendererImpl({
 				<SingleChart
 					key={chart.id}
 					config={chart}
-					data={Array.isArray(chartData) ? chartData : chartData?.[chart.id] || []}
+					data={Array.isArray(chartData) ? chartData : chartData?.[chart.datasetName || chart.id] || []}
 					isActive={!hasMultipleCharts || activeTabIndex === index}
 					messageId={messageId}
 				/>

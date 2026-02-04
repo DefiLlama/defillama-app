@@ -177,6 +177,8 @@ export function ChartExportButton({
 				// Handle Sankey chart series - scale up labels for export
 				const isSankeyChart =
 					Array.isArray(currentOptions.series) && currentOptions.series.some((s: any) => s.type === 'sankey')
+				const isPieChart =
+					Array.isArray(currentOptions.series) && currentOptions.series.some((s: any) => s.type === 'pie')
 
 				if (isSankeyChart && Array.isArray(currentOptions.series)) {
 					currentOptions.series = currentOptions.series.map((series: any) => {
@@ -214,10 +216,22 @@ export function ChartExportButton({
 				const legendItemGap = 20
 				const legendFontSize = 24
 				const legendItemWidth = 48
-				const seriesNames: string[] = Array.isArray(currentOptions.series)
-					? currentOptions.series.map((s: any) => s.name || '').filter(Boolean)
-					: []
-				const totalLegendWidth = seriesNames.reduce(
+				const originalLegendShow = legendArray.length > 0 ? legendArray.some((l: any) => l?.show !== false) : false
+				const shouldShowLegendForExport = !isSankeyChart && (!isPieChart || originalLegendShow)
+
+				// Legend sizing needs legend item names, not series names (pie legend uses data item names).
+				const legendItems: string[] =
+					legendArray.length > 0 && Array.isArray(legendArray[0]?.data)
+						? legendArray[0].data.filter((x: any) => typeof x === 'string')
+						: isPieChart && Array.isArray(currentOptions.series)
+							? currentOptions.series
+									.filter((s: any) => s.type === 'pie')
+									.flatMap((s: any) => (Array.isArray(s.data) ? s.data.map((d: any) => d?.name).filter(Boolean) : []))
+							: Array.isArray(currentOptions.series)
+								? currentOptions.series.map((s: any) => s.name || '').filter(Boolean)
+								: []
+
+				const totalLegendWidth = legendItems.reduce(
 					(total, name) => total + approximateTextWidth(name, legendFontSize) + legendItemWidth + legendItemGap,
 					0
 				)
@@ -225,9 +239,7 @@ export function ChartExportButton({
 				// If there is no legend on the original chart, we'll still be adding one
 				// below (scroll legend), so treat "has legend" based on either existing
 				// legend config or presence of series.
-				const hasLegend =
-					legendArray.length > 0 ||
-					(Array.isArray(currentOptions.series) ? currentOptions.series.length > 0 : !!currentOptions.series)
+				const hasLegend = shouldShowLegendForExport
 
 				const availableWidth = IMAGE_EXPORT_WIDTH - 32
 				let legendRows = 1
@@ -273,6 +285,30 @@ export function ChartExportButton({
 					}
 				}
 
+				// Pie charts frequently show labels when legend is hidden. The export code used to
+				// force-show a legend, which could cause the exported image to show BOTH labels and
+				// legend at once, overlapping. Keep pie legend behavior consistent with the chart:
+				// only show a legend if the original chart did, and hide labels when a legend is shown.
+				if (isPieChart && shouldShowLegendForExport && Array.isArray(currentOptions.series)) {
+					currentOptions.series = currentOptions.series.map((series: any) => {
+						if (series?.type !== 'pie') return series
+
+						const existingLabelLayout = series.labelLayout
+						const nextLabelLayout =
+							typeof existingLabelLayout === 'function'
+								? existingLabelLayout
+								: { ...(existingLabelLayout ?? {}), hideOverlap: true }
+
+						return {
+							...series,
+							avoidLabelOverlap: true,
+							labelLayout: nextLabelLayout,
+							label: { ...(series.label ?? {}), show: false },
+							labelLine: { ...(series.labelLine ?? {}), show: false }
+						}
+					})
+				}
+
 				currentOptions.title = {
 					text: iconBase64 ? `{icon|} ${title}` : title,
 					textStyle: {
@@ -299,7 +335,7 @@ export function ChartExportButton({
 				tempChart.setOption(currentOptions)
 
 				// Only set legend for non-Sankey charts (Sankey doesn't use legends)
-				if (!isSankeyChart) {
+				if (shouldShowLegendForExport) {
 					tempChart.setOption({
 						legend: {
 							show: true,

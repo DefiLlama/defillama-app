@@ -422,10 +422,13 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 							const disableExpand = expandTarget === storedColSpan
 
 							return (
-								<div
+								<SortableItem
 									key={`${item.id}-${item.colSpan}${
 										item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''
 									}`}
+									id={item.id}
+									isTable={item.kind === 'table'}
+									data-col={item.colSpan}
 									className={`col-span-1 flex flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) ${COL_SPAN_CLASS_MAP[effectiveColSpan]}`}
 								>
 									<div className="flex flex-wrap items-center justify-end border-b border-(--cards-border)">
@@ -468,15 +471,10 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 											<span className="sr-only">Remove item</span>
 										</Tooltip>
 									</div>
-									<SortableItem
-										id={item.id}
-										isTable={item.kind === 'table'}
-										data-col={item.colSpan}
-										className="min-h-0 flex-1"
-									>
+									<div className="min-h-0 flex-1">
 										<DashboardItemRenderer item={item} onEditItem={onEditItem} handleEditItem={handleEditItem} />
-									</SortableItem>
-								</div>
+									</div>
+								</SortableItem>
 							)
 						})}
 						{currentRatingSession && !isReadOnly && (

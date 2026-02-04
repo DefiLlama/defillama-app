@@ -191,7 +191,12 @@ export function useComparisonWizard() {
 					return getProtocolInfo(item)?.name || item
 				})
 				if (!state.dashboardName) {
-					const defaultName = displayNames.length === 1 ? displayNames[0] : `Comparison of ${displayNames.join(', ')}`
+					const defaultName =
+						displayNames.length === 1
+							? displayNames[0]
+							: displayNames.length === 2
+								? `${displayNames[0]} vs ${displayNames[1]}`
+								: `${displayNames[0]} vs ${displayNames.length - 1} competitors`
 					setDashboardName(defaultName)
 				}
 				if (state.tags.length === 0) {

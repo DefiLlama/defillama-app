@@ -30,6 +30,7 @@ const tabs = {
 		route: '/protocol/bridge-aggregators'
 	},
 	options: { id: 'options', name: 'Options Volume', route: '/protocol/options' },
+	tokenRights: { id: 'tokenRights', name: 'Token Rights', route: '/protocol/token-rights' },
 	governance: { id: 'governance', name: 'Governance', route: '/protocol/governance' },
 	forks: { id: 'forks', name: 'Forks', route: '/protocol/forks' }
 } as const
@@ -125,6 +126,9 @@ export function ProtocolOverviewLayout({
 		}
 		if (metrics.optionsPremiumVolume || metrics.optionsNotionalVolume) {
 			final.push(tabs.options)
+		}
+		if (metrics.tokenRights) {
+			final.push(tabs.tokenRights)
 		}
 		if (metrics.governance) {
 			final.push(tabs.governance)

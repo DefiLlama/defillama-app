@@ -3,6 +3,7 @@
 # source .env if it exists
 set -a
 [ -f .env ] && . .env
+set +a
 
 # sleep for 2 seconds to wait for the server to start
 sleep 2

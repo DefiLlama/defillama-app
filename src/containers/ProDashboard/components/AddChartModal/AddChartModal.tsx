@@ -94,6 +94,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onChainChange={actions.handleChainChange}
 							onProtocolChange={actions.handleProtocolChange}
 							onChartTypesChange={actions.setSelectedChartTypes}
+							onBulkChartTypeChange={actions.handleBulkChartTypeChange}
 							onSelectedChainsChange={actions.setSelectedChains}
 							onSelectedProtocolsChange={actions.setSelectedProtocols}
 							onSelectedYieldPoolChange={actions.setSelectedYieldPool}
