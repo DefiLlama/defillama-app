@@ -1,13 +1,14 @@
 import { DatasetComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { CHART_COLORS } from '~/constants/colors'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useChartResize } from '~/hooks/useChartResize'
-import { abbreviateNumber, toNiceCsvDate } from '~/utils'
+import { abbreviateNumber } from '~/utils'
 import type { IMultiSeriesChart2Props } from '../types'
 import { formatTooltipChartDate, useDefaults } from '../useDefaults'
 import { mergeDeep } from '../utils'
@@ -283,6 +284,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	const [isThemeDark] = useDarkModeManager()
 	const chartRef = useRef<echarts.ECharts | null>(null)
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -338,39 +340,12 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			if (shouldEnableImageExport) {
 				handleChartReady(instance)
 			}
+			if (shouldEnableCSVDownload) {
+				handleChartCsvReady(instance)
+			}
 		},
-		[shouldEnableImageExport, handleChartReady]
+		[shouldEnableImageExport, handleChartReady, shouldEnableCSVDownload, handleChartCsvReady]
 	)
-
-	const prepareCsv = useCallback(() => {
-		const dims = datasetDimensions ?? []
-		const rows: Array<Array<string | number | boolean>> = []
-
-		if (!dims.includes('timestamp')) {
-			// Fallback: still export raw columns if timestamp isn't present.
-			rows.push([...dims])
-			for (const row of datasetSource ?? []) {
-				rows.push(dims.map((k) => (row as any)?.[k] ?? ''))
-			}
-		} else {
-			const seriesDims = dims.filter((k) => k !== 'timestamp')
-			rows.push(['Timestamp', 'Date', ...seriesDims])
-			for (const row of datasetSource ?? []) {
-				const tsRaw = (row as any)?.timestamp
-				const ts = typeof tsRaw === 'number' ? tsRaw : Number(tsRaw)
-				const tsSeconds = Number.isFinite(ts) ? (ts > 1e12 ? Math.floor(ts / 1e3) : Math.floor(ts)) : ''
-				rows.push([
-					tsRaw ?? '',
-					typeof tsSeconds === 'number' ? toNiceCsvDate(tsSeconds) : '',
-					...seriesDims.map((k) => (row as any)?.[k] ?? '')
-				])
-			}
-		}
-
-		const filenameBase = imageExportFilename || 'multi-series-chart'
-		const filename = `${filenameBase}-${new Date().toISOString().split('T')[0]}.csv`
-		return { filename, rows }
-	}, [datasetDimensions, datasetSource, imageExportFilename])
 
 	useEffect(() => {
 		// create instance
@@ -536,7 +511,14 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		<div className="relative">
 			{shouldEnableCSVDownload || shouldEnableImageExport ? (
 				<div className="mb-2 flex items-center justify-end gap-2 px-2">
-					{shouldEnableCSVDownload ? <CSVDownloadButton prepareCsv={prepareCsv} smol /> : null}
+					{shouldEnableCSVDownload ? (
+						<ChartCsvExportButton
+							chartInstance={exportChartCsvInstance}
+							filename={exportFilename}
+							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+							smol
+						/>
+					) : null}
 					{shouldEnableImageExport ? (
 						<ChartExportButton
 							chartInstance={exportChartInstance}

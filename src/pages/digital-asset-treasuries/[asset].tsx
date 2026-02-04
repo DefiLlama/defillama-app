@@ -2,6 +2,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import type { GetStaticPropsContext } from 'next'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
@@ -12,6 +13,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import { TRADFI_API } from '~/constants'
 import { getDATOverviewDataByAsset, IDATInstitutions, IDATOverviewDataByAssetProps } from '~/containers/DAT/queries'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
@@ -401,6 +403,7 @@ const MNAVChart = ({
 	}, [selectedInstitution])
 
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 
 	return (
 		<div className="col-span-1 min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
@@ -418,6 +421,12 @@ const MNAVChart = ({
 					}}
 					portal
 				/>
+				<ChartCsvExportButton
+					chartInstance={exportChartCsvInstance}
+					filename={`${slug(metadata.name)}-${slug(title)}`}
+					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+					smol
+				/>
 				<ChartExportButton
 					chartInstance={exportChartInstance}
 					filename={`${slug(metadata.name)}-${slug(title)}`}
@@ -433,7 +442,10 @@ const MNAVChart = ({
 					dataset={data.dataset}
 					valueSymbol=""
 					hideDataZoom={data.dataset.source.length < 2}
-					onReady={handleChartReady}
+					onReady={(instance) => {
+						handleChartReady(instance)
+						handleChartCsvReady(instance)
+					}}
 				/>
 			</Suspense>
 		</div>

@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo } from 'react'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -413,6 +414,12 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 							<div className="flex items-center justify-end gap-2 p-3">
 								{chartTypeSwitch}
 								{chartViewSwitch}
+								<ChartCsvExportButton
+									chartInstance={multiSeriesChart2Instance}
+									filename={timeSeriesChartFilename}
+									className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+									smol
+								/>
 								<ChartExportButton
 									chartInstance={multiSeriesChart2Instance}
 									filename={timeSeriesChartFilename}
