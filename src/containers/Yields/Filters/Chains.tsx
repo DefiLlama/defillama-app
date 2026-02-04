@@ -45,10 +45,23 @@ export function FilterByChain({ chainList = [], selectedChains, evmChains, neste
 
 			let finalValues: string[]
 
-			if (!prevHadAllEvm && newHasAllEvm) {
-				// ALL_EVM was just selected - this is handled by the URL (chain=ALL_EVM)
-				// Just set ALL_EVM in URL, hooks.tsx will expand it
+			const justAddedAllEvm = !prevHadAllEvm && newHasAllEvm
+			const prevChainsWithoutAllEvm = new Set(prevValues.filter((c) => c !== 'ALL_EVM'))
+			const chainsWereAdded = newValues.filter((c) => c !== 'ALL_EVM').some((c) => !prevChainsWithoutAllEvm.has(c))
+			// It's "Select All" if all options selected AND (chains were added OR ALL_EVM wasn't just added)
+			// This means: it's NOT Select All only when the ONLY change was adding ALL_EVM
+			const isSelectAll = newValues.length === chainListWithSpecial.length && (chainsWereAdded || !justAddedAllEvm)
+
+			if (isSelectAll) {
+				// Select all - use all actual chains, not ALL_EVM
+				finalValues = [...chainList]
+			} else if (justAddedAllEvm) {
 				finalValues = ['ALL_EVM']
+
+				// Track ALL_EVM selection and set prevSelectionRef to all EVM chains
+				// This ensures that when adding another chain (e.g., Solana), only the new chain is tracked
+				trackYieldsEvent(YIELDS_EVENTS.FILTER_CHAIN, { chain: 'ALL_EVM' })
+				prevSelectionRef.current = new Set(evmChains ?? [])
 			} else if (prevHadAllEvm && !newHasAllEvm) {
 				// ALL_EVM was just deselected - remove all EVM chains
 				finalValues = newValues.filter((c) => c !== 'ALL_EVM' && !isEvmChain(c))
@@ -57,24 +70,28 @@ export function FilterByChain({ chainList = [], selectedChains, evmChains, neste
 				finalValues = newValues.filter((c) => c !== 'ALL_EVM')
 			}
 
-			// Track analytics
-			const prevSet = prevSelectionRef.current
-			finalValues.forEach((c) => {
-				if (!prevSet.has(c)) {
-					trackYieldsEvent(YIELDS_EVENTS.FILTER_CHAIN, { chain: c })
-				}
-			})
-			prevSelectionRef.current = new Set(finalValues)
+			// Track analytics (skip if ALL_EVM was just selected or select all - already tracked above)
+			const skipTracking = isSelectAll || justAddedAllEvm
+			if (!skipTracking) {
+				const prevSet = prevSelectionRef.current
+				finalValues.forEach((c) => {
+					if (!prevSet.has(c)) {
+						trackYieldsEvent(YIELDS_EVENTS.FILTER_CHAIN, { chain: c })
+					}
+				})
+				prevSelectionRef.current = new Set(finalValues)
+			}
 
-			// Update URL
 			const nextQuery = { ...router.query }
 
-			if (finalValues.length === 0 || finalValues.length === chainList.length) {
-				// All or none selected - remove chain params (default = all)
+			if (finalValues.length === 0) {
+				nextQuery.chain = 'None'
+				delete nextQuery.excludeChain
+			} else if (finalValues.length === chainList.length) {
+				// All selected - remove chain params (default = all)
 				delete nextQuery.chain
 				delete nextQuery.excludeChain
 			} else if (finalValues.includes('ALL_EVM')) {
-				// ALL_EVM selected
 				nextQuery.chain = 'ALL_EVM'
 				delete nextQuery.excludeChain
 			} else {
@@ -91,7 +108,7 @@ export function FilterByChain({ chainList = [], selectedChains, evmChains, neste
 
 			router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 		},
-		[displaySelectedChains, isEvmChain, chainList, router]
+		[displaySelectedChains, isEvmChain, chainList, chainListWithSpecial, router, evmChains]
 	)
 
 	return (
@@ -102,9 +119,6 @@ export function FilterByChain({ chainList = [], selectedChains, evmChains, neste
 			setSelectedValues={handleValuesChange}
 			nestedMenu={nestedMenu}
 			labelType={!chain || chain === 'All' ? 'none' : 'regular'}
-			onValuesChange={(values) => {
-				// Analytics tracking is now handled in handleValuesChange
-			}}
 		/>
 	)
 }
