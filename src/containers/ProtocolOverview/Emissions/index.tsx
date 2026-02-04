@@ -87,13 +87,13 @@ type TimeGrouping = (typeof TIME_GROUPINGS)[number]
 
 function getQuarterStart(timestamp: number): number {
 	const date = new Date(timestamp)
-	const quarter = Math.floor(date.getMonth() / 3)
-	return new Date(date.getFullYear(), quarter * 3, 1).getTime() / 1000
+	const quarter = Math.floor(date.getUTCMonth() / 3)
+	return Math.trunc(Date.UTC(date.getUTCFullYear(), quarter * 3, 1) / 1000)
 }
 
 function getYearStart(timestamp: number): number {
 	const date = new Date(timestamp)
-	return new Date(date.getFullYear(), 0, 1).getTime() / 1000
+	return Math.trunc(Date.UTC(date.getUTCFullYear(), 0, 1) / 1000)
 }
 
 function groupChartDataByTime(
@@ -102,7 +102,18 @@ function groupChartDataByTime(
 ): Array<{ date: string } & Record<string, number | string>> {
 	if (groupBy === 'D') return chartData
 
+	// Most series (unlock amounts, allocations) are additive within a time bucket, but
+	// some series (e.g. Price/Market Cap) are not and should not be summed.
+	const NON_ADDITIVE_STRATEGIES: Record<string, 'avg' | 'last'> = {
+		Price: 'avg',
+		'Market Cap': 'avg'
+	}
+
 	const grouped: Record<string, Record<string, number>> = {}
+	const avgSums: Record<string, Record<string, number>> = {}
+	const avgCounts: Record<string, Record<string, number>> = {}
+	const lastValues: Record<string, Record<string, number>> = {}
+	const lastDates: Record<string, Record<string, number>> = {}
 
 	for (const entry of chartData) {
 		const timestamp = +entry.date * 1000
@@ -125,14 +136,59 @@ function groupChartDataByTime(
 				groupKey = +entry.date
 		}
 
-		if (!grouped[groupKey]) {
-			grouped[groupKey] = {}
+		const bucketKey = String(groupKey)
+
+		if (!grouped[bucketKey]) {
+			grouped[bucketKey] = {}
 		}
 
 		for (const key in entry) {
 			if (key === 'date') continue
-			const value = Number(entry[key]) || 0
-			grouped[groupKey][key] = value
+			const raw = entry[key]
+			const value = typeof raw === 'number' ? raw : Number(raw)
+			if (!Number.isFinite(value)) continue
+
+			const strategy = NON_ADDITIVE_STRATEGIES[key]
+			if (strategy === 'avg') {
+				if (!avgSums[bucketKey]) avgSums[bucketKey] = {}
+				if (!avgCounts[bucketKey]) avgCounts[bucketKey] = {}
+				avgSums[bucketKey][key] = (avgSums[bucketKey][key] ?? 0) + value
+				avgCounts[bucketKey][key] = (avgCounts[bucketKey][key] ?? 0) + 1
+				continue
+			}
+
+			if (strategy === 'last') {
+				const entryDate = typeof entry.date === 'string' ? Number(entry.date) : (entry.date as any)
+				if (!lastValues[bucketKey]) lastValues[bucketKey] = {}
+				if (!lastDates[bucketKey]) lastDates[bucketKey] = {}
+
+				const prevDate = lastDates[bucketKey][key]
+				if (prevDate == null || (Number.isFinite(entryDate) && entryDate >= prevDate)) {
+					lastDates[bucketKey][key] = Number.isFinite(entryDate) ? entryDate : (prevDate ?? 0)
+					lastValues[bucketKey][key] = value
+				}
+				continue
+			}
+
+			// Additive series: sum within the bucket.
+			grouped[bucketKey][key] = (grouped[bucketKey][key] ?? 0) + value
+		}
+	}
+
+	// Merge non-additive results into the grouped output.
+	for (const bucketKey in avgSums) {
+		const sums = avgSums[bucketKey]
+		const counts = avgCounts[bucketKey]
+		for (const key in sums) {
+			const count = counts?.[key] ?? 0
+			if (count > 0) grouped[bucketKey][key] = sums[key] / count
+		}
+	}
+
+	for (const bucketKey in lastValues) {
+		const values = lastValues[bucketKey]
+		for (const key in values) {
+			grouped[bucketKey][key] = values[key]
 		}
 	}
 
