@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 export function YieldsSearch({
 	lend = false,
@@ -158,6 +159,10 @@ const Row = ({ data, lend, setOpen }) => {
 			value={data.name}
 			onClick={() => {
 				setLoading(true)
+				trackYieldsEvent(YIELDS_EVENTS.SEARCH_SELECT, {
+					token: data.symbol,
+					type: lend ? 'lend' : 'borrow'
+				})
 				router
 					.push(
 						{

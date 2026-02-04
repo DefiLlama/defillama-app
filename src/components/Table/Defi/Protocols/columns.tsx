@@ -32,9 +32,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span
@@ -64,7 +63,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 						<Bookmark readableName={value} data-lgonly data-bookmark />
 					)}
 
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
@@ -75,11 +74,8 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 								className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
 								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
-								<Tooltip
-									content="Deprecated"
-									className="flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-[10px] text-white dark:bg-red-400"
-								>
-									!
+								<Tooltip content="Deprecated" className="text-(--error)">
+									<Icon name="alert-triangle" height={14} width={14} />
 								</Tooltip>
 							</BasicLink>
 						) : (
@@ -863,9 +859,8 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span
@@ -895,7 +890,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 						<Bookmark readableName={value} data-lgonly data-bookmark />
 					)}
 
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
@@ -906,9 +901,9 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 								className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
 								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
-								<span className="overflow-hidden text-xs font-medium text-ellipsis whitespace-nowrap text-red-600 hover:underline dark:text-red-400">
-									Deprecated
-								</span>
+								<Tooltip content="Deprecated" className="text-(--error)">
+									<Icon name="alert-triangle" height={14} width={14} />
+								</Tooltip>
 							</BasicLink>
 						) : (
 							<BasicLink
@@ -1002,9 +997,8 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span
@@ -1034,7 +1028,7 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 						<Bookmark readableName={value} data-lgonly data-bookmark />
 					)}
 
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
@@ -1045,9 +1039,9 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 								className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
 								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
-								<span className="overflow-hidden text-xs font-medium text-ellipsis whitespace-nowrap text-red-600 hover:underline dark:text-red-400">
-									Deprecated
-								</span>
+								<Tooltip content="Deprecated" className="text-(--error)">
+									<Icon name="alert-triangle" height={14} width={14} />
+								</Tooltip>
 							</BasicLink>
 						) : (
 							<BasicLink
@@ -1101,9 +1095,8 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		accessorKey: 'rank',
 		size: 80,
 		enableSorting: false,
-		cell: ({ row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-			return <span className="font-bold">{index + 1}</span>
+		cell: () => {
+			return <span className="vf-row-index font-bold" aria-hidden="true" />
 		},
 		meta: {
 			align: 'center' as const
@@ -1170,9 +1163,9 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 								className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
 								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
-								<span className="overflow-hidden text-xs font-medium text-ellipsis whitespace-nowrap text-red-600 hover:underline dark:text-red-400">
-									Deprecated
-								</span>
+								<Tooltip content="Deprecated" className="text-(--error)">
+									<Icon name="alert-triangle" height={14} width={14} />
+								</Tooltip>
 							</BasicLink>
 						) : (
 							<BasicLink
@@ -1266,9 +1259,8 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span
@@ -1276,7 +1268,7 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
 					<Bookmark readableName={value} data-lgonly data-bookmark />
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 					<BasicLink
 						href={`/protocol/${slug(value)}`}

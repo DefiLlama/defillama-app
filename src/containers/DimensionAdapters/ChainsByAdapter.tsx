@@ -31,6 +31,7 @@ type TPageType =
 	| 'Holders Revenue'
 	| 'DEX Volume'
 	| 'Perp Volume'
+	| 'Normalized Volume'
 	| 'Bridge Aggregator Volume'
 	| 'Perp Aggregator Volume'
 	| 'DEX Aggregator Volume'
@@ -165,13 +166,12 @@ const NameColumn = (route: string): ColumnDef<IChainsByAdapterPageData['chains']
 		header: 'Name',
 		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
@@ -520,6 +520,42 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.openInterest.chain
+			},
+			size: 160
+		}
+	],
+	'Normalized Volume': [
+		NameColumn('normalized-volume'),
+		{
+			id: 'total24h',
+			header: 'Normalized Volume 24h',
+			accessorFn: (protocol) => protocol.total24h,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.normalizedVolume.chain['24h']
+			},
+			size: 160
+		},
+		{
+			id: 'total7d',
+			header: 'Normalized Volume 7d',
+			accessorFn: (protocol) => protocol.total7d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.normalizedVolume.chain['7d']
+			},
+			size: 160
+		},
+		{
+			id: 'total30d',
+			header: 'Normalized Volume 30d',
+			accessorFn: (protocol) => protocol.total30d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.normalizedVolume.chain['30d']
 			},
 			size: 160
 		}

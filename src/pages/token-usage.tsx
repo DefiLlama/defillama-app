@@ -157,13 +157,12 @@ const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span className="flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 					<BasicLink
 						href={`/protocol/${slug(value)}`}

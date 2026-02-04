@@ -25,7 +25,7 @@ interface IPage {
 
 const trending = [{ category: 'Trending', metrics: trendingPages as Array<IPage> }]
 
-export const metricsByCategory = trending.concat(
+const metricsByCategory = trending.concat(
 	Object.entries(
 		defillamaPages.Metrics.reduce((acc, metric) => {
 			const category = metric.category || 'Others'
@@ -216,13 +216,7 @@ export function Metrics({
 	)
 }
 
-export function LinkToMetricOrToolPage({
-	page,
-	totalTrackedByMetric
-}: {
-	page: IPage
-	totalTrackedByMetric: any
-}) {
+export function LinkToMetricOrToolPage({ page, totalTrackedByMetric }: { page: IPage; totalTrackedByMetric: any }) {
 	const pinnedMetrics = useSyncExternalStore(
 		(callback) => subscribeToStorageKey('pinned-metrics', callback),
 		() => getStorageItem('pinned-metrics', '[]') ?? '[]',
@@ -316,7 +310,7 @@ export function MetricsAndTools({ currentMetric }: { currentMetric: Array<string
 				<div className="relative isolate w-full rounded-md bg-(--cards-bg) p-1">
 					{/* Left decorative dot pattern */}
 					<div
-						className="pointer-events-none absolute top-[1px] left-[1px] h-[calc(100%-2px)] w-16 overflow-hidden rounded-l-[6px] sm:w-24 md:w-48"
+						className="pointer-events-none absolute top-px left-px h-[calc(100%-2px)] w-16 overflow-hidden rounded-l-[6px] sm:w-24 md:w-48"
 						aria-hidden="true"
 					>
 						<div
@@ -352,7 +346,7 @@ export function MetricsAndTools({ currentMetric }: { currentMetric: Array<string
 					</div>
 					{/* Right decorative dot pattern */}
 					<div
-						className="pointer-events-none absolute top-[1px] right-[1px] h-[calc(100%-2px)] w-16 overflow-hidden rounded-r-[6px] sm:w-24 md:w-48"
+						className="pointer-events-none absolute top-px right-px h-[calc(100%-2px)] w-16 overflow-hidden rounded-r-[6px] sm:w-24 md:w-48"
 						aria-hidden="true"
 					>
 						<div

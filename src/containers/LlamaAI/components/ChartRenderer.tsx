@@ -1,3 +1,108 @@
+/**
+ * Server-Side Improvements for Chart Data Pipeline
+ * =================================================
+ *
+ * CURRENT FRONTEND BURDEN:
+ * The client currently handles significant data transformation and type detection:
+ *
+ * 1. FORMAT DETECTION (chartAdapter.ts, ChartRenderer.tsx)
+ *    - Check if chartData is array vs object: `Array.isArray(chartData) ? chartData : chartData?.[chart.id]`
+ *    - Detect keyed vs flat data structures
+ *    - Handle missing/undefined data gracefully
+ *
+ * 2. CHART TYPE INFERENCE (chartAdapter.ts ~680 lines)
+ *    - Detect if data is time-series vs categorical
+ *    - Infer pie chart data from value/name/label fields
+ *    - Detect scatter plot dimensions (x, y, size, color)
+ *    - Identify candlestick OHLCV fields
+ *
+ * 3. DATA NORMALIZATION (chartAdapter.ts, chartDataTransformer.ts)
+ *    - Normalize timestamps (unix seconds/ms → Date objects)
+ *    - Convert string numbers to actual numbers
+ *    - Fill missing values with nulls/zeros
+ *    - Align multi-series data to common time axis
+ *
+ * RECOMMENDED SERVER CHANGES:
+ *
+ * 1. PRE-ADAPTED CHART DATA FORMAT
+ *    Instead of sending raw query results, send render-ready data:
+ *    ```json
+ *    {
+ *      "type": "charts",
+ *      "charts": [{
+ *        "id": "tvl-chart",
+ *        "chartType": "area",           // Explicit, no inference needed
+ *        "renderConfig": {              // Ready for ECharts
+ *          "xAxisType": "time",
+ *          "yAxisType": "value",
+ *          "seriesType": "line",
+ *          "areaStyle": true
+ *        },
+ *        "data": [                      // Always array, always for THIS chart
+ *          { "date": 1704067200000, "value": 50000000000 }
+ *        ],
+ *        "series": ["TVL"],             // Pre-extracted series names
+ *        "colors": ["#2172E5"]          // Pre-assigned colors
+ *      }]
+ *    }
+ *    ```
+ *
+ * 2. ELIMINATE chartData OBJECT KEYING
+ *    Current: `chartData: { "chart-1": [...], "chart-2": [...] }` OR `chartData: [...]`
+ *    Proposed: Each chart carries its own data, no lookup needed:
+ *    ```json
+ *    { "id": "chart-1", "data": [...] }  // Data embedded in chart object
+ *    ```
+ *    This eliminates: `Array.isArray(chartData) ? chartData : chartData?.[chart.id]`
+ *
+ * 3. PRE-COMPUTED TRANSFORMATIONS
+ *    If server knows the chart supports stacking/cumulative, pre-compute:
+ *    ```json
+ *    {
+ *      "data": [...],
+ *      "transformedData": {
+ *        "stacked": [...],
+ *        "cumulative": [...],
+ *        "percentage": [...]
+ *      }
+ *    }
+ *    ```
+ *    Frontend simply swaps data arrays instead of recomputing.
+ *
+ * 4. EXPLICIT FIELD MAPPING
+ *    Instead of inferring fields, server specifies them:
+ *    ```json
+ *    {
+ *      "fieldMapping": {
+ *        "x": "date",
+ *        "y": ["tvl", "volume"],
+ *        "tooltip": ["tvl", "volume", "change24h"]
+ *      }
+ *    }
+ *    ```
+ *
+ * 5. NORMALIZED TIMESTAMPS
+ *    Always send timestamps as milliseconds (JS-native), not seconds.
+ *    Current adapter does: `timestamp * 1000` detection. Server should normalize.
+ *
+ * CURRENT PIPELINE ASSESSMENT:
+ * ============================
+ * The current pipeline is FUNCTIONAL but has O(n) overhead per chart:
+ * - adaptChartData: ~50 lines of type inference
+ * - Time detection: Check first few values for timestamp format
+ * - Series extraction: Iterate to find all unique keys
+ * - Color assignment: Iterate to map series to colors
+ *
+ * For typical responses (1-3 charts, <1000 data points), this is acceptable.
+ * For large responses (5+ charts, 10k+ points), server pre-processing would help.
+ *
+ * MIGRATION PATH:
+ * 1. Server adds optional `renderConfig` to chart objects
+ * 2. Frontend checks for `renderConfig` → skip adaptation if present
+ * 3. Gradually migrate chart types to server-side formatting
+ * 4. Remove adapter fallback code once all charts migrated
+ */
+
 import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -12,6 +117,7 @@ import type {
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
 import { adaptCandlestickData, adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
+import { areChartDataEqual, areChartsEqual, areStringArraysEqual } from '../utils/chartComparison'
 import { ChartDataTransformer } from '../utils/chartDataTransformer'
 import { ChartControls } from './ChartControls'
 
@@ -646,45 +752,13 @@ function ChartRendererImpl({
 				<SingleChart
 					key={chart.id}
 					config={chart}
-					data={Array.isArray(chartData) ? chartData : chartData?.[chart.id] || []}
+					data={Array.isArray(chartData) ? chartData : chartData?.[chart.datasetName || chart.id] || []}
 					isActive={!hasMultipleCharts || activeTabIndex === index}
 					messageId={messageId}
 				/>
 			))}
 		</div>
 	)
-}
-
-function areStringArraysEqual(a?: string[], b?: string[]) {
-	if (a === b) return true
-	if (!a || !b) return false
-	if (a.length !== b.length) return false
-	for (let i = 0; i < a.length; i++) {
-		if (a[i] !== b[i]) return false
-	}
-	return true
-}
-
-function areChartsEqual(a: ChartConfiguration[] | undefined, b: ChartConfiguration[] | undefined) {
-	if (a === b) return true
-	if (!a || !b) return false
-	if (a.length !== b.length) return false
-	for (let i = 0; i < a.length; i++) {
-		// Compare minimal identity; chart objects are fairly large and stable.
-		if (a[i]?.id !== b[i]?.id) return false
-		if (a[i]?.type !== b[i]?.type) return false
-		if (a[i]?.title !== b[i]?.title) return false
-	}
-	return true
-}
-
-function areChartDataEqual(a: any, b: any) {
-	if (a === b) return true
-	// Treat "new []" as equal to "[]"
-	if (Array.isArray(a) && Array.isArray(b) && a.length === 0 && b.length === 0) return true
-	// Treat undefined/null similarly
-	if ((a == null || a === false) && (b == null || b === false)) return true
-	return false
 }
 
 const ChartRendererMemoized = memo(ChartRendererImpl, (prev, next) => {

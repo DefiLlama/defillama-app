@@ -18,6 +18,7 @@ export type ChartTabType =
 	| 'advanced-tvl'
 	| 'borrowed'
 	| 'income-statement'
+	| 'unlocks'
 export type ManualChartViewMode = 'cards' | 'form'
 export type CombinedTableType =
 	| 'protocols'
@@ -132,6 +133,9 @@ export interface ModalState {
 	selectedIncomeStatementProtocol: string | null
 	selectedIncomeStatementProtocolName: string | null
 	selectedLlamaAIChart: { id: string; title: string } | null
+	selectedUnlocksProtocol: string | null
+	selectedUnlocksProtocolName: string | null
+	selectedUnlocksChartType: 'total' | 'schedule' | 'allocation' | 'locked-unlocked'
 }
 
 export interface ModalActions {
@@ -163,6 +167,7 @@ export interface ModalActions {
 	handleAddToComposer: (typesToAdd?: string[], options?: { entity?: string; mode?: 'chain' | 'protocol' }) => void
 	handleRemoveFromComposer: (id: string) => void
 	handleUpdateComposerItemColor: (id: string, color: string) => void
+	handleBulkChartTypeChange: (nextType: string) => void
 	handleMainTabChange: (tab: MainTabType) => void
 	handleSubmit: () => void
 	handleChartTabChange: (tab: ChartTabType) => void
@@ -199,4 +204,7 @@ export interface ModalActions {
 	setSelectedIncomeStatementProtocol: (protocol: string | null) => void
 	setSelectedIncomeStatementProtocolName: (name: string | null) => void
 	setSelectedLlamaAIChart: (chart: { id: string; title: string } | null) => void
+	setSelectedUnlocksProtocol: (protocol: string | null) => void
+	setSelectedUnlocksProtocolName: (name: string | null) => void
+	setSelectedUnlocksChartType: (type: 'total' | 'schedule' | 'allocation' | 'locked-unlocked') => void
 }

@@ -1,4 +1,5 @@
 import dayjs from 'dayjs'
+import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	CACHE_SERVER,
 	PROTOCOL_API,
@@ -10,6 +11,7 @@ import {
 } from '~/constants'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/queries'
+import { slug } from '~/utils'
 import { processAdjustedProtocolTvl, ProtocolChainTvls } from '~/utils/tvl'
 import { convertToNumberFormat, normalizeHourlyToDaily } from '../utils'
 
@@ -84,6 +86,35 @@ export default class ProtocolCharts {
 				.sort((a, b) => a[0] - b[0])
 		} catch (e) {
 			console.log('Error fetching protocol incentives', e)
+			return []
+		}
+	}
+
+	static async unlocks(
+		protocol: string,
+		dataType: 'documented' | 'realtime' = 'documented'
+	): Promise<[number, number][]> {
+		if (!protocol) return []
+		try {
+			const resolvedDataType = dataType === 'realtime' ? 'documented' : dataType
+			const data = await getProtocolEmissons(slug(protocol))
+			const chartData = data?.chartData?.[resolvedDataType] ?? []
+			if (!Array.isArray(chartData)) return []
+			const totals: [number, number][] = []
+			for (const entry of chartData) {
+				if (!entry || typeof entry !== 'object') continue
+				const { date, ...rest } = entry as { date?: string | number }
+				const timestamp = Number(date)
+				if (!Number.isFinite(timestamp)) continue
+				let total = 0
+				for (const key in rest) {
+					total += Number((rest as Record<string, number>)[key] ?? 0)
+				}
+				totals.push([timestamp, total])
+			}
+			return totals.sort((a, b) => a[0] - b[0])
+		} catch (e) {
+			console.log('Error fetching protocol unlocks', e)
 			return []
 		}
 	}

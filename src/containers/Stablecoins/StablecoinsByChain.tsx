@@ -101,22 +101,18 @@ export function StablecoinsByChain({
 			// selectedPegTypes already has excludes filtered out
 			toFilter =
 				toFilter &&
-				selectedPegTypes
-					.map((pegtype) => {
-						const pegTypeOption = pegTypeOptionsMap.get(pegtype)
-						return pegTypeOption ? pegTypeOption.filterFn(curr) : false
-					})
-					.some((bool) => bool)
+				selectedPegTypes.some((pegtype) => {
+					const pegTypeOption = pegTypeOptionsMap.get(pegtype)
+					return pegTypeOption ? pegTypeOption.filterFn(curr) : false
+				})
 
 			// selectedBackings already has excludes filtered out
 			toFilter =
 				toFilter &&
-				selectedBackings
-					.map((backing) => {
-						const backingOption = backingOptionsMap.get(backing)
-						return backingOption ? backingOption.filterFn(curr) : false
-					})
-					.some((bool) => bool)
+				selectedBackings.some((backing) => {
+					const backingOption = backingOptionsMap.get(backing)
+					return backingOption ? backingOption.filterFn(curr) : false
+				})
 
 			// Mcap range should work with min-only, max-only, or both.
 			// Values are parsed via `toNumberOrNullFromQueryParam`, so invalid inputs become null.
@@ -135,7 +131,15 @@ export function StablecoinsByChain({
 		setFilteredIndexes(chartDataIndexes)
 
 		return peggedAssets
-	}, [filteredPeggedAssets, peggedNameToChartDataIndex, minMcap, maxMcap, selectedAttributes, selectedPegTypes, selectedBackings])
+	}, [
+		filteredPeggedAssets,
+		peggedNameToChartDataIndex,
+		minMcap,
+		maxMcap,
+		selectedAttributes,
+		selectedPegTypes,
+		selectedBackings
+	])
 
 	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows } =
 		React.useMemo(() => {

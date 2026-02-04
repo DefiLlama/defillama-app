@@ -44,7 +44,7 @@ export interface IProtocolByCategoryOrTagPageData {
 	protocols: Array<IProtocolByCategoryWithSubRows>
 	category: string | null
 	tag: string | null
-	isRWA: boolean
+	effectiveCategory: string | null
 	chains: Array<{ label: string; to: string }>
 	chain: string
 	charts: ILineAndBarChartProps['charts']

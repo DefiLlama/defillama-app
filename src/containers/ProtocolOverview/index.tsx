@@ -1,6 +1,7 @@
+import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useMemo, useRef } from 'react'
+import { lazy, Suspense, useMemo, useRef, useState } from 'react'
 import { useGetTokenPrice } from '~/api/categories/protocols/client'
 import { Bookmark } from '~/components/Bookmark'
 import { feesOptionsMap, tvlOptionsMap } from '~/components/Filters/options'
@@ -11,6 +12,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import {
 	TVL_SETTINGS_KEYS_SET,
 	FEES_SETTINGS,
@@ -25,7 +27,12 @@ import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import { ProtocolOverviewLayout } from './Layout'
 import { IProtocolOverviewPageData } from './types'
 
+const EMPTY_COMPETITORS: Array<{ name: string; tvl: number }> = []
+
 const IncomeStatement = lazy(() => import('./IncomeStatement').then((module) => ({ default: module.IncomeStatement })))
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((module) => ({ default: module.SubscribeProModal }))
+)
 
 export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	const router = useRouter()
@@ -62,6 +69,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			tab="information"
 			seoDescription={props.seoDescription}
 			seoKeywords={props.seoKeywords}
+			entityQuestions={props.entityQuestions}
 		>
 			<LinkPreviewCard
 				cardName={props.name}
@@ -74,11 +82,14 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 				<div className="col-span-1 row-[2/3] hidden flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:row-[1/2] xl:flex xl:min-h-[360px]">
 					<h1 className="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
-						<span className="font-bold">
-							{props.name ? `${props.name}${props.deprecated ? ' (*Deprecated*)' : ''} ` : ''}
-						</span>
+						<span className="font-bold">{props.name}</span>
 						{props.token.symbol && props.token.symbol !== '-' ? (
-							<span className="mr-auto font-normal">({props.token.symbol})</span>
+							<span className="font-normal">({props.token.symbol})</span>
+						) : null}
+						{props.deprecated ? (
+							<Tooltip content="Deprecated protocol" className="text-(--error)">
+								<Icon name="alert-triangle" height={18} width={18} />
+							</Tooltip>
 						) : null}
 						<Bookmark readableName={props.name} />
 					</h1>
@@ -108,11 +119,14 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						<div className="flex flex-col gap-6 xl:hidden">
 							<h1 className="flex flex-wrap items-center gap-2 text-xl">
 								<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
-								<span className="font-bold">
-									{props.name ? `${props.name}${props.deprecated ? ' (*Deprecated*)' : ''} ` : ''}
-								</span>
+								<span className="font-bold">{props.name}</span>
 								{props.token.symbol && props.token.symbol !== '-' ? (
-									<span className="mr-auto font-normal">({props.token.symbol})</span>
+									<span className="font-normal">({props.token.symbol})</span>
+								) : null}
+								{props.deprecated ? (
+									<Tooltip content="Deprecated protocol" className="text-(--error)">
+										<Icon name="alert-triangle" height={18} width={18} />
+									</Tooltip>
 								) : null}
 								<Bookmark readableName={props.name} />
 							</h1>
@@ -2107,7 +2121,7 @@ const MethodologyByAdapter = ({
 	)
 }
 
-function Unlocks(props: IProtocolOverviewPageData) {
+function _Unlocks(props: IProtocolOverviewPageData) {
 	const unlocks = props.unlocks
 	if (!unlocks) return null
 	return (
@@ -2150,7 +2164,7 @@ function Unlocks(props: IProtocolOverviewPageData) {
 	)
 }
 
-function Governance(props: IProtocolOverviewPageData) {
+function _Governance(props: IProtocolOverviewPageData) {
 	const governance = props.governance
 	if (!governance) return null
 	return (
@@ -2297,21 +2311,72 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 }
 
 const Competitors = (props: IProtocolOverviewPageData) => {
-	if (!props.competitors?.length) return null
+	const competitors = props.competitors ?? EMPTY_COMPETITORS
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
+	const { isAuthenticated, hasActiveSubscription, loaders } = useAuthContext()
+	const comparisonHref = useMemo(() => {
+		const latestTvl = props.tvlChartData?.[props.tvlChartData.length - 1]?.[1]
+		const entries = [
+			{
+				slug: slug(props.name),
+				tvl: typeof latestTvl === 'number' ? latestTvl : 0
+			},
+			...competitors.map((similarProtocol) => ({
+				slug: slug(similarProtocol.name),
+				tvl: typeof similarProtocol.tvl === 'number' ? similarProtocol.tvl : 0
+			}))
+		]
+		const bySlug = new Map<string, number>()
+		for (const entry of entries) {
+			const prev = bySlug.get(entry.slug)
+			if (prev === undefined || entry.tvl > prev) {
+				bySlug.set(entry.slug, entry.tvl)
+			}
+		}
+		const slugs = Array.from(bySlug, ([itemSlug, tvl]) => ({ slug: itemSlug, tvl }))
+			.sort((a, b) => b.tvl - a.tvl)
+			.slice(0, 10)
+			.map((item) => item.slug)
+		if (slugs.length === 0) return null
+		const params = new URLSearchParams({
+			comparison: 'protocols',
+			items: slugs.join(','),
+			step: 'select-metrics'
+		})
+		return `/pro?${params.toString()}`
+	}, [competitors, props.name, props.tvlChartData])
+	const canOpenComparison = !loaders.userLoading && isAuthenticated && hasActiveSubscription
+	if (competitors.length === 0) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
-			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="competitors">
-				Competitors
-				<a
-					aria-hidden="true"
-					tabIndex={-1}
-					href="#competitors"
-					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
-				/>
-				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
-			</h2>
+			<div className="flex items-center justify-between gap-2">
+				<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="competitors">
+					Competitors
+					<a
+						aria-hidden="true"
+						tabIndex={-1}
+						href="#competitors"
+						className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+					/>
+					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+				</h2>
+				{comparisonHref ? (
+					<BasicLink
+						href={comparisonHref}
+						onClick={(event) => {
+							if (canOpenComparison) return
+							event.preventDefault()
+							subscribeModalStore.show()
+						}}
+						className="rounded-md border border-(--primary) px-2 py-1.5 text-xs text-(--primary) hover:bg-(--primary)/10 focus-visible:bg-(--primary)/10"
+					>
+						Create comparison dashboard
+					</BasicLink>
+				) : null}
+			</div>
 			<div className="flex flex-wrap items-center gap-4">
-				{props.competitors.map((similarProtocol) => (
+				{competitors.map((similarProtocol) => (
 					<a
 						href={`/protocol/${slug(similarProtocol.name)}`}
 						key={`${props.name}-competitors-${similarProtocol.name}`}
@@ -2321,6 +2386,11 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 					>{`${similarProtocol.name}${similarProtocol.tvl ? ` (${formattedNum(similarProtocol.tvl, true)})` : ''}`}</a>
 				))}
 			</div>
+			{shouldRenderModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 		</div>
 	)
 }

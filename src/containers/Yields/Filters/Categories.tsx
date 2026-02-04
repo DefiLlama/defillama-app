@@ -1,5 +1,7 @@
 import { useRouter } from 'next/router'
+import { useRef } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IFiltersByCategoryProps {
 	categoryList: Array<string>
@@ -16,6 +18,7 @@ export function FiltersByCategory({
 }: IFiltersByCategoryProps) {
 	const router = useRouter()
 	const { category } = router.query
+	const prevSelectionRef = useRef<Set<string>>(new Set(selectedCategories))
 
 	return (
 		<SelectWithCombobox
@@ -26,6 +29,15 @@ export function FiltersByCategory({
 			labelType={labelType ? labelType : !category || category === 'All' ? 'none' : 'regular'}
 			includeQueryKey="category"
 			excludeQueryKey="excludeCategory"
+			onValuesChange={(values) => {
+				const prevSet = prevSelectionRef.current
+				values.forEach((category) => {
+					if (!prevSet.has(category)) {
+						trackYieldsEvent(YIELDS_EVENTS.FILTER_CATEGORY, { category })
+					}
+				})
+				prevSelectionRef.current = new Set(values)
+			}}
 		/>
 	)
 }

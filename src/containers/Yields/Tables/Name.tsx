@@ -11,7 +11,6 @@ interface INameYieldPoolProps {
 	value: string
 	configID: string
 	url: string
-	index: number
 	borrow?: boolean
 	withoutLink?: boolean
 	maxCharacters?: number
@@ -32,7 +31,6 @@ export function NameYieldPool({
 	value,
 	configID,
 	url,
-	index,
 	borrow: _borrow,
 	strategy,
 	withoutLink,
@@ -48,12 +46,14 @@ export function NameYieldPool({
 		<span className="flex items-center gap-2">
 			{bookmark ? <Bookmark readableName={value} configID={configID} data-lgonly /> : null}
 
-			<span className="shrink-0">{index}</span>
+			{strategy ? null : <span className="vf-row-index shrink-0" aria-hidden="true" />}
 
 			<a
 				href={url}
 				target="_blank"
 				rel="noopener noreferrer"
+				data-umami-event="yields-pool-external-link"
+				data-umami-event-pool={value}
 				className="hidden shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover) lg:flex"
 			>
 				<Icon name="arrow-up-right" height={14} width={14} />
@@ -87,7 +87,7 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 			<>
 				{url ? (
 					<Tooltip
-						render={<a href={url} target="_blank" rel="noopener noreferrer" />}
+						render={<a href={url} target="_blank" rel="noopener noreferrer" data-umami-event="yields-pool-click" />}
 						className="flex shrink! items-center overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 						content={children}
 						data-fullwidth
@@ -113,6 +113,7 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 				<BasicLink
 					href={url}
 					target="_blank"
+					data-umami-event="yields-pool-click"
 					className="flex items-center overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 				>
 					{children}
@@ -144,6 +145,8 @@ export function NameYield({ project, projectslug, airdrop, borrow: _borrow, with
 			) : (
 				<BasicLink
 					href={tokenUrl}
+					data-umami-event="yields-project-filter-click"
+					data-umami-event-project={project}
 					className="ml-2 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 				>
 					{project}
@@ -163,6 +166,8 @@ export function YieldsProject({ project, projectslug }: INameYield) {
 			<TokenLogo logo={iconUrl} />
 			<BasicLink
 				href={tokenUrl}
+				data-umami-event="yields-project-filter-click"
+				data-umami-event-project={project}
 				className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 			>
 				{project}
@@ -171,14 +176,13 @@ export function YieldsProject({ project, projectslug }: INameYield) {
 	)
 }
 
-export function PoolStrategyRoute({ project1, airdropProject1, project2, airdropProject2, chain, index }) {
+export function PoolStrategyRoute({ project1, airdropProject1, project2, airdropProject2, chain }) {
 	const iconUrl1 = tokenIconUrl(project1)
 	const iconUrl2 = tokenIconUrl(project2)
 	const chainIcon = chainIconUrl(chain)
 
 	return (
 		<span className="flex items-center gap-1">
-			<span className="shrink-0 opacity-0">{index}</span>
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">
@@ -200,21 +204,13 @@ export function PoolStrategyRoute({ project1, airdropProject1, project2, airdrop
 	)
 }
 
-export function FRStrategyRoute({
-	project1,
-	airdropProject1,
-	project2,
-	airdropProject2: _airdropProject2,
-	chain,
-	index
-}) {
+export function FRStrategyRoute({ project1, airdropProject1, project2, airdropProject2: _airdropProject2, chain }) {
 	const iconUrl1 = tokenIconUrl(project1)
 	const iconUrl2 = tokenIconUrl(project2)
 	const chainIcon = chainIconUrl(chain)
 
 	return (
-		<span className="ml-1 flex items-center gap-1">
-			<span className="shrink-0 opacity-0">{index}</span>
+		<span className="flex items-center gap-1">
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">

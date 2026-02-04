@@ -1,14 +1,25 @@
 #!/bin/bash
 
+# Ensure we run from repo root (so .env/.next paths and git work when present)
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO_ROOT"
+
 # source .env if it exists
 set -a
 [ -f .env ] && . .env
+set +a
 
-# find the last commit hash and commit comment and author
-COMMIT_AUTHOR=$(git log -1 --pretty=%an 2>/dev/null || true)
-COMMIT_HASH=$(git rev-parse HEAD 2>/dev/null || true)
-COMMIT_COMMENT=$(git log -1 --pretty=%B 2>/dev/null || true)
-BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+BRANCH_NAME="${BRANCH_NAME:-${COOLIFY_BRANCH:-${GIT_BRANCH:-${CI_COMMIT_REF_NAME:-${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-${GITHUB_REF:-${VERCEL_GIT_COMMIT_REF:-}}}}}}}}"
+
+# fallback to git if available (often absent in Docker builds)
+if [ -z "$BRANCH_NAME" ] && [ -d .git ]; then
+  BRANCH_NAME="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+fi
+
+# normalize branch refs (refs/heads/foo -> foo)
+BRANCH_NAME="${BRANCH_NAME#refs/heads/}"
+BRANCH_NAME="${BRANCH_NAME#refs/tags/}"
+BRANCH_NAME="${BRANCH_NAME#refs/}"
 # starting time in UTC string and timestamp (for calculating build duration)
 START_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 START_TIME_TS=$(date -u +"%s")
@@ -17,9 +28,6 @@ echo ""
 echo "======================="
 echo "🔨 New build started"
 echo "🌿 $BRANCH_NAME"
-echo "💬 $COMMIT_COMMENT"
-echo "🦙 $COMMIT_AUTHOR"
-echo "📸 $COMMIT_HASH"
 echo "======================="
 echo ""
 
@@ -49,9 +57,6 @@ if [ -n "$BUILD_ID" ]; then
 fi
 echo "======================="
 echo "🌿 [$BRANCH_NAME]"
-echo "💬 [$COMMIT_COMMENT]"
-echo "🦙 $COMMIT_AUTHOR"
-echo "📸 $COMMIT_HASH"
 echo "======================="
 echo ""
 
@@ -62,7 +67,9 @@ else
   echo "Build failed, skipping .next artifact sync"
 fi
 
-bun ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$COMMIT_COMMENT" "$COMMIT_AUTHOR" "$COMMIT_HASH" "$BRANCH_NAME"
+# Provide build metadata via env vars for build-msg.js.
+export BUILD_STATUS BUILD_TIME_STR START_TIME BUILD_ID BRANCH_NAME
+bun ./scripts/build-msg.js
 
 # exit with the build status
 exit $BUILD_STATUS

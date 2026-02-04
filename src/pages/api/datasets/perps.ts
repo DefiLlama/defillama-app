@@ -39,7 +39,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				const data = await getAdapterByChainPageData({
 					adapterType,
 					chain: chainData.name,
-					route: 'perps'
+					route: 'perps',
+					hasOpenInterest: chainData.openInterest
 				}).catch((e) => {
 					console.info(`Chain page data not found ${adapterType} : chain:${chainName}`, e)
 					return null

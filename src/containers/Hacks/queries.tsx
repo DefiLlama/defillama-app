@@ -4,7 +4,7 @@ import { HACKS_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { firstDayOfMonth, formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { IProtocolMetadata } from '../ProtocolOverview/types'
+import { IProtocolMetadata } from '~/utils/metadata/types'
 
 export interface IHack {
 	date: number

@@ -36,20 +36,24 @@ interface AssetTotals {
 }
 
 const AssetSection = ({ name, iconUrl, flows, aum }: AssetSectionProps) => (
-	<div className="flex flex-col gap-4">
-		<div className="flex items-center gap-1">
-			<img src={iconUrl} alt={name} width={20} height={20} className="rounded-full" />
-			<span className="text-lg font-semibold">{name}</span>
+	<div className="flex flex-col gap-2 rounded-lg bg-(--bg2) p-3">
+		<div className="flex items-center gap-2">
+			<img src={iconUrl} alt={name} width={24} height={24} className="rounded-full" />
+			<span className="font-semibold">{name}</span>
 		</div>
-		<div className="flex items-center justify-between">
-			<span className="font-medium">Flows</span>
-			<span className={`font-jetbrains ${flows > 0 ? 'text-green-500' : flows < 0 ? 'text-red-500' : ''}`}>
-				{formattedNum(flows || 0, true)}
-			</span>
-		</div>
-		<div className="flex items-center justify-between">
-			<span className="font-medium">AUM</span>
-			<span className="font-jetbrains">{formattedNum(aum || 0, true)}</span>
+		<div className="grid grid-cols-2 gap-2 text-sm">
+			<div className="flex flex-col">
+				<span className="text-xs opacity-60">Flows</span>
+				<span
+					className={`font-jetbrains font-medium ${flows > 0 ? 'text-green-500' : flows < 0 ? 'text-red-500' : ''}`}
+				>
+					{formattedNum(flows || 0, true)}
+				</span>
+			</div>
+			<div className="flex flex-col">
+				<span className="text-xs opacity-60">AUM</span>
+				<span className="font-jetbrains font-medium">{formattedNum(aum || 0, true)}</span>
+			</div>
 		</div>
 	</div>
 )
@@ -78,18 +82,20 @@ interface PageViewProps {
 }
 
 const groupByList = ['Daily', 'Weekly', 'Monthly', 'Cumulative']
-const ASSET_VALUES = ['Bitcoin', 'Ethereum'] as const
+const ASSET_VALUES = ['Bitcoin', 'Ethereum', 'Solana'] as const
 const DEFAULT_SORTING_STATE = [{ id: 'aum', desc: true }]
 const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps) => {
 	const [groupBy, setGroupBy] = React.useState<(typeof groupByList)[number]>('Weekly')
-	const [tickers, setTickers] = React.useState(['Bitcoin', 'Ethereum'])
+	const [tickers, setTickers] = React.useState(['Bitcoin', 'Ethereum', 'Solana'])
 
 	const charts = React.useMemo(() => {
 		const bitcoin = {}
 		const ethereum = {}
+		const solana = {}
 
 		let totalBitcoin = 0
 		let totalEthereum = 0
+		let totalSolana = 0
 		for (const flowDate in flows) {
 			const date = ['Daily', 'Cumulative'].includes(groupBy)
 				? flowDate
@@ -101,10 +107,14 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 			if (flows[flowDate]['Ethereum']) {
 				ethereum[date] = (ethereum[date] || 0) + (flows[flowDate]['Ethereum'] ?? 0) + totalEthereum
 			}
+			if (flows[flowDate]['Solana']) {
+				solana[date] = (solana[date] || 0) + (flows[flowDate]['Solana'] ?? 0) + totalSolana
+			}
 
 			if (groupBy === 'Cumulative') {
 				totalBitcoin += +(flows[flowDate]['Bitcoin'] ?? 0)
 				totalEthereum += +(flows[flowDate]['Ethereum'] ?? 0)
+				totalSolana += +(flows[flowDate]['Solana'] ?? 0)
 			}
 		}
 
@@ -122,12 +132,20 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 				type: groupBy === 'Cumulative' ? 'line' : ('bar' as 'line' | 'bar'),
 				data: [],
 				color: '#6B7280'
+			},
+			Solana: {
+				name: 'Solana',
+				stack: 'Solana',
+				type: groupBy === 'Cumulative' ? 'line' : ('bar' as 'line' | 'bar'),
+				data: [],
+				color: '#9945FF'
 			}
 		}
 
 		for (const date in bitcoin) {
 			charts.Bitcoin.data.push([+date * 1000, bitcoin[date]])
 			charts.Ethereum.data.push([+date * 1000, ethereum[date] || null])
+			charts.Solana.data.push([+date * 1000, solana[date] || null])
 		}
 
 		return charts
@@ -141,15 +159,24 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 		if (tickers.includes('Ethereum')) {
 			newCharts.Ethereum = charts.Ethereum
 		}
+		if (tickers.includes('Solana')) {
+			newCharts.Solana = charts.Solana
+		}
 		return newCharts
 	}, [charts, tickers])
 
 	const prepareCsv = () => {
 		let rows = []
 
-		rows = [['Timestamp', 'Date', 'Bitcoin', 'Ethereum']]
+		rows = [['Timestamp', 'Date', 'Bitcoin', 'Ethereum', 'Solana']]
 		for (const date in flows) {
-			rows.push([date, toNiceCsvDate(date), flows[date]['Bitcoin'] ?? '', flows[date]['Ethereum'] ?? ''])
+			rows.push([
+				date,
+				toNiceCsvDate(date),
+				flows[date]['Bitcoin'] ?? '',
+				flows[date]['Ethereum'] ?? '',
+				flows[date]['Solana'] ?? ''
+			])
 		}
 		const filename = `etf-flows-${new Date().toISOString().split('T')[0]}.csv`
 		return { filename, rows: rows as (string | number | boolean)[][] }
@@ -164,19 +191,24 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 						<span className="text-xs opacity-70">{lastUpdated}</span>
 					</div>
 
-					<div className="flex flex-col gap-12 p-3">
+					<div className="flex flex-col gap-2 p-3 pt-0">
 						<AssetSection
 							name="Bitcoin"
 							iconUrl="https://icons.llamao.fi/icons/protocols/bitcoin"
 							flows={totalsByAsset.bitcoin?.flows ?? 0}
 							aum={totalsByAsset.bitcoin?.aum ?? 0}
 						/>
-
 						<AssetSection
 							name="Ethereum"
 							iconUrl="https://icons.llamao.fi/icons/protocols/ethereum"
 							flows={totalsByAsset.ethereum?.flows ?? 0}
 							aum={totalsByAsset.ethereum?.aum ?? 0}
+						/>
+						<AssetSection
+							name="Solana"
+							iconUrl="https://icons.llamao.fi/icons/protocols/solana"
+							flows={totalsByAsset.solana?.flows ?? 0}
+							aum={totalsByAsset.solana?.aum ?? 0}
 						/>
 					</div>
 				</div>
@@ -254,12 +286,10 @@ export const columns: ColumnDef<IETFRow>[] = [
 		header: 'Ticker',
 		accessorKey: 'ticker',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue, row }) => {
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<BasicLink
 						href={row.original.url}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

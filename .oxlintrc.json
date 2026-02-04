@@ -3,7 +3,7 @@
 	"plugins": ["react", "react-perf", "typescript", "nextjs"],
 	"categories": {
 		"correctness": "error",
-		"suspicious": "warn"
+		"suspicious": "error"
 	},
 	"rules": {
 		"eslint/no-var": "off",

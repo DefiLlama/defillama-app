@@ -19,7 +19,7 @@ export const PROTOCOL_TO_DASHBOARD_CHART_TYPE: Record<ProtocolChartsLabels, stri
 	'Perp Aggregator Volume': 'perpsAggregators',
 	'Bridge Aggregator Volume': 'bridgeAggregators',
 	'DEX Aggregator Volume': 'aggregators',
-	Unlocks: null,
+	Unlocks: 'unlocks',
 	Incentives: 'incentives',
 	Staking: null,
 	Borrowed: 'borrowed',

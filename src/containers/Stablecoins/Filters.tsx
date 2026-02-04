@@ -6,7 +6,6 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { NestedMenu } from '~/components/NestedMenu'
 import { Select } from '~/components/Select'
-import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { useMedia } from '~/hooks/useMedia'
 
@@ -18,6 +17,12 @@ export const stablecoinAttributeOptions = [
 		help: 'Show stablecoins within 10% of peg'
 	},
 	{
+		name: 'Yield Bearing',
+		key: 'YIELDBEARING',
+		filterFn: (item) => !!item?.yieldBearing,
+		help: 'Show yield-bearing stablecoins'
+	},
+	{
 		name: 'Unknown',
 		key: 'UNKNOWN',
 		filterFn: (item) => typeof item?.pegDeviation !== 'number',
@@ -26,7 +31,13 @@ export const stablecoinAttributeOptions = [
 	{
 		name: 'Depegged',
 		key: 'DEPEGGED',
-		filterFn: (item) => typeof item?.pegDeviation === 'number' && Math.abs(item.pegDeviation) > 10,
+		// Yield-bearing assets intentionally render '-' for peg deviation columns,
+		// so exclude them from the "Depegged" filter to avoid showing "no peg data" rows.
+		filterFn: (item) =>
+			!item?.yieldBearing &&
+			typeof item?.pegDeviation === 'number' &&
+			Number.isFinite(item.pegDeviation) &&
+			Math.abs(item.pegDeviation) > 10,
 		help: 'Show stablecoins depegged by more than 10%'
 	}
 ]
@@ -34,19 +45,19 @@ export const stablecoinAttributeOptions = [
 export const stablecoinBackingOptions = [
 	{
 		name: 'Fiat',
-		key: STABLECOINS_SETTINGS.FIATSTABLES,
+		key: 'FIATSTABLES',
 		filterFn: (item) => item.pegMechanism === 'fiat-backed',
 		help: 'Show stablecoins backed by fiat'
 	},
 	{
 		name: 'Crypto',
-		key: STABLECOINS_SETTINGS.CRYPTOSTABLES,
+		key: 'CRYPTOSTABLES',
 		filterFn: (item) => item.pegMechanism === 'crypto-backed',
 		help: 'Show stablecoins backed by crypto'
 	},
 	{
 		name: 'Algorithmic',
-		key: STABLECOINS_SETTINGS.ALGOSTABLES,
+		key: 'ALGOSTABLES',
 		filterFn: (item) => item.pegMechanism === 'algorithmic',
 		help: 'Show algorithmic stablecoins'
 	}
@@ -55,118 +66,135 @@ export const stablecoinBackingOptions = [
 export const stablecoinPegTypeOptions = [
 	{
 		name: 'USD',
-		key: STABLECOINS_SETTINGS.PEGGEDUSD,
+		key: 'PEGGEDUSD',
 		filterFn: (item) => item.pegType === 'peggedUSD',
 		help: 'Show stablecoins pegged to USD'
 	},
 	{
 		name: 'EUR',
-		key: STABLECOINS_SETTINGS.PEGGEDEUR,
+		key: 'PEGGEDEUR',
 		filterFn: (item) => item.pegType === 'peggedEUR',
 		help: 'Show stablecoins pegged to EUR'
 	},
 	{
 		name: 'SGD',
-		key: STABLECOINS_SETTINGS.PEGGEDSGD,
+		key: 'PEGGEDSGD',
 		filterFn: (item) => item.pegType === 'peggedSGD',
 		help: 'Show stablecoins pegged to SGD'
 	},
 	{
 		name: 'JPY',
-		key: STABLECOINS_SETTINGS.PEGGEDJPY,
+		key: 'PEGGEDJPY',
 		filterFn: (item) => item.pegType === 'peggedJPY',
 		help: 'Show stablecoins pegged to JPY'
 	},
 	{
 		name: 'CNY',
-		key: STABLECOINS_SETTINGS.PEGGEDCNY,
+		key: 'PEGGEDCNY',
 		filterFn: (item) => item.pegType === 'peggedCNY',
 		help: 'Show stablecoins pegged to CNY'
 	},
 	{
 		name: 'UAH',
-		key: STABLECOINS_SETTINGS.PEGGEDUAH,
+		key: 'PEGGEDUAH',
 		filterFn: (item) => item.pegType === 'peggedUAH',
 		help: 'Show stablecoins pegged to UAH'
 	},
 	{
 		name: 'ARS',
-		key: STABLECOINS_SETTINGS.PEGGEDARS,
+		key: 'PEGGEDARS',
 		filterFn: (item) => item.pegType === 'peggedARS',
 		help: 'Show stablecoins pegged to ARS'
 	},
 	{
 		name: 'GBP',
-		key: STABLECOINS_SETTINGS.PEGGEDGBP,
+		key: 'PEGGEDGBP',
 		filterFn: (item) => item.pegType === 'peggedGBP',
 		help: 'Show stablecoins pegged to GBP'
 	},
 	{
 		name: 'Variable',
-		key: STABLECOINS_SETTINGS.PEGGEDVAR,
+		key: 'PEGGEDVAR',
 		filterFn: (item) => item.pegType === 'peggedVAR',
 		help: 'Show stablecoins with a variable or floating peg'
 	},
 	{
 		name: 'CAD',
-		key: STABLECOINS_SETTINGS.PEGGEDCAD,
+		key: 'PEGGEDCAD',
 		filterFn: (item) => item.pegType === 'peggedCAD',
 		help: 'Show stablecoins pegged to CAD'
 	},
 	{
 		name: 'AUD',
-		key: STABLECOINS_SETTINGS.PEGGEDAUD,
+		key: 'PEGGEDAUD',
 		filterFn: (item) => item.pegType === 'peggedAUD',
 		help: 'Show stablecoins pegged to AUD'
 	},
 	{
 		name: 'TRY',
-		key: STABLECOINS_SETTINGS.PEGGEDTRY,
+		key: 'PEGGEDTRY',
 		filterFn: (item) => item.pegType === 'peggedTRY',
 		help: 'Show stablecoins pegged to Turkish Lira'
 	},
 	{
 		name: 'CHF',
-		key: STABLECOINS_SETTINGS.PEGGEDCHF,
+		key: 'PEGGEDCHF',
 		filterFn: (item) => item.pegType === 'peggedCHF',
 		help: 'Show stablecoins pegged to Swiss Franc'
 	},
 	{
 		name: 'COP',
-		key: STABLECOINS_SETTINGS.PEGGEDCOP,
+		key: 'PEGGEDCOP',
 		filterFn: (item) => item.pegType === 'peggedCOP',
 		help: 'Show stablecoins pegged to Colombian Peso'
 	},
 	{
 		name: 'REAL',
-		key: STABLECOINS_SETTINGS.PEGGEDREAL,
+		key: 'PEGGEDREAL',
 		filterFn: (item) => item.pegType === 'peggedREAL',
 		help: 'Show stablecoins pegged to Brazilian Real'
 	},
 	{
 		name: 'RUB',
-		key: STABLECOINS_SETTINGS.PEGGEDRUB,
+		key: 'PEGGEDRUB',
 		filterFn: (item) => item.pegType === 'peggedRUB',
 		help: 'Show stablecoins pegged to Russian Ruble'
 	},
 	{
 		name: 'PHP',
-		key: STABLECOINS_SETTINGS.PEGGEDPHP,
+		key: 'PEGGEDPHP',
 		filterFn: (item) => item.pegType === 'peggedPHP',
 		help: 'Show stablecoins pegged to Philippine Peso'
+	},
+	{
+		name: 'MXN',
+		key: 'PEGGEDMXN',
+		filterFn: (item) => item.pegType === 'peggedMXN',
+		help: 'Show stablecoins pegged to Mexican Peso'
 	}
 ]
 
 type StablecoinFilterKey = string
 
+// Helper to parse exclude query param to Set
+const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
+	if (!param) return new Set()
+	if (typeof param === 'string') return new Set([param])
+	return new Set(param)
+}
+
+// Helper to parse include param ("None" sentinel supported) to array
+const parseIncludeParam = (param: string | string[] | undefined, allKeys: string[]): string[] => {
+	if (!param) return allKeys
+	if (typeof param === 'string') return param === 'None' ? [] : [param]
+	return [...param]
+}
+
 function Attribute({ nestedMenu }: { nestedMenu: boolean; pathname?: string }) {
 	const router = useRouter()
-	const { attribute } = router.query
+	const { attribute, excludeAttribute } = router.query
 
 	const selectedValues = useMemo(() => {
-		// Missing param => all selected (default). Param="None" => none selected.
-		if (!attribute) return stablecoinAttributeOptions.map((o) => o.key)
-
 		const attributeKeyByLower = new Map(stablecoinAttributeOptions.map((o) => [String(o.key).toLowerCase(), o.key]))
 		const normalizeAttributeKey = (raw: string) => {
 			const lower = raw.toLowerCase()
@@ -175,17 +203,21 @@ function Attribute({ nestedMenu }: { nestedMenu: boolean; pathname?: string }) {
 			return attributeKeyByLower.get(lower)
 		}
 
-		if (typeof attribute === 'string') {
-			if (attribute === 'None') return []
-			const normalized = normalizeAttributeKey(attribute)
-			return normalized ? [normalized] : []
-		}
+		const allKeys = stablecoinAttributeOptions.map((o) => o.key)
 
-		const normalized = attribute
-			.map((a) => (typeof a === 'string' ? normalizeAttributeKey(a) : null))
-			.filter(Boolean) as string[]
-		return Array.from(new Set(normalized))
-	}, [attribute])
+		const includeRaw = parseIncludeParam(attribute as any, allKeys)
+		const includeNormalized = includeRaw.map((a) => normalizeAttributeKey(a)).filter(Boolean) as string[]
+
+		const excludeSetRaw = parseExcludeParam(excludeAttribute as any)
+		const excludeSetNormalized = new Set(
+			Array.from(excludeSetRaw)
+				.map((a) => normalizeAttributeKey(a))
+				.filter(Boolean) as string[]
+		)
+
+		const selected = includeNormalized.filter((a) => !excludeSetNormalized.has(a))
+		return Array.from(new Set(selected))
+	}, [attribute, excludeAttribute])
 
 	return (
 		<Select
@@ -213,7 +245,7 @@ function BackingType({
 	availableBackings?: StablecoinFilterKey[]
 }) {
 	const router = useRouter()
-	const { backing = [] } = router.query
+	const { backing, excludeBacking } = router.query
 
 	const backingOptions = useMemo(() => {
 		if (!availableBackings || availableBackings.length === 0) return stablecoinBackingOptions
@@ -222,20 +254,11 @@ function BackingType({
 	}, [availableBackings])
 
 	const selectedValues = useMemo(() => {
-		return backingOptions
-			.filter((o) => {
-				if (backing) {
-					if (backing.length === 0) {
-						return true
-					} else if (typeof backing === 'string') {
-						return o.key === backing
-					} else {
-						return backing.includes(o.key)
-					}
-				}
-			})
-			.map((o) => o.key)
-	}, [backing, backingOptions])
+		const allKeys = backingOptions.map((o) => o.key)
+		const include = parseIncludeParam(backing as any, allKeys)
+		const excludeSet = parseExcludeParam(excludeBacking as any)
+		return include.filter((k) => !excludeSet.has(k))
+	}, [backing, excludeBacking, backingOptions])
 
 	return (
 		<Select
@@ -263,7 +286,7 @@ function PegType({
 	availablePegTypes?: StablecoinFilterKey[]
 }) {
 	const router = useRouter()
-	const { pegtype = [] } = router.query
+	const { pegtype, excludePegtype } = router.query
 
 	const pegTypeOptions = useMemo(() => {
 		if (!availablePegTypes || availablePegTypes.length === 0) return stablecoinPegTypeOptions
@@ -272,20 +295,11 @@ function PegType({
 	}, [availablePegTypes])
 
 	const selectedValues = useMemo(() => {
-		return pegTypeOptions
-			.filter((o) => {
-				if (pegtype) {
-					if (pegtype.length === 0) {
-						return true
-					} else if (typeof pegtype === 'string') {
-						return o.key === pegtype
-					} else {
-						return pegtype.includes(o.key)
-					}
-				}
-			})
-			.map((o) => o.key)
-	}, [pegtype, pegTypeOptions])
+		const allKeys = pegTypeOptions.map((o) => o.key)
+		const include = parseIncludeParam(pegtype as any, allKeys)
+		const excludeSet = parseExcludeParam(excludePegtype as any)
+		return include.filter((k) => !excludeSet.has(k))
+	}, [pegtype, excludePegtype, pegTypeOptions])
 
 	return (
 		<Select

@@ -14,17 +14,21 @@ interface SharedSession {
 		createdAt: string
 		isPublic: boolean
 	}
+	// API now returns role-based format
 	messages: Array<{
-		question: string
-		response: {
-			answer: string
-			metadata?: any
-			suggestions?: any[]
-			charts?: any[]
-			chartData?: any[]
-		}
+		role: 'user' | 'assistant'
+		content: string
 		messageId?: string
 		timestamp: number
+		sequenceNumber?: number
+		images?: Array<{ url: string; mimeType: string; filename?: string }>
+		// Assistant-specific fields
+		metadata?: any
+		suggestions?: any[]
+		charts?: any[]
+		chartData?: any[] | Record<string, any[]>
+		citations?: string[]
+		csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
 	}>
 	isPublicView: true
 }
@@ -107,7 +111,7 @@ export default function SharedConversationPage() {
 			sharedSession={session}
 			isPublicView={true}
 			readOnly={true}
-			showDebug={user?.flags?.['is_llama'] ?? false}
+			showDebug={Boolean(user?.flags?.['is_llama'])}
 		/>
 	)
 }

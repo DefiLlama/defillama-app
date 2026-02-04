@@ -27,6 +27,13 @@ export const CATEGORY_CARDS: CategoryCardData[] = [
 		tags: ['Table', 'Sankey', 'Fees', 'Revenue']
 	},
 	{
+		id: 'unlocks',
+		title: 'Unlocks',
+		description: 'Token unlock schedules and total unlocks by protocol',
+		icon: 'linear-unlock',
+		tags: ['Schedule', 'Total Unlocks', 'Emissions']
+	},
+	{
 		id: 'yields',
 		title: 'Yields & Lending',
 		description: 'Supply/Borrow APY, TVL, and pool liquidity for 17000+ yield pools',

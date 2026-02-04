@@ -8,9 +8,9 @@ import '~/nprogress.css'
 import Script from 'next/script'
 import NProgress from 'nprogress'
 import { useEffect, useRef } from 'react'
+import { LlamaAIFloatingButton } from '~/components/LlamaAIFloatingButton'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
-import { AuthProvider, useUserHash } from '~/containers/Subscribtion/auth'
-import { useMedia } from '~/hooks/useMedia'
+import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
 
 NProgress.configure({ showSpinner: false })
 
@@ -124,8 +124,8 @@ function App({ Component, pageProps }: AppProps) {
 		}
 	}, [])
 
-	const { userHash, email } = useUserHash()
-	const isDesktop = useMedia('(min-width: 769px)')
+	const { hasActiveSubscription } = useAuthContext()
+	const showFloatingButton = hasActiveSubscription && !router.pathname.includes('/ai/chat')
 
 	return (
 		<>
@@ -133,7 +133,6 @@ function App({ Component, pageProps }: AppProps) {
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 			</Head>
-			{/* Analytics script - loaded after page becomes interactive to reduce TBT */}
 			<Script
 				src="/script2.js"
 				strategy="afterInteractive"
@@ -141,27 +140,7 @@ function App({ Component, pageProps }: AppProps) {
 				data-host-url="https://tasty.defillama.com"
 			/>
 
-			{/* {userHash &&
-			typeof window !== 'undefined' &&
-			!(window as any).FrontChat &&
-			isDesktop &&
-			// hide support icon on ai chat page because it can block the dialog button
-			!router.pathname.includes('/ai/chat') ? (
-				<Script
-					src="/assets/front-chat.js"
-					strategy="afterInteractive"
-					onLoad={() => {
-						if (typeof window !== 'undefined' && (window as any).FrontChat) {
-							;(window as any).FrontChat('init', {
-								chatId: '6fec3ab74da2261df3f3748a50dd3d6a',
-								useDefaultLauncher: true,
-								email,
-								userHash
-							})
-						}
-					}}
-				/>
-			) : null} */}
+			{showFloatingButton ? <LlamaAIFloatingButton /> : null}
 
 			<Component {...pageProps} />
 		</>

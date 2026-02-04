@@ -59,6 +59,9 @@ export type ModalAction =
 	| { type: 'SET_SELECTED_INCOME_STATEMENT_PROTOCOL'; payload: string | null }
 	| { type: 'SET_SELECTED_INCOME_STATEMENT_PROTOCOL_NAME'; payload: string | null }
 	| { type: 'SET_SELECTED_LLAMAAI_CHART'; payload: { id: string; title: string } | null }
+	| { type: 'SET_SELECTED_UNLOCKS_PROTOCOL'; payload: string | null }
+	| { type: 'SET_SELECTED_UNLOCKS_PROTOCOL_NAME'; payload: string | null }
+	| { type: 'SET_SELECTED_UNLOCKS_CHART_TYPE'; payload: 'total' | 'schedule' | 'allocation' | 'locked-unlocked' }
 	| { type: 'RESET_STATE' }
 	| { type: 'INITIALIZE_FROM_EDIT_ITEM'; payload: { editItem: DashboardItemConfig | null | undefined } }
 
@@ -165,7 +168,10 @@ export const INITIAL_MODAL_STATE: ModalState = {
 	selectedBorrowedChartType: 'chainsBorrowed',
 	selectedIncomeStatementProtocol: null,
 	selectedIncomeStatementProtocolName: null,
-	selectedLlamaAIChart: null
+	selectedLlamaAIChart: null,
+	selectedUnlocksProtocol: null,
+	selectedUnlocksProtocolName: null,
+	selectedUnlocksChartType: 'total'
 }
 
 export function initializeFromEditItem(editItem: DashboardItemConfig | null | undefined): ModalState {
@@ -206,6 +212,17 @@ export function initializeFromEditItem(editItem: DashboardItemConfig | null | un
 	}
 
 	if (editItem.kind === 'chart') {
+		if (editItem.type === 'unlocks' && editItem.protocol) {
+			return {
+				...base,
+				selectedMainTab: 'charts',
+				chartMode: 'manual',
+				selectedChartTab: 'unlocks',
+				selectedUnlocksProtocol: editItem.protocol,
+				selectedUnlocksProtocolName: editItem.protocol,
+				selectedUnlocksChartType: 'total'
+			}
+		}
 		return {
 			...base,
 			selectedMainTab: 'charts',
@@ -372,6 +389,30 @@ export function initializeFromEditItem(editItem: DashboardItemConfig | null | un
 			selectedChartTab: 'income-statement',
 			selectedIncomeStatementProtocol: editItem.protocol,
 			selectedIncomeStatementProtocolName: editItem.protocolName
+		}
+	}
+
+	if (editItem.kind === 'unlocks-schedule') {
+		return {
+			...base,
+			selectedMainTab: 'charts',
+			chartMode: 'manual',
+			selectedChartTab: 'unlocks',
+			selectedUnlocksProtocol: editItem.protocol,
+			selectedUnlocksProtocolName: editItem.protocolName,
+			selectedUnlocksChartType: 'schedule'
+		}
+	}
+
+	if (editItem.kind === 'unlocks-pie') {
+		return {
+			...base,
+			selectedMainTab: 'charts',
+			chartMode: 'manual',
+			selectedChartTab: 'unlocks',
+			selectedUnlocksProtocol: editItem.protocol,
+			selectedUnlocksProtocolName: editItem.protocolName,
+			selectedUnlocksChartType: editItem.chartType
 		}
 	}
 
@@ -553,6 +594,15 @@ export function modalReducer(state: ModalState, action: ModalAction): ModalState
 
 		case 'SET_SELECTED_LLAMAAI_CHART':
 			return { ...state, selectedLlamaAIChart: action.payload }
+
+		case 'SET_SELECTED_UNLOCKS_PROTOCOL':
+			return { ...state, selectedUnlocksProtocol: action.payload }
+
+		case 'SET_SELECTED_UNLOCKS_PROTOCOL_NAME':
+			return { ...state, selectedUnlocksProtocolName: action.payload }
+
+		case 'SET_SELECTED_UNLOCKS_CHART_TYPE':
+			return { ...state, selectedUnlocksChartType: action.payload }
 
 		case 'RESET_STATE':
 			return INITIAL_MODAL_STATE

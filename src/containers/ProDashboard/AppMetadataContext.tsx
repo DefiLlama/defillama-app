@@ -211,7 +211,10 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 			if (flags.dexs) types.add('volume')
 			if (flags.fees) types.add('fees')
 			if (flags.revenue) types.add('revenue')
-			if (flags.emissions || flags.incentives) types.add('incentives')
+			if (flags.emissions || flags.incentives) {
+				types.add('incentives')
+				types.add('unlocks')
+			}
 			if (flags.liquidity) types.add('liquidity')
 			if (flags.treasury) types.add('treasury')
 			if (flags.holdersRevenue) types.add('holdersRevenue')

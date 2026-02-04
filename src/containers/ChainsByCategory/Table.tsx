@@ -21,11 +21,7 @@ import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/
 import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import {
-	CHAINS_CATEGORY_GROUP_SETTINGS,
-	isChainsCategoryGroupKey,
-	useLocalStorageSettingsManager
-} from '~/contexts/LocalStorage'
+import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
 import { definitions } from '~/public/definitions'
@@ -261,9 +257,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: true,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue, row }) => {
 			return (
 				<span
 					className="relative flex items-center gap-2"
@@ -291,7 +285,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 					) : (
 						<Bookmark readableName={getValue() as string} isChain data-bookmark className="absolute -left-0.5" />
 					)}
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo logo={chainIconUrl(getValue())} />
 					<BasicLink

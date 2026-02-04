@@ -187,8 +187,11 @@ interface ProDashboardEditorActionsContextType {
 		chartType: string,
 		itemType: 'chain' | 'protocol',
 		geckoId?: string | null,
-		color?: string
+		color?: string,
+		dataType?: 'documented' | 'realtime'
 	) => void
+	handleAddUnlocksSchedule: (protocol: string, protocolName: string) => void
+	handleAddUnlocksPie: (protocol: string, protocolName: string, chartType: 'allocation' | 'locked-unlocked') => void
 	handleAddYieldChart: (
 		poolConfigId: string,
 		poolName: string,
@@ -349,6 +352,8 @@ export function ProDashboardAPIProvider({
 
 	const {
 		handleAddChart,
+		handleAddUnlocksSchedule,
+		handleAddUnlocksPie,
 		handleAddYieldChart,
 		handleAddStablecoinsChart,
 		handleAddStablecoinAssetChart,
@@ -977,6 +982,8 @@ export function ProDashboardAPIProvider({
 
 	const handlersRef = useRef<{
 		handleAddChart: typeof handleAddChart
+		handleAddUnlocksSchedule: typeof handleAddUnlocksSchedule
+		handleAddUnlocksPie: typeof handleAddUnlocksPie
 		handleAddYieldChart: typeof handleAddYieldChart
 		handleAddStablecoinsChart: typeof handleAddStablecoinsChart
 		handleAddStablecoinAssetChart: typeof handleAddStablecoinAssetChart
@@ -1010,6 +1017,8 @@ export function ProDashboardAPIProvider({
 	useIsomorphicLayoutEffect(() => {
 		handlersRef.current = {
 			handleAddChart,
+			handleAddUnlocksSchedule,
+			handleAddUnlocksPie,
 			handleAddYieldChart,
 			handleAddStablecoinsChart,
 			handleAddStablecoinAssetChart,
@@ -1158,6 +1167,10 @@ export function ProDashboardAPIProvider({
 	const editorActionsContextValue = useMemo(
 		(): ProDashboardEditorActionsContextType => ({
 			handleAddChart: (...args: Parameters<typeof handleAddChart>) => handlersRef.current.handleAddChart(...args),
+			handleAddUnlocksSchedule: (...args: Parameters<typeof handleAddUnlocksSchedule>) =>
+				handlersRef.current.handleAddUnlocksSchedule(...args),
+			handleAddUnlocksPie: (...args: Parameters<typeof handleAddUnlocksPie>) =>
+				handlersRef.current.handleAddUnlocksPie(...args),
 			handleAddYieldChart: (...args: Parameters<typeof handleAddYieldChart>) =>
 				handlersRef.current.handleAddYieldChart(...args),
 			handleAddStablecoinsChart: (...args: Parameters<typeof handleAddStablecoinsChart>) =>

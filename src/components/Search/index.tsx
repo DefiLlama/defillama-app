@@ -3,9 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { LoadingDots } from '~/components/Loaders'
+import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { useDebounce } from '~/hooks/useDebounce'
+import { useIsClient } from '~/hooks/useIsClient'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
 import { Icon } from '../Icon'
 import { BasicLink } from '../Link'
@@ -19,11 +21,11 @@ async function getDefaultSearchList() {
 	}
 }
 async function fetchSearchList(query: string) {
-	const response: Array<ISearchItem> = await fetch('https://search.defillama.com/multi-search', {
+	const response: Array<ISearchItem> = await fetch(SEARCH_API_URL, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ee4d49e767f84c0d1c4eabd841e015f02d403e5abf7ea2a523827a46b02d5ad5`
+			Authorization: `Bearer ${SEARCH_API_TOKEN}`
 		},
 		body: JSON.stringify({
 			queries: [
@@ -59,6 +61,7 @@ const hideLlamaAI = new Set(['/ai'])
 export const MobileSearch = () => {
 	const router = useRouter()
 
+	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
 
 	const { defaultSearchList, recentSearchList, isLoadingDefaultSearchList, errorDefaultSearchList } =
@@ -74,10 +77,10 @@ export const MobileSearch = () => {
 		<>
 			{!hideLlamaAI.has(router.pathname) && (
 				<BasicLink
-					href={hasActiveSubscription ? '/ai/chat' : '/ai'}
-					className="llamaai-glow relative -my-0.5 overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] p-3 text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:hidden"
+					href={isClient && hasActiveSubscription ? '/ai/chat' : '/ai'}
+					className="llamaai-glow relative -my-0.5 overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] p-3 text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:hidden"
 					data-umami-event="llamaai-mobile-nav-link"
-					data-umami-event-subscribed={hasActiveSubscription ? 'true' : 'false'}
+					data-umami-event-subscribed={isClient && hasActiveSubscription ? 'true' : 'false'}
 				>
 					<svg className="h-4 w-4 shrink-0">
 						<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
@@ -173,6 +176,7 @@ export const MobileSearch = () => {
 export const DesktopSearch = () => {
 	const router = useRouter()
 
+	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
 
 	const [open, setOpen] = useState(false)
@@ -282,10 +286,10 @@ export const DesktopSearch = () => {
 			</Ariakit.ComboboxProvider>
 			{!hideLlamaAI.has(router.pathname) && (
 				<BasicLink
-					href={hasActiveSubscription ? '/ai/chat' : '/ai'}
+					href={isClient && hasActiveSubscription ? '/ai/chat' : '/ai'}
 					className="llamaai-glow relative mr-auto hidden items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-xs font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:flex"
 					data-umami-event="llamaai-nav-link"
-					data-umami-event-subscribed={hasActiveSubscription ? 'true' : 'false'}
+					data-umami-event-subscribed={isClient && hasActiveSubscription ? 'true' : 'false'}
 				>
 					<svg className="h-4 w-4 shrink-0">
 						<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />

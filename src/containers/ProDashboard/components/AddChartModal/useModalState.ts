@@ -96,7 +96,13 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedIncomeStatementProtocolName: (name: string | null) =>
 				dispatch({ type: 'SET_SELECTED_INCOME_STATEMENT_PROTOCOL_NAME', payload: name }),
 			setSelectedLlamaAIChart: (chart: { id: string; title: string } | null) =>
-				dispatch({ type: 'SET_SELECTED_LLAMAAI_CHART', payload: chart })
+				dispatch({ type: 'SET_SELECTED_LLAMAAI_CHART', payload: chart }),
+			setSelectedUnlocksProtocol: (protocol: string | null) =>
+				dispatch({ type: 'SET_SELECTED_UNLOCKS_PROTOCOL', payload: protocol }),
+			setSelectedUnlocksProtocolName: (name: string | null) =>
+				dispatch({ type: 'SET_SELECTED_UNLOCKS_PROTOCOL_NAME', payload: name }),
+			setSelectedUnlocksChartType: (type: 'total' | 'schedule' | 'allocation' | 'locked-unlocked') =>
+				dispatch({ type: 'SET_SELECTED_UNLOCKS_CHART_TYPE', payload: type })
 		}),
 		[]
 	)

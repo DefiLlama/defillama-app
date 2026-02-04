@@ -1,32 +1,6 @@
 import { TVL_SETTINGS } from '~/contexts/LocalStorage'
+import { IChainMetadata } from '~/utils/metadata/types'
 import { ChainChartLabels } from './constants'
-
-export interface IChainMetadata {
-	stablecoins?: boolean
-	dexs?: boolean
-	name: string
-	activeUsers?: boolean
-	fees?: boolean
-	revenue?: boolean
-	chainFees?: boolean
-	chainRevenue?: boolean
-	perps?: boolean
-	openInterest?: boolean
-	dexAggregators?: boolean
-	optionsPremiumVolume?: boolean
-	optionsNotionalVolume?: boolean
-	perpsAggregators?: boolean
-	bridgeAggregators?: boolean
-	inflows?: boolean
-	chainAssets?: boolean
-	gecko_id?: string
-	tokenSymbol?: string
-	github?: boolean
-	id: string
-	protocolCount?: number
-	incentives?: boolean
-	dimAgg?: Record<string, Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>>
-}
 
 export interface IChainOverviewData {
 	chain: string
@@ -116,6 +90,7 @@ export interface IChainOverviewData {
 		total30d: number
 	} | null
 	chainStablecoins: Array<{ name: string; url: string; symbol: string | null }> | null
+	entityQuestions?: string[]
 }
 
 export interface ILiteChart {

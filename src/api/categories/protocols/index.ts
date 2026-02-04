@@ -590,16 +590,31 @@ export function formatGovernanceData(data: {
 		winningChoice: string
 		winningPerc: string
 	}> = []
-	for (const proposal of data.proposals) {
-		const winningScore = proposal.scores.length > 0 ? Math.max(...proposal.scores) : undefined
-		const totalVotes = proposal.scores.reduce((acc, curr) => (acc += curr), 0)
-		proposals.push({
-			...proposal,
-			totalVotes,
-			winningChoice: winningScore ? proposal.choices[proposal.scores.findIndex((x) => x === winningScore)] : '',
-			winningPerc:
-				totalVotes && winningScore ? `(${Number(((winningScore / totalVotes) * 100).toFixed(2))}% of votes)` : ''
-		})
+	if (Array.isArray(data.proposals)) {
+		for (const proposal of data.proposals) {
+			const winningScore = proposal.scores.length > 0 ? Math.max(...proposal.scores) : undefined
+			const totalVotes = proposal.scores.reduce((acc, curr) => (acc += curr), 0)
+			proposals.push({
+				...proposal,
+				totalVotes,
+				winningChoice: winningScore ? proposal.choices[proposal.scores.findIndex((x) => x === winningScore)] : '',
+				winningPerc:
+					totalVotes && winningScore ? `(${Number(((winningScore / totalVotes) * 100).toFixed(2))}% of votes)` : ''
+			})
+		}
+	} else {
+		for (const proposalAddress in data.proposals as Record<string, any>) {
+			const proposal = data.proposals[proposalAddress] as { scores: Array<number>; choices: Array<string>; id: string }
+			const winningScore = proposal.scores.length > 0 ? Math.max(...proposal.scores) : undefined
+			const totalVotes = proposal.scores.reduce((acc, curr) => (acc += curr), 0)
+			proposals.push({
+				...proposal,
+				totalVotes,
+				winningChoice: winningScore ? proposal.choices[proposal.scores.findIndex((x) => x === winningScore)] : '',
+				winningPerc:
+					totalVotes && winningScore ? `(${Number(((winningScore / totalVotes) * 100).toFixed(2))}% of votes)` : ''
+			})
+		}
 	}
 
 	const activity: Array<{ date: number; Total: number; Successful: number }> = []

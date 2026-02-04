@@ -54,6 +54,10 @@ const BorrowedChartCard = lazy(() => import('./BorrowedChartCard').then((mod) =>
 const IncomeStatementCard = lazy(() =>
 	import('./IncomeStatementCard').then((mod) => ({ default: mod.IncomeStatementCard }))
 )
+const UnlocksScheduleCard = lazy(() =>
+	import('./UnlocksScheduleCard').then((mod) => ({ default: mod.UnlocksScheduleCard }))
+)
+const UnlocksPieCard = lazy(() => import('./UnlocksPieCard').then((mod) => ({ default: mod.UnlocksPieCard })))
 const LlamaAIChartCard = lazy(() => import('./LlamaAIChartCard'))
 
 const STORED_COL_SPANS = [0.5, 1, 1.5, 2] as const satisfies readonly StoredColSpan[]
@@ -131,11 +135,7 @@ interface DashboardItemRendererProps {
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
 }
 
-function DashboardItemRenderer({
-	item,
-	onEditItem,
-	handleEditItem
-}: DashboardItemRendererProps) {
+function DashboardItemRenderer({ item, onEditItem, handleEditItem }: DashboardItemRendererProps) {
 	const handleConfigChange = (newConfig: DashboardItemConfig) => handleEditItem(item.id, newConfig)
 
 	const handleDatasetChainChange = (newChain: string) =>
@@ -220,6 +220,22 @@ function DashboardItemRenderer({
 		return (
 			<Suspense fallback={<div className="flex min-h-[360px] flex-col p-1" />}>
 				<IncomeStatementCard config={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'unlocks-schedule') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[360px] flex-col p-1" />}>
+				<UnlocksScheduleCard config={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'unlocks-pie') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[360px] flex-col p-1" />}>
+				<UnlocksPieCard config={item} />
 			</Suspense>
 		)
 	}
@@ -406,10 +422,13 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 							const disableExpand = expandTarget === storedColSpan
 
 							return (
-								<div
+								<SortableItem
 									key={`${item.id}-${item.colSpan}${
 										item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''
 									}`}
+									id={item.id}
+									isTable={item.kind === 'table'}
+									data-col={item.colSpan}
 									className={`col-span-1 flex flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) ${COL_SPAN_CLASS_MAP[effectiveColSpan]}`}
 								>
 									<div className="flex flex-wrap items-center justify-end border-b border-(--cards-border)">
@@ -452,15 +471,10 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 											<span className="sr-only">Remove item</span>
 										</Tooltip>
 									</div>
-									<SortableItem
-										id={item.id}
-										isTable={item.kind === 'table'}
-										data-col={item.colSpan}
-										className="min-h-0 flex-1"
-									>
+									<div className="min-h-0 flex-1">
 										<DashboardItemRenderer item={item} onEditItem={onEditItem} handleEditItem={handleEditItem} />
-									</SortableItem>
-								</div>
+									</div>
+								</SortableItem>
 							)
 						})}
 						{currentRatingSession && !isReadOnly && (

@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import * as React from 'react'
 import { useMemo } from 'react'
+import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -30,6 +31,7 @@ const tabs = {
 		route: '/protocol/bridge-aggregators'
 	},
 	options: { id: 'options', name: 'Options Volume', route: '/protocol/options' },
+	tokenRights: { id: 'tokenRights', name: 'Token Rights', route: '/protocol/token-rights' },
 	governance: { id: 'governance', name: 'Governance', route: '/protocol/governance' },
 	forks: { id: 'forks', name: 'Forks', route: '/protocol/forks' }
 } as const
@@ -45,7 +47,8 @@ export function ProtocolOverviewLayout({
 	tab,
 	warningBanners,
 	seoDescription,
-	seoKeywords
+	seoKeywords,
+	entityQuestions
 }: {
 	children: React.ReactNode
 	isCEX?: boolean
@@ -65,6 +68,7 @@ export function ProtocolOverviewLayout({
 	}>
 	seoDescription?: string
 	seoKeywords?: string
+	entityQuestions?: string[]
 }) {
 	const metricFiltersLabel = useMemo(() => {
 		const hasTvl = toggleOptions?.some((option) => TVL_SETTINGS_KEYS_SET.has(option.key))
@@ -125,6 +129,9 @@ export function ProtocolOverviewLayout({
 		}
 		if (metrics.optionsPremiumVolume || metrics.optionsNotionalVolume) {
 			final.push(tabs.options)
+		}
+		if (metrics.tokenRights) {
+			final.push(tabs.tokenRights)
 		}
 		if (metrics.governance) {
 			final.push(tabs.governance)
@@ -294,6 +301,12 @@ export function ProtocolOverviewLayout({
 							</BasicLink>
 						))}
 				</div>
+				<EntityQuestionsStrip
+					questions={entityQuestions || []}
+					entitySlug={slug(name)}
+					entityType="protocol"
+					entityName={name}
+				/>
 				{children}
 			</div>
 		</Layout>

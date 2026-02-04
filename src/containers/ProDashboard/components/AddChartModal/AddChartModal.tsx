@@ -94,6 +94,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onChainChange={actions.handleChainChange}
 							onProtocolChange={actions.handleProtocolChange}
 							onChartTypesChange={actions.setSelectedChartTypes}
+							onBulkChartTypeChange={actions.handleBulkChartTypeChange}
 							onSelectedChainsChange={actions.setSelectedChains}
 							onSelectedProtocolsChange={actions.setSelectedProtocols}
 							onSelectedYieldPoolChange={actions.setSelectedYieldPool}
@@ -139,6 +140,12 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							selectedIncomeStatementProtocolName={state.selectedIncomeStatementProtocolName}
 							onSelectedIncomeStatementProtocolChange={actions.setSelectedIncomeStatementProtocol}
 							onSelectedIncomeStatementProtocolNameChange={actions.setSelectedIncomeStatementProtocolName}
+							selectedUnlocksProtocol={state.selectedUnlocksProtocol}
+							selectedUnlocksProtocolName={state.selectedUnlocksProtocolName}
+							selectedUnlocksChartType={state.selectedUnlocksChartType}
+							onSelectedUnlocksProtocolChange={actions.setSelectedUnlocksProtocol}
+							onSelectedUnlocksProtocolNameChange={actions.setSelectedUnlocksProtocolName}
+							onSelectedUnlocksChartTypeChange={actions.setSelectedUnlocksChartType}
 							onUnifiedChartNameChange={actions.setUnifiedChartName}
 							onChartCreationModeChange={actions.setChartCreationMode}
 							onComposerItemColorChange={actions.handleUpdateComposerItemColor}
@@ -247,6 +254,8 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							selectedBorrowedChartType={state.selectedBorrowedChartType}
 							selectedIncomeStatementProtocol={state.selectedIncomeStatementProtocol}
 							selectedLlamaAIChart={state.selectedLlamaAIChart}
+							selectedUnlocksProtocol={state.selectedUnlocksProtocol}
+							selectedUnlocksChartType={state.selectedUnlocksChartType}
 							onSubmit={actions.handleSubmit}
 						/>
 					</div>

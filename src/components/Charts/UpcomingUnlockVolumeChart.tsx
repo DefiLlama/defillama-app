@@ -27,15 +27,15 @@ interface UpcomingUnlockVolumeChartProps {
 	height?: string
 }
 
-const TIME_PERIODS = ['Weekly', 'Monthly'] as const
+const TIME_PERIODS = ['Daily', 'Weekly', 'Monthly'] as const
 type TimePeriod = (typeof TIME_PERIODS)[number]
 
 const VIEW_MODES = ['Total View', 'Breakdown View'] as const
 type ViewMode = (typeof VIEW_MODES)[number]
 
 export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockVolumeChartProps) {
-	const [timePeriod, _setTimePeriod] = useState<TimePeriod>('Weekly')
-	const [isFullView, _setIsFullView] = useState(false)
+	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
+	const [isFullView, setIsFullView] = useState(false)
 	const [viewMode, setViewMode] = useState<ViewMode>('Total View')
 
 	const { chartData, chartStacks, chartStackColors, chartLegendOptions } = useMemo(() => {
@@ -84,7 +84,12 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 			for (const unlock of upcomingUnlocks) {
 				const date = dayjs.unix(unlock.timestamp)
 				if (!date.isValid()) continue
-				const key = (timePeriod === 'Weekly' ? date.startOf('week') : date.startOf('month')).unix()
+				const key =
+					timePeriod === 'Daily'
+						? date.startOf('day').unix()
+						: timePeriod === 'Weekly'
+							? date.startOf('week').unix()
+							: date.startOf('month').unix()
 				const existingValue = groupedData.get(key) || 0
 				groupedData.set(key, existingValue + unlock.valueUSD)
 			}
@@ -106,7 +111,12 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 			for (const unlock of upcomingUnlocks) {
 				const date = dayjs.unix(unlock.timestamp)
 				if (!date.isValid()) continue
-				const key = (timePeriod === 'Weekly' ? date.startOf('week') : date.startOf('month')).unix()
+				const key =
+					timePeriod === 'Daily'
+						? date.startOf('day').unix()
+						: timePeriod === 'Weekly'
+							? date.startOf('week').unix()
+							: date.startOf('month').unix()
 
 				const existingRecord = groupedData.get(key) || {}
 				const currentProtocolValue = existingRecord[unlock.protocolName] || 0
@@ -153,13 +163,20 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 						stacks={chartStacks}
 						stackColors={chartStackColors}
 						chartOptions={chartOptions}
+						groupBy={timePeriod.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
 						customComponents={
-							<TagGroup
-								selectedValue={viewMode}
-								setValue={(value: (typeof VIEW_MODES)[number]) => setViewMode(value)}
-								values={VIEW_MODES as unknown as string[]}
-								className="ml-auto"
-							/>
+							<>
+								<TagGroup
+									selectedValue={timePeriod}
+									setValue={(value: TimePeriod) => setTimePeriod(value)}
+									values={TIME_PERIODS as unknown as string[]}
+								/>
+								<TagGroup
+									selectedValue={viewMode}
+									setValue={(value: ViewMode) => setViewMode(value)}
+									values={VIEW_MODES as unknown as string[]}
+								/>
+							</>
 						}
 					/>
 				</Suspense>

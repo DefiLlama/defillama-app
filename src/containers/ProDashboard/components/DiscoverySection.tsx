@@ -6,7 +6,10 @@ import { DashboardCard } from './DashboardCard'
 
 interface DiscoverySectionProps {
 	title: string
+	subtitle?: string
 	icon: IIcon['name']
+	iconBg?: string
+	iconColor?: string
 	dashboards: Dashboard[]
 	isLoading: boolean
 	seeAllHref: string
@@ -15,7 +18,10 @@ interface DiscoverySectionProps {
 
 export function DiscoverySection({
 	title,
+	subtitle,
 	icon,
+	iconBg,
+	iconColor,
 	dashboards,
 	isLoading,
 	seeAllHref,
@@ -72,10 +78,15 @@ export function DiscoverySection({
 		return (
 			<div className="flex flex-col gap-3">
 				<div className="flex items-center justify-between">
-					<h3 className="flex items-center gap-2 text-lg font-semibold">
-						<Icon name={icon} height={20} width={20} />
-						{title}
-					</h3>
+					<div className="flex flex-col gap-0.5">
+						<h3 className="flex items-center gap-2 text-lg font-semibold">
+							<span className={`flex h-7 w-7 items-center justify-center rounded-md ${iconBg ?? 'bg-(--bg-hover)'}`}>
+								<Icon name={icon} height={18} width={18} className={iconColor} />
+							</span>
+							{title}
+						</h3>
+						{subtitle && <p className="ml-9 text-xs text-(--text-label)">{subtitle}</p>}
+					</div>
 				</div>
 				<div className="flex gap-4 overflow-hidden">
 					{Array.from({ length: 5 }).map((_, i) => (
@@ -98,11 +109,19 @@ export function DiscoverySection({
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="flex items-center justify-between">
-				<h3 className="flex items-center gap-2 text-lg font-semibold">
-					<Icon name={icon} height={20} width={20} />
-					{title}
-				</h3>
-				<BasicLink href={seeAllHref} className="flex items-center gap-1 text-sm text-(--old-blue) hover:underline">
+				<div className="flex flex-col gap-0.5">
+					<h3 className="flex items-center gap-2 text-lg font-semibold">
+						<span className={`flex h-7 w-7 items-center justify-center rounded-md ${iconBg ?? 'bg-(--bg-hover)'}`}>
+							<Icon name={icon} height={18} width={18} className={iconColor} />
+						</span>
+						{title}
+					</h3>
+					{subtitle && <p className="ml-9 text-xs text-(--text-label)">{subtitle}</p>}
+				</div>
+				<BasicLink
+					href={seeAllHref}
+					className="flex items-center gap-1.5 rounded-full border border-(--cards-border) bg-(--cards-bg) px-3 py-1.5 text-sm font-medium text-(--old-blue) transition-colors duration-150 hover:border-(--old-blue)/30 hover:bg-(--old-blue)/10"
+				>
 					See all
 					<Icon name="arrow-right" height={14} width={14} />
 				</BasicLink>

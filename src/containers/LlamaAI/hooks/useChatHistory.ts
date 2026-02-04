@@ -1,11 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useState, useSyncExternalStore } from 'react'
-import { MCP_SERVER } from '~/constants'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { useMedia } from '~/hooks/useMedia'
-import { handleSimpleFetchResponse } from '~/utils/async'
+import { useResearchUsage } from './useResearchUsage'
+import { useSessionList } from './useSessionList'
+import { useSessionMutations } from './useSessionMutations'
+import { useSidebarVisibility } from './useSidebarVisibility'
 
+// Re-export types for backward compatibility
 export interface ChatSession {
 	sessionId: string
 	title: string
@@ -42,305 +40,51 @@ export interface ResearchUsage {
 	resetTime: string | null
 }
 
+/**
+ * Unified hook for chat history management.
+ * Composes useSessionList, useSessionMutations, useSidebarVisibility, and useResearchUsage.
+ *
+ * For new code, consider importing the individual hooks directly for better tree-shaking:
+ * - useSessionList: Query sessions list
+ * - useSessionMutations: Create, delete, update sessions
+ * - useSidebarVisibility: Sidebar toggle state
+ * - useResearchUsage: Research usage tracking
+ */
 export function useChatHistory() {
-	const { user, authorizedFetch, isAuthenticated } = useAuthContext()
-	const queryClient = useQueryClient()
+	const { sessions, researchUsage, isLoading, moveSessionToTop } = useSessionList()
 
-	const { data = { sessions: [], usage: null }, isLoading } = useQuery({
-		queryKey: ['chat-sessions', user?.id],
-		queryFn: async (): Promise<{ sessions: ChatSession[]; usage: ResearchUsage | null }> => {
-			try {
-				if (!user) return { sessions: [], usage: null }
-				const data = await authorizedFetch(`${MCP_SERVER}/user/sessions`)
-					.then(handleSimpleFetchResponse)
-					.then((res) => res.json())
+	const {
+		createFakeSession,
+		restoreSession,
+		loadMoreMessages,
+		deleteSession,
+		updateSessionTitle,
+		isCreatingSession,
+		isRestoringSession,
+		isDeletingSession,
+		isUpdatingTitle
+	} = useSessionMutations()
 
-				const existingData = queryClient.getQueryData(['chat-sessions', user.id]) as
-					| { sessions: ChatSession[]; usage: ResearchUsage | null }
-					| undefined
-				const existingSessions = existingData?.sessions || []
-				const fakeSessions = existingSessions.filter(
-					(session) => !data.sessions.some((realSession: ChatSession) => realSession.sessionId === session.sessionId)
-				)
+	const { sidebarVisible, toggleSidebar } = useSidebarVisibility()
 
-				return {
-					sessions: [...fakeSessions, ...data.sessions],
-					usage: data.usage?.research_report || null
-				}
-			} catch (error) {
-				console.log('Failed to fetch sessions:', error)
-				throw new Error('Failed to fetch sessions')
-			}
-		},
-		enabled: isAuthenticated && !!user,
-		staleTime: 30000
-	})
-
-	const sessions = data.sessions
-	const researchUsage = data.usage
-
-	const createSessionMutation = useMutation({
-		mutationFn: async ({ sessionId, title }: { sessionId: string; title?: string }) => {
-			try {
-				const response = await authorizedFetch(`${MCP_SERVER}/user/sessions`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ sessionId, title })
-				})
-					.then(handleSimpleFetchResponse)
-					.then((res) => res.json())
-
-				return response
-			} catch (error) {
-				console.log('Failed to create session:', error)
-				throw new Error('Failed to create session')
-			}
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
-		}
-	})
-
-	const { mutateAsync: restoreSessionAsync, isPending: isRestoringSession } = useMutation({
-		mutationFn: async ({ sessionId, limit, cursor }: { sessionId: string; limit?: number; cursor?: number }) => {
-			try {
-				const params = new URLSearchParams()
-				if (limit !== undefined) params.append('limit', limit.toString())
-				if (cursor !== undefined) params.append('cursor', cursor.toString())
-
-				const url = `${MCP_SERVER}/user/sessions/${sessionId}/restore${params.toString() ? `?${params}` : ''}`
-				const response = await authorizedFetch(url)
-					.then(handleSimpleFetchResponse)
-					.then((res) => res.json())
-
-				return response
-			} catch (error) {
-				console.log('Failed to restore session:', error)
-				throw new Error('Failed to restore session')
-			}
-		}
-	})
-
-	const deleteSessionMutation = useMutation({
-		mutationFn: async (sessionId: string) => {
-			try {
-				const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}`, {
-					method: 'DELETE'
-				})
-					.then(handleSimpleFetchResponse)
-					.then((res) => res.json())
-
-				return response
-			} catch (error) {
-				console.log('Failed to delete session:', error)
-				throw new Error('Failed to delete session')
-			}
-		},
-		onMutate: async (sessionId) => {
-			queryClient.setQueryData(
-				['chat-sessions', user.id],
-				(old: { sessions: ChatSession[]; usage: ResearchUsage | null } | undefined) => {
-					if (!old) return { sessions: [], usage: null }
-					return {
-						...old,
-						sessions: old.sessions.filter((session) => session.sessionId !== sessionId)
-					}
-				}
-			)
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
-		}
-	})
-
-	const updateTitleMutation = useMutation({
-		mutationFn: async ({ sessionId, title }: { sessionId: string; title: string }) => {
-			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}/title`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ title })
-			})
-				.then(handleSimpleFetchResponse)
-				.then((res) => res.json())
-
-			return response
-		},
-		onMutate: async ({ sessionId, title }) => {
-			queryClient.setQueryData(
-				['chat-sessions', user.id],
-				(old: { sessions: ChatSession[]; usage: ResearchUsage | null } | undefined) => {
-					if (!old) return { sessions: [], usage: null }
-					return {
-						...old,
-						sessions: old.sessions.map((session) => {
-							if (session.sessionId === sessionId) {
-								return { ...session, title }
-							}
-							return session
-						})
-					}
-				}
-			)
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
-		}
-	})
-
-	const createFakeSession = useCallback(() => {
-		const sessionId = crypto.randomUUID()
-		const title = 'New Chat'
-
-		if (user) {
-			const fakeSession: ChatSession = {
-				sessionId,
-				title,
-				createdAt: new Date().toISOString(),
-				lastActivity: new Date().toISOString(),
-				isActive: true
-			}
-
-			queryClient.setQueryData(
-				['chat-sessions', user.id],
-				(old: { sessions: ChatSession[]; usage: ResearchUsage | null } | undefined) => ({
-					usage: old?.usage ?? null,
-					sessions: [fakeSession, ...(old?.sessions ?? [])]
-				})
-			)
-		}
-
-		return sessionId
-	}, [user, queryClient])
-
-	const restoreSession = useCallback(
-		async (sessionId: string, limit: number = 10) => {
-			try {
-				const result = await restoreSessionAsync({ sessionId, limit })
-				return {
-					messages: result.messages || result.conversationHistory || [],
-					pagination: {
-						hasMore: result.hasMore || false,
-						isLoadingMore: false,
-						cursor: result.nextCursor,
-						totalMessages: result.totalMessages
-					},
-					streaming: result.streaming
-				}
-			} catch (error) {
-				console.log('Failed to restore session:', error)
-				return {
-					messages: [],
-					pagination: {
-						hasMore: false,
-						isLoadingMore: false
-					}
-				}
-			}
-		},
-		[restoreSessionAsync]
-	)
-
-	const loadMoreMessages = useCallback(
-		async (sessionId: string, cursor: number) => {
-			try {
-				const result = await restoreSessionAsync({ sessionId, limit: 10, cursor })
-				return {
-					messages: result.messages || result.conversationHistory || [],
-					pagination: {
-						hasMore: result.hasMore || false,
-						isLoadingMore: false,
-						cursor: result.nextCursor,
-						totalMessages: result.totalMessages
-					}
-				}
-			} catch (error) {
-				console.log('Failed to load more messages:', error)
-				return {
-					messages: [],
-					pagination: {
-						hasMore: false,
-						isLoadingMore: false
-					}
-				}
-			}
-		},
-		[restoreSessionAsync]
-	)
-
-	const moveSessionToTop = useCallback(
-		(sessionId: string) => {
-			if (!user) return
-
-			queryClient.setQueryData(
-				['chat-sessions', user.id],
-				(old: { sessions: ChatSession[]; usage: ResearchUsage | null } | undefined) => {
-					if (!old) return { sessions: [], usage: null }
-					const sessionIndex = old.sessions.findIndex((s) => s.sessionId === sessionId)
-					if (sessionIndex === -1) return old
-
-					const updatedSessions = [...old.sessions]
-					const [movedSession] = updatedSessions.splice(sessionIndex, 1)
-					movedSession.lastActivity = new Date().toISOString()
-
-					return { ...old, sessions: [movedSession, ...updatedSessions] }
-				}
-			)
-		},
-		[user, queryClient]
-	)
-
-	const decrementResearchUsage = useCallback(() => {
-		if (!user) return
-
-		queryClient.setQueryData(
-			['chat-sessions', user.id],
-			(old: { sessions: ChatSession[]; usage: ResearchUsage | null } | undefined) => {
-				if (!old?.usage) return old ?? { sessions: [], usage: null }
-				return {
-					...old,
-					usage: {
-						...old.usage,
-						remainingUsage: Math.max(0, old.usage.remainingUsage - 1)
-					}
-				}
-			}
-		)
-	}, [user, queryClient])
-
-	const toggleSidebar = useCallback(() => {
-		const currentVisible = localStorage.getItem('llamaai-sidebar-hidden') === 'true'
-		setStorageItem('llamaai-sidebar-hidden', String(!currentVisible))
-	}, [])
-
-	const sidebarHidden = useSyncExternalStore(
-		(callback) => subscribeToStorageKey('llamaai-sidebar-hidden', callback),
-		() => getStorageItem('llamaai-sidebar-hidden', 'true') ?? 'true',
-		() => 'true'
-	)
-
-	const [sidebarHiddenMobile, setSidebarHiddenMobile] = useState('true')
-	const isMobile = useMedia('(max-width: 640px)')
-
-	const toggleSidebarMobile = useCallback(() => {
-		setSidebarHiddenMobile((prev) => (prev === 'true' ? 'false' : 'true'))
-	}, [])
+	const { decrementResearchUsage } = useResearchUsage()
 
 	return {
 		sessions,
 		researchUsage,
 		isLoading,
-		sidebarVisible: isMobile ? sidebarHiddenMobile !== 'true' : sidebarHidden !== 'true',
+		sidebarVisible,
 		createFakeSession,
 		restoreSession,
 		loadMoreMessages,
-		deleteSession: deleteSessionMutation.mutateAsync,
-		updateSessionTitle: updateTitleMutation.mutateAsync,
+		deleteSession,
+		updateSessionTitle,
 		moveSessionToTop,
 		decrementResearchUsage,
-		toggleSidebar: isMobile ? toggleSidebarMobile : toggleSidebar,
-		isCreatingSession: createSessionMutation.isPending,
+		toggleSidebar,
+		isCreatingSession,
 		isRestoringSession,
-		isDeletingSession: deleteSessionMutation.isPending,
-		isUpdatingTitle: updateTitleMutation.isPending
+		isDeletingSession,
+		isUpdatingTitle
 	}
 }

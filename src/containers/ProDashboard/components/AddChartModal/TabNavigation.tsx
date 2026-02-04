@@ -7,11 +7,7 @@ interface TabNavigationProps {
 	onTabChange: (tab: MainTabType) => void
 }
 
-export function TabNavigation({
-	selectedMainTab,
-	editItem,
-	onTabChange
-}: TabNavigationProps) {
+export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNavigationProps) {
 	const allTabs = [
 		{ id: 'charts' as const, label: 'Charts', subtitle: '', mobileLabel: 'Charts' },
 		{ id: 'metric' as const, label: 'Metric', mobileLabel: 'Metric' },

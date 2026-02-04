@@ -14,15 +14,12 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		header: 'Pool',
 		accessorKey: 'pool',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue, row }) => {
 			return (
 				<NameYieldPool
 					value={getValue() as string}
 					configID={row.original.configID}
 					url={row.original.url}
-					index={index + 1}
 					borrow={true}
 				/>
 			)

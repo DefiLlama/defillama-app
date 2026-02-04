@@ -12,6 +12,7 @@ export function getEnvNumber(name: string, fallback: number): number {
 
 const LOG_MAX_QPS = Math.max(0, getEnvNumber('RUNTIME_LOG_MAX_QPS', 5))
 const LOG_QUEUE_MAX = Math.max(10, getEnvNumber('RUNTIME_LOG_QUEUE_MAX', 200))
+const WEBHOOK_MIN_INTERVAL_MS = Math.max(250, getEnvNumber('RUNTIME_LOG_WEBHOOK_MIN_INTERVAL_MS', 1000))
 const LOG_SILENT =
 	process.env.RUNTIME_LOG_SILENT === '1' ||
 	(process.env.NODE_ENV === 'production' && process.env.RUNTIME_LOG_SILENT !== '0')
@@ -40,6 +41,47 @@ export function isRetryableStatus(status: number): boolean {
 	return status === 408 || status === 429 || (status >= 500 && status < 600)
 }
 
+function looksLikeHtmlDocument(text: string): boolean {
+	// We specifically want to catch "Cloudflare HTML error page" type responses.
+	// Keep this cheap: no regex, small checks, case-insensitive.
+	const s = text.trimStart().slice(0, 2048).toLowerCase()
+	return s.startsWith('<!doctype html') || s.startsWith('<html') || (s.includes('<head') && s.includes('</html>'))
+}
+
+function sanitizeResponseTextForError(text: string): string {
+	if (!text) return ''
+	if (looksLikeHtmlDocument(text)) return '[html error page]'
+	// Keep logs/errors small; avoid huge payloads (and accidental PII) in exceptions.
+	const trimmed = text.trim()
+	if (trimmed.length <= 500) return trimmed
+	return `${trimmed.slice(0, 500)}…`
+}
+
+function sanitizeUrlForLogs(input: RequestInfo | URL): string {
+	let raw: string
+
+	if (typeof input === 'string') raw = input
+	else if (input instanceof URL) raw = input.toString()
+	// Request (browser/undici) has `.url`
+	else if (typeof (input as any)?.url === 'string') raw = (input as any).url
+	else raw = String(input)
+
+	// Minimal behavior:
+	// - If SERVER_URL (or server_url) is set, strip it from the logged URL.
+	// - If not set, log as-is.
+	const serverUrl = process.env.SERVER_URL
+	if (!serverUrl) return raw
+
+	// Normalize SERVER_URL for log-sanitizing:
+	// - strip trailing slashes
+	// - if it ends with `/api` (or `/api/`), strip that too
+	const base = serverUrl.replace(/\/+$/, '').replace(/\/api$/, '')
+	if (!base) return raw
+
+	if (raw.startsWith(base)) return raw.slice(base.length) || '/'
+	return raw
+}
+
 // ─────────────────────────────────────────────────────────────
 // Logging: Simple QPS throttle + dedup + async webhook
 // ─────────────────────────────────────────────────────────────
@@ -53,67 +95,121 @@ let qpsCount = 0
 let dropped = 0
 
 const logQueue: string[] = []
-let flushTimer: ReturnType<typeof setInterval> | null = null
+let flushTimer: ReturnType<typeof setTimeout> | null = null
+let webhookInFlight = false
+let webhookNextSendAt = 0
+let webhookBackoffMs = 0
+const WEBHOOK_MAX_BACKOFF_MS = 30_000
 
 function webhookEnabled(): boolean {
 	return typeof window === 'undefined' && !!process.env.RUNTIME_LOGS_WEBHOOK
 }
 
-function startFlushTimer(): void {
+function ensureFlushScheduled(delayMs: number = 0): void {
 	if (flushTimer || !webhookEnabled()) return
-	flushTimer = setInterval(flushQueue, 1000)
+	const delay = Math.max(0, delayMs)
+	flushTimer = setTimeout(() => void flushQueue(), delay)
 	if (typeof flushTimer.unref === 'function') {
 		flushTimer.unref()
 	}
 }
 
-function flushQueue(): void {
-	if (logQueue.length === 0 && dropped === 0) {
-		// Stop timer when idle to save CPU
-		if (flushTimer) {
-			clearInterval(flushTimer)
-			flushTimer = null
-		}
+async function flushQueue(): Promise<void> {
+	// Allow rescheduling by clearing timer handle first.
+	flushTimer = null
+
+	if (!webhookEnabled()) return
+	if (webhookInFlight) {
+		ensureFlushScheduled(250)
+		return
+	}
+	if (logQueue.length === 0 && dropped === 0) return
+
+	const now = Date.now()
+	if (now < webhookNextSendAt) {
+		ensureFlushScheduled(webhookNextSendAt - now)
 		return
 	}
 
-	const items = logQueue.splice(0)
+	// Convert accumulated drops into a single line, so it also gets rate-limited.
 	if (dropped > 0) {
-		items.unshift(`[logs] ${dropped} dropped`)
+		logQueue.unshift(`[logs] ${dropped} dropped`)
 		dropped = 0
 	}
 
-	// Batch into ≤1900 char messages (Discord limit is 2000)
+	// Build ONE batch (slow mode): at most one webhook request per flush.
+	// (Discord limit is 2000; keep margin for safety.)
 	let batch = ''
-	for (const line of items) {
+	while (logQueue.length > 0) {
+		const line = logQueue[0] ?? ''
 		const next = batch ? `${batch}\n${line}` : line
 		if (next.length > 1900) {
-			if (batch) sendWebhook(batch)
-			batch = line.slice(0, 1900)
-		} else {
-			batch = next
+			if (!batch) {
+				// Single line too large: send truncated and move on.
+				batch = line.slice(0, 1900)
+				logQueue.shift()
+			}
+			break
 		}
+		batch = next
+		logQueue.shift()
 	}
-	if (batch) sendWebhook(batch)
+
+	if (!batch) return
+
+	webhookInFlight = true
+	const result = await sendWebhook(batch)
+	webhookInFlight = false
+
+	const afterSendNow = Date.now()
+
+	if (result.ok) {
+		webhookBackoffMs = 0
+		webhookNextSendAt = afterSendNow + WEBHOOK_MIN_INTERVAL_MS
+	} else if (result.retryAfterMs && result.retryAfterMs > 0) {
+		// Respect Discord rate limiting.
+		webhookNextSendAt = afterSendNow + Math.min(WEBHOOK_MAX_BACKOFF_MS, result.retryAfterMs)
+	} else {
+		// Generic failure: exponential-ish backoff, bounded.
+		webhookBackoffMs = Math.min(WEBHOOK_MAX_BACKOFF_MS, webhookBackoffMs ? webhookBackoffMs * 2 : 2000)
+		webhookNextSendAt = afterSendNow + webhookBackoffMs
+	}
+
+	// Schedule next flush only if we still have work.
+	if (logQueue.length > 0 || dropped > 0) {
+		ensureFlushScheduled(Math.max(0, webhookNextSendAt - Date.now()))
+	}
 }
 
-function sendWebhook(content: string): void {
+async function sendWebhook(content: string): Promise<{ ok: boolean; retryAfterMs?: number }> {
 	const url = process.env.RUNTIME_LOGS_WEBHOOK
-	if (!url) return
+	if (!url) return { ok: false }
 
 	const controller = new AbortController()
 	const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-	fetch(url, {
-		method: 'POST',
-		body: JSON.stringify({ content }),
-		headers: { 'Content-Type': 'application/json' },
-		signal: controller.signal
-	})
-		.catch(() => {
-			// Silently ignore webhook failures
+	try {
+		const res = await fetch(url, {
+			method: 'POST',
+			body: JSON.stringify({ content }),
+			headers: { 'Content-Type': 'application/json' },
+			signal: controller.signal
 		})
-		.finally(() => clearTimeout(timeoutId))
+
+		if (res.status === 429) {
+			const retryAfterHeader = res.headers.get('Retry-After') || ''
+			const retryAfterSeconds = Number(retryAfterHeader)
+			const retryAfterMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0 ? retryAfterSeconds * 1000 : 5000
+			return { ok: false, retryAfterMs }
+		}
+
+		return { ok: res.ok }
+	} catch {
+		// Silently ignore webhook failures (best-effort logger)
+		return { ok: false }
+	} finally {
+		clearTimeout(timeoutId)
+	}
 }
 
 type RuntimeLogOptions = {
@@ -122,6 +218,10 @@ type RuntimeLogOptions = {
 }
 
 export function postRuntimeLogs(log: string, options?: RuntimeLogOptions): void {
+	// Never log or ship HTML pages (e.g. Cloudflare error documents).
+	// These are noisy, can be huge, and aren't useful for runtime diagnostics here.
+	if (looksLikeHtmlDocument(log)) return
+
 	const now = Date.now()
 	const level = options?.level ?? 'info'
 	const forceConsole = options?.forceConsole ?? false
@@ -135,7 +235,7 @@ export function postRuntimeLogs(log: string, options?: RuntimeLogOptions): void 
 	if (LOG_MAX_QPS > 0 && qpsCount >= LOG_MAX_QPS) {
 		dropped++
 		droppedForThrottle = true
-		startFlushTimer()
+		ensureFlushScheduled(0)
 	}
 	if (!droppedForThrottle) {
 		qpsCount++
@@ -146,7 +246,7 @@ export function postRuntimeLogs(log: string, options?: RuntimeLogOptions): void 
 	const lastSeen = recentErrors.get(key)
 	if (!droppedForThrottle && lastSeen && now - lastSeen < DEDUP_WINDOW_MS) {
 		dropped++
-		startFlushTimer()
+		ensureFlushScheduled(0)
 		droppedForThrottle = true
 	}
 	if (!droppedForThrottle) {
@@ -177,15 +277,17 @@ export function postRuntimeLogs(log: string, options?: RuntimeLogOptions): void 
 	if (!droppedForThrottle && webhookEnabled()) {
 		if (logQueue.length >= LOG_QUEUE_MAX) {
 			dropped++
-			startFlushTimer()
+			ensureFlushScheduled(0)
 		} else {
 			logQueue.push(log.slice(0, 1900))
-			startFlushTimer()
+			ensureFlushScheduled(0)
 		}
 	}
 
 	// Console (unless silent)
-	if (!LOG_SILENT || forceConsole || level === 'error') {
+	// IMPORTANT: apply the same throttle/dedup gate to console to avoid event-loop spam.
+	// If webhook is disabled, console may be the only place logs go, so keep it even when throttled.
+	if ((!LOG_SILENT || forceConsole || level === 'error') && (!droppedForThrottle || !webhookEnabled())) {
 		const output = level === 'error' ? console.error : console.log
 		output(`\n${log}\n`)
 	}
@@ -202,6 +304,7 @@ export async function fetchJson<T = any>(
 	const start = Date.now()
 	const maxAttempts = extraRetry ? 3 : 2
 	let lastErr: Error | null = null
+	let lastErrWasHtml = false
 
 	for (let attempt = 0; attempt < maxAttempts; attempt++) {
 		try {
@@ -211,7 +314,9 @@ export async function fetchJson<T = any>(
 				// Non-retryable client errors → fail fast
 				if (res.status >= 400 && res.status < 500 && !isRetryableStatus(res.status)) {
 					const text = await res.text().catch(() => res.statusText)
-					throw new Error(`[${res.status}] ${text}`)
+					const sanitized = sanitizeResponseTextForError(text || res.statusText)
+					lastErrWasHtml = looksLikeHtmlDocument(text || '')
+					throw new Error(`[${res.status}] ${sanitized || res.statusText}`)
 				}
 				// Retryable server errors
 				if (isRetryableStatus(res.status) && attempt < maxAttempts - 1) {
@@ -219,18 +324,25 @@ export async function fetchJson<T = any>(
 					continue
 				}
 				const text = await res.text().catch(() => res.statusText)
-				throw new Error(`[${res.status}] ${text}`)
+				const sanitized = sanitizeResponseTextForError(text || res.statusText)
+				lastErrWasHtml = looksLikeHtmlDocument(text || '')
+				throw new Error(`[${res.status}] ${sanitized || res.statusText}`)
 			}
 
 			const data = await res.json()
 			const elapsed = Date.now() - start
 			if (elapsed > 5000) {
-				postRuntimeLogs(`[fetchJson] [${elapsed}ms] < ${url} >`)
+				postRuntimeLogs(`[fetchJson] [${elapsed}ms] < ${sanitizeUrlForLogs(url)} >`)
 			}
 
 			return data
 		} catch (err) {
 			lastErr = err instanceof Error ? err : new Error(String(err))
+			// Common case: API returned HTML (starts with "<") but we tried to parse JSON.
+			// We don't have the body here, but the SyntaxError message is a strong signal.
+			if (/unexpected token\s*</i.test(lastErr.message)) {
+				lastErrWasHtml = true
+			}
 			const canRetry = attempt < maxAttempts - 1 && isTransientError(lastErr)
 			if (canRetry) {
 				await sleep(getJitteredDelay(100, attempt, 2000))
@@ -241,10 +353,11 @@ export async function fetchJson<T = any>(
 
 	// Log on final failure only
 	const elapsed = Date.now() - start
-	postRuntimeLogs(`[fetchJson] [error] [${elapsed}ms] [${lastErr?.message}] < ${url} >`, {
-		level: 'error',
-		forceConsole: true
-	})
+	const finalLog = lastErrWasHtml
+		? `[fetchJson] [error] [${elapsed}ms] [returned html page] < ${sanitizeUrlForLogs(url)} >`
+		: `[fetchJson] [error] [${elapsed}ms] [${lastErr?.message}] < ${sanitizeUrlForLogs(url)} >`
+	// Avoid spamming console when webhook logging is configured.
+	postRuntimeLogs(finalLog, { level: 'error', forceConsole: !webhookEnabled() })
 	throw lastErr
 }
 
@@ -281,9 +394,9 @@ export async function handleFetchResponse(res: Response): Promise<any> {
 	if (responseText) {
 		try {
 			const errorResponse = JSON.parse(responseText)
-			errorMessage = errorResponse.error ?? errorResponse.message ?? responseText
+			errorMessage = errorResponse.error ?? errorResponse.message ?? sanitizeResponseTextForError(responseText)
 		} catch {
-			errorMessage = responseText
+			errorMessage = sanitizeResponseTextForError(responseText)
 		}
 	}
 
@@ -302,9 +415,9 @@ export async function handleSimpleFetchResponse(res: Response): Promise<Response
 		if (responseText) {
 			try {
 				const errorResponse = JSON.parse(responseText)
-				errorMessage = errorResponse.error ?? errorResponse.message ?? responseText
+				errorMessage = errorResponse.error ?? errorResponse.message ?? sanitizeResponseTextForError(responseText)
 			} catch {
-				errorMessage = responseText
+				errorMessage = sanitizeResponseTextForError(responseText)
 			}
 		}
 

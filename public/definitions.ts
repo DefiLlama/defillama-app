@@ -208,6 +208,29 @@ export const definitions = {
       "change7dover7d": "Change of last 7 days notional volume including leverage over the previous 7 days notional volume including leverage",
     }
   },
+  "normalizedVolume": {
+    "common": "Normalized trading volume, adjusted using active orderbook liquidity per market and a baseline from the most organic exchange to reduce inflated/inorganic volumes",
+    "protocol": {
+      "24h": "Normalized trading volume in the last 24 hours, adjusted using active orderbook liquidity per market and a baseline from the most organic exchange to reduce inflated/inorganic volumes",
+      "7d": "Normalized trading volume in the last 7 days, adjusted using active orderbook liquidity per market and a baseline from the most organic exchange to reduce inflated/inorganic volumes",
+      "30d": "Normalized trading volume in the last 30 days, adjusted using active orderbook liquidity per market and a baseline from the most organic exchange to reduce inflated/inorganic volumes",
+      "1y": "Normalized trading volume in the last 12 months, adjusted using active orderbook liquidity per market and a baseline from the most organic exchange to reduce inflated/inorganic volumes",
+      "cumulative": "Total normalized trading volume since the protocol was launched",
+      "annualized": "Total normalized trading volume in the last 30 days, multiplied by 12 to annualize it",
+      "change1d": "Day-over-day percentage change in normalized trading volume",
+      "change7d": "Week-over-week percentage change in normalized trading volume",
+      "change1m": "Month-over-month percentage change in normalized trading volume",
+      "change7dover7d": "Change of last 7 days normalized trading volume over the previous 7 days normalized trading volume",
+      "change30dover30d": "Change of last 30 days normalized trading volume over the previous 30 days normalized trading volume",
+      "average1y": "Average monthly normalized trading volume in the last 12 months"
+    },
+    "chain": {
+      "24h": "Normalized trading volume on the chain in the last 24 hours, adjusted using active orderbook liquidity per market and a baseline from the most organic exchange to reduce inflated/inorganic volumes. Updated daily at 00:00 UTC",
+      "7d": "Normalized trading volume on the chain in the last 7 days, adjusted using active orderbook liquidity per market and a baseline from the most organic exchange to reduce inflated/inorganic volumes. Updated daily at 00:00 UTC",
+      "30d": "Normalized trading volume on the chain in the last 30 days, adjusted using active orderbook liquidity per market and a baseline from the most organic exchange to reduce inflated/inorganic volumes. Updated daily at 00:00 UTC",
+      "change7dover7d": "Change of last 7 days normalized trading volume over the previous 7 days normalized trading volume",
+    }
+  },
   "perpsAggregators": {
     "common": "Notional volume of all trades including leverage routed through the perp aggregator",
     "protocol": {

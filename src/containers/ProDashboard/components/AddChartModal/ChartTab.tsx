@@ -25,6 +25,7 @@ interface ChartTabProps {
 	onChainChange: (option: any) => void
 	onProtocolChange: (option: any) => void
 	onChartTypesChange: (types: string[]) => void
+	onBulkChartTypeChange: (nextType: string) => void
 	onSelectedChainsChange?: (chains: string[]) => void
 	onSelectedProtocolsChange?: (protocols: string[]) => void
 	onSelectedYieldPoolChange?: (pool: { configID: string; name: string; project: string; chain: string } | null) => void
@@ -70,6 +71,12 @@ interface ChartTabProps {
 	selectedIncomeStatementProtocolName?: string | null
 	onSelectedIncomeStatementProtocolChange?: (protocol: string | null) => void
 	onSelectedIncomeStatementProtocolNameChange?: (name: string | null) => void
+	selectedUnlocksProtocol?: string | null
+	selectedUnlocksProtocolName?: string | null
+	selectedUnlocksChartType?: 'total' | 'schedule' | 'allocation' | 'locked-unlocked'
+	onSelectedUnlocksProtocolChange?: (protocol: string | null) => void
+	onSelectedUnlocksProtocolNameChange?: (name: string | null) => void
+	onSelectedUnlocksChartTypeChange?: (type: 'total' | 'schedule' | 'allocation' | 'locked-unlocked') => void
 	onUnifiedChartNameChange: (name: string) => void
 	onChartCreationModeChange: (mode: 'separate' | 'combined') => void
 	onComposerItemColorChange: (id: string, color: string) => void
@@ -162,6 +169,7 @@ export function ChartTab(props: ChartTabProps) {
 					onChainChange={props.onChainChange}
 					onProtocolChange={props.onProtocolChange}
 					onChartTypesChange={props.onChartTypesChange}
+					onBulkChartTypeChange={props.onBulkChartTypeChange}
 					onSelectedChainsChange={props.onSelectedChainsChange}
 					onSelectedProtocolsChange={props.onSelectedProtocolsChange}
 					onSelectedYieldPoolChange={props.onSelectedYieldPoolChange}
@@ -207,6 +215,12 @@ export function ChartTab(props: ChartTabProps) {
 					selectedIncomeStatementProtocolName={props.selectedIncomeStatementProtocolName}
 					onSelectedIncomeStatementProtocolChange={props.onSelectedIncomeStatementProtocolChange}
 					onSelectedIncomeStatementProtocolNameChange={props.onSelectedIncomeStatementProtocolNameChange}
+					selectedUnlocksProtocol={props.selectedUnlocksProtocol}
+					selectedUnlocksProtocolName={props.selectedUnlocksProtocolName}
+					selectedUnlocksChartType={props.selectedUnlocksChartType}
+					onSelectedUnlocksProtocolChange={props.onSelectedUnlocksProtocolChange}
+					onSelectedUnlocksProtocolNameChange={props.onSelectedUnlocksProtocolNameChange}
+					onSelectedUnlocksChartTypeChange={props.onSelectedUnlocksChartTypeChange}
 					onUnifiedChartNameChange={props.onUnifiedChartNameChange}
 					onChartCreationModeChange={props.onChartCreationModeChange}
 					onComposerItemColorChange={props.onComposerItemColorChange}

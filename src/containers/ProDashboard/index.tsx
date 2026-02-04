@@ -106,7 +106,9 @@ function ProDashboardContent() {
 			item?.kind === 'stablecoin-asset' ||
 			item?.kind === 'advanced-tvl' ||
 			item?.kind === 'advanced-borrowed' ||
-			item?.kind === 'income-statement'
+			item?.kind === 'income-statement' ||
+			item?.kind === 'unlocks-schedule' ||
+			item?.kind === 'unlocks-pie'
 	)
 
 	const currentRatingSession = getCurrentRatingSession()

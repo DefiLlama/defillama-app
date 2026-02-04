@@ -1,41 +1,6 @@
 import { IHack } from '../Hacks/queries'
 import { protocolCharts, ProtocolChartsLabels } from './Chart/constants'
 
-export interface IProtocolMetadata {
-	tvl?: boolean
-	yields?: boolean
-	forks?: boolean
-	liquidity?: boolean
-	raises?: boolean
-	fees?: boolean
-	revenue?: boolean
-	holdersRevenue?: boolean
-	dexs?: boolean
-	perps?: boolean
-	openInterest?: boolean
-	dexAggregators?: boolean
-	optionsPremiumVolume?: boolean
-	optionsNotionalVolume?: boolean
-	perpsAggregators?: boolean
-	bridgeAggregators?: boolean
-	displayName?: string
-	chains?: Array<string>
-	hacks?: boolean
-	activeUsers?: boolean
-	governance?: boolean
-	expenses?: boolean
-	treasury?: boolean
-	nfts?: boolean
-	emissions?: boolean
-	incentives?: boolean
-	bribeRevenue?: boolean
-	tokenTax?: boolean
-	bridge?: boolean
-	stablecoins?: boolean
-	safeHarbor?: boolean
-	borrowed?: boolean
-}
-
 export interface IProtocolPageMetrics {
 	tvl: boolean
 	tvlTab: boolean
@@ -65,6 +30,74 @@ export interface IProtocolPageMetrics {
 	liquidity: boolean
 	activeUsers: boolean
 	borrowed: boolean
+	tokenRights: boolean
+}
+
+type TokenRightLabel = 'Governance' | 'Treasury' | 'Revenue'
+
+interface TokenRight {
+	label: TokenRightLabel | string // extensible
+	hasRight: boolean
+	details?: string
+}
+
+type GovernanceRights = 'NONE' | 'LIMITED' | 'FULL'
+type FeeSwitchStatus = 'ON' | 'OFF' | 'PENDING' | 'UNKNOWN'
+
+interface GovernanceLink {
+	label: string
+	url: string
+}
+
+interface GovernanceData {
+	rights: GovernanceRights
+	details?: string
+	feeSwitchStatus?: FeeSwitchStatus
+	feeSwitchDetails?: string
+	links?: GovernanceLink[]
+}
+
+type BuybacksStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
+type DividendsStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
+type BurnsStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
+
+interface HoldersRevenueAndValueAccrual {
+	buybacks?: BuybacksStatus
+	dividends?: DividendsStatus
+	burns?: BurnsStatus
+	burnSources?: string[]
+	primaryValueAccrual?: string
+}
+
+type FundraisingType = 'EQUITY' | 'TOKEN' | 'NONE' | 'UNKNOWN'
+type EquityRevenueCaptureStatus = 'ACTIVE' | 'INACTIVE' | 'PARTIAL' | 'UNKNOWN'
+
+interface TokenAlignmentLink {
+	label: string
+	url: string
+}
+
+interface TokenAlignment {
+	fundraising?: FundraisingType
+	raiseDetailsLink?: TokenAlignmentLink
+	associatedEntities?: string[]
+	equityRevenueCapture?: EquityRevenueCaptureStatus
+	equityStatement?: string
+}
+
+interface ProtocolResource {
+	label: string
+	address?: string
+	url?: string
+	note?: string
+}
+
+export interface ITokenRights {
+	rights?: TokenRight[]
+	governanceData?: GovernanceData
+	holdersRevenueAndValueAccrual?: HoldersRevenueAndValueAccrual
+	tokenAlignment?: TokenAlignment
+	resources?: ProtocolResource[]
 }
 
 export interface IUpdatedProtocol {
@@ -119,6 +152,7 @@ export interface IUpdatedProtocol {
 		until?: number | string // unix timestamp or "forever" or date string  in 'YYYY-MM-DD' format, 'forever' if the field is not set
 		level: 'low' | 'alert' | 'rug'
 	}>
+	tokenRights?: ITokenRights
 }
 
 interface IAdapterOverview {
@@ -161,7 +195,6 @@ export interface IProtocolOverviewPageData {
 	fees: IAdapterOverview | null
 	revenue: IAdapterOverview | null
 	holdersRevenue: IAdapterOverview | null
-	supplySideRevenue: IAdapterOverview | null
 	bribeRevenue: IAdapterOverview | null
 	tokenTax: IAdapterOverview | null
 	dexVolume: IAdapterOverview | null
@@ -271,6 +304,7 @@ export interface IProtocolOverviewPageData {
 	seoKeywords: string
 	defaultToggledCharts: ProtocolChartsLabels[]
 	oracleTvs?: Record<string, number> | null
+	entityQuestions?: string[]
 }
 
 interface ICredit {

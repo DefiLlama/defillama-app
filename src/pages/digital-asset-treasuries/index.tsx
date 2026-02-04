@@ -236,12 +236,12 @@ const columns: ColumnDef<IDATOverviewPageProps['institutions'][0]>[] = [
 		header: 'Institution',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const name = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<BasicLink
 						href={`/digital-asset-treasury/${slug(row.original.ticker)}`}
 						title={name}
