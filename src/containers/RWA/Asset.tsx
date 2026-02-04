@@ -149,9 +149,11 @@ const ContractItem = ({ chain, address }: { chain: string; address: string }) =>
 }
 
 export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
-	console.log(asset.chartDataset)
 	const displayName = asset.name ?? asset.ticker ?? 'Unknown asset'
 	const keyBase = asset.ticker ?? asset.name ?? 'asset'
+	const onChainMcapTotal = asset.onChainMcap?.total ?? null
+	const activeMcapTotal = asset.activeMcap?.total ?? null
+	const defiActiveTvlTotal = asset.defiActiveTvl?.total ?? null
 
 	// Get attestation links as array
 	const attestationLinks = asset.attestationLinks
@@ -225,7 +227,9 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					>
 						{definitions.onChainMcap.label}
 					</Tooltip>
-					<span className="font-jetbrains text-xl font-semibold">{formattedNum(asset.onChainMcap.total, true)}</span>
+					<span className="font-jetbrains text-xl font-semibold">
+						{onChainMcapTotal != null ? formattedNum(onChainMcapTotal, true) : '-'}
+					</span>
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<Tooltip
@@ -234,7 +238,9 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					>
 						{definitions.activeMcap.label}
 					</Tooltip>
-					<span className="font-jetbrains text-xl font-semibold">{formattedNum(asset.activeMcap.total, true)}</span>
+					<span className="font-jetbrains text-xl font-semibold">
+						{activeMcapTotal != null ? formattedNum(activeMcapTotal, true) : '-'}
+					</span>
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<Tooltip
@@ -243,7 +249,9 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					>
 						{definitions.defiActiveTvl.label}
 					</Tooltip>
-					<span className="font-jetbrains text-xl font-semibold">{formattedNum(asset.defiActiveTvl.total, true)}</span>
+					<span className="font-jetbrains text-xl font-semibold">
+						{defiActiveTvlTotal != null ? formattedNum(defiActiveTvlTotal, true) : '-'}
+					</span>
 				</p>
 				{asset.price != null ? (
 					<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">

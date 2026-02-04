@@ -426,10 +426,12 @@ export const useFilteredRwaAssets = ({
 				continue
 			}
 
-			const onChainMcap = asset.onChainMcap.total
+			const onChainMcap = asset.onChainMcap?.total ?? 0
+			const activeMcap = asset.activeMcap?.total ?? 0
+			const defiActiveTvl = asset.defiActiveTvl?.total ?? 0
 			if (
 				!meetsRatioPercent(
-					asset.defiActiveTvl.total,
+					defiActiveTvl,
 					onChainMcap,
 					minDefiActiveTvlToOnChainMcapPct,
 					maxDefiActiveTvlToOnChainMcapPct
@@ -437,23 +439,11 @@ export const useFilteredRwaAssets = ({
 			) {
 				continue
 			}
-			if (
-				!meetsRatioPercent(
-					asset.activeMcap.total,
-					onChainMcap,
-					minActiveMcapToOnChainMcapPct,
-					maxActiveMcapToOnChainMcapPct
-				)
-			) {
+			if (!meetsRatioPercent(activeMcap, onChainMcap, minActiveMcapToOnChainMcapPct, maxActiveMcapToOnChainMcapPct)) {
 				continue
 			}
 			if (
-				!meetsRatioPercent(
-					asset.defiActiveTvl.total,
-					asset.activeMcap.total,
-					minDefiActiveTvlToActiveMcapPct,
-					maxDefiActiveTvlToActiveMcapPct
-				)
+				!meetsRatioPercent(defiActiveTvl, activeMcap, minDefiActiveTvlToActiveMcapPct, maxDefiActiveTvlToActiveMcapPct)
 			) {
 				continue
 			}
@@ -472,12 +462,12 @@ export const useFilteredRwaAssets = ({
 			if (toFilter) {
 				filteredAssets.push(asset)
 
-				totalOnChainMcap += asset.onChainMcap.total
-				totalActiveMcap += asset.activeMcap.total
+				totalOnChainMcap += onChainMcap
+				totalActiveMcap += activeMcap
 				if (asset.stablecoin) {
-					totalOnChainStablecoinMcap += asset.onChainMcap.total
+					totalOnChainStablecoinMcap += onChainMcap
 				}
-				totalOnChainDeFiActiveTvl += asset.defiActiveTvl.total
+				totalOnChainDeFiActiveTvl += defiActiveTvl
 				if (asset.issuer) {
 					totalIssuersSet.add(asset.issuer)
 				}
@@ -542,9 +532,9 @@ export function useRWAAssetCategoryPieChartData({
 				if (!category || !selectedCategoriesSet.has(category)) continue
 
 				const prev = categoryTotals.get(category) ?? { onChain: 0, active: 0, defi: 0 }
-				prev.onChain += asset.onChainMcap.total
-				prev.active += asset.activeMcap.total
-				prev.defi += asset.defiActiveTvl.total
+				prev.onChain += asset.onChainMcap?.total ?? 0
+				prev.active += asset.activeMcap?.total ?? 0
+				prev.defi += asset.defiActiveTvl?.total ?? 0
 				categoryTotals.set(category, prev)
 			}
 		}
@@ -594,9 +584,9 @@ export function useRwaCategoryAssetClassPieChartData({
 				if (!assetClass || !selectedAssetClassesSet.has(assetClass)) continue
 
 				const prev = assetClassTotals.get(assetClass) ?? { onChain: 0, active: 0, defi: 0 }
-				prev.onChain += asset.onChainMcap.total
-				prev.active += asset.activeMcap.total
-				prev.defi += asset.defiActiveTvl.total
+				prev.onChain += asset.onChainMcap?.total ?? 0
+				prev.active += asset.activeMcap?.total ?? 0
+				prev.defi += asset.defiActiveTvl?.total ?? 0
 				assetClassTotals.set(assetClass, prev)
 			}
 		}
@@ -668,9 +658,9 @@ export function useRwaAssetNamePieChartData({
 		for (const asset of selectedAssets) {
 			const name = asset.name?.trim() || asset.ticker?.trim() || UNKNOWN
 			const prev = totals.get(name) ?? { onChain: 0, active: 0, defi: 0 }
-			prev.onChain += asset.onChainMcap.total
-			prev.active += asset.activeMcap.total
-			prev.defi += asset.defiActiveTvl.total
+			prev.onChain += asset.onChainMcap?.total ?? 0
+			prev.active += asset.activeMcap?.total ?? 0
+			prev.defi += asset.defiActiveTvl?.total ?? 0
 			totals.set(name, prev)
 		}
 
@@ -741,9 +731,9 @@ export function useRwaChainBreakdownPieChartData({
 			discoveredChains.add(chain)
 
 			const prev = totals.get(chain) ?? { onChain: 0, active: 0, defi: 0 }
-			prev.onChain += asset.onChainMcap.total
-			prev.active += asset.activeMcap.total
-			prev.defi += asset.defiActiveTvl.total
+			prev.onChain += asset.onChainMcap?.total ?? 0
+			prev.active += asset.activeMcap?.total ?? 0
+			prev.defi += asset.defiActiveTvl?.total ?? 0
 			totals.set(chain, prev)
 		}
 

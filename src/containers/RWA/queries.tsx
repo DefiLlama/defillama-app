@@ -106,15 +106,15 @@ export interface IRWAProject extends Omit<IFetchedRWAProject, 'onChainMcap' | 'a
 	onChainMcap: {
 		total: number
 		breakdown: Array<[string, number]>
-	}
+	} | null
 	activeMcap: {
 		total: number
 		breakdown: Array<[string, number]>
-	}
+	} | null
 	defiActiveTvl: {
 		total: number
 		breakdown: Array<[string, number]>
-	}
+	} | null
 }
 
 export interface IRWAAssetsOverview {
@@ -338,9 +338,9 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			let filteredOnChainMcapForAsset = 0
 			let filteredActiveMcapForAsset = 0
 			let filteredDeFiActiveTvlForAsset = 0
-			const onChainMcapBreakdown = item.onChainMcap ?? {}
-			const activeMcapBreakdown = item.activeMcap ?? {}
-			const defiActiveTvlBreakdown = item.defiActiveTvl ?? {}
+			const onChainMcapBreakdown = isEmptyObject(item.onChainMcap) ? null : (item.onChainMcap ?? null)
+			const activeMcapBreakdown = isEmptyObject(item.activeMcap) ? null : (item.activeMcap ?? null)
+			const defiActiveTvlBreakdown = isEmptyObject(item.defiActiveTvl) ? null : (item.defiActiveTvl ?? null)
 			const finalOnChainMcapBreakdown: Record<string, number> = {}
 			const finalActiveMcapBreakdown: Record<string, number> = {}
 			const finalDeFiActiveTvlBreakdown: Record<string, number> = {}
@@ -356,13 +356,15 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				? !!item.parentPlatform && rwaSlug(item.parentPlatform) === selectedPlatform
 				: true
 
-			for (const chain in onChainMcapBreakdown) {
-				const value = safeNumber(onChainMcapBreakdown[chain])
-				finalOnChainMcapBreakdown[chain] = (finalOnChainMcapBreakdown[chain] || 0) + value
-				totalOnChainMcapForAsset += value
-				if (selectedChain && rwaSlug(chain) === selectedChain) {
-					hasSelectedChainInOnChainMcap = true
-					filteredOnChainMcapForAsset += value
+			if (onChainMcapBreakdown) {
+				for (const chain in onChainMcapBreakdown) {
+					const value = safeNumber(onChainMcapBreakdown[chain])
+					finalOnChainMcapBreakdown[chain] = (finalOnChainMcapBreakdown[chain] || 0) + value
+					totalOnChainMcapForAsset += value
+					if (selectedChain && rwaSlug(chain) === selectedChain) {
+						hasSelectedChainInOnChainMcap = true
+						filteredOnChainMcapForAsset += value
+					}
 				}
 			}
 
@@ -384,30 +386,34 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				)
 			}
 
-			for (const chain in activeMcapBreakdown) {
-				const value = safeNumber(activeMcapBreakdown[chain])
-				finalActiveMcapBreakdown[chain] = (finalActiveMcapBreakdown[chain] || 0) + value
-				totalActiveMcapForAsset += value
-				if (selectedChain && rwaSlug(chain) === selectedChain) {
-					hasSelectedChainInActiveMcap = true
-					filteredActiveMcapForAsset += value
+			if (activeMcapBreakdown) {
+				for (const chain in activeMcapBreakdown) {
+					const value = safeNumber(activeMcapBreakdown[chain])
+					finalActiveMcapBreakdown[chain] = (finalActiveMcapBreakdown[chain] || 0) + value
+					totalActiveMcapForAsset += value
+					if (selectedChain && rwaSlug(chain) === selectedChain) {
+						hasSelectedChainInActiveMcap = true
+						filteredActiveMcapForAsset += value
+					}
 				}
 			}
 
-			for (const chain in defiActiveTvlBreakdown) {
-				const isSelectedChain = !isChainFiltered || rwaSlug(chain) === selectedChain
-				if (selectedChain && isSelectedChain) {
-					// Chain exists as a key in the object, even if its value totals to 0.
-					hasSelectedChainInDeFiActiveTvl = true
-				}
-				for (const protocolName in defiActiveTvlBreakdown[chain]) {
-					const value = safeNumber(defiActiveTvlBreakdown[chain][protocolName])
-					finalDeFiActiveTvlBreakdown[protocolName] = (finalDeFiActiveTvlBreakdown[protocolName] || 0) + value
-					totalDeFiActiveTvlForAsset += value
-					if (isSelectedChain && selectedChain) {
-						finalDeFiActiveTvlBreakdownFiltered[protocolName] =
-							(finalDeFiActiveTvlBreakdownFiltered[protocolName] || 0) + value
-						filteredDeFiActiveTvlForAsset += value
+			if (defiActiveTvlBreakdown) {
+				for (const chain in defiActiveTvlBreakdown) {
+					const isSelectedChain = !isChainFiltered || rwaSlug(chain) === selectedChain
+					if (selectedChain && isSelectedChain) {
+						// Chain exists as a key in the object, even if its value totals to 0.
+						hasSelectedChainInDeFiActiveTvl = true
+					}
+					for (const protocolName in defiActiveTvlBreakdown[chain]) {
+						const value = safeNumber(defiActiveTvlBreakdown[chain][protocolName])
+						finalDeFiActiveTvlBreakdown[protocolName] = (finalDeFiActiveTvlBreakdown[protocolName] || 0) + value
+						totalDeFiActiveTvlForAsset += value
+						if (isSelectedChain && selectedChain) {
+							finalDeFiActiveTvlBreakdownFiltered[protocolName] =
+								(finalDeFiActiveTvlBreakdownFiltered[protocolName] || 0) + value
+							filteredDeFiActiveTvlForAsset += value
+						}
 					}
 				}
 			}
@@ -440,24 +446,30 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				rwaClassification: isTrueRWA ? 'RWA' : (item.rwaClassification ?? null),
 				trueRWA: isTrueRWA,
 				category: sortedCategories,
-				onChainMcap: {
-					total: effectiveOnChainMcap,
-					breakdown: Object.entries(finalOnChainMcapBreakdown)
-						.filter(([chain]) => !selectedChain || rwaSlug(chain) === selectedChain)
-						.sort((a, b) => b[1] - a[1])
-				},
-				activeMcap: {
-					total: effectiveActiveMcap,
-					breakdown: Object.entries(finalActiveMcapBreakdown)
-						.filter(([chain]) => !selectedChain || rwaSlug(chain) === selectedChain)
-						.sort((a, b) => b[1] - a[1])
-				},
-				defiActiveTvl: {
-					total: effectiveDeFiActiveTvl,
-					breakdown: Object.entries(
-						isChainFiltered ? finalDeFiActiveTvlBreakdownFiltered : finalDeFiActiveTvlBreakdown
-					).sort((a, b) => b[1] - a[1])
-				}
+				onChainMcap: onChainMcapBreakdown
+					? {
+							total: effectiveOnChainMcap,
+							breakdown: Object.entries(finalOnChainMcapBreakdown)
+								.filter(([chain]) => !selectedChain || rwaSlug(chain) === selectedChain)
+								.sort((a, b) => b[1] - a[1])
+						}
+					: null,
+				activeMcap: activeMcapBreakdown
+					? {
+							total: effectiveActiveMcap,
+							breakdown: Object.entries(finalActiveMcapBreakdown)
+								.filter(([chain]) => !selectedChain || rwaSlug(chain) === selectedChain)
+								.sort((a, b) => b[1] - a[1])
+						}
+					: null,
+				defiActiveTvl: defiActiveTvlBreakdown
+					? {
+							total: effectiveDeFiActiveTvl,
+							breakdown: Object.entries(
+								isChainFiltered ? finalDeFiActiveTvlBreakdownFiltered : finalDeFiActiveTvlBreakdown
+							).sort((a, b) => b[1] - a[1])
+						}
+					: null
 			}
 
 			// Only include asset if it exists on the selected chain/category (or no route filter)
@@ -556,7 +568,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			.map(([key]) => key)
 
 		return {
-			assets: assets.sort((a, b) => b.onChainMcap.total - a.onChainMcap.total),
+			assets: assets.sort((a, b) => (b.onChainMcap?.total ?? 0) - (a.onChainMcap?.total ?? 0)),
 			types: formattedTypes,
 			typeOptions: formattedTypes.map((type) => ({
 				key: type,
@@ -765,30 +777,36 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 		let totalOnChainMcapForAsset = 0
 		let totalActiveMcapForAsset = 0
 		let totalDeFiActiveTvlForAsset = 0
-		const onChainMcapBreakdown = data.onChainMcap ?? {}
-		const activeMcapBreakdown = data.activeMcap ?? {}
-		const defiActiveTvlBreakdown = data.defiActiveTvl ?? {}
+		const onChainMcapBreakdown = isEmptyObject(data.onChainMcap) ? null : (data.onChainMcap ?? null)
+		const activeMcapBreakdown = isEmptyObject(data.activeMcap) ? null : (data.activeMcap ?? null)
+		const defiActiveTvlBreakdown = isEmptyObject(data.defiActiveTvl) ? null : (data.defiActiveTvl ?? null)
 		const finalOnChainMcapBreakdown: Record<string, number> = {}
 		const finalActiveMcapBreakdown: Record<string, number> = {}
 		const finalDeFiActiveTvlBreakdown: Record<string, number> = {}
 
-		for (const chain in onChainMcapBreakdown) {
-			const value = safeNumber(onChainMcapBreakdown[chain])
-			finalOnChainMcapBreakdown[chain] = (finalOnChainMcapBreakdown[chain] || 0) + value
-			totalOnChainMcapForAsset += value
+		if (onChainMcapBreakdown) {
+			for (const chain in onChainMcapBreakdown) {
+				const value = safeNumber(onChainMcapBreakdown[chain])
+				finalOnChainMcapBreakdown[chain] = (finalOnChainMcapBreakdown[chain] || 0) + value
+				totalOnChainMcapForAsset += value
+			}
 		}
 
-		for (const chain in activeMcapBreakdown) {
-			const value = safeNumber(activeMcapBreakdown[chain])
-			finalActiveMcapBreakdown[chain] = (finalActiveMcapBreakdown[chain] || 0) + value
-			totalActiveMcapForAsset += value
+		if (activeMcapBreakdown) {
+			for (const chain in activeMcapBreakdown) {
+				const value = safeNumber(activeMcapBreakdown[chain])
+				finalActiveMcapBreakdown[chain] = (finalActiveMcapBreakdown[chain] || 0) + value
+				totalActiveMcapForAsset += value
+			}
 		}
 
-		for (const chain in defiActiveTvlBreakdown) {
-			for (const protocolName in defiActiveTvlBreakdown[chain]) {
-				const value = safeNumber(defiActiveTvlBreakdown[chain][protocolName])
-				finalDeFiActiveTvlBreakdown[protocolName] = (finalDeFiActiveTvlBreakdown[protocolName] || 0) + value
-				totalDeFiActiveTvlForAsset += value
+		if (defiActiveTvlBreakdown) {
+			for (const chain in defiActiveTvlBreakdown) {
+				for (const protocolName in defiActiveTvlBreakdown[chain]) {
+					const value = safeNumber(defiActiveTvlBreakdown[chain][protocolName])
+					finalDeFiActiveTvlBreakdown[protocolName] = (finalDeFiActiveTvlBreakdown[protocolName] || 0) + value
+					totalDeFiActiveTvlForAsset += value
+				}
 			}
 		}
 
@@ -829,18 +847,24 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			rwaClassificationDescription,
 			accessModelDescription,
 			assetClassDescriptions,
-			onChainMcap: {
-				total: totalOnChainMcapForAsset,
-				breakdown: Object.entries(finalOnChainMcapBreakdown).sort((a, b) => b[1] - a[1])
-			},
-			activeMcap: {
-				total: totalActiveMcapForAsset,
-				breakdown: Object.entries(finalActiveMcapBreakdown).sort((a, b) => b[1] - a[1])
-			},
-			defiActiveTvl: {
-				total: totalDeFiActiveTvlForAsset,
-				breakdown: Object.entries(finalDeFiActiveTvlBreakdown).sort((a, b) => b[1] - a[1])
-			},
+			onChainMcap: onChainMcapBreakdown
+				? {
+						total: totalOnChainMcapForAsset,
+						breakdown: Object.entries(finalOnChainMcapBreakdown).sort((a, b) => b[1] - a[1])
+					}
+				: null,
+			activeMcap: activeMcapBreakdown
+				? {
+						total: totalActiveMcapForAsset,
+						breakdown: Object.entries(finalActiveMcapBreakdown).sort((a, b) => b[1] - a[1])
+					}
+				: null,
+			defiActiveTvl: defiActiveTvlBreakdown
+				? {
+						total: totalDeFiActiveTvlForAsset,
+						breakdown: Object.entries(finalDeFiActiveTvlBreakdown).sort((a, b) => b[1] - a[1])
+					}
+				: null,
 			chartDataset
 		}
 	} catch (error) {
@@ -851,4 +875,8 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 function safeNumber(value: unknown): number {
 	const n = typeof value === 'number' ? value : Number(value)
 	return Number.isFinite(n) ? n : 0
+}
+
+function isEmptyObject(value: unknown): boolean {
+	return !!value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0
 }

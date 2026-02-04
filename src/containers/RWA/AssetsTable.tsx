@@ -135,9 +135,9 @@ export function RWAAssetsTable({
 				asset.accessModel ?? '',
 				asset.category?.join(', ') ?? '',
 				asset.assetClass?.join(', ') ?? '',
-				asset.defiActiveTvl.total ?? '',
-				asset.activeMcap.total ?? '',
-				asset.onChainMcap.total ?? '',
+				asset.defiActiveTvl?.total ?? '',
+				asset.activeMcap?.total ?? '',
+				asset.onChainMcap?.total ?? '',
 				asset.price != null ? formattedNum(asset.price, true) : '',
 				asset.issuer ?? '',
 				asset.redeemable != null ? (asset.redeemable ? 'Yes' : 'No') : '',
@@ -244,7 +244,18 @@ const columns: ColumnDef<AssetRow>[] = [
 		accessorFn: (asset) => asset.type,
 		cell: (info) => {
 			const value = info.getValue() as string
-			return <span>{value}</span>
+			const tooltipContent = definitions.type.values?.[value]
+			if (tooltipContent) {
+				return (
+					<Tooltip
+						content={tooltipContent}
+						className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted"
+					>
+						{value}
+					</Tooltip>
+				)
+			}
+			return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
 		},
 		size: 120,
 		enableSorting: false,
@@ -406,9 +417,12 @@ const columns: ColumnDef<AssetRow>[] = [
 	{
 		id: 'defiActiveTvl.total',
 		header: definitions.defiActiveTvl.label,
-		accessorFn: (asset) => asset.defiActiveTvl.total,
+		accessorFn: (asset) => asset.defiActiveTvl?.total,
 		cell: (info) => (
-			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.defiActiveTvl.breakdown} />
+			<TVLBreakdownCell
+				value={info.getValue() as number | null | undefined}
+				breakdown={info.row.original.defiActiveTvl?.breakdown}
+			/>
 		),
 		meta: {
 			headerHelperText: definitions.defiActiveTvl.description,
@@ -418,9 +432,12 @@ const columns: ColumnDef<AssetRow>[] = [
 	{
 		id: 'activeMcap.total',
 		header: definitions.activeMcap.label,
-		accessorFn: (asset) => asset.activeMcap.total,
+		accessorFn: (asset) => asset.activeMcap?.total,
 		cell: (info) => (
-			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.activeMcap.breakdown} />
+			<TVLBreakdownCell
+				value={info.getValue() as number | null | undefined}
+				breakdown={info.row.original.activeMcap?.breakdown}
+			/>
 		),
 		meta: {
 			headerHelperText: definitions.activeMcap.description,
@@ -430,9 +447,12 @@ const columns: ColumnDef<AssetRow>[] = [
 	{
 		id: 'onChainMcap.total',
 		header: definitions.onChainMcap.label,
-		accessorFn: (asset) => asset.onChainMcap.total,
+		accessorFn: (asset) => asset.onChainMcap?.total,
 		cell: (info) => (
-			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.onChainMcap.breakdown} />
+			<TVLBreakdownCell
+				value={info.getValue() as number | null | undefined}
+				breakdown={info.row.original.onChainMcap?.breakdown}
+			/>
 		),
 		size: 168,
 		meta: {
@@ -590,8 +610,8 @@ const TVLBreakdownCell = ({
 	value,
 	breakdown
 }: {
-	value: number | null
-	breakdown: Array<[string, number]> | null
+	value: number | null | undefined
+	breakdown: Array<[string, number]> | null | undefined
 }) => {
 	if (value == null) {
 		return null
