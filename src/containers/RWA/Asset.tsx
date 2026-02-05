@@ -1,4 +1,4 @@
-import { Fragment, lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense } from 'react'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
@@ -6,8 +6,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import definitions from '~/public/rwa-definitions.json'
-import { chainIconUrl, formattedNum } from '~/utils'
-import { getBlockExplorer } from '~/utils/blockExplorers'
+import { chainIconUrl, formattedNum, getBlockExplorer } from '~/utils'
 import type { IRWAAssetData } from './queries'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -102,47 +101,61 @@ const SectionCard = ({ title, children }: { title: React.ReactNode; children: Re
 	</div>
 )
 
+const ContractItem = ({ chain, address }: { chain: string; address: string }) => {
+	const truncatedAddress = address.length > 10 ? `${address.slice(0, 4)}...${address.slice(-4)}` : address
+	const { blockExplorerLink } = getBlockExplorer(`${chain.toLowerCase()}:${address}`)
+	return (
+		<div className="flex items-center">
+			{blockExplorerLink ? (
+				<a
+					href={blockExplorerLink}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="flex items-center gap-1 text-xs break-all hover:underline"
+				>
+					{truncatedAddress}
+					<Icon name="external-link" className="h-3 w-3 shrink-0" />
+				</a>
+			) : (
+				<p className="flex items-center gap-1 text-xs break-all">
+					<span>{truncatedAddress}</span>
+					<CopyHelper toCopy={address} className="h-3 w-3" />
+				</p>
+			)}
+		</div>
+	)
+}
+
 const ChainBadge = ({
 	chain,
 	isPrimary = false,
-	showPrimaryStyle = true
+	showPrimaryStyle = true,
+	contracts
 }: {
 	chain: string
 	isPrimary?: boolean
 	showPrimaryStyle?: boolean
-}) => (
-	<div
-		className={`flex items-center gap-1.5 rounded-md border p-2 ${
-			isPrimary && showPrimaryStyle ? 'border-blue-500/30 bg-blue-500/10' : 'border-(--cards-border) bg-(--cards-bg)'
-		}`}
-	>
-		<img src={chainIconUrl(chain)} alt={chain} className="h-5 w-5 rounded-full" loading="lazy" />
-		<span className="text-sm font-medium">{chain}</span>
-		{isPrimary && showPrimaryStyle && <span className="ml-auto text-xs text-(--text-disabled)">Primary</span>}
-	</div>
-)
-
-const ContractItem = ({ chain, address }: { chain: string; address: string }) => {
-	const truncatedAddress = address.length > 24 ? `${address.slice(0, 10)}...${address.slice(-10)}` : address
-	const { blockExplorerLink } = getBlockExplorer(`${chain.toLowerCase()}:${address}`)
-
+	contracts?: string[]
+}) => {
 	return (
-		<div className="flex flex-col gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-			<span className="text-xs text-(--text-label)">{chain}</span>
-			<div className="flex items-center justify-between gap-2">
-				{blockExplorerLink ? (
-					<a
-						href={blockExplorerLink}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="font-mono text-xs text-(--link-text) hover:underline"
-					>
-						{truncatedAddress}
-					</a>
-				) : (
-					<span className="font-mono text-xs">{truncatedAddress}</span>
-				)}
-				<CopyHelper toCopy={address} />
+		<div className="flex items-center gap-1.5 rounded-md border p-2">
+			<img src={chainIconUrl(chain)} alt={chain} className="h-5 w-5 rounded-full" loading="lazy" />
+			<div className="flex flex-col">
+				<div className="flex items-center gap-1.5">
+					<p className="text-sm font-medium">{chain}</p>
+					{isPrimary && showPrimaryStyle ? (
+						<p className="rounded-full border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 dark:text-blue-300">
+							Primary
+						</p>
+					) : null}
+				</div>
+				{contracts?.length > 0 ? (
+					<>
+						{contracts.map((address) => (
+							<ContractItem key={`${chain}-${address}`} chain={chain} address={address} />
+						))}
+					</>
+				) : null}
 			</div>
 		</div>
 	)
@@ -161,8 +174,6 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			? asset.attestationLinks
 			: [asset.attestationLinks]
 		: []
-
-	const contractsEntries = useMemo(() => (asset.contracts ? Object.entries(asset.contracts) : []), [asset.contracts])
 
 	return (
 		<div className="flex flex-col gap-2">
@@ -415,21 +426,6 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							/>
 						</div>
 					</SectionCard>
-
-					{/* Contracts */}
-					{contractsEntries.length > 0 && (
-						<SectionCard title="Contracts">
-							<div className="grid grid-cols-2 gap-2">
-								{contractsEntries.map(([chain, contracts]) => (
-									<Fragment key={`${keyBase}-contracts-${chain}`}>
-										{contracts.map((contract) => (
-											<ContractItem key={`${keyBase}-contract-${chain}-${contract}`} chain={chain} address={contract} />
-										))}
-									</Fragment>
-								))}
-							</div>
-						</SectionCard>
-					)}
 				</div>
 
 				{/* Right Column */}
@@ -493,42 +489,6 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 						</div>
 					</SectionCard>
 
-					{/* Chain Availability */}
-					{asset.chain && asset.chain.length > 0 && (
-						<SectionCard title="Chain Availability">
-							<div className="flex flex-col gap-2">
-								{asset.primaryChain && (
-									<div>
-										<Tooltip
-											content={definitions.primaryChain.description}
-											className="text-(--text-label) underline decoration-dotted"
-										>
-											{definitions.primaryChain.label}
-										</Tooltip>
-										<div className="mt-1">
-											<ChainBadge chain={asset.primaryChain} isPrimary />
-										</div>
-									</div>
-								)}
-								<div>
-									<span className="text-xs text-(--text-label)">
-										Available on {asset.chain.length} {asset.chain.length === 1 ? 'chain' : 'chains'}
-									</span>
-									<div className="mt-1 grid grid-cols-2 gap-1.5">
-										{asset.chain.map((chain) => (
-											<ChainBadge
-												key={chain}
-												chain={chain}
-												isPrimary={chain === asset.primaryChain}
-												showPrimaryStyle={asset.chain!.length > 1}
-											/>
-										))}
-									</div>
-								</div>
-							</div>
-						</SectionCard>
-					)}
-
 					{/* Attestations */}
 					{attestationLinks.length > 0 && (
 						<SectionCard
@@ -571,6 +531,22 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					</ul>
 				</SectionCard>
 			) : null}
+
+			{/* Chain Availability (moved to last) */}
+			{asset.chain && asset.chain.length > 0 && (
+				<SectionCard title="Chains">
+					<div className="mt-1 grid grid-cols-2 gap-1.5 xl:grid-cols-3 2xl:grid-cols-4">
+						{asset.chain.map((chain) => (
+							<ChainBadge
+								key={chain}
+								chain={chain}
+								isPrimary={chain === asset.primaryChain}
+								contracts={asset.contracts?.[chain]}
+							/>
+						))}
+					</div>
+				</SectionCard>
+			)}
 		</div>
 	)
 }
