@@ -547,7 +547,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex items-center justify-end gap-2 p-2">
-						<h2 className="mr-auto text-base font-medium">Cumulative Holdings Over Time</h2>
+						<h1 className="mr-auto text-base font-semibold">Cumulative Holdings Over Time</h1>
 						{props.assets.length > 1 && (
 							<TagGroup
 								selectedValue={selectedAsset}
