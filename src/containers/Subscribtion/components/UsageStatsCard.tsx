@@ -1,12 +1,13 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
-import type { ILineAndBarChartProps } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { formattedNum } from '~/utils'
 
-const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
-
+const MultiSeriesChart2 = lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 interface UsageStatsCardProps {
 	show: boolean
 	usageStats: any | null | undefined
@@ -42,13 +43,18 @@ export const UsageStatsCard = ({ show, usageStats, isLoading, isError }: UsageSt
 	const totalRequestsLabel = hasData ? formattedNum(totalRequests) : '--'
 	const averageRequestsLabel = hasData ? formattedNum(averageRequests) : '--'
 
-	const charts = useMemo<ILineAndBarChartProps['charts']>(() => {
-		if (!sortedStats.length) return {}
+	const { dataset, charts } = useMemo<{
+		dataset: MultiSeriesChart2Dataset
+		charts: IMultiSeriesChart2Props['charts']
+	}>(() => {
+		if (!sortedStats.length) {
+			return { dataset: { source: [], dimensions: ['date'] }, charts: [] }
+		}
 
 		const routeTotals = new Map<string, number>()
 		for (const day of sortedStats) {
 			for (const [route, count] of Object.entries(day.routes ?? {})) {
-				routeTotals.set(route, (routeTotals.get(route) ?? 0) + count)
+				routeTotals.set(route, (routeTotals.get(route) ?? 0) + (count as number))
 			}
 		}
 
@@ -59,38 +65,37 @@ export const UsageStatsCard = ({ show, usageStats, isLoading, isError }: UsageSt
 
 		const makeTimestamp = (date: string) => (date.includes('T') ? Date.parse(date) : Date.parse(`${date}T00:00:00Z`))
 
-		const charts: ILineAndBarChartProps['charts'] = {}
+		const seriesNames = hasOthers ? [...topRoutes, 'Others'] : topRoutes
+		const dimensions = ['date', ...seriesNames]
 
-		topRoutes.forEach((route, index) => {
-			charts[route] = {
-				data: sortedStats.map((day) => [makeTimestamp(day.date), day.routes?.[route] ?? 0]),
-				type: 'bar',
-				name: route,
-				stack: 'routes',
-				color: ROUTE_COLORS[index % ROUTE_COLORS.length] ?? CHART_COLOR
+		const source = sortedStats.map((day) => {
+			const row: Record<string, string | number | null | undefined> = {
+				date: makeTimestamp(day.date)
 			}
+			for (const route of topRoutes) {
+				row[route] = day.routes?.[route] ?? 0
+			}
+			if (hasOthers) {
+				row['Others'] = Object.entries(day.routes ?? {}).reduce((sum, [route, count]) => {
+					if (topRoutesSet.has(route)) return sum
+					return sum + (count as number)
+				}, 0)
+			}
+			return row
 		})
 
-		if (hasOthers) {
-			charts['Others'] = {
-				data: sortedStats.map((day) => {
-					const totalForDay = Object.entries(day.routes ?? {}).reduce((sum, [route, count]) => {
-						if (topRoutesSet.has(route)) return sum
-						return sum + count
-					}, 0)
-					return [makeTimestamp(day.date), totalForDay]
-				}),
-				type: 'bar',
-				name: 'Others',
-				stack: 'routes',
-				color: '#64748b'
-			}
-		}
+		const charts: IMultiSeriesChart2Props['charts'] = seriesNames.map((name, index) => ({
+			type: 'bar' as const,
+			name,
+			stack: 'routes',
+			encode: { x: 'date', y: name },
+			color: name === 'Others' ? '#64748b' : (ROUTE_COLORS[index % ROUTE_COLORS.length] ?? CHART_COLOR)
+		}))
 
-		return charts
+		return { dataset: { source, dimensions }, charts }
 	}, [sortedStats])
 
-	const chartOptions = useMemo<ILineAndBarChartProps['chartOptions']>(
+	const chartOptions = useMemo(
 		() => ({
 			xAxis: {
 				axisLabel: { color: CHART_TEXT_COLOR },
@@ -192,13 +197,14 @@ export const UsageStatsCard = ({ show, usageStats, isLoading, isError }: UsageSt
 				) : (
 					<div className="rounded-lg border border-[#39393E] bg-[#1a1b1f] p-3 sm:p-4">
 						<Suspense fallback={<div className="flex min-h-[220px] items-center justify-center" />}>
-							<LineAndBarChart
+							<MultiSeriesChart2
+								dataset={dataset}
 								charts={charts}
 								height="260px"
 								valueSymbol=""
 								hideDataZoom
 								hideDefaultLegend={false}
-								chartOptions={chartOptions}
+								chartOptions={chartOptions as unknown as IMultiSeriesChart2Props['chartOptions']}
 							/>
 						</Suspense>
 					</div>
