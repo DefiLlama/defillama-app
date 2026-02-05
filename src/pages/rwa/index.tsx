@@ -5,7 +5,9 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`rwa/index`, async () => {
-	const props = await getRWAAssetsOverview()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const rwaList = metadataCache.rwaList
+	const props = await getRWAAssetsOverview({ rwaList })
 
 	if (!props) return { notFound: true }
 

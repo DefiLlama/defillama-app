@@ -37,7 +37,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const props = await getRWAAssetsOverview({ chain: chainSlug })
+		const props = await getRWAAssetsOverview({ chain: chainSlug, rwaList })
 
 		if (!props) {
 			return { notFound: true, props: null }

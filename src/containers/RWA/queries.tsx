@@ -2,9 +2,11 @@ import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { RWA_ACTIVE_TVLS_API, RWA_ASSET_DATA_API, RWA_CHART_API, RWA_STATS_API } from '~/constants'
 import definitions from '~/public/rwa-definitions.json'
 import { fetchJson } from '~/utils/async'
+import { IRWAList } from '~/utils/metadata/types'
 import { rwaSlug } from './rwaSlug'
 
 interface IFetchedRWAProject {
+	id: string
 	ticker: string
 	assetName: string | null
 	website?: string[] | null
@@ -186,6 +188,7 @@ export type RWAAssetsOverviewParams = {
 	chain?: string
 	category?: string
 	platform?: string
+	rwaList: IRWAList
 }
 
 export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Promise<IRWAAssetsOverview | null> {
@@ -304,6 +307,15 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		let totalDeFiActiveTvlStablecoinsAndGovernance = 0
 
 		for (const item of data) {
+			if (!item.ticker) {
+				throw new Error(`Asset ${item.assetName} has no ticker`)
+			}
+			if (!params?.rwaList?.idMap?.[item.ticker]) {
+				throw new Error(`Asset ${item.assetName} has no ID map`)
+			}
+			if (params?.rwaList?.idMap?.[item.ticker] == item.id) {
+				throw new Error(`Asset ${item.assetName} has incorrect ID map`)
+			}
 			let totalOnChainMcapForAsset = 0
 			let totalActiveMcapForAsset = 0
 			let totalDeFiActiveTvlForAsset = 0

@@ -38,7 +38,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const props = await getRWAAssetsOverview({ platform: platformSlug })
+		const props = await getRWAAssetsOverview({ platform: platformSlug, rwaList })
 
 		if (!props) {
 			return { notFound: true, props: null }
