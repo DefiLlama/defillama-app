@@ -1,11 +1,8 @@
 import { useRouter } from 'next/router'
-import * as React from 'react'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { NestedMenu } from '~/components/NestedMenu'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
-import { useIsClient } from '~/hooks/useIsClient'
-import { useMedia } from '~/hooks/useMedia'
 import type { IRWAAssetsOverview } from './queries'
 
 const filterTriggerClassName =
@@ -78,29 +75,18 @@ type RWAOverviewFiltersProps = {
 }
 
 export function RWAOverviewFilters(props: RWAOverviewFiltersProps) {
-	const isSmall = useMedia(`(max-width: 639px)`)
-	const isClient = useIsClient()
-
 	if (!props.enabled) return null
 
 	return (
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
-			<div className="flex min-h-9 flex-wrap gap-2 *:flex-1 sm:hidden">
-				{isSmall && isClient ? (
-					<React.Suspense fallback={<></>}>
-						<NestedMenu label="Filters" className="w-full">
-							<Filters {...props} nestedMenu />
-						</NestedMenu>
-					</React.Suspense>
-				) : null}
+			<div className="flex min-h-9 flex-wrap gap-2 *:flex-1 sm:invisible sm:hidden">
+				<NestedMenu label="Filters" className="w-full">
+					<Filters {...props} nestedMenu />
+				</NestedMenu>
 			</div>
 
-			<div className="hidden min-h-[116px] flex-wrap items-center gap-2 min-[1260px]:min-h-[78px] min-[2102px]:min-h-[40px] sm:flex">
-				{!isSmall && isClient ? (
-					<React.Suspense fallback={<></>}>
-						<Filters {...props} />
-					</React.Suspense>
-				) : null}
+			<div className="invisible hidden min-h-[116px] flex-wrap items-center gap-2 min-[1260px]:min-h-[78px] min-[2102px]:min-h-[40px] sm:visible sm:flex">
+				<Filters {...props} />
 			</div>
 		</div>
 	)
