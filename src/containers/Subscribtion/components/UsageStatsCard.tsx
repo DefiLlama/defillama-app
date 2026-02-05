@@ -4,13 +4,12 @@ import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { formattedNum } from '~/utils'
-import type { UsageStatsResponse } from '../useSubscribe'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
 interface UsageStatsCardProps {
 	show: boolean
-	usageStats: UsageStatsResponse | null | undefined
+	usageStats: any | null | undefined
 	isLoading: boolean
 	isError: boolean
 }
