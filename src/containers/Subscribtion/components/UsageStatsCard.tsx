@@ -26,10 +26,12 @@ const CHART_TOOLTIP_BG = '#1f2127'
 const CHART_TOOLTIP_TEXT = '#e5e7eb'
 
 export const UsageStatsCard = ({ show, usageStats, isLoading, isError }: UsageStatsCardProps) => {
-	const stats = usageStats?.stats ?? []
 	const windowDays = usageStats?.windowDays ?? DEFAULT_WINDOW_DAYS
 
-	const sortedStats = useMemo(() => [...stats].sort((a, b) => Date.parse(a.date) - Date.parse(b.date)), [stats])
+	const sortedStats = useMemo(
+		() => [...(usageStats?.stats ?? [])].sort((a, b) => Date.parse(a.date) - Date.parse(b.date)),
+		[usageStats?.stats]
+	)
 
 	const totalRequests = useMemo(() => sortedStats.reduce((sum, day) => sum + day.totalRequests, 0), [sortedStats])
 
@@ -196,7 +198,7 @@ export const UsageStatsCard = ({ show, usageStats, isLoading, isError }: UsageSt
 					</div>
 				) : (
 					<div className="rounded-lg border border-[#39393E] bg-[#1a1b1f] p-3 sm:p-4">
-						<Suspense fallback={<div className="flex min-h-[220px] items-center justify-center" />}>
+						<Suspense fallback={<div className="min-h-[260px]" />}>
 							<MultiSeriesChart2
 								dataset={dataset}
 								charts={charts}

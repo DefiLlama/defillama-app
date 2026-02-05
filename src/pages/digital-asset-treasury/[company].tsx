@@ -3,6 +3,8 @@ import dayjs from 'dayjs'
 import type { GetStaticPropsContext } from 'next'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -11,6 +13,8 @@ import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { TRADFI_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -386,6 +390,8 @@ interface IProps extends Pick<
 
 export default function DigitalAssetTreasury(props: IProps) {
 	const [selectedAsset, setSelectedAsset] = useState<string | null>(props.assets[0])
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 	const chartData = useMemo(() => {
 		return props.chartByAsset.find((asset) => asset.ticker === selectedAsset)
 	}, [selectedAsset, props.chartByAsset])
@@ -539,18 +545,23 @@ export default function DigitalAssetTreasury(props: IProps) {
 						Report incorrect data
 					</BasicLink>
 				</div>
-				<div className="col-span-2 flex min-h-[402px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="flex items-center justify-between p-2">
-						<h2 className="text-base font-medium">Cumulative Holdings Over Time</h2>
+				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="flex items-center justify-end gap-2 p-2">
+						<h1 className="mr-auto text-base font-semibold">Cumulative Holdings Over Time</h1>
 						{props.assets.length > 1 && (
 							<TagGroup
 								selectedValue={selectedAsset}
 								setValue={setSelectedAsset}
 								values={props.assets}
-								className="max-sm:w-full"
-								triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
+								variant="responsive"
 							/>
 						)}
+						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={`${slug(props.name)}-holdings`} />
+						<ChartExportButton
+							chartInstance={exportChartInstance}
+							filename={`${slug(props.name)}-holdings`}
+							title="Cumulative Holdings Over Time"
+						/>
 					</div>
 					<Suspense fallback={<div className="h-[360px]" />}>
 						{chartData ? (
@@ -560,6 +571,10 @@ export default function DigitalAssetTreasury(props: IProps) {
 								valueSymbol={chartData.ticker}
 								hideDataZoom={chartData.holdingsChart.dataset.source.length < 2}
 								chartOptions={chartOptions}
+								onReady={(instance) => {
+									handleChartReady(instance)
+									handleChartCsvReady(instance)
+								}}
 							/>
 						) : (
 							<div className="h-[360px]" />
@@ -569,27 +584,35 @@ export default function DigitalAssetTreasury(props: IProps) {
 			</div>
 			<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
 				{props.mNAVChart != null && (
-					<div className="col-span-1 min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<h2 className="p-2 text-lg font-bold">mNAV</h2>
-						<Suspense fallback={<div className="h-[360px]" />}>
+					<div className="col-span-1 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<Suspense fallback={<></>}>
 							<MultiSeriesChart2
 								dataset={props.mNAVChart.dataset}
 								charts={props.mNAVChart.charts}
 								valueSymbol=""
 								hideDefaultLegend={false}
+								title="mNAV"
+								shouldEnableImageExport
+								shouldEnableCSVDownload
+								imageExportFilename={`${slug(props.name)}-mnav`}
+								imageExportTitle="mNAV"
 							/>
 						</Suspense>
 					</div>
 				)}
 				{props.fdChart != null && (
-					<div className="col-span-1 min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<h2 className="p-2 text-lg font-bold">Fully Diluted Shares</h2>
-						<Suspense fallback={<div className="h-[360px]" />}>
+					<div className="col-span-1 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<Suspense fallback={<></>}>
 							<MultiSeriesChart2
 								dataset={props.fdChart.dataset}
 								charts={props.fdChart.charts}
 								valueSymbol=""
 								hideDefaultLegend={false}
+								title="Fully Diluted Shares"
+								shouldEnableImageExport
+								shouldEnableCSVDownload
+								imageExportFilename={`${slug(props.name)}-fully-diluted-shares`}
+								imageExportTitle="Fully Diluted Shares"
 							/>
 						</Suspense>
 					</div>
@@ -604,13 +627,17 @@ export default function DigitalAssetTreasury(props: IProps) {
 					</div>
 				)}
 				{props.totalAssetValueChart != null && (
-					<div className="col-span-full min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-						<h2 className="p-2 text-lg font-bold">Total Asset Value</h2>
-						<Suspense fallback={<div className="h-[360px]" />}>
+					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+						<Suspense fallback={<></>}>
 							<MultiSeriesChart2
 								dataset={props.totalAssetValueChart.dataset}
 								charts={props.totalAssetValueChart.charts}
 								valueSymbol="$"
+								title="Total Asset Value"
+								shouldEnableImageExport
+								shouldEnableCSVDownload
+								imageExportFilename={`${slug(props.name)}-total-asset-value`}
+								imageExportTitle="Total Asset Value"
 							/>
 						</Suspense>
 					</div>

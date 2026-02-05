@@ -1,10 +1,10 @@
 import * as Ariakit from '@ariakit/react'
+import clsx from 'clsx'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { cn } from '~/utils/cn'
 
 const EXAMPLE_CONVERSATIONS = [
 	{
@@ -118,7 +118,7 @@ const TrialBadge = ({ centered = false }: { centered?: boolean }) => {
 	return (
 		<>
 			{!isAuthenticated || !hasActiveSubscription ? (
-				<div className={cn('mt-3 flex flex-col gap-1.5', centered ? 'items-center' : 'items-center md:items-start')}>
+				<div className={clsx('mt-3 flex flex-col gap-1.5', centered ? 'items-center' : 'items-center md:items-start')}>
 					<span className="inline-flex items-center rounded-full border border-[#C99A4A]/40 bg-linear-to-r from-[#C99A4A]/10 via-[#C99A4A]/5 to-[#C99A4A]/10 px-3.5 py-2 text-[13px] font-semibold text-[#C99A4A] dark:border-[#FDE0A9]/40 dark:from-[#FDE0A9]/10 dark:via-[#FDE0A9]/5 dark:to-[#FDE0A9]/10 dark:text-[#FDE0A9]">
 						7 days free · Cancel anytime
 					</span>
@@ -146,7 +146,7 @@ const CTAButton = ({
 		<BasicLink
 			href="/ai/chat"
 			data-umami-event="llamaai-landing-cta-subscribed"
-			className={cn(
+			className={clsx(
 				'llamaai-glow relative z-10 inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0px_0px_40px_0px_rgba(253,224,169,0.7)]',
 				className
 			)}
@@ -160,7 +160,7 @@ const CTAButton = ({
 		<button
 			onClick={() => subscribeModalStore.show()}
 			data-umami-event="llamaai-landing-cta-unsubscribed"
-			className={cn(
+			className={clsx(
 				'animate-cta-glow llamaai-glow relative z-10 inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3.5 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0px_0px_50px_0px_rgba(253,224,169,0.8)]',
 				className
 			)}
@@ -233,7 +233,7 @@ export default function LlamaAIGetStarted() {
 					<div className="grid items-center gap-8 md:grid-cols-2 md:gap-10 lg:gap-16">
 						{/* Left: Text Content */}
 						<div
-							className={cn(
+							className={clsx(
 								'relative z-10 flex flex-col items-center text-center md:items-start md:text-left',
 								'transition-all duration-700',
 								mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
@@ -281,7 +281,7 @@ export default function LlamaAIGetStarted() {
 
 						{/* Right: Video Preview Card */}
 						<div
-							className={cn(
+							className={clsx(
 								'relative w-full',
 								'transition-all delay-200 duration-700',
 								mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
@@ -355,7 +355,7 @@ export default function LlamaAIGetStarted() {
 
 						<div className="grid gap-5 md:grid-cols-3">
 							{EXAMPLE_CONVERSATIONS.map((example, index) => (
-								<div key={example.id} className={cn('flex flex-col', index === 1 && 'md:translate-y-8')}>
+								<div key={example.id} className={clsx('flex flex-col', index === 1 && 'md:translate-y-8')}>
 									{/* Category Header */}
 									<h3 className="mb-3 text-sm font-bold tracking-wider text-[#C99A4A] uppercase md:text-base dark:text-[#FDE0A9]">
 										{example.category}
@@ -365,7 +365,7 @@ export default function LlamaAIGetStarted() {
 										href={example.url}
 										target="_blank"
 										rel="noopener noreferrer"
-										className={cn(
+										className={clsx(
 											'group relative flex flex-1 flex-col overflow-hidden rounded-2xl border border-[#E8E8E8] bg-white transition-all duration-500',
 											'hover:-translate-y-2 hover:border-[#C99A4A]/40 hover:shadow-[0_24px_64px_rgba(253,224,169,0.25)]',
 											'dark:border-[#2a2a2e] dark:bg-[#1e1f23] dark:hover:border-[#FDE0A9]/30 dark:hover:shadow-[0_24px_64px_rgba(253,224,169,0.12)]'

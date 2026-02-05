@@ -306,7 +306,8 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		shouldEnableImageExport,
 		imageExportFilename,
 		imageExportTitle,
-		shouldEnableCSVDownload
+		shouldEnableCSVDownload,
+		title
 	} = props
 
 	const id = useId()
@@ -405,7 +406,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			}
 		}
 
-		const { legend, graphic, titleDefaults, xAxis, yAxis, dataZoom, dataset: datasetOptions } = mergedChartSettings
+		const { legend, graphic, xAxis, yAxis, dataZoom, dataset: datasetOptions } = mergedChartSettings
 		const finalYAxis = buildMultiYAxis({ series, yAxis, expandTo100Percent })
 
 		const datasetLength = Array.isArray(datasetSource) ? datasetSource.length : 0
@@ -455,7 +456,6 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			...(hideDefaultLegend ? {} : { legend: finalLegend ?? legend }),
 			graphic,
 			tooltip: tooltipConfig,
-			title: titleDefaults,
 			grid: {
 				left: 12,
 				bottom: shouldHideDataZoom ? 12 : 68,
@@ -501,6 +501,9 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				chartRef.current = null
 				instance.dispose()
 				updateExportInstance(null)
+				if (onReady) {
+					onReady(null)
+				}
 			}
 		}
 
@@ -508,6 +511,9 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			chartRef.current = null
 			instance.dispose()
 			updateExportInstance(null)
+			if (onReady) {
+				onReady(null)
+			}
 		}
 	}, [
 		id,
@@ -528,24 +534,14 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 
 	return (
 		<div className="relative">
-			{shouldEnableCSVDownload || shouldEnableImageExport ? (
+			{title || shouldEnableCSVDownload || shouldEnableImageExport ? (
 				<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
+					{title ? <h1 className="mr-auto text-base font-semibold">{title}</h1> : null}
 					{shouldEnableCSVDownload ? (
-						<ChartCsvExportButton
-							chartInstance={exportChartCsvInstance}
-							filename={exportFilename}
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-							smol
-						/>
+						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={exportFilename} />
 					) : null}
 					{shouldEnableImageExport ? (
-						<ChartExportButton
-							chartInstance={exportChartInstance}
-							filename={exportFilename}
-							title={exportTitle}
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-							smol
-						/>
+						<ChartExportButton chartInstance={exportChartInstance} filename={exportFilename} title={exportTitle} />
 					) : null}
 				</div>
 			) : null}

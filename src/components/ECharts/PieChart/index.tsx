@@ -171,6 +171,9 @@ export default function PieChart({
 			chartRef.current = null
 			instance.dispose()
 			handleChartReady(null)
+			if (onReady) {
+				onReady(null)
+			}
 		}
 	}, [
 		id,
@@ -194,13 +197,7 @@ export default function PieChart({
 					{title ? <h1 className="mr-auto px-2 text-lg font-bold">{title}</h1> : null}
 					{customComponents ?? null}
 					{enableImageExport && (
-						<ChartExportButton
-							chartInstance={exportChartInstance}
-							filename={exportFilename}
-							title={exportTitle}
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-							smol
-						/>
+						<ChartExportButton chartInstance={exportChartInstance} filename={exportFilename} title={exportTitle} />
 					)}
 				</div>
 			) : null}

@@ -573,10 +573,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						}}
 						label={showCumulative ? 'Cumulative' : 'Individual'}
 						labelType="none"
-						triggerProps={{
-							className:
-								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
-						}}
+						variant="pro"
 					/>
 				)}
 				{!isReadOnly && hasAnyData && !hasMultipleMetrics && canStack && !showCumulative && !showTreemap && (
@@ -589,10 +586,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						}}
 						label={showStacked ? 'Stacked' : 'Separate'}
 						labelType="none"
-						triggerProps={{
-							className:
-								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
-						}}
+						variant="pro"
 					/>
 				)}
 				{!isReadOnly && hasAnyData && !hasMultipleMetrics && !showTreemap && (
@@ -605,10 +599,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						}}
 						label={showPercentage ? '% Percentage' : '$ Absolute'}
 						labelType="none"
-						triggerProps={{
-							className:
-								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
-						}}
+						variant="pro"
 					/>
 				)}
 				{!isReadOnly && hasAnyData && !hasMultipleMetrics && (
@@ -620,10 +611,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						}}
 						label={showTreemap ? 'Tree Map' : 'Time Series'}
 						labelType="none"
-						triggerProps={{
-							className:
-								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
-						}}
+						variant="pro"
 					/>
 				)}
 				{!isReadOnly && (

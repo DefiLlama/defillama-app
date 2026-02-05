@@ -1,9 +1,9 @@
 import { GetStaticPropsContext } from 'next'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { formatBarChart, prepareChartCsv } from '~/components/ECharts/utils'
+import { formatBarChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -15,6 +15,7 @@ import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { IProtocolMetadata } from '~/utils/metadata/types'
@@ -113,8 +114,10 @@ const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 export default function Protocols(props) {
 	const [groupBy, setGroupBy] = useState<(typeof INTERVALS_LIST)[number]>(props.defaultChartView)
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 
 	const finalCharts = useMemo(() => {
+		// todo do not iterate twice
 		const formattedData = formatBarChart({
 			data: props.chart,
 			groupBy,
@@ -138,13 +141,6 @@ export default function Protocols(props) {
 		}
 	}, [props.chart, groupBy])
 
-	const prepareCsv = () => {
-		const dataByChartType = {}
-		for (const chart of finalCharts.charts) {
-			dataByChartType[chart.name] = finalCharts.dataset.source.map((row) => [row.timestamp, row[chart.name]])
-		}
-		return prepareChartCsv(dataByChartType, `${props.name}-total-perp-volume.csv`)
-	}
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
@@ -168,7 +164,7 @@ export default function Protocols(props) {
 					</h1>
 					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />
 				</div>
-				<div className="col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-[2/-1] xl:min-h-[360px]">
+				<div className="col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-[2/-1]">
 					<div className="flex items-center justify-end gap-2 p-2">
 						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 							{INTERVALS_LIST.map((dataInterval) => (
@@ -186,13 +182,11 @@ export default function Protocols(props) {
 								</Tooltip>
 							))}
 						</div>
-						<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={`${slug(props.name)}-perp-volume`} />
 						<ChartExportButton
 							chartInstance={exportChartInstance}
 							filename={`${slug(props.name)}-perp-volume`}
 							title="Perp Volume"
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-							smol
 						/>
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
@@ -200,7 +194,10 @@ export default function Protocols(props) {
 							dataset={finalCharts.dataset}
 							charts={finalCharts.charts}
 							valueSymbol="$"
-							onReady={handleChartReady}
+							onReady={(instance) => {
+								handleChartReady(instance)
+								handleChartCsvReady(instance)
+							}}
 						/>
 					</Suspense>
 				</div>

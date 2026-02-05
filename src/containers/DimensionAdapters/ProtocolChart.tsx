@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
@@ -10,8 +10,9 @@ import { ChartBuilderConfig } from '~/containers/ProDashboard/types'
 import { getAdapterBuilderMetric } from '~/containers/ProDashboard/utils/adapterChartMapping'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
-import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
+import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug } from '~/utils'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
 import { getAdapterProtocolChartDataByBreakdownType } from './queries'
 
@@ -164,6 +165,7 @@ const ChartByType = ({
 	const [chartInterval, changeChartInterval] = React.useState<(typeof INTERVALS_LIST)[number]>('Daily')
 	const [selectedTypes, setSelectedTypes] = React.useState<string[]>(breakdownNames)
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 
 	const chartBuilderConfig = React.useMemo<ChartBuilderConfig | null>(() => {
 		const builderMetric = getAdapterBuilderMetric(adapterType)
@@ -322,28 +324,6 @@ const ChartByType = ({
 		}
 	}, [breakdownNames, chartInterval, selectedTypes, data, bribeData, tokenTaxData])
 
-	const prepareCsv = () => {
-		if (selectedTypes.length === 0) return { filename: '', rows: [] }
-
-		const rows: Array<Array<string | number | null>> = [['Timestamp', 'Date', ...selectedTypes]]
-
-		const { source } = mainChartData.dataset
-		if (!source.length) return { filename: '', rows: [] }
-
-		for (const dataRow of source) {
-			const timestamp = dataRow.timestamp as number
-			const row: Array<string | number | null> = [timestamp, toNiceCsvDate(timestamp / 1000)]
-			for (const type of selectedTypes) {
-				row.push(dataRow[type] ?? '')
-			}
-			rows.push(row)
-		}
-
-		const csvTitle = `${protocolName}-${title ? slug(title) : chartType}`
-		const filename = `${csvTitle}-${chartInterval.toLowerCase()}-${new Date().toISOString().split('T')[0]}.csv`
-		return { filename, rows }
-	}
-
 	return (
 		<>
 			<div className="flex flex-wrap items-center justify-end gap-1 p-2">
@@ -368,23 +348,21 @@ const ChartByType = ({
 					setSelectedValues={setSelectedTypes}
 					label={chartType === 'version' ? 'Versions' : 'Chains'}
 					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-					}}
+					variant="filter"
 					portal
 				/>
-				<CSVDownloadButton prepareCsv={prepareCsv} smol />
+				<ChartCsvExportButton
+					chartInstance={exportChartCsvInstance}
+					filename={title ? slug(title) : `${protocolName}-${chartType}`}
+				/>
 				<ChartExportButton
 					chartInstance={exportChartInstance}
 					filename={title ? slug(title) : `${protocolName}-${chartType}`}
 					title={title}
-					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-					smol
 				/>
 				{chartBuilderConfig && <AddToDashboardButton chartConfig={chartBuilderConfig} smol />}
 			</div>
-			<React.Suspense fallback={<></>}>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
 					dataset={mainChartData.dataset}
 					charts={mainChartData.charts}
@@ -392,7 +370,10 @@ const ChartByType = ({
 						chartInterval === 'Cumulative' ? 'daily' : (chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly')
 					}
 					valueSymbol="$"
-					onReady={handleChartReady}
+					onReady={(instance) => {
+						handleChartReady(instance)
+						handleChartCsvReady(instance)
+					}}
 				/>
 			</React.Suspense>
 		</>

@@ -217,7 +217,15 @@ interface ChartCsvExportButtonProps {
 	filename?: string
 }
 
-export function ChartCsvExportButton({ chartInstance, className, smol, filename }: ChartCsvExportButtonProps) {
+const DEFAULT_CLASSNAME =
+	'flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)'
+
+export function ChartCsvExportButton({
+	chartInstance,
+	className = DEFAULT_CLASSNAME,
+	smol = true,
+	filename
+}: ChartCsvExportButtonProps) {
 	const prepareCsv = useCallback(() => {
 		const instance = chartInstance()
 		if (!instance) {

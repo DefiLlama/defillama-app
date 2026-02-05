@@ -233,7 +233,13 @@ export default function CompareProtocols({
 							</div>
 						) : (
 							<React.Suspense fallback={<></>}>
-								<MultiSeriesChart2 dataset={dataset} charts={charts} valueSymbol="$" />
+								<MultiSeriesChart2
+									dataset={dataset}
+									charts={charts}
+									valueSymbol="$"
+									shouldEnableImageExport
+									shouldEnableCSVDownload
+								/>
 							</React.Suspense>
 						)}
 					</div>

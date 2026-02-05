@@ -10,7 +10,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formatNum, formattedNum, slug, toNiceCsvDate } from '~/utils'
+import { chainIconUrl, formatNum, formattedNum, slug } from '~/utils'
 import { protocolCategories } from './constants'
 import { IProtocolByCategoryOrTagPageData } from './types'
 
@@ -90,20 +90,6 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 		return {
 			filename: `defillama-${name}-${props.chain || 'all'}-protocols.csv`,
 			rows: [headers, ...rows] as (string | number | boolean)[][]
-		}
-	}
-
-	const prepareCsvFromChart = () => {
-		const rows: any = [['Timestamp', 'Date', name]]
-		for (const item of charts.dataset?.source ?? []) {
-			const tsRaw = item['timestamp']
-			const ts = typeof tsRaw === 'number' ? tsRaw : Number(tsRaw)
-			if (!Number.isFinite(ts)) continue
-			rows.push([ts, toNiceCsvDate(ts / 1000), item['TVL'] ?? ''])
-		}
-		return {
-			filename: `${name}-TVL.csv`,
-			rows: rows as (string | number | boolean)[][]
 		}
 	}
 
@@ -242,12 +228,17 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								<span className="text-right font-jetbrains">{formattedNum(props.openInterest, true)}</span>
 							</p>
 						)}
-						<CSVDownloadButton prepareCsv={prepareCsvFromChart} smol className="mt-auto mr-auto" />
 					</div>
 				</div>
-				<div className="col-span-2 min-h-[370px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-						<MultiSeriesChart2 dataset={charts.dataset} charts={charts.charts} valueSymbol="$" />
+				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+					<Suspense fallback={<></>}>
+						<MultiSeriesChart2
+							dataset={charts.dataset}
+							charts={charts.charts}
+							valueSymbol="$"
+							shouldEnableImageExport
+							shouldEnableCSVDownload
+						/>
 					</Suspense>
 				</div>
 			</div>

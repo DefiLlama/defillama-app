@@ -5,9 +5,6 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import type { IRWAAssetsOverview } from './queries'
 
-const filterTriggerClassName =
-	'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-
 const ratioPercentInputProps = { min: 0, step: '0.01' } as const
 
 const FILTER_QUERY_KEYS = [
@@ -155,9 +152,7 @@ function Filters({
 					label={'Types'}
 					labelType="smol"
 					nestedMenu={nestedMenu}
-					triggerProps={{
-						className: filterTriggerClassName
-					}}
+					variant="filter"
 				/>
 			) : null}
 			{isPlatformMode && assetNames.length > 1 ? (
@@ -169,9 +164,7 @@ function Filters({
 					label={'Asset Names'}
 					labelType="smol"
 					nestedMenu={nestedMenu}
-					triggerProps={{
-						className: filterTriggerClassName
-					}}
+					variant="filter"
 				/>
 			) : null}
 			{isChainMode && categoriesOptions.length > 1 ? (
@@ -183,9 +176,7 @@ function Filters({
 					label={'Categories'}
 					labelType="smol"
 					nestedMenu={nestedMenu}
-					triggerProps={{
-						className: filterTriggerClassName
-					}}
+					variant="filter"
 				/>
 			) : null}
 			{assetClassOptions.length > 1 ? (
@@ -197,9 +188,7 @@ function Filters({
 					label={'Asset Classes'}
 					labelType="smol"
 					nestedMenu={nestedMenu}
-					triggerProps={{
-						className: filterTriggerClassName
-					}}
+					variant="filter"
 				/>
 			) : null}
 			{rwaClassificationOptions.length > 1 ? (
@@ -211,9 +200,7 @@ function Filters({
 					label={'RWA Classification'}
 					labelType="smol"
 					nestedMenu={nestedMenu}
-					triggerProps={{
-						className: filterTriggerClassName
-					}}
+					variant="filter"
 				/>
 			) : null}
 			{accessModelOptions.length > 1 ? (
@@ -225,9 +212,7 @@ function Filters({
 					label={'Access Model'}
 					labelType="smol"
 					nestedMenu={nestedMenu}
-					triggerProps={{
-						className: filterTriggerClassName
-					}}
+					variant="filter"
 				/>
 			) : null}
 			{issuers.length > 1 ? (
@@ -239,9 +224,7 @@ function Filters({
 					label={'Issuers'}
 					labelType="smol"
 					nestedMenu={nestedMenu}
-					triggerProps={{
-						className: filterTriggerClassName
-					}}
+					variant="filter"
 				/>
 			) : null}
 			<FilterBetweenRange

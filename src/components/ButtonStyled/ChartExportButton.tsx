@@ -15,6 +15,9 @@ const approximateTextWidth = (text: string, fontSize: number) => {
 	return text.length * fontSize * averageCharWidthRatio
 }
 
+const DEFAULT_CLASSNAME =
+	'flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)'
+
 interface ChartExportButtonProps {
 	chartInstance: () => echarts.ECharts | null
 	className?: string
@@ -29,8 +32,8 @@ echarts.use([LegendComponent])
 
 export function ChartExportButton({
 	chartInstance,
-	className,
-	smol,
+	className = DEFAULT_CLASSNAME,
+	smol = true,
 	title,
 	filename,
 	iconUrl,
@@ -413,7 +416,7 @@ export function ChartExportButton({
 			<button
 				data-umami-event="image-export"
 				data-umami-event-page={router.pathname}
-				className={`${className ?? 'flex items-center gap-1 rounded-md px-1.5 py-1 text-xs hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue disabled:text-(--text-disabled)'} !border-1 !border-blue-500 !text-blue-500 hover:!text-white focus-visible:!text-white`}
+				className={`${className} !border-1 !border-blue-500 !text-blue-500 hover:!text-white focus-visible:!text-white`}
 				onClick={handleImageExport}
 				data-loading={isLoading}
 				disabled={isLoading}

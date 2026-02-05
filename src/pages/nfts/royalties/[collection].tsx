@@ -94,9 +94,17 @@ export default function Collection() {
 					</p>
 				</div>
 
-				<Suspense fallback={<div className="min-h-[360px]" />}>
-					<MultiSeriesChart2 dataset={chartData.dataset} charts={chartData.charts} valueSymbol="$" />
-				</Suspense>
+				<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+					<Suspense fallback={<></>}>
+						<MultiSeriesChart2
+							dataset={chartData.dataset}
+							charts={chartData.charts}
+							valueSymbol="$"
+							shouldEnableImageExport
+							shouldEnableCSVDownload
+						/>
+					</Suspense>
+				</div>
 			</div>
 		</Layout>
 	)

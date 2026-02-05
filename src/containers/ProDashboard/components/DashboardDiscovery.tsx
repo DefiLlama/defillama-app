@@ -186,7 +186,7 @@ export function DashboardDiscovery() {
 								labelType="none"
 								triggerProps={{
 									className:
-										'rounded-md flex items-center gap-1 flex items-center justify-between rounded-md border border-(--form-control-border) px-2 py-1.5'
+										'flex items-center justify-between gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5'
 								}}
 								aria-label="Items per page"
 							/>
@@ -217,7 +217,7 @@ export function DashboardDiscovery() {
 								labelType="none"
 								triggerProps={{
 									className:
-										'rounded-md flex items-center gap-1 flex items-center justify-between rounded-md border border-(--form-control-border) px-2 py-1.5'
+										'flex items-center justify-between gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5'
 								}}
 								aria-label="Sort by"
 							/>
@@ -245,7 +245,7 @@ export function DashboardDiscovery() {
 									labelType="none"
 									triggerProps={{
 										className:
-											'rounded-md flex items-center gap-1 flex items-center justify-between rounded-md border border-(--form-control-border) px-2 py-1.5'
+											'flex items-center justify-between gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5'
 									}}
 									aria-label="Time frame"
 								/>

@@ -250,13 +250,20 @@ export function CompareChains({ chains }) {
 			{selectedChains.length > 1 ? (
 				<div className="relative flex flex-col gap-1">
 					{isLoading || !router.isReady ? (
-						<div className="grid min-h-[362px] place-items-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<div className="grid min-h-[408px] place-items-center rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 							<LocalLoader />
 						</div>
 					) : (
-						<div className="min-h-[362px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<div className="min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 							<React.Suspense fallback={<></>}>
-								<MultiSeriesChart2 dataset={chartData.dataset} charts={chartData.charts} />
+								<MultiSeriesChart2
+									dataset={chartData.dataset}
+									charts={chartData.charts}
+									shouldEnableImageExport
+									shouldEnableCSVDownload
+									imageExportFilename={`compare-chains-${selectedChains.map((chain) => chain.label).join('-vs-')}`}
+									imageExportTitle={`${selectedChains.map((chain) => chain.label).join(' vs ')}`}
+								/>
 							</React.Suspense>
 						</div>
 					)}

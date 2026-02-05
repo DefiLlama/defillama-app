@@ -194,10 +194,7 @@ const Filters = ({
 				selectedValues={selectedChains}
 				label="Chains"
 				labelType="smol"
-				triggerProps={{
-					className:
-						'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
-				}}
+				variant="filter-responsive"
 				nestedMenu={isMobile}
 				includeQueryKey="chain"
 				excludeQueryKey="excludeChain"
@@ -229,10 +226,7 @@ const Filters = ({
 				selectedValues={selectedClassifications}
 				label="Classification"
 				labelType="smol"
-				triggerProps={{
-					className:
-						'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
-				}}
+				variant="filter-responsive"
 				nestedMenu={isMobile}
 				includeQueryKey="class"
 				excludeQueryKey="excludeClass"
@@ -242,10 +236,7 @@ const Filters = ({
 				selectedValues={selectedTechniques}
 				label="Techniques"
 				labelType="smol"
-				triggerProps={{
-					className:
-						'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
-				}}
+				variant="filter-responsive"
 				nestedMenu={isMobile}
 				includeQueryKey="tech"
 				excludeQueryKey="excludeTech"
