@@ -1,7 +1,11 @@
 import { useRouter } from 'next/router'
+import * as React from 'react'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
+import { NestedMenu } from '~/components/NestedMenu'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
+import { useIsClient } from '~/hooks/useIsClient'
+import { useMedia } from '~/hooks/useMedia'
 import type { IRWAAssetsOverview } from './queries'
 
 const filterTriggerClassName =
@@ -40,38 +44,7 @@ const formatPercentRange = (minPercent: number | null, maxPercent: number | null
 	return `${minLabel} - ${maxLabel}`
 }
 
-export function RWAOverviewFilters({
-	enabled,
-	isChainMode,
-	isPlatformMode,
-	assetNames,
-	typeOptions,
-	categoriesOptions,
-	assetClassOptions,
-	rwaClassificationOptions,
-	accessModelOptions,
-	issuers,
-	selectedAssetNames,
-	selectedTypes,
-	selectedCategories,
-	selectedAssetClasses,
-	selectedRwaClassifications,
-	selectedAccessModels,
-	selectedIssuers,
-	minDefiActiveTvlToOnChainMcapPct,
-	maxDefiActiveTvlToOnChainMcapPct,
-	minActiveMcapToOnChainMcapPct,
-	maxActiveMcapToOnChainMcapPct,
-	minDefiActiveTvlToActiveMcapPct,
-	maxDefiActiveTvlToActiveMcapPct,
-	setDefiActiveTvlToOnChainMcapPctRange,
-	setActiveMcapToOnChainMcapPctRange,
-	setDefiActiveTvlToActiveMcapPctRange,
-	includeStablecoins,
-	includeGovernance,
-	setIncludeStablecoins,
-	setIncludeGovernance
-}: {
+type RWAOverviewFiltersProps = {
 	enabled: boolean
 	isChainMode: boolean
 	isPlatformMode: boolean
@@ -102,7 +75,70 @@ export function RWAOverviewFilters({
 	includeGovernance: boolean
 	setIncludeStablecoins: (value: boolean) => void
 	setIncludeGovernance: (value: boolean) => void
-}) {
+}
+
+export function RWAOverviewFilters(props: RWAOverviewFiltersProps) {
+	const isSmall = useMedia(`(max-width: 639px)`)
+	const isClient = useIsClient()
+
+	if (!props.enabled) return null
+
+	return (
+		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
+			<div className="flex min-h-9 flex-wrap gap-2 *:flex-1 sm:hidden">
+				{isSmall && isClient ? (
+					<React.Suspense fallback={<></>}>
+						<NestedMenu label="Filters" className="w-full">
+							<Filters {...props} nestedMenu />
+						</NestedMenu>
+					</React.Suspense>
+				) : null}
+			</div>
+
+			<div className="hidden min-h-[116px] flex-wrap items-center gap-2 min-[1260px]:min-h-[78px] min-[2102px]:min-h-[40px] sm:flex">
+				{!isSmall && isClient ? (
+					<React.Suspense fallback={<></>}>
+						<Filters {...props} />
+					</React.Suspense>
+				) : null}
+			</div>
+		</div>
+	)
+}
+
+function Filters({
+	enabled,
+	isChainMode,
+	isPlatformMode,
+	assetNames,
+	typeOptions,
+	categoriesOptions,
+	assetClassOptions,
+	rwaClassificationOptions,
+	accessModelOptions,
+	issuers,
+	selectedAssetNames,
+	selectedTypes,
+	selectedCategories,
+	selectedAssetClasses,
+	selectedRwaClassifications,
+	selectedAccessModels,
+	selectedIssuers,
+	minDefiActiveTvlToOnChainMcapPct,
+	maxDefiActiveTvlToOnChainMcapPct,
+	minActiveMcapToOnChainMcapPct,
+	maxActiveMcapToOnChainMcapPct,
+	minDefiActiveTvlToActiveMcapPct,
+	maxDefiActiveTvlToActiveMcapPct,
+	setDefiActiveTvlToOnChainMcapPctRange,
+	setActiveMcapToOnChainMcapPctRange,
+	setDefiActiveTvlToActiveMcapPctRange,
+	includeStablecoins,
+	includeGovernance,
+	setIncludeStablecoins,
+	setIncludeGovernance,
+	nestedMenu
+}: RWAOverviewFiltersProps & { nestedMenu?: boolean }) {
 	const router = useRouter()
 
 	if (!enabled) return null
@@ -113,8 +149,16 @@ export function RWAOverviewFilters({
 	// Selected arrays often default to "all values" when there is no query set.
 	const hasActiveFilters = FILTER_QUERY_KEYS.some((key) => router.query[key] != null)
 
+	const switchesAndResetClassName = nestedMenu
+		? 'mt-2 flex flex-col gap-3 border-t border-(--form-control-border) px-3 pt-3'
+		: 'flex flex-wrap items-center gap-2 md:ml-auto'
+
+	const resetButtonClassName = nestedMenu
+		? 'relative flex w-full cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40'
+		: 'relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40'
+
 	return (
-		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 md:flex-row md:flex-wrap md:items-center">
+		<>
 			{typeOptions.length > 1 ? (
 				<SelectWithCombobox
 					allValues={typeOptions}
@@ -124,6 +168,7 @@ export function RWAOverviewFilters({
 					defaultSelectedValues={defaultSelectedTypes}
 					label={'Types'}
 					labelType="smol"
+					nestedMenu={nestedMenu}
 					triggerProps={{
 						className: filterTriggerClassName
 					}}
@@ -137,6 +182,7 @@ export function RWAOverviewFilters({
 					excludeQueryKey="excludeAssetNames"
 					label={'Asset Names'}
 					labelType="smol"
+					nestedMenu={nestedMenu}
 					triggerProps={{
 						className: filterTriggerClassName
 					}}
@@ -150,6 +196,7 @@ export function RWAOverviewFilters({
 					excludeQueryKey="excludeCategories"
 					label={'Categories'}
 					labelType="smol"
+					nestedMenu={nestedMenu}
 					triggerProps={{
 						className: filterTriggerClassName
 					}}
@@ -163,6 +210,7 @@ export function RWAOverviewFilters({
 					excludeQueryKey="excludeAssetClasses"
 					label={'Asset Classes'}
 					labelType="smol"
+					nestedMenu={nestedMenu}
 					triggerProps={{
 						className: filterTriggerClassName
 					}}
@@ -176,6 +224,7 @@ export function RWAOverviewFilters({
 					excludeQueryKey="excludeRwaClassifications"
 					label={'RWA Classification'}
 					labelType="smol"
+					nestedMenu={nestedMenu}
 					triggerProps={{
 						className: filterTriggerClassName
 					}}
@@ -189,6 +238,7 @@ export function RWAOverviewFilters({
 					excludeQueryKey="excludeAccessModels"
 					label={'Access Model'}
 					labelType="smol"
+					nestedMenu={nestedMenu}
 					triggerProps={{
 						className: filterTriggerClassName
 					}}
@@ -202,6 +252,7 @@ export function RWAOverviewFilters({
 					excludeQueryKey="excludeIssuers"
 					label={'Issuers'}
 					labelType="smol"
+					nestedMenu={nestedMenu}
 					triggerProps={{
 						className: filterTriggerClassName
 					}}
@@ -229,6 +280,7 @@ export function RWAOverviewFilters({
 					setDefiActiveTvlToOnChainMcapPctRange(minValue, maxValue)
 				}}
 				onClear={() => setDefiActiveTvlToOnChainMcapPctRange(null, null)}
+				nestedMenu={nestedMenu}
 				min={minDefiActiveTvlToOnChainMcapPct}
 				max={maxDefiActiveTvlToOnChainMcapPct}
 				minLabel="Min %"
@@ -258,6 +310,7 @@ export function RWAOverviewFilters({
 					setActiveMcapToOnChainMcapPctRange(minValue, maxValue)
 				}}
 				onClear={() => setActiveMcapToOnChainMcapPctRange(null, null)}
+				nestedMenu={nestedMenu}
 				min={minActiveMcapToOnChainMcapPct}
 				max={maxActiveMcapToOnChainMcapPct}
 				minLabel="Min %"
@@ -287,6 +340,7 @@ export function RWAOverviewFilters({
 					setDefiActiveTvlToActiveMcapPctRange(minValue, maxValue)
 				}}
 				onClear={() => setDefiActiveTvlToActiveMcapPctRange(null, null)}
+				nestedMenu={nestedMenu}
 				min={minDefiActiveTvlToActiveMcapPct}
 				max={maxDefiActiveTvlToActiveMcapPct}
 				minLabel="Min %"
@@ -294,18 +348,20 @@ export function RWAOverviewFilters({
 				minInputProps={ratioPercentInputProps}
 				maxInputProps={ratioPercentInputProps}
 			/>
-			<div className="flex flex-wrap items-center gap-2 md:ml-auto">
+			<div className={switchesAndResetClassName}>
 				<Switch
 					label="Stablecoins"
 					value="includeStablecoins"
 					checked={includeStablecoins}
 					onChange={() => setIncludeStablecoins(!includeStablecoins)}
+					className={nestedMenu ? 'text-base' : undefined}
 				/>
 				<Switch
 					label="Governance Tokens"
 					value="includeGovernance"
 					checked={includeGovernance}
 					onChange={() => setIncludeGovernance(!includeGovernance)}
+					className={nestedMenu ? 'text-base' : undefined}
 				/>
 				<button
 					onClick={() => {
@@ -316,11 +372,11 @@ export function RWAOverviewFilters({
 						router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 					}}
 					disabled={!hasActiveFilters}
-					className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40"
+					className={resetButtonClassName}
 				>
 					Reset filters
 				</button>
 			</div>
-		</div>
+		</>
 	)
 }
