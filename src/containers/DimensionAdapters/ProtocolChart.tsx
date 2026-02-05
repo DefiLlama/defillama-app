@@ -357,15 +357,11 @@ const ChartByType = ({
 				<ChartCsvExportButton
 					chartInstance={exportChartCsvInstance}
 					filename={title ? slug(title) : `${protocolName}-${chartType}`}
-					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-					smol
 				/>
 				<ChartExportButton
 					chartInstance={exportChartInstance}
 					filename={title ? slug(title) : `${protocolName}-${chartType}`}
 					title={title}
-					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-					smol
 				/>
 				{chartBuilderConfig && <AddToDashboardButton chartConfig={chartBuilderConfig} smol />}
 			</div>

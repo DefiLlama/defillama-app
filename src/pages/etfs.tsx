@@ -208,19 +208,8 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 							}}
 							portal
 						/>
-						<ChartCsvExportButton
-							chartInstance={exportChartCsvInstance}
-							filename="etf-flows"
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-							smol
-						/>
-						<ChartExportButton
-							chartInstance={exportChartInstance}
-							filename="etf-flows"
-							title="ETF Flows"
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-							smol
-						/>
+						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename="etf-flows" />
+						<ChartExportButton chartInstance={exportChartInstance} filename="etf-flows" title="ETF Flows" />
 					</div>
 					<React.Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2

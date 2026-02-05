@@ -426,15 +426,11 @@ const MNAVChart = ({
 				<ChartCsvExportButton
 					chartInstance={exportChartCsvInstance}
 					filename={`${slug(metadata.name)}-${slug(title)}`}
-					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-					smol
 				/>
 				<ChartExportButton
 					chartInstance={exportChartInstance}
 					filename={`${slug(metadata.name)}-${slug(title)}`}
 					title={`${metadata.name} ${title}`}
-					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-					smol
 				/>
 			</div>
 			<Suspense fallback={<div className="h-[360px]" />}>

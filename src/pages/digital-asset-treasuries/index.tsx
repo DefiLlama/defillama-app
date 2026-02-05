@@ -181,18 +181,11 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 						values={GROUP_BY}
 						className="ml-auto"
 					/>
-					<ChartCsvExportButton
-						chartInstance={chartCsvInstance}
-						filename="digital-asset-treasuries-inflows-by-asset"
-						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-						smol
-					/>
+					<ChartCsvExportButton chartInstance={chartCsvInstance} filename="digital-asset-treasuries-inflows-by-asset" />
 					<ChartExportButton
 						chartInstance={chartInstance}
 						filename="digital-asset-treasuries-inflows-by-asset"
 						title="DAT Inflows by Asset"
-						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-						smol
 					/>
 				</div>
 				<Suspense fallback={<div className="min-h-[360px]" />}>

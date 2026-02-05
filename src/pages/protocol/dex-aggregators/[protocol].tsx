@@ -184,15 +184,11 @@ export default function Protocols(props) {
 						<ChartCsvExportButton
 							chartInstance={exportChartCsvInstance}
 							filename={`${slug(props.name)}-dex-aggregator-volume`}
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-							smol
 						/>
 						<ChartExportButton
 							chartInstance={exportChartInstance}
 							filename={`${slug(props.name)}-dex-aggregator-volume`}
 							title="DEX Aggregator Volume"
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-							smol
 						/>
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>

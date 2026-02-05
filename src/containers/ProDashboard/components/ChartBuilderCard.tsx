@@ -754,8 +754,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								chartInstance={chartInstance}
 								filename={builder.name || config.metric}
 								title={config.chartType === 'treemap' ? undefined : builder.name || `${config.metric} by Protocol`}
-								smol
 								expandLegend
+								smol
 							/>
 							<ProTableCSVButton
 								onClick={handleCsvExport}

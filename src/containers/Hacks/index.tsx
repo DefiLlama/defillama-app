@@ -395,20 +395,13 @@ export const HacksContainer = ({
 					</p>
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="m-2 flex flex-wrap items-center justify-between gap-2">
+					<div className="m-2 flex flex-wrap items-center justify-end gap-2 *:first:mr-auto">
 						<TagGroup setValue={setChartType} selectedValue={chartType} values={chartTypeList} />
-						<ChartCsvExportButton
-							chartInstance={exportChartCsvInstance}
-							filename="total-value-hacked"
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-							smol
-						/>
+						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename="total-value-hacked" />
 						<ChartExportButton
 							chartInstance={exportChartInstance}
 							filename="total-value-hacked"
 							title="Total Value Hacked"
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-							smol
 						/>
 					</div>
 					{chartType === 'Monthly Sum' ? (
@@ -425,7 +418,13 @@ export const HacksContainer = ({
 						</React.Suspense>
 					) : (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<PieChart chartData={displayPieChartData} />
+							<PieChart
+								chartData={displayPieChartData}
+								onReady={(instance) => {
+									handleChartReady(instance)
+									handleChartCsvReady(instance)
+								}}
+							/>
 						</React.Suspense>
 					)}
 				</div>

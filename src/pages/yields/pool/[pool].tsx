@@ -347,8 +347,6 @@ const PageView = (_props) => {
 							chartInstance={tvlApyChartInstance}
 							filename={`${query.pool}-tvl-apy`}
 							title="TVL & APY"
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-							smol
 						/>
 						<AddToDashboardButton chartConfig={getYieldsChartConfig()} smol />
 					</div>

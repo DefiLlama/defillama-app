@@ -171,18 +171,11 @@ export function ChainsWithStablecoins({
 							<div className="flex items-center gap-2 px-2">
 								<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 								<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
-								<ChartCsvExportButton
-									chartInstance={exportChartCsvInstance}
-									filename="stablecoins-total-market-cap"
-									className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-									smol
-								/>
+								<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename="stablecoins-total-market-cap" />
 								<ChartExportButton
 									chartInstance={exportChartInstance}
 									filename="stablecoins-total-market-cap"
 									title="Total Stablecoins Market Cap"
-									className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-									smol
 								/>
 							</div>
 							<React.Suspense fallback={<div className="min-h-[360px]" />}>

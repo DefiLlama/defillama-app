@@ -588,18 +588,11 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 							<span>{formatDateLabel(start)}</span>
 							<Icon name="arrow-right" width={14} height={14} />
 							<span>{formatDateLabel(end)}</span>
-							<ChartCsvExportButton
-								chartInstance={exportChartCsvInstance}
-								filename="token-pnl-price"
-								className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-								smol
-							/>
+							<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename="token-pnl-price" />
 							<ChartExportButton
 								chartInstance={exportChartInstance}
 								filename="token-pnl-price"
 								title="Price Over Time"
-								className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-								smol
 							/>
 						</div>
 					</div>

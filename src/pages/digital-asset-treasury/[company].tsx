@@ -557,18 +557,11 @@ export default function DigitalAssetTreasury(props: IProps) {
 								triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 							/>
 						)}
-						<ChartCsvExportButton
-							chartInstance={exportChartCsvInstance}
-							filename={`${slug(props.name)}-holdings`}
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-							smol
-						/>
+						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={`${slug(props.name)}-holdings`} />
 						<ChartExportButton
 							chartInstance={exportChartInstance}
 							filename={`${slug(props.name)}-holdings`}
 							title="Cumulative Holdings Over Time"
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-							smol
 						/>
 					</div>
 					<Suspense fallback={<div className="h-[360px]" />}>

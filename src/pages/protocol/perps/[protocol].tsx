@@ -182,18 +182,11 @@ export default function Protocols(props) {
 								</Tooltip>
 							))}
 						</div>
-						<ChartCsvExportButton
-							chartInstance={exportChartCsvInstance}
-							filename={`${slug(props.name)}-perp-volume`}
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-							smol
-						/>
+						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={`${slug(props.name)}-perp-volume`} />
 						<ChartExportButton
 							chartInstance={exportChartInstance}
 							filename={`${slug(props.name)}-perp-volume`}
 							title="Perp Volume"
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-							smol
 						/>
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
