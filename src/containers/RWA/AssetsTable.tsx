@@ -129,7 +129,7 @@ export function RWAAssetsTable({
 		const csvData: Array<Array<string | number | boolean>> = tableRows.map((row) => {
 			const asset = row.original
 			return [
-				asset.name ?? asset.ticker ?? '',
+				asset.assetName ?? asset.ticker ?? '',
 				asset.type ?? '',
 				asset.rwaClassification ?? '',
 				asset.accessModel ?? '',
@@ -204,7 +204,7 @@ const columns: ColumnDef<AssetRow>[] = [
 	{
 		id: 'name',
 		header: 'Name',
-		accessorFn: (asset) => asset.name ?? asset.ticker,
+		accessorFn: (asset) => asset.assetName ?? asset.ticker,
 		enableSorting: false,
 		cell: (info) => {
 			return (
@@ -217,17 +217,17 @@ const columns: ColumnDef<AssetRow>[] = [
 									href={`/rwa/asset/${slug(info.row.original.ticker)}`}
 									className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 								>
-									{info.row.original.name ?? info.row.original.ticker}
+									{info.row.original.assetName ?? info.row.original.ticker}
 								</BasicLink>
-								{info.row.original.name ? (
+								{info.row.original.assetName ? (
 									<span className="text-[0.7rem] text-(--text-disabled)">{info.row.original.ticker}</span>
 								) : null}
 							</>
 						) : (
 							<>
-								{info.row.original.name && (
+								{info.row.original.assetName && (
 									<span className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap">
-										{info.row.original.name}
+										{info.row.original.assetName}
 									</span>
 								)}
 							</>

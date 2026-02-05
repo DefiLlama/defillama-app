@@ -149,8 +149,8 @@ const ContractItem = ({ chain, address }: { chain: string; address: string }) =>
 }
 
 export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
-	const displayName = asset.name ?? asset.ticker ?? 'Unknown asset'
-	const keyBase = asset.ticker ?? asset.name ?? 'asset'
+	const displayName = asset.assetName ?? asset.ticker ?? 'Unknown asset'
+	const keyBase = asset.ticker ?? asset.assetName ?? 'asset'
 	const onChainMcapTotal = asset.onChainMcap?.total ?? null
 	const activeMcapTotal = asset.activeMcap?.total ?? null
 	const defiActiveTvlTotal = asset.defiActiveTvl?.total ?? null
@@ -274,8 +274,8 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							hideDefaultLegend={false}
 							shouldEnableCSVDownload
 							shouldEnableImageExport
-							imageExportFilename={`${asset.ticker ?? asset.name ?? 'asset'}`}
-							imageExportTitle={`${asset.ticker ?? asset.name ?? 'Asset'}`}
+							imageExportFilename={`${asset.ticker ?? asset.assetName ?? 'asset'}`}
+							imageExportTitle={`${asset.ticker ?? asset.assetName ?? 'Asset'}`}
 						/>
 					</Suspense>
 				</div>

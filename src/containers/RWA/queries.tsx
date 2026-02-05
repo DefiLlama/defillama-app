@@ -6,7 +6,7 @@ import { rwaSlug } from './rwaSlug'
 
 interface IFetchedRWAProject {
 	ticker: string
-	name: string | null
+	assetName: string | null
 	website?: string[] | null
 	twitter?: string[] | null
 	primaryChain?: string | null
@@ -206,7 +206,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 					? `${RWA_CHART_API}/platform/${selectedPlatform}`
 					: `${RWA_CHART_API}/chain/all`
 
-		const [data, chartData]: [Record<string, IFetchedRWAProject>, IRWAChartDataByTicker | null] = await Promise.all([
+		const [data, chartData]: [Array<IFetchedRWAProject>, IRWAChartDataByTicker | null] = await Promise.all([
 			fetchJson(RWA_ACTIVE_TVLS_API),
 			fetchJson(`${chartUrl}/ticker-breakdown`).catch(() => null)
 		])
@@ -303,9 +303,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		let totalActiveMcapStablecoinsAndGovernance = 0
 		let totalDeFiActiveTvlStablecoinsAndGovernance = 0
 
-		for (const rwaId in data) {
-			const item = data[rwaId]
-
+		for (const item of data) {
 			let totalOnChainMcapForAsset = 0
 			let totalActiveMcapForAsset = 0
 			let totalDeFiActiveTvlForAsset = 0
@@ -415,7 +413,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			const asset: IRWAProject = {
 				...item,
 				ticker: typeof item.ticker === 'string' && item.ticker !== '-' ? item.ticker : null,
-				name: typeof item.name === 'string' && item.name !== '-' ? item.name : null,
+				assetName: typeof item.assetName === 'string' && item.assetName !== '-' ? item.assetName : null,
 				type: normalizedType,
 				rwaClassification: isTrueRWA ? 'RWA' : (item.rwaClassification ?? null),
 				trueRWA: isTrueRWA,
@@ -450,7 +448,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			}
 
 			// Only include asset if it exists on the selected chain/category (or no route filter)
-			if (hasChainInTvl && hasCategoryMatch && hasPlatformMatch && asset.name) {
+			if (hasChainInTvl && hasCategoryMatch && hasPlatformMatch && asset.assetName) {
 				const isStablecoin = !!item.stablecoin
 				const isGovernance = !!item.governance
 				const isStablecoinOnly = isStablecoin && !isGovernance
@@ -461,7 +459,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				assets.push(asset)
 				// Only expose `assetNames` when filtering by platform (used for platform-level UI filters).
 				if (selectedPlatform) {
-					assetNames.set(asset.name, (assetNames.get(asset.name) ?? 0) + effectiveOnChainMcap)
+					assetNames.set(asset.assetName, (assetNames.get(asset.assetName) ?? 0) + effectiveOnChainMcap)
 				}
 
 				// Track base totals (exclude stablecoin/governance buckets entirely)
@@ -800,7 +798,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 		const normalizedType =
 			typeof data.type === 'string' && data.type.trim() && data.type !== '-' ? data.type.trim() : 'Unknown'
 		const ticker = typeof data.ticker === 'string' && data.ticker !== '-' ? data.ticker : null
-		const name = typeof data.name === 'string' && data.name !== '-' ? data.name : null
+		const assetName = typeof data.assetName === 'string' && data.assetName !== '-' ? data.assetName : null
 
 		if (!ticker) {
 			return null
@@ -808,9 +806,9 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 
 		return {
 			...data,
-			slug: rwaSlug(ticker ?? name ?? ''),
+			slug: rwaSlug(ticker ?? assetName ?? ''),
 			ticker,
-			name,
+			assetName,
 			type: normalizedType,
 			trueRWA: isTrueRWA,
 			rwaClassification: isTrueRWA ? 'RWA' : (data.rwaClassification ?? null),

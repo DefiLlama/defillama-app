@@ -414,7 +414,7 @@ export const useFilteredRwaAssets = ({
 			// Only filter by asset name in platform mode.
 			if (selectedAssetNamesSet) {
 				// Keep the name mapping consistent with the pie chart logic.
-				const name = asset.name?.trim() || asset.ticker?.trim() || 'Unknown'
+				const name = asset.assetName?.trim() || asset.ticker?.trim() || 'Unknown'
 				if (!selectedAssetNamesSet.has(name)) continue
 			}
 
@@ -640,13 +640,13 @@ export function useRwaAssetNamePieChartData({
 		}
 
 		const selectedAssets = assets.filter((asset) => {
-			const name = asset.name?.trim() || asset.ticker?.trim() || UNKNOWN
+			const name = asset.assetName?.trim() || asset.ticker?.trim() || UNKNOWN
 			return selectedAssetNamesSet.has(name)
 		})
 
 		const discoveredNames = new Set<string>()
 		for (const asset of selectedAssets) {
-			discoveredNames.add(asset.name?.trim() || asset.ticker?.trim() || UNKNOWN)
+			discoveredNames.add(asset.assetName?.trim() || asset.ticker?.trim() || UNKNOWN)
 		}
 
 		const colorOrder = Array.from(discoveredNames).sort()
@@ -656,7 +656,7 @@ export function useRwaAssetNamePieChartData({
 
 		const totals = new Map<string, { onChain: number; active: number; defi: number }>()
 		for (const asset of selectedAssets) {
-			const name = asset.name?.trim() || asset.ticker?.trim() || UNKNOWN
+			const name = asset.assetName?.trim() || asset.ticker?.trim() || UNKNOWN
 			const prev = totals.get(name) ?? { onChain: 0, active: 0, defi: 0 }
 			prev.onChain += asset.onChainMcap?.total ?? 0
 			prev.active += asset.activeMcap?.total ?? 0
@@ -967,7 +967,7 @@ export function useRwaChartDataByAssetName({
 		for (const asset of assets) {
 			const ticker = asset.ticker?.trim()
 			if (!ticker) continue
-			const name = asset.name?.trim() || asset.ticker?.trim() || UNKNOWN
+			const name = asset.assetName?.trim() || asset.ticker?.trim() || UNKNOWN
 			tickerToAssetName.set(ticker, name)
 		}
 
