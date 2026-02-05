@@ -92,8 +92,6 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 
 	const dominance = getTokenDominance(topToken, totalValue)
 
-	console.log(dataset, charts)
-
 	return (
 		<>
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain ?? 'All'} />
