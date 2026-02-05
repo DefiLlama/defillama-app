@@ -7,17 +7,27 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`rwa/chains`, async () => {
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const rwaList = metadataCache.rwaList
 	const chains = await getRWAChainsOverview()
 
-	if (!chains) return { notFound: true }
+	if (!chains) {
+		throw new Error('chains not found in RWA list')
+	}
+
+	const chainLinks = rwaList.chains.map((chain) => ({
+		label: chain,
+		to: `/rwa/chain/${rwaSlug(chain)}`
+	}))
+
+	if (chainLinks.length === 0) {
+		throw new Error('chains not found in RWA list')
+	}
 
 	return {
 		props: {
 			chains,
-			chainLinks: [
-				{ label: 'All', to: '/rwa/chains' },
-				...chains.map((chain) => ({ label: chain.chain, to: `/rwa/chain/${rwaSlug(chain.chain)}` }))
-			]
+			chainLinks: [{ label: 'All', to: '/rwa/chains' }, ...chainLinks]
 		},
 		revalidate: maxAgeForNext([22])
 	}

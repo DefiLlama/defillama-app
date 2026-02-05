@@ -285,9 +285,6 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		const accessModels = new Map<string, number>()
 		const categories = new Map<string, number>()
 		const assetNames = new Map<string, number>()
-		const chainNavValues = new Map<string, number>()
-		const categoryNavValues = new Map<string, number>()
-		const platformNavValues = new Map<string, number>()
 		const issuers = new Map<string, number>()
 		const issuerSet = new Set<string>()
 		const issuerSetStablecoinsOnly = new Set<string>()
@@ -307,15 +304,6 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		let totalDeFiActiveTvlStablecoinsAndGovernance = 0
 
 		for (const item of data) {
-			if (!item.ticker) {
-				throw new Error(`Asset ${item.assetName} has no ticker`)
-			}
-			if (!params?.rwaList?.idMap?.[item.ticker]) {
-				throw new Error(`Asset ${item.assetName} has no ID map`)
-			}
-			// if (params?.rwaList?.idMap?.[item.ticker] != item.id) {
-			// 	throw new Error(`Asset ${item.assetName} has incorrect ID map`)
-			// }
 			let totalOnChainMcapForAsset = 0
 			let totalActiveMcapForAsset = 0
 			let totalDeFiActiveTvlForAsset = 0
@@ -350,24 +338,6 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 						filteredOnChainMcapForAsset += value
 					}
 				}
-			}
-
-			// Track total TVL for each chain for the chains list so order stays consistent
-			for (const chain of item.chain ?? []) {
-				chainNavValues.set(chain, (chainNavValues.get(chain) ?? 0) + totalOnChainMcapForAsset)
-			}
-
-			// For category navigation, we always use total on-chain mcap (not filtered) so ordering stays consistent.
-			for (const category of item.category ?? []) {
-				categoryNavValues.set(category, (categoryNavValues.get(category) ?? 0) + totalOnChainMcapForAsset)
-			}
-
-			// For platform navigation, we always use total on-chain mcap (not filtered) so ordering stays consistent.
-			if (item.parentPlatform) {
-				platformNavValues.set(
-					item.parentPlatform,
-					(platformNavValues.get(item.parentPlatform) ?? 0) + totalOnChainMcapForAsset
-				)
 			}
 
 			if (activeMcapBreakdown) {
@@ -412,8 +382,6 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			const effectiveActiveMcap = selectedChain ? filteredActiveMcapForAsset : totalActiveMcapForAsset
 			const effectiveDeFiActiveTvl = selectedChain ? filteredDeFiActiveTvlForAsset : totalDeFiActiveTvlForAsset
 
-			const normalizedType =
-				typeof item.type === 'string' && item.type.trim() && item.type !== '-' ? item.type.trim() : 'Unknown'
 			const isTrueRWA = item.rwaClassification === 'True RWA'
 			const sortedCategories =
 				selectedCategory && Array.isArray(item.category)
@@ -424,9 +392,6 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 					: (item.category ?? null)
 			const asset: IRWAProject = {
 				...item,
-				ticker: typeof item.ticker === 'string' && item.ticker !== '-' ? item.ticker : null,
-				assetName: typeof item.assetName === 'string' && item.assetName !== '-' ? item.assetName : null,
-				type: normalizedType,
 				rwaClassification: isTrueRWA ? 'RWA' : (item.rwaClassification ?? null),
 				trueRWA: isTrueRWA,
 				category: sortedCategories,
@@ -554,6 +519,34 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			.sort((a, b) => b[1] - a[1])
 			.map(([key]) => key)
 
+		const chainNavValues =
+			params?.rwaList?.chains?.map((chain) => ({
+				label: chain,
+				to: `/rwa/chain/${rwaSlug(chain)}`
+			})) ?? []
+		const categoryNavValues =
+			params?.rwaList?.categories?.map((category) => ({
+				label: category,
+				to: `/rwa/category/${rwaSlug(category)}`
+			})) ?? []
+		const platformNavValues =
+			params?.rwaList?.platforms?.map((platform) => ({
+				label: platform,
+				to: `/rwa/platform/${rwaSlug(platform)}`
+			})) ?? []
+
+		if ((selectedChain && !chainNavValues) || chainNavValues.length === 0) {
+			throw new Error('chains not found in RWA list')
+		}
+
+		if ((selectedCategory && !categoryNavValues) || categoryNavValues.length === 0) {
+			throw new Error('categories not found in RWA list')
+		}
+
+		if ((selectedPlatform && !platformNavValues) || platformNavValues.length === 0) {
+			throw new Error('platforms not found in RWA list')
+		}
+
 		return {
 			assets: assets.sort((a, b) => (b.onChainMcap?.total ?? 0) - (a.onChainMcap?.total ?? 0)),
 			types: formattedTypes,
@@ -598,32 +591,10 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				.sort((a, b) => b[1] - a[1])
 				.map(([key]) => key),
 			selectedChain: actualChainName ?? 'All',
-			chainLinks:
-				selectedCategory || selectedPlatform
-					? []
-					: [
-							{ label: 'All', to: '/rwa' },
-							...Array.from(chainNavValues.entries())
-								.sort((a, b) => b[1] - a[1])
-								.map(([key]) => ({ label: key, to: `/rwa/chain/${rwaSlug(key)}` }))
-						],
-			categoryLinks: selectedCategory
-				? [
-						{ label: 'All', to: '/rwa/categories' },
-						...Array.from(categoryNavValues.entries())
-							.sort((a, b) => b[1] - a[1])
-							.map(([key]) => ({ label: key, to: `/rwa/category/${rwaSlug(key)}` }))
-					]
-				: [],
+			chainLinks: selectedCategory || selectedPlatform ? [] : [{ label: 'All', to: '/rwa' }, ...chainNavValues],
+			categoryLinks: selectedCategory ? [{ label: 'All', to: '/rwa/categories' }, ...categoryNavValues] : [],
 			selectedCategory: actualCategoryName ?? 'All',
-			platformLinks: selectedPlatform
-				? [
-						{ label: 'All', to: '/rwa/platforms' },
-						...Array.from(platformNavValues.entries())
-							.sort((a, b) => b[1] - a[1])
-							.map(([key]) => ({ label: key, to: `/rwa/platform/${rwaSlug(key)}` }))
-					]
-				: [],
+			platformLinks: selectedPlatform ? [{ label: 'All', to: '/rwa/platforms' }, ...platformNavValues] : [],
 			selectedPlatform: actualPlatformName ?? 'All',
 			totals: {
 				onChainMcap: totalOnChainMcap,
@@ -807,21 +778,9 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			}
 		}
 
-		const normalizedType =
-			typeof data.type === 'string' && data.type.trim() && data.type !== '-' ? data.type.trim() : 'Unknown'
-		const ticker = typeof data.ticker === 'string' && data.ticker !== '-' ? data.ticker : null
-		const assetName = typeof data.assetName === 'string' && data.assetName !== '-' ? data.assetName : null
-
-		if (!ticker) {
-			return null
-		}
-
 		return {
 			...data,
-			slug: rwaSlug(ticker ?? assetName ?? ''),
-			ticker,
-			assetName,
-			type: normalizedType,
+			slug: rwaSlug(data.ticker),
 			trueRWA: isTrueRWA,
 			rwaClassification: isTrueRWA ? 'RWA' : (data.rwaClassification ?? null),
 			rwaClassificationDescription,

@@ -417,7 +417,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				<>
 					{chartView === 'timeSeries' ? (
 						<div className="min-h-[416px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-							<div className="flex items-center justify-end gap-2 p-3">
+							<div className="flex flex-wrap items-center justify-end gap-2 p-3">
 								{chartTypeSwitch}
 								{chartViewSwitch}
 								<ChartCsvExportButton
