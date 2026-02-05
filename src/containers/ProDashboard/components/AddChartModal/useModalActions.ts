@@ -637,7 +637,7 @@ export function useModalActions(
 						aggregator: state.metricAggregator,
 						window: state.metricWindow,
 						compare: { mode: 'previous_value', format: 'percent' },
-						showSparkline: state.metricShowSparkline,
+						chartType: state.metricChartType,
 						label: state.metricLabel
 					} as any
 				}
@@ -841,7 +841,7 @@ export function useModalActions(
 						aggregator: state.metricAggregator,
 						window: state.metricWindow,
 						compare: { mode: 'previous_value', format: 'percent' },
-						showSparkline: state.metricShowSparkline,
+						chartType: state.metricChartType,
 						label: state.metricLabel,
 						colSpan: 0.5 as StoredColSpan
 					} as any)

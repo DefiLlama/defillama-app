@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer } from 'react'
-import { ChartConfig, DashboardItemConfig, MetricAggregator } from '../../types'
+import { ChartConfig, DashboardItemConfig, MetricAggregator, MetricChartType } from '../../types'
 import { initializeFromEditItem, modalReducer } from './modalReducer'
 import { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType } from './types'
 
@@ -55,7 +55,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setMetricWindow: (w: '7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all') =>
 				dispatch({ type: 'SET_METRIC_WINDOW', payload: w }),
 			setMetricLabel: (s: string) => dispatch({ type: 'SET_METRIC_LABEL', payload: s }),
-			setMetricShowSparkline: (v: boolean) => dispatch({ type: 'SET_METRIC_SHOW_SPARKLINE', payload: v }),
+			setMetricChartType: (v: MetricChartType) => dispatch({ type: 'SET_METRIC_CHART_TYPE', payload: v }),
 			setSelectedYieldPool: (pool: { configID: string; name: string; project: string; chain: string } | null) =>
 				dispatch({ type: 'SET_SELECTED_YIELD_POOL', payload: pool }),
 			setSelectedYieldChartType: (chartType: string) =>
