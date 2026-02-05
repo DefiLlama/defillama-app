@@ -313,7 +313,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			if (!params?.rwaList?.idMap?.[item.ticker]) {
 				throw new Error(`Asset ${item.assetName} has no ID map`)
 			}
-			if (params?.rwaList?.idMap?.[item.ticker] == item.id) {
+			if (params?.rwaList?.idMap?.[item.ticker] != item.id) {
 				throw new Error(`Asset ${item.assetName} has incorrect ID map`)
 			}
 			let totalOnChainMcapForAsset = 0
