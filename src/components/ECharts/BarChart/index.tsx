@@ -291,10 +291,7 @@ export default function BarChart({
 							setSelectedValues={setLegendOptions}
 							label={customLegendName}
 							labelType="smol"
-							triggerProps={{
-								className:
-									'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-							}}
+							variant="filter"
 							portal
 						/>
 					)}

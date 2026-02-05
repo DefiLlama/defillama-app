@@ -119,10 +119,7 @@ export function ChartControls({
 					}}
 					label={cumulative ? 'Cumulative' : 'Individual'}
 					labelType="none"
-					triggerProps={{
-						className:
-							'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
-					}}
+					variant="pro"
 				/>
 			)}
 
@@ -136,10 +133,7 @@ export function ChartControls({
 					}}
 					label={stacked ? 'Stacked' : 'Separate'}
 					labelType="none"
-					triggerProps={{
-						className:
-							'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
-					}}
+					variant="pro"
 				/>
 			)}
 
@@ -152,10 +146,7 @@ export function ChartControls({
 					}}
 					label={percentage ? '% Percentage' : '$ Absolute'}
 					labelType="none"
-					triggerProps={{
-						className:
-							'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
-					}}
+					variant="pro"
 				/>
 			)}
 
@@ -168,10 +159,7 @@ export function ChartControls({
 					}}
 					label={showHallmarks ? 'Hallmarks: On' : 'Hallmarks: Off'}
 					labelType="none"
-					triggerProps={{
-						className:
-							'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
-					}}
+					variant="pro"
 				/>
 			)}
 
@@ -184,10 +172,7 @@ export function ChartControls({
 					}}
 					label={showLabels ? 'Labels: On' : 'Labels: Off'}
 					labelType="none"
-					triggerProps={{
-						className:
-							'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
-					}}
+					variant="pro"
 				/>
 			)}
 		</div>

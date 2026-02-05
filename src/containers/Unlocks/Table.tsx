@@ -354,10 +354,7 @@ export const UnlocksTable = ({
 					nestedMenu={false}
 					label={'Columns'}
 					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
-					}}
+					variant="filter-responsive"
 				/>
 
 				<SelectWithCombobox
@@ -367,10 +364,7 @@ export const UnlocksTable = ({
 					nestedMenu={false}
 					label={'Unlock Types'}
 					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
-					}}
+					variant="filter-responsive"
 				/>
 
 				<label className="relative w-full sm:max-w-[280px]">

@@ -160,8 +160,7 @@ export function TrendingContractsDataset({
 								}
 							}}
 							values={TIME_VALUES}
-							containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
-							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary) data-[active=true]:text-white"
+							variant="pro"
 						/>
 						<TagGroup
 							selectedValue={chain}
@@ -172,8 +171,7 @@ export function TrendingContractsDataset({
 								}
 							}}
 							values={CHAIN_VALUES}
-							containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
-							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary) data-[active=true]:text-white"
+							variant="pro"
 						/>
 						<ProTableCSVButton
 							onClick={() => {

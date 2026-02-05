@@ -4,7 +4,8 @@ import Router from 'next/router'
 import * as React from 'react'
 import { Icon } from './Icon'
 import { NestedMenu, NestedMenuItem } from './NestedMenu'
-import type { ExcludeQueryKey, SelectOption, SelectValues } from './selectTypes'
+import type { ExcludeQueryKey, SelectOption, SelectTriggerVariant, SelectValues } from './selectTypes'
+import { SELECT_TRIGGER_VARIANTS } from './selectTypes'
 import { Tooltip } from './Tooltip'
 
 // URL update helpers - used when includeQueryKey/excludeQueryKey is provided
@@ -89,6 +90,7 @@ interface ISelectWithComboboxBase {
 	label: string
 	nestedMenu?: boolean
 	labelType?: 'regular' | 'smol' | 'none'
+	variant?: SelectTriggerVariant
 	triggerProps?: Ariakit.SelectProps
 	customFooter?: React.ReactNode
 	onEditCustomColumn?: (idx: number) => void
@@ -120,6 +122,7 @@ export function SelectWithCombobox({
 	label,
 	nestedMenu,
 	labelType,
+	variant,
 	triggerProps,
 	customFooter,
 	onEditCustomColumn,
@@ -287,7 +290,7 @@ export function SelectWithCombobox({
 				}}
 			>
 				<Ariakit.Select
-					className="flex cursor-pointer flex-nowrap items-center gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+					className={SELECT_TRIGGER_VARIANTS[variant ?? 'default']}
 					aria-label={`${label} dropdown`}
 					{...triggerProps}
 				>

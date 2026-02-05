@@ -3,7 +3,8 @@ import Router from 'next/router'
 import * as React from 'react'
 import { Icon } from './Icon'
 import { NestedMenu, NestedMenuItem } from './NestedMenu'
-import type { ExcludeQueryKey, SelectValues } from './selectTypes'
+import type { ExcludeQueryKey, SelectValues, SelectTriggerVariant } from './selectTypes'
+import { SELECT_TRIGGER_VARIANTS } from './selectTypes'
 import { Tooltip } from './Tooltip'
 
 // URL update helpers - used when includeQueryKey/excludeQueryKey is provided
@@ -102,6 +103,7 @@ interface ISelectBase {
 	label: React.ReactNode
 	nestedMenu?: boolean
 	labelType?: 'regular' | 'smol' | 'none'
+	variant?: SelectTriggerVariant
 	triggerProps?: Ariakit.SelectProps
 	portal?: boolean
 	placement?: Ariakit.SelectProviderProps['placement']
@@ -130,6 +132,7 @@ export function Select({
 	label,
 	nestedMenu,
 	labelType = 'regular',
+	variant,
 	triggerProps,
 	portal,
 	placement = 'bottom-start',
@@ -254,7 +257,7 @@ export function Select({
 			placement={placement}
 		>
 			<Ariakit.Select
-				className="flex cursor-pointer flex-nowrap items-center gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+				className={SELECT_TRIGGER_VARIANTS[variant ?? 'default']}
 				aria-label={`${label} dropdown`}
 				{...triggerProps}
 			>

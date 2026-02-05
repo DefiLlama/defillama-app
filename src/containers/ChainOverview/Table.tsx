@@ -377,15 +377,13 @@ export const ChainProtocolsTable = ({
 					setValue={setFilter('category')}
 					selectedValue={filterState}
 					values={TABLE_CATEGORIES_VALUES}
-					className="max-sm:w-full"
-					triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
+					variant="responsive"
 				/>
 				<TagGroup
 					setValue={setFilter('period')}
 					selectedValue={filterState}
 					values={TABLE_PERIODS_VALUES}
-					className="max-sm:w-full"
-					triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
+					variant="responsive"
 				/>
 
 				<SelectWithCombobox
@@ -395,10 +393,7 @@ export const ChainProtocolsTable = ({
 					nestedMenu={false}
 					label={'Columns'}
 					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-					}}
+					variant="filter"
 					customFooter={
 						<button
 							className="flex w-full items-center gap-2 rounded-md border border-(--form-control-border) bg-(--btn-bg) p-3 text-sm font-medium text-(--text-primary) hover:bg-(--btn-hover-bg)"

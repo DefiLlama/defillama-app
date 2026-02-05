@@ -553,8 +553,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 								selectedValue={selectedAsset}
 								setValue={setSelectedAsset}
 								values={props.assets}
-								className="max-sm:w-full"
-								triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
+								variant="responsive"
 							/>
 						)}
 						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={`${slug(props.name)}-holdings`} />

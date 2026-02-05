@@ -379,8 +379,8 @@ export const PeggedAssetInfo = ({
 						setValue={setChartType}
 						selectedValue={chartType}
 						values={CHART_TYPE_VALUES}
-						className="m-2 max-sm:w-full"
-						triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
+						variant="responsive"
+						className="m-2"
 					/>
 
 					{chartType === 'Total Circ' && (
