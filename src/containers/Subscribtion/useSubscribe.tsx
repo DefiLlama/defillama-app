@@ -297,6 +297,27 @@ export const useSubscribe = () => {
 		retry: false
 	})
 
+	const usageStatsQuery = useQuery({
+		queryKey: ['usageStats', user?.id],
+		queryFn: async () => {
+			const response = await authorizedFetch(`${AUTH_SERVER}/user/usage-stats`, {
+				method: 'GET'
+			})
+
+			if (!response) {
+				return null
+			}
+
+			const data = await handleSimpleFetchResponse(response).then((res) => res.json())
+
+			return data
+		},
+		enabled: isAuthenticated && apiSubscription?.status === 'active' && router.pathname === '/account',
+		staleTime: 1000 * 60 * 5,
+		refetchOnWindowFocus: false,
+		retry: false
+	})
+
 	const { mutateAsync: createPortalSessionAsync, isPending: isPortalSessionLoading } = useMutation({
 		mutationFn: async () => {
 			if (!isAuthenticated) {
@@ -455,6 +476,9 @@ export const useSubscribe = () => {
 		apiSubscription: apiSubscription,
 		llamafeedSubscription: llamafeedSubscription,
 		legacySubscription: legacySubscription,
-		isTrialAvailable: trialAvailabilityQuery.data?.trialAvailable ?? false
+		isTrialAvailable: trialAvailabilityQuery.data?.trialAvailable ?? false,
+		usageStats: usageStatsQuery.data ?? null,
+		isUsageStatsLoading: usageStatsQuery.isLoading,
+		isUsageStatsError: usageStatsQuery.isError
 	}
 }
