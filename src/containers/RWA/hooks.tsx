@@ -28,9 +28,7 @@ const parseExcludeParam = (param: string | string[] | undefined): Set<string> =>
 const parseNumberInput = (value: string | number | null | undefined): number | null => {
 	if (value == null) return null
 	if (typeof value === 'number') return Number.isFinite(value) ? value : null
-	const trimmed = value.trim()
-	if (!trimmed) return null
-	const n = Number(trimmed)
+	const n = Number(value)
 	return Number.isFinite(n) ? n : null
 }
 
@@ -414,7 +412,7 @@ export const useFilteredRwaAssets = ({
 			// Only filter by asset name in platform mode.
 			if (selectedAssetNamesSet) {
 				// Keep the name mapping consistent with the pie chart logic.
-				const name = asset.assetName?.trim() || asset.ticker?.trim() || 'Unknown'
+				const name = asset.assetName || asset.ticker
 				if (!selectedAssetNamesSet.has(name)) continue
 			}
 
@@ -448,7 +446,7 @@ export const useFilteredRwaAssets = ({
 				continue
 			}
 
-			const assetType = asset.type?.trim() || 'Unknown'
+			const assetType = asset.type || 'Unknown'
 			const toFilter =
 				(asset.category?.length ? asset.category.some((category) => selectedCategoriesSet.has(category)) : true) &&
 				(asset.assetClass?.length
@@ -640,13 +638,13 @@ export function useRwaAssetNamePieChartData({
 		}
 
 		const selectedAssets = assets.filter((asset) => {
-			const name = asset.assetName?.trim() || asset.ticker?.trim() || UNKNOWN
+			const name = asset.assetName || asset.ticker
 			return selectedAssetNamesSet.has(name)
 		})
 
 		const discoveredNames = new Set<string>()
 		for (const asset of selectedAssets) {
-			discoveredNames.add(asset.assetName?.trim() || asset.ticker?.trim() || UNKNOWN)
+			discoveredNames.add(asset.assetName || asset.ticker)
 		}
 
 		const colorOrder = Array.from(discoveredNames).sort()
@@ -656,7 +654,7 @@ export function useRwaAssetNamePieChartData({
 
 		const totals = new Map<string, { onChain: number; active: number; defi: number }>()
 		for (const asset of selectedAssets) {
-			const name = asset.assetName?.trim() || asset.ticker?.trim() || UNKNOWN
+			const name = asset.assetName || asset.ticker
 			const prev = totals.get(name) ?? { onChain: 0, active: 0, defi: 0 }
 			prev.onChain += asset.onChainMcap?.total ?? 0
 			prev.active += asset.activeMcap?.total ?? 0
@@ -721,7 +719,7 @@ export function useRwaChainBreakdownPieChartData({
 		// Attribute each asset to a single chain (primary chain preferred) to avoid double counting
 		// across multi-chain assets.
 		const getAssetChain = (asset: IRWAAssetsOverview['assets'][number]) =>
-			asset.primaryChain?.trim() || asset.chain?.find((c) => c && c.trim())?.trim() || UNKNOWN
+			asset.primaryChain || asset.chain?.find((c) => c) || UNKNOWN
 
 		const totals = new Map<string, { onChain: number; active: number; defi: number }>()
 		const discoveredChains = new Set<string>()
@@ -811,11 +809,10 @@ export function useRwaChartDataByCategory({
 		// Build ticker -> categories lookup from filtered assets.
 		const tickerToCategories = new Map<string, string[]>()
 		for (const asset of assets) {
-			const ticker = asset.ticker?.trim()
+			const ticker = asset.ticker
 			if (!ticker) continue
-			const categories = (asset.category ?? []).map((c) => c?.trim()).filter(Boolean) as string[]
-			if (categories.length === 0) continue
-			tickerToCategories.set(ticker, categories)
+			if (asset.category.length === 0) continue
+			tickerToCategories.set(ticker, asset.category)
 		}
 
 		const aggregate = (rows: RWAChartRowByTicker[], seenCategories: Set<string>): RWAChartRowByCategory[] => {
@@ -887,11 +884,10 @@ export function useRwaChartDataByAssetClass({
 		// Build ticker -> asset classes lookup from filtered assets.
 		const tickerToAssetClasses = new Map<string, string[]>()
 		for (const asset of assets) {
-			const ticker = asset.ticker?.trim()
+			const ticker = asset.ticker
 			if (!ticker) continue
-			const assetClasses = (asset.assetClass ?? []).map((c) => c?.trim()).filter(Boolean) as string[]
-			if (assetClasses.length === 0) continue
-			tickerToAssetClasses.set(ticker, assetClasses)
+			if (asset.assetClass.length === 0) continue
+			tickerToAssetClasses.set(ticker, asset.assetClass)
 		}
 
 		const aggregate = (rows: RWAChartRowByTicker[], seenAssetClasses: Set<string>): RWAChartRowByAssetClass[] => {
@@ -960,14 +956,12 @@ export function useRwaChartDataByAssetName({
 		if (!enabled) return empty
 		if (!chartDataByTicker) return empty
 
-		const UNKNOWN = 'Unknown'
-
 		// Build ticker -> asset name lookup from filtered assets.
 		const tickerToAssetName = new Map<string, string>()
 		for (const asset of assets) {
-			const ticker = asset.ticker?.trim()
+			const ticker = asset.ticker
 			if (!ticker) continue
-			const name = asset.assetName?.trim() || asset.ticker?.trim() || UNKNOWN
+			const name = asset.assetName || asset.ticker
 			tickerToAssetName.set(ticker, name)
 		}
 

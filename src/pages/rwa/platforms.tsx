@@ -7,20 +7,27 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`rwa/platforms`, async () => {
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const rwaList = metadataCache.rwaList
 	const platforms = await getRWAPlatformsOverview()
 
-	if (!platforms) return { notFound: true }
+	if (!platforms) {
+		throw new Error('platforms not found in RWA list')
+	}
+
+	const platformLinks = rwaList.platforms.map((platform) => ({
+		label: platform,
+		to: `/rwa/platform/${rwaSlug(platform)}`
+	}))
+
+	if (platformLinks.length === 0) {
+		throw new Error('platforms not found in RWA list')
+	}
 
 	return {
 		props: {
 			platforms,
-			platformLinks: [
-				{ label: 'All', to: '/rwa/platforms' },
-				...platforms.map((platform) => ({
-					label: platform.platform,
-					to: `/rwa/platform/${rwaSlug(platform.platform)}`
-				}))
-			]
+			platformLinks: [{ label: 'All', to: '/rwa/platforms' }, ...platformLinks]
 		},
 		revalidate: maxAgeForNext([22])
 	}
