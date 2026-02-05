@@ -6,7 +6,8 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
-import { Subscription, useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { Subscription, UsageStatsResponse, useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { UsageStatsCard } from './UsageStatsCard'
 
 const StripeCheckoutModal = lazy(() =>
 	import('~/components/StripeCheckoutModal').then((m) => ({ default: m.StripeCheckoutModal }))
@@ -22,6 +23,9 @@ interface SubscriberContentProps {
 	llamafeedSubscription: Subscription
 	enableOverage: () => void
 	isEnableOverageLoading: boolean
+	usageStats: UsageStatsResponse | null
+	isUsageStatsLoading: boolean
+	isUsageStatsError: boolean
 }
 
 export const SubscriberContent = ({
@@ -33,7 +37,10 @@ export const SubscriberContent = ({
 	apiSubscription,
 	llamafeedSubscription,
 	enableOverage,
-	isEnableOverageLoading
+	isEnableOverageLoading,
+	usageStats,
+	isUsageStatsLoading,
+	isUsageStatsError
 }: SubscriberContentProps) => {
 	const hasProSubscription = llamafeedSubscription?.status === 'active'
 	const hasApiSubscription = apiSubscription?.status === 'active' && apiSubscription?.provider !== 'legacy'
@@ -309,6 +316,13 @@ export const SubscriberContent = ({
 										</div>
 									</div>
 								</div>
+
+								<UsageStatsCard
+									show={hasApiSubscription || hasLegacySubscription}
+									usageStats={usageStats}
+									isLoading={isUsageStatsLoading}
+									isError={isUsageStatsError}
+								/>
 							</div>
 						) : (
 							<div className="space-y-6 py-8 text-center">
