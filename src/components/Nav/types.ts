@@ -4,6 +4,7 @@ export type TNavLink = {
 	icon?: string
 	attention?: boolean
 	freeTrial?: boolean
+	isNew?: boolean
 	/** Only for external links - internal pages are auto-tracked by Umami */
 	umamiEvent?: string
 }
