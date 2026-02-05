@@ -131,6 +131,7 @@ export interface IMultiSeriesChart2Props {
 	shouldEnableCSVDownload?: boolean
 	// Canonical (and only) input shape.
 	dataset: MultiSeriesChart2Dataset
+	title?: string
 }
 
 export interface ICandlestickChartProps {

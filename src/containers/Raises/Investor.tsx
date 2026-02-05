@@ -184,6 +184,10 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 							charts={fundingRoundsByMonthChart.charts}
 							groupBy="monthly"
 							valueSymbol=""
+							shouldEnableImageExport
+							shouldEnableCSVDownload
+							imageExportFilename={`${slug(investorName)}-funding-rounds`}
+							imageExportTitle={`${investorName} Funding Rounds`}
 						/>
 					</React.Suspense>
 				</div>

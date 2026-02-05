@@ -1,6 +1,8 @@
 import { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { tvlOptions } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -10,6 +12,8 @@ import { CATEGORY_API, PROTOCOLS_API } from '~/constants'
 import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
 import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import Layout from '~/layout'
 import { formattedNum, formattedPercent, getNDistinctColors, getPercentChange, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -218,6 +222,8 @@ const pageName = ['Protocol Categories']
 
 export default function Protocols({ categories, tableData, chartSource, categoryColors, extraTvlCharts }) {
 	const [selectedCategories, setSelectedCategories] = React.useState<Array<string>>(categories)
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 	const [extaTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const enabledTvls = TVL_SETTINGS_KEYS.filter((key) => extaTvlsEnabled[key])
 
@@ -331,15 +337,35 @@ export default function Protocols({ categories, tableData, chartSource, category
 						setSelectedValues={setSelectedCategories}
 						label="Categories"
 						labelType="smol"
+						triggerProps={{
+							className:
+								'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+						}}
+					/>
+					<ChartCsvExportButton
+						chartInstance={exportChartCsvInstance}
+						filename="categories-tvl"
+						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+						smol
+					/>
+					<ChartExportButton
+						chartInstance={exportChartInstance}
+						filename="categories-tvl"
+						title="TVL by Category"
+						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+						smol
 					/>
 				</div>
-
-				<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
+				<React.Suspense fallback={<></>}>
 					<MultiSeriesChart2
 						dataset={finalCharts.dataset}
 						charts={finalCharts.charts}
 						valueSymbol="$"
 						solidChartAreaStyle
+						onReady={(instance) => {
+							handleChartReady(instance)
+							handleChartCsvReady(instance)
+						}}
 					/>
 				</React.Suspense>
 			</div>

@@ -98,6 +98,8 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 							charts={monthlyInvestmentChart.charts}
 							valueSymbol="$"
 							groupBy="monthly"
+							shouldEnableImageExport
+							shouldEnableCSVDownload
 						/>
 					</React.Suspense>
 				</div>

@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
@@ -12,7 +11,7 @@ import {
 	useLocalStorageSettingsManager
 } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { formatNum, getPercentChange, toNiceCsvDate } from '~/utils'
+import { formatNum, getPercentChange } from '~/utils'
 import { ChainsByCategoryTable } from './Table'
 import { IChainsByCategoryData } from './types'
 
@@ -39,22 +38,6 @@ export function ChainsByCategory({
 
 	const { showByGroup, chainsTableData } = useGroupAndFormatChains({ chains, category })
 
-	const prepareCsv = () => {
-		const chainNames = dominanceCharts.dataset.dimensions.filter((d) => d !== 'timestamp')
-		const headers = ['Date', 'Timestamp', ...chainNames]
-
-		const rows: Array<Array<string | number>> = []
-		for (const row of dominanceCharts.dataset.source) {
-			const csvRow: Array<string | number> = [toNiceCsvDate(+(row.timestamp as number) / 1e3), row.timestamp as number]
-			for (const chain of chainNames) {
-				csvRow.push((row[chain] as number) ?? '')
-			}
-			rows.push(csvRow)
-		}
-
-		return { filename: `defillama-chains-dominance.csv`, rows: [headers, ...rows] as (string | number | boolean)[][] }
-	}
-
 	return (
 		<Layout
 			title={`${category} Chains DeFi TVL - DefiLlama`}
@@ -74,7 +57,6 @@ export function ChainsByCategory({
 					</React.Suspense>
 				</div>
 				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mr-2 ml-auto" />
 					<React.Suspense fallback={<></>}>
 						<MultiSeriesChart2
 							dataset={dominanceCharts.dataset}
@@ -82,6 +64,10 @@ export function ChainsByCategory({
 							valueSymbol="%"
 							expandTo100Percent
 							solidChartAreaStyle
+							shouldEnableImageExport
+							shouldEnableCSVDownload
+							imageExportFilename="chains-dominance"
+							imageExportTitle="Chains Dominance"
 						/>
 					</React.Suspense>
 				</div>

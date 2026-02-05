@@ -1,15 +1,17 @@
 import { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { getETFData } from '~/api/categories/protocols'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
 import { Select } from '~/components/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
-import { CHART_COLORS } from '~/constants/colors'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import Layout from '~/layout'
-import { firstDayOfMonth, formattedNum, lastDayOfWeek, toNiceCsvDate } from '~/utils'
+import { firstDayOfMonth, formattedNum, lastDayOfWeek } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -85,6 +87,8 @@ const DEFAULT_SORTING_STATE = [{ id: 'aum', desc: true }]
 const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps) => {
 	const [groupBy, setGroupBy] = React.useState<(typeof groupByList)[number]>('Weekly')
 	const [tickers, setTickers] = React.useState(['Bitcoin', 'Ethereum', 'Solana'])
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 
 	const chartData = React.useMemo(() => {
 		const bitcoin = {}
@@ -158,23 +162,6 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 		}
 	}, [chartData, tickers])
 
-	const prepareCsv = () => {
-		let rows = []
-
-		rows = [['Timestamp', 'Date', 'Bitcoin', 'Ethereum', 'Solana']]
-		for (const date in flows) {
-			rows.push([
-				date,
-				toNiceCsvDate(date),
-				flows[date]['Bitcoin'] ?? '',
-				flows[date]['Ethereum'] ?? '',
-				flows[date]['Solana'] ?? ''
-			])
-		}
-		const filename = `etf-flows-${new Date().toISOString().split('T')[0]}.csv`
-		return { filename, rows: rows as (string | number | boolean)[][] }
-	}
-
 	return (
 		<>
 			<div className="flex min-h-[408px] flex-col gap-1 md:flex-row">
@@ -221,13 +208,29 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 							}}
 							portal
 						/>
-						<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						<ChartCsvExportButton
+							chartInstance={exportChartCsvInstance}
+							filename="etf-flows"
+							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+							smol
+						/>
+						<ChartExportButton
+							chartInstance={exportChartInstance}
+							filename="etf-flows"
+							title="ETF Flows"
+							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+							smol
+						/>
 					</div>
-					<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
+					<React.Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
 							dataset={finalCharts.dataset}
 							charts={finalCharts.charts}
 							groupBy={groupBy === 'Cumulative' ? 'daily' : (groupBy.toLowerCase() as 'daily' | 'weekly' | 'monthly')}
+							onReady={(instance) => {
+								handleChartReady(instance)
+								handleChartCsvReady(instance)
+							}}
 						/>
 					</React.Suspense>
 				</div>

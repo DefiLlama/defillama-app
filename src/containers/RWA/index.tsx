@@ -416,7 +416,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			{showCharts ? (
 				<>
 					{chartView === 'timeSeries' ? (
-						<div className="min-h-[416px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 							<div className="flex flex-wrap items-center justify-end gap-2 p-3">
 								{chartTypeSwitch}
 								{chartViewSwitch}
@@ -434,7 +434,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 									smol
 								/>
 							</div>
-							<Suspense fallback={<div className="h-[360px]" />}>
+							<Suspense fallback={<div className="min-h-[360px]" />}>
 								<MultiSeriesChart2
 									dataset={selectedTimeSeriesDataset}
 									hideDefaultLegend={false}

@@ -166,14 +166,16 @@ export default function TreasuriesByAsset({
 						Report incorrect data
 					</BasicLink>
 				</div>
-				<div className="col-span-2 flex min-h-[406px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<h2 className="p-2 text-lg font-medium">Inflows</h2>
-					<Suspense>
+				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+					<Suspense fallback={<></>}>
 						<MultiSeriesChart2
 							dataset={dailyFlowsChart.dataset}
 							charts={dailyFlowsChart.charts}
 							valueSymbol={metadata.ticker}
 							hideDataZoom={dailyFlowsChart.dataset.source.length < 2}
+							title="Inflows"
+							shouldEnableImageExport
+							shouldEnableCSVDownload
 						/>
 					</Suspense>
 				</div>
@@ -406,7 +408,7 @@ const MNAVChart = ({
 	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 
 	return (
-		<div className="col-span-1 min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+		<div className="col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex items-center justify-end gap-2 p-2">
 				<h2 className="mr-auto text-lg font-bold">{title}</h2>
 				<SelectWithCombobox

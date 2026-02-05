@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/formatters'
@@ -11,6 +12,7 @@ import { CHART_COLORS } from '~/constants/colors'
 import { MultiChartConfig } from '~/containers/ProDashboard/types'
 import { getAdapterDashboardType } from '~/containers/ProDashboard/utils/adapterChartMapping'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { download, firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
@@ -80,6 +82,7 @@ export const AdapterByChainChart = ({
 }: Pick<IAdapterByChainPageData, 'chartData' | 'adapterType' | 'dataType' | 'chain'> & { chartName: string }) => {
 	const [chartInterval, setChartInterval] = React.useState<(typeof INTERVALS_LIST_ADAPTER_BY_CHAIN)[number]>('Daily')
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 
 	const finalCharts = React.useMemo(() => {
 		const seriesType = (chartInterval === 'Cumulative' || chartName === 'Open Interest' ? 'line' : 'bar') as
@@ -196,6 +199,12 @@ export const AdapterByChainChart = ({
 								</Tooltip>
 							))}
 				</div>
+				<ChartCsvExportButton
+					chartInstance={exportChartCsvInstance}
+					filename={`${slug(chain)}-${adapterType}-${chartName}`}
+					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+					smol
+				/>
 				<CSVDownloadButton onClick={handleDownloadBreakdownCsv} isLoading={isDownloadingBreakdownChart} smol />
 				<ChartExportButton
 					chartInstance={exportChartInstance}
@@ -206,8 +215,15 @@ export const AdapterByChainChart = ({
 				/>
 				{chain && <AddToDashboardButton chartConfig={multiChart} smol />}
 			</div>
-			<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-				<MultiSeriesChart2 dataset={finalCharts.dataset} charts={finalCharts.charts} onReady={handleChartReady} />
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
+				<MultiSeriesChart2
+					dataset={finalCharts.dataset}
+					charts={finalCharts.charts}
+					onReady={(instance) => {
+						handleChartReady(instance)
+						handleChartCsvReady(instance)
+					}}
+				/>
 			</React.Suspense>
 		</div>
 	)
@@ -221,6 +237,7 @@ export const ChainsByAdapterChart = ({
 	const [chartType, setChartType] = React.useState<(typeof CHART_TYPES)[number]>('Volume')
 	const [chartInterval, setChartInterval] = React.useState<(typeof INTERVALS_LIST)[number]>('Daily')
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance2, handleChartReady: handleChartCsvReady2 } = useChartCsvExport()
 
 	const [selectedChains, setSelectedChains] = React.useState<string[]>(allChains)
 
@@ -228,90 +245,84 @@ export const ChainsByAdapterChart = ({
 		return getChartDataByChainAndInterval({ chartData, chartInterval, chartType, selectedChains })
 	}, [chartData, chartInterval, selectedChains, chartType])
 
-	const prepareCsv = () => {
-		const rows: any = [['Timestamp', 'Date', ...allChains]]
-
-		for (const [date, chainsOnDate] of chartData) {
-			const row: any = [date, toNiceCsvDate(date)]
-			for (const chain of allChains) {
-				row.push(chainsOnDate[chain] ?? '')
-			}
-			rows.push(row)
-		}
-
-		return { filename: `${type}-chains-${new Date().toISOString().split('T')[0]}.csv`, rows }
-	}
-
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-			<>
-				<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2">
-					<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-						{INTERVALS_LIST.map((dataInterval) => (
-							<a
-								key={`${dataInterval}-${type}`}
-								onClick={() => setChartInterval(dataInterval)}
-								data-active={dataInterval === chartInterval}
-								className="shrink-0 cursor-pointer px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-							>
-								{dataInterval}
-							</a>
-						))}
-					</div>
-					<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-						{CHART_TYPES.map((dataType) => (
-							<button
-								className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-								data-active={dataType === chartType}
-								key={`${dataType}-${type}`}
-								onClick={() => setChartType(dataType)}
-							>
-								{dataType}
-							</button>
-						))}
-					</div>
-					<SelectWithCombobox
-						allValues={allChains}
-						selectedValues={selectedChains}
-						setSelectedValues={setSelectedChains}
-						label="Chains"
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-						portal
-					/>
-					<CSVDownloadButton prepareCsv={prepareCsv} smol />
-					<ChartExportButton
-						chartInstance={exportChartInstance}
-						filename={`${type}-chains-${chartInterval.toLowerCase()}`}
-						title={`${type} by Chain - ${chartType}`}
-						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-						smol
-					/>
+			<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2">
+				<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+					{INTERVALS_LIST.map((dataInterval) => (
+						<a
+							key={`${dataInterval}-${type}`}
+							onClick={() => setChartInterval(dataInterval)}
+							data-active={dataInterval === chartInterval}
+							className="shrink-0 cursor-pointer px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+						>
+							{dataInterval}
+						</a>
+					))}
 				</div>
-			</>
-
+				<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+					{CHART_TYPES.map((dataType) => (
+						<button
+							className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+							data-active={dataType === chartType}
+							key={`${dataType}-${type}`}
+							onClick={() => setChartType(dataType)}
+						>
+							{dataType}
+						</button>
+					))}
+				</div>
+				<SelectWithCombobox
+					allValues={allChains}
+					selectedValues={selectedChains}
+					setSelectedValues={setSelectedChains}
+					label="Chains"
+					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+					}}
+					portal
+				/>
+				<ChartCsvExportButton
+					chartInstance={exportChartCsvInstance2}
+					filename={`${type}-chains-${chartInterval.toLowerCase()}`}
+					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+					smol
+				/>
+				<ChartExportButton
+					chartInstance={exportChartInstance}
+					filename={`${type}-chains-${chartInterval.toLowerCase()}`}
+					title={`${type} by Chain - ${chartType}`}
+					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+					smol
+				/>
+			</div>
 			{chartType === 'Dominance' ? (
-				<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
+				<React.Suspense fallback={<div className="min-h-[360px]" />}>
 					<MultiSeriesChart2
 						dataset={dataset}
 						charts={charts}
 						valueSymbol="%"
 						expandTo100Percent
 						chartOptions={chartOptions}
-						onReady={handleChartReady}
+						onReady={(instance) => {
+							handleChartReady(instance)
+							handleChartCsvReady2(instance)
+						}}
 					/>
 				</React.Suspense>
 			) : (
-				<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
+				<React.Suspense fallback={<div className="min-h-[360px]" />}>
 					<MultiSeriesChart2
 						dataset={dataset}
 						charts={charts}
 						chartOptions={chartOptions}
 						groupBy={chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
-						onReady={handleChartReady}
+						onReady={(instance) => {
+							handleChartReady(instance)
+							handleChartCsvReady2(instance)
+						}}
 					/>
 				</React.Suspense>
 			)}

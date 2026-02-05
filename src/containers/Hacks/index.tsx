@@ -9,6 +9,8 @@ import {
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import * as React from 'react'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
@@ -19,6 +21,8 @@ import { useTableSearch } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import Layout from '~/layout'
 import {
 	capitalizeFirstLetter,
@@ -213,6 +217,8 @@ export const HacksContainer = ({
 	classificationOptions
 }: IHacksPageData) => {
 	const [chartType, setChartType] = React.useState('Monthly Sum')
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 	const router = useRouter()
 	const {
 		chain: chainQ,
@@ -357,23 +363,6 @@ export const HacksContainer = ({
 	const displayMonthlyHacksChartData = derivedStats?.monthlyHacksChartData ?? monthlyHacksChartData
 	const displayPieChartData = derivedStats?.pieChartData ?? pieChartData
 
-	const prepareCsv = () => {
-		if (chartType === 'Monthly Sum') {
-			const rows: Array<Array<string | number>> = [['Timestamp', 'Date', 'Total Value Hacked']]
-			for (const row of displayMonthlyHacksChartData.dataset.source) {
-				const ts = row.timestamp as number
-				rows.push([ts, new Date(ts).toISOString().split('T')[0], row['Total Value Hacked'] as number])
-			}
-			return { filename: 'total-value-hacked.csv', rows }
-		} else {
-			let rows: Array<Array<string | number>> = [['Technique', 'Value']]
-			for (const { name, value } of displayPieChartData) {
-				rows.push([name, value])
-			}
-			return { filename: 'total-hacked-by-technique.csv', rows }
-		}
-	}
-
 	return (
 		<Layout
 			title={`Hacks - DefiLlama`}
@@ -405,21 +394,37 @@ export const HacksContainer = ({
 						<span className="font-jetbrains text-2xl font-semibold">{displayTotalRugs}</span>
 					</p>
 				</div>
-				<div className="col-span-2 flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="m-2 flex flex-wrap items-center justify-between gap-2">
 						<TagGroup setValue={setChartType} selectedValue={chartType} values={chartTypeList} />
-						<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						<ChartCsvExportButton
+							chartInstance={exportChartCsvInstance}
+							filename="total-value-hacked"
+							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+							smol
+						/>
+						<ChartExportButton
+							chartInstance={exportChartInstance}
+							filename="total-value-hacked"
+							title="Total Value Hacked"
+							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+							smol
+						/>
 					</div>
 					{chartType === 'Monthly Sum' ? (
-						<React.Suspense fallback={<></>}>
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<MultiSeriesChart2
 								dataset={displayMonthlyHacksChartData.dataset}
 								charts={displayMonthlyHacksChartData.charts}
 								groupBy="monthly"
+								onReady={(instance) => {
+									handleChartReady(instance)
+									handleChartCsvReady(instance)
+								}}
 							/>
 						</React.Suspense>
 					) : (
-						<React.Suspense fallback={<></>}>
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<PieChart chartData={displayPieChartData} />
 						</React.Suspense>
 					)}

@@ -3,12 +3,16 @@ import { useQueries, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/formatters'
 import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { COINS_CHART_API } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 import { formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -294,6 +298,8 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	const coinParam = router.query?.coin
 
 	const coinInfoMap = useMemo(() => new Map(coinsData.map((coin) => [coin.id, coin])), [coinsData])
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 
 	const { startDate, endDate, handleStartDateChange, handleEndDateChange, validateDateRange } = useDateRangeValidation({
 		initialStartDate: unixToDateString(now - 7 * 24 * 60 * 60),
@@ -576,20 +582,37 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 				</div>
 
 				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
-					<div className="flex items-center justify-between p-3 pb-1">
+					<div className="flex items-center justify-between gap-2 p-3 pb-1">
 						<h3 className="text-base font-semibold">Price Over Time</h3>
 						<div className="flex items-center gap-2 text-xs text-(--text-secondary)">
 							<span>{formatDateLabel(start)}</span>
 							<Icon name="arrow-right" width={14} height={14} />
 							<span>{formatDateLabel(end)}</span>
+							<ChartCsvExportButton
+								chartInstance={exportChartCsvInstance}
+								filename="token-pnl-price"
+								className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+								smol
+							/>
+							<ChartExportButton
+								chartInstance={exportChartInstance}
+								filename="token-pnl-price"
+								title="Price Over Time"
+								className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+								smol
+							/>
 						</div>
 					</div>
-					<Suspense fallback={<div className="min-h-[360px]"></div>}>
+					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
 							dataset={chartData.dataset}
 							charts={chartData.charts}
 							hideDataZoom
 							chartOptions={chartOptions as any}
+							onReady={(instance) => {
+								handleChartReady(instance)
+								handleChartCsvReady(instance)
+							}}
 						/>
 					</Suspense>
 				</div>

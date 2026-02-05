@@ -109,9 +109,15 @@
 // 					</p>
 // 				</div>
 
-// 				<div className="col-span-2 min-h-[370px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+// 				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 // 					<Suspense fallback={<></>}>
-// 						<MultiSeriesChart2 dataset={dataset} charts={charts} alwaysShowTooltip />
+// 						<MultiSeriesChart2
+// 							dataset={dataset}
+// 							charts={charts}
+// 							alwaysShowTooltip
+// 							shouldEnableImageExport
+// 							shouldEnableCSVDownload
+// 						/>
 // 					</Suspense>
 // 				</div>
 // 			</div>

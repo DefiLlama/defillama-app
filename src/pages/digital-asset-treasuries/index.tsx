@@ -1,6 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
@@ -11,9 +12,10 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { getDATOverviewData, IDATOverviewPageProps } from '~/containers/DAT/queries'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import Layout from '~/layout'
-import { firstDayOfMonth, formattedNum, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
+import { firstDayOfMonth, formattedNum, lastDayOfWeek, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -81,41 +83,6 @@ const prepareInstitutionsCsv = (institutions: IDATOverviewPageProps['institution
 	}
 }
 
-const prepareDailyFlowsCsv = (dailyFlowsByAsset) => {
-	const headers = ['Timestamp', 'Date']
-	const assetOrder = Object.keys(dailyFlowsByAsset)
-	for (const asset of assetOrder) {
-		const name = dailyFlowsByAsset[asset].name
-		headers.push(`${name} Buy/Sell Price`)
-		headers.push(`${name} Buy/Sell Quantity`)
-	}
-	const inflowsByAssetByDate = {}
-	for (const asset in dailyFlowsByAsset) {
-		for (const [date, purchasePrice, assetQuantity] of dailyFlowsByAsset[asset].data) {
-			if (purchasePrice != null || assetQuantity != null) {
-				const dateKey = String(date)
-				inflowsByAssetByDate[dateKey] = inflowsByAssetByDate[dateKey] ?? {}
-				inflowsByAssetByDate[dateKey][asset] = [purchasePrice, assetQuantity]
-			}
-		}
-	}
-	const rows = []
-	const sortedDates = Object.keys(inflowsByAssetByDate)
-		.map(Number)
-		.sort((a, b) => a - b)
-	for (const date of sortedDates) {
-		const dateKey = String(date)
-		const row = [String(date), toNiceCsvDate(date / 1000)]
-		for (const asset of assetOrder) {
-			const data = inflowsByAssetByDate[dateKey]?.[asset]
-			row.push(data?.[0] ?? '')
-			row.push(data?.[1] ?? '')
-		}
-		rows.push(row)
-	}
-	return { filename: 'digital-asset-treasuries-daily-flows.csv', rows: [headers, ...rows] }
-}
-
 export default function TreasuriesByInstitution({ allAssets, institutions, dailyFlowsByAsset }: IDATOverviewPageProps) {
 	const [groupBy, setGroupBy] = useState<GroupByType>('Weekly')
 
@@ -147,14 +114,12 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 		}
 	}, [groupBy])
 
-	const { chartData, csvData } = useMemo(() => {
+	const { chartData } = useMemo(() => {
 		const assetKeys = Object.keys(dailyFlowsByAsset)
 		const rowMap = new Map<number, Record<string, number | null>>()
-		const csvRawData = {}
 
 		if (['Weekly', 'Monthly'].includes(groupBy)) {
 			for (const asset of assetKeys) {
-				csvRawData[asset] = { name: dailyFlowsByAsset[asset].name, data: [] }
 				const sumByDate = {}
 				for (const [date, purchasePrice, assetQuantity] of dailyFlowsByAsset[asset].data) {
 					const dateKey = groupBy === 'Monthly' ? +firstDayOfMonth(date) * 1000 : +lastDayOfWeek(date) * 1000
@@ -166,12 +131,10 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 					const row = rowMap.get(+date) ?? { timestamp: +date }
 					row[dailyFlowsByAsset[asset].name] = sumByDate[date].purchasePrice
 					rowMap.set(+date, row)
-					csvRawData[asset].data.push([+date, sumByDate[date].purchasePrice, sumByDate[date].assetQuantity])
 				}
 			}
 		} else {
 			for (const asset of assetKeys) {
-				csvRawData[asset] = { name: dailyFlowsByAsset[asset].name, data: dailyFlowsByAsset[asset].data }
 				for (const [date, purchasePrice] of dailyFlowsByAsset[asset].data) {
 					const row = rowMap.get(date) ?? { timestamp: date }
 					row[dailyFlowsByAsset[asset].name] = purchasePrice
@@ -192,13 +155,12 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 		}))
 
 		return {
-			chartData: { dataset: { source, dimensions }, charts },
-			csvData: csvRawData
+			chartData: { dataset: { source, dimensions }, charts }
 		}
 	}, [dailyFlowsByAsset, groupBy])
 
 	const { chartInstance, handleChartReady } = useChartImageExport()
-	const handlePrepareDailyFlowsCsv = () => prepareDailyFlowsCsv(csvData)
+	const { chartInstance: chartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 	const handlePrepareInstitutionsCsv = () => prepareInstitutionsCsv(institutions)
 
 	return (
@@ -210,7 +172,7 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 			pageName={pageName}
 		>
 			<RowLinksWithDropdown links={allAssets} activeLink={'All'} />
-			<div className="col-span-2 flex min-h-[406px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-between gap-2 p-2 pb-0">
 					<h1 className="text-lg font-semibold">DAT Inflows by Asset</h1>
 					<TagGroup
@@ -219,7 +181,12 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 						values={GROUP_BY}
 						className="ml-auto"
 					/>
-					<CSVDownloadButton prepareCsv={handlePrepareDailyFlowsCsv} smol />
+					<ChartCsvExportButton
+						chartInstance={chartCsvInstance}
+						filename="digital-asset-treasuries-inflows-by-asset"
+						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+						smol
+					/>
 					<ChartExportButton
 						chartInstance={chartInstance}
 						filename="digital-asset-treasuries-inflows-by-asset"
@@ -228,13 +195,16 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 						smol
 					/>
 				</div>
-				<Suspense fallback={<></>}>
+				<Suspense fallback={<div className="min-h-[360px]" />}>
 					<MultiSeriesChart2
 						dataset={chartData.dataset}
 						charts={chartData.charts}
 						valueSymbol="$"
 						chartOptions={chartOptions}
-						onReady={handleChartReady}
+						onReady={(instance) => {
+							handleChartReady(instance)
+							handleChartCsvReady(instance)
+						}}
 					/>
 				</Suspense>
 			</div>
