@@ -90,6 +90,7 @@ interface FetchPromptResponseParams {
 	forceIntent?: 'comprehensive_report'
 	authorizedFetch: any
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
+	pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string }
 	resume?: boolean
 	/** Initial markdown content for stream resumption - ensures continuity when reconnecting */
 	initialContent?: string
@@ -113,7 +114,8 @@ export async function fetchPromptResponse({
 	authorizedFetch,
 	images,
 	resume,
-	initialContent
+	initialContent,
+	pageContext
 }: FetchPromptResponseParams) {
 	let reader: ReadableStreamDefaultReader<Uint8Array> | null = null
 
@@ -161,6 +163,10 @@ export async function fetchPromptResponse({
 
 		if (images && images.length > 0) {
 			requestBody.images = images
+		}
+
+		if (pageContext) {
+			requestBody.pageContext = pageContext
 		}
 
 		const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent`, {

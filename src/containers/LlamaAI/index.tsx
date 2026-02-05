@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import Router from 'next/router'
 import { memo, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { consumePendingPrompt } from '~/components/LlamaAIFloatingButton'
+import { consumePendingPrompt, consumePendingPageContext } from '~/components/LlamaAIFloatingButton'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
@@ -314,12 +314,14 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			userQuestion,
 			suggestionContext,
 			preResolvedEntities,
-			images
+			images,
+			pageContext
 		}: {
 			userQuestion: string
 			suggestionContext?: any
 			preResolvedEntities?: Array<{ term: string; slug: string }>
 			images?: Array<{ data: string; mimeType: string; filename?: string }>
+			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string }
 		}) => {
 			let currentSessionId = sessionId
 
@@ -361,6 +363,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				suggestionContext,
 				preResolvedEntities,
 				images,
+				pageContext,
 				mode: 'auto',
 				forceIntent: isResearchMode ? 'comprehensive_report' : undefined,
 				authorizedFetch,
@@ -638,7 +641,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		(
 			prompt: string,
 			preResolved?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>,
-			images?: Array<{ data: string; mimeType: string; filename?: string }>
+			images?: Array<{ data: string; mimeType: string; filename?: string }>,
+			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string }
 		) => {
 			if (isStreaming) {
 				return
@@ -656,7 +660,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			submitPrompt({
 				userQuestion: finalPrompt,
 				preResolvedEntities: preResolved,
-				images
+				images,
+				pageContext
 			})
 		},
 		[sessionId, moveSessionToTop, submitPrompt, isStreaming]
@@ -691,9 +696,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		if (initialSessionId || sharedSession || readOnly) return
 
 		const pendingPrompt = consumePendingPrompt()
+		const pendingPageContext = consumePendingPageContext()
 		if (pendingPrompt) {
 			pendingPromptConsumedRef.current = true
-			handleSubmit(pendingPrompt)
+			handleSubmit(pendingPrompt, undefined, undefined, pendingPageContext ?? undefined)
 		}
 	}, [isRestoringSession, isPending, isStreaming, initialSessionId, sharedSession, readOnly, handleSubmit])
 

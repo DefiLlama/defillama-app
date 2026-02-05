@@ -6,6 +6,7 @@ import { useSuggestedQuestions } from '~/containers/LlamaAI/hooks/useSuggestedQu
 import { useMedia } from '~/hooks/useMedia'
 
 export const PENDING_PROMPT_KEY = 'llamaai-pending-prompt'
+export const PENDING_PAGE_CONTEXT_KEY = 'llamaai-pending-page-context'
 
 const FALLBACK_SUGGESTIONS = [
 	'Which protocols have growing TVL and revenue but declining token prices?',
@@ -41,6 +42,27 @@ export function consumePendingPrompt(): string | null {
 		localStorage.removeItem(PENDING_PROMPT_KEY)
 	}
 	return prompt
+}
+
+export function setPendingPageContext(context: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string } | null) {
+	if (typeof window === 'undefined') return
+	if (context) {
+		localStorage.setItem(PENDING_PAGE_CONTEXT_KEY, JSON.stringify(context))
+	} else {
+		localStorage.removeItem(PENDING_PAGE_CONTEXT_KEY)
+	}
+}
+
+export function consumePendingPageContext(): { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string } | null {
+	if (typeof window === 'undefined') return null
+	const raw = localStorage.getItem(PENDING_PAGE_CONTEXT_KEY)
+	if (!raw) return null
+	localStorage.removeItem(PENDING_PAGE_CONTEXT_KEY)
+	try {
+		return JSON.parse(raw)
+	} catch {
+		return null
+	}
 }
 
 export function LlamaAIFloatingButton() {
@@ -87,11 +109,12 @@ export function LlamaAIFloatingButton() {
 			}
 
 			setPendingPrompt(prompt)
+			setPendingPageContext({ entitySlug: entityContext?.entitySlug, entityType: entityContext?.entityType, route: router.asPath })
 			router.push('/ai/chat')
 			setIsOpen(false)
 			setValue('')
 		},
-		[value, router]
+		[value, router, entityContext]
 	)
 
 	const handleKeyDown = useCallback(
