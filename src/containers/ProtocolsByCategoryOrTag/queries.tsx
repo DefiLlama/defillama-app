@@ -555,15 +555,22 @@ export async function getProtocolsByCategoryOrTag(
 		optionsNotional7d += protocol.optionsNotional?.total7d ?? 0
 	}
 
+	const tvlData = chart.slice(startIndex)
 	return {
 		charts: {
-			TVL: {
-				name: 'TVL',
-				stack: 'TVL',
-				data: chart.slice(startIndex),
-				type: 'line',
-				color: CHART_COLORS[0]
-			}
+			dataset: {
+				source: tvlData.map(([timestamp, value]) => ({ timestamp, TVL: value })),
+				dimensions: ['timestamp', 'TVL']
+			},
+			charts: [
+				{
+					type: 'line' as const,
+					name: 'TVL',
+					encode: { x: 'timestamp', y: 'TVL' },
+					stack: 'TVL',
+					color: CHART_COLORS[0]
+				}
+			]
 		},
 		chain: currentChainMetadata?.name ?? 'All',
 		protocols: (chain

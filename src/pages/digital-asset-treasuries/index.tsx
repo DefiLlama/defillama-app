@@ -4,7 +4,7 @@ import { maxAgeForNext } from '~/api'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -16,7 +16,7 @@ import Layout from '~/layout'
 import { firstDayOfMonth, formattedNum, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const GROUP_BY = ['Daily', 'Weekly', 'Monthly'] as const
 type GroupByType = (typeof GROUP_BY)[number]
@@ -123,13 +123,22 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 		return {
 			tooltip: {
 				formatter: (params: any) => {
-					let chartdate = formatTooltipChartDate(params[0].value[0], groupBy.toLowerCase() as any)
+					const firstParam = Array.isArray(params) ? params[0] : params
+					const firstTimestamp =
+						firstParam?.data?.timestamp ??
+						(Array.isArray(firstParam?.value) ? firstParam.value[0] : undefined) ??
+						firstParam?.axisValue
+					let chartdate = formatTooltipChartDate(Number(firstTimestamp), groupBy.toLowerCase() as any)
 					let vals = ''
 					let total = 0
 					for (const param of params) {
-						if (!param.value[1]) continue
-						total += param.value[1]
-						vals += `<li style="list-style:none;">${param.marker} ${param.seriesName}: ${formattedNum(param.value[1], true)}</li>`
+						const seriesValue =
+							param?.data?.[param.seriesName] ?? (Array.isArray(param?.value) ? param.value[1] : undefined)
+						if (!seriesValue) continue
+						const numericValue = typeof seriesValue === 'number' ? seriesValue : Number(seriesValue)
+						if (!numericValue) continue
+						total += numericValue
+						vals += `<li style="list-style:none;">${param.marker} ${param.seriesName}: ${formattedNum(numericValue, true)}</li>`
 					}
 					vals += `<li style="list-style:none;">Total: ${formattedNum(total, true)}</li>`
 					return chartdate + vals
@@ -137,17 +146,15 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 			}
 		}
 	}, [groupBy])
-	const charts = useMemo(() => {
+
+	const { chartData, csvData } = useMemo(() => {
+		const assetKeys = Object.keys(dailyFlowsByAsset)
+		const rowMap = new Map<number, Record<string, number | null>>()
+		const csvRawData = {}
+
 		if (['Weekly', 'Monthly'].includes(groupBy)) {
-			const final = {}
-			for (const asset in dailyFlowsByAsset) {
-				final[asset] = {
-					name: dailyFlowsByAsset[asset].name,
-					stack: dailyFlowsByAsset[asset].stack,
-					type: dailyFlowsByAsset[asset].type,
-					color: dailyFlowsByAsset[asset].color,
-					data: []
-				}
+			for (const asset of assetKeys) {
+				csvRawData[asset] = { name: dailyFlowsByAsset[asset].name, data: [] }
 				const sumByDate = {}
 				for (const [date, purchasePrice, assetQuantity] of dailyFlowsByAsset[asset].data) {
 					const dateKey = groupBy === 'Monthly' ? +firstDayOfMonth(date) * 1000 : +lastDayOfWeek(date) * 1000
@@ -156,36 +163,42 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 					sumByDate[dateKey].assetQuantity = (sumByDate[dateKey].assetQuantity ?? 0) + (assetQuantity ?? 0)
 				}
 				for (const date in sumByDate) {
-					final[asset].data.push([+date, sumByDate[date].purchasePrice, sumByDate[date].assetQuantity])
+					const row = rowMap.get(+date) ?? { timestamp: +date }
+					row[dailyFlowsByAsset[asset].name] = sumByDate[date].purchasePrice
+					rowMap.set(+date, row)
+					csvRawData[asset].data.push([+date, sumByDate[date].purchasePrice, sumByDate[date].assetQuantity])
 				}
 			}
-			return final
+		} else {
+			for (const asset of assetKeys) {
+				csvRawData[asset] = { name: dailyFlowsByAsset[asset].name, data: dailyFlowsByAsset[asset].data }
+				for (const [date, purchasePrice] of dailyFlowsByAsset[asset].data) {
+					const row = rowMap.get(date) ?? { timestamp: date }
+					row[dailyFlowsByAsset[asset].name] = purchasePrice
+					rowMap.set(date, row)
+				}
+			}
 		}
-		// if (groupBy === 'Cumulative') {
-		// 	const final = {}
-		// 	for (const asset in dailyFlowsByAsset) {
-		// 		final[asset] = {
-		// 			name: dailyFlowsByAsset[asset].name,
-		// 			stack: dailyFlowsByAsset[asset].stack,
-		// 			type: 'line',
-		// 			color: dailyFlowsByAsset[asset].color,
-		// 			data: []
-		// 		}
-		// 		let totalPurchasePrice = 0
-		// 		let totalAssetQuantity = 0
-		// 		dailyFlowsByAsset[asset].data.forEach(([date, purchasePrice, assetQuantity]) => {
-		// 			totalPurchasePrice += purchasePrice ?? 0
-		// 			totalAssetQuantity += assetQuantity ?? 0
-		// 			final[asset].data.push([date, totalPurchasePrice, totalAssetQuantity])
-		// 		})
-		// 	}
-		// 	return final
-		// }
-		return dailyFlowsByAsset
+
+		const source = ensureChronologicalRows(Array.from(rowMap.values()))
+		const seriesNames = assetKeys.map((a) => dailyFlowsByAsset[a].name)
+		const dimensions = ['timestamp', ...seriesNames]
+		const charts = assetKeys.map((asset) => ({
+			type: 'bar' as const,
+			name: dailyFlowsByAsset[asset].name,
+			encode: { x: 'timestamp', y: dailyFlowsByAsset[asset].name },
+			stack: dailyFlowsByAsset[asset].stack,
+			color: dailyFlowsByAsset[asset].color
+		}))
+
+		return {
+			chartData: { dataset: { source, dimensions }, charts },
+			csvData: csvRawData
+		}
 	}, [dailyFlowsByAsset, groupBy])
 
 	const { chartInstance, handleChartReady } = useChartImageExport()
-	const handlePrepareDailyFlowsCsv = () => prepareDailyFlowsCsv(charts)
+	const handlePrepareDailyFlowsCsv = () => prepareDailyFlowsCsv(csvData)
 	const handlePrepareInstitutionsCsv = () => prepareInstitutionsCsv(institutions)
 
 	return (
@@ -216,7 +229,13 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 					/>
 				</div>
 				<Suspense fallback={<></>}>
-					<LineAndBarChart charts={charts} valueSymbol="$" chartOptions={chartOptions} onReady={handleChartReady} />
+					<MultiSeriesChart2
+						dataset={chartData.dataset}
+						charts={chartData.charts}
+						valueSymbol="$"
+						chartOptions={chartOptions}
+						onReady={handleChartReady}
+					/>
 				</Suspense>
 			</div>
 			<TableWithSearch

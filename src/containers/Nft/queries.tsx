@@ -1,3 +1,4 @@
+import { formatBarChart } from '~/components/ECharts/utils'
 import {
 	NFT_COLLECTION_API,
 	NFT_COLLECTION_FLOOR_HISTORY_API,
@@ -12,6 +13,7 @@ import {
 	NFT_ROYALTY_HISTORY_API,
 	NFT_VOLUME_API
 } from '~/constants'
+import { CHART_COLORS } from '~/constants/colors'
 import { getDominancePercent, getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { NFT_MINT_EARNINGS } from './mintEarnings'
@@ -258,6 +260,29 @@ export const getNFTRoyaltyHistory = async (slug: string) => {
 			fetchJson(`${NFT_ROYALTY_API}/${slug}`)
 		])
 
+		const safeChart = Array.isArray(royaltyChart) ? royaltyChart : []
+		const formattedData = formatBarChart({
+			data: safeChart,
+			groupBy: 'daily',
+			denominationPriceHistory: null,
+			dateInMs: false
+		})
+		const earningsChart = {
+			dataset: {
+				source: formattedData.map(([timestamp, value]) => ({ timestamp, Earnings: value })),
+				dimensions: ['timestamp', 'Earnings']
+			},
+			charts: [
+				{
+					type: 'bar' as const,
+					name: 'Earnings',
+					encode: { x: 'timestamp', y: 'Earnings' },
+					color: CHART_COLORS[0],
+					stack: 'Earnings'
+				}
+			]
+		}
+
 		const data = [
 			{
 				defillamaId: slug,
@@ -270,6 +295,7 @@ export const getNFTRoyaltyHistory = async (slug: string) => {
 				twitter: collection[0].twitterUsername,
 				category: 'Nft',
 				totalDataChart: royaltyChart,
+				earningsChart,
 				total24h: royalty[0].usd1D,
 				total7d: royalty[0].usd7D,
 				total30d: royalty[0].usd30D,

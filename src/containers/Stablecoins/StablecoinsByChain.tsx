@@ -349,7 +349,7 @@ export function StablecoinsByChain({
 								customComponents={
 									<>
 										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
 									</>
 								}
 								chartOptions={chartOptions}
@@ -372,7 +372,7 @@ export function StablecoinsByChain({
 								customComponents={
 									<>
 										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
 									</>
 								}
 								chartOptions={chartOptions}
@@ -396,7 +396,7 @@ export function StablecoinsByChain({
 								customComponents={
 									<>
 										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
 									</>
 								}
 								chartOptions={chartOptions}
@@ -414,7 +414,7 @@ export function StablecoinsByChain({
 								customComponents={
 									<>
 										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
 									</>
 								}
 								enableImageExport={true}
@@ -437,7 +437,7 @@ export function StablecoinsByChain({
 								customComponents={
 									<>
 										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
 									</>
 								}
 								enableImageExport={true}
@@ -455,7 +455,7 @@ export function StablecoinsByChain({
 								customComponents={
 									<>
 										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
 									</>
 								}
 								enableImageExport={true}

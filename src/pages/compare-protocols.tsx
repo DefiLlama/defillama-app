@@ -2,7 +2,8 @@ import { useQueries } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
+import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { tvlOptions } from '~/components/Filters/options'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/MultiSelectCombobox'
@@ -17,9 +18,9 @@ import { getNDistinctColors, slug, tokenIconUrl, toNumberOrNullFromQueryParam } 
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const LineAndBarChart = React.lazy(
-	() => import('~/components/ECharts/LineAndBarChart')
-) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = React.lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 
 export const getStaticProps = withPerformanceLogging('comparison', async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
@@ -108,7 +109,7 @@ export default function CompareProtocols({
 	const minTvl = toNumberOrNullFromQueryParam(router.query.minTvl)
 	const maxTvl = toNumberOrNullFromQueryParam(router.query.maxTvl)
 
-	const { charts } = React.useMemo(() => {
+	const { dataset, charts } = React.useMemo(() => {
 		const formattedData =
 			results
 				.filter((r) => r.data)
@@ -143,28 +144,30 @@ export default function CompareProtocols({
 		}
 
 		const distinctColors = getNDistinctColors(totalProtocols)
+		const seriesNames = Object.keys(chartsByProtocol)
 
-		const charts = {}
-		let chartIndex = 0
-		for (const protocol in chartsByProtocol) {
-			const color = distinctColors[chartIndex]
-
-			charts[protocol] = {
-				name: protocol,
-				stack: protocol,
-				type: 'line',
-				color,
-				data: []
-			}
+		const rowMap = new Map<number, Record<string, number>>()
+		for (const protocol of seriesNames) {
 			for (const date in chartsByProtocol[protocol]) {
-				charts[protocol].data.push([+date * 1e3, chartsByProtocol[protocol][date]])
+				const ts = +date * 1e3
+				const row = rowMap.get(ts) ?? { timestamp: ts }
+				row[protocol] = chartsByProtocol[protocol][date]
+				rowMap.set(ts, row)
 			}
-
-			chartIndex++
 		}
 
+		const source = ensureChronologicalRows(Array.from(rowMap.values()))
+		const chartsConfig = seriesNames.map((protocol, i) => ({
+			type: 'line' as const,
+			name: protocol,
+			encode: { x: 'timestamp', y: protocol },
+			stack: protocol,
+			color: distinctColors[i]
+		}))
+
 		return {
-			charts
+			dataset: { source, dimensions: ['timestamp', ...seriesNames] },
+			charts: chartsConfig
 		}
 	}, [results, extraTvlEnabled])
 
@@ -230,7 +233,7 @@ export default function CompareProtocols({
 							</div>
 						) : (
 							<React.Suspense fallback={<></>}>
-								<LineAndBarChart charts={charts} valueSymbol="$" />
+								<MultiSeriesChart2 dataset={dataset} charts={charts} valueSymbol="$" />
 							</React.Suspense>
 						)}
 					</div>

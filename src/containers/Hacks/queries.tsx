@@ -1,5 +1,5 @@
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { HACKS_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { firstDayOfMonth, formattedNum, slug } from '~/utils'
@@ -35,7 +35,7 @@ export interface IHacksPageData {
 		link: string
 		language: string
 	}>
-	monthlyHacksChartData: ILineAndBarChartProps['charts']
+	monthlyHacksChartData: { dataset: MultiSeriesChart2Dataset; charts: IMultiSeriesChart2Props['charts'] }
 	totalHacked: string
 	totalHackedDefi: string
 	totalRugs: string
@@ -115,13 +115,19 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 	return {
 		data,
 		monthlyHacksChartData: {
-			'Total Value Hacked': {
-				name: 'Total Value Hacked',
-				stack: 'Total Value Hacked',
-				type: 'bar',
-				data: monthlyHacksChartData,
-				color: CHART_COLORS[0]
-			}
+			dataset: {
+				source: monthlyHacksChartData.map(([timestamp, value]) => ({ timestamp, 'Total Value Hacked': value })),
+				dimensions: ['timestamp', 'Total Value Hacked']
+			},
+			charts: [
+				{
+					type: 'bar' as const,
+					name: 'Total Value Hacked',
+					encode: { x: 'timestamp', y: 'Total Value Hacked' },
+					color: CHART_COLORS[0],
+					stack: 'Total Value Hacked'
+				}
+			]
 		},
 		totalHacked,
 		totalHackedDefi,

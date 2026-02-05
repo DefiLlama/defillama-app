@@ -1,4 +1,4 @@
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { CHART_API, PROTOCOLS_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { getPercentChange, slug, tokenIconUrl } from '~/utils'
@@ -27,7 +27,8 @@ export interface ITotalStakedByChainPageData {
 	}>
 	chain: string
 	chains: Array<{ label: string; to: string }>
-	charts: ILineAndBarChartProps['charts']
+	dataset: MultiSeriesChart2Dataset
+	charts: IMultiSeriesChart2Props['charts']
 	totalStaked: number
 	change24h: number | null
 }
@@ -131,9 +132,19 @@ export async function getTotalStakedByChain({
 			{ label: 'All', to: '/total-staked' },
 			...chains.map((chain) => ({ label: chain, to: `/total-staked/chain/${slug(chain)}` }))
 		],
-		charts: {
-			'Total Staked': { name: 'Total Staked', data: chart, type: 'line', stack: 'Total Staked', color: CHART_COLORS[0] }
+		dataset: {
+			source: chart.map(([timestamp, value]) => ({ timestamp, 'Total Staked': value })),
+			dimensions: ['timestamp', 'Total Staked']
 		},
+		charts: [
+			{
+				type: 'line' as const,
+				name: 'Total Staked',
+				encode: { x: 'timestamp', y: 'Total Staked' },
+				color: CHART_COLORS[0],
+				stack: 'Total Staked'
+			}
+		],
 		totalStaked: chart[chart.length - 1][1],
 		change24h:
 			chart.length > 2 ? +getPercentChange(chart[chart.length - 1][1], chart[chart.length - 2][1]).toFixed(2) : null

@@ -2,7 +2,8 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
+import type { IPieChartProps } from '~/components/ECharts/types'
+import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { tvlOptions } from '~/components/Filters/options'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import {
@@ -16,9 +17,7 @@ import { ChainsByCategoryTable } from './Table'
 import { IChainsByCategoryData } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
-const LineAndBarChart = React.lazy(
-	() => import('~/components/ECharts/LineAndBarChart')
-) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const pageName = ['Chains']
 
@@ -41,26 +40,16 @@ export function ChainsByCategory({
 	const { showByGroup, chainsTableData } = useGroupAndFormatChains({ chains, category })
 
 	const prepareCsv = () => {
-		const headers = ['Date', 'Timestamp']
-		for (const chain in dominanceCharts) {
-			headers.push(chain)
-		}
-
-		const domByDate: Record<string, Record<string, number>> = {}
-		for (const chain in dominanceCharts) {
-			for (const [date, dominance] of dominanceCharts[chain].data) {
-				domByDate[date] = domByDate[date] ?? {}
-				domByDate[date][chain] = dominance
-			}
-		}
+		const chainNames = dominanceCharts.dataset.dimensions.filter((d) => d !== 'timestamp')
+		const headers = ['Date', 'Timestamp', ...chainNames]
 
 		const rows: Array<Array<string | number>> = []
-		for (const date in domByDate) {
-			const row: Array<string | number> = [toNiceCsvDate(+date / 1e3), date]
-			for (const chain in dominanceCharts) {
-				row.push(domByDate[date][chain] ?? '')
+		for (const row of dominanceCharts.dataset.source) {
+			const csvRow: Array<string | number> = [toNiceCsvDate(+(row.timestamp as number) / 1e3), row.timestamp as number]
+			for (const chain of chainNames) {
+				csvRow.push((row[chain] as number) ?? '')
 			}
-			rows.push(row)
+			rows.push(csvRow)
 		}
 
 		return { filename: `defillama-chains-dominance.csv`, rows: [headers, ...rows] as (string | number | boolean)[][] }
@@ -87,7 +76,13 @@ export function ChainsByCategory({
 				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mr-2 ml-auto" />
 					<React.Suspense fallback={<></>}>
-						<LineAndBarChart charts={dominanceCharts} valueSymbol="%" expandTo100Percent solidChartAreaStyle />
+						<MultiSeriesChart2
+							dataset={dominanceCharts.dataset}
+							charts={dominanceCharts.charts}
+							valueSymbol="%"
+							expandTo100Percent
+							solidChartAreaStyle
+						/>
 					</React.Suspense>
 				</div>
 			</div>
@@ -117,12 +112,13 @@ const useFormatChartData = ({
 }) => {
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const data = React.useMemo(() => {
-		const charts: ILineAndBarChartProps['charts'] = {}
 		const toggledTvlSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 		const recentTvlByChain: Record<string, number> = {}
+		const chainNames = Object.keys(tvlChartsByChain['tvl'] ?? {})
 
-		for (const chain in tvlChartsByChain['tvl']) {
-			const data = []
+		const rowMap = new Map<number, Record<string, number | null>>()
+
+		for (const chain of chainNames) {
 			let lastValue: number | undefined
 			for (const date in totalTvlByDate['tvl']) {
 				let total = totalTvlByDate['tvl'][date]
@@ -134,19 +130,28 @@ const useFormatChartData = ({
 					total += totalTvlByDate?.[key]?.[date] ?? 0
 				}
 				lastValue = value
-				data.push([+date, value != null ? (value / total) * 100 : null])
+				const row = rowMap.get(+date) ?? { timestamp: +date }
+				row[chain] = value != null ? (value / total) * 100 : null
+				rowMap.set(+date, row)
 			}
 			recentTvlByChain[chain] = lastValue ?? 0
-			charts[chain] = {
-				name: chain,
-				stack: chain,
-				type: 'line' as const,
-				color: colorsByChain[chain],
-				data: data.filter((_, index) => index % 2 === 1 && index !== data.length)
-			}
 		}
 
-		return { dominanceCharts: charts, pieChartData: preparePieChartData({ data: recentTvlByChain, limit: 10 }) }
+		const allRows = ensureChronologicalRows(Array.from(rowMap.values()))
+		const source = allRows.filter((_, index) => index % 2 === 1)
+		const dimensions = ['timestamp', ...chainNames]
+		const chartsConfig = chainNames.map((chain) => ({
+			type: 'line' as const,
+			name: chain,
+			encode: { x: 'timestamp', y: chain },
+			stack: chain,
+			color: colorsByChain[chain]
+		}))
+
+		return {
+			dominanceCharts: { dataset: { source, dimensions }, charts: chartsConfig },
+			pieChartData: preparePieChartData({ data: recentTvlByChain, limit: 10 })
+		}
 	}, [tvlSettings, totalTvlByDate, tvlChartsByChain, colorsByChain])
 
 	return data

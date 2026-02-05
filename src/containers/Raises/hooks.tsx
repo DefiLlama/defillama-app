@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { CHART_COLORS } from '~/constants/colors'
 import { toYearMonth } from '~/utils'
 
@@ -242,25 +242,38 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 			finalFundingRoundsByMonth.push([new Date(date).getTime(), fundingRoundsByMonth[date]])
 		}
 
-		const monthlyInvestmentChart: ILineAndBarChartProps['charts'] = {
-			'Funding Amount': {
-				name: 'Funding Amount',
-				stack: 'Funding Amount',
-				data: finalMonthlyInvestment,
-				color: CHART_COLORS[0],
-				type: 'bar'
-			}
+		const monthlyInvestmentChart: { dataset: MultiSeriesChart2Dataset; charts: IMultiSeriesChart2Props['charts'] } = {
+			dataset: {
+				source: finalMonthlyInvestment.map(([timestamp, value]) => ({ timestamp, 'Funding Amount': value })),
+				dimensions: ['timestamp', 'Funding Amount']
+			},
+			charts: [
+				{
+					type: 'bar' as const,
+					name: 'Funding Amount',
+					encode: { x: 'timestamp', y: 'Funding Amount' },
+					color: CHART_COLORS[0],
+					stack: 'Funding Amount'
+				}
+			]
 		}
 
-		const fundingRoundsByMonthChart: ILineAndBarChartProps['charts'] = {
-			'Funding Rounds': {
-				name: 'Funding Rounds',
-				stack: 'Funding Rounds',
-				data: finalFundingRoundsByMonth,
-				color: CHART_COLORS[0],
-				type: 'bar'
+		const fundingRoundsByMonthChart: { dataset: MultiSeriesChart2Dataset; charts: IMultiSeriesChart2Props['charts'] } =
+			{
+				dataset: {
+					source: finalFundingRoundsByMonth.map(([timestamp, value]) => ({ timestamp, 'Funding Rounds': value })),
+					dimensions: ['timestamp', 'Funding Rounds']
+				},
+				charts: [
+					{
+						type: 'bar' as const,
+						name: 'Funding Rounds',
+						encode: { x: 'timestamp', y: 'Funding Rounds' },
+						color: CHART_COLORS[0],
+						stack: 'Funding Rounds'
+					}
+				]
 			}
-		}
 
 		return {
 			selectedInvestors,

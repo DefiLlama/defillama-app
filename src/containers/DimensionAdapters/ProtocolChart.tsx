@@ -3,7 +3,6 @@ import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
@@ -18,9 +17,7 @@ import { getAdapterProtocolChartDataByBreakdownType } from './queries'
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 
-const LineAndBarChart = React.lazy(
-	() => import('~/components/ECharts/LineAndBarChart')
-) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 export const DimensionProtocolChartByType = ({
 	protocolName,
@@ -202,7 +199,7 @@ const ChartByType = ({
 	}, [protocolName, adapterType, chartInterval, title, chartType])
 
 	const mainChartData = React.useMemo(() => {
-		if (selectedTypes.length === 0) return { charts: {} }
+		if (selectedTypes.length === 0) return { dataset: { source: [], dimensions: ['timestamp'] }, charts: [] }
 
 		// Helper to compute final date based on interval
 		const computeFinalDate = (date: number) =>
@@ -271,35 +268,34 @@ const ChartByType = ({
 			}
 		}
 
-		// Sort dates and build chart arrays
+		// Sort dates and build dataset rows
 		const sortedDates = Array.from(aggregatedByDate.keys()).sort((a, b) => a - b)
 		const isCumulative = chartInterval === 'Cumulative'
 		const cumulative: Record<string, number> = {}
-		const chartArrays: Record<string, Array<[number, number | null]>> = {}
 
 		for (const type of selectedTypes) {
 			cumulative[type] = 0
-			chartArrays[type] = []
 		}
 
-		for (const date of sortedDates) {
+		const source = sortedDates.map((date) => {
 			const entry = aggregatedByDate.get(date)!
+			const row: Record<string, number | null> = { timestamp: date }
 			for (const type of selectedTypes) {
 				const value = entry[type] || 0
 				if (isCumulative) {
 					cumulative[type] += value
-					chartArrays[type].push([date, cumulative[type]])
+					row[type] = cumulative[type]
 				} else {
-					chartArrays[type].push([date, value])
+					row[type] = value
 				}
 			}
-		}
+			return row
+		})
 
 		// Replace leading zeros with null for cleaner charts
 		for (const type of selectedTypes) {
-			const arr = chartArrays[type]
-			for (let i = 0; i < arr.length && arr[i][1] === 0; i++) {
-				arr[i][1] = null
+			for (let i = 0; i < source.length && source[i][type] === 0; i++) {
+				source[i][type] = null
 			}
 		}
 
@@ -312,22 +308,18 @@ const ChartByType = ({
 		stackColors['Others'] = allColors[allColors.length - 1]
 
 		const chartType2: 'line' | 'bar' = isCumulative ? 'line' : 'bar'
-		const charts: Record<
-			string,
-			{ data: Array<[number, number | null]>; type: 'line' | 'bar'; name: string; stack: string; color: string }
-		> = {}
+		const chartsConfig = selectedTypes.map((type) => ({
+			type: chartType2,
+			name: type,
+			encode: { x: 'timestamp', y: type },
+			stack: 'chartType',
+			color: stackColors[type]
+		}))
 
-		for (const type of selectedTypes) {
-			charts[type] = {
-				data: chartArrays[type],
-				type: chartType2,
-				name: type,
-				stack: 'chartType',
-				color: stackColors[type]
-			}
+		return {
+			dataset: { source, dimensions: ['timestamp', ...selectedTypes] },
+			charts: chartsConfig
 		}
-
-		return { charts }
 	}, [breakdownNames, chartInterval, selectedTypes, data, bribeData, tokenTaxData])
 
 	const prepareCsv = () => {
@@ -335,15 +327,14 @@ const ChartByType = ({
 
 		const rows: Array<Array<string | number | null>> = [['Timestamp', 'Date', ...selectedTypes]]
 
-		// Use first type's data as reference since all types share the same timestamps
-		const referenceData = mainChartData.charts[selectedTypes[0]]?.data
-		if (!referenceData) return { filename: '', rows: [] }
+		const { source } = mainChartData.dataset
+		if (!source.length) return { filename: '', rows: [] }
 
-		for (let i = 0; i < referenceData.length; i++) {
-			const timestamp = referenceData[i][0]
+		for (const dataRow of source) {
+			const timestamp = dataRow.timestamp as number
 			const row: Array<string | number | null> = [timestamp, toNiceCsvDate(timestamp / 1000)]
 			for (const type of selectedTypes) {
-				row.push(mainChartData.charts[type]?.data[i]?.[1] ?? '')
+				row.push(dataRow[type] ?? '')
 			}
 			rows.push(row)
 		}
@@ -394,7 +385,8 @@ const ChartByType = ({
 				{chartBuilderConfig && <AddToDashboardButton chartConfig={chartBuilderConfig} smol />}
 			</div>
 			<React.Suspense fallback={<></>}>
-				<LineAndBarChart
+				<MultiSeriesChart2
+					dataset={mainChartData.dataset}
 					charts={mainChartData.charts}
 					groupBy={
 						chartInterval === 'Cumulative' ? 'daily' : (chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly')

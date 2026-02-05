@@ -2,19 +2,17 @@ import { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { getETFData } from '~/api/categories/protocols'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
 import { Select } from '~/components/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
+import { CHART_COLORS } from '~/constants/colors'
 import Layout from '~/layout'
 import { firstDayOfMonth, formattedNum, lastDayOfWeek, toNiceCsvDate } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const LineAndBarChart = React.lazy(
-	() => import('~/components/ECharts/LineAndBarChart')
-) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 interface AssetSectionProps {
 	name: string
@@ -88,7 +86,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 	const [groupBy, setGroupBy] = React.useState<(typeof groupByList)[number]>('Weekly')
 	const [tickers, setTickers] = React.useState(['Bitcoin', 'Ethereum', 'Solana'])
 
-	const charts = React.useMemo(() => {
+	const chartData = React.useMemo(() => {
 		const bitcoin = {}
 		const ethereum = {}
 		const solana = {}
@@ -118,52 +116,47 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 			}
 		}
 
-		const charts = {
-			Bitcoin: {
-				name: 'Bitcoin',
-				stack: 'Bitcoin',
-				type: groupBy === 'Cumulative' ? 'line' : ('bar' as 'line' | 'bar'),
-				data: [],
-				color: '#F7931A'
-			},
-			Ethereum: {
-				name: 'Ethereum',
-				stack: 'Ethereum',
-				type: groupBy === 'Cumulative' ? 'line' : ('bar' as 'line' | 'bar'),
-				data: [],
-				color: '#6B7280'
-			},
-			Solana: {
-				name: 'Solana',
-				stack: 'Solana',
-				type: groupBy === 'Cumulative' ? 'line' : ('bar' as 'line' | 'bar'),
-				data: [],
-				color: '#9945FF'
-			}
-		}
-
+		const seriesType = (groupBy === 'Cumulative' ? 'line' : 'bar') as 'line' | 'bar'
+		const source: Array<Record<string, number | null>> = []
 		for (const date in bitcoin) {
-			charts.Bitcoin.data.push([+date * 1000, bitcoin[date]])
-			charts.Ethereum.data.push([+date * 1000, ethereum[date] || null])
-			charts.Solana.data.push([+date * 1000, solana[date] || null])
+			source.push({
+				timestamp: +date * 1000,
+				Bitcoin: bitcoin[date] ?? null,
+				Ethereum: ethereum[date] ?? null,
+				Solana: solana[date] ?? null
+			})
 		}
 
-		return charts
+		return {
+			source,
+			allCharts: [
+				{
+					type: seriesType,
+					name: 'Bitcoin',
+					encode: { x: 'timestamp', y: 'Bitcoin' },
+					stack: 'Bitcoin',
+					color: '#F7931A'
+				},
+				{
+					type: seriesType,
+					name: 'Ethereum',
+					encode: { x: 'timestamp', y: 'Ethereum' },
+					stack: 'Ethereum',
+					color: '#6B7280'
+				},
+				{ type: seriesType, name: 'Solana', encode: { x: 'timestamp', y: 'Solana' }, stack: 'Solana', color: '#9945FF' }
+			]
+		}
 	}, [flows, groupBy])
 
 	const finalCharts = React.useMemo(() => {
-		const newCharts: any = {}
-		if (tickers.includes('Bitcoin')) {
-			newCharts.Bitcoin = charts.Bitcoin
+		const filteredCharts = chartData.allCharts.filter((c) => tickers.includes(c.name))
+		const dimensions = ['timestamp', ...filteredCharts.map((c) => c.name)]
+		return {
+			dataset: { source: chartData.source, dimensions },
+			charts: filteredCharts
 		}
-		if (tickers.includes('Ethereum')) {
-			newCharts.Ethereum = charts.Ethereum
-		}
-		if (tickers.includes('Solana')) {
-			newCharts.Solana = charts.Solana
-		}
-		return newCharts
-	}, [charts, tickers])
+	}, [chartData, tickers])
 
 	const prepareCsv = () => {
 		let rows = []
@@ -231,8 +224,9 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</div>
 					<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-						<LineAndBarChart
-							charts={finalCharts}
+						<MultiSeriesChart2
+							dataset={finalCharts.dataset}
+							charts={finalCharts.charts}
 							groupBy={groupBy === 'Cumulative' ? 'daily' : (groupBy.toLowerCase() as 'daily' | 'weekly' | 'monthly')}
 						/>
 					</React.Suspense>
