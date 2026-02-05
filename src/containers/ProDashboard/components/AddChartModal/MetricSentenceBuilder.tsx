@@ -714,13 +714,13 @@ export function MetricSentenceBuilder({
 				</div>
 				<div className="mt-2.5 flex flex-wrap items-center gap-2 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg-alt)/50 px-2 py-1.5 sm:mt-3 sm:px-2.5">
 					<span className="text-[11px] font-medium text-(--text-secondary) sm:text-xs">Chart:</span>
-					<div className="flex items-center gap-1 rounded-md bg-(--bg-input) p-0.5">
+					<div className="flex flex-1 items-center gap-1 rounded-md bg-(--bg-input) p-0.5">
 						<button
 							type="button"
 							onClick={() => onChartTypeChange('sparkline')}
 							aria-pressed={chartType === 'sparkline'}
 							title="Line chart"
-							className={`flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors sm:text-xs ${
+							className={`flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors sm:text-xs ${
 								chartType === 'sparkline'
 									? 'bg-(--primary) text-white'
 									: 'text-(--text-secondary) hover:text-(--text-primary)'
@@ -734,7 +734,7 @@ export function MetricSentenceBuilder({
 							onClick={() => onChartTypeChange('bar')}
 							aria-pressed={chartType === 'bar'}
 							title="Bar chart"
-							className={`flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors sm:text-xs ${
+							className={`flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors sm:text-xs ${
 								chartType === 'bar'
 									? 'bg-(--primary) text-white'
 									: 'text-(--text-secondary) hover:text-(--text-primary)'
@@ -748,7 +748,7 @@ export function MetricSentenceBuilder({
 							onClick={() => onChartTypeChange('none')}
 							aria-pressed={chartType === 'none'}
 							title="No chart"
-							className={`flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors sm:text-xs ${
+							className={`flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors sm:text-xs ${
 								chartType === 'none'
 									? 'bg-(--primary) text-white'
 									: 'text-(--text-secondary) hover:text-(--text-primary)'
