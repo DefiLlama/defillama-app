@@ -29,6 +29,7 @@ export interface IChartProps {
 	}
 	expandTo100Percent?: boolean
 	isStackedChart?: boolean
+	chartType?: 'line' | 'bar'
 	hideGradient?: boolean
 	unlockTokenSymbol?: string
 	isThemeDark?: boolean
@@ -75,40 +76,6 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 	orientation?: 'vertical' | 'horizontal'
 }
 
-export interface ILineAndBarChartProps {
-	charts?: {
-		[stack: string]: {
-			data: Array<[number, number]>
-			type: 'line' | 'bar'
-			name: string
-			stack: string
-			color?: string
-			yAxisIndex?: number
-		}
-	}
-	chartOptions?: {
-		[key: string]: {
-			[key: string]: Value | Array<Value> | ((params: any) => string | number)
-		}
-	}
-	height?: string
-	groupBy?: 'daily' | 'weekly' | 'monthly'
-	hallmarks?: [number, string][]
-	expandTo100Percent?: boolean
-	valueSymbol?: string
-	alwaysShowTooltip?: boolean
-	containerClassName?: string
-	solidChartAreaStyle?: boolean
-	hideDataZoom?: boolean
-	onReady?: (instance: echarts.ECharts | null) => void
-	hideDefaultLegend?: boolean
-	hideDownloadButton?: boolean
-	enableImageExport?: boolean
-	imageExportFilename?: string
-	imageExportTitle?: string
-	title?: string
-}
-
 export type MultiSeriesChart2Dataset = {
 	source: Array<
 		Record<
@@ -132,6 +99,13 @@ export interface IMultiSeriesChart2Props {
 		}
 		color?: string
 		yAxisIndex?: number
+		// Optional: enable point markers on line series.
+		// Note: ECharts "large" mode disables symbols, so `showSymbol: true` will
+		// implicitly disable large mode unless `large` is explicitly set.
+		showSymbol?: boolean
+		symbol?: string
+		symbolSize?: number
+		large?: boolean
 	}>
 	selectedCharts?: Set<string>
 	chartOptions?: {
@@ -146,6 +120,7 @@ export interface IMultiSeriesChart2Props {
 	valueSymbol?: string
 	alwaysShowTooltip?: boolean
 	containerClassName?: string
+	stacked?: boolean
 	solidChartAreaStyle?: boolean
 	hideDataZoom?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void

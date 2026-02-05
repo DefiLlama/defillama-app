@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/formatters'
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { COINS_CHART_API } from '~/constants'
@@ -22,7 +22,7 @@ import type { ComparisonEntry, PricePoint, TimelinePoint } from './types'
 const EMPTY_SELECTED_COINS: Record<string, IResponseCGMarketsAPI> = {}
 const EMPTY_COMPARISON_ENTRIES: ComparisonEntry[] = []
 
-const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const DAY_IN_SECONDS = 86_400
 const DEFAULT_COMPARISON_IDS = ['bitcoin', 'ethereum', 'solana'] as const
@@ -45,7 +45,7 @@ type TokenPnlResult = {
 		isProfit: boolean
 	}
 	currentPrice: number
-	chartData: ILineAndBarChartProps['charts']
+	chartData: { dataset: IMultiSeriesChart2Props['dataset']; charts: IMultiSeriesChart2Props['charts'] }
 	yAxisConfig: {
 		min: number
 		max: number
@@ -178,13 +178,16 @@ const computeTokenPnl = async (params: {
 			},
 			currentPrice: coinInfo?.current_price ?? 0,
 			chartData: {
-				'Token Price': {
-					name: 'Token Price',
-					stack: 'Token Price',
-					color: primaryColor,
-					type: 'line' as const,
-					data: []
-				}
+				dataset: { source: [], dimensions: ['timestamp', 'Token Price'] },
+				charts: [
+					{
+						type: 'line' as const,
+						name: 'Token Price',
+						encode: { x: 'timestamp', y: 'Token Price' },
+						stack: 'Token Price',
+						color: primaryColor
+					}
+				]
 			},
 			yAxisConfig: { min: 0, max: 0, interval: 1000 },
 			primaryColor
@@ -238,14 +241,20 @@ const computeTokenPnl = async (params: {
 	const rangeLow = Math.min(...prices)
 
 	const chartData = {
-		'Token Price': {
-			name: 'Token Price',
-			stack: 'Token Price',
-			color: primaryColor,
-			type: 'line' as const,
-			data: dataPoints
-		}
-	} as ILineAndBarChartProps['charts']
+		dataset: {
+			source: dataPoints.map(([timestamp, value]) => ({ timestamp, 'Token Price': value })),
+			dimensions: ['timestamp', 'Token Price']
+		},
+		charts: [
+			{
+				type: 'line' as const,
+				name: 'Token Price',
+				encode: { x: 'timestamp', y: 'Token Price' },
+				stack: 'Token Price',
+				color: primaryColor
+			}
+		]
+	}
 
 	const yAxisConfig = calculateYAxisConfigFromPrices(prices)
 
@@ -430,12 +439,15 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 					if (!itemsArray?.length) return ''
 
 					const point = itemsArray[0]
-					const price = point.value[1]
+					const row = point?.data ?? {}
+					const timestamp = row?.timestamp ?? (Array.isArray(point?.value) ? point.value[0] : undefined)
+					const seriesValue = row?.[point?.seriesName] ?? (Array.isArray(point?.value) ? point.value[1] : undefined)
+					const price = typeof seriesValue === 'number' ? seriesValue : Number(seriesValue ?? 0)
 					const changeFromStart = startPrice ? ((price - startPrice) / startPrice) * 100 : 0
 					const changeColor = changeFromStart >= 0 ? '#10b981' : '#ef4444'
 					const changeSign = changeFromStart >= 0 ? '+' : ''
 
-					const chartdate = formatTooltipChartDate(point.value[0], 'daily')
+					const chartdate = timestamp ? formatTooltipChartDate(Number(timestamp), 'daily') : ''
 
 					return `<div style="background: var(--bg-card); border: 1px solid var(--bg-border); box-shadow: 0 6px 24px rgba(0,0,0,0.25); color: var(--text-primary); border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.4; white-space: nowrap;">
 						<div style="opacity: .75; margin-bottom: 4px;">${chartdate}</div>
@@ -573,7 +585,12 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 						</div>
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]"></div>}>
-						<LineAndBarChart charts={chartData} hideDataZoom chartOptions={chartOptions as any} />
+						<MultiSeriesChart2
+							dataset={chartData.dataset}
+							charts={chartData.charts}
+							hideDataZoom
+							chartOptions={chartOptions as any}
+						/>
 					</Suspense>
 				</div>
 

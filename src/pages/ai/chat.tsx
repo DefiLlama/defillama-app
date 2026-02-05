@@ -93,5 +93,5 @@ export default function LlamaAIPage() {
 		)
 	}
 
-	return <LlamaAI showDebug={user?.flags?.['is_llama'] ?? false} />
+	return <LlamaAI showDebug={Boolean(user?.flags?.['is_llama'])} />
 }

@@ -50,13 +50,14 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const chartType =
 		typeof router.query.chartType === 'string' && validPieChartTypes.has(router.query.chartType)
 			? router.query.chartType
-			: 'onChainMcap'
+			: 'activeMcap'
 	const chartView =
 		typeof router.query.chartView === 'string' && router.query.chartView === 'pie' ? 'pie' : 'timeSeries'
 	const chartTypeKey = chartType as RWAChartType
 
 	const {
 		selectedAssetNames,
+		selectedTypes,
 		selectedCategories,
 		selectedAssetClasses,
 		selectedRwaClassifications,
@@ -77,6 +78,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		setIncludeGovernance
 	} = useRWATableQueryParams({
 		assetNames: props.assetNames,
+		types: props.types,
 		categories: props.categories,
 		assetClasses: props.assetClasses,
 		rwaClassifications: props.rwaClassifications,
@@ -96,6 +98,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			selectedRwaClassifications,
 			selectedAccessModels,
 			selectedIssuers,
+			selectedTypes,
 			includeStablecoins,
 			includeGovernance,
 			minDefiActiveTvlToOnChainMcapPct,
@@ -253,7 +256,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	])
 
 	const showFilters =
-		(props.categoriesOptions.length > 1 ||
+		(props.typeOptions.length > 1 ||
+			props.categoriesOptions.length > 1 ||
 			props.assetClassOptions.length > 1 ||
 			props.rwaClassificationOptions.length > 1 ||
 			props.accessModelOptions.length > 1 ||
@@ -345,11 +349,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				isPlatformMode={isPlatformMode}
 				assetNames={props.assetNames}
 				selectedAssetNames={selectedAssetNames}
+				typeOptions={props.typeOptions}
 				categoriesOptions={props.categoriesOptions}
 				assetClassOptions={props.assetClassOptions}
 				rwaClassificationOptions={props.rwaClassificationOptions}
 				accessModelOptions={props.accessModelOptions}
 				issuers={props.issuers}
+				selectedTypes={selectedTypes}
 				selectedCategories={selectedCategories}
 				selectedAssetClasses={selectedAssetClasses}
 				selectedRwaClassifications={selectedRwaClassifications}
@@ -432,6 +438,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 								<MultiSeriesChart2
 									dataset={selectedTimeSeriesDataset}
 									hideDefaultLegend={false}
+									stacked
 									chartOptions={timeSeriesChartOptions}
 									onReady={handleMultiSeriesChart2Ready}
 								/>
@@ -537,8 +544,8 @@ const pieChartLegendPosition = {
 const pieChartLegendTextStyle = { fontSize: 14 }
 
 const PIE_CHART_TYPES = [
-	{ key: 'onChainMcap', label: 'Onchain Mcap' },
 	{ key: 'activeMcap', label: 'Active Mcap' },
+	{ key: 'onChainMcap', label: 'Onchain Mcap' },
 	{ key: 'defiActiveTvl', label: 'DeFi Active TVL' }
 ]
 

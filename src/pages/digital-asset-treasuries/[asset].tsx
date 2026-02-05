@@ -5,7 +5,7 @@ import { maxAgeForNext } from '~/api'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ILineAndBarChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
+import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -20,7 +20,6 @@ import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
@@ -170,10 +169,11 @@ export default function TreasuriesByAsset({
 				<div className="col-span-2 flex min-h-[406px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<h2 className="p-2 text-lg font-medium">Inflows</h2>
 					<Suspense>
-						<LineAndBarChart
-							charts={dailyFlowsChart}
+						<MultiSeriesChart2
+							dataset={dailyFlowsChart.dataset}
+							charts={dailyFlowsChart.charts}
 							valueSymbol={metadata.ticker}
-							hideDataZoom={dailyFlowsChart[metadata.name].data.length < 2}
+							hideDataZoom={dailyFlowsChart.dataset.source.length < 2}
 						/>
 					</Suspense>
 				</div>

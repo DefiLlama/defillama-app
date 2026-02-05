@@ -2,6 +2,7 @@ import { useQueries } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import * as React from 'react'
+import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/MultiSelectCombobox'
 import { Select } from '~/components/Select'
@@ -12,7 +13,7 @@ import { Stats } from '../ChainOverview/Stats'
 import { IChainOverviewData } from '../ChainOverview/types'
 import { IAdapterOverview, IAdapterSummary } from '../DimensionAdapters/queries'
 
-const LineAndBarChart: any = React.lazy(() => import('~/components/ECharts/LineAndBarChart'))
+const MultiSeriesChart2: any = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 // Supported charts configuration
 const supportedCharts = [
@@ -98,12 +99,21 @@ export const useCompare = ({ chains = [] }: { chains?: string[] }) => {
 const chartsMap = new Map(supportedCharts.map((c) => [c.key, c]))
 
 const formatChartData = (chainsData: any, selectedCharts: string[]) => {
-	if (!chainsData || !chainsData.length || !chainsData.every(Boolean)) return []
+	if (!chainsData || !chainsData.length || !chainsData.every(Boolean))
+		return { dataset: { source: [], dimensions: ['timestamp'] }, charts: [] }
 
-	const finalCharts = {}
-
-	let colors = getNDistinctColors(selectedCharts.length * chainsData.length)
+	const colors = getNDistinctColors(selectedCharts.length * chainsData.length)
 	let colorIndex = 0
+	const seriesNames: string[] = []
+	const seriesConfigs: Array<{
+		type: 'line' | 'bar'
+		name: string
+		encode: { x: string; y: string }
+		stack: string
+		color: string
+	}> = []
+	const rowMap = new Map<number, Record<string, number>>()
+
 	for (const chart of selectedCharts) {
 		const targetChart = chartsMap.get(chart)
 		if (!targetChart) continue
@@ -112,18 +122,27 @@ const formatChartData = (chainsData: any, selectedCharts: string[]) => {
 
 		for (const chainData of chainsData) {
 			const name = `${chainData.chain} - ${targetChart.name}`
-			finalCharts[name] = {
+			seriesNames.push(name)
+			seriesConfigs.push({
+				type: (chart === 'tvlChart' ? 'line' : 'bar') as 'line' | 'bar',
 				name,
+				encode: { x: 'timestamp', y: name },
 				stack: name,
-				data: chainData[targetChart.key].map((data) => [!dateInMs ? Number(data[0]) * 1e3 : data[0], data[1]]),
-				type: chart === 'tvlChart' ? 'line' : 'bar',
 				color: colors[colorIndex]
-			}
+			})
 			colorIndex++
+
+			for (const data of chainData[targetChart.key]) {
+				const ts = !dateInMs ? Number(data[0]) * 1e3 : data[0]
+				const row = rowMap.get(ts) ?? { timestamp: ts }
+				row[name] = data[1]
+				rowMap.set(ts, row)
+			}
 		}
 	}
 
-	return finalCharts
+	const source = ensureChronologicalRows(Array.from(rowMap.values()))
+	return { dataset: { source, dimensions: ['timestamp', ...seriesNames] }, charts: seriesConfigs }
 }
 
 const updateRoute = (key, val, router: NextRouter) => {
@@ -237,7 +256,7 @@ export function CompareChains({ chains }) {
 					) : (
 						<div className="min-h-[362px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 							<React.Suspense fallback={<></>}>
-								<LineAndBarChart title="" charts={chartData} />
+								<MultiSeriesChart2 dataset={chartData.dataset} charts={chartData.charts} />
 							</React.Suspense>
 						</div>
 					)}

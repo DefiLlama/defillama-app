@@ -1,7 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { lazy, Suspense, useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -15,7 +14,7 @@ import { chainIconUrl, formatNum, formattedNum, slug, toNiceCsvDate } from '~/ut
 import { protocolCategories } from './constants'
 import { IProtocolByCategoryOrTagPageData } from './types'
 
-const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const defaultSortingState: Partial<Record<keyof typeof protocolCategories, { id: string; desc: boolean }[]>> = {
 	'Trading App': [{ id: 'revenue_7d', desc: true }],
@@ -56,20 +55,17 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 			return { ...protocol, tvl }
 		})
 
-		const finalChartData = props.charts['TVL'].data.map(([date, tvl]) => {
-			let total = tvl
-			for (const setting of toggledSettings) {
-				total = (total ?? 0) + (props.extraTvlCharts[setting]?.[date] ?? 0)
-			}
-			return [date, total] as [number, number]
+		const finalSource = props.charts.dataset.source.map((row) => {
+			const extraSum = toggledSettings.reduce((sum, e) => sum + (props.extraTvlCharts[e]?.[row.timestamp] ?? 0), 0)
+			return { ...row, TVL: ((row.TVL as number) ?? 0) + extraSum }
 		})
 
 		return {
 			finalProtocols,
 			charts: {
 				...props.charts,
-				TVL: { ...props.charts['TVL'], data: finalChartData }
-			} as ILineAndBarChartProps['charts']
+				dataset: { ...props.charts.dataset, source: finalSource }
+			}
 		}
 	}, [tvlSettings, props.protocols, props.charts, props.extraTvlCharts])
 
@@ -99,8 +95,11 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 
 	const prepareCsvFromChart = () => {
 		const rows: any = [['Timestamp', 'Date', name]]
-		for (const item of props.charts['TVL']?.data ?? []) {
-			rows.push([item[0], toNiceCsvDate(item[0] / 1000), item[1]])
+		for (const item of charts.dataset?.source ?? []) {
+			const tsRaw = item['timestamp']
+			const ts = typeof tsRaw === 'number' ? tsRaw : Number(tsRaw)
+			if (!Number.isFinite(ts)) continue
+			rows.push([ts, toNiceCsvDate(ts / 1000), item['TVL'] ?? ''])
 		}
 		return {
 			filename: `${name}-TVL.csv`,
@@ -119,7 +118,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 						<h1 className="text-lg font-semibold">{`${name} Protocols on ${props.chain}`}</h1>
 					)}
 					<div className="mb-auto flex flex-1 flex-col gap-2">
-						{props.charts['TVL']?.data.length > 0 && (
+						{props.charts.dataset?.source.length > 0 && (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								{props.effectiveCategory === 'RWA' ? (
 									<Tooltip
@@ -138,7 +137,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								)}
 
 								<span className="text-right font-jetbrains">
-									{formattedNum(charts['TVL']?.data[charts['TVL']?.data.length - 1][1], true)}
+									{formattedNum(charts.dataset?.source[charts.dataset?.source.length - 1]?.TVL, true)}
 								</span>
 							</p>
 						)}
@@ -248,7 +247,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				</div>
 				<div className="col-span-2 min-h-[370px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-						<LineAndBarChart charts={charts} valueSymbol="$" />
+						<MultiSeriesChart2 dataset={charts.dataset} charts={charts.charts} valueSymbol="$" />
 					</Suspense>
 				</div>
 			</div>

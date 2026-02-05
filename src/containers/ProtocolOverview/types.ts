@@ -304,6 +304,7 @@ export interface IProtocolOverviewPageData {
 	seoKeywords: string
 	defaultToggledCharts: ProtocolChartsLabels[]
 	oracleTvs?: Record<string, number> | null
+	entityQuestions?: string[]
 }
 
 interface ICredit {

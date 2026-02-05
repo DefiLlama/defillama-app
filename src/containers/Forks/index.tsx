@@ -1,5 +1,5 @@
 import { lazy, Suspense, useMemo } from 'react'
-import type { ILineAndBarChartProps } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import { CHART_COLORS } from '~/constants/colors'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -7,7 +7,9 @@ import { formatChartTvlsByDay } from '~/hooks/data'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
 import { formattedNum, getPercentChange, getTokenDominance } from '~/utils'
 
-const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 
 export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
@@ -15,6 +17,7 @@ export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) 
 	const {
 		protocolsData,
 		parentForks: _parentForks,
+		dataset,
 		charts,
 		totalValueUSD,
 		volumeChangeUSD
@@ -38,15 +41,19 @@ export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) 
 		return {
 			protocolsData,
 			parentForks,
-			charts: {
-				TVL: {
+			dataset: {
+				source: finalChartData.map(([timestamp, value]) => ({ timestamp, TVL: value })),
+				dimensions: ['timestamp', 'TVL'] as string[]
+			},
+			charts: [
+				{
+					type: 'line' as const,
 					name: 'TVL',
-					type: 'line',
-					stack: 'TVL',
-					data: finalChartData,
-					color: CHART_COLORS[0]
+					encode: { x: 'timestamp', y: 'TVL' },
+					color: CHART_COLORS[0],
+					stack: 'TVL'
 				}
-			} as const,
+			],
 			totalValueUSD,
 			volumeChangeUSD
 		}
@@ -86,7 +93,7 @@ export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) 
 				</div>
 				<div className="col-span-2 min-h-[370px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<Suspense fallback={<></>}>
-						<LineAndBarChart charts={charts} alwaysShowTooltip />
+						<MultiSeriesChart2 dataset={dataset} charts={charts} alwaysShowTooltip />
 					</Suspense>
 				</div>
 			</div>

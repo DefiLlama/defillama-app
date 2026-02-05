@@ -131,6 +131,21 @@ export function prepareChartCsv(data: Record<string, Array<[string | number, num
 	return { filename, rows: rows.sort((a, b) => a[0] - b[0]) }
 }
 
+export function ensureChronologicalRows<T extends { timestamp?: number | string }>(rows: T[]) {
+	if (rows.length < 2) return rows
+
+	let prev = Number(rows[0]?.timestamp)
+	for (let i = 1; i < rows.length; i++) {
+		const curr = Number(rows[i]?.timestamp)
+		if (!Number.isFinite(prev) || !Number.isFinite(curr) || curr < prev) {
+			return rows.toSorted((a, b) => Number(a.timestamp ?? 0) - Number(b.timestamp ?? 0))
+		}
+		prev = curr
+	}
+
+	return rows
+}
+
 // Deep merge function for nested objects
 export function mergeDeep(target: any, source: any): any {
 	if (source == null) return target

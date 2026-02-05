@@ -1,4 +1,4 @@
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 
 export interface IRWAStats {
 	volumeUsd1d: number
@@ -47,7 +47,7 @@ export interface IProtocolByCategoryOrTagPageData {
 	effectiveCategory: string | null
 	chains: Array<{ label: string; to: string }>
 	chain: string
-	charts: ILineAndBarChartProps['charts']
+	charts: { dataset: IMultiSeriesChart2Props['dataset']; charts: IMultiSeriesChart2Props['charts'] }
 	fees7d: number | null
 	revenue7d: number | null
 	dexVolume7d: number | null

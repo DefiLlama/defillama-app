@@ -173,12 +173,13 @@ export function useDefaults({
 				}
 
 				vals = topParams.reduce((prev, curr) => {
+					const displayValue = curr.value[2] !== undefined ? curr.value[2] : curr.value[1]
 					return (prev +=
 						'<li style="list-style:none">' +
 						curr.marker +
 						curr.seriesName +
 						'&nbsp;&nbsp;' +
-						formatTooltipValue(curr.value[1], getSeriesSymbol(curr.seriesName, valueSymbol, unlockTokenSymbol)) +
+						formatTooltipValue(displayValue, getSeriesSymbol(curr.seriesName, valueSymbol, unlockTokenSymbol)) +
 						'</li>')
 				}, '')
 

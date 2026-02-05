@@ -3,7 +3,7 @@ import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { formatBarChart, prepareChartCsv } from '~/components/ECharts/utils'
+import { ensureChronologicalRows, formatBarChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -23,7 +23,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_TOGGLE_OPTIONS = []
 
-const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/options/[protocol]',
@@ -143,42 +143,64 @@ export default function Protocols(props) {
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 
 	const finalCharts = useMemo(() => {
-		const finalCharts = {}
+		const seriesType = (groupBy === 'cumulative' ? 'line' : 'bar') as 'line' | 'bar'
+		const seriesData: Record<string, Array<[number, number]>> = {}
+		const chartsConfig = []
+
 		if (charts.includes('Premium Volume')) {
-			finalCharts['Premium Volume'] = {
+			seriesData['Premium Volume'] = formatBarChart({
+				data: props.charts['Premium Volume'],
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: false
+			})
+			chartsConfig.push({
+				type: seriesType,
 				name: 'Premium Volume',
-				stack: 'Premium Volume',
-				type: groupBy === 'cumulative' ? 'line' : 'bar',
-				data: formatBarChart({
-					data: props.charts['Premium Volume'],
-					groupBy,
-					denominationPriceHistory: null,
-					dateInMs: false
-				}),
-				color: CHART_COLORS[0]
-			}
+				encode: { x: 'timestamp', y: 'Premium Volume' },
+				color: CHART_COLORS[0],
+				stack: 'Premium Volume'
+			})
 		}
 		if (charts.includes('Notional Volume')) {
-			finalCharts['Notional Volume'] = {
+			seriesData['Notional Volume'] = formatBarChart({
+				data: props.charts['Notional Volume'],
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: false
+			})
+			chartsConfig.push({
+				type: seriesType,
 				name: 'Notional Volume',
-				stack: 'Notional Volume',
-				type: groupBy === 'cumulative' ? 'line' : 'bar',
-				data: formatBarChart({
-					data: props.charts['Notional Volume'],
-					groupBy,
-					denominationPriceHistory: null,
-					dateInMs: false
-				}),
-				color: CHART_COLORS[1]
+				encode: { x: 'timestamp', y: 'Notional Volume' },
+				color: CHART_COLORS[1],
+				stack: 'Notional Volume'
+			})
+		}
+
+		const rowMap = new Map<number, Record<string, number>>()
+		const seriesNames = Object.keys(seriesData)
+		for (const name of seriesNames) {
+			for (const [timestamp, value] of seriesData[name]) {
+				const row = rowMap.get(timestamp) ?? { timestamp }
+				row[name] = value
+				rowMap.set(timestamp, row)
 			}
 		}
-		return finalCharts
+
+		return {
+			dataset: {
+				source: ensureChronologicalRows(Array.from(rowMap.values())),
+				dimensions: ['timestamp', ...seriesNames]
+			},
+			charts: chartsConfig
+		}
 	}, [charts, groupBy, props.charts])
 
 	const prepareCsv = () => {
 		const dataByChartType = {}
-		for (const chartType in finalCharts) {
-			dataByChartType[chartType] = finalCharts[chartType].data
+		for (const chart of finalCharts.charts) {
+			dataByChartType[chart.name] = finalCharts.dataset.source.map((row) => [row.timestamp, row[chart.name]])
 		}
 		return prepareChartCsv(dataByChartType, `${props.name}-total-options-volume.csv`)
 	}
@@ -247,7 +269,12 @@ export default function Protocols(props) {
 						/>
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
-						<LineAndBarChart charts={finalCharts} valueSymbol="$" onReady={handleChartReady} />
+						<MultiSeriesChart2
+							dataset={finalCharts.dataset}
+							charts={finalCharts.charts}
+							valueSymbol="$"
+							onReady={handleChartReady}
+						/>
 					</Suspense>
 				</div>
 			</div>

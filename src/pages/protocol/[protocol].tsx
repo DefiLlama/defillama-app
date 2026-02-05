@@ -1,6 +1,7 @@
 import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { PROTOCOLS_API } from '~/constants'
+import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
@@ -43,7 +44,9 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		return { props: data, revalidate: maxAgeForNext([22]) }
+		const { questions: entityQuestions } = await fetchEntityQuestions(normalizedName, 'protocol')
+
+		return { props: { ...data, entityQuestions }, revalidate: maxAgeForNext([22]) }
 	}
 )
 

@@ -52,13 +52,14 @@ export function DesktopNav({
 					{mainLinks.map(({ category, pages }) => (
 						<div key={`desktop-nav-${category}`} className="group flex flex-col">
 							{category === 'Premium' ? <PremiumHeader /> : null}
-							{pages.map(({ name, route, icon, attention, umamiEvent }) => (
+							{pages.map(({ name, route, icon, attention, isNew, umamiEvent }) => (
 								<LinkToPage
 									key={`desktop-nav-${name}-${route}`}
 									route={route}
 									name={name}
 									icon={icon}
 									attention={attention}
+									isNew={isNew}
 									asPath={asPath}
 									umamiEvent={umamiEvent}
 								/>

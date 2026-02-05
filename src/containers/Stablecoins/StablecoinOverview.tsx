@@ -394,7 +394,7 @@ export const PeggedAssetInfo = ({
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
 								imageExportFilename={getImageExportFilename()}
-								customComponents={<AddToDashboardButton chartConfig={dashboardChartConfig} smol className="-mr-2" />}
+								customComponents={<AddToDashboardButton chartConfig={dashboardChartConfig} smol />}
 							/>
 						</React.Suspense>
 					)}
@@ -409,7 +409,7 @@ export const PeggedAssetInfo = ({
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
 								imageExportFilename={getImageExportFilename()}
-								customComponents={<AddToDashboardButton chartConfig={dashboardChartConfig} smol className="-mr-2" />}
+								customComponents={<AddToDashboardButton chartConfig={dashboardChartConfig} smol />}
 							/>
 						</React.Suspense>
 					)}
@@ -424,7 +424,7 @@ export const PeggedAssetInfo = ({
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
 								imageExportFilename={getImageExportFilename()}
-								customComponents={<AddToDashboardButton chartConfig={dashboardChartConfig} smol className="-mr-2" />}
+								customComponents={<AddToDashboardButton chartConfig={dashboardChartConfig} smol />}
 							/>
 						</React.Suspense>
 					)}
@@ -435,7 +435,7 @@ export const PeggedAssetInfo = ({
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
 								imageExportFilename={getImageExportFilename()}
-								customComponents={<AddToDashboardButton chartConfig={dashboardChartConfig} smol className="-mr-2" />}
+								customComponents={<AddToDashboardButton chartConfig={dashboardChartConfig} smol />}
 							/>
 						</React.Suspense>
 					)}

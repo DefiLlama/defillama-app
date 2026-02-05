@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
@@ -7,6 +8,31 @@ const filterTriggerClassName =
 	'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 
 const ratioPercentInputProps = { min: 0, step: '0.01' } as const
+
+const FILTER_QUERY_KEYS = [
+	'assetNames',
+	'excludeAssetNames',
+	'types',
+	'excludeTypes',
+	'categories',
+	'excludeCategories',
+	'assetClasses',
+	'excludeAssetClasses',
+	'rwaClassifications',
+	'excludeRwaClassifications',
+	'accessModels',
+	'excludeAccessModels',
+	'issuers',
+	'excludeIssuers',
+	'minDefiActiveTvlToOnChainMcapPct',
+	'maxDefiActiveTvlToOnChainMcapPct',
+	'minActiveMcapToOnChainMcapPct',
+	'maxActiveMcapToOnChainMcapPct',
+	'minDefiActiveTvlToActiveMcapPct',
+	'maxDefiActiveTvlToActiveMcapPct',
+	'includeStablecoins',
+	'includeGovernance'
+] as const
 
 const formatPercentRange = (minPercent: number | null, maxPercent: number | null) => {
 	const minLabel = minPercent != null ? `${minPercent.toLocaleString()}%` : 'no min'
@@ -19,12 +45,14 @@ export function RWAOverviewFilters({
 	isChainMode,
 	isPlatformMode,
 	assetNames,
+	typeOptions,
 	categoriesOptions,
 	assetClassOptions,
 	rwaClassificationOptions,
 	accessModelOptions,
 	issuers,
 	selectedAssetNames,
+	selectedTypes,
 	selectedCategories,
 	selectedAssetClasses,
 	selectedRwaClassifications,
@@ -48,12 +76,14 @@ export function RWAOverviewFilters({
 	isChainMode: boolean
 	isPlatformMode: boolean
 	assetNames: IRWAAssetsOverview['assetNames']
+	typeOptions: IRWAAssetsOverview['typeOptions']
 	categoriesOptions: IRWAAssetsOverview['categoriesOptions']
 	assetClassOptions: IRWAAssetsOverview['assetClassOptions']
 	rwaClassificationOptions: IRWAAssetsOverview['rwaClassificationOptions']
 	accessModelOptions: IRWAAssetsOverview['accessModelOptions']
 	issuers: IRWAAssetsOverview['issuers']
 	selectedAssetNames: string[]
+	selectedTypes: string[]
 	selectedCategories: string[]
 	selectedAssetClasses: string[]
 	selectedRwaClassifications: string[]
@@ -73,10 +103,32 @@ export function RWAOverviewFilters({
 	setIncludeStablecoins: (value: boolean) => void
 	setIncludeGovernance: (value: boolean) => void
 }) {
+	const router = useRouter()
+
 	if (!enabled) return null
+
+	const defaultSelectedTypes = typeOptions.map((option) => option.key).filter((type) => type !== 'Wrapper')
+
+	// Determine active filters purely from URL query.
+	// Selected arrays often default to "all values" when there is no query set.
+	const hasActiveFilters = FILTER_QUERY_KEYS.some((key) => router.query[key] != null)
 
 	return (
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 md:flex-row md:flex-wrap md:items-center">
+			{typeOptions.length > 1 ? (
+				<SelectWithCombobox
+					allValues={typeOptions}
+					selectedValues={selectedTypes}
+					includeQueryKey="types"
+					excludeQueryKey="excludeTypes"
+					defaultSelectedValues={defaultSelectedTypes}
+					label={'Types'}
+					labelType="smol"
+					triggerProps={{
+						className: filterTriggerClassName
+					}}
+				/>
+			) : null}
 			{isPlatformMode && assetNames.length > 1 ? (
 				<SelectWithCombobox
 					allValues={assetNames}
@@ -242,19 +294,33 @@ export function RWAOverviewFilters({
 				minInputProps={ratioPercentInputProps}
 				maxInputProps={ratioPercentInputProps}
 			/>
-			<Switch
-				label="Stablecoins"
-				value="includeStablecoins"
-				checked={includeStablecoins}
-				onChange={() => setIncludeStablecoins(!includeStablecoins)}
-				className="ml-auto"
-			/>
-			<Switch
-				label="Governance Tokens"
-				value="includeGovernance"
-				checked={includeGovernance}
-				onChange={() => setIncludeGovernance(!includeGovernance)}
-			/>
+			<div className="flex flex-wrap items-center gap-2 md:ml-auto">
+				<Switch
+					label="Stablecoins"
+					value="includeStablecoins"
+					checked={includeStablecoins}
+					onChange={() => setIncludeStablecoins(!includeStablecoins)}
+				/>
+				<Switch
+					label="Governance Tokens"
+					value="includeGovernance"
+					checked={includeGovernance}
+					onChange={() => setIncludeGovernance(!includeGovernance)}
+				/>
+				<button
+					onClick={() => {
+						const nextQuery: Record<string, any> = { ...router.query }
+						for (const key of FILTER_QUERY_KEYS) {
+							delete nextQuery[key]
+						}
+						router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+					}}
+					disabled={!hasActiveFilters}
+					className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40"
+				>
+					Reset filters
+				</button>
+			</div>
 		</div>
 	)
 }

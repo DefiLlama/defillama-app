@@ -11,8 +11,7 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { prepareChartCsv } from '~/components/ECharts/utils'
+import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { VirtualTable } from '~/components/Table/Table'
@@ -32,9 +31,9 @@ import { HacksFilters } from './Filterss'
 import { IHacksPageData } from './queries'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
-const LineAndBarChart = React.lazy(
-	() => import('~/components/ECharts/LineAndBarChart')
-) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = React.lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 
 const columnResizeMode = 'onChange'
 
@@ -331,14 +330,20 @@ export const HacksContainer = ({
 			totalHackedDefi: formattedNum(totalHackedDefiRaw, true),
 			totalRugs: formattedNum(totalRugsRaw, true),
 			monthlyHacksChartData: {
-				'Total Value Hacked': {
-					name: 'Total Value Hacked',
-					stack: 'Total Value Hacked',
-					type: 'bar',
-					data: monthlySeries,
-					color: CHART_COLORS[0]
-				}
-			} satisfies ILineAndBarChartProps['charts'],
+				dataset: {
+					source: monthlySeries.map(([timestamp, value]) => ({ timestamp, 'Total Value Hacked': value })),
+					dimensions: ['timestamp', 'Total Value Hacked']
+				},
+				charts: [
+					{
+						type: 'bar' as const,
+						name: 'Total Value Hacked',
+						encode: { x: 'timestamp', y: 'Total Value Hacked' },
+						color: CHART_COLORS[0],
+						stack: 'Total Value Hacked'
+					}
+				]
+			},
 			pieChartData: preparePieChartData({
 				data: Array.from(techniqueTotals.entries()).map(([name, value]) => ({ name, value })),
 				limit: 15
@@ -354,10 +359,12 @@ export const HacksContainer = ({
 
 	const prepareCsv = () => {
 		if (chartType === 'Monthly Sum') {
-			return prepareChartCsv(
-				{ 'Total Value Hacked': displayMonthlyHacksChartData['Total Value Hacked'].data },
-				`total-value-hacked.csv`
-			)
+			const rows: Array<Array<string | number>> = [['Timestamp', 'Date', 'Total Value Hacked']]
+			for (const row of displayMonthlyHacksChartData.dataset.source) {
+				const ts = row.timestamp as number
+				rows.push([ts, new Date(ts).toISOString().split('T')[0], row['Total Value Hacked'] as number])
+			}
+			return { filename: 'total-value-hacked.csv', rows }
 		} else {
 			let rows: Array<Array<string | number>> = [['Technique', 'Value']]
 			for (const { name, value } of displayPieChartData) {
@@ -405,7 +412,11 @@ export const HacksContainer = ({
 					</div>
 					{chartType === 'Monthly Sum' ? (
 						<React.Suspense fallback={<></>}>
-							<LineAndBarChart charts={displayMonthlyHacksChartData} groupBy="monthly" />
+							<MultiSeriesChart2
+								dataset={displayMonthlyHacksChartData.dataset}
+								charts={displayMonthlyHacksChartData.charts}
+								groupBy="monthly"
+							/>
 						</React.Suspense>
 					) : (
 						<React.Suspense fallback={<></>}>

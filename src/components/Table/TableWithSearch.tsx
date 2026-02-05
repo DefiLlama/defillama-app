@@ -20,8 +20,8 @@ import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from './utils'
 interface ITableWithSearchProps {
 	data: any[]
 	columns: ColumnDef<any>[]
-	placeholder: string
-	columnToSearch: string
+	placeholder?: string
+	columnToSearch?: string
 	customFilters?: React.ReactNode | ((ctx: { instance: ReturnType<typeof useReactTable> }) => React.ReactNode)
 	header?: string
 	renderSubComponent?: (row: any) => React.ReactNode
@@ -86,23 +86,25 @@ export function TableWithSearch({
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
 				{header ? <h1 className="mr-auto text-lg font-semibold">{header}</h1> : null}
-				<label className="relative w-full sm:max-w-[280px]">
-					<span className="sr-only">{placeholder}</span>
-					<Icon
-						name="search"
-						height={16}
-						width={16}
-						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
-					/>
-					<input
-						value={projectName}
-						onChange={(e) => {
-							setProjectName(e.target.value)
-						}}
-						placeholder={placeholder}
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
-					/>
-				</label>
+				{columnToSearch ? (
+					<label className="relative w-full sm:max-w-70">
+						<span className="sr-only">{placeholder}</span>
+						<Icon
+							name="search"
+							height={16}
+							width={16}
+							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+						/>
+						<input
+							value={projectName}
+							onChange={(e) => {
+								setProjectName(e.target.value)
+							}}
+							placeholder={placeholder}
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
+						/>
+					</label>
+				) : null}
 				{typeof customFilters === 'function' ? customFilters({ instance }) : customFilters}
 			</div>
 			<VirtualTable instance={instance} renderSubComponent={renderSubComponent} rowSize={rowSize} compact={compact} />

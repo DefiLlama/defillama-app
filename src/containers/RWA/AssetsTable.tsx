@@ -129,15 +129,15 @@ export function RWAAssetsTable({
 		const csvData: Array<Array<string | number | boolean>> = tableRows.map((row) => {
 			const asset = row.original
 			return [
-				asset.name ?? asset.ticker ?? '',
+				asset.assetName ?? asset.ticker ?? '',
 				asset.type ?? '',
 				asset.rwaClassification ?? '',
 				asset.accessModel ?? '',
 				asset.category?.join(', ') ?? '',
 				asset.assetClass?.join(', ') ?? '',
-				asset.defiActiveTvl.total ?? '',
-				asset.activeMcap.total ?? '',
-				asset.onChainMcap.total ?? '',
+				asset.defiActiveTvl?.total ?? '',
+				asset.activeMcap?.total ?? '',
+				asset.onChainMcap?.total ?? '',
 				asset.price != null ? formattedNum(asset.price, true) : '',
 				asset.issuer ?? '',
 				asset.redeemable != null ? (asset.redeemable ? 'Yes' : 'No') : '',
@@ -204,7 +204,7 @@ const columns: ColumnDef<AssetRow>[] = [
 	{
 		id: 'name',
 		header: 'Name',
-		accessorFn: (asset) => asset.name ?? asset.ticker,
+		accessorFn: (asset) => asset.assetName ?? asset.ticker,
 		enableSorting: false,
 		cell: (info) => {
 			return (
@@ -217,17 +217,17 @@ const columns: ColumnDef<AssetRow>[] = [
 									href={`/rwa/asset/${slug(info.row.original.ticker)}`}
 									className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 								>
-									{info.row.original.name ?? info.row.original.ticker}
+									{info.row.original.assetName ?? info.row.original.ticker}
 								</BasicLink>
-								{info.row.original.name ? (
+								{info.row.original.assetName ? (
 									<span className="text-[0.7rem] text-(--text-disabled)">{info.row.original.ticker}</span>
 								) : null}
 							</>
 						) : (
 							<>
-								{info.row.original.name && (
+								{info.row.original.assetName && (
 									<span className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap">
-										{info.row.original.name}
+										{info.row.original.assetName}
 									</span>
 								)}
 							</>
@@ -244,7 +244,18 @@ const columns: ColumnDef<AssetRow>[] = [
 		accessorFn: (asset) => asset.type,
 		cell: (info) => {
 			const value = info.getValue() as string
-			return <span>{value}</span>
+			const tooltipContent = definitions.type.values?.[value]
+			if (tooltipContent) {
+				return (
+					<Tooltip
+						content={tooltipContent}
+						className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
+					>
+						{value}
+					</Tooltip>
+				)
+			}
+			return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
 		},
 		size: 120,
 		enableSorting: false,
@@ -268,7 +279,7 @@ const columns: ColumnDef<AssetRow>[] = [
 				return (
 					<Tooltip
 						content={tooltipContent}
-						className={`inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${isTrueRWA ? 'text-(--success)' : ''}`}
+						className={`inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap ${isTrueRWA ? 'text-(--success)' : ''}`}
 					>
 						{value}
 					</Tooltip>
@@ -300,7 +311,7 @@ const columns: ColumnDef<AssetRow>[] = [
 					<Tooltip
 						content={valueDescription}
 						className={clsx(
-							'justify-end underline decoration-dotted',
+							'justify-end',
 							value === 'Permissioned' && 'text-(--warning)',
 							value === 'Permissionless' && 'text-(--success)',
 							value === 'Non-transferable' && 'text-(--error)',
@@ -335,12 +346,28 @@ const columns: ColumnDef<AssetRow>[] = [
 	{
 		id: 'category',
 		header: definitions.category.label,
-		accessorFn: (asset) => asset.category?.join(', ') ?? '',
+		accessorFn: (asset) => asset.category,
 		cell: (info) => {
-			const value = info.getValue() as string
+			const value = info.getValue() as string[]
+			const tooltipContent = value
+				.map((category) => {
+					const description = definitions.category.values?.[category]
+					return `${category}:\n${description || '-'}`
+				})
+				.join('\n\n')
+			if (tooltipContent) {
+				return (
+					<Tooltip
+						content={tooltipContent}
+						className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
+					>
+						{value.join(', ')}
+					</Tooltip>
+				)
+			}
 			return (
-				<span title={value} className="overflow-hidden text-ellipsis whitespace-nowrap">
-					{value}
+				<span title={value.join(', ')} className="overflow-hidden text-ellipsis whitespace-nowrap">
+					{value.join(', ')}
 				</span>
 			)
 		},
@@ -366,7 +393,7 @@ const columns: ColumnDef<AssetRow>[] = [
 					return (
 						<Tooltip
 							content={description}
-							className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted"
+							className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
 						>
 							{ac}
 						</Tooltip>
@@ -390,7 +417,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			return (
 				<Tooltip
 					content={tooltipContent}
-					className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted"
+					className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
 				>
 					{assetClasses.join(', ')}
 				</Tooltip>
@@ -406,9 +433,12 @@ const columns: ColumnDef<AssetRow>[] = [
 	{
 		id: 'defiActiveTvl.total',
 		header: definitions.defiActiveTvl.label,
-		accessorFn: (asset) => asset.defiActiveTvl.total,
+		accessorFn: (asset) => asset.defiActiveTvl?.total,
 		cell: (info) => (
-			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.defiActiveTvl.breakdown} />
+			<TVLBreakdownCell
+				value={info.getValue() as number | null | undefined}
+				breakdown={info.row.original.defiActiveTvl?.breakdown}
+			/>
 		),
 		meta: {
 			headerHelperText: definitions.defiActiveTvl.description,
@@ -418,9 +448,12 @@ const columns: ColumnDef<AssetRow>[] = [
 	{
 		id: 'activeMcap.total',
 		header: definitions.activeMcap.label,
-		accessorFn: (asset) => asset.activeMcap.total,
+		accessorFn: (asset) => asset.activeMcap?.total,
 		cell: (info) => (
-			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.activeMcap.breakdown} />
+			<TVLBreakdownCell
+				value={info.getValue() as number | null | undefined}
+				breakdown={info.row.original.activeMcap?.breakdown}
+			/>
 		),
 		meta: {
 			headerHelperText: definitions.activeMcap.description,
@@ -430,9 +463,12 @@ const columns: ColumnDef<AssetRow>[] = [
 	{
 		id: 'onChainMcap.total',
 		header: definitions.onChainMcap.label,
-		accessorFn: (asset) => asset.onChainMcap.total,
+		accessorFn: (asset) => asset.onChainMcap?.total,
 		cell: (info) => (
-			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.onChainMcap.breakdown} />
+			<TVLBreakdownCell
+				value={info.getValue() as number | null | undefined}
+				breakdown={info.row.original.onChainMcap?.breakdown}
+			/>
 		),
 		size: 168,
 		meta: {
@@ -590,8 +626,8 @@ const TVLBreakdownCell = ({
 	value,
 	breakdown
 }: {
-	value: number | null
-	breakdown: Array<[string, number]> | null
+	value: number | null | undefined
+	breakdown: Array<[string, number]> | null | undefined
 }) => {
 	if (value == null) {
 		return null

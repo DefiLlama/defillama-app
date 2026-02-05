@@ -190,7 +190,7 @@ export default function PieChart({
 	return (
 		<div className="relative" {...props}>
 			{title || customComponents || enableImageExport ? (
-				<div className="mb-2 flex items-center justify-end gap-2 px-2">
+				<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
 					{title ? <h1 className="mr-auto px-2 text-lg font-bold">{title}</h1> : null}
 					{customComponents ?? null}
 					{enableImageExport && (

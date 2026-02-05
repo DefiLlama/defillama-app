@@ -71,6 +71,7 @@ interface ProgressData {
 interface FetchPromptResponseParams {
 	prompt?: string
 	userQuestion: string
+	timezone?: string
 	/** Called for progress messages, errors, and reset events */
 	onProgress?: (data: ProgressData) => void
 	/** Items-based callback - receives the full items array on each update */
@@ -89,6 +90,7 @@ interface FetchPromptResponseParams {
 	forceIntent?: 'comprehensive_report'
 	authorizedFetch: any
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
+	pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string }
 	resume?: boolean
 	/** Initial markdown content for stream resumption - ensures continuity when reconnecting */
 	initialContent?: string
@@ -97,6 +99,7 @@ interface FetchPromptResponseParams {
 export async function fetchPromptResponse({
 	prompt,
 	userQuestion,
+	timezone,
 	onProgress,
 	onItems,
 	onSessionId,
@@ -111,7 +114,8 @@ export async function fetchPromptResponse({
 	authorizedFetch,
 	images,
 	resume,
-	initialContent
+	initialContent,
+	pageContext
 }: FetchPromptResponseParams) {
 	let reader: ReadableStreamDefaultReader<Uint8Array> | null = null
 
@@ -131,7 +135,8 @@ export async function fetchPromptResponse({
 		const requestBody: any = {
 			message: userQuestion,
 			stream: true,
-			mode: mode
+			mode: mode,
+			timezone: timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
 		}
 
 		if (resume) {
@@ -158,6 +163,10 @@ export async function fetchPromptResponse({
 
 		if (images && images.length > 0) {
 			requestBody.images = images
+		}
+
+		if (pageContext) {
+			requestBody.pageContext = pageContext
 		}
 
 		const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent`, {

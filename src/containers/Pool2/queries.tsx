@@ -1,4 +1,4 @@
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { CHART_API, PROTOCOLS_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { getPercentChange, slug, tokenIconUrl } from '~/utils'
@@ -27,7 +27,8 @@ export interface IPool2ProtocolsTVLByChainPageData {
 	}>
 	chain: string
 	chains: Array<{ label: string; to: string }>
-	charts: ILineAndBarChartProps['charts']
+	dataset: MultiSeriesChart2Dataset
+	charts: IMultiSeriesChart2Props['charts']
 	pool2Tvl: number
 	change24h: number | null
 }
@@ -131,9 +132,19 @@ export async function getPool2TVLByChain({
 			{ label: 'All', to: '/pool2' },
 			...chains.map((chain) => ({ label: chain, to: `/pool2/chain/${slug(chain)}` }))
 		],
-		charts: {
-			'Pool2 TVL': { name: 'Pool2 TVL', data: chart, type: 'line', stack: 'Pool2 TVL', color: CHART_COLORS[0] }
+		dataset: {
+			source: chart.map(([timestamp, value]) => ({ timestamp, 'Pool2 TVL': value })),
+			dimensions: ['timestamp', 'Pool2 TVL']
 		},
+		charts: [
+			{
+				type: 'line' as const,
+				name: 'Pool2 TVL',
+				encode: { x: 'timestamp', y: 'Pool2 TVL' },
+				color: CHART_COLORS[0],
+				stack: 'Pool2 TVL'
+			}
+		],
 		pool2Tvl: chart[chart.length - 1][1],
 		change24h:
 			chart.length > 2 ? +getPercentChange(chart[chart.length - 1][1], chart[chart.length - 2][1]).toFixed(2) : null

@@ -70,6 +70,7 @@ const updateNumberRangeQuery = (
 
 export const useRWATableQueryParams = ({
 	assetNames,
+	types,
 	categories,
 	assetClasses,
 	rwaClassifications,
@@ -79,6 +80,7 @@ export const useRWATableQueryParams = ({
 	defaultIncludeGovernance
 }: {
 	assetNames: string[]
+	types: string[]
 	categories: string[]
 	assetClasses: string[]
 	rwaClassifications: string[]
@@ -91,6 +93,8 @@ export const useRWATableQueryParams = ({
 	const {
 		assetNames: assetNamesQ,
 		excludeAssetNames: excludeAssetNamesQ,
+		types: typesQ,
+		excludeTypes: excludeTypesQ,
 		categories: categoriesQ,
 		excludeCategories: excludeCategoriesQ,
 		assetClasses: assetClassesQ,
@@ -113,6 +117,7 @@ export const useRWATableQueryParams = ({
 
 	const {
 		selectedAssetNames,
+		selectedTypes,
 		selectedCategories,
 		selectedAssetClasses,
 		selectedRwaClassifications,
@@ -138,6 +143,7 @@ export const useRWATableQueryParams = ({
 
 		// Parse exclude sets
 		const excludeAssetNamesSet = parseExcludeParam(excludeAssetNamesQ)
+		const excludeTypesSet = parseExcludeParam(excludeTypesQ)
 		const excludeCategoriesSet = parseExcludeParam(excludeCategoriesQ)
 		const excludeAssetClassesSet = parseExcludeParam(excludeAssetClassesQ)
 		const excludeRwaClassificationsSet = parseExcludeParam(excludeRwaClassificationsQ)
@@ -160,6 +166,15 @@ export const useRWATableQueryParams = ({
 					: assetNames
 		const selectedAssetNames =
 			excludeAssetNamesSet.size > 0 ? baseAssetNames.filter((a) => !excludeAssetNamesSet.has(a)) : baseAssetNames
+
+		const DEFAULT_EXCLUDED_TYPES = new Set(['Wrapper'])
+		const baseTypes =
+			typesQ != null
+				? parseArrayParam(typesQ, types)
+				: excludeTypesSet.size > 0
+					? types
+					: types.filter((t) => !DEFAULT_EXCLUDED_TYPES.has(t))
+		const selectedTypes = excludeTypesSet.size > 0 ? baseTypes.filter((t) => !excludeTypesSet.has(t)) : baseTypes
 
 		const baseCategories =
 			categoriesQ != null
@@ -211,6 +226,7 @@ export const useRWATableQueryParams = ({
 
 		return {
 			selectedAssetNames,
+			selectedTypes,
 			selectedCategories,
 			selectedAssetClasses,
 			selectedRwaClassifications,
@@ -228,6 +244,8 @@ export const useRWATableQueryParams = ({
 	}, [
 		assetNamesQ,
 		excludeAssetNamesQ,
+		typesQ,
+		excludeTypesQ,
 		categoriesQ,
 		excludeCategoriesQ,
 		assetClassesQ,
@@ -249,6 +267,7 @@ export const useRWATableQueryParams = ({
 		defaultIncludeStablecoins,
 		defaultIncludeGovernance,
 		assetNames,
+		types,
 		categories,
 		assetClasses,
 		rwaClassifications,
@@ -285,6 +304,7 @@ export const useRWATableQueryParams = ({
 
 	return {
 		selectedAssetNames,
+		selectedTypes,
 		selectedCategories,
 		selectedAssetClasses,
 		selectedRwaClassifications,
@@ -326,6 +346,7 @@ export const useFilteredRwaAssets = ({
 	assets,
 	isPlatformMode,
 	selectedAssetNames,
+	selectedTypes,
 	selectedCategories,
 	selectedAssetClasses,
 	selectedRwaClassifications,
@@ -343,6 +364,7 @@ export const useFilteredRwaAssets = ({
 	assets: RWAAsset[]
 	isPlatformMode: boolean
 	selectedAssetNames: string[]
+	selectedTypes: string[]
 	selectedCategories: string[]
 	selectedAssetClasses: string[]
 	selectedRwaClassifications: string[]
@@ -381,6 +403,7 @@ export const useFilteredRwaAssets = ({
 
 		// Create Sets for O(1) lookups
 		const selectedAssetNamesSet = isPlatformMode ? new Set(selectedAssetNames) : null
+		const selectedTypesSet = new Set(selectedTypes)
 		const selectedCategoriesSet = new Set(selectedCategories)
 		const selectedAssetClassesSet = new Set(selectedAssetClasses)
 		const selectedRwaClassificationsSet = new Set(selectedRwaClassifications)
@@ -391,7 +414,7 @@ export const useFilteredRwaAssets = ({
 			// Only filter by asset name in platform mode.
 			if (selectedAssetNamesSet) {
 				// Keep the name mapping consistent with the pie chart logic.
-				const name = asset.name?.trim() || asset.ticker?.trim() || 'Unknown'
+				const name = asset.assetName?.trim() || asset.ticker?.trim() || 'Unknown'
 				if (!selectedAssetNamesSet.has(name)) continue
 			}
 
@@ -403,10 +426,12 @@ export const useFilteredRwaAssets = ({
 				continue
 			}
 
-			const onChainMcap = asset.onChainMcap.total
+			const onChainMcap = asset.onChainMcap?.total ?? 0
+			const activeMcap = asset.activeMcap?.total ?? 0
+			const defiActiveTvl = asset.defiActiveTvl?.total ?? 0
 			if (
 				!meetsRatioPercent(
-					asset.defiActiveTvl.total,
+					defiActiveTvl,
 					onChainMcap,
 					minDefiActiveTvlToOnChainMcapPct,
 					maxDefiActiveTvlToOnChainMcapPct
@@ -414,27 +439,16 @@ export const useFilteredRwaAssets = ({
 			) {
 				continue
 			}
-			if (
-				!meetsRatioPercent(
-					asset.activeMcap.total,
-					onChainMcap,
-					minActiveMcapToOnChainMcapPct,
-					maxActiveMcapToOnChainMcapPct
-				)
-			) {
+			if (!meetsRatioPercent(activeMcap, onChainMcap, minActiveMcapToOnChainMcapPct, maxActiveMcapToOnChainMcapPct)) {
 				continue
 			}
 			if (
-				!meetsRatioPercent(
-					asset.defiActiveTvl.total,
-					asset.activeMcap.total,
-					minDefiActiveTvlToActiveMcapPct,
-					maxDefiActiveTvlToActiveMcapPct
-				)
+				!meetsRatioPercent(defiActiveTvl, activeMcap, minDefiActiveTvlToActiveMcapPct, maxDefiActiveTvlToActiveMcapPct)
 			) {
 				continue
 			}
 
+			const assetType = asset.type?.trim() || 'Unknown'
 			const toFilter =
 				(asset.category?.length ? asset.category.some((category) => selectedCategoriesSet.has(category)) : true) &&
 				(asset.assetClass?.length
@@ -442,17 +456,18 @@ export const useFilteredRwaAssets = ({
 					: true) &&
 				(asset.rwaClassification ? selectedRwaClassificationsSet.has(asset.rwaClassification) : true) &&
 				(asset.accessModel ? selectedAccessModelsSet.has(asset.accessModel) : true) &&
-				(asset.issuer ? selectedIssuersSet.has(asset.issuer) : true)
+				(asset.issuer ? selectedIssuersSet.has(asset.issuer) : true) &&
+				selectedTypesSet.has(assetType)
 
 			if (toFilter) {
 				filteredAssets.push(asset)
 
-				totalOnChainMcap += asset.onChainMcap.total
-				totalActiveMcap += asset.activeMcap.total
+				totalOnChainMcap += onChainMcap
+				totalActiveMcap += activeMcap
 				if (asset.stablecoin) {
-					totalOnChainStablecoinMcap += asset.onChainMcap.total
+					totalOnChainStablecoinMcap += onChainMcap
 				}
-				totalOnChainDeFiActiveTvl += asset.defiActiveTvl.total
+				totalOnChainDeFiActiveTvl += defiActiveTvl
 				if (asset.issuer) {
 					totalIssuersSet.add(asset.issuer)
 				}
@@ -471,6 +486,7 @@ export const useFilteredRwaAssets = ({
 		assets,
 		isPlatformMode,
 		selectedAssetNames,
+		selectedTypes,
 		selectedCategories,
 		selectedAssetClasses,
 		selectedRwaClassifications,
@@ -516,9 +532,9 @@ export function useRWAAssetCategoryPieChartData({
 				if (!category || !selectedCategoriesSet.has(category)) continue
 
 				const prev = categoryTotals.get(category) ?? { onChain: 0, active: 0, defi: 0 }
-				prev.onChain += asset.onChainMcap.total
-				prev.active += asset.activeMcap.total
-				prev.defi += asset.defiActiveTvl.total
+				prev.onChain += asset.onChainMcap?.total ?? 0
+				prev.active += asset.activeMcap?.total ?? 0
+				prev.defi += asset.defiActiveTvl?.total ?? 0
 				categoryTotals.set(category, prev)
 			}
 		}
@@ -568,9 +584,9 @@ export function useRwaCategoryAssetClassPieChartData({
 				if (!assetClass || !selectedAssetClassesSet.has(assetClass)) continue
 
 				const prev = assetClassTotals.get(assetClass) ?? { onChain: 0, active: 0, defi: 0 }
-				prev.onChain += asset.onChainMcap.total
-				prev.active += asset.activeMcap.total
-				prev.defi += asset.defiActiveTvl.total
+				prev.onChain += asset.onChainMcap?.total ?? 0
+				prev.active += asset.activeMcap?.total ?? 0
+				prev.defi += asset.defiActiveTvl?.total ?? 0
 				assetClassTotals.set(assetClass, prev)
 			}
 		}
@@ -624,13 +640,13 @@ export function useRwaAssetNamePieChartData({
 		}
 
 		const selectedAssets = assets.filter((asset) => {
-			const name = asset.name?.trim() || asset.ticker?.trim() || UNKNOWN
+			const name = asset.assetName?.trim() || asset.ticker?.trim() || UNKNOWN
 			return selectedAssetNamesSet.has(name)
 		})
 
 		const discoveredNames = new Set<string>()
 		for (const asset of selectedAssets) {
-			discoveredNames.add(asset.name?.trim() || asset.ticker?.trim() || UNKNOWN)
+			discoveredNames.add(asset.assetName?.trim() || asset.ticker?.trim() || UNKNOWN)
 		}
 
 		const colorOrder = Array.from(discoveredNames).sort()
@@ -640,11 +656,11 @@ export function useRwaAssetNamePieChartData({
 
 		const totals = new Map<string, { onChain: number; active: number; defi: number }>()
 		for (const asset of selectedAssets) {
-			const name = asset.name?.trim() || asset.ticker?.trim() || UNKNOWN
+			const name = asset.assetName?.trim() || asset.ticker?.trim() || UNKNOWN
 			const prev = totals.get(name) ?? { onChain: 0, active: 0, defi: 0 }
-			prev.onChain += asset.onChainMcap.total
-			prev.active += asset.activeMcap.total
-			prev.defi += asset.defiActiveTvl.total
+			prev.onChain += asset.onChainMcap?.total ?? 0
+			prev.active += asset.activeMcap?.total ?? 0
+			prev.defi += asset.defiActiveTvl?.total ?? 0
 			totals.set(name, prev)
 		}
 
@@ -715,9 +731,9 @@ export function useRwaChainBreakdownPieChartData({
 			discoveredChains.add(chain)
 
 			const prev = totals.get(chain) ?? { onChain: 0, active: 0, defi: 0 }
-			prev.onChain += asset.onChainMcap.total
-			prev.active += asset.activeMcap.total
-			prev.defi += asset.defiActiveTvl.total
+			prev.onChain += asset.onChainMcap?.total ?? 0
+			prev.active += asset.activeMcap?.total ?? 0
+			prev.defi += asset.defiActiveTvl?.total ?? 0
 			totals.set(chain, prev)
 		}
 
@@ -951,7 +967,7 @@ export function useRwaChartDataByAssetName({
 		for (const asset of assets) {
 			const ticker = asset.ticker?.trim()
 			if (!ticker) continue
-			const name = asset.name?.trim() || asset.ticker?.trim() || UNKNOWN
+			const name = asset.assetName?.trim() || asset.ticker?.trim() || UNKNOWN
 			tickerToAssetName.set(ticker, name)
 		}
 

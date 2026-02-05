@@ -88,7 +88,7 @@ export default function SessionPage() {
 	return (
 		<LlamaAI
 			initialSessionId={sessionId as string}
-			showDebug={user?.flags?.['is_llama'] ?? false}
+			showDebug={Boolean(user?.flags?.['is_llama'])}
 			key={`llamai-session-page-${sessionId}`}
 		/>
 	)

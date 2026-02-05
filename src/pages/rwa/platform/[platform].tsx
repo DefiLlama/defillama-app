@@ -40,6 +40,10 @@ export const getStaticProps = withPerformanceLogging(
 
 		const props = await getRWAAssetsOverview({ platform: platformSlug })
 
+		if (!props) {
+			return { notFound: true, props: null }
+		}
+
 		return {
 			props: { ...props, platformName },
 			revalidate: maxAgeForNext([22])

@@ -1,16 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useMemo } from 'react'
-import { formatBarChart } from '~/components/ECharts/utils'
+import { lazy, Suspense } from 'react'
 import { FormattedName } from '~/components/FormattedName'
 import { LocalLoader } from '~/components/Loaders'
 import { TokenLogo } from '~/components/TokenLogo'
-import { CHART_COLORS } from '~/constants/colors'
 import { getNFTRoyaltyHistory } from '~/containers/Nft/queries'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 
-const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 export default function Collection() {
 	const router = useRouter()
@@ -34,32 +32,10 @@ export default function Collection() {
 		enabled: !!collection
 	})
 
-	const chartData = useMemo(() => {
-		if (!collectionData)
-			return {
-				Earnings: {
-					name: 'Earnings',
-					stack: 'Earnings',
-					type: 'bar' as const,
-					data: [],
-					color: CHART_COLORS[0]
-				}
-			}
-		return {
-			Earnings: {
-				name: 'Earnings',
-				stack: 'Earnings',
-				type: 'bar' as const,
-				data: formatBarChart({
-					data: collectionData.royaltyHistory[0].totalDataChart,
-					groupBy: 'daily',
-					denominationPriceHistory: null,
-					dateInMs: false
-				}),
-				color: CHART_COLORS[0]
-			}
-		}
-	}, [collectionData])
+	const chartData = collectionData?.royaltyHistory?.[0]?.earningsChart ?? {
+		dataset: { source: [], dimensions: ['timestamp', 'Earnings'] },
+		charts: []
+	}
 
 	if (fetchingData) {
 		return (
@@ -119,7 +95,7 @@ export default function Collection() {
 				</div>
 
 				<Suspense fallback={<div className="min-h-[360px]" />}>
-					<LineAndBarChart charts={chartData} valueSymbol="$" />
+					<MultiSeriesChart2 dataset={chartData.dataset} charts={chartData.charts} valueSymbol="$" />
 				</Suspense>
 			</div>
 		</Layout>

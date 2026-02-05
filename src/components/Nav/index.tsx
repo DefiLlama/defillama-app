@@ -54,6 +54,7 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 			{ name: 'Chains', route: '/chains', icon: 'globe' },
 			{ name: 'Yields', route: '/yields', icon: 'percent' },
 			{ name: 'Stablecoins', route: '/stablecoins', icon: 'dollar-sign' },
+			{ name: 'RWA', route: '/rwa', icon: 'banknote', isNew: true },
 			{ name: 'Support', route: '/support', icon: 'headset' },
 			{ name: 'API', route: 'https://api-docs.defillama.com', icon: 'code' }
 		]

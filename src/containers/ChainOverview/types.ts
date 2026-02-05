@@ -90,6 +90,7 @@ export interface IChainOverviewData {
 		total30d: number
 	} | null
 	chainStablecoins: Array<{ name: string; url: string; symbol: string | null }> | null
+	entityQuestions?: string[]
 }
 
 export interface ILiteChart {

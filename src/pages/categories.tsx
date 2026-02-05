@@ -1,7 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { tvlOptions } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -19,9 +18,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 const EXCLUDED_EXTRAS = new Set(['doublecounted', 'liquidstaking'])
 const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
 
-const LineAndBarChart = React.lazy(
-	() => import('~/components/ECharts/LineAndBarChart')
-) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 export const getStaticProps = withPerformanceLogging('categories', async () => {
 	const [{ protocols }, revenueData, { chart, categories: protocolsByCategory }] = await Promise.all([
@@ -176,21 +173,13 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 		})
 	}
 
-	const chartData = {}
+	const chartSource: Array<Record<string, number | null>> = []
 	const extraTvlCharts = {}
 
 	for (const date in chart) {
+		const row: Record<string, number | null> = { timestamp: +date * 1e3 }
 		for (const cat of categoryKeys) {
-			if (!chartData[cat]) {
-				chartData[cat] = {
-					name: cat,
-					data: [],
-					type: 'line',
-					stack: cat,
-					color: categoryColors[cat]
-				}
-			}
-			chartData[cat].data.push([+date * 1e3, chart[date]?.[cat]?.tvl ?? null])
+			row[cat] = chart[date]?.[cat]?.tvl ?? null
 			for (const extra of TVL_SETTINGS_KEYS) {
 				if (EXCLUDED_EXTRAS.has(extra)) {
 					continue
@@ -208,13 +197,15 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 				extraTvlCharts[cat][extra][+date * 1e3] += chart[date]?.[cat]?.[extra] ?? 0
 			}
 		}
+		chartSource.push(row)
 	}
 
 	return {
 		props: {
 			categories: categoryKeys,
 			tableData: finalCategories.toSorted((a, b) => b.tvl - a.tvl),
-			chartData,
+			chartSource,
+			categoryColors,
 			extraTvlCharts
 		},
 		revalidate: maxAgeForNext([22])
@@ -225,46 +216,36 @@ const finalTvlOptions = tvlOptions.filter((e) => !EXCLUDED_EXTRAS.has(e.key))
 
 const pageName = ['Protocol Categories']
 
-export default function Protocols({ categories, tableData, chartData, extraTvlCharts }) {
+export default function Protocols({ categories, tableData, chartSource, categoryColors, extraTvlCharts }) {
 	const [selectedCategories, setSelectedCategories] = React.useState<Array<string>>(categories)
 	const [extaTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const enabledTvls = TVL_SETTINGS_KEYS.filter((key) => extaTvlsEnabled[key])
 
-	const charts = React.useMemo(() => {
+	const finalCharts = React.useMemo(() => {
 		const selectedCategoriesSet = new Set(selectedCategories)
-		if (enabledTvls.length === 0) {
-			if (selectedCategories.length === categories.length) {
-				return chartData
+		const filteredCategories = categories.filter((cat) => selectedCategoriesSet.has(cat))
+
+		const source = chartSource.map((row) => {
+			if (enabledTvls.length === 0) return row
+			const newRow = { timestamp: row.timestamp }
+			for (const cat of filteredCategories) {
+				const extraSum = enabledTvls.reduce((sum, e) => sum + (extraTvlCharts?.[cat]?.[e]?.[row.timestamp] ?? 0), 0)
+				newRow[cat] = (row[cat] ?? 0) + extraSum
 			}
+			return newRow
+		})
 
-			const charts = {}
-			for (const cat in chartData) {
-				if (selectedCategoriesSet.has(cat)) {
-					charts[cat] = chartData[cat]
-				}
-			}
+		const dimensions = ['timestamp', ...filteredCategories]
+		const charts = filteredCategories.map((cat) => ({
+			type: 'line' as const,
+			name: cat,
+			encode: { x: 'timestamp', y: cat },
+			stack: cat,
+			color: categoryColors[cat]
+		}))
 
-			return charts
-		}
-
-		const charts = {}
-
-		for (const cat in chartData) {
-			if (selectedCategoriesSet.has(cat)) {
-				const data = chartData[cat].data.map(([date, val], _index) => {
-					const extraTvls = enabledTvls.map((e) => extraTvlCharts?.[cat]?.[e]?.[date] ?? 0)
-					return [date, val + extraTvls.reduce((a, b) => a + b, 0)]
-				})
-
-				charts[cat] = {
-					...chartData[cat],
-					data
-				}
-			}
-		}
-
-		return charts
-	}, [chartData, selectedCategories, categories, extraTvlCharts, enabledTvls])
+		return { dataset: { source, dimensions }, charts }
+	}, [chartSource, selectedCategories, categories, extraTvlCharts, enabledTvls, categoryColors])
 
 	const finalCategoriesList = React.useMemo(() => {
 		if (enabledTvls.length === 0) {
@@ -354,7 +335,12 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 				</div>
 
 				<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-					<LineAndBarChart charts={charts} valueSymbol="$" solidChartAreaStyle />
+					<MultiSeriesChart2
+						dataset={finalCharts.dataset}
+						charts={finalCharts.charts}
+						valueSymbol="$"
+						solidChartAreaStyle
+					/>
 				</React.Suspense>
 			</div>
 

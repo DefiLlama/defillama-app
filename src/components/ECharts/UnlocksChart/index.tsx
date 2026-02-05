@@ -23,6 +23,7 @@ export default function AreaChart({
 	height,
 	expandTo100Percent = false,
 	isStackedChart,
+	chartType = 'line',
 	hideGradient = false,
 	hideDataZoom = false,
 	customYAxis = [],
@@ -157,10 +158,11 @@ export default function AreaChart({
 			const series = chartsStack.map((token, index) => {
 				const stackColor = stackColors?.[token]
 				const yIndex = customYAxis?.indexOf(token)
+				const isBar = chartType === 'bar'
 
 				return {
 					name: token,
-					type: 'line',
+					type: chartType,
 					emphasis: {
 						focus: 'series',
 						shadowBlur: 10
@@ -171,9 +173,13 @@ export default function AreaChart({
 						color: stackColor ? stackColor : index === 0 ? chartColor : null
 					},
 					stack: isStackedChart ? 'Total' : undefined,
-					lineStyle: undefined,
-					areaStyle:
-						isStackedChart || yIndex !== -1
+					barWidth: isBar ? '100%' : undefined,
+					barGap: isBar ? '0%' : undefined,
+					barCategoryGap: isBar ? '0%' : undefined,
+					lineStyle: isBar ? undefined : undefined,
+					areaStyle: isBar
+						? undefined
+						: isStackedChart || yIndex !== -1
 							? {}
 							: hideGradient
 								? { color: 'none' }
@@ -270,7 +276,7 @@ export default function AreaChart({
 								serie.markLine = undefined
 							}
 							if (!(customYAxis?.includes(stack) && value === 0)) {
-								serie.data.push([+date * 1e3, value])
+								serie.data.push(expandTo100Percent ? [+date * 1e3, value, rawValue] : [+date * 1e3, value])
 							}
 						}
 					}
@@ -288,6 +294,7 @@ export default function AreaChart({
 		stackColors,
 		customYAxis,
 		isStackedChart,
+		chartType,
 		hideGradient,
 		customLegendName,
 		legendOptions,
@@ -375,7 +382,7 @@ export default function AreaChart({
 	return (
 		<div className="relative" {...props}>
 			{title || showLegend ? (
-				<div className="mb-2 flex items-center justify-end gap-2 px-2">
+				<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
 					{title && <h1 className="mr-auto text-lg font-bold">{title}</h1>}
 					{customLegendName && customLegendOptions?.length > 1 && (
 						<SelectWithCombobox

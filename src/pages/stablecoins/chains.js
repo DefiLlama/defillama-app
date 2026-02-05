@@ -57,13 +57,19 @@ export const getStaticProps = withPerformanceLogging('stablecoins/chains', async
 			change30d_nol: change30d_nol.startsWith('-') ? change30d_nol : `+${change30d_nol}`,
 			peggedAreaChartData: peggedAreaChartData,
 			peggedAreaTotalData: {
-				MCap: {
-					name: 'Mcap',
-					stack: 'Mcap',
-					color: CHART_COLORS[0],
-					data: peggedAreaTotalData.map(({ date, Mcap }) => [+date * 1e3, Mcap]),
-					type: 'line'
-				}
+				dataset: {
+					source: peggedAreaTotalData.map(({ date, Mcap }) => ({ timestamp: +date * 1e3, Mcap })),
+					dimensions: ['timestamp', 'Mcap']
+				},
+				charts: [
+					{
+						type: 'line',
+						name: 'Mcap',
+						encode: { x: 'timestamp', y: 'Mcap' },
+						stack: 'Mcap',
+						color: CHART_COLORS[0]
+					}
+				]
 			},
 			stackedDataset: stackedDataset
 		},

@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { lazy, Suspense } from 'react'
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -10,7 +10,9 @@ import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 import { ITotalBorrowedByChainPageData } from './queries'
 
-const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 
 const DEFAULT_SORTING_STATE = [{ id: 'totalBorrowed', desc: true }]
 
@@ -51,7 +53,12 @@ export function BorrowedProtocolsTVLByChain(props: ITotalBorrowedByChainPageData
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3">
 					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-						<LineAndBarChart hideDownloadButton={false} enableImageExport charts={props.charts} />
+						<MultiSeriesChart2
+							shouldEnableCSVDownload
+							shouldEnableImageExport
+							dataset={props.dataset}
+							charts={props.charts}
+						/>
 					</Suspense>
 				</div>
 			</div>

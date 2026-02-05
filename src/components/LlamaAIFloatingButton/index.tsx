@@ -1,16 +1,33 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { useEntityQuestions } from '~/containers/LlamaAI/hooks/useEntityQuestions'
 import { useSuggestedQuestions } from '~/containers/LlamaAI/hooks/useSuggestedQuestions'
 import { useMedia } from '~/hooks/useMedia'
 
 export const PENDING_PROMPT_KEY = 'llamaai-pending-prompt'
+export const PENDING_PAGE_CONTEXT_KEY = 'llamaai-pending-page-context'
 
 const FALLBACK_SUGGESTIONS = [
 	'Which protocols have growing TVL and revenue but declining token prices?',
 	'What are the best stablecoin yields with at least $10M TVL?',
 	'Chart Pump.fun percentage share of total revenue across all launchpads'
 ]
+
+function useEntityContext() {
+	const router = useRouter()
+	const path = router.asPath
+
+	if (path.startsWith('/protocol/')) {
+		const slug = path.split('/protocol/')[1]?.split(/[?#]/)[0]
+		return slug ? { entitySlug: slug, entityType: 'protocol' as const } : null
+	}
+	if (path.startsWith('/chain/') && !path.includes('/chain/All')) {
+		const slug = path.split('/chain/')[1]?.split(/[?#]/)[0]
+		return slug ? { entitySlug: slug, entityType: 'chain' as const } : null
+	}
+	return null
+}
 
 export function setPendingPrompt(prompt: string) {
 	if (typeof window !== 'undefined') {
@@ -27,15 +44,54 @@ export function consumePendingPrompt(): string | null {
 	return prompt
 }
 
+export function setPendingPageContext(
+	context: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string } | null
+) {
+	if (typeof window === 'undefined') return
+	if (context) {
+		localStorage.setItem(PENDING_PAGE_CONTEXT_KEY, JSON.stringify(context))
+	} else {
+		localStorage.removeItem(PENDING_PAGE_CONTEXT_KEY)
+	}
+}
+
+export function consumePendingPageContext(): {
+	entitySlug?: string
+	entityType?: 'protocol' | 'chain'
+	route: string
+} | null {
+	if (typeof window === 'undefined') return null
+	const raw = localStorage.getItem(PENDING_PAGE_CONTEXT_KEY)
+	if (!raw) return null
+	localStorage.removeItem(PENDING_PAGE_CONTEXT_KEY)
+	try {
+		return JSON.parse(raw)
+	} catch {
+		return null
+	}
+}
+
 export function LlamaAIFloatingButton() {
 	const router = useRouter()
 	const [isOpen, setIsOpen] = useState(false)
 	const [value, setValue] = useState('')
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const isDesktop = useMedia('(min-width: 768px)')
-	const { data: suggestedData } = useSuggestedQuestions(isOpen)
+
+	const entityContext = useEntityContext()
+	const { data: entityData } = useEntityQuestions(
+		entityContext?.entitySlug ?? null,
+		entityContext?.entityType ?? null,
+		isOpen && !!entityContext
+	)
+	const { data: suggestedData } = useSuggestedQuestions(isOpen && !entityContext)
 
 	const suggestions = useMemo(() => {
+		// Use entity questions if on protocol/chain page
+		if (entityContext && entityData?.questions?.length) {
+			return entityData.questions.slice(0, 4)
+		}
+
 		if (!suggestedData?.categories) return FALLBACK_SUGGESTIONS
 
 		const allPrompts: string[] = []
@@ -46,7 +102,7 @@ export function LlamaAIFloatingButton() {
 		})
 
 		return allPrompts.length > 0 ? allPrompts.slice(0, 4) : FALLBACK_SUGGESTIONS
-	}, [suggestedData])
+	}, [entityContext, entityData, suggestedData])
 
 	const handleSubmit = useCallback(
 		(e?: React.FormEvent) => {
@@ -55,15 +111,20 @@ export function LlamaAIFloatingButton() {
 			if (!prompt) return
 
 			if (typeof window !== 'undefined' && (window as any).umami) {
-				;(window as any).umami.track('llamaai-fab-submit')
+				;(window as any).umami.track('llamaai-fab-submit', { page: router.asPath })
 			}
 
 			setPendingPrompt(prompt)
+			setPendingPageContext({
+				entitySlug: entityContext?.entitySlug,
+				entityType: entityContext?.entityType,
+				route: router.asPath
+			})
 			router.push('/ai/chat')
 			setIsOpen(false)
 			setValue('')
 		},
-		[value, router]
+		[value, router, entityContext]
 	)
 
 	const handleKeyDown = useCallback(
@@ -81,10 +142,10 @@ export function LlamaAIFloatingButton() {
 
 	const handleButtonClick = useCallback(() => {
 		if (typeof window !== 'undefined' && (window as any).umami) {
-			;(window as any).umami.track('llamaai-fab-click')
+			;(window as any).umami.track('llamaai-fab-click', { page: router.asPath })
 		}
 		setIsOpen(true)
-	}, [])
+	}, [router.asPath])
 
 	return (
 		<>
@@ -150,7 +211,9 @@ export function LlamaAIFloatingButton() {
 					<div className="flex flex-1 flex-col overflow-hidden">
 						<div className="flex-1 overflow-y-auto p-5">
 							<div className="mb-4">
-								<p className="mb-3 text-sm text-[#666] dark:text-[#919296]">Try one of these:</p>
+								<p className="mb-3 text-sm text-[#666] dark:text-[#919296]">
+									{entityContext ? `Ask about ${entityContext.entitySlug}:` : 'Try one of these:'}
+								</p>
 								<div className="flex flex-col gap-2">
 									{suggestions.map((suggestion) => (
 										<button
