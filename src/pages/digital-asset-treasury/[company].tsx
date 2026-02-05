@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import type { GetStaticPropsContext } from 'next'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
-import { ILineAndBarChartProps, ISingleSeriesChartProps } from '~/components/ECharts/types'
+import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -18,10 +18,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 const DEFAULT_SORTING_STATE = [{ id: 'report_date', desc: true }]
 
-const SingleSeriesChart = lazy(
-	() => import('~/components/ECharts/SingleSeriesChart')
-) as React.FC<ISingleSeriesChartProps>
-const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 const CandlestickChart = lazy(() => import('~/components/ECharts/CandlestickChart')) as React.FC<any>
 
 const getType = (type: string) => {
@@ -54,6 +51,21 @@ const getSourceType = (sourceType: string) => {
 		default:
 			return sourceType
 	}
+}
+
+const ensureChronologicalPairs = <T extends [number, ...unknown[]]>(rows: T[]) => {
+	if (rows.length < 2) return rows
+
+	let prev = rows[0][0]
+	for (let i = 1; i < rows.length; i++) {
+		const curr = rows[i][0]
+		if (curr < prev) {
+			return rows.toSorted((a, b) => a[0] - b[0])
+		}
+		prev = curr
+	}
+
+	return rows
 }
 
 interface IDATInstitution {
@@ -123,13 +135,9 @@ export const getStaticProps = withPerformanceLogging(
 
 		const chartByAsset = []
 		for (const assetKey in data.assets) {
-			let totalAmount = 0
 			const assetMeta = data.assetsMeta[assetKey]
-			chartByAsset.push({
-				asset: assetKey,
-				name: assetMeta.name,
-				ticker: assetMeta.ticker,
-				chart: data.transactions
+			const transactionRows = ensureChronologicalPairs(
+				data.transactions
 					.filter((item) => item.asset === assetKey)
 					.map((item) => [
 						Math.floor(new Date(item.end_date ?? item.start_date).getTime() / 1000),
@@ -137,94 +145,132 @@ export const getStaticProps = withPerformanceLogging(
 						item.avg_price ? Number(item.avg_price) : null,
 						item.usd_value ? Number(item.usd_value) : null
 					])
-					.sort((a, b) => a[0] - b[0])
-					.map(([timestamp, amount, avg_price, usd_value]) => [
-						timestamp,
-						(totalAmount += amount),
-						amount,
-						avg_price,
-						usd_value
-					])
+			)
+
+			let totalAmount = 0
+			const seriesName = assetMeta.ticker
+			const source = transactionRows.map(([timestamp, amount, avgPrice, usdValue]) => {
+				totalAmount += amount
+				return {
+					timestamp: timestamp * 1000,
+					[seriesName]: totalAmount,
+					delta: amount,
+					avgPrice,
+					usdValue
+				}
+			})
+			const holdingsChart = {
+				dataset: {
+					source,
+					dimensions: ['timestamp', seriesName, 'delta', 'avgPrice', 'usdValue']
+				},
+				charts: [
+					{
+						type: (source.length < 2 ? 'bar' : 'line') as 'bar' | 'line',
+						name: seriesName,
+						encode: { x: 'timestamp', y: seriesName },
+						stack: seriesName,
+						color: CHART_COLORS[0],
+						// Show point markers for this single-series holdings chart.
+						showSymbol: true,
+						symbol: 'circle',
+						symbolSize: 6
+					}
+				]
+			}
+
+			chartByAsset.push({
+				asset: assetKey,
+				name: assetMeta.name,
+				ticker: assetMeta.ticker,
+				holdingsChart
 			})
 		}
 
-		const mNAVChart: ILineAndBarChartProps['charts'] = {
-			'Realized mNAV': {
-				name: 'Realized mNAV',
-				stack: 'Realized mNAV',
-				type: 'line',
-				color: CHART_COLORS[0],
-				data: []
+		const mNAVChart = {
+			dataset: {
+				source: data.stats.map((item) => ({
+					timestamp: item[0],
+					'Realized mNAV': item[7],
+					'Realistic mNAV': item[8],
+					'Max mNAV': item[9]
+				})),
+				dimensions: ['timestamp', 'Realized mNAV', 'Realistic mNAV', 'Max mNAV']
 			},
-			'Realistic mNAV': {
-				name: 'Realistic mNAV',
-				stack: 'Realistic mNAV',
-				type: 'line',
-				color: CHART_COLORS[1],
-				data: []
-			},
-			'Max mNAV': {
-				name: 'Max mNAV',
-				stack: 'Max mNAV',
-				type: 'line',
-				color: CHART_COLORS[2],
-				data: []
-			}
+			charts: [
+				{
+					type: 'line' as const,
+					name: 'Realized mNAV',
+					encode: { x: 'timestamp', y: 'Realized mNAV' },
+					stack: 'Realized mNAV',
+					color: CHART_COLORS[0]
+				},
+				{
+					type: 'line' as const,
+					name: 'Realistic mNAV',
+					encode: { x: 'timestamp', y: 'Realistic mNAV' },
+					stack: 'Realistic mNAV',
+					color: CHART_COLORS[1]
+				},
+				{
+					type: 'line' as const,
+					name: 'Max mNAV',
+					encode: { x: 'timestamp', y: 'Max mNAV' },
+					stack: 'Max mNAV',
+					color: CHART_COLORS[2]
+				}
+			]
 		}
 
-		const fdChart: ILineAndBarChartProps['charts'] = {
-			'FD Realized': {
-				name: 'FD Realized',
-				stack: 'FD Realized',
-				type: 'line',
-				color: CHART_COLORS[3],
-				data: []
+		const fdChart = {
+			dataset: {
+				source: data.stats.map((item) => ({
+					timestamp: item[0],
+					'FD Realized': item[1],
+					'FD Realistic': item[2],
+					'FD Max': item[3]
+				})),
+				dimensions: ['timestamp', 'FD Realized', 'FD Realistic', 'FD Max']
 			},
-			'FD Realistic': {
-				name: 'FD Realistic',
-				stack: 'FD Realistic',
-				type: 'line',
-				color: CHART_COLORS[4],
-				data: []
-			},
-			'FD Max': {
-				name: 'FD Max',
-				stack: 'FD Max',
-				type: 'line',
-				color: CHART_COLORS[5],
-				data: []
-			}
+			charts: [
+				{
+					type: 'line' as const,
+					name: 'FD Realized',
+					encode: { x: 'timestamp', y: 'FD Realized' },
+					stack: 'FD Realized',
+					color: CHART_COLORS[3]
+				},
+				{
+					type: 'line' as const,
+					name: 'FD Realistic',
+					encode: { x: 'timestamp', y: 'FD Realistic' },
+					stack: 'FD Realistic',
+					color: CHART_COLORS[4]
+				},
+				{
+					type: 'line' as const,
+					name: 'FD Max',
+					encode: { x: 'timestamp', y: 'FD Max' },
+					stack: 'FD Max',
+					color: CHART_COLORS[5]
+				}
+			]
 		}
 
-		for (const item of data.stats) {
-			const [
-				date,
-				fd_realized,
-				fd_realistic,
-				fd_maximum,
-				_mcap_realized,
-				_mcap_realistic,
-				_mcap_max,
-				mNAV_realized,
-				mNAV_realistic,
-				mNAV_max
-			] = item
-			mNAVChart['Realized mNAV'].data.push([date, mNAV_realized])
-			mNAVChart['Realistic mNAV'].data.push([date, mNAV_realistic])
-			mNAVChart['Max mNAV'].data.push([date, mNAV_max])
-			fdChart['FD Realized'].data.push([date, fd_realized])
-			fdChart['FD Realistic'].data.push([date, fd_realistic])
-			fdChart['FD Max'].data.push([date, fd_maximum])
-		}
-
-		const totalAssetValueChart: ILineAndBarChartProps['charts'] = {
-			'Total Asset Value': {
-				name: 'Total Asset Value',
-				stack: 'Total Asset Value',
-				type: 'line',
-				color: CHART_COLORS[6],
-				data: data.assetValue
-			}
+		const totalAssetValueChart = {
+			dataset: {
+				source: data.assetValue.map(([timestamp, value]) => ({ timestamp, 'Total Asset Value': value })),
+				dimensions: ['timestamp', 'Total Asset Value']
+			},
+			charts: [
+				{
+					type: 'line' as const,
+					name: 'Total Asset Value',
+					encode: { x: 'timestamp', y: 'Total Asset Value' },
+					stack: 'Total Asset Value',
+					color: CHART_COLORS[6]
+				}
+			]
 		}
 
 		const ohlcvChartData = data.ohlcv.map(([date, open, high, low, close, volume]) => [
@@ -330,11 +376,11 @@ interface IProps extends Pick<
 		asset: string
 		name: string
 		ticker: string
-		chart: Array<[number, number, number, number | null, number | null]>
+		holdingsChart: { dataset: IMultiSeriesChart2Props['dataset']; charts: IMultiSeriesChart2Props['charts'] }
 	}>
-	mNAVChart?: ILineAndBarChartProps['charts']
-	fdChart?: ILineAndBarChartProps['charts']
-	totalAssetValueChart?: ILineAndBarChartProps['charts']
+	mNAVChart?: { dataset: IMultiSeriesChart2Props['dataset']; charts: IMultiSeriesChart2Props['charts'] }
+	fdChart?: { dataset: IMultiSeriesChart2Props['dataset']; charts: IMultiSeriesChart2Props['charts'] }
+	totalAssetValueChart?: { dataset: IMultiSeriesChart2Props['dataset']; charts: IMultiSeriesChart2Props['charts'] }
 	ohlcvChartData?: Array<[number, number, number, number, number, number]>
 }
 
@@ -508,15 +554,12 @@ export default function DigitalAssetTreasury(props: IProps) {
 					</div>
 					<Suspense fallback={<div className="h-[360px]" />}>
 						{chartData ? (
-							<SingleSeriesChart
-								chartName={chartData.ticker}
-								chartType={chartData.chart.length < 2 ? 'bar' : 'line'}
-								chartData={chartData.chart}
+							<MultiSeriesChart2
+								dataset={chartData.holdingsChart.dataset}
+								charts={chartData.holdingsChart.charts}
 								valueSymbol={chartData.ticker}
-								color={CHART_COLORS[0]}
+								hideDataZoom={chartData.holdingsChart.dataset.source.length < 2}
 								chartOptions={chartOptions}
-								symbolOnChart="circle"
-								hideDataZoom={chartData.chart.length < 2}
 							/>
 						) : (
 							<div className="h-[360px]" />
@@ -529,7 +572,12 @@ export default function DigitalAssetTreasury(props: IProps) {
 					<div className="col-span-1 min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<h2 className="p-2 text-lg font-bold">mNAV</h2>
 						<Suspense fallback={<div className="h-[360px]" />}>
-							<LineAndBarChart charts={props.mNAVChart} valueSymbol="" hideDefaultLegend={false} />
+							<MultiSeriesChart2
+								dataset={props.mNAVChart.dataset}
+								charts={props.mNAVChart.charts}
+								valueSymbol=""
+								hideDefaultLegend={false}
+							/>
 						</Suspense>
 					</div>
 				)}
@@ -537,7 +585,12 @@ export default function DigitalAssetTreasury(props: IProps) {
 					<div className="col-span-1 min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<h2 className="p-2 text-lg font-bold">Fully Diluted Shares</h2>
 						<Suspense fallback={<div className="h-[360px]" />}>
-							<LineAndBarChart charts={props.fdChart} valueSymbol="" hideDefaultLegend={false} />
+							<MultiSeriesChart2
+								dataset={props.fdChart.dataset}
+								charts={props.fdChart.charts}
+								valueSymbol=""
+								hideDefaultLegend={false}
+							/>
 						</Suspense>
 					</div>
 				)}
@@ -554,7 +607,11 @@ export default function DigitalAssetTreasury(props: IProps) {
 					<div className="col-span-full min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 						<h2 className="p-2 text-lg font-bold">Total Asset Value</h2>
 						<Suspense fallback={<div className="h-[360px]" />}>
-							<LineAndBarChart charts={props.totalAssetValueChart} valueSymbol="$" />
+							<MultiSeriesChart2
+								dataset={props.totalAssetValueChart.dataset}
+								charts={props.totalAssetValueChart.charts}
+								valueSymbol="$"
+							/>
 						</Suspense>
 					</div>
 				)}
@@ -688,38 +745,49 @@ const columns: ColumnDef<IDATInstitution['transactions'][0]>[] = [
 const chartOptions = {
 	tooltip: {
 		formatter: (params: any) => {
-			const label = params[0].value[2] < 0 ? 'Sold' : 'Purchased'
-			const valueLabel = params[0].value[2] < 0 ? 'Sale value' : 'Purchase value'
+			const firstParam = Array.isArray(params) ? params[0] : params
+			if (!firstParam) return ''
+			const row = firstParam?.data ?? {}
+			const timestamp =
+				row?.timestamp ?? (Array.isArray(firstParam?.value) ? firstParam.value[0] : undefined) ?? firstParam?.axisValue
+			const holdings =
+				row?.[firstParam?.seriesName] ?? (Array.isArray(firstParam?.value) ? firstParam.value[1] : undefined)
+			const deltaRaw = row?.delta ?? (Array.isArray(firstParam?.value) ? firstParam.value[2] : undefined)
+			const avgPrice = row?.avgPrice ?? (Array.isArray(firstParam?.value) ? firstParam.value[3] : undefined)
+			const usdValue = row?.usdValue ?? (Array.isArray(firstParam?.value) ? firstParam.value[4] : undefined)
+			const deltaValue = typeof deltaRaw === 'number' ? deltaRaw : Number(deltaRaw ?? 0)
+			const label = deltaValue < 0 ? 'Sold' : 'Purchased'
+			const valueLabel = deltaValue < 0 ? 'Sale value' : 'Purchase value'
 			let val =
-				dayjs(params[0].value[0]).format('MMM D, YYYY') +
+				dayjs(timestamp).format('MMM D, YYYY') +
 				'<li style="list-style:none">' +
 				`${label}:` +
 				'&nbsp;&nbsp;' +
 				'<span style="font-weight:600;">' +
-				formattedNum(Math.abs(params[0].value[2]), false) +
+				formattedNum(Math.abs(deltaValue), false) +
 				'&nbsp;' +
-				params[0].seriesName +
+				firstParam.seriesName +
 				'</span>' +
 				'</li>'
 
-			if (params[0].value[3] != null) {
+			if (avgPrice != null) {
 				val +=
 					'<li style="list-style:none">' +
 					`Cost basis per unit:` +
 					'&nbsp;&nbsp;' +
 					'<span style="font-weight:600;">' +
-					formattedNum(params[0].value[3], true) +
+					formattedNum(Number(avgPrice), true) +
 					'</span>' +
 					'</li>'
 			}
 
-			if (params[0].value[4] != null) {
+			if (usdValue != null) {
 				val +=
 					'<li style="list-style:none">' +
 					`${valueLabel}:` +
 					'&nbsp;&nbsp;' +
 					'<span style="font-weight:600;">' +
-					formattedNum(params[0].value[4], true) +
+					formattedNum(Number(usdValue), true) +
 					'</span>' +
 					'</li>'
 			}
@@ -729,9 +797,9 @@ const chartOptions = {
 				`Holdings till date:` +
 				'&nbsp;&nbsp;' +
 				'<span style="font-weight:600;">' +
-				formattedNum(params[0].value[1], false) +
+				formattedNum(typeof holdings === 'number' ? holdings : Number(holdings ?? 0), false) +
 				'&nbsp;' +
-				params[0].seriesName +
+				firstParam.seriesName +
 				'</span>' +
 				'</li>'
 			return val

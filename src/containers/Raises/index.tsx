@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { ILineAndBarChartProps } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
@@ -10,9 +10,9 @@ import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
 import { RaisesTable } from './RaisesTable'
 
-const LineAndBarChart = React.lazy(
-	() => import('~/components/ECharts/LineAndBarChart')
-) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = React.lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 
 const RAISES_PAGE_NAME = ['Raises Overview']
 
@@ -93,7 +93,12 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 
 				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
-						<LineAndBarChart charts={monthlyInvestmentChart} valueSymbol="$" groupBy="monthly" />
+						<MultiSeriesChart2
+							dataset={monthlyInvestmentChart.dataset}
+							charts={monthlyInvestmentChart.charts}
+							valueSymbol="$"
+							groupBy="monthly"
+						/>
 					</React.Suspense>
 				</div>
 			</div>

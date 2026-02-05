@@ -22,7 +22,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_TOGGLE_OPTIONS = []
 
-const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/derivatives/[protocol]',
@@ -115,26 +115,33 @@ export default function Protocols(props) {
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 
 	const finalCharts = useMemo(() => {
+		const formattedData = formatBarChart({
+			data: props.chart,
+			groupBy,
+			denominationPriceHistory: null,
+			dateInMs: true
+		})
 		return {
-			'Perp Volume': {
-				name: 'Perp Volume',
-				stack: 'Perp Volume',
-				type: (groupBy === 'cumulative' ? 'line' : 'bar') as 'line' | 'bar',
-				data: formatBarChart({
-					data: props.chart,
-					groupBy,
-					denominationPriceHistory: null,
-					dateInMs: true
-				}),
-				color: CHART_COLORS[0]
-			}
+			dataset: {
+				source: formattedData.map(([timestamp, value]) => ({ timestamp, 'Perp Volume': value })),
+				dimensions: ['timestamp', 'Perp Volume']
+			},
+			charts: [
+				{
+					type: (groupBy === 'cumulative' ? 'line' : 'bar') as 'line' | 'bar',
+					name: 'Perp Volume',
+					encode: { x: 'timestamp', y: 'Perp Volume' },
+					color: CHART_COLORS[0],
+					stack: 'Perp Volume'
+				}
+			]
 		}
 	}, [props.chart, groupBy])
 
 	const prepareCsv = () => {
 		const dataByChartType = {}
-		for (const chartType in finalCharts) {
-			dataByChartType[chartType] = finalCharts[chartType].data
+		for (const chart of finalCharts.charts) {
+			dataByChartType[chart.name] = finalCharts.dataset.source.map((row) => [row.timestamp, row[chart.name]])
 		}
 		return prepareChartCsv(dataByChartType, `${props.name}-total-perp-volume.csv`)
 	}
@@ -189,7 +196,12 @@ export default function Protocols(props) {
 						/>
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
-						<LineAndBarChart charts={finalCharts} valueSymbol="$" onReady={handleChartReady} />
+						<MultiSeriesChart2
+							dataset={finalCharts.dataset}
+							charts={finalCharts.charts}
+							valueSymbol="$"
+							onReady={handleChartReady}
+						/>
 					</Suspense>
 				</div>
 			</div>

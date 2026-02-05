@@ -3,7 +3,7 @@ import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { formatBarChart, prepareChartCsv } from '~/components/ECharts/utils'
+import { ensureChronologicalRows, formatBarChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { feesOptions } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select'
@@ -23,7 +23,7 @@ import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils
 import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/fees/[protocol]',
@@ -238,8 +238,6 @@ export default function Protocols(props) {
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 
 	const finalCharts = useMemo(() => {
-		const finalCharts = {}
-
 		let feesChart = props.charts.fees
 		let revenueChart = props.charts.revenue
 		let holdersRevenueChart = props.charts.holdersRevenue
@@ -276,56 +274,74 @@ export default function Protocols(props) {
 			}
 		}
 
+		const seriesType = (groupBy === 'cumulative' ? 'line' : 'bar') as 'line' | 'bar'
+		const seriesData: Record<string, Array<[number, number]>> = {}
+		const chartsConfig = []
+
 		if (charts.includes('Fees')) {
-			finalCharts['Fees'] = {
+			seriesData['Fees'] = formatBarChart({ data: feesChart, groupBy, denominationPriceHistory: null, dateInMs: false })
+			chartsConfig.push({
+				type: seriesType,
 				name: 'Fees',
-				stack: 'Fees',
-				type: groupBy === 'cumulative' ? 'line' : 'bar',
-				data: formatBarChart({
-					data: feesChart,
-					groupBy,
-					denominationPriceHistory: null,
-					dateInMs: false
-				}),
-				color: CHART_COLORS[0]
-			}
+				encode: { x: 'timestamp', y: 'Fees' },
+				color: CHART_COLORS[0],
+				stack: 'Fees'
+			})
 		}
 		if (charts.includes('Revenue')) {
-			finalCharts['Revenue'] = {
+			seriesData['Revenue'] = formatBarChart({
+				data: revenueChart,
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: false
+			})
+			chartsConfig.push({
+				type: seriesType,
 				name: 'Revenue',
-				stack: 'Revenue',
-				type: groupBy === 'cumulative' ? 'line' : 'bar',
-				data: formatBarChart({
-					data: revenueChart,
-					groupBy,
-					denominationPriceHistory: null,
-					dateInMs: false
-				}),
-				color: CHART_COLORS[1]
-			}
+				encode: { x: 'timestamp', y: 'Revenue' },
+				color: CHART_COLORS[1],
+				stack: 'Revenue'
+			})
 		}
 		if (charts.includes('Holders Revenue')) {
-			finalCharts['Holders Revenue'] = {
+			seriesData['Holders Revenue'] = formatBarChart({
+				data: holdersRevenueChart,
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: false
+			})
+			chartsConfig.push({
+				type: seriesType,
 				name: 'Holders Revenue',
-				stack: 'Holders Revenue',
-				type: groupBy === 'cumulative' ? 'line' : 'bar',
-				data: formatBarChart({
-					data: holdersRevenueChart,
-					groupBy,
-					denominationPriceHistory: null,
-					dateInMs: false
-				}),
-				color: CHART_COLORS[2]
+				encode: { x: 'timestamp', y: 'Holders Revenue' },
+				color: CHART_COLORS[2],
+				stack: 'Holders Revenue'
+			})
+		}
+
+		const rowMap = new Map<number, Record<string, number>>()
+		const seriesNames = Object.keys(seriesData)
+		for (const name of seriesNames) {
+			for (const [timestamp, value] of seriesData[name]) {
+				const row = rowMap.get(timestamp) ?? { timestamp }
+				row[name] = value
+				rowMap.set(timestamp, row)
 			}
 		}
 
-		return finalCharts
+		return {
+			dataset: {
+				source: ensureChronologicalRows(Array.from(rowMap.values())),
+				dimensions: ['timestamp', ...seriesNames]
+			},
+			charts: chartsConfig
+		}
 	}, [props.charts, charts, feesSettings, groupBy, props.bribeRevenue?.totalAllTime, props.tokenTax?.totalAllTime])
 
 	const prepareCsv = () => {
 		const dataByChartType = {}
-		for (const chartType in finalCharts) {
-			dataByChartType[chartType] = finalCharts[chartType].data
+		for (const chart of finalCharts.charts) {
+			dataByChartType[chart.name] = finalCharts.dataset.source.map((row) => [row.timestamp, row[chart.name]])
 		}
 		return prepareChartCsv(dataByChartType, `${props.name}-total-fees-revenue.csv`)
 	}
@@ -394,7 +410,12 @@ export default function Protocols(props) {
 						/>
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
-						<LineAndBarChart charts={finalCharts} valueSymbol="$" onReady={handleChartReady} />
+						<MultiSeriesChart2
+							dataset={finalCharts.dataset}
+							charts={finalCharts.charts}
+							valueSymbol="$"
+							onReady={handleChartReady}
+						/>
 					</Suspense>
 				</div>
 			</div>

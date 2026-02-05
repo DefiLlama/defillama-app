@@ -2,7 +2,7 @@ import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import type { IChartProps, ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
+import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/ProDashboard/types'
@@ -14,9 +14,7 @@ import { PeggedChainsTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
-const LineAndBarChart = React.lazy(
-	() => import('~/components/ECharts/LineAndBarChart')
-) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
@@ -166,9 +164,13 @@ export function ChainsWithStablecoins({
 						<React.Suspense fallback={<></>}>
 							<div className="flex items-center gap-2 px-2">
 								<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-								<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+								<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
 							</div>
-							<LineAndBarChart charts={peggedAreaTotalData} valueSymbol="$" />
+							<MultiSeriesChart2
+								dataset={peggedAreaTotalData.dataset}
+								charts={peggedAreaTotalData.charts}
+								valueSymbol="$"
+							/>
 						</React.Suspense>
 					)}
 					{chartType === 'Chain Market Caps' && (
@@ -184,7 +186,7 @@ export function ChainsWithStablecoins({
 								customComponents={
 									<>
 										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
 									</>
 								}
 							/>
@@ -204,7 +206,7 @@ export function ChainsWithStablecoins({
 								customComponents={
 									<>
 										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
 									</>
 								}
 							/>
@@ -217,7 +219,7 @@ export function ChainsWithStablecoins({
 								customComponents={
 									<>
 										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-3" />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
 									</>
 								}
 							/>

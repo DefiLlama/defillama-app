@@ -1,3 +1,4 @@
+import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { RWA_ACTIVE_TVLS_API, RWA_ASSET_DATA_API, RWA_CHART_API, RWA_STATS_API } from '~/constants'
 import definitions from '~/public/rwa-definitions.json'
 import { fetchJson } from '~/utils/async'
@@ -216,15 +217,15 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 
 		const chartDataMs: IRWAChartDataByTicker | null = chartData
 			? {
-					onChainMcap: (chartData.onChainMcap ?? [])
-						.map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
-						.sort((a, b) => a.timestamp - b.timestamp),
-					activeMcap: (chartData.activeMcap ?? [])
-						.map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
-						.sort((a, b) => a.timestamp - b.timestamp),
-					defiActiveTvl: (chartData.defiActiveTvl ?? [])
-						.map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
-						.sort((a, b) => a.timestamp - b.timestamp)
+					onChainMcap: ensureChronologicalRows(
+						(chartData.onChainMcap ?? []).map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
+					),
+					activeMcap: ensureChronologicalRows(
+						(chartData.activeMcap ?? []).map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
+					),
+					defiActiveTvl: ensureChronologicalRows(
+						(chartData.defiActiveTvl ?? []).map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
+					)
 				}
 			: null
 
@@ -734,8 +735,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 							'Onchain Mcap': item.onChainMcap ?? null
 						})) ?? []
 
-					source.sort((a, b) => a.timestamp - b.timestamp)
-					return { source, dimensions: RWA_ASSET_CHART_DIMENSIONS }
+					return { source: ensureChronologicalRows(source), dimensions: RWA_ASSET_CHART_DIMENSIONS }
 				})
 				.catch(() => null)
 		])

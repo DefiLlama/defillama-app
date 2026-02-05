@@ -4,7 +4,7 @@ import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/formatters'
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
@@ -20,9 +20,7 @@ import { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly'] as const
 const CHART_TYPES = ['Volume', 'Dominance'] as const
 
-const LineAndBarChart = React.lazy(
-	() => import('~/components/ECharts/LineAndBarChart')
-) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const downloadBreakdownChart = async ({
 	adapterType,
@@ -83,7 +81,12 @@ export const AdapterByChainChart = ({
 	const [chartInterval, setChartInterval] = React.useState<(typeof INTERVALS_LIST_ADAPTER_BY_CHAIN)[number]>('Daily')
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 
-	const { charts } = React.useMemo(() => {
+	const finalCharts = React.useMemo(() => {
+		const seriesType = (chartInterval === 'Cumulative' || chartName === 'Open Interest' ? 'line' : 'bar') as
+			| 'bar'
+			| 'line'
+		let sourceData: Array<[number, number]>
+
 		if (chartInterval !== 'Daily') {
 			const data = {}
 
@@ -104,35 +107,28 @@ export const AdapterByChainChart = ({
 				}
 			}
 
-			const finalData = []
-
+			sourceData = []
 			for (const date in data) {
-				finalData.push([+date, data[date]])
+				sourceData.push([+date, data[date]])
 			}
-
-			return {
-				charts: {
-					[chartName]: {
-						data: finalData,
-						type: (chartInterval === 'Cumulative' || chartName === 'Open Interest' ? 'line' : 'bar') as 'bar' | 'line',
-						name: chartName,
-						stack: chartName,
-						color: CHART_COLORS[0]
-					}
-				}
-			}
+		} else {
+			sourceData = chartData
 		}
 
 		return {
-			charts: {
-				[chartName]: {
-					data: chartData,
-					type: (chartName === 'Open Interest' ? 'line' : 'bar') as 'bar' | 'line',
+			dataset: {
+				source: sourceData.map(([timestamp, value]) => ({ timestamp, [chartName]: value })),
+				dimensions: ['timestamp', chartName]
+			},
+			charts: [
+				{
+					type: seriesType,
 					name: chartName,
+					encode: { x: 'timestamp', y: chartName },
 					stack: chartName,
 					color: CHART_COLORS[0]
 				}
-			}
+			]
 		}
 	}, [chartData, chartInterval, chartName])
 
@@ -211,11 +207,7 @@ export const AdapterByChainChart = ({
 				{chain && <AddToDashboardButton chartConfig={multiChart} smol />}
 			</div>
 			<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-				<LineAndBarChart
-					charts={charts}
-					groupBy={chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
-					onReady={handleChartReady}
-				/>
+				<MultiSeriesChart2 dataset={finalCharts.dataset} charts={finalCharts.charts} onReady={handleChartReady} />
 			</React.Suspense>
 		</div>
 	)
@@ -232,7 +224,7 @@ export const ChainsByAdapterChart = ({
 
 	const [selectedChains, setSelectedChains] = React.useState<string[]>(allChains)
 
-	const { charts, chartOptions } = React.useMemo(() => {
+	const { dataset, charts, chartOptions } = React.useMemo(() => {
 		return getChartDataByChainAndInterval({ chartData, chartInterval, chartType, selectedChains })
 	}, [chartData, chartInterval, selectedChains, chartType])
 
@@ -303,7 +295,8 @@ export const ChainsByAdapterChart = ({
 
 			{chartType === 'Dominance' ? (
 				<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-					<LineAndBarChart
+					<MultiSeriesChart2
+						dataset={dataset}
 						charts={charts}
 						valueSymbol="%"
 						expandTo100Percent
@@ -313,7 +306,8 @@ export const ChainsByAdapterChart = ({
 				</React.Suspense>
 			) : (
 				<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-					<LineAndBarChart
+					<MultiSeriesChart2
+						dataset={dataset}
 						charts={charts}
 						chartOptions={chartOptions}
 						groupBy={chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
@@ -350,41 +344,34 @@ const getChartDataByChainAndInterval = ({
 			}
 		}
 
-		const dataByChain = {}
-
-		for (const [date, chainsOnDate] of chartData) {
-			const finalDate = +date * 1e3
-
-			for (const chain of selectedChains) {
-				dataByChain[chain] = dataByChain[chain] || []
-				dataByChain[chain].push([
-					finalDate,
-					sumByDate && chainsOnDate[chain] != null
-						? (Number(chainsOnDate[chain] || 0) / sumByDate[finalDate]) * 100
-						: null
-				])
-			}
-		}
-
 		const allColors = getNDistinctColors(selectedChains.length + 1).slice(1)
 		const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
 		stackColors['Bitcoin'] = CHART_COLORS[0]
 		stackColors['Others'] = allColors[allColors.length - 1]
 
-		const charts = {}
-
-		for (const chain in dataByChain) {
-			charts[chain] = {
-				data: dataByChain[chain],
-				type: 'line',
-				name: chain,
-				stack: chain,
-				color: stackColors[chain]
+		const source = chartData.map(([date, chainsOnDate]) => {
+			const finalDate = +date * 1e3
+			const row: Record<string, number | null> = { timestamp: finalDate }
+			for (const chain of selectedChains) {
+				row[chain] =
+					sumByDate[finalDate] && chainsOnDate[chain] != null
+						? (Number(chainsOnDate[chain] || 0) / sumByDate[finalDate]) * 100
+						: null
 			}
-		}
+			return row
+		})
+
+		const chartsConfig = selectedChains.map((chain) => ({
+			type: 'line' as const,
+			name: chain,
+			encode: { x: 'timestamp', y: chain },
+			stack: chain,
+			color: stackColors[chain]
+		}))
 
 		return {
-			charts,
+			dataset: { source, dimensions: ['timestamp', ...selectedChains] },
+			charts: chartsConfig,
 			chartOptions: {}
 		}
 	}
@@ -487,17 +474,25 @@ const getChartDataByChainAndInterval = ({
 	const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
 	stackColors['Others'] = allColors[allColors.length - 1]
 
-	const charts = {}
-
-	for (const chain in finalData) {
-		charts[chain] = {
-			data: finalData[chain],
-			type: 'bar',
-			name: chain,
-			stack: 'chain',
-			color: stackColors[chain]
+	const seriesNames = Object.keys(finalData)
+	const rowMap = new Map<number, Record<string, number>>()
+	for (const chain of seriesNames) {
+		for (const [timestamp, value] of finalData[chain]) {
+			const row = rowMap.get(timestamp) ?? { timestamp }
+			row[chain] = value
+			rowMap.set(timestamp, row)
 		}
 	}
+
+	const source = ensureChronologicalRows(Array.from(rowMap.values()))
+
+	const chartsConfig = seriesNames.map((chain) => ({
+		type: 'bar' as const,
+		name: chain,
+		encode: { x: 'timestamp', y: chain },
+		stack: 'chain',
+		color: stackColors[chain]
+	}))
 
 	const chartOptions = {
 		tooltip: {
@@ -538,7 +533,8 @@ const getChartDataByChainAndInterval = ({
 	}
 
 	return {
-		charts,
+		dataset: { source, dimensions: ['timestamp', ...seriesNames] },
+		charts: chartsConfig,
 		chartOptions
 	}
 }

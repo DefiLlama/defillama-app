@@ -1,4 +1,4 @@
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { CHART_API, PROTOCOLS_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { getPercentChange, slug, tokenIconUrl } from '~/utils'
@@ -27,7 +27,8 @@ export interface ITotalBorrowedByChainPageData {
 	}>
 	chain: string
 	chains: Array<{ label: string; to: string }>
-	charts: ILineAndBarChartProps['charts']
+	dataset: MultiSeriesChart2Dataset
+	charts: IMultiSeriesChart2Props['charts']
 	totalBorrowed: number
 	change24h: number | null
 }
@@ -131,15 +132,19 @@ export async function getTotalBorrowedByChain({
 			{ label: 'All', to: '/total-borrowed' },
 			...chains.map((chain) => ({ label: chain, to: `/total-borrowed/chain/${slug(chain)}` }))
 		],
-		charts: {
-			'Total Borrowed': {
-				name: 'Total Borrowed',
-				data: chart,
-				type: 'line',
-				stack: 'Total Borrowed',
-				color: CHART_COLORS[0]
-			}
+		dataset: {
+			source: chart.map(([timestamp, value]) => ({ timestamp, 'Total Borrowed': value })),
+			dimensions: ['timestamp', 'Total Borrowed']
 		},
+		charts: [
+			{
+				type: 'line' as const,
+				name: 'Total Borrowed',
+				encode: { x: 'timestamp', y: 'Total Borrowed' },
+				color: CHART_COLORS[0],
+				stack: 'Total Borrowed'
+			}
+		],
 		totalBorrowed: chart[chart.length - 1][1],
 		change24h:
 			chart.length > 2 ? +getPercentChange(chart[chart.length - 1][1], chart[chart.length - 2][1]).toFixed(2) : null

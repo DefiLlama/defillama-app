@@ -44,7 +44,9 @@ export function consumePendingPrompt(): string | null {
 	return prompt
 }
 
-export function setPendingPageContext(context: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string } | null) {
+export function setPendingPageContext(
+	context: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string } | null
+) {
 	if (typeof window === 'undefined') return
 	if (context) {
 		localStorage.setItem(PENDING_PAGE_CONTEXT_KEY, JSON.stringify(context))
@@ -53,7 +55,11 @@ export function setPendingPageContext(context: { entitySlug?: string; entityType
 	}
 }
 
-export function consumePendingPageContext(): { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string } | null {
+export function consumePendingPageContext(): {
+	entitySlug?: string
+	entityType?: 'protocol' | 'chain'
+	route: string
+} | null {
 	if (typeof window === 'undefined') return null
 	const raw = localStorage.getItem(PENDING_PAGE_CONTEXT_KEY)
 	if (!raw) return null
@@ -109,7 +115,11 @@ export function LlamaAIFloatingButton() {
 			}
 
 			setPendingPrompt(prompt)
-			setPendingPageContext({ entitySlug: entityContext?.entitySlug, entityType: entityContext?.entityType, route: router.asPath })
+			setPendingPageContext({
+				entitySlug: entityContext?.entitySlug,
+				entityType: entityContext?.entityType,
+				route: router.asPath
+			})
 			router.push('/ai/chat')
 			setIsOpen(false)
 			setValue('')

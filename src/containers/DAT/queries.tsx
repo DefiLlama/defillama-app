@@ -1,4 +1,5 @@
-import { ILineAndBarChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
+import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
+import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { TRADFI_API } from '~/constants'
 import { oldBlue } from '~/constants/colors'
 import { getDominancePercent, getNDistinctColors } from '~/utils'
@@ -212,7 +213,7 @@ export interface IDATOverviewDataByAssetProps {
 	asset: string
 	metadata: IDATInstitutions['assetMetadata'][string]
 	allAssets: Array<{ label: string; to: string }>
-	dailyFlowsChart: ILineAndBarChartProps['charts']
+	dailyFlowsChart: { dataset: IMultiSeriesChart2Props['dataset']; charts: IMultiSeriesChart2Props['charts'] }
 	mNAVRealizedChart: {
 		charts: IMultiSeriesChart2Props['charts']
 		dataset: {
@@ -306,8 +307,7 @@ export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOver
 			source.push(row)
 		}
 
-		source.sort((a: any, b: any) => (a.timestamp as number) - (b.timestamp as number))
-		return { source, dimensions }
+		return { source: ensureChronologicalRows(source), dimensions }
 	}
 
 	const chartColors = getNDistinctColors(finalInstitutions.length)
@@ -323,13 +323,19 @@ export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOver
 			}))
 		],
 		dailyFlowsChart: {
-			[metadata.name]: {
-				name: metadata.name,
-				stack: metadata.name,
-				type: 'bar',
-				color: oldBlue,
-				data: res.flows[asset] as any
-			}
+			dataset: {
+				source: (res.flows[asset] ?? []).map(([timestamp, net]) => ({ timestamp, [metadata.name]: net })),
+				dimensions: ['timestamp', metadata.name]
+			},
+			charts: [
+				{
+					type: 'bar' as const,
+					name: metadata.name,
+					encode: { x: 'timestamp', y: metadata.name },
+					stack: metadata.name,
+					color: oldBlue
+				}
+			]
 		},
 		institutionsNames: finalInstitutions.map((inst) => inst.ticker),
 		mNAVRealizedChart: {

@@ -45,7 +45,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					console.info(`Chain page data not found ${adapterType} : chain:${chainName}`, e)
 					return null
 				})
-				console.log(data)
 
 				if (!data || !data.protocols) {
 					continue

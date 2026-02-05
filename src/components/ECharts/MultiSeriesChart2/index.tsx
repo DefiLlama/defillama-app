@@ -107,17 +107,24 @@ function buildSeries({
 		if (chart.yAxisIndex != null) someSeriesHasYAxisIndex = true
 
 		const baseColor = chart.color ?? (isThemeDark ? '#000000' : '#ffffff')
+		const showSymbol = chart.type === 'line' ? !!(chart as any).showSymbol : false
+		const symbol = showSymbol ? ((chart as any).symbol ?? 'circle') : 'none'
+		// ECharts large mode disables symbols; default to disabling large mode when symbols are requested.
+		const large = (chart as any).large ?? !showSymbol
+		const symbolSize = showSymbol ? ((chart as any).symbolSize ?? 6) : undefined
 
 		out.push({
 			name: chart.name,
 			type: chart.type,
-			symbol: 'none',
-			large: true,
+			symbol,
+			showSymbol,
+			...(symbolSize != null ? { symbolSize } : {}),
+			large,
 			encode: chart.encode,
 			emphasis: { focus: 'series', shadowBlur: 10 },
 			...(chart.color ? { itemStyle: { color: chart.color } } : {}),
 			...(expandTo100Percent
-				? { stack: 'A', lineStyle: { width: 0 } }
+				? { stack: 'A', lineStyle: { width: 0 }, areaStyle: {} }
 				: {
 						...(chart.stack != null ? { stack: chart.stack } : {}),
 						areaStyle: solidChartAreaStyle
@@ -196,11 +203,33 @@ function buildMultiYAxis({
 }
 
 function getAxisValueFromTooltipParams(first: any): number {
+	const dataObj =
+		first?.data && typeof first.data === 'object' && !Array.isArray(first.data)
+			? (first.data as Record<string, any>)
+			: null
+	if (dataObj && 'timestamp' in dataObj) {
+		const ts = Number(dataObj.timestamp)
+		if (Number.isFinite(ts)) return ts
+	}
+
+	if (Array.isArray(first?.value)) {
+		const ts = Number(first.value[0])
+		if (Number.isFinite(ts)) return ts
+	}
+
+	if (first?.value && typeof first.value === 'object' && 'timestamp' in first.value) {
+		const ts = Number(first.value.timestamp)
+		if (Number.isFinite(ts)) return ts
+	}
+
 	if (typeof first?.axisValue === 'number') return first.axisValue
-	if (Array.isArray(first?.value)) return Number(first.value[0])
-	if (first?.value && typeof first.value === 'object' && 'timestamp' in first.value)
-		return Number(first.value.timestamp)
-	return Number(first?.axisValue)
+
+	const axisValue = first?.axisValue
+	if (axisValue == null) return Number.NaN
+	const numeric = Number(axisValue)
+	if (Number.isFinite(numeric)) return numeric
+	const parsed = Date.parse(String(axisValue))
+	return Number.isFinite(parsed) ? parsed : Number.NaN
 }
 
 function getTooltipRawYValue(item: any, seriesName: string): any {
@@ -228,7 +257,7 @@ function createTooltipFormatter({ groupBy, valueSymbol }: { groupBy: GroupBy; va
 		if (items.length === 0) return ''
 
 		const axisValue = getAxisValueFromTooltipParams(items[0])
-		const chartdate = formatTooltipChartDate(axisValue, groupBy)
+		const chartdate = Number.isFinite(axisValue) ? formatTooltipChartDate(axisValue, groupBy) : ''
 
 		const vals = items
 			.map((item) => {
@@ -376,16 +405,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			}
 		}
 
-		const {
-			legend,
-			graphic,
-			titleDefaults,
-			xAxis,
-			yAxis,
-			dataZoom,
-			dataset: datasetOptions,
-			grid: gridFromSettings
-		} = mergedChartSettings
+		const { legend, graphic, titleDefaults, xAxis, yAxis, dataZoom, dataset: datasetOptions } = mergedChartSettings
 		const finalYAxis = buildMultiYAxis({ series, yAxis, expandTo100Percent })
 
 		const datasetLength = Array.isArray(datasetSource) ? datasetSource.length : 0
@@ -414,21 +434,6 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 						}
 					: undefined
 
-		const defaultGrid = {
-			left: 12,
-			bottom: shouldHideDataZoom ? 12 : 68,
-			top: 12,
-			right: 12,
-			outerBoundsMode: 'same',
-			outerBoundsContain: 'axisLabel'
-		}
-		const mergedGrid = gridFromSettings ? mergeDeep(defaultGrid, gridFromSettings) : defaultGrid
-		// Preserve existing behavior: when dataZoom is shown, keep enough bottom padding unless explicitly overridden.
-		let finalGrid: any = {
-			...mergedGrid,
-			bottom: mergedGrid.bottom ?? (shouldHideDataZoom ? 12 : 68)
-		}
-
 		const datasetForOption = {
 			...(datasetOptions ?? {}),
 			source: datasetSource,
@@ -437,16 +442,28 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				: {})
 		}
 
+		const baseTooltip = mergedChartSettings.tooltip ?? {}
+		const customTooltipFormatter = chartOptions?.tooltip?.formatter
+		const tooltipConfig = {
+			trigger: 'axis',
+			confine: true,
+			...baseTooltip,
+			formatter: customTooltipFormatter ?? tooltipFormatter
+		}
+
 		instance.setOption({
 			...(hideDefaultLegend ? {} : { legend: finalLegend ?? legend }),
 			graphic,
-			tooltip: {
-				trigger: 'axis',
-				confine: true,
-				formatter: tooltipFormatter
-			},
+			tooltip: tooltipConfig,
 			title: titleDefaults,
-			grid: finalGrid,
+			grid: {
+				left: 12,
+				bottom: shouldHideDataZoom ? 12 : 68,
+				top: hideDefaultLegend ? 12 : 24 + 4,
+				right: 12,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
+			},
 			xAxis,
 			yAxis:
 				finalYAxis && finalYAxis.length > 0

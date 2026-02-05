@@ -10,7 +10,7 @@ import {
 import * as React from 'react'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
 import { raisesColumnOrders, raisesColumns } from '~/components/Table/Defi/columns'
@@ -22,9 +22,9 @@ import { slug } from '~/utils'
 import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
 
-const LineAndBarChart = React.lazy(
-	() => import('~/components/ECharts/LineAndBarChart')
-) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = React.lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
@@ -179,7 +179,12 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				</div>
 				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
-						<LineAndBarChart charts={fundingRoundsByMonthChart} groupBy="monthly" valueSymbol="" />
+						<MultiSeriesChart2
+							dataset={fundingRoundsByMonthChart.dataset}
+							charts={fundingRoundsByMonthChart.charts}
+							groupBy="monthly"
+							valueSymbol=""
+						/>
 					</React.Suspense>
 				</div>
 			</div>

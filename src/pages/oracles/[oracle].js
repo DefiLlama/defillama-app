@@ -13,7 +13,7 @@ import Layout from '~/layout'
 import { formattedNum, getTokenDominance } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 export const getStaticProps = withPerformanceLogging('oracles/[oracle]', async ({ params }) => {
 	if (!params?.oracle) {
@@ -49,7 +49,7 @@ export async function getStaticPaths() {
 
 const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chainChartData }) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-	const { protocolsData, charts, totalValue } = useMemo(() => {
+	const { protocolsData, dataset, charts, totalValue } = useMemo(() => {
 		const dataWithTvs = formatDataWithExtraTvls({
 			data: filteredProtocols,
 			extraTvlsEnabled
@@ -66,15 +66,19 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 
 		return {
 			protocolsData,
-			charts: {
-				TVS: {
-					name: 'TVS',
-					type: 'line',
-					stack: 'TVS',
-					data: finalChartData,
-					color: CHART_COLORS[0]
-				}
+			dataset: {
+				source: finalChartData.map(([timestamp, value]) => ({ timestamp, TVS: value })),
+				dimensions: ['timestamp', 'TVS']
 			},
+			charts: [
+				{
+					type: 'line',
+					name: 'TVS',
+					encode: { x: 'timestamp', y: 'TVS' },
+					color: CHART_COLORS[0],
+					stack: 'TVS'
+				}
+			],
 			totalValue
 		}
 	}, [chainChartData, chartData, extraTvlsEnabled, filteredProtocols])
@@ -107,7 +111,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 
 				<div className="col-span-2 min-h-[370px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<Suspense fallback={<></>}>
-						<LineAndBarChart charts={charts} alwaysShowTooltip />
+						<MultiSeriesChart2 dataset={dataset} charts={charts} alwaysShowTooltip />
 					</Suspense>
 				</div>
 			</div>
