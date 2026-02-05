@@ -502,7 +502,7 @@ export function useDashboardActions(
 				compare: config.compare,
 				label: config.label,
 				format: config.format,
-				showSparkline: config.showSparkline !== false,
+				chartType: config.chartType ?? (config.showSparkline === false ? 'none' : 'sparkline'),
 				colSpan: (config.colSpan ?? 0.5) as StoredColSpan
 			}
 

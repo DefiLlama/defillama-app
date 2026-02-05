@@ -44,6 +44,8 @@ export type MetricAggregator =
 	| 'movingavg'
 export type MetricWindow = '7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'
 
+export type MetricChartType = 'sparkline' | 'bar' | 'none'
+
 export interface MetricConfig {
 	id: string
 	kind: 'metric'
@@ -60,7 +62,8 @@ export interface MetricConfig {
 		mode: 'previous_window' | 'previous_value' | 'none'
 		format?: 'percent' | 'absolute'
 	}
-	showSparkline?: boolean
+	showSparkline?: boolean // deprecated, use chartType
+	chartType?: MetricChartType
 	label?: string
 	format?: {
 		value?: 'currency' | 'number' | 'percent' | 'auto'
