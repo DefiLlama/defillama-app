@@ -4,7 +4,7 @@ import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportBu
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import type { IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/ProDashboard/types'
@@ -15,8 +15,6 @@ import { useChartCsvExport } from '~/hooks/useChartCsvExport'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { formattedNum, toNiceCsvDate } from '~/utils'
 import { PeggedChainsTable } from './Table'
-
-const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -93,6 +91,38 @@ export function ChainsWithStablecoins({
 		return preparePieChartData({ data: groupedChains, sliceIdentifier: 'name', sliceValue: 'mcap', limit: 10 })
 	}, [groupedChains])
 
+	const { chainMcapsDataset, chainMcapsCharts } = React.useMemo(
+		() => ({
+			chainMcapsDataset: {
+				source: peggedAreaChartData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...chainList]
+			},
+			chainMcapsCharts: chainList.map((name) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name },
+				stack: 'chainMcap'
+			}))
+		}),
+		[peggedAreaChartData, chainList]
+	)
+
+	const { dominanceDataset, dominanceCharts } = React.useMemo(
+		() => ({
+			dominanceDataset: {
+				source: dataWithExtraPeggedAndDominanceByDay.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...chainList]
+			},
+			dominanceCharts: chainList.map((name) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name },
+				stack: 'dominance'
+			}))
+		}),
+		[dataWithExtraPeggedAndDominanceByDay, chainList]
+	)
+
 	const stablecoinsChartConfig = React.useMemo<StablecoinsChartConfig>(
 		() => ({
 			id: `stablecoins-All-${mapChartTypeToConfig(chartType)}`,
@@ -102,6 +132,32 @@ export function ChainsWithStablecoins({
 		}),
 		[chartType]
 	)
+
+	const exportMeta = React.useMemo(() => {
+		switch (chartType) {
+			case 'Total Market Cap':
+				return {
+					filename: 'stablecoins-chains-total-market-cap',
+					title: 'Stablecoins Total Market Cap'
+				}
+			case 'Chain Market Caps':
+				return {
+					filename: 'stablecoins-chains-chain-market-caps',
+					title: 'Stablecoins Market Caps by Chain'
+				}
+			case 'Dominance':
+				return {
+					filename: 'stablecoins-chains-dominance',
+					title: 'Stablecoin Dominance by Chain'
+				}
+			case 'Pie':
+			default:
+				return {
+					filename: 'stablecoins-chains-pie',
+					title: 'Stablecoins by Chain'
+				}
+		}
+	}, [chartType])
 
 	return (
 		<>
@@ -169,25 +225,12 @@ export function ChainsWithStablecoins({
 					<div className="flex items-center gap-2 p-2">
 						<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 						<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
-						{chartType === 'Total Market Cap' ? (
-							<>
-								<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename="stablecoins-total-market-cap" />
-								<ChartExportButton
-									chartInstance={exportChartInstance}
-									filename="stablecoins-total-market-cap"
-									title="Total Stablecoins Market Cap"
-								/>
-							</>
-						) : chartType === 'Pie' ? (
-							<>
-								<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename="stablecoins-chains-pie" />
-								<ChartExportButton
-									chartInstance={exportChartInstance}
-									filename="stablecoins-chains-pie"
-									title="Stablecoins by Chain"
-								/>
-							</>
-						) : null}
+						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={exportMeta.filename} />
+						<ChartExportButton
+							chartInstance={exportChartInstance}
+							filename={exportMeta.filename}
+							title={exportMeta.title}
+						/>
 					</div>
 					{chartType === 'Total Market Cap' ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
@@ -195,6 +238,7 @@ export function ChainsWithStablecoins({
 								dataset={peggedAreaTotalData.dataset}
 								charts={peggedAreaTotalData.charts}
 								valueSymbol="$"
+								chartOptions={chartOptions}
 								onReady={(instance) => {
 									handleChartReady(instance)
 									handleChartCsvReady(instance)
@@ -203,27 +247,31 @@ export function ChainsWithStablecoins({
 						</React.Suspense>
 					) : chartType === 'Chain Market Caps' ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<AreaChart
-								title=""
-								chartData={peggedAreaChartData}
-								stacks={chainList}
+							<MultiSeriesChart2
+								dataset={chainMcapsDataset}
+								charts={chainMcapsCharts}
+								stacked={true}
 								valueSymbol="$"
-								hideDefaultLegend={true}
-								hideGradient={true}
 								chartOptions={chartOptions}
+								onReady={(instance) => {
+									handleChartReady(instance)
+									handleChartCsvReady(instance)
+								}}
 							/>
 						</React.Suspense>
 					) : chartType === 'Dominance' ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<AreaChart
-								title=""
-								valueSymbol="%"
-								chartData={dataWithExtraPeggedAndDominanceByDay}
-								stacks={chainList}
-								hideDefaultLegend={true}
-								hideGradient={true}
+							<MultiSeriesChart2
+								dataset={dominanceDataset}
+								charts={dominanceCharts}
+								stacked={true}
 								expandTo100Percent={true}
+								valueSymbol="%"
 								chartOptions={chartOptions}
+								onReady={(instance) => {
+									handleChartReady(instance)
+									handleChartCsvReady(instance)
+								}}
 							/>
 						</React.Suspense>
 					) : chartType === 'Pie' ? (

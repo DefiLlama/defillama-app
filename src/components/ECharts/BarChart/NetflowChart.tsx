@@ -13,15 +13,12 @@ import { fetchJson } from '~/utils/async'
 
 echarts.use([BarChart, TooltipComponent, GridComponent, CanvasRenderer])
 
-interface INetflowChartProps {
-	data: Array<{
-		chain: string
-		net_flow: string
-	}>
-	height?: string
+export interface NetflowChartProps {
+	height?: number | string
+	onReady?: (instance: echarts.ECharts | null) => void
 }
 
-export default function NetflowChart({ height }: INetflowChartProps) {
+export default function NetflowChart({ height, onReady }: NetflowChartProps) {
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
 	const [period, setPeriod] = useState('month')
@@ -30,13 +27,13 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const { data = [] } = useQuery({
+	const { data = [] } = useQuery<Array<{ chain: string; net_flow: string }>>({
 		queryKey: ['netflowData', period],
 		queryFn: () => fetchJson(`${NETFLOWS_API}/${period}`).catch(() => [])
 	})
 
-	const { positiveData, negativeData, chains } = useMemo(() => {
-		const nonZeroData = data
+	const { positiveData, negativeData, chains, csvSource } = useMemo(() => {
+		const nonZeroData = (data ?? [])
 			.filter((item) => item.net_flow !== '0')
 			.map((item) => ({
 				chain: item.chain,
@@ -57,7 +54,13 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 		return {
 			positiveData: positive,
 			negativeData: negative,
-			chains: chainNames
+			chains: chainNames,
+			csvSource: nonZeroData.map((item) => ({
+				Chain: item.chain,
+				Inflow: item.value > 0 ? item.value : 0,
+				Outflow: item.value < 0 ? item.value : 0,
+				'Net Flow': item.value
+			}))
 		}
 	}, [data])
 
@@ -66,6 +69,24 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 		if (!el) return
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
 		chartRef.current = instance
+		onReady?.(instance)
+
+		return () => {
+			onReady?.(null)
+			chartRef.current = null
+			instance.dispose()
+		}
+	}, [id, onReady])
+
+	const heightStyle = useMemo(() => {
+		if (height == null) return undefined
+		if (typeof height === 'number') return { height: `${height}px` }
+		return { height }
+	}, [height])
+
+	useEffect(() => {
+		const instance = chartRef.current
+		if (!instance) return
 
 		const option = {
 			tooltip: {
@@ -159,6 +180,10 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 					}
 				}
 			],
+			dataset: {
+				dimensions: ['Chain', 'Inflow', 'Outflow', 'Net Flow'],
+				source: csvSource
+			},
 			graphic: [
 				{
 					type: 'image',
@@ -175,18 +200,14 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 			]
 		}
 
-		instance.setOption(option)
-
-		return () => {
-			chartRef.current = null
-			instance.dispose()
-		}
-	}, [id, chains, positiveData, negativeData, isThemeDark, height])
+		instance.setOption(option, { notMerge: true })
+		instance.resize()
+	}, [chains, positiveData, negativeData, isThemeDark, csvSource, height])
 
 	return (
 		<div className="relative min-h-[600px] pr-5">
-			<div id={id} className="my-auto min-h-[600px]" style={height ? { height: `${height}px` } : undefined}></div>
-			<div className="mt-4 flex justify-center">
+			<div id={id} className="my-auto min-h-[600px]" style={heightStyle}></div>
+			<div className="m-4 flex justify-center">
 				<TagGroup values={flowTypes} selectedValue={period} setValue={setPeriod} />
 			</div>
 		</div>

@@ -1,23 +1,36 @@
+import type * as echarts from 'echarts/core'
 import type { GetStaticPropsContext } from 'next'
 import Router, { useRouter } from 'next/router'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { LazyChart } from '~/components/LazyChart'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { oldBlue } from '~/constants/colors'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
+import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
 import { formatTvlsByChainFromTokens, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
-
-const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+
+interface CexAssetsPageProps {
+	name: string
+	parentProtocol: string | null
+	otherProtocols: string[]
+	category: string | null
+	metrics: Pick<IProtocolPageMetrics, 'tvlTab' | 'stablecoins'>
+	ownToken: string | null
+}
 
 export const getStaticProps = withPerformanceLogging(
 	'cex/assets/[cex]',
@@ -61,7 +74,327 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocols(props) {
+type MultiSeriesCharts = NonNullable<IMultiSeriesChart2Props['charts']>
+
+function ChainsChartCard({
+	protocolName,
+	allChains,
+	dataset,
+	charts
+}: {
+	protocolName: string
+	allChains: string[]
+	dataset: MultiSeriesChart2Dataset
+	charts: MultiSeriesCharts
+}) {
+	const [selectedChains, setSelectedChains] = React.useState<string[]>(allChains)
+
+	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
+	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
+	const handleReady = React.useCallback(
+		(instance: echarts.ECharts | null) => {
+			handleImageReady(instance)
+			handleCsvReady(instance)
+		},
+		[handleImageReady, handleCsvReady]
+	)
+
+	const exportFilenameBase = `${slug(protocolName)}-chains`
+	const exportTitle = `${protocolName} Chains`
+
+	return (
+		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+				<h1 className="mr-auto text-base font-semibold">Chains</h1>
+				{allChains.length > 1 ? (
+					<SelectWithCombobox
+						allValues={allChains}
+						selectedValues={selectedChains}
+						setSelectedValues={setSelectedChains}
+						label="Chain"
+						labelType="smol"
+						variant="filter"
+						portal
+					/>
+				) : null}
+				<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilenameBase} />
+				<ChartExportButton chartInstance={imageChartInstance} filename={exportFilenameBase} title={exportTitle} />
+			</div>
+			<React.Suspense fallback={<div className="h-[360px]" />}>
+				<MultiSeriesChart2
+					dataset={dataset}
+					charts={charts}
+					valueSymbol="$"
+					selectedCharts={new Set(selectedChains)}
+					onReady={handleReady}
+				/>
+			</React.Suspense>
+		</div>
+	)
+}
+
+function TokenValuesUSDChartCard({
+	protocolName,
+	allTokens,
+	dataset,
+	charts
+}: {
+	protocolName: string
+	allTokens: string[]
+	dataset: MultiSeriesChart2Dataset
+	charts: MultiSeriesCharts
+}) {
+	const [selectedTokensUSD, setSelectedTokensUSD] = React.useState<string[]>(allTokens)
+
+	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
+	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
+	const handleReady = React.useCallback(
+		(instance: echarts.ECharts | null) => {
+			handleImageReady(instance)
+			handleCsvReady(instance)
+		},
+		[handleImageReady, handleCsvReady]
+	)
+
+	const exportFilenameBase = `${slug(protocolName)}-token-values-usd`
+	const exportTitle = `${protocolName} Token Values (USD)`
+
+	return (
+		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+				<h1 className="mr-auto text-base font-semibold">Token Values (USD)</h1>
+				{allTokens.length > 1 ? (
+					<SelectWithCombobox
+						allValues={allTokens}
+						selectedValues={selectedTokensUSD}
+						setSelectedValues={setSelectedTokensUSD}
+						label="Token"
+						labelType="smol"
+						variant="filter"
+						portal
+					/>
+				) : null}
+				<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilenameBase} />
+				<ChartExportButton chartInstance={imageChartInstance} filename={exportFilenameBase} title={exportTitle} />
+			</div>
+			<React.Suspense fallback={<div className="h-[360px]" />}>
+				<MultiSeriesChart2
+					dataset={dataset}
+					charts={charts}
+					valueSymbol="$"
+					selectedCharts={new Set(selectedTokensUSD)}
+					onReady={handleReady}
+				/>
+			</React.Suspense>
+		</div>
+	)
+}
+
+function TokensBreakdownPieChartCard({
+	chartData,
+	protocolName
+}: {
+	chartData: Array<{ name: string; value: number }>
+	protocolName: string
+}) {
+	const allTokens = React.useMemo(() => chartData.map((d) => d.name), [chartData])
+	const [selectedTokens, setSelectedTokens] = React.useState<string[]>(allTokens)
+	const selectedTokensSet = React.useMemo(() => new Set(selectedTokens), [selectedTokens])
+
+	const filteredChartData = React.useMemo(() => {
+		if (selectedTokens.length === 0) return []
+		return chartData.filter((d) => selectedTokensSet.has(d.name))
+	}, [chartData, selectedTokens.length, selectedTokensSet])
+
+	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
+	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
+	const handleReady = React.useCallback(
+		(instance: echarts.ECharts | null) => {
+			handleImageReady(instance)
+			handleCsvReady(instance)
+		},
+		[handleImageReady, handleCsvReady]
+	)
+
+	const exportFilenameBase = `${slug(protocolName)}-tokens-breakdown`
+	const exportTitle = `${protocolName} Tokens Breakdown`
+
+	return (
+		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+				<h1 className="mr-auto text-base font-semibold">Tokens Breakdown</h1>
+				{allTokens.length > 1 ? (
+					<SelectWithCombobox
+						allValues={allTokens}
+						selectedValues={selectedTokens}
+						setSelectedValues={setSelectedTokens}
+						label="Token"
+						labelType="smol"
+						variant="filter"
+						portal
+					/>
+				) : null}
+				<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilenameBase} />
+				<ChartExportButton chartInstance={imageChartInstance} filename={exportFilenameBase} title={exportTitle} />
+			</div>
+			<React.Suspense fallback={<div className="h-[360px]" />}>
+				<PieChart chartData={filteredChartData} onReady={handleReady} />
+			</React.Suspense>
+		</div>
+	)
+}
+
+function TokenBalancesRawChartCard({
+	protocolName,
+	allTokens,
+	dataset,
+	charts
+}: {
+	protocolName: string
+	allTokens: string[]
+	dataset: MultiSeriesChart2Dataset
+	charts: MultiSeriesCharts
+}) {
+	const [selectedTokensRaw, setSelectedTokensRaw] = React.useState<string[]>(allTokens)
+
+	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
+	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
+	const handleReady = React.useCallback(
+		(instance: echarts.ECharts | null) => {
+			handleImageReady(instance)
+			handleCsvReady(instance)
+		},
+		[handleImageReady, handleCsvReady]
+	)
+
+	const exportFilenameBase = `${slug(protocolName)}-token-balances-raw`
+	const exportTitle = `${protocolName} Token Balances (Raw Quantities)`
+
+	return (
+		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+				<h1 className="mr-auto text-base font-semibold">Token Balances (Raw Quantities)</h1>
+				{allTokens.length > 1 ? (
+					<SelectWithCombobox
+						allValues={allTokens}
+						selectedValues={selectedTokensRaw}
+						setSelectedValues={setSelectedTokensRaw}
+						label="Token"
+						labelType="smol"
+						variant="filter"
+						portal
+					/>
+				) : null}
+				<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilenameBase} />
+				<ChartExportButton chartInstance={imageChartInstance} filename={exportFilenameBase} title={exportTitle} />
+			</div>
+			<React.Suspense fallback={<div className="h-[360px]" />}>
+				<MultiSeriesChart2
+					dataset={dataset}
+					charts={charts}
+					selectedCharts={new Set(selectedTokensRaw)}
+					onReady={handleReady}
+				/>
+			</React.Suspense>
+		</div>
+	)
+}
+
+function USDInflowsChartCard({ protocolName, dataset }: { protocolName: string; dataset: MultiSeriesChart2Dataset }) {
+	const allSeries = React.useMemo(() => ['USD Inflows'], [])
+
+	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
+	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
+	const handleReady = React.useCallback(
+		(instance: echarts.ECharts | null) => {
+			handleImageReady(instance)
+			handleCsvReady(instance)
+		},
+		[handleImageReady, handleCsvReady]
+	)
+
+	const exportFilenameBase = `${slug(protocolName)}-usd-inflows`
+	const exportTitle = `${protocolName} USD Inflows`
+
+	return (
+		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+				<h1 className="mr-auto text-base font-semibold">USD Inflows</h1>
+				<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilenameBase} />
+				<ChartExportButton chartInstance={imageChartInstance} filename={exportFilenameBase} title={exportTitle} />
+			</div>
+			<React.Suspense fallback={<div className="h-[360px]" />}>
+				<MultiSeriesChart2
+					dataset={dataset}
+					charts={USD_INFLOWS_CHARTS}
+					valueSymbol="$"
+					selectedCharts={new Set(allSeries)}
+					onReady={handleReady}
+				/>
+			</React.Suspense>
+		</div>
+	)
+}
+
+function InflowsByTokenChartCard({
+	protocolName,
+	allTokens,
+	dataset,
+	charts
+}: {
+	protocolName: string
+	allTokens: string[]
+	dataset: MultiSeriesChart2Dataset
+	charts: MultiSeriesCharts
+}) {
+	const [selectedTokenInflows, setSelectedTokenInflows] = React.useState<string[]>(allTokens)
+
+	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
+	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
+	const handleReady = React.useCallback(
+		(instance: echarts.ECharts | null) => {
+			handleImageReady(instance)
+			handleCsvReady(instance)
+		},
+		[handleImageReady, handleCsvReady]
+	)
+
+	const exportFilenameBase = `${slug(protocolName)}-inflows-by-token`
+	const exportTitle = `${protocolName} Inflows by Token`
+
+	return (
+		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+				<h1 className="mr-auto text-base font-semibold">Inflows by Token</h1>
+				{allTokens.length > 1 ? (
+					<SelectWithCombobox
+						allValues={allTokens}
+						selectedValues={selectedTokenInflows}
+						setSelectedValues={setSelectedTokenInflows}
+						label="Token"
+						labelType="smol"
+						variant="filter"
+						portal
+					/>
+				) : null}
+				<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilenameBase} />
+				<ChartExportButton chartInstance={imageChartInstance} filename={exportFilenameBase} title={exportTitle} />
+			</div>
+			<React.Suspense fallback={<div className="h-[360px]" />}>
+				<MultiSeriesChart2
+					dataset={dataset}
+					charts={charts}
+					hideDefaultLegend={true}
+					valueSymbol="$"
+					selectedCharts={new Set(selectedTokenInflows)}
+					onReady={handleReady}
+				/>
+			</React.Suspense>
+		</div>
+	)
+}
+
+export default function Protocols(props: CexAssetsPageProps) {
 	const router = useRouter()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
@@ -73,7 +406,8 @@ export default function Protocols(props) {
 	const {
 		data: addlProtocolData,
 		historicalChainTvls,
-		isLoading
+		isLoading,
+		isFetching
 	} = useFetchProtocolAddlChartsData(props.name, false, tokenToExclude)
 	const {
 		usdInflows,
@@ -84,10 +418,7 @@ export default function Protocols(props) {
 		tokenBreakdownPieChart
 	} = addlProtocolData || {}
 
-	const tokensUnique = rawTokensUnique ?? []
-
-	// Key to force chart remount when toggle changes, resetting internal selection state
-	const chartKey = includeOwnTokens ? 'with-own-token' : 'without-own-token'
+	const tokensUnique = React.useMemo(() => rawTokensUnique ?? [], [rawTokensUnique])
 
 	const toggleIncludeOwnTokens = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const nextIncludeOwnTokens = event.currentTarget.checked
@@ -109,24 +440,96 @@ export default function Protocols(props) {
 		return { chainsSplit, chainsUnique }
 	}, [historicalChainTvls, extraTvlsEnabled, tokenToExclude])
 
+	const { chainsDataset, chainsCharts } = React.useMemo(() => {
+		if (!chainsSplit) return { chainsDataset: null, chainsCharts: [] }
+		return {
+			chainsDataset: {
+				source: chainsSplit.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...chainsUnique]
+			},
+			chainsCharts: chainsUnique.map((name) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name }
+			}))
+		}
+	}, [chainsSplit, chainsUnique])
+
+	const { tokenUSDDataset, tokenUSDCharts } = React.useMemo(() => {
+		if (!tokenBreakdownUSD?.length || tokenBreakdownUSD.length <= 1)
+			return { tokenUSDDataset: null, tokenUSDCharts: [] }
+		return {
+			tokenUSDDataset: {
+				source: tokenBreakdownUSD.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...tokensUnique]
+			},
+			tokenUSDCharts: tokensUnique.map((name) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name }
+			}))
+		}
+	}, [tokenBreakdownUSD, tokensUnique])
+
+	const { tokenRawDataset, tokenRawCharts } = React.useMemo(() => {
+		if (!tokenBreakdown?.length || tokenBreakdown.length <= 1) return { tokenRawDataset: null, tokenRawCharts: [] }
+		return {
+			tokenRawDataset: {
+				source: tokenBreakdown.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...tokensUnique]
+			},
+			tokenRawCharts: tokensUnique.map((name) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name }
+			}))
+		}
+	}, [tokenBreakdown, tokensUnique])
+
+	const usdInflowsDataset = React.useMemo(
+		() =>
+			usdInflows?.length > 0
+				? {
+						source: usdInflows.map(([d, v]) => ({ timestamp: +d * 1e3, 'USD Inflows': v })),
+						dimensions: ['timestamp', 'USD Inflows']
+					}
+				: null,
+		[usdInflows]
+	)
+
+	const { tokenInflowsDataset, tokenInflowsCharts } = React.useMemo(() => {
+		if (!tokenInflows?.length) return { tokenInflowsDataset: null, tokenInflowsCharts: [] }
+		return {
+			tokenInflowsDataset: {
+				source: tokenInflows.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...tokensUnique]
+			},
+			tokenInflowsCharts: tokensUnique.map((name) => ({
+				type: 'bar' as const,
+				name,
+				encode: { x: 'timestamp', y: name }
+			}))
+		}
+	}, [tokenInflows, tokensUnique])
+
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
 			category={props.category}
 			otherProtocols={props.otherProtocols}
-			metrics={props.metrics}
+			metrics={props.metrics as IProtocolPageMetrics}
 			tab="assets"
 			isCEX={true}
 		>
-			{isLoading ? (
+			{isLoading || isFetching ? (
 				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<LocalLoader />
 				</div>
 			) : (
 				<>
-					{props.ownToken && (
-						<div className="col-span-full rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-							<label className="flex cursor-pointer flex-nowrap items-center justify-end gap-2">
+					{props.ownToken ? (
+						<div className="col-span-full flex items-center justify-end rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+							<label className="flex cursor-pointer flex-nowrap items-center gap-2">
 								<input
 									type="checkbox"
 									checked={includeOwnTokens}
@@ -136,100 +539,56 @@ export default function Protocols(props) {
 								<span className="text-sm">Include own tokens ({props.ownToken})</span>
 							</label>
 						</div>
-					)}
+					) : null}
 					<div className="grid grid-cols-2 gap-2">
-						{chainsSplit && chainsUnique?.length > 1 && (
-							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<React.Suspense fallback={<></>}>
-									<AreaChart
-										chartData={chainsSplit}
-										title="Chains"
-										customLegendName="Chain"
-										customLegendOptions={chainsUnique}
-										valueSymbol="$"
-									/>
-								</React.Suspense>
-							</LazyChart>
-						)}
+						{chainsDataset && chainsUnique?.length > 1 ? (
+							<ChainsChartCard
+								protocolName={props.name}
+								allChains={chainsUnique}
+								dataset={chainsDataset}
+								charts={chainsCharts}
+							/>
+						) : null}
 
-						{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
-							<LazyChart
-								key={`token-usd-${chartKey}`}
-								className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full"
-							>
-								<React.Suspense fallback={<></>}>
-									<AreaChart
-										chartData={tokenBreakdownUSD}
-										title="Token Values (USD)"
-										customLegendName="Token"
-										customLegendOptions={tokensUnique}
-										valueSymbol="$"
-									/>
-								</React.Suspense>
-							</LazyChart>
-						)}
+						{tokenUSDDataset && tokensUnique?.length > 0 ? (
+							<TokenValuesUSDChartCard
+								protocolName={props.name}
+								allTokens={tokensUnique}
+								dataset={tokenUSDDataset}
+								charts={tokenUSDCharts}
+							/>
+						) : null}
 
-						{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && tokenBreakdownPieChart?.length > 0 && (
-							<LazyChart
-								key={`token-pie-${chartKey}`}
-								className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full"
-							>
-								<React.Suspense fallback={<></>}>
-									<PieChart
-										title="Tokens Breakdown"
-										chartData={tokenBreakdownPieChart}
-										shouldEnableImageExport
-										shouldEnableCSVDownload
-										imageExportFilename={`${slug(props.name)}-tokens-breakdown`}
-										imageExportTitle={`${props.name} Tokens Breakdown`}
-									/>
-								</React.Suspense>
-							</LazyChart>
-						)}
+						{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && tokenBreakdownPieChart?.length > 0 ? (
+							<TokensBreakdownPieChartCard chartData={tokenBreakdownPieChart} protocolName={props.name} />
+						) : null}
 
-						{tokenBreakdown?.length > 1 && tokensUnique?.length > 0 && (
-							<LazyChart
-								key={`token-raw-${chartKey}`}
-								className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full"
-							>
-								<React.Suspense fallback={<></>}>
-									<AreaChart
-										chartData={tokenBreakdown}
-										title="Token Balances (Raw Quantities)"
-										customLegendName="Token"
-										customLegendOptions={tokensUnique}
-									/>
-								</React.Suspense>
-							</LazyChart>
-						)}
+						{tokenRawDataset && tokensUnique?.length > 0 ? (
+							<TokenBalancesRawChartCard
+								protocolName={props.name}
+								allTokens={tokensUnique}
+								dataset={tokenRawDataset}
+								charts={tokenRawCharts}
+							/>
+						) : null}
 
-						{usdInflows?.length > 0 && (
-							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<React.Suspense fallback={<></>}>
-									<BarChart chartData={usdInflows} color={oldBlue} title="USD Inflows" valueSymbol="$" />
-								</React.Suspense>
-							</LazyChart>
-						)}
-						{tokenInflows?.length > 0 && tokensUnique?.length > 0 && (
-							<LazyChart
-								key={`token-inflows-${chartKey}`}
-								className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full"
-							>
-								<React.Suspense fallback={<></>}>
-									<BarChart
-										chartData={tokenInflows}
-										title="Inflows by Token"
-										customLegendName="Token"
-										customLegendOptions={tokensUnique}
-										hideDefaultLegend={true}
-										valueSymbol="$"
-									/>
-								</React.Suspense>
-							</LazyChart>
-						)}
+						{usdInflowsDataset ? <USDInflowsChartCard protocolName={props.name} dataset={usdInflowsDataset} /> : null}
+
+						{tokenInflowsDataset && tokensUnique?.length > 0 ? (
+							<InflowsByTokenChartCard
+								protocolName={props.name}
+								allTokens={tokensUnique}
+								dataset={tokenInflowsDataset}
+								charts={tokenInflowsCharts}
+							/>
+						) : null}
 					</div>
 				</>
 			)}
 		</ProtocolOverviewLayout>
 	)
 }
+
+const USD_INFLOWS_CHARTS = [
+	{ type: 'bar' as const, name: 'USD Inflows', encode: { x: 'timestamp', y: 'USD Inflows' }, color: oldBlue }
+]

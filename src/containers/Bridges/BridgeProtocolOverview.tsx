@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
-import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
+import type { IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { LinkPreviewCard } from '~/components/SEO'
@@ -19,7 +19,7 @@ import { useChartImageExport } from '~/hooks/useChartImageExport'
 import Layout from '~/layout'
 import { firstDayOfMonth, formattedNum, getPercentChange, lastDayOfWeek, slug } from '~/utils'
 
-const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const CHART_TYPES = ['Inflows', 'Volume', 'Tokens To', 'Tokens From'] as const
 type ChartType = (typeof CHART_TYPES)[number]
@@ -119,6 +119,24 @@ const BridgeInfo = ({
 			.sort((a, b) => a.date - b.date)
 	}, [isAllChains, groupBy, volumeChartDataByChain])
 
+	const volumeDataset = React.useMemo(
+		() => ({
+			source: groupedAllChainsVolumePairs.map(([d, v]) => ({ timestamp: +d * 1e3, Volume: v })),
+			dimensions: ['timestamp', 'Volume']
+		}),
+		[groupedAllChainsVolumePairs]
+	)
+
+	const inflowsDataset = React.useMemo(
+		() => ({
+			source: groupedInflowsData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+			dimensions: ['timestamp', 'Deposited', 'Withdrawn']
+		}),
+		[groupedInflowsData]
+	)
+
+	const chartFilename = `${slug(displayName)}-${chartType === 'Volume' ? 'volume' : chartType === 'Inflows' ? 'inflows' : chartType === 'Tokens To' ? 'tokens-to' : 'tokens-from'}`
+
 	return (
 		<>
 			<div className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
@@ -204,34 +222,37 @@ const BridgeInfo = ({
 						{chartType === 'Volume' || chartType === 'Inflows' ? (
 							<TagGroup selectedValue={groupBy} setValue={(v) => setGroupBy(v as any)} values={GROUP_BY_VALUES} />
 						) : null}
-						{chartType === 'Tokens To' || chartType === 'Tokens From' ? (
-							<>
-								<ChartCsvExportButton
-									chartInstance={exportChartCsvInstance}
-									filename={`${slug(displayName)}-${chartType === 'Tokens To' ? 'tokens-to' : 'tokens-from'}`}
-								/>
-								<ChartExportButton
-									chartInstance={exportChartInstance}
-									filename={`${slug(displayName)}-${chartType === 'Tokens To' ? 'tokens-to' : 'tokens-from'}`}
-									title={`${displayName} ${chartType}`}
-								/>
-							</>
-						) : null}
+						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={chartFilename} />
+						<ChartExportButton
+							chartInstance={exportChartInstance}
+							filename={chartFilename}
+							title={`${displayName} ${chartType}`}
+						/>
 					</div>
 					<>
 						{chartType === 'Volume' && isAllChains && groupedAllChainsVolumePairs.length > 0 ? (
 							<React.Suspense fallback={<div className="min-h-[360px]" />}>
-								<BarChart chartData={groupedAllChainsVolumePairs} title="" groupBy={groupBy} />
+								<MultiSeriesChart2
+									dataset={volumeDataset}
+									charts={VOLUME_CHARTS}
+									valueSymbol="$"
+									onReady={(instance) => {
+										handleChartReady(instance)
+										handleChartCsvReady(instance)
+									}}
+								/>
 							</React.Suspense>
 						) : null}
 						{chartType === 'Inflows' && !isAllChains && groupedInflowsData && groupedInflowsData.length > 0 ? (
 							<React.Suspense fallback={<div className="min-h-[360px]" />}>
-								<BarChart
-									chartData={groupedInflowsData}
-									title=""
-									chartOptions={volumeChartOptions}
-									stacks={inflowChartStacks}
-									groupBy={groupBy}
+								<MultiSeriesChart2
+									dataset={inflowsDataset}
+									charts={INFLOW_CHARTS}
+									valueSymbol="$"
+									onReady={(instance) => {
+										handleChartReady(instance)
+										handleChartCsvReady(instance)
+									}}
 								/>
 							</React.Suspense>
 						) : null}
@@ -332,13 +353,9 @@ export const useFetchBridgeVolumeOnAllChains = (protocol?: string | null) => {
 		retry: 0
 	})
 }
-const volumeChartOptions = {
-	overrides: {
-		inflow: true
-	}
-}
+const VOLUME_CHARTS = [{ type: 'bar' as const, name: 'Volume', encode: { x: 'timestamp', y: 'Volume' } }]
 
-const inflowChartStacks = {
-	Deposited: 'stackA',
-	Withdrawn: 'stackA'
-}
+const INFLOW_CHARTS = [
+	{ type: 'bar' as const, name: 'Deposited', encode: { x: 'timestamp', y: 'Deposited' }, stack: 'stackA' },
+	{ type: 'bar' as const, name: 'Withdrawn', encode: { x: 'timestamp', y: 'Withdrawn' }, stack: 'stackA' }
+]

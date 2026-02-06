@@ -410,7 +410,7 @@ const MNAVChart = ({
 	return (
 		<div className="col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex items-center justify-end gap-2 p-2">
-				<h2 className="mr-auto text-lg font-bold">{title}</h2>
+				<h1 className="mr-auto text-base font-semibold">{title}</h1>
 				<SelectWithCombobox
 					allValues={institutionsNames}
 					selectedValues={selectedInstitution}

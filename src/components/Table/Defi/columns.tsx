@@ -13,7 +13,7 @@ import type { ColumnOrdersByBreakpoint } from '../utils'
 import type { AirdropRow, IEmission, IForksRow, IGovernance, ILSDRow } from './types'
 
 const UnconstrainedSmolLineChart = lazy(() =>
-	import('~/components/Charts/UnconstrainedSmolLineChart').then((m) => ({ default: m.UnconstrainedSmolLineChart }))
+	import('~/containers/Unlocks/UnconstrainedSmolLineChart').then((m) => ({ default: m.UnconstrainedSmolLineChart }))
 )
 export const forksColumn: ColumnDef<IForksRow>[] = [
 	{

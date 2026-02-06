@@ -1,15 +1,15 @@
 import dayjs from 'dayjs'
 import { lazy, Suspense, useMemo, useState } from 'react'
-import type { IBarChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { TagGroup } from '~/components/TagGroup'
 import { useFetchBridgeVolume } from '~/containers/Bridges/queries.client'
 
-const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 interface BridgeVolumeChartProps {
 	chain?: string
 	height?: string
+	onReady?: (instance: any | null) => void
 }
 
 const TIME_PERIODS = ['Daily', 'Weekly', 'Monthly'] as const
@@ -19,13 +19,27 @@ type ViewType = (typeof VIEW_TYPES)[number]
 const METRIC_TYPES = ['Volume', 'Transactions'] as const
 type MetricType = (typeof METRIC_TYPES)[number]
 
-const SPLIT_LEGEND_OPTIONS = ['Deposits', 'Withdrawals']
-const COMBINED_LEGEND_OPTIONS = ['Total']
-const SPLIT_STACKS = { Deposits: 'metric', Withdrawals: 'metric' }
-const SPLIT_STACK_COLORS = { Deposits: '#3b82f6', Withdrawals: '#ef4444' }
-const COMBINED_STACK_COLORS = { Total: '#22c55e' }
+const SPLIT_CHARTS = [
+	{
+		type: 'bar' as const,
+		name: 'Deposits',
+		encode: { x: 'timestamp', y: 'Deposits' },
+		color: '#3b82f6',
+		stack: 'metric'
+	},
+	{
+		type: 'bar' as const,
+		name: 'Withdrawals',
+		encode: { x: 'timestamp', y: 'Withdrawals' },
+		color: '#ef4444',
+		stack: 'metric'
+	}
+]
+const COMBINED_CHARTS = [
+	{ type: 'bar' as const, name: 'Total', encode: { x: 'timestamp', y: 'Total' }, color: '#22c55e' }
+]
 
-export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartProps) {
+export function BridgeVolumeChart({ chain = 'all', height, onReady }: BridgeVolumeChartProps) {
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
 	const [metricType, setMetricType] = useState<MetricType>('Volume')
 	const [viewType, setViewType] = useState<ViewType>('Split')
@@ -90,13 +104,17 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 			.sort((a, b) => a.date - b.date)
 	}, [data, timePeriod, metricType, viewType])
 
-	const customLegendOptions = viewType === 'Split' ? SPLIT_LEGEND_OPTIONS : COMBINED_LEGEND_OPTIONS
-
-	const stacks = viewType === 'Split' ? SPLIT_STACKS : undefined
-
-	const stackColors = viewType === 'Split' ? SPLIT_STACK_COLORS : COMBINED_STACK_COLORS
-
-	const chartOptions = useMemo(() => ({ overrides: { inflow: viewType === 'Split' } }), [viewType])
+	const { dataset, charts } = useMemo(() => {
+		const isSplit = viewType === 'Split'
+		const dims = isSplit ? ['timestamp', 'Deposits', 'Withdrawals'] : ['timestamp', 'Total']
+		return {
+			dataset: {
+				source: chartData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: dims
+			},
+			charts: isSplit ? SPLIT_CHARTS : COMBINED_CHARTS
+		}
+	}, [chartData, viewType])
 
 	if (isLoading)
 		return (
@@ -147,15 +165,12 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 			</div>
 
 			<Suspense fallback={<div style={{ height: height ?? '360px' }} />}>
-				<BarChart
-					chartData={chartData}
-					title=""
+				<MultiSeriesChart2
+					dataset={dataset}
+					charts={charts}
 					height={height}
 					hideDefaultLegend={false}
-					customLegendOptions={customLegendOptions}
-					stacks={stacks}
-					stackColors={stackColors}
-					chartOptions={chartOptions}
+					onReady={onReady}
 				/>
 			</Suspense>
 		</>

@@ -4,7 +4,6 @@ import * as React from 'react'
 import { IChartProps } from '~/components/ECharts/types'
 import { FormattedName } from '~/components/FormattedName'
 import { Icon } from '~/components/Icon'
-import { LazyChart } from '~/components/LazyChart'
 import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -123,16 +122,16 @@ export function NFTCollectionContainer() {
 			</div>
 
 			<div className="grid grid-cols-2 gap-1">
-				<LazyChart className="relative col-span-full flex min-h-[372px] flex-col rounded-md bg-(--cards-bg) pt-3 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+				<div className="relative col-span-full flex min-h-[372px] flex-col rounded-md bg-(--cards-bg) pt-3 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
 						<AreaChart chartData={floorHistory} hideDefaultLegend valueSymbol="ETH" title="Floor Price" />
 					</React.Suspense>
-				</LazyChart>
-				<LazyChart className="relative col-span-full flex min-h-[372px] flex-col rounded-md bg-(--cards-bg) pt-3 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+				</div>
+				<div className="relative col-span-full flex min-h-[372px] flex-col rounded-md bg-(--cards-bg) pt-3 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
 						<OrderbookChart chartData={orderbook} />
 					</React.Suspense>
-				</LazyChart>
+				</div>
 			</div>
 		</Layout>
 	)

@@ -3,9 +3,10 @@ import * as React from 'react'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { IPieChartProps } from '~/components/ECharts/types'
 import { FormattedName } from '~/components/FormattedName'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { LinkPreviewCard } from '~/components/SEO'
 import { bridgedChainColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
@@ -15,12 +16,19 @@ import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
-const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInflowNames, chainName = 'All Chains' }) {
 	const [chartType, setChartType] = React.useState('total')
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const [selectedTokens, setSelectedTokens] = React.useState<string[]>([])
+
+	React.useEffect(() => {
+		if (tokenInflowNames?.length > 0) {
+			setSelectedTokens(tokenInflowNames)
+		}
+	}, [tokenInflowNames])
 
 	const { pieChartData, tableData } = React.useMemo(() => {
 		const pieChartData = preparePieChartData({ data: chainData?.[chartType]?.breakdown ?? {}, limit: 10 })
@@ -32,6 +40,21 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 
 		return { pieChartData, tableData }
 	}, [chainData, chartType])
+
+	const { inflowsDataset, inflowsCharts } = React.useMemo(() => {
+		if (!tokenInflowNames?.length) return { inflowsDataset: null, inflowsCharts: [] }
+		return {
+			inflowsDataset: {
+				source: inflows.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...tokenInflowNames]
+			},
+			inflowsCharts: tokenInflowNames.map((name) => ({
+				type: 'bar' as const,
+				name,
+				encode: { x: 'timestamp', y: name }
+			}))
+		}
+	}, [inflows, tokenInflowNames])
 
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'value', desc: true }])
 	const instance = useReactTable({
@@ -125,19 +148,23 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 								</button>
 							) : null}
 						</div>
-						{chartType !== 'inflows' ? (
-							<>
-								<ChartCsvExportButton
-									chartInstance={exportChartCsvInstance}
-									filename={`${slug(chainName)}-bridged-tvl`}
-								/>
-								<ChartExportButton
-									chartInstance={exportChartInstance}
-									filename={`${slug(chainName)}-bridged-tvl`}
-									title={`${chainName} Bridged TVL`}
-								/>
-							</>
+						{chartType === 'inflows' && tokenInflowNames?.length > 0 ? (
+							<SelectWithCombobox
+								allValues={tokenInflowNames}
+								selectedValues={selectedTokens}
+								setSelectedValues={setSelectedTokens}
+								label="Token"
+								labelType="smol"
+								variant="filter"
+								portal
+							/>
 						) : null}
+						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={`${slug(chainName)}-bridged-tvl`} />
+						<ChartExportButton
+							chartInstance={exportChartInstance}
+							filename={`${slug(chainName)}-bridged-tvl`}
+							title={`${chainName} Bridged TVL`}
+						/>
 					</div>
 					{chartType !== 'inflows' ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
@@ -150,18 +177,21 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 								}}
 							/>
 						</React.Suspense>
-					) : (
+					) : inflowsDataset ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<BarChart
-								chartData={inflows}
-								title=""
+							<MultiSeriesChart2
+								dataset={inflowsDataset}
+								charts={inflowsCharts}
 								hideDefaultLegend={true}
-								customLegendName="Token"
-								customLegendOptions={tokenInflowNames}
-								// chartOptions={inflowsChartOptions}
+								valueSymbol="$"
+								selectedCharts={new Set(selectedTokens)}
+								onReady={(instance) => {
+									handleChartReady(instance)
+									handleChartCsvReady(instance)
+								}}
 							/>
 						</React.Suspense>
-					)}
+					) : null}
 				</div>
 			</div>
 			{chartType !== 'inflows' ? <VirtualTable instance={instance} skipVirtualization /> : null}

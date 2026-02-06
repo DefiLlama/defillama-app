@@ -1,12 +1,18 @@
+import type * as echarts from 'echarts/core'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getLSDPageData } from '~/api/categories/protocols'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import type { IPieChartProps } from '~/components/ECharts/types'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { LSDColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { COINS_PRICES_API } from '~/constants'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import Layout from '~/layout'
 import { firstDayOfMonth, formatNum, formattedNum, lastDayOfWeek } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -14,9 +20,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
-
-const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 export const getStaticProps = withPerformanceLogging('lsd', async () => {
 	const data = await getLSDPageData()
@@ -46,6 +50,29 @@ const PageView = ({
 }) => {
 	const [tab, setTab] = React.useState('breakdown')
 	const [groupBy, setGroupBy] = React.useState<GroupByType>('Weekly')
+	const [selectedBreakdownTokens, setSelectedBreakdownTokens] = React.useState<string[]>([])
+	const [selectedInflowTokens, setSelectedInflowTokens] = React.useState<string[]>([])
+
+	const { chartInstance: breakdownImageChartInstance, handleChartReady: handleBreakdownImageReady } =
+		useChartImageExport()
+	const { chartInstance: breakdownCsvChartInstance, handleChartReady: handleBreakdownCsvReady } = useChartCsvExport()
+	const handleBreakdownReady = React.useCallback(
+		(instance: echarts.ECharts | null) => {
+			handleBreakdownImageReady(instance)
+			handleBreakdownCsvReady(instance)
+		},
+		[handleBreakdownImageReady, handleBreakdownCsvReady]
+	)
+
+	const breakdownExportFilenameBase = 'lst-breakdown-dominance'
+	const breakdownExportTitle = 'LST Breakdown (Dominance)'
+
+	React.useEffect(() => {
+		if (tokens?.length > 0) {
+			setSelectedBreakdownTokens(tokens)
+			setSelectedInflowTokens(tokens)
+		}
+	}, [tokens])
 
 	const inflowsData = React.useMemo(() => {
 		const store = {}
@@ -79,6 +106,47 @@ const PageView = ({
 		return finalData
 	}, [inflowsChartData, groupBy])
 
+	const { breakdownDataset, breakdownCharts } = React.useMemo(
+		() => ({
+			breakdownDataset: {
+				source: areaChartData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...tokens]
+			},
+			breakdownCharts: tokens.map((name) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name },
+				color: lsdColors[name],
+				stack: 'breakdown'
+			}))
+		}),
+		[areaChartData, tokens, lsdColors]
+	)
+
+	const { inflowsDataset, inflowsCumulativeCharts, inflowsBarCharts } = React.useMemo(
+		() => ({
+			inflowsDataset: {
+				source: inflowsData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...tokens]
+			},
+			inflowsCumulativeCharts: tokens.map((name) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name },
+				color: lsdColors[name],
+				stack: 'inflows'
+			})),
+			inflowsBarCharts: tokens.map((name) => ({
+				type: 'bar' as const,
+				name,
+				encode: { x: 'timestamp', y: name },
+				color: lsdColors[name],
+				stack: barChartStacks[name]
+			}))
+		}),
+		[inflowsData, tokens, lsdColors, barChartStacks]
+	)
+
 	return (
 		<>
 			<h1 className="flex flex-wrap items-center justify-between gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-xl font-semibold">
@@ -109,8 +177,8 @@ const PageView = ({
 
 				<div className="flex flex-col">
 					{tab === 'breakdown' ? (
-						<div className="grid grid-cols-1 pt-2 xl:grid-cols-2">
-							<React.Suspense fallback={<div className="min-h-[408px]" />}>
+						<div className="grid grid-cols-1 gap-2 pt-2 xl:grid-cols-2">
+							<React.Suspense fallback={<div className="min-h-[398px]" />}>
 								<PieChart
 									chartData={pieChartData}
 									stackColors={lsdColors}
@@ -120,19 +188,40 @@ const PageView = ({
 									imageExportTitle="LST Breakdown"
 								/>
 							</React.Suspense>
-							<React.Suspense fallback={<div className="min-h-[408px]" />}>
-								<AreaChart
-									chartData={areaChartData}
-									stacks={tokens}
-									stackColors={lsdColors}
-									customLegendName="LST"
-									customLegendOptions={tokens}
-									hideDefaultLegend
-									valueSymbol="%"
-									title=""
-									expandTo100Percent={true}
-								/>
-							</React.Suspense>
+							<div className="flex flex-col">
+								<div className="flex items-center justify-end gap-2 px-2">
+									<SelectWithCombobox
+										allValues={tokens}
+										selectedValues={selectedBreakdownTokens}
+										setSelectedValues={setSelectedBreakdownTokens}
+										label="LST"
+										labelType="smol"
+										variant="filter"
+										portal
+									/>
+									<ChartCsvExportButton
+										chartInstance={breakdownCsvChartInstance}
+										filename={breakdownExportFilenameBase}
+									/>
+									<ChartExportButton
+										chartInstance={breakdownImageChartInstance}
+										filename={breakdownExportFilenameBase}
+										title={breakdownExportTitle}
+									/>
+								</div>
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										dataset={breakdownDataset}
+										charts={breakdownCharts}
+										stacked={true}
+										expandTo100Percent={true}
+										hideDefaultLegend
+										valueSymbol="%"
+										selectedCharts={new Set(selectedBreakdownTokens)}
+										onReady={handleBreakdownReady}
+									/>
+								</React.Suspense>
+							</div>
 						</div>
 					) : (
 						<div className="flex flex-col">
@@ -143,32 +232,36 @@ const PageView = ({
 									values={GROUP_BY}
 									className="mr-auto"
 								/>
+								<SelectWithCombobox
+									allValues={tokens}
+									selectedValues={selectedInflowTokens}
+									setSelectedValues={setSelectedInflowTokens}
+									label={groupBy === 'Cumulative' ? 'LST' : 'Protocol'}
+									labelType="smol"
+									variant="filter"
+									portal
+								/>
 							</div>
 
 							{groupBy === 'Cumulative' ? (
-								<React.Suspense fallback={<div className="min-h-[408px]" />}>
-									<AreaChart
-										chartData={inflowsData}
-										stacks={tokens}
-										stackColors={lsdColors}
-										customLegendName="LST"
-										customLegendOptions={tokens}
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										dataset={inflowsDataset}
+										charts={inflowsCumulativeCharts}
+										stacked={true}
 										hideDefaultLegend
 										valueSymbol="ETH"
-										title=""
+										selectedCharts={new Set(selectedInflowTokens)}
 									/>
 								</React.Suspense>
 							) : (
-								<React.Suspense fallback={<div className="min-h-[408px]" />}>
-									<BarChart
-										chartData={inflowsData}
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										dataset={inflowsDataset}
+										charts={inflowsBarCharts}
 										hideDefaultLegend
-										customLegendName="Protocol"
-										customLegendOptions={tokens}
-										stacks={barChartStacks}
-										stackColors={lsdColors}
 										valueSymbol="ETH"
-										title=""
+										selectedCharts={new Set(selectedInflowTokens)}
 									/>
 								</React.Suspense>
 							)}
@@ -300,20 +393,6 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 				}, {})
 		})
 		.sort((a, b) => a.date - b.date)
-
-	// ffill data from 12of may to 13th and 14th
-	// const may12th = areaChartData.find((t) => t.date === 1620777600)
-	// 13th is missing
-	// areaChartData = [...areaChartData, { ...may12th, date: 1620864000 }]
-	// fill 14th
-	// for (const d of areaChartData) {
-	// 	if (d.date === 1620950400) {
-	// 		for (const k of Object.keys(may12th)) {
-	// 			if (k === 'date') continue
-	// 			d[k] = may12th[k]
-	// 		}
-	// 	}
-	// }
 
 	const roundDate = (date) => Math.floor(date / 24 / 60 / 60) * 60 * 60 * 24
 	const secDay = 86400

@@ -1,12 +1,13 @@
 import * as echarts from 'echarts/core'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useChartResize } from '~/hooks/useChartResize'
-import { slug, toNiceCsvDate } from '~/utils'
+import { slug } from '~/utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { mergeDeep, stringToColour } from '../utils'
@@ -43,8 +44,10 @@ export default function AreaChart({
 	...props
 }: IChartProps) {
 	const id = useId()
-	const shouldEnableExport = enableImageExport ?? (!!title && !hideDownloadButton)
+	const shouldEnableCSVDownload = !hideDownloadButton
+	const shouldEnableImageExport = enableImageExport ?? shouldEnableCSVDownload
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
 
@@ -308,11 +311,14 @@ export default function AreaChart({
 	const exportTitle = imageExportTitle || title
 	const updateExportInstance = useCallback(
 		(instance: echarts.ECharts | null) => {
-			if (shouldEnableExport) {
+			if (shouldEnableImageExport) {
 				handleChartReady(instance)
 			}
+			if (shouldEnableCSVDownload) {
+				handleChartCsvReady(instance)
+			}
 		},
-		[shouldEnableExport, handleChartReady]
+		[shouldEnableImageExport, handleChartReady, shouldEnableCSVDownload, handleChartCsvReady]
 	)
 
 	useEffect(() => {
@@ -418,30 +424,11 @@ export default function AreaChart({
 
 	const showLegend = !!(customLegendName && customLegendOptions?.length > 1)
 
-	const prepareCsv = () => {
-		let rows = []
-		if (!chartsStack || chartsStack.length === 0) {
-			rows = [['Timestamp', 'Date', 'Value']]
-			for (const [date, value] of chartData ?? []) {
-				rows.push([date, toNiceCsvDate(date), value])
-			}
-		} else {
-			rows = [['Timestamp', 'Date', ...chartsStack]]
-			for (const item of chartData ?? []) {
-				const { date, ...rest } = item
-				rows.push([date, toNiceCsvDate(date), ...chartsStack.map((stack) => rest[stack] ?? '')])
-			}
-		}
-		const Mytitle = title ? slug(title) : 'data'
-		const filename = `area-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
-		return { filename, rows }
-	}
-
 	return (
 		<div className="relative" {...props}>
 			{title || showLegend || !hideDownloadButton ? (
 				<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
-					{title && <h1 className="mr-auto text-lg font-bold">{title}</h1>}
+					{title && <h1 className="mr-auto text-base font-semibold">{title}</h1>}
 					{customComponents ?? null}
 					{customLegendName && customLegendOptions?.length > 1 && (
 						<SelectWithCombobox
@@ -454,8 +441,10 @@ export default function AreaChart({
 							portal
 						/>
 					)}
-					{!hideDownloadButton && <CSVDownloadButton prepareCsv={prepareCsv} smol />}
-					{shouldEnableExport && (
+					{shouldEnableCSVDownload && (
+						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={exportFilename} />
+					)}
+					{shouldEnableImageExport && (
 						<ChartExportButton chartInstance={exportChartInstance} filename={exportFilename} title={exportTitle} />
 					)}
 				</div>

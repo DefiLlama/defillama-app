@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import type { IChartProps } from '~/components/ECharts/types'
-import { LazyChart } from '~/components/LazyChart'
 import { LANGS_API } from '~/constants'
 import Layout from '~/layout'
 import { getDominancePercent, getNDistinctColors } from '~/utils'
@@ -107,7 +106,7 @@ export default function Protocols({
 			</h1>
 
 			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3 *:*:*:[&[role='combobox']]:-mb-9">
-				<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+				<div className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={langs}
@@ -119,8 +118,8 @@ export default function Protocols({
 							stackColors={colors}
 						/>
 					</React.Suspense>
-				</LazyChart>
-				<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+				</div>
+				<div className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={langsDominance}
@@ -132,13 +131,13 @@ export default function Protocols({
 							stackColors={colors}
 						/>
 					</React.Suspense>
-				</LazyChart>
+				</div>
 			</div>
 
 			<div className="relative rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<h2 className="p-3 text-xl font-semibold">Open/Closed Source breakdown of solana protocols</h2>
 
-				<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+				<div className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={osDominance}
@@ -149,7 +148,7 @@ export default function Protocols({
 							hideDefaultLegend
 						/>
 					</React.Suspense>
-				</LazyChart>
+				</div>
 			</div>
 		</Layout>
 	)

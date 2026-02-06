@@ -8,7 +8,6 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
 import { IBarChartProps, IChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { LazyChart } from '~/components/LazyChart'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
@@ -522,7 +521,7 @@ const PageView = (_props) => {
 				) : (
 					<>
 						{barChartData?.length ? (
-							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<Suspense fallback={<></>}>
 									<BarChart
 										title="Supply APY"
@@ -537,10 +536,10 @@ const PageView = (_props) => {
 										customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy')} smol />}
 									/>
 								</Suspense>
-							</LazyChart>
+							</div>
 						) : null}
 						{areaChartData.length ? (
-							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<Suspense fallback={<></>}>
 									<AreaChart
 										title="7 day moving average of Supply APY"
@@ -554,7 +553,7 @@ const PageView = (_props) => {
 										customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy-7d')} smol />}
 									/>
 								</Suspense>
-							</LazyChart>
+							</div>
 						) : null}
 					</>
 				)}
@@ -567,7 +566,7 @@ const PageView = (_props) => {
 			) : areaChartDataBorrow?.length ? (
 				<div className="grid min-h-[408px] grid-cols-2 gap-2 rounded-md">
 					{areaChartDataBorrow?.length ? (
-						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<BarChart
 									title="Borrow APY"
@@ -582,10 +581,10 @@ const PageView = (_props) => {
 									customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('borrow-apy')} smol />}
 								/>
 							</Suspense>
-						</LazyChart>
+						</div>
 					) : null}
 					{areaChartDataBorrow.length ? (
-						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<AreaChart
 									title="Net Borrow APY"
@@ -599,11 +598,11 @@ const PageView = (_props) => {
 									customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('net-borrow-apy')} smol />}
 								/>
 							</Suspense>
-						</LazyChart>
+						</div>
 					) : null}
 
 					{areaChartDataBorrow?.length ? (
-						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<AreaChart
 									chartData={areaChartDataBorrow}
@@ -618,7 +617,7 @@ const PageView = (_props) => {
 									customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('pool-liquidity')} smol />}
 								/>
 							</Suspense>
-						</LazyChart>
+						</div>
 					) : null}
 				</div>
 			) : null}

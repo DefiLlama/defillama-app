@@ -1,7 +1,7 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import type { IPieChartProps } from '~/components/ECharts/types'
 import { tvlOptions } from '~/components/Filters/options'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
@@ -13,7 +13,7 @@ import { formattedNum } from '~/utils'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const pageName = ['Oracles', 'ranked by', 'TVS']
 const DEFAULT_SORTING_STATE = [{ id: 'tvs', desc: true }]
@@ -50,6 +50,22 @@ export const OraclesByChain = ({
 		return { tokenTvls, tokensList }
 	}, [chainsWithExtraTvlsByDay, tokensProtocols, chainsByOracle])
 
+	const { dominanceDataset, dominanceCharts } = React.useMemo(() => {
+		return {
+			dominanceDataset: {
+				source: chainsWithExtraTvlsAndDominanceByDay.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...tokens]
+			},
+			dominanceCharts: tokens.map((name) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name },
+				color: oraclesColors[name],
+				stack: 'dominance'
+			}))
+		}
+	}, [chainsWithExtraTvlsAndDominanceByDay, tokens, oraclesColors])
+
 	return (
 		<Layout
 			title={`Oracles - DefiLlama`}
@@ -76,14 +92,13 @@ export const OraclesByChain = ({
 				</div>
 				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
-						<AreaChart
-							chartData={chainsWithExtraTvlsAndDominanceByDay}
-							stacks={tokens}
-							stackColors={oraclesColors}
+						<MultiSeriesChart2
+							dataset={dominanceDataset}
+							charts={dominanceCharts}
+							stacked={true}
+							expandTo100Percent={true}
 							hideDefaultLegend
 							valueSymbol="%"
-							title=""
-							expandTo100Percent={true}
 						/>
 					</React.Suspense>
 				</div>

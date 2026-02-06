@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo } from 'react'
-import { LazyChart } from '~/components/LazyChart'
 import { LoadingDots } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'
 import {
@@ -290,7 +289,7 @@ const PageView = () => {
 					lendHistory?.data?.length && (
 						<>
 							{barChartDataSupply?.length ? (
-								<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<Suspense fallback={<></>}>
 										<BarChart
 											title="Supply APY"
@@ -300,11 +299,11 @@ const PageView = () => {
 											valueSymbol={'%'}
 										/>
 									</Suspense>
-								</LazyChart>
+								</div>
 							) : null}
 
 							{barChartDataBorrow?.length ? (
-								<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<Suspense fallback={<></>}>
 										<BarChart
 											title="Borrow APY"
@@ -314,11 +313,11 @@ const PageView = () => {
 											valueSymbol={'%'}
 										/>
 									</Suspense>
-								</LazyChart>
+								</div>
 							) : null}
 
 							{barChartDataFarm?.length ? (
-								<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<Suspense fallback={<></>}>
 										<BarChart
 											title="Farm APY"
@@ -328,7 +327,7 @@ const PageView = () => {
 											valueSymbol={'%'}
 										/>
 									</Suspense>
-								</LazyChart>
+								</div>
 							) : null}
 						</>
 					)

@@ -205,7 +205,7 @@ export default function PieChart({
 		<div className="relative" {...props}>
 			{showToolbar ? (
 				<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
-					{title ? <h1 className="mr-auto px-2 text-lg font-bold">{title}</h1> : null}
+					{title ? <h1 className="mr-auto text-base font-semibold">{title}</h1> : null}
 					{customComponents ?? null}
 					{shouldEnableCSVDownload && (
 						<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilename} />

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import type { IPieChartProps } from '~/components/ECharts/types'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { forksColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -12,7 +12,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 export const getStaticProps = withPerformanceLogging('forks', async () => {
 	const data = await getForkPageData()
@@ -59,6 +59,22 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 		return { tokenTvls, tokensList }
 	}, [chainsWithExtraTvlsByDay, tokensProtocols, forkedTokensData])
 
+	const { dominanceDataset, dominanceCharts } = React.useMemo(() => {
+		return {
+			dominanceDataset: {
+				source: chainsWithExtraTvlsAndDominanceByDay.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...tokens]
+			},
+			dominanceCharts: tokens.map((name) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name },
+				color: forkColors[name],
+				stack: 'dominance'
+			}))
+		}
+	}, [chainsWithExtraTvlsAndDominanceByDay, tokens, forkColors])
+
 	return (
 		<Layout
 			title={`Forks - DefiLlama`}
@@ -77,20 +93,25 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 							shouldEnableImageExport
 							shouldEnableCSVDownload
 							imageExportFilename="forks-tvl-pie"
-							imageExportTitle="Forks TVL"
+							imageExportTitle="TVL by Fork"
+							title="TVL by Fork"
 						/>
 					</React.Suspense>
 				</div>
 				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
-						<AreaChart
-							chartData={chainsWithExtraTvlsAndDominanceByDay}
-							stacks={tokens}
-							stackColors={forkColors}
+						<MultiSeriesChart2
+							dataset={dominanceDataset}
+							charts={dominanceCharts}
+							stacked={true}
+							expandTo100Percent={true}
 							hideDefaultLegend
 							valueSymbol="%"
-							title=""
-							expandTo100Percent={true}
+							shouldEnableImageExport
+							shouldEnableCSVDownload
+							imageExportFilename="forks-dominance-chart"
+							imageExportTitle="Fork TVL Dominance"
+							title="Fork TVL Dominance"
 						/>
 					</React.Suspense>
 				</div>

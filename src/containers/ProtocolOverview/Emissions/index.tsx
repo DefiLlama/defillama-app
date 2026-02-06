@@ -5,7 +5,6 @@ import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportBu
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { LazyChart } from '~/components/LazyChart'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
@@ -684,9 +683,9 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 			<div className="flex flex-col gap-2">
 				{categoriesFromData.length > 0 && rawChartData.length > 0 && (
-					<LazyChart className="relative min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="relative min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 						<div className="m-2 flex items-center justify-end gap-2">
-							<h1 className="mr-auto text-lg font-bold">Schedule</h1>
+							<h1 className="mr-auto text-base font-semibold">Schedule</h1>
 							<TagGroup
 								selectedValue={timeGrouping}
 								setValue={(v) => setTimeGrouping(v as TimeGrouping)}
@@ -717,12 +716,12 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								onReady={handleChartReady}
 							/>
 						</Suspense>
-					</LazyChart>
+					</div>
 				)}
 
-				<div className="grid min-h-[398px] grid-cols-2 gap-2">
+				<div className="grid min-h-[408px] grid-cols-2 gap-2">
 					{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
-						<LazyChart className="relative col-span-full flex min-h-[398px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<PieChart
 									showLegend
@@ -739,11 +738,11 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 									imageExportTitle={`${data.name} Allocation`}
 								/>
 							</Suspense>
-						</LazyChart>
+						</div>
 					)}
 
 					{unlockedPercent > 0 && (
-						<LazyChart className="relative col-span-full flex min-h-[398px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<PieChart
 									showLegend
@@ -760,7 +759,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 									imageExportTitle={`${data.name} Unlocked ${unlockedPercent.toFixed(2)}%`}
 								/>
 							</Suspense>
-						</LazyChart>
+						</div>
 					)}
 				</div>
 			</div>

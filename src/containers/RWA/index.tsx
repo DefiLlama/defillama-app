@@ -432,7 +432,6 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 									dataset={selectedTimeSeriesDataset}
 									hideDefaultLegend={false}
 									stacked
-									chartOptions={timeSeriesChartOptions}
 									onReady={handleMultiSeriesChart2Ready}
 								/>
 							</Suspense>
@@ -541,8 +540,3 @@ const PIE_CHART_TYPES = [
 ]
 
 const validPieChartTypes = new Set(PIE_CHART_TYPES.map(({ key }) => key))
-
-const timeSeriesChartOptions = {
-	legend: { top: 0, left: 12, right: 12 },
-	grid: { top: 56 }
-}

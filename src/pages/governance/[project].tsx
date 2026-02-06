@@ -4,7 +4,6 @@ import { maxAgeForNext } from '~/api'
 import { formatGovernanceData } from '~/api/categories/protocols'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { LazyChart } from '~/components/LazyChart'
 import { TokenLogo } from '~/components/TokenLogo'
 import {
 	GOVERNANCE_COMPOUND_API,
@@ -170,7 +169,7 @@ export default function Protocol({ data, governanceType }) {
 				</div>
 
 				<div className="grid grid-cols-2">
-					<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<div className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<React.Suspense fallback={<></>}>
 							<BarChart
 								title={'Activity'}
@@ -179,8 +178,8 @@ export default function Protocol({ data, governanceType }) {
 								stackColors={barChartColors}
 							/>
 						</React.Suspense>
-					</LazyChart>
-					<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					</div>
+					<div className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<React.Suspense fallback={<></>}>
 							<BarChart
 								title={'Max Votes'}
@@ -189,7 +188,7 @@ export default function Protocol({ data, governanceType }) {
 								stackColors={barChartColors}
 							/>
 						</React.Suspense>
-					</LazyChart>
+					</div>
 				</div>
 
 				<div className="flex flex-wrap items-center gap-9">

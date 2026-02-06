@@ -132,15 +132,17 @@ export const useCalcGroupExtraPeggedByDay = (chains) => {
 		return { data, daySum }
 	}, [chains, extraPeggedEnabled])
 
-	const dataWithExtraPeggedAndDominanceByDay = data.map(({ date, ...values }) => {
-		const shares = {}
+	const dataWithExtraPeggedAndDominanceByDay = useMemo(() => {
+		return data.map(({ date, ...values }) => {
+			const shares = {}
 
-		for (const value in values) {
-			shares[value] = getDominancePercent(values[value], daySum[date])
-		}
+			for (const value in values) {
+				shares[value] = getDominancePercent(values[value], daySum[date])
+			}
 
-		return { date, ...shares }
-	})
+			return { date, ...shares }
+		})
+	}, [data, daySum])
 
 	return { data, daySum, dataWithExtraPeggedAndDominanceByDay }
 }
