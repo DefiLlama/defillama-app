@@ -240,7 +240,7 @@ export default function CEXStablecoins(props: {
 										chartData={data.pegMechanismPieChart}
 										shouldEnableImageExport
 										shouldEnableCSVDownload
-										imageExportFilename={`${props.name}-stablecoins-backing-type`}
+										imageExportFilename={`${slug(props.name)}-stablecoins-backing-type`}
 										imageExportTitle={`${props.name} Stablecoins by Backing Type`}
 									/>
 								</React.Suspense>

@@ -17,7 +17,7 @@ import { BRIDGES_SHOWING_ADDRESSES, useLocalStorageSettingsManager } from '~/con
 import { useChartCsvExport } from '~/hooks/useChartCsvExport'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import Layout from '~/layout'
-import { firstDayOfMonth, formattedNum, getPercentChange, lastDayOfWeek } from '~/utils'
+import { firstDayOfMonth, formattedNum, getPercentChange, lastDayOfWeek, slug } from '~/utils'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -208,11 +208,11 @@ const BridgeInfo = ({
 							<>
 								<ChartCsvExportButton
 									chartInstance={exportChartCsvInstance}
-									filename={`${displayName}-${chartType === 'Tokens To' ? 'tokens-to' : 'tokens-from'}`}
+									filename={`${slug(displayName)}-${chartType === 'Tokens To' ? 'tokens-to' : 'tokens-from'}`}
 								/>
 								<ChartExportButton
 									chartInstance={exportChartInstance}
-									filename={`${displayName}-${chartType === 'Tokens To' ? 'tokens-to' : 'tokens-from'}`}
+									filename={`${slug(displayName)}-${chartType === 'Tokens To' ? 'tokens-to' : 'tokens-from'}`}
 									title={`${displayName} ${chartType}`}
 								/>
 							</>

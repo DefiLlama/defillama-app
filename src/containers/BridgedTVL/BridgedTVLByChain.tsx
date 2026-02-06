@@ -127,10 +127,13 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 						</div>
 						{chartType !== 'inflows' ? (
 							<>
-								<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={`${chainName}-bridged-tvl`} />
+								<ChartCsvExportButton
+									chartInstance={exportChartCsvInstance}
+									filename={`${slug(chainName)}-bridged-tvl`}
+								/>
 								<ChartExportButton
 									chartInstance={exportChartInstance}
-									filename={`${chainName}-bridged-tvl`}
+									filename={`${slug(chainName)}-bridged-tvl`}
 									title={`${chainName} Bridged TVL`}
 								/>
 							</>
