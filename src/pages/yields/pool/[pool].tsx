@@ -273,7 +273,7 @@ const PageView = (_props) => {
 
 		return {
 			tvlApyDataset: {
-				source: data.map((item) => ({ timestamp: item[0] * 1000, TVL: item[1], APY: item[2] })),
+				source: (data ?? []).map((item) => ({ timestamp: item[0] * 1000, TVL: item[1], APY: item[2] })),
 				dimensions: ['timestamp', 'APY', 'TVL']
 			},
 			barChartData,
