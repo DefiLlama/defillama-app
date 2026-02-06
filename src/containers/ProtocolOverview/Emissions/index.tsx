@@ -689,6 +689,10 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 									legendPosition={pieChartLegendPosition}
 									legendTextStyle={pieChartLegendTextStyle}
 									toRight={200}
+									shouldEnableImageExport
+									shouldEnableCSVDownload
+									imageExportFilename={`${slug(data.name)}-allocation`}
+									imageExportTitle={`${data.name} Allocation`}
 								/>
 							</Suspense>
 						</LazyChart>
@@ -706,6 +710,10 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 									chartData={unlockedPieChartData}
 									stackColors={unlockedPieChartStackColors}
 									valueSymbol="%"
+									shouldEnableImageExport
+									shouldEnableCSVDownload
+									imageExportFilename={`${slug(data.name)}-unlocked`}
+									imageExportTitle={`${data.name} Unlocked ${unlockedPercent.toFixed(2)}%`}
 								/>
 							</Suspense>
 						</LazyChart>

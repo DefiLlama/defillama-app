@@ -1,4 +1,6 @@
 import * as React from 'react'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BridgeVolumeChart } from '~/components/Charts/BridgeVolumeChart'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -8,6 +10,8 @@ import { BridgesTable } from '~/components/Table/Bridges'
 import { ChartSelector } from '~/containers/Bridges/ChartSelector'
 import { LargeTxsTable } from '~/containers/Bridges/LargeTxsTable'
 import { useBuildBridgeChartData } from '~/containers/Bridges/utils'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useDebounce } from '~/hooks/useDebounce'
 import { formattedNum, getPrevVolumeFromChart, toNiceCsvDate } from '~/utils'
 
@@ -53,6 +57,8 @@ export function BridgesOverviewByChain({
 	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging' | 'largeTxs'>('bridges')
 	const [searchValue, setSearchValue] = React.useState('')
 	const debouncedSearchValue = useDebounce(searchValue, 200)
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
 
@@ -242,22 +248,26 @@ export function BridgesOverviewByChain({
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					{selectedChain === 'All' ? (
 						<>
-							<div className="flex items-center">
-								<button
-									className="flex flex-1 items-center justify-center border-b-2 border-(--link-bg) p-3 text-xs font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) data-[active=true]:bg-(--link-bg)"
-									data-active={chartView === 'netflow'}
-									onClick={() => setChartView('netflow')}
-								>
-									Net Flows By Chain
-								</button>
+							<div className="flex items-center gap-2 border-b border-(--cards-border)">
+								<div className="flex items-center">
+									<button
+										className="flex items-center justify-center border-b-2 border-transparent px-4 py-2.5 text-xs font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) data-[active=true]:text-(--old-blue)"
+										data-active={chartView === 'netflow'}
+										onClick={() => setChartView('netflow')}
+									>
+										Net Flows By Chain
+									</button>
 
-								<button
-									className="flex flex-1 items-center justify-center border-b-2 border-(--link-bg) p-3 text-xs font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) data-[active=true]:bg-(--link-bg)"
-									onClick={() => setChartView('volume')}
-									data-active={chartView === 'volume'}
-								>
-									Bridge Volume
-								</button>
+									<button
+										className="flex items-center justify-center border-b-2 border-transparent px-4 py-2.5 text-xs font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) data-[active=true]:text-(--old-blue)"
+										onClick={() => setChartView('volume')}
+										data-active={chartView === 'volume'}
+									>
+										Bridge Volume
+									</button>
+								</div>
+
+								<CSVDownloadButton prepareCsv={prepareChartCsv} smol className="mr-3 ml-auto shrink-0" />
 							</div>
 
 							{chartView === 'netflow' ? (
@@ -270,59 +280,79 @@ export function BridgesOverviewByChain({
 						</>
 					) : (
 						<>
-							<div className="flex items-center justify-between overflow-x-auto p-3">
+							<div className="flex flex-wrap items-center justify-end gap-2 p-2">
 								<ChartSelector options={BRIDGE_CHAIN_CHART_OPTIONS} selectedChart={chartType} onClick={setChartType} />
+								{chartType === '24h Tokens Deposited' || chartType === '24h Tokens Withdrawn' ? (
+									<>
+										<ChartCsvExportButton
+											chartInstance={exportChartCsvInstance}
+											filename={`${selectedChain}-${chartType === '24h Tokens Deposited' ? 'tokens-deposited' : 'tokens-withdrawn'}`}
+										/>
+										<ChartExportButton
+											chartInstance={exportChartInstance}
+											filename={`${selectedChain}-${chartType === '24h Tokens Deposited' ? 'tokens-deposited' : 'tokens-withdrawn'}`}
+											title={`${selectedChain} ${chartType}`}
+										/>
+									</>
+								) : null}
 							</div>
-							{chartType === 'Bridge Volume' && (
+							{chartType === 'Bridge Volume' ? (
 								<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="360px" />
-							)}
-							{chartType === 'Net Flow' && chainNetFlowData && chainNetFlowData.length > 0 && (
-								<React.Suspense fallback={<div className="min-h-[360px]" />}>
-									<BarChart
-										chartData={chainNetFlowData}
-										title=""
-										hideDefaultLegend={true}
-										customLegendName="Volume"
-										customLegendOptions={NET_FLOW_LEGEND_OPTIONS}
-									/>
-								</React.Suspense>
-							)}
-							{chartType === 'Net Flow (%)' && chainPercentageNet && chainPercentageNet.length > 0 && (
-								<React.Suspense fallback={<div className="min-h-[360px]" />}>
-									<BarChart
-										chartData={chainPercentageNet}
-										title=""
-										valueSymbol="%"
-										stacks={INFLOWS_OUTFLOWS_STACKS}
-										hideDefaultLegend={true}
-										customLegendName="Volume"
-										customLegendOptions={INFLOWS_OUTFLOWS_LEGEND_OPTIONS}
-									/>
-								</React.Suspense>
-							)}
-							{chartType === 'Inflows' && (
+							) : chartType === 'Net Flow' ? (
+								chainNetFlowData && chainNetFlowData.length > 0 ? (
+									<React.Suspense fallback={<div className="min-h-[360px]" />}>
+										<BarChart
+											chartData={chainNetFlowData}
+											title=""
+											hideDefaultLegend={true}
+											customLegendName="Volume"
+											customLegendOptions={NET_FLOW_LEGEND_OPTIONS}
+										/>
+									</React.Suspense>
+								) : null
+							) : chartType === 'Net Flow (%)' ? (
+								chainPercentageNet && chainPercentageNet.length > 0 ? (
+									<React.Suspense fallback={<div className="min-h-[360px]" />}>
+										<BarChart
+											chartData={chainPercentageNet}
+											title=""
+											valueSymbol="%"
+											stacks={INFLOWS_OUTFLOWS_STACKS}
+											hideDefaultLegend={true}
+											customLegendName="Volume"
+											customLegendOptions={INFLOWS_OUTFLOWS_LEGEND_OPTIONS}
+										/>
+									</React.Suspense>
+								) : null
+							) : chartType === 'Inflows' ? (
 								<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="360px" />
-							)}
-							{chartType === 'Net Flow By Chain' && (
+							) : chartType === 'Net Flow By Chain' ? (
 								<React.Suspense fallback={<div className="min-h-[600px]" />}>
 									<NetflowChart height="600px" />
 								</React.Suspense>
-							)}
-							{chartType === '24h Tokens Deposited' && (
+							) : chartType === '24h Tokens Deposited' ? (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
-									<PieChart chartData={tokenDeposits} />
+									<PieChart
+										chartData={tokenDeposits}
+										onReady={(instance) => {
+											handleChartReady(instance)
+											handleChartCsvReady(instance)
+										}}
+									/>
 								</React.Suspense>
-							)}
-							{chartType === '24h Tokens Withdrawn' && (
+							) : chartType === '24h Tokens Withdrawn' ? (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
-									<PieChart chartData={tokenWithdrawals} />
+									<PieChart
+										chartData={tokenWithdrawals}
+										onReady={(instance) => {
+											handleChartReady(instance)
+											handleChartCsvReady(instance)
+										}}
+									/>
 								</React.Suspense>
-							)}
+							) : null}
 						</>
 					)}
-					<div className="flex items-center justify-end p-3">
-						<CSVDownloadButton prepareCsv={prepareChartCsv} smol />
-					</div>
 				</div>
 			</div>
 

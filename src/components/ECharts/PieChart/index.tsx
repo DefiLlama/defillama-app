@@ -3,8 +3,10 @@ import { GraphicComponent, GridComponent, LegendComponent, TitleComponent, Toolt
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useId, useMemo, useRef } from 'react'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
@@ -34,8 +36,10 @@ export default function PieChart({
 	legendTextStyle,
 	customComponents,
 	enableImageExport = false,
+	shouldEnableImageExport = false,
 	imageExportFilename,
 	imageExportTitle,
+	shouldEnableCSVDownload = false,
 	onReady,
 	...props
 }: IPieChartProps) {
@@ -43,6 +47,8 @@ export default function PieChart({
 	const [isDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: csvChartInstance, handleChartReady: handleCsvChartReady } = useChartCsvExport()
+	const imageExportEnabled = enableImageExport || shouldEnableImageExport
 	const exportFilename = imageExportFilename || (title ? title.replace(/\s+/g, '-').toLowerCase() : 'pie-chart')
 	const exportTitle = imageExportTitle || title
 	const chartRef = useRef<echarts.ECharts | null>(null)
@@ -166,11 +172,13 @@ export default function PieChart({
 		})
 
 		handleChartReady(instance)
+		handleCsvChartReady(instance)
 
 		return () => {
 			chartRef.current = null
 			instance.dispose()
 			handleChartReady(null)
+			handleCsvChartReady(null)
 			if (onReady) {
 				onReady(null)
 			}
@@ -187,16 +195,22 @@ export default function PieChart({
 		legendTextStyle,
 		isSmall,
 		handleChartReady,
+		handleCsvChartReady,
 		onReady
 	])
 
+	const showToolbar = title || customComponents || imageExportEnabled || shouldEnableCSVDownload
+
 	return (
 		<div className="relative" {...props}>
-			{title || customComponents || enableImageExport ? (
+			{showToolbar ? (
 				<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
 					{title ? <h1 className="mr-auto px-2 text-lg font-bold">{title}</h1> : null}
 					{customComponents ?? null}
-					{enableImageExport && (
+					{shouldEnableCSVDownload && (
+						<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilename} />
+					)}
+					{imageExportEnabled && (
 						<ChartExportButton chartInstance={exportChartInstance} filename={exportFilename} title={exportTitle} />
 					)}
 				</div>

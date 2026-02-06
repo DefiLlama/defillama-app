@@ -194,8 +194,10 @@ export interface IPieChartProps {
 	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: any }
 	customComponents?: React.ReactNode
 	enableImageExport?: boolean
+	shouldEnableImageExport?: boolean
 	imageExportFilename?: string
 	imageExportTitle?: string
+	shouldEnableCSVDownload?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 

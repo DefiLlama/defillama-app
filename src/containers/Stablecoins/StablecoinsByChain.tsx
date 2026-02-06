@@ -1,6 +1,8 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
@@ -17,6 +19,8 @@ import {
 } from '~/containers/Stablecoins/Filters'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from '~/containers/Stablecoins/hooks'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { formattedNum, getPercentChange, slug, toNiceCsvDate, toNumberOrNullFromQueryParam } from '~/utils'
 import { useFormatStablecoinQueryParams } from './hooks'
 import { PeggedAssetsTable } from './Table'
@@ -60,6 +64,9 @@ export function StablecoinsByChain({
 		selectedChain !== 'All'
 			? ['Total Market Cap', 'USD Inflows', 'Token Market Caps', 'Token Inflows', 'Pie', 'Dominance']
 			: ['Total Market Cap', 'Token Market Caps', 'Pie', 'Dominance', 'USD Inflows', 'Token Inflows']
+
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 
 	const [filteredIndexes, setFilteredIndexes] = React.useState([])
 
@@ -331,13 +338,23 @@ export function StablecoinsByChain({
 						<span className="font-jetbrains text-2xl font-semibold">{dominance}%</span>
 					</p>
 				</div>
-				<div
-					className={`relative col-span-2 flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 ${
-						chartType === 'Token Inflows' && tokenInflows ? '*:first:-mb-6' : ''
-					}`}
-				>
-					{chartType === 'Total Market Cap' && (
-						<React.Suspense fallback={<></>}>
+				<div className="relative col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="flex items-center gap-2 p-2">
+						<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+						<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
+						{chartType === 'Pie' ? (
+							<>
+								<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={getImageExportFilename()} />
+								<ChartExportButton
+									chartInstance={exportChartInstance}
+									filename={getImageExportFilename()}
+									title={getImageExportTitle()}
+								/>
+							</>
+						) : null}
+					</div>
+					{chartType === 'Total Market Cap' ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<AreaChart
 								title=""
 								chartData={peggedAreaTotalData}
@@ -346,21 +363,14 @@ export function StablecoinsByChain({
 								hideDefaultLegend={true}
 								hallmarks={EMPTY_HALLMARKS}
 								color={CHART_COLORS[0]}
-								customComponents={
-									<>
-										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
-									</>
-								}
 								chartOptions={chartOptions}
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
 								imageExportFilename={getImageExportFilename()}
 							/>
 						</React.Suspense>
-					)}
-					{chartType === 'Token Market Caps' && (
-						<React.Suspense fallback={<></>}>
+					) : chartType === 'Token Market Caps' ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<AreaChart
 								title=""
 								chartData={peggedAreaChartData}
@@ -369,21 +379,14 @@ export function StablecoinsByChain({
 								hideDefaultLegend={true}
 								hideGradient={true}
 								stackColors={tokenColors}
-								customComponents={
-									<>
-										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
-									</>
-								}
 								chartOptions={chartOptions}
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
 								imageExportFilename={getImageExportFilename()}
 							/>
 						</React.Suspense>
-					)}
-					{chartType === 'Dominance' && (
-						<React.Suspense fallback={<></>}>
+					) : chartType === 'Dominance' ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<AreaChart
 								title=""
 								valueSymbol="%"
@@ -393,38 +396,25 @@ export function StablecoinsByChain({
 								hideGradient={true}
 								expandTo100Percent={true}
 								stackColors={tokenColors}
-								customComponents={
-									<>
-										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
-									</>
-								}
 								chartOptions={chartOptions}
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
 								imageExportFilename={getImageExportFilename()}
 							/>
 						</React.Suspense>
-					)}
-					{chartType === 'Pie' && (
-						<React.Suspense fallback={<></>}>
+					) : chartType === 'Pie' ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<PieChart
 								chartData={chainsCirculatingValues}
 								stackColors={tokenColors}
-								customComponents={
-									<>
-										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
-									</>
-								}
-								enableImageExport={true}
-								imageExportTitle={getImageExportTitle()}
-								imageExportFilename={getImageExportFilename()}
+								onReady={(instance) => {
+									handleChartReady(instance)
+									handleChartCsvReady(instance)
+								}}
 							/>
 						</React.Suspense>
-					)}
-					{chartType === 'Token Inflows' && tokenInflows && (
-						<React.Suspense fallback={<></>}>
+					) : chartType === 'Token Inflows' && tokenInflows ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<BarChart
 								chartData={tokenInflows}
 								title=""
@@ -434,36 +424,23 @@ export function StablecoinsByChain({
 								key={tokenInflowNames} // escape hatch to rerender state in legend options
 								chartOptions={inflowsChartOptions}
 								stackColors={tokenColors}
-								customComponents={
-									<>
-										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
-									</>
-								}
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
 								imageExportFilename={getImageExportFilename()}
 							/>
 						</React.Suspense>
-					)}
-					{chartType === 'USD Inflows' && usdInflows && (
-						<React.Suspense fallback={<></>}>
+					) : chartType === 'USD Inflows' && usdInflows ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<BarChart
 								chartData={usdInflows}
 								color={CHART_COLORS[0]}
 								title=""
-								customComponents={
-									<>
-										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
-									</>
-								}
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
 								imageExportFilename={getImageExportFilename()}
 							/>
 						</React.Suspense>
-					)}
+					) : null}
 				</div>
 			</div>
 

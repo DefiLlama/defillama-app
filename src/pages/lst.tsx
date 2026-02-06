@@ -107,13 +107,20 @@ const PageView = ({
 					</button>
 				</div>
 
-				<div className="flex min-h-[408px] w-full flex-col items-center gap-4">
+				<div className="flex flex-col">
 					{tab === 'breakdown' ? (
-						<div className="grid w-full grid-cols-1 pt-12 *:col-span-1 xl:grid-cols-2 xl:*:*:[&[role='combobox']]:-mt-9!">
-							<React.Suspense fallback={<></>}>
-								<PieChart chartData={pieChartData} stackColors={lsdColors} />
+						<div className="grid grid-cols-1 pt-2 xl:grid-cols-2">
+							<React.Suspense fallback={<div className="min-h-[408px]" />}>
+								<PieChart
+									chartData={pieChartData}
+									stackColors={lsdColors}
+									shouldEnableImageExport
+									shouldEnableCSVDownload
+									imageExportFilename="lst-breakdown"
+									imageExportTitle="LST Breakdown"
+								/>
 							</React.Suspense>
-							<React.Suspense fallback={<></>}>
+							<React.Suspense fallback={<div className="min-h-[408px]" />}>
 								<AreaChart
 									chartData={areaChartData}
 									stacks={tokens}
@@ -128,16 +135,18 @@ const PageView = ({
 							</React.Suspense>
 						</div>
 					) : (
-						<div className="flex w-full flex-col gap-1">
-							<TagGroup
-								selectedValue={groupBy}
-								setValue={(period) => setGroupBy(period as GroupByType)}
-								values={GROUP_BY}
-								className="m-3 ml-auto"
-							/>
+						<div className="flex flex-col">
+							<div className="flex items-center justify-end gap-2 p-2">
+								<TagGroup
+									selectedValue={groupBy}
+									setValue={(period) => setGroupBy(period as GroupByType)}
+									values={GROUP_BY}
+									className="mr-auto"
+								/>
+							</div>
 
 							{groupBy === 'Cumulative' ? (
-								<React.Suspense fallback={<></>}>
+								<React.Suspense fallback={<div className="min-h-[408px]" />}>
 									<AreaChart
 										chartData={inflowsData}
 										stacks={tokens}
@@ -150,7 +159,7 @@ const PageView = ({
 									/>
 								</React.Suspense>
 							) : (
-								<React.Suspense fallback={<></>}>
+								<React.Suspense fallback={<div className="min-h-[408px]" />}>
 									<BarChart
 										chartData={inflowsData}
 										hideDefaultLegend

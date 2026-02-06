@@ -10,6 +10,7 @@ import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
 import { formatTvlsByChainFromTokens, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -174,7 +175,14 @@ export default function Protocols(props) {
 								className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full"
 							>
 								<React.Suspense fallback={<></>}>
-									<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
+									<PieChart
+										title="Tokens Breakdown"
+										chartData={tokenBreakdownPieChart}
+										shouldEnableImageExport
+										shouldEnableCSVDownload
+										imageExportFilename={`${slug(props.name)}-tokens-breakdown`}
+										imageExportTitle={`${props.name} Tokens Breakdown`}
+									/>
 								</React.Suspense>
 							</LazyChart>
 						)}

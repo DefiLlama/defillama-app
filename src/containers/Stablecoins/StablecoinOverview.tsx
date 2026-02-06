@@ -1,6 +1,8 @@
 import * as Ariakit from '@ariakit/react'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -17,6 +19,8 @@ import { StablecoinAssetChartConfig, StablecoinAssetChartType } from '~/containe
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/containers/Stablecoins/hooks'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { UNRELEASED, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import Layout from '~/layout'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer, peggedAssetIconUrl, slug, toNiceCsvDate } from '~/utils'
 import { PeggedAssetByChainTable } from './Table'
@@ -96,6 +100,8 @@ export const PeggedAssetInfo = ({
 
 	const [chartType, setChartType] = React.useState('Pie')
 	const defaultSelectedId = 'default-selected-tab'
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 
 	const chainsData: any[] = chainsUnique.map((elem: string) => {
 		return peggedAssetData.chainBalances[elem].tokens
@@ -374,17 +380,29 @@ export const PeggedAssetInfo = ({
 					</Ariakit.TabProvider>
 				</div>
 
-				<div className="col-span-2 flex min-h-[416px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<TagGroup
-						setValue={setChartType}
-						selectedValue={chartType}
-						values={CHART_TYPE_VALUES}
-						variant="responsive"
-						className="m-2"
-					/>
-
-					{chartType === 'Total Circ' && (
-						<React.Suspense fallback={<></>}>
+				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="flex items-center justify-end gap-2 p-2">
+						<TagGroup
+							setValue={setChartType}
+							selectedValue={chartType}
+							values={CHART_TYPE_VALUES}
+							variant="responsive"
+							className="mr-auto"
+						/>
+						<AddToDashboardButton chartConfig={dashboardChartConfig} smol />
+						{chartType === 'Pie' ? (
+							<>
+								<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={getImageExportFilename()} />
+								<ChartExportButton
+									chartInstance={exportChartInstance}
+									filename={getImageExportFilename()}
+									title={getImageExportTitle()}
+								/>
+							</>
+						) : null}
+					</div>
+					{chartType === 'Total Circ' ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<AreaChart
 								title={`Total ${symbol} Circulating`}
 								chartData={peggedAreaTotalData}
@@ -394,12 +412,10 @@ export const PeggedAssetInfo = ({
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
 								imageExportFilename={getImageExportFilename()}
-								customComponents={<AddToDashboardButton chartConfig={dashboardChartConfig} smol />}
 							/>
 						</React.Suspense>
-					)}
-					{chartType === 'Area' && (
-						<React.Suspense fallback={<></>}>
+					) : chartType === 'Area' ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<AreaChart
 								title=""
 								chartData={peggedAreaChartData}
@@ -409,12 +425,10 @@ export const PeggedAssetInfo = ({
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
 								imageExportFilename={getImageExportFilename()}
-								customComponents={<AddToDashboardButton chartConfig={dashboardChartConfig} smol />}
 							/>
 						</React.Suspense>
-					)}
-					{chartType === 'Dominance' && (
-						<React.Suspense fallback={<></>}>
+					) : chartType === 'Dominance' ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<AreaChart
 								title=""
 								valueSymbol="%"
@@ -424,21 +438,19 @@ export const PeggedAssetInfo = ({
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
 								imageExportFilename={getImageExportFilename()}
-								customComponents={<AddToDashboardButton chartConfig={dashboardChartConfig} smol />}
 							/>
 						</React.Suspense>
-					)}
-					{chartType === 'Pie' && (
-						<React.Suspense fallback={<></>}>
+					) : chartType === 'Pie' ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<PieChart
 								chartData={chainsCirculatingValues}
-								enableImageExport={true}
-								imageExportTitle={getImageExportTitle()}
-								imageExportFilename={getImageExportFilename()}
-								customComponents={<AddToDashboardButton chartConfig={dashboardChartConfig} smol />}
+								onReady={(instance) => {
+									handleChartReady(instance)
+									handleChartCsvReady(instance)
+								}}
 							/>
 						</React.Suspense>
-					)}
+					) : null}
 				</div>
 			</div>
 

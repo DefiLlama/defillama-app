@@ -142,7 +142,14 @@ export default function Protocols(props) {
 				<div className="grid min-h-[384px] grid-cols-2 gap-2 rounded-md">
 					<LazyChart className="relative col-span-full flex min-h-[368px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<Suspense fallback={<></>}>
-							<PieChart chartData={top10Tokens} />
+							<PieChart
+								chartData={top10Tokens}
+								title="Tokens Breakdown"
+								shouldEnableImageExport
+								shouldEnableCSVDownload
+								imageExportFilename={buildFilename('treasury-breakdown')}
+								imageExportTitle={buildTitle('Tokens Breakdown')}
+							/>
 						</Suspense>
 					</LazyChart>
 					<LazyChart className="relative col-span-full flex min-h-[368px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">

@@ -235,7 +235,14 @@ export default function CEXStablecoins(props: {
 						{data.pegMechanismPieChart && data.pegMechanismPieChart.length > 0 && (
 							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<React.Suspense fallback={<></>}>
-									<PieChart title="Distribution by Backing Type" chartData={data.pegMechanismPieChart} />
+									<PieChart
+										title="Distribution by Backing Type"
+										chartData={data.pegMechanismPieChart}
+										shouldEnableImageExport
+										shouldEnableCSVDownload
+										imageExportFilename={`${slug(props.name)}-stablecoins-backing-type`}
+										imageExportTitle={`${props.name} Stablecoins by Backing Type`}
+									/>
 								</React.Suspense>
 							</LazyChart>
 						)}

@@ -1,6 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { tvlOptions } from '~/components/Filters/options'
@@ -51,16 +50,6 @@ export const OraclesByChain = ({
 		return { tokenTvls, tokensList }
 	}, [chainsWithExtraTvlsByDay, tokensProtocols, chainsByOracle])
 
-	const prepareCsv = () => {
-		const headers = Object.keys(tokensList[0])
-		const rows = [headers].concat(
-			tokensList.map((row) =>
-				headers.map((header) => (Array.isArray(row[header]) ? row[header].join(', ') : row[header]))
-			)
-		)
-		return { filename: 'oracles.csv', rows }
-	}
-
 	return (
 		<Layout
 			title={`Oracles - DefiLlama`}
@@ -74,9 +63,15 @@ export const OraclesByChain = ({
 
 			<div className="flex flex-col gap-1 xl:flex-row">
 				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mr-2 ml-auto" />
 					<React.Suspense fallback={<></>}>
-						<PieChart chartData={tokenTvls} stackColors={oraclesColors} />
+						<PieChart
+							chartData={tokenTvls}
+							stackColors={oraclesColors}
+							shouldEnableImageExport
+							shouldEnableCSVDownload
+							imageExportFilename="oracles-tvs-pie"
+							imageExportTitle="Oracles TVS"
+						/>
 					</React.Suspense>
 				</div>
 				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
