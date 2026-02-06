@@ -11,10 +11,26 @@ export interface TokenData {
 	totalLocked: number
 	unlocksPerDay: number
 }
+export type EmissionsDataset = { source: Array<Record<string, number | null>>; dimensions: string[] }
+export type EmissionsChartConfig = Array<{
+	type: 'line'
+	name: string
+	encode: { x: 'timestamp'; y: string }
+	color: string | undefined
+	stack: string
+}>
+
 export interface IEmission {
 	categories: { documented: Array<string>; realtime: Array<string> }
 	categoriesBreakdown: Record<string, string[]>
-	chartData: { documented: Array<{ [label: string]: number }>; realtime: Array<{ [label: string]: number }> }
+	chartData: {
+		documented: Array<{ timestamp: number; [label: string]: number }>
+		realtime: Array<{ timestamp: number; [label: string]: number }>
+	}
+	/** Pre-built MultiSeriesChart2 datasets keyed by data type. */
+	datasets: { documented: EmissionsDataset; realtime: EmissionsDataset }
+	/** Pre-built MultiSeriesChart2 chart configs keyed by data type. */
+	chartsConfigs: { documented: EmissionsChartConfig; realtime: EmissionsChartConfig }
 	sources: Array<string>
 	notes: Array<string>
 	events: Array<{ description: string; timestamp: string; noOfTokens: number[] }>

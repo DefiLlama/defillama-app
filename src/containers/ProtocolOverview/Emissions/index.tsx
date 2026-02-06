@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/categories/protocols/client'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
 import { LocalLoader } from '~/components/Loaders'
@@ -12,6 +13,8 @@ import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import Pagination from './Pagination'
 import { IEmission } from './types'
@@ -25,7 +28,9 @@ const getExtendedColors = (baseColors: Record<string, string>, isPriceEnabled: b
 	return extended
 }
 
-const AreaChart = lazy(() => import('~/components/ECharts/UnlocksChart')) as React.FC<IChartProps>
+const MultiSeriesChart2 = lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
@@ -49,12 +54,12 @@ const standardGroupColors = {
 }
 
 function processGroupedChartData(
-	chartData: Array<{ date: string } & { [label: string]: number }>,
+	chartData: Array<{ timestamp: number; [label: string]: number }>,
 	categoriesBreakdown: Record<string, string[]>
 ) {
 	return chartData.map((entry) => {
-		const groupedEntry: { date: string } & Record<string, number | string> = {
-			date: entry.date,
+		const groupedEntry: { timestamp: number } & Record<string, number> = {
+			timestamp: entry.timestamp,
 			...(entry['Price'] && { Price: entry['Price'] }),
 			...(entry['Market Cap'] && { 'Market Cap': entry['Market Cap'] })
 		}
@@ -85,21 +90,21 @@ type DataType = (typeof DATA_TYPES)[number]
 const TIME_GROUPINGS = ['D', 'W', 'M', 'Q', 'Y'] as const
 type TimeGrouping = (typeof TIME_GROUPINGS)[number]
 
-function getQuarterStart(timestamp: number): number {
-	const date = new Date(timestamp)
+function getQuarterStart(timestampMs: number): number {
+	const date = new Date(timestampMs)
 	const quarter = Math.floor(date.getUTCMonth() / 3)
-	return Math.trunc(Date.UTC(date.getUTCFullYear(), quarter * 3, 1) / 1000)
+	return Date.UTC(date.getUTCFullYear(), quarter * 3, 1)
 }
 
-function getYearStart(timestamp: number): number {
-	const date = new Date(timestamp)
-	return Math.trunc(Date.UTC(date.getUTCFullYear(), 0, 1) / 1000)
+function getYearStart(timestampMs: number): number {
+	const date = new Date(timestampMs)
+	return Date.UTC(date.getUTCFullYear(), 0, 1)
 }
 
 function groupChartDataByTime(
-	chartData: Array<{ date: string } & Record<string, number | string>>,
+	chartData: Array<{ timestamp: number } & Record<string, number>>,
 	groupBy: TimeGrouping
-): Array<{ date: string } & Record<string, number | string>> {
+): Array<{ timestamp: number } & Record<string, number>> {
 	if (groupBy === 'D') return chartData
 
 	// Most series (unlock amounts, allocations) are additive within a time bucket, but
@@ -109,97 +114,95 @@ function groupChartDataByTime(
 		'Market Cap': 'avg'
 	}
 
-	const grouped: Record<string, Record<string, number>> = {}
-	const avgSums: Record<string, Record<string, number>> = {}
-	const avgCounts: Record<string, Record<string, number>> = {}
-	const lastValues: Record<string, Record<string, number>> = {}
-	const lastDates: Record<string, Record<string, number>> = {}
+	const grouped: Record<number, Record<string, number>> = {}
+	const avgSums: Record<number, Record<string, number>> = {}
+	const avgCounts: Record<number, Record<string, number>> = {}
+	const lastValues: Record<number, Record<string, number>> = {}
+	const lastTimestamps: Record<number, Record<string, number>> = {}
 
 	for (const entry of chartData) {
-		const timestamp = +entry.date * 1000
+		const ts = entry.timestamp
 		let groupKey: number
 
 		switch (groupBy) {
 			case 'W':
-				groupKey = lastDayOfWeek(timestamp)
+				groupKey = lastDayOfWeek(ts) * 1e3
 				break
 			case 'M':
-				groupKey = firstDayOfMonth(timestamp)
+				groupKey = firstDayOfMonth(ts) * 1e3
 				break
 			case 'Q':
-				groupKey = getQuarterStart(timestamp)
+				groupKey = getQuarterStart(ts)
 				break
 			case 'Y':
-				groupKey = getYearStart(timestamp)
+				groupKey = getYearStart(ts)
 				break
 			default:
-				groupKey = +entry.date
+				groupKey = ts
 		}
 
-		const bucketKey = String(groupKey)
-
-		if (!grouped[bucketKey]) {
-			grouped[bucketKey] = {}
+		if (!grouped[groupKey]) {
+			grouped[groupKey] = {}
 		}
 
 		for (const key in entry) {
-			if (key === 'date') continue
-			const raw = entry[key]
-			const value = typeof raw === 'number' ? raw : Number(raw)
+			if (key === 'timestamp') continue
+			const value = entry[key]
 			if (!Number.isFinite(value)) continue
 
 			const strategy = NON_ADDITIVE_STRATEGIES[key]
 			if (strategy === 'avg') {
-				if (!avgSums[bucketKey]) avgSums[bucketKey] = {}
-				if (!avgCounts[bucketKey]) avgCounts[bucketKey] = {}
-				avgSums[bucketKey][key] = (avgSums[bucketKey][key] ?? 0) + value
-				avgCounts[bucketKey][key] = (avgCounts[bucketKey][key] ?? 0) + 1
+				if (!avgSums[groupKey]) avgSums[groupKey] = {}
+				if (!avgCounts[groupKey]) avgCounts[groupKey] = {}
+				avgSums[groupKey][key] = (avgSums[groupKey][key] ?? 0) + value
+				avgCounts[groupKey][key] = (avgCounts[groupKey][key] ?? 0) + 1
 				continue
 			}
 
 			if (strategy === 'last') {
-				const entryDate = typeof entry.date === 'string' ? Number(entry.date) : (entry.date as any)
-				if (!lastValues[bucketKey]) lastValues[bucketKey] = {}
-				if (!lastDates[bucketKey]) lastDates[bucketKey] = {}
+				if (!lastValues[groupKey]) lastValues[groupKey] = {}
+				if (!lastTimestamps[groupKey]) lastTimestamps[groupKey] = {}
 
-				const prevDate = lastDates[bucketKey][key]
-				if (prevDate == null || (Number.isFinite(entryDate) && entryDate >= prevDate)) {
-					lastDates[bucketKey][key] = Number.isFinite(entryDate) ? entryDate : (prevDate ?? 0)
-					lastValues[bucketKey][key] = value
+				const prevTs = lastTimestamps[groupKey][key]
+				if (prevTs == null || ts >= prevTs) {
+					lastTimestamps[groupKey][key] = ts
+					lastValues[groupKey][key] = value
 				}
 				continue
 			}
 
 			// Additive series: sum within the bucket.
-			grouped[bucketKey][key] = (grouped[bucketKey][key] ?? 0) + value
+			grouped[groupKey][key] = (grouped[groupKey][key] ?? 0) + value
 		}
 	}
 
 	// Merge non-additive results into the grouped output.
-	for (const bucketKey in avgSums) {
-		const sums = avgSums[bucketKey]
-		const counts = avgCounts[bucketKey]
+	for (const groupKey in avgSums) {
+		const sums = avgSums[groupKey]
+		const counts = avgCounts[groupKey]
 		for (const key in sums) {
 			const count = counts?.[key] ?? 0
-			if (count > 0) grouped[bucketKey][key] = sums[key] / count
+			if (count > 0) grouped[groupKey][key] = sums[key] / count
 		}
 	}
 
-	for (const bucketKey in lastValues) {
-		const values = lastValues[bucketKey]
+	for (const groupKey in lastValues) {
+		const values = lastValues[groupKey]
 		for (const key in values) {
-			grouped[bucketKey][key] = values[key]
+			grouped[groupKey][key] = values[key]
 		}
 	}
 
-	return Object.entries(grouped)
-		.map(([date, values]) => ({ date, ...values }))
-		.sort((a, b) => +a.date - +b.date)
+	const result: Array<{ timestamp: number } & Record<string, number>> = []
+	for (const groupKey in grouped) {
+		result.push({ timestamp: +groupKey, ...grouped[groupKey] })
+	}
+	return result.sort((a, b) => a.timestamp - b.timestamp)
 }
 
 function sortStacksByVolatility(
 	stacks: string[],
-	chartData: Array<{ date: string } & Record<string, number | string>>
+	chartData: Array<{ timestamp: number } & Record<string, number>>
 ): string[] {
 	if (!chartData || chartData.length < 2) return stacks
 
@@ -274,6 +277,16 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 	const [chartType, setChartType] = useState<'bar' | 'line'>('line')
 	const [timeGrouping, setTimeGrouping] = useState<TimeGrouping>('D')
+
+	const { chartInstance: exportChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
+	const { chartInstance: exportCsvInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
+	const handleChartReady = useCallback(
+		(instance: any) => {
+			handleImageReady(instance)
+			handleCsvReady(instance)
+		},
+		[handleImageReady, handleCsvReady]
+	)
 
 	const categoriesFromData = data.categories?.[dataType] ?? EMPTY_STRING_LIST
 	const stackColors = data.stackColors?.[dataType] ?? EMPTY_STACK_COLORS
@@ -376,11 +389,11 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const chartData = useMemo(() => {
 		return rawChartData
 			?.map((chartItem) => {
-				const date = chartItem.date
+				const dateSec = Math.floor(chartItem.timestamp / 1e3)
 				const res = { ...chartItem }
 
-				const mcap = normilizePriceChart?.mcaps?.[date]
-				const price = normilizePriceChart?.prices?.[date]
+				const mcap = normilizePriceChart?.mcaps?.[dateSec]
+				const price = normilizePriceChart?.prices?.[dateSec]
 
 				if (mcap && isPriceEnabled) {
 					res['Market Cap'] = mcap
@@ -392,7 +405,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 				return res
 			})
-			?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'date') > 0)
+			?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'timestamp') > 0)
 	}, [rawChartData, normilizePriceChart, isPriceEnabled])
 
 	const availableCategories =
@@ -463,7 +476,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			const first = displayData[0]
 			stacks = []
 			for (const k in first) {
-				if (k !== 'date' && k !== 'Price' && k !== 'Market Cap') {
+				if (k !== 'timestamp' && k !== 'Price' && k !== 'Market Cap') {
 					stacks.push(k)
 				}
 			}
@@ -479,6 +492,60 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					: extendedColors
 		}
 	}, [isPriceEnabled, selectedCategories, stackColors, allocationMode, displayData, chartType])
+
+	const dataset = useMemo<MultiSeriesChart2Dataset>(() => {
+		const stacks = chartConfig.stacks
+		const dimensions = ['timestamp', ...stacks]
+
+		// In bar (expand-to-100%) mode we need to normalize values per row.
+		// In line mode the displayData rows already contain all needed keys, so pass through directly.
+		if (chartType !== 'bar') {
+			return { source: displayData as unknown as MultiSeriesChart2Dataset['source'], dimensions }
+		}
+
+		const overlaySet = new Set(chartConfig.customYAxis)
+		const source = new Array(displayData.length)
+		for (let i = 0; i < displayData.length; i++) {
+			const entry = displayData[i]
+			const row: Record<string, number | null> = { timestamp: entry.timestamp }
+			// Sum only non-overlay (unlock category) series for percentage calculation.
+			// Overlay series like Price / Market Cap use separate Y-axes with dollar values
+			// and must not participate in the normalization.
+			let sum = 0
+			for (const s of stacks) {
+				if (!overlaySet.has(s)) sum += Number(entry[s]) || 0
+			}
+			for (const s of stacks) {
+				const raw = Number(entry[s]) || 0
+				if (overlaySet.has(s)) {
+					// Preserve original dollar value for overlay series
+					row[s] = raw
+				} else {
+					row[s] = sum > 0 ? (raw / sum) * 100 : 0
+				}
+			}
+			source[i] = row
+		}
+		return { source, dimensions }
+	}, [displayData, chartConfig.stacks, chartConfig.customYAxis, chartType])
+
+	const charts = useMemo<IMultiSeriesChart2Props['charts']>(() => {
+		const stacks = chartConfig.stacks
+		const colors = chartConfig.colors
+		const customYAxis = chartConfig.customYAxis
+		return stacks.map((name) => {
+			const yIdx = customYAxis?.indexOf(name) ?? -1
+			const isOverlay = yIdx !== -1
+			return {
+				type: isOverlay ? 'line' : chartType,
+				name,
+				encode: { x: 'timestamp', y: name },
+				color: colors[name],
+				...(!isOverlay ? { stack: 'A' } : {}),
+				...(isOverlay ? { yAxisIndex: yIdx + 1, valueSymbol: '$' } : {})
+			}
+		})
+	}, [chartConfig.stacks, chartConfig.colors, chartConfig.customYAxis, chartType])
 
 	const unlockedPercent =
 		data.meta?.totalLocked != null && data.meta?.maxSupply != null
@@ -506,32 +573,6 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		}
 		return false
 	})()
-
-	const prepareCsv = useMemo(() => {
-		return () => {
-			if (!displayData || displayData.length === 0) {
-				return { filename: `${data.name}-unlock-schedule.csv`, rows: [['Date']] }
-			}
-
-			const firstRow = displayData[0]
-			const columns: string[] = []
-			for (const key in firstRow) {
-				if (key !== 'date') columns.push(key)
-			}
-			const headers = ['Date', ...columns]
-
-			const rows: string[][] = [headers]
-			for (const item of displayData) {
-				const dateTimestamp = typeof item.date === 'string' ? parseInt(item.date, 10) : item.date
-				const date = new Date(dateTimestamp * 1000).toISOString().split('T')[0]
-				const row: string[] = [date, ...columns.map((col) => String(item[col] || 0))]
-				rows.push(row)
-			}
-
-			const filename = `${slug(data.name)}-unlock-schedule-${new Date().toISOString().split('T')[0]}.csv`
-			return { filename, rows }
-		}
-	}, [displayData, data.name])
 
 	if (!data) return null
 
@@ -651,7 +692,6 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								setValue={(v) => setTimeGrouping(v as TimeGrouping)}
 								values={TIME_GROUPINGS}
 							/>
-							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 							<SelectWithCombobox
 								allValues={availableCategories}
 								selectedValues={selectedCategories}
@@ -660,17 +700,21 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								labelType="smol"
 								variant="filter"
 							/>
+							<ChartCsvExportButton chartInstance={exportCsvInstance} filename={`${slug(data.name)}-unlock-schedule`} />
+							<ChartExportButton
+								chartInstance={exportChartInstance}
+								filename={`${slug(data.name)}-unlock-schedule`}
+								title={`${data.name} Unlock Schedule`}
+							/>
 						</div>
 						<Suspense fallback={<></>}>
-							<AreaChart
-								customYAxis={chartConfig.customYAxis}
-								stacks={chartConfig.stacks}
-								chartData={displayData}
+							<MultiSeriesChart2
+								dataset={dataset}
+								charts={charts}
 								hallmarks={hallmarks}
-								stackColors={chartConfig.colors}
-								isStackedChart
-								chartType={chartType}
 								expandTo100Percent={chartType === 'bar'}
+								valueSymbol={data.tokenPrice?.symbol ?? ''}
+								onReady={handleChartReady}
 							/>
 						</Suspense>
 					</LazyChart>

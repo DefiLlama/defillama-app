@@ -1261,8 +1261,9 @@ export const useFetchAndFormatChartData = ({
 			const isWeekly = groupBy === 'weekly'
 			const isMonthly = groupBy === 'monthly'
 			const store = {}
-			for (const { date, ...rest } of unlocksAndIncentivesData.chartData.documented) {
-				const dateKey = isWeekly ? lastDayOfWeek(+date * 1000) : isMonthly ? firstDayOfMonth(+date * 1000) : date
+			for (const { timestamp, ...rest } of unlocksAndIncentivesData.chartData.documented) {
+				const dateSec = Math.floor(timestamp / 1e3)
+				const dateKey = isWeekly ? lastDayOfWeek(timestamp) : isMonthly ? firstDayOfMonth(timestamp) : dateSec
 				let total = 0
 				for (const label in rest) {
 					total += rest[label]

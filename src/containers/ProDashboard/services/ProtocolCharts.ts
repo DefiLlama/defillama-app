@@ -98,19 +98,17 @@ export default class ProtocolCharts {
 		try {
 			const resolvedDataType = dataType === 'realtime' ? 'documented' : dataType
 			const data = await getProtocolEmissons(slug(protocol))
-			const chartData = data?.chartData?.[resolvedDataType] ?? []
-			if (!Array.isArray(chartData)) return []
+			const dataset = data?.datasets?.[resolvedDataType]
+			if (!dataset?.source?.length) return []
+			const valueKeys = dataset.dimensions.filter((k) => k !== 'timestamp')
 			const totals: [number, number][] = []
-			for (const entry of chartData) {
-				if (!entry || typeof entry !== 'object') continue
-				const { date, ...rest } = entry as { date?: string | number }
-				const timestamp = Number(date)
-				if (!Number.isFinite(timestamp)) continue
+			for (const entry of dataset.source) {
+				const ts = entry.timestamp as number
+				if (!Number.isFinite(ts)) continue
 				let total = 0
-				for (const key in rest) {
-					total += Number((rest as Record<string, number>)[key] ?? 0)
-				}
-				totals.push([timestamp, total])
+				for (const key of valueKeys) total += Number(entry[key] ?? 0)
+				// Return [seconds, value] to match other chart series
+				totals.push([Math.floor(ts / 1e3), total])
 			}
 			return totals.sort((a, b) => a[0] - b[0])
 		} catch (e) {

@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import * as echarts from 'echarts/core'
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { getProtocolEmissons } from '~/api/categories/protocols'
-import type { IChartProps } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { download, slug, toNiceCsvDate, toNiceDayMonthYear } from '~/utils'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
@@ -11,10 +12,12 @@ import type { UnlocksScheduleConfig } from '../types'
 import { ChartExportButton } from './ProTable/ChartExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
-const UnlocksChart = lazy(() => import('~/components/ECharts/UnlocksChart')) as React.FC<IChartProps>
+const MultiSeriesChart2 = lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 
-const EMPTY_CHART_DATA: any[] = []
 const EMPTY_STACKS: string[] = []
+const EMPTY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
 
 interface UnlocksScheduleCardProps {
 	config: UnlocksScheduleConfig
@@ -24,7 +27,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 	const { protocol, protocolName, dataType } = config
 	const resolvedDataType = dataType === 'realtime' ? 'documented' : dataType
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
-	const [chartInstance, _setChartInstance] = useState<echarts.ECharts | null>(null)
+	const { chartInstance, handleChartReady } = useChartImageExport()
 	const todayTimestamp = useMemo(() => Math.floor(Date.now() / 1000), [])
 	const todayHallmarks = useMemo<[number, string][]>(
 		() => [[todayTimestamp, toNiceDayMonthYear(todayTimestamp)]],
@@ -38,41 +41,51 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 		staleTime: 60 * 60 * 1000
 	})
 
-	const rawChartData = useMemo(() => data?.chartData?.[resolvedDataType] ?? EMPTY_CHART_DATA, [data, resolvedDataType])
-
-	const filteredChartData = useMemo(() => {
-		if (!rawChartData.length || !timePeriod || timePeriod === 'all') return rawChartData
-		const points: [number, number][] = rawChartData.map((item: any) => [Number(item.date), 1])
-		const filtered = filterDataByTimePeriod(points, timePeriod, customTimePeriod)
-		const filteredTimestamps = new Set(filtered.map(([ts]) => ts))
-		return rawChartData.filter((item: any) => filteredTimestamps.has(Number(item.date)))
-	}, [rawChartData, timePeriod, customTimePeriod])
+	// Pre-built from the API — no need to reconstruct dataset/charts from scratch.
+	const apiDataset = data?.datasets?.[resolvedDataType] ?? EMPTY_DATASET
+	const apiCharts = data?.chartsConfigs?.[resolvedDataType]
 
 	const stacks = useMemo(() => {
+		// dimensions[0] is 'timestamp', the rest are stacks
+		if (apiDataset.dimensions.length > 1) return apiDataset.dimensions.slice(1)
 		const categories = data?.categories?.[resolvedDataType] ?? EMPTY_STACKS
 		if (categories.length > 0) return categories
-		const first = rawChartData[0]
-		if (!first || typeof first !== 'object') return EMPTY_STACKS
-		return Object.keys(first).filter((key) => key !== 'date')
-	}, [data, resolvedDataType, rawChartData])
+		return EMPTY_STACKS
+	}, [apiDataset.dimensions, data, resolvedDataType])
 
-	const stackColors = useMemo(() => data?.stackColors?.[resolvedDataType] ?? {}, [data, resolvedDataType])
+	const [selectedCategories, setSelectedCategories] = useState<string[] | null>(null)
+	const activeCategories = selectedCategories ?? stacks
 
-	const hasChartData = filteredChartData.length > 0 && stacks.length > 0
+	// Apply time-period filtering on the pre-built dataset source
+	const dataset = useMemo<MultiSeriesChart2Dataset>(() => {
+		const source = apiDataset.source
+		if (!source.length || !timePeriod || timePeriod === 'all') return apiDataset
+		const points: [number, number][] = source.map((item) => [Math.floor((item.timestamp as number) / 1e3), 1])
+		const filtered = filterDataByTimePeriod(points, timePeriod, customTimePeriod)
+		const filteredSecondsSet = new Set(filtered.map(([ts]) => ts))
+		const filteredSource = source.filter((item) => filteredSecondsSet.has(Math.floor((item.timestamp as number) / 1e3)))
+		return { source: filteredSource, dimensions: apiDataset.dimensions }
+	}, [apiDataset, timePeriod, customTimePeriod])
+
+	const selectedChartsSet = useMemo(
+		() => (selectedCategories ? new Set(selectedCategories) : undefined),
+		[selectedCategories]
+	)
+
+	const hasChartData = dataset.source.length > 0 && stacks.length > 0
 	const imageTitle = `${protocolName} Unlocks Schedule`
 	const imageFilename = `${slug(protocolName || protocol)}-unlock-schedule-${resolvedDataType}`
 
 	const handleCsvExport = useCallback(() => {
 		if (!hasChartData) return
 		const headers = ['Date', ...stacks]
-		const rows = filteredChartData.map((item: any) => {
-			const dateValue = Number(item.date)
-			return [toNiceCsvDate(dateValue), ...stacks.map((stack) => item[stack] ?? '')]
+		const rows = dataset.source.map((item) => {
+			return [toNiceCsvDate(Math.floor((item.timestamp as number) / 1e3)), ...stacks.map((stack) => item[stack] ?? '')]
 		})
 		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
 		const filename = `${slug(protocolName || protocol)}-unlock-schedule-${resolvedDataType}.csv`
 		download(filename, csvContent)
-	}, [hasChartData, filteredChartData, stacks, protocolName, protocol, resolvedDataType])
+	}, [hasChartData, dataset.source, stacks, protocolName, protocol, resolvedDataType])
 
 	if (isLoading) {
 		return (
@@ -90,7 +103,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 				</div>
 				{hasChartData && (
 					<div className="flex gap-2">
-						<ChartExportButton chartInstance={() => chartInstance} filename={imageFilename} title={imageTitle} smol />
+						<ChartExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol
@@ -99,18 +112,30 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 					</div>
 				)}
 			</div>
+			{hasChartData && stacks.length > 1 && (
+				<div className="mb-2 flex justify-end">
+					<SelectWithCombobox
+						allValues={stacks}
+						selectedValues={activeCategories}
+						setSelectedValues={setSelectedCategories}
+						label="Category"
+						labelType="smol"
+						variant="filter"
+						portal
+					/>
+				</div>
+			)}
 			<div>
 				{hasChartData ? (
 					<Suspense fallback={<div className="h-[360px]" />}>
-						<UnlocksChart
-							chartData={filteredChartData}
-							stacks={stacks}
-							stackColors={stackColors}
-							customLegendName="Category"
-							customLegendOptions={stacks}
-							isStackedChart
-							hideDataZoom
+						<MultiSeriesChart2
+							dataset={dataset}
+							charts={apiCharts}
+							selectedCharts={selectedChartsSet}
 							hallmarks={todayHallmarks}
+							hideDataZoom
+							valueSymbol=""
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				) : (
