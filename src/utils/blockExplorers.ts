@@ -85,7 +85,7 @@ const blockExplorers = {
 		['https://zksync.blockscout.com/token/', 'Blockscout']
 	],
 	map: ['https://maposcan.io/address/', 'Maposcan'],
-	conflux: ['https://evm.confluxscan.net/address/', 'Conflux Scan'],
+	conflux: ['https://evm.confluxscan.org/address/', 'Conflux Scan'],
 	eos_evm: ['https://explorer.evm.eosnetwork.com/address/', 'EOS EVM Explorer'],
 	thorchain: ['https://thorchain.net/address/', 'Thorchain Explorer'],
 	sui: ['https://suiscan.xyz/mainnet/object/', 'Suiscan'],
