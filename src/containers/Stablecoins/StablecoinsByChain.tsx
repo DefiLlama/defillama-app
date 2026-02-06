@@ -139,8 +139,23 @@ export function StablecoinsByChain({
 			}
 
 			if (toFilter) {
-				const chartDataIndex = peggedNameToChartDataIndex[curr.name] as number
-				chartDataIndexes.push(chartDataIndex)
+				// `filteredIndexes` is later used to index into `peggedAssetNames`.
+				// Never push an undefined index here, or downstream chart series/dimensions can be corrupted.
+				const maybeIndex = peggedNameToChartDataIndex[curr.name]
+				if (typeof maybeIndex === 'undefined') {
+					console.warn(
+						`[StablecoinsByChain] Missing chart data index for pegged asset "${curr.name}". Skipping series index to avoid invalid peggedAssetNames indexing.`
+					)
+				} else {
+					const numericIndex = typeof maybeIndex === 'number' ? maybeIndex : Number(maybeIndex)
+					if (Number.isFinite(numericIndex)) {
+						chartDataIndexes.push(numericIndex)
+					} else {
+						console.warn(
+							`[StablecoinsByChain] Invalid chart data index for pegged asset "${curr.name}": ${String(maybeIndex)}. Skipping series index.`
+						)
+					}
+				}
 				return acc.concat(curr)
 			} else return acc
 		}, [] as any[])
@@ -353,11 +368,11 @@ export function StablecoinsByChain({
 				source: tokenInflows.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...names]
 			},
-			tokenInflowsCharts: names.map((name) => ({
+			tokenInflowsCharts: names.map((name, i) => ({
 				type: 'bar' as const,
 				name,
 				encode: { x: 'timestamp', y: name },
-				color: tokenColors[name],
+				color: tokenColors[name] ?? CHART_COLORS[i % CHART_COLORS.length],
 				stack: 'tokenInflows'
 			}))
 		}

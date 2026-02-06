@@ -1,4 +1,5 @@
 import { getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import type * as echarts from 'echarts/core'
 import * as React from 'react'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
@@ -25,6 +26,14 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 	const [selectedTokens, setSelectedTokens] = React.useState<string[]>(tokenInflowNames ?? [])
+	const selectedChartsSet = React.useMemo(() => new Set(selectedTokens), [selectedTokens])
+	const onChartReady = React.useCallback(
+		(instance: echarts.ECharts | null) => {
+			handleChartReady(instance)
+			handleChartCsvReady(instance)
+		},
+		[handleChartReady, handleChartCsvReady]
+	)
 
 	const { pieChartData, tableData } = React.useMemo(() => {
 		const pieChartData = preparePieChartData({ data: chainData?.[chartType]?.breakdown ?? {}, limit: 10 })
@@ -167,14 +176,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 					</div>
 					{chartType !== 'inflows' ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<PieChart
-								chartData={pieChartData}
-								valueSymbol=""
-								onReady={(instance) => {
-									handleChartReady(instance)
-									handleChartCsvReady(instance)
-								}}
-							/>
+							<PieChart chartData={pieChartData} valueSymbol="" onReady={onChartReady} />
 						</React.Suspense>
 					) : inflowsDataset ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
@@ -183,14 +185,11 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 								charts={inflowsCharts}
 								hideDefaultLegend={true}
 								valueSymbol="$"
-								selectedCharts={new Set(selectedTokens)}
+								selectedCharts={selectedChartsSet}
 								chartOptions={
 									selectedTokens.length > 1 ? { tooltip: { formatter: INFLOWS_TOOLTIP_FORMATTER_USD } } : undefined
 								}
-								onReady={(instance) => {
-									handleChartReady(instance)
-									handleChartCsvReady(instance)
-								}}
+								onReady={onChartReady}
 							/>
 						</React.Suspense>
 					) : null}

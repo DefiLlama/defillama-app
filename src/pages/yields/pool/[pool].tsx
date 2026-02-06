@@ -106,6 +106,7 @@ const PageView = (_props) => {
 
 	const { data: pool, isLoading: fetchingPoolData } = useYieldPoolData(query.pool)
 	const poolData = pool?.data?.[0] ?? {}
+	const poolName = poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? '')
 
 	const { chartInstance: tvlApyImageChartInstance, handleChartReady: handleTvlApyImageReady } = useChartImageExport()
 	const { chartInstance: tvlApyCsvChartInstance, handleChartReady: handleTvlApyCsvReady } = useChartCsvExport()
@@ -231,7 +232,7 @@ const PageView = (_props) => {
 			id: chartType ? `yields-${query.pool}-${chartType}` : `yields-${query.pool}`,
 			kind: 'yields',
 			poolConfigId: query.pool as string,
-			poolName: poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? ''),
+			poolName,
 			project: config?.name ?? poolData.project ?? '',
 			chain: poolData.chain ?? '',
 			chartType
@@ -382,11 +383,6 @@ const PageView = (_props) => {
 		borrowApyBarDataset.source.length > 0 ||
 		netBorrowApyDataset.source.length > 0 ||
 		poolLiquidityDataset.source.length > 0
-
-	const poolName =
-		poolData.poolMeta != null && poolData.poolMeta.length > 1
-			? `${poolData.symbol} (${poolData.poolMeta})`
-			: poolData.symbol
 
 	if (!isReady || isLoading) {
 		return (

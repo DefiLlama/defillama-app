@@ -52,6 +52,8 @@ const PageView = ({
 	const [groupBy, setGroupBy] = React.useState<GroupByType>('Weekly')
 	const [selectedBreakdownTokens, setSelectedBreakdownTokens] = React.useState<string[]>(tokens ?? [])
 	const [selectedInflowTokens, setSelectedInflowTokens] = React.useState<string[]>(tokens ?? [])
+	const selectedBreakdownTokensSet = React.useMemo(() => new Set(selectedBreakdownTokens), [selectedBreakdownTokens])
+	const selectedInflowTokensSet = React.useMemo(() => new Set(selectedInflowTokens), [selectedInflowTokens])
 
 	const inflowsTooltipFormatter = React.useMemo(() => {
 		const gb = groupBy === 'Weekly' ? 'weekly' : groupBy === 'Monthly' ? 'monthly' : 'daily'
@@ -215,7 +217,7 @@ const PageView = ({
 										expandTo100Percent={true}
 										hideDefaultLegend
 										valueSymbol="%"
-										selectedCharts={new Set(selectedBreakdownTokens)}
+										selectedCharts={selectedBreakdownTokensSet}
 										onReady={handleBreakdownReady}
 									/>
 								</React.Suspense>
@@ -249,7 +251,7 @@ const PageView = ({
 										stacked={true}
 										hideDefaultLegend
 										valueSymbol="ETH"
-										selectedCharts={new Set(selectedInflowTokens)}
+										selectedCharts={selectedInflowTokensSet}
 										chartOptions={
 											selectedInflowTokens.length > 1 ? { tooltip: { formatter: inflowsTooltipFormatter } } : undefined
 										}
@@ -262,7 +264,7 @@ const PageView = ({
 										charts={inflowsBarCharts}
 										hideDefaultLegend
 										valueSymbol="ETH"
-										selectedCharts={new Set(selectedInflowTokens)}
+										selectedCharts={selectedInflowTokensSet}
 										chartOptions={
 											selectedInflowTokens.length > 1 ? { tooltip: { formatter: inflowsTooltipFormatter } } : undefined
 										}
