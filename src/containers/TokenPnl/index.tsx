@@ -3,17 +3,15 @@ import { useQueries, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/formatters'
 import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { COINS_CHART_API } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { ComparisonPanel } from './ComparisonPanel'
@@ -298,8 +296,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	const coinParam = router.query?.coin
 
 	const coinInfoMap = useMemo(() => new Map(coinsData.map((coin) => [coin.id, coin])), [coinsData])
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const { startDate, endDate, handleStartDateChange, handleEndDateChange, validateDateRange } = useDateRangeValidation({
 		initialStartDate: unixToDateString(now - 7 * 24 * 60 * 60),
@@ -588,8 +585,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 							<span>{formatDateLabel(start)}</span>
 							<Icon name="arrow-right" width={14} height={14} />
 							<span>{formatDateLabel(end)}</span>
-							<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename="token-pnl-price" />
-							<ChartExportButton
+							<ChartExportButtons
 								chartInstance={exportChartInstance}
 								filename="token-pnl-price"
 								title="Price Over Time"
@@ -602,10 +598,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 							charts={chartData.charts}
 							hideDataZoom
 							chartOptions={chartOptions as any}
-							onReady={(instance) => {
-								handleChartReady(instance)
-								handleChartCsvReady(instance)
-							}}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				</div>

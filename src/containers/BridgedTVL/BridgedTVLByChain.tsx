@@ -1,8 +1,6 @@
 import { getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
-import type * as echarts from 'echarts/core'
 import * as React from 'react'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { createInflowsTooltipFormatter, preparePieChartData } from '~/components/ECharts/formatters'
 import { IPieChartProps } from '~/components/ECharts/types'
 import { FormattedName } from '~/components/FormattedName'
@@ -12,8 +10,7 @@ import { LinkPreviewCard } from '~/components/SEO'
 import { bridgedChainColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -23,17 +20,9 @@ const INFLOWS_TOOLTIP_FORMATTER_USD = createInflowsTooltipFormatter({ groupBy: '
 
 export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInflowNames, chainName = 'All Chains' }) {
 	const [chartType, setChartType] = React.useState('total')
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const { chartInstance: exportChartInstance, handleChartReady: onChartReady } = useGetChartInstance()
 	const [selectedTokens, setSelectedTokens] = React.useState<string[]>(tokenInflowNames ?? [])
 	const selectedChartsSet = React.useMemo(() => new Set(selectedTokens), [selectedTokens])
-	const onChartReady = React.useCallback(
-		(instance: echarts.ECharts | null) => {
-			handleChartReady(instance)
-			handleChartCsvReady(instance)
-		},
-		[handleChartReady, handleChartCsvReady]
-	)
 
 	const { pieChartData, tableData } = React.useMemo(() => {
 		const pieChartData = preparePieChartData({ data: chainData?.[chartType]?.breakdown ?? {}, limit: 10 })
@@ -123,7 +112,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 					) : null}
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 						<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 							{chartTypes.map(({ type, name }) =>
 								Boolean(chainData[type]?.total) && chainData[type]?.total !== '0' ? (
@@ -167,8 +156,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 								portal
 							/>
 						) : null}
-						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={`${slug(chainName)}-bridged-tvl`} />
-						<ChartExportButton
+						<ChartExportButtons
 							chartInstance={exportChartInstance}
 							filename={`${slug(chainName)}-bridged-tvl`}
 							title={`${chainName} Bridged TVL`}

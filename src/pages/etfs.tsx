@@ -1,15 +1,13 @@
 import { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { getETFData } from '~/api/categories/protocols'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
 import { Select } from '~/components/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { firstDayOfMonth, formattedNum, lastDayOfWeek } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -87,8 +85,7 @@ const DEFAULT_SORTING_STATE = [{ id: 'aum', desc: true }]
 const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps) => {
 	const [groupBy, setGroupBy] = React.useState<(typeof groupByList)[number]>('Weekly')
 	const [tickers, setTickers] = React.useState(['Bitcoin', 'Ethereum', 'Solana'])
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const chartData = React.useMemo(() => {
 		const bitcoin = {}
@@ -193,7 +190,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 					</div>
 				</div>
 				<div className="flex w-full flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="flex flex-wrap justify-end gap-2 p-2">
+					<div className="flex flex-wrap justify-end gap-2 p-2 pb-0">
 						<h2 className="mr-auto text-lg font-semibold">Flows (Source: Farside)</h2>
 						<TagGroup setValue={(val) => setGroupBy(val)} values={groupByList} selectedValue={groupBy} />
 						<Select
@@ -205,18 +202,14 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 							variant="filter-responsive"
 							portal
 						/>
-						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename="etf-flows" />
-						<ChartExportButton chartInstance={exportChartInstance} filename="etf-flows" title="ETF Flows" />
+						<ChartExportButtons chartInstance={chartInstance} filename="etf-flows" title="ETF Flows" />
 					</div>
 					<React.Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
 							dataset={finalCharts.dataset}
 							charts={finalCharts.charts}
 							groupBy={groupBy === 'Cumulative' ? 'daily' : (groupBy.toLowerCase() as 'daily' | 'weekly' | 'monthly')}
-							onReady={(instance) => {
-								handleChartReady(instance)
-								handleChartCsvReady(instance)
-							}}
+							onReady={handleChartReady}
 						/>
 					</React.Suspense>
 				</div>

@@ -1,22 +1,20 @@
-import type * as echarts from 'echarts/core'
 import type { GetStaticPropsContext } from 'next'
 import Router, { useRouter } from 'next/router'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { createAggregateTooltipFormatter, createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { Switch } from '~/components/Switch'
 import { oldBlue } from '~/constants/colors'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
 import { formatTvlsByChainFromTokens, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -95,22 +93,14 @@ function ChainsChartCard({
 
 	const selectedChainsSet = React.useMemo(() => new Set(selectedChains), [selectedChains])
 
-	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
-	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
-	const handleReady = React.useCallback(
-		(instance: echarts.ECharts | null) => {
-			handleImageReady(instance)
-			handleCsvReady(instance)
-		},
-		[handleImageReady, handleCsvReady]
-	)
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const exportFilenameBase = `${slug(protocolName)}-chains`
 	const exportTitle = `${protocolName} Chains`
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 				<h1 className="mr-auto text-base font-semibold">Chains</h1>
 				{allChains.length > 1 ? (
 					<SelectWithCombobox
@@ -123,8 +113,7 @@ function ChainsChartCard({
 						portal
 					/>
 				) : null}
-				<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilenameBase} />
-				<ChartExportButton chartInstance={imageChartInstance} filename={exportFilenameBase} title={exportTitle} />
+				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="h-[360px]" />}>
 				<MultiSeriesChart2
@@ -133,7 +122,7 @@ function ChainsChartCard({
 					valueSymbol="$"
 					selectedCharts={selectedChainsSet}
 					chartOptions={{ tooltip: { formatter: AGG_TOOLTIP_FORMATTER_USD } }}
-					onReady={handleReady}
+					onReady={handleChartReady}
 				/>
 			</React.Suspense>
 		</div>
@@ -155,22 +144,14 @@ function TokenValuesUSDChartCard({
 
 	const selectedTokensUSDSet = React.useMemo(() => new Set(selectedTokensUSD), [selectedTokensUSD])
 
-	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
-	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
-	const handleReady = React.useCallback(
-		(instance: echarts.ECharts | null) => {
-			handleImageReady(instance)
-			handleCsvReady(instance)
-		},
-		[handleImageReady, handleCsvReady]
-	)
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const exportFilenameBase = `${slug(protocolName)}-token-values-usd`
 	const exportTitle = `${protocolName} Token Values (USD)`
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 				<h1 className="mr-auto text-base font-semibold">Token Values (USD)</h1>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
@@ -183,8 +164,7 @@ function TokenValuesUSDChartCard({
 						portal
 					/>
 				) : null}
-				<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilenameBase} />
-				<ChartExportButton chartInstance={imageChartInstance} filename={exportFilenameBase} title={exportTitle} />
+				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="h-[360px]" />}>
 				<MultiSeriesChart2
@@ -193,7 +173,7 @@ function TokenValuesUSDChartCard({
 					valueSymbol="$"
 					selectedCharts={selectedTokensUSDSet}
 					chartOptions={{ tooltip: { formatter: AGG_TOOLTIP_FORMATTER_USD } }}
-					onReady={handleReady}
+					onReady={handleChartReady}
 				/>
 			</React.Suspense>
 		</div>
@@ -217,22 +197,14 @@ function TokensBreakdownPieChartCard({
 		return chartData.filter((d) => selectedTokensSet.has(d.name))
 	}, [chartData, selectedTokens.length, selectedTokensSet])
 
-	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
-	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
-	const handleReady = React.useCallback(
-		(instance: echarts.ECharts | null) => {
-			handleImageReady(instance)
-			handleCsvReady(instance)
-		},
-		[handleImageReady, handleCsvReady]
-	)
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const exportFilenameBase = `${slug(protocolName)}-tokens-breakdown`
 	const exportTitle = `${protocolName} Tokens Breakdown`
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 				<h1 className="mr-auto text-base font-semibold">Tokens Breakdown</h1>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
@@ -245,11 +217,10 @@ function TokensBreakdownPieChartCard({
 						portal
 					/>
 				) : null}
-				<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilenameBase} />
-				<ChartExportButton chartInstance={imageChartInstance} filename={exportFilenameBase} title={exportTitle} />
+				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="h-[360px]" />}>
-				<PieChart chartData={filteredChartData} onReady={handleReady} />
+				<PieChart chartData={filteredChartData} onReady={handleChartReady} />
 			</React.Suspense>
 		</div>
 	)
@@ -270,22 +241,14 @@ function TokenBalancesRawChartCard({
 
 	const selectedTokensRawSet = React.useMemo(() => new Set(selectedTokensRaw), [selectedTokensRaw])
 
-	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
-	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
-	const handleReady = React.useCallback(
-		(instance: echarts.ECharts | null) => {
-			handleImageReady(instance)
-			handleCsvReady(instance)
-		},
-		[handleImageReady, handleCsvReady]
-	)
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const exportFilenameBase = `${slug(protocolName)}-token-balances-raw`
 	const exportTitle = `${protocolName} Token Balances (Raw Quantities)`
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 				<h1 className="mr-auto text-base font-semibold">Token Balances (Raw Quantities)</h1>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
@@ -298,8 +261,7 @@ function TokenBalancesRawChartCard({
 						portal
 					/>
 				) : null}
-				<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilenameBase} />
-				<ChartExportButton chartInstance={imageChartInstance} filename={exportFilenameBase} title={exportTitle} />
+				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="h-[360px]" />}>
 				<MultiSeriesChart2
@@ -307,7 +269,7 @@ function TokenBalancesRawChartCard({
 					charts={charts}
 					valueSymbol=""
 					selectedCharts={selectedTokensRawSet}
-					onReady={handleReady}
+					onReady={handleChartReady}
 				/>
 			</React.Suspense>
 		</div>
@@ -317,25 +279,16 @@ function TokenBalancesRawChartCard({
 function USDInflowsChartCard({ protocolName, dataset }: { protocolName: string; dataset: MultiSeriesChart2Dataset }) {
 	const allSeries = React.useMemo(() => ['USD Inflows'], [])
 
-	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
-	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
-	const handleReady = React.useCallback(
-		(instance: echarts.ECharts | null) => {
-			handleImageReady(instance)
-			handleCsvReady(instance)
-		},
-		[handleImageReady, handleCsvReady]
-	)
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const exportFilenameBase = `${slug(protocolName)}-usd-inflows`
 	const exportTitle = `${protocolName} USD Inflows`
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 				<h1 className="mr-auto text-base font-semibold">USD Inflows</h1>
-				<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilenameBase} />
-				<ChartExportButton chartInstance={imageChartInstance} filename={exportFilenameBase} title={exportTitle} />
+				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="h-[360px]" />}>
 				<MultiSeriesChart2
@@ -343,7 +296,7 @@ function USDInflowsChartCard({ protocolName, dataset }: { protocolName: string; 
 					charts={USD_INFLOWS_CHARTS}
 					valueSymbol="$"
 					selectedCharts={new Set(allSeries)}
-					onReady={handleReady}
+					onReady={handleChartReady}
 				/>
 			</React.Suspense>
 		</div>
@@ -365,22 +318,14 @@ function InflowsByTokenChartCard({
 
 	const selectedTokenInflowsSet = React.useMemo(() => new Set(selectedTokenInflows), [selectedTokenInflows])
 
-	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
-	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
-	const handleReady = React.useCallback(
-		(instance: echarts.ECharts | null) => {
-			handleImageReady(instance)
-			handleCsvReady(instance)
-		},
-		[handleImageReady, handleCsvReady]
-	)
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const exportFilenameBase = `${slug(protocolName)}-inflows-by-token`
 	const exportTitle = `${protocolName} Inflows by Token`
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 				<h1 className="mr-auto text-base font-semibold">Inflows by Token</h1>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
@@ -393,8 +338,7 @@ function InflowsByTokenChartCard({
 						portal
 					/>
 				) : null}
-				<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilenameBase} />
-				<ChartExportButton chartInstance={imageChartInstance} filename={exportFilenameBase} title={exportTitle} />
+				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="h-[360px]" />}>
 				<MultiSeriesChart2
@@ -406,7 +350,7 @@ function InflowsByTokenChartCard({
 					chartOptions={
 						selectedTokenInflowsSet.size > 1 ? { tooltip: { formatter: INFLOWS_TOOLTIP_FORMATTER_USD } } : undefined
 					}
-					onReady={handleReady}
+					onReady={handleChartReady}
 				/>
 			</React.Suspense>
 		</div>
@@ -551,15 +495,13 @@ export default function Protocols(props: CexAssetsPageProps) {
 				<>
 					{props.ownToken ? (
 						<div className="col-span-full flex items-center justify-end rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-							<label className="flex cursor-pointer flex-nowrap items-center gap-2">
-								<input
-									type="checkbox"
-									checked={includeOwnTokens}
-									onChange={toggleIncludeOwnTokens}
-									className="h-4 w-4 cursor-pointer"
-								/>
-								<span className="text-sm">Include own tokens ({props.ownToken})</span>
-							</label>
+							<Switch
+								value="includeOwnTokens"
+								label={`Include own tokens (${props.ownToken})`}
+								checked={includeOwnTokens}
+								onChange={toggleIncludeOwnTokens}
+								className="gap-2"
+							/>
 						</div>
 					) : null}
 					<div className="grid grid-cols-2 gap-2">

@@ -11,14 +11,12 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { useEffect, useId, useMemo, useRef } from 'react'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CHART_COLORS } from '~/constants/colors'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useChartResize } from '~/hooks/useChartResize'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useMedia } from '~/hooks/useMedia'
 import { formatNum, formattedNum, slug } from '~/utils'
 import { formatChartEmphasisDate, formatTooltipChartDate } from '../formatters'
@@ -416,8 +414,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	const [isThemeDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 	const chartRef = useRef<echarts.ECharts | null>(null)
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -566,25 +563,15 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	const exportFilename = imageExportFilename || (title ? slug(title) : 'multi-series-chart')
 	const exportTitle = imageExportTitle
 
-	const updateExportInstance = useCallback(
-		(instance: echarts.ECharts | null) => {
-			if (shouldEnableImageExport) {
-				handleChartReady(instance)
-			}
-			if (shouldEnableCSVDownload) {
-				handleChartCsvReady(instance)
-			}
-		},
-		[shouldEnableImageExport, handleChartReady, shouldEnableCSVDownload, handleChartCsvReady]
-	)
-
 	useEffect(() => {
 		// create instance
 		const el = document.getElementById(id)
 		if (!el) return
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
 		chartRef.current = instance
-		updateExportInstance(instance)
+		if (shouldEnableCSVDownload || shouldEnableImageExport) {
+			handleChartReady(instance)
+		}
 
 		if (onReady) {
 			onReady(instance)
@@ -703,7 +690,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				instance.off('globalout', onGlobalOut)
 				chartRef.current = null
 				instance.dispose()
-				updateExportInstance(null)
+				handleChartReady(null)
 				if (onReady) {
 					onReady(null)
 				}
@@ -713,7 +700,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		return () => {
 			chartRef.current = null
 			instance.dispose()
-			updateExportInstance(null)
+			handleChartReady(null)
 			if (onReady) {
 				onReady(null)
 			}
@@ -732,21 +719,24 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		valueSymbol,
 		onReady,
 		tooltipFormatter,
-		updateExportInstance,
-		effectiveCharts
+		effectiveCharts,
+		handleChartReady,
+		shouldEnableCSVDownload,
+		shouldEnableImageExport
 	])
 
 	return (
 		<div className="relative">
 			{title || shouldEnableCSVDownload || shouldEnableImageExport ? (
-				<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
+				<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 					{title ? <h1 className="mr-auto text-base font-semibold">{title}</h1> : null}
-					{shouldEnableCSVDownload ? (
-						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={exportFilename} />
-					) : null}
-					{shouldEnableImageExport ? (
-						<ChartExportButton chartInstance={exportChartInstance} filename={exportFilename} title={exportTitle} />
-					) : null}
+					<ChartExportButtons
+						chartInstance={chartInstance}
+						filename={exportFilename}
+						title={exportTitle}
+						showCsv={shouldEnableCSVDownload}
+						showPng={shouldEnableImageExport}
+					/>
 				</div>
 			) : null}
 			<div id={id} className="h-[360px]" style={height ? { height } : undefined}></div>

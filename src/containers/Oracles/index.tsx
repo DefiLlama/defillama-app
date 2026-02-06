@@ -78,7 +78,7 @@ export const OraclesByChain = ({
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain || 'All'} />
 
 			<div className="flex flex-col gap-1 xl:flex-row">
-				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<React.Suspense fallback={<></>}>
 						<PieChart
 							chartData={tokenTvls}
@@ -90,7 +90,7 @@ export const OraclesByChain = ({
 						/>
 					</React.Suspense>
 				</div>
-				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<React.Suspense fallback={<></>}>
 						<MultiSeriesChart2
 							dataset={dominanceDataset}

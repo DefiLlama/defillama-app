@@ -270,7 +270,7 @@ const PageView = () => {
 						</p>
 					</div>
 				</div>
-				<div className="col-span-2 min-h-[480px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<div className="col-span-2 min-h-[480px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<Suspense fallback={<></>}>
 						<MultiSeriesChart2
 							title="Strategy APY"
@@ -344,7 +344,7 @@ const PageView = () => {
 					lendHistory?.data?.length && (
 						<>
 							{barDatasetSupply?.source?.length ? (
-								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<Suspense fallback={<></>}>
 										<MultiSeriesChart2
 											title="Supply APY"
@@ -360,7 +360,7 @@ const PageView = () => {
 							) : null}
 
 							{barDatasetBorrow?.source?.length ? (
-								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<Suspense fallback={<></>}>
 										<MultiSeriesChart2
 											title="Borrow APY"
@@ -376,7 +376,7 @@ const PageView = () => {
 							) : null}
 
 							{barDatasetFarm?.source?.length ? (
-								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<Suspense fallback={<></>}>
 										<MultiSeriesChart2
 											title="Farm APY"

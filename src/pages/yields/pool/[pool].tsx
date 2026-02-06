@@ -1,10 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import type * as echarts from 'echarts/core'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
@@ -23,8 +21,7 @@ import {
 	useYieldConfigData,
 	useYieldPoolData
 } from '~/containers/Yields/queries/client'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
 import { fetchApi } from '~/utils/async'
@@ -108,56 +105,18 @@ const PageView = (_props) => {
 	const poolData = pool?.data?.[0] ?? {}
 	const poolName = poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? '')
 
-	const { chartInstance: tvlApyImageChartInstance, handleChartReady: handleTvlApyImageReady } = useChartImageExport()
-	const { chartInstance: tvlApyCsvChartInstance, handleChartReady: handleTvlApyCsvReady } = useChartCsvExport()
+	const { chartInstance: tvlApyChartInstance, handleChartReady: handleTvlApyReady } = useGetChartInstance()
 
-	const { chartInstance: supplyApyImageChartInstance, handleChartReady: handleSupplyApyImageReady } =
-		useChartImageExport()
-	const { chartInstance: supplyApyCsvChartInstance, handleChartReady: handleSupplyApyCsvReady } = useChartCsvExport()
+	const { chartInstance: supplyApyChartInstance, handleChartReady: handleSupplyApyReady } = useGetChartInstance()
 
-	const { chartInstance: supplyApy7dImageChartInstance, handleChartReady: handleSupplyApy7dImageReady } =
-		useChartImageExport()
-	const { chartInstance: supplyApy7dCsvChartInstance, handleChartReady: handleSupplyApy7dCsvReady } =
-		useChartCsvExport()
+	const { chartInstance: supplyApy7dChartInstance, handleChartReady: handleSupplyApy7dReady } = useGetChartInstance()
 
-	const { chartInstance: borrowApyImageChartInstance, handleChartReady: handleBorrowApyImageReady } =
-		useChartImageExport()
-	const { chartInstance: borrowApyCsvChartInstance, handleChartReady: handleBorrowApyCsvReady } = useChartCsvExport()
+	const { chartInstance: borrowApyChartInstance, handleChartReady: handleBorrowApyReady } = useGetChartInstance()
 
-	const { chartInstance: netBorrowApyImageChartInstance, handleChartReady: handleNetBorrowApyImageReady } =
-		useChartImageExport()
-	const { chartInstance: netBorrowApyCsvChartInstance, handleChartReady: handleNetBorrowApyCsvReady } =
-		useChartCsvExport()
+	const { chartInstance: netBorrowApyChartInstance, handleChartReady: handleNetBorrowApyReady } = useGetChartInstance()
 
-	const { chartInstance: poolLiquidityImageChartInstance, handleChartReady: handlePoolLiquidityImageReady } =
-		useChartImageExport()
-	const { chartInstance: poolLiquidityCsvChartInstance, handleChartReady: handlePoolLiquidityCsvReady } =
-		useChartCsvExport()
-
-	const handleTvlApyReady = (instance: echarts.ECharts | null) => {
-		handleTvlApyImageReady(instance)
-		handleTvlApyCsvReady(instance)
-	}
-	const handleSupplyApyReady = (instance: echarts.ECharts | null) => {
-		handleSupplyApyImageReady(instance)
-		handleSupplyApyCsvReady(instance)
-	}
-	const handleSupplyApy7dReady = (instance: echarts.ECharts | null) => {
-		handleSupplyApy7dImageReady(instance)
-		handleSupplyApy7dCsvReady(instance)
-	}
-	const handleBorrowApyReady = (instance: echarts.ECharts | null) => {
-		handleBorrowApyImageReady(instance)
-		handleBorrowApyCsvReady(instance)
-	}
-	const handleNetBorrowApyReady = (instance: echarts.ECharts | null) => {
-		handleNetBorrowApyImageReady(instance)
-		handleNetBorrowApyCsvReady(instance)
-	}
-	const handlePoolLiquidityReady = (instance: echarts.ECharts | null) => {
-		handlePoolLiquidityImageReady(instance)
-		handlePoolLiquidityCsvReady(instance)
-	}
+	const { chartInstance: poolLiquidityChartInstance, handleChartReady: handlePoolLiquidityReady } =
+		useGetChartInstance()
 
 	const riskUrl = poolData?.project
 		? `${YIELD_RISK_API_EXPONENTIAL}?${new URLSearchParams({
@@ -462,9 +421,8 @@ const PageView = (_props) => {
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex items-center justify-end gap-1 p-2">
 						<AddToDashboardButton chartConfig={getYieldsChartConfig()} smol />
-						<ChartCsvExportButton chartInstance={tvlApyCsvChartInstance} filename={`${query.pool}-tvl-apy`} />
-						<ChartExportButton
-							chartInstance={tvlApyImageChartInstance}
+						<ChartExportButtons
+							chartInstance={tvlApyChartInstance}
 							filename={`${query.pool}-tvl-apy`}
 							title={`${poolName} - ${projectName} (${poolData.chain})`}
 						/>
@@ -609,16 +567,12 @@ const PageView = (_props) => {
 				) : (
 					<>
 						{supplyApyBarDataset.source.length ? (
-							<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
+							<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 									<h2 className="mr-auto text-base font-semibold">Supply APY</h2>
 									<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy')} smol />
-									<ChartCsvExportButton
-										chartInstance={supplyApyCsvChartInstance}
-										filename={`${query.pool}-supply-apy`}
-									/>
-									<ChartExportButton
-										chartInstance={supplyApyImageChartInstance}
+									<ChartExportButtons
+										chartInstance={supplyApyChartInstance}
 										filename={`${query.pool}-supply-apy`}
 										title="Supply APY"
 									/>
@@ -635,16 +589,12 @@ const PageView = (_props) => {
 							</div>
 						) : null}
 						{supplyApy7dDataset.source.length ? (
-							<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
+							<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 									<h2 className="mr-auto text-base font-semibold">7 day moving average of Supply APY</h2>
 									<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy-7d')} smol />
-									<ChartCsvExportButton
-										chartInstance={supplyApy7dCsvChartInstance}
-										filename={`${query.pool}-supply-apy-7d-avg`}
-									/>
-									<ChartExportButton
-										chartInstance={supplyApy7dImageChartInstance}
+									<ChartExportButtons
+										chartInstance={supplyApy7dChartInstance}
 										filename={`${query.pool}-supply-apy-7d-avg`}
 										title="7 day moving average of Supply APY"
 									/>
@@ -670,13 +620,12 @@ const PageView = (_props) => {
 			) : hasBorrowCharts ? (
 				<div className="grid min-h-[408px] grid-cols-2 gap-2 rounded-md">
 					{borrowApyBarDataset.source.length ? (
-						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
+						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 								<h2 className="mr-auto text-base font-semibold">Borrow APY</h2>
 								<AddToDashboardButton chartConfig={getYieldsChartConfig('borrow-apy')} smol />
-								<ChartCsvExportButton chartInstance={borrowApyCsvChartInstance} filename={`${query.pool}-borrow-apy`} />
-								<ChartExportButton
-									chartInstance={borrowApyImageChartInstance}
+								<ChartExportButtons
+									chartInstance={borrowApyChartInstance}
 									filename={`${query.pool}-borrow-apy`}
 									title="Borrow APY"
 								/>
@@ -693,16 +642,12 @@ const PageView = (_props) => {
 						</div>
 					) : null}
 					{netBorrowApyDataset.source.length ? (
-						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
+						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 								<h2 className="mr-auto text-base font-semibold">Net Borrow APY</h2>
 								<AddToDashboardButton chartConfig={getYieldsChartConfig('net-borrow-apy')} smol />
-								<ChartCsvExportButton
-									chartInstance={netBorrowApyCsvChartInstance}
-									filename={`${query.pool}-net-borrow-apy`}
-								/>
-								<ChartExportButton
-									chartInstance={netBorrowApyImageChartInstance}
+								<ChartExportButtons
+									chartInstance={netBorrowApyChartInstance}
 									filename={`${query.pool}-net-borrow-apy`}
 									title="Net Borrow APY"
 								/>
@@ -719,8 +664,8 @@ const PageView = (_props) => {
 					) : null}
 
 					{poolLiquidityDataset.source.length ? (
-						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
+						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 								<h2 className="mr-auto text-base font-semibold">Pool Liquidity</h2>
 								<SelectWithCombobox
 									allValues={LIQUIDITY_LEGEND_OPTIONS}
@@ -732,12 +677,8 @@ const PageView = (_props) => {
 									portal
 								/>
 								<AddToDashboardButton chartConfig={getYieldsChartConfig('pool-liquidity')} smol />
-								<ChartCsvExportButton
-									chartInstance={poolLiquidityCsvChartInstance}
-									filename={`${query.pool}-pool-liquidity`}
-								/>
-								<ChartExportButton
-									chartInstance={poolLiquidityImageChartInstance}
+								<ChartExportButtons
+									chartInstance={poolLiquidityChartInstance}
 									filename={`${query.pool}-pool-liquidity`}
 									title="Pool Liquidity"
 								/>

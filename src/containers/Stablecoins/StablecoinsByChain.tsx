@@ -2,8 +2,7 @@ import type * as echarts from 'echarts/core'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { createInflowsTooltipFormatter, preparePieChartData } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
@@ -21,8 +20,7 @@ import {
 } from '~/containers/Stablecoins/Filters'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from '~/containers/Stablecoins/hooks'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, getPercentChange, slug, toNiceCsvDate, toNumberOrNullFromQueryParam } from '~/utils'
 import { useFormatStablecoinQueryParams } from './hooks'
 import { PeggedAssetsTable } from './Table'
@@ -69,21 +67,15 @@ export function StablecoinsByChain({
 			? ['Total Market Cap', 'USD Inflows', 'Token Market Caps', 'Token Inflows', 'Pie', 'Dominance']
 			: ['Total Market Cap', 'Token Market Caps', 'Pie', 'Dominance', 'USD Inflows', 'Token Inflows']
 
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const { chartInstance: exportChartInstance, handleChartReady: handleExportChartReady } = useGetChartInstance()
 
 	const router = useRouter()
 
 	const minMcap = toNumberOrNullFromQueryParam(router.query.minMcap)
 	const maxMcap = toNumberOrNullFromQueryParam(router.query.maxMcap)
 
-	const handleExportChartReady = React.useCallback(
-		(instance: echarts.ECharts | null) => {
-			handleChartReady(instance)
-			handleChartCsvReady(instance)
-		},
-		[handleChartReady, handleChartCsvReady]
-	)
+	// `handleExportChartReady` is passed to charts' `onReady` prop to share
+	// a single ECharts instance across CSV + PNG exports.
 
 	// Selected arrays already have excludes filtered out at hook level
 	const { selectedAttributes, selectedPegTypes, selectedBackings } = useFormatStablecoinQueryParams({
@@ -469,8 +461,7 @@ export function StablecoinsByChain({
 							chartType={chartType}
 							setChartType={setChartType}
 							stablecoinsChartConfig={stablecoinsChartConfig}
-							exportChartCsvInstance={exportChartCsvInstance}
-							exportChartInstance={exportChartInstance}
+							chartInstance={exportChartInstance}
 							exportFilename={getImageExportFilename()}
 							exportTitle={getImageExportTitle()}
 							onReady={handleExportChartReady}
@@ -480,11 +471,10 @@ export function StablecoinsByChain({
 						/>
 					) : (
 						<>
-							<div className="flex items-center gap-2 p-2">
+							<div className="flex items-center gap-2 p-2 pb-0">
 								<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 								<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
-								<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={getImageExportFilename()} />
-								<ChartExportButton
+								<ChartExportButtons
 									chartInstance={exportChartInstance}
 									filename={getImageExportFilename()}
 									title={getImageExportTitle()}
@@ -556,8 +546,7 @@ function TokenInflowsChartPanel({
 	chartType,
 	setChartType,
 	stablecoinsChartConfig,
-	exportChartCsvInstance,
-	exportChartInstance,
+	chartInstance,
 	exportFilename,
 	exportTitle,
 	onReady,
@@ -569,8 +558,7 @@ function TokenInflowsChartPanel({
 	chartType: string
 	setChartType: (next: string) => void
 	stablecoinsChartConfig: StablecoinsChartConfig
-	exportChartCsvInstance: () => echarts.ECharts | null
-	exportChartInstance: () => echarts.ECharts | null
+	chartInstance: () => echarts.ECharts | null
 	exportFilename: string
 	exportTitle: string
 	onReady: (instance: echarts.ECharts | null) => void
@@ -583,7 +571,7 @@ function TokenInflowsChartPanel({
 
 	return (
 		<>
-			<div className="flex items-center gap-2 p-2">
+			<div className="flex items-center gap-2 p-2 pb-0">
 				<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 				<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
 				{tokenInflowNames.length > 0 ? (
@@ -597,8 +585,7 @@ function TokenInflowsChartPanel({
 						portal
 					/>
 				) : null}
-				<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={exportFilename} />
-				<ChartExportButton chartInstance={exportChartInstance} filename={exportFilename} title={exportTitle} />
+				<ChartExportButtons chartInstance={chartInstance} filename={exportFilename} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2

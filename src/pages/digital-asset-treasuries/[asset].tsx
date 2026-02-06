@@ -2,8 +2,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import type { GetStaticPropsContext } from 'next'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
@@ -14,8 +13,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import { TRADFI_API } from '~/constants'
 import { getDATOverviewDataByAsset, IDATInstitutions, IDATOverviewDataByAssetProps } from '~/containers/DAT/queries'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -171,7 +169,7 @@ export default function TreasuriesByAsset({
 						Report incorrect data
 					</BasicLink>
 				</div>
-				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<Suspense fallback={<></>}>
 						<MultiSeriesChart2
 							dataset={dailyFlowsChart.dataset}
@@ -414,12 +412,11 @@ const MNAVChart = ({
 		return new Set(selectedInstitution)
 	}, [selectedInstitution])
 
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	return (
 		<div className="col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-			<div className="flex items-center justify-end gap-2 p-2">
+			<div className="flex items-center justify-end gap-2 p-2 pb-0">
 				<h2 className="mr-auto text-base font-semibold">{title}</h2>
 				<SelectWithCombobox
 					allValues={institutionsNames}
@@ -430,12 +427,8 @@ const MNAVChart = ({
 					variant="filter"
 					portal
 				/>
-				<ChartCsvExportButton
-					chartInstance={exportChartCsvInstance}
-					filename={`${slug(metadata.name)}-${slug(title)}`}
-				/>
-				<ChartExportButton
-					chartInstance={exportChartInstance}
+				<ChartExportButtons
+					chartInstance={chartInstance}
 					filename={`${slug(metadata.name)}-${slug(title)}`}
 					title={`${metadata.name} ${title}`}
 				/>
@@ -447,10 +440,7 @@ const MNAVChart = ({
 					dataset={data.dataset}
 					valueSymbol=""
 					hideDataZoom={data.dataset.source.length < 2}
-					onReady={(instance) => {
-						handleChartReady(instance)
-						handleChartCsvReady(instance)
-					}}
+					onReady={handleChartReady}
 				/>
 			</Suspense>
 		</div>

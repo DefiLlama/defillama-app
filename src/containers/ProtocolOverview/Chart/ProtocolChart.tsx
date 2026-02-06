@@ -11,7 +11,7 @@ import {
 	useFetchProtocolTransactions
 } from '~/api/categories/protocols/client'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatBarChart, formatLineChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
@@ -339,7 +339,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 					) : null}
 					<EmbedChart />
 					<CSVDownloadButton prepareCsv={prepareCsv} smol />
-					<ChartExportButton
+					<ChartPngExportButton
 						chartInstance={overviewChartInstance}
 						filename={overviewImageFilename}
 						title={overviewImageTitle}

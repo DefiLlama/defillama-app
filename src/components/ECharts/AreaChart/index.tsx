@@ -1,12 +1,10 @@
 import * as echarts from 'echarts/core'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useChartResize } from '~/hooks/useChartResize'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug } from '~/utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
@@ -46,8 +44,7 @@ export default function AreaChart({
 	const id = useId()
 	const shouldEnableCSVDownload = !hideDownloadButton
 	const shouldEnableImageExport = enableImageExport ?? shouldEnableCSVDownload
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
 
@@ -311,14 +308,9 @@ export default function AreaChart({
 	const exportTitle = imageExportTitle || title
 	const updateExportInstance = useCallback(
 		(instance: echarts.ECharts | null) => {
-			if (shouldEnableImageExport) {
-				handleChartReady(instance)
-			}
-			if (shouldEnableCSVDownload) {
-				handleChartCsvReady(instance)
-			}
+			if (shouldEnableImageExport || shouldEnableCSVDownload) handleChartReady(instance)
 		},
-		[shouldEnableImageExport, handleChartReady, shouldEnableCSVDownload, handleChartCsvReady]
+		[shouldEnableImageExport, handleChartReady, shouldEnableCSVDownload]
 	)
 
 	useEffect(() => {
@@ -441,12 +433,13 @@ export default function AreaChart({
 							portal
 						/>
 					)}
-					{shouldEnableCSVDownload && (
-						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={exportFilename} />
-					)}
-					{shouldEnableImageExport && (
-						<ChartExportButton chartInstance={exportChartInstance} filename={exportFilename} title={exportTitle} />
-					)}
+					<ChartExportButtons
+						chartInstance={chartInstance}
+						filename={exportFilename}
+						title={exportTitle}
+						showCsv={shouldEnableCSVDownload}
+						showPng={shouldEnableImageExport}
+					/>
 				</div>
 			) : null}
 			<div

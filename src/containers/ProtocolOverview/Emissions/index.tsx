@@ -1,8 +1,7 @@
 import Link from 'next/link'
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/categories/protocols/client'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
@@ -12,8 +11,7 @@ import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import Pagination from './Pagination'
 import { IEmission } from './types'
@@ -277,15 +275,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const [chartType, setChartType] = useState<'bar' | 'line'>('line')
 	const [timeGrouping, setTimeGrouping] = useState<TimeGrouping>('D')
 
-	const { chartInstance: exportChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
-	const { chartInstance: exportCsvInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
-	const handleChartReady = useCallback(
-		(instance: any) => {
-			handleImageReady(instance)
-			handleCsvReady(instance)
-		},
-		[handleImageReady, handleCsvReady]
-	)
+	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const categoriesFromData = data.categories?.[dataType] ?? EMPTY_STRING_LIST
 	const stackColors = data.stackColors?.[dataType] ?? EMPTY_STACK_COLORS
@@ -699,8 +689,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								labelType="smol"
 								variant="filter"
 							/>
-							<ChartCsvExportButton chartInstance={exportCsvInstance} filename={`${slug(data.name)}-unlock-schedule`} />
-							<ChartExportButton
+							<ChartExportButtons
 								chartInstance={exportChartInstance}
 								filename={`${slug(data.name)}-unlock-schedule`}
 								title={`${data.name} Unlock Schedule`}
@@ -721,7 +710,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 				<div className="grid min-h-[408px] grid-cols-2 gap-2">
 					{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
-						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<PieChart
 									showLegend
@@ -742,7 +731,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					)}
 
 					{unlockedPercent > 0 && (
-						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<PieChart
 									showLegend

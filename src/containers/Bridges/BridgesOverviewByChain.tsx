@@ -1,6 +1,5 @@
 import * as React from 'react'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
@@ -10,9 +9,8 @@ import { BridgeVolumeChart } from '~/containers/Bridges/BridgeVolumeChart'
 import { ChartSelector } from '~/containers/Bridges/ChartSelector'
 import { LargeTxsTable } from '~/containers/Bridges/LargeTxsTable'
 import { useBuildBridgeChartData } from '~/containers/Bridges/utils'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useDebounce } from '~/hooks/useDebounce'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, getPrevVolumeFromChart, toNiceCsvDate } from '~/utils'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -86,15 +84,7 @@ export function BridgesOverviewByChain({
 	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging' | 'largeTxs'>('bridges')
 	const [searchValue, setSearchValue] = React.useState('')
 	const debouncedSearchValue = useDebounce(searchValue, 200)
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
-	const handleBridgeVolumeChartReady = React.useCallback(
-		(instance) => {
-			handleChartReady(instance)
-			handleChartCsvReady(instance)
-		},
-		[handleChartReady, handleChartCsvReady]
-	)
+	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
 
@@ -249,43 +239,30 @@ export function BridgesOverviewByChain({
 									</button>
 								</div>
 
-								<ChartCsvExportButton
-									chartInstance={exportChartCsvInstance}
+								<ChartExportButtons
+									chartInstance={exportChartInstance}
 									filename={chartView === 'volume' ? 'bridge-volume' : 'bridge-netflow-by-chain'}
+									title={chartView === 'volume' ? 'Bridge Volume' : 'Net Flows By Chain'}
 								/>
-								{chartView === 'volume' ? (
-									<ChartExportButton
-										chartInstance={exportChartInstance}
-										filename="bridge-volume"
-										title="Bridge Volume"
-									/>
-								) : (
-									<ChartExportButton
-										chartInstance={exportChartInstance}
-										filename="bridge-netflow-by-chain"
-										title="Net Flows By Chain"
-									/>
-								)}
 							</div>
 
 							{chartView === 'netflow' ? (
 								<React.Suspense fallback={<div className="min-h-[600px]" />}>
-									<NetflowChart height={600} onReady={handleBridgeVolumeChartReady} />
+									<NetflowChart height={600} onReady={handleChartReady} />
 								</React.Suspense>
 							) : (
 								<BridgeVolumeChart
 									chain={selectedChain === 'All' ? 'all' : selectedChain}
 									height="360px"
-									onReady={handleBridgeVolumeChartReady}
+									onReady={handleChartReady}
 								/>
 							)}
 						</>
 					) : (
 						<>
-							<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+							<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 								<ChartSelector options={BRIDGE_CHAIN_CHART_OPTIONS} selectedChart={chartType} onClick={setChartType} />
-								<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={chartFilename} />
-								<ChartExportButton
+								<ChartExportButtons
 									chartInstance={exportChartInstance}
 									filename={chartFilename}
 									title={`${selectedChain} ${chartType}`}
@@ -295,7 +272,7 @@ export function BridgesOverviewByChain({
 								<BridgeVolumeChart
 									chain={selectedChain === 'All' ? 'all' : selectedChain}
 									height="360px"
-									onReady={handleBridgeVolumeChartReady}
+									onReady={handleChartReady}
 								/>
 							) : chartType === 'Net Flow' ? (
 								chainNetFlowData && chainNetFlowData.length > 0 ? (
@@ -305,10 +282,7 @@ export function BridgesOverviewByChain({
 											charts={NET_FLOW_CHARTS}
 											hideDefaultLegend={true}
 											valueSymbol="$"
-											onReady={(instance) => {
-												handleChartReady(instance)
-												handleChartCsvReady(instance)
-											}}
+											onReady={handleChartReady}
 										/>
 									</React.Suspense>
 								) : null
@@ -320,10 +294,7 @@ export function BridgesOverviewByChain({
 											charts={NET_FLOW_PCT_CHARTS}
 											hideDefaultLegend={true}
 											valueSymbol="%"
-											onReady={(instance) => {
-												handleChartReady(instance)
-												handleChartCsvReady(instance)
-											}}
+											onReady={handleChartReady}
 										/>
 									</React.Suspense>
 								) : null
@@ -331,31 +302,19 @@ export function BridgesOverviewByChain({
 								<BridgeVolumeChart
 									chain={selectedChain === 'All' ? 'all' : selectedChain}
 									height="360px"
-									onReady={handleBridgeVolumeChartReady}
+									onReady={handleChartReady}
 								/>
 							) : chartType === 'Net Flow By Chain' ? (
 								<React.Suspense fallback={<div className="min-h-[600px]" />}>
-									<NetflowChart height={600} onReady={handleBridgeVolumeChartReady} />
+									<NetflowChart height={600} onReady={handleChartReady} />
 								</React.Suspense>
 							) : chartType === '24h Tokens Deposited' ? (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
-									<PieChart
-										chartData={tokenDeposits}
-										onReady={(instance) => {
-											handleChartReady(instance)
-											handleChartCsvReady(instance)
-										}}
-									/>
+									<PieChart chartData={tokenDeposits} onReady={handleChartReady} />
 								</React.Suspense>
 							) : chartType === '24h Tokens Withdrawn' ? (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
-									<PieChart
-										chartData={tokenWithdrawals}
-										onReady={(instance) => {
-											handleChartReady(instance)
-											handleChartCsvReady(instance)
-										}}
-									/>
+									<PieChart chartData={tokenWithdrawals} onReady={handleChartReady} />
 								</React.Suspense>
 							) : null}
 						</>

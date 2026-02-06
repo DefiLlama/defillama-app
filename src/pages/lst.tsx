@@ -1,9 +1,7 @@
-import type * as echarts from 'echarts/core'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getLSDPageData } from '~/api/categories/protocols'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { createInflowsTooltipFormatter, preparePieChartData } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -11,8 +9,7 @@ import { LSDColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { COINS_PRICES_API } from '~/constants'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { firstDayOfMonth, formatNum, formattedNum, lastDayOfWeek } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -60,16 +57,7 @@ const PageView = ({
 		return createInflowsTooltipFormatter({ groupBy: gb, valueSymbol: 'ETH' })
 	}, [groupBy])
 
-	const { chartInstance: breakdownImageChartInstance, handleChartReady: handleBreakdownImageReady } =
-		useChartImageExport()
-	const { chartInstance: breakdownCsvChartInstance, handleChartReady: handleBreakdownCsvReady } = useChartCsvExport()
-	const handleBreakdownReady = React.useCallback(
-		(instance: echarts.ECharts | null) => {
-			handleBreakdownImageReady(instance)
-			handleBreakdownCsvReady(instance)
-		},
-		[handleBreakdownImageReady, handleBreakdownCsvReady]
-	)
+	const { chartInstance: breakdownChartInstance, handleChartReady: handleBreakdownReady } = useGetChartInstance()
 
 	const breakdownExportFilenameBase = 'lst-breakdown-dominance'
 	const breakdownExportTitle = 'LST Breakdown (Dominance)'
@@ -199,12 +187,8 @@ const PageView = ({
 										variant="filter"
 										portal
 									/>
-									<ChartCsvExportButton
-										chartInstance={breakdownCsvChartInstance}
-										filename={breakdownExportFilenameBase}
-									/>
-									<ChartExportButton
-										chartInstance={breakdownImageChartInstance}
+									<ChartExportButtons
+										chartInstance={breakdownChartInstance}
 										filename={breakdownExportFilenameBase}
 										title={breakdownExportTitle}
 									/>
@@ -225,7 +209,7 @@ const PageView = ({
 						</div>
 					) : (
 						<div className="flex flex-col">
-							<div className="flex items-center justify-end gap-2 p-2">
+							<div className="flex items-center justify-end gap-2 p-2 pb-0">
 								<TagGroup
 									selectedValue={groupBy}
 									setValue={(period) => setGroupBy(period as GroupByType)}

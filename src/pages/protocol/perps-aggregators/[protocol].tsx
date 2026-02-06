@@ -1,8 +1,7 @@
 import { GetStaticPropsContext } from 'next'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { formatBarChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -15,8 +14,7 @@ import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -113,8 +111,7 @@ const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
 export default function Protocols(props) {
 	const [groupBy, setGroupBy] = useState<(typeof INTERVALS_LIST)[number]>(props.defaultChartView)
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const finalCharts = useMemo(() => {
 		const formattedData = formatBarChart({
@@ -164,7 +161,7 @@ export default function Protocols(props) {
 					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />
 				</div>
 				<div className="col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-[2/-1]">
-					<div className="flex items-center justify-end gap-2 p-2">
+					<div className="flex items-center justify-end gap-2 p-2 pb-0">
 						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 							{INTERVALS_LIST.map((dataInterval) => (
 								<Tooltip
@@ -181,12 +178,8 @@ export default function Protocols(props) {
 								</Tooltip>
 							))}
 						</div>
-						<ChartCsvExportButton
-							chartInstance={exportChartCsvInstance}
-							filename={`${slug(props.name)}-perp-aggregator-volume`}
-						/>
-						<ChartExportButton
-							chartInstance={exportChartInstance}
+						<ChartExportButtons
+							chartInstance={chartInstance}
 							filename={`${slug(props.name)}-perp-aggregator-volume`}
 							title="Perp Aggregator Volume"
 						/>
@@ -196,10 +189,7 @@ export default function Protocols(props) {
 							dataset={finalCharts.dataset}
 							charts={finalCharts.charts}
 							valueSymbol="$"
-							onReady={(instance) => {
-								handleChartReady(instance)
-								handleChartCsvReady(instance)
-							}}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				</div>

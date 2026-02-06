@@ -3,12 +3,10 @@ import { GraphicComponent, GridComponent, LegendComponent, TitleComponent, Toolt
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useId, useMemo, useRef } from 'react'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useChartResize } from '~/hooks/useChartResize'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useMedia } from '~/hooks/useMedia'
 import { formattedNum } from '~/utils'
 import type { IPieChartProps } from '../types'
@@ -46,8 +44,7 @@ export default function PieChart({
 	const id = useId()
 	const [isDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: csvChartInstance, handleChartReady: handleCsvChartReady } = useChartCsvExport()
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 	const imageExportEnabled = enableImageExport || shouldEnableImageExport
 	const exportFilename = imageExportFilename || (title ? title.replace(/\s+/g, '-').toLowerCase() : 'pie-chart')
 	const exportTitle = imageExportTitle || title
@@ -172,13 +169,11 @@ export default function PieChart({
 		})
 
 		handleChartReady(instance)
-		handleCsvChartReady(instance)
 
 		return () => {
 			chartRef.current = null
 			instance.dispose()
 			handleChartReady(null)
-			handleCsvChartReady(null)
 			if (onReady) {
 				onReady(null)
 			}
@@ -195,7 +190,6 @@ export default function PieChart({
 		legendTextStyle,
 		isSmall,
 		handleChartReady,
-		handleCsvChartReady,
 		onReady
 	])
 
@@ -204,15 +198,16 @@ export default function PieChart({
 	return (
 		<div className="relative" {...props}>
 			{showToolbar ? (
-				<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
+				<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 					{title ? <h1 className="mr-auto text-base font-semibold">{title}</h1> : null}
 					{customComponents ?? null}
-					{shouldEnableCSVDownload && (
-						<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilename} />
-					)}
-					{imageExportEnabled && (
-						<ChartExportButton chartInstance={exportChartInstance} filename={exportFilename} title={exportTitle} />
-					)}
+					<ChartExportButtons
+						chartInstance={chartInstance}
+						filename={exportFilename}
+						title={exportTitle}
+						showCsv={shouldEnableCSVDownload}
+						showPng={imageExportEnabled}
+					/>
 				</div>
 			) : null}
 			<div id={id} className="mx-0 my-auto h-[360px]" style={height ? { height } : undefined}></div>

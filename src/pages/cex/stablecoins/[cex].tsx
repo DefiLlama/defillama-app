@@ -1,11 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import type * as echarts from 'echarts/core'
 import type { GetStaticPropsContext } from 'next'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -14,8 +12,7 @@ import { getProtocol } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
 import { buildStablecoinChartsData } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -121,19 +118,11 @@ function MultiSeriesChartCard({
 
 	const selectedChartsSet = React.useMemo(() => new Set(selected), [selected])
 
-	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
-	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
-	const handleReady = React.useCallback(
-		(instance: echarts.ECharts | null) => {
-			handleImageReady(instance)
-			handleCsvReady(instance)
-		},
-		[handleImageReady, handleCsvReady]
-	)
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 				<h2 className="mr-auto text-base font-semibold">{title}</h2>
 				{allValues.length > 1 ? (
 					<SelectWithCombobox
@@ -146,8 +135,7 @@ function MultiSeriesChartCard({
 						portal
 					/>
 				) : null}
-				<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilenameBase} />
-				<ChartExportButton chartInstance={imageChartInstance} filename={exportFilenameBase} title={exportTitle} />
+				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="h-[360px]" />}>
 				<MultiSeriesChart2
@@ -156,7 +144,7 @@ function MultiSeriesChartCard({
 					valueSymbol={valueSymbol}
 					hideDefaultLegend={hideDefaultLegend}
 					selectedCharts={selectedChartsSet}
-					onReady={handleReady}
+					onReady={handleChartReady}
 				/>
 			</React.Suspense>
 		</div>
@@ -184,19 +172,11 @@ function PieChartCard({
 		return chartData.filter((d) => selectedValuesSet.has(d.name))
 	}, [chartData, selectedValues.length, selectedValuesSet])
 
-	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
-	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
-	const handleReady = React.useCallback(
-		(instance: echarts.ECharts | null) => {
-			handleImageReady(instance)
-			handleCsvReady(instance)
-		},
-		[handleImageReady, handleCsvReady]
-	)
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 				<h2 className="mr-auto text-base font-semibold">{title}</h2>
 				{allValues.length > 1 ? (
 					<SelectWithCombobox
@@ -209,11 +189,10 @@ function PieChartCard({
 						portal
 					/>
 				) : null}
-				<ChartCsvExportButton chartInstance={csvChartInstance} filename={exportFilenameBase} />
-				<ChartExportButton chartInstance={imageChartInstance} filename={exportFilenameBase} title={exportTitle} />
+				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="h-[360px]" />}>
-				<PieChart chartData={filteredChartData} onReady={handleReady} />
+				<PieChart chartData={filteredChartData} onReady={handleChartReady} />
 			</React.Suspense>
 		</div>
 	)

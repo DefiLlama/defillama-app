@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
@@ -11,8 +10,7 @@ import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/P
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/containers/Stablecoins/hooks'
 import { getStablecoinDominance } from '~/containers/Stablecoins/utils'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, toNiceCsvDate } from '~/utils'
 import { PeggedChainsTable } from './Table'
 
@@ -50,8 +48,7 @@ export function ChainsWithStablecoins({
 }) {
 	const [chartType, setChartType] = React.useState('Pie')
 	const chartTypeList = ['Total Market Cap', 'Chain Market Caps', 'Pie', 'Dominance']
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const filteredPeggedAssets = chainCirculatings
 	const chainTotals = useCalcCirculating(filteredPeggedAssets)
@@ -222,11 +219,10 @@ export function ChainsWithStablecoins({
 					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="flex items-center gap-2 p-2">
+					<div className="flex items-center gap-2 p-2 pb-0">
 						<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 						<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
-						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={exportMeta.filename} />
-						<ChartExportButton
+						<ChartExportButtons
 							chartInstance={exportChartInstance}
 							filename={exportMeta.filename}
 							title={exportMeta.title}
@@ -239,10 +235,7 @@ export function ChainsWithStablecoins({
 								charts={peggedAreaTotalData.charts}
 								valueSymbol="$"
 								chartOptions={chartOptions}
-								onReady={(instance) => {
-									handleChartReady(instance)
-									handleChartCsvReady(instance)
-								}}
+								onReady={handleChartReady}
 							/>
 						</React.Suspense>
 					) : chartType === 'Chain Market Caps' ? (
@@ -253,10 +246,7 @@ export function ChainsWithStablecoins({
 								stacked={true}
 								valueSymbol="$"
 								chartOptions={chartOptions}
-								onReady={(instance) => {
-									handleChartReady(instance)
-									handleChartCsvReady(instance)
-								}}
+								onReady={handleChartReady}
 							/>
 						</React.Suspense>
 					) : chartType === 'Dominance' ? (
@@ -268,21 +258,12 @@ export function ChainsWithStablecoins({
 								expandTo100Percent={true}
 								valueSymbol="%"
 								chartOptions={chartOptions}
-								onReady={(instance) => {
-									handleChartReady(instance)
-									handleChartCsvReady(instance)
-								}}
+								onReady={handleChartReady}
 							/>
 						</React.Suspense>
 					) : chartType === 'Pie' ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<PieChart
-								chartData={chainsCirculatingValues}
-								onReady={(instance) => {
-									handleChartReady(instance)
-									handleChartCsvReady(instance)
-								}}
-							/>
+							<PieChart chartData={chainsCirculatingValues} onReady={handleChartReady} />
 						</React.Suspense>
 					) : null}
 				</div>

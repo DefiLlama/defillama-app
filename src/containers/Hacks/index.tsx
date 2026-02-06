@@ -9,8 +9,7 @@ import {
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
@@ -21,8 +20,7 @@ import { useTableSearch } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import {
 	capitalizeFirstLetter,
@@ -217,8 +215,7 @@ export const HacksContainer = ({
 	classificationOptions
 }: IHacksPageData) => {
 	const [chartType, setChartType] = React.useState('Monthly Sum')
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 	const router = useRouter()
 	const {
 		chain: chainQ,
@@ -395,10 +392,9 @@ export const HacksContainer = ({
 					</p>
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="m-2 flex flex-wrap items-center justify-end gap-2 *:first:mr-auto">
+					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0 *:first:mr-auto">
 						<TagGroup setValue={setChartType} selectedValue={chartType} values={chartTypeList} />
-						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename="total-value-hacked" />
-						<ChartExportButton
+						<ChartExportButtons
 							chartInstance={exportChartInstance}
 							filename="total-value-hacked"
 							title="Total Value Hacked"
@@ -410,21 +406,12 @@ export const HacksContainer = ({
 								dataset={displayMonthlyHacksChartData.dataset}
 								charts={displayMonthlyHacksChartData.charts}
 								groupBy="monthly"
-								onReady={(instance) => {
-									handleChartReady(instance)
-									handleChartCsvReady(instance)
-								}}
+								onReady={handleChartReady}
 							/>
 						</React.Suspense>
 					) : (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<PieChart
-								chartData={displayPieChartData}
-								onReady={(instance) => {
-									handleChartReady(instance)
-									handleChartCsvReady(instance)
-								}}
-							/>
+							<PieChart chartData={displayPieChartData} onReady={handleChartReady} />
 						</React.Suspense>
 					)}
 				</div>

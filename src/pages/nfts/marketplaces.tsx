@@ -170,7 +170,8 @@ function Marketplaces({ data, volume, dominance, trades, dominanceTrade, marketp
 		return {
 			tooltip: {
 				formatter: createMarketplacesTooltipFormatter({
-					valueSymbol
+					valueSymbol,
+					tooltipOrderBottomUp: false
 				})
 			}
 		}
@@ -181,7 +182,8 @@ function Marketplaces({ data, volume, dominance, trades, dominanceTrade, marketp
 		return {
 			tooltip: {
 				formatter: createMarketplacesTooltipFormatter({
-					valueSymbol
+					valueSymbol,
+					tooltipOrderBottomUp: false
 				})
 			}
 		}

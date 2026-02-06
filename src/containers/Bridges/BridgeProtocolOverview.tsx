@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
@@ -14,8 +13,7 @@ import { BridgeChainSelector } from '~/containers/Bridges/BridgeChainSelector'
 import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import { AddressesTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { BRIDGES_SHOWING_ADDRESSES, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { firstDayOfMonth, formattedNum, getPercentChange, lastDayOfWeek, slug } from '~/utils'
 
@@ -38,8 +36,7 @@ const BridgeInfo = ({
 	const [chartType, setChartType] = React.useState<ChartType>('Volume')
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly'>('daily')
 	const [currentChain, setChain] = React.useState(defaultChain)
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const [bridgesSettings] = useLocalStorageSettingsManager('bridges')
 	const isBridgesShowingAddresses = bridgesSettings[BRIDGES_SHOWING_ADDRESSES]
@@ -212,7 +209,7 @@ const BridgeInfo = ({
 				</div>
 
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 						<TagGroup
 							selectedValue={chartType}
 							setValue={(chartType) => setChartType(chartType as ChartType)}
@@ -222,8 +219,7 @@ const BridgeInfo = ({
 						{chartType === 'Volume' || chartType === 'Inflows' ? (
 							<TagGroup selectedValue={groupBy} setValue={(v) => setGroupBy(v as any)} values={GROUP_BY_VALUES} />
 						) : null}
-						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={chartFilename} />
-						<ChartExportButton
+						<ChartExportButtons
 							chartInstance={exportChartInstance}
 							filename={chartFilename}
 							title={`${displayName} ${chartType}`}
@@ -236,10 +232,7 @@ const BridgeInfo = ({
 									dataset={volumeDataset}
 									charts={VOLUME_CHARTS}
 									valueSymbol="$"
-									onReady={(instance) => {
-										handleChartReady(instance)
-										handleChartCsvReady(instance)
-									}}
+									onReady={handleChartReady}
 								/>
 							</React.Suspense>
 						) : null}
@@ -249,33 +242,18 @@ const BridgeInfo = ({
 									dataset={inflowsDataset}
 									charts={INFLOW_CHARTS}
 									valueSymbol="$"
-									onReady={(instance) => {
-										handleChartReady(instance)
-										handleChartCsvReady(instance)
-									}}
+									onReady={handleChartReady}
 								/>
 							</React.Suspense>
 						) : null}
 						{chartType === 'Tokens To' && tokenWithdrawals && tokenWithdrawals.length > 0 ? (
 							<React.Suspense fallback={<div className="min-h-[360px]" />}>
-								<PieChart
-									chartData={tokenWithdrawals}
-									onReady={(instance) => {
-										handleChartReady(instance)
-										handleChartCsvReady(instance)
-									}}
-								/>
+								<PieChart chartData={tokenWithdrawals} onReady={handleChartReady} />
 							</React.Suspense>
 						) : null}
 						{chartType === 'Tokens From' && tokenDeposits && tokenDeposits.length > 0 ? (
 							<React.Suspense fallback={<div className="min-h-[360px]" />}>
-								<PieChart
-									chartData={tokenDeposits}
-									onReady={(instance) => {
-										handleChartReady(instance)
-										handleChartCsvReady(instance)
-									}}
-								/>
+								<PieChart chartData={tokenDeposits} onReady={handleChartReady} />
 							</React.Suspense>
 						) : null}
 					</>

@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
@@ -10,8 +9,7 @@ import { ChartBuilderConfig } from '~/containers/ProDashboard/types'
 import { getAdapterBuilderMetric } from '~/containers/ProDashboard/utils/adapterChartMapping'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug } from '~/utils'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
 import { getAdapterProtocolChartDataByBreakdownType } from './queries'
@@ -164,8 +162,7 @@ const ChartByType = ({
 }) => {
 	const [chartInterval, changeChartInterval] = React.useState<(typeof INTERVALS_LIST)[number]>('Daily')
 	const [selectedTypes, setSelectedTypes] = React.useState<string[]>(breakdownNames)
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const chartBuilderConfig = React.useMemo<ChartBuilderConfig | null>(() => {
 		const builderMetric = getAdapterBuilderMetric(adapterType)
@@ -326,7 +323,7 @@ const ChartByType = ({
 
 	return (
 		<>
-			<div className="flex flex-wrap items-center justify-end gap-1 p-2">
+			<div className="flex flex-wrap items-center justify-end gap-1 p-2 pb-0">
 				{title && <h2 className="mr-auto text-base font-semibold">{title}</h2>}
 				<div className="ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 					{INTERVALS_LIST.map((dataInterval) => (
@@ -351,11 +348,7 @@ const ChartByType = ({
 					variant="filter"
 					portal
 				/>
-				<ChartCsvExportButton
-					chartInstance={exportChartCsvInstance}
-					filename={title ? slug(title) : `${protocolName}-${chartType}`}
-				/>
-				<ChartExportButton
+				<ChartExportButtons
 					chartInstance={exportChartInstance}
 					filename={title ? slug(title) : `${protocolName}-${chartType}`}
 					title={title}
@@ -370,10 +363,7 @@ const ChartByType = ({
 						chartInterval === 'Cumulative' ? 'daily' : (chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly')
 					}
 					valueSymbol="$"
-					onReady={(instance) => {
-						handleChartReady(instance)
-						handleChartCsvReady(instance)
-					}}
+					onReady={handleChartReady}
 				/>
 			</React.Suspense>
 		</>

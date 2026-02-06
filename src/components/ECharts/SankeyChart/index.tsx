@@ -3,7 +3,7 @@ import { GraphicComponent, GridComponent, TitleComponent, TooltipComponent } fro
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useId, useMemo, useRef } from 'react'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useChartResize } from '~/hooks/useChartResize'
@@ -202,7 +202,7 @@ export default function SankeyChart({
 					{title ? <h1 className="mr-auto text-base font-semibold">{title}</h1> : null}
 					{customComponents ?? null}
 					{enableImageExport && (
-						<ChartExportButton chartInstance={exportChartInstance} filename={exportFilename} title={exportTitle} />
+						<ChartPngExportButton chartInstance={exportChartInstance} filename={exportFilename} title={exportTitle} />
 					)}
 				</div>
 			) : null}
