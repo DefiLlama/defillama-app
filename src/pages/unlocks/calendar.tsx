@@ -203,7 +203,6 @@ export default function UnlocksCalendar({
 					Add it here!
 				</a>
 			</Announcement>
-
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<CalendarView initialUnlocksData={initialUnlocksData} precomputedData={precomputedData} />
 			</div>
