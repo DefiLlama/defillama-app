@@ -53,7 +53,14 @@ export function ChainsByCategory({
 			<div className="flex flex-col gap-2 xl:flex-row">
 				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
-						<PieChart chartData={pieChartData} stackColors={colorsByChain} />
+						<PieChart
+							chartData={pieChartData}
+							stackColors={colorsByChain}
+							shouldEnableImageExport
+							shouldEnableCSVDownload
+							imageExportFilename="chains-tvl-pie"
+							imageExportTitle="Chains TVL"
+						/>
 					</React.Suspense>
 				</div>
 				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">

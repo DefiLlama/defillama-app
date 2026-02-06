@@ -168,6 +168,7 @@ export default function Protocols(props) {
 											title="Tokens Breakdown (USD)"
 											chartData={tokenBreakdownPieChart}
 											enableImageExport
+											shouldEnableCSVDownload
 											imageExportFilename={buildFilename('tokens-breakdown-usd')}
 											imageExportTitle={buildTitle('Tokens Breakdown (USD)')}
 										/>

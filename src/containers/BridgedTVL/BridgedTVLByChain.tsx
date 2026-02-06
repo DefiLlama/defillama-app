@@ -1,5 +1,7 @@
 import { getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
 import * as React from 'react'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { FormattedName } from '~/components/FormattedName'
@@ -8,6 +10,8 @@ import { LinkPreviewCard } from '~/components/SEO'
 import { bridgedChainColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { chainIconUrl, formattedNum } from '~/utils'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -15,6 +19,8 @@ const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as Re
 
 export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInflowNames, chainName = 'All Chains' }) {
 	const [chartType, setChartType] = React.useState('total')
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 
 	const { pieChartData, tableData } = React.useMemo(() => {
 		const pieChartData = preparePieChartData({ data: chainData?.[chartType]?.breakdown ?? {}, limit: 10 })
@@ -85,9 +91,9 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 						</p>
 					) : null}
 				</div>
-				<div className="col-span-2 flex min-h-[436px] flex-col items-center gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="w-full max-w-fit overflow-x-auto p-3">
-						<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+						<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 							{chartTypes.map(({ type, name }) =>
 								Boolean(chainData[type]?.total) && chainData[type]?.total !== '0' ? (
 									<button
@@ -119,25 +125,40 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 								</button>
 							) : null}
 						</div>
-					</div>
-					<div className="w-full">
 						{chartType !== 'inflows' ? (
-							<React.Suspense fallback={<></>}>
-								<PieChart chartData={pieChartData} valueSymbol="" />
-							</React.Suspense>
-						) : (
-							<React.Suspense fallback={<></>}>
-								<BarChart
-									chartData={inflows}
-									title=""
-									hideDefaultLegend={true}
-									customLegendName="Token"
-									customLegendOptions={tokenInflowNames}
-									// chartOptions={inflowsChartOptions}
+							<>
+								<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={`${chainName}-bridged-tvl`} />
+								<ChartExportButton
+									chartInstance={exportChartInstance}
+									filename={`${chainName}-bridged-tvl`}
+									title={`${chainName} Bridged TVL`}
 								/>
-							</React.Suspense>
-						)}
+							</>
+						) : null}
 					</div>
+					{chartType !== 'inflows' ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
+							<PieChart
+								chartData={pieChartData}
+								valueSymbol=""
+								onReady={(instance) => {
+									handleChartReady(instance)
+									handleChartCsvReady(instance)
+								}}
+							/>
+						</React.Suspense>
+					) : (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
+							<BarChart
+								chartData={inflows}
+								title=""
+								hideDefaultLegend={true}
+								customLegendName="Token"
+								customLegendOptions={tokenInflowNames}
+								// chartOptions={inflowsChartOptions}
+							/>
+						</React.Suspense>
+					)}
 				</div>
 			</div>
 			{chartType !== 'inflows' ? <VirtualTable instance={instance} skipVirtualization /> : null}

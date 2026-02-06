@@ -165,34 +165,44 @@ export function ChainsWithStablecoins({
 
 					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
-				<div className="col-span-2 flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					{chartType === 'Total Market Cap' && (
-						<>
-							<div className="flex items-center gap-2 px-2">
-								<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-								<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
+				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="flex items-center gap-2 p-2">
+						<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+						<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
+						{chartType === 'Total Market Cap' ? (
+							<>
 								<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename="stablecoins-total-market-cap" />
 								<ChartExportButton
 									chartInstance={exportChartInstance}
 									filename="stablecoins-total-market-cap"
 									title="Total Stablecoins Market Cap"
 								/>
-							</div>
-							<React.Suspense fallback={<div className="min-h-[360px]" />}>
-								<MultiSeriesChart2
-									dataset={peggedAreaTotalData.dataset}
-									charts={peggedAreaTotalData.charts}
-									valueSymbol="$"
-									onReady={(instance) => {
-										handleChartReady(instance)
-										handleChartCsvReady(instance)
-									}}
+							</>
+						) : chartType === 'Pie' ? (
+							<>
+								<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename="stablecoins-chains-pie" />
+								<ChartExportButton
+									chartInstance={exportChartInstance}
+									filename="stablecoins-chains-pie"
+									title="Stablecoins by Chain"
 								/>
-							</React.Suspense>
-						</>
-					)}
-					{chartType === 'Chain Market Caps' && (
-						<React.Suspense fallback={<></>}>
+							</>
+						) : null}
+					</div>
+					{chartType === 'Total Market Cap' ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
+							<MultiSeriesChart2
+								dataset={peggedAreaTotalData.dataset}
+								charts={peggedAreaTotalData.charts}
+								valueSymbol="$"
+								onReady={(instance) => {
+									handleChartReady(instance)
+									handleChartCsvReady(instance)
+								}}
+							/>
+						</React.Suspense>
+					) : chartType === 'Chain Market Caps' ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<AreaChart
 								title=""
 								chartData={peggedAreaChartData}
@@ -201,17 +211,10 @@ export function ChainsWithStablecoins({
 								hideDefaultLegend={true}
 								hideGradient={true}
 								chartOptions={chartOptions}
-								customComponents={
-									<>
-										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
-									</>
-								}
 							/>
 						</React.Suspense>
-					)}
-					{chartType === 'Dominance' && (
-						<React.Suspense fallback={<></>}>
+					) : chartType === 'Dominance' ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<AreaChart
 								title=""
 								valueSymbol="%"
@@ -221,28 +224,19 @@ export function ChainsWithStablecoins({
 								hideGradient={true}
 								expandTo100Percent={true}
 								chartOptions={chartOptions}
-								customComponents={
-									<>
-										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
-									</>
-								}
 							/>
 						</React.Suspense>
-					)}
-					{chartType === 'Pie' && (
-						<React.Suspense fallback={<></>}>
+					) : chartType === 'Pie' ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<PieChart
 								chartData={chainsCirculatingValues}
-								customComponents={
-									<>
-										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
-									</>
-								}
+								onReady={(instance) => {
+									handleChartReady(instance)
+									handleChartCsvReady(instance)
+								}}
 							/>
 						</React.Suspense>
-					)}
+					) : null}
 				</div>
 			</div>
 

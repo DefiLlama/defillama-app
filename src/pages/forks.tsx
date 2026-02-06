@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -60,20 +59,6 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 		return { tokenTvls, tokensList }
 	}, [chainsWithExtraTvlsByDay, tokensProtocols, forkedTokensData])
 
-	const prepareCsv = () => {
-		const headers = ['Name', 'Forked Protocols', 'TVL', 'Forked TVL / Original TVL %']
-		const csvData = tokensList.map((row) => {
-			return {
-				Name: row.name,
-				'Forked Protocols': row.forkedProtocols,
-				TVL: row.tvl,
-				'Forked TVL / Original TVL %': row.ftot
-			}
-		})
-		const rows = [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
-		return { filename: 'forks.csv', rows: rows as (string | number | boolean)[][] }
-	}
-
 	return (
 		<Layout
 			title={`Forks - DefiLlama`}
@@ -85,9 +70,15 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 			<RowLinksWithDropdown links={tokenLinks} activeLink={'All'} />
 			<div className="flex flex-col gap-1 xl:flex-row">
 				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mr-2 ml-auto" />
 					<React.Suspense fallback={<></>}>
-						<PieChart chartData={tokenTvls} stackColors={forkColors} />
+						<PieChart
+							chartData={tokenTvls}
+							stackColors={forkColors}
+							shouldEnableImageExport
+							shouldEnableCSVDownload
+							imageExportFilename="forks-tvl-pie"
+							imageExportTitle="Forks TVL"
+						/>
 					</React.Suspense>
 				</div>
 				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">

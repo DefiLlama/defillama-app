@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { LazyChart } from '~/components/LazyChart'
 import { LocalLoader } from '~/components/Loaders'
 import { LinkPreviewCard } from '~/components/SEO'
 import { BridgeAddressesTable, BridgeTokensTable } from '~/components/Table/Bridges'
@@ -13,6 +14,8 @@ import { BridgeChainSelector } from '~/containers/Bridges/BridgeChainSelector'
 import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import { AddressesTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { BRIDGES_SHOWING_ADDRESSES, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useChartCsvExport } from '~/hooks/useChartCsvExport'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import Layout from '~/layout'
 import { firstDayOfMonth, formattedNum, getPercentChange, lastDayOfWeek } from '~/utils'
 
@@ -35,6 +38,8 @@ const BridgeInfo = ({
 	const [chartType, setChartType] = React.useState<ChartType>('Volume')
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly'>('daily')
 	const [currentChain, setChain] = React.useState(defaultChain)
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
 
 	const [bridgesSettings] = useLocalStorageSettingsManager('bridges')
 	const isBridgesShowingAddresses = bridgesSettings[BRIDGES_SHOWING_ADDRESSES]
@@ -189,30 +194,38 @@ const BridgeInfo = ({
 				</div>
 
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="ml-auto flex w-full max-w-full items-center gap-2 overflow-x-auto p-3">
+					<div className="flex flex-wrap items-center justify-end gap-2 p-2">
 						<TagGroup
 							selectedValue={chartType}
 							setValue={(chartType) => setChartType(chartType as ChartType)}
 							values={chartTypes}
-							className="ml-0"
+							className="mr-auto"
 						/>
-						{(chartType === 'Volume' || chartType === 'Inflows') && (
-							<TagGroup
-								selectedValue={groupBy}
-								setValue={(v) => setGroupBy(v as any)}
-								values={GROUP_BY_VALUES}
-								className="ml-auto"
-							/>
-						)}
+						{chartType === 'Volume' || chartType === 'Inflows' ? (
+							<TagGroup selectedValue={groupBy} setValue={(v) => setGroupBy(v as any)} values={GROUP_BY_VALUES} />
+						) : null}
+						{chartType === 'Tokens To' || chartType === 'Tokens From' ? (
+							<>
+								<ChartCsvExportButton
+									chartInstance={exportChartCsvInstance}
+									filename={`${displayName}-${chartType === 'Tokens To' ? 'tokens-to' : 'tokens-from'}`}
+								/>
+								<ChartExportButton
+									chartInstance={exportChartInstance}
+									filename={`${displayName}-${chartType === 'Tokens To' ? 'tokens-to' : 'tokens-from'}`}
+									title={`${displayName} ${chartType}`}
+								/>
+							</>
+						) : null}
 					</div>
-					<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						{chartType === 'Volume' && isAllChains && groupedAllChainsVolumePairs.length > 0 && (
-							<React.Suspense fallback={<></>}>
+					<>
+						{chartType === 'Volume' && isAllChains && groupedAllChainsVolumePairs.length > 0 ? (
+							<React.Suspense fallback={<div className="min-h-[360px]" />}>
 								<BarChart chartData={groupedAllChainsVolumePairs} title="" groupBy={groupBy} />
 							</React.Suspense>
-						)}
-						{chartType === 'Inflows' && !isAllChains && groupedInflowsData && groupedInflowsData.length > 0 && (
-							<React.Suspense fallback={<></>}>
+						) : null}
+						{chartType === 'Inflows' && !isAllChains && groupedInflowsData && groupedInflowsData.length > 0 ? (
+							<React.Suspense fallback={<div className="min-h-[360px]" />}>
 								<BarChart
 									chartData={groupedInflowsData}
 									title=""
@@ -221,18 +234,30 @@ const BridgeInfo = ({
 									groupBy={groupBy}
 								/>
 							</React.Suspense>
-						)}
-						{chartType === 'Tokens To' && tokenWithdrawals && tokenWithdrawals.length > 0 && (
-							<React.Suspense fallback={<></>}>
-								<PieChart chartData={tokenWithdrawals} />
+						) : null}
+						{chartType === 'Tokens To' && tokenWithdrawals && tokenWithdrawals.length > 0 ? (
+							<React.Suspense fallback={<div className="min-h-[360px]" />}>
+								<PieChart
+									chartData={tokenWithdrawals}
+									onReady={(instance) => {
+										handleChartReady(instance)
+										handleChartCsvReady(instance)
+									}}
+								/>
 							</React.Suspense>
-						)}
-						{chartType === 'Tokens From' && tokenDeposits && tokenDeposits.length > 0 && (
-							<React.Suspense fallback={<></>}>
-								<PieChart chartData={tokenDeposits} />
+						) : null}
+						{chartType === 'Tokens From' && tokenDeposits && tokenDeposits.length > 0 ? (
+							<React.Suspense fallback={<div className="min-h-[360px]" />}>
+								<PieChart
+									chartData={tokenDeposits}
+									onReady={(instance) => {
+										handleChartReady(instance)
+										handleChartCsvReady(instance)
+									}}
+								/>
 							</React.Suspense>
-						)}
-					</LazyChart>
+						) : null}
+					</>
 				</div>
 			</div>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

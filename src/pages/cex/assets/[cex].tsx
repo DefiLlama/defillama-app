@@ -174,7 +174,14 @@ export default function Protocols(props) {
 								className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full"
 							>
 								<React.Suspense fallback={<></>}>
-									<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
+									<PieChart
+										title="Tokens Breakdown"
+										chartData={tokenBreakdownPieChart}
+										shouldEnableImageExport
+										shouldEnableCSVDownload
+										imageExportFilename={`${props.name}-tokens-breakdown`}
+										imageExportTitle={`${props.name} Tokens Breakdown`}
+									/>
 								</React.Suspense>
 							</LazyChart>
 						)}
