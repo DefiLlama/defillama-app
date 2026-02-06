@@ -206,7 +206,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 	if (config.type === 'candlestick') {
 		const candlestickData = adaptCandlestickData(config, data)
 		return (
-			<div className="flex flex-col" data-chart-id={config.id}>
+			<div className="flex flex-col p-2" data-chart-id={config.id}>
 				<Suspense fallback={<div className="h-[480px]" />}>
 					<CandlestickChart data={candlestickData.data} indicators={candlestickData.indicators} />
 				</Suspense>
