@@ -1,6 +1,6 @@
+import dayjs from 'dayjs'
 import { useMemo } from 'react'
 import { CustomTimePeriod, TimePeriod } from '../ProDashboardAPIContext'
-import { filterDataByTimePeriod } from '../queries'
 
 interface YieldChartData {
 	data?: Array<{
@@ -30,6 +30,57 @@ interface UseYieldChartTransformationsOptions {
 	customTimePeriod?: CustomTimePeriod | null
 }
 
+/** Parse "2024-01-15T00:00:00.000Z" → unix seconds */
+function parseTimestamp(ts: string): number {
+	return Math.floor(new Date(ts.split('T')[0]).getTime() / 1000)
+}
+
+/** Compute the [start, end] unix-second bounds for a time period. Returns null if no filtering needed. */
+function getTimeBounds(
+	timePeriod: TimePeriod | null | undefined,
+	customTimePeriod: CustomTimePeriod | null | undefined
+): { start: number; end: number } | null {
+	if (!timePeriod || timePeriod === 'all') return null
+
+	if (timePeriod === 'custom' && customTimePeriod) {
+		if (customTimePeriod.type === 'relative' && customTimePeriod.relativeDays) {
+			return { start: dayjs().subtract(customTimePeriod.relativeDays, 'day').unix(), end: Infinity }
+		}
+		if (customTimePeriod.type === 'absolute' && customTimePeriod.startDate && customTimePeriod.endDate) {
+			return { start: customTimePeriod.startDate, end: customTimePeriod.endDate }
+		}
+		return null
+	}
+
+	const now = dayjs()
+	let cutoff: dayjs.Dayjs
+	switch (timePeriod) {
+		case '30d':
+			cutoff = now.subtract(30, 'day')
+			break
+		case '90d':
+			cutoff = now.subtract(90, 'day')
+			break
+		case '365d':
+			cutoff = now.subtract(365, 'day')
+			break
+		case 'ytd':
+			cutoff = now.startOf('year')
+			break
+		case '3y':
+			cutoff = now.subtract(3, 'year')
+			break
+		default:
+			return null
+	}
+	return { start: cutoff.unix(), end: Infinity }
+}
+
+/** Check if a unix-seconds timestamp is within bounds */
+function inBounds(date: number, bounds: { start: number; end: number } | null): boolean {
+	return !bounds || (date >= bounds.start && date <= bounds.end)
+}
+
 export function useYieldChartTransformations({
 	chartData,
 	borrowData,
@@ -39,131 +90,113 @@ export function useYieldChartTransformations({
 	const chartDataArray = chartData?.data
 	const borrowDataArray = borrowData?.data
 
+	const bounds = useMemo(() => getTimeBounds(timePeriod, customTimePeriod), [timePeriod, customTimePeriod])
+
 	const tvlApyData = useMemo(() => {
 		if (!chartDataArray) return []
-		const data = chartDataArray.map((el) => ({
-			date: Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000),
-			TVL: el.tvlUsd,
-			APY: el.apy ?? null
-		}))
-
-		if (timePeriod && timePeriod !== 'all' && data.length > 0) {
-			const tvlPoints: [number, number][] = data.map((el) => [el.date, el.TVL])
-			const filtered = filterDataByTimePeriod(tvlPoints, timePeriod, customTimePeriod)
-			const filteredTimestamps = new Set(filtered.map(([ts]) => ts))
-			return data.filter((el) => filteredTimestamps.has(el.date))
+		const data: Array<{ date: number; TVL: number; APY: number | null }> = []
+		for (const el of chartDataArray) {
+			const date = parseTimestamp(el.timestamp)
+			if (!inBounds(date, bounds)) continue
+			data.push({ date, TVL: el.tvlUsd, APY: el.apy ?? null })
 		}
 		return data
-	}, [chartDataArray, timePeriod, customTimePeriod])
+	}, [chartDataArray, bounds])
 
 	const supplyApyBarData = useMemo(() => {
 		if (!chartDataArray) return []
-		const dataWithComponents = chartDataArray.filter((el) => el.apyBase !== null || el.apyReward !== null)
-		const data = dataWithComponents.map((el) => ({
-			date: Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000),
-			Base: el.apyBase?.toFixed(2) ?? null,
-			Reward: el.apyReward?.toFixed(2) ?? null
-		}))
-
-		if (timePeriod && timePeriod !== 'all' && data.length > 0) {
-			const points: [number, number][] = data.map((el) => [el.date, 0])
-			const filtered = filterDataByTimePeriod(points, timePeriod, customTimePeriod)
-			const filteredTimestamps = new Set(filtered.map(([ts]) => ts))
-			return data.filter((el) => filteredTimestamps.has(el.date))
+		const data: Array<{ date: number; Base: string | null; Reward: string | null }> = []
+		for (const el of chartDataArray) {
+			if (el.apyBase === null && el.apyReward === null) continue
+			const date = parseTimestamp(el.timestamp)
+			if (!inBounds(date, bounds)) continue
+			data.push({ date, Base: el.apyBase?.toFixed(2) ?? null, Reward: el.apyReward?.toFixed(2) ?? null })
 		}
 		return data
-	}, [chartDataArray, timePeriod, customTimePeriod])
+	}, [chartDataArray, bounds])
 
 	const supplyApy7dData = useMemo(() => {
-		if (!chartData?.data) return []
+		if (!chartDataArray) return []
 		const windowSize = 7
-		const apyValues = chartData.data.map((m) => m.apy)
 		const result: Array<[number, number]> = []
 
-		for (let i = 0; i < apyValues.length; i++) {
-			if (i + 1 >= windowSize) {
-				const window = apyValues.slice(i + 1 - windowSize, i + 1)
-				const validValues = window.filter((v): v is number => v != null && !Number.isNaN(v))
-				if (validValues.length > 0) {
-					const avg = validValues.reduce((a, b) => a + b, 0) / validValues.length
-					const timestamp = Math.floor(new Date(chartData.data[i].timestamp.split('T')[0]).getTime() / 1000)
-					result.push([timestamp, Number(avg.toFixed(2))])
+		let sum = 0
+		let count = 0
+
+		for (let i = 0; i < chartDataArray.length; i++) {
+			const val = chartDataArray[i].apy
+			if (val != null && !Number.isNaN(val)) {
+				sum += val
+				count++
+			}
+			if (i >= windowSize) {
+				const old = chartDataArray[i - windowSize].apy
+				if (old != null && !Number.isNaN(old)) {
+					sum -= old
+					count--
 				}
 			}
-		}
-
-		if (timePeriod && timePeriod !== 'all' && result.length > 0) {
-			return filterDataByTimePeriod(result, timePeriod, customTimePeriod)
+			if (i + 1 >= windowSize && count > 0) {
+				const date = parseTimestamp(chartDataArray[i].timestamp)
+				if (!inBounds(date, bounds)) continue
+				result.push([date, Number((sum / count).toFixed(2))])
+			}
 		}
 		return result
-	}, [chartData, timePeriod, customTimePeriod])
+	}, [chartDataArray, bounds])
 
 	const borrowApyBarData = useMemo(() => {
-		if (!borrowData?.data) return []
-		const dataWithBorrow = borrowData.data.filter((el) => el.apyBaseBorrow !== null || el.apyRewardBorrow !== null)
-		const data = dataWithBorrow.map((el) => ({
-			date: Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000),
-			Base: el.apyBaseBorrow ? (-el.apyBaseBorrow).toFixed(2) : null,
-			Reward: el.apyRewardBorrow?.toFixed(2) ?? null
-		}))
-
-		if (timePeriod && timePeriod !== 'all' && data.length > 0) {
-			const points: [number, number][] = data.map((el) => [el.date, 0])
-			const filtered = filterDataByTimePeriod(points, timePeriod, customTimePeriod)
-			const filteredTimestamps = new Set(filtered.map(([ts]) => ts))
-			return data.filter((el) => filteredTimestamps.has(el.date))
+		if (!borrowDataArray) return []
+		const data: Array<{ date: number; Base: string | null; Reward: string | null }> = []
+		for (const el of borrowDataArray) {
+			if (el.apyBaseBorrow === null && el.apyRewardBorrow === null) continue
+			const date = parseTimestamp(el.timestamp)
+			if (!inBounds(date, bounds)) continue
+			data.push({
+				date,
+				Base: el.apyBaseBorrow != null ? (-el.apyBaseBorrow).toFixed(2) : null,
+				Reward: el.apyRewardBorrow?.toFixed(2) ?? null
+			})
 		}
 		return data
-	}, [borrowData, timePeriod, customTimePeriod])
+	}, [borrowDataArray, bounds])
 
 	const netBorrowApyData = useMemo(() => {
-		if (!borrowData?.data) return []
-		const data = borrowData.data
-			.filter((el) => el.apyBaseBorrow !== null || el.apyRewardBorrow !== null)
-			.map((el) => {
-				const netApy = (-(el.apyBaseBorrow || 0) + (el.apyRewardBorrow || 0)).toFixed(2)
-				return [Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000), Number(netApy)] as [number, number]
-			})
-
-		if (timePeriod && timePeriod !== 'all' && data.length > 0) {
-			return filterDataByTimePeriod(data, timePeriod, customTimePeriod)
+		if (!borrowDataArray) return []
+		const data: Array<[number, number]> = []
+		for (const el of borrowDataArray) {
+			if (el.apyBaseBorrow === null && el.apyRewardBorrow === null) continue
+			const date = parseTimestamp(el.timestamp)
+			if (!inBounds(date, bounds)) continue
+			data.push([date, Number((-(el.apyBaseBorrow || 0) + (el.apyRewardBorrow || 0)).toFixed(2))])
 		}
 		return data
-	}, [borrowData, timePeriod, customTimePeriod])
+	}, [borrowDataArray, bounds])
 
 	// Pool Liquidity area chart data
 	// CDP protocols use debtCeilingUsd for Available calculation instead of totalSupplyUsd
 	const poolLiquidityData = useMemo(() => {
-		if (!borrowData?.data) return []
-		const data = borrowData.data
-			.filter((el) => {
-				if (el.debtCeilingUsd != null) {
-					return el.totalBorrowUsd !== null
-				}
-				return el.totalSupplyUsd !== null && el.totalBorrowUsd !== null
-			})
-			.map((el) => {
-				const isCDP = el.debtCeilingUsd != null
-				// CDP: Available = debtCeiling - borrowed
-				// Standard: Available = supplied - borrowed
-				const available = isCDP ? el.debtCeilingUsd! - el.totalBorrowUsd! : el.totalSupplyUsd! - el.totalBorrowUsd!
-
-				return {
-					date: Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000),
-					Supplied: isCDP ? el.debtCeilingUsd! : el.totalSupplyUsd!,
-					Borrowed: el.totalBorrowUsd!,
-					Available: available
-				}
-			})
-
-		if (timePeriod && timePeriod !== 'all' && data.length > 0) {
-			const points: [number, number][] = data.map((el) => [el.date, el.Supplied])
-			const filtered = filterDataByTimePeriod(points, timePeriod, customTimePeriod)
-			const filteredTimestamps = new Set(filtered.map(([ts]) => ts))
-			return data.filter((el) => filteredTimestamps.has(el.date))
+		if (!borrowDataArray) return []
+		const data: Array<{ date: number; Supplied: number; Borrowed: number; Available: number }> = []
+		for (const el of borrowDataArray) {
+			const isCDP = el.debtCeilingUsd != null
+			if (isCDP ? el.totalBorrowUsd === null : el.totalSupplyUsd === null || el.totalBorrowUsd === null) continue
+			const date = parseTimestamp(el.timestamp)
+			if (!inBounds(date, bounds)) continue
+			const supplied = isCDP ? el.debtCeilingUsd! : el.totalSupplyUsd!
+			const borrowed = el.totalBorrowUsd!
+			data.push({ date, Supplied: supplied, Borrowed: borrowed, Available: supplied - borrowed })
 		}
 		return data
-	}, [borrowData, timePeriod, customTimePeriod])
+	}, [borrowDataArray, bounds])
+
+	const tvlApyDataset = useMemo(
+		() => ({
+			source: tvlApyData.map((item) => ({ timestamp: item.date * 1000, APY: item.APY, TVL: item.TVL })),
+			dimensions: ['timestamp', 'APY', 'TVL']
+		}),
+		[tvlApyData]
+	)
 
 	const latestData = useMemo(() => {
 		if (!tvlApyData || tvlApyData.length === 0) {
@@ -178,6 +211,7 @@ export function useYieldChartTransformations({
 
 	return {
 		tvlApyData,
+		tvlApyDataset,
 		supplyApyBarData,
 		supplyApy7dData,
 		borrowApyBarData,

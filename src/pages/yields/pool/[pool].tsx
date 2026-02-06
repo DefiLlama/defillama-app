@@ -2,9 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
+import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
+import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
+import { IBarChartProps, IChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
 import { BasicLink } from '~/components/Link'
@@ -29,8 +31,31 @@ const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
-const TVLAPYChart = lazy(() => import('~/components/ECharts/TVLAPYChart')) as React.FC<IChartProps>
+const MultiSeriesChart2 = lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 const EMPTY_CHART_DATA: any[] = []
+const EMPTY_TVL_APY_DATASET = { source: [] as any[], dimensions: ['timestamp', 'APY', 'TVL'] }
+
+const tvlApyCharts = [
+	{
+		type: 'line' as const,
+		name: 'APY',
+		encode: { x: 'timestamp', y: 'APY' },
+		color: '#fd3c99',
+		yAxisIndex: 0,
+		valueSymbol: '%'
+	},
+	{
+		type: 'line' as const,
+		name: 'TVL',
+		encode: { x: 'timestamp', y: 'TVL' },
+		color: '#4f8fea',
+		yAxisIndex: 1,
+		valueSymbol: '$'
+	}
+]
+const tvlApyChartOptions = { tooltip: { formatter: formatTvlApyTooltip } }
 
 const getRatingColor = (rating) => {
 	switch (rating?.toLowerCase()) {
@@ -161,7 +186,7 @@ const PageView = (_props) => {
 	}
 
 	const {
-		finalChartData = EMPTY_CHART_DATA,
+		tvlApyDataset = EMPTY_TVL_APY_DATASET,
 		barChartData = EMPTY_CHART_DATA,
 		areaChartData = EMPTY_CHART_DATA,
 		// borrow stuff
@@ -247,7 +272,10 @@ const PageView = (_props) => {
 		const netBorrowChartData = dataNetBorrowArea.length ? dataNetBorrowArea.map((t) => [t[0], t[8]]) : []
 
 		return {
-			finalChartData: data.map((item) => ({ date: item[0], TVL: item[1], APY: item[2] })),
+			tvlApyDataset: {
+				source: (data ?? []).map((item) => ({ timestamp: item[0] * 1000, TVL: item[1], APY: item[2] })),
+				dimensions: ['timestamp', 'APY', 'TVL']
+			},
 			barChartData,
 			areaChartData,
 			barChartDataSupply,
@@ -272,14 +300,17 @@ const PageView = (_props) => {
 		)
 	}
 
+	const poolName =
+		poolData.poolMeta != null && poolData.poolMeta.length > 1
+			? `${poolData.symbol} (${poolData.poolMeta})`
+			: poolData.symbol
+
 	return (
 		<>
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 					<h1 className="flex flex-wrap items-center gap-2 text-xl font-bold">
-						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
-							? `${poolData.symbol} (${poolData.poolMeta})`
-							: poolData.symbol}
+						{poolName}
 
 						<span className="mr-auto font-normal">
 							({projectName} - {poolData.chain})
@@ -343,20 +374,21 @@ const PageView = (_props) => {
 
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex items-center justify-end gap-1 p-2">
+						<AddToDashboardButton chartConfig={getYieldsChartConfig()} smol />
+						<ChartCsvExportButton chartInstance={tvlApyChartInstance} filename={`${query.pool}-tvl-apy`} />
 						<ChartExportButton
 							chartInstance={tvlApyChartInstance}
 							filename={`${query.pool}-tvl-apy`}
-							title="TVL & APY"
+							title={`${poolName} - ${projectName} (${poolData.chain})`}
 						/>
-						<AddToDashboardButton chartConfig={getYieldsChartConfig()} smol />
 					</div>
-					<Suspense fallback={<></>}>
-						<TVLAPYChart
-							height="468px"
-							chartData={finalChartData}
-							stackColors={mainChartStackColors}
-							stacks={mainChartStacks}
-							title=""
+					<Suspense fallback={<div className="min-h-[360px]" />}>
+						<MultiSeriesChart2
+							dataset={tvlApyDataset}
+							charts={tvlApyCharts}
+							chartOptions={tvlApyChartOptions}
+							valueSymbol=""
+							alwaysShowTooltip
 							onReady={handleTvlApyChartReady}
 						/>
 					</Suspense>
@@ -663,13 +695,6 @@ const PageView = (_props) => {
 			</div>
 		</>
 	)
-}
-
-const mainChartStacks = ['APY', 'TVL']
-
-const mainChartStackColors = {
-	APY: '#fd3c99',
-	TVL: '#4f8fea'
 }
 
 const barChartColors = {

@@ -8,12 +8,17 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartCsvExport } from '~/hooks/useChartCsvExport'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useChartResize } from '~/hooks/useChartResize'
-import { abbreviateNumber } from '~/utils'
+import { formatNum, formattedNum } from '~/utils'
 import type { IMultiSeriesChart2Props } from '../types'
 import { formatTooltipChartDate, useDefaults } from '../useDefaults'
 import { mergeDeep } from '../utils'
 
 echarts.use([DatasetComponent])
+
+function formatAxisLabel(value: number, symbol: string): string {
+	if (value > 1000) return formattedNum(value, symbol === '$')
+	return formatNum(value, 5, symbol || undefined)
+}
 
 type GroupBy = NonNullable<IMultiSeriesChart2Props['groupBy']>
 
@@ -107,11 +112,11 @@ function buildSeries({
 		if (chart.yAxisIndex != null) someSeriesHasYAxisIndex = true
 
 		const baseColor = chart.color ?? (isThemeDark ? '#000000' : '#ffffff')
-		const showSymbol = chart.type === 'line' ? !!(chart as any).showSymbol : false
-		const symbol = showSymbol ? ((chart as any).symbol ?? 'circle') : 'none'
+		const showSymbol = chart.type === 'line' ? !!chart.showSymbol : false
+		const symbol = showSymbol ? (chart.symbol ?? 'circle') : 'none'
 		// ECharts large mode disables symbols; default to disabling large mode when symbols are requested.
-		const large = (chart as any).large ?? !showSymbol
-		const symbolSize = showSymbol ? ((chart as any).symbolSize ?? 6) : undefined
+		const large = chart.large ?? !showSymbol
+		const symbolSize = showSymbol ? (chart.symbolSize ?? 6) : undefined
 
 		out.push({
 			name: chart.name,
@@ -160,13 +165,18 @@ function buildSeries({
 function buildMultiYAxis({
 	series,
 	yAxis,
-	expandTo100Percent
+	expandTo100Percent,
+	effectiveCharts,
+	valueSymbol
 }: {
 	series: any[]
 	yAxis: any
 	expandTo100Percent: boolean | undefined
+	effectiveCharts: IMultiSeriesChart2Props['charts']
+	valueSymbol: string
 }) {
 	const yAxisIndexToColor = new Map<number, string | undefined>()
+	const yAxisIndexToSymbol = new Map<number, string | undefined>()
 	let maxIndex = -1
 
 	for (const item of series) {
@@ -176,11 +186,24 @@ function buildMultiYAxis({
 		if (idx > maxIndex) maxIndex = idx
 	}
 
+	// Derive per-axis symbols and colors from charts config
+	for (const chart of effectiveCharts ?? []) {
+		const idx = chart.yAxisIndex
+		if (idx == null) continue
+		if (chart.valueSymbol && !yAxisIndexToSymbol.has(idx)) {
+			yAxisIndexToSymbol.set(idx, chart.valueSymbol)
+		}
+		if (chart.color && !yAxisIndexToColor.has(idx)) {
+			yAxisIndexToColor.set(idx, chart.color)
+		}
+	}
+
 	if (maxIndex < 0) return null
 
 	const out: any[] = []
 	for (let i = 0; i <= maxIndex; i++) {
-		const axisColor = i === 0 ? null : yAxisIndexToColor.get(i)
+		const axisColor = yAxisIndexToColor.get(i)
+		const axisSymbol = yAxisIndexToSymbol.get(i) ?? valueSymbol
 		out.push({
 			...yAxis,
 			axisLine: {
@@ -193,6 +216,7 @@ function buildMultiYAxis({
 			},
 			axisLabel: {
 				...yAxis.axisLabel,
+				formatter: (value: number) => formatAxisLabel(value, axisSymbol),
 				...(axisColor ? { color: axisColor } : {})
 			},
 			...(expandTo100Percent ? { max: 100, min: 0 } : {})
@@ -278,8 +302,7 @@ function createTooltipFormatter({ groupBy, valueSymbol }: { groupBy: GroupBy; va
 			chartdate +
 			vals.reduce(
 				(prev, curr) =>
-					prev +
-					`<li style="list-style:none;">${curr[0]} ${curr[1]}: ${abbreviateNumber(curr[2], 2, valueSymbol)}</li>`,
+					prev + `<li style="list-style:none;">${curr[0]} ${curr[1]}: ${formatAxisLabel(curr[2], valueSymbol)}</li>`,
 				''
 			)
 		)
@@ -407,7 +430,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		}
 
 		const { legend, graphic, xAxis, yAxis, dataZoom, dataset: datasetOptions } = mergedChartSettings
-		const finalYAxis = buildMultiYAxis({ series, yAxis, expandTo100Percent })
+		const finalYAxis = buildMultiYAxis({ series, yAxis, expandTo100Percent, effectiveCharts, valueSymbol })
 
 		const datasetLength = Array.isArray(datasetSource) ? datasetSource.length : 0
 		const shouldHideDataZoom = datasetLength < 2 || hideDataZoom
@@ -529,7 +552,8 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		valueSymbol,
 		onReady,
 		tooltipFormatter,
-		updateExportInstance
+		updateExportInstance,
+		effectiveCharts
 	])
 
 	return (

@@ -2,7 +2,8 @@ import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
-import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
+import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
+import type { IBarChartProps, IChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'
@@ -13,7 +14,9 @@ import { getItemIconUrl } from '../../utils'
 import { AriakitMultiSelect } from '../AriakitMultiSelect'
 import { useYieldChartTransformations } from '../useYieldChartTransformations'
 
-const TVLAPYChart = lazy(() => import('~/components/ECharts/TVLAPYChart')) as React.FC<IChartProps>
+const MultiSeriesChart2 = lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
@@ -36,8 +39,25 @@ interface YieldsChartTabProps {
 	onMaxTvlChange: (tvl: number | null) => void
 }
 
-const mainChartStackColors = { APY: '#fd3c99', TVL: '#4f8fea' }
-const mainChartStacks = ['APY', 'TVL']
+const tvlApyCharts = [
+	{
+		type: 'line' as const,
+		name: 'APY',
+		encode: { x: 'timestamp', y: 'APY' },
+		color: '#fd3c99',
+		yAxisIndex: 0,
+		valueSymbol: '%'
+	},
+	{
+		type: 'line' as const,
+		name: 'TVL',
+		encode: { x: 'timestamp', y: 'TVL' },
+		color: '#4f8fea',
+		yAxisIndex: 1,
+		valueSymbol: '$'
+	}
+]
+const tvlApyChartOptions = { tooltip: { formatter: formatTvlApyTooltip } }
 
 const barChartStacks = { Base: 'a', Reward: 'a' }
 const barChartColors = { Base: CHART_COLORS[0], Reward: CHART_COLORS[1] }
@@ -416,6 +436,7 @@ export function YieldsChartTab({
 
 	const {
 		tvlApyData: yieldsChartData,
+		tvlApyDataset: yieldsChartDataset,
 		supplyApyBarData,
 		supplyApy7dData,
 		borrowApyBarData,
@@ -1054,19 +1075,13 @@ export function YieldsChartTab({
 										<div className="mb-3 flex gap-4">
 											<div className="flex flex-col">
 												<span className="text-[10px] pro-text3 uppercase">Latest APY</span>
-												<span
-													className="font-jetbrains text-base font-semibold"
-													style={{ color: mainChartStackColors.APY }}
-												>
+												<span className="font-jetbrains text-base font-semibold" style={{ color: '#fd3c99' }}>
 													{latestYieldData.apy}%
 												</span>
 											</div>
 											<div className="flex flex-col">
 												<span className="text-[10px] pro-text3 uppercase">TVL</span>
-												<span
-													className="font-jetbrains text-base font-semibold"
-													style={{ color: mainChartStackColors.TVL }}
-												>
+												<span className="font-jetbrains text-base font-semibold" style={{ color: '#4f8fea' }}>
 													{formattedNum(latestYieldData.tvl, true)}
 												</span>
 											</div>
@@ -1087,12 +1102,12 @@ export function YieldsChartTab({
 											}
 										>
 											{selectedYieldChartType === 'tvl-apy' && (
-												<TVLAPYChart
+												<MultiSeriesChart2
 													height="280px"
-													chartData={yieldsChartData}
-													stackColors={mainChartStackColors}
-													stacks={mainChartStacks}
-													title=""
+													dataset={yieldsChartDataset}
+													charts={tvlApyCharts}
+													chartOptions={tvlApyChartOptions}
+													valueSymbol=""
 													alwaysShowTooltip={false}
 												/>
 											)}
