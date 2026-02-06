@@ -273,7 +273,15 @@ export const getProtocolEmissons = async (protocolName: string) => {
 	try {
 		const list = await fetchJson(PROTOCOL_EMISSIONS_LIST_API)
 		if (!list.includes(protocolName))
-			return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
+			return {
+				chartData: { documented: [], realtime: [] },
+				categories: { documented: [], realtime: [] },
+				datasets: {
+					documented: { source: [], dimensions: ['timestamp'] },
+					realtime: { source: [], dimensions: ['timestamp'] }
+				},
+				chartsConfigs: { documented: [], realtime: [] }
+			}
 
 		const [res, allEmissions] = await Promise.all([
 			fetchJson(`${PROTOCOL_EMISSION_API}/${protocolName}`)
@@ -283,7 +291,15 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		])
 
 		if (!res) {
-			return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
+			return {
+				chartData: { documented: [], realtime: [] },
+				categories: { documented: [], realtime: [] },
+				datasets: {
+					documented: { source: [], dimensions: ['timestamp'] },
+					realtime: { source: [], dimensions: ['timestamp'] }
+				},
+				chartsConfigs: { documented: [], realtime: [] }
+			}
 		}
 
 		const { metadata, name, futures } = res
@@ -453,7 +469,15 @@ export const getProtocolEmissons = async (protocolName: string) => {
 	} catch (e) {
 		console.log(e)
 
-		return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
+		return {
+			chartData: { documented: [], realtime: [] },
+			categories: { documented: [], realtime: [] },
+			datasets: {
+				documented: { source: [], dimensions: ['timestamp'] },
+				realtime: { source: [], dimensions: ['timestamp'] }
+			},
+			chartsConfigs: { documented: [], realtime: [] }
+		}
 	}
 }
 

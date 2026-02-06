@@ -62,8 +62,8 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 		if (!source.length || !timePeriod || timePeriod === 'all') return apiDataset
 		const points: [number, number][] = source.map((item) => [Math.floor((item.timestamp as number) / 1e3), 1])
 		const filtered = filterDataByTimePeriod(points, timePeriod, customTimePeriod)
-		const filteredTimestamps = new Set(filtered.map(([ts]) => ts * 1e3))
-		const filteredSource = source.filter((item) => filteredTimestamps.has(item.timestamp as number))
+		const filteredSecondsSet = new Set(filtered.map(([ts]) => ts))
+		const filteredSource = source.filter((item) => filteredSecondsSet.has(Math.floor((item.timestamp as number) / 1e3)))
 		return { source: filteredSource, dimensions: apiDataset.dimensions }
 	}, [apiDataset, timePeriod, customTimePeriod])
 
