@@ -63,21 +63,16 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 
 		const grids: any[] = [
 			{
-				left: 12,
+				left: 60,
 				bottom: priceBottom,
 				top: 12,
-				right: 12,
-				// Match AreaChart behavior: keep axis labels within the chart bounds
-				outerBoundsMode: 'same',
-				outerBoundsContain: 'axisLabel'
+				right: 12
 			},
 			{
 				height: VOLUME_HEIGHT,
-				left: 54,
+				left: 60,
 				right: 12,
-				bottom: volumeBottom,
-				outerBoundsMode: 'same',
-				outerBoundsContain: 'axisLabel'
+				bottom: volumeBottom
 			}
 		]
 
@@ -220,13 +215,13 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 			xAxis: xAxes,
 			yAxis: yAxes,
 			dataZoom: [
-				{ type: 'inside', xAxisIndex: allAxisIndices, start: 10, end: 100 },
+				{ type: 'inside', xAxisIndex: allAxisIndices, start: 0, end: 100 },
 				{
 					show: true,
 					xAxisIndex: allAxisIndices,
 					type: 'slider',
 					bottom: 10,
-					start: 10,
+					start: 0,
 					end: 100,
 					textStyle: { color: isThemeDark ? 'rgba(255,255,255,1)' : 'rgba(0,0,0,1)' },
 					borderColor: isThemeDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)',
