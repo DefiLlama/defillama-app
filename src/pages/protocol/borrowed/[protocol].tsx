@@ -56,7 +56,7 @@ function MultiSeriesChartCard({
 	exportSuffix: string
 	valueSymbol?: string
 }) {
-	const [selectedSeriesRaw, setSelectedSeriesRaw] = React.useState<string[]>(allSeries)
+	const [selectedSeriesRaw, setSelectedSeriesRaw] = React.useState<string[]>(() => allSeries)
 	const selectedSeries = React.useMemo(
 		() => updateSelectionOnListChange(selectedSeriesRaw, allSeries),
 		[selectedSeriesRaw, allSeries]
@@ -97,7 +97,7 @@ function MultiSeriesChartCard({
 				<MultiSeriesChart2
 					dataset={dataset}
 					charts={charts}
-					{...(valueSymbol ? { valueSymbol } : {})}
+					{...(valueSymbol !== undefined ? { valueSymbol } : {})}
 					selectedCharts={new Set(selectedSeries)}
 					onReady={handleReady}
 				/>
@@ -114,7 +114,7 @@ function TokensBreakdownPieChartCard({
 	chartData: Array<{ name: string; value: number }>
 }) {
 	const allTokens = React.useMemo(() => chartData.map((d) => d.name), [chartData])
-	const [selectedTokensRaw, setSelectedTokensRaw] = React.useState<string[]>(allTokens)
+	const [selectedTokensRaw, setSelectedTokensRaw] = React.useState<string[]>(() => allTokens)
 	const selectedTokens = React.useMemo(
 		() => updateSelectionOnListChange(selectedTokensRaw, allTokens),
 		[selectedTokensRaw, allTokens]
@@ -313,6 +313,7 @@ export default function Protocols(props) {
 				<div className="grid grid-cols-2 gap-2">
 					{borrowedByChainDataset && chainsUnique.length > 1 ? (
 						<MultiSeriesChartCard
+							key={`${chainsUnique.join('|')}:borrowed-by-chain`}
 							title="Borrowed by Chain"
 							protocolName={props.name}
 							allSeries={chainsUnique}
@@ -326,6 +327,7 @@ export default function Protocols(props) {
 
 					{tokenUSDDataset && tokensUnique?.length > 0 ? (
 						<MultiSeriesChartCard
+							key={`${tokensUnique.join('|')}:borrowed-by-token-usd`}
 							title="Borrowed by Token (USD)"
 							protocolName={props.name}
 							allSeries={tokensUnique}
@@ -338,11 +340,16 @@ export default function Protocols(props) {
 					) : null}
 
 					{tokenBreakdownPieChart?.length > 0 ? (
-						<TokensBreakdownPieChartCard protocolName={props.name} chartData={tokenBreakdownPieChart} />
+						<TokensBreakdownPieChartCard
+							key={tokenBreakdownPieChart.map((d) => d.name).join('|')}
+							protocolName={props.name}
+							chartData={tokenBreakdownPieChart}
+						/>
 					) : null}
 
 					{tokenRawDataset && tokensUnique?.length > 0 ? (
 						<MultiSeriesChartCard
+							key={`${tokensUnique.join('|')}:borrowed-by-token-raw`}
 							title="Borrowed by Token (Raw Quantities)"
 							protocolName={props.name}
 							allSeries={tokensUnique}
@@ -350,6 +357,7 @@ export default function Protocols(props) {
 							dataset={tokenRawDataset}
 							charts={tokenRawCharts}
 							exportSuffix="borrowed-by-token-raw"
+							valueSymbol=""
 						/>
 					) : null}
 				</div>

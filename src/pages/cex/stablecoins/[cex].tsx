@@ -117,7 +117,9 @@ function MultiSeriesChartCard({
 	exportFilenameBase: string
 	exportTitle: string
 }) {
-	const [selected, setSelected] = React.useState<string[]>(allValues)
+	const [selected, setSelected] = React.useState<string[]>(() => allValues)
+
+	const selectedChartsSet = React.useMemo(() => new Set(selected), [selected])
 
 	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
 	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
@@ -153,7 +155,7 @@ function MultiSeriesChartCard({
 					charts={charts}
 					valueSymbol={valueSymbol}
 					hideDefaultLegend={hideDefaultLegend}
-					selectedCharts={new Set(selected)}
+					selectedCharts={selectedChartsSet}
 					onReady={handleReady}
 				/>
 			</React.Suspense>
@@ -173,7 +175,8 @@ function PieChartCard({
 	exportTitle: string
 }) {
 	const allValues = React.useMemo(() => chartData.map((d) => d.name), [chartData])
-	const [selectedValues, setSelectedValues] = React.useState<string[]>(allValues)
+	const [selectedValues, setSelectedValues] = React.useState<string[]>(() => allValues)
+
 	const selectedValuesSet = React.useMemo(() => new Set(selectedValues), [selectedValues])
 
 	const filteredChartData = React.useMemo(() => {
@@ -402,6 +405,7 @@ export default function CEXStablecoins(props: {
 					<div className="grid grid-cols-2 gap-2">
 						{totalStablecoinsDataset ? (
 							<MultiSeriesChartCard
+								key={`${buildFilename('total-stablecoin-in-cex')}:${['Total'].join('|')}`}
 								title="Total Stablecoin in CEX"
 								filterLabel="Stablecoins"
 								allValues={['Total']}
@@ -415,6 +419,7 @@ export default function CEXStablecoins(props: {
 
 						{stablecoinsByPegMechanismDataset && pegMechanismsUnique.length > 0 ? (
 							<MultiSeriesChartCard
+								key={`${buildFilename('stablecoins-by-backing-type')}:${pegMechanismsUnique.join('|')}`}
 								title="Stablecoins by Backing Type"
 								filterLabel="Backing"
 								allValues={pegMechanismsUnique}
@@ -428,6 +433,7 @@ export default function CEXStablecoins(props: {
 
 						{pegMechanismPieChartData.length > 0 ? (
 							<PieChartCard
+								key={`${buildFilename('stablecoins-backing-type')}:${pegMechanismPieChartData.map((d) => d.name).join('|')}`}
 								title="Distribution by Backing Type"
 								chartData={pegMechanismPieChartData}
 								exportFilenameBase={buildFilename('stablecoins-backing-type')}
@@ -437,6 +443,7 @@ export default function CEXStablecoins(props: {
 
 						{stablecoinsByPegTypeDataset && pegTypesUnique.length > 0 ? (
 							<MultiSeriesChartCard
+								key={`${buildFilename('stablecoins-by-currency-peg')}:${pegTypesUnique.join('|')}`}
 								title="Stablecoins by Currency Peg"
 								filterLabel="Currency"
 								allValues={pegTypesUnique}
@@ -450,6 +457,7 @@ export default function CEXStablecoins(props: {
 
 						{stablecoinsByTokenDataset && stablecoinTokensUnique.length > 0 ? (
 							<MultiSeriesChartCard
+								key={`${buildFilename('individual-stablecoins')}:${stablecoinTokensUnique.join('|')}`}
 								title="Individual Stablecoins"
 								filterLabel="Token"
 								allValues={stablecoinTokensUnique}

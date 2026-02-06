@@ -12,9 +12,17 @@ import { calculateLoopAPY } from '~/containers/Yields/queries/index'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 
-const BarChart = lazy(() => import('~/components/ECharts/BarChart'))
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-const AreaChart = lazy(() => import('~/components/ECharts/AreaChart'))
+const EMPTY_APY_DATASET = { source: [], dimensions: ['timestamp', 'APY'] }
+const EMPTY_BASE_REWARD_DATASET = { source: [], dimensions: ['timestamp', 'Base', 'Reward'] }
+
+const APY_LINE_CHARTS = [{ type: 'line', name: 'APY', encode: { x: 'timestamp', y: 'APY' }, color: CHART_COLORS[0] }]
+
+const BAR_APY_CHARTS = [
+	{ type: 'bar', name: 'Base', encode: { x: 'timestamp', y: 'Base' }, stack: 'a', color: CHART_COLORS[0] },
+	{ type: 'bar', name: 'Reward', encode: { x: 'timestamp', y: 'Reward' }, stack: 'a', color: CHART_COLORS[1] }
+]
 
 const PageView = () => {
 	const { query } = useRouter()
@@ -43,10 +51,10 @@ const PageView = () => {
 	}
 
 	const {
-		finalChart = [],
-		barChartDataSupply = [],
-		barChartDataBorrow = [],
-		barChartDataFarm = [],
+		finalApyDataset = EMPTY_APY_DATASET,
+		barDatasetSupply = EMPTY_BASE_REWARD_DATASET,
+		barDatasetBorrow = EMPTY_BASE_REWARD_DATASET,
+		barDatasetFarm = EMPTY_BASE_REWARD_DATASET,
 		lendApy,
 		borrowApy,
 		farmApy,
@@ -55,7 +63,14 @@ const PageView = () => {
 		farmTVL,
 		borrowAvailable
 	} = useMemo(() => {
-		if (!lendHistory || !borrowHistory || !farmHistory || !configData || !lendProjectCategory) return {}
+		if (!lendHistory || !borrowHistory || !farmHistory || !configData || !lendProjectCategory) {
+			return {
+				finalApyDataset: EMPTY_APY_DATASET,
+				barDatasetSupply: EMPTY_BASE_REWARD_DATASET,
+				barDatasetBorrow: EMPTY_BASE_REWARD_DATASET,
+				barDatasetFarm: EMPTY_BASE_REWARD_DATASET
+			}
+		}
 
 		const lendData = lendHistory?.data?.map((t) => ({
 			...t,
@@ -108,9 +123,6 @@ const PageView = () => {
 				?.loopApy
 		}))
 
-		const strategyData = merged.map((t) => [t.timestamp, t?.strategyAPY?.toFixed(2)]).filter((t) => t[1])
-		const loopData = merged.map((t) => [t.timestamp, t?.loopAPY?.toFixed(2)]).filter((t) => t[1])
-
 		// make sure this is the most recent value
 		const latestValues = merged?.slice(-1)[0] ?? []
 		const farmTVL = latestValues?.farmData?.tvlUsd ?? 0
@@ -129,42 +141,78 @@ const PageView = () => {
 		const loopAPY = latestValues?.loopAPY ?? 0
 
 		const finalAPY = lendToken === borrowToken && lendProjectCategory !== 'CDP' ? loopAPY : strategyAPY
-		const finalChart = lendToken === borrowToken && lendProjectCategory !== 'CDP' ? loopData : strategyData
 
-		const barChartDataSupply = merged?.length
-			? merged.map((item) => ({
-					date: item.lendData.timestamp,
-					Base: item.lendData?.apyBase?.toFixed(2),
-					Reward: item.lendData?.apyReward?.toFixed(2)
-				}))
-			: []
+		const isLoop = lendToken === borrowToken && lendProjectCategory !== 'CDP'
+		const finalApyDataset = {
+			source: merged
+				.map((t) => {
+					const apyRaw = isLoop ? t?.loopAPY : t?.strategyAPY
+					const apy = typeof apyRaw === 'number' ? Number(apyRaw.toFixed(2)) : Number(apyRaw)
+					if (!Number.isFinite(apy)) return null
+					return { timestamp: t.timestamp * 1e3, APY: apy }
+				})
+				.filter(Boolean),
+			dimensions: ['timestamp', 'APY']
+		}
 
-		const barChartDataBorrow = merged?.length
-			? merged.map((item) => ({
-					date: item.borrowData.timestamp,
-					Base: -item.borrowData?.apyBaseBorrow?.toFixed(2),
-					Reward: item.borrowData?.apyRewardBorrow?.toFixed(2)
-				}))
-			: []
+		const barDatasetSupply = {
+			source: merged.map((item) => ({
+				timestamp: item.lendData.timestamp * 1e3,
+				Base:
+					item.lendData?.apyBase == null || !Number.isFinite(item.lendData.apyBase)
+						? null
+						: Number(item.lendData.apyBase.toFixed(2)),
+				Reward:
+					item.lendData?.apyReward == null || !Number.isFinite(item.lendData.apyReward)
+						? null
+						: Number(item.lendData.apyReward.toFixed(2))
+			})),
+			dimensions: ['timestamp', 'Base', 'Reward']
+		}
 
-		const barChartDataFarm = merged?.length
-			? merged.map((item) => ({
-					date: item.farmData.timestamp,
-					Base: item.farmData?.apyBase?.toFixed(2) ?? item.farmData.apy?.toFixed(2),
-					Reward: item.farmData?.apyReward?.toFixed(2)
-				}))
-			: []
+		const barDatasetBorrow = {
+			source: merged.map((item) => ({
+				timestamp: item.borrowData.timestamp * 1e3,
+				Base:
+					item.borrowData?.apyBaseBorrow == null || !Number.isFinite(item.borrowData.apyBaseBorrow)
+						? null
+						: -Number(item.borrowData.apyBaseBorrow.toFixed(2)),
+				Reward:
+					item.borrowData?.apyRewardBorrow == null || !Number.isFinite(item.borrowData.apyRewardBorrow)
+						? null
+						: Number(item.borrowData.apyRewardBorrow.toFixed(2))
+			})),
+			dimensions: ['timestamp', 'Base', 'Reward']
+		}
+
+		const barDatasetFarm = {
+			source: merged.map((item) => {
+				const baseRaw =
+					item.farmData?.apyBase == null || !Number.isFinite(item.farmData.apyBase)
+						? item.farmData?.apy
+						: item.farmData.apyBase
+				return {
+					timestamp: item.farmData.timestamp * 1e3,
+					Base: baseRaw == null || !Number.isFinite(baseRaw) ? null : Number(baseRaw.toFixed(2)),
+					Reward:
+						item.farmData?.apyReward == null || !Number.isFinite(item.farmData.apyReward)
+							? null
+							: Number(item.farmData.apyReward.toFixed(2))
+				}
+			}),
+			dimensions: ['timestamp', 'Base', 'Reward']
+		}
 
 		return {
-			finalChart,
+			finalApyDataset,
 			lendApy,
 			borrowApy,
 			farmApy,
 			finalAPY,
 			ltv,
-			barChartDataSupply,
-			barChartDataBorrow,
-			barChartDataFarm,
+			barDatasetSupply,
+			barDatasetBorrow,
+			barDatasetFarm,
 			farmTVL,
 			borrowAvailable
 		}
@@ -224,7 +272,14 @@ const PageView = () => {
 				</div>
 				<div className="col-span-2 min-h-[480px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<Suspense fallback={<></>}>
-						<AreaChart title="Strategy APY" chartData={finalChart} color={CHART_COLORS[0]} valueSymbol={'%'} />
+						<MultiSeriesChart2
+							title="Strategy APY"
+							dataset={finalApyDataset}
+							charts={APY_LINE_CHARTS}
+							valueSymbol="%"
+							shouldEnableImageExport
+							shouldEnableCSVDownload
+						/>
 					</Suspense>
 				</div>
 			</div>
@@ -288,43 +343,49 @@ const PageView = () => {
 				) : (
 					lendHistory?.data?.length && (
 						<>
-							{barChartDataSupply?.length ? (
+							{barDatasetSupply?.source?.length ? (
 								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<Suspense fallback={<></>}>
-										<BarChart
+										<MultiSeriesChart2
 											title="Supply APY"
-											chartData={barChartDataSupply}
-											stacks={barChartStacks}
-											stackColors={barChartColors}
-											valueSymbol={'%'}
+											dataset={barDatasetSupply}
+											charts={BAR_APY_CHARTS}
+											valueSymbol="%"
+											hideDefaultLegend={false}
+											shouldEnableImageExport
+											shouldEnableCSVDownload
 										/>
 									</Suspense>
 								</div>
 							) : null}
 
-							{barChartDataBorrow?.length ? (
+							{barDatasetBorrow?.source?.length ? (
 								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<Suspense fallback={<></>}>
-										<BarChart
+										<MultiSeriesChart2
 											title="Borrow APY"
-											chartData={barChartDataBorrow}
-											stacks={barChartStacks}
-											stackColors={barChartColors}
-											valueSymbol={'%'}
+											dataset={barDatasetBorrow}
+											charts={BAR_APY_CHARTS}
+											valueSymbol="%"
+											hideDefaultLegend={false}
+											shouldEnableImageExport
+											shouldEnableCSVDownload
 										/>
 									</Suspense>
 								</div>
 							) : null}
 
-							{barChartDataFarm?.length ? (
+							{barDatasetFarm?.source?.length ? (
 								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<Suspense fallback={<></>}>
-										<BarChart
+										<MultiSeriesChart2
 											title="Farm APY"
-											chartData={barChartDataFarm}
-											stacks={barChartStacks}
-											stackColors={barChartColors}
-											valueSymbol={'%'}
+											dataset={barDatasetFarm}
+											charts={BAR_APY_CHARTS}
+											valueSymbol="%"
+											hideDefaultLegend={false}
+											shouldEnableImageExport
+											shouldEnableCSVDownload
 										/>
 									</Suspense>
 								</div>
@@ -335,16 +396,6 @@ const PageView = () => {
 			</div>
 		</>
 	)
-}
-
-const barChartColors = {
-	Base: CHART_COLORS[0],
-	Reward: CHART_COLORS[1]
-}
-
-const barChartStacks = {
-	Base: 'a',
-	Reward: 'a'
 }
 
 export default function YieldPoolPage(props) {

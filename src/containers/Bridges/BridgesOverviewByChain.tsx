@@ -43,6 +43,32 @@ const handleRouting = (selectedChain: string) => {
 	return `/bridges/${selectedChain}`
 }
 
+const getBridgeChartFilename = (selectedChain: string, chartType: string) => {
+	let suffix: string
+	switch (chartType) {
+		case '24h Tokens Deposited':
+			suffix = 'tokens-deposited'
+			break
+		case '24h Tokens Withdrawn':
+			suffix = 'tokens-withdrawn'
+			break
+		case 'Net Flow':
+			suffix = 'netflow'
+			break
+		case 'Net Flow (%)':
+			suffix = 'netflow-pct'
+			break
+		case 'Inflows':
+			suffix = 'inflows'
+			break
+		default:
+			suffix = 'bridge-volume'
+			break
+	}
+
+	return `${selectedChain}-${suffix}`
+}
+
 export function BridgesOverviewByChain({
 	selectedChain = 'All',
 	chains = EMPTY_CHAINS,
@@ -108,6 +134,8 @@ export function BridgesOverviewByChain({
 		}),
 		[chainPercentageNet]
 	)
+
+	const chartFilename = getBridgeChartFilename(selectedChain, chartType)
 
 	const prepareCsv = () => {
 		const resolvedFilteredBridges = filteredBridges ?? EMPTY_PROTOCOLS
@@ -256,37 +284,10 @@ export function BridgesOverviewByChain({
 						<>
 							<div className="flex flex-wrap items-center justify-end gap-2 p-2">
 								<ChartSelector options={BRIDGE_CHAIN_CHART_OPTIONS} selectedChart={chartType} onClick={setChartType} />
-								<ChartCsvExportButton
-									chartInstance={exportChartCsvInstance}
-									filename={`${selectedChain}-${
-										chartType === '24h Tokens Deposited'
-											? 'tokens-deposited'
-											: chartType === '24h Tokens Withdrawn'
-												? 'tokens-withdrawn'
-												: chartType === 'Net Flow'
-													? 'netflow'
-													: chartType === 'Net Flow (%)'
-														? 'netflow-pct'
-														: chartType === 'Inflows'
-															? 'inflows'
-															: 'bridge-volume'
-									}`}
-								/>
+								<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={chartFilename} />
 								<ChartExportButton
 									chartInstance={exportChartInstance}
-									filename={`${selectedChain}-${
-										chartType === '24h Tokens Deposited'
-											? 'tokens-deposited'
-											: chartType === '24h Tokens Withdrawn'
-												? 'tokens-withdrawn'
-												: chartType === 'Net Flow'
-													? 'netflow'
-													: chartType === 'Net Flow (%)'
-														? 'netflow-pct'
-														: chartType === 'Inflows'
-															? 'inflows'
-															: 'bridge-volume'
-									}`}
+									filename={chartFilename}
 									title={`${selectedChain} ${chartType}`}
 								/>
 							</div>

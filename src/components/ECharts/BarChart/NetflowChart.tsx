@@ -23,6 +23,11 @@ export default function NetflowChart({ height, onReady }: NetflowChartProps) {
 	const [isThemeDark] = useDarkModeManager()
 	const [period, setPeriod] = useState('month')
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const onReadyRef = useRef<NetflowChartProps['onReady']>(onReady)
+
+	useEffect(() => {
+		onReadyRef.current = onReady
+	}, [onReady])
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -69,14 +74,13 @@ export default function NetflowChart({ height, onReady }: NetflowChartProps) {
 		if (!el) return
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
 		chartRef.current = instance
-		onReady?.(instance)
 
 		return () => {
-			onReady?.(null)
+			onReadyRef.current?.(null)
 			chartRef.current = null
 			instance.dispose()
 		}
-	}, [id, onReady])
+	}, [id])
 
 	const heightStyle = useMemo(() => {
 		if (height == null) return undefined
@@ -202,11 +206,12 @@ export default function NetflowChart({ height, onReady }: NetflowChartProps) {
 
 		instance.setOption(option, { notMerge: true })
 		instance.resize()
+		onReadyRef.current?.(instance)
 	}, [chains, positiveData, negativeData, isThemeDark, csvSource, height])
 
 	return (
-		<div className="relative min-h-[600px] pr-5">
-			<div id={id} className="my-auto min-h-[600px]" style={heightStyle}></div>
+		<div className="relative pr-5">
+			<div id={id} className="my-auto" style={heightStyle ?? { minHeight: '600px' }}></div>
 			<div className="m-4 flex justify-center">
 				<TagGroup values={flowTypes} selectedValue={period} setValue={setPeriod} />
 			</div>

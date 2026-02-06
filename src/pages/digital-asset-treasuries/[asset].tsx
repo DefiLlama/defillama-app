@@ -5,6 +5,7 @@ import { maxAgeForNext } from '~/api'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -121,6 +122,10 @@ export default function TreasuriesByAsset({
 	institutionsNames
 }: IDATOverviewDataByAssetProps) {
 	const handlePrepareAssetBreakdownCsv = () => prepareAssetBreakdownCsv(institutions, metadata.name, metadata.ticker)
+	const inflowsTooltipFormatter = useMemo(
+		() => createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: metadata.ticker }),
+		[metadata.ticker]
+	)
 
 	return (
 		<Layout
@@ -172,6 +177,11 @@ export default function TreasuriesByAsset({
 							dataset={dailyFlowsChart.dataset}
 							charts={dailyFlowsChart.charts}
 							valueSymbol={metadata.ticker}
+							chartOptions={
+								(dailyFlowsChart.charts?.length ?? 0) > 1
+									? { tooltip: { formatter: inflowsTooltipFormatter } }
+									: undefined
+							}
 							hideDataZoom={dailyFlowsChart.dataset.source.length < 2}
 							title="Inflows"
 							shouldEnableImageExport
@@ -410,7 +420,7 @@ const MNAVChart = ({
 	return (
 		<div className="col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex items-center justify-end gap-2 p-2">
-				<h1 className="mr-auto text-base font-semibold">{title}</h1>
+				<h2 className="mr-auto text-base font-semibold">{title}</h2>
 				<SelectWithCombobox
 					allValues={institutionsNames}
 					selectedValues={selectedInstitution}

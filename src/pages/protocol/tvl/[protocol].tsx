@@ -4,6 +4,7 @@ import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { createAggregateTooltipFormatter, createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { tvlOptionsMap } from '~/components/Filters/options'
 import { LocalLoader } from '~/components/Loaders'
@@ -28,6 +29,9 @@ const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSer
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 const EMPTY_OTHER_PROTOCOLS: string[] = []
+
+const INFLOWS_TOOLTIP_FORMATTER_USD = createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: '$' })
+const AGG_TOOLTIP_FORMATTER_USD = createAggregateTooltipFormatter({ groupBy: 'daily', valueSymbol: '$' })
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/tvl/[protocol]',
@@ -106,7 +110,9 @@ function ChainsChartCard({
 	exportFilenameBase: string
 	exportTitle: string
 }) {
-	const [selected, setSelected] = React.useState<string[]>(allValues)
+	const [selected, setSelected] = React.useState<string[]>(() => allValues)
+
+	const selectedChartsSet = React.useMemo(() => new Set(selected), [selected])
 
 	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
 	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
@@ -141,7 +147,8 @@ function ChainsChartCard({
 					dataset={dataset}
 					charts={charts}
 					valueSymbol="$"
-					selectedCharts={new Set(selected)}
+					selectedCharts={selectedChartsSet}
+					chartOptions={{ tooltip: { formatter: AGG_TOOLTIP_FORMATTER_USD } }}
 					onReady={handleReady}
 				/>
 			</React.Suspense>
@@ -166,7 +173,9 @@ function TokenLineChartCard({
 	exportFilenameBase: string
 	exportTitle: string
 }) {
-	const [selected, setSelected] = React.useState<string[]>(allValues)
+	const [selected, setSelected] = React.useState<string[]>(() => allValues)
+
+	const selectedChartsSet = React.useMemo(() => new Set(selected), [selected])
 
 	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
 	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
@@ -201,7 +210,8 @@ function TokenLineChartCard({
 					dataset={dataset}
 					charts={charts}
 					valueSymbol={valueSymbol}
-					selectedCharts={new Set(selected)}
+					selectedCharts={selectedChartsSet}
+					chartOptions={valueSymbol === '$' ? { tooltip: { formatter: AGG_TOOLTIP_FORMATTER_USD } } : undefined}
 					onReady={handleReady}
 				/>
 			</React.Suspense>
@@ -324,6 +334,8 @@ function InflowsByTokenChartCard({
 }) {
 	const [selected, setSelected] = React.useState<string[]>(allValues)
 
+	const selectedChartsSet = React.useMemo(() => new Set(selected), [selected])
+
 	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
 	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
 	const handleReady = React.useCallback(
@@ -358,7 +370,10 @@ function InflowsByTokenChartCard({
 					charts={charts}
 					hideDefaultLegend={true}
 					valueSymbol="$"
-					selectedCharts={new Set(selected)}
+					selectedCharts={selectedChartsSet}
+					chartOptions={
+						selectedChartsSet.size > 1 ? { tooltip: { formatter: INFLOWS_TOOLTIP_FORMATTER_USD } } : undefined
+					}
 					onReady={handleReady}
 				/>
 			</React.Suspense>
@@ -371,7 +386,7 @@ export default function Protocols(props) {
 		data: addlProtocolData,
 		historicalChainTvls,
 		isLoading,
-		isFetching
+		isFetching: _isFetching
 	} = useFetchProtocolAddlChartsData(props.name)
 	const {
 		usdInflows,
@@ -466,7 +481,10 @@ export default function Protocols(props) {
 			tokenInflowsCharts: tokensUnique.map((name) => ({
 				type: 'bar' as const,
 				name,
-				encode: { x: 'timestamp', y: name }
+				encode: { x: 'timestamp', y: name },
+				// BarChart auto-stacked when `customLegendOptions` was used (no explicit stacks),
+				// so keep stacked token inflows behavior in MultiSeriesChart2.
+				stack: 'tokenInflows'
 			}))
 		}
 	}, [tokenInflows, tokensUnique])
@@ -481,7 +499,7 @@ export default function Protocols(props) {
 			warningBanners={props.warningBanners}
 			toggleOptions={props.toggleOptions}
 		>
-			{isLoading || isFetching ? (
+			{isLoading ? (
 				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<LocalLoader />
 				</div>
@@ -489,6 +507,7 @@ export default function Protocols(props) {
 				<div className="grid grid-cols-2 gap-2">
 					{chainsDataset && chainsUnique?.length > 1 ? (
 						<ChainsChartCard
+							key={chainsUnique.join('|')}
 							title="Chains"
 							allValues={chainsUnique}
 							dataset={chainsDataset}
@@ -500,6 +519,7 @@ export default function Protocols(props) {
 
 					{tokenUSDDataset && tokensUnique?.length > 0 ? (
 						<TokenLineChartCard
+							key={tokensUnique.join('|')}
 							title="Token Values (USD)"
 							allValues={tokensUnique}
 							dataset={tokenUSDDataset}
@@ -512,6 +532,7 @@ export default function Protocols(props) {
 
 					{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && tokenBreakdownPieChart?.length > 0 ? (
 						<TokensBreakdownPieChartCard
+							key={tokenBreakdownPieChart.map((d) => d.name).join('|')}
 							title="Tokens Breakdown (USD)"
 							chartData={tokenBreakdownPieChart}
 							exportFilenameBase={buildFilename('tokens-breakdown-usd')}
@@ -521,10 +542,12 @@ export default function Protocols(props) {
 
 					{tokenRawDataset && tokensUnique?.length > 0 ? (
 						<TokenLineChartCard
+							key={`${tokensUnique.join('|')}:raw`}
 							title="Token Balances (Raw Quantities)"
 							allValues={tokensUnique}
 							dataset={tokenRawDataset}
 							charts={tokenRawCharts}
+							valueSymbol=""
 							exportFilenameBase={buildFilename('token-balances')}
 							exportTitle={buildTitle('Token Balances (Raw Quantities)')}
 						/>
@@ -541,6 +564,7 @@ export default function Protocols(props) {
 
 					{tokenInflowsDataset && tokensUnique?.length > 0 ? (
 						<InflowsByTokenChartCard
+							key={tokensUnique.join('|')}
 							title="Inflows by Token"
 							allValues={tokensUnique}
 							dataset={tokenInflowsDataset}

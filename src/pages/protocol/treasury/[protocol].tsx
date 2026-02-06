@@ -43,7 +43,7 @@ function TokensBreakdownPieChartCard({
 	chartData: Array<{ name: string; value: number }>
 }) {
 	const allTokens = React.useMemo(() => chartData.map((d) => d.name), [chartData])
-	const [selectedTokensRaw, setSelectedTokensRaw] = React.useState<string[]>(allTokens)
+	const [selectedTokensRaw, setSelectedTokensRaw] = React.useState<string[]>(() => allTokens)
 	const selectedTokens = React.useMemo(
 		() => updateSelectionOnListChange(selectedTokensRaw, allTokens),
 		[selectedTokensRaw, allTokens]
@@ -154,7 +154,7 @@ function TokensMultiSeriesChartCard({
 	exportSuffix: string
 	valueSymbol?: string
 }) {
-	const [selectedTokensRaw, setSelectedTokensRaw] = React.useState<string[]>(allTokens)
+	const [selectedTokensRaw, setSelectedTokensRaw] = React.useState<string[]>(() => allTokens)
 	const selectedTokens = React.useMemo(
 		() => updateSelectionOnListChange(selectedTokensRaw, allTokens),
 		[selectedTokensRaw, allTokens]
@@ -195,7 +195,7 @@ function TokensMultiSeriesChartCard({
 				<MultiSeriesChart2
 					dataset={dataset}
 					charts={charts}
-					{...(valueSymbol ? { valueSymbol } : {})}
+					{...(valueSymbol !== undefined ? { valueSymbol } : {})}
 					selectedCharts={new Set(selectedTokens)}
 					onReady={handleReady}
 				/>
@@ -395,11 +395,16 @@ export default function Protocols(props) {
 					) : null}
 					<div className="grid grid-cols-2 gap-2">
 						{tokenBreakdownPieChart?.length ? (
-							<TokensBreakdownPieChartCard protocolName={props.name} chartData={tokenBreakdownPieChart} />
+							<TokensBreakdownPieChartCard
+								key={tokenBreakdownPieChart.map((d) => d.name).join('|')}
+								protocolName={props.name}
+								chartData={tokenBreakdownPieChart}
+							/>
 						) : null}
 
 						{historicalTreasuryDataset ? (
 							<HistoricalTreasuryChartCard
+								key="historical-treasury"
 								protocolName={props.name}
 								dataset={historicalTreasuryDataset}
 								charts={historicalTreasuryCharts}
@@ -408,17 +413,20 @@ export default function Protocols(props) {
 
 						{tokenRawDataset && tokensUnique.length > 0 ? (
 							<TokensMultiSeriesChartCard
+								key={`${tokensUnique.join('|')}:treasury-tokens-breakdown-raw`}
 								title="Tokens Breakdown"
 								protocolName={props.name}
 								allTokens={tokensUnique}
 								dataset={tokenRawDataset}
 								charts={tokenRawCharts}
 								exportSuffix="treasury-tokens-breakdown-raw"
+								valueSymbol=""
 							/>
 						) : null}
 
 						{tokenUSDDataset && tokensUnique.length > 0 ? (
 							<TokensMultiSeriesChartCard
+								key={`${tokensUnique.join('|')}:treasury-tokens-usd`}
 								title="Tokens (USD)"
 								protocolName={props.name}
 								allTokens={tokensUnique}

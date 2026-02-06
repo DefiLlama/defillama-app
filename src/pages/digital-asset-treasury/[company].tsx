@@ -619,7 +619,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 				)}
 				{props.ohlcvChartData != null && (
 					<div className="col-span-full min-h-[480px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-						<h1 className="mr-auto p-2 text-base font-semibold">Share Price</h1>
+						<h2 className="mr-auto p-2 text-base font-semibold">Share Price</h2>
 						<Suspense fallback={<div className="h-[480px]" />}>
 							<CandlestickChart data={props.ohlcvChartData} />
 						</Suspense>

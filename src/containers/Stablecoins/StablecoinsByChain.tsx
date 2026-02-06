@@ -4,8 +4,8 @@ import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
-import { preparePieChartData } from '~/components/ECharts/formatters'
-import type { IPieChartProps } from '~/components/ECharts/types'
+import { createInflowsTooltipFormatter, preparePieChartData } from '~/components/ECharts/formatters'
+import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -32,6 +32,11 @@ const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSer
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 const EMPTY_CHAINS: string[] = []
+const EMPTY_IDS: number[] = []
+
+type MultiSeriesCharts = NonNullable<IMultiSeriesChart2Props['charts']>
+
+const INFLOWS_TOOLTIP_FORMATTER = createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: '$' })
 
 const mapChartTypeToConfig = (displayType: string): StablecoinChartType => {
 	const mapping: Record<string, StablecoinChartType> = {
@@ -53,7 +58,7 @@ export function StablecoinsByChain({
 	peggedAssetNames,
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
-	doublecountedIds = [],
+	doublecountedIds = EMPTY_IDS,
 	availableBackings,
 	availablePegTypes
 }) {
@@ -66,8 +71,6 @@ export function StablecoinsByChain({
 
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
-
-	const [selectedTokenInflows, setSelectedTokenInflows] = React.useState<string[]>([])
 
 	const router = useRouter()
 
@@ -164,13 +167,6 @@ export function StablecoinsByChain({
 				doublecountedIds
 			})
 		}, [chartDataByPeggedAsset, peggedAssetNames, filteredIndexes, selectedChain, doublecountedIds])
-
-	// Initialize token inflow selection when names change
-	React.useEffect(() => {
-		if (tokenInflowNames?.length > 0) {
-			setSelectedTokenInflows(tokenInflowNames)
-		}
-	}, [tokenInflowNames])
 
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label, router.query) }))
 
@@ -378,6 +374,11 @@ export function StablecoinsByChain({
 		[usdInflows]
 	)
 
+	const tokenInflowsSelectionKey = React.useMemo(
+		() => (tokenInflowNames?.length ? tokenInflowNames.join('|') : ''),
+		[tokenInflowNames]
+	)
+
 	return (
 		<>
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
@@ -446,90 +447,157 @@ export function StablecoinsByChain({
 					</p>
 				</div>
 				<div className="relative col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="flex items-center gap-2 p-2">
-						<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-						<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
-						{chartType === 'Token Inflows' && tokenInflowNames?.length > 0 ? (
-							<SelectWithCombobox
-								allValues={tokenInflowNames}
-								selectedValues={selectedTokenInflows}
-								setSelectedValues={setSelectedTokenInflows}
-								label="Token"
-								labelType="smol"
-								variant="filter"
-								portal
-							/>
-						) : null}
-						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={getImageExportFilename()} />
-						<ChartExportButton
-							chartInstance={exportChartInstance}
-							filename={getImageExportFilename()}
-							title={getImageExportTitle()}
+					{chartType === 'Token Inflows' ? (
+						<TokenInflowsChartPanel
+							key={tokenInflowsSelectionKey}
+							chartTypeList={chartTypeList}
+							chartType={chartType}
+							setChartType={setChartType}
+							stablecoinsChartConfig={stablecoinsChartConfig}
+							exportChartCsvInstance={exportChartCsvInstance}
+							exportChartInstance={exportChartInstance}
+							exportFilename={getImageExportFilename()}
+							exportTitle={getImageExportTitle()}
+							onReady={handleExportChartReady}
+							tokenInflowNames={tokenInflowNames ?? []}
+							dataset={tokenInflowsDataset}
+							charts={tokenInflowsCharts}
 						/>
-					</div>
-					{chartType === 'Total Market Cap' ? (
-						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<MultiSeriesChart2
-								dataset={totalMcapDataset}
-								charts={TOTAL_MCAP_CHARTS}
-								valueSymbol="$"
-								chartOptions={chartOptions}
-								onReady={handleExportChartReady}
-							/>
-						</React.Suspense>
-					) : chartType === 'Token Market Caps' ? (
-						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<MultiSeriesChart2
-								dataset={tokenMcapsDataset}
-								charts={tokenMcapsCharts}
-								stacked={true}
-								valueSymbol="$"
-								chartOptions={chartOptions}
-								onReady={handleExportChartReady}
-							/>
-						</React.Suspense>
-					) : chartType === 'Dominance' ? (
-						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<MultiSeriesChart2
-								dataset={dominanceDataset}
-								charts={dominanceCharts}
-								stacked={true}
-								expandTo100Percent={true}
-								valueSymbol="%"
-								chartOptions={chartOptions}
-								onReady={handleExportChartReady}
-							/>
-						</React.Suspense>
-					) : chartType === 'Pie' ? (
-						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<PieChart
-								chartData={chainsCirculatingValues}
-								stackColors={tokenColors}
-								onReady={handleExportChartReady}
-							/>
-						</React.Suspense>
-					) : chartType === 'Token Inflows' && tokenInflows ? (
-						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<MultiSeriesChart2
-								dataset={tokenInflowsDataset}
-								charts={tokenInflowsCharts}
-								selectedCharts={new Set(selectedTokenInflows)}
-								onReady={handleExportChartReady}
-							/>
-						</React.Suspense>
-					) : chartType === 'USD Inflows' && usdInflows ? (
-						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<MultiSeriesChart2
-								dataset={usdInflowsDataset}
-								charts={USD_INFLOWS_CHARTS}
-								onReady={handleExportChartReady}
-							/>
-						</React.Suspense>
-					) : null}
+					) : (
+						<>
+							<div className="flex items-center gap-2 p-2">
+								<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
+								<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={getImageExportFilename()} />
+								<ChartExportButton
+									chartInstance={exportChartInstance}
+									filename={getImageExportFilename()}
+									title={getImageExportTitle()}
+								/>
+							</div>
+							{chartType === 'Total Market Cap' ? (
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										dataset={totalMcapDataset}
+										charts={TOTAL_MCAP_CHARTS}
+										valueSymbol="$"
+										chartOptions={chartOptions}
+										onReady={handleExportChartReady}
+									/>
+								</React.Suspense>
+							) : chartType === 'Token Market Caps' ? (
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										dataset={tokenMcapsDataset}
+										charts={tokenMcapsCharts}
+										stacked={true}
+										valueSymbol="$"
+										chartOptions={chartOptions}
+										onReady={handleExportChartReady}
+									/>
+								</React.Suspense>
+							) : chartType === 'Dominance' ? (
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										dataset={dominanceDataset}
+										charts={dominanceCharts}
+										stacked={true}
+										expandTo100Percent={true}
+										valueSymbol="%"
+										chartOptions={chartOptions}
+										onReady={handleExportChartReady}
+									/>
+								</React.Suspense>
+							) : chartType === 'Pie' ? (
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<PieChart
+										chartData={chainsCirculatingValues}
+										stackColors={tokenColors}
+										onReady={handleExportChartReady}
+									/>
+								</React.Suspense>
+							) : chartType === 'USD Inflows' && usdInflows ? (
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										dataset={usdInflowsDataset}
+										charts={USD_INFLOWS_CHARTS}
+										chartOptions={chartOptions}
+										onReady={handleExportChartReady}
+									/>
+								</React.Suspense>
+							) : null}
+						</>
+					)}
 				</div>
 			</div>
 
 			<PeggedAssetsTable data={peggedTotals} />
+		</>
+	)
+}
+
+function TokenInflowsChartPanel({
+	chartTypeList,
+	chartType,
+	setChartType,
+	stablecoinsChartConfig,
+	exportChartCsvInstance,
+	exportChartInstance,
+	exportFilename,
+	exportTitle,
+	onReady,
+	tokenInflowNames,
+	dataset,
+	charts
+}: {
+	chartTypeList: string[]
+	chartType: string
+	setChartType: (next: string) => void
+	stablecoinsChartConfig: StablecoinsChartConfig
+	exportChartCsvInstance: () => echarts.ECharts | null
+	exportChartInstance: () => echarts.ECharts | null
+	exportFilename: string
+	exportTitle: string
+	onReady: (instance: echarts.ECharts | null) => void
+	tokenInflowNames: string[]
+	dataset: MultiSeriesChart2Dataset
+	charts: MultiSeriesCharts
+}) {
+	const [selectedTokenInflows, setSelectedTokenInflows] = React.useState<string[]>(() => tokenInflowNames)
+	const selectedTokenInflowsSet = React.useMemo(() => new Set(selectedTokenInflows), [selectedTokenInflows])
+
+	return (
+		<>
+			<div className="flex items-center gap-2 p-2">
+				<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+				<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
+				{tokenInflowNames.length > 0 ? (
+					<SelectWithCombobox
+						allValues={tokenInflowNames}
+						selectedValues={selectedTokenInflows}
+						setSelectedValues={setSelectedTokenInflows}
+						label="Token"
+						labelType="smol"
+						variant="filter"
+						portal
+					/>
+				) : null}
+				<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={exportFilename} />
+				<ChartExportButton chartInstance={exportChartInstance} filename={exportFilename} title={exportTitle} />
+			</div>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
+				<MultiSeriesChart2
+					dataset={dataset}
+					charts={charts}
+					selectedCharts={selectedTokenInflowsSet}
+					chartOptions={
+						selectedTokenInflowsSet.size > 1
+							? { ...chartOptions, tooltip: { formatter: INFLOWS_TOOLTIP_FORMATTER } }
+							: chartOptions
+					}
+					onReady={onReady}
+				/>
+			</React.Suspense>
 		</>
 	)
 }

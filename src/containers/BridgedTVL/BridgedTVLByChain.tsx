@@ -2,7 +2,7 @@ import { getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from 
 import * as React from 'react'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
-import { preparePieChartData } from '~/components/ECharts/formatters'
+import { createInflowsTooltipFormatter, preparePieChartData } from '~/components/ECharts/formatters'
 import { IPieChartProps } from '~/components/ECharts/types'
 import { FormattedName } from '~/components/FormattedName'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -18,17 +18,13 @@ import { chainIconUrl, formattedNum, slug } from '~/utils'
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
+const INFLOWS_TOOLTIP_FORMATTER_USD = createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: '$' })
+
 export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInflowNames, chainName = 'All Chains' }) {
 	const [chartType, setChartType] = React.useState('total')
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
-	const [selectedTokens, setSelectedTokens] = React.useState<string[]>([])
-
-	React.useEffect(() => {
-		if (tokenInflowNames?.length > 0) {
-			setSelectedTokens(tokenInflowNames)
-		}
-	}, [tokenInflowNames])
+	const [selectedTokens, setSelectedTokens] = React.useState<string[]>(tokenInflowNames ?? [])
 
 	const { pieChartData, tableData } = React.useMemo(() => {
 		const pieChartData = preparePieChartData({ data: chainData?.[chartType]?.breakdown ?? {}, limit: 10 })
@@ -51,7 +47,10 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 			inflowsCharts: tokenInflowNames.map((name) => ({
 				type: 'bar' as const,
 				name,
-				encode: { x: 'timestamp', y: name }
+				encode: { x: 'timestamp', y: name },
+				// BarChart auto-assigned all series to stackA when `customLegendOptions` was present.
+				// MultiSeriesChart2 requires an explicit stack to preserve stacked rendering.
+				stack: 'tokenInflows'
 			}))
 		}
 	}, [inflows, tokenInflowNames])
@@ -185,6 +184,9 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 								hideDefaultLegend={true}
 								valueSymbol="$"
 								selectedCharts={new Set(selectedTokens)}
+								chartOptions={
+									selectedTokens.length > 1 ? { tooltip: { formatter: INFLOWS_TOOLTIP_FORMATTER_USD } } : undefined
+								}
 								onReady={(instance) => {
 									handleChartReady(instance)
 									handleChartCsvReady(instance)

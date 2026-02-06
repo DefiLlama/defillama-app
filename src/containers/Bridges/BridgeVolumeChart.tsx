@@ -170,6 +170,7 @@ export function BridgeVolumeChart({ chain = 'all', height, onReady }: BridgeVolu
 					charts={charts}
 					height={height}
 					hideDefaultLegend={false}
+					valueSymbol={metricType === 'Volume' ? '$' : ''}
 					onReady={onReady}
 				/>
 			</Suspense>

@@ -4,7 +4,7 @@ import { maxAgeForNext } from '~/api'
 import { getLSDPageData } from '~/api/categories/protocols'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
-import { preparePieChartData } from '~/components/ECharts/formatters'
+import { createInflowsTooltipFormatter, preparePieChartData } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { LSDColumn } from '~/components/Table/Defi/columns'
@@ -50,8 +50,13 @@ const PageView = ({
 }) => {
 	const [tab, setTab] = React.useState('breakdown')
 	const [groupBy, setGroupBy] = React.useState<GroupByType>('Weekly')
-	const [selectedBreakdownTokens, setSelectedBreakdownTokens] = React.useState<string[]>([])
-	const [selectedInflowTokens, setSelectedInflowTokens] = React.useState<string[]>([])
+	const [selectedBreakdownTokens, setSelectedBreakdownTokens] = React.useState<string[]>(tokens ?? [])
+	const [selectedInflowTokens, setSelectedInflowTokens] = React.useState<string[]>(tokens ?? [])
+
+	const inflowsTooltipFormatter = React.useMemo(() => {
+		const gb = groupBy === 'Weekly' ? 'weekly' : groupBy === 'Monthly' ? 'monthly' : 'daily'
+		return createInflowsTooltipFormatter({ groupBy: gb, valueSymbol: 'ETH' })
+	}, [groupBy])
 
 	const { chartInstance: breakdownImageChartInstance, handleChartReady: handleBreakdownImageReady } =
 		useChartImageExport()
@@ -66,13 +71,6 @@ const PageView = ({
 
 	const breakdownExportFilenameBase = 'lst-breakdown-dominance'
 	const breakdownExportTitle = 'LST Breakdown (Dominance)'
-
-	React.useEffect(() => {
-		if (tokens?.length > 0) {
-			setSelectedBreakdownTokens(tokens)
-			setSelectedInflowTokens(tokens)
-		}
-	}, [tokens])
 
 	const inflowsData = React.useMemo(() => {
 		const store = {}
@@ -252,6 +250,9 @@ const PageView = ({
 										hideDefaultLegend
 										valueSymbol="ETH"
 										selectedCharts={new Set(selectedInflowTokens)}
+										chartOptions={
+											selectedInflowTokens.length > 1 ? { tooltip: { formatter: inflowsTooltipFormatter } } : undefined
+										}
 									/>
 								</React.Suspense>
 							) : (
@@ -262,6 +263,9 @@ const PageView = ({
 										hideDefaultLegend
 										valueSymbol="ETH"
 										selectedCharts={new Set(selectedInflowTokens)}
+										chartOptions={
+											selectedInflowTokens.length > 1 ? { tooltip: { formatter: inflowsTooltipFormatter } } : undefined
+										}
 									/>
 								</React.Suspense>
 							)}

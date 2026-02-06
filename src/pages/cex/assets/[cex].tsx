@@ -5,6 +5,7 @@ import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { createAggregateTooltipFormatter, createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -31,6 +32,9 @@ interface CexAssetsPageProps {
 	metrics: Pick<IProtocolPageMetrics, 'tvlTab' | 'stablecoins'>
 	ownToken: string | null
 }
+
+const INFLOWS_TOOLTIP_FORMATTER_USD = createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: '$' })
+const AGG_TOOLTIP_FORMATTER_USD = createAggregateTooltipFormatter({ groupBy: 'daily', valueSymbol: '$' })
 
 export const getStaticProps = withPerformanceLogging(
 	'cex/assets/[cex]',
@@ -87,7 +91,9 @@ function ChainsChartCard({
 	dataset: MultiSeriesChart2Dataset
 	charts: MultiSeriesCharts
 }) {
-	const [selectedChains, setSelectedChains] = React.useState<string[]>(allChains)
+	const [selectedChains, setSelectedChains] = React.useState<string[]>(() => allChains)
+
+	const selectedChainsSet = React.useMemo(() => new Set(selectedChains), [selectedChains])
 
 	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
 	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
@@ -125,7 +131,8 @@ function ChainsChartCard({
 					dataset={dataset}
 					charts={charts}
 					valueSymbol="$"
-					selectedCharts={new Set(selectedChains)}
+					selectedCharts={selectedChainsSet}
+					chartOptions={{ tooltip: { formatter: AGG_TOOLTIP_FORMATTER_USD } }}
 					onReady={handleReady}
 				/>
 			</React.Suspense>
@@ -144,7 +151,9 @@ function TokenValuesUSDChartCard({
 	dataset: MultiSeriesChart2Dataset
 	charts: MultiSeriesCharts
 }) {
-	const [selectedTokensUSD, setSelectedTokensUSD] = React.useState<string[]>(allTokens)
+	const [selectedTokensUSD, setSelectedTokensUSD] = React.useState<string[]>(() => allTokens)
+
+	const selectedTokensUSDSet = React.useMemo(() => new Set(selectedTokensUSD), [selectedTokensUSD])
 
 	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
 	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
@@ -182,7 +191,8 @@ function TokenValuesUSDChartCard({
 					dataset={dataset}
 					charts={charts}
 					valueSymbol="$"
-					selectedCharts={new Set(selectedTokensUSD)}
+					selectedCharts={selectedTokensUSDSet}
+					chartOptions={{ tooltip: { formatter: AGG_TOOLTIP_FORMATTER_USD } }}
 					onReady={handleReady}
 				/>
 			</React.Suspense>
@@ -198,7 +208,8 @@ function TokensBreakdownPieChartCard({
 	protocolName: string
 }) {
 	const allTokens = React.useMemo(() => chartData.map((d) => d.name), [chartData])
-	const [selectedTokens, setSelectedTokens] = React.useState<string[]>(allTokens)
+	const [selectedTokens, setSelectedTokens] = React.useState<string[]>(() => allTokens)
+
 	const selectedTokensSet = React.useMemo(() => new Set(selectedTokens), [selectedTokens])
 
 	const filteredChartData = React.useMemo(() => {
@@ -255,7 +266,9 @@ function TokenBalancesRawChartCard({
 	dataset: MultiSeriesChart2Dataset
 	charts: MultiSeriesCharts
 }) {
-	const [selectedTokensRaw, setSelectedTokensRaw] = React.useState<string[]>(allTokens)
+	const [selectedTokensRaw, setSelectedTokensRaw] = React.useState<string[]>(() => allTokens)
+
+	const selectedTokensRawSet = React.useMemo(() => new Set(selectedTokensRaw), [selectedTokensRaw])
 
 	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
 	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
@@ -292,7 +305,8 @@ function TokenBalancesRawChartCard({
 				<MultiSeriesChart2
 					dataset={dataset}
 					charts={charts}
-					selectedCharts={new Set(selectedTokensRaw)}
+					valueSymbol=""
+					selectedCharts={selectedTokensRawSet}
 					onReady={handleReady}
 				/>
 			</React.Suspense>
@@ -347,7 +361,9 @@ function InflowsByTokenChartCard({
 	dataset: MultiSeriesChart2Dataset
 	charts: MultiSeriesCharts
 }) {
-	const [selectedTokenInflows, setSelectedTokenInflows] = React.useState<string[]>(allTokens)
+	const [selectedTokenInflows, setSelectedTokenInflows] = React.useState<string[]>(() => allTokens)
+
+	const selectedTokenInflowsSet = React.useMemo(() => new Set(selectedTokenInflows), [selectedTokenInflows])
 
 	const { chartInstance: imageChartInstance, handleChartReady: handleImageReady } = useChartImageExport()
 	const { chartInstance: csvChartInstance, handleChartReady: handleCsvReady } = useChartCsvExport()
@@ -386,7 +402,10 @@ function InflowsByTokenChartCard({
 					charts={charts}
 					hideDefaultLegend={true}
 					valueSymbol="$"
-					selectedCharts={new Set(selectedTokenInflows)}
+					selectedCharts={selectedTokenInflowsSet}
+					chartOptions={
+						selectedTokenInflowsSet.size > 1 ? { tooltip: { formatter: INFLOWS_TOOLTIP_FORMATTER_USD } } : undefined
+					}
 					onReady={handleReady}
 				/>
 			</React.Suspense>
@@ -407,7 +426,7 @@ export default function Protocols(props: CexAssetsPageProps) {
 		data: addlProtocolData,
 		historicalChainTvls,
 		isLoading,
-		isFetching
+		isFetching: _isFetching
 	} = useFetchProtocolAddlChartsData(props.name, false, tokenToExclude)
 	const {
 		usdInflows,
@@ -507,7 +526,10 @@ export default function Protocols(props: CexAssetsPageProps) {
 			tokenInflowsCharts: tokensUnique.map((name) => ({
 				type: 'bar' as const,
 				name,
-				encode: { x: 'timestamp', y: name }
+				encode: { x: 'timestamp', y: name },
+				// BarChart auto-stacked when `customLegendOptions` was used (no explicit stacks),
+				// so keep stacked token inflows behavior in MultiSeriesChart2.
+				stack: 'tokenInflows'
 			}))
 		}
 	}, [tokenInflows, tokensUnique])
@@ -521,7 +543,7 @@ export default function Protocols(props: CexAssetsPageProps) {
 			tab="assets"
 			isCEX={true}
 		>
-			{isLoading || isFetching ? (
+			{isLoading ? (
 				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<LocalLoader />
 				</div>
@@ -543,6 +565,7 @@ export default function Protocols(props: CexAssetsPageProps) {
 					<div className="grid grid-cols-2 gap-2">
 						{chainsDataset && chainsUnique?.length > 1 ? (
 							<ChainsChartCard
+								key={chainsUnique.join('|')}
 								protocolName={props.name}
 								allChains={chainsUnique}
 								dataset={chainsDataset}
@@ -552,6 +575,7 @@ export default function Protocols(props: CexAssetsPageProps) {
 
 						{tokenUSDDataset && tokensUnique?.length > 0 ? (
 							<TokenValuesUSDChartCard
+								key={tokensUnique.join('|')}
 								protocolName={props.name}
 								allTokens={tokensUnique}
 								dataset={tokenUSDDataset}
@@ -560,11 +584,16 @@ export default function Protocols(props: CexAssetsPageProps) {
 						) : null}
 
 						{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && tokenBreakdownPieChart?.length > 0 ? (
-							<TokensBreakdownPieChartCard chartData={tokenBreakdownPieChart} protocolName={props.name} />
+							<TokensBreakdownPieChartCard
+								key={tokenBreakdownPieChart.map((d) => d.name).join('|')}
+								chartData={tokenBreakdownPieChart}
+								protocolName={props.name}
+							/>
 						) : null}
 
 						{tokenRawDataset && tokensUnique?.length > 0 ? (
 							<TokenBalancesRawChartCard
+								key={tokensUnique.join('|')}
 								protocolName={props.name}
 								allTokens={tokensUnique}
 								dataset={tokenRawDataset}
@@ -576,6 +605,7 @@ export default function Protocols(props: CexAssetsPageProps) {
 
 						{tokenInflowsDataset && tokensUnique?.length > 0 ? (
 							<InflowsByTokenChartCard
+								key={tokensUnique.join('|')}
 								protocolName={props.name}
 								allTokens={tokensUnique}
 								dataset={tokenInflowsDataset}
