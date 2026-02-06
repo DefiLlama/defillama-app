@@ -99,6 +99,8 @@ export interface IMultiSeriesChart2Props {
 		}
 		color?: string
 		yAxisIndex?: number
+		/** Symbol for this series' y-axis label (e.g. '%' or '$'). Falls back to the component-level valueSymbol. */
+		valueSymbol?: string
 		// Optional: enable point markers on line series.
 		// Note: ECharts "large" mode disables symbols, so `showSymbol: true` will
 		// implicitly disable large mode unless `large` is explicitly set.

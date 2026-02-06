@@ -3,7 +3,56 @@
  * These functions don't depend on echarts and can be safely imported
  * without pulling echarts into the bundle.
  */
-import { formattedNum } from '~/utils'
+import { formatNum, formattedNum } from '~/utils'
+
+const SERIES_SYMBOL: Record<string, string> = { APY: '%', TVL: '$' }
+
+/**
+ * Tooltip formatter for dual-axis TVL + APY charts used with MultiSeriesChart2.
+ * Shows APY values with '%' and TVL values with '$'.
+ */
+export function formatTvlApyTooltip(params: any) {
+	const items = Array.isArray(params) ? params : params ? [params] : []
+	if (items.length === 0) return ''
+
+	const first = items[0]
+	const dataObj =
+		first?.data && typeof first.data === 'object' && !Array.isArray(first.data)
+			? (first.data as Record<string, any>)
+			: null
+	const timestamp = dataObj?.timestamp ?? first?.axisValue
+	const chartdate =
+		typeof timestamp === 'number' && Number.isFinite(timestamp) ? formatTooltipChartDate(timestamp, 'daily') : ''
+
+	const vals = items
+		.map((item: any) => {
+			const name = item?.seriesName
+			if (!name) return null
+
+			const itemData =
+				item?.data && typeof item.data === 'object' && !Array.isArray(item.data)
+					? (item.data as Record<string, any>)
+					: null
+			const rawValue = itemData ? itemData[name] : item?.value?.[1]
+			const value = rawValue == null ? null : typeof rawValue === 'number' ? rawValue : Number(rawValue)
+			if (value == null || Number.isNaN(value)) return null
+
+			const symbol = SERIES_SYMBOL[name] ?? ''
+			const formatted = symbol === '$' ? formattedNum(value, true) : formatNum(value, 5, symbol || undefined)
+			return { marker: item.marker, name, value, formatted }
+		})
+		.filter(Boolean)
+		.sort((a: any, b: any) => Math.abs(b.value) - Math.abs(a.value))
+
+	return (
+		chartdate +
+		vals.reduce(
+			(prev: string, curr: any) =>
+				prev + `<li style="list-style:none">${curr.marker}${curr.name}&nbsp;&nbsp;${curr.formatted}</li>`,
+			''
+		)
+	)
+}
 
 export const formatTooltipValue = (value: number, symbol: string) => {
 	switch (symbol) {
