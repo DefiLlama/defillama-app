@@ -63,14 +63,14 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 
 		const grids: any[] = [
 			{
-				left: 60,
+				left: 48,
 				bottom: priceBottom,
 				top: 12,
 				right: 12
 			},
 			{
 				height: VOLUME_HEIGHT,
-				left: 60,
+				left: 48,
 				right: 12,
 				bottom: volumeBottom
 			}
