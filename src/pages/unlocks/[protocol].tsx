@@ -1,5 +1,4 @@
 import type { GetStaticPropsContext } from 'next'
-import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import { LinkPreviewCard } from '~/components/SEO'
