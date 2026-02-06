@@ -200,14 +200,22 @@ function buildMultiYAxis({
 
 	if (maxIndex < 0) return null
 
+	const noOffset = maxIndex < 2
 	const out: any[] = []
+	let prevOffset = 0
 	for (let i = 0; i <= maxIndex; i++) {
-		const axisColor = yAxisIndexToColor.get(i)
-		const axisSymbol = yAxisIndexToSymbol.get(i) ?? valueSymbol
+		const isPrimary = i === 0
+		const axisColor = isPrimary ? undefined : yAxisIndexToColor.get(i)
+		const axisSymbol = isPrimary ? '' : (yAxisIndexToSymbol.get(i) ?? valueSymbol)
+		const offset = noOffset || i < 2 ? 0 : prevOffset + 40
+
 		out.push({
 			...yAxis,
+			position: isPrimary ? 'left' : 'right',
+			alignTicks: true,
+			offset,
 			axisLine: {
-				show: true,
+				show: !isPrimary,
 				lineStyle: {
 					type: [5, 10],
 					dashOffset: 5,
@@ -221,6 +229,8 @@ function buildMultiYAxis({
 			},
 			...(expandTo100Percent ? { max: 100, min: 0 } : {})
 		})
+
+		prevOffset = offset
 	}
 
 	return out
@@ -275,7 +285,15 @@ function getTooltipRawYValue(item: any, seriesName: string): any {
 	return item?.value
 }
 
-function createTooltipFormatter({ groupBy, valueSymbol }: { groupBy: GroupBy; valueSymbol: string }) {
+function createTooltipFormatter({
+	groupBy,
+	valueSymbol,
+	seriesSymbols
+}: {
+	groupBy: GroupBy
+	valueSymbol: string
+	seriesSymbols?: Map<string, string>
+}) {
 	return (params: any) => {
 		const items = Array.isArray(params) ? params : params ? [params] : []
 		if (items.length === 0) return ''
@@ -293,16 +311,23 @@ function createTooltipFormatter({ groupBy, valueSymbol }: { groupBy: GroupBy; va
 					rawValue == null || rawValue === '-' ? null : typeof rawValue === 'number' ? rawValue : Number(rawValue)
 				if (value == null || Number.isNaN(value)) return null
 
-				return [item.marker, name, value] as const
+				const symbol = seriesSymbols?.get(name) ?? valueSymbol
+				const hasOverride = seriesSymbols?.has(name) ?? false
+				return [item.marker, name, value, symbol, hasOverride] as const
 			})
 			.filter(Boolean)
-			.sort((a, b) => b[2] - a[2])
+			// Series with per-series symbol overrides (e.g. Price, Market Cap) sort to the top,
+			// then by value descending within each group.
+			.sort((a, b) => {
+				if (a[4] !== b[4]) return a[4] ? -1 : 1
+				return b[2] - a[2]
+			})
 
 		return (
 			chartdate +
 			vals.reduce(
 				(prev, curr) =>
-					prev + `<li style="list-style:none;">${curr[0]} ${curr[1]}: ${formatAxisLabel(curr[2], valueSymbol)}</li>`,
+					prev + `<li style="list-style:none;">${curr[0]} ${curr[1]}: ${formatAxisLabel(curr[2], curr[3])}</li>`,
 				''
 			)
 		)
@@ -382,9 +407,18 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		})
 	}, [effectiveCharts, isThemeDark, expandTo100Percent, hallmarks, solidChartAreaStyle, selectedCharts])
 
+	const seriesSymbols = useMemo(() => {
+		const map = new Map<string, string>()
+		for (const chart of effectiveCharts ?? []) {
+			const sym = 'valueSymbol' in chart ? (chart.valueSymbol as string | undefined) : undefined
+			if (sym) map.set(chart.name, sym)
+		}
+		return map.size > 0 ? map : undefined
+	}, [effectiveCharts])
+
 	const tooltipFormatter = useMemo(
-		() => createTooltipFormatter({ groupBy: groupBySafe, valueSymbol }),
-		[groupBySafe, valueSymbol]
+		() => createTooltipFormatter({ groupBy: groupBySafe, valueSymbol, seriesSymbols }),
+		[groupBySafe, valueSymbol, seriesSymbols]
 	)
 
 	const exportFilename = imageExportFilename || 'multi-series-chart'

@@ -240,6 +240,35 @@ export const getAllProtocolEmissions = async ({
 	}
 }
 
+type EmissionsDataset = { source: Array<Record<string, number | null>>; dimensions: string[] }
+type EmissionsChartConfig = Array<{
+	type: 'line'
+	name: string
+	encode: { x: 'timestamp'; y: string }
+	color: string | undefined
+	stack: string
+}>
+
+function buildEmissionsDataset(
+	chartData: Array<{ timestamp: number; [key: string]: number }>,
+	stacks: string[]
+): EmissionsDataset {
+	return {
+		source: chartData as Array<Record<string, number | null>>,
+		dimensions: ['timestamp', ...stacks]
+	}
+}
+
+function buildEmissionsCharts(stacks: string[], colors: Record<string, string>): EmissionsChartConfig {
+	return stacks.map((name) => ({
+		type: 'line' as const,
+		name,
+		encode: { x: 'timestamp' as const, y: name },
+		color: colors[name],
+		stack: 'A'
+	}))
+}
+
 export const getProtocolEmissons = async (protocolName: string) => {
 	try {
 		const list = await fetchJson(PROTOCOL_EMISSIONS_LIST_API)
@@ -346,29 +375,29 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			upcomingEvent = [{ timestamp: null }]
 		}
 
-		const documentedChart: Array<{ date: string; [key: string]: number | string }> = []
+		const documentedChart: Array<{ timestamp: number; [key: string]: number }> = []
 		for (const date in protocolEmissions['documented']) {
-			documentedChart.push({ date, ...protocolEmissions['documented'][date] })
+			documentedChart.push({ timestamp: +date * 1e3, ...protocolEmissions['documented'][date] })
 		}
-		const realtimeChart: Array<{ date: string; [key: string]: number | string }> = []
+		const realtimeChart: Array<{ timestamp: number; [key: string]: number }> = []
 		for (const date in protocolEmissions['realtime']) {
-			realtimeChart.push({ date, ...protocolEmissions['realtime'][date] })
+			realtimeChart.push({ timestamp: +date * 1e3, ...protocolEmissions['realtime'][date] })
 		}
 		const chartData = { documented: documentedChart, realtime: realtimeChart }
 
 		const documentedPie: Array<{ name: string; value: number | string }> = []
 		const lastDocumented = chartData.documented[chartData.documented.length - 1] || {}
 		for (const key in lastDocumented) {
-			if (key !== 'date') documentedPie.push({ name: key, value: lastDocumented[key] })
+			if (key !== 'timestamp') documentedPie.push({ name: key, value: lastDocumented[key] })
 		}
 		const realtimePie: Array<{ name: string; value: number | string }> = []
 		const lastRealtime = chartData.realtime[chartData.realtime.length - 1] || {}
 		for (const key in lastRealtime) {
-			if (key !== 'date') realtimePie.push({ name: key, value: lastRealtime[key] })
+			if (key !== 'timestamp') realtimePie.push({ name: key, value: lastRealtime[key] })
 		}
 		const pieChartData = { documented: documentedPie, realtime: realtimePie }
 
-		const stackColors = { documented: {}, realtime: {} }
+		const stackColors = { documented: {} as Record<string, string>, realtime: {} as Record<string, string> }
 
 		const allDocumentedColors = getNDistinctColors(pieChartData['documented'].length)
 		for (let i = 0; i < pieChartData['documented'].length; i++) {
@@ -383,10 +412,22 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			tokenPrice.symbol = 'LOOKS'
 		}
 
+		// Pre-build MultiSeriesChart2-ready datasets so consumers don't duplicate this work.
+		const datasets = {
+			documented: buildEmissionsDataset(documentedChart, emissionCategories.documented),
+			realtime: buildEmissionsDataset(realtimeChart, emissionCategories.realtime)
+		}
+		const chartsConfigs = {
+			documented: buildEmissionsCharts(emissionCategories.documented, stackColors.documented),
+			realtime: buildEmissionsCharts(emissionCategories.realtime, stackColors.realtime)
+		}
+
 		return {
 			chartData,
 			pieChartData,
 			stackColors,
+			datasets,
+			chartsConfigs,
 			meta: allEmissions?.find((p) => p?.token === metadata?.token) ?? {},
 			sources: metadata?.sources ?? [],
 			notes: metadata?.notes ?? [],
