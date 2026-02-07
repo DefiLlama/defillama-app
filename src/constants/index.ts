@@ -179,7 +179,7 @@ export const RWA_CHART_API = `${RWA_SERVER_URL}/chart`
 
 export const MCP_SERVER = 'https://mcp.llama.fi'
 export const YIELD_TOKEN_CATEGORIES_API = 'https://ask.llama.fi/token-categories/yields'
-export const SEARCH_API_URL = 'https://search.defillama.com/multi-search'
+export const SEARCH_API_URL = 'https://search-core.defillama.com/multi-search'
 export const SEARCH_API_TOKEN = process.env.NEXT_PUBLIC_SEARCH_API_TOKEN
 
 export const removedCategoriesFromChainTvl = [
