@@ -339,11 +339,13 @@ function getTooltipRawYValue(item: any, seriesName: string): any {
 function createTooltipFormatter({
 	groupBy,
 	valueSymbol,
-	seriesSymbols
+	seriesSymbols,
+	maxItems
 }: {
 	groupBy: GroupBy
 	valueSymbol: string
 	seriesSymbols?: Map<string, string>
+	maxItems?: number
 }) {
 	return (params: any) => {
 		const items = Array.isArray(params) ? params : params ? [params] : []
@@ -374,13 +376,19 @@ function createTooltipFormatter({
 				return b[2] - a[2]
 			})
 
+		const cap = maxItems == null ? 30 : Number(maxItems)
+		const shouldCap = Number.isFinite(cap) && cap > 0
+		const cappedVals = shouldCap && vals.length > cap ? vals.slice(0, cap) : vals
+		const remaining = shouldCap && vals.length > cap ? vals.length - cap : 0
+
 		return (
 			chartdate +
-			vals.reduce(
+			cappedVals.reduce(
 				(prev, curr) =>
 					prev + `<li style="list-style:none;">${curr[0]} ${curr[1]}: ${formatAxisLabel(curr[2], curr[3])}</li>`,
 				''
-			)
+			) +
+			(remaining > 0 ? `<li style="list-style:none;opacity:0.7;">+${remaining} more</li>` : '')
 		)
 	}
 }
@@ -393,6 +401,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		hallmarks,
 		expandTo100Percent,
 		valueSymbol = '$',
+		tooltipMaxItems,
 		groupBy,
 		alwaysShowTooltip,
 		stacked = false,
@@ -411,6 +420,9 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	const [isThemeDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	// Per-component tooltip size cache (used by tooltip.position). Keeping this in a ref avoids
+	// recreating it on effect re-runs and prevents cross-chart interference.
+	const tooltipSizeCacheRef = useRef<{ w: number; h: number; updatedAt: number } | null>(null)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	// Stable resize listener - never re-attaches when dependencies change
@@ -574,8 +586,8 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	}, [effectiveCharts])
 
 	const tooltipFormatter = useMemo(
-		() => createTooltipFormatter({ groupBy: groupBySafe, valueSymbol, seriesSymbols }),
-		[groupBySafe, valueSymbol, seriesSymbols]
+		() => createTooltipFormatter({ groupBy: groupBySafe, valueSymbol, seriesSymbols, maxItems: tooltipMaxItems }),
+		[groupBySafe, valueSymbol, seriesSymbols, tooltipMaxItems]
 	)
 
 	const exportFilename = exportButtonsConfig?.filename || (title ? slug(title) : 'multi-series-chart')
@@ -647,12 +659,104 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				: {})
 		}
 
+		const clampTooltipToViewport = (point: any, params: any, dom: any, _rect: any, size: any) => {
+			// ECharts expects `position` to be in *container coordinates* (even with `appendToBody`).
+			// We clamp in viewport coordinates, then translate back to container coordinates.
+			const margin = 12
+			const offset = 16
+			const containerRect = el.getBoundingClientRect()
+
+			const px = Array.isArray(point) ? Number(point[0]) : Number.NaN
+			const py = Array.isArray(point) ? Number(point[1]) : Number.NaN
+
+			const [tw, th] = Array.isArray(size?.contentSize) ? size.contentSize : [0, 0]
+			let tooltipW = Number(tw) || 0
+			let tooltipH = Number(th) || 0
+
+			const rows = Array.isArray(params) ? params.length : 1
+
+			if (tooltipW > 0 && tooltipH > 0) {
+				tooltipSizeCacheRef.current = { w: tooltipW, h: tooltipH, updatedAt: Date.now() }
+			} else if (tooltipSizeCacheRef.current && Date.now() - tooltipSizeCacheRef.current.updatedAt < 10_000) {
+				// Reuse cached size for a short window (e.g. during hover), no layout read.
+				tooltipW = tooltipSizeCacheRef.current.w
+				tooltipH = tooltipSizeCacheRef.current.h
+			} else if (rows > 20 && dom?.getBoundingClientRect) {
+				// Large tooltips benefit from accurate size; measure once if needed.
+				const domRect = dom.getBoundingClientRect()
+				tooltipW = Number(domRect?.width) || tooltipW
+				tooltipH = Number(domRect?.height) || tooltipH
+				if (tooltipW > 0 && tooltipH > 0) {
+					tooltipSizeCacheRef.current = { w: tooltipW, h: tooltipH, updatedAt: Date.now() }
+				}
+			} else {
+				// Small tooltips: avoid any DOM measurement. Over-estimate so clamping is safe.
+				tooltipW = 420
+				tooltipH = Math.min(300, 44 + rows * 18)
+			}
+
+			// Clamp against the layout viewport (excludes scrollbar width).
+			const vw = document.documentElement?.clientWidth || window.innerWidth
+			const vh = document.documentElement?.clientHeight || window.innerHeight
+
+			const pX = Number.isFinite(px) ? px : 0
+			const pY = Number.isFinite(py) ? py : 0
+
+			// Prefer positioning away from cursor so the tooltip never blocks hover tracking.
+			let x = pX + offset
+			let y = pY - tooltipH - offset
+
+			// Flip horizontally/vertically when near edges.
+			if (containerRect.left + x + tooltipW + margin > vw) {
+				x = pX - tooltipW - offset
+			}
+			if (containerRect.top + y < margin) {
+				y = pY + offset
+			}
+
+			const absX = containerRect.left + x
+			const absY = containerRect.top + y
+
+			const clampedAbsX = Math.min(Math.max(margin, absX), Math.max(margin, vw - tooltipW - margin))
+			const clampedAbsY = Math.min(Math.max(margin, absY), Math.max(margin, vh - tooltipH - margin))
+
+			return [clampedAbsX - containerRect.left, clampedAbsY - containerRect.top]
+		}
+
 		const baseTooltip = mergedChartSettings.tooltip ?? {}
 		const customTooltipFormatter = chartOptions?.tooltip?.formatter
+		const enterable = typeof (baseTooltip as any)?.enterable === 'boolean' ? (baseTooltip as any).enterable : false
+		const baseExtraCssText = typeof baseTooltip?.extraCssText === 'string' ? baseTooltip.extraCssText : ''
+		const extraCssText = [
+			baseExtraCssText,
+			'z-index: 2147483647',
+			// Prevent tooltip from ever creating page-level scrollbars.
+			'position: fixed',
+			'box-sizing: border-box',
+			'max-height: calc(100vh - 24px)',
+			'max-width: calc(100vw - 24px)',
+			'overflow-y: auto',
+			'overflow-x: hidden',
+			'white-space: normal',
+			'word-break: break-word',
+			// Keep hover tracking smooth (tooltip should never intercept pointer events)
+			...(enterable ? [] : ['pointer-events: none'])
+		]
+			.filter(Boolean)
+			.join('; ')
+
 		const tooltipConfig = {
-			trigger: 'axis',
-			confine: true,
 			...baseTooltip,
+			// Always render tooltips above all stacking contexts / overflow clipping.
+			appendToBody: true,
+			renderMode: 'html',
+			className: 'defillama-echarts-tooltip',
+			enterable,
+			// Clamp to the browser viewport (not the chart grid).
+			confine: false,
+			position: clampTooltipToViewport,
+			extraCssText,
+			trigger: 'axis',
 			formatter: customTooltipFormatter ?? tooltipFormatter
 		}
 
@@ -707,6 +811,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			return () => {
 				instance.off('globalout', onGlobalOut)
 				chartRef.current = null
+				tooltipSizeCacheRef.current = null
 				instance.dispose()
 				handleChartReady(null)
 				if (onReady) {
@@ -717,6 +822,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 
 		return () => {
 			chartRef.current = null
+			tooltipSizeCacheRef.current = null
 			instance.dispose()
 			handleChartReady(null)
 			if (onReady) {

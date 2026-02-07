@@ -154,6 +154,13 @@ type MultiSeriesChart2BaseProps = {
 
 export type IMultiSeriesChart2Props = MultiSeriesChart2BaseProps & {
 	/**
+	 * Max number of series rows to render in the tooltip (default: 30).
+	 * Set to 0 (or a negative number) to disable the cap (render all rows).
+	 *
+	 * This helps keep hover/tooltip updates smooth on charts with many series (50+).
+	 */
+	tooltipMaxItems?: number
+	/**
 	 * Controls the built-in export toolbar.
 	 * - `'auto'` (default): show exports for line charts unless `onReady` is provided.
 	 * - `'hidden'`: never show exports.
