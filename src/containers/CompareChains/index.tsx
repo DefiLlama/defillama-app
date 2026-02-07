@@ -254,7 +254,7 @@ export function CompareChains({ chains }) {
 							<LocalLoader />
 						</div>
 					) : (
-						<div className="min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+						<div className="min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 							<React.Suspense fallback={<></>}>
 								<MultiSeriesChart2
 									dataset={chartData.dataset}

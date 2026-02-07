@@ -8,7 +8,7 @@ import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { StablecoinsChartConfig } from '../types'
-import { ChartExportButton } from './ProTable/ChartExportButton'
+import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -345,7 +345,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 				{hasChartData && (
 					<div className="flex gap-2">
 						{chartType !== 'pie' && (
-							<ChartExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
+							<ChartPngExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
 						)}
 						<ProTableCSVButton
 							onClick={handleCsvExport}

@@ -6,8 +6,7 @@ import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { getAllProtocolEmissions } from '~/api/categories/protocols'
 import { Announcement } from '~/components/Announcement'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -17,8 +16,7 @@ import { TopUnlocks } from '~/components/Unlocks/TopUnlocks'
 import { CHART_COLORS } from '~/constants/colors'
 import { UnlocksTable } from '~/containers/Unlocks/Table'
 import { useWatchlistManager } from '~/contexts/LocalStorage'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -114,18 +112,9 @@ const EMPTY_CHART_RESULT = {
 
 function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
-	const [isFullView, setIsFullView] = useState(false)
+	const [isFullView] = useState(false)
 	const [viewMode, setViewMode] = useState<ViewMode>('Total View')
-	const { chartInstance: exportChartInstance, handleChartReady: handleImageExportReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleCsvExportReady } = useChartCsvExport()
-
-	const handleChartReady = React.useCallback(
-		(instance: any) => {
-			handleImageExportReady(instance)
-			handleCsvExportReady(instance)
-		},
-		[handleImageExportReady, handleCsvExportReady]
-	)
+	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const { dataset, charts } = useMemo(() => {
 		if (!protocols || protocols.length === 0) return EMPTY_CHART_RESULT
@@ -219,7 +208,7 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 		<>
 			{dataset.source.length > 0 ? (
 				<Suspense fallback={<></>}>
-					<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 						<h2 className="mr-auto text-lg font-semibold">Upcoming Unlocks</h2>
 						<TagGroup
 							selectedValue={timePeriod}
@@ -231,8 +220,7 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 							setValue={(value: ViewMode) => setViewMode(value)}
 							values={VIEW_MODES as unknown as string[]}
 						/>
-						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename="upcoming-unlocks" />
-						<ChartExportButton
+						<ChartExportButtons
 							chartInstance={exportChartInstance}
 							filename="upcoming-unlocks"
 							title="Upcoming Unlocks"
@@ -313,7 +301,7 @@ export default function Protocols({ data, unlockStats }) {
 						<Icon name="arrow-right" className="h-4 w-4" />
 					</BasicLink>
 				</div>
-				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<UpcomingUnlockVolumeChart protocols={data} />
 				</div>
 			</div>

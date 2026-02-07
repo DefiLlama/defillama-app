@@ -230,7 +230,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 						)}
 					</div>
 				</div>
-				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<Suspense fallback={<></>}>
 						<MultiSeriesChart2
 							dataset={charts.dataset}

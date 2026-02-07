@@ -9,7 +9,7 @@ import { download, slug, toNiceCsvDate, toNiceDayMonthYear } from '~/utils'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { UnlocksScheduleConfig } from '../types'
-import { ChartExportButton } from './ProTable/ChartExportButton'
+import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const MultiSeriesChart2 = lazy(
@@ -103,7 +103,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 				</div>
 				{hasChartData && (
 					<div className="flex gap-2">
-						<ChartExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
+						<ChartPngExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol

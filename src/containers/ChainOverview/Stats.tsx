@@ -6,7 +6,7 @@ import { Fragment, lazy, Suspense, useMemo, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { Bookmark } from '~/components/Bookmark'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
@@ -791,7 +791,7 @@ export function Stats(props: IStatsProps) {
 			</div>
 			{!props.hideChart ? (
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 						<div className="mr-auto flex flex-wrap items-center gap-2">
 							{props.charts.length > 0 ? (
 								<Ariakit.DialogProvider store={metricsDialogStore}>
@@ -905,7 +905,7 @@ export function Stats(props: IStatsProps) {
 						) : null}
 						<EmbedChart />
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
-						<ChartExportButton
+						<ChartPngExportButton
 							chartInstance={chainChartInstance}
 							filename={imageExportFilename}
 							title={imageExportTitle}

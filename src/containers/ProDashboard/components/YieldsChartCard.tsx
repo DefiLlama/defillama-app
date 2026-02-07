@@ -8,7 +8,7 @@ import { download, formattedNum } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import type { YieldsChartConfig } from '../types'
-import { ChartExportButton } from './ProTable/ChartExportButton'
+import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 import { useYieldChartTransformations } from './useYieldChartTransformations'
 
@@ -220,7 +220,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 				</div>
 				{currentChartData && currentChartData.length > 0 && (
 					<div className="flex gap-2">
-						<ChartExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
+						<ChartPngExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol

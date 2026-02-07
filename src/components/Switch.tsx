@@ -1,3 +1,4 @@
+import type { ChangeEventHandler } from 'react'
 import { LoadingSpinner } from '~/components/Loaders'
 import { QuestionHelper } from '~/components/QuestionHelper'
 
@@ -12,7 +13,7 @@ export const Switch = ({
 }: {
 	label: string
 	checked: boolean
-	onChange: () => void
+	onChange: ChangeEventHandler<HTMLInputElement>
 	value: string
 	className?: string
 	help?: string

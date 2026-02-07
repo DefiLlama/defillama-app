@@ -3,24 +3,24 @@ import type { GetStaticPropsContext } from 'next'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
-import { IChartProps } from '~/components/ECharts/types'
-import { LazyChart } from '~/components/LazyChart'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
 import { buildStablecoinChartsData } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-const PieChart = React.lazy(() => import('~/components/ECharts/PieChart'))
+const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-const TOTAL_LEGEND_OPTIONS: string[] = ['Total']
 const EMPTY_OTHER_PROTOCOLS: string[] = []
-const EMPTY_TOTAL_STABLECOINS: Array<{ date: number; Total: number }> = []
 
 export const getStaticProps = withPerformanceLogging(
 	'cex/stablecoins/[cex]',
@@ -91,6 +91,113 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
+type MultiSeriesCharts = NonNullable<IMultiSeriesChart2Props['charts']>
+
+function MultiSeriesChartCard({
+	title,
+	filterLabel,
+	allValues,
+	dataset,
+	charts,
+	valueSymbol,
+	hideDefaultLegend,
+	exportFilenameBase,
+	exportTitle
+}: {
+	title: string
+	filterLabel: string
+	allValues: string[]
+	dataset: MultiSeriesChart2Dataset
+	charts: MultiSeriesCharts
+	valueSymbol?: string
+	hideDefaultLegend?: boolean
+	exportFilenameBase: string
+	exportTitle: string
+}) {
+	const [selected, setSelected] = React.useState<string[]>(() => allValues)
+
+	const selectedChartsSet = React.useMemo(() => new Set(selected), [selected])
+
+	const { chartInstance, handleChartReady } = useGetChartInstance()
+
+	return (
+		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
+				<h2 className="mr-auto text-base font-semibold">{title}</h2>
+				{allValues.length > 1 ? (
+					<SelectWithCombobox
+						allValues={allValues}
+						selectedValues={selected}
+						setSelectedValues={setSelected}
+						label={filterLabel}
+						labelType="smol"
+						variant="filter"
+						portal
+					/>
+				) : null}
+				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
+			</div>
+			<React.Suspense fallback={<div className="h-[360px]" />}>
+				<MultiSeriesChart2
+					dataset={dataset}
+					charts={charts}
+					valueSymbol={valueSymbol}
+					hideDefaultLegend={hideDefaultLegend}
+					selectedCharts={selectedChartsSet}
+					onReady={handleChartReady}
+				/>
+			</React.Suspense>
+		</div>
+	)
+}
+
+function PieChartCard({
+	title,
+	chartData,
+	exportFilenameBase,
+	exportTitle
+}: {
+	title: string
+	chartData: Array<{ name: string; value: number }>
+	exportFilenameBase: string
+	exportTitle: string
+}) {
+	const allValues = React.useMemo(() => chartData.map((d) => d.name), [chartData])
+	const [selectedValues, setSelectedValues] = React.useState<string[]>(() => allValues)
+
+	const selectedValuesSet = React.useMemo(() => new Set(selectedValues), [selectedValues])
+
+	const filteredChartData = React.useMemo(() => {
+		if (selectedValues.length === 0) return []
+		return chartData.filter((d) => selectedValuesSet.has(d.name))
+	}, [chartData, selectedValues.length, selectedValuesSet])
+
+	const { chartInstance, handleChartReady } = useGetChartInstance()
+
+	return (
+		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
+				<h2 className="mr-auto text-base font-semibold">{title}</h2>
+				{allValues.length > 1 ? (
+					<SelectWithCombobox
+						allValues={allValues}
+						selectedValues={selectedValues}
+						setSelectedValues={setSelectedValues}
+						label="Backing"
+						labelType="smol"
+						variant="filter"
+						portal
+					/>
+				) : null}
+				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
+			</div>
+			<React.Suspense fallback={<div className="h-[360px]" />}>
+				<PieChart chartData={filteredChartData} onReady={handleChartReady} />
+			</React.Suspense>
+		</div>
+	)
+}
+
 function useStablecoinData(protocolName: string) {
 	const { data: protocolData, isLoading: isProtocolLoading } = useFetchProtocol(protocolName)
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
@@ -120,6 +227,10 @@ export default function CEXStablecoins(props: {
 	metrics: IProtocolPageMetrics
 }) {
 	const { data, isLoading } = useStablecoinData(props.name)
+
+	const exchangeSlug = slug(props.name || 'cex')
+	const buildFilename = (suffix: string) => `${exchangeSlug}-${slug(suffix)}`
+	const buildTitle = (suffix: string) => (props.name ? `${props.name} – ${suffix}` : suffix)
 
 	const currentTotal = React.useMemo(() => {
 		if (!data?.totalStablecoins || data.totalStablecoins.length === 0) return null
@@ -151,10 +262,77 @@ export default function CEXStablecoins(props: {
 		return breakdown.sort((a, b) => b.value - a.value)
 	}, [data])
 
-	const totalStablecoinsChartData = React.useMemo(
-		() => data?.totalStablecoins?.map(({ date, value }) => ({ date, Total: value })) ?? EMPTY_TOTAL_STABLECOINS,
-		[data?.totalStablecoins]
+	const pegMechanismsUnique = React.useMemo(() => data?.pegMechanismsUnique ?? [], [data?.pegMechanismsUnique])
+	const pegTypesUnique = React.useMemo(() => data?.pegTypesUnique ?? [], [data?.pegTypesUnique])
+	const stablecoinTokensUnique = React.useMemo(() => data?.stablecoinTokensUnique ?? [], [data?.stablecoinTokensUnique])
+
+	const totalStablecoinsDataset = React.useMemo(() => {
+		if (!data?.totalStablecoins?.length || data.totalStablecoins.length <= 1) return null
+		return {
+			source: data.totalStablecoins.map(({ date, value }) => ({ timestamp: +date * 1e3, Total: value })),
+			dimensions: ['timestamp', 'Total']
+		}
+	}, [data?.totalStablecoins])
+	const totalStablecoinsCharts = React.useMemo<MultiSeriesCharts>(
+		() => [{ type: 'line' as const, name: 'Total', encode: { x: 'timestamp', y: 'Total' } }],
+		[]
 	)
+
+	const { stablecoinsByPegMechanismDataset, stablecoinsByPegMechanismCharts } = React.useMemo(() => {
+		if (!data?.stablecoinsByPegMechanism?.length || data.stablecoinsByPegMechanism.length <= 1) {
+			return { stablecoinsByPegMechanismDataset: null, stablecoinsByPegMechanismCharts: [] }
+		}
+
+		return {
+			stablecoinsByPegMechanismDataset: {
+				source: data.stablecoinsByPegMechanism.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...pegMechanismsUnique]
+			},
+			stablecoinsByPegMechanismCharts: pegMechanismsUnique.map((name) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name }
+			}))
+		}
+	}, [data?.stablecoinsByPegMechanism, pegMechanismsUnique])
+
+	const { stablecoinsByPegTypeDataset, stablecoinsByPegTypeCharts } = React.useMemo(() => {
+		if (!data?.stablecoinsByPegType?.length || data.stablecoinsByPegType.length <= 1) {
+			return { stablecoinsByPegTypeDataset: null, stablecoinsByPegTypeCharts: [] }
+		}
+
+		return {
+			stablecoinsByPegTypeDataset: {
+				source: data.stablecoinsByPegType.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...pegTypesUnique]
+			},
+			stablecoinsByPegTypeCharts: pegTypesUnique.map((name) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name }
+			}))
+		}
+	}, [data?.stablecoinsByPegType, pegTypesUnique])
+
+	const { stablecoinsByTokenDataset, stablecoinsByTokenCharts } = React.useMemo(() => {
+		if (!data?.stablecoinsByToken?.length || data.stablecoinsByToken.length <= 1) {
+			return { stablecoinsByTokenDataset: null, stablecoinsByTokenCharts: [] }
+		}
+
+		return {
+			stablecoinsByTokenDataset: {
+				source: data.stablecoinsByToken.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...stablecoinTokensUnique]
+			},
+			stablecoinsByTokenCharts: stablecoinTokensUnique.map((name) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name }
+			}))
+		}
+	}, [data?.stablecoinsByToken, stablecoinTokensUnique])
+
+	const pegMechanismPieChartData = React.useMemo(() => data?.pegMechanismPieChart ?? [], [data?.pegMechanismPieChart])
 
 	return (
 		<ProtocolOverviewLayout
@@ -204,79 +382,72 @@ export default function CEXStablecoins(props: {
 					</div>
 
 					<div className="grid grid-cols-2 gap-2">
-						{data.totalStablecoins && data.totalStablecoins.length > 1 && (
-							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<React.Suspense fallback={<></>}>
-									<AreaChart
-										chartData={totalStablecoinsChartData}
-										title="Total Stablecoin in CEX"
-										customLegendName="Stablecoins"
-										customLegendOptions={TOTAL_LEGEND_OPTIONS}
-										valueSymbol="$"
-									/>
-								</React.Suspense>
-							</LazyChart>
-						)}
+						{totalStablecoinsDataset ? (
+							<MultiSeriesChartCard
+								key={`${buildFilename('total-stablecoin-in-cex')}:${['Total'].join('|')}`}
+								title="Total Stablecoin in CEX"
+								filterLabel="Stablecoins"
+								allValues={['Total']}
+								dataset={totalStablecoinsDataset}
+								charts={totalStablecoinsCharts}
+								valueSymbol="$"
+								exportFilenameBase={buildFilename('total-stablecoin-in-cex')}
+								exportTitle={buildTitle('Total Stablecoin in CEX')}
+							/>
+						) : null}
 
-						{data.stablecoinsByPegMechanism && data.stablecoinsByPegMechanism.length > 1 && (
-							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<React.Suspense fallback={<></>}>
-									<AreaChart
-										chartData={data.stablecoinsByPegMechanism}
-										title="Stablecoins by Backing Type"
-										customLegendName="Backing"
-										customLegendOptions={data.pegMechanismsUnique}
-										valueSymbol="$"
-									/>
-								</React.Suspense>
-							</LazyChart>
-						)}
+						{stablecoinsByPegMechanismDataset && pegMechanismsUnique.length > 0 ? (
+							<MultiSeriesChartCard
+								key={`${buildFilename('stablecoins-by-backing-type')}:${pegMechanismsUnique.join('|')}`}
+								title="Stablecoins by Backing Type"
+								filterLabel="Backing"
+								allValues={pegMechanismsUnique}
+								dataset={stablecoinsByPegMechanismDataset}
+								charts={stablecoinsByPegMechanismCharts}
+								valueSymbol="$"
+								exportFilenameBase={buildFilename('stablecoins-by-backing-type')}
+								exportTitle={buildTitle('Stablecoins by Backing Type')}
+							/>
+						) : null}
 
-						{data.pegMechanismPieChart && data.pegMechanismPieChart.length > 0 && (
-							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<React.Suspense fallback={<></>}>
-									<PieChart
-										title="Distribution by Backing Type"
-										chartData={data.pegMechanismPieChart}
-										shouldEnableImageExport
-										shouldEnableCSVDownload
-										imageExportFilename={`${slug(props.name)}-stablecoins-backing-type`}
-										imageExportTitle={`${props.name} Stablecoins by Backing Type`}
-									/>
-								</React.Suspense>
-							</LazyChart>
-						)}
+						{pegMechanismPieChartData.length > 0 ? (
+							<PieChartCard
+								key={`${buildFilename('stablecoins-backing-type')}:${pegMechanismPieChartData.map((d) => d.name).join('|')}`}
+								title="Distribution by Backing Type"
+								chartData={pegMechanismPieChartData}
+								exportFilenameBase={buildFilename('stablecoins-backing-type')}
+								exportTitle={buildTitle('Stablecoins by Backing Type')}
+							/>
+						) : null}
 
-						{data.stablecoinsByPegType && data.stablecoinsByPegType.length > 1 && (
-							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<React.Suspense fallback={<></>}>
-									<AreaChart
-										chartData={data.stablecoinsByPegType}
-										title="Stablecoins by Currency Peg"
-										customLegendName="Currency"
-										customLegendOptions={data.pegTypesUnique}
-										valueSymbol="$"
-									/>
-								</React.Suspense>
-							</LazyChart>
-						)}
+						{stablecoinsByPegTypeDataset && pegTypesUnique.length > 0 ? (
+							<MultiSeriesChartCard
+								key={`${buildFilename('stablecoins-by-currency-peg')}:${pegTypesUnique.join('|')}`}
+								title="Stablecoins by Currency Peg"
+								filterLabel="Currency"
+								allValues={pegTypesUnique}
+								dataset={stablecoinsByPegTypeDataset}
+								charts={stablecoinsByPegTypeCharts}
+								valueSymbol="$"
+								exportFilenameBase={buildFilename('stablecoins-by-currency-peg')}
+								exportTitle={buildTitle('Stablecoins by Currency Peg')}
+							/>
+						) : null}
 
-						{data.stablecoinsByToken &&
-							data.stablecoinsByToken.length > 1 &&
-							data.stablecoinTokensUnique &&
-							data.stablecoinTokensUnique.length > 0 && (
-								<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-									<React.Suspense fallback={<></>}>
-										<AreaChart
-											chartData={data.stablecoinsByToken}
-											title="Individual Stablecoins"
-											customLegendName="Token"
-											customLegendOptions={data.stablecoinTokensUnique}
-											valueSymbol="$"
-										/>
-									</React.Suspense>
-								</LazyChart>
-							)}
+						{stablecoinsByTokenDataset && stablecoinTokensUnique.length > 0 ? (
+							<MultiSeriesChartCard
+								key={`${buildFilename('individual-stablecoins')}:${stablecoinTokensUnique.join('|')}`}
+								title="Individual Stablecoins"
+								filterLabel="Token"
+								allValues={stablecoinTokensUnique}
+								dataset={stablecoinsByTokenDataset}
+								charts={stablecoinsByTokenCharts}
+								valueSymbol="$"
+								hideDefaultLegend={true}
+								exportFilenameBase={buildFilename('individual-stablecoins')}
+								exportTitle={buildTitle('Individual Stablecoins')}
+							/>
+						) : null}
 					</div>
 				</>
 			)}

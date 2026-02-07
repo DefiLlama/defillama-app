@@ -11,7 +11,7 @@ import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import ProtocolCharts from '../services/ProtocolCharts'
 import type { AdvancedTvlChartConfig } from '../types'
-import { ChartExportButton } from './ProTable/ChartExportButton'
+import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -390,7 +390,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 				{hasChartData && (
 					<div className="flex gap-2">
 						{chartType !== 'tokensPie' && (
-							<ChartExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
+							<ChartPngExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
 						)}
 						<ProTableCSVButton
 							onClick={handleCsvExport}

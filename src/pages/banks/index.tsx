@@ -1,12 +1,15 @@
 import { ColumnDef, sortingFns } from '@tanstack/react-table'
 import * as React from 'react'
+import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CHART_COLORS } from '~/constants/colors'
 import Layout from '~/layout'
 import { formattedNum, toNiceDateYear } from '~/utils'
 import data from './final.json'
 
-const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<any>
+const MultiSeriesChart2 = React.lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 
 const banksTableColumns: ColumnDef<any>[] = [
 	{
@@ -59,16 +62,32 @@ for (const year in data.years) {
 }
 const DEFAULT_SORTING_STATE = [{ id: 'date', desc: true }]
 
+const chartDataset: MultiSeriesChart2Dataset = {
+	source: chartData.map(([ts, value]) => ({ timestamp: ts * 1e3, Assets: value })),
+	dimensions: ['timestamp', 'Assets']
+}
+
+const chartCharts: IMultiSeriesChart2Props['charts'] = [
+	{
+		type: 'bar',
+		name: 'Assets',
+		encode: { x: 'timestamp', y: 'Assets' },
+		color: CHART_COLORS[0]
+	}
+]
+
 const Banks = () => {
 	return (
 		<Layout title="Bank Failures - DefiLlama">
-			<div className="relative col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+			<div className="relative col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<React.Suspense fallback={<></>}>
-					<BarChart
-						chartData={chartData}
+					<MultiSeriesChart2
 						title="Assets of failed banks (inflation adjusted)"
+						dataset={chartDataset}
+						charts={chartCharts}
 						valueSymbol="$"
-						color={CHART_COLORS[0]}
+						shouldEnableImageExport
+						shouldEnableCSVDownload
 					/>
 				</React.Suspense>
 			</div>

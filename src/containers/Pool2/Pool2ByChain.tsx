@@ -51,7 +51,7 @@ export function Pool2ProtocolsTVLByChain(props: IPool2ProtocolsTVLByChainPageDat
 						) : null}
 					</div>
 				</div>
-				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<Suspense fallback={<></>}>
 						<MultiSeriesChart2
 							dataset={props.dataset}

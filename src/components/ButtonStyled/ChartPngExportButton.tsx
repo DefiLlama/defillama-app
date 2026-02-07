@@ -16,9 +16,9 @@ const approximateTextWidth = (text: string, fontSize: number) => {
 }
 
 const DEFAULT_CLASSNAME =
-	'flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)'
+	'flex items-center justify-center gap-1 rounded-md border border-blue-500 px-2 py-1.5 text-xs text-blue-500 hover:bg-(--link-hover-bg) hover:text-white focus-visible:bg-(--link-hover-bg) focus-visible:text-white disabled:text-(--text-disabled)'
 
-interface ChartExportButtonProps {
+export interface ChartPngExportButtonProps {
 	chartInstance: () => echarts.ECharts | null
 	className?: string
 	smol?: boolean
@@ -30,7 +30,7 @@ interface ChartExportButtonProps {
 
 echarts.use([LegendComponent])
 
-export function ChartExportButton({
+export function ChartPngExportButton({
 	chartInstance,
 	className = DEFAULT_CLASSNAME,
 	smol = true,
@@ -38,7 +38,7 @@ export function ChartExportButton({
 	filename,
 	iconUrl,
 	expandLegend
-}: ChartExportButtonProps) {
+}: ChartPngExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const router = useRouter()
 
@@ -416,7 +416,7 @@ export function ChartExportButton({
 			<button
 				data-umami-event="image-export"
 				data-umami-event-page={router.pathname}
-				className={`${className} !border-1 !border-blue-500 !text-blue-500 hover:!text-white focus-visible:!text-white`}
+				className={className}
 				onClick={handleImageExport}
 				data-loading={isLoading}
 				disabled={isLoading}

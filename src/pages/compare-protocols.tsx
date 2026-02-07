@@ -226,7 +226,7 @@ export default function CompareProtocols({
 			</div>
 			{selectedProtocols.length > 1 ? (
 				<div className="relative flex flex-col gap-2">
-					<div className="min-h-[362px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 						{isLoading || !router.isReady ? (
 							<div className="flex h-full w-full items-center justify-center">
 								<LocalLoader />

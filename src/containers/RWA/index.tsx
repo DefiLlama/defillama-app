@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo } from 'react'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Tooltip } from '~/components/Tooltip'
@@ -421,7 +421,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 								{chartTypeSwitch}
 								{chartViewSwitch}
 								<ChartCsvExportButton chartInstance={multiSeriesChart2Instance} filename={timeSeriesChartFilename} />
-								<ChartExportButton
+								<ChartPngExportButton
 									chartInstance={multiSeriesChart2Instance}
 									filename={timeSeriesChartFilename}
 									title={timeSeriesChartTitle}
@@ -432,7 +432,6 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 									dataset={selectedTimeSeriesDataset}
 									hideDefaultLegend={false}
 									stacked
-									chartOptions={timeSeriesChartOptions}
 									onReady={handleMultiSeriesChart2Ready}
 								/>
 							</Suspense>
@@ -481,7 +480,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 									</div>
 								) : null}
 								<DownloadPieChartCsv filename={`${pieChartFilename}.csv`} chartData={selectedPieChartData} smol />
-								<ChartExportButton
+								<ChartPngExportButton
 									chartInstance={pieChartInstance}
 									filename={`${pieChartFilename}.png`}
 									title={pieChartTitle}
@@ -541,8 +540,3 @@ const PIE_CHART_TYPES = [
 ]
 
 const validPieChartTypes = new Set(PIE_CHART_TYPES.map(({ key }) => key))
-
-const timeSeriesChartOptions = {
-	legend: { top: 0, left: 12, right: 12 },
-	grid: { top: 56 }
-}

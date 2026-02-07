@@ -1,18 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
-import { IBarChartProps, IChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { LazyChart } from '~/components/LazyChart'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { YIELD_RISK_API_EXPONENTIAL } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import type { YieldsChartConfig, YieldChartType } from '~/containers/ProDashboard/types'
@@ -22,14 +21,10 @@ import {
 	useYieldConfigData,
 	useYieldPoolData
 } from '~/containers/Yields/queries/client'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
 import { fetchApi } from '~/utils/async'
-
-const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
-
-const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -56,6 +51,22 @@ const tvlApyCharts = [
 	}
 ]
 const tvlApyChartOptions = { tooltip: { formatter: formatTvlApyTooltip } }
+
+const BASE_REWARD_BAR_CHARTS: IMultiSeriesChart2Props['charts'] = [
+	{ type: 'bar', name: 'Base', encode: { x: 'timestamp', y: 'Base' }, stack: 'a', color: CHART_COLORS[0] },
+	{ type: 'bar', name: 'Reward', encode: { x: 'timestamp', y: 'Reward' }, stack: 'a', color: CHART_COLORS[1] }
+]
+
+const SINGLE_APY_LINE_CHARTS: IMultiSeriesChart2Props['charts'] = [
+	{ type: 'line', name: 'APY', encode: { x: 'timestamp', y: 'APY' }, color: CHART_COLORS[0] }
+]
+
+const EMPTY_BASE_REWARD_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp', 'Base', 'Reward'] }
+const EMPTY_APY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp', 'APY'] }
+const EMPTY_LIQUIDITY_DATASET: MultiSeriesChart2Dataset = {
+	source: [],
+	dimensions: ['timestamp', 'Supplied', 'Borrowed', 'Available']
+}
 
 const getRatingColor = (rating) => {
 	switch (rating?.toLowerCase()) {
@@ -92,18 +103,20 @@ const PageView = (_props) => {
 
 	const { data: pool, isLoading: fetchingPoolData } = useYieldPoolData(query.pool)
 	const poolData = pool?.data?.[0] ?? {}
+	const poolName = poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? '')
 
-	const { chartInstance: tvlApyChartInstance, handleChartReady: handleTvlApyChartReady } = useChartImageExport()
-	const { chartInstance: _supplyApyBarChartInstance, handleChartReady: handleSupplyApyBarChartReady } =
-		useChartImageExport()
-	const { chartInstance: _supplyApy7dChartInstance, handleChartReady: handleSupplyApy7dChartReady } =
-		useChartImageExport()
-	const { chartInstance: _borrowApyBarChartInstance, handleChartReady: handleBorrowApyBarChartReady } =
-		useChartImageExport()
-	const { chartInstance: _netBorrowApyChartInstance, handleChartReady: handleNetBorrowApyChartReady } =
-		useChartImageExport()
-	const { chartInstance: _poolLiquidityChartInstance, handleChartReady: _handlePoolLiquidityChartReady } =
-		useChartImageExport()
+	const { chartInstance: tvlApyChartInstance, handleChartReady: handleTvlApyReady } = useGetChartInstance()
+
+	const { chartInstance: supplyApyChartInstance, handleChartReady: handleSupplyApyReady } = useGetChartInstance()
+
+	const { chartInstance: supplyApy7dChartInstance, handleChartReady: handleSupplyApy7dReady } = useGetChartInstance()
+
+	const { chartInstance: borrowApyChartInstance, handleChartReady: handleBorrowApyReady } = useGetChartInstance()
+
+	const { chartInstance: netBorrowApyChartInstance, handleChartReady: handleNetBorrowApyReady } = useGetChartInstance()
+
+	const { chartInstance: poolLiquidityChartInstance, handleChartReady: handlePoolLiquidityReady } =
+		useGetChartInstance()
 
 	const riskUrl = poolData?.project
 		? `${YIELD_RISK_API_EXPONENTIAL}?${new URLSearchParams({
@@ -178,7 +191,7 @@ const PageView = (_props) => {
 			id: chartType ? `yields-${query.pool}-${chartType}` : `yields-${query.pool}`,
 			kind: 'yields',
 			poolConfigId: query.pool as string,
-			poolName: poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? ''),
+			poolName,
 			project: config?.name ?? poolData.project ?? '',
 			chain: poolData.chain ?? '',
 			chartType
@@ -187,13 +200,12 @@ const PageView = (_props) => {
 
 	const {
 		tvlApyDataset = EMPTY_TVL_APY_DATASET,
-		barChartData = EMPTY_CHART_DATA,
-		areaChartData = EMPTY_CHART_DATA,
+		supplyApyBarDataset = EMPTY_BASE_REWARD_DATASET,
+		supplyApy7dDataset = EMPTY_APY_DATASET,
 		// borrow stuff
-		barChartDataSupply: _barChartDataSupply = EMPTY_CHART_DATA,
-		barChartDataBorrow = EMPTY_CHART_DATA,
-		areaChartDataBorrow = EMPTY_CHART_DATA,
-		netBorrowChartData = EMPTY_CHART_DATA
+		borrowApyBarDataset = EMPTY_BASE_REWARD_DATASET,
+		netBorrowApyDataset = EMPTY_APY_DATASET,
+		poolLiquidityDataset = EMPTY_LIQUIDITY_DATASET
 	} = useMemo(() => {
 		if (!chart) return {}
 
@@ -223,11 +235,25 @@ const PageView = (_props) => {
 
 		const dataBar = data?.filter((t) => t[3] !== null || t[4] !== null) ?? EMPTY_CHART_DATA
 
-		const barChartData = dataBar.length
-			? dataBar.map((item) => ({ date: item[0], Base: item[3], Reward: item[4] }))
-			: []
+		const supplyApyBarDataset: MultiSeriesChart2Dataset = {
+			source: dataBar.length
+				? dataBar.map((item) => ({
+						timestamp: item[0] * 1e3,
+						Base: item[3] === null ? null : Number(item[3]),
+						Reward: item[4] === null ? null : Number(item[4])
+					}))
+				: [],
+			dimensions: ['timestamp', 'Base', 'Reward']
+		}
 
-		const areaChartData = data?.length ? data.filter((t) => t[5] !== null).map((t) => [t[0], t[5]]) : []
+		const supplyApy7dDataset: MultiSeriesChart2Dataset = {
+			source: data?.length
+				? data
+						.filter((t) => t[5] !== null)
+						.map((t) => ({ timestamp: t[0] * 1e3, APY: t[5] === null ? null : Number(t[5]) }))
+				: [],
+			dimensions: ['timestamp', 'APY']
+		}
 
 		// borrow charts
 
@@ -253,35 +279,44 @@ const PageView = (_props) => {
 				: ((-el.apyBaseBorrow + el.apyRewardBorrow).toFixed(2) ?? null)
 		])
 
-		const dataBarSupply = dataBorrow?.filter((t) => t[4] !== null || t[5] !== null) ?? EMPTY_CHART_DATA
-		const barChartDataSupply = dataBarSupply.length
-			? dataBarSupply.map((item) => ({ date: item[0], Base: item[4], Reward: item[5] }))
-			: []
-
 		const dataBarBorrow = dataBorrow?.filter((t) => Number.isFinite(t[6]) || t[7] !== null) ?? EMPTY_CHART_DATA
-		const barChartDataBorrow = dataBarBorrow.length
-			? dataBarBorrow.map((item) => ({ date: item[0], Base: item[6], Reward: item[7] }))
-			: []
+		const borrowApyBarDataset: MultiSeriesChart2Dataset = {
+			source: dataBarBorrow.length
+				? dataBarBorrow.map((item) => ({
+						timestamp: item[0] * 1e3,
+						Base: item[6] === null ? null : Number(item[6]),
+						Reward: item[7] === null ? null : Number(item[7])
+					}))
+				: [],
+			dimensions: ['timestamp', 'Base', 'Reward']
+		}
 
 		const dataArea = dataBorrow?.filter((t) => t[1] !== null && t[2] !== null && t[3] !== null) ?? EMPTY_CHART_DATA
-		const areaChartDataBorrow = dataArea.length
-			? dataArea.map((t) => ({ date: t[0], Supplied: t[1], Borrowed: t[2], Available: t[3] }))
-			: []
+		const poolLiquidityDataset: MultiSeriesChart2Dataset = {
+			source: dataArea.length
+				? dataArea.map((t) => ({ timestamp: t[0] * 1e3, Supplied: t[1], Borrowed: t[2], Available: t[3] }))
+				: [],
+			dimensions: ['timestamp', 'Supplied', 'Borrowed', 'Available']
+		}
 
 		const dataNetBorrowArea = dataBorrow?.filter((t) => t[8] !== null) ?? EMPTY_CHART_DATA
-		const netBorrowChartData = dataNetBorrowArea.length ? dataNetBorrowArea.map((t) => [t[0], t[8]]) : []
+		const netBorrowApyDataset: MultiSeriesChart2Dataset = {
+			source: dataNetBorrowArea.length
+				? dataNetBorrowArea.map((t) => ({ timestamp: t[0] * 1e3, APY: t[8] === null ? null : Number(t[8]) }))
+				: [],
+			dimensions: ['timestamp', 'APY']
+		}
 
 		return {
 			tvlApyDataset: {
 				source: (data ?? []).map((item) => ({ timestamp: item[0] * 1000, TVL: item[1], APY: item[2] })),
 				dimensions: ['timestamp', 'APY', 'TVL']
 			},
-			barChartData,
-			areaChartData,
-			barChartDataSupply,
-			barChartDataBorrow,
-			areaChartDataBorrow,
-			netBorrowChartData
+			supplyApyBarDataset,
+			supplyApy7dDataset,
+			borrowApyBarDataset,
+			netBorrowApyDataset,
+			poolLiquidityDataset
 		}
 	}, [chart, chartBorrow, category])
 
@@ -292,6 +327,22 @@ const PageView = (_props) => {
 			riskData?.protocols?.underlying?.some((p) => p?.rating) ||
 			riskData?.chain?.underlying?.some((c) => c?.rating))
 
+	const liquidityCharts = useMemo(() => {
+		return LIQUIDITY_LEGEND_OPTIONS.map((name) => ({
+			type: 'line' as const,
+			name,
+			encode: { x: 'timestamp', y: name },
+			color: liquidityChartColors[name]
+		}))
+	}, [])
+
+	const [selectedLiquiditySeries, setSelectedLiquiditySeries] = useState<string[]>(() => [...LIQUIDITY_LEGEND_OPTIONS])
+
+	const hasBorrowCharts =
+		borrowApyBarDataset.source.length > 0 ||
+		netBorrowApyDataset.source.length > 0 ||
+		poolLiquidityDataset.source.length > 0
+
 	if (!isReady || isLoading) {
 		return (
 			<div className="flex h-full items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -299,11 +350,6 @@ const PageView = (_props) => {
 			</div>
 		)
 	}
-
-	const poolName =
-		poolData.poolMeta != null && poolData.poolMeta.length > 1
-			? `${poolData.symbol} (${poolData.poolMeta})`
-			: poolData.symbol
 
 	return (
 		<>
@@ -375,8 +421,7 @@ const PageView = (_props) => {
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex items-center justify-end gap-1 p-2">
 						<AddToDashboardButton chartConfig={getYieldsChartConfig()} smol />
-						<ChartCsvExportButton chartInstance={tvlApyChartInstance} filename={`${query.pool}-tvl-apy`} />
-						<ChartExportButton
+						<ChartExportButtons
 							chartInstance={tvlApyChartInstance}
 							filename={`${query.pool}-tvl-apy`}
 							title={`${poolName} - ${projectName} (${poolData.chain})`}
@@ -389,7 +434,7 @@ const PageView = (_props) => {
 							chartOptions={tvlApyChartOptions}
 							valueSymbol=""
 							alwaysShowTooltip
-							onReady={handleTvlApyChartReady}
+							onReady={handleTvlApyReady}
 						/>
 					</Suspense>
 				</div>
@@ -521,40 +566,48 @@ const PageView = (_props) => {
 					</div>
 				) : (
 					<>
-						{barChartData?.length ? (
-							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<Suspense fallback={<></>}>
-									<BarChart
+						{supplyApyBarDataset.source.length ? (
+							<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
+									<h2 className="mr-auto text-base font-semibold">Supply APY</h2>
+									<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy')} smol />
+									<ChartExportButtons
+										chartInstance={supplyApyChartInstance}
+										filename={`${query.pool}-supply-apy`}
 										title="Supply APY"
-										chartData={barChartData}
-										stacks={barChartStacks}
-										stackColors={barChartColors}
-										valueSymbol={'%'}
-										enableImageExport={true}
-										imageExportFilename={`${query.pool}-supply-apy`}
-										imageExportTitle="Supply APY"
-										onReady={handleSupplyApyBarChartReady}
-										customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy')} smol />}
+									/>
+								</div>
+								<Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										dataset={supplyApyBarDataset}
+										charts={BASE_REWARD_BAR_CHARTS}
+										valueSymbol="%"
+										hideDefaultLegend={false}
+										onReady={handleSupplyApyReady}
 									/>
 								</Suspense>
-							</LazyChart>
+							</div>
 						) : null}
-						{areaChartData.length ? (
-							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<Suspense fallback={<></>}>
-									<AreaChart
+						{supplyApy7dDataset.source.length ? (
+							<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
+									<h2 className="mr-auto text-base font-semibold">7 day moving average of Supply APY</h2>
+									<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy-7d')} smol />
+									<ChartExportButtons
+										chartInstance={supplyApy7dChartInstance}
+										filename={`${query.pool}-supply-apy-7d-avg`}
 										title="7 day moving average of Supply APY"
-										chartData={areaChartData}
-										color={CHART_COLORS[0]}
-										valueSymbol={'%'}
-										enableImageExport={true}
-										imageExportFilename={`${query.pool}-supply-apy-7d-avg`}
-										imageExportTitle="7 day moving average of Supply APY"
-										onReady={handleSupplyApy7dChartReady}
-										customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy-7d')} smol />}
+									/>
+								</div>
+								<Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										dataset={supplyApy7dDataset}
+										charts={SINGLE_APY_LINE_CHARTS}
+										valueSymbol="%"
+										onReady={handleSupplyApy7dReady}
 									/>
 								</Suspense>
-							</LazyChart>
+							</div>
 						) : null}
 					</>
 				)}
@@ -564,61 +617,82 @@ const PageView = (_props) => {
 				<div className="col-span-full flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<LocalLoader />
 				</div>
-			) : areaChartDataBorrow?.length ? (
+			) : hasBorrowCharts ? (
 				<div className="grid min-h-[408px] grid-cols-2 gap-2 rounded-md">
-					{areaChartDataBorrow?.length ? (
-						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<Suspense fallback={<></>}>
-								<BarChart
+					{borrowApyBarDataset.source.length ? (
+						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
+								<h2 className="mr-auto text-base font-semibold">Borrow APY</h2>
+								<AddToDashboardButton chartConfig={getYieldsChartConfig('borrow-apy')} smol />
+								<ChartExportButtons
+									chartInstance={borrowApyChartInstance}
+									filename={`${query.pool}-borrow-apy`}
 									title="Borrow APY"
-									chartData={barChartDataBorrow}
-									stacks={barChartStacks}
-									stackColors={barChartColors}
-									valueSymbol={'%'}
-									enableImageExport={true}
-									imageExportFilename={`${query.pool}-borrow-apy`}
-									imageExportTitle="Borrow APY"
-									onReady={handleBorrowApyBarChartReady}
-									customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('borrow-apy')} smol />}
+								/>
+							</div>
+							<Suspense fallback={<div className="min-h-[360px]" />}>
+								<MultiSeriesChart2
+									dataset={borrowApyBarDataset}
+									charts={BASE_REWARD_BAR_CHARTS}
+									valueSymbol="%"
+									hideDefaultLegend={false}
+									onReady={handleBorrowApyReady}
 								/>
 							</Suspense>
-						</LazyChart>
+						</div>
 					) : null}
-					{areaChartDataBorrow.length ? (
-						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<Suspense fallback={<></>}>
-								<AreaChart
+					{netBorrowApyDataset.source.length ? (
+						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
+								<h2 className="mr-auto text-base font-semibold">Net Borrow APY</h2>
+								<AddToDashboardButton chartConfig={getYieldsChartConfig('net-borrow-apy')} smol />
+								<ChartExportButtons
+									chartInstance={netBorrowApyChartInstance}
+									filename={`${query.pool}-net-borrow-apy`}
 									title="Net Borrow APY"
-									chartData={netBorrowChartData}
-									color={CHART_COLORS[0]}
-									valueSymbol={'%'}
-									enableImageExport={true}
-									imageExportFilename={`${query.pool}-net-borrow-apy`}
-									imageExportTitle="Net Borrow APY"
-									onReady={handleNetBorrowApyChartReady}
-									customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('net-borrow-apy')} smol />}
+								/>
+							</div>
+							<Suspense fallback={<div className="min-h-[360px]" />}>
+								<MultiSeriesChart2
+									dataset={netBorrowApyDataset}
+									charts={SINGLE_APY_LINE_CHARTS}
+									valueSymbol="%"
+									onReady={handleNetBorrowApyReady}
 								/>
 							</Suspense>
-						</LazyChart>
+						</div>
 					) : null}
 
-					{areaChartDataBorrow?.length ? (
-						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<Suspense fallback={<></>}>
-								<AreaChart
-									chartData={areaChartDataBorrow}
+					{poolLiquidityDataset.source.length ? (
+						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
+								<h2 className="mr-auto text-base font-semibold">Pool Liquidity</h2>
+								<SelectWithCombobox
+									allValues={LIQUIDITY_LEGEND_OPTIONS}
+									selectedValues={selectedLiquiditySeries}
+									setSelectedValues={setSelectedLiquiditySeries}
+									label="Filter"
+									labelType="smol"
+									variant="filter"
+									portal
+								/>
+								<AddToDashboardButton chartConfig={getYieldsChartConfig('pool-liquidity')} smol />
+								<ChartExportButtons
+									chartInstance={poolLiquidityChartInstance}
+									filename={`${query.pool}-pool-liquidity`}
 									title="Pool Liquidity"
-									customLegendName="Filter"
-									customLegendOptions={LIQUIDITY_LEGEND_OPTIONS}
+								/>
+							</div>
+							<Suspense fallback={<div className="min-h-[360px]" />}>
+								<MultiSeriesChart2
+									dataset={poolLiquidityDataset}
+									charts={liquidityCharts}
 									valueSymbol="$"
-									stackColors={liquidityChartColors}
-									enableImageExport={true}
-									imageExportFilename={`${query.pool}-pool-liquidity`}
-									imageExportTitle="Pool Liquidity"
-									customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('pool-liquidity')} smol />}
+									selectedCharts={new Set(selectedLiquiditySeries)}
+									onReady={handlePoolLiquidityReady}
 								/>
 							</Suspense>
-						</LazyChart>
+						</div>
 					) : null}
 				</div>
 			) : null}
@@ -697,23 +771,13 @@ const PageView = (_props) => {
 	)
 }
 
-const barChartColors = {
-	Base: CHART_COLORS[0],
-	Reward: CHART_COLORS[1]
-}
-
-const liquidityChartColors = {
+const liquidityChartColors: Record<string, string> = {
 	Supplied: CHART_COLORS[0],
 	Borrowed: CHART_COLORS[1],
 	Available: CHART_COLORS[2]
 }
 
 const LIQUIDITY_LEGEND_OPTIONS: string[] = ['Supplied', 'Borrowed', 'Available']
-
-const barChartStacks = {
-	Base: 'a',
-	Reward: 'a'
-}
 
 function cleanPool(pool) {
 	// some pool fields contain chain (or other) info as prefix/suffix

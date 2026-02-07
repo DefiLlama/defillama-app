@@ -14,7 +14,7 @@ import { CHART_TYPES, MultiChartConfig } from '../types'
 import { convertToCumulative, generateChartColor } from '../utils'
 import { COLOR_PALETTE_2, EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
 import { ConfirmationModal } from './ConfirmationModal'
-import { ChartExportButton } from './ProTable/ChartExportButton'
+import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
@@ -626,7 +626,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				)}
 				{series.length > 0 && (
 					<>
-						<ChartExportButton
+						<ChartPngExportButton
 							chartInstance={chartInstance}
 							filename={multi.name || 'multi_chart'}
 							title={showTreemap ? undefined : capitalizeFirstLetter(multi.name) || 'Multi Chart'}

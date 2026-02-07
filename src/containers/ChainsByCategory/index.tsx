@@ -51,7 +51,7 @@ export function ChainsByCategory({
 			<RowLinksWithDropdown links={allCategories} activeLink={category} />
 
 			<div className="flex flex-col gap-2 xl:flex-row">
-				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<React.Suspense fallback={<></>}>
 						<PieChart
 							chartData={pieChartData}
@@ -63,7 +63,7 @@ export function ChainsByCategory({
 						/>
 					</React.Suspense>
 				</div>
-				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<React.Suspense fallback={<></>}>
 						<MultiSeriesChart2
 							dataset={dominanceCharts.dataset}

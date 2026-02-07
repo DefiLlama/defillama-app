@@ -2,9 +2,8 @@ import type { GetStaticPropsContext } from 'next'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { formatGovernanceData } from '~/api/categories/protocols'
-import { IBarChartProps } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { LazyChart } from '~/components/LazyChart'
 import { TokenLogo } from '~/components/TokenLogo'
 import {
 	GOVERNANCE_COMPOUND_API,
@@ -21,7 +20,24 @@ import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const MultiSeriesChart2 = React.lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
+
+const EMPTY_ACTIVITY_DATASET: MultiSeriesChart2Dataset = {
+	source: [],
+	dimensions: ['timestamp', 'Total', 'Successful']
+}
+const EMPTY_MAXVOTES_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp', 'Max Votes'] }
+
+const ACTIVITY_CHARTS: IMultiSeriesChart2Props['charts'] = [
+	{ type: 'bar', name: 'Total', encode: { x: 'timestamp', y: 'Total' }, color: CHART_COLORS[0] },
+	{ type: 'bar', name: 'Successful', encode: { x: 'timestamp', y: 'Successful' }, color: CHART_COLORS[1] }
+]
+
+const MAX_VOTES_CHARTS: IMultiSeriesChart2Props['charts'] = [
+	{ type: 'bar', name: 'Max Votes', encode: { x: 'timestamp', y: 'Max Votes' }, color: CHART_COLORS[2] }
+]
 
 export const getStaticProps = withPerformanceLogging(
 	'governance/[project]',
@@ -109,6 +125,23 @@ export async function getStaticPaths() {
 }
 
 export default function Protocol({ data, governanceType }) {
+	const activityDataset = React.useMemo<MultiSeriesChart2Dataset>(() => {
+		const source = (data?.activity ?? []).map((row: any) => ({
+			timestamp: Number(row.date) * 1e3,
+			Total: row.Total ?? 0,
+			Successful: row.Successful ?? 0
+		}))
+		return { source, dimensions: ['timestamp', 'Total', 'Successful'] }
+	}, [data?.activity])
+
+	const maxVotesDataset = React.useMemo<MultiSeriesChart2Dataset>(() => {
+		const source = (data?.maxVotes ?? []).map((row: any) => ({
+			timestamp: Number(row.date) * 1e3,
+			'Max Votes': row['Max Votes'] == null ? 0 : Number(row['Max Votes'])
+		}))
+		return { source, dimensions: ['timestamp', 'Max Votes'] }
+	}, [data?.maxVotes])
+
 	return (
 		<Layout
 			title={`${data.metadata.name} Governance - DefiLlama`}
@@ -170,26 +203,30 @@ export default function Protocol({ data, governanceType }) {
 				</div>
 
 				<div className="grid grid-cols-2">
-					<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<div className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<React.Suspense fallback={<></>}>
-							<BarChart
-								title={'Activity'}
-								chartData={data.activity}
-								stacks={simpleStack}
-								stackColors={barChartColors}
+							<MultiSeriesChart2
+								title="Activity"
+								dataset={activityDataset?.source?.length ? activityDataset : EMPTY_ACTIVITY_DATASET}
+								charts={ACTIVITY_CHARTS}
+								valueSymbol=""
+								shouldEnableImageExport
+								shouldEnableCSVDownload
 							/>
 						</React.Suspense>
-					</LazyChart>
-					<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					</div>
+					<div className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<React.Suspense fallback={<></>}>
-							<BarChart
-								title={'Max Votes'}
-								chartData={data.maxVotes}
-								stacks={maxVotesStack}
-								stackColors={barChartColors}
+							<MultiSeriesChart2
+								title="Max Votes"
+								dataset={maxVotesDataset?.source?.length ? maxVotesDataset : EMPTY_MAXVOTES_DATASET}
+								charts={MAX_VOTES_CHARTS}
+								valueSymbol=""
+								shouldEnableImageExport
+								shouldEnableCSVDownload
 							/>
 						</React.Suspense>
-					</LazyChart>
+					</div>
 				</div>
 
 				<div className="flex flex-wrap items-center gap-9">
@@ -243,21 +280,6 @@ export default function Protocol({ data, governanceType }) {
 			<GovernanceTable data={data} governanceType={governanceType} />
 		</Layout>
 	)
-}
-
-const barChartColors = {
-	Total: CHART_COLORS[0],
-	Successful: CHART_COLORS[1],
-	'Max Votes': CHART_COLORS[2]
-}
-
-const simpleStack = {
-	Total: 'stackA',
-	Successful: 'stackB'
-}
-
-const maxVotesStack = {
-	'Max Votes': 'maxvotes'
 }
 
 function getDateRange(startDateStr) {

@@ -277,7 +277,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			</div>
 
 			{asset.chartDataset && asset.chartDataset.source.length > 0 ? (
-				<div className="min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<div className="min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<Suspense fallback={<></>}>
 						<MultiSeriesChart2
 							charts={timeSeriesCharts}

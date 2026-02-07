@@ -12,7 +12,6 @@ import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { LazyChart } from '~/components/LazyChart'
 import { raisesColumnOrders, raisesColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
@@ -177,7 +176,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 						))}
 					</details>
 				</div>
-				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<React.Suspense fallback={<></>}>
 						<MultiSeriesChart2
 							dataset={fundingRoundsByMonthChart.dataset}
@@ -194,7 +193,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 			</div>
 
 			<div className="grid grid-cols-2 gap-1">
-				<LazyChart className="relative col-span-full flex min-h-[372px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+				<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
 						<PieChart
 							chartData={investmentByRounds}
@@ -206,8 +205,8 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 							imageExportTitle={`${investorName} Investment by Rounds`}
 						/>
 					</React.Suspense>
-				</LazyChart>
-				<LazyChart className="relative col-span-full flex min-h-[372px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+				</div>
+				<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
 						<PieChart
 							chartData={raisesByCategory}
@@ -219,7 +218,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 							imageExportTitle={`${investorName} Investments by Category`}
 						/>
 					</React.Suspense>
-				</LazyChart>
+				</div>
 			</div>
 
 			<RaisesTable raises={filteredRaisesList} prepareCsv={prepareCsv} />
