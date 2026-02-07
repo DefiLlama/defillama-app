@@ -4,17 +4,77 @@ import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/catego
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { LocalLoader } from '~/components/Loaders'
+import { LoadingDots, LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
-import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import Pagination from './Pagination'
-import { IEmission } from './types'
+import { UpcomingEvent } from './UpcomingEvent'
+
+export interface TokenData {
+	circSupply: number
+	events: Event[]
+	gecko_id: string
+	maxSupply: number
+	mcap: number
+	name: string
+	protocolId: string
+	sources: string[]
+	token: string
+	totalLocked: number
+	unlocksPerDay: number
+}
+
+export type EmissionsDataset = { source: Array<Record<string, number | null>>; dimensions: string[] }
+export type EmissionsChartConfig = Array<{
+	type: 'line'
+	name: string
+	encode: { x: 'timestamp'; y: string }
+	color: string | undefined
+	stack: string
+}>
+
+export interface IEmission {
+	categories: { documented: Array<string>; realtime: Array<string> }
+	categoriesBreakdown: Record<string, string[]>
+	chartData: {
+		documented: Array<{ timestamp: number; [label: string]: number }>
+		realtime: Array<{ timestamp: number; [label: string]: number }>
+	}
+	/** Pre-built MultiSeriesChart2 datasets keyed by data type. */
+	datasets: { documented: EmissionsDataset; realtime: EmissionsDataset }
+	/** Pre-built MultiSeriesChart2 chart configs keyed by data type. */
+	chartsConfigs: { documented: EmissionsChartConfig; realtime: EmissionsChartConfig }
+	sources: Array<string>
+	notes: Array<string>
+	events: Array<{ description: string; timestamp: string; noOfTokens: number[] }>
+	hallmarks: { documented: Array<[number, string]>; realtime: Array<[number, string]> }
+	tokenPrice: { price?: number | null; symbol?: string | null }
+	tokenAllocation: {
+		documented: { current: { [category: string]: number }; final: { [category: string]: number } }
+		realtime: { current: { [category: string]: number }; final: { [category: string]: number } }
+	}
+	futures: { openInterest: number; fundingRate: number }
+	pieChartData: {
+		documented: Array<{
+			name: string
+			value: number
+		}>
+		realtime: Array<{
+			name: string
+			value: number
+		}>
+	}
+	stackColors: { documented: { [stack: string]: string }; realtime: { [stack: string]: string } }
+	token?: string
+	geckoId?: string
+	name: string
+	meta: TokenData
+}
 
 const getExtendedColors = (baseColors: Record<string, string>, isPriceEnabled: boolean) => {
 	const extended = { ...baseColors }
@@ -30,6 +90,14 @@ const MultiSeriesChart2 = lazy(
 ) as React.FC<IMultiSeriesChart2Props>
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+
+const AllocationPieChart = memo(function AllocationPieChart(props: IPieChartProps) {
+	return (
+		<Suspense fallback={<div className="min-h-[408px]" />}>
+			<PieChart {...props} />
+		</Suspense>
+	)
+})
 
 type ScheduleChartProps = Pick<
 	IMultiSeriesChart2Props,
@@ -62,7 +130,7 @@ type InitialTokenMarketData = {
 	maxSupplyInfinite?: boolean | null
 }
 
-export function Emissions({
+export function EmissionsByProtocol({
 	data,
 	isEmissionsPage,
 	initialTokenMarketData,
@@ -262,6 +330,8 @@ function sortStacksByVolatility(
 }
 
 const unlockedPieChartRadius = ['50%', '70%'] as [string, string]
+const allocationPieChartRadius = ['0%', '82%'] as [string, string]
+const allocationPieChartLegendToRight = 260
 
 const unlockedPieChartStackColors = {
 	Unlocked: '#0c5dff',
@@ -330,7 +400,7 @@ const ChartContainer = ({
 }) => {
 	const width = useBreakpointWidth()
 	const [dataType, setDataType] = useState<DataType>('documented')
-	const [isPriceEnabled, setIsPriceEnabled] = useState(false)
+	const [isPriceAndMcapRequested, setIsPriceAndMcapRequested] = useState(false)
 	const [allocationMode, setAllocationMode] = useState<'current' | 'standard'>('current')
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 	const [chartType, setChartType] = useState<'bar' | 'line'>('line')
@@ -364,8 +434,15 @@ const ChartContainer = ({
 	const { data: geckoId } = useGeckoId(data.geckoId ? null : (data.token ?? null))
 
 	const shouldPrefetchTokenStats = !(disableClientTokenStatsFetch ?? false)
-	const shouldFetchPriceChart = shouldPrefetchTokenStats || isPriceEnabled
-	const priceChart = usePriceChart(shouldFetchPriceChart ? (data.geckoId ?? geckoId) : undefined)
+	const resolvedGeckoId = data.geckoId ?? geckoId
+	const shouldFetchPriceChart = shouldPrefetchTokenStats || isPriceAndMcapRequested
+	const priceChart = usePriceChart(shouldFetchPriceChart ? resolvedGeckoId : undefined)
+
+	const isPriceChartReady =
+		Boolean(priceChart.data?.data?.prices?.length) && Boolean(priceChart.data?.data?.mcaps?.length)
+	const isPriceAndMcapActive = isPriceAndMcapRequested && isPriceChartReady
+	const isPriceAndMcapLoading =
+		isPriceAndMcapRequested && !isPriceAndMcapActive && (priceChart.isLoading || priceChart.isFetching)
 
 	const tokenMaxSupplyFromChart = priceChart.data?.data.coinData.market_data?.max_supply_infinite
 		? Infinity
@@ -390,7 +467,7 @@ const ChartContainer = ({
 		tokenPrice != null && ystdPrice != null ? +(((tokenPrice - ystdPrice) / ystdPrice) * 100).toFixed(2) : null
 	const percentChange = percentChangeFromChart ?? initialTokenMarketData?.priceChangePercent ?? null
 
-	const priceChartForOverlay = isPriceEnabled ? priceChart.data?.data : null
+	const priceChartForOverlay = isPriceAndMcapActive ? priceChart.data?.data : null
 	const normilizePriceChart = useMemo(() => {
 		if (!priceChartForOverlay) return null
 		const sourceData = priceChartForOverlay || {}
@@ -458,7 +535,7 @@ const ChartContainer = ({
 	const chartData = useMemo(() => {
 		// Keep chart data independent from the price query unless the overlay is enabled.
 		// This prevents the schedule chart from re-rendering when price data finishes loading.
-		if (!isPriceEnabled) {
+		if (!isPriceAndMcapActive) {
 			return rawChartData?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'timestamp') > 0)
 		}
 
@@ -476,7 +553,7 @@ const ChartContainer = ({
 				return res
 			})
 			?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'timestamp') > 0)
-	}, [rawChartData, isPriceEnabled, normilizePriceChart])
+	}, [rawChartData, isPriceAndMcapActive, normilizePriceChart])
 
 	const availableCategories =
 		allocationMode === 'standard'
@@ -537,6 +614,11 @@ const ChartContainer = ({
 
 	const pieChartDataAllocationMode = allocationMode === 'current' ? pieChartDataAllocation : groupAllocation
 
+	const allocationPieStackColors = useMemo(
+		() => (allocationMode === 'standard' ? standardGroupColors : stackColors),
+		[allocationMode, stackColors]
+	)
+
 	const chartConfig = useMemo(() => {
 		let stacks = selectedCategories
 		if ((!stacks || stacks.length === 0) && displayData && displayData.length > 0) {
@@ -549,16 +631,19 @@ const ChartContainer = ({
 			}
 		}
 		const finalStacks = chartType === 'bar' ? sortStacksByVolatility(stacks, displayData) : stacks
-		const extendedColors = getExtendedColors(stackColors, isPriceEnabled)
 		return {
-			stacks: [...finalStacks, ...(isPriceEnabled ? ['Market Cap', 'Price'] : [])].filter(Boolean),
-			customYAxis: isPriceEnabled ? ['Market Cap', 'Price'] : [],
+			stacks: [...finalStacks, ...(isPriceAndMcapActive ? ['Market Cap', 'Price'] : [])].filter(Boolean),
+			customYAxis: isPriceAndMcapActive ? ['Market Cap', 'Price'] : [],
 			colors:
 				allocationMode === 'standard'
-					? { ...standardGroupColors, Price: '#ff4e21', 'Market Cap': '#0c5dff' }
-					: extendedColors
+					? isPriceAndMcapActive
+						? { ...standardGroupColors, Price: '#ff4e21', 'Market Cap': '#0c5dff' }
+						: standardGroupColors
+					: isPriceAndMcapActive
+						? getExtendedColors(stackColors, true)
+						: stackColors
 		}
-	}, [isPriceEnabled, selectedCategories, stackColors, allocationMode, displayData, chartType])
+	}, [isPriceAndMcapActive, selectedCategories, stackColors, allocationMode, displayData, chartType])
 
 	const dataset = useMemo<MultiSeriesChart2Dataset>(() => {
 		const stacks = chartConfig.stacks
@@ -609,7 +694,7 @@ const ChartContainer = ({
 				encode: { x: 'timestamp', y: name },
 				color: colors[name],
 				...(!isOverlay ? { stack: 'A' } : {}),
-				...(isOverlay ? { yAxisIndex: yIdx + 1, valueSymbol: '$' } : {})
+				...(isOverlay ? { yAxisIndex: yIdx + 1, valueSymbol: '$', hideAreaStyle: true } : {})
 			}
 		})
 	}, [chartConfig.stacks, chartConfig.colors, chartConfig.customYAxis, chartType])
@@ -636,19 +721,39 @@ const ChartContainer = ({
 			: { right: 12, top: 12, bottom: 12, orient: 'vertical' as const }
 	}
 
-	const allocationPieChartLegendPosition =
-		width < 640
+	const pieChartLegendTextStyle = useMemo(() => ({ fontSize: width < 640 ? 12 : 14 }), [width])
+
+	const allocationPieChartLegendPosition = useMemo(() => {
+		return width < 640
 			? { left: 'center', bottom: 0, orient: 'horizontal' as const }
 			: getDesktopPieLegendPosition(pieChartDataAllocationMode.length)
+	}, [width, pieChartDataAllocationMode.length])
 
-	const unlockedPieChartLegendPosition =
-		width < 640
+	const unlockedPieChartLegendPosition = useMemo(() => {
+		return width < 640
 			? { left: 'center', bottom: 0, orient: 'horizontal' as const }
 			: getDesktopPieLegendPosition(unlockedPieChartData.length)
+	}, [width, unlockedPieChartData.length])
 
-	const pieChartLegendTextStyle = {
-		fontSize: width < 640 ? 12 : 14
-	}
+	const allocationExportButtons = useMemo(
+		() => ({
+			png: true,
+			csv: true,
+			filename: `${slug(data.name)}-allocation`,
+			pngTitle: `${data.name} Allocation`
+		}),
+		[data.name]
+	)
+
+	const unlockedExportButtons = useMemo(
+		() => ({
+			png: true,
+			csv: true,
+			filename: `${slug(data.name)}-unlocked`,
+			pngTitle: `${data.name} Unlocked ${unlockedPercent.toFixed(2)}%`
+		}),
+		[data.name, unlockedPercent]
+	)
 
 	const hasGroupAllocationData = (() => {
 		if (!data.categoriesBreakdown || typeof data.categoriesBreakdown !== 'object') return false
@@ -752,12 +857,13 @@ const ChartContainer = ({
 								onChange={() => setChartType((prev) => (prev === 'bar' ? 'line' : 'bar'))}
 								checked={chartType === 'bar'}
 							/>
-							{(data.geckoId ?? geckoId) ? (
+							{resolvedGeckoId ? (
 								<Switch
 									label="Price & MCap"
 									value="show=price-and-mcap"
-									onChange={() => setIsPriceEnabled((prev) => !prev)}
-									checked={isPriceEnabled}
+									onChange={() => setIsPriceAndMcapRequested((prev) => !prev)}
+									checked={isPriceAndMcapRequested}
+									isLoading={isPriceAndMcapLoading}
 								/>
 							) : null}
 							<TagGroup
@@ -779,67 +885,62 @@ const ChartContainer = ({
 								title={`${data.name} Unlock Schedule`}
 							/>
 						</div>
-						<ScheduleChart
-							dataset={dataset}
-							charts={charts}
-							hallmarks={hallmarks}
-							expandTo100Percent={chartType === 'bar'}
-							solidChartAreaStyle
-							valueSymbol={data.tokenPrice?.symbol ?? ''}
-							onReady={handleChartReady}
-							hideDefaultLegend={false}
-						/>
+						{isPriceAndMcapLoading ? (
+							<div className="flex min-h-[360px] items-center justify-center">
+								<p className="flex items-center gap-1">
+									Loading
+									<LoadingDots />
+								</p>
+							</div>
+						) : (
+							<ScheduleChart
+								dataset={dataset}
+								charts={charts}
+								hallmarks={hallmarks}
+								expandTo100Percent={chartType === 'bar'}
+								solidChartAreaStyle
+								valueSymbol={data.tokenPrice?.symbol ?? ''}
+								onReady={handleChartReady}
+								hideDefaultLegend={false}
+							/>
+						)}
 					</div>
 				)}
 
 				<div className="grid min-h-[408px] grid-cols-2 gap-2">
 					{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
 						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<Suspense fallback={<div className="min-h-[408px]" />}>
-								<PieChart
-									showLegend
-									title="Allocation"
-									chartData={pieChartDataAllocationMode}
-									stackColors={chartConfig.colors}
-									valueSymbol={data.tokenPrice?.symbol ?? ''}
-									legendPosition={allocationPieChartLegendPosition}
-									legendTextStyle={pieChartLegendTextStyle}
-									// Give the allocation chart a wider legend column so labels
-									// can render without ellipsis, and the pie can sit further left.
-									toRight={260}
-									// Slightly larger pie to better utilize available canvas.
-									radius={['0%', '82%']}
-									exportButtons={{
-										png: true,
-										csv: true,
-										filename: `${slug(data.name)}-allocation`,
-										pngTitle: `${data.name} Allocation`
-									}}
-								/>
-							</Suspense>
+							<AllocationPieChart
+								showLegend
+								title="Allocation"
+								chartData={pieChartDataAllocationMode}
+								stackColors={allocationPieStackColors}
+								valueSymbol={data.tokenPrice?.symbol ?? ''}
+								legendPosition={allocationPieChartLegendPosition}
+								legendTextStyle={pieChartLegendTextStyle}
+								// Give the allocation chart a wider legend column so labels
+								// can render without ellipsis, and the pie can sit further left.
+								toRight={allocationPieChartLegendToRight}
+								// Slightly larger pie to better utilize available canvas.
+								radius={allocationPieChartRadius}
+								exportButtons={allocationExportButtons}
+							/>
 						</div>
 					)}
 
 					{unlockedPercent > 0 && (
 						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<Suspense fallback={<div className="min-h-[408px]" />}>
-								<PieChart
-									showLegend
-									title={`Unlocked ${unlockedPercent.toFixed(2)}%`}
-									legendPosition={unlockedPieChartLegendPosition}
-									legendTextStyle={pieChartLegendTextStyle}
-									radius={unlockedPieChartRadius}
-									chartData={unlockedPieChartData}
-									stackColors={unlockedPieChartStackColors}
-									valueSymbol="%"
-									exportButtons={{
-										png: true,
-										csv: true,
-										filename: `${slug(data.name)}-unlocked`,
-										pngTitle: `${data.name} Unlocked ${unlockedPercent.toFixed(2)}%`
-									}}
-								/>
-							</Suspense>
+							<AllocationPieChart
+								showLegend
+								title={`Unlocked ${unlockedPercent.toFixed(2)}%`}
+								legendPosition={unlockedPieChartLegendPosition}
+								legendTextStyle={pieChartLegendTextStyle}
+								radius={unlockedPieChartRadius}
+								chartData={unlockedPieChartData}
+								stackColors={unlockedPieChartStackColors}
+								valueSymbol="%"
+								exportButtons={unlockedExportButtons}
+							/>
 						</div>
 					)}
 				</div>

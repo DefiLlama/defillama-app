@@ -1,11 +1,10 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { UnlocksCharts } from '~/containers/ProtocolOverview/Emissions'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
-import { getProtocolEmissons } from '~/containers/Unlocks/queries'
-import { getTokenMarketDataFromCgChart } from '~/containers/Unlocks/tokenMarketData'
+import { UnlocksCharts } from '~/containers/Unlocks/EmissionsByProtocol'
+import { getProtocolUnlocksStaticPropsData } from '~/containers/Unlocks/protocolUnlocksStaticProps'
 import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -36,9 +35,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
 
-		const emissions = await getProtocolEmissons(normalizedName).catch(() => null as any)
-		const geckoId = emissions?.geckoId ?? emissions?.meta?.gecko_id ?? null
-		const initialTokenMarketData = geckoId ? await getTokenMarketDataFromCgChart(geckoId) : null
+		const { emissions, initialTokenMarketData } = await getProtocolUnlocksStaticPropsData(normalizedName)
 
 		return {
 			props: {

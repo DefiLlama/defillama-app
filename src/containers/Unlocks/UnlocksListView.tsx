@@ -4,7 +4,7 @@ import * as React from 'react'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
-import type { DailyUnlocks } from '../types'
+import type { DailyUnlocks } from './calendarTypes'
 
 interface UnlocksListViewProps {
 	events: Array<{ date: Dayjs; event: DailyUnlocks['events'][0] }>

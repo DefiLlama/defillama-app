@@ -66,7 +66,7 @@ export function UnlocksChartTab({
 	)
 	const { data: unlocksProtocols, isLoading: unlocksProtocolsLoading } = useQuery({
 		queryKey: ['unlocks-protocols', unlocksEndDate],
-		queryFn: () => getAllProtocolEmissions({ endDate: unlocksEndDate }),
+		queryFn: () => getAllProtocolEmissions({ endDate: unlocksEndDate, getHistoricalPrices: false }),
 		staleTime: 60 * 60 * 1000
 	})
 
