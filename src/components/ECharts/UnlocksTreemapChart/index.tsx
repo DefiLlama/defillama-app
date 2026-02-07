@@ -58,6 +58,37 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 
 	const currentYear = filterYear || dayjs().year()
 
+	const protocolLabel = (protocol: string, value: number, iconUrl: string) => ({
+		show: true,
+		formatter: `{icon|}\n{name|${protocol}}\n{value|${formattedNum(value, true)}}`,
+		position: 'inside' as const,
+		color: '#fff',
+		rich: {
+			icon: {
+				height: 22,
+				width: 22,
+				align: 'center' as const,
+				backgroundColor: { image: iconUrl },
+				lineHeight: 26
+			},
+			name: {
+				fontSize: 12,
+				fontWeight: 600,
+				color: '#fff',
+				align: 'center' as const,
+				lineHeight: 16,
+				padding: [2, 0, 0, 0]
+			},
+			value: {
+				fontSize: 11,
+				fontWeight: 500,
+				color: 'rgba(255, 255, 255, 0.85)',
+				align: 'center' as const,
+				lineHeight: 14
+			}
+		}
+	})
+
 	const chartDataTree = useMemo(() => {
 		const treeData = []
 		const yearData: YearDataMap = {}
@@ -114,38 +145,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 							name: protocol,
 							value: value,
 							iconUrl: iconUrl,
-							label: {
-								show: true,
-								formatter: `{icon|}\n{name|${protocol}}\n{value|${formattedNum(value, true)}}`,
-								position: 'inside',
-								color: '#fff',
-								textShadowBlur: 2,
-								textShadowColor: 'rgba(0, 0, 0, 0.8)',
-								rich: {
-									icon: {
-										height: 22,
-										width: 22,
-										align: 'center',
-										backgroundColor: { image: iconUrl },
-										lineHeight: 26
-									},
-									name: {
-										fontSize: 12,
-										fontWeight: 600,
-										color: isDark ? '#ffffff' : '#1a1a1a',
-										align: 'center',
-										lineHeight: 16,
-										padding: [2, 0, 0, 0]
-									},
-									value: {
-										fontSize: 11,
-										fontWeight: 500,
-										color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.75)',
-										align: 'center',
-										lineHeight: 14
-									}
-								}
-							}
+							label: protocolLabel(protocol, value, iconUrl)
 						}
 					})
 					.toSorted((a, b) => b.value - a.value)
@@ -180,40 +180,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 							name: protocol,
 							value: value,
 							iconUrl: iconUrl,
-							label: {
-								show: true,
-								formatter: `{icon|}\n{name|${protocol}}\n{value|${formattedNum(value, true)}}`,
-								position: 'inside',
-								color: '#fff',
-								textShadowBlur: 2,
-								textShadowColor: 'rgba(0, 0, 0, 0.8)',
-								rich: {
-									icon: {
-										height: 22,
-										width: 22,
-										align: 'center',
-										backgroundColor: {
-											image: iconUrl
-										},
-										lineHeight: 26
-									},
-									name: {
-										fontSize: 12,
-										fontWeight: 600,
-										color: isDark ? '#ffffff' : '#1a1a1a',
-										align: 'center',
-										lineHeight: 16,
-										padding: [2, 0, 0, 0]
-									},
-									value: {
-										fontSize: 11,
-										fontWeight: 500,
-										color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.75)',
-										align: 'center',
-										lineHeight: 14
-									}
-								}
-							}
+							label: protocolLabel(protocol, value, iconUrl)
 						})
 					}
 
@@ -261,40 +228,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 							name: protocol,
 							value: value,
 							iconUrl: iconUrl,
-							label: {
-								show: true,
-								formatter: `{icon|}\n{name|${protocol}}\n{value|${formattedNum(value, true)}}`,
-								position: 'inside',
-								color: '#fff',
-								textShadowBlur: 2,
-								textShadowColor: 'rgba(0, 0, 0, 0.8)',
-								rich: {
-									icon: {
-										height: 22,
-										width: 22,
-										align: 'center',
-										backgroundColor: {
-											image: iconUrl
-										},
-										lineHeight: 26
-									},
-									name: {
-										fontSize: 12,
-										fontWeight: 600,
-										color: isDark ? '#ffffff' : '#1a1a1a',
-										align: 'center',
-										lineHeight: 16,
-										padding: [2, 0, 0, 0]
-									},
-									value: {
-										fontSize: 11,
-										fontWeight: 500,
-										color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.75)',
-										align: 'center',
-										lineHeight: 14
-									}
-								}
-							}
+							label: protocolLabel(protocol, value, iconUrl)
 						})
 					}
 
@@ -487,37 +421,29 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 	const goToNextMonth = () => setSelectedDate((d) => d.add(1, 'month'))
 
 	return (
-		<div className="mt-[-24px] flex flex-col gap-4">
-			<div className="flex flex-wrap items-center justify-end gap-4">
-				{timeView === 'Month' && (
+		<div className="flex flex-col gap-3">
+			<div className="flex flex-wrap items-center justify-end gap-3">
+				{timeView === 'Month' ? (
 					<div className="order-1 flex items-center gap-2 md:order-0">
 						<button
 							onClick={goToPrevMonth}
-							className="rounded-md p-1.5 text-(--text-secondary) hover:bg-(--bg-glass) hover:text-(--text-primary)"
+							className="rounded-md p-1.5 text-(--text-secondary) hover:bg-(--link-hover-bg)"
 							aria-label="Previous Month"
 						>
 							←
 						</button>
-
-						<span className="w-28 text-center text-sm font-medium text-(--text-primary)">
-							{selectedDate.format('MMMM YYYY')}
-						</span>
+						<span className="w-28 text-center text-sm font-medium">{selectedDate.format('MMMM YYYY')}</span>
 						<button
 							onClick={goToNextMonth}
-							className="rounded-md p-1.5 text-(--text-secondary) hover:bg-(--bg-glass) hover:text-(--text-primary)"
+							className="rounded-md p-1.5 text-(--text-secondary) hover:bg-(--link-hover-bg)"
 							aria-label="Next Month"
 						>
 							→
 						</button>
 					</div>
-				)}
+				) : null}
 
-				<TagGroup
-					selectedValue={timeView}
-					setValue={(period) => setTimeView(period as TimeView)}
-					values={TIME_VIEWS}
-					className="mt-4"
-				/>
+				<TagGroup selectedValue={timeView} setValue={(period) => setTimeView(period as TimeView)} values={TIME_VIEWS} />
 			</div>
 
 			<div id={id} style={{ width: '100%', height: height }} />

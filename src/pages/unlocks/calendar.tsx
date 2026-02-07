@@ -5,6 +5,7 @@ import { getAllProtocolEmissionsWithHistory } from '~/api/categories/protocols'
 import { Announcement } from '~/components/Announcement'
 import { CalendarView } from '~/components/Unlocks/CalendarView'
 import type { PrecomputedData, UnlocksData } from '~/components/Unlocks/types'
+import { buildUnlocksMultiSeriesChartForDateRange } from '~/components/Unlocks/utils/buildUnlocksMultiSeriesChart'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -49,8 +50,10 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 
 	const precomputedData = {
 		monthlyMaxValues: {} as { [monthKey: string]: number },
-		listEvents: {} as { [startDateKey: string]: Array<{ date: string; event: any }> }
-	}
+		listEvents: {} as { [startDateKey: string]: Array<{ date: string; event: any }> },
+		weekCharts: {} as NonNullable<PrecomputedData['weekCharts']>,
+		monthCharts: {} as NonNullable<PrecomputedData['monthCharts']>
+	} satisfies PrecomputedData
 
 	for (const protocol of data ?? []) {
 		if (!protocol.events || protocol.tPrice == null) {
@@ -165,6 +168,27 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 		const sortedEvents = events.toSorted((a, b) => dayjs(a.date).valueOf() - dayjs(b.date).valueOf())
 		precomputedData.listEvents[startDateKey] = sortedEvents
 	}
+
+	// Precompute chart payloads for the current week/month so the client can render MultiSeriesChart2
+	// without recomputing on first paint (still falls back to client computation for filtered views).
+	const weekStart = dayjs().startOf('week')
+	const weekKey = weekStart.format('YYYY-MM-DD')
+	const weekDates = Array.from({ length: 7 }, (_, i) => weekStart.add(i, 'day').format('YYYY-MM-DD'))
+	precomputedData.weekCharts[weekKey] = buildUnlocksMultiSeriesChartForDateRange({
+		start: weekStart,
+		dates: weekDates,
+		unlocksData
+	})
+
+	const monthStart = dayjs().startOf('month')
+	const daysInMonth = monthStart.endOf('month').date()
+	const monthDates = Array.from({ length: daysInMonth }, (_, i) => monthStart.date(i + 1).format('YYYY-MM-DD'))
+	const monthKey = `${monthStart.year()}-${monthStart.month().toString().padStart(2, '0')}`
+	precomputedData.monthCharts[monthKey] = buildUnlocksMultiSeriesChartForDateRange({
+		start: monthStart,
+		dates: monthDates,
+		unlocksData
+	})
 
 	return {
 		props: {

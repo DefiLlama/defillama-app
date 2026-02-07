@@ -1,10 +1,12 @@
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
-import isBetween from 'dayjs/plugin/isBetween'
 import * as React from 'react'
 import { lazy, Suspense } from 'react'
+import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { useWatchlistManager } from '~/contexts/LocalStorage'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
+import { ChartExportButtons } from '../ButtonStyled/ChartExportButtons'
 import { Icon } from '../Icon'
 import { TagGroup } from '../TagGroup'
 import { CalendarDayCell } from './components/CalendarDayCell'
@@ -15,9 +17,9 @@ import { useUnlockChartData } from './hooks/useUnlockChartData'
 import { CalendarViewProps, DailyUnlocks, DayInfo } from './types'
 import { generateCalendarDays, generateWeekDays } from './utils/calendarUtils'
 
-dayjs.extend(isBetween)
-
-const BarChart = lazy(() => import('~/components/ECharts/BarChart'))
+const MultiSeriesChart2 = lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 const UnlocksTreemapChart = lazy(() => import('~/components/ECharts/UnlocksTreemapChart'))
 
 const VIEW_MODES = ['Month', 'Week', 'TreeMap', 'List'] as const
@@ -40,22 +42,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 			filteredData = {}
 			for (const date in initialUnlocksData) {
 				const dailyData = initialUnlocksData[date]
-				let filteredEvents = dailyData.events
-
-				if (showOnlyWatchlist) {
-					filteredEvents = filteredEvents.filter((event) => savedProtocols.has(event.protocol))
-				}
-
-				if (showOnlyInsider) {
-					filteredEvents = filteredEvents.filter((event) => event.category === 'insiders')
-				}
+				const filteredEvents = dailyData.events.filter(
+					(event) =>
+						(!showOnlyWatchlist || savedProtocols.has(event.protocol)) &&
+						(!showOnlyInsider || event.category === 'insiders')
+				)
 
 				if (filteredEvents.length > 0) {
-					filteredData[date] = {
-						...dailyData,
-						events: filteredEvents,
-						totalValue: filteredEvents.reduce((sum, event) => sum + event.value, 0)
-					}
+					let totalValue = 0
+					for (const event of filteredEvents) totalValue += event.value
+					filteredData[date] = { ...dailyData, events: filteredEvents, totalValue }
 				}
 			}
 		}
@@ -75,25 +71,22 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 	const listEventsData = React.useMemo(() => {
 		if (viewMode !== 'List') return []
 
-		const startDate = currentDate.startOf('day')
-		const startDateKey = startDate.format('YYYY-MM-DD')
+		const startKey = currentDate.startOf('day').format('YYYY-MM-DD')
 
-		if (precomputedData?.listEvents[startDateKey]) {
-			return precomputedData.listEvents[startDateKey].map(({ date, event }) => ({
+		if (precomputedData?.listEvents[startKey]) {
+			return precomputedData.listEvents[startKey].map(({ date, event }) => ({
 				date: dayjs(date),
 				event
 			}))
 		}
 
-		const listDurationDays = 30
-		const endDate = startDate.add(listDurationDays, 'days')
+		const endKey = currentDate.startOf('day').add(30, 'days').format('YYYY-MM-DD')
 		const events: Array<{ date: Dayjs; event: any }> = []
 
-		for (const dateStr in unlocksData || {}) {
-			const dailyData = (unlocksData || {})[dateStr]
-			const date = dayjs(dateStr)
-			if (date.isBetween(startDate.subtract(1, 'day'), endDate)) {
-				for (const event of dailyData.events) {
+		for (const dateStr in unlocksData) {
+			if (dateStr >= startKey && dateStr < endKey) {
+				const date = dayjs(dateStr)
+				for (const event of unlocksData[dateStr].events) {
 					events.push({ date, event })
 				}
 			}
@@ -102,105 +95,90 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 		return events.toSorted((a, b) => a.date.valueOf() - b.date.valueOf())
 	}, [currentDate, viewMode, unlocksData, precomputedData])
 
-	const { weeklyChartData, monthlyChartData } = useUnlockChartData({
+	const { weeklyChart, monthlyChart } = useUnlockChartData({
 		currentDate,
 		viewMode,
 		unlocksData,
-		precomputedData
+		// Only use server-precomputed chart payloads for the unfiltered view.
+		// Filtered modes (watchlist/insiders) must be computed client-side.
+		precomputedData: showOnlyWatchlist || showOnlyInsider ? undefined : precomputedData
 	})
 
 	const maxMonthlyValue = React.useMemo(() => {
 		if (viewMode !== 'Month') return 0
 
-		const monthKey = `${currentDate.year()}-${currentDate.month().toString().padStart(2, '0')}`
-
-		if (precomputedData?.monthlyMaxValues[monthKey] !== undefined) {
-			return precomputedData.monthlyMaxValues[monthKey]
+		// precomputedData uses 0-indexed month keys (e.g. "2026-01" for February)
+		const cacheKey = `${currentDate.year()}-${currentDate.month().toString().padStart(2, '0')}`
+		if (precomputedData?.monthlyMaxValues[cacheKey] !== undefined) {
+			return precomputedData.monthlyMaxValues[cacheKey]
 		}
 
-		const startOfMonth = currentDate.startOf('month')
-		const endOfMonth = currentDate.endOf('month')
+		// unlocksData keys are YYYY-MM-DD (1-indexed month from dayjs .format())
+		const datePrefix = `${currentDate.year()}-${(currentDate.month() + 1).toString().padStart(2, '0')}`
 		let max = 0
-		for (const dateStr in unlocksData || {}) {
-			const dailyData = (unlocksData || {})[dateStr]
-			const date = dayjs(dateStr)
-			if (
-				date.isSame(startOfMonth, 'day') ||
-				date.isSame(endOfMonth, 'day') ||
-				date.isBetween(startOfMonth, endOfMonth)
-			) {
-				if (dailyData.totalValue > max) {
-					max = dailyData.totalValue
-				}
+		for (const dateStr in unlocksData) {
+			if (dateStr.startsWith(datePrefix)) {
+				const val = unlocksData[dateStr].totalValue
+				if (val > max) max = val
 			}
 		}
 		return max
 	}, [currentDate, viewMode, unlocksData, precomputedData])
 
-	const next = () => {
+	const navigate = (direction: 1 | -1) => {
 		const duration = viewMode === 'List' ? 30 : 1
 		const unit = (viewMode === 'List' ? 'day' : viewMode === 'TreeMap' ? 'year' : viewMode.toLowerCase()) as
 			| 'day'
 			| 'week'
 			| 'month'
 			| 'year'
-		setCurrentDate((prev) => prev.add(duration, unit))
+		setCurrentDate((prev) => prev.add(duration * direction, unit))
 	}
 
-	const prev = () => {
-		const duration = viewMode === 'List' ? 30 : 1
-		const unit = (viewMode === 'List' ? 'day' : viewMode === 'TreeMap' ? 'year' : viewMode.toLowerCase()) as
-			| 'day'
-			| 'week'
-			| 'month'
-			| 'year'
-		setCurrentDate((prev) => prev.subtract(duration, unit))
-	}
-
-	const goToToday = () => {
-		setCurrentDate(dayjs())
-	}
+	const { chartInstance: exportChartInstance, handleChartReady: onChartReady } = useGetChartInstance()
 
 	return (
-		<div className="flex flex-col gap-6">
+		<div className="flex flex-col gap-3">
 			<div className="flex flex-wrap items-center justify-between gap-2">
-				<h2 className="text-lg font-semibold">
-					{viewMode === 'Month'
-						? currentDate.format('MMMM YYYY')
-						: viewMode === 'Week'
-							? `${currentDate.startOf('week').format('MMM D')} - ${currentDate.endOf('week').format('MMM D, YYYY')}`
-							: viewMode === 'TreeMap'
-								? 'TreeMap Chart'
-								: `Unlocks starting ${currentDate.format('MMM D, YYYY')} (Next 30 Days)`}
-				</h2>
+				<div className="flex items-center gap-2">
+					<div className="flex items-center rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+						<button
+							onClick={() => navigate(-1)}
+							className="shrink-0 px-2 py-1.5 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+							aria-label="Previous"
+						>
+							←
+						</button>
+						<span className="min-w-28 px-1 text-center text-sm font-semibold">
+							{viewMode === 'Month'
+								? currentDate.format('MMM YYYY')
+								: viewMode === 'Week'
+									? `${currentDate.startOf('week').format('MMM D')} – ${currentDate.endOf('week').format('D')}`
+									: viewMode === 'TreeMap'
+										? currentDate.format('YYYY')
+										: `${currentDate.format('MMM D')} – ${currentDate.add(30, 'day').format('MMM D')}`}
+						</span>
+						<button
+							onClick={() => navigate(1)}
+							className="shrink-0 px-2 py-1.5 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+							aria-label="Next"
+						>
+							→
+						</button>
+					</div>
+					<button
+						onClick={() => setCurrentDate(dayjs())}
+						className="shrink-0 rounded-md border border-(--form-control-border) px-2.5 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+					>
+						Reset
+					</button>
+				</div>
 				<TagGroup
 					selectedValue={viewMode}
 					setValue={(value: (typeof VIEW_MODES)[number]) => setViewMode(value)}
 					values={VIEW_MODES as unknown as string[]}
 					className="ml-auto"
 				/>
-				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-					<button
-						onClick={prev}
-						className="shrink-0 px-3 py-1.5 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
-						aria-label={`Previous ${viewMode === 'List' ? '30 days' : viewMode}`}
-					>
-						←
-					</button>
-					<button
-						onClick={goToToday}
-						className="shrink-0 px-3 py-1.5 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
-					>
-						Today
-					</button>
-					<button
-						onClick={next}
-						className="shrink-0 px-3 py-1.5 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
-						aria-label={`Next ${viewMode === 'List' ? '30 days' : viewMode}`}
-					>
-						→
-					</button>
-				</div>
 				<button
 					onClick={() => setShowOnlyWatchlist((prev) => !prev)}
 					className="flex items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white px-3 py-1.5 text-xs text-black dark:bg-black dark:text-white"
@@ -220,20 +198,28 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 					<Icon name="key" height={16} width={16} style={{ fill: showOnlyInsider ? 'var(--text-primary)' : 'none' }} />
 					{showOnlyInsider ? 'Show All' : 'Show Insiders Only'}
 				</button>
+				{viewMode === 'Week' || viewMode === 'Month' ? (
+					<ChartExportButtons
+						chartInstance={exportChartInstance}
+						filename={`unlocks-${viewMode.toLowerCase()}-view`}
+						title={`Unlocks ${viewMode} View`}
+					/>
+				) : null}
 			</div>
 
-			{viewMode === 'Week' && weeklyChartData && (
-				<Suspense fallback={<div className="min-h-[398px]" />}>
-					<BarChart
-						chartData={weeklyChartData.chartData}
-						stacks={weeklyChartData.stacks}
-						stackColors={weeklyChartData.stackColors}
-						valueSymbol="$"
-						height="360px"
+			{viewMode === 'Week' && weeklyChart ? (
+				<Suspense fallback={<div className="h-[360px]" />}>
+					<MultiSeriesChart2
+						dataset={weeklyChart.dataset}
+						charts={weeklyChart.charts}
+						hideDefaultLegend={weeklyChart.charts.length < 2}
 						chartOptions={chartOptions}
+						tooltipMaxItems={30}
+						exportButtons="hidden"
+						onReady={onChartReady}
 					/>
 				</Suspense>
-			)}
+			) : null}
 
 			{viewMode === 'TreeMap' ? (
 				<Suspense fallback={<div className="min-h-[600px]" />}>
@@ -241,24 +227,25 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 				</Suspense>
 			) : viewMode === 'Month' ? (
 				<>
-					{monthlyChartData && (
-						<Suspense fallback={<div className="min-h-[398px]" />}>
-							<BarChart
-								chartData={monthlyChartData.chartData}
-								stacks={monthlyChartData.stacks}
-								stackColors={monthlyChartData.stackColors}
-								valueSymbol="$"
-								height="360px"
+					{monthlyChart ? (
+						<Suspense fallback={<div className="h-[360px]" />}>
+							<MultiSeriesChart2
+								dataset={monthlyChart.dataset}
+								charts={monthlyChart.charts}
+								hideDefaultLegend={monthlyChart.charts.length < 2}
 								chartOptions={chartOptions}
+								tooltipMaxItems={30}
+								exportButtons="hidden"
+								onReady={onChartReady}
 							/>
 						</Suspense>
-					)}
-					<div className="grid grid-cols-7 py-2 text-center text-sm font-medium text-(--text-secondary)">
+					) : null}
+					<div className="grid grid-cols-7 py-1 text-center text-xs font-medium text-(--text-secondary)">
 						{DAYS_OF_WEEK.map((day) => (
 							<div key={day}>{day}</div>
 						))}
 					</div>
-					<div className="grid grid-cols-7 grid-rows-6 gap-px border border-(--divider) bg-(--divider)">
+					<div className="grid grid-cols-7 grid-rows-6 gap-px border border-(--cards-border) bg-(--cards-border)">
 						{calendarDays.map((day, i) => (
 							<React.Fragment key={day.date?.format('YYYY-MM-DD') ?? i}>
 								<CalendarDayCell dayInfo={day} unlocksData={unlocksData} maxUnlockValue={maxMonthlyValue} />
@@ -268,7 +255,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 				</>
 			) : viewMode === 'Week' ? (
 				<>
-					<div className="grid grid-cols-1 gap-px border border-(--divider) bg-(--divider) md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+					<div className="grid grid-cols-1 gap-px border border-(--cards-border) bg-(--cards-border) md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
 						{calendarDays.map((day) => (
 							<React.Fragment key={day.date!.format('YYYY-MM-DD')}>
 								<WeekDayColumn dayInfo={day as { date: Dayjs; isCurrentMonth: boolean }} unlocksData={unlocksData} />
@@ -289,19 +276,41 @@ const chartOptions = {
 		formatter: (params: any) => {
 			if (!params || params.length === 0) return ''
 
-			const dateStr = dayjs(params[0].value[0]).format('MMM D, YYYY')
+			const first = params[0]
+			const ts =
+				first?.data && typeof first.data === 'object' && !Array.isArray(first.data) && 'timestamp' in first.data
+					? Number(first.data.timestamp)
+					: Array.isArray(first?.value)
+						? Number(first.value[0])
+						: typeof first?.axisValue === 'number'
+							? first.axisValue
+							: Number.NaN
+
+			const dateStr = Number.isFinite(ts) ? dayjs(ts).format('MMM D, YYYY') : ''
 			let tooltipContent = `<div class="font-semibold mb-1">${dateStr}</div>`
 			let totalValue = 0
 
+			const getValue = (param: any) => {
+				const dataObj =
+					param?.data && typeof param.data === 'object' && !Array.isArray(param.data)
+						? (param.data as Record<string, any>)
+						: null
+				const name = param?.seriesName
+				const raw =
+					dataObj && name && name in dataObj ? dataObj[name] : Array.isArray(param?.value) ? param.value[1] : null
+				const v = typeof raw === 'number' ? raw : Number(raw)
+				return Number.isFinite(v) ? v : 0
+			}
+
 			const validParams = params
-				.filter((param) => param.value && param.value[1] > 0)
-				.toSorted((a, b) => b.value[1] - a.value[1])
+				.map((param) => [param, getValue(param)] as const)
+				.filter(([, v]) => v > 0)
+				.toSorted((a, b) => b[1] - a[1])
 
 			if (validParams.length === 0) {
 				tooltipContent += 'No unlocks'
 			} else {
-				for (const param of validParams) {
-					const value = param.value[1]
+				for (const [param, value] of validParams) {
 					totalValue += value
 					tooltipContent += `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
 					<span>${param.marker} ${param.seriesName}</span>

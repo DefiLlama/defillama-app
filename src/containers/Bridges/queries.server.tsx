@@ -1,4 +1,5 @@
 import { preparePieChartData } from '~/components/ECharts/formatters'
+import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import {
 	BRIDGEDAYSTATS_API,
 	BRIDGELARGETX_API,
@@ -7,6 +8,7 @@ import {
 	CONFIG_API,
 	NETFLOWS_API
 } from '~/constants'
+import { CHART_COLORS } from '~/constants/colors'
 import { chainIconUrl, getNDistinctColors, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { formatBridgesData, formatChainsData } from './utils'
@@ -257,14 +259,56 @@ export async function getBridgeChainsPageData() {
 		netflowsDataWeek
 	})
 
+	const chartRows = Object.entries(chartData).map(([date, data]: [string, Record<string, number>]) => ({
+		date,
+		...data
+	}))
+
+	const chart = buildBridgeChainsMultiSeriesChart({ chartRows, chains: chainList })
+
 	return {
 		allChains: chainList,
 		tableData: filteredChains,
-		chartData: Object.entries(chartData).map(([date, data]: [string, Record<string, number>]) => ({
-			date,
-			...data
-		})),
-		chartStacks: Object.fromEntries(chainList.map((chain) => [chain, chain]))
+		chart
+	}
+}
+
+function buildBridgeChainsMultiSeriesChart({
+	chartRows,
+	chains
+}: {
+	chartRows: Array<{ date: string | number; [key: string]: number }>
+	chains: string[]
+}): {
+	dataset: MultiSeriesChart2Dataset
+	charts: NonNullable<IMultiSeriesChart2Props['charts']>
+} {
+	const source = (chartRows ?? [])
+		.map((row) => {
+			const { date, ...rest } = row
+			return {
+				timestamp: Number(date) * 1e3,
+				...rest
+			}
+		})
+		.filter((row) => Number.isFinite(Number(row.timestamp)))
+		.toSorted((a, b) => Number(a.timestamp) - Number(b.timestamp))
+
+	const dimensions = ['timestamp', ...(chains ?? [])]
+
+	const charts = (chains ?? []).map((name, i) => ({
+		type: 'bar' as const,
+		name,
+		encode: { x: 'timestamp', y: name },
+		// Use per-series stacks so selected chains render as clustered bars (not stacked).
+		stack: name,
+		color: CHART_COLORS[i % CHART_COLORS.length],
+		large: true
+	}))
+
+	return {
+		dataset: { source, dimensions } satisfies MultiSeriesChart2Dataset,
+		charts
 	}
 }
 
