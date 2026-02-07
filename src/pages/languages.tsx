@@ -72,7 +72,16 @@ export const getStaticProps = withPerformanceLogging('languages', async () => {
 
 	const tvlCharts = buildCharts(langsUnique, colors, 'A')
 	const dominanceCharts = buildCharts(langsUnique, colors, 'A')
-	const osCharts = buildCharts(osUnique, sourceTypeColor, 'A')
+	const osColors: Record<string, string> = { ...sourceTypeColor }
+	const missingOsKeys = osUnique.filter((k) => !osColors[k])
+	if (missingOsKeys.length > 0) {
+		const fallback = getNDistinctColors(missingOsKeys.length)
+		for (let i = 0; i < missingOsKeys.length; i++) {
+			osColors[missingOsKeys[i]] = fallback[i]
+		}
+		console.log(`[languages] Missing sourceTypeColor for keys: ${missingOsKeys.join(', ')}`)
+	}
+	const osCharts = buildCharts(osUnique, osColors, 'A')
 
 	return {
 		props: {
@@ -103,7 +112,7 @@ export default function Protocols({ tvlDataset, tvlCharts, dominanceDataset, dom
 			</h1>
 
 			<div className="relative rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<React.Suspense fallback={<></>}>
+				<React.Suspense fallback={<div className="h-[398px]" />}>
 					<MultiSeriesChart2
 						dataset={tvlDataset}
 						charts={tvlCharts}

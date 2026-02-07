@@ -48,7 +48,6 @@ export const useUnlockChartData = ({
 		if (cached) return cached
 
 		return buildUnlocksMultiSeriesChartForDateRange({
-			start: weekRange.start,
 			dates: weekRange.dates,
 			unlocksData
 		})
@@ -62,7 +61,6 @@ export const useUnlockChartData = ({
 		if (cached) return cached
 
 		return buildUnlocksMultiSeriesChartForDateRange({
-			start: monthRange.start,
 			dates: monthRange.dates,
 			unlocksData
 		})

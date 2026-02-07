@@ -48,9 +48,15 @@ export function NFTCollectionContainer() {
 		)
 	}
 	const { name, data, stats, sales, salesExOutliers, salesMedian1d, address, floorHistory, orderbook } = collectionData
-	const floorPrice = floorHistory?.source?.length
-		? floorHistory.source[floorHistory.source.length - 1]?.['Floor Price']
-		: null
+	const lastFloorRow =
+		floorHistory?.source && Array.isArray(floorHistory.source) && floorHistory.source.length > 0
+			? floorHistory.source[floorHistory.source.length - 1]
+			: null
+	const floorPriceRaw =
+		lastFloorRow && Object.prototype.hasOwnProperty.call(lastFloorRow, 'Floor Price')
+			? Number(lastFloorRow['Floor Price'])
+			: null
+	const floorPrice = typeof floorPriceRaw === 'number' && Number.isFinite(floorPriceRaw) ? floorPriceRaw : null
 	const volume24h = stats ? stats[stats.length - 1]?.[1] : null
 
 	const includeOutliers = router.isReady && router.query.includeOutliers === 'true'
@@ -72,7 +78,7 @@ export function NFTCollectionContainer() {
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-(--text-label)">Floor Price</span>
 						<span className="font-jetbrains text-2xl font-semibold">
-							{floorPrice ? floorPrice.toFixed(2) + ' ETH' : ''}
+							{floorPrice != null ? floorPrice.toFixed(2) + ' ETH' : ''}
 						</span>
 					</p>
 

@@ -1,4 +1,4 @@
-import type { Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { COLOR_PALETTE } from '../constants'
 
@@ -17,11 +17,9 @@ export type UnlocksMultiSeriesChartResult = {
 }
 
 export function buildUnlocksMultiSeriesChartForDateRange({
-	start,
 	dates,
 	unlocksData
 }: {
-	start: Dayjs
 	dates: string[]
 	unlocksData: UnlocksLikeData
 }): UnlocksMultiSeriesChartResult {
@@ -47,9 +45,9 @@ export function buildUnlocksMultiSeriesChartForDateRange({
 	const hasProtocolSeries = sortedProtocols.length > 0
 	const seriesNames: string[] = hasProtocolSeries ? sortedProtocols : ['Unlocks']
 
-	const source = dates.map((dateStr, i) => {
-		const day = start.add(i, 'day')
-		const row: Record<string, number> = { timestamp: day.unix() * 1e3 }
+	const source = dates.map((dateStr) => {
+		const parsedDate = dayjs(dateStr)
+		const row: Record<string, number> = { timestamp: parsedDate.unix() * 1e3 }
 
 		for (let j = 0; j < seriesNames.length; j++) row[seriesNames[j]] = 0
 

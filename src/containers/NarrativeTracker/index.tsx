@@ -232,6 +232,10 @@ export const CategoryPerformanceContainer = ({
 	}, [areaChartLegend])
 
 	const treemapTreeData = React.useMemo(() => {
+		const safeReturn = (v: number | null | undefined) => {
+			return typeof v === 'number' && Number.isFinite(v) ? parseFloat(v.toFixed(2)) : 0
+		}
+
 		const treeData = []
 		const cData = treemapChart
 
@@ -245,7 +249,7 @@ export const CategoryPerformanceContainer = ({
 				name: cat,
 				path: cat,
 				children: catData.map((p) => ({
-					value: [p.mcap, parseFloat(p.returnField?.toFixed(2)), parseFloat(p.returnField?.toFixed(2))],
+					value: [p.mcap, safeReturn(p.returnField), safeReturn(p.returnField)],
 					name: p.name,
 					path: `${p.categoryName}/${p.name}`
 				}))

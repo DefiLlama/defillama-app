@@ -259,10 +259,10 @@ export async function getBridgeChainsPageData() {
 		netflowsDataWeek
 	})
 
-	const chartRows = Object.entries(chartData).map(([date, data]: [string, Record<string, number>]) => ({
-		date,
-		...data
-	}))
+	const chartRows: Array<{ date: number; [key: string]: number }> = []
+	for (const date in chartData) {
+		chartRows.push({ date: Number(date), ...chartData[date] })
+	}
 
 	const chart = buildBridgeChainsMultiSeriesChart({ chartRows, chains: chainList })
 
@@ -277,7 +277,7 @@ function buildBridgeChainsMultiSeriesChart({
 	chartRows,
 	chains
 }: {
-	chartRows: Array<{ date: string | number; [key: string]: number }>
+	chartRows: Array<{ date: number; [key: string]: number }>
 	chains: string[]
 }): {
 	dataset: MultiSeriesChart2Dataset
@@ -287,7 +287,7 @@ function buildBridgeChainsMultiSeriesChart({
 		.map((row) => {
 			const { date, ...rest } = row
 			return {
-				timestamp: Number(date) * 1e3,
+				timestamp: date * 1e3,
 				...rest
 			}
 		})

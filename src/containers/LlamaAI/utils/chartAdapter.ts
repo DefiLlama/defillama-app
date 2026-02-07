@@ -139,7 +139,7 @@ const convertToUnixTimestamp = (timestamp: any): number => {
 		return Math.floor(timestamp.getTime() / 1000)
 	}
 
-	console.warn('Could not parse timestamp:', timestamp)
+	console.log('Could not parse timestamp:', timestamp)
 	return Math.floor(Date.now() / 1000)
 }
 

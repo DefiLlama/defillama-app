@@ -175,7 +175,6 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 	const weekKey = weekStart.format('YYYY-MM-DD')
 	const weekDates = Array.from({ length: 7 }, (_, i) => weekStart.add(i, 'day').format('YYYY-MM-DD'))
 	precomputedData.weekCharts[weekKey] = buildUnlocksMultiSeriesChartForDateRange({
-		start: weekStart,
 		dates: weekDates,
 		unlocksData
 	})
@@ -185,7 +184,6 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 	const monthDates = Array.from({ length: daysInMonth }, (_, i) => monthStart.date(i + 1).format('YYYY-MM-DD'))
 	const monthKey = `${monthStart.year()}-${monthStart.month().toString().padStart(2, '0')}`
 	precomputedData.monthCharts[monthKey] = buildUnlocksMultiSeriesChartForDateRange({
-		start: monthStart,
 		dates: monthDates,
 		unlocksData
 	})

@@ -128,9 +128,14 @@ export const PlotsPage = ({
 	const nonOutlierPoolsData = React.useMemo(() => poolsData.filter((p) => !p.outlier), [poolsData])
 
 	const treemapTreeData = React.useMemo(() => {
+		const toFixed2Safe = (v: unknown) => {
+			const n = typeof v === 'number' ? v : Number(v)
+			return Number.isFinite(n) ? parseFloat(n.toFixed(2)) : 0
+		}
+
 		const treeData = []
 
-		const cData = poolsData.filter((p) => p.apyPct1D !== null)
+		const cData = poolsData.filter((p) => p.apyPct1D != null)
 
 		// structure into hierarchy
 		for (let project of [...new Set(cData.map((p) => p.projectName))]) {
@@ -142,7 +147,7 @@ export const PlotsPage = ({
 				name: project,
 				path: project,
 				children: projectData.map((p) => ({
-					value: [p.tvlUsd, parseFloat(p.apy.toFixed(2)), parseFloat(p.apyPct1D.toFixed(2))],
+					value: [p.tvlUsd, toFixed2Safe(p.apy), toFixed2Safe(p.apyPct1D)],
 					name: p.symbol,
 					path: `${p.projectName}/${p.symbol}`
 				}))
