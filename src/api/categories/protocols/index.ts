@@ -1,5 +1,4 @@
 import { PROTOCOLS_API } from '~/constants'
-import { getNDistinctColors, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 

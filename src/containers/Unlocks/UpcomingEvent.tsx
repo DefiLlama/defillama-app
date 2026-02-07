@@ -97,8 +97,8 @@ export const UpcomingEvent = ({
 		const breakdown = event
 			.map(({ description, noOfTokens, timestamp, unlockType, rateDurationDays }) => {
 				const regex =
-					/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1]\} tokens per week from (.+?) on {timestamp})/
-				const matches = description.match(regex)
+					/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})/
+				const matches = (description || '').match(regex)
 				const name = matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
 
 				let perDayAmount, totalAmount, displayUnit
@@ -273,7 +273,7 @@ export const UpcomingEvent = ({
 								</div>
 							</div>
 
-							<div className="flex items-center gap-2">
+							<div className="flex items-center gap-2" suppressHydrationWarning>
 								<CountdownTile value={String(days).padStart(2, '0')} label="Days" />
 								<CountdownTile value={String(hours).padStart(2, '0')} label="Hrs" />
 								<CountdownTile value={String(minutes).padStart(2, '0')} label="Min" />
@@ -281,7 +281,7 @@ export const UpcomingEvent = ({
 							</div>
 						</div>
 					) : (
-						<span className="text-sm text-(--text-meta)">
+						<span className="text-sm text-(--text-meta)" suppressHydrationWarning>
 							{Math.abs(days)} {Math.abs(days) === 1 ? 'day' : 'days'} ago
 						</span>
 					)}

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
@@ -132,25 +131,9 @@ export const PeggedAssetInfo = ({
 		return preparePieChartData({ data: chainTotals, sliceIdentifier: 'name', sliceValue: 'circulating', limit: 10 })
 	}, [chainTotals])
 
-	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
+	const { dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
 	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
-
-	const prepareCsv = () => {
-		const rows = [['Timestamp', 'Date', ...chainsUnique, 'Total']]
-		const sortedData = stackedData.sort((a, b) => a.date - b.date)
-		for (const day of sortedData) {
-			rows.push([
-				day.date,
-				toNiceCsvDate(day.date),
-				...chainsUnique.map((chain) => day[chain] ?? ''),
-				chainsUnique.reduce((acc, curr) => {
-					return (acc += day[curr] ?? 0)
-				}, 0)
-			])
-		}
-		return { filename: 'stablecoinsChains.csv', rows: rows as (string | number | boolean)[][] }
-	}
 
 	const getImageExportTitle = () => {
 		const chartTypeMap = {
@@ -352,7 +335,7 @@ export const PeggedAssetInfo = ({
 								<p className="flex items-center gap-1">
 									<span>Category:</span>
 									<span>{pegMechanism}</span>
-									<QuestionHelper text={risksHelperTexts[pegMechanism]} />
+									<QuestionHelper text={risksHelperTexts[pegMechanism] || 'No additional info available'} />
 								</p>
 							) : null}
 							{mintRedeemDescription ? (
@@ -412,7 +395,7 @@ export const PeggedAssetInfo = ({
 										<Icon name="arrow-up-right" height={14} width={14} />
 									</a>
 								) : null}
-								{onCoinGecko === 'true' ? (
+								{onCoinGecko === 'true' && gecko_id ? (
 									<a
 										href={`https://www.coingecko.com/en/coins/${gecko_id}`}
 										target="_blank"

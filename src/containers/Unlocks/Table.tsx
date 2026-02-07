@@ -522,7 +522,7 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		cell: ({ row }) => {
 			const historicalPrice = row.original.historicalPrice
 			if (!historicalPrice?.length) {
-				return <div className="flex h-full items-center justify-end">-</div>
+				return <div className="flex h-full items-center justify-end"></div>
 			}
 			return (
 				<div className="flex h-full items-center justify-end">
@@ -579,7 +579,7 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		id: 'nextEvent',
 		accessorFn: (row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : undefined),
 		cell: ({ getValue, row }) => {
-			if (!row.original.unlocksPerDay) return <div className="flex h-full items-center justify-end">-</div>
+			if (!row.original.unlocksPerDay) return <div className="flex h-full items-center justify-end"></div>
 
 			return (
 				<div className="flex h-full items-center justify-end">

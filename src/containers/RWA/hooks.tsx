@@ -615,7 +615,7 @@ export function useRwaAssetNamePieChartData({
 }) {
 	return useMemo(() => {
 		const MAX_LABELS = 24
-		const UNKNOWN = 'Unknown'
+
 		const OTHERS = 'Others'
 
 		if (!enabled) {
