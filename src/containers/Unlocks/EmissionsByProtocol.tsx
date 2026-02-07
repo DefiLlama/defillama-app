@@ -1,20 +1,80 @@
 import Link from 'next/link'
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, memo, Suspense, useEffect, useMemo, useState } from 'react'
 import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/categories/protocols/client'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { LocalLoader } from '~/components/Loaders'
+import { LoadingDots, LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
-import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import Pagination from './Pagination'
-import { IEmission } from './types'
+import { UpcomingEvent } from './UpcomingEvent'
+
+export interface TokenData {
+	circSupply: number
+	events: Event[]
+	gecko_id: string
+	maxSupply: number
+	mcap: number
+	name: string
+	protocolId: string
+	sources: string[]
+	token: string
+	totalLocked: number
+	unlocksPerDay: number
+}
+
+export type EmissionsDataset = { source: Array<Record<string, number | null>>; dimensions: string[] }
+export type EmissionsChartConfig = Array<{
+	type: 'line'
+	name: string
+	encode: { x: 'timestamp'; y: string }
+	color: string | undefined
+	stack: string
+}>
+
+export interface IEmission {
+	categories: { documented: Array<string>; realtime: Array<string> }
+	categoriesBreakdown: Record<string, string[]>
+	chartData: {
+		documented: Array<{ timestamp: number; [label: string]: number }>
+		realtime: Array<{ timestamp: number; [label: string]: number }>
+	}
+	/** Pre-built MultiSeriesChart2 datasets keyed by data type. */
+	datasets: { documented: EmissionsDataset; realtime: EmissionsDataset }
+	/** Pre-built MultiSeriesChart2 chart configs keyed by data type. */
+	chartsConfigs: { documented: EmissionsChartConfig; realtime: EmissionsChartConfig }
+	sources: Array<string>
+	notes: Array<string>
+	events: Array<{ description: string; timestamp: string; noOfTokens: number[] }>
+	hallmarks: { documented: Array<[number, string]>; realtime: Array<[number, string]> }
+	tokenPrice: { price?: number | null; symbol?: string | null }
+	tokenAllocation: {
+		documented: { current: { [category: string]: number }; final: { [category: string]: number } }
+		realtime: { current: { [category: string]: number }; final: { [category: string]: number } }
+	}
+	futures: { openInterest: number; fundingRate: number }
+	pieChartData: {
+		documented: Array<{
+			name: string
+			value: number
+		}>
+		realtime: Array<{
+			name: string
+			value: number
+		}>
+	}
+	stackColors: { documented: { [stack: string]: string }; realtime: { [stack: string]: string } }
+	token?: string
+	geckoId?: string
+	name: string
+	meta: TokenData
+}
 
 const getExtendedColors = (baseColors: Record<string, string>, isPriceEnabled: boolean) => {
 	const extended = { ...baseColors }
@@ -31,11 +91,65 @@ const MultiSeriesChart2 = lazy(
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) {
+const AllocationPieChart = memo(function AllocationPieChart(props: IPieChartProps) {
+	return (
+		<Suspense fallback={<div className="min-h-[408px]" />}>
+			<PieChart {...props} />
+		</Suspense>
+	)
+})
+
+type ScheduleChartProps = Pick<
+	IMultiSeriesChart2Props,
+	| 'dataset'
+	| 'charts'
+	| 'hallmarks'
+	| 'expandTo100Percent'
+	| 'solidChartAreaStyle'
+	| 'valueSymbol'
+	| 'onReady'
+	| 'hideDefaultLegend'
+>
+
+const ScheduleChart = memo(function ScheduleChart(props: ScheduleChartProps) {
+	return (
+		<Suspense fallback={<div className="min-h-[360px]" />}>
+			<MultiSeriesChart2 {...props} />
+		</Suspense>
+	)
+})
+
+type InitialTokenMarketData = {
+	price?: number | null
+	prevPrice?: number | null
+	priceChangePercent?: number | null
+	mcap?: number | null
+	volume24h?: number | null
+	circSupply?: number | null
+	maxSupply?: number | null
+	maxSupplyInfinite?: boolean | null
+}
+
+export function EmissionsByProtocol({
+	data,
+	isEmissionsPage,
+	initialTokenMarketData,
+	disableClientTokenStatsFetch
+}: {
+	data: IEmission
+	isEmissionsPage?: boolean
+	initialTokenMarketData?: InitialTokenMarketData | null
+	disableClientTokenStatsFetch?: boolean
+}) {
 	return (
 		<div className="col-span-full flex flex-col gap-2 xl:col-span-1">
 			{!isEmissionsPage && <h3>Emissions</h3>}
-			<ChartContainer data={data} isEmissionsPage={isEmissionsPage} />
+			<ChartContainer
+				data={data}
+				isEmissionsPage={isEmissionsPage}
+				initialTokenMarketData={initialTokenMarketData}
+				disableClientTokenStatsFetch={disableClientTokenStatsFetch}
+			/>
 		</div>
 	)
 }
@@ -216,11 +330,18 @@ function sortStacksByVolatility(
 }
 
 const unlockedPieChartRadius = ['50%', '70%'] as [string, string]
+const allocationPieChartRadius = ['0%', '82%'] as [string, string]
+const allocationPieChartLegendToRight = 260
 
 const unlockedPieChartStackColors = {
 	Unlocked: '#0c5dff',
 	Locked: '#ff4e21'
 }
+
+const sortPieChartDataDesc = <T extends { name: string; value: number }>(items: T[]) =>
+	items.toSorted(
+		(a, b) => (Number(b.value) || 0) - (Number(a.value) || 0) || String(a.name).localeCompare(String(b.name))
+	)
 
 const EMPTY_STRING_LIST: string[] = []
 const EMPTY_STACK_COLORS: Record<string, string> = {}
@@ -266,10 +387,20 @@ const sumValuesExcludingKey = (data: Record<string, unknown>, keyToSkip: string)
 	return total
 }
 
-const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
+const ChartContainer = ({
+	data,
+	isEmissionsPage,
+	initialTokenMarketData,
+	disableClientTokenStatsFetch
+}: {
+	data: IEmission
+	isEmissionsPage?: boolean
+	initialTokenMarketData?: InitialTokenMarketData | null
+	disableClientTokenStatsFetch?: boolean
+}) => {
 	const width = useBreakpointWidth()
 	const [dataType, setDataType] = useState<DataType>('documented')
-	const [isPriceEnabled, setIsPriceEnabled] = useState(false)
+	const [isPriceAndMcapRequested, setIsPriceAndMcapRequested] = useState(false)
 	const [allocationMode, setAllocationMode] = useState<'current' | 'standard'>('current')
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 	const [chartType, setChartType] = useState<'bar' | 'line'>('line')
@@ -300,20 +431,46 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			})
 		}
 	}, [categoriesFromData])
-	const { data: geckoId } = useGeckoId(data.token ?? null)
+	const { data: geckoId } = useGeckoId(data.geckoId ? null : (data.token ?? null))
 
-	const priceChart = usePriceChart(data.geckoId ?? geckoId)
-	const tokenMaxSupply = priceChart.data?.data.coinData.market_data?.max_supply_infinite
+	const shouldPrefetchTokenStats = !(disableClientTokenStatsFetch ?? false)
+	const resolvedGeckoId = data.geckoId ?? geckoId
+	const shouldFetchPriceChart = shouldPrefetchTokenStats || isPriceAndMcapRequested
+	const priceChart = usePriceChart(shouldFetchPriceChart ? resolvedGeckoId : undefined)
+
+	const isPriceChartReady =
+		Boolean(priceChart.data?.data?.prices?.length) && Boolean(priceChart.data?.data?.mcaps?.length)
+	const isPriceAndMcapActive = isPriceAndMcapRequested && isPriceChartReady
+	const isPriceAndMcapLoading =
+		isPriceAndMcapRequested && !isPriceAndMcapActive && (priceChart.isLoading || priceChart.isFetching)
+
+	const tokenMaxSupplyFromChart = priceChart.data?.data.coinData.market_data?.max_supply_infinite
 		? Infinity
 		: (priceChart.data?.data.coinData.market_data?.max_supply ?? undefined)
-	const tokenCircSupply = priceChart.data?.data.coinData.market_data?.circulating_supply ?? undefined
-	const tokenPrice = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 1]?.[1]
-	const tokenMcap = priceChart.data?.data.mcaps?.[priceChart.data?.data.mcaps?.length - 1]?.[1]
-	const tokenVolume = priceChart.data?.data.volumes?.[priceChart.data?.data.volumes?.length - 1]?.[1]
+	const tokenCircSupplyFromChart = priceChart.data?.data.coinData.market_data?.circulating_supply ?? undefined
+	const tokenPriceFromChart = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 1]?.[1]
+	const tokenMcapFromChart = priceChart.data?.data.mcaps?.[priceChart.data?.data.mcaps?.length - 1]?.[1]
+	const tokenVolumeFromChart = priceChart.data?.data.volumes?.[priceChart.data?.data.volumes?.length - 1]?.[1]
 	const ystdPrice = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 2]?.[1]
-	const percentChange = tokenPrice && ystdPrice ? +(((tokenPrice - ystdPrice) / ystdPrice) * 100).toFixed(2) : null
+
+	const tokenPrice = tokenPriceFromChart ?? initialTokenMarketData?.price ?? data?.tokenPrice?.price ?? undefined
+	const tokenMcap = tokenMcapFromChart ?? initialTokenMarketData?.mcap ?? data?.meta?.mcap ?? undefined
+	const tokenVolume = tokenVolumeFromChart ?? initialTokenMarketData?.volume24h ?? undefined
+	const tokenCircSupply =
+		tokenCircSupplyFromChart ?? initialTokenMarketData?.circSupply ?? data?.meta?.circSupply ?? undefined
+	const tokenMaxSupply =
+		initialTokenMarketData?.maxSupplyInfinite === true
+			? Infinity
+			: (tokenMaxSupplyFromChart ?? initialTokenMarketData?.maxSupply ?? data?.meta?.maxSupply ?? undefined)
+
+	const percentChangeFromChart =
+		tokenPrice != null && ystdPrice != null ? +(((tokenPrice - ystdPrice) / ystdPrice) * 100).toFixed(2) : null
+	const percentChange = percentChangeFromChart ?? initialTokenMarketData?.priceChangePercent ?? null
+
+	const priceChartForOverlay = isPriceAndMcapActive ? priceChart.data?.data : null
 	const normilizePriceChart = useMemo(() => {
-		const sourceData = priceChart.data?.data || {}
+		if (!priceChartForOverlay) return null
+		const sourceData = priceChartForOverlay || {}
 		const result: Record<string, Record<number, number>> = {}
 		for (const name in sourceData) {
 			const chart = sourceData[name] as Array<[number, number]>
@@ -326,7 +483,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			}
 		}
 		return result
-	}, [priceChart.data?.data])
+	}, [priceChartForOverlay])
 
 	const groupedEvents = groupByKey(data.events ?? [], (event) => event.timestamp)
 
@@ -376,6 +533,12 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	)
 
 	const chartData = useMemo(() => {
+		// Keep chart data independent from the price query unless the overlay is enabled.
+		// This prevents the schedule chart from re-rendering when price data finishes loading.
+		if (!isPriceAndMcapActive) {
+			return rawChartData?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'timestamp') > 0)
+		}
+
 		return rawChartData
 			?.map((chartItem) => {
 				const dateSec = Math.floor(chartItem.timestamp / 1e3)
@@ -384,18 +547,13 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				const mcap = normilizePriceChart?.mcaps?.[dateSec]
 				const price = normilizePriceChart?.prices?.[dateSec]
 
-				if (mcap && isPriceEnabled) {
-					res['Market Cap'] = mcap
-				}
-
-				if (price && isPriceEnabled) {
-					res['Price'] = price
-				}
+				if (mcap) res['Market Cap'] = mcap
+				if (price) res['Price'] = price
 
 				return res
 			})
 			?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'timestamp') > 0)
-	}, [rawChartData, normilizePriceChart, isPriceEnabled])
+	}, [rawChartData, isPriceAndMcapActive, normilizePriceChart])
 
 	const availableCategories =
 		allocationMode === 'standard'
@@ -441,23 +599,25 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				result.push({ name, value })
 			}
 		}
-		return result
+		return sortPieChartDataDesc(result)
 	}, [tokenAllocation])
 
-	const pieChartDataAllocation = useMemo(
-		() =>
-			pieChartData
-				.map((pieChartItem) => {
-					if (!selectedCategories.includes(pieChartItem.name)) {
-						return null
-					}
-					return pieChartItem
-				})
-				.filter(Boolean),
-		[pieChartData, selectedCategories]
-	)
+	const pieChartDataAllocation = useMemo(() => {
+		const filtered: Array<{ name: string; value: number }> = []
+		for (const item of pieChartData as Array<{ name: string; value: number }>) {
+			if (!item) continue
+			if (!selectedCategories.includes(item.name)) continue
+			filtered.push(item)
+		}
+		return sortPieChartDataDesc(filtered)
+	}, [pieChartData, selectedCategories])
 
 	const pieChartDataAllocationMode = allocationMode === 'current' ? pieChartDataAllocation : groupAllocation
+
+	const allocationPieStackColors = useMemo(
+		() => (allocationMode === 'standard' ? standardGroupColors : stackColors),
+		[allocationMode, stackColors]
+	)
 
 	const chartConfig = useMemo(() => {
 		let stacks = selectedCategories
@@ -471,16 +631,19 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			}
 		}
 		const finalStacks = chartType === 'bar' ? sortStacksByVolatility(stacks, displayData) : stacks
-		const extendedColors = getExtendedColors(stackColors, isPriceEnabled)
 		return {
-			stacks: [...finalStacks, ...(isPriceEnabled ? ['Market Cap', 'Price'] : [])].filter(Boolean),
-			customYAxis: isPriceEnabled ? ['Market Cap', 'Price'] : [],
+			stacks: [...finalStacks, ...(isPriceAndMcapActive ? ['Market Cap', 'Price'] : [])].filter(Boolean),
+			customYAxis: isPriceAndMcapActive ? ['Market Cap', 'Price'] : [],
 			colors:
 				allocationMode === 'standard'
-					? { ...standardGroupColors, Price: '#ff4e21', 'Market Cap': '#0c5dff' }
-					: extendedColors
+					? isPriceAndMcapActive
+						? { ...standardGroupColors, Price: '#ff4e21', 'Market Cap': '#0c5dff' }
+						: standardGroupColors
+					: isPriceAndMcapActive
+						? getExtendedColors(stackColors, true)
+						: stackColors
 		}
-	}, [isPriceEnabled, selectedCategories, stackColors, allocationMode, displayData, chartType])
+	}, [isPriceAndMcapActive, selectedCategories, stackColors, allocationMode, displayData, chartType])
 
 	const dataset = useMemo<MultiSeriesChart2Dataset>(() => {
 		const stacks = chartConfig.stacks
@@ -531,7 +694,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				encode: { x: 'timestamp', y: name },
 				color: colors[name],
 				...(!isOverlay ? { stack: 'A' } : {}),
-				...(isOverlay ? { yAxisIndex: yIdx + 1, valueSymbol: '$' } : {})
+				...(isOverlay ? { yAxisIndex: yIdx + 1, valueSymbol: '$', hideAreaStyle: true } : {})
 			}
 		})
 	}, [chartConfig.stacks, chartConfig.colors, chartConfig.customYAxis, chartType])
@@ -541,10 +704,14 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			? 100 - (data.meta.totalLocked / data.meta.maxSupply) * 100
 			: 0
 
-	const unlockedPieChartData = [
-		{ name: 'Unlocked', value: unlockedPercent },
-		{ name: 'Locked', value: 100 - unlockedPercent }
-	]
+	const unlockedPieChartData = useMemo(
+		() =>
+			sortPieChartDataDesc([
+				{ name: 'Unlocked', value: unlockedPercent },
+				{ name: 'Locked', value: 100 - unlockedPercent }
+			]),
+		[unlockedPercent]
+	)
 
 	const getDesktopPieLegendPosition = (itemsCount: number) => {
 		// When there are only a few legend items, center it vertically.
@@ -554,19 +721,39 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			: { right: 12, top: 12, bottom: 12, orient: 'vertical' as const }
 	}
 
-	const allocationPieChartLegendPosition =
-		width < 640
+	const pieChartLegendTextStyle = useMemo(() => ({ fontSize: width < 640 ? 12 : 14 }), [width])
+
+	const allocationPieChartLegendPosition = useMemo(() => {
+		return width < 640
 			? { left: 'center', bottom: 0, orient: 'horizontal' as const }
 			: getDesktopPieLegendPosition(pieChartDataAllocationMode.length)
+	}, [width, pieChartDataAllocationMode.length])
 
-	const unlockedPieChartLegendPosition =
-		width < 640
+	const unlockedPieChartLegendPosition = useMemo(() => {
+		return width < 640
 			? { left: 'center', bottom: 0, orient: 'horizontal' as const }
 			: getDesktopPieLegendPosition(unlockedPieChartData.length)
+	}, [width, unlockedPieChartData.length])
 
-	const pieChartLegendTextStyle = {
-		fontSize: width < 640 ? 12 : 14
-	}
+	const allocationExportButtons = useMemo(
+		() => ({
+			png: true,
+			csv: true,
+			filename: `${slug(data.name)}-allocation`,
+			pngTitle: `${data.name} Allocation`
+		}),
+		[data.name]
+	)
+
+	const unlockedExportButtons = useMemo(
+		() => ({
+			png: true,
+			csv: true,
+			filename: `${slug(data.name)}-unlocked`,
+			pngTitle: `${data.name} Unlocked ${unlockedPercent.toFixed(2)}%`
+		}),
+		[data.name, unlockedPercent]
+	)
 
 	const hasGroupAllocationData = (() => {
 		if (!data.categoriesBreakdown || typeof data.categoriesBreakdown !== 'object') return false
@@ -585,10 +772,10 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					<TokenLogo logo={tokenIconUrl(data.name)} />
 					<h1 className="text-xl font-semibold">{data.name}</h1>
 
-					{data?.tokenPrice?.price ? (
+					{tokenPrice != null ? (
 						<>
 							<span className="mx-1 h-5 w-px bg-(--cards-border)" />
-							<span className="text-base font-semibold">${formattedNum(data.tokenPrice.price)}</span>
+							<span className="text-base font-semibold">${formattedNum(tokenPrice)}</span>
 							{percentChange !== null ? (
 								<span
 									className="text-sm font-medium"
@@ -670,12 +857,13 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								onChange={() => setChartType((prev) => (prev === 'bar' ? 'line' : 'bar'))}
 								checked={chartType === 'bar'}
 							/>
-							{normilizePriceChart?.prices ? (
+							{resolvedGeckoId ? (
 								<Switch
 									label="Price & MCap"
 									value="show=price-and-mcap"
-									onChange={() => setIsPriceEnabled((prev) => !prev)}
-									checked={isPriceEnabled}
+									onChange={() => setIsPriceAndMcapRequested((prev) => !prev)}
+									checked={isPriceAndMcapRequested}
+									isLoading={isPriceAndMcapLoading}
 								/>
 							) : null}
 							<TagGroup
@@ -697,8 +885,15 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								title={`${data.name} Unlock Schedule`}
 							/>
 						</div>
-						<Suspense fallback={<div className="min-h-[360px]" />}>
-							<MultiSeriesChart2
+						{isPriceAndMcapLoading ? (
+							<div className="flex min-h-[360px] items-center justify-center">
+								<p className="flex items-center gap-1">
+									Loading
+									<LoadingDots />
+								</p>
+							</div>
+						) : (
+							<ScheduleChart
 								dataset={dataset}
 								charts={charts}
 								hallmarks={hallmarks}
@@ -708,58 +903,44 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								onReady={handleChartReady}
 								hideDefaultLegend={false}
 							/>
-						</Suspense>
+						)}
 					</div>
 				)}
 
 				<div className="grid min-h-[408px] grid-cols-2 gap-2">
 					{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
 						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<Suspense fallback={<div className="min-h-[408px]" />}>
-								<PieChart
-									showLegend
-									title="Allocation"
-									chartData={pieChartDataAllocationMode}
-									stackColors={chartConfig.colors}
-									valueSymbol={data.tokenPrice?.symbol ?? ''}
-									legendPosition={allocationPieChartLegendPosition}
-									legendTextStyle={pieChartLegendTextStyle}
-									// Give the allocation chart a wider legend column so labels
-									// can render without ellipsis, and the pie can sit further left.
-									toRight={260}
-									// Slightly larger pie to better utilize available canvas.
-									radius={['0%', '82%']}
-									exportButtons={{
-										png: true,
-										csv: true,
-										filename: `${slug(data.name)}-allocation`,
-										pngTitle: `${data.name} Allocation`
-									}}
-								/>
-							</Suspense>
+							<AllocationPieChart
+								showLegend
+								title="Allocation"
+								chartData={pieChartDataAllocationMode}
+								stackColors={allocationPieStackColors}
+								valueSymbol={data.tokenPrice?.symbol ?? ''}
+								legendPosition={allocationPieChartLegendPosition}
+								legendTextStyle={pieChartLegendTextStyle}
+								// Give the allocation chart a wider legend column so labels
+								// can render without ellipsis, and the pie can sit further left.
+								toRight={allocationPieChartLegendToRight}
+								// Slightly larger pie to better utilize available canvas.
+								radius={allocationPieChartRadius}
+								exportButtons={allocationExportButtons}
+							/>
 						</div>
 					)}
 
 					{unlockedPercent > 0 && (
 						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<Suspense fallback={<div className="min-h-[408px]" />}>
-								<PieChart
-									showLegend
-									title={`Unlocked ${unlockedPercent.toFixed(2)}%`}
-									legendPosition={unlockedPieChartLegendPosition}
-									legendTextStyle={pieChartLegendTextStyle}
-									radius={unlockedPieChartRadius}
-									chartData={unlockedPieChartData}
-									stackColors={unlockedPieChartStackColors}
-									valueSymbol="%"
-									exportButtons={{
-										png: true,
-										csv: true,
-										filename: `${slug(data.name)}-unlocked`,
-										pngTitle: `${data.name} Unlocked ${unlockedPercent.toFixed(2)}%`
-									}}
-								/>
-							</Suspense>
+							<AllocationPieChart
+								showLegend
+								title={`Unlocked ${unlockedPercent.toFixed(2)}%`}
+								legendPosition={unlockedPieChartLegendPosition}
+								legendTextStyle={pieChartLegendTextStyle}
+								radius={unlockedPieChartRadius}
+								chartData={unlockedPieChartData}
+								stackColors={unlockedPieChartStackColors}
+								valueSymbol="%"
+								exportButtons={unlockedExportButtons}
+							/>
 						</div>
 					)}
 				</div>
@@ -852,10 +1033,21 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	)
 }
 
-export const UnlocksCharts = ({ protocolName }: { protocolName: string }) => {
-	const { data = null, isLoading, error } = useGetProtocolEmissions(slug(protocolName))
+export const UnlocksCharts = ({
+	protocolName,
+	initialData,
+	initialTokenMarketData,
+	disableClientTokenStatsFetch
+}: {
+	protocolName: string
+	initialData?: IEmission | null
+	initialTokenMarketData?: InitialTokenMarketData | null
+	disableClientTokenStatsFetch?: boolean
+}) => {
+	const shouldFetch = !initialData
+	const { data = null, isLoading, error } = useGetProtocolEmissions(shouldFetch ? slug(protocolName) : null)
 
-	if (isLoading) {
+	if (shouldFetch && isLoading) {
 		return (
 			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<LocalLoader />
@@ -863,7 +1055,8 @@ export const UnlocksCharts = ({ protocolName }: { protocolName: string }) => {
 		)
 	}
 
-	if (!data) {
+	const resolvedData = initialData ?? data
+	if (!resolvedData) {
 		return (
 			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<p>{error instanceof Error ? error.message : 'Failed to fetch'}</p>
@@ -871,5 +1064,11 @@ export const UnlocksCharts = ({ protocolName }: { protocolName: string }) => {
 		)
 	}
 
-	return <ChartContainer data={data as any} />
+	return (
+		<ChartContainer
+			data={resolvedData as any}
+			initialTokenMarketData={initialTokenMarketData}
+			disableClientTokenStatsFetch={disableClientTokenStatsFetch}
+		/>
+	)
 }

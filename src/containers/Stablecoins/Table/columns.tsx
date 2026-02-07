@@ -72,6 +72,7 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			const value = getValue() as IPeggedAssetByChainRow['bridgeInfo']
+			if (!value.name || value.name === '-' || value.name === 'not-found') return null
 			return (
 				<>
 					{value.link ? (

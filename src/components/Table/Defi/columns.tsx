@@ -1,20 +1,14 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { lazy, Suspense } from 'react'
-import { Bookmark } from '~/components/Bookmark'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import { formattedNum, formattedPercent, slug, tokenIconUrl, toNiceDayMonthYear } from '~/utils'
 import type { ColumnOrdersByBreakpoint } from '../utils'
-import type { AirdropRow, IEmission, IForksRow, IGovernance, ILSDRow } from './types'
+import type { AirdropRow, IForksRow, IGovernance, ILSDRow } from './types'
 
-const UnconstrainedSmolLineChart = lazy(() =>
-	import('~/containers/Unlocks/UnconstrainedSmolLineChart').then((m) => ({ default: m.UnconstrainedSmolLineChart }))
-)
 export const forksColumn: ColumnDef<IForksRow>[] = [
 	{
 		header: 'Name',
@@ -176,185 +170,6 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 
 			return <Tooltip content={formattedValue}>{formattedValue}</Tooltip>
 		}
-	}
-]
-
-export const emissionsColumns: ColumnDef<IEmission>[] = [
-	{
-		header: 'Name',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue }) => {
-			return (
-				<span className="relative flex items-center gap-2 pl-6">
-					<Bookmark readableName={getValue() as string} data-bookmark className="absolute -left-0.5" />
-					<TokenLogo logo={tokenIconUrl(getValue())} />
-					<BasicLink
-						href={`/unlocks/${slug(getValue() as string)}`}
-						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-					>
-						{getValue() as string}
-					</BasicLink>
-				</span>
-			)
-		},
-		size: 160
-	},
-	{
-		header: 'Price',
-		accessorKey: 'tPrice',
-		accessorFn: (row) => (row.tPrice ? +row.tPrice : undefined),
-		cell: ({ getValue }) => {
-			return <>{getValue() ? '$' + (+getValue()).toFixed(2) : ''}</>
-		},
-		meta: {
-			align: 'end'
-		},
-		size: 80
-	},
-	{
-		header: 'MCap',
-		accessorKey: 'mcap',
-		accessorFn: (row) => (row.mcap ? +row.mcap : undefined),
-		cell: ({ getValue }) => {
-			if (!getValue()) return null
-			return <>{formattedNum(getValue(), true)}</>
-		},
-		meta: {
-			align: 'end'
-		},
-		size: 120
-	},
-
-	{
-		header: 'Total Unlocked',
-		id: 'totalLocked',
-		accessorFn: (row) => (row.maxSupply && row.totalLocked ? row.totalLocked / row.maxSupply : 0),
-		cell: ({ row }) => {
-			const percetage = (100 - (row.original.totalLocked / row.original.maxSupply) * 100).toPrecision(2)
-
-			return (
-				<div className="flex flex-col items-end gap-2 px-2">
-					<span className="flex items-center justify-between gap-2">
-						<span className="text-[#3255d7]">{formattedNum(percetage)}%</span>
-					</span>
-					<div
-						className="h-2 w-full rounded-full"
-						style={{
-							background: `linear-gradient(90deg, #3255d7 ${percetage}%, var(--bg4) ${percetage}%)`
-						}}
-					/>
-				</div>
-			)
-		},
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Prev. Unlock Analysis',
-		id: 'prevUnlock',
-		accessorFn: (row) => (row.historicalPrice ? row.historicalPrice : undefined),
-
-		cell: ({ row }) => {
-			return (
-				<div className="relative">
-					<Suspense fallback={<></>}>
-						<UnconstrainedSmolLineChart
-							series={row.original.historicalPrice}
-							name=""
-							color={
-								!row.original.historicalPrice?.length
-									? 'red'
-									: row.original.historicalPrice[Math.floor(row.original.historicalPrice.length / 2)][1] >=
-										  row.original.historicalPrice[row.original.historicalPrice.length - 1][1]
-										? 'red'
-										: 'green'
-							}
-							className="my-auto h-[53px]"
-							extraData={{
-								lastEvent: row.original.lastEvent
-							}}
-						/>
-					</Suspense>
-				</div>
-			)
-		},
-		meta: {
-			align: 'end',
-			headerHelperText:
-				"Price trend shown from 7 days before to 7 days after the most recent major unlock event. Doesn't include Non-Circulating and Farming emissions."
-		},
-		size: 180
-	},
-	{
-		header: '7d Post Unlock',
-		id: 'postUnlock',
-		accessorFn: (row) => {
-			if (!row.historicalPrice?.length || row.historicalPrice.length < 8) return undefined
-			const priceAtUnlock = row.historicalPrice[7][1]
-			const priceAfter7d = row.historicalPrice[row.historicalPrice.length - 1][1]
-			return ((priceAfter7d - priceAtUnlock) / priceAtUnlock) * 100
-		},
-		cell: ({ getValue }) => {
-			return <span>{getValue() ? formattedPercent(getValue()) : ''}</span>
-		},
-		meta: {
-			align: 'end',
-			headerHelperText: 'Price change 7 days after the most recent major unlock event'
-		},
-		size: 140
-	},
-	{
-		header: 'Daily Unlocks',
-		id: 'nextEvent',
-		accessorFn: (row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : undefined),
-		cell: ({ getValue, row }) => {
-			if (!row.original.unlocksPerDay) return '-'
-
-			return (
-				<span className="flex flex-col gap-1">
-					{getValue() ? formattedNum((getValue() as number).toFixed(2), true) : ''}
-				</span>
-			)
-		},
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Next Event',
-		id: 'upcomingEvent',
-		accessorFn: (row) => {
-			let { timestamp } = row.upcomingEvent?.[0] || {}
-			if (!timestamp || timestamp < Date.now() / 1e3) return undefined
-			return timestamp
-		},
-		cell: ({ row }) => {
-			let { timestamp } = row.original.upcomingEvent[0]
-
-			if (!timestamp || timestamp < Date.now() / 1e3) return null
-
-			return (
-				<UpcomingEvent
-					{...{
-						noOfTokens: row.original.upcomingEvent.map((x) => x.noOfTokens),
-						timestamp,
-						event: row.original.upcomingEvent,
-						description: row.original.upcomingEvent.map((x) => x.description),
-						price: row.original.tPrice,
-						symbol: row.original.tSymbol,
-						mcap: row.original.mcap,
-						maxSupply: row.original.maxSupply,
-						row: row.original,
-						name: row.original.name
-					}}
-				/>
-			)
-		},
-		size: 400
 	}
 ]
 

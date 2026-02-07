@@ -190,6 +190,10 @@ function buildSeries({
 			}
 		}
 
+		if (chart.type === 'line' && chart.hideAreaStyle) {
+			delete base.areaStyle
+		}
+
 		out.push(base)
 	}
 

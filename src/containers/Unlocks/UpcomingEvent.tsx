@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
-import { useEffect, useEffectEvent, useState } from 'react'
+import { useEffect, useEffectEvent, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, tokenIconUrl } from '~/utils'
@@ -17,14 +17,11 @@ const ProtocolPageButton = () => {
 
 const RegularButton = () => {
 	return (
-		<Ariakit.MenuButton className="flex items-center gap-2">
-			<div className="flex space-x-2">
-				<div className="flex flex-col items-center">
-					<div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-[#2C2C2E] text-white transition-colors hover:bg-(--bg-secondary) hover:text-black dark:bg-zinc-800">
-						<Icon name="calendar-plus" width={24} height={24} />
-					</div>
-				</div>
-			</div>
+		<Ariakit.MenuButton
+			className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--bg-tertiary) text-(--text-primary) hover:bg-(--bg-border)"
+			aria-label="Add to calendar"
+		>
+			<Icon name="calendar-plus" width={20} height={20} />
 		</Ariakit.MenuButton>
 	)
 }
@@ -38,7 +35,7 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 				unmountOnHide
 				hideOnInteractOutside
 				gutter={8}
-				className="z-10 flex thin-scrollbar max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:drawer max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
+				className="z-10 flex thin-scrollbar max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-(--cards-border) bg-(--cards-bg) text-(--text-primary) shadow-sm max-sm:drawer max-sm:rounded-b-none"
 				portal
 			>
 				<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
@@ -53,7 +50,7 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 							rel="noopener noreferrer"
 						/>
 					}
-					className="flex shrink-0 cursor-pointer items-center gap-2 border-b border-(--form-control-border) px-3 py-2 first-of-type:rounded-t-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+					className="flex shrink-0 cursor-pointer items-center gap-2 border-b border-(--bg-border) px-3 py-2 first-of-type:rounded-t-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 				>
 					<Icon name="external-link" width={16} height={16} />
 					Google Calendar
@@ -73,6 +70,17 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 	)
 }
 
+const CountdownTile = ({ value, label }: { value: string; label: string }) => {
+	return (
+		<div className="flex flex-col items-center">
+			<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--bg-tertiary)">
+				<span className="text-base font-semibold tracking-tight text-(--text-primary) tabular-nums">{value}</span>
+			</div>
+			<span className="mt-1 text-xs leading-none font-medium text-(--text-meta)">{label}</span>
+		</div>
+	)
+}
+
 export const UpcomingEvent = ({
 	noOfTokens = [],
 	timestamp,
@@ -84,42 +92,47 @@ export const UpcomingEvent = ({
 	name,
 	isProtocolPage = false
 }) => {
-	const tokenPrice = price
-	const tokenSymbol = tokenPrice?.symbol?.toUpperCase() || symbol?.toUpperCase()
-	const currentUnlockBreakdown = event.map(({ description, noOfTokens, timestamp, unlockType, rateDurationDays }) => {
-		const regex =
-			/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1]\} tokens per week from (.+?) on {timestamp})/
-		const matches = description.match(regex)
-		const name = matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
+	const tokenSymbol = symbol ? symbol.toUpperCase() : ''
+	const { currentUnlockBreakdown, totalAmount, tokenValue, unlockPercent, unlockPercentFloat } = useMemo(() => {
+		const breakdown = event
+			.map(({ description, noOfTokens, timestamp, unlockType, rateDurationDays }) => {
+				const regex =
+					/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})/
+				const matches = (description || '').match(regex)
+				const name = matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
 
-		let perDayAmount, totalAmount, displayUnit
-		if (unlockType === 'linear') {
-			const isIncrease = description.toLowerCase().includes('increase')
-			perDayAmount = (isIncrease ? noOfTokens[1] : noOfTokens[0]) / 7
-			totalAmount = perDayAmount * (rateDurationDays || 1)
-			displayUnit = 'per day'
-		} else {
-			perDayAmount = totalAmount = noOfTokens.reduce((sum, amount) => sum + amount, 0)
-			displayUnit = ''
-		}
-		const currentTime = Date.now() / 1e3
-		const endTime = timestamp + (rateDurationDays || 0) * 86400
-		const isOngoing = unlockType === 'linear' && currentTime >= timestamp && currentTime <= endTime
-		return {
-			name,
-			perDayAmount,
-			totalAmount,
-			displayUnit,
-			timestamp,
-			unlockType,
-			isOngoing
-		}
-	})
+				let perDayAmount, totalAmount, displayUnit
+				if (unlockType === 'linear') {
+					const isIncrease = description.toLowerCase().includes('increase')
+					perDayAmount = (isIncrease ? noOfTokens[1] : noOfTokens[0]) / 7
+					totalAmount = perDayAmount * (rateDurationDays || 1)
+					displayUnit = 'per day'
+				} else {
+					perDayAmount = totalAmount = noOfTokens.reduce((sum, amount) => sum + amount, 0)
+					displayUnit = ''
+				}
+				const currentTime = Date.now() / 1e3
+				const endTime = timestamp + (rateDurationDays || 0) * 86400
+				const isOngoing = unlockType === 'linear' && currentTime >= timestamp && currentTime <= endTime
+				return {
+					name,
+					perDayAmount,
+					totalAmount,
+					displayUnit,
+					timestamp,
+					unlockType,
+					isOngoing
+				}
+			})
+			.sort((a, b) => b.totalAmount - a.totalAmount)
 
-	const totalAmount = currentUnlockBreakdown.reduce((sum, item) => sum + item.totalAmount, 0)
-	const tokenValue = price ? totalAmount * price : null
-	const unlockPercent = maxSupply ? (totalAmount / maxSupply) * 100 : null
-	const unlockPercentFloat = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
+		const totalAmount = breakdown.reduce((sum, item) => sum + item.totalAmount, 0)
+		const tokenValue = price ? totalAmount * price : null
+		const unlockPercent = maxSupply ? (totalAmount / maxSupply) * 100 : null
+		const unlockPercentFloat = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
+
+		return { currentUnlockBreakdown: breakdown, totalAmount, tokenValue, unlockPercent, unlockPercentFloat }
+	}, [event, price, maxSupply, mcap])
 
 	const timeLeft = timestamp - Date.now() / 1e3
 	const days = Math.floor(timeLeft / 86400)
@@ -179,7 +192,7 @@ export const UpcomingEvent = ({
 						)}
 					</div>
 				</div>
-				<hr className="border-(--cards-border)" />
+				<hr className="border-(--bg-border)" />
 				<div className="flex flex-col gap-3">
 					{currentUnlockBreakdown.map(
 						({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp: _timestamp, isOngoing }) => {
@@ -227,7 +240,6 @@ export const UpcomingEvent = ({
 						}
 					)}
 				</div>
-
 				{timeLeft > 0 ? (
 					<CalendarButton
 						event={{ timestamp, noOfTokens, symbol, description: '' }}
@@ -241,79 +253,54 @@ export const UpcomingEvent = ({
 	}
 
 	return (
-		<div className="flex items-center gap-2">
+		<div className="flex h-full items-center gap-2">
 			<Ariakit.HovercardProvider timeout={0}>
 				<Ariakit.HovercardAnchor>
 					{timeLeft > 0 ? (
-						<div className="flex items-center space-x-2">
-							<div className="flex items-end justify-between" style={{ width: '150px' }}>
+						<div className="flex items-center gap-3">
+							<div className="flex min-w-[150px] items-center justify-between gap-4">
 								<div className="flex flex-col items-start">
-									<span className="text-sm font-semibold text-(--text-primary)">{formattedNum(tokenValue, true)}</span>
+									<span className="text-sm font-semibold text-(--text-primary) tabular-nums">
+										{formattedNum(tokenValue, true)}
+									</span>
 									<span className="text-xs font-medium text-(--text-meta)">Unlock Value</span>
 								</div>
 								<div className="flex flex-col items-end">
-									<span className="text-sm font-semibold text-(--text-primary)">
+									<span className="text-sm font-semibold text-(--text-primary) tabular-nums">
 										{formattedNum(unlockPercentFloat)}%
 									</span>
 									<span className="text-xs font-medium text-(--text-meta)">of float</span>
 								</div>
 							</div>
 
-							<div className="flex flex-col items-center">
-								<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2C2C2E] dark:bg-zinc-800">
-									<span className="text-xl font-medium tracking-tight text-white">{String(days).padStart(2, '0')}</span>
-								</div>
-								<span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Days</span>
-							</div>
-
-							<div className="flex flex-col items-center">
-								<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2C2C2E] dark:bg-zinc-800">
-									<span className="text-xl font-medium tracking-tight text-white">
-										{String(hours).padStart(2, '0')}
-									</span>
-								</div>
-								<span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Hrs</span>
-							</div>
-
-							<div className="flex flex-col items-center">
-								<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2C2C2E] dark:bg-zinc-800">
-									<span className="text-xl font-medium tracking-tight text-white">
-										{String(minutes).padStart(2, '0')}
-									</span>
-								</div>
-								<span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Min</span>
-							</div>
-
-							<div className="flex flex-col items-center">
-								<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2C2C2E] dark:bg-zinc-800">
-									<span className="text-xl font-medium tracking-tight text-white">
-										{String(seconds).padStart(2, '0')}
-									</span>
-								</div>
-								<span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Sec</span>
+							<div className="flex items-center gap-2" suppressHydrationWarning>
+								<CountdownTile value={String(days).padStart(2, '0')} label="Days" />
+								<CountdownTile value={String(hours).padStart(2, '0')} label="Hrs" />
+								<CountdownTile value={String(minutes).padStart(2, '0')} label="Min" />
+								<CountdownTile value={String(seconds).padStart(2, '0')} label="Sec" />
 							</div>
 						</div>
 					) : (
-						<span className="text-sm text-neutral-500 dark:text-neutral-400">
+						<span className="text-sm text-(--text-meta)" suppressHydrationWarning>
 							{Math.abs(days)} {Math.abs(days) === 1 ? 'day' : 'days'} ago
 						</span>
 					)}
 				</Ariakit.HovercardAnchor>
 				<Ariakit.HovercardDisclosure />
 				<Ariakit.Hovercard
-					className="z-10 flex flex-col gap-2 rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-4 dark:border-[hsl(204,3%,32%)] dark:bg-[#121316]"
+					className="z-10 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--bg-secondary) p-4 text-sm text-(--text-primary) shadow-sm"
 					unmountOnHide
 					hideOnInteractOutside
 					portal={true}
 				>
-					<span className="flex items-center justify-between">
-						<span className="flex items-center gap-2">
+					<span className="flex items-center justify-between gap-4">
+						<span className="flex items-center gap-2 font-medium">
 							<TokenLogo logo={tokenIconUrl(name)} size={30} />
 							{tokenSymbol}
 						</span>
-						<span className="flex flex-col">
-							<span>{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}</span>
-							<span className="text-sm text-(--text-meta)">
+						<span className="flex flex-col items-end">
+							<span className="font-medium">{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}</span>
+							<span className="text-xs text-(--text-meta)">
 								{timestamp
 									? `${dayjs(timestamp * 1e3).format('HH:mm')} GMT${dayjs(timestamp * 1e3).format('Z')}`
 									: null}
@@ -325,11 +312,7 @@ export const UpcomingEvent = ({
 						{currentUnlockBreakdown.map(
 							({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp: _timestamp, isOngoing }) => {
 								const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
-								const usdValue = price
-									? isLinearPerDay
-										? perDayAmount * price // per day value for linear
-										: totalAmount * price // total for cliff
-									: null
+								const usdValue = price ? (isLinearPerDay ? perDayAmount * price : totalAmount * price) : null
 								const percentage = maxSupply ? (totalAmount / maxSupply) * 100 : null
 								const percentageFloat = usdValue && mcap ? (usdValue / mcap) * 100 : null
 								return (
@@ -347,20 +330,20 @@ export const UpcomingEvent = ({
 															className="text-(--text-meta)"
 														/>
 													</Ariakit.TooltipAnchor>
-													<Ariakit.Tooltip className="z-50 rounded-md bg-(--bg-secondary) px-2 py-1 text-sm">
+													<Ariakit.Tooltip className="z-50 rounded-md bg-(--bg-secondary) px-2 py-1 text-xs">
 														{unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
 													</Ariakit.Tooltip>
 												</Ariakit.TooltipProvider>
 											</span>
-											<span className="inline-flex items-baseline gap-1">
+											<span className="inline-flex items-baseline gap-1 font-medium">
 												{usdValue ? formattedNum(usdValue, true) : '-'}
 												{isLinearPerDay && <span className="text-xs text-(--text-meta)">/ day</span>}
 											</span>
 										</span>
-										<span className="flex items-center justify-between gap-2 text-(--text-meta)">
+										<span className="flex items-center justify-between gap-2 text-xs text-(--text-meta)">
 											<span>
 												{formattedNum(percentage)}%{' '}
-												{percentageFloat ? <>( {formattedNum(percentageFloat)}% of float)</> : null}
+												{percentageFloat ? <>({formattedNum(percentageFloat)}% of float)</> : null}
 											</span>
 											<span className="inline-flex items-baseline gap-1">
 												{formattedNum(isLinearPerDay ? perDayAmount : totalAmount)} {tokenSymbol}
@@ -379,7 +362,7 @@ export const UpcomingEvent = ({
 							<span>Total</span>
 							<span>{tokenValue ? formattedNum(tokenValue, true) : '-'}</span>
 						</span>
-						<span className="flex items-center justify-between gap-2 text-(--text-meta)">
+						<span className="flex items-center justify-between gap-2 text-xs text-(--text-meta)">
 							<span>
 								{unlockPercent && `${formattedNum(unlockPercent)}%`}
 								{unlockPercentFloat && ` (${formattedNum(unlockPercentFloat)}% of float)`}
@@ -392,12 +375,15 @@ export const UpcomingEvent = ({
 				</Ariakit.Hovercard>
 			</Ariakit.HovercardProvider>
 			{timeLeft > 0 && (
-				<CalendarButton
-					event={{ timestamp, noOfTokens, symbol, description: '' }}
-					tokenName={name}
-					tokenValue={tokenValue ? formattedNum(tokenValue, true) : '-'}
-					isProtocolPage={isProtocolPage}
-				/>
+				<div className="flex flex-col items-center">
+					<CalendarButton
+						event={{ timestamp, noOfTokens, symbol, description: '' }}
+						tokenName={name}
+						tokenValue={tokenValue ? formattedNum(tokenValue, true) : '-'}
+						isProtocolPage={isProtocolPage}
+					/>
+					<span className="invisible mt-1 text-xs leading-none font-medium text-(--text-meta) select-none">Sec</span>
+				</div>
 			)}
 		</div>
 	)

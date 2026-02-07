@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
-import { COLOR_PALETTE } from '../constants'
+import { COLOR_PALETTE } from './constants'
 
 type UnlockEvent = { protocol: string; value: number }
 

@@ -1,7 +1,7 @@
 import type { Dayjs } from 'dayjs'
 import * as React from 'react'
-import type { DailyUnlocks, PrecomputedData, UnlocksMultiSeriesChart } from '../types'
-import { buildUnlocksMultiSeriesChartForDateRange } from '../utils/buildUnlocksMultiSeriesChart'
+import { buildUnlocksMultiSeriesChartForDateRange } from './buildUnlocksMultiSeriesChart'
+import type { DailyUnlocks, PrecomputedData, UnlocksMultiSeriesChart } from './calendarTypes'
 
 interface UseUnlockChartDataProps {
 	currentDate: Dayjs

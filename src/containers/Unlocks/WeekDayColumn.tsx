@@ -3,7 +3,7 @@ import * as React from 'react'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
-import type { DailyUnlocks, DayInfo } from '../types'
+import type { DailyUnlocks, DayInfo } from './calendarTypes'
 
 interface WeekDayColumnProps {
 	dayInfo: DayInfo

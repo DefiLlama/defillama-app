@@ -2,20 +2,20 @@ import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import * as React from 'react'
 import { lazy, Suspense } from 'react'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
+import { Icon } from '~/components/Icon'
+import { TagGroup } from '~/components/TagGroup'
 import { useWatchlistManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
-import { ChartExportButtons } from '../ButtonStyled/ChartExportButtons'
-import { Icon } from '../Icon'
-import { TagGroup } from '../TagGroup'
-import { CalendarDayCell } from './components/CalendarDayCell'
-import { UnlocksListView } from './components/UnlocksListView'
-import { WeekDayColumn } from './components/WeekDayColumn'
+import { CalendarDayCell } from './CalendarDayCell'
+import type { CalendarViewProps, DailyUnlocks, DayInfo } from './calendarTypes'
+import { generateCalendarDays, generateWeekDays } from './calendarUtils'
 import { DAYS_OF_WEEK } from './constants'
-import { useUnlockChartData } from './hooks/useUnlockChartData'
-import { CalendarViewProps, DailyUnlocks, DayInfo } from './types'
-import { generateCalendarDays, generateWeekDays } from './utils/calendarUtils'
+import { UnlocksListView } from './UnlocksListView'
+import { useUnlockChartData } from './useUnlockChartData'
+import { WeekDayColumn } from './WeekDayColumn'
 
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -73,7 +73,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 
 		const startKey = currentDate.startOf('day').format('YYYY-MM-DD')
 
-		if (precomputedData?.listEvents[startKey]) {
+		// Only use server-precomputed list when unfiltered.
+		// Watchlist/insider filters must be computed client-side.
+		if (!showOnlyWatchlist && !showOnlyInsider && precomputedData?.listEvents[startKey]) {
 			return precomputedData.listEvents[startKey].map(({ date, event }) => ({
 				date: dayjs(date),
 				event
@@ -93,7 +95,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 		}
 
 		return events.toSorted((a, b) => a.date.valueOf() - b.date.valueOf())
-	}, [currentDate, viewMode, unlocksData, precomputedData])
+	}, [currentDate, viewMode, unlocksData, precomputedData, showOnlyWatchlist, showOnlyInsider])
 
 	const { weeklyChart, monthlyChart } = useUnlockChartData({
 		currentDate,

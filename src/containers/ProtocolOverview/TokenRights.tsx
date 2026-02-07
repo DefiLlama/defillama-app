@@ -151,7 +151,7 @@ export const TokenRights = ({ tokenRights }: { tokenRights: ITokenRights }) => {
 	const resources = tokenRights.resources ?? []
 
 	return (
-		<>
+		<div className="grid grid-cols-1 gap-2">
 			<div className="grid gap-2 xl:grid-cols-2">
 				<h2 className="col-span-full rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 text-base font-semibold">
 					Token Rights
@@ -349,6 +349,6 @@ export const TokenRights = ({ tokenRights }: { tokenRights: ITokenRights }) => {
 					<p>No token rights data available for this protocol.</p>
 				</div>
 			) : null}
-		</>
+		</div>
 	)
 }

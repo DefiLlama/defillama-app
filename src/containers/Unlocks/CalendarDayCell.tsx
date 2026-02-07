@@ -5,8 +5,8 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
-import type { DailyUnlocks, DayInfo } from '../types'
-import { interpolateColor } from '../utils/colorUtils'
+import type { DailyUnlocks, DayInfo } from './calendarTypes'
+import { interpolateColor } from './colorUtils'
 
 interface CalendarDayCellProps {
 	dayInfo: DayInfo

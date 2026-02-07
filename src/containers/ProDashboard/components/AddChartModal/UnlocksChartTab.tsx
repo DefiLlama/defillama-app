@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useEffect, useMemo } from 'react'
-import { getAllProtocolEmissions, getProtocolEmissons } from '~/api/categories/protocols'
 import type {
 	IMultiSeriesChart2Props,
 	IPieChartProps,
@@ -9,6 +8,7 @@ import type {
 } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
+import { getAllProtocolEmissions, getProtocolEmissons } from '~/containers/Unlocks/queries'
 import { slug, toNiceDayMonthYear } from '~/utils'
 import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
@@ -66,7 +66,7 @@ export function UnlocksChartTab({
 	)
 	const { data: unlocksProtocols, isLoading: unlocksProtocolsLoading } = useQuery({
 		queryKey: ['unlocks-protocols', unlocksEndDate],
-		queryFn: () => getAllProtocolEmissions({ endDate: unlocksEndDate }),
+		queryFn: () => getAllProtocolEmissions({ endDate: unlocksEndDate, getHistoricalPrices: false }),
 		staleTime: 60 * 60 * 1000
 	})
 

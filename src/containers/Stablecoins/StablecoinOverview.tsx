@@ -1,11 +1,8 @@
-import * as Ariakit from '@ariakit/react'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
-import { FormattedName } from '~/components/FormattedName'
 import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -97,7 +94,6 @@ export const PeggedAssetInfo = ({
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
 	const [chartType, setChartType] = React.useState('Pie')
-	const defaultSelectedId = 'default-selected-tab'
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const onChartTypeChange = React.useCallback(
@@ -135,25 +131,9 @@ export const PeggedAssetInfo = ({
 		return preparePieChartData({ data: chainTotals, sliceIdentifier: 'name', sliceValue: 'circulating', limit: 10 })
 	}, [chainTotals])
 
-	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
+	const { dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
 	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
-
-	const prepareCsv = () => {
-		const rows = [['Timestamp', 'Date', ...chainsUnique, 'Total']]
-		const sortedData = stackedData.sort((a, b) => a.date - b.date)
-		for (const day of sortedData) {
-			rows.push([
-				day.date,
-				toNiceCsvDate(day.date),
-				...chainsUnique.map((chain) => day[chain] ?? ''),
-				chainsUnique.reduce((acc, curr) => {
-					return (acc += day[curr] ?? 0)
-				}, 0)
-			])
-		}
-		return { filename: 'stablecoinsChains.csv', rows: rows as (string | number | boolean)[][] }
-	}
 
 	const getImageExportTitle = () => {
 		const chartTypeMap = {
@@ -236,210 +216,66 @@ export const PeggedAssetInfo = ({
 		[dataWithExtraPeggedAndDominanceByDay, chainsUnique]
 	)
 
+	const hasInfo = description || pegMechanism || mintRedeemDescription || auditLinks?.length > 0
+
 	return (
 		<>
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
-				<div className="col-span-2 flex w-full flex-col overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1">
-					<Ariakit.TabProvider defaultSelectedId={defaultSelectedId}>
-						<Ariakit.TabList aria-label="Pegged Tabs" className="flex">
-							<Ariakit.Tab
-								className="flex-1 rounded-tl-md border-b border-(--bg-border) px-6 py-2 whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) aria-selected:border-b-(--primary)"
-								id={defaultSelectedId}
-							>
-								Stats
-							</Ariakit.Tab>
-							<Ariakit.Tab className="flex-1 border-b border-l border-(--bg-border) px-6 py-2 whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) aria-selected:border-b-(--primary)">
-								Info
-							</Ariakit.Tab>
-							<Ariakit.Tab className="flex-1 rounded-tr-xl border-b border-l border-(--bg-border) px-6 py-2 whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) aria-selected:border-b-(--primary) xl:rounded-none">
-								Links
-							</Ariakit.Tab>
-						</Ariakit.TabList>
+				{/* Stats card */}
+				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
+					<h1 className="flex flex-wrap items-center gap-2 text-xl">
+						<TokenLogo logo={logo} size={24} />
+						<span className="font-bold">{name}</span>
+						{symbol && symbol !== '-' ? <span className="font-normal">({symbol})</span> : null}
+						{peggedAssetData.deprecated ? (
+							<Tooltip content="Deprecated protocol" className="text-(--error)">
+								<Icon name="alert-triangle" height={18} width={18} />
+							</Tooltip>
+						) : null}
+					</h1>
 
-						<Ariakit.TabPanel tabId={defaultSelectedId}>
-							<div className="flex flex-col gap-6 overflow-x-auto p-5">
-								<h1 className="flex items-center gap-2 text-xl">
-									<TokenLogo logo={logo} size={24} />
-									<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-									<span className="mr-auto font-normal">{symbol && symbol !== '-' ? `(${symbol})` : ''}</span>
-									{peggedAssetData.deprecated ? (
-										<Tooltip content="Deprecated protocol" className="text-(--error)">
-											<Icon name="alert-triangle" height={16} width={16} />
-										</Tooltip>
-									) : null}
-								</h1>
+					<p className="flex flex-col">
+						<span className="text-(--text-label)">Market Cap</span>
+						<span className="min-h-8 font-jetbrains text-2xl font-semibold">{formattedNum(mcap || '0', true)}</span>
+					</p>
 
-								<p className="flex flex-col gap-1">
-									<span className="text-base text-(--text-label)">Market Cap</span>
-									<span className="min-h-8 font-jetbrains text-2xl font-semibold">
-										{formattedNum(mcap || '0', true)}
-									</span>
-								</p>
-
-								<p className="flex flex-wrap items-center justify-between gap-2 text-base">
-									<span className="text-(--text-label)">Price</span>
-									<span className="font-jetbrains">{price === null ? '-' : formattedNum(price, true)}</span>
-								</p>
-
-								{totalCirculating != null ? (
-									<table className="w-full border-collapse text-base">
-										<caption className="pb-1 text-left text-xs text-(--text-label)">Issuance Stats</caption>
-										<tbody>
-											<tr>
-												<th className="text-left font-normal text-(--text-label)">Total Circulating</th>
-												<td className="text-right font-jetbrains">{formattedNum(totalCirculating)}</td>
-											</tr>
-										</tbody>
-									</table>
-								) : null}
-
-								{extraPeggeds.length > 0 && (
-									<table className="w-full border-collapse text-base">
-										<caption className="flex flex-wrap items-center gap-1 pb-1 text-left text-xs text-(--text-label)">
-											<span>Optional Circulating Counts</span>
+					<div className="flex flex-col">
+						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
+							<span className="text-(--text-label)">Price</span>
+							<span className="font-jetbrains">{price === null ? '-' : formattedNum(price, true)}</span>
+						</p>
+						{totalCirculating != null ? (
+							<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
+								<span className="text-(--text-label)">Total Circulating</span>
+								<span className="font-jetbrains">{formattedNum(totalCirculating)}</span>
+							</p>
+						) : null}
+						{unreleased > 0
+							? extraPeggeds.map((option) => (
+									<p
+										key={option}
+										className="flex flex-wrap items-center justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0"
+									>
+										<label className="flex cursor-pointer items-center gap-2 text-(--text-label)">
+											<input
+												type="checkbox"
+												value={option}
+												checked={extraPeggedsEnabled[option]}
+												onChange={() => updater(option)}
+											/>
+											<span style={{ opacity: extraPeggedsEnabled[option] ? 1 : 0.7 }}>
+												{capitalizeFirstLetter(option)}
+											</span>
 											<QuestionHelper text="Use this option to choose whether to include coins that have been minted but have never been circulating." />
-										</caption>
-										<tbody>
-											{extraPeggeds.map((option) => (
-												<tr key={option}>
-													<th className="text-left font-normal text-(--text-label)">
-														<label className="flex cursor-pointer items-center gap-2">
-															<input
-																type="checkbox"
-																value={option}
-																checked={extraPeggedsEnabled[option]}
-																onChange={() => updater(option)}
-															/>
-															<span style={{ opacity: extraPeggedsEnabled[option] ? 1 : 0.7 }}>
-																{capitalizeFirstLetter(option)}
-															</span>
-														</label>
-													</th>
-													<td className="text-right font-jetbrains">{formattedNum(unreleased)}</td>
-												</tr>
-											))}
-										</tbody>
-									</table>
-								)}
-								<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
-							</div>
-						</Ariakit.TabPanel>
-
-						<Ariakit.TabPanel>
-							<div className="flex flex-col gap-6 overflow-auto p-5">
-								{description && (
-									<p className="flex flex-col gap-2">
-										<span className="font-medium">Description</span>
-										<span>{description}</span>
+										</label>
+										<span className="font-jetbrains">{formattedNum(unreleased)}</span>
 									</p>
-								)}
-
-								{pegMechanism && (
-									<p className="flex items-center gap-2">
-										<span className="font-medium">Category</span>
-										<span>:</span>
-										<span>{pegMechanism}</span>
-										<QuestionHelper text={risksHelperTexts[pegMechanism]} />
-									</p>
-								)}
-
-								{mintRedeemDescription && (
-									<p className="flex flex-col gap-2">
-										<span className="font-medium">Minting and Redemption</span>
-										<span>{mintRedeemDescription}</span>
-									</p>
-								)}
-								<p className="flex items-center gap-1">
-									<span className="flex flex-nowrap items-center gap-1">
-										<span>Audits</span>
-										<QuestionHelper text="Audits are not a security guarantee" />
-										<span>:</span>
-									</span>
-									{auditLinks?.length > 0 ? (
-										<Menu
-											name="Yes"
-											options={typeof auditLinks === 'string' ? [auditLinks] : auditLinks}
-											isExternal
-											className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-										/>
-									) : (
-										<span>No</span>
-									)}
-								</p>
-							</div>
-						</Ariakit.TabPanel>
-
-						<Ariakit.TabPanel>
-							<div className="flex flex-wrap items-center gap-6 overflow-auto p-5">
-								{blockExplorerLink !== undefined && (
-									<span>
-										<a
-											href={blockExplorerLink}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-										>
-											<span>View on {blockExplorerName}</span> <Icon name="arrow-up-right" height={14} width={14} />
-										</a>
-									</span>
-								)}
-
-								{url && (
-									<span>
-										<a
-											href={url}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-										>
-											<span>Website</span>
-											<Icon name="arrow-up-right" height={14} width={14} />
-										</a>
-									</span>
-								)}
-
-								{twitter && (
-									<span>
-										<a
-											href={twitter}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-										>
-											<span>Twitter</span>
-											<Icon name="arrow-up-right" height={14} width={14} />
-										</a>
-									</span>
-								)}
-
-								{onCoinGecko === 'true' && (
-									<span>
-										<a
-											href={`https://www.coingecko.com/en/coins/${gecko_id}`}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-										>
-											<span>CoinGecko</span>
-											<Icon name="arrow-up-right" height={14} width={14} />
-										</a>
-									</span>
-								)}
-
-								<a
-									href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-								>
-									<span>Check the code</span>
-									<Icon name="arrow-up-right" height={14} width={14} />
-								</a>
-							</div>
-						</Ariakit.TabPanel>
-					</Ariakit.TabProvider>
+								))
+							: null}
+					</div>
 				</div>
 
+				{/* Chart */}
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex items-center justify-end gap-2 p-2 pb-0">
 						<div className="mr-auto flex items-center gap-2">
@@ -488,6 +324,103 @@ export const PeggedAssetInfo = ({
 						</React.Suspense>
 					) : null}
 				</div>
+
+				{/* Additional info cards */}
+				{hasInfo ? (
+					<div className="col-span-full">
+						<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+							<h2 className="text-base font-semibold">Stablecoin Information</h2>
+							{description ? <p>{description}</p> : null}
+							{pegMechanism ? (
+								<p className="flex items-center gap-1">
+									<span>Category:</span>
+									<span>{pegMechanism}</span>
+									<QuestionHelper text={risksHelperTexts[pegMechanism] || 'No additional info available'} />
+								</p>
+							) : null}
+							{mintRedeemDescription ? (
+								<p className="flex flex-col gap-1">
+									<span className="font-medium">Minting and Redemption</span>
+									<span className="text-(--text-label)">{mintRedeemDescription}</span>
+								</p>
+							) : null}
+							<p className="flex items-center gap-1">
+								<span className="flex flex-nowrap items-center gap-1">
+									<span>Audits</span>
+									<QuestionHelper text="Audits are not a security guarantee" />
+									<span>:</span>
+								</span>
+								{auditLinks?.length > 0 ? (
+									<Menu
+										name="Yes"
+										options={typeof auditLinks === 'string' ? [auditLinks] : auditLinks}
+										isExternal
+										className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+									/>
+								) : (
+									<span>No</span>
+								)}
+							</p>
+							<div className="flex flex-wrap gap-2">
+								{url ? (
+									<a
+										href={url}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+									>
+										<Icon name="earth" className="h-3 w-3" />
+										<span>Website</span>
+									</a>
+								) : null}
+								{twitter ? (
+									<a
+										href={twitter}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+									>
+										<Icon name="twitter" className="h-3 w-3" />
+										<span>Twitter</span>
+									</a>
+								) : null}
+								{blockExplorerLink !== undefined ? (
+									<a
+										href={blockExplorerLink}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+									>
+										<span>{blockExplorerName}</span>
+										<Icon name="arrow-up-right" height={14} width={14} />
+									</a>
+								) : null}
+								{onCoinGecko === 'true' && gecko_id ? (
+									<a
+										href={`https://www.coingecko.com/en/coins/${gecko_id}`}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+									>
+										<span>CoinGecko</span>
+										<Icon name="arrow-up-right" height={14} width={14} />
+									</a>
+								) : null}
+								{gecko_id ? (
+									<a
+										href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+									>
+										<Icon name="github" className="h-3 w-3" />
+										<span>Check the code</span>
+									</a>
+								) : null}
+							</div>
+						</div>
+					</div>
+				) : null}
 			</div>
 
 			<PeggedAssetByChainTable data={groupedChains} />

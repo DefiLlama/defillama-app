@@ -1,8 +1,8 @@
 import * as React from 'react'
+import { BasicLink } from '~/components/Link'
+import { TokenLogo } from '~/components/TokenLogo'
+import { Tooltip } from '~/components/Tooltip'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
-import { BasicLink } from '../Link'
-import { TokenLogo } from '../TokenLogo'
-import { Tooltip } from '../Tooltip'
 
 interface TopUnlocksProps {
 	data: any[]
@@ -62,9 +62,9 @@ export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, cla
 	}, [data, period])
 
 	return (
-		<div className={className}>
+		<div className={`text-(--text-primary) ${className ?? ''}`}>
 			<Tooltip
-				className="text-base font-semibold"
+				className="text-base font-semibold text-(--text-primary)"
 				content={`List of top unlocks in the last ${period} ${period === 1 ? 'day' : 'days'}`}
 			>
 				{title}
@@ -76,12 +76,14 @@ export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, cla
 						<TokenLogo logo={tokenIconUrl(`${unlock.name}`)} />
 						<BasicLink
 							href={`/unlocks/${slug(unlock.name)}`}
-							className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline"
+							className="overflow-hidden text-ellipsis whitespace-nowrap text-(--text-primary) hover:underline"
 						>
 							{unlock.name} ({unlock.symbol})
 						</BasicLink>
 					</div>
-					<span className="text-sm font-medium text-(--primary)">{formattedNum(unlock.value, true)}</span>
+					<span className="text-sm font-semibold text-(--link-text) tabular-nums">
+						{formattedNum(unlock.value, true)}
+					</span>
 				</div>
 			))}
 		</div>

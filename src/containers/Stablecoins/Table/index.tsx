@@ -125,7 +125,8 @@ export function PeggedAssetByChainTable({ data }) {
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex items-center justify-between p-3">
-				<label className="relative mr-auto w-full sm:max-w-[280px]">
+				<h3 className="text-base font-semibold">Stablecoins Usage by Chain</h3>
+				<label className="relative ml-auto w-full sm:max-w-[280px]">
 					<span className="sr-only">Search</span>
 					<Icon
 						name="search"
