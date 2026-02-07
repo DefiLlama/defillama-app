@@ -28,6 +28,9 @@ export interface IYieldTableRow {
 	boost: number
 	apyBorrow: number
 	poolMeta?: string | null
+	apyMedian30d?: number | null
+	apyStd30d?: number | null
+	cv30d?: number | null
 }
 
 export interface IYieldsProjectsTableRow {
