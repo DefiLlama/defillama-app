@@ -1,7 +1,7 @@
 import type { Dayjs } from 'dayjs'
 import * as React from 'react'
-import { COLOR_PALETTE } from '../constants'
-import type { DailyUnlocks, PrecomputedData } from '../types'
+import type { DailyUnlocks, PrecomputedData, UnlocksMultiSeriesChart } from '../types'
+import { buildUnlocksMultiSeriesChartForDateRange } from '../utils/buildUnlocksMultiSeriesChart'
 
 interface UseUnlockChartDataProps {
 	currentDate: Dayjs
@@ -40,140 +40,34 @@ export const useUnlockChartData = ({
 		}
 	}, [currentDate, viewMode])
 
-	const weeklyChartData = React.useMemo(() => {
+	const weeklyChart = React.useMemo<UnlocksMultiSeriesChart | null>(() => {
 		if (viewMode !== 'Week' || !weekRange) return null
 
-		const weekData: Array<any> = []
-		const protocolTotals: { [key: string]: number } = {}
-		const protocolColorMap: { [key: string]: string } = {}
+		const weekKey = weekRange.start.format('YYYY-MM-DD')
+		const cached = _precomputedData?.weekCharts?.[weekKey]
+		if (cached) return cached
 
-		for (const dateStr of weekRange.dates) {
-			const dayData = unlocksData?.[dateStr]
-			if (dayData?.events) {
-				for (const event of dayData.events) {
-					if (!protocolTotals[event.protocol]) {
-						protocolTotals[event.protocol] = 0
-					}
-					protocolTotals[event.protocol] += event.value
-				}
-			}
-		}
+		return buildUnlocksMultiSeriesChartForDateRange({
+			dates: weekRange.dates,
+			unlocksData
+		})
+	}, [viewMode, weekRange, unlocksData, _precomputedData])
 
-		const sortedProtocols = Object.keys(protocolTotals).sort((a, b) => protocolTotals[b] - protocolTotals[a])
-
-		for (let i = 0; i < sortedProtocols.length; i++) {
-			const protocol = sortedProtocols[i]
-			protocolColorMap[protocol] = COLOR_PALETTE[i % COLOR_PALETTE.length]
-		}
-
-		for (let i = 0; i < weekRange.dates.length; i++) {
-			const dateStr = weekRange.dates[i]
-			const day = weekRange.start.add(i, 'day')
-			const dayData = unlocksData?.[dateStr]
-			const dataPoint: { date: number; [key: string]: number } = { date: day.unix() }
-
-			for (const protocol of sortedProtocols) {
-				dataPoint[protocol] = 0
-			}
-
-			if (dayData?.events) {
-				for (const event of dayData.events) {
-					if (dataPoint.hasOwnProperty(event.protocol)) {
-						dataPoint[event.protocol] = event.value
-					}
-				}
-			}
-			weekData.push(dataPoint)
-		}
-
-		if (sortedProtocols.length === 0) {
-			return {
-				chartData: weekData.map((d) => [d.date, 0]),
-				stacks: {},
-				stackColors: {}
-			}
-		}
-
-		const stacks = sortedProtocols.reduce((acc, protocol) => {
-			acc[protocol] = 'unlocks'
-			return acc
-		}, {})
-
-		return {
-			chartData: weekData,
-			stacks,
-			stackColors: protocolColorMap
-		}
-	}, [viewMode, weekRange, unlocksData])
-
-	const monthlyChartData = React.useMemo(() => {
+	const monthlyChart = React.useMemo<UnlocksMultiSeriesChart | null>(() => {
 		if (viewMode !== 'Month' || !monthRange) return null
 
-		const monthData: Array<any> = []
-		const protocolTotals: { [key: string]: number } = {}
-		const protocolColorMap: { [key: string]: string } = {}
+		const monthKey = `${currentDate.year()}-${currentDate.month().toString().padStart(2, '0')}`
+		const cached = _precomputedData?.monthCharts?.[monthKey]
+		if (cached) return cached
 
-		for (const dateStr of monthRange.dates) {
-			const dayData = unlocksData?.[dateStr]
-			if (dayData?.events) {
-				for (const event of dayData.events) {
-					if (!protocolTotals[event.protocol]) {
-						protocolTotals[event.protocol] = 0
-					}
-					protocolTotals[event.protocol] += event.value
-				}
-			}
-		}
-
-		const sortedProtocols = Object.keys(protocolTotals).sort((a, b) => protocolTotals[b] - protocolTotals[a])
-
-		for (let i = 0; i < sortedProtocols.length; i++) {
-			const protocol = sortedProtocols[i]
-			protocolColorMap[protocol] = COLOR_PALETTE[i % COLOR_PALETTE.length]
-		}
-
-		for (let i = 0; i < monthRange.dates.length; i++) {
-			const dateStr = monthRange.dates[i]
-			const day = monthRange.start.date(i + 1)
-			const dayData = unlocksData[dateStr]
-			const dataPoint: { date: number; [key: string]: number } = { date: day.unix() }
-
-			for (const protocol of sortedProtocols) {
-				dataPoint[protocol] = 0
-			}
-
-			if (dayData?.events) {
-				for (const event of dayData.events) {
-					if (dataPoint.hasOwnProperty(event.protocol)) {
-						dataPoint[event.protocol] = event.value
-					}
-				}
-			}
-			monthData.push(dataPoint)
-		}
-
-		if (sortedProtocols.length === 0) {
-			return {
-				chartData: monthData.map((d) => [d.date, 0]),
-				stacks: {},
-				stackColors: {}
-			}
-		}
-
-		const stacks = sortedProtocols.reduce((acc, protocol) => {
-			acc[protocol] = 'unlocks'
-			return acc
-		}, {})
-
-		return {
-			chartData: monthData,
-			stacks,
-			stackColors: protocolColorMap
-		}
-	}, [viewMode, monthRange, unlocksData])
+		return buildUnlocksMultiSeriesChartForDateRange({
+			dates: monthRange.dates,
+			unlocksData
+		})
+	}, [viewMode, monthRange, unlocksData, currentDate, _precomputedData])
 
 	return {
-		weeklyChartData,
-		monthlyChartData
+		weeklyChart,
+		monthlyChart
 	}
 }

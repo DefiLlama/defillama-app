@@ -19,7 +19,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
 			const item = window.localStorage.getItem(key)
 			return item ? (JSON.parse(item) as T) : initialValue
 		} catch (error) {
-			console.warn(`Error reading localStorage key "${key}":`, error)
+			console.log(`Error reading localStorage key "${key}":`, error)
 			return initialValue
 		}
 	}, [key, initialValue])
@@ -40,7 +40,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
 					window.dispatchEvent(new StorageEvent('storage', { key, newValue: JSON.stringify(valueToStore) }))
 				}
 			} catch (error) {
-				console.warn(`Error setting localStorage key "${key}":`, error)
+				console.log(`Error setting localStorage key "${key}":`, error)
 			}
 		},
 		[key, storedValue]

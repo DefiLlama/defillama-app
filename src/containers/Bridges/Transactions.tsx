@@ -177,7 +177,7 @@ const fetchTransactions = async ({ bridges, startDate, endDate, selectedBridge }
 		const earliestTimestamp = Math.floor(new Date(earliestTx.ts).getTime() / 1000)
 
 		if (earliestTimestamp >= currentEndTimestamp) {
-			console.warn('Timestamp not decreasing, stopping pagination')
+			console.log('Timestamp not decreasing, stopping pagination')
 			break
 		}
 
@@ -190,7 +190,7 @@ const fetchTransactions = async ({ bridges, startDate, endDate, selectedBridge }
 	}
 
 	if (iterations >= MAX_ITERATIONS) {
-		console.warn(`Reached maximum iterations (${MAX_ITERATIONS}). Some transactions may be missing.`)
+		console.log(`Reached maximum iterations (${MAX_ITERATIONS}). Some transactions may be missing.`)
 	}
 
 	// Dedupe across pagination boundaries

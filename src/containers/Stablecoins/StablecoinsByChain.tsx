@@ -135,7 +135,7 @@ export function StablecoinsByChain({
 				// Never push an undefined index here, or downstream chart series/dimensions can be corrupted.
 				const maybeIndex = peggedNameToChartDataIndex[curr.name]
 				if (typeof maybeIndex === 'undefined') {
-					console.warn(
+					console.log(
 						`[StablecoinsByChain] Missing chart data index for pegged asset "${curr.name}". Skipping series index to avoid invalid peggedAssetNames indexing.`
 					)
 				} else {
@@ -143,7 +143,7 @@ export function StablecoinsByChain({
 					if (Number.isFinite(numericIndex)) {
 						chartDataIndexes.push(numericIndex)
 					} else {
-						console.warn(
+						console.log(
 							`[StablecoinsByChain] Invalid chart data index for pegged asset "${curr.name}": ${String(maybeIndex)}. Skipping series index.`
 						)
 					}

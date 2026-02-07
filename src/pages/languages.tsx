@@ -1,82 +1,102 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import type { IChartProps } from '~/components/ECharts/types'
+import type {
+	IMultiSeriesChart2Props,
+	MultiSeriesChart2Dataset,
+	MultiSeriesChart2SeriesConfig
+} from '~/components/ECharts/types'
 import { LANGS_API } from '~/constants'
 import Layout from '~/layout'
 import { getDominancePercent, getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
+const MultiSeriesChart2 = React.lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 
-function formatDataForChart(langs) {
-	const langsUnique = new Set<string>()
-
-	const dominance = []
-
-	const langEntries: [string, { [lang: string]: number }][] = []
+function buildDataset(
+	langs: Record<string, Record<string, number>>,
+	mode: 'absolute' | 'dominance'
+): { dataset: MultiSeriesChart2Dataset; keys: string[] } {
+	const keysSet = new Set<string>()
+	const entries: [string, Record<string, number>][] = []
 	for (const date in langs) {
-		langEntries.push([date, langs[date]])
+		entries.push([date, langs[date]])
 	}
-	langEntries.sort((a, b) => Number(a[0]) - Number(b[0]))
+	entries.sort((a, b) => Number(a[0]) - Number(b[0]))
 
-	const formattedLangs = langEntries.map(([date, tvlByLang]) => {
-		for (const l in tvlByLang) {
-			langsUnique.add(l)
+	const source: MultiSeriesChart2Dataset['source'] = []
+	for (const [date, tvlByLang] of entries) {
+		for (const l in tvlByLang) keysSet.add(l)
+
+		if (mode === 'dominance') {
+			let daySum = 0
+			for (const lang in tvlByLang) daySum += tvlByLang[lang]
+			const row: Record<string, number> = { timestamp: +date * 1e3 }
+			for (const lang in tvlByLang) {
+				row[lang] = getDominancePercent(tvlByLang[lang], daySum)
+			}
+			source.push(row)
+		} else {
+			source.push({ timestamp: +date * 1e3, ...tvlByLang })
 		}
+	}
 
-		let daySum = 0
-		for (const lang in tvlByLang) {
-			daySum += tvlByLang[lang]
-		}
-
-		const shares = {}
-
-		for (const lang in tvlByLang) {
-			shares[lang] = getDominancePercent(tvlByLang[lang], daySum)
-		}
-
-		dominance.push({ date, ...shares })
-
-		return {
-			...tvlByLang,
-			date
-		}
+	const keys = Array.from(keysSet)
+	const filledSource: MultiSeriesChart2Dataset['source'] = source.map((row) => {
+		const out: Record<string, number> = { timestamp: (row as any).timestamp }
+		for (const k of keys) out[k] = (row as any)?.[k] ?? 0
+		return out
 	})
 
-	return {
-		formatted: formattedLangs,
-		unique: Array.from(langsUnique),
-		dominance
-	}
+	return { dataset: { source: filledSource, dimensions: ['timestamp', ...keys] }, keys }
+}
+
+function buildCharts(keys: string[], colors: Record<string, string>, stack?: string): MultiSeriesChart2SeriesConfig[] {
+	return keys.map((name) => ({
+		type: 'line' as const,
+		name,
+		encode: { x: 'timestamp', y: name },
+		color: colors[name],
+		...(stack ? { stack } : {})
+	}))
 }
 
 export const getStaticProps = withPerformanceLogging('languages', async () => {
 	const data = await fetchJson(LANGS_API)
 
-	const { unique: langsUnique, formatted: formattedLangs, dominance: langsDominance } = formatDataForChart(data.chart)
-
-	const {
-		unique: osUnique,
-		formatted: osLangs,
-		dominance: osDominance
-	} = formatDataForChart(data.sumDailySolanaOpenSourceTvls)
+	const { dataset: tvlDataset, keys: langsUnique } = buildDataset(data.chart, 'absolute')
+	const { dataset: dominanceDataset } = buildDataset(data.chart, 'dominance')
+	const { dataset: osDataset, keys: osUnique } = buildDataset(data.sumDailySolanaOpenSourceTvls, 'dominance')
 
 	const allColors = getNDistinctColors(langsUnique.length)
-	const colors = {}
+	const colors: Record<string, string> = {}
 	for (let i = 0; i < langsUnique.length; i++) {
 		colors[langsUnique[i]] = allColors[i]
 	}
 
+	const tvlCharts = buildCharts(langsUnique, colors, 'A')
+	const dominanceCharts = buildCharts(langsUnique, colors, 'A')
+	const osColors: Record<string, string> = { ...sourceTypeColor }
+	const missingOsKeys = osUnique.filter((k) => !osColors[k])
+	if (missingOsKeys.length > 0) {
+		const fallback = getNDistinctColors(missingOsKeys.length)
+		for (let i = 0; i < missingOsKeys.length; i++) {
+			osColors[missingOsKeys[i]] = fallback[i]
+		}
+		console.log(`[languages] Missing sourceTypeColor for keys: ${missingOsKeys.join(', ')}`)
+	}
+	const osCharts = buildCharts(osUnique, osColors, 'A')
+
 	return {
 		props: {
-			langs: formattedLangs,
-			langsUnique,
-			langsDominance,
-			osUnique,
-			osLangs,
-			osDominance,
-			colors
+			tvlDataset,
+			tvlCharts,
+			dominanceDataset,
+			dominanceCharts,
+			osDataset,
+			osCharts
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -84,15 +104,7 @@ export const getStaticProps = withPerformanceLogging('languages', async () => {
 
 const pageName = ['TVL', 'by', 'Smart Contract Languages']
 
-export default function Protocols({
-	langs,
-	langsUnique,
-	langsDominance,
-	osUnique,
-	osLangs: _osLangs,
-	osDominance,
-	colors
-}) {
+export default function Protocols({ tvlDataset, tvlCharts, dominanceDataset, dominanceCharts, osDataset, osCharts }) {
 	return (
 		<Layout
 			title={`Languages - DefiLlama`}
@@ -105,56 +117,47 @@ export default function Protocols({
 				Breakdown by Smart Contract Languages
 			</h1>
 
-			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3 *:*:*:[&[role='combobox']]:-mb-9">
-				<div className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<React.Suspense fallback={<></>}>
-						<AreaChart
-							chartData={langs}
-							title="TVL"
-							customLegendName="Language"
-							customLegendOptions={langsUnique}
-							valueSymbol="$"
-							stacks={langsUnique}
-							stackColors={colors}
-						/>
-					</React.Suspense>
-				</div>
-				<div className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<React.Suspense fallback={<></>}>
-						<AreaChart
-							chartData={langsDominance}
-							title="TVL Dominance"
-							customLegendName="Language"
-							customLegendOptions={langsUnique}
-							valueSymbol="%"
-							stacks={langsUnique}
-							stackColors={colors}
-						/>
-					</React.Suspense>
-				</div>
+			<div className="relative rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<React.Suspense fallback={<div className="h-[398px]" />}>
+					<MultiSeriesChart2
+						dataset={tvlDataset}
+						charts={tvlCharts}
+						title="TVL"
+						valueSymbol="$"
+						stacked
+						hideDefaultLegend={false}
+					/>
+				</React.Suspense>
+			</div>
+			<div className="relative rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<React.Suspense fallback={<div className="h-[398px]" />}>
+					<MultiSeriesChart2
+						dataset={dominanceDataset}
+						charts={dominanceCharts}
+						title="TVL Dominance"
+						valueSymbol="%"
+						expandTo100Percent
+						hideDefaultLegend={false}
+					/>
+				</React.Suspense>
 			</div>
 
 			<div className="relative rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<h2 className="p-3 text-xl font-semibold">Open/Closed Source breakdown of solana protocols</h2>
-
-				<div className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<React.Suspense fallback={<></>}>
-						<AreaChart
-							chartData={osDominance}
-							title=""
-							valueSymbol="%"
-							stacks={osUnique}
-							stackColors={sourceTypeColor}
-							hideDefaultLegend
-						/>
-					</React.Suspense>
-				</div>
+				<React.Suspense fallback={<div className="h-[398px]" />}>
+					<MultiSeriesChart2
+						dataset={osDataset}
+						charts={osCharts}
+						valueSymbol="%"
+						expandTo100Percent
+						title="Open/Closed Source breakdown of solana protocols"
+					/>
+				</React.Suspense>
 			</div>
 		</Layout>
 	)
 }
 
-const sourceTypeColor = {
+const sourceTypeColor: Record<string, string> = {
 	opensource: '#3fb950',
 	closedsource: '#f85149'
 }

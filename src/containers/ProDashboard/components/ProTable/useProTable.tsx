@@ -679,7 +679,7 @@ export function useProTable(
 
 							return typeof result === 'number' ? result : null
 						} catch (error) {
-							console.warn(`Error evaluating custom column "${customCol.name}":`, error)
+							console.log(`Error evaluating custom column "${customCol.name}":`, error)
 							return null
 						}
 					},

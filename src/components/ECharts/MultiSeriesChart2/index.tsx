@@ -38,7 +38,16 @@ echarts.use([
 ])
 
 function formatAxisLabel(value: number, symbol: string): string {
-	if (Math.abs(value) > 1000) return formattedNum(value, symbol === '$')
+	// For large values we use `formattedNum` for comma separators, but we must still
+	// append units like `%` (live code shows `1,500%`, not `1,500`).
+	if (Math.abs(value) > 1000) {
+		if (symbol === '$') return formattedNum(value, true)
+		const base = formattedNum(value, false) // includes sign, no unit
+		if (!symbol) return base
+		if (symbol === '%') return `${base}%`
+		return `${base} ${symbol}`
+	}
+
 	return formatNum(value, 5, symbol || undefined)
 }
 
@@ -730,8 +739,6 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		const extraCssText = [
 			baseExtraCssText,
 			'z-index: 2147483647',
-			// Prevent tooltip from ever creating page-level scrollbars.
-			'position: fixed',
 			'box-sizing: border-box',
 			'max-height: calc(100vh - 24px)',
 			'max-width: calc(100vw - 24px)',
@@ -785,6 +792,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 							...(expandTo100Percent ? { max: 100, min: 0 } : {})
 						},
 			...(shouldHideDataZoom ? {} : { dataZoom }),
+			...(chartOptions?.toolbox ? { toolbox: chartOptions.toolbox } : {}),
 			series,
 			dataset: datasetForOption
 		})

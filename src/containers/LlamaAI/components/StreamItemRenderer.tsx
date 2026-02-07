@@ -118,7 +118,7 @@ export const StreamItemRenderer = memo(function StreamItemRenderer({
 
 		default:
 			// Unknown item type - log for debugging
-			console.warn('Unknown stream item type:', (item as any).type)
+			console.log('Unknown stream item type:', (item as any).type)
 			return null
 	}
 })

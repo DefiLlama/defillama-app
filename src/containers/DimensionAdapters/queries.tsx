@@ -128,7 +128,7 @@ async function getChainMapping() {
 		chainMappingCache = mapping
 		return mapping
 	} catch {
-		console.warn('Failed to fetch chain mapping, falling back to toLowerCase conversion')
+		console.log('Failed to fetch chain mapping, falling back to toLowerCase conversion')
 		return {}
 	}
 }

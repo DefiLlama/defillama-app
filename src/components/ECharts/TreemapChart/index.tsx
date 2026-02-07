@@ -9,14 +9,26 @@ import { formattedNum } from '~/utils'
 
 echarts.use([TitleComponent, TooltipComponent, ToolboxComponent, DataZoomComponent, EChartTreemap, CanvasRenderer])
 
+type TreemapVariant = 'yields' | 'narrative'
+
 export interface IChartProps {
-	chartData: any
+	treeData: any[]
+	variant?: TreemapVariant
+	height?: string
 }
 
 const visualMin = -100
 const visualMax = 100
 const visualMinBound = -40
 const visualMaxBound = 40
+
+function cloneTreeData(nodes: any[]): any[] {
+	return (nodes ?? []).map((node) => ({
+		...node,
+		value: Array.isArray(node?.value) ? [...node.value] : node?.value,
+		children: node?.children ? cloneTreeData(node.children) : node?.children
+	}))
+}
 
 function addColorGradientField(chartDataTree) {
 	let min = Infinity
@@ -56,7 +68,7 @@ function addColorGradientField(chartDataTree) {
 	}
 }
 
-export default function TreemapChart({ chartData }: IChartProps) {
+export default function TreemapChart({ treeData, variant = 'yields', height }: IChartProps) {
 	const id = useId()
 
 	const [isDark] = useDarkModeManager()
@@ -66,31 +78,10 @@ export default function TreemapChart({ chartData }: IChartProps) {
 	useChartResize(chartRef)
 
 	const chartDataTree = useMemo(() => {
-		const treeData = []
-
-		const cData = chartData.filter((p) => p.apyPct1D !== null)
-
-		// structure into hierarchy
-		for (let project of [...new Set(cData.map((p) => p.projectName))]) {
-			const projectData = cData.filter((p) => p.projectName === project)
-			const projectTvl = projectData.map((p) => p.tvlUsd).reduce((a, b) => a + b, 0)
-
-			treeData.push({
-				value: [projectTvl, null, null],
-				name: project,
-				path: project,
-				children: projectData.map((p) => ({
-					value: [p.tvlUsd, parseFloat(p.apy.toFixed(2)), parseFloat(p.apyPct1D.toFixed(2))],
-					name: p.symbol,
-					path: `${p.projectName}/${p.symbol}`
-				}))
-			})
-		}
-
-		addColorGradientField(treeData)
-
-		return treeData
-	}, [chartData])
+		const cloned = cloneTreeData(treeData ?? [])
+		addColorGradientField(cloned)
+		return cloned
+	}, [treeData])
 
 	useEffect(() => {
 		const el = document.getElementById(id)
@@ -99,14 +90,23 @@ export default function TreemapChart({ chartData }: IChartProps) {
 		chartRef.current = instance
 
 		const option = {
-			title: {
-				text: 'APY Trends - 1d Change',
-				textStyle: {
-					fontFamily: 'sans-serif',
-					fontWeight: 600,
-					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-				}
-			},
+			title:
+				variant === 'narrative'
+					? {
+							textStyle: {
+								fontFamily: 'sans-serif',
+								fontWeight: 600,
+								color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+							}
+						}
+					: {
+							text: 'APY Trends - 1d Change',
+							textStyle: {
+								fontFamily: 'sans-serif',
+								fontWeight: 600,
+								color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+							}
+						},
 			tooltip: {
 				formatter: function (info) {
 					let treePathInfo = info.treePathInfo
@@ -114,6 +114,19 @@ export default function TreemapChart({ chartData }: IChartProps) {
 					for (let i = 1; i < treePathInfo.length; i++) {
 						treePath.push(treePathInfo[i].name)
 					}
+
+					if (variant === 'narrative') {
+						if (treePath.length > 1) {
+							return [
+								`${treePath[1]}<br>`,
+								`Return: ${info.value[1]}%<br>`,
+								`Market Cap: ${formattedNum(info.value[0], true)}<br>`
+							].join('')
+						} else {
+							return null
+						}
+					}
+
 					if (treePath.length > 1) {
 						return [
 							`Project: ${treePath[0]}<br>`,
@@ -139,16 +152,41 @@ export default function TreemapChart({ chartData }: IChartProps) {
 					visualMin: visualMin,
 					visualMax: visualMax,
 					visualDimension: 3,
+					...(variant === 'narrative'
+						? {
+								roam: false,
+								nodeClick: false,
+								breadcrumb: { show: false }
+							}
+						: {
+								breadcrumb: {
+									itemStyle: {
+										color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.4)'
+									},
+									textStyle: {
+										fontFamily: 'sans-serif',
+										fontWeight: 400,
+										color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+									}
+								}
+							}),
 					label: {
 						position: 'insideTopRight',
 						formatter: function (params) {
 							let arr
 							if (params?.data?.path?.split('/')?.length > 1) {
-								arr = [
-									`{name|${params.data.path.split('/').slice(-1)[0]}}`,
-									`Spot: {apy| ${params.value[1]}%}`,
-									`Change {apy| ${params.value[2]}%}`
-								]
+								arr =
+									variant === 'narrative'
+										? [
+												`{name|${params.data.path.split('/').slice(-1)[0]}}`,
+												`Return: {apy| ${params.value[1]}%}`,
+												`Market Cap: {mcap| ${formattedNum(params.value[0], true)}}`
+											]
+										: [
+												`{name|${params.data.path.split('/').slice(-1)[0]}}`,
+												`Spot: {apy| ${params.value[1]}%}`,
+												`Change {apy| ${params.value[2]}%}`
+											]
 							} else {
 								arr = [params.name]
 							}
@@ -209,17 +247,7 @@ export default function TreemapChart({ chartData }: IChartProps) {
 							}
 						}
 					],
-					data: chartDataTree,
-					breadcrumb: {
-						itemStyle: {
-							color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.4)'
-						},
-						textStyle: {
-							fontFamily: 'sans-serif',
-							fontWeight: 400,
-							color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-						}
-					}
+					data: chartDataTree
 				}
 			]
 		}
@@ -229,11 +257,28 @@ export default function TreemapChart({ chartData }: IChartProps) {
 			chartRef.current = null
 			instance.dispose()
 		}
-	}, [id, chartDataTree, isDark])
+	}, [id, chartDataTree, isDark, variant])
+
+	useEffect(() => {
+		const instance = chartRef.current
+		if (!instance) return
+
+		// Container height changes don't automatically trigger echarts resize.
+		const raf = requestAnimationFrame(() => {
+			instance.resize()
+		})
+		return () => cancelAnimationFrame(raf)
+	}, [height])
+
+	const resolvedHeight = height ?? (variant === 'narrative' ? '533px' : '800px')
+
+	if (variant === 'narrative') {
+		return <div id={id} className="my-auto w-full" style={{ height: resolvedHeight }} />
+	}
 
 	return (
 		<div className="relative flex flex-col items-end rounded-md bg-(--cards-bg) p-3">
-			<div id={id} className="min-h-[800px] w-full" />
+			<div id={id} className="w-full" style={{ height: resolvedHeight }} />
 		</div>
 	)
 }

@@ -37,6 +37,7 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 	useChartResize(chartRef)
 
 	React.useEffect(() => {
+		if (!Array.isArray(chartData) || chartData.length === 0) return
 		const el = document.getElementById(id)
 		if (!el) return
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el)

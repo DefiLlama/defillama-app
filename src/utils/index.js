@@ -758,7 +758,7 @@ export function downloadDatasetCSV({
 }) {
 	try {
 		if (!data || !Array.isArray(data) || data.length === 0) {
-			console.warn('No data provided for CSV download')
+			console.log('No data provided for CSV download')
 			return
 		}
 
