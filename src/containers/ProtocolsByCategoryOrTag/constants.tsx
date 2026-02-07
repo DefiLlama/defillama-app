@@ -258,5 +258,8 @@ export const protocolCategories = {
 	'Secondary Debt Markets': {
 		description:
 			'Markets that allow users to exchange or settle existing debt claims and distressed positions, providing liquidity and price discovery for outstanding obligations'
+	},
+	'Block Builders': {
+		description: 'Block builder APIs for private transaction bundles',
 	}
 } as const satisfies Record<string, { description: string; defaultChart?: ProtocolChartsQueryParams }>
