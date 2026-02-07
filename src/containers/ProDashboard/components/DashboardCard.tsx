@@ -5,6 +5,7 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { Dashboard } from '../services/DashboardAPI'
 import { DashboardItemConfig } from '../types'
+import { ConfirmationModal } from './ConfirmationModal'
 
 interface DashboardCardProps {
 	dashboard: Dashboard
@@ -17,12 +18,22 @@ interface DashboardCardProps {
 
 export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'grid', className }: DashboardCardProps) {
 	const [isDeleting, setIsDeleting] = useState<boolean>(false)
-	const handleDelete = async (dashboardId: string, e: React.MouseEvent) => {
+	const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false)
+
+	const handleDeleteClick = (e: React.MouseEvent) => {
 		e.stopPropagation()
+		if (!onDelete) return
+		setShowDeleteConfirm(true)
+	}
+
+	const handleConfirmDelete = async () => {
 		if (!onDelete) return
 		setIsDeleting(true)
 		try {
-			await onDelete(dashboardId)
+			await onDelete(dashboard.id)
+			setShowDeleteConfirm(false)
+		} catch (error) {
+			console.error('Failed to delete dashboard:', error)
 		} finally {
 			setIsDeleting(false)
 		}
@@ -98,7 +109,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 							)}
 							<Tooltip
 								content="Delete dashboard"
-								render={<button disabled={isDeleting} onClick={(e) => handleDelete(dashboard.id, e)} />}
+								render={<button disabled={isDeleting} onClick={handleDeleteClick} />}
 								className="z-10 flex items-center justify-center gap-2 rounded-md bg-red-500/10 px-2 py-1.75 text-sm font-medium text-(--error)"
 							>
 								{isDeleting ? <LoadingSpinner size={12} /> : <Icon name="trash-2" height={12} width={12} />}
@@ -153,6 +164,16 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 			<BasicLink href={`/pro/${dashboard.id}`} className="absolute inset-0">
 				<span className="sr-only">View dashboard</span>
 			</BasicLink>
+
+			<ConfirmationModal
+				isOpen={showDeleteConfirm}
+				onClose={() => setShowDeleteConfirm(false)}
+				onConfirm={handleConfirmDelete}
+				title="Delete Dashboard"
+				message="Are you sure you want to delete this dashboard? This action cannot be undone."
+				confirmText="Delete"
+				cancelText="Cancel"
+			/>
 		</div>
 	)
 }

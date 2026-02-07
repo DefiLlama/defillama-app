@@ -164,12 +164,10 @@ export function useDashboardAPI() {
 		Router.push(`/pro/${id}`)
 	}
 
-	// Delete dashboard with confirmation
+	// Delete dashboard (confirmation handled in UI)
 	const deleteDashboardWithConfirmation = useCallback(
 		async (id: string) => {
-			if (confirm('Are you sure you want to delete this dashboard?')) {
-				await deleteDashboardMutation.mutateAsync(id)
-			}
+			await deleteDashboardMutation.mutateAsync(id)
 		},
 		[deleteDashboardMutation]
 	)

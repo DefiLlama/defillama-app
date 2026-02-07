@@ -77,7 +77,8 @@ function ProDashboardContent() {
 		skipRating,
 		dismissRating,
 		undoAIGeneration,
-		canUndo
+		canUndo,
+		deleteDashboard
 	} = useProDashboardDashboard()
 	const {
 		createDashboardDialogStore,
@@ -358,11 +359,13 @@ function ProDashboardContent() {
 					visibility={dashboardVisibility}
 					tags={dashboardTags}
 					description={dashboardDescription}
+					dashboardId={dashboardId}
 					onDashboardNameChange={setDashboardName}
 					onVisibilityChange={setDashboardVisibility}
 					onTagsChange={setDashboardTags}
 					onDescriptionChange={setDashboardDescription}
 					onSave={saveDashboard}
+					onDelete={deleteDashboard}
 				/>
 			</Suspense>
 
