@@ -44,7 +44,13 @@ function buildDataset(
 	}
 
 	const keys = Array.from(keysSet)
-	return { dataset: { source, dimensions: ['timestamp', ...keys] }, keys }
+	const filledSource: MultiSeriesChart2Dataset['source'] = source.map((row) => {
+		const out: Record<string, number> = { timestamp: (row as any).timestamp }
+		for (const k of keys) out[k] = (row as any)?.[k] ?? 0
+		return out
+	})
+
+	return { dataset: { source: filledSource, dimensions: ['timestamp', ...keys] }, keys }
 }
 
 function buildCharts(keys: string[], colors: Record<string, string>, stack?: string): MultiSeriesChart2SeriesConfig[] {

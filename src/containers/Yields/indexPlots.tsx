@@ -107,13 +107,44 @@ export const PlotsPage = ({
 	])
 
 	const medianApyDataset = React.useMemo<MultiSeriesChart2Dataset>(() => {
+		const parseTimestampToEpochMs = (value: unknown): number | null => {
+			if (value == null) return null
+
+			if (typeof value === 'number') {
+				if (!Number.isFinite(value)) return null
+				// Heuristic: treat small epoch values as seconds.
+				if (value > 0 && value < 1e10) return Math.trunc(value * 1e3)
+				return Math.trunc(value)
+			}
+
+			if (typeof value !== 'string') return null
+			const s = value.trim()
+			if (!s) return null
+
+			// Numeric strings (epoch seconds/ms)
+			if (/^-?\d+(\.\d+)?$/.test(s)) {
+				const n = Number(s)
+				return parseTimestampToEpochMs(n)
+			}
+
+			// YYYY-MM-DD (treat as UTC midnight)
+			if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+				const ms = Date.parse(`${s}T00:00:00.000Z`)
+				return Number.isFinite(ms) ? ms : null
+			}
+
+			// Full ISO or other parseable date strings
+			const ms = Date.parse(s)
+			return Number.isFinite(ms) ? ms : null
+		}
+
 		const rows = (median ?? []).map((r) => {
 			const medianApyRaw = Number(r?.medianAPY)
 			const avg7DayRaw = r?.avg7day == null ? null : Number(r.avg7day)
 
 			return {
 				// Keep this UTC-stable (avoid local timezone shifts)
-				timestamp: new Date(`${r.timestamp}T00:00:00.000Z`).getTime(),
+				timestamp: parseTimestampToEpochMs(r?.timestamp),
 				'Median APY': Number.isFinite(medianApyRaw) ? Number(medianApyRaw.toFixed(3)) : null,
 				'7-day Average': avg7DayRaw == null ? null : Number.isFinite(avg7DayRaw) ? Number(avg7DayRaw.toFixed(3)) : null
 			}

@@ -181,7 +181,7 @@ export const CategoryPerformanceContainer = ({
 
 		const treemapChart = sorted.map((i) => ({ ...i, returnField: i[field] }))
 
-		let chart = performanceTimeSeries[seriesKey]
+		let chart = performanceTimeSeries?.[seriesKey]
 		chart = denomCoin === '$' ? chart : calculateDenominatedChange(chart, denomCoin)
 
 		return { sortedPctChanges: sorted, timeSeries: chart, treemapChart }
