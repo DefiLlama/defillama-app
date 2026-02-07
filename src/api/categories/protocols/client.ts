@@ -14,9 +14,9 @@ import {
 } from '~/constants'
 import { fetchAndFormatGovernanceData } from '~/containers/ProtocolOverview/Governance'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
+import { getProtocolEmissons } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
 import { fetchApi, fetchJson } from '~/utils/async'
-import { getProtocolEmissons } from '.'
 import { formatProtocolsData } from './utils'
 
 export const useFetchProtocol = (protocolName) => {

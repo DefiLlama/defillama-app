@@ -1,11 +1,11 @@
 import dayjs from 'dayjs'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { getAllProtocolEmissionsWithHistory } from '~/api/categories/protocols'
 import { Announcement } from '~/components/Announcement'
 import { CalendarView } from '~/components/Unlocks/CalendarView'
 import type { PrecomputedData, UnlocksData } from '~/components/Unlocks/types'
 import { buildUnlocksMultiSeriesChartForDateRange } from '~/components/Unlocks/utils/buildUnlocksMultiSeriesChart'
+import { getAllProtocolEmissionsWithHistory } from '~/containers/Unlocks/queries'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
