@@ -423,15 +423,17 @@ export const PeggedAssetInfo = ({
 										<Icon name="arrow-up-right" height={14} width={14} />
 									</a>
 								) : null}
-								<a
-									href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-								>
-									<Icon name="github" className="h-3 w-3" />
-									<span>Check the code</span>
-								</a>
+								{gecko_id ? (
+									<a
+										href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+									>
+										<Icon name="github" className="h-3 w-3" />
+										<span>Check the code</span>
+									</a>
+								) : null}
 							</div>
 						</div>
 					</div>

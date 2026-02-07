@@ -37,7 +37,10 @@ export const getStaticProps = withPerformanceLogging(
 
 		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
 
-		const stablecoinData = await getPeggedAssetPageData(protocolData.stablecoins[0])
+		const stablecoinData =
+			Array.isArray(protocolData?.stablecoins) && protocolData.stablecoins.length > 0
+				? await getPeggedAssetPageData(protocolData.stablecoins[0])
+				: null
 
 		return {
 			props: {

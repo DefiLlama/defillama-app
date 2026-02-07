@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
-import { useEffect, useEffectEvent, useState } from 'react'
+import { useEffect, useEffectEvent, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, tokenIconUrl } from '~/utils'
@@ -18,7 +18,7 @@ const ProtocolPageButton = () => {
 const RegularButton = () => {
 	return (
 		<Ariakit.MenuButton
-			className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2C2C2E] text-white transition-colors hover:bg-(--bg-secondary) hover:text-(--text-primary) dark:bg-zinc-800"
+			className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--bg-tertiary) text-(--text-primary) hover:bg-(--bg-border)"
 			aria-label="Add to calendar"
 		>
 			<Icon name="calendar-plus" width={20} height={20} />
@@ -50,7 +50,7 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 							rel="noopener noreferrer"
 						/>
 					}
-					className="flex shrink-0 cursor-pointer items-center gap-2 border-b border-(--form-control-border) px-3 py-2 first-of-type:rounded-t-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+					className="flex shrink-0 cursor-pointer items-center gap-2 border-b border-(--bg-border) px-3 py-2 first-of-type:rounded-t-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 				>
 					<Icon name="external-link" width={16} height={16} />
 					Google Calendar
@@ -70,6 +70,17 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 	)
 }
 
+const CountdownTile = ({ value, label }: { value: string; label: string }) => {
+	return (
+		<div className="flex flex-col items-center">
+			<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--bg-tertiary)">
+				<span className="text-base font-semibold tracking-tight text-(--text-primary) tabular-nums">{value}</span>
+			</div>
+			<span className="mt-1 text-xs leading-none font-medium text-(--text-meta)">{label}</span>
+		</div>
+	)
+}
+
 export const UpcomingEvent = ({
 	noOfTokens = [],
 	timestamp,
@@ -82,40 +93,46 @@ export const UpcomingEvent = ({
 	isProtocolPage = false
 }) => {
 	const tokenSymbol = symbol ? symbol.toUpperCase() : ''
-	const currentUnlockBreakdown = event.map(({ description, noOfTokens, timestamp, unlockType, rateDurationDays }) => {
-		const regex =
-			/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1]\} tokens per week from (.+?) on {timestamp})/
-		const matches = description.match(regex)
-		const name = matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
+	const { currentUnlockBreakdown, totalAmount, tokenValue, unlockPercent, unlockPercentFloat } = useMemo(() => {
+		const breakdown = event
+			.map(({ description, noOfTokens, timestamp, unlockType, rateDurationDays }) => {
+				const regex =
+					/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1]\} tokens per week from (.+?) on {timestamp})/
+				const matches = description.match(regex)
+				const name = matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
 
-		let perDayAmount, totalAmount, displayUnit
-		if (unlockType === 'linear') {
-			const isIncrease = description.toLowerCase().includes('increase')
-			perDayAmount = (isIncrease ? noOfTokens[1] : noOfTokens[0]) / 7
-			totalAmount = perDayAmount * (rateDurationDays || 1)
-			displayUnit = 'per day'
-		} else {
-			perDayAmount = totalAmount = noOfTokens.reduce((sum, amount) => sum + amount, 0)
-			displayUnit = ''
-		}
-		const currentTime = Date.now() / 1e3
-		const endTime = timestamp + (rateDurationDays || 0) * 86400
-		const isOngoing = unlockType === 'linear' && currentTime >= timestamp && currentTime <= endTime
-		return {
-			name,
-			perDayAmount,
-			totalAmount,
-			displayUnit,
-			timestamp,
-			unlockType,
-			isOngoing
-		}
-	})
+				let perDayAmount, totalAmount, displayUnit
+				if (unlockType === 'linear') {
+					const isIncrease = description.toLowerCase().includes('increase')
+					perDayAmount = (isIncrease ? noOfTokens[1] : noOfTokens[0]) / 7
+					totalAmount = perDayAmount * (rateDurationDays || 1)
+					displayUnit = 'per day'
+				} else {
+					perDayAmount = totalAmount = noOfTokens.reduce((sum, amount) => sum + amount, 0)
+					displayUnit = ''
+				}
+				const currentTime = Date.now() / 1e3
+				const endTime = timestamp + (rateDurationDays || 0) * 86400
+				const isOngoing = unlockType === 'linear' && currentTime >= timestamp && currentTime <= endTime
+				return {
+					name,
+					perDayAmount,
+					totalAmount,
+					displayUnit,
+					timestamp,
+					unlockType,
+					isOngoing
+				}
+			})
+			.sort((a, b) => b.totalAmount - a.totalAmount)
 
-	const totalAmount = currentUnlockBreakdown.reduce((sum, item) => sum + item.totalAmount, 0)
-	const tokenValue = price ? totalAmount * price : null
-	const unlockPercent = maxSupply ? (totalAmount / maxSupply) * 100 : null
-	const unlockPercentFloat = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
+		const totalAmount = breakdown.reduce((sum, item) => sum + item.totalAmount, 0)
+		const tokenValue = price ? totalAmount * price : null
+		const unlockPercent = maxSupply ? (totalAmount / maxSupply) * 100 : null
+		const unlockPercentFloat = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
+
+		return { currentUnlockBreakdown: breakdown, totalAmount, tokenValue, unlockPercent, unlockPercentFloat }
+	}, [event, price, maxSupply, mcap])
 
 	const timeLeft = timestamp - Date.now() / 1e3
 	const days = Math.floor(timeLeft / 86400)
@@ -175,7 +192,7 @@ export const UpcomingEvent = ({
 						)}
 					</div>
 				</div>
-				<hr className="border-(--cards-border)" />
+				<hr className="border-(--bg-border)" />
 				<div className="flex flex-col gap-3">
 					{currentUnlockBreakdown.map(
 						({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp: _timestamp, isOngoing }) => {
@@ -223,7 +240,6 @@ export const UpcomingEvent = ({
 						}
 					)}
 				</div>
-
 				{timeLeft > 0 ? (
 					<CalendarButton
 						event={{ timestamp, noOfTokens, symbol, description: '' }}
@@ -232,17 +248,6 @@ export const UpcomingEvent = ({
 						isProtocolPage={isProtocolPage}
 					/>
 				) : null}
-			</div>
-		)
-	}
-
-	const CountdownTile = ({ value, label }: { value: string; label: string }) => {
-		return (
-			<div className="flex flex-col items-center">
-				<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2C2C2E] text-white dark:bg-zinc-800">
-					<span className="text-base font-semibold tracking-tight text-white tabular-nums">{value}</span>
-				</div>
-				<span className="mt-1 text-xs leading-none font-medium text-(--text-meta)">{label}</span>
 			</div>
 		)
 	}
@@ -283,7 +288,7 @@ export const UpcomingEvent = ({
 				</Ariakit.HovercardAnchor>
 				<Ariakit.HovercardDisclosure />
 				<Ariakit.Hovercard
-					className="z-10 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4 text-sm text-(--text-primary) shadow-sm"
+					className="z-10 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--bg-secondary) p-4 text-sm text-(--text-primary) shadow-sm"
 					unmountOnHide
 					hideOnInteractOutside
 					portal={true}
@@ -302,7 +307,7 @@ export const UpcomingEvent = ({
 							</span>
 						</span>
 					</span>
-					<hr className="border-(--cards-border)" />
+					<hr className="border-(--bg-border)" />
 					<span className="flex flex-col gap-4">
 						{currentUnlockBreakdown.map(
 							({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp: _timestamp, isOngoing }) => {
@@ -350,7 +355,7 @@ export const UpcomingEvent = ({
 							}
 						)}
 					</span>
-					<hr className="border-(--cards-border)" />
+					<hr className="border-(--bg-border)" />
 
 					<span className="flex flex-col gap-1">
 						<span className="flex items-center justify-between gap-2 font-semibold">

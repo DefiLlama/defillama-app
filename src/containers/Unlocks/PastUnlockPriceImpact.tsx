@@ -82,7 +82,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 			const priceAfter7d = protocol.historicalPrice[protocol.historicalPrice.length - 1][1]
 			const impact = ((priceAfter7d - priceAtUnlock) / priceAtUnlock) * 100
 
-			const breakdown: UnlockBreakdown[] =
+			const breakdown: UnlockBreakdown[] = (
 				latestEvent.events
 					.flatMap((event) =>
 						event.noOfTokens?.map((amount: number) => ({
@@ -93,6 +93,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 						}))
 					)
 					.filter(Boolean) || []
+			).sort((a, b) => b.amount - a.amount)
 
 			protocolImpacts.set(protocol.name, {
 				name: protocol.name,
@@ -137,17 +138,13 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 						</div>
 					</div>
 					<div className="flex items-center gap-1">
-						<span
-							className={`text-sm font-semibold tabular-nums ${impact.impact > 0 ? 'text-(--success)' : 'text-(--error)'}`}
-						>
-							{formattedPercent(impact.impact)}
-						</span>
+						<span className="text-sm font-semibold tabular-nums">{formattedPercent(impact.impact)}</span>
 						<Ariakit.HovercardProvider>
 							<Ariakit.HovercardAnchor>
 								<Icon name="help-circle" width={16} height={16} className="cursor-help text-(--text-meta)" />
 							</Ariakit.HovercardAnchor>
 							<Ariakit.Hovercard
-								className="z-10 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4 text-sm text-(--text-primary) shadow-sm"
+								className="z-10 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--bg-secondary) p-4 text-sm text-(--text-primary) shadow-sm"
 								unmountOnHide
 								hideOnInteractOutside
 								portal={true}
@@ -166,7 +163,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 									</span>
 								</span>
 
-								<hr className="border-(--cards-border)" />
+								<hr className="border-(--bg-border)" />
 
 								<span className="flex flex-col gap-4">
 									{impact.unlockBreakdown.map((item) => {
@@ -211,7 +208,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 										)
 									})}
 								</span>
-								<hr className="border-(--cards-border)" />
+								<hr className="border-(--bg-border)" />
 
 								<span className="flex flex-col gap-1">
 									<span className="flex items-center justify-between gap-2 font-semibold">

@@ -484,7 +484,10 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Total Unlocked',
 		id: 'totalLocked',
-		accessorFn: (row) => (row.maxSupply && row.totalLocked ? row.totalLocked / row.maxSupply : 0),
+		accessorFn: (row) => {
+			const rawPctUnlocked = row.maxSupply ? 100 - (row.totalLocked / row.maxSupply) * 100 : 0
+			return Number.isFinite(rawPctUnlocked) ? Math.max(0, Math.min(100, rawPctUnlocked)) : 0
+		},
 		cell: ({ row }) => {
 			const maxSupply = row.original.maxSupply
 			const totalLocked = row.original.totalLocked
@@ -517,20 +520,22 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		id: 'prevUnlock',
 		accessorFn: (row) => (row.historicalPrice ? row.historicalPrice : undefined),
 		cell: ({ row }) => {
+			const historicalPrice = row.original.historicalPrice
+			if (!historicalPrice?.length) {
+				return <div className="flex h-full items-center justify-end">-</div>
+			}
 			return (
 				<div className="flex h-full items-center justify-end">
 					<div className="relative w-full">
 						<Suspense fallback={<></>}>
 							<UnconstrainedSmolLineChart
-								series={row.original.historicalPrice}
+								series={historicalPrice}
 								name=""
 								color={
-									!row.original.historicalPrice?.length
+									historicalPrice[Math.floor(historicalPrice.length / 2)][1] >=
+									historicalPrice[historicalPrice.length - 1][1]
 										? 'red'
-										: row.original.historicalPrice[Math.floor(row.original.historicalPrice.length / 2)][1] >=
-											  row.original.historicalPrice[row.original.historicalPrice.length - 1][1]
-											? 'red'
-											: 'green'
+										: 'green'
 								}
 								className="h-[44px]"
 								extraData={{
@@ -598,6 +603,7 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 			return timestamp
 		},
 		cell: ({ row }) => {
+			if (!Array.isArray(row.original.upcomingEvent) || !row.original.upcomingEvent.length) return null
 			const { timestamp } = row.original.upcomingEvent[0]
 			if (!timestamp || timestamp < Date.now() / 1e3) return null
 
