@@ -2,7 +2,6 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
-import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	useFetchProtocolActiveUsers,
 	useFetchProtocolGovernanceData,
@@ -27,6 +26,7 @@ import {
 } from '~/constants'
 import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/queries'
 import { serializeProtocolChartToMultiChart } from '~/containers/ProDashboard/utils/chartSerializer'
+import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { capitalizeFirstLetter, firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug, tokenIconUrl } from '~/utils'
@@ -762,7 +762,7 @@ export const useFetchAndFormatChartData = ({
 	)
 	const { data: unlocksAndIncentivesData = null, isLoading: fetchingUnlocksAndIncentives } = useQuery({
 		queryKey: ['unlocks', name, isUnlocksEnabled],
-		queryFn: () => (isUnlocksEnabled ? getProtocolEmissons(slug(name)) : Promise.resolve(null)),
+		queryFn: () => (isUnlocksEnabled ? getProtocolEmissionsCharts(slug(name)) : Promise.resolve(null)),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,

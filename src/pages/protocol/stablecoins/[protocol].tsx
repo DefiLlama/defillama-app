@@ -4,6 +4,7 @@ import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { StablecoinInfo } from '~/containers/ProtocolOverview/Stablecoin'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
+import { getPeggedAssetPageData } from '~/containers/Stablecoins/queries.server'
 import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -36,13 +37,15 @@ export const getStaticProps = withPerformanceLogging(
 
 		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
 
+		const stablecoinData = await getPeggedAssetPageData(protocolData.stablecoins[0])
+
 		return {
 			props: {
 				name: protocolData.name,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
-				assetName: protocolData.stablecoins[0],
+				stablecoinData: stablecoinData?.props ?? null,
 				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
@@ -65,9 +68,7 @@ export default function Protocols({ clientSide: _clientSide, protocolData: _prot
 			warningBanners={props.warningBanners}
 			toggleOptions={EMPTY_TOGGLE_OPTIONS}
 		>
-			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<StablecoinInfo assetName={props.assetName} />
-			</div>
+			<StablecoinInfo data={props.stablecoinData} />
 		</ProtocolOverviewLayout>
 	)
 }

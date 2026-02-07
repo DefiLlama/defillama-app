@@ -1,5 +1,4 @@
 import dayjs from 'dayjs'
-import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	CACHE_SERVER,
 	PROTOCOL_API,
@@ -11,6 +10,7 @@ import {
 } from '~/constants'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/queries'
+import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
 import { processAdjustedProtocolTvl, ProtocolChainTvls } from '~/utils/tvl'
 import { convertToNumberFormat, normalizeHourlyToDaily } from '../utils'
@@ -97,18 +97,16 @@ export default class ProtocolCharts {
 		if (!protocol) return []
 		try {
 			const resolvedDataType = dataType === 'realtime' ? 'documented' : dataType
-			const data = await getProtocolEmissons(slug(protocol))
-			const dataset = data?.datasets?.[resolvedDataType]
-			if (!dataset?.source?.length) return []
-			const valueKeys = dataset.dimensions.filter((k) => k !== 'timestamp')
+			const data = await getProtocolEmissionsCharts(slug(protocol))
+			const chart = data?.chartData?.[resolvedDataType] ?? []
+			if (!chart.length) return []
 			const totals: [number, number][] = []
-			for (const entry of dataset.source) {
-				const ts = entry.timestamp as number
-				if (!Number.isFinite(ts)) continue
+			for (const { timestamp, ...rest } of chart) {
+				const tsMs = Number(timestamp)
+				if (!Number.isFinite(tsMs)) continue
 				let total = 0
-				for (const key of valueKeys) total += Number(entry[key] ?? 0)
-				// Return [seconds, value] to match other chart series
-				totals.push([Math.floor(ts / 1e3), total])
+				for (const key in rest) total += Number((rest as any)[key] ?? 0)
+				totals.push([Math.floor(tsMs / 1e3), total])
 			}
 			return totals.sort((a, b) => a[0] - b[0])
 		} catch (e) {

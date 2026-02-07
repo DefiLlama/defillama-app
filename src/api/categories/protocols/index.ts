@@ -332,15 +332,10 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			seenDocumentedLabels.add(label)
 			emissionCategories['documented'].push(label)
 
-			for (const value of emission.data) {
-				if (!protocolEmissions['documented'][value.timestamp]) {
-					protocolEmissions['documented'][value.timestamp] = {}
-				}
-
-				protocolEmissions['documented'][value.timestamp] = {
-					...protocolEmissions['documented'][value.timestamp],
-					[label]: value.unlocked
-				}
+			for (const value of emission.data ?? []) {
+				const ts = value.timestamp
+				const entry = protocolEmissions['documented'][ts] ?? (protocolEmissions['documented'][ts] = {})
+				entry[label] = value.unlocked
 			}
 		}
 
@@ -357,15 +352,10 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			seenRealtimeLabels.add(label)
 			emissionCategories['realtime'].push(label)
 
-			for (const value of emission.data) {
-				if (!protocolEmissions['realtime'][value.timestamp]) {
-					protocolEmissions['realtime'][value.timestamp] = {}
-				}
-
-				protocolEmissions['realtime'][value.timestamp] = {
-					...protocolEmissions['realtime'][value.timestamp],
-					[label]: value.unlocked
-				}
+			for (const value of emission.data ?? []) {
+				const ts = value.timestamp
+				const entry = protocolEmissions['realtime'][ts] ?? (protocolEmissions['realtime'][ts] = {})
+				entry[label] = value.unlocked
 			}
 		}
 

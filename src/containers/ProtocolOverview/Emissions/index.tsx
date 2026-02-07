@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, memo, Suspense, useEffect, useMemo, useState } from 'react'
 import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/categories/protocols/client'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
@@ -31,11 +31,57 @@ const MultiSeriesChart2 = lazy(
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) {
+type ScheduleChartProps = Pick<
+	IMultiSeriesChart2Props,
+	| 'dataset'
+	| 'charts'
+	| 'hallmarks'
+	| 'expandTo100Percent'
+	| 'solidChartAreaStyle'
+	| 'valueSymbol'
+	| 'onReady'
+	| 'hideDefaultLegend'
+>
+
+const ScheduleChart = memo(function ScheduleChart(props: ScheduleChartProps) {
+	return (
+		<Suspense fallback={<div className="min-h-[360px]" />}>
+			<MultiSeriesChart2 {...props} />
+		</Suspense>
+	)
+})
+
+type InitialTokenMarketData = {
+	price?: number | null
+	prevPrice?: number | null
+	priceChangePercent?: number | null
+	mcap?: number | null
+	volume24h?: number | null
+	circSupply?: number | null
+	maxSupply?: number | null
+	maxSupplyInfinite?: boolean | null
+}
+
+export function Emissions({
+	data,
+	isEmissionsPage,
+	initialTokenMarketData,
+	disableClientTokenStatsFetch
+}: {
+	data: IEmission
+	isEmissionsPage?: boolean
+	initialTokenMarketData?: InitialTokenMarketData | null
+	disableClientTokenStatsFetch?: boolean
+}) {
 	return (
 		<div className="col-span-full flex flex-col gap-2 xl:col-span-1">
 			{!isEmissionsPage && <h3>Emissions</h3>}
-			<ChartContainer data={data} isEmissionsPage={isEmissionsPage} />
+			<ChartContainer
+				data={data}
+				isEmissionsPage={isEmissionsPage}
+				initialTokenMarketData={initialTokenMarketData}
+				disableClientTokenStatsFetch={disableClientTokenStatsFetch}
+			/>
 		</div>
 	)
 }
@@ -222,6 +268,11 @@ const unlockedPieChartStackColors = {
 	Locked: '#ff4e21'
 }
 
+const sortPieChartDataDesc = <T extends { name: string; value: number }>(items: T[]) =>
+	items.toSorted(
+		(a, b) => (Number(b.value) || 0) - (Number(a.value) || 0) || String(a.name).localeCompare(String(b.name))
+	)
+
 const EMPTY_STRING_LIST: string[] = []
 const EMPTY_STACK_COLORS: Record<string, string> = {}
 const EMPTY_ALLOCATION: Record<string, number> = {}
@@ -266,7 +317,17 @@ const sumValuesExcludingKey = (data: Record<string, unknown>, keyToSkip: string)
 	return total
 }
 
-const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
+const ChartContainer = ({
+	data,
+	isEmissionsPage,
+	initialTokenMarketData,
+	disableClientTokenStatsFetch
+}: {
+	data: IEmission
+	isEmissionsPage?: boolean
+	initialTokenMarketData?: InitialTokenMarketData | null
+	disableClientTokenStatsFetch?: boolean
+}) => {
 	const width = useBreakpointWidth()
 	const [dataType, setDataType] = useState<DataType>('documented')
 	const [isPriceEnabled, setIsPriceEnabled] = useState(false)
@@ -300,20 +361,39 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			})
 		}
 	}, [categoriesFromData])
-	const { data: geckoId } = useGeckoId(data.token ?? null)
+	const { data: geckoId } = useGeckoId(data.geckoId ? null : (data.token ?? null))
 
-	const priceChart = usePriceChart(data.geckoId ?? geckoId)
-	const tokenMaxSupply = priceChart.data?.data.coinData.market_data?.max_supply_infinite
+	const shouldPrefetchTokenStats = !(disableClientTokenStatsFetch ?? false)
+	const shouldFetchPriceChart = shouldPrefetchTokenStats || isPriceEnabled
+	const priceChart = usePriceChart(shouldFetchPriceChart ? (data.geckoId ?? geckoId) : undefined)
+
+	const tokenMaxSupplyFromChart = priceChart.data?.data.coinData.market_data?.max_supply_infinite
 		? Infinity
 		: (priceChart.data?.data.coinData.market_data?.max_supply ?? undefined)
-	const tokenCircSupply = priceChart.data?.data.coinData.market_data?.circulating_supply ?? undefined
-	const tokenPrice = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 1]?.[1]
-	const tokenMcap = priceChart.data?.data.mcaps?.[priceChart.data?.data.mcaps?.length - 1]?.[1]
-	const tokenVolume = priceChart.data?.data.volumes?.[priceChart.data?.data.volumes?.length - 1]?.[1]
+	const tokenCircSupplyFromChart = priceChart.data?.data.coinData.market_data?.circulating_supply ?? undefined
+	const tokenPriceFromChart = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 1]?.[1]
+	const tokenMcapFromChart = priceChart.data?.data.mcaps?.[priceChart.data?.data.mcaps?.length - 1]?.[1]
+	const tokenVolumeFromChart = priceChart.data?.data.volumes?.[priceChart.data?.data.volumes?.length - 1]?.[1]
 	const ystdPrice = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 2]?.[1]
-	const percentChange = tokenPrice && ystdPrice ? +(((tokenPrice - ystdPrice) / ystdPrice) * 100).toFixed(2) : null
+
+	const tokenPrice = tokenPriceFromChart ?? initialTokenMarketData?.price ?? data?.tokenPrice?.price ?? undefined
+	const tokenMcap = tokenMcapFromChart ?? initialTokenMarketData?.mcap ?? data?.meta?.mcap ?? undefined
+	const tokenVolume = tokenVolumeFromChart ?? initialTokenMarketData?.volume24h ?? undefined
+	const tokenCircSupply =
+		tokenCircSupplyFromChart ?? initialTokenMarketData?.circSupply ?? data?.meta?.circSupply ?? undefined
+	const tokenMaxSupply =
+		initialTokenMarketData?.maxSupplyInfinite === true
+			? Infinity
+			: (tokenMaxSupplyFromChart ?? initialTokenMarketData?.maxSupply ?? data?.meta?.maxSupply ?? undefined)
+
+	const percentChangeFromChart =
+		tokenPrice != null && ystdPrice != null ? +(((tokenPrice - ystdPrice) / ystdPrice) * 100).toFixed(2) : null
+	const percentChange = percentChangeFromChart ?? initialTokenMarketData?.priceChangePercent ?? null
+
+	const priceChartForOverlay = isPriceEnabled ? priceChart.data?.data : null
 	const normilizePriceChart = useMemo(() => {
-		const sourceData = priceChart.data?.data || {}
+		if (!priceChartForOverlay) return null
+		const sourceData = priceChartForOverlay || {}
 		const result: Record<string, Record<number, number>> = {}
 		for (const name in sourceData) {
 			const chart = sourceData[name] as Array<[number, number]>
@@ -326,7 +406,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			}
 		}
 		return result
-	}, [priceChart.data?.data])
+	}, [priceChartForOverlay])
 
 	const groupedEvents = groupByKey(data.events ?? [], (event) => event.timestamp)
 
@@ -376,6 +456,12 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	)
 
 	const chartData = useMemo(() => {
+		// Keep chart data independent from the price query unless the overlay is enabled.
+		// This prevents the schedule chart from re-rendering when price data finishes loading.
+		if (!isPriceEnabled) {
+			return rawChartData?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'timestamp') > 0)
+		}
+
 		return rawChartData
 			?.map((chartItem) => {
 				const dateSec = Math.floor(chartItem.timestamp / 1e3)
@@ -384,18 +470,13 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				const mcap = normilizePriceChart?.mcaps?.[dateSec]
 				const price = normilizePriceChart?.prices?.[dateSec]
 
-				if (mcap && isPriceEnabled) {
-					res['Market Cap'] = mcap
-				}
-
-				if (price && isPriceEnabled) {
-					res['Price'] = price
-				}
+				if (mcap) res['Market Cap'] = mcap
+				if (price) res['Price'] = price
 
 				return res
 			})
 			?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'timestamp') > 0)
-	}, [rawChartData, normilizePriceChart, isPriceEnabled])
+	}, [rawChartData, isPriceEnabled, normilizePriceChart])
 
 	const availableCategories =
 		allocationMode === 'standard'
@@ -441,21 +522,18 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				result.push({ name, value })
 			}
 		}
-		return result
+		return sortPieChartDataDesc(result)
 	}, [tokenAllocation])
 
-	const pieChartDataAllocation = useMemo(
-		() =>
-			pieChartData
-				.map((pieChartItem) => {
-					if (!selectedCategories.includes(pieChartItem.name)) {
-						return null
-					}
-					return pieChartItem
-				})
-				.filter(Boolean),
-		[pieChartData, selectedCategories]
-	)
+	const pieChartDataAllocation = useMemo(() => {
+		const filtered: Array<{ name: string; value: number }> = []
+		for (const item of pieChartData as Array<{ name: string; value: number }>) {
+			if (!item) continue
+			if (!selectedCategories.includes(item.name)) continue
+			filtered.push(item)
+		}
+		return sortPieChartDataDesc(filtered)
+	}, [pieChartData, selectedCategories])
 
 	const pieChartDataAllocationMode = allocationMode === 'current' ? pieChartDataAllocation : groupAllocation
 
@@ -541,10 +619,14 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			? 100 - (data.meta.totalLocked / data.meta.maxSupply) * 100
 			: 0
 
-	const unlockedPieChartData = [
-		{ name: 'Unlocked', value: unlockedPercent },
-		{ name: 'Locked', value: 100 - unlockedPercent }
-	]
+	const unlockedPieChartData = useMemo(
+		() =>
+			sortPieChartDataDesc([
+				{ name: 'Unlocked', value: unlockedPercent },
+				{ name: 'Locked', value: 100 - unlockedPercent }
+			]),
+		[unlockedPercent]
+	)
 
 	const getDesktopPieLegendPosition = (itemsCount: number) => {
 		// When there are only a few legend items, center it vertically.
@@ -585,10 +667,10 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					<TokenLogo logo={tokenIconUrl(data.name)} />
 					<h1 className="text-xl font-semibold">{data.name}</h1>
 
-					{data?.tokenPrice?.price ? (
+					{tokenPrice != null ? (
 						<>
 							<span className="mx-1 h-5 w-px bg-(--cards-border)" />
-							<span className="text-base font-semibold">${formattedNum(data.tokenPrice.price)}</span>
+							<span className="text-base font-semibold">${formattedNum(tokenPrice)}</span>
 							{percentChange !== null ? (
 								<span
 									className="text-sm font-medium"
@@ -670,7 +752,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								onChange={() => setChartType((prev) => (prev === 'bar' ? 'line' : 'bar'))}
 								checked={chartType === 'bar'}
 							/>
-							{normilizePriceChart?.prices ? (
+							{(data.geckoId ?? geckoId) ? (
 								<Switch
 									label="Price & MCap"
 									value="show=price-and-mcap"
@@ -697,18 +779,16 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								title={`${data.name} Unlock Schedule`}
 							/>
 						</div>
-						<Suspense fallback={<div className="min-h-[360px]" />}>
-							<MultiSeriesChart2
-								dataset={dataset}
-								charts={charts}
-								hallmarks={hallmarks}
-								expandTo100Percent={chartType === 'bar'}
-								solidChartAreaStyle
-								valueSymbol={data.tokenPrice?.symbol ?? ''}
-								onReady={handleChartReady}
-								hideDefaultLegend={false}
-							/>
-						</Suspense>
+						<ScheduleChart
+							dataset={dataset}
+							charts={charts}
+							hallmarks={hallmarks}
+							expandTo100Percent={chartType === 'bar'}
+							solidChartAreaStyle
+							valueSymbol={data.tokenPrice?.symbol ?? ''}
+							onReady={handleChartReady}
+							hideDefaultLegend={false}
+						/>
 					</div>
 				)}
 
@@ -852,10 +932,21 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	)
 }
 
-export const UnlocksCharts = ({ protocolName }: { protocolName: string }) => {
-	const { data = null, isLoading, error } = useGetProtocolEmissions(slug(protocolName))
+export const UnlocksCharts = ({
+	protocolName,
+	initialData,
+	initialTokenMarketData,
+	disableClientTokenStatsFetch
+}: {
+	protocolName: string
+	initialData?: IEmission | null
+	initialTokenMarketData?: InitialTokenMarketData | null
+	disableClientTokenStatsFetch?: boolean
+}) => {
+	const shouldFetch = !initialData
+	const { data = null, isLoading, error } = useGetProtocolEmissions(shouldFetch ? slug(protocolName) : null)
 
-	if (isLoading) {
+	if (shouldFetch && isLoading) {
 		return (
 			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<LocalLoader />
@@ -863,7 +954,8 @@ export const UnlocksCharts = ({ protocolName }: { protocolName: string }) => {
 		)
 	}
 
-	if (!data) {
+	const resolvedData = initialData ?? data
+	if (!resolvedData) {
 		return (
 			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<p>{error instanceof Error ? error.message : 'Failed to fetch'}</p>
@@ -871,5 +963,11 @@ export const UnlocksCharts = ({ protocolName }: { protocolName: string }) => {
 		)
 	}
 
-	return <ChartContainer data={data as any} />
+	return (
+		<ChartContainer
+			data={resolvedData as any}
+			initialTokenMarketData={initialTokenMarketData}
+			disableClientTokenStatsFetch={disableClientTokenStatsFetch}
+		/>
+	)
 }

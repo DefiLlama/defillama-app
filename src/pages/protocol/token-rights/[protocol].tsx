@@ -95,9 +95,7 @@ export default function ProtocolTokenRightsPage(props: TokenRightsPageProps) {
 			warningBanners={props.warningBanners}
 			toggleOptions={props.toggleOptions}
 		>
-			<div className="grid grid-cols-1 gap-2">
-				<TokenRights tokenRights={props.tokenRights} />
-			</div>
+			<TokenRights tokenRights={props.tokenRights} />
 		</ProtocolOverviewLayout>
 	)
 }

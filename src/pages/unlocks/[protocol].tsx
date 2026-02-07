@@ -3,6 +3,7 @@ import { maxAgeForNext } from '~/api'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import { LinkPreviewCard } from '~/components/SEO'
 import { Emissions } from '~/containers/ProtocolOverview/Emissions/index'
+import { getTokenMarketDataFromCgChart } from '~/containers/Unlocks/tokenMarketData'
 import Layout from '~/layout'
 import { formattedNum, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -49,12 +50,16 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
+		const geckoId = emissions.geckoId ?? emissions.meta?.gecko_id ?? null
+		const initialTokenMarketData = geckoId ? await getTokenMarketDataFromCgChart(geckoId) : null
+
 		return {
 			props: {
 				emissions,
 				totalUnlockValue: calculateTotalUnlockValue(emissions),
 				eventCountdown: getEventCountdown(emissions.upcomingEvent[0]?.timestamp),
-				noUpcomingEvent
+				noUpcomingEvent,
+				initialTokenMarketData
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -65,7 +70,13 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocol({ emissions, totalUnlockValue, eventCountdown, noUpcomingEvent }) {
+export default function Protocol({
+	emissions,
+	totalUnlockValue,
+	eventCountdown,
+	noUpcomingEvent,
+	initialTokenMarketData
+}) {
 	return (
 		<Layout
 			title={`${emissions.name} ${emissions.tokenPrice.symbol} Token Unlocks & Vesting Schedules - DefiLlama`}
@@ -80,7 +91,12 @@ export default function Protocol({ emissions, totalUnlockValue, eventCountdown, 
 				unlockAmount={`$${formattedNum(totalUnlockValue)}`}
 				tvl={noUpcomingEvent ? 'No Events' : eventCountdown}
 			/>
-			<Emissions data={emissions} isEmissionsPage />
+			<Emissions
+				data={emissions}
+				isEmissionsPage
+				initialTokenMarketData={initialTokenMarketData}
+				disableClientTokenStatsFetch
+			/>
 		</Layout>
 	)
 }
