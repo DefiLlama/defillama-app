@@ -126,7 +126,11 @@ const BridgeInfo = ({
 
 	const inflowsDataset = React.useMemo(
 		() => ({
-			source: groupedInflowsData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+			source: groupedInflowsData.map(({ date, Deposited, Withdrawn }) => ({
+				timestamp: +date * 1e3,
+				Deposited: Deposited ?? 0,
+				Withdrawn: -(Withdrawn ?? 0)
+			})),
 			dimensions: ['timestamp', 'Deposited', 'Withdrawn']
 		}),
 		[groupedInflowsData]

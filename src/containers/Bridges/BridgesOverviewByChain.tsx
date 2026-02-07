@@ -25,6 +25,22 @@ const NET_FLOW_PCT_CHARTS = [
 	{ type: 'bar' as const, name: 'Inflows', encode: { x: 'timestamp', y: 'Inflows' }, stack: 'stackA' },
 	{ type: 'bar' as const, name: 'Outflows', encode: { x: 'timestamp', y: 'Outflows' }, stack: 'stackA' }
 ]
+const CHAIN_INFLOW_CHARTS = [
+	{
+		type: 'bar' as const,
+		name: 'Deposits',
+		encode: { x: 'timestamp', y: 'Deposits' },
+		color: '#3b82f6',
+		stack: 'inflows'
+	},
+	{
+		type: 'bar' as const,
+		name: 'Withdrawals',
+		encode: { x: 'timestamp', y: 'Withdrawals' },
+		color: '#ef4444',
+		stack: 'inflows'
+	}
+]
 const BRIDGE_CHAIN_CHART_OPTIONS = [
 	'Bridge Volume',
 	'Net Flow',
@@ -123,6 +139,18 @@ export function BridgesOverviewByChain({
 			dimensions: ['timestamp', 'Inflows', 'Outflows']
 		}),
 		[chainPercentageNet]
+	)
+
+	const chainInflowsDataset = React.useMemo(
+		() => ({
+			source: chainVolumeData.map((entry: any) => ({
+				timestamp: +entry.date * 1e3,
+				Deposits: entry.Deposits ?? 0,
+				Withdrawals: entry.Withdrawals ?? 0
+			})),
+			dimensions: ['timestamp', 'Deposits', 'Withdrawals']
+		}),
+		[chainVolumeData]
 	)
 
 	const chartFilename = getBridgeChartFilename(selectedChain, chartType)
@@ -299,15 +327,17 @@ export function BridgesOverviewByChain({
 									</React.Suspense>
 								) : null
 							) : chartType === 'Inflows' ? (
-								<BridgeVolumeChart
-									chain={selectedChain === 'All' ? 'all' : selectedChain}
-									height="360px"
-									onReady={handleChartReady}
-								/>
-							) : chartType === 'Net Flow By Chain' ? (
-								<React.Suspense fallback={<div className="min-h-[600px]" />}>
-									<NetflowChart height={600} onReady={handleChartReady} />
-								</React.Suspense>
+								chainVolumeData && chainVolumeData.length > 0 ? (
+									<React.Suspense fallback={<div className="min-h-[360px]" />}>
+										<MultiSeriesChart2
+											dataset={chainInflowsDataset}
+											charts={CHAIN_INFLOW_CHARTS}
+											hideDefaultLegend={true}
+											valueSymbol="$"
+											onReady={handleChartReady}
+										/>
+									</React.Suspense>
+								) : null
 							) : chartType === '24h Tokens Deposited' ? (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
 									<PieChart chartData={tokenDeposits} onReady={handleChartReady} />

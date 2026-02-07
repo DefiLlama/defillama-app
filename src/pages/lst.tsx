@@ -53,7 +53,14 @@ const PageView = ({
 	const selectedInflowTokensSet = React.useMemo(() => new Set(selectedInflowTokens), [selectedInflowTokens])
 
 	const inflowsTooltipFormatter = React.useMemo(() => {
-		const gb = groupBy === 'Weekly' ? 'weekly' : groupBy === 'Monthly' ? 'monthly' : 'daily'
+		const gb =
+			groupBy === 'Weekly'
+				? 'weekly'
+				: groupBy === 'Monthly'
+					? 'monthly'
+					: groupBy === 'Cumulative'
+						? 'cumulative'
+						: 'daily'
 		return createInflowsTooltipFormatter({ groupBy: gb, valueSymbol: 'ETH' })
 	}, [groupBy])
 
