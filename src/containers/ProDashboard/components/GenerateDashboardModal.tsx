@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { DashboardItemConfig } from '../types'
+import { sanitizeItemsForAPI } from '../utils/dashboardUtils'
 
 const MCP_SERVER = 'https://mcp.llama.fi'
 const EMPTY_DASHBOARD_ITEMS: DashboardItemConfig[] = []
@@ -140,6 +141,12 @@ export function GenerateDashboardModal({
 		setIsLoading(true)
 
 		try {
+			// Sanitize items before sending to API to remove invalid values
+			const sanitizedItems =
+				mode === 'iterate' && existingDashboard?.items
+					? sanitizeItemsForAPI(existingDashboard.items)
+					: EMPTY_DASHBOARD_ITEMS
+
 			const requestBody =
 				mode === 'iterate'
 					? {
@@ -147,7 +154,7 @@ export function GenerateDashboardModal({
 							mode: 'iterate',
 							existingDashboard: {
 								dashboardName: existingDashboard?.dashboardName || '',
-								items: existingDashboard?.items ?? EMPTY_DASHBOARD_ITEMS,
+								items: sanitizedItems,
 								aiGenerated: existingDashboard?.aiGenerated
 							}
 						}
