@@ -6,7 +6,8 @@ import {
 	YIELD_CONFIG_API,
 	YIELD_CONFIG_POOL_API,
 	YIELD_POOLS_API,
-	YIELD_POOLS_LAMBDA_API
+	YIELD_POOLS_LAMBDA_API,
+	YIELD_VOLATILITY_API
 } from '~/constants'
 import { fetchApi } from '~/utils/async'
 import { formatYieldsPageData } from './utils'
@@ -87,6 +88,16 @@ export const useFetchProjectsList = () => {
 		error,
 		isLoading
 	}
+}
+
+export const useVolatility = () => {
+	return useQuery({
+		queryKey: [YIELD_VOLATILITY_API],
+		queryFn: () => fetchApi(YIELD_VOLATILITY_API),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
+	})
 }
 
 export const useYields = () => {

@@ -58,6 +58,8 @@ export function YieldFilterDropdowns({
 	showTotalSupplied,
 	showTotalBorrowed,
 	showAvailable,
+	showMedianApy,
+	showStdDev,
 	prepareCsv
 }: IDropdownMenusProps) {
 	const router = useRouter()
@@ -161,7 +163,9 @@ export function YieldFilterDropdowns({
 				showTotalSupplied ||
 				showTotalBorrowed ||
 				showAvailable ||
-				showLTV) && (
+				showLTV ||
+				showMedianApy ||
+				showStdDev) && (
 				<ColumnFilters
 					show7dBaseApy={show7dBaseApy}
 					show7dIL={show7dIL}
@@ -175,6 +179,8 @@ export function YieldFilterDropdowns({
 					showTotalBorrowed={showTotalBorrowed}
 					showAvailable={showAvailable}
 					showLTV={showLTV}
+					showMedianApy={showMedianApy}
+					showStdDev={showStdDev}
 					nestedMenu={nestedMenu}
 				/>
 			)}

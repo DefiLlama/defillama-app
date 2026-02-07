@@ -36,6 +36,8 @@ export interface IDropdownMenusProps {
 	showTotalSupplied?: boolean
 	showTotalBorrowed?: boolean
 	showAvailable?: boolean
+	showMedianApy?: boolean
+	showStdDev?: boolean
 	prepareCsv?: () => { filename: string; rows: Array<Array<string | number | boolean>> }
 }
 

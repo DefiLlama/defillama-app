@@ -1,7 +1,13 @@
+import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { useMemo, useRef } from 'react'
+import { lazy, Suspense, useMemo, useRef, useState } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 
 interface IColumnFiltersProps {
 	nestedMenu?: boolean
@@ -17,7 +23,11 @@ interface IColumnFiltersProps {
 	showTotalSupplied?: boolean
 	showTotalBorrowed?: boolean
 	showAvailable?: boolean
+	showMedianApy?: boolean
+	showStdDev?: boolean
 }
+
+const PREMIUM_KEYS = new Set(['showMedianApy', 'showStdDev'])
 
 const optionalFilters = [
 	{ name: '7d Base APY', key: 'show7dBaseApy' },
@@ -31,11 +41,16 @@ const optionalFilters = [
 	{ name: 'Max LTV', key: 'showLTV' },
 	{ name: 'Supplied', key: 'showTotalSupplied' },
 	{ name: 'Borrowed', key: 'showTotalBorrowed' },
-	{ name: 'Available', key: 'showAvailable' }
+	{ name: 'Available', key: 'showAvailable' },
+	{ name: '30d Median APY \u2726 Pro', key: 'showMedianApy' },
+	{ name: '30d Std Dev \u2726 Pro', key: 'showStdDev' }
 ]
 
 export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 	const router = useRouter()
+	const { hasActiveSubscription } = useAuthContext()
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 
 	const {
 		show7dBaseApy: _show7dBaseApy,
@@ -50,6 +65,8 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 		showTotalSupplied: _showTotalSupplied,
 		showTotalBorrowed: _showTotalBorrowed,
 		showAvailable: _showAvailable,
+		showMedianApy: _showMedianApy,
+		showStdDev: _showStdDev,
 		...queries
 	} = router.query
 
@@ -64,6 +81,17 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 	const prevSelectionRef = useRef<Set<string>>(new Set(selectedOptions))
 
 	const setSelectedOptions = (newOptions: string[]) => {
+		// Check if a premium column was just toggled on by a non-subscriber
+		if (!hasActiveSubscription) {
+			const prevSet = prevSelectionRef.current
+			const newlyAdded = newOptions.filter((op) => !prevSet.has(op))
+			const hasPremiumToggle = newlyAdded.some((op) => PREMIUM_KEYS.has(op))
+			if (hasPremiumToggle) {
+				setShouldRenderModal(true)
+				return
+			}
+		}
+
 		const optionsObj: Record<string, boolean> = {}
 		for (const op of newOptions) {
 			optionsObj[op] = true
@@ -90,13 +118,20 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 	}
 
 	return (
-		<SelectWithCombobox
-			allValues={options}
-			selectedValues={selectedOptions}
-			setSelectedValues={setSelectedOptions}
-			nestedMenu={nestedMenu}
-			label="Columns"
-			labelType="regular"
-		/>
+		<>
+			<SelectWithCombobox
+				allValues={options}
+				selectedValues={selectedOptions}
+				setSelectedValues={setSelectedOptions}
+				nestedMenu={nestedMenu}
+				label="Columns"
+				labelType="regular"
+			/>
+			{shouldRenderModal ? (
+				<Suspense fallback={null}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
+		</>
 	)
 }
