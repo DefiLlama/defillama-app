@@ -122,7 +122,10 @@ export function createInflowsTooltipFormatter({
 
 		const selectedSum = topAbs.reduce((acc, r) => acc + r.value, 0)
 
-		const others = total - selectedSum
+		let others = total - selectedSum
+		// Guard against floating-point epsilons creating a stray "Others" row.
+		const EPSILON = 1e-8
+		if (Math.abs(others) < EPSILON) others = 0
 
 		let vals = ''
 

@@ -128,8 +128,7 @@ const PageView = ({
 				type: 'line' as const,
 				name,
 				encode: { x: 'timestamp', y: name },
-				color: lsdColors[name],
-				stack: 'inflows'
+				color: lsdColors[name]
 			})),
 			inflowsBarCharts: tokens.map((name) => ({
 				type: 'bar' as const,
@@ -239,7 +238,6 @@ const PageView = ({
 									<MultiSeriesChart2
 										dataset={inflowsDataset}
 										charts={inflowsCumulativeCharts}
-										stacked={true}
 										hideDefaultLegend
 										valueSymbol="ETH"
 										selectedCharts={selectedInflowTokensSet}
