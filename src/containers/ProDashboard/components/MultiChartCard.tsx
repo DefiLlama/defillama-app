@@ -664,11 +664,11 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 					</p>
 				</div>
 			) : showTreemap && treemapData.length > 0 ? (
-				<Suspense fallback={<div className="h-[360px]" />}>
+				<Suspense fallback={<div className="min-h-[360px]" />}>
 					<TreeMapBuilderChart key={multi.id} data={treemapData} height="360px" onReady={handleChartReady} />
 				</Suspense>
 			) : (
-				<Suspense fallback={<div className="h-[360px]" />}>
+				<Suspense fallback={<div className="min-h-[360px]" />}>
 					<MultiSeriesChart
 						key={`${multi.id}-${showStacked}-${showPercentage}-${multi.grouping || 'day'}-${timeKey}`}
 						series={series}

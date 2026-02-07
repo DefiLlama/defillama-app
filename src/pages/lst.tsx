@@ -176,10 +176,7 @@ const PageView = ({
 								<PieChart
 									chartData={pieChartData}
 									stackColors={lsdColors}
-									shouldEnableImageExport
-									shouldEnableCSVDownload
-									imageExportFilename="lst-breakdown"
-									imageExportTitle="LST Breakdown"
+									exportButtons={{ png: true, csv: true, filename: 'lst-breakdown', pngTitle: 'LST Breakdown' }}
 								/>
 							</React.Suspense>
 							<div className="flex flex-col">

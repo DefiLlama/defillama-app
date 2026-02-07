@@ -127,7 +127,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 			)}
 			<div>
 				{hasChartData ? (
-					<Suspense fallback={<div className="h-[360px]" />}>
+					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
 							dataset={dataset}
 							charts={apiCharts}

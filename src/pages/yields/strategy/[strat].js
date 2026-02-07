@@ -271,14 +271,13 @@ const PageView = () => {
 					</div>
 				</div>
 				<div className="col-span-2 min-h-[480px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<Suspense fallback={<></>}>
+					<Suspense fallback={<div className="min-h-[408px]" />}>
 						<MultiSeriesChart2
 							title="Strategy APY"
 							dataset={finalApyDataset}
 							charts={APY_LINE_CHARTS}
 							valueSymbol="%"
-							shouldEnableImageExport
-							shouldEnableCSVDownload
+							exportButtons="auto"
 						/>
 					</Suspense>
 				</div>
@@ -345,15 +344,14 @@ const PageView = () => {
 						<>
 							{barDatasetSupply?.source?.length ? (
 								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-									<Suspense fallback={<></>}>
+									<Suspense fallback={<div className="min-h-[408px]" />}>
 										<MultiSeriesChart2
 											title="Supply APY"
 											dataset={barDatasetSupply}
 											charts={BAR_APY_CHARTS}
 											valueSymbol="%"
 											hideDefaultLegend={false}
-											shouldEnableImageExport
-											shouldEnableCSVDownload
+											exportButtons="auto"
 										/>
 									</Suspense>
 								</div>
@@ -361,15 +359,14 @@ const PageView = () => {
 
 							{barDatasetBorrow?.source?.length ? (
 								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-									<Suspense fallback={<></>}>
+									<Suspense fallback={<div className="min-h-[408px]" />}>
 										<MultiSeriesChart2
 											title="Borrow APY"
 											dataset={barDatasetBorrow}
 											charts={BAR_APY_CHARTS}
 											valueSymbol="%"
 											hideDefaultLegend={false}
-											shouldEnableImageExport
-											shouldEnableCSVDownload
+											exportButtons="auto"
 										/>
 									</Suspense>
 								</div>
@@ -377,15 +374,14 @@ const PageView = () => {
 
 							{barDatasetFarm?.source?.length ? (
 								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-									<Suspense fallback={<></>}>
+									<Suspense fallback={<div className="min-h-[408px]" />}>
 										<MultiSeriesChart2
 											title="Farm APY"
 											dataset={barDatasetFarm}
 											charts={BAR_APY_CHARTS}
 											valueSymbol="%"
 											hideDefaultLegend={false}
-											shouldEnableImageExport
-											shouldEnableCSVDownload
+											exportButtons="auto"
 										/>
 									</Suspense>
 								</div>

@@ -486,7 +486,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 									title={pieChartTitle}
 								/>
 							</div>
-							<Suspense fallback={<div className="h-[360px]" />}>
+							<Suspense fallback={<div className="min-h-[360px]" />}>
 								<PieChart
 									chartData={selectedPieChartData}
 									stackColors={pieChartStackColors}

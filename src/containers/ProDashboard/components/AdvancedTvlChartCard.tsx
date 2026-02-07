@@ -248,7 +248,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 		switch (chartType) {
 			case 'tvl': {
 				return (
-					<Suspense fallback={<div className="h-[360px]" />}>
+					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<AreaChart
 							title=""
 							chartData={filteredTvlData}
@@ -268,7 +268,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 			}
 			case 'chainsTvl':
 				return (
-					<Suspense fallback={<div className="h-[360px]" />}>
+					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<AreaChart
 							title=""
 							chartData={filteredChartData.chainsSplit ?? EMPTY_CHART_DATA}
@@ -287,7 +287,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 				)
 			case 'tokenValuesUsd':
 				return (
-					<Suspense fallback={<div className="h-[360px]" />}>
+					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<AreaChart
 							title=""
 							chartData={filteredChartData.tokenBreakdownUSD ?? EMPTY_CHART_DATA}
@@ -306,19 +306,17 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 				)
 			case 'tokensPie':
 				return (
-					<Suspense fallback={<div className="h-[360px]" />}>
+					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<PieChart
 							chartData={resolvedTokenBreakdownPieChart}
-							enableImageExport
-							imageExportFilename={imageFilename}
-							imageExportTitle={imageTitle}
+							exportButtons={{ png: true, csv: false, filename: imageFilename, pngTitle: imageTitle }}
 							height="360px"
 						/>
 					</Suspense>
 				)
 			case 'tokenBalances':
 				return (
-					<Suspense fallback={<div className="h-[360px]" />}>
+					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<AreaChart
 							title=""
 							chartData={filteredChartData.tokenBreakdown ?? EMPTY_CHART_DATA}
@@ -336,7 +334,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 				)
 			case 'usdInflows':
 				return (
-					<Suspense fallback={<div className="h-[360px]" />}>
+					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<BarChart
 							chartData={filteredChartData.usdInflows ?? EMPTY_CHART_DATA}
 							color={oldBlue}
@@ -351,7 +349,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 				)
 			case 'tokenInflows':
 				return (
-					<Suspense fallback={<div className="h-[360px]" />}>
+					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<BarChart
 							chartData={filteredChartData.tokenInflows ?? EMPTY_CHART_DATA}
 							title=""
@@ -402,7 +400,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 			</div>
 
 			<div className="flex-1">
-				<Suspense fallback={<div className="h-[360px]" />}>{renderChart()}</Suspense>
+				<Suspense fallback={<div className="min-h-[360px]" />}>{renderChart()}</Suspense>
 			</div>
 		</div>
 	)

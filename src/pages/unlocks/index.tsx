@@ -207,7 +207,7 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 	return (
 		<>
 			{dataset.source.length > 0 ? (
-				<Suspense fallback={<></>}>
+				<>
 					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 						<h2 className="mr-auto text-lg font-semibold">Upcoming Unlocks</h2>
 						<TagGroup
@@ -236,7 +236,7 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 							onReady={handleChartReady}
 						/>
 					</React.Suspense>
-				</Suspense>
+				</>
 			) : (
 				<p className="flex items-center justify-center" style={{ height: '360px' }}>
 					No upcoming unlock data available for the selected period.

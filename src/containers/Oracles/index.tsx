@@ -79,19 +79,16 @@ export const OraclesByChain = ({
 
 			<div className="flex flex-col gap-1 xl:flex-row">
 				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<React.Suspense fallback={<></>}>
+					<React.Suspense fallback={<div className="min-h-[408px]" />}>
 						<PieChart
 							chartData={tokenTvls}
 							stackColors={oraclesColors}
-							shouldEnableImageExport
-							shouldEnableCSVDownload
-							imageExportFilename="oracles-tvs-pie"
-							imageExportTitle="Oracles TVS"
+							exportButtons={{ png: true, csv: true, filename: 'oracles-tvs-pie', pngTitle: 'Oracles TVS' }}
 						/>
 					</React.Suspense>
 				</div>
 				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<React.Suspense fallback={<></>}>
+					<React.Suspense fallback={<div className="min-h-[408px]" />}>
 						<MultiSeriesChart2
 							dataset={dominanceDataset}
 							charts={dominanceCharts}

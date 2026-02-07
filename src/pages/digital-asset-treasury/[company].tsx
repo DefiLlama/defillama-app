@@ -559,7 +559,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 							title="Cumulative Holdings Over Time"
 						/>
 					</div>
-					<Suspense fallback={<div className="h-[360px]" />}>
+					<Suspense fallback={<div className="min-h-[360px]" />}>
 						{chartData ? (
 							<MultiSeriesChart2
 								dataset={chartData.holdingsChart.dataset}
@@ -578,34 +578,38 @@ export default function DigitalAssetTreasury(props: IProps) {
 			<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
 				{props.mNAVChart != null && (
 					<div className="col-span-1 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<Suspense fallback={<></>}>
+						<Suspense fallback={<div className="min-h-[408px]" />}>
 							<MultiSeriesChart2
 								dataset={props.mNAVChart.dataset}
 								charts={props.mNAVChart.charts}
 								valueSymbol=""
 								hideDefaultLegend={false}
 								title="mNAV"
-								shouldEnableImageExport
-								shouldEnableCSVDownload
-								imageExportFilename={`${slug(props.name)}-mnav`}
-								imageExportTitle="mNAV"
+								exportButtons={{
+									png: true,
+									csv: true,
+									filename: `${slug(props.name)}-mnav`,
+									pngTitle: 'mNAV'
+								}}
 							/>
 						</Suspense>
 					</div>
 				)}
 				{props.fdChart != null && (
 					<div className="col-span-1 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<Suspense fallback={<></>}>
+						<Suspense fallback={<div className="min-h-[408px]" />}>
 							<MultiSeriesChart2
 								dataset={props.fdChart.dataset}
 								charts={props.fdChart.charts}
 								valueSymbol=""
 								hideDefaultLegend={false}
 								title="Fully Diluted Shares"
-								shouldEnableImageExport
-								shouldEnableCSVDownload
-								imageExportFilename={`${slug(props.name)}-fully-diluted-shares`}
-								imageExportTitle="Fully Diluted Shares"
+								exportButtons={{
+									png: true,
+									csv: true,
+									filename: `${slug(props.name)}-fully-diluted-shares`,
+									pngTitle: 'Fully Diluted Shares'
+								}}
 							/>
 						</Suspense>
 					</div>
@@ -621,16 +625,18 @@ export default function DigitalAssetTreasury(props: IProps) {
 				)}
 				{props.totalAssetValueChart != null && (
 					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-						<Suspense fallback={<></>}>
+						<Suspense fallback={<div className="min-h-[408px]" />}>
 							<MultiSeriesChart2
 								dataset={props.totalAssetValueChart.dataset}
 								charts={props.totalAssetValueChart.charts}
 								valueSymbol="$"
 								title="Total Asset Value"
-								shouldEnableImageExport
-								shouldEnableCSVDownload
-								imageExportFilename={`${slug(props.name)}-total-asset-value`}
-								imageExportTitle="Total Asset Value"
+								exportButtons={{
+									png: true,
+									csv: true,
+									filename: `${slug(props.name)}-total-asset-value`,
+									pngTitle: 'Total Asset Value'
+								}}
 							/>
 						</Suspense>
 					</div>

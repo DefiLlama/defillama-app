@@ -52,13 +52,8 @@ export function StakedProtocolsTVLByChain(props: ITotalStakedByChainPageData) {
 					</div>
 				</div>
 				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<Suspense fallback={<></>}>
-						<MultiSeriesChart2
-							dataset={props.dataset}
-							charts={props.charts}
-							shouldEnableImageExport
-							shouldEnableCSVDownload
-						/>
+					<Suspense fallback={<div className="min-h-[408px]" />}>
+						<MultiSeriesChart2 dataset={props.dataset} charts={props.charts} exportButtons="auto" />
 					</Suspense>
 				</div>
 			</div>

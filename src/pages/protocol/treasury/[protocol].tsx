@@ -75,7 +75,7 @@ function TokensBreakdownPieChartCard({
 				) : null}
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
-			<React.Suspense fallback={<div className="h-[360px]" />}>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<PieChart chartData={filteredChartData} onReady={handleChartReady} />
 			</React.Suspense>
 		</div>
@@ -104,7 +104,7 @@ function HistoricalTreasuryChartCard({
 				<h1 className="mr-auto text-base font-semibold">Historical Treasury</h1>
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
-			<React.Suspense fallback={<div className="h-[360px]" />}>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
 					dataset={dataset}
 					charts={charts}
@@ -162,7 +162,7 @@ function TokensMultiSeriesChartCard({
 				) : null}
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
-			<React.Suspense fallback={<div className="h-[360px]" />}>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
 					dataset={dataset}
 					charts={charts}

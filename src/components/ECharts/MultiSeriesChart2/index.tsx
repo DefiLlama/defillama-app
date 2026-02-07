@@ -402,10 +402,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		hideDefaultLegend = true,
 		selectedCharts,
 		dataset,
-		shouldEnableImageExport: shouldEnableImageExportProp,
-		imageExportFilename,
-		imageExportTitle,
-		shouldEnableCSVDownload: shouldEnableCSVDownloadProp,
+		exportButtons,
 		title
 	} = props
 
@@ -531,9 +528,30 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	// Default exports ON for line charts unless explicitly disabled by the caller.
 	const hasLineSeries = useMemo(() => effectiveCharts.some((c) => c.type === 'line'), [effectiveCharts])
 	// If a caller provides `onReady`, they often manage export instances + buttons outside the chart,
-	// so avoid showing duplicate toolbars by default in that case.
-	const shouldEnableImageExport = shouldEnableImageExportProp ?? (!onReady && hasLineSeries)
-	const shouldEnableCSVDownload = shouldEnableCSVDownloadProp ?? (!onReady && hasLineSeries)
+	// so avoid showing duplicate toolbars by default in that case (auto mode).
+	const autoExportsEnabled = !onReady && hasLineSeries
+
+	const exportButtonsMode = exportButtons ?? 'auto'
+	const exportButtonsConfig =
+		typeof exportButtonsMode === 'object' && exportButtonsMode !== null ? exportButtonsMode : undefined
+	const exportButtonsHidden = exportButtonsMode === 'hidden'
+	const exportButtonsAuto = exportButtonsMode === 'auto'
+
+	const shouldEnableImageExport = exportButtonsHidden
+		? false
+		: exportButtonsConfig
+			? (exportButtonsConfig.png ?? true)
+			: exportButtonsAuto
+				? autoExportsEnabled
+				: false
+
+	const shouldEnableCSVDownload = exportButtonsHidden
+		? false
+		: exportButtonsConfig
+			? (exportButtonsConfig.csv ?? true)
+			: exportButtonsAuto
+				? autoExportsEnabled
+				: false
 
 	const series = useMemo(() => {
 		return buildSeries({
@@ -560,8 +578,8 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		[groupBySafe, valueSymbol, seriesSymbols]
 	)
 
-	const exportFilename = imageExportFilename || (title ? slug(title) : 'multi-series-chart')
-	const exportTitle = imageExportTitle
+	const exportFilename = exportButtonsConfig?.filename || (title ? slug(title) : 'multi-series-chart')
+	const exportTitle = exportButtonsConfig?.pngTitle
 
 	useEffect(() => {
 		// create instance

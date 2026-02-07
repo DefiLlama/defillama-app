@@ -115,7 +115,7 @@ function ChainsChartCard({
 				) : null}
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
-			<React.Suspense fallback={<div className="h-[360px]" />}>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
 					dataset={dataset}
 					charts={charts}
@@ -166,7 +166,7 @@ function TokenValuesUSDChartCard({
 				) : null}
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
-			<React.Suspense fallback={<div className="h-[360px]" />}>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
 					dataset={dataset}
 					charts={charts}
@@ -219,7 +219,7 @@ function TokensBreakdownPieChartCard({
 				) : null}
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
-			<React.Suspense fallback={<div className="h-[360px]" />}>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<PieChart chartData={filteredChartData} onReady={handleChartReady} />
 			</React.Suspense>
 		</div>
@@ -263,7 +263,7 @@ function TokenBalancesRawChartCard({
 				) : null}
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
-			<React.Suspense fallback={<div className="h-[360px]" />}>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
 					dataset={dataset}
 					charts={charts}
@@ -290,7 +290,7 @@ function USDInflowsChartCard({ protocolName, dataset }: { protocolName: string; 
 				<h1 className="mr-auto text-base font-semibold">USD Inflows</h1>
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
-			<React.Suspense fallback={<div className="h-[360px]" />}>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
 					dataset={dataset}
 					charts={USD_INFLOWS_CHARTS}
@@ -340,7 +340,7 @@ function InflowsByTokenChartCard({
 				) : null}
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
-			<React.Suspense fallback={<div className="h-[360px]" />}>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
 					dataset={dataset}
 					charts={charts}

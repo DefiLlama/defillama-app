@@ -177,16 +177,18 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 					</details>
 				</div>
 				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<React.Suspense fallback={<></>}>
+					<React.Suspense fallback={<div className="min-h-[408px]" />}>
 						<MultiSeriesChart2
 							dataset={fundingRoundsByMonthChart.dataset}
 							charts={fundingRoundsByMonthChart.charts}
 							groupBy="monthly"
 							valueSymbol=""
-							shouldEnableImageExport
-							shouldEnableCSVDownload
-							imageExportFilename={`${slug(investorName)}-funding-rounds`}
-							imageExportTitle={`${investorName} Funding Rounds`}
+							exportButtons={{
+								png: true,
+								csv: true,
+								filename: `${slug(investorName)}-funding-rounds`,
+								pngTitle: `${investorName} Funding Rounds`
+							}}
 						/>
 					</React.Suspense>
 				</div>
@@ -194,28 +196,32 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 
 			<div className="grid grid-cols-2 gap-1">
 				<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<React.Suspense fallback={<></>}>
+					<React.Suspense fallback={<div className="min-h-[408px]" />}>
 						<PieChart
 							chartData={investmentByRounds}
 							title="Investment by Rounds"
 							valueSymbol=""
-							shouldEnableImageExport
-							shouldEnableCSVDownload
-							imageExportFilename={`${slug(investorName)}-investment-by-rounds`}
-							imageExportTitle={`${investorName} Investment by Rounds`}
+							exportButtons={{
+								png: true,
+								csv: true,
+								filename: `${slug(investorName)}-investment-by-rounds`,
+								pngTitle: `${investorName} Investment by Rounds`
+							}}
 						/>
 					</React.Suspense>
 				</div>
 				<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<React.Suspense fallback={<></>}>
+					<React.Suspense fallback={<div className="min-h-[408px]" />}>
 						<PieChart
 							chartData={raisesByCategory}
 							title="Investments by Category"
 							valueSymbol=""
-							shouldEnableImageExport
-							shouldEnableCSVDownload
-							imageExportFilename={`${slug(investorName)}-investments-by-category`}
-							imageExportTitle={`${investorName} Investments by Category`}
+							exportButtons={{
+								png: true,
+								csv: true,
+								filename: `${slug(investorName)}-investments-by-category`,
+								pngTitle: `${investorName} Investments by Category`
+							}}
 						/>
 					</React.Suspense>
 				</div>

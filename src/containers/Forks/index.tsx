@@ -92,14 +92,8 @@ export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) 
 					</p>
 				</div>
 				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<Suspense fallback={<></>}>
-						<MultiSeriesChart2
-							dataset={dataset}
-							charts={charts}
-							alwaysShowTooltip
-							shouldEnableImageExport
-							shouldEnableCSVDownload
-						/>
+					<Suspense fallback={<div className="min-h-[408px]" />}>
+						<MultiSeriesChart2 dataset={dataset} charts={charts} alwaysShowTooltip exportButtons="auto" />
 					</Suspense>
 				</div>
 			</div>

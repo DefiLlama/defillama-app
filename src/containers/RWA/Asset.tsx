@@ -278,15 +278,17 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 
 			{asset.chartDataset && asset.chartDataset.source.length > 0 ? (
 				<div className="min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<Suspense fallback={<></>}>
+					<Suspense fallback={<div className="min-h-[408px]" />}>
 						<MultiSeriesChart2
 							charts={timeSeriesCharts}
 							dataset={asset.chartDataset}
 							hideDefaultLegend={false}
-							shouldEnableCSVDownload
-							shouldEnableImageExport
-							imageExportFilename={`${asset.ticker ?? asset.assetName ?? 'asset'}`}
-							imageExportTitle={`${asset.ticker ?? asset.assetName ?? 'Asset'}`}
+							exportButtons={{
+								png: true,
+								csv: true,
+								filename: `${asset.ticker ?? asset.assetName ?? 'asset'}`,
+								pngTitle: `${asset.ticker ?? asset.assetName ?? 'Asset'}`
+							}}
 						/>
 					</Suspense>
 				</div>

@@ -566,7 +566,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 
 			case 'scatter':
 				chartContent = (
-					<Suspense fallback={<div className="h-[360px]" />}>
+					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<div className="flex items-center justify-end gap-1 p-2 pt-0">
 							<AddToDashboardButton
 								chartConfig={null}

@@ -203,27 +203,25 @@ export default function Protocol({ data, governanceType }) {
 				</div>
 
 				<div className="grid grid-cols-2">
-					<div className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<React.Suspense fallback={<></>}>
+					<div className="relative col-span-full flex min-h-[408px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<React.Suspense fallback={<div className="min-h-[408px]" />}>
 							<MultiSeriesChart2
 								title="Activity"
 								dataset={activityDataset?.source?.length ? activityDataset : EMPTY_ACTIVITY_DATASET}
 								charts={ACTIVITY_CHARTS}
 								valueSymbol=""
-								shouldEnableImageExport
-								shouldEnableCSVDownload
+								exportButtons="auto"
 							/>
 						</React.Suspense>
 					</div>
-					<div className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<React.Suspense fallback={<></>}>
+					<div className="relative col-span-full flex min-h-[408px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<React.Suspense fallback={<div className="min-h-[408px]" />}>
 							<MultiSeriesChart2
 								title="Max Votes"
 								dataset={maxVotesDataset?.source?.length ? maxVotesDataset : EMPTY_MAXVOTES_DATASET}
 								charts={MAX_VOTES_CHARTS}
 								valueSymbol=""
-								shouldEnableImageExport
-								shouldEnableCSVDownload
+								exportButtons="auto"
 							/>
 						</React.Suspense>
 					</div>

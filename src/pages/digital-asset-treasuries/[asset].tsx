@@ -170,7 +170,7 @@ export default function TreasuriesByAsset({
 					</BasicLink>
 				</div>
 				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<Suspense fallback={<></>}>
+					<Suspense fallback={<div className="min-h-[408px]" />}>
 						<MultiSeriesChart2
 							dataset={dailyFlowsChart.dataset}
 							charts={dailyFlowsChart.charts}
@@ -182,8 +182,7 @@ export default function TreasuriesByAsset({
 							}
 							hideDataZoom={dailyFlowsChart.dataset.source.length < 2}
 							title="Inflows"
-							shouldEnableImageExport
-							shouldEnableCSVDownload
+							exportButtons="auto"
 						/>
 					</Suspense>
 				</div>
@@ -433,7 +432,7 @@ const MNAVChart = ({
 					title={`${metadata.name} ${title}`}
 				/>
 			</div>
-			<Suspense fallback={<div className="h-[360px]" />}>
+			<Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
 					charts={data.charts}
 					selectedCharts={selectedCharts}

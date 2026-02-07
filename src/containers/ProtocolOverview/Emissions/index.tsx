@@ -546,13 +546,26 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		{ name: 'Locked', value: 100 - unlockedPercent }
 	]
 
-	const pieChartLegendPosition =
+	const getDesktopPieLegendPosition = (itemsCount: number) => {
+		// When there are only a few legend items, center it vertically.
+		// When there are many, constrain height so the legend can scroll.
+		return itemsCount <= 8
+			? { right: 12, top: 'middle' as const, orient: 'vertical' as const }
+			: { right: 12, top: 12, bottom: 12, orient: 'vertical' as const }
+	}
+
+	const allocationPieChartLegendPosition =
 		width < 640
-			? { left: 'center', top: 'bottom', orient: 'horizontal' as const }
-			: { left: 'right', top: 'center', orient: 'vertical' as const }
+			? { left: 'center', bottom: 0, orient: 'horizontal' as const }
+			: getDesktopPieLegendPosition(pieChartDataAllocationMode.length)
+
+	const unlockedPieChartLegendPosition =
+		width < 640
+			? { left: 'center', bottom: 0, orient: 'horizontal' as const }
+			: getDesktopPieLegendPosition(unlockedPieChartData.length)
 
 	const pieChartLegendTextStyle = {
-		fontSize: width < 640 ? 12 : 20
+		fontSize: width < 640 ? 12 : 14
 	}
 
 	const hasGroupAllocationData = (() => {
@@ -567,98 +580,64 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 	return (
 		<>
-			<div className="flex w-full flex-col items-center gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 sm:flex-row sm:justify-between">
-				{isEmissionsPage ? (
-					<h1 className="flex items-center gap-2 text-xl font-semibold">
-						<TokenLogo logo={tokenIconUrl(data.name)} />
-						<span>{data.name}</span>
-					</h1>
-				) : null}
-				<div className="flex w-full flex-wrap justify-center gap-2 sm:w-auto sm:justify-end">
-					{hasGroupAllocationData && (
-						<Switch
-							label="Group Allocation"
-							value="group-allocation"
-							onChange={() => setAllocationMode((prev) => (prev === 'current' ? 'standard' : 'current'))}
-							help="Group token allocations into standardized categories."
-							checked={allocationMode === 'standard'}
-						/>
-					)}
+			{isEmissionsPage ? (
+				<div className="flex w-full items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<TokenLogo logo={tokenIconUrl(data.name)} />
+					<h1 className="text-xl font-semibold">{data.name}</h1>
 
-					<Switch
-						label="Bar Chart"
-						value="bar-chart"
-						onChange={() => setChartType((prev) => (prev === 'bar' ? 'line' : 'bar'))}
-						checked={chartType === 'bar'}
-					/>
-
-					{normilizePriceChart?.prices ? (
-						<Switch
-							label="Show Price and Market Cap"
-							value="show=price-and-mcap"
-							onChange={() => setIsPriceEnabled((prev) => !prev)}
-							checked={isPriceEnabled}
-						/>
+					{data?.tokenPrice?.price ? (
+						<>
+							<span className="mx-1 h-5 w-px bg-(--cards-border)" />
+							<span className="text-base font-semibold">${formattedNum(data.tokenPrice.price)}</span>
+							{percentChange !== null ? (
+								<span
+									className="text-sm font-medium"
+									style={{
+										color: percentChange > 0 ? 'rgba(18, 182, 0, 0.7)' : 'rgba(211, 0, 0, 0.7)'
+									}}
+								>
+									{percentChange > 0 && '+'}
+									{percentChange}%
+								</span>
+							) : null}
+						</>
 					) : null}
 				</div>
-			</div>
+			) : null}
 
 			{data?.tokenPrice?.price || data?.meta?.circSupply || data?.meta?.maxSupply || tokenMcap || tokenVolume ? (
-				<div className="flex w-full flex-col items-center gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<h1 className="text-center text-xl font-semibold">Token Overview</h1>
-					<div className="grid w-full grid-cols-1 place-content-center gap-4 text-center md:grid-cols-2 lg:grid-cols-3">
-						{data?.tokenPrice?.price ? (
-							<div className="flex flex-col items-center">
-								<span className="text-(--text-label)">Price</span>
-								<div className="flex items-center gap-2">
-									<span className="text-lg font-medium">${formattedNum(data.tokenPrice.price)}</span>
-									{percentChange !== null && (
-										<span
-											className="text-sm"
-											style={{
-												color: percentChange > 0 ? 'rgba(18, 182, 0, 0.7)' : 'rgba(211, 0, 0, 0.7)'
-											}}
-										>
-											{percentChange > 0 && '+'}
-											{percentChange}%
-										</span>
-									)}
-								</div>
-							</div>
-						) : null}
+				<div className="flex min-h-[46px] w-full flex-wrap items-center gap-x-6 gap-y-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-4 py-3">
+					{tokenCircSupply ? (
+						<div className="flex items-baseline gap-1.5">
+							<span className="text-sm text-(--text-label)">Circ. Supply</span>
+							<span className="text-sm font-medium">
+								{formattedNum(tokenCircSupply)} {data.tokenPrice.symbol}
+							</span>
+						</div>
+					) : null}
 
-						{tokenCircSupply ? (
-							<div className="flex flex-col items-center">
-								<span className="text-(--text-label)">Circulating Supply</span>
-								<span className="text-lg font-medium">
-									{formattedNum(tokenCircSupply)} {data.tokenPrice.symbol}
-								</span>
-							</div>
-						) : null}
+					{tokenMaxSupply ? (
+						<div className="flex items-baseline gap-1.5">
+							<span className="text-sm text-(--text-label)">Max Supply</span>
+							<span className="text-sm font-medium">
+								{tokenMaxSupply != Infinity ? formattedNum(tokenMaxSupply) : '∞'} {data.tokenPrice.symbol}
+							</span>
+						</div>
+					) : null}
 
-						{tokenMaxSupply ? (
-							<div className="flex flex-col items-center">
-								<span className="text-(--text-label)">Max Supply</span>
-								<span className="text-lg font-medium">
-									{tokenMaxSupply != Infinity ? formattedNum(tokenMaxSupply) : '∞'} {data.tokenPrice.symbol}
-								</span>
-							</div>
-						) : null}
+					{tokenMcap ? (
+						<div className="flex items-baseline gap-1.5">
+							<span className="text-sm text-(--text-label)">MCap</span>
+							<span className="text-sm font-medium">${formattedNum(tokenMcap)}</span>
+						</div>
+					) : null}
 
-						{tokenMcap ? (
-							<div className="flex flex-col items-center">
-								<span className="text-(--text-label)">Market Cap</span>
-								<span className="text-lg font-medium">${formattedNum(tokenMcap)}</span>
-							</div>
-						) : null}
-
-						{tokenVolume ? (
-							<div className="flex flex-col items-center">
-								<span className="text-(--text-label)">Volume (24h)</span>
-								<span className="text-lg font-medium">${formattedNum(tokenVolume)}</span>
-							</div>
-						) : null}
-					</div>
+					{tokenVolume ? (
+						<div className="flex items-baseline gap-1.5">
+							<span className="text-sm text-(--text-label)">Vol 24h</span>
+							<span className="text-sm font-medium">${formattedNum(tokenVolume)}</span>
+						</div>
+					) : null}
 				</div>
 			) : null}
 
@@ -673,9 +652,32 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 			<div className="flex flex-col gap-2">
 				{categoriesFromData.length > 0 && rawChartData.length > 0 && (
-					<div className="relative min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-						<div className="m-2 flex items-center justify-end gap-2">
-							<h1 className="mr-auto text-base font-semibold">Schedule</h1>
+					<div className="relative rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+							<h3 className="mr-auto text-base font-semibold">Schedule</h3>
+							{hasGroupAllocationData ? (
+								<Switch
+									label="Group Allocation"
+									value="group-allocation"
+									onChange={() => setAllocationMode((prev) => (prev === 'current' ? 'standard' : 'current'))}
+									help="Group token allocations into standardized categories."
+									checked={allocationMode === 'standard'}
+								/>
+							) : null}
+							<Switch
+								label="Bar Chart"
+								value="bar-chart"
+								onChange={() => setChartType((prev) => (prev === 'bar' ? 'line' : 'bar'))}
+								checked={chartType === 'bar'}
+							/>
+							{normilizePriceChart?.prices ? (
+								<Switch
+									label="Price & MCap"
+									value="show=price-and-mcap"
+									onChange={() => setIsPriceEnabled((prev) => !prev)}
+									checked={isPriceEnabled}
+								/>
+							) : null}
 							<TagGroup
 								selectedValue={timeGrouping}
 								setValue={(v) => setTimeGrouping(v as TimeGrouping)}
@@ -695,14 +697,16 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								title={`${data.name} Unlock Schedule`}
 							/>
 						</div>
-						<Suspense fallback={<></>}>
+						<Suspense fallback={<div className="min-h-[360px]" />}>
 							<MultiSeriesChart2
 								dataset={dataset}
 								charts={charts}
 								hallmarks={hallmarks}
 								expandTo100Percent={chartType === 'bar'}
+								solidChartAreaStyle
 								valueSymbol={data.tokenPrice?.symbol ?? ''}
 								onReady={handleChartReady}
+								hideDefaultLegend={false}
 							/>
 						</Suspense>
 					</div>
@@ -711,20 +715,26 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				<div className="grid min-h-[408px] grid-cols-2 gap-2">
 					{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
 						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<Suspense fallback={<></>}>
+							<Suspense fallback={<div className="min-h-[408px]" />}>
 								<PieChart
 									showLegend
 									title="Allocation"
 									chartData={pieChartDataAllocationMode}
 									stackColors={chartConfig.colors}
 									valueSymbol={data.tokenPrice?.symbol ?? ''}
-									legendPosition={pieChartLegendPosition}
+									legendPosition={allocationPieChartLegendPosition}
 									legendTextStyle={pieChartLegendTextStyle}
-									toRight={200}
-									shouldEnableImageExport
-									shouldEnableCSVDownload
-									imageExportFilename={`${slug(data.name)}-allocation`}
-									imageExportTitle={`${data.name} Allocation`}
+									// Give the allocation chart a wider legend column so labels
+									// can render without ellipsis, and the pie can sit further left.
+									toRight={260}
+									// Slightly larger pie to better utilize available canvas.
+									radius={['0%', '82%']}
+									exportButtons={{
+										png: true,
+										csv: true,
+										filename: `${slug(data.name)}-allocation`,
+										pngTitle: `${data.name} Allocation`
+									}}
 								/>
 							</Suspense>
 						</div>
@@ -732,20 +742,22 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 					{unlockedPercent > 0 && (
 						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<Suspense fallback={<></>}>
+							<Suspense fallback={<div className="min-h-[408px]" />}>
 								<PieChart
 									showLegend
 									title={`Unlocked ${unlockedPercent.toFixed(2)}%`}
-									legendPosition={pieChartLegendPosition}
+									legendPosition={unlockedPieChartLegendPosition}
 									legendTextStyle={pieChartLegendTextStyle}
 									radius={unlockedPieChartRadius}
 									chartData={unlockedPieChartData}
 									stackColors={unlockedPieChartStackColors}
 									valueSymbol="%"
-									shouldEnableImageExport
-									shouldEnableCSVDownload
-									imageExportFilename={`${slug(data.name)}-unlocked`}
-									imageExportTitle={`${data.name} Unlocked ${unlockedPercent.toFixed(2)}%`}
+									exportButtons={{
+										png: true,
+										csv: true,
+										filename: `${slug(data.name)}-unlocked`,
+										pngTitle: `${data.name} Unlocked ${unlockedPercent.toFixed(2)}%`
+									}}
 								/>
 							</Suspense>
 						</div>
@@ -753,61 +765,63 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				</div>
 			</div>
 
-			<div>
-				{data.token && tokenAllocationCurrentChunks.length > 0 && tokenAllocationFinalChunks.length > 0 ? (
-					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-						<h1 className="text-center text-xl font-semibold">Token Allocation</h1>
-						<div className="flex w-full flex-col gap-2 text-base">
-							<h4 className="text-base text-(--text-form)">Current</h4>
-
-							<div className="flex flex-wrap justify-between">
-								{tokenAllocationCurrentChunks.map((currentChunk) =>
-									currentChunk.map(([cat, perc]) => (
-										<p className="text-base" key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
-									))
-								)}
-							</div>
-							<hr className="border-(--form-control-border)" />
-
-							<h4 className="text-base text-(--text-form)">Final</h4>
-
-							<div className="flex flex-wrap justify-between">
-								{tokenAllocationFinalChunks.map((currentChunk) =>
-									currentChunk.map(([cat, perc]) => (
-										<p className="text-base" key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
-									))
-								)}
-							</div>
-						</div>
+			{data.token && tokenAllocationCurrentChunks.length > 0 && tokenAllocationFinalChunks.length > 0 ? (
+				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<h3 className="text-base font-semibold">Token Allocation</h3>
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						{(['current', 'final'] as const).map((phase) => {
+							const entries = phase === 'current' ? tokenAllocation.current : tokenAllocation.final
+							if (!entries) return null
+							const sorted = Object.entries(entries).sort(([, a], [, b]) => b - a)
+							return (
+								<div key={phase} className="flex flex-col gap-1.5">
+									<span className="text-xs font-medium tracking-wide text-(--text-label) uppercase">{phase}</span>
+									{sorted.map(([cat, perc]) => (
+										<div key={cat} className="flex flex-col gap-0.5">
+											<div className="flex items-baseline justify-between text-sm">
+												<span>{capitalizeFirstLetter(cat)}</span>
+												<span className="font-medium tabular-nums">{perc}%</span>
+											</div>
+											<div className="h-1.5 w-full overflow-hidden rounded-full bg-(--cards-border)">
+												<div
+													className="h-full rounded-full"
+													style={{
+														width: `${Math.min(perc, 100)}%`,
+														backgroundColor: stackColors[cat] ?? stackColors[capitalizeFirstLetter(cat)] ?? '#6b7280'
+													}}
+												/>
+											</div>
+										</div>
+									))}
+								</div>
+							)
+						})}
 					</div>
-				) : null}
-			</div>
+				</div>
+			) : null}
 
 			{data.events?.length > 0 ? (
-				<div className="flex w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<h1 className="text-center text-xl font-semibold">Unlock Events</h1>
-
+				<div className="flex w-full flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<h3 className="text-base font-semibold">Unlock Events</h3>
 					<Pagination startIndex={upcomingEventIndex} items={paginationItems} />
 				</div>
 			) : null}
 
 			<div className="flex flex-wrap gap-2 *:flex-1">
 				{data.sources?.length > 0 ? (
-					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-						<h1 className="text-center text-xl font-medium">Sources</h1>
-						<ul className="mt-4 w-full list-disc space-y-2 pl-4 text-base">
-							{data.sources.map((source, i) => (
+					<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+						<h3 className="text-base font-semibold">Sources</h3>
+						<ul className="list-disc space-y-1 pl-4 text-sm">
+							{data.sources.map((source) => (
 								<li key={source}>
 									<Link
 										href={source}
 										target="_blank"
 										rel="noopener noreferrer"
-										className="flex items-center gap-2 text-base font-medium"
+										className="inline-flex items-center gap-1 text-sm font-medium text-(--link-text) hover:underline"
 									>
-										<span>
-											{i + 1} {new URL(source).hostname}
-										</span>
-										<Icon name="external-link" height={16} width={16} />
+										<span>{new URL(source).hostname}</span>
+										<Icon name="external-link" height={14} width={14} />
 									</Link>
 								</li>
 							))}
@@ -815,9 +829,9 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					</div>
 				) : null}
 				{data.notes?.length > 0 ? (
-					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-						<h1 className="text-center text-xl font-medium">Notes</h1>
-						<ul className="mt-4 w-full list-disc space-y-2 pl-4 text-base">
+					<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+						<h3 className="text-base font-semibold">Notes</h3>
+						<ul className="list-disc space-y-1 pl-4 text-sm text-(--text-secondary)">
 							{data.notes.map((note) => (
 								<li key={note}>{note}</li>
 							))}
@@ -825,12 +839,11 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					</div>
 				) : null}
 				{data.futures?.openInterest || data.futures?.fundingRate ? (
-					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-						<h1 className="text-center text-xl font-medium">Futures</h1>
-						<div className="flex w-full flex-col gap-2 text-base">
+					<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+						<h3 className="text-base font-semibold">Futures</h3>
+						<div className="flex flex-col gap-1 text-sm">
 							{data.futures.openInterest ? <p>{`Open Interest: $${formattedNum(data.futures.openInterest)}`}</p> : null}
-
-							<>{data.futures.fundingRate ? <p>{`Funding Rate: ${data.futures.fundingRate}%`}</p> : null}</>
+							{data.futures.fundingRate ? <p>{`Funding Rate: ${data.futures.fundingRate}%`}</p> : null}
 						</div>
 					</div>
 				) : null}

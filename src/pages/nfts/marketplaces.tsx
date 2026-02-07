@@ -217,10 +217,12 @@ function Marketplaces({ data, volume, dominance, trades, dominanceTrade, marketp
 							valueSymbol={viewType === 'Relative' ? '%' : 'ETH'}
 							hideDefaultLegend
 							chartOptions={volumeChartOptions}
-							shouldEnableCSVDownload
-							shouldEnableImageExport
-							imageExportFilename={`nft-marketplaces-volume-${viewType.toLowerCase()}`}
-							imageExportTitle={`NFT Marketplaces Volume (${viewType})`}
+							exportButtons={{
+								png: true,
+								csv: true,
+								filename: `nft-marketplaces-volume-${viewType.toLowerCase()}`,
+								pngTitle: `NFT Marketplaces Volume (${viewType})`
+							}}
 						/>
 					</React.Suspense>
 
@@ -234,10 +236,12 @@ function Marketplaces({ data, volume, dominance, trades, dominanceTrade, marketp
 							valueSymbol={viewType === 'Relative' ? '%' : ''}
 							hideDefaultLegend
 							chartOptions={tradesChartOptions}
-							shouldEnableCSVDownload
-							shouldEnableImageExport
-							imageExportFilename={`nft-marketplaces-trades-${viewType.toLowerCase()}`}
-							imageExportTitle={`NFT Marketplaces Trades (${viewType})`}
+							exportButtons={{
+								png: true,
+								csv: true,
+								filename: `nft-marketplaces-trades-${viewType.toLowerCase()}`,
+								pngTitle: `NFT Marketplaces Trades (${viewType})`
+							}}
 						/>
 					</React.Suspense>
 				</div>

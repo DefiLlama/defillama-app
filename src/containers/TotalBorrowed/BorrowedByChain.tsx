@@ -52,13 +52,8 @@ export function BorrowedProtocolsTVLByChain(props: ITotalBorrowedByChainPageData
 					</div>
 				</div>
 				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<Suspense fallback={<></>}>
-						<MultiSeriesChart2
-							shouldEnableCSVDownload
-							shouldEnableImageExport
-							dataset={props.dataset}
-							charts={props.charts}
-						/>
+					<Suspense fallback={<div className="min-h-[408px]" />}>
+						<MultiSeriesChart2 exportButtons="auto" dataset={props.dataset} charts={props.charts} />
 					</Suspense>
 				</div>
 			</div>

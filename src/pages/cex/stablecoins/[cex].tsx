@@ -137,7 +137,7 @@ function MultiSeriesChartCard({
 				) : null}
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
-			<React.Suspense fallback={<div className="h-[360px]" />}>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
 					dataset={dataset}
 					charts={charts}
@@ -191,7 +191,7 @@ function PieChartCard({
 				) : null}
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
-			<React.Suspense fallback={<div className="h-[360px]" />}>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<PieChart chartData={filteredChartData} onReady={handleChartReady} />
 			</React.Suspense>
 		</div>
@@ -353,29 +353,29 @@ export default function CEXStablecoins(props: {
 				</div>
 			) : (
 				<>
-					<div className="grid gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6 md:grid-cols-2 lg:grid-cols-4">
-						<div>
-							<p className="text-sm text-(--text-label)">Total Stablecoin in CEX</p>
-							<p className="mt-1 text-2xl font-bold">{currentTotal ? formattedNum(currentTotal, true) : '-'}</p>
+					<div className="flex min-h-[46px] w-full flex-wrap items-center gap-x-6 gap-y-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-4 py-3">
+						<div className="flex items-baseline gap-1.5">
+							<span className="text-sm text-(--text-label)">Total Stablecoin in CEX</span>
+							<span className="text-sm font-medium">{currentTotal ? formattedNum(currentTotal, true) : '-'}</span>
 						</div>
 						{stablecoinBreakdown && stablecoinBreakdown.length > 0 && (
 							<>
-								<div>
-									<p className="text-sm text-(--text-label)">Dominant Backing Type</p>
-									<p className="mt-1 text-2xl font-bold capitalize">
+								<div className="flex items-baseline gap-1.5">
+									<span className="text-sm text-(--text-label)">Dominant Backing Type</span>
+									<span className="text-sm font-medium capitalize">
 										{stablecoinBreakdown[0].mechanism.replace('-', ' ')}
-									</p>
-									<p className="text-sm text-(--text-label)">{stablecoinBreakdown[0].percentage.toFixed(1)}%</p>
+									</span>
+									<span className="text-sm text-(--text-label)">({stablecoinBreakdown[0].percentage.toFixed(1)}%)</span>
 								</div>
-								<div>
-									<p className="text-sm text-(--text-label)">Fiat-Backed %</p>
-									<p className="mt-1 text-2xl font-bold">
+								<div className="flex items-baseline gap-1.5">
+									<span className="text-sm text-(--text-label)">Fiat-Backed %</span>
+									<span className="text-sm font-medium">
 										{stablecoinBreakdown.find((b) => b.mechanism === 'fiat-backed')?.percentage.toFixed(1) || '0'}%
-									</p>
+									</span>
 								</div>
-								<div>
-									<p className="text-sm text-(--text-label)">Number of Stablecoins</p>
-									<p className="mt-1 text-2xl font-bold">{data.stablecoinTokensUnique?.length || 0}</p>
+								<div className="flex items-baseline gap-1.5">
+									<span className="text-sm text-(--text-label)">Number of Stablecoins</span>
+									<span className="text-sm font-medium">{data.stablecoinTokensUnique?.length || 0}</span>
 								</div>
 							</>
 						)}

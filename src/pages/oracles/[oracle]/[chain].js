@@ -101,7 +101,7 @@
 // 				</div>
 
 // 				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-// 					<Suspense fallback={<></>}>
+// 					<Suspense fallback={<div className="min-h-[408px]" />}>
 // 						<MultiSeriesChart2
 // 							dataset={dataset}
 // 							charts={charts}

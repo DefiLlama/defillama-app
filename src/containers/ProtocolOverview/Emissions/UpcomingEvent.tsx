@@ -144,106 +144,99 @@ export const UpcomingEvent = ({
 
 	if (isProtocolPage) {
 		return (
-			<span className="z-10 flex flex-col gap-2 rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-3 dark:border-[hsl(204,3%,32%)] dark:bg-[#121316]">
-				<span className="flex items-center justify-between gap-2">
-					<h1 className="flex flex-col px-2">
-						<span className="font-semibold">Unlock Value:</span>
-						{tokenValue ? formattedNum(tokenValue, true) : <span>{formattedNum(unlockPercent)}%</span>}
+			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				<div className="flex items-center justify-between gap-2">
+					<div className="flex flex-col">
+						<span className="text-xs text-(--text-label)">Unlock Value</span>
+						<span className="text-sm font-semibold">
+							{tokenValue ? formattedNum(tokenValue, true) : <span>{formattedNum(unlockPercent)}%</span>}
+						</span>
 						{unlockPercent ? (
-							<span className="text-(--text-meta)">
+							<span className="text-xs text-(--text-meta)">
 								{tokenValue ? formattedNum(unlockPercent) + '%' : null}
-								{unlockPercentFloat ? <>({formattedNum(unlockPercentFloat)}% of float)</> : null}
+								{unlockPercentFloat ? <> ({formattedNum(unlockPercentFloat)}% of float)</> : null}
 							</span>
 						) : null}
-					</h1>
-					<p className="flex flex-col px-2">
-						<span className="flex flex-col text-right font-medium">
+					</div>
+					<div className="flex flex-col items-end">
+						<span className="text-sm font-medium">
 							{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}
-							<span>
-								{timestamp ? `${dayjs(timestamp * 1e3).format('h:mm A')} ` : null}
-								<span className="text-sm text-(--text-meta)">
-									{timestamp ? `GMT${dayjs(timestamp * 1e3).format('Z')}` : ''}
-								</span>
-							</span>
+						</span>
+						<span className="text-xs text-(--text-meta)">
+							{timestamp ? `${dayjs(timestamp * 1e3).format('h:mm A')} GMT${dayjs(timestamp * 1e3).format('Z')}` : ''}
 						</span>
 						{timeLeft > 0 ? (
 							<span
-								className="flex items-center justify-center rounded-md bg-(--bg-border) px-3 py-1.5 text-sm"
+								className="mt-1 rounded-md bg-(--bg-border) px-2 py-1 text-xs font-medium tabular-nums"
 								suppressHydrationWarning
 							>
 								{days}D {hours}H {minutes}M {seconds}S
 							</span>
 						) : (
-							<span className="flex items-center justify-end gap-1">
-								<span className="flex h-8 w-fit items-center justify-center rounded-md bg-(--bg-border) px-2 py-0 text-sm">
-									{Math.abs(days)} days ago
-								</span>
+							<span className="mt-1 rounded-md bg-(--bg-border) px-2 py-1 text-xs font-medium">
+								{Math.abs(days)} days ago
 							</span>
 						)}
-					</p>
-				</span>
-				<hr className="border-(--bg-border)" />
-				<span className="flex flex-col gap-4">
+					</div>
+				</div>
+				<hr className="border-(--cards-border)" />
+				<div className="flex flex-col gap-3">
 					{currentUnlockBreakdown.map(
 						({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp: _timestamp, isOngoing }) => {
 							const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
-							const usdValue = price
-								? isLinearPerDay
-									? perDayAmount * price // per day value for linear
-									: totalAmount * price // total for cliff
-								: null
+							const usdValue = price ? (isLinearPerDay ? perDayAmount * price : totalAmount * price) : null
 							const percentage = maxSupply ? (totalAmount / maxSupply) * 100 : null
 							const percentageFloat = usdValue && mcap ? (usdValue / mcap) * 100 : null
 							return (
-								<span className="flex flex-col gap-1" key={name + totalAmount}>
-									<h2 className="flex items-center justify-between gap-2">
-										<span className="flex items-center gap-2">
+								<div className="flex flex-col gap-0.5" key={name + totalAmount}>
+									<div className="flex items-center justify-between gap-2 text-sm">
+										<span className="flex items-center gap-1.5">
 											{name}
 											{isOngoing && ' (Ongoing)'}
 											<Ariakit.TooltipProvider>
 												<Ariakit.TooltipAnchor>
 													<Icon
 														name={unlockType === 'linear' ? 'linear-unlock' : 'cliff-unlock'}
-														height={16}
-														width={16}
+														height={14}
+														width={14}
 														className="text-(--text-meta)"
 													/>
 												</Ariakit.TooltipAnchor>
-												<Ariakit.Tooltip className="z-50 rounded-md bg-(--bg-secondary) px-2 py-1 text-sm">
+												<Ariakit.Tooltip className="z-50 rounded-md bg-(--bg-secondary) px-2 py-1 text-xs">
 													{unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
 												</Ariakit.Tooltip>
 											</Ariakit.TooltipProvider>
 										</span>
-										<span className="inline-flex items-baseline gap-1">
+										<span className="inline-flex items-baseline gap-1 font-medium">
 											{usdValue ? formattedNum(usdValue, true) : '-'}
-											{isLinearPerDay && <span className="text-xs text-(--text-meta)">/ day</span>}
+											{isLinearPerDay ? <span className="text-xs text-(--text-meta)">/ day</span> : null}
 										</span>
-									</h2>
-									<p className="flex items-center justify-between gap-2 text-(--text-meta)">
+									</div>
+									<div className="flex items-center justify-between gap-2 text-xs text-(--text-meta)">
 										<span>
 											{formattedNum(percentage)}%{' '}
-											{percentageFloat ? <>( {formattedNum(percentageFloat)}% of float)</> : null}
+											{percentageFloat ? <>({formattedNum(percentageFloat)}% of float)</> : null}
 										</span>
 										<span className="inline-flex items-baseline gap-1">
 											{formattedNum(isLinearPerDay ? perDayAmount : totalAmount)} {tokenSymbol}
-											{isLinearPerDay && <span className="text-xs text-(--text-meta)">/ day</span>}
+											{isLinearPerDay ? <span className="text-xs text-(--text-meta)">/ day</span> : null}
 										</span>
-									</p>
-								</span>
+									</div>
+								</div>
 							)
 						}
 					)}
-				</span>
+				</div>
 
-				{timeLeft > 0 && (
+				{timeLeft > 0 ? (
 					<CalendarButton
 						event={{ timestamp, noOfTokens, symbol, description: '' }}
 						tokenName={name}
 						tokenValue={tokenValue ? formattedNum(tokenValue, true) : '-'}
 						isProtocolPage={isProtocolPage}
 					/>
-				)}
-			</span>
+				) : null}
+			</div>
 		)
 	}
 

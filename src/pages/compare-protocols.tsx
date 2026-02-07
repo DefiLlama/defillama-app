@@ -232,14 +232,8 @@ export default function CompareProtocols({
 								<LocalLoader />
 							</div>
 						) : (
-							<React.Suspense fallback={<></>}>
-								<MultiSeriesChart2
-									dataset={dataset}
-									charts={charts}
-									valueSymbol="$"
-									shouldEnableImageExport
-									shouldEnableCSVDownload
-								/>
+							<React.Suspense fallback={<div className="min-h-[408px]" />}>
+								<MultiSeriesChart2 dataset={dataset} charts={charts} valueSymbol="$" exportButtons="auto" />
 							</React.Suspense>
 						)}
 					</div>

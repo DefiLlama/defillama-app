@@ -20,7 +20,7 @@ export default function AdapterTest() {
 		<Layout title={`Tests`}>
 			<Announcement>This page is just used for tests, don't trust anything on this page</Announcement>
 			<div className="grid grid-cols-2 rounded-xl bg-(--bg-card) shadow-sm">
-				<React.Suspense fallback={<></>}>
+				<React.Suspense fallback={<div className="min-h-[360px]" />}>
 					<BarChart chartData={chartData} title="Data" />
 				</React.Suspense>
 			</div>

@@ -88,27 +88,43 @@ export type MultiSeriesChart2Dataset = {
 	dimensions: string[]
 }
 
-export interface IMultiSeriesChart2Props {
-	charts?: Array<{
-		type: 'line' | 'bar'
-		name: string
-		stack?: string
-		encode: {
-			x: number | Array<number> | string | Array<string>
-			y: number | Array<number> | string | Array<string>
-		}
-		color?: string
-		yAxisIndex?: number
-		/** Symbol for this series' y-axis label (e.g. '%' or '$'). Falls back to the component-level valueSymbol. */
-		valueSymbol?: string
-		// Optional: enable point markers on line series.
-		// Note: ECharts "large" mode disables symbols, so `showSymbol: true` will
-		// implicitly disable large mode unless `large` is explicitly set.
-		showSymbol?: boolean
-		symbol?: string
-		symbolSize?: number
-		large?: boolean
-	}>
+export type MultiSeriesChart2SeriesConfig = {
+	type: 'line' | 'bar'
+	name: string
+	stack?: string
+	encode: {
+		x: number | Array<number> | string | Array<string>
+		y: number | Array<number> | string | Array<string>
+	}
+	color?: string
+	yAxisIndex?: number
+	/** Symbol for this series' y-axis label (e.g. '%' or '$'). Falls back to the component-level valueSymbol. */
+	valueSymbol?: string
+	// Optional: enable point markers on line series.
+	// Note: ECharts "large" mode disables symbols, so `showSymbol: true` will
+	// implicitly disable large mode unless `large` is explicitly set.
+	showSymbol?: boolean
+	symbol?: string
+	symbolSize?: number
+	large?: boolean
+}
+
+export type MultiSeriesChart2ExportButtons =
+	| 'auto'
+	| 'hidden'
+	| {
+			/** Show the PNG export button (default: true). */
+			png?: boolean
+			/** Show the CSV download button (default: true). */
+			csv?: boolean
+			/** Base filename used by both PNG + CSV exports. */
+			filename?: string
+			/** Title passed to the PNG export (e.g. watermark/title text). */
+			pngTitle?: string
+	  }
+
+type MultiSeriesChart2BaseProps = {
+	charts?: MultiSeriesChart2SeriesConfig[]
 	selectedCharts?: Set<string>
 	chartOptions?: {
 		[key: string]: {
@@ -125,15 +141,25 @@ export interface IMultiSeriesChart2Props {
 	stacked?: boolean
 	solidChartAreaStyle?: boolean
 	hideDataZoom?: boolean
+	/**
+	 * Called with the ECharts instance after init, and again with `null` on dispose.
+	 * Useful when callers want to add custom instance-level behaviors or render their own toolbars.
+	 */
 	onReady?: (instance: echarts.ECharts | null) => void
 	hideDefaultLegend?: boolean
-	shouldEnableImageExport?: boolean
-	imageExportFilename?: string
-	imageExportTitle?: string
-	shouldEnableCSVDownload?: boolean
 	// Canonical (and only) input shape.
 	dataset: MultiSeriesChart2Dataset
 	title?: string
+}
+
+export type IMultiSeriesChart2Props = MultiSeriesChart2BaseProps & {
+	/**
+	 * Controls the built-in export toolbar.
+	 * - `'auto'` (default): show exports for line charts unless `onReady` is provided.
+	 * - `'hidden'`: never show exports.
+	 * - object: explicitly control which buttons are shown and export metadata.
+	 */
+	exportButtons?: MultiSeriesChart2ExportButtons
 }
 
 export interface ICandlestickChartProps {
@@ -195,11 +221,10 @@ export interface IPieChartProps {
 	}
 	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: any }
 	customComponents?: React.ReactNode
-	enableImageExport?: boolean
-	shouldEnableImageExport?: boolean
-	imageExportFilename?: string
-	imageExportTitle?: string
-	shouldEnableCSVDownload?: boolean
+	/**
+	 * Controls the built-in export toolbar.
+	 */
+	exportButtons?: MultiSeriesChart2ExportButtons
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 

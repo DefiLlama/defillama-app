@@ -92,14 +92,13 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				</div>
 
 				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<React.Suspense fallback={<></>}>
+					<React.Suspense fallback={<div className="min-h-[408px]" />}>
 						<MultiSeriesChart2
 							dataset={monthlyInvestmentChart.dataset}
 							charts={monthlyInvestmentChart.charts}
 							valueSymbol="$"
 							groupBy="monthly"
-							shouldEnableImageExport
-							shouldEnableCSVDownload
+							exportButtons="auto"
 						/>
 					</React.Suspense>
 				</div>

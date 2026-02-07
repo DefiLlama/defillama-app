@@ -255,14 +255,16 @@ export function CompareChains({ chains }) {
 						</div>
 					) : (
 						<div className="min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-							<React.Suspense fallback={<></>}>
+							<React.Suspense fallback={<div className="min-h-[408px]" />}>
 								<MultiSeriesChart2
 									dataset={chartData.dataset}
 									charts={chartData.charts}
-									shouldEnableImageExport
-									shouldEnableCSVDownload
-									imageExportFilename={`compare-chains-${selectedChains.map((chain) => chain.label).join('-vs-')}`}
-									imageExportTitle={`${selectedChains.map((chain) => chain.label).join(' vs ')}`}
+									exportButtons={{
+										png: true,
+										csv: true,
+										filename: `compare-chains-${selectedChains.map((chain) => chain.label).join('-vs-')}`,
+										pngTitle: `${selectedChains.map((chain) => chain.label).join(' vs ')}`
+									}}
 								/>
 							</React.Suspense>
 						</div>

@@ -81,7 +81,7 @@ function MultiSeriesChartCard({
 				) : null}
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
-			<React.Suspense fallback={<div className="h-[360px]" />}>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
 					dataset={dataset}
 					charts={charts}
@@ -136,7 +136,7 @@ function TokensBreakdownPieChartCard({
 				) : null}
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
-			<React.Suspense fallback={<div className="h-[360px]" />}>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<PieChart chartData={filteredChartData} onReady={handleChartReady} />
 			</React.Suspense>
 		</div>

@@ -197,9 +197,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 					>
 						<PieChart
 							chartData={resolvedTokenBreakdownPieChart}
-							enableImageExport
-							imageExportFilename={imageFilename}
-							imageExportTitle={imageTitle}
+							exportButtons={{ png: true, csv: false, filename: imageFilename, pngTitle: imageTitle }}
 						/>
 					</Suspense>
 				)

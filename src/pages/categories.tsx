@@ -338,7 +338,7 @@ export default function Protocols({ categories, tableData, chartSource, category
 					/>
 					<ChartExportButtons chartInstance={chartInstance} filename="categories-tvl" title="TVL by Category" />
 				</div>
-				<React.Suspense fallback={<></>}>
+				<React.Suspense fallback={<div className="min-h-[360px]" />}>
 					<MultiSeriesChart2
 						dataset={finalCharts.dataset}
 						charts={finalCharts.charts}
