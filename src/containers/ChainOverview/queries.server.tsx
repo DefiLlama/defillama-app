@@ -1,5 +1,5 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import { getAllProtocolEmissions, getETFData } from '~/api/categories/protocols'
+import { getAllProtocolEmissions } from '~/api/categories/protocols'
 import { tvlOptions } from '~/components/Filters/options'
 import {
 	CHAINS_ASSETS,
@@ -23,6 +23,7 @@ import {
 	IAdapterOverview,
 	IAdapterSummary
 } from '~/containers/DimensionAdapters/queries'
+import { getETFData } from '~/containers/ETF/queries'
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
