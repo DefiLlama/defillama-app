@@ -8,6 +8,7 @@ import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset 
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
+import { TokenLogo } from '~/components/TokenLogo'
 import { oldBlue } from '~/constants/colors'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
@@ -15,7 +16,7 @@ import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
 import { formatTvlsByChainFromTokens, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { slug } from '~/utils'
+import { slug, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -488,13 +489,18 @@ export default function Protocols(props: CexAssetsPageProps) {
 			isCEX={true}
 		>
 			{isLoading ? (
-				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
 				</div>
 			) : (
 				<>
-					{props.ownToken ? (
-						<div className="col-span-full flex items-center justify-end rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<div className="col-span-full flex items-center justify-end rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+						<div className="mr-auto flex items-center gap-2">
+							<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+							<h1 className="text-xl font-bold">{props.name}</h1>
+						</div>
+
+						{props.ownToken ? (
 							<Switch
 								value="includeOwnTokens"
 								label={`Include own tokens (${props.ownToken})`}
@@ -502,8 +508,8 @@ export default function Protocols(props: CexAssetsPageProps) {
 								onChange={toggleIncludeOwnTokens}
 								className="gap-2"
 							/>
-						</div>
-					) : null}
+						) : null}
+					</div>
 					<div className="grid grid-cols-2 gap-2">
 						{chainsDataset && chainsUnique?.length > 1 ? (
 							<ChainsChartCard

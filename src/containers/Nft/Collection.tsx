@@ -41,7 +41,7 @@ export function NFTCollectionContainer() {
 				keywords=""
 				canonicalUrl={`/nfts/collection/${router.query.collection}`}
 			>
-				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					{fetchingData || !router.isReady ? <LocalLoader /> : <p>Failed to load collection data.</p>}
 				</div>
 			</Layout>

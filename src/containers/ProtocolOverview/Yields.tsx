@@ -40,9 +40,6 @@ export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }
 
 	return (
 		<>
-			<h2 className="col-span-full flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 text-base font-semibold xl:p-4">
-				Yields for {protocol}
-			</h2>
 			<div className="flex flex-col gap-1 xl:flex-row">
 				<div className="flex flex-1 flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<p className="flex items-center gap-2">

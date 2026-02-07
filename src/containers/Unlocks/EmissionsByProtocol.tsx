@@ -1037,12 +1037,14 @@ export const UnlocksCharts = ({
 	protocolName,
 	initialData,
 	initialTokenMarketData,
-	disableClientTokenStatsFetch
+	disableClientTokenStatsFetch,
+	isEmissionsPage
 }: {
 	protocolName: string
 	initialData?: IEmission | null
 	initialTokenMarketData?: InitialTokenMarketData | null
 	disableClientTokenStatsFetch?: boolean
+	isEmissionsPage?: boolean
 }) => {
 	const shouldFetch = !initialData
 	const { data = null, isLoading, error } = useGetProtocolEmissions(shouldFetch ? slug(protocolName) : null)
@@ -1067,6 +1069,7 @@ export const UnlocksCharts = ({
 	return (
 		<ChartContainer
 			data={resolvedData as any}
+			isEmissionsPage={isEmissionsPage}
 			initialTokenMarketData={initialTokenMarketData}
 			disableClientTokenStatsFetch={disableClientTokenStatsFetch}
 		/>

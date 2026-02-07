@@ -72,6 +72,7 @@ export default function Protocols(props) {
 					initialData={props.emissions}
 					initialTokenMarketData={props.initialTokenMarketData}
 					disableClientTokenStatsFetch
+					isEmissionsPage
 				/>
 			</div>
 		</ProtocolOverviewLayout>

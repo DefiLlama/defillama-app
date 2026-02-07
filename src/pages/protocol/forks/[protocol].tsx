@@ -1,10 +1,11 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
+import { TokenLogo } from '~/components/TokenLogo'
 import { ForksData } from '~/containers/ProtocolOverview/Forks'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
-import { slug } from '~/utils'
+import { slug, tokenIconUrl } from '~/utils'
 import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -61,9 +62,11 @@ export default function Protocols({ clientSide: _clientSide, protocolData: _prot
 			tab="forks"
 			warningBanners={props.warningBanners}
 		>
-			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<ForksData protocolName={props.name} />
+			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+				<h1 className="text-xl font-bold">{props.name} Forks</h1>
 			</div>
+			<ForksData protocolName={props.name} />
 		</ProtocolOverviewLayout>
 	)
 }

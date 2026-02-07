@@ -1,5 +1,6 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
+import { TokenLogo } from '~/components/TokenLogo'
 import {
 	PROTOCOL_GOVERNANCE_COMPOUND_API,
 	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
@@ -9,7 +10,7 @@ import { GovernanceData } from '~/containers/ProtocolOverview/Governance'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
-import { slug } from '~/utils'
+import { slug, tokenIconUrl } from '~/utils'
 import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -61,6 +62,7 @@ export const getStaticProps = withPerformanceLogging(
 		return {
 			props: {
 				name: protocolData.name,
+				symbol: protocolData.symbol ?? null,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
@@ -86,6 +88,10 @@ export default function Protocols(props) {
 			tab="governance"
 			warningBanners={props.warningBanners}
 		>
+			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+				<h1 className="text-xl font-bold">{props.symbol ? `$${props.symbol}` : props.name} Governance</h1>
+			</div>
 			<GovernanceData apis={props.governanceApis} />
 		</ProtocolOverviewLayout>
 	)

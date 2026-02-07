@@ -161,7 +161,7 @@ export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
 
 	if (isLoading) {
 		return (
-			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<LocalLoader />
 			</div>
 		)
@@ -177,7 +177,7 @@ export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
 
 	if (!data || data.length === 0) {
 		return (
-			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<p>{error instanceof Error ? error.message : 'Failed to fetch'}</p>
 			</div>
 		)

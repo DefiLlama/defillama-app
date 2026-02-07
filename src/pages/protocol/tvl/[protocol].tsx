@@ -7,6 +7,7 @@ import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset 
 import { tvlOptionsMap } from '~/components/Filters/options'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { TokenLogo } from '~/components/TokenLogo'
 import { oldBlue } from '~/constants/colors'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
@@ -17,7 +18,7 @@ import {
 } from '~/containers/ProtocolOverview/utils'
 import { TVL_SETTINGS_KEYS_SET, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { slug } from '~/utils'
+import { slug, tokenIconUrl } from '~/utils'
 import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -451,8 +452,12 @@ export default function Protocols(props) {
 			warningBanners={props.warningBanners}
 			toggleOptions={props.toggleOptions}
 		>
+			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+				<h1 className="text-xl font-bold">{props.name} TVL Breakdown</h1>
+			</div>
 			{isLoading ? (
-				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
 				</div>
 			) : (
@@ -460,7 +465,7 @@ export default function Protocols(props) {
 					{chainsDataset && chainsUnique?.length > 1 ? (
 						<ChainsChartCard
 							key={chainsUnique.join('|')}
-							title="Chains"
+							title="TVL by Chain"
 							allValues={chainsUnique}
 							dataset={chainsDataset}
 							charts={chainsCharts}

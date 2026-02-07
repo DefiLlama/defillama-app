@@ -187,7 +187,7 @@ export function ProtocolOverviewLayout({
 
 			<div className="isolate flex flex-1 flex-col gap-2">
 				<div className="flex w-full overflow-x-auto text-xs font-medium">
-					{otherProtocols?.length > 1 && (
+					{otherProtocols?.length > 1 ? (
 						<Ariakit.MenuProvider>
 							<Ariakit.MenuButton className="mr-4 flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
 								<TokenLogo logo={tokenIconUrl(name)} size={16} />
@@ -238,7 +238,7 @@ export function ProtocolOverviewLayout({
 								})}
 							</Ariakit.Menu>
 						</Ariakit.MenuProvider>
-					)}
+					) : null}
 
 					{isCEX ? (
 						<>

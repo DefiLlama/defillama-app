@@ -8,12 +8,13 @@ import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset 
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
+import { TokenLogo } from '~/components/TokenLogo'
 import { PROTOCOL_TREASURY_API } from '~/constants'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { buildProtocolAddlChartsData, getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { slug } from '~/utils'
+import { slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -343,16 +344,17 @@ export default function Protocols(props) {
 			toggleOptions={EMPTY_TOGGLE_OPTIONS}
 		>
 			{isLoading || isFetching ? (
-				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
 				</div>
 			) : (
 				<>
-					{hasOwnTokens ? (
-						<div className="col-span-full flex flex-wrap items-center justify-end gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-							<h2 className="mr-auto text-base font-semibold" id="treasury">
-								Treasury for {props.name}
-							</h2>
+					<div className="col-span-full flex flex-wrap items-center justify-end gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+						<div className="mr-auto flex items-center gap-2">
+							<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+							<h1 className="text-xl font-bold">{props.name} Treasury</h1>
+						</div>
+						{hasOwnTokens ? (
 							<Switch
 								value="includeOwnTokens"
 								label="Include own tokens"
@@ -360,8 +362,8 @@ export default function Protocols(props) {
 								onChange={toggleIncludeOwnTokens}
 								className="ml-auto gap-2"
 							/>
-						</div>
-					) : null}
+						) : null}
+					</div>
 					<div className="grid grid-cols-2 gap-2">
 						{tokenBreakdownPieChart?.length ? (
 							<TokensBreakdownPieChartCard

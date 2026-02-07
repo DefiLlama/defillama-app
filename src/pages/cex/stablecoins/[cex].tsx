@@ -7,13 +7,14 @@ import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { TokenLogo } from '~/components/TokenLogo'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
 import { buildStablecoinChartsData } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum, slug } from '~/utils'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -343,8 +344,12 @@ export default function CEXStablecoins(props: {
 			tab="stablecoins"
 			isCEX={true}
 		>
+			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+				<h1 className="text-xl font-bold">{props.name}</h1>
+			</div>
 			{isLoading ? (
-				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
 				</div>
 			) : !data ? (

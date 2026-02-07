@@ -153,9 +153,6 @@ export const TokenRights = ({ tokenRights }: { tokenRights: ITokenRights }) => {
 	return (
 		<div className="grid grid-cols-1 gap-2">
 			<div className="grid gap-2 xl:grid-cols-2">
-				<h2 className="col-span-full rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 text-base font-semibold">
-					Token Rights
-				</h2>
 				{rights.length > 0 ? (
 					<SectionCard title="Overview">
 						<div className="flex flex-col gap-2">
