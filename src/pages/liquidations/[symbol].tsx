@@ -1,32 +1,32 @@
 import { GetStaticPaths, GetStaticProps, NextPage } from 'next'
 import { maxAgeForNext } from '~/api'
+import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import type { ISearchItem } from '~/components/Search/types'
 import { LinkPreviewCard } from '~/components/SEO'
 import { LiquidationsContainer } from '~/containers/Liquidations'
-import { LiqPositionsTable } from '~/containers/Liquidations/PositionsTable'
-import { LiqProtocolsTable } from '~/containers/Liquidations/ProtocolsTable'
-import { TableHeader } from '~/containers/Liquidations/TableHeader'
 import {
-	ChartData,
-	buildLiquidationsChartSeries,
-	getLiquidationsAssetsList,
 	getLatestLiquidationsChartData,
-	getPrevLiquidationsChartData,
-	getReadableValue
-} from '~/containers/Liquidations/utils'
+	getLiquidationsAssetsList,
+	getPrevLiquidationsChartData
+} from '~/containers/Liquidations/queries'
+import { LiqPositionsTable, LiqProtocolsTable } from '~/containers/Liquidations/Table'
+import { ChartData, buildLiquidationsChartSeries, getReadableValue } from '~/containers/Liquidations/utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { liquidationsIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
+type LiquidationsNavLink = { label: string; to: string; symbol: string }
+
 export const getStaticProps: GetStaticProps<{
 	data: ChartData
 	prevData: ChartData
+	options: LiquidationsNavLink[]
 	chartSeries: ReturnType<typeof buildLiquidationsChartSeries>
 }> = withPerformanceLogging('liquidations/[symbol]', async ({ params }) => {
 	const symbol = (params.symbol as string).toLowerCase()
-	const { assets: options } = await getLiquidationsAssetsList()
+	const { assets } = await getLiquidationsAssetsList()
+	const options: LiquidationsNavLink[] = assets.map((a) => ({ label: a.label, to: a.to, symbol: a.symbol }))
 	const data = await getLatestLiquidationsChartData(symbol, 100)
 	const prevData = (await getPrevLiquidationsChartData(symbol, 100, 3600 * 24)) ?? data
 	const chartSeries = buildLiquidationsChartSeries(data)
@@ -52,17 +52,16 @@ const pageName = ['Liquidation Levels']
 const LiquidationsHomePage: NextPage<{
 	data: ChartData
 	prevData: ChartData
-	options: ISearchItem[]
+	options: LiquidationsNavLink[]
 	chartSeries: ReturnType<typeof buildLiquidationsChartSeries>
 }> = (props) => {
 	const { data, prevData, options } = props
-	const [liqsSettings] = useLocalStorageSettingsManager('liquidations')
+	const [liqsSettings, toggleLiqsSettings] = useLocalStorageSettingsManager('liquidations')
 	const { LIQS_SHOWING_INSPECTOR } = LIQS_SETTINGS
 	const isLiqsShowingInspector = liqsSettings[LIQS_SHOWING_INSPECTOR]
 	const nameAndSymbol = `${data.name} (${data.symbol.toUpperCase()})`
 	const activeLiqLink =
-		(options as any)?.find?.((option) => option?.symbol?.toLowerCase?.() === data.symbol.toLowerCase())?.label ??
-		nameAndSymbol
+		options.find((option) => option.symbol.toLowerCase() === data.symbol.toLowerCase())?.label ?? nameAndSymbol
 	return (
 		<Layout
 			title={`${nameAndSymbol} Liquidation Levels - DefiLlama`}
@@ -78,16 +77,38 @@ const LiquidationsHomePage: NextPage<{
 				tvl={'$' + getReadableValue(data.totalLiquidable)}
 			/>
 
-			<RowLinksWithDropdown links={options as any} activeLink={activeLiqLink} />
+			<RowLinksWithDropdown links={options} activeLink={activeLiqLink} />
 			<LiquidationsContainer data={data} prevData={prevData} chartSeries={props.chartSeries} />
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<TableHeader
-					metaText={
-						isLiqsShowingInspector
-							? `Displaying the largest ${data.topPositions.length} positions out of ${data.totalPositions} in total`
-							: null
-					}
-				/>
+				<div className="flex flex-wrap items-center justify-between gap-3 border-b border-(--cards-border) p-3">
+					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form) max-sm:w-full">
+						<button
+							className="inline-flex shrink-0 items-center justify-center gap-1.5 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
+							data-active={!isLiqsShowingInspector}
+							onClick={() => {
+								if (isLiqsShowingInspector) toggleLiqsSettings(LIQS_SHOWING_INSPECTOR)
+							}}
+						>
+							<Icon name="percent" height={14} width={14} />
+							<span>Distribution</span>
+						</button>
+						<button
+							className="inline-flex shrink-0 items-center justify-center gap-1.5 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
+							data-active={isLiqsShowingInspector}
+							onClick={() => {
+								if (!isLiqsShowingInspector) toggleLiqsSettings(LIQS_SHOWING_INSPECTOR)
+							}}
+						>
+							<Icon name="search" height={14} width={14} />
+							<span>Positions</span>
+						</button>
+					</div>
+					{isLiqsShowingInspector ? (
+						<p className="text-right text-xs text-(--text-label) italic opacity-70">
+							Displaying the largest {data.topPositions.length} positions out of {data.totalPositions} in total
+						</p>
+					) : null}
+				</div>
 				{isLiqsShowingInspector ? (
 					<LiqPositionsTable data={data} prevData={prevData} />
 				) : (

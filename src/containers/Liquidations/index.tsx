@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import type { ECharts } from 'echarts/core'
+import { useRouter } from 'next/router'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -7,45 +8,44 @@ import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/compon
 import { Icon } from '~/components/Icon'
 import { Switch } from '~/components/Switch'
 import { CHART_COLORS } from '~/constants/colors'
-import { SelectedSeries } from '~/containers/Liquidations/types'
 import {
 	ChartData,
 	LiquidationsChartSeriesByGroup,
 	getLiquidationsCsvData,
-	getReadableValue,
-	PROTOCOL_NAMES_MAP_REVERSE
+	getReadableValue
 } from '~/containers/Liquidations/utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { download, liquidationsIconUrl } from '~/utils'
-import { StackBySwitch } from './StackBySwitch'
-import { useStackBy } from './utils'
 
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
+
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
+
 export const LiquidationsContainer = (props: {
 	data: ChartData
 	prevData: ChartData
 	chartSeries: LiquidationsChartSeriesByGroup
 }) => {
 	const { data, prevData, chartSeries } = props
-	const [selectedSeries, setSelectedSeries] = React.useState<SelectedSeries>(null)
+
 	const [liqsSettings, toggleLiqsSettings] = useLocalStorageSettingsManager('liquidations')
 	const { LIQS_USING_USD, LIQS_CUMULATIVE } = LIQS_SETTINGS
 	const isLiqsUsingUsd = liqsSettings[LIQS_USING_USD]
 	const isLiqsCumulative = liqsSettings[LIQS_CUMULATIVE]
-	const stackBy = useStackBy()
+	const nativeSymbol = data.symbol.toUpperCase()
+	const router = useRouter()
+	const { stackBy: stackByQuery } = router.query as { stackBy?: 'chains' | 'protocols' }
+	const stackBy = stackByQuery ?? 'protocols'
 	const chartInstanceRef = React.useRef<ECharts | null>(null)
 
-	const { mutate, isPending } = useMutation({
+	const { mutate: handleCsvDownload, isPending } = useMutation({
 		mutationFn: async () => {
 			const csvString = await getLiquidationsCsvData(data.symbol)
 			download(`${data.symbol}-all-positions.csv`, csvString)
 		}
 	})
-	const handleCsvDownload = React.useCallback(() => {
-		mutate()
-	}, [mutate])
 
 	const handleToggleUsd = React.useCallback(() => {
 		toggleLiqsSettings(LIQS_USING_USD)
@@ -55,22 +55,15 @@ export const LiquidationsContainer = (props: {
 		toggleLiqsSettings(LIQS_CUMULATIVE)
 	}, [toggleLiqsSettings, LIQS_CUMULATIVE])
 
-	React.useEffect(() => {
-		setSelectedSeries(null)
-	}, [setSelectedSeries, stackBy, isLiqsUsingUsd, isLiqsCumulative, data.symbol])
+	const onChartReady = React.useCallback((instance: ECharts | null) => {
+		chartInstanceRef.current = instance
+	}, [])
 
-	const onChartReady = React.useCallback(
-		(instance: ECharts | null) => {
-			chartInstanceRef.current = instance
-			if (!instance) return
-			const handler = (params: any) => {
-				setSelectedSeries(params?.selected ?? null)
-			}
-			instance.off('legendselectchanged', handler)
-			instance.on('legendselectchanged', handler)
-		},
-		[setSelectedSeries]
-	)
+	React.useEffect(() => {
+		return () => {
+			chartInstanceRef.current = null
+		}
+	}, [])
 
 	const formattedChart = React.useMemo(() => {
 		const group = chartSeries[stackBy]
@@ -122,7 +115,9 @@ export const LiquidationsContainer = (props: {
 				orient: 'horizontal',
 				top: 0,
 				left: 12,
-				right: 12
+				right: 12,
+				// By default everything is selected; don't allow toggling/deselect.
+				selectedMode: false
 			},
 			xAxis: {
 				type: 'category',
@@ -139,7 +134,7 @@ export const LiquidationsContainer = (props: {
 				position: isLiqsCumulative ? 'left' : 'right',
 				axisLabel: {
 					formatter: (value: number) =>
-						isLiqsUsingUsd ? `$${getReadableValue(value)}` : `${getReadableValue(value)} ETH`
+						isLiqsUsingUsd ? `$${getReadableValue(value)}` : `${getReadableValue(value)} ${nativeSymbol}`
 				},
 				splitLine: {
 					lineStyle: { color: '#a1a1aa', opacity: 0.1 }
@@ -173,47 +168,68 @@ export const LiquidationsContainer = (props: {
 						borderWidth: 1,
 						borderRadius: 4,
 						padding: [4, 8],
-						formatter: (value: any) => {
-							const raw = value?.value ?? value
+						formatter: (value: unknown) => {
+							const raw = isRecord(value) && 'value' in value ? ((value as { value?: unknown }).value ?? value) : value
 							const numeric = Number(raw)
 							if (!Number.isFinite(numeric)) return String(raw)
-							const axisDimension = value?.axisDimension
+							const axisDimension =
+								isRecord(value) && 'axisDimension' in value
+									? (value as { axisDimension?: unknown }).axisDimension
+									: undefined
 							if (axisDimension === 'x') {
 								return `$${numeric.toFixed(3)}`
 							}
 							const formatted = getReadableValue(numeric)
-							return isLiqsUsingUsd ? `$${formatted}` : `${formatted} ETH`
+							return isLiqsUsingUsd ? `$${formatted}` : `${formatted} ${nativeSymbol}`
 						}
 					}
 				},
-				formatter: (params: any) => {
-					const axisLabel = params?.[0]?.axisValueLabel ?? ''
-					const getValue = (item: any) => {
-						if (item?.data && typeof item.data === 'object') {
-							const val = item.data[item.seriesName]
+				formatter: (params: unknown) => {
+					const paramList: unknown[] = Array.isArray(params) ? params : []
+					const first = paramList[0]
+					const axisLabel = isRecord(first) && typeof first.axisValueLabel === 'string' ? first.axisValueLabel : ''
+
+					const getValue = (item: unknown): number => {
+						if (!isRecord(item)) return 0
+						const seriesName = typeof item.seriesName === 'string' ? item.seriesName : null
+
+						if (isRecord(item.data) && seriesName) {
+							const val = item.data[seriesName]
 							return typeof val === 'number' ? val : 0
 						}
-						if (Array.isArray(item?.value)) {
-							const yIndex = typeof item.encode?.y === 'number' ? item.encode.y : 1
+
+						if (Array.isArray(item.value)) {
+							const encodeY = isRecord(item.encode) ? item.encode.y : undefined
+							const yIndex = typeof encodeY === 'number' ? encodeY : 1
 							const val = item.value[yIndex]
 							return typeof val === 'number' ? val : 0
 						}
-						return typeof item?.value === 'number' ? item.value : 0
+
+						return typeof item.value === 'number' ? item.value : 0
 					}
-					const total = params.reduce((acc: number, item: any) => acc + getValue(item), 0)
-					const totalLabel = isLiqsUsingUsd ? `$${getReadableValue(total)}` : `${getReadableValue(total)}`
+
+					const total = paramList.reduce<number>((acc, item) => acc + getValue(item), 0)
+					const totalLabel = isLiqsUsingUsd
+						? `$${getReadableValue(total)}`
+						: `${getReadableValue(total)} ${nativeSymbol}`
 					const header = `<div style="margin-bottom: 6px; font-weight: 600; font-size: 12px; letter-spacing: 0.01em; color: #9ca3af;">
-						${isLiqsCumulative ? `Total liquidatable ≤ ` : `Liquidations at ~`}$${axisLabel}
+						${isLiqsCumulative ? `Total liquidatable ≤ ` : `Liquidations at ~`}${axisLabel}
 					</div>
 					<div style="margin-bottom: 8px; font-size: 12px; opacity: 0.9;">
 						<span style="font-weight: 500;">Total</span><span style="opacity: 0.6;"> :</span> ${totalLabel}
 					</div>`
-					const rows = params
-						.map((param: any) => {
+					const rows = paramList
+						.map((param) => {
+							if (!isRecord(param)) return null
 							const value = getValue(param)
-							const rowValue = isLiqsUsingUsd ? `$${getReadableValue(value)}` : `${getReadableValue(value)}`
-							return `<span style="color: ${param.color}; margin-bottom: 2px; font-weight: 500; font-size: 12px;">${param.seriesName}</span><span style="opacity: 0.6; font-size: 12px;"> :</span> <span style="font-size: 12px;">${rowValue}</span>`
+							const rowValue = isLiqsUsingUsd
+								? `$${getReadableValue(value)}`
+								: `${getReadableValue(value)} ${nativeSymbol}`
+							const color = typeof param.color === 'string' ? param.color : 'inherit'
+							const seriesName = typeof param.seriesName === 'string' ? param.seriesName : ''
+							return `<span style="color: ${color}; margin-bottom: 2px; font-weight: 500; font-size: 12px;">${seriesName}</span><span style="opacity: 0.6; font-size: 12px;"> :</span> <span style="font-size: 12px;">${rowValue}</span>`
 						})
+						.filter((row): row is string => typeof row === 'string')
 						.join('<br/>')
 					return `<div style="background: var(--bg-card); border: 1px solid var(--bg-border); box-shadow: 0 6px 24px rgba(0,0,0,0.25); color: var(--text-primary); border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.4; white-space: nowrap;">
 						${header}
@@ -224,22 +240,16 @@ export const LiquidationsContainer = (props: {
 		}
 
 		return options as unknown as IMultiSeriesChart2Props['chartOptions']
-	}, [isLiqsCumulative, isLiqsUsingUsd])
+	}, [isLiqsCumulative, isLiqsUsingUsd, nativeSymbol])
 
 	const liquidableChanges = React.useMemo(
-		() => getLiquidableChangesRatio(data, prevData, stackBy, selectedSeries),
-		[data, prevData, stackBy, selectedSeries]
+		() => getLiquidableChangesRatio(data, prevData, stackBy),
+		[data, prevData, stackBy]
 	)
 
-	const dangerousPositionsAmount = React.useMemo(
-		() => getDangerousPositionsAmount(data, stackBy, selectedSeries),
-		[data, stackBy, selectedSeries]
-	)
+	const dangerousPositionsAmount = React.useMemo(() => getDangerousPositionsAmount(data, stackBy), [data, stackBy])
 
-	const totalLiquidable = React.useMemo(
-		() => getTotalLiquidable(data, stackBy, selectedSeries),
-		[data, stackBy, selectedSeries]
-	)
+	const totalLiquidable = React.useMemo(() => getTotalLiquidable(data), [data])
 
 	return (
 		<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
@@ -272,7 +282,46 @@ export const LiquidationsContainer = (props: {
 			</div>
 			<div className="col-span-2 flex min-h-[458px] flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="flex flex-wrap items-center justify-end gap-2">
-					<StackBySwitch />
+					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form) max-sm:w-full">
+						<button
+							data-active={stackBy === 'protocols'}
+							onClick={() => {
+								router.push(
+									{
+										query: {
+											...router.query,
+											stackBy: 'protocols'
+										}
+									},
+									undefined,
+									{ shallow: true }
+								)
+							}}
+							className="inline-flex shrink-0 items-center justify-center gap-1 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
+						>
+							<Icon name="map" height={14} width={14} />
+							<span>Protocols</span>
+						</button>
+						<button
+							data-active={stackBy === 'chains'}
+							onClick={() => {
+								router.push(
+									{
+										query: {
+											...router.query,
+											stackBy: 'chains'
+										}
+									},
+									undefined,
+									{ shallow: true }
+								)
+							}}
+							className="inline-flex shrink-0 items-center justify-center gap-1 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
+						>
+							<Icon name="link" height={14} width={14} />
+							<span>Chains</span>
+						</button>
+					</div>
 					<CurrencyToggle symbol={data.symbol} isLiqsUsingUsd={isLiqsUsingUsd} onToggle={handleToggleUsd} />
 					<CumulativeToggle isLiqsCumulative={isLiqsCumulative} onToggle={handleToggleCumulative} />
 					<ChartExportButtons
@@ -290,7 +339,6 @@ export const LiquidationsContainer = (props: {
 						containerClassName="min-h-[360px]"
 						hideDefaultLegend={false}
 						onReady={onChartReady}
-						exportButtons="auto"
 						valueSymbol={isLiqsUsingUsd ? '$' : ''}
 					/>
 				</React.Suspense>
@@ -377,106 +425,41 @@ const formatMinutesAgo = (minutesAgo: number) => {
 	return remainingHours > 0 ? `${days}d ${remainingHours}h ago` : `${days}d ago`
 }
 
-const getTotalLiquidable = (data: ChartData, stackBy: 'chains' | 'protocols', selectedSeries: SelectedSeries) => {
-	if (!selectedSeries) {
-		return data.totalLiquidable
-	}
-	return Object.entries(selectedSeries)
-		.filter((x) => x[1])
-		.map((x) => x[0])
-		.reduce((acc, cur) => {
-			return acc + data.totalLiquidables[stackBy][PROTOCOL_NAMES_MAP_REVERSE[cur]]
-		}, 0)
+const getTotalLiquidable = (data: ChartData) => {
+	return data.totalLiquidable
 }
 
-const getLiquidableChangesRatio = (
-	data: ChartData,
-	prevData: ChartData,
-	stackBy: 'chains' | 'protocols',
-	selectedSeries: SelectedSeries
-) => {
+const getLiquidableChangesRatio = (data: ChartData, prevData: ChartData, stackBy: 'chains' | 'protocols') => {
 	let current = 0
 	let prev = 0
-	if (!selectedSeries) {
-		if (stackBy === 'chains') {
-			for (const chain in data.totalLiquidables.chains) {
-				if (!prevData.totalLiquidables.chains[chain]) {
-					continue
-				}
-				current += data.totalLiquidables.chains[chain]
-				prev += prevData.totalLiquidables.chains[chain]
-			}
-		} else {
-			for (const protocol in data.totalLiquidables.protocols) {
-				if (!prevData.totalLiquidables.protocols[protocol]) {
-					continue
-				}
-				current += data.totalLiquidables.protocols[protocol]
-				prev += prevData.totalLiquidables.protocols[protocol]
-			}
-		}
-	} else {
-		if (stackBy === 'chains') {
-			for (const chain in selectedSeries) {
-				if (!selectedSeries[chain]) continue
-				const _chain = PROTOCOL_NAMES_MAP_REVERSE[chain]
-				if (!prevData.totalLiquidables.chains[_chain]) {
-					continue
-				}
-				current += data.totalLiquidables.chains[_chain]
-				prev += prevData.totalLiquidables.chains[_chain]
-			}
-		} else {
-			for (const protocol in selectedSeries) {
-				if (!selectedSeries[protocol]) continue
-				const _protocol = PROTOCOL_NAMES_MAP_REVERSE[protocol]
-				if (!prevData.totalLiquidables.protocols[_protocol]) {
-					continue
-				}
-				current += data.totalLiquidables.protocols[_protocol]
-				prev += prevData.totalLiquidables.protocols[_protocol]
-			}
-		}
+	const currentMap = stackBy === 'chains' ? data.totalLiquidables.chains : data.totalLiquidables.protocols
+	const prevMap = stackBy === 'chains' ? prevData.totalLiquidables.chains : prevData.totalLiquidables.protocols
+
+	for (const key in currentMap) {
+		if (!prevMap[key]) continue
+		current += currentMap[key] ?? 0
+		prev += prevMap[key] ?? 0
 	}
 
-	const changesRatio = (current - prev) / prev
-	return Number.isNaN(changesRatio) ? 0 : changesRatio
+	const changesRatio = prev === 0 ? 0 : (current - prev) / prev
+	return Number.isFinite(changesRatio) ? changesRatio : 0
 }
 
-const getDangerousPositionsAmount = (
-	data: ChartData,
-	stackBy: 'chains' | 'protocols',
-	selectedSeries: SelectedSeries,
-	threshold = -0.2
-) => {
+const getDangerousPositionsAmount = (data: ChartData, stackBy: 'chains' | 'protocols', threshold = -0.2) => {
+	// Default behavior: everything selected, use precomputed value.
+	if (threshold === -0.2) return data.dangerousPositionsAmount
+
 	const priceThreshold = data.currentPrice * (1 + threshold)
-	let dangerousPositionsAmount = 0
-	if (!selectedSeries) {
-		dangerousPositionsAmount = data.dangerousPositionsAmount
-	} else if (stackBy === 'chains') {
-		for (const chain in selectedSeries) {
-			if (!selectedSeries[chain]) continue
-			const _chain = PROTOCOL_NAMES_MAP_REVERSE[chain]
-			const binSize = data.chartDataBins.chains[_chain]?.binSize ?? 0
-			const bins = data.chartDataBins.chains[_chain]?.bins ?? {}
-			for (const bin in bins) {
-				if (binSize * parseInt(bin) >= priceThreshold) {
-					dangerousPositionsAmount += bins[bin]['usd']
-				}
-			}
-		}
-	} else {
-		for (const protocol in selectedSeries) {
-			if (!selectedSeries[protocol]) continue
-			const _protocol = PROTOCOL_NAMES_MAP_REVERSE[protocol]
-			const binSize = data.chartDataBins.protocols[_protocol]?.binSize ?? 0
-			const bins = data.chartDataBins.protocols[_protocol]?.bins ?? {}
-			for (const bin in bins) {
-				if (binSize * parseInt(bin) >= priceThreshold) {
-					dangerousPositionsAmount += bins[bin]['usd']
-				}
+	let total = 0
+	const groups = stackBy === 'chains' ? data.chartDataBins.chains : data.chartDataBins.protocols
+	for (const key in groups) {
+		const binSize = groups[key]?.binSize ?? 0
+		const bins = groups[key]?.bins ?? {}
+		for (const bin in bins) {
+			if (binSize * parseInt(bin) >= priceThreshold) {
+				total += bins[bin]['usd']
 			}
 		}
 	}
-	return dangerousPositionsAmount
+	return total
 }
