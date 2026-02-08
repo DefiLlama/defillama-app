@@ -16,7 +16,6 @@ import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import type { IEmission } from '~/components/Table/Defi/types'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/Unlocks/UpcomingEvent'
@@ -430,6 +429,31 @@ const defaultColumns = JSON.stringify({
 	nextEvent: true,
 	upcomingEvent: true
 })
+
+interface IEmission {
+	name: string
+	maxSupply: number
+	circSupply: number
+	totalLocked: number
+	nextEvent: { data: string; toUnlock: number }
+	token: string
+	tokenPrice: { coins: { [key: string]: { price: number; symbol: string } } }
+	tPrice?: number | null
+	tSymbol?: string | null
+	mcap: number | null
+	unlocksPerDay: number | null
+	historicalPrice?: [string, number][]
+	lastEvent?: Array<{
+		description: string
+		noOfTokens: number[]
+		timestamp: number
+	}>
+	upcomingEvent: Array<{
+		description: string
+		noOfTokens: number[]
+		timestamp: number
+	}>
+}
 
 const emissionsColumns: ColumnDef<IEmission>[] = [
 	{

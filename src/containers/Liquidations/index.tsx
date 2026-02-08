@@ -280,8 +280,8 @@ export const LiquidationsContainer = (props: {
 				</p>
 				<CSVDownloadButton onClick={handleCsvDownload} isLoading={isPending} smol className="mt-auto mr-auto" />
 			</div>
-			<div className="col-span-2 flex min-h-[458px] flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<div className="flex flex-wrap items-center justify-end gap-2">
+			<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-wrap items-center justify-end gap-2 p-2">
 					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form) max-sm:w-full">
 						<button
 							data-active={stackBy === 'protocols'}
@@ -342,9 +342,8 @@ export const LiquidationsContainer = (props: {
 						valueSymbol={isLiqsUsingUsd ? '$' : ''}
 					/>
 				</React.Suspense>
-				<div className="mt-1 flex justify-end">
-					<LastUpdated data={data} />
-				</div>
+
+				<LastUpdated data={data} />
 			</div>
 		</div>
 	)
@@ -404,7 +403,7 @@ const LastUpdated = ({ data }: { data: ChartData }) => {
 	const formatted = formatMinutesAgo(minutesAgo)
 
 	return (
-		<div className="flex items-center gap-1 text-xs text-(--text-label) italic opacity-70">
+		<div className="flex items-center justify-end gap-1 p-2 pt-0 text-xs text-(--text-label) italic opacity-70">
 			<Icon name="clock" height={12} width={12} />
 			<span suppressHydrationWarning>Last updated {formatted}</span>
 		</div>

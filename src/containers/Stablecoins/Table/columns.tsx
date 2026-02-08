@@ -342,7 +342,7 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 	{
 		header: 'Market Cap',
 		accessorKey: 'mcap',
-		cell: (info) => <>${formattedNum(info.getValue())}</>,
+		cell: (info) => <>{formattedNum(info.getValue(), true)}</>,
 		size: 120,
 		meta: {
 			align: 'end'

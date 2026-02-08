@@ -1,4 +1,4 @@
-import { getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { createInflowsTooltipFormatter, preparePieChartData } from '~/components/ECharts/formatters'
@@ -7,7 +7,6 @@ import { FormattedName } from '~/components/FormattedName'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { LinkPreviewCard } from '~/components/SEO'
-import { bridgedChainColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
@@ -17,6 +16,22 @@ const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as Re
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const INFLOWS_TOOLTIP_FORMATTER_USD = createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: '$' })
+
+const bridgedChainColumns: ColumnDef<any>[] = [
+	{
+		header: 'Token',
+		accessorKey: 'name',
+		enableSorting: false
+	},
+	{
+		header: 'Total Bridged',
+		accessorKey: 'value',
+		accessorFn: (row) => (row.value ? +row.value : undefined),
+		cell: ({ getValue }) => {
+			return <>{formattedNum(getValue(), true)}</>
+		}
+	}
+]
 
 export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInflowNames, chainName = 'All Chains' }) {
 	const [chartType, setChartType] = React.useState('total')

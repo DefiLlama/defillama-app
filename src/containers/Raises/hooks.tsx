@@ -232,6 +232,9 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 			finalMonthlyInvestment.push([new Date(date).getTime(), monthlyInvestment[date] * 1e6])
 			totalAmountRaised += monthlyInvestment[date] * 1e6
 		}
+		// ECharts `dataZoom` (slider shadow) is sensitive to source order.
+		// We build these series from object keys, which are not guaranteed to be chronological.
+		finalMonthlyInvestment.sort((a, b) => a[0] - b[0])
 		for (const category in raisesByCategory) {
 			finalRaisesByCategory.push({ name: category, value: raisesByCategory[category] })
 		}
@@ -241,6 +244,7 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 		for (const date in fundingRoundsByMonth) {
 			finalFundingRoundsByMonth.push([new Date(date).getTime(), fundingRoundsByMonth[date]])
 		}
+		finalFundingRoundsByMonth.sort((a, b) => a[0] - b[0])
 
 		const monthlyInvestmentChart: { dataset: MultiSeriesChart2Dataset; charts: IMultiSeriesChart2Props['charts'] } = {
 			dataset: {

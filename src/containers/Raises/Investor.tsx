@@ -12,7 +12,6 @@ import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { raisesColumnOrders, raisesColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { RaisesFilters } from '~/containers/Raises/Filters'
@@ -20,6 +19,7 @@ import Layout from '~/layout'
 import { slug } from '~/utils'
 import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
+import { raisesColumnOrders, raisesColumns } from './Table'
 
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -33,7 +33,7 @@ const handleDownloadJson = () => {
 	window.open('https://api.llama.fi/raises', '_blank', 'noopener,noreferrer')
 }
 
-function RaisesTable({ raises, prepareCsv }) {
+function RaisesByInvestorTable({ raises, prepareCsv }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -226,8 +226,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 					</React.Suspense>
 				</div>
 			</div>
-
-			<RaisesTable raises={filteredRaisesList} prepareCsv={prepareCsv} />
+			<RaisesByInvestorTable raises={filteredRaisesList} prepareCsv={prepareCsv} />
 		</Layout>
 	)
 }

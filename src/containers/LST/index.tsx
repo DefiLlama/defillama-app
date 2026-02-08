@@ -1,13 +1,17 @@
+import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
+import { BasicLink } from '~/components/Link'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { LSDColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
+import { TokenLogo } from '~/components/TokenLogo'
+import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, formattedNum, lastDayOfWeek } from '~/utils'
+import { firstDayOfMonth, formattedNum, formattedPercent, lastDayOfWeek } from '~/utils'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -15,6 +19,194 @@ const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSer
 const GROUP_BY = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 type GroupByType = (typeof GROUP_BY)[number]
 const DEFAULT_SORTING_STATE = [{ id: 'stakedEth', desc: true }]
+
+const ETHPegTooltipContent = ({ marketRate, expectedRate }: { marketRate: number; expectedRate: number }) => {
+	return (
+		<span className="flex flex-col gap-1">
+			<span>{`Market Rate: ${marketRate?.toFixed(4)}`}</span>
+			<span>{`Expected Rate: ${expectedRate?.toFixed(4)}`}</span>
+		</span>
+	)
+}
+
+const McapTooltipContent = ({ mcap, tvl }: { mcap: number; tvl: number }) => {
+	return (
+		<span className="flex flex-col gap-1">
+			<span>{`Market Cap: ${mcap?.toFixed(4)}`}</span>
+			<span>{`TVL: ${tvl?.toFixed(4)}`}</span>
+		</span>
+	)
+}
+
+interface ILSDRow {
+	name: string
+	stakedEth: number
+	tvl: number
+	marketShare: number
+	ethPeg: number
+	pegInfo: string
+	marketRate: number
+	expectedRate: number
+	logo: string
+	mcap: number
+}
+
+const LSDColumn: ColumnDef<ILSDRow>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row }) => {
+			const nameSlug = row.original.name.replace(/\s+/g, '-').toLowerCase()
+
+			return (
+				<span className="relative flex items-center gap-2">
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
+					<TokenLogo logo={row.original.logo} data-lgonly />
+					<BasicLink
+						href={`/protocol/${nameSlug}`}
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+					>
+						{getValue() as string | null}
+					</BasicLink>
+				</span>
+			)
+		},
+		size: 280
+	},
+	{
+		header: 'Staked ETH',
+		accessorKey: 'stakedEth',
+		cell: ({ getValue }) => <>{formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'TVL',
+		accessorKey: 'stakedEthInUsd',
+		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '7d Change',
+		accessorKey: 'stakedEthPctChange7d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '30d Change',
+		accessorKey: 'stakedEthPctChange30d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'Market Share',
+		accessorKey: 'marketShare',
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <>{value != null ? value.toFixed(2) + '%' : null}</>
+		},
+		meta: {
+			align: 'end'
+		},
+		size: 125
+	},
+	{
+		header: 'LST',
+		accessorKey: 'lsdSymbol',
+		cell: ({ getValue, row }) => {
+			const value = getValue()
+			const stringValue = typeof value === 'string' ? value : ''
+			if (!row.original.pegInfo) return stringValue
+			return (
+				<span className="flex items-center justify-end gap-1">
+					{row.original.pegInfo && <QuestionHelper text={row.original.pegInfo} />}
+					{stringValue}
+				</span>
+			)
+		},
+		meta: {
+			align: 'end'
+		},
+		size: 100
+	},
+	{
+		header: 'ETH Peg',
+		accessorKey: 'ethPeg',
+		cell: ({ getValue, row }) => {
+			return (
+				<Tooltip
+					content={
+						<ETHPegTooltipContent marketRate={row.original?.marketRate} expectedRate={row.original?.expectedRate} />
+					}
+					className="justify-end"
+				>
+					{getValue() ? formattedPercent(getValue()) : null}
+				</Tooltip>
+			)
+		},
+		meta: {
+			align: 'end',
+			headerHelperText:
+				'Market Rate (pulled from 1inch) divided by Expected Rate. Hover for Market Rate and Expected Rate Info.'
+		},
+		size: 115
+	},
+	{
+		header: 'Mcap/TVL',
+		accessorKey: 'mcapOverTvl',
+		cell: ({ getValue, row }) => {
+			return (
+				<Tooltip
+					content={<McapTooltipContent mcap={row.original.mcap} tvl={row.original.tvl} />}
+					className="justify-end"
+				>
+					{(getValue() ?? null) as string | null}
+				</Tooltip>
+			)
+		},
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: 'LST APR',
+		accessorKey: 'apy',
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <>{value != null ? value.toFixed(2) + '%' : null}</>
+		},
+		meta: {
+			align: 'end'
+		},
+		size: 100
+	},
+	{
+		header: 'Fee',
+		accessorKey: 'fee',
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <>{value != null ? value.toFixed(2) + '%' : null}</>
+		},
+		meta: {
+			align: 'end',
+			headerHelperText: 'Protocol Fee'
+		},
+		size: 90
+	}
+]
 
 export const LSTOverview = ({
 	areaChartData,

@@ -8,7 +8,7 @@ import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
-import { RaisesTable } from './RaisesTable'
+import { RaisesTable } from './Table'
 
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')

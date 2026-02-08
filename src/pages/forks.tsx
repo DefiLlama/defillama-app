@@ -1,18 +1,78 @@
+import { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
+import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { forksColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { TokenLogo } from '~/components/TokenLogo'
 import { getForkPageData } from '~/containers/Forks/queries'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import Layout from '~/layout'
+import { formattedNum, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
+
+interface IForksRow {
+	name: string
+	forkedProtocols: number
+	tvl: number
+	ftot: number
+}
+
+const forksColumn: ColumnDef<IForksRow>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return (
+				<span className="relative flex items-center gap-2">
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
+
+					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
+
+					<BasicLink
+						href={`/forks/${getValue()}`}
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+					>
+						{getValue() as string}
+					</BasicLink>
+				</span>
+			)
+		}
+	},
+	{
+		header: 'Forked Protocols',
+		accessorKey: 'forkedProtocols',
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'TVL',
+		accessorKey: 'tvl',
+		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Forks TVL / Original TVL',
+		accessorKey: 'ftot',
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <>{value != null ? value.toFixed(2) + '%' : null}</>
+		},
+		meta: {
+			align: 'end'
+		}
+	}
+]
 
 export const getStaticProps = withPerformanceLogging('forks', async () => {
 	const data = await getForkPageData()
