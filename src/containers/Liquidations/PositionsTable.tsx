@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { LiquidatablePositionsTable } from '~/components/Table/Liquidations'
+import { LiquidatablePositionsTable } from '~/containers/Liquidations/Table'
 import { ChartData } from '~/containers/Liquidations/utils'
 
 export const LiqPositionsTable = (props: { data: ChartData; prevData: ChartData }) => {
@@ -19,9 +19,6 @@ export const LiqPositionsTable = (props: { data: ChartData; prevData: ChartData 
 
 	return (
 		<>
-			<p className="mx-3 text-right italic opacity-60">
-				Displaying the largest {rows.length} positions out of {props.data.totalPositions} in total
-			</p>
 			<LiquidatablePositionsTable data={rows} />
 		</>
 	)

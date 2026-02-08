@@ -109,6 +109,24 @@ export type ChartData = {
 	totalPositions: number
 }
 
+export type LiquidationsChartSeries = {
+	key: string
+	label: string
+	usd: number[]
+	native: number[]
+}
+
+export type LiquidationsChartSeriesByGroup = {
+	protocols: {
+		bins: number[]
+		series: LiquidationsChartSeries[]
+	}
+	chains: {
+		bins: number[]
+		series: LiquidationsChartSeries[]
+	}
+}
+
 export interface ChartDataBins {
 	bins: {
 		[bin: number]: { native: number; usd: number }
@@ -167,13 +185,24 @@ function getChartDataBins(
 	return Object.fromEntries(bins)
 }
 
-export async function getAvailableAssetsList() {
+export async function getLiquidationsAssetsList() {
 	const { availability, time } = await getAvailability()
-	const assets = DEFAULT_ASSETS_LIST.filter((asset) => {
-		return !!availability[asset.symbol.toLowerCase()]
+	const assets = DEFAULT_ASSETS_LIST.filter((asset) => !!availability[asset.symbol.toLowerCase()])
+	const totalsBySymbol = await getLiquidatableTotalsBySymbol(assets.map((asset) => asset.symbol.toLowerCase()))
+	const hasTotals = Object.values(totalsBySymbol).some((value) => value > 0)
+	const assetsSorted = assets.sort((a, b) => {
+		const aKey = a.symbol.toLowerCase()
+		const bKey = b.symbol.toLowerCase()
+		const aTotal = totalsBySymbol[aKey] ?? 0
+		const bTotal = totalsBySymbol[bKey] ?? 0
+		if (hasTotals && bTotal !== aTotal) return bTotal - aTotal
+		const aValue = availability[aKey] ?? 0
+		const bValue = availability[bKey] ?? 0
+		if (bValue !== aValue) return bValue - aValue
+		return a.label.localeCompare(b.label)
 	})
 
-	return { assets, time }
+	return { assets: assetsSorted, time }
 }
 
 interface LiquidationsData {
@@ -185,7 +214,7 @@ interface LiquidationsData {
 
 const disabledProtocols = []
 
-export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, timePassed = 0) {
+export async function getPrevLiquidationsChartData(symbol: string, totalBins = TOTAL_BINS, timePassed = 0) {
 	const now = Math.round(Date.now() / 1000) // in seconds
 	const LIQUIDATIONS_DATA_URL = getDataUrl(symbol, now - timePassed)
 
@@ -301,8 +330,28 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 	return chartData
 }
 
-export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS) {
-	return await getPrevChartData(symbol, totalBins)
+export async function getLatestLiquidationsChartData(symbol: string, totalBins = TOTAL_BINS) {
+	return await getPrevLiquidationsChartData(symbol, totalBins)
+}
+
+const getLiquidatableTotalsBySymbol = async (symbols: string[]) => {
+	const results = await Promise.all(
+		symbols.map(async (symbol) => {
+			try {
+				const res = await fetchJson(`${LIQUIDATIONS_HISTORICAL_R2_PATH}/${symbol.toLowerCase()}/latest.json`)
+				const data = res as { currentPrice: number; positions: Position[] }
+				const currentPrice = data.currentPrice
+				const validPositions = data.positions.filter(
+					(p) => p.liqPrice <= currentPrice && p.liqPrice > currentPrice / 1000000
+				)
+				const totalLiquidable = validPositions.reduce((acc, p) => acc + p.collateralValue, 0)
+				return [symbol.toLowerCase(), totalLiquidable] as const
+			} catch {
+				return [symbol.toLowerCase(), 0] as const
+			}
+		})
+	)
+	return Object.fromEntries(results) as Record<string, number>
 }
 
 export function getReadableValue(value: number) {
@@ -589,6 +638,43 @@ export const convertChartDataBinsToArray = (obj: ChartDataBins, totalBins: numbe
 	// const arr = [...Array(totalBins).keys()].map((i) => obj.bins[i] || 0)
 	const arr = Array.from({ length: totalBins }, (_, i) => i).map((i) => obj.bins[i] || { native: 0, usd: 0 })
 	return arr
+}
+
+export const buildLiquidationsChartSeries = (chartData: ChartData): LiquidationsChartSeriesByGroup => {
+	const buildGroup = (stackBy: 'protocols' | 'chains') => {
+		const chartDataBins = chartData.chartDataBins[stackBy]
+		const liquidablesByGroup = chartData.totalLiquidables[stackBy]
+		const keys = Object.keys(chartDataBins).sort((a, b) => {
+			const aValue = liquidablesByGroup[a] ?? 0
+			const bValue = liquidablesByGroup[b] ?? 0
+			if (bValue !== aValue) return bValue - aValue
+			return a.localeCompare(b)
+		})
+
+		const bins: number[] = []
+		for (let i = 0; i < chartData.totalBins; i++) {
+			bins.push(Number((i * chartData.binSize).toFixed(3)))
+		}
+
+		const series = keys.map((key) => {
+			const label = PROTOCOL_NAMES_MAP[key] ?? key
+			const values = convertChartDataBinsToArray(chartDataBins[key], chartData.totalBins)
+			const usd = new Array(values.length)
+			const native = new Array(values.length)
+			for (let i = 0; i < values.length; i++) {
+				usd[i] = values[i].usd
+				native[i] = values[i].native
+			}
+			return { key, label, usd, native }
+		})
+
+		return { bins, series }
+	}
+
+	return {
+		protocols: buildGroup('protocols'),
+		chains: buildGroup('chains')
+	}
 }
 
 export const getOption = (

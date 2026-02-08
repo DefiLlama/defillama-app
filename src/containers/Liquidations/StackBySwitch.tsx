@@ -12,14 +12,18 @@ export const StackBySwitch = () => {
 			<button
 				data-active={_stackBy === 'protocols'}
 				onClick={() => {
-					router.push({
-						query: {
-							...router.query,
-							stackBy: 'protocols'
-						}
-					})
+					router.push(
+						{
+							query: {
+								...router.query,
+								stackBy: 'protocols'
+							}
+						},
+						undefined,
+						{ shallow: true }
+					)
 				}}
-				className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
+				className="inline-flex shrink-0 items-center justify-center gap-1 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 			>
 				<Icon name="map" height={14} width={14} />
 				<span>Protocols</span>
@@ -27,14 +31,18 @@ export const StackBySwitch = () => {
 			<button
 				data-active={_stackBy === 'chains'}
 				onClick={() => {
-					router.push({
-						query: {
-							...router.query,
-							stackBy: 'chains'
-						}
-					})
+					router.push(
+						{
+							query: {
+								...router.query,
+								stackBy: 'chains'
+							}
+						},
+						undefined,
+						{ shallow: true }
+					)
 				}}
-				className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
+				className="inline-flex shrink-0 items-center justify-center gap-1 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 			>
 				<Icon name="link" height={14} width={14} />
 				<span>Chains</span>

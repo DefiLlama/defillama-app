@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { LiquidatableProtocolsTable } from '~/components/Table/Liquidations'
+import { LiquidatableProtocolsTable } from '~/containers/Liquidations/Table'
 import { ChartData } from '~/containers/Liquidations/utils'
 import { useStackBy } from './utils'
 

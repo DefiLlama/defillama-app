@@ -19,7 +19,7 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 
 			return <NameCell value={value} />
 		},
-		size: 120
+		size: 160
 	},
 	{
 		header: '24h Change',
@@ -95,7 +95,7 @@ export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] 
 			const value = getValue() as string
 			return <ProtocolName value={value} />
 		},
-		size: 120
+		size: 160
 	},
 	{
 		header: 'Chain',
@@ -105,7 +105,7 @@ export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] 
 			const value = getValue() as string
 			return <ChainName value={value} />
 		},
-		size: 120
+		size: 140
 	},
 	{
 		header: 'Owner',
@@ -119,11 +119,16 @@ export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] 
 			}
 			// cut middle, leave only first 6 and last 4 letters
 			return (
-				<a href={value.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-end gap-2">
+				<a
+					href={value.url}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="flex items-center justify-end gap-2 hover:underline"
+				>
 					{value.displayName.length > 13
 						? `${value.displayName.substring(0, 6)}...${value.displayName.substring(value.displayName.length - 4)}`
 						: value.displayName}
-					<Icon name="external-link" height={10} width={10} />
+					<Icon name="external-link" height={12} width={12} />
 				</a>
 			)
 		},
@@ -216,12 +221,12 @@ const ProtocolName = ({ value }: { value: string }) => {
 	if (!data) return <span>{_value}</span>
 
 	return (
-		<span className="flex items-center gap-2">
+		<span className="flex min-w-0 items-center gap-2">
 			<span className="vf-row-index shrink-0" aria-hidden="true" />
 			<TokenLogo logo={data.logo} data-lgonly />
 			<BasicLink
 				href={`/protocol/${_value}`}
-				className="ml-4 min-w-[200px] overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+				className="min-w-0 flex-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 			>
 				{data.name}
 			</BasicLink>
@@ -253,12 +258,11 @@ const ChainName = ({ value }: { value: string }) => {
 	}
 
 	return (
-		<span className="flex items-center gap-2">
-			<span className="vf-row-index shrink-0" aria-hidden="true" />
+		<span className="flex min-w-0 items-center gap-2">
 			<TokenLogo logo={chainIconUrl(name)} data-lgonly />
 			<BasicLink
 				href={`/chain/${_name}`}
-				className="ml-4 min-w-[200px] overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+				className="min-w-0 flex-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 			>
 				{_name}
 			</BasicLink>

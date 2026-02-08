@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getAirdropDirectoryData } from '~/api/categories/protocols'
 import { AirdropColumn } from '~/components/Table/Defi/columns'
@@ -17,21 +16,7 @@ export const getStaticProps = withPerformanceLogging('airdrop-directory', async 
 	}
 })
 
-const PageView = ({ airdrops }) => {
-	return (
-		<>
-			<TableWithSearch
-				data={airdrops}
-				columns={AirdropColumn}
-				columnToSearch={'name'}
-				placeholder={'Search Airdrop...'}
-				sortingState={DEFAULT_SORTING_STATE}
-			/>
-		</>
-	)
-}
-
-export default function Airdrops(props) {
+export default function Airdrops({ airdrops }) {
 	return (
 		<Layout
 			title={`Airdrop Directory - DefiLlama`}
@@ -39,7 +24,13 @@ export default function Airdrops(props) {
 			keywords={`airdrop directory, airdrops`}
 			canonicalUrl={`/airdrop-directory`}
 		>
-			<PageView {...props} />
+			<TableWithSearch
+				data={airdrops}
+				columns={AirdropColumn}
+				columnToSearch={'name'}
+				placeholder={'Search Airdrop...'}
+				sortingState={DEFAULT_SORTING_STATE}
+			/>
 		</Layout>
 	)
 }

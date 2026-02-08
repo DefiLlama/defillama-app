@@ -550,11 +550,13 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		return { datasetSource, datasetDimensions, effectiveCharts }
 	}, [dataset, charts, stacked])
 
-	// Default exports ON for line charts unless explicitly disabled by the caller.
-	const hasLineSeries = useMemo(() => effectiveCharts.some((c) => c.type === 'line'), [effectiveCharts])
+	// Default exports ON for charts with at least one series unless explicitly disabled by the caller.
+	// (Historically this was limited to line charts, which made `exportButtons="auto"` appear "broken"
+	// on bar-chart pages like Raises.)
+	const hasAnySeries = useMemo(() => (effectiveCharts?.length ?? 0) > 0, [effectiveCharts])
 	// If a caller provides `onReady`, they often manage export instances + buttons outside the chart,
 	// so avoid showing duplicate toolbars by default in that case (auto mode).
-	const autoExportsEnabled = !onReady && hasLineSeries
+	const autoExportsEnabled = !onReady && hasAnySeries
 
 	const exportButtonsMode = exportButtons ?? 'auto'
 	const exportButtonsConfig =
