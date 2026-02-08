@@ -5,7 +5,7 @@ import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons
 import { ensureChronologicalRows, formatBarChart } from '~/components/ECharts/utils'
 import { feesOptions } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
-import { Select } from '~/components/Select'
+import { Select } from '~/components/Select/Select'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'

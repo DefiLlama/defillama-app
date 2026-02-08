@@ -5,7 +5,7 @@ import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { tvlOptionsMap } from '~/components/Filters/options'
 import { LocalLoader } from '~/components/Loaders'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'

@@ -4,7 +4,7 @@ import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { Select } from '~/components/Select'
+import { Select } from '~/components/Select/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import {

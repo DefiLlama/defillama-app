@@ -1,6 +1,6 @@
 import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { Select } from '~/components/Select'
+import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
 import { capitalizeFirstLetter, download } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'

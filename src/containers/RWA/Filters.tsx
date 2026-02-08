@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { NestedMenu } from '~/components/NestedMenu'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import type { IRWAAssetsOverview } from './queries'
 

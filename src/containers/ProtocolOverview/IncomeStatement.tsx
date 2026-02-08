@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { Select } from '~/components/Select'
+import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
 import { formattedNum } from '~/utils'
 import { IProtocolOverviewPageData } from './types'

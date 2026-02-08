@@ -5,7 +5,7 @@ import { createInflowsTooltipFormatter, preparePieChartData } from '~/components
 import { IPieChartProps } from '~/components/ECharts/types'
 import { FormattedName } from '~/components/FormattedName'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { LinkPreviewCard } from '~/components/SEO'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'

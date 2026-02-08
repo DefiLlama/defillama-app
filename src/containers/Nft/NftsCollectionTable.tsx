@@ -1,10 +1,37 @@
-import { ColumnDef } from '@tanstack/react-table'
+import {
+	ColumnFiltersState,
+	getCoreRowModel,
+	getFilteredRowModel,
+	getSortedRowModel,
+	SortingState,
+	useReactTable
+} from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
+import * as React from 'react'
+import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { VirtualTable } from '~/components/Table/Table'
+import { useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedPercent, slug } from '~/utils'
-import type { INftCollection } from '../types'
 
-export const columns: ColumnDef<INftCollection>[] = [
+interface INftCollection {
+	name: string
+	collectionId: string
+	floorPrice: number
+	floorPrice1Day: number
+	floorPrice7Day: number
+	floorPricePctChange1Day: number
+	floorPricePctChange7Day: number
+	image: string
+	onSaleCount: number
+	totalSupply: number
+	volume1d: number
+	volume7d: number
+	sales1d: number
+}
+
+const columns: ColumnDef<INftCollection>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -141,3 +168,54 @@ export const columns: ColumnDef<INftCollection>[] = [
 		}
 	}
 ]
+
+export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'volume1d', desc: true }])
+
+	const instance = useReactTable({
+		data,
+		columns,
+		state: {
+			columnFilters,
+			sorting
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
+		onSortingChange: setSorting,
+		onColumnFiltersChange: setColumnFilters,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getFilteredRowModel: getFilteredRowModel()
+	})
+
+	const [collectionName, setCollectionName] = useTableSearch({ instance, columnToSearch: 'name' })
+
+	return (
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
+				<h1 className="mr-auto text-xl font-semibold">NFT Collection Metrics</h1>
+				<label className="relative w-full sm:max-w-[280px]">
+					<span className="sr-only">Search collections...</span>
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+					/>
+					<input
+						name="search"
+						value={collectionName}
+						onChange={(e) => {
+							setCollectionName(e.target.value)
+						}}
+						placeholder="Search collections..."
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
+					/>
+				</label>
+			</div>
+			<VirtualTable instance={instance} />
+		</div>
+	)
+}

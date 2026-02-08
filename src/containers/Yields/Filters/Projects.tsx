@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { useRef } from 'react'
-import type { ExcludeQueryKey } from '~/components/selectTypes'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
+import type { ExcludeQueryKey } from '~/components/Select/types'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IYieldProjectsProps {

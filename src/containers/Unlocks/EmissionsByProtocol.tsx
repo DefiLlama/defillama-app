@@ -5,7 +5,7 @@ import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LoadingDots, LocalLoader } from '~/components/Loaders'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'

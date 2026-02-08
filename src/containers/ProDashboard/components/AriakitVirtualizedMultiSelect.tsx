@@ -3,7 +3,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import type { MultiSelectOption } from '~/components/selectTypes'
+import type { MultiSelectOption } from '~/components/Select/types'
 import { LoadingSpinner } from './LoadingSpinner'
 
 interface AriakitVirtualizedMultiSelectProps {

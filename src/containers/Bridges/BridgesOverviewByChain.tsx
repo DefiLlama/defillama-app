@@ -4,14 +4,15 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { BridgesTable } from '~/components/Table/Bridges'
+import { BridgesTable } from '~/containers/Bridges/BridgesTable'
 import { BridgeVolumeChart } from '~/containers/Bridges/BridgeVolumeChart'
 import { ChartSelector } from '~/containers/Bridges/ChartSelector'
-import { LargeTxsTable } from '~/containers/Bridges/LargeTxsTable'
 import { useBuildBridgeChartData } from '~/containers/Bridges/utils'
 import { useDebounce } from '~/hooks/useDebounce'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, getPrevVolumeFromChart, toNiceCsvDate } from '~/utils'
+import { BridgesLargeTxsTable } from './BridgesLargeTxsTable'
+import { LargeTxDownloadButton } from './DownloadButton'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -396,7 +397,15 @@ export function BridgesOverviewByChain({
 				</div>
 
 				{activeTab === 'largeTxs' ? (
-					<LargeTxsTable data={largeTxsData} chain={selectedChain} />
+					<>
+						<div className="flex flex-wrap items-center justify-end gap-2">
+							<p className="text-right italic opacity-60">
+								Displaying {largeTxsData.length} transactions from the past {selectedChain === 'All' ? '1d' : '7d'}
+							</p>
+							<LargeTxDownloadButton data={largeTxsData} />
+						</div>
+						<BridgesLargeTxsTable data={largeTxsData} />
+					</>
 				) : (
 					<BridgesTable
 						data={activeTab === 'bridges' ? filteredBridges : messagingProtocols}

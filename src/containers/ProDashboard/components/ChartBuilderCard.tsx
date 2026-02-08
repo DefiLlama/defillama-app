@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { Select } from '~/components/Select'
+import { Select } from '~/components/Select/Select'
 import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
 import { download } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'

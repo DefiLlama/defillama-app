@@ -5,7 +5,7 @@ import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/formatters'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import { MultiChartConfig } from '~/containers/ProDashboard/types'

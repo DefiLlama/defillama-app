@@ -2,8 +2,8 @@ import * as React from 'react'
 import { lazy, Suspense } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { BridgeChainsTable } from '~/components/Table/Bridges'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
+import { BridgeChainsTable } from '~/containers/Bridges/BridgeChainsTable'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 
 const MultiSeriesChart2 = lazy(

@@ -1,7 +1,7 @@
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
-import type { MultiSelectOption } from '~/components/selectTypes'
+import type { MultiSelectOption } from '~/components/Select/types'
 import { LoadingSpinner } from './LoadingSpinner'
 
 interface AriakitMultiSelectProps {

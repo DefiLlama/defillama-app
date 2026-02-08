@@ -14,7 +14,7 @@ import {
 import * as React from 'react'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'

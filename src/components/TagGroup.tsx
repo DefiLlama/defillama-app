@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import * as React from 'react'
-import { TAG_GROUP_VARIANTS, type TagGroupVariant } from './selectTypes'
+import { TAG_GROUP_VARIANTS, type TagGroupVariant } from './Select/types'
 
 interface IProps extends React.ComponentProps<'div'> {
 	selectedValue: string

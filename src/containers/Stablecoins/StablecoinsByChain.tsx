@@ -7,7 +7,7 @@ import { createInflowsTooltipFormatter, preparePieChartData } from '~/components
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/ProDashboard/types'

@@ -5,7 +5,7 @@ import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons
 import { tvlOptions } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CATEGORY_API, PROTOCOLS_API } from '~/constants'
 import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'

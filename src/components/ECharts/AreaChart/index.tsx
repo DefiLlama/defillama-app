@@ -1,7 +1,7 @@
 import * as echarts from 'echarts/core'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'

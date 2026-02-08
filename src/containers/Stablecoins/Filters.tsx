@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { NestedMenu } from '~/components/NestedMenu'
-import { Select } from '~/components/Select'
+import { Select } from '~/components/Select/Select'
 import { useIsClient } from '~/hooks/useIsClient'
 import { useMedia } from '~/hooks/useMedia'
 

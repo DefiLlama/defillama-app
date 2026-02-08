@@ -6,7 +6,7 @@ import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons
 import { createAggregateTooltipFormatter, createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { oldBlue } from '~/constants/colors'
