@@ -19,14 +19,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { useSortColumnSizesAndOrders, useTableSearch } from '../../utils'
-import {
-	columnOrders,
-	columnSizes,
-	protocolAddlColumns,
-	protocolsByChainColumns,
-	protocolsColumns,
-	topGainersAndLosersColumns
-} from './columns'
+import { columnOrders, columnSizes, protocolAddlColumns, protocolsByChainColumns, protocolsColumns } from './columns'
 import { IProtocolRow } from './types'
 
 export enum TABLE_CATEGORIES {
@@ -652,24 +645,4 @@ export function ProtocolsTableWithSearch({
 			<VirtualTable instance={instance} />
 		</div>
 	)
-}
-
-export function TopGainersAndLosers({ data, sortingState }: { data: Array<IProtocolRow>; sortingState: SortingState }) {
-	const [sorting, setSorting] = React.useState<SortingState>(sortingState)
-
-	const instance = useReactTable({
-		data,
-		columns: topGainersAndLosersColumns,
-		state: {
-			sorting
-		},
-		defaultColumn: {
-			sortUndefined: 'last'
-		},
-		onSortingChange: setSorting,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel()
-	})
-
-	return <VirtualTable instance={instance} />
 }

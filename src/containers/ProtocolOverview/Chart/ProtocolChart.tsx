@@ -2,12 +2,6 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
-import {
-	useFetchProtocolActiveUsers,
-	useFetchProtocolMedianAPY,
-	useFetchProtocolNewUsers,
-	useFetchProtocolTransactions
-} from '~/api/categories/protocols/client'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -26,6 +20,12 @@ import {
 import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/queries'
 import { useFetchProtocolGovernanceData } from '~/containers/Governance/queries.client'
 import { serializeProtocolChartToMultiChart } from '~/containers/ProDashboard/utils/chartSerializer'
+import {
+	useFetchProtocolActiveUsers,
+	useFetchProtocolMedianAPY,
+	useFetchProtocolNewUsers,
+	useFetchProtocolTransactions
+} from '~/containers/ProtocolOverview/queries.client'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
