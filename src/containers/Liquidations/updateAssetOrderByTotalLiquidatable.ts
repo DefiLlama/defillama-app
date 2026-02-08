@@ -35,6 +35,130 @@ function formatAssetEntry(asset: { name: string; symbol: string }) {
 	return `\t{\n\t\tname: ${JSON.stringify(asset.name)},\n\t\tsymbol: ${JSON.stringify(asset.symbol)}\n\t}`
 }
 
+function findMatchingClosingBracket(source: string, openingBracketIndex: number) {
+	let depth = 0
+	let inLineComment = false
+	let inBlockComment = false
+	let inSingleQuote = false
+	let inDoubleQuote = false
+	let inTemplateString = false
+	let escaped = false
+
+	for (let i = openingBracketIndex; i < source.length; i++) {
+		const ch = source[i]
+		const next = source[i + 1]
+
+		if (inLineComment) {
+			if (ch === '\n') inLineComment = false
+			continue
+		}
+
+		if (inBlockComment) {
+			if (ch === '*' && next === '/') {
+				inBlockComment = false
+				i++
+			}
+			continue
+		}
+
+		if (inSingleQuote) {
+			if (escaped) {
+				escaped = false
+				continue
+			}
+			if (ch === '\\') {
+				escaped = true
+				continue
+			}
+			if (ch === "'") inSingleQuote = false
+			continue
+		}
+
+		if (inDoubleQuote) {
+			if (escaped) {
+				escaped = false
+				continue
+			}
+			if (ch === '\\') {
+				escaped = true
+				continue
+			}
+			if (ch === '"') inDoubleQuote = false
+			continue
+		}
+
+		if (inTemplateString) {
+			if (escaped) {
+				escaped = false
+				continue
+			}
+			if (ch === '\\') {
+				escaped = true
+				continue
+			}
+			if (ch === '`') inTemplateString = false
+			continue
+		}
+
+		// entering comments
+		if (ch === '/' && next === '/') {
+			inLineComment = true
+			i++
+			continue
+		}
+		if (ch === '/' && next === '*') {
+			inBlockComment = true
+			i++
+			continue
+		}
+
+		// entering strings
+		if (ch === "'") {
+			inSingleQuote = true
+			continue
+		}
+		if (ch === '"') {
+			inDoubleQuote = true
+			continue
+		}
+		if (ch === '`') {
+			inTemplateString = true
+			continue
+		}
+
+		if (ch === '[') {
+			depth++
+			continue
+		}
+		if (ch === ']') {
+			depth--
+			if (depth === 0) return i
+		}
+	}
+
+	return -1
+}
+
+function replaceExportedConstArray(source: string, constName: string, newArray: string) {
+	const start = source.indexOf(`export const ${constName}`)
+	if (start === -1) {
+		throw new Error(`Could not find ${constName} in constants.ts`)
+	}
+
+	const arrayStart = source.indexOf('[', start)
+	if (arrayStart === -1) {
+		throw new Error(`Could not locate ${constName} array opening bracket in constants.ts`)
+	}
+
+	const closeIndex = findMatchingClosingBracket(source, arrayStart)
+	if (closeIndex === -1) {
+		throw new Error(`Could not locate ${constName} array closing bracket in constants.ts`)
+	}
+	const arrayEnd = closeIndex + 1 // include closing ']'
+
+	return source.slice(0, arrayStart) + newArray + source.slice(arrayEnd)
+}
+
 async function getTotalsBySymbol(symbols: string[]): Promise<TotalsBySymbol> {
 	const entries = await mapLimit(symbols, 10, async (symbol) => {
 		const key = symbol.toLowerCase()
@@ -71,20 +195,8 @@ async function main() {
 	const constantsPath = fileURLToPath(new URL('./constants.ts', import.meta.url))
 	const original = fs.readFileSync(constantsPath, 'utf-8')
 
-	const start = original.indexOf('export const DEFAULT_ASSETS_LIST_RAW')
-	if (start === -1) {
-		throw new Error('Could not find DEFAULT_ASSETS_LIST_RAW in constants.ts')
-	}
-
-	const arrayStart = original.indexOf('[', start)
-	const closeIndex = original.indexOf(']\n\nexport const DEFAULT_ASSETS_LIST', arrayStart)
-	if (arrayStart === -1 || closeIndex === -1) {
-		throw new Error('Could not locate DEFAULT_ASSETS_LIST_RAW array bounds in constants.ts')
-	}
-	const arrayEnd = closeIndex + 1 // include closing ']'
-
 	const newArray = `[\n${assets.map(formatAssetEntry).join(',\n')}\n]`
-	const updated = original.slice(0, arrayStart) + newArray + original.slice(arrayEnd)
+	const updated = replaceExportedConstArray(original, 'DEFAULT_ASSETS_LIST_RAW', newArray)
 
 	fs.writeFileSync(constantsPath, updated)
 

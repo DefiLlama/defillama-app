@@ -1,7 +1,8 @@
 import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import { DEFAULT_ASSETS_LIST, LIQUIDATIONS_TOTAL_BINS } from './constants'
-import type { ChartData } from './utils'
+import { getDataUrl } from './utils'
+import type { ChartData, ChartDataBins, LiquidationsData, Position, PositionSmol } from './utils'
 
 const getAvailability = async () => {
 	const res = await fetchJson(`${LIQUIDATIONS_HISTORICAL_R2_PATH}/availability.json`)
@@ -13,45 +14,6 @@ export async function getLiquidationsAssetsList() {
 	const assets = DEFAULT_ASSETS_LIST.filter((asset) => !!availability[asset.symbol.toLowerCase()])
 	// Keep the order from `constants.ts` (you can periodically refresh it with the updater script).
 	return { assets, time }
-}
-
-type Address = string
-type PrefixAddress = string
-type Chain = string
-type Protocol = string
-
-interface Position {
-	owner: Address
-	liqPrice: number
-	collateralValue: number
-	collateralAmount: number
-	chain: Chain
-	protocol: Protocol
-	collateral: PrefixAddress
-	displayName?: string
-	url: string
-}
-
-type PositionSmol = Omit<Position, 'collateral' | 'owner'>
-
-interface ChartDataBins {
-	bins: {
-		[bin: number]: { native: number; usd: number }
-	}
-	binSize: number
-	price: number
-}
-
-interface LiquidationsData {
-	symbol: string
-	currentPrice: number
-	positions: Position[]
-	time: number
-}
-
-const getDataUrl = (symbol: string, timestamp: number) => {
-	const hourId = Math.floor(timestamp / 3600 / 6) * 6
-	return `${LIQUIDATIONS_HISTORICAL_R2_PATH}/${symbol.toLowerCase()}/${hourId}.json`
 }
 
 function getChartDataBins(
@@ -185,8 +147,8 @@ export async function getPrevLiquidationsChartData(
 			collateralValue: p.collateralValue,
 			protocol: p.protocol,
 			chain: p.chain,
-			url: p?.url ?? null,
-			displayName: p?.displayName ?? null
+			url: p.url ?? '',
+			displayName: p.displayName ?? undefined
 		}))
 
 	const chartData: ChartData = {

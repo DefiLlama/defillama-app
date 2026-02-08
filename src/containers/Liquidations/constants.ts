@@ -40,10 +40,6 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		name: 'Lido Wrapped stETH',
 		symbol: 'WSTETH'
 	},
-	// {
-	// 	name: 'Binance Beacon ETH',
-	// 	symbol: 'BETH'
-	// },
 	{
 		name: 'Lido Staked SOL',
 		symbol: 'STSOL'
@@ -72,10 +68,6 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		name: 'FTX Token',
 		symbol: 'FTT'
 	},
-	// {
-	// 	name: 'Compound',
-	// 	symbol: 'COMP'
-	// },
 	{
 		name: 'Uniswap',
 		symbol: 'UNI'
@@ -100,22 +92,10 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		name: 'Curve DAO',
 		symbol: 'CRV'
 	},
-	// {
-	// 	name: 'Ampleforth',
-	// 	symbol: 'AMPL'
-	// },
 	{
 		name: 'ChainLink',
 		symbol: 'LINK'
 	},
-	// {
-	// 	name: 'Frax',
-	// 	symbol: 'FRAX'
-	// },
-	// {
-	// 	name: 'Fei USD',
-	// 	symbol: 'FEI'
-	// },
 	{
 		name: 'Tezos',
 		symbol: 'XTZ'
@@ -176,13 +156,39 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		name: '1inch',
 		symbol: '1INCH'
 	},
-	// {
-	// 	name: 'Rai Reflex Index',
-	// 	symbol: 'RAI'
-	// },
 	{
 		name: 'REN',
 		symbol: 'REN'
+	}
+]
+
+// Disabled assets that are intentionally excluded from the default list.
+// Keep these here (not as commented-out entries in `DEFAULT_ASSETS_LIST_RAW`) so the updater script
+// can refresh ordering without dropping them.
+export const DISABLED_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
+	{
+		name: 'Binance Beacon ETH',
+		symbol: 'BETH'
+	},
+	{
+		name: 'Compound',
+		symbol: 'COMP'
+	},
+	{
+		name: 'Ampleforth',
+		symbol: 'AMPL'
+	},
+	{
+		name: 'Frax',
+		symbol: 'FRAX'
+	},
+	{
+		name: 'Fei USD',
+		symbol: 'FEI'
+	},
+	{
+		name: 'Rai Reflex Index',
+		symbol: 'RAI'
 	}
 ]
 

@@ -9,18 +9,18 @@ import { PROTOCOL_NAMES_MAP, SYMBOL_MAP, WRAPPED_GAS_TOKENS } from './constants'
  * @param timestamp UNIX timestamp in **seconds**
  * @returns The URL to the liquidations data payload
  */
-const getDataUrl = (symbol: string, timestamp: number) => {
+export const getDataUrl = (symbol: string, timestamp: number) => {
 	const hourId = Math.floor(timestamp / 3600 / 6) * 6
 	return `${LIQUIDATIONS_HISTORICAL_R2_PATH}/${symbol.toLowerCase()}/${hourId}.json`
 }
 
 // making aliases so the hints are more readable
-type Address = string
-type PrefixAddress = string
-type Chain = string
-type Protocol = string
+export type Address = string
+export type PrefixAddress = string
+export type Chain = string
+export type Protocol = string
 
-interface Position {
+export interface Position {
 	owner: Address
 	liqPrice: number
 	collateralValue: number
@@ -32,7 +32,7 @@ interface Position {
 	url: string
 }
 
-type PositionSmol = Omit<Position, 'collateral' | 'owner'>
+export type PositionSmol = Omit<Position, 'collateral' | 'owner'>
 
 const _getNativeSymbol = (symbol: string) => {
 	if (symbol in SYMBOL_MAP) {
@@ -94,7 +94,7 @@ export type LiquidationsChartSeriesByGroup = {
 	}
 }
 
-interface ChartDataBins {
+export interface ChartDataBins {
 	bins: {
 		[bin: number]: { native: number; usd: number }
 	}
@@ -105,7 +105,7 @@ interface ChartDataBins {
 // NOTE: `getLiquidationsAssetsList` is implemented server-side to use build-time `.cache`
 // and avoid per-symbol network fan-out during ISR.
 
-interface LiquidationsData {
+export interface LiquidationsData {
 	symbol: string
 	currentPrice: number
 	positions: Position[]

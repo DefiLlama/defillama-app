@@ -23,7 +23,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 
 export interface ILiquidableProtocolRow {
 	name: string
-	changes24h: number
+	changes24h: number | null
 	liquidableAmount: number
 	dangerousAmount: number
 }
@@ -49,7 +49,7 @@ export const LiqProtocolsTable = (props: { data: ChartData; prevData: ChartData 
 		for (const name in props.data.totalLiquidables[stackBy]) {
 			const current = props.data.totalLiquidables[stackBy][name]
 			const prev = props.prevData.totalLiquidables[stackBy][name]
-			const changes24h = ((current - prev) / prev) * 100
+			const changes24h = prev == null || prev === 0 ? null : ((current - prev) / prev) * 100
 			const liquidableAmount = current
 			const dangerousAmount = props.data.dangerousPositionsAmounts[stackBy][name]
 			result.push({
@@ -74,10 +74,13 @@ export const LiqPositionsTable = (props: { data: ChartData; prevData: ChartData 
 				value: p.collateralValue,
 				amount: p.collateralAmount,
 				liqPrice: p.liqPrice,
-				owner: {
-					displayName: p.displayName,
-					url: p.url
-				}
+				owner:
+					typeof p.displayName === 'string' && p.displayName.length > 0
+						? {
+								displayName: p.displayName,
+								url: p.url
+							}
+						: undefined
 			})
 		)
 	}, [props.data])
@@ -226,14 +229,14 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 		header: '24h Change',
 		accessorKey: 'changes24h',
 		cell: (info) => {
-			const value = info.getValue() as number
-			const isNegative = value < 0
-			const isZero = value === 0
-			const isSmol = Math.abs(value as number) < 0.01
+			const value = info.getValue() as number | null
 
-			if (isZero || !value) {
+			if (value == null || value === 0) {
 				return <span>-</span>
 			}
+
+			const isNegative = value < 0
+			const isSmol = Math.abs(value) < 0.01
 
 			if (isSmol) {
 				return (
@@ -245,11 +248,10 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 				)
 			}
 
-			const _value = (value as number).toFixed(2)
 			return (
 				<span className={`${isNegative ? 'text-(--error)' : 'text-(--success)'}`}>
 					{isNegative ? '' : '+'}
-					{_value}%
+					{value.toFixed(2)}%
 				</span>
 			)
 		},
