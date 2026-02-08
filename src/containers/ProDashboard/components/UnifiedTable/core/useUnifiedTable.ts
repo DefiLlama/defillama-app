@@ -109,7 +109,8 @@ export function useUnifiedTable({
 	const { data, isLoading } = useQuery({
 		queryKey: ['unified-table', paramsKey, headersKey],
 		queryFn: () => fetchUnifiedTableRows(config, sanitizedHeaders),
-		staleTime: 60 * 1000
+		staleTime: 60 * 1000,
+		retry: 2
 	})
 
 	useEffect(() => {
