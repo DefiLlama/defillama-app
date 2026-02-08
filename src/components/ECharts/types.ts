@@ -164,7 +164,7 @@ export type IMultiSeriesChart2Props = MultiSeriesChart2BaseProps & {
 	tooltipMaxItems?: number
 	/**
 	 * Controls the built-in export toolbar.
-	 * - `'auto'` (default): show exports for line charts unless `onReady` is provided.
+	 * - `'auto'` (default): show exports when the chart has series, unless `onReady` is provided.
 	 * - `'hidden'`: never show exports.
 	 * - object: explicitly control which buttons are shown and export metadata.
 	 */

@@ -1,8 +1,6 @@
-import { ECBasicOption } from 'echarts/types/dist/shared'
-import { useRouter } from 'next/router'
 import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
-import { liquidationsIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { PROTOCOL_NAMES_MAP, SYMBOL_MAP, WRAPPED_GAS_TOKENS } from './constants'
 
 /**
  * Format the URL to the liquidations data payload
@@ -11,38 +9,16 @@ import { fetchJson } from '~/utils/async'
  * @param timestamp UNIX timestamp in **seconds**
  * @returns The URL to the liquidations data payload
  */
-const getDataUrl = (symbol: string, timestamp: number) => {
+export const getDataUrl = (symbol: string, timestamp: number) => {
 	const hourId = Math.floor(timestamp / 3600 / 6) * 6
 	return `${LIQUIDATIONS_HISTORICAL_R2_PATH}/${symbol.toLowerCase()}/${hourId}.json`
 }
 
-const getAvailability = async () => {
-	const res = await fetchJson(`${LIQUIDATIONS_HISTORICAL_R2_PATH}/availability.json`)
-	const data = res
-	return data as { availability: { [symbol: string]: number }; time: number }
-}
-
-const TOTAL_BINS = 100
-const WRAPPED_GAS_TOKENS = ['WETH', 'WAVAX', 'WMATIC', 'WFTM', 'WBNB', 'WCRO', 'WONE']
-const SYMBOL_MAP: { [originSymbol: string]: string } = { BTCB: 'WBTC', BTC: 'WBTC' }
-
 // making aliases so the hints are more readable
-type Address = string
-type PrefixAddress = string
-type Chain = string
-type Protocol = string
-type Symbol = string
-
-export interface Liq {
-	owner: Address
-	liqPrice: number
-	collateral: PrefixAddress
-	collateralAmount: string
-	extra?: {
-		displayName?: string
-		url: string
-	}
-}
+export type Address = string
+export type PrefixAddress = string
+export type Chain = string
+export type Protocol = string
 
 export interface Position {
 	owner: Address
@@ -57,15 +33,6 @@ export interface Position {
 }
 
 export type PositionSmol = Omit<Position, 'collateral' | 'owner'>
-
-export type Price = {
-	decimals: number
-	price: number
-	symbol: Symbol
-	timestamp: number
-	address: PrefixAddress
-	chain: Chain
-}
 
 const _getNativeSymbol = (symbol: string) => {
 	if (symbol in SYMBOL_MAP) {
@@ -109,6 +76,24 @@ export type ChartData = {
 	totalPositions: number
 }
 
+export type LiquidationsChartSeries = {
+	key: string
+	label: string
+	usd: number[]
+	native: number[]
+}
+
+export type LiquidationsChartSeriesByGroup = {
+	protocols: {
+		bins: number[]
+		series: LiquidationsChartSeries[]
+	}
+	chains: {
+		bins: number[]
+		series: LiquidationsChartSeries[]
+	}
+}
+
 export interface ChartDataBins {
 	bins: {
 		[bin: number]: { native: number; usd: number }
@@ -117,192 +102,14 @@ export interface ChartDataBins {
 	price: number
 }
 
-function getChartDataBins(
-	positions: Position[],
-	currentPrice: number,
-	totalBins: number,
-	stackBy: 'protocol' | 'chain'
-): { [key: string]: ChartDataBins } {
-	// protocol/chain -> {bins, binSize, price}
-	const aggregatedPositions = new Map<string, Position[]>()
-	const keySet = new Set<string>()
+// NOTE: `getLiquidationsAssetsList` is implemented server-side to use build-time `.cache`
+// and avoid per-symbol network fan-out during ISR.
 
-	// group positions by protocol or chain
-	for (const position of positions) {
-		keySet.add(position[stackBy])
-		let positionsGroup: Position[] = aggregatedPositions.get(position[stackBy])
-		if (!positionsGroup) {
-			positionsGroup = [position]
-			aggregatedPositions.set(position[stackBy], positionsGroup)
-		} else {
-			positionsGroup.push(position)
-		}
-	}
-
-	const bins = new Map<string, ChartDataBins>()
-	// init bins
-	for (const key of keySet) {
-		bins.set(key, {
-			bins: {},
-			binSize: currentPrice / totalBins,
-			price: currentPrice
-		})
-	}
-	// fill bins
-	for (const [key, positionsGroup] of aggregatedPositions) {
-		const binSize = bins.get(key)!.binSize
-		const binsGroup = bins.get(key)!.bins
-		for (const position of positionsGroup) {
-			const bin = Math.floor(position.liqPrice / binSize)
-			if (!binsGroup[bin]) {
-				binsGroup[bin] = { native: 0, usd: 0 }
-			}
-			binsGroup[bin] = {
-				native: binsGroup[bin].native + position.collateralAmount,
-				usd: binsGroup[bin].usd + position.collateralValue
-			}
-		}
-	}
-
-	return Object.fromEntries(bins)
-}
-
-export async function getAvailableAssetsList() {
-	const { availability, time } = await getAvailability()
-	const assets = DEFAULT_ASSETS_LIST.filter((asset) => {
-		return !!availability[asset.symbol.toLowerCase()]
-	})
-
-	return { assets, time }
-}
-
-interface LiquidationsData {
+export interface LiquidationsData {
 	symbol: string
 	currentPrice: number
 	positions: Position[]
 	time: number
-}
-
-const disabledProtocols = []
-
-export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, timePassed = 0) {
-	const now = Math.round(Date.now() / 1000) // in seconds
-	const LIQUIDATIONS_DATA_URL = getDataUrl(symbol, now - timePassed)
-
-	let data: LiquidationsData
-	try {
-		const res = await fetchJson(LIQUIDATIONS_DATA_URL)
-		data = res
-	} catch {
-		// fallback to current
-		const res = await fetchJson(`${LIQUIDATIONS_HISTORICAL_R2_PATH}/${symbol.toLowerCase()}/latest.json`)
-		data = res
-	}
-
-	const currentPrice = data.currentPrice
-	const positions = data.positions.filter((p) => !disabledProtocols.includes(p.protocol))
-
-	const badDebtsPositions = positions.filter((p) => p.liqPrice > currentPrice)
-	const badDebts = badDebtsPositions.reduce((acc, p) => acc + p.collateralValue, 0)
-
-	const validPositions = positions.filter((p) => p.liqPrice <= currentPrice && p.liqPrice > currentPrice / 1000000)
-	const totalLiquidable = validPositions.reduce((acc, p) => acc + p.collateralValue, 0)
-
-	const chartDataBinsByProtocol = getChartDataBins(validPositions, currentPrice, totalBins, 'protocol')
-	const protocols: string[] = []
-	const liquidablesByProtocol: { [protocol: string]: number } = {}
-	for (const protocol in chartDataBinsByProtocol) {
-		protocols.push(protocol)
-		let sum = 0
-		for (const binKey in chartDataBinsByProtocol[protocol].bins) {
-			sum += chartDataBinsByProtocol[protocol].bins[binKey]['usd']
-		}
-		liquidablesByProtocol[protocol] = sum
-	}
-
-	const chartDataBinsByChain = getChartDataBins(validPositions, currentPrice, totalBins, 'chain')
-	const chains: string[] = []
-	const liquidablesByChain: { [chain: string]: number } = {}
-	for (const chain in chartDataBinsByChain) {
-		chains.push(chain)
-		let sum = 0
-		for (const binKey in chartDataBinsByChain[chain].bins) {
-			sum += chartDataBinsByChain[chain].bins[binKey]['usd']
-		}
-		liquidablesByChain[chain] = sum
-	}
-
-	const dangerousPositions = validPositions.filter((p) => p.liqPrice > currentPrice * 0.8 && p.liqPrice <= currentPrice)
-	let dangerousPositionsAmount = 0
-	const dangerousPositionsAmountByProtocol: { [protocol: string]: number } = {}
-	const dangerousPositionsAmountByChain: { [chain: string]: number } = {}
-	for (const protocol of protocols) {
-		dangerousPositionsAmountByProtocol[protocol] = 0
-	}
-	for (const chain of chains) {
-		dangerousPositionsAmountByChain[chain] = 0
-	}
-	for (const p of dangerousPositions) {
-		dangerousPositionsAmount += p.collateralValue
-		dangerousPositionsAmountByProtocol[p.protocol] =
-			(dangerousPositionsAmountByProtocol[p.protocol] ?? 0) + p.collateralValue
-		dangerousPositionsAmountByChain[p.chain] = (dangerousPositionsAmountByChain[p.chain] ?? 0) + p.collateralValue
-	}
-
-	const topPositions = [...validPositions]
-		.sort((a, b) => b.collateralValue - a.collateralValue)
-		.slice(0, 100) // hardcoded to first 100
-		.map((p) => ({
-			liqPrice: p.liqPrice,
-			collateralAmount: p.collateralAmount,
-			collateralValue: p.collateralValue,
-			protocol: p.protocol,
-			chain: p.chain,
-			url: p?.url ?? null,
-			displayName: p?.displayName ?? null
-		}))
-
-	const chartData: ChartData = {
-		name: DEFAULT_ASSETS_LIST.find((a) => a.symbol.toLowerCase() === symbol.toLowerCase())?.name ?? symbol,
-		symbol,
-		currentPrice,
-		badDebts,
-		dangerousPositionsAmount,
-		dangerousPositionsAmounts: {
-			chains: dangerousPositionsAmountByChain,
-			protocols: dangerousPositionsAmountByProtocol
-		},
-		totalLiquidable,
-		totalLiquidables: {
-			chains: liquidablesByChain,
-			protocols: liquidablesByProtocol
-		},
-		totalBins,
-		chartDataBins: {
-			chains: sortObject(
-				chartDataBinsByChain,
-				([keyA, _a], [keyB, _b]) => liquidablesByChain[keyB] - liquidablesByChain[keyA]
-			),
-			protocols: sortObject(
-				chartDataBinsByProtocol,
-				([keyA, _a], [keyB, _b]) => liquidablesByProtocol[keyB] - liquidablesByProtocol[keyA]
-			)
-		},
-		binSize: currentPrice / totalBins,
-		availability: {
-			protocols,
-			chains
-		},
-		time: data.time,
-		topPositions,
-		totalPositions: validPositions.length
-	}
-
-	return chartData
-}
-
-export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS) {
-	return await getPrevChartData(symbol, totalBins)
 }
 
 export function getReadableValue(value: number) {
@@ -354,414 +161,46 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 	return csvData
 }
 
-export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
-	{
-		name: 'Ethereum',
-		symbol: 'ETH'
-	},
-	{
-		name: 'Wrapped Bitcoin',
-		symbol: 'WBTC'
-	},
-	{
-		name: 'Dai',
-		symbol: 'DAI'
-	},
-	{
-		name: 'Solana',
-		symbol: 'SOL'
-	},
-	{
-		name: 'Binance Coin',
-		symbol: 'BNB'
-	},
-	{
-		name: 'USD Coin',
-		symbol: 'USDC'
-	},
-	{
-		name: 'Lido Staked ETH',
-		symbol: 'STETH'
-	},
-	{
-		name: 'Lido Wrapped stETH',
-		symbol: 'WSTETH'
-	},
-	// {
-	// 	name: 'Binance Beacon ETH',
-	// 	symbol: 'BETH'
-	// },
-	{
-		name: 'Lido Staked SOL',
-		symbol: 'STSOL'
-	},
-	{
-		name: 'Rocket Pool ETH',
-		symbol: 'RETH'
-	},
-	{
-		name: 'Marinade Staked SOL',
-		symbol: 'MSOL'
-	},
-	{
-		name: 'Tether',
-		symbol: 'USDT'
-	},
-	{
-		name: 'Solar Network',
-		symbol: 'SXP'
-	},
-	{
-		name: 'yearn.finance',
-		symbol: 'YFI'
-	},
-	{
-		name: 'FTX Token',
-		symbol: 'FTT'
-	},
-	// {
-	// 	name: 'Compound',
-	// 	symbol: 'COMP'
-	// },
-	{
-		name: 'Uniswap',
-		symbol: 'UNI'
-	},
-	{
-		name: 'PancakeSwap',
-		symbol: 'CAKE'
-	},
-	{
-		name: 'Cardano',
-		symbol: 'ADA'
-	},
-	{
-		name: 'Basic Attention',
-		symbol: 'BAT'
-	},
-	{
-		name: 'Binance USD',
-		symbol: 'BUSD'
-	},
-	{
-		name: 'Curve DAO',
-		symbol: 'CRV'
-	},
-	// {
-	// 	name: 'Ampleforth',
-	// 	symbol: 'AMPL'
-	// },
-	{
-		name: 'ChainLink',
-		symbol: 'LINK'
-	},
-	// {
-	// 	name: 'Frax',
-	// 	symbol: 'FRAX'
-	// },
-	// {
-	// 	name: 'Fei USD',
-	// 	symbol: 'FEI'
-	// },
-	{
-		name: 'Tezos',
-		symbol: 'XTZ'
-	},
-	{
-		name: 'TrueUSD',
-		symbol: 'TUSD'
-	},
-	{
-		name: 'Aave',
-		symbol: 'AAVE'
-	},
-	{
-		name: 'MakerDAO',
-		symbol: 'MKR'
-	},
-	{
-		name: 'Avalanche',
-		symbol: 'AVAX'
-	},
-	{
-		name: 'Polygon',
-		symbol: 'MATIC'
-	},
-	{
-		name: 'Optimism',
-		symbol: 'OP'
-	},
-	{
-		name: 'SushiSwap',
-		symbol: 'SUSHI'
-	},
-	{
-		name: 'Synthetix',
-		symbol: 'SNX'
-	},
-	{
-		name: 'Trader Joe',
-		symbol: 'JOE'
-	},
-	{
-		name: 'Magic Internet Money',
-		symbol: 'MIM'
-	},
-	{
-		name: '0x',
-		symbol: 'ZRX'
-	},
-	{
-		name: 'Enjin Coin',
-		symbol: 'ENJ'
-	},
-	{
-		name: 'Decentraland',
-		symbol: 'MANA'
-	},
-	{
-		name: '1inch',
-		symbol: '1INCH'
-	},
-	// {
-	// 	name: 'Rai Reflex Index',
-	// 	symbol: 'RAI'
-	// },
-	{
-		name: 'REN',
-		symbol: 'REN'
-	}
-]
-
-export const DEFAULT_ASSETS_LIST = DEFAULT_ASSETS_LIST_RAW.map(({ name, symbol }) => ({
-	name,
-	symbol,
-	route: `/liquidations/${symbol.toLowerCase()}`,
-	logo: liquidationsIconUrl(symbol.toLowerCase()),
-	label: `${name} (${symbol.toUpperCase()})`,
-	to: `/liquidations/${symbol.toLowerCase()}`
-}))
-
-export const PROTOCOL_NAMES_MAP = {
-	'aave-v2': 'Aave V2',
-	compound: 'Compound',
-	euler: 'Euler',
-	liquity: 'Liquity',
-	maker: 'MakerDAO',
-	'trader-joe-lend': 'Trader Joe',
-	'mimo-protocol': 'Mimo',
-	polygon: 'Polygon',
-	ethereum: 'Ethereum',
-	avalanche: 'Avalanche',
-	solend: 'Solend',
-	solana: 'Solana',
-	benqi: 'Benqi',
-	venus: 'Venus',
-	bsc: 'BSC',
-	angle: 'Angle',
-	optimism: 'Optimism',
-	arbitrum: 'Arbitrum',
-	'gravita-protocol': 'Gravita',
-	strike: 'Strike'
-} as const
-
-const buildProtocolNamesMapReverse = (): { [name: string]: string } => {
-	const result: { [name: string]: string } = {}
-	for (const key in PROTOCOL_NAMES_MAP) {
-		const value = PROTOCOL_NAMES_MAP[key as keyof typeof PROTOCOL_NAMES_MAP]
-		result[value] = key
-	}
-	return result
-}
-export const PROTOCOL_NAMES_MAP_REVERSE = buildProtocolNamesMapReverse()
-
-export const sortObject = <T>(
-	unordered: { [key: string]: T },
-	compareFn: (a: [string, T], b: [string, T]) => number
-) => {
-	return Object.entries(unordered)
-		.sort(([keyA, valueA], [keyB, valueB]) => compareFn([keyA, valueA], [keyB, valueB]))
-		.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {})
-}
-
-export const convertChartDataBinsToArray = (obj: ChartDataBins, totalBins: number) => {
+const convertChartDataBinsToArray = (obj: ChartDataBins, totalBins: number) => {
 	// this line below suddenly throws error in browser that the iterator can't iterate??
 	// const arr = [...Array(totalBins).keys()].map((i) => obj.bins[i] || 0)
 	const arr = Array.from({ length: totalBins }, (_, i) => i).map((i) => obj.bins[i] || { native: 0, usd: 0 })
 	return arr
 }
 
-export const getOption = (
-	chartData: ChartData,
-	stackBy: 'chains' | 'protocols',
-	isSmall: boolean,
-	isDark: boolean,
-	isLiqsUsingUsd: boolean,
-	isLiqsCumulative: boolean
-) => {
-	const chartDataBins = chartData.chartDataBins[stackBy]
-	// convert chartDataBins to array
-	const chartDataBinsArray = []
-	for (const key in chartDataBins) {
-		chartDataBinsArray.push({
-			key,
-			data: convertChartDataBinsToArray(chartDataBins[key], 150)
+export const buildLiquidationsChartSeries = (chartData: ChartData): LiquidationsChartSeriesByGroup => {
+	const buildGroup = (stackBy: 'protocols' | 'chains') => {
+		const chartDataBins = chartData.chartDataBins[stackBy]
+		const liquidablesByGroup = chartData.totalLiquidables[stackBy]
+		const keys = Object.keys(chartDataBins).sort((a, b) => {
+			const aValue = liquidablesByGroup[a] ?? 0
+			const bValue = liquidablesByGroup[b] ?? 0
+			if (bValue !== aValue) return bValue - aValue
+			return a.localeCompare(b)
 		})
-	}
-	let series: {
-		type: string
-		large?: boolean
-		name: string
-		data: number[]
-		emphasis: {
-			focus: string
+
+		const bins: number[] = []
+		for (let i = 0; i < chartData.totalBins; i++) {
+			bins.push(Number((i * chartData.binSize).toFixed(3)))
 		}
-		stack: string
-	}[]
-	if (!isLiqsCumulative) {
-		series = chartDataBinsArray.map((obj) => ({
-			type: 'bar',
-			name: PROTOCOL_NAMES_MAP[obj.key],
-			data: obj.data.map((value) => (isLiqsUsingUsd ? value['usd'] : value['native'])),
-			emphasis: {
-				focus: 'series'
-			},
-			stack: 'x'
-		}))
-	} else {
-		series = chartDataBinsArray.map((obj) => ({
-			type: 'bar',
-			name: PROTOCOL_NAMES_MAP[obj.key],
-			data: obj.data
-				.reverse()
-				.map((_value, index, arr) => {
-					const sum = arr.slice(0, index + 1).reduce((a, b) => a + (isLiqsUsingUsd ? b['usd'] : b['native']), 0)
-					return sum
-				})
-				.reverse(),
-			emphasis: {
-				focus: 'series'
-			},
-			stack: 'x'
-		}))
+
+		const series = keys.map((key) => {
+			const label = PROTOCOL_NAMES_MAP[key] ?? key
+			const values = convertChartDataBinsToArray(chartDataBins[key], chartData.totalBins)
+			const usd = new Array(values.length)
+			const native = new Array(values.length)
+			for (let i = 0; i < values.length; i++) {
+				usd[i] = values[i].usd
+				native[i] = values[i].native
+			}
+			return { key, label, usd, native }
+		})
+
+		return { bins, series }
 	}
 
-	for (const seriesItem of series) {
-		if (seriesItem.data.length === 0) {
-			seriesItem.large = false
-		}
+	return {
+		protocols: buildGroup('protocols'),
+		chains: buildGroup('chains')
 	}
-
-	const option: ECBasicOption = {
-		graphic: {
-			type: 'image',
-			z: 0,
-			style: {
-				image: isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp',
-				height: 40,
-				opacity: 0.3
-			},
-			left: isSmall ? '40%' : '45%',
-			top: '130px'
-		},
-		legend: {
-			orient: 'vertical',
-			align: 'left',
-			...(isLiqsCumulative ? { right: 10 } : { left: 10 }),
-			textStyle: {
-				color: '#a1a1aa'
-			},
-			inactiveColor: '#a1a1aa90'
-		},
-		grid: {
-			left: '2%',
-			right: '1%',
-			top: '2%',
-			bottom: '2%',
-			outerBoundsMode: 'same',
-			outerBoundsContain: 'axisLabel'
-		},
-		dataZoom: [
-			{
-				type: 'inside',
-				start: 0,
-				end: 100,
-				filterMode: 'none'
-			}
-		],
-		tooltip: {
-			trigger: 'axis',
-			confine: true,
-			axisPointer: {
-				type: 'cross'
-			},
-			formatter: (params: any) => {
-				const { name } = params[0]
-				return (
-					`<div style="margin-bottom: 4px"><b>${
-						isLiqsCumulative ? `Total liquidatable ≤ ` : `Liquidations at ~`
-					}$${name}</b><br/>` +
-					// sum of all the values
-					`<span><b>Total :</b> ${
-						isLiqsUsingUsd
-							? `$${getReadableValue(params.reduce((a: any, b: any) => a + Number(b.value), 0))}`
-							: `${getReadableValue(params.reduce((a: any, b: any) => a + Number(b.value), 0))}`
-					}</span></div>` +
-					params
-						.map(
-							(param: any) =>
-								`<span style="color: ${param.color}; margin-bottom: 2px">  <b>${param.seriesName} :</b> ${
-									isLiqsUsingUsd
-										? `$${getReadableValue(Number(param.value))}`
-										: `${getReadableValue(Number(param.value))}`
-								}</span>`
-						)
-						.join('<br/>')
-				)
-			}
-		},
-		xAxis: {
-			// bins
-			type: 'category',
-			splitLine: {
-				lineStyle: {
-					color: '#a1a1aa',
-					opacity: 0.1
-				}
-			},
-			axisLabel: {
-				formatter: (value: string) => `$${Number(value).toFixed(3)}`,
-				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-			},
-			axisTick: {
-				alignWithLabel: true
-			},
-			data: Array.from({ length: chartData.totalBins }, (_, i) => i).map((x) => (x * chartData.binSize).toFixed(3))
-		},
-		yAxis: {
-			type: 'value',
-			position: isLiqsCumulative ? 'left' : 'right',
-			axisLabel: {
-				formatter: (value: string) =>
-					isLiqsUsingUsd ? `$${getReadableValue(Number(value))}` : `${getReadableValue(Number(value))}`,
-				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-			},
-			splitLine: {
-				lineStyle: {
-					color: '#a1a1aa',
-					opacity: 0.1
-				}
-			}
-		},
-		series
-	}
-
-	return option
-}
-
-export const useStackBy = () => {
-	const router = useRouter()
-	const { stackBy } = router.query as { stackBy: 'chains' | 'protocols' }
-	const _stackBy = stackBy ? stackBy : 'protocols'
-	return _stackBy
 }
