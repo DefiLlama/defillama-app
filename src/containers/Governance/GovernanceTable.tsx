@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -9,15 +8,11 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
-import { formatGovernanceData } from '~/api/categories/protocols'
 import { Icon } from '~/components/Icon'
-import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
-import { TagGroup } from '~/components/TagGroup'
 import { formattedNum, toNiceDayMonthAndYear } from '~/utils'
-import { fetchJson } from '~/utils/async'
 
 export function GovernanceTable({ data, governanceType, filters = null }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -25,7 +20,7 @@ export function GovernanceTable({ data, governanceType, filters = null }) {
 	const [filterControversialProposals, setFilterProposals] = React.useState(false)
 
 	const instance = useReactTable({
-		data: filterControversialProposals ? data.controversialProposals : data.proposals,
+		data: filterControversialProposals ? (data.controversialProposals ?? []) : (data.proposals ?? []),
 		columns:
 			governanceType === 'compound'
 				? proposalsCompoundColumns
@@ -78,127 +73,6 @@ export function GovernanceTable({ data, governanceType, filters = null }) {
 				/>
 			</div>
 			<VirtualTable instance={instance} />
-		</div>
-	)
-}
-
-export const fetchAndFormatGovernanceData = async (
-	apis: Array<string> | null
-): Promise<
-	Array<{
-		proposals: {
-			winningChoice: string
-			winningPerc: string
-			scores: number[]
-			choices: string[]
-			id: string
-		}[]
-		controversialProposals: {
-			winningChoice: string
-			winningPerc: string
-			scores: number[]
-			choices: string[]
-			id: string
-		}[]
-		activity: {
-			date: number
-			Total: number
-			Successful: number
-		}[]
-		maxVotes: {
-			date: number
-			'Max Votes': string
-		}[]
-	}>
-> => {
-	if (!apis) return null
-
-	const data = await Promise.allSettled(
-		apis.map((gapi) =>
-			fetchJson(gapi).then((data) => {
-				const { proposals, activity, maxVotes } = formatGovernanceData(data as any)
-
-				return {
-					...data,
-					proposals,
-					controversialProposals: proposals
-						.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
-						.slice(0, 10),
-					activity,
-					maxVotes
-				}
-			})
-		)
-	)
-
-	return data.map((item) => (item.status === 'fulfilled' ? item.value : null)).filter((item) => !!item)
-}
-
-export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
-	const [apiCategoryIndex, setApiCategoryIndex] = React.useState<number>(0)
-
-	const { data, isLoading, error } = useQuery({
-		queryKey: [JSON.stringify(apis)],
-		queryFn: () => fetchAndFormatGovernanceData(apis),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0
-	})
-
-	const { finalData, governanceType } = React.useMemo(() => {
-		if (!data || data.length === 0) {
-			return { finalData: {}, governanceType: null }
-		}
-		return {
-			finalData: data[apiCategoryIndex],
-			governanceType: apis[apiCategoryIndex].includes('governance-cache/snapshot')
-				? 'snapshot'
-				: apis[apiCategoryIndex].includes('governance-cache/compound')
-					? 'compound'
-					: 'tally'
-		}
-	}, [data, apiCategoryIndex, apis])
-
-	if (isLoading) {
-		return (
-			<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-				<LocalLoader />
-			</div>
-		)
-	}
-
-	const apisByCategory = apis.map((apiUrl) =>
-		apiUrl.includes('governance-cache/snapshot')
-			? 'Snapshot'
-			: apiUrl.includes('governance-cache/compound')
-				? 'Compound'
-				: 'Tally'
-	)
-
-	if (!data || data.length === 0) {
-		return (
-			<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-				<p>{error instanceof Error ? error.message : 'Failed to fetch'}</p>
-			</div>
-		)
-	}
-
-	return (
-		<div className="flex flex-col">
-			<GovernanceTable
-				data={finalData}
-				governanceType={governanceType}
-				filters={
-					apisByCategory.length > 1 ? (
-						<TagGroup
-							selectedValue={apisByCategory[apiCategoryIndex]}
-							setValue={(value) => setApiCategoryIndex(apisByCategory.indexOf(value as any))}
-							values={apisByCategory}
-							className="ml-auto"
-						/>
-					) : null
-				}
-			/>
 		</div>
 	)
 }
@@ -325,11 +199,11 @@ const proposalsSnapshotColumns: ColumnDef<IProposal>[] = [
 		accessorKey: 'discussion',
 		enableSorting: false,
 		cell: (info) =>
-			info.getValue() && (
+			info.getValue() ? (
 				<a href={info.getValue() as string} target="_blank" rel="noopener noreferrer">
 					View
 				</a>
-			),
+			) : null,
 		meta: { align: 'end' }
 	}
 ]
@@ -382,4 +256,7 @@ const proposalsTallyColumns: ColumnDef<IProposal>[] = [
 	}
 ]
 
-const formatText = (text: string, length) => (text.length > length ? text.slice(0, length + 1) + '...' : text)
+const formatText = (text: string, length: number) => {
+	if (!text) return ''
+	return text.length > length ? text.slice(0, length + 1) + '...' : text
+}

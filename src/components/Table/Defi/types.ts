@@ -60,22 +60,6 @@ export interface IEmission {
 	}>
 }
 
-export interface IGovernance {
-	name: string
-	proposalsCount: string
-	followersCount: string
-	strategyCount: string
-	states: {
-		active?: number
-		closed?: number
-	}
-	months: {
-		[month: string]: { proposals: Array<string>; states: { active?: number; closed?: number } }
-	}
-	propsalsInLast30Days: number
-	successfulPropsalsInLast30Days: number
-}
-
 export interface AirdropRow {
 	name: string
 	page: string

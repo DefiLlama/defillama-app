@@ -1,5 +1,5 @@
+import { getTokenMarketDataFromCgChart } from '~/api'
 import { getProtocolEmissons } from '~/containers/Unlocks/queries'
-import { getTokenMarketDataFromCgChart } from '~/containers/Unlocks/tokenMarketData'
 import { slug } from '~/utils'
 
 export function calculateTotalUnlockValue(emissions: any): number {

@@ -12,7 +12,6 @@ import {
 	TWITTER_POSTS_API_V2,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
-import { fetchAndFormatGovernanceData } from '~/containers/ProtocolOverview/Governance'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
 import { getProtocolEmissons } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
@@ -134,17 +133,6 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 							return []
 						})
 			: () => null,
-		staleTime: 60 * 60 * 1000,
-		retry: 0,
-		enabled: isEnabled
-	})
-}
-
-export const useFetchProtocolGovernanceData = (governanceApis: Array<string> | null) => {
-	const isEnabled = !!governanceApis && governanceApis.length > 0
-	return useQuery({
-		queryKey: ['protocol-governance', JSON.stringify(governanceApis), isEnabled],
-		queryFn: isEnabled ? () => fetchAndFormatGovernanceData(governanceApis) : () => Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled

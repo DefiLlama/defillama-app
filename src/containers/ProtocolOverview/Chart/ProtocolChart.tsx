@@ -4,7 +4,6 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import {
 	useFetchProtocolActiveUsers,
-	useFetchProtocolGovernanceData,
 	useFetchProtocolMedianAPY,
 	useFetchProtocolNewUsers,
 	useFetchProtocolTransactions
@@ -25,6 +24,7 @@ import {
 	TOKEN_LIQUIDITY_API
 } from '~/constants'
 import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/queries'
+import { useFetchProtocolGovernanceData } from '~/containers/Governance/queries.client'
 import { serializeProtocolChartToMultiChart } from '~/containers/ProDashboard/utils/chartSerializer'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
