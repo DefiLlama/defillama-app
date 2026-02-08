@@ -10,7 +10,7 @@ const VALID_PROTOCOL_CHART_TYPES = new Set([
 	'tokenPrice',
 	'tokenVolume',
 	'medianApy',
-	'holderRevenue',
+	'holdersRevenue',
 	'aggregators',
 	'perps',
 	'options'
