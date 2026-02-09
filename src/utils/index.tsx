@@ -117,17 +117,21 @@ function appendSymbol(value: string | null | undefined, symbol: string | undefin
 	return `${value} ${symbol}`
 }
 
+const toNumericContext = (value: unknown): { numValue: number; stringValue: string } => ({
+	numValue: Number(value),
+	stringValue: typeof value === 'number' ? value.toString() : String(value)
+})
+
 const formatNum_internal = (value: unknown, maxDecimals?: number): string => {
 	if (!value && value !== 0) return '0'
 
-	// Convert to number for validation
-	const numValue = Number(value)
+	const { numValue, stringValue } = toNumericContext(value)
 	if (Number.isNaN(numValue) || !Number.isFinite(numValue)) {
 		return Number.isNaN(numValue) ? '0' : String(numValue)
 	}
 
 	// Handle scientific notation
-	let processedValue: string = typeof value === 'number' ? value.toString() : String(value)
+	let processedValue: string = stringValue
 	const isScientificNotation = processedValue.includes('e') || processedValue.includes('E')
 
 	if (isScientificNotation) {
@@ -211,18 +215,14 @@ const formatNum_internal = (value: unknown, maxDecimals?: number): string => {
 	return num + '.' + decimalsToShow.substring(0, endIndex)
 }
 
-export const formatNum = (value: unknown, maxDecimals?: number, symbol?: string): string | null | undefined => {
-	return appendSymbol(formatNum_internal(value, maxDecimals), symbol)
-}
-
 const abbreviateNumber_internal = (value: unknown, maxDecimals?: number | null): string | null => {
 	if (value == null) return null
 
-	const numValue = Number(value)
+	const { numValue } = toNumericContext(value)
 
 	if (Number.isNaN(numValue)) return '0'
 
-	if (numValue < 1000) return formatNum(value.toString(), maxDecimals ?? undefined) as string
+	if (numValue < 1000) return formatNum_internal(value, maxDecimals ?? undefined)
 
 	// Handle negative numbers
 	const isNegative = numValue < 0
@@ -249,6 +249,10 @@ const abbreviateNumber_internal = (value: unknown, maxDecimals?: number | null):
 	result = result.replace(/\.?0+([KMB])$/, '$1')
 
 	return isNegative ? `-${result}` : result
+}
+
+export const formatNum = (value: unknown, maxDecimals?: number, symbol?: string): string | null | undefined => {
+	return appendSymbol(formatNum_internal(value, maxDecimals), symbol)
 }
 
 export const abbreviateNumber = (
