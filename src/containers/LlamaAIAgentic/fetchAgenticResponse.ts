@@ -6,6 +6,7 @@ interface AgenticSSECallbacks {
 	onCharts: (charts: ChartConfiguration[], chartData: Record<string, any[]>) => void
 	onProgress: (toolName: string) => void
 	onSessionId: (sessionId: string) => void
+	onCitations: (citations: string[]) => void
 	onError: (content: string) => void
 	onDone: () => void
 }
@@ -82,6 +83,9 @@ export async function fetchAgenticResponse({ message, sessionId, callbacks, abor
 							break
 						case 'charts':
 							callbacks.onCharts(data.charts || [], data.chartData || {})
+							break
+						case 'citations':
+							callbacks.onCitations(data.citations || [])
 							break
 						case 'error':
 							callbacks.onError(data.content || 'Unknown error')

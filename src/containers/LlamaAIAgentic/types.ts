@@ -64,4 +64,5 @@ export interface Message {
 	role: 'user' | 'assistant'
 	content?: string
 	charts?: Array<{ charts: ChartConfiguration[]; chartData: Record<string, any[]> }>
+	citations?: string[]
 }

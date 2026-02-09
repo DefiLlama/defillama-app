@@ -1,18 +1,23 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
+import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
+import { processCitationMarkers } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { ChartRenderer } from './ChartRenderer'
 import { fetchAgenticResponse } from './fetchAgenticResponse'
 import type { ChartConfiguration, Message } from './types'
 
 const REMARK_PLUGINS = [remarkGfm]
+const REHYPE_PLUGINS = [rehypeRaw]
 
 const TOOL_LABELS: Record<string, string> = {
 	execute_sql: 'Querying database',
 	resolve_entity: 'Resolving entity',
 	load_skill: 'Loading knowledge',
-	generate_chart: 'Generating visualization'
+	generate_chart: 'Generating visualization',
+	web_search: 'Searching the web',
+	x_search: 'Searching X/Twitter'
 }
 
 interface ToolCall {
@@ -29,6 +34,7 @@ export function AgenticChat() {
 	const [streamingCharts, setStreamingCharts] = useState<
 		Array<{ charts: ChartConfiguration[]; chartData: Record<string, any[]> }>
 	>([])
+	const [streamingCitations, setStreamingCitations] = useState<string[]>([])
 	const [activeToolCalls, setActiveToolCalls] = useState<ToolCall[]>([])
 	const [error, setError] = useState<string | null>(null)
 	const [isResearchMode, setIsResearchMode] = useState(false)
@@ -50,7 +56,7 @@ export function AgenticChat() {
 
 	useEffect(() => {
 		scrollToBottom()
-	}, [messages, streamingText, streamingCharts, activeToolCalls, scrollToBottom])
+	}, [messages, streamingText, streamingCharts, streamingCitations, activeToolCalls, scrollToBottom])
 
 	const handleSubmit = useCallback(
 		(prompt: string) => {
@@ -61,13 +67,14 @@ export function AgenticChat() {
 			setIsStreaming(true)
 			setStreamingText('')
 			setStreamingCharts([])
+			setStreamingCitations([])
 			setActiveToolCalls([])
 
-			// Add user message
 			setMessages((prev) => [...prev, { role: 'user', content: trimmed }])
 
 			let accumulatedText = ''
 			let accumulatedCharts: Array<{ charts: ChartConfiguration[]; chartData: Record<string, any[]> }> = []
+			let accumulatedCitations: string[] = []
 			let hasStartedText = false
 
 			const controller = new AbortController()
@@ -91,6 +98,10 @@ export function AgenticChat() {
 						accumulatedCharts = [...accumulatedCharts, { charts, chartData }]
 						setStreamingCharts(accumulatedCharts)
 					},
+					onCitations: (citations) => {
+						accumulatedCitations = [...new Set([...accumulatedCitations, ...citations])]
+						setStreamingCitations(accumulatedCitations)
+					},
 					onProgress: (toolName) => {
 						const label = TOOL_LABELS[toolName] || toolName
 						const id = ++toolCallIdRef.current
@@ -108,11 +119,13 @@ export function AgenticChat() {
 							{
 								role: 'assistant',
 								content: accumulatedText || undefined,
-								charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined
+								charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined,
+								citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined
 							}
 						])
 						setStreamingText('')
 						setStreamingCharts([])
+						setStreamingCitations([])
 						setActiveToolCalls([])
 						setIsStreaming(false)
 					}
@@ -127,12 +140,14 @@ export function AgenticChat() {
 						{
 							role: 'assistant',
 							content: accumulatedText || undefined,
-							charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined
+							charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined,
+							citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined
 						}
 					])
 				}
 				setStreamingText('')
 				setStreamingCharts([])
+				setStreamingCitations([])
 				setActiveToolCalls([])
 				setIsStreaming(false)
 			}).finally(() => {
@@ -151,7 +166,6 @@ export function AgenticChat() {
 	return (
 		<div className="isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324]">
 			{!hasMessages ? (
-				/* ── Empty state ── */
 				<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
 					<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
 						<img
@@ -177,7 +191,6 @@ export function AgenticChat() {
 					/>
 				</div>
 			) : (
-				/* ── Chat with messages ── */
 				<>
 					<div
 						ref={scrollContainerRef}
@@ -190,22 +203,21 @@ export function AgenticChat() {
 										<MessageBubble key={i} message={msg} />
 									))}
 
-									{/* Typing indicator — shows immediately on submit before anything arrives */}
 									{isStreaming && activeToolCalls.length === 0 && !streamingText && streamingCharts.length === 0 && (
 										<TypingIndicator />
 									)}
 
-									{/* Tool call indicators */}
 									{activeToolCalls.map((tc) => (
 										<ToolIndicator key={tc.id} label={tc.label} name={tc.name} />
 									))}
 
-									{/* Streaming assistant content */}
-									{isStreaming && (streamingText || streamingCharts.length > 0) && (
+									{isStreaming && (streamingText || streamingCharts.length > 0 || streamingCitations.length > 0) && (
 										<div className="flex flex-col gap-2.5">
 											{streamingText && (
 												<div className="prose prose-sm dark:prose-invert max-w-none">
-													<ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{streamingText}</ReactMarkdown>
+													<ReactMarkdown remarkPlugins={REMARK_PLUGINS} rehypePlugins={REHYPE_PLUGINS}>
+														{processCitationMarkers(streamingText, streamingCitations.length > 0 ? streamingCitations : undefined)}
+													</ReactMarkdown>
 													<span className="inline-block h-4 w-0.5 animate-pulse bg-(--old-blue)" />
 												</div>
 											)}
@@ -216,10 +228,10 @@ export function AgenticChat() {
 													chartData={chartSet.chartData}
 												/>
 											))}
+											{streamingCitations.length > 0 && <CitationSources citations={streamingCitations} />}
 										</div>
 									)}
 
-									{/* Error display */}
 									{error && (
 										<div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
 											<p className="text-sm text-red-700 dark:text-red-300">{error}</p>
@@ -231,7 +243,6 @@ export function AgenticChat() {
 						</div>
 					</div>
 
-					{/* Input area with gradient overlay */}
 					<div className="relative mx-auto w-full max-w-3xl pb-2.5">
 						<div className="absolute -top-8 right-0 left-0 h-9 bg-gradient-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
 						<PromptInput
@@ -274,6 +285,47 @@ function ToolIndicator({ label, name }: { label: string; name: string }) {
 	)
 }
 
+function CitationSources({ citations }: { citations: string[] }) {
+	return (
+		<details className="flex flex-col text-sm">
+			<summary className="mr-auto flex cursor-pointer items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-2 py-1 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="14"
+					height="14"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="2"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+				>
+					<path d="M9 17H7A5 5 0 0 1 7 7h2" />
+					<path d="M15 7h2a5 5 0 1 1 0 10h-2" />
+					<line x1="8" x2="16" y1="12" y2="12" />
+				</svg>
+				<span>Sources</span>
+			</summary>
+			<div className="flex flex-col gap-2.5 pt-2.5">
+				{citations.map((url, i) => (
+					<a
+						key={`citation-${i}-${url}`}
+						href={url}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="group flex items-start gap-2.5 rounded-lg border border-[#e6e6e6] p-2 hover:border-(--old-blue) hover:bg-(--old-blue)/12 dark:border-[#222324]"
+					>
+						<span className="rounded bg-[rgba(0,0,0,0.04)] px-1.5 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
+							{i + 1}
+						</span>
+						<span className="overflow-hidden text-ellipsis whitespace-nowrap">{url}</span>
+					</a>
+				))}
+			</div>
+		</details>
+	)
+}
+
 function MessageBubble({ message }: { message: Message }) {
 	if (message.role === 'user') {
 		return (
@@ -283,16 +335,24 @@ function MessageBubble({ message }: { message: Message }) {
 		)
 	}
 
+	const processedContent = useMemo(
+		() => (message.content ? processCitationMarkers(message.content, message.citations) : ''),
+		[message.content, message.citations]
+	)
+
 	return (
 		<div className="flex flex-col gap-2.5">
-			{message.content && (
+			{processedContent && (
 				<div className="prose prose-sm dark:prose-invert max-w-none">
-					<ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{message.content}</ReactMarkdown>
+					<ReactMarkdown remarkPlugins={REMARK_PLUGINS} rehypePlugins={REHYPE_PLUGINS}>
+						{processedContent}
+					</ReactMarkdown>
 				</div>
 			)}
 			{message.charts?.map((chartSet, i) => (
 				<ChartRenderer key={`chart-${i}`} charts={chartSet.charts} chartData={chartSet.chartData} />
 			))}
+			{message.citations && message.citations.length > 0 && <CitationSources citations={message.citations} />}
 		</div>
 	)
 }
