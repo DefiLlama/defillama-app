@@ -47,7 +47,7 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins 
 						value={search}
 						onChange={(e) => setSearch(e.target?.value)}
 						placeholder="Search token..."
-						className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white"
+						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white dark:placeholder:text-[#919296]"
 						autoFocus
 					/>
 				</div>
@@ -349,7 +349,6 @@ export default function Correlations({ coinsData }) {
 					coinsData={coinsData}
 					dialogStore={dialogStore}
 					selectedCoins={selectedCoins}
-					queryCoins={queryCoins}
 					selectCoin={(coin) => {
 						router
 							.push(
@@ -364,7 +363,7 @@ export default function Correlations({ coinsData }) {
 								{ shallow: true }
 							)
 							.then(() => {
-								dialogStore.toggle()
+								dialogStore.hide()
 							})
 					}}
 				/>
