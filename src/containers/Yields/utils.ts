@@ -118,8 +118,8 @@ export function toFilterPool({
 								// Strategy 1: Address-based matching (preferred, no false positives)
 								if (underlyingTokens.length > 0 && catAddresses?.length > 0) {
 									const addressSet = new Set(catAddresses)
-									const hasAddressMatch = underlyingTokens.some((addr: string) =>
-										addressSet.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
+									const hasAddressMatch = underlyingTokens.some(
+										(addr: string) => addr && addressSet.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
 									)
 									if (hasAddressMatch) return true
 								}
