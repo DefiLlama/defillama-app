@@ -29,7 +29,7 @@ const largeTxsColumn: ColumnDef<LargeTxsData>[] = [
 	{
 		header: 'Timestamp',
 		accessorKey: 'date',
-		cell: (info) => <>{toNiceDayAndHour(info.getValue())}</>,
+		cell: (info) => <>{toNiceDayAndHour(info.getValue() as number)}</>,
 		size: 120
 	},
 	{

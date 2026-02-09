@@ -2,8 +2,13 @@ import * as echarts from 'echarts/core'
 
 type Value = string | number | boolean
 
+type EChartsFormatterParams = Record<string, unknown>
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ChartDataItem = any
+
 export interface IChartProps {
-	chartData: any
+	chartData: ChartDataItem[]
 	stacks?: Array<string>
 	valueSymbol?: string
 	title?: string
@@ -19,7 +24,7 @@ export interface IChartProps {
 	hideLegend?: boolean
 	chartOptions?: {
 		[key: string]: {
-			[key: string]: Value | Array<Value> | ((params: any) => string) | Record<string, Value>
+			[key: string]: Value | Array<Value> | ((params: EChartsFormatterParams) => string) | Record<string, Value>
 		}
 	}
 	height?: string
@@ -127,7 +132,7 @@ type MultiSeriesChart2BaseProps = {
 	selectedCharts?: Set<string>
 	chartOptions?: {
 		[key: string]: {
-			[key: string]: Value | Array<Value> | ((params: any) => string | number)
+			[key: string]: Value | Array<Value> | ((params: EChartsFormatterParams) => string | number)
 		}
 	}
 	height?: string
@@ -189,7 +194,7 @@ export interface IMultiSeriesChartProps {
 	}>
 	chartOptions?: {
 		[key: string]: {
-			[key: string]: Value | Array<Value> | ((params: any) => string)
+			[key: string]: Value | Array<Value> | ((params: EChartsFormatterParams) => string)
 		}
 	}
 	height?: string
@@ -216,8 +221,8 @@ export interface IPieChartProps {
 	radius?: [string, string]
 	showLegend?: boolean
 	toRight?: number
-	formatTooltip?: (params: any) => string
-	customLabel?: Record<string, any>
+	formatTooltip?: (params: EChartsFormatterParams) => string
+	customLabel?: Record<string, Value>
 	legendPosition?: {
 		left?: string | number
 		right?: string | number
@@ -225,7 +230,7 @@ export interface IPieChartProps {
 		bottom?: string | number
 		orient?: 'horizontal' | 'vertical'
 	}
-	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: any }
+	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: Value }
 	/**
 	 * Controls the built-in export toolbar.
 	 */
@@ -234,13 +239,13 @@ export interface IPieChartProps {
 }
 
 export interface IScatterChartProps {
-	chartData: any
+	chartData: Array<Record<string, string | number | null | undefined>>
 	title?: string
 	xAxisLabel?: string
 	yAxisLabel?: string
 	valueSymbol?: string
 	height?: string
-	tooltipFormatter?: (params: any) => string
+	tooltipFormatter?: (params: EChartsFormatterParams) => string
 	showLabels?: boolean
 	entityType?: 'protocol' | 'chain'
 }

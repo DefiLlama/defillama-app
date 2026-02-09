@@ -7,7 +7,7 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum, formattedPercent } from '~/utils'
+import { formattedNum, renderPercentChange } from '~/utils'
 
 interface ITreemapChartProps {
 	treeData: any[]
@@ -421,7 +421,7 @@ const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 	{
 		header: 'Δ%',
 		accessorKey: 'change',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
 		meta: {
 			align: 'end',
 			headerHelperText: `Shows how a coin has performed over your chosen time period and in your selected denomination (e.g., $, BTC).`
@@ -481,7 +481,7 @@ const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
 	{
 		header: 'Δ%',
 		accessorKey: 'change',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
 		meta: {
 			align: 'end',
 			headerHelperText: `Shows how a category of coins has performed over your chosen time period and in your selected denomination (e.g., $, BTC). Method: 1. calculating the percentage change for each individual coin in the category. 2. weighting these changes based on each coin's market capitalization. 3. averaging these weighted changes to get the overall category performance.`

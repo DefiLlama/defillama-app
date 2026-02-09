@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 
-export function CopyHelper({ toCopy, ...props }) {
+interface CopyHelperProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+	toCopy: string
+}
+
+export function CopyHelper({ toCopy, ...props }: CopyHelperProps) {
 	const [copied, setCopied] = useState(false)
 	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	useEffect(() => {

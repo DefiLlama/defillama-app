@@ -7,7 +7,7 @@ interface IMenuProps {
 	options: string[] | string
 	name: string
 	isExternal?: boolean
-	onItemClick?: (value: any) => void
+	onItemClick?: (value: string) => void
 	className?: string
 	portal?: boolean
 }

@@ -16,7 +16,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
+import { chainIconUrl, formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
 
 export type BridgesTableRow = {
 	displayName: string
@@ -74,7 +74,7 @@ const bridgesColumn: ColumnDef<BridgesTableRow>[] = [
 	{
 		header: '1d Change',
 		accessorKey: 'change_1d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 100,
 		meta: {
 			align: 'end'

@@ -11,7 +11,7 @@ import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, formattedNum, formattedPercent, lastDayOfWeek } from '~/utils'
+import { firstDayOfMonth, formattedNum, renderPercentChange, lastDayOfWeek } from '~/utils'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -95,7 +95,7 @@ const LSDColumn: ColumnDef<ILSDRow>[] = [
 	{
 		header: '7d Change',
 		accessorKey: 'stakedEthPctChange7d',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
 		meta: {
 			align: 'end'
 		},
@@ -104,7 +104,7 @@ const LSDColumn: ColumnDef<ILSDRow>[] = [
 	{
 		header: '30d Change',
 		accessorKey: 'stakedEthPctChange30d',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
 		meta: {
 			align: 'end'
 		},
@@ -152,7 +152,7 @@ const LSDColumn: ColumnDef<ILSDRow>[] = [
 					}
 					className="justify-end"
 				>
-					{getValue() ? formattedPercent(getValue()) : null}
+					{getValue() ? renderPercentChange(getValue()) : null}
 				</Tooltip>
 			)
 		},

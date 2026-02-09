@@ -13,7 +13,7 @@ import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/consta
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
-import { formattedNum, formattedPercent, getNDistinctColors, getPercentChange, slug } from '~/utils'
+import { formattedNum, renderPercentChange, getNDistinctColors, getPercentChange, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -453,7 +453,7 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 	{
 		header: '1d TVL Change',
 		accessorKey: 'change_1d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end'
@@ -462,7 +462,7 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 	{
 		header: '7d TVL Change',
 		accessorKey: 'change_7d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end'
@@ -471,7 +471,7 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 	{
 		header: '1m TVL Change',
 		accessorKey: 'change_1m',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end'

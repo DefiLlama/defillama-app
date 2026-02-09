@@ -2,7 +2,7 @@ import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTa
 import * as React from 'react'
 import { VirtualTable } from '~/components/Table/Table'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, formattedPercent } from '~/utils'
+import { formattedNum, renderPercentChange } from '~/utils'
 import { YieldsProject } from './Name'
 import type { IYieldsProjectsTableRow } from './types'
 
@@ -73,7 +73,7 @@ const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
 		header: 'Median APY',
 		accessorKey: 'medianApy',
 		cell: ({ getValue }) => {
-			return <>{formattedPercent(getValue(), true)}</>
+			return <>{renderPercentChange(getValue(), true)}</>
 		},
 		meta: {
 			align: 'end'

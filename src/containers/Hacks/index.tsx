@@ -429,7 +429,7 @@ export const hacksColumns: ColumnDef<IHacksPageData['data'][0]>[] = [
 		size: 200
 	},
 	{
-		cell: ({ getValue }) => <>{toNiceDayMonthAndYear(getValue())}</>,
+		cell: ({ getValue }) => <>{toNiceDayMonthAndYear(getValue() as number)}</>,
 		size: 120,
 		header: 'Date',
 		accessorKey: 'date'

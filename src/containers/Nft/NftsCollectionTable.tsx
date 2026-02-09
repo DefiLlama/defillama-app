@@ -13,7 +13,7 @@ import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedPercent, slug } from '~/utils'
+import { renderPercentChange, slug } from '~/utils'
 
 interface INftCollection {
 	name: string
@@ -79,7 +79,7 @@ const columns: ColumnDef<INftCollection>[] = [
 		header: '1d Change',
 		accessorKey: 'floorPricePctChange1Day',
 		size: 120,
-		cell: (info) => formattedPercent(info.getValue()),
+		cell: (info) => renderPercentChange(info.getValue()),
 		meta: {
 			align: 'end'
 		}
@@ -88,7 +88,7 @@ const columns: ColumnDef<INftCollection>[] = [
 		header: '7d Change',
 		accessorKey: 'floorPricePctChange7Day',
 		size: 120,
-		cell: (info) => formattedPercent(info.getValue()),
+		cell: (info) => renderPercentChange(info.getValue()),
 		meta: {
 			align: 'end'
 		}

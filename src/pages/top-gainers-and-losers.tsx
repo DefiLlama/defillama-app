@@ -12,7 +12,7 @@ import { splitArrayByFalsyValues } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import Layout from '~/layout'
-import { formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const GAINERS_SORTING_STATE: SortingState = [{ id: 'change_1d', desc: true }]
@@ -68,7 +68,7 @@ const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: '1d TVL Change',
 		accessorKey: 'change_1d',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 24 hours'

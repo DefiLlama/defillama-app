@@ -138,7 +138,7 @@ export function RecentlyListedProtocolsTable({
 const listedAtColumn: ColumnDef<IProtocolRow> = {
 	header: 'Listed At',
 	accessorKey: 'listedAt',
-	cell: ({ getValue }) => toNiceDaysAgo(getValue()),
+	cell: ({ getValue }) => toNiceDaysAgo(getValue() as number),
 	size: 140,
 	meta: {
 		align: 'end' as const

@@ -23,7 +23,7 @@ const banksTableColumns: ColumnDef<any>[] = [
 		accessorKey: 'date',
 		sortingFn: sortingFns.datetime,
 		cell: ({ getValue }) => {
-			return <>{getValue() ? toNiceDateYear(getValue()) : ''}</>
+			return <>{getValue() ? toNiceDateYear(getValue() as number) : ''}</>
 		},
 		meta: {
 			align: 'end'

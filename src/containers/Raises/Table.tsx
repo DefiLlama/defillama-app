@@ -56,7 +56,7 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 		size: 120,
 		header: 'Date',
 		accessorKey: 'date',
-		cell: ({ getValue }) => <>{toNiceDayMonthYear(getValue())}</>
+		cell: ({ getValue }) => <>{toNiceDayMonthYear(getValue() as number)}</>
 	},
 	{
 		header: 'Amount Raised',

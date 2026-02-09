@@ -272,7 +272,7 @@ const columns: ColumnDef<ICex>[] = [
 	{
 		header: 'Last audit date',
 		accessorKey: 'lastAuditDate',
-		cell: ({ getValue }) => <>{getValue() === undefined ? null : toNiceDayMonthAndYear(getValue())}</>,
+		cell: ({ getValue }) => <>{getValue() === undefined ? null : toNiceDayMonthAndYear(getValue() as number)}</>,
 		size: 130,
 		meta: {
 			align: 'end'
