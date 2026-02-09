@@ -27,8 +27,10 @@ export function useRangeFilter(minKey: string, maxKey: string) {
 
 	const minRaw = router.query[minKey]
 	const maxRaw = router.query[maxKey]
-	const min = typeof minRaw === 'string' && minRaw !== '' ? Number(minRaw) : null
-	const max = typeof maxRaw === 'string' && maxRaw !== '' ? Number(maxRaw) : null
+	const minNum = typeof minRaw === 'string' && minRaw !== '' ? Number(minRaw) : null
+	const maxNum = typeof maxRaw === 'string' && maxRaw !== '' ? Number(maxRaw) : null
+	const min = minNum !== null && Number.isFinite(minNum) ? minNum : null
+	const max = maxNum !== null && Number.isFinite(maxNum) ? maxNum : null
 
 	return { min, max, handleSubmit, handleClear }
 }

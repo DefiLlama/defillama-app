@@ -394,6 +394,7 @@ export default function AreaChart({
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName
 
 	const showLegend = !!(customLegendName && customLegendOptions?.length > 1)
+	const showHeader = !!(title || showLegend || !hideDownloadButton || shouldEnableImageExport)
 
 	return (
 		<ChartContainer
@@ -401,7 +402,7 @@ export default function AreaChart({
 			chartClassName={containerClassName ?? 'mx-0 my-auto h-[360px]'}
 			chartStyle={height ? { height } : undefined}
 			header={
-				title || showLegend || !hideDownloadButton ? (
+				showHeader ? (
 					<ChartHeader
 						title={title}
 						customComponents={
