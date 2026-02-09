@@ -31,6 +31,7 @@ const MultiSeriesChart2 = lazy(
 ) as React.FC<IMultiSeriesChart2Props>
 
 type RWAChartType = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
+type RWAOverviewMode = 'chain' | 'category' | 'platform'
 
 type RWADefinitions = typeof rwaDefinitionsJson & {
 	totalOnChainMcap: { label: string; description: string }
@@ -43,9 +44,10 @@ const definitions = rwaDefinitionsJson as RWADefinitions
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const router = useRouter()
 
-	const isChainMode = props.chainLinks.length > 0
-	const isCategoryMode = props.categoryLinks.length > 0
-	const isPlatformMode = props.platformLinks.length > 0
+	const mode = getRWAOverviewMode(props)
+	const isChainMode = mode === 'chain'
+	const isCategoryMode = mode === 'category'
+	const isPlatformMode = mode === 'platform'
 	const pieChartBreakdown = typeof router.query.pieChartBreakdown === 'string' ? router.query.pieChartBreakdown : null
 	const chartType =
 		typeof router.query.chartType === 'string' && validPieChartTypes.has(router.query.chartType)
@@ -235,25 +237,17 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	// Preserve filter/toggle query params only in chain mode.
 	// (The chain/category/platform itself is in the pathname, so we strip the dynamic param from the query object.)
 	const navLinks = useMemo(() => {
-		const baseLinks = isCategoryMode ? props.categoryLinks : isPlatformMode ? props.platformLinks : props.chainLinks
+		const baseLinks = getModeLinks(mode, props.chainLinks, props.categoryLinks, props.platformLinks)
 
 		// Only preserve query filters/toggles on chain mode. In category/platform mode, links should be "clean".
-		const shouldPreserveQuery = isChainMode && !isCategoryMode && !isPlatformMode
+		const shouldPreserveQuery = isChainMode
 		if (!shouldPreserveQuery) return baseLinks
 
 		const { chain: _chain, category: _category, platform: _platform, ...restQuery } = router.query
 		const qs = toQueryString(restQuery as Record<string, string | string[] | undefined>)
 		if (!qs) return baseLinks
 		return baseLinks.map((link) => ({ ...link, to: `${link.to}${qs}` }))
-	}, [
-		isChainMode,
-		isCategoryMode,
-		isPlatformMode,
-		props.categoryLinks,
-		props.platformLinks,
-		props.chainLinks,
-		router.query
-	])
+	}, [isChainMode, mode, props.categoryLinks, props.platformLinks, props.chainLinks, router.query])
 
 	const showFilters =
 		(props.typeOptions.length > 1 ||
@@ -270,17 +264,19 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		useChartImageExport()
 	const timeSeriesChartTitle =
 		chartType === 'onChainMcap' ? 'Onchain Mcap' : chartType === 'activeMcap' ? 'Active Mcap' : 'DeFi Active TVL'
-	const timeSeriesChartFilename = `rwa-time-series-chart-${slug(timeSeriesChartTitle)}-${rwaSlug(isChainMode ? props.selectedChain : isCategoryMode ? props.selectedCategory : props.selectedPlatform)}`
+	const selectedModeLabel = getSelectedModeLabel(mode, props)
+	const timeSeriesChartFilename = `rwa-time-series-chart-${slug(timeSeriesChartTitle)}-${rwaSlug(selectedModeLabel)}`
 	const { chartInstance: pieChartInstance, handleChartReady: handlePieChartReady } = useChartImageExport()
 	const pieChartTitle =
 		chartType === 'onChainMcap' ? 'Onchain Mcap' : chartType === 'activeMcap' ? 'Active Mcap' : 'DeFi Active TVL'
-	const pieChartFilename = `rwa-pie-${slug(pieChartTitle)}-${rwaSlug(isChainMode ? props.selectedChain : isCategoryMode ? props.selectedCategory : props.selectedPlatform)}`
+	const pieChartFilename = `rwa-pie-${slug(pieChartTitle)}-${rwaSlug(selectedModeLabel)}`
 
-	const chartDatasetByMode = isCategoryMode
-		? chartDatasetByAssetClass
-		: isPlatformMode
-			? chartDatasetByAssetName
-			: chartDatasetByCategory
+	const chartDatasetByMode =
+		mode === 'category'
+			? chartDatasetByAssetClass
+			: mode === 'platform'
+				? chartDatasetByAssetName
+				: chartDatasetByCategory
 
 	const selectedTimeSeriesDataset = chartDatasetByMode[chartTypeKey] ?? chartDatasetByMode.onChainMcap
 	const selectedPieChartData =
@@ -337,43 +333,46 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 
 	return (
 		<>
-			<RowLinksWithDropdown
-				links={navLinks}
-				activeLink={
-					isCategoryMode ? props.selectedCategory : isPlatformMode ? props.selectedPlatform : props.selectedChain
-				}
-			/>
+			<RowLinksWithDropdown links={navLinks} activeLink={selectedModeLabel} />
 			<RWAOverviewFilters
 				enabled={showFilters}
-				isChainMode={isChainMode}
-				isPlatformMode={isPlatformMode}
-				assetNames={props.assetNames}
-				selectedAssetNames={selectedAssetNames}
-				typeOptions={props.typeOptions}
-				categoriesOptions={props.categoriesOptions}
-				assetClassOptions={props.assetClassOptions}
-				rwaClassificationOptions={props.rwaClassificationOptions}
-				accessModelOptions={props.accessModelOptions}
-				issuers={props.issuers}
-				selectedTypes={selectedTypes}
-				selectedCategories={selectedCategories}
-				selectedAssetClasses={selectedAssetClasses}
-				selectedRwaClassifications={selectedRwaClassifications}
-				selectedAccessModels={selectedAccessModels}
-				selectedIssuers={selectedIssuers}
-				minDefiActiveTvlToOnChainMcapPct={minDefiActiveTvlToOnChainMcapPct}
-				maxDefiActiveTvlToOnChainMcapPct={maxDefiActiveTvlToOnChainMcapPct}
-				minActiveMcapToOnChainMcapPct={minActiveMcapToOnChainMcapPct}
-				maxActiveMcapToOnChainMcapPct={maxActiveMcapToOnChainMcapPct}
-				minDefiActiveTvlToActiveMcapPct={minDefiActiveTvlToActiveMcapPct}
-				maxDefiActiveTvlToActiveMcapPct={maxDefiActiveTvlToActiveMcapPct}
-				setDefiActiveTvlToOnChainMcapPctRange={setDefiActiveTvlToOnChainMcapPctRange}
-				setActiveMcapToOnChainMcapPctRange={setActiveMcapToOnChainMcapPctRange}
-				setDefiActiveTvlToActiveMcapPctRange={setDefiActiveTvlToActiveMcapPctRange}
-				includeStablecoins={includeStablecoins}
-				includeGovernance={includeGovernance}
-				setIncludeStablecoins={setIncludeStablecoins}
-				setIncludeGovernance={setIncludeGovernance}
+				modes={{
+					isChainMode,
+					isPlatformMode
+				}}
+				options={{
+					assetNames: props.assetNames,
+					typeOptions: props.typeOptions,
+					categoriesOptions: props.categoriesOptions,
+					assetClassOptions: props.assetClassOptions,
+					rwaClassificationOptions: props.rwaClassificationOptions,
+					accessModelOptions: props.accessModelOptions,
+					issuers: props.issuers
+				}}
+				selections={{
+					selectedAssetNames,
+					selectedTypes,
+					selectedCategories,
+					selectedAssetClasses,
+					selectedRwaClassifications,
+					selectedAccessModels,
+					selectedIssuers,
+					minDefiActiveTvlToOnChainMcapPct,
+					maxDefiActiveTvlToOnChainMcapPct,
+					minActiveMcapToOnChainMcapPct,
+					maxActiveMcapToOnChainMcapPct,
+					minDefiActiveTvlToActiveMcapPct,
+					maxDefiActiveTvlToActiveMcapPct,
+					includeStablecoins,
+					includeGovernance
+				}}
+				actions={{
+					setDefiActiveTvlToOnChainMcapPctRange,
+					setActiveMcapToOnChainMcapPctRange,
+					setDefiActiveTvlToActiveMcapPctRange,
+					setIncludeStablecoins,
+					setIncludeGovernance
+				}}
 			/>
 			<div className="flex flex-col gap-2 md:flex-row md:items-center">
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
@@ -459,7 +458,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 												)
 											}}
 										>
-											{isChainMode ? 'Asset Category' : isCategoryMode ? 'Asset Class' : 'Asset Name'}
+											{mode === 'chain' ? 'Asset Category' : mode === 'category' ? 'Asset Class' : 'Asset Name'}
 										</button>
 										<button
 											className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
@@ -520,6 +519,29 @@ const toQueryString = (query: Record<string, string | string[] | undefined>): st
 	}
 	const qs = params.toString()
 	return qs ? `?${qs}` : ''
+}
+
+const getRWAOverviewMode = (props: IRWAAssetsOverview): RWAOverviewMode => {
+	if (props.categoryLinks.length > 0) return 'category'
+	if (props.platformLinks.length > 0) return 'platform'
+	return 'chain'
+}
+
+const getModeLinks = (
+	mode: RWAOverviewMode,
+	chainLinks: IRWAAssetsOverview['chainLinks'],
+	categoryLinks: IRWAAssetsOverview['categoryLinks'],
+	platformLinks: IRWAAssetsOverview['platformLinks']
+) => {
+	if (mode === 'category') return categoryLinks
+	if (mode === 'platform') return platformLinks
+	return chainLinks
+}
+
+const getSelectedModeLabel = (mode: RWAOverviewMode, props: IRWAAssetsOverview) => {
+	if (mode === 'category') return props.selectedCategory
+	if (mode === 'platform') return props.selectedPlatform
+	return props.selectedChain
 }
 
 const pieChartRadius = ['50%', '70%'] as [string, string]

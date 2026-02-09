@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useQueries, useQuery } from '@tanstack/react-query'
+import type * as echarts from 'echarts/core'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
@@ -62,7 +63,7 @@ const unixToDateString = (unixTimestamp?: number) => {
 	return date.toISOString().split('T')[0]
 }
 
-const dateStringToUnix = (dateString): number | null => {
+const dateStringToUnix = (dateString: string | null | undefined): number | null => {
 	if (!dateString) return null
 	const timestamp = new Date(dateString).getTime()
 	if (Number.isNaN(timestamp)) return null
@@ -290,6 +291,212 @@ const isValidDate = (dateString: string | string[] | undefined): boolean => {
 	return !Number.isNaN(date.getTime())
 }
 
+type TokenPnlContentProps = {
+	routerReady: boolean
+	isLoading: boolean
+	isFetching: boolean
+	isError: boolean
+	error: unknown
+	onRetry: () => void | Promise<unknown>
+	pnlData: TokenPnlResult | null | undefined
+	quantity: number
+	start: number
+	end: number
+	chartOptions: TokenPnlChartOptions | undefined
+	exportChartInstance: () => echarts.ECharts | null
+	handleChartReady: (instance: echarts.ECharts | null) => void
+	comparisonData: ComparisonEntry[]
+	selectedCoinId: string
+}
+
+type TooltipItem = {
+	data?: Record<string, unknown>
+	value?: unknown
+	seriesName?: string
+}
+
+type TokenPnlChartOptions = {
+	xAxis: {
+		type: 'time'
+		min: number
+		max: number
+		axisLabel: {
+			formatter: (value: number) => string
+			showMinLabel: boolean
+			showMaxLabel: boolean
+			hideOverlap: boolean
+		}
+		boundaryGap: boolean
+	}
+	yAxis: {
+		min: number
+		max: number
+		interval: number
+	}
+	legend: {
+		show: boolean
+	}
+	tooltip: {
+		backgroundColor: string
+		borderWidth: number
+		padding: number
+		axisPointer: {
+			type: 'line'
+			lineStyle: { color: string; width: number; type: 'solid' }
+			z: number
+		}
+		formatter: (items: TooltipItem | TooltipItem[]) => string
+	}
+}
+
+const TokenPnlContent = ({
+	routerReady,
+	isLoading,
+	isFetching,
+	isError,
+	error,
+	onRetry,
+	pnlData,
+	quantity,
+	start,
+	end,
+	chartOptions,
+	exportChartInstance,
+	handleChartReady,
+	comparisonData,
+	selectedCoinId
+}: TokenPnlContentProps) => {
+	if (!routerReady || isLoading || isFetching) {
+		return (
+			<div className="flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<LocalLoader />
+			</div>
+		)
+	}
+
+	if (isError) {
+		return (
+			<div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-md border border-red-400 bg-red-400/10 p-2 text-center">
+				<span className="text-lg font-semibold text-red-500">Failed to load data</span>
+				<span className="text-sm text-red-400">
+					{error instanceof Error ? error.message : 'Something went wrong fetching price data.'}
+				</span>
+				<button
+					onClick={onRetry}
+					className="rounded-md border border-red-500/40 bg-transparent px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10"
+				>
+					Retry
+				</button>
+			</div>
+		)
+	}
+
+	if (!pnlData || !pnlData.priceSeries.length) {
+		return (
+			<div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<p className="text-lg font-semibold">No historical data available for this range.</p>
+				<p className="text-sm text-(--text-secondary)">Try a different date range or another token.</p>
+			</div>
+		)
+	}
+
+	const { metrics, timeline, coinInfo, currentPrice, chartData } = pnlData
+	const { percentChange, isProfit, holdingPeriodDays, annualizedReturn, absoluteChange } = metrics
+	const quantityValue = quantity ? absoluteChange * quantity : absoluteChange
+	const formattedQuantityValue = formattedNum(Math.abs(quantityValue), false)
+	const formattedAbsoluteChange = formattedNum(Math.abs(absoluteChange), false)
+	const quantityLabel = quantity
+		? `${formattedNum(quantity, false)} tokens → ${quantityValue >= 0 ? '+$' : '-$'}${formattedQuantityValue}`
+		: `${absoluteChange >= 0 ? '+$' : '-$'}${formattedAbsoluteChange} per token`
+
+	return (
+		<div className="flex flex-1 flex-col gap-2">
+			<section className="grid gap-2 sm:grid-cols-3" aria-label="Performance summary">
+				<dl className="flex flex-col gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<dt className="text-xs font-medium tracking-wide text-(--text-label) uppercase">Return</dt>
+					<dd className={`font-jetbrains text-3xl font-semibold ${isProfit ? 'text-(--success)' : 'text-(--error)'}`}>
+						{formatPercent(percentChange)}
+					</dd>
+					<dd className="text-sm text-(--text-secondary)">{quantityLabel}</dd>
+				</dl>
+				<dl className="flex flex-col gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<dt className="text-xs font-medium tracking-wide text-(--text-label) uppercase">Holding Period</dt>
+					<dd className="font-jetbrains text-3xl font-semibold text-(--text-primary)">
+						{holdingPeriodDays} <span className="text-lg font-medium text-(--text-secondary)">days</span>
+					</dd>
+					<dd className="text-sm text-(--text-secondary)">
+						<time dateTime={unixToDateString(start)}>{formatDateLabel(start)}</time> →{' '}
+						<time dateTime={unixToDateString(end)}>{formatDateLabel(end)}</time>
+					</dd>
+				</dl>
+				<dl className="flex flex-col gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<dt className="text-xs font-medium tracking-wide text-(--text-label) uppercase">Annualised Return</dt>
+					<dd
+						className={`font-jetbrains text-3xl font-semibold ${annualizedReturn >= 0 ? 'text-(--success)' : 'text-(--error)'}`}
+					>
+						{formatPercent(annualizedReturn)}
+					</dd>
+					<dd className="text-sm text-(--text-secondary)">
+						{annualizedReturn >= 0 ? '↑' : '↓'} Based on {holdingPeriodDays}d period
+					</dd>
+				</dl>
+			</section>
+
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex items-center justify-end gap-2 p-3">
+					<h3 className="text-base font-semibold">Price Over Time</h3>
+					<p className="relative top-px mr-auto flex items-center gap-1 text-xs text-nowrap text-(--text-secondary)">
+						<span>{formatDateLabel(start)}</span>
+						<Icon name="arrow-right" width={14} height={14} />
+						<span>{formatDateLabel(end)}</span>
+					</p>
+					<ChartExportButtons chartInstance={exportChartInstance} filename="token-pnl-price" title="Price Over Time" />
+				</div>
+				<Suspense fallback={<div className="min-h-[360px]" />}>
+					<MultiSeriesChart2
+						dataset={chartData.dataset}
+						charts={chartData.charts}
+						hideDataZoom
+						chartOptions={chartOptions as unknown as IMultiSeriesChart2Props['chartOptions']}
+						onReady={handleChartReady}
+					/>
+				</Suspense>
+			</div>
+
+			<div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+				<StatsCard
+					label="Current Price"
+					value={`$${formattedNum(currentPrice)}`}
+					subtle={coinInfo?.symbol?.toUpperCase()}
+					variant="highlight"
+				/>
+				<StatsCard label="Start Price" value={`$${formattedNum(metrics.startPrice)}`} />
+				<StatsCard label="End Price" value={`$${formattedNum(metrics.endPrice)}`} />
+				<StatsCard
+					label="24h Change"
+					value={coinInfo?.price_change_percentage_24h ? formatPercent(coinInfo.price_change_percentage_24h) : '0%'}
+					subtle={
+						coinInfo?.price_change_24h
+							? `${coinInfo.price_change_24h >= 0 ? '+' : ''}$${formattedNum(coinInfo.price_change_24h)}`
+							: undefined
+					}
+				/>
+				<StatsCard
+					label="All-Time High"
+					value={`$${formattedNum(coinInfo?.ath ?? 0)}`}
+					subtle={coinInfo?.ath_date ? new Date(coinInfo.ath_date).toLocaleDateString() : undefined}
+				/>
+				<StatsCard label="Max Drawdown" value={formatPercent(-Math.abs(metrics.maxDrawdown))} />
+				<StatsCard label="Volatility (Ann.)" value={formatPercent(metrics.volatility)} />
+			</div>
+
+			<DailyPnLGrid timeline={timeline} />
+
+			<ComparisonPanel entries={comparisonData} activeId={selectedCoinId} />
+		</div>
+	)
+}
+
 export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) {
 	const router = useRouter()
 	const now = Math.floor(Date.now() / 1000) - 60
@@ -395,19 +602,13 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 		return Number.isFinite(parsed) && parsed > 0 ? parsed : 0
 	}, [quantityInput])
 
-	const chartOptions = useMemo(() => {
-		if (!pnlData) return {}
+	const chartOptions = useMemo<TokenPnlChartOptions | undefined>(() => {
+		if (!pnlData || !start || !end) return undefined
 
 		const { metrics, yAxisConfig: yAxis } = pnlData
 		const startPrice = metrics.startPrice
 
 		return {
-			grid: {
-				left: 0,
-				right: 0,
-				top: 12,
-				bottom: 12
-			},
 			xAxis: {
 				type: 'time',
 				min: start * 1000,
@@ -437,14 +638,18 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 					lineStyle: { color: 'rgba(148,163,184,0.5)', width: 1.5, type: 'solid' },
 					z: 0
 				},
-				formatter: (items: any) => {
+				formatter: (items: TooltipItem | TooltipItem[]) => {
 					const itemsArray = Array.isArray(items) ? items : [items]
 					if (!itemsArray?.length) return ''
 
 					const point = itemsArray[0]
 					const row = point?.data ?? {}
-					const timestamp = row?.timestamp ?? (Array.isArray(point?.value) ? point.value[0] : undefined)
-					const seriesValue = row?.[point?.seriesName] ?? (Array.isArray(point?.value) ? point.value[1] : undefined)
+					const timestamp =
+						(typeof row.timestamp === 'number' ? row.timestamp : undefined) ??
+						(Array.isArray(point?.value) ? point.value[0] : undefined)
+					const seriesValue =
+						(typeof point?.seriesName === 'string' ? row?.[point.seriesName] : undefined) ??
+						(Array.isArray(point?.value) ? point.value[1] : undefined)
 					const price = typeof seriesValue === 'number' ? seriesValue : Number(seriesValue ?? 0)
 					const changeFromStart = startPrice ? ((price - startPrice) / startPrice) * 100 : 0
 					const changeColor = changeFromStart >= 0 ? '#10b981' : '#ef4444'
@@ -452,9 +657,9 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 
 					const chartdate = timestamp ? formatTooltipChartDate(Number(timestamp), 'daily') : ''
 
-					return `<div style="background: var(--bg-card); border: 1px solid var(--bg-border); box-shadow: 0 6px 24px rgba(0,0,0,0.25); color: var(--text-primary); border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.4; white-space: nowrap;">
-						<div style="opacity: .75; margin-bottom: 4px;">${chartdate}</div>
-						<div style="font-weight: 600; font-size: 14px; margin-bottom: 2px;">${formatTooltipValue(price, '$')}</div>
+					return `<div style="background: var(--cards-bg); border: 1px solid var(--cards-border); box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16); color: var(--text-primary); border-radius: 8px; padding: 8px 10px; font-size: 11px; line-height: 1.35; white-space: nowrap;">
+						<div style="color: var(--text-secondary); margin-bottom: 2px;">${chartdate}</div>
+						<div style="font-weight: 600; font-size: 13px; margin-bottom: 2px;">${formatTooltipValue(price, '$')}</div>
 						<div style="font-size: 11px; color: ${changeColor}; font-weight: 500;">${changeSign}${formatTooltipValue(changeFromStart, '%')} from start</div>
 					</div>`
 				}
@@ -502,147 +707,14 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 		dialogStore.toggle()
 	}
 
-	const renderContent = () => {
-		if (!router.isReady || isLoading || isFetching) {
-			return (
-				<div className="flex h-[360px] items-center justify-center">
-					<LocalLoader />
-				</div>
-			)
-		}
-		if (isError) {
-			return (
-				<div className="flex flex-col items-center gap-2 rounded-md border border-red-400 bg-red-400/10 p-6 text-center">
-					<span className="text-lg font-semibold text-red-500">Failed to load data</span>
-					<span className="text-sm text-red-400">
-						{error instanceof Error ? error.message : 'Something went wrong fetching price data.'}
-					</span>
-					<button
-						onClick={() => refetch()}
-						className="rounded-md bg-(--link-active-bg) px-4 py-2 text-sm font-medium text-white"
-					>
-						Retry
-					</button>
-				</div>
-			)
-		}
-		if (!pnlData || !pnlData.priceSeries.length) {
-			return (
-				<div className="flex flex-col items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6 text-center">
-					<span className="text-lg font-semibold">No historical data available for this range.</span>
-					<span className="text-sm text-(--text-secondary)">Try a different date range or another token.</span>
-				</div>
-			)
-		}
-
-		const { metrics, timeline, coinInfo, currentPrice, chartData } = pnlData
-		const { percentChange, isProfit, holdingPeriodDays, annualizedReturn, absoluteChange } = metrics
-		const quantityValue = quantity ? absoluteChange * quantity : absoluteChange
-		const quantityLabel = quantity
-			? `${formattedNum(quantity, false)} tokens → ${quantityValue >= 0 ? '+' : ''}$${formattedNum(quantityValue, false)}`
-			: `$${formattedNum(absoluteChange, false)} per token`
-
-		return (
-			<div className="flex flex-col gap-6">
-				<div className="grid gap-3 sm:grid-cols-3">
-					<div
-						className={`flex flex-col gap-1.5 rounded-md border p-4 ${
-							isProfit ? 'border-emerald-500/30 bg-emerald-600/10' : 'border-red-500/30 bg-red-600/10'
-						}`}
-					>
-						<span className="text-xs font-light tracking-wide text-(--text-secondary) uppercase">Return</span>
-						<div className={`text-3xl font-bold ${isProfit ? 'text-emerald-500' : 'text-red-500'}`}>
-							{formatPercent(percentChange)}
-						</div>
-						<span className="text-xs text-(--text-secondary)">{quantityLabel}</span>
-					</div>
-					<div className="flex flex-col gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-						<span className="text-xs font-light tracking-wide text-(--text-secondary) uppercase">Holding Period</span>
-						<div className="text-3xl font-bold text-(--text-secondary)">
-							{holdingPeriodDays} <span className="text-xl font-medium text-(--text-secondary)">days</span>
-						</div>
-						<span className="text-xs text-(--text-secondary)">
-							{formatDateLabel(start)} → {formatDateLabel(end)}
-						</span>
-					</div>
-					<div className="flex flex-col gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-						<span className="text-xs font-light tracking-wide text-(--text-secondary) uppercase">
-							Annualised Return
-						</span>
-						<div className={`text-3xl font-bold ${annualizedReturn >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-							{formatPercent(annualizedReturn)}
-						</div>
-						<span className="text-xs text-(--text-secondary)">
-							{annualizedReturn >= 0 ? '↑' : '↓'} Based on {holdingPeriodDays}d period
-						</span>
-					</div>
-				</div>
-
-				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
-					<div className="flex items-center justify-between gap-2 p-3 pb-1">
-						<h3 className="text-base font-semibold">Price Over Time</h3>
-						<div className="flex items-center gap-2 text-xs text-(--text-secondary)">
-							<span>{formatDateLabel(start)}</span>
-							<Icon name="arrow-right" width={14} height={14} />
-							<span>{formatDateLabel(end)}</span>
-							<ChartExportButtons
-								chartInstance={exportChartInstance}
-								filename="token-pnl-price"
-								title="Price Over Time"
-							/>
-						</div>
-					</div>
-					<Suspense fallback={<div className="min-h-[360px]" />}>
-						<MultiSeriesChart2
-							dataset={chartData.dataset}
-							charts={chartData.charts}
-							hideDataZoom
-							chartOptions={chartOptions as any}
-							onReady={handleChartReady}
-						/>
-					</Suspense>
-				</div>
-
-				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-					<StatsCard
-						label="Current Price"
-						value={`$${formattedNum(currentPrice)}`}
-						subtle={coinInfo?.symbol?.toUpperCase()}
-						variant="highlight"
-					/>
-					<StatsCard label="Start Price" value={`$${formattedNum(metrics.startPrice)}`} />
-					<StatsCard label="End Price" value={`$${formattedNum(metrics.endPrice)}`} />
-					<StatsCard
-						label="24h Change"
-						value={coinInfo?.price_change_percentage_24h ? formatPercent(coinInfo.price_change_percentage_24h) : '0%'}
-						subtle={
-							coinInfo?.price_change_24h
-								? `${coinInfo.price_change_24h >= 0 ? '+' : ''}$${formattedNum(coinInfo.price_change_24h)}`
-								: undefined
-						}
-					/>
-					<StatsCard
-						label="All-Time High"
-						value={`$${formattedNum(coinInfo?.ath ?? 0)}`}
-						subtle={coinInfo?.ath_date ? new Date(coinInfo.ath_date).toLocaleDateString() : undefined}
-					/>
-					<StatsCard label="Max Drawdown" value={formatPercent(-Math.abs(metrics.maxDrawdown))} />
-					<StatsCard label="Volatility (Ann.)" value={formatPercent(metrics.volatility)} />
-				</div>
-
-				<DailyPnLGrid timeline={timeline} />
-
-				<ComparisonPanel entries={comparisonData ?? EMPTY_COMPARISON_ENTRIES} activeId={selectedCoinId} />
-			</div>
-		)
-	}
-
 	return (
-		<div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4">
-			<h1 className="text-2xl font-semibold">Token Holder Profit and Loss</h1>
-			<div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-				<div className="flex flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-					<div className="flex flex-col gap-3">
+		<>
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				<h1 className="text-xl font-bold">Token Holder Profit and Loss</h1>
+			</div>
+			<div className="grid flex-1 gap-2 xl:grid-cols-[300px_minmax(0,1fr)]">
+				<div className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<div className="flex flex-col gap-2">
 						<DateInput
 							label="Start Date"
 							value={startDate}
@@ -658,11 +730,11 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 							max={unixToDateString(now)}
 						/>
 					</div>
-					<div className="flex flex-col gap-2 text-sm">
-						<span>Token</span>
+					<div className="flex flex-col gap-1.5 text-sm">
+						<span className="text-(--text-label)">Token</span>
 						<button
 							onClick={() => dialogStore.toggle()}
-							className="flex items-center gap-2 rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-base text-(--text-primary)"
+							className="flex items-center gap-2 rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm text-(--text-primary)"
 						>
 							{selectedCoinInfo ? (
 								<>
@@ -690,9 +762,9 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 							selectCoin={(coin) => updateCoin(coin.id)}
 						/>
 					</div>
-					<div className="flex flex-col gap-2 text-sm">
+					<div className="flex flex-col gap-1.5 text-sm">
 						<label className="flex flex-col gap-1">
-							<span>Quantity (optional)</span>
+							<span className="text-(--text-label)">Quantity (optional)</span>
 							<input
 								type="number"
 								min="0"
@@ -700,13 +772,29 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 								placeholder="Tokens held"
 								value={quantityInput}
 								onChange={(event) => setQuantityInput(event.target.value)}
-								className="rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-base text-(--text-primary)"
+								className="rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm text-(--text-primary)"
 							/>
 						</label>
 					</div>
 				</div>
-				<div>{renderContent()}</div>
+				<TokenPnlContent
+					routerReady={router.isReady}
+					isLoading={isLoading}
+					isFetching={isFetching}
+					isError={isError}
+					error={error}
+					onRetry={() => refetch()}
+					pnlData={pnlData}
+					quantity={quantity}
+					start={start ?? 0}
+					end={end ?? 0}
+					chartOptions={chartOptions}
+					exportChartInstance={exportChartInstance}
+					handleChartReady={handleChartReady}
+					comparisonData={comparisonData ?? EMPTY_COMPARISON_ENTRIES}
+					selectedCoinId={selectedCoinId}
+				/>
 			</div>
-		</div>
+		</>
 	)
 }

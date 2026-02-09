@@ -3,6 +3,7 @@ import { startTransition } from 'react'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
+import type { ExcludeQueryKey, SelectValues } from '~/components/Select/types'
 import { Switch } from '~/components/Switch'
 import type { IRWAAssetsOverview } from './queries'
 
@@ -39,10 +40,12 @@ const formatPercentRange = (minPercent: number | null, maxPercent: number | null
 	return `${minLabel} - ${maxLabel}`
 }
 
-type RWAOverviewFiltersProps = {
-	enabled: boolean
+type RWAFilterModes = {
 	isChainMode: boolean
 	isPlatformMode: boolean
+}
+
+type RWAFilterOptions = {
 	assetNames: IRWAAssetsOverview['assetNames']
 	typeOptions: IRWAAssetsOverview['typeOptions']
 	categoriesOptions: IRWAAssetsOverview['categoriesOptions']
@@ -50,6 +53,9 @@ type RWAOverviewFiltersProps = {
 	rwaClassificationOptions: IRWAAssetsOverview['rwaClassificationOptions']
 	accessModelOptions: IRWAAssetsOverview['accessModelOptions']
 	issuers: IRWAAssetsOverview['issuers']
+}
+
+type RWAFilterSelections = {
 	selectedAssetNames: string[]
 	selectedTypes: string[]
 	selectedCategories: string[]
@@ -63,13 +69,24 @@ type RWAOverviewFiltersProps = {
 	maxActiveMcapToOnChainMcapPct: number | null
 	minDefiActiveTvlToActiveMcapPct: number | null
 	maxDefiActiveTvlToActiveMcapPct: number | null
+	includeStablecoins: boolean
+	includeGovernance: boolean
+}
+
+type RWAFilterActions = {
 	setDefiActiveTvlToOnChainMcapPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
 	setActiveMcapToOnChainMcapPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
 	setDefiActiveTvlToActiveMcapPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
-	includeStablecoins: boolean
-	includeGovernance: boolean
 	setIncludeStablecoins: (value: boolean) => void
 	setIncludeGovernance: (value: boolean) => void
+}
+
+type RWAOverviewFiltersProps = {
+	enabled: boolean
+	modes: RWAFilterModes
+	options: RWAFilterOptions
+	selections: RWAFilterSelections
+	actions: RWAFilterActions
 }
 
 export function RWAOverviewFilters(props: RWAOverviewFiltersProps) {
@@ -86,42 +103,17 @@ export function RWAOverviewFilters(props: RWAOverviewFiltersProps) {
 
 function Filters({
 	enabled,
-	isChainMode,
-	isPlatformMode,
-	assetNames,
-	typeOptions,
-	categoriesOptions,
-	assetClassOptions,
-	rwaClassificationOptions,
-	accessModelOptions,
-	issuers,
-	selectedAssetNames,
-	selectedTypes,
-	selectedCategories,
-	selectedAssetClasses,
-	selectedRwaClassifications,
-	selectedAccessModels,
-	selectedIssuers,
-	minDefiActiveTvlToOnChainMcapPct,
-	maxDefiActiveTvlToOnChainMcapPct,
-	minActiveMcapToOnChainMcapPct,
-	maxActiveMcapToOnChainMcapPct,
-	minDefiActiveTvlToActiveMcapPct,
-	maxDefiActiveTvlToActiveMcapPct,
-	setDefiActiveTvlToOnChainMcapPctRange,
-	setActiveMcapToOnChainMcapPctRange,
-	setDefiActiveTvlToActiveMcapPctRange,
-	includeStablecoins,
-	includeGovernance,
-	setIncludeStablecoins,
-	setIncludeGovernance,
+	modes,
+	options,
+	selections,
+	actions,
 	nestedMenu
 }: RWAOverviewFiltersProps & { nestedMenu?: boolean }) {
 	const router = useRouter()
 
 	if (!enabled) return null
 
-	const defaultSelectedTypes = typeOptions.flatMap((option) => (option.key !== 'Wrapper' ? [option.key] : []))
+	const defaultSelectedTypes = options.typeOptions.flatMap((option) => (option.key !== 'Wrapper' ? [option.key] : []))
 
 	// Determine active filters purely from URL query.
 	// Selected arrays often default to "all values" when there is no query set.
@@ -135,201 +127,171 @@ function Filters({
 		? 'relative flex w-full cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40'
 		: 'relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40'
 
+	const selectFilters: Array<{
+		enabled: boolean
+		allValues: SelectValues
+		selectedValues: string[]
+		includeQueryKey: string
+		excludeQueryKey: ExcludeQueryKey
+		label: string
+		defaultSelectedValues?: string[]
+	}> = [
+		{
+			enabled: options.typeOptions.length > 1,
+			allValues: options.typeOptions,
+			selectedValues: selections.selectedTypes,
+			includeQueryKey: 'types',
+			excludeQueryKey: 'excludeTypes',
+			label: 'Types',
+			defaultSelectedValues: defaultSelectedTypes
+		},
+		{
+			enabled: modes.isPlatformMode && options.assetNames.length > 1,
+			allValues: options.assetNames,
+			selectedValues: selections.selectedAssetNames,
+			includeQueryKey: 'assetNames',
+			excludeQueryKey: 'excludeAssetNames',
+			label: 'Asset Names'
+		},
+		{
+			enabled: modes.isChainMode && options.categoriesOptions.length > 1,
+			allValues: options.categoriesOptions,
+			selectedValues: selections.selectedCategories,
+			includeQueryKey: 'categories',
+			excludeQueryKey: 'excludeCategories',
+			label: 'Categories'
+		},
+		{
+			enabled: options.assetClassOptions.length > 1,
+			allValues: options.assetClassOptions,
+			selectedValues: selections.selectedAssetClasses,
+			includeQueryKey: 'assetClasses',
+			excludeQueryKey: 'excludeAssetClasses',
+			label: 'Asset Classes'
+		},
+		{
+			enabled: options.rwaClassificationOptions.length > 1,
+			allValues: options.rwaClassificationOptions,
+			selectedValues: selections.selectedRwaClassifications,
+			includeQueryKey: 'rwaClassifications',
+			excludeQueryKey: 'excludeRwaClassifications',
+			label: 'RWA Classification'
+		},
+		{
+			enabled: options.accessModelOptions.length > 1,
+			allValues: options.accessModelOptions,
+			selectedValues: selections.selectedAccessModels,
+			includeQueryKey: 'accessModels',
+			excludeQueryKey: 'excludeAccessModels',
+			label: 'Access Model'
+		},
+		{
+			enabled: options.issuers.length > 1,
+			allValues: options.issuers,
+			selectedValues: selections.selectedIssuers,
+			includeQueryKey: 'issuers',
+			excludeQueryKey: 'excludeIssuers',
+			label: 'Issuers'
+		}
+	]
+
+	const rangeFilters: Array<{
+		name: string
+		label: string
+		min: number | null
+		max: number | null
+		onSubmitRange: (minValue: string | number | null, maxValue: string | number | null) => void
+	}> = [
+		{
+			name: 'DeFi TVL / Onchain %',
+			label: 'DeFi TVL / Onchain',
+			min: selections.minDefiActiveTvlToOnChainMcapPct,
+			max: selections.maxDefiActiveTvlToOnChainMcapPct,
+			onSubmitRange: actions.setDefiActiveTvlToOnChainMcapPctRange
+		},
+		{
+			name: 'Active Marketcap / Onchain %',
+			label: 'Active Marketcap / Onchain',
+			min: selections.minActiveMcapToOnChainMcapPct,
+			max: selections.maxActiveMcapToOnChainMcapPct,
+			onSubmitRange: actions.setActiveMcapToOnChainMcapPctRange
+		},
+		{
+			name: 'DeFi TVL / Active Marketcap %',
+			label: 'DeFi TVL / Active Marketcap',
+			min: selections.minDefiActiveTvlToActiveMcapPct,
+			max: selections.maxDefiActiveTvlToActiveMcapPct,
+			onSubmitRange: actions.setDefiActiveTvlToActiveMcapPctRange
+		}
+	]
+
 	return (
 		<>
-			{typeOptions.length > 1 ? (
-				<SelectWithCombobox
-					allValues={typeOptions}
-					selectedValues={selectedTypes}
-					includeQueryKey="types"
-					excludeQueryKey="excludeTypes"
-					defaultSelectedValues={defaultSelectedTypes}
-					label={'Types'}
-					labelType="smol"
+			{selectFilters.map((config) =>
+				config.enabled ? (
+					<SelectWithCombobox
+						key={`${config.includeQueryKey}-${config.excludeQueryKey}`}
+						allValues={config.allValues}
+						selectedValues={config.selectedValues}
+						includeQueryKey={config.includeQueryKey}
+						excludeQueryKey={config.excludeQueryKey}
+						defaultSelectedValues={config.defaultSelectedValues}
+						label={config.label}
+						labelType="smol"
+						nestedMenu={nestedMenu}
+						variant="filter"
+					/>
+				) : null
+			)}
+			{rangeFilters.map((config) => (
+				<FilterBetweenRange
+					key={config.name}
+					name={config.name}
+					trigger={
+						config.min != null || config.max != null ? (
+							<>
+								<span>{config.label}: </span>
+								<span className="text-(--link)">{formatPercentRange(config.min, config.max)}</span>
+							</>
+						) : (
+							<span>{config.name}</span>
+						)
+					}
+					onSubmit={(e) => {
+						e.preventDefault()
+						const form = e.currentTarget
+						const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
+						const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
+						config.onSubmitRange(minValue, maxValue)
+					}}
+					onClear={() => config.onSubmitRange(null, null)}
 					nestedMenu={nestedMenu}
-					variant="filter"
+					min={config.min}
+					max={config.max}
+					minLabel="Min %"
+					maxLabel="Max %"
+					minInputProps={ratioPercentInputProps}
+					maxInputProps={ratioPercentInputProps}
 				/>
-			) : null}
-			{isPlatformMode && assetNames.length > 1 ? (
-				<SelectWithCombobox
-					allValues={assetNames}
-					selectedValues={selectedAssetNames}
-					includeQueryKey="assetNames"
-					excludeQueryKey="excludeAssetNames"
-					label={'Asset Names'}
-					labelType="smol"
-					nestedMenu={nestedMenu}
-					variant="filter"
-				/>
-			) : null}
-			{isChainMode && categoriesOptions.length > 1 ? (
-				<SelectWithCombobox
-					allValues={categoriesOptions}
-					selectedValues={selectedCategories}
-					includeQueryKey="categories"
-					excludeQueryKey="excludeCategories"
-					label={'Categories'}
-					labelType="smol"
-					nestedMenu={nestedMenu}
-					variant="filter"
-				/>
-			) : null}
-			{assetClassOptions.length > 1 ? (
-				<SelectWithCombobox
-					allValues={assetClassOptions}
-					selectedValues={selectedAssetClasses}
-					includeQueryKey="assetClasses"
-					excludeQueryKey="excludeAssetClasses"
-					label={'Asset Classes'}
-					labelType="smol"
-					nestedMenu={nestedMenu}
-					variant="filter"
-				/>
-			) : null}
-			{rwaClassificationOptions.length > 1 ? (
-				<SelectWithCombobox
-					allValues={rwaClassificationOptions}
-					selectedValues={selectedRwaClassifications}
-					includeQueryKey="rwaClassifications"
-					excludeQueryKey="excludeRwaClassifications"
-					label={'RWA Classification'}
-					labelType="smol"
-					nestedMenu={nestedMenu}
-					variant="filter"
-				/>
-			) : null}
-			{accessModelOptions.length > 1 ? (
-				<SelectWithCombobox
-					allValues={accessModelOptions}
-					selectedValues={selectedAccessModels}
-					includeQueryKey="accessModels"
-					excludeQueryKey="excludeAccessModels"
-					label={'Access Model'}
-					labelType="smol"
-					nestedMenu={nestedMenu}
-					variant="filter"
-				/>
-			) : null}
-			{issuers.length > 1 ? (
-				<SelectWithCombobox
-					allValues={issuers}
-					selectedValues={selectedIssuers}
-					includeQueryKey="issuers"
-					excludeQueryKey="excludeIssuers"
-					label={'Issuers'}
-					labelType="smol"
-					nestedMenu={nestedMenu}
-					variant="filter"
-				/>
-			) : null}
-			<FilterBetweenRange
-				name="DeFi TVL / Onchain %"
-				trigger={
-					minDefiActiveTvlToOnChainMcapPct != null || maxDefiActiveTvlToOnChainMcapPct != null ? (
-						<>
-							<span>DeFi TVL / Onchain: </span>
-							<span className="text-(--link)">
-								{formatPercentRange(minDefiActiveTvlToOnChainMcapPct, maxDefiActiveTvlToOnChainMcapPct)}
-							</span>
-						</>
-					) : (
-						<span>DeFi TVL / Onchain %</span>
-					)
-				}
-				onSubmit={(e) => {
-					e.preventDefault()
-					const form = e.currentTarget
-					const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
-					const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
-					setDefiActiveTvlToOnChainMcapPctRange(minValue, maxValue)
-				}}
-				onClear={() => setDefiActiveTvlToOnChainMcapPctRange(null, null)}
-				nestedMenu={nestedMenu}
-				min={minDefiActiveTvlToOnChainMcapPct}
-				max={maxDefiActiveTvlToOnChainMcapPct}
-				minLabel="Min %"
-				maxLabel="Max %"
-				minInputProps={ratioPercentInputProps}
-				maxInputProps={ratioPercentInputProps}
-			/>
-			<FilterBetweenRange
-				name="Active Marketcap / Onchain %"
-				trigger={
-					minActiveMcapToOnChainMcapPct != null || maxActiveMcapToOnChainMcapPct != null ? (
-						<>
-							<span>Active Marketcap / Onchain: </span>
-							<span className="text-(--link)">
-								{formatPercentRange(minActiveMcapToOnChainMcapPct, maxActiveMcapToOnChainMcapPct)}
-							</span>
-						</>
-					) : (
-						<span>Active Marketcap / Onchain %</span>
-					)
-				}
-				onSubmit={(e) => {
-					e.preventDefault()
-					const form = e.currentTarget
-					const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
-					const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
-					setActiveMcapToOnChainMcapPctRange(minValue, maxValue)
-				}}
-				onClear={() => setActiveMcapToOnChainMcapPctRange(null, null)}
-				nestedMenu={nestedMenu}
-				min={minActiveMcapToOnChainMcapPct}
-				max={maxActiveMcapToOnChainMcapPct}
-				minLabel="Min %"
-				maxLabel="Max %"
-				minInputProps={ratioPercentInputProps}
-				maxInputProps={ratioPercentInputProps}
-			/>
-			<FilterBetweenRange
-				name="DeFi TVL / Active Marketcap %"
-				trigger={
-					minDefiActiveTvlToActiveMcapPct != null || maxDefiActiveTvlToActiveMcapPct != null ? (
-						<>
-							<span>DeFi TVL / Active Marketcap: </span>
-							<span className="text-(--link)">
-								{formatPercentRange(minDefiActiveTvlToActiveMcapPct, maxDefiActiveTvlToActiveMcapPct)}
-							</span>
-						</>
-					) : (
-						<span>DeFi TVL / Active Marketcap %</span>
-					)
-				}
-				onSubmit={(e) => {
-					e.preventDefault()
-					const form = e.currentTarget
-					const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
-					const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
-					setDefiActiveTvlToActiveMcapPctRange(minValue, maxValue)
-				}}
-				onClear={() => setDefiActiveTvlToActiveMcapPctRange(null, null)}
-				nestedMenu={nestedMenu}
-				min={minDefiActiveTvlToActiveMcapPct}
-				max={maxDefiActiveTvlToActiveMcapPct}
-				minLabel="Min %"
-				maxLabel="Max %"
-				minInputProps={ratioPercentInputProps}
-				maxInputProps={ratioPercentInputProps}
-			/>
+			))}
 			<div className={switchesAndResetClassName}>
 				<Switch
 					label="Stablecoins"
 					value="includeStablecoins"
-					checked={includeStablecoins}
+					checked={selections.includeStablecoins}
 					onChange={() => {
-						const next = !includeStablecoins
-						startTransition(() => setIncludeStablecoins(next))
+						const next = !selections.includeStablecoins
+						startTransition(() => actions.setIncludeStablecoins(next))
 					}}
 					className={nestedMenu ? 'text-base' : undefined}
 				/>
 				<Switch
 					label="Governance Tokens"
 					value="includeGovernance"
-					checked={includeGovernance}
+					checked={selections.includeGovernance}
 					onChange={() => {
-						const next = !includeGovernance
-						startTransition(() => setIncludeGovernance(next))
+						const next = !selections.includeGovernance
+						startTransition(() => actions.setIncludeGovernance(next))
 					}}
 					className={nestedMenu ? 'text-base' : undefined}
 				/>
