@@ -730,7 +730,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 	try {
 		const [data, chartDataset]: [IFetchedRWAProject, IRWAAssetData['chartDataset']] = await Promise.all([
 			fetchJson(`${RWA_ASSET_DATA_API}/${assetId}`),
-			fetchJson(`${RWA_CHART_API}/${assetId}`)
+			fetchJson(`${RWA_CHART_API}/asset/${assetId}`)
 				.then((data: IRWAChartData) => {
 					const source =
 						(data ?? []).map((item) => ({
