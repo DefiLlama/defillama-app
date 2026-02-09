@@ -5,7 +5,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
 
 interface PastUnlockPriceImpactProps {
 	data: any[]
@@ -138,7 +138,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 						</div>
 					</div>
 					<div className="flex items-center gap-1">
-						<span className="text-sm font-semibold tabular-nums">{formattedPercent(impact.impact)}</span>
+						<span className="text-sm font-semibold tabular-nums">{renderPercentChange(impact.impact)}</span>
 						<Ariakit.HovercardProvider>
 							<Ariakit.HovercardAnchor>
 								<Icon name="help-circle" width={16} height={16} className="cursor-help text-(--text-meta)" />

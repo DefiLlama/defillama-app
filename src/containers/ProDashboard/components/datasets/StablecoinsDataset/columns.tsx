@@ -3,7 +3,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, formattedPercent, peggedAssetIconUrl } from '~/utils'
+import { formattedNum, renderPercentChange, peggedAssetIconUrl } from '~/utils'
 
 interface IPeggedAssetRow {
 	name: string
@@ -89,7 +89,9 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		accessorKey: 'change_1d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{formattedPercent(value)}</span>
+			return (
+				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{renderPercentChange(value)}</span>
+			)
 		},
 		size: 100,
 		meta: {
@@ -101,7 +103,9 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		accessorKey: 'change_7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{formattedPercent(value)}</span>
+			return (
+				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{renderPercentChange(value)}</span>
+			)
 		},
 		size: 100,
 		meta: {
@@ -113,7 +117,9 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		accessorKey: 'change_1m',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{formattedPercent(value)}</span>
+			return (
+				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{renderPercentChange(value)}</span>
+			)
 		},
 		size: 100,
 		meta: {

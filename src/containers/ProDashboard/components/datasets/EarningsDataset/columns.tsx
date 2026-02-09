@@ -1,7 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
 
 interface IEarningsRow {
 	name: string
@@ -96,7 +96,7 @@ export const earningsDatasetColumns: ColumnDef<IEarningsRow>[] = [
 			const value = getValue() as number
 			return (
 				<span className={` ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{value ? formattedPercent(value, false, 100) : '-'}
+					{value ? renderPercentChange(value, false, 100) : '-'}
 				</span>
 			)
 		},
@@ -112,7 +112,7 @@ export const earningsDatasetColumns: ColumnDef<IEarningsRow>[] = [
 			const value = getValue() as number
 			return (
 				<span className={` ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{value ? formattedPercent(value, false, 100) : '-'}
+					{value ? renderPercentChange(value, false, 100) : '-'}
 				</span>
 			)
 		},

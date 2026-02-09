@@ -22,7 +22,7 @@ export const FormattedName = ({ text, maxCharacters, fontSize, fontWeight = 400,
 			<Tooltip content={text}>
 				<span
 					data-link={link ?? false}
-					style={{ '--text-size': fontSize ?? 'inherit', '--weight': fontWeight ?? 400 } as any}
+					style={{ '--text-size': fontSize ?? 'inherit', '--weight': fontWeight ?? 400 } as React.CSSProperties}
 					className="cursor-pointer overflow-hidden font-(--weight) text-ellipsis whitespace-nowrap text-(--text-size) data-[link=true]:text-(--blue)"
 				>
 					{text}
@@ -34,7 +34,7 @@ export const FormattedName = ({ text, maxCharacters, fontSize, fontWeight = 400,
 	return (
 		<span
 			data-link={link ?? false}
-			style={{ '--text-size': fontSize ?? 'inherit', '--weight': fontWeight ?? 400 } as any}
+			style={{ '--text-size': fontSize ?? 'inherit', '--weight': fontWeight ?? 400 } as React.CSSProperties}
 			className="overflow-hidden font-(--weight) text-ellipsis whitespace-nowrap text-(--text-size) data-[link=true]:text-(--blue)"
 		>
 			{text}

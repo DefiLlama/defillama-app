@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import utc from 'dayjs/plugin/utc'
-import { ICONS_CDN, timeframeOptions } from '~/constants'
+import { ICONS_CDN } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchJson } from './async'
 
@@ -10,106 +10,91 @@ export * from './blockExplorers'
 dayjs.extend(utc)
 dayjs.extend(relativeTime)
 
-export function getTimeframe(timeWindow) {
-	const utcEndTime = dayjs.utc()
-	// based on window, get starttime
-	let utcStartTime
-	switch (timeWindow) {
-		case timeframeOptions.WEEK:
-			utcStartTime = utcEndTime.subtract(1, 'week').endOf('day').unix() - 1
-			break
-		case timeframeOptions.MONTH:
-			utcStartTime = utcEndTime.subtract(1, 'month').endOf('day').unix() - 1
-			break
-		case timeframeOptions.ALL_TIME:
-			utcStartTime = utcEndTime.subtract(1, 'year').endOf('day').unix() - 1
-			break
-		case timeframeOptions.YEAR:
-			utcStartTime = utcEndTime.subtract(1, 'year').endOf('day').unix() - 1
-			break
-		default:
-			utcStartTime = utcEndTime.subtract(1, 'year').startOf('year').unix() - 1
-			break
-	}
-	return utcStartTime
+interface HSL {
+	h: number
+	s: number
+	l: number
+}
+
+interface CSVDownloadOptions {
+	mimeType?: string
+	addTimestamp?: boolean
+}
+
+interface DatasetCSVParams {
+	data: Record<string, unknown>[]
+	columns?: string[]
+	columnHeaders?: Record<string, string>
+	filename?: string
+	filenameSuffix?: string
+	addTimestamp?: boolean
+}
+
+type CsvCell = string | number | boolean | object | null | undefined
+type CsvData = CsvCell[][] | string
+
+interface VolumeChartEntry {
+	Deposits: number
+	Withdrawals: number
+	txs: number
+	volume: number
+	[key: string]: unknown
 }
 
 /** gives output like `5 days ago` or `17 hours ago` from a timestamp, https://day.js.org/docs/en/plugin/relative-time */
-export const toNiceDaysAgo = (date) => dayjs().to(dayjs.utc(dayjs.unix(date)))
+export const toNiceDaysAgo = (date: number): string => dayjs().to(dayjs.utc(dayjs.unix(date)))
 
-export const toNiceDayAndHour = (date) => {
+export const toNiceDayAndHour = (date: number): string => {
 	return dayjs.utc(dayjs.unix(date)).format('D MMM, HH:mm')
 }
-export const toNiceHour = (date) => {
+export const toNiceHour = (date: number): string => {
 	return dayjs.utc(dayjs.unix(date)).format('HH:mm')
 }
-export const toNiceDayMonthAndYear = (date) => {
+export const toNiceDayMonthAndYear = (date: number): string => {
 	return dayjs.utc(dayjs.unix(date)).format('D MMM, YYYY')
 }
 
-export const toNiceDayMonthAndYearAndTime = (date) => {
+export const toNiceDayMonthAndYearAndTime = (date: number): string => {
 	return dayjs.utc(dayjs.unix(date)).format('D MMM, YYYY HH:mm')
 }
 
-export const toNiceMonthlyDate = (date) => {
-	return dayjs.utc(dayjs.unix(date)).format('MMM YYYY')
-}
-
-export const toYearMonth = (date) => {
+export const toYearMonth = (date: number): string => {
 	return dayjs.utc(dayjs.unix(date)).format('YYYY-MM')
 }
 
-export const toNiceDate = (date) => {
+export const toNiceDate = (date: number): string => {
 	return dayjs.utc(dayjs.unix(date)).format('MMM DD')
 }
 
-export const toNiceCsvDate = (date) => {
+export const toNiceCsvDate = (date: number): string => {
 	return dayjs.utc(dayjs.unix(date)).format('YYYY-MM-DD')
 }
 
-export const toNiceDateYear = (date) => dayjs.utc(dayjs.unix(date)).format('MMMM DD, YYYY')
+export const toNiceDateYear = (date: number): string => dayjs.utc(dayjs.unix(date)).format('MMMM DD, YYYY')
 
-export const toNiceDayMonthYear = (date) => dayjs.utc(dayjs.unix(date)).format('DD MMM YYYY')
+export const toNiceDayMonthYear = (date: number): string => dayjs.utc(dayjs.unix(date)).format('DD MMM YYYY')
 
-export const timeFromNow = (date) => dayjs.utc(dayjs.unix(date)).fromNow()
-
-export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, symbol }) {
-	for (let i = 0; i < noOfTokens.length; i++) {
-		const tokens = noOfTokens[i]
-		description = description.replace(
-			`{tokens[${i}]}`,
-			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${
-				price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
-			}`
-		)
-	}
-	description = description?.replace('{timestamp}', `${toNiceDateYear(timestamp)} (${timeFromNow(timestamp)})`)
-	return description
-}
-
-const toK = (num) => {
+const toK = (num: number): string | null => {
 	if ((!num && num !== 0) || Number.isNaN(Number(num))) {
 		return null
 	}
 
 	const stringifiedNum = Number(num).toFixed(0)
+	const len = stringifiedNum.length
 
-	// 100 - 999_999
-	if ([4, 5, 6].includes(stringifiedNum.length)) {
+	if (len >= 4 && len <= 6) {
 		return (+stringifiedNum / 1_000).toLocaleString(undefined, { maximumFractionDigits: 2 }) + 'k'
 	}
 
-	// 1_000_000 - 999_999_999
-	if ([7, 8, 9].includes(stringifiedNum.length)) {
+	if (len >= 7 && len <= 9) {
 		return (+stringifiedNum / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 2 }) + 'm'
 	}
 
-	// 1_000_000_000 - 999_999_999_999
-	if ([10, 11, 12].includes(stringifiedNum.length)) {
+	if (len >= 10 && len <= 12) {
 		return (+stringifiedNum / 1_000_000_000).toLocaleString(undefined, { maximumFractionDigits: 3 }) + 'b'
 	}
 
-	if (stringifiedNum.length > 12) {
+	if (len > 12) {
 		return (+stringifiedNum / 1_000_000_000_000).toLocaleString(undefined, { maximumFractionDigits: 3 }) + 't'
 	}
 
@@ -118,12 +103,7 @@ const toK = (num) => {
 	})
 }
 
-/**
- * @param {string | number | undefined | null} value
- * @param {string | undefined | null} symbol
- * @returns {string | null}
- */
-function appendSymbol(value, symbol) {
+function appendSymbol(value: string | null | undefined, symbol: string | undefined): string | null | undefined {
 	if (!value || !symbol) return value
 
 	if (symbol === '$') {
@@ -137,12 +117,7 @@ function appendSymbol(value, symbol) {
 	return `${value} ${symbol}`
 }
 
-/**
- * @param {string | number | undefined | null} value
- * @param {number} [maxDecimals]
- * @returns {string | null}
- */
-const formatNum_internal = (value, maxDecimals) => {
+const formatNum_internal = (value: unknown, maxDecimals?: number): string => {
 	if (!value && value !== 0) return '0'
 
 	// Convert to number for validation
@@ -152,8 +127,8 @@ const formatNum_internal = (value, maxDecimals) => {
 	}
 
 	// Handle scientific notation
-	let processedValue = typeof value === 'number' ? value.toString() : value
-	const isScientificNotation = /[eE]/.test(processedValue)
+	let processedValue: string = typeof value === 'number' ? value.toString() : String(value)
+	const isScientificNotation = processedValue.includes('e') || processedValue.includes('E')
 
 	if (isScientificNotation) {
 		// Convert to fixed decimal string with enough precision
@@ -236,30 +211,25 @@ const formatNum_internal = (value, maxDecimals) => {
 	return num + '.' + decimalsToShow.substring(0, endIndex)
 }
 
-export const formatNum = (value, maxDecimals, symbol) => {
+export const formatNum = (value: unknown, maxDecimals?: number, symbol?: string): string | null | undefined => {
 	return appendSymbol(formatNum_internal(value, maxDecimals), symbol)
 }
 
-/**
- * @param {string | number | undefined | null} value
- * @param {number | undefined | null} maxDecimals
- * @returns {string | null}
- */
-const abbreviateNumber_internal = (value, maxDecimals) => {
+const abbreviateNumber_internal = (value: unknown, maxDecimals?: number | null): string | null => {
 	if (value == null) return null
 
 	const numValue = Number(value)
 
 	if (Number.isNaN(numValue)) return '0'
 
-	if (numValue < 1000) return formatNum(value.toString(), maxDecimals)
+	if (numValue < 1000) return formatNum(value.toString(), maxDecimals ?? undefined) as string
 
 	// Handle negative numbers
 	const isNegative = numValue < 0
 	const absValue = Math.abs(numValue)
 
 	// Determine suffix and divisor
-	let result
+	let result: string
 
 	if (absValue >= 1_000_000_000) {
 		// Billions - use 2 decimals max
@@ -281,18 +251,16 @@ const abbreviateNumber_internal = (value, maxDecimals) => {
 	return isNegative ? `-${result}` : result
 }
 
-/**
- * @param {string | number | undefined | null} number
- * @param {number | undefined | null} maxDecimals
- * @param {string | undefined | null} symbol
- * @returns {string | null}
- */
-export const abbreviateNumber = (value, maxDecimals, symbol) => {
+export const abbreviateNumber = (
+	value: unknown,
+	maxDecimals?: number | null,
+	symbol?: string
+): string | null | undefined => {
 	return appendSymbol(abbreviateNumber_internal(value, maxDecimals), symbol)
 }
 
-export const formattedNum = (number, symbol = false) => {
-	let currencySymbol
+export const formattedNum = (number: unknown, symbol: boolean | string = false): string => {
+	let currencySymbol: string
 	if (symbol === true) {
 		currencySymbol = '$'
 	} else if (symbol === false) {
@@ -301,7 +269,7 @@ export const formattedNum = (number, symbol = false) => {
 		currencySymbol = symbol
 	}
 
-	if (number === '' || number == null || Number.isNaN(+number)) {
+	if (number === '' || number == null || Number.isNaN(Number(number))) {
 		return symbol ? `${currencySymbol}0` : `0`
 	}
 	let num = Number(number)
@@ -340,23 +308,12 @@ export const formattedNum = (number, symbol = false) => {
 	})}`
 }
 
-export const filterCollectionsByCurrency = (collections, displayUsd) =>
-	(collections &&
-		collections.length &&
-		collections.map((collection) => ({
-			...collection,
-			floor: displayUsd ? collection?.floorUSD : collection?.floor,
-			dailyVolume: displayUsd ? collection?.dailyVolumeUSD : collection?.dailyVolume,
-			totalVolume: displayUsd ? collection?.totalVolumeUSD : collection?.totalVolume
-		}))) ||
-	[]
-
-export function chainIconUrl(chain) {
-	return `${ICONS_CDN}/chains/rsz_${chain.toLowerCase()}?w=48&h=48`
+export function chainIconUrl(chain: unknown): string {
+	return `${ICONS_CDN}/chains/rsz_${String(chain).toLowerCase()}?w=48&h=48`
 }
 
-export function tokenIconUrl(name) {
-	const x = name ?? ''
+export function tokenIconUrl(name: unknown): string {
+	const x = typeof name === 'string' ? name : ''
 	return `${ICONS_CDN}/protocols/${
 		x
 			.trim()
@@ -367,65 +324,53 @@ export function tokenIconUrl(name) {
 	}?w=48&h=48`
 }
 
-/**
- * @param {string} symbol Asset symbol
- * @param {boolean} hd Return HD icon if true
- * @returns {string} URL to the asset icon
- */
-export function liquidationsIconUrl(symbol, hd = false) {
+export function liquidationsIconUrl(symbol: unknown, hd: boolean = false): string {
 	if (hd) {
-		return `${ICONS_CDN}/liquidations/${symbol.toLowerCase()}?w=64&h=64`
+		return `${ICONS_CDN}/liquidations/${String(symbol).toLowerCase()}?w=64&h=64`
 	} else {
-		return `${ICONS_CDN}/liquidations/${symbol.toLowerCase()}?w=48&h=48`
+		return `${ICONS_CDN}/liquidations/${String(symbol).toLowerCase()}?w=48&h=48`
 	}
 }
 
-export function peggedAssetIconUrl(name) {
-	return `${ICONS_CDN}/pegged/${encodeURIComponent(name.toLowerCase().split(' ').join('-'))}?w=48&h=48`
+export function peggedAssetIconUrl(name: unknown): string {
+	return `${ICONS_CDN}/pegged/${encodeURIComponent(String(name).toLowerCase().split(' ').join('-'))}?w=48&h=48`
 }
 
-export function formattedPercent(percent, noSign = false, fontWeight = 400, returnTextOnly) {
+export function renderPercentChange(
+	percent: unknown,
+	noSign?: boolean,
+	fontWeight?: number,
+	returnTextOnly?: boolean
+): string | null | React.JSX.Element {
 	if (!percent && percent !== 0) {
 		return null
 	}
 
-	let up = 'green'
-	let down = 'red'
-
-	if (noSign) {
-		up = down = ''
-	}
-
-	let color = ''
+	const parsedPercent = parseFloat(String(percent))
+	let isPositive = false
+	let isNegative = false
 	let finalValue = ''
 
-	percent = parseFloat(percent)
-
-	if (!percent || percent === 0) {
+	if (!parsedPercent || parsedPercent === 0) {
 		finalValue = '0%'
-	} else if (percent < 0.0001 && percent > 0) {
-		color = up
+	} else if (parsedPercent > 0 && parsedPercent < 0.0001) {
+		isPositive = true
 		finalValue = '< 0.0001%'
-	} else if (percent < 0 && percent > -0.0001) {
-		color = down
+	} else if (parsedPercent < 0 && parsedPercent > -0.0001) {
+		isNegative = true
 		finalValue = '< 0.0001%'
 	} else {
-		let fixedPercent = percent.toFixed(2)
+		const fixedPercent = parsedPercent.toFixed(2)
+		const fixedNum = Number(fixedPercent)
 
-		if (fixedPercent === '0.00') {
+		if (fixedNum === 0) {
 			finalValue = '0%'
-		} else if (fixedPercent > 0) {
+		} else if (fixedNum > 0) {
+			isPositive = true
 			const prefix = noSign ? '' : '+'
-
-			if (fixedPercent > 100) {
-				color = up
-				finalValue = `${prefix}${percent.toFixed(0).toLocaleString()}%`
-			} else {
-				color = up
-				finalValue = `${prefix}${fixedPercent}%`
-			}
+			finalValue = fixedNum > 100 ? `${prefix}${parsedPercent.toFixed(0)}%` : `${prefix}${fixedPercent}%`
 		} else {
-			color = down
+			isNegative = true
 			finalValue = `${fixedPercent}%`
 		}
 	}
@@ -434,53 +379,52 @@ export function formattedPercent(percent, noSign = false, fontWeight = 400, retu
 		return finalValue
 	}
 
-	if (fontWeight > 400) {
-		return (
-			<span
-				className={`${noSign ? '' : color === 'green' ? 'text-(--success)' : 'text-(--error)'}`}
-				style={{ fontWeight }}
-			>
-				{finalValue}
-			</span>
-		)
-	}
+	const colorClass = noSign ? '' : isPositive ? 'text-(--success)' : isNegative ? 'text-(--error)' : ''
+	const weight = fontWeight ?? 400
 
-	return (
-		<span className={`${noSign ? '' : color === 'green' ? 'text-(--success)' : 'text-(--error)'}`}>{finalValue}</span>
+	return weight > 400 ? (
+		<span className={colorClass} style={{ fontWeight: weight }}>
+			{finalValue}
+		</span>
+	) : (
+		<span className={colorClass}>{finalValue}</span>
 	)
 }
 
 /**
  * get standard percent change between two values
- * @param {*} valueNow
- * @param {*} value24HoursAgo
  */
-export const getPercentChange = (valueNow, value24HoursAgo) => {
+export const getPercentChange = (valueNow: unknown, value24HoursAgo: unknown): number | null => {
 	const adjustedPercentChange =
-		((parseFloat(valueNow) - parseFloat(value24HoursAgo)) / parseFloat(value24HoursAgo)) * 100
+		((parseFloat(String(valueNow)) - parseFloat(String(value24HoursAgo))) / parseFloat(String(value24HoursAgo))) * 100
 	if (Number.isNaN(adjustedPercentChange) || !isFinite(adjustedPercentChange)) {
 		return null
 	}
 	return adjustedPercentChange
 }
 
-export const capitalizeFirstLetter = (word) => (word ? word.charAt(0).toUpperCase() + word.slice(1) : '')
+export const capitalizeFirstLetter = (word: unknown): string =>
+	typeof word === 'string' ? word.charAt(0).toUpperCase() + word.slice(1) : ''
 
-export const slug = (name = '') => name?.toLowerCase().split(' ').join('-').split("'").join('')
+export const slug = (name: unknown = ''): string =>
+	String(name ?? '')
+		.toLowerCase()
+		.replace(/ /g, '-')
+		.replace(/'/g, '')
 
-export function getNDistinctColors(n, colorToAvoid) {
+export function getNDistinctColors(n: number, colorToAvoid?: string): string[] {
 	if (n < CHART_COLORS.length) {
 		return CHART_COLORS.slice(0, n)
 	}
 
-	const colors = []
+	const colors: (string | null)[] = []
 	const colorToAvoidHsl = colorToAvoid ? hexToHSL(colorToAvoid) : null
 
 	// Pre-calculate HSL values for all chart colors to avoid repeated conversions
 	const chartColorsHsl = CHART_COLORS.map(hexToHSL)
 
 	// Optimized color distance calculation with early exit
-	const getColorDistance = (hsl1, hsl2) => {
+	const getColorDistance = (hsl1: HSL, hsl2: HSL): number => {
 		const hueDiff = Math.abs(hsl1.h - hsl2.h)
 		const hueDistance = (hueDiff > 180 ? 360 - hueDiff : hueDiff) / 180
 		const satDistance = Math.abs(hsl1.s - hsl2.s) / 100
@@ -489,7 +433,7 @@ export function getNDistinctColors(n, colorToAvoid) {
 	}
 
 	// Optimized similarity check with pre-calculated HSL values
-	const isTooSimilarToAny = (colorHsl, existingColorsHsl) => {
+	const isTooSimilarToAny = (colorHsl: HSL, existingColorsHsl: HSL[]): boolean => {
 		if (colorToAvoidHsl && getColorDistance(colorHsl, colorToAvoidHsl) < 0.25) {
 			return true
 		}
@@ -503,7 +447,7 @@ export function getNDistinctColors(n, colorToAvoid) {
 
 	// Step 1: Use all colors from CHART_COLORS first
 	const chartColorsToUse = Math.min(n, CHART_COLORS.length)
-	const usedColorsHsl = []
+	const usedColorsHsl: HSL[] = []
 
 	for (let i = 0; i < chartColorsToUse; i++) {
 		const chartColor = CHART_COLORS[i]
@@ -519,10 +463,11 @@ export function getNDistinctColors(n, colorToAvoid) {
 
 	// Step 2: Generate remaining colors with enhanced uniqueness
 	const remainingCount = n - chartColorsToUse
-	const colorFamilies = ['blue', 'red', 'green', 'brown', 'yellow', 'purple', 'orange', 'pink']
+	const colorFamilies = ['blue', 'red', 'green', 'brown', 'yellow', 'purple', 'orange', 'pink'] as const
+	type ColorFamily = (typeof colorFamilies)[number]
 
 	// Enhanced hue variations - more combinations to prevent duplicates
-	const familyHues = {
+	const familyHues: Record<ColorFamily, number[]> = {
 		blue: [210, 240, 200, 220, 190, 230, 180, 250, 170, 260],
 		red: [0, 15, 345, 330, 10, 20, 340, 325, 5, 25],
 		green: [120, 140, 100, 160, 80, 150, 90, 170, 70, 180],
@@ -533,11 +478,11 @@ export function getNDistinctColors(n, colorToAvoid) {
 		pink: [320, 335, 305, 350, 290, 340, 300, 355, 295, 5]
 	}
 
-	let generatedColors = []
-	let usedColors = new Set([...colors.filter((c) => c), ...CHART_COLORS])
+	const generatedColors: string[] = []
+	const usedColors = new Set<string | null>([...colors.filter((c) => c), ...CHART_COLORS])
 
 	// Pre-calculate HSL values for all existing colors
-	const allExistingColorsHsl = [...usedColorsHsl, ...chartColorsHsl]
+	const allExistingColorsHsl: HSL[] = [...usedColorsHsl, ...chartColorsHsl]
 
 	// Generate colors with better distribution
 	for (let i = 0; i < remainingCount; i++) {
@@ -547,8 +492,8 @@ export function getNDistinctColors(n, colorToAvoid) {
 		const baseHue = familyHues[family][hueGroup]
 
 		let attempts = 0
-		let color
-		let colorHsl
+		let color: string = ''
+		let colorHsl: HSL
 
 		do {
 			// Enhanced variation system
@@ -607,9 +552,10 @@ export function getNDistinctColors(n, colorToAvoid) {
 	}
 
 	// Step 5: Simplified adjacent similarity check - only check first few groups for performance
-	const maxAdjacentChecks = Math.min(10, Math.floor(colors.length / 5))
+	const finalColors = colors as string[]
+	const maxAdjacentChecks = Math.min(10, Math.floor(finalColors.length / 5))
 	for (let i = 0; i < maxAdjacentChecks; i++) {
-		const group = colors.slice(i * 5, (i + 1) * 5)
+		const group = finalColors.slice(i * 5, (i + 1) * 5)
 		if (group.length < 5) break
 
 		let similarCount = 0
@@ -624,26 +570,31 @@ export function getNDistinctColors(n, colorToAvoid) {
 		if (similarCount >= 3) {
 			// Simple swap to break similarity
 			const swapIndex = i * 5 + 2
-			if (swapIndex < colors.length - 1) {
-				;[colors[swapIndex], colors[swapIndex + 1]] = [colors[swapIndex + 1], colors[swapIndex]]
+			if (swapIndex < finalColors.length - 1) {
+				;[finalColors[swapIndex], finalColors[swapIndex + 1]] = [finalColors[swapIndex + 1], finalColors[swapIndex]]
 			}
 		}
 	}
 
-	return colors
+	return finalColors
 }
 
-export const getDominancePercent = (value, total) => {
-	if (!value || !total) {
+export const getDominancePercent = (value: unknown, total: unknown): number => {
+	const numValue = Number(value)
+	const numTotal = Number(total)
+	if (!numValue || !numTotal) {
 		return 0
 	}
 
-	const ratio = total > 0 ? value / total : 0
+	const ratio = numTotal > 0 ? numValue / numTotal : 0
 
-	return Number((ratio * 100).toFixed(2))
+	return Math.round(ratio * 10000) / 100
 }
 
-export const getTokenDominance = (topToken, totalVolume) => {
+export const getTokenDominance = (
+	topToken: { tvl?: number | null; [key: string]: unknown },
+	totalVolume: number | null | undefined
+): string | number | null => {
 	const dominance = topToken.tvl && totalVolume && (topToken.tvl / totalVolume) * 100.0
 	if (!dominance) return null
 	if (dominance < 100) {
@@ -653,14 +604,17 @@ export const getTokenDominance = (topToken, totalVolume) => {
 
 /**
  * get tvl of specified day before last day using chart data
- * @param {*} chartData
- * @param {*} daysBefore
  */
-export const getPrevTvlFromChart = (chart, daysBefore) => {
+export const getPrevTvlFromChart = (chart: [number, number][], daysBefore: number): number | null => {
 	return chart[chart.length - 1 - daysBefore]?.[1] ?? null
 }
 
-export const getPrevVolumeFromChart = (chart, daysBefore, txs = false, inflows = false) => {
+export const getPrevVolumeFromChart = (
+	chart: VolumeChartEntry[] | null | undefined,
+	daysBefore: number,
+	txs: boolean = false,
+	inflows: boolean = false
+): number | null => {
 	if (!chart) return null
 	const prevChart = chart[chart.length - 1 - daysBefore]
 	if (!prevChart) return null
@@ -670,8 +624,8 @@ export const getPrevVolumeFromChart = (chart, daysBefore, txs = false, inflows =
 	return txs ? prevChart.txs : prevChart.volume
 }
 
-export function download(filename, text) {
-	let element = document.createElement('a')
+export function download(filename: string, text: string): void {
+	const element = document.createElement('a')
 	element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text))
 	element.setAttribute('download', filename)
 
@@ -683,7 +637,7 @@ export function download(filename, text) {
 	document.body.removeChild(element)
 }
 
-export function downloadDataURL(filename, dataURL) {
+export function downloadDataURL(filename: string, dataURL: string): void {
 	const element = document.createElement('a')
 	element.setAttribute('href', dataURL)
 	element.setAttribute('download', filename)
@@ -696,11 +650,11 @@ export function downloadDataURL(filename, dataURL) {
 	document.body.removeChild(element)
 }
 
-export function downloadCSV(filename, csvData, options = {}) {
+export function downloadCSV(filename: string, csvData: CsvData, options: CSVDownloadOptions = {}): void {
 	try {
 		const { mimeType = 'text/csv;charset=utf-8;', addTimestamp = false } = options
 
-		let csvContent
+		let csvContent: string
 
 		if (Array.isArray(csvData)) {
 			csvContent = csvData
@@ -755,7 +709,7 @@ export function downloadDatasetCSV({
 	filename,
 	filenameSuffix,
 	addTimestamp = true
-}) {
+}: DatasetCSVParams): void {
 	try {
 		if (!data || !Array.isArray(data) || data.length === 0) {
 			console.log('No data provided for CSV download')
@@ -774,7 +728,7 @@ export function downloadDatasetCSV({
 			})
 		)
 
-		const csvData = [headers, ...rows]
+		const csvRows: CsvCell[][] = [headers, ...rows]
 
 		let finalFilename = filename || 'dataset'
 		if (filenameSuffix) {
@@ -782,13 +736,13 @@ export function downloadDatasetCSV({
 		}
 		finalFilename += '.csv'
 
-		downloadCSV(finalFilename, csvData, { addTimestamp })
+		downloadCSV(finalFilename, csvRows, { addTimestamp })
 	} catch (error) {
 		console.log('Dataset CSV download error:', error)
 	}
 }
 
-export const formatPercentage = (value) => {
+export const formatPercentage = (value: number): string => {
 	let zeroes = 0
 	let stop = false
 
@@ -804,18 +758,7 @@ export const formatPercentage = (value) => {
 	return value.toLocaleString(undefined, { maximumFractionDigits: zeroes + 1 })
 }
 
-export function iterateAndRemoveUndefined(obj) {
-	if (typeof obj !== 'object') return obj
-	if (Array.isArray(obj)) return obj
-	for (const key in obj) {
-		const value = obj[key]
-		if (value === undefined) delete obj[key]
-		else iterateAndRemoveUndefined(value)
-	}
-	return obj
-}
-
-export function nearestUtcZeroHour(dateString) {
+export function nearestUtcZeroHour(dateString: string | number): number {
 	const date = new Date(dateString)
 
 	if (date.getHours() >= 12) {
@@ -829,19 +772,19 @@ export function nearestUtcZeroHour(dateString) {
 }
 
 // TODO params & return value should be in seconds
-export function firstDayOfMonth(dateString) {
+export function firstDayOfMonth(dateString: string | number): number {
 	const date = new Date(dateString)
 	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000)
 }
 
-export function firstDayOfQuarter(dateString) {
+export function firstDayOfQuarter(dateString: string | number): number {
 	const date = new Date(dateString)
 	const month = date.getUTCMonth()
 	const quarterStartMonth = Math.floor(month / 3) * 3
 	return Math.trunc(Date.UTC(date.getUTCFullYear(), quarterStartMonth, 1) / 1000)
 }
 // TODO params & return value should be in seconds
-export function lastDayOfWeek(dateString) {
+export function lastDayOfWeek(dateString: string | number): number {
 	const date = new Date(dateString)
 	const weekDay = date.getUTCDay()
 	// Calculate days to add to get to the end of the week (Sunday)
@@ -853,20 +796,18 @@ export function lastDayOfWeek(dateString) {
 	return Math.trunc(lastDayDate.getTime() / 1000)
 }
 
-function hexToHSL(hex) {
-	let r = parseInt(hex.slice(1, 3), 16) / 255
-	let g = parseInt(hex.slice(3, 5), 16) / 255
-	let b = parseInt(hex.slice(5, 7), 16) / 255
+function hexToHSL(hex: string): HSL {
+	const r = parseInt(hex.slice(1, 3), 16) / 255
+	const g = parseInt(hex.slice(3, 5), 16) / 255
+	const b = parseInt(hex.slice(5, 7), 16) / 255
 
 	const max = Math.max(r, g, b)
 	const min = Math.min(r, g, b)
-	let h,
-		s,
-		l = (max + min) / 2
+	let h = 0
+	let s = 0
+	const l = (max + min) / 2
 
-	if (max === min) {
-		h = s = 0
-	} else {
+	if (max !== min) {
 		const d = max - min
 		s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
 		switch (max) {
@@ -886,11 +827,11 @@ function hexToHSL(hex) {
 	return { h: h * 360, s: s * 100, l: l * 100 }
 }
 
-function hslToHex(h, s, l) {
+function hslToHex(h: number, s: number, l: number): string {
 	l /= 100
 	const a = (s * Math.min(l, 1 - l)) / 100
 
-	const f = (n) => {
+	const f = (n: number): string => {
 		const k = (n + h / 30) % 12
 		const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
 		return Math.round(255 * color)
@@ -901,29 +842,47 @@ function hslToHex(h, s, l) {
 	return `#${f(0)}${f(8)}${f(4)}`
 }
 
-export const chunks = (array, size) => {
-	const result = []
+export const chunks = <T,>(array: T[], size: number): T[][] => {
+	const result: T[][] = []
 	for (let i = 0; i < array.length; i += size) {
 		result.push(array.slice(i, i + size))
 	}
 	return result
 }
 
-export async function batchFetchHistoricalPrices(priceReqs, batchSize = 15) {
+interface BatchHistoricalPrice {
+	price: number
+	timestamp: number
+	[key: string]: unknown
+}
+
+interface BatchHistoricalCoin {
+	prices?: BatchHistoricalPrice[]
+	[key: string]: unknown
+}
+
+interface BatchHistoricalResponse {
+	coins: Record<string, BatchHistoricalCoin>
+}
+
+export async function batchFetchHistoricalPrices(
+	priceReqs: Record<string, number | number[]>,
+	batchSize: number = 15
+): Promise<{ results: Record<string, BatchHistoricalCoin> }> {
 	const entries = Object.entries(priceReqs)
 	const batches = chunks(entries, batchSize)
 
-	const results = {}
+	const results: Record<string, BatchHistoricalCoin> = {}
 
 	for (const batch of batches) {
 		const batchReqs = Object.fromEntries(batch)
-		const response = await fetchJson(
+		const response = await fetchJson<BatchHistoricalResponse>(
 			`https://coins.llama.fi/batchHistorical?coins=${JSON.stringify(batchReqs)}&searchWidth=6h`
 		)
 
 		for (const coinId of batch) {
-			if (response.coins[coinId]?.prices) {
-				response.coins[coinId].prices = response.coins[coinId].prices.map((price) => ({
+			if (response.coins[coinId[0]]?.prices) {
+				response.coins[coinId[0]].prices = response.coins[coinId[0]].prices!.map((price) => ({
 					...price
 				}))
 			}
@@ -935,7 +894,7 @@ export async function batchFetchHistoricalPrices(priceReqs, batchSize = 15) {
 	return { results }
 }
 
-export function roundToNearestHalfHour(timestamp) {
+export function roundToNearestHalfHour(timestamp: number): number {
 	const date = new Date(timestamp * 1000)
 	const minutes = date.getMinutes()
 	const roundedMinutes = minutes >= 30 ? 30 : 0
@@ -945,51 +904,38 @@ export function roundToNearestHalfHour(timestamp) {
 	return Math.floor(date.getTime() / 1000)
 }
 
-export function formatValue(value, formatType = 'auto') {
-	if (formatType === 'auto') {
-		if (typeof value === 'number') {
-			if (value !== 0 && Math.abs(value) < 1) return formattedPercent(value * 100, true, 400, true)
-			if (Math.abs(value) > 1000) return formattedNum(value, true)
+export function formatValue(value: unknown, formatType: string = 'auto'): string | null | React.JSX.Element {
+	switch (formatType) {
+		case 'usd':
+			return formattedNum(value, true)
+		case 'number':
 			return formattedNum(value)
+		case 'percent': {
+			const num = typeof value === 'number' ? value : Number(value)
+			if (!Number.isNaN(num) && num !== 0 && Math.abs(num) < 1) {
+				return renderPercentChange(num * 100, true, 400, true) as string
+			}
+			return renderPercentChange(value, true, 400, true) as string
 		}
-		if (typeof value === 'string') {
-			const num = Number(value)
+		case 'auto':
+		default: {
+			const num = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN
 			if (!Number.isNaN(num)) {
-				if (num !== 0 && Math.abs(num) < 1) return formattedPercent(num * 100, true, 400, true)
+				if (num !== 0 && Math.abs(num) < 1) return renderPercentChange(num * 100, true, 400, true) as string
 				if (Math.abs(num) > 1000) return formattedNum(num, true)
 				return formattedNum(num)
 			}
-			return value
+			return typeof value === 'string' ? value : String(value)
 		}
-		return String(value)
 	}
-	if (formatType === 'usd') return formattedNum(value, true)
-	if (formatType === 'percent') {
-		if (typeof value === 'number' && value !== 0 && Math.abs(value) < 1) {
-			return formattedPercent(value * 100, true, 400, true)
-		}
-		if (typeof value === 'string') {
-			const num = Number(value)
-			if (!Number.isNaN(num) && num !== 0 && Math.abs(num) < 1) {
-				return formattedPercent(num * 100, true, 400, true)
-			}
-		}
-		return formattedPercent(value, true, 400, true)
-	}
-	if (formatType === 'number') return formattedNum(value)
-	return String(value)
 }
 
-export const formatEthAddress = (address) => {
-	if (!address) return ''
+export const formatEthAddress = (address: unknown): string => {
+	if (!address || typeof address !== 'string') return ''
 	return `${address.slice(0, 6)}...${address.slice(-4)}`
 }
 
-/**
- * @param {string | string[] | null} value
- * @returns {number | null}
- */
-export function toNumberOrNullFromQueryParam(value) {
+export function toNumberOrNullFromQueryParam(value: string | string[] | null | undefined): number | null {
 	const finalValue = value ? (typeof value === 'string' ? value : (value?.[0] ?? null)) : null
 	if (finalValue == null) return null
 	return Number.isNaN(Number(finalValue)) ? null : Number(finalValue)

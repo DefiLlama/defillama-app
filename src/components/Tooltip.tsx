@@ -5,7 +5,7 @@ interface ITooltip extends Ariakit.TooltipOptions {
 	content: string | null | React.ReactNode
 	href?: string
 	shallow?: boolean
-	onClick?: (e: any) => any
+	onClick?: (e: React.MouseEvent) => void
 	children: React.ReactNode
 	render?: Ariakit.TooltipOptions['render']
 	color?: string

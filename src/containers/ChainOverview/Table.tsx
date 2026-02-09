@@ -28,7 +28,7 @@ import { useCustomColumns, useLocalStorageSettingsManager, type CustomColumnDef 
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, formattedPercent, slug, toNumberOrNullFromQueryParam } from '~/utils'
+import { chainIconUrl, formattedNum, renderPercentChange, slug, toNumberOrNullFromQueryParam } from '~/utils'
 import { formatValue } from '../../utils'
 import { CustomColumnModal } from './CustomColumnModal'
 import { replaceAliases, sampleProtocol } from './customColumnsUtils'
@@ -668,7 +668,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.tvlChange?.change1d, {
 				id: 'change_1d',
 				header: '1d Change',
-				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+				cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 24 hours'
@@ -678,7 +678,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.tvlChange?.change7d, {
 				id: 'change_7d',
 				header: '7d Change',
-				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+				cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 7 days'
@@ -688,7 +688,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.tvlChange?.change1m, {
 				id: 'change_1m',
 				header: '1m Change',
-				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+				cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 30 days'
@@ -1115,7 +1115,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.dexs?.change_7dover7d, {
 				id: 'dex_volume_change_7d',
 				header: 'Spot Change 7d',
-				cell: ({ getValue }) => <>{getValue() != 0 ? formattedPercent(getValue()) : null}</>,
+				cell: ({ getValue }) => <>{getValue() != 0 ? renderPercentChange(getValue()) : null}</>,
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['change7d']

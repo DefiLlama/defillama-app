@@ -106,13 +106,13 @@ const proposalsCompoundColumns: ColumnDef<IProposal>[] = [
 	{
 		header: 'Start',
 		accessorKey: 'start',
-		cell: (info) => toNiceDayMonthAndYear(info.getValue()),
+		cell: (info) => toNiceDayMonthAndYear(info.getValue() as number),
 		meta: { align: 'end' }
 	},
 	{
 		header: 'End',
 		accessorKey: 'end',
-		cell: (info) => toNiceDayMonthAndYear(info.getValue()),
+		cell: (info) => toNiceDayMonthAndYear(info.getValue() as number),
 		meta: { align: 'end' }
 	},
 	{
@@ -154,13 +154,13 @@ const proposalsSnapshotColumns: ColumnDef<IProposal>[] = [
 	{
 		header: 'Start',
 		accessorKey: 'start',
-		cell: (info) => toNiceDayMonthAndYear(info.getValue()),
+		cell: (info) => toNiceDayMonthAndYear(info.getValue() as number),
 		meta: { align: 'end' }
 	},
 	{
 		header: 'End',
 		accessorKey: 'end',
-		cell: (info) => toNiceDayMonthAndYear(info.getValue()),
+		cell: (info) => toNiceDayMonthAndYear(info.getValue() as number),
 		meta: { align: 'end' }
 	},
 	{
@@ -227,13 +227,13 @@ const proposalsTallyColumns: ColumnDef<IProposal>[] = [
 	{
 		header: 'Start',
 		accessorKey: 'start',
-		cell: (info) => toNiceDayMonthAndYear(info.getValue()),
+		cell: (info) => toNiceDayMonthAndYear(info.getValue() as number),
 		meta: { align: 'end' }
 	},
 	{
 		header: 'End',
 		accessorKey: 'end',
-		cell: (info) => toNiceDayMonthAndYear(info.getValue()),
+		cell: (info) => toNiceDayMonthAndYear(info.getValue() as number),
 		meta: { align: 'end' }
 	},
 	{

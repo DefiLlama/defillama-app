@@ -7,7 +7,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
+import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
 import { ITotalBorrowedByChainPageData } from './queries'
 
 const MultiSeriesChart2 = lazy(
@@ -168,7 +168,7 @@ const columns: ColumnDef<ITotalBorrowedByChainPageData['protocols'][0]>[] = [
 	{
 		header: 'Change 30d',
 		accessorKey: 'change_1m',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 110,
 		meta: {
 			align: 'end'

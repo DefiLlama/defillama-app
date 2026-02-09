@@ -16,7 +16,7 @@ import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { useBookmarks } from '~/hooks/useBookmarks'
 import { useEmailNotifications, type NotificationSettings } from '~/hooks/useEmailNotifications'
 import { useIsClient } from '~/hooks/useIsClient'
-import { formattedPercent, toNumberOrNullFromQueryParam } from '~/utils'
+import { renderPercentChange, toNumberOrNullFromQueryParam } from '~/utils'
 import { mapAPIMetricToUI, mapUIMetricToAPI } from '~/utils/notificationMetrics'
 import { ChainProtocolsTable } from '../ChainOverview/Table'
 import { IProtocol } from '../ChainOverview/types'
@@ -787,7 +787,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 														: 'text-(--text-secondary)'
 											}`}
 										>
-											{formattedPercent(mover.change, false, 400, true)}
+											{renderPercentChange(mover.change, false, 400, true)}
 										</span>
 									</div>
 								))}

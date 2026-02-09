@@ -3,7 +3,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
-import { formattedNum, formattedPercent } from '~/utils'
+import { formattedNum, renderPercentChange } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { NameYieldPool, PoolStrategyRoute } from './Name'
 import { YieldsTableWrapper } from './shared'
@@ -65,14 +65,14 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 							<QuestionHelper text={earlyExit} />
 							<Tooltip content={<TooltipContent />}>
 								<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
-									{formattedPercent(getValue(), true, 700, true)}
+									{renderPercentChange(getValue(), true, 700, true)}
 								</ColoredAPY>
 							</Tooltip>
 						</div>
 					) : (
 						<Tooltip content={<TooltipContent />}>
 							<ColoredAPY data-variant="positive" style={{ '--weight': 700, marginLeft: 'auto' }}>
-								{formattedPercent(getValue(), true, 700, true)}
+								{renderPercentChange(getValue(), true, 700, true)}
 							</ColoredAPY>
 						</Tooltip>
 					)}
@@ -90,7 +90,7 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		accessorKey: 'delta',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="borrow">{formattedPercent(info.getValue(), true, 400, true)}</ColoredAPY>
+			return <ColoredAPY data-variant="borrow">{renderPercentChange(info.getValue(), true, 400, true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {

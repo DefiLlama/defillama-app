@@ -6,7 +6,7 @@ import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
-import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
+import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
 import type { CustomColumnDefinition, UnifiedRowHeaderType } from '../../../types'
 import { getChainMetricsByName } from '../core/chainMetricsStore'
 import { ROW_HEADER_GROUPING_COLUMN_IDS } from '../core/grouping'
@@ -48,14 +48,14 @@ const renderPercent = (value: number | null | undefined) => {
 	if (value == null) {
 		return renderDash()
 	}
-	return <span className="pro-text2">{formattedPercent(value, true)}</span>
+	return <span className="pro-text2">{renderPercentChange(value, true)}</span>
 }
 
-const renderPercentChange = (value: number | null | undefined) => {
+const renderPercentChangeCell = (value: number | null | undefined) => {
 	if (value == null) {
 		return renderDash()
 	}
-	return <span className="pro-text2">{formattedPercent(value, false)}</span>
+	return <span className="pro-text2">{renderPercentChange(value, false)}</span>
 }
 
 const renderRatio = (value: number | null | undefined) => {
@@ -191,7 +191,7 @@ const createPercentChangeColumn = (key: MetricKey, header: string): ColumnDef<No
 	header,
 	accessorFn: metricAccessor(key),
 	meta: { align: 'end' },
-	cell: (ctx) => renderMetricCell(ctx, renderPercentChange),
+	cell: (ctx) => renderMetricCell(ctx, renderPercentChangeCell),
 	sortingFn: applyNumericColumnSorting,
 	aggregationFn: createMetricAggregationFn(key)
 })
@@ -389,7 +389,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 			header: '1d Change',
 			accessorFn: (row) => row.metrics.change1d ?? null,
 			meta: { align: 'end' },
-			cell: (ctx) => renderMetricCell(ctx, renderPercentChange),
+			cell: (ctx) => renderMetricCell(ctx, renderPercentChangeCell),
 			aggregationFn: createMetricAggregationFn('change1d' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
@@ -402,7 +402,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 			header: '7d Change',
 			accessorFn: (row) => row.metrics.change7d ?? null,
 			meta: { align: 'end' },
-			cell: (ctx) => renderMetricCell(ctx, renderPercentChange),
+			cell: (ctx) => renderMetricCell(ctx, renderPercentChangeCell),
 			aggregationFn: createMetricAggregationFn('change7d' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
@@ -415,7 +415,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 			header: '30d Change',
 			accessorFn: (row) => row.metrics.change1m ?? null,
 			meta: { align: 'end' },
-			cell: (ctx) => renderMetricCell(ctx, renderPercentChange),
+			cell: (ctx) => renderMetricCell(ctx, renderPercentChangeCell),
 			aggregationFn: createMetricAggregationFn('change1m' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined

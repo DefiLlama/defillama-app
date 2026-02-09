@@ -6,7 +6,7 @@ import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
-import { formattedNum, formattedPercent } from '~/utils'
+import { formattedNum, renderPercentChange } from '~/utils'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
 import type { IYieldsTableProps, IYieldTableRow } from './types'
@@ -92,7 +92,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 							}
 						/>
 					) : null}
-					{formattedPercent(info.getValue(), true, 700)}
+					{renderPercentChange(info.getValue(), true, 700)}
 				</span>
 			)
 		},
@@ -117,7 +117,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 					) : info.row.original.project === 'Sommelier' ? (
 						<QuestionHelper text={'Calculated over a 24h period! Enable 7d Base APY column for a larger period'} />
 					) : null}
-					{formattedPercent(info.getValue(), true)}
+					{renderPercentChange(info.getValue(), true)}
 				</span>
 			)
 		},
@@ -147,7 +147,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 						iconType="token"
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
-					{formattedPercent(getValue(), true)}
+					{renderPercentChange(getValue(), true)}
 				</div>
 			)
 		},
@@ -162,7 +162,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBase7d',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true)}</>
+			return <>{renderPercentChange(info.getValue(), true)}</>
 		},
 		size: 140,
 		meta: {
@@ -175,7 +175,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'il7d',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true)}</>
+			return <>{renderPercentChange(info.getValue(), true)}</>
 		},
 		size: 100,
 		meta: {
@@ -188,7 +188,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyMean30d',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true)}</>
+			return <>{renderPercentChange(info.getValue(), true)}</>
 		},
 		size: 125,
 		meta: {
@@ -250,7 +250,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBaseInception',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true)}</>
+			return <>{renderPercentChange(info.getValue(), true)}</>
 		},
 		size: 140,
 		meta: {
@@ -274,7 +274,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 							}
 						/>
 					) : null}
-					{formattedPercent(info.getValue(), true, 700)}
+					{renderPercentChange(info.getValue(), true, 700)}
 				</span>
 			)
 		},
@@ -290,7 +290,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBaseIncludingLsdApy',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true)}</>
+			return <>{renderPercentChange(info.getValue(), true)}</>
 		},
 		size: 140,
 		meta: {
@@ -304,7 +304,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBorrow',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true, 700)}</>
+			return <>{renderPercentChange(info.getValue(), true, 700)}</>
 		},
 		size: 140,
 		meta: {
@@ -317,7 +317,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBaseBorrow',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true)}</>
+			return <>{renderPercentChange(info.getValue(), true)}</>
 		},
 		size: 160,
 		meta: {
@@ -330,7 +330,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyRewardBorrow',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true)}</>
+			return <>{renderPercentChange(info.getValue(), true)}</>
 		},
 		size: 160,
 		meta: {

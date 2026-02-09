@@ -25,7 +25,7 @@ import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
+import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
 
 const optionsKey = 'chains-overview-table-columns'
 
@@ -316,7 +316,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: '1d TVL Change',
 		accessorKey: 'change_1d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end',
@@ -326,7 +326,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: '7d TVL Change',
 		accessorKey: 'change_7d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end',
@@ -336,7 +336,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: '1m TVL Change',
 		accessorKey: 'change_1m',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end',

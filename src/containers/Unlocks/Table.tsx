@@ -20,7 +20,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/Unlocks/UpcomingEvent'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
 
 const UnconstrainedSmolLineChart = lazy(() =>
 	import('~/containers/Unlocks/UnconstrainedSmolLineChart').then((m) => ({ default: m.UnconstrainedSmolLineChart }))
@@ -589,7 +589,7 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		},
 		cell: ({ getValue }) => {
 			return (
-				<div className="flex h-full items-center justify-end">{getValue() ? formattedPercent(getValue()) : ''}</div>
+				<div className="flex h-full items-center justify-end">{getValue() ? renderPercentChange(getValue()) : ''}</div>
 			)
 		},
 		meta: {
