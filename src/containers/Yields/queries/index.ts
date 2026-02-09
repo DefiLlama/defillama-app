@@ -154,22 +154,29 @@ export async function getYieldPageData() {
 		// Insert at position 2 (after ALL_BITCOINS, ALL_USD_STABLES)
 		data.tokens.splice(2, 0, ...categoryTokens)
 		data.tokenSymbolsList.splice(2, 0, ...categorySymbols)
+	} catch {
+		data['tokenCategories'] = {}
+	}
 
-		// Add hasMemeToken flag to pools for the "No Memecoins" attribute filter
-		const memeTokenData = data['tokenCategories']['meme-token']
+	// Add hasMemeToken flag to pools for the "No Memecoins" attribute filter
+	// Separate try/catch so errors here don't wipe out tokenCategories
+	try {
+		const memeTokenData = data['tokenCategories']?.['meme-token']
 		if (memeTokenData) {
 			const memeAddresses = new Set(memeTokenData.addresses || [])
 			const memeSymbols = new Set(memeTokenData.symbols || [])
 
 			data.pools = data.pools.map((p) => {
 				let hasMemeToken = false
+				if (!p.symbol) return { ...p, hasMemeToken }
+
 				const chain = priceChainMapping[p.chain?.toLowerCase()] ?? p.chain?.toLowerCase()
 				const underlyingTokens = p.underlyingTokens ?? []
 
 				// Check by address first
 				if (underlyingTokens.length > 0 && memeAddresses.size > 0) {
-					hasMemeToken = underlyingTokens.some((addr: string) =>
-						memeAddresses.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
+					hasMemeToken = underlyingTokens.some(
+						(addr: string) => addr && memeAddresses.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
 					)
 				}
 
@@ -183,7 +190,7 @@ export async function getYieldPageData() {
 			})
 		}
 	} catch {
-		data['tokenCategories'] = {}
+		// meme token detection failed, pools keep hasMemeToken as undefined
 	}
 
 	return {
