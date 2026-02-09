@@ -439,7 +439,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					) : null}
 					{chartView === 'pie' ? (
 						<div className="flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-							<div className="flex items-center justify-end gap-2 p-3 pb-0">
+							<div className="flex flex-wrap items-center justify-end gap-2 p-3 pb-0">
 								{chartTypeSwitch}
 								{chartViewSwitch}
 								{isChainBreakdownEnabled ? (
