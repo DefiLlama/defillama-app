@@ -96,7 +96,10 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 			}
 		}
 
-		return parsedMetrics.map((metric: string) => routeToPageMap.get(metric)).filter((page) => page !== undefined)
+		return parsedMetrics.flatMap((metric: string) => {
+			const page = routeToPageMap.get(metric)
+			return page ? [page] : []
+		})
 	}, [pinnedMetrics])
 
 	return (

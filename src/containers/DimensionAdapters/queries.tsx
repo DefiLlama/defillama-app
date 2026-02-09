@@ -456,8 +456,14 @@ function aggregateProtocolVersions(protocolVersions: any[]) {
 		totalAllTime: protocolVersions.reduce((sum, p) => sum + (p.totalAllTime ?? 0), 0)
 	}
 
-	const mergedBreakdown24h = mergeBreakdowns(protocolVersions.map((p) => p.breakdown24h).filter(Boolean))
-	const mergedBreakdown30d = mergeBreakdowns(protocolVersions.map((p) => p.breakdown30d).filter(Boolean))
+	const breakdowns24h: any[] = []
+	const breakdowns30d: any[] = []
+	for (const p of protocolVersions) {
+		if (p.breakdown24h) breakdowns24h.push(p.breakdown24h)
+		if (p.breakdown30d) breakdowns30d.push(p.breakdown30d)
+	}
+	const mergedBreakdown24h = mergeBreakdowns(breakdowns24h)
+	const mergedBreakdown30d = mergeBreakdowns(breakdowns30d)
 
 	const parentProtocol = protocolVersions[0]
 	return {
@@ -857,9 +863,11 @@ export const getAdapterByChainPageData = async ({
 			? parentProtocols[protocol].reduce((acc, p) => acc + (p.openInterest ?? 0), 0)
 			: null
 
-		const methodology: Array<string> = Array.from(
-			new Set(parentProtocols[protocol].filter((p) => p.methodology).map((p) => p.methodology))
-		)
+		const methodologySet = new Set<string>()
+		for (const p of parentProtocols[protocol]) {
+			if (p.methodology) methodologySet.add(p.methodology)
+		}
+		const methodology: Array<string> = Array.from(methodologySet)
 
 		const pf = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
 		const ps = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null

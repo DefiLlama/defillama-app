@@ -13,7 +13,10 @@ import type { ChartConfiguration } from '../types'
 
 const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Array<[number, string]> => {
 	if (!hallmarks?.length) return []
-	const labels = hallmarks.map((h) => h[1]).filter(Boolean)
+	const labels: string[] = []
+	for (const h of hallmarks) {
+		if (h[1]) labels.push(h[1])
+	}
 	if (labels.length > 0 && labels.every((l) => l === labels[0])) {
 		return hallmarks.map((h) => [h[0], ''])
 	}

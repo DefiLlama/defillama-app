@@ -74,9 +74,11 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			}
 		})
 
-		let chartData = Object.entries(chart)
+		// Sort by timestamp key: object iteration order is not guaranteed.
+		let chartData = Object.entries(chart).sort(([a], [b]) => Number(a) - Number(b))
+		const chainChartEntries = Object.entries(chainChart).sort(([a], [b]) => Number(a) - Number(b))
 		const chainChartData = chain
-			? Object.entries(chainChart)
+			? chainChartEntries
 					.map(([date, data]) => {
 						const chainName = chain
 						const chainData = Object.entries(data[oracle] || {})
@@ -112,10 +114,9 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			oraclesProtocols[orc] = count
 		}
 
-		const latestOracleTvlByChain = Object.entries(chainChart)[Object.entries(chainChart).length - 1][1] as Record<
-			string,
-			Record<string, number>
-		>
+		const latestOracleTvlByChain = (
+			chainChartEntries.length ? chainChartEntries[chainChartEntries.length - 1]![1] : {}
+		) as Record<string, Record<string, number>>
 
 		const latestTvlByChain: Record<string, number> = {}
 		for (const oracle in latestOracleTvlByChain) {
@@ -207,9 +208,11 @@ export async function getOraclePageDataByChain(chain: string) {
 			}
 		})
 
-		let chartData = Object.entries(chart)
+		// Sort by timestamp key: object iteration order is not guaranteed.
+		let chartData = Object.entries(chart).sort(([a], [b]) => Number(a) - Number(b))
+		const chainChartEntries = Object.entries(chainChart).sort(([a], [b]) => Number(a) - Number(b))
 		const chainChartData = chain
-			? Object.entries(chainChart)
+			? chainChartEntries
 					.map(([date, data]) => {
 						const chainName = chain
 						const chainData = Object.entries(data)
@@ -238,10 +241,9 @@ export async function getOraclePageDataByChain(chain: string) {
 			oraclesProtocols[orc] = protocols.filter((p) => p.oracles?.includes(orc) && p.chains.includes(chain)).length
 		}
 
-		const latestOracleTvlByChain = Object.entries(chainChart)[Object.entries(chainChart).length - 1][1] as Record<
-			string,
-			Record<string, number>
-		>
+		const latestOracleTvlByChain = (
+			chainChartEntries.length ? chainChartEntries[chainChartEntries.length - 1]![1] : {}
+		) as Record<string, Record<string, number>>
 
 		const latestTvlByChain: Record<string, number> = {}
 		for (const oracle in latestOracleTvlByChain) {

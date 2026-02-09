@@ -154,7 +154,7 @@ export const ChainProtocolsTable = ({
 	const columnVisibility = useMemo(() => JSON.parse(columnsInStorage), [columnsInStorage])
 
 	const selectedColumns = useMemo(() => {
-		return mergedColumns.filter((c) => !!columnVisibility[c.key]).map((c) => c.key)
+		return mergedColumns.flatMap((c) => (columnVisibility[c.key] ? [c.key] : []))
 	}, [columnVisibility, mergedColumns])
 
 	const [sorting, setSorting] = useState<SortingState>([

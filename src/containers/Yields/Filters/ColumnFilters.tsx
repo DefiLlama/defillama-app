@@ -56,7 +56,7 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 	const { options, selectedOptions } = useMemo(() => {
 		const options = optionalFilters.filter((op) => props[op.key])
 
-		const selectedOptions = options.filter((option) => router.query[option.key] === 'true').map((op) => op.key)
+		const selectedOptions = options.flatMap((option) => (router.query[option.key] === 'true' ? [option.key] : []))
 
 		return { options, selectedOptions }
 	}, [router.query, props])

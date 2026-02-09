@@ -113,23 +113,27 @@ export const buildStablecoinChartData = ({
 		}
 	}
 
-	const peggedAreaChartData = Object.entries(unformattedAreaData).map(([date, chart]) => {
-		if (typeof chart === 'object') {
+	const peggedAreaChartData = Object.entries(unformattedAreaData)
+		.sort(([a], [b]) => Number(a) - Number(b))
+		.map(([date, chart]) => {
+			if (typeof chart === 'object') {
+				return {
+					date: date,
+					...chart
+				}
+			}
+		})
+
+	const peggedAreaTotalData = Object.entries(unformattedTotalData)
+		.sort(([a], [b]) => Number(a) - Number(b))
+		.map(([date, mcap]) => {
 			return {
 				date: date,
-				...chart
+				[totalChartTooltipLabel]: mcap
 			}
-		}
-	})
+		})
 
-	const peggedAreaTotalData = Object.entries(unformattedTotalData).map(([date, mcap]) => {
-		return {
-			date: date,
-			[totalChartTooltipLabel]: mcap
-		}
-	})
-
-	const stackedDataset = Object.entries(stackedDatasetObject)
+	const stackedDataset = Object.entries(stackedDatasetObject).sort(([a], [b]) => Number(a) - Number(b))
 
 	const secondsInDay = 3600 * 24
 	let zeroTokenInflows = 0
@@ -181,6 +185,10 @@ export const buildStablecoinChartData = ({
 
 	tokenInflows = zeroTokenInflows === tokenInflows.length ? [{ USDT: 0, date: '1652486400' }] : tokenInflows
 	usdInflows = zeroUsdInfows === usdInflows.length ? [['1652486400', 0]] : usdInflows
+
+	// These series are built from object keys; keep them chronological for charts and "latest" lookups.
+	tokenInflows.sort((a, b) => Number(a.date) - Number(b.date))
+	usdInflows.sort((a, b) => Number(a[0]) - Number(b[0]))
 
 	return { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows }
 }

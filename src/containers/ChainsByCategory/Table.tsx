@@ -102,7 +102,7 @@ export function ChainsByCategoryTable({
 	}
 
 	const selectedAggregateTypes = React.useMemo(() => {
-		return CHAINS_CATEGORY_GROUP_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
+		return CHAINS_CATEGORY_GROUP_SETTINGS.flatMap((key) => (groupTvls[key.key] ? [key.key] : []))
 	}, [groupTvls])
 
 	const prepareCsv = () => {

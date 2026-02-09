@@ -147,15 +147,19 @@ export const getNFTMarketplacesData = async () => {
 
 	return {
 		data,
-		volume: Object.entries(volumeData).map(([date, values]: [string, { [exchangeName: string]: number }]) => ({
-			date,
-			...values
-		})),
+		volume: Object.entries(volumeData)
+			.sort(([a], [b]) => Number(a) - Number(b))
+			.map(([date, values]: [string, { [exchangeName: string]: number }]) => ({
+				date,
+				...values
+			})),
 		dominance,
-		trades: Object.entries(tradeData).map(([date, values]: [string, { [exchangeName: string]: number }]) => ({
-			date,
-			...values
-		})),
+		trades: Object.entries(tradeData)
+			.sort(([a], [b]) => Number(a) - Number(b))
+			.map(([date, values]: [string, { [exchangeName: string]: number }]) => ({
+				date,
+				...values
+			})),
 		dominanceTrade,
 		marketplaces,
 		stackColors: colors,

@@ -535,7 +535,7 @@ export function ProtocolsByChainTable({
 
 	const selectedOptions = React.useMemo(() => {
 		const storage = JSON.parse(columnsInStorage)
-		return protocolsByChainTableColumns.filter((c) => !!storage[c.key]).map((c) => c.key)
+		return protocolsByChainTableColumns.flatMap((c) => (storage[c.key] ? [c.key] : []))
 	}, [columnsInStorage])
 
 	return (

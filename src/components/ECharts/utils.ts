@@ -47,7 +47,9 @@ export const formatBarChart = ({
 		for (const date in store) {
 			finalChart.push([+date * 1e3, store[date]])
 		}
-		return finalChart
+		// `for...in` over object keys is not guaranteed to be chronological.
+		// Many ECharts features (eg. `dataZoom`) and "latest" lookups assume sorted x-values.
+		return finalChart.sort((a, b) => a[0] - b[0])
 	}
 	if (denominationPriceHistory) {
 		return data.map(([date, value]) => {
@@ -94,7 +96,8 @@ export const formatLineChart = ({
 		for (const date in store) {
 			finalChart.push([+date * 1e3, store[date]])
 		}
-		return finalChart
+		// `for...in` over object keys is not guaranteed to be chronological.
+		return finalChart.sort((a, b) => a[0] - b[0])
 	}
 	if (denominationPriceHistory) {
 		return data.map(([date, value]) => {

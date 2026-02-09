@@ -1,14 +1,10 @@
-import { useEffect, useState } from 'react'
 import { BasicLink } from '~/components/Link'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useIsClient } from '~/hooks/useIsClient'
 
 export const PremiumHeader = () => {
 	const { hasActiveSubscription, isAuthenticated, loaders } = useAuthContext()
-	const [hasMounted, setHasMounted] = useState(false)
-
-	useEffect(() => {
-		setHasMounted(true)
-	}, [])
+	const hasMounted = useIsClient()
 
 	// Only show badge after hydration AND when we're sure user doesn't have subscription
 	const showFreeTrial = hasMounted && !hasActiveSubscription && (!isAuthenticated || !loaders.userLoading)

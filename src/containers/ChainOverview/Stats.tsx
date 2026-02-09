@@ -155,7 +155,7 @@ export function Stats(props: IStatsProps) {
 			}
 
 			try {
-				const enabledParams = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key]).map((key) => `${key}=true`)
+				const enabledParams = TVL_SETTINGS_KEYS.flatMap((key) => (tvlSettings[key] ? [`${key}=true`] : []))
 				const url = `https://api.llama.fi/simpleChainDataset/${
 					chainsNamesMap[props.metadata.name] || props.metadata.name
 				}?${enabledParams.join('&')}`.replaceAll(' ', '%20')

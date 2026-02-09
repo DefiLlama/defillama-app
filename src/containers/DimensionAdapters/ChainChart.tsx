@@ -111,6 +111,8 @@ export const AdapterByChainChart = ({
 			for (const date in data) {
 				sourceData.push([+date, data[date]])
 			}
+			// `for...in` over object keys is not guaranteed to be chronological.
+			sourceData.sort((a, b) => a[0] - b[0])
 		} else {
 			sourceData = chartData
 		}

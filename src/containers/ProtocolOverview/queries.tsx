@@ -1025,7 +1025,9 @@ export const getProtocolOverviewPageData = async ({
 		chartColors,
 		tvlChartData,
 		extraTvlCharts,
-		hallmarks: Object.entries(hallmarks).map(([date, event]) => [+date * 1e3, event as string]),
+		hallmarks: Object.entries(hallmarks)
+			.sort(([a], [b]) => Number(a) - Number(b))
+			.map(([date, event]) => [+date * 1e3, event as string]),
 		rangeHallmarks: rangeHallmarks.map(([date, event]) => [[+date[0] * 1e3, +date[1] * 1e3], event as string]),
 		geckoId: protocolData.gecko_id ?? null,
 		governanceApis: governanceApis(protocolData.governanceID) ?? null,

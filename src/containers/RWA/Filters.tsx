@@ -127,7 +127,7 @@ function Filters({
 
 	if (!enabled) return null
 
-	const defaultSelectedTypes = typeOptions.map((option) => option.key).filter((type) => type !== 'Wrapper')
+	const defaultSelectedTypes = typeOptions.flatMap((option) => (option.key !== 'Wrapper' ? [option.key] : []))
 
 	// Determine active filters purely from URL query.
 	// Selected arrays often default to "all values" when there is no query set.

@@ -157,7 +157,7 @@ export default function MultiSeriesChart({
 
 		const { graphic, tooltip, xAxis, yAxis, dataZoom, legend, grid } = defaultChartSettings
 
-		const metricTypes = new Set(processedSeries.map((s: any) => s.metricType).filter(Boolean))
+		const metricTypes = new Set(processedSeries.flatMap((s: any) => (s.metricType ? [s.metricType] : [])))
 		const uniqueMetricTypes = Array.from(metricTypes)
 
 		const hasExplicitAxisIndex = processedSeries.some((s: any) => s.yAxisIndex != null && s.yAxisIndex > 0)

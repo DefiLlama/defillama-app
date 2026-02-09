@@ -50,7 +50,12 @@ function governanceIdToApiUrl(gid: string) {
 }
 
 function governanceIdsToApis(governanceIDs: Array<string>) {
-	return (governanceIDs ?? []).map(governanceIdToApiUrl).filter((x): x is string => !!x)
+	const apis: string[] = []
+	for (const id of governanceIDs ?? []) {
+		const url = governanceIdToApiUrl(id)
+		if (url) apis.push(url)
+	}
+	return apis
 }
 
 async function fetchGovernanceDataForApis(governanceApis: Array<string>) {

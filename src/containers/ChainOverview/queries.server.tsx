@@ -529,15 +529,17 @@ export async function getChainOverviewData({
 				},
 				{} as Record<string, Record<string, number>>
 			) ?? {}
-		const finalUnlocksChart = Object.entries(unlocksChart).map(([date, tokens]) => {
-			const topTokens = Object.entries(tokens).sort((a, b) => b[1] - a[1]) as Array<[string, number]>
-			const others = topTokens.slice(10).reduce((acc, curr) => (acc += curr[1]), 0)
-			if (others) {
-				uniqueUnlockTokens.add('Others')
-			}
-			const finalTokens = Object.fromEntries(topTokens.slice(0, 10).concat(others ? [['Others', others]] : []))
-			return [+date, finalTokens]
-		}) as Array<[number, Record<string, number>]>
+		const finalUnlocksChart = Object.entries(unlocksChart)
+			.sort(([a], [b]) => Number(a) - Number(b))
+			.map(([date, tokens]) => {
+				const topTokens = Object.entries(tokens).sort((a, b) => b[1] - a[1]) as Array<[string, number]>
+				const others = topTokens.slice(10).reduce((acc, curr) => (acc += curr[1]), 0)
+				if (others) {
+					uniqueUnlockTokens.add('Others')
+				}
+				const finalTokens = Object.fromEntries(topTokens.slice(0, 10).concat(others ? [['Others', others]] : []))
+				return [+date, finalTokens]
+			}) as Array<[number, Record<string, number>]>
 
 		const chainRevProtocols = new Set(REV_PROTOCOLS[slug(currentChainMetadata.name)] ?? [])
 
@@ -1175,9 +1177,11 @@ export const getProtocolsByChain = async ({
 						}
 					: null
 
-			const chilsProtocolCategories = Array.from(
-				new Set(parentStore[parentProtocol.id].filter((p) => p.category).map((p) => p.category))
-			)
+			const categorySet = new Set<string>()
+			for (const p of parentStore[parentProtocol.id]) {
+				if (p.category) categorySet.add(p.category)
+			}
+			const chilsProtocolCategories = Array.from(categorySet)
 
 			protocolsStore[parentProtocol.id] = {
 				name: protocolMetadata[parentProtocol.id].displayName,

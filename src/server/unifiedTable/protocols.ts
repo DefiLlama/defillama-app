@@ -145,9 +145,10 @@ export async function fetchProtocolsTable(options: ProtocolQueryOptions): Promis
 		fetchSubProtocolRows(chainFilters, totals)
 	])
 
-	const parentProtocolIds = new Set(
-		childRows.map((row) => row.parentProtocolId).filter((id): id is string => Boolean(id))
-	)
+	const parentProtocolIds = new Set<string>()
+	for (const row of childRows) {
+		if (row.parentProtocolId) parentProtocolIds.add(row.parentProtocolId)
+	}
 	const subProtocolIds = new Set(childRows.map((row) => row.protocolId))
 	const filteredParents = parentRows.filter(
 		(row) => !parentProtocolIds.has(row.protocolId) && !subProtocolIds.has(row.protocolId)
@@ -569,9 +570,10 @@ const fetchProtocolChainRows = async (
 		fetchSubProtocolsByChain(chainFilters, totals)
 	])
 
-	const parentProtocolIds = new Set(
-		subProtocolChainRows.map((row) => row.parentProtocolId).filter((id): id is string => Boolean(id))
-	)
+	const parentProtocolIds = new Set<string>()
+	for (const row of subProtocolChainRows) {
+		if (row.parentProtocolId) parentProtocolIds.add(row.parentProtocolId)
+	}
 	const subProtocolIds = new Set(subProtocolChainRows.map((row) => row.protocolId))
 	const filteredParents = parentChainRows.filter(
 		(row) => !parentProtocolIds.has(row.protocolId) && !subProtocolIds.has(row.protocolId)
