@@ -188,7 +188,7 @@ export const AdapterByChainChart = ({
 									content={dataInterval}
 									render={<button />}
 									className="shrink-0 px-2 py-1 text-sm font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-									onClick={() => setChartInterval(dataInterval)}
+									onClick={() => React.startTransition(() => setChartInterval(dataInterval))}
 									data-active={dataInterval === chartInterval}
 									key={`${dataInterval}-${chartName}-${chain}`}
 								>
@@ -233,7 +233,7 @@ export const ChainsByAdapterChart = ({
 					{INTERVALS_LIST.map((dataInterval) => (
 						<a
 							key={`${dataInterval}-${type}`}
-							onClick={() => setChartInterval(dataInterval)}
+							onClick={() => React.startTransition(() => setChartInterval(dataInterval))}
 							data-active={dataInterval === chartInterval}
 							className="shrink-0 cursor-pointer px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						>
@@ -247,7 +247,7 @@ export const ChainsByAdapterChart = ({
 							className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 							data-active={dataType === chartType}
 							key={`${dataType}-${type}`}
-							onClick={() => setChartType(dataType)}
+							onClick={() => React.startTransition(() => setChartType(dataType))}
 						>
 							{dataType}
 						</button>

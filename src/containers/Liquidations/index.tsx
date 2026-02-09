@@ -52,7 +52,7 @@ export const LiquidationsContainer = (props: {
 	}, [toggleLiqsSettings, LIQS_USING_USD])
 
 	const handleToggleCumulative = React.useCallback(() => {
-		toggleLiqsSettings(LIQS_CUMULATIVE)
+		React.startTransition(() => toggleLiqsSettings(LIQS_CUMULATIVE))
 	}, [toggleLiqsSettings, LIQS_CUMULATIVE])
 
 	const onChartReady = React.useCallback((instance: ECharts | null) => {

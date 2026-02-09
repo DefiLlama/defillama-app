@@ -134,7 +134,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 			| 'week'
 			| 'month'
 			| 'year'
-		setCurrentDate((prev) => prev.add(duration * direction, unit))
+		React.startTransition(() => setCurrentDate((prev) => prev.add(duration * direction, unit)))
 	}
 
 	const { chartInstance: exportChartInstance, handleChartReady: onChartReady } = useGetChartInstance()
@@ -169,7 +169,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 						</button>
 					</div>
 					<button
-						onClick={() => setCurrentDate(dayjs())}
+						onClick={() => React.startTransition(() => setCurrentDate(dayjs()))}
 						className="shrink-0 rounded-md border border-(--form-control-border) px-2.5 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					>
 						Reset
@@ -182,7 +182,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 					className="ml-auto"
 				/>
 				<button
-					onClick={() => setShowOnlyWatchlist((prev) => !prev)}
+					onClick={() => React.startTransition(() => setShowOnlyWatchlist((prev) => !prev))}
 					className="flex items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white px-3 py-1.5 text-xs text-black dark:bg-black dark:text-white"
 				>
 					<Icon
@@ -194,7 +194,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 					{showOnlyWatchlist ? 'Show All' : 'Show Watchlist'}
 				</button>
 				<button
-					onClick={() => setShowOnlyInsider((prev) => !prev)}
+					onClick={() => React.startTransition(() => setShowOnlyInsider((prev) => !prev))}
 					className="flex items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white px-3 py-1.5 text-xs text-black dark:bg-black dark:text-white"
 				>
 					<Icon name="key" height={16} width={16} style={{ fill: showOnlyInsider ? 'var(--text-primary)' : 'none' }} />

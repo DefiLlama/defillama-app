@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { lazy, memo, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, memo, startTransition, Suspense, useEffect, useMemo, useState } from 'react'
 import { useGeckoId, usePriceChart } from '~/api/client'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
@@ -847,7 +847,9 @@ const ChartContainer = ({
 								<Switch
 									label="Group Allocation"
 									value="group-allocation"
-									onChange={() => setAllocationMode((prev) => (prev === 'current' ? 'standard' : 'current'))}
+									onChange={() =>
+										startTransition(() => setAllocationMode((prev) => (prev === 'current' ? 'standard' : 'current')))
+									}
 									help="Group token allocations into standardized categories."
 									checked={allocationMode === 'standard'}
 								/>
@@ -855,14 +857,14 @@ const ChartContainer = ({
 							<Switch
 								label="Bar Chart"
 								value="bar-chart"
-								onChange={() => setChartType((prev) => (prev === 'bar' ? 'line' : 'bar'))}
+								onChange={() => startTransition(() => setChartType((prev) => (prev === 'bar' ? 'line' : 'bar')))}
 								checked={chartType === 'bar'}
 							/>
 							{resolvedGeckoId ? (
 								<Switch
 									label="Price & MCap"
 									value="show=price-and-mcap"
-									onChange={() => setIsPriceAndMcapRequested((prev) => !prev)}
+									onChange={() => startTransition(() => setIsPriceAndMcapRequested((prev) => !prev))}
 									checked={isPriceAndMcapRequested}
 									isLoading={isPriceAndMcapLoading}
 								/>

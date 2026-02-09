@@ -239,15 +239,12 @@ export default function Protocols(props) {
 		[data?.chainTvls]
 	)
 
-	const toggleIncludeOwnTokens = React.useCallback(
-		(event: React.ChangeEvent<HTMLInputElement>) => {
-			const nextIncludeOwnTokens = event.currentTarget.checked
-			const { includeOwnTokens: _inc, ...restQuery } = router.query
-			const nextQuery = nextIncludeOwnTokens ? restQuery : { ...restQuery, includeOwnTokens: 'false' }
-			Router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-		},
-		[router]
-	)
+	const toggleIncludeOwnTokens = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+		const nextIncludeOwnTokens = event.currentTarget.checked
+		const { includeOwnTokens: _inc, ...restQuery } = Router.query
+		const nextQuery = nextIncludeOwnTokens ? restQuery : { ...restQuery, includeOwnTokens: 'false' }
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [])
 
 	const { tokenBreakdown, tokenBreakdownUSD, tokenBreakdownPieChart, tokensUnique, historicalTreasury } =
 		React.useMemo(() => {

@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-table'
 import { ColumnDef } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { useMemo, useState, useSyncExternalStore } from 'react'
+import { startTransition, useMemo, useState, useSyncExternalStore } from 'react'
 import { lazy, Suspense } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
@@ -325,7 +325,7 @@ export const UnlocksTable = ({
 				<h1 className="mr-auto text-lg font-semibold">Token Unlocks</h1>
 
 				<button
-					onClick={() => setShowOnlyWatchlist(!showOnlyWatchlist)}
+					onClick={() => startTransition(() => setShowOnlyWatchlist(!showOnlyWatchlist))}
 					className="flex items-center justify-center gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				>
 					<Icon
@@ -389,7 +389,7 @@ export const UnlocksTable = ({
 						name="search"
 						value={projectName}
 						onChange={(e) => {
-							setProjectName(e.target.value)
+							startTransition(() => setProjectName(e.target.value))
 						}}
 						placeholder="Search projects..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"

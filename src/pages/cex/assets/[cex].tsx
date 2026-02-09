@@ -386,9 +386,9 @@ export default function Protocols(props: CexAssetsPageProps) {
 
 	const toggleIncludeOwnTokens = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const nextIncludeOwnTokens = event.currentTarget.checked
-		const { includeOwnTokens: _inc, ...restQuery } = router.query
+		const { includeOwnTokens: _inc, ...restQuery } = Router.query
 		const nextQuery = nextIncludeOwnTokens ? restQuery : { ...restQuery, includeOwnTokens: 'false' }
-		Router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}
 
 	const { chainsSplit, chainsUnique } = React.useMemo(() => {

@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import { startTransition } from 'react'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { NestedMenu } from '~/components/NestedMenu'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
@@ -322,14 +323,20 @@ function Filters({
 					label="Stablecoins"
 					value="includeStablecoins"
 					checked={includeStablecoins}
-					onChange={() => setIncludeStablecoins(!includeStablecoins)}
+					onChange={() => {
+						const next = !includeStablecoins
+						startTransition(() => setIncludeStablecoins(next))
+					}}
 					className={nestedMenu ? 'text-base' : undefined}
 				/>
 				<Switch
 					label="Governance Tokens"
 					value="includeGovernance"
 					checked={includeGovernance}
-					onChange={() => setIncludeGovernance(!includeGovernance)}
+					onChange={() => {
+						const next = !includeGovernance
+						startTransition(() => setIncludeGovernance(next))
+					}}
 					className={nestedMenu ? 'text-base' : undefined}
 				/>
 				<button
