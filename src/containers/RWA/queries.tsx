@@ -39,6 +39,7 @@ interface IFetchedRWAProject {
 	onChainMcap?: Record<string, string> | null
 	activeMcap?: Record<string, string> | null
 	price?: number | null
+	activeMcapData?: boolean
 }
 
 type IRWAChartData = Array<{ timestamp: number; onChainMcap: number; activeMcap: number; defiActiveTvl: number }>
@@ -690,23 +691,22 @@ export interface IRWAAssetData extends IRWAProject {
 	accessModelDescription: string | null
 	assetClassDescriptions: Record<string, string>
 	chartDataset: {
-		source: Array<{
-			timestamp: number
-			'DeFi Active TVL': number | null
-			'Active Mcap': number | null
-			'Onchain Mcap': number | null
-		}>
-		dimensions: ['timestamp', 'DeFi Active TVL', 'Active Mcap', 'Onchain Mcap']
+		source: RWAAssetChartRow[]
+		// Subset of allowed dimensions (some assets may not have all series).
+		dimensions: RWAAssetChartDimension[]
 	} | null
 }
 
 const RWA_ASSET_CHART_DIMENSIONS = ['timestamp', 'DeFi Active TVL', 'Active Mcap', 'Onchain Mcap'] as const
+type RWAAssetChartDimension = (typeof RWA_ASSET_CHART_DIMENSIONS)[number]
+type RWAAssetChartSeriesDimension = Exclude<RWAAssetChartDimension, 'timestamp'>
+type RWAAssetChartRow = { timestamp: number } & Partial<Record<RWAAssetChartSeriesDimension, number | null>>
 
 export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {
 	try {
 		const [data, chartDataset]: [IFetchedRWAProject, IRWAAssetData['chartDataset']] = await Promise.all([
 			fetchJson(`${RWA_ASSET_DATA_API}/${assetId}`),
-			fetchJson(`${RWA_CHART_API}/asset/${assetId}`)
+			fetchJson(`${RWA_CHART_API}/${assetId}`)
 				.then((data: IRWAChartData) => {
 					const source =
 						(data ?? []).map((item) => ({
@@ -716,7 +716,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 							'Onchain Mcap': item.onChainMcap ?? null
 						})) ?? []
 
-					return { source: ensureChronologicalRows(source), dimensions: RWA_ASSET_CHART_DIMENSIONS }
+					return { source: ensureChronologicalRows(source), dimensions: [...RWA_ASSET_CHART_DIMENSIONS] }
 				})
 				.catch(() => null)
 		])
@@ -776,6 +776,10 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			if (description) {
 				assetClassDescriptions[ac] = description
 			}
+		}
+
+		if (chartDataset && data.activeMcapData === false) {
+			chartDataset.dimensions = chartDataset.dimensions.filter((dimension) => dimension !== 'Active Mcap')
 		}
 
 		return {

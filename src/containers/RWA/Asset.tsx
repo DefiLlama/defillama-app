@@ -167,6 +167,11 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 	const onChainMcapTotal = asset.onChainMcap?.total ?? null
 	const activeMcapTotal = asset.activeMcap?.total ?? null
 	const defiActiveTvlTotal = asset.defiActiveTvl?.total ?? null
+	const chartDimensions = (asset.chartDataset?.dimensions ?? []) as string[]
+	const timeSeriesCharts =
+		chartDimensions.length > 0
+			? BASE_TIME_SERIES_CHARTS.filter((chart) => chartDimensions.includes(String(chart.encode.y)))
+			: BASE_TIME_SERIES_CHARTS
 
 	// Get attestation links as array
 	const attestationLinks = asset.attestationLinks
@@ -553,7 +558,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 	)
 }
 
-const timeSeriesCharts: Array<{
+const BASE_TIME_SERIES_CHARTS: Array<{
 	type: 'line' | 'bar'
 	name: string
 	stack: string
