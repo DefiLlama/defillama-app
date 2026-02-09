@@ -145,8 +145,8 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 		>
 			<RowLinksWithDropdown links={tokenLinks} activeLink={'All'} />
 			<div className="flex flex-col gap-1 xl:flex-row">
-				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<React.Suspense fallback={<div className="min-h-[408px]" />}>
+				<div className="relative isolate flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<PieChart
 							chartData={tokenTvls}
 							stackColors={forkColors}
@@ -155,8 +155,8 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 						/>
 					</React.Suspense>
 				</div>
-				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<React.Suspense fallback={<div className="min-h-[408px]" />}>
+				<div className="flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<MultiSeriesChart2
 							dataset={dominanceDataset}
 							charts={dominanceCharts}

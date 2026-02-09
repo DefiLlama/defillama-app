@@ -301,34 +301,32 @@ export default function Protocols({ data, unlockStats }) {
 						<Icon name="arrow-right" className="h-4 w-4" />
 					</BasicLink>
 				</div>
-				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<UpcomingUnlockVolumeChart protocols={data} />
 				</div>
 			</div>
 
-			<Suspense fallback={<div className="min-h-[400px] md:min-h-[200px] xl:min-h-fit"></div>}>
-				<div className="isolate grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-					<TopUnlocks
-						data={data}
-						period={1}
-						title="24h Top Unlocks"
-						className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
-					/>
+			<div className="isolate grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+				<TopUnlocks
+					data={data}
+					period={1}
+					title="24h Top Unlocks"
+					className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
+				/>
 
-					<TopUnlocks
-						data={data}
-						period={30}
-						title="30d Top Unlocks"
-						className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
-					/>
+				<TopUnlocks
+					data={data}
+					period={30}
+					title="30d Top Unlocks"
+					className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
+				/>
 
-					<PastUnlockPriceImpact
-						data={data}
-						title="Post Unlock Price Impact"
-						className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
-					/>
-				</div>
-			</Suspense>
+				<PastUnlockPriceImpact
+					data={data}
+					title="Post Unlock Price Impact"
+					className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
+				/>
+			</div>
 
 			<UnlocksTable
 				protocols={data}

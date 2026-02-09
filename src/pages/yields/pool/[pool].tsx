@@ -354,13 +354,13 @@ const PageView = (_props) => {
 
 			<div className="grid grid-cols-2 gap-2">
 				{isLoading ? (
-					<div className="col-span-full flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="col-span-full flex h-[400px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 						<LocalLoader />
 					</div>
 				) : (
 					<>
 						{supplyApyBarDataset.source.length ? (
-							<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 									<h2 className="mr-auto text-base font-semibold">Supply APY</h2>
 									<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy')} smol />
@@ -382,7 +382,7 @@ const PageView = (_props) => {
 							</div>
 						) : null}
 						{supplyApy7dDataset.source.length ? (
-							<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 									<h2 className="mr-auto text-base font-semibold">7 day moving average of Supply APY</h2>
 									<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy-7d')} smol />
@@ -407,13 +407,13 @@ const PageView = (_props) => {
 			</div>
 
 			{fetchingChartDataBorrow ? (
-				<div className="col-span-full flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="col-span-full flex h-[400px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<LocalLoader />
 				</div>
 			) : hasBorrowCharts ? (
-				<div className="grid min-h-[408px] grid-cols-2 gap-2 rounded-md">
+				<div className="grid grid-cols-2 gap-2 rounded-md">
 					{borrowApyBarDataset.source.length ? (
-						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 								<h2 className="mr-auto text-base font-semibold">Borrow APY</h2>
 								<AddToDashboardButton chartConfig={getYieldsChartConfig('borrow-apy')} smol />
@@ -435,7 +435,7 @@ const PageView = (_props) => {
 						</div>
 					) : null}
 					{netBorrowApyDataset.source.length ? (
-						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 								<h2 className="mr-auto text-base font-semibold">Net Borrow APY</h2>
 								<AddToDashboardButton chartConfig={getYieldsChartConfig('net-borrow-apy')} smol />
@@ -457,7 +457,7 @@ const PageView = (_props) => {
 					) : null}
 
 					{poolLiquidityDataset.source.length ? (
-						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 								<h2 className="mr-auto text-base font-semibold">Pool Liquidity</h2>
 								<SelectWithCombobox

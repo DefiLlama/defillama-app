@@ -250,12 +250,12 @@ export function CompareChains({ chains }) {
 			{selectedChains.length > 1 ? (
 				<div className="relative flex flex-col gap-1">
 					{isLoading || !router.isReady ? (
-						<div className="grid min-h-[408px] place-items-center rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+						<div className="flex h-full min-h-[400px] w-full items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 							<LocalLoader />
 						</div>
 					) : (
-						<div className="min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-							<React.Suspense fallback={<div className="min-h-[408px]" />}>
+						<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+							<React.Suspense fallback={<div className="min-h-[398px]" />}>
 								<MultiSeriesChart2
 									dataset={chartData.dataset}
 									charts={chartData.charts}

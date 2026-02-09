@@ -79,8 +79,8 @@ const chartCharts: IMultiSeriesChart2Props['charts'] = [
 const Banks = () => {
 	return (
 		<Layout title="Bank Failures - DefiLlama">
-			<div className="relative col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<React.Suspense fallback={<div className="min-h-[408px]" />}>
+			<div className="relative col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<React.Suspense fallback={<div className="min-h-[398px]" />}>
 					<MultiSeriesChart2
 						title="Assets of failed banks (inflation adjusted)"
 						dataset={chartDataset}

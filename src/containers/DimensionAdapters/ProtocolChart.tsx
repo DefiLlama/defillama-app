@@ -111,7 +111,7 @@ export const DimensionProtocolChartByType = ({
 
 	if (isLoading || fetchingBribeData || fetchingTokenTaxData) {
 		return (
-			<div className="col-span-2 flex min-h-[418px] flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="col-span-2 flex min-h-[398px] flex-col items-center justify-center">
 				<LocalLoader />
 			</div>
 		)
@@ -119,7 +119,7 @@ export const DimensionProtocolChartByType = ({
 
 	if (error || fetchingBribeError || fetchingTokenTaxError) {
 		return (
-			<div className="col-span-2 flex min-h-[418px] flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="col-span-2 flex min-h-[398px] flex-col items-center justify-center">
 				<p className="p-3 text-center text-sm text-(--error)">
 					Error : {error?.message || fetchingBribeError?.message || fetchingTokenTaxError?.message}
 				</p>

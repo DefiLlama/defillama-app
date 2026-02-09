@@ -577,8 +577,8 @@ export default function DigitalAssetTreasury(props: IProps) {
 			</div>
 			<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
 				{props.mNAVChart != null && (
-					<div className="col-span-1 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<Suspense fallback={<div className="min-h-[408px]" />}>
+					<div className="col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<Suspense fallback={<div className="min-h-[398px]" />}>
 							<MultiSeriesChart2
 								dataset={props.mNAVChart.dataset}
 								charts={props.mNAVChart.charts}
@@ -596,8 +596,8 @@ export default function DigitalAssetTreasury(props: IProps) {
 					</div>
 				)}
 				{props.fdChart != null && (
-					<div className="col-span-1 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<Suspense fallback={<div className="min-h-[408px]" />}>
+					<div className="col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<Suspense fallback={<div className="min-h-[398px]" />}>
 							<MultiSeriesChart2
 								dataset={props.fdChart.dataset}
 								charts={props.fdChart.charts}
@@ -624,8 +624,8 @@ export default function DigitalAssetTreasury(props: IProps) {
 					</div>
 				)}
 				{props.totalAssetValueChart != null && (
-					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-						<Suspense fallback={<div className="min-h-[408px]" />}>
+					<div className="col-span-full rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<Suspense fallback={<div className="min-h-[398px]" />}>
 							<MultiSeriesChart2
 								dataset={props.totalAssetValueChart.dataset}
 								charts={props.totalAssetValueChart.charts}

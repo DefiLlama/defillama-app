@@ -270,8 +270,8 @@ const PageView = () => {
 						</p>
 					</div>
 				</div>
-				<div className="col-span-2 min-h-[480px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<Suspense fallback={<div className="min-h-[408px]" />}>
+				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<Suspense fallback={<div className="min-h-[398px]" />}>
 						<MultiSeriesChart2
 							title="Strategy APY"
 							dataset={finalApyDataset}
@@ -333,9 +333,9 @@ const PageView = () => {
 				)}
 			</div>
 
-			<div className="grid min-h-[408px] grid-cols-2 gap-2 rounded-md">
+			<div className="grid grid-cols-2 gap-2 rounded-md">
 				{fetchingLendData ? (
-					<p className="col-span-full flex h-[408px] items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) text-center">
+					<p className="col-span-full flex h-[400px] items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) text-center">
 						Loading
 						<LoadingDots />
 					</p>
@@ -343,8 +343,8 @@ const PageView = () => {
 					lendHistory?.data?.length && (
 						<>
 							{barDatasetSupply?.source?.length ? (
-								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-									<Suspense fallback={<div className="min-h-[408px]" />}>
+								<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+									<Suspense fallback={<div className="min-h-[398px]" />}>
 										<MultiSeriesChart2
 											title="Supply APY"
 											dataset={barDatasetSupply}
@@ -358,8 +358,8 @@ const PageView = () => {
 							) : null}
 
 							{barDatasetBorrow?.source?.length ? (
-								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-									<Suspense fallback={<div className="min-h-[408px]" />}>
+								<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+									<Suspense fallback={<div className="min-h-[398px]" />}>
 										<MultiSeriesChart2
 											title="Borrow APY"
 											dataset={barDatasetBorrow}
@@ -373,8 +373,8 @@ const PageView = () => {
 							) : null}
 
 							{barDatasetFarm?.source?.length ? (
-								<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-									<Suspense fallback={<div className="min-h-[408px]" />}>
+								<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+									<Suspense fallback={<div className="min-h-[398px]" />}>
 										<MultiSeriesChart2
 											title="Farm APY"
 											dataset={barDatasetFarm}

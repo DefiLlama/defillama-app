@@ -176,8 +176,8 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 						))}
 					</details>
 				</div>
-				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<React.Suspense fallback={<div className="min-h-[408px]" />}>
+				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<MultiSeriesChart2
 							dataset={fundingRoundsByMonthChart.dataset}
 							charts={fundingRoundsByMonthChart.charts}
@@ -195,8 +195,8 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 			</div>
 
 			<div className="grid grid-cols-2 gap-1">
-				<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<React.Suspense fallback={<div className="min-h-[408px]" />}>
+				<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<PieChart
 							chartData={investmentByRounds}
 							title="Investment by Rounds"
@@ -210,8 +210,8 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 						/>
 					</React.Suspense>
 				</div>
-				<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<React.Suspense fallback={<div className="min-h-[408px]" />}>
+				<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<PieChart
 							chartData={raisesByCategory}
 							title="Investments by Category"

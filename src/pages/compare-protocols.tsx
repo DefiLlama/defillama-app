@@ -226,13 +226,13 @@ export default function CompareProtocols({
 			</div>
 			{selectedProtocols.length > 1 ? (
 				<div className="relative flex flex-col gap-2">
-					<div className="min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 						{isLoading || !router.isReady ? (
-							<div className="flex h-full w-full items-center justify-center">
+							<div className="flex h-full min-h-[398px] w-full items-center justify-center">
 								<LocalLoader />
 							</div>
 						) : (
-							<React.Suspense fallback={<div className="min-h-[408px]" />}>
+							<React.Suspense fallback={<div className="min-h-[398px]" />}>
 								<MultiSeriesChart2 dataset={dataset} charts={charts} valueSymbol="$" exportButtons="auto" />
 							</React.Suspense>
 						)}

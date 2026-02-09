@@ -25,7 +25,7 @@ export function ForksData({ protocolName }: { protocolName: string }) {
 
 	if (isLoading) {
 		return (
-			<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+			<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<LocalLoader />
 			</div>
 		)
@@ -33,8 +33,8 @@ export function ForksData({ protocolName }: { protocolName: string }) {
 
 	if (error || !data) {
 		return (
-			<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-				<p>{error instanceof Error ? error.message : 'Failed to fetch'}</p>
+			<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<p className="p-2">{error instanceof Error ? error.message : 'Failed to fetch'}</p>
 			</div>
 		)
 	}

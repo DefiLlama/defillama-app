@@ -124,7 +124,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 
 	return (
 		<>
-			<div className="grid min-h-[408px] grid-cols-1 gap-1 xl:grid-cols-3">
+			<div className="grid grid-cols-1 gap-1 xl:grid-cols-3">
 				<div className="flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<div>
 						<h1 className="text-xl font-semibold">Daily Stats</h1>

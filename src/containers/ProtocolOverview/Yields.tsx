@@ -40,7 +40,7 @@ export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }
 
 	return (
 		<>
-			<div className="flex flex-col gap-1 xl:flex-row">
+			<div className="flex flex-1 flex-col gap-1 xl:flex-row">
 				<div className="flex flex-1 flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<p className="flex items-center gap-2">
 						<span>Number of pools tracked</span>
@@ -54,12 +54,12 @@ export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }
 					</p>
 
 					{isLoading ? (
-						<div className="flex min-h-[408px] items-center justify-center">
+						<div className="flex flex-1 flex-col items-center justify-center">
 							<LocalLoader />
 						</div>
 					) : !poolsList ? (
-						<div className="flex min-h-[408px] items-center justify-center">
-							<p>{error instanceof Error ? error.message : 'Failed to fetch'}</p>
+						<div className="flex flex-1 flex-col items-center justify-center">
+							<p className="p-2">{error instanceof Error ? error.message : 'Failed to fetch'}</p>
 						</div>
 					) : (
 						<YieldsPoolsTable data={poolsList} />

@@ -342,8 +342,8 @@ export const TokenRights = ({ tokenRights }: { tokenRights: ITokenRights }) => {
 
 			{/* If everything is missing (partial payload), show a helpful empty state */}
 			{rights.length === 0 && !governance && !valueAccrual && !tokenAlignment && resources.length === 0 ? (
-				<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<p>No token rights data available for this protocol.</p>
+				<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<p className="p-2">No token rights data available for this protocol.</p>
 				</div>
 			) : null}
 		</div>

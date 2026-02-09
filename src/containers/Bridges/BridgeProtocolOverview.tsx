@@ -304,7 +304,7 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 
 	if (isLoading) {
 		return (
-			<div className="flex min-h-[408px] items-center justify-center">
+			<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<LocalLoader />
 			</div>
 		)
@@ -312,8 +312,8 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 
 	if (error || !data) {
 		return (
-			<div className="flex min-h-[408px] items-center justify-center">
-				<p>{error instanceof Error ? error.message : "Something went wrong, couldn't fetch data"}</p>
+			<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<p className="p-2">{error instanceof Error ? error.message : "Something went wrong, couldn't fetch data"}</p>
 			</div>
 		)
 	}

@@ -92,14 +92,6 @@ const MultiSeriesChart2 = lazy(
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-const AllocationPieChart = memo(function AllocationPieChart(props: IPieChartProps) {
-	return (
-		<Suspense fallback={<div className="min-h-[408px]" />}>
-			<PieChart {...props} />
-		</Suspense>
-	)
-})
-
 type ScheduleChartProps = Pick<
 	IMultiSeriesChart2Props,
 	| 'dataset'
@@ -910,40 +902,44 @@ const ChartContainer = ({
 					</div>
 				)}
 
-				<div className="grid min-h-[408px] grid-cols-2 gap-2">
+				<div className="grid grid-cols-2 gap-2">
 					{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
-						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<AllocationPieChart
-								showLegend
-								title="Allocation"
-								chartData={pieChartDataAllocationMode}
-								stackColors={allocationPieStackColors}
-								valueSymbol={data.tokenPrice?.symbol ?? ''}
-								legendPosition={allocationPieChartLegendPosition}
-								legendTextStyle={pieChartLegendTextStyle}
-								// Give the allocation chart a wider legend column so labels
-								// can render without ellipsis, and the pie can sit further left.
-								toRight={allocationPieChartLegendToRight}
-								// Slightly larger pie to better utilize available canvas.
-								radius={allocationPieChartRadius}
-								exportButtons={allocationExportButtons}
-							/>
+						<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<Suspense fallback={<div className="min-h-[398px]" />}>
+								<PieChart
+									showLegend
+									title="Allocation"
+									chartData={pieChartDataAllocationMode}
+									stackColors={allocationPieStackColors}
+									valueSymbol={data.tokenPrice?.symbol ?? ''}
+									legendPosition={allocationPieChartLegendPosition}
+									legendTextStyle={pieChartLegendTextStyle}
+									// Give the allocation chart a wider legend column so labels
+									// can render without ellipsis, and the pie can sit further left.
+									toRight={allocationPieChartLegendToRight}
+									// Slightly larger pie to better utilize available canvas.
+									radius={allocationPieChartRadius}
+									exportButtons={allocationExportButtons}
+								/>
+							</Suspense>
 						</div>
 					)}
 
 					{unlockedPercent > 0 && (
-						<div className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<AllocationPieChart
-								showLegend
-								title={`Unlocked ${unlockedPercent.toFixed(2)}%`}
-								legendPosition={unlockedPieChartLegendPosition}
-								legendTextStyle={pieChartLegendTextStyle}
-								radius={unlockedPieChartRadius}
-								chartData={unlockedPieChartData}
-								stackColors={unlockedPieChartStackColors}
-								valueSymbol="%"
-								exportButtons={unlockedExportButtons}
-							/>
+						<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<Suspense fallback={<div className="min-h-[398px]" />}>
+								<PieChart
+									showLegend
+									title={`Unlocked ${unlockedPercent.toFixed(2)}%`}
+									legendPosition={unlockedPieChartLegendPosition}
+									legendTextStyle={pieChartLegendTextStyle}
+									radius={unlockedPieChartRadius}
+									chartData={unlockedPieChartData}
+									stackColors={unlockedPieChartStackColors}
+									valueSymbol="%"
+									exportButtons={unlockedExportButtons}
+								/>
+							</Suspense>
 						</div>
 					)}
 				</div>
@@ -1054,7 +1050,7 @@ export const UnlocksCharts = ({
 
 	if (shouldFetch && isLoading) {
 		return (
-			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex flex-1 flex-col items-center justify-center">
 				<LocalLoader />
 			</div>
 		)
@@ -1063,8 +1059,8 @@ export const UnlocksCharts = ({
 	const resolvedData = initialData ?? data
 	if (!resolvedData) {
 		return (
-			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<p>{error instanceof Error ? error.message : 'Failed to fetch'}</p>
+			<div className="flex flex-1 flex-col items-center justify-center">
+				<p className="p-2">{error instanceof Error ? error.message : 'Failed to fetch'}</p>
 			</div>
 		)
 	}

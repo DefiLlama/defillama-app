@@ -406,7 +406,7 @@ export default function Protocols(props) {
 			</div>
 			<div className="grid grid-cols-2 gap-2">
 				{props.protocolChains?.length > 1 ? (
-					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
+					<div className="col-span-full rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 						<DimensionProtocolChartByType
 							chartType="chain"
 							protocolName={slug(props.name)}
@@ -421,7 +421,7 @@ export default function Protocols(props) {
 					</div>
 				) : null}
 				{props.protocolFeesVersions?.length > 1 ? (
-					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
+					<div className="col-span-full rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 						<DimensionProtocolChartByType
 							chartType="version"
 							protocolName={slug(props.name)}
@@ -438,7 +438,7 @@ export default function Protocols(props) {
 				{props.protocolRevenueVersions?.length > 1 ? (
 					<>
 						{props.protocolChains?.length > 1 ? (
-							<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
+							<div className="col-span-full rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 								<DimensionProtocolChartByType
 									chartType="chain"
 									protocolName={slug(props.name)}
@@ -454,7 +454,7 @@ export default function Protocols(props) {
 							</div>
 						) : null}
 
-						<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
+						<div className="col-span-full rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 							<DimensionProtocolChartByType
 								chartType="version"
 								protocolName={slug(props.name)}

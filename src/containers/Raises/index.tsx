@@ -91,8 +91,8 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 
-				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<React.Suspense fallback={<div className="min-h-[408px]" />}>
+				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<MultiSeriesChart2
 							dataset={monthlyInvestmentChart.dataset}
 							charts={monthlyInvestmentChart.charts}
