@@ -6,12 +6,13 @@ interface BasicLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
 	prefetch?: boolean
 	shallow?: boolean
 	onClick?: React.MouseEventHandler<HTMLAnchorElement>
+	ref?: React.Ref<HTMLAnchorElement>
 }
 
-export const BasicLink = React.forwardRef<HTMLAnchorElement, BasicLinkProps>(function BasicLink(props, ref) {
+export function BasicLink({ ref, ...props }: BasicLinkProps) {
 	return (
 		<RouterLink {...props} ref={ref} prefetch={props.prefetch ?? false}>
 			{props.children}
 		</RouterLink>
 	)
-})
+}

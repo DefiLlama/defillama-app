@@ -1,8 +1,11 @@
 import dayjs from 'dayjs'
 import { lazy, Suspense, useMemo, useState } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { formattedNum } from '~/utils'
 import { IProtocolOverviewPageData } from './types'
 
@@ -36,6 +39,7 @@ export const IncomeStatement = ({
 	const [groupBy, setGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
 	const [sankeyGroupBy, setSankeyGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
 	const [selectedSankeyPeriod, setSelectedSankeyPeriod] = useState<string | null>(null)
+	const { chartInstance: sankeyChartInstance, handleChartReady: handleSankeyChartReady } = useChartImageExport()
 	const headerId = anchorId ?? 'income-statement'
 	const showTable = view === 'table' || view === 'both'
 	const showSankey = view === 'sankey' || view === 'both'
@@ -408,6 +412,58 @@ export const IncomeStatement = ({
 		}
 	}, [sankeyPeriodOptions, validSankeyPeriod])
 
+	const prepareTableCsv = () => {
+		// Match the rendered table header row: blank top-left cell, then the period labels.
+		// (No need to include the "*" incomplete marker in CSV.)
+		const headers = ['', ...tableHeaders.map((h) => h[1])]
+		const rows: Array<Array<string | number | boolean>> = [headers]
+
+		const toCsvNumber = (value: number | null | undefined) => {
+			if (value == null) return 0
+			if (Number.isNaN(value)) return 0
+			if (!Number.isFinite(value)) return 0
+			// avoid exporting noisy float precision (eg. 1.23400000000002)
+			return Number.isInteger(value) ? value : Math.round(value * 1e8) / 1e8
+		}
+
+		const pushMetric = (
+			metricLabel: string,
+			metricData: Record<string, { value: number; 'by-label': Record<string, number> }>,
+			breakdownLabels: string[]
+		) => {
+			rows.push([metricLabel, ...tableHeaders.map((h) => toCsvNumber(metricData[h[0]]?.value))])
+
+			if (breakdownLabels.length > 0) {
+				for (const breakdownLabel of breakdownLabels) {
+					rows.push([
+						`  ${breakdownLabel}`,
+						...tableHeaders.map((h) => toCsvNumber(metricData[h[0]]?.['by-label']?.[breakdownLabel]))
+					])
+				}
+			}
+		}
+
+		pushMetric('Gross Protocol Revenue', grossProtocolRevenueData, grossProtocolRevenueByLabels)
+		pushMetric('Cost of Revenue', costOfRevenueData, costOfRevenueByLabels)
+		pushMetric('Gross Profit', grossProfitData, grossProfitByLabels)
+		if (hasIncentives) pushMetric('Incentives', incentivesData, incentivesByLabels)
+		pushMetric('Earnings', earningsData, EMPTY_BREAKDOWN_LABELS)
+		pushMetric('Token Holder Net Income', tokenHolderNetIncomeData, tokenHolderNetIncomeByLabels)
+		if (incomeStatement?.hasOtherTokenHolderFlows)
+			pushMetric('Others Token Holder Flows', othersTokenHolderFlowsData, othersTokenHolderFlowsByLabels)
+
+		const safeProtocolName = name
+			.toLowerCase()
+			.trim()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/(^-|-$)/g, '')
+
+		return {
+			filename: `income-statement-${safeProtocolName || 'protocol'}-${groupBy.toLowerCase()}.csv`,
+			rows
+		}
+	}
+
 	return (
 		<div
 			className={`col-span-full flex flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4 ${
@@ -428,19 +484,22 @@ export const IncomeStatement = ({
 					</h2>
 				) : null}
 				{showTable ? (
-					<div className="ml-auto flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-						{incomeStatementGroupByOptions.map((groupOption) => (
-							<button
-								key={`income-statement-${groupOption}`}
-								className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-								data-active={groupOption === groupBy}
-								onClick={() => {
-									setGroupBy(groupOption)
-								}}
-							>
-								{groupOption}
-							</button>
-						))}
+					<div className="ml-auto flex items-center gap-2">
+						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
+							{incomeStatementGroupByOptions.map((groupOption) => (
+								<button
+									key={`income-statement-${groupOption}`}
+									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+									data-active={groupOption === groupBy}
+									onClick={() => {
+										setGroupBy(groupOption)
+									}}
+								>
+									{groupOption}
+								</button>
+							))}
+						</div>
+						<CSVDownloadButton prepareCsv={prepareTableCsv} smol />
 					</div>
 				) : null}
 			</div>
@@ -585,46 +644,47 @@ export const IncomeStatement = ({
 								</div>
 							}
 						>
+							<div className="mb-2 flex flex-wrap items-center gap-2 px-2">
+								{showTitles ? <h3 className="mr-auto text-base font-semibold">Income Flow Visualization</h3> : null}
+								<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
+									{incomeStatementGroupByOptions.map((groupOption) => (
+										<button
+											key={`sankey-group-${groupOption}`}
+											className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+											data-active={groupOption === sankeyGroupBy}
+											onClick={() => {
+												setSankeyGroupBy(groupOption)
+												setSelectedSankeyPeriod(null)
+											}}
+										>
+											{groupOption}
+										</button>
+									))}
+								</div>
+								{sankeyPeriodSelectOptions.length > 0 ? (
+									<Select
+										allValues={sankeyPeriodSelectOptions}
+										selectedValues={validSankeyPeriod ?? ''}
+										setSelectedValues={(value) => setSelectedSankeyPeriod(value as string)}
+										label={sankeyPeriodLabel}
+										labelType="none"
+										triggerProps={{
+											className:
+												'flex cursor-pointer flex-nowrap items-center gap-2 rounded-md border border-(--form-control-border) bg-(--cards-bg) px-2 py-1 text-sm text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)'
+										}}
+									/>
+								) : null}
+								<ChartPngExportButton
+									chartInstance={sankeyChartInstance}
+									filename={`${name}-income-statement`}
+									title={`Income Statement for ${name}`}
+								/>
+							</div>
 							<SankeyChart
 								nodes={sankeyData.nodes}
 								links={sankeyData.links}
 								height="450px"
-								title={showTitles ? 'Income Flow Visualization' : undefined}
-								enableImageExport
-								imageExportFilename={`${name}-income-statement`}
-								imageExportTitle={`Income Statement for ${name}`}
-								customComponents={
-									<div className="flex items-center gap-2">
-										<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-											{incomeStatementGroupByOptions.map((groupOption) => (
-												<button
-													key={`sankey-group-${groupOption}`}
-													className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-													data-active={groupOption === sankeyGroupBy}
-													onClick={() => {
-														setSankeyGroupBy(groupOption)
-														setSelectedSankeyPeriod(null)
-													}}
-												>
-													{groupOption}
-												</button>
-											))}
-										</div>
-										{sankeyPeriodSelectOptions.length > 0 && (
-											<Select
-												allValues={sankeyPeriodSelectOptions}
-												selectedValues={validSankeyPeriod ?? ''}
-												setSelectedValues={(value) => setSelectedSankeyPeriod(value as string)}
-												label={sankeyPeriodLabel}
-												labelType="none"
-												triggerProps={{
-													className:
-														'flex cursor-pointer flex-nowrap items-center gap-2 rounded-md border border-(--form-control-border) bg-(--cards-bg) px-2 py-1 text-sm text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)'
-												}}
-											/>
-										)}
-									</div>
-								}
+								onReady={handleSankeyChartReady}
 							/>
 						</Suspense>
 					) : (

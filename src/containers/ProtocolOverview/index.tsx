@@ -80,75 +80,29 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			/>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				<div className="col-span-1 row-[2/3] hidden flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:row-[1/2] xl:flex xl:min-h-[360px]">
-					<h1 className="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto">
-						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
-						<span className="font-bold">{props.name}</span>
-						{props.token.symbol && props.token.symbol !== '-' ? (
-							<span className="font-normal">({props.token.symbol})</span>
-						) : null}
-						{props.deprecated ? (
-							<Tooltip content="Deprecated protocol" className="text-(--error)">
-								<Icon name="alert-triangle" height={18} width={18} />
-							</Tooltip>
-						) : null}
-						<Bookmark readableName={props.name} />
-					</h1>
-					{props.oracleTvs ? (
-						<PrimaryValue
-							hasTvl={true}
-							value={oracleTvs}
-							name={props.name}
-							category={'Oracle'}
-							valueByChain={oracleTvsByChain}
-							formatPrice={formatPrice}
-						/>
-					) : (
-						<PrimaryValue
-							hasTvl={props.metrics.tvl}
-							value={tvl}
-							name={props.name}
-							category={props.category === 'Oracle' ? null : props.category}
-							valueByChain={tvlByChain}
-							formatPrice={formatPrice}
-						/>
-					)}
+					<ProtocolHeader
+						props={props}
+						oracleTvs={oracleTvs}
+						tvl={tvl}
+						tvlByChain={tvlByChain}
+						oracleTvsByChain={oracleTvsByChain}
+						formatPrice={formatPrice}
+						h1ClassName="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto"
+					/>
 					<KeyMetrics {...props} formatPrice={formatPrice} tvl={tvl} computedOracleTvs={oracleTvs} />
 				</div>
 				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
 					<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 						<div className="flex flex-col gap-6 xl:hidden">
-							<h1 className="flex flex-wrap items-center gap-2 text-xl">
-								<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
-								<span className="font-bold">{props.name}</span>
-								{props.token.symbol && props.token.symbol !== '-' ? (
-									<span className="font-normal">({props.token.symbol})</span>
-								) : null}
-								{props.deprecated ? (
-									<Tooltip content="Deprecated protocol" className="text-(--error)">
-										<Icon name="alert-triangle" height={18} width={18} />
-									</Tooltip>
-								) : null}
-								<Bookmark readableName={props.name} />
-							</h1>
-							{props.oracleTvs ? (
-								<PrimaryValue
-									hasTvl={true}
-									value={oracleTvs}
-									name={props.name}
-									category={'Oracle'}
-									valueByChain={oracleTvsByChain}
-									formatPrice={formatPrice}
-								/>
-							) : (
-								<PrimaryValue
-									hasTvl={props.metrics.tvl}
-									value={tvl}
-									name={props.name}
-									category={props.category === 'Oracle' ? null : props.category}
-									valueByChain={tvlByChain}
-									formatPrice={formatPrice}
-								/>
-							)}
+							<ProtocolHeader
+								props={props}
+								oracleTvs={oracleTvs}
+								tvl={tvl}
+								tvlByChain={tvlByChain}
+								oracleTvsByChain={oracleTvsByChain}
+								formatPrice={formatPrice}
+								h1ClassName="flex flex-wrap items-center gap-2 text-xl"
+							/>
 						</div>
 						<ProtocolChart {...props} />
 					</div>
@@ -170,6 +124,61 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 				) : null}
 			</div>
 		</ProtocolOverviewLayout>
+	)
+}
+
+function ProtocolHeader({
+	props,
+	oracleTvs,
+	tvl,
+	tvlByChain,
+	oracleTvsByChain,
+	formatPrice,
+	h1ClassName
+}: {
+	props: IProtocolOverviewPageData
+	oracleTvs: number
+	tvl: number
+	tvlByChain: [string, number][]
+	oracleTvsByChain: [string, number][]
+	formatPrice: (value?: number | string | null) => string | number | null
+	h1ClassName: string
+}) {
+	return (
+		<>
+			<h1 className={h1ClassName}>
+				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+				<span className="font-bold">{props.name}</span>
+				{props.token?.symbol && props.token.symbol !== '-' ? (
+					<span className="font-normal">({props.token.symbol})</span>
+				) : null}
+				{props.deprecated ? (
+					<Tooltip content="Deprecated protocol" className="text-(--error)">
+						<Icon name="alert-triangle" height={18} width={18} />
+					</Tooltip>
+				) : null}
+				<Bookmark readableName={props.name} />
+			</h1>
+			{props.oracleTvs ? (
+				<PrimaryValue
+					hasTvl={true}
+					value={oracleTvs}
+					name={props.name}
+					category={'Oracle'}
+					valueByChain={oracleTvsByChain}
+					formatPrice={formatPrice}
+				/>
+			) : (
+				<PrimaryValue
+					hasTvl={props.metrics.tvl}
+					value={tvl}
+					name={props.name}
+					category={props.category === 'Oracle' ? null : props.category}
+					valueByChain={tvlByChain}
+					formatPrice={formatPrice}
+				/>
+			)}
+		</>
 	)
 }
 
@@ -363,6 +372,107 @@ interface IKeyMetricsProps extends IProtocolOverviewPageData {
 	computedOracleTvs?: number
 }
 
+interface StandardMetricConfig {
+	dataProp: string
+	definitionKey: string
+	label: string
+	dataType: string
+}
+
+const STANDARD_METRICS: StandardMetricConfig[] = [
+	{ dataProp: 'dexVolume', definitionKey: 'dexs', label: 'DEX Volume', dataType: 'DEX Volume' },
+	{
+		dataProp: 'dexAggregatorVolume',
+		definitionKey: 'dexAggregators',
+		label: 'DEX Aggregator Volume',
+		dataType: 'DEX Aggregator Volume'
+	},
+	{ dataProp: 'perpVolume', definitionKey: 'perps', label: 'Perp Volume', dataType: 'Perp Volume' },
+	{
+		dataProp: 'perpAggregatorVolume',
+		definitionKey: 'perpsAggregators',
+		label: 'Perp Aggregator Volume',
+		dataType: 'Perp Aggregator Volume'
+	},
+	{
+		dataProp: 'bridgeAggregatorVolume',
+		definitionKey: 'bridgeAggregators',
+		label: 'Bridge Aggregator Volume',
+		dataType: 'Bridge Aggregator Volume'
+	},
+	{
+		dataProp: 'optionsPremiumVolume',
+		definitionKey: 'optionsPremium',
+		label: 'Options Premium Volume',
+		dataType: 'Options Premium Volume'
+	},
+	{
+		dataProp: 'optionsNotionalVolume',
+		definitionKey: 'optionsNotional',
+		label: 'Options Notional Volume',
+		dataType: 'Options Notional Volume'
+	}
+]
+
+function buildStandardVolumeMetrics(
+	data: { total30d?: number | null; total7d?: number | null; total24h?: number | null; totalAllTime?: number | null },
+	definitionKey: string,
+	label: string
+) {
+	const defs = definitions[definitionKey]?.protocol
+	const metrics = []
+
+	if (data.total30d != null) {
+		metrics.push({ name: `${label} 30d`, tooltipContent: defs?.['30d'], value: data.total30d })
+	}
+	if (data.total7d != null) {
+		metrics.push({ name: `${label} 7d`, tooltipContent: defs?.['7d'], value: data.total7d })
+	}
+	if (data.total24h != null) {
+		metrics.push({ name: `${label} 24h`, tooltipContent: defs?.['24h'], value: data.total24h })
+	}
+	if (data.totalAllTime != null) {
+		metrics.push({ name: `Cumulative ${label}`, tooltipContent: defs?.['cumulative'], value: data.totalAllTime })
+	}
+
+	return metrics
+}
+
+function getAdjustedTotals(
+	base:
+		| { total24h?: number | null; total7d?: number | null; total30d?: number | null; totalAllTime?: number | null }
+		| null
+		| undefined,
+	bribeRevenue:
+		| { total24h?: number | null; total7d?: number | null; total30d?: number | null; totalAllTime?: number | null }
+		| null
+		| undefined,
+	tokenTax:
+		| { total24h?: number | null; total7d?: number | null; total30d?: number | null; totalAllTime?: number | null }
+		| null
+		| undefined,
+	extraTvlsEnabled: Record<string, boolean>
+) {
+	const exists = base?.totalAllTime != null || bribeRevenue?.totalAllTime != null || tokenTax?.totalAllTime != null
+	if (!exists) return null
+
+	const b24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
+	const b7d = extraTvlsEnabled.bribes ? bribeRevenue?.total7d : 0
+	const b30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
+	const bAll = extraTvlsEnabled.bribes ? bribeRevenue?.totalAllTime : 0
+	const t24h = extraTvlsEnabled.tokentax ? tokenTax?.total24h : 0
+	const t7d = extraTvlsEnabled.tokentax ? tokenTax?.total7d : 0
+	const t30d = extraTvlsEnabled.tokentax ? tokenTax?.total30d : 0
+	const tAll = extraTvlsEnabled.tokentax ? tokenTax?.totalAllTime : 0
+
+	return {
+		total24h: (base?.total24h ?? 0) + (b24h ?? 0) + (t24h ?? 0),
+		total7d: (base?.total7d ?? 0) + (b7d ?? 0) + (t7d ?? 0),
+		total30d: (base?.total30d ?? 0) + (b30d ?? 0) + (t30d ?? 0),
+		totalAllTime: (base?.totalAllTime ?? 0) + (bAll ?? 0) + (tAll ?? 0)
+	}
+}
+
 export const KeyMetrics = (props: IKeyMetricsProps) => {
 	const containerRef = useRef<HTMLDivElement>(null)
 
@@ -405,15 +515,40 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				<HoldersRevenue formatPrice={props.formatPrice} {...props} />
 				<Incentives formatPrice={props.formatPrice} {...props} />
 				<Earnings formatPrice={props.formatPrice} {...props} />
-				<DexVolume formatPrice={props.formatPrice} {...props} />
-				<DexAggregatorVolume formatPrice={props.formatPrice} {...props} />
-				<PerpVolume formatPrice={props.formatPrice} {...props} />
-				<OpenInterest formatPrice={props.formatPrice} {...props} />
-				<PerpAggregatorVolume formatPrice={props.formatPrice} {...props} />
-				<BridgeAggregatorVolume formatPrice={props.formatPrice} {...props} />
+				{STANDARD_METRICS.map((config) => {
+					const data = props[config.dataProp]
+					if (!data) return null
+					const metrics = buildStandardVolumeMetrics(data, config.definitionKey, config.label)
+					if (metrics.length === 0) return null
+					return (
+						<SmolStats
+							key={config.dataType}
+							data={metrics}
+							protocolName={props.name}
+							category={props.category ?? ''}
+							formatPrice={props.formatPrice}
+							openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+							dataType={config.dataType}
+						/>
+					)
+				})}
+				{props.openInterest?.total24h != null ? (
+					<SmolStats
+						data={[
+							{
+								name: 'Open Interest',
+								tooltipContent: definitions.openInterest.protocol,
+								value: props.openInterest.total24h
+							}
+						]}
+						protocolName={props.name}
+						category={props.category ?? ''}
+						formatPrice={props.formatPrice}
+						openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+						dataType="Open Interest"
+					/>
+				) : null}
 				<BridgeVolume formatPrice={props.formatPrice} {...props} />
-				<OptionsPremiumVolume formatPrice={props.formatPrice} {...props} />
-				<OptionsNotionalVolume formatPrice={props.formatPrice} {...props} />
 				<TokenCGData formatPrice={props.formatPrice} {...props} />
 				{props.currentTvlByChain?.staking != null ? (
 					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
@@ -550,66 +685,34 @@ function TVL(props: IKeyMetricsProps) {
 function Fees(props: IKeyMetricsProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
-	const fees = props.fees
-	const bribeRevenue = props.bribeRevenue
-	const tokenTax = props.tokenTax
-	const feesExists = fees?.totalAllTime != null || bribeRevenue?.totalAllTime != null || tokenTax?.totalAllTime != null
-
-	if (!feesExists) return null
-
-	const bribeRevenue24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
-	const bribeRevenue7d = extraTvlsEnabled.bribes ? bribeRevenue?.total7d : 0
-	const bribeRevenue30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
-	const bribeRevenueAllTime = extraTvlsEnabled.bribes ? bribeRevenue?.totalAllTime : 0
-	const tokenTax24h = extraTvlsEnabled.tokentax ? tokenTax?.total24h : 0
-	const tokenTax7d = extraTvlsEnabled.tokentax ? tokenTax?.total7d : 0
-	const tokenTax30d = extraTvlsEnabled.tokentax ? tokenTax?.total30d : 0
-	const tokenTaxAllTime = extraTvlsEnabled.tokentax ? tokenTax?.totalAllTime : 0
-
-	const fees24h = feesExists ? (fees?.total24h ?? 0) + (bribeRevenue24h ?? 0) + (tokenTax24h ?? 0) : null
-	const fees7d = feesExists ? (fees?.total7d ?? 0) + (bribeRevenue7d ?? 0) + (tokenTax7d ?? 0) : null
-	const fees30d = feesExists ? (fees?.total30d ?? 0) + (bribeRevenue30d ?? 0) + (tokenTax30d ?? 0) : null
-	const feesAllTime = feesExists
-		? (fees?.totalAllTime ?? 0) + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0)
-		: null
+	const adjusted = getAdjustedTotals(props.fees, props.bribeRevenue, props.tokenTax, extraTvlsEnabled)
+	if (!adjusted) return null
 
 	const metrics = []
 
-	if (fees30d != null) {
+	if (adjusted.total30d != null) {
 		metrics.push({
 			name: 'Fees (Annualized)',
 			tooltipContent: definitions.fees.protocol['annualized'],
-			value: fees30d * 12.2
+			value: adjusted.total30d * 12.2
 		})
-
 		metrics.push({
 			name: 'Fees 30d',
 			tooltipContent: definitions.fees.protocol['30d'],
-			value: fees30d
+			value: adjusted.total30d
 		})
 	}
-
-	if (fees7d != null) {
-		metrics.push({
-			name: 'Fees 7d',
-			tooltipContent: definitions.fees.protocol['7d'],
-			value: fees7d
-		})
+	if (adjusted.total7d != null) {
+		metrics.push({ name: 'Fees 7d', tooltipContent: definitions.fees.protocol['7d'], value: adjusted.total7d })
 	}
-
-	if (fees24h != null) {
-		metrics.push({
-			name: 'Fees 24h',
-			tooltipContent: definitions.fees.protocol['24h'],
-			value: fees24h
-		})
+	if (adjusted.total24h != null) {
+		metrics.push({ name: 'Fees 24h', tooltipContent: definitions.fees.protocol['24h'], value: adjusted.total24h })
 	}
-
-	if (feesAllTime != null) {
+	if (adjusted.totalAllTime != null) {
 		metrics.push({
 			name: 'Cumulative Fees',
 			tooltipContent: definitions.fees.protocol['cumulative'],
-			value: feesAllTime
+			value: adjusted.totalAllTime
 		})
 	}
 
@@ -628,67 +731,42 @@ function Fees(props: IKeyMetricsProps) {
 function Revenue(props: IKeyMetricsProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
-	const revenue = props.revenue
-	const bribeRevenue = props.bribeRevenue
-	const tokenTax = props.tokenTax
-	const revenueExists =
-		revenue?.totalAllTime != null || bribeRevenue?.totalAllTime != null || tokenTax?.totalAllTime != null
-
-	if (!revenueExists) return null
-
-	const bribeRevenue24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
-	const bribeRevenue7d = extraTvlsEnabled.bribes ? bribeRevenue?.total7d : 0
-	const bribeRevenue30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
-	const bribeRevenueAllTime = extraTvlsEnabled.bribes ? bribeRevenue?.totalAllTime : 0
-	const tokenTax24h = extraTvlsEnabled.tokentax ? tokenTax?.total24h : 0
-	const tokenTax7d = extraTvlsEnabled.tokentax ? tokenTax?.total7d : 0
-	const tokenTax30d = extraTvlsEnabled.tokentax ? tokenTax?.total30d : 0
-	const tokenTaxAllTime = extraTvlsEnabled.tokentax ? tokenTax?.totalAllTime : 0
-
-	const revenue24h = revenueExists ? (revenue?.total24h ?? 0) + (bribeRevenue24h ?? 0) + (tokenTax24h ?? 0) : null
-	const revenue7d = revenueExists ? (revenue?.total7d ?? 0) + (bribeRevenue7d ?? 0) + (tokenTax7d ?? 0) : null
-	const revenue30d = revenueExists ? (revenue?.total30d ?? 0) + (bribeRevenue30d ?? 0) + (tokenTax30d ?? 0) : null
-	const revenueAllTime = revenueExists
-		? (revenue?.totalAllTime ?? 0) + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0)
-		: null
+	const adjusted = getAdjustedTotals(props.revenue, props.bribeRevenue, props.tokenTax, extraTvlsEnabled)
+	if (!adjusted) return null
 
 	const metrics = []
 
-	if (revenue30d != null) {
+	if (adjusted.total30d != null) {
 		metrics.push({
 			name: 'Revenue (Annualized)',
 			tooltipContent: definitions.revenue.protocol['annualized'],
-			value: revenue30d * 12.2
+			value: adjusted.total30d * 12.2
 		})
-
 		metrics.push({
 			name: 'Revenue 30d',
 			tooltipContent: definitions.revenue.protocol['30d'],
-			value: revenue30d
+			value: adjusted.total30d
 		})
 	}
-
-	if (revenue7d != null) {
+	if (adjusted.total7d != null) {
 		metrics.push({
 			name: 'Revenue 7d',
 			tooltipContent: definitions.revenue.protocol['7d'],
-			value: revenue7d
+			value: adjusted.total7d
 		})
 	}
-
-	if (revenue24h != null) {
+	if (adjusted.total24h != null) {
 		metrics.push({
 			name: 'Revenue 24h',
 			tooltipContent: definitions.revenue.protocol['24h'],
-			value: revenue24h
+			value: adjusted.total24h
 		})
 	}
-
-	if (revenueAllTime != null) {
+	if (adjusted.totalAllTime != null) {
 		metrics.push({
 			name: 'Cumulative Revenue',
 			tooltipContent: definitions.revenue.protocol['cumulative'],
-			value: revenueAllTime
+			value: adjusted.totalAllTime
 		})
 	}
 
@@ -706,73 +784,42 @@ function Revenue(props: IKeyMetricsProps) {
 function HoldersRevenue(props: IKeyMetricsProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
-	const holdersRevenue = props.holdersRevenue
-	const bribeRevenue = props.bribeRevenue
-	const tokenTax = props.tokenTax
-	const holdersRevenueExists =
-		holdersRevenue?.totalAllTime != null || bribeRevenue?.totalAllTime != null || tokenTax?.totalAllTime != null
-
-	if (!holdersRevenueExists) return null
-
-	const bribeRevenue24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
-	const bribeRevenue7d = extraTvlsEnabled.bribes ? bribeRevenue?.total7d : 0
-	const bribeRevenue30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
-	const bribeRevenueAllTime = extraTvlsEnabled.bribes ? bribeRevenue?.totalAllTime : 0
-	const tokenTax24h = extraTvlsEnabled.tokentax ? tokenTax?.total24h : 0
-	const tokenTax7d = extraTvlsEnabled.tokentax ? tokenTax?.total7d : 0
-	const tokenTax30d = extraTvlsEnabled.tokentax ? tokenTax?.total30d : 0
-	const tokenTaxAllTime = extraTvlsEnabled.tokentax ? tokenTax?.totalAllTime : 0
-
-	const holdersRevenue24h = holdersRevenueExists
-		? (holdersRevenue?.total24h ?? 0) + (bribeRevenue24h ?? 0) + (tokenTax24h ?? 0)
-		: null
-	const holdersRevenue7d = holdersRevenueExists
-		? (holdersRevenue?.total7d ?? 0) + (bribeRevenue7d ?? 0) + (tokenTax7d ?? 0)
-		: null
-	const holdersRevenue30d = holdersRevenueExists
-		? (holdersRevenue?.total30d ?? 0) + (bribeRevenue30d ?? 0) + (tokenTax30d ?? 0)
-		: null
-	const holdersRevenueAllTime = holdersRevenueExists
-		? (holdersRevenue?.totalAllTime ?? 0) + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0)
-		: null
+	const adjusted = getAdjustedTotals(props.holdersRevenue, props.bribeRevenue, props.tokenTax, extraTvlsEnabled)
+	if (!adjusted) return null
 
 	const metrics = []
 
-	if (holdersRevenue30d != null) {
+	if (adjusted.total30d != null) {
 		metrics.push({
 			name: 'Holders Revenue (Annualized)',
 			tooltipContent: definitions.holdersRevenue.protocol['annualized'],
-			value: holdersRevenue30d * 12.2
+			value: adjusted.total30d * 12.2
 		})
-
 		metrics.push({
 			name: 'Holders Revenue 30d',
 			tooltipContent: definitions.holdersRevenue.protocol['30d'],
-			value: holdersRevenue30d
+			value: adjusted.total30d
 		})
 	}
-
-	if (holdersRevenue7d != null) {
+	if (adjusted.total7d != null) {
 		metrics.push({
 			name: 'Holders Revenue 7d',
 			tooltipContent: definitions.holdersRevenue.protocol['7d'],
-			value: holdersRevenue7d
+			value: adjusted.total7d
 		})
 	}
-
-	if (holdersRevenue24h != null) {
+	if (adjusted.total24h != null) {
 		metrics.push({
 			name: 'Holders Revenue 24h',
 			tooltipContent: definitions.holdersRevenue.protocol['24h'],
-			value: holdersRevenue24h
+			value: adjusted.total24h
 		})
 	}
-
-	if (holdersRevenueAllTime != null) {
+	if (adjusted.totalAllTime != null) {
 		metrics.push({
 			name: 'Cumulative Holders Revenue',
 			tooltipContent: definitions.holdersRevenue.protocol['cumulative'],
-			value: holdersRevenueAllTime
+			value: adjusted.totalAllTime
 		})
 	}
 
@@ -847,37 +894,28 @@ function Earnings(props: IKeyMetricsProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
 	const revenue = props.revenue
-	const bribeRevenue = props.bribeRevenue
-	const tokenTax = props.tokenTax
 	const incentivesData = props.incentives
 
-	const bribeRevenue24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
-	const bribeRevenue7d = extraTvlsEnabled.bribes ? bribeRevenue?.total7d : 0
-	const bribeRevenue30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
-	const bribeRevenueAllTime = extraTvlsEnabled.bribes ? bribeRevenue?.totalAllTime : 0
-	const tokenTax24h = extraTvlsEnabled.tokentax ? tokenTax?.total24h : 0
-	const tokenTax7d = extraTvlsEnabled.tokentax ? tokenTax?.total7d : 0
-	const tokenTax30d = extraTvlsEnabled.tokentax ? tokenTax?.total30d : 0
-	const tokenTaxAllTime = extraTvlsEnabled.tokentax ? tokenTax?.totalAllTime : 0
+	if (!incentivesData && !revenue) return null
 
-	const revenue24h = revenue?.total24h != null ? revenue.total24h + (bribeRevenue24h ?? 0) + (tokenTax24h ?? 0) : null
-	const revenue7d = revenue?.total7d != null ? revenue.total7d + (bribeRevenue7d ?? 0) + (tokenTax7d ?? 0) : null
-	const revenue30d = revenue?.total30d != null ? revenue.total30d + (bribeRevenue30d ?? 0) + (tokenTax30d ?? 0) : null
-	const revenueAllTime =
-		revenue?.totalAllTime != null ? revenue.totalAllTime + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0) : null
+	const adjustedRevenue = getAdjustedTotals(revenue, props.bribeRevenue, props.tokenTax, extraTvlsEnabled)
 
 	const earnings24h =
-		revenue24h != null && incentivesData?.emissions24h != null ? revenue24h - incentivesData.emissions24h : null
-	const earnings7d =
-		revenue7d != null && incentivesData?.emissions7d != null ? revenue7d - incentivesData.emissions7d : null
-	const earnings30d =
-		revenue30d != null && incentivesData?.emissions30d != null ? revenue30d - incentivesData.emissions30d : null
-	const earningsAllTime =
-		revenueAllTime != null && incentivesData?.emissionsAllTime != null
-			? revenueAllTime - incentivesData.emissionsAllTime
+		adjustedRevenue && revenue?.total24h != null && incentivesData?.emissions24h != null
+			? adjustedRevenue.total24h - incentivesData.emissions24h
 			: null
-
-	if (!incentivesData && !revenue) return null
+	const earnings7d =
+		adjustedRevenue && revenue?.total7d != null && incentivesData?.emissions7d != null
+			? adjustedRevenue.total7d - incentivesData.emissions7d
+			: null
+	const earnings30d =
+		adjustedRevenue && revenue?.total30d != null && incentivesData?.emissions30d != null
+			? adjustedRevenue.total30d - incentivesData.emissions30d
+			: null
+	const earningsAllTime =
+		adjustedRevenue && revenue?.totalAllTime != null && incentivesData?.emissionsAllTime != null
+			? adjustedRevenue.totalAllTime - incentivesData.emissionsAllTime
+			: null
 
 	const metrics = []
 
@@ -887,14 +925,12 @@ function Earnings(props: IKeyMetricsProps) {
 			tooltipContent: definitions.earnings.protocol['annualized'],
 			value: earnings30d * 12.2
 		})
-
 		metrics.push({
 			name: 'Earnings 30d',
 			tooltipContent: definitions.earnings.protocol['30d'],
 			value: earnings30d
 		})
 	}
-
 	if (earnings7d != null) {
 		metrics.push({
 			name: 'Earnings 7d',
@@ -902,7 +938,6 @@ function Earnings(props: IKeyMetricsProps) {
 			value: earnings7d
 		})
 	}
-
 	if (earnings24h != null) {
 		metrics.push({
 			name: 'Earnings 24h',
@@ -910,7 +945,6 @@ function Earnings(props: IKeyMetricsProps) {
 			value: earnings24h
 		})
 	}
-
 	if (earningsAllTime != null) {
 		metrics.push({
 			name: 'Cumulative Earnings',
@@ -927,261 +961,6 @@ function Earnings(props: IKeyMetricsProps) {
 			formatPrice={props.formatPrice}
 			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
 			dataType="Earnings"
-		/>
-	)
-}
-
-function DexVolume(props: IKeyMetricsProps) {
-	if (!props.dexVolume) return null
-
-	const metrics = []
-
-	if (props.dexVolume.total30d != null) {
-		metrics.push({
-			name: 'DEX Volume 30d',
-			tooltipContent: definitions.dexs.protocol['30d'],
-			value: props.dexVolume.total30d
-		})
-	}
-	if (props.dexVolume.total7d != null) {
-		metrics.push({
-			name: 'DEX Volume 7d',
-			tooltipContent: definitions.dexs.protocol['7d'],
-			value: props.dexVolume.total7d
-		})
-	}
-	if (props.dexVolume.total24h != null) {
-		metrics.push({
-			name: 'DEX Volume 24h',
-			tooltipContent: definitions.dexs.protocol['24h'],
-			value: props.dexVolume.total24h
-		})
-	}
-	if (props.dexVolume.totalAllTime != null) {
-		metrics.push({
-			name: 'Cumulative DEX Volume',
-			tooltipContent: definitions.dexs.protocol['cumulative'],
-			value: props.dexVolume.totalAllTime
-		})
-	}
-
-	return (
-		<SmolStats
-			data={metrics}
-			protocolName={props.name}
-			category={props.category ?? ''}
-			formatPrice={props.formatPrice}
-			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
-			dataType="DEX Volume"
-		/>
-	)
-}
-
-function DexAggregatorVolume(props: IKeyMetricsProps) {
-	if (!props.dexAggregatorVolume) return null
-
-	const metrics = []
-
-	if (props.dexAggregatorVolume.total30d != null) {
-		metrics.push({
-			name: 'DEX Aggregator Volume 30d',
-			tooltipContent: definitions.dexAggregators.protocol['30d'],
-			value: props.dexAggregatorVolume.total30d
-		})
-	}
-	if (props.dexAggregatorVolume.total7d != null) {
-		metrics.push({
-			name: 'DEX Aggregator Volume 7d',
-			tooltipContent: definitions.dexAggregators.protocol['7d'],
-			value: props.dexAggregatorVolume.total7d
-		})
-	}
-	if (props.dexAggregatorVolume.total24h != null) {
-		metrics.push({
-			name: 'DEX Aggregator Volume 24h',
-			tooltipContent: definitions.dexAggregators.protocol['24h'],
-			value: props.dexAggregatorVolume.total24h
-		})
-	}
-	if (props.dexAggregatorVolume.totalAllTime != null) {
-		metrics.push({
-			name: 'Cumulative DEX Aggregator Volume',
-			tooltipContent: definitions.dexAggregators.protocol['cumulative'],
-			value: props.dexAggregatorVolume.totalAllTime
-		})
-	}
-
-	return (
-		<SmolStats
-			data={metrics}
-			protocolName={props.name}
-			category={props.category ?? ''}
-			formatPrice={props.formatPrice}
-			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
-			dataType="DEX Aggregator Volume"
-		/>
-	)
-}
-
-function PerpVolume(props: IKeyMetricsProps) {
-	if (!props.perpVolume) return null
-
-	const metrics = []
-
-	if (props.perpVolume.total30d != null) {
-		metrics.push({
-			name: 'Perp Volume 30d',
-			tooltipContent: definitions.perps.protocol['30d'],
-			value: props.perpVolume.total30d
-		})
-	}
-	if (props.perpVolume.total7d != null) {
-		metrics.push({
-			name: 'Perp Volume 7d',
-			tooltipContent: definitions.perps.protocol['7d'],
-			value: props.perpVolume.total7d
-		})
-	}
-	if (props.perpVolume.total24h != null) {
-		metrics.push({
-			name: 'Perp Volume 24h',
-			tooltipContent: definitions.perps.protocol['24h'],
-			value: props.perpVolume.total24h
-		})
-	}
-	if (props.perpVolume.totalAllTime != null) {
-		metrics.push({
-			name: 'Cumulative Perp Volume',
-			tooltipContent: definitions.perps.protocol['cumulative'],
-			value: props.perpVolume.totalAllTime
-		})
-	}
-
-	return (
-		<SmolStats
-			data={metrics}
-			protocolName={props.name}
-			category={props.category ?? ''}
-			formatPrice={props.formatPrice}
-			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
-			dataType="Perp Volume"
-		/>
-	)
-}
-
-function OpenInterest(props: IKeyMetricsProps) {
-	if (!props.openInterest) return null
-
-	const metrics = []
-
-	if (props.openInterest.total24h != null) {
-		metrics.push({
-			name: 'Open Interest',
-			tooltipContent: definitions.openInterest.protocol,
-			value: props.openInterest.total24h
-		})
-	}
-
-	return (
-		<SmolStats
-			data={metrics}
-			protocolName={props.name}
-			category={props.category ?? ''}
-			formatPrice={props.formatPrice}
-			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
-			dataType="Open Interest"
-		/>
-	)
-}
-
-function PerpAggregatorVolume(props: IKeyMetricsProps) {
-	if (!props.perpAggregatorVolume) return null
-
-	const metrics = []
-
-	if (props.perpAggregatorVolume.total30d != null) {
-		metrics.push({
-			name: 'Perp Aggregator Volume 30d',
-			tooltipContent: definitions.perpsAggregators.protocol['30d'],
-			value: props.perpAggregatorVolume.total30d
-		})
-	}
-	if (props.perpAggregatorVolume.total7d != null) {
-		metrics.push({
-			name: 'Perp Aggregator Volume 7d',
-			tooltipContent: definitions.perpsAggregators.protocol['7d'],
-			value: props.perpAggregatorVolume.total7d
-		})
-	}
-	if (props.perpAggregatorVolume.total24h != null) {
-		metrics.push({
-			name: 'Perp Aggregator Volume 24h',
-			tooltipContent: definitions.perpsAggregators.protocol['24h'],
-			value: props.perpAggregatorVolume.total24h
-		})
-	}
-	if (props.perpAggregatorVolume.totalAllTime != null) {
-		metrics.push({
-			name: 'Cumulative Perp Aggregator Volume',
-			tooltipContent: definitions.perpsAggregators.protocol['cumulative'],
-			value: props.perpAggregatorVolume.totalAllTime
-		})
-	}
-
-	return (
-		<SmolStats
-			data={metrics}
-			protocolName={props.name}
-			category={props.category ?? ''}
-			formatPrice={props.formatPrice}
-			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
-			dataType="Perp Aggregator Volume"
-		/>
-	)
-}
-
-function BridgeAggregatorVolume(props: IKeyMetricsProps) {
-	if (!props.bridgeAggregatorVolume) return null
-
-	const metrics = []
-
-	if (props.bridgeAggregatorVolume.total30d != null) {
-		metrics.push({
-			name: 'Bridge Aggregator Volume 30d',
-			tooltipContent: definitions.bridgeAggregators.protocol['30d'],
-			value: props.bridgeAggregatorVolume.total30d
-		})
-	}
-	if (props.bridgeAggregatorVolume.total7d != null) {
-		metrics.push({
-			name: 'Bridge Aggregator Volume 7d',
-			tooltipContent: definitions.bridgeAggregators.protocol['7d'],
-			value: props.bridgeAggregatorVolume.total7d
-		})
-	}
-	if (props.bridgeAggregatorVolume.total24h != null) {
-		metrics.push({
-			name: 'Bridge Aggregator Volume 24h',
-			tooltipContent: definitions.bridgeAggregators.protocol['24h'],
-			value: props.bridgeAggregatorVolume.total24h
-		})
-	}
-	if (props.bridgeAggregatorVolume.totalAllTime != null) {
-		metrics.push({
-			name: 'Cumulative Bridge Aggregator Volume',
-			tooltipContent: definitions.bridgeAggregators.protocol['cumulative'],
-			value: props.bridgeAggregatorVolume.totalAllTime
-		})
-	}
-
-	return (
-		<SmolStats
-			data={metrics}
-			protocolName={props.name}
-			category={props.category ?? ''}
-			formatPrice={props.formatPrice}
-			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
-			dataType="Bridge Aggregator Volume"
 		/>
 	)
 }
@@ -1257,98 +1036,6 @@ function BridgeVolume(props: IKeyMetricsProps) {
 			formatPrice={props.formatPrice}
 			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
 			dataType="Bridge Volume"
-		/>
-	)
-}
-
-function OptionsPremiumVolume(props: IKeyMetricsProps) {
-	if (!props.optionsPremiumVolume) return null
-
-	const metrics = []
-
-	if (props.optionsPremiumVolume.total30d != null) {
-		metrics.push({
-			name: 'Options Premium Volume 30d',
-			tooltipContent: definitions.optionsPremium.protocol['30d'],
-			value: props.optionsPremiumVolume.total30d
-		})
-	}
-	if (props.optionsPremiumVolume.total7d != null) {
-		metrics.push({
-			name: 'Options Premium Volume 7d',
-			tooltipContent: definitions.optionsPremium.protocol['7d'],
-			value: props.optionsPremiumVolume.total7d
-		})
-	}
-	if (props.optionsPremiumVolume.total24h != null) {
-		metrics.push({
-			name: 'Options Premium Volume 24h',
-			tooltipContent: definitions.optionsPremium.protocol['24h'],
-			value: props.optionsPremiumVolume.total24h
-		})
-	}
-	if (props.optionsPremiumVolume.totalAllTime != null) {
-		metrics.push({
-			name: 'Cumulative Options Premium Volume',
-			tooltipContent: definitions.optionsPremium.protocol['cumulative'],
-			value: props.optionsPremiumVolume.totalAllTime
-		})
-	}
-
-	return (
-		<SmolStats
-			data={metrics}
-			protocolName={props.name}
-			category={props.category ?? ''}
-			formatPrice={props.formatPrice}
-			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
-			dataType="Options Premium Volume"
-		/>
-	)
-}
-
-function OptionsNotionalVolume(props: IKeyMetricsProps) {
-	if (!props.optionsNotionalVolume) return null
-
-	const metrics = []
-
-	if (props.optionsNotionalVolume.total30d != null) {
-		metrics.push({
-			name: 'Options Notional Volume 30d',
-			tooltipContent: definitions.optionsNotional.protocol['30d'],
-			value: props.optionsNotionalVolume.total30d
-		})
-	}
-	if (props.optionsNotionalVolume.total7d != null) {
-		metrics.push({
-			name: 'Options Notional Volume 7d',
-			tooltipContent: definitions.optionsNotional.protocol['7d'],
-			value: props.optionsNotionalVolume.total7d
-		})
-	}
-	if (props.optionsNotionalVolume.total24h != null) {
-		metrics.push({
-			name: 'Options Notional Volume 24h',
-			tooltipContent: definitions.optionsNotional.protocol['24h'],
-			value: props.optionsNotionalVolume.total24h
-		})
-	}
-	if (props.optionsNotionalVolume.totalAllTime != null) {
-		metrics.push({
-			name: 'Cumulative Options Notional Volume',
-			tooltipContent: definitions.optionsNotional.protocol['cumulative'],
-			value: props.optionsNotionalVolume.totalAllTime
-		})
-	}
-
-	return (
-		<SmolStats
-			data={metrics}
-			protocolName={props.name}
-			category={props.category ?? ''}
-			formatPrice={props.formatPrice}
-			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
-			dataType="Options Notional Volume"
 		/>
 	)
 }

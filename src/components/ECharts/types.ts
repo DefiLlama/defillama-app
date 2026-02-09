@@ -1,5 +1,4 @@
 import * as echarts from 'echarts/core'
-import * as React from 'react'
 
 type Value = string | number | boolean
 
@@ -42,7 +41,6 @@ export interface IChartProps {
 	connectNulls?: boolean
 	alwaysShowTooltip?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
-	customComponents?: React.ReactNode
 	enableImageExport?: boolean
 	imageExportFilename?: string
 	imageExportTitle?: string
@@ -72,7 +70,6 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 	stacks?: {
 		[stack: string]: string
 	}
-	customComponents?: React.ReactNode
 	orientation?: 'vertical' | 'horizontal'
 }
 
@@ -229,7 +226,6 @@ export interface IPieChartProps {
 		orient?: 'horizontal' | 'vertical'
 	}
 	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: any }
-	customComponents?: React.ReactNode
 	/**
 	 * Controls the built-in export toolbar.
 	 */
@@ -272,7 +268,7 @@ export interface ISankeyChartProps {
 	valueSymbol?: string
 	nodeAlign?: 'left' | 'right' | 'justify'
 	orient?: 'horizontal' | 'vertical'
-	customComponents?: React.ReactNode
+	onReady?: (instance: echarts.ECharts | null) => void
 	enableImageExport?: boolean
 	imageExportFilename?: string
 	imageExportTitle?: string

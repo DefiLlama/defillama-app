@@ -398,6 +398,9 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 					chartContent = (
 						<Suspense fallback={<div className="h-[338px]" />}>
 							<div className="flex items-center justify-end gap-1 p-2 pt-0">
+								{(adaptedChart.props as IBarChartProps).title ? (
+									<h1 className="mr-auto text-base font-semibold">{(adaptedChart.props as IBarChartProps).title}</h1>
+								) : null}
 								<AddToDashboardButton
 									chartConfig={null}
 									llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
@@ -409,6 +412,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 								key={chartKey}
 								chartData={adaptedChart.data}
 								{...(adaptedChart.props as IBarChartProps)}
+								title={undefined}
 								hideDownloadButton={true}
 							/>
 						</Suspense>
@@ -447,17 +451,19 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 							}
 						}
 					}
+					const resolvedNtsTitle = (adaptedChart.props as any)?.title || config.title
 					chartContent = (
 						<Suspense fallback={<div className="h-[338px]" />}>
 							<div className="flex items-center justify-end gap-1 p-2 pt-0">
+								{resolvedNtsTitle ? <h1 className="mr-auto text-base font-semibold">{resolvedNtsTitle}</h1> : null}
 								<AddToDashboardButton
 									chartConfig={null}
-									llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
+									llamaAIChart={messageId ? { messageId, chartId: config.id, title: resolvedNtsTitle } : null}
 									smol
 								/>
 								<CSVDownloadButton prepareCsv={prepareCsv} smol />
 							</div>
-							<MultiSeriesChart key={chartKey} {...multiSeriesProps} />
+							<MultiSeriesChart key={chartKey} {...multiSeriesProps} title={undefined} />
 						</Suspense>
 					)
 				}
@@ -467,12 +473,14 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 				const hbarData = adaptedChart.data as Array<[any, number]>
 				const hbarCategories = hbarData.map(([cat]) => cat)
 				const hbarValues = hbarData.map(([, val]) => val)
+				const resolvedHbarTitle = (adaptedChart.props as any)?.title || config.title
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
 						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							{resolvedHbarTitle ? <h1 className="mr-auto text-base font-semibold">{resolvedHbarTitle}</h1> : null}
 							<AddToDashboardButton
 								chartConfig={null}
-								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
+								llamaAIChart={messageId ? { messageId, chartId: config.id, title: resolvedHbarTitle } : null}
 								smol
 							/>
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
@@ -493,6 +501,9 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
 						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							{(adaptedChart.props as IChartProps).title ? (
+								<h1 className="mr-auto text-base font-semibold">{(adaptedChart.props as IChartProps).title}</h1>
+							) : null}
 							<AddToDashboardButton
 								chartConfig={null}
 								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
@@ -504,6 +515,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 							key={chartKey}
 							chartData={adaptedChart.data}
 							{...(adaptedChart.props as IChartProps)}
+							title={undefined}
 							connectNulls={true}
 							hideDownloadButton={true}
 						/>
@@ -515,6 +527,9 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
 						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							{(adaptedChart.props as any).title ? (
+								<h1 className="mr-auto text-base font-semibold">{(adaptedChart.props as any).title}</h1>
+							) : null}
 							<AddToDashboardButton
 								chartConfig={null}
 								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
@@ -522,7 +537,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 							/>
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 						</div>
-						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
+						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} title={undefined} connectNulls={true} />
 					</Suspense>
 				)
 				break
@@ -531,6 +546,9 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
 						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							{(adaptedChart.props as any).title ? (
+								<h1 className="mr-auto text-base font-semibold">{(adaptedChart.props as any).title}</h1>
+							) : null}
 							<AddToDashboardButton
 								chartConfig={null}
 								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
@@ -538,7 +556,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 							/>
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 						</div>
-						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
+						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} title={undefined} connectNulls={true} />
 					</Suspense>
 				)
 				break
@@ -546,20 +564,18 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 			case 'pie':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<PieChart
-							key={chartKey}
-							{...(adaptedChart.props as IPieChartProps)}
-							customComponents={
-								<>
-									<AddToDashboardButton
-										chartConfig={null}
-										llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
-										smol
-									/>
-									<CSVDownloadButton prepareCsv={prepareCsv} smol />
-								</>
-							}
-						/>
+						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							{(adaptedChart.props as IPieChartProps).title ? (
+								<h1 className="mr-auto text-base font-semibold">{(adaptedChart.props as IPieChartProps).title}</h1>
+							) : null}
+							<AddToDashboardButton
+								chartConfig={null}
+								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
+								smol
+							/>
+							<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						</div>
+						<PieChart key={chartKey} {...(adaptedChart.props as IPieChartProps)} title={undefined} />
 					</Suspense>
 				)
 				break
@@ -568,6 +584,9 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 				chartContent = (
 					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							{(adaptedChart.props as IScatterChartProps).title ? (
+								<h1 className="mr-auto text-base font-semibold">{(adaptedChart.props as IScatterChartProps).title}</h1>
+							) : null}
 							<AddToDashboardButton
 								chartConfig={null}
 								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
@@ -578,6 +597,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 						<ScatterChart
 							key={chartKey}
 							{...(adaptedChart.props as IScatterChartProps)}
+							title={undefined}
 							height="360px"
 							showLabels={chartState.showLabels}
 						/>

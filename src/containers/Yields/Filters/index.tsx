@@ -2,11 +2,10 @@ import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { DialogForm } from '~/components/DialogForm'
+import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { Icon } from '~/components/Icon'
-import { NestedMenu } from '~/components/NestedMenu'
 import { ConfirmationModal } from '~/containers/ProDashboard/components/ConfirmationModal'
 import { useYieldFilters } from '~/contexts/LocalStorage'
-import { useIsClient } from '~/hooks/useIsClient'
 import { useMedia } from '~/hooks/useMedia'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 import { YieldsSearch } from '../Search'
@@ -135,7 +134,6 @@ export function YieldFiltersV2({
 				: null
 
 	const isSmall = useMedia(`(max-width: 639px)`)
-	const isClient = useIsClient()
 
 	const { query } = useRouter()
 
@@ -162,22 +160,9 @@ export function YieldFiltersV2({
 				{tokens && (showSearchOnMobile || !isSmall) ? (
 					<IncludeExcludeTokens tokens={tokens} data-alwaysdisplay={showSearchOnMobile} />
 				) : null}
-				<div className="flex min-h-9 flex-wrap gap-2 *:flex-1 sm:hidden">
-					{isSmall && isClient ? (
-						<React.Suspense fallback={<></>}>
-							<NestedMenu label="Filters">
-								<YieldFilterDropdowns {...props} nestedMenu />
-							</NestedMenu>
-						</React.Suspense>
-					) : null}
-				</div>
-				<div className="hidden min-h-8 flex-wrap gap-2 sm:flex">
-					{!isSmall && isClient ? (
-						<React.Suspense fallback={<></>}>
-							<YieldFilterDropdowns {...props} />
-						</React.Suspense>
-					) : null}
-				</div>
+				<ResponsiveFilterLayout>
+					{(nestedMenu) => <YieldFilterDropdowns {...props} nestedMenu={nestedMenu} />}
+				</ResponsiveFilterLayout>
 			</div>
 		</div>
 	)

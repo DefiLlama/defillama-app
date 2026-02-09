@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { startTransition } from 'react'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
-import { NestedMenu } from '~/components/NestedMenu'
+import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import type { IRWAAssetsOverview } from './queries'
@@ -77,15 +77,9 @@ export function RWAOverviewFilters(props: RWAOverviewFiltersProps) {
 
 	return (
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
-			<div className="flex min-h-9 flex-wrap gap-2 *:flex-1 sm:invisible sm:hidden">
-				<NestedMenu label="Filters" className="w-full">
-					<Filters {...props} nestedMenu />
-				</NestedMenu>
-			</div>
-
-			<div className="invisible hidden min-h-[116px] flex-wrap items-center gap-2 min-[1260px]:min-h-[78px] min-[2102px]:min-h-[40px] sm:visible sm:flex">
-				<Filters {...props} />
-			</div>
+			<ResponsiveFilterLayout desktopClassName="hidden min-h-[116px] flex-wrap items-center gap-2 min-[1260px]:min-h-[78px] min-[2102px]:min-h-[40px] sm:flex">
+				{(nestedMenu) => <Filters {...props} nestedMenu={nestedMenu} />}
+			</ResponsiveFilterLayout>
 		</div>
 	)
 }

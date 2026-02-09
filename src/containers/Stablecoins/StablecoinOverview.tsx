@@ -17,7 +17,7 @@ import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { UNRELEASED, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
-import { capitalizeFirstLetter, formattedNum, getBlockExplorer, peggedAssetIconUrl, slug, toNiceCsvDate } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, getBlockExplorer, peggedAssetIconUrl, slug } from '~/utils'
 import { PeggedAssetByChainTable } from './Table'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
