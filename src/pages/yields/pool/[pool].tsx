@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
@@ -12,7 +11,6 @@ import { LocalLoader } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
-import { YIELD_RISK_API_EXPONENTIAL } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import type { YieldsChartConfig, YieldChartType } from '~/containers/ProDashboard/types'
 import {
@@ -24,7 +22,6 @@ import {
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
-import { fetchApi } from '~/utils/async'
 
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -68,36 +65,6 @@ const EMPTY_LIQUIDITY_DATASET: MultiSeriesChart2Dataset = {
 	dimensions: ['timestamp', 'Supplied', 'Borrowed', 'Available']
 }
 
-const getRatingColor = (rating) => {
-	switch (rating?.toLowerCase()) {
-		case 'green':
-			return { backgroundColor: '#009400', color: 'white' }
-		case 'yellow':
-			return { backgroundColor: '#b69f1c', color: 'black' }
-		case 'red':
-			return { backgroundColor: 'firebrick', color: 'white' }
-		default:
-			return { backgroundColor: '#9E9E9E', color: 'white' }
-	}
-}
-
-const getRatingDescription = (rating) => {
-	switch (rating?.toLowerCase()) {
-		case 'a':
-			return 'Lowest risk'
-		case 'b':
-			return 'Low risk'
-		case 'c':
-			return 'Medium risk'
-		case 'd':
-			return 'High risk'
-		case 'f':
-			return 'Highest risk'
-		default:
-			return 'Not rated'
-	}
-}
-
 const PageView = (_props) => {
 	const { query, isReady } = useRouter()
 
@@ -117,28 +84,6 @@ const PageView = (_props) => {
 
 	const { chartInstance: poolLiquidityChartInstance, handleChartReady: handlePoolLiquidityReady } =
 		useGetChartInstance()
-
-	const riskUrl = poolData?.project
-		? `${YIELD_RISK_API_EXPONENTIAL}?${new URLSearchParams({
-				pool_old: cleanPool(poolData.pool_old),
-				chain: poolData.chain?.toLowerCase(),
-				project: poolData.project,
-				tvlUsd: poolData.tvlUsd.toString()
-			})}&${poolData.underlyingTokens
-				?.map((token) => `underlyingTokens[]=${encodeURIComponent(token?.toLowerCase())}`)
-				.join('&')}`
-		: null
-	const {
-		data: riskData,
-		isLoading: isRiskLoading,
-		error: riskError
-	} = useQuery({
-		queryKey: ['risk-data', riskUrl],
-		queryFn: riskUrl ? () => fetchApi(riskUrl).then((data) => data.data.data) : () => null,
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0
-	})
 
 	const poolId = typeof query.pool === 'string' ? query.pool : null
 
@@ -320,13 +265,6 @@ const PageView = (_props) => {
 		}
 	}, [chart, chartBorrow, category])
 
-	const hasRiskData =
-		!isRiskLoading &&
-		!riskError &&
-		(riskData?.assets?.underlying?.some((a) => a?.rating) ||
-			riskData?.protocols?.underlying?.some((p) => p?.rating) ||
-			riskData?.chain?.underlying?.some((c) => c?.rating))
-
 	const liquidityCharts = useMemo(() => {
 		return LIQUIDITY_LEGEND_OPTIONS.map((name) => ({
 			type: 'line' as const,
@@ -380,32 +318,6 @@ const PageView = (_props) => {
 						</p>
 					</div>
 
-					{hasRiskData && (
-						<p className="flex flex-col items-start gap-1">
-							<span className="font-semibold">Total Risk Rating</span>
-							<span className="flex flex-nowrap items-center gap-2">
-								<span
-									className={`flex h-7 w-7 items-center justify-center rounded-full text-base font-bold ${
-										riskData?.pool_rating ? 'text-base' : 'text-sm'
-									}`}
-									style={getRatingColor(riskData?.pool_rating_color)}
-								>
-									{riskData?.pool_rating || 'N/A'}
-								</span>
-								<a
-									href={riskData?.pool_url ? riskData?.pool_url : `https://exponential.fi/about-us`}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="flex items-center gap-1 font-jetbrains text-xl font-semibold hover:underline"
-								>
-									<span>{getRatingDescription(riskData?.pool_rating)}</span>
-									<Icon name="external-link" height={16} width={16} />
-								</a>
-							</span>
-							<span className="mt-1 text-xs">Assessed by exponential.fi</span>
-						</p>
-					)}
-
 					<p className="flex flex-col gap-1">
 						<span className="font-semibold">Outlook</span>
 						<span className="leading-normal">
@@ -441,125 +353,6 @@ const PageView = (_props) => {
 			</div>
 
 			<div className="grid grid-cols-2 gap-2">
-				{hasRiskData && (
-					<div className="col-span-2 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
-						<h2 className="flex items-center text-lg font-bold">
-							Risk Rating by exponential.fi{' '}
-							<img src="/assets/exponential.avif" height={24} width={24} style={{ marginBottom: 6 }} alt="" />
-						</h2>
-						<div className="relative flex flex-col items-start gap-3">
-							<div className="relative flex w-full flex-1 flex-col justify-between gap-3">
-								<div className="flex items-center gap-2 rounded-2xl border border-(--form-control-border) p-1">
-									<p
-										className="flex w-20 items-center justify-center rounded-xl py-1 text-sm font-bold"
-										style={getRatingColor(riskData?.pool_design?.rating_color)}
-									>
-										{riskData?.pool_design?.rating || 'N/A'}
-									</p>
-									<p className="flex-1 text-sm">Pool Design</p>
-								</div>
-								<div className="flex items-center gap-2 rounded-2xl border border-(--form-control-border) p-1">
-									<p
-										className="flex w-20 items-center justify-center rounded-xl py-1 text-sm font-bold"
-										style={getRatingColor(riskData?.assets?.rating_color)}
-									>
-										{riskData?.assets?.rating || 'N/A'}
-									</p>
-									<p className="flex-1 text-sm">Assets</p>
-									<div className="ml-auto flex items-center gap-1">
-										{riskData?.assets?.underlying?.map((asset) => (
-											<a
-												className="flex items-center gap-1 rounded-2xl border px-2 py-1 text-xs"
-												key={`asset-underlying-${asset.name}-${asset.url}`}
-												style={{ borderColor: getRatingColor(asset.rating_color).backgroundColor }}
-												href={asset.url}
-												target="_blank"
-												rel="noreferrer noopener"
-											>
-												{asset.name} {asset.url ? <Icon name="arrow-up-right" height={14} width={14} /> : null}
-											</a>
-										))}
-									</div>
-								</div>
-								<div className="flex items-center gap-2 rounded-2xl border border-(--form-control-border) p-1">
-									<p
-										className="flex w-20 items-center justify-center rounded-xl py-1 text-sm font-bold"
-										style={getRatingColor(riskData?.protocols?.underlying[0]?.rating_color)}
-									>
-										{riskData?.protocols?.underlying[0]?.rating || 'N/A'}
-									</p>
-									<p className="flex-1 text-sm">Protocols</p>
-									<div className="ml-auto flex items-center gap-1">
-										{riskData?.protocols?.underlying
-											?.filter((p) => p?.name)
-											.map((protocol) => (
-												<a
-													className="flex items-center gap-1 rounded-2xl border px-2 py-1 text-xs"
-													key={`protocol-underlying-${protocol.name}-${protocol.url}`}
-													style={{ borderColor: getRatingColor(protocol.rating_color).backgroundColor }}
-													href={protocol.url}
-													target="_blank"
-													rel="noreferrer noopener"
-												>
-													{protocol.name} {protocol.url ? <Icon name="arrow-up-right" height={14} width={14} /> : null}
-												</a>
-											))}
-									</div>
-								</div>
-								<div className="flex items-center gap-2 rounded-2xl border border-(--form-control-border) p-1">
-									<p
-										className="flex w-20 items-center justify-center rounded-xl py-1 text-sm font-bold"
-										style={getRatingColor(riskData?.chain?.rating_color)}
-									>
-										{riskData?.chain?.rating || 'N/A'}
-									</p>
-									<p className="flex-1 text-sm">Chain</p>
-									<div className="ml-auto flex items-center gap-1">
-										{riskData?.chain?.underlying
-											?.filter((c) => c?.name)
-											.map((chain) => (
-												<a
-													className="flex items-center gap-1 rounded-2xl border px-2 py-1 text-xs"
-													key={`chain-underlying-${chain.name}-${chain.url}`}
-													style={{ borderColor: getRatingColor(chain.rating_color).backgroundColor }}
-													href={chain.url}
-													target="_blank"
-													rel="noreferrer noopener"
-												>
-													{chain.name} {chain.url ? <Icon name="arrow-up-right" height={14} width={14} /> : null}
-												</a>
-											))}
-									</div>
-								</div>
-							</div>
-							<div className="relative flex w-full flex-1 flex-col justify-between gap-3">
-								<div className="flex min-w-[160px] items-center justify-between rounded-xl px-1">
-									<h3 className="flex items-center gap-1 text-base font-bold">
-										<span
-											className={`flex h-7 w-7 items-center justify-center rounded-full ${
-												riskData?.pool_rating ? 'text-base' : 'text-sm'
-											}`}
-											style={getRatingColor(riskData?.pool_rating_color)}
-										>
-											{riskData?.pool_rating || 'N/A'}
-										</span>
-										<span>{getRatingDescription(riskData?.pool_rating)}</span>
-									</h3>
-									<a
-										href={riskData?.pool_url || 'https://exponential.fi/about-us'}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="flex items-center gap-2 font-medium text-(--link-text) hover:underline"
-									>
-										<span>{riskData?.pool_url ? 'Open Report' : 'About exponential.fi'}</span>
-										<Icon name="external-link" height={16} width={16} />
-									</a>
-								</div>
-							</div>
-						</div>
-					</div>
-				)}
-
 				{isLoading ? (
 					<div className="col-span-full flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 						<LocalLoader />
@@ -778,20 +571,6 @@ const liquidityChartColors: Record<string, string> = {
 }
 
 const LIQUIDITY_LEGEND_OPTIONS: string[] = ['Supplied', 'Borrowed', 'Available']
-
-function cleanPool(pool) {
-	// some pool fields contain chain (or other) info as prefix/suffix
-	// need to remove these parts from api call, otherwise we won't receive the total risk score
-
-	// for 0x addresses
-	// match 0x followed by at least 40 hexadecimal characters (balancer pool ids have length 64)
-	const pattern = /0x[a-fA-F0-9]{40,}/
-
-	const match = pool.match(pattern)
-
-	// for non 0x addresses return pool as is
-	return match ? match[0] : pool
-}
 
 export default function YieldPoolPage(props) {
 	return (
