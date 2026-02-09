@@ -4,9 +4,12 @@ import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportBu
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartCleanup } from '~/hooks/useChartCleanup'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useChartResize } from '~/hooks/useChartResize'
 import { slug, toNiceCsvDate } from '~/utils'
+import { ChartContainer } from '../ChartContainer'
+import { ChartHeader } from '../ChartHeader'
 import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { mergeDeep, stringToColour } from '../utils'
@@ -28,7 +31,6 @@ export default function BarChart({
 	hideDataZoom = false,
 	hideDownloadButton = false,
 	containerClassName,
-	customComponents,
 	onReady,
 	enableImageExport,
 	imageExportFilename,
@@ -238,24 +240,14 @@ export default function BarChart({
 		onReady
 	])
 
-	useEffect(() => {
-		return () => {
-			const chartDom = document.getElementById(id)
-			if (chartDom) {
-				const chartInstance = echarts.getInstanceByDom(chartDom)
-				if (chartInstance) {
-					chartInstance.dispose()
-				}
-			}
-			if (chartRef.current) {
-				chartRef.current = null
-			}
-			if (onReady) {
-				onReady(null)
-			}
+	useChartCleanup(
+		id,
+		useCallback(() => {
+			chartRef.current = null
+			onReady?.(null)
 			updateExportInstance(null)
-		}
-	}, [id, onReady, updateExportInstance])
+		}, [onReady, updateExportInstance])
+	)
 
 	const showLegend = Boolean(customLegendName && customLegendOptions?.length > 1)
 
@@ -279,33 +271,42 @@ export default function BarChart({
 	}
 
 	return (
-		<div className="relative">
-			{title || showLegend || !hideDownloadButton ? (
-				<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
-					{title && <h1 className="mr-auto text-base font-semibold">{title}</h1>}
-					{customComponents ?? null}
-					{customLegendName && customLegendOptions?.length > 1 && (
-						<SelectWithCombobox
-							allValues={customLegendOptions}
-							selectedValues={legendOptions}
-							setSelectedValues={setLegendOptions}
-							label={customLegendName}
-							labelType="smol"
-							variant="filter"
-							portal
-						/>
-					)}
-					{!hideDownloadButton && <CSVDownloadButton prepareCsv={prepareCsv} smol />}
-					{shouldEnableExport && (
-						<ChartPngExportButton chartInstance={exportChartInstance} filename={exportFilename} title={exportTitle} />
-					)}
-				</div>
-			) : null}
-			<div
-				id={id}
-				className={containerClassName ? containerClassName : 'mx-0 my-auto h-[360px]'}
-				style={height ? { height } : undefined}
-			></div>
-		</div>
+		<ChartContainer
+			id={id}
+			chartClassName={containerClassName ?? 'mx-0 my-auto h-[360px]'}
+			chartStyle={height ? { height } : undefined}
+			header={
+				title || showLegend || !hideDownloadButton ? (
+					<ChartHeader
+						title={title}
+						customComponents={
+							customLegendName && customLegendOptions?.length > 1 ? (
+								<SelectWithCombobox
+									allValues={customLegendOptions}
+									selectedValues={legendOptions}
+									setSelectedValues={setLegendOptions}
+									label={customLegendName}
+									labelType="smol"
+									variant="filter"
+									portal
+								/>
+							) : null
+						}
+						exportButtons={
+							<>
+								{!hideDownloadButton ? <CSVDownloadButton prepareCsv={prepareCsv} smol /> : null}
+								{shouldEnableExport ? (
+									<ChartPngExportButton
+										chartInstance={exportChartInstance}
+										filename={exportFilename}
+										title={exportTitle}
+									/>
+								) : null}
+							</>
+						}
+					/>
+				) : null
+			}
+		/>
 	)
 }

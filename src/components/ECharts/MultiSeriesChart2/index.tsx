@@ -19,6 +19,8 @@ import { useChartResize } from '~/hooks/useChartResize'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useMedia } from '~/hooks/useMedia'
 import { formatNum, formattedNum, slug } from '~/utils'
+import { ChartContainer } from '../ChartContainer'
+import { ChartHeader } from '../ChartHeader'
 import { formatChartEmphasisDate, formatTooltipChartDate } from '../formatters'
 import type { IMultiSeriesChart2Props } from '../types'
 import { mergeDeep } from '../utils'
@@ -864,20 +866,27 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	])
 
 	return (
-		<div className="relative">
-			{title || shouldEnableCSVDownload || shouldEnableImageExport ? (
-				<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-					{title ? <h1 className="mr-auto text-base font-semibold">{title}</h1> : null}
-					<ChartExportButtons
-						chartInstance={chartInstance}
-						filename={exportFilename}
-						title={exportTitle}
-						showCsv={shouldEnableCSVDownload}
-						showPng={shouldEnableImageExport}
+		<ChartContainer
+			id={id}
+			chartClassName="h-[360px]"
+			chartStyle={height ? { height } : undefined}
+			header={
+				title || shouldEnableCSVDownload || shouldEnableImageExport ? (
+					<ChartHeader
+						title={title}
+						className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0"
+						exportButtons={
+							<ChartExportButtons
+								chartInstance={chartInstance}
+								filename={exportFilename}
+								title={exportTitle}
+								showCsv={shouldEnableCSVDownload}
+								showPng={shouldEnableImageExport}
+							/>
+						}
 					/>
-				</div>
-			) : null}
-			<div id={id} className="h-[360px]" style={height ? { height } : undefined}></div>
-		</div>
+				) : null
+			}
+		/>
 	)
 }

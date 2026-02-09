@@ -10,22 +10,22 @@ import { DEFAULT_PORTFOLIO_NAME } from '~/contexts/LocalStorage'
 import { useBookmarks } from '~/hooks/useBookmarks'
 import { useIsClient } from '~/hooks/useIsClient'
 
-export function YieldsWatchlistContainer({ protocolsDict }) {
-	const columnFilterProps = {
-		show7dBaseApy: true,
-		show7dIL: true,
-		show1dVolume: true,
-		show7dVolume: true,
-		showInceptionApy: true,
-		showBorrowBaseApy: true,
-		showBorrowRewardApy: true,
-		showNetBorrowApy: true,
-		showLTV: true,
-		showTotalSupplied: true,
-		showTotalBorrowed: true,
-		showAvailable: true
-	}
+const ALL_YIELD_COLUMNS = [
+	'show7dBaseApy',
+	'show7dIL',
+	'show1dVolume',
+	'show7dVolume',
+	'showInceptionApy',
+	'showBorrowBaseApy',
+	'showBorrowRewardApy',
+	'showNetBorrowApy',
+	'showLTV',
+	'showTotalSupplied',
+	'showTotalBorrowed',
+	'showAvailable'
+]
 
+export function YieldsWatchlistContainer({ protocolsDict }) {
 	const isClient = useIsClient()
 
 	const { portfolios, selectedPortfolio, savedProtocols, addPortfolio, removePortfolio, setSelectedPortfolio } =
@@ -116,7 +116,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 							<span>Delete</span>
 						</button>
 					)}
-					<ColumnFilters {...columnFilterProps} />
+					<ColumnFilters enabledColumns={ALL_YIELD_COLUMNS} />
 				</div>
 
 				{filteredProtocols.length ? (

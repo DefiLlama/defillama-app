@@ -9,6 +9,8 @@ import { useChartResize } from '~/hooks/useChartResize'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useMedia } from '~/hooks/useMedia'
 import { formattedNum } from '~/utils'
+import { ChartContainer } from '../ChartContainer'
+import { ChartHeader } from '../ChartHeader'
 import type { IPieChartProps } from '../types'
 import { formatTooltipValue } from '../useDefaults'
 
@@ -35,7 +37,6 @@ export default function PieChart({
 	toRight,
 	formatTooltip,
 	customLabel,
-	customComponents,
 	exportButtons,
 	onReady,
 	...props
@@ -433,24 +434,29 @@ export default function PieChart({
 		percentByName
 	])
 
-	const showToolbar = title || customComponents || imageExportEnabled || csvDownloadEnabled
-
 	return (
-		<div className="relative" {...props}>
-			{showToolbar ? (
-				<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-					{title ? <h1 className="mr-auto text-base font-semibold">{title}</h1> : null}
-					{customComponents ?? null}
-					<ChartExportButtons
-						chartInstance={chartInstance}
-						filename={exportFilename}
-						title={exportTitle}
-						showCsv={csvDownloadEnabled}
-						showPng={imageExportEnabled}
+		<ChartContainer
+			id={id}
+			chartClassName="mx-0 my-auto h-[360px]"
+			chartStyle={height ? { height } : undefined}
+			header={
+				title || imageExportEnabled || csvDownloadEnabled ? (
+					<ChartHeader
+						title={title}
+						className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0"
+						exportButtons={
+							<ChartExportButtons
+								chartInstance={chartInstance}
+								filename={exportFilename}
+								title={exportTitle}
+								showCsv={csvDownloadEnabled}
+								showPng={imageExportEnabled}
+							/>
+						}
 					/>
-				</div>
-			) : null}
-			<div id={id} className="mx-0 my-auto h-[360px]" style={height ? { height } : undefined}></div>
-		</div>
+				) : null
+			}
+			{...props}
+		/>
 	)
 }

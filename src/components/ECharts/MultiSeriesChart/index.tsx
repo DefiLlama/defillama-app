@@ -1,7 +1,9 @@
 import * as echarts from 'echarts/core'
 import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartCleanup } from '~/hooks/useChartCleanup'
 import { useChartResize } from '~/hooks/useChartResize'
+import { ChartContainer } from '../ChartContainer'
 import { formatTooltipValue, useDefaults } from '../useDefaults'
 import { mergeDeep } from '../utils'
 
@@ -274,22 +276,10 @@ export default function MultiSeriesChart({
 		yAxisSymbols
 	])
 
-	useEffect(() => {
-		return () => {
-			const chartDom = document.getElementById(id)
-			if (chartDom) {
-				const chartInstance = echarts.getInstanceByDom(chartDom)
-				if (chartInstance) {
-					chartInstance.dispose()
-				}
-			}
-			updateChartInstance(null)
-		}
-	}, [id, updateChartInstance])
-
-	return (
-		<div className="relative">
-			<div id={id} className="my-auto h-[360px]" style={height ? { height } : undefined}></div>
-		</div>
+	useChartCleanup(
+		id,
+		useCallback(() => updateChartInstance(null), [updateChartInstance])
 	)
+
+	return <ChartContainer id={id} chartClassName="my-auto h-[360px]" chartStyle={height ? { height } : undefined} />
 }

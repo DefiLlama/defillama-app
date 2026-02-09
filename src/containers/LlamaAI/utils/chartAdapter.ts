@@ -191,7 +191,9 @@ function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedC
 			height: '360px',
 			stackColors,
 			valueSymbol: config.valueSymbol ?? '',
-			showLegend: true
+			showLegend: true,
+			legendPosition: { right: 12, top: 'middle', orient: 'vertical' },
+			toRight: 200
 		}
 
 		return {

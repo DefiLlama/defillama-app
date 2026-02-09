@@ -8,6 +8,8 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
+import { ChartContainer } from '../ChartContainer'
+import { ChartHeader } from '../ChartHeader'
 import type { ISankeyChartProps } from '../types'
 import { formatTooltipValue } from '../useDefaults'
 
@@ -22,7 +24,7 @@ export default function SankeyChart({
 	nodeColors,
 	nodeAlign = 'justify',
 	orient = 'horizontal',
-	customComponents,
+	onReady,
 	enableImageExport = false,
 	imageExportFilename,
 	imageExportTitle,
@@ -187,26 +189,39 @@ export default function SankeyChart({
 		})
 
 		handleChartReady(instance)
+		onReady?.(instance)
 
 		return () => {
 			chartRef.current = null
 			instance.dispose()
 			handleChartReady(null)
+			onReady?.(null)
 		}
-	}, [id, series, isDark, title, valueSymbol, isSmall, handleChartReady, nodeMetadata])
+	}, [id, series, isDark, title, valueSymbol, isSmall, handleChartReady, onReady, nodeMetadata])
 
 	return (
-		<div className="relative" {...props}>
-			{title || customComponents || enableImageExport ? (
-				<div className="mb-2 flex items-center justify-end gap-2">
-					{title ? <h1 className="mr-auto text-base font-semibold">{title}</h1> : null}
-					{customComponents ?? null}
-					{enableImageExport && (
-						<ChartPngExportButton chartInstance={exportChartInstance} filename={exportFilename} title={exportTitle} />
-					)}
-				</div>
-			) : null}
-			<div id={id} style={{ height }} />
-		</div>
+		<ChartContainer
+			id={id}
+			chartClassName=""
+			chartStyle={{ height }}
+			header={
+				title || enableImageExport ? (
+					<ChartHeader
+						title={title}
+						className="mb-2 flex items-center justify-end gap-2"
+						exportButtons={
+							enableImageExport ? (
+								<ChartPngExportButton
+									chartInstance={exportChartInstance}
+									filename={exportFilename}
+									title={exportTitle}
+								/>
+							) : null
+						}
+					/>
+				) : null
+			}
+			{...props}
+		/>
 	)
 }

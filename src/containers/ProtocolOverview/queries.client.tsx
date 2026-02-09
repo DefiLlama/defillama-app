@@ -11,8 +11,6 @@ import {
 	TWITTER_POSTS_API_V2,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
-import { getProtocolEmissons } from '~/containers/Unlocks/queries'
-import { slug } from '~/utils'
 import { fetchApi, fetchJson } from '~/utils/async'
 import { getProtocol } from './queries'
 

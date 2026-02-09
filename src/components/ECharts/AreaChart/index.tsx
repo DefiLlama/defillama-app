@@ -3,9 +3,12 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartCleanup } from '~/hooks/useChartCleanup'
 import { useChartResize } from '~/hooks/useChartResize'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug } from '~/utils'
+import { ChartContainer } from '../ChartContainer'
+import { ChartHeader } from '../ChartHeader'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { mergeDeep, stringToColour } from '../utils'
@@ -35,7 +38,6 @@ export default function AreaChart({
 	containerClassName,
 	connectNulls = false,
 	onReady,
-	customComponents,
 	enableImageExport,
 	imageExportFilename,
 	imageExportTitle,
@@ -393,60 +395,54 @@ export default function AreaChart({
 		onReady
 	])
 
-	useEffect(() => {
-		return () => {
-			const chartDom = document.getElementById(id)
-			if (chartDom) {
-				const chartInstance = echarts.getInstanceByDom(chartDom)
-				if (chartInstance) {
-					chartInstance.dispose()
-				}
-			}
-			if (chartRef.current) {
-				chartRef.current = null
-			}
-			if (onReady) {
-				onReady(null)
-			}
+	useChartCleanup(
+		id,
+		useCallback(() => {
+			chartRef.current = null
+			onReady?.(null)
 			updateExportInstance(null)
-		}
-	}, [id, onReady, updateExportInstance])
+		}, [onReady, updateExportInstance])
+	)
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName
 
 	const showLegend = !!(customLegendName && customLegendOptions?.length > 1)
 
 	return (
-		<div className="relative" {...props}>
-			{title || showLegend || !hideDownloadButton ? (
-				<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
-					{title && <h1 className="mr-auto text-base font-semibold">{title}</h1>}
-					{customComponents ?? null}
-					{customLegendName && customLegendOptions?.length > 1 && (
-						<SelectWithCombobox
-							allValues={customLegendOptions}
-							selectedValues={legendOptions}
-							setSelectedValues={setLegendOptions}
-							label={legendTitle}
-							labelType="smol"
-							variant="filter"
-							portal
-						/>
-					)}
-					<ChartExportButtons
-						chartInstance={chartInstance}
-						filename={exportFilename}
-						title={exportTitle}
-						showCsv={shouldEnableCSVDownload}
-						showPng={shouldEnableImageExport}
+		<ChartContainer
+			id={id}
+			chartClassName={containerClassName ?? 'mx-0 my-auto h-[360px]'}
+			chartStyle={height ? { height } : undefined}
+			header={
+				title || showLegend || !hideDownloadButton ? (
+					<ChartHeader
+						title={title}
+						customComponents={
+							customLegendName && customLegendOptions?.length > 1 ? (
+								<SelectWithCombobox
+									allValues={customLegendOptions}
+									selectedValues={legendOptions}
+									setSelectedValues={setLegendOptions}
+									label={legendTitle}
+									labelType="smol"
+									variant="filter"
+									portal
+								/>
+							) : null
+						}
+						exportButtons={
+							<ChartExportButtons
+								chartInstance={chartInstance}
+								filename={exportFilename}
+								title={exportTitle}
+								showCsv={shouldEnableCSVDownload}
+								showPng={shouldEnableImageExport}
+							/>
+						}
 					/>
-				</div>
-			) : null}
-			<div
-				id={id}
-				className={containerClassName ? containerClassName : 'mx-0 my-auto h-[360px]'}
-				style={height ? { height } : undefined}
-			/>
-		</div>
+				) : null
+			}
+			{...props}
+		/>
 	)
 }
