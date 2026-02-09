@@ -94,9 +94,9 @@ export const AdapterByChainChart = ({
 			for (const [date, value] of chartData) {
 				const finalDate =
 					chartInterval === 'Weekly'
-						? Number(lastDayOfWeek(date)) * 1e3
+						? lastDayOfWeek(date / 1000) * 1e3
 						: chartInterval === 'Monthly'
-							? Number(firstDayOfMonth(date)) * 1e3
+							? firstDayOfMonth(date / 1000) * 1e3
 							: date
 				data[finalDate] = data[finalDate] || 0
 				data[finalDate] += value
@@ -387,9 +387,9 @@ const getChartDataByChainAndInterval = ({
 	for (const [date, chainsOnDate] of chartData) {
 		const finalDate =
 			chartInterval === 'Weekly'
-				? lastDayOfWeek(+date * 1e3) * 1e3
+				? lastDayOfWeek(+date) * 1e3
 				: chartInterval === 'Monthly'
-					? firstDayOfMonth(+date * 1e3) * 1e3
+					? firstDayOfMonth(+date) * 1e3
 					: +date * 1e3
 
 		const topByDate = {}

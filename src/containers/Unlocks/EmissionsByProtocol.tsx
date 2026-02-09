@@ -230,10 +230,10 @@ function groupChartDataByTime(
 
 		switch (groupBy) {
 			case 'W':
-				groupKey = lastDayOfWeek(ts) * 1e3
+				groupKey = lastDayOfWeek(ts / 1000) * 1e3
 				break
 			case 'M':
-				groupKey = firstDayOfMonth(ts) * 1e3
+				groupKey = firstDayOfMonth(ts / 1000) * 1e3
 				break
 			case 'Q':
 				groupKey = getQuarterStart(ts)

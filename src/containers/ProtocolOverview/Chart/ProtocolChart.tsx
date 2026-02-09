@@ -477,7 +477,7 @@ export const useFetchAndFormatChartData = ({
 			const isWeekly = groupBy === 'weekly'
 			const isMonthly = groupBy === 'monthly'
 			for (const [date, value] of tvlChartData) {
-				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
 				store[dateKey] = value + extraTvls.reduce((acc, curr) => acc + (extraTvlCharts?.[curr]?.[dateKey] ?? 0), 0)
 			}
 			const finalChart = []
@@ -1064,7 +1064,7 @@ export const useFetchAndFormatChartData = ({
 		if (feesDataChart) {
 			let total = 0
 			for (const [date, value] of feesDataChart) {
-				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
 				const finalValue = denominationPriceHistory
 					? denominationPriceHistory[String(+date * 1e3)]
 						? value / denominationPriceHistory[String(+date * 1e3)]
@@ -1080,7 +1080,7 @@ export const useFetchAndFormatChartData = ({
 		if (revenueDataChart) {
 			let total = 0
 			for (const [date, value] of revenueDataChart) {
-				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
 				const finalValue = denominationPriceHistory
 					? denominationPriceHistory[String(+date * 1e3)]
 						? value / denominationPriceHistory[String(+date * 1e3)]
@@ -1096,7 +1096,7 @@ export const useFetchAndFormatChartData = ({
 		if (holdersRevenueDataChart) {
 			let total = 0
 			for (const [date, value] of holdersRevenueDataChart) {
-				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
 				const finalValue = denominationPriceHistory
 					? denominationPriceHistory[String(+date * 1e3)]
 						? value / denominationPriceHistory[String(+date * 1e3)]
@@ -1112,7 +1112,7 @@ export const useFetchAndFormatChartData = ({
 		if (bribesDataChart) {
 			let total = 0
 			for (const [date, value] of bribesDataChart) {
-				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
 				const finalValue = denominationPriceHistory
 					? denominationPriceHistory[String(+date * 1e3)]
 						? value / denominationPriceHistory[String(+date * 1e3)]
@@ -1137,7 +1137,7 @@ export const useFetchAndFormatChartData = ({
 		if (tokenTaxesDataChart) {
 			let total = 0
 			for (const [date, value] of tokenTaxesDataChart) {
-				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
 				const finalValue = denominationPriceHistory
 					? denominationPriceHistory[String(+date * 1e3)]
 						? value / denominationPriceHistory[String(+date * 1e3)]
@@ -1264,7 +1264,7 @@ export const useFetchAndFormatChartData = ({
 			const store = {}
 			for (const { timestamp, ...rest } of unlocksAndIncentivesData.chartData.documented) {
 				const dateSec = Math.floor(timestamp / 1e3)
-				const dateKey = isWeekly ? lastDayOfWeek(timestamp) : isMonthly ? firstDayOfMonth(timestamp) : dateSec
+				const dateKey = isWeekly ? lastDayOfWeek(dateSec) : isMonthly ? firstDayOfMonth(dateSec) : dateSec
 				let total = 0
 				for (const label in rest) {
 					total += rest[label]

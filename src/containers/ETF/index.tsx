@@ -62,8 +62,8 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 			const date = ['Daily', 'Cumulative'].includes(groupBy)
 				? flowDate
 				: groupBy === 'Weekly'
-					? lastDayOfWeek(+flowDate * 1000)
-					: firstDayOfMonth(+flowDate * 1000)
+					? lastDayOfWeek(+flowDate)
+					: firstDayOfMonth(+flowDate)
 
 			bitcoin[date] = (bitcoin[date] || 0) + (flows[flowDate]['Bitcoin'] ?? 0) + totalBitcoin
 			if (flows[flowDate]['Ethereum']) {

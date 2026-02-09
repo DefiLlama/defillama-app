@@ -1257,7 +1257,7 @@ export const getDATInflows = async () => {
 			for (const [date, _net, _inflow, _outflow, purchasePrice, usdValueOfPurchase] of data.flows[asset]) {
 				const utcTimestamp = getUTCTimestamp(date)
 				if (utcTimestamp < fourteenWeeksAgo) continue
-				const finalDate = +lastDayOfWeek(utcTimestamp) * 1000
+				const finalDate = lastDayOfWeek(utcTimestamp / 1000) * 1000
 				const usdValue = purchasePrice || usdValueOfPurchase || 0
 				if (utcTimestamp >= Date.now() - 30 * 24 * 60 * 60 * 1000) {
 					total30d += usdValue
@@ -1267,7 +1267,7 @@ export const getDATInflows = async () => {
 		}
 
 		// Always end with the last day of the current week
-		const mostRecentTimestamp = +lastDayOfWeek(Date.now()) * 1000
+		const mostRecentTimestamp = lastDayOfWeek(Date.now() / 1000) * 1000
 		const oneWeekInMs = 7 * 24 * 60 * 60 * 1000
 		const completeChart = []
 
