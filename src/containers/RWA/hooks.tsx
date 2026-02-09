@@ -2,6 +2,7 @@ import Router, { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { CHART_COLORS } from '~/constants/colors'
 import type { IRWAAssetsOverview } from './queries'
+import { rwaSlug } from './rwaSlug'
 
 type PieChartDatum = { name: string; value: number }
 
@@ -716,26 +717,43 @@ export function useRwaChainBreakdownPieChartData({
 			}
 		}
 
-		// Attribute each asset to a single chain (primary chain preferred) to avoid double counting
-		// across multi-chain assets.
-		const getAssetChain = (asset: IRWAAssetsOverview['assets'][number]) =>
-			asset.primaryChain || asset.chain?.find((c) => c) || UNKNOWN
+		// Aggregate using per-chain breakdowns (prevents "random" chain attribution on multi-chain assets).
+		// We coalesce chains by slug to avoid casing/spacing duplicates.
+		const totalsBySlug = new Map<string, { label: string; onChain: number; active: number; defi: number }>()
+		const upsert = (
+			chainRaw: string | null | undefined,
+			metric: 'onChain' | 'active' | 'defi',
+			valueRaw: number | null | undefined
+		) => {
+			const value = valueRaw ?? 0
+			if (!Number.isFinite(value) || value <= 0) return
 
-		const totals = new Map<string, { onChain: number; active: number; defi: number }>()
-		const discoveredChains = new Set<string>()
-
-		for (const asset of assets) {
-			const chain = getAssetChain(asset)
-			discoveredChains.add(chain)
-
-			const prev = totals.get(chain) ?? { onChain: 0, active: 0, defi: 0 }
-			prev.onChain += asset.onChainMcap?.total ?? 0
-			prev.active += asset.activeMcap?.total ?? 0
-			prev.defi += asset.defiActiveTvl?.total ?? 0
-			totals.set(chain, prev)
+			const chain = (chainRaw ?? '').trim() || UNKNOWN
+			const key = rwaSlug(chain)
+			const prev = totalsBySlug.get(key) ?? { label: chain, onChain: 0, active: 0, defi: 0 }
+			// Prefer a non-Unknown label if we previously only had Unknown.
+			if (prev.label === UNKNOWN && chain !== UNKNOWN) prev.label = chain
+			prev[metric] += value
+			totalsBySlug.set(key, prev)
 		}
 
-		const colorOrder = Array.from(discoveredChains).sort()
+		for (const asset of assets) {
+			for (const [chain, value] of asset.onChainMcap?.breakdown ?? []) {
+				upsert(chain, 'onChain', value)
+			}
+			for (const [chain, value] of asset.activeMcap?.breakdown ?? []) {
+				upsert(chain, 'active', value)
+			}
+			// New: chain-level TVL breakdown (fallback: none if missing).
+			for (const [chain, value] of asset.defiActiveTvlByChain?.breakdown ?? []) {
+				upsert(chain, 'defi', value)
+			}
+		}
+
+		const colorOrder = Array.from(totalsBySlug.values())
+			.map((x) => x.label)
+			.filter(Boolean)
+			.sort()
 		// Keep existing label colors stable while ensuring "Others" exists.
 		if (!colorOrder.includes(OTHERS)) colorOrder.push(OTHERS)
 		const chainPieChartStackColors = buildStackColors(colorOrder)
@@ -749,8 +767,8 @@ export function useRwaChainBreakdownPieChartData({
 
 		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
 			limitChartData(
-				Array.from(totals.entries())
-					.map(([name, v]) => ({ name, value: v[metric] }))
+				Array.from(totalsBySlug.values())
+					.map((v) => ({ name: v.label || UNKNOWN, value: v[metric] }))
 					.filter((x) => x.value > 0)
 					.sort((a, b) => b.value - a.value)
 			)

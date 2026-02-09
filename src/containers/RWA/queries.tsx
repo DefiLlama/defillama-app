@@ -119,6 +119,11 @@ export interface IRWAProject extends Omit<IFetchedRWAProject, 'onChainMcap' | 'a
 		total: number
 		breakdown: Array<[string, number]>
 	} | null
+	// Chain-level breakdown (used for chain pie chart); kept separate from `defiActiveTvl.breakdown` which is by protocol.
+	defiActiveTvlByChain?: {
+		total: number
+		breakdown: Array<[string, number]>
+	} | null
 }
 
 export interface IRWAAssetsOverview {
@@ -318,6 +323,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			const finalActiveMcapBreakdown: Record<string, number> = {}
 			const finalDeFiActiveTvlBreakdown: Record<string, number> = {}
 			const finalDeFiActiveTvlBreakdownFiltered: Record<string, number> = {}
+			const finalDeFiActiveTvlByChain: Record<string, number> = {}
+			const finalDeFiActiveTvlByChainFiltered: Record<string, number> = {}
 			const isChainFiltered = !!selectedChain
 			let hasSelectedChainInOnChainMcap = false
 			let hasSelectedChainInActiveMcap = false
@@ -360,14 +367,23 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 						// Chain exists as a key in the object, even if its value totals to 0.
 						hasSelectedChainInDeFiActiveTvl = true
 					}
+					let chainTotal = 0
 					for (const protocolName in defiActiveTvlBreakdown[chain]) {
 						const value = safeNumber(defiActiveTvlBreakdown[chain][protocolName])
+						chainTotal += value
 						finalDeFiActiveTvlBreakdown[protocolName] = (finalDeFiActiveTvlBreakdown[protocolName] || 0) + value
 						totalDeFiActiveTvlForAsset += value
 						if (isSelectedChain && selectedChain) {
 							finalDeFiActiveTvlBreakdownFiltered[protocolName] =
 								(finalDeFiActiveTvlBreakdownFiltered[protocolName] || 0) + value
 							filteredDeFiActiveTvlForAsset += value
+						}
+					}
+
+					if (chainTotal > 0) {
+						finalDeFiActiveTvlByChain[chain] = (finalDeFiActiveTvlByChain[chain] || 0) + chainTotal
+						if (isSelectedChain && selectedChain) {
+							finalDeFiActiveTvlByChainFiltered[chain] = (finalDeFiActiveTvlByChainFiltered[chain] || 0) + chainTotal
 						}
 					}
 				}
@@ -422,7 +438,15 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 					: {
 							total: 0,
 							breakdown: []
+						},
+				defiActiveTvlByChain: defiActiveTvlBreakdown
+					? {
+							total: effectiveDeFiActiveTvl,
+							breakdown: Object.entries(
+								isChainFiltered ? finalDeFiActiveTvlByChainFiltered : finalDeFiActiveTvlByChain
+							).sort((a, b) => b[1] - a[1])
 						}
+					: null
 			}
 
 			// Only include asset if it exists on the selected chain/category (or no route filter)
