@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, startTransition, Suspense, useMemo, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { DialogForm } from '~/components/DialogForm'
 import { Icon } from '~/components/Icon'
@@ -716,7 +716,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 					<input
 						type="checkbox"
 						checked={showPositive}
-						onChange={(e) => setShowPositive(e.target.checked)}
+						onChange={(e) => startTransition(() => setShowPositive(e.target.checked))}
 						className="h-3.5 w-3.5 rounded border-(--form-control-border) accent-[#22c55e]"
 					/>
 					<span className="text-xs font-medium text-(--success)">Positive</span>
@@ -725,7 +725,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 					<input
 						type="checkbox"
 						checked={showNegative}
-						onChange={(e) => setShowNegative(e.target.checked)}
+						onChange={(e) => startTransition(() => setShowNegative(e.target.checked))}
 						className="h-3.5 w-3.5 rounded border-(--form-control-border) accent-[#ef4444]"
 					/>
 					<span className="text-xs font-medium text-(--error)">Negative</span>

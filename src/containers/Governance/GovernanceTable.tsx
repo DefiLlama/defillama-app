@@ -69,7 +69,7 @@ export function GovernanceTable({ data, governanceType, filters = null }) {
 					label="Filter Controversial Proposals"
 					value="controversial proposals"
 					checked={filterControversialProposals}
-					onChange={() => setFilterProposals(!filterControversialProposals)}
+					onChange={() => React.startTransition(() => setFilterProposals(!filterControversialProposals))}
 				/>
 			</div>
 			<VirtualTable instance={instance} />

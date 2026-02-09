@@ -359,7 +359,11 @@ export function VirtualTable({
 											{header.isPlaceholder ? null : (
 												<HeaderWithTooltip
 													content={meta?.headerHelperText}
-													onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : null}
+													onClick={
+														header.column.getCanSort()
+															? () => React.startTransition(() => header.column.toggleSorting())
+															: null
+													}
 												>
 													{value}
 													{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}

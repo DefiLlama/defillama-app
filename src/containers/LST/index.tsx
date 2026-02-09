@@ -329,14 +329,14 @@ export const LSTOverview = ({
 				<div className="flex flex-wrap overflow-x-auto border-b border-(--form-control-border)">
 					<button
 						className="border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary)"
-						onClick={() => setTab('breakdown')}
+						onClick={() => React.startTransition(() => setTab('breakdown'))}
 						data-selected={tab === 'breakdown'}
 					>
 						Breakdown
 					</button>
 					<button
 						className="border-l border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary)"
-						onClick={() => setTab('inflows')}
+						onClick={() => React.startTransition(() => setTab('inflows'))}
 						data-selected={tab === 'inflows'}
 					>
 						Inflows

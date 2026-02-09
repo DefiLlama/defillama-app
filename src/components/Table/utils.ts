@@ -1,7 +1,6 @@
 import type { ColumnOrderState, ColumnSizingState, Table } from '@tanstack/react-table'
-import { startTransition, useEffect, useState } from 'react'
+import { startTransition, useDeferredValue, useEffect, useState } from 'react'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { useDebounce } from '~/hooks/useDebounce'
 
 export type BreakpointMap<T> = Record<number, T>
 export type ColumnSizesByBreakpoint = BreakpointMap<ColumnSizingState>
@@ -128,19 +127,19 @@ export function useTableSearch<T>({
 	columnToSearch: string
 }): [string, (value: string) => void] {
 	const [search, setSearch] = useState('')
-	const debouncedSearch = useDebounce(search, 200)
+	const deferredSearch = useDeferredValue(search)
 
 	useEffect(() => {
 		const column = instance.getColumn(columnToSearch)
 		if (!column) return
 
 		const currentValue = column.getFilterValue()
-		if (currentValue === debouncedSearch) return
+		if (currentValue === deferredSearch) return
 
 		startTransition(() => {
-			column.setFilterValue(debouncedSearch)
+			column.setFilterValue(deferredSearch)
 		})
-	}, [debouncedSearch, instance, columnToSearch])
+	}, [deferredSearch, instance, columnToSearch])
 
 	return [search, setSearch]
 }
