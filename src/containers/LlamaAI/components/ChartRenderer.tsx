@@ -451,13 +451,14 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 							}
 						}
 					}
+					const resolvedNtsTitle = (adaptedChart.props as any)?.title || config.title
 					chartContent = (
 						<Suspense fallback={<div className="h-[338px]" />}>
 							<div className="flex items-center justify-end gap-1 p-2 pt-0">
-								{config.title ? <h1 className="mr-auto text-base font-semibold">{config.title}</h1> : null}
+								{resolvedNtsTitle ? <h1 className="mr-auto text-base font-semibold">{resolvedNtsTitle}</h1> : null}
 								<AddToDashboardButton
 									chartConfig={null}
-									llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
+									llamaAIChart={messageId ? { messageId, chartId: config.id, title: resolvedNtsTitle } : null}
 									smol
 								/>
 								<CSVDownloadButton prepareCsv={prepareCsv} smol />
@@ -472,13 +473,14 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 				const hbarData = adaptedChart.data as Array<[any, number]>
 				const hbarCategories = hbarData.map(([cat]) => cat)
 				const hbarValues = hbarData.map(([, val]) => val)
+				const resolvedHbarTitle = (adaptedChart.props as any)?.title || config.title
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
 						<div className="flex items-center justify-end gap-1 p-2 pt-0">
-							{config.title ? <h1 className="mr-auto text-base font-semibold">{config.title}</h1> : null}
+							{resolvedHbarTitle ? <h1 className="mr-auto text-base font-semibold">{resolvedHbarTitle}</h1> : null}
 							<AddToDashboardButton
 								chartConfig={null}
-								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
+								llamaAIChart={messageId ? { messageId, chartId: config.id, title: resolvedHbarTitle } : null}
 								smol
 							/>
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />

@@ -120,15 +120,13 @@ export default function MultiSeriesChart({
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const updateChartInstance = useCallback(
-		(instance: echarts.ECharts | null) => {
-			chartRef.current = instance
-			if (onReady) {
-				onReady(instance)
-			}
-		},
-		[onReady]
-	)
+	const onReadyRef = useRef(onReady)
+	onReadyRef.current = onReady
+
+	const updateChartInstance = useCallback((instance: echarts.ECharts | null) => {
+		chartRef.current = instance
+		onReadyRef.current?.(instance)
+	}, [])
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
@@ -258,10 +256,6 @@ export default function MultiSeriesChart({
 				})
 			})
 		}
-
-		return () => {
-			updateChartInstance(null)
-		}
 	}, [
 		defaultChartSettings,
 		processedSeries,
@@ -276,10 +270,7 @@ export default function MultiSeriesChart({
 		yAxisSymbols
 	])
 
-	useChartCleanup(
-		id,
-		useCallback(() => updateChartInstance(null), [updateChartInstance])
-	)
+	useChartCleanup(id, () => updateChartInstance(null))
 
 	return <ChartContainer id={id} chartClassName="my-auto h-[360px]" chartStyle={height ? { height } : undefined} />
 }

@@ -1,5 +1,5 @@
 import * as echarts from 'echarts/core'
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
@@ -145,20 +145,21 @@ export default function BarChart({
 	}, [chartData, color, defaultStacks, stackColors, stackKeys, selectedStacks])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const onReadyRef = useRef(onReady)
+	onReadyRef.current = onReady
+	const hasNotifiedReadyRef = useRef(false)
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
 	const exportFilename = imageExportFilename || (title ? slug(title) : 'chart')
 	const exportTitle = imageExportTitle || title
-	const updateExportInstance = useCallback(
-		(instance: echarts.ECharts | null) => {
-			if (shouldEnableExport) {
-				handleChartReady(instance)
-			}
-		},
-		[shouldEnableExport, handleChartReady]
-	)
+	const updateExportInstanceRef = useRef((instance: echarts.ECharts | null) => {
+		if (shouldEnableExport) handleChartReady(instance)
+	})
+	updateExportInstanceRef.current = (instance: echarts.ECharts | null) => {
+		if (shouldEnableExport) handleChartReady(instance)
+	}
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
@@ -170,10 +171,11 @@ export default function BarChart({
 			instance = echarts.init(chartDom)
 		}
 		chartRef.current = instance
-		updateExportInstance(instance)
+		updateExportInstanceRef.current(instance)
 
-		if (onReady && isNewInstance) {
-			onReady(instance)
+		if (onReadyRef.current && isNewInstance) {
+			onReadyRef.current(instance)
+			hasNotifiedReadyRef.current = true
 		}
 
 		for (const option in chartOptions) {
@@ -221,33 +223,16 @@ export default function BarChart({
 			dataZoom: shouldHideDataZoom ? [] : [...dataZoom],
 			series
 		})
+	}, [defaultChartSettings, series, stackKeys, hideLegend, chartOptions, hideDataZoom, id, orientation])
 
-		return () => {
-			chartRef.current = null
-			instance.dispose()
-			updateExportInstance(null)
+	useChartCleanup(id, () => {
+		chartRef.current = null
+		if (hasNotifiedReadyRef.current) {
+			onReadyRef.current?.(null)
+			hasNotifiedReadyRef.current = false
 		}
-	}, [
-		defaultChartSettings,
-		series,
-		stackKeys,
-		hideLegend,
-		chartOptions,
-		hideDataZoom,
-		id,
-		updateExportInstance,
-		orientation,
-		onReady
-	])
-
-	useChartCleanup(
-		id,
-		useCallback(() => {
-			chartRef.current = null
-			onReady?.(null)
-			updateExportInstance(null)
-		}, [onReady, updateExportInstance])
-	)
+		updateExportInstanceRef.current(null)
+	})
 
 	const showLegend = Boolean(customLegendName && customLegendOptions?.length > 1)
 

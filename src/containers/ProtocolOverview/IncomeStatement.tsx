@@ -645,7 +645,7 @@ export const IncomeStatement = ({
 							}
 						>
 							<div className="mb-2 flex flex-wrap items-center gap-2 px-2">
-								{showTitles ? <h1 className="mr-auto text-base font-semibold">Income Flow Visualization</h1> : null}
+								{showTitles ? <h3 className="mr-auto text-base font-semibold">Income Flow Visualization</h3> : null}
 								<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 									{incomeStatementGroupByOptions.map((groupOption) => (
 										<button
