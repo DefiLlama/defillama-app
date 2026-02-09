@@ -105,6 +105,16 @@ interface ProtocolQueryOptions {
 	rowHeaders: UnifiedRowHeaderType[]
 }
 
+const computeAnnualizedRatioFrom30d = (
+	marketCap: number | null | undefined,
+	rolling30d: number | null | undefined
+): number | null => {
+	if (marketCap == null || rolling30d == null || rolling30d <= 0) {
+		return null
+	}
+	return Number((marketCap / (rolling30d * 12)).toFixed(2))
+}
+
 const totalsPromise = llamaDb.one<{
 	tvl_base: number | null
 	volume_dexs_1d: number | null
@@ -248,8 +258,8 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		fdv: row.fdv ?? null,
 		chainMcap: row.chain_mcap ?? null,
 		mcaptvl: row.mcap && tvl ? row.mcap / tvl : null,
-		pf: row.pf_ratio ?? null,
-		ps: row.ps_ratio ?? null,
+		pf: computeAnnualizedRatioFrom30d(row.mcap, row.fees_30d),
+		ps: computeAnnualizedRatioFrom30d(row.mcap, row.revenue_30d),
 		protocolCount: null
 	}
 }

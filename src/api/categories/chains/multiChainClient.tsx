@@ -60,13 +60,13 @@ const finalizeAggregatedProtocol = (entry: Record<string | symbol, any>, options
 	if (options?.computeRatios) {
 		const mcap = toFiniteNumber(result.mcap ?? result.marketCap)
 		if (mcap !== null) {
-			const fees24h = toFiniteNumber(result.total24h)
-			if (fees24h !== null && fees24h > 0) {
-				result.pf = mcap / fees24h
+			const fees30d = toFiniteNumber(result.total30d)
+			if (fees30d !== null && fees30d > 0) {
+				result.pf = Number((mcap / (fees30d * 12)).toFixed(2))
 			}
-			const revenue24h = toFiniteNumber(result.revenue24h)
-			if (revenue24h !== null && revenue24h > 0) {
-				result.ps = mcap / revenue24h
+			const revenue30d = toFiniteNumber(result.revenue30d)
+			if (revenue30d !== null && revenue30d > 0) {
+				result.ps = Number((mcap / (revenue30d * 12)).toFixed(2))
 			}
 		}
 	}

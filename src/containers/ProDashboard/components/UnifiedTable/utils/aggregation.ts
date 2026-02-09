@@ -1,6 +1,16 @@
 import { getPercentChange } from '~/utils'
 import type { NormalizedRow, NumericMetrics } from '../types'
 
+const computeAnnualizedRatioFrom30d = (
+	marketCap: number | null | undefined,
+	rolling30d: number | null | undefined
+): number | null => {
+	if (marketCap == null || rolling30d == null || rolling30d <= 0) {
+		return null
+	}
+	return Number((marketCap / (rolling30d * 12)).toFixed(2))
+}
+
 export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 	const sumKeys: (keyof NumericMetrics)[] = [
 		'tvl',
@@ -191,17 +201,8 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 		aggregated.mcaptvl = null
 	}
 
-	if (aggregated.mcap !== null && aggregated.fees24h && aggregated.fees24h > 0) {
-		aggregated.pf = aggregated.mcap / (aggregated.fees24h * 365)
-	} else {
-		aggregated.pf = null
-	}
-
-	if (aggregated.mcap !== null && aggregated.revenue24h && aggregated.revenue24h > 0) {
-		aggregated.ps = aggregated.mcap / (aggregated.revenue24h * 365)
-	} else {
-		aggregated.ps = null
-	}
+	aggregated.pf = computeAnnualizedRatioFrom30d(aggregated.mcap, aggregated.fees_30d)
+	aggregated.ps = computeAnnualizedRatioFrom30d(aggregated.mcap, aggregated.revenue_30d)
 
 	aggregated.perpsVolume24h = aggregated.perpsVolume24h ?? null
 	aggregated.protocolCount = protocolIds.size > 0 ? protocolIds.size : null
