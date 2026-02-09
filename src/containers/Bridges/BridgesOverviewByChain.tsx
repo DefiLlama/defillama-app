@@ -8,7 +8,6 @@ import { BridgesTable } from '~/containers/Bridges/BridgesTable'
 import { BridgeVolumeChart } from '~/containers/Bridges/BridgeVolumeChart'
 import { ChartSelector } from '~/containers/Bridges/ChartSelector'
 import { useBuildBridgeChartData } from '~/containers/Bridges/utils'
-import { useDebounce } from '~/hooks/useDebounce'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, getPrevVolumeFromChart, toNiceCsvDate } from '~/utils'
 import { BridgesLargeTxsTable } from './BridgesLargeTxsTable'
@@ -100,7 +99,7 @@ export function BridgesOverviewByChain({
 	const [chartView, setChartView] = React.useState<'default' | 'netflow' | 'volume'>('netflow')
 	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging' | 'largeTxs'>('bridges')
 	const [searchValue, setSearchValue] = React.useState('')
-	const debouncedSearchValue = useDebounce(searchValue, 200)
+	const deferredSearchValue = React.useDeferredValue(searchValue)
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
@@ -389,7 +388,7 @@ export function BridgesOverviewByChain({
 						/>
 						<input
 							value={searchValue}
-							onChange={(e) => React.startTransition(() => setSearchValue(e.target.value))}
+							onChange={(e) => setSearchValue(e.target.value)}
 							placeholder="Search..."
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
@@ -409,7 +408,7 @@ export function BridgesOverviewByChain({
 				) : (
 					<BridgesTable
 						data={activeTab === 'bridges' ? filteredBridges : messagingProtocols}
-						searchValue={debouncedSearchValue}
+						searchValue={deferredSearchValue}
 					/>
 				)}
 			</div>
