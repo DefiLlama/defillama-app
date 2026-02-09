@@ -1,5 +1,4 @@
 import * as Ariakit from '@ariakit/react'
-import { useSearchParams } from 'next/navigation'
 import Router, { useRouter } from 'next/router'
 import { useEffect, useMemo, useState } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
@@ -94,10 +93,11 @@ type Period = (typeof PERIODS)[number]
 
 export default function Correlations({ coinsData }) {
 	const router = useRouter()
-	const searchParams = useSearchParams()
 	const queryCoins = useMemo(() => {
-		return searchParams.get('coin')?.split(',') || ([] as Array<string>)
-	}, [searchParams])
+		const coinQuery = router.query.coin
+		if (!coinQuery) return [] as Array<string>
+		return Array.isArray(coinQuery) ? coinQuery.filter(Boolean) : coinQuery.split(',').filter(Boolean)
+	}, [router.query.coin])
 
 	// Normalize queryCoins to always be an array for simpler filtering
 	const normalizedQueryCoins = useMemo(
@@ -142,7 +142,7 @@ export default function Correlations({ coinsData }) {
 	useEffect(() => {
 		if (!router.isReady) return
 
-		if (!queryCoins?.length)
+		if (!queryCoins.length)
 			Router.replace(
 				{
 					pathname: router.pathname,
@@ -194,7 +194,7 @@ export default function Correlations({ coinsData }) {
 												pathname: router.pathname,
 												query: {
 													...router.query,
-													coin: Array.isArray(queryCoins) ? queryCoins.filter((c) => c !== coin.id) : []
+													coin: queryCoins.filter((c) => c !== coin.id)
 												}
 											},
 											undefined,
@@ -311,7 +311,7 @@ export default function Correlations({ coinsData }) {
 										pathname: router.pathname,
 										query: {
 											...router.query,
-											coin: Array.isArray(queryCoins) ? queryCoins.concat(coin.id) : [queryCoins, coin.id]
+											coin: queryCoins.concat(coin.id)
 										}
 									},
 									undefined,
