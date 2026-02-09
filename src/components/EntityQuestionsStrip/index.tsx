@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { setPendingPrompt } from '~/components/LlamaAIFloatingButton'
+import { setPendingPrompt, setPendingPageContext } from '~/components/LlamaAIFloatingButton'
 
 interface Props {
 	questions: string[]
@@ -23,6 +23,11 @@ export function EntityQuestionsStrip({ questions, entitySlug, entityType, entity
 			})
 		}
 		setPendingPrompt(question)
+		setPendingPageContext({
+			entitySlug,
+			entityType,
+			route: router.asPath
+		})
 		router.push('/ai/chat')
 	}
 
