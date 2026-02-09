@@ -34,12 +34,12 @@ export const DailyPnLGrid = ({ timeline }: { timeline: TimelinePoint[] }) => {
 								placement="top"
 								content={`${formatPercent(day.percentChange)} • ${formatDateLabel(day.timestamp)}`}
 							>
-								<div
+								<span
 									className="flex h-8 w-8 shrink-0 items-end justify-center rounded-md border border-(--cards-border) transition-transform duration-200 hover:scale-[0.99]"
 									style={{ background: backgroundColor }}
 								>
 									<span className="sr-only">{`${formatPercent(day.percentChange)} on ${formatDateLabel(day.timestamp)}`}</span>
-								</div>
+								</span>
 							</Tooltip>
 						</li>
 					)
