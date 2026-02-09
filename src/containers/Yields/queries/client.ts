@@ -9,6 +9,7 @@ import {
 	YIELD_POOLS_LAMBDA_API,
 	YIELD_VOLATILITY_API
 } from '~/constants'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { fetchApi } from '~/utils/async'
 import { formatYieldsPageData } from './utils'
 
@@ -91,12 +92,19 @@ export const useFetchProjectsList = () => {
 }
 
 export const useVolatility = () => {
+	const { authorizedFetch, hasActiveSubscription, isAuthenticated } = useAuthContext()
+
 	return useQuery({
-		queryKey: [YIELD_VOLATILITY_API],
-		queryFn: () => fetchApi(YIELD_VOLATILITY_API),
+		queryKey: [YIELD_VOLATILITY_API, hasActiveSubscription],
+		queryFn: async () => {
+			const res = await authorizedFetch(YIELD_VOLATILITY_API)
+			if (!res || !res.ok) return {}
+			return res.json()
+		},
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
-		retry: 0
+		retry: 0,
+		enabled: isAuthenticated && !!hasActiveSubscription
 	})
 }
 

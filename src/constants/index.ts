@@ -105,7 +105,7 @@ export const YIELD_CONFIG_POOL_API = `${YIELDS_SERVER_URL}/configPool`
 export const YIELD_PERPS_API = `${YIELDS_SERVER_URL}/perps`
 export const YIELD_PROJECT_MEDIAN_API = `${YIELDS_SERVER_URL}/medianProject`
 export const LSD_RATES_API = `${YIELDS_SERVER_URL}/lsdRates`
-export const YIELD_VOLATILITY_API = 'http://localhost:3000/volatility'
+export const YIELD_VOLATILITY_API = '/api/datasets/volatility'
 
 const ETF_SERVER_URL = process.env.ETF_SERVER_URL ?? 'https://etfs.llama.fi'
 export const ETF_SNAPSHOT_API = `${ETF_SERVER_URL}/snapshot`
