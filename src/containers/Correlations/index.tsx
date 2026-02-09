@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import { useSearchParams } from 'next/navigation'
 import Router, { useRouter } from 'next/router'
 import { useEffect, useMemo, useState } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
@@ -93,11 +94,10 @@ type Period = (typeof PERIODS)[number]
 
 export default function Correlations({ coinsData }) {
 	const router = useRouter()
-	const queryParamString = JSON.stringify(router.query ?? {})
+	const searchParams = useSearchParams()
 	const queryCoins = useMemo(() => {
-		const routerQuery = JSON.parse(queryParamString)
-		return routerQuery?.coin || ([] as Array<string>)
-	}, [queryParamString])
+		return searchParams.get('coin')?.split(',') || ([] as Array<string>)
+	}, [searchParams])
 
 	// Normalize queryCoins to always be an array for simpler filtering
 	const normalizedQueryCoins = useMemo(

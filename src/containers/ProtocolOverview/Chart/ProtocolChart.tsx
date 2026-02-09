@@ -1,7 +1,8 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
+import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -29,6 +30,7 @@ import {
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useIsClient } from '~/hooks/useIsClient'
 import { capitalizeFirstLetter, firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from '../types'
@@ -57,39 +59,35 @@ const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
 export function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
+	const searchParams = useSearchParams()
 	const [isThemeDark] = useDarkModeManager()
 	const { chartInstance: overviewChartInstance, handleChartReady: handleOverviewChartReady } = useChartImageExport()
 	const overviewImageFilename = slug(props.name)
 	const overviewImageTitle = props.name
 
-	const queryParamsString = useMemo(() => {
-		const { tvl, ...rest } = router.query ?? {}
-		return JSON.stringify(router.query ? (tvl === 'true' ? rest : router.query) : { protocol: [slug(props.name)] })
-	}, [router.query, props.name])
-
-	// Defer expensive chart recalculations to keep UI responsive
-	const deferredQueryParamsString = useDeferredValue(queryParamsString)
-
 	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultToggledCharts } = useMemo(() => {
-		const queryParams = JSON.parse(deferredQueryParamsString)
 		const chartsByVisibility = {}
 		for (const chartLabel in protocolCharts) {
 			const chartKey = protocolCharts[chartLabel]
-			chartsByVisibility[chartKey] = queryParams[chartKey] === 'true' ? 'true' : 'false'
+			chartsByVisibility[chartKey] = searchParams.get(chartKey) === 'true' ? 'true' : 'false'
 		}
+
+		const denonimationInSearchParams = searchParams.get('denomination')?.toLowerCase()
 
 		const toggledMetrics = {
 			...chartsByVisibility,
-			denomination: typeof queryParams.denomination === 'string' ? queryParams.denomination : null,
+			denomination:
+				props.chartDenominations.find((d) => d.symbol.toLowerCase() === denonimationInSearchParams?.toLowerCase())
+					?.symbol ?? null,
 			events:
-				(props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0) && queryParams.events !== 'false'
+				(props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0) && searchParams.get('events') !== 'false'
 					? 'true'
 					: 'false'
 		} as IToggledMetrics
 
 		for (const chartLabel of props.defaultToggledCharts) {
 			const chartKey = protocolCharts[chartLabel]
-			toggledMetrics[chartKey] = queryParams[chartKey] === 'false' ? 'false' : 'true'
+			toggledMetrics[chartKey] = searchParams.get(chartKey) === 'false' ? 'false' : 'true'
 		}
 
 		const toggledCharts = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]] === 'true')
@@ -101,14 +99,15 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			toggledCharts,
 			hasAtleasOneBarChart,
 			groupBy: hasAtleasOneBarChart
-				? typeof queryParams.groupBy === 'string' && INTERVALS_LIST.includes(queryParams.groupBy as any)
-					? (queryParams.groupBy as any)
+				? INTERVALS_LIST.includes(searchParams.get('groupBy') as any)
+					? (searchParams.get('groupBy') as any)
 					: (props.defaultChartView ?? 'daily')
 				: 'daily',
 			defaultToggledCharts: props.defaultToggledCharts
 		}
 	}, [
-		deferredQueryParamsString,
+		searchParams,
+		props.chartDenominations,
 		props.hallmarks,
 		props.rangeHallmarks,
 		props.defaultToggledCharts,
@@ -142,6 +141,8 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			groupBy
 		})
 	}, [props.name, props.geckoId, toggledCharts, props.chartColors, groupBy])
+
+	const isClient = useIsClient()
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -349,7 +350,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 				</div>
 			</div>
 			<div className="flex min-h-[360px] flex-col">
-				{loadingCharts ? (
+				{!isClient ? null : loadingCharts ? (
 					<p className="my-auto flex min-h-[360px] items-center justify-center gap-1 text-center text-xs">
 						fetching {loadingCharts}
 						<LoadingDots />

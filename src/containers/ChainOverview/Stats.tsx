@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
+import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/router'
 import { Fragment, lazy, Suspense, useMemo, useRef } from 'react'
 import toast from 'react-hot-toast'
@@ -43,18 +44,8 @@ interface IStatsProps extends IChainOverviewData {
 
 export function Stats(props: IStatsProps) {
 	const router = useRouter()
-	const queryParamsString = useMemo(() => {
-		const { tvl, ...rest } = router.query ?? {}
-		return JSON.stringify(
-			router.query
-				? tvl === 'true'
-					? rest
-					: router.query
-				: props.metadata.id !== 'all'
-					? { chain: [props.metadata.id] }
-					: {}
-		)
-	}, [router.query, props.metadata.id])
+
+	const searchParams = useSearchParams()
 
 	const [darkMode] = useDarkModeManager()
 
@@ -65,8 +56,6 @@ export function Stats(props: IStatsProps) {
 	const { isAuthenticated } = useAuthContext()
 
 	const { toggledCharts, DENOMINATIONS, chainGeckoId, hasAtleasOneBarChart, groupBy, denomination } = useMemo(() => {
-		const queryParams = JSON.parse(queryParamsString)
-
 		let CHAIN_SYMBOL = props.chainTokenInfo?.token_symbol ?? null
 		let chainGeckoId = props.chainTokenInfo?.gecko_id ?? null
 
@@ -83,19 +72,19 @@ export function Stats(props: IStatsProps) {
 		const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
 
 		const toggledCharts = props.charts.filter((tchart, index) =>
-			index === 0 ? queryParams[chainCharts[tchart]] !== 'false' : queryParams[chainCharts[tchart]] === 'true'
+			index === 0 ? searchParams.get(chainCharts[tchart]) !== 'false' : searchParams.get(chainCharts[tchart]) === 'true'
 		) as ChainChartLabels[]
 
 		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
 
 		const groupBy =
-			hasAtleasOneBarChart && queryParams?.groupBy
-				? INTERVALS_LIST.includes(queryParams.groupBy as any)
-					? (queryParams.groupBy as any)
+			hasAtleasOneBarChart && searchParams.get('groupBy')
+				? INTERVALS_LIST.includes(searchParams.get('groupBy') as any)
+					? (searchParams.get('groupBy') as any)
 					: 'daily'
 				: 'daily'
 
-		const denomination = typeof queryParams.currency === 'string' ? queryParams.currency : 'USD'
+		const currencyInSearchParams = searchParams.get('currency')?.toLowerCase()
 
 		return {
 			DENOMINATIONS,
@@ -103,9 +92,9 @@ export function Stats(props: IStatsProps) {
 			hasAtleasOneBarChart,
 			toggledCharts,
 			groupBy,
-			denomination
+			denomination: DENOMINATIONS.find((d) => d.toLowerCase() === currencyInSearchParams) ?? 'USD'
 		}
-	}, [queryParamsString, props.chainTokenInfo, props.metadata.name, props.charts])
+	}, [searchParams, props.chainTokenInfo, props.metadata.name, props.charts])
 
 	const { totalValueUSD, change24h, valueChange24hUSD, finalCharts, valueSymbol, isFetchingChartData } =
 		useFetchChainChartData({
