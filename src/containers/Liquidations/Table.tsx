@@ -14,9 +14,8 @@ import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { CHAINS_API, CONFIG_API } from '~/constants'
-import { getReadableValue } from '~/containers/Liquidations/utils'
 import type { ChartData } from '~/containers/Liquidations/utils'
-import { chainIconUrl } from '~/utils'
+import { chainIconUrl, formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
@@ -264,10 +263,7 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 		header: 'Liquidatable Amount',
 		accessorKey: 'liquidableAmount',
 		enableSorting: true,
-		cell: ({ getValue }) => {
-			const _value = getReadableValue(getValue() as number)
-			return <span>${_value}</span>
-		},
+		cell: ({ getValue }) => formattedNum(getValue(), true),
 		meta: {
 			align: 'end',
 			headerHelperText: 'The USD value of all the collateral that would be sold if all positions went into liquidation.'
@@ -278,10 +274,7 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 		header: 'Amount within -20%',
 		accessorKey: 'dangerousAmount',
 		enableSorting: true,
-		cell: ({ getValue }) => {
-			const _value = getReadableValue(getValue() as number)
-			return <span>${_value}</span>
-		},
+		cell: ({ getValue }) => formattedNum(getValue(), true),
 		meta: {
 			align: 'end',
 			headerHelperText: 'Amount of liquidable positions that are within -20% of liquidation price.'

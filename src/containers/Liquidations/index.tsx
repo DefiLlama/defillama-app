@@ -8,14 +8,9 @@ import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/compon
 import { Icon } from '~/components/Icon'
 import { Switch } from '~/components/Switch'
 import { CHART_COLORS } from '~/constants/colors'
-import {
-	ChartData,
-	LiquidationsChartSeriesByGroup,
-	getLiquidationsCsvData,
-	getReadableValue
-} from '~/containers/Liquidations/utils'
+import { ChartData, LiquidationsChartSeriesByGroup, getLiquidationsCsvData } from '~/containers/Liquidations/utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { download, liquidationsIconUrl } from '~/utils'
+import { download, formattedNum, liquidationsIconUrl } from '~/utils'
 
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -134,7 +129,7 @@ export const LiquidationsContainer = (props: {
 				position: isLiqsCumulative ? 'left' : 'right',
 				axisLabel: {
 					formatter: (value: number) =>
-						isLiqsUsingUsd ? `$${getReadableValue(value)}` : `${getReadableValue(value)} ${nativeSymbol}`
+						isLiqsUsingUsd ? `${formattedNum(value, true)}` : `${formattedNum(value)} ${nativeSymbol}`
 				},
 				splitLine: {
 					lineStyle: { color: '#a1a1aa', opacity: 0.1 }
@@ -179,8 +174,7 @@ export const LiquidationsContainer = (props: {
 							if (axisDimension === 'x') {
 								return `$${numeric.toFixed(3)}`
 							}
-							const formatted = getReadableValue(numeric)
-							return isLiqsUsingUsd ? `$${formatted}` : `${formatted} ${nativeSymbol}`
+							return isLiqsUsingUsd ? `${formattedNum(numeric, true)}` : `${formattedNum(numeric)} ${nativeSymbol}`
 						}
 					}
 				},
@@ -209,9 +203,7 @@ export const LiquidationsContainer = (props: {
 					}
 
 					const total = paramList.reduce<number>((acc, item) => acc + getValue(item), 0)
-					const totalLabel = isLiqsUsingUsd
-						? `$${getReadableValue(total)}`
-						: `${getReadableValue(total)} ${nativeSymbol}`
+					const totalLabel = isLiqsUsingUsd ? `${formattedNum(total, true)}` : `${formattedNum(total)} ${nativeSymbol}`
 					const header = `<div style="margin-bottom: 6px; font-weight: 600; font-size: 12px; letter-spacing: 0.01em; color: #9ca3af;">
 						${isLiqsCumulative ? `Total liquidatable ≤ ` : `Liquidations at ~`}${axisLabel}
 					</div>
@@ -223,8 +215,8 @@ export const LiquidationsContainer = (props: {
 							if (!isRecord(param)) return null
 							const value = getValue(param)
 							const rowValue = isLiqsUsingUsd
-								? `$${getReadableValue(value)}`
-								: `${getReadableValue(value)} ${nativeSymbol}`
+								? `${formattedNum(value, true)}`
+								: `${formattedNum(value)} ${nativeSymbol}`
 							const color = typeof param.color === 'string' ? param.color : 'inherit'
 							const seriesName = typeof param.seriesName === 'string' ? param.seriesName : ''
 							return `<span style="color: ${color}; margin-bottom: 2px; font-weight: 500; font-size: 12px;">${seriesName}</span><span style="opacity: 0.6; font-size: 12px;"> :</span> <span style="font-size: 12px;">${rowValue}</span>`
@@ -268,7 +260,7 @@ export const LiquidationsContainer = (props: {
 				</h1>
 				<p className="flex flex-col">
 					<span className="text-(--text-label)">Total Liquidatable (USD)</span>
-					<span className="font-jetbrains text-2xl font-semibold">${getReadableValue(totalLiquidable)}</span>
+					<span className="font-jetbrains text-2xl font-semibold">{formattedNum(totalLiquidable, true)}</span>
 				</p>
 				<p className="hidden flex-col md:flex">
 					<span className="text-(--text-label)">Liquidatable value change (24h)</span>
@@ -276,7 +268,7 @@ export const LiquidationsContainer = (props: {
 				</p>
 				<p className="hidden flex-col md:flex">
 					<span className="text-(--text-label)">Within -20% of current price</span>
-					<span className="font-jetbrains text-2xl font-semibold">${getReadableValue(dangerousPositionsAmount)}</span>
+					<span className="font-jetbrains text-2xl font-semibold">{formattedNum(dangerousPositionsAmount, true)}</span>
 				</p>
 				<CSVDownloadButton onClick={handleCsvDownload} isLoading={isPending} smol className="mt-auto mr-auto" />
 			</div>

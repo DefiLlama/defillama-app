@@ -10,10 +10,10 @@ import {
 	getPrevLiquidationsChartData
 } from '~/containers/Liquidations/queries'
 import { LiqPositionsTable, LiqProtocolsTable } from '~/containers/Liquidations/Table'
-import { ChartData, buildLiquidationsChartSeries, getReadableValue } from '~/containers/Liquidations/utils'
+import { ChartData, buildLiquidationsChartSeries } from '~/containers/Liquidations/utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { liquidationsIconUrl } from '~/utils'
+import { formattedNum, liquidationsIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 type LiquidationsNavLink = { label: string; to: string; symbol: string }
@@ -74,7 +74,7 @@ const LiquidationsHomePage: NextPage<{
 				liqsPage
 				cardName={nameAndSymbol}
 				logo={'https://defillama.com' + liquidationsIconUrl(data.symbol.toLowerCase(), true)}
-				tvl={'$' + getReadableValue(data.totalLiquidable)}
+				tvl={formattedNum(data.totalLiquidable, true)}
 			/>
 
 			<RowLinksWithDropdown links={options} activeLink={activeLiqLink} />

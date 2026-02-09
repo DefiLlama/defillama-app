@@ -1,4 +1,5 @@
 import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
+import { formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { PROTOCOL_NAMES_MAP, SYMBOL_MAP, WRAPPED_GAS_TOKENS } from './constants'
 
@@ -110,20 +111,6 @@ export interface LiquidationsData {
 	currentPrice: number
 	positions: Position[]
 	time: number
-}
-
-export function getReadableValue(value: number) {
-	if (typeof value !== 'number' || Number.isNaN(value) || value === 0) return '0'
-
-	if (Math.abs(value) < 1000) {
-		return value.toPrecision(4)
-	}
-
-	// https://crusaders-of-the-lost-idols.fandom.com/wiki/Large_Number_Abbreviations
-	// llamao issa fun
-	const s = ['', 'k', 'm', 'b', 't', 'q', 'Q', 's', 'S', 'o', 'n', 'd', 'U', 'D', 'T', 'Qt', 'Qd', 'Sd', 'St', 'O', 'N']
-	const e = Math.floor(Math.log(value) / Math.log(1000))
-	return (value / Math.pow(1000, e)).toFixed(1) + s[e]
 }
 
 export const getLiquidationsCsvData = async (symbol: string) => {
