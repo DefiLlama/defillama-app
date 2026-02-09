@@ -122,12 +122,46 @@ const toNumericContext = (value: unknown): { numValue: number; stringValue: stri
 	stringValue: typeof value === 'number' ? value.toString() : String(value)
 })
 
-const formatNum_internal = (value: unknown, maxDecimals?: number): string => {
-	if (!value && value !== 0) return '0'
+type NumberFormatMode = 'standard' | 'compact'
 
+const ABBREVIATION_SCALES = [
+	{ threshold: 1_000_000_000_000, divisor: 1_000_000_000_000, suffix: 'T' },
+	{ threshold: 1_000_000_000, divisor: 1_000_000_000, suffix: 'B' },
+	{ threshold: 1_000_000, divisor: 1_000_000, suffix: 'M' },
+	{ threshold: 1_000, divisor: 1_000, suffix: 'K' }
+] as const
+
+const formatNumberCore = (value: unknown, maxDecimals?: number, mode: NumberFormatMode = 'standard'): string => {
+	if (!value && value !== 0) return '0'
 	const { numValue, stringValue } = toNumericContext(value)
 	if (Number.isNaN(numValue) || !Number.isFinite(numValue)) {
 		return Number.isNaN(numValue) ? '0' : String(numValue)
+	}
+
+	if (mode === 'compact' && Math.abs(numValue) >= 1000) {
+		const isNegative = numValue < 0
+		const absValue = Math.abs(numValue)
+		const resolvedMaxDecimals = maxDecimals ?? 2
+
+		let scaleIndex = ABBREVIATION_SCALES.findIndex((scale) => absValue >= scale.threshold)
+		if (scaleIndex === -1) {
+			return formatNumberCore(value, maxDecimals, 'standard')
+		}
+
+		let scale = ABBREVIATION_SCALES[scaleIndex]
+		let scaledValue = absValue / scale.divisor
+		let formattedScaled = formatNumberCore(scaledValue, resolvedMaxDecimals, 'standard')
+
+		// If rounding pushes 999.99K -> 1000K, promote to next suffix.
+		while (Number(formattedScaled) >= 1000 && scaleIndex > 0) {
+			scaleIndex -= 1
+			scale = ABBREVIATION_SCALES[scaleIndex]
+			scaledValue = absValue / scale.divisor
+			formattedScaled = formatNumberCore(scaledValue, resolvedMaxDecimals, 'standard')
+		}
+
+		const result = `${formattedScaled}${scale.suffix}`
+		return isNegative ? `-${result}` : result
 	}
 
 	// Handle scientific notation
@@ -144,11 +178,11 @@ const formatNum_internal = (value: unknown, maxDecimals?: number): string => {
 	if (!decimals) return num
 
 	if (decimals?.startsWith('999')) {
-		return Number(value).toLocaleString('en-US', { maximumFractionDigits: 2 })
+		return numValue.toLocaleString('en-US', { maximumFractionDigits: 2 })
 	}
 
 	if (decimals?.startsWith('0000000000')) {
-		return Number(value).toFixed(0)
+		return numValue.toFixed(0)
 	}
 
 	if (maxDecimals !== undefined) {
@@ -215,44 +249,8 @@ const formatNum_internal = (value: unknown, maxDecimals?: number): string => {
 	return num + '.' + decimalsToShow.substring(0, endIndex)
 }
 
-const abbreviateNumber_internal = (value: unknown, maxDecimals?: number | null): string | null => {
-	if (value == null) return null
-
-	const { numValue } = toNumericContext(value)
-
-	if (Number.isNaN(numValue)) return '0'
-
-	if (numValue < 1000) return formatNum_internal(value, maxDecimals ?? undefined)
-
-	// Handle negative numbers
-	const isNegative = numValue < 0
-	const absValue = Math.abs(numValue)
-
-	// Determine suffix and divisor
-	let result: string
-
-	if (absValue >= 1_000_000_000) {
-		// Billions - use 2 decimals max
-		result = (absValue / 1_000_000_000).toFixed(2) + 'B'
-	} else if (absValue >= 1_000_000) {
-		// Millions - use 2 decimals max
-		result = (absValue / 1_000_000).toFixed(2) + 'M'
-	} else if (absValue >= 1_000) {
-		// Thousands - use 2 decimals max
-		result = (absValue / 1_000).toFixed(2) + 'K'
-	} else {
-		// Less than 1000, show up to 2 decimals
-		return numValue.toFixed(2).replace(/\.?0+$/, '')
-	}
-
-	// Remove trailing zeros after decimal point
-	result = result.replace(/\.?0+([KMB])$/, '$1')
-
-	return isNegative ? `-${result}` : result
-}
-
 export const formatNum = (value: unknown, maxDecimals?: number, symbol?: string): string | null | undefined => {
-	return appendSymbol(formatNum_internal(value, maxDecimals), symbol)
+	return appendSymbol(formatNumberCore(value, maxDecimals, 'standard'), symbol)
 }
 
 export const abbreviateNumber = (
@@ -260,7 +258,8 @@ export const abbreviateNumber = (
 	maxDecimals?: number | null,
 	symbol?: string
 ): string | null | undefined => {
-	return appendSymbol(abbreviateNumber_internal(value, maxDecimals), symbol)
+	if (value == null) return null
+	return appendSymbol(formatNumberCore(value, maxDecimals ?? undefined, 'compact'), symbol)
 }
 
 export const formattedNum = (number: unknown, symbol: boolean | string = false): string => {
@@ -416,18 +415,42 @@ export const slug = (name: unknown = ''): string =>
 		.replace(/ /g, '-')
 		.replace(/'/g, '')
 
-export function getNDistinctColors(n: number, colorToAvoid?: string): string[] {
-	if (n < CHART_COLORS.length) {
-		return CHART_COLORS.slice(0, n)
+export function getNDistinctColors(n: number): string[] {
+	if (n <= 0) {
+		return []
 	}
 
-	const colors: (string | null)[] = []
-	const colorToAvoidHsl = colorToAvoid ? hexToHSL(colorToAvoid) : null
+	const colors: string[] = []
+	const usedColors = new Set<string>()
+	const usedBuckets = new Map<string, HSL[]>()
+	const saturationSteps = [60, 68, 76]
+	const lightnessSteps = [40, 48, 56]
+	const minContrastRatio = 2.5
+	const similarityThreshold = 0.16
+	const hueBinSize = 24
+	const satBinSize = 14
+	const lightBinSize = 14
+	const hueBinCount = Math.ceil(360 / hueBinSize)
 
-	// Pre-calculate HSL values for all chart colors to avoid repeated conversions
-	const chartColorsHsl = CHART_COLORS.map(hexToHSL)
+	const getRelativeLuminance = (hex: string): number => {
+		const r = parseInt(hex.slice(1, 3), 16)
+		const g = parseInt(hex.slice(3, 5), 16)
+		const b = parseInt(hex.slice(5, 7), 16)
+		const toLinear = (channel: number): number => {
+			const value = channel / 255
+			return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+		}
 
-	// Optimized color distance calculation with early exit
+		return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b)
+	}
+
+	const hasBalancedContrast = (hex: string): boolean => {
+		const luminance = getRelativeLuminance(hex)
+		const contrastOnWhite = 1.05 / (luminance + 0.05)
+		const contrastOnBlack = (luminance + 0.05) / 0.05
+		return contrastOnWhite >= minContrastRatio && contrastOnBlack >= minContrastRatio
+	}
+
 	const getColorDistance = (hsl1: HSL, hsl2: HSL): number => {
 		const hueDiff = Math.abs(hsl1.h - hsl2.h)
 		const hueDistance = (hueDiff > 180 ? 360 - hueDiff : hueDiff) / 180
@@ -436,151 +459,106 @@ export function getNDistinctColors(n: number, colorToAvoid?: string): string[] {
 		return hueDistance * 0.7 + satDistance * 0.2 + lightDistance * 0.1
 	}
 
-	// Optimized similarity check with pre-calculated HSL values
-	const isTooSimilarToAny = (colorHsl: HSL, existingColorsHsl: HSL[]): boolean => {
-		if (colorToAvoidHsl && getColorDistance(colorHsl, colorToAvoidHsl) < 0.25) {
-			return true
-		}
-		for (const existingHsl of existingColorsHsl) {
-			if (getColorDistance(colorHsl, existingHsl) < 0.25) {
-				return true
-			}
-		}
-		return false
+	const getBucketKey = (hsl: HSL): string => {
+		const hBin = Math.floor(hsl.h / hueBinSize) % hueBinCount
+		const sBin = Math.floor(hsl.s / satBinSize)
+		const lBin = Math.floor(hsl.l / lightBinSize)
+		return `${hBin}:${sBin}:${lBin}`
 	}
 
-	// Step 1: Use all colors from CHART_COLORS first
-	const chartColorsToUse = Math.min(n, CHART_COLORS.length)
-	const usedColorsHsl: HSL[] = []
-
-	for (let i = 0; i < chartColorsToUse; i++) {
-		const chartColor = CHART_COLORS[i]
-		const chartColorHsl = chartColorsHsl[i]
-
-		if (!colorToAvoidHsl || getColorDistance(chartColorHsl, colorToAvoidHsl) >= 0.25) {
-			colors.push(chartColor)
-			usedColorsHsl.push(chartColorHsl)
+	const addToBuckets = (hsl: HSL): void => {
+		const key = getBucketKey(hsl)
+		const bucket = usedBuckets.get(key)
+		if (bucket) {
+			bucket.push(hsl)
 		} else {
-			colors.push(null)
+			usedBuckets.set(key, [hsl])
 		}
 	}
 
-	// Step 2: Generate remaining colors with enhanced uniqueness
-	const remainingCount = n - chartColorsToUse
-	const colorFamilies = ['blue', 'red', 'green', 'brown', 'yellow', 'purple', 'orange', 'pink'] as const
-	type ColorFamily = (typeof colorFamilies)[number]
+	const isDistinct = (hsl: HSL): boolean => {
+		const centerH = Math.floor(hsl.h / hueBinSize) % hueBinCount
+		const centerS = Math.floor(hsl.s / satBinSize)
+		const centerL = Math.floor(hsl.l / lightBinSize)
 
-	// Enhanced hue variations - more combinations to prevent duplicates
-	const familyHues: Record<ColorFamily, number[]> = {
-		blue: [210, 240, 200, 220, 190, 230, 180, 250, 170, 260],
-		red: [0, 15, 345, 330, 10, 20, 340, 325, 5, 25],
-		green: [120, 140, 100, 160, 80, 150, 90, 170, 70, 180],
-		brown: [30, 45, 15, 60, 0, 50, 10, 70, 5, 80],
-		yellow: [60, 75, 45, 90, 30, 85, 40, 95, 35, 105],
-		purple: [270, 285, 255, 300, 240, 295, 250, 305, 245, 315],
-		orange: [30, 45, 15, 60, 0, 50, 10, 70, 5, 80],
-		pink: [320, 335, 305, 350, 290, 340, 300, 355, 295, 5]
-	}
-
-	const generatedColors: string[] = []
-	const usedColors = new Set<string | null>([...colors.filter((c) => c), ...CHART_COLORS])
-
-	// Pre-calculate HSL values for all existing colors
-	const allExistingColorsHsl: HSL[] = [...usedColorsHsl, ...chartColorsHsl]
-
-	// Generate colors with better distribution
-	for (let i = 0; i < remainingCount; i++) {
-		const familyIndex = i % colorFamilies.length
-		const family = colorFamilies[familyIndex]
-		const hueGroup = Math.floor(i / colorFamilies.length) % familyHues[family].length
-		const baseHue = familyHues[family][hueGroup]
-
-		let attempts = 0
-		let color: string = ''
-		let colorHsl: HSL
-
-		do {
-			// Enhanced variation system
-			const saturationGroup = Math.floor(i / (colorFamilies.length * familyHues[family].length)) % 8
-			const lightnessGroup = Math.floor(i / (colorFamilies.length * familyHues[family].length * 8)) % 6
-
-			const saturation = 65 + saturationGroup * 4 // 65, 69, 73, 77, 81, 85, 89, 93
-			const lightness = 20 + lightnessGroup * 6 // 20, 26, 32, 38, 44, 50
-
-			// Add hue variation based on attempt
-			const hueVariation = (attempts % 7) * 3 - 9 // -9, -6, -3, 0, 3, 6, 9
-			const finalHue = (baseHue + hueVariation + 360) % 360
-
-			color = hslToHex(finalHue, saturation, lightness)
-			colorHsl = hexToHSL(color)
-
-			// Check for exact duplicates first
-			if (usedColors.has(color)) {
-				attempts++
-				continue
-			}
-
-			// Use pre-calculated HSL values for faster comparison
-			const isTooSimilar = isTooSimilarToAny(colorHsl, allExistingColorsHsl)
-
-			if (!isTooSimilar) break
-
-			attempts++
-		} while (attempts < 25)
-
-		// Simplified fallback - use golden angle distribution for better performance
-		if (attempts >= 25) {
-			const forcedHue = (i * 137.5) % 360 // Golden angle for maximum distribution
-			const forcedSaturation = 70 + (i % 20)
-			const forcedLightness = 25 + (i % 25)
-			color = hslToHex(forcedHue, forcedSaturation, forcedLightness)
-		}
-
-		generatedColors.push(color)
-		usedColors.add(color)
-		allExistingColorsHsl.push(hexToHSL(color))
-	}
-
-	// Step 3: Replace null values (conflicting chart colors) with generated colors
-	let generatedIndex = 0
-	for (let i = 0; i < colors.length; i++) {
-		if (colors[i] === null) {
-			colors[i] = generatedColors[generatedIndex] || hslToHex(Math.random() * 360, 80, 40)
-			generatedIndex++
-		}
-	}
-
-	// Step 4: Add remaining generated colors
-	for (let i = generatedIndex; i < generatedColors.length; i++) {
-		colors.push(generatedColors[i])
-	}
-
-	// Step 5: Simplified adjacent similarity check - only check first few groups for performance
-	const finalColors = colors as string[]
-	const maxAdjacentChecks = Math.min(10, Math.floor(finalColors.length / 5))
-	for (let i = 0; i < maxAdjacentChecks; i++) {
-		const group = finalColors.slice(i * 5, (i + 1) * 5)
-		if (group.length < 5) break
-
-		let similarCount = 0
-		for (let j = 0; j < group.length - 1; j++) {
-			const hsl1 = hexToHSL(group[j])
-			const hsl2 = hexToHSL(group[j + 1])
-			if (getColorDistance(hsl1, hsl2) < 0.3) {
-				similarCount++
+		for (let dh = -1; dh <= 1; dh++) {
+			const hBin = (centerH + dh + hueBinCount) % hueBinCount
+			for (let ds = -1; ds <= 1; ds++) {
+				const sBin = centerS + ds
+				if (sBin < 0) continue
+				for (let dl = -1; dl <= 1; dl++) {
+					const lBin = centerL + dl
+					if (lBin < 0) continue
+					const bucket = usedBuckets.get(`${hBin}:${sBin}:${lBin}`)
+					if (!bucket) continue
+					for (const existing of bucket) {
+						if (getColorDistance(existing, hsl) < similarityThreshold) {
+							return false
+						}
+					}
+				}
 			}
 		}
 
-		if (similarCount >= 3) {
-			// Simple swap to break similarity
-			const swapIndex = i * 5 + 2
-			if (swapIndex < finalColors.length - 1) {
-				;[finalColors[swapIndex], finalColors[swapIndex + 1]] = [finalColors[swapIndex + 1], finalColors[swapIndex]]
-			}
-		}
+		return true
 	}
 
-	return finalColors
+	for (const baseColor of CHART_COLORS) {
+		if (colors.length === n) {
+			return colors
+		}
+
+		if (usedColors.has(baseColor)) continue
+		if (!hasBalancedContrast(baseColor)) continue
+		const baseColorHsl = hexToHSL(baseColor)
+		if (!isDistinct(baseColorHsl)) continue
+
+		usedColors.add(baseColor)
+		colors.push(baseColor)
+		addToBuckets(baseColorHsl)
+	}
+
+	let i = 0
+	let attempts = 0
+	const maxAttempts = n * 40
+
+	// Deterministic low-discrepancy sequence with bucketed distance checks.
+	while (colors.length < n && attempts < maxAttempts) {
+		const hue = (i * 137.508) % 360
+		const saturation = saturationSteps[Math.floor(i / lightnessSteps.length) % saturationSteps.length]
+		const baseLightnessIndex = i % lightnessSteps.length
+
+		for (let lightnessShift = 0; lightnessShift < lightnessSteps.length; lightnessShift++) {
+			const lightness = lightnessSteps[(baseLightnessIndex + lightnessShift) % lightnessSteps.length]
+			const candidate = hslToHex(hue, saturation, lightness)
+			if (usedColors.has(candidate)) continue
+			if (!hasBalancedContrast(candidate)) continue
+			const candidateHsl = hexToHSL(candidate)
+			if (!isDistinct(candidateHsl)) continue
+
+			usedColors.add(candidate)
+			colors.push(candidate)
+			addToBuckets(candidateHsl)
+			break
+		}
+
+		i++
+		attempts++
+	}
+
+	// Ensure we always return n colors, even for very large n.
+	while (colors.length < n) {
+		const hue = (i * 137.508) % 360
+		const saturation = 68 + (i % 3) * 6
+		const lightness = 44 + (i % 3) * 6
+		const candidate = hslToHex(hue, saturation, lightness)
+		i++
+		if (usedColors.has(candidate)) continue
+		usedColors.add(candidate)
+		colors.push(candidate)
+	}
+
+	return colors
 }
 
 export const getDominancePercent = (value: unknown, total: unknown): number => {

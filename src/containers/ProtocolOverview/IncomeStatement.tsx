@@ -6,7 +6,7 @@ import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
-import { formattedNum } from '~/utils'
+import { abbreviateNumber } from '~/utils'
 import { IProtocolOverviewPageData } from './types'
 
 const SankeyChart = lazy(() => import('~/components/ECharts/SankeyChart'))
@@ -14,6 +14,8 @@ const SankeyChart = lazy(() => import('~/components/ECharts/SankeyChart'))
 const incomeStatementGroupByOptions = ['Yearly', 'Quarterly', 'Monthly'] as const
 const EMPTY_BREAKDOWN_LABELS: string[] = []
 const EMPTY_BREAKDOWN_METHODOLOGY: Record<string, string> = {}
+
+const formatIncomeValue = (value: number): string => abbreviateNumber(value, 2, '$') ?? '$0'
 
 export type IncomeStatementView = 'table' | 'sankey' | 'both'
 
@@ -344,7 +346,7 @@ export const IncomeStatement = ({
 				nodes.push({
 					name: 'Earnings',
 					color: earnings >= 0 ? COLORS.green : COLORS.red,
-					description: `Gross Profit (${formattedNum(grossProfit, true)}) minus Incentives (${formattedNum(incentives, true)})`,
+					description: `Gross Profit (${formatIncomeValue(grossProfit)}) minus Incentives (${formatIncomeValue(incentives)})`,
 					displayValue: earnings, // Show actual earnings value, not the sum of flows
 					depth: 3,
 					percentageLabel: formatPercent(earnings, grossProfit)
@@ -760,10 +762,10 @@ const IncomeStatementByLabel = ({
 								}
 								className={`justify-start underline decoration-dotted ${isEarnings ? (data[header[0]]?.value >= 0 ? 'decoration-(--success)/60' : 'decoration-(--error)/60') : 'decoration-black/60 dark:decoration-white/60'}`}
 							>
-								{formattedNum(data[header[0]].value, true)}
+								{formatIncomeValue(data[header[0]].value)}
 							</Tooltip>
 						) : (
-							<>{formattedNum(data[header[0]].value, true)}</>
+							<>{formatIncomeValue(data[header[0]].value)}</>
 						)}
 					</td>
 				))}
@@ -806,10 +808,10 @@ const IncomeStatementByLabel = ({
 											}
 											className="justify-start underline decoration-black/60 decoration-dotted dark:decoration-white/60"
 										>
-											{formattedNum(data[header[0]]['by-label']?.[breakdownlabel], true)}
+											{formatIncomeValue(data[header[0]]['by-label']?.[breakdownlabel])}
 										</Tooltip>
 									) : (
-										<>{formattedNum(data[header[0]]['by-label']?.[breakdownlabel], true)}</>
+										<>{formatIncomeValue(data[header[0]]['by-label']?.[breakdownlabel])}</>
 									)}
 								</td>
 							))}
