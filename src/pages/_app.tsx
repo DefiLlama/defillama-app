@@ -125,7 +125,8 @@ function App({ Component, pageProps }: AppProps) {
 	}, [])
 
 	const { hasActiveSubscription } = useAuthContext()
-	const showFloatingButton = hasActiveSubscription && !router.pathname.includes('/ai/chat')
+	const showFloatingButton =
+		hasActiveSubscription && !router.pathname.includes('/ai/chat') && !router.pathname.includes('/superluminal')
 
 	return (
 		<>

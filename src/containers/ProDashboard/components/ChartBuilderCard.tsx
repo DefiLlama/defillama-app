@@ -701,6 +701,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					{chartSeries.length > 0 && (
 						<button
 							type="button"
+							data-btn="colors"
 							onClick={() => setShowColors((prev) => !prev)}
 							disabled={isReadOnly}
 							aria-pressed={showColors}
