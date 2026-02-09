@@ -108,7 +108,7 @@ export default function Correlations({ coinsData }) {
 	const selectedCoins = useMemo<Record<string, IResponseCGMarketsAPI>>(() => {
 		if (normalizedQueryCoins.length === 0) return {}
 		const queryCoinsSet = new Set(normalizedQueryCoins)
-		return Object.fromEntries(coinsData.filter((coin) => queryCoinsSet.has(coin.id)).map((coin) => [coin.id, coin]))
+		return Object.fromEntries(coinsData.flatMap((coin) => (queryCoinsSet.has(coin.id) ? [[coin.id, coin]] : [])))
 	}, [normalizedQueryCoins, coinsData])
 
 	const [period, setPeriod] = useState<Period>('1y')

@@ -190,7 +190,7 @@ export const UnlocksTable = ({
 
 	const selectedOptions = useMemo(() => {
 		const storage = JSON.parse(columnsInStorage)
-		return columnOptions.filter((c) => !!storage[c.key]).map((c) => c.key)
+		return columnOptions.flatMap((c) => (storage[c.key] ? [c.key] : []))
 	}, [columnsInStorage])
 
 	const [sorting, setSorting] = useState<SortingState>([{ id: 'upcomingEvent', desc: false }])

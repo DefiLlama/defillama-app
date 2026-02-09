@@ -523,7 +523,11 @@ export const getAllProtocolEmissionsWithHistory = async ({
 	try {
 		const res = await fetchJson(PROTOCOL_EMISSIONS_API)
 
-		const coinPrices = await fetchCoinPricesBatched(res.filter((p) => p.gecko_id).map((p) => `coingecko:${p.gecko_id}`))
+		const coinIdsList: string[] = []
+		for (const p of res) {
+			if (p.gecko_id) coinIdsList.push(`coingecko:${p.gecko_id}`)
+		}
+		const coinPrices = await fetchCoinPricesBatched(coinIdsList)
 
 		return res
 			.map((protocol) => {
@@ -593,7 +597,10 @@ export const getAllProtocolEmissions = async ({
 		const nowSec = Date.now() / 1000
 		const weekAgoSec = nowSec - 7 * 24 * 60 * 60
 
-		const coinIds = protocols.filter((p) => p.gecko_id).map((p) => `coingecko:${p.gecko_id}`)
+		const coinIds: string[] = []
+		for (const p of protocols) {
+			if (p.gecko_id) coinIds.push(`coingecko:${p.gecko_id}`)
+		}
 		const coinPrices = await fetchCoinPricesBatched(coinIds)
 		const coins = { coins: coinPrices }
 

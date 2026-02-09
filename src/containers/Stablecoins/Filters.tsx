@@ -206,13 +206,17 @@ function Attribute({ nestedMenu }: { nestedMenu: boolean; pathname?: string }) {
 		const allKeys = stablecoinAttributeOptions.map((o) => o.key)
 
 		const includeRaw = parseIncludeParam(attribute as any, allKeys)
-		const includeNormalized = includeRaw.map((a) => normalizeAttributeKey(a)).filter(Boolean) as string[]
+		const includeNormalized = includeRaw.flatMap((a) => {
+			const key = normalizeAttributeKey(a)
+			return key ? [key] : []
+		})
 
 		const excludeSetRaw = parseExcludeParam(excludeAttribute as any)
 		const excludeSetNormalized = new Set(
-			Array.from(excludeSetRaw)
-				.map((a) => normalizeAttributeKey(a))
-				.filter(Boolean) as string[]
+			Array.from(excludeSetRaw).flatMap((a) => {
+				const key = normalizeAttributeKey(a)
+				return key ? [key] : []
+			})
 		)
 
 		const selected = includeNormalized.filter((a) => !excludeSetNormalized.has(a))

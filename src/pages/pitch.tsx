@@ -66,15 +66,17 @@ export const getStaticProps = withPerformanceLogging('pitch', async () => {
 			)
 		)
 	)
-	const chains = Array.from(
-		new Set(vcList.flatMap((vc) => Array.from(vc.chains)?.filter(Boolean))?.map((x) => x.trim()))
-	)
-	const defiCategories = Array.from(
-		new Set(vcList.flatMap((vc) => Array.from(vc.defiCategories)?.filter(Boolean))?.map((x) => x.trim()))
-	)
-	const roundTypes = Array.from(
-		new Set(vcList.flatMap((vc) => Array.from(vc.roundTypes)?.filter(Boolean))?.map((x) => x.trim()))
-	)
+	const chainsSet = new Set<string>()
+	const defiCategoriesSet = new Set<string>()
+	const roundTypesSet = new Set<string>()
+	for (const vc of vcList) {
+		for (const x of vc.chains) if (x) chainsSet.add(x.trim())
+		for (const x of vc.defiCategories) if (x) defiCategoriesSet.add(x.trim())
+		for (const x of vc.roundTypes) if (x) roundTypesSet.add(x.trim())
+	}
+	const chains = Array.from(chainsSet)
+	const defiCategories = Array.from(defiCategoriesSet)
+	const roundTypes = Array.from(roundTypesSet)
 	const lastRounds = vcList.map((vc) => vc.lastRound).sort((a, b) => b - a)
 
 	return {

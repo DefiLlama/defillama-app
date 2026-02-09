@@ -165,7 +165,7 @@ export const useGroupChainsPegged = (chains: IChainData[], groupData: IGroupData
 		const chainsByName = new Map<string, IChainData>(chains.map((item) => [item.name, item]))
 
 		const finalData = {}
-		const addedChains = []
+		const addedChains = new Set<string>()
 		for (const parentName in groupData) {
 			let mcap: DataValue = null
 			let unreleased: DataValue = null
@@ -187,7 +187,7 @@ export const useGroupChainsPegged = (chains: IChainData[], groupData: IGroupData
 					subRows: [parentData]
 				}
 
-				addedChains.push(parentName)
+				addedChains.add(parentName)
 			}
 
 			let addedChildren = false
@@ -220,7 +220,7 @@ export const useGroupChainsPegged = (chains: IChainData[], groupData: IGroupData
 							name: parentName,
 							subRows: [...subChains, childData]
 						}
-						addedChains.push(child)
+						addedChains.add(child)
 						addedChildren = true
 					}
 				}
@@ -235,7 +235,7 @@ export const useGroupChainsPegged = (chains: IChainData[], groupData: IGroupData
 		}
 
 		for (const item of chains) {
-			if (!addedChains.includes(item.name)) {
+			if (!addedChains.has(item.name)) {
 				finalData[item.name] = item
 			}
 		}

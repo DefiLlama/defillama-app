@@ -386,7 +386,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	})
 
 	const comparisonData = useMemo(
-		() => comparisonQueries.map((q) => q.data).filter(Boolean) as ComparisonEntry[],
+		() => comparisonQueries.flatMap((q) => (q.data ? [q.data] : [])) as ComparisonEntry[],
 		[comparisonQueries]
 	)
 

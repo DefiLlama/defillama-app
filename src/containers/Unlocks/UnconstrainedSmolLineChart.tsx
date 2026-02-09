@@ -116,7 +116,9 @@ export function UnconstrainedSmolLineChart({
 							// Parse all events and combine data
 							const eventDatas = lastEvent.map(parseEventData)
 							const totalAmount = eventDatas.reduce((sum, event) => sum + event.amount, 0)
-							const uniqueCategories = Array.from(new Set(eventDatas.map((event) => event.category).filter(Boolean)))
+							const uniqueCategories = Array.from(
+								new Set(eventDatas.flatMap((event) => (event.category ? [event.category] : [])))
+							)
 
 							tooltipHtml += `<div style="margin-top: 4px; opacity: 1;">`
 							tooltipHtml += `<div style="color: #000000">Unlocked: ${formattedNum(

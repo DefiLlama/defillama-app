@@ -13,6 +13,8 @@ import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '../../utils'
 import { IProtocolRow } from './types'
 
+const whiteLabeledVaultProviders = new Set(['Veda'])
+
 const columnHelper = createColumnHelper<IProtocolRow>()
 
 const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
@@ -1232,8 +1234,7 @@ export const ProtocolTvlCell = ({ value, rowValues }) => {
 				'This protocol deposits into another protocol or is under Liquid Staking category, so it is subtracted from total TVL because both "Liquid Staking" and "Double Count" toggles are off'
 		}
 
-		const whiteLabeledVaultProviders = ['Veda']
-		if (whiteLabeledVaultProviders.includes(rowValues.name)) {
+		if (whiteLabeledVaultProviders.has(rowValues.name)) {
 			text =
 				'This protocol issues white-labeled vaults which may result in TVL being counted by another protocol (e.g., double counted).'
 		}

@@ -64,7 +64,13 @@ export async function getServerSideProps({ res }) {
 		protocolCategories.map((c) => slug(c)),
 		parentProtocols.map(({ name }) => slug(name)),
 		stablecoins.map(({ name }) => slug(name)),
-		cexs.filter((c) => c.slug != null).map(({ slug: cexSlug }) => slug(cexSlug))
+		(() => {
+			const slugs = []
+			for (const c of cexs) {
+				if (c.slug != null) slugs.push(slug(c.slug))
+			}
+			return slugs
+		})()
 	)
 
 	res.setHeader('Content-Type', 'text/xml')

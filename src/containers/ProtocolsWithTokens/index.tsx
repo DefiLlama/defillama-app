@@ -11,6 +11,8 @@ import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { IProtocolsWithTokensByChainPageData } from './queries'
 
+const chainLikeCategories = new Set(['Chain', 'Rollup'])
+
 // Helper to parse exclude query param to Set
 const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
 	if (!param) return new Set()
@@ -154,10 +156,9 @@ const defaultColumns = (
 			cell: ({ getValue, row }) => {
 				const value = getValue() as string
 
-				const basePath = ['Chain', 'Rollup'].includes(row.original.category) ? 'chain' : 'protocol'
+				const basePath = chainLikeCategories.has(row.original.category) ? 'chain' : 'protocol'
 				const chartKey =
-					(['Chain', 'Rollup'].includes(row.original.category) ? chainChartsKeys[type] : protocolChartsKeys[type]) ??
-					null
+					(chainLikeCategories.has(row.original.category) ? chainChartsKeys[type] : protocolChartsKeys[type]) ?? null
 
 				return (
 					<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>

@@ -56,7 +56,7 @@ export async function getPool2TVLByChain({
 				return null
 			}),
 		fetchJson('https://api.llama.fi/chains2/All').then((data) =>
-			data.chainTvls.filter((chain) => !!chain.extraTvl?.pool2?.tvl).map((chain) => chain.name)
+			data.chainTvls.flatMap((chain) => (chain.extraTvl?.pool2?.tvl ? [chain.name] : []))
 		)
 	])
 
@@ -104,9 +104,11 @@ export async function getPool2TVLByChain({
 		if (p) {
 			const pool2Tvl = finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.pool2Tvl ?? 0), 0)
 			const totalPrevMonth = finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalPrevMonth ?? 0), 0)
-			const categories = Array.from(
-				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))
-			)
+			const categorySet = new Set<string>()
+			for (const p of finalParentProtocols[parent]) {
+				if (p.category) categorySet.add(p.category)
+			}
+			const categories = Array.from(categorySet)
 
 			finalProtocols.push({
 				name: p.name,

@@ -229,9 +229,11 @@ export function ChartPngExportButton({
 						: isPieChart && Array.isArray(currentOptions.series)
 							? currentOptions.series
 									.filter((s: any) => s.type === 'pie')
-									.flatMap((s: any) => (Array.isArray(s.data) ? s.data.map((d: any) => d?.name).filter(Boolean) : []))
+									.flatMap((s: any) =>
+										Array.isArray(s.data) ? s.data.flatMap((d: any) => (d?.name ? [d.name] : [])) : []
+									)
 							: Array.isArray(currentOptions.series)
-								? currentOptions.series.map((s: any) => s.name || '').filter(Boolean)
+								? currentOptions.series.flatMap((s: any) => (s.name ? [s.name] : []))
 								: []
 
 				const totalLegendWidth = legendItems.reduce(

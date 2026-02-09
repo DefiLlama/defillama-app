@@ -23,7 +23,11 @@ export async function fetchAndFormatGovernanceData(apis: Array<string> | null) {
 		)
 	)
 
-	return data.map((item) => (item.status === 'fulfilled' ? stripUndefined(item.value) : null)).filter((item) => !!item)
+	const results = []
+	for (const item of data) {
+		if (item.status === 'fulfilled') results.push(stripUndefined(item.value))
+	}
+	return results
 }
 
 export function getGovernanceTypeFromApi(apiUrl: string) {
