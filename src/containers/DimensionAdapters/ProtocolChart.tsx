@@ -203,9 +203,9 @@ const ChartByType = ({
 		// Helper to compute final date based on interval
 		const computeFinalDate = (date: number) =>
 			chartInterval === 'Weekly'
-				? lastDayOfWeek(+date * 1e3) * 1e3
+				? lastDayOfWeek(+date) * 1e3
 				: chartInterval === 'Monthly'
-					? firstDayOfMonth(+date * 1e3) * 1e3
+					? firstDayOfMonth(+date) * 1e3
 					: +date * 1e3
 
 		// Aggregate by date with interval grouping

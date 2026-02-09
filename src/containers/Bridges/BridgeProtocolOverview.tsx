@@ -81,7 +81,7 @@ const BridgeInfo = ({
 		if (groupBy === 'daily' || allChainsVolumePairs.length === 0) return allChainsVolumePairs
 		const store: Record<number, number> = {}
 		for (const [date, value] of allChainsVolumePairs) {
-			const key = groupBy === 'weekly' ? lastDayOfWeek(date * 1e3) : firstDayOfMonth(date * 1e3)
+			const key = groupBy === 'weekly' ? lastDayOfWeek(date) : firstDayOfMonth(date)
 			store[key] = (store[key] ?? 0) + (value ?? 0)
 		}
 		return Object.entries(store)
@@ -107,7 +107,7 @@ const BridgeInfo = ({
 		if (groupBy === 'daily') return volumeChartDataByChain
 		const store: Record<number, { Deposited: number; Withdrawn: number }> = {}
 		for (const point of volumeChartDataByChain as Array<any>) {
-			const key = groupBy === 'weekly' ? lastDayOfWeek(point.date * 1e3) : firstDayOfMonth(point.date * 1e3)
+			const key = groupBy === 'weekly' ? lastDayOfWeek(point.date) : firstDayOfMonth(point.date)
 			store[key] = store[key] || { Deposited: 0, Withdrawn: 0 }
 			store[key].Deposited += Number(point.Deposited ?? 0)
 			store[key].Withdrawn += Number(point.Withdrawn ?? 0)

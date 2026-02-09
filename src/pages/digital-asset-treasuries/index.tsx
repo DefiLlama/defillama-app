@@ -120,7 +120,8 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 			for (const asset of assetKeys) {
 				const sumByDate = {}
 				for (const [date, purchasePrice, assetQuantity] of dailyFlowsByAsset[asset].data) {
-					const dateKey = groupBy === 'Monthly' ? +firstDayOfMonth(date) * 1000 : +lastDayOfWeek(date) * 1000
+					const dateKey =
+						groupBy === 'Monthly' ? firstDayOfMonth(date / 1000) * 1000 : lastDayOfWeek(date / 1000) * 1000
 					sumByDate[dateKey] = sumByDate[dateKey] ?? {}
 					sumByDate[dateKey].purchasePrice = (sumByDate[dateKey].purchasePrice ?? 0) + (purchasePrice ?? 0)
 					sumByDate[dateKey].assetQuantity = (sumByDate[dateKey].assetQuantity ?? 0) + (assetQuantity ?? 0)

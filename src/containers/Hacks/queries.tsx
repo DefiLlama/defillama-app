@@ -73,7 +73,7 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 	}
 
 	for (const hack of data) {
-		const monthlyDate = +firstDayOfMonth(hack.date * 1000) * 1e3
+		const monthlyDate = firstDayOfMonth(hack.date) * 1e3
 		monthlyHacks[monthlyDate] = (monthlyHacks[monthlyDate] ?? 0) + hack.amount
 
 		totalHackedRaw += hack.amount

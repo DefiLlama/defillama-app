@@ -312,7 +312,7 @@ export const HacksContainer = ({
 		let totalRugsRaw = 0
 
 		for (const row of filteredData) {
-			const monthTsMs = firstDayOfMonth(row.date * 1000) * 1e3
+			const monthTsMs = firstDayOfMonth(row.date) * 1e3
 			monthlyHacks.set(monthTsMs, (monthlyHacks.get(monthTsMs) ?? 0) + row.amount)
 
 			totalHackedRaw += row.amount
