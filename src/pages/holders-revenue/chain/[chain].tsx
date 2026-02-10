@@ -54,7 +54,8 @@ export const getStaticProps = withPerformanceLogging(
 			adapterType,
 			dataType,
 			chain: metadataCache.chainMetadata[chain].name,
-			route: 'holders-revenue'
+			route: 'holders-revenue',
+			metricName: type
 		}).catch((e) => console.info(`Chain page data not found ${adapterType}:${dataType} : chain:${chain}`, e))
 
 		if (!data) return { notFound: true }

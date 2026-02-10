@@ -16,7 +16,8 @@ export const getStaticProps = withPerformanceLogging(`revenue/ps/index`, async (
 		adapterType,
 		dataType,
 		chain: 'All',
-		route: 'ps'
+		route: 'ps',
+		metricName: type
 	}).catch((e) => console.info(`Chain page data not found ${adapterType}:${dataType} : ALL_CHAINS`, e))
 
 	if (!data) return { notFound: true }

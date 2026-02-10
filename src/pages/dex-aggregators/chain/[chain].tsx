@@ -51,7 +51,8 @@ export const getStaticProps = withPerformanceLogging(
 		const data = await getAdapterByChainPageData({
 			adapterType,
 			chain: metadataCache.chainMetadata[chain].name,
-			route: 'dex-aggregators'
+			route: 'dex-aggregators',
+			metricName: type
 		}).catch((e) => console.info(`Chain page data not found ${adapterType} : chain:${chain}`, e))
 
 		if (!data) return { notFound: true }

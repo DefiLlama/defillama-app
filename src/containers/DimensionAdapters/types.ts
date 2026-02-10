@@ -1,3 +1,4 @@
+import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
 
 interface IProtocol {
@@ -27,6 +28,7 @@ interface IProtocol {
 		totalAllTime: number | null
 	}
 	openInterest?: number | null
+	activeLiquidity?: number | null
 	pf?: number | null
 	ps?: number | null
 	methodology?: string | null
@@ -45,7 +47,7 @@ export interface IAdapterByChainPageData {
 	categories: Array<string>
 	adapterType: `${ADAPTER_TYPES}`
 	dataType: `${ADAPTER_DATA_TYPES}` | null
-	chartData: Array<[number, number]>
+	chartData: MultiSeriesChart2Dataset
 	total24h: number | null
 	total7d: number | null
 	total30d: number | null
@@ -54,6 +56,7 @@ export interface IAdapterByChainPageData {
 	change_1m: number | null
 	change_7dover7d: number | null
 	openInterest: number | null
+	activeLiquidity: number | null
 }
 
 export interface IChainsByAdapterPageData {
@@ -69,6 +72,7 @@ export interface IChainsByAdapterPageData {
 		bribes?: { total24h: number | null; total7d: number | null; total30d: number | null }
 		tokenTax?: { total24h: number | null; total7d: number | null; total30d: number | null }
 		openInterest?: number | null
+		activeLiquidity?: number | null
 	}>
 	allChains: Array<string>
 }

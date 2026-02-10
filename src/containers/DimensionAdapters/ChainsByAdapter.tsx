@@ -538,6 +538,17 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			size: 160
 		},
 		{
+			id: 'activeLiquidity',
+			header: 'Active Liquidity',
+			accessorFn: (protocol) => protocol.activeLiquidity,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.activeLiquidity.chain
+			},
+			size: 160
+		},
+		{
 			id: 'total7d',
 			header: 'Normalized Volume 7d',
 			accessorFn: (protocol) => protocol.total7d,
