@@ -1,4 +1,4 @@
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 
 export function useRangeFilter(minKey: string, maxKey: string) {
 	const router = useRouter()
@@ -14,7 +14,7 @@ export function useRangeFilter(minKey: string, maxKey: string) {
 		else params.delete(minKey)
 		if (maxVal) params.set(maxKey, maxVal)
 		else params.delete(maxKey)
-		Router.push(`${window.location.pathname}?${params.toString()}`, undefined, { shallow: true })
+		router.push(`${window.location.pathname}?${params.toString()}`, undefined, { shallow: true })
 	}
 
 	const handleClear = () => {
@@ -22,7 +22,7 @@ export function useRangeFilter(minKey: string, maxKey: string) {
 		params.delete(minKey)
 		params.delete(maxKey)
 		const qs = params.toString()
-		Router.push(qs ? `${window.location.pathname}?${qs}` : window.location.pathname, undefined, { shallow: true })
+		router.push(qs ? `${window.location.pathname}?${qs}` : window.location.pathname, undefined, { shallow: true })
 	}
 
 	const minRaw = router.query[minKey]

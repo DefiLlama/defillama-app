@@ -44,7 +44,6 @@ const toggleAllOptions = () => {
 interface IUnlocksTableProps {
 	protocols: Array<any>
 	showOnlyWatchlist: boolean
-	setShowOnlyWatchlist: (value: boolean) => void
 	projectName: string
 	setProjectName: (value: string) => void
 	savedProtocols: Set<string>
@@ -71,7 +70,6 @@ const UNLOCK_TYPE_OPTIONS = UNLOCK_TYPES.map((type) => ({
 export const UnlocksTable = ({
 	protocols,
 	showOnlyWatchlist,
-	setShowOnlyWatchlist,
 	projectName,
 	setProjectName,
 	savedProtocols,
@@ -79,8 +77,31 @@ export const UnlocksTable = ({
 	maxUnlockValue
 }: IUnlocksTableProps) => {
 	const router = useRouter()
+	const readSingleQueryValue = (value: string | string[] | undefined) => {
+		return Array.isArray(value) ? value[0] : value
+	}
 
-	const [selectedUnlockTypes, setSelectedUnlockTypes] = useState<string[]>(UNLOCK_TYPES)
+	const setQueryParam = (key: string, value: string | undefined) => {
+		const [basePath, currentSearch = ''] = router.asPath.split('?')
+		const params = new URLSearchParams(currentSearch)
+
+		if (value === undefined) {
+			params.delete(key)
+		} else {
+			params.set(key, value)
+		}
+
+		const nextSearch = params.toString()
+		const nextUrl = nextSearch ? `${basePath}?${nextSearch}` : basePath
+		router.push(nextUrl, undefined, { shallow: true })
+	}
+
+	const unlockTypesParam = readSingleQueryValue(router.query.unlockTypes)
+	const selectedUnlockTypes = useMemo(() => {
+		if (!unlockTypesParam) return UNLOCK_TYPES
+		const types = unlockTypesParam.split(',').filter((t) => UNLOCK_TYPES.includes(t))
+		return types.length > 0 ? types : UNLOCK_TYPES
+	}, [unlockTypesParam])
 
 	const {
 		minUnlockValue: minUnlockValueQuery,
@@ -325,7 +346,7 @@ export const UnlocksTable = ({
 				<h1 className="mr-auto text-lg font-semibold">Token Unlocks</h1>
 
 				<button
-					onClick={() => startTransition(() => setShowOnlyWatchlist(!showOnlyWatchlist))}
+					onClick={() => setQueryParam('watchlist', showOnlyWatchlist ? undefined : 'true')}
 					className="flex items-center justify-center gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				>
 					<Icon
@@ -370,7 +391,10 @@ export const UnlocksTable = ({
 				<SelectWithCombobox
 					allValues={UNLOCK_TYPE_OPTIONS}
 					selectedValues={selectedUnlockTypes}
-					setSelectedValues={setSelectedUnlockTypes}
+					setSelectedValues={(values: string[]) => {
+						const isAllSelected = values.length === UNLOCK_TYPES.length
+						setQueryParam('unlockTypes', isAllSelected ? undefined : values.join(','))
+					}}
 					nestedMenu={false}
 					label={'Unlock Types'}
 					labelType="smol"

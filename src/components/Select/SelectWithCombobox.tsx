@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import { useRouter } from 'next/router'
 import * as React from 'react'
 import { Icon } from '../Icon'
 import { NestedMenu, NestedMenuItem } from '../NestedMenu'
@@ -57,6 +58,7 @@ export function SelectWithCombobox({
 	onValuesChange,
 	defaultSelectedValues
 }: ISelectWithCombobox) {
+	const router = useRouter()
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 	const showCheckboxes = Array.isArray(selectedValues)
 
@@ -66,17 +68,19 @@ export function SelectWithCombobox({
 	// If includeQueryKey is provided, use URL-based functions; otherwise derive from setSelectedValues
 	const setSelectedValues = includeQueryKey
 		? (values: string[]) =>
-				updateQueryFromSelected(includeQueryKey, excludeQueryKey!, getAllKeys(), values, defaultSelectedValues)
+				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), values, defaultSelectedValues)
 		: setSelectedValuesProp
 	const clearAll = includeQueryKey
-		? () => updateQueryFromSelected(includeQueryKey, excludeQueryKey!, getAllKeys(), 'None', defaultSelectedValues)
+		? () =>
+				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), 'None', defaultSelectedValues)
 		: () => setSelectedValuesProp([])
 	const toggleAll = includeQueryKey
-		? () => updateQueryFromSelected(includeQueryKey, excludeQueryKey!, getAllKeys(), null, defaultSelectedValues)
+		? () =>
+				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), null, defaultSelectedValues)
 		: () => setSelectedValuesProp(getAllKeys())
 	const selectOnlyOne = includeQueryKey
 		? (value: string) =>
-				updateQueryFromSelected(includeQueryKey, excludeQueryKey!, getAllKeys(), [value], defaultSelectedValues)
+				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), [value], defaultSelectedValues)
 		: (value: string) => setSelectedValuesProp([value])
 
 	const [searchValue, setSearchValue] = React.useState('')

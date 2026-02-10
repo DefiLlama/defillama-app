@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 
 export function TVLRange({
@@ -32,7 +32,7 @@ export function TVLRange({
 		else params.delete('maxTvl')
 		const queryString = params.toString()
 		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
-		Router.push(newUrl, undefined, { shallow: true })
+		router.push(newUrl, undefined, { shallow: true })
 	}
 
 	const { minTvl, maxTvl } = router.query
@@ -43,7 +43,7 @@ export function TVLRange({
 		params.delete('maxTvl')
 		const queryString = params.toString()
 		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
-		Router.push(newUrl, undefined, { shallow: true })
+		router.push(newUrl, undefined, { shallow: true })
 	}
 
 	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl) : null

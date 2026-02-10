@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
-import Router from 'next/router'
+import { useRouter } from 'next/router'
 import { memo, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { consumePendingPrompt, consumePendingPageContext } from '~/components/LlamaAIFloatingButton'
@@ -59,6 +59,7 @@ interface LlamaAIProps {
 }
 
 export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, showDebug = false }: LlamaAIProps = {}) {
+	const router = useRouter()
 	const { authorizedFetch, user } = useAuthContext()
 	const {
 		sidebarVisible,
@@ -705,7 +706,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 	const handleNewChat = useCallback(async () => {
 		if (initialSessionId) {
-			Router.push('/ai/chat', undefined, { shallow: true })
+			router.push('/ai/chat', undefined, { shallow: true })
 			return
 		}
 
@@ -750,7 +751,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setMessages([])
 		setResizeTrigger((prev) => prev + 1)
 		promptInputRef.current?.focus()
-	}, [initialSessionId, sessionId, isStreaming, authorizedFetch, abortControllerRef, resetPrompt])
+	}, [initialSessionId, sessionId, isStreaming, authorizedFetch, abortControllerRef, resetPrompt, router])
 
 	const handleSessionSelect = useCallback(
 		async (selectedSessionId: string, data: { messages: any[]; pagination?: any }) => {

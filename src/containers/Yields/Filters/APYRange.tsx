@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
@@ -31,7 +31,7 @@ export function APYRange({ nestedMenu, placement }: IAPYRange) {
 		else params.delete('maxApy')
 		const queryString = params.toString()
 		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
-		Router.push(newUrl, undefined, { shallow: true })
+		router.push(newUrl, undefined, { shallow: true })
 	}
 
 	const handleClear = () => {
@@ -40,7 +40,7 @@ export function APYRange({ nestedMenu, placement }: IAPYRange) {
 		params.delete('maxApy')
 		const queryString = params.toString()
 		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
-		Router.push(newUrl, undefined, { shallow: true })
+		router.push(newUrl, undefined, { shallow: true })
 	}
 
 	const { minApy, maxApy } = router.query

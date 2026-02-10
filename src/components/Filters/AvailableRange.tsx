@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 
 export function AvailableRange({
@@ -26,7 +26,7 @@ export function AvailableRange({
 		else params.delete('maxAvailable')
 		const queryString = params.toString()
 		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
-		Router.push(newUrl, undefined, { shallow: true })
+		router.push(newUrl, undefined, { shallow: true })
 	}
 
 	const { minAvailable, maxAvailable } = router.query
@@ -37,7 +37,7 @@ export function AvailableRange({
 		params.delete('maxAvailable')
 		const queryString = params.toString()
 		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
-		Router.push(newUrl, undefined, { shallow: true })
+		router.push(newUrl, undefined, { shallow: true })
 	}
 
 	const min = typeof minAvailable === 'string' && minAvailable !== '' ? Number(minAvailable) : null

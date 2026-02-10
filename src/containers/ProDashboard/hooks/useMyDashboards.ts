@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import { useCallback } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
@@ -37,11 +37,11 @@ export function useMyDashboards({ page, limit, enabled = true }: UseMyDashboards
 	const goToPage = useCallback(
 		(newPage: number) => {
 			const { page: _page, ...query } = router.query
-			Router.push({ pathname: '/pro', query: { ...query, tab: 'my-dashboards', page: newPage } }, undefined, {
+			router.push({ pathname: '/pro', query: { ...query, tab: 'my-dashboards', page: newPage } }, undefined, {
 				shallow: true
 			})
 		},
-		[router.query]
+		[router]
 	)
 
 	return {

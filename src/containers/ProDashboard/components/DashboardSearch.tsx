@@ -1,8 +1,9 @@
-import Router from 'next/router'
+import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 
 export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
+	const router = useRouter()
 	const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [inputValue, setInputValue] = useState(defaultValue ?? '')
@@ -29,7 +30,7 @@ export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
 			} else {
 				params.delete('query')
 			}
-			Router.push(`/pro?${params.toString()}`, undefined, { shallow: true })
+			router.push(`/pro?${params.toString()}`, undefined, { shallow: true })
 		}, 300)
 	}
 
@@ -44,7 +45,7 @@ export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
 		const params = new URLSearchParams(window.location.search)
 		params.delete('page')
 		params.delete('query')
-		Router.push(`/pro?${params.toString()}`, undefined, { shallow: true })
+		router.push(`/pro?${params.toString()}`, undefined, { shallow: true })
 	}
 
 	return (

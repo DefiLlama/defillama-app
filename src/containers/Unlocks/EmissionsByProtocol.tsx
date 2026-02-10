@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { lazy, memo, startTransition, Suspense, useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/router'
+import { lazy, memo, Suspense, useEffect, useMemo, useState } from 'react'
 import { useGeckoId, usePriceChart } from '~/api/client'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
@@ -392,12 +393,43 @@ const ChartContainer = ({
 	disableClientTokenStatsFetch?: boolean
 }) => {
 	const width = useBreakpointWidth()
-	const [dataType, setDataType] = useState<DataType>('documented')
-	const [isPriceAndMcapRequested, setIsPriceAndMcapRequested] = useState(false)
-	const [allocationMode, setAllocationMode] = useState<'current' | 'standard'>('current')
+	const router = useRouter()
+	const readSingleQueryValue = (value: string | string[] | undefined) => {
+		return Array.isArray(value) ? value[0] : value
+	}
+
+	const dataTypeParam = readSingleQueryValue(router.query.dataType)
+	const dataType: DataType =
+		dataTypeParam && (DATA_TYPES as readonly string[]).includes(dataTypeParam)
+			? (dataTypeParam as DataType)
+			: 'documented'
+
+	const chartType: 'bar' | 'line' = readSingleQueryValue(router.query.chartType) === 'bar' ? 'bar' : 'line'
+	const allocationMode: 'current' | 'standard' =
+		readSingleQueryValue(router.query.groupAllocation) === 'true' ? 'standard' : 'current'
+	const isPriceAndMcapRequested = readSingleQueryValue(router.query.priceMcap) === 'true'
+
+	const timeGroupingParam = readSingleQueryValue(router.query.groupBy)
+	const timeGrouping: TimeGrouping =
+		timeGroupingParam && (TIME_GROUPINGS as readonly string[]).includes(timeGroupingParam)
+			? (timeGroupingParam as TimeGrouping)
+			: 'D'
+
+	const setQueryParam = (key: string, value: string | undefined) => {
+		const [basePath, currentSearch = ''] = router.asPath.split('?')
+		const params = new URLSearchParams(currentSearch)
+		if (value === undefined) {
+			params.delete(key)
+		} else {
+			params.set(key, value)
+		}
+
+		const nextSearch = params.toString()
+		const nextUrl = nextSearch ? `${basePath}?${nextSearch}` : basePath
+		router.push(nextUrl, undefined, { shallow: true })
+	}
+
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-	const [chartType, setChartType] = useState<'bar' | 'line'>('line')
-	const [timeGrouping, setTimeGrouping] = useState<TimeGrouping>('D')
 
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
@@ -824,7 +856,7 @@ const ChartContainer = ({
 			{data.chartData?.realtime?.length > 0 ? (
 				<TagGroup
 					selectedValue={dataType}
-					setValue={(period) => setDataType(period as DataType)}
+					setValue={(period) => setQueryParam('dataType', period === 'documented' ? undefined : period)}
 					values={DATA_TYPES}
 					className="ml-auto"
 				/>
@@ -839,9 +871,7 @@ const ChartContainer = ({
 								<Switch
 									label="Group Allocation"
 									value="group-allocation"
-									onChange={() =>
-										startTransition(() => setAllocationMode((prev) => (prev === 'current' ? 'standard' : 'current')))
-									}
+									onChange={() => setQueryParam('groupAllocation', allocationMode === 'current' ? 'true' : undefined)}
 									help="Group token allocations into standardized categories."
 									checked={allocationMode === 'standard'}
 								/>
@@ -849,21 +879,21 @@ const ChartContainer = ({
 							<Switch
 								label="Bar Chart"
 								value="bar-chart"
-								onChange={() => startTransition(() => setChartType((prev) => (prev === 'bar' ? 'line' : 'bar')))}
+								onChange={() => setQueryParam('chartType', chartType === 'line' ? 'bar' : undefined)}
 								checked={chartType === 'bar'}
 							/>
 							{resolvedGeckoId ? (
 								<Switch
 									label="Price & MCap"
 									value="show=price-and-mcap"
-									onChange={() => startTransition(() => setIsPriceAndMcapRequested((prev) => !prev))}
+									onChange={() => setQueryParam('priceMcap', isPriceAndMcapRequested ? undefined : 'true')}
 									checked={isPriceAndMcapRequested}
 									isLoading={isPriceAndMcapLoading}
 								/>
 							) : null}
 							<TagGroup
 								selectedValue={timeGrouping}
-								setValue={(v) => setTimeGrouping(v as TimeGrouping)}
+								setValue={(v) => setQueryParam('groupBy', v === 'D' ? undefined : v)}
 								values={TIME_GROUPINGS}
 							/>
 							<SelectWithCombobox
