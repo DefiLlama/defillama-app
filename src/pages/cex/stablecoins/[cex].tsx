@@ -218,21 +218,44 @@ function PieChartCard({
 }
 
 function useStablecoinData(protocolName: string) {
-	const { data: tokenBreakdownData, isLoading: isTokenBreakdownLoading } =
-		useQuery<IProtocolTokenBreakdownChart | null>({
-			queryKey: ['protocol-token-breakdown', protocolName],
-			queryFn: () => fetchProtocolTvlTokenBreakdownChart({ protocol: protocolName }),
-			staleTime: 60 * 60 * 1000,
-			refetchOnWindowFocus: false,
-			retry: 0
-		})
+	const {
+		data: tokenBreakdownData,
+		isLoading: isTokenBreakdownLoading,
+		dataUpdatedAt: tokenBreakdownDataUpdatedAt
+	} = useQuery<IProtocolTokenBreakdownChart | null>({
+		queryKey: ['cex', protocolName, 'stablecoins', 'token-breakdown'],
+		queryFn: () => fetchProtocolTvlTokenBreakdownChart({ protocol: protocolName }),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
+	})
+
+	const {
+		data: stablecoinsList,
+		isLoading: isStablecoinsListLoading,
+		dataUpdatedAt: stablecoinsListUpdatedAt
+	} = useQuery({
+		queryKey: ['cex', 'stablecoins', 'list', 'v1'],
+		queryFn: () => getStablecoinsList(),
+		staleTime: 6 * 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
+	})
+
+	const peggedAssets = stablecoinsList?.peggedAssets ?? []
 
 	const { data, isLoading } = useQuery<StablecoinChartsData | null>({
-		queryKey: ['stablecoin-charts-data-v2', protocolName, tokenBreakdownData?.length ?? 0],
+		queryKey: [
+			'cex',
+			protocolName,
+			'stablecoins',
+			'charts-data',
+			'v2',
+			tokenBreakdownDataUpdatedAt,
+			stablecoinsListUpdatedAt
+		],
 		queryFn: async () => {
 			if (!tokenBreakdownData || tokenBreakdownData.length === 0) return null
-
-			const { peggedAssets } = await getStablecoinsList()
 			if (!peggedAssets || peggedAssets.length === 0) return null
 
 			const stablecoinSymbols = new Set<string>()
@@ -315,13 +338,13 @@ function useStablecoinData(protocolName: string) {
 				pegMechanismsUnique: Array.from(pegMechanismsUnique)
 			}
 		},
-		enabled: !!tokenBreakdownData?.length,
+		enabled: !!tokenBreakdownData?.length && peggedAssets.length > 0,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0
 	})
 
-	return { data, isLoading: isLoading || isTokenBreakdownLoading }
+	return { data, isLoading: isLoading || isTokenBreakdownLoading || isStablecoinsListLoading }
 }
 
 export default function CEXStablecoins(props: {

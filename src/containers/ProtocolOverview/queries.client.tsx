@@ -38,7 +38,7 @@ type IProtocolAnyBreakdownChart = IProtocolChainBreakdownChart | IProtocolTokenB
 type IProtocolChartQueryData = IProtocolValueChart | IProtocolAnyBreakdownChart | null
 type ProtocolChartSource = 'tvl' | 'treasury'
 type IProtocolChartQueryKey = [
-	'protocolTvlChart' | 'protocolTreasuryChart',
+	'protocol-overview-tvl-chart' | 'protocol-overview-treasury-chart',
 	string | null,
 	string | undefined,
 	string | undefined,
@@ -59,7 +59,7 @@ const getProtocolChartQueryOptions = ({
 	IProtocolChartQueryKey
 > => {
 	const isEnabled = !!protocol && enabled
-	const queryKeyPrefix = source === 'tvl' ? 'protocolTvlChart' : 'protocolTreasuryChart'
+	const queryKeyPrefix = source === 'tvl' ? 'protocol-overview-tvl-chart' : 'protocol-overview-treasury-chart'
 	return {
 		queryKey: [queryKeyPrefix, protocol, key, currency, breakdownType],
 		queryFn: () =>
@@ -81,7 +81,7 @@ const getProtocolTreasuryChartQueryOptions = (params: IProtocolChartParams) =>
 export const useFetchProtocol = (protocolName) => {
 	const isEnabled = !!protocolName
 	return useQuery({
-		queryKey: ['updated-protocols-data', protocolName],
+		queryKey: ['protocol-overview', 'protocol-metrics', protocolName],
 		queryFn: () => fetchProtocolOverviewMetrics(protocolName),
 		staleTime: 60 * 60 * 1000,
 		refetchInterval: 10 * 60 * 1000,
@@ -92,7 +92,7 @@ export const useFetchProtocol = (protocolName) => {
 export const useFetchProtocolActiveUsers = (protocolId: number | string | null) => {
 	const isEnabled = !!protocolId
 	return useQuery({
-		queryKey: ['activeUsers', protocolId],
+		queryKey: ['protocol-overview', 'active-users', protocolId],
 		queryFn: () =>
 			fetchJson(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 				.then((values) => {
@@ -109,7 +109,7 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 export const useFetchProtocolNewUsers = (protocolId: number | string | null) => {
 	const isEnabled = !!protocolId
 	return useQuery({
-		queryKey: ['newUsers', protocolId],
+		queryKey: ['protocol-overview', 'new-users', protocolId],
 		queryFn: () =>
 			fetchJson(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 				.then((values) => {
@@ -127,7 +127,7 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 export const useFetchProtocolTransactions = (protocolId: number | string | null) => {
 	const isEnabled = !!protocolId
 	return useQuery({
-		queryKey: ['protocolTransactions', protocolId],
+		queryKey: ['protocol-overview', 'transactions', protocolId],
 		queryFn: () =>
 			fetchJson(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
 				.then((values) => {
@@ -145,7 +145,7 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 	const isEnabled = !!protocolId
 	return useQuery({
-		queryKey: ['protocolGasUsed', protocolId],
+		queryKey: ['protocol-overview', 'gas-used', protocolId],
 		queryFn: () =>
 			fetchJson(`${PROTOCOL_GAS_USED_API}/${protocolId}`.replaceAll('#', '$'))
 				.then((values) => {
@@ -160,7 +160,7 @@ export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 export const useFetchProtocolTokenLiquidity = (token: string | null) => {
 	const isEnabled = !!token
 	return useQuery({
-		queryKey: ['tokenLiquidity', token],
+		queryKey: ['protocol-overview', 'token-liquidity', token],
 		queryFn: () => fetchJson(`${TOKEN_LIQUIDITY_API}/${token!.replaceAll('#', '$')}`).catch(() => null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -170,7 +170,7 @@ export const useFetchProtocolTokenLiquidity = (token: string | null) => {
 export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 	const isEnabled = !!protocolName
 	return useQuery({
-		queryKey: ['medianApy', protocolName],
+		queryKey: ['protocol-overview', 'median-apy', protocolName],
 		queryFn: () =>
 			fetchJson(`${YIELD_PROJECT_MEDIAN_API}/${protocolName}`)
 				.then((values) => {
@@ -189,7 +189,7 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 
 export const useGetProtocolsList = ({ chain }) => {
 	const { data, isLoading } = useQuery({
-		queryKey: [PROTOCOLS_API],
+		queryKey: ['protocol-overview', 'protocols-list', PROTOCOLS_API],
 		queryFn: () => fetchApi(PROTOCOLS_API),
 		staleTime: 60 * 60 * 1000,
 		retry: 0
@@ -218,7 +218,7 @@ export const useGetProtocolsList = ({ chain }) => {
 export const useFetchProtocolTwitter = (twitter?: string | null) => {
 	const isEnabled = !!twitter
 	return useQuery({
-		queryKey: ['twitterData', twitter],
+		queryKey: ['protocol-overview', 'twitter-data', twitter],
 		queryFn: () =>
 			fetchApi(TWITTER_POSTS_API_V2 + `/${twitter?.toLowerCase()}`).then((res) =>
 				res?.tweetStats ? { ...res, tweets: Object.entries(res?.tweetStats) } : {}

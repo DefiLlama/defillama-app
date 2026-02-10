@@ -342,10 +342,10 @@ export function useProtocolBreakdownCharts({
 		useFetchProtocolChartsByKeys({ protocol, keys, includeBase, source })
 
 	const isNetworkLoading =
-		tvlChartQueries.some((query) => query.isLoading || query.isFetching) ||
-		chainBreakdownChartQueries.some((query) => query.isLoading || query.isFetching) ||
-		tokenBreakdownUsdQueries.some((query) => query.isLoading || query.isFetching) ||
-		tokenBreakdownRawQueries.some((query) => query.isLoading || query.isFetching)
+		tvlChartQueries.some((query) => query.isLoading) ||
+		chainBreakdownChartQueries.some((query) => query.isLoading) ||
+		tokenBreakdownUsdQueries.some((query) => query.isLoading) ||
+		tokenBreakdownRawQueries.some((query) => query.isLoading)
 
 	const computeSignature = [
 		tvlChartQueries.map((query) => query.dataUpdatedAt).join('|'),
