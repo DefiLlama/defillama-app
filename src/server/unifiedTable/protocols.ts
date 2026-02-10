@@ -105,6 +105,16 @@ interface ProtocolQueryOptions {
 	rowHeaders: UnifiedRowHeaderType[]
 }
 
+const computeAnnualizedRatioFrom30d = (
+	marketCap: number | null | undefined,
+	rolling30d: number | null | undefined
+): number | null => {
+	if (marketCap == null || rolling30d == null || rolling30d <= 0) {
+		return null
+	}
+	return Number((marketCap / (rolling30d * 12)).toFixed(2))
+}
+
 const totalsPromise = llamaDb.one<{
 	tvl_base: number | null
 	volume_dexs_1d: number | null
@@ -145,9 +155,10 @@ export async function fetchProtocolsTable(options: ProtocolQueryOptions): Promis
 		fetchSubProtocolRows(chainFilters, totals)
 	])
 
-	const parentProtocolIds = new Set(
-		childRows.map((row) => row.parentProtocolId).filter((id): id is string => Boolean(id))
-	)
+	const parentProtocolIds = new Set<string>()
+	for (const row of childRows) {
+		if (row.parentProtocolId) parentProtocolIds.add(row.parentProtocolId)
+	}
 	const subProtocolIds = new Set(childRows.map((row) => row.protocolId))
 	const filteredParents = parentRows.filter(
 		(row) => !parentProtocolIds.has(row.protocolId) && !subProtocolIds.has(row.protocolId)
@@ -247,8 +258,8 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		fdv: row.fdv ?? null,
 		chainMcap: row.chain_mcap ?? null,
 		mcaptvl: row.mcap && tvl ? row.mcap / tvl : null,
-		pf: row.pf_ratio ?? null,
-		ps: row.ps_ratio ?? null,
+		pf: computeAnnualizedRatioFrom30d(row.mcap, row.fees_30d),
+		ps: computeAnnualizedRatioFrom30d(row.mcap, row.revenue_30d),
 		protocolCount: null
 	}
 }
@@ -569,9 +580,10 @@ const fetchProtocolChainRows = async (
 		fetchSubProtocolsByChain(chainFilters, totals)
 	])
 
-	const parentProtocolIds = new Set(
-		subProtocolChainRows.map((row) => row.parentProtocolId).filter((id): id is string => Boolean(id))
-	)
+	const parentProtocolIds = new Set<string>()
+	for (const row of subProtocolChainRows) {
+		if (row.parentProtocolId) parentProtocolIds.add(row.parentProtocolId)
+	}
 	const subProtocolIds = new Set(subProtocolChainRows.map((row) => row.protocolId))
 	const filteredParents = parentChainRows.filter(
 		(row) => !parentProtocolIds.has(row.protocolId) && !subProtocolIds.has(row.protocolId)

@@ -104,7 +104,6 @@ export const YIELD_CHART_LEND_BORROW_API = `${YIELDS_SERVER_URL}/chartLendBorrow
 export const YIELD_CONFIG_POOL_API = `${YIELDS_SERVER_URL}/configPool`
 export const YIELD_PERPS_API = `${YIELDS_SERVER_URL}/perps`
 export const YIELD_PROJECT_MEDIAN_API = `${YIELDS_SERVER_URL}/medianProject`
-export const YIELD_RISK_API_EXPONENTIAL = `${YIELDS_SERVER_URL}/risk`
 export const LSD_RATES_API = `${YIELDS_SERVER_URL}/lsdRates`
 
 const ETF_SERVER_URL = process.env.ETF_SERVER_URL ?? 'https://etfs.llama.fi'
@@ -179,7 +178,7 @@ export const RWA_CHART_API = `${RWA_SERVER_URL}/chart`
 
 export const MCP_SERVER = 'https://mcp.llama.fi'
 export const YIELD_TOKEN_CATEGORIES_API = 'https://ask.llama.fi/token-categories/yields'
-export const SEARCH_API_URL = 'https://search.defillama.com/multi-search'
+export const SEARCH_API_URL = 'https://search-core.defillama.com/multi-search'
 export const SEARCH_API_TOKEN = process.env.NEXT_PUBLIC_SEARCH_API_TOKEN
 
 export const removedCategoriesFromChainTvl = [

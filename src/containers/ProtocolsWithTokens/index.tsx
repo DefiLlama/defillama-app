@@ -4,12 +4,14 @@ import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { IProtocolsWithTokensByChainPageData } from './queries'
+
+const chainLikeCategories = new Set(['Chain', 'Rollup'])
 
 // Helper to parse exclude query param to Set
 const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
@@ -154,10 +156,9 @@ const defaultColumns = (
 			cell: ({ getValue, row }) => {
 				const value = getValue() as string
 
-				const basePath = ['Chain', 'Rollup'].includes(row.original.category) ? 'chain' : 'protocol'
+				const basePath = chainLikeCategories.has(row.original.category) ? 'chain' : 'protocol'
 				const chartKey =
-					(['Chain', 'Rollup'].includes(row.original.category) ? chainChartsKeys[type] : protocolChartsKeys[type]) ??
-					null
+					(chainLikeCategories.has(row.original.category) ? chainChartsKeys[type] : protocolChartsKeys[type]) ?? null
 
 				return (
 					<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>

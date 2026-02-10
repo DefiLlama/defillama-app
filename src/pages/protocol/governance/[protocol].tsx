@@ -1,11 +1,7 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import {
-	PROTOCOL_GOVERNANCE_COMPOUND_API,
-	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
-	PROTOCOL_GOVERNANCE_TALLY_API
-} from '~/constants'
-import { GovernanceData } from '~/containers/ProtocolOverview/Governance'
+import GovernanceProject from '~/containers/Governance/GovernanceProject'
+import { getGovernanceDetailsPageData } from '~/containers/Governance/queries'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
@@ -19,6 +15,7 @@ export const getStaticProps = withPerformanceLogging(
 		if (!params?.protocol) {
 			return { notFound: true, props: null }
 		}
+
 		const { protocol } = params
 		const normalizedName = slug(protocol)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
@@ -36,35 +33,21 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const protocolData = await getProtocol(protocol)
-
 		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
-
-		const governanceApis = (
-			protocolData.governanceID?.map((gid) =>
-				gid.startsWith('snapshot:')
-					? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${gid.split('snapshot:')[1].replace(/(:|’|')/g, '/')}.json`
-					: gid.startsWith('compound:')
-						? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${gid.split('compound:')[1].replace(/(:|’|')/g, '/')}.json`
-						: gid.startsWith('tally:')
-							? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1].replace(/(:|’|')/g, '/')}.json`
-							: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replace(/(:|’|')/g, '/')}.json`
-			) ?? []
-		)
-			.map((g) =>
-				g.replace(
-					process.env.DATASETS_SERVER_URL ?? 'https://defillama-datasets.llama.fi',
-					'https://defillama-datasets.llama.fi'
-				)
-			)
-			.map((g) => g.toLowerCase())
+		const { props: governanceProps } = await getGovernanceDetailsPageData({
+			governanceIDs: protocolData.governanceID ?? [],
+			projectName: protocolData.name
+		})
 
 		return {
 			props: {
 				name: protocolData.name,
+				symbol: protocolData.symbol ?? null,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
-				governanceApis: governanceApis.filter((x) => !!x),
+				governanceData: governanceProps.governanceData,
+				governanceTypes: governanceProps.governanceTypes,
 				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
@@ -86,7 +69,13 @@ export default function Protocols(props) {
 			tab="governance"
 			warningBanners={props.warningBanners}
 		>
-			<GovernanceData apis={props.governanceApis} />
+			{props.governanceData?.length ? (
+				<GovernanceProject
+					projectName={props.name}
+					governanceData={props.governanceData}
+					governanceTypes={props.governanceTypes ?? []}
+				/>
+			) : null}
 		</ProtocolOverviewLayout>
 	)
 }

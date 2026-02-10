@@ -3,7 +3,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
-import { formattedNum, formattedPercent } from '~/utils'
+import { formattedNum, renderPercentChange } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { FRStrategyRoute, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
@@ -60,7 +60,7 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		cell: ({ getValue }) => {
 			return (
 				<ColoredAPY data-variant="positive" style={{ '--weight': 700, marginLeft: 'auto' }}>
-					{formattedPercent(getValue(), true, 700, true)}
+					{renderPercentChange(getValue(), true, 700, true)}
 				</ColoredAPY>
 			)
 		},
@@ -80,10 +80,10 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 					{lockupsRewards.includes(row.original.projectName) ? (
 						<div className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
-							<>{formattedPercent(Number(getValue()), true, 400)}</>
+							<>{renderPercentChange(Number(getValue()), true, 400)}</>
 						</div>
 					) : (
-						<>{formattedPercent(Number(getValue()), true, 400)}</>
+						<>{renderPercentChange(Number(getValue()), true, 400)}</>
 					)}
 				</>
 			)
@@ -113,7 +113,7 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 									/>
 								}
 							>
-								{formattedPercent(getValue(), true, 700)}
+								{renderPercentChange(getValue(), true, 700)}
 							</Tooltip>
 						</div>
 					) : (
@@ -126,7 +126,7 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 								/>
 							}
 						>
-							{formattedPercent(getValue(), true, 700)}
+							{renderPercentChange(getValue(), true, 700)}
 						</Tooltip>
 					)}
 				</>

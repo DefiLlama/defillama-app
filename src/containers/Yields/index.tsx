@@ -7,6 +7,21 @@ import { useFormatYieldQueryParams } from './hooks'
 import { YieldsPoolsTable } from './Tables/Pools'
 import { toFilterPool } from './utils'
 
+const ALL_YIELD_COLUMNS = [
+	'show7dBaseApy',
+	'show7dIL',
+	'show1dVolume',
+	'show7dVolume',
+	'showInceptionApy',
+	'showBorrowBaseApy',
+	'showBorrowRewardApy',
+	'showNetBorrowApy',
+	'showLTV',
+	'showTotalSupplied',
+	'showTotalBorrowed',
+	'showAvailable'
+]
+
 const YieldPage = ({
 	pools,
 	projectList,
@@ -266,20 +281,9 @@ const YieldPage = ({
 				attributes={true}
 				tvlRange={true}
 				apyRange={true}
-				show7dBaseApy={true}
-				show7dIL={true}
+				enabledColumns={ALL_YIELD_COLUMNS}
 				resetFilters={true}
-				show1dVolume={true}
-				show7dVolume={true}
-				showInceptionApy={true}
 				includeLsdApy={true}
-				showNetBorrowApy={true}
-				showBorrowBaseApy={true}
-				showBorrowRewardApy={true}
-				showTotalSupplied={true}
-				showTotalBorrowed={true}
-				showAvailable={true}
-				showLTV={true}
 				prepareCsv={prepareCsv}
 				showPresetFilters
 			/>

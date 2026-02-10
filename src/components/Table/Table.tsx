@@ -1,4 +1,4 @@
-import { flexRender, RowData, Table } from '@tanstack/react-table'
+import { flexRender, type Row, RowData, Table } from '@tanstack/react-table'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/router'
 import * as React from 'react'
@@ -9,12 +9,13 @@ import { SortIcon } from '~/components/Table/SortIcon'
 import { useMedia } from '~/hooks/useMedia'
 import { Tooltip } from '../Tooltip'
 
-interface ITableProps {
-	instance: Table<any>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface ITableProps<T extends RowData = any> {
+	instance: Table<T>
 	skipVirtualization?: boolean
 	rowSize?: number
 	columnResizeMode?: 'onChange' | 'onEnd'
-	renderSubComponent?: ({ row }: { row: any }) => React.ReactNode
+	renderSubComponent?: ({ row }: { row: Row<T> }) => React.ReactNode
 	stripedBg?: boolean
 	style?: React.CSSProperties
 	compact?: boolean
@@ -61,8 +62,7 @@ export function VirtualTable({
 		for (const r of rows) {
 			if (r.depth > 0) {
 				const parentId =
-					(r as any).getParentRow?.()?.id ??
-					(typeof r.id === 'string' ? r.id.split('.').slice(0, -1).join('.') : String(r.id))
+					r.getParentRow?.()?.id ?? (typeof r.id === 'string' ? r.id.split('.').slice(0, -1).join('.') : String(r.id))
 				const next = (perParent.get(parentId) ?? 0) + 1
 				perParent.set(parentId, next)
 				ordById.set(r.id, next)
@@ -359,7 +359,11 @@ export function VirtualTable({
 											{header.isPlaceholder ? null : (
 												<HeaderWithTooltip
 													content={meta?.headerHelperText}
-													onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : null}
+													onClick={
+														header.column.getCanSort()
+															? () => React.startTransition(() => header.column.toggleSorting())
+															: null
+													}
 												>
 													{value}
 													{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
@@ -380,12 +384,12 @@ export function VirtualTable({
 				className="vf-row-counter"
 				style={
 					skipVirtualization
-						? { ['--vf-row-offset' as any]: '0' }
+						? { ['--vf-row-offset' as string]: '0' }
 						: {
 								height: `${rowVirtualizer.getTotalSize()}px`,
 								width: '100%',
 								position: 'relative',
-								['--vf-row-offset' as any]: `${virtualItems?.[0]?.index ?? 0}`
+								['--vf-row-offset' as string]: `${virtualItems?.[0]?.index ?? 0}`
 							}
 				}
 			>
@@ -415,7 +419,7 @@ export function VirtualTable({
 									...trStyle,
 									...(rowTorender.depth > 0
 										? {
-												['--vf-subrow-index' as any]: `"${subRowOrdinalById.get(rowTorender.id) ?? rowTorender.index + 1}"`
+												['--vf-subrow-index' as string]: `"${subRowOrdinalById.get(rowTorender.id) ?? rowTorender.index + 1}"`
 											}
 										: null)
 								}}
@@ -485,7 +489,15 @@ export function VirtualTable({
 	)
 }
 
-const HeaderWithTooltip = ({ children, content, onClick }) => {
+const HeaderWithTooltip = ({
+	children,
+	content,
+	onClick
+}: {
+	children: React.ReactNode
+	content?: string
+	onClick: (() => void) | null
+}) => {
 	if (onClick) {
 		if (!content)
 			return (

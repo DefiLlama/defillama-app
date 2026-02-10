@@ -69,7 +69,7 @@ export function Announcement({
 	return (
 		<div
 			className="flex min-h-[38px] items-center justify-between gap-2 rounded-md border border-(--link-bg) bg-(--link-bg) p-1.5 text-sm"
-			style={{ '--bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)' } as any}
+			style={{ '--bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)' } as React.CSSProperties}
 		>
 			<span className="flex-1 text-center">{children}</span>
 			{!notCancellable ? (

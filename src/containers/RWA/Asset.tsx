@@ -164,9 +164,14 @@ const ChainBadge = ({
 export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 	const displayName = asset.assetName ?? asset.ticker ?? 'Unknown asset'
 	const keyBase = asset.ticker ?? asset.assetName ?? 'asset'
-	const onChainMcapTotal = asset.onChainMcap?.total ?? null
-	const activeMcapTotal = asset.activeMcap?.total ?? null
-	const defiActiveTvlTotal = asset.defiActiveTvl?.total ?? null
+	const onChainMcap = asset.onChainMcap ?? null
+	const activeMcap = asset.activeMcap ?? null
+	const defiActiveTv = asset.defiActiveTvl ?? null
+	const chartDimensions = (asset.chartDataset?.dimensions ?? []) as string[]
+	const timeSeriesCharts =
+		chartDimensions.length > 0
+			? BASE_TIME_SERIES_CHARTS.filter((chart) => chartDimensions.includes(String(chart.encode.y)))
+			: BASE_TIME_SERIES_CHARTS
 
 	// Get attestation links as array
 	const attestationLinks = asset.attestationLinks
@@ -238,9 +243,18 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					>
 						{definitions.onChainMcap.label}
 					</Tooltip>
-					<span className="font-jetbrains text-xl font-semibold">
-						{onChainMcapTotal != null ? formattedNum(onChainMcapTotal, true) : '-'}
-					</span>
+					{onChainMcap?.breakdown != null ? (
+						<Tooltip
+							content={<BreakdownTooltipContent breakdown={onChainMcap.breakdown} />}
+							className="font-jetbrains text-xl font-semibold"
+						>
+							{onChainMcap?.total != null ? formattedNum(onChainMcap.total, true) : '-'}
+						</Tooltip>
+					) : (
+						<span className="font-jetbrains text-xl font-semibold">
+							{onChainMcap?.total != null ? formattedNum(onChainMcap.total, true) : '-'}
+						</span>
+					)}
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<Tooltip
@@ -249,9 +263,18 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					>
 						{definitions.activeMcap.label}
 					</Tooltip>
-					<span className="font-jetbrains text-xl font-semibold">
-						{activeMcapTotal != null ? formattedNum(activeMcapTotal, true) : '-'}
-					</span>
+					{activeMcap?.breakdown != null ? (
+						<Tooltip
+							content={<BreakdownTooltipContent breakdown={activeMcap.breakdown} />}
+							className="font-jetbrains text-xl font-semibold"
+						>
+							{activeMcap?.total != null ? formattedNum(activeMcap.total, true) : '-'}
+						</Tooltip>
+					) : (
+						<span className="font-jetbrains text-xl font-semibold">
+							{activeMcap?.total != null ? formattedNum(activeMcap.total, true) : '-'}
+						</span>
+					)}
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<Tooltip
@@ -260,9 +283,18 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					>
 						{definitions.defiActiveTvl.label}
 					</Tooltip>
-					<span className="font-jetbrains text-xl font-semibold">
-						{defiActiveTvlTotal != null ? formattedNum(defiActiveTvlTotal, true) : '$0'}
-					</span>
+					{defiActiveTv?.breakdown != null ? (
+						<Tooltip
+							content={<BreakdownTooltipContent breakdown={defiActiveTv.breakdown} />}
+							className="font-jetbrains text-xl font-semibold"
+						>
+							{defiActiveTv?.total != null ? formattedNum(defiActiveTv.total, true) : '$0'}
+						</Tooltip>
+					) : (
+						<span className="font-jetbrains text-xl font-semibold">
+							{defiActiveTv?.total != null ? formattedNum(defiActiveTv.total, true) : '$0'}
+						</span>
+					)}
 				</p>
 				{asset.price != null ? (
 					<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
@@ -277,16 +309,18 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			</div>
 
 			{asset.chartDataset && asset.chartDataset.source.length > 0 ? (
-				<div className="min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<Suspense fallback={<></>}>
+				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<Suspense fallback={<div className="min-h-[398px]" />}>
 						<MultiSeriesChart2
 							charts={timeSeriesCharts}
 							dataset={asset.chartDataset}
 							hideDefaultLegend={false}
-							shouldEnableCSVDownload
-							shouldEnableImageExport
-							imageExportFilename={`${asset.ticker ?? asset.assetName ?? 'asset'}`}
-							imageExportTitle={`${asset.ticker ?? asset.assetName ?? 'Asset'}`}
+							exportButtons={{
+								png: true,
+								csv: true,
+								filename: `${asset.ticker ?? asset.assetName ?? 'asset'}`,
+								pngTitle: `${asset.ticker ?? asset.assetName ?? 'Asset'}`
+							}}
 						/>
 					</Suspense>
 				</div>
@@ -551,7 +585,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 	)
 }
 
-const timeSeriesCharts: Array<{
+const BASE_TIME_SERIES_CHARTS: Array<{
 	type: 'line' | 'bar'
 	name: string
 	stack: string
@@ -581,3 +615,13 @@ const timeSeriesCharts: Array<{
 		color: CHART_COLORS[2]
 	}
 ]
+
+const BreakdownTooltipContent = ({ breakdown }: { breakdown: Array<[string, number]> }) => (
+	<span className="flex flex-col gap-1">
+		{breakdown.map(([chain, tvl]) => (
+			<span key={`${chain}-${tvl}`}>
+				{chain}: {formattedNum(tvl, true)}
+			</span>
+		))}
+	</span>
+)

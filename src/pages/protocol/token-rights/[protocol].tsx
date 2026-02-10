@@ -1,13 +1,14 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { tvlOptionsMap } from '~/components/Filters/options'
+import { TokenLogo } from '~/components/TokenLogo'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { TokenRights } from '~/containers/ProtocolOverview/TokenRights'
 import type { IProtocolOverviewPageData, IProtocolPageMetrics, ITokenRights } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
-import { slug } from '~/utils'
+import { slug, tokenIconUrl } from '~/utils'
 import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -15,6 +16,7 @@ const EMPTY_OTHER_PROTOCOLS: string[] = []
 
 type TokenRightsPageProps = {
 	name: string
+	symbol: string | null
 	parentProtocol: string | null
 	otherProtocols: string[]
 	category: string | null
@@ -67,6 +69,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const props: TokenRightsPageProps = {
 			name: protocolData.name,
+			symbol: protocolData.symbol ?? null,
 			parentProtocol: protocolData.parentProtocol ?? null,
 			otherProtocols: protocolData.otherProtocols ?? EMPTY_OTHER_PROTOCOLS,
 			category: protocolData.category ?? null,
@@ -95,9 +98,11 @@ export default function ProtocolTokenRightsPage(props: TokenRightsPageProps) {
 			warningBanners={props.warningBanners}
 			toggleOptions={props.toggleOptions}
 		>
-			<div className="grid grid-cols-1 gap-2">
-				<TokenRights tokenRights={props.tokenRights} />
+			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+				<h1 className="text-xl font-bold">{props.symbol ? `$${props.symbol}` : props.name} Token Rights</h1>
 			</div>
+			<TokenRights tokenRights={props.tokenRights} />
 		</ProtocolOverviewLayout>
 	)
 }

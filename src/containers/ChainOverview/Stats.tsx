@@ -1,12 +1,13 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
+import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/router'
 import { Fragment, lazy, Suspense, useMemo, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { Bookmark } from '~/components/Bookmark'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
@@ -28,7 +29,7 @@ import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import { IChainOverviewData } from './types'
 import { useFetchChainChartData } from './useFetchChainChartData'
 
-const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
+const ChainCoreChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
 
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
@@ -43,18 +44,8 @@ interface IStatsProps extends IChainOverviewData {
 
 export function Stats(props: IStatsProps) {
 	const router = useRouter()
-	const queryParamsString = useMemo(() => {
-		const { tvl, ...rest } = router.query ?? {}
-		return JSON.stringify(
-			router.query
-				? tvl === 'true'
-					? rest
-					: router.query
-				: props.metadata.id !== 'all'
-					? { chain: [props.metadata.id] }
-					: {}
-		)
-	}, [router.query, props.metadata.id])
+
+	const searchParams = useSearchParams()
 
 	const [darkMode] = useDarkModeManager()
 
@@ -65,8 +56,6 @@ export function Stats(props: IStatsProps) {
 	const { isAuthenticated } = useAuthContext()
 
 	const { toggledCharts, DENOMINATIONS, chainGeckoId, hasAtleasOneBarChart, groupBy, denomination } = useMemo(() => {
-		const queryParams = JSON.parse(queryParamsString)
-
 		let CHAIN_SYMBOL = props.chainTokenInfo?.token_symbol ?? null
 		let chainGeckoId = props.chainTokenInfo?.gecko_id ?? null
 
@@ -83,19 +72,19 @@ export function Stats(props: IStatsProps) {
 		const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
 
 		const toggledCharts = props.charts.filter((tchart, index) =>
-			index === 0 ? queryParams[chainCharts[tchart]] !== 'false' : queryParams[chainCharts[tchart]] === 'true'
+			index === 0 ? searchParams.get(chainCharts[tchart]) !== 'false' : searchParams.get(chainCharts[tchart]) === 'true'
 		) as ChainChartLabels[]
 
 		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
 
 		const groupBy =
-			hasAtleasOneBarChart && queryParams?.groupBy
-				? INTERVALS_LIST.includes(queryParams.groupBy as any)
-					? (queryParams.groupBy as any)
+			hasAtleasOneBarChart && searchParams.get('groupBy')
+				? INTERVALS_LIST.includes(searchParams.get('groupBy') as any)
+					? (searchParams.get('groupBy') as any)
 					: 'daily'
 				: 'daily'
 
-		const denomination = typeof queryParams.currency === 'string' ? queryParams.currency : 'USD'
+		const currencyInSearchParams = searchParams.get('currency')?.toLowerCase()
 
 		return {
 			DENOMINATIONS,
@@ -103,9 +92,9 @@ export function Stats(props: IStatsProps) {
 			hasAtleasOneBarChart,
 			toggledCharts,
 			groupBy,
-			denomination
+			denomination: DENOMINATIONS.find((d) => d.toLowerCase() === currencyInSearchParams) ?? 'USD'
 		}
-	}, [queryParamsString, props.chainTokenInfo, props.metadata.name, props.charts])
+	}, [searchParams, props.chainTokenInfo, props.metadata.name, props.charts])
 
 	const { totalValueUSD, change24h, valueChange24hUSD, finalCharts, valueSymbol, isFetchingChartData } =
 		useFetchChainChartData({
@@ -166,7 +155,7 @@ export function Stats(props: IStatsProps) {
 			}
 
 			try {
-				const enabledParams = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key]).map((key) => `${key}=true`)
+				const enabledParams = TVL_SETTINGS_KEYS.flatMap((key) => (tvlSettings[key] ? [`${key}=true`] : []))
 				const url = `https://api.llama.fi/simpleChainDataset/${
 					chainsNamesMap[props.metadata.name] || props.metadata.name
 				}?${enabledParams.join('&')}`.replaceAll(' ', '%20')
@@ -791,7 +780,7 @@ export function Stats(props: IStatsProps) {
 			</div>
 			{!props.hideChart ? (
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 						<div className="mr-auto flex flex-wrap items-center gap-2">
 							{props.charts.length > 0 ? (
 								<Ariakit.DialogProvider store={metricsDialogStore}>
@@ -905,7 +894,7 @@ export function Stats(props: IStatsProps) {
 						) : null}
 						<EmbedChart />
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
-						<ChartExportButton
+						<ChartPngExportButton
 							chartInstance={chainChartInstance}
 							filename={imageExportFilename}
 							title={imageExportTitle}
@@ -925,7 +914,7 @@ export function Stats(props: IStatsProps) {
 						</div>
 					) : (
 						<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-							<ChainChart
+							<ChainCoreChart
 								chartData={finalCharts}
 								valueSymbol={valueSymbol}
 								isThemeDark={darkMode}

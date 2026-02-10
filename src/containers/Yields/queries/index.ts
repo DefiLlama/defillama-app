@@ -154,22 +154,29 @@ export async function getYieldPageData() {
 		// Insert at position 2 (after ALL_BITCOINS, ALL_USD_STABLES)
 		data.tokens.splice(2, 0, ...categoryTokens)
 		data.tokenSymbolsList.splice(2, 0, ...categorySymbols)
+	} catch {
+		data['tokenCategories'] = {}
+	}
 
-		// Add hasMemeToken flag to pools for the "No Memecoins" attribute filter
-		const memeTokenData = data['tokenCategories']['meme-token']
+	// Add hasMemeToken flag to pools for the "No Memecoins" attribute filter
+	// Separate try/catch so errors here don't wipe out tokenCategories
+	try {
+		const memeTokenData = data['tokenCategories']?.['meme-token']
 		if (memeTokenData) {
 			const memeAddresses = new Set(memeTokenData.addresses || [])
 			const memeSymbols = new Set(memeTokenData.symbols || [])
 
 			data.pools = data.pools.map((p) => {
 				let hasMemeToken = false
+				if (!p.symbol) return { ...p, hasMemeToken }
+
 				const chain = priceChainMapping[p.chain?.toLowerCase()] ?? p.chain?.toLowerCase()
 				const underlyingTokens = p.underlyingTokens ?? []
 
 				// Check by address first
 				if (underlyingTokens.length > 0 && memeAddresses.size > 0) {
-					hasMemeToken = underlyingTokens.some((addr: string) =>
-						memeAddresses.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
+					hasMemeToken = underlyingTokens.some(
+						(addr: string) => addr && memeAddresses.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
 					)
 				}
 
@@ -183,7 +190,7 @@ export async function getYieldPageData() {
 			})
 		}
 	} catch {
-		data['tokenCategories'] = {}
+		// meme token detection failed, pools keep hasMemeToken as undefined
 	}
 
 	return {
@@ -244,15 +251,22 @@ export async function getLendBorrowData() {
 	dataBorrow = dataBorrow.filter((p) => p.ltv <= 1)
 
 	// for morpho: if totalSupplyUsd < totalBorrowUsd on morpho
-	const configIdsCompound = pools.filter((p) => p.project === 'compound').map((p) => p.pool)
-	const configIdsAave = pools
-		.filter((p) => p.project === 'aave-v2' && p.chain === 'Ethereum' && !p.symbol.toLowerCase().includes('amm'))
-		.map((p) => p.pool)
+	const configIdsCompound: string[] = []
+	const configIdsAave: string[] = []
+	for (const p of pools) {
+		if (p.project === 'compound') configIdsCompound.push(p.pool)
+		if (p.project === 'aave-v2' && p.chain === 'Ethereum' && !p.symbol.toLowerCase().includes('amm'))
+			configIdsAave.push(p.pool)
+	}
 	const compoundPools = dataBorrow.filter((p) => configIdsCompound.includes(p.pool))
 	const aavev2Pools = dataBorrow.filter((p) => configIdsAave.includes(p.pool))
 
 	const tokenSymbols = new Set<string>()
-	const cdpPools = [...new Set(props.pools.filter((p) => p.category === 'CDP').map((p) => p.pool))]
+	const cdpPoolSet = new Set<string>()
+	for (const p of props.pools) {
+		if (p.category === 'CDP') cdpPoolSet.add(p.pool)
+	}
+	const cdpPools = [...cdpPoolSet]
 	pools = pools
 		.map((p) => {
 			const x = dataBorrow.find((i) => i.pool === p.pool)

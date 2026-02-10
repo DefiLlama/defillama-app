@@ -1,12 +1,9 @@
-import Router, { useRouter } from 'next/router'
-import * as React from 'react'
+import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
-import { NestedMenu } from '~/components/NestedMenu'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TagGroup } from '~/components/TagGroup'
-import { useIsClient } from '~/hooks/useIsClient'
-import { useMedia } from '~/hooks/useMedia'
-import { toNumberOrNullFromQueryParam } from '~/utils'
+import { useRangeFilter } from '~/hooks/useRangeFilter'
 
 interface HacksFiltersProps {
 	chainOptions: Array<string>
@@ -59,41 +56,25 @@ export function HacksFilters({
 	selectedTechniques,
 	selectedClassifications
 }: HacksFiltersProps) {
-	const isSmall = useMedia(`(max-width: 639px)`)
-	const isClient = useIsClient()
-
 	const router = useRouter()
-	const { chain, tech, class: classQ, time, minLost, maxLost } = router.query
+	const { chain, tech, class: classQ, time } = router.query
 
-	const minLostVal = toNumberOrNullFromQueryParam(minLost)
-	const maxLostVal = toNumberOrNullFromQueryParam(maxLost)
+	const {
+		min: minLostVal,
+		max: maxLostVal,
+		handleSubmit: handleAmountSubmit,
+		handleClear: handleAmountClear
+	} = useRangeFilter('minLost', 'maxLost')
 
 	const selectedTimeLabel = (typeof time === 'string' && keyToLabel[time]) || 'All'
 
 	const setSelectedTime = (label: string) => {
 		if (!(label in TIME_LABEL_TO_KEY)) return
 		const key = TIME_LABEL_TO_KEY[label as keyof typeof TIME_LABEL_TO_KEY]
-		const nextQuery: Record<string, any> = { ...Router.query }
+		const nextQuery: Record<string, any> = { ...router.query }
 		if (key && key !== 'all') nextQuery.time = key
 		else delete nextQuery.time
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}
-
-	const handleAmountSubmit = (e: any) => {
-		e.preventDefault()
-		const form = e.target
-		const min = form.min?.value
-		const max = form.max?.value
-		Router.push({ pathname: Router.pathname, query: { ...Router.query, minLost: min, maxLost: max } }, undefined, {
-			shallow: true
-		})
-	}
-
-	const handleAmountClear = () => {
-		const nextQuery: Record<string, any> = { ...Router.query }
-		delete nextQuery.minLost
-		delete nextQuery.maxLost
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}
 
 	const hasActiveFilters =
@@ -105,7 +86,7 @@ export function HacksFilters({
 		maxLostVal != null
 
 	const onClearAll = () => {
-		const nextQuery: Record<string, any> = { ...Router.query }
+		const nextQuery: Record<string, any> = { ...router.query }
 		delete nextQuery.chain
 		delete nextQuery.tech
 		delete nextQuery.class
@@ -114,57 +95,33 @@ export function HacksFilters({
 		delete nextQuery.minLost
 		delete nextQuery.maxLost
 		delete nextQuery.time
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}
 
 	return (
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-			<div className="flex min-h-9 flex-wrap gap-2 *:flex-1 sm:hidden">
-				{isSmall && isClient ? (
-					<React.Suspense fallback={<></>}>
-						<NestedMenu label="Filters">
-							<Filters
-								chainOptions={chainOptions}
-								selectedChains={selectedChains}
-								minLostVal={minLostVal}
-								maxLostVal={maxLostVal}
-								handleAmountSubmit={handleAmountSubmit}
-								handleAmountClear={handleAmountClear}
-								classificationOptions={classificationOptions}
-								selectedClassifications={selectedClassifications}
-								techniqueOptions={techniqueOptions}
-								selectedTechniques={selectedTechniques}
-								timeOptions={[...timeOptions]}
-								selectedTimeLabel={selectedTimeLabel}
-								setSelectedTime={setSelectedTime}
-								hasActiveFilters={hasActiveFilters}
-								onClearAll={onClearAll}
-								isMobile
-							/>
-						</NestedMenu>
-					</React.Suspense>
-				) : null}
-			</div>
-
-			<div className="hidden min-h-8 flex-wrap items-center gap-2 sm:flex">
-				<Filters
-					chainOptions={chainOptions}
-					selectedChains={selectedChains}
-					minLostVal={minLostVal}
-					maxLostVal={maxLostVal}
-					handleAmountSubmit={handleAmountSubmit}
-					handleAmountClear={handleAmountClear}
-					classificationOptions={classificationOptions}
-					selectedClassifications={selectedClassifications}
-					techniqueOptions={techniqueOptions}
-					selectedTechniques={selectedTechniques}
-					timeOptions={[...timeOptions]}
-					selectedTimeLabel={selectedTimeLabel}
-					setSelectedTime={setSelectedTime}
-					hasActiveFilters={hasActiveFilters}
-					onClearAll={onClearAll}
-				/>
-			</div>
+			<ResponsiveFilterLayout desktopClassName="hidden min-h-8 flex-wrap items-center gap-2 sm:flex">
+				{(nestedMenu) => (
+					<Filters
+						chainOptions={chainOptions}
+						selectedChains={selectedChains}
+						minLostVal={minLostVal}
+						maxLostVal={maxLostVal}
+						handleAmountSubmit={handleAmountSubmit}
+						handleAmountClear={handleAmountClear}
+						classificationOptions={classificationOptions}
+						selectedClassifications={selectedClassifications}
+						techniqueOptions={techniqueOptions}
+						selectedTechniques={selectedTechniques}
+						timeOptions={[...timeOptions]}
+						selectedTimeLabel={selectedTimeLabel}
+						setSelectedTime={setSelectedTime}
+						hasActiveFilters={hasActiveFilters}
+						onClearAll={onClearAll}
+						isMobile={nestedMenu}
+					/>
+				)}
+			</ResponsiveFilterLayout>
 		</div>
 	)
 }

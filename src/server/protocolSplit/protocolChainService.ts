@@ -199,7 +199,7 @@ const buildAlignedTopAndOthers = (
 	return { alignedTopSeries, othersData, allTimestamps }
 }
 
-const keysToSkip = ['staking', 'pool2', 'borrowed', 'doublecounted', 'liquidstaking', 'vesting']
+const keysToSkip = new Set(['staking', 'pool2', 'borrowed', 'doublecounted', 'liquidstaking', 'vesting'])
 
 async function getTvlProtocolChainData(
 	protocol: string,
@@ -229,7 +229,13 @@ async function getTvlProtocolChainData(
 			allowNamesFromCategories = await resolveAllowedChainNamesFromCategories(chainCategories)
 		}
 		for (const chainKey in chainTvls) {
-			if (keysToSkip.some((key) => chainKey.includes(`-${key}`) || chainKey === key)) {
+			if (
+				keysToSkip.has(chainKey) ||
+				chainKey
+					.split('-')
+					.slice(1)
+					.some((seg) => keysToSkip.has(seg))
+			) {
 				continue
 			}
 
@@ -883,8 +889,11 @@ async function getAllProtocolsTopChainsDimensionsData(
 		if (!overviewResp.ok) throw new Error(`Overview fetch failed: ${overviewResp.status}`)
 		const overview = await overviewResp.json()
 
-		const normalizedProtocolCategories = (protocolCategories || []).map((cat) => cat.toLowerCase()).filter(Boolean)
-		const protocolCategoryFilterSet = new Set(normalizedProtocolCategories)
+		const protocolCategoryFilterSet = new Set<string>()
+		for (const cat of protocolCategories || []) {
+			const lower = cat?.toLowerCase()
+			if (lower) protocolCategoryFilterSet.add(lower)
+		}
 		const hasProtocolCategoryFilter = protocolCategoryFilterSet.size > 0
 
 		let protocolCategoryLookup: ProtocolCategoryLookup | null = null

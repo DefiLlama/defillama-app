@@ -13,7 +13,10 @@ import type { ChartConfiguration } from '../types'
 
 const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Array<[number, string]> => {
 	if (!hallmarks?.length) return []
-	const labels = hallmarks.map((h) => h[1]).filter(Boolean)
+	const labels: string[] = []
+	for (const h of hallmarks) {
+		if (h[1]) labels.push(h[1])
+	}
 	if (labels.length > 0 && labels.every((l) => l === labels[0])) {
 		return hallmarks.map((h) => [h[0], ''])
 	}
@@ -139,7 +142,7 @@ const convertToUnixTimestamp = (timestamp: any): number => {
 		return Math.floor(timestamp.getTime() / 1000)
 	}
 
-	console.warn('Could not parse timestamp:', timestamp)
+	console.log('Could not parse timestamp:', timestamp)
 	return Math.floor(Date.now() / 1000)
 }
 
@@ -188,7 +191,9 @@ function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedC
 			height: '360px',
 			stackColors,
 			valueSymbol: config.valueSymbol ?? '',
-			showLegend: true
+			showLegend: true,
+			legendPosition: { right: 12, top: 'middle', orient: 'vertical' },
+			toRight: 200
 		}
 
 		return {

@@ -12,7 +12,7 @@ import {
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -125,7 +125,8 @@ export function PeggedAssetByChainTable({ data }) {
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex items-center justify-between p-3">
-				<label className="relative mr-auto w-full sm:max-w-[280px]">
+				<h3 className="text-base font-semibold">Stablecoins Usage by Chain</h3>
+				<label className="relative ml-auto w-full sm:max-w-[280px]">
 					<span className="sr-only">Search</span>
 					<Icon
 						name="search"
@@ -189,7 +190,7 @@ export function PeggedChainsTable({ data }) {
 	}
 
 	const selectedAggregateTypes = React.useMemo(() => {
-		return CHAINS_CATEGORY_GROUP_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
+		return CHAINS_CATEGORY_GROUP_SETTINGS.flatMap((key) => (groupTvls[key.key] ? [key.key] : []))
 	}, [groupTvls])
 
 	return (

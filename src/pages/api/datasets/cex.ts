@@ -13,6 +13,7 @@ export interface ICexItem {
 	coin?: string
 	coinSymbol?: string
 	walletsLink?: string
+	url?: string | null
 	cgId?: string
 	cgDeriv?: string
 	lastAuditDate?: number

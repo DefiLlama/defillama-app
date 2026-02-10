@@ -80,9 +80,11 @@ export async function getProtocolsMarketCapsByChain({
 	for (const parent in finalParentProtocols) {
 		const p = parentProtocolsMap.get(parent)
 		if (p) {
-			const categories = Array.from(
-				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))
-			)
+			const categorySet = new Set<string>()
+			for (const p of finalParentProtocols[parent]) {
+				if (p.category) categorySet.add(p.category)
+			}
+			const categories = Array.from(categorySet)
 
 			finalProtocols.push({
 				name: p.name,
@@ -161,9 +163,11 @@ export async function getProtocolsFDVsByChain({
 	for (const parent in finalParentProtocols) {
 		const p = parentProtocolsMap.get(parent)
 		if (p) {
-			const categories = Array.from(
-				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))
-			)
+			const categorySet = new Set<string>()
+			for (const p of finalParentProtocols[parent]) {
+				if (p.category) categorySet.add(p.category)
+			}
+			const categories = Array.from(categorySet)
 
 			const fdv = p.gecko_id ? tokenListMap.get(p.gecko_id)?.['fully_diluted_valuation'] : null
 
@@ -256,9 +260,11 @@ export async function getProtocolsTokenPricesByChain({
 	for (const parent in finalParentProtocols) {
 		const p = parentProtocolsMap.get(parent)
 		if (p) {
-			const categories = Array.from(
-				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))
-			)
+			const categorySet = new Set<string>()
+			for (const p of finalParentProtocols[parent]) {
+				if (p.category) categorySet.add(p.category)
+			}
+			const categories = Array.from(categorySet)
 
 			finalProtocols.push({
 				name: p.name,
@@ -378,9 +384,11 @@ export async function getProtocolsAdjustedFDVsByChain({
 	for (const parent in finalParentProtocols) {
 		const p = parentProtocolsMap.get(parent)
 		if (p) {
-			const categories = Array.from(
-				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))
-			)
+			const categorySet = new Set<string>()
+			for (const p of finalParentProtocols[parent]) {
+				if (p.category) categorySet.add(p.category)
+			}
+			const categories = Array.from(categorySet)
 
 			const slugName = slug(p.name)
 

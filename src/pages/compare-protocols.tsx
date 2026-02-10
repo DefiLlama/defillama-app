@@ -6,7 +6,7 @@ import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { tvlOptions } from '~/components/Filters/options'
 import { LocalLoader } from '~/components/Loaders'
-import { MultiSelectCombobox } from '~/components/MultiSelectCombobox'
+import { MultiSelectCombobox } from '~/components/Select/MultiSelectCombobox'
 import { PROTOCOL_API } from '~/constants'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
@@ -226,20 +226,14 @@ export default function CompareProtocols({
 			</div>
 			{selectedProtocols.length > 1 ? (
 				<div className="relative flex flex-col gap-2">
-					<div className="min-h-[362px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 						{isLoading || !router.isReady ? (
-							<div className="flex h-full w-full items-center justify-center">
+							<div className="flex h-full min-h-[398px] w-full items-center justify-center">
 								<LocalLoader />
 							</div>
 						) : (
-							<React.Suspense fallback={<></>}>
-								<MultiSeriesChart2
-									dataset={dataset}
-									charts={charts}
-									valueSymbol="$"
-									shouldEnableImageExport
-									shouldEnableCSVDownload
-								/>
+							<React.Suspense fallback={<div className="min-h-[398px]" />}>
+								<MultiSeriesChart2 dataset={dataset} charts={charts} valueSymbol="$" exportButtons="auto" />
 							</React.Suspense>
 						)}
 					</div>

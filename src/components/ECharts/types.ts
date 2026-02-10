@@ -1,10 +1,14 @@
 import * as echarts from 'echarts/core'
-import * as React from 'react'
 
 type Value = string | number | boolean
 
+type EChartsFormatterParams = Record<string, unknown>
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ChartDataItem = any
+
 export interface IChartProps {
-	chartData: any
+	chartData: ChartDataItem[]
 	stacks?: Array<string>
 	valueSymbol?: string
 	title?: string
@@ -20,7 +24,7 @@ export interface IChartProps {
 	hideLegend?: boolean
 	chartOptions?: {
 		[key: string]: {
-			[key: string]: Value | Array<Value> | ((params: any) => string) | Record<string, Value>
+			[key: string]: Value | Array<Value> | ((params: EChartsFormatterParams) => string) | Record<string, Value>
 		}
 	}
 	height?: string
@@ -42,7 +46,6 @@ export interface IChartProps {
 	connectNulls?: boolean
 	alwaysShowTooltip?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
-	customComponents?: React.ReactNode
 	enableImageExport?: boolean
 	imageExportFilename?: string
 	imageExportTitle?: string
@@ -72,7 +75,6 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 	stacks?: {
 		[stack: string]: string
 	}
-	customComponents?: React.ReactNode
 	orientation?: 'vertical' | 'horizontal'
 }
 
@@ -88,31 +90,49 @@ export type MultiSeriesChart2Dataset = {
 	dimensions: string[]
 }
 
-export interface IMultiSeriesChart2Props {
-	charts?: Array<{
-		type: 'line' | 'bar'
-		name: string
-		stack?: string
-		encode: {
-			x: number | Array<number> | string | Array<string>
-			y: number | Array<number> | string | Array<string>
-		}
-		color?: string
-		yAxisIndex?: number
-		/** Symbol for this series' y-axis label (e.g. '%' or '$'). Falls back to the component-level valueSymbol. */
-		valueSymbol?: string
-		// Optional: enable point markers on line series.
-		// Note: ECharts "large" mode disables symbols, so `showSymbol: true` will
-		// implicitly disable large mode unless `large` is explicitly set.
-		showSymbol?: boolean
-		symbol?: string
-		symbolSize?: number
-		large?: boolean
-	}>
+export type MultiSeriesChart2SeriesConfig = {
+	type: 'line' | 'bar'
+	name: string
+	stack?: string
+	encode: {
+		x: number | Array<number> | string | Array<string>
+		y: number | Array<number> | string | Array<string>
+	}
+	color?: string
+	yAxisIndex?: number
+	/** Symbol for this series' y-axis label (e.g. '%' or '$'). Falls back to the component-level valueSymbol. */
+	valueSymbol?: string
+	/** Disable area fill for this series (line only). */
+	hideAreaStyle?: boolean
+	// Optional: enable point markers on line series.
+	// Note: ECharts "large" mode disables symbols, so `showSymbol: true` will
+	// implicitly disable large mode unless `large` is explicitly set.
+	showSymbol?: boolean
+	symbol?: string
+	symbolSize?: number
+	large?: boolean
+}
+
+export type MultiSeriesChart2ExportButtons =
+	| 'auto'
+	| 'hidden'
+	| {
+			/** Show the PNG export button (default: true). */
+			png?: boolean
+			/** Show the CSV download button (default: true). */
+			csv?: boolean
+			/** Base filename used by both PNG + CSV exports. */
+			filename?: string
+			/** Title passed to the PNG export (e.g. watermark/title text). */
+			pngTitle?: string
+	  }
+
+type MultiSeriesChart2BaseProps = {
+	charts?: MultiSeriesChart2SeriesConfig[]
 	selectedCharts?: Set<string>
 	chartOptions?: {
 		[key: string]: {
-			[key: string]: Value | Array<Value> | ((params: any) => string | number)
+			[key: string]: Value | Array<Value> | ((params: EChartsFormatterParams) => string | number)
 		}
 	}
 	height?: string
@@ -125,15 +145,32 @@ export interface IMultiSeriesChart2Props {
 	stacked?: boolean
 	solidChartAreaStyle?: boolean
 	hideDataZoom?: boolean
+	/**
+	 * Called with the ECharts instance after init, and again with `null` on dispose.
+	 * Useful when callers want to add custom instance-level behaviors or render their own toolbars.
+	 */
 	onReady?: (instance: echarts.ECharts | null) => void
 	hideDefaultLegend?: boolean
-	shouldEnableImageExport?: boolean
-	imageExportFilename?: string
-	imageExportTitle?: string
-	shouldEnableCSVDownload?: boolean
 	// Canonical (and only) input shape.
 	dataset: MultiSeriesChart2Dataset
 	title?: string
+}
+
+export type IMultiSeriesChart2Props = MultiSeriesChart2BaseProps & {
+	/**
+	 * Max number of series rows to render in the tooltip (default: 30).
+	 * Set to 0 (or a negative number) to disable the cap (render all rows).
+	 *
+	 * This helps keep hover/tooltip updates smooth on charts with many series (50+).
+	 */
+	tooltipMaxItems?: number
+	/**
+	 * Controls the built-in export toolbar.
+	 * - `'auto'` (default): show exports when the chart has series, unless `onReady` is provided.
+	 * - `'hidden'`: never show exports.
+	 * - object: explicitly control which buttons are shown and export metadata.
+	 */
+	exportButtons?: MultiSeriesChart2ExportButtons
 }
 
 export interface ICandlestickChartProps {
@@ -157,7 +194,7 @@ export interface IMultiSeriesChartProps {
 	}>
 	chartOptions?: {
 		[key: string]: {
-			[key: string]: Value | Array<Value> | ((params: any) => string)
+			[key: string]: Value | Array<Value> | ((params: EChartsFormatterParams) => string)
 		}
 	}
 	height?: string
@@ -184,8 +221,8 @@ export interface IPieChartProps {
 	radius?: [string, string]
 	showLegend?: boolean
 	toRight?: number
-	formatTooltip?: (params: any) => string
-	customLabel?: Record<string, any>
+	formatTooltip?: (params: EChartsFormatterParams) => string
+	customLabel?: Record<string, Value>
 	legendPosition?: {
 		left?: string | number
 		right?: string | number
@@ -193,24 +230,22 @@ export interface IPieChartProps {
 		bottom?: string | number
 		orient?: 'horizontal' | 'vertical'
 	}
-	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: any }
-	customComponents?: React.ReactNode
-	enableImageExport?: boolean
-	shouldEnableImageExport?: boolean
-	imageExportFilename?: string
-	imageExportTitle?: string
-	shouldEnableCSVDownload?: boolean
+	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: Value }
+	/**
+	 * Controls the built-in export toolbar.
+	 */
+	exportButtons?: MultiSeriesChart2ExportButtons
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 
 export interface IScatterChartProps {
-	chartData: any
+	chartData: Array<Record<string, string | number | null | undefined>>
 	title?: string
 	xAxisLabel?: string
 	yAxisLabel?: string
 	valueSymbol?: string
 	height?: string
-	tooltipFormatter?: (params: any) => string
+	tooltipFormatter?: (params: EChartsFormatterParams) => string
 	showLabels?: boolean
 	entityType?: 'protocol' | 'chain'
 }
@@ -238,7 +273,7 @@ export interface ISankeyChartProps {
 	valueSymbol?: string
 	nodeAlign?: 'left' | 'right' | 'justify'
 	orient?: 'horizontal' | 'vertical'
-	customComponents?: React.ReactNode
+	onReady?: (instance: echarts.ECharts | null) => void
 	enableImageExport?: boolean
 	imageExportFilename?: string
 	imageExportTitle?: string

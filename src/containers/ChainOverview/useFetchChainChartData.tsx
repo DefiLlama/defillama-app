@@ -1,17 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useMemo } from 'react'
-import { getProtocolEmissons } from '~/api/categories/protocols'
-import {
-	useFetchProtocolActiveUsers,
-	useFetchProtocolNewUsers,
-	useFetchProtocolTransactions
-} from '~/api/categories/protocols/client'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { CACHE_SERVER, CHAINS_ASSETS_CHART, RAISES_API } from '~/constants'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { getAdapterChainChartData, getAdapterProtocolChartData } from '~/containers/DimensionAdapters/queries'
+import {
+	useFetchProtocolActiveUsers,
+	useFetchProtocolNewUsers,
+	useFetchProtocolTransactions
+} from '~/containers/ProtocolOverview/queries.client'
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
+import { getProtocolUnlockUsdChart } from '~/containers/Unlocks/queries'
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getPercentChange, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -281,8 +281,7 @@ export const useFetchChainChartData = ({
 		queryKey: ['chainIncentives', selectedChain, isChainIncentivesEnabled],
 		queryFn: () =>
 			isChainIncentivesEnabled
-				? getProtocolEmissons(slug(selectedChain))
-						.then((data) => data?.unlockUsdChart ?? null)
+				? getProtocolUnlockUsdChart(slug(selectedChain))
 						.then((chart) => {
 							if (!chart) return null
 							const nonZeroIndex = chart.findIndex(([_, value]) => value > 0)

@@ -1,12 +1,14 @@
 import * as echarts from 'echarts/core'
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useChartCleanup } from '~/hooks/useChartCleanup'
 import { useChartResize } from '~/hooks/useChartResize'
-import { slug, toNiceCsvDate } from '~/utils'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { slug } from '~/utils'
+import { ChartContainer } from '../ChartContainer'
+import { ChartHeader } from '../ChartHeader'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { mergeDeep, stringToColour } from '../utils'
@@ -36,15 +38,15 @@ export default function AreaChart({
 	containerClassName,
 	connectNulls = false,
 	onReady,
-	customComponents,
 	enableImageExport,
 	imageExportFilename,
 	imageExportTitle,
 	...props
 }: IChartProps) {
 	const id = useId()
-	const shouldEnableExport = enableImageExport ?? (!!title && !hideDownloadButton)
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const shouldEnableCSVDownload = !hideDownloadButton
+	const shouldEnableImageExport = enableImageExport ?? shouldEnableCSVDownload
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
 
@@ -300,20 +302,21 @@ export default function AreaChart({
 	])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const onReadyRef = useRef(onReady)
+	onReadyRef.current = onReady
+	const hasNotifiedReadyRef = useRef(false)
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
 	const exportFilename = imageExportFilename || (title ? slug(title) : 'chart')
 	const exportTitle = imageExportTitle || title
-	const updateExportInstance = useCallback(
-		(instance: echarts.ECharts | null) => {
-			if (shouldEnableExport) {
-				handleChartReady(instance)
-			}
-		},
-		[shouldEnableExport, handleChartReady]
-	)
+	const updateExportInstanceRef = useRef((instance: echarts.ECharts | null) => {
+		if (shouldEnableImageExport || shouldEnableCSVDownload) handleChartReady(instance)
+	})
+	updateExportInstanceRef.current = (instance: echarts.ECharts | null) => {
+		if (shouldEnableImageExport || shouldEnableCSVDownload) handleChartReady(instance)
+	}
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
@@ -325,10 +328,11 @@ export default function AreaChart({
 			instance = echarts.init(chartDom)
 		}
 		chartRef.current = instance
-		updateExportInstance(instance)
+		updateExportInstanceRef.current(instance)
 
-		if (onReady && isNewInstance) {
-			onReady(instance)
+		if (onReadyRef.current && isNewInstance) {
+			onReadyRef.current(instance)
+			hasNotifiedReadyRef.current = true
 		}
 
 		for (const option in chartOptions) {
@@ -376,95 +380,57 @@ export default function AreaChart({
 			dataZoom: hideDataZoom ? [] : [...dataZoom],
 			series
 		})
+	}, [defaultChartSettings, series, chartOptions, expandTo100Percent, hideLegend, hideDataZoom, id, chartsStack])
 
-		return () => {
-			chartRef.current = null
-			instance.dispose()
-			updateExportInstance(null)
+	useChartCleanup(id, () => {
+		chartRef.current = null
+		if (hasNotifiedReadyRef.current) {
+			onReadyRef.current?.(null)
+			hasNotifiedReadyRef.current = false
 		}
-	}, [
-		defaultChartSettings,
-		series,
-		chartOptions,
-		expandTo100Percent,
-		hideLegend,
-		hideDataZoom,
-		id,
-		chartsStack,
-		updateExportInstance,
-		onReady
-	])
-
-	useEffect(() => {
-		return () => {
-			const chartDom = document.getElementById(id)
-			if (chartDom) {
-				const chartInstance = echarts.getInstanceByDom(chartDom)
-				if (chartInstance) {
-					chartInstance.dispose()
-				}
-			}
-			if (chartRef.current) {
-				chartRef.current = null
-			}
-			if (onReady) {
-				onReady(null)
-			}
-			updateExportInstance(null)
-		}
-	}, [id, onReady, updateExportInstance])
+		updateExportInstanceRef.current(null)
+	})
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName
 
 	const showLegend = !!(customLegendName && customLegendOptions?.length > 1)
-
-	const prepareCsv = () => {
-		let rows = []
-		if (!chartsStack || chartsStack.length === 0) {
-			rows = [['Timestamp', 'Date', 'Value']]
-			for (const [date, value] of chartData ?? []) {
-				rows.push([date, toNiceCsvDate(date), value])
-			}
-		} else {
-			rows = [['Timestamp', 'Date', ...chartsStack]]
-			for (const item of chartData ?? []) {
-				const { date, ...rest } = item
-				rows.push([date, toNiceCsvDate(date), ...chartsStack.map((stack) => rest[stack] ?? '')])
-			}
-		}
-		const Mytitle = title ? slug(title) : 'data'
-		const filename = `area-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
-		return { filename, rows }
-	}
+	const showHeader = !!(title || showLegend || !hideDownloadButton || shouldEnableImageExport)
 
 	return (
-		<div className="relative" {...props}>
-			{title || showLegend || !hideDownloadButton ? (
-				<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
-					{title && <h1 className="mr-auto text-lg font-bold">{title}</h1>}
-					{customComponents ?? null}
-					{customLegendName && customLegendOptions?.length > 1 && (
-						<SelectWithCombobox
-							allValues={customLegendOptions}
-							selectedValues={legendOptions}
-							setSelectedValues={setLegendOptions}
-							label={legendTitle}
-							labelType="smol"
-							variant="filter"
-							portal
-						/>
-					)}
-					{!hideDownloadButton && <CSVDownloadButton prepareCsv={prepareCsv} smol />}
-					{shouldEnableExport && (
-						<ChartExportButton chartInstance={exportChartInstance} filename={exportFilename} title={exportTitle} />
-					)}
-				</div>
-			) : null}
-			<div
-				id={id}
-				className={containerClassName ? containerClassName : 'mx-0 my-auto h-[360px]'}
-				style={height ? { height } : undefined}
-			/>
-		</div>
+		<ChartContainer
+			id={id}
+			chartClassName={containerClassName ?? 'mx-0 my-auto h-[360px]'}
+			chartStyle={height ? { height } : undefined}
+			header={
+				showHeader ? (
+					<ChartHeader
+						title={title}
+						customComponents={
+							customLegendName && customLegendOptions?.length > 1 ? (
+								<SelectWithCombobox
+									allValues={customLegendOptions}
+									selectedValues={legendOptions}
+									setSelectedValues={setLegendOptions}
+									label={legendTitle}
+									labelType="smol"
+									variant="filter"
+									portal
+								/>
+							) : null
+						}
+						exportButtons={
+							<ChartExportButtons
+								chartInstance={chartInstance}
+								filename={exportFilename}
+								title={exportTitle}
+								showCsv={shouldEnableCSVDownload}
+								showPng={shouldEnableImageExport}
+							/>
+						}
+					/>
+				) : null
+			}
+			{...props}
+		/>
 	)
 }

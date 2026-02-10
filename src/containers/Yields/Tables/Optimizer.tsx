@@ -4,7 +4,7 @@ import { IconsRow } from '~/components/IconsRow'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
-import { formattedNum, formattedPercent } from '~/utils'
+import { formattedNum, renderPercentChange } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
@@ -120,7 +120,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		cell: (info) => {
 			return (
 				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
-					{formattedPercent(info.getValue(), true, 400, true)}
+					{renderPercentChange(info.getValue(), true, 400, true)}
 				</ColoredAPY>
 			)
 		},
@@ -136,7 +136,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		cell: ({ getValue }) => {
 			return (
 				<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
-					{formattedPercent(getValue(), true, 700, true)}
+					{renderPercentChange(getValue(), true, 700, true)}
 				</ColoredAPY>
 			)
 		},
@@ -150,7 +150,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		accessorKey: 'lendingBase',
 		enableSorting: true,
 		cell: ({ getValue }) => {
-			return <ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400, true)}</ColoredAPY>
+			return <ColoredAPY data-variant="supply">{renderPercentChange(getValue(), true, 400, true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
@@ -168,12 +168,12 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 						<span className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
 							<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
-								{formattedPercent(getValue(), true, 700, true)}
+								{renderPercentChange(getValue(), true, 700, true)}
 							</ColoredAPY>
 						</span>
 					) : (
 						<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
-							{formattedPercent(getValue(), true, 700, true)}
+							{renderPercentChange(getValue(), true, 700, true)}
 						</ColoredAPY>
 					)}
 				</>
@@ -201,7 +201,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 						iconType="token"
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
-					<ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400, true)}</ColoredAPY>
+					<ColoredAPY data-variant="supply">{renderPercentChange(getValue(), true, 400, true)}</ColoredAPY>
 				</span>
 			)
 		},
@@ -218,7 +218,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		cell: (info) => {
 			return (
 				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
-					{formattedPercent(info.getValue(), true, 400, true)}
+					{renderPercentChange(info.getValue(), true, 400, true)}
 				</ColoredAPY>
 			)
 		},

@@ -1,19 +1,17 @@
 import { useMutation } from '@tanstack/react-query'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/formatters'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import { MultiChartConfig } from '~/containers/ProDashboard/types'
 import { getAdapterDashboardType } from '~/containers/ProDashboard/utils/adapterChartMapping'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { download, firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
 import { getAdapterChainChartDataByProtocolBreakdown, getAdapterChainOverview } from './queries'
@@ -81,8 +79,7 @@ export const AdapterByChainChart = ({
 	chartName
 }: Pick<IAdapterByChainPageData, 'chartData' | 'adapterType' | 'dataType' | 'chain'> & { chartName: string }) => {
 	const [chartInterval, setChartInterval] = React.useState<(typeof INTERVALS_LIST_ADAPTER_BY_CHAIN)[number]>('Daily')
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const finalCharts = React.useMemo(() => {
 		const seriesType = (chartInterval === 'Cumulative' || chartName === 'Open Interest' ? 'line' : 'bar') as
@@ -97,9 +94,9 @@ export const AdapterByChainChart = ({
 			for (const [date, value] of chartData) {
 				const finalDate =
 					chartInterval === 'Weekly'
-						? Number(lastDayOfWeek(date)) * 1e3
+						? lastDayOfWeek(date / 1000) * 1e3
 						: chartInterval === 'Monthly'
-							? Number(firstDayOfMonth(date)) * 1e3
+							? firstDayOfMonth(date / 1000) * 1e3
 							: date
 				data[finalDate] = data[finalDate] || 0
 				data[finalDate] += value
@@ -114,6 +111,8 @@ export const AdapterByChainChart = ({
 			for (const date in data) {
 				sourceData.push([+date, data[date]])
 			}
+			// `for...in` over object keys is not guaranteed to be chronological.
+			sourceData.sort((a, b) => a[0] - b[0])
 		} else {
 			sourceData = chartData
 		}
@@ -182,7 +181,7 @@ export const AdapterByChainChart = ({
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-			<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2">
+			<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2 pb-0">
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 					{chartName === 'Open Interest'
 						? null
@@ -191,7 +190,7 @@ export const AdapterByChainChart = ({
 									content={dataInterval}
 									render={<button />}
 									className="shrink-0 px-2 py-1 text-sm font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-									onClick={() => setChartInterval(dataInterval)}
+									onClick={() => React.startTransition(() => setChartInterval(dataInterval))}
 									data-active={dataInterval === chartInterval}
 									key={`${dataInterval}-${chartName}-${chain}`}
 								>
@@ -199,27 +198,16 @@ export const AdapterByChainChart = ({
 								</Tooltip>
 							))}
 				</div>
-				<ChartCsvExportButton
-					chartInstance={exportChartCsvInstance}
-					filename={`${slug(chain)}-${adapterType}-${chartName}`}
-				/>
-				<CSVDownloadButton onClick={handleDownloadBreakdownCsv} isLoading={isDownloadingBreakdownChart} smol />
-				<ChartExportButton
+				<ChartExportButtons
 					chartInstance={exportChartInstance}
 					filename={`${slug(chain)}-${adapterType}-${chartName}`}
 					title={`${chain === 'All' ? 'All Chains' : chain} - ${chartName}`}
 				/>
+				<CSVDownloadButton onClick={handleDownloadBreakdownCsv} isLoading={isDownloadingBreakdownChart} smol />
 				{chain && <AddToDashboardButton chartConfig={multiChart} smol />}
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
-				<MultiSeriesChart2
-					dataset={finalCharts.dataset}
-					charts={finalCharts.charts}
-					onReady={(instance) => {
-						handleChartReady(instance)
-						handleChartCsvReady(instance)
-					}}
-				/>
+				<MultiSeriesChart2 dataset={finalCharts.dataset} charts={finalCharts.charts} onReady={handleChartReady} />
 			</React.Suspense>
 		</div>
 	)
@@ -232,8 +220,7 @@ export const ChainsByAdapterChart = ({
 }: Pick<IChainsByAdapterPageData, 'chartData' | 'allChains'> & { type: string }) => {
 	const [chartType, setChartType] = React.useState<(typeof CHART_TYPES)[number]>('Volume')
 	const [chartInterval, setChartInterval] = React.useState<(typeof INTERVALS_LIST)[number]>('Daily')
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance2, handleChartReady: handleChartCsvReady2 } = useChartCsvExport()
+	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const [selectedChains, setSelectedChains] = React.useState<string[]>(allChains)
 
@@ -243,12 +230,12 @@ export const ChainsByAdapterChart = ({
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-			<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2">
+			<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2 pb-0">
 				<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 					{INTERVALS_LIST.map((dataInterval) => (
 						<a
 							key={`${dataInterval}-${type}`}
-							onClick={() => setChartInterval(dataInterval)}
+							onClick={() => React.startTransition(() => setChartInterval(dataInterval))}
 							data-active={dataInterval === chartInterval}
 							className="shrink-0 cursor-pointer px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						>
@@ -262,7 +249,7 @@ export const ChainsByAdapterChart = ({
 							className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 							data-active={dataType === chartType}
 							key={`${dataType}-${type}`}
-							onClick={() => setChartType(dataType)}
+							onClick={() => React.startTransition(() => setChartType(dataType))}
 						>
 							{dataType}
 						</button>
@@ -277,11 +264,7 @@ export const ChainsByAdapterChart = ({
 					variant="filter"
 					portal
 				/>
-				<ChartCsvExportButton
-					chartInstance={exportChartCsvInstance2}
-					filename={`${type}-chains-${chartInterval.toLowerCase()}`}
-				/>
-				<ChartExportButton
+				<ChartExportButtons
 					chartInstance={exportChartInstance}
 					filename={`${type}-chains-${chartInterval.toLowerCase()}`}
 					title={`${type} by Chain - ${chartType}`}
@@ -295,10 +278,7 @@ export const ChainsByAdapterChart = ({
 						valueSymbol="%"
 						expandTo100Percent
 						chartOptions={chartOptions}
-						onReady={(instance) => {
-							handleChartReady(instance)
-							handleChartCsvReady2(instance)
-						}}
+						onReady={handleChartReady}
 					/>
 				</React.Suspense>
 			) : (
@@ -308,10 +288,7 @@ export const ChainsByAdapterChart = ({
 						charts={charts}
 						chartOptions={chartOptions}
 						groupBy={chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
-						onReady={(instance) => {
-							handleChartReady(instance)
-							handleChartCsvReady2(instance)
-						}}
+						onReady={handleChartReady}
 					/>
 				</React.Suspense>
 			)}
@@ -410,9 +387,9 @@ const getChartDataByChainAndInterval = ({
 	for (const [date, chainsOnDate] of chartData) {
 		const finalDate =
 			chartInterval === 'Weekly'
-				? lastDayOfWeek(+date * 1e3) * 1e3
+				? lastDayOfWeek(+date) * 1e3
 				: chartInterval === 'Monthly'
-					? firstDayOfMonth(+date * 1e3) * 1e3
+					? firstDayOfMonth(+date) * 1e3
 					: +date * 1e3
 
 		const topByDate = {}

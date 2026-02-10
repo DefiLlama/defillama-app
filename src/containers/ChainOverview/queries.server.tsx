@@ -1,5 +1,4 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import { getAllProtocolEmissions, getETFData } from '~/api/categories/protocols'
 import { tvlOptions } from '~/components/Filters/options'
 import {
 	CHAINS_ASSETS,
@@ -23,8 +22,10 @@ import {
 	IAdapterOverview,
 	IAdapterSummary
 } from '~/containers/DimensionAdapters/queries'
+import { getETFData } from '~/containers/ETF/queries'
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
+import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getNDistinctColors, getPercentChange, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -528,15 +529,17 @@ export async function getChainOverviewData({
 				},
 				{} as Record<string, Record<string, number>>
 			) ?? {}
-		const finalUnlocksChart = Object.entries(unlocksChart).map(([date, tokens]) => {
-			const topTokens = Object.entries(tokens).sort((a, b) => b[1] - a[1]) as Array<[string, number]>
-			const others = topTokens.slice(10).reduce((acc, curr) => (acc += curr[1]), 0)
-			if (others) {
-				uniqueUnlockTokens.add('Others')
-			}
-			const finalTokens = Object.fromEntries(topTokens.slice(0, 10).concat(others ? [['Others', others]] : []))
-			return [+date, finalTokens]
-		}) as Array<[number, Record<string, number>]>
+		const finalUnlocksChart = Object.entries(unlocksChart)
+			.sort(([a], [b]) => Number(a) - Number(b))
+			.map(([date, tokens]) => {
+				const topTokens = Object.entries(tokens).sort((a, b) => b[1] - a[1]) as Array<[string, number]>
+				const others = topTokens.slice(10).reduce((acc, curr) => (acc += curr[1]), 0)
+				if (others) {
+					uniqueUnlockTokens.add('Others')
+				}
+				const finalTokens = Object.fromEntries(topTokens.slice(0, 10).concat(others ? [['Others', others]] : []))
+				return [+date, finalTokens]
+			}) as Array<[number, Record<string, number>]>
 
 		const chainRevProtocols = new Set(REV_PROTOCOLS[slug(currentChainMetadata.name)] ?? [])
 
@@ -1174,9 +1177,11 @@ export const getProtocolsByChain = async ({
 						}
 					: null
 
-			const chilsProtocolCategories = Array.from(
-				new Set(parentStore[parentProtocol.id].filter((p) => p.category).map((p) => p.category))
-			)
+			const categorySet = new Set<string>()
+			for (const p of parentStore[parentProtocol.id]) {
+				if (p.category) categorySet.add(p.category)
+			}
+			const chilsProtocolCategories = Array.from(categorySet)
 
 			protocolsStore[parentProtocol.id] = {
 				name: protocolMetadata[parentProtocol.id].displayName,
@@ -1252,7 +1257,7 @@ export const getDATInflows = async () => {
 			for (const [date, _net, _inflow, _outflow, purchasePrice, usdValueOfPurchase] of data.flows[asset]) {
 				const utcTimestamp = getUTCTimestamp(date)
 				if (utcTimestamp < fourteenWeeksAgo) continue
-				const finalDate = +lastDayOfWeek(utcTimestamp) * 1000
+				const finalDate = lastDayOfWeek(utcTimestamp / 1000) * 1000
 				const usdValue = purchasePrice || usdValueOfPurchase || 0
 				if (utcTimestamp >= Date.now() - 30 * 24 * 60 * 60 * 1000) {
 					total30d += usdValue
@@ -1262,7 +1267,7 @@ export const getDATInflows = async () => {
 		}
 
 		// Always end with the last day of the current week
-		const mostRecentTimestamp = +lastDayOfWeek(Date.now()) * 1000
+		const mostRecentTimestamp = lastDayOfWeek(Date.now() / 1000) * 1000
 		const oneWeekInMs = 7 * 24 * 60 * 60 * 1000
 		const completeChart = []
 

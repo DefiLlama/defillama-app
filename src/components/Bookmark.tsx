@@ -1,15 +1,15 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import * as React from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { useBookmarks } from '~/hooks/useBookmarks'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
-interface IBookmarkProps {
+interface IBookmarkProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	readableName: string
 	configID?: string
 	isChain?: boolean
-	[key: string]: any
 }
 
 export function Bookmark({ readableName, configID, isChain, ...props }: IBookmarkProps) {
@@ -52,7 +52,7 @@ export function Bookmark({ readableName, configID, isChain, ...props }: IBookmar
 	return (
 		<button
 			onClick={onClick}
-			style={{ '--fill-icon': isSaved ? 'var(--text-primary)' : 'none' } as any}
+			style={{ '--fill-icon': isSaved ? 'var(--text-primary)' : 'none' } as React.CSSProperties}
 			{...props}
 			className="-left-0.5 shrink-0 data-[bookmark=true]:absolute data-[lgonly=true]:hidden lg:data-[lgonly=true]:inline-block"
 		>

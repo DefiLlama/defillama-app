@@ -43,3 +43,5 @@ next-env.d.ts
 
 # metadata cache
 .cache
+
+.overseer

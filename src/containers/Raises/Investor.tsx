@@ -12,8 +12,6 @@ import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { LazyChart } from '~/components/LazyChart'
-import { raisesColumnOrders, raisesColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { RaisesFilters } from '~/containers/Raises/Filters'
@@ -21,6 +19,7 @@ import Layout from '~/layout'
 import { slug } from '~/utils'
 import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
+import { raisesColumnOrders, raisesColumns } from './Table'
 
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -34,7 +33,7 @@ const handleDownloadJson = () => {
 	window.open('https://api.llama.fi/raises', '_blank', 'noopener,noreferrer')
 }
 
-function RaisesTable({ raises, prepareCsv }) {
+function RaisesByInvestorTable({ raises, prepareCsv }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -177,52 +176,57 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 						))}
 					</details>
 				</div>
-				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<React.Suspense fallback={<></>}>
+				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<MultiSeriesChart2
 							dataset={fundingRoundsByMonthChart.dataset}
 							charts={fundingRoundsByMonthChart.charts}
 							groupBy="monthly"
 							valueSymbol=""
-							shouldEnableImageExport
-							shouldEnableCSVDownload
-							imageExportFilename={`${slug(investorName)}-funding-rounds`}
-							imageExportTitle={`${investorName} Funding Rounds`}
+							exportButtons={{
+								png: true,
+								csv: true,
+								filename: `${slug(investorName)}-funding-rounds`,
+								pngTitle: `${investorName} Funding Rounds`
+							}}
 						/>
 					</React.Suspense>
 				</div>
 			</div>
 
 			<div className="grid grid-cols-2 gap-1">
-				<LazyChart className="relative col-span-full flex min-h-[372px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<React.Suspense fallback={<></>}>
+				<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<PieChart
 							chartData={investmentByRounds}
 							title="Investment by Rounds"
 							valueSymbol=""
-							shouldEnableImageExport
-							shouldEnableCSVDownload
-							imageExportFilename={`${slug(investorName)}-investment-by-rounds`}
-							imageExportTitle={`${investorName} Investment by Rounds`}
+							exportButtons={{
+								png: true,
+								csv: true,
+								filename: `${slug(investorName)}-investment-by-rounds`,
+								pngTitle: `${investorName} Investment by Rounds`
+							}}
 						/>
 					</React.Suspense>
-				</LazyChart>
-				<LazyChart className="relative col-span-full flex min-h-[372px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<React.Suspense fallback={<></>}>
+				</div>
+				<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<PieChart
 							chartData={raisesByCategory}
 							title="Investments by Category"
 							valueSymbol=""
-							shouldEnableImageExport
-							shouldEnableCSVDownload
-							imageExportFilename={`${slug(investorName)}-investments-by-category`}
-							imageExportTitle={`${investorName} Investments by Category`}
+							exportButtons={{
+								png: true,
+								csv: true,
+								filename: `${slug(investorName)}-investments-by-category`,
+								pngTitle: `${investorName} Investments by Category`
+							}}
 						/>
 					</React.Suspense>
-				</LazyChart>
+				</div>
 			</div>
-
-			<RaisesTable raises={filteredRaisesList} prepareCsv={prepareCsv} />
+			<RaisesByInvestorTable raises={filteredRaisesList} prepareCsv={prepareCsv} />
 		</Layout>
 	)
 }

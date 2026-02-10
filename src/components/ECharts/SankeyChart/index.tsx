@@ -2,12 +2,15 @@ import { SankeyChart as ESankeyChart } from 'echarts/charts'
 import { GraphicComponent, GridComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useEffect, useId, useMemo, useRef } from 'react'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
+import { abbreviateNumber } from '~/utils'
+import { ChartContainer } from '../ChartContainer'
+import { ChartHeader } from '../ChartHeader'
 import type { ISankeyChartProps } from '../types'
 import { formatTooltipValue } from '../useDefaults'
 
@@ -22,7 +25,7 @@ export default function SankeyChart({
 	nodeColors,
 	nodeAlign = 'justify',
 	orient = 'horizontal',
-	customComponents,
+	onReady,
 	enableImageExport = false,
 	imageExportFilename,
 	imageExportTitle,
@@ -35,6 +38,12 @@ export default function SankeyChart({
 	const exportFilename = imageExportFilename || (title ? title.replace(/\s+/g, '-').toLowerCase() : 'sankey-chart')
 	const exportTitle = imageExportTitle || title
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const formatSankeyValue = useCallback(
+		(value: number): string => {
+			return abbreviateNumber(value, 2, valueSymbol) ?? formatTooltipValue(value, valueSymbol)
+		},
+		[valueSymbol]
+	)
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -95,8 +104,8 @@ export default function SankeyChart({
 						displayValue !== undefined
 							? typeof displayValue === 'string'
 								? displayValue
-								: formatTooltipValue(displayValue, valueSymbol)
-							: formatTooltipValue(params.value, valueSymbol)
+								: formatSankeyValue(displayValue)
+							: formatSankeyValue(params.value)
 
 					// Add percentage label if provided
 					const percentageLabel = nodeMetadata.percentageLabels[params.name]
@@ -130,7 +139,7 @@ export default function SankeyChart({
 				lineStyle: link.color ? { color: link.color } : undefined
 			}))
 		}
-	}, [nodes, links, nodeColors, nodeAlign, orient, isDark, isSmall, valueSymbol, nodeMetadata])
+	}, [nodes, links, nodeColors, nodeAlign, orient, isDark, isSmall, formatSankeyValue, nodeMetadata])
 
 	useEffect(() => {
 		const el = document.getElementById(id)
@@ -163,7 +172,7 @@ export default function SankeyChart({
 				},
 				formatter: (params: any) => {
 					if (params.dataType === 'edge') {
-						return `${params.data.source} → ${params.data.target}<br/>${formatTooltipValue(params.data.value, valueSymbol)}`
+						return `${params.data.source} → ${params.data.target}<br/>${formatSankeyValue(params.data.value)}`
 					}
 					// Use displayValue if provided for tooltip value
 					const displayValue = nodeMetadata.displayValues[params.name]
@@ -171,8 +180,8 @@ export default function SankeyChart({
 						displayValue !== undefined
 							? typeof displayValue === 'string'
 								? displayValue
-								: formatTooltipValue(displayValue, valueSymbol)
-							: formatTooltipValue(params.value, valueSymbol)
+								: formatSankeyValue(displayValue)
+							: formatSankeyValue(params.value)
 					// Add percentage label if provided
 					const percentageLabel = nodeMetadata.percentageLabels[params.name]
 					const valueWithPercent = percentageLabel ? `${valueToShow} (${percentageLabel})` : valueToShow
@@ -187,26 +196,39 @@ export default function SankeyChart({
 		})
 
 		handleChartReady(instance)
+		onReady?.(instance)
 
 		return () => {
 			chartRef.current = null
 			instance.dispose()
 			handleChartReady(null)
+			onReady?.(null)
 		}
-	}, [id, series, isDark, title, valueSymbol, isSmall, handleChartReady, nodeMetadata])
+	}, [id, series, isDark, title, valueSymbol, isSmall, handleChartReady, onReady, nodeMetadata, formatSankeyValue])
 
 	return (
-		<div className="relative" {...props}>
-			{title || customComponents || enableImageExport ? (
-				<div className="mb-2 flex items-center justify-end gap-2">
-					{title ? <h1 className="mr-auto text-base font-semibold">{title}</h1> : null}
-					{customComponents ?? null}
-					{enableImageExport && (
-						<ChartExportButton chartInstance={exportChartInstance} filename={exportFilename} title={exportTitle} />
-					)}
-				</div>
-			) : null}
-			<div id={id} style={{ height }} />
-		</div>
+		<ChartContainer
+			id={id}
+			chartClassName=""
+			chartStyle={{ height }}
+			header={
+				title || enableImageExport ? (
+					<ChartHeader
+						title={title}
+						className="mb-2 flex items-center justify-end gap-2"
+						exportButtons={
+							enableImageExport ? (
+								<ChartPngExportButton
+									chartInstance={exportChartInstance}
+									filename={exportFilename}
+									title={exportTitle}
+								/>
+							) : null
+						}
+					/>
+				) : null
+			}
+			{...props}
+		/>
 	)
 }

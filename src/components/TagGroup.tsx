@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import * as React from 'react'
-import { TAG_GROUP_VARIANTS, type TagGroupVariant } from './selectTypes'
+import { TAG_GROUP_VARIANTS, type TagGroupVariant } from './Select/types'
 
 interface IProps extends React.ComponentProps<'div'> {
 	selectedValue: string
@@ -36,7 +36,7 @@ export const TagGroup = ({
 						disabled={disabledValuesSet?.has(value)}
 						data-active={value === selectedValue}
 						key={value}
-						onClick={() => setValue(value)}
+						onClick={() => React.startTransition(() => setValue(value))}
 					>
 						{`${value.slice(0, 1).toUpperCase()}${value.slice(1)}`}
 					</button>

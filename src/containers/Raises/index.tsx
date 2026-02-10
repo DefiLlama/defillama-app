@@ -8,7 +8,7 @@ import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
-import { RaisesTable } from './RaisesTable'
+import { RaisesTable } from './Table'
 
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -91,15 +91,14 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 
-				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<React.Suspense fallback={<></>}>
+				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<MultiSeriesChart2
 							dataset={monthlyInvestmentChart.dataset}
 							charts={monthlyInvestmentChart.charts}
 							valueSymbol="$"
 							groupBy="monthly"
-							shouldEnableImageExport
-							shouldEnableCSVDownload
+							exportButtons="auto"
 						/>
 					</React.Suspense>
 				</div>

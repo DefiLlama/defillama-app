@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import { useCallback, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -161,15 +161,13 @@ export function useDashboardAPI() {
 
 	// Navigate to a dashboard
 	const navigateToDashboard = (id: string) => {
-		Router.push(`/pro/${id}`)
+		router.push(`/pro/${id}`)
 	}
 
-	// Delete dashboard with confirmation
+	// Delete dashboard (confirmation handled in UI)
 	const deleteDashboardWithConfirmation = useCallback(
 		async (id: string) => {
-			if (confirm('Are you sure you want to delete this dashboard?')) {
-				await deleteDashboardMutation.mutateAsync(id)
-			}
+			await deleteDashboardMutation.mutateAsync(id)
 		},
 		[deleteDashboardMutation]
 	)

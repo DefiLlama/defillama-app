@@ -56,30 +56,24 @@ export function ChainsByCategory({
 			)}
 
 			<div className="flex flex-col gap-2 xl:flex-row">
-				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<React.Suspense fallback={<></>}>
+				<div className="relative isolate flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<PieChart
 							chartData={pieChartData}
 							stackColors={colorsByChain}
-							shouldEnableImageExport
-							shouldEnableCSVDownload
-							imageExportFilename="chains-tvl-pie"
-							imageExportTitle="Chains TVL"
+							exportButtons={{ png: true, csv: true, filename: 'chains-tvl-pie', pngTitle: 'Chains TVL' }}
 						/>
 					</React.Suspense>
 				</div>
-				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<React.Suspense fallback={<></>}>
+				<div className="flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<MultiSeriesChart2
 							dataset={dominanceCharts.dataset}
 							charts={dominanceCharts.charts}
 							valueSymbol="%"
 							expandTo100Percent
 							solidChartAreaStyle
-							shouldEnableImageExport
-							shouldEnableCSVDownload
-							imageExportFilename="chains-dominance"
-							imageExportTitle="Chains Dominance"
+							exportButtons={{ png: true, csv: true, filename: 'chains-dominance', pngTitle: 'Chains Dominance' }}
 						/>
 					</React.Suspense>
 				</div>

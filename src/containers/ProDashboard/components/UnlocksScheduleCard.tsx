@@ -1,15 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
-import { getProtocolEmissons } from '~/api/categories/protocols'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
+import { getProtocolEmissionsScheduleData } from '~/containers/Unlocks/queries'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { download, slug, toNiceCsvDate, toNiceDayMonthYear } from '~/utils'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { UnlocksScheduleConfig } from '../types'
-import { ChartExportButton } from './ProTable/ChartExportButton'
+import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const MultiSeriesChart2 = lazy(
@@ -36,7 +36,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 
 	const { data, isLoading } = useQuery({
 		queryKey: ['unlocks-schedule', protocol, resolvedDataType],
-		queryFn: () => getProtocolEmissons(slug(protocol)),
+		queryFn: () => getProtocolEmissionsScheduleData(slug(protocol)),
 		enabled: Boolean(protocol),
 		staleTime: 60 * 60 * 1000
 	})
@@ -103,7 +103,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 				</div>
 				{hasChartData && (
 					<div className="flex gap-2">
-						<ChartExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
+						<ChartPngExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol
@@ -127,7 +127,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 			)}
 			<div>
 				{hasChartData ? (
-					<Suspense fallback={<div className="h-[360px]" />}>
+					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
 							dataset={dataset}
 							charts={apiCharts}

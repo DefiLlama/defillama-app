@@ -56,7 +56,7 @@ export async function getTotalStakedByChain({
 				return null
 			}),
 		fetchJson('https://api.llama.fi/chains2/All').then((data) =>
-			data.chainTvls.filter((chain) => !!chain.extraTvl?.staking?.tvl).map((chain) => chain.name)
+			data.chainTvls.flatMap((chain) => (chain.extraTvl?.staking?.tvl ? [chain.name] : []))
 		)
 	])
 
@@ -104,9 +104,11 @@ export async function getTotalStakedByChain({
 		if (p) {
 			const totalStaked = finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalStaked ?? 0), 0)
 			const totalPrevMonth = finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalPrevMonth ?? 0), 0)
-			const categories = Array.from(
-				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))
-			)
+			const categorySet = new Set<string>()
+			for (const p of finalParentProtocols[parent]) {
+				if (p.category) categorySet.add(p.category)
+			}
+			const categories = Array.from(categorySet)
 
 			finalProtocols.push({
 				name: p.name,

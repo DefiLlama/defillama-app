@@ -157,11 +157,12 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 				}}
 				disabled={isClient ? isLoading : true}
 			>
-				{isLoading || !isClient ? (
-					<LoadingSpinner size={12} />
-				) : (
+				{!isLoading || !isClient ? (
 					<Icon name="download-paper" className="h-3 w-3 shrink-0" />
+				) : (
+					<LoadingSpinner size={12} />
 				)}
+
 				{children || (
 					<span className="overflow-hidden text-ellipsis whitespace-nowrap">{smol ? '.csv' : 'Download .csv'}</span>
 				)}

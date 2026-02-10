@@ -1,10 +1,12 @@
 import { GetStaticPropsContext } from 'next'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { tvlOptionsMap } from '~/components/Filters/options'
-import { LazyChart } from '~/components/LazyChart'
 import { LocalLoader } from '~/components/Loaders'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
+import { TokenLogo } from '~/components/TokenLogo'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import {
@@ -13,15 +15,134 @@ import {
 	useFetchProtocolAddlChartsData
 } from '~/containers/ProtocolOverview/utils'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
-import { slug } from '~/utils'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { slug, tokenIconUrl } from '~/utils'
 import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 const EMPTY_OTHER_PROTOCOLS: string[] = []
+
+type MultiSeriesCharts = NonNullable<IMultiSeriesChart2Props['charts']>
+
+function updateSelectionOnListChange(selected: string[], all: string[]) {
+	if (all.length === 0) return []
+	if (selected.length === 0) return all
+	const next = selected.filter((x) => all.includes(x))
+	return next.length > 0 ? next : all
+}
+
+function MultiSeriesChartCard({
+	title,
+	protocolName,
+	allSeries,
+	seriesLabel,
+	dataset,
+	charts,
+	exportSuffix,
+	valueSymbol
+}: {
+	title: string
+	protocolName: string
+	allSeries: string[]
+	seriesLabel: string
+	dataset: MultiSeriesChart2Dataset
+	charts: MultiSeriesCharts
+	exportSuffix: string
+	valueSymbol?: string
+}) {
+	const [selectedSeriesRaw, setSelectedSeriesRaw] = React.useState<string[]>(() => allSeries)
+	const selectedSeries = React.useMemo(
+		() => updateSelectionOnListChange(selectedSeriesRaw, allSeries),
+		[selectedSeriesRaw, allSeries]
+	)
+
+	const { chartInstance, handleChartReady } = useGetChartInstance()
+
+	const exportFilenameBase = `${slug(protocolName)}-${slug(exportSuffix)}`
+	const exportTitle = `${protocolName} ${title}`
+
+	return (
+		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
+				<h2 className="mr-auto text-base font-semibold">{title}</h2>
+				{allSeries.length > 1 ? (
+					<SelectWithCombobox
+						allValues={allSeries}
+						selectedValues={selectedSeries}
+						setSelectedValues={setSelectedSeriesRaw}
+						label={seriesLabel}
+						labelType="smol"
+						variant="filter"
+						portal
+					/>
+				) : null}
+				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
+			</div>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
+				<MultiSeriesChart2
+					dataset={dataset}
+					charts={charts}
+					{...(valueSymbol !== undefined ? { valueSymbol } : {})}
+					selectedCharts={new Set(selectedSeries)}
+					onReady={handleChartReady}
+				/>
+			</React.Suspense>
+		</div>
+	)
+}
+
+function TokensBreakdownPieChartCard({
+	protocolName,
+	chartData
+}: {
+	protocolName: string
+	chartData: Array<{ name: string; value: number }>
+}) {
+	const allTokens = React.useMemo(() => chartData.map((d) => d.name), [chartData])
+	const [selectedTokensRaw, setSelectedTokensRaw] = React.useState<string[]>(() => allTokens)
+	const selectedTokens = React.useMemo(
+		() => updateSelectionOnListChange(selectedTokensRaw, allTokens),
+		[selectedTokensRaw, allTokens]
+	)
+
+	const selectedTokensSet = React.useMemo(() => new Set(selectedTokens), [selectedTokens])
+	const filteredChartData = React.useMemo(() => {
+		if (selectedTokens.length === 0) return []
+		return chartData.filter((d) => selectedTokensSet.has(d.name))
+	}, [chartData, selectedTokens.length, selectedTokensSet])
+
+	const { chartInstance, handleChartReady } = useGetChartInstance()
+
+	const exportFilenameBase = `${slug(protocolName)}-borrowed-tokens-breakdown-usd`
+	const exportTitle = `${protocolName} Borrowed Tokens Breakdown (USD)`
+
+	return (
+		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
+				<h2 className="mr-auto text-base font-semibold">Borrowed Tokens Breakdown (USD)</h2>
+				{allTokens.length > 1 ? (
+					<SelectWithCombobox
+						allValues={allTokens}
+						selectedValues={selectedTokens}
+						setSelectedValues={setSelectedTokensRaw}
+						label="Token"
+						labelType="smol"
+						variant="filter"
+						portal
+					/>
+				) : null}
+				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
+			</div>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
+				<PieChart chartData={filteredChartData} onReady={handleChartReady} />
+			</React.Suspense>
+		</div>
+	)
+}
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/borrowed/[protocol]',
@@ -98,9 +219,61 @@ export default function Protocols(props) {
 		}
 		return { chainsSplit, chainsUnique }
 	}, [historicalChainTvls])
-	const protocolSlug = slug(props.name || 'protocol')
-	const buildFilename = (suffix: string) => `${protocolSlug}-${slug(suffix)}`
-	const buildTitle = (suffix: string) => (props.name ? `${props.name} – ${suffix}` : suffix)
+
+	const { borrowedByChainDataset, borrowedByChainCharts } = React.useMemo(() => {
+		if (!chainsSplit || chainsUnique.length === 0) {
+			return {
+				borrowedByChainDataset: null as MultiSeriesChart2Dataset | null,
+				borrowedByChainCharts: [] as MultiSeriesCharts
+			}
+		}
+
+		return {
+			borrowedByChainDataset: {
+				source: chainsSplit.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...chainsUnique]
+			},
+			borrowedByChainCharts: chainsUnique.map((name) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name }
+			})) as MultiSeriesCharts
+		}
+	}, [chainsSplit, chainsUnique])
+
+	const { tokenRawDataset, tokenRawCharts } = React.useMemo(() => {
+		if (!tokenBreakdown?.length || !tokensUnique?.length) {
+			return { tokenRawDataset: null as MultiSeriesChart2Dataset | null, tokenRawCharts: [] as MultiSeriesCharts }
+		}
+		return {
+			tokenRawDataset: {
+				source: tokenBreakdown.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...tokensUnique]
+			},
+			tokenRawCharts: tokensUnique.map((name) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name }
+			})) as MultiSeriesCharts
+		}
+	}, [tokenBreakdown, tokensUnique])
+
+	const { tokenUSDDataset, tokenUSDCharts } = React.useMemo(() => {
+		if (!tokenBreakdownUSD?.length || !tokensUnique?.length) {
+			return { tokenUSDDataset: null as MultiSeriesChart2Dataset | null, tokenUSDCharts: [] as MultiSeriesCharts }
+		}
+		return {
+			tokenUSDDataset: {
+				source: tokenBreakdownUSD.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...tokensUnique]
+			},
+			tokenUSDCharts: tokensUnique.map((name) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name }
+			})) as MultiSeriesCharts
+		}
+	}, [tokenBreakdownUSD, tokensUnique])
 
 	return (
 		<ProtocolOverviewLayout
@@ -112,82 +285,65 @@ export default function Protocols(props) {
 			warningBanners={props.warningBanners}
 			toggleOptions={props.toggleOptions}
 		>
+			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+				<h1 className="text-xl font-bold">{props.name} Borrowed TVL</h1>
+			</div>
 			{isLoading ? (
-				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
 				</div>
 			) : (
 				<div className="grid grid-cols-2 gap-2">
-					{chainsSplit && chainsUnique?.length > 1 && (
-						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<React.Suspense fallback={<></>}>
-								<AreaChart
-									chartData={chainsSplit}
-									title="Borrowed by Chain"
-									customLegendName="Chain"
-									customLegendOptions={chainsUnique}
-									valueSymbol="$"
-									enableImageExport
-									imageExportFilename={buildFilename('borrowed-by-chain')}
-									imageExportTitle={buildTitle('Borrowed by Chain')}
-								/>
-							</React.Suspense>
-						</LazyChart>
-					)}
+					{borrowedByChainDataset && chainsUnique.length > 1 ? (
+						<MultiSeriesChartCard
+							key={`${chainsUnique.join('|')}:borrowed-by-chain`}
+							title="Borrowed by Chain"
+							protocolName={props.name}
+							allSeries={chainsUnique}
+							seriesLabel="Chain"
+							dataset={borrowedByChainDataset}
+							charts={borrowedByChainCharts}
+							exportSuffix="borrowed-by-chain"
+							valueSymbol="$"
+						/>
+					) : null}
 
-					{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
-						<>
-							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<React.Suspense fallback={<></>}>
-									<AreaChart
-										chartData={tokenBreakdownUSD}
-										title="Borrowed by Token (USD)"
-										customLegendName="Token"
-										customLegendOptions={tokensUnique}
-										valueSymbol="$"
-										enableImageExport
-										imageExportFilename={buildFilename('borrowed-by-token-usd')}
-										imageExportTitle={buildTitle('Borrowed by Token (USD)')}
-									/>
-								</React.Suspense>
-							</LazyChart>
-						</>
-					)}
+					{tokenUSDDataset && tokensUnique?.length > 0 ? (
+						<MultiSeriesChartCard
+							key={`${tokensUnique.join('|')}:borrowed-by-token-usd`}
+							title="Borrowed by Token (USD)"
+							protocolName={props.name}
+							allSeries={tokensUnique}
+							seriesLabel="Token"
+							dataset={tokenUSDDataset}
+							charts={tokenUSDCharts}
+							exportSuffix="borrowed-by-token-usd"
+							valueSymbol="$"
+						/>
+					) : null}
 
-					{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
-						<>
-							{tokenBreakdownPieChart?.length > 0 && (
-								<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-									<React.Suspense fallback={<></>}>
-										<PieChart
-											title="Borrowed Tokens Breakdown (USD)"
-											chartData={tokenBreakdownPieChart}
-											shouldEnableImageExport
-											shouldEnableCSVDownload
-											imageExportFilename={buildFilename('borrowed-tokens-breakdown-usd')}
-											imageExportTitle={buildTitle('Borrowed Tokens Breakdown (USD)')}
-										/>
-									</React.Suspense>
-								</LazyChart>
-							)}
-						</>
-					)}
+					{tokenBreakdownPieChart?.length > 0 ? (
+						<TokensBreakdownPieChartCard
+							key={tokenBreakdownPieChart.map((d) => d.name).join('|')}
+							protocolName={props.name}
+							chartData={tokenBreakdownPieChart}
+						/>
+					) : null}
 
-					{tokenBreakdown?.length > 1 && tokensUnique?.length > 0 && (
-						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<React.Suspense fallback={<></>}>
-								<AreaChart
-									chartData={tokenBreakdown}
-									title="Borrowed by Token (Raw Quantities)"
-									customLegendName="Token"
-									customLegendOptions={tokensUnique}
-									enableImageExport
-									imageExportFilename={buildFilename('borrowed-by-token-raw')}
-									imageExportTitle={buildTitle('Borrowed by Token (Raw Quantities)')}
-								/>
-							</React.Suspense>
-						</LazyChart>
-					)}
+					{tokenRawDataset && tokensUnique?.length > 0 ? (
+						<MultiSeriesChartCard
+							key={`${tokensUnique.join('|')}:borrowed-by-token-raw`}
+							title="Borrowed by Token (Raw Quantities)"
+							protocolName={props.name}
+							allSeries={tokensUnique}
+							seriesLabel="Token"
+							dataset={tokenRawDataset}
+							charts={tokenRawCharts}
+							exportSuffix="borrowed-by-token-raw"
+							valueSymbol=""
+						/>
+					) : null}
 				</div>
 			)}
 		</ProtocolOverviewLayout>

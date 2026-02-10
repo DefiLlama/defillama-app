@@ -1,32 +1,13 @@
-import { useQuery } from '@tanstack/react-query'
-import { LocalLoader } from '~/components/Loaders'
-import { getPeggedAssetPageData } from '~/containers/Stablecoins/queries.server'
 import { PeggedAssetInfo } from '~/containers/Stablecoins/StablecoinOverview'
 
-export const StablecoinInfo = ({ assetName }: { assetName: string }) => {
-	const { data, isLoading, error } = useQuery({
-		queryKey: ['stablecoin-info', assetName],
-		queryFn: () => getPeggedAssetPageData(assetName),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0
-	})
-
-	if (isLoading) {
-		return (
-			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<LocalLoader />
-			</div>
-		)
-	}
-
+export const StablecoinInfo = ({ data }: { data: React.ComponentProps<typeof PeggedAssetInfo> | null }) => {
 	if (!data) {
 		return (
-			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<p>{error instanceof Error ? error.message : 'Failed to fetch'}</p>
+			<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<p>Failed to fetch</p>
 			</div>
 		)
 	}
 
-	return <PeggedAssetInfo {...data.props} />
+	return <PeggedAssetInfo {...data} />
 }

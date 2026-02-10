@@ -147,15 +147,19 @@ export const getNFTMarketplacesData = async () => {
 
 	return {
 		data,
-		volume: Object.entries(volumeData).map(([date, values]: [string, { [exchangeName: string]: number }]) => ({
-			date,
-			...values
-		})),
+		volume: Object.entries(volumeData)
+			.sort(([a], [b]) => Number(a) - Number(b))
+			.map(([date, values]: [string, { [exchangeName: string]: number }]) => ({
+				date,
+				...values
+			})),
 		dominance,
-		trades: Object.entries(tradeData).map(([date, values]: [string, { [exchangeName: string]: number }]) => ({
-			date,
-			...values
-		})),
+		trades: Object.entries(tradeData)
+			.sort(([a], [b]) => Number(a) - Number(b))
+			.map(([date, values]: [string, { [exchangeName: string]: number }]) => ({
+				date,
+				...values
+			})),
 		dominanceTrade,
 		marketplaces,
 		stackColors: colors,
@@ -389,10 +393,13 @@ export const getNFTCollection = async (slug: string) => {
 			stats: stats.map((item) => [Math.floor(new Date(item.day).getTime() / 1000), item.sum]),
 			name: data?.[0]?.name ?? null,
 			address: slug,
-			floorHistory: floorHistory.map((item) => [
-				Math.floor(new Date(item.timestamp).getTime() / 1000),
-				item.floorPrice
-			]),
+			floorHistory: {
+				source: floorHistory.map((item) => ({
+					timestamp: Math.floor(new Date(item.timestamp).getTime()),
+					'Floor Price': item.floorPrice
+				})),
+				dimensions: ['timestamp', 'Floor Price']
+			},
 			orderbook
 		}
 	} catch (e) {

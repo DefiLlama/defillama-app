@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import { useRef } from 'react'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IFiltersByTokensProps {

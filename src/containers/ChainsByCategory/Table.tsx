@@ -15,7 +15,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
@@ -25,7 +25,7 @@ import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
+import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
 
 const optionsKey = 'chains-overview-table-columns'
 
@@ -102,7 +102,7 @@ export function ChainsByCategoryTable({
 	}
 
 	const selectedAggregateTypes = React.useMemo(() => {
-		return CHAINS_CATEGORY_GROUP_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
+		return CHAINS_CATEGORY_GROUP_SETTINGS.flatMap((key) => (groupTvls[key.key] ? [key.key] : []))
 	}, [groupTvls])
 
 	const prepareCsv = () => {
@@ -316,7 +316,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: '1d TVL Change',
 		accessorKey: 'change_1d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end',
@@ -326,7 +326,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: '7d TVL Change',
 		accessorKey: 'change_7d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end',
@@ -336,7 +336,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: '1m TVL Change',
 		accessorKey: 'change_1m',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end',

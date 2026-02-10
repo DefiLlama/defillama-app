@@ -1,4 +1,4 @@
-import { ProtocolChartsQueryParams } from '../ProtocolOverview/Chart/constants'
+import { ProtocolChartsQueryParams } from '~/containers/ProtocolOverview/constants'
 
 export const protocolCategories = {
 	Dexs: { description: 'Protocols where you can swap/trade cryptocurrency', defaultChart: 'dexVolume' },
@@ -261,5 +261,8 @@ export const protocolCategories = {
 	},
 	'Block Builders': {
 		description: 'Block builder APIs for private transaction bundles'
+	},
+	'Stablecoin Wrapper': {
+		description: 'Protocols that lock an existing stablecoin and mint a 1:1 redeemable on-chain wrapper token'
 	}
 } as const satisfies Record<string, { description: string; defaultChart?: ProtocolChartsQueryParams }>

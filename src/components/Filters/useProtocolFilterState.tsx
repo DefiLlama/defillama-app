@@ -17,7 +17,7 @@ export function useProtocolsFilterState(options: { key: string; name: string }[]
 	const [extraFeesEnabled] = useLocalStorageSettingsManager('fees')
 
 	const selectedValues = useMemo(() => {
-		const filters = options.map((o) => o.key).filter(isMetricSettingKey)
+		const filters = options.flatMap((o) => (isMetricSettingKey(o.key) ? [o.key] : []))
 		return filters.filter((key) => (isTvlSettingsKey(key) ? extraTvlsEnabled[key] : extraFeesEnabled[key]))
 	}, [extraTvlsEnabled, extraFeesEnabled, options])
 
@@ -62,7 +62,7 @@ export function useTvlAndFeesFilterState({
 }) {
 	const [toggledKeys] = useLocalStorageSettingsManager('tvl_fees')
 
-	const filters = options.map((o) => o.key).filter(isMetricSettingKey)
+	const filters = options.flatMap((o) => (isMetricSettingKey(o.key) ? [o.key] : []))
 
 	const selectedValues = filters.filter((key) => toggledKeys[key])
 

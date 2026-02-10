@@ -15,7 +15,7 @@ import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { columnSizes, protocolsColumns } from '~/components/Table/Defi/Protocols/columns'
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
@@ -138,7 +138,7 @@ export function RecentlyListedProtocolsTable({
 const listedAtColumn: ColumnDef<IProtocolRow> = {
 	header: 'Listed At',
 	accessorKey: 'listedAt',
-	cell: ({ getValue }) => toNiceDaysAgo(getValue()),
+	cell: ({ getValue }) => toNiceDaysAgo(getValue() as number),
 	size: 140,
 	meta: {
 		align: 'end' as const

@@ -28,22 +28,25 @@ import { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import { getAdapterProtocolSummary, IAdapterSummary } from '../DimensionAdapters/queries'
 import { IHack } from '../Hacks/queries'
 import { protocolCategories } from '../ProtocolsByCategoryOrTag/constants'
-import { protocolCharts, ProtocolChartsLabels } from './Chart/constants'
+import { fetchProtocolOverviewMetrics, fetchProtocolTvlChart } from './api'
+import { IProtocolMetricsV2 } from './api.types'
+import { protocolCharts, ProtocolChartsLabels } from './constants'
 import {
 	IArticle,
 	IArticlesResponse,
 	IProtocolExpenses,
 	IProtocolOverviewPageData,
-	IProtocolPageMetrics,
-	IUpdatedProtocol
+	IProtocolPageMetrics
 } from './types'
 import { getProtocolWarningBanners } from './utils'
 
-export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
+const isProtocolChartsLabel = (value: string): value is ProtocolChartsLabels => value in protocolCharts
+
+export const getProtocol = async (protocolName: string): Promise<IProtocolMetricsV2 | null> => {
 	const start = Date.now()
 	try {
 		const name = slug(protocolName)
-		const data: IUpdatedProtocol = await fetchJson(`${PROTOCOL_API}/${name}`, {
+		const data: IProtocolMetricsV2 = await fetchJson(`${PROTOCOL_API}/${name}`, {
 			timeout: ['uniswap', 'portal', 'curve', 'aave', 'raydium'].some((p) => name.includes(p)) ? 3 * 60 * 1000 : 60_000
 		})
 
@@ -84,12 +87,13 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 
 export const getProtocolMetrics = ({
 	protocolData,
-	metadata
+	metadata,
+	hasTvlChartData
 }: {
-	protocolData: IUpdatedProtocol
+	protocolData: IProtocolMetricsV2
 	metadata: IProtocolMetadata
+	hasTvlChartData?: boolean
 }): IProtocolPageMetrics => {
-	let tvlChartExist = false
 	let inflowsExist = false
 	let multipleChains = false
 	let tokenBreakdownExist = false
@@ -110,19 +114,11 @@ export const getProtocolMetrics = ({
 	}
 
 	let chainsWithTvl = 0
-	for (const chain in protocolData.chainTvls ?? {}) {
-		const goodChart =
-			protocolData.chainTvls[chain].tvl &&
-			protocolData.chainTvls[chain].tvl.length > 0 &&
-			protocolData.chainTvls[chain].tvl.some((item) => item.totalLiquidityUSD !== 0)
-
-		if (goodChart) {
-			tvlChartExist = true
-		}
+	for (const chain in protocolData.currentChainTvls ?? {}) {
 		if (chain.includes('-') || chain === 'offers' || TVL_SETTINGS_KEYS_SET.has(chain)) {
 			continue
 		}
-		if (goodChart) {
+		if ((protocolData.currentChainTvls?.[chain] ?? 0) > 0) {
 			chainsWithTvl++
 		}
 		if (chainsWithTvl > 1) {
@@ -131,9 +127,13 @@ export const getProtocolMetrics = ({
 	}
 
 	const tvlTab = metadata.tvl && (multipleChains || inflowsExist || tokenBreakdownExist)
+	const hasAnyChainTvlHistory = Object.values(protocolData.chainTvls ?? {}).some(
+		(chain) => (chain?.tvl?.length ?? 0) > 0
+	)
+	const tvlChartExists = hasTvlChartData ?? hasAnyChainTvlHistory
 
 	return {
-		tvl: !!(metadata.tvl && tvlChartExist),
+		tvl: !!(metadata.tvl && tvlChartExists),
 		tvlTab: !!tvlTab,
 		dexs: !!metadata.dexs,
 		perps: !!metadata.perps,
@@ -178,6 +178,7 @@ export const getProtocolOverviewPageData = async ({
 }): Promise<IProtocolOverviewPageData> => {
 	const [
 		protocolData,
+		protocolTvlChartData,
 		feesData,
 		revenueData,
 		holdersRevenueData,
@@ -206,7 +207,7 @@ export const getProtocolOverviewPageData = async ({
 		incomeStatement,
 		oracleTvs
 	]: [
-		IUpdatedProtocol & {
+		IProtocolMetricsV2 & {
 			tokenCGData?: {
 				price: {
 					current: number | null
@@ -235,6 +236,7 @@ export const getProtocolOverviewPageData = async ({
 				updatedAt: number | null
 			}
 		},
+		Array<[string, number]>,
 		IProtocolOverviewPageData['fees'],
 		IProtocolOverviewPageData['revenue'],
 		IProtocolOverviewPageData['holdersRevenue'],
@@ -249,9 +251,9 @@ export const getProtocolOverviewPageData = async ({
 		IProtocolOverviewPageData['optionsPremiumVolume'],
 		IProtocolOverviewPageData['optionsNotionalVolume'],
 		IProtocolOverviewPageData['treasury'] | null,
-		any,
+		{ data?: Array<{ project: string; apy: number }> } | null,
 		IArticle[],
-		any,
+		IProtocolOverviewPageData['incentives'],
 		number | null,
 		{
 			activeUsers: number | null
@@ -259,33 +261,42 @@ export const getProtocolOverviewPageData = async ({
 			transactions: number | null
 			gasUsd: number | null
 		} | null,
-		IProtocolExpenses,
-		any,
-		any,
-		any,
+		IProtocolExpenses | null,
+		{ protocols?: Record<string, { name?: string }> } | null,
+		Array<{ id: string; tokenPools?: Array<{ project: string; chain: string; tvlUsd: number }> }>,
+		{ protocols: Array<{ category?: string; name: string; chains: Array<string>; tvl: number }> },
 		Array<IHack>,
-		any,
+		Array<{ date: string; depositUSD: number; withdrawUSD: number }> | null,
 		IProtocolOverviewPageData['incomeStatement'],
 		Record<string, number> | null
 	] = await Promise.all([
-		getProtocol(slug(currentProtocolMetadata.displayName)).then(async (data) => {
+		fetchProtocolOverviewMetrics(slug(currentProtocolMetadata.displayName)).then(async (data) => {
+			if (!data) {
+				return getProtocol(slug(currentProtocolMetadata.displayName))
+			}
+
 			try {
-				const [tokenCGData, cg_volume_cexs] = data.gecko_id
+				const [tokenCGData, cg_volume_cexs]: [unknown, string[]] = data.gecko_id
 					? await Promise.all([
 							fetchJson(`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`)
 								.then(({ data }) => data)
-								.catch(() => null as any),
+								.catch(() => null),
 							fetchJson(CEXS_API)
 								.then((data) => data.cg_volume_cexs)
 								.catch(() => [])
 						])
-					: [null]
+					: [null, []]
 				return { ...data, tokenCGData: tokenCGData ? getTokenCGData(tokenCGData, cg_volume_cexs) : null }
 			} catch (e) {
 				console.log(e)
 				return data
 			}
 		}),
+		currentProtocolMetadata.tvl
+			? fetchProtocolTvlChart({ protocol: slug(currentProtocolMetadata.displayName) })
+					.then((chart) => chart?.map(([date, value]) => [String(Math.floor(date / 1e3)), value]) ?? [])
+					.catch(() => [])
+			: Promise.resolve([]),
 		currentProtocolMetadata.fees
 			? getAdapterProtocolSummary({
 					adapterType: 'fees',
@@ -530,6 +541,10 @@ export const getProtocolOverviewPageData = async ({
 			: null
 	])
 
+	if (!protocolData) {
+		throw new Error(`Unable to fetch protocol data for ${currentProtocolMetadata.displayName}`)
+	}
+
 	const otherProtocols = protocolData.otherProtocols?.map((p) => slug(p)) ?? []
 	const projectYields = yieldsData?.data?.filter(
 		({ project }) =>
@@ -547,18 +562,27 @@ export const getProtocolOverviewPageData = async ({
 	const tokenPools =
 		yieldsData?.data && yieldsConfig ? (liquidityInfo?.find((p) => p.id === protocolData.id)?.tokenPools ?? []) : []
 
-	const liquidityAggregated = tokenPools.reduce((agg, pool) => {
-		if (!agg[pool.project]) agg[pool.project] = {}
-		agg[pool.project][pool.chain] = pool.tvlUsd + (agg[pool.project][pool.chain] ?? 0)
-		return agg
-	}, {} as any)
+	const liquidityAggregated = tokenPools.reduce(
+		(agg, pool) => {
+			if (!agg[pool.project]) agg[pool.project] = {}
+			agg[pool.project][pool.chain] = pool.tvlUsd + (agg[pool.project][pool.chain] ?? 0)
+			return agg
+		},
+		{} as Record<string, Record<string, number>>
+	)
 
 	const tokenLiquidity = yieldsConfig
-		? (Object.entries(liquidityAggregated)
+		? Object.entries(liquidityAggregated)
 				.filter((x) => !!yieldsConfig.protocols[x[0]]?.name)
-				.map((p) => Object.entries(p[1]).map((c) => [yieldsConfig.protocols[p[0]].name, c[0], c[1]]))
+				.map((p) =>
+					Object.entries(p[1]).map((c): [string, string, number] => [
+						yieldsConfig.protocols[p[0]].name ?? '',
+						c[0],
+						Number(c[1])
+					])
+				)
 				.flat()
-				.sort((a, b) => b[2] - a[2]) as Array<[string, string, number]>)
+				.sort((a, b) => b[2] - a[2])
 		: ([] as Array<[string, string, number]>)
 
 	const raises =
@@ -651,34 +675,12 @@ export const getProtocolOverviewPageData = async ({
 					?.sort((a, b) => a.date - b.date)
 			: null) ?? null
 
-	const protocolMetrics = getProtocolMetrics({ protocolData, metadata: currentProtocolMetadata })
-	const tvlChart: Record<string, number> = {}
-	const extraTvlCharts: Record<string, Record<string, number>> = {}
-	if (protocolMetrics.tvl) {
-		for (const chainOrTvlKey in protocolData.chainTvls ?? {}) {
-			if (chainOrTvlKey.includes('-') || chainOrTvlKey === 'offers') continue
-			if (!protocolData.chainTvls[chainOrTvlKey].tvl?.length) continue
-
-			if (TVL_SETTINGS_KEYS_SET.has(chainOrTvlKey)) {
-				if (!extraTvlCharts[chainOrTvlKey]) {
-					extraTvlCharts[chainOrTvlKey] = {}
-				}
-				for (const item of protocolData.chainTvls[chainOrTvlKey].tvl) {
-					extraTvlCharts[chainOrTvlKey][item.date] =
-						(extraTvlCharts[chainOrTvlKey][item.date] ?? 0) + item.totalLiquidityUSD
-				}
-			} else {
-				for (const item of protocolData.chainTvls[chainOrTvlKey].tvl) {
-					tvlChart[item.date] = (tvlChart[item.date] ?? 0) + item.totalLiquidityUSD
-				}
-			}
-		}
-	}
-
-	const tvlChartData: Array<[string, number]> = []
-	for (const date in tvlChart) {
-		tvlChartData.push([date, tvlChart[date]])
-	}
+	const tvlChartData = protocolTvlChartData
+	const protocolMetrics = getProtocolMetrics({
+		protocolData,
+		metadata: currentProtocolMetadata,
+		hasTvlChartData: tvlChartData.length > 0
+	})
 
 	const chains = []
 	for (const chain in protocolData.currentChainTvls ?? {}) {
@@ -864,47 +866,38 @@ export const getProtocolOverviewPageData = async ({
 	const defaultToggledCharts: ProtocolChartsLabels[] = []
 	if (protocolMetrics.tvl) {
 		if (tvlChartData.length === 0 || tvlChartData.every(([, value]) => value === 0)) {
-			let hasStaking = false
-			for (const date in extraTvlCharts?.staking) {
-				if (extraTvlCharts?.staking[date] > 0) {
-					hasStaking = true
-					break
-				}
-			}
+			const hasStaking = (protocolData.currentChainTvls?.staking ?? 0) > 0
 			if (hasStaking) {
-				defaultToggledCharts.push('Staking' as any)
+				defaultToggledCharts.push('Staking')
 			}
 
-			let hasBorrowed = false
-			for (const date in extraTvlCharts?.borrowed) {
-				if (extraTvlCharts?.borrowed[date] > 0) {
-					hasBorrowed = true
-					break
-				}
-			}
+			const hasBorrowed = (protocolData.currentChainTvls?.borrowed ?? 0) > 0
 			if (!hasStaking && hasBorrowed) {
-				defaultToggledCharts.push('Borrowed' as any)
+				defaultToggledCharts.push('Borrowed')
 			}
 		} else {
 			defaultToggledCharts.push(isCEX ? 'Total Assets' : 'TVL')
 		}
-		defaultToggledCharts.push('Events' as any)
 	}
 
+	const categoryDefaultChart = protocolData.category ? protocolCategories[protocolData.category]?.defaultChart : null
+	const isCategoryDefaultChartValue =
+		typeof categoryDefaultChart === 'string' &&
+		(Object.values(protocolCharts) as Array<string>).includes(categoryDefaultChart)
 	if (
-		protocolData.category &&
-		protocolCategories[protocolData.category]?.defaultChart &&
-		availableCharts.includes(protocolCategories[protocolData.category].defaultChart as any)
+		categoryDefaultChart &&
+		isCategoryDefaultChartValue &&
+		availableCharts.some((chartLabel) => protocolCharts[chartLabel] === categoryDefaultChart)
 	) {
 		let defaultChartLabel = null
 		for (const chartLabel in protocolCharts) {
-			if (protocolCharts[chartLabel] === protocolCategories[protocolData.category].defaultChart) {
+			if (protocolCharts[chartLabel] === categoryDefaultChart) {
 				defaultChartLabel = chartLabel
 				break
 			}
 		}
-		if (defaultChartLabel && availableCharts.includes(defaultChartLabel as any)) {
-			defaultToggledCharts.push(defaultChartLabel as any)
+		if (defaultChartLabel && isProtocolChartsLabel(defaultChartLabel) && availableCharts.includes(defaultChartLabel)) {
+			defaultToggledCharts.push(defaultChartLabel)
 		}
 	} else if (!isCEX) {
 		const cannotShowAsDefault = new Set<ProtocolChartsLabels>([
@@ -923,7 +916,7 @@ export const getProtocolOverviewPageData = async ({
 
 		const fallbackLabel = availableCharts.find((chart) => !cannotShowAsDefault.has(chart))
 		if (fallbackLabel) {
-			defaultToggledCharts.push(fallbackLabel as any)
+			defaultToggledCharts.push(fallbackLabel)
 		}
 	}
 
@@ -1024,8 +1017,9 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts,
 		chartColors,
 		tvlChartData,
-		extraTvlCharts,
-		hallmarks: Object.entries(hallmarks).map(([date, event]) => [+date * 1e3, event as string]),
+		hallmarks: Object.entries(hallmarks)
+			.sort(([a], [b]) => Number(a) - Number(b))
+			.map(([date, event]) => [+date * 1e3, event as string]),
 		rangeHallmarks: rangeHallmarks.map(([date, event]) => [[+date[0] * 1e3, +date[1] * 1e3], event as string]),
 		geckoId: protocolData.gecko_id ?? null,
 		governanceApis: governanceApis(protocolData.governanceID) ?? null,
@@ -1122,7 +1116,7 @@ const commonMethodology = {
 	optionsNotionalVolume: definitions.optionsNotional.common
 }
 
-export const fetchArticles = async ({ tags = '', size = 2 }) => {
+const fetchArticles = async ({ tags = '', size = 2 }) => {
 	const articlesRes: IArticlesResponse = await fetchJson(`https://api.llama.fi/news/articles`, {
 		timeout: 10_000
 	}).catch((err) => {
@@ -1145,9 +1139,36 @@ export const fetchArticles = async ({ tags = '', size = 2 }) => {
 	return articles.slice(0, size)
 }
 
-export function getTokenCGData(tokenCGData: any, cg_volume_cexs: string[]) {
-	const tokenPrice = tokenCGData?.prices ? tokenCGData.prices[tokenCGData.prices.length - 1][1] : null
-	const tokenInfo = tokenCGData?.coinData
+interface ICoingeckoTicker {
+	trust_score?: string
+	market?: { identifier?: string }
+	converted_volume?: { usd?: number | null }
+}
+
+interface ICoingeckoCoinData {
+	market_data?: {
+		ath?: { usd?: number | null }
+		ath_date?: { usd?: number | null }
+		atl?: { usd?: number | null }
+		atl_date?: { usd?: number | null }
+		market_cap?: { usd?: number | null }
+		total_supply?: number | null
+		fully_diluted_valuation?: { usd?: number | null }
+		total_volume?: { usd?: number | null }
+	}
+	tickers?: ICoingeckoTicker[]
+	symbol?: string
+}
+
+interface ICoingeckoFullChartPayload {
+	prices?: Array<[number, number]>
+	coinData?: ICoingeckoCoinData
+}
+
+function getTokenCGData(tokenCGData: unknown, cg_volume_cexs: string[]) {
+	const normalized = (tokenCGData ?? {}) as ICoingeckoFullChartPayload
+	const tokenPrice = normalized.prices?.length ? normalized.prices[normalized.prices.length - 1][1] : null
+	const tokenInfo = normalized.coinData
 
 	return {
 		price: {
@@ -1166,8 +1187,8 @@ export function getTokenCGData(tokenCGData: any, cg_volume_cexs: string[]) {
 				tokenInfo?.['tickers']?.reduce(
 					(acc, curr) =>
 						(acc +=
-							curr['trust_score'] !== 'red' && cg_volume_cexs.includes(curr.market.identifier)
-								? (curr.converted_volume.usd ?? 0)
+							curr['trust_score'] !== 'red' && cg_volume_cexs.includes(curr.market?.identifier ?? '')
+								? (curr.converted_volume?.usd ?? 0)
 								: 0),
 					0
 				) ?? null,
@@ -1175,9 +1196,9 @@ export function getTokenCGData(tokenCGData: any, cg_volume_cexs: string[]) {
 				tokenInfo?.['tickers']?.reduce(
 					(acc, curr) =>
 						(acc +=
-							curr['trust_score'] === 'red' || cg_volume_cexs.includes(curr.market.identifier)
+							curr['trust_score'] === 'red' || cg_volume_cexs.includes(curr.market?.identifier ?? '')
 								? 0
-								: (curr.converted_volume.usd ?? 0)),
+								: (curr.converted_volume?.usd ?? 0)),
 					0
 				) ?? null
 		},

@@ -2,7 +2,7 @@ import type * as echarts from 'echarts/core'
 import { lazy, Suspense, useMemo } from 'react'
 import { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { Select } from '~/components/Select'
+import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
 import { capitalizeFirstLetter, download, toNiceDayMonthYear } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'
@@ -14,7 +14,7 @@ import {
 import { Chain, CHART_TYPES, ChartConfig, Protocol } from '../types'
 import { convertToCumulative, generateChartColor, getItemIconUrl } from '../utils'
 import { LoadingSpinner } from './LoadingSpinner'
-import { ChartExportButton } from './ProTable/ChartExportButton'
+import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const SingleSeriesChart = lazy(
@@ -227,7 +227,7 @@ export function ChartCard({ chart }: ChartCardProps) {
 					)}
 					{processedData && processedData.length > 0 && (
 						<>
-							<ChartExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
+							<ChartPngExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
 							<ProTableCSVButton
 								onClick={handleCsvExport}
 								smol

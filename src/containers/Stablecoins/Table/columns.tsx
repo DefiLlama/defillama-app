@@ -6,7 +6,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { chainIconUrl, formattedNum, formattedPercent, peggedAssetIconUrl, slug } from '~/utils'
+import { chainIconUrl, formattedNum, renderPercentChange, peggedAssetIconUrl, slug } from '~/utils'
 import type { IPeggedAssetByChainRow, IPeggedAssetsRow, IPeggedChain } from './types'
 
 export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
@@ -72,6 +72,7 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			const value = getValue() as IPeggedAssetByChainRow['bridgeInfo']
+			if (!value.name || value.name === '-' || value.name === 'not-found') return null
 			return (
 				<>
 					{value.link ? (
@@ -100,7 +101,7 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 	{
 		header: '1d Change',
 		accessorKey: 'change_1d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 110,
 		meta: {
 			align: 'end'
@@ -109,7 +110,7 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 	{
 		header: '7d Change',
 		accessorKey: 'change_7d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 110,
 		meta: {
 			align: 'end'
@@ -118,7 +119,7 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 	{
 		header: '1m Change',
 		accessorKey: 'change_1m',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 110,
 		meta: {
 			align: 'end'
@@ -284,7 +285,7 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 						info.row.original.change_1d_nol.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 					}`}
 				>
-					{formattedPercent(info.getValue())}
+					{renderPercentChange(info.getValue())}
 				</Tooltip>
 			) : (
 				'-'
@@ -306,7 +307,7 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 						info.row.original.change_7d_nol.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 					}`}
 				>
-					{formattedPercent(info.getValue())}
+					{renderPercentChange(info.getValue())}
 				</Tooltip>
 			) : (
 				'-'
@@ -328,7 +329,7 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 						info.row.original.change_1m_nol.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 					}`}
 				>
-					{formattedPercent(info.getValue())}
+					{renderPercentChange(info.getValue())}
 				</Tooltip>
 			) : (
 				'-'
@@ -341,7 +342,7 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 	{
 		header: 'Market Cap',
 		accessorKey: 'mcap',
-		cell: (info) => <>${formattedNum(info.getValue())}</>,
+		cell: (info) => <>{formattedNum(info.getValue(), true)}</>,
 		size: 120,
 		meta: {
 			align: 'end'
@@ -550,7 +551,7 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 	{
 		header: '7d Change',
 		accessorKey: 'change_7d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 120,
 		meta: {
 			align: 'end'
@@ -579,7 +580,7 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 			return (
 				<div className="flex w-full items-center justify-end gap-1">
 					<span>{`${value.name}${value.value ? ':' : ''}`}</span>
-					<span>{formattedPercent(value.value, true)}</span>
+					<span>{renderPercentChange(value.value, true)}</span>
 				</div>
 			)
 		},

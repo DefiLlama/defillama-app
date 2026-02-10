@@ -1,12 +1,12 @@
 import * as Ariakit from '@ariakit/react'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import * as React from 'react'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
-import { NestedMenu } from '~/components/NestedMenu'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { RaisesSearch } from '~/containers/Raises/Search'
-import { useIsClient } from '~/hooks/useIsClient'
-import { useMedia } from '~/hooks/useMedia'
+import { useRangeFilter } from '~/hooks/useRangeFilter'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 interface IDropdownMenusProps {
 	header: string
@@ -23,29 +23,11 @@ interface IDropdownMenusProps {
 }
 
 export function RaisesFilters(props: IDropdownMenusProps) {
-	const isSmall = useMedia(`(max-width: 639px)`)
-	const isClient = useIsClient()
-
 	return (
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 			<h1 className="text-lg font-semibold">{props.header}</h1>
 			<RaisesSearch list={props.investors} />
-			<div className="flex min-h-9 flex-wrap gap-2 *:flex-1 sm:hidden">
-				{isSmall && isClient ? (
-					<React.Suspense fallback={<></>}>
-						<NestedMenu label="Filters" className="w-full">
-							<Filters {...props} nestedMenu />
-						</NestedMenu>
-					</React.Suspense>
-				) : null}
-			</div>
-			<div className="hidden min-h-8 flex-wrap gap-2 sm:flex">
-				{!isSmall && isClient ? (
-					<React.Suspense fallback={<></>}>
-						<Filters {...props} />
-					</React.Suspense>
-				) : null}
-			</div>
+			<ResponsiveFilterLayout>{(nestedMenu) => <Filters {...props} nestedMenu={nestedMenu} />}</ResponsiveFilterLayout>
 		</div>
 	)
 }
@@ -138,9 +120,23 @@ function Filters({
 
 			<button
 				onClick={() => {
-					// Clear only the query params; keep the current concrete path (works on dynamic routes too).
-					const basePath = router.asPath.split('?')[0] || pathname || '/raises'
-					router.push(basePath, undefined, { shallow: true })
+					// Clear only query params while keeping the route.
+					pushShallowQuery(
+						router,
+						{
+							investor: undefined,
+							excludeInvestor: undefined,
+							chain: undefined,
+							excludeChain: undefined,
+							sector: undefined,
+							excludeSector: undefined,
+							round: undefined,
+							excludeRound: undefined,
+							minRaised: undefined,
+							maxRaised: undefined
+						},
+						pathname || router.pathname || '/raises'
+					)
 				}}
 				disabled={!hasActiveFilters}
 				className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40"
@@ -158,34 +154,7 @@ function RaisedRange({
 	nestedMenu?: boolean
 	placement?: Ariakit.PopoverStoreProps['placement']
 }) {
-	const router = useRouter()
-
-	const handleSubmit = (e) => {
-		e.preventDefault()
-		const form = e.target
-		const minRaised = form.min?.value
-		const maxRaised = form.max?.value
-
-		const params = new URLSearchParams(window.location.search)
-		if (minRaised) params.set('minRaised', minRaised)
-		else params.delete('minRaised')
-		if (maxRaised) params.set('maxRaised', maxRaised)
-		else params.delete('maxRaised')
-		Router.push(`${window.location.pathname}?${params.toString()}`, undefined, { shallow: true })
-	}
-
-	const handleClear = () => {
-		const params = new URLSearchParams(window.location.search)
-		params.delete('minRaised')
-		params.delete('maxRaised')
-		const queryString = params.toString()
-		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
-		Router.push(newUrl, undefined, { shallow: true })
-	}
-
-	const { minRaised, maxRaised } = router.query
-	const min = typeof minRaised === 'string' && minRaised !== '' ? Number(minRaised) : null
-	const max = typeof maxRaised === 'string' && maxRaised !== '' ? Number(maxRaised) : null
+	const { min, max, handleSubmit, handleClear } = useRangeFilter('minRaised', 'maxRaised')
 
 	return (
 		<FilterBetweenRange

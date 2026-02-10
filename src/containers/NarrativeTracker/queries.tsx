@@ -124,7 +124,13 @@ export async function getCoinPerformance(categoryId) {
 	return {
 		pctChanges,
 		performanceTimeSeries,
-		areaChartLegend: coinInfo.filter((i) => !['Bitcoin', 'Ethereum', 'Solana'].includes(i.name)).map((i) => i.name),
+		areaChartLegend: (() => {
+			const legend: string[] = []
+			for (const i of coinInfo) {
+				if (i.name !== 'Bitcoin' && i.name !== 'Ethereum' && i.name !== 'Solana') legend.push(i.name)
+			}
+			return legend
+		})(),
 		isCoinPage: true,
 		categoryName: categories.find((i) => i.id === categoryId)?.name
 	}

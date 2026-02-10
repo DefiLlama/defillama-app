@@ -6,7 +6,14 @@ import { formatEthAddress } from '~/utils'
 import { Icon } from '../Icon'
 import { BasicLink } from '../Link'
 
-export const resolveUserEmail = (user: any): string | null => {
+interface AuthUser {
+	authMethod?: string
+	ethereum_email?: string
+	email?: string
+	walletAddress?: string
+}
+
+export const resolveUserEmail = (user: AuthUser | null | undefined): string | null => {
 	if (!user) return null
 	if (user.authMethod === 'ethereum') {
 		return user.ethereum_email || null
@@ -14,7 +21,7 @@ export const resolveUserEmail = (user: any): string | null => {
 	return user.email || null
 }
 
-const resolveUserHandle = (user: any): string => {
+const resolveUserHandle = (user: AuthUser | null | undefined): string => {
 	return resolveUserEmail(user) || formatEthAddress(user?.walletAddress) || ''
 }
 

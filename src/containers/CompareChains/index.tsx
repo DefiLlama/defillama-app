@@ -4,8 +4,8 @@ import type { NextRouter } from 'next/router'
 import * as React from 'react'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { LocalLoader } from '~/components/Loaders'
-import { MultiSelectCombobox } from '~/components/MultiSelectCombobox'
-import { Select } from '~/components/Select'
+import { MultiSelectCombobox } from '~/components/Select/MultiSelectCombobox'
+import { Select } from '~/components/Select/Select'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { getNDistinctColors, getPercentChange, getPrevTvlFromChart } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -250,19 +250,21 @@ export function CompareChains({ chains }) {
 			{selectedChains.length > 1 ? (
 				<div className="relative flex flex-col gap-1">
 					{isLoading || !router.isReady ? (
-						<div className="grid min-h-[408px] place-items-center rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+						<div className="flex h-full min-h-[400px] w-full items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 							<LocalLoader />
 						</div>
 					) : (
-						<div className="min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-							<React.Suspense fallback={<></>}>
+						<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+							<React.Suspense fallback={<div className="min-h-[398px]" />}>
 								<MultiSeriesChart2
 									dataset={chartData.dataset}
 									charts={chartData.charts}
-									shouldEnableImageExport
-									shouldEnableCSVDownload
-									imageExportFilename={`compare-chains-${selectedChains.map((chain) => chain.label).join('-vs-')}`}
-									imageExportTitle={`${selectedChains.map((chain) => chain.label).join(' vs ')}`}
+									exportButtons={{
+										png: true,
+										csv: true,
+										filename: `compare-chains-${selectedChains.map((chain) => chain.label).join('-vs-')}`,
+										pngTitle: `${selectedChains.map((chain) => chain.label).join(' vs ')}`
+									}}
 								/>
 							</React.Suspense>
 						</div>

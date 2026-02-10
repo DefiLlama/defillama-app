@@ -4,6 +4,8 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 import { slug } from '~/utils'
+import { ChartContainer } from '../ChartContainer'
+import { ChartHeader } from '../ChartHeader'
 import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { mergeDeep } from '../utils'
@@ -19,7 +21,6 @@ export default function NonTimeSeriesBarChart({
 	hideDataZoom = false,
 	hideDownloadButton = false,
 	containerClassName,
-	customComponents,
 	stackColors: _stackColors
 }: IBarChartProps) {
 	const id = useId()
@@ -143,19 +144,18 @@ export default function NonTimeSeriesBarChart({
 	}
 
 	return (
-		<div className="relative">
-			{title || !hideDownloadButton ? (
-				<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
-					{title && <h1 className="mr-auto text-lg font-bold">{title}</h1>}
-					{customComponents ?? null}
-					{hideDownloadButton ? null : <CSVDownloadButton prepareCsv={prepareCsv} smol />}
-				</div>
-			) : null}
-			<div
-				id={id}
-				className={containerClassName ? containerClassName : 'h-[360px]'}
-				style={height ? { height } : undefined}
-			></div>
-		</div>
+		<ChartContainer
+			id={id}
+			chartClassName={containerClassName ?? 'h-[360px]'}
+			chartStyle={height ? { height } : undefined}
+			header={
+				title || !hideDownloadButton ? (
+					<ChartHeader
+						title={title}
+						exportButtons={hideDownloadButton ? null : <CSVDownloadButton prepareCsv={prepareCsv} smol />}
+					/>
+				) : null
+			}
+		/>
 	)
 }

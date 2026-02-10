@@ -1,9 +1,10 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { UnlocksCharts } from '~/containers/ProtocolOverview/Emissions'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
+import { UnlocksCharts } from '~/containers/Unlocks/EmissionsByProtocol'
+import { getProtocolUnlocksStaticPropsData } from '~/containers/Unlocks/protocolUnlocksStaticProps'
 import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -34,13 +35,17 @@ export const getStaticProps = withPerformanceLogging(
 
 		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
 
+		const { emissions, initialTokenMarketData } = await getProtocolUnlocksStaticPropsData(normalizedName)
+
 		return {
 			props: {
 				name: protocolData.name,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
-				warningBanners: getProtocolWarningBanners(protocolData)
+				warningBanners: getProtocolWarningBanners(protocolData),
+				emissions,
+				initialTokenMarketData
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -62,7 +67,13 @@ export default function Protocols(props) {
 			warningBanners={props.warningBanners}
 		>
 			<div className="flex flex-col gap-2 rounded-md">
-				<UnlocksCharts protocolName={props.name} />
+				<UnlocksCharts
+					protocolName={props.name}
+					initialData={props.emissions}
+					initialTokenMarketData={props.initialTokenMarketData}
+					disableClientTokenStatsFetch
+					isEmissionsPage
+				/>
 			</div>
 		</ProtocolOverviewLayout>
 	)

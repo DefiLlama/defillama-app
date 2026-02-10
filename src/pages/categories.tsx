@@ -1,21 +1,19 @@
 import { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { tvlOptions } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CATEGORY_API, PROTOCOLS_API } from '~/constants'
 import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
 import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
-import { formattedNum, formattedPercent, getNDistinctColors, getPercentChange, slug } from '~/utils'
+import { formattedNum, renderPercentChange, getNDistinctColors, getPercentChange, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -222,8 +220,7 @@ const pageName = ['Protocol Categories']
 
 export default function Protocols({ categories, tableData, chartSource, categoryColors, extraTvlCharts }) {
 	const [selectedCategories, setSelectedCategories] = React.useState<Array<string>>(categories)
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 	const [extaTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const enabledTvls = TVL_SETTINGS_KEYS.filter((key) => extaTvlsEnabled[key])
 
@@ -339,19 +336,15 @@ export default function Protocols({ categories, tableData, chartSource, category
 						labelType="smol"
 						variant="filter"
 					/>
-					<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename="categories-tvl" />
-					<ChartExportButton chartInstance={exportChartInstance} filename="categories-tvl" title="TVL by Category" />
+					<ChartExportButtons chartInstance={chartInstance} filename="categories-tvl" title="TVL by Category" />
 				</div>
-				<React.Suspense fallback={<></>}>
+				<React.Suspense fallback={<div className="min-h-[360px]" />}>
 					<MultiSeriesChart2
 						dataset={finalCharts.dataset}
 						charts={finalCharts.charts}
 						valueSymbol="$"
 						solidChartAreaStyle
-						onReady={(instance) => {
-							handleChartReady(instance)
-							handleChartCsvReady(instance)
-						}}
+						onReady={handleChartReady}
 					/>
 				</React.Suspense>
 			</div>
@@ -460,7 +453,7 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 	{
 		header: '1d TVL Change',
 		accessorKey: 'change_1d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end'
@@ -469,7 +462,7 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 	{
 		header: '7d TVL Change',
 		accessorKey: 'change_7d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end'
@@ -478,7 +471,7 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 	{
 		header: '1m TVL Change',
 		accessorKey: 'change_1m',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end'

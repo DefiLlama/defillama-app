@@ -1,6 +1,6 @@
 import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { Select } from '~/components/Select'
+import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
 import { capitalizeFirstLetter, download } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'
@@ -14,7 +14,7 @@ import { CHART_TYPES, MultiChartConfig } from '../types'
 import { convertToCumulative, generateChartColor } from '../utils'
 import { COLOR_PALETTE_2, EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
 import { ConfirmationModal } from './ConfirmationModal'
-import { ChartExportButton } from './ProTable/ChartExportButton'
+import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
@@ -626,7 +626,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				)}
 				{series.length > 0 && (
 					<>
-						<ChartExportButton
+						<ChartPngExportButton
 							chartInstance={chartInstance}
 							filename={multi.name || 'multi_chart'}
 							title={showTreemap ? undefined : capitalizeFirstLetter(multi.name) || 'Multi Chart'}
@@ -664,11 +664,11 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 					</p>
 				</div>
 			) : showTreemap && treemapData.length > 0 ? (
-				<Suspense fallback={<div className="h-[360px]" />}>
+				<Suspense fallback={<div className="min-h-[360px]" />}>
 					<TreeMapBuilderChart key={multi.id} data={treemapData} height="360px" onReady={handleChartReady} />
 				</Suspense>
 			) : (
-				<Suspense fallback={<div className="h-[360px]" />}>
+				<Suspense fallback={<div className="min-h-[360px]" />}>
 					<MultiSeriesChart
 						key={`${multi.id}-${showStacked}-${showPercentage}-${multi.grouping || 'day'}-${timeKey}`}
 						series={series}

@@ -7,7 +7,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
+import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
 import { IPool2ProtocolsTVLByChainPageData } from './queries'
 
 const MultiSeriesChart2 = lazy(
@@ -51,14 +51,9 @@ export function Pool2ProtocolsTVLByChain(props: IPool2ProtocolsTVLByChainPageDat
 						) : null}
 					</div>
 				</div>
-				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<Suspense fallback={<></>}>
-						<MultiSeriesChart2
-							dataset={props.dataset}
-							charts={props.charts}
-							shouldEnableImageExport
-							shouldEnableCSVDownload
-						/>
+				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<Suspense fallback={<div className="min-h-[398px]" />}>
+						<MultiSeriesChart2 dataset={props.dataset} charts={props.charts} exportButtons="auto" />
 					</Suspense>
 				</div>
 			</div>
@@ -173,7 +168,7 @@ const columns: ColumnDef<IPool2ProtocolsTVLByChainPageData['protocols'][0]>[] = 
 	{
 		header: 'Change 30d',
 		accessorKey: 'change_1m',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 110,
 		meta: {
 			align: 'end'

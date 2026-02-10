@@ -7,6 +7,8 @@ import { disclaimer } from '~/containers/Yields/utils'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
+const noAirdropProjects = new Set(['fraxlend', 'origin-dollar', 'origin-ether'])
+
 function median(numbers) {
 	const sorted: any = Array.from(numbers).sort((a: number, b: number) => a - b)
 	const middle = Math.floor(sorted.length / 2)
@@ -39,9 +41,7 @@ export const getStaticProps = withPerformanceLogging('yields/projects', async ()
 		projects[project]['medianApy'] = m
 		projects[project]['audits'] = x[0].audits !== '0'
 		projects[project]['category'] = x[0].category
-		projects[project]['airdrop'] = ['fraxlend', 'origin-dollar', 'origin-ether'].includes(project)
-			? false
-			: x[0].airdrop
+		projects[project]['airdrop'] = noAirdropProjects.has(project) ? false : x[0].airdrop
 	}
 
 	const projArray: Array<{ slug: string } & any> = []

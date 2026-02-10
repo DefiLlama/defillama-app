@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { Select } from '~/components/Select'
+import { Select } from '~/components/Select/Select'
 import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
 import { download } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'
@@ -13,7 +13,7 @@ import {
 } from '../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../services/ProtocolSplitCharts'
 import { ConfirmationModal } from './ConfirmationModal'
-import { ChartExportButton } from './ProTable/ChartExportButton'
+import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
@@ -738,7 +738,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					)}
 					{chartSeries.length > 0 && (
 						<>
-							<ChartExportButton
+							<ChartPngExportButton
 								chartInstance={chartInstance}
 								filename={builder.name || config.metric}
 								title={config.chartType === 'treemap' ? undefined : builder.name || `${config.metric} by Protocol`}

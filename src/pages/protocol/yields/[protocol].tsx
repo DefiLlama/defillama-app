@@ -93,6 +93,7 @@ export default function Protocols(props) {
 			warningBanners={props.warningBanners}
 			toggleOptions={EMPTY_TOGGLE_OPTIONS}
 		>
+			{/* here */}
 			<ProtocolPools
 				data={props.yields}
 				protocol={props.name}

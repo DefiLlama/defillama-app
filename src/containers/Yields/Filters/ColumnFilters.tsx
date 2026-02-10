@@ -1,22 +1,11 @@
 import { useRouter } from 'next/router'
 import { useMemo, useRef } from 'react'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 interface IColumnFiltersProps {
 	nestedMenu?: boolean
-	show7dBaseApy?: boolean
-	show7dIL?: boolean
-	show1dVolume?: boolean
-	show7dVolume?: boolean
-	showInceptionApy?: boolean
-	showBorrowBaseApy?: boolean
-	showBorrowRewardApy?: boolean
-	showNetBorrowApy?: boolean
-	showLTV?: boolean
-	showTotalSupplied?: boolean
-	showTotalBorrowed?: boolean
-	showAvailable?: boolean
+	enabledColumns?: string[]
 }
 
 const optionalFilters = [
@@ -34,32 +23,28 @@ const optionalFilters = [
 	{ name: 'Available', key: 'showAvailable' }
 ]
 
-export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
+const ALL_COLUMN_KEYS = optionalFilters.map((op) => op.key)
+
+export function ColumnFilters({ nestedMenu, enabledColumns }: IColumnFiltersProps) {
 	const router = useRouter()
 
-	const {
-		show7dBaseApy: _show7dBaseApy,
-		show7dIL: _show7dIL,
-		show1dVolume: _show1dVolume,
-		show7dVolume: _show7dVolume,
-		showInceptionApy: _showInceptionApy,
-		showNetBorrowApy: _showNetBorrowApy,
-		showBorrowBaseApy: _showBorrowBaseApy,
-		showBorrowRewardApy: _showBorrowRewardApy,
-		showLTV: _showLTV,
-		showTotalSupplied: _showTotalSupplied,
-		showTotalBorrowed: _showTotalBorrowed,
-		showAvailable: _showAvailable,
-		...queries
-	} = router.query
+	const enabledSet = useMemo(() => new Set(enabledColumns), [enabledColumns])
+
+	const queries = useMemo(() => {
+		const q = { ...router.query }
+		for (const key of ALL_COLUMN_KEYS) {
+			delete q[key]
+		}
+		return q
+	}, [router.query])
 
 	const { options, selectedOptions } = useMemo(() => {
-		const options = optionalFilters.filter((op) => props[op.key])
+		const options = optionalFilters.filter((op) => enabledSet.has(op.key))
 
-		const selectedOptions = options.filter((option) => router.query[option.key] === 'true').map((op) => op.key)
+		const selectedOptions = options.flatMap((option) => (router.query[option.key] === 'true' ? [option.key] : []))
 
 		return { options, selectedOptions }
-	}, [router.query, props])
+	}, [router.query, enabledSet])
 
 	const prevSelectionRef = useRef<Set<string>>(new Set(selectedOptions))
 

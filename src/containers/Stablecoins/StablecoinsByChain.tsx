@@ -1,13 +1,14 @@
+import type * as echarts from 'echarts/core'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
-import { preparePieChartData } from '~/components/ECharts/formatters'
-import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import { createInflowsTooltipFormatter, preparePieChartData } from '~/components/ECharts/formatters'
+import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/ProDashboard/types'
@@ -20,20 +21,21 @@ import {
 } from '~/containers/Stablecoins/Filters'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from '~/containers/Stablecoins/hooks'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, getPercentChange, slug, toNiceCsvDate, toNumberOrNullFromQueryParam } from '~/utils'
 import { useFormatStablecoinQueryParams } from './hooks'
 import { PeggedAssetsTable } from './Table'
 
-const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
-
-const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-const EMPTY_HALLMARKS: [] = []
 const EMPTY_CHAINS: string[] = []
+const EMPTY_IDS: number[] = []
+
+type MultiSeriesCharts = NonNullable<IMultiSeriesChart2Props['charts']>
+
+const INFLOWS_TOOLTIP_FORMATTER = createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: '$' })
 
 const mapChartTypeToConfig = (displayType: string): StablecoinChartType => {
 	const mapping: Record<string, StablecoinChartType> = {
@@ -55,7 +57,7 @@ export function StablecoinsByChain({
 	peggedAssetNames,
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
-	doublecountedIds,
+	doublecountedIds = EMPTY_IDS,
 	availableBackings,
 	availablePegTypes,
 	entityQuestions
@@ -67,15 +69,15 @@ export function StablecoinsByChain({
 			? ['Total Market Cap', 'USD Inflows', 'Token Market Caps', 'Token Inflows', 'Pie', 'Dominance']
 			: ['Total Market Cap', 'Token Market Caps', 'Pie', 'Dominance', 'USD Inflows', 'Token Inflows']
 
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
-
-	const [filteredIndexes, setFilteredIndexes] = React.useState([])
+	const { chartInstance: exportChartInstance, handleChartReady: handleExportChartReady } = useGetChartInstance()
 
 	const router = useRouter()
 
 	const minMcap = toNumberOrNullFromQueryParam(router.query.minMcap)
 	const maxMcap = toNumberOrNullFromQueryParam(router.query.maxMcap)
+
+	// `handleExportChartReady` is passed to charts' `onReady` prop to share
+	// a single ECharts instance across CSV + PNG exports.
 
 	// Selected arrays already have excludes filtered out at hook level
 	const { selectedAttributes, selectedPegTypes, selectedBackings } = useFormatStablecoinQueryParams({
@@ -84,7 +86,7 @@ export function StablecoinsByChain({
 		stablecoinBackingOptions
 	})
 
-	const peggedAssets = React.useMemo(() => {
+	const { peggedAssets, filteredIndexes } = React.useMemo(() => {
 		const pegTypeOptionsMap = new Map<string, (typeof stablecoinPegTypeOptions)[number]>(
 			stablecoinPegTypeOptions.map((option) => [option.key, option])
 		)
@@ -92,8 +94,8 @@ export function StablecoinsByChain({
 			stablecoinBackingOptions.map((option) => [option.key, option])
 		)
 
-		let chartDataIndexes = []
-		const peggedAssets = filteredPeggedAssets.reduce((acc, curr) => {
+		const chartDataIndexes: number[] = []
+		const peggedAssets = filteredPeggedAssets.reduce((acc: any[], curr: any) => {
 			let toFilter = false
 
 			// Attribute filter:
@@ -131,15 +133,28 @@ export function StablecoinsByChain({
 			}
 
 			if (toFilter) {
-				const chartDataIndex = peggedNameToChartDataIndex[curr.name]
-				chartDataIndexes.push(chartDataIndex)
+				// `filteredIndexes` is later used to index into `peggedAssetNames`.
+				// Never push an undefined index here, or downstream chart series/dimensions can be corrupted.
+				const maybeIndex = peggedNameToChartDataIndex[curr.name]
+				if (typeof maybeIndex === 'undefined') {
+					console.log(
+						`[StablecoinsByChain] Missing chart data index for pegged asset "${curr.name}". Skipping series index to avoid invalid peggedAssetNames indexing.`
+					)
+				} else {
+					const numericIndex = typeof maybeIndex === 'number' ? maybeIndex : Number(maybeIndex)
+					if (Number.isFinite(numericIndex)) {
+						chartDataIndexes.push(numericIndex)
+					} else {
+						console.log(
+							`[StablecoinsByChain] Invalid chart data index for pegged asset "${curr.name}": ${String(maybeIndex)}. Skipping series index.`
+						)
+					}
+				}
 				return acc.concat(curr)
 			} else return acc
-		}, [])
+		}, [] as any[])
 
-		setFilteredIndexes(chartDataIndexes)
-
-		return peggedAssets
+		return { peggedAssets, filteredIndexes: chartDataIndexes }
 	}, [
 		filteredPeggedAssets,
 		peggedNameToChartDataIndex,
@@ -173,7 +188,6 @@ export function StablecoinsByChain({
 	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
 	const prepareCsv = () => {
-		const filteredPeggedNames = peggedAssetNames.filter((name, i) => filteredIndexes.includes(i))
 		const rows = [['Timestamp', 'Date', ...filteredPeggedNames, 'Total']]
 		const sortedData = stackedData.sort((a, b) => a.date - b.date)
 		for (const day of sortedData) {
@@ -260,8 +274,6 @@ export function StablecoinsByChain({
 		[selectedChain, chartType]
 	)
 
-	const totalMcapLabel = ['Mcap']
-
 	const getImageExportTitle = () => {
 		const chainPrefix = selectedChain !== 'All' ? `${selectedChain} ` : ''
 		return `${chainPrefix}Stablecoins - ${chartType}`
@@ -272,6 +284,109 @@ export function StablecoinsByChain({
 		const chartSlug = chartType.toLowerCase().replace(/\s+/g, '-')
 		return `stablecoins-${chainSlug}${chartSlug}`
 	}
+
+	const totalMcapDataset = React.useMemo(
+		() => ({
+			source: peggedAreaTotalData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+			dimensions: ['timestamp', 'Mcap']
+		}),
+		[peggedAreaTotalData]
+	)
+
+	// Keep chart dimensions in sync with the filtered indexes & remove doublecounted series.
+	// This prevents NaN/undefined values from crashing ECharts (especially stacked % charts like Dominance).
+	const filteredPeggedNames = React.useMemo(() => {
+		const doublecountedSet = new Set(doublecountedIds)
+		const names: string[] = []
+		for (const i of filteredIndexes) {
+			if (doublecountedSet.has(i)) continue
+			const name = peggedAssetNames[i]
+			if (typeof name === 'string' && name) names.push(name)
+		}
+		return names
+	}, [filteredIndexes, peggedAssetNames, doublecountedIds])
+
+	const { tokenMcapsDataset, tokenMcapsCharts } = React.useMemo(
+		() => ({
+			tokenMcapsDataset: {
+				source: peggedAreaChartData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...filteredPeggedNames]
+			},
+			tokenMcapsCharts: filteredPeggedNames.map((name, i) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name },
+				color: tokenColors[name] ?? CHART_COLORS[i % CHART_COLORS.length],
+				stack: 'tokenMcaps'
+			}))
+		}),
+		[peggedAreaChartData, filteredPeggedNames]
+	)
+
+	const { dominanceDataset, dominanceCharts } = React.useMemo(
+		() => ({
+			dominanceDataset: {
+				source: dataWithExtraPeggedAndDominanceByDay
+					.map(({ date, ...rest }) => {
+						const timestamp = Number(date) * 1e3
+						if (!Number.isFinite(timestamp)) return null
+
+						// Ensure every dimension exists and is numeric (ECharts can crash on undefined/NaN in stacked % charts)
+						const row: Record<string, number> = { timestamp }
+						for (const name of filteredPeggedNames) {
+							const raw = (rest as any)[name]
+							const value = typeof raw === 'number' ? raw : Number(raw)
+							row[name] = Number.isFinite(value) ? value : 0
+						}
+						return row
+					})
+					.filter(Boolean),
+				dimensions: ['timestamp', ...filteredPeggedNames]
+			},
+			dominanceCharts: filteredPeggedNames.map((name, i) => ({
+				type: 'line' as const,
+				name,
+				encode: { x: 'timestamp', y: name },
+				color: tokenColors[name] ?? CHART_COLORS[i % CHART_COLORS.length],
+				stack: 'dominance'
+			}))
+		}),
+		[dataWithExtraPeggedAndDominanceByDay, filteredPeggedNames]
+	)
+
+	const { tokenInflowsDataset, tokenInflowsCharts } = React.useMemo(() => {
+		const names = tokenInflowNames ?? []
+		if (!tokenInflows) return { tokenInflowsDataset: { source: [], dimensions: ['timestamp'] }, tokenInflowsCharts: [] }
+		return {
+			tokenInflowsDataset: {
+				source: tokenInflows.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				dimensions: ['timestamp', ...names]
+			},
+			tokenInflowsCharts: names.map((name, i) => ({
+				type: 'bar' as const,
+				name,
+				encode: { x: 'timestamp', y: name },
+				color: tokenColors[name] ?? CHART_COLORS[i % CHART_COLORS.length],
+				stack: 'tokenInflows'
+			}))
+		}
+	}, [tokenInflows, tokenInflowNames])
+
+	const usdInflowsDataset = React.useMemo(
+		() =>
+			usdInflows
+				? {
+						source: usdInflows.map(([d, v]) => ({ timestamp: +d * 1e3, Inflows: v })),
+						dimensions: ['timestamp', 'Inflows']
+					}
+				: { source: [], dimensions: ['timestamp', 'Inflows'] },
+		[usdInflows]
+	)
+
+	const tokenInflowsSelectionKey = React.useMemo(
+		() => (tokenInflowNames?.length ? tokenInflowNames.join('|') : ''),
+		[tokenInflowNames]
+	)
 
 	return (
 		<>
@@ -349,112 +464,152 @@ export function StablecoinsByChain({
 					</p>
 				</div>
 				<div className="relative col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="flex items-center gap-2 p-2">
-						<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-						<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
-						{chartType === 'Pie' ? (
-							<>
-								<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename={getImageExportFilename()} />
-								<ChartExportButton
+					{chartType === 'Token Inflows' ? (
+						<TokenInflowsChartPanel
+							key={tokenInflowsSelectionKey}
+							chartTypeList={chartTypeList}
+							chartType={chartType}
+							setChartType={setChartType}
+							stablecoinsChartConfig={stablecoinsChartConfig}
+							chartInstance={exportChartInstance}
+							exportFilename={getImageExportFilename()}
+							exportTitle={getImageExportTitle()}
+							onReady={handleExportChartReady}
+							tokenInflowNames={tokenInflowNames ?? []}
+							dataset={tokenInflowsDataset}
+							charts={tokenInflowsCharts}
+						/>
+					) : (
+						<>
+							<div className="flex items-center gap-2 p-2 pb-0">
+								<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
+								<ChartExportButtons
 									chartInstance={exportChartInstance}
 									filename={getImageExportFilename()}
 									title={getImageExportTitle()}
 								/>
-							</>
-						) : null}
-					</div>
-					{chartType === 'Total Market Cap' ? (
-						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<AreaChart
-								title=""
-								chartData={peggedAreaTotalData}
-								stacks={totalMcapLabel}
-								valueSymbol="$"
-								hideDefaultLegend={true}
-								hallmarks={EMPTY_HALLMARKS}
-								color={CHART_COLORS[0]}
-								chartOptions={chartOptions}
-								enableImageExport={true}
-								imageExportTitle={getImageExportTitle()}
-								imageExportFilename={getImageExportFilename()}
-							/>
-						</React.Suspense>
-					) : chartType === 'Token Market Caps' ? (
-						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<AreaChart
-								title=""
-								chartData={peggedAreaChartData}
-								stacks={peggedAssetNames}
-								valueSymbol="$"
-								hideDefaultLegend={true}
-								hideGradient={true}
-								stackColors={tokenColors}
-								chartOptions={chartOptions}
-								enableImageExport={true}
-								imageExportTitle={getImageExportTitle()}
-								imageExportFilename={getImageExportFilename()}
-							/>
-						</React.Suspense>
-					) : chartType === 'Dominance' ? (
-						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<AreaChart
-								title=""
-								valueSymbol="%"
-								chartData={dataWithExtraPeggedAndDominanceByDay}
-								stacks={peggedAssetNames}
-								hideDefaultLegend={true}
-								hideGradient={true}
-								expandTo100Percent={true}
-								stackColors={tokenColors}
-								chartOptions={chartOptions}
-								enableImageExport={true}
-								imageExportTitle={getImageExportTitle()}
-								imageExportFilename={getImageExportFilename()}
-							/>
-						</React.Suspense>
-					) : chartType === 'Pie' ? (
-						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<PieChart
-								chartData={chainsCirculatingValues}
-								stackColors={tokenColors}
-								onReady={(instance) => {
-									handleChartReady(instance)
-									handleChartCsvReady(instance)
-								}}
-							/>
-						</React.Suspense>
-					) : chartType === 'Token Inflows' && tokenInflows ? (
-						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<BarChart
-								chartData={tokenInflows}
-								title=""
-								hideDefaultLegend={true}
-								customLegendName="Token"
-								customLegendOptions={tokenInflowNames}
-								key={tokenInflowNames} // escape hatch to rerender state in legend options
-								chartOptions={inflowsChartOptions}
-								stackColors={tokenColors}
-								enableImageExport={true}
-								imageExportTitle={getImageExportTitle()}
-								imageExportFilename={getImageExportFilename()}
-							/>
-						</React.Suspense>
-					) : chartType === 'USD Inflows' && usdInflows ? (
-						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<BarChart
-								chartData={usdInflows}
-								color={CHART_COLORS[0]}
-								title=""
-								enableImageExport={true}
-								imageExportTitle={getImageExportTitle()}
-								imageExportFilename={getImageExportFilename()}
-							/>
-						</React.Suspense>
-					) : null}
+							</div>
+							{chartType === 'Total Market Cap' ? (
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										dataset={totalMcapDataset}
+										charts={TOTAL_MCAP_CHARTS}
+										valueSymbol="$"
+										chartOptions={chartOptions}
+										onReady={handleExportChartReady}
+									/>
+								</React.Suspense>
+							) : chartType === 'Token Market Caps' ? (
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										dataset={tokenMcapsDataset}
+										charts={tokenMcapsCharts}
+										stacked={true}
+										valueSymbol="$"
+										chartOptions={chartOptions}
+										onReady={handleExportChartReady}
+									/>
+								</React.Suspense>
+							) : chartType === 'Dominance' ? (
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										dataset={dominanceDataset}
+										charts={dominanceCharts}
+										stacked={true}
+										expandTo100Percent={true}
+										valueSymbol="%"
+										chartOptions={chartOptions}
+										onReady={handleExportChartReady}
+									/>
+								</React.Suspense>
+							) : chartType === 'Pie' ? (
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<PieChart
+										chartData={chainsCirculatingValues}
+										stackColors={tokenColors}
+										onReady={handleExportChartReady}
+									/>
+								</React.Suspense>
+							) : chartType === 'USD Inflows' && usdInflows ? (
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										dataset={usdInflowsDataset}
+										charts={USD_INFLOWS_CHARTS}
+										chartOptions={chartOptions}
+										onReady={handleExportChartReady}
+									/>
+								</React.Suspense>
+							) : null}
+						</>
+					)}
 				</div>
 			</div>
 
 			<PeggedAssetsTable data={peggedTotals} />
+		</>
+	)
+}
+
+function TokenInflowsChartPanel({
+	chartTypeList,
+	chartType,
+	setChartType,
+	stablecoinsChartConfig,
+	chartInstance,
+	exportFilename,
+	exportTitle,
+	onReady,
+	tokenInflowNames,
+	dataset,
+	charts
+}: {
+	chartTypeList: string[]
+	chartType: string
+	setChartType: (next: string) => void
+	stablecoinsChartConfig: StablecoinsChartConfig
+	chartInstance: () => echarts.ECharts | null
+	exportFilename: string
+	exportTitle: string
+	onReady: (instance: echarts.ECharts | null) => void
+	tokenInflowNames: string[]
+	dataset: MultiSeriesChart2Dataset
+	charts: MultiSeriesCharts
+}) {
+	const [selectedTokenInflows, setSelectedTokenInflows] = React.useState<string[]>(() => tokenInflowNames)
+	const selectedTokenInflowsSet = React.useMemo(() => new Set(selectedTokenInflows), [selectedTokenInflows])
+
+	return (
+		<>
+			<div className="flex items-center gap-2 p-2 pb-0">
+				<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+				<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
+				{tokenInflowNames.length > 0 ? (
+					<SelectWithCombobox
+						allValues={tokenInflowNames}
+						selectedValues={selectedTokenInflows}
+						setSelectedValues={setSelectedTokenInflows}
+						label="Token"
+						labelType="smol"
+						variant="filter"
+						portal
+					/>
+				) : null}
+				<ChartExportButtons chartInstance={chartInstance} filename={exportFilename} title={exportTitle} />
+			</div>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
+				<MultiSeriesChart2
+					dataset={dataset}
+					charts={charts}
+					selectedCharts={selectedTokenInflowsSet}
+					chartOptions={
+						selectedTokenInflowsSet.size > 1
+							? { ...chartOptions, tooltip: { formatter: INFLOWS_TOOLTIP_FORMATTER } }
+							: chartOptions
+					}
+					onReady={onReady}
+				/>
+			</React.Suspense>
 		</>
 	)
 }
@@ -491,13 +646,15 @@ function handleRouting(selectedChain, queryParams) {
 	return `/stablecoins/${slug(selectedChain)}${params}`
 }
 
-const inflowsChartOptions = {
-	overrides: {
-		inflow: true
-	}
-}
+const TOTAL_MCAP_CHARTS = [
+	{ type: 'line' as const, name: 'Mcap', encode: { x: 'timestamp', y: 'Mcap' }, color: CHART_COLORS[0] }
+]
 
-const tokenColors = {
+const USD_INFLOWS_CHARTS = [
+	{ type: 'bar' as const, name: 'Inflows', encode: { x: 'timestamp', y: 'Inflows' }, color: CHART_COLORS[0] }
+]
+
+const tokenColors: Record<string, string> = {
 	USDT: '#009393',
 	USDC: '#0B53BF',
 	DAI: '#F4B731',

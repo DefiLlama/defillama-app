@@ -5,7 +5,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import Layout from '~/layout'
-import { formattedPercent } from '~/utils'
+import { renderPercentChange } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 const valueToFilter = {
@@ -167,7 +167,7 @@ const columns = (chain: string) =>
 		{
 			header: 'Tx Growth',
 			accessorKey: 'txns_percentage_growth',
-			cell: (info) => <>{formattedPercent(info.getValue())}</>,
+			cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 			meta: {
 				align: 'end'
 			}
@@ -182,7 +182,7 @@ const columns = (chain: string) =>
 		{
 			header: 'Account Growth',
 			accessorKey: 'accounts_percentage_growth',
-			cell: (info) => <>{formattedPercent(info.getValue())}</>,
+			cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 			meta: {
 				align: 'end'
 			}
@@ -198,7 +198,7 @@ const columns = (chain: string) =>
 		{
 			header: 'Gas Growth',
 			accessorKey: 'gas_spend_percentage_growth',
-			cell: (info) => <>{formattedPercent(info.getValue())}</>,
+			cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 			meta: {
 				align: 'end'
 			}

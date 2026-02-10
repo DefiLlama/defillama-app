@@ -1,21 +1,30 @@
-import Router from 'next/router'
+import { useRouter } from 'next/router'
+import { useEffect, useRef } from 'react'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 export function LTV({ placeholder }: { placeholder: string }) {
+	const router = useRouter()
+	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
 	const setLTV = (value) => {
-		const params = new URLSearchParams(window.location.search)
-		params.set('customLTV', value)
-		Router.push(`${window.location.pathname}?${params.toString()}`, undefined, { shallow: true })
+		pushShallowQuery(router, { customLTV: value || undefined })
 	}
 
 	const onChange = (e) => {
-		let timer
-
-		if (timer) {
-			clearTimeout(timer)
+		if (timerRef.current) {
+			clearTimeout(timerRef.current)
 		}
 
-		timer = setTimeout(() => setLTV(e.target.value), 1000)
+		timerRef.current = setTimeout(() => setLTV(e.target.value), 1000)
 	}
+
+	useEffect(() => {
+		return () => {
+			if (timerRef.current) {
+				clearTimeout(timerRef.current)
+			}
+		}
+	}, [])
 
 	return (
 		<div className="relative flex flex-col rounded-md">

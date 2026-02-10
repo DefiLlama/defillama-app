@@ -5,7 +5,7 @@ import { MetricsAndTools } from '~/components/Metrics'
 import { Nav } from '~/components/Nav'
 import { DesktopSearch } from '~/components/Search'
 import { SearchFallback } from '~/components/Search/Fallback'
-import { Select } from '~/components/Select'
+import { Select } from '~/components/Select/Select'
 import { ISEOProps, SEO } from '~/components/SEO'
 import { useIsClient } from '~/hooks/useIsClient'
 
