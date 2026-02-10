@@ -14,6 +14,9 @@ function formatPct(v: number): string {
 }
 
 function getStabilityLabel(cv: number): { label: string; className: string } {
+	if (cv < 0) {
+		return { label: 'Volatile', className: 'bg-red-500/15 text-red-600 dark:text-red-400' }
+	}
 	if (cv < 0.5) {
 		return { label: 'Stable', className: 'bg-green-500/15 text-green-600 dark:text-green-400' }
 	}
