@@ -23,7 +23,6 @@ import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/util
 import { fetchJson } from '~/utils/async'
 import { protocolCharts, ProtocolChartsLabels } from './constants'
 import { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from './types'
-import { buildProtocolAddlChartsData } from './utils'
 
 type ChartInterval = 'daily' | 'weekly' | 'monthly' | 'cumulative'
 type V2ChartPoint = [string | number, number]
@@ -115,6 +114,20 @@ const buildTvlChart = ({
 	return finalChart
 }
 
+const buildUsdInflowsFromTvlChart = (tvlChart: Array<[number, number | null]>): Array<[number, number]> | null => {
+	if (tvlChart.length < 2) return null
+
+	const inflows: Array<[number, number]> = []
+	for (let i = 1; i < tvlChart.length; i++) {
+		const [timestamp, value] = tvlChart[i]
+		const previousValue = tvlChart[i - 1][1]
+		if (!Number.isFinite(value) || !Number.isFinite(previousValue)) continue
+		inflows.push([Math.floor(timestamp / 1e3), value - previousValue])
+	}
+
+	return inflows.length > 0 ? inflows : null
+}
+
 export const useFetchProtocolChartData = ({
 	name,
 	id: protocolId,
@@ -147,14 +160,6 @@ export const useFetchProtocolChartData = ({
 		: null
 
 	const denominationGeckoId = isRouterReady ? (selectedDenomination?.geckoId ?? null) : null
-	const tvlSettingsFingerprint = useMemo(
-		() =>
-			Object.entries(tvlSettings)
-				.sort(([a], [b]) => a.localeCompare(b))
-				.map(([k, v]) => `${k}:${v ? 1 : 0}`)
-				.join('|'),
-		[tvlSettings]
-	)
 	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } = useQuery<
 		Record<string, number>
 	>({
@@ -608,21 +613,20 @@ export const useFetchProtocolChartData = ({
 	})
 
 	const isUsdInflowsEnabled = !!(toggledMetrics.usdInflows === 'true' && metrics.tvl && isRouterReady)
-	const { data: usdInflowsData = null, isLoading: fetchingUsdInflows } = useQuery({
-		queryKey: ['protocol-overview', protocolSlug, 'usd-inflows', tvlSettingsFingerprint],
-		queryFn: () =>
-			isUsdInflowsEnabled
-				? fetchJson(`https://api.llama.fi/protocol/${slug(name)}`).then((data) => {
-						return (
-							buildProtocolAddlChartsData({ protocolData: data, extraTvlsEnabled: tvlSettings })?.usdInflows ?? null
-						)
-					})
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isUsdInflowsEnabled
-	})
+	const usdInflowsData = useMemo(() => {
+		if (!isUsdInflowsEnabled) return null
+
+		const tvlChartInUsd = buildTvlChart({
+			tvlChartData,
+			extraTvlCharts,
+			tvlSettings,
+			currentTvlByChain,
+			groupBy: 'daily',
+			denominationPriceHistory: null
+		})
+		return buildUsdInflowsFromTvlChart(tvlChartInUsd)
+	}, [isUsdInflowsEnabled, tvlChartData, extraTvlCharts, tvlSettings, currentTvlByChain])
+	const fetchingUsdInflows = false
 
 	const isBridgeVolumeEnabled = !!(toggledMetrics.bridgeVolume === 'true' && isRouterReady)
 	const { data: bridgeVolumeData = null, isLoading: fetchingBridgeVolume } = useQuery({

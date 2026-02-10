@@ -13,7 +13,7 @@ import {
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetchApi, fetchJson } from '~/utils/async'
-import { fetchProtocolOverviewMetrics, fetchProtocolTreasuryChart, fetchProtocolTvlChart } from './api'
+import { fetchProtocolTreasuryChart, fetchProtocolTvlChart } from './api'
 import {
 	IProtocolChainBreakdownChart,
 	IProtocolChartV2Params,
@@ -77,17 +77,6 @@ const getProtocolTvlChartQueryOptions = (params: IProtocolChartParams) =>
 
 const getProtocolTreasuryChartQueryOptions = (params: IProtocolChartParams) =>
 	getProtocolChartQueryOptions({ ...params, source: 'treasury' as const })
-
-export const useFetchProtocol = (protocolName) => {
-	const isEnabled = !!protocolName
-	return useQuery({
-		queryKey: ['protocol-overview', 'protocol-metrics', protocolName],
-		queryFn: () => fetchProtocolOverviewMetrics(protocolName),
-		staleTime: 60 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
-		enabled: isEnabled
-	})
-}
 
 export const useFetchProtocolActiveUsers = (protocolId: number | string | null) => {
 	const isEnabled = !!protocolId
