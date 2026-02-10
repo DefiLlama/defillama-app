@@ -93,10 +93,11 @@ export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellP
 				<Tooltip content={redactedTooltip} placement="top">
 					<button
 						onClick={() => setShouldRenderModal(true)}
-						className="ml-auto inline-flex cursor-pointer items-center gap-1 rounded-full bg-gray-500/15 px-2 py-0.5 text-xs font-medium text-gray-400 blur-[3px] select-none dark:bg-gray-300/25 dark:text-gray-300"
+						className="ml-auto flex cursor-pointer flex-col items-end gap-1.5"
 					>
-						---
-						<span className="opacity-70">----</span>
+						<span className="rounded-full bg-gray-500/15 px-3 py-1 dark:bg-(--cards-border)/40">
+							<span className="text-xs text-gray-400 blur-[2px] select-none dark:text-gray-300">Stable</span>
+						</span>
 					</button>
 				</Tooltip>
 				{shouldRenderModal ? (
