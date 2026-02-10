@@ -170,7 +170,10 @@ export function SelectWithCombobox({
 											<Icon name="help-circle" height={15} width={15} />
 										</Tooltip>
 									) : (
-										<span>{option.name}</span>
+										<span className="inline-flex items-center gap-1.5">
+											{option.name}
+											{option.icon}
+										</span>
 									)}
 									{showCheckboxes ? (
 										<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
@@ -294,7 +297,10 @@ export function SelectWithCombobox({
 													<Icon name="help-circle" height={15} width={15} />
 												</Tooltip>
 											) : (
-												<span>{option.name}</span>
+												<span className="inline-flex items-center gap-1.5">
+													{option.name}
+													{option.icon}
+												</span>
 											)}
 											{isCustom && typeof option.customIndex === 'number' && (
 												<span className="ml-2 flex gap-1">
