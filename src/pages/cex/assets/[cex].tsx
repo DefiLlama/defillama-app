@@ -1,5 +1,5 @@
 import type { GetStaticPropsContext } from 'next'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
@@ -386,9 +386,9 @@ export default function Protocols(props: CexAssetsPageProps) {
 
 	const toggleIncludeOwnTokens = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const nextIncludeOwnTokens = event.currentTarget.checked
-		const { includeOwnTokens: _inc, ...restQuery } = Router.query
+		const { includeOwnTokens: _inc, ...restQuery } = router.query
 		const nextQuery = nextIncludeOwnTokens ? restQuery : { ...restQuery, includeOwnTokens: 'false' }
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}
 
 	const { chainsSplit, chainsUnique } = React.useMemo(() => {

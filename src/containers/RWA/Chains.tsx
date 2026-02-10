@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import { useCallback, useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
@@ -113,24 +113,24 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 	const includeGovernance = governanceQ != null ? toBooleanParam(governanceQ) : false
 
 	const onToggleStablecoins = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...Router.query }
+		const nextQuery: Record<string, any> = { ...router.query }
 		if (!includeStablecoins) {
 			nextQuery.includeStablecoins = 'true'
 		} else {
 			delete nextQuery.includeStablecoins
 		}
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [includeStablecoins])
+		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [includeStablecoins, router])
 
 	const onToggleGovernance = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...Router.query }
+		const nextQuery: Record<string, any> = { ...router.query }
 		if (!includeGovernance) {
 			nextQuery.includeGovernance = 'true'
 		} else {
 			delete nextQuery.includeGovernance
 		}
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [includeGovernance])
+		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [includeGovernance, router])
 
 	const data = useMemo(() => {
 		return chains.map((row) => {

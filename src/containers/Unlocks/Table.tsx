@@ -21,6 +21,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/Unlocks/UpcomingEvent'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
 const UnconstrainedSmolLineChart = lazy(() =>
 	import('~/containers/Unlocks/UnconstrainedSmolLineChart').then((m) => ({ default: m.UnconstrainedSmolLineChart }))
@@ -44,12 +45,9 @@ const toggleAllOptions = () => {
 interface IUnlocksTableProps {
 	protocols: Array<any>
 	showOnlyWatchlist: boolean
-	setShowOnlyWatchlist: (value: boolean) => void
 	projectName: string
 	setProjectName: (value: string) => void
 	savedProtocols: Set<string>
-	minUnlockValue?: number | null
-	maxUnlockValue?: number | null
 }
 
 const UNLOCK_TYPES = [
@@ -71,16 +69,22 @@ const UNLOCK_TYPE_OPTIONS = UNLOCK_TYPES.map((type) => ({
 export const UnlocksTable = ({
 	protocols,
 	showOnlyWatchlist,
-	setShowOnlyWatchlist,
 	projectName,
 	setProjectName,
-	savedProtocols,
-	minUnlockValue,
-	maxUnlockValue
+	savedProtocols
 }: IUnlocksTableProps) => {
 	const router = useRouter()
 
-	const [selectedUnlockTypes, setSelectedUnlockTypes] = useState<string[]>(UNLOCK_TYPES)
+	const setQueryParam = (key: string, value: string | undefined) => {
+		pushShallowQuery(router, { [key]: value })
+	}
+
+	const unlockTypesParam = readSingleQueryValue(router.query.unlockTypes)
+	const selectedUnlockTypes = useMemo(() => {
+		if (!unlockTypesParam) return UNLOCK_TYPES
+		const types = unlockTypesParam.split(',').filter((t) => UNLOCK_TYPES.includes(t))
+		return types.length > 0 ? types : UNLOCK_TYPES
+	}, [unlockTypesParam])
 
 	const {
 		minUnlockValue: minUnlockValueQuery,
@@ -90,6 +94,8 @@ export const UnlocksTable = ({
 	} = router.query
 	const min = typeof minUnlockValueQuery === 'string' && minUnlockValueQuery !== '' ? Number(minUnlockValueQuery) : ''
 	const max = typeof maxUnlockValueQuery === 'string' && maxUnlockValueQuery !== '' ? Number(maxUnlockValueQuery) : ''
+	const minUnlockValue = min === '' ? null : min
+	const maxUnlockValue = max === '' ? null : max
 	const minPerc = typeof minUnlockPercQuery === 'string' && minUnlockPercQuery !== '' ? Number(minUnlockPercQuery) : ''
 	const maxPerc = typeof maxUnlockPercQuery === 'string' && maxUnlockPercQuery !== '' ? Number(maxUnlockPercQuery) : ''
 
@@ -325,7 +331,7 @@ export const UnlocksTable = ({
 				<h1 className="mr-auto text-lg font-semibold">Token Unlocks</h1>
 
 				<button
-					onClick={() => startTransition(() => setShowOnlyWatchlist(!showOnlyWatchlist))}
+					onClick={() => setQueryParam('watchlist', showOnlyWatchlist ? undefined : 'true')}
 					className="flex items-center justify-center gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				>
 					<Icon
@@ -370,7 +376,10 @@ export const UnlocksTable = ({
 				<SelectWithCombobox
 					allValues={UNLOCK_TYPE_OPTIONS}
 					selectedValues={selectedUnlockTypes}
-					setSelectedValues={setSelectedUnlockTypes}
+					setSelectedValues={(values: string[]) => {
+						const isAllSelected = values.length === UNLOCK_TYPES.length
+						setQueryParam('unlockTypes', isAllSelected ? undefined : values.join(','))
+					}}
 					nestedMenu={false}
 					label={'Unlock Types'}
 					labelType="smol"

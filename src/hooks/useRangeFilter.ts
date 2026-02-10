@@ -1,4 +1,5 @@
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
+import { readSingleQueryValue } from '~/utils/routerQuery'
 
 export function useRangeFilter(minKey: string, maxKey: string) {
 	const router = useRouter()
@@ -9,24 +10,23 @@ export function useRangeFilter(minKey: string, maxKey: string) {
 		const minVal = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
 		const maxVal = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
 
-		const params = new URLSearchParams(window.location.search)
-		if (minVal) params.set(minKey, minVal)
-		else params.delete(minKey)
-		if (maxVal) params.set(maxKey, maxVal)
-		else params.delete(maxKey)
-		Router.push(`${window.location.pathname}?${params.toString()}`, undefined, { shallow: true })
+		const nextQuery: Record<string, any> = { ...router.query }
+		if (minVal) nextQuery[minKey] = minVal
+		else delete nextQuery[minKey]
+		if (maxVal) nextQuery[maxKey] = maxVal
+		else delete nextQuery[maxKey]
+		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}
 
 	const handleClear = () => {
-		const params = new URLSearchParams(window.location.search)
-		params.delete(minKey)
-		params.delete(maxKey)
-		const qs = params.toString()
-		Router.push(qs ? `${window.location.pathname}?${qs}` : window.location.pathname, undefined, { shallow: true })
+		const nextQuery: Record<string, any> = { ...router.query }
+		delete nextQuery[minKey]
+		delete nextQuery[maxKey]
+		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}
 
-	const minRaw = router.query[minKey]
-	const maxRaw = router.query[maxKey]
+	const minRaw = readSingleQueryValue(router.query[minKey] as string | string[] | undefined)
+	const maxRaw = readSingleQueryValue(router.query[maxKey] as string | string[] | undefined)
 	const minNum = typeof minRaw === 'string' && minRaw !== '' ? Number(minRaw) : null
 	const maxNum = typeof maxRaw === 'string' && maxRaw !== '' ? Number(maxRaw) : null
 	const min = minNum !== null && Number.isFinite(minNum) ? minNum : null

@@ -1,4 +1,4 @@
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
@@ -71,10 +71,10 @@ export function HacksFilters({
 	const setSelectedTime = (label: string) => {
 		if (!(label in TIME_LABEL_TO_KEY)) return
 		const key = TIME_LABEL_TO_KEY[label as keyof typeof TIME_LABEL_TO_KEY]
-		const nextQuery: Record<string, any> = { ...Router.query }
+		const nextQuery: Record<string, any> = { ...router.query }
 		if (key && key !== 'all') nextQuery.time = key
 		else delete nextQuery.time
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}
 
 	const hasActiveFilters =
@@ -86,7 +86,7 @@ export function HacksFilters({
 		maxLostVal != null
 
 	const onClearAll = () => {
-		const nextQuery: Record<string, any> = { ...Router.query }
+		const nextQuery: Record<string, any> = { ...router.query }
 		delete nextQuery.chain
 		delete nextQuery.tech
 		delete nextQuery.class
@@ -95,7 +95,7 @@ export function HacksFilters({
 		delete nextQuery.minLost
 		delete nextQuery.maxLost
 		delete nextQuery.time
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}
 
 	return (

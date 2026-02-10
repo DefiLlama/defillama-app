@@ -1,5 +1,6 @@
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
+import { useRouter } from 'next/router'
 import * as React from 'react'
 import { lazy, Suspense } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
@@ -9,6 +10,7 @@ import { TagGroup } from '~/components/TagGroup'
 import { useWatchlistManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import { CalendarDayCell } from './CalendarDayCell'
 import type { CalendarViewProps, DailyUnlocks, DayInfo } from './calendarTypes'
 import { generateCalendarDays, generateWeekDays } from './calendarUtils'
@@ -25,10 +27,30 @@ const UnlocksTreemapChart = lazy(() => import('~/components/ECharts/UnlocksTreem
 const VIEW_MODES = ['Month', 'Week', 'TreeMap', 'List'] as const
 
 export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, precomputedData }) => {
-	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
-	const [showOnlyInsider, setShowOnlyInsider] = React.useState(false)
-	const [currentDate, setCurrentDate] = React.useState(dayjs())
-	const [viewMode, setViewMode] = React.useState<(typeof VIEW_MODES)[number]>('Month')
+	const router = useRouter()
+
+	const viewParam = readSingleQueryValue(router.query.view)
+	const viewMode: (typeof VIEW_MODES)[number] =
+		viewParam && (VIEW_MODES as readonly string[]).includes(viewParam)
+			? (viewParam as (typeof VIEW_MODES)[number])
+			: 'Month'
+
+	const showOnlyWatchlist = readSingleQueryValue(router.query.watchlist) === 'true'
+	const showOnlyInsider = readSingleQueryValue(router.query.insiders) === 'true'
+
+	const dateParam = readSingleQueryValue(router.query.date)
+	const currentDate = React.useMemo(() => {
+		if (!dateParam) return dayjs()
+		const parsed = dayjs(dateParam)
+		return parsed.isValid() ? parsed : dayjs()
+	}, [dateParam])
+
+	const setQueryParams = React.useCallback(
+		(updates: Record<string, string | undefined>) => {
+			pushShallowQuery(router, updates)
+		},
+		[router]
+	)
 
 	const { savedProtocols } = useWatchlistManager('defi')
 
@@ -134,7 +156,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 			| 'week'
 			| 'month'
 			| 'year'
-		React.startTransition(() => setCurrentDate((prev) => prev.add(duration * direction, unit)))
+		const newDate = currentDate.add(duration * direction, unit)
+		setQueryParams({ date: newDate.format('YYYY-MM-DD') })
 	}
 
 	const { chartInstance: exportChartInstance, handleChartReady: onChartReady } = useGetChartInstance()
@@ -169,7 +192,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 						</button>
 					</div>
 					<button
-						onClick={() => React.startTransition(() => setCurrentDate(dayjs()))}
+						onClick={() => router.push({ pathname: router.pathname }, undefined, { shallow: true })}
 						className="shrink-0 rounded-md border border-(--form-control-border) px-2.5 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					>
 						Reset
@@ -177,12 +200,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 				</div>
 				<TagGroup
 					selectedValue={viewMode}
-					setValue={(value: (typeof VIEW_MODES)[number]) => setViewMode(value)}
+					setValue={(value: (typeof VIEW_MODES)[number]) =>
+						setQueryParams({ view: value === 'Month' ? undefined : value })
+					}
 					values={VIEW_MODES as unknown as string[]}
 					className="ml-auto"
 				/>
 				<button
-					onClick={() => React.startTransition(() => setShowOnlyWatchlist((prev) => !prev))}
+					onClick={() => setQueryParams({ watchlist: showOnlyWatchlist ? undefined : 'true' })}
 					className="flex items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white px-3 py-1.5 text-xs text-black dark:bg-black dark:text-white"
 				>
 					<Icon
@@ -194,7 +219,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 					{showOnlyWatchlist ? 'Show All' : 'Show Watchlist'}
 				</button>
 				<button
-					onClick={() => React.startTransition(() => setShowOnlyInsider((prev) => !prev))}
+					onClick={() => setQueryParams({ insiders: showOnlyInsider ? undefined : 'true' })}
 					className="flex items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white px-3 py-1.5 text-xs text-black dark:bg-black dark:text-white"
 				>
 					<Icon name="key" height={16} width={16} style={{ fill: showOnlyInsider ? 'var(--text-primary)' : 'none' }} />

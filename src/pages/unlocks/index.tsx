@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, useMemo } from 'react'
 import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
@@ -20,6 +20,7 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
 dayjs.extend(weekOfYear)
 
@@ -111,9 +112,28 @@ const EMPTY_CHART_RESULT = {
 }
 
 function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
-	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
-	const [isFullView] = useState(false)
-	const [viewMode, setViewMode] = useState<ViewMode>('Total View')
+	const router = useRouter()
+
+	const updateQueryParam = React.useCallback(
+		(key: string, value: string, defaultValue: string) => {
+			pushShallowQuery(router, { [key]: value === defaultValue ? undefined : value })
+		},
+		[router]
+	)
+
+	const chartGroupParam = readSingleQueryValue(router.query.chartGroup)
+	const timePeriod: TimePeriod =
+		chartGroupParam && (TIME_PERIODS as readonly string[]).includes(chartGroupParam)
+			? (chartGroupParam as TimePeriod)
+			: 'Weekly'
+
+	const chartViewParam = readSingleQueryValue(router.query.chartView)
+	const viewMode: ViewMode =
+		chartViewParam && (VIEW_MODES as readonly string[]).includes(chartViewParam)
+			? (chartViewParam as ViewMode)
+			: 'Total View'
+
+	const isFullView = false
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const { dataset, charts } = useMemo(() => {
@@ -212,12 +232,12 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 						<h2 className="mr-auto text-lg font-semibold">Upcoming Unlocks</h2>
 						<TagGroup
 							selectedValue={timePeriod}
-							setValue={(value: TimePeriod) => setTimePeriod(value)}
+							setValue={(value: TimePeriod) => updateQueryParam('chartGroup', value, 'Weekly')}
 							values={TIME_PERIODS as unknown as string[]}
 						/>
 						<TagGroup
 							selectedValue={viewMode}
-							setValue={(value: ViewMode) => setViewMode(value)}
+							setValue={(value: ViewMode) => updateQueryParam('chartView', value, 'Total View')}
 							values={VIEW_MODES as unknown as string[]}
 						/>
 						<ChartExportButtons
@@ -248,13 +268,10 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 
 export default function Protocols({ data, unlockStats }) {
 	const [projectName, setProjectName] = React.useState('')
-	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
 	const { savedProtocols } = useWatchlistManager('defi')
 	const router = useRouter()
 
-	const { minUnlockValue, maxUnlockValue } = router.query
-	const min = typeof minUnlockValue === 'string' && minUnlockValue !== '' ? Number(minUnlockValue) : null
-	const max = typeof maxUnlockValue === 'string' && maxUnlockValue !== '' ? Number(maxUnlockValue) : null
+	const showOnlyWatchlist = readSingleQueryValue(router.query.watchlist) === 'true'
 
 	const { upcomingUnlocks7dValue, upcomingUnlocks30dValue, totalProtocols } = unlockStats
 
@@ -331,12 +348,9 @@ export default function Protocols({ data, unlockStats }) {
 			<UnlocksTable
 				protocols={data}
 				showOnlyWatchlist={showOnlyWatchlist}
-				setShowOnlyWatchlist={setShowOnlyWatchlist}
 				projectName={projectName}
 				setProjectName={setProjectName}
 				savedProtocols={savedProtocols}
-				minUnlockValue={min}
-				maxUnlockValue={max}
 			/>
 		</Layout>
 	)

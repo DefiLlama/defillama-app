@@ -1,4 +1,5 @@
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
+import type { NextRouter } from 'next/router'
 import { useMemo } from 'react'
 import { CHART_COLORS } from '~/constants/colors'
 import type { IRWAAssetsOverview } from './queries'
@@ -49,9 +50,10 @@ const updateNumberRangeQuery = (
 	minKey: string,
 	maxKey: string,
 	minValue: string | number | null | undefined,
-	maxValue: string | number | null | undefined
+	maxValue: string | number | null | undefined,
+	router: NextRouter
 ) => {
-	const nextQuery: Record<string, any> = { ...Router.query }
+	const nextQuery: Record<string, any> = { ...router.query }
 	const parsedMin = parseNumberInput(minValue)
 	const parsedMax = parseNumberInput(maxValue)
 	if (parsedMin == null) {
@@ -64,7 +66,7 @@ const updateNumberRangeQuery = (
 	} else {
 		nextQuery[maxKey] = String(parsedMax)
 	}
-	Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 }
 
 export const useRWATableQueryParams = ({
@@ -275,30 +277,42 @@ export const useRWATableQueryParams = ({
 	])
 
 	const setDefiActiveTvlToOnChainMcapPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
-		updateNumberRangeQuery('minDefiActiveTvlToOnChainMcapPct', 'maxDefiActiveTvlToOnChainMcapPct', minValue, maxValue)
+		updateNumberRangeQuery(
+			'minDefiActiveTvlToOnChainMcapPct',
+			'maxDefiActiveTvlToOnChainMcapPct',
+			minValue,
+			maxValue,
+			router
+		)
 	const setActiveMcapToOnChainMcapPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
-		updateNumberRangeQuery('minActiveMcapToOnChainMcapPct', 'maxActiveMcapToOnChainMcapPct', minValue, maxValue)
+		updateNumberRangeQuery('minActiveMcapToOnChainMcapPct', 'maxActiveMcapToOnChainMcapPct', minValue, maxValue, router)
 	const setDefiActiveTvlToActiveMcapPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
-		updateNumberRangeQuery('minDefiActiveTvlToActiveMcapPct', 'maxDefiActiveTvlToActiveMcapPct', minValue, maxValue)
+		updateNumberRangeQuery(
+			'minDefiActiveTvlToActiveMcapPct',
+			'maxDefiActiveTvlToActiveMcapPct',
+			minValue,
+			maxValue,
+			router
+		)
 
 	const setIncludeStablecoins = (value: boolean) => {
-		const nextQuery: Record<string, any> = { ...Router.query }
+		const nextQuery: Record<string, any> = { ...router.query }
 		if (value) {
 			nextQuery.includeStablecoins = 'true'
 		} else {
 			delete nextQuery.includeStablecoins
 		}
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}
 
 	const setIncludeGovernance = (value: boolean) => {
-		const nextQuery: Record<string, any> = { ...Router.query }
+		const nextQuery: Record<string, any> = { ...router.query }
 		if (value) {
 			nextQuery.includeGovernance = 'true'
 		} else {
 			delete nextQuery.includeGovernance
 		}
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
+		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}
 
 	return {
