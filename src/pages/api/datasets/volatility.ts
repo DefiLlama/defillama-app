@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		}
 
 		const data = await upstream.json()
-		res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=1800')
+		res.setHeader('Cache-Control', 'private, no-store')
 		return res.status(200).json(data)
 	} catch (error) {
 		console.error('Volatility proxy error:', error)
