@@ -871,10 +871,10 @@ export const getAdapterByChainPageData = async ({
 			...(methodology ? { methodology: methodology.endsWith('.') ? methodology.slice(0, -1) : methodology } : {}),
 			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
 			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {}),
-			...(openInterestProtocols[protocol.name]?.total24h
+			...(openInterestProtocols[protocol.name]?.total24h != null
 				? { openInterest: openInterestProtocols[protocol.name].total24h }
 				: {}),
-			...(activeLiquidityProtocols[protocol.name]?.total24h
+			...(activeLiquidityProtocols[protocol.name]?.total24h != null
 				? { activeLiquidity: activeLiquidityProtocols[protocol.name].total24h }
 				: {})
 		}

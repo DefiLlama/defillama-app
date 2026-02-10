@@ -41,12 +41,9 @@ export const AdapterByChainChart = ({
 		return matchedInterval ?? 'Daily'
 	}, [router.query.groupBy])
 
-	const onChangeChartInterval = React.useCallback(
-		(nextInterval: AdapterByChainInterval) => {
-			pushShallowQuery(router, { groupBy: nextInterval === 'Daily' ? undefined : nextInterval })
-		},
-		[router]
-	)
+	const onChangeChartInterval = (nextInterval: AdapterByChainInterval) => {
+		pushShallowQuery(router, { groupBy: nextInterval === 'Daily' ? undefined : nextInterval })
+	}
 
 	const finalCharts = React.useMemo(() => {
 		const isDaily = chartInterval === 'Daily'

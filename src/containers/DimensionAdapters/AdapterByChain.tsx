@@ -370,7 +370,7 @@ export function AdapterByChain(props: IProps) {
 									<span className="ml-auto font-jetbrains">{formattedNum(props.openInterest, true)}</span>
 								</p>
 							) : null}
-							{props.activeLiquidity ? (
+							{props.activeLiquidity != null ? (
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 									<Tooltip
 										content={definitions.activeLiquidity.chain}
@@ -1019,7 +1019,7 @@ const getColumnsByType = (
 			},
 			{
 				header: 'Open Interest',
-				id: 'open_interest',
+				id: 'openInterest',
 				accessorFn: (protocol) => protocol.openInterest,
 				cell: (info) => {
 					if (info.getValue() != null && info.row.original.doublecounted) {
@@ -1174,7 +1174,7 @@ const getColumnsByType = (
 					if (info.getValue() != null && info.row.original.doublecounted) {
 						return (
 							<span className="flex items-center justify-end gap-1">
-								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its active liquidity is excluded from totals to avoid double-counting the underlying protocol's active liquidity" />
 								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
 							</span>
 						)
