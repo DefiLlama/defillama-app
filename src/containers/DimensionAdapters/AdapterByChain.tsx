@@ -981,8 +981,29 @@ const getColumnsByType = (
 		'Perp Volume': [
 			NameColumn('Perp Volume'),
 			{
+				header: 'Normalized Volume 24h',
+				id: 'normalizedVolume24h',
+				accessorFn: (protocol) => protocol.normalizedVolume24h,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
+				meta: {
+					align: 'center',
+					headerHelperText: definitions.normalizedVolume.protocol['24h']
+				},
+				size: 180
+			},
+			{
 				id: 'total24h',
-				header: 'Perp Volume 24h',
+				header: 'Reported Volume 24h',
 				accessorFn: (protocol) => protocol.total24h,
 				cell: (info) => {
 					if (info.getValue() == null) return null
@@ -1040,7 +1061,7 @@ const getColumnsByType = (
 			},
 			{
 				id: 'total7d',
-				header: 'Perp Volume 7d',
+				header: 'Reported Volume 7d',
 				accessorFn: (protocol) => protocol.total7d,
 				cell: (info) => {
 					if (info.getValue() == null) return null
@@ -1077,7 +1098,7 @@ const getColumnsByType = (
 			},
 			{
 				id: 'total30d',
-				header: 'Perp Volume 30d',
+				header: 'Reported Volume 30d',
 				accessorFn: (protocol) => protocol.total30d,
 				cell: (info) => {
 					if (info.getValue() == null) return null

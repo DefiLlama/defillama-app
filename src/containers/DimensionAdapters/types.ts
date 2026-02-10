@@ -29,6 +29,7 @@ interface IProtocol {
 	}
 	openInterest?: number | null
 	activeLiquidity?: number | null
+	normalizedVolume24h?: number | null
 	pf?: number | null
 	ps?: number | null
 	methodology?: string | null

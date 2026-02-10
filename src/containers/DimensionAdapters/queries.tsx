@@ -673,12 +673,13 @@ export const getAdapterByChainPageData = async ({
 	hasOpenInterest?: boolean
 	metricName: string
 }): Promise<IAdapterByChainPageData | null> => {
-	const [data, protocolsData, bribesData, tokenTaxesData, openInterestData, activeLiquidityData]: [
+	const [data, protocolsData, bribesData, tokenTaxesData, openInterestData, activeLiquidityData, normalizedVolumeData]: [
 		IAdapterOverview,
 		{
 			protocols: Array<{ name: string; mcap: number | null }>
 			parentProtocols: Array<{ name: string; mcap: number | null }>
 		},
+		IAdapterOverview | null,
 		IAdapterOverview | null,
 		IAdapterOverview | null,
 		IAdapterOverview | null,
@@ -722,6 +723,13 @@ export const getAdapterByChainPageData = async ({
 					dataType: 'dailyActiveLiquidity',
 					excludeTotalDataChart: false
 				})
+			: Promise.resolve(null),
+		adapterType === 'derivatives'
+			? getAdapterChainOverview({
+					adapterType: 'normalized-volume',
+					chain,
+					excludeTotalDataChart: true
+				})
 			: Promise.resolve(null)
 	])
 
@@ -739,6 +747,7 @@ export const getAdapterByChainPageData = async ({
 	let tokenTaxesProtocols = {}
 	let openInterestProtocols: Record<string, { total24h: number | null; doublecounted: boolean }> = {}
 	let activeLiquidityProtocols: Record<string, { total24h: number | null; doublecounted: boolean }> = {}
+	let normalizedVolumeProtocols: Record<string, { total24h: number | null }> = {}
 
 	if (dataType === 'dailyEarnings') {
 		if (bribesData) {
@@ -822,6 +831,15 @@ export const getAdapterByChainPageData = async ({
 		}, {})
 	}
 
+	if (normalizedVolumeData) {
+		normalizedVolumeProtocols = normalizedVolumeData.protocols.reduce((acc, p) => {
+			acc[p.name] = {
+				total24h: p.total24h ?? null
+			}
+			return acc
+		}, {})
+	}
+
 	const protocols = {}
 	const parentProtocols = {}
 	const categories = new Set<string>()
@@ -876,6 +894,9 @@ export const getAdapterByChainPageData = async ({
 				: {}),
 			...(activeLiquidityProtocols[protocol.name]?.total24h != null
 				? { activeLiquidity: activeLiquidityProtocols[protocol.name].total24h }
+				: {}),
+			...(normalizedVolumeProtocols[protocol.name]?.total24h != null
+				? { normalizedVolume24h: normalizedVolumeProtocols[protocol.name].total24h }
 				: {})
 		}
 
@@ -963,6 +984,10 @@ export const getAdapterByChainPageData = async ({
 			? parentProtocols[protocol].reduce((acc, p) => acc + (p.activeLiquidity ?? 0), 0)
 			: null
 
+		const normalizedVolume24h = parentProtocols[protocol].some((p) => p.normalizedVolume24h != null)
+			? parentProtocols[protocol].reduce((acc, p) => acc + (p.normalizedVolume24h ?? 0), 0)
+			: null
+
 		const methodologySet = new Set<string>()
 		for (const p of parentProtocols[protocol]) {
 			if (p.methodology) methodologySet.add(p.methodology)
@@ -1012,7 +1037,8 @@ export const getAdapterByChainPageData = async ({
 			...(doublecounted ? { doublecounted } : {}),
 			...(zeroFeePerp ? { zeroFeePerp } : {}),
 			...(openInterest ? { openInterest } : {}),
-			...(activeLiquidity ? { activeLiquidity } : {})
+			...(activeLiquidity ? { activeLiquidity } : {}),
+			...(normalizedVolume24h != null ? { normalizedVolume24h } : {})
 		}
 	}
 
