@@ -1,8 +1,9 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { YIELD_POOLS_API } from '~/constants'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { ProtocolPools } from '~/containers/ProtocolOverview/Yields'
 import { slug } from '~/utils'
@@ -35,7 +36,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const [protocolData, yields] = await Promise.all([
-			getProtocol(protocol),
+			fetchProtocolOverviewMetrics(protocol),
 			fetchJson(YIELD_POOLS_API).catch((err) => {
 				console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
 				return {}
@@ -46,7 +47,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
+		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
 		const otherProtocols = protocolData?.otherProtocols?.map((p) => slug(p)) ?? []
 

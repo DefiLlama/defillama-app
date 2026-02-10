@@ -7,13 +7,11 @@ import { tvlOptionsMap } from '~/components/Filters/options'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
-import {
-	formatTvlsByChain,
-	getProtocolWarningBanners,
-	useFetchProtocolAddlChartsData
-} from '~/containers/ProtocolOverview/utils'
+import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
+import { useProtocolBreakdownCharts } from '~/containers/ProtocolOverview/useProtocolBreakdownCharts'
+import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug, tokenIconUrl } from '~/utils'
@@ -166,13 +164,13 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const protocolData = await getProtocol(protocol)
+		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 
 		if (!protocolData || !protocolData.currentChainTvls?.borrowed) {
 			return { notFound: true, props: null }
 		}
 
-		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
+		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
 		const toggleOptions = []
 
@@ -205,75 +203,23 @@ export async function getStaticPaths() {
 }
 
 export default function Protocols(props) {
-	const { data: addlProtocolData, historicalChainTvls, isLoading } = useFetchProtocolAddlChartsData(props.name, true)
-	const { tokensUnique, tokenBreakdown, tokenBreakdownUSD, tokenBreakdownPieChart } = addlProtocolData || {}
-
-	const { chainsSplit, chainsUnique } = React.useMemo(() => {
-		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
-		const chainsSplit = formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled: {} })
-		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
-		const chainsUnique: string[] = []
-		for (const key in lastEntry) {
-			if (!Object.prototype.hasOwnProperty.call(lastEntry, key)) continue
-			if (key !== 'date') chainsUnique.push(key)
-		}
-		return { chainsSplit, chainsUnique }
-	}, [historicalChainTvls])
-
-	const { borrowedByChainDataset, borrowedByChainCharts } = React.useMemo(() => {
-		if (!chainsSplit || chainsUnique.length === 0) {
-			return {
-				borrowedByChainDataset: null as MultiSeriesChart2Dataset | null,
-				borrowedByChainCharts: [] as MultiSeriesCharts
-			}
-		}
-
-		return {
-			borrowedByChainDataset: {
-				source: chainsSplit.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...chainsUnique]
-			},
-			borrowedByChainCharts: chainsUnique.map((name) => ({
-				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name }
-			})) as MultiSeriesCharts
-		}
-	}, [chainsSplit, chainsUnique])
-
-	const { tokenRawDataset, tokenRawCharts } = React.useMemo(() => {
-		if (!tokenBreakdown?.length || !tokensUnique?.length) {
-			return { tokenRawDataset: null as MultiSeriesChart2Dataset | null, tokenRawCharts: [] as MultiSeriesCharts }
-		}
-		return {
-			tokenRawDataset: {
-				source: tokenBreakdown.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...tokensUnique]
-			},
-			tokenRawCharts: tokensUnique.map((name) => ({
-				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name }
-			})) as MultiSeriesCharts
-		}
-	}, [tokenBreakdown, tokensUnique])
-
-	const { tokenUSDDataset, tokenUSDCharts } = React.useMemo(() => {
-		if (!tokenBreakdownUSD?.length || !tokensUnique?.length) {
-			return { tokenUSDDataset: null as MultiSeriesChart2Dataset | null, tokenUSDCharts: [] as MultiSeriesCharts }
-		}
-		return {
-			tokenUSDDataset: {
-				source: tokenBreakdownUSD.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...tokensUnique]
-			},
-			tokenUSDCharts: tokensUnique.map((name) => ({
-				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name }
-			})) as MultiSeriesCharts
-		}
-	}, [tokenBreakdownUSD, tokensUnique])
+	const protocol = slug(props.name ?? '')
+	const {
+		isLoading,
+		chainsUnique,
+		tokensUnique,
+		chainsDataset: borrowedByChainDataset,
+		chainsCharts: borrowedByChainCharts,
+		tokenUSDDataset,
+		tokenUSDCharts,
+		tokenRawDataset,
+		tokenRawCharts,
+		tokenBreakdownPieChart
+	} = useProtocolBreakdownCharts({
+		protocol,
+		keys: ['borrowed'],
+		includeBase: false
+	})
 
 	return (
 		<ProtocolOverviewLayout

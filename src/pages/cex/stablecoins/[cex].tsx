@@ -7,8 +7,8 @@ import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset 
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol } from '~/containers/ProtocolOverview/queries'
 import { useFetchProtocol } from '~/containers/ProtocolOverview/queries.client'
 import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
 import { buildStablecoinChartsData } from '~/containers/ProtocolOverview/utils'
@@ -41,7 +41,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		const protocolData = await getProtocol(exchangeName)
+		const protocolData = await fetchProtocolOverviewMetrics(exchangeName)
 
 		if (!protocolData) {
 			return { notFound: true, props: null }

@@ -1,14 +1,24 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import type { IChainTvl } from '~/api/types'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import { PEGGEDS_API } from '~/constants'
 import { useFetchProtocol } from '~/containers/ProtocolOverview/queries.client'
 import type { IProtocolMetricsV2, IRaise } from '~/containers/ProtocolOverview/types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
+import type { IProtocolChainTvlEntry } from './api.types'
 
-export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => {
+type ChainTvlEntry = IProtocolChainTvlEntry
+type ChainTvls = Record<string, ChainTvlEntry>
+type DateValueRow = { date: number } & Record<string, number>
+
+export const formatTvlsByChain = ({
+	historicalChainTvls,
+	extraTvlsEnabled
+}: {
+	historicalChainTvls: ChainTvls
+	extraTvlsEnabled: Record<string, boolean>
+}): DateValueRow[] => {
 	const tvlDictionary: { [data: number]: { [chain: string]: number } } = {}
 
 	for (const section in historicalChainTvls) {
@@ -47,7 +57,7 @@ export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => 
 		}
 	}
 
-	const result = []
+	const result: DateValueRow[] = []
 	for (const date in tvlDictionary) {
 		result.push({ ...tvlDictionary[date], date: Number(date) })
 	}
@@ -62,10 +72,10 @@ export const formatTvlsByChainFromTokens = ({
 	extraTvlsEnabled,
 	tokenToExclude
 }: {
-	historicalChainTvls: Record<string, any>
+	historicalChainTvls: ChainTvls
 	extraTvlsEnabled: Record<string, boolean>
 	tokenToExclude?: string | null
-}) => {
+}): DateValueRow[] => {
 	const tvlDictionary: { [date: number]: { [chain: string]: number } } = {}
 
 	for (const section in historicalChainTvls) {
@@ -110,7 +120,7 @@ export const formatTvlsByChainFromTokens = ({
 		}
 	}
 
-	const result = []
+	const result: DateValueRow[] = []
 	for (const date in tvlDictionary) {
 		result.push({ ...tvlDictionary[date], date: Number(date) })
 	}
@@ -125,14 +135,14 @@ function buildInflows({
 	datesToDelete,
 	tokenToExclude
 }: {
-	chainTvls: any
+	chainTvls: ChainTvls
 	extraTvlsEnabled: Record<string, boolean>
 	tokensUnique: string[]
 	datesToDelete: number[]
 	tokenToExclude?: string | null
 }) {
 	const usdInflows: Record<string, number> = {}
-	const tokenInflows: Record<string, any> = {}
+	const tokenInflows: Record<string, DateValueRow> = {}
 	const tokensUniqueSet = new Set(tokensUnique)
 
 	let zeroUsdInfows = 0
@@ -261,8 +271,8 @@ function buildInflows({
 	}
 
 	for (const date of datesToDelete) {
-		delete usdInflows[date]
-		delete tokenInflows[date]
+		delete usdInflows[String(date)]
+		delete tokenInflows[String(date)]
 	}
 
 	const usdFlows: Array<[string, number]> = []
@@ -271,7 +281,7 @@ function buildInflows({
 	}
 	usdFlows.sort((a, b) => Number(a[0]) - Number(b[0]))
 
-	const tokenFlows = []
+	const tokenFlows: DateValueRow[] = []
 	for (const date in tokenInflows) {
 		tokenFlows.push(tokenInflows[date])
 	}
@@ -604,11 +614,13 @@ export const buildProtocolAddlChartsData = ({
 	isBorrowed,
 	tokenToExclude
 }: {
-	protocolData: { name: string; chainTvls?: IChainTvl; misrepresentedTokens?: boolean }
+	protocolData: { name: string; chainTvls?: ChainTvls; misrepresentedTokens?: boolean } | null
 	extraTvlsEnabled: Record<string, boolean>
 	isBorrowed?: boolean
 	tokenToExclude?: string | null
 }) => {
+	if (!protocolData) return {}
+
 	let chainTvls = protocolData.chainTvls ?? {}
 	if (isBorrowed) {
 		chainTvls = {}
@@ -620,54 +632,50 @@ export const buildProtocolAddlChartsData = ({
 		}
 	}
 
-	if (protocolData) {
-		let tokensInUsdExsists = false
-		let tokensExists = false
+	let tokensInUsdExsists = false
+	let tokensExists = false
 
-		for (const chain in chainTvls) {
-			const chainData = chainTvls[chain]
-			if (!tokensInUsdExsists && chainData.tokensInUsd && chainData.tokensInUsd.length > 0) {
-				tokensInUsdExsists = true
-			}
-
-			if (!tokensExists && chainData.tokens && chainData.tokens.length > 0) {
-				tokensExists = true
-			}
+	for (const chain in chainTvls) {
+		const chainData = chainTvls[chain]
+		if (!tokensInUsdExsists && chainData.tokensInUsd && chainData.tokensInUsd.length > 0) {
+			tokensInUsdExsists = true
 		}
 
-		if (!protocolData.misrepresentedTokens && (tokensInUsdExsists || tokensExists)) {
-			let tokensUnique = getUniqueTokens({ chainTvls, extraTvlsEnabled })
+		if (!tokensExists && chainData.tokens && chainData.tokens.length > 0) {
+			tokensExists = true
+		}
+	}
 
-			// Filter out the excluded token if specified
-			if (tokenToExclude) {
-				tokensUnique = tokensUnique.filter((token) => token !== tokenToExclude)
-			}
+	if (!protocolData.misrepresentedTokens && (tokensInUsdExsists || tokensExists)) {
+		let tokensUnique = getUniqueTokens({ chainTvls, extraTvlsEnabled })
 
-			const { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = buildTokensBreakdown({
-				chainTvls: chainTvls,
-				extraTvlsEnabled,
-				tokensUnique
-			})
-
-			const { usdInflows, tokenInflows } = buildInflows({
-				chainTvls: chainTvls,
-				extraTvlsEnabled,
-				tokensUnique,
-				datesToDelete: protocolData.name === 'Binance CEX' ? [1681430400, 1681516800] : [],
-				tokenToExclude
-			})
-
-			return {
-				tokensUnique,
-				tokenBreakdownUSD,
-				tokenBreakdownPieChart,
-				tokenBreakdown,
-				usdInflows,
-				tokenInflows
-			}
+		// Filter out the excluded token if specified
+		if (tokenToExclude) {
+			tokensUnique = tokensUnique.filter((token) => token !== tokenToExclude)
 		}
 
-		return {}
+		const { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = buildTokensBreakdown({
+			chainTvls: chainTvls,
+			extraTvlsEnabled,
+			tokensUnique
+		})
+
+		const { usdInflows, tokenInflows } = buildInflows({
+			chainTvls: chainTvls,
+			extraTvlsEnabled,
+			tokensUnique,
+			datesToDelete: protocolData.name === 'Binance CEX' ? [1681430400, 1681516800] : [],
+			tokenToExclude
+		})
+
+		return {
+			tokensUnique,
+			tokenBreakdownUSD,
+			tokenBreakdownPieChart,
+			tokenBreakdown,
+			usdInflows,
+			tokenInflows
+		}
 	}
 
 	return {}
@@ -725,7 +733,7 @@ export const useFetchProtocolAddlChartsData = (
 		],
 		queryFn: () =>
 			buildProtocolAddlChartsData({
-				protocolData: addlProtocolData as any,
+				protocolData: addlProtocolData ?? null,
 				extraTvlsEnabled: isBorrowed ? {} : extraTvlsEnabled,
 				isBorrowed,
 				tokenToExclude: normalizedTokenToExclude
@@ -755,7 +763,7 @@ export const useFetchProtocolAddlChartsData = (
 
 export const getProtocolWarningBanners = (protocolData: IProtocolMetricsV2) => {
 	// Helper function to check if a date is in valid format
-	const isValidDateFormat = (date: any): boolean => {
+	const isValidDateFormat = (date: unknown): boolean => {
 		if (!date || date === 'forever') return true
 
 		// Check if it's a number (seconds or milliseconds)
@@ -871,7 +879,7 @@ export const buildStablecoinChartsData = async ({
 	chainTvls,
 	extraTvlsEnabled
 }: {
-	chainTvls: Record<string, any>
+	chainTvls: ChainTvls
 	extraTvlsEnabled: Record<string, boolean>
 }) => {
 	const { peggedAssets } = await getStablecoinsList()
@@ -921,10 +929,10 @@ export const buildStablecoinChartsData = async ({
 		return null
 	}
 
-	const stablecoinsByPegMechanism: Record<string, any> = {}
-	const stablecoinsByPegType: Record<string, any> = {}
-	const stablecoinsByToken: Record<string, any> = {}
-	const totalStablecoins: Record<string, any> = {}
+	const stablecoinsByPegMechanism: Record<string, DateValueRow> = {}
+	const stablecoinsByPegType: Record<string, DateValueRow> = {}
+	const stablecoinsByToken: Record<string, DateValueRow> = {}
+	const totalStablecoins: Record<string, number> = {}
 
 	for (const section in chainTvls) {
 		const name = section.toLowerCase()
@@ -972,32 +980,32 @@ export const buildStablecoinChartsData = async ({
 		}
 	}
 
-	const stablecoinsByPegMechanismArray = []
+	const stablecoinsByPegMechanismArray: DateValueRow[] = []
 	for (const date in stablecoinsByPegMechanism) {
 		stablecoinsByPegMechanismArray.push(stablecoinsByPegMechanism[date])
 	}
 	stablecoinsByPegMechanismArray.sort((a, b) => a.date - b.date)
 
-	const stablecoinsByPegTypeArray = []
+	const stablecoinsByPegTypeArray: DateValueRow[] = []
 	for (const date in stablecoinsByPegType) {
 		stablecoinsByPegTypeArray.push(stablecoinsByPegType[date])
 	}
 	stablecoinsByPegTypeArray.sort((a, b) => a.date - b.date)
 
-	const stablecoinsByTokenArray = []
+	const stablecoinsByTokenArray: DateValueRow[] = []
 	for (const date in stablecoinsByToken) {
 		stablecoinsByTokenArray.push(stablecoinsByToken[date])
 	}
 	stablecoinsByTokenArray.sort((a, b) => a.date - b.date)
 
-	const totalStablecoinsArray = []
+	const totalStablecoinsArray: Array<{ date: number; value: number }> = []
 	for (const date in totalStablecoins) {
 		totalStablecoinsArray.push({ date: Number(date), value: totalStablecoins[date] })
 	}
 	totalStablecoinsArray.sort((a, b) => a.date - b.date)
 
 	const latestByPegMechanism = stablecoinsByPegMechanismArray[stablecoinsByPegMechanismArray.length - 1]
-	const pegMechanismPieChart = []
+	const pegMechanismPieChart: Array<{ name: string; value: number }> = []
 	if (latestByPegMechanism) {
 		for (const name in latestByPegMechanism) {
 			if (name !== 'date') {
@@ -1009,7 +1017,7 @@ export const buildStablecoinChartsData = async ({
 	const pieChartDataByPegMechanism = preparePieChartData({ data: pegMechanismPieChart, limit: 10 })
 
 	const latestByPegType = stablecoinsByPegTypeArray[stablecoinsByPegTypeArray.length - 1]
-	const pegTypePieChart = []
+	const pegTypePieChart: Array<{ name: string; value: number }> = []
 	if (latestByPegType) {
 		for (const name in latestByPegType) {
 			if (name !== 'date') {
