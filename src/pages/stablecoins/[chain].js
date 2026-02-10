@@ -1,4 +1,5 @@
 import { maxAgeForNext } from '~/api'
+import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import { stablecoinBackingOptions, stablecoinPegTypeOptions } from '~/containers/Stablecoins/Filters'
 import { getPeggedAssets, getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { StablecoinsByChain } from '~/containers/Stablecoins/StablecoinsByChain'
@@ -36,8 +37,10 @@ export const getStaticProps = withPerformanceLogging('stablecoins/[chain]', asyn
 		.filter((opt) => props.filteredPeggedAssets.some((asset) => opt.filterFn(asset)))
 		.map((opt) => opt.key)
 
+	const { questions: entityQuestions } = await fetchEntityQuestions(slug(chain), 'chain', { subPage: 'stablecoins' })
+
 	return {
-		props: { ...props, availableBackings, availablePegTypes },
+		props: { ...props, availableBackings, availablePegTypes, entityQuestions },
 		revalidate: maxAgeForNext([22])
 	}
 })
@@ -63,7 +66,8 @@ export default function PeggedAssets({
 	doublecountedIds,
 	chain,
 	availableBackings,
-	availablePegTypes
+	availablePegTypes,
+	entityQuestions
 }) {
 	return (
 		<Layout
@@ -83,6 +87,7 @@ export default function PeggedAssets({
 				doublecountedIds={doublecountedIds}
 				availableBackings={availableBackings}
 				availablePegTypes={availablePegTypes}
+				entityQuestions={entityQuestions}
 			/>
 		</Layout>
 	)

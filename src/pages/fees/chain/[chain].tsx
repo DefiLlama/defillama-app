@@ -6,6 +6,7 @@ import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
+import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -57,8 +58,10 @@ export const getStaticProps = withPerformanceLogging(
 
 		if (!data) return { notFound: true }
 
+		const { questions: entityQuestions } = await fetchEntityQuestions(chain, 'chain', { subPage: 'fees' })
+
 		return {
-			props: data,
+			props: { ...data, entityQuestions },
 			revalidate: maxAgeForNext([22])
 		}
 	}

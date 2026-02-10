@@ -5,6 +5,7 @@ import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportBu
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Tooltip } from '~/components/Tooltip'
@@ -56,7 +57,8 @@ export function StablecoinsByChain({
 	chartDataByPeggedAsset,
 	doublecountedIds,
 	availableBackings,
-	availablePegTypes
+	availablePegTypes,
+	entityQuestions
 }) {
 	const [chartType, setChartType] = React.useState('Total Market Cap')
 
@@ -274,6 +276,14 @@ export function StablecoinsByChain({
 	return (
 		<>
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
+			{entityQuestions?.length > 0 && (
+				<EntityQuestionsStrip
+					questions={entityQuestions}
+					entitySlug="stablecoins"
+					entityType="page"
+					entityName="Stablecoins"
+				/>
+			)}
 
 			<PeggedFilters
 				pathname={selectedChain === 'All' ? '/stablecoins' : `/stablecoins/${selectedChain}`}

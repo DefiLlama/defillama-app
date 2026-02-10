@@ -2,6 +2,7 @@ import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { ChainsByCategory } from '~/containers/ChainsByCategory'
 import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
+import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
@@ -14,8 +15,9 @@ export const getStaticProps = withPerformanceLogging(
 		const { category } = params
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const data = await getChainsByCategory({ chainMetadata: metadataCache.chainMetadata, category })
+		const { questions: entityQuestions } = await fetchEntityQuestions('chains', 'page')
 		return {
-			props: data,
+			props: { ...data, entityQuestions },
 			revalidate: maxAgeForNext([22])
 		}
 	}
