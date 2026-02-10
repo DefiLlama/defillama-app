@@ -22,6 +22,7 @@ function Support() {
 	const [isSubmitted, setIsSubmitted] = React.useState(false)
 	const [showForm, setShowForm] = React.useState(false)
 	const [frontChatReady, setFrontChatReady] = React.useState(false)
+	const [chatLoading, setChatLoading] = React.useState(false)
 	const frontChatInitialized = React.useRef(false)
 
 	const onSubmit = async (e) => {
@@ -68,6 +69,7 @@ function Support() {
 			return
 		}
 
+		setChatLoading(true)
 		frontChatInitialized.current = true
 		;(window as any).__frontChatUserHash = userHash
 		frontChat('init', {
@@ -75,6 +77,7 @@ function Support() {
 			shouldShowWindowOnLaunch: true,
 			shouldExpandOnShowWindow: true,
 			onInitCompleted: () => {
+				setChatLoading(false)
 				frontChat('show')
 			},
 			email,
@@ -126,12 +129,32 @@ function Support() {
 
 					<button
 						onClick={openLiveChat}
-						disabled={!userHash}
+						disabled={!userHash || chatLoading}
 						className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4 text-center hover:bg-(--link-hover-bg)/10 disabled:cursor-not-allowed disabled:opacity-50"
 					>
-						<span className="font-semibold">Live Chat</span>
+						<span className="flex items-center justify-center gap-2 font-semibold">
+							{chatLoading ? (
+								<>
+									<svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+										<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+										<path
+											className="opacity-75"
+											fill="currentColor"
+											d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+										/>
+									</svg>
+									Opening Chat...
+								</>
+							) : (
+								'Live Chat'
+							)}
+						</span>
 						<span className="text-sm text-gray-500">
-							{userHash ? 'Chat with us in real time' : 'Available for paying customers'}
+							{chatLoading
+								? 'Please wait'
+								: userHash
+									? 'Chat with us in real time'
+									: 'Available for paying customers'}
 						</span>
 					</button>
 				</div>

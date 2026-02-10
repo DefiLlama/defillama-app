@@ -5,6 +5,7 @@ import { slug } from '~/utils'
 
 const adapterType = ADAPTER_TYPES.FEES
 const dataType = ADAPTER_DATA_TYPES.DAILY_EARNINGS
+const metricName = 'Earnings'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
@@ -45,7 +46,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					adapterType,
 					dataType,
 					chain: chainData.name,
-					route: 'earnings'
+					route: 'earnings',
+					metricName
 				}).catch((e) => {
 					console.info(`Chain page data not found ${adapterType}:${dataType} : chain:${chainSlug}`, e)
 					return null
