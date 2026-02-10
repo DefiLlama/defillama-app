@@ -881,10 +881,13 @@ export const getProtocolOverviewPageData = async ({
 	}
 
 	const categoryDefaultChart = protocolData.category ? protocolCategories[protocolData.category]?.defaultChart : null
+	const isCategoryDefaultChartValue =
+		typeof categoryDefaultChart === 'string' &&
+		(Object.values(protocolCharts) as Array<string>).includes(categoryDefaultChart)
 	if (
 		categoryDefaultChart &&
-		isProtocolChartsLabel(categoryDefaultChart) &&
-		availableCharts.includes(categoryDefaultChart)
+		isCategoryDefaultChartValue &&
+		availableCharts.some((chartLabel) => protocolCharts[chartLabel] === categoryDefaultChart)
 	) {
 		let defaultChartLabel = null
 		for (const chartLabel in protocolCharts) {

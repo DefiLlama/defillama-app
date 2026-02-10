@@ -9,11 +9,10 @@ import {
 	PROTOCOLS_API,
 	TOKEN_LIQUIDITY_API,
 	TWITTER_POSTS_API_V2,
-	V2_SERVER_URL,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetchApi, fetchJson } from '~/utils/async'
-import { appendOptionalQueryParams, fetchProtocolTvlChart, normalizeProtocolChart } from './api'
+import { fetchProtocolTreasuryChart, fetchProtocolTvlChart } from './api'
 import { IProtocolChartV2Params } from './api.types'
 import { getProtocol } from './queries'
 
@@ -196,7 +195,7 @@ export const useFetchProtocolTVLChart = ({
 }: IProtocolChartParams) => {
 	const isEnabled = !!protocol && enabled
 	return useQuery({
-		queryKey: ['protocolTvlChart', protocol, key, currency, breakdownType, enabled, isEnabled],
+		queryKey: ['protocolTvlChart', protocol, key, currency, breakdownType],
 		queryFn: isEnabled ? () => fetchProtocolTvlChart({ protocol, key, currency, breakdownType }) : () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -207,21 +206,8 @@ export const useFetchProtocolTVLChart = ({
 export const useFetchProtocolTreasuryChart = ({ protocol, key, currency, breakdownType }: IProtocolChartParams) => {
 	const isEnabled = !!protocol
 	return useQuery({
-		queryKey: ['protocolTreasuryChart', protocol, key, currency, breakdownType, isEnabled],
-		queryFn: isEnabled
-			? () => {
-					const baseUrl =
-						`${V2_SERVER_URL}/chart/treasury/protocol/${protocol}${breakdownType ? `/${breakdownType}` : ''}`.replaceAll(
-							'#',
-							'$'
-						)
-					const finalUrl = appendOptionalQueryParams(baseUrl, { key, currency })
-
-					return fetchJson(finalUrl)
-						.then((values) => normalizeProtocolChart(values))
-						.catch(() => null)
-				}
-			: () => null,
+		queryKey: ['protocolTreasuryChart', protocol, key, currency, breakdownType],
+		queryFn: isEnabled ? () => fetchProtocolTreasuryChart({ protocol, key, currency, breakdownType }) : () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled

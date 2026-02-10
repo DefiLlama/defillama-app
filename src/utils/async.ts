@@ -67,18 +67,24 @@ function sanitizeUrlForLogs(input: RequestInfo | URL): string {
 	else raw = String(input)
 
 	// Minimal behavior:
-	// - If SERVER_URL (or server_url) is set, strip it from the logged URL.
+	// - If SERVER_URL / V2_SERVER_URL (or lowercase variants) is set, strip it from logged URL.
 	// - If not set, log as-is.
-	const serverUrl = process.env.SERVER_URL
-	if (!serverUrl) return raw
+	const serverUrlCandidates = [
+		process.env.SERVER_URL,
+		process.env.server_url,
+		process.env.V2_SERVER_URL,
+		process.env.v2_server_url
+	].filter((url): url is string => typeof url === 'string' && url.length > 0)
 
-	// Normalize SERVER_URL for log-sanitizing:
-	// - strip trailing slashes
-	// - if it ends with `/api` (or `/api/`), strip that too
-	const base = serverUrl.replace(/\/+$/, '').replace(/\/api$/, '')
-	if (!base) return raw
+	for (const candidate of serverUrlCandidates) {
+		// Normalize env URL for log-sanitizing:
+		// - strip trailing slashes
+		// - if it ends with `/api` (or `/api/`), strip that too
+		const base = candidate.replace(/\/+$/, '').replace(/\/api$/, '')
+		if (!base) continue
+		if (raw.startsWith(base)) return raw.slice(base.length) || '/'
+	}
 
-	if (raw.startsWith(base)) return raw.slice(base.length) || '/'
 	return raw
 }
 

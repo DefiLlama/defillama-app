@@ -1,6 +1,6 @@
 import type { GetStaticPropsContext } from 'next'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useEffect, useMemo } from 'react'
+import { ComponentType, lazy, Suspense, useEffect, useMemo } from 'react'
 import { maxAgeForNext } from '~/api'
 import { LocalLoader } from '~/components/Loaders'
 import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/constants'
@@ -12,7 +12,7 @@ import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const ProtocolCoreChart = lazy(() => import('~/containers/ProtocolOverview/ProtocolCoreChart')) as React.FC<any>
+const ProtocolCoreChart = lazy(() => import('~/containers/ProtocolOverview/ProtocolCoreChart')) as ComponentType<any>
 
 const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 

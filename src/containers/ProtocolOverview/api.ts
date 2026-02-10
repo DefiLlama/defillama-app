@@ -3,15 +3,16 @@ import { fetchJson } from '~/utils/async'
 import { IProtocolChartV2, IProtocolChartV2Params, IProtocolMetricsV2 } from './api.types'
 
 export const appendOptionalQueryParams = (url: string, params: Pick<IProtocolChartV2Params, 'key' | 'currency'>) => {
-	const searchParams = new URLSearchParams()
-
-	if (params.key) searchParams.set('key', params.key)
-	if (params.currency) searchParams.set('currency', params.currency)
-
-	const query = searchParams.toString()
-	return query ? `${url}?${query}` : url
+	const parsedUrl = new URL(url, 'http://placeholder')
+	if (params.key) parsedUrl.searchParams.set('key', params.key)
+	if (params.currency) parsedUrl.searchParams.set('currency', params.currency)
+	const isAbsoluteUrl = /^https?:\/\//.test(url)
+	return isAbsoluteUrl
+		? `${parsedUrl.protocol}//${parsedUrl.host}${parsedUrl.pathname}${parsedUrl.search}`
+		: `${parsedUrl.pathname}${parsedUrl.search}`
 }
 
+// TODO need to update on server
 export const normalizeProtocolChart = (values: unknown): IProtocolChartV2 | null => {
 	if (!Array.isArray(values)) return null
 
@@ -45,6 +46,24 @@ export const fetchProtocolTvlChart = async ({
 }: IProtocolChartV2Params): Promise<IProtocolChartV2 | null> => {
 	const baseUrl =
 		`${V2_SERVER_URL}/chart/tvl/protocol/${protocol}${breakdownType ? `/${breakdownType}` : ''}`.replaceAll('#', '$')
+	const finalUrl = appendOptionalQueryParams(baseUrl, { key, currency })
+
+	return fetchJson(finalUrl)
+		.then((values) => normalizeProtocolChart(values))
+		.catch(() => null)
+}
+
+export const fetchProtocolTreasuryChart = async ({
+	protocol,
+	key,
+	currency,
+	breakdownType
+}: IProtocolChartV2Params): Promise<IProtocolChartV2 | null> => {
+	const baseUrl =
+		`${V2_SERVER_URL}/chart/treasury/protocol/${protocol}${breakdownType ? `/${breakdownType}` : ''}`.replaceAll(
+			'#',
+			'$'
+		)
 	const finalUrl = appendOptionalQueryParams(baseUrl, { key, currency })
 
 	return fetchJson(finalUrl)

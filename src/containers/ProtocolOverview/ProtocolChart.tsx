@@ -20,9 +20,11 @@ import { IProtocolOverviewPageData, IToggledMetrics } from './types'
 import { useFetchProtocolChartData } from './useFetchProtocolChartData'
 
 // Utility function to update any query parameter in URL
-const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: string): string => {
-	if (typeof document === 'undefined') return `${currentUrl}?${queryKey}=${newValue}`
-	const url = new URL(currentUrl, window.location.origin)
+const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: string | null | undefined): string => {
+	const url =
+		typeof document === 'undefined'
+			? new URL(currentUrl, 'http://localhost')
+			: new URL(currentUrl, window.location.origin)
 
 	// If value is falsy or empty, remove the parameter
 	if (!newValue || newValue === '') {

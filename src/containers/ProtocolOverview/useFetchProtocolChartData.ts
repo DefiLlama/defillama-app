@@ -93,7 +93,7 @@ const buildTvlChart = ({
 		if (dateInSec == null) continue
 		const dateKey = isWeekly ? lastDayOfWeek(dateInSec) : isMonthly ? firstDayOfMonth(dateInSec) : dateInSec
 		store[String(dateKey)] =
-			value + extraTvls.reduce((acc, curr) => acc + (extraTvlCharts[curr]?.[String(dateKey)] ?? 0), 0)
+			value + extraTvls.reduce((acc, curr) => acc + (extraTvlCharts[curr]?.[String(dateInSec)] ?? 0), 0)
 	}
 
 	const finalChart: Array<[number, number]> = []
@@ -162,7 +162,7 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['priceHistory', geckoId],
 		queryFn: () =>
 			fetchJson(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then((res) =>
-				res.data.prices.length > 0 ? res.data : { prices: [], mcaps: [], volumes: [] }
+				res.data?.prices?.length ? res.data : { prices: [], mcaps: [], volumes: [] }
 			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -292,7 +292,7 @@ export const useFetchProtocolChartData = ({
 
 	const isFeesEnabled = !!(toggledMetrics.fees === 'true' && metrics.fees && isRouterReady)
 	const { data: feesDataChart = null, isLoading: fetchingFees } = useQuery<Array<[number, number]>>({
-		queryKey: ['fees', name, isFeesEnabled],
+		queryKey: ['fees', name],
 		queryFn: () =>
 			isFeesEnabled
 				? getAdapterProtocolChartData({
@@ -308,7 +308,7 @@ export const useFetchProtocolChartData = ({
 
 	const isRevenueEnabled = !!(toggledMetrics.revenue === 'true' && metrics.revenue && isRouterReady)
 	const { data: revenueDataChart = null, isLoading: fetchingRevenue } = useQuery<Array<[number, number]>>({
-		queryKey: ['revenue', name, isRevenueEnabled],
+		queryKey: ['revenue', name],
 		queryFn: () =>
 			isRevenueEnabled
 				? getAdapterProtocolChartData({
@@ -330,7 +330,7 @@ export const useFetchProtocolChartData = ({
 	)
 	const { data: holdersRevenueDataChart = null, isLoading: fetchingHoldersRevenue } = useQuery<Array<[number, number]>>(
 		{
-			queryKey: ['holders-revenue', name, isHoldersRevenueEnabled],
+			queryKey: ['holders-revenue', name],
 			queryFn: () =>
 				isHoldersRevenueEnabled
 					? getAdapterProtocolChartData({
@@ -353,7 +353,7 @@ export const useFetchProtocolChartData = ({
 		isRouterReady
 	)
 	const { data: bribesDataChart = null, isLoading: fetchingBribes } = useQuery<Array<[number, number]>>({
-		queryKey: ['bribes', name, isBribesEnabled],
+		queryKey: ['bribes', name],
 		queryFn: () =>
 			isBribesEnabled
 				? getAdapterProtocolChartData({
@@ -375,7 +375,7 @@ export const useFetchProtocolChartData = ({
 		isRouterReady
 	)
 	const { data: tokenTaxesDataChart = null, isLoading: fetchingTokenTaxes } = useQuery<Array<[number, number]>>({
-		queryKey: ['token-taxes', name, isTokenTaxesEnabled],
+		queryKey: ['token-taxes', name],
 		queryFn: () =>
 			isTokenTaxesEnabled
 				? getAdapterProtocolChartData({
@@ -392,7 +392,7 @@ export const useFetchProtocolChartData = ({
 
 	const isDexVolumeEnabled = !!(toggledMetrics.dexVolume === 'true' && metrics.dexs && isRouterReady)
 	const { data: dexVolumeDataChart = null, isLoading: fetchingDexVolume } = useQuery<Array<[number, number]>>({
-		queryKey: ['dexVolume', name, isDexVolumeEnabled],
+		queryKey: ['dexVolume', name],
 		queryFn: () =>
 			isDexVolumeEnabled
 				? getAdapterProtocolChartData({
@@ -408,7 +408,7 @@ export const useFetchProtocolChartData = ({
 
 	const isPerpsVolumeEnabled = !!(toggledMetrics.perpVolume === 'true' && metrics.perps && isRouterReady)
 	const { data: perpsVolumeDataChart = null, isLoading: fetchingPerpVolume } = useQuery<Array<[number, number]>>({
-		queryKey: ['perpVolume', name, isPerpsVolumeEnabled],
+		queryKey: ['perpVolume', name],
 		queryFn: () =>
 			isPerpsVolumeEnabled
 				? getAdapterProtocolChartData({
@@ -424,7 +424,7 @@ export const useFetchProtocolChartData = ({
 
 	const isOpenInterestEnabled = !!(toggledMetrics.openInterest === 'true' && metrics.openInterest && isRouterReady)
 	const { data: openInterestDataChart = null, isLoading: fetchingOpenInterest } = useQuery<Array<[number, number]>>({
-		queryKey: ['openInterest', name, isOpenInterestEnabled],
+		queryKey: ['openInterest', name],
 		queryFn: () =>
 			isOpenInterestEnabled
 				? getAdapterProtocolChartData({
@@ -447,7 +447,7 @@ export const useFetchProtocolChartData = ({
 	const { data: optionsPremiumVolumeDataChart = null, isLoading: fetchingOptionsPremiumVolume } = useQuery<
 		Array<[number, number]>
 	>({
-		queryKey: ['optionsPremiumVolume', name, isOptionsPremiumVolumeEnabled],
+		queryKey: ['optionsPremiumVolume', name],
 		queryFn: () =>
 			isOptionsPremiumVolumeEnabled
 				? getAdapterProtocolChartData({
@@ -470,7 +470,7 @@ export const useFetchProtocolChartData = ({
 	const { data: optionsNotionalVolumeDataChart = null, isLoading: fetchingOptionsNotionalVolume } = useQuery<
 		Array<[number, number]>
 	>({
-		queryKey: ['optionsNotionalVolume', name, isOptionsNotionalVolumeEnabled],
+		queryKey: ['optionsNotionalVolume', name],
 		queryFn: () =>
 			isOptionsNotionalVolumeEnabled
 				? getAdapterProtocolChartData({
@@ -493,7 +493,7 @@ export const useFetchProtocolChartData = ({
 	const { data: dexAggregatorsVolumeDataChart = null, isLoading: fetchingDexAggregatorVolume } = useQuery<
 		Array<[number, number]>
 	>({
-		queryKey: ['dexAggregatorVolume', name, isDexAggregatorsVolumeEnabled],
+		queryKey: ['dexAggregatorVolume', name],
 		queryFn: () =>
 			isDexAggregatorsVolumeEnabled
 				? getAdapterProtocolChartData({
@@ -515,7 +515,7 @@ export const useFetchProtocolChartData = ({
 	const { data: perpsAggregatorsVolumeDataChart = null, isLoading: fetchingPerpAggregatorVolume } = useQuery<
 		Array<[number, number]>
 	>({
-		queryKey: ['perpAggregatorVolume', name, isPerpsAggregatorsVolumeEnabled],
+		queryKey: ['perpAggregatorVolume', name],
 		queryFn: () =>
 			isPerpsAggregatorsVolumeEnabled
 				? getAdapterProtocolChartData({
@@ -537,7 +537,7 @@ export const useFetchProtocolChartData = ({
 	const { data: bridgeAggregatorsVolumeDataChart = null, isLoading: fetchingBridgeAggregatorVolume } = useQuery<
 		Array<[number, number]>
 	>({
-		queryKey: ['bridgeAggregatorVolume', name, isBridgeAggregatorsVolumeEnabled],
+		queryKey: ['bridgeAggregatorVolume', name],
 		queryFn: () =>
 			isBridgeAggregatorsVolumeEnabled
 				? getAdapterProtocolChartData({
@@ -557,7 +557,7 @@ export const useFetchProtocolChartData = ({
 		isRouterReady
 	)
 	const { data: unlocksAndIncentivesData = null, isLoading: fetchingUnlocksAndIncentives } = useQuery({
-		queryKey: ['unlocks', name, isUnlocksEnabled],
+		queryKey: ['unlocks', name],
 		queryFn: () => (isUnlocksEnabled ? getProtocolEmissionsCharts(slug(name)) : Promise.resolve(null)),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -567,7 +567,7 @@ export const useFetchProtocolChartData = ({
 
 	const isTreasuryEnabled = !!(toggledMetrics.treasury === 'true' && metrics.treasury && isRouterReady)
 	const { data: treasuryData = null, isLoading: fetchingTreasury } = useQuery({
-		queryKey: ['treasury', name, isTreasuryEnabled],
+		queryKey: ['treasury', name],
 		queryFn: () =>
 			isTreasuryEnabled
 				? fetchJson(`${PROTOCOL_TREASURY_API}/${slug(name)}`).then((data) => {
@@ -593,7 +593,7 @@ export const useFetchProtocolChartData = ({
 
 	const isUsdInflowsEnabled = !!(toggledMetrics.usdInflows === 'true' && metrics.tvl && isRouterReady)
 	const { data: usdInflowsData = null, isLoading: fetchingUsdInflows } = useQuery({
-		queryKey: ['usdInflows', name, isUsdInflowsEnabled, JSON.stringify(tvlSettings)],
+		queryKey: ['usdInflows', name, JSON.stringify(tvlSettings)],
 		queryFn: () =>
 			isUsdInflowsEnabled
 				? fetchJson(`https://api.llama.fi/protocol/${slug(name)}`).then((data) => {
@@ -610,7 +610,7 @@ export const useFetchProtocolChartData = ({
 
 	const isBridgeVolumeEnabled = !!(toggledMetrics.bridgeVolume === 'true' && isRouterReady)
 	const { data: bridgeVolumeData = null, isLoading: fetchingBridgeVolume } = useQuery({
-		queryKey: ['bridgeVolume', name, isBridgeVolumeEnabled],
+		queryKey: ['bridgeVolume', name],
 		queryFn: () =>
 			isBridgeVolumeEnabled
 				? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(name)}`)
@@ -662,7 +662,7 @@ export const useFetchProtocolChartData = ({
 
 	const isNftVolumeEnabled = !!(toggledMetrics.nftVolume === 'true' && metrics.nfts && isRouterReady)
 	const { data: nftVolumeData = null, isLoading: fetchingNftVolume } = useQuery({
-		queryKey: ['nftVolume', name, isNftVolumeEnabled],
+		queryKey: ['nftVolume', name],
 		queryFn: () =>
 			isNftVolumeEnabled
 				? fetchJson(NFT_MARKETPLACES_VOLUME_API, { timeout: 10_000 })

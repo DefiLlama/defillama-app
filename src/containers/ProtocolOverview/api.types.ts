@@ -1,7 +1,7 @@
 export type TokenRightLabel = 'Governance' | 'Treasury' | 'Revenue'
 
 export interface ITokenRight {
-	label: TokenRightLabel | string
+	label: TokenRightLabel | (string & {})
 	hasRight: boolean
 	details?: string
 }
