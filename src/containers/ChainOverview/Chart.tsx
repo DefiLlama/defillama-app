@@ -15,7 +15,7 @@ import {
 
 const customOffsets = {}
 
-export default function ChainLineBarChart({
+export default function ChainCoreChart({
 	chartData,
 	valueSymbol = '',
 	color,

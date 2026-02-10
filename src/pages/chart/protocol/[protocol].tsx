@@ -3,16 +3,16 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { maxAgeForNext } from '~/api'
 import { LocalLoader } from '~/components/Loaders'
-import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/Chart/constants'
-import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/ProtocolChart'
+import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/constants'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import { IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
+import { useFetchProtocolChartData } from '~/containers/ProtocolOverview/useFetchProtocolChartData'
 import { TVL_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
 import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const ProtocolLineBarChart = lazy(() => import('~/containers/ProtocolOverview/Chart/Chart')) as React.FC<any>
+const ProtocolCoreChart = lazy(() => import('~/containers/ProtocolOverview/ProtocolCoreChart')) as React.FC<any>
 
 const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
@@ -127,7 +127,7 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 		}
 	}, [isThemeDark])
 
-	const { finalCharts, valueSymbol, loadingCharts } = useFetchAndFormatChartData({
+	const { finalCharts, valueSymbol, loadingCharts } = useFetchProtocolChartData({
 		...props,
 		toggledMetrics,
 		groupBy: groupBy,
@@ -143,7 +143,7 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 				</div>
 			) : (
 				<Suspense fallback={<div className="flex min-h-[360px] items-center justify-center" />}>
-					<ProtocolLineBarChart
+					<ProtocolCoreChart
 						chartData={finalCharts}
 						chartColors={props.chartColors}
 						isThemeDark={isThemeDark}

@@ -1,5 +1,6 @@
 import { IHack } from '../Hacks/queries'
-import { protocolCharts, ProtocolChartsLabels } from './Chart/constants'
+import { IProtocolMetricsV2, IRaise } from './api.types'
+import { protocolCharts, ProtocolChartsLabels } from './constants'
 
 export interface IProtocolPageMetrics {
 	tvl: boolean
@@ -33,127 +34,7 @@ export interface IProtocolPageMetrics {
 	tokenRights: boolean
 }
 
-type TokenRightLabel = 'Governance' | 'Treasury' | 'Revenue'
-
-interface TokenRight {
-	label: TokenRightLabel | string // extensible
-	hasRight: boolean
-	details?: string
-}
-
-type GovernanceRights = 'NONE' | 'LIMITED' | 'FULL'
-type FeeSwitchStatus = 'ON' | 'OFF' | 'PENDING' | 'UNKNOWN'
-
-interface GovernanceLink {
-	label: string
-	url: string
-}
-
-interface GovernanceData {
-	rights: GovernanceRights
-	details?: string
-	feeSwitchStatus?: FeeSwitchStatus
-	feeSwitchDetails?: string
-	links?: GovernanceLink[]
-}
-
-type BuybacksStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
-type DividendsStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
-type BurnsStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
-
-interface HoldersRevenueAndValueAccrual {
-	buybacks?: BuybacksStatus
-	dividends?: DividendsStatus
-	burns?: BurnsStatus
-	burnSources?: string[]
-	primaryValueAccrual?: string
-}
-
-type FundraisingType = 'EQUITY' | 'TOKEN' | 'NONE' | 'UNKNOWN'
-type EquityRevenueCaptureStatus = 'ACTIVE' | 'INACTIVE' | 'PARTIAL' | 'UNKNOWN'
-
-interface TokenAlignmentLink {
-	label: string
-	url: string
-}
-
-interface TokenAlignment {
-	fundraising?: FundraisingType
-	raiseDetailsLink?: TokenAlignmentLink
-	associatedEntities?: string[]
-	equityRevenueCapture?: EquityRevenueCaptureStatus
-	equityStatement?: string
-}
-
-interface ProtocolResource {
-	label: string
-	address?: string
-	url?: string
-	note?: string
-}
-
-export interface ITokenRights {
-	rights?: TokenRight[]
-	governanceData?: GovernanceData
-	holdersRevenueAndValueAccrual?: HoldersRevenueAndValueAccrual
-	tokenAlignment?: TokenAlignment
-	resources?: ProtocolResource[]
-}
-
-export interface IUpdatedProtocol {
-	id: string
-	name: string
-	address?: string | null
-	symbol?: string | null
-	url: string
-	referralUrl?: string | null
-	description: string
-	chain: string
-	logo: string
-	audits: string | null
-	audit_note: string | null
-	gecko_id: string | null
-	cmcId: string | null
-	category: string
-	tags?: Array<string> | null
-	chains: Array<string>
-	module: string
-	treasury?: string | null
-	twitter: string
-	audit_links: Array<string>
-	openSource?: boolean
-	forkedFrom: Array<string>
-	oraclesByChain: Record<string, Array<string>>
-	parentProtocol?: string
-	governanceID?: Array<string>
-	github?: Array<string>
-	chainTvls?: Record<
-		string,
-		{
-			tvl?: Array<{ date: number; totalLiquidityUSD: number }> | null
-			tokens?: Array<{ date: number; tokens: Record<string, number> }> | null
-			tokensInUsd?: Array<{ date: number; tokens: Record<string, number> }> | null
-		}
-	>
-	currentChainTvls?: Record<string, number>
-	isParentProtocol?: boolean
-	mcap: number | null
-	methodology?: string
-	raises: Array<IRaise>
-	otherProtocols?: Array<string>
-	hallmarks?: Array<[number, string]> | Array<[[number, number], string]>
-	stablecoins?: Array<string>
-	misrepresentedTokens?: boolean
-	deprecated?: boolean
-	rugged?: boolean
-	deadUrl?: boolean
-	warningBanners?: Array<{
-		message: string
-		until?: number | string // unix timestamp or "forever" or date string  in 'YYYY-MM-DD' format, 'forever' if the field is not set
-		level: 'low' | 'alert' | 'rug'
-	}>
-	tokenRights?: ITokenRights
-}
+export type { ITokenRights, IProtocolMetricsV2, IRaise } from './api.types'
 
 interface IAdapterOverview {
 	total24h: number | null
@@ -169,7 +50,6 @@ interface IAdapterOverview {
 
 export interface IProtocolOverviewPageData {
 	tvlChartData: Array<[string, number]>
-	extraTvlCharts: Record<string, Record<string, number>>
 	id: string
 	name: string
 	token: {
@@ -298,7 +178,7 @@ export interface IProtocolOverviewPageData {
 		hasOtherTokenHolderFlows: boolean
 	} | null
 	openSmolStatsSummaryByDefault?: boolean
-	warningBanners?: IUpdatedProtocol['warningBanners']
+	warningBanners?: IProtocolMetricsV2['warningBanners']
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
 	seoDescription: string
 	seoKeywords: string
@@ -339,18 +219,6 @@ export interface IArticle {
 	date: string
 	href: string
 	imgSrc: string | null
-}
-
-export interface IRaise {
-	round: string
-	amount: number
-	valuation: string
-	source: string
-	date: number
-	defillamaId: string
-	leadInvestors?: Array<string>
-	otherInvestors?: Array<string>
-	investors?: Array<string>
 }
 
 export interface IProtocolExpenses {

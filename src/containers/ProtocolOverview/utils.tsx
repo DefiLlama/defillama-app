@@ -4,7 +4,7 @@ import type { IChainTvl } from '~/api/types'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import { PEGGEDS_API } from '~/constants'
 import { useFetchProtocol } from '~/containers/ProtocolOverview/queries.client'
-import type { IRaise, IUpdatedProtocol } from '~/containers/ProtocolOverview/types'
+import type { IProtocolMetricsV2, IRaise } from '~/containers/ProtocolOverview/types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 
@@ -753,7 +753,7 @@ export const useFetchProtocolAddlChartsData = (
 	return { ...data, historicalChainTvls, isLoading: data.isLoading || isLoading }
 }
 
-export const getProtocolWarningBanners = (protocolData: IUpdatedProtocol) => {
+export const getProtocolWarningBanners = (protocolData: IProtocolMetricsV2) => {
 	// Helper function to check if a date is in valid format
 	const isValidDateFormat = (date: any): boolean => {
 		if (!date || date === 'forever') return true

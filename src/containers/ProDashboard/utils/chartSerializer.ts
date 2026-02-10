@@ -1,5 +1,5 @@
 import { ChainChartLabels } from '~/containers/ChainOverview/constants'
-import { ProtocolChartsLabels } from '~/containers/ProtocolOverview/Chart/constants'
+import { ProtocolChartsLabels } from '~/containers/ProtocolOverview/constants'
 import { ChartConfig, MultiChartConfig } from '../types'
 import { getSupportedChainCharts, getUnsupportedChainCharts } from './chainChartMapping'
 import { generateItemId } from './dashboardUtils'
