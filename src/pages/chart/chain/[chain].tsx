@@ -11,7 +11,7 @@ import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
+const ChainCoreChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
 
 const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative']
 
@@ -142,7 +142,12 @@ export default function ChainChartPage(props) {
 				</div>
 			) : (
 				<Suspense fallback={<div className="flex min-h-[360px] items-center justify-center" />}>
-					<ChainChart chartData={finalCharts} valueSymbol={valueSymbol} isThemeDark={isThemeDark} groupBy={groupBy} />
+					<ChainCoreChart
+						chartData={finalCharts}
+						valueSymbol={valueSymbol}
+						isThemeDark={isThemeDark}
+						groupBy={groupBy}
+					/>
 				</Suspense>
 			)}
 		</div>

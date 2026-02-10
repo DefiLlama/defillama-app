@@ -1,4 +1,4 @@
-import { ProtocolChartsLabels } from '~/containers/ProtocolOverview/Chart/constants'
+import { ProtocolChartsLabels } from '~/containers/ProtocolOverview/constants'
 
 export const PROTOCOL_TO_DASHBOARD_CHART_TYPE: Record<ProtocolChartsLabels, string | null> = {
 	TVL: 'tvl',

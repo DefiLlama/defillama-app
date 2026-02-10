@@ -15,7 +15,7 @@ import {
 
 const customOffsets = {}
 
-export default function ChainLineBarChart({
+export default function ChainCoreChart({
 	chartData,
 	valueSymbol = '',
 	color,
@@ -128,15 +128,17 @@ export default function ChainLineBarChart({
 			onReady(instance)
 		}
 
+		const settings = { ...defaultChartSettings }
+
 		for (const option in chartOptions) {
-			if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
+			if (settings[option]) {
+				settings[option] = mergeDeep(settings[option], chartOptions[option])
 			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
+				settings[option] = { ...chartOptions[option] }
 			}
 		}
 
-		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+		const { graphic, tooltip, xAxis, yAxis, dataZoom } = settings
 
 		const finalYAxis = []
 

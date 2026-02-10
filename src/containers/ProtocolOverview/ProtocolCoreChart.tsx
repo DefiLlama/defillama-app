@@ -16,7 +16,7 @@ const customOffsets = {
 
 echarts.use([MarkAreaComponent])
 
-export default function ProtocolLineBarChart({
+export default function ProtocolCoreChart({
 	chartData,
 	chartColors,
 	valueSymbol = '',

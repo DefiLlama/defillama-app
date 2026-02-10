@@ -1,4 +1,4 @@
-import { ProtocolChartsQueryParams } from '../ProtocolOverview/Chart/constants'
+import { ProtocolChartsQueryParams } from '~/containers/ProtocolOverview/constants'
 
 export const protocolCategories = {
 	Dexs: { description: 'Protocols where you can swap/trade cryptocurrency', defaultChart: 'dexVolume' },

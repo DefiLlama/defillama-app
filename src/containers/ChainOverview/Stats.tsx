@@ -29,7 +29,7 @@ import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import { IChainOverviewData } from './types'
 import { useFetchChainChartData } from './useFetchChainChartData'
 
-const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
+const ChainCoreChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
 
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
@@ -914,7 +914,7 @@ export function Stats(props: IStatsProps) {
 						</div>
 					) : (
 						<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-							<ChainChart
+							<ChainCoreChart
 								chartData={finalCharts}
 								valueSymbol={valueSymbol}
 								isThemeDark={darkMode}

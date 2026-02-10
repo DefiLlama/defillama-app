@@ -14,28 +14,33 @@ export const formatBarChart = ({
 	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
 	dateInMs?: boolean
 	denominationPriceHistory: Record<string, number> | null
-}): Array<[number, number]> => {
+}): Array<[number, number | null]> => {
+	const getDenominationPrice = (timestampSec: number, timestampMs: number) =>
+		denominationPriceHistory?.[String(timestampSec)] ?? denominationPriceHistory?.[String(timestampMs)]
+
 	if (['weekly', 'monthly', 'cumulative'].includes(groupBy)) {
-		const store = {}
+		const store: Record<string, number> = {}
 		let total = 0
 		const isWeekly = groupBy === 'weekly'
 		const isMonthly = groupBy === 'monthly'
 		const isCumulative = groupBy === 'cumulative'
 		for (const [date, value] of data) {
+			const timestampSec = dateInMs ? +date / 1e3 : +date
+			const timestampMs = dateInMs ? +date : +date * 1e3
 			const dateKey = isWeekly
-				? lastDayOfWeek(dateInMs ? +date / 1e3 : +date)
+				? lastDayOfWeek(timestampSec)
 				: isMonthly
-					? firstDayOfMonth(dateInMs ? +date / 1e3 : +date)
+					? firstDayOfMonth(timestampSec)
 					: dateInMs
-						? +date / 1e3
+						? timestampSec
 						: +date
 			// sum up values as it is bar chart
 			if (denominationPriceHistory) {
-				const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
-				store[dateKey] = (store[dateKey] ?? 0) + (price ? value / price : 0) + total
-				if (isCumulative && price) {
-					total += value / price
-				}
+				const price = getDenominationPrice(timestampSec, timestampMs)
+				if (!price) continue
+				const converted = value / price
+				store[dateKey] = (store[dateKey] ?? 0) + converted + total
+				if (isCumulative) total += converted
 			} else {
 				store[dateKey] = (store[dateKey] ?? 0) + value + total
 				if (isCumulative) {
@@ -43,7 +48,7 @@ export const formatBarChart = ({
 				}
 			}
 		}
-		const finalChart = []
+		const finalChart: Array<[number, number]> = []
 		for (const date in store) {
 			finalChart.push([+date * 1e3, store[date]])
 		}
@@ -53,7 +58,9 @@ export const formatBarChart = ({
 	}
 	if (denominationPriceHistory) {
 		return data.map(([date, value]) => {
-			const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
+			const timestampSec = dateInMs ? +date / 1e3 : +date
+			const timestampMs = dateInMs ? +date : +date * 1e3
+			const price = getDenominationPrice(timestampSec, timestampMs)
 			return [dateInMs ? +date : +date * 1e3, price ? value / price : null]
 		})
 	} else {
@@ -71,28 +78,30 @@ export const formatLineChart = ({
 	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
 	dateInMs?: boolean
 	denominationPriceHistory: Record<string, number> | null
-}): Array<[number, number]> => {
+}): Array<[number, number | null]> => {
+	const getDenominationPrice = (timestampSec: number, timestampMs: number) =>
+		denominationPriceHistory?.[String(timestampSec)] ?? denominationPriceHistory?.[String(timestampMs)]
+
 	if (['weekly', 'monthly'].includes(groupBy)) {
-		const store = {}
+		const store: Record<string, number | null> = {}
 		const isWeekly = groupBy === 'weekly'
 		const isMonthly = groupBy === 'monthly'
 		for (const [date, value] of data) {
+			const timestampSec = dateInMs ? +date / 1e3 : +date
+			const timestampMs = dateInMs ? +date : +date * 1e3
 			const dateKey = isWeekly
-				? lastDayOfWeek(dateInMs ? +date / 1e3 : +date)
+				? lastDayOfWeek(timestampSec)
 				: isMonthly
-					? firstDayOfMonth(dateInMs ? +date / 1e3 : +date)
+					? firstDayOfMonth(timestampSec)
 					: dateInMs
-						? +date / 1e3
+						? timestampSec
 						: +date
 			// do not sum up values, just use the last value for each date
-			const finalValue = denominationPriceHistory
-				? denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
-					? value / denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
-					: null
-				: value
+			const denomPrice = denominationPriceHistory ? getDenominationPrice(timestampSec, timestampMs) : null
+			const finalValue = denominationPriceHistory ? (denomPrice ? value / denomPrice : null) : value
 			store[dateKey] = finalValue
 		}
-		const finalChart = []
+		const finalChart: Array<[number, number | null]> = []
 		for (const date in store) {
 			finalChart.push([+date * 1e3, store[date]])
 		}
@@ -101,7 +110,9 @@ export const formatLineChart = ({
 	}
 	if (denominationPriceHistory) {
 		return data.map(([date, value]) => {
-			const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
+			const timestampSec = dateInMs ? +date / 1e3 : +date
+			const timestampMs = dateInMs ? +date : +date * 1e3
+			const price = getDenominationPrice(timestampSec, timestampMs)
 			return [dateInMs ? +date : +date * 1e3, price ? value / price : null]
 		})
 	} else {
@@ -109,7 +120,7 @@ export const formatLineChart = ({
 	}
 }
 
-export function prepareChartCsv(data: Record<string, Array<[string | number, number]>>, filename: string) {
+export function prepareChartCsv(data: Record<string, Array<[string | number, number | null]>>, filename: string) {
 	let rows = []
 	const charts = []
 	const dateStore = {}

@@ -21,10 +21,10 @@ import {
 } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
-import { ProtocolChart } from './Chart/ProtocolChart'
 import { Flag } from './Flag'
 import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import { ProtocolOverviewLayout } from './Layout'
+import { ProtocolChart } from './ProtocolChart'
 import { IProtocolOverviewPageData } from './types'
 
 const EMPTY_COMPETITORS: Array<{ name: string; tvl: number }> = []
