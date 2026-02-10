@@ -21,6 +21,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/Unlocks/UpcomingEvent'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
 const UnconstrainedSmolLineChart = lazy(() =>
 	import('~/containers/Unlocks/UnconstrainedSmolLineChart').then((m) => ({ default: m.UnconstrainedSmolLineChart }))
@@ -77,23 +78,9 @@ export const UnlocksTable = ({
 	maxUnlockValue
 }: IUnlocksTableProps) => {
 	const router = useRouter()
-	const readSingleQueryValue = (value: string | string[] | undefined) => {
-		return Array.isArray(value) ? value[0] : value
-	}
 
 	const setQueryParam = (key: string, value: string | undefined) => {
-		const [basePath, currentSearch = ''] = router.asPath.split('?')
-		const params = new URLSearchParams(currentSearch)
-
-		if (value === undefined) {
-			params.delete(key)
-		} else {
-			params.set(key, value)
-		}
-
-		const nextSearch = params.toString()
-		const nextUrl = nextSearch ? `${basePath}?${nextSearch}` : basePath
-		router.push(nextUrl, undefined, { shallow: true })
+		pushShallowQuery(router, { [key]: value })
 	}
 
 	const unlockTypesParam = readSingleQueryValue(router.query.unlockTypes)

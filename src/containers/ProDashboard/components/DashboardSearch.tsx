@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
 	const router = useRouter()
@@ -23,14 +24,14 @@ export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
 			clearTimeout(timeoutRef.current)
 		}
 		timeoutRef.current = setTimeout(() => {
-			const params = new URLSearchParams(window.location.search)
-			params.delete('page')
-			if (value) {
-				params.set('query', value)
-			} else {
-				params.delete('query')
-			}
-			router.push(`/pro?${params.toString()}`, undefined, { shallow: true })
+			pushShallowQuery(
+				router,
+				{
+					page: undefined,
+					query: value || undefined
+				},
+				'/pro'
+			)
 		}, 300)
 	}
 
@@ -42,10 +43,14 @@ export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
 		if (timeoutRef.current) {
 			clearTimeout(timeoutRef.current)
 		}
-		const params = new URLSearchParams(window.location.search)
-		params.delete('page')
-		params.delete('query')
-		router.push(`/pro?${params.toString()}`, undefined, { shallow: true })
+		pushShallowQuery(
+			router,
+			{
+				page: undefined,
+				query: undefined
+			},
+			'/pro'
+		)
 	}
 
 	return (

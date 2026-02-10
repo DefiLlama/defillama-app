@@ -14,6 +14,7 @@ import { useGetProtocolEmissions } from '~/containers/Unlocks/queries.client'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
+import { readSingleQueryValue } from '~/utils/routerQuery'
 import Pagination from './Pagination'
 import { UpcomingEvent } from './UpcomingEvent'
 
@@ -394,9 +395,6 @@ const ChartContainer = ({
 }) => {
 	const width = useBreakpointWidth()
 	const router = useRouter()
-	const readSingleQueryValue = (value: string | string[] | undefined) => {
-		return Array.isArray(value) ? value[0] : value
-	}
 
 	const dataTypeParam = readSingleQueryValue(router.query.dataType)
 	const dataType: DataType =
@@ -415,19 +413,18 @@ const ChartContainer = ({
 			? (timeGroupingParam as TimeGrouping)
 			: 'D'
 
-	const setQueryParam = (key: string, value: string | undefined) => {
-		const [basePath, currentSearch = ''] = router.asPath.split('?')
-		const params = new URLSearchParams(currentSearch)
-		if (value === undefined) {
-			params.delete(key)
-		} else {
-			params.set(key, value)
+	const setQueryParams = (updates: Record<string, string | undefined>) => {
+		const nextQuery: Record<string, any> = { ...router.query }
+		for (const [key, value] of Object.entries(updates)) {
+			if (value === undefined) {
+				delete nextQuery[key]
+			} else {
+				nextQuery[key] = value
+			}
 		}
-
-		const nextSearch = params.toString()
-		const nextUrl = nextSearch ? `${basePath}?${nextSearch}` : basePath
-		router.push(nextUrl, undefined, { shallow: true })
+		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}
+	const setQueryParam = (key: string, value: string | undefined) => setQueryParams({ [key]: value })
 
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 

@@ -10,6 +10,7 @@ import { TagGroup } from '~/components/TagGroup'
 import { useWatchlistManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import { CalendarDayCell } from './CalendarDayCell'
 import type { CalendarViewProps, DailyUnlocks, DayInfo } from './calendarTypes'
 import { generateCalendarDays, generateWeekDays } from './calendarUtils'
@@ -27,9 +28,6 @@ const VIEW_MODES = ['Month', 'Week', 'TreeMap', 'List'] as const
 
 export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, precomputedData }) => {
 	const router = useRouter()
-	const readSingleQueryValue = React.useCallback((value: string | string[] | undefined) => {
-		return Array.isArray(value) ? value[0] : value
-	}, [])
 
 	const viewParam = readSingleQueryValue(router.query.view)
 	const viewMode: (typeof VIEW_MODES)[number] =
@@ -49,20 +47,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 
 	const setQueryParams = React.useCallback(
 		(updates: Record<string, string | undefined>) => {
-			const [basePath, currentSearch = ''] = router.asPath.split('?')
-			const params = new URLSearchParams(currentSearch)
-
-			for (const [key, value] of Object.entries(updates)) {
-				if (value === undefined) {
-					params.delete(key)
-				} else {
-					params.set(key, value)
-				}
-			}
-
-			const nextSearch = params.toString()
-			const nextUrl = nextSearch ? `${basePath}?${nextSearch}` : basePath
-			router.push(nextUrl, undefined, { shallow: true })
+			pushShallowQuery(router, updates)
 		},
 		[router]
 	)

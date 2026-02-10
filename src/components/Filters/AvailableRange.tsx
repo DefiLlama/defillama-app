@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
 export function AvailableRange({
 	variant = 'primary',
@@ -19,25 +20,17 @@ export function AvailableRange({
 		const minAvailable = form.min?.value
 		const maxAvailable = form.max?.value
 
-		const params = new URLSearchParams(window.location.search)
-		if (minAvailable) params.set('minAvailable', minAvailable)
-		else params.delete('minAvailable')
-		if (maxAvailable) params.set('maxAvailable', maxAvailable)
-		else params.delete('maxAvailable')
-		const queryString = params.toString()
-		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
-		router.push(newUrl, undefined, { shallow: true })
+		pushShallowQuery(router, {
+			minAvailable: minAvailable || undefined,
+			maxAvailable: maxAvailable || undefined
+		})
 	}
 
-	const { minAvailable, maxAvailable } = router.query
+	const minAvailable = readSingleQueryValue(router.query.minAvailable)
+	const maxAvailable = readSingleQueryValue(router.query.maxAvailable)
 
 	const handleClear = () => {
-		const params = new URLSearchParams(window.location.search)
-		params.delete('minAvailable')
-		params.delete('maxAvailable')
-		const queryString = params.toString()
-		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
-		router.push(newUrl, undefined, { shallow: true })
+		pushShallowQuery(router, { minAvailable: undefined, maxAvailable: undefined })
 	}
 
 	const min = typeof minAvailable === 'string' && minAvailable !== '' ? Number(minAvailable) : null

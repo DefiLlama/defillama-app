@@ -20,6 +20,7 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
 dayjs.extend(weekOfYear)
 
@@ -113,24 +114,9 @@ const EMPTY_CHART_RESULT = {
 function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 	const router = useRouter()
 
-	const readSingleQueryValue = React.useCallback((value: string | string[] | undefined) => {
-		return Array.isArray(value) ? value[0] : value
-	}, [])
-
 	const updateQueryParam = React.useCallback(
 		(key: string, value: string, defaultValue: string) => {
-			const [basePath, currentSearch = ''] = router.asPath.split('?')
-			const params = new URLSearchParams(currentSearch)
-
-			if (value === defaultValue) {
-				params.delete(key)
-			} else {
-				params.set(key, value)
-			}
-
-			const nextSearch = params.toString()
-			const nextUrl = nextSearch ? `${basePath}?${nextSearch}` : basePath
-			router.push(nextUrl, undefined, { shallow: true })
+			pushShallowQuery(router, { [key]: value === defaultValue ? undefined : value })
 		},
 		[router]
 	)
@@ -284,9 +270,6 @@ export default function Protocols({ data, unlockStats }) {
 	const [projectName, setProjectName] = React.useState('')
 	const { savedProtocols } = useWatchlistManager('defi')
 	const router = useRouter()
-	const readSingleQueryValue = React.useCallback((value: string | string[] | undefined) => {
-		return Array.isArray(value) ? value[0] : value
-	}, [])
 
 	const showOnlyWatchlist = readSingleQueryValue(router.query.watchlist) === 'true'
 

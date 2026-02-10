@@ -6,6 +6,7 @@ import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLay
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { RaisesSearch } from '~/containers/Raises/Search'
 import { useRangeFilter } from '~/hooks/useRangeFilter'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 interface IDropdownMenusProps {
 	header: string
@@ -119,9 +120,23 @@ function Filters({
 
 			<button
 				onClick={() => {
-					// Clear only the query params; keep the current concrete path (works on dynamic routes too).
-					const basePath = router.asPath.split('?')[0] || pathname || '/raises'
-					router.push(basePath, undefined, { shallow: true })
+					// Clear only query params while keeping the route.
+					pushShallowQuery(
+						router,
+						{
+							investor: undefined,
+							excludeInvestor: undefined,
+							chain: undefined,
+							excludeChain: undefined,
+							sector: undefined,
+							excludeSector: undefined,
+							round: undefined,
+							excludeRound: undefined,
+							minRaised: undefined,
+							maxRaised: undefined
+						},
+						pathname || router.pathname || '/raises'
+					)
 				}}
 				disabled={!hasActiveFilters}
 				className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40"
