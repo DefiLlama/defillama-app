@@ -480,8 +480,28 @@ const columnSizes: ColumnSizesByBreakpoint = {
 }
 
 const columnOrders: ColumnOrdersByBreakpoint = {
-	0: ['name', 'normalizedVolume24h', 'total24h', 'openInterest', 'activeLiquidity', 'total7d', 'total30d', 'category', 'definition'],
-	640: ['name', 'normalizedVolume24h', 'category', 'definition', 'total24h', 'openInterest', 'activeLiquidity', 'total7d', 'total30d']
+	0: [
+		'name',
+		'normalizedVolume24h',
+		'total24h',
+		'openInterest',
+		'activeLiquidity',
+		'total7d',
+		'total30d',
+		'category',
+		'definition'
+	],
+	640: [
+		'name',
+		'normalizedVolume24h',
+		'category',
+		'definition',
+		'total24h',
+		'openInterest',
+		'activeLiquidity',
+		'total7d',
+		'total30d'
+	]
 }
 
 const protocolChartsKeys: Partial<Record<IProps['type'], (typeof protocolCharts)[keyof typeof protocolCharts]>> = {
