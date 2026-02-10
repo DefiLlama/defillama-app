@@ -955,7 +955,7 @@ export const getChainsByFeesAdapterPageData = async ({
 		return {
 			adapterType,
 			dataType: dataType ?? null,
-			chartData: null,
+			chartData: { source: [], dimensions: ['timestamp'] },
 			chains,
 			allChains: chains.map((c) => c.name)
 		}
