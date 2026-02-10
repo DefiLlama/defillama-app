@@ -11,6 +11,7 @@ import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import ProtocolCharts from '../services/ProtocolCharts'
 import type { AdvancedTvlChartConfig } from '../types'
+import { generateConsistentChartColor } from '../utils/colorManager'
 import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
@@ -89,10 +90,9 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
 		const chainsSplit = formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled })
 		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
-		const chainsUnique: string[] = []
-		for (const key in lastEntry) {
-			if (key !== 'date') chainsUnique.push(key)
-		}
+		const chainsUnique = Object.keys(lastEntry)
+			.filter((key) => key !== 'date')
+			.sort((a, b) => (lastEntry[b] ?? 0) - (lastEntry[a] ?? 0))
 		return { chainsSplit, chainsUnique }
 	}, [historicalChainTvls, extraTvlsEnabled])
 
@@ -105,6 +105,16 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 	const resolvedUsdInflows = usdInflows ?? EMPTY_CHART_DATA
 	const resolvedTokenInflows = tokenInflows ?? EMPTY_CHART_DATA
 	const resolvedChainsSplit = chainsSplit ?? EMPTY_CHART_DATA
+
+	const stackColors = useMemo(() => {
+		const colors: Record<string, string> = {}
+		const names = chartType === 'chainsTvl' ? chainsUnique : resolvedTokensUnique
+		const itemType = chartType === 'chainsTvl' ? 'chain' : 'protocol'
+		for (const name of names) {
+			colors[name] = generateConsistentChartColor(name, '#8884d8', itemType)
+		}
+		return colors
+	}, [chainsUnique, resolvedTokensUnique, chartType])
 
 	const tvlData = useMemo(() => {
 		return basicTvlData ? basicTvlData.map(([ts, val]) => ({ date: ts, TVL: val })) : EMPTY_CHART_DATA
@@ -273,6 +283,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 							title=""
 							chartData={filteredChartData.chainsSplit ?? EMPTY_CHART_DATA}
 							stacks={chainsUnique}
+							stackColors={stackColors}
 							valueSymbol="$"
 							customLegendName="Chain"
 							customLegendOptions={chainsUnique}
@@ -292,6 +303,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 							title=""
 							chartData={filteredChartData.tokenBreakdownUSD ?? EMPTY_CHART_DATA}
 							stacks={resolvedTokensUnique}
+							stackColors={stackColors}
 							valueSymbol="$"
 							customLegendName="Token"
 							customLegendOptions={resolvedTokensUnique}
@@ -309,6 +321,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<PieChart
 							chartData={resolvedTokenBreakdownPieChart}
+							stackColors={stackColors}
 							exportButtons={{ png: true, csv: false, filename: imageFilename, pngTitle: imageTitle }}
 							height="360px"
 						/>
@@ -321,6 +334,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 							title=""
 							chartData={filteredChartData.tokenBreakdown ?? EMPTY_CHART_DATA}
 							stacks={resolvedTokensUnique}
+							stackColors={stackColors}
 							customLegendName="Token"
 							customLegendOptions={resolvedTokensUnique}
 							hideDownloadButton={true}
@@ -354,6 +368,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 							chartData={filteredChartData.tokenInflows ?? EMPTY_CHART_DATA}
 							title=""
 							valueSymbol="$"
+							stackColors={stackColors}
 							hideDefaultLegend={true}
 							hideDownloadButton={true}
 							customLegendName="Token"
