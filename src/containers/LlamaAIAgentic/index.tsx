@@ -482,6 +482,16 @@ function InlineContent({
 								</div>
 							)
 						}
+						if (isStreaming) {
+							return (
+								<div
+									key={`chart-loading-${part.chartId}-${i}`}
+									className="my-4 flex h-64 animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
+								>
+									<p className="text-sm text-gray-500">Loading chart...</p>
+								</div>
+							)
+						}
 						return null
 					}
 					if (!part.content) return null
