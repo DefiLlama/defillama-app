@@ -2,6 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { lazy, Suspense, useState } from 'react'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -46,6 +47,7 @@ export function StabilityHeader() {
 			<button
 				onClick={(e) => {
 					e.stopPropagation()
+					trackYieldsEvent(YIELDS_EVENTS.YIELD_SCORE_CLICK, { source: 'header' })
 					setShouldRenderModal(true)
 				}}
 				className="cursor-pointer"
@@ -92,11 +94,14 @@ export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellP
 			<>
 				<Tooltip content={redactedTooltip} placement="top">
 					<button
-						onClick={() => setShouldRenderModal(true)}
+						onClick={() => {
+							trackYieldsEvent(YIELDS_EVENTS.YIELD_SCORE_CLICK, { source: 'cell' })
+							setShouldRenderModal(true)
+						}}
 						className="ml-auto flex cursor-pointer flex-col items-end gap-1.5"
 					>
-						<span className="rounded-full bg-gray-500/15 px-3 py-1 dark:bg-(--cards-border)/40">
-							<span className="text-xs text-gray-400 blur-[2px] select-none dark:text-gray-300">Stable</span>
+						<span className="rounded-full bg-gray-500/15 px-4 py-1 dark:bg-(--cards-border)/40">
+							<span className="text-xs text-gray-400 blur-[3px] select-none dark:text-gray-300">Hidden</span>
 						</span>
 					</button>
 				</Tooltip>

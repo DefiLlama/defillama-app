@@ -26,7 +26,9 @@ export const YIELDS_EVENTS = {
 	// Pool
 	POOL_CLICK: 'yields-pool-click',
 	POOL_EXTERNAL_LINK: 'yields-pool-external-link',
-	PROJECT_FILTER_CLICK: 'yields-project-filter-click'
+	PROJECT_FILTER_CLICK: 'yields-project-filter-click',
+	// Premium
+	YIELD_SCORE_CLICK: 'yields-yield-score-click'
 } as const
 
 export type YieldsEventName = (typeof YIELDS_EVENTS)[keyof typeof YIELDS_EVENTS]

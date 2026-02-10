@@ -13,8 +13,6 @@ const SubscribeProModal = lazy(() =>
 interface IColumnFiltersProps {
 	nestedMenu?: boolean
 	enabledColumns?: string[]
-	showMedianApy?: boolean
-	showStdDev?: boolean
 }
 
 const PREMIUM_KEYS = new Set(['showMedianApy', 'showStdDev'])

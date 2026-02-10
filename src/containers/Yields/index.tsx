@@ -20,7 +20,9 @@ const ALL_YIELD_COLUMNS = [
 	'showLTV',
 	'showTotalSupplied',
 	'showTotalBorrowed',
-	'showAvailable'
+	'showAvailable',
+	'showMedianApy',
+	'showStdDev'
 ]
 
 const YieldPage = ({

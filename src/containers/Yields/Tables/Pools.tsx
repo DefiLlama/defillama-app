@@ -222,7 +222,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyMedian30d',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true)}</>
+			return <>{renderPercentChange(info.getValue(), true)}</>
 		},
 		size: 140,
 		meta: {
@@ -235,7 +235,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyStd30d',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true)}</>
+			return <>{renderPercentChange(info.getValue(), true)}</>
 		},
 		size: 120,
 		meta: {
