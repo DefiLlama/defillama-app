@@ -854,8 +854,8 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					totalAvailableUsd: showAvailable === 'true',
 					ltv: showLTV === 'true',
 					cv30d: true,
-					apyMedian30d: showMedianApy === 'true',
-					apyStd30d: showStdDev === 'true'
+					apyMedian30d: hasActiveSubscription && showMedianApy === 'true',
+					apyStd30d: hasActiveSubscription && showStdDev === 'true'
 				}
 			: {
 					apyBase7d: show7dBaseApy === 'true',
@@ -875,8 +875,8 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					totalAvailableUsd: showAvailable === 'true',
 					ltv: showLTV === 'true',
 					cv30d: true,
-					apyMedian30d: showMedianApy === 'true',
-					apyStd30d: showStdDev === 'true'
+					apyMedian30d: hasActiveSubscription && showMedianApy === 'true',
+					apyStd30d: hasActiveSubscription && showStdDev === 'true'
 				}
 
 	return (
