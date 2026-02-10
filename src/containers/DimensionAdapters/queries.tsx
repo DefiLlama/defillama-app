@@ -1,119 +1,23 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
+import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { PROTOCOLS_API, REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { IChainMetadata } from '~/utils/metadata/types'
+import {
+	getAdapterChainChartData,
+	getAdapterChainMetrics,
+	getAdapterProtocolChartData,
+	getAdapterProtocolMetrics
+} from './api'
+import type { IAdapterOverview, IAdapterSummary } from './api.types'
 import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
 import { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
 
-export interface IAdapterOverview {
-	totalDataChart: Array<[number, number]> // date, value
-	breakdown24h: number | null
-	chain: string | null
-	allChains: Array<string>
-	total24h: number
-	total48hto24h: number
-	total7d: number
-	total14dto7d: number
-	total60dto30d: number
-	total30d: number
-	total1y: number
-	change_1d: number
-	change_7d: number
-	change_1m: number
-	change_7dover7d: number
-	change_30dover30d: number
-	total7DaysAgo: number
-	total30DaysAgo: number
-	protocols: Array<{
-		total24h: number
-		total48hto24h: number
-		total7d: number
-		total14dto7d: number
-		total60dto30d: number
-		total30d: number
-		total1y: number
-		totalAllTime: number
-		average1y: number
-		monthlyAverage1y: number
-		change_1d: number
-		change_7d: number
-		change_1m: number
-		change_7dover7d: number
-		change_30dover30d: number
-		breakdown24h: Record<string, Record<string, number>>
-		breakdown30d: Record<string, Record<string, number>>
-		total7DaysAgo: number
-		total30DaysAgo: number
-		defillamaId: string
-		name: string
-		displayName: string
-		module: string
-		category: string
-		logo: string
-		chains: Array<string>
-		protocolType: string
-		methodologyURL: string
-		methodology: Record<string, string>
-		latestFetchIsOk: boolean
-		parentProtocol: string
-		slug: string
-		linkedProtocols: Array<string>
-		id: string
-		doublecounted?: boolean
-	}>
-}
-
-export interface IAdapterSummary {
-	name: string
-	defillamaId: string
-	disabled: boolean
-	displayName: string
-	module: string
-	category?: string | null
-	logo: string | null
-	chains: Array<string>
-	methodologyURL: string
-	methodology: Record<string, string>
-	gecko_id: string | null
-	forkedFrom?: Array<string> | null
-	twitter?: string | null
-	audits?: string | null
-	description: string | null
-	address?: string | null
-	url: string
-	audit_links?: Array<string> | null
-	versionKey: string | null
-	cmcId: string | null
-	id: string
-	github: Array<string>
-	governanceID: null
-	treasury: null
-	parentProtocol?: string | null
-	previousNames?: string | null
-	latestFetchIsOk: boolean
-	slug: string
-	protocolType?: string | null
-	total24h?: number | null
-	total48hto24h?: number | null
-	total7d?: number | null
-	total30d?: number | null
-	totalAllTime?: number | null
-	totalDataChart: Array<[number, number]>
-	linkedProtocols?: string[]
-	defaultChartView?: 'daily' | 'weekly' | 'monthly'
-	doublecounted?: boolean
-	hasLabelBreakdown?: boolean
-	breakdownMethodology?: Record<string, Record<string, string>>
-	childProtocols?: Array<{
-		name: string
-		defillamaId: string
-		displayName: string
-		methodologyURL: string
-		methodology: Record<string, string>
-		breakdownMethodology: Record<string, Record<string, string>>
-	}>
-}
+export { getAdapterChainChartData, getAdapterChainChartDataByProtocolBreakdown } from './api'
+export { getAdapterChainMetrics, getAdapterProtocolChartData, getAdapterProtocolChartDataByBreakdownType } from './api'
+export { getAdapterProtocolMetrics, getCexVolume } from './api'
+export type { IAdapterOverview, IAdapterSummary } from './api.types'
 
 //breakdown is using chain internal name so we need to map it
 let chainMappingCache: Record<string, string> | null = null
@@ -142,93 +46,6 @@ function getInternalChainName(displayChain: string, chainMapping: Record<string,
 	return slug(displayChain)
 }
 
-export async function getAdapterChainChartData({
-	adapterType,
-	chain,
-	dataType
-}: {
-	adapterType: `${ADAPTER_TYPES}`
-	chain: string
-	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
-}) {
-	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
-
-	if (dataType === 'dailyEarnings') {
-		//earnings we don't need to filter by chain, instead we filter it later on
-		totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}`
-	}
-
-	if (dataType) {
-		totalDataChartUrl += `?dataType=${dataType}`
-	}
-
-	const data = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
-
-	return data
-}
-
-export async function getAdapterProtocolChartData({
-	adapterType,
-	protocol,
-	dataType
-}: {
-	adapterType: `${ADAPTER_TYPES}`
-	protocol: string
-	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
-}) {
-	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}/protocol/${slug(protocol)}`
-
-	if (dataType) {
-		totalDataChartUrl += `?dataType=${dataType}`
-	}
-
-	const data = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
-
-	return data
-}
-
-export async function getAdapterProtocolChartDataByBreakdownType({
-	adapterType,
-	protocol,
-	dataType,
-	type
-}: {
-	adapterType: `${ADAPTER_TYPES}`
-	protocol: string
-	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
-	type: 'chain' | 'version'
-}) {
-	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}/protocol/${slug(protocol)}/${type}-breakdown`
-
-	if (dataType) {
-		totalDataChartUrl += `?dataType=${dataType}`
-	}
-
-	const data = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
-
-	return data as Array<[number, Record<string, number>]>
-}
-
-export async function getAdapterChainChartDataByProtocolBreakdown({
-	adapterType,
-	chain,
-	dataType
-}: {
-	adapterType: `${ADAPTER_TYPES}`
-	chain: string
-	dataType?: `${ADAPTER_DATA_TYPES}`
-}) {
-	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}/chain/${slug(chain)}/protocol-breakdown`
-
-	if (dataType) {
-		totalDataChartUrl += `?dataType=${dataType}`
-	}
-
-	const data = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
-
-	return data as Array<[number, Record<string, number>]>
-}
-
 export async function getAdapterChainOverview({
 	adapterType,
 	chain,
@@ -241,28 +58,16 @@ export async function getAdapterChainOverview({
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 }) {
 	if (dataType !== 'dailyEarnings') {
-		let summaryUrl = `${V2_SERVER_URL}/metrics/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
-
-		if (dataType) {
-			summaryUrl += `?dataType=${dataType}`
-		}
-
 		const [overviewData, totalDataChart] = await Promise.all([
-			fetchJson(summaryUrl, { timeout: 30_000 }),
+			getAdapterChainMetrics({ adapterType, chain, dataType }),
 			excludeTotalDataChart ? Promise.resolve([]) : getAdapterChainChartData({ adapterType, chain, dataType })
 		])
 
 		return { ...overviewData, totalDataChart } as IAdapterOverview
 	} else {
 		//earnings we don't need to filter by chain, instead we filter it later on
-		let summaryUrl = `${V2_SERVER_URL}/metrics/${adapterType}`
-
-		if (dataType) {
-			summaryUrl += `?dataType=dailyRevenue`
-		}
-
 		const [overviewData, totalDataChart, emissionsData, chainMapping] = await Promise.all([
-			fetchJson(summaryUrl),
+			getAdapterChainMetrics({ adapterType, chain: 'All', dataType: 'dailyRevenue' }),
 			excludeTotalDataChart
 				? Promise.resolve([])
 				: getAdapterChainChartData({ adapterType, chain, dataType: 'dailyRevenue' }),
@@ -377,38 +182,12 @@ export async function getAdapterProtocolSummary({
 }) {
 	if (protocol == 'All') throw new Error('Protocol cannot be All')
 
-	let summaryUrl = `${V2_SERVER_URL}/metrics/${adapterType}/protocol/${slug(protocol)}`
-
-	if (dataType) {
-		summaryUrl += `?dataType=${dataType}`
-	}
-
 	const [overviewData, totalDataChart] = await Promise.all([
-		fetchJson(summaryUrl),
+		getAdapterProtocolMetrics({ adapterType, protocol, dataType }),
 		excludeTotalDataChart ? Promise.resolve([]) : getAdapterProtocolChartData({ adapterType, protocol, dataType })
 	])
 
 	return { ...overviewData, totalDataChart } as IAdapterSummary
-}
-
-export async function getCexVolume() {
-	const [cexs, btcPriceRes] = await Promise.all([
-		fetchJson(
-			`https://api.llama.fi/cachedExternalResponse?url=${encodeURIComponent(
-				'https://api.coingecko.com/api/v3/exchanges?per_page=250'
-			)}`
-		),
-		fetchJson(
-			`https://api.llama.fi/cachedExternalResponse?url=${encodeURIComponent(
-				'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd'
-			)}`
-		)
-	])
-	const btcPrice = btcPriceRes?.bitcoin?.usd
-	if (!btcPrice || !cexs || typeof cexs.filter !== 'function') return undefined
-	// cexs might not be a list TypeError: cexs.filter is not a function
-	const volume = cexs.filter((c) => c.trust_score >= 9).reduce((sum, c) => sum + c.trade_volume_24h_btc, 0) * btcPrice
-	return volume
 }
 
 async function getEmissionsData() {
@@ -1202,7 +981,7 @@ export const getChainsByFeesAdapterPageData = async ({
 		return {
 			adapterType,
 			dataType: dataType ?? null,
-			chartData: null,
+			chartData: { source: [], dimensions: ['timestamp'] },
 			chains,
 			allChains: chains.map((c) => c.name)
 		}
@@ -1257,7 +1036,7 @@ export const getChainsByAdapterPageData = async ({
 					})
 				: Promise.resolve({})
 
-		const [chainsData, chartData, bribesData, tokenTaxesData, openInterestData, activeLiquidityData]: [
+		const [chainsData, rawChartData, bribesData, tokenTaxesData, openInterestData, activeLiquidityData]: [
 			Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>,
 			Array<[number, Record<string, number>]>,
 			Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>,
@@ -1297,6 +1076,48 @@ export const getChainsByAdapterPageData = async ({
 		const tokenTaxesByChain = {}
 		const openInterestByChain = {}
 		const activeLiquidityByChain = {}
+		const chartDimensions = ['timestamp', ...allChains]
+		const chainNameByKey = Object.entries(chainMetadata).reduce(
+			(acc, [metadataKey, chain]) => {
+				const displayName = chain.name
+				if (!displayName) return acc
+				acc[displayName] = displayName
+				acc[displayName.toLowerCase()] = displayName
+				acc[slug(displayName)] = displayName
+				acc[String(chain.id)] = displayName
+				acc[metadataKey] = displayName
+				acc[metadataKey.toLowerCase()] = displayName
+				acc[slug(metadataKey)] = displayName
+				return acc
+			},
+			{} as Record<string, string>
+		)
+		const chartData: MultiSeriesChart2Dataset = {
+			dimensions: chartDimensions,
+			source: rawChartData
+				.map(([timestamp, chainValues]) => {
+					const numericTimestamp = Number(timestamp)
+					if (!Number.isFinite(numericTimestamp)) return null
+					const normalizedTimestamp = numericTimestamp < 1e12 ? numericTimestamp * 1e3 : numericTimestamp
+					const row: Record<string, number | null> = { timestamp: normalizedTimestamp }
+					for (const chain of allChains) {
+						row[chain] = null
+					}
+					for (const chainKey in chainValues) {
+						const displayName =
+							chainNameByKey[chainKey] ??
+							chainNameByKey[chainKey.toLowerCase()] ??
+							chainNameByKey[slug(chainKey)] ??
+							chainKey
+						if (displayName in row && typeof chainValues[chainKey] === 'number') {
+							row[displayName] = chainValues[chainKey]
+						}
+					}
+					return row
+				})
+				.filter((row): row is Record<string, number | null> => row != null)
+				.sort((a, b) => Number(a.timestamp) - Number(b.timestamp))
+		}
 
 		for (const chain in bribesData) {
 			bribesByChain[chain] = {

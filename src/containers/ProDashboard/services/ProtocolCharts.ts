@@ -8,8 +8,8 @@ import {
 	TOKEN_LIQUIDITY_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
+import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/queries'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
 import { processAdjustedProtocolTvl, ProtocolChainTvls } from '~/utils/tvl'

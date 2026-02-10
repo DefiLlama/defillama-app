@@ -63,7 +63,7 @@ export interface IAdapterByChainPageData {
 export interface IChainsByAdapterPageData {
 	adapterType: `${ADAPTER_TYPES}`
 	dataType: `${ADAPTER_DATA_TYPES}` | null
-	chartData: Array<[number, Record<string, number>]>
+	chartData: MultiSeriesChart2Dataset
 	chains: Array<{
 		name: string
 		logo: string

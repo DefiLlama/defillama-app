@@ -128,9 +128,7 @@ export function ChainsByAdapter(props: IProps) {
 					</a>
 				</Announcement>
 			)}
-			{props.adapterType !== 'fees' && (
-				<ChainsByAdapterChart chartData={props.chartData} allChains={props.allChains} type={props.type} />
-			)}
+			{props.adapterType !== 'fees' && <ChainsByAdapterChart chartData={props.chartData} allChains={props.allChains} />}
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-end gap-4 p-2">
 					<label className="relative mr-auto w-full sm:max-w-[280px]">

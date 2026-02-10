@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { CACHE_SERVER, CHAINS_ASSETS_CHART, RAISES_API } from '~/constants'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
-import { getAdapterChainChartData, getAdapterProtocolChartData } from '~/containers/DimensionAdapters/queries'
+import { getAdapterChainChartData, getAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import {
 	useFetchProtocolActiveUsers,
 	useFetchProtocolNewUsers,
