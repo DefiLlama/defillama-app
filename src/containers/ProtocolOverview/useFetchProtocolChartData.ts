@@ -72,7 +72,7 @@ const buildTvlChart = ({
 	currentTvlByChain: Record<string, number> | null
 	groupBy: ChartInterval
 	denominationPriceHistory: Record<string, number> | null
-}): Array<[number, number]> => {
+}): Array<[number, number | null]> => {
 	const extraTvls: string[] = []
 	for (const extra in tvlSettings) {
 		if (tvlSettings[extra] && currentTvlByChain?.[extra] != null) {
@@ -96,7 +96,7 @@ const buildTvlChart = ({
 			value + extraTvls.reduce((acc, curr) => acc + (extraTvlCharts[curr]?.[String(dateInSec)] ?? 0), 0)
 	}
 
-	const finalChart: Array<[number, number]> = []
+	const finalChart: Array<[number, number | null]> = []
 	for (const date in store) {
 		const dateInSec = Number(date)
 		const dateInMs = Number(date) * 1e3
@@ -107,7 +107,9 @@ const buildTvlChart = ({
 				? store[date] / denominationRate
 				: null
 			: store[date]
-		finalChart.push([dateInMs, finalValue])
+		if (finalValue !== null) {
+			finalChart.push([dateInMs, finalValue])
+		}
 	}
 
 	return finalChart
@@ -751,13 +753,13 @@ export const useFetchProtocolChartData = ({
 		if (fetchingBridgeVolume) loadingCharts.push('Bridge Volume')
 		if (loadingCharts.length > 0) {
 			return {
-				finalCharts: {} as Record<string, Array<[string | number, number]>>,
+				finalCharts: {} as Record<string, Array<[string | number, number | null]>>,
 				valueSymbol,
 				loadingCharts: loadingCharts.join(', ').toLowerCase()
 			}
 		}
 
-		const charts: { [key in ProtocolChartsLabels]?: Array<[number, number]> } = {}
+		const charts: { [key in ProtocolChartsLabels]?: Array<[number, number | null]> } = {}
 
 		if (tvlChart?.length > 0 && (isTvlToggled || isTotalAssetsToggled)) {
 			const chartName: ProtocolChartsLabels = isCEX ? 'Total Assets' : ('TVL' as const)
@@ -785,9 +787,9 @@ export const useFetchProtocolChartData = ({
 					dateInMs: true,
 					denominationPriceHistory
 				})
-			if (isFdvToggled)
+			if (isFdvToggled && Number.isFinite(tokenTotalSupply))
 				charts['FDV'] = formatLineChart({
-					data: protocolTokenData.prices.map(([date, price]) => [date, price * tokenTotalSupply]),
+					data: protocolTokenData.prices.map(([date, price]) => [date, price * (tokenTotalSupply as number)]),
 					groupBy,
 					dateInMs: true,
 					denominationPriceHistory
@@ -891,12 +893,14 @@ export const useFetchProtocolChartData = ({
 			}
 		}
 
-		const finalFeesChart = Object.entries(feesStore).map(([date, value]) => [+date * 1e3, value] as [number, number])
+		const finalFeesChart = Object.entries(feesStore).map(
+			([date, value]) => [+date * 1e3, value] as [number, number | null]
+		)
 		const finalRevenueChart = Object.entries(revenueStore).map(
-			([date, value]) => [+date * 1e3, value] as [number, number]
+			([date, value]) => [+date * 1e3, value] as [number, number | null]
 		)
 		const finalHoldersRevenueChart = Object.entries(holdersRevenueStore).map(
-			([date, value]) => [+date * 1e3, value] as [number, number]
+			([date, value]) => [+date * 1e3, value] as [number, number | null]
 		)
 		if (finalFeesChart.length > 0) charts['Fees'] = finalFeesChart
 		if (finalRevenueChart.length > 0) charts['Revenue'] = finalRevenueChart
@@ -953,8 +957,9 @@ export const useFetchProtocolChartData = ({
 
 		if (isIncentivesToggled && unlocksAndIncentivesData?.unlockUsdChart) {
 			const nonZeroIndex = unlocksAndIncentivesData.unlockUsdChart.findIndex(([_, value]) => value > 0)
+			const startIndex = nonZeroIndex === -1 ? 0 : nonZeroIndex
 			charts['Incentives'] = formatBarChart({
-				data: unlocksAndIncentivesData.unlockUsdChart.slice(nonZeroIndex),
+				data: unlocksAndIncentivesData.unlockUsdChart.slice(startIndex),
 				groupBy,
 				denominationPriceHistory
 			})
@@ -1050,7 +1055,7 @@ export const useFetchProtocolChartData = ({
 				const queryParamKey = protocolCharts[chartLabel as ProtocolChartsLabels]
 				return queryParamKey ? toggledMetrics[queryParamKey] === 'true' : true
 			})
-		) as Record<string, Array<[number, number]>>
+		) as Record<string, Array<[number, number | null]>>
 
 		return { finalCharts: filteredCharts, valueSymbol, loadingCharts: '' }
 	}, [

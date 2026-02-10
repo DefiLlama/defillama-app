@@ -189,8 +189,14 @@ export const useFetchProtocolTVLChart = ({
 	})
 }
 
-export const useFetchProtocolTreasuryChart = ({ protocol, key, currency, breakdownType }: IProtocolChartParams) => {
-	const isEnabled = !!protocol
+export const useFetchProtocolTreasuryChart = ({
+	protocol,
+	key,
+	currency,
+	breakdownType,
+	enabled = true
+}: IProtocolChartParams) => {
+	const isEnabled = !!protocol && enabled
 	return useQuery({
 		queryKey: ['protocolTreasuryChart', protocol, key, currency, breakdownType],
 		queryFn: () => fetchProtocolTreasuryChart({ protocol: protocol!, key, currency, breakdownType }),
