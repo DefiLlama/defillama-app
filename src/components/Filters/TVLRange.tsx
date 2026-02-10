@@ -36,6 +36,7 @@ export function TVLRange({
 	const maxTvl = readSingleQueryValue(router.query.maxTvl)
 
 	const handleClear = () => {
+		onValueChange?.(null, null)
 		pushShallowQuery(router, { minTvl: undefined, maxTvl: undefined })
 	}
 

@@ -14,7 +14,7 @@ import { useGetProtocolEmissions } from '~/containers/Unlocks/queries.client'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
-import { readSingleQueryValue } from '~/utils/routerQuery'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import Pagination from './Pagination'
 import { UpcomingEvent } from './UpcomingEvent'
 
@@ -413,18 +413,7 @@ const ChartContainer = ({
 			? (timeGroupingParam as TimeGrouping)
 			: 'D'
 
-	const setQueryParams = (updates: Record<string, string | undefined>) => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		for (const [key, value] of Object.entries(updates)) {
-			if (value === undefined) {
-				delete nextQuery[key]
-			} else {
-				nextQuery[key] = value
-			}
-		}
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}
-	const setQueryParam = (key: string, value: string | undefined) => setQueryParams({ [key]: value })
+	const setQueryParam = (key: string, value: string | undefined) => pushShallowQuery(router, { [key]: value })
 
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 

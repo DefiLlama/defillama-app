@@ -48,8 +48,6 @@ interface IUnlocksTableProps {
 	projectName: string
 	setProjectName: (value: string) => void
 	savedProtocols: Set<string>
-	minUnlockValue?: number | null
-	maxUnlockValue?: number | null
 }
 
 const UNLOCK_TYPES = [
@@ -73,9 +71,7 @@ export const UnlocksTable = ({
 	showOnlyWatchlist,
 	projectName,
 	setProjectName,
-	savedProtocols,
-	minUnlockValue,
-	maxUnlockValue
+	savedProtocols
 }: IUnlocksTableProps) => {
 	const router = useRouter()
 
@@ -98,6 +94,8 @@ export const UnlocksTable = ({
 	} = router.query
 	const min = typeof minUnlockValueQuery === 'string' && minUnlockValueQuery !== '' ? Number(minUnlockValueQuery) : ''
 	const max = typeof maxUnlockValueQuery === 'string' && maxUnlockValueQuery !== '' ? Number(maxUnlockValueQuery) : ''
+	const minUnlockValue = min === '' ? null : min
+	const maxUnlockValue = max === '' ? null : max
 	const minPerc = typeof minUnlockPercQuery === 'string' && minUnlockPercQuery !== '' ? Number(minUnlockPercQuery) : ''
 	const maxPerc = typeof maxUnlockPercQuery === 'string' && maxUnlockPercQuery !== '' ? Number(maxUnlockPercQuery) : ''
 

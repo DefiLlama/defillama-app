@@ -273,11 +273,6 @@ export default function Protocols({ data, unlockStats }) {
 
 	const showOnlyWatchlist = readSingleQueryValue(router.query.watchlist) === 'true'
 
-	const minUnlockValue = readSingleQueryValue(router.query.minUnlockValue)
-	const maxUnlockValue = readSingleQueryValue(router.query.maxUnlockValue)
-	const min = typeof minUnlockValue === 'string' && minUnlockValue !== '' ? Number(minUnlockValue) : null
-	const max = typeof maxUnlockValue === 'string' && maxUnlockValue !== '' ? Number(maxUnlockValue) : null
-
 	const { upcomingUnlocks7dValue, upcomingUnlocks30dValue, totalProtocols } = unlockStats
 
 	return (
@@ -356,8 +351,6 @@ export default function Protocols({ data, unlockStats }) {
 				projectName={projectName}
 				setProjectName={setProjectName}
 				savedProtocols={savedProtocols}
-				minUnlockValue={min}
-				maxUnlockValue={max}
 			/>
 		</Layout>
 	)
