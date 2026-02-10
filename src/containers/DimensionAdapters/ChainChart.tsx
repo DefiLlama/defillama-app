@@ -373,7 +373,10 @@ const getChartDataByChainAndInterval = ({
 	}
 
 	// 2) Rank top-10 within each grouped bucket.
-	const sortedDates = Array.from(groupedValuesByDate.keys()).sort((a, b) => a - b)
+	const sortedDates = Array.from(groupedValuesByDate.entries())
+		.filter(([, groupedValues]) => Object.keys(groupedValues).length > 0)
+		.map(([date]) => date)
+		.sort((a, b) => a - b)
 	const rankedTopByDate = new Map<number, Record<string, number>>()
 	const othersByDate = new Map<number, number>()
 	const uniqTopChains = new Set<string>()
