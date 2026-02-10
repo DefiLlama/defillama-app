@@ -123,7 +123,7 @@ export function Select({
 							key={valuesAreAnArrayOfStrings ? option : option.key}
 							render={<Ariakit.SelectItem value={valuesAreAnArrayOfStrings ? option : option.key} />}
 							hideOnClick={false}
-							className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+							className="flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 						>
 							{valuesAreAnArrayOfStrings ? (
 								<span>{option}</span>
@@ -136,9 +136,9 @@ export function Select({
 								<span>{option.name}</span>
 							)}
 							{showCheckboxes ? (
-								<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+								<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
 							) : (
-								<Ariakit.SelectItemCheck />
+								<Ariakit.SelectItemCheck className="ml-auto" />
 							)}
 						</NestedMenuItem>
 					))}
@@ -230,7 +230,7 @@ export function Select({
 							<Ariakit.SelectItem
 								key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
 								value={valuesAreAnArrayOfStrings ? option : option.key}
-								className="group flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+								className="group flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 							>
 								{valuesAreAnArrayOfStrings ? (
 									<span>{option}</span>
@@ -242,24 +242,23 @@ export function Select({
 								) : (
 									<span>{option.name}</span>
 								)}
-								<div className="flex items-center gap-2">
-									{showCheckboxes ? (
-										<button
-											onClick={(e) => {
-												e.stopPropagation()
-												selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
-											}}
-											className="invisible text-xs font-medium text-(--link) underline group-hover:visible group-focus-visible:visible"
-										>
-											Only
-										</button>
-									) : null}
-									{canSelectOnlyOne ? (
-										<Ariakit.SelectItemCheck />
-									) : (
-										<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
-									)}
-								</div>
+
+								{showCheckboxes ? (
+									<button
+										onClick={(e) => {
+											e.stopPropagation()
+											selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
+										}}
+										className="invisible text-xs font-medium text-(--link) underline group-hover:visible group-focus-visible:visible"
+									>
+										Only
+									</button>
+								) : null}
+								{canSelectOnlyOne ? (
+									<Ariakit.SelectItemCheck className="ml-auto" />
+								) : (
+									<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+								)}
 							</Ariakit.SelectItem>
 						))}
 						{allValues.length > viewableMatches ? (

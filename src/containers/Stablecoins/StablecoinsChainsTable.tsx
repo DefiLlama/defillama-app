@@ -47,12 +47,12 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 							{row.getIsExpanded() ? (
 								<>
 									<Icon name="chevron-down" height={16} width={16} />
-									<span className="sr-only">View child protocols</span>
+									<span className="sr-only">Hide child protocols</span>
 								</>
 							) : (
 								<>
 									<Icon name="chevron-right" height={16} width={16} />
-									<span className="sr-only">Hide child protocols</span>
+									<span className="sr-only">View child protocols</span>
 								</>
 							)}
 						</button>
@@ -142,7 +142,10 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 	{
 		header: 'Stables Mcap / DeFi Tvl',
 		accessorKey: 'mcaptvl',
-		cell: ({ getValue }) => <>{getValue() && formattedNum(getValue(), false)}</>,
+		cell: ({ getValue }) => {
+			const value = getValue()
+			return <>{value != null && formattedNum(value, false)}</>
+		},
 		size: 195,
 		meta: {
 			align: 'end'

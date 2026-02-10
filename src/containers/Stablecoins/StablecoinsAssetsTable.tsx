@@ -168,7 +168,6 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 	{
 		header: '1d Change',
 		accessorKey: 'change_1d',
-		accessorFn: (row) => row.change_1d,
 		cell: (info) =>
 			info.row.original.change_1d_nol != null ? (
 				<Tooltip
@@ -190,7 +189,6 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 	{
 		header: '7d Change',
 		accessorKey: 'change_7d',
-		accessorFn: (row) => row.change_7d,
 		cell: (info) =>
 			info.row.original.change_7d_nol != null ? (
 				<Tooltip
@@ -212,7 +210,6 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 	{
 		header: '1m Change',
 		accessorKey: 'change_1m',
-		accessorFn: (row) => row.change_1m,
 		cell: (info) =>
 			info.row.original.change_1m_nol != null ? (
 				<Tooltip
@@ -315,17 +312,8 @@ function formattedPeggedPercent(percent: unknown, noSign = false) {
 			finalValue = '0%'
 		} else if (fixedPercent > 0) {
 			const prefix = noSign ? '' : '+'
-
-			if (fixedPercent > 100) {
-				finalValue = `${prefix}${numericPercent.toFixed(0).toLocaleString()}%`
-				color = up
-			} else if (fixedPercent > 2) {
-				finalValue = `${prefix}${fixedPercent}%`
-				color = up
-			} else {
-				finalValue = `${prefix}${fixedPercent}%`
-				color = up
-			}
+			finalValue = fixedPercent > 100 ? `${prefix}${numericPercent.toFixed(0)}%` : `${prefix}${fixedPercent}%`
+			color = up
 		} else if (fixedPercent < -2) {
 			finalValue = `${fixedPercent}%`
 			color = down
@@ -336,7 +324,11 @@ function formattedPeggedPercent(percent: unknown, noSign = false) {
 	}
 
 	return (
-		<span className={`${noSign ? '' : color === 'green' ? 'text-(--success)' : 'text-(--error)'}`}>{finalValue}</span>
+		<span
+			className={`${noSign ? '' : color === 'green' ? 'text-(--success)' : color === 'red' ? 'text-(--error)' : ''}`}
+		>
+			{finalValue}
+		</span>
 	)
 }
 
@@ -355,7 +347,8 @@ const formatPriceSource: Record<string, string> = {
 function pegDeviationText(pegDeviationInfo: { timestamp: number; price: number; priceSource: string | number }) {
 	const { timestamp, price, priceSource } = pegDeviationInfo
 	const date = new Date(timestamp * 1000).toISOString().slice(0, 10)
-	return `On ${date}, ${formatPriceSource[String(priceSource)]} reported a price of $${formattedNum(price)}.`
+	const source = formatPriceSource[String(priceSource)]
+	return `On ${date}, ${source ?? `source ${String(priceSource)}`} reported a price of $${formattedNum(price)}.`
 }
 
 export function StablecoinsTable({ data }: { data: StablecoinRow[] }) {

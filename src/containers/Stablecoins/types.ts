@@ -13,7 +13,6 @@ export type StablecoinOverviewChartPoint = {
 
 export interface StablecoinsGlobalDataCache {
 	chainList: string[]
-	chainsSet: Set<string>
 	chains: string[]
 	chainsTVLData: number[]
 }

@@ -12,6 +12,10 @@ import { withPerformanceLogging } from '~/utils/perf'
 type StablecoinChainsPageProps = ComponentProps<typeof ChainsWithStablecoins>
 
 const toSignedChangeLabel = (value: string): string => {
+	const numericValue = Number.parseFloat(value.replace(/[^0-9.+-]/g, ''))
+	if (!Number.isNaN(numericValue) && numericValue === 0) {
+		return value
+	}
 	return value.startsWith('-') ? value : `+${value}`
 }
 

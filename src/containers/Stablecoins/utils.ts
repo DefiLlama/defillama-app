@@ -324,7 +324,8 @@ export const buildStablecoinChartData = ({
 			usdInflows: []
 		}
 	}
-	const filteredIndexesSet = new Set(filteredIndexes)
+	const totalCount = chartDataByAssetOrChain?.length ?? 0
+	const filteredIndexesSet = new Set(filteredIndexes ?? Array.from({ length: totalCount }, (_, i) => i))
 	const doublecountedIdsSet = new Set(doublecountedIds)
 
 	const unformattedAreaData: Record<string, Record<string, number>> = {}
@@ -414,7 +415,7 @@ export const buildStablecoinChartData = ({
 
 	const secondsInDay = 3600 * 24
 	let zeroTokenInflows = 0
-	let zeroUsdInfows = 0
+	let zeroUsdInflows = 0
 	let tokenInflows: IStablecoinTokenInflowPoint[] = []
 	let usdInflows: Array<[string, number]> = []
 	const tokenSet: Set<string> = new Set()
@@ -434,7 +435,7 @@ export const buildStablecoinChartData = ({
 			}
 
 			if (dayDifference === 0) {
-				zeroUsdInfows++
+				zeroUsdInflows++
 			}
 
 			let hasTokenDayDifference = false
@@ -461,7 +462,7 @@ export const buildStablecoinChartData = ({
 	const tokenInflowNames = zeroTokenInflows === tokenInflows.length ? ['USDT'] : Array.from(tokenSet)
 
 	tokenInflows = zeroTokenInflows === tokenInflows.length ? [{ USDT: 0, date: '1652486400' }] : tokenInflows
-	usdInflows = zeroUsdInfows === usdInflows.length ? [['1652486400', 0]] : usdInflows
+	usdInflows = zeroUsdInflows === usdInflows.length ? [['1652486400', 0]] : usdInflows
 
 	// These series are built from object keys; keep them chronological for charts and "latest" lookups.
 	tokenInflows.sort((a, b) => Number(a.date) - Number(b.date))
@@ -530,63 +531,88 @@ export const formatPeggedAssetsData = ({
 	}
 
 	filteredStablecoinAssets = filteredStablecoinAssets.map((pegged) => {
-		const pegType = pegged.pegType ?? ''
-		const peggedGeckoID = pegged.gecko_id
-		const price = pegged.price
-		const priceSource = pegged.priceSource ?? null
+		const formattedPegged: StablecoinFormattedAsset = { ...pegged }
+		const pegType = formattedPegged.pegType ?? ''
+		const peggedGeckoID = formattedPegged.gecko_id
+		const price = formattedPegged.price
+		const priceSource = formattedPegged.priceSource ?? null
 		if (chain) {
-			const chainCirculating = pegged.chainCirculating?.[chain]
-			pegged.circulating = chainCirculating ? (chainCirculating.current?.[pegType] ?? 0) : 0
-			pegged.circulatingPrevDay = chainCirculating ? (chainCirculating.circulatingPrevDay?.[pegType] ?? null) : null
-			pegged.circulatingPrevWeek = chainCirculating ? (chainCirculating.circulatingPrevWeek?.[pegType] ?? null) : null
-			pegged.circulatingPrevMonth = chainCirculating ? (chainCirculating.circulatingPrevMonth?.[pegType] ?? null) : null
+			const chainCirculating = formattedPegged.chainCirculating?.[chain]
+			formattedPegged.circulating = chainCirculating ? (chainCirculating.current?.[pegType] ?? 0) : 0
+			formattedPegged.circulatingPrevDay = chainCirculating
+				? (chainCirculating.circulatingPrevDay?.[pegType] ?? null)
+				: null
+			formattedPegged.circulatingPrevWeek = chainCirculating
+				? (chainCirculating.circulatingPrevWeek?.[pegType] ?? null)
+				: null
+			formattedPegged.circulatingPrevMonth = chainCirculating
+				? (chainCirculating.circulatingPrevMonth?.[pegType] ?? null)
+				: null
 		} else {
 			const circulatingMap =
-				typeof pegged.circulating === 'object' && pegged.circulating != null
-					? (pegged.circulating as Record<string, number>)
+				typeof formattedPegged.circulating === 'object' && formattedPegged.circulating != null
+					? (formattedPegged.circulating as Record<string, number>)
 					: null
 			const circulatingPrevDayMap =
-				typeof pegged.circulatingPrevDay === 'object' && pegged.circulatingPrevDay != null
-					? (pegged.circulatingPrevDay as Record<string, number>)
+				typeof formattedPegged.circulatingPrevDay === 'object' && formattedPegged.circulatingPrevDay != null
+					? (formattedPegged.circulatingPrevDay as Record<string, number>)
 					: null
 			const circulatingPrevWeekMap =
-				typeof pegged.circulatingPrevWeek === 'object' && pegged.circulatingPrevWeek != null
-					? (pegged.circulatingPrevWeek as Record<string, number>)
+				typeof formattedPegged.circulatingPrevWeek === 'object' && formattedPegged.circulatingPrevWeek != null
+					? (formattedPegged.circulatingPrevWeek as Record<string, number>)
 					: null
 			const circulatingPrevMonthMap =
-				typeof pegged.circulatingPrevMonth === 'object' && pegged.circulatingPrevMonth != null
-					? (pegged.circulatingPrevMonth as Record<string, number>)
+				typeof formattedPegged.circulatingPrevMonth === 'object' && formattedPegged.circulatingPrevMonth != null
+					? (formattedPegged.circulatingPrevMonth as Record<string, number>)
 					: null
-			pegged.circulating = circulatingMap?.[pegType] ?? 0
-			pegged.circulatingPrevDay = circulatingPrevDayMap?.[pegType] ?? null
-			pegged.circulatingPrevWeek = circulatingPrevWeekMap?.[pegType] ?? null
-			pegged.circulatingPrevMonth = circulatingPrevMonthMap?.[pegType] ?? null
+			formattedPegged.circulating = circulatingMap?.[pegType] ?? 0
+			formattedPegged.circulatingPrevDay = circulatingPrevDayMap?.[pegType] ?? null
+			formattedPegged.circulatingPrevWeek = circulatingPrevWeekMap?.[pegType] ?? null
+			formattedPegged.circulatingPrevMonth = circulatingPrevMonthMap?.[pegType] ?? null
 		}
-		const chartIndex = peggedNameToChartDataIndex[pegged.name]
+		const chartIndex = peggedNameToChartDataIndex[formattedPegged.name]
 		const chart = chartDataByPeggedAsset[chartIndex] ?? null
 
-		pegged.mcap = getPrevStablecoinTotalFromChart(chart, 0, 'mcap') ?? null
+		formattedPegged.mcap = getPrevStablecoinTotalFromChart(chart, 0, 'mcap') ?? null
 		const mcapPrevDay = getPrevStablecoinTotalFromChart(chart, 1, 'mcap') ?? null
 		const mcapPrevWeek = getPrevStablecoinTotalFromChart(chart, 7, 'mcap') ?? null
 		const mcapPrevMonth = getPrevStablecoinTotalFromChart(chart, 30, 'mcap') ?? null
-		pegged.change_1d = getPercentChange(pegged.mcap, mcapPrevDay)
-		pegged.change_7d = getPercentChange(pegged.mcap, mcapPrevWeek)
-		pegged.change_1m = getPercentChange(pegged.mcap, mcapPrevMonth)
+		formattedPegged.change_1d = getPercentChange(formattedPegged.mcap, mcapPrevDay)
+		formattedPegged.change_7d = getPercentChange(formattedPegged.mcap, mcapPrevWeek)
+		formattedPegged.change_1m = getPercentChange(formattedPegged.mcap, mcapPrevMonth)
 
 		const change_1d_nol =
-			pegged.mcap && mcapPrevDay ? formattedNum(String(Number(pegged.mcap) - Number(mcapPrevDay)), true) : null
+			formattedPegged.mcap && mcapPrevDay
+				? formattedNum(String(Number(formattedPegged.mcap) - Number(mcapPrevDay)), true)
+				: null
 		const change_7d_nol =
-			pegged.mcap && mcapPrevWeek ? formattedNum(String(Number(pegged.mcap) - Number(mcapPrevWeek)), true) : null
+			formattedPegged.mcap && mcapPrevWeek
+				? formattedNum(String(Number(formattedPegged.mcap) - Number(mcapPrevWeek)), true)
+				: null
 		const change_1m_nol =
-			pegged.mcap && mcapPrevMonth ? formattedNum(String(Number(pegged.mcap) - Number(mcapPrevMonth)), true) : null
+			formattedPegged.mcap && mcapPrevMonth
+				? formattedNum(String(Number(formattedPegged.mcap) - Number(mcapPrevMonth)), true)
+				: null
 
-		pegged.change_1d_nol = !change_1d_nol ? null : change_1d_nol.startsWith('-') ? change_1d_nol : `+${change_1d_nol}`
-		pegged.change_7d_nol = !change_7d_nol ? null : change_7d_nol.startsWith('-') ? change_7d_nol : `+${change_7d_nol}`
-		pegged.change_1m_nol = !change_1m_nol ? null : change_1m_nol.startsWith('-') ? change_1m_nol : `+${change_1m_nol}`
+		formattedPegged.change_1d_nol = !change_1d_nol
+			? null
+			: change_1d_nol.startsWith('-')
+				? change_1d_nol
+				: `+${change_1d_nol}`
+		formattedPegged.change_7d_nol = !change_7d_nol
+			? null
+			: change_7d_nol.startsWith('-')
+				? change_7d_nol
+				: `+${change_7d_nol}`
+		formattedPegged.change_1m_nol = !change_1m_nol
+			? null
+			: change_1m_nol.startsWith('-')
+				? change_1m_nol
+				: `+${change_1m_nol}`
 
 		if (pegType !== 'peggedVAR' && price) {
 			let targetPrice = getTargetPrice(pegType, rateData, 0)
-			pegged.pegDeviation = getPercentChange(price, targetPrice)
+			formattedPegged.pegDeviation = getPercentChange(price, targetPrice)
 			let greatestDeviation = 0
 			for (let i = 0; i < 30; i++) {
 				const historicalPrices = priceData[priceData.length - i - 1]
@@ -598,7 +624,7 @@ export const formatPeggedAssetsData = ({
 					if (Math.abs(greatestDeviation) < Math.abs(deviation)) {
 						greatestDeviation = deviation
 						if (0.02 < Math.abs(greatestDeviation)) {
-							pegged.pegDeviationInfo = {
+							formattedPegged.pegDeviationInfo = {
 								timestamp: timestamp,
 								price: historicalPrice,
 								priceSource: priceSource
@@ -610,21 +636,21 @@ export const formatPeggedAssetsData = ({
 			if (Math.abs(greatestDeviation) < Math.abs(price - targetPrice)) {
 				greatestDeviation = price - targetPrice
 				if (0.02 < Math.abs(greatestDeviation)) {
-					pegged.pegDeviationInfo = {
+					formattedPegged.pegDeviationInfo = {
 						timestamp: Date.now() / 1000,
 						price: price,
 						priceSource: priceSource
 					}
 				}
 			}
-			pegged.pegDeviation_1m = getPercentChange(targetPrice + greatestDeviation, targetPrice)
+			formattedPegged.pegDeviation_1m = getPercentChange(targetPrice + greatestDeviation, targetPrice)
 		} else {
 			// Avoid leaking stale peg data into filters/table (e.g. when price is missing or peg is variable).
-			pegged.pegDeviation = undefined
-			pegged.pegDeviation_1m = undefined
-			pegged.pegDeviationInfo = undefined
+			formattedPegged.pegDeviation = undefined
+			formattedPegged.pegDeviation_1m = undefined
+			formattedPegged.pegDeviationInfo = undefined
 		}
-		return keepNeededProperties(pegged, peggedAssetProps)
+		return keepNeededProperties(formattedPegged, peggedAssetProps)
 	})
 
 	if (chain) {
@@ -661,7 +687,7 @@ export const formatPeggedChainsData = ({
 				}
 			: null
 
-		let mcaptvl = mcap && latestChainTVL ? +formatNum(+mcap.toFixed(2) / +latestChainTVL.toFixed(2)) : null
+		let mcaptvl = mcap && latestChainTVL ? +formatNum(mcap / latestChainTVL) : null
 		if (mcaptvl == 0) {
 			mcaptvl = null
 		}

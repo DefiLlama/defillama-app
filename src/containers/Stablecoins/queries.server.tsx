@@ -79,8 +79,6 @@ export const getStablecoinPeggedConfigData = () => withStablecoinsCache('pegged-
 
 export const getStablecoinBridgeInfo = () => withStablecoinsCache('bridge-info', fetchStablecoinBridgeInfoApi)
 
-let globalData: StablecoinsGlobalDataCache | null = null
-
 const sumRecordValues = (record: Record<string, number> | undefined): number => {
 	if (!record) return 0
 	let total = 0
@@ -104,7 +102,6 @@ const toOverviewFilteredAssets = (value: unknown): PeggedOverviewPageData['filte
 }
 
 function fetchGlobalData({ peggedAssets, chains }: PeggedAssetsInput): StablecoinsGlobalDataCache {
-	if (globalData) return globalData
 	const tvlMap: Record<string, number> = {}
 	for (const chain of chains) {
 		tvlMap[chain.name] = chain.tvl
@@ -119,14 +116,11 @@ function fetchGlobalData({ peggedAssets, chains }: PeggedAssetsInput): Stablecoi
 			if (chain && chainSet.has(chain)) chainsSet.add(chain)
 		}
 	}
-	globalData = {
+	return {
 		chainList,
-		chainsSet,
 		chains: chainList.filter((chain) => chainsSet.has(chain)),
 		chainsTVLData: chainList.map((chain) => tvlMap[chain])
 	}
-
-	return globalData
 }
 
 type StablecoinSeriesPoint = { date: number; mcap: Record<string, number> }
@@ -345,7 +339,7 @@ export async function getStablecoinChainsPageData(): Promise<PeggedChainsPageDat
 		const peggedDomDataByChain = chainList.map((chain) => dominanceMap[chain])
 
 		const chainDominances: Record<string, { symbol: string; mcap: number }> = {}
-		peggedDomDataByChain.map((charts, i) => {
+		peggedDomDataByChain.forEach((charts, i) => {
 			if (!charts) return
 			const lastChart = charts[charts.length - 1]
 			if (!lastChart) return
