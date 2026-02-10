@@ -9,7 +9,7 @@ import {
 	PROTOCOL_TREASURY_API,
 	TOKEN_LIQUIDITY_API
 } from '~/constants'
-import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/queries'
+import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { useFetchProtocolGovernanceData } from '~/containers/Governance/queries.client'
 import {
 	useFetchProtocolActiveUsers,
