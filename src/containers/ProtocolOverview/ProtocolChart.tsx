@@ -298,7 +298,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 						<span
 							className="flex items-center gap-1 rounded-full border-2 border-(--old-blue) px-2 py-1 text-xs"
 							style={{
-								borderColor: props.chartColors['TVL']
+								borderColor: props.chartColors['Events'] ?? props.chartColors['TVL'] ?? '#9CA3AF'
 							}}
 						>
 							<span>Events</span>
