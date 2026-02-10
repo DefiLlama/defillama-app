@@ -83,6 +83,7 @@ export const getProtocolMetricFlags = ({
 	}
 
 	const tvlTab = metadata.tvl && (multipleChains || inflowsExist || tokenBreakdownExist)
+
 	const hasAnyChainTvlHistory = Object.values(protocolData.chainTvls ?? {}).some(
 		(chain) => (chain?.tvl?.length ?? 0) > 0
 	)

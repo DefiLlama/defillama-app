@@ -13,12 +13,7 @@ import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import {
-	TVL_SETTINGS_KEYS_SET,
-	FEES_SETTINGS,
-	isTvlSettingsKey,
-	useLocalStorageSettingsManager
-} from '~/contexts/LocalStorage'
+import { FEES_SETTINGS, isTvlSettingsKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { Flag } from './Flag'

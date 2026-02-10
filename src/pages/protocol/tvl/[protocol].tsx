@@ -59,6 +59,10 @@ export const getStaticProps = withPerformanceLogging(
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
+		if (!metrics.tvlTab) {
+			return { notFound: true, props: null }
+		}
+
 		const toggleOptions = []
 
 		for (const chain in protocolData.currentChainTvls) {
