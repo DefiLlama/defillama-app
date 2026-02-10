@@ -125,7 +125,7 @@ export const PeggedAssetInfo = ({
 	const extraPeggeds = [UNRELEASED] as const
 	const [extraPeggedsEnabled, updater] = useLocalStorageSettingsManager('stablecoins')
 
-	const chainTotals = useCalcCirculating(chainCirculatings)
+	const chainTotals = useCalcCirculating<Parameters<typeof useGroupBridgeData>[0][number]>(chainCirculatings)
 
 	const chainsCirculatingValues = React.useMemo(() => {
 		return preparePieChartData({ data: chainTotals, sliceIdentifier: 'name', sliceValue: 'circulating', limit: 10 })

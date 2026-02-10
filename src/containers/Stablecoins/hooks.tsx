@@ -44,6 +44,25 @@ interface IPegged {
 	delisted?: boolean
 }
 
+type StablecoinCirculatingInput = {
+	name: string
+	circulating?: number | null
+	unreleased?: number | null
+	pegType?: string | null
+	pegDeviation?: number | null
+	mcap?: number | null
+	delisted?: boolean
+}
+
+type StablecoinCirculatingOutput<T extends StablecoinCirculatingInput> = T & {
+	circulating: number
+	unreleased: number
+	pegType: string
+	pegDeviation: number
+	depeggedTwoPercent: boolean
+	floatingPeg: boolean
+}
+
 interface GroupChainPegged extends IPegged {
 	subChains: IPegged[]
 }
@@ -67,39 +86,39 @@ interface IGroupData {
 	[key: string]: Record<string, string[]>
 }
 
-export const useCalcCirculating = (filteredPeggedAssets: IPegged[]) => {
+export const useCalcCirculating = <T extends StablecoinCirculatingInput = IPegged>(
+	filteredPeggedAssets: T[]
+): StablecoinCirculatingOutput<T>[] => {
 	const [extraPeggedEnabled] = useLocalStorageSettingsManager('stablecoins')
 
-	const peggedAssetTotals = useMemo(() => {
-		const updatedPeggedAssets = filteredPeggedAssets.map(
-			({ circulating, unreleased, pegType, pegDeviation, ...props }) => {
-				if (extraPeggedEnabled['unreleased'] && unreleased) {
-					circulating += unreleased
-				}
+	const peggedAssetTotals = useMemo<StablecoinCirculatingOutput<T>[]>(() => {
+		const updatedPeggedAssets = filteredPeggedAssets.map((asset) => {
+			const unreleased = Number(asset.unreleased ?? 0)
+			const pegType = asset.pegType ?? ''
+			const pegDeviation = Number(asset.pegDeviation ?? 0)
 
-				let floatingPeg = false
-				if (pegType === 'peggedVAR') {
-					floatingPeg = true
-				}
-
-				let depeggedTwoPercent = false
-				if (2 < Math.abs(pegDeviation)) {
-					depeggedTwoPercent = true
-				}
-
-				return {
-					circulating,
-					unreleased,
-					pegType,
-					pegDeviation,
-					depeggedTwoPercent,
-					floatingPeg,
-					...props
-				}
+			let circulating = Number(asset.circulating ?? 0)
+			if (extraPeggedEnabled['unreleased'] && unreleased) {
+				circulating += unreleased
 			}
-		)
 
-		return updatedPeggedAssets.sort((a, b) => b.mcap - a.mcap).filter((pegged) => !pegged.delisted)
+			const floatingPeg = pegType === 'peggedVAR'
+			const depeggedTwoPercent = 2 < Math.abs(pegDeviation)
+
+			return {
+				...asset,
+				circulating,
+				unreleased,
+				pegType,
+				pegDeviation,
+				depeggedTwoPercent,
+				floatingPeg
+			} as StablecoinCirculatingOutput<T>
+		})
+
+		return updatedPeggedAssets
+			.sort((a, b) => Number(b.mcap ?? 0) - Number(a.mcap ?? 0))
+			.filter((pegged) => !pegged.delisted)
 	}, [filteredPeggedAssets, extraPeggedEnabled])
 
 	return peggedAssetTotals

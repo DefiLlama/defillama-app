@@ -24,7 +24,12 @@ import {
 } from '~/containers/DimensionAdapters/queries'
 import { getETFData } from '~/containers/ETF/queries'
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
-import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
+import {
+	buildStablecoinChartData,
+	getStablecoinDominance,
+	getStablecoinMcapStatsFromTotals,
+	getStablecoinTopTokenFromChartData
+} from '~/containers/Stablecoins/utils'
 import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getNDistinctColors, getPercentChange, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
@@ -208,42 +213,17 @@ export async function getChainOverviewData({
 								selectedChain: chain === 'All' ? 'All' : currentChainMetadata.name,
 								doublecountedIds: data?.doublecountedIds
 							})
-							let totalMcapCurrent = (peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap ?? null) as
-								| number
-								| null
-							let totalMcapPrevWeek = (peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap ?? null) as
-								| number
-								| null
-							const percentChange =
-								totalMcapCurrent != null && totalMcapPrevWeek != null
-									? getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
-									: null
-
-							let topToken = { symbol: 'USDT', mcap: 0 }
-
-							if (peggedAreaChartData && peggedAreaChartData.length > 0) {
-								const recentMcaps = peggedAreaChartData[peggedAreaChartData.length - 1]
-
-								for (const token in recentMcaps) {
-									if (token !== 'date' && recentMcaps[token] > topToken.mcap) {
-										topToken = { symbol: token, mcap: recentMcaps[token] }
-									}
-								}
-							}
-
-							const dominance = getStablecoinDominance(topToken, totalMcapCurrent)
+							const mcapStats = getStablecoinMcapStatsFromTotals(peggedAreaTotalData)
+							const topToken = getStablecoinTopTokenFromChartData(peggedAreaChartData)
+							const dominance = getStablecoinDominance(topToken, mcapStats.totalMcapCurrent)
 
 							return {
-								mcap: totalMcapCurrent ?? null,
-								change7dUsd:
-									totalMcapCurrent != null && totalMcapPrevWeek != null ? totalMcapCurrent - totalMcapPrevWeek : null,
-								change7d: percentChange ?? null,
+								mcap: mcapStats.totalMcapCurrent ?? null,
+								change7dUsd: mcapStats.change7dUsd ?? null,
+								change7d: mcapStats.change7d ?? null,
 								topToken,
 								dominance: dominance ?? null,
-								mcapChartData:
-									peggedAreaTotalData && peggedAreaTotalData.length >= 14
-										? peggedAreaTotalData.slice(-14).map((p) => [+p.date * 1000, p.Mcap ?? 0] as [number, number])
-										: null
+								mcapChartData: mcapStats.mcapChartData14d
 							}
 						})
 						.catch((err) => {

@@ -19,9 +19,15 @@ import {
 	stablecoinPegTypeOptions
 } from '~/containers/Stablecoins/Filters'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from '~/containers/Stablecoins/hooks'
-import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
+import {
+	buildStablecoinChartData,
+	getStablecoinDominance,
+	getStablecoinMcapStatsFromTotals,
+	getStablecoinTopTokenFromChartData,
+	type IStablecoinTopTokenCandidate
+} from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum, getPercentChange, slug, toNiceCsvDate, toNumberOrNullFromQueryParam } from '~/utils'
+import { formattedNum, slug, toNiceCsvDate, toNumberOrNullFromQueryParam } from '~/utils'
 import { useFormatStablecoinQueryParams } from './hooks'
 import { PeggedAssetsTable } from './Table'
 
@@ -33,6 +39,27 @@ const EMPTY_CHAINS: string[] = []
 const EMPTY_IDS: number[] = []
 
 type MultiSeriesCharts = NonNullable<IMultiSeriesChart2Props['charts']>
+type StablecoinFilterableAsset = IStablecoinTopTokenCandidate & {
+	name: string
+	mcap: number
+	[key: string]: unknown
+}
+type StablecoinChartDatum = {
+	date: string | number
+	[key: string]: number | string | null | undefined
+}
+
+interface StablecoinsByChainProps {
+	selectedChain?: string
+	chains?: string[]
+	filteredPeggedAssets: StablecoinFilterableAsset[]
+	peggedAssetNames: string[]
+	peggedNameToChartDataIndex: Record<string, number>
+	chartDataByPeggedAsset: StablecoinChartDatum[][]
+	doublecountedIds?: number[]
+	availableBackings: string[]
+	availablePegTypes: string[]
+}
 
 const INFLOWS_TOOLTIP_FORMATTER = createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: '$' })
 
@@ -59,7 +86,7 @@ export function StablecoinsByChain({
 	doublecountedIds = EMPTY_IDS,
 	availableBackings,
 	availablePegTypes
-}) {
+}: StablecoinsByChainProps) {
 	const [chartType, setChartType] = React.useState('Total Market Cap')
 
 	const chartTypeList =
@@ -93,7 +120,7 @@ export function StablecoinsByChain({
 		)
 
 		const chartDataIndexes: number[] = []
-		const peggedAssets = filteredPeggedAssets.reduce((acc: any[], curr: any) => {
+		const peggedAssets = filteredPeggedAssets.reduce<StablecoinFilterableAsset[]>((acc, curr) => {
 			let toFilter = false
 
 			// Attribute filter:
@@ -177,7 +204,7 @@ export function StablecoinsByChain({
 
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label, router.query) }))
 
-	const peggedTotals = useCalcCirculating(peggedAssets)
+	const peggedTotals = useCalcCirculating<StablecoinFilterableAsset>(peggedAssets)
 
 	const chainsCirculatingValues = React.useMemo(() => {
 		return preparePieChartData({ data: peggedTotals, sliceIdentifier: 'symbol', sliceValue: 'mcap', limit: 10 })
@@ -206,59 +233,31 @@ export function StablecoinsByChain({
 		title = `${selectedChain} Stablecoins Market Cap`
 	}
 
+	const mcapStats = React.useMemo(() => getStablecoinMcapStatsFromTotals(peggedAreaTotalData), [peggedAreaTotalData])
+
 	const { change1d, change7d, change30d, totalMcapCurrent, change1d_nol, change7d_nol, change30d_nol } =
 		React.useMemo(() => {
-			let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap
-			let totalMcapPrevDay = peggedAreaTotalData?.[peggedAreaTotalData.length - 2]?.Mcap
-			let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap
-			let totalMcapPrevMonth = peggedAreaTotalData?.[peggedAreaTotalData.length - 31]?.Mcap
-			const change1d = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2) ?? '0'
-			const change7d = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2) ?? '0'
-			const change30d = getPercentChange(totalMcapCurrent, totalMcapPrevMonth)?.toFixed(2) ?? '0'
-			const change1d_nol = formattedNum(
-				String(
-					totalMcapCurrent && totalMcapPrevDay
-						? parseFloat(totalMcapCurrent as string) - parseFloat(totalMcapPrevDay as string)
-						: 0
-				),
-				true
-			)
-			const change7d_nol = formattedNum(
-				String(
-					totalMcapCurrent && totalMcapPrevDay
-						? parseFloat(totalMcapCurrent as string) - parseFloat(totalMcapPrevWeek as string)
-						: 0
-				),
-				true
-			)
-			const change30d_nol = formattedNum(
-				String(
-					totalMcapCurrent && totalMcapPrevDay
-						? parseFloat(totalMcapCurrent as string) - parseFloat(totalMcapPrevMonth as string)
-						: 0
-				),
-				true
-			)
+			const oneDay = mcapStats.change1d ?? '0'
+			const sevenDay = mcapStats.change7d ?? '0'
+			const thirtyDay = mcapStats.change30d ?? '0'
+			const oneDayUsd = formattedNum(String(mcapStats.change1dUsd ?? 0), true)
+			const sevenDayUsd = formattedNum(String(mcapStats.change7dUsd ?? 0), true)
+			const thirtyDayUsd = formattedNum(String(mcapStats.change30dUsd ?? 0), true)
 
 			return {
-				change1d: change1d.startsWith('-') ? change1d : `+${change1d}`,
-				change7d: change7d.startsWith('-') ? change7d : `+${change7d}`,
-				change30d: change30d.startsWith('-') ? change30d : `+${change30d}`,
-				totalMcapCurrent,
-				change1d_nol: change1d_nol.startsWith('-') ? change1d_nol : `+${change1d_nol}`,
-				change7d_nol: change7d_nol.startsWith('-') ? change7d_nol : `+${change7d_nol}`,
-				change30d_nol: change30d_nol.startsWith('-') ? change30d_nol : `+${change30d_nol}`
+				change1d: oneDay.startsWith('-') ? oneDay : `+${oneDay}`,
+				change7d: sevenDay.startsWith('-') ? sevenDay : `+${sevenDay}`,
+				change30d: thirtyDay.startsWith('-') ? thirtyDay : `+${thirtyDay}`,
+				totalMcapCurrent: mcapStats.totalMcapCurrent,
+				change1d_nol: oneDayUsd.startsWith('-') ? oneDayUsd : `+${oneDayUsd}`,
+				change7d_nol: sevenDayUsd.startsWith('-') ? sevenDayUsd : `+${sevenDayUsd}`,
+				change30d_nol: thirtyDayUsd.startsWith('-') ? thirtyDayUsd : `+${thirtyDayUsd}`
 			}
-		}, [peggedAreaTotalData])
+		}, [mcapStats])
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
 
-	let topToken = { symbol: 'USDT', mcap: 0 }
-	if (peggedTotals.length > 0) {
-		const topTokenData = peggedTotals[0]
-		topToken.symbol = topTokenData.symbol
-		topToken.mcap = topTokenData.mcap
-	}
+	const topToken = React.useMemo(() => getStablecoinTopTokenFromChartData(peggedAreaChartData), [peggedAreaChartData])
 
 	const dominance = getStablecoinDominance(topToken, totalMcapCurrent)
 
@@ -604,7 +603,7 @@ function TokenInflowsChartPanel({
 	)
 }
 
-function handleRouting(selectedChain, queryParams) {
+function handleRouting(selectedChain: string, queryParams: Record<string, string | string[] | undefined>) {
 	const { chain: _chain, ...filters } = queryParams
 
 	let params = ''

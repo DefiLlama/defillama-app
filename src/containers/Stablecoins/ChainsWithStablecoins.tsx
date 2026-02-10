@@ -51,7 +51,7 @@ export function ChainsWithStablecoins({
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const filteredPeggedAssets = chainCirculatings
-	const chainTotals = useCalcCirculating(filteredPeggedAssets)
+	const chainTotals = useCalcCirculating<Parameters<typeof useGroupChainsPegged>[0][number]>(filteredPeggedAssets)
 
 	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
