@@ -272,6 +272,11 @@ export default function Protocols(props: TreasuryPageProps) {
 	})
 
 	const hasOwnTokens = (ownTokensBreakdown?.length ?? 0) > 0
+	const hasBreakdownMetrics =
+		(tokenBreakdownPieChart?.length ?? 0) > 0 ||
+		!!valueDataset ||
+		(tokenRawDataset && tokensUnique.length > 0) ||
+		(tokenUSDDataset && tokensUnique.length > 0)
 
 	const toggleIncludeOwnTokens = React.useCallback(
 		(event: React.ChangeEvent<HTMLInputElement>) => {
@@ -312,53 +317,55 @@ export default function Protocols(props: TreasuryPageProps) {
 				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
 				</div>
+			) : !hasBreakdownMetrics ? (
+				<div className="col-span-full flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+					<p className="text-(--text-label)">Breakdown metrics are not available</p>
+				</div>
 			) : (
-				<>
-					<div className="grid grid-cols-2 gap-2">
-						{tokenBreakdownPieChart?.length ? (
-							<TokensBreakdownPieChartCard
-								key={tokenBreakdownPieChart.map((d) => d.name).join('|')}
-								protocolName={props.name}
-								chartData={tokenBreakdownPieChart}
-							/>
-						) : null}
+				<div className="grid grid-cols-2 gap-2">
+					{tokenBreakdownPieChart?.length ? (
+						<TokensBreakdownPieChartCard
+							key={tokenBreakdownPieChart.map((d) => d.name).join('|')}
+							protocolName={props.name}
+							chartData={tokenBreakdownPieChart}
+						/>
+					) : null}
 
-						{valueDataset ? (
-							<HistoricalTreasuryChartCard
-								key="historical-treasury"
-								protocolName={props.name}
-								dataset={valueDataset}
-								charts={valueCharts}
-							/>
-						) : null}
+					{valueDataset ? (
+						<HistoricalTreasuryChartCard
+							key="historical-treasury"
+							protocolName={props.name}
+							dataset={valueDataset}
+							charts={valueCharts}
+						/>
+					) : null}
 
-						{tokenRawDataset && tokensUnique.length > 0 ? (
-							<TokensMultiSeriesChartCard
-								key={`${tokensUnique.join('|')}:treasury-tokens-breakdown-raw`}
-								title="Tokens Breakdown"
-								protocolName={props.name}
-								allTokens={tokensUnique}
-								dataset={tokenRawDataset}
-								charts={tokenRawCharts}
-								exportSuffix="treasury-tokens-breakdown-raw"
-								valueSymbol=""
-							/>
-						) : null}
+					{tokenRawDataset && tokensUnique.length > 0 ? (
+						<TokensMultiSeriesChartCard
+							key={`${tokensUnique.join('|')}:treasury-tokens-breakdown-raw`}
+							title="Tokens Breakdown"
+							protocolName={props.name}
+							allTokens={tokensUnique}
+							dataset={tokenRawDataset}
+							charts={tokenRawCharts}
+							exportSuffix="treasury-tokens-breakdown-raw"
+							valueSymbol=""
+						/>
+					) : null}
 
-						{tokenUSDDataset && tokensUnique.length > 0 ? (
-							<TokensMultiSeriesChartCard
-								key={`${tokensUnique.join('|')}:treasury-tokens-usd`}
-								title="Tokens (USD)"
-								protocolName={props.name}
-								allTokens={tokensUnique}
-								dataset={tokenUSDDataset}
-								charts={tokenUSDCharts}
-								exportSuffix="treasury-tokens-usd"
-								valueSymbol="$"
-							/>
-						) : null}
-					</div>
-				</>
+					{tokenUSDDataset && tokensUnique.length > 0 ? (
+						<TokensMultiSeriesChartCard
+							key={`${tokensUnique.join('|')}:treasury-tokens-usd`}
+							title="Tokens (USD)"
+							protocolName={props.name}
+							allTokens={tokensUnique}
+							dataset={tokenUSDDataset}
+							charts={tokenUSDCharts}
+							exportSuffix="treasury-tokens-usd"
+							valueSymbol="$"
+						/>
+					) : null}
+				</div>
 			)}
 		</ProtocolOverviewLayout>
 	)

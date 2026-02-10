@@ -59,10 +59,6 @@ export const getStaticProps = withPerformanceLogging(
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
-		if (!metrics.tvlTab) {
-			return { notFound: true, props: null }
-		}
-
 		const toggleOptions = []
 
 		for (const chain in protocolData.currentChainTvls) {
@@ -368,6 +364,13 @@ export default function Protocols(props) {
 	const protocolSlug = slug(props.name || 'protocol')
 	const buildFilename = (suffix: string) => `${protocolSlug}-${slug(suffix)}`
 	const buildTitle = (suffix: string) => (props.name ? `${props.name} – ${suffix}` : suffix)
+	const hasBreakdownMetrics =
+		(chainsDataset && chainsUnique?.length > 1) ||
+		(tokenUSDDataset && tokensUnique?.length > 0) ||
+		(tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && tokenBreakdownPieChart?.length > 0) ||
+		(tokenRawDataset && tokensUnique?.length > 0) ||
+		usdInflowsDataset ||
+		(tokenInflowsDataset && tokensUnique?.length > 0)
 
 	return (
 		<ProtocolOverviewLayout
@@ -386,6 +389,10 @@ export default function Protocols(props) {
 			{isLoading ? (
 				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
+				</div>
+			) : !hasBreakdownMetrics ? (
+				<div className="col-span-2 flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+					<p className="text-(--text-label)">Breakdown metrics are not available</p>
 				</div>
 			) : (
 				<div className="grid grid-cols-2 gap-2">

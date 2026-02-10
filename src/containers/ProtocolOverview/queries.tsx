@@ -43,55 +43,13 @@ const isProtocolChartsLabel = (value: string): value is ProtocolChartsLabels => 
 
 export const getProtocolMetricFlags = ({
 	protocolData,
-	metadata,
-	hasTvlChartData
+	metadata
 }: {
 	protocolData: IProtocolMetricsV2
 	metadata: IProtocolMetadata
-	hasTvlChartData?: boolean
 }): IProtocolPageMetrics => {
-	let inflowsExist = false
-	let multipleChains = false
-	let tokenBreakdownExist = false
-	if (!protocolData.misrepresentedTokens) {
-		for (const chain in protocolData.chainTvls ?? {}) {
-			if (protocolData.chainTvls[chain].tokensInUsd?.length > 0) {
-				inflowsExist = true
-				break
-			}
-		}
-
-		for (const chain in protocolData.chainTvls ?? {}) {
-			if (protocolData.chainTvls[chain].tokens?.length > 0) {
-				tokenBreakdownExist = true
-				break
-			}
-		}
-	}
-
-	let chainsWithTvl = 0
-	for (const chain in protocolData.currentChainTvls ?? {}) {
-		if (chain.includes('-') || chain === 'offers' || TVL_SETTINGS_KEYS_SET.has(chain)) {
-			continue
-		}
-		if ((protocolData.currentChainTvls?.[chain] ?? 0) > 0) {
-			chainsWithTvl++
-		}
-		if (chainsWithTvl > 1) {
-			multipleChains = true
-		}
-	}
-
-	const tvlTab = metadata.tvl && (multipleChains || inflowsExist || tokenBreakdownExist)
-
-	const hasAnyChainTvlHistory = Object.values(protocolData.chainTvls ?? {}).some(
-		(chain) => (chain?.tvl?.length ?? 0) > 0
-	)
-	const tvlChartExists = hasTvlChartData ?? hasAnyChainTvlHistory
-
 	return {
-		tvl: !!(metadata.tvl && tvlChartExists),
-		tvlTab: !!tvlTab,
+		tvl: !!metadata.tvl,
 		dexs: !!metadata.dexs,
 		perps: !!metadata.perps,
 		openInterest: !!metadata.openInterest,
@@ -114,7 +72,7 @@ export const getProtocolMetricFlags = ({
 		governance: !!metadata.governance,
 		nfts: !!metadata.nfts,
 		dev: !!protocolData.github,
-		inflows: inflowsExist,
+		inflows: !!metadata.inflows,
 		liquidity: !!metadata.liquidity,
 		activeUsers: !!metadata.activeUsers,
 		borrowed: !!metadata.borrowed,
@@ -628,11 +586,9 @@ export const getProtocolOverviewPageData = async ({
 					?.sort((a, b) => a.date - b.date)
 			: null) ?? null
 
-	const tvlChartData = protocolTvlChartData
 	const protocolMetrics = getProtocolMetricFlags({
 		protocolData,
-		metadata: currentProtocolMetadata,
-		hasTvlChartData: tvlChartData.length > 0
+		metadata: currentProtocolMetadata
 	})
 
 	const chains = []
@@ -663,7 +619,7 @@ export const getProtocolOverviewPageData = async ({
 
 	const availableCharts: ProtocolChartsLabels[] = []
 
-	if (currentProtocolMetadata.tvl && tvlChartData.length > 0) {
+	if (currentProtocolMetadata.tvl && protocolTvlChartData.length > 0) {
 		availableCharts.push(isCEX ? 'Total Assets' : 'TVL')
 	}
 
@@ -745,18 +701,8 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Borrowed')
 	}
 
-	let inflowsExist = false
-	if (!protocolData.misrepresentedTokens) {
-		for (const chain in protocolData.chainTvls) {
-			if (protocolData.chainTvls[chain].tokensInUsd?.length && protocolData.chainTvls[chain].tokens?.length) {
-				inflowsExist = true
-				break
-			}
-		}
-
-		if (inflowsExist) {
-			availableCharts.push('USD Inflows')
-		}
+	if (protocolMetrics.inflows) {
+		availableCharts.push('USD Inflows')
 	}
 
 	if (treasury) {
@@ -818,7 +764,7 @@ export const getProtocolOverviewPageData = async ({
 
 	const defaultToggledCharts: ProtocolChartsLabels[] = []
 	if (protocolMetrics.tvl) {
-		if (tvlChartData.length === 0 || tvlChartData.every(([, value]) => value === 0)) {
+		if (protocolTvlChartData.length === 0 || protocolTvlChartData.every(([, value]) => value === 0)) {
 			const hasStaking = (protocolData.currentChainTvls?.staking ?? 0) > 0
 			if (hasStaking) {
 				defaultToggledCharts.push('Staking')
@@ -969,7 +915,7 @@ export const getProtocolOverviewPageData = async ({
 		chartDenominations,
 		availableCharts,
 		chartColors,
-		tvlChartData,
+		tvlChartData: protocolTvlChartData,
 		hallmarks: Object.entries(hallmarks)
 			.sort(([a], [b]) => Number(a) - Number(b))
 			.map(([date, event]) => [+date * 1e3, event as string]),

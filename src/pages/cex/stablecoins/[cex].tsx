@@ -59,8 +59,7 @@ export const getStaticProps = withPerformanceLogging(
 				category: protocolData.category ?? null,
 				metrics: {
 					stablecoins: true,
-					tvl: false,
-					tvlTab: true,
+					tvl: true,
 					dexs: false,
 					perps: false,
 					openInterest: false,

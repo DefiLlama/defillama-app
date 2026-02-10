@@ -83,12 +83,6 @@ export interface IProtocolWarningBanner {
 	level: 'low' | 'alert' | 'rug'
 }
 
-export interface IProtocolChainTvlEntry {
-	tvl?: Array<{ date: number; totalLiquidityUSD: number }> | null
-	tokens?: Array<{ date: number; tokens: Record<string, number> }> | null
-	tokensInUsd?: Array<{ date: number; tokens: Record<string, number> }> | null
-}
-
 export interface IProtocolMetricsV2 {
 	id: string
 	name: string
@@ -116,7 +110,6 @@ export interface IProtocolMetricsV2 {
 	parentProtocol?: string
 	governanceID?: Array<string>
 	github?: Array<string>
-	chainTvls?: Record<string, IProtocolChainTvlEntry>
 	currentChainTvls?: Record<string, number>
 	isParentProtocol?: boolean
 	mcap: number | null

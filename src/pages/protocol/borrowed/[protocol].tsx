@@ -174,7 +174,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const toggleOptions = []
 
-		for (const chain in protocolData.chainTvls) {
+		for (const chain in protocolData.currentChainTvls) {
 			if (TVL_SETTINGS_KEYS_SET.has(chain)) {
 				const option = tvlOptionsMap.get(chain as any)
 				if (option) {
@@ -220,6 +220,11 @@ export default function Protocols(props) {
 		keys: ['borrowed'],
 		includeBase: false
 	})
+	const hasBreakdownMetrics =
+		(borrowedByChainDataset && chainsUnique.length > 1) ||
+		(tokenUSDDataset && tokensUnique?.length > 0) ||
+		(tokenBreakdownPieChart?.length ?? 0) > 0 ||
+		(tokenRawDataset && tokensUnique?.length > 0)
 
 	return (
 		<ProtocolOverviewLayout
@@ -238,6 +243,10 @@ export default function Protocols(props) {
 			{isLoading ? (
 				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
+				</div>
+			) : !hasBreakdownMetrics ? (
+				<div className="col-span-full flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+					<p className="text-(--text-label)">Breakdown metrics are not available</p>
 				</div>
 			) : (
 				<div className="grid grid-cols-2 gap-2">
