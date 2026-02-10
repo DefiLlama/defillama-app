@@ -21,7 +21,7 @@ import {
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { ProtocolChartsLabels } from './constants'
+import { protocolCharts, ProtocolChartsLabels } from './constants'
 import { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from './types'
 import { buildProtocolAddlChartsData } from './utils'
 
@@ -98,9 +98,15 @@ const buildTvlChart = ({
 
 	const finalChart: Array<[number, number]> = []
 	for (const date in store) {
+		const dateInSec = Number(date)
 		const dateInMs = Number(date) * 1e3
-		const denominationRate = denominationPriceHistory?.[String(dateInMs)]
-		const finalValue = denominationRate ? store[date] / denominationRate : store[date]
+		const denominationRate =
+			denominationPriceHistory?.[String(dateInSec)] ?? denominationPriceHistory?.[String(dateInMs)]
+		const finalValue = denominationPriceHistory
+			? denominationRate
+				? store[date] / denominationRate
+				: null
+			: store[date]
 		finalChart.push([dateInMs, finalValue])
 	}
 
@@ -148,7 +154,8 @@ export const useFetchProtocolChartData = ({
 				if (!res.data?.prices?.length) return null
 				const store: Record<string, number> = {}
 				for (const [date, value] of res.data.prices) {
-					store[date] = value
+					store[String(date)] = value
+					store[String(Math.floor(Number(date) / 1e3))] = value
 				}
 				return store
 			}),
@@ -185,7 +192,6 @@ export const useFetchProtocolChartData = ({
 		retry: 0,
 		enabled: !!(geckoId && toggledMetrics.fdv === 'true' && isRouterReady)
 	})
-
 	const { data: tokenLiquidityData = null, isLoading: fetchingTokenLiquidity } = useQuery({
 		queryKey: ['tokenLiquidity', protocolId],
 		queryFn: () => fetchJson(`${TOKEN_LIQUIDITY_API}/${protocolId.replaceAll('#', '$')}`).catch(() => null),
@@ -790,20 +796,28 @@ export const useFetchProtocolChartData = ({
 		if (tokenLiquidityData)
 			charts['Token Liquidity'] = formatLineChart({ data: tokenLiquidityData, groupBy, denominationPriceHistory })
 
-		const feesStore: Record<string, number> = {}
-		const revenueStore: Record<string, number> = {}
-		const holdersRevenueStore: Record<string, number> = {}
+		const feesStore: Record<string, number | null> = {}
+		const revenueStore: Record<string, number | null> = {}
+		const holdersRevenueStore: Record<string, number | null> = {}
 		const isWeekly = groupBy === 'weekly'
 		const isMonthly = groupBy === 'monthly'
 		const isCumulative = groupBy === 'cumulative'
-		const applyValue = (date: number, value: number) =>
-			denominationPriceHistory?.[String(+date * 1e3)] ? value / denominationPriceHistory[String(+date * 1e3)] : value
+		const applyValue = (date: number, value: number) => {
+			if (!denominationPriceHistory) return value
+			const price = denominationPriceHistory[String(date)] ?? denominationPriceHistory[String(+date * 1e3)]
+			return price ? value / price : null
+		}
 
 		if (feesDataChart) {
 			let total = 0
 			for (const [date, value] of feesDataChart) {
 				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
 				const finalValue = applyValue(+date, value)
+				if (finalValue == null) {
+					feesStore[dateKey] = null
+					continue
+				}
+				if (feesStore[dateKey] === null) continue
 				feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
 				if (isCumulative) total += finalValue
 			}
@@ -813,6 +827,11 @@ export const useFetchProtocolChartData = ({
 			for (const [date, value] of revenueDataChart) {
 				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
 				const finalValue = applyValue(+date, value)
+				if (finalValue == null) {
+					revenueStore[dateKey] = null
+					continue
+				}
+				if (revenueStore[dateKey] === null) continue
 				revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
 				if (isCumulative) total += finalValue
 			}
@@ -822,6 +841,11 @@ export const useFetchProtocolChartData = ({
 			for (const [date, value] of holdersRevenueDataChart) {
 				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
 				const finalValue = applyValue(+date, value)
+				if (finalValue == null) {
+					holdersRevenueStore[dateKey] = null
+					continue
+				}
+				if (holdersRevenueStore[dateKey] === null) continue
 				holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
 				if (isCumulative) total += finalValue
 			}
@@ -831,9 +855,17 @@ export const useFetchProtocolChartData = ({
 			for (const [date, value] of bribesDataChart) {
 				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
 				const finalValue = applyValue(+date, value)
-				if (feesDataChart) feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
-				if (revenueDataChart) revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
-				if (holdersRevenueDataChart)
+				if (finalValue == null) {
+					if (feesDataChart) feesStore[dateKey] = null
+					if (revenueDataChart) revenueStore[dateKey] = null
+					if (holdersRevenueDataChart) holdersRevenueStore[dateKey] = null
+					continue
+				}
+				if (feesDataChart && feesStore[dateKey] !== null)
+					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
+				if (revenueDataChart && revenueStore[dateKey] !== null)
+					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
+				if (holdersRevenueDataChart && holdersRevenueStore[dateKey] !== null)
 					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
 				if (isCumulative) total += finalValue
 			}
@@ -843,9 +875,17 @@ export const useFetchProtocolChartData = ({
 			for (const [date, value] of tokenTaxesDataChart) {
 				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
 				const finalValue = applyValue(+date, value)
-				if (feesDataChart) feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
-				if (revenueDataChart) revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
-				if (holdersRevenueDataChart)
+				if (finalValue == null) {
+					if (feesDataChart) feesStore[dateKey] = null
+					if (revenueDataChart) revenueStore[dateKey] = null
+					if (holdersRevenueDataChart) holdersRevenueStore[dateKey] = null
+					continue
+				}
+				if (feesDataChart && feesStore[dateKey] !== null)
+					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
+				if (revenueDataChart && revenueStore[dateKey] !== null)
+					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
+				if (holdersRevenueDataChart && holdersRevenueStore[dateKey] !== null)
 					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
 				if (isCumulative) total += finalValue
 			}
@@ -1005,7 +1045,14 @@ export const useFetchProtocolChartData = ({
 				denominationPriceHistory
 			})
 
-		return { finalCharts: charts, valueSymbol, loadingCharts: '' }
+		const filteredCharts = Object.fromEntries(
+			Object.entries(charts).filter(([chartLabel]) => {
+				const queryParamKey = protocolCharts[chartLabel as ProtocolChartsLabels]
+				return queryParamKey ? toggledMetrics[queryParamKey] === 'true' : true
+			})
+		) as Record<string, Array<[number, number]>>
+
+		return { finalCharts: filteredCharts, valueSymbol, loadingCharts: '' }
 	}, [
 		tvlChart,
 		fetchingDenominationPriceHistory,
@@ -1086,6 +1133,7 @@ export const useFetchProtocolChartData = ({
 		isTreasuryToggled,
 		isUsdInflowsToggled,
 		isBridgeVolumeToggled,
+		toggledMetrics,
 		groupBy,
 		extraTvlCharts,
 		valueSymbol,

@@ -15,6 +15,9 @@ export const formatBarChart = ({
 	dateInMs?: boolean
 	denominationPriceHistory: Record<string, number> | null
 }): Array<[number, number]> => {
+	const getDenominationPrice = (timestampSec: number, timestampMs: number) =>
+		denominationPriceHistory?.[String(timestampSec)] ?? denominationPriceHistory?.[String(timestampMs)]
+
 	if (['weekly', 'monthly', 'cumulative'].includes(groupBy)) {
 		const store = {}
 		let total = 0
@@ -22,20 +25,26 @@ export const formatBarChart = ({
 		const isMonthly = groupBy === 'monthly'
 		const isCumulative = groupBy === 'cumulative'
 		for (const [date, value] of data) {
+			const timestampSec = dateInMs ? +date / 1e3 : +date
+			const timestampMs = dateInMs ? +date : +date * 1e3
 			const dateKey = isWeekly
-				? lastDayOfWeek(dateInMs ? +date / 1e3 : +date)
+				? lastDayOfWeek(timestampSec)
 				: isMonthly
-					? firstDayOfMonth(dateInMs ? +date / 1e3 : +date)
+					? firstDayOfMonth(timestampSec)
 					: dateInMs
-						? +date / 1e3
+						? timestampSec
 						: +date
 			// sum up values as it is bar chart
 			if (denominationPriceHistory) {
-				const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
-				store[dateKey] = (store[dateKey] ?? 0) + (price ? value / price : 0) + total
-				if (isCumulative && price) {
-					total += value / price
+				const price = getDenominationPrice(timestampSec, timestampMs)
+				if (!price) {
+					store[dateKey] = null
+					continue
 				}
+				if (store[dateKey] == null && store[dateKey] !== undefined) continue
+				const converted = value / price
+				store[dateKey] = (store[dateKey] ?? 0) + converted + total
+				if (isCumulative) total += converted
 			} else {
 				store[dateKey] = (store[dateKey] ?? 0) + value + total
 				if (isCumulative) {
@@ -53,7 +62,9 @@ export const formatBarChart = ({
 	}
 	if (denominationPriceHistory) {
 		return data.map(([date, value]) => {
-			const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
+			const timestampSec = dateInMs ? +date / 1e3 : +date
+			const timestampMs = dateInMs ? +date : +date * 1e3
+			const price = getDenominationPrice(timestampSec, timestampMs)
 			return [dateInMs ? +date : +date * 1e3, price ? value / price : null]
 		})
 	} else {
@@ -72,22 +83,27 @@ export const formatLineChart = ({
 	dateInMs?: boolean
 	denominationPriceHistory: Record<string, number> | null
 }): Array<[number, number]> => {
+	const getDenominationPrice = (timestampSec: number, timestampMs: number) =>
+		denominationPriceHistory?.[String(timestampSec)] ?? denominationPriceHistory?.[String(timestampMs)]
+
 	if (['weekly', 'monthly'].includes(groupBy)) {
 		const store = {}
 		const isWeekly = groupBy === 'weekly'
 		const isMonthly = groupBy === 'monthly'
 		for (const [date, value] of data) {
+			const timestampSec = dateInMs ? +date / 1e3 : +date
+			const timestampMs = dateInMs ? +date : +date * 1e3
 			const dateKey = isWeekly
-				? lastDayOfWeek(dateInMs ? +date / 1e3 : +date)
+				? lastDayOfWeek(timestampSec)
 				: isMonthly
-					? firstDayOfMonth(dateInMs ? +date / 1e3 : +date)
+					? firstDayOfMonth(timestampSec)
 					: dateInMs
-						? +date / 1e3
+						? timestampSec
 						: +date
 			// do not sum up values, just use the last value for each date
 			const finalValue = denominationPriceHistory
-				? denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
-					? value / denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
+				? getDenominationPrice(timestampSec, timestampMs)
+					? value / (getDenominationPrice(timestampSec, timestampMs) as number)
 					: null
 				: value
 			store[dateKey] = finalValue
@@ -101,7 +117,9 @@ export const formatLineChart = ({
 	}
 	if (denominationPriceHistory) {
 		return data.map(([date, value]) => {
-			const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
+			const timestampSec = dateInMs ? +date / 1e3 : +date
+			const timestampMs = dateInMs ? +date : +date * 1e3
+			const price = getDenominationPrice(timestampSec, timestampMs)
 			return [dateInMs ? +date : +date * 1e3, price ? value / price : null]
 		})
 	} else {

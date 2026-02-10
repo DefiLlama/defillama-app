@@ -24,7 +24,7 @@ interface IProtocolChartParams extends Omit<IProtocolChartV2Params, 'protocol'> 
 export const useFetchProtocol = (protocolName) => {
 	const isEnabled = !!protocolName
 	return useQuery({
-		queryKey: ['updated-protocols-data', protocolName, isEnabled],
+		queryKey: ['updated-protocols-data', protocolName],
 		queryFn: () => getProtocol(protocolName),
 		staleTime: 60 * 60 * 1000,
 		refetchInterval: 10 * 60 * 1000,
@@ -35,17 +35,15 @@ export const useFetchProtocol = (protocolName) => {
 export const useFetchProtocolActiveUsers = (protocolId: number | string | null) => {
 	const isEnabled = !!protocolId
 	return useQuery({
-		queryKey: ['activeUsers', protocolId, isEnabled],
-		queryFn: isEnabled
-			? () =>
-					fetchJson(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
-						.then((values) => {
-							return values && values.length > 0
-								? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
-								: null
-						})
-						.catch(() => [])
-			: () => null,
+		queryKey: ['activeUsers', protocolId],
+		queryFn: () =>
+			fetchJson(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
+				.then((values) => {
+					return values && values.length > 0
+						? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
+						: null
+				})
+				.catch(() => []),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
@@ -54,17 +52,15 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 export const useFetchProtocolNewUsers = (protocolId: number | string | null) => {
 	const isEnabled = !!protocolId
 	return useQuery({
-		queryKey: ['newUsers', protocolId, isEnabled],
-		queryFn: isEnabled
-			? () =>
-					fetchJson(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
-						.then((values) => {
-							return values && values.length > 0
-								? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
-								: null
-						})
-						.catch(() => [])
-			: () => null,
+		queryKey: ['newUsers', protocolId],
+		queryFn: () =>
+			fetchJson(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
+				.then((values) => {
+					return values && values.length > 0
+						? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
+						: null
+				})
+				.catch(() => []),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
@@ -74,17 +70,15 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 export const useFetchProtocolTransactions = (protocolId: number | string | null) => {
 	const isEnabled = !!protocolId
 	return useQuery({
-		queryKey: ['protocolTransactions', protocolId, isEnabled],
-		queryFn: isEnabled
-			? () =>
-					fetchJson(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
-						.then((values) => {
-							return values && values.length > 0
-								? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
-								: null
-						})
-						.catch(() => [])
-			: () => null,
+		queryKey: ['protocolTransactions', protocolId],
+		queryFn: () =>
+			fetchJson(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
+				.then((values) => {
+					return values && values.length > 0
+						? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
+						: null
+				})
+				.catch(() => []),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
@@ -94,15 +88,13 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 	const isEnabled = !!protocolId
 	return useQuery({
-		queryKey: ['protocolGasUsed', protocolId, isEnabled],
-		queryFn: isEnabled
-			? () =>
-					fetchJson(`${PROTOCOL_GAS_USED_API}/${protocolId}`.replaceAll('#', '$'))
-						.then((values) => {
-							return values && values.length > 0 ? values : null
-						})
-						.catch(() => [])
-			: () => null,
+		queryKey: ['protocolGasUsed', protocolId],
+		queryFn: () =>
+			fetchJson(`${PROTOCOL_GAS_USED_API}/${protocolId}`.replaceAll('#', '$'))
+				.then((values) => {
+					return values && values.length > 0 ? values : null
+				})
+				.catch(() => []),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
@@ -111,10 +103,8 @@ export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 export const useFetchProtocolTokenLiquidity = (token: string | null) => {
 	const isEnabled = !!token
 	return useQuery({
-		queryKey: ['tokenLiquidity', token, isEnabled],
-		queryFn: isEnabled
-			? () => fetchJson(`${TOKEN_LIQUIDITY_API}/${token.replaceAll('#', '$')}`).catch(() => null)
-			: () => null,
+		queryKey: ['tokenLiquidity', token],
+		queryFn: () => fetchJson(`${TOKEN_LIQUIDITY_API}/${token!.replaceAll('#', '$')}`).catch(() => null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
@@ -123,19 +113,17 @@ export const useFetchProtocolTokenLiquidity = (token: string | null) => {
 export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 	const isEnabled = !!protocolName
 	return useQuery({
-		queryKey: ['medianApy', protocolName, isEnabled],
-		queryFn: isEnabled
-			? () =>
-					fetchJson(`${YIELD_PROJECT_MEDIAN_API}/${protocolName}`)
-						.then((values) => {
-							return values && values.data.length > 0
-								? values.data.map((item) => ({ ...item, date: Math.floor(new Date(item.timestamp).getTime() / 1000) }))
-								: null
-						})
-						.catch(() => {
-							return []
-						})
-			: () => null,
+		queryKey: ['medianApy', protocolName],
+		queryFn: () =>
+			fetchJson(`${YIELD_PROJECT_MEDIAN_API}/${protocolName}`)
+				.then((values) => {
+					return values && values.data.length > 0
+						? values.data.map((item) => ({ ...item, date: Math.floor(new Date(item.timestamp).getTime() / 1000) }))
+						: null
+				})
+				.catch(() => {
+					return []
+				}),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
@@ -173,13 +161,11 @@ export const useGetProtocolsList = ({ chain }) => {
 export const useFetchProtocolTwitter = (twitter?: string | null) => {
 	const isEnabled = !!twitter
 	return useQuery({
-		queryKey: ['twitterData', twitter, isEnabled],
-		queryFn: isEnabled
-			? () =>
-					fetchApi(TWITTER_POSTS_API_V2 + `/${twitter?.toLowerCase()}`).then((res) =>
-						res?.tweetStats ? { ...res, tweets: Object.entries(res?.tweetStats) } : {}
-					)
-			: () => null,
+		queryKey: ['twitterData', twitter],
+		queryFn: () =>
+			fetchApi(TWITTER_POSTS_API_V2 + `/${twitter?.toLowerCase()}`).then((res) =>
+				res?.tweetStats ? { ...res, tweets: Object.entries(res?.tweetStats) } : {}
+			),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
@@ -196,7 +182,7 @@ export const useFetchProtocolTVLChart = ({
 	const isEnabled = !!protocol && enabled
 	return useQuery({
 		queryKey: ['protocolTvlChart', protocol, key, currency, breakdownType],
-		queryFn: isEnabled ? () => fetchProtocolTvlChart({ protocol, key, currency, breakdownType }) : () => null,
+		queryFn: () => fetchProtocolTvlChart({ protocol: protocol!, key, currency, breakdownType }),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
@@ -207,7 +193,7 @@ export const useFetchProtocolTreasuryChart = ({ protocol, key, currency, breakdo
 	const isEnabled = !!protocol
 	return useQuery({
 		queryKey: ['protocolTreasuryChart', protocol, key, currency, breakdownType],
-		queryFn: isEnabled ? () => fetchProtocolTreasuryChart({ protocol, key, currency, breakdownType }) : () => null,
+		queryFn: () => fetchProtocolTreasuryChart({ protocol: protocol!, key, currency, breakdownType }),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
