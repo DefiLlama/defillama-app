@@ -4,6 +4,7 @@ import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers
 import { slug } from '~/utils'
 
 const adapterType = ADAPTER_TYPES.FEES
+const metricName = 'Fees'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
@@ -41,7 +42,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					adapterType,
 					dataType: undefined,
 					chain: chainData.name,
-					route: 'fees'
+					route: 'fees',
+					metricName
 				}).catch((e) => {
 					console.info(`Chain page data not found ${adapterType}:${undefined} : chain:${chainName}`, e)
 					return null

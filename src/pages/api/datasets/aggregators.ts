@@ -4,6 +4,7 @@ import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers
 import { slug } from '~/utils'
 
 const adapterType = ADAPTER_TYPES.AGGREGATORS
+const metricName = 'DEX Aggregator Volume'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
@@ -39,7 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				const data = await getAdapterByChainPageData({
 					adapterType,
 					chain: chainData.name,
-					route: 'dex-aggregators'
+					route: 'dex-aggregators',
+					metricName
 				}).catch((e) => {
 					console.info(`Chain page data not found ${adapterType} : chain:${chainName}`, e)
 					return null

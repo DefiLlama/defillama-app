@@ -25,7 +25,8 @@ export enum ADAPTER_DATA_TYPES {
 	OPEN_INTEREST_AT_END = 'openInterestAtEnd',
 	DAILY_VOLUME = 'dailyVolume',
 	DAILY_BRIDGE_VOLUME = 'dailyBridgeVolume',
-	DAILY_NORMALIZED_VOLUME = 'dailyNormalizedVolume'
+	DAILY_NORMALIZED_VOLUME = 'dailyNormalizedVolume',
+	DAILY_ACTIVE_LIQUIDITY = 'dailyActiveLiquidity'
 }
 
 export enum ADAPTER_DATA_TYPE_KEYS {
@@ -42,7 +43,8 @@ export enum ADAPTER_DATA_TYPE_KEYS {
 	'openInterestAtEnd' = 'doi',
 	'dailyVolume' = 'dv',
 	'dailyBridgeVolume' = 'dbv',
-	'dailyNormalizedVolume' = 'dnvol'
+	'dailyNormalizedVolume' = 'dnvol',
+	'dailyActiveLiquidity' = 'dal'
 }
 
 export const VOLUME_TYPE_ADAPTERS = [
