@@ -36,35 +36,47 @@ interface IProtocolBreakdownChartParams extends Omit<IProtocolChartParams, 'brea
 
 type IProtocolAnyBreakdownChart = IProtocolChainBreakdownChart | IProtocolTokenBreakdownChart
 type IProtocolChartQueryData = IProtocolValueChart | IProtocolAnyBreakdownChart | null
+type ProtocolChartSource = 'tvl' | 'treasury'
 type IProtocolChartQueryKey = [
-	'protocolTvlChart',
+	'protocolTvlChart' | 'protocolTreasuryChart',
 	string | null,
 	string | undefined,
 	string | undefined,
 	string | undefined
 ]
 
-const getProtocolTvlChartQueryOptions = ({
+const getProtocolChartQueryOptions = ({
+	source,
 	protocol,
 	key,
 	currency,
 	breakdownType,
 	enabled = true
-}: IProtocolChartParams): UseQueryOptions<
+}: IProtocolChartParams & { source: ProtocolChartSource }): UseQueryOptions<
 	IProtocolChartQueryData,
 	Error,
 	IProtocolChartQueryData,
 	IProtocolChartQueryKey
 > => {
 	const isEnabled = !!protocol && enabled
+	const queryKeyPrefix = source === 'tvl' ? 'protocolTvlChart' : 'protocolTreasuryChart'
 	return {
-		queryKey: ['protocolTvlChart', protocol, key, currency, breakdownType],
-		queryFn: () => fetchProtocolTvlChart({ protocol: protocol!, key, currency, breakdownType }),
+		queryKey: [queryKeyPrefix, protocol, key, currency, breakdownType],
+		queryFn: () =>
+			source === 'tvl'
+				? fetchProtocolTvlChart({ protocol: protocol!, key, currency, breakdownType })
+				: fetchProtocolTreasuryChart({ protocol: protocol!, key, currency, breakdownType }),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
 	}
 }
+
+const getProtocolTvlChartQueryOptions = (params: IProtocolChartParams) =>
+	getProtocolChartQueryOptions({ ...params, source: 'tvl' as const })
+
+const getProtocolTreasuryChartQueryOptions = (params: IProtocolChartParams) =>
+	getProtocolChartQueryOptions({ ...params, source: 'treasury' as const })
 
 export const useFetchProtocol = (protocolName) => {
 	const isEnabled = !!protocolName
@@ -233,36 +245,14 @@ export function useFetchProtocolTVLChart({
 	)
 }
 
-export function useFetchProtocolTVLCharts(protocol: string | null) {
-	const [tvlChartQuery, chainBreakdownChartQuery, tokenBreakdownUsdQuery, tokenBreakdownRawQuery] = useQueries({
-		queries: [
-			getProtocolTvlChartQueryOptions({ protocol }),
-			getProtocolTvlChartQueryOptions({ protocol, breakdownType: 'chain-breakdown' }),
-			getProtocolTvlChartQueryOptions({ protocol, breakdownType: 'token-breakdown' }),
-			getProtocolTvlChartQueryOptions({ protocol, breakdownType: 'token-breakdown', currency: 'token' })
-		]
-	}) as [
-		UseQueryResult<IProtocolValueChart | null>,
-		UseQueryResult<IProtocolChainBreakdownChart | null>,
-		UseQueryResult<IProtocolTokenBreakdownChart | null>,
-		UseQueryResult<IProtocolTokenBreakdownChart | null>
-	]
-
-	return {
-		tvlChartQuery,
-		chainBreakdownChartQuery,
-		tokenBreakdownUsdQuery,
-		tokenBreakdownRawQuery
-	}
-}
-
-export interface IFetchProtocolTVLChartsByKeysParams {
+interface IFetchProtocolChartsByKeysParams {
 	protocol: string | null
 	keys: string[]
 	includeBase?: boolean
+	source: ProtocolChartSource
 }
 
-export interface IFetchProtocolTVLChartsByKeysResult {
+interface IFetchProtocolChartsByKeysResult {
 	keysToFetch: Array<string | undefined>
 	tvlChartQueries: Array<UseQueryResult<IProtocolValueChart | null>>
 	chainBreakdownChartQueries: Array<UseQueryResult<IProtocolChainBreakdownChart | null>>
@@ -270,35 +260,34 @@ export interface IFetchProtocolTVLChartsByKeysResult {
 	tokenBreakdownRawQueries: Array<UseQueryResult<IProtocolTokenBreakdownChart | null>>
 }
 
-export function useFetchProtocolTVLChartsByKeys({
+export function useFetchProtocolChartsByKeys({
 	protocol,
 	keys,
-	includeBase = true
-}: IFetchProtocolTVLChartsByKeysParams): IFetchProtocolTVLChartsByKeysResult {
+	includeBase = true,
+	source
+}: IFetchProtocolChartsByKeysParams): IFetchProtocolChartsByKeysResult {
 	const keysToFetch = useMemo(() => {
 		const base: Array<string | undefined> = includeBase ? [undefined] : []
 		return Array.from(new Set([...base, ...keys]))
 	}, [includeBase, keys])
 
+	const getQueryOptions = source === 'tvl' ? getProtocolTvlChartQueryOptions : getProtocolTreasuryChartQueryOptions
+
 	const tvlChartQueries = useQueries({
-		queries: keysToFetch.map((key) => getProtocolTvlChartQueryOptions({ protocol, key }))
+		queries: keysToFetch.map((key) => getQueryOptions({ protocol, key }))
 	}) as Array<UseQueryResult<IProtocolValueChart | null>>
 
 	const chainBreakdownChartQueries = useQueries({
-		queries: keysToFetch.map((key) =>
-			getProtocolTvlChartQueryOptions({ protocol, key, breakdownType: 'chain-breakdown' })
-		)
+		queries: keysToFetch.map((key) => getQueryOptions({ protocol, key, breakdownType: 'chain-breakdown' }))
 	}) as Array<UseQueryResult<IProtocolChainBreakdownChart | null>>
 
 	const tokenBreakdownUsdQueries = useQueries({
-		queries: keysToFetch.map((key) =>
-			getProtocolTvlChartQueryOptions({ protocol, key, breakdownType: 'token-breakdown' })
-		)
+		queries: keysToFetch.map((key) => getQueryOptions({ protocol, key, breakdownType: 'token-breakdown' }))
 	}) as Array<UseQueryResult<IProtocolTokenBreakdownChart | null>>
 
 	const tokenBreakdownRawQueries = useQueries({
 		queries: keysToFetch.map((key) =>
-			getProtocolTvlChartQueryOptions({ protocol, key, breakdownType: 'token-breakdown', currency: 'token' })
+			getQueryOptions({ protocol, key, breakdownType: 'token-breakdown', currency: 'token' })
 		)
 	}) as Array<UseQueryResult<IProtocolTokenBreakdownChart | null>>
 
@@ -309,27 +298,4 @@ export function useFetchProtocolTVLChartsByKeys({
 		tokenBreakdownUsdQueries,
 		tokenBreakdownRawQueries
 	}
-}
-
-export function useFetchProtocolTreasuryChart(
-	params: IProtocolBreakdownChartParams
-): UseQueryResult<IProtocolAnyBreakdownChart | null>
-export function useFetchProtocolTreasuryChart(
-	params: IProtocolValueChartParams
-): UseQueryResult<IProtocolValueChart | null>
-export function useFetchProtocolTreasuryChart({
-	protocol,
-	key,
-	currency,
-	breakdownType,
-	enabled = true
-}: IProtocolChartParams): UseQueryResult<IProtocolValueChart | IProtocolAnyBreakdownChart | null> {
-	const isEnabled = !!protocol && enabled
-	return useQuery<IProtocolValueChart | IProtocolAnyBreakdownChart | null>({
-		queryKey: ['protocolTreasuryChart', protocol, key, currency, breakdownType],
-		queryFn: () => fetchProtocolTreasuryChart({ protocol: protocol!, key, currency, breakdownType }),
-		staleTime: 60 * 60 * 1000,
-		retry: 0,
-		enabled: isEnabled
-	})
 }

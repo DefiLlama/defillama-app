@@ -7,11 +7,10 @@ import {
 	IProtocolTokenBreakdownValue,
 	IProtocolValueChart,
 	IProtocolChartV2Params,
-	IProtocolTvlMetrics,
-	IProtocolTreasuryMetrics
+	IProtocolTvlMetrics
 } from './api.types'
 
-export const appendOptionalQueryParams = (url: string, params: Pick<IProtocolChartV2Params, 'key' | 'currency'>) => {
+const appendOptionalQueryParams = (url: string, params: Pick<IProtocolChartV2Params, 'key' | 'currency'>) => {
 	const parsedUrl = new URL(url, 'http://placeholder')
 	if (params.key) parsedUrl.searchParams.set('key', params.key)
 	if (params.currency) parsedUrl.searchParams.set('currency', params.currency)
@@ -21,15 +20,6 @@ export const appendOptionalQueryParams = (url: string, params: Pick<IProtocolCha
 		: `${parsedUrl.pathname}${parsedUrl.search}`
 }
 
-// TODO need to update on server
-const isRecordOfNumbers = (value: unknown): value is Record<string, number> => {
-	if (!value || typeof value !== 'object' || Array.isArray(value)) return false
-	for (const token in value as Record<string, unknown>) {
-		if (!Number.isFinite(Number((value as Record<string, unknown>)[token]))) return false
-	}
-	return true
-}
-
 const normalizeTimestampToMs = (timestamp: unknown): number | null => {
 	const numericTimestamp = Number(timestamp)
 	if (!Number.isFinite(numericTimestamp)) return null
@@ -37,7 +27,7 @@ const normalizeTimestampToMs = (timestamp: unknown): number | null => {
 }
 
 // TODO need to update on server
-export const normalizeProtocolValueChart = (values: unknown): IProtocolValueChart | null => {
+const normalizeProtocolValueChart = (values: unknown): IProtocolValueChart | null => {
 	if (!Array.isArray(values)) return null
 
 	const points: IProtocolValueChart = []
@@ -56,7 +46,7 @@ export const normalizeProtocolValueChart = (values: unknown): IProtocolValueChar
 }
 
 // TODO need to update on server
-export const normalizeProtocolChainBreakdownChart = (values: unknown): IProtocolChainBreakdownChart | null => {
+const normalizeProtocolChainBreakdownChart = (values: unknown): IProtocolChainBreakdownChart | null => {
 	if (!Array.isArray(values)) return null
 
 	const points: IProtocolChainBreakdownChart = []
@@ -65,20 +55,15 @@ export const normalizeProtocolChainBreakdownChart = (values: unknown): IProtocol
 
 		const [timestamp, value] = item
 		const timestampMs = normalizeTimestampToMs(timestamp)
-		if (timestampMs == null || !isRecordOfNumbers(value)) continue
-
-		const normalizedBreakdown: IProtocolChainBreakdownValue = {}
-		for (const key in value) {
-			normalizedBreakdown[key] = Number(value[key])
-		}
-		points.push([timestampMs, normalizedBreakdown])
+		if (timestampMs == null || !value || typeof value !== 'object' || Array.isArray(value)) continue
+		points.push([timestampMs, value as IProtocolChainBreakdownValue])
 	}
 
 	return points.sort((a, b) => a[0] - b[0])
 }
 
 // TODO need to update on server
-export const normalizeProtocolTokenBreakdownChart = (values: unknown): IProtocolTokenBreakdownChart | null => {
+const normalizeProtocolTokenBreakdownChart = (values: unknown): IProtocolTokenBreakdownChart | null => {
 	if (!Array.isArray(values)) return null
 
 	const points: IProtocolTokenBreakdownChart = []
@@ -87,13 +72,8 @@ export const normalizeProtocolTokenBreakdownChart = (values: unknown): IProtocol
 
 		const [timestamp, value] = item
 		const timestampMs = normalizeTimestampToMs(timestamp)
-		if (timestampMs == null || !isRecordOfNumbers(value)) continue
-
-		const normalizedBreakdown: IProtocolTokenBreakdownValue = {}
-		for (const key in value) {
-			normalizedBreakdown[key] = Number(value[key])
-		}
-		points.push([timestampMs, normalizedBreakdown])
+		if (timestampMs == null || !value || typeof value !== 'object' || Array.isArray(value)) continue
+		points.push([timestampMs, value as IProtocolTokenBreakdownValue])
 	}
 
 	return points.sort((a, b) => a[0] - b[0])
@@ -102,14 +82,6 @@ export const normalizeProtocolTokenBreakdownChart = (values: unknown): IProtocol
 export const fetchProtocolOverviewMetrics = async (protocol: string): Promise<IProtocolTvlMetrics | null> => {
 	return fetchJson(`${V2_SERVER_URL}/metrics/tvl/protocol/${protocol}`)
 		.then((data) => data as IProtocolTvlMetrics)
-		.catch(() => null)
-}
-
-export const fetchProtocolTreasuryOverviewMetrics = async (
-	protocol: string
-): Promise<IProtocolTreasuryMetrics | null> => {
-	return fetchJson(`${V2_SERVER_URL}/metrics/treasury/protocol/${protocol}`)
-		.then((data) => data as IProtocolTreasuryMetrics)
 		.catch(() => null)
 }
 
@@ -158,30 +130,87 @@ const fetchProtocolTokenBreakdownChart = async ({
 		.catch(() => null)
 }
 
-const isOwnTokensTokensQuery = ({ key, currency }: { key?: string; currency?: string }) =>
-	key === 'OwnTokens' && currency === 'tokens'
+type ProtocolChartNamespace = 'tvl' | 'treasury'
 
-export const fetchProtocolTvlValueChart = async ({
+const buildProtocolChartPath = ({
+	namespace,
+	protocol,
+	breakdownType
+}: {
+	namespace: ProtocolChartNamespace
+	protocol: string
+	breakdownType?: NonNullable<IProtocolChartV2Params['breakdownType']>
+}) => {
+	const basePath = `${V2_SERVER_URL}/chart/${namespace}/protocol/${protocol}`
+	return (breakdownType ? `${basePath}/${breakdownType}` : basePath).replaceAll('#', '$')
+}
+
+const fetchProtocolMetricValueChart = async ({
+	namespace,
 	protocol,
 	key,
 	currency
-}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'>): Promise<IProtocolValueChart | null> => {
-	if (isOwnTokensTokensQuery({ key, currency })) return null
+}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'> & {
+	namespace: ProtocolChartNamespace
+}): Promise<IProtocolValueChart | null> => {
 	return fetchProtocolValueChart({
-		path: `${V2_SERVER_URL}/chart/tvl/protocol/${protocol}`.replaceAll('#', '$'),
+		path: buildProtocolChartPath({ namespace, protocol }),
 		key,
 		currency
 	})
 }
 
-export const fetchProtocolTvlChainBreakdownChart = async ({
+const fetchProtocolMetricChainBreakdownChart = async ({
+	namespace,
+	protocol,
+	key,
+	currency
+}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'> & {
+	namespace: ProtocolChartNamespace
+}): Promise<IProtocolChainBreakdownChart | null> => {
+	return fetchProtocolChainBreakdownChart({
+		path: buildProtocolChartPath({ namespace, protocol, breakdownType: 'chain-breakdown' }),
+		key,
+		currency
+	})
+}
+
+const fetchProtocolMetricTokenBreakdownChart = async ({
+	namespace,
+	protocol,
+	key,
+	currency
+}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'> & {
+	namespace: ProtocolChartNamespace
+}): Promise<IProtocolTokenBreakdownChart | null> => {
+	return fetchProtocolTokenBreakdownChart({
+		path: buildProtocolChartPath({ namespace, protocol, breakdownType: 'token-breakdown' }),
+		key,
+		currency
+	})
+}
+
+const fetchProtocolTvlValueChart = async ({
+	protocol,
+	key,
+	currency
+}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'>): Promise<IProtocolValueChart | null> => {
+	return fetchProtocolMetricValueChart({
+		namespace: 'tvl',
+		protocol,
+		key,
+		currency
+	})
+}
+
+const fetchProtocolTvlChainBreakdownChart = async ({
 	protocol,
 	key,
 	currency
 }: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'>): Promise<IProtocolChainBreakdownChart | null> => {
-	if (isOwnTokensTokensQuery({ key, currency })) return null
-	return fetchProtocolChainBreakdownChart({
-		path: `${V2_SERVER_URL}/chart/tvl/protocol/${protocol}/chain-breakdown`.replaceAll('#', '$'),
+	return fetchProtocolMetricChainBreakdownChart({
+		namespace: 'tvl',
+		protocol,
 		key,
 		currency
 	})
@@ -191,34 +220,36 @@ export const fetchProtocolTvlTokenBreakdownChart = async ({
 	protocol,
 	key,
 	currency
-}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'>): Promise<IProtocolTokenBreakdownChart | null> =>
-	fetchProtocolTokenBreakdownChart({
-		path: `${V2_SERVER_URL}/chart/tvl/protocol/${protocol}/token-breakdown`.replaceAll('#', '$'),
-		key,
-		currency
-	})
-
-export const fetchProtocolTreasuryValueChart = async ({
-	protocol,
-	key,
-	currency
-}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'>): Promise<IProtocolValueChart | null> => {
-	if (isOwnTokensTokensQuery({ key, currency })) return null
-	return fetchProtocolValueChart({
-		path: `${V2_SERVER_URL}/chart/treasury/protocol/${protocol}`.replaceAll('#', '$'),
+}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'>): Promise<IProtocolTokenBreakdownChart | null> => {
+	return fetchProtocolMetricTokenBreakdownChart({
+		namespace: 'tvl',
+		protocol,
 		key,
 		currency
 	})
 }
 
-export const fetchProtocolTreasuryChainBreakdownChart = async ({
+const fetchProtocolTreasuryValueChart = async ({
+	protocol,
+	key,
+	currency
+}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'>): Promise<IProtocolValueChart | null> => {
+	return fetchProtocolMetricValueChart({
+		namespace: 'treasury',
+		protocol,
+		key,
+		currency
+	})
+}
+
+const fetchProtocolTreasuryChainBreakdownChart = async ({
 	protocol,
 	key,
 	currency
 }: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'>): Promise<IProtocolChainBreakdownChart | null> => {
-	if (isOwnTokensTokensQuery({ key, currency })) return null
-	return fetchProtocolChainBreakdownChart({
-		path: `${V2_SERVER_URL}/chart/treasury/protocol/${protocol}/chain-breakdown`.replaceAll('#', '$'),
+	return fetchProtocolMetricChainBreakdownChart({
+		namespace: 'treasury',
+		protocol,
 		key,
 		currency
 	})
@@ -228,12 +259,14 @@ export const fetchProtocolTreasuryTokenBreakdownChart = async ({
 	protocol,
 	key,
 	currency
-}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'>): Promise<IProtocolTokenBreakdownChart | null> =>
-	fetchProtocolTokenBreakdownChart({
-		path: `${V2_SERVER_URL}/chart/treasury/protocol/${protocol}/token-breakdown`.replaceAll('#', '$'),
+}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'>): Promise<IProtocolTokenBreakdownChart | null> => {
+	return fetchProtocolMetricTokenBreakdownChart({
+		namespace: 'treasury',
+		protocol,
 		key,
 		currency
 	})
+}
 
 export function fetchProtocolTvlChart(
 	params: IProtocolChartV2Params & { breakdownType: 'chain-breakdown' }

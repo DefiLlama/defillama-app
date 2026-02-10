@@ -55,6 +55,10 @@ export const getStaticProps = withPerformanceLogging(
 			})
 		])
 
+		if (!protocolData) {
+			return { notFound: true, props: null }
+		}
+
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
 		const perpAggregatorVolume: IProtocolOverviewPageData['perpAggregatorVolume'] = {

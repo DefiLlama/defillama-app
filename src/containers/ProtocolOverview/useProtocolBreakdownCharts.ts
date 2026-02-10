@@ -2,7 +2,7 @@ import * as React from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import type { IProtocolTokenBreakdownChart, IProtocolValueChart } from './api.types'
-import { useFetchProtocolTVLChartsByKeys } from './queries.client'
+import { useFetchProtocolChartsByKeys } from './queries.client'
 
 type MultiSeriesCharts = NonNullable<IMultiSeriesChart2Props['charts']>
 type MultiSeriesChart = MultiSeriesCharts[number]
@@ -14,18 +14,21 @@ type InflowsDataset = {
 	dimensions: ['timestamp', 'USD Inflows']
 }
 
-export interface IUseProtocolBreakdownChartsParams {
+interface IUseProtocolBreakdownChartsParams {
 	protocol: string
 	keys: string[]
 	includeBase?: boolean
+	source?: 'tvl' | 'treasury'
 }
 
-export interface IUseProtocolBreakdownChartsResult {
+interface IUseProtocolBreakdownChartsResult {
 	isLoading: boolean
 	chainsUnique: string[]
 	tokensUnique: string[]
 	chainsDataset: MultiSeriesChart2Dataset | null
 	chainsCharts: MultiSeriesCharts
+	valueDataset: MultiSeriesChart2Dataset | null
+	valueCharts: MultiSeriesCharts
 	tokenUSDDataset: MultiSeriesChart2Dataset | null
 	tokenUSDCharts: MultiSeriesCharts
 	tokenRawDataset: MultiSeriesChart2Dataset | null
@@ -201,6 +204,8 @@ const EMPTY_COMPUTED_RESULT: IUseProtocolBreakdownChartsComputed = {
 	tokensUnique: [],
 	chainsDataset: null,
 	chainsCharts: EMPTY_MULTI_SERIES_CHARTS,
+	valueDataset: null,
+	valueCharts: EMPTY_MULTI_SERIES_CHARTS,
 	tokenUSDDataset: null,
 	tokenUSDCharts: EMPTY_MULTI_SERIES_CHARTS,
 	tokenRawDataset: null,
@@ -216,12 +221,14 @@ const buildComputedBreakdownResult = ({
 	tvlCharts,
 	chainBreakdownCharts,
 	tokenBreakdownUsdCharts,
-	tokenBreakdownRawCharts
+	tokenBreakdownRawCharts,
+	valueSeriesName
 }: {
 	tvlCharts: Array<IProtocolValueChart | null | undefined>
 	chainBreakdownCharts: Array<BreakdownChart | null | undefined>
 	tokenBreakdownUsdCharts: Array<BreakdownChart | null | undefined>
 	tokenBreakdownRawCharts: Array<BreakdownChart | null | undefined>
+	valueSeriesName: string
 }): IUseProtocolBreakdownChartsComputed => {
 	const tvlChart = aggregateValueCharts(tvlCharts)
 	const chainBreakdownChart = aggregateBreakdownCharts(chainBreakdownCharts)
@@ -242,6 +249,24 @@ const buildComputedBreakdownResult = ({
 			: null
 	const chainsCharts = chainsDataset != null ? buildChartsForKeys(chainsUnique, 'line') : EMPTY_MULTI_SERIES_CHARTS
 
+	const valueDataset =
+		tvlChart && tvlChart.length > 1
+			? {
+					source: tvlChart.map(([timestamp, value]) => ({ timestamp, [valueSeriesName]: value })),
+					dimensions: ['timestamp', valueSeriesName]
+				}
+			: null
+	const valueCharts =
+		valueDataset != null
+			? [
+					{
+						type: 'line' as const,
+						name: valueSeriesName,
+						encode: { x: 'timestamp', y: valueSeriesName }
+					}
+				]
+			: EMPTY_MULTI_SERIES_CHARTS
+
 	const tokenUSDDataset =
 		tokenUsdSource && tokenUsdSource.length > 1
 			? {
@@ -260,34 +285,31 @@ const buildComputedBreakdownResult = ({
 			: null
 	const tokenRawCharts = tokenRawDataset != null ? buildChartsForKeys(tokensUnique, 'line') : EMPTY_MULTI_SERIES_CHARTS
 
-	const tokenBreakdownPieChart =
-		tokenBreakdownUSD?.length && tokenBreakdownUSD.length > 0
-			? preparePieChartData({
-					data: Object.entries(tokenBreakdownUSD[tokenBreakdownUSD.length - 1]?.[1] ?? {})
-						.filter(([name, value]) => !name.startsWith('UNKNOWN') && Number(value) >= 1)
-						.map(([name, value]) => ({ name, value: Number(value) })),
-					limit: 15
-				})
-			: EMPTY_PIE_CHART_DATA
+	const tokenBreakdownPieChart = tokenBreakdownUSD?.length
+		? preparePieChartData({
+				data: Object.entries(tokenBreakdownUSD[tokenBreakdownUSD.length - 1]?.[1] ?? {})
+					.filter(([name, value]) => !name.startsWith('UNKNOWN') && Number(value) >= 1)
+					.map(([name, value]) => ({ name, value: Number(value) })),
+				limit: 15
+			})
+		: EMPTY_PIE_CHART_DATA
 
 	const usdInflows = buildUsdInflowsFromTvlChart(tvlChart)
 	const tokenInflows = buildTokenInflowsFromBreakdowns(tokenBreakdownUSD, tokenBreakdown, tokensUnique)
 
-	const usdInflowsDataset =
-		usdInflows?.length && usdInflows.length > 0
-			? {
-					source: usdInflows.map(([timestamp, value]) => ({ timestamp, 'USD Inflows': value })),
-					dimensions: ['timestamp', 'USD Inflows'] as ['timestamp', 'USD Inflows']
-				}
-			: null
+	const usdInflowsDataset = usdInflows?.length
+		? {
+				source: usdInflows.map(([timestamp, value]) => ({ timestamp, 'USD Inflows': value })),
+				dimensions: ['timestamp', 'USD Inflows'] as ['timestamp', 'USD Inflows']
+			}
+		: null
 
-	const tokenInflowsDataset =
-		tokenInflows?.length && tokenInflows.length > 0
-			? {
-					source: tokenInflows,
-					dimensions: ['timestamp', ...tokensUnique]
-				}
-			: null
+	const tokenInflowsDataset = tokenInflows?.length
+		? {
+				source: tokenInflows,
+				dimensions: ['timestamp', ...tokensUnique]
+			}
+		: null
 	const tokenInflowsCharts =
 		tokenInflowsDataset != null ? buildChartsForKeys(tokensUnique, 'bar', 'tokenInflows') : EMPTY_MULTI_SERIES_CHARTS
 
@@ -296,6 +318,8 @@ const buildComputedBreakdownResult = ({
 		tokensUnique,
 		chainsDataset,
 		chainsCharts,
+		valueDataset,
+		valueCharts,
 		tokenUSDDataset,
 		tokenUSDCharts,
 		tokenRawDataset,
@@ -311,10 +335,11 @@ const buildComputedBreakdownResult = ({
 export function useProtocolBreakdownCharts({
 	protocol,
 	keys,
-	includeBase = true
+	includeBase = true,
+	source = 'tvl'
 }: IUseProtocolBreakdownChartsParams): IUseProtocolBreakdownChartsResult {
 	const { tvlChartQueries, chainBreakdownChartQueries, tokenBreakdownUsdQueries, tokenBreakdownRawQueries } =
-		useFetchProtocolTVLChartsByKeys({ protocol, keys, includeBase })
+		useFetchProtocolChartsByKeys({ protocol, keys, includeBase, source })
 
 	const isNetworkLoading =
 		tvlChartQueries.some((query) => query.isLoading || query.isFetching) ||
@@ -328,6 +353,7 @@ export function useProtocolBreakdownCharts({
 		tokenBreakdownUsdQueries.map((query) => query.dataUpdatedAt).join('|'),
 		tokenBreakdownRawQueries.map((query) => query.dataUpdatedAt).join('|'),
 		protocol,
+		source,
 		includeBase ? '1' : '0',
 		keys.join('|')
 	].join('::')
@@ -367,7 +393,10 @@ export function useProtocolBreakdownCharts({
 		const runComputation = () => {
 			if (cancelled || runId !== computeRunIdRef.current) return
 
-			const next = buildComputedBreakdownResult(latestComputeInputRef.current)
+			const next = buildComputedBreakdownResult({
+				...latestComputeInputRef.current,
+				valueSeriesName: source === 'treasury' ? 'Treasury' : 'Total'
+			})
 
 			if (cancelled || runId !== computeRunIdRef.current) return
 			setComputed(next)
@@ -396,7 +425,7 @@ export function useProtocolBreakdownCharts({
 				window.clearTimeout(timeoutId)
 			}
 		}
-	}, [isNetworkLoading, computeSignature])
+	}, [isNetworkLoading, computeSignature, source])
 
 	return {
 		isLoading: isNetworkLoading || isComputing,
