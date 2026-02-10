@@ -9,7 +9,6 @@ import { useChartImageExport } from '~/hooks/useChartImageExport'
 import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
 import { RWAAssetsTable } from './AssetsTable'
-import { DownloadPieChartCsv } from './DownloadPieChartCsv'
 import { RWAOverviewFilters } from './Filters'
 import {
 	useFilteredRwaAssets,
@@ -478,7 +477,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 										</button>
 									</div>
 								) : null}
-								<DownloadPieChartCsv filename={`${pieChartFilename}.csv`} chartData={selectedPieChartData} smol />
+								<ChartCsvExportButton chartInstance={pieChartInstance} filename={pieChartFilename} />
 								<ChartPngExportButton
 									chartInstance={pieChartInstance}
 									filename={`${pieChartFilename}.png`}
