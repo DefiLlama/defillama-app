@@ -1,14 +1,24 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import type { IChainTvl } from '~/api/types'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import { PEGGEDS_API } from '~/constants'
 import { useFetchProtocol } from '~/containers/ProtocolOverview/queries.client'
 import type { IProtocolMetricsV2, IRaise } from '~/containers/ProtocolOverview/types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
+import type { IProtocolChainTvlEntry } from './api.types'
 
-export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => {
+type ChainTvlEntry = IProtocolChainTvlEntry
+type ChainTvls = Record<string, ChainTvlEntry>
+type DateValueRow = { date: number } & Record<string, number>
+
+export const formatTvlsByChain = ({
+	historicalChainTvls,
+	extraTvlsEnabled
+}: {
+	historicalChainTvls: ChainTvls
+	extraTvlsEnabled: Record<string, boolean>
+}): DateValueRow[] => {
 	const tvlDictionary: { [data: number]: { [chain: string]: number } } = {}
 
 	for (const section in historicalChainTvls) {
@@ -47,70 +57,7 @@ export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => 
 		}
 	}
 
-	const result = []
-	for (const date in tvlDictionary) {
-		result.push({ ...tvlDictionary[date], date: Number(date) })
-	}
-	result.sort((a, b) => a.date - b.date)
-	return result
-}
-
-// For CEX pages: calculate TVL by chain by summing tokensInUsd instead of using tvl array
-// This also supports excluding specific tokens (e.g., the CEX's own token)
-export const formatTvlsByChainFromTokens = ({
-	historicalChainTvls,
-	extraTvlsEnabled,
-	tokenToExclude
-}: {
-	historicalChainTvls: Record<string, any>
-	extraTvlsEnabled: Record<string, boolean>
-	tokenToExclude?: string | null
-}) => {
-	const tvlDictionary: { [date: number]: { [chain: string]: number } } = {}
-
-	for (const section in historicalChainTvls) {
-		let sectionName = section
-		const name = section.toLowerCase()
-
-		let toSumSection = false
-
-		// sum keys like ethereum-staking, arbitrum-vesting only if chain is present
-		if (name.includes('-')) {
-			const formattedName = name.split('-')
-
-			if (extraTvlsEnabled[formattedName[1]]) {
-				toSumSection = true
-				sectionName = section.split('-').slice(0, -1).join('-')
-			}
-		} else {
-			// sum key with staking, ethereum, arbitrum etc but ethereum-staking, arbitrum-vesting
-			if (!(name in extraTvlsEnabled)) {
-				toSumSection = true
-			}
-		}
-
-		if (toSumSection) {
-			const tokensInUsd = historicalChainTvls[section].tokensInUsd
-			if (tokensInUsd && tokensInUsd.length > 0) {
-				for (const { date, tokens } of tokensInUsd) {
-					if (!tvlDictionary[date]) {
-						tvlDictionary[date] = {}
-					}
-
-					// Sum all token values, excluding the specified token if any
-					let chainTotal = 0
-					for (const token in tokens) {
-						if (tokenToExclude && token === tokenToExclude) continue
-						chainTotal += tokens[token] || 0
-					}
-
-					tvlDictionary[date][sectionName] = (tvlDictionary[date][sectionName] || 0) + chainTotal
-				}
-			}
-		}
-	}
-
-	const result = []
+	const result: DateValueRow[] = []
 	for (const date in tvlDictionary) {
 		result.push({ ...tvlDictionary[date], date: Number(date) })
 	}
@@ -125,14 +72,14 @@ function buildInflows({
 	datesToDelete,
 	tokenToExclude
 }: {
-	chainTvls: any
+	chainTvls: ChainTvls
 	extraTvlsEnabled: Record<string, boolean>
 	tokensUnique: string[]
 	datesToDelete: number[]
 	tokenToExclude?: string | null
 }) {
 	const usdInflows: Record<string, number> = {}
-	const tokenInflows: Record<string, any> = {}
+	const tokenInflows: Record<string, DateValueRow> = {}
 	const tokensUniqueSet = new Set(tokensUnique)
 
 	let zeroUsdInfows = 0
@@ -261,8 +208,8 @@ function buildInflows({
 	}
 
 	for (const date of datesToDelete) {
-		delete usdInflows[date]
-		delete tokenInflows[date]
+		delete usdInflows[String(date)]
+		delete tokenInflows[String(date)]
 	}
 
 	const usdFlows: Array<[string, number]> = []
@@ -271,7 +218,7 @@ function buildInflows({
 	}
 	usdFlows.sort((a, b) => Number(a[0]) - Number(b[0]))
 
-	const tokenFlows = []
+	const tokenFlows: DateValueRow[] = []
 	for (const date in tokenInflows) {
 		tokenFlows.push(tokenInflows[date])
 	}
@@ -604,11 +551,13 @@ export const buildProtocolAddlChartsData = ({
 	isBorrowed,
 	tokenToExclude
 }: {
-	protocolData: { name: string; chainTvls?: IChainTvl; misrepresentedTokens?: boolean }
+	protocolData: { name: string; chainTvls?: ChainTvls; misrepresentedTokens?: boolean } | null
 	extraTvlsEnabled: Record<string, boolean>
 	isBorrowed?: boolean
 	tokenToExclude?: string | null
 }) => {
+	if (!protocolData) return {}
+
 	let chainTvls = protocolData.chainTvls ?? {}
 	if (isBorrowed) {
 		chainTvls = {}
@@ -620,54 +569,50 @@ export const buildProtocolAddlChartsData = ({
 		}
 	}
 
-	if (protocolData) {
-		let tokensInUsdExsists = false
-		let tokensExists = false
+	let tokensInUsdExists = false
+	let tokensExists = false
 
-		for (const chain in chainTvls) {
-			const chainData = chainTvls[chain]
-			if (!tokensInUsdExsists && chainData.tokensInUsd && chainData.tokensInUsd.length > 0) {
-				tokensInUsdExsists = true
-			}
-
-			if (!tokensExists && chainData.tokens && chainData.tokens.length > 0) {
-				tokensExists = true
-			}
+	for (const chain in chainTvls) {
+		const chainData = chainTvls[chain]
+		if (!tokensInUsdExists && chainData.tokensInUsd && chainData.tokensInUsd.length > 0) {
+			tokensInUsdExists = true
 		}
 
-		if (!protocolData.misrepresentedTokens && (tokensInUsdExsists || tokensExists)) {
-			let tokensUnique = getUniqueTokens({ chainTvls, extraTvlsEnabled })
+		if (!tokensExists && chainData.tokens && chainData.tokens.length > 0) {
+			tokensExists = true
+		}
+	}
 
-			// Filter out the excluded token if specified
-			if (tokenToExclude) {
-				tokensUnique = tokensUnique.filter((token) => token !== tokenToExclude)
-			}
+	if (!protocolData.misrepresentedTokens && (tokensInUsdExists || tokensExists)) {
+		let tokensUnique = getUniqueTokens({ chainTvls, extraTvlsEnabled })
 
-			const { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = buildTokensBreakdown({
-				chainTvls: chainTvls,
-				extraTvlsEnabled,
-				tokensUnique
-			})
-
-			const { usdInflows, tokenInflows } = buildInflows({
-				chainTvls: chainTvls,
-				extraTvlsEnabled,
-				tokensUnique,
-				datesToDelete: protocolData.name === 'Binance CEX' ? [1681430400, 1681516800] : [],
-				tokenToExclude
-			})
-
-			return {
-				tokensUnique,
-				tokenBreakdownUSD,
-				tokenBreakdownPieChart,
-				tokenBreakdown,
-				usdInflows,
-				tokenInflows
-			}
+		// Filter out the excluded token if specified
+		if (tokenToExclude) {
+			tokensUnique = tokensUnique.filter((token) => token !== tokenToExclude)
 		}
 
-		return {}
+		const { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = buildTokensBreakdown({
+			chainTvls: chainTvls,
+			extraTvlsEnabled,
+			tokensUnique
+		})
+
+		const { usdInflows, tokenInflows } = buildInflows({
+			chainTvls: chainTvls,
+			extraTvlsEnabled,
+			tokensUnique,
+			datesToDelete: protocolData.name === 'Binance CEX' ? [1681430400, 1681516800] : [],
+			tokenToExclude
+		})
+
+		return {
+			tokensUnique,
+			tokenBreakdownUSD,
+			tokenBreakdownPieChart,
+			tokenBreakdown,
+			usdInflows,
+			tokenInflows
+		}
 	}
 
 	return {}
@@ -725,7 +670,7 @@ export const useFetchProtocolAddlChartsData = (
 		],
 		queryFn: () =>
 			buildProtocolAddlChartsData({
-				protocolData: addlProtocolData as any,
+				protocolData: addlProtocolData ?? null,
 				extraTvlsEnabled: isBorrowed ? {} : extraTvlsEnabled,
 				isBorrowed,
 				tokenToExclude: normalizedTokenToExclude
@@ -755,7 +700,7 @@ export const useFetchProtocolAddlChartsData = (
 
 export const getProtocolWarningBanners = (protocolData: IProtocolMetricsV2) => {
 	// Helper function to check if a date is in valid format
-	const isValidDateFormat = (date: any): boolean => {
+	const isValidDateFormat = (date: unknown): boolean => {
 		if (!date || date === 'forever') return true
 
 		// Check if it's a number (seconds or milliseconds)
@@ -865,170 +810,4 @@ export const groupTokensByPegMechanism = (
 		}
 	}
 	return grouped
-}
-
-export const buildStablecoinChartsData = async ({
-	chainTvls,
-	extraTvlsEnabled
-}: {
-	chainTvls: Record<string, any>
-	extraTvlsEnabled: Record<string, boolean>
-}) => {
-	const { peggedAssets } = await getStablecoinsList()
-
-	if (!peggedAssets || peggedAssets.length === 0) {
-		return null
-	}
-
-	const stablecoinSymbols = new Set<string>()
-	const pegTypeMap = new Map<string, string>()
-	const pegMechanismMap = new Map<string, string>()
-
-	for (const asset of peggedAssets) {
-		stablecoinSymbols.add(asset.symbol)
-		pegTypeMap.set(asset.symbol, asset.pegType)
-		pegMechanismMap.set(asset.symbol, asset.pegMechanism)
-	}
-
-	const stablecoinTokensUniqueSet = new Set<string>()
-	const pegTypesUnique = new Set<string>()
-	const pegMechanismsUnique = new Set<string>()
-
-	for (const section in chainTvls) {
-		const name = section.toLowerCase()
-		if (!name.includes('-')) {
-			const isEnabled = name in extraTvlsEnabled ? extraTvlsEnabled[name] : true
-			if (isEnabled) {
-				const tokensInUsd = chainTvls[section].tokensInUsd
-				if (tokensInUsd) {
-					for (const dayTokens of tokensInUsd) {
-						for (const token in dayTokens.tokens) {
-							if (stablecoinSymbols.has(token) && !stablecoinTokensUniqueSet.has(token)) {
-								stablecoinTokensUniqueSet.add(token)
-								const pegType = pegTypeMap.get(token)
-								const pegMechanism = pegMechanismMap.get(token)
-								if (pegType) pegTypesUnique.add(pegType)
-								if (pegMechanism) pegMechanismsUnique.add(pegMechanism)
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if (stablecoinTokensUniqueSet.size === 0) {
-		return null
-	}
-
-	const stablecoinsByPegMechanism: Record<string, any> = {}
-	const stablecoinsByPegType: Record<string, any> = {}
-	const stablecoinsByToken: Record<string, any> = {}
-	const totalStablecoins: Record<string, any> = {}
-
-	for (const section in chainTvls) {
-		const name = section.toLowerCase()
-		if (!name.includes('-')) {
-			const isEnabled = name in extraTvlsEnabled ? extraTvlsEnabled[name] : true
-			if (isEnabled) {
-				const tokensInUsd = chainTvls[section].tokensInUsd
-				if (tokensInUsd) {
-					for (const { date, tokens } of tokensInUsd) {
-						const stablecoinsOnly = filterStablecoinsFromTokens(tokens, stablecoinSymbols)
-						const groupedByPegMechanism = groupTokensByPegMechanism(stablecoinsOnly, pegMechanismMap)
-						const groupedByPegType = groupTokensByPegType(stablecoinsOnly, pegTypeMap)
-
-						if (!stablecoinsByPegMechanism[date]) {
-							stablecoinsByPegMechanism[date] = { date }
-						}
-						for (const pegMechanism in groupedByPegMechanism) {
-							stablecoinsByPegMechanism[date][pegMechanism] =
-								(stablecoinsByPegMechanism[date][pegMechanism] || 0) + groupedByPegMechanism[pegMechanism]
-						}
-
-						if (!stablecoinsByPegType[date]) {
-							stablecoinsByPegType[date] = { date }
-						}
-						for (const pegType in groupedByPegType) {
-							stablecoinsByPegType[date][pegType] =
-								(stablecoinsByPegType[date][pegType] || 0) + groupedByPegType[pegType]
-						}
-
-						if (!stablecoinsByToken[date]) {
-							stablecoinsByToken[date] = { date }
-						}
-						for (const token in stablecoinsOnly) {
-							stablecoinsByToken[date][token] = (stablecoinsByToken[date][token] || 0) + stablecoinsOnly[token]
-						}
-
-						let total = 0
-						for (const token in stablecoinsOnly) {
-							total += stablecoinsOnly[token]
-						}
-						totalStablecoins[date] = (totalStablecoins[date] || 0) + total
-					}
-				}
-			}
-		}
-	}
-
-	const stablecoinsByPegMechanismArray = []
-	for (const date in stablecoinsByPegMechanism) {
-		stablecoinsByPegMechanismArray.push(stablecoinsByPegMechanism[date])
-	}
-	stablecoinsByPegMechanismArray.sort((a, b) => a.date - b.date)
-
-	const stablecoinsByPegTypeArray = []
-	for (const date in stablecoinsByPegType) {
-		stablecoinsByPegTypeArray.push(stablecoinsByPegType[date])
-	}
-	stablecoinsByPegTypeArray.sort((a, b) => a.date - b.date)
-
-	const stablecoinsByTokenArray = []
-	for (const date in stablecoinsByToken) {
-		stablecoinsByTokenArray.push(stablecoinsByToken[date])
-	}
-	stablecoinsByTokenArray.sort((a, b) => a.date - b.date)
-
-	const totalStablecoinsArray = []
-	for (const date in totalStablecoins) {
-		totalStablecoinsArray.push({ date: Number(date), value: totalStablecoins[date] })
-	}
-	totalStablecoinsArray.sort((a, b) => a.date - b.date)
-
-	const latestByPegMechanism = stablecoinsByPegMechanismArray[stablecoinsByPegMechanismArray.length - 1]
-	const pegMechanismPieChart = []
-	if (latestByPegMechanism) {
-		for (const name in latestByPegMechanism) {
-			if (name !== 'date') {
-				pegMechanismPieChart.push({ name, value: latestByPegMechanism[name] })
-			}
-		}
-	}
-
-	const pieChartDataByPegMechanism = preparePieChartData({ data: pegMechanismPieChart, limit: 10 })
-
-	const latestByPegType = stablecoinsByPegTypeArray[stablecoinsByPegTypeArray.length - 1]
-	const pegTypePieChart = []
-	if (latestByPegType) {
-		for (const name in latestByPegType) {
-			if (name !== 'date') {
-				pegTypePieChart.push({ name, value: latestByPegType[name] })
-			}
-		}
-	}
-
-	const pieChartDataByPegType = preparePieChartData({ data: pegTypePieChart, limit: 10 })
-
-	return {
-		stablecoinsByPegMechanism: stablecoinsByPegMechanismArray.length > 0 ? stablecoinsByPegMechanismArray : null,
-		stablecoinsByPegType: stablecoinsByPegTypeArray.length > 0 ? stablecoinsByPegTypeArray : null,
-		stablecoinsByToken: stablecoinsByTokenArray.length > 0 ? stablecoinsByTokenArray : null,
-		totalStablecoins: totalStablecoinsArray.length > 0 ? totalStablecoinsArray : null,
-		pegMechanismPieChart: pieChartDataByPegMechanism,
-		pegTypePieChart: pieChartDataByPegType,
-		stablecoinTokensUnique: Array.from(stablecoinTokensUniqueSet),
-		pegTypesUnique: Array.from(pegTypesUnique),
-		pegMechanismsUnique: Array.from(pegMechanismsUnique)
-	}
 }

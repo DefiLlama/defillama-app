@@ -193,9 +193,9 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 		const oracleTvsByChainMap = {}
 
 		for (const chain in props.currentTvlByChain ?? {}) {
-			if (TVL_SETTINGS_KEYS_SET.has(chain)) {
-				const option = tvlOptionsMap.get(chain as any)
-				if (option && chain !== 'offers') {
+			if (isTvlSettingsKey(chain)) {
+				const option = tvlOptionsMap.get(chain)
+				if (option) {
 					toggleOptions.push(option)
 				}
 				continue
@@ -221,9 +221,9 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 
 		// Process oracle TVS by chain
 		for (const chain in props.oracleTvs ?? {}) {
-			if (TVL_SETTINGS_KEYS_SET.has(chain)) {
-				const option = tvlOptionsMap.get(chain as any)
-				if (option && chain !== 'offers') {
+			if (isTvlSettingsKey(chain)) {
+				const option = tvlOptionsMap.get(chain)
+				if (option) {
 					if (!toggleOptions.some((o) => o.key === option.key)) {
 						toggleOptions.push(option)
 					}

@@ -55,7 +55,7 @@ export default function ProtocolCoreChart({
 	const { series, allYAxis } = useMemo(() => {
 		const uniqueYAxis = new Set()
 
-		const stacks = Object.keys(chartData) as any
+		const stacks = Object.keys(chartData) as ProtocolChartsLabels[]
 
 		for (const stack of stacks) {
 			uniqueYAxis.add(yAxisByChart[stack])

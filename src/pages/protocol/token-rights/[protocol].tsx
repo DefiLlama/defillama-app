@@ -2,8 +2,9 @@ import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { tvlOptionsMap } from '~/components/Filters/options'
 import { TokenLogo } from '~/components/TokenLogo'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import { TokenRights } from '~/containers/ProtocolOverview/TokenRights'
 import type { IProtocolOverviewPageData, IProtocolPageMetrics, ITokenRights } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
@@ -49,14 +50,13 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		// Uses the updateProtocol endpoint under the hood (`getProtocol` -> `PROTOCOL_API`).
-		const protocolData = await getProtocol(protocol)
+		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 
 		if (!protocolData?.tokenRights) {
 			return { notFound: true, props: null }
 		}
 
-		const computedMetrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
+		const computedMetrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 		const metrics: IProtocolPageMetrics = { ...computedMetrics, tokenRights: true }
 
 		const toggleOptions: Array<{ name: string; key: string }> = []

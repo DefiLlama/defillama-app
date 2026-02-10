@@ -3,16 +3,21 @@ import type { GetStaticPropsContext } from 'next'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
+import { fetchProtocolOverviewMetrics, fetchProtocolTvlTokenBreakdownChart } from '~/containers/ProtocolOverview/api'
+import type { IProtocolTokenBreakdownChart } from '~/containers/ProtocolOverview/api.types'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol } from '~/containers/ProtocolOverview/queries'
-import { useFetchProtocol } from '~/containers/ProtocolOverview/queries.client'
 import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
-import { buildStablecoinChartsData } from '~/containers/ProtocolOverview/utils'
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import {
+	filterStablecoinsFromTokens,
+	getStablecoinsList,
+	groupTokensByPegMechanism,
+	groupTokensByPegType
+} from '~/containers/ProtocolOverview/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -41,7 +46,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		const protocolData = await getProtocol(exchangeName)
+		const protocolData = await fetchProtocolOverviewMetrics(exchangeName)
 
 		if (!protocolData) {
 			return { notFound: true, props: null }
@@ -50,7 +55,6 @@ export const getStaticProps = withPerformanceLogging(
 		return {
 			props: {
 				name: protocolData.name,
-				parentProtocol: protocolData.parentProtocol ?? null,
 				otherProtocols: protocolData.otherProtocols ?? EMPTY_OTHER_PROTOCOLS,
 				category: protocolData.category ?? null,
 				metrics: {
@@ -93,6 +97,20 @@ export async function getStaticPaths() {
 }
 
 type MultiSeriesCharts = NonNullable<IMultiSeriesChart2Props['charts']>
+type StablecoinDateRow = { date: number } & Record<string, number>
+type StablecoinPiePoint = { name: string; value: number }
+type StablecoinTotalsPoint = { date: number; value: number }
+
+interface StablecoinChartsData {
+	stablecoinsByPegMechanism: StablecoinDateRow[] | null
+	stablecoinsByPegType: StablecoinDateRow[] | null
+	stablecoinsByToken: StablecoinDateRow[] | null
+	totalStablecoins: StablecoinTotalsPoint[] | null
+	pegMechanismPieChart: StablecoinPiePoint[]
+	stablecoinTokensUnique: string[]
+	pegTypesUnique: string[]
+	pegMechanismsUnique: string[]
+}
 
 function MultiSeriesChartCard({
 	title,
@@ -200,30 +218,138 @@ function PieChartCard({
 }
 
 function useStablecoinData(protocolName: string) {
-	const { data: protocolData, isLoading: isProtocolLoading } = useFetchProtocol(protocolName)
-	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
-
-	const { data, isLoading } = useQuery({
-		queryKey: ['stablecoin-charts-data', protocolName, JSON.stringify(extraTvlsEnabled)],
-		queryFn: async () => {
-			if (!protocolData?.chainTvls) return null
-			return buildStablecoinChartsData({
-				chainTvls: protocolData.chainTvls,
-				extraTvlsEnabled
-			})
-		},
-		enabled: !!protocolData?.chainTvls,
+	const {
+		data: tokenBreakdownData,
+		isLoading: isTokenBreakdownLoading,
+		dataUpdatedAt: tokenBreakdownDataUpdatedAt
+	} = useQuery<IProtocolTokenBreakdownChart | null>({
+		queryKey: ['cex', protocolName, 'stablecoins', 'token-breakdown'],
+		queryFn: () => fetchProtocolTvlTokenBreakdownChart({ protocol: protocolName }),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0
 	})
 
-	return { data, isLoading: isLoading || isProtocolLoading }
+	const {
+		data: stablecoinsList,
+		isLoading: isStablecoinsListLoading,
+		dataUpdatedAt: stablecoinsListUpdatedAt
+	} = useQuery({
+		queryKey: ['cex', 'stablecoins', 'list', 'v1'],
+		queryFn: () => getStablecoinsList(),
+		staleTime: 6 * 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
+	})
+
+	const peggedAssets = stablecoinsList?.peggedAssets ?? []
+
+	const { data, isLoading } = useQuery<StablecoinChartsData | null>({
+		queryKey: [
+			'cex',
+			protocolName,
+			'stablecoins',
+			'charts-data',
+			'v2',
+			tokenBreakdownDataUpdatedAt,
+			stablecoinsListUpdatedAt
+		],
+		queryFn: async () => {
+			if (!tokenBreakdownData || tokenBreakdownData.length === 0) return null
+			if (!peggedAssets || peggedAssets.length === 0) return null
+
+			const stablecoinSymbols = new Set<string>()
+			const pegTypeMap = new Map<string, string>()
+			const pegMechanismMap = new Map<string, string>()
+
+			for (const asset of peggedAssets) {
+				stablecoinSymbols.add(asset.symbol)
+				pegTypeMap.set(asset.symbol, asset.pegType)
+				pegMechanismMap.set(asset.symbol, asset.pegMechanism)
+			}
+
+			const stablecoinTokensUniqueSet = new Set<string>()
+			const pegTypesUnique = new Set<string>()
+			const pegMechanismsUnique = new Set<string>()
+			const stablecoinsByPegMechanism: Record<number, StablecoinDateRow> = {}
+			const stablecoinsByPegType: Record<number, StablecoinDateRow> = {}
+			const stablecoinsByToken: Record<number, StablecoinDateRow> = {}
+			const totalStablecoins: Record<number, number> = {}
+
+			for (const [rawDate, tokens] of tokenBreakdownData) {
+				const date = rawDate > 1e12 ? Math.floor(rawDate / 1e3) : rawDate
+				const stablecoinsOnly = filterStablecoinsFromTokens(tokens, stablecoinSymbols)
+
+				if (Object.keys(stablecoinsOnly).length === 0) continue
+
+				for (const token in stablecoinsOnly) {
+					stablecoinTokensUniqueSet.add(token)
+					const pegType = pegTypeMap.get(token)
+					const pegMechanism = pegMechanismMap.get(token)
+					if (pegType) pegTypesUnique.add(pegType)
+					if (pegMechanism) pegMechanismsUnique.add(pegMechanism)
+				}
+
+				const groupedByPegMechanism = groupTokensByPegMechanism(stablecoinsOnly, pegMechanismMap)
+				const groupedByPegType = groupTokensByPegType(stablecoinsOnly, pegTypeMap)
+
+				if (!stablecoinsByPegMechanism[date]) stablecoinsByPegMechanism[date] = { date }
+				for (const mechanism in groupedByPegMechanism) {
+					stablecoinsByPegMechanism[date][mechanism] =
+						(stablecoinsByPegMechanism[date][mechanism] || 0) + groupedByPegMechanism[mechanism]
+				}
+
+				if (!stablecoinsByPegType[date]) stablecoinsByPegType[date] = { date }
+				for (const pegType in groupedByPegType) {
+					stablecoinsByPegType[date][pegType] = (stablecoinsByPegType[date][pegType] || 0) + groupedByPegType[pegType]
+				}
+
+				if (!stablecoinsByToken[date]) stablecoinsByToken[date] = { date }
+				let total = 0
+				for (const token in stablecoinsOnly) {
+					stablecoinsByToken[date][token] = (stablecoinsByToken[date][token] || 0) + stablecoinsOnly[token]
+					total += stablecoinsOnly[token]
+				}
+				totalStablecoins[date] = (totalStablecoins[date] || 0) + total
+			}
+
+			const stablecoinsByPegMechanismArray = Object.values(stablecoinsByPegMechanism).sort((a, b) => a.date - b.date)
+			const stablecoinsByPegTypeArray = Object.values(stablecoinsByPegType).sort((a, b) => a.date - b.date)
+			const stablecoinsByTokenArray = Object.values(stablecoinsByToken).sort((a, b) => a.date - b.date)
+			const totalStablecoinsArray: StablecoinTotalsPoint[] = Object.entries(totalStablecoins)
+				.map(([date, value]) => ({ date: Number(date), value }))
+				.sort((a, b) => a.date - b.date)
+
+			const latestByPegMechanism = stablecoinsByPegMechanismArray[stablecoinsByPegMechanismArray.length - 1]
+			const pegMechanismPieChart: StablecoinPiePoint[] = latestByPegMechanism
+				? Object.entries(latestByPegMechanism)
+						.filter(([name]) => name !== 'date')
+						.map(([name, value]) => ({ name, value: Number(value) }))
+				: []
+
+			return {
+				stablecoinsByPegMechanism: stablecoinsByPegMechanismArray.length > 0 ? stablecoinsByPegMechanismArray : null,
+				stablecoinsByPegType: stablecoinsByPegTypeArray.length > 0 ? stablecoinsByPegTypeArray : null,
+				stablecoinsByToken: stablecoinsByTokenArray.length > 0 ? stablecoinsByTokenArray : null,
+				totalStablecoins: totalStablecoinsArray.length > 0 ? totalStablecoinsArray : null,
+				pegMechanismPieChart: preparePieChartData({ data: pegMechanismPieChart, limit: 10 }),
+				stablecoinTokensUnique: Array.from(stablecoinTokensUniqueSet),
+				pegTypesUnique: Array.from(pegTypesUnique),
+				pegMechanismsUnique: Array.from(pegMechanismsUnique)
+			}
+		},
+		enabled: !!tokenBreakdownData?.length && peggedAssets.length > 0,
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
+	})
+
+	return { data, isLoading: isLoading || isTokenBreakdownLoading || isStablecoinsListLoading }
 }
 
 export default function CEXStablecoins(props: {
 	name: string
-	category: string
+	category: string | null
 	otherProtocols: Array<string>
 	metrics: IProtocolPageMetrics
 }) {
