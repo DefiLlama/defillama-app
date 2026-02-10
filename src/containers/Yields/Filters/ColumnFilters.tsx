@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo, useRef, useState } from 'react'
+import { LockIcon } from '~/components/LockIcon'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
@@ -31,8 +32,26 @@ const optionalFilters = [
 	{ name: 'Supplied', key: 'showTotalSupplied' },
 	{ name: 'Borrowed', key: 'showTotalBorrowed' },
 	{ name: 'Available', key: 'showAvailable' },
-	{ name: '30d Median APY \u2726 Pro', key: 'showMedianApy' },
-	{ name: '30d Std Dev \u2726 Pro', key: 'showStdDev' }
+	{
+		name: '30d Median APY',
+		key: 'showMedianApy',
+		icon: (
+			<span className="inline-flex items-center gap-1 rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-500 dark:text-blue-400">
+				<LockIcon className="h-2.5 w-2.5" />
+				Pro
+			</span>
+		)
+	},
+	{
+		name: '30d Std Dev',
+		key: 'showStdDev',
+		icon: (
+			<span className="inline-flex items-center gap-1 rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-500 dark:text-blue-400">
+				<LockIcon className="h-2.5 w-2.5" />
+				Pro
+			</span>
+		)
+	}
 ]
 
 const ALL_COLUMN_KEYS = optionalFilters.map((op) => op.key)

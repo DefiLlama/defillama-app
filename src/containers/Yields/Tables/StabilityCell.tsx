@@ -1,6 +1,5 @@
 import * as Ariakit from '@ariakit/react'
 import { lazy, Suspense, useState } from 'react'
-import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 
