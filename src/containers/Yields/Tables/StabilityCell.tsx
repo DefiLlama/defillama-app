@@ -64,8 +64,6 @@ export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellP
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 
-	if (cv30d == null) return <span className="ml-auto opacity-30">—</span>
-
 	if (!hasActiveSubscription) {
 		const redactedTooltip = (
 			<div className="flex flex-col gap-1.5 text-xs">
@@ -107,6 +105,8 @@ export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellP
 			</>
 		)
 	}
+
+	if (cv30d == null) return <span className="ml-auto opacity-30">—</span>
 
 	const { label, className } = getStabilityLabel(cv30d)
 

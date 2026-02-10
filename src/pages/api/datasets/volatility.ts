@@ -1,9 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-const VOLATILITY_UPSTREAM = process.env.YIELDS_SERVER_URL
-	? `${process.env.YIELDS_SERVER_URL}/volatility`
-	: 'https://yields.llama.fi/volatility'
-const INTERNAL_KEY = process.env.YIELDS_INTERNAL_API_KEY
+const VOLATILITY_UPSTREAM = process.env.VOLATILITY_UPSTREAM_URL ?? 'https://yields.llama.fi/volatility'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	const authHeader = req.headers.authorization
@@ -29,9 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			return res.status(403).json({ error: 'Active subscription required' })
 		}
 
-		const upstream = await fetch(VOLATILITY_UPSTREAM, {
-			headers: { 'X-Internal-Key': INTERNAL_KEY! }
-		})
+		const upstream = await fetch(VOLATILITY_UPSTREAM)
 		if (!upstream.ok) {
 			return res.status(502).json({ error: 'Upstream error' })
 		}
