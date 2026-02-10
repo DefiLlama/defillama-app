@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
@@ -14,11 +15,10 @@ import { CHART_COLORS } from '~/constants/colors'
 import { StablecoinAssetChartConfig, StablecoinAssetChartType } from '~/containers/ProDashboard/types'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/containers/Stablecoins/hooks'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
-import { UNRELEASED, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer, peggedAssetIconUrl, slug } from '~/utils'
-import { PeggedAssetByChainTable } from './Table'
+import { StablecoinByChainUsageTable } from './StablecoinUsageByChainTable'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -41,6 +41,14 @@ const CHART_TYPE_TO_API_TYPE: Record<string, StablecoinAssetChartType> = {
 }
 
 const CHART_TYPE_VALUES = ['Total Circ', 'Pie', 'Dominance', 'Area'] as const
+const UNRELEASED_QUERY_KEY = 'unreleased'
+
+const parseBooleanQueryParam = (value: string | string[] | undefined): boolean => {
+	if (Array.isArray(value)) return value.some((v) => parseBooleanQueryParam(v))
+	if (typeof value !== 'string') return false
+	const normalized = value.trim().toLowerCase()
+	return normalized === 'true' || normalized === '1' || normalized === 'yes'
+}
 
 export default function PeggedContainer(props) {
 	let { name, symbol } = props.peggedAssetData
@@ -75,6 +83,7 @@ export const PeggedAssetInfo = ({
 	mcap,
 	bridgeInfo
 }) => {
+	const router = useRouter()
 	let {
 		name,
 		onCoinGecko,
@@ -105,11 +114,11 @@ export const PeggedAssetInfo = ({
 		[handleChartReady]
 	)
 
-	const chainsData: any[] = chainsUnique.map((elem: string) => {
+	const chainsData: Array<Array<Record<string, unknown>>> = chainsUnique.map((elem: string) => {
 		return peggedAssetData.chainBalances[elem].tokens
 	})
 
-	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = React.useMemo(
+	const { peggedAreaChartData, stackedDataset } = React.useMemo(
 		() =>
 			buildStablecoinChartData({
 				chartDataByAssetOrChain: chainsData,
@@ -122,16 +131,51 @@ export const PeggedAssetInfo = ({
 		[chainsData, chainsUnique]
 	)
 
-	const extraPeggeds = [UNRELEASED] as const
-	const [extraPeggedsEnabled, updater] = useLocalStorageSettingsManager('stablecoins')
+	const includeUnreleased = React.useMemo(
+		() => parseBooleanQueryParam(router.query[UNRELEASED_QUERY_KEY]),
+		[router.query]
+	)
+	const onUnreleasedToggle = React.useCallback(() => {
+		const nextValue = !includeUnreleased
+		const nextQuery: Record<string, string | string[]> = {}
+		for (const [key, value] of Object.entries(router.query)) {
+			if (typeof value === 'undefined' || key === UNRELEASED_QUERY_KEY) continue
+			if (typeof value === 'string' || Array.isArray(value)) nextQuery[key] = value
+		}
+		if (nextValue) nextQuery[UNRELEASED_QUERY_KEY] = 'true'
+		void router.replace({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true, scroll: false })
+	}, [includeUnreleased, router])
 
-	const chainTotals = useCalcCirculating<Parameters<typeof useGroupBridgeData>[0][number]>(chainCirculatings)
+	const chainTotals = useCalcCirculating<Parameters<typeof useGroupBridgeData>[0][number]>(
+		chainCirculatings,
+		includeUnreleased
+	)
 
 	const chainsCirculatingValues = React.useMemo(() => {
 		return preparePieChartData({ data: chainTotals, sliceIdentifier: 'name', sliceValue: 'circulating', limit: 10 })
 	}, [chainTotals])
 
-	const { dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
+	const {
+		data: stackedCirculatingByDay,
+		daySum,
+		dataWithExtraPeggedAndDominanceByDay
+	} = useCalcGroupExtraPeggedByDay(stackedDataset, includeUnreleased)
+
+	const displayedTotalCirculating = React.useMemo(() => {
+		const lastPoint = stackedCirculatingByDay[stackedCirculatingByDay.length - 1]
+		if (!lastPoint) return totalCirculating
+		return daySum[lastPoint.date] ?? totalCirculating
+	}, [stackedCirculatingByDay, daySum, totalCirculating])
+
+	const displayedMarketCap = React.useMemo(() => {
+		if (!includeUnreleased) return mcap
+		const baseMcap = typeof mcap === 'number' && Number.isFinite(mcap) ? mcap : null
+		const unreleasedSupply = typeof unreleased === 'number' && Number.isFinite(unreleased) ? unreleased : null
+		const tokenPrice = typeof price === 'number' && Number.isFinite(price) ? price : null
+		if (baseMcap == null) return null
+		if (unreleasedSupply == null || tokenPrice == null) return baseMcap
+		return baseMcap + unreleasedSupply * tokenPrice
+	}, [includeUnreleased, mcap, unreleased, price])
 
 	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
 
@@ -164,10 +208,13 @@ export const PeggedAssetInfo = ({
 
 	const totalCircDataset = React.useMemo(
 		() => ({
-			source: peggedAreaTotalData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+			source: stackedCirculatingByDay.map(({ date }) => ({
+				timestamp: +date * 1e3,
+				Circulating: daySum[date] ?? 0
+			})),
 			dimensions: ['timestamp', ...totalChartTooltipLabel]
 		}),
-		[peggedAreaTotalData]
+		[stackedCirculatingByDay, daySum]
 	)
 
 	const { areaDataset, areaCharts } = React.useMemo(
@@ -197,7 +244,7 @@ export const PeggedAssetInfo = ({
 						// Ensure every dimension exists and is numeric (ECharts can crash on undefined/NaN in stacked % charts)
 						const row: Record<string, number> = { timestamp }
 						for (const chain of chainsUnique) {
-							const raw = (rest as any)[chain]
+							const raw = rest[chain]
 							const value = typeof raw === 'number' ? raw : Number(raw)
 							row[chain] = Number.isFinite(value) ? value : 0
 						}
@@ -236,7 +283,9 @@ export const PeggedAssetInfo = ({
 
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Market Cap</span>
-						<span className="min-h-8 font-jetbrains text-2xl font-semibold">{formattedNum(mcap || '0', true)}</span>
+						<span className="min-h-8 font-jetbrains text-2xl font-semibold">
+							{formattedNum(displayedMarketCap ?? '0', true)}
+						</span>
 					</p>
 
 					<div className="flex flex-col">
@@ -244,34 +293,29 @@ export const PeggedAssetInfo = ({
 							<span className="text-(--text-label)">Price</span>
 							<span className="font-jetbrains">{price === null ? '-' : formattedNum(price, true)}</span>
 						</p>
-						{totalCirculating != null ? (
+						{displayedTotalCirculating != null ? (
 							<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 								<span className="text-(--text-label)">Total Circulating</span>
-								<span className="font-jetbrains">{formattedNum(totalCirculating)}</span>
+								<span className="font-jetbrains">{formattedNum(displayedTotalCirculating)}</span>
 							</p>
 						) : null}
-						{unreleased > 0
-							? extraPeggeds.map((option) => (
-									<p
-										key={option}
-										className="flex flex-wrap items-center justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0"
-									>
-										<label className="flex cursor-pointer items-center gap-2 text-(--text-label)">
-											<input
-												type="checkbox"
-												value={option}
-												checked={extraPeggedsEnabled[option]}
-												onChange={() => updater(option)}
-											/>
-											<span style={{ opacity: extraPeggedsEnabled[option] ? 1 : 0.7 }}>
-												{capitalizeFirstLetter(option)}
-											</span>
-											<QuestionHelper text="Use this option to choose whether to include coins that have been minted but have never been circulating." />
-										</label>
-										<span className="font-jetbrains">{formattedNum(unreleased)}</span>
-									</p>
-								))
-							: null}
+						{unreleased > 0 ? (
+							<p className="flex flex-wrap items-center justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
+								<label className="flex cursor-pointer items-center gap-2 text-(--text-label)">
+									<input
+										type="checkbox"
+										value={UNRELEASED_QUERY_KEY}
+										checked={includeUnreleased}
+										onChange={onUnreleasedToggle}
+									/>
+									<span style={{ opacity: includeUnreleased ? 1 : 0.7 }}>
+										{capitalizeFirstLetter(UNRELEASED_QUERY_KEY)}
+									</span>
+									<QuestionHelper text="Use this option to choose whether to include coins that have been minted but have never been circulating." />
+								</label>
+								<span className="font-jetbrains">{formattedNum(unreleased)}</span>
+							</p>
+						) : null}
 					</div>
 				</div>
 
@@ -423,7 +467,7 @@ export const PeggedAssetInfo = ({
 				) : null}
 			</div>
 
-			<PeggedAssetByChainTable data={groupedChains} />
+			<StablecoinByChainUsageTable data={groupedChains} />
 		</>
 	)
 }

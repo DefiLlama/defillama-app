@@ -4,7 +4,7 @@ import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { StablecoinInfo } from '~/containers/ProtocolOverview/Stablecoin'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
-import { getPeggedAssetPageData } from '~/containers/Stablecoins/queries.server'
+import { getStablecoinAssetPageData } from '~/containers/Stablecoins/queries.server'
 import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -39,7 +39,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const stablecoinData =
 			Array.isArray(protocolData?.stablecoins) && protocolData.stablecoins.length > 0
-				? await getPeggedAssetPageData(protocolData.stablecoins[0])
+				? await getStablecoinAssetPageData(protocolData.stablecoins[0])
 				: null
 
 		return {

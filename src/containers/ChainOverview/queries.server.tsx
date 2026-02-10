@@ -3,8 +3,6 @@ import { tvlOptions } from '~/components/Filters/options'
 import {
 	CHAINS_ASSETS,
 	CHART_API,
-	CONFIG_API,
-	PEGGEDS_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
@@ -23,13 +21,8 @@ import {
 	IAdapterSummary
 } from '~/containers/DimensionAdapters/queries'
 import { getETFData } from '~/containers/ETF/queries'
-import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
-import {
-	buildStablecoinChartData,
-	getStablecoinDominance,
-	getStablecoinMcapStatsFromTotals,
-	getStablecoinTopTokenFromChartData
-} from '~/containers/Stablecoins/utils'
+import { fetchStablecoinAssetsApi, fetchStablecoinConfigApi } from '~/containers/Stablecoins/api'
+import { getStablecoinChainMcapSummary } from '~/containers/Stablecoins/queries.server'
 import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getNDistinctColors, getPercentChange, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
@@ -203,33 +196,10 @@ export async function getChainOverviewData({
 			}),
 			getProtocolsByChain({ chain, chainMetadata, protocolMetadata }),
 			currentChainMetadata.stablecoins
-				? getPeggedOverviewPageData(chain === 'All' ? null : currentChainMetadata.name)
-						.then((data) => {
-							const { peggedAreaChartData, peggedAreaTotalData } = buildStablecoinChartData({
-								chartDataByAssetOrChain: data?.chartDataByPeggedAsset,
-								assetsOrChainsList: data?.peggedAssetNames,
-								filteredIndexes: Object.values(data?.peggedNameToChartDataIndex || {}),
-								issuanceType: 'mcap',
-								selectedChain: chain === 'All' ? 'All' : currentChainMetadata.name,
-								doublecountedIds: data?.doublecountedIds
-							})
-							const mcapStats = getStablecoinMcapStatsFromTotals(peggedAreaTotalData)
-							const topToken = getStablecoinTopTokenFromChartData(peggedAreaChartData)
-							const dominance = getStablecoinDominance(topToken, mcapStats.totalMcapCurrent)
-
-							return {
-								mcap: mcapStats.totalMcapCurrent ?? null,
-								change7dUsd: mcapStats.change7dUsd ?? null,
-								change7d: mcapStats.change7d ?? null,
-								topToken,
-								dominance: dominance ?? null,
-								mcapChartData: mcapStats.mcapChartData14d
-							}
-						})
-						.catch((err) => {
-							console.log('ERROR fetching stablecoins data of chain', currentChainMetadata.name, err)
-							return null
-						})
+				? getStablecoinChainMcapSummary(chain === 'All' ? null : currentChainMetadata.name).catch((err) => {
+						console.log('ERROR fetching stablecoins data of chain', currentChainMetadata.name, err)
+						return null
+					})
 				: Promise.resolve(null),
 			!currentChainMetadata.inflows
 				? Promise.resolve(null)
@@ -388,9 +358,9 @@ export async function getChainOverviewData({
 						.catch(() => null)
 				: Promise.resolve(null),
 			chain === 'All' ? getDATInflows() : Promise.resolve(null),
-			chain !== 'All' ? fetchJson(PEGGEDS_API).catch(() => null) : Promise.resolve(null),
+			chain !== 'All' ? fetchStablecoinAssetsApi().catch(() => null) : Promise.resolve(null),
 			chain !== 'All'
-				? fetchJson(CONFIG_API)
+				? fetchStablecoinConfigApi()
 						.then((data) => data.chainCoingeckoIds?.[currentChainMetadata.name]?.stablecoins ?? null)
 						.catch(() => null)
 				: Promise.resolve(null)
