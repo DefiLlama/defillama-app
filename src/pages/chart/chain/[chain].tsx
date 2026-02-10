@@ -18,15 +18,11 @@ const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative']
 export const getStaticProps = withPerformanceLogging(
 	'chart/chain/[chain]',
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
-		if (!params?.chain) {
-			return { notFound: true, props: null }
-		}
-
-		const chain = params.chain
+		const chain = !params.chain || params.chain === 'all' ? 'All' : params.chain
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
 		const data = await getChainOverviewData({
-			chain,
+			chain: chain,
 			chainMetadata: metadataCache.chainMetadata,
 			protocolMetadata: metadataCache.protocolMetadata
 		})
