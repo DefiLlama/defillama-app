@@ -231,7 +231,7 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 	{
 		header: 'Market Cap',
 		accessorKey: 'mcap',
-		cell: (info) => <>{formattedNum(info.getValue(), true)}</>,
+		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		size: 120,
 		meta: {
 			align: 'end'
