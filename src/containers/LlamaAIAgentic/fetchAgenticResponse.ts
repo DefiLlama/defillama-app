@@ -1,10 +1,20 @@
 import { MCP_SERVER } from '~/constants'
 import type { ChartConfiguration } from './types'
 
+export interface SpawnProgressData {
+	agentId: string
+	status: 'started' | 'tool_call' | 'completed' | 'error'
+	tool?: string
+	toolCount?: number
+	chartCount?: number
+	findingsPreview?: string
+}
+
 interface AgenticSSECallbacks {
 	onToken: (content: string) => void
 	onCharts: (charts: ChartConfiguration[], chartData: Record<string, any[]>) => void
 	onProgress: (toolName: string) => void
+	onSpawnProgress: (data: SpawnProgressData) => void
 	onSessionId: (sessionId: string) => void
 	onCitations: (citations: string[]) => void
 	onError: (content: string) => void
@@ -16,9 +26,10 @@ interface FetchAgenticResponseParams {
 	sessionId?: string | null
 	callbacks: AgenticSSECallbacks
 	abortSignal?: AbortSignal
+	researchMode?: boolean
 }
 
-export async function fetchAgenticResponse({ message, sessionId, callbacks, abortSignal }: FetchAgenticResponseParams) {
+export async function fetchAgenticResponse({ message, sessionId, callbacks, abortSignal, researchMode }: FetchAgenticResponseParams) {
 	const requestBody: any = {
 		message,
 		stream: true
@@ -26,6 +37,10 @@ export async function fetchAgenticResponse({ message, sessionId, callbacks, abor
 
 	if (sessionId) {
 		requestBody.sessionId = sessionId
+	}
+
+	if (researchMode) {
+		requestBody.researchMode = true
 	}
 
 	const response = await fetch(`${MCP_SERVER}/agentic`, {
@@ -83,6 +98,9 @@ export async function fetchAgenticResponse({ message, sessionId, callbacks, abor
 							break
 						case 'charts':
 							callbacks.onCharts(data.charts || [], data.chartData || {})
+							break
+						case 'spawn_progress':
+							callbacks.onSpawnProgress(data)
 							break
 						case 'citations':
 							callbacks.onCitations(data.citations || [])

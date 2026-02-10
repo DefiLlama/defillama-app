@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
-import { processCitationMarkers } from '~/containers/LlamaAI/utils/markdownHelpers'
+import { parseArtifactPlaceholders, processCitationMarkers } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { ChartRenderer } from './ChartRenderer'
 import { fetchAgenticResponse } from './fetchAgenticResponse'
+import type { SpawnProgressData } from './fetchAgenticResponse'
 import type { ChartConfiguration, Message } from './types'
 
 const REMARK_PLUGINS = [remarkGfm]
@@ -17,7 +18,8 @@ const TOOL_LABELS: Record<string, string> = {
 	load_skill: 'Loading knowledge',
 	generate_chart: 'Generating visualization',
 	web_search: 'Searching the web',
-	x_search: 'Searching X/Twitter'
+	x_search: 'Searching X/Twitter',
+	spawn_agent: 'Spawning research agents'
 }
 
 interface ToolCall {
@@ -26,18 +28,45 @@ interface ToolCall {
 	label: string
 }
 
+type ChartSet = { charts: ChartConfiguration[]; chartData: Record<string, any[]> }
+
+interface SpawnAgentStatus {
+	id: string
+	status: 'started' | 'tool_call' | 'completed' | 'error'
+	tool?: string
+	toolCount?: number
+	chartCount?: number
+	findingsPreview?: string
+}
+
+function buildChartIndex(chartSets: ChartSet[]) {
+	const index = new Map<string, { chart: ChartConfiguration; chartData: Record<string, any[]> }>()
+	for (const set of chartSets) {
+		for (const chart of set.charts) {
+			index.set(chart.id, { chart, chartData: set.chartData })
+		}
+	}
+	return index
+}
+
+function formatTime(seconds: number): string {
+	const m = Math.floor(seconds / 60)
+	const s = seconds % 60
+	return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+}
+
 export function AgenticChat() {
 	const [messages, setMessages] = useState<Message[]>([])
 	const [sessionId, setSessionId] = useState<string | null>(null)
 	const [isStreaming, setIsStreaming] = useState(false)
 	const [streamingText, setStreamingText] = useState('')
-	const [streamingCharts, setStreamingCharts] = useState<
-		Array<{ charts: ChartConfiguration[]; chartData: Record<string, any[]> }>
-	>([])
+	const [streamingCharts, setStreamingCharts] = useState<ChartSet[]>([])
 	const [streamingCitations, setStreamingCitations] = useState<string[]>([])
 	const [activeToolCalls, setActiveToolCalls] = useState<ToolCall[]>([])
 	const [error, setError] = useState<string | null>(null)
 	const [isResearchMode, setIsResearchMode] = useState(false)
+	const [spawnProgress, setSpawnProgress] = useState<Map<string, SpawnAgentStatus>>(new Map())
+	const [spawnStartTime, setSpawnStartTime] = useState(0)
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -56,7 +85,7 @@ export function AgenticChat() {
 
 	useEffect(() => {
 		scrollToBottom()
-	}, [messages, streamingText, streamingCharts, streamingCitations, activeToolCalls, scrollToBottom])
+	}, [messages, streamingText, streamingCharts, streamingCitations, activeToolCalls, spawnProgress, scrollToBottom])
 
 	const handleSubmit = useCallback(
 		(prompt: string) => {
@@ -69,13 +98,16 @@ export function AgenticChat() {
 			setStreamingCharts([])
 			setStreamingCitations([])
 			setActiveToolCalls([])
+			setSpawnProgress(new Map())
+			setSpawnStartTime(0)
 
 			setMessages((prev) => [...prev, { role: 'user', content: trimmed }])
 
 			let accumulatedText = ''
-			let accumulatedCharts: Array<{ charts: ChartConfiguration[]; chartData: Record<string, any[]> }> = []
+			let accumulatedCharts: ChartSet[] = []
 			let accumulatedCitations: string[] = []
 			let hasStartedText = false
+			let spawnStarted = false
 
 			const controller = new AbortController()
 			abortControllerRef.current = controller
@@ -83,12 +115,15 @@ export function AgenticChat() {
 			fetchAgenticResponse({
 				message: trimmed,
 				sessionId,
+				researchMode: isResearchMode,
 				abortSignal: controller.signal,
 				callbacks: {
 					onToken: (content) => {
 						if (!hasStartedText) {
 							hasStartedText = true
 							setActiveToolCalls([])
+							setSpawnProgress(new Map())
+							setSpawnStartTime(0)
 						}
 						accumulatedText += content
 						setStreamingText(accumulatedText)
@@ -106,6 +141,26 @@ export function AgenticChat() {
 						const label = TOOL_LABELS[toolName] || toolName
 						const id = ++toolCallIdRef.current
 						setActiveToolCalls((prev) => [...prev, { id, name: toolName, label }])
+					},
+					onSpawnProgress: (data: SpawnProgressData) => {
+						if (data.status === 'started' && !spawnStarted) {
+							spawnStarted = true
+							setSpawnStartTime(Date.now())
+						}
+						setSpawnProgress((prev) => {
+							const next = new Map(prev)
+							const existing = prev.get(data.agentId)
+							next.set(data.agentId, {
+								...existing,
+								id: data.agentId,
+								status: data.status,
+								tool: data.tool ?? existing?.tool,
+								toolCount: data.toolCount ?? existing?.toolCount,
+								chartCount: data.chartCount ?? existing?.chartCount,
+								findingsPreview: data.findingsPreview ?? existing?.findingsPreview
+							})
+							return next
+						})
 					},
 					onSessionId: (id) => {
 						setSessionId(id)
@@ -127,6 +182,8 @@ export function AgenticChat() {
 						setStreamingCharts([])
 						setStreamingCitations([])
 						setActiveToolCalls([])
+						setSpawnProgress(new Map())
+						setSpawnStartTime(0)
 						setIsStreaming(false)
 					}
 				}
@@ -149,12 +206,14 @@ export function AgenticChat() {
 				setStreamingCharts([])
 				setStreamingCitations([])
 				setActiveToolCalls([])
+				setSpawnProgress(new Map())
+				setSpawnStartTime(0)
 				setIsStreaming(false)
 			}).finally(() => {
 				abortControllerRef.current = null
 			})
 		},
-		[isStreaming, sessionId]
+		[isStreaming, sessionId, isResearchMode]
 	)
 
 	const handleStopRequest = useCallback(() => {
@@ -203,33 +262,25 @@ export function AgenticChat() {
 										<MessageBubble key={i} message={msg} />
 									))}
 
-									{isStreaming && activeToolCalls.length === 0 && !streamingText && streamingCharts.length === 0 && (
+									{isStreaming && activeToolCalls.length === 0 && spawnProgress.size === 0 && !streamingText && streamingCharts.length === 0 && (
 										<TypingIndicator />
 									)}
 
-									{activeToolCalls.map((tc) => (
-										<ToolIndicator key={tc.id} label={tc.label} name={tc.name} />
-									))}
+									{spawnProgress.size > 0 ? (
+										<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
+									) : (
+										activeToolCalls.map((tc) => (
+											<ToolIndicator key={tc.id} label={tc.label} name={tc.name} />
+										))
+									)}
 
 									{isStreaming && (streamingText || streamingCharts.length > 0 || streamingCitations.length > 0) && (
-										<div className="flex flex-col gap-2.5">
-											{streamingText && (
-												<div className="prose prose-sm dark:prose-invert max-w-none">
-													<ReactMarkdown remarkPlugins={REMARK_PLUGINS} rehypePlugins={REHYPE_PLUGINS}>
-														{processCitationMarkers(streamingText, streamingCitations.length > 0 ? streamingCitations : undefined)}
-													</ReactMarkdown>
-													<span className="inline-block h-4 w-0.5 animate-pulse bg-(--old-blue)" />
-												</div>
-											)}
-											{streamingCharts.map((chartSet, i) => (
-												<ChartRenderer
-													key={`streaming-chart-${i}`}
-													charts={chartSet.charts}
-													chartData={chartSet.chartData}
-												/>
-											))}
-											{streamingCitations.length > 0 && <CitationSources citations={streamingCitations} />}
-										</div>
+										<InlineContent
+											text={streamingText}
+											chartSets={streamingCharts}
+											citations={streamingCitations}
+											isStreaming
+										/>
 									)}
 
 									{error && (
@@ -260,6 +311,202 @@ export function AgenticChat() {
 					</div>
 				</>
 			)}
+		</div>
+	)
+}
+
+const SpawnProgressCard = memo(function SpawnProgressCard({
+	agents,
+	startTime
+}: {
+	agents: Map<string, SpawnAgentStatus>
+	startTime: number
+}) {
+	const [elapsed, setElapsed] = useState(0)
+	const [isExpanded, setIsExpanded] = useState(true)
+
+	useEffect(() => {
+		if (!startTime) return
+		const interval = setInterval(() => {
+			setElapsed(Math.floor((Date.now() - startTime) / 1000))
+		}, 1000)
+		return () => clearInterval(interval)
+	}, [startTime])
+
+	const agentList = useMemo(() => [...agents.values()], [agents])
+	const completed = agentList.filter((a) => a.status === 'completed').length
+	const total = agentList.length
+
+	return (
+		<div className="flex flex-col gap-2 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-2 sm:p-3 dark:border-[#222324]">
+			<button
+				type="button"
+				onClick={() => setIsExpanded(!isExpanded)}
+				className="flex items-center gap-2 text-left sm:gap-3"
+			>
+				<img src="/assets/llamaai/llamaai_animation.webp" alt="" className="h-6 w-6 shrink-0" />
+
+				<span className="flex-1 truncate text-xs text-[#666] sm:text-sm dark:text-[#919296]">
+					Researching in parallel...
+				</span>
+
+				<span className="flex shrink-0 items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 text-[10px] text-[#666] sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">
+					{completed}/{total} done
+				</span>
+
+				<span className="flex shrink-0 items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 font-mono text-[10px] text-[#666] tabular-nums sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">
+					{formatTime(elapsed)}
+				</span>
+
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="14"
+					height="14"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="2"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					className="hidden shrink-0 text-[#666] sm:block dark:text-[#919296]"
+				>
+					{isExpanded ? (
+						<polyline points="18 15 12 9 6 15" />
+					) : (
+						<polyline points="6 9 12 15 18 9" />
+					)}
+				</svg>
+			</button>
+
+			{isExpanded && (
+				<div className="flex flex-col gap-1 border-t border-[#e6e6e6] pt-2 dark:border-[#222324]">
+					{agentList.map((a) => (
+						<div key={a.id} className="flex items-center gap-2 pl-1">
+							{a.status === 'completed' ? (
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="12"
+									height="12"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="3"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									className="shrink-0 text-green-500"
+								>
+									<polyline points="20 6 9 17 4 12" />
+								</svg>
+							) : a.status === 'error' ? (
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="12"
+									height="12"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="3"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									className="shrink-0 text-red-500"
+								>
+									<line x1="18" y1="6" x2="6" y2="18" />
+									<line x1="6" y1="6" x2="18" y2="18" />
+								</svg>
+							) : (
+								<span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-(--old-blue)" />
+							)}
+							<span className="text-xs text-[#666] dark:text-[#919296]">
+								{a.id}
+								{a.status === 'tool_call' && a.tool && (
+									<span className="opacity-60"> — {TOOL_LABELS[a.tool] || a.tool}</span>
+								)}
+								{a.status === 'completed' && (
+									<span className="opacity-60">
+										{' '}— Complete ({a.toolCount} tools{a.chartCount ? `, ${a.chartCount} charts` : ''})
+									</span>
+								)}
+								{a.status === 'started' && (
+									<span className="opacity-60"> — Starting...</span>
+								)}
+								{a.status === 'error' && (
+									<span className="opacity-60"> — Error</span>
+								)}
+							</span>
+						</div>
+					))}
+				</div>
+			)}
+		</div>
+	)
+})
+
+function InlineContent({
+	text,
+	chartSets,
+	citations,
+	isStreaming = false
+}: {
+	text: string
+	chartSets: ChartSet[]
+	citations: string[]
+	isStreaming?: boolean
+}) {
+	const chartIndex = useMemo(() => buildChartIndex(chartSets), [chartSets])
+
+	const { parts, referencedIds } = useMemo(() => {
+		const parsed = parseArtifactPlaceholders(text)
+		return { parts: parsed.parts, referencedIds: parsed.chartIds }
+	}, [text])
+
+	const unreferencedCharts = useMemo(() => {
+		const all: { chart: ChartConfiguration; chartData: Record<string, any[]> }[] = []
+		for (const [id, entry] of chartIndex) {
+			if (!referencedIds.has(id)) all.push(entry)
+		}
+		return all
+	}, [chartIndex, referencedIds])
+
+	const processedCitations = citations.length > 0 ? citations : undefined
+
+	return (
+		<div className="flex flex-col gap-2.5">
+			{referencedIds.size > 0 ? (
+				parts.map((part, i) => {
+					if (part.type === 'chart' && part.chartId) {
+						const entry = chartIndex.get(part.chartId)
+						if (entry) {
+							return (
+								<div key={`inline-chart-${part.chartId}-${i}`} className="my-2">
+									<ChartRenderer charts={[entry.chart]} chartData={entry.chartData} />
+								</div>
+							)
+						}
+						return null
+					}
+					if (!part.content) return null
+					return (
+						<div key={`text-${i}`} className="prose prose-sm dark:prose-invert max-w-none">
+							<ReactMarkdown remarkPlugins={REMARK_PLUGINS} rehypePlugins={REHYPE_PLUGINS}>
+								{processCitationMarkers(part.content, processedCitations)}
+							</ReactMarkdown>
+						</div>
+					)
+				})
+			) : (
+				text && (
+					<div className="prose prose-sm dark:prose-invert max-w-none">
+						<ReactMarkdown remarkPlugins={REMARK_PLUGINS} rehypePlugins={REHYPE_PLUGINS}>
+							{processCitationMarkers(text, processedCitations)}
+						</ReactMarkdown>
+					</div>
+				)
+			)}
+			{isStreaming && text && <span className="inline-block h-4 w-0.5 animate-pulse bg-(--old-blue)" />}
+			{unreferencedCharts.map((entry, i) => (
+				<ChartRenderer key={`chart-${entry.chart.id || i}`} charts={[entry.chart]} chartData={entry.chartData} />
+			))}
+			{citations.length > 0 && <CitationSources citations={citations} />}
 		</div>
 	)
 }
@@ -335,24 +582,11 @@ function MessageBubble({ message }: { message: Message }) {
 		)
 	}
 
-	const processedContent = useMemo(
-		() => (message.content ? processCitationMarkers(message.content, message.citations) : ''),
-		[message.content, message.citations]
-	)
-
 	return (
-		<div className="flex flex-col gap-2.5">
-			{processedContent && (
-				<div className="prose prose-sm dark:prose-invert max-w-none">
-					<ReactMarkdown remarkPlugins={REMARK_PLUGINS} rehypePlugins={REHYPE_PLUGINS}>
-						{processedContent}
-					</ReactMarkdown>
-				</div>
-			)}
-			{message.charts?.map((chartSet, i) => (
-				<ChartRenderer key={`chart-${i}`} charts={chartSet.charts} chartData={chartSet.chartData} />
-			))}
-			{message.citations && message.citations.length > 0 && <CitationSources citations={message.citations} />}
-		</div>
+		<InlineContent
+			text={message.content || ''}
+			chartSets={message.charts || []}
+			citations={message.citations || []}
+		/>
 	)
 }
