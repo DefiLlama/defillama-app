@@ -259,7 +259,8 @@ export default function Protocols(props: TreasuryPageProps) {
 		protocol,
 		keys: extraKeys,
 		includeBase: true,
-		source: 'treasury'
+		source: 'treasury',
+		inflows: props.metrics?.inflows
 	})
 
 	const { data: ownTokensBreakdown } = useQuery({

@@ -19,6 +19,7 @@ interface IUseProtocolBreakdownChartsParams {
 	keys: string[]
 	includeBase?: boolean
 	source?: 'tvl' | 'treasury'
+	inflows?: boolean
 }
 
 interface IUseProtocolBreakdownChartsResult {
@@ -222,23 +223,20 @@ const buildComputedBreakdownResult = ({
 	chainBreakdownCharts,
 	tokenBreakdownUsdCharts,
 	tokenBreakdownRawCharts,
-	valueSeriesName
+	valueSeriesName,
+	inflows = true
 }: {
 	tvlCharts: Array<IProtocolValueChart | null | undefined>
 	chainBreakdownCharts: Array<BreakdownChart | null | undefined>
 	tokenBreakdownUsdCharts: Array<BreakdownChart | null | undefined>
 	tokenBreakdownRawCharts: Array<BreakdownChart | null | undefined>
 	valueSeriesName: string
+	inflows?: boolean
 }): IUseProtocolBreakdownChartsComputed => {
 	const tvlChart = aggregateValueCharts(tvlCharts)
 	const chainBreakdownChart = aggregateBreakdownCharts(chainBreakdownCharts)
-	const tokenBreakdownUSD = aggregateBreakdownCharts(tokenBreakdownUsdCharts)
-	const tokenBreakdown = aggregateBreakdownCharts(tokenBreakdownRawCharts)
 
 	const { source: chainSource, keys: chainsUnique } = buildBreakdownSourceAndKeys(chainBreakdownChart)
-	const { source: tokenUsdSource, keys: tokenUsdKeys } = buildBreakdownSourceAndKeys(tokenBreakdownUSD)
-	const { source: tokenRawSource, keys: tokenRawKeys } = buildBreakdownSourceAndKeys(tokenBreakdown)
-	const tokensUnique = tokenUsdKeys.length > 0 ? tokenUsdKeys : tokenRawKeys
 
 	const chainsDataset =
 		chainSource && chainsUnique.length > 0
@@ -266,6 +264,33 @@ const buildComputedBreakdownResult = ({
 					}
 				]
 			: EMPTY_MULTI_SERIES_CHARTS
+
+	if (!inflows) {
+		return {
+			chainsUnique,
+			tokensUnique: [],
+			chainsDataset,
+			chainsCharts,
+			valueDataset,
+			valueCharts,
+			tokenUSDDataset: null,
+			tokenUSDCharts: EMPTY_MULTI_SERIES_CHARTS,
+			tokenRawDataset: null,
+			tokenRawCharts: EMPTY_MULTI_SERIES_CHARTS,
+			tokenBreakdownUSD: null,
+			tokenBreakdownPieChart: EMPTY_PIE_CHART_DATA,
+			usdInflowsDataset: null,
+			tokenInflowsDataset: null,
+			tokenInflowsCharts: EMPTY_MULTI_SERIES_CHARTS
+		}
+	}
+
+	const tokenBreakdownUSD = aggregateBreakdownCharts(tokenBreakdownUsdCharts)
+	const tokenBreakdown = aggregateBreakdownCharts(tokenBreakdownRawCharts)
+
+	const { source: tokenUsdSource, keys: tokenUsdKeys } = buildBreakdownSourceAndKeys(tokenBreakdownUSD)
+	const { source: tokenRawSource, keys: tokenRawKeys } = buildBreakdownSourceAndKeys(tokenBreakdown)
+	const tokensUnique = tokenUsdKeys.length > 0 ? tokenUsdKeys : tokenRawKeys
 
 	const tokenUSDDataset =
 		tokenUsdSource && tokenUsdSource.length > 1
@@ -336,10 +361,11 @@ export function useProtocolBreakdownCharts({
 	protocol,
 	keys,
 	includeBase = true,
-	source = 'tvl'
+	source = 'tvl',
+	inflows = true
 }: IUseProtocolBreakdownChartsParams): IUseProtocolBreakdownChartsResult {
 	const { tvlChartQueries, chainBreakdownChartQueries, tokenBreakdownUsdQueries, tokenBreakdownRawQueries } =
-		useFetchProtocolChartsByKeys({ protocol, keys, includeBase, source })
+		useFetchProtocolChartsByKeys({ protocol, keys, includeBase, source, inflows })
 
 	const isNetworkLoading =
 		tvlChartQueries.some((query) => query.isLoading) ||
@@ -395,7 +421,8 @@ export function useProtocolBreakdownCharts({
 
 			const next = buildComputedBreakdownResult({
 				...latestComputeInputRef.current,
-				valueSeriesName: source === 'treasury' ? 'Treasury' : 'Total'
+				valueSeriesName: source === 'treasury' ? 'Treasury' : 'Total',
+				inflows
 			})
 
 			if (cancelled || runId !== computeRunIdRef.current) return
@@ -425,7 +452,7 @@ export function useProtocolBreakdownCharts({
 				window.clearTimeout(timeoutId)
 			}
 		}
-	}, [isNetworkLoading, computeSignature, source])
+	}, [isNetworkLoading, computeSignature, source, inflows])
 
 	return {
 		isLoading: isNetworkLoading || isComputing,

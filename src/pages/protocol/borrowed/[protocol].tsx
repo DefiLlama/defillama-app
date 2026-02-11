@@ -218,7 +218,8 @@ export default function Protocols(props) {
 	} = useProtocolBreakdownCharts({
 		protocol,
 		keys: ['borrowed'],
-		includeBase: false
+		includeBase: false,
+		inflows: props.metrics?.inflows
 	})
 	const hasBreakdownMetrics =
 		(borrowedByChainDataset && chainsUnique.length > 1) ||

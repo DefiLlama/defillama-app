@@ -239,6 +239,7 @@ interface IFetchProtocolChartsByKeysParams {
 	keys: string[]
 	includeBase?: boolean
 	source: ProtocolChartSource
+	inflows?: boolean
 }
 
 interface IFetchProtocolChartsByKeysResult {
@@ -253,7 +254,8 @@ export function useFetchProtocolChartsByKeys({
 	protocol,
 	keys,
 	includeBase = true,
-	source
+	source,
+	inflows = true
 }: IFetchProtocolChartsByKeysParams): IFetchProtocolChartsByKeysResult {
 	const keysToFetch = useMemo(() => {
 		const base: Array<string | undefined> = includeBase ? [undefined] : []
@@ -271,13 +273,17 @@ export function useFetchProtocolChartsByKeys({
 	}) as Array<UseQueryResult<IProtocolChainBreakdownChart | null>>
 
 	const tokenBreakdownUsdQueries = useQueries({
-		queries: keysToFetch.map((key) => getQueryOptions({ protocol, key, breakdownType: 'token-breakdown' }))
+		queries: inflows
+			? keysToFetch.map((key) => getQueryOptions({ protocol, key, breakdownType: 'token-breakdown' }))
+			: []
 	}) as Array<UseQueryResult<IProtocolTokenBreakdownChart | null>>
 
 	const tokenBreakdownRawQueries = useQueries({
-		queries: keysToFetch.map((key) =>
-			getQueryOptions({ protocol, key, breakdownType: 'token-breakdown', currency: 'token' })
-		)
+		queries: inflows
+			? keysToFetch.map((key) =>
+					getQueryOptions({ protocol, key, breakdownType: 'token-breakdown', currency: 'token' })
+				)
+			: []
 	}) as Array<UseQueryResult<IProtocolTokenBreakdownChart | null>>
 
 	return {
