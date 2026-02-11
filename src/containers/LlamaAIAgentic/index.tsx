@@ -63,6 +63,7 @@ export function AgenticChat() {
 	const {
 		createFakeSession,
 		restoreSession,
+		loadMoreMessages,
 		deleteSession,
 		updateSessionTitle,
 		isDeletingSession,
@@ -84,6 +85,7 @@ export function AgenticChat() {
 	const [spawnStartTime, setSpawnStartTime] = useState(0)
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(null)
+	const [paginationState, setPaginationState] = useState<{ hasMore: boolean; cursor: number | null; isLoadingMore: boolean }>({ hasMore: false, cursor: null, isLoadingMore: false })
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -91,6 +93,10 @@ export function AgenticChat() {
 	const promptInputRef = useRef<HTMLTextAreaElement>(null)
 	const toolCallIdRef = useRef(0)
 	const isFirstMessageRef = useRef(true)
+	const shouldAutoScrollRef = useRef(true)
+	const paginationRef = useRef(paginationState)
+	const userScrollCooldownRef = useRef(false)
+	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 
 	const scrollToBottom = useCallback(() => {
 		if (scrollContainerRef.current) {
@@ -98,12 +104,123 @@ export function AgenticChat() {
 				top: scrollContainerRef.current.scrollHeight,
 				behavior: 'smooth'
 			})
+			shouldAutoScrollRef.current = true
+			userScrollCooldownRef.current = false
+			setShowScrollToBottom(false)
 		}
 	}, [])
 
+	const hasMessages = messages.length > 0 || isStreaming
+
+	useEffect(() => { paginationRef.current = paginationState }, [paginationState])
+
 	useEffect(() => {
-		scrollToBottom()
-	}, [messages, streamingText, streamingCharts, streamingCitations, activeToolCalls, spawnProgress, scrollToBottom])
+		const container = scrollContainerRef.current
+		if (!container) return
+
+		let cooldownTimer: ReturnType<typeof setTimeout>
+		const onUserScrollIntent = () => {
+			shouldAutoScrollRef.current = false
+			userScrollCooldownRef.current = true
+			clearTimeout(cooldownTimer)
+			cooldownTimer = setTimeout(() => { userScrollCooldownRef.current = false }, 500)
+		}
+
+		let ticking = false
+		const onScroll = () => {
+			if (!ticking) {
+				ticking = true
+				requestAnimationFrame(() => {
+					const { scrollTop, scrollHeight, clientHeight } = container
+					const isAtBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight - 150
+					if (isAtBottom && !shouldAutoScrollRef.current && !userScrollCooldownRef.current) {
+						shouldAutoScrollRef.current = true
+					}
+					setShowScrollToBottom(!shouldAutoScrollRef.current && scrollHeight > clientHeight)
+					const pg = paginationRef.current
+					if (scrollTop <= 50 && pg.hasMore && !pg.isLoadingMore) {
+						loadMoreRef.current()
+					}
+					ticking = false
+				})
+			}
+		}
+
+		container.addEventListener('wheel', onUserScrollIntent, { passive: true })
+		container.addEventListener('touchmove', onUserScrollIntent, { passive: true })
+		container.addEventListener('scroll', onScroll, { passive: true })
+		return () => {
+			clearTimeout(cooldownTimer)
+			container.removeEventListener('wheel', onUserScrollIntent)
+			container.removeEventListener('touchmove', onUserScrollIntent)
+			container.removeEventListener('scroll', onScroll)
+		}
+	}, [hasMessages])
+
+	useEffect(() => {
+		if (!isStreaming) {
+			const container = scrollContainerRef.current
+			if (container) {
+				const { scrollTop, scrollHeight, clientHeight } = container
+				const isAtBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight - 150
+				if (!isAtBottom && scrollHeight > clientHeight) {
+					setShowScrollToBottom(true)
+				}
+			}
+			return
+		}
+		const interval = setInterval(() => {
+			if (shouldAutoScrollRef.current && scrollContainerRef.current) {
+				scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
+			}
+		}, 200)
+		return () => clearInterval(interval)
+	}, [isStreaming])
+
+	useEffect(() => {
+		if (shouldAutoScrollRef.current && scrollContainerRef.current) {
+			scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
+		}
+	}, [messages])
+
+	const handleLoadMoreMessages = useCallback(async () => {
+		if (!sessionId || !paginationState.hasMore || paginationState.isLoadingMore) return
+
+		setPaginationState((prev) => ({ ...prev, isLoadingMore: true }))
+		try {
+			const result = await loadMoreMessages(sessionId, paginationState.cursor!)
+			const older: Message[] = (result.messages || []).map((m: any) => ({
+				role: m.role as 'user' | 'assistant',
+				content: m.content,
+				charts: m.charts && m.chartData ? [{ charts: m.charts, chartData: m.chartData }] : undefined,
+				citations: m.citations,
+				id: m.id,
+				timestamp: m.timestamp ? new Date(m.timestamp).getTime() : undefined
+			}))
+
+			const container = scrollContainerRef.current
+			const prevScrollHeight = container?.scrollHeight || 0
+
+			setMessages((prev) => [...older, ...prev])
+
+			requestAnimationFrame(() => {
+				if (container) {
+					container.scrollTop = container.scrollHeight - prevScrollHeight
+				}
+			})
+
+			setPaginationState({
+				hasMore: result.pagination?.hasMore || false,
+				cursor: result.pagination?.cursor || null,
+				isLoadingMore: false
+			})
+		} catch {
+			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
+		}
+	}, [sessionId, paginationState, loadMoreMessages])
+
+	const loadMoreRef = useRef(handleLoadMoreMessages)
+	useEffect(() => { loadMoreRef.current = handleLoadMoreMessages }, [handleLoadMoreMessages])
 
 	const handleSidebarToggle = useCallback(() => {
 		setShouldAnimateSidebar(true)
@@ -122,6 +239,9 @@ export function AgenticChat() {
 		setSpawnProgress(new Map())
 		setSpawnStartTime(0)
 		isFirstMessageRef.current = true
+		shouldAutoScrollRef.current = true
+		setShowScrollToBottom(false)
+		setPaginationState({ hasMore: false, cursor: null, isLoadingMore: false })
 		promptInputRef.current?.focus()
 	}, [])
 
@@ -147,6 +267,13 @@ export function AgenticChat() {
 				const match = sessions.find((s) => s.sessionId === selectedSessionId)
 				setSessionTitle(match?.title || null)
 				isFirstMessageRef.current = false
+				shouldAutoScrollRef.current = true
+				setShowScrollToBottom(false)
+				setPaginationState({
+					hasMore: result.pagination?.hasMore || false,
+					cursor: result.pagination?.cursor || null,
+					isLoadingMore: false
+				})
 			} catch {
 				setError('Failed to restore session')
 			} finally {
@@ -179,6 +306,8 @@ export function AgenticChat() {
 			}
 
 			setMessages((prev) => [...prev, { role: 'user', content: trimmed }])
+			shouldAutoScrollRef.current = true
+			setShowScrollToBottom(false)
 
 			let accumulatedText = ''
 			let accumulatedCharts: ChartSet[] = []
@@ -305,8 +434,6 @@ export function AgenticChat() {
 		abortControllerRef.current?.abort()
 	}, [])
 
-	const hasMessages = messages.length > 0 || isStreaming
-
 	if (!user) {
 		return (
 			<div className="flex flex-1 items-center justify-center">
@@ -376,6 +503,11 @@ export function AgenticChat() {
 							<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 								<div className="flex w-full flex-col gap-2 px-2 pb-2.5">
 									<div className="flex flex-col gap-2.5">
+										{paginationState.isLoadingMore && (
+											<div className="flex justify-center py-2">
+												<span className="text-xs text-[#666] dark:text-[#919296]">Loading older messages...</span>
+											</div>
+										)}
 										{messages.map((msg, i) => (
 											<MessageBubble key={i} message={msg} />
 										))}
@@ -410,6 +542,17 @@ export function AgenticChat() {
 								</div>
 								<div ref={messagesEndRef} />
 							</div>
+						</div>
+
+						<div className={`pointer-events-none sticky bottom-32 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : 'opacity-0'}`}>
+							<Tooltip
+								content="Scroll to bottom"
+								render={<button onClick={scrollToBottom} />}
+								className="pointer-events-auto mx-auto flex h-8 w-8 items-center justify-center rounded-full border border-[#e6e6e6] bg-(--app-bg) shadow-md hover:bg-[#f7f7f7] focus-visible:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324]"
+							>
+								<Icon name="arrow-down" height={16} width={16} />
+								<span className="sr-only">Scroll to bottom</span>
+							</Tooltip>
 						</div>
 
 						<div className="relative mx-auto w-full max-w-3xl pb-2.5">
