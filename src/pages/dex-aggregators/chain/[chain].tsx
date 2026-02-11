@@ -5,6 +5,7 @@ import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
+import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -57,8 +58,24 @@ export const getStaticProps = withPerformanceLogging(
 
 		if (!data) return { notFound: true }
 
+		const { questions: entityQuestions } = await fetchEntityQuestions(chain, 'chain', {
+			subPage: 'dex-aggregators',
+			total24h: data.total24h ?? null,
+			total7d: data.total7d ?? null,
+			change_1d: data.change_1d ?? null,
+			change_7dover7d: data.change_7dover7d ?? null,
+			change_1m: data.change_1m ?? null,
+			topProtocols: data.protocols.slice(0, 15).map((p) => ({
+				name: p.name,
+				volume24h: p.total24h ?? null,
+				volume7d: p.total7d ?? null,
+				mcap: p.mcap ?? null,
+				chains: p.chains?.slice(0, 3) ?? null
+			}))
+		})
+
 		return {
-			props: data,
+			props: { ...data, entityQuestions },
 			revalidate: maxAgeForNext([22])
 		}
 	}

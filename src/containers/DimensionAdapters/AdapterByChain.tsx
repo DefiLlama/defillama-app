@@ -22,6 +22,7 @@ const parseExcludeParam = (param: string | string[] | undefined): Set<string> =>
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
+import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -75,6 +76,13 @@ const defaultSortingByType: Partial<Record<TPageType, SortingState>> & { default
 	'P/F': [{ desc: true, id: 'pf' }],
 	'P/S': [{ desc: true, id: 'ps' }],
 	default: [{ desc: true, id: 'total24h' }]
+}
+
+const pageSlugByType: Partial<Record<TPageType, string>> = {
+	'Perp Volume': 'perps',
+	'DEX Volume': 'dexs',
+	Fees: 'fees',
+	Revenue: 'revenue'
 }
 
 const pageTypeByDefinition: Partial<Record<TPageType, Record<string, string>>> = {
@@ -328,6 +336,14 @@ export function AdapterByChain(props: IProps) {
 	return (
 		<>
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
+			{props.entityQuestions?.length > 0 && (
+				<EntityQuestionsStrip
+					questions={props.entityQuestions}
+					entitySlug={pageSlugByType[props.type] || slug(props.type)}
+					entityType="page"
+					entityName={props.type}
+				/>
+			)}
 			{props.adapterType !== 'fees' ? (
 				<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 					<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">

@@ -57,6 +57,7 @@ export interface IAdapterByChainPageData {
 	change_1m: number | null
 	change_7dover7d: number | null
 	openInterest: number | null
+	entityQuestions?: string[]
 	activeLiquidity: number | null
 }
 

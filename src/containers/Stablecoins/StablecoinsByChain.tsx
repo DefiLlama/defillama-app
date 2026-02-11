@@ -5,6 +5,7 @@ import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { createInflowsTooltipFormatter, preparePieChartData } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
@@ -166,6 +167,7 @@ export interface StablecoinsByChainProps {
 	doublecountedIds?: number[]
 	availableBackings: string[]
 	availablePegTypes: string[]
+	entityQuestions?: string[]
 }
 
 const INFLOWS_TOOLTIP_FORMATTER = createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: '$' })
@@ -192,7 +194,8 @@ export function StablecoinsByChain({
 	chartDataByPeggedAsset,
 	doublecountedIds = EMPTY_IDS,
 	availableBackings,
-	availablePegTypes
+	availablePegTypes,
+	entityQuestions
 }: StablecoinsByChainProps) {
 	const [chartType, setChartType] = React.useState('Total Market Cap')
 
@@ -468,6 +471,14 @@ export function StablecoinsByChain({
 	return (
 		<>
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
+			{entityQuestions?.length > 0 && (
+				<EntityQuestionsStrip
+					questions={entityQuestions}
+					entitySlug="stablecoins"
+					entityType="page"
+					entityName="Stablecoins"
+				/>
+			)}
 
 			<PeggedFilters
 				pathname={selectedChain === 'All' ? '/stablecoins' : `/stablecoins/${selectedChain}`}
