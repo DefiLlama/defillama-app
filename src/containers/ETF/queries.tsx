@@ -16,7 +16,8 @@ export async function getETFData() {
 	const formattedDate = new Date(maxDate).toLocaleDateString('en-US', {
 		month: 'long',
 		day: 'numeric',
-		year: 'numeric'
+		year: 'numeric',
+		timeZone: 'UTC'
 	})
 
 	const processedSnapshot = snapshot
