@@ -31,7 +31,14 @@ interface FetchAgenticResponseParams {
 	fetchFn?: typeof fetch
 }
 
-export async function fetchAgenticResponse({ message, sessionId, callbacks, abortSignal, researchMode, fetchFn }: FetchAgenticResponseParams) {
+export async function fetchAgenticResponse({
+	message,
+	sessionId,
+	callbacks,
+	abortSignal,
+	researchMode,
+	fetchFn
+}: FetchAgenticResponseParams) {
 	const doFetch = fetchFn || fetch
 
 	const requestBody: any = {
@@ -119,8 +126,7 @@ export async function fetchAgenticResponse({ message, sessionId, callbacks, abor
 							callbacks.onDone()
 							break
 					}
-				} catch {
-				}
+				} catch {}
 			}
 		}
 	} finally {

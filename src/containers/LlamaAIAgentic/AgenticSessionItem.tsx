@@ -7,10 +7,10 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
 import type { ChatSession } from '~/containers/LlamaAI/hooks/useChatHistory'
 import { useClickOutside } from '~/containers/LlamaAI/hooks/useClickOutside'
 import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 interface AgenticSessionItemProps {
 	session: ChatSession
@@ -153,12 +153,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 			<div className="flex items-center justify-center opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
 				<Tooltip
 					content="Edit Session Title"
-					render={
-						<button
-							onClick={() => setIsEditing(true)}
-							disabled={isUpdatingTitle || isDeleting || isRestoring}
-						/>
-					}
+					render={<button onClick={() => setIsEditing(true)} disabled={isUpdatingTitle || isDeleting || isRestoring} />}
 					className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 				>
 					<Icon name="pencil" height={12} width={12} className="shrink-0" />

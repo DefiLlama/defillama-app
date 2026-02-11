@@ -3,10 +3,10 @@ import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { MarkdownRenderer } from '~/containers/LlamaAI/components/MarkdownRenderer'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
-import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
+import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { AgenticSidebar } from './AgenticSidebar'
 import { ChartRenderer } from './ChartRenderer'
@@ -85,7 +85,11 @@ export function AgenticChat() {
 	const [spawnStartTime, setSpawnStartTime] = useState(0)
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(null)
-	const [paginationState, setPaginationState] = useState<{ hasMore: boolean; cursor: number | null; isLoadingMore: boolean }>({ hasMore: false, cursor: null, isLoadingMore: false })
+	const [paginationState, setPaginationState] = useState<{
+		hasMore: boolean
+		cursor: number | null
+		isLoadingMore: boolean
+	}>({ hasMore: false, cursor: null, isLoadingMore: false })
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -112,7 +116,9 @@ export function AgenticChat() {
 
 	const hasMessages = messages.length > 0 || isStreaming
 
-	useEffect(() => { paginationRef.current = paginationState }, [paginationState])
+	useEffect(() => {
+		paginationRef.current = paginationState
+	}, [paginationState])
 
 	useEffect(() => {
 		const container = scrollContainerRef.current
@@ -123,7 +129,9 @@ export function AgenticChat() {
 			shouldAutoScrollRef.current = false
 			userScrollCooldownRef.current = true
 			clearTimeout(cooldownTimer)
-			cooldownTimer = setTimeout(() => { userScrollCooldownRef.current = false }, 500)
+			cooldownTimer = setTimeout(() => {
+				userScrollCooldownRef.current = false
+			}, 500)
 		}
 
 		let ticking = false
@@ -220,7 +228,9 @@ export function AgenticChat() {
 	}, [sessionId, paginationState, loadMoreMessages])
 
 	const loadMoreRef = useRef(handleLoadMoreMessages)
-	useEffect(() => { loadMoreRef.current = handleLoadMoreMessages }, [handleLoadMoreMessages])
+	useEffect(() => {
+		loadMoreRef.current = handleLoadMoreMessages
+	}, [handleLoadMoreMessages])
 
 	const handleSidebarToggle = useCallback(() => {
 		setShouldAnimateSidebar(true)
@@ -401,31 +411,33 @@ export function AgenticChat() {
 						setIsStreaming(false)
 					}
 				}
-			}).catch((err: any) => {
-				if (err?.name !== 'AbortError') {
-					setError(err?.message || 'Failed to get response')
-				}
-				if (accumulatedText || accumulatedCharts.length > 0) {
-					setMessages((prev) => [
-						...prev,
-						{
-							role: 'assistant',
-							content: accumulatedText || undefined,
-							charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined,
-							citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined
-						}
-					])
-				}
-				setStreamingText('')
-				setStreamingCharts([])
-				setStreamingCitations([])
-				setActiveToolCalls([])
-				setSpawnProgress(new Map())
-				setSpawnStartTime(0)
-				setIsStreaming(false)
-			}).finally(() => {
-				abortControllerRef.current = null
 			})
+				.catch((err: any) => {
+					if (err?.name !== 'AbortError') {
+						setError(err?.message || 'Failed to get response')
+					}
+					if (accumulatedText || accumulatedCharts.length > 0) {
+						setMessages((prev) => [
+							...prev,
+							{
+								role: 'assistant',
+								content: accumulatedText || undefined,
+								charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined,
+								citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined
+							}
+						])
+					}
+					setStreamingText('')
+					setStreamingCharts([])
+					setStreamingCitations([])
+					setActiveToolCalls([])
+					setSpawnProgress(new Map())
+					setSpawnStartTime(0)
+					setIsStreaming(false)
+				})
+				.finally(() => {
+					abortControllerRef.current = null
+				})
 		},
 		[isStreaming, sessionId, isResearchMode, authorizedFetch, createFakeSession, updateSessionTitle, moveSessionToTop]
 	)
@@ -472,13 +484,7 @@ export function AgenticChat() {
 				{!hasMessages ? (
 					<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
 						<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
-							<img
-								src="/assets/llamaai/llama-ai.svg"
-								alt="LlamaAI"
-								className="object-contain"
-								width={64}
-								height={77}
-							/>
+							<img src="/assets/llamaai/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
 							<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 						</div>
 						<PromptInput
@@ -496,10 +502,7 @@ export function AgenticChat() {
 					</div>
 				) : (
 					<>
-						<div
-							ref={scrollContainerRef}
-							className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5 max-lg:px-0"
-						>
+						<div ref={scrollContainerRef} className="relative thin-scrollbar flex-1 overflow-y-auto p-2.5 max-lg:px-0">
 							<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 								<div className="flex w-full flex-col gap-2 px-2 pb-2.5">
 									<div className="flex flex-col gap-2.5">
@@ -512,16 +515,16 @@ export function AgenticChat() {
 											<MessageBubble key={i} message={msg} />
 										))}
 
-										{isStreaming && activeToolCalls.length === 0 && spawnProgress.size === 0 && !streamingText && streamingCharts.length === 0 && (
-											<TypingIndicator />
-										)}
+										{isStreaming &&
+											activeToolCalls.length === 0 &&
+											spawnProgress.size === 0 &&
+											!streamingText &&
+											streamingCharts.length === 0 && <TypingIndicator />}
 
 										{spawnProgress.size > 0 ? (
 											<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
 										) : (
-											activeToolCalls.map((tc) => (
-												<ToolIndicator key={tc.id} label={tc.label} name={tc.name} />
-											))
+											activeToolCalls.map((tc) => <ToolIndicator key={tc.id} label={tc.label} name={tc.name} />)
 										)}
 
 										{isStreaming && (streamingText || streamingCharts.length > 0 || streamingCitations.length > 0) && (
@@ -544,7 +547,9 @@ export function AgenticChat() {
 							</div>
 						</div>
 
-						<div className={`pointer-events-none sticky bottom-32 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : 'opacity-0'}`}>
+						<div
+							className={`pointer-events-none sticky bottom-32 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : 'opacity-0'}`}
+						>
 							<Tooltip
 								content="Scroll to bottom"
 								render={<button onClick={scrollToBottom} />}
@@ -661,11 +666,7 @@ const SpawnProgressCard = memo(function SpawnProgressCard({
 					strokeLinejoin="round"
 					className="hidden shrink-0 text-[#666] sm:block dark:text-[#919296]"
 				>
-					{isExpanded ? (
-						<polyline points="18 15 12 9 6 15" />
-					) : (
-						<polyline points="6 9 12 15 18 9" />
-					)}
+					{isExpanded ? <polyline points="18 15 12 9 6 15" /> : <polyline points="6 9 12 15 18 9" />}
 				</svg>
 			</button>
 
@@ -714,15 +715,12 @@ const SpawnProgressCard = memo(function SpawnProgressCard({
 								)}
 								{a.status === 'completed' && (
 									<span className="opacity-60">
-										{' '}— Complete ({a.toolCount} tools{a.chartCount ? `, ${a.chartCount} charts` : ''})
+										{' '}
+										— Complete ({a.toolCount} tools{a.chartCount ? `, ${a.chartCount} charts` : ''})
 									</span>
 								)}
-								{a.status === 'started' && (
-									<span className="opacity-60"> — Starting...</span>
-								)}
-								{a.status === 'error' && (
-									<span className="opacity-60"> — Error</span>
-								)}
+								{a.status === 'started' && <span className="opacity-60"> — Starting...</span>}
+								{a.status === 'error' && <span className="opacity-60"> — Error</span>}
 							</span>
 						</div>
 					))}
@@ -760,43 +758,51 @@ function InlineContent({
 
 	return (
 		<div className="flex flex-col gap-2.5">
-			{referencedIds.size > 0 ? (
-				parts.map((part, i) => {
-					if (part.type === 'chart' && part.chartId) {
-						const entry = chartIndex.get(part.chartId)
-						if (entry) {
-							return (
-								<div key={`inline-chart-${part.chartId}-${i}`} className="my-2">
-									<ChartRenderer charts={[entry.chart]} chartData={entry.chartData} />
-								</div>
-							)
+			{referencedIds.size > 0
+				? parts.map((part, i) => {
+						if (part.type === 'chart' && part.chartId) {
+							const entry = chartIndex.get(part.chartId)
+							if (entry) {
+								return (
+									<div key={`inline-chart-${part.chartId}-${i}`} className="my-2">
+										<ChartRenderer charts={[entry.chart]} chartData={entry.chartData} />
+									</div>
+								)
+							}
+							if (isStreaming) {
+								return (
+									<div
+										key={`chart-loading-${part.chartId}-${i}`}
+										className="my-4 flex h-64 animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
+									>
+										<p className="text-sm text-gray-500">Loading chart...</p>
+									</div>
+								)
+							}
+							return null
 						}
-						if (isStreaming) {
-							return (
-								<div
-									key={`chart-loading-${part.chartId}-${i}`}
-									className="my-4 flex h-64 animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
-								>
-									<p className="text-sm text-gray-500">Loading chart...</p>
-								</div>
-							)
-						}
-						return null
-					}
-					if (!part.content) return null
-					return (
-						<MarkdownRenderer key={`text-${i}`} content={part.content} citations={citations.length > 0 ? citations : undefined} isStreaming={isStreaming} />
-					)
-				})
-			) : (
-				text && (
-					<MarkdownRenderer content={text} citations={citations.length > 0 ? citations : undefined} isStreaming={isStreaming} />
-				)
-			)}
+						if (!part.content) return null
+						return (
+							<MarkdownRenderer
+								key={`text-${i}`}
+								content={part.content}
+								citations={citations.length > 0 ? citations : undefined}
+								isStreaming={isStreaming}
+							/>
+						)
+					})
+				: text && (
+						<MarkdownRenderer
+							content={text}
+							citations={citations.length > 0 ? citations : undefined}
+							isStreaming={isStreaming}
+						/>
+					)}
 			{isStreaming && text && <span className="inline-block h-4 w-0.5 animate-pulse bg-(--old-blue)" />}
-			{unreferencedCharts.map((entry, i) => (
-				<ChartRenderer key={`chart-${entry.chart.id || i}`} charts={[entry.chart]} chartData={entry.chartData} />
-			))}
+			{referencedIds.size === 0 &&
+				unreferencedCharts.map((entry, i) => (
+					<ChartRenderer key={`chart-${entry.chart.id || i}`} charts={[entry.chart]} chartData={entry.chartData} />
+				))}
 		</div>
 	)
 }
@@ -804,9 +810,9 @@ function InlineContent({
 function TypingIndicator() {
 	return (
 		<div className="flex items-center gap-1.5 py-2">
-			<span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#666] dark:bg-[#919296] [animation-delay:0ms]" />
-			<span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#666] dark:bg-[#919296] [animation-delay:150ms]" />
-			<span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#666] dark:bg-[#919296] [animation-delay:300ms]" />
+			<span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#666] [animation-delay:0ms] dark:bg-[#919296]" />
+			<span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#666] [animation-delay:150ms] dark:bg-[#919296]" />
+			<span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#666] [animation-delay:300ms] dark:bg-[#919296]" />
 		</div>
 	)
 }
@@ -832,10 +838,6 @@ function MessageBubble({ message }: { message: Message }) {
 	}
 
 	return (
-		<InlineContent
-			text={message.content || ''}
-			chartSets={message.charts || []}
-			citations={message.citations || []}
-		/>
+		<InlineContent text={message.content || ''} chartSets={message.charts || []} citations={message.citations || []} />
 	)
 }

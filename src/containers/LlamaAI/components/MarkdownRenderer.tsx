@@ -295,7 +295,7 @@ export function MarkdownRenderer({
 						return null
 					})
 				: renderMarkdownSection(processedData.content, 'content')}
-			{citations && citations.length > 0 && (
+			{citations && citations.length > 0 && !isStreaming && (
 				<details className="flex flex-col text-sm">
 					<summary className="mr-auto flex items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-2 py-1 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
 						<svg
