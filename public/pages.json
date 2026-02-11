@@ -680,19 +680,19 @@
       "oldName": "Governance"
     },
     {
+      "name": "Safe Harbor Agreements",
+      "route": "/safe-harbor-agreements",
+      "category": "Others",
+      "description": "Overview of protocols with Safe Harbor Agreements",
+      "totalTrackedKey": "safeHarbor.protocols"
+    },
+    {
       "name": "Expenses by Protocol",
       "route": "/expenses",
       "category": "Others",
       "description": "Breakdown of annual operational expenses by protocol",
       "totalTrackedKey": "expenses.protocols",
       "tab": "Protocols"
-    },
-    {
-      "name": "Safe Harbor Agreements",
-      "route": "/safe-harbor-agreements",
-      "category": "Others",
-      "description": "Overview of protocols with Safe Harbor Agreements",
-      "totalTrackedKey": "safeHarbor.protocols"
     }
   ],
   "Tools": [

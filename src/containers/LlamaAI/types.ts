@@ -109,7 +109,7 @@ export interface EntityQuestionsResponse {
 	entityNotFound?: boolean
 	metadata?: {
 		entitySlug: string
-		entityType: 'protocol' | 'chain'
+		entityType: 'protocol' | 'chain' | 'page'
 		generatedAt: string
 	}
 }

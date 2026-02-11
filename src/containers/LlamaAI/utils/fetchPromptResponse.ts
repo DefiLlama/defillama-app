@@ -90,7 +90,7 @@ interface FetchPromptResponseParams {
 	forceIntent?: 'comprehensive_report'
 	authorizedFetch: any
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
-	pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string }
+	pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string }
 	resume?: boolean
 	/** Initial markdown content for stream resumption - ensures continuity when reconnecting */
 	initialContent?: string

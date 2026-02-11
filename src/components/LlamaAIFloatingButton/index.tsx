@@ -26,6 +26,18 @@ function useEntityContext() {
 		const slug = path.split('/chain/')[1]?.split(/[?#]/)[0]
 		return slug ? { entitySlug: slug, entityType: 'chain' as const } : null
 	}
+	const pageRoutes: Record<string, string> = {
+		'/perps': 'perps',
+		'/stablecoins': 'stablecoins',
+		'/chains': 'chains',
+		'/fees': 'fees',
+		'/revenue': 'revenue'
+	}
+	for (const [route, slug] of Object.entries(pageRoutes)) {
+		if (path === route || path.startsWith(`${route}?`) || path.startsWith(`${route}/`)) {
+			return { entitySlug: slug, entityType: 'page' as const }
+		}
+	}
 	return null
 }
 
@@ -45,7 +57,7 @@ export function consumePendingPrompt(): string | null {
 }
 
 export function setPendingPageContext(
-	context: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string } | null
+	context: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string } | null
 ) {
 	if (typeof window === 'undefined') return
 	if (context) {
@@ -57,7 +69,7 @@ export function setPendingPageContext(
 
 export function consumePendingPageContext(): {
 	entitySlug?: string
-	entityType?: 'protocol' | 'chain'
+	entityType?: 'protocol' | 'chain' | 'page'
 	route: string
 } | null {
 	if (typeof window === 'undefined') return null

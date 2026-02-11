@@ -250,7 +250,7 @@ export const getProtocolOverviewPageData = async ({
 					protocol: displayName,
 					excludeTotalDataChart: true
 				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'dexs' }))
+					.then((data) => formatAdapterData({ data, methodologyKey: data.methodology?.['Volume'] ? 'Volume' : 'dexs' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.dexAggregators

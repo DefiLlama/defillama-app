@@ -3,12 +3,12 @@ import { fetchEntityQuestions } from '../api'
 import type { EntityQuestionsResponse } from '../types'
 
 /** Query key for entity-specific questions */
-const getEntityQuestionsQueryKey = (entitySlug: string, entityType: 'protocol' | 'chain') =>
+const getEntityQuestionsQueryKey = (entitySlug: string, entityType: 'protocol' | 'chain' | 'page') =>
 	['entity-questions', entitySlug, entityType] as const
 
 export function useEntityQuestions(
 	entitySlug: string | null,
-	entityType: 'protocol' | 'chain' | null,
+	entityType: 'protocol' | 'chain' | 'page' | null,
 	enabled: boolean = true
 ): UseQueryResult<EntityQuestionsResponse> {
 	return useQuery({
