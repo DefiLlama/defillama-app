@@ -7,10 +7,12 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { SubscribeLayout } from '~/containers/Subscribtion/Layout'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
+import { safeInternalPath } from '~/utils/url'
 
 export default function Account() {
 	const router = useRouter()
 	const { success } = router.query
+	const returnUrl = safeInternalPath(router.query.returnUrl)
 	const queryClient = useQueryClient()
 	const { isAuthenticated } = useAuthContext()
 	const { hasActiveSubscription, isSubscriptionLoading } = useSubscribe()
@@ -40,7 +42,7 @@ export default function Account() {
 
 	return (
 		<WalletProvider>
-			<SubscribeLayout>
+			<SubscribeLayout returnUrl={returnUrl}>
 				<div className="mx-auto w-full max-w-[1200px] px-5">
 					<AccountInfo />
 				</div>

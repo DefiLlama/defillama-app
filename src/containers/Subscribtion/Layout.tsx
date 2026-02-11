@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import Head from 'next/head'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LinkPreviewCard } from '~/components/SEO'
@@ -8,9 +8,10 @@ import { Toast } from '~/components/Toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { SignInModal } from './SignIn'
 
-export function SubscribeLayout({ children }) {
+export function SubscribeLayout({ children, returnUrl }: { children: React.ReactNode; returnUrl?: string }) {
 	const { isAuthenticated, logout } = useAuthContext()
 	const [isMenuOpen, setIsMenuOpen] = useState(false)
+	const backHref = returnUrl || '/'
 
 	return (
 		<>
@@ -23,7 +24,10 @@ export function SubscribeLayout({ children }) {
 				<header className="sticky top-0 z-50 h-12 bg-transparent">
 					<div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4 xl:max-w-7xl 2xl:max-w-[1440px]">
 						<div className="flex items-center gap-3">
-							<BasicLink href="/" className="flex items-center gap-2 text-[#b4b7bc] transition-colors hover:text-white">
+							<BasicLink
+								href={backHref}
+								className="flex items-center gap-2 text-[#b4b7bc] transition-colors hover:text-white"
+							>
 								<Icon name="chevron-left" height={20} width={20} />
 								<span className="hidden sm:inline-block">Back</span>
 							</BasicLink>
@@ -46,7 +50,7 @@ export function SubscribeLayout({ children }) {
 									>
 										<Ariakit.MenuItem
 											className="flex cursor-pointer items-center gap-3 px-4 py-2.5 text-sm text-white transition-colors hover:bg-[#2a2b30] focus:bg-[#2a2b30] focus:outline-hidden"
-											render={<BasicLink href="/" />}
+											render={<BasicLink href={backHref} />}
 										>
 											<Icon name="arrow-left" height={14} width={14} className="text-[#8a8c90]" />
 											Return to Main Page

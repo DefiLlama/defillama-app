@@ -50,7 +50,7 @@ export function Account() {
 					{isAuthenticated && user ? (
 						<div className="flex flex-col gap-1.5">
 							<BasicLink
-								href="/account"
+								href={`/account?returnUrl=${encodeURIComponent(asPath)}`}
 								className="flex items-center gap-1.5 truncate text-sm font-medium text-(--text-label) hover:text-(--link-text) hover:underline"
 							>
 								<Icon name="users" className="h-4 w-4 shrink-0" />
@@ -67,7 +67,7 @@ export function Account() {
 										Subscription inactive
 									</span>
 									<BasicLink
-										href="/subscription"
+										href={`/subscription?returnUrl=${encodeURIComponent(asPath)}`}
 										className="flex items-center gap-1 text-xs font-medium text-(--link) hover:underline"
 									>
 										<Icon name="plus" className="h-3.5 w-3.5" />
