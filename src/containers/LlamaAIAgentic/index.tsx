@@ -1,16 +1,18 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import ReactMarkdown from 'react-markdown'
-import rehypeRaw from 'rehype-raw'
-import remarkGfm from 'remark-gfm'
+import { Icon } from '~/components/Icon'
+import { Tooltip } from '~/components/Tooltip'
+import { MarkdownRenderer } from '~/containers/LlamaAI/components/MarkdownRenderer'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
-import { parseArtifactPlaceholders, processCitationMarkers } from '~/containers/LlamaAI/utils/markdownHelpers'
+import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHelpers'
+import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
+import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
+import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { AgenticSidebar } from './AgenticSidebar'
 import { ChartRenderer } from './ChartRenderer'
 import { fetchAgenticResponse } from './fetchAgenticResponse'
 import type { SpawnProgressData } from './fetchAgenticResponse'
 import type { ChartConfiguration, Message } from './types'
-
-const REMARK_PLUGINS = [remarkGfm]
-const REHYPE_PLUGINS = [rehypeRaw]
 
 const TOOL_LABELS: Record<string, string> = {
 	execute_sql: 'Querying database',
@@ -56,8 +58,21 @@ function formatTime(seconds: number): string {
 }
 
 export function AgenticChat() {
+	const { authorizedFetch, user } = useAuthContext()
+	const { sessions, isLoading: isLoadingSessions, moveSessionToTop } = useSessionList()
+	const {
+		createFakeSession,
+		restoreSession,
+		deleteSession,
+		updateSessionTitle,
+		isDeletingSession,
+		isUpdatingTitle
+	} = useSessionMutations()
+	const { sidebarVisible, toggleSidebar } = useSidebarVisibility()
+
 	const [messages, setMessages] = useState<Message[]>([])
 	const [sessionId, setSessionId] = useState<string | null>(null)
+	const [sessionTitle, setSessionTitle] = useState<string | null>(null)
 	const [isStreaming, setIsStreaming] = useState(false)
 	const [streamingText, setStreamingText] = useState('')
 	const [streamingCharts, setStreamingCharts] = useState<ChartSet[]>([])
@@ -67,12 +82,15 @@ export function AgenticChat() {
 	const [isResearchMode, setIsResearchMode] = useState(false)
 	const [spawnProgress, setSpawnProgress] = useState<Map<string, SpawnAgentStatus>>(new Map())
 	const [spawnStartTime, setSpawnStartTime] = useState(0)
+	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
+	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(null)
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const promptInputRef = useRef<HTMLTextAreaElement>(null)
 	const toolCallIdRef = useRef(0)
+	const isFirstMessageRef = useRef(true)
 
 	const scrollToBottom = useCallback(() => {
 		if (scrollContainerRef.current) {
@@ -86,6 +104,57 @@ export function AgenticChat() {
 	useEffect(() => {
 		scrollToBottom()
 	}, [messages, streamingText, streamingCharts, streamingCitations, activeToolCalls, spawnProgress, scrollToBottom])
+
+	const handleSidebarToggle = useCallback(() => {
+		setShouldAnimateSidebar(true)
+		toggleSidebar()
+	}, [toggleSidebar])
+
+	const handleNewChat = useCallback(() => {
+		setMessages([])
+		setSessionId(null)
+		setSessionTitle(null)
+		setError(null)
+		setStreamingText('')
+		setStreamingCharts([])
+		setStreamingCitations([])
+		setActiveToolCalls([])
+		setSpawnProgress(new Map())
+		setSpawnStartTime(0)
+		isFirstMessageRef.current = true
+		promptInputRef.current?.focus()
+	}, [])
+
+	const handleSessionSelect = useCallback(
+		async (selectedSessionId: string) => {
+			if (selectedSessionId === sessionId) return
+			setError(null)
+			setRestoringSessionId(selectedSessionId)
+
+			try {
+				const result = await restoreSession(selectedSessionId)
+				const restored: Message[] = (result.messages || []).map((m: any) => ({
+					role: m.role as 'user' | 'assistant',
+					content: m.content,
+					charts: m.charts && m.chartData ? [{ charts: m.charts, chartData: m.chartData }] : undefined,
+					citations: m.citations,
+					id: m.id,
+					timestamp: m.timestamp ? new Date(m.timestamp).getTime() : undefined
+				}))
+
+				setMessages(restored)
+				setSessionId(selectedSessionId)
+				const match = sessions.find((s) => s.sessionId === selectedSessionId)
+				setSessionTitle(match?.title || null)
+				isFirstMessageRef.current = false
+			} catch {
+				setError('Failed to restore session')
+			} finally {
+				setRestoringSessionId(null)
+			}
+		},
+		[sessionId, restoreSession, sessions]
+	)
 
 	const handleSubmit = useCallback(
 		(prompt: string) => {
@@ -101,6 +170,14 @@ export function AgenticChat() {
 			setSpawnProgress(new Map())
 			setSpawnStartTime(0)
 
+			let currentSessionId = sessionId
+
+			if (isFirstMessageRef.current && !currentSessionId) {
+				currentSessionId = createFakeSession()
+				setSessionId(currentSessionId)
+				isFirstMessageRef.current = false
+			}
+
 			setMessages((prev) => [...prev, { role: 'user', content: trimmed }])
 
 			let accumulatedText = ''
@@ -114,9 +191,10 @@ export function AgenticChat() {
 
 			fetchAgenticResponse({
 				message: trimmed,
-				sessionId,
+				sessionId: currentSessionId,
 				researchMode: isResearchMode,
 				abortSignal: controller.signal,
+				fetchFn: authorizedFetch,
 				callbacks: {
 					onToken: (content) => {
 						if (!hasStartedText) {
@@ -164,6 +242,13 @@ export function AgenticChat() {
 					},
 					onSessionId: (id) => {
 						setSessionId(id)
+					},
+					onTitle: (title) => {
+						setSessionTitle(title)
+						if (currentSessionId) {
+							updateSessionTitle({ sessionId: currentSessionId, title }).catch(() => {})
+							moveSessionToTop(currentSessionId)
+						}
 					},
 					onError: (content) => {
 						setError(content)
@@ -213,7 +298,7 @@ export function AgenticChat() {
 				abortControllerRef.current = null
 			})
 		},
-		[isStreaming, sessionId, isResearchMode]
+		[isStreaming, sessionId, isResearchMode, authorizedFetch, createFakeSession, updateSessionTitle, moveSessionToTop]
 	)
 
 	const handleStopRequest = useCallback(() => {
@@ -222,80 +307,53 @@ export function AgenticChat() {
 
 	const hasMessages = messages.length > 0 || isStreaming
 
+	if (!user) {
+		return (
+			<div className="flex flex-1 items-center justify-center">
+				<p className="text-sm text-[#666] dark:text-[#919296]">Please log in to use LlamaAI</p>
+			</div>
+		)
+	}
+
 	return (
-		<div className="isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324]">
-			{!hasMessages ? (
-				<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
-					<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
-						<img
-							src="/assets/llamaai/llama-ai.svg"
-							alt="LlamaAI"
-							className="object-contain"
-							width={64}
-							height={77}
-						/>
-						<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
-					</div>
-					<PromptInput
-						handleSubmit={handleSubmit}
-						promptInputRef={promptInputRef}
-						isPending={false}
-						handleStopRequest={handleStopRequest}
-						isStreaming={isStreaming}
-						restoreRequest={null}
-						placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
-						isResearchMode={isResearchMode}
-						setIsResearchMode={setIsResearchMode}
-						researchUsage={null}
-					/>
-				</div>
-			) : (
+		<div className="relative isolate flex h-[calc(100dvh-68px)] flex-nowrap overflow-hidden max-lg:flex-col lg:h-[calc(100dvh-72px)]">
+			{sidebarVisible ? (
 				<>
-					<div
-						ref={scrollContainerRef}
-						className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5 max-lg:px-0"
-					>
-						<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-							<div className="flex w-full flex-col gap-2 px-2 pb-2.5">
-								<div className="flex flex-col gap-2.5">
-									{messages.map((msg, i) => (
-										<MessageBubble key={i} message={msg} />
-									))}
+					<AgenticSidebar
+						sessions={sessions}
+						isLoading={isLoadingSessions}
+						currentSessionId={sessionId}
+						restoringSessionId={restoringSessionId}
+						onSessionSelect={handleSessionSelect}
+						onNewChat={handleNewChat}
+						handleSidebarToggle={handleSidebarToggle}
+						onDelete={deleteSession}
+						onUpdateTitle={updateSessionTitle}
+						isDeletingSession={isDeletingSession}
+						isUpdatingTitle={isUpdatingTitle}
+						shouldAnimate={shouldAnimateSidebar}
+					/>
+					<div className="flex min-h-11 lg:hidden" />
+				</>
+			) : (
+				<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
+			)}
 
-									{isStreaming && activeToolCalls.length === 0 && spawnProgress.size === 0 && !streamingText && streamingCharts.length === 0 && (
-										<TypingIndicator />
-									)}
-
-									{spawnProgress.size > 0 ? (
-										<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
-									) : (
-										activeToolCalls.map((tc) => (
-											<ToolIndicator key={tc.id} label={tc.label} name={tc.name} />
-										))
-									)}
-
-									{isStreaming && (streamingText || streamingCharts.length > 0 || streamingCitations.length > 0) && (
-										<InlineContent
-											text={streamingText}
-											chartSets={streamingCharts}
-											citations={streamingCitations}
-											isStreaming
-										/>
-									)}
-
-									{error && (
-										<div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
-											<p className="text-sm text-red-700 dark:text-red-300">{error}</p>
-										</div>
-									)}
-								</div>
-							</div>
-							<div ref={messagesEndRef} />
+			<div
+				className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
+			>
+				{!hasMessages ? (
+					<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
+						<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
+							<img
+								src="/assets/llamaai/llama-ai.svg"
+								alt="LlamaAI"
+								className="object-contain"
+								width={64}
+								height={77}
+							/>
+							<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 						</div>
-					</div>
-
-					<div className="relative mx-auto w-full max-w-3xl pb-2.5">
-						<div className="absolute -top-8 right-0 left-0 h-9 bg-gradient-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
 						<PromptInput
 							handleSubmit={handleSubmit}
 							promptInputRef={promptInputRef}
@@ -303,17 +361,107 @@ export function AgenticChat() {
 							handleStopRequest={handleStopRequest}
 							isStreaming={isStreaming}
 							restoreRequest={null}
-							placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
+							placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 							isResearchMode={isResearchMode}
 							setIsResearchMode={setIsResearchMode}
 							researchUsage={null}
 						/>
 					</div>
-				</>
-			)}
+				) : (
+					<>
+						<div
+							ref={scrollContainerRef}
+							className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5 max-lg:px-0"
+						>
+							<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
+								<div className="flex w-full flex-col gap-2 px-2 pb-2.5">
+									<div className="flex flex-col gap-2.5">
+										{messages.map((msg, i) => (
+											<MessageBubble key={i} message={msg} />
+										))}
+
+										{isStreaming && activeToolCalls.length === 0 && spawnProgress.size === 0 && !streamingText && streamingCharts.length === 0 && (
+											<TypingIndicator />
+										)}
+
+										{spawnProgress.size > 0 ? (
+											<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
+										) : (
+											activeToolCalls.map((tc) => (
+												<ToolIndicator key={tc.id} label={tc.label} name={tc.name} />
+											))
+										)}
+
+										{isStreaming && (streamingText || streamingCharts.length > 0 || streamingCitations.length > 0) && (
+											<InlineContent
+												text={streamingText}
+												chartSets={streamingCharts}
+												citations={streamingCitations}
+												isStreaming
+											/>
+										)}
+
+										{error && (
+											<div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
+												<p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+											</div>
+										)}
+									</div>
+								</div>
+								<div ref={messagesEndRef} />
+							</div>
+						</div>
+
+						<div className="relative mx-auto w-full max-w-3xl pb-2.5">
+							<div className="absolute -top-8 right-0 left-0 h-9 bg-gradient-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
+							<PromptInput
+								handleSubmit={handleSubmit}
+								promptInputRef={promptInputRef}
+								isPending={false}
+								handleStopRequest={handleStopRequest}
+								isStreaming={isStreaming}
+								restoreRequest={null}
+								placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
+								isResearchMode={isResearchMode}
+								setIsResearchMode={setIsResearchMode}
+								researchUsage={null}
+							/>
+						</div>
+					</>
+				)}
+			</div>
 		</div>
 	)
 }
+
+const ChatControls = memo(function ChatControls({
+	handleSidebarToggle,
+	handleNewChat
+}: {
+	handleSidebarToggle: () => void
+	handleNewChat: () => void
+}) {
+	return (
+		<div className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col">
+			<Tooltip
+				content="Open Chat History"
+				render={<button onClick={handleSidebarToggle} />}
+				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+			>
+				<Icon name="panel-left-open" height={16} width={16} />
+				<span className="sr-only">Open Chat History</span>
+			</Tooltip>
+			<Tooltip
+				content="New Chat"
+				render={<button onClick={handleNewChat} />}
+				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue) focus-visible:bg-(--old-blue)"
+			>
+				<Icon name="message-square-plus" height={16} width={16} />
+				<span className="sr-only">New Chat</span>
+			</Tooltip>
+		</div>
+	)
+})
 
 const SpawnProgressCard = memo(function SpawnProgressCard({
 	agents,
@@ -467,8 +615,6 @@ function InlineContent({
 		return all
 	}, [chartIndex, referencedIds])
 
-	const processedCitations = citations.length > 0 ? citations : undefined
-
 	return (
 		<div className="flex flex-col gap-2.5">
 			{referencedIds.size > 0 ? (
@@ -496,27 +642,18 @@ function InlineContent({
 					}
 					if (!part.content) return null
 					return (
-						<div key={`text-${i}`} className="prose prose-sm dark:prose-invert max-w-none">
-							<ReactMarkdown remarkPlugins={REMARK_PLUGINS} rehypePlugins={REHYPE_PLUGINS}>
-								{processCitationMarkers(part.content, processedCitations)}
-							</ReactMarkdown>
-						</div>
+						<MarkdownRenderer key={`text-${i}`} content={part.content} citations={citations.length > 0 ? citations : undefined} isStreaming={isStreaming} />
 					)
 				})
 			) : (
 				text && (
-					<div className="prose prose-sm dark:prose-invert max-w-none">
-						<ReactMarkdown remarkPlugins={REMARK_PLUGINS} rehypePlugins={REHYPE_PLUGINS}>
-							{processCitationMarkers(text, processedCitations)}
-						</ReactMarkdown>
-					</div>
+					<MarkdownRenderer content={text} citations={citations.length > 0 ? citations : undefined} isStreaming={isStreaming} />
 				)
 			)}
 			{isStreaming && text && <span className="inline-block h-4 w-0.5 animate-pulse bg-(--old-blue)" />}
 			{unreferencedCharts.map((entry, i) => (
 				<ChartRenderer key={`chart-${entry.chart.id || i}`} charts={[entry.chart]} chartData={entry.chartData} />
 			))}
-			{citations.length > 0 && <CitationSources citations={citations} />}
 		</div>
 	)
 }
@@ -539,47 +676,6 @@ function ToolIndicator({ label, name }: { label: string; name: string }) {
 				{label} <span className="font-mono text-[10px] opacity-60">{name}</span>
 			</span>
 		</div>
-	)
-}
-
-function CitationSources({ citations }: { citations: string[] }) {
-	return (
-		<details className="flex flex-col text-sm">
-			<summary className="mr-auto flex cursor-pointer items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-2 py-1 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="14"
-					height="14"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth="2"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-				>
-					<path d="M9 17H7A5 5 0 0 1 7 7h2" />
-					<path d="M15 7h2a5 5 0 1 1 0 10h-2" />
-					<line x1="8" x2="16" y1="12" y2="12" />
-				</svg>
-				<span>Sources</span>
-			</summary>
-			<div className="flex flex-col gap-2.5 pt-2.5">
-				{citations.map((url, i) => (
-					<a
-						key={`citation-${i}-${url}`}
-						href={url}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="group flex items-start gap-2.5 rounded-lg border border-[#e6e6e6] p-2 hover:border-(--old-blue) hover:bg-(--old-blue)/12 dark:border-[#222324]"
-					>
-						<span className="rounded bg-[rgba(0,0,0,0.04)] px-1.5 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
-							{i + 1}
-						</span>
-						<span className="overflow-hidden text-ellipsis whitespace-nowrap">{url}</span>
-					</a>
-				))}
-			</div>
-		</details>
 	)
 }
 

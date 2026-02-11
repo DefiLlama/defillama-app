@@ -17,6 +17,7 @@ interface AgenticSSECallbacks {
 	onSpawnProgress: (data: SpawnProgressData) => void
 	onSessionId: (sessionId: string) => void
 	onCitations: (citations: string[]) => void
+	onTitle?: (title: string) => void
 	onError: (content: string) => void
 	onDone: () => void
 }
@@ -27,9 +28,12 @@ interface FetchAgenticResponseParams {
 	callbacks: AgenticSSECallbacks
 	abortSignal?: AbortSignal
 	researchMode?: boolean
+	fetchFn?: typeof fetch
 }
 
-export async function fetchAgenticResponse({ message, sessionId, callbacks, abortSignal, researchMode }: FetchAgenticResponseParams) {
+export async function fetchAgenticResponse({ message, sessionId, callbacks, abortSignal, researchMode, fetchFn }: FetchAgenticResponseParams) {
+	const doFetch = fetchFn || fetch
+
 	const requestBody: any = {
 		message,
 		stream: true
@@ -43,7 +47,7 @@ export async function fetchAgenticResponse({ message, sessionId, callbacks, abor
 		requestBody.researchMode = true
 	}
 
-	const response = await fetch(`${MCP_SERVER}/agentic`, {
+	const response = await doFetch(`${MCP_SERVER}/agentic`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(requestBody),
@@ -105,16 +109,17 @@ export async function fetchAgenticResponse({ message, sessionId, callbacks, abor
 						case 'citations':
 							callbacks.onCitations(data.citations || [])
 							break
+						case 'title':
+							callbacks.onTitle?.(data.content)
+							break
 						case 'error':
 							callbacks.onError(data.content || 'Unknown error')
 							break
 						case 'done':
 							callbacks.onDone()
 							break
-						// response_end is a no-op
 					}
 				} catch {
-					// JSON parse error — skip malformed line
 				}
 			}
 		}

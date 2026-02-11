@@ -1,4 +1,3 @@
-// Chart-related types from backend
 export interface ChartConfiguration {
 	id: string
 	datasetName?: string
@@ -59,10 +58,11 @@ export interface ChartConfiguration {
 	}
 }
 
-// Simple message type for agentic chat
 export interface Message {
 	role: 'user' | 'assistant'
 	content?: string
 	charts?: Array<{ charts: ChartConfiguration[]; chartData: Record<string, any[]> }>
 	citations?: string[]
+	id?: string
+	timestamp?: number
 }
