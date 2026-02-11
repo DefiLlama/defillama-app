@@ -13,6 +13,11 @@ import { DashboardTabConfig, getDashboardModule } from './registry'
 
 const NOOP = () => {}
 
+const PROJECTS = [
+	{ id: 'hyperliquid', name: 'Hyperliquid', comingSoon: false },
+	{ id: 'your-project', name: 'Your Project', comingSoon: true }
+]
+
 const SKELETON_WIDTHS = [
 	['w-16', 'w-4/5', 'w-14', 'w-20', 'w-12'],
 	['w-14', 'w-3/5', 'w-16', 'w-16', 'w-14'],
@@ -26,9 +31,7 @@ const SKELETON_WIDTHS = [
 
 const PLACEHOLDER_COLS = ['', '', '', '', '']
 
-function ComingSoonSection({ tabId }: { tabId: string }) {
-	const isReports = tabId === 'reports'
-
+function SkeletonTable() {
 	return (
 		<div className="relative overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-col">
@@ -39,7 +42,6 @@ function ComingSoonSection({ tabId }: { tabId: string }) {
 						</div>
 					))}
 				</div>
-
 				{SKELETON_WIDTHS.map((widths, r) => (
 					<div
 						key={r}
@@ -54,13 +56,36 @@ function ComingSoonSection({ tabId }: { tabId: string }) {
 					</div>
 				))}
 			</div>
-
 			<div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-(--cards-bg) via-transparent to-transparent" />
+		</div>
+	)
+}
 
+function ComingSoonSection({ tabId }: { tabId: string }) {
+	const isReports = tabId === 'reports'
+
+	return (
+		<div className="relative">
+			<SkeletonTable />
 			<div className="absolute inset-0 flex items-center justify-center">
 				<span className="rounded-full border border-(--cards-border) bg-(--cards-bg) px-5 py-2.5 text-sm font-semibold tracking-wide text-(--text-secondary) shadow-lg">
 					{isReports ? 'Reports' : 'Investor Calls'} — Coming Soon
 				</span>
+			</div>
+		</div>
+	)
+}
+
+function ProjectComingSoon() {
+	return (
+		<div className="flex flex-1 items-center justify-center p-8">
+			<div className="relative w-full max-w-2xl">
+				<SkeletonTable />
+				<div className="absolute inset-0 flex items-center justify-center">
+					<span className="rounded-full border border-(--cards-border) bg-(--cards-bg) px-5 py-2.5 text-sm font-semibold tracking-wide text-(--text-secondary) shadow-lg">
+						Coming Soon
+					</span>
+				</div>
 			</div>
 		</div>
 	)
@@ -77,6 +102,8 @@ function SuperLuminalContent() {
 	const [isDark, toggleTheme] = useDarkModeManager()
 	const [tabs, setTabs] = useState<DashboardTabConfig[]>(DEFAULT_TABS)
 	const [activeTab, setActiveTab] = useState('dashboard')
+	const [activeProject, setActiveProject] = useState('hyperliquid')
+	const [expandedProject, setExpandedProject] = useState<string | null>('hyperliquid')
 	const [sidebarOpen, setSidebarOpen] = useState(false)
 
 	const closeSidebar = useCallback(() => setSidebarOpen(false), [])
@@ -95,6 +122,7 @@ function SuperLuminalContent() {
 	}, [config?.dashboardId])
 
 	const displayName = config?.branding.name || dashboardName
+	const isComingSoonProject = PROJECTS.find((p) => p.id === activeProject)?.comingSoon
 
 	if (isLoadingDashboard) {
 		return (
@@ -156,22 +184,81 @@ function SuperLuminalContent() {
 					</span>
 				</div>
 				<div className="mb-3 hidden h-px bg-(--sl-divider) md:block" />
-				<nav className="flex flex-col gap-0.5">
-					{tabs.map((tab) => (
-						<button
-							key={tab.id}
-							onClick={() => {
-								setActiveTab(tab.id)
-								closeSidebar()
-							}}
-							className={`px-3 py-2 text-left text-[13px] font-medium tracking-wide transition-colors ${
-								activeTab === tab.id ? 'sl-tab-active' : 'sl-tab-inactive'
-							}`}
-						>
-							{tab.label}
-						</button>
-					))}
+
+				<nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
+					{PROJECTS.map((project) => {
+						const isActive = activeProject === project.id
+						const isExpanded = expandedProject === project.id && !project.comingSoon
+
+						return (
+							<div key={project.id}>
+								<button
+									onClick={() => {
+										if (isActive && !project.comingSoon) {
+											setExpandedProject(isExpanded ? null : project.id)
+										} else {
+											setActiveProject(project.id)
+											setExpandedProject(project.comingSoon ? expandedProject : project.id)
+											if (!project.comingSoon && tabs.length > 0) {
+												setActiveTab(tabs[0].id)
+											}
+											closeSidebar()
+										}
+									}}
+									className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-[13px] font-semibold tracking-wide transition-colors ${
+										isActive
+											? 'text-(--sl-accent)'
+											: 'text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)'
+									}`}
+								>
+									<svg
+										width="12"
+										height="12"
+										viewBox="0 0 12 12"
+										fill="none"
+										className={`shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+									>
+										<path
+											d="M4.5 2.5L8 6L4.5 9.5"
+											stroke="currentColor"
+											strokeWidth="1.5"
+											strokeLinecap="round"
+											strokeLinejoin="round"
+										/>
+									</svg>
+									{project.name}
+									{project.comingSoon && (
+										<span className="ml-auto rounded-full bg-(--sl-btn-inactive-bg) px-1.5 py-0.5 text-[10px] font-normal text-(--text-tertiary)">
+											Soon
+										</span>
+									)}
+								</button>
+
+								{isExpanded && (
+									<div className="ml-3 flex flex-col gap-0.5 border-l border-(--sl-divider) pt-1 pl-2">
+										{tabs.map((tab) => (
+											<button
+												key={tab.id}
+												onClick={() => {
+													setActiveTab(tab.id)
+													closeSidebar()
+												}}
+												className={`rounded-md px-3 py-1.5 text-left text-[12px] font-medium tracking-wide transition-colors ${
+													activeTab === tab.id
+														? 'bg-(--sl-accent-muted) text-(--sl-accent)'
+														: 'text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)'
+												}`}
+											>
+												{tab.label}
+											</button>
+										))}
+									</div>
+								)}
+							</div>
+						)
+					})}
 				</nav>
+
 				<div className="mt-auto flex items-center justify-end pt-4">
 					<button
 						onClick={toggleTheme}
@@ -209,52 +296,58 @@ function SuperLuminalContent() {
 					</h1>
 				</header>
 
-				{activeTab === 'dashboard' && (
+				{isComingSoonProject ? (
+					<ProjectComingSoon />
+				) : (
 					<>
-						{items.length > 0 && (
-							<div className="w-full">
-								<ChartGrid onAddChartClick={NOOP} />
-							</div>
+						{activeTab === 'dashboard' && (
+							<>
+								{items.length > 0 && (
+									<div className="w-full">
+										<ChartGrid onAddChartClick={NOOP} />
+									</div>
+								)}
+								{!protocolsLoading && items.length === 0 && <EmptyState onAddChart={NOOP} isReadOnly />}
+							</>
 						)}
-						{!protocolsLoading && items.length === 0 && <EmptyState onAddChart={NOOP} isReadOnly />}
+
+						{activeTab !== 'dashboard' &&
+							tabs.map((tab) => {
+								if (tab.id !== activeTab) return null
+								if (!tab.component) {
+									return <ComingSoonSection key={tab.id} tabId={tab.id} />
+								}
+								const TabComponent = tab.component
+								return (
+									<Suspense
+										key={tab.id}
+										fallback={
+											<div className="flex flex-1 items-center justify-center py-20">
+												<div className="sl-loader text-center leading-none select-none">
+													<span className="block text-[13px] font-medium tracking-[0.4em] text-(--sl-text-brand)">
+														SUPER
+													</span>
+													<span
+														className="block text-[34px] font-black tracking-[0.08em] text-transparent"
+														style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
+													>
+														LUMINAL
+													</span>
+												</div>
+											</div>
+										}
+									>
+										<TabComponent />
+										{tab.source && (
+											<p className="pt-4 pb-2 text-center text-xs tracking-wide text-(--text-tertiary)">
+												Data provided by {tab.source} API
+											</p>
+										)}
+									</Suspense>
+								)
+							})}
 					</>
 				)}
-
-				{activeTab !== 'dashboard' &&
-					tabs.map((tab) => {
-						if (tab.id !== activeTab) return null
-						if (!tab.component) {
-							return <ComingSoonSection key={tab.id} tabId={tab.id} />
-						}
-						const TabComponent = tab.component
-						return (
-							<Suspense
-								key={tab.id}
-								fallback={
-									<div className="flex flex-1 items-center justify-center py-20">
-										<div className="sl-loader text-center leading-none select-none">
-											<span className="block text-[13px] font-medium tracking-[0.4em] text-(--sl-text-brand)">
-												SUPER
-											</span>
-											<span
-												className="block text-[34px] font-black tracking-[0.08em] text-transparent"
-												style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
-											>
-												LUMINAL
-											</span>
-										</div>
-									</div>
-								}
-							>
-								<TabComponent />
-								{tab.source && (
-									<p className="pt-4 pb-2 text-center text-xs tracking-wide text-(--text-tertiary)">
-										Data provided by {tab.source} API
-									</p>
-								)}
-							</Suspense>
-						)
-					})}
 			</div>
 		</div>
 	)
