@@ -30,7 +30,7 @@ export default function PieChart({
 	chartData,
 	title,
 	valueSymbol = '$',
-	radius = null,
+	radius,
 	showLegend = false,
 	legendPosition,
 	legendTextStyle,
@@ -190,7 +190,7 @@ export default function PieChart({
 			label: {
 				fontFamily: 'sans-serif',
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-				formatter: (x) => {
+				formatter: (x: { name: string; value: number }) => {
 					return `${x.name}: (${formatPercent(x.value)})`
 				},
 				show: !showLegend
@@ -376,7 +376,7 @@ export default function PieChart({
 					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)', // Default color
 					...(legendTextStyle || {}) // Apply overrides from prop
 				},
-				formatter: function (name) {
+				formatter: function (name: string) {
 					return legendLabelByName[name] ?? String(name)
 				},
 				...(legendBoxWidth > 0 ? { width: legendBoxWidth } : {}),

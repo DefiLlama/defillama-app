@@ -98,7 +98,7 @@ export function AddToDashboardButton({
 					<AddToDashboardModal
 						dialogStore={dashboardDialogStore}
 						chartConfig={config ?? null}
-						llamaAIChart={llamaAIChart}
+						llamaAIChart={llamaAIChart ?? null}
 						unsupportedMetrics={unsupportedMetrics}
 					/>
 					{shouldRenderModal ? (

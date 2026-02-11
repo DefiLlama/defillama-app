@@ -34,7 +34,9 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 
 	const { tvl, tvlByChain, oracleTvs, oracleTvsByChain, toggleOptions } = useFinalTVL(props)
 
-	const { data: chainPrice, isLoading: fetchingChainPrice } = useGetTokenPrice(props.chartDenominations?.[1]?.geckoId)
+	const { data: chainPrice, isLoading: fetchingChainPrice } = useGetTokenPrice(
+		props.chartDenominations?.[1]?.geckoId ?? undefined
+	)
 
 	const formatPrice = (value?: number | string | null): string | number | null => {
 		if (Number.isNaN(Number(value))) return null
@@ -54,24 +56,24 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 
 	return (
 		<ProtocolOverviewLayout
-			isCEX={props.isCEX}
 			name={props.name}
-			category={props.category}
-			otherProtocols={props.otherProtocols}
+			category={props.category ?? ''}
+			otherProtocols={props.otherProtocols ?? undefined}
 			toggleOptions={toggleOptions}
 			metrics={props.metrics}
 			warningBanners={props.warningBanners}
 			tab="information"
 			seoDescription={props.seoDescription}
 			seoKeywords={props.seoKeywords}
-			entityQuestions={props.entityQuestions}
+			{...(props.isCEX !== undefined ? { isCEX: props.isCEX } : {})}
+			{...(props.entityQuestions ? { entityQuestions: props.entityQuestions } : {})}
 		>
 			<LinkPreviewCard
 				cardName={props.name}
 				token={props.name}
 				logo={tokenIconUrl(props.name)}
 				tvl={formattedNum(tvl, true)?.toString()}
-				isCEX={props.isCEX}
+				{...(props.isCEX !== undefined ? { isCEX: props.isCEX } : {})}
 			/>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				<div className="col-span-1 row-[2/3] hidden flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:row-[1/2] xl:flex xl:min-h-[360px]">
@@ -168,7 +170,7 @@ function ProtocolHeader({
 					hasTvl={props.metrics.tvl}
 					value={tvl}
 					name={props.name}
-					category={props.category === 'Oracle' ? null : props.category}
+					category={props.category === 'Oracle' ? 'Other' : (props.category ?? 'Other')}
 					valueByChain={tvlByChain}
 					formatPrice={formatPrice}
 				/>
@@ -182,66 +184,70 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 
 	return useMemo(() => {
 		let tvl = 0
-		const tvlByChainMap = {}
-		let toggleOptions = []
+		const tvlByChainMap: Record<string, number> = {}
+		const toggleOptions: Array<{ name: string; key: string }> = []
 		let oracleTvs = 0
-		const oracleTvsByChainMap = {}
+		const oracleTvsByChainMap: Record<string, number> = {}
+		const currentTvlByChain = props.currentTvlByChain ?? {}
+		const oracleTvsByChain = props.oracleTvs ?? {}
 
-		for (const chain in props.currentTvlByChain ?? {}) {
+		for (const chain in currentTvlByChain) {
 			if (isTvlSettingsKey(chain)) {
 				const option = tvlOptionsMap.get(chain)
 				if (option) {
-					toggleOptions.push(option)
+					toggleOptions.push(option as { name: string; key: string })
 				}
 				continue
 			}
 
-			const [chainName, extraTvlKey] = chain.split('-')
+			const [chainNameRaw, extraTvlKey] = chain.split('-')
+			const chainName = chainNameRaw ?? chain
 
 			if (!extraTvlKey) {
-				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + props.currentTvlByChain[chain]
+				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + (currentTvlByChain[chain] ?? 0)
 				continue
 			}
 
 			const normalizedExtraKey = extraTvlKey.toLowerCase()
 			if (isTvlSettingsKey(normalizedExtraKey) && extraTvlsEnabled[normalizedExtraKey]) {
-				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + props.currentTvlByChain[chain]
+				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + (currentTvlByChain[chain] ?? 0)
 				continue
 			}
 		}
 
 		for (const chain in tvlByChainMap) {
-			tvl += tvlByChainMap[chain]
+			tvl += tvlByChainMap[chain] ?? 0
 		}
 
 		// Process oracle TVS by chain
-		for (const chain in props.oracleTvs ?? {}) {
+		for (const chain in oracleTvsByChain) {
 			if (isTvlSettingsKey(chain)) {
 				const option = tvlOptionsMap.get(chain)
 				if (option) {
 					if (!toggleOptions.some((o) => o.key === option.key)) {
-						toggleOptions.push(option)
+						toggleOptions.push(option as { name: string; key: string })
 					}
 				}
 				continue
 			}
 
-			const [chainName, extraTvlKey] = chain.split('-')
+			const [chainNameRaw, extraTvlKey] = chain.split('-')
+			const chainName = chainNameRaw ?? chain
 
 			if (!extraTvlKey) {
-				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + props.oracleTvs[chain]
+				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + (oracleTvsByChain[chain] ?? 0)
 				continue
 			}
 
 			const normalizedExtraKey = extraTvlKey.toLowerCase()
 			if (isTvlSettingsKey(normalizedExtraKey) && extraTvlsEnabled[normalizedExtraKey]) {
-				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + props.oracleTvs[chain]
+				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + (oracleTvsByChain[chain] ?? 0)
 				continue
 			}
 		}
 
 		for (const chain in oracleTvsByChainMap) {
-			oracleTvs += oracleTvsByChainMap[chain]
+			oracleTvs += oracleTvsByChainMap[chain] ?? 0
 		}
 
 		if (props.bribeRevenue?.totalAllTime != null) {
@@ -368,8 +374,8 @@ interface IKeyMetricsProps extends IProtocolOverviewPageData {
 }
 
 interface StandardMetricConfig {
-	dataProp: string
-	definitionKey: string
+	dataProp: keyof IKeyMetricsProps
+	definitionKey: keyof typeof definitions
 	label: string
 	dataType: string
 }
@@ -411,10 +417,11 @@ const STANDARD_METRICS: StandardMetricConfig[] = [
 
 function buildStandardVolumeMetrics(
 	data: { total30d?: number | null; total7d?: number | null; total24h?: number | null; totalAllTime?: number | null },
-	definitionKey: string,
+	definitionKey: keyof typeof definitions,
 	label: string
 ) {
-	const defs = definitions[definitionKey]?.protocol
+	const defs = (definitions as unknown as Record<string, { protocol?: Record<string, string> }>)[definitionKey]
+		?.protocol
 	const metrics = []
 
 	if (data.total30d != null) {
@@ -475,7 +482,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 
 	const isOracleProtocol = props.oracleTvs != null
 	const primaryValue = isOracleProtocol ? props.computedOracleTvs : props.tvl
-	const { title: primaryLabel } = getPrimaryValueLabelType(isOracleProtocol ? 'Oracle' : props.category)
+	const { title: primaryLabel } = getPrimaryValueLabelType(isOracleProtocol ? 'Oracle' : (props.category ?? 'Other'))
 
 	const hasTvlData = isOracleProtocol
 		? props.oracleTvs != null
@@ -497,21 +504,29 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				<KeyMetricsPngExportButton
 					containerRef={containerRef}
 					protocolName={props.name}
-					primaryValue={primaryValue}
+					primaryValue={primaryValue ?? 0}
 					primaryLabel={primaryLabel}
 					formatPrice={props.formatPrice}
 					hasTvlData={hasTvlData}
 				/>
 			</div>
 			<div className="flex flex-col" ref={containerRef}>
-				{props.oracleTvs ? <TVL formatPrice={props.formatPrice} {...props} /> : null}
-				<Fees formatPrice={props.formatPrice} {...props} />
-				<Revenue formatPrice={props.formatPrice} {...props} />
-				<HoldersRevenue formatPrice={props.formatPrice} {...props} />
-				<Incentives formatPrice={props.formatPrice} {...props} />
-				<Earnings formatPrice={props.formatPrice} {...props} />
+				{props.oracleTvs ? <TVL {...props} /> : null}
+				<Fees {...props} />
+				<Revenue {...props} />
+				<HoldersRevenue {...props} />
+				<Incentives {...props} />
+				<Earnings {...props} />
 				{STANDARD_METRICS.map((config) => {
-					const data = props[config.dataProp]
+					const data = props[config.dataProp] as
+						| {
+								total30d?: number | null
+								total7d?: number | null
+								total24h?: number | null
+								totalAllTime?: number | null
+						  }
+						| null
+						| undefined
 					if (!data) return null
 					const metrics = buildStandardVolumeMetrics(data, config.definitionKey, config.label)
 					if (metrics.length === 0) return null
@@ -543,8 +558,8 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 						dataType="Open Interest"
 					/>
 				) : null}
-				<BridgeVolume formatPrice={props.formatPrice} {...props} />
-				<TokenCGData formatPrice={props.formatPrice} {...props} />
+				<BridgeVolume {...props} />
+				<TokenCGData {...props} />
 				{props.currentTvlByChain?.staking != null ? (
 					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 						<span className="text-(--text-label)">Staked</span>
@@ -1275,8 +1290,13 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 									{props.tokenCGData.volume24h.dex ? props.formatPrice(props.tokenCGData.volume24h.dex) : '-'}
 								</span>
 								<span className="text-xs text-(--text-label)">
-									({formattedNum((props.tokenCGData.volume24h.dex / props.tokenCGData.volume24h.total) * 100)}% of
-									total)
+									(
+									{formattedNum(
+										props.tokenCGData.volume24h.total
+											? ((props.tokenCGData.volume24h.dex ?? 0) / props.tokenCGData.volume24h.total) * 100
+											: 0
+									)}
+									% of total)
 								</span>
 							</span>
 						</p>
@@ -1297,28 +1317,29 @@ const SmolStats = ({
 }: {
 	data: Array<{
 		name: string
-		tooltipContent?: string | null
+		tooltipContent?: string | null | undefined
 		value: string | number
 	}>
 	protocolName: string
 	category: string
 	formatPrice: (value: number | string | null) => string | number | null
-	openSmolStatsSummaryByDefault?: boolean
+	openSmolStatsSummaryByDefault?: boolean | undefined
 	dataType: string
 }) => {
 	const restOfData = useMemo(() => data.slice(1), [data])
+	const firstMetric = data[0]
 
-	if (data.length === 0) return null
+	if (data.length === 0 || !firstMetric) return null
 
 	if (data.length === 1) {
 		return (
 			<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
-				{data[0].tooltipContent ? (
-					<Tooltip content={data[0].tooltipContent} className="text-(--text-label) underline decoration-dotted">
-						{data[0].name}
+				{firstMetric.tooltipContent ? (
+					<Tooltip content={firstMetric.tooltipContent} className="text-(--text-label) underline decoration-dotted">
+						{firstMetric.name}
 					</Tooltip>
 				) : (
-					<span className="text-(--text-label)">{data[0].name}</span>
+					<span className="text-(--text-label)">{firstMetric.name}</span>
 				)}
 				<Flag
 					protocol={protocolName}
@@ -1326,7 +1347,7 @@ const SmolStats = ({
 					isLending={category === 'Lending'}
 					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>
-				<span className="ml-auto font-jetbrains">{formatPrice(data[0].value)}</span>
+				<span className="ml-auto font-jetbrains">{formatPrice(firstMetric.value)}</span>
 			</p>
 		)
 	}
@@ -1334,12 +1355,12 @@ const SmolStats = ({
 	return (
 		<details className="group" open={openSmolStatsSummaryByDefault}>
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
-				{data[0].tooltipContent ? (
-					<Tooltip content={data[0].tooltipContent} className="text-(--text-label) underline decoration-dotted">
-						{data[0].name}
+				{firstMetric.tooltipContent ? (
+					<Tooltip content={firstMetric.tooltipContent} className="text-(--text-label) underline decoration-dotted">
+						{firstMetric.name}
 					</Tooltip>
 				) : (
-					<span className="text-(--text-label)">{data[0].name}</span>
+					<span className="text-(--text-label)">{firstMetric.name}</span>
 				)}
 				<Icon
 					name="chevron-down"
@@ -1353,7 +1374,7 @@ const SmolStats = ({
 					isLending={category === 'Lending'}
 					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>
-				<span className="ml-auto font-jetbrains">{formatPrice(data[0].value)}</span>
+				<span className="ml-auto font-jetbrains">{formatPrice(firstMetric.value)}</span>
 			</summary>
 			<div className="mb-3 flex flex-col">
 				{restOfData.map((metric) => (
@@ -1621,42 +1642,49 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 				</>
 			) : null}
 			<div className="flex flex-wrap gap-2">
-				{props.website ? (
-					<a
-						href={props.website}
-						className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<Icon name="earth" className="h-3 w-3" />
-						<span>Website</span>
-					</a>
-				) : null}
-				{props.github?.length
-					? props.github.map((github) => (
-							<a
-								href={`https://github.com/${github}`}
-								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-								target="_blank"
-								rel="noopener noreferrer"
-								key={`${props.name}-github-${github}`}
-							>
-								<Icon name="github" className="h-3 w-3" />
-								<span>{props.github.length === 1 ? 'GitHub' : github}</span>
-							</a>
-						))
-					: null}
-				{props.twitter ? (
-					<a
-						href={`https://x.com/${props.twitter}`}
-						className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<Icon name="twitter" className="h-3 w-3" />
-						<span>Twitter</span>
-					</a>
-				) : null}
+				{(() => {
+					const githubList = props.github ?? []
+					return (
+						<>
+							{props.website ? (
+								<a
+									href={props.website}
+									className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									<Icon name="earth" className="h-3 w-3" />
+									<span>Website</span>
+								</a>
+							) : null}
+							{githubList.length
+								? githubList.map((github) => (
+										<a
+											href={`https://github.com/${github}`}
+											className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+											target="_blank"
+											rel="noopener noreferrer"
+											key={`${props.name}-github-${github}`}
+										>
+											<Icon name="github" className="h-3 w-3" />
+											<span>{githubList.length === 1 ? 'GitHub' : github}</span>
+										</a>
+									))
+								: null}
+							{props.twitter ? (
+								<a
+									href={`https://x.com/${props.twitter}`}
+									className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									<Icon name="twitter" className="h-3 w-3" />
+									<span>Twitter</span>
+								</a>
+							) : null}
+						</>
+					)
+				})()}
 				{props.safeHarbor ? (
 					<a
 						href={`https://safeharbor.securityalliance.org/database/${slug(props.name)}`}

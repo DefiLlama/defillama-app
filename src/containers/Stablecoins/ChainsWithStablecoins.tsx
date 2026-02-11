@@ -5,6 +5,7 @@ import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
+import type { MultiSeriesChart2Dataset, MultiSeriesChart2SeriesConfig } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/ProDashboard/types'
@@ -40,6 +41,29 @@ const mapChartTypeToConfig = (displayType: string): StablecoinChartType => {
 	return mapping[displayType] || 'totalMcap'
 }
 
+type ChainCirculatingInput = Parameters<typeof useGroupChainsPegged>[0][number]
+type StackedDatasetInput = Parameters<typeof useCalcGroupExtraPeggedByDay>[0]
+type AreaChartRow = { date: number | string } & Record<string, number | string | null | undefined>
+
+interface ChainsWithStablecoinsProps {
+	chainCirculatings: ChainCirculatingInput[]
+	chainList: string[]
+	chainsGroupbyParent: Record<string, Record<string, string[]>>
+	change1d: string
+	change7d: string
+	change30d: string
+	totalMcapCurrent: number | null
+	change1d_nol: string
+	change7d_nol: string
+	change30d_nol: string
+	peggedAreaChartData: AreaChartRow[]
+	peggedAreaTotalData: {
+		dataset: MultiSeriesChart2Dataset
+		charts: MultiSeriesChart2SeriesConfig[]
+	}
+	stackedDataset: StackedDatasetInput
+}
+
 export function ChainsWithStablecoins({
 	chainCirculatings,
 	chainList,
@@ -54,7 +78,7 @@ export function ChainsWithStablecoins({
 	peggedAreaChartData,
 	peggedAreaTotalData,
 	stackedDataset
-}) {
+}: ChainsWithStablecoinsProps) {
 	const router = useRouter()
 	const [chartType, setChartType] = React.useState('Pie')
 	const chartTypeList = ['Total Market Cap', 'Chain Market Caps', 'Pie', 'Dominance']
@@ -76,24 +100,25 @@ export function ChainsWithStablecoins({
 	)
 
 	const prepareCsv = () => {
-		const rows = [['Timestamp', 'Date', ...chainList, 'Total']]
+		const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', ...chainList, 'Total']]
 		const sortedData = [...stackedData].sort((a, b) => a.date - b.date)
 		for (const day of sortedData) {
+			const dayValues = day as Record<string, number | null | undefined>
 			rows.push([
 				day.date,
 				toNiceCsvDate(day.date),
-				...chainList.map((chain) => day[chain] ?? ''),
+				...chainList.map((chain) => dayValues[chain] ?? ''),
 				chainList.reduce((acc, curr) => {
-					return (acc += day[curr] ?? 0)
+					return (acc += dayValues[curr] ?? 0)
 				}, 0)
 			])
 		}
-		return { filename: 'stablecoinsChainTotals.csv', rows: rows as (string | number | boolean)[][] }
+		return { filename: 'stablecoinsChainTotals.csv', rows }
 	}
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
 
-	let topChain = { name: 'Ethereum', mcap: 0 }
+	let topChain: { name: string; mcap: number | null } = { name: 'Ethereum', mcap: 0 }
 	if (chainTotals.length > 0) {
 		const topChainData = chainTotals[0]
 		topChain.name = topChainData.name

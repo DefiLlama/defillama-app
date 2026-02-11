@@ -172,9 +172,10 @@ const readStablecoinBridgesFromChart = (
 	chart: Array<unknown> | null | undefined,
 	daysBefore: number,
 	issuanceType: string
-): unknown => {
+): Record<string, Record<string, { amount: number }>> | null => {
 	const bridges = getPrevStablecoinTotalFromChart(chart, daysBefore, issuanceType, 'bridges')
-	return typeof bridges === 'undefined' ? null : bridges
+	if (!bridges || typeof bridges !== 'object') return null
+	return bridges as Record<string, Record<string, { amount: number }>>
 }
 
 const buildOverviewChartInputs = ({
@@ -287,7 +288,7 @@ export async function getStablecoinsByChainPageData(chain: string | null): Promi
 				priceData,
 				rateData,
 				peggedNameToChartDataIndex,
-				chain
+				chain: chain ?? undefined
 			})
 		)
 

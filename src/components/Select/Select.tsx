@@ -5,7 +5,7 @@ import { Icon } from '../Icon'
 import { NestedMenu, NestedMenuItem } from '../NestedMenu'
 import { Tooltip } from '../Tooltip'
 import { updateQueryFromSelected } from './query'
-import type { ExcludeQueryKey, SelectValues, SelectTriggerVariant } from './types'
+import type { ExcludeQueryKey, SelectOption, SelectValues, SelectTriggerVariant } from './types'
 import { SELECT_TRIGGER_VARIANTS } from './types'
 
 interface ISelectBase {
@@ -36,6 +36,10 @@ interface ISelectWithState extends ISelectBase {
 
 type ISelect = ISelectWithUrlParams | ISelectWithState
 
+function isSelectOption(option: string | SelectOption): option is SelectOption {
+	return typeof option !== 'string'
+}
+
 export function Select({
 	allValues,
 	selectedValues,
@@ -61,19 +65,19 @@ export function Select({
 	const setSelectedValues = includeQueryKey
 		? (values: string[] | string) =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), values, defaultSelectedValues)
-		: setSelectedValuesProp
+		: (values: string[] | string) => setSelectedValuesProp?.(values)
 	const clearAll = includeQueryKey
 		? () =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), 'None', defaultSelectedValues)
-		: () => setSelectedValuesProp([])
+		: () => setSelectedValuesProp?.([])
 	const toggleAll = includeQueryKey
 		? () =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), null, defaultSelectedValues)
-		: () => setSelectedValuesProp(getAllKeys())
+		: () => setSelectedValuesProp?.(getAllKeys())
 	const selectOnlyOne = includeQueryKey
 		? (value: string) =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), [value], defaultSelectedValues)
-		: (value: string) => setSelectedValuesProp([value])
+		: (value: string) => setSelectedValuesProp?.([value])
 
 	const [viewableMatches, setViewableMatches] = React.useState(6)
 
@@ -118,30 +122,33 @@ export function Select({
 							</button>
 						</span>
 					) : null}
-					{allValues.slice(0, viewableMatches).map((option) => (
-						<NestedMenuItem
-							key={valuesAreAnArrayOfStrings ? option : option.key}
-							render={<Ariakit.SelectItem value={valuesAreAnArrayOfStrings ? option : option.key} />}
-							hideOnClick={false}
-							className="flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
-						>
-							{valuesAreAnArrayOfStrings ? (
-								<span>{option}</span>
-							) : option.help ? (
-								<Tooltip content={option.help}>
-									<span className="mr-1">{option.name}</span>
-									<Icon name="help-circle" height={15} width={15} />
-								</Tooltip>
-							) : (
-								<span>{option.name}</span>
-							)}
-							{showCheckboxes ? (
-								<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
-							) : (
-								<Ariakit.SelectItemCheck className="ml-auto" />
-							)}
-						</NestedMenuItem>
-					))}
+					{allValues.slice(0, viewableMatches).map((option) => {
+						const optionKey = isSelectOption(option) ? option.key : option
+						return (
+							<NestedMenuItem
+								key={optionKey}
+								render={<Ariakit.SelectItem value={optionKey} />}
+								hideOnClick={false}
+								className="flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+							>
+								{!isSelectOption(option) ? (
+									<span>{option}</span>
+								) : option.help ? (
+									<Tooltip content={option.help}>
+										<span className="mr-1">{option.name}</span>
+										<Icon name="help-circle" height={15} width={15} />
+									</Tooltip>
+								) : (
+									<span>{option.name}</span>
+								)}
+								{showCheckboxes ? (
+									<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+								) : (
+									<Ariakit.SelectItemCheck className="ml-auto" />
+								)}
+							</NestedMenuItem>
+						)
+					})}
 					{allValues.length > viewableMatches ? (
 						<Ariakit.SelectItem
 							value="__see_more__"
@@ -226,41 +233,44 @@ export function Select({
 							</span>
 						) : null}
 
-						{allValues.slice(0, viewableMatches).map((option) => (
-							<Ariakit.SelectItem
-								key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
-								value={valuesAreAnArrayOfStrings ? option : option.key}
-								className="group flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
-							>
-								{valuesAreAnArrayOfStrings ? (
-									<span>{option}</span>
-								) : option.help ? (
-									<Tooltip content={option.help}>
-										<span className="mr-1">{option.name}</span>
-										<Icon name="help-circle" height={15} width={15} />
-									</Tooltip>
-								) : (
-									<span>{option.name}</span>
-								)}
+						{allValues.slice(0, viewableMatches).map((option) => {
+							const optionKey = isSelectOption(option) ? option.key : option
+							return (
+								<Ariakit.SelectItem
+									key={`${label}-${optionKey}`}
+									value={optionKey}
+									className="group flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+								>
+									{!isSelectOption(option) ? (
+										<span>{option}</span>
+									) : option.help ? (
+										<Tooltip content={option.help}>
+											<span className="mr-1">{option.name}</span>
+											<Icon name="help-circle" height={15} width={15} />
+										</Tooltip>
+									) : (
+										<span>{option.name}</span>
+									)}
 
-								{showCheckboxes ? (
-									<button
-										onClick={(e) => {
-											e.stopPropagation()
-											selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
-										}}
-										className="invisible text-xs font-medium text-(--link) underline group-hover:visible group-focus-visible:visible"
-									>
-										Only
-									</button>
-								) : null}
-								{canSelectOnlyOne ? (
-									<Ariakit.SelectItemCheck className="ml-auto" />
-								) : (
-									<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
-								)}
-							</Ariakit.SelectItem>
-						))}
+									{showCheckboxes ? (
+										<button
+											onClick={(e) => {
+												e.stopPropagation()
+												selectOnlyOne(optionKey)
+											}}
+											className="invisible text-xs font-medium text-(--link) underline group-hover:visible group-focus-visible:visible"
+										>
+											Only
+										</button>
+									) : null}
+									{canSelectOnlyOne ? (
+										<Ariakit.SelectItemCheck className="ml-auto" />
+									) : (
+										<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+									)}
+								</Ariakit.SelectItem>
+							)
+						})}
 						{allValues.length > viewableMatches ? (
 							<Ariakit.SelectItem
 								value="__see_more__"

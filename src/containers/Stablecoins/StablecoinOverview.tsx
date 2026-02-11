@@ -19,6 +19,7 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer, peggedAssetIconUrl, slug } from '~/utils'
 import { StablecoinByChainUsageTable } from './StablecoinUsageByChainTable'
+import type { PeggedAssetPageProps } from './types'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -33,14 +34,13 @@ const risksHelperTexts = {
 		'Crypto-backed assets are backed by cryptoassets locked in a smart contract as collateral. Risks of crypto-backed assets include smart contract risk, collateral volatility and liquidation, and de-pegging.'
 }
 
-const CHART_TYPE_TO_API_TYPE: Record<string, StablecoinAssetChartType> = {
+const CHART_TYPE_VALUES = ['Total Circ', 'Pie', 'Dominance', 'Area'] as const
+const CHART_TYPE_TO_API_TYPE: Record<(typeof CHART_TYPE_VALUES)[number], StablecoinAssetChartType> = {
 	'Total Circ': 'totalCirc',
 	Pie: 'chainPie',
 	Dominance: 'chainDominance',
 	Area: 'chainMcaps'
 }
-
-const CHART_TYPE_VALUES = ['Total Circ', 'Pie', 'Dominance', 'Area'] as const
 const UNRELEASED_QUERY_KEY = 'unreleased'
 
 const parseBooleanQueryParam = (value: string | string[] | undefined): boolean => {
@@ -50,7 +50,7 @@ const parseBooleanQueryParam = (value: string | string[] | undefined): boolean =
 	return normalized === 'true' || normalized === '1' || normalized === 'yes'
 }
 
-export default function PeggedContainer(props) {
+export default function PeggedContainer(props: PeggedAssetPageProps) {
 	let { name, symbol } = props.peggedAssetData
 	const nameWithSymbol = name + (symbol && symbol !== '-' ? ` (${symbol})` : '')
 	return (
@@ -82,7 +82,7 @@ export const PeggedAssetInfo = ({
 	unreleased,
 	mcap,
 	bridgeInfo
-}) => {
+}: PeggedAssetPageProps) => {
 	const router = useRouter()
 	let {
 		name,
@@ -100,9 +100,13 @@ export const PeggedAssetInfo = ({
 	} = peggedAssetData
 	const logo = peggedAssetIconUrl(name)
 
-	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
+	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address ?? undefined)
+	const auditLinkList = React.useMemo(
+		() => (Array.isArray(auditLinks) ? auditLinks : typeof auditLinks === 'string' ? [auditLinks] : []),
+		[auditLinks]
+	)
 
-	const [chartType, setChartType] = React.useState('Pie')
+	const [chartType, setChartType] = React.useState<(typeof CHART_TYPE_VALUES)[number]>('Pie')
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const onChartTypeChange = React.useCallback(
@@ -146,10 +150,7 @@ export const PeggedAssetInfo = ({
 		void router.replace({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true, scroll: false })
 	}, [includeUnreleased, router])
 
-	const chainTotals = useCalcCirculating<Parameters<typeof useGroupBridgeData>[0][number]>(
-		chainCirculatings,
-		includeUnreleased
-	)
+	const chainTotals = useCalcCirculating(chainCirculatings, includeUnreleased)
 
 	const chainsCirculatingValues = React.useMemo(() => {
 		return preparePieChartData({ data: chainTotals, sliceIdentifier: 'name', sliceValue: 'circulating', limit: 10 })
@@ -180,13 +181,13 @@ export const PeggedAssetInfo = ({
 	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
 
 	const getImageExportTitle = () => {
-		const chartTypeMap = {
+		const chartTypeMap: Record<(typeof CHART_TYPE_VALUES)[number], string> = {
 			'Total Circ': 'Total Circulating',
 			Pie: 'Distribution by Chain',
 			Dominance: 'Chain Dominance',
 			Area: 'Circulating by Chain'
 		}
-		return `${name} - ${chartTypeMap[chartType] || chartType}`
+		return `${name} - ${chartTypeMap[chartType]}`
 	}
 
 	const getImageExportFilename = () => {
@@ -250,7 +251,7 @@ export const PeggedAssetInfo = ({
 						}
 						return row
 					})
-					.filter(Boolean),
+					.filter((row): row is Record<string, number> => row !== null),
 				dimensions: ['timestamp', ...chainsUnique]
 			},
 			dominanceCharts: chainsUnique.map((name) => ({
@@ -263,7 +264,7 @@ export const PeggedAssetInfo = ({
 		[dataWithExtraPeggedAndDominanceByDay, chainsUnique]
 	)
 
-	const hasInfo = description || pegMechanism || mintRedeemDescription || auditLinks?.length > 0
+	const hasInfo = Boolean(description || pegMechanism || mintRedeemDescription || auditLinkList.length > 0)
 
 	return (
 		<>
@@ -299,7 +300,7 @@ export const PeggedAssetInfo = ({
 								<span className="font-jetbrains">{formattedNum(displayedTotalCirculating)}</span>
 							</p>
 						) : null}
-						{unreleased > 0 ? (
+						{typeof unreleased === 'number' && unreleased > 0 ? (
 							<p className="flex flex-wrap items-center justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 								<label className="flex cursor-pointer items-center gap-2 text-(--text-label)">
 									<input
@@ -324,7 +325,11 @@ export const PeggedAssetInfo = ({
 					<div className="flex items-center justify-end gap-2 p-2 pb-0">
 						<div className="mr-auto flex items-center gap-2">
 							<TagGroup
-								setValue={onChartTypeChange}
+								setValue={(value) => {
+									if ((CHART_TYPE_VALUES as readonly string[]).includes(value)) {
+										onChartTypeChange(value as (typeof CHART_TYPE_VALUES)[number])
+									}
+								}}
 								selectedValue={chartType}
 								values={CHART_TYPE_VALUES}
 								variant="responsive"
@@ -379,7 +384,9 @@ export const PeggedAssetInfo = ({
 								<p className="flex items-center gap-1">
 									<span>Category:</span>
 									<span>{pegMechanism}</span>
-									<QuestionHelper text={risksHelperTexts[pegMechanism] || 'No additional info available'} />
+									<QuestionHelper
+										text={(risksHelperTexts as Record<string, string>)[pegMechanism] || 'No additional info available'}
+									/>
 								</p>
 							) : null}
 							{mintRedeemDescription ? (
@@ -394,10 +401,10 @@ export const PeggedAssetInfo = ({
 									<QuestionHelper text="Audits are not a security guarantee" />
 									<span>:</span>
 								</span>
-								{auditLinks?.length > 0 ? (
+								{auditLinkList.length > 0 ? (
 									<Menu
 										name="Yes"
-										options={typeof auditLinks === 'string' ? [auditLinks] : auditLinks}
+										options={auditLinkList}
 										isExternal
 										className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 									/>

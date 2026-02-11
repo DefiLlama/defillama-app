@@ -22,13 +22,59 @@ export type { IAdapterOverview, IAdapterSummary } from './api.types'
 //breakdown is using chain internal name so we need to map it
 let chainMappingCache: Record<string, string> | null = null
 
+type AdapterProtocol = IAdapterOverview['protocols'][number]
+type AdapterByChainProtocol = IAdapterByChainPageData['protocols'][number]
+type ChainBreakdown = Record<string, Record<string, number>>
+
+type EmissionsProtocol = {
+	defillamaId: string
+	linked?: string[]
+	name?: string
+	displayName?: string
+	emission24h?: number
+	emission7d?: number
+	emission30d?: number
+	emission1y?: number
+	emissionAllTime?: number
+}
+
+type EmissionsResponse = {
+	protocols: EmissionsProtocol[]
+}
+
+type ProtocolWithEmissions = AdapterProtocol & {
+	_emissions?: EmissionsProtocol | undefined
+}
+
+type ProtocolTotals = {
+	total24h: number | null
+	total7d: number | null
+	total30d: number | null
+	total1y: number | null
+	totalAllTime: number | null
+}
+
+type ProtocolTotalsMap = Record<string, ProtocolTotals>
+type ProtocolSummaryMap = Record<string, AdapterByChainProtocol>
+type ParentProtocolsMap = Record<string, AdapterByChainProtocol[]>
+
+const asRuntimeLogString = (error: unknown): string => (error instanceof Error ? error.message : String(error))
+
+const getAdapterDataTypeKey = (dataType: `${ADAPTER_DATA_TYPES}`): string | null => {
+	if (dataType in ADAPTER_DATA_TYPE_KEYS) {
+		return ADAPTER_DATA_TYPE_KEYS[dataType as keyof typeof ADAPTER_DATA_TYPE_KEYS]
+	}
+
+	return null
+}
+
 async function getChainMapping() {
 	if (chainMappingCache) {
 		return chainMappingCache
 	}
 
 	try {
-		const mapping = await fetchJson('https://api.llama.fi/overview/_internal/chain-name-id-map')
+		const mapping = await fetchJson<Record<string, string>>('https://api.llama.fi/overview/_internal/chain-name-id-map')
 		chainMappingCache = mapping
 		return mapping
 	} catch {
@@ -37,10 +83,10 @@ async function getChainMapping() {
 	}
 }
 
-function getInternalChainName(displayChain: string, chainMapping: Record<string, string>) {
+function getInternalChainName(displayChain: string, chainMapping: Record<string, string>): string {
 	for (const display in chainMapping) {
 		if (display === displayChain) {
-			return chainMapping[display]
+			return chainMapping[display] ?? slug(displayChain)
 		}
 	}
 	return slug(displayChain)
@@ -59,8 +105,10 @@ export async function getAdapterChainOverview({
 }) {
 	if (dataType !== 'dailyEarnings') {
 		const [overviewData, totalDataChart] = await Promise.all([
-			getAdapterChainMetrics({ adapterType, chain, dataType }),
-			excludeTotalDataChart ? Promise.resolve([]) : getAdapterChainChartData({ adapterType, chain, dataType })
+			getAdapterChainMetrics({ adapterType, chain, ...(dataType ? { dataType } : {}) }),
+			excludeTotalDataChart
+				? Promise.resolve([])
+				: getAdapterChainChartData({ adapterType, chain, ...(dataType ? { dataType } : {}) })
 		])
 
 		return { ...overviewData, totalDataChart } as IAdapterOverview
@@ -183,38 +231,46 @@ export async function getAdapterProtocolSummary({
 	if (protocol == 'All') throw new Error('Protocol cannot be All')
 
 	const [overviewData, totalDataChart] = await Promise.all([
-		getAdapterProtocolMetrics({ adapterType, protocol, dataType }),
-		excludeTotalDataChart ? Promise.resolve([]) : getAdapterProtocolChartData({ adapterType, protocol, dataType })
+		getAdapterProtocolMetrics({ adapterType, protocol, ...(dataType ? { dataType } : {}) }),
+		excludeTotalDataChart
+			? Promise.resolve([])
+			: getAdapterProtocolChartData({ adapterType, protocol, ...(dataType ? { dataType } : {}) })
 	])
 
 	return { ...overviewData, totalDataChart } as IAdapterSummary
 }
 
 async function getEmissionsData() {
-	const data = await fetchJson('https://api.llama.fi/emissionsBreakdownAggregated')
+	const data = await fetchJson<EmissionsResponse>('https://api.llama.fi/emissionsBreakdownAggregated')
 	return data
 }
 
-function findEmissionsForProtocol(protocolVersions: any[], emissionsData: any) {
-	const parentKey = protocolVersions[0].parentProtocol || protocolVersions[0].defillamaId
+function findEmissionsForProtocol(protocolVersions: AdapterProtocol[], emissionsData: EmissionsResponse) {
+	const firstProtocol = protocolVersions[0]
+	if (!firstProtocol) return undefined
+	const parentKey = firstProtocol.parentProtocol || firstProtocol.defillamaId
 
 	let emissions = emissionsData.protocols.find((p) => {
 		if (p.defillamaId === parentKey) return true
 		if (protocolVersions.some((pv) => p.defillamaId === pv.defillamaId)) return true
-		if (p.linked && protocolVersions.some((pv) => p.linked.includes(pv.defillamaId))) return true
+		const linkedProtocols = p.linked ?? []
+		if (protocolVersions.some((pv) => linkedProtocols.includes(pv.defillamaId))) return true
 		return false
 	})
 
 	// Special case for Chain category protocols
-	if (!emissions && protocolVersions.length === 1 && protocolVersions[0].category === 'Chain') {
-		const protocol = protocolVersions[0]
+	if (!emissions && protocolVersions.length === 1 && firstProtocol.category === 'Chain') {
+		const protocol = firstProtocol
 		emissions = emissionsData.protocols.find((p) => p.name === protocol.name || p.name === protocol.displayName)
 	}
 
 	return emissions
 }
 
-function calculateEarnings(protocolData: any, emissions: any) {
+function calculateEarnings(
+	protocolData: AdapterProtocol,
+	emissions: EmissionsProtocol | undefined
+): ProtocolWithEmissions {
 	return {
 		...protocolData,
 		total24h: (protocolData.total24h ?? 0) - (emissions?.emission24h ?? 0),
@@ -226,7 +282,12 @@ function calculateEarnings(protocolData: any, emissions: any) {
 	}
 }
 
-function aggregateProtocolVersions(protocolVersions: any[]) {
+function aggregateProtocolVersions(protocolVersions: AdapterProtocol[]): AdapterProtocol {
+	const parentProtocol = protocolVersions[0]
+	if (!parentProtocol) {
+		throw new Error('Cannot aggregate empty protocol version set')
+	}
+
 	const aggregatedRevenue = {
 		total24h: protocolVersions.reduce((sum, p) => sum + (p.total24h ?? 0), 0),
 		total7d: protocolVersions.reduce((sum, p) => sum + (p.total7d ?? 0), 0),
@@ -235,8 +296,8 @@ function aggregateProtocolVersions(protocolVersions: any[]) {
 		totalAllTime: protocolVersions.reduce((sum, p) => sum + (p.totalAllTime ?? 0), 0)
 	}
 
-	const breakdowns24h: any[] = []
-	const breakdowns30d: any[] = []
+	const breakdowns24h: ChainBreakdown[] = []
+	const breakdowns30d: ChainBreakdown[] = []
 	for (const p of protocolVersions) {
 		if (p.breakdown24h) breakdowns24h.push(p.breakdown24h)
 		if (p.breakdown30d) breakdowns30d.push(p.breakdown30d)
@@ -244,7 +305,6 @@ function aggregateProtocolVersions(protocolVersions: any[]) {
 	const mergedBreakdown24h = mergeBreakdowns(breakdowns24h)
 	const mergedBreakdown30d = mergeBreakdowns(breakdowns30d)
 
-	const parentProtocol = protocolVersions[0]
 	return {
 		...parentProtocol,
 		name: parentProtocol.linkedProtocols?.[0] || parentProtocol.parentProtocol || parentProtocol.name,
@@ -253,14 +313,12 @@ function aggregateProtocolVersions(protocolVersions: any[]) {
 		...aggregatedRevenue,
 		chains: [...new Set(protocolVersions.flatMap((p) => p.chains))],
 		breakdown24h: mergedBreakdown24h,
-		breakdown30d: mergedBreakdown30d,
-		linkedProtocols: undefined,
-		parentProtocol: undefined
+		breakdown30d: mergedBreakdown30d
 	}
 }
 
-function mergeBreakdowns(breakdowns: Record<string, Record<string, number>>[]) {
-	const merged = {}
+function mergeBreakdowns(breakdowns: ChainBreakdown[]): ChainBreakdown {
+	const merged: ChainBreakdown = {}
 	for (const breakdown of breakdowns) {
 		if (!breakdown) continue
 		for (const chainName in breakdown) {
@@ -269,7 +327,7 @@ function mergeBreakdowns(breakdowns: Record<string, Record<string, number>>[]) {
 				merged[chainName] = {}
 			}
 			for (const protocolName in protocolData) {
-				const value = protocolData[protocolName]
+				const value = protocolData[protocolName] ?? 0
 				merged[chainName][protocolName] = (merged[chainName][protocolName] || 0) + value
 			}
 		}
@@ -277,8 +335,8 @@ function mergeBreakdowns(breakdowns: Record<string, Record<string, number>>[]) {
 	return merged
 }
 
-function groupProtocolsByParent(protocols: any[]) {
-	const protocolGroups = new Map<string, any[]>()
+function groupProtocolsByParent(protocols: AdapterProtocol[]) {
+	const protocolGroups = new Map<string, AdapterProtocol[]>()
 
 	for (const protocol of protocols) {
 		const parentKey = protocol.parentProtocol || protocol.defillamaId
@@ -291,25 +349,29 @@ function groupProtocolsByParent(protocols: any[]) {
 	return protocolGroups
 }
 
-function processGroupedProtocols(
-	protocolGroups: Map<string, any[]>,
-	processor: (protocolVersions: any[], parentKey: string) => any
-) {
-	const processedData = []
+function processGroupedProtocols<T>(
+	protocolGroups: Map<string, AdapterProtocol[]>,
+	processor: (protocolVersions: AdapterProtocol[], parentKey: string) => T
+): T[] {
+	const processedData: T[] = []
 	for (const [parentKey, protocolVersions] of protocolGroups) {
 		processedData.push(processor(protocolVersions, parentKey))
 	}
 	return processedData
 }
 
-function processEarningsData(data: IAdapterOverview, emissionsData: any) {
+function processEarningsData(data: IAdapterOverview, emissionsData: EmissionsResponse): ProtocolWithEmissions[] {
 	const protocolGroups = groupProtocolsByParent(data.protocols)
 
 	return processGroupedProtocols(protocolGroups, (protocolVersions, _parentKey) => {
 		const emissions = findEmissionsForProtocol(protocolVersions, emissionsData)
+		const firstProtocol = protocolVersions[0]
+		if (!firstProtocol) {
+			throw new Error('Missing protocol data while processing earnings')
+		}
 
 		if (protocolVersions.length === 1) {
-			return calculateEarnings(protocolVersions[0], emissions)
+			return calculateEarnings(firstProtocol, emissions)
 		} else {
 			const aggregatedProtocol = aggregateProtocolVersions(protocolVersions)
 			return calculateEarnings(aggregatedProtocol, emissions)
@@ -317,16 +379,25 @@ function processEarningsData(data: IAdapterOverview, emissionsData: any) {
 	})
 }
 
-function processRevenueDataForMatching(protocols: any[]) {
+function processRevenueDataForMatching(protocols: AdapterProtocol[]) {
 	const protocolGroups = groupProtocolsByParent(protocols)
 
 	return processGroupedProtocols(protocolGroups, (protocolVersions, parentKey) => {
+		const firstProtocol = protocolVersions[0]
+		if (!firstProtocol) {
+			throw new Error('Missing protocol data while matching revenue')
+		}
+
 		if (protocolVersions.length === 1) {
 			return {
-				...protocolVersions[0],
+				...firstProtocol,
+				total24h: firstProtocol.total24h ?? null,
+				total7d: firstProtocol.total7d ?? null,
+				total30d: firstProtocol.total30d ?? null,
+				total1y: firstProtocol.total1y ?? null,
+				totalAllTime: firstProtocol.totalAllTime ?? null,
 				parentKey,
-				groupedName:
-					protocolVersions[0].linkedProtocols?.[0] || protocolVersions[0].parentProtocol || protocolVersions[0].name
+				groupedName: firstProtocol.linkedProtocols?.[0] || firstProtocol.parentProtocol || firstProtocol.name
 			}
 		} else {
 			const aggregatedProtocol = aggregateProtocolVersions(protocolVersions)
@@ -340,8 +411,11 @@ function processRevenueDataForMatching(protocols: any[]) {
 	})
 }
 
-function matchRevenueToEarnings(revenueData: any[], earningsProtocols: any[]) {
-	const matchedData = {}
+function matchRevenueToEarnings(
+	revenueData: Array<AdapterProtocol & { parentKey: string; groupedName: string }>,
+	earningsProtocols: ProtocolWithEmissions[]
+): ProtocolTotalsMap {
+	const matchedData: ProtocolTotalsMap = {}
 
 	for (const revenueProtocol of revenueData) {
 		const matchingEarningsProtocol = earningsProtocols.find((earningsProto) => {
@@ -475,7 +549,7 @@ export const getAdapterByChainPageData = async ({
 		getAdapterChainOverview({
 			adapterType,
 			chain,
-			dataType,
+			...(dataType ? { dataType } : {}),
 			excludeTotalDataChart: adapterType === 'fees'
 		}),
 		fetchJson(PROTOCOLS_API),
@@ -520,7 +594,7 @@ export const getAdapterByChainPageData = async ({
 			: Promise.resolve(null)
 	])
 
-	const protocolsMcap = {}
+	const protocolsMcap: Record<string, number | null> = {}
 	for (const protocol of protocolsData.protocols) {
 		protocolsMcap[protocol.name] = protocol.mcap ?? null
 	}
@@ -528,10 +602,10 @@ export const getAdapterByChainPageData = async ({
 		protocolsMcap[protocol.name] = protocol.mcap ?? null
 	}
 
-	const allProtocols = [...data.protocols]
+	const allProtocols: AdapterProtocol[] = [...data.protocols]
 
-	let bribesProtocols = {}
-	let tokenTaxesProtocols = {}
+	let bribesProtocols: ProtocolTotalsMap = {}
+	let tokenTaxesProtocols: ProtocolTotalsMap = {}
 	let openInterestProtocols: Record<string, { total24h: number | null; doublecounted: boolean }> = {}
 	let activeLiquidityProtocols: Record<string, { total24h: number | null; doublecounted: boolean }> = {}
 	let normalizedVolumeProtocols: Record<string, { total24h: number | null }> = {}
@@ -548,7 +622,7 @@ export const getAdapterByChainPageData = async ({
 		}
 	} else {
 		bribesProtocols =
-			bribesData?.protocols.reduce((acc, p) => {
+			bribesData?.protocols.reduce<ProtocolTotalsMap>((acc, p) => {
 				acc[p.name] = {
 					total24h: p.total24h ?? null,
 					total7d: p.total7d ?? null,
@@ -573,7 +647,7 @@ export const getAdapterByChainPageData = async ({
 			}, {}) ?? {}
 
 		tokenTaxesProtocols =
-			tokenTaxesData?.protocols.reduce((acc, p) => {
+			tokenTaxesData?.protocols.reduce<ProtocolTotalsMap>((acc, p) => {
 				acc[p.name] = {
 					total24h: p.total24h ?? null,
 					total7d: p.total7d ?? null,
@@ -599,7 +673,9 @@ export const getAdapterByChainPageData = async ({
 	}
 
 	if (openInterestData) {
-		openInterestProtocols = openInterestData.protocols.reduce((acc, p) => {
+		openInterestProtocols = openInterestData.protocols.reduce<
+			Record<string, { total24h: number | null; doublecounted: boolean }>
+		>((acc, p) => {
 			acc[p.name] = {
 				total24h: p.total24h ?? null,
 				doublecounted: !!p.doublecounted
@@ -609,7 +685,9 @@ export const getAdapterByChainPageData = async ({
 	}
 
 	if (activeLiquidityData) {
-		activeLiquidityProtocols = activeLiquidityData.protocols.reduce((acc, p) => {
+		activeLiquidityProtocols = activeLiquidityData.protocols.reduce<
+			Record<string, { total24h: number | null; doublecounted: boolean }>
+		>((acc, p) => {
 			acc[p.name] = {
 				total24h: p.total24h ?? null,
 				doublecounted: !!p.doublecounted
@@ -619,17 +697,20 @@ export const getAdapterByChainPageData = async ({
 	}
 
 	if (normalizedVolumeData) {
-		normalizedVolumeProtocols = normalizedVolumeData.protocols.reduce((acc, p) => {
-			if (p.name === 'Extended') return acc
-			acc[p.name] = {
-				total24h: p.total24h ?? null
-			}
-			return acc
-		}, {})
+		normalizedVolumeProtocols = normalizedVolumeData.protocols.reduce<Record<string, { total24h: number | null }>>(
+			(acc, p) => {
+				if (p.name === 'Extended') return acc
+				acc[p.name] = {
+					total24h: p.total24h ?? null
+				}
+				return acc
+			},
+			{}
+		)
 	}
 
-	const protocols = {}
-	const parentProtocols = {}
+	const protocols: ProtocolSummaryMap = {}
+	const parentProtocols: ParentProtocolsMap = {}
 	const categories = new Set<string>()
 
 	for (const protocol of allProtocols) {
@@ -659,9 +740,12 @@ export const getAdapterByChainPageData = async ({
 				: null
 
 		const summary = {
-			name: protocol.displayName,
-			slug: protocol.slug,
-			logo: protocol.protocolType === 'chain' ? chainIconUrl(protocol.slug) : tokenIconUrl(protocol.slug),
+			name: protocol.displayName ?? protocol.name,
+			slug: protocol.slug ?? slug(protocol.name),
+			logo:
+				protocol.protocolType === 'chain'
+					? chainIconUrl(protocol.slug ?? slug(protocol.name))
+					: tokenIconUrl(protocol.slug ?? slug(protocol.name)),
 			chains: protocol.chains,
 			category: protocol.category ?? null,
 			total24h: protocol.total24h ?? null,
@@ -676,23 +760,27 @@ export const getAdapterByChainPageData = async ({
 			...(ps ? { ps } : {}),
 			...(methodology ? { methodology: methodology.endsWith('.') ? methodology.slice(0, -1) : methodology } : {}),
 			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
-			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {}),
+			...(ZERO_FEE_PERPS.has(protocol.displayName ?? protocol.name) ? { zeroFeePerp: true } : {}),
 			...(openInterestProtocols[protocol.name]?.total24h != null
-				? { openInterest: openInterestProtocols[protocol.name].total24h }
+				? { openInterest: openInterestProtocols[protocol.name]?.total24h ?? null }
 				: {}),
 			...(activeLiquidityProtocols[protocol.name]?.total24h != null
-				? { activeLiquidity: activeLiquidityProtocols[protocol.name].total24h }
+				? { activeLiquidity: activeLiquidityProtocols[protocol.name]?.total24h ?? null }
 				: {}),
 			...(normalizedVolumeProtocols[protocol.name]?.total24h != null
-				? { normalizedVolume24h: normalizedVolumeProtocols[protocol.name].total24h }
+				? { normalizedVolume24h: normalizedVolumeProtocols[protocol.name]?.total24h ?? null }
 				: {})
 		}
 
-		if (protocol.linkedProtocols?.length > 1) {
-			parentProtocols[protocol.linkedProtocols[0]] = parentProtocols[protocol.linkedProtocols[0]] || []
-			parentProtocols[protocol.linkedProtocols[0]].push(summary)
+		const linkedProtocols = protocol.linkedProtocols ?? []
+		if (linkedProtocols.length > 1) {
+			const parentKey = linkedProtocols[0]
+			if (parentKey) {
+				parentProtocols[parentKey] = parentProtocols[parentKey] || []
+				parentProtocols[parentKey]?.push(summary)
+			}
 		} else {
-			protocols[protocol.displayName] = summary
+			protocols[protocol.displayName ?? protocol.name] = summary
 		}
 		if (protocol.category) {
 			categories.add(protocol.category)
@@ -700,33 +788,36 @@ export const getAdapterByChainPageData = async ({
 	}
 
 	for (const protocol in parentProtocols) {
-		if (parentProtocols[protocol].length === 1) {
+		const groupedProtocols = parentProtocols[protocol]
+		if (!groupedProtocols || groupedProtocols.length === 0) continue
+
+		if (groupedProtocols.length === 1) {
 			protocols[protocol] = {
-				...parentProtocols[protocol][0],
+				...groupedProtocols[0],
 				name: protocol,
 				slug: slug(protocol)
 			}
 			continue
 		}
-		const total24h = parentProtocols[protocol].some((p) => p.total24h != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total24h ?? 0), 0)
+		const total24h = groupedProtocols.some((p) => p.total24h != null)
+			? groupedProtocols.reduce((acc, p) => acc + (p.total24h ?? 0), 0)
 			: null
-		const total7d = parentProtocols[protocol].some((p) => p.total7d != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total7d ?? 0), 0)
+		const total7d = groupedProtocols.some((p) => p.total7d != null)
+			? groupedProtocols.reduce((acc, p) => acc + (p.total7d ?? 0), 0)
 			: null
-		const total30d = parentProtocols[protocol].some((p) => p.total30d != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total30d ?? 0), 0)
+		const total30d = groupedProtocols.some((p) => p.total30d != null)
+			? groupedProtocols.reduce((acc, p) => acc + (p.total30d ?? 0), 0)
 			: null
-		const total1y = parentProtocols[protocol].some((p) => p.total1y != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total1y ?? 0), 0)
+		const total1y = groupedProtocols.some((p) => p.total1y != null)
+			? groupedProtocols.reduce((acc, p) => acc + (p.total1y ?? 0), 0)
 			: null
-		const totalAllTime = parentProtocols[protocol].some((p) => p.totalAllTime != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.totalAllTime ?? 0), 0)
+		const totalAllTime = groupedProtocols.some((p) => p.totalAllTime != null)
+			? groupedProtocols.reduce((acc, p) => acc + (p.totalAllTime ?? 0), 0)
 			: null
-		const doublecounted = parentProtocols[protocol].some((p) => p.doublecounted)
-		const zeroFeePerp = parentProtocols[protocol].some((p) => p.zeroFeePerp)
-		const bribes = parentProtocols[protocol].some((p) => p.bribes != null)
-			? parentProtocols[protocol].reduce(
+		const doublecounted = groupedProtocols.some((p) => p.doublecounted)
+		const zeroFeePerp = groupedProtocols.some((p) => p.zeroFeePerp)
+		const bribes = groupedProtocols.some((p) => p.bribes != null)
+			? groupedProtocols.reduce(
 					(acc, p) => {
 						acc.total24h += p.bribes?.total24h ?? 0
 						acc.total7d += p.bribes?.total7d ?? 0
@@ -744,8 +835,8 @@ export const getAdapterByChainPageData = async ({
 					}
 				)
 			: null
-		const tokenTax = parentProtocols[protocol].some((p) => p.tokenTax != null)
-			? parentProtocols[protocol].reduce(
+		const tokenTax = groupedProtocols.some((p) => p.tokenTax != null)
+			? groupedProtocols.reduce(
 					(acc, p) => {
 						acc.total24h += p.tokenTax?.total24h ?? 0
 						acc.total7d += p.tokenTax?.total7d ?? 0
@@ -764,20 +855,20 @@ export const getAdapterByChainPageData = async ({
 				)
 			: null
 
-		const openInterest = parentProtocols[protocol].some((p) => p.openInterest != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.openInterest ?? 0), 0)
+		const openInterest = groupedProtocols.some((p) => p.openInterest != null)
+			? groupedProtocols.reduce((acc, p) => acc + (p.openInterest ?? 0), 0)
 			: null
 
-		const activeLiquidity = parentProtocols[protocol].some((p) => p.activeLiquidity != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.activeLiquidity ?? 0), 0)
+		const activeLiquidity = groupedProtocols.some((p) => p.activeLiquidity != null)
+			? groupedProtocols.reduce((acc, p) => acc + (p.activeLiquidity ?? 0), 0)
 			: null
 
-		const normalizedVolume24h = parentProtocols[protocol].some((p) => p.normalizedVolume24h != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.normalizedVolume24h ?? 0), 0)
+		const normalizedVolume24h = groupedProtocols.some((p) => p.normalizedVolume24h != null)
+			? groupedProtocols.reduce((acc, p) => acc + (p.normalizedVolume24h ?? 0), 0)
 			: null
 
 		const methodologySet = new Set<string>()
-		for (const p of parentProtocols[protocol]) {
+		for (const p of groupedProtocols) {
 			if (p.methodology) methodologySet.add(p.methodology)
 		}
 		const methodology: Array<string> = Array.from(methodologySet)
@@ -785,8 +876,9 @@ export const getAdapterByChainPageData = async ({
 		const pf = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
 		const ps = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
 
-		let topProtocol = parentProtocols[protocol][0]
-		for (const p of parentProtocols[protocol]) {
+		let topProtocol = groupedProtocols[0]
+		if (!topProtocol) continue
+		for (const p of groupedProtocols) {
 			if ((p.total24h ?? 0) > (topProtocol.total24h ?? 0)) {
 				topProtocol = p
 			}
@@ -797,14 +889,14 @@ export const getAdapterByChainPageData = async ({
 			slug: slug(protocol),
 			logo: tokenIconUrl(protocol),
 			category: topProtocol.category ?? null,
-			chains: Array.from(new Set(parentProtocols[protocol].map((p) => p.chains ?? []).flat())),
+			chains: Array.from(new Set(groupedProtocols.map((p) => p.chains ?? []).flat())),
 			total24h,
 			total7d,
 			total30d,
 			total1y,
 			totalAllTime,
 			mcap: protocolsMcap[protocol] ?? null,
-			childProtocols: parentProtocols[protocol],
+			childProtocols: groupedProtocols,
 			...(bribes ? { bribes } : {}),
 			...(tokenTax ? { tokenTax } : {}),
 			...(pf ? { pf } : {}),
@@ -815,7 +907,7 @@ export const getAdapterByChainPageData = async ({
 							methodology.length > 1
 								? methodology
 										.map((m) => {
-											const children = parentProtocols[protocol].filter((p) => p.methodology === m)
+											const children = groupedProtocols.filter((p) => p.methodology === m)
 											return `${children.map((c) => (c.name.startsWith(protocol) ? c.name.replace(protocol, '').trim() : c.name)).join(', ')}: ${m}`
 										})
 										.join('. ')
@@ -830,22 +922,26 @@ export const getAdapterByChainPageData = async ({
 		}
 	}
 
-	let finalProtocols = []
+	let finalProtocols: AdapterByChainProtocol[] = []
 	if (route === 'pf') {
 		for (const protocol in protocols) {
-			if (protocols[protocol].pf != null) {
-				finalProtocols.push(protocols[protocol])
+			const currentProtocol = protocols[protocol]
+			if (currentProtocol?.pf != null) {
+				finalProtocols.push(currentProtocol)
 			}
 		}
 	} else if (route === 'ps') {
 		for (const protocol in protocols) {
-			if (protocols[protocol].ps != null) {
-				finalProtocols.push(protocols[protocol])
+			const currentProtocol = protocols[protocol]
+			if (currentProtocol?.ps != null) {
+				finalProtocols.push(currentProtocol)
 			}
 		}
 	} else {
 		for (const protocol in protocols) {
-			finalProtocols.push(protocols[protocol])
+			const currentProtocol = protocols[protocol]
+			if (!currentProtocol) continue
+			finalProtocols.push(currentProtocol)
 		}
 	}
 
@@ -869,8 +965,9 @@ export const getAdapterByChainPageData = async ({
 	let openInterest = 0
 
 	for (const protocol in openInterestProtocols) {
-		if (openInterestProtocols[protocol]?.doublecounted) continue
-		openInterest += openInterestProtocols[protocol]?.total24h ?? 0
+		const currentProtocol = openInterestProtocols[protocol]
+		if (currentProtocol?.doublecounted) continue
+		openInterest += currentProtocol?.total24h ?? 0
 	}
 
 	let activeLiquidity: number | null = null
@@ -878,8 +975,9 @@ export const getAdapterByChainPageData = async ({
 	if (activeLiquidityData) {
 		activeLiquidity = 0
 		for (const protocol in activeLiquidityProtocols) {
-			if (activeLiquidityProtocols[protocol]?.doublecounted) continue
-			activeLiquidity += activeLiquidityProtocols[protocol]?.total24h ?? 0
+			const currentProtocol = activeLiquidityProtocols[protocol]
+			if (currentProtocol?.doublecounted) continue
+			activeLiquidity += currentProtocol?.total24h ?? 0
 		}
 	}
 
@@ -930,7 +1028,9 @@ export const getChainsByFeesAdapterPageData = async ({
 
 		for (const chain in chainMetadata) {
 			const currentChainMetadata = chainMetadata[chain]
-			const sType = adapterType === 'fees' ? (dataType === 'dailyRevenue' ? 'chainRevenue' : 'chainFees') : dataType
+			if (!currentChainMetadata) continue
+			const sType: keyof IChainMetadata | null =
+				adapterType === 'fees' ? (dataType === 'dailyRevenue' ? 'chainRevenue' : 'chainFees') : null
 			if (sType && currentChainMetadata[sType]) {
 				allChainsSet.add(currentChainMetadata.name)
 			}
@@ -957,8 +1057,12 @@ export const getChainsByFeesAdapterPageData = async ({
 			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name)))
 		])
 
-		const bribesByChain = {}
-		const tokenTaxesByChain = {}
+		const bribesByChain: Record<string, { total24h: number | null; total7d: number | null; total30d: number | null }> =
+			{}
+		const tokenTaxesByChain: Record<
+			string,
+			{ total24h: number | null; total7d: number | null; total30d: number | null }
+		> = {}
 
 		for (const chain of bribesData) {
 			bribesByChain[chain.name] = {
@@ -998,7 +1102,7 @@ export const getChainsByFeesAdapterPageData = async ({
 			allChains: chains.map((c) => c.name)
 		}
 	} catch (error) {
-		postRuntimeLogs(error)
+		postRuntimeLogs(asRuntimeLogString(error))
 		throw error
 	}
 }
@@ -1018,12 +1122,13 @@ export const getChainsByAdapterPageData = async ({
 
 		for (const chain in chainMetadata) {
 			const currentChainMetadata = chainMetadata[chain]
-			const sType =
+			if (!currentChainMetadata) continue
+			const sType: keyof IChainMetadata =
 				adapterType === 'fees'
 					? dataType === 'dailyRevenue'
 						? 'chainRevenue'
 						: 'chainFees'
-					: ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]
+					: (ADAPTER_TYPES_TO_METADATA_TYPE[adapterType] as keyof IChainMetadata)
 			if (sType && currentChainMetadata[sType]) {
 				allChains.push(currentChainMetadata.name)
 			}
@@ -1084,10 +1189,14 @@ export const getChainsByAdapterPageData = async ({
 			})
 		])
 
-		const bribesByChain = {}
-		const tokenTaxesByChain = {}
-		const openInterestByChain = {}
-		const activeLiquidityByChain = {}
+		const bribesByChain: Record<string, { total24h: number | null; total7d: number | null; total30d: number | null }> =
+			{}
+		const tokenTaxesByChain: Record<
+			string,
+			{ total24h: number | null; total7d: number | null; total30d: number | null }
+		> = {}
+		const openInterestByChain: Record<string, number | null> = {}
+		const activeLiquidityByChain: Record<string, number | null> = {}
 		const chartDimensions = ['timestamp', ...allChains]
 		const chainNameByKey = Object.entries(chainMetadata).reduce(
 			(acc, [metadataKey, chain]) => {
@@ -1179,7 +1288,7 @@ export const getChainsByAdapterPageData = async ({
 			allChains: chains.map((c) => c.name)
 		}
 	} catch (error) {
-		postRuntimeLogs(error)
+		postRuntimeLogs(asRuntimeLogString(error))
 		throw error
 	}
 }
@@ -1193,12 +1302,13 @@ export const getChainsByREVPageData = async ({
 		const allChains: Array<string> = []
 
 		for (const chain in chainMetadata) {
-			if (chainMetadata[chain]['chainFees']) {
+			const currentChainMetadata = chainMetadata[chain]
+			if (currentChainMetadata?.['chainFees']) {
 				allChains.push(chain)
 			}
 		}
 
-		const protocolsByChainsData = await Promise.allSettled(
+		const protocolsByChainsData: PromiseSettledResult<IAdapterOverview>[] = await Promise.allSettled(
 			allChains.map(async (chain) =>
 				getAdapterChainOverview({
 					adapterType: 'fees',
@@ -1216,20 +1326,22 @@ export const getChainsByREVPageData = async ({
 
 		const chains = allChains.map((chain, index) => {
 			const chainFees = chainFeesData.protocols.find((p) => p.slug === chain)
-			const protocols = protocolsByChainsData[index].status === 'fulfilled' ? protocolsByChainsData[index].value : null
-			const chainRevProtocols = new Set(REV_PROTOCOLS[chain] ?? [])
+			const currentChainMetadata = chainMetadata[chain]
+			const protocolResult = protocolsByChainsData[index]
+			const protocols = protocolResult?.status === 'fulfilled' ? protocolResult.value : null
+			const chainRevProtocols = new Set(REV_PROTOCOLS[chain as keyof typeof REV_PROTOCOLS] ?? [])
 			return {
-				name: chainMetadata[chain].name,
+				name: currentChainMetadata?.name ?? chain,
 				slug: chain,
 				logo: chainIconUrl(chain),
 				total24h:
 					(chainFees?.total24h ?? 0) +
-					(protocols?.protocols ?? []).reduce((acc, curr) => {
+					(protocols?.protocols ?? []).reduce((acc: number, curr: IAdapterOverview['protocols'][number]) => {
 						return chainRevProtocols.has(curr.slug) ? acc + (curr.total24h ?? 0) : acc
 					}, 0),
 				total30d:
 					(chainFees?.total30d ?? 0) +
-					(protocols?.protocols ?? []).reduce((acc, curr) => {
+					(protocols?.protocols ?? []).reduce((acc: number, curr: IAdapterOverview['protocols'][number]) => {
 						return chainRevProtocols.has(curr.slug) ? acc + (curr.total30d ?? 0) : acc
 					}, 0)
 			}
@@ -1237,7 +1349,7 @@ export const getChainsByREVPageData = async ({
 
 		return { chains: chains.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0)) }
 	} catch (error) {
-		postRuntimeLogs(error)
+		postRuntimeLogs(asRuntimeLogString(error))
 		throw error
 	}
 }
@@ -1255,9 +1367,11 @@ export async function getDimensionAdapterOverviewOfAllChains({
 		const chains: Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }> = {}
 		for (const chain in chainMetadata) {
 			const currentChainMetadata = chainMetadata[chain]
-			const adapterMetadata = currentChainMetadata?.[ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]]
+			const adapterMetadata =
+				currentChainMetadata?.[ADAPTER_TYPES_TO_METADATA_TYPE[adapterType] as keyof IChainMetadata]
 			if (!adapterMetadata) continue
-			const dataKey = ADAPTER_DATA_TYPE_KEYS[dataType] ?? null
+			const dataKey = getAdapterDataTypeKey(dataType)
+			if (!dataKey) continue
 			const value = currentChainMetadata.dimAgg?.[adapterType]?.[dataKey]
 			if (!value) continue
 			chains[currentChainMetadata.name] = value
@@ -1265,7 +1379,7 @@ export async function getDimensionAdapterOverviewOfAllChains({
 
 		return chains
 	} catch (error) {
-		postRuntimeLogs(error)
+		postRuntimeLogs(asRuntimeLogString(error))
 		throw error
 	}
 }

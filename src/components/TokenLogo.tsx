@@ -16,7 +16,15 @@ export function TokenLogo({ logo = null, size = 24, fallbackLogo, ...rest }: Tok
 	// so the fallback state resets without needing an effect.
 	const sourcesKey = `${logo ?? ''}|${fallbackLogo ?? ''}`
 
-	return <TokenLogoImg key={sourcesKey} logo={logo} size={size} fallbackLogo={fallbackLogo} {...rest} />
+	return (
+		<TokenLogoImg
+			key={sourcesKey}
+			logo={logo}
+			size={size}
+			{...(fallbackLogo !== undefined ? { fallbackLogo } : {})}
+			{...rest}
+		/>
+	)
 }
 
 function TokenLogoImg({ logo = null, size = 24, fallbackLogo, ...rest }: TokenLogoProps) {

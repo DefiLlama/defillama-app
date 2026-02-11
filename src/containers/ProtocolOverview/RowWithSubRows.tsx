@@ -1,9 +1,26 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { Flag } from './Flag'
 
-export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, rowValue, helperText }) => {
+interface RowWithSubRowsProps {
+	subRows: ReactNode
+	protocolName?: string
+	dataType?: string
+	rowHeader: ReactNode
+	rowValue: ReactNode
+	helperText?: ReactNode
+}
+
+export const RowWithSubRows = ({
+	subRows,
+	protocolName,
+	dataType,
+	rowHeader,
+	rowValue,
+	helperText
+}: RowWithSubRowsProps) => {
 	const [open, setOpen] = useState(false)
 	return (
 		<>

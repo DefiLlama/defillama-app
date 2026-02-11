@@ -9,16 +9,16 @@ interface IFilterBetweenRange {
 	trigger: ReactNode
 	onSubmit: FormEventHandler<HTMLFormElement>
 	onClear: () => void
-	nestedMenu?: boolean
+	nestedMenu?: boolean | undefined
 	min: number | string | null
 	max: number | string | null
-	variant?: 'primary' | 'secondary'
-	triggerClassName?: string
-	placement?: Ariakit.PopoverStoreProps['placement']
-	minLabel?: string
-	maxLabel?: string
-	minInputProps?: InputHTMLAttributes<HTMLInputElement>
-	maxInputProps?: InputHTMLAttributes<HTMLInputElement>
+	variant?: 'primary' | 'secondary' | undefined
+	triggerClassName?: string | undefined
+	placement?: Ariakit.PopoverStoreProps['placement'] | undefined
+	minLabel?: string | undefined
+	maxLabel?: string | undefined
+	minInputProps?: InputHTMLAttributes<HTMLInputElement> | undefined
+	maxInputProps?: InputHTMLAttributes<HTMLInputElement> | undefined
 }
 
 const baseClasses = 'flex items-center justify-between gap-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap'
@@ -126,8 +126,8 @@ function Form({
 	max: number | string | null
 	minLabel: string
 	maxLabel: string
-	minInputProps?: InputHTMLAttributes<HTMLInputElement>
-	maxInputProps?: InputHTMLAttributes<HTMLInputElement>
+	minInputProps?: InputHTMLAttributes<HTMLInputElement> | undefined
+	maxInputProps?: InputHTMLAttributes<HTMLInputElement> | undefined
 }) {
 	return (
 		<form onSubmit={onSubmit} onReset={onClear} className="flex flex-col gap-3 p-3">

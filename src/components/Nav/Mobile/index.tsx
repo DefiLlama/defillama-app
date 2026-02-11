@@ -40,7 +40,7 @@ export const MobileNav = ({
 				<MobileSearch />
 			</React.Suspense>
 
-			<Settings metricFilters={metricFilters} />
+			<Settings {...(metricFilters ? { metricFilters } : {})} />
 
 			<Menu
 				mainLinks={mainLinks}

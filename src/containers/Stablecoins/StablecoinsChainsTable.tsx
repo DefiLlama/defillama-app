@@ -182,8 +182,10 @@ export function StablecoinsChainsTable({ data }: { data: StablecoinsByChainRow[]
 	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 
-	const setAggrOptions = (selectedKeys: string[]) => {
-		const selectedSet = new Set(selectedKeys)
+	const setAggrOptions: React.Dispatch<React.SetStateAction<string[]>> = (selectedKeys) => {
+		const currentSelected = CHAINS_CATEGORY_GROUP_SETTINGS.flatMap((key) => (groupTvls[key.key] ? [key.key] : []))
+		const resolvedSelectedKeys = typeof selectedKeys === 'function' ? selectedKeys(currentSelected) : selectedKeys
+		const selectedSet = new Set(resolvedSelectedKeys)
 		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
 			const shouldEnable = selectedSet.has(item.key)
 			if (groupTvls[item.key] !== shouldEnable) {

@@ -28,7 +28,7 @@ export function NestedMenu({ label, children, ref, ...props }: NestedMenuProps) 
 						? 'flex items-center justify-between gap-3 rounded-md bg-(--btn-bg) px-3 py-2'
 						: 'flex items-center justify-between gap-3 px-3 py-2'
 				} ${props.className ?? ''}`}
-				render={menu.parent ? <NestedMenuItem render={props.render} /> : undefined}
+				{...(menu.parent ? { render: <NestedMenuItem {...(props.render ? { render: props.render } : {})} /> } : {})}
 			>
 				<span className="label">{label}</span>
 				<Ariakit.MenuButtonArrow />

@@ -29,10 +29,10 @@ export const DimensionProtocolChartByType = ({
 }: {
 	protocolName: string
 	adapterType: `${ADAPTER_TYPES}`
-	dataType?: `${ADAPTER_DATA_TYPES}`
+	dataType?: `${ADAPTER_DATA_TYPES}` | undefined
 	chartType: 'chain' | 'version'
 	breakdownNames: string[]
-	metadata?: { bribeRevenue?: boolean; tokenTax?: boolean }
+	metadata?: { bribeRevenue?: boolean | undefined; tokenTax?: boolean | undefined } | undefined
 	title: string
 }) => {
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
@@ -43,8 +43,8 @@ export const DimensionProtocolChartByType = ({
 			getAdapterProtocolChartDataByBreakdownType({
 				adapterType,
 				protocol: protocolName,
-				dataType,
-				type: chartType
+				type: chartType,
+				...(dataType ? { dataType } : {})
 			}),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -129,9 +129,9 @@ export const DimensionProtocolChartByType = ({
 
 	return (
 		<ChartByType
-			data={data}
-			bribeData={bribeData}
-			tokenTaxData={tokenTaxData}
+			data={data ?? []}
+			{...(bribeData ? { bribeData } : {})}
+			{...(tokenTaxData ? { tokenTaxData } : {})}
 			breakdownNames={breakdownNames}
 			title={title}
 			chartType={chartType}
@@ -152,9 +152,9 @@ const ChartByType = ({
 	adapterType
 }: {
 	data: Array<[number, Record<string, number>]>
-	bribeData?: Array<[number, Record<string, number>]>
-	tokenTaxData?: Array<[number, Record<string, number>]>
-	title?: string
+	bribeData?: Array<[number, Record<string, number>]> | undefined
+	tokenTaxData?: Array<[number, Record<string, number>]> | undefined
+	title?: string | undefined
 	breakdownNames: string[]
 	chartType: 'chain' | 'version'
 	protocolName: string
@@ -282,8 +282,9 @@ const ChartByType = ({
 			for (const type of selectedTypes) {
 				const value = entry[type] || 0
 				if (isCumulative) {
-					cumulative[type] += value
-					row[type] = cumulative[type]
+					const nextValue = (cumulative[type] ?? 0) + value
+					cumulative[type] = nextValue
+					row[type] = nextValue
 				} else {
 					row[type] = value
 				}
@@ -293,8 +294,10 @@ const ChartByType = ({
 
 		// Replace leading zeros with null for cleaner charts
 		for (const type of selectedTypes) {
-			for (let i = 0; i < source.length && source[i][type] === 0; i++) {
-				source[i][type] = null
+			for (let i = 0; i < source.length; i++) {
+				const row = source[i]
+				if (!row || row[type] !== 0) break
+				row[type] = null
 			}
 		}
 
@@ -302,9 +305,11 @@ const ChartByType = ({
 		const allColors = getNDistinctColors(breakdownNames.length + 1)
 		const stackColors: Record<string, string> = {}
 		for (let i = 0; i < breakdownNames.length; i++) {
-			stackColors[breakdownNames[i]] = allColors[i]
+			const seriesName = breakdownNames[i]
+			if (!seriesName) continue
+			stackColors[seriesName] = allColors[i] ?? '#4e79a7'
 		}
-		stackColors['Others'] = allColors[allColors.length - 1]
+		stackColors['Others'] = allColors[allColors.length - 1] ?? '#4e79a7'
 
 		const chartType2: 'line' | 'bar' = isCumulative ? 'line' : 'bar'
 		const chartsConfig = selectedTypes.map((type) => ({
@@ -312,7 +317,7 @@ const ChartByType = ({
 			name: type,
 			encode: { x: 'timestamp', y: type },
 			stack: 'chartType',
-			color: stackColors[type]
+			color: stackColors[type] ?? '#4e79a7'
 		}))
 
 		return {
@@ -351,7 +356,7 @@ const ChartByType = ({
 				<ChartExportButtons
 					chartInstance={exportChartInstance}
 					filename={title ? slug(title) : `${protocolName}-${chartType}`}
-					title={title}
+					title={title ?? `${protocolName} - ${chartType}`}
 				/>
 				{chartBuilderConfig && <AddToDashboardButton chartConfig={chartBuilderConfig} smol />}
 			</div>

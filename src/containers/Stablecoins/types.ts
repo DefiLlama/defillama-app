@@ -34,8 +34,22 @@ export interface PeggedOverviewPageData {
 	chain: string
 }
 
+export interface StablecoinsChainsRow {
+	name: string
+	mcap: number | null
+	unreleased: number | null
+	bridgedTo: number | null
+	minted: number | null
+	dominance?: { name: string; value: number | string | null } | null
+	change_1d?: number | null
+	change_7d?: number | null
+	change_1m?: number | null
+	mcaptvl?: number | null
+	subRows?: StablecoinsChainsRow[]
+}
+
 export interface PeggedChainsPageData {
-	chainCirculatings: Array<Record<string, unknown>>
+	chainCirculatings: StablecoinsChainsRow[]
 	chartData: ChartPoint[]
 	peggedChartDataByChain: Array<Array<{ date: number; mcap: number | null }> | null>
 	chainList: string[]
@@ -54,7 +68,7 @@ export interface PeggedAssetPageProps {
 		circulatingPrevWeek: number | null
 		circulatingPrevMonth: number | null
 		bridgedAmount: number | null
-		bridges: unknown
+		bridges: Record<string, Record<string, { amount: number }>> | null
 		name: string
 		symbol: string
 	}>

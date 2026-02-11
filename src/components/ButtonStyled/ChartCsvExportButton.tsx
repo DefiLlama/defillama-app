@@ -212,9 +212,9 @@ function buildCsvFromChart({
 
 interface ChartCsvExportButtonProps {
 	chartInstance: () => echarts.ECharts | null
-	className?: string
-	smol?: boolean
-	filename?: string
+	className?: string | undefined
+	smol?: boolean | undefined
+	filename?: string | undefined
 }
 
 const DEFAULT_CLASSNAME =

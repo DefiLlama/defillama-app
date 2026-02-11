@@ -1,5 +1,5 @@
 import { keepNeededProperties } from '~/api/shared'
-import { formatNum, formattedNum, getPercentChange, slug } from '~/utils'
+import { formattedNum, getPercentChange, slug } from '~/utils'
 import type { PeggedPricesApiResponse } from './api.types'
 
 interface IStablecoinToken {
@@ -611,39 +611,41 @@ export const formatPeggedAssetsData = ({
 				: `+${change_1m_nol}`
 
 		if (pegType !== 'peggedVAR' && price) {
-			let targetPrice = getTargetPrice(pegType, rateData, 0)
-			formattedPegged.pegDeviation = getPercentChange(price, targetPrice)
-			let greatestDeviation = 0
-			for (let i = 0; i < 30; i++) {
-				const historicalPrices = priceData[priceData.length - i - 1]
-				let historicalTargetPrice = getTargetPrice(pegType, rateData, i)
-				const historicalPrice = toFiniteNumber(historicalPrices?.prices?.[peggedGeckoID])
-				if (historicalPrice && historicalTargetPrice) {
-					const timestamp = historicalPrices?.date
-					const deviation = historicalPrice - historicalTargetPrice
-					if (Math.abs(greatestDeviation) < Math.abs(deviation)) {
-						greatestDeviation = deviation
-						if (0.02 < Math.abs(greatestDeviation)) {
-							formattedPegged.pegDeviationInfo = {
-								timestamp: timestamp,
-								price: historicalPrice,
-								priceSource: priceSource
+			const targetPrice = getTargetPrice(pegType, rateData, 0)
+			if (targetPrice != null) {
+				formattedPegged.pegDeviation = getPercentChange(price, targetPrice)
+				let greatestDeviation = 0
+				for (let i = 0; i < 30; i++) {
+					const historicalPrices = priceData[priceData.length - i - 1]
+					const historicalTargetPrice = getTargetPrice(pegType, rateData, i)
+					const historicalPrice = toFiniteNumber(historicalPrices?.prices?.[peggedGeckoID])
+					if (historicalPrice && historicalTargetPrice) {
+						const timestamp = historicalPrices?.date
+						const deviation = historicalPrice - historicalTargetPrice
+						if (Math.abs(greatestDeviation) < Math.abs(deviation)) {
+							greatestDeviation = deviation
+							if (0.02 < Math.abs(greatestDeviation)) {
+								formattedPegged.pegDeviationInfo = {
+									timestamp: timestamp,
+									price: historicalPrice,
+									priceSource: priceSource
+								}
 							}
 						}
 					}
 				}
-			}
-			if (Math.abs(greatestDeviation) < Math.abs(price - targetPrice)) {
-				greatestDeviation = price - targetPrice
-				if (0.02 < Math.abs(greatestDeviation)) {
-					formattedPegged.pegDeviationInfo = {
-						timestamp: Date.now() / 1000,
-						price: price,
-						priceSource: priceSource
+				if (Math.abs(greatestDeviation) < Math.abs(price - targetPrice)) {
+					greatestDeviation = price - targetPrice
+					if (0.02 < Math.abs(greatestDeviation)) {
+						formattedPegged.pegDeviationInfo = {
+							timestamp: Date.now() / 1000,
+							price: price,
+							priceSource: priceSource
+						}
 					}
 				}
+				formattedPegged.pegDeviation_1m = getPercentChange(targetPrice + greatestDeviation, targetPrice)
 			}
-			formattedPegged.pegDeviation_1m = getPercentChange(targetPrice + greatestDeviation, targetPrice)
 		} else {
 			// Avoid leaking stale peg data into filters/table (e.g. when price is missing or peg is variable).
 			formattedPegged.pegDeviation = undefined
@@ -687,7 +689,7 @@ export const formatPeggedChainsData = ({
 				}
 			: null
 
-		let mcaptvl = mcap && latestChainTVL ? +formatNum(mcap / latestChainTVL) : null
+		let mcaptvl = mcap != null && latestChainTVL != null && latestChainTVL !== 0 ? mcap / latestChainTVL : null
 		if (mcaptvl == 0) {
 			mcaptvl = null
 		}

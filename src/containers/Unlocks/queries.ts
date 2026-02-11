@@ -1,3 +1,4 @@
+import isBetween from 'dayjs/plugin/isBetween'
 import { fetchCoinPrices as fetchCoinPricesBatched } from '~/api'
 import {
 	COINS_PRICES_API,
@@ -392,6 +393,7 @@ export async function getUnlocksCalendarStaticPropsData(): Promise<{
 }> {
 	// Import dayjs lazily to keep this server-oriented builder isolated.
 	const dayjs = (await import('dayjs')).default
+	dayjs.extend(isBetween)
 
 	const data = await getAllProtocolEmissionsWithHistory()
 	const unlocksData: UnlocksData = {}

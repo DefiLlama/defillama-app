@@ -98,9 +98,9 @@ export default function NetflowChart({ height, onReady }: NetflowChartProps) {
 				axisPointer: {
 					type: 'shadow'
 				},
-				formatter: function (params) {
-					const chain = params[0].axisValue
-					const value = (params[0].value || 0) + (params[1].value || 0)
+				formatter: function (params: Array<{ axisValue: string; value: number }>) {
+					const chain = params[0]?.axisValue ?? ''
+					const value = Number(params[0]?.value ?? 0) + Number(params[1]?.value ?? 0)
 					return `<div class="flex flex-col gap-1">
 						<span class="font-medium">${chain}</span>
 						<span>Net Flow: ${value > 0 ? '+' : ''}${formattedNum(value)}</span>
@@ -125,7 +125,7 @@ export default function NetflowChart({ height, onReady }: NetflowChartProps) {
 					}
 				},
 				axisLabel: {
-					formatter: (value) => formattedNum(value),
+					formatter: (value: number) => formattedNum(value),
 					color: isThemeDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)'
 				}
 			},
@@ -156,7 +156,7 @@ export default function NetflowChart({ height, onReady }: NetflowChartProps) {
 					label: {
 						show: true,
 						position: 'left',
-						formatter: (params) => (params.value !== 0 ? formattedNum(params.value) : ''),
+						formatter: (params: { value: number }) => (params.value !== 0 ? formattedNum(params.value) : ''),
 						backgroundColor: 'transparent',
 						color: '#ef4444',
 						fontSize: 12,
@@ -176,7 +176,7 @@ export default function NetflowChart({ height, onReady }: NetflowChartProps) {
 					label: {
 						show: true,
 						position: 'right',
-						formatter: (params) => (params.value !== 0 ? formattedNum(params.value) : ''),
+						formatter: (params: { value: number }) => (params.value !== 0 ? formattedNum(params.value) : ''),
 						backgroundColor: 'transparent',
 						color: '#22c55e',
 						fontSize: 12,

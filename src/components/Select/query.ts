@@ -83,10 +83,10 @@ export const updateQueryFromSelected = (
 
 	if (useExclude) {
 		setOrDelete(includeKey, null) // completely remove includeKey when using excludeKey
-		setOrDelete(excludeKey, excluded.length === 1 ? excluded[0] : excluded)
+		setOrDelete(excludeKey, excluded.length === 1 ? (excluded[0] ?? null) : excluded)
 	} else {
 		setOrDelete(excludeKey, null)
-		setOrDelete(includeKey, selected.length === 1 ? selected[0] : selected)
+		setOrDelete(includeKey, selected.length === 1 ? (selected[0] ?? null) : selected)
 	}
 
 	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })

@@ -321,15 +321,15 @@ function LinkToPage({
 }: {
 	route: string
 	name: string
-	attention?: boolean
-	freeTrial?: boolean
-	isNew?: boolean
-	icon?: string
+	attention?: boolean | undefined
+	freeTrial?: boolean | undefined
+	isNew?: boolean | undefined
+	icon?: string | undefined
 	asPath: string
 	setShow: (show: boolean) => void
-	umamiEvent?: string
+	umamiEvent?: string | undefined
 }) {
-	const isActive = route === asPath.split('/?')[0].split('?')[0]
+	const isActive = route === (asPath.split('/?')[0] ?? asPath).split('?')[0]
 	const isExternal = route.startsWith('http')
 	const handleClick = () => setShow(false)
 
@@ -356,10 +356,10 @@ function NavItemContent({
 	isNew
 }: {
 	name: string
-	icon?: string
-	attention?: boolean
-	freeTrial?: boolean
-	isNew?: boolean
+	icon?: string | undefined
+	attention?: boolean | undefined
+	freeTrial?: boolean | undefined
+	isNew?: boolean | undefined
 }) {
 	return (
 		<>

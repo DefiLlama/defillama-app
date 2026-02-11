@@ -63,7 +63,8 @@ export default function ScatterChart({
 		chartRef.current = instance
 
 		let series = []
-		const isYieldData = chartData.length > 0 && chartData[0].projectName !== undefined
+		const firstRow = chartData[0] as Record<string, unknown> | undefined
+		const isYieldData = chartData.length > 0 && firstRow?.projectName !== undefined
 
 		const labelConfig = showLabels
 			? {
@@ -115,50 +116,51 @@ export default function ScatterChart({
 			]
 		}
 
-		const yieldTooltipFormatter = (params) => {
+		const yieldTooltipFormatter = (params: { value: unknown[]; seriesName: string; name?: string }) => {
 			if (params.value.length > 1) {
+				const v = params.value
 				return (
 					'Symbol: ' +
-					params.value[3] +
+					String(v[3] ?? '') +
 					'<br/>' +
 					'Pool: ' +
-					params.value[4] +
+					String(v[4] ?? '') +
 					'<br/>' +
 					'TVL: ' +
-					formattedNum(params.value[5], true) +
+					formattedNum(Number(v[5] ?? 0), true) +
 					'<br/>' +
 					'APY Spot: ' +
-					params.value[6].toFixed(2) +
+					Number(v[6] ?? 0).toFixed(2) +
 					'%' +
 					'<br/>' +
 					'Chain: ' +
-					params.value[7] +
+					String(v[7] ?? '') +
 					'<br/>' +
 					'Project: ' +
 					params.seriesName +
 					'<br/>' +
 					'APY Geometric Average: ' +
-					params.value[1].toFixed(2) +
+					Number(v[1] ?? 0).toFixed(2) +
 					'%' +
 					'<br/>' +
 					'APY Standard Deviation: ' +
-					params.value[0].toFixed(2) +
+					Number(v[0] ?? 0).toFixed(2) +
 					'%' +
 					'<br/>' +
 					'Nb of collected daily datapoints: ' +
-					params.value[2]
+					String(v[2] ?? 0)
 				)
 			} else {
-				return params.seriesName + ' :<br/>' + params.name + ' : ' + params.value.toFixed(5) + 'mean '
+				return params.seriesName + ' :<br/>' + (params.name ?? '') + ' : ' + Number(params.value).toFixed(5) + 'mean '
 			}
 		}
 
-		const genericTooltipFormatter = (params) => {
+		const genericTooltipFormatter = (params: { value: unknown[] }) => {
 			if (params.value && params.value.length >= 2) {
-				const xValue = params.value[0]
-				const yValue = params.value[1]
+				const xValue = Number(params.value[0] ?? 0)
+				const yValue = Number(params.value[1] ?? 0)
 				const entityName = params.value[2]
-				const formatValue = (val) => {
+				const formatValue = (val: number) => {
 					if (valueSymbol === '$') return formattedNum(val, true)
 					if (valueSymbol === '%') return val.toFixed(2) + '%'
 					return formattedNum(val)

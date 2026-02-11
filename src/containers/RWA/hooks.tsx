@@ -843,8 +843,9 @@ export function useRwaChartDataByCategory({
 		for (const asset of assets) {
 			const ticker = asset.ticker
 			if (!ticker) continue
-			if (asset.category.length === 0) continue
-			tickerToCategories.set(ticker, asset.category)
+			const categories = asset.category ?? []
+			if (categories.length === 0) continue
+			tickerToCategories.set(ticker, categories)
 		}
 
 		const aggregate = (rows: RWAChartRowByTicker[], seenCategories: Set<string>): RWAChartRowByCategory[] => {
@@ -918,8 +919,9 @@ export function useRwaChartDataByAssetClass({
 		for (const asset of assets) {
 			const ticker = asset.ticker
 			if (!ticker) continue
-			if (asset.assetClass.length === 0) continue
-			tickerToAssetClasses.set(ticker, asset.assetClass)
+			const assetClasses = asset.assetClass ?? []
+			if (assetClasses.length === 0) continue
+			tickerToAssetClasses.set(ticker, assetClasses)
 		}
 
 		const aggregate = (rows: RWAChartRowByTicker[], seenAssetClasses: Set<string>): RWAChartRowByAssetClass[] => {

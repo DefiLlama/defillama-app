@@ -1,8 +1,8 @@
 interface ChartContainerProps extends React.HTMLAttributes<HTMLDivElement> {
 	id: string
-	header?: React.ReactNode
-	chartClassName?: string
-	chartStyle?: React.CSSProperties
+	header?: React.ReactNode | undefined
+	chartClassName?: string | undefined
+	chartStyle?: React.CSSProperties | undefined
 }
 
 export function ChartContainer({ id, header, chartClassName, chartStyle, ...props }: ChartContainerProps) {

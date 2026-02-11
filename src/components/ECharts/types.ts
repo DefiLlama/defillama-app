@@ -230,7 +230,7 @@ export interface IPieChartProps {
 		bottom?: string | number
 		orient?: 'horizontal' | 'vertical'
 	}
-	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: Value }
+	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: Value | undefined }
 	/**
 	 * Controls the built-in export toolbar.
 	 */

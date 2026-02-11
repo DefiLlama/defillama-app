@@ -262,7 +262,7 @@ function Filters({
 						const form = e.currentTarget
 						const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
 						const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
-						config.onSubmitRange(minValue, maxValue)
+						config.onSubmitRange(minValue ?? null, maxValue ?? null)
 					}}
 					onClear={() => config.onSubmitRange(null, null)}
 					nestedMenu={nestedMenu}

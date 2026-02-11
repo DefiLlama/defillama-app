@@ -102,6 +102,19 @@ export interface BridgeInfo {
 export type BridgeInfoMap = Record<string, BridgeInfo>
 
 export interface PeggedAssetDetailApiResponse {
+	name: string
+	symbol: string
+	onCoinGecko?: string | null
+	gecko_id?: string | null
+	description?: string | null
+	mintRedeemDescription?: string | null
+	address?: string | null
+	url?: string | null
+	pegMechanism?: 'algorithmic' | 'fiat-backed' | 'crypto-backed' | string | null
+	twitter?: string | null
+	auditLinks?: string[] | string | null
+	price?: number | null
+	deprecated?: boolean
 	pegType: string
 	chainBalances: Record<string, { tokens: ChartPoint[] }>
 	[key: string]: unknown

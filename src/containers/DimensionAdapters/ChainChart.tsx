@@ -59,8 +59,9 @@ export const AdapterByChainChart = ({
 			const seriesName = dimension
 			const isIntrinsicLineSeries = LINE_DIMENSIONS.has(dimension)
 			const type = isCumulative || isIntrinsicLineSeries ? ('line' as const) : ('bar' as const)
+			const color = CHART_COLORS[index % CHART_COLORS.length] ?? '#4e79a7'
 			if (isDaily) {
-				return { dimension, seriesName, type, data: [], color: CHART_COLORS[index % CHART_COLORS.length] }
+				return { dimension, seriesName, type, data: [], color }
 			}
 
 			const rawData = chartData.source
@@ -87,7 +88,7 @@ export const AdapterByChainChart = ({
 						denominationPriceHistory: null
 					})
 
-			return { dimension, seriesName, type, data, color: CHART_COLORS[index % CHART_COLORS.length] }
+			return { dimension, seriesName, type, data, color }
 		})
 
 		if (isDaily) {
@@ -162,7 +163,7 @@ export const AdapterByChainChart = ({
 					chain: chain,
 					type: dashboardChartType,
 					grouping,
-					color: CHART_COLORS[0]
+					color: CHART_COLORS[0] ?? '#4e79a7'
 				}
 			],
 			grouping,
@@ -420,8 +421,9 @@ const getChartDataByChainAndInterval = ({
 	const zeroesByChain: Record<string, number> = {}
 	for (const chain in finalData) {
 		if (chain === 'Others') continue
+		const chainData = finalData[chain] ?? []
 		zeroesByChain[chain] = Math.max(
-			finalData[chain].findIndex((date) => date[1] !== 0),
+			chainData.findIndex((date) => date[1] !== 0),
 			0
 		)
 	}
@@ -429,7 +431,9 @@ const getChartDataByChainAndInterval = ({
 	const zeroValues = Object.values(zeroesByChain)
 	const startingZeroDatesToSlice = zeroValues.length > 0 ? Math.min(...zeroValues) : 0
 	for (const chain in finalData) {
-		finalData[chain] = finalData[chain].slice(startingZeroDatesToSlice)
+		const chainData = finalData[chain]
+		if (!chainData) continue
+		finalData[chain] = chainData.slice(startingZeroDatesToSlice)
 		if (!isCumulative) continue
 		let cumulative = 0
 		finalData[chain] = finalData[chain].map(([timestamp, value]) => {
@@ -440,11 +444,15 @@ const getChartDataByChainAndInterval = ({
 
 	const seriesNames = seriesToRender
 	const allColors = getNDistinctColors(seriesNames.length || 1)
-	const stackColors = Object.fromEntries(seriesNames.map((chain, i) => [chain, allColors[i]]))
+	const stackColors: Record<string, string> = Object.fromEntries(
+		seriesNames.map((chain, i) => [chain, allColors[i] ?? CHART_COLORS[0] ?? '#4e79a7'])
+	)
 
 	const rowMap = new Map<number, Record<string, number>>()
 	for (const chain of seriesNames) {
-		for (const [timestamp, value] of finalData[chain]) {
+		const chainData = finalData[chain]
+		if (!chainData) continue
+		for (const [timestamp, value] of chainData) {
 			const row = rowMap.get(timestamp) ?? { timestamp }
 			row[chain] = value
 			rowMap.set(timestamp, row)
@@ -480,7 +488,7 @@ const getChartDataByChainAndInterval = ({
 		name: chain,
 		encode: { x: 'timestamp', y: chain },
 		...(isDominance || !isCumulative ? { stack: 'chain' as const } : {}),
-		color: stackColors[chain]
+		color: stackColors[chain] ?? '#4e79a7'
 	}))
 
 	return {

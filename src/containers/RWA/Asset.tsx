@@ -137,6 +137,8 @@ const ChainBadge = ({
 	showPrimaryStyle?: boolean
 	contracts?: string[]
 }) => {
+	const contractList = contracts ?? []
+
 	return (
 		<div className="flex items-center gap-1.5 rounded-md border p-2">
 			<img src={chainIconUrl(chain)} alt={chain} className="h-5 w-5 rounded-full" loading="lazy" />
@@ -149,9 +151,9 @@ const ChainBadge = ({
 						</p>
 					) : null}
 				</div>
-				{contracts?.length > 0 ? (
+				{contractList.length > 0 ? (
 					<>
-						{contracts.map((address) => (
+						{contractList.map((address) => (
 							<ContractItem key={`${chain}-${address}`} chain={chain} address={address} />
 						))}
 					</>
@@ -341,15 +343,18 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								</Tooltip>
 								{asset.category && asset.category.length > 0 ? (
 									<span className="flex flex-wrap items-center gap-1 font-medium">
-										{asset.category.map((category, idx) => (
-											<span key={category} className="flex items-center gap-0.5">
-												{category}
-												{definitions.category.values?.[category] && (
-													<QuestionHelper text={definitions.category.values[category]} />
-												)}
-												{idx < asset.category!.length - 1 && ','}
-											</span>
-										))}
+										{asset.category.map((category, idx) => {
+											const categoryDescription = (definitions.category.values as Record<string, string | undefined>)?.[
+												category
+											]
+											return (
+												<span key={category} className="flex items-center gap-0.5">
+													{category}
+													{categoryDescription ? <QuestionHelper text={categoryDescription} /> : null}
+													{idx < asset.category!.length - 1 && ','}
+												</span>
+											)
+										})}
 									</span>
 								) : (
 									<span className="font-medium">-</span>
@@ -430,12 +435,12 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							/>
 							<KYCItem
 								label={definitions.kycForMintRedeem.label}
-								required={asset.kycForMintRedeem}
+								required={asset.kycForMintRedeem ?? null}
 								description={definitions.kycForMintRedeem.description}
 							/>
 							<KYCItem
 								label={definitions.kycAllowlistedWhitelistedToTransferHold.label}
-								required={asset.kycAllowlistedWhitelistedToTransferHold}
+								required={asset.kycAllowlistedWhitelistedToTransferHold ?? null}
 								description={definitions.kycAllowlistedWhitelistedToTransferHold.description}
 							/>
 							<ClassificationItem

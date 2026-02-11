@@ -1,5 +1,7 @@
-async function fetchJson<T = any>(url: string): Promise<T> {
-	return fetch(url).then((res) => res.json() as Promise<T>)
+async function fetchJson<T = unknown>(url: string): Promise<T> {
+	const res = await fetch(url)
+	const data: T = await res.json()
+	return data
 }
 
 export async function fetchCoreMetadata(): Promise<{
@@ -19,7 +21,7 @@ export async function fetchCoreMetadata(): Promise<{
 		fetchJson(PROTOCOLS_DATA_URL),
 		fetchJson(CHAINS_DATA_URL),
 		fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
-		fetchJson(CEXS_DATA_URL).then((res) => res.cexs ?? []),
+		fetchJson<{ cexs?: Array<any> }>(CEXS_DATA_URL).then((res) => res.cexs ?? []),
 		fetchJson(`${RWA_SERVER_URL}/list?z=0`).catch(() => ({}))
 	])
 

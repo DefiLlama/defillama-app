@@ -10,7 +10,10 @@ import {
 	IProtocolTvlMetrics
 } from './api.types'
 
-const appendOptionalQueryParams = (url: string, params: Pick<IProtocolChartV2Params, 'key' | 'currency'>) => {
+const appendOptionalQueryParams = (
+	url: string,
+	params: { key?: string | undefined; currency?: string | undefined }
+) => {
 	const parsedUrl = new URL(url, 'http://placeholder')
 	if (params.key) parsedUrl.searchParams.set('key', params.key)
 	if (params.currency) parsedUrl.searchParams.set('currency', params.currency)
@@ -91,8 +94,8 @@ const fetchProtocolValueChart = async ({
 	currency
 }: {
 	path: string
-	key?: string
-	currency?: string
+	key?: string | undefined
+	currency?: string | undefined
 }): Promise<IProtocolValueChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
 	return fetchJson(finalUrl)
@@ -106,8 +109,8 @@ const fetchProtocolChainBreakdownChart = async ({
 	currency
 }: {
 	path: string
-	key?: string
-	currency?: string
+	key?: string | undefined
+	currency?: string | undefined
 }): Promise<IProtocolChainBreakdownChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
 	return fetchJson(finalUrl)
@@ -121,8 +124,8 @@ const fetchProtocolTokenBreakdownChart = async ({
 	currency
 }: {
 	path: string
-	key?: string
-	currency?: string
+	key?: string | undefined
+	currency?: string | undefined
 }): Promise<IProtocolTokenBreakdownChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
 	return fetchJson(finalUrl)

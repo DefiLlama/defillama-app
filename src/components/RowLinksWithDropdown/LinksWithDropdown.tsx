@@ -56,6 +56,7 @@ export function LinksWithDropdown({
 				// Find first link that overflows (without any DOM reads)
 				for (let index = 0; index < linkRects.length; index++) {
 					const linkSize = linkRects[index]
+					if (!linkSize) continue
 					// Check if link wrapped to next row OR extends past dropdown reserved space (180px)
 					if (linkSize.top - wrapper.top > wrapper.height || linkSize.left + 16 > wrapper.right - 180) {
 						return index
@@ -122,7 +123,9 @@ export function LinksWithDropdown({
 			{/* Show dropdown when any links overflow */}
 			{hasOverflow ? (
 				<OtherLinks
-					name={isLinkInDropdown ? activeLink : (alternativeOthersText ?? 'Others')}
+					name={
+						isLinkInDropdown ? (activeLink ?? alternativeOthersText ?? 'Others') : (alternativeOthersText ?? 'Others')
+					}
 					isActive={isLinkInDropdown}
 					options={links}
 					className="mr-1"
@@ -132,7 +135,15 @@ export function LinksWithDropdown({
 	)
 }
 
-export function LinkItem({ option, activeLink, ...props }: { option: ILink; activeLink: string; [key: string]: any }) {
+export function LinkItem({
+	option,
+	activeLink,
+	...props
+}: {
+	option: ILink
+	activeLink?: string | undefined
+	[key: string]: any
+}) {
 	const isActive = option.label === activeLink
 
 	return (

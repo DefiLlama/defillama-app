@@ -31,10 +31,10 @@ function SubscribeProCardContent({
 	isAuthenticated = false,
 	isTrialActive = false
 }: {
-	billingInterval?: 'year' | 'month'
-	isTrialAvailable?: boolean
-	isAuthenticated?: boolean
-	isTrialActive?: boolean
+	billingInterval?: 'year' | 'month' | undefined
+	isTrialAvailable?: boolean | undefined
+	isAuthenticated?: boolean | undefined
+	isTrialActive?: boolean | undefined
 }) {
 	const monthlyPrice = 49
 	const yearlyPrice = monthlyPrice * 10
@@ -366,7 +366,11 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 				>
 					<span className="mx-auto flex h-full w-full max-w-[440px] flex-col">
 						{isSignInModalOpen ? (
-							<SignInForm text="Already a subscriber? Sign In" dialogStore={dialogStore} returnUrl={returnUrl} />
+							<SignInForm
+								text="Already a subscriber? Sign In"
+								dialogStore={dialogStore}
+								{...(returnUrl ? { returnUrl } : {})}
+							/>
 						) : (
 							<>
 								<Ariakit.DialogDismiss className="ml-auto rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white">

@@ -13,7 +13,9 @@ export function EmbedChart() {
 	const [isDarkTheme] = useDarkModeManager()
 
 	const url = React.useMemo(() => {
-		let path = router.asPath === '/' ? '/chain/All' : router.asPath.split('#')[0].split('?')[0]
+		const asPath = router.asPath
+		const pathWithoutHash = asPath === '/' ? '/chain/All' : (asPath.split('#')[0] ?? asPath)
+		let path = pathWithoutHash.split('?')[0] ?? pathWithoutHash
 
 		if (typeof document !== 'undefined') {
 			path += window.location.search
@@ -25,14 +27,14 @@ export function EmbedChart() {
 			path += '&'
 		}
 
-		const extras = []
-		for (const option in tvlSettings) {
+		const extras: string[] = []
+		for (const option of Object.keys(tvlSettings) as Array<keyof typeof tvlSettings>) {
 			if (tvlSettings[option]) {
 				extras.push(`include_${option}_in_tvl=true`)
 			}
 		}
 
-		for (const option in feesSettings) {
+		for (const option of Object.keys(feesSettings) as Array<keyof typeof feesSettings>) {
 			if (feesSettings[option]) {
 				extras.push(`include_${option}_in_fees=true`)
 			}

@@ -107,7 +107,7 @@ export function ChainsByAdapter(props: IProps) {
 	const prepareCsv = () => {
 		const header = ['Chain', 'Total 1d', 'Total 1m']
 		const csvdata = chains.map((protocol) => {
-			return [protocol.name, protocol.total24h, protocol.total30d]
+			return [protocol.name, protocol.total24h ?? '', protocol.total30d ?? '']
 		})
 
 		return { filename: `${props.type}-chains-protocols.csv`, rows: [header, ...csvdata] }

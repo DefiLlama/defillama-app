@@ -8,7 +8,22 @@ import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLay
 import { Select } from '~/components/Select/Select'
 import { useRangeFilter } from '~/hooks/useRangeFilter'
 
-export const stablecoinAttributeOptions = [
+export type StablecoinFilterableItem = {
+	[key: string]: unknown
+	pegDeviation?: number | null
+	yieldBearing?: boolean | null
+	pegMechanism?: string | null
+	pegType?: string | null
+}
+
+export type StablecoinFilterOption = {
+	name: string
+	key: string
+	filterFn: (item: StablecoinFilterableItem) => boolean
+	help: string
+}
+
+export const stablecoinAttributeOptions: StablecoinFilterOption[] = [
 	{
 		name: 'Stable',
 		key: 'STABLE',
@@ -41,7 +56,7 @@ export const stablecoinAttributeOptions = [
 	}
 ]
 
-export const stablecoinBackingOptions = [
+export const stablecoinBackingOptions: StablecoinFilterOption[] = [
 	{
 		name: 'Fiat',
 		key: 'FIATSTABLES',
@@ -62,7 +77,7 @@ export const stablecoinBackingOptions = [
 	}
 ]
 
-export const stablecoinPegTypeOptions = [
+export const stablecoinPegTypeOptions: StablecoinFilterOption[] = [
 	{
 		name: 'USD',
 		key: 'PEGGEDUSD',

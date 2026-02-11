@@ -30,7 +30,7 @@ function cloneTreeData(nodes: any[]): any[] {
 	}))
 }
 
-function addColorGradientField(chartDataTree) {
+function addColorGradientField(chartDataTree: any[]) {
 	let min = Infinity
 	let max = -Infinity
 	for (let i = 0; i < chartDataTree.length; i++) {
@@ -108,7 +108,7 @@ export default function TreemapChart({ treeData, variant = 'yields', height }: I
 							}
 						},
 			tooltip: {
-				formatter: function (info) {
+				formatter: function (info: any) {
 					let treePathInfo = info.treePathInfo
 					let treePath = []
 					for (let i = 1; i < treePathInfo.length; i++) {
@@ -172,7 +172,7 @@ export default function TreemapChart({ treeData, variant = 'yields', height }: I
 							}),
 					label: {
 						position: 'insideTopRight',
-						formatter: function (params) {
+						formatter: function (params: any) {
 							let arr
 							if (params?.data?.path?.split('/')?.length > 1) {
 								arr =

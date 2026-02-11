@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, type RefObject } from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useResize } from '~/hooks/useResize'
@@ -11,7 +11,7 @@ interface IChainLogo {
 	chain: string
 	url: string
 	iconType: string
-	yieldRewardsSymbol: string
+	yieldRewardsSymbol?: string | undefined
 	disableLink?: boolean
 }
 
@@ -66,7 +66,7 @@ interface IIconsRowProps {
 	iconsAlignment?: 'start' | 'end'
 }
 
-const isChain = (chain) => {
+const isChain = (chain: string) => {
 	return ['ethereum', 'avalanche', 'optimism', 'near', 'metis', 'aurora'].includes(chain.toLowerCase())
 }
 
@@ -80,8 +80,8 @@ export const IconsRow = ({
 	urlPrefix = '',
 	iconsAlignment = 'end'
 }: IIconsRowProps) => {
-	const mainWrapEl = useRef(null)
-	const { width: mainWrapWidth } = useResize(mainWrapEl)
+	const mainWrapEl = useRef<HTMLDivElement>(null)
+	const { width: mainWrapWidth } = useResize(mainWrapEl as RefObject<HTMLDivElement>)
 
 	const { visibleChains, hoverChains } = useMemo(() => {
 		let remainingWidth = (mainWrapWidth > 280 ? 280 : mainWrapWidth) - CHAIN_ICON_WIDTH

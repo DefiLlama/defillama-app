@@ -665,31 +665,32 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			typeOptions: formattedTypes.map((type) => ({
 				key: type,
 				name: type,
-				help: definitions.type.values?.[type] ?? null
+				help: (definitions.type.values as Record<string, string | undefined>)?.[type] ?? undefined
 			})),
 			assetClasses: formattedAssetClasses,
 			assetClassOptions: formattedAssetClasses.map((assetClass) => ({
 				key: assetClass,
 				name: assetClass,
-				help: definitions.assetClass.values?.[assetClass] ?? null
+				help: (definitions.assetClass.values as Record<string, string | undefined>)?.[assetClass] ?? undefined
 			})),
 			rwaClassifications: formattedRwaClassifications,
 			rwaClassificationOptions: formattedRwaClassifications.map((classification) => ({
 				key: classification,
 				name: classification,
-				help: definitions.rwaClassification.values?.[classification] ?? null
+				help:
+					(definitions.rwaClassification.values as Record<string, string | undefined>)?.[classification] ?? undefined
 			})),
 			accessModels: formattedAccessModels,
 			accessModelOptions: formattedAccessModels.map((accessModel) => ({
 				key: accessModel,
 				name: accessModel,
-				help: definitions.accessModel.values?.[accessModel] ?? null
+				help: (definitions.accessModel.values as Record<string, string | undefined>)?.[accessModel] ?? undefined
 			})),
 			categories: formattedCategories,
 			categoriesOptions: formattedCategories.map((category) => ({
 				key: category,
 				name: category,
-				help: definitions.category.values?.[category] ?? null
+				help: (definitions.category.values as Record<string, string | undefined>)?.[category] ?? undefined
 			})),
 			assetNames: selectedPlatform
 				? Array.from(assetNames.entries())
@@ -849,14 +850,15 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 		// Get the classification description - use True RWA definition if trueRWA flag
 		const classificationKey = isTrueRWA ? 'True RWA' : data.rwaClassification
 		const rwaClassificationDescription = classificationKey
-			? (definitions.rwaClassification.values?.[classificationKey] ?? null)
+			? ((definitions.rwaClassification.values as Record<string, string | undefined>)?.[classificationKey] ?? null)
 			: null
 
-		const accessModelDescription = definitions.accessModel.values?.[data.accessModel] ?? null
+		const accessModelDescription =
+			(definitions.accessModel.values as Record<string, string | undefined>)?.[data.accessModel] ?? null
 		// Get asset class descriptions
 		const assetClassDescriptions: Record<string, string> = {}
 		for (const ac of data.assetClass ?? []) {
-			const description = ac ? definitions.assetClass.values?.[ac] : null
+			const description = ac ? (definitions.assetClass.values as Record<string, string | undefined>)?.[ac] : null
 			if (description) {
 				assetClassDescriptions[ac] = description
 			}

@@ -20,16 +20,19 @@ import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from './utils'
 interface ITableWithSearchProps {
 	data: any[]
 	columns: ColumnDef<any>[]
-	placeholder?: string
-	columnToSearch?: string
-	customFilters?: React.ReactNode | ((ctx: { instance: ReturnType<typeof useReactTable> }) => React.ReactNode)
-	header?: string
-	renderSubComponent?: (row: any) => React.ReactNode
-	columnSizes?: ColumnSizesByBreakpoint | null
-	columnOrders?: ColumnOrdersByBreakpoint | null
-	sortingState: SortingState
-	rowSize?: number
-	compact?: boolean
+	placeholder?: string | undefined
+	columnToSearch?: string | undefined
+	customFilters?:
+		| React.ReactNode
+		| ((ctx: { instance: ReturnType<typeof useReactTable> }) => React.ReactNode)
+		| undefined
+	header?: string | undefined
+	renderSubComponent?: ((row: any) => React.ReactNode) | undefined
+	columnSizes?: ColumnSizesByBreakpoint | null | undefined
+	columnOrders?: ColumnOrdersByBreakpoint | null | undefined
+	sortingState?: SortingState | undefined
+	rowSize?: number | undefined
+	compact?: boolean | undefined
 }
 
 export function TableWithSearch({
@@ -37,13 +40,13 @@ export function TableWithSearch({
 	columns,
 	placeholder,
 	columnToSearch,
-	customFilters = null,
-	header = null,
-	renderSubComponent = null,
-	columnSizes = null,
-	columnOrders = null,
-	sortingState = null,
-	rowSize = null,
+	customFilters = undefined,
+	header = '',
+	renderSubComponent = undefined,
+	columnSizes = undefined,
+	columnOrders = undefined,
+	sortingState = [],
+	rowSize = undefined,
 	compact = false
 }: ITableWithSearchProps) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -78,7 +81,8 @@ export function TableWithSearch({
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch })
+	const resolvedColumnToSearch = columnToSearch ?? 'name'
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: resolvedColumnToSearch })
 
 	useSortColumnSizesAndOrders({ instance, columnSizes, columnOrders })
 
@@ -107,7 +111,12 @@ export function TableWithSearch({
 				) : null}
 				{typeof customFilters === 'function' ? customFilters({ instance }) : customFilters}
 			</div>
-			<VirtualTable instance={instance} renderSubComponent={renderSubComponent} rowSize={rowSize} compact={compact} />
+			<VirtualTable
+				instance={instance}
+				compact={compact}
+				{...(renderSubComponent ? { renderSubComponent } : {})}
+				{...(rowSize !== undefined ? { rowSize } : {})}
+			/>
 		</div>
 	)
 }

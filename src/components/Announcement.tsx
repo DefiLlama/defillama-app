@@ -61,8 +61,9 @@ export function Announcement({
 		() => getStorageItem(routeAnnouncementKey, null),
 		() => null
 	)
+	const parsedStore = store ? JSON.parse(store) : null
 
-	if (notCancellable ? false : JSON.parse(store)?.value === routeAnnouncementValue) {
+	if (!notCancellable && parsedStore?.value === routeAnnouncementValue) {
 		return null
 	}
 

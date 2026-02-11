@@ -234,6 +234,7 @@ export function KeyMetricsPngExportButton({
 
 			for (let index = 0; index < rows.length; index++) {
 				const row = rows[index]
+				if (!row) continue
 				const rowY = rowsStartY + index * rowHeight
 
 				ctx.strokeStyle = borderColor

@@ -1,8 +1,8 @@
 interface ChartHeaderProps {
-	title?: string
-	customComponents?: React.ReactNode
-	exportButtons?: React.ReactNode
-	className?: string
+	title?: string | undefined
+	customComponents?: React.ReactNode | undefined
+	exportButtons?: React.ReactNode | undefined
+	className?: string | undefined
 }
 
 export function ChartHeader({ title, customComponents, exportButtons, className }: ChartHeaderProps) {

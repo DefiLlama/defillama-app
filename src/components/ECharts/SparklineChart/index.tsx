@@ -57,11 +57,11 @@ export function SparklineChart({
 			if (!match) {
 				return input
 			}
-			const [variable, fallback] = match[1].split(',').map((part) => part.trim())
+			const [variable, fallback] = (match[1] ?? '').split(',').map((part) => part.trim())
 			let value = ''
 			try {
 				const target = document.documentElement || (dom as HTMLElement)
-				value = getComputedStyle(target).getPropertyValue(variable)
+				value = variable ? getComputedStyle(target).getPropertyValue(variable) : ''
 			} catch {
 				value = ''
 			}
@@ -91,9 +91,9 @@ export function SparklineChart({
 			if (computed.startsWith('#')) {
 				const hex = computed.slice(1)
 				if (hex.length === 3) {
-					const r = parseInt(hex[0] + hex[0], 16)
-					const g = parseInt(hex[1] + hex[1], 16)
-					const b = parseInt(hex[2] + hex[2], 16)
+					const r = parseInt((hex[0] ?? '0') + (hex[0] ?? '0'), 16)
+					const g = parseInt((hex[1] ?? '0') + (hex[1] ?? '0'), 16)
+					const b = parseInt((hex[2] ?? '0') + (hex[2] ?? '0'), 16)
 					return [r, g, b]
 				}
 				if (hex.length === 6 || hex.length === 8) {
@@ -107,11 +107,11 @@ export function SparklineChart({
 
 			const rgbMatch = computed.match(/rgba?\(([^)]+)\)/)
 			if (rgbMatch) {
-				const [r, g, b] = rgbMatch[1]
+				const [r, g, b] = (rgbMatch[1] ?? '')
 					.split(',')
 					.slice(0, 3)
 					.map((part) => parseInt(part.trim(), 10))
-				if ([r, g, b].every((val) => Number.isFinite(val))) {
+				if (r != null && g != null && b != null && [r, g, b].every((val) => Number.isFinite(val))) {
 					return [r, g, b]
 				}
 			}
@@ -133,6 +133,8 @@ export function SparklineChart({
 		if (!seriesData.length) {
 			instance.clear()
 		} else {
+			const firstTs = seriesData[0]?.[0] ?? 0
+			const lastTs = seriesData[seriesData.length - 1]?.[0] ?? firstTs
 			instance.setOption(
 				{
 					grid: {
@@ -153,8 +155,8 @@ export function SparklineChart({
 						axisTick: { show: false },
 						axisLabel: { show: false },
 						splitLine: { show: false },
-						min: seriesData[0]?.[0],
-						max: seriesData[seriesData.length - 1]?.[0]
+						min: firstTs,
+						max: lastTs
 					},
 					yAxis: {
 						type: 'value',
@@ -162,7 +164,7 @@ export function SparklineChart({
 						axisTick: { show: false },
 						axisLabel: { show: false },
 						splitLine: { show: false },
-						min: (value) => {
+						min: (value: { min?: number; max?: number }) => {
 							if (typeof value.min !== 'number' || typeof value.max !== 'number') return undefined
 							if (value.min === value.max) {
 								const pad = Math.abs(value.min) * 0.05 || 1
@@ -171,7 +173,7 @@ export function SparklineChart({
 							const pad = (value.max - value.min) * 0.08
 							return value.min - pad
 						},
-						max: (value) => {
+						max: (value: { min?: number; max?: number }) => {
 							if (typeof value.min !== 'number' || typeof value.max !== 'number') return undefined
 							if (value.min === value.max) {
 								const pad = Math.abs(value.max) * 0.05 || 1

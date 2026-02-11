@@ -67,13 +67,13 @@ export default function NonTimeSeriesBarChart({
 					shadowBlur: 10
 				},
 				itemStyle: {
-					color: null
+					color: 'transparent'
 				},
 				areaStyle: {
 					color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
 						{
 							offset: 0,
-							color: null
+							color: 'transparent'
 						},
 						{
 							offset: 1,
@@ -95,14 +95,14 @@ export default function NonTimeSeriesBarChart({
 		chartRef.current = instance
 
 		// override default chart settings
-		for (const option in chartOptions) {
+		for (const option in chartOptions ?? {}) {
 			if (option === 'overrides') {
 				// update tooltip formatter
 				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
 			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions?.[option])
 			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
+				defaultChartSettings[option] = { ...(chartOptions?.[option] ?? {}) }
 			}
 		}
 

@@ -86,7 +86,7 @@ export const LinkPreviewCard = ({
 		cardSrc.searchParams.append('valueHeader', valueHeader)
 
 		if (isTvlValid) {
-			cardSrc.searchParams.append('tvl', tvl)
+			cardSrc.searchParams.append('tvl', String(tvl))
 		}
 
 		if (isVolumeChangeValid) {

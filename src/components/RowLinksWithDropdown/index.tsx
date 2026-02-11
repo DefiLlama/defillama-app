@@ -19,7 +19,7 @@ export const RowLinksWithDropdown = (props: IRowLinksProps) => {
 				<OtherLinks
 					name={
 						props.links.find((link) => link.label === props.activeLink)
-							? props.activeLink
+							? (props.activeLink ?? props.alternativeOthersText ?? 'Others')
 							: (props.alternativeOthersText ?? 'Others')
 					}
 					options={props.links}

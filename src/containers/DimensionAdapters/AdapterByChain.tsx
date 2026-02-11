@@ -11,7 +11,7 @@ import {
 	type SortingState
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { useMemo, useState } from 'react'
+import { type Dispatch, type SetStateAction, useMemo, useState } from 'react'
 
 // Helper to parse exclude query param to Set
 const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
@@ -37,7 +37,7 @@ import { protocolCharts } from '~/containers/ProtocolOverview/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { setStorageItem } from '~/contexts/localStorageStore'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { AdapterByChainChart } from './ChainChart'
 import { IAdapterByChainPageData } from './types'
 
@@ -92,12 +92,12 @@ const pageTypeByDefinition: Partial<Record<TPageType, Record<string, string>>> =
 	Earnings: definitions.earnings.chain
 }
 const getProtocolsByCategory = (protocols: IAdapterByChainPageData['protocols'], categoriesToFilter: Array<string>) => {
-	const final = []
+	const final: IAdapterByChainPageData['protocols'] = []
 
 	for (const protocol of protocols) {
 		if (protocol.childProtocols) {
-			const childProtocols = protocol.childProtocols.filter((childProtocol) =>
-				categoriesToFilter.includes(childProtocol.category)
+			const childProtocols = protocol.childProtocols.filter(
+				(childProtocol) => childProtocol.category != null && categoriesToFilter.includes(childProtocol.category)
 			)
 
 			if (childProtocols.length === protocol.childProtocols.length) {
@@ -111,7 +111,7 @@ const getProtocolsByCategory = (protocols: IAdapterByChainPageData['protocols'],
 			continue
 		}
 
-		if (categoriesToFilter.includes(protocol.category)) {
+		if (protocol.category != null && categoriesToFilter.includes(protocol.category)) {
 			final.push(protocol)
 			continue
 		}
@@ -159,30 +159,30 @@ export function AdapterByChain(props: IProps) {
 						const childProtocols = p.childProtocols
 							? p.childProtocols.map((cp) => {
 									const total30d =
-										cp.total30d +
+										(cp.total30d ?? 0) +
 										(enabledSettings.bribes ? (cp.bribes?.total30d ?? 0) : 0) +
 										(enabledSettings.tokentax ? (cp.tokenTax?.total30d ?? 0) : 0)
 
 									let pf = cp.mcap && cp.total30d ? getAnnualizedRatio(cp.mcap, total30d) : null
-									let ps = cp.mcap && cp.revenue?.total30d ? getAnnualizedRatio(cp.mcap, total30d) : null
+									let ps = cp.mcap && cp.total30d ? getAnnualizedRatio(cp.mcap, total30d) : null
 
 									return {
 										...cp,
 										total24h:
-											cp.total24h +
+											(cp.total24h ?? 0) +
 											(enabledSettings.bribes ? (cp.bribes?.total24h ?? 0) : 0) +
 											(enabledSettings.tokentax ? (cp.tokenTax?.total24h ?? 0) : 0),
 										total7d:
-											cp.total7d +
+											(cp.total7d ?? 0) +
 											(enabledSettings.bribes ? (cp.bribes?.total7d ?? 0) : 0) +
 											(enabledSettings.tokentax ? (cp.tokenTax?.total7d ?? 0) : 0),
 										total30d,
 										total1y:
-											cp.total1y +
+											(cp.total1y ?? 0) +
 											(enabledSettings.bribes ? (cp.bribes?.total1y ?? 0) : 0) +
 											(enabledSettings.tokentax ? (cp.tokenTax?.total1y ?? 0) : 0),
 										totalAllTime:
-											cp.totalAllTime +
+											(cp.totalAllTime ?? 0) +
 											(enabledSettings.bribes ? (cp.bribes?.totalAllTime ?? 0) : 0) +
 											(enabledSettings.tokentax ? (cp.tokenTax?.totalAllTime ?? 0) : 0),
 										...(pf ? { pf } : {}),
@@ -192,30 +192,30 @@ export function AdapterByChain(props: IProps) {
 							: null
 
 						const total30d =
-							p.total30d +
+							(p.total30d ?? 0) +
 							(enabledSettings.bribes ? (p.bribes?.total30d ?? 0) : 0) +
 							(enabledSettings.tokentax ? (p.tokenTax?.total30d ?? 0) : 0)
 
 						const pf = p.mcap && total30d ? getAnnualizedRatio(p.mcap, total30d) : null
-						const ps = p.mcap && p.revenue?.total30d ? getAnnualizedRatio(p.mcap, total30d) : null
+						const ps = p.mcap && p.total30d ? getAnnualizedRatio(p.mcap, total30d) : null
 
 						return {
 							...p,
 							total24h:
-								p.total24h +
+								(p.total24h ?? 0) +
 								(enabledSettings.bribes ? (p.bribes?.total24h ?? 0) : 0) +
 								(enabledSettings.tokentax ? (p.tokenTax?.total24h ?? 0) : 0),
 							total7d:
-								p.total7d +
+								(p.total7d ?? 0) +
 								(enabledSettings.bribes ? (p.bribes?.total7d ?? 0) : 0) +
 								(enabledSettings.tokentax ? (p.tokenTax?.total7d ?? 0) : 0),
 							total30d,
 							total1y:
-								p.total1y +
+								(p.total1y ?? 0) +
 								(enabledSettings.bribes ? (p.bribes?.total1y ?? 0) : 0) +
 								(enabledSettings.tokentax ? (p.tokenTax?.total1y ?? 0) : 0),
 							totalAllTime:
-								p.totalAllTime +
+								(p.totalAllTime ?? 0) +
 								(enabledSettings.bribes ? (p.bribes?.totalAllTime ?? 0) : 0) +
 								(enabledSettings.tokentax ? (p.tokenTax?.totalAllTime ?? 0) : 0),
 							...(pf ? { pf } : {}),
@@ -295,16 +295,16 @@ export function AdapterByChain(props: IProps) {
 		const csvdata = protocols.map((protocol) => {
 			return [
 				protocol.name,
-				protocol.category,
-				protocol.chains.join(', '),
-				protocol.total24h,
-				protocol.total7d,
-				protocol.total30d,
-				protocol.total1y,
-				protocol.totalAllTime,
-				protocol.mcap,
-				protocol.pf,
-				protocol.ps
+				protocol.category ?? '',
+				(protocol.chains ?? []).join(', '),
+				protocol.total24h ?? '',
+				protocol.total7d ?? '',
+				protocol.total30d ?? '',
+				protocol.total1y ?? '',
+				protocol.totalAllTime ?? '',
+				protocol.mcap ?? '',
+				protocol.pf ?? '',
+				protocol.ps ?? ''
 			]
 		})
 
@@ -314,8 +314,15 @@ export function AdapterByChain(props: IProps) {
 	const metricName = props.type
 	const columnsKey = `columns-${props.type}`
 
-	const setColumnOptions = (newOptions: string[]) => {
-		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)]))
+	const setColumnOptions: Dispatch<SetStateAction<string[]>> = (newOptions) => {
+		const currentVisibleColumns = instance
+			.getAllLeafColumns()
+			.filter((col) => col.getIsVisible())
+			.map((col) => col.id)
+		const resolvedOptions = typeof newOptions === 'function' ? newOptions(currentVisibleColumns) : newOptions
+		const ops = Object.fromEntries(
+			instance.getAllLeafColumns().map((col) => [col.id, resolvedOptions.includes(col.id)])
+		)
 		setStorageItem(columnsKey, JSON.stringify(ops))
 		instance.setColumnVisibility(ops)
 	}
@@ -343,7 +350,7 @@ export function AdapterByChain(props: IProps) {
 								<span className="flex flex-col">
 									{pageTypeByDefinition[props.type]?.['24h'] ? (
 										<Tooltip
-											content={pageTypeByDefinition[props.type]['24h']}
+											content={pageTypeByDefinition[props.type]?.['24h']}
 											className="text-(--text-label) underline decoration-dotted"
 										>
 											{metricName} (24h)
@@ -385,7 +392,7 @@ export function AdapterByChain(props: IProps) {
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 									{pageTypeByDefinition[props.type]?.['30d'] ? (
 										<Tooltip
-											content={pageTypeByDefinition[props.type]['30d']}
+											content={pageTypeByDefinition[props.type]?.['30d']}
 											className="text-(--text-label) underline decoration-dotted"
 										>
 											{metricName} (30d)
@@ -526,7 +533,7 @@ const chainChartsKeys: Partial<Record<IProps['type'], (typeof chainCharts)[keyof
 	'Perp Volume': 'perpsVolume'
 }
 
-const getColumnsOptions = (type) =>
+const getColumnsOptions = (type: IProps['type']) =>
 	columnsByType[type].map((c: any) => {
 		let headerName: string
 		if (typeof c.header === 'function') {
@@ -593,13 +600,14 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			const value = getValue() as string
+			const category = row.original.category ?? ''
 
 			const basePath =
-				['Chain', 'Rollup'].includes(row.original.category) && row.original.slug !== 'berachain-incentive-buys'
+				['Chain', 'Rollup'].includes(category) && row.original.slug !== 'berachain-incentive-buys'
 					? 'chain'
 					: 'protocol'
 			const chartKey =
-				['Chain', 'Rollup'].includes(row.original.category) && row.original.slug !== 'berachain-incentive-buys'
+				['Chain', 'Rollup'].includes(category) && row.original.slug !== 'berachain-incentive-buys'
 					? (chainChartsKeys[type] ?? protocolChartsKeys[type])
 					: protocolChartsKeys[type]
 
@@ -628,7 +636,7 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo logo={row.original.logo ?? tokenIconUrl(row.original.slug)} data-lgonly />
 
 					<span className="-my-2 flex flex-col">
 						<BasicLink
@@ -639,10 +647,10 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 						</BasicLink>
 
 						<Tooltip
-							content={<ProtocolChainsComponent chains={row.original.chains} />}
+							content={<ProtocolChainsComponent chains={row.original.chains ?? []} />}
 							className="text-[0.7rem] text-(--text-disabled)"
 						>
-							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
+							{`${(row.original.chains ?? []).length} chain${(row.original.chains ?? []).length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>
 				</span>

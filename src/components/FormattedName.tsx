@@ -16,8 +16,9 @@ export const FormattedName = ({ text, maxCharacters, fontSize, fontWeight = 400,
 	if (!text) {
 		return null
 	}
+	const maxChars = maxCharacters ?? Number.POSITIVE_INFINITY
 
-	if (text.length > maxCharacters) {
+	if (text.length > maxChars) {
 		return (
 			<Tooltip content={text}>
 				<span

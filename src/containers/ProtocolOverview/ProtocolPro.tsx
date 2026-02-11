@@ -1,7 +1,14 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import type { HTMLAttributes, KeyboardEvent, ReactNode } from 'react'
 
-export function SortableItem(props) {
+type SortableItemProps = HTMLAttributes<HTMLDivElement> & {
+	id: string
+	isTable?: boolean
+	children?: ReactNode
+}
+
+export function SortableItem(props: SortableItemProps) {
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: props.id })
 	const style = {
 		transform: CSS.Translate.toString(transform),
@@ -16,7 +23,10 @@ export function SortableItem(props) {
 		borderRadius: isDragging ? '6px' : undefined
 	}
 
-	const tableListeners = props.isTable ? { ...listeners, onKeyDown: (e) => e.stopPropagation() } : listeners
+	const tableListeners =
+		props.isTable && listeners
+			? { ...listeners, onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => e.stopPropagation() }
+			: listeners
 	return (
 		<div ref={setNodeRef} style={style} {...props} {...attributes} {...tableListeners}>
 			{props.children}

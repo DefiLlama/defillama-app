@@ -6,7 +6,17 @@ import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import { slug } from '~/utils'
 import { sluggifyProtocol } from '~/utils/cache-client'
 
-export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }) {
+interface ProtocolPoolsProps {
+	protocol: string
+	data?: {
+		noOfPoolsTracked: number
+		averageAPY: number
+	} | null
+	parentProtocol?: string | null
+	otherProtocols?: string[]
+}
+
+export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }: ProtocolPoolsProps) {
 	const protocolSlug = slug(protocol)
 	const {
 		data: poolsList,
@@ -21,7 +31,9 @@ export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }
 						?.filter(
 							(p) =>
 								p.project === protocolSlug ||
-								(parentProtocol ? false : otherProtocols?.map((p) => sluggifyProtocol(p)).includes(p.project))
+								(parentProtocol
+									? false
+									: otherProtocols?.map((otherProtocol) => sluggifyProtocol(otherProtocol)).includes(p.project))
 						)
 						.map((i) => ({
 							...i,

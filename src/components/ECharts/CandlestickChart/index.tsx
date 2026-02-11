@@ -113,7 +113,7 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 					areaStyle: { color: [isThemeDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', ''] }
 				},
 				axisLabel: {
-					formatter: (v) => formatTooltipValue(v, '$'),
+					formatter: (v: number) => formatTooltipValue(v, '$'),
 					color: isThemeDark ? 'rgba(255,255,255,1)' : 'rgba(0,0,0,1)'
 				},
 				axisLine: { lineStyle: { color: isThemeDark ? 'rgba(255,255,255,1)' : 'rgba(0,0,0,1)', opacity: 0.1 } },
@@ -132,6 +132,7 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 
 		for (let idx = 0; idx < panels.length; idx++) {
 			const panel = panels[idx]
+			if (!panel) continue
 			const gridIdx = idx + 2
 			const bottom = BASE_BOTTOM + (panelCount - idx - 1) * PANEL_HEIGHT
 
@@ -193,19 +194,30 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 			tooltip: {
 				trigger: 'axis',
 				axisPointer: { type: 'line' },
-				formatter: (params) => {
-					const chartdate = formatTooltipChartDate(params[0].value[0], 'daily')
+				formatter: (
+					params: Array<{
+						value: unknown
+						marker: string
+						seriesName: string
+						componentSubType?: string
+					}>
+				) => {
+					if (!Array.isArray(params) || params.length === 0) return ''
+					const first = params[0]
+					const firstTimestamp = Array.isArray(first?.value) ? Number(first.value[0]) : Number.NaN
+					const chartdate = Number.isFinite(firstTimestamp) ? formatTooltipChartDate(firstTimestamp, 'daily') : ''
 					let vals = ''
 					for (const param of params) {
+						const value = Array.isArray(param.value) ? param.value : []
 						if (param.componentSubType === 'candlestick') {
-							vals += `<li style="list-style:none">Open: <b>${formatTooltipValue(param.value[1], '$')}</b></li>`
-							vals += `<li style="list-style:none">High: <b>${formatTooltipValue(param.value[4], '$')}</b></li>`
-							vals += `<li style="list-style:none">Low: <b>${formatTooltipValue(param.value[3], '$')}</b></li>`
-							vals += `<li style="list-style:none">Close: <b>${formatTooltipValue(param.value[2], '$')}</b></li>`
+							vals += `<li style="list-style:none">Open: <b>${formatTooltipValue(Number(value[1] ?? 0), '$')}</b></li>`
+							vals += `<li style="list-style:none">High: <b>${formatTooltipValue(Number(value[4] ?? 0), '$')}</b></li>`
+							vals += `<li style="list-style:none">Low: <b>${formatTooltipValue(Number(value[3] ?? 0), '$')}</b></li>`
+							vals += `<li style="list-style:none">Close: <b>${formatTooltipValue(Number(value[2] ?? 0), '$')}</b></li>`
 						} else if (param.seriesName === 'Volume') {
-							vals += `<li style="list-style:none">${param.marker}Vol: <b>${formatTooltipValue(param.value[5], '$')}</b></li>`
+							vals += `<li style="list-style:none">${param.marker}Vol: <b>${formatTooltipValue(Number(value[5] ?? 0), '$')}</b></li>`
 						} else {
-							vals += `<li style="list-style:none">${param.marker}${param.seriesName}: <b>${formatTooltipValue(param.value[1], '')}</b></li>`
+							vals += `<li style="list-style:none">${param.marker}${param.seriesName}: <b>${formatTooltipValue(Number(value[1] ?? 0), '')}</b></li>`
 						}
 					}
 					return chartdate + vals
@@ -266,6 +278,7 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 
 		for (let idx = 0; idx < overlays.length; idx++) {
 			const ind = overlays[idx]
+			if (!ind) continue
 			const color = ind.color || INDICATOR_COLORS[idx % INDICATOR_COLORS.length]
 			if (ind.values && ind.name.toLowerCase().includes('bband')) {
 				result.push({
@@ -305,6 +318,7 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 
 		for (let idx = 0; idx < panels.length; idx++) {
 			const panel = panels[idx]
+			if (!panel) continue
 			const gridIdx = idx + 2
 			const color = panel.color || INDICATOR_COLORS[(overlays.length + idx) % INDICATOR_COLORS.length]
 
@@ -315,7 +329,9 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 					xAxisIndex: gridIdx,
 					yAxisIndex: gridIdx,
 					data: panel.values.map((v) => [v[0], v[1]?.histogram]),
-					itemStyle: { color: (params) => (params.value[1] >= 0 ? '#3eb84f' : '#e24a42') }
+					itemStyle: {
+						color: (params: { value?: unknown[] }) => (Number(params.value?.[1] ?? 0) >= 0 ? '#3eb84f' : '#e24a42')
+					}
 				})
 				result.push({
 					name: 'Signal',

@@ -548,7 +548,7 @@ const pieChartLegendPosition = {
 	left: 'center',
 	top: 'bottom',
 	orient: 'horizontal',
-	formatter: function (name) {
+	formatter: function (name: string) {
 		return name
 	}
 } as any

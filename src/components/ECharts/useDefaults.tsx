@@ -34,6 +34,8 @@ const CHART_SYMBOLS: Record<string, string> = {
 	'Devs Commits': ''
 }
 
+type TooltipGroupBy = 'daily' | 'weekly' | 'monthly'
+
 // Helper to get the symbol for a series name in tooltip
 const getSeriesSymbol = (seriesName: string, valueSymbol: string, unlockTokenSymbol: string): string => {
 	if (seriesName === 'Unlocks') return unlockTokenSymbol
@@ -41,7 +43,7 @@ const getSeriesSymbol = (seriesName: string, valueSymbol: string, unlockTokenSym
 	if (seriesName.includes('Addresses')) return ''
 	if (seriesName.includes('Transactions')) return 'TXs'
 	if (seriesName === 'TVL' && valueSymbol !== '$') return valueSymbol
-	if (seriesName in CHART_SYMBOLS) return CHART_SYMBOLS[seriesName]
+	if (seriesName in CHART_SYMBOLS) return CHART_SYMBOLS[seriesName] ?? valueSymbol
 	return valueSymbol
 }
 
@@ -59,21 +61,21 @@ echarts.use([
 ])
 
 interface IUseDefaultsProps {
-	color?: string
-	title?: string
-	tooltipSort?: boolean
-	tooltipOrderBottomUp?: boolean
-	tooltipValuesRelative?: boolean
-	valueSymbol?: string
-	hideLegend?: boolean
-	isStackedChart?: boolean
-	unlockTokenSymbol?: string
+	color?: string | undefined
+	title?: string | undefined
+	tooltipSort?: boolean | undefined
+	tooltipOrderBottomUp?: boolean | undefined
+	tooltipValuesRelative?: boolean | undefined
+	valueSymbol?: string | undefined
+	hideLegend?: boolean | undefined
+	isStackedChart?: boolean | undefined
+	unlockTokenSymbol?: string | undefined
 	isThemeDark: boolean
-	hideOthersInTooltip?: boolean
-	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly'
-	alwaysShowTooltip?: boolean
-	showAggregateInTooltip?: boolean
-	xAxisType?: 'time' | 'category'
+	hideOthersInTooltip?: boolean | undefined
+	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | undefined
+	alwaysShowTooltip?: boolean | undefined
+	showAggregateInTooltip?: boolean | undefined
+	xAxisType?: 'time' | 'category' | undefined
 }
 
 export function useDefaults({
@@ -94,6 +96,7 @@ export function useDefaults({
 	xAxisType = 'time'
 }: IUseDefaultsProps) {
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
+	const tooltipGroupBy: TooltipGroupBy = groupBy === 'weekly' || groupBy === 'monthly' ? groupBy : 'daily'
 
 	const defaults = useMemo(() => {
 		const graphic = {
@@ -140,16 +143,17 @@ export function useDefaults({
 		const tooltip = {
 			trigger: 'axis',
 			confine: true,
-			formatter: function (params) {
-				let chartdate = formatTooltipChartDate(params[0].value[0], groupBy)
+			formatter: function (params: any[]) {
+				if (!params?.length) return ''
+				let chartdate = formatTooltipChartDate(params[0].value[0], tooltipGroupBy)
 
 				let vals
-				let filteredParams = params.filter((item) => item.value[1] !== '-' && item.value[1])
+				let filteredParams = params.filter((item: any) => item.value[1] !== '-' && item.value[1])
 
 				if (isStackedChart) {
 					filteredParams.reverse()
 				} else {
-					filteredParams.sort((a, b) =>
+					filteredParams.sort((a: any, b: any) =>
 						tooltipSort
 							? tooltipValuesRelative
 								? b.value[1] - a.value[1]
@@ -158,7 +162,7 @@ export function useDefaults({
 					)
 				}
 
-				const otherIndex = filteredParams.findIndex((item) => item.seriesName === 'Others')
+				const otherIndex = filteredParams.findIndex((item: any) => item.seriesName === 'Others')
 				let others
 
 				if (otherIndex >= 0 && otherIndex < 10) {
@@ -172,7 +176,7 @@ export function useDefaults({
 					topParams.reverse()
 				}
 
-				vals = topParams.reduce((prev, curr) => {
+				vals = topParams.reduce((prev: string, curr: any) => {
 					const displayValue = curr.value[2] !== undefined ? curr.value[2] : curr.value[1]
 					return (prev +=
 						'<li style="list-style:none">' +
@@ -190,7 +194,7 @@ export function useDefaults({
 						'Others' +
 						'&nbsp;&nbsp;' +
 						formatTooltipValue(
-							otherParams.reduce((prev, curr) => prev + curr.value[1], 0) + (others?.value[1] ?? 0),
+							otherParams.reduce((prev: number, curr: any) => prev + curr.value[1], 0) + (others?.value[1] ?? 0),
 							valueSymbol
 						) +
 						'</li>'
@@ -202,15 +206,15 @@ export function useDefaults({
 					}
 				}
 
-				const mcap = params.filter((param) => param.seriesName === 'Mcap')?.[0]?.value[1]
-				const tvl = params.filter((param) => param.seriesName === 'TVL')?.[0]?.value[1]
+				const mcap = params.filter((param: any) => param.seriesName === 'Mcap')?.[0]?.value[1]
+				const tvl = params.filter((param: any) => param.seriesName === 'TVL')?.[0]?.value[1]
 
 				if (mcap && mcap != '-' && tvl) {
 					vals += `<li style="list-style:none">Mcap/TVL&nbsp;&nbsp;${Number(mcap / tvl).toFixed(2)}</li>`
 				}
 
 				if (title && (title.toLowerCase() === 'tokens (usd)' || title.toLowerCase() === 'chains')) {
-					const total = params.reduce((acc, curr) => (acc += curr.value[1]), 0)
+					const total = params.reduce((acc: number, curr: any) => (acc += curr.value[1]), 0)
 
 					vals +=
 						'<li style="list-style:none;font-weight:600">' +
@@ -239,13 +243,14 @@ export function useDefaults({
 		const inflowsTooltip = {
 			trigger: 'axis',
 			confine: true,
-			formatter: function (params) {
+			formatter: function (params: any[]) {
+				if (!params?.length) return ''
 				const chartdate = formatTooltipChartDate(params[0].value[0], 'daily')
 
 				let vals = params
-					.sort((a, b) => (tooltipSort ? a.value[1] - b.value[1] : 0))
+					.sort((a: any, b: any) => (tooltipSort ? a.value[1] - b.value[1] : 0))
 					.slice(0, 10)
-					.reduce((prev, curr) => {
+					.reduce((prev: string, curr: any) => {
 						if (curr.value[1] !== 0 && curr.value[1] !== '-') {
 							return (prev +=
 								'<li style="list-style:none">' +
@@ -257,7 +262,7 @@ export function useDefaults({
 						} else return prev
 					}, '')
 
-				const others = params.slice(10).reduce((acc, curr) => (acc += curr.value[1]), 0)
+				const others = params.slice(10).reduce((acc: number, curr: any) => (acc += curr.value[1]), 0)
 
 				if (others) {
 					vals +=
@@ -268,7 +273,7 @@ export function useDefaults({
 						'</li>'
 				}
 
-				const total = params.reduce((acc, curr) => (acc += curr.value[1]), 0)
+				const total = params.reduce((acc: number, curr: any) => (acc += curr.value[1]), 0)
 
 				vals +=
 					'<li style="list-style:none;font-weight:600">' +
@@ -284,15 +289,15 @@ export function useDefaults({
 		const aggregateTooltip = {
 			trigger: 'axis',
 			confine: true,
-			formatter: function (params) {
+			formatter: function (params: any[] | any) {
 				if (Array.isArray(params) && params.length > 1) {
-					const chartdate = formatTooltipChartDate(params[0].value[0], groupBy)
+					const chartdate = formatTooltipChartDate(params[0].value[0], tooltipGroupBy)
 
-					let filteredParams = params.filter((item) => item.value[1] !== '-' && item.value[1])
+					let filteredParams = params.filter((item: any) => item.value[1] !== '-' && item.value[1])
 
-					filteredParams.sort((a, b) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
+					filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
 
-					const vals = filteredParams.reduce((prev, curr) => {
+					const vals = filteredParams.reduce((prev: string, curr: any) => {
 						return (prev +=
 							'<li style="list-style:none">' +
 							curr.marker +
@@ -302,7 +307,7 @@ export function useDefaults({
 							'</li>')
 					}, '')
 
-					const total = filteredParams.reduce((acc, curr) => acc + curr.value[1], 0)
+					const total = filteredParams.reduce((acc: number, curr: any) => acc + curr.value[1], 0)
 
 					const totalLine =
 						'<li style="list-style:none;font-weight:600">' +
@@ -313,7 +318,7 @@ export function useDefaults({
 
 					return chartdate + vals + totalLine
 				} else if (params && !Array.isArray(params)) {
-					const chartdate = formatTooltipChartDate(params.value[0], groupBy)
+					const chartdate = formatTooltipChartDate(params.value[0], tooltipGroupBy)
 					const value = formatTooltipValue(params.value[1], valueSymbol)
 
 					return (
@@ -377,7 +382,7 @@ export function useDefaults({
 				fontWeight: 400
 			},
 			axisLabel: {
-				formatter: (value) => formatTooltipValue(value, valueSymbol),
+				formatter: (value: number | string) => formatTooltipValue(Number(value), valueSymbol),
 				color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 			},
 			axisLine: {
@@ -469,7 +474,7 @@ export function useDefaults({
 		xAxisType
 	])
 
-	return defaults
+	return defaults as Record<string, any>
 }
 
 // Re-export formatters for backward compatibility

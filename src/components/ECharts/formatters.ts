@@ -94,16 +94,18 @@ export function createInflowsTooltipFormatter({
 			if (topN <= 0) continue
 
 			const absValue = Math.abs(value)
-			const minAbs = topAbs.length > 0 ? Math.abs(topAbs[0].value) : 0
+			const minAbs = topAbs.length > 0 ? Math.abs(topAbs[0]?.value ?? 0) : 0
 			if (topAbs.length < topN || absValue > minAbs) {
 				const row: TooltipRow = { marker: item?.marker ?? '', name, value }
 				// Insert sorted by abs(value) ASC
 				topAbs.push(row)
 				let j = topAbs.length - 1
-				while (j > 0 && Math.abs(topAbs[j - 1].value) > Math.abs(topAbs[j].value)) {
-					const tmp = topAbs[j - 1]
-					topAbs[j - 1] = topAbs[j]
-					topAbs[j] = tmp
+				while (j > 0) {
+					const prevRow = topAbs[j - 1]
+					const currRow = topAbs[j]
+					if (!prevRow || !currRow || Math.abs(prevRow.value) <= Math.abs(currRow.value)) break
+					topAbs[j - 1] = currRow
+					topAbs[j] = prevRow
 					j--
 				}
 				if (topAbs.length > topN) topAbs.shift()
@@ -114,6 +116,7 @@ export function createInflowsTooltipFormatter({
 		if (topAbs.length <= 1) {
 			if (topAbs.length === 0) return chartdate
 			const curr = topAbs[0]
+			if (!curr) return chartdate
 			return (
 				chartdate +
 				`<li style="list-style:none">${curr.marker}${curr.name}&nbsp;&nbsp;${formatTooltipValue(curr.value, valueSymbol)}</li>`
@@ -132,6 +135,7 @@ export function createInflowsTooltipFormatter({
 		// topAbs is ASC by abs; render it DESC by abs.
 		for (let i = topAbs.length - 1; i >= 0; i--) {
 			const curr = topAbs[i]
+			if (!curr) continue
 			vals += `<li style="list-style:none">${curr.marker}${curr.name}&nbsp;&nbsp;${formatTooltipValue(curr.value, valueSymbol)}</li>`
 		}
 
@@ -255,13 +259,13 @@ export function formatTooltipChartDate(value: number, groupBy: TooltipGroupBy, h
 
 	switch (groupBy) {
 		case 'monthly':
-			return `${monthNames[date.getUTCMonth()]} 1 - ${lastDayOfMonth(value)}, ${date.getUTCFullYear()}`
+			return `${monthNames[date.getUTCMonth()] ?? ''} 1 - ${lastDayOfMonth(value)}, ${date.getUTCFullYear()}`
 		case 'quarterly':
 			return getQuarterDateRange(value)
 		case 'weekly':
 			return getStartAndEndDayOfTheWeek(value)
 		case 'cumulative': {
-			const formatted = `${date.getUTCDate().toString().padStart(2, '0')} ${monthNames[date.getUTCMonth()]} ${date.getUTCFullYear()}`
+			const formatted = `${date.getUTCDate().toString().padStart(2, '0')} ${monthNames[date.getUTCMonth()] ?? ''} ${date.getUTCFullYear()}`
 			return `Cumulative through ${formatted}`
 		}
 		default: {
@@ -276,7 +280,7 @@ export function formatTooltipChartDate(value: number, groupBy: TooltipGroupBy, h
 					timeZone: 'UTC'
 				})
 			}
-			return `${date.getUTCDate().toString().padStart(2, '0')} ${monthNames[date.getUTCMonth()]} ${date.getUTCFullYear()}`
+			return `${date.getUTCDate().toString().padStart(2, '0')} ${monthNames[date.getUTCMonth()] ?? ''} ${date.getUTCFullYear()}`
 		}
 	}
 }
@@ -302,7 +306,7 @@ function getStartAndEndDayOfTheWeek(value: number) {
 
 	return `${past.getUTCDate().toString().padStart(2, '0')}${pastMonth !== currentMonth ? ` ${pastMonth}` : ''}${
 		pastYear !== currentYear ? ` ${pastYear}` : ''
-	} - ${current.getUTCDate().toString().padStart(2, '0')} ${currentMonth} ${currentYear}`
+	} - ${current.getUTCDate().toString().padStart(2, '0')} ${currentMonth ?? ''} ${currentYear}`
 }
 
 function lastDayOfMonth(dateString: number) {
@@ -320,7 +324,7 @@ function getQuarterDateRange(value: number) {
 
 	const quarterEndDate = new Date(year, quarterEndMonth + 1, 0).getUTCDate()
 
-	return `${monthNames[quarterStartMonth]} 1 - ${monthNames[quarterEndMonth]} ${quarterEndDate}, ${year}`
+	return `${monthNames[quarterStartMonth] ?? ''} 1 - ${monthNames[quarterEndMonth] ?? ''} ${quarterEndDate}, ${year}`
 }
 
 interface PieChartDataInput {
@@ -370,7 +374,7 @@ export const preparePieChartData = ({
 
 	if (othersIndex !== -1) {
 		// Remove existing "Others" from mainSlices and store its value
-		othersValueFromMain = mainSlices[othersIndex].value
+		othersValueFromMain = mainSlices[othersIndex]?.value ?? 0
 		filteredMainSlices = mainSlices.filter((_, index) => index !== othersIndex)
 	}
 

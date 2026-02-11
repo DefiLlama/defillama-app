@@ -1,7 +1,7 @@
-import Select, { Props } from 'react-select'
+import Select, { type Props } from 'react-select'
 
 const customStyles = {
-	control: (provided) => ({
+	control: (provided: any) => ({
 		...provided,
 		background: 'var(--cards-bg)',
 		padding: '2px',
@@ -12,40 +12,40 @@ const customStyles = {
 		margin: 0,
 		zIndex: 0
 	}),
-	input: (provided) => ({
+	input: (provided: any) => ({
 		...provided,
 		color: 'var(--text-primary)'
 	}),
-	menu: (provided) => ({
+	menu: (provided: any) => ({
 		...provided,
 		background: 'var(--cards-bg)',
 		zIndex: 10
 	}),
-	option: (provided, state) => ({
+	option: (provided: any, state: any) => ({
 		...provided,
 		color: state.isActive ? 'black' : 'var(--text-primary)'
 	}),
-	multiValue: (provided) => ({
+	multiValue: (provided: any) => ({
 		...provided,
 		fontFamily: 'inherit',
 		background: 'var(--bg2)',
 		padding: '2px'
 	}),
-	multiValueLabel: (styles) => ({
+	multiValueLabel: (styles: any) => ({
 		...styles,
 		color: 'var(--text-primary)'
 	}),
-	placeholder: (provided) => ({
+	placeholder: (provided: any) => ({
 		...provided,
 		color: 'var(--text-tertiary)'
 	}),
-	singleValue: (provided, _state) => ({
+	singleValue: (provided: any, _state: any) => ({
 		...provided,
 		color: 'var(--text-primary)'
 	})
 }
 
-export const ReactSelect = ({ options, styles, ...props }: Props) => (
+export const ReactSelect = ({ options, styles, ...props }: Props<any, boolean>) => (
 	<Select
 		styles={{ ...customStyles, ...styles }}
 		options={options}

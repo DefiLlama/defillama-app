@@ -27,12 +27,12 @@ const trending = [{ category: 'Trending', metrics: trendingPages as Array<IPage>
 
 const metricsByCategory = trending.concat(
 	Object.entries(
-		defillamaPages.Metrics.reduce((acc, metric) => {
+		defillamaPages.Metrics.reduce<Record<string, Array<IPage>>>((acc, metric) => {
 			const category = metric.category || 'Others'
 			acc[category] = acc[category] || []
 			acc[category].push({
 				...metric,
-				name: metric.name.includes(': ') ? metric.name.split(': ')[1] : metric.name,
+				name: metric.name.includes(': ') ? (metric.name.split(': ')[1] ?? metric.name) : metric.name,
 				description: metric.description ?? ''
 			})
 			return acc
@@ -69,7 +69,7 @@ export function Metrics({
 	const metricsInputRef = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
-		if (currentCategory && canDismiss) {
+		if (currentCategory && canDismiss && hasScrolledToCategoryRef) {
 			const el = document.querySelector(`[data-category="${currentCategory}"]`)
 			if (el && hasScrolledToCategoryRef.current !== `${currentCategory}-true`) {
 				requestAnimationFrame(() => {

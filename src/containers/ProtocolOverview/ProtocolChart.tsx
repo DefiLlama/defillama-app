@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import type * as echarts from 'echarts/core'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/router'
 import { ComponentType, lazy, Suspense, useMemo } from 'react'
@@ -15,7 +16,7 @@ import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/L
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useIsClient } from '~/hooks/useIsClient'
 import { capitalizeFirstLetter, slug, tokenIconUrl } from '~/utils'
-import { BAR_CHARTS, protocolCharts } from './constants'
+import { BAR_CHARTS, protocolCharts, type ProtocolChartsLabels } from './constants'
 import { IProtocolOverviewPageData, IToggledMetrics } from './types'
 import { useFetchProtocolChartData } from './useFetchProtocolChartData'
 
@@ -51,10 +52,10 @@ interface IProtocolCoreChartProps {
 	hallmarks: IProtocolOverviewPageData['hallmarks'] | null
 	rangeHallmarks: IProtocolOverviewPageData['rangeHallmarks'] | null
 	unlockTokenSymbol: string | null
-	onReady: (instance: unknown) => void
+	onReady: (instance: echarts.ECharts | null) => void
 }
 
-const ProtocolCoreChart = lazy(() => import('./ProtocolCoreChart')) as ComponentType<IProtocolCoreChartProps>
+const ProtocolCoreChart = lazy(() => import('./ProtocolCoreChart')) as unknown as ComponentType<IProtocolCoreChartProps>
 
 export function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
@@ -69,9 +70,9 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 	)
 
 	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultToggledCharts } = useMemo(() => {
-		const chartsByVisibility = {}
+		const chartsByVisibility: Record<string, 'true' | 'false'> = {}
 		for (const chartLabel in protocolCharts) {
-			const chartKey = protocolCharts[chartLabel]
+			const chartKey = protocolCharts[chartLabel as keyof typeof protocolCharts]
 			chartsByVisibility[chartKey] = searchParams.get(chartKey) === 'true' ? 'true' : 'false'
 		}
 
@@ -141,7 +142,13 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 
 	const metricsDialogStore = Ariakit.useDialogStore()
 
-	const prepareCsv = () => prepareChartCsv(finalCharts, `${props.name}.csv`)
+	const prepareCsv = () => {
+		const csv = prepareChartCsv(finalCharts, `${props.name}.csv`)
+		return {
+			filename: csv.filename,
+			rows: csv.rows.map((row) => row.map((value) => value ?? '')) as Array<Array<string | number | boolean>>
+		}
+	}
 
 	const { multiChart, unsupportedMetrics } = useMemo(() => {
 		return serializeProtocolChartToMultiChart({
@@ -370,14 +377,14 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 				) : (
 					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 						<ProtocolCoreChart
-							chartData={finalCharts}
-							chartColors={props.chartColors}
+							chartData={finalCharts as Record<string, Array<[string | number, number]>>}
+							chartColors={props.chartColors as Record<string, string>}
 							isThemeDark={isThemeDark}
 							valueSymbol={valueSymbol}
 							groupBy={groupBy}
-							hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
-							rangeHallmarks={toggledMetrics.events === 'true' ? props.rangeHallmarks : null}
-							unlockTokenSymbol={props.token.symbol}
+							hallmarks={toggledMetrics.events === 'true' ? (props.hallmarks ?? null) : null}
+							rangeHallmarks={toggledMetrics.events === 'true' ? (props.rangeHallmarks ?? null) : null}
+							unlockTokenSymbol={props.token.symbol ?? null}
 							onReady={handleOverviewChartReady}
 						/>
 					</Suspense>

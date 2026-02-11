@@ -163,7 +163,7 @@ export type IProtocolTreasuryMetrics = IProtocolMetricsV2
 
 export interface IProtocolChartV2Params {
 	protocol: string
-	key?: string
-	currency?: string
-	breakdownType?: ProtocolChartBreakdownType
+	key?: string | undefined
+	currency?: string | undefined
+	breakdownType?: ProtocolChartBreakdownType | undefined
 }

@@ -90,13 +90,15 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 	})
 
 	const chartDataTree = useMemo(() => {
-		const treeData = []
+		const treeData: any[] = []
 		const yearData: YearDataMap = {}
 
 		for (const dateStr in unlocksData) {
 			const dailyData = unlocksData[dateStr]
+			if (!dailyData) continue
 			const date = dayjs(dateStr)
 			const year = date.year()
+			const yearKey = String(year)
 			const monthIndex = date.month()
 			const monthName = date.format('MMMM')
 
@@ -108,58 +110,60 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 				if (year < currentYear) continue
 			}
 
-			if (!yearData[year]) {
-				yearData[year] = {
+			if (!yearData[yearKey]) {
+				yearData[yearKey] = {
 					children: {},
 					value: 0
 				}
 			}
 
-			if (!yearData[year].children[monthName]) {
-				yearData[year].children[monthName] = {
+			const yearEntry = yearData[yearKey]
+			if (!yearEntry.children[monthName]) {
+				yearEntry.children[monthName] = {
 					protocols: {},
 					value: 0
 				}
 			}
+			const monthEntry = yearEntry.children[monthName]
 
 			for (const event of dailyData.events) {
-				if (!yearData[year].children[monthName].protocols[event.protocol]) {
-					yearData[year].children[monthName].protocols[event.protocol] = 0
-				}
-
-				yearData[year].children[monthName].protocols[event.protocol] += event.value
-				yearData[year].children[monthName].value += event.value
-				yearData[year].value += event.value
+				monthEntry.protocols[event.protocol] = (monthEntry.protocols[event.protocol] ?? 0) + event.value
+				monthEntry.value += event.value
+				yearEntry.value += event.value
 			}
 		}
 
 		if (timeView === 'Month') {
 			const targetYear = selectedDate.year()
+			const targetYearKey = String(targetYear)
 			const targetMonthName = selectedDate.format('MMMM')
-			if (yearData[targetYear] && yearData[targetYear].children[targetMonthName]) {
-				const monthInfo = yearData[targetYear].children[targetMonthName]
+			const monthInfo = yearData[targetYearKey]?.children[targetMonthName]
+			if (monthInfo) {
 				const protocolsData = Object.entries(monthInfo.protocols)
 					.map(([protocol, value]) => {
 						const iconUrl = tokenIconUrl(protocol)
+						const amount = Number(value ?? 0)
 						return {
 							name: protocol,
-							value: value,
+							value: amount,
 							iconUrl: iconUrl,
-							label: protocolLabel(protocol, value, iconUrl)
+							label: protocolLabel(protocol, amount, iconUrl)
 						}
 					})
-					.toSorted((a, b) => b.value - a.value)
+					.toSorted((a: { value: number }, b: { value: number }) => b.value - a.value)
 				return protocolsData
 			} else {
 				return []
 			}
 		}
 
-		if (timeView === 'Current Year' && yearData[currentYear]) {
-			const currentYearData = yearData[currentYear]
+		if (timeView === 'Current Year' && yearData[String(currentYear)]) {
+			const currentYearData = yearData[String(currentYear)]
+			if (!currentYearData) return []
 
 			return Object.entries(currentYearData.children)
 				.map(([month, monthInfo]) => {
+					if (!monthInfo) return null
 					const monthNode: any = {
 						name: month,
 						value: monthInfo.value,
@@ -174,7 +178,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					}
 
 					for (const protocol in monthInfo.protocols) {
-						const value = monthInfo.protocols[protocol]
+						const value = Number(monthInfo.protocols[protocol] ?? 0)
 						const iconUrl = tokenIconUrl(protocol)
 						monthNode.children.push({
 							name: protocol,
@@ -184,15 +188,19 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						})
 					}
 
-					monthNode.children = monthNode.children.toSorted((a, b) => b.value - a.value)
+					monthNode.children = monthNode.children.toSorted(
+						(a: { value: number }, b: { value: number }) => b.value - a.value
+					)
 					return monthNode
 				})
-				.toSorted((a, b) => b.value - a.value)
+				.filter((item): item is { value: number } => item !== null)
+				.toSorted((a: { value: number }, b: { value: number }) => b.value - a.value)
 		}
 
 		if (timeView === 'All Years') {
 			for (const year in yearData) {
 				const yearInfo = yearData[year]
+				if (!yearInfo) continue
 				const yearNode: any = {
 					name: year,
 					value: yearInfo.value,
@@ -208,6 +216,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 
 				for (const month in yearInfo.children) {
 					const monthInfo = yearInfo.children[month]
+					if (!monthInfo) continue
 					const monthNode: any = {
 						name: month,
 						value: monthInfo.value,
@@ -222,7 +231,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					}
 
 					for (const protocol in monthInfo.protocols) {
-						const value = monthInfo.protocols[protocol]
+						const value = Number(monthInfo.protocols[protocol] ?? 0)
 						const iconUrl = tokenIconUrl(protocol)
 						monthNode.children.push({
 							name: protocol,
@@ -232,15 +241,19 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						})
 					}
 
-					monthNode.children = monthNode.children.toSorted((a, b) => b.value - a.value)
+					monthNode.children = monthNode.children.toSorted(
+						(a: { value: number }, b: { value: number }) => b.value - a.value
+					)
 					yearNode.children.push(monthNode)
 				}
 
-				yearNode.children = yearNode.children.toSorted((a, b) => b.value - a.value)
+				yearNode.children = yearNode.children.toSorted(
+					(a: { value: number }, b: { value: number }) => b.value - a.value
+				)
 				treeData.push(yearNode)
 			}
 
-			treeData.sort((a, b) => Number(a.name) - Number(b.name))
+			treeData.sort((a: { name: string }, b: { name: string }) => Number(a.name) - Number(b.name))
 			return treeData
 		}
 
@@ -265,7 +278,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 				formatter: (info: any) => {
 					const { data, treePathInfo } = info
 					const { name, value, iconUrl } = data
-					const pathNames = treePathInfo.map((item) => item.name).slice(0, -1)
+					const pathNames = treePathInfo.map((item: { name: string }) => item.name).slice(0, -1)
 
 					let pathDisplay = pathNames.join(' > ')
 					if (timeView === 'Month' && !pathNames.length) {

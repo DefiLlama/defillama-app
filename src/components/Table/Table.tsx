@@ -394,7 +394,12 @@ export function VirtualTable({
 				}
 			>
 				{(skipVirtualization ? rows : virtualItems).map((row, i) => {
-					const rowTorender = skipVirtualization ? row : rows[row.index]
+					const virtualRow = skipVirtualization ? null : (row as { index: number; size: number; start: number })
+					const rowTorender = skipVirtualization ? (row as Row<any>) : rows[virtualRow?.index ?? 0]
+					if (!rowTorender) return null
+					const virtualSize = virtualRow?.size ?? rowSize ?? 50
+					const virtualStart = virtualRow?.start ?? 0
+					const isDisabled = Boolean((rowTorender.original as { disabled?: boolean } | undefined)?.disabled)
 					const trStyle: React.CSSProperties = {
 						display: 'grid',
 						gridTemplateColumns,
@@ -406,9 +411,9 @@ export function VirtualTable({
 									top: 0,
 									left: 0,
 									width: '100%',
-									height: `${row.size}px`,
-									opacity: rowTorender.original.disabled ? 0.3 : 1,
-									transform: `translateY(${row.start - rowVirtualizer.options.scrollMargin}px)`
+									height: `${virtualSize}px`,
+									opacity: isDisabled ? 0.3 : 1,
+									transform: `translateY(${virtualStart - rowVirtualizer.options.scrollMargin}px)`
 								})
 					}
 
@@ -428,8 +433,8 @@ export function VirtualTable({
 							>
 								{rowTorender
 									.getVisibleCells()
-									.filter((cell) => !cell.column.columnDef.meta?.hidden)
-									.map((cell) => {
+									.filter((cell: any) => !cell.column.columnDef.meta?.hidden)
+									.map((cell: any) => {
 										const textAlign = cell.column.columnDef.meta?.align ?? 'start'
 										const isSticky = cell.column.id === firstColumnId
 										return (
@@ -495,7 +500,7 @@ const HeaderWithTooltip = ({
 	onClick
 }: {
 	children: React.ReactNode
-	content?: string
+	content?: string | undefined
 	onClick: (() => void) | null
 }) => {
 	if (onClick) {

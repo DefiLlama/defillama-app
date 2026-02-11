@@ -32,7 +32,7 @@ echarts.use([
 ])
 
 // Register transform once at module level
-echarts.registerTransform(aggregate)
+echarts.registerTransform(aggregate as any)
 
 export interface IChartProps {
 	chartData: any
@@ -49,7 +49,7 @@ export default function BoxplotChart({ chartData }: IChartProps) {
 
 	// Memoize data to prevent effect re-running on every render
 	const data = useMemo(() => {
-		const rows = chartData.map((p) => [p.apy, p.projectName])
+		const rows = chartData.map((p: { apy: number; projectName: string }) => [p.apy, p.projectName])
 		rows.unshift(['APY', 'Project'])
 		return rows
 	}, [chartData])

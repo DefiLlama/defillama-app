@@ -38,11 +38,14 @@ export function BarSparkline({ data, className, height = 48, focusable, maxBars 
 			const step = Math.ceil(filtered.length / maxBars)
 			const sampled: typeof filtered = []
 			for (let i = 0; i < filtered.length; i += step) {
-				sampled.push(filtered[i])
+				const point = filtered[i]
+				if (point) sampled.push(point)
 			}
 			// Always include the last point
-			if (sampled[sampled.length - 1] !== filtered[filtered.length - 1]) {
-				sampled.push(filtered[filtered.length - 1])
+			const lastSampled = sampled[sampled.length - 1]
+			const lastFiltered = filtered[filtered.length - 1]
+			if (lastFiltered && lastSampled !== lastFiltered) {
+				sampled.push(lastFiltered)
 			}
 			return sampled
 		}
@@ -52,16 +55,18 @@ export function BarSparkline({ data, className, height = 48, focusable, maxBars 
 	// Calculate per-bar colors based on comparison to previous bar
 	const barDataWithColors = useMemo(() => {
 		return seriesData.map(([, value], index) => {
+			const currentValue = Number(value ?? 0)
 			let rgb = SUCCESS_RGB // Default to green
 			if (index > 0) {
-				const prevValue = seriesData[index - 1][1]
-				if (value < prevValue) {
+				const prevPoint = seriesData[index - 1]
+				const prevValue = prevPoint?.[1]
+				if (prevValue != null && currentValue < prevValue) {
 					rgb = ERROR_RGB
 				}
 			}
 
 			return {
-				value,
+				value: currentValue,
 				itemStyle: {
 					color: `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`,
 					borderRadius: [2, 2, 0, 0]
@@ -116,7 +121,7 @@ export function BarSparkline({ data, className, height = 48, focusable, maxBars 
 						axisTick: { show: false },
 						axisLabel: { show: false },
 						splitLine: { show: false },
-						min: (value) => {
+						min: (value: { min?: number; max?: number }) => {
 							if (typeof value.min !== 'number' || typeof value.max !== 'number') return undefined
 							if (value.min === value.max) {
 								const pad = Math.abs(value.min) * 0.05 || 1
@@ -125,7 +130,7 @@ export function BarSparkline({ data, className, height = 48, focusable, maxBars 
 							const pad = (value.max - value.min) * 0.08
 							return Math.max(0, value.min - pad)
 						},
-						max: (value) => {
+						max: (value: { min?: number; max?: number }) => {
 							if (typeof value.min !== 'number' || typeof value.max !== 'number') return undefined
 							if (value.min === value.max) {
 								const pad = Math.abs(value.max) * 0.05 || 1

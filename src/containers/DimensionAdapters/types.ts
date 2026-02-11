@@ -4,42 +4,45 @@ import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
 interface IProtocol {
 	name: string
 	slug: string
-	logo: string
-	chains: Array<string>
-	category: string | null
-	total24h: number | null
-	total7d: number | null
-	total30d: number | null
-	total1y: number | null
-	totalAllTime: number | null
-	mcap: number | null
-	bribes?: {
-		total24h: number | null
-		total7d: number | null
-		total30d: number | null
-		total1y: number | null
-		totalAllTime: number | null
-	}
-	tokenTax?: {
-		total24h: number | null
-		total7d: number | null
-		total30d: number | null
-		total1y: number | null
-		totalAllTime: number | null
-	}
-	openInterest?: number | null
-	activeLiquidity?: number | null
-	normalizedVolume24h?: number | null
-	pf?: number | null
-	ps?: number | null
-	methodology?: string | null
-	doublecounted?: boolean
-	zeroFeePerp?: boolean
+	logo?: string | undefined
+	chains?: Array<string> | undefined
+	category?: string | null | undefined
+	total24h?: number | null | undefined
+	total7d?: number | null | undefined
+	total30d?: number | null | undefined
+	total1y?: number | null | undefined
+	totalAllTime?: number | null | undefined
+	mcap?: number | null | undefined
+	bribes?:
+		| {
+				total24h: number | null
+				total7d: number | null
+				total30d: number | null
+				total1y: number | null
+				totalAllTime: number | null
+		  }
+		| undefined
+	tokenTax?:
+		| {
+				total24h: number | null
+				total7d: number | null
+				total30d: number | null
+				total1y: number | null
+				totalAllTime: number | null
+		  }
+		| undefined
+	openInterest?: number | null | undefined
+	activeLiquidity?: number | null | undefined
+	normalizedVolume24h?: number | null | undefined
+	pf?: number | null | undefined
+	ps?: number | null | undefined
+	methodology?: string | null | undefined
+	doublecounted?: boolean | undefined
+	zeroFeePerp?: boolean | undefined
+	childProtocols?: Array<IProtocol> | undefined
 }
 
-interface IAdapterByChainPageProtocol extends IProtocol {
-	childProtocols?: Array<IProtocol>
-}
+interface IAdapterByChainPageProtocol extends IProtocol {}
 
 export interface IAdapterByChainPageData {
 	chain: string

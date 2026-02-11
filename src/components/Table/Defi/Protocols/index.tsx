@@ -38,7 +38,14 @@ export enum TABLE_PERIODS {
 export const TABLE_CATEGORIES_VALUES = Object.values(TABLE_CATEGORIES) as Array<string>
 export const TABLE_PERIODS_VALUES = Object.values(TABLE_PERIODS) as Array<string>
 
-export const protocolsByChainTableColumns = [
+type ProtocolsByChainColumnOption = {
+	name: string
+	key: string
+	category?: TABLE_CATEGORIES
+	period?: TABLE_PERIODS
+}
+
+export const protocolsByChainTableColumns: ProtocolsByChainColumnOption[] = [
 	{ name: 'Name', key: 'name' },
 	{ name: 'Category', key: 'category' },
 	{ name: 'Oracles', key: 'oracles' },
@@ -449,7 +456,7 @@ const ProtocolsTable = ({
 }: {
 	data: Array<IProtocolRow>
 	columnsInStorage: string
-	useStickyHeader?: boolean
+	useStickyHeader?: boolean | undefined
 }) => {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -462,7 +469,7 @@ const ProtocolsTable = ({
 			sorting,
 			expanded,
 			columnSizing,
-			columnVisibility: JSON.parse(columnsInStorage)
+			columnVisibility: JSON.parse(columnsInStorage) as Record<string, boolean>
 		},
 		defaultColumn: {
 			sortUndefined: 'last'
@@ -475,14 +482,11 @@ const ProtocolsTable = ({
 				const newSorting = updater instanceof Function ? updater(old) : updater
 
 				if (newSorting.length === 0 && old.length === 1) {
-					const currentDesc = old[0].desc
-					if (currentDesc === undefined) {
-						return [{ ...old[0], desc: false }]
-					} else if (currentDesc === false) {
-						return [{ ...old[0], desc: true }]
-					} else {
-						return [{ ...old[0], desc: undefined }]
-					}
+					const currentSort = old[0]
+					if (!currentSort) return old
+					if (currentSort.desc === undefined) return [{ ...currentSort, desc: false }]
+					if (currentSort.desc === false) return [{ ...currentSort, desc: true }]
+					return [{ ...currentSort, desc: undefined }]
 				}
 
 				return newSorting
@@ -506,7 +510,7 @@ export function ProtocolsByChainTable({
 	useStickyHeader = true
 }: {
 	data: Array<IProtocolRow>
-	useStickyHeader?: boolean
+	useStickyHeader?: boolean | undefined
 }) {
 	const columnsInStorage = React.useSyncExternalStore(
 		(callback) => subscribeToStorageKey(optionsKey, callback),
@@ -514,19 +518,19 @@ export function ProtocolsByChainTable({
 		() => defaultColumns
 	)
 
-	const [filterState, setFilterState] = React.useState(null)
+	const [filterState, setFilterState] = React.useState<string>('')
 
-	const setFilter = (key) => (newState) => {
+	const setFilter = (key: 'category' | 'period') => (newState: string) => {
 		const newOptions = Object.fromEntries(
 			protocolsByChainTableColumns.map((column) => [
-				[column.key],
+				column.key,
 				['name', 'category'].includes(column.key) ? true : column[key] === newState
 			])
 		)
 
 		if (columnsInStorage === JSON.stringify(newOptions)) {
 			toggleAllOptions()
-			setFilterState(null)
+			setFilterState('')
 		} else {
 			setStorageItem(optionsKey, JSON.stringify(newOptions))
 			setFilterState(newState)
@@ -547,7 +551,10 @@ export function ProtocolsByChainTable({
 				<SelectWithCombobox
 					allValues={protocolsByChainTableColumns}
 					selectedValues={selectedOptions}
-					setSelectedValues={setColumnOptions}
+					setSelectedValues={(nextState) => {
+						const nextOptions = typeof nextState === 'function' ? nextState(selectedOptions) : nextState
+						setColumnOptions(nextOptions)
+					}}
 					nestedMenu={false}
 					label={'Columns'}
 					labelType="smol"
@@ -567,9 +574,9 @@ export function ProtocolsTableWithSearch({
 	columns
 }: {
 	data: Array<IProtocolRow>
-	addlColumns?: Array<string>
-	removeColumns?: Array<string>
-	columns?: ColumnDef<any>[]
+	addlColumns?: Array<string> | undefined
+	removeColumns?: Array<string> | undefined
+	columns?: ColumnDef<any>[] | undefined
 }) {
 	const columnsToUse = columns ?? protocolsColumns
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
@@ -583,8 +590,12 @@ export function ProtocolsTableWithSearch({
 		if (!addlColumns && !removeColumns) return columnsToUse
 		const removeColumnsSet = removeColumns ? new Set(removeColumns) : null
 		return [
-			...(columnsToUse as any).filter((c) => !removeColumnsSet || !removeColumnsSet.has((c as any).accessorKey)),
-			...(addlColumns ?? []).map((x) => protocolAddlColumns[x])
+			...(columnsToUse as any).filter(
+				(c: ColumnDef<any>) => !removeColumnsSet || !removeColumnsSet.has((c as any).accessorKey)
+			),
+			...(addlColumns ?? [])
+				.map((x) => (protocolAddlColumns as Record<string, ColumnDef<IProtocolRow>>)[x])
+				.filter((column): column is ColumnDef<IProtocolRow> => column !== undefined)
 		]
 	}, [addlColumns, removeColumns, columnsToUse])
 

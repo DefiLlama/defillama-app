@@ -36,7 +36,7 @@ interface IMultiSeriesChartProps {
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 
-const EMPTY_ARRAY = []
+const EMPTY_ARRAY: string[] = []
 
 export default function MultiSeriesChart({
 	series,

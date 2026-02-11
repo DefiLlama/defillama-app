@@ -4,14 +4,14 @@ import { ChartPngExportButton } from './ChartPngExportButton'
 
 export interface ChartExportButtonsProps {
 	chartInstance: () => echarts.ECharts | null
-	filename?: string
-	title?: string
-	iconUrl?: string
-	expandLegend?: boolean
-	className?: string
-	smol?: boolean
-	showCsv?: boolean
-	showPng?: boolean
+	filename?: string | undefined
+	title?: string | undefined
+	iconUrl?: string | undefined
+	expandLegend?: boolean | undefined
+	className?: string | undefined
+	smol?: boolean | undefined
+	showCsv?: boolean | undefined
+	showPng?: boolean | undefined
 }
 
 export function ChartExportButtons({

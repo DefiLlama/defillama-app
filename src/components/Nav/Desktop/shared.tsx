@@ -13,14 +13,14 @@ export function LinkToPage({
 }: {
 	route: string
 	name: string
-	icon?: string
-	attention?: boolean
-	freeTrial?: boolean
-	isNew?: boolean
+	icon?: string | undefined
+	attention?: boolean | undefined
+	freeTrial?: boolean | undefined
+	isNew?: boolean | undefined
 	asPath: string
-	umamiEvent?: string
+	umamiEvent?: string | undefined
 }) {
-	const isActive = route === asPath.split('/?')[0].split('?')[0]
+	const isActive = route === (asPath.split('/?')[0] ?? asPath).split('?')[0]
 	const isExternal = route.startsWith('http')
 
 	return (
@@ -45,10 +45,10 @@ export function NavItemContent({
 	isNew
 }: {
 	name: string
-	icon?: string
-	attention?: boolean
-	freeTrial?: boolean
-	isNew?: boolean
+	icon?: string | undefined
+	attention?: boolean | undefined
+	freeTrial?: boolean | undefined
+	isNew?: boolean | undefined
 }) {
 	return (
 		<>

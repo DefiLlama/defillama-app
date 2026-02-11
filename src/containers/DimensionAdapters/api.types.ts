@@ -5,38 +5,38 @@ export interface IAdapterOverview {
 	breakdown24h: number | null
 	chain: string | null
 	allChains: Array<string>
-	total24h: number
+	total24h: number | null
 	total48hto24h: number
-	total7d: number
+	total7d: number | null
 	total14dto7d: number
 	total60dto30d: number
-	total30d: number
-	total1y: number
-	change_1d: number
-	change_7d: number
-	change_1m: number
-	change_7dover7d: number
+	total30d: number | null
+	total1y: number | null
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+	change_7dover7d: number | null
 	change_30dover30d: number
 	total7DaysAgo: number
 	total30DaysAgo: number
 	protocols: Array<{
-		total24h: number
+		total24h: number | null
 		total48hto24h: number
-		total7d: number
+		total7d: number | null
 		total14dto7d: number
 		total60dto30d: number
-		total30d: number
-		total1y: number
-		totalAllTime: number
+		total30d: number | null
+		total1y: number | null
+		totalAllTime: number | null
 		average1y: number
 		monthlyAverage1y: number
-		change_1d: number
-		change_7d: number
-		change_1m: number
-		change_7dover7d: number
+		change_1d: number | null
+		change_7d: number | null
+		change_1m: number | null
+		change_7dover7d: number | null
 		change_30dover30d: number
-		breakdown24h: Record<string, Record<string, number>>
-		breakdown30d: Record<string, Record<string, number>>
+		breakdown24h?: Record<string, Record<string, number>>
+		breakdown30d?: Record<string, Record<string, number>>
 		total7DaysAgo: number
 		total30DaysAgo: number
 		defillamaId: string
@@ -50,9 +50,9 @@ export interface IAdapterOverview {
 		methodologyURL: string
 		methodology: Record<string, string>
 		latestFetchIsOk: boolean
-		parentProtocol: string
+		parentProtocol?: string | null
 		slug: string
-		linkedProtocols: Array<string>
+		linkedProtocols?: Array<string>
 		id: string
 		doublecounted?: boolean
 	}>

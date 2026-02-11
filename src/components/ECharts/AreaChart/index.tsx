@@ -48,9 +48,9 @@ export default function AreaChart({
 	const shouldEnableImageExport = enableImageExport ?? shouldEnableCSVDownload
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
-	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
+	const [legendOptions, setLegendOptions] = useState<string[]>(customLegendOptions ?? [])
 
-	const chartsStack = stacks || customLegendOptions
+	const chartsStack = stacks ?? customLegendOptions ?? []
 
 	const [isThemeDark] = useDarkModeManager()
 
@@ -69,7 +69,10 @@ export default function AreaChart({
 		const chartColor = color || stringToColour()
 
 		if (!chartsStack || chartsStack.length === 0) {
-			const series = {
+			const series: {
+				[key: string]: unknown
+				data: Array<[number, number]>
+			} = {
 				name: '',
 				type: 'line',
 				stack: 'value',
@@ -162,7 +165,7 @@ export default function AreaChart({
 
 			return series
 		} else {
-			const series = {}
+			const series: Record<string, any> = {}
 			let index = 0
 			for (const token of chartsStack) {
 				const stackColor = stackColors?.[token]
@@ -263,12 +266,13 @@ export default function AreaChart({
 				index++
 			}
 
-			for (const { date, ...item } of chartData) {
-				const sumOfTheDay = Object.values(item).reduce((acc: number, curr: number) => (acc += curr), 0) as number
+			for (const row of chartData) {
+				const { date, ...item } = row as { date: string | number } & Record<string, number | null | undefined>
+				const sumOfTheDay = Object.values(item).reduce<number>((acc, curr) => acc + Number(curr ?? 0), 0)
 
 				for (const stack of chartsStack) {
 					if ((legendOptions && customLegendName ? legendOptions.includes(stack) : true) && series[stack]) {
-						const rawValue = item[stack] || 0
+						const rawValue = Number(item[stack] ?? 0)
 
 						const value = expandTo100Percent ? (sumOfTheDay ? (rawValue / sumOfTheDay) * 100 : 0) : rawValue
 						if (expandTo100Percent) {
@@ -335,22 +339,22 @@ export default function AreaChart({
 			hasNotifiedReadyRef.current = true
 		}
 
-		for (const option in chartOptions) {
+		for (const option in chartOptions ?? {}) {
 			if (option === 'dataZoom') {
-				if (Array.isArray(chartOptions[option])) {
+				if (Array.isArray(chartOptions?.[option])) {
 					if (defaultChartSettings[option]) {
 						defaultChartSettings[option] = [
-							{ ...defaultChartSettings[option][0], ...(chartOptions[option][0] ?? {}) },
-							{ ...defaultChartSettings[option][1], ...(chartOptions[option][1] ?? {}) }
+							{ ...defaultChartSettings[option][0], ...(chartOptions?.[option]?.[0] ?? {}) },
+							{ ...defaultChartSettings[option][1], ...(chartOptions?.[option]?.[1] ?? {}) }
 						]
 					} else {
-						defaultChartSettings[option] = chartOptions[option]
+						defaultChartSettings[option] = chartOptions?.[option]
 					}
 				}
 			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions?.[option])
 			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
+				defaultChartSettings[option] = { ...(chartOptions?.[option] ?? {}) }
 			}
 		}
 
@@ -391,9 +395,10 @@ export default function AreaChart({
 		updateExportInstanceRef.current(null)
 	})
 
-	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName
+	const legendTitle =
+		customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : (customLegendName ?? 'Legend')
 
-	const showLegend = !!(customLegendName && customLegendOptions?.length > 1)
+	const showLegend = !!(customLegendName && (customLegendOptions?.length ?? 0) > 1)
 	const showHeader = !!(title || showLegend || !hideDownloadButton || shouldEnableImageExport)
 
 	return (
@@ -406,7 +411,7 @@ export default function AreaChart({
 					<ChartHeader
 						title={title}
 						customComponents={
-							customLegendName && customLegendOptions?.length > 1 ? (
+							customLegendName && customLegendOptions && customLegendOptions.length > 1 ? (
 								<SelectWithCombobox
 									allValues={customLegendOptions}
 									selectedValues={legendOptions}

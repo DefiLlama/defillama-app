@@ -44,7 +44,7 @@ export default function BarChart({
 	const [legendOptions, setLegendOptions] = useState(() => (customLegendOptions ? [...customLegendOptions] : []))
 
 	const { defaultStacks, stackKeys, selectedStacks } = useMemo(() => {
-		const values = stacks || {}
+		const values: Record<string, string> = { ...(stacks ?? {}) }
 
 		let hasValues = false
 		for (const _ in values) {
@@ -89,7 +89,10 @@ export default function BarChart({
 		const chartColor = color || stringToColour()
 
 		if (!stackKeys || stackKeys.length === 0) {
-			const series = {
+			const series: {
+				[key: string]: unknown
+				data: Array<[number, number]>
+			} = {
 				name: '',
 				type: 'bar',
 				stack: 'stackA',
@@ -109,7 +112,7 @@ export default function BarChart({
 
 			return series
 		} else {
-			const series = {}
+			const series: Record<string, any> = {}
 
 			for (const stack of selectedStacks) {
 				series[stack] = {
@@ -134,9 +137,10 @@ export default function BarChart({
 				}
 			}
 
-			for (const { date, ...item } of chartData) {
+			for (const row of chartData) {
+				const { date, ...item } = row as { date: string | number } & Record<string, number | null | undefined>
 				for (const stack of selectedStacks) {
-					series[stack]?.data?.push([+date * 1e3, item[stack] || 0])
+					series[stack]?.data?.push([+date * 1e3, Number(item[stack] ?? 0)])
 				}
 			}
 
@@ -178,14 +182,14 @@ export default function BarChart({
 			hasNotifiedReadyRef.current = true
 		}
 
-		for (const option in chartOptions) {
+		for (const option in chartOptions ?? {}) {
 			if (option === 'overrides') {
 				// update tooltip formatter
 				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
 			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions?.[option])
 			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
+				defaultChartSettings[option] = { ...(chartOptions?.[option] ?? {}) }
 			}
 		}
 
@@ -234,7 +238,7 @@ export default function BarChart({
 		updateExportInstanceRef.current(null)
 	})
 
-	const showLegend = Boolean(customLegendName && customLegendOptions?.length > 1)
+	const showLegend = Boolean(customLegendName && (customLegendOptions?.length ?? 0) > 1)
 
 	const prepareCsv = () => {
 		let rows = []
@@ -265,7 +269,7 @@ export default function BarChart({
 					<ChartHeader
 						title={title}
 						customComponents={
-							customLegendName && customLegendOptions?.length > 1 ? (
+							customLegendName && customLegendOptions && customLegendOptions.length > 1 ? (
 								<SelectWithCombobox
 									allValues={customLegendOptions}
 									selectedValues={legendOptions}

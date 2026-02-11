@@ -16,15 +16,16 @@ import {
 	PeggedFilters,
 	stablecoinAttributeOptions,
 	stablecoinBackingOptions,
-	stablecoinPegTypeOptions
+	stablecoinPegTypeOptions,
+	type StablecoinFilterOption,
+	type StablecoinFilterableItem
 } from '~/containers/Stablecoins/Filters'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from '~/containers/Stablecoins/hooks'
 import {
 	buildStablecoinChartData,
 	getStablecoinDominance,
 	getStablecoinMcapStatsFromTotals,
-	getStablecoinTopTokenFromChartData,
-	type IStablecoinTopTokenCandidate
+	getStablecoinTopTokenFromChartData
 } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, slug, toNiceCsvDate, toNumberOrNullFromQueryParam } from '~/utils'
@@ -50,18 +51,17 @@ const STABLECOIN_FILTER_QUERY_KEYS = [
 const UNRELEASED_QUERY_KEY = 'unreleased'
 
 type MultiSeriesCharts = NonNullable<IMultiSeriesChart2Props['charts']>
-type StablecoinFilterableAsset = IStablecoinTopTokenCandidate & {
+type StablecoinFilterableAsset = StablecoinFilterableItem & {
 	name: string
 	mcap: number
-	[key: string]: unknown
+	circulating?: number | null
+	unreleased?: number | null
+	symbol?: string | null
+	delisted?: boolean
 }
 type StablecoinChartDatum = {
 	date: string | number
 	[key: string]: number | string | null | undefined | Record<string, number>
-}
-type StablecoinFilterOption = {
-	key: string
-	filterFn: (item: StablecoinFilterableAsset) => boolean
 }
 type StablecoinFilterResolverParams = {
 	filteredPeggedAssets: StablecoinFilterableAsset[]
@@ -293,19 +293,20 @@ export function StablecoinsByChain({
 	)
 
 	const prepareCsv = () => {
-		const rows = [['Timestamp', 'Date', ...filteredPeggedNames, 'Total']]
+		const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', ...filteredPeggedNames, 'Total']]
 		const sortedData = [...stackedData].sort((a, b) => a.date - b.date)
 		for (const day of sortedData) {
+			const dayValues = day as Record<string, number | null | undefined>
 			rows.push([
 				day.date,
 				toNiceCsvDate(day.date),
-				...filteredPeggedNames.map((peggedAsset) => day[peggedAsset] ?? ''),
+				...filteredPeggedNames.map((peggedAsset) => dayValues[peggedAsset] ?? ''),
 				filteredPeggedNames.reduce((acc, curr) => {
-					return (acc += day[curr] ?? 0)
+					return (acc += dayValues[curr] ?? 0)
 				}, 0)
 			])
 		}
-		return { filename: 'stablecoins.csv', rows: rows as (string | number | boolean)[][] }
+		return { filename: 'stablecoins.csv', rows }
 	}
 
 	let title = `Stablecoins Market Cap`
@@ -417,7 +418,7 @@ export function StablecoinsByChain({
 						}
 						return row
 					})
-					.filter(Boolean),
+					.filter((row): row is Record<string, number> => row !== null),
 				dimensions: ['timestamp', ...filteredPeggedNames]
 			},
 			dominanceCharts: filteredPeggedNames.map((name, i) => ({

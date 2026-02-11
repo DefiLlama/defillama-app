@@ -50,7 +50,9 @@ export const formatBarChart = ({
 		}
 		const finalChart: Array<[number, number]> = []
 		for (const date in store) {
-			finalChart.push([+date * 1e3, store[date]])
+			const value = store[date]
+			if (value == null) continue
+			finalChart.push([+date * 1e3, value])
 		}
 		// `for...in` over object keys is not guaranteed to be chronological.
 		// Many ECharts features (eg. `dataZoom`) and "latest" lookups assume sorted x-values.
@@ -103,7 +105,7 @@ export const formatLineChart = ({
 		}
 		const finalChart: Array<[number, number | null]> = []
 		for (const date in store) {
-			finalChart.push([+date * 1e3, store[date]])
+			finalChart.push([+date * 1e3, store[date] ?? null])
 		}
 		// `for...in` over object keys is not guaranteed to be chronological.
 		return finalChart.sort((a, b) => a[0] - b[0])
@@ -121,28 +123,30 @@ export const formatLineChart = ({
 }
 
 export function prepareChartCsv(data: Record<string, Array<[string | number, number | null]>>, filename: string) {
-	let rows = []
-	const charts = []
-	const dateStore = {}
+	let rows: Array<Array<string | number | null>> = []
+	const charts: string[] = []
+	const dateStore: Record<string, Record<string, number | null>> = {}
 	for (const chartName in data) {
 		charts.push(chartName)
-		for (const [date, value] of data[chartName]) {
-			if (!dateStore[date]) {
-				dateStore[date] = {}
+		const chartRows = data[chartName] ?? []
+		for (const [date, value] of chartRows) {
+			const dateKey = String(date)
+			if (!dateStore[dateKey]) {
+				dateStore[dateKey] = {}
 			}
-			dateStore[date][chartName] = value
+			dateStore[dateKey][chartName] = value
 		}
 	}
 	rows.push(['Timestamp', 'Date', ...charts])
 	for (const date in dateStore) {
-		const values = []
+		const values: Array<number | null | ''> = []
 		for (const chartName in data) {
 			values.push(dateStore[date]?.[chartName] ?? '')
 		}
 		rows.push([date, toNiceCsvDate(+date / 1000), ...values])
 	}
 
-	return { filename, rows: rows.sort((a, b) => a[0] - b[0]) }
+	return { filename, rows: rows.toSorted((a, b) => Number(a[0]) - Number(b[0])) }
 }
 
 export function ensureChronologicalRows<T extends { timestamp?: number | string }>(rows: T[]) {
@@ -169,7 +173,7 @@ export function mergeDeep(target: any, source: any): any {
 
 	const result = { ...target }
 	for (const key in source) {
-		if (source.hasOwnProperty(key)) {
+		if (Object.prototype.hasOwnProperty.call(source, key)) {
 			if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
 				result[key] = mergeDeep(target[key] || {}, source[key])
 			} else {

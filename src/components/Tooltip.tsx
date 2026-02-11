@@ -1,16 +1,16 @@
 import * as Ariakit from '@ariakit/react'
 import * as React from 'react'
 
-interface ITooltip extends Ariakit.TooltipOptions {
+interface ITooltip {
 	content: string | null | React.ReactNode
-	href?: string
-	shallow?: boolean
-	onClick?: (e: React.MouseEvent) => void
+	href?: string | undefined
+	shallow?: boolean | undefined
+	onClick?: ((e: React.MouseEvent) => void) | undefined
 	children: React.ReactNode
-	render?: Ariakit.TooltipOptions['render']
-	color?: string
-	fontSize?: string
-	className?: string
+	render?: Ariakit.TooltipOptions['render'] | undefined
+	color?: string | undefined
+	fontSize?: string | undefined
+	className?: string | undefined
 	placement?:
 		| 'top'
 		| 'top-start'
@@ -24,7 +24,9 @@ interface ITooltip extends Ariakit.TooltipOptions {
 		| 'right'
 		| 'right-start'
 		| 'right-end'
-	portal?: boolean
+	portal?: boolean | undefined
+	'data-fullwidth'?: boolean | undefined
+	[key: string]: any
 }
 
 export function Tooltip({
@@ -46,7 +48,7 @@ export function Tooltip({
 				className={`flex shrink-0 items-center overflow-hidden text-ellipsis whitespace-nowrap ${className ?? ''}`}
 				render={<span />}
 				{...(props.render ? {} : { onTouchStart: store.toggle, onMouseLeave: store.hide })}
-				{...props}
+				{...(props as any)}
 			>
 				{children}
 			</Ariakit.TooltipAnchor>

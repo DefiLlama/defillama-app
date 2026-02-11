@@ -1,0 +1,19 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"strict": true
+	},
+	"include": [
+		"next-env.d.ts",
+		"src/components/**/*.ts",
+		"src/components/**/*.tsx",
+		"src/containers/ProtocolOverview/**/*.ts",
+		"src/containers/ProtocolOverview/**/*.tsx",
+		"src/containers/DimensionAdapters/**/*.ts",
+		"src/containers/DimensionAdapters/**/*.tsx",
+		"src/containers/Stablecoins/**/*.ts",
+		"src/containers/Stablecoins/**/*.tsx",
+		"src/containers/RWA/**/*.ts",
+		"src/containers/RWA/**/*.tsx"
+	]
+}

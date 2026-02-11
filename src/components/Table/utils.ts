@@ -62,15 +62,16 @@ const getSizingForKeys = (
 	return sizing
 }
 
-export function splitArrayByFalsyValues(data, column) {
+export function splitArrayByFalsyValues<T extends object>(data: T[], column: keyof T): [T[], T[]] {
 	return data.reduce(
-		(acc, curr) => {
-			if (!curr[column] && curr[column] !== 0) {
+		(acc: [T[], T[]], curr: T) => {
+			const value = curr[column]
+			if (!value && value !== 0) {
 				acc[1].push(curr)
 			} else acc[0].push(curr)
 			return acc
 		},
-		[[], []]
+		[[], []] as [T[], T[]]
 	)
 }
 
@@ -82,9 +83,9 @@ function sortColumnSizesAndOrders({
 	width
 }: {
 	instance: ColumnTableInstance
-	columnSizes?: ColumnSizesByBreakpoint | null
-	columnOrders?: ColumnOrdersByBreakpoint | null
-	width?: number | null
+	columnSizes?: ColumnSizesByBreakpoint | null | undefined
+	columnOrders?: ColumnOrdersByBreakpoint | null | undefined
+	width?: number | null | undefined
 }) {
 	if (!width) {
 		return
@@ -150,8 +151,8 @@ export function useSortColumnSizesAndOrders({
 	columnOrders
 }: {
 	instance: ColumnTableInstance
-	columnSizes?: ColumnSizesByBreakpoint | null
-	columnOrders?: ColumnOrdersByBreakpoint | null
+	columnSizes?: ColumnSizesByBreakpoint | null | undefined
+	columnOrders?: ColumnOrdersByBreakpoint | null | undefined
 }) {
 	const width = useBreakpointWidth()
 

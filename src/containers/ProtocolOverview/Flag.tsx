@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useState } from 'react'
+import { type FormEvent, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { fetchJson } from '~/utils/async'
@@ -21,12 +21,12 @@ export function Flag({
 	const dialogStore = Ariakit.useDialogStore()
 	const successDialogStore = Ariakit.useDialogStore()
 
-	const onSubmit = async (e) => {
+	const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 		setError(false)
 		setLoading(true)
 
-		const form = e.target as HTMLFormElement
+		const form = e.currentTarget
 
 		const data = await fetchJson('https://api.llama.fi/reportError', {
 			method: 'POST',

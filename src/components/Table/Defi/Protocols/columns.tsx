@@ -28,7 +28,7 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	</span>
 )
 
-export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
+export const protocolsByChainColumns: ColumnDef<IProtocolRow, any>[] = [
 	{
 		id: 'name',
 		header: 'Name',
@@ -671,7 +671,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
 				meta: {
 					align: 'end',
-					headerHelperText: definitions.perps.protocol['marketShare24h']
+					headerHelperText: definitions.perps.common
 				},
 				size: 180
 			})
@@ -827,7 +827,10 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 
 	columnHelper.accessor('openInterest', {
 		header: 'Open Interest',
-		cell: (info) => <>{info.getValue() != null && info.getValue() > 0 ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => {
+			const value = info.getValue()
+			return <>{value != null && value > 0 ? formattedNum(value, true) : null}</>
+		},
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.openInterest.protocol
@@ -847,7 +850,10 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 
 	columnHelper.accessor('mcap', {
 		header: 'Market Cap',
-		cell: ({ getValue }) => <>{getValue() != null && getValue() > 0 ? formattedNum(getValue(), true) : null}</>,
+		cell: ({ getValue }) => {
+			const value = getValue()
+			return <>{value != null && value > 0 ? formattedNum(value, true) : null}</>
+		},
 		meta: {
 			align: 'end',
 			headerHelperText: 'Market capitalization of the protocol token'
@@ -856,7 +862,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 	})
 ]
 
-export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
+export const protocolsColumns: ColumnDef<IProtocolRow, any>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -994,7 +1000,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	}
 ]
 
-export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
+export const protocolsOracleColumns: ColumnDef<IProtocolRow, any>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -1091,7 +1097,7 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 	}
 ]
 
-export const protocolAddlColumns = {
+export const protocolAddlColumns: Record<string, ColumnDef<IProtocolRow>> = {
 	borrowed: {
 		header: 'Borrowed',
 		accessorKey: 'borrowed',
@@ -1213,8 +1219,17 @@ export const columnSizes: ColumnSizesByBreakpoint = {
 	}
 }
 
-export const ProtocolTvlCell = ({ value, rowValues }) => {
+export const ProtocolTvlCell = ({
+	value,
+	rowValues
+}: {
+	value: number | null | undefined
+	rowValues: IProtocolRow
+}) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+	const parentExcluded = Boolean((rowValues as any).parentExcluded)
+	const isParentProtocol = Boolean((rowValues as any).isParentProtocol)
+	const categoryName = rowValues.category ?? ''
 
 	let text = null
 
@@ -1239,23 +1254,23 @@ export const ProtocolTvlCell = ({ value, rowValues }) => {
 				'This protocol issues white-labeled vaults which may result in TVL being counted by another protocol (e.g., double counted).'
 		}
 
-		if (removedCategoriesFromChainTvlSet.has(rowValues.category)) {
-			text = `${rowValues.category} protocols are not counted into Chain TVL`
+		if (categoryName && removedCategoriesFromChainTvlSet.has(categoryName)) {
+			text = `${categoryName} protocols are not counted into Chain TVL`
 		}
 
-		if (text && rowValues.isParentProtocol) {
+		if (text && isParentProtocol) {
 			text = 'Some sub-protocols are excluded from chain tvl'
 		}
 	}
 
-	if (!text && !rowValues.parentExcluded) {
+	if (!text && !parentExcluded) {
 		return <>{value != null ? formattedNum(value, true) : null}</>
 	}
 
 	return (
 		<span className="flex items-center justify-end gap-1">
 			{text ? <QuestionHelper text={text} /> : null}
-			{rowValues.parentExcluded ? (
+			{parentExcluded ? (
 				<QuestionHelper
 					text={"There's some internal doublecounting that is excluded from parent TVL, so sum won't match"}
 				/>

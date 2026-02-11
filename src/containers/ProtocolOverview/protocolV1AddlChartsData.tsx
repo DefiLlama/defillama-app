@@ -7,7 +7,7 @@ import { fetchJson } from '~/utils/async'
 import type { IProtocolChainTvlEntry, IProtocolOverviewMetricsV1 } from './api.types'
 
 type ChainTvlEntry = IProtocolChainTvlEntry
-type ChainTvls = Record<string, ChainTvlEntry>
+type ChainTvls = Record<string, any>
 type DateValueRow = { date: number } & Record<string, number>
 
 export const formatProtocolV1TvlsByChain = ({
@@ -28,8 +28,9 @@ export const formatProtocolV1TvlsByChain = ({
 		// sum keys like ethereum-staking, arbitrum-vesting only if chain is present
 		if (name.includes('-')) {
 			const formattedName = name.split('-')
+			const extraKey = formattedName[1]
 
-			if (extraTvlsEnabled[formattedName[1]]) {
+			if (extraKey && extraTvlsEnabled[extraKey]) {
 				toSumSection = true
 
 				sectionName = section.split('-').slice(0, -1).join('-')
@@ -42,7 +43,7 @@ export const formatProtocolV1TvlsByChain = ({
 		}
 
 		if (toSumSection) {
-			const tvl = historicalChainTvls[section].tvl
+			const tvl = historicalChainTvls[section]?.tvl
 			if (tvl) {
 				for (const { date, totalLiquidityUSD } of tvl) {
 					if (!tvlDictionary[date]) {
@@ -74,7 +75,7 @@ function buildProtocolV1Inflows({
 	extraTvlsEnabled: Record<string, boolean>
 	tokensUnique: string[]
 	datesToDelete: number[]
-	tokenToExclude?: string | null
+	tokenToExclude?: string | null | undefined
 }) {
 	const usdInflows: Record<string, number> = {}
 	const tokenInflows: Record<string, DateValueRow> = {}
@@ -111,6 +112,7 @@ function buildProtocolV1Inflows({
 		for (let i = 1; i < dates.length; i++) {
 			const currentDate = dates[i]
 			const prevDate = dates[i - 1]
+			if (!currentDate || !prevDate) continue
 
 			const currentTokens = tokensByDate[currentDate] || {}
 			const oldTokens = tokensByDate[prevDate] || {}
@@ -190,17 +192,17 @@ function buildProtocolV1Inflows({
 
 			usdInflows[currentDate] = (usdInflows[currentDate] || 0) + dayDifference
 
-			if (!tokenInflows[currentDate]) {
-				tokenInflows[currentDate] = { date: Number(currentDate) }
-			}
+			if (!tokenInflows[currentDate]) tokenInflows[currentDate] = { date: Number(currentDate) }
+			const tokenRow = tokenInflows[currentDate]
+			if (!tokenRow) continue
 			// Merge existing values accumulated from other chains before writing
-			for (const token in tokenInflows[currentDate]) {
+			for (const token in tokenRow) {
 				if (token !== 'date') {
-					tokenDayDifference[token] = (tokenDayDifference[token] || 0) + tokenInflows[currentDate][token]
+					tokenDayDifference[token] = (tokenDayDifference[token] || 0) + (tokenRow[token] ?? 0)
 				}
 			}
 			for (const token in tokenDayDifference) {
-				tokenInflows[currentDate][token] = tokenDayDifference[token]
+				tokenRow[token] = tokenDayDifference[token] ?? 0
 			}
 		}
 	}
@@ -212,13 +214,14 @@ function buildProtocolV1Inflows({
 
 	const usdFlows: Array<[string, number]> = []
 	for (const date in usdInflows) {
-		usdFlows.push([date, usdInflows[date]])
+		usdFlows.push([date, usdInflows[date] ?? 0])
 	}
 	usdFlows.sort((a, b) => Number(a[0]) - Number(b[0]))
 
 	const tokenFlows: DateValueRow[] = []
 	for (const date in tokenInflows) {
-		tokenFlows.push(tokenInflows[date])
+		const row = tokenInflows[date]
+		if (row) tokenFlows.push(row)
 	}
 	tokenFlows.sort((a, b) => a.date - b.date)
 
@@ -329,7 +332,13 @@ function accumulateTokenFlows({
 
 // build unique tokens based on top 10 tokens in usd value on each day
 // also includes tokens with significant flows (outflows/inflows > $100M)
-function getUniqueTokens({ chainTvls, extraTvlsEnabled }) {
+function getUniqueTokens({
+	chainTvls,
+	extraTvlsEnabled
+}: {
+	chainTvls: ChainTvls
+	extraTvlsEnabled: Record<string, boolean>
+}) {
 	const tokenSet: Set<string> = new Set()
 	const tokenFlows: Map<string, number> = new Map()
 	const SIGNIFICANT_FLOW_THRESHOLD = 100_000_000 // $100M
@@ -413,8 +422,15 @@ function storeTokensBreakdown({
 	directory,
 	hideBigTokens = false,
 	dateToTokensInUsd = null as Map<number, Record<string, number>> | null
+}: {
+	date: number
+	tokens: Record<string, number>
+	tokensUniqueSet: Set<string>
+	directory: Record<number, DateValueRow>
+	hideBigTokens?: boolean
+	dateToTokensInUsd?: Map<number, Record<string, number>> | null
 }) {
-	const tokensOfTheDay = {}
+	const tokensOfTheDay: Record<string, number> = {}
 	// filters tokens that have no name or their value is near zero
 	for (const token in tokens) {
 		if (token.startsWith('UNKNOWN') || tokens[token] < 1) continue
@@ -441,7 +457,7 @@ function storeTokensBreakdown({
 		tokensOfTheDay[token] = tokens[token]
 	}
 
-	const tokensToShow = {}
+	const tokensToShow: Record<string, number> = {}
 	let remainingTokensSum = 0
 
 	// split tokens of the day into tokens present in top 10 tokens list and add tvl of remaining tokens into category named 'Others'
@@ -458,18 +474,26 @@ function storeTokensBreakdown({
 		tokensToShow['Others'] = remainingTokensSum
 	}
 
-	const dir = { date, ...(directory[date] ?? {}) }
+	const dir: DateValueRow = { ...(directory[date] ?? {}), date } as DateValueRow
 
 	for (const token in tokensToShow) {
-		dir[token] = (dir[token] || 0) + tokensToShow[token]
+		dir[token] = (dir[token] || 0) + (tokensToShow[token] ?? 0)
 	}
 
 	directory[date] = dir
 }
 
-function buildProtocolV1TokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
-	const tokensInUsd = {}
-	const rawTokens = {}
+function buildProtocolV1TokensBreakdown({
+	chainTvls,
+	extraTvlsEnabled,
+	tokensUnique
+}: {
+	chainTvls: ChainTvls
+	extraTvlsEnabled: Record<string, boolean>
+	tokensUnique: string[]
+}) {
+	const tokensInUsd: Record<number, DateValueRow> = {}
+	const rawTokens: Record<number, DateValueRow> = {}
 	const tokensUniqueSet = new Set(tokensUnique)
 
 	for (const chain in chainTvls) {
@@ -516,27 +540,30 @@ function buildProtocolV1TokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUni
 		}
 	}
 
-	const tokenBreakdownUSD = []
+	const tokenBreakdownUSD: DateValueRow[] = []
 	for (const date in tokensInUsd) {
-		tokenBreakdownUSD.push(tokensInUsd[date])
+		const row = tokensInUsd[date]
+		if (row) tokenBreakdownUSD.push(row)
 	}
 	tokenBreakdownUSD.sort((a, b) => a.date - b.date)
 
-	const tokenBreakdownPieChart = []
+	const tokenBreakdownPieChart: Array<{ name: string; value: number }> = []
 	if (tokenBreakdownUSD.length > 0) {
 		const lastEntry = tokenBreakdownUSD[tokenBreakdownUSD.length - 1]
+		if (!lastEntry) return { tokenBreakdownUSD, tokenBreakdownPieChart: [], tokenBreakdown: [] }
 		for (const name in lastEntry) {
 			if (name !== 'date') {
-				tokenBreakdownPieChart.push({ name, value: lastEntry[name] })
+				tokenBreakdownPieChart.push({ name, value: lastEntry[name] ?? 0 })
 			}
 		}
 	}
 
 	const pieChartData = preparePieChartData({ data: tokenBreakdownPieChart, limit: 15 })
 
-	const tokenBreakdown = []
+	const tokenBreakdown: DateValueRow[] = []
 	for (const date in rawTokens) {
-		tokenBreakdown.push(rawTokens[date])
+		const row = rawTokens[date]
+		if (row) tokenBreakdown.push(row)
 	}
 	tokenBreakdown.sort((a, b) => a.date - b.date)
 
@@ -561,8 +588,11 @@ export const buildProtocolV1AddlChartsData = ({
 		chainTvls = {}
 		for (const chain in protocolData.chainTvls ?? {}) {
 			if (chain.endsWith('-borrowed')) {
-				const chainName = chain.split('-')[0]
-				chainTvls[chainName] = protocolData.chainTvls[chain]
+				const chainName = chain.split('-')[0] ?? chain
+				const borrowedChainData = protocolData.chainTvls?.[chain]
+				if (borrowedChainData) {
+					chainTvls[chainName] = borrowedChainData
+				}
 			}
 		}
 	}
@@ -656,11 +686,14 @@ export const useFetchProtocolV1AddlChartsData = (
 
 	const historicalChainTvls = useMemo(() => {
 		if (isBorrowed) {
-			const chainTvls = {}
+			const chainTvls: Record<string, any> = {}
 			for (const chain in addlProtocolData?.chainTvls ?? {}) {
 				if (chain.endsWith('-borrowed')) {
-					const chainName = chain.split('-')[0]
-					chainTvls[chainName] = addlProtocolData?.chainTvls[chain]
+					const chainName = chain.split('-')[0] ?? chain
+					const borrowedChainData = addlProtocolData?.chainTvls?.[chain]
+					if (borrowedChainData) {
+						chainTvls[chainName] = borrowedChainData
+					}
 				}
 			}
 			return chainTvls

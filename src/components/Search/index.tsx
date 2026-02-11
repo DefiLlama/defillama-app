@@ -318,7 +318,7 @@ const SearchItem = ({
 				<BasicLink
 					href={route.route}
 					shallow={
-						!!(route.subName && route.route.includes('?') && router.asPath.startsWith(route.route.split('?')[0]))
+						!!(route.subName && route.route.includes('?') && router.asPath.startsWith(route.route.split('?')[0] ?? ''))
 					}
 				/>
 			}

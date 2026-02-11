@@ -20,12 +20,12 @@ const DEFAULT_CLASSNAME =
 
 export interface ChartPngExportButtonProps {
 	chartInstance: () => echarts.ECharts | null
-	className?: string
-	smol?: boolean
-	title?: string
-	filename?: string
-	iconUrl?: string
-	expandLegend?: boolean
+	className?: string | undefined
+	smol?: boolean | undefined
+	title?: string | undefined
+	filename?: string | undefined
+	iconUrl?: string | undefined
+	expandLegend?: boolean | undefined
 }
 
 echarts.use([LegendComponent])
@@ -65,7 +65,7 @@ export function ChartPngExportButton({
 			tempContainer.style.top = '0'
 			document.body.appendChild(tempContainer)
 
-			let dataURL: string
+			let dataURL: string | null = null
 			try {
 				// Create a new chart instance on the temporary container
 				const tempChart = echarts.init(tempContainer, null, {
@@ -158,7 +158,7 @@ export function ChartPngExportButton({
 					// @ts-expect-error - all options are in array format
 					currentOptions.graphic = currentOptions.graphic.map((graphic) => {
 						if (graphic.elements) {
-							graphic.elements = graphic.elements.map((element) => {
+							graphic.elements = graphic.elements.map((element: any) => {
 								if (element.style?.image?.startsWith('/assets/defillama-')) {
 									const originalWidth = 389
 									const originalHeight = 133

@@ -26,6 +26,18 @@ import { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics }
 
 type ChartInterval = 'daily' | 'weekly' | 'monthly' | 'cumulative'
 type V2ChartPoint = [string | number, number]
+type DenominationHistoryResponse = { data?: { prices?: Array<[number, number]> } }
+type ProtocolTokenHistoryResponse = { data?: IDenominationPriceHistory }
+type TokenSupplyResponse = { data?: { total_supply?: number | null } }
+type TreasuryResponse = {
+	chainTvls?: Record<string, { tvl?: Array<{ date: string | number; totalLiquidityUSD?: number | null }> }>
+}
+type BridgeVolumeResponse = {
+	dailyVolumes?: Array<{ date: string | number; depositUSD?: number; withdrawUSD?: number }>
+}
+type NftMarketplaceDailyRow = { exchangeName: string; day: string; sumUsd: number }
+type UnlocksAndIncentivesData = Awaited<ReturnType<typeof getProtocolEmissionsCharts>>
+type MedianApyPoint = { date: number | string; medianAPY: number }
 
 const toUnixSeconds = (timestamp: string | number): number | null => {
 	const parsed = Number(timestamp)
@@ -99,13 +111,10 @@ const buildTvlChart = ({
 	for (const date in store) {
 		const dateInSec = Number(date)
 		const dateInMs = Number(date) * 1e3
+		const storeValue = store[date] ?? 0
 		const denominationRate =
 			denominationPriceHistory?.[String(dateInSec)] ?? denominationPriceHistory?.[String(dateInMs)]
-		const finalValue = denominationPriceHistory
-			? denominationRate
-				? store[date] / denominationRate
-				: null
-			: store[date]
+		const finalValue = denominationPriceHistory ? (denominationRate ? storeValue / denominationRate : null) : storeValue
 		if (finalValue !== null) {
 			finalChart.push([dateInMs, finalValue])
 		}
@@ -119,9 +128,12 @@ const buildUsdInflowsFromTvlChart = (tvlChart: Array<[number, number | null]>): 
 
 	const inflows: Array<[number, number]> = []
 	for (let i = 1; i < tvlChart.length; i++) {
-		const [timestamp, value] = tvlChart[i]
-		const previousValue = tvlChart[i - 1][1]
-		if (!Number.isFinite(value) || !Number.isFinite(previousValue)) continue
+		const currentPoint = tvlChart[i]
+		const previousPoint = tvlChart[i - 1]
+		if (!currentPoint || !previousPoint) continue
+		const [timestamp, value] = currentPoint
+		const previousValue = previousPoint[1]
+		if (value == null || previousValue == null || !Number.isFinite(value) || !Number.isFinite(previousValue)) continue
 		inflows.push([Math.floor(timestamp / 1e3), value - previousValue])
 	}
 
@@ -160,20 +172,23 @@ export const useFetchProtocolChartData = ({
 		: null
 
 	const denominationGeckoId = isRouterReady ? (selectedDenomination?.geckoId ?? null) : null
-	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } = useQuery<
-		Record<string, number>
-	>({
+	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } = useQuery<Record<
+		string,
+		number
+	> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'denomination-price-history', denominationGeckoId],
 		queryFn: () =>
-			fetchJson(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`).then((res) => {
-				if (!res.data?.prices?.length) return null
-				const store: Record<string, number> = {}
-				for (const [date, value] of res.data.prices) {
-					store[String(date)] = value
-					store[String(Math.floor(Number(date) / 1e3))] = value
+			fetchJson<DenominationHistoryResponse>(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`).then(
+				(res) => {
+					if (!res.data?.prices?.length) return null
+					const store: Record<string, number> = {}
+					for (const [date, value] of res.data.prices) {
+						store[String(date)] = value
+						store[String(Math.floor(Number(date) / 1e3))] = value
+					}
+					return store
 				}
-				return store
-			}),
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -183,7 +198,7 @@ export const useFetchProtocolChartData = ({
 	const { data: protocolTokenData = null, isLoading: fetchingProtocolTokenData } = useQuery<IDenominationPriceHistory>({
 		queryKey: ['protocol-overview', protocolSlug, 'token-price-history', geckoId],
 		queryFn: () =>
-			fetchJson(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then((res) =>
+			fetchJson<ProtocolTokenHistoryResponse>(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then((res) =>
 				res.data?.prices?.length ? res.data : { prices: [], mcaps: [], volumes: [] }
 			),
 		staleTime: 60 * 60 * 1000,
@@ -199,17 +214,23 @@ export const useFetchProtocolChartData = ({
 		)
 	})
 
-	const { data: tokenTotalSupply = null, isLoading: fetchingTokenTotalSupply } = useQuery({
+	const { data: tokenTotalSupply = null, isLoading: fetchingTokenTotalSupply } = useQuery<number | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'token-supply', geckoId],
-		queryFn: () => fetchJson(`${CACHE_SERVER}/supply/${geckoId}`).then((res) => res.data?.['total_supply']),
+		queryFn: () =>
+			fetchJson<TokenSupplyResponse>(`${CACHE_SERVER}/supply/${geckoId}`).then(
+				(res) => res.data?.['total_supply'] ?? null
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: !!(geckoId && toggledMetrics.fdv === 'true' && isRouterReady)
 	})
-	const { data: tokenLiquidityData = null, isLoading: fetchingTokenLiquidity } = useQuery({
+	const { data: tokenLiquidityData = null, isLoading: fetchingTokenLiquidity } = useQuery<Array<
+		[number, number]
+	> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'token-liquidity', protocolId],
-		queryFn: () => fetchJson(`${TOKEN_LIQUIDITY_API}/${protocolId.replaceAll('#', '$')}`).catch(() => null),
+		queryFn: () =>
+			fetchJson<Array<[number, number]>>(`${TOKEN_LIQUIDITY_API}/${protocolId.replaceAll('#', '$')}`).catch(() => null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -577,31 +598,33 @@ export const useFetchProtocolChartData = ({
 		(metrics.unlocks || metrics.incentives) &&
 		isRouterReady
 	)
-	const { data: unlocksAndIncentivesData = null, isLoading: fetchingUnlocksAndIncentives } = useQuery({
-		queryKey: ['protocol-overview', protocolSlug, 'unlocks'],
-		queryFn: () => (isUnlocksEnabled ? getProtocolEmissionsCharts(slug(name)) : Promise.resolve(null)),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isUnlocksEnabled
-	})
+	const { data: unlocksAndIncentivesData = null, isLoading: fetchingUnlocksAndIncentives } =
+		useQuery<UnlocksAndIncentivesData | null>({
+			queryKey: ['protocol-overview', protocolSlug, 'unlocks'],
+			queryFn: () => (isUnlocksEnabled ? getProtocolEmissionsCharts(slug(name)) : Promise.resolve(null)),
+			staleTime: 60 * 60 * 1000,
+			refetchOnWindowFocus: false,
+			retry: 0,
+			enabled: isUnlocksEnabled
+		})
 
 	const isTreasuryEnabled = !!(toggledMetrics.treasury === 'true' && metrics.treasury && isRouterReady)
-	const { data: treasuryData = null, isLoading: fetchingTreasury } = useQuery({
+	const { data: treasuryData = null, isLoading: fetchingTreasury } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'treasury'],
 		queryFn: () =>
 			isTreasuryEnabled
-				? fetchJson(`${PROTOCOL_TREASURY_API}/${slug(name)}`).then((data) => {
+				? fetchJson<TreasuryResponse>(`${PROTOCOL_TREASURY_API}/${slug(name)}`).then((data) => {
 						const store: Record<string, number> = {}
-						for (const chain in data.chainTvls) {
+						for (const chain in data.chainTvls ?? {}) {
 							if (chain.includes('-')) continue
-							for (const item of data.chainTvls[chain].tvl ?? []) {
-								store[item.date] = (store[item.date] ?? 0) + (item.totalLiquidityUSD ?? 0)
+							for (const item of data.chainTvls?.[chain]?.tvl ?? []) {
+								const dateKey = String(item.date)
+								store[dateKey] = (store[dateKey] ?? 0) + (item.totalLiquidityUSD ?? 0)
 							}
 						}
 						const finalChart: Array<[number, number]> = []
 						for (const date in store) {
-							finalChart.push([+date * 1e3, store[date]])
+							finalChart.push([+date * 1e3, store[date] ?? 0])
 						}
 						return finalChart
 					})
@@ -629,19 +652,20 @@ export const useFetchProtocolChartData = ({
 	const fetchingUsdInflows = false
 
 	const isBridgeVolumeEnabled = !!(toggledMetrics.bridgeVolume === 'true' && isRouterReady)
-	const { data: bridgeVolumeData = null, isLoading: fetchingBridgeVolume } = useQuery({
+	const { data: bridgeVolumeData = null, isLoading: fetchingBridgeVolume } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'bridge-volume'],
 		queryFn: () =>
 			isBridgeVolumeEnabled
-				? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(name)}`)
+				? fetchJson<BridgeVolumeResponse>(`${BRIDGEVOLUME_API_SLUG}/${slug(name)}`)
 						.then((data) => {
 							const store: Record<string, number> = {}
-							for (const item of data.dailyVolumes) {
-								store[item.date] = (store[item.date] ?? 0) + (item.depositUSD + item.withdrawUSD) / 2
+							for (const item of data.dailyVolumes ?? []) {
+								const dateKey = String(item.date)
+								store[dateKey] = (store[dateKey] ?? 0) + ((item.depositUSD ?? 0) + (item.withdrawUSD ?? 0)) / 2
 							}
 							const finalChart: Array<[number, number]> = []
 							for (const date in store) {
-								finalChart.push([+date * 1e3, store[date]])
+								finalChart.push([+date * 1e3, store[date] ?? 0])
 							}
 							return finalChart
 						})
@@ -681,15 +705,15 @@ export const useFetchProtocolChartData = ({
 	)
 
 	const isNftVolumeEnabled = !!(toggledMetrics.nftVolume === 'true' && metrics.nfts && isRouterReady)
-	const { data: nftVolumeData = null, isLoading: fetchingNftVolume } = useQuery({
+	const { data: nftVolumeData = null, isLoading: fetchingNftVolume } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'nft-volume'],
 		queryFn: () =>
 			isNftVolumeEnabled
-				? fetchJson(NFT_MARKETPLACES_VOLUME_API, { timeout: 10_000 })
+				? fetchJson<NftMarketplaceDailyRow[]>(NFT_MARKETPLACES_VOLUME_API, { timeout: 10_000 })
 						.then((r) =>
 							r
 								.filter((item) => slug(item.exchangeName) === slug(name))
-								.map(({ day, sumUsd }) => [new Date(day).getTime(), sumUsd])
+								.map(({ day, sumUsd }) => [new Date(day).getTime(), sumUsd] as [number, number])
 						)
 						.catch(() => [])
 				: Promise.resolve(null),
@@ -955,23 +979,25 @@ export const useFetchProtocolChartData = ({
 				denominationPriceHistory
 			})
 
-		if (isUnlocksToggled && unlocksAndIncentivesData?.chartData?.documented.length > 0) {
+		const documentedUnlocks = unlocksAndIncentivesData?.chartData.documented ?? []
+		if (isUnlocksToggled && documentedUnlocks.length > 0) {
 			const store: Record<string, number> = {}
-			for (const { timestamp, ...rest } of unlocksAndIncentivesData.chartData.documented) {
+			for (const { timestamp, ...rest } of documentedUnlocks) {
 				const dateSec = Math.floor(timestamp / 1e3)
 				const dateKey = isWeekly ? lastDayOfWeek(dateSec) : isMonthly ? firstDayOfMonth(dateSec) : dateSec
 				let total = 0
-				for (const label in rest) total += rest[label]
+				for (const label in rest) total += rest[label] ?? 0
 				store[dateKey] = (store[dateKey] ?? 0) + total
 			}
 			charts['Unlocks'] = Object.entries(store).map(([date, value]) => [+date * 1e3, value] as [number, number])
 		}
 
-		if (isIncentivesToggled && unlocksAndIncentivesData?.unlockUsdChart) {
-			const nonZeroIndex = unlocksAndIncentivesData.unlockUsdChart.findIndex(([_, value]) => value > 0)
+		const unlockUsdChart = (unlocksAndIncentivesData?.unlockUsdChart ?? null) as Array<[number, number]> | null
+		if (isIncentivesToggled && unlockUsdChart) {
+			const nonZeroIndex = unlockUsdChart.findIndex(([_, value]) => value > 0)
 			const startIndex = nonZeroIndex === -1 ? 0 : nonZeroIndex
 			charts['Incentives'] = formatBarChart({
-				data: unlocksAndIncentivesData.unlockUsdChart.slice(startIndex),
+				data: unlockUsdChart.slice(startIndex),
 				groupBy,
 				denominationPriceHistory
 			})
@@ -992,7 +1018,7 @@ export const useFetchProtocolChartData = ({
 
 		if (medianAPYData)
 			charts['Median APY'] = formatLineChart({
-				data: medianAPYData.map((item) => [+item.date * 1e3, item.medianAPY]),
+				data: (medianAPYData as MedianApyPoint[]).map((item) => [+item.date * 1e3, item.medianAPY]),
 				groupBy,
 				dateInMs: true,
 				denominationPriceHistory: null
@@ -1010,7 +1036,8 @@ export const useFetchProtocolChartData = ({
 				}
 				for (const item of gItem.maxVotes ?? []) {
 					const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
-					maxVotes[date] = (maxVotes[date] ?? 0) + (item['Max Votes'] || 0)
+					const votes = Number(item['Max Votes'] ?? 0)
+					maxVotes[date] = (maxVotes[date] ?? 0) + (Number.isFinite(votes) ? votes : 0)
 				}
 			}
 			charts['Total Proposals'] = Object.entries(totalProposals).map(

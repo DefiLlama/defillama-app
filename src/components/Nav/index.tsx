@@ -7,6 +7,15 @@ import { BasicLink } from '../Link'
 import { DesktopNav } from './Desktop'
 import { TNavLinks, TOldNavLink } from './types'
 
+type NavPageEntry = {
+	name: string
+	route: string
+	oldCategory?: string
+	oldName?: string
+}
+
+const pagesByCategory = defillamaPages as Record<string, NavPageEntry[]>
+
 const MobileNav = lazy(() => import('./Mobile').then((m) => ({ default: m.MobileNav })))
 const MobileFallback = () => {
 	return (
@@ -28,20 +37,26 @@ const MobileFallback = () => {
 
 const footerLinks = ['More', 'About Us'].map((category) => ({
 	category,
-	pages: defillamaPages[category]
+	pages: pagesByCategory[category] ?? []
 })) as TNavLinks
 
 const oldMetricLinks: Array<TOldNavLink> = Object.values(
-	[...defillamaPages['Metrics'], ...defillamaPages['Tools']].reduce((acc, curr) => {
-		if (curr.oldCategory) {
-			acc[curr.oldCategory] = acc[curr.oldCategory] || { name: curr.oldCategory, pages: [] }
-			acc[curr.oldCategory].pages.push({ name: curr.oldName, route: curr.route })
-		}
-		if (curr.oldName && !curr.oldCategory) {
-			acc[curr.oldName] = acc[curr.oldName] || { name: curr.oldName, route: curr.route }
-		}
-		return acc
-	}, {})
+	[...(pagesByCategory['Metrics'] ?? []), ...(pagesByCategory['Tools'] ?? [])].reduce<Record<string, TOldNavLink>>(
+		(acc, curr: NavPageEntry) => {
+			if (curr.oldCategory) {
+				const categoryKey = curr.oldCategory
+				acc[categoryKey] = acc[categoryKey] || { name: categoryKey, pages: [] }
+				const categoryEntry = acc[categoryKey]
+				if (!categoryEntry.pages) categoryEntry.pages = []
+				categoryEntry.pages.push({ name: curr.oldName ?? '', route: curr.route })
+			}
+			if (curr.oldName && !curr.oldCategory) {
+				acc[curr.oldName] = acc[curr.oldName] || { name: curr.oldName, route: curr.route }
+			}
+			return acc
+		},
+		{}
+	)
 )
 
 function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
@@ -66,13 +81,13 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 			{ name: 'LlamaFeed', route: 'https://llamafeed.io', icon: 'activity', umamiEvent: 'nav-llamafeed-click' }
 		]
 		return [
-			{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) },
+			{ category: 'Main', pages: (pagesByCategory['Main'] ?? []).concat(otherMainPages) },
 			{ category: 'Premium', pages: premiumPages }
 		]
 	}, [hasActiveSubscription])
 
 	const userDashboards = useMemo(
-		() => liteDashboards?.map(({ id, name }) => ({ name, route: `/pro/${id}` })) ?? [],
+		() => liteDashboards?.map(({ id, name }: any) => ({ name, route: `/pro/${id}` })) ?? [],
 		[liteDashboards]
 	)
 	const pinnedMetrics = useSyncExternalStore(
@@ -88,9 +103,9 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 		if (!Array.isArray(parsedMetrics) || parsedMetrics.length === 0) return []
 
 		// Create a lookup map for faster access
-		const routeToPageMap = new Map()
-		for (const category in defillamaPages) {
-			const pages = defillamaPages[category]
+		const routeToPageMap = new Map<string, { name: string; route: string }>()
+		for (const category in pagesByCategory) {
+			const pages = pagesByCategory[category] ?? []
 			for (const page of pages) {
 				routeToPageMap.set(page.route, { name: page.name, route: page.route })
 			}
@@ -117,7 +132,7 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 					pinnedPages={pinnedPages}
 					userDashboards={userDashboards}
 					footerLinks={footerLinks}
-					metricFilters={metricFilters}
+					{...(metricFilters ? { metricFilters } : {})}
 					oldMetricLinks={oldMetricLinks}
 				/>
 			</Suspense>

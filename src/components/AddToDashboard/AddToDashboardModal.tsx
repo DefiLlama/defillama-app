@@ -78,7 +78,11 @@ export function AddToDashboardModal({
 	const filteredDashboards = useMemo(() => {
 		if (!search.trim()) return dashboards
 		const q = search.toLowerCase()
-		return dashboards.filter((d) => d.name.toLowerCase().includes(q))
+		return dashboards.filter((d: Dashboard) =>
+			String((d as any).name ?? (d as any).dashboardName ?? '')
+				.toLowerCase()
+				.includes(q)
+		)
 	}, [dashboards, search])
 
 	const configName = getConfigName(chartConfig, llamaAIChart)
@@ -205,7 +209,7 @@ export function AddToDashboardModal({
 					;(window as any).umami.track('add-to-dashboard-submit', { type: 'existing-dashboard' })
 				}
 
-				const selected = dashboards.find((d) => d.id === selectedDashboardId)
+				const selected = dashboards.find((d: Dashboard) => d.id === selectedDashboardId)
 
 				toast.success(
 					<div>
@@ -275,7 +279,7 @@ export function AddToDashboardModal({
 					<p className="py-4 text-center text-sm pro-text3">No matches found</p>
 				) : (
 					<div className="space-y-1">
-						{filteredDashboards.map((dashboard) => (
+						{filteredDashboards.map((dashboard: Dashboard) => (
 							<button
 								key={dashboard.id}
 								type="button"
@@ -291,7 +295,9 @@ export function AddToDashboardModal({
 								>
 									{selectedDashboardId === dashboard.id && <Icon name="check" className="h-2.5 w-2.5 text-white" />}
 								</div>
-								<span className="truncate">{dashboard.name}</span>
+								<span className="truncate">
+									{String((dashboard as any).name ?? (dashboard as any).dashboardName ?? '')}
+								</span>
 							</button>
 						))}
 					</div>

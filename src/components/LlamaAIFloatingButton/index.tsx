@@ -116,9 +116,9 @@ export function LlamaAIFloatingButton() {
 
 			setPendingPrompt(prompt)
 			setPendingPageContext({
-				entitySlug: entityContext?.entitySlug,
-				entityType: entityContext?.entityType,
-				route: router.asPath
+				route: router.asPath,
+				...(entityContext?.entitySlug ? { entitySlug: entityContext.entitySlug } : {}),
+				...(entityContext?.entityType ? { entityType: entityContext.entityType } : {})
 			})
 			router.push('/ai/chat')
 			setIsOpen(false)

@@ -50,7 +50,7 @@ function formatAxisLabel(value: number, symbol: string): string {
 		return `${base} ${symbol}`
 	}
 
-	return formatNum(value, 5, symbol || undefined)
+	return formatNum(value, 5, symbol || undefined) ?? ''
 }
 
 type GroupBy = NonNullable<IMultiSeriesChart2Props['groupBy']>
@@ -143,12 +143,13 @@ function buildSeries({
 	const chartsList = effectiveCharts ?? []
 	for (let i = 0; i < chartsList.length; i++) {
 		const chart = chartsList[i]
+		if (!chart) continue
 		if (selectedCharts && !selectedCharts.has(chart.name)) continue
 		if (chart.yAxisIndex != null) someSeriesHasYAxisIndex = true
 
 		// If a chart doesn't provide an explicit color, we still need a stable color
 		// so the area gradient doesn't default to theme background (and become invisible).
-		const resolvedColor = chart.color ?? CHART_COLORS[i % CHART_COLORS.length]
+		const resolvedColor = chart.color ?? CHART_COLORS[i % CHART_COLORS.length] ?? CHART_COLORS[0] ?? '#4e79a7'
 		const showSymbol = chart.type === 'line' ? !!chart.showSymbol : false
 		const symbol = showSymbol ? (chart.symbol ?? 'circle') : 'none'
 		// ECharts large mode disables symbols; default to disabling large mode when symbols are requested.
@@ -359,9 +360,10 @@ function createTooltipFormatter({
 }: {
 	groupBy: GroupBy
 	valueSymbol: string
-	seriesSymbols?: Map<string, string>
-	maxItems?: number
+	seriesSymbols?: Map<string, string> | undefined
+	maxItems?: number | undefined
 }) {
+	type TooltipRow = readonly [string, string, number, string, boolean]
 	return (params: any) => {
 		const items = Array.isArray(params) ? params : params ? [params] : []
 		if (items.length === 0) return ''
@@ -383,7 +385,7 @@ function createTooltipFormatter({
 				const hasOverride = seriesSymbols?.has(name) ?? false
 				return [item.marker, name, value, symbol, hasOverride] as const
 			})
-			.filter(Boolean)
+			.filter((item): item is TooltipRow => item !== null)
 			// Series with per-series symbol overrides (e.g. Price, Market Cap) sort to the top,
 			// then by value descending within each group.
 			.sort((a, b) => {
@@ -543,8 +545,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 					type: 'line' as const,
 					name,
 					encode: { x: 'timestamp', y: name },
-					color: CHART_COLORS[i % CHART_COLORS.length],
-					yAxisIndex: undefined,
+					color: CHART_COLORS[i % CHART_COLORS.length] ?? CHART_COLORS[0] ?? '#4e79a7',
 					...(stacked ? { stack: 'A' } : {})
 				}))
 			: charts
@@ -869,17 +870,17 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		<ChartContainer
 			id={id}
 			chartClassName="h-[360px]"
-			chartStyle={height ? { height } : undefined}
+			{...(height ? { chartStyle: { height } } : {})}
 			header={
 				title || shouldEnableCSVDownload || shouldEnableImageExport ? (
 					<ChartHeader
-						title={title}
+						{...(title ? { title } : {})}
 						className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0"
 						exportButtons={
 							<ChartExportButtons
 								chartInstance={chartInstance}
 								filename={exportFilename}
-								title={exportTitle}
+								{...(exportTitle ? { title: exportTitle } : {})}
 								showCsv={shouldEnableCSVDownload}
 								showPng={shouldEnableImageExport}
 							/>
