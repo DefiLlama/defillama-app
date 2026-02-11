@@ -319,11 +319,7 @@ export function AdapterByChain(props: IProps) {
 		return { filename: `${props.type}-${props.chain}-protocols.csv`, rows: [header, ...csvdata] }
 	}
 
-	const metricName = ['Fees', 'Revenue', 'Holders Revenue', 'Open Interest'].includes(props.type)
-		? props.type
-		: props.type.includes('Volume')
-			? props.type
-			: `${props.type} Volume`
+	const metricName = props.type
 	const columnsKey = `columns-${props.type}`
 
 	const setColumnOptions = (newOptions: string[]) => {
@@ -390,6 +386,17 @@ export function AdapterByChain(props: IProps) {
 									<span className="ml-auto font-jetbrains">{formattedNum(props.openInterest, true)}</span>
 								</p>
 							) : null}
+							{props.activeLiquidity != null ? (
+								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+									<Tooltip
+										content={definitions.activeLiquidity.chain}
+										className="text-(--text-label) underline decoration-dotted"
+									>
+										Active Liquidity
+									</Tooltip>
+									<span className="ml-auto font-jetbrains">{formattedNum(props.activeLiquidity, true)}</span>
+								</p>
+							) : null}
 							{props.total30d != null ? (
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 									{pageTypeByDefinition[props.type]?.['30d'] ? (
@@ -427,9 +434,8 @@ export function AdapterByChain(props: IProps) {
 					<AdapterByChainChart
 						chartData={props.chartData}
 						adapterType={props.adapterType}
-						dataType={props.dataType}
 						chain={props.chain}
-						chartName={metricName}
+						chartName={props.type}
 					/>
 				</div>
 			) : null}
@@ -476,7 +482,6 @@ export function AdapterByChain(props: IProps) {
 					{SUPPORTED_OLD_VIEWS.includes(props.type) ? <FullOldViewButton /> : null}
 					<CSVDownloadButton prepareCsv={prepareCsv} />
 				</div>
-
 				<VirtualTable instance={instance} rowSize={64} compact />
 			</div>
 		</>
@@ -491,8 +496,28 @@ const columnSizes: ColumnSizesByBreakpoint = {
 }
 
 const columnOrders: ColumnOrdersByBreakpoint = {
-	0: ['name', 'total24h', 'open_interest', 'total7d', 'total30d', 'category', 'definition'],
-	640: ['name', 'category', 'definition', 'total24h', 'open_interest', 'total7d', 'total30d']
+	0: [
+		'name',
+		'normalizedVolume24h',
+		'total24h',
+		'openInterest',
+		'activeLiquidity',
+		'total7d',
+		'total30d',
+		'category',
+		'definition'
+	],
+	640: [
+		'name',
+		'normalizedVolume24h',
+		'category',
+		'definition',
+		'total24h',
+		'openInterest',
+		'activeLiquidity',
+		'total7d',
+		'total30d'
+	]
 }
 
 const protocolChartsKeys: Partial<Record<IProps['type'], (typeof protocolCharts)[keyof typeof protocolCharts]>> = {
@@ -992,8 +1017,29 @@ const getColumnsByType = (
 		'Perp Volume': [
 			NameColumn('Perp Volume'),
 			{
+				header: 'Normalized Volume 24h',
+				id: 'normalizedVolume24h',
+				accessorFn: (protocol) => protocol.normalizedVolume24h,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
+				meta: {
+					align: 'center',
+					headerHelperText: definitions.normalizedVolume.protocol['24h']
+				},
+				size: 180
+			},
+			{
 				id: 'total24h',
-				header: 'Perp Volume 24h',
+				header: 'Reported Volume 24h',
 				accessorFn: (protocol) => protocol.total24h,
 				cell: (info) => {
 					if (info.getValue() == null) return null
@@ -1030,9 +1076,19 @@ const getColumnsByType = (
 			},
 			{
 				header: 'Open Interest',
-				id: 'open_interest',
+				id: 'openInterest',
 				accessorFn: (protocol) => protocol.openInterest,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its open interest is excluded from totals to avoid double-counting the underlying protocol's open interest" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.openInterest.protocol
@@ -1041,7 +1097,7 @@ const getColumnsByType = (
 			},
 			{
 				id: 'total7d',
-				header: 'Perp Volume 7d',
+				header: 'Reported Volume 7d',
 				accessorFn: (protocol) => protocol.total7d,
 				cell: (info) => {
 					if (info.getValue() == null) return null
@@ -1078,7 +1134,7 @@ const getColumnsByType = (
 			},
 			{
 				id: 'total30d',
-				header: 'Perp Volume 30d',
+				header: 'Reported Volume 30d',
 				accessorFn: (protocol) => protocol.total30d,
 				cell: (info) => {
 					if (info.getValue() == null) return null
@@ -1164,6 +1220,27 @@ const getColumnsByType = (
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.normalizedVolume.protocol['24h']
+				},
+				size: 160
+			},
+			{
+				id: 'activeLiquidity',
+				header: 'Active Liquidity',
+				accessorFn: (protocol) => protocol.activeLiquidity,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its active liquidity is excluded from totals to avoid double-counting the underlying protocol's active liquidity" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
+				meta: {
+					align: 'center',
+					headerHelperText: definitions.activeLiquidity.protocol
 				},
 				size: 160
 			},

@@ -160,7 +160,7 @@ export function SelectWithCombobox({
 									key={valuesAreAnArrayOfStrings ? option : option.key}
 									render={<Ariakit.SelectItem value={valuesAreAnArrayOfStrings ? option : option.key} />}
 									hideOnClick={false}
-									className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+									className="flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 								>
 									{valuesAreAnArrayOfStrings ? (
 										<span>{option}</span>
@@ -170,12 +170,15 @@ export function SelectWithCombobox({
 											<Icon name="help-circle" height={15} width={15} />
 										</Tooltip>
 									) : (
-										<span>{option.name}</span>
+										<span className="inline-flex items-center gap-1.5">
+											{option.name}
+											{option.icon}
+										</span>
 									)}
 									{showCheckboxes ? (
-										<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+										<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
 									) : (
-										<Ariakit.SelectItemCheck />
+										<Ariakit.SelectItemCheck className="ml-auto" />
 									)}
 								</NestedMenuItem>
 							))}
@@ -283,7 +286,7 @@ export function SelectWithCombobox({
 										<Ariakit.SelectItem
 											key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
 											value={valuesAreAnArrayOfStrings ? option : option.key}
-											className="group flex shrink-0 cursor-pointer items-center gap-2 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md last-of-type:border-b-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+											className="group flex shrink-0 cursor-pointer items-center justify-start gap-2 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md last-of-type:border-b-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 											render={<Ariakit.ComboboxItem />}
 										>
 											{valuesAreAnArrayOfStrings ? (
@@ -294,7 +297,10 @@ export function SelectWithCombobox({
 													<Icon name="help-circle" height={15} width={15} />
 												</Tooltip>
 											) : (
-												<span>{option.name}</span>
+												<span className="inline-flex items-center gap-1.5">
+													{option.name}
+													{option.icon}
+												</span>
 											)}
 											{isCustom && typeof option.customIndex === 'number' && (
 												<span className="ml-2 flex gap-1">

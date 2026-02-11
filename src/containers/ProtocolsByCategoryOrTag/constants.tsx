@@ -264,5 +264,9 @@ export const protocolCategories = {
 	},
 	'Stablecoin Wrapper': {
 		description: 'Protocols that lock an existing stablecoin and mint a 1:1 redeemable on-chain wrapper token'
+	},
+	'Crypto Card Issuer': {
+		description:
+			'Protocols that issue crypto-linked debit or credit cards for spending through traditional payment networks'
 	}
 } as const satisfies Record<string, { description: string; defaultChart?: ProtocolChartsQueryParams }>

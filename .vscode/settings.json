@@ -10,5 +10,15 @@
 	},
 	"[javascript]": {
 		"editor.defaultFormatter": "oxc.oxc-vscode"
-	}
+	},
+	"[html]": {
+		"editor.defaultFormatter": "oxc.oxc-vscode"
+	},
+	"[json]": {
+		"editor.defaultFormatter": "oxc.oxc-vscode"
+	},
+	"[jsonc]": {
+		"editor.defaultFormatter": "oxc.oxc-vscode"
+	},
+	"tailwindCSS.experimental.configFile": "src/tailwind.css"
 }

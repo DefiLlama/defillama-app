@@ -20,7 +20,10 @@ async function submitSupportRequest(formData: FormData) {
 function Support() {
 	const { mutateAsync, isPending, error } = useMutation({ mutationFn: submitSupportRequest })
 	const [isSubmitted, setIsSubmitted] = React.useState(false)
+	const [showForm, setShowForm] = React.useState(false)
 	const [frontChatReady, setFrontChatReady] = React.useState(false)
+	const [chatLoading, setChatLoading] = React.useState(false)
+	const frontChatInitialized = React.useRef(false)
 
 	const onSubmit = async (e) => {
 		e.preventDefault()
@@ -55,24 +58,26 @@ function Support() {
 
 	const { userHash, email } = useUserHash()
 
-	React.useEffect(() => {
+	const openLiveChat = React.useCallback(() => {
 		if (!frontChatReady || !userHash) return
 		if (typeof window === 'undefined' || !(window as any).FrontChat) return
 
 		const frontChat = (window as any).FrontChat
-		const lastUserHash = (window as any).__frontChatUserHash
 
-		if (lastUserHash === userHash) {
+		if (frontChatInitialized.current) {
 			frontChat('show')
 			return
 		}
 
+		setChatLoading(true)
+		frontChatInitialized.current = true
 		;(window as any).__frontChatUserHash = userHash
 		frontChat('init', {
 			chatId: '6fec3ab74da2261df3f3748a50dd3d6a',
-			shouldShowWindowOnLaunch: true, // open immediately
-			shouldExpandOnShowWindow: true, // start expanded
+			shouldShowWindowOnLaunch: true,
+			shouldExpandOnShowWindow: true,
 			onInitCompleted: () => {
+				setChatLoading(false)
 				frontChat('show')
 			},
 			email,
@@ -83,6 +88,7 @@ function Support() {
 	React.useEffect(() => {
 		if (userHash) return
 		setFrontChatReady(false)
+		frontChatInitialized.current = false
 	}, [userHash])
 
 	return (
@@ -102,73 +108,106 @@ function Support() {
 			) : null}
 
 			<div className="mx-auto flex w-full max-w-lg flex-col gap-4 lg:mt-4 xl:mt-11 xl:ml-[calc(228px-16px)]">
-				{isSubmitted ? (
-					<SuccessScreen setIsSubmitted={setIsSubmitted} />
-				) : (
-					<form
-						onSubmit={onSubmit}
-						className="flex w-full flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
+				<h1 className="text-center text-xl font-semibold">Support</h1>
+
+				<div className="flex flex-col gap-3">
+					<a
+						href="mailto:support@defillama.com"
+						className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4 text-center hover:bg-(--link-hover-bg)/10"
 					>
-						<h1 className="mb-3 text-center text-xl font-semibold">Support</h1>
+						<span className="font-semibold">Email Us</span>
+						<span className="text-sm text-gray-500">support@defillama.com</span>
+					</a>
 
-						<p className="text-center">{`For a faster response${userHash && email ? ' use the live chat on bottom right, or ' : ', '}email us directly`}</p>
-						<a
-							href="mailto:support@defillama.com"
-							className="rounded-md bg-(--link-active-bg) p-3 text-center text-white"
+					<button
+						onClick={() => setShowForm((p) => !p)}
+						className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4 text-center hover:bg-(--link-hover-bg)/10"
+					>
+						<span className="font-semibold">Submit a Form</span>
+						<span className="text-sm text-gray-500">Don't want to share your email? Use our anonymous form</span>
+					</button>
+
+					<button
+						onClick={openLiveChat}
+						disabled={!userHash || chatLoading}
+						className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4 text-center hover:bg-(--link-hover-bg)/10 disabled:cursor-not-allowed disabled:opacity-50"
+					>
+						<span className="flex items-center justify-center gap-2 font-semibold">
+							{chatLoading ? (
+								<>
+									<svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+										<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+										<path
+											className="opacity-75"
+											fill="currentColor"
+											d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+										/>
+									</svg>
+									Opening Chat...
+								</>
+							) : (
+								'Live Chat'
+							)}
+						</span>
+						<span className="text-sm text-gray-500">
+							{chatLoading ? 'Please wait' : userHash ? 'Chat with us in real time' : 'Available for paying customers'}
+						</span>
+					</button>
+				</div>
+
+				{showForm &&
+					(isSubmitted ? (
+						<SuccessScreen setIsSubmitted={setIsSubmitted} />
+					) : (
+						<form
+							onSubmit={onSubmit}
+							className="flex w-full flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
 						>
-							Email Us
-						</a>
+							<label className="flex flex-col gap-1">
+								<span className="flex items-center gap-1">
+									<span>Name</span>
+									<span className="mt-[2px] text-xs text-gray-500">(Optional)</span>
+								</span>
+								<input
+									type="text"
+									name="name"
+									className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
+								/>
+							</label>
 
-						<p className="mt-4 text-center">
-							Don't want to share your email? Use the form below to submit a support request
-						</p>
-						<hr className="border-black/20 dark:border-white/20" />
+							<label className="flex flex-col gap-1">
+								<span className="flex items-center gap-1">
+									<span>Email</span>
+									<span className="mt-[2px] text-xs text-gray-500">(Optional)</span>
+								</span>
+								<input
+									type="email"
+									name="email"
+									className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
+								/>
+							</label>
 
-						<label className="flex flex-col gap-1">
-							<span className="flex items-center gap-1">
-								<span>Name</span>
-								<span className="mt-[2px] text-xs text-gray-500">(Optional)</span>
-							</span>
-							<input
-								type="text"
-								name="name"
-								className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
-							/>
-						</label>
+							<label className="flex flex-col gap-1">
+								<span>Description</span>
+								<textarea
+									name="body"
+									required
+									className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
+								></textarea>
+							</label>
 
-						<label className="flex flex-col gap-1">
-							<span className="flex items-center gap-1">
-								<span>Email</span>
-								<span className="mt-[2px] text-xs text-gray-500">(Optional)</span>
-							</span>
-							<input
-								type="email"
-								name="email"
-								className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
-							/>
-						</label>
+							<button
+								name="submit-btn"
+								disabled={isPending}
+								className="mt-3 rounded-md bg-(--link-bg) p-3 text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:opacity-50"
+							>
+								{isPending ? 'Submitting...' : 'Submit'}
+							</button>
+							{error && <small className="text-center text-red-500">{error.message}</small>}
+						</form>
+					))}
 
-						<label className="flex flex-col gap-1">
-							<span>Description</span>
-							<textarea
-								name="body"
-								required
-								className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
-							></textarea>
-						</label>
-
-						<button
-							name="submit-btn"
-							disabled={isPending}
-							className="mt-3 rounded-md bg-(--link-bg) p-3 text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:opacity-50"
-						>
-							{isPending ? 'Submitting...' : 'Submit'}
-						</button>
-						{error && <small className="text-center text-red-500">{error.message}</small>}
-					</form>
-				)}
-
-				<p className="text-center">
+				<p className="text-center text-sm text-gray-500">
 					Contacting us via these channels ensures a much faster response compared to discord
 				</p>
 			</div>

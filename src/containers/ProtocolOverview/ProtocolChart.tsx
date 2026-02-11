@@ -351,6 +351,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 						</div>
 					) : null}
 					<EmbedChart />
+					<AddToDashboardButton chartConfig={multiChart} unsupportedMetrics={unsupportedMetrics} smol />
 					<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					<ChartPngExportButton
 						chartInstance={overviewChartInstance}
@@ -358,7 +359,6 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 						title={overviewImageTitle}
 						iconUrl={tokenIconUrl(props.name)}
 					/>
-					<AddToDashboardButton chartConfig={multiChart} unsupportedMetrics={unsupportedMetrics} smol />
 				</div>
 			</div>
 			<div className="flex min-h-[360px] flex-col">

@@ -44,22 +44,60 @@ interface IPegged {
 	delisted?: boolean
 }
 
-interface GroupChainPegged extends IPegged {
-	subChains: IPegged[]
+type StablecoinCirculatingInput = {
+	name: string
+	circulating?: number | null
+	unreleased?: number | null
+	pegType?: string | null
+	pegDeviation?: number | null
+	mcap?: number | null
+	delisted?: boolean
 }
 
-type Bridge = {
+type StablecoinCirculatingOutput<T extends StablecoinCirculatingInput> = T & {
+	circulating: number
+	unreleased: number
+	pegType: string
+	pegDeviation: number | null
+	depeggedTwoPercent: boolean
+	floatingPeg: boolean
+}
+
+type StablecoinBridgeInfo = {
 	name: string
 	link?: string
 }
 
+type StablecoinUsageByChainBase = Omit<
+	StablecoinCirculatingOutput<IPegged>,
+	'bridgedAmount' | 'change_1d' | 'change_7d' | 'change_1m'
+> & {
+	bridgedAmount: string | number | null
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+}
+
+type StablecoinUsageByChainRow = StablecoinUsageByChainBase & {
+	bridgeInfo: StablecoinBridgeInfo
+	subRows?: StablecoinUsageByChainRow[]
+}
+
 type BridgeInfo = {
-	[bridgeID: string]: Bridge
+	[bridgeID: string]: StablecoinBridgeInfo
 }
 
 interface IChainTvl {
 	[key: string]: number
 }
+
+interface IStackedCirculatingValue {
+	circulating: number
+	unreleased?: number
+}
+
+type IStackedDatasetPoint = [string | number, Record<string, IStackedCirculatingValue>]
+type IExtraPeggedByDayPoint = { date: number } & Record<string, number>
 
 type DataValue = number | null
 
@@ -67,77 +105,82 @@ interface IGroupData {
 	[key: string]: Record<string, string[]>
 }
 
-export const useCalcCirculating = (filteredPeggedAssets: IPegged[]) => {
-	const [extraPeggedEnabled] = useLocalStorageSettingsManager('stablecoins')
+export const useCalcCirculating = <T extends StablecoinCirculatingInput = IPegged>(
+	filteredPeggedAssets: T[],
+	includeUnreleased?: boolean
+): StablecoinCirculatingOutput<T>[] => {
+	const shouldIncludeUnreleased = Boolean(includeUnreleased)
 
-	const peggedAssetTotals = useMemo(() => {
-		const updatedPeggedAssets = filteredPeggedAssets.map(
-			({ circulating, unreleased, pegType, pegDeviation, ...props }) => {
-				if (extraPeggedEnabled['unreleased'] && unreleased) {
-					circulating += unreleased
-				}
+	const peggedAssetTotals = useMemo<StablecoinCirculatingOutput<T>[]>(() => {
+		const updatedPeggedAssets = filteredPeggedAssets.map((asset) => {
+			const unreleased = Number(asset.unreleased ?? 0)
+			const pegType = asset.pegType ?? ''
+			const rawPegDeviation = asset.pegDeviation
+			const numericPegDeviation =
+				typeof rawPegDeviation === 'number' ? rawPegDeviation : rawPegDeviation != null ? Number(rawPegDeviation) : null
+			const pegDeviation = Number.isFinite(numericPegDeviation) ? numericPegDeviation : null
 
-				let floatingPeg = false
-				if (pegType === 'peggedVAR') {
-					floatingPeg = true
-				}
-
-				let depeggedTwoPercent = false
-				if (2 < Math.abs(pegDeviation)) {
-					depeggedTwoPercent = true
-				}
-
-				return {
-					circulating,
-					unreleased,
-					pegType,
-					pegDeviation,
-					depeggedTwoPercent,
-					floatingPeg,
-					...props
-				}
+			let circulating = Number(asset.circulating ?? 0)
+			if (shouldIncludeUnreleased && unreleased) {
+				circulating += unreleased
 			}
-		)
 
-		return updatedPeggedAssets.sort((a, b) => b.mcap - a.mcap).filter((pegged) => !pegged.delisted)
-	}, [filteredPeggedAssets, extraPeggedEnabled])
+			const floatingPeg = pegType === 'peggedVAR'
+			const depeggedTwoPercent = pegDeviation != null && 2 < Math.abs(pegDeviation)
+
+			return {
+				...asset,
+				circulating,
+				unreleased,
+				pegType,
+				pegDeviation,
+				depeggedTwoPercent,
+				floatingPeg
+			} as StablecoinCirculatingOutput<T>
+		})
+
+		return updatedPeggedAssets
+			.sort((a, b) => Number(b.mcap ?? 0) - Number(a.mcap ?? 0))
+			.filter((pegged) => !pegged.delisted)
+	}, [filteredPeggedAssets, shouldIncludeUnreleased])
 
 	return peggedAssetTotals
 }
 
 // returns circulating by day for a group of tokens
-export const useCalcGroupExtraPeggedByDay = (chains) => {
-	const [extraPeggedEnabled] = useLocalStorageSettingsManager('stablecoins')
+export const useCalcGroupExtraPeggedByDay = (chains: IStackedDatasetPoint[], includeUnreleased?: boolean) => {
+	const shouldIncludeUnreleased = Boolean(includeUnreleased)
 
 	const { data, daySum } = useMemo(() => {
-		const daySum = {}
+		const daySum: Record<number, number> = {}
 
 		const data = chains.map(([date, values]) => {
+			const dateNumber = Number(date)
 			const circulatings: IChainTvl = {}
 			let totalDaySum = 0
 			for (const name in values) {
-				const chainCirculating = values[name] as IChainTvl
+				const chainCirculating = values[name]
 				let sum = chainCirculating.circulating
 				totalDaySum += chainCirculating.circulating
-				if (extraPeggedEnabled['unreleased'] && chainCirculating.unreleased) {
+				if (shouldIncludeUnreleased && chainCirculating.unreleased) {
 					sum += chainCirculating.unreleased
 					totalDaySum += chainCirculating.unreleased
 				}
 
 				circulatings[name] = sum
 			}
-			daySum[date] = totalDaySum
-			return { date, ...circulatings }
+			daySum[dateNumber] = totalDaySum
+			return { date: dateNumber, ...circulatings }
 		})
 		return { data, daySum }
-	}, [chains, extraPeggedEnabled])
+	}, [chains, shouldIncludeUnreleased])
 
 	const dataWithExtraPeggedAndDominanceByDay = useMemo(() => {
-		return data.map(({ date, ...values }) => {
-			const shares = {}
+		return data.map(({ date, ...values }): IExtraPeggedByDayPoint => {
+			const shares: Record<string, number> = {}
 
 			for (const value in values) {
-				shares[value] = getDominancePercent(values[value], daySum[date])
+				shares[value] = getDominancePercent(values[value], daySum[date] ?? 0) ?? 0
 			}
 
 			return { date, ...shares }
@@ -147,34 +190,35 @@ export const useCalcGroupExtraPeggedByDay = (chains) => {
 	return { data, daySum, dataWithExtraPeggedAndDominanceByDay }
 }
 
-interface IChainData {
+interface StablecoinsChainsRow {
 	name: string
 	mcap: number | null
 	unreleased: number | null
 	bridgedTo: number | null
 	minted: number | null
-	dominance?: { name: string; value: number } | null
+	dominance?: { name: string; value: number | string | null } | null
+	change_1d?: number | null
+	change_7d?: number | null
+	change_1m?: number | null
 	mcaptvl?: number | null
-	subRows?: IChainData[]
+	subRows?: StablecoinsChainsRow[]
 }
 
-export const useGroupChainsPegged = (chains: IChainData[], groupData: IGroupData): GroupChainPegged[] => {
+export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: IGroupData): StablecoinsChainsRow[] => {
 	const [groupsEnabled] = useLocalStorageSettingsManager('tvl_chains')
-	const data: GroupChainPegged[] = useMemo(() => {
+	const data: StablecoinsChainsRow[] = useMemo(() => {
 		// Build lookup map for O(1) access by name
-		const chainsByName = new Map<string, IChainData>(chains.map((item) => [item.name, item]))
+		const chainsByName = new Map<string, StablecoinsChainsRow>(chains.map((item) => [item.name, item]))
 
-		const finalData = {}
+		const finalData: Record<string, StablecoinsChainsRow> = {}
 		const addedChains = new Set<string>()
 		for (const parentName in groupData) {
 			let mcap: DataValue = null
 			let unreleased: DataValue = null
 			let bridgedTo: DataValue = null
 			let minted: DataValue = null
-			let dominance: { name: string; value: number } | null = null
+			let dominance: { name: string; value: number | string | null } | null = null
 			let mcaptvl: DataValue = null
-
-			finalData[parentName] = {}
 
 			const parentData = chainsByName.get(parentName)
 			if (parentData) {
@@ -198,7 +242,7 @@ export const useGroupChainsPegged = (chains: IChainData[], groupData: IGroupData
 				for (const child of groupData[parentName][type]) {
 					const childData = chainsByName.get(child)
 
-					const alreadyAdded = (finalData[parentName].subRows ?? []).find((p) => p.name === child)
+					const alreadyAdded = (finalData[parentName]?.subRows ?? []).find((p) => p.name === child)
 
 					if (childData && alreadyAdded === undefined) {
 						mcap += childData.mcap
@@ -207,7 +251,7 @@ export const useGroupChainsPegged = (chains: IChainData[], groupData: IGroupData
 						minted += childData.minted
 						dominance = null
 						mcaptvl = null
-						const subChains = finalData[parentName].subRows || []
+						const subChains = finalData[parentName]?.subRows || []
 
 						finalData[parentName] = {
 							...finalData[parentName],
@@ -226,10 +270,10 @@ export const useGroupChainsPegged = (chains: IChainData[], groupData: IGroupData
 				}
 			}
 			if (!addedChildren) {
-				if (finalData[parentName].mcap === undefined) {
+				if (finalData[parentName]?.mcap === undefined) {
 					delete finalData[parentName]
 				} else {
-					finalData[parentName] = parentData
+					finalData[parentName] = parentData as StablecoinsChainsRow
 				}
 			}
 		}
@@ -239,17 +283,19 @@ export const useGroupChainsPegged = (chains: IChainData[], groupData: IGroupData
 				finalData[item.name] = item
 			}
 		}
-		return (Object.values(finalData) as GroupChainPegged[]).sort((a, b) => b.mcap - a.mcap)
+		return Object.values(finalData).sort((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
 	}, [chains, groupData, groupsEnabled])
 
 	return data
 }
 
-export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeInfo): GroupChainPegged[] => {
-	const data: GroupChainPegged[] = useMemo(() => {
-		const finalData = {}
+export const useGroupBridgeData = (
+	chains: StablecoinCirculatingOutput<IPegged>[],
+	bridgeInfoObject: BridgeInfo
+): StablecoinUsageByChainRow[] => {
+	const data: StablecoinUsageByChainRow[] = useMemo(() => {
+		const finalData: Record<string, StablecoinUsageByChainRow> = {}
 		for (const parent of chains) {
-			finalData[parent.name] = {}
 			const parentBridges = parent.bridges
 			const percentBridged =
 				parent.circulating && parent.bridgedAmount && (parent.bridgedAmount / parent.circulating) * 100.0
@@ -282,7 +328,7 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
 					parentFirstBridgeSourcesArray.length === 1 &&
 					parent.bridgedAmount === parent.circulating
 				) {
-					let childData = {}
+					let childData: StablecoinUsageByChainRow
 					if (parentFirstBridgeInfo.name === 'Natively Issued') {
 						parentFirstBridgeInfo.name = '-'
 						childData = {
@@ -318,7 +364,7 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
 							const bridgeInfo = bridgeInfoObject[bridgeID] ?? {
 								name: 'not-found'
 							}
-							const subChains = finalData[parent.name].subRows || []
+							const subChains = finalData[parent.name]?.subRows || []
 							const parentAmountBridged = parentBridges[bridgeID][sourceChain].amount
 							const percentBridgedBreakdown =
 								parentAmountBridged &&
@@ -350,7 +396,7 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
 				}
 			}
 		}
-		return (Object.values(finalData) as GroupChainPegged[])
+		return Object.values(finalData)
 			.filter((chain) => chain.name)
 			.sort((a, b) => b.circulating - a.circulating)
 	}, [chains, bridgeInfoObject])
@@ -374,6 +420,22 @@ export const useFormatStablecoinQueryParams = ({
 	const { attribute, excludeAttribute, pegtype, excludePegtype, backing, excludeBacking } = router.query
 
 	return React.useMemo(() => {
+		// Fast path: when no stablecoin filter params are present in URL, keep defaults as-is.
+		if (
+			attribute == null &&
+			excludeAttribute == null &&
+			pegtype == null &&
+			excludePegtype == null &&
+			backing == null &&
+			excludeBacking == null
+		) {
+			return {
+				selectedAttributes: stablecoinAttributeOptions.map((option) => option.key),
+				selectedPegTypes: stablecoinPegTypeOptions.map((option) => option.key),
+				selectedBackings: stablecoinBackingOptions.map((option) => option.key)
+			}
+		}
+
 		// Parse exclude sets upfront
 		const excludeAttributeSet = parseExcludeParam(excludeAttribute)
 		const excludePegtypeSet = parseExcludeParam(excludePegtype)

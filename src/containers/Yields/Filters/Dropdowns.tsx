@@ -47,6 +47,8 @@ export function YieldFilterDropdowns({
 	excludeRewardApy,
 	nestedMenu,
 	includeLsdApy,
+	showMedianApy,
+	showStdDev,
 	prepareCsv
 }: IDropdownMenusProps) {
 	const router = useRouter()

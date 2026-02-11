@@ -1,5 +1,4 @@
 import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
-import { formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { PROTOCOL_NAMES_MAP, SYMBOL_MAP, WRAPPED_GAS_TOKENS } from './constants'
 

@@ -4,6 +4,7 @@ import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers
 import { slug } from '~/utils'
 
 const adapterType = ADAPTER_TYPES.PERPS
+const metricName = 'Perp Volume'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
@@ -40,7 +41,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					adapterType,
 					chain: chainData.name,
 					route: 'perps',
-					hasOpenInterest: chainData.openInterest
+					hasOpenInterest: chainData.openInterest,
+					metricName
 				}).catch((e) => {
 					console.info(`Chain page data not found ${adapterType} : chain:${chainName}`, e)
 					return null

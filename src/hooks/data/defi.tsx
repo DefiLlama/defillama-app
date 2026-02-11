@@ -207,8 +207,6 @@ interface IChainTvl {
 	[key: string]: number
 }
 
-type ChainTvlsByDay = [string, IChainTvl]
-
 type DimensionDatasetItem = {
 	name?: string
 	displayName?: string

@@ -5,7 +5,7 @@ import {
 	getDimensionAdapterOverviewOfAllChains,
 	IAdapterOverview
 } from '~/containers/DimensionAdapters/queries'
-import { getPeggedAssets } from '~/containers/Stablecoins/queries.server'
+import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { getNDistinctColors, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { IChainMetadata } from '~/utils/metadata/types'
@@ -50,7 +50,7 @@ export const getChainsByCategory = async ({
 			console.log(err)
 			return null
 		}) as Promise<IAdapterOverview | null>,
-		getPeggedAssets() as any,
+		fetchStablecoinAssetsApi(),
 		fetchJson(ACTIVE_USERS_API).catch(() => ({})) as Promise<
 			Record<
 				string,

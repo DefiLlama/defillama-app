@@ -104,7 +104,7 @@ const governanceColumns: ColumnDef<IGovernance>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
+		cell: ({ getValue }) => {
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />

@@ -25,6 +25,8 @@ export interface IDropdownMenusProps {
 	includeLsdApy?: boolean
 	nestedMenu?: boolean
 	ltvPlaceholder?: string
+	showMedianApy?: boolean
+	showStdDev?: boolean
 	prepareCsv?: () => { filename: string; rows: Array<Array<string | number | boolean>> }
 }
 

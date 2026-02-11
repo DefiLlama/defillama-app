@@ -11,8 +11,8 @@ import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug } from '~/utils'
+import { getAdapterProtocolChartDataByBreakdownType } from './api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
-import { getAdapterProtocolChartDataByBreakdownType } from './queries'
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 

@@ -6,7 +6,7 @@ import { Icon } from '~/components/Icon'
 interface IProps {
 	options: string[]
 	selectedChart: string
-	onClick: (e: any) => void
+	onClick: (chartType: string) => void
 }
 
 export function ChartSelector({ options, selectedChart, onClick }: IProps) {

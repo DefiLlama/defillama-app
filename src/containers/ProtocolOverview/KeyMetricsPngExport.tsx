@@ -112,9 +112,11 @@ function fillRoundedRect(
 	radius: number
 ) {
 	ctx.beginPath()
-	const anyCtx = ctx as unknown as { roundRect?: (...args: any[]) => void }
-	if (typeof anyCtx.roundRect === 'function') {
-		anyCtx.roundRect(x, y, width, height, radius)
+	const roundRectCtx = ctx as CanvasRenderingContext2D & {
+		roundRect?: (x: number, y: number, width: number, height: number, radius: number) => void
+	}
+	if (typeof roundRectCtx.roundRect === 'function') {
+		roundRectCtx.roundRect(x, y, width, height, radius)
 	} else {
 		const r = Math.min(radius, width / 2, height / 2)
 		ctx.moveTo(x + r, y)

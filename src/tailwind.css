@@ -3,6 +3,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ----------------------------- Theme Tokens ----------------------------- */
 @theme {
 	--font-inter: Inter var, 'Inter-fallback', sans-serif;
 	--font-jetbrains: JetBrains Mono, monospace;
@@ -140,6 +141,7 @@
 	}
 }
 
+/* ------------------------- Tailwind v3 Compatibility ------------------------- */
 /*
   The default border color has changed to `currentcolor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still
@@ -158,6 +160,7 @@
 	}
 }
 
+/* ------------------------------ Core Utilities ------------------------------ */
 @utility no-scrollbar {
 	scrollbar-width: none;
 	&::-webkit-scrollbar {
@@ -233,6 +236,7 @@
 	}
 }
 
+/* ------------------------- Pro Dashboard Utilities ------------------------- */
 @utility pro-dashboard {
 	--pro-text1: #0a0a0a;
 	--pro-text2: #2d2d2d;
@@ -421,24 +425,7 @@
 	@apply border border-pro-blue-100 text-pro-blue-400 hover:bg-pro-blue-300/20 focus-visible:bg-pro-blue-300/20 dark:border-pro-blue-300/20 dark:text-pro-blue-200 hover:dark:bg-pro-blue-300/30 focus-visible:dark:bg-pro-blue-300/30;
 }
 
-.message-sent::before {
-	content: '';
-	width: 0px;
-	height: 0px;
-	position: absolute;
-	border-left: 6px solid #ececec;
-	border-right: 6px solid transparent;
-	border-top: 6px solid #ececec;
-	border-bottom: 6px solid transparent;
-	right: -6px;
-	top: 0;
-}
-
-.dark .message-sent::before {
-	border-left: 6px solid #222425;
-	border-top: 6px solid #222425;
-}
-
+/* --------------------------------- Base --------------------------------- */
 @layer base {
 	@font-face {
 		font-family: 'Inter-fallback';
@@ -674,6 +661,7 @@
 	}
 }
 
+/* ------------------------------- Components ------------------------------- */
 @layer components {
 	[data-backdrop] {
 		@apply bg-black/40 dark:bg-black/70;
@@ -686,8 +674,27 @@
 	.highlighted-text .highlight {
 		@apply bg-(--link-bg) text-(--link-text);
 	}
+
+	.message-sent::before {
+		content: '';
+		width: 0px;
+		height: 0px;
+		position: absolute;
+		border-left: 6px solid #ececec;
+		border-right: 6px solid transparent;
+		border-top: 6px solid #ececec;
+		border-bottom: 6px solid transparent;
+		right: -6px;
+		top: 0;
+	}
+
+	.dark .message-sent::before {
+		border-left: 6px solid #222425;
+		border-top: 6px solid #222425;
+	}
 }
 
+/* ------------------------------- Animations ------------------------------- */
 @keyframes slideInRight {
 	from {
 		transform: translateX(-100%);
@@ -719,6 +726,7 @@
 	}
 }
 
+/* -------------------------- Llama AI UI Classes -------------------------- */
 .llamaai-glow {
 	background: linear-gradient(93.94deg, #fde0a9 24.73%, #fbedcb 57.42%, #fde0a9 99.73%);
 	box-shadow:
@@ -804,6 +812,7 @@
 	text-shadow: 0px 0px 30px rgba(253, 224, 169, 0.8);
 }
 
+/* ----------------------------- Typography Tweaks ----------------------------- */
 .prose.llamaai-prose p,
 .prose.llamaai-prose blockquote,
 .prose.llamaai-prose h1,
@@ -831,6 +840,7 @@
 	margin-bottom: 0;
 }
 
+/* --------------------------- Citation Badge UI --------------------------- */
 .citation-badge {
 	display: inline-flex;
 	align-items: center;
