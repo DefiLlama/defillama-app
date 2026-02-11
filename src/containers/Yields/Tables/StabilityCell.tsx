@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { lazy, Suspense, useState } from 'react'
+import { useRouter } from 'next/router'
 import { LockIcon } from '~/components/LockIcon'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -66,18 +67,28 @@ export function StabilityHeader() {
 
 export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellProps) {
 	const { hasActiveSubscription } = useAuthContext()
+	const router = useRouter()
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
+
+	const handlePricingClick = (e: React.MouseEvent) => {
+		e.stopPropagation()
+		trackYieldsEvent(YIELDS_EVENTS.YIELD_SCORE_CLICK, { source: 'tooltip' })
+		router.push(`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`)
+	}
 
 	if (!hasActiveSubscription) {
 		const redactedTooltip = (
 			<div className="flex flex-col gap-1.5 text-xs">
 				<div className="flex items-center justify-between gap-4">
 					<span className="font-semibold">Yield Score · 30d</span>
-					<span className="inline-flex items-center gap-1 rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-500 dark:text-blue-400">
+					<button
+						onClick={handlePricingClick}
+						className="inline-flex cursor-pointer items-center gap-1 rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-500 transition-colors hover:bg-blue-500/20 dark:text-blue-400 dark:hover:bg-blue-500/20"
+					>
 						<LockIcon className="h-2.5 w-2.5" />
 						Pro
-					</span>
+					</button>
 				</div>
 				<span className="inline-flex w-fit items-center gap-1 rounded-full bg-gray-500/15 px-2 py-0.5 text-xs font-medium text-gray-400">
 					•••• <span className="opacity-70">••••</span>
@@ -94,7 +105,12 @@ export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellP
 				</div>
 				<span className="text-[10px] opacity-50">Score = σ / avg · lower is more stable</span>
 				<div className="border-t border-black/10 pt-1.5 dark:border-white/10">
-					<span className="text-[10px] font-medium text-blue-500 dark:text-blue-400">Unlock with Pro</span>
+					<button
+						onClick={handlePricingClick}
+						className="cursor-pointer text-[10px] font-medium text-blue-500 transition-colors hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+					>
+						Unlock with Pro
+					</button>
 				</div>
 			</div>
 		)
