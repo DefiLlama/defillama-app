@@ -3,10 +3,10 @@ import { CHART_COLORS } from '~/constants/colors'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { IChainMetadata } from '~/utils/metadata/types'
-import { ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
-import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
-import { IProtocolByCategoryOrTagPageData, IRWAStats } from './types'
+import type { IChainMetadata } from '~/utils/metadata/types'
+import type { ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
+import { getAdapterChainOverview, type IAdapterOverview } from '../DimensionAdapters/queries'
+import type { IProtocolByCategoryOrTagPageData, IRWAStats } from './types'
 
 type GetProtocolsByCategoryOrTagParams = {
 	chain?: string

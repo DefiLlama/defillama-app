@@ -1,10 +1,10 @@
 import { fetchCoinPrices, getAllCGTokensList } from '~/api'
-import { IResponseCGMarketsAPI } from '~/api/types'
+import type { IResponseCGMarketsAPI } from '~/api/types'
 import { EMISSION_SUPPLY_METRICS, PROTOCOLS_API } from '~/constants'
-import { ILiteProtocol } from '~/containers/ChainOverview/types'
+import type { ILiteProtocol } from '~/containers/ChainOverview/types'
 import { slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 
 export interface IProtocolsWithTokensByChainPageData {
 	protocols: Array<{

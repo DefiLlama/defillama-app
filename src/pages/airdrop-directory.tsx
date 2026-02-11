@@ -1,4 +1,4 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { getAirdropDirectoryData } from '~/api/categories/protocols'
 import { Icon } from '~/components/Icon'

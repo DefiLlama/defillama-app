@@ -1,9 +1,9 @@
-import { useMutation, UseMutationResult, useQuery, useQueryClient } from '@tanstack/react-query'
-import { RecordAuthResponse, RecordModel } from 'pocketbase'
-import { createContext, ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
+import { useMutation, type UseMutationResult, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { RecordAuthResponse, RecordModel } from 'pocketbase'
+import { createContext, type ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
-import pb, { AuthModel } from '~/utils/pocketbase'
+import pb, { type AuthModel } from '~/utils/pocketbase'
 
 export type PromotionalEmailsValue = 'initial' | 'on' | 'off'
 

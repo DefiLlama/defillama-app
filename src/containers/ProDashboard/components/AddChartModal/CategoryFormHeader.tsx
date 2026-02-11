@@ -1,5 +1,5 @@
 import { Icon } from '~/components/Icon'
-import { ChartTabType } from './types'
+import type { ChartTabType } from './types'
 
 const CATEGORY_TITLES: Record<ChartTabType, string> = {
 	chain: 'Protocols & Chains',

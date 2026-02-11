@@ -2,7 +2,7 @@ import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { RWA_ACTIVE_TVLS_API, RWA_ASSET_DATA_API, RWA_CHART_API, RWA_STATS_API } from '~/constants'
 import definitions from '~/public/rwa-definitions.json'
 import { fetchJson } from '~/utils/async'
-import { IRWAList } from '~/utils/metadata/types'
+import type { IRWAList } from '~/utils/metadata/types'
 import { rwaSlug } from './rwaSlug'
 
 interface IFetchedRWAProject {

@@ -1,4 +1,4 @@
-import { GetStaticPaths, GetStaticProps, NextPage } from 'next'
+import type { GetStaticPaths, GetStaticProps, NextPage } from 'next'
 import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -10,7 +10,7 @@ import {
 	getPrevLiquidationsChartData
 } from '~/containers/Liquidations/queries'
 import { LiqPositionsTable, LiqProtocolsTable } from '~/containers/Liquidations/Table'
-import { ChartData, buildLiquidationsChartSeries } from '~/containers/Liquidations/utils'
+import { type ChartData, buildLiquidationsChartSeries } from '~/containers/Liquidations/utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { formattedNum, liquidationsIconUrl } from '~/utils'

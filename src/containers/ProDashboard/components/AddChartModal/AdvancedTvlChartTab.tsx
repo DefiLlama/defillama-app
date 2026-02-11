@@ -12,7 +12,7 @@ import {
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import ProtocolCharts from '../../services/ProtocolCharts'
 import { AriakitSelect } from '../AriakitSelect'
-import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
+import { AriakitVirtualizedSelect, type VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>

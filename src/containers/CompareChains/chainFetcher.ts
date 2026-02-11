@@ -1,4 +1,4 @@
-import { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
+import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import { getChainOverviewData } from '../ChainOverview/queries.server'
 import { getAdapterChainOverview, getAdapterProtocolSummary } from '../DimensionAdapters/queries'
 

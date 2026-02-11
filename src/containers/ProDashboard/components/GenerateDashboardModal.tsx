@@ -3,7 +3,7 @@ import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { DashboardItemConfig } from '../types'
+import type { DashboardItemConfig } from '../types'
 import { sanitizeItemsForAPI } from '../utils/dashboardUtils'
 
 const MCP_SERVER = 'https://mcp.llama.fi'

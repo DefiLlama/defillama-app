@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import {
-	ColumnDef,
+	type ColumnDef,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'

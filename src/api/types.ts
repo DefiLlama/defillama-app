@@ -1,5 +1,5 @@
-import { IRaise } from '~/containers/ProtocolOverview/types'
-import { IJSON } from './categories/adaptors/types'
+import type { IRaise } from '~/containers/ProtocolOverview/types'
+import type { IJSON } from './categories/adaptors/types'
 
 export interface Protocol {
 	id: string

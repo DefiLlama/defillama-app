@@ -1,5 +1,5 @@
-import { DashboardItemConfig } from '../../types'
-import { MainTabType } from './types'
+import type { DashboardItemConfig } from '../../types'
+import type { MainTabType } from './types'
 
 interface TabNavigationProps {
 	selectedMainTab: MainTabType

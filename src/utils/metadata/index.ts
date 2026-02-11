@@ -4,7 +4,7 @@ import chainMetadata from '../../../.cache/chains.json'
 import protocolMetadata from '../../../.cache/protocols.json'
 import rwaList from '../../../.cache/rwa.json'
 import { fetchCoreMetadata } from './fetch'
-import { ICexItem, IChainMetadata, IProtocolMetadata, IRWAList } from './types'
+import type { ICexItem, IChainMetadata, IProtocolMetadata, IRWAList } from './types'
 
 const metadataCache: {
 	chainMetadata: Record<string, IChainMetadata>

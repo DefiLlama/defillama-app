@@ -5,7 +5,7 @@ import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
 import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
-import { BAR_CHARTS, ProtocolChartsLabels, yAxisByChart } from './constants'
+import { BAR_CHARTS, type ProtocolChartsLabels, yAxisByChart } from './constants'
 
 const customOffsets = {
 	Contributors: 60,

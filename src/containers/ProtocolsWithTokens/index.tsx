@@ -1,4 +1,4 @@
-import { ColumnDef, SortingState } from '@tanstack/react-table'
+import type { ColumnDef, SortingState } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
@@ -9,7 +9,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
-import { IProtocolsWithTokensByChainPageData } from './queries'
+import type { IProtocolsWithTokensByChainPageData } from './queries'
 
 const chainLikeCategories = new Set(['Chain', 'Rollup'])
 

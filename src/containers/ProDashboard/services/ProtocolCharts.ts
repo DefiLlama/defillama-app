@@ -12,7 +12,7 @@ import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
-import { processAdjustedProtocolTvl, ProtocolChainTvls } from '~/utils/tvl'
+import { processAdjustedProtocolTvl, type ProtocolChainTvls } from '~/utils/tvl'
 import { convertToNumberFormat, normalizeHourlyToDaily } from '../utils'
 
 interface DateTvl {

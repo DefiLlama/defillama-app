@@ -24,7 +24,7 @@ import {
 	toSlug
 } from '~/utils/protocolSplit'
 import { processAdjustedProtocolTvl, processAdjustedTvl } from '~/utils/tvl'
-import { ChartSeries, ProtocolChainData } from './types'
+import type { ChartSeries, ProtocolChainData } from './types'
 
 const METRIC_CONFIG: Record<string, { endpoint: string; dataType?: string; metricName: string }> = {
 	...METRIC_CONFIG_BASE

@@ -1,6 +1,6 @@
 import { MCP_SERVER } from '~/constants'
 import { fetchJson } from '~/utils/async'
-import { EntityQuestionsResponse } from './types'
+import type { EntityQuestionsResponse } from './types'
 
 export async function fetchEntityQuestions(
 	entitySlug: string,

@@ -1,7 +1,7 @@
 import { maxAgeForNext } from '~/api'
 import { CEXS_API } from '~/constants'
 import { Cexs } from '~/containers/Cexs'
-import { ICex } from '~/containers/Cexs/types'
+import type { ICex } from '~/containers/Cexs/types'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'

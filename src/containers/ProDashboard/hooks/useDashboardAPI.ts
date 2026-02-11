@@ -4,9 +4,9 @@ import { useCallback, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { TimePeriod } from '../ProDashboardAPIContext'
-import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
-import { DashboardItemConfig } from '../types'
+import type { TimePeriod } from '../ProDashboardAPIContext'
+import { type Dashboard, dashboardAPI } from '../services/DashboardAPI'
+import type { DashboardItemConfig } from '../types'
 
 const EMPTY_DASHBOARDS: Dashboard[] = []
 

@@ -1,4 +1,4 @@
-import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { TRADFI_API } from '~/constants'
 import { oldBlue } from '~/constants/colors'

@@ -1,4 +1,4 @@
-import { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { getTotalStakedByChain } from '~/containers/TotalStaked/queries'
 import { StakedProtocolsTVLByChain } from '~/containers/TotalStaked/StakedByChain'

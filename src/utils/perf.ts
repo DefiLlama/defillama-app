@@ -1,7 +1,7 @@
-import { GetStaticProps, GetStaticPropsContext } from 'next'
+import type { GetStaticProps, GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { postRuntimeLogs, sleep, getJitteredDelay, isTransientError, getEnvNumber } from './async'
-import { getCache, RedisCachePayload, setCache, setPageBuildTimes } from './cache-client'
+import { getCache, type RedisCachePayload, setCache, setPageBuildTimes } from './cache-client'
 import { fetchWithPoolingOnServer } from './http-client'
 
 const REDIS_URL = process.env.REDIS_URL as string

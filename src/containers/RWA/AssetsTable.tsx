@@ -1,14 +1,14 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
-	ExpandedState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
+	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import clsx from 'clsx'

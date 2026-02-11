@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { Dashboard } from '../services/DashboardAPI'
+import type { Dashboard } from '../services/DashboardAPI'
 
 interface DashboardPermissions {
 	isReadOnly: boolean

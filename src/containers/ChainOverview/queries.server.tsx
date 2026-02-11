@@ -17,8 +17,8 @@ import {
 	getAdapterChainOverview,
 	getAdapterProtocolSummary,
 	getCexVolume,
-	IAdapterOverview,
-	IAdapterSummary
+	type IAdapterOverview,
+	type IAdapterSummary
 } from '~/containers/DimensionAdapters/queries'
 import { getETFData } from '~/containers/ETF/queries'
 import { fetchStablecoinAssetsApi, fetchStablecoinConfigApi } from '~/containers/Stablecoins/api'
@@ -27,8 +27,8 @@ import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getNDistinctColors, getPercentChange, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
-import { ChainChartLabels } from './constants'
+import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
+import type { ChainChartLabels } from './constants'
 import type {
 	IChainAsset,
 	IChainOverviewData,

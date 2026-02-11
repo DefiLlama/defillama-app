@@ -1,12 +1,12 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'

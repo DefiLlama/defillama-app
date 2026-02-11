@@ -1,4 +1,4 @@
-import { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { BorrowedProtocolsTVLByChain } from '~/containers/TotalBorrowed/BorrowedByChain'
 import { getTotalBorrowedByChain } from '~/containers/TotalBorrowed/queries'

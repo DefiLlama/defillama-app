@@ -1,4 +1,4 @@
-import { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { TokenLogo } from '~/components/TokenLogo'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
@@ -8,7 +8,7 @@ import { TokenRights } from '~/containers/ProtocolOverview/TokenRights'
 import type { IProtocolOverviewPageData, IProtocolPageMetrics, ITokenRights } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { slug, tokenIconUrl } from '~/utils'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_OTHER_PROTOCOLS: string[] = []

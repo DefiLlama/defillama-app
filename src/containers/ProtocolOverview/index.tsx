@@ -20,7 +20,7 @@ import { Flag } from './Flag'
 import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import { ProtocolOverviewLayout } from './Layout'
 import { ProtocolChart } from './ProtocolChart'
-import { IProtocolOverviewPageData } from './types'
+import type { IProtocolOverviewPageData } from './types'
 
 const EMPTY_COMPETITORS: Array<{ name: string; tvl: number }> = []
 

@@ -1,4 +1,4 @@
-import { ETFOverview, ETFOverviewProps } from '~/containers/ETF'
+import { ETFOverview, type ETFOverviewProps } from '~/containers/ETF'
 import { getETFData } from '~/containers/ETF/queries'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'

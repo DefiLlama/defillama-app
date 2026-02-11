@@ -8,7 +8,11 @@ import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/compon
 import { Icon } from '~/components/Icon'
 import { Switch } from '~/components/Switch'
 import { CHART_COLORS } from '~/constants/colors'
-import { ChartData, LiquidationsChartSeriesByGroup, getLiquidationsCsvData } from '~/containers/Liquidations/utils'
+import {
+	type ChartData,
+	type LiquidationsChartSeriesByGroup,
+	getLiquidationsCsvData
+} from '~/containers/Liquidations/utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { download, formattedNum, liquidationsIconUrl } from '~/utils'
 

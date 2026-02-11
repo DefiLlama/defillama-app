@@ -15,7 +15,7 @@ import { getProtocolUnlockUsdChart } from '~/containers/Unlocks/queries'
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getPercentChange, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { ChainChartLabels } from './constants'
+import type { ChainChartLabels } from './constants'
 
 const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000
 
