@@ -15,7 +15,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { FEES_SETTINGS, isTvlSettingsKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { Flag } from './Flag'
 import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import { ProtocolOverviewLayout } from './Layout'
@@ -23,6 +23,41 @@ import { ProtocolChart } from './ProtocolChart'
 import type { IProtocolOverviewPageData } from './types'
 
 const EMPTY_COMPETITORS: Array<{ name: string; tvl: number }> = []
+
+const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000
+
+/**
+ * Compute 24h TVL change from protocol chart data ([dateString, value][]).
+ * Date strings are Unix seconds. Returns nulls when data is stale or insufficient.
+ */
+function getProtocolTvl24hChange(chart: Array<[string, number]>): {
+	valueChange24hUSD: number | null
+	change24h: number | null
+} {
+	if (!chart?.length) {
+		return { valueChange24hUSD: null, change24h: null }
+	}
+	const lastEntry = chart[chart.length - 1]
+	if (!lastEntry) return { valueChange24hUSD: null, change24h: null }
+	const [lastDateStr, lastValue] = lastEntry
+	const lastTimestampMs = Number(lastDateStr) >= 1e12 ? Number(lastDateStr) : Number(lastDateStr) * 1e3
+	const now = Date.now()
+	if (now - lastTimestampMs > TWENTY_FOUR_HOURS_IN_MS) {
+		return { valueChange24hUSD: null, change24h: null }
+	}
+	let tvlPrevDay: number | null = null
+	for (let i = chart.length - 2; i >= 0; i--) {
+		const [dateStr, value] = chart[i]
+		const timestampMs = Number(dateStr) >= 1e12 ? Number(dateStr) : Number(dateStr) * 1e3
+		if (lastTimestampMs - timestampMs >= TWENTY_FOUR_HOURS_IN_MS) {
+			tvlPrevDay = value
+			break
+		}
+	}
+	const valueChange24hUSD = lastValue != null && tvlPrevDay != null ? lastValue - tvlPrevDay : null
+	const change24h = lastValue != null && tvlPrevDay != null ? getPercentChange(lastValue, tvlPrevDay) : null
+	return { valueChange24hUSD, change24h }
+}
 
 const IncomeStatement = lazy(() => import('./IncomeStatement').then((module) => ({ default: module.IncomeStatement })))
 const SubscribeProModal = lazy(() =>
@@ -33,6 +68,8 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	const router = useRouter()
 
 	const { tvl, tvlByChain, oracleTvs, oracleTvsByChain, toggleOptions } = useFinalTVL(props)
+
+	const tvl24h = useMemo(() => getProtocolTvl24hChange(props.tvlChartData ?? []), [props.tvlChartData])
 
 	const { data: chainPrice, isLoading: fetchingChainPrice } = useGetTokenPrice(props.chartDenominations?.[1]?.geckoId)
 
@@ -83,6 +120,8 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						oracleTvsByChain={oracleTvsByChain}
 						formatPrice={formatPrice}
 						h1ClassName="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto"
+						change24h={props.oracleTvs ? undefined : tvl24h.change24h}
+						valueChange24hUSD={props.oracleTvs ? undefined : tvl24h.valueChange24hUSD}
 					/>
 					<KeyMetrics {...props} formatPrice={formatPrice} tvl={tvl} computedOracleTvs={oracleTvs} />
 				</div>
@@ -97,6 +136,8 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 								oracleTvsByChain={oracleTvsByChain}
 								formatPrice={formatPrice}
 								h1ClassName="flex flex-wrap items-center gap-2 text-xl"
+								change24h={props.oracleTvs ? undefined : tvl24h.change24h}
+								valueChange24hUSD={props.oracleTvs ? undefined : tvl24h.valueChange24hUSD}
 							/>
 						</div>
 						<ProtocolChart {...props} />
@@ -129,7 +170,9 @@ function ProtocolHeader({
 	tvlByChain,
 	oracleTvsByChain,
 	formatPrice,
-	h1ClassName
+	h1ClassName,
+	change24h,
+	valueChange24hUSD
 }: {
 	props: IProtocolOverviewPageData
 	oracleTvs: number
@@ -138,6 +181,8 @@ function ProtocolHeader({
 	oracleTvsByChain: [string, number][]
 	formatPrice: (value?: number | string | null) => string | number | null
 	h1ClassName: string
+	change24h?: number | null
+	valueChange24hUSD?: number | null
 }) {
 	return (
 		<>
@@ -171,6 +216,8 @@ function ProtocolHeader({
 					category={props.category === 'Oracle' ? null : props.category}
 					valueByChain={tvlByChain}
 					formatPrice={formatPrice}
+					change24h={change24h}
+					valueChange24hUSD={valueChange24hUSD}
 				/>
 			)}
 		</>
@@ -289,7 +336,9 @@ const PrimaryValue = ({
 	name,
 	category,
 	formatPrice,
-	valueByChain
+	valueByChain,
+	change24h,
+	valueChange24hUSD
 }: {
 	hasTvl: boolean
 	value: number
@@ -297,53 +346,79 @@ const PrimaryValue = ({
 	category: string
 	formatPrice: (value: number | string | null) => string | number | null
 	valueByChain?: [string, number][]
+	change24h?: number | null
+	valueChange24hUSD?: number | null
 }) => {
 	if (!hasTvl) return null
 
 	const { title, byChainTitle, dataType } = getPrimaryValueLabelType(category)
 
+	const change24hBadge =
+		change24h != null && valueChange24hUSD != null ? (
+			<Tooltip
+				content={`${formattedNum(valueChange24hUSD, true)}`}
+				render={<p />}
+				className="relative bottom-0.5 flex flex-nowrap items-center gap-2"
+			>
+				<span
+					className={`overflow-hidden font-jetbrains text-ellipsis whitespace-nowrap underline decoration-dotted ${
+						change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
+					}`}
+				>
+					{`${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%`}
+				</span>
+				<span className="text-(--text-label)">24h</span>
+			</Tooltip>
+		) : null
+
 	if (!valueByChain || valueByChain.length === 0) {
 		return (
-			<p className="flex flex-col">
-				<span className="flex flex-nowrap items-center gap-2">
-					<span>{title}</span>
-					<Flag
-						protocol={name}
-						dataType={dataType}
-						isLending={category === 'Lending'}
-						className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-					/>
-				</span>
-				<span className="min-h-8 font-jetbrains text-2xl font-semibold" suppressHydrationWarning>
-					{formatPrice(value)}
-				</span>
-			</p>
+			<div className="flex flex-nowrap items-end justify-between gap-8">
+				<p className="flex flex-col">
+					<span className="flex flex-nowrap items-center gap-2">
+						<span>{title}</span>
+						<Flag
+							protocol={name}
+							dataType={dataType}
+							isLending={category === 'Lending'}
+							className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+						/>
+					</span>
+					<span className="min-h-8 font-jetbrains text-2xl font-semibold" suppressHydrationWarning>
+						{formatPrice(value)}
+					</span>
+				</p>
+				{change24hBadge}
+			</div>
 		)
 	}
 
 	return (
 		<details className="group">
-			<summary className="flex flex-col">
-				<span className="flex flex-nowrap items-center gap-2">
-					<span className="text-(--text-label)">{title}</span>
-					<Flag
-						protocol={name}
-						dataType={dataType}
-						isLending={category === 'Lending'}
-						className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-					/>
-				</span>
-				<span className="flex flex-nowrap items-center gap-2">
-					<span className="min-h-8 font-jetbrains text-2xl font-semibold" suppressHydrationWarning>
-						{formatPrice(value)}
+			<summary className="flex flex-nowrap items-end justify-between gap-8">
+				<span className="flex min-w-0 flex-col">
+					<span className="flex flex-nowrap items-center gap-2">
+						<span className="text-(--text-label)">{title}</span>
+						<Flag
+							protocol={name}
+							dataType={dataType}
+							isLending={category === 'Lending'}
+							className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+						/>
 					</span>
-					<Icon
-						name="chevron-down"
-						height={16}
-						width={16}
-						className="relative top-0.5 transition-transform duration-100 group-open:rotate-180"
-					/>
+					<span className="flex flex-nowrap items-center gap-2">
+						<span className="min-h-8 font-jetbrains text-2xl font-semibold" suppressHydrationWarning>
+							{formatPrice(value)}
+						</span>
+						<Icon
+							name="chevron-down"
+							height={16}
+							width={16}
+							className="relative top-0.5 transition-transform duration-100 group-open:rotate-180"
+						/>
+					</span>
 				</span>
+				{change24hBadge}
 			</summary>
 			<div className="my-3 flex max-h-[50dvh] flex-col overflow-auto">
 				<h2 className="font-semibold">{byChainTitle}</h2>
