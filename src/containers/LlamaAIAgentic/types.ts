@@ -63,6 +63,7 @@ export interface Message {
 	content?: string
 	charts?: Array<{ charts: ChartConfiguration[]; chartData: Record<string, any[]> }>
 	citations?: string[]
+	images?: Array<{ url: string; mimeType: string; filename?: string }>
 	id?: string
 	timestamp?: number
 }

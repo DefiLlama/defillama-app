@@ -10,6 +10,7 @@ import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHe
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { AgenticSidebar } from './AgenticSidebar'
 import { ChartRenderer } from './ChartRenderer'
+import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
 import { fetchAgenticResponse } from './fetchAgenticResponse'
 import type { SpawnProgressData } from './fetchAgenticResponse'
 import type { ChartConfiguration, Message } from './types'
@@ -294,7 +295,7 @@ export function AgenticChat() {
 	)
 
 	const handleSubmit = useCallback(
-		(prompt: string) => {
+		(prompt: string, _entities?: Array<{ term: string; slug: string }>, images?: Array<{ data: string; mimeType: string; filename?: string }>) => {
 			const trimmed = prompt.trim()
 			if (!trimmed || isStreaming) return
 
@@ -315,7 +316,8 @@ export function AgenticChat() {
 				isFirstMessageRef.current = false
 			}
 
-			setMessages((prev) => [...prev, { role: 'user', content: trimmed }])
+			const userImages = images?.map(img => ({ url: img.data, mimeType: img.mimeType, filename: img.filename }))
+			setMessages((prev) => [...prev, { role: 'user', content: trimmed, images: userImages?.length ? userImages : undefined }])
 			shouldAutoScrollRef.current = true
 			setShowScrollToBottom(false)
 
@@ -332,6 +334,7 @@ export function AgenticChat() {
 				message: trimmed,
 				sessionId: currentSessionId,
 				researchMode: isResearchMode,
+				images: images?.length ? images : undefined,
 				abortSignal: controller.signal,
 				fetchFn: authorizedFetch,
 				callbacks: {
@@ -829,10 +832,27 @@ function ToolIndicator({ label, name }: { label: string; name: string }) {
 }
 
 function MessageBubble({ message }: { message: Message }) {
+	const [previewImage, setPreviewImage] = useState<string | null>(null)
+
 	if (message.role === 'user') {
 		return (
 			<div className="ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
+				{message.images && message.images.length > 0 && (
+					<div className="mb-2.5 flex flex-wrap gap-3">
+						{message.images.map((img) => (
+							<button
+								key={`sent-image-${img.url}`}
+								type="button"
+								onClick={() => setPreviewImage(img.url)}
+								className="h-16 w-16 cursor-pointer overflow-hidden rounded-lg"
+							>
+								<img src={img.url} alt={img.filename || 'Uploaded image'} className="h-full w-full object-cover" />
+							</button>
+						))}
+					</div>
+				)}
 				<p>{message.content}</p>
+				<ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
 			</div>
 		)
 	}

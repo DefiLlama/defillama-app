@@ -28,6 +28,7 @@ interface FetchAgenticResponseParams {
 	callbacks: AgenticSSECallbacks
 	abortSignal?: AbortSignal
 	researchMode?: boolean
+	images?: Array<{ data: string; mimeType: string; filename?: string }>
 	fetchFn?: typeof fetch
 }
 
@@ -37,6 +38,7 @@ export async function fetchAgenticResponse({
 	callbacks,
 	abortSignal,
 	researchMode,
+	images,
 	fetchFn
 }: FetchAgenticResponseParams) {
 	const doFetch = fetchFn || fetch
@@ -52,6 +54,10 @@ export async function fetchAgenticResponse({
 
 	if (researchMode) {
 		requestBody.researchMode = true
+	}
+
+	if (images && images.length > 0) {
+		requestBody.images = images
 	}
 
 	const response = await doFetch(`${MCP_SERVER}/agentic`, {
