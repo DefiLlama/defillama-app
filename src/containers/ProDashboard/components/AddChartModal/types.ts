@@ -1,4 +1,4 @@
-import { ChartConfig, DashboardItemConfig, MetricAggregator, MetricChartType } from '../../types'
+import type { ChartConfig, DashboardItemConfig, MetricAggregator, MetricChartType } from '../../types'
 import type { UnifiedTableFocusSection } from '../UnifiedTable/types'
 
 export interface AddChartModalProps {

@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { RefObject } from 'react'
+import type { RefObject } from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { getAnchorRect } from '../../utils/entitySuggestions'
 

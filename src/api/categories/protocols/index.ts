@@ -1,6 +1,6 @@
 import { PROTOCOLS_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
-import { BasicPropsToKeep, formatProtocolsData } from './utils'
+import { type BasicPropsToKeep, formatProtocolsData } from './utils'
 
 // - used in /airdrops, /protocols, /recent, /top-gainers-and-losers, /top-protocols, /watchlist
 export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep) {

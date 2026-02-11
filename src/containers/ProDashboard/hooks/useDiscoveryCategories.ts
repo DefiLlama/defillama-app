@@ -1,6 +1,6 @@
 import { useQueries } from '@tanstack/react-query'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
+import { type Dashboard, dashboardAPI } from '../services/DashboardAPI'
 
 const EMPTY_DASHBOARDS: Dashboard[] = []
 

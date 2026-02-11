@@ -1,4 +1,4 @@
-import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -6,7 +6,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '../../Tooltip'
 import { mutatePinnedMetrics } from '../pinnedUtils'
-import { TNavLink } from '../types'
+import type { TNavLink } from '../types'
 import { LinkToPage, NavItemContent } from './shared'
 
 const VERTICAL_SORTING_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]

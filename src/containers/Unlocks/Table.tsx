@@ -1,13 +1,13 @@
 import {
-	ColumnSizingState,
-	ExpandedState,
+	type ColumnSizingState,
+	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { startTransition, useMemo, useState, useSyncExternalStore } from 'react'
 import { lazy, Suspense } from 'react'

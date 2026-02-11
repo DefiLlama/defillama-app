@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { RefObject, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { type RefObject, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { getAnchorRect, replaceValue } from '../utils/entitySuggestions'
 import { setInputSize } from '../utils/scrollUtils'
 import { highlightWord } from '../utils/textUtils'

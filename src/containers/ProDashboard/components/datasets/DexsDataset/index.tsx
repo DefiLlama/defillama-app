@@ -1,20 +1,20 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	PaginationState,
-	SortingState,
+	type PaginationState,
+	type SortingState,
 	useReactTable,
-	VisibilityState
+	type VisibilityState
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { useTableSearch } from '~/components/Table/utils'
-import { DexItem } from '~/containers/ProDashboard/types'
+import type { DexItem } from '~/containers/ProDashboard/types'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'

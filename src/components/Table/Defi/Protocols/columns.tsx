@@ -1,4 +1,4 @@
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
+import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import { Bookmark } from '~/components/Bookmark'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
@@ -11,7 +11,7 @@ import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '../../utils'
-import { IProtocolRow } from './types'
+import type { IProtocolRow } from './types'
 
 const whiteLabeledVaultProviders = new Set(['Veda'])
 

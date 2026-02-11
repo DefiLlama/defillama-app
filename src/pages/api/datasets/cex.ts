@@ -1,5 +1,5 @@
-import { NextApiRequest, NextApiResponse } from 'next'
-import { IChainTvl } from '~/api/types'
+import type { NextApiRequest, NextApiResponse } from 'next'
+import type { IChainTvl } from '~/api/types'
 import { CEXS_API, COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
 

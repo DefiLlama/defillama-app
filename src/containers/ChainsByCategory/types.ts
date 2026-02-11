@@ -1,4 +1,4 @@
-import { IChainAsset } from '~/containers/ChainOverview/types'
+import type { IChainAsset } from '~/containers/ChainOverview/types'
 
 interface IChainTvl {
 	tvl: number

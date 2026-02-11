@@ -1,7 +1,7 @@
 import {
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
@@ -40,7 +40,7 @@ import { setStorageItem } from '~/contexts/localStorageStore'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { AdapterByChainChart } from './ChainChart'
-import { IAdapterByChainPageData } from './types'
+import type { IAdapterByChainPageData } from './types'
 
 type TPageType =
 	| 'Fees'

@@ -1,6 +1,6 @@
 import { TVL_SETTINGS } from '~/contexts/LocalStorage'
-import { IChainMetadata } from '~/utils/metadata/types'
-import { ChainChartLabels } from './constants'
+import type { IChainMetadata } from '~/utils/metadata/types'
+import type { ChainChartLabels } from './constants'
 
 export interface IChainOverviewData {
 	chain: string

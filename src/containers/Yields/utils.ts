@@ -1,4 +1,4 @@
-import { calculateLoopAPY, YieldsData } from '~/containers/Yields/queries/index'
+import { calculateLoopAPY, type YieldsData } from '~/containers/Yields/queries/index'
 import { attributeOptions, attributeOptionsMap } from './Filters/Attributes'
 
 interface IToFilterPool {

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
-import { CHART_TYPES, ChartConfig } from '../../types'
+import { CHART_TYPES, type ChartConfig } from '../../types'
 import { ChartPreview } from '../ChartPreview'
 
 const EMPTY_ITEM_DATA: any[] = []

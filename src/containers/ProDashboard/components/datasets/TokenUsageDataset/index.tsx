@@ -4,8 +4,8 @@ import {
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	PaginationState,
-	SortingState,
+	type PaginationState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import { useEffect, useMemo, useState } from 'react'

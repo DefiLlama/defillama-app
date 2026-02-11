@@ -1,4 +1,4 @@
-import { ChainChartLabels } from '~/containers/ChainOverview/constants'
+import type { ChainChartLabels } from '~/containers/ChainOverview/constants'
 
 export const CHAIN_TO_DASHBOARD_CHART_TYPE: Record<ChainChartLabels, string | null> = {
 	TVL: 'tvl',

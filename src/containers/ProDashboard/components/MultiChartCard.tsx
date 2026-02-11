@@ -10,7 +10,7 @@ import {
 	useProDashboardPermissions
 } from '../ProDashboardAPIContext'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
-import { CHART_TYPES, MultiChartConfig } from '../types'
+import { CHART_TYPES, type MultiChartConfig } from '../types'
 import { convertToCumulative, generateChartColor } from '../utils'
 import { COLOR_PALETTE_2, EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
 import { ConfirmationModal } from './ConfirmationModal'

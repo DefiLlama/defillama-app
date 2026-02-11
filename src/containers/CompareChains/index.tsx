@@ -10,8 +10,8 @@ import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/Lo
 import { getNDistinctColors, getPercentChange, getPrevTvlFromChart } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { Stats } from '../ChainOverview/Stats'
-import { IChainOverviewData } from '../ChainOverview/types'
-import { IAdapterOverview, IAdapterSummary } from '../DimensionAdapters/queries'
+import type { IChainOverviewData } from '../ChainOverview/types'
+import type { IAdapterOverview, IAdapterSummary } from '../DimensionAdapters/queries'
 
 const MultiSeriesChart2: any = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 

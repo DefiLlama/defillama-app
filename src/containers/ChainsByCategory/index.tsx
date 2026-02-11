@@ -14,7 +14,7 @@ import {
 import Layout from '~/layout'
 import { formatNum, getPercentChange } from '~/utils'
 import { ChainsByCategoryTable } from './Table'
-import { IChainsByCategoryData } from './types'
+import type { IChainsByCategoryData } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))

@@ -14,7 +14,7 @@ import {
 } from '~/constants'
 import { fetchApi, fetchJson } from '~/utils/async'
 import { fetchProtocolTreasuryChart, fetchProtocolTvlChart } from './api'
-import {
+import type {
 	IProtocolChainBreakdownChart,
 	IProtocolChartV2Params,
 	IProtocolTokenBreakdownChart,

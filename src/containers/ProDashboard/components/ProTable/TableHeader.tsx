@@ -2,10 +2,10 @@ import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
-import { CustomView } from '../../types'
+import type { CustomView } from '../../types'
 import { ProTableCSVButton } from './CsvButton'
 import { CustomViewModal } from './CustomViewModal'
-import { ColumnPresetDefinition } from './useProTable'
+import type { ColumnPresetDefinition } from './useProTable'
 
 const EMPTY_CUSTOM_VIEWS: CustomView[] = []
 

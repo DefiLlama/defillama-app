@@ -7,7 +7,7 @@ import { BasicLink } from '~/components/Link'
 import { resolveUserEmail } from '~/components/Nav/Account'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { formatEthAddress } from '~/utils'
-import { AuthModel } from '~/utils/pocketbase'
+import type { AuthModel } from '~/utils/pocketbase'
 
 interface AccountStatusProps {
 	user: AuthModel

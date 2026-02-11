@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react'
 import { BasicLink } from '~/components/Link'
 import { Tooltip } from '~/components/Tooltip'
 import { formattedNum, slug } from '~/utils'
-import { IChainOverviewData } from './types'
+import type { IChainOverviewData } from './types'
 
 const FeesGeneratedChart: any = lazy(() =>
 	import('~/containers/ChainOverview/SmolCharts').then((m) => ({ default: m.FeesGeneratedChart }))

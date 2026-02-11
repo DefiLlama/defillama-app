@@ -1,5 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import {
+	type ColumnDef,
+	getCoreRowModel,
+	getSortedRowModel,
+	type SortingState,
+	useReactTable
+} from '@tanstack/react-table'
 import { useDeferredValue, useState } from 'react'
 import { LocalLoader } from '~/components/Loaders'
 import { VirtualTable } from '~/components/Table/Table'

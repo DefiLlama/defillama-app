@@ -3,7 +3,7 @@ import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorMan
 import { toDisplayName } from '~/utils/chainNormalizer'
 import { alignSeries, filterOutToday, normalizeDailyPairs, sumSeriesByTimestamp, toSlug } from '~/utils/protocolSplit'
 import { processAdjustedProtocolTvl, processAdjustedTvl } from '~/utils/tvl'
-import { ChartSeries, ProtocolSplitData } from './types'
+import type { ChartSeries, ProtocolSplitData } from './types'
 
 // Some protocol responses include synthetic keys that shouldn't be counted in TVL totals
 // Ensure we ignore them consistently when aggregating per‑protocol TVL series

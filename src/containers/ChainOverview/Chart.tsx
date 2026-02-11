@@ -7,7 +7,7 @@ import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
 import {
 	BAR_CHARTS,
-	ChainChartLabels,
+	type ChainChartLabels,
 	chainOverviewChartColors,
 	DISABLED_CUMULATIVE_CHARTS,
 	yAxisByChart

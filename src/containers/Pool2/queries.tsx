@@ -3,8 +3,8 @@ import { CHART_API, PROTOCOLS_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
-import { IProtocolMetadata } from '~/utils/metadata/types'
-import { ILiteChart, ILiteProtocol } from '../ChainOverview/types'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
+import type { ILiteChart, ILiteProtocol } from '../ChainOverview/types'
 
 export interface IPool2ProtocolsTVLByChainPageData {
 	protocols: Array<{

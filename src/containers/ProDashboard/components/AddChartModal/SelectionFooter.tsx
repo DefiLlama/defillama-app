@@ -1,5 +1,5 @@
 import { Icon } from '~/components/Icon'
-import { CHART_TYPES, ChartConfig } from '../../types'
+import { CHART_TYPES, type ChartConfig } from '../../types'
 
 interface SelectionFooterProps {
 	composerItems: ChartConfig[]

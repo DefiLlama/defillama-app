@@ -1,5 +1,5 @@
 import {
-	ColumnFiltersState,
+	type ColumnFiltersState,
 	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,

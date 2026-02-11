@@ -1,15 +1,15 @@
 import { ACTIVE_USERS_API, CHAINS_ASSETS, TEMP_CHAIN_NFTS } from '~/constants'
-import { IChainAssets } from '~/containers/ChainOverview/types'
+import type { IChainAssets } from '~/containers/ChainOverview/types'
 import {
 	getAdapterChainOverview,
 	getDimensionAdapterOverviewOfAllChains,
-	IAdapterOverview
+	type IAdapterOverview
 } from '~/containers/DimensionAdapters/queries'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { getNDistinctColors, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { IChainMetadata } from '~/utils/metadata/types'
-import { IChainsByCategory, IChainsByCategoryData } from './types'
+import type { IChainMetadata } from '~/utils/metadata/types'
+import type { IChainsByCategory, IChainsByCategoryData } from './types'
 
 export const getChainsByCategory = async ({
 	chainMetadata,

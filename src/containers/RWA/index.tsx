@@ -21,7 +21,7 @@ import {
 	useRwaChartDataByAssetName,
 	useRwaChartDataByCategory
 } from './hooks'
-import { IRWAAssetsOverview } from './queries'
+import type { IRWAAssetsOverview } from './queries'
 import { rwaSlug } from './rwaSlug'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>

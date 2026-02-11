@@ -1,4 +1,4 @@
-import { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { ProtocolsWithTokens } from '~/containers/ProtocolsWithTokens'
 import { getProtocolsAdjustedFDVsByChain } from '~/containers/ProtocolsWithTokens/queries'

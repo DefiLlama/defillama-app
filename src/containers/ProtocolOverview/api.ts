@@ -1,6 +1,6 @@
 import { V2_SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
-import {
+import type {
 	IProtocolChainBreakdownChart,
 	IProtocolChainBreakdownValue,
 	IProtocolTokenBreakdownChart,

@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useProDashboardCatalog } from '../../../ProDashboardAPIContext'
-import { CHART_TYPES, MetricAggregator, MetricWindow } from '../../../types'
+import { CHART_TYPES, type MetricAggregator, type MetricWindow } from '../../../types'
 import { AriakitCheckbox } from '../../AriakitCheckbox'
-import { AriakitSelect, SelectOption } from '../../AriakitSelect'
+import { AriakitSelect, type SelectOption } from '../../AriakitSelect'
 import { useComparisonWizardContext } from '../ComparisonWizardContext'
 import type { DisplayMode, GroupingInterval } from '../types'
 

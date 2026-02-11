@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { CustomTimePeriod } from '../ProDashboardAPIContext'
+import type { CustomTimePeriod } from '../ProDashboardAPIContext'
 
 interface CustomTimePeriodPickerProps {
 	isActive: boolean

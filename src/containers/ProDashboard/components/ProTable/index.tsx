@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useProDashboardEditorActions } from '../../ProDashboardAPIContext'
-import { TableFilters } from '../../types'
+import type { TableFilters } from '../../types'
 import { ColumnManagementPanel } from './ColumnManagementPanel'
 import { ProtocolFilterModal } from './ProtocolFilterModal'
 import { TableBody } from './TableBody'

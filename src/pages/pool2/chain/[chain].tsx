@@ -1,4 +1,4 @@
-import { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { Pool2ProtocolsTVLByChain } from '~/containers/Pool2/Pool2ByChain'
 import { getPool2TVLByChain } from '~/containers/Pool2/queries'

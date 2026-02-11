@@ -3,7 +3,7 @@ import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { PROTOCOLS_API, REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
-import { IChainMetadata } from '~/utils/metadata/types'
+import type { IChainMetadata } from '~/utils/metadata/types'
 import {
 	getAdapterChainChartData,
 	getAdapterChainMetrics,
@@ -12,7 +12,7 @@ import {
 } from './api'
 import type { IAdapterOverview, IAdapterSummary } from './api.types'
 import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
-import { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
+import type { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
 
 export { getAdapterChainChartData, getAdapterChainChartDataByProtocolBreakdown } from './api'
 export { getAdapterChainMetrics, getAdapterProtocolChartData, getAdapterProtocolChartDataByBreakdownType } from './api'

@@ -1,12 +1,12 @@
 import {
-	ColumnDef,
-	ExpandedState,
+	type ColumnDef,
+	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import { Parser } from 'expr-eval'
@@ -25,11 +25,11 @@ import {
 import { Icon } from '~/components/Icon'
 import { protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
 import { protocolsByChainColumns } from '~/components/Table/Defi/Protocols/columns'
-import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
+import type { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useUserConfig } from '~/hooks/useUserConfig'
 import { downloadCSV, formatNum, getPercentChange } from '~/utils'
-import { CustomView, TableFilters } from '../../types'
+import type { CustomView, TableFilters } from '../../types'
 
 interface CustomColumn {
 	id: string

@@ -1,5 +1,12 @@
-import { ChartConfig, DashboardItemConfig, MetricAggregator, MetricChartType } from '../../types'
-import { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType, ModalState } from './types'
+import type { ChartConfig, DashboardItemConfig, MetricAggregator, MetricChartType } from '../../types'
+import type {
+	ChartBuilderConfig,
+	ChartModeType,
+	ChartTabType,
+	CombinedTableType,
+	MainTabType,
+	ModalState
+} from './types'
 
 type SetStateAction<T> = T | ((prev: T) => T)
 

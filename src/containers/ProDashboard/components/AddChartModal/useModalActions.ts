@@ -1,21 +1,21 @@
 import { useCallback, useMemo } from 'react'
 import { useProDashboardCatalog, useProDashboardEditorActions, useProDashboardTime } from '../../ProDashboardAPIContext'
 import {
-	Chain,
+	type Chain,
 	CHART_TYPES,
-	ChartConfig,
-	DashboardItemConfig,
-	IncomeStatementConfig,
-	LlamaAIChartConfig,
-	MultiChartConfig,
-	Protocol,
-	ProtocolsTableConfig,
-	StoredColSpan,
-	TextConfig,
-	UnlocksScheduleConfig
+	type ChartConfig,
+	type DashboardItemConfig,
+	type IncomeStatementConfig,
+	type LlamaAIChartConfig,
+	type MultiChartConfig,
+	type Protocol,
+	type ProtocolsTableConfig,
+	type StoredColSpan,
+	type TextConfig,
+	type UnlocksScheduleConfig
 } from '../../types'
 import { EXTENDED_COLOR_PALETTE } from '../../utils/colorManager'
-import { ChartTabType, MainTabType } from './types'
+import type { ChartTabType, MainTabType } from './types'
 import { useModalState } from './useModalState'
 
 export function useModalActions(

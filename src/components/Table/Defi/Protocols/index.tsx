@@ -1,14 +1,14 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
-	ExpandedState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
+	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
@@ -20,7 +20,7 @@ import { TagGroup } from '~/components/TagGroup'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { useSortColumnSizesAndOrders, useTableSearch } from '../../utils'
 import { columnOrders, columnSizes, protocolAddlColumns, protocolsByChainColumns, protocolsColumns } from './columns'
-import { IProtocolRow } from './types'
+import type { IProtocolRow } from './types'
 
 export enum TABLE_CATEGORIES {
 	FEES = 'Fees',

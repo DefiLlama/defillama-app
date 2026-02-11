@@ -1,4 +1,4 @@
-import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 
 export interface IRWAStats {
 	volumeUsd1d: number

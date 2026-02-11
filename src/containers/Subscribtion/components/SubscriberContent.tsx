@@ -6,7 +6,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
-import { Subscription, useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { type Subscription, useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { UsageStatsCard } from './UsageStatsCard'
 
 const StripeCheckoutModal = lazy(() =>

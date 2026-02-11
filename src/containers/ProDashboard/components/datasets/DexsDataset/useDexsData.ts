@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { DexItem } from '~/containers/ProDashboard/types'
+import type { DexItem } from '~/containers/ProDashboard/types'
 import { fetchJson } from '~/utils/async'
 
 export function useDexsData(chains?: string[]) {

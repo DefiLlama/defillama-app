@@ -1,4 +1,4 @@
-import { ColumnDef, Row, type CellContext } from '@tanstack/react-table'
+import { type ColumnDef, type Row, type CellContext } from '@tanstack/react-table'
 import { type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'

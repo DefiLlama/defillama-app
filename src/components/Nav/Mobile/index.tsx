@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { lazy } from 'react'
 import { BasicLink } from '~/components/Link'
-import { TNavLink, TNavLinks, TOldNavLink } from '../types'
+import type { TNavLink, TNavLinks, TOldNavLink } from '../types'
 import { Menu } from './Menu'
 import { Settings } from './Settings'
 

@@ -21,8 +21,8 @@ import {
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { protocolCharts, ProtocolChartsLabels } from './constants'
-import { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from './types'
+import { protocolCharts, type ProtocolChartsLabels } from './constants'
+import type { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from './types'
 
 type ChartInterval = 'daily' | 'weekly' | 'monthly' | 'cumulative'
 type V2ChartPoint = [string | number, number]

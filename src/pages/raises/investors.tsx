@@ -1,10 +1,10 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
+	type ColumnDef,
+	type ColumnFiltersState,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
@@ -17,7 +17,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { RAISES_API } from '~/constants'
-import { IRaises } from '~/containers/ChainOverview/types'
+import type { IRaises } from '~/containers/ChainOverview/types'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'

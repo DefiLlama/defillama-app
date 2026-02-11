@@ -1,4 +1,4 @@
-import Select, { Props } from 'react-select'
+import Select, { type Props } from 'react-select'
 
 const customStyles = {
 	control: (provided) => ({

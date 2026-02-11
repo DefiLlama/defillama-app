@@ -1,4 +1,4 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { lazy, Suspense, useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
@@ -12,7 +12,7 @@ import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/Lo
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formatNum, formattedNum, slug } from '~/utils'
 import { protocolCategories } from './constants'
-import { IProtocolByCategoryOrTagPageData } from './types'
+import type { IProtocolByCategoryOrTagPageData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 

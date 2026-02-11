@@ -1,4 +1,4 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { formattedNum, renderPercentChange } from '~/utils'
 import { percentageSortingFn } from '../../../utils/tableSorting'

@@ -4,7 +4,7 @@ import { AriakitSelect } from '../../../AriakitSelect'
 import { AriakitVirtualizedMultiSelect } from '../../../AriakitVirtualizedMultiSelect'
 import { AriakitVirtualizedSelect } from '../../../AriakitVirtualizedSelect'
 import { useTokenSearch } from '../../../datasets/TokenUsageDataset/useTokenSearch'
-import { CombinedTableType } from '../../types'
+import type { CombinedTableType } from '../../types'
 
 interface SimpleTableConfigProps {
 	selectedChains: string[]
