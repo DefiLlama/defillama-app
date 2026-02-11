@@ -204,13 +204,13 @@ function Attribute({ nestedMenu }: { nestedMenu: boolean; pathname?: string }) {
 
 		const allKeys = stablecoinAttributeOptions.map((o) => o.key)
 
-		const includeRaw = parseIncludeParam(attribute as any, allKeys)
+		const includeRaw = parseIncludeParam(attribute, allKeys)
 		const includeNormalized = includeRaw.flatMap((a) => {
 			const key = normalizeAttributeKey(a)
 			return key ? [key] : []
 		})
 
-		const excludeSetRaw = parseExcludeParam(excludeAttribute as any)
+		const excludeSetRaw = parseExcludeParam(excludeAttribute)
 		const excludeSetNormalized = new Set(
 			Array.from(excludeSetRaw).flatMap((a) => {
 				const key = normalizeAttributeKey(a)
@@ -255,8 +255,8 @@ function BackingType({
 
 	const selectedValues = useMemo(() => {
 		const allKeys = backingOptions.map((o) => o.key)
-		const include = parseIncludeParam(backing as any, allKeys)
-		const excludeSet = parseExcludeParam(excludeBacking as any)
+		const include = parseIncludeParam(backing, allKeys)
+		const excludeSet = parseExcludeParam(excludeBacking)
 		return include.filter((k) => !excludeSet.has(k))
 	}, [backing, excludeBacking, backingOptions])
 
@@ -293,8 +293,8 @@ function PegType({
 
 	const selectedValues = useMemo(() => {
 		const allKeys = pegTypeOptions.map((o) => o.key)
-		const include = parseIncludeParam(pegtype as any, allKeys)
-		const excludeSet = parseExcludeParam(excludePegtype as any)
+		const include = parseIncludeParam(pegtype, allKeys)
+		const excludeSet = parseExcludeParam(excludePegtype)
 		return include.filter((k) => !excludeSet.has(k))
 	}, [pegtype, excludePegtype, pegTypeOptions])
 

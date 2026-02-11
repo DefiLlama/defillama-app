@@ -1,10 +1,11 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import { StablecoinInfo } from '~/containers/ProtocolOverview/Stablecoin'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
-import { getPeggedAssetPageData } from '~/containers/Stablecoins/queries.server'
+import { getStablecoinAssetPageData } from '~/containers/Stablecoins/queries.server'
 import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -33,13 +34,13 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const protocolData = await getProtocol(protocol)
+		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 
-		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
+		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
 		const stablecoinData =
 			Array.isArray(protocolData?.stablecoins) && protocolData.stablecoins.length > 0
-				? await getPeggedAssetPageData(protocolData.stablecoins[0])
+				? await getStablecoinAssetPageData(protocolData.stablecoins[0])
 				: null
 
 		return {

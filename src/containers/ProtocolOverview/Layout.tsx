@@ -249,7 +249,7 @@ export function ProtocolOverviewLayout({
 							>
 								Information
 							</BasicLink>
-							{metrics.tvlTab ? (
+							{metrics.tvl ? (
 								<BasicLink
 									href={`/cex/assets/${slug(name)}`}
 									data-active={tab === 'assets'}
@@ -277,7 +277,7 @@ export function ProtocolOverviewLayout({
 							>
 								Information
 							</BasicLink>
-							{metrics.tvlTab ? (
+							{metrics.tvl ? (
 								<BasicLink
 									href={`/protocol/tvl/${slug(name)}`}
 									data-active={tab === 'tvl'}

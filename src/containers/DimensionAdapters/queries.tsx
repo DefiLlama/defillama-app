@@ -620,6 +620,7 @@ export const getAdapterByChainPageData = async ({
 
 	if (normalizedVolumeData) {
 		normalizedVolumeProtocols = normalizedVolumeData.protocols.reduce((acc, p) => {
+			if (p.name === 'Extended') return acc
 			acc[p.name] = {
 				total24h: p.total24h ?? null
 			}

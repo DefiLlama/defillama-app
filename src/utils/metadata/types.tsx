@@ -61,6 +61,7 @@ export interface IProtocolMetadata {
 	safeHarbor?: boolean
 	borrowed?: boolean
 	tokenRights?: boolean
+	inflows?: boolean
 }
 
 export interface ICexItem {

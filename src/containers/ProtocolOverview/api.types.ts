@@ -116,7 +116,6 @@ export interface IProtocolMetricsV2 {
 	parentProtocol?: string
 	governanceID?: Array<string>
 	github?: Array<string>
-	chainTvls?: Record<string, IProtocolChainTvlEntry>
 	currentChainTvls?: Record<string, number>
 	isParentProtocol?: boolean
 	mcap: number | null
@@ -134,12 +133,33 @@ export interface IProtocolMetricsV2 {
 	wrongLiquidity?: boolean
 }
 
-export type IProtocolChartV2RawPoint = [string, number]
-export type IProtocolChartV2Raw = IProtocolChartV2RawPoint[]
-export type IProtocolChartV2Point = [number, number]
-export type IProtocolChartV2 = IProtocolChartV2Point[]
+export interface IProtocolOverviewMetricsV1 extends IProtocolMetricsV2 {
+	chainTvls: Record<string, IProtocolChainTvlEntry>
+}
 
 export type ProtocolChartBreakdownType = 'chain-breakdown' | 'token-breakdown'
+
+export type IProtocolChartTimestamp = string | number
+
+export type IProtocolValueChartRawPoint = [IProtocolChartTimestamp, number]
+export type IProtocolValueChartRaw = IProtocolValueChartRawPoint[]
+export type IProtocolValueChartPoint = [number, number]
+export type IProtocolValueChart = IProtocolValueChartPoint[]
+
+export type IProtocolChainBreakdownValue = Record<string, number>
+export type IProtocolChainBreakdownChartRawPoint = [IProtocolChartTimestamp, IProtocolChainBreakdownValue]
+export type IProtocolChainBreakdownChartRaw = IProtocolChainBreakdownChartRawPoint[]
+export type IProtocolChainBreakdownChartPoint = [number, IProtocolChainBreakdownValue]
+export type IProtocolChainBreakdownChart = IProtocolChainBreakdownChartPoint[]
+
+export type IProtocolTokenBreakdownValue = Record<string, number>
+export type IProtocolTokenBreakdownChartRawPoint = [IProtocolChartTimestamp, IProtocolTokenBreakdownValue]
+export type IProtocolTokenBreakdownChartRaw = IProtocolTokenBreakdownChartRawPoint[]
+export type IProtocolTokenBreakdownChartPoint = [number, IProtocolTokenBreakdownValue]
+export type IProtocolTokenBreakdownChart = IProtocolTokenBreakdownChartPoint[]
+
+export type IProtocolTvlMetrics = IProtocolMetricsV2
+export type IProtocolTreasuryMetrics = IProtocolMetricsV2
 
 export interface IProtocolChartV2Params {
 	protocol: string

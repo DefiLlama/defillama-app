@@ -12,8 +12,9 @@ import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
 import { KeyMetrics } from '~/containers/ProtocolOverview'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -48,7 +49,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const [protocolData, feesData, revenueData, holdersRevenueData, bribeRevenueData, tokenTaxData] = await Promise.all(
 			[
-				getProtocol(protocol),
+				fetchProtocolOverviewMetrics(protocol),
 				getAdapterProtocolSummary({
 					adapterType: 'fees',
 					protocol: metadata[1].displayName,
@@ -89,7 +90,7 @@ export const getStaticProps = withPerformanceLogging(
 			]
 		)
 
-		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
+		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
 		const fees: IProtocolOverviewPageData['fees'] = {
 			total24h: feesData.total24h ?? null,

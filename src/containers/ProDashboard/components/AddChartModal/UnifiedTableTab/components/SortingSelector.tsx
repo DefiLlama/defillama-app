@@ -92,7 +92,7 @@ export function SortingSelector({
 						id="unified-sorting-column"
 						value={currentColumn}
 						onChange={(event) => handleColumnChange(event.target.value)}
-						className="w-full min-w-[180px] rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2 text-sm text-(--text-primary) focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/20 focus:outline-none sm:w-auto"
+						className="w-full min-w-[180px] rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2 text-sm text-(--text-primary) focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/20 focus:outline-hidden sm:w-auto"
 					>
 						<option value="">No sorting</option>
 						{selectableColumns.map((column) => (

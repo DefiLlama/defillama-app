@@ -150,11 +150,7 @@ function Support() {
 							)}
 						</span>
 						<span className="text-sm text-gray-500">
-							{chatLoading
-								? 'Please wait'
-								: userHash
-									? 'Chat with us in real time'
-									: 'Available for paying customers'}
+							{chatLoading ? 'Please wait' : userHash ? 'Chat with us in real time' : 'Available for paying customers'}
 						</span>
 					</button>
 				</div>

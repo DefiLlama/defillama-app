@@ -1,25 +1,43 @@
 import {
-	CONFIG_API,
-	PEGGED_API,
-	PEGGEDCHART_API,
-	PEGGEDCHART_COINS_RECENT_DATA_API,
-	PEGGEDCHART_DOMINANCE_ALL_API,
-	PEGGEDCONFIG_API,
-	PEGGEDPRICES_API,
-	PEGGEDRATES_API,
-	PEGGEDS_API
-} from '~/constants'
-import {
 	formatPeggedAssetsData,
 	formatPeggedChainsData,
-	getPrevStablecoinTotalFromChart
+	getPrevStablecoinTotalFromChart,
+	buildStablecoinChartData,
+	getStablecoinDominance,
+	getStablecoinMcapStatsFromTotals,
+	getStablecoinTopTokenFromChartData
 } from '~/containers/Stablecoins/utils'
 import { getPercentChange, slug } from '~/utils'
-import { fetchJson, postRuntimeLogs } from '~/utils/async'
+import { postRuntimeLogs } from '~/utils/async'
 import { getObjectCache, setObjectCache } from '~/utils/cache-client'
+import {
+	fetchStablecoinAssetApi,
+	fetchStablecoinAssetsApi,
+	fetchStablecoinBridgeInfoApi,
+	fetchStablecoinChartAllApi,
+	fetchStablecoinChartApi,
+	fetchStablecoinConfigApi,
+	fetchStablecoinDominanceAllApi,
+	fetchStablecoinPeggedConfigApi,
+	fetchStablecoinPricesApi,
+	fetchStablecoinRatesApi,
+	fetchStablecoinRecentCoinsDataApi
+} from './api'
+import type { ChartPoint, PeggedAssetApi } from './api.types'
+import type {
+	PeggedAssetPageProps,
+	PeggedAssetsForChartInput,
+	PeggedAssetsInput,
+	PeggedChainMcapSummary,
+	PeggedChainsPageData,
+	PeggedOverviewPageData,
+	StablecoinOverviewChartInputs,
+	StablecoinsGlobalDataCache
+} from './types'
 
 const STABLECOINS_CACHE_TTL = 60 * 60 * 24
 const STABLECOINS_CACHE_PREFIX = 'stablecoins'
+const ONE_DAY_SECONDS = 24 * 3600
 
 async function withStablecoinsCache<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
 	const cacheKey = `${STABLECOINS_CACHE_PREFIX}:${key}`
@@ -39,140 +57,244 @@ async function withStablecoinsCache<T>(key: string, fetcher: () => Promise<T>): 
 	}
 }
 
-export const getPeggedAssets = () =>
+export const getStablecoinAssets = () =>
 	withStablecoinsCache('pegged-assets', () =>
-		fetchJson(PEGGEDS_API).then(({ peggedAssets, chains }) => ({
-			protocolsDict: peggedAssets.reduce((acc, curr) => {
-				acc[slug(curr.name)] = curr
-				return acc
-			}, {}),
+		fetchStablecoinAssetsApi().then(({ peggedAssets, chains }) => ({
+			protocolsDict: peggedAssets.reduce(
+				(acc, curr) => {
+					acc[slug(curr.name)] = curr
+					return acc
+				},
+				{} as Record<string, PeggedAssetApi>
+			),
 			peggedAssets,
 			chains
 		}))
 	)
 
-export const getPeggedPrices = () => withStablecoinsCache('pegged-prices', () => fetchJson(PEGGEDPRICES_API))
-export const getPeggedRates = () => withStablecoinsCache('pegged-rates', () => fetchJson(PEGGEDRATES_API))
-export const getConfigData = () => withStablecoinsCache('config', () => fetchJson(CONFIG_API))
-export const getPeggedConfigData = () => withStablecoinsCache('pegged-config', () => fetchJson(PEGGEDCONFIG_API))
+export const getStablecoinPrices = () => withStablecoinsCache('pegged-prices', fetchStablecoinPricesApi)
+export const getStablecoinRates = () => withStablecoinsCache('pegged-rates', fetchStablecoinRatesApi)
+export const getStablecoinConfigData = () => withStablecoinsCache('config', fetchStablecoinConfigApi)
+export const getStablecoinPeggedConfigData = () => withStablecoinsCache('pegged-config', fetchStablecoinPeggedConfigApi)
 
-export const getPeggedBridgeInfo = () =>
-	withStablecoinsCache('bridge-info', () =>
-		fetchJson('https://llama-stablecoins-data.s3.eu-central-1.amazonaws.com/bridgeInfo.json')
-	)
+export const getStablecoinBridgeInfo = () => withStablecoinsCache('bridge-info', fetchStablecoinBridgeInfoApi)
 
-let globalData: any
+const sumRecordValues = (record: Record<string, number> | undefined): number => {
+	if (!record) return 0
+	let total = 0
+	for (const value of Object.values(record)) {
+		if (Number.isFinite(value)) total += value
+	}
+	return total
+}
 
-function fetchGlobalData({ peggedAssets, chains }: any) {
-	if (globalData) return globalData
-	const tvlMap: any = {}
+const toOverviewFilteredAssets = (value: unknown): PeggedOverviewPageData['filteredPeggedAssets'] => {
+	if (!Array.isArray(value)) return []
+	const normalized: PeggedOverviewPageData['filteredPeggedAssets'] = []
+	for (const item of value) {
+		if (!item || typeof item !== 'object') continue
+		const candidate = item as Record<string, unknown>
+		if (typeof candidate.name !== 'string') continue
+		if (typeof candidate.mcap !== 'number' || !Number.isFinite(candidate.mcap)) continue
+		normalized.push(candidate as PeggedOverviewPageData['filteredPeggedAssets'][number])
+	}
+	return normalized
+}
+
+function fetchGlobalData({ peggedAssets, chains }: PeggedAssetsInput): StablecoinsGlobalDataCache {
+	const tvlMap: Record<string, number> = {}
 	for (const chain of chains) {
 		tvlMap[chain.name] = chain.tvl
 	}
 	const chainList = chains
-		.sort((a, b) => {
-			const bTotalCirculatings = Object.values(b.totalCirculatingUSD) as any
-			const bMcap = bTotalCirculatings.reduce((c, d) => c + d)
-			const aTotalCirculatings = Object.values(a.totalCirculatingUSD) as any
-			const aMcap = aTotalCirculatings.reduce((c, d) => c + d)
-			return bMcap - aMcap
-		})
+		.toSorted((a, b) => sumRecordValues(b.totalCirculatingUSD) - sumRecordValues(a.totalCirculatingUSD))
 		.map((chain) => chain.name)
-	const chainsSet = new Set()
-	const _chainSet = new Set(chainList)
-	for (const { chains } of peggedAssets) {
-		for (const chain of chains) {
-			if (!chain) {
-				chainsSet.add(chain)
-			} else {
-				if (_chainSet.has(chain)) chainsSet.add(chain)
-			}
+	const chainsSet = new Set<string>()
+	const chainSet = new Set(chainList)
+	for (const asset of peggedAssets) {
+		for (const chain of asset.chains ?? []) {
+			if (chain && chainSet.has(chain)) chainsSet.add(chain)
 		}
 	}
-	globalData = {
+	return {
 		chainList,
-		chainsSet,
-		_chains: chainList.filter((chain) => chainsSet.has(chain)),
+		chains: chainList.filter((chain) => chainsSet.has(chain)),
 		chainsTVLData: chainList.map((chain) => tvlMap[chain])
 	}
-
-	return globalData
 }
 
-export async function getPeggedOverviewPageData(chain) {
+type StablecoinSeriesPoint = { date: number; mcap: Record<string, number> }
+
+const toStablecoinSeriesPoint = (chart: ChartPoint): StablecoinSeriesPoint | null => {
+	const mcap = chart.totalCirculatingUSD
+	if (!mcap || typeof mcap !== 'object') return null
+	return { date: chart.date, mcap }
+}
+
+const normalizeStablecoinSeries = (charts: ChartPoint[] | undefined): StablecoinSeriesPoint[] => {
+	if (!charts?.length) return []
+	const normalized: StablecoinSeriesPoint[] = []
+	for (const chart of charts) {
+		const point = toStablecoinSeriesPoint(chart)
+		if (point) normalized.push(point)
+	}
+	return normalized
+}
+
+const getLastSeriesTimestamp = (series: StablecoinSeriesPoint[]): number => {
+	if (series.length === 0) return 0
+	return series[series.length - 1]?.date ?? 0
+}
+
+const padSeriesToTimestamp = (series: StablecoinSeriesPoint[], targetTimestamp: number): void => {
+	if (series.length === 0) return
+	const last = series[series.length - 1]
+	if (!last) return
+
+	let lastDate = Number(last.date)
+	while (lastDate < targetTimestamp) {
+		lastDate += ONE_DAY_SECONDS
+		series.push({ ...last, date: lastDate })
+	}
+}
+
+const readStablecoinNumericFromChart = (
+	chart: Array<unknown> | null | undefined,
+	daysBefore: number,
+	issuanceType: string,
+	pegType?: string
+): number | null => {
+	const raw = getPrevStablecoinTotalFromChart(chart, daysBefore, issuanceType, pegType)
+	return typeof raw === 'number' && Number.isFinite(raw) ? raw : null
+}
+
+const readStablecoinBridgesFromChart = (
+	chart: Array<unknown> | null | undefined,
+	daysBefore: number,
+	issuanceType: string
+): unknown => {
+	const bridges = getPrevStablecoinTotalFromChart(chart, daysBefore, issuanceType, 'bridges')
+	return typeof bridges === 'undefined' ? null : bridges
+}
+
+const buildOverviewChartInputs = ({
+	peggedAssets,
+	breakdown,
+	doublecountedSourceIds
+}: PeggedAssetsForChartInput): StablecoinOverviewChartInputs => {
+	const chartDataByPeggedAsset: StablecoinSeriesPoint[][] = []
+	const peggedAssetNamesSet = new Set<string>()
+	const peggedNameToChartDataIndex: Record<string, number> = {}
+	const doublecountedIds: number[] = []
+	let lastTimestamp = 0
+
+	for (let i = 0; i < peggedAssets.length; i++) {
+		const asset = peggedAssets[i]
+		let key = asset.symbol
+		if (peggedAssetNamesSet.has(key)) key = asset.name
+		if (!peggedAssetNamesSet.has(key)) peggedAssetNamesSet.add(key)
+		else peggedAssetNamesSet.add(asset.gecko_id)
+
+		peggedNameToChartDataIndex[asset.name] = i
+		const formattedCharts = normalizeStablecoinSeries(breakdown[asset.id])
+		lastTimestamp = Math.max(lastTimestamp, getLastSeriesTimestamp(formattedCharts))
+
+		if (doublecountedSourceIds?.includes(asset.id)) {
+			doublecountedIds.push(i)
+		}
+		chartDataByPeggedAsset.push(formattedCharts)
+	}
+
+	for (const chart of chartDataByPeggedAsset) padSeriesToTimestamp(chart, lastTimestamp)
+
+	return {
+		chartDataByPeggedAsset,
+		peggedAssetNames: [...peggedAssetNamesSet],
+		peggedNameToChartDataIndex,
+		doublecountedIds
+	}
+}
+
+export async function getStablecoinChainMcapSummary(chain: string | null): Promise<PeggedChainMcapSummary | null> {
+	const chainKey = chain ? slug(chain) : 'all'
+	return withStablecoinsCache(`overview-summary:${chainKey}`, async () => {
+		const chainLabel = chain ?? 'all-llama-app'
+		const [{ peggedAssets }, chainData] = await Promise.all([
+			getStablecoinAssets(),
+			fetchStablecoinChartApi(chainLabel)
+		])
+		const breakdown = chainData.breakdown
+		if (!breakdown) return null
+
+		const { chartDataByPeggedAsset, peggedAssetNames, peggedNameToChartDataIndex, doublecountedIds } =
+			buildOverviewChartInputs({
+				peggedAssets,
+				breakdown,
+				doublecountedSourceIds: chainData.doublecountedIds
+			})
+
+		const { peggedAreaChartData, peggedAreaTotalData } = buildStablecoinChartData({
+			chartDataByAssetOrChain: chartDataByPeggedAsset,
+			assetsOrChainsList: peggedAssetNames,
+			filteredIndexes: Object.values(peggedNameToChartDataIndex),
+			issuanceType: 'mcap',
+			selectedChain: chain ?? 'All',
+			doublecountedIds
+		})
+
+		const mcapStats = getStablecoinMcapStatsFromTotals(peggedAreaTotalData)
+		const topToken = getStablecoinTopTokenFromChartData(peggedAreaChartData)
+		const dominanceValue = getStablecoinDominance(topToken, mcapStats.totalMcapCurrent)
+		const dominance = dominanceValue == null ? null : String(dominanceValue)
+
+		return {
+			mcap: mcapStats.totalMcapCurrent ?? null,
+			change7dUsd: mcapStats.change7dUsd ?? null,
+			change7d: mcapStats.change7d ?? null,
+			topToken,
+			dominance: dominance ?? null,
+			mcapChartData: mcapStats.mcapChartData14d
+		}
+	})
+}
+
+export async function getStablecoinsByChainPageData(chain: string | null): Promise<PeggedOverviewPageData> {
 	const chainKey = chain ? slug(chain) : 'all'
 	return withStablecoinsCache(`overview:${chainKey}`, async () => {
 		const chainLabel = chain ?? 'all-llama-app' // custom key to fetch limited data to reduce page size
 		const [{ peggedAssets, chains }, chainData, priceData, rateData] = await Promise.all([
-			getPeggedAssets(),
-			fetchJson(`${PEGGEDCHART_API}/${chainLabel}`),
-			getPeggedPrices(),
-			getPeggedRates()
+			getStablecoinAssets(),
+			fetchStablecoinChartApi(chainLabel),
+			getStablecoinPrices(),
+			getStablecoinRates()
 		])
-		const breakdown = chainData?.breakdown
+		const breakdown = chainData.breakdown
 		if (!breakdown) {
-			throw new Error(`[getPeggedOverviewPageData] [${chainLabel}] no breakdown`)
+			throw new Error(`[getStablecoinsByChainPageData] [${chainLabel}] no breakdown`)
 		}
 
-		let chartDataByPeggedAsset = []
-		let peggedAssetNamesSet: Set<string> = new Set() // fix name of this variable
+		const { chartDataByPeggedAsset, peggedAssetNames, peggedNameToChartDataIndex, doublecountedIds } =
+			buildOverviewChartInputs({
+				peggedAssets,
+				breakdown,
+				doublecountedSourceIds: chainData.doublecountedIds
+			})
 
-		let peggedNameToChartDataIndex: object = {}
-		let lastTimestamp = 0
-		const doublecountedIds = []
-		chartDataByPeggedAsset = peggedAssets.map((elem, i) => {
-			let key = elem.symbol
-			if (peggedAssetNamesSet.has(key)) key = elem.name
-			if (!peggedAssetNamesSet.has(key)) peggedAssetNamesSet.add(key)
-			else peggedAssetNamesSet.add(elem.gecko_id)
-
-			peggedNameToChartDataIndex[elem.name] = i
-			let charts = breakdown[elem.id] ?? []
-			const formattedCharts = charts
-				.map((chart) => {
-					return {
-						date: chart.date,
-						mcap: chart.totalCirculatingUSD
-					}
-				})
-				.filter((i) => i.mcap !== undefined)
-			if (formattedCharts.length > 0) {
-				lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)
-			}
-
-			if (chainData?.doublecountedIds?.includes(elem.id)) {
-				doublecountedIds.push(i)
-			}
-			return formattedCharts
-		})
-		for (const chart of chartDataByPeggedAsset) {
-			const last = chart[chart.length - 1]
-			if (!last) {
-				continue
-			}
-			let lastDate = Number(last.date)
-			while (lastDate < lastTimestamp) {
-				lastDate += 24 * 3600
-				chart.push({
-					...last,
-					date: lastDate
-				})
-			}
-		}
-
-		const filteredPeggedAssets = formatPeggedAssetsData({
-			peggedAssets,
-			chartDataByPeggedAsset,
-			priceData,
-			rateData,
-			peggedNameToChartDataIndex,
-			chain
-		})
+		const filteredPeggedAssets = toOverviewFilteredAssets(
+			formatPeggedAssetsData({
+				peggedAssets,
+				chartDataByPeggedAsset,
+				priceData,
+				rateData,
+				peggedNameToChartDataIndex,
+				chain
+			})
+		)
 
 		return {
-			chains: fetchGlobalData({ peggedAssets, chains })._chains,
+			chains: fetchGlobalData({ peggedAssets, chains }).chains,
 			filteredPeggedAssets: filteredPeggedAssets || [],
-			peggedAssetNames: [...peggedAssetNamesSet],
+			peggedAssetNames,
 			peggedNameToChartDataIndex,
 			chartDataByPeggedAsset,
 			doublecountedIds,
@@ -181,7 +303,7 @@ export async function getPeggedOverviewPageData(chain) {
 	})
 }
 
-export async function getPeggedChainsPageData() {
+export async function getStablecoinChainsPageData(): Promise<PeggedChainsPageData> {
 	return withStablecoinsCache('chains-page', async () => {
 		const [
 			{ peggedAssets, chains },
@@ -189,14 +311,14 @@ export async function getPeggedChainsPageData() {
 			{ aggregated: chartData },
 			{ dominanceMap, chainChartMap }
 		] = await Promise.all([
-			getPeggedAssets(),
-			getConfigData(),
-			fetchJson(`${PEGGEDCHART_API}/all`),
-			fetchJson(PEGGEDCHART_DOMINANCE_ALL_API)
+			getStablecoinAssets(),
+			getStablecoinConfigData(),
+			fetchStablecoinChartAllApi(),
+			fetchStablecoinDominanceAllApi()
 		])
 		const { chainList, chainsTVLData } = fetchGlobalData({ peggedAssets, chains })
 
-		let chainsGroupbyParent: Record<string, Record<string, string[]>> = {}
+		const chainsGroupbyParent: Record<string, Record<string, string[]>> = {}
 		for (const chain of chainList) {
 			const parent = chainCoingeckoIds[chain]?.parent
 			if (parent) {
@@ -212,16 +334,17 @@ export async function getPeggedChainsPageData() {
 			}
 		}
 
-		let peggedChartDataByChain = chainList.map((chain) => chainChartMap[chain] ?? null)
+		const peggedChartDataByChain = chainList.map((chain) => chainChartMap[chain] ?? null) as Array<ChartPoint[] | null>
 
-		let peggedDomDataByChain = chainList.map((chain) => dominanceMap[chain])
+		const peggedDomDataByChain = chainList.map((chain) => dominanceMap[chain])
 
-		let chainDominances = {}
-		peggedDomDataByChain.map((charts, i) => {
+		const chainDominances: Record<string, { symbol: string; mcap: number }> = {}
+		peggedDomDataByChain.forEach((charts, i) => {
 			if (!charts) return
 			const lastChart = charts[charts.length - 1]
 			if (!lastChart) return
 			const greatestChainMcap = lastChart.greatestMcap
+			if (!greatestChainMcap) return
 			const chainName = chainList[i]
 			chainDominances[chainName] = greatestChainMcap
 		})
@@ -233,12 +356,27 @@ export async function getPeggedChainsPageData() {
 			chainsTVLData
 		})
 
-		peggedChartDataByChain = peggedChartDataByChain.map((charts) => {
+		const formattedPeggedChartDataByChain = peggedChartDataByChain.map((charts) => {
 			if (!charts) return null
 			const formattedCharts = charts.map((chart) => {
+				const rawMcap = chart.totalCirculatingUSD
+				let mcap: number | null = null
+				if (typeof rawMcap === 'number' && Number.isFinite(rawMcap)) {
+					mcap = rawMcap
+				} else if (rawMcap && typeof rawMcap === 'object') {
+					let total = 0
+					let hasFinite = false
+					for (const value of Object.values(rawMcap as Record<string, unknown>)) {
+						const numeric = typeof value === 'number' ? value : Number(value)
+						if (!Number.isFinite(numeric)) continue
+						total += numeric
+						hasFinite = true
+					}
+					mcap = hasFinite ? total : null
+				}
 				return {
 					date: chart.date,
-					mcap: chart.totalCirculatingUSD ?? null
+					mcap
 				}
 			})
 			return formattedCharts
@@ -246,56 +384,50 @@ export async function getPeggedChainsPageData() {
 
 		return {
 			chainCirculatings,
-			chartData,
-			peggedChartDataByChain,
+			chartData: chartData ?? [],
+			peggedChartDataByChain: formattedPeggedChartDataByChain,
 			chainList,
 			chainsGroupbyParent
 		}
 	})
 }
 
-export const getPeggedAssetPageData = async (peggedasset: string) => {
-	const peggedNameToPeggedIDMapping = await getPeggedConfigData()
+export const getStablecoinAssetPageData = async (
+	peggedasset: string
+): Promise<{ props: PeggedAssetPageProps } | null> => {
+	const peggedNameToPeggedIDMapping = await getStablecoinPeggedConfigData()
 	const peggedID = peggedNameToPeggedIDMapping[peggedasset]
 	if (!peggedID) {
 		return null
 	}
 	return withStablecoinsCache(`asset:${peggedID}`, async () => {
-		const [res, { chainCoingeckoIds }, recentCoinsData] = await Promise.all([
-			fetchJson(`${PEGGED_API}/${peggedID}`).catch((e) => {
-				console.log(`Failed to fetch ${PEGGED_API}/${peggedID}: ${e}`)
-				return null
-			}),
-			getConfigData(),
-			fetchJson(PEGGEDCHART_COINS_RECENT_DATA_API)
+		const [res, { chainCoingeckoIds }, recentCoinsData, bridgeInfo] = await Promise.all([
+			fetchStablecoinAssetApi(peggedID),
+			getStablecoinConfigData(),
+			fetchStablecoinRecentCoinsDataApi(),
+			getStablecoinBridgeInfo()
 		])
+		if (!res) return null
 
 		const peggedChart = recentCoinsData[peggedID]
-		const bridgeInfo = await getPeggedBridgeInfo()
+		const pegType = res.pegType ?? ''
 
-		const pegType = res.pegType
+		const totalCirculating = readStablecoinNumericFromChart(peggedChart, 0, 'totalCirculating', pegType)
+		const unreleased = readStablecoinNumericFromChart(peggedChart, 0, 'totalUnreleased', pegType)
+		const mcap = readStablecoinNumericFromChart(peggedChart, 0, 'totalCirculatingUSD', pegType)
 
-		const totalCirculating = getPrevStablecoinTotalFromChart(peggedChart, 0, 'totalCirculating', pegType)
-		const unreleased = getPrevStablecoinTotalFromChart(peggedChart, 0, 'totalUnreleased', pegType)
-		const mcap = getPrevStablecoinTotalFromChart(peggedChart, 0, 'totalCirculatingUSD', pegType)
-
-		const chainsUnique: string[] = Object.keys(res.chainBalances)
-
-		const chainsData: any[] = await Promise.all(
-			chainsUnique.map(async (elem: string) => {
-				return res.chainBalances[elem].tokens
-			})
-		)
+		const chainsUnique: string[] = Object.keys(res.chainBalances ?? {})
+		const chainsData = chainsUnique.map((elem) => res.chainBalances[elem]?.tokens ?? [])
 
 		const chainCirculatings = chainsUnique
 			.map((chainName, i) => {
-				const circulating: number = getPrevStablecoinTotalFromChart(chainsData[i], 0, 'circulating', pegType)
-				const unreleased: number = getPrevStablecoinTotalFromChart(chainsData[i], 0, 'unreleased', pegType)
-				let bridgedTo: number = getPrevStablecoinTotalFromChart(chainsData[i], 0, 'bridgedTo', pegType)
-				const bridges: any = getPrevStablecoinTotalFromChart(chainsData[i], 0, 'bridgedTo', 'bridges')
-				const circulatingPrevDay: number = getPrevStablecoinTotalFromChart(chainsData[i], 1, 'circulating', pegType)
-				const circulatingPrevWeek: number = getPrevStablecoinTotalFromChart(chainsData[i], 7, 'circulating', pegType)
-				const circulatingPrevMonth: number = getPrevStablecoinTotalFromChart(chainsData[i], 30, 'circulating', pegType)
+				const circulating = readStablecoinNumericFromChart(chainsData[i], 0, 'circulating', pegType)
+				const unreleased = readStablecoinNumericFromChart(chainsData[i], 0, 'unreleased', pegType)
+				const bridgedTo = readStablecoinNumericFromChart(chainsData[i], 0, 'bridgedTo', pegType)
+				const bridges = readStablecoinBridgesFromChart(chainsData[i], 0, 'bridgedTo')
+				const circulatingPrevDay = readStablecoinNumericFromChart(chainsData[i], 1, 'circulating', pegType)
+				const circulatingPrevWeek = readStablecoinNumericFromChart(chainsData[i], 7, 'circulating', pegType)
+				const circulatingPrevMonth = readStablecoinNumericFromChart(chainsData[i], 30, 'circulating', pegType)
 				const change_1d = getPercentChange(circulating, circulatingPrevDay)
 				const change_7d = getPercentChange(circulating, circulatingPrevWeek)
 				const change_1m = getPercentChange(circulating, circulatingPrevMonth)
@@ -315,7 +447,7 @@ export const getPeggedAssetPageData = async (peggedasset: string) => {
 					symbol: chainCoingeckoIds[chainName]?.symbol ?? '-'
 				}
 			})
-			.sort((a, b) => b.circulating - a.circulating)
+			.sort((a, b) => (b.circulating ?? 0) - (a.circulating ?? 0))
 
 		return {
 			props: {

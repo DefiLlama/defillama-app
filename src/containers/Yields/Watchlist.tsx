@@ -5,6 +5,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Menu } from '~/components/Menu'
 import { ColumnFilters } from '~/containers/Yields/Filters/ColumnFilters'
+import { useVolatility } from '~/containers/Yields/queries/client'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import { DEFAULT_PORTFOLIO_NAME } from '~/contexts/LocalStorage'
 import { useBookmarks } from '~/hooks/useBookmarks'
@@ -22,11 +23,14 @@ const ALL_YIELD_COLUMNS = [
 	'showLTV',
 	'showTotalSupplied',
 	'showTotalBorrowed',
-	'showAvailable'
+	'showAvailable',
+	'showMedianApy',
+	'showStdDev'
 ]
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
 	const isClient = useIsClient()
+	const { data: volatility } = useVolatility()
 
 	const { portfolios, selectedPortfolio, savedProtocols, addPortfolio, removePortfolio, setSelectedPortfolio } =
 		useBookmarks('yields')
@@ -68,10 +72,13 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 				totalBorrowUsd: t.totalBorrowUsd,
 				totalAvailableUsd: t.totalAvailableUsd,
 				ltv: t.ltv,
-				lsdTokenOnly: t.lsdTokenOnly
+				lsdTokenOnly: t.lsdTokenOnly,
+				apyMedian30d: volatility?.[t.pool]?.[1] ?? null,
+				apyStd30d: volatility?.[t.pool]?.[2] ?? null,
+				cv30d: volatility?.[t.pool]?.[3] ?? null
 			}))
 		} else return []
-	}, [isClient, savedProtocols, protocolsDict])
+	}, [isClient, savedProtocols, protocolsDict, volatility])
 	const [open, setOpen] = useState(false)
 
 	return (

@@ -19,5 +19,6 @@
 	},
 	"[jsonc]": {
 		"editor.defaultFormatter": "oxc.oxc-vscode"
-	}
+	},
+	"tailwindCSS.experimental.configFile": "src/tailwind.css"
 }

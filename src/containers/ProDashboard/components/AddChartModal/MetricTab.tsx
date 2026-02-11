@@ -103,7 +103,7 @@ export function MetricTab(props: MetricTabProps) {
 
 	return (
 		<div className="flex h-full flex-col gap-3 lg:min-h-[360px] lg:flex-row lg:overflow-hidden">
-			<div className="flex w-full shrink-0 flex-col border pro-border lg:thin-scrollbar lg:w-[380px] lg:flex-shrink lg:overflow-y-auto xl:w-[420px]">
+			<div className="flex w-full shrink-0 flex-col border pro-border lg:thin-scrollbar lg:w-[380px] lg:shrink lg:overflow-y-auto xl:w-[420px]">
 				<div className="flex flex-col gap-3 p-2.5 sm:p-3">
 					<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-2.5 shadow-sm sm:p-3">
 						<div className="flex items-start justify-between gap-2 sm:gap-3">
@@ -155,7 +155,7 @@ export function MetricTab(props: MetricTabProps) {
 				</div>
 			</div>
 
-			<div className="flex min-h-[280px] flex-1 shrink-0 flex-col overflow-hidden border pro-border lg:min-h-0 lg:flex-shrink">
+			<div className="flex min-h-[280px] flex-1 shrink-0 flex-col overflow-hidden border pro-border lg:min-h-0 lg:shrink">
 				<div className="flex-1 overflow-hidden rounded-md bg-(--cards-bg) p-2 sm:p-2.5">
 					{previewMetric ? (
 						<MetricCard metric={previewMetric} />

@@ -4,7 +4,6 @@ import { protocolCharts, ProtocolChartsLabels } from './constants'
 
 export interface IProtocolPageMetrics {
 	tvl: boolean
-	tvlTab: boolean
 	dexs: boolean
 	perps: boolean
 	openInterest: boolean

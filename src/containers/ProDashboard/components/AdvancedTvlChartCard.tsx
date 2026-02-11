@@ -3,7 +3,10 @@ import { lazy, Suspense, useMemo } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { oldBlue } from '~/constants/colors'
-import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
+import {
+	formatProtocolV1TvlsByChain,
+	useFetchProtocolV1AddlChartsData
+} from '~/containers/ProtocolOverview/protocolV1AddlChartsData'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { download, toNiceCsvDate } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'
@@ -82,13 +85,13 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 		staleTime: 60 * 60 * 1000
 	})
 
-	const { data: addlData, historicalChainTvls, isLoading: isAddlLoading } = useFetchProtocolAddlChartsData(protocol)
+	const { data: addlData, historicalChainTvls, isLoading: isAddlLoading } = useFetchProtocolV1AddlChartsData(protocol)
 
 	const isLoading = chartType === 'tvl' ? isBasicTvlLoading : isAddlLoading
 
 	const { chainsSplit, chainsUnique } = useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
-		const chainsSplit = formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled })
+		const chainsSplit = formatProtocolV1TvlsByChain({ historicalChainTvls, extraTvlsEnabled })
 		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
 		const chainsUnique = Object.keys(lastEntry)
 			.filter((key) => key !== 'date')
