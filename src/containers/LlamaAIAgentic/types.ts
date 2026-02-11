@@ -1,7 +1,7 @@
 export interface ChartConfiguration {
 	id: string
 	datasetName?: string
-	type: 'line' | 'area' | 'bar' | 'pie' | 'scatter' | 'hbar'
+	type: 'line' | 'area' | 'bar' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
 	title: string
 	description: string
 	valueSymbol?: string
@@ -25,7 +25,7 @@ export interface ChartConfiguration {
 
 	series: Array<{
 		name: string
-		type: 'line' | 'area' | 'bar' | 'hbar'
+		type: 'line' | 'area' | 'bar' | 'hbar' | 'candlestick'
 		yAxisId: string
 		metricClass: 'flow' | 'stock'
 		dataMapping: {

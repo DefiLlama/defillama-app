@@ -1,7 +1,9 @@
 import { formatTooltipValue } from '~/components/ECharts/formatters'
-import type { IBarChartProps, IChartProps, IMultiSeriesChartProps, IPieChartProps } from '~/components/ECharts/types'
+import type { IBarChartProps, ICandlestickChartProps, IChartProps, IMultiSeriesChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { formattedNum, getNDistinctColors } from '~/utils'
 import type { ChartConfiguration } from './types'
+
+const OVERLAY_INDICATORS = ['sma', 'ema', 'dema', 'tema', 'wma', 'vwap', 'bbands', 'bollinger']
 
 const CHART_COLORS = [
 	'#2172E5',
@@ -550,4 +552,101 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			description: `Failed to render multi-series chart: ${error instanceof Error ? error.message : 'Unknown error'}`
 		}
 	}
+}
+
+export function adaptCandlestickData(
+	config: ChartConfiguration,
+	rawData: any
+): { data: ICandlestickChartProps['data']; indicators: ICandlestickChartProps['indicators'] } {
+	let data: ICandlestickChartProps['data'] = []
+	let indicators: ICandlestickChartProps['indicators'] = []
+
+	if (!Array.isArray(rawData) || rawData.length === 0) {
+		return { data, indicators }
+	}
+
+	const sample = rawData[0] || {}
+	const keys = Object.keys(sample)
+	const getTs = (r: any) => (r.timestamp ? parseFloat(r.timestamp) : new Date(r.date).getTime())
+
+	data = rawData.map((r: any) => [
+		getTs(r),
+		parseFloat(r.open ?? r.price ?? 0),
+		parseFloat(r.close),
+		parseFloat(r.low),
+		parseFloat(r.high),
+		parseFloat(r.volume || 0)
+	])
+
+	const bbUpper = keys.find((k) => k.includes('_bb_upper'))
+	const bbMiddle = keys.find((k) => k.includes('_bb_middle'))
+	const bbLower = keys.find((k) => k.includes('_bb_lower'))
+	if (bbUpper && bbMiddle && bbLower) {
+		indicators.push({
+			name: 'BBands',
+			category: 'overlay',
+			data: [],
+			values: rawData.map((r: any) => [
+				getTs(r),
+				{
+					upper: parseFloat(r[bbUpper] || 0),
+					middle: parseFloat(r[bbMiddle] || 0),
+					lower: parseFloat(r[bbLower] || 0)
+				}
+			])
+		})
+	}
+
+	const maFields = keys.filter((k) => /^(sma|ema|dema|tema|wma|vwap)_?\d*$/i.test(k))
+	for (const field of maFields) {
+		indicators.push({
+			name: field.toUpperCase(),
+			category: 'overlay',
+			data: rawData.map((r: any) => [getTs(r), parseFloat(r[field]) || null])
+		})
+	}
+
+	const rsiField = keys.find((k) => /^rsi(_\d+)?$/i.test(k))
+	if (rsiField) {
+		indicators.push({
+			name: 'RSI',
+			category: 'panel',
+			data: rawData.map((r: any) => [getTs(r), parseFloat(r[rsiField]) || null])
+		})
+	}
+
+	const macdField = keys.find((k) => k === 'macd')
+	const signalField = keys.find((k) => k === 'macd_signal')
+	const histField = keys.find((k) => k === 'macd_histogram')
+	if (macdField || signalField || histField) {
+		indicators.push({
+			name: 'MACD',
+			category: 'panel',
+			data: [],
+			values: rawData.map((r: any) => [
+				getTs(r),
+				{
+					macd: parseFloat(r[macdField as string] || 0),
+					signal: parseFloat(r[signalField as string] || 0),
+					histogram: parseFloat(r[histField as string] || 0)
+				}
+			])
+		})
+	}
+
+	const stochK = keys.find((k) => k === 'stoch_k')
+	const stochD = keys.find((k) => k === 'stoch_d')
+	if (stochK || stochD) {
+		indicators.push({
+			name: 'Stoch',
+			category: 'panel',
+			data: [],
+			values: rawData.map((r: any) => [
+				getTs(r),
+				{ k: parseFloat(r[stochK as string] || 0), d: parseFloat(r[stochD as string] || 0) }
+			])
+		})
+	}
+
+	return { data, indicators }
 }

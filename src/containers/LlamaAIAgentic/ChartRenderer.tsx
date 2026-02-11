@@ -3,7 +3,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTooltipValue } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { adaptChartData, adaptMultiSeriesData } from './chartAdapter'
+import { adaptCandlestickData, adaptChartData, adaptMultiSeriesData } from './chartAdapter'
 import { areChartDataEqual, areChartsEqual, areStringArraysEqual } from './chartComparison'
 import { ChartControls } from './ChartControls'
 import { ChartDataTransformer } from './chartDataTransformer'
@@ -11,6 +11,7 @@ import type { ChartConfiguration } from './types'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const CandlestickChart = lazy(() => import('~/components/ECharts/CandlestickChart'))
 const HBarChart = lazy(() => import('~/components/ECharts/HBarChart'))
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 const PieChart = lazy(() => import('~/components/ECharts/PieChart'))
@@ -85,6 +86,17 @@ function SingleChart({ config, data, isActive }: SingleChartProps) {
 	const handleLabelsChange = (showLabels: boolean) => dispatch({ type: 'SET_LABELS', payload: showLabels })
 
 	if (!isActive) return null
+
+	if (config.type === 'candlestick') {
+		const candlestickData = adaptCandlestickData(config, data)
+		return (
+			<div className="flex flex-col p-2" data-chart-id={config.id}>
+				<Suspense fallback={<div className="h-[480px]" />}>
+					<CandlestickChart data={candlestickData.data} indicators={candlestickData.indicators} />
+				</Suspense>
+			</div>
+		)
+	}
 
 	try {
 		const isMultiSeries = config.series && config.series.length > 1
