@@ -50,7 +50,6 @@ export const getStaticProps = withPerformanceLogging<StablecoinsByChainPageProps
 
 		const stablecoinsContext = {
 			subPage: 'stablecoins',
-			chain: metadata.name,
 			totalCount: props.filteredPeggedAssets.length,
 			totalMcap: props.filteredPeggedAssets.reduce((sum, s) => sum + (s.mcap || 0), 0),
 			topStablecoins: props.filteredPeggedAssets.slice(0, 15).map((s) => {
@@ -73,7 +72,7 @@ export const getStaticProps = withPerformanceLogging<StablecoinsByChainPageProps
 				}
 			})
 		}
-		const { questions: entityQuestions } = await fetchEntityQuestions('stablecoins', 'page', stablecoinsContext)
+		const { questions: entityQuestions } = await fetchEntityQuestions(slug(chain), 'chain', stablecoinsContext)
 
 		return {
 			props: { ...props, availableBackings, availablePegTypes, entityQuestions },

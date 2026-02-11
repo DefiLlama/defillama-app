@@ -322,7 +322,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			suggestionContext?: any
 			preResolvedEntities?: Array<{ term: string; slug: string }>
 			images?: Array<{ data: string; mimeType: string; filename?: string }>
-			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string }
+			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string }
 		}) => {
 			let currentSessionId = sessionId
 
@@ -643,7 +643,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			prompt: string,
 			preResolved?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>,
 			images?: Array<{ data: string; mimeType: string; filename?: string }>,
-			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string }
+			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string }
 		) => {
 			if (isStreaming) {
 				return
