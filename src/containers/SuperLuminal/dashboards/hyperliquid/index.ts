@@ -7,7 +7,9 @@ const Positions = lazy(() => import('./Positions'))
 
 export const tabs: DashboardTabConfig[] = [
 	{ id: 'dashboard', label: 'Ecosystem' },
-	{ id: 'stats', label: 'Stats', component: Stats },
-	{ id: 'trades', label: 'Trades', component: Trades },
-	{ id: 'positions', label: 'HLP Positions', component: Positions }
+	{ id: 'stats', label: 'Stats', component: Stats, source: 'Hyperliquid' },
+	{ id: 'trades', label: 'Trades', component: Trades, source: 'Hyperliquid' },
+	{ id: 'positions', label: 'HLP Positions', component: Positions, source: 'Hyperliquid' },
+	{ id: 'reports', label: 'Reports' },
+	{ id: 'investor-calls', label: 'Investor Calls' }
 ]

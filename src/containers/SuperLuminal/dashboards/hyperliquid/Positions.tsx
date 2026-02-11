@@ -52,14 +52,14 @@ function Pagination({ table }: { table: ReturnType<typeof useReactTable<any>> })
 				<button
 					onClick={() => table.previousPage()}
 					disabled={!table.getCanPreviousPage()}
-					className="rounded px-2.5 py-1 text-xs font-medium text-(--text-label) transition-colors hover:bg-white/[0.06] disabled:opacity-30 disabled:hover:bg-transparent"
+					className="rounded px-2.5 py-1 text-xs font-medium text-(--text-label) transition-colors hover:bg-(--sl-hover-bg) disabled:opacity-30 disabled:hover:bg-transparent"
 				>
 					Prev
 				</button>
 				<button
 					onClick={() => table.nextPage()}
 					disabled={!table.getCanNextPage()}
-					className="rounded px-2.5 py-1 text-xs font-medium text-(--text-label) transition-colors hover:bg-white/[0.06] disabled:opacity-30 disabled:hover:bg-transparent"
+					className="rounded px-2.5 py-1 text-xs font-medium text-(--text-label) transition-colors hover:bg-(--sl-hover-bg) disabled:opacity-30 disabled:hover:bg-transparent"
 				>
 					Next
 				</button>
@@ -395,10 +395,10 @@ export default function Positions() {
 		return (
 			<div className="flex flex-1 items-center justify-center py-20">
 				<div className="sl-loader text-center leading-none select-none">
-					<span className="block text-[13px] font-medium tracking-[0.4em] text-white/40">SUPER</span>
+					<span className="block text-[13px] font-medium tracking-[0.4em] text-(--sl-text-brand)">SUPER</span>
 					<span
 						className="block text-[34px] font-black tracking-[0.08em] text-transparent"
-						style={{ WebkitTextStroke: '1px #00d4ff' }}
+						style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
 					>
 						LUMINAL
 					</span>
@@ -415,7 +415,7 @@ export default function Positions() {
 					<button
 						key={value}
 						onClick={() => setVaultFilter(value)}
-						className={`rounded px-3 py-1.5 text-xs ${vaultFilter === value ? 'bg-[#2172e5] text-white' : 'bg-white/5 text-(--text-label)'}`}
+						className={`rounded px-3 py-1.5 text-xs ${vaultFilter === value ? 'bg-[#2172e5] text-white' : 'bg-(--sl-btn-inactive-bg) text-(--text-label)'}`}
 					>
 						{value}
 					</button>
@@ -441,7 +441,7 @@ export default function Positions() {
 					<button
 						key={value}
 						onClick={() => setPortfolioWindow(value)}
-						className={`rounded px-3 py-1.5 text-xs ${portfolioWindow === value ? 'bg-[#2172e5] text-white' : 'bg-white/5 text-(--text-label)'}`}
+						className={`rounded px-3 py-1.5 text-xs ${portfolioWindow === value ? 'bg-[#2172e5] text-white' : 'bg-(--sl-btn-inactive-bg) text-(--text-label)'}`}
 					>
 						{value}
 					</button>
@@ -456,7 +456,7 @@ export default function Positions() {
 					<button
 						key={value}
 						onClick={() => setFundingWindow(value)}
-						className={`rounded px-3 py-1.5 text-xs ${fundingWindow === value ? 'bg-[#2172e5] text-white' : 'bg-white/5 text-(--text-label)'}`}
+						className={`rounded px-3 py-1.5 text-xs ${fundingWindow === value ? 'bg-[#2172e5] text-white' : 'bg-(--sl-btn-inactive-bg) text-(--text-label)'}`}
 					>
 						{value}
 					</button>

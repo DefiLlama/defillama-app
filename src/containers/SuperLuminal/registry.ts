@@ -4,6 +4,7 @@ export interface DashboardTabConfig {
 	id: string
 	label: string
 	component?: LazyExoticComponent<ComponentType>
+	source?: string
 }
 
 const DASHBOARD_REGISTRY: Record<string, () => Promise<{ tabs: DashboardTabConfig[] }>> = {

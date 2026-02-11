@@ -327,41 +327,87 @@
 }
 
 .superluminal-dashboard {
-	--pro-text1: #cdd0d5;
-	--pro-text2: #6e727c;
-	--pro-text3: #3e4148;
+	--pro-text1: #1a1d23;
+	--pro-text2: #555962;
+	--pro-text3: #8b8f99;
 
-	--pro-bg1: #08090c;
-	--pro-bg2: #0c0e13;
-	--pro-bg3: #12141a;
-	--pro-bg4: #181a22;
-	--pro-bg7: rgba(8, 9, 12, 0.85);
-	--pro-bg8: rgba(33, 114, 229, 0.07);
+	--pro-bg1: #ffffff;
+	--pro-bg2: #f5f6f8;
+	--pro-bg3: #ebedf0;
+	--pro-bg4: #dfe1e6;
+	--pro-bg7: rgba(255, 255, 255, 0.92);
+	--pro-bg8: rgba(33, 114, 229, 0.06);
 
-	--pro-divider: rgba(255, 255, 255, 0.04);
-	--pro-border: rgba(255, 255, 255, 0.06);
-	--pro-glass-border: rgba(33, 114, 229, 0.1);
+	--pro-divider: rgba(0, 0, 0, 0.06);
+	--pro-border: rgba(0, 0, 0, 0.08);
+	--pro-glass-border: rgba(33, 114, 229, 0.12);
 
-	--app-bg: #060709;
-	--cards-bg: #0c0e13;
-	--cards-border: rgba(255, 255, 255, 0.04);
-	--form-control-border: rgba(255, 255, 255, 0.07);
+	--app-bg: #f0f2f5;
+	--cards-bg: #ffffff;
+	--cards-border: rgba(0, 0, 0, 0.06);
+	--form-control-border: rgba(0, 0, 0, 0.1);
 	--old-blue: #2172e5;
-	--text-primary: #cdd0d5;
-	--text-secondary: #6e727c;
-	--text-tertiary: #3e4148;
-	--text-label: #555962;
-	--text-form: #6e727c;
+	--text-primary: #1a1d23;
+	--text-secondary: #555962;
+	--text-tertiary: #8b8f99;
+	--text-label: #6e727c;
+	--text-form: #555962;
 
 	--sl-accent: #2172e5;
-	--sl-accent-hover: #3b8af0;
-	--sl-accent-muted: rgba(33, 114, 229, 0.1);
-	--sl-sidebar-bg: #0a0b0f;
-	--sl-sidebar-border: rgba(255, 255, 255, 0.04);
+	--sl-accent-hover: #1a5ecc;
+	--sl-accent-muted: rgba(33, 114, 229, 0.08);
+	--sl-sidebar-bg: #ffffff;
+	--sl-sidebar-border: rgba(0, 0, 0, 0.06);
+	--sl-text-brand: rgba(0, 0, 0, 0.45);
+	--sl-stroke-brand: #0090b3;
+	--sl-hover-bg: rgba(0, 0, 0, 0.04);
+	--sl-divider: rgba(0, 0, 0, 0.06);
+	--sl-btn-inactive-bg: rgba(0, 0, 0, 0.04);
+	--sl-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+
+	html.dark & {
+		--pro-text1: #cdd0d5;
+		--pro-text2: #6e727c;
+		--pro-text3: #3e4148;
+
+		--pro-bg1: #08090c;
+		--pro-bg2: #0c0e13;
+		--pro-bg3: #12141a;
+		--pro-bg4: #181a22;
+		--pro-bg7: rgba(8, 9, 12, 0.85);
+		--pro-bg8: rgba(33, 114, 229, 0.07);
+
+		--pro-divider: rgba(255, 255, 255, 0.04);
+		--pro-border: rgba(255, 255, 255, 0.06);
+		--pro-glass-border: rgba(33, 114, 229, 0.1);
+
+		--app-bg: #060709;
+		--cards-bg: #0c0e13;
+		--cards-border: rgba(255, 255, 255, 0.04);
+		--form-control-border: rgba(255, 255, 255, 0.07);
+		--text-primary: #cdd0d5;
+		--text-secondary: #6e727c;
+		--text-tertiary: #3e4148;
+		--text-label: #555962;
+		--text-form: #6e727c;
+
+		--sl-accent: #2172e5;
+		--sl-accent-hover: #3b8af0;
+		--sl-accent-muted: rgba(33, 114, 229, 0.1);
+		--sl-sidebar-bg: #0a0b0f;
+		--sl-sidebar-border: rgba(255, 255, 255, 0.04);
+		--sl-text-brand: rgba(255, 255, 255, 0.4);
+		--sl-stroke-brand: #00d4ff;
+		--sl-hover-bg: rgba(255, 255, 255, 0.04);
+		--sl-divider: rgba(255, 255, 255, 0.04);
+		--sl-btn-inactive-bg: rgba(255, 255, 255, 0.05);
+		--sl-card-shadow: none;
+	}
 
 	& .sl-sidebar {
 		background: var(--sl-sidebar-bg);
 		border-right: 1px solid var(--sl-sidebar-border);
+		box-shadow: var(--sl-card-shadow);
 	}
 
 	& .sl-tab-active {
@@ -371,11 +417,11 @@
 	}
 
 	& .sl-tab-inactive {
-		color: rgba(255, 255, 255, 0.35);
+		color: var(--text-secondary);
 		border-left: 2px solid transparent;
 		&:hover {
-			color: rgba(255, 255, 255, 0.65);
-			background-color: rgba(255, 255, 255, 0.02);
+			color: var(--text-primary);
+			background-color: var(--sl-accent-muted);
 		}
 	}
 
@@ -385,6 +431,7 @@
 		gap: 4px;
 		padding: 4px 10px;
 		border: 1px solid rgba(33, 114, 229, 0.15);
+		border-radius: 6px;
 		background: rgba(33, 114, 229, 0.05);
 	}
 
@@ -407,14 +454,14 @@
 	0%,
 	100% {
 		opacity: 0.4;
-		text-shadow: 0 0 8px rgba(0, 212, 255, 0.15);
+		text-shadow: 0 0 8px color-mix(in srgb, var(--sl-stroke-brand) 15%, transparent);
 		filter: brightness(0.8);
 	}
 	50% {
 		opacity: 1;
 		text-shadow:
-			0 0 20px rgba(0, 212, 255, 0.5),
-			0 0 40px rgba(0, 212, 255, 0.2);
+			0 0 20px color-mix(in srgb, var(--sl-stroke-brand) 50%, transparent),
+			0 0 40px color-mix(in srgb, var(--sl-stroke-brand) 20%, transparent);
 		filter: brightness(1.2);
 	}
 }
