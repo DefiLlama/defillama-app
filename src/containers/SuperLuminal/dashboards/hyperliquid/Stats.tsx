@@ -15,6 +15,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 echarts.use([CanvasRenderer, BarChart, EPieChart, EScatterChart, GridComponent, TooltipComponent])
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { VirtualTable } from '~/components/Table/Table'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
 import {
 	PerpMarket,
@@ -31,9 +32,14 @@ const ALL_MIDS_SUB: WsSubscription[] = [{ type: 'allMids' }]
 const TICKER_SPEED_PX_PER_SEC = 52
 const PAGE_SIZE = 10
 
-type TickerCoinNodes = {
-	items: HTMLElement[]
-	prices: HTMLElement[]
+const CHART_COLORS = {
+	light: { axisLabel: '#555962', splitLine: 'rgba(0,0,0,0.06)', label: '#1a1d23', labelLine: 'rgba(0,0,0,0.15)' },
+	dark: {
+		axisLabel: '#6e727c',
+		splitLine: 'rgba(255,255,255,0.04)',
+		label: '#cdd0d5',
+		labelLine: 'rgba(255,255,255,0.2)'
+	}
 }
 
 function formatPct(value: number | null | undefined) {
@@ -53,34 +59,33 @@ function formatTimestamp(ts: number | null | undefined) {
 }
 
 function PriceTickerTape({ coins }: { coins: string[] }) {
-	const viewportRef = useRef<HTMLDivElement>(null)
-	const laneARef = useRef<HTMLDivElement>(null)
-	const laneBRef = useRef<HTMLDivElement>(null)
-	const coinNodesRef = useRef<Record<string, TickerCoinNodes>>({})
+	const trackRef = useRef<HTMLDivElement>(null)
+	const priceEls = useRef<Map<string, HTMLElement[]>>(new Map())
+	const itemEls = useRef<Map<string, HTMLElement[]>>(new Map())
 	const prevPrices = useRef<Record<string, string>>({})
 	const latestMidsRef = useRef<Record<string, string> | null>(null)
 	const flashTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
-	const rafRef = useRef<number>(0)
-	const laneWidthRef = useRef(0)
-	const positionsRef = useRef({ a: 0, b: 0 })
-	const lastFrameTsRef = useRef<number | null>(null)
+	const offsetRef = useRef(0)
+	const halfWidthRef = useRef(0)
+	const lastTsRef = useRef<number | null>(null)
+	const rafRef = useRef(0)
 
 	useEffect(() => {
-		const root = viewportRef.current
-		if (!root) return
+		const track = trackRef.current
+		if (!track) return
 
-		const next: Record<string, TickerCoinNodes> = {}
+		const nextPrices = new Map<string, HTMLElement[]>()
+		const nextItems = new Map<string, HTMLElement[]>()
 		for (const coin of coins) {
-			const items = Array.from(root.querySelectorAll<HTMLElement>(`[data-coin="${coin}"]`))
-			next[coin] = {
-				items,
-				prices: items
-					.map((item) => item.querySelector<HTMLElement>('[data-price]'))
-					.filter((el): el is HTMLElement => el != null)
-			}
+			const els = Array.from(track.querySelectorAll<HTMLElement>(`[data-coin="${coin}"]`))
+			nextItems.set(coin, els)
+			nextPrices.set(
+				coin,
+				els.map((el) => el.querySelector<HTMLElement>('[data-price]')).filter((el): el is HTMLElement => el != null)
+			)
 		}
-
-		coinNodesRef.current = next
+		priceEls.current = nextPrices
+		itemEls.current = nextItems
 	}, [coins])
 
 	useHyperliquidWs(ALL_MIDS_SUB, (msg) => {
@@ -98,27 +103,21 @@ function PriceTickerTape({ coins }: { coins: string[] }) {
 	}, [])
 
 	useEffect(() => {
-		const laneA = laneARef.current
-		const laneB = laneBRef.current
-		if (!laneA || !laneB) return
+		const track = trackRef.current
+		if (!track) return
 
-		const applyTransforms = () => {
-			laneA.style.transform = `translate3d(${positionsRef.current.a}px,0,0)`
-			laneB.style.transform = `translate3d(${positionsRef.current.b}px,0,0)`
-		}
+		offsetRef.current = 0
+		lastTsRef.current = null
+		track.style.transform = 'translate3d(0,0,0)'
 
 		const measure = () => {
-			const nextWidth = laneA.getBoundingClientRect().width
-			if (nextWidth <= 0) return
-			laneWidthRef.current = nextWidth
-			positionsRef.current = { a: 0, b: nextWidth }
-			applyTransforms()
+			const w = track.scrollWidth / 2
+			if (w > 0) halfWidthRef.current = w
 		}
 
 		measure()
-
 		const ro = new ResizeObserver(measure)
-		ro.observe(laneA)
+		ro.observe(track)
 
 		const tick = (ts: number) => {
 			const mids = latestMidsRef.current
@@ -127,85 +126,64 @@ function PriceTickerTape({ coins }: { coins: string[] }) {
 				const prev = prevPrices.current
 				for (const coin of coins) {
 					if (!mids[coin]) continue
-					const nodes = coinNodesRef.current[coin]
-					if (!nodes) continue
+					const pEls = priceEls.current.get(coin)
+					if (!pEls) continue
 
 					const price = parseFloat(mids[coin])
 					const formatted = formattedNum(price, true) as string
-
-					nodes.prices.forEach((el) => {
+					pEls.forEach((el) => {
 						el.textContent = formatted
 					})
 
 					if (prev[coin] && mids[coin] !== prev[coin]) {
-						const dir = price > parseFloat(prev[coin]) ? 'up' : 'down'
-						const flashColor = dir === 'up' ? '#4ade80' : '#f87171'
-
-						nodes.items.forEach((el) => {
-							el.style.color = flashColor
-						})
-
-						clearTimeout(flashTimers.current[coin])
-						flashTimers.current[coin] = setTimeout(() => {
-							nodes.items.forEach((el) => {
-								el.style.color = ''
+						const flashColor = price > parseFloat(prev[coin]) ? '#4ade80' : '#f87171'
+						const iEls = itemEls.current.get(coin)
+						if (iEls) {
+							iEls.forEach((el) => {
+								el.style.color = flashColor
 							})
-						}, 700)
+							clearTimeout(flashTimers.current[coin])
+							flashTimers.current[coin] = setTimeout(() => {
+								iEls.forEach((el) => {
+									el.style.color = ''
+								})
+							}, 700)
+						}
 					}
 				}
 				prevPrices.current = mids
 			}
 
-			if (lastFrameTsRef.current == null) lastFrameTsRef.current = ts
-			const dt = (ts - lastFrameTsRef.current) / 1000
-			lastFrameTsRef.current = ts
+			if (lastTsRef.current == null) lastTsRef.current = ts
+			const dt = (ts - lastTsRef.current) / 1000
+			lastTsRef.current = ts
 
-			const laneWidth = laneWidthRef.current
-			if (laneWidth > 0) {
-				positionsRef.current.a -= dt * TICKER_SPEED_PX_PER_SEC
-				positionsRef.current.b -= dt * TICKER_SPEED_PX_PER_SEC
-
-				if (positionsRef.current.a <= -laneWidth) {
-					positionsRef.current.a = positionsRef.current.b + laneWidth
-				}
-				if (positionsRef.current.b <= -laneWidth) {
-					positionsRef.current.b = positionsRef.current.a + laneWidth
-				}
-
-				applyTransforms()
+			const hw = halfWidthRef.current
+			if (hw > 0) {
+				offsetRef.current = (offsetRef.current + dt * TICKER_SPEED_PX_PER_SEC) % hw
+				track.style.transform = `translate3d(${-offsetRef.current}px,0,0)`
 			}
 
-			rafRef.current = window.requestAnimationFrame(tick)
+			rafRef.current = requestAnimationFrame(tick)
 		}
 
-		rafRef.current = window.requestAnimationFrame(tick)
+		rafRef.current = requestAnimationFrame(tick)
 
 		return () => {
 			ro.disconnect()
-			window.cancelAnimationFrame(rafRef.current)
-			lastFrameTsRef.current = null
+			cancelAnimationFrame(rafRef.current)
+			lastTsRef.current = null
 		}
-	}, [coins])
-
-	useEffect(() => {
-		positionsRef.current = { a: 0, b: 0 }
-		laneWidthRef.current = 0
-		lastFrameTsRef.current = null
-		if (laneARef.current) laneARef.current.style.transform = 'translate3d(0,0,0)'
-		if (laneBRef.current) laneBRef.current.style.transform = 'translate3d(0,0,0)'
 	}, [coins])
 
 	const renderItem = (coin: string, i: number) => (
 		<span
 			key={`${coin}-${i}`}
 			data-coin={coin}
-			className="inline-flex h-full w-[144px] shrink-0 items-center justify-between gap-0.5 px-2 text-xs font-medium text-(--text-primary) transition-colors duration-300"
+			className="inline-flex h-full shrink-0 items-center gap-1.5 border-r border-(--cards-border) px-4 text-xs font-medium text-(--text-primary) transition-colors duration-300"
 		>
-			<span className="w-[48px] shrink-0 text-(--text-label)">{coin}</span>
-			<span
-				data-price
-				className="w-[74px] shrink-0 overflow-hidden text-right font-jetbrains whitespace-nowrap tabular-nums"
-			>
+			<span className="shrink-0 text-(--text-label)">{coin}</span>
+			<span data-price className="shrink-0 overflow-hidden font-jetbrains whitespace-nowrap tabular-nums">
 				--
 			</span>
 		</span>
@@ -213,19 +191,12 @@ function PriceTickerTape({ coins }: { coins: string[] }) {
 
 	return (
 		<div className="overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg)">
-			<div ref={viewportRef} className="relative h-10 overflow-hidden">
+			<div className="relative h-10 overflow-hidden">
 				<div
-					ref={laneARef}
+					ref={trackRef}
 					className="absolute top-0 left-0 inline-flex h-10 transform-gpu items-center will-change-transform [backface-visibility:hidden]"
-					aria-hidden
 				>
 					{coins.map((c, i) => renderItem(c, i))}
-				</div>
-				<div
-					ref={laneBRef}
-					className="absolute top-0 left-0 inline-flex h-10 transform-gpu items-center will-change-transform [backface-visibility:hidden]"
-					aria-hidden
-				>
 					{coins.map((c, i) => renderItem(c, coins.length + i))}
 				</div>
 			</div>
@@ -245,6 +216,8 @@ function MetricCard({ label, value, helper }: { label: string; value: string | n
 
 function FundingChart({ data }: { data: { name: string; value: number }[] }) {
 	const id = useId()
+	const [isDark] = useDarkModeManager()
+	const c = isDark ? CHART_COLORS.dark : CHART_COLORS.light
 
 	useEffect(() => {
 		const dom = document.getElementById(id)
@@ -267,13 +240,13 @@ function FundingChart({ data }: { data: { name: string; value: number }[] }) {
 			},
 			xAxis: {
 				type: 'value',
-				axisLabel: { formatter: '{value}%', color: '#6e727c', fontSize: 11 },
-				splitLine: { lineStyle: { color: 'rgba(255,255,255,0.04)' } }
+				axisLabel: { formatter: '{value}%', color: c.axisLabel, fontSize: 11 },
+				splitLine: { lineStyle: { color: c.splitLine } }
 			},
 			yAxis: {
 				type: 'category',
 				data: sorted.map((d) => d.name),
-				axisLabel: { color: '#cdd0d5', fontSize: 11 },
+				axisLabel: { color: c.label, fontSize: 11 },
 				axisLine: { show: false },
 				axisTick: { show: false }
 			},
@@ -298,7 +271,7 @@ function FundingChart({ data }: { data: { name: string; value: number }[] }) {
 			window.removeEventListener('resize', onResize)
 			instance?.dispose()
 		}
-	}, [id, data])
+	}, [id, data, c])
 
 	if (data.length === 0) return null
 
@@ -325,14 +298,14 @@ function Pagination({ table }: { table: ReturnType<typeof useReactTable<any>> })
 				<button
 					onClick={() => table.previousPage()}
 					disabled={!table.getCanPreviousPage()}
-					className="rounded px-2.5 py-1 text-xs font-medium text-(--text-label) transition-colors hover:bg-white/[0.06] disabled:opacity-30 disabled:hover:bg-transparent"
+					className="rounded px-2.5 py-1 text-xs font-medium text-(--text-label) transition-colors hover:bg-(--sl-hover-bg) disabled:opacity-30 disabled:hover:bg-transparent"
 				>
 					Prev
 				</button>
 				<button
 					onClick={() => table.nextPage()}
 					disabled={!table.getCanNextPage()}
-					className="rounded px-2.5 py-1 text-xs font-medium text-(--text-label) transition-colors hover:bg-white/[0.06] disabled:opacity-30 disabled:hover:bg-transparent"
+					className="rounded px-2.5 py-1 text-xs font-medium text-(--text-label) transition-colors hover:bg-(--sl-hover-bg) disabled:opacity-30 disabled:hover:bg-transparent"
 				>
 					Next
 				</button>
@@ -520,6 +493,8 @@ const predictedFundingColumns: ColumnDef<PredictedFunding>[] = [
 
 function OIDistributionChart({ data }: { data: { name: string; value: number }[] }) {
 	const id = useId()
+	const [isDark] = useDarkModeManager()
+	const c = isDark ? CHART_COLORS.dark : CHART_COLORS.light
 
 	useEffect(() => {
 		const dom = document.getElementById(id)
@@ -546,8 +521,8 @@ function OIDistributionChart({ data }: { data: { name: string; value: number }[]
 						value: d.value,
 						itemStyle: { color: colors[i % colors.length] }
 					})),
-					label: { color: '#cdd0d5', fontSize: 11, formatter: '{b}: {d}%' },
-					labelLine: { lineStyle: { color: 'rgba(255,255,255,0.2)' } },
+					label: { color: c.label, fontSize: 11, formatter: '{b}: {d}%' },
+					labelLine: { lineStyle: { color: c.labelLine } },
 					emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.3)' } }
 				}
 			],
@@ -560,7 +535,7 @@ function OIDistributionChart({ data }: { data: { name: string; value: number }[]
 			window.removeEventListener('resize', onResize)
 			instance?.dispose()
 		}
-	}, [data, id])
+	}, [data, id, c])
 
 	if (data.length === 0) return null
 
@@ -574,6 +549,8 @@ function OIDistributionChart({ data }: { data: { name: string; value: number }[]
 
 function VolumeOIScatter({ data }: { data: PerpMarket[] }) {
 	const id = useId()
+	const [isDark] = useDarkModeManager()
+	const c = isDark ? CHART_COLORS.dark : CHART_COLORS.light
 
 	useEffect(() => {
 		const dom = document.getElementById(id)
@@ -595,18 +572,18 @@ function VolumeOIScatter({ data }: { data: PerpMarket[] }) {
 				name: '24h Volume ($)',
 				nameLocation: 'center',
 				nameGap: 30,
-				nameTextStyle: { color: '#6e727c', fontSize: 11 },
-				axisLabel: { color: '#6e727c', fontSize: 11 },
-				splitLine: { lineStyle: { color: 'rgba(255,255,255,0.04)' } }
+				nameTextStyle: { color: c.axisLabel, fontSize: 11 },
+				axisLabel: { color: c.axisLabel, fontSize: 11 },
+				splitLine: { lineStyle: { color: c.splitLine } }
 			},
 			yAxis: {
 				type: 'log',
 				name: 'Open Interest ($)',
 				nameLocation: 'center',
 				nameGap: 55,
-				nameTextStyle: { color: '#6e727c', fontSize: 11 },
-				axisLabel: { color: '#6e727c', fontSize: 11 },
-				splitLine: { lineStyle: { color: 'rgba(255,255,255,0.04)' } }
+				nameTextStyle: { color: c.axisLabel, fontSize: 11 },
+				axisLabel: { color: c.axisLabel, fontSize: 11 },
+				splitLine: { lineStyle: { color: c.splitLine } }
 			},
 			series: [
 				{
@@ -630,7 +607,7 @@ function VolumeOIScatter({ data }: { data: PerpMarket[] }) {
 			window.removeEventListener('resize', onResize)
 			instance?.dispose()
 		}
-	}, [id, data])
+	}, [id, data, c])
 
 	if (data.length === 0) return null
 
@@ -771,10 +748,10 @@ export default function Stats() {
 		return (
 			<div className="flex flex-1 items-center justify-center py-20">
 				<div className="sl-loader text-center leading-none select-none">
-					<span className="block text-[13px] font-medium tracking-[0.4em] text-white/40">SUPER</span>
+					<span className="block text-[13px] font-medium tracking-[0.4em] text-(--sl-text-brand)">SUPER</span>
 					<span
 						className="block text-[34px] font-black tracking-[0.08em] text-transparent"
-						style={{ WebkitTextStroke: '1px #00d4ff' }}
+						style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
 					>
 						LUMINAL
 					</span>

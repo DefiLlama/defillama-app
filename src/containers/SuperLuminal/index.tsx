@@ -7,10 +7,64 @@ import {
 	useProDashboardDashboard,
 	useProDashboardItemsState
 } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { getSuperLuminalConfig } from './config'
 import { DashboardTabConfig, getDashboardModule } from './registry'
 
 const NOOP = () => {}
+
+const SKELETON_WIDTHS = [
+	['w-16', 'w-4/5', 'w-14', 'w-20', 'w-12'],
+	['w-14', 'w-3/5', 'w-16', 'w-16', 'w-14'],
+	['w-16', 'w-2/3', 'w-12', 'w-24', 'w-10'],
+	['w-14', 'w-1/2', 'w-14', 'w-20', 'w-16'],
+	['w-16', 'w-3/4', 'w-16', 'w-14', 'w-12'],
+	['w-14', 'w-2/5', 'w-12', 'w-20', 'w-14'],
+	['w-16', 'w-3/5', 'w-14', 'w-16', 'w-10'],
+	['w-14', 'w-1/2', 'w-16', 'w-24', 'w-12']
+]
+
+const PLACEHOLDER_COLS = ['', '', '', '', '']
+
+function ComingSoonSection({ tabId }: { tabId: string }) {
+	const isReports = tabId === 'reports'
+
+	return (
+		<div className="relative overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex flex-col">
+				<div className="flex border-b border-(--divider)">
+					{PLACEHOLDER_COLS.map((_, i) => (
+						<div key={i} className="flex-1 px-4 py-3.5">
+							<div className="h-2.5 w-16 rounded-full bg-(--text-disabled) opacity-40" />
+						</div>
+					))}
+				</div>
+
+				{SKELETON_WIDTHS.map((widths, r) => (
+					<div
+						key={r}
+						className="flex border-b border-(--divider) last:border-b-0"
+						style={{ opacity: Math.max(0.15, 0.7 - r * 0.08) }}
+					>
+						{widths.map((w, c) => (
+							<div key={c} className="flex-1 px-4 py-3.5">
+								<div className={`${w} h-3 rounded-full bg-(--text-disabled)`} />
+							</div>
+						))}
+					</div>
+				))}
+			</div>
+
+			<div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-(--cards-bg) via-transparent to-transparent" />
+
+			<div className="absolute inset-0 flex items-center justify-center">
+				<span className="rounded-full border border-(--cards-border) bg-(--cards-bg) px-5 py-2.5 text-sm font-semibold tracking-wide text-(--text-secondary) shadow-lg">
+					{isReports ? 'Reports' : 'Investor Calls'} — Coming Soon
+				</span>
+			</div>
+		</div>
+	)
+}
 
 const DEFAULT_TABS: DashboardTabConfig[] = [{ id: 'dashboard', label: 'Dashboard' }]
 
@@ -20,6 +74,7 @@ function SuperLuminalContent() {
 	const { protocolsLoading } = useProDashboardCatalog()
 	const { dashboardName, isLoadingDashboard } = useProDashboardDashboard()
 
+	const [isDark, toggleTheme] = useDarkModeManager()
 	const [tabs, setTabs] = useState<DashboardTabConfig[]>(DEFAULT_TABS)
 	const [activeTab, setActiveTab] = useState('dashboard')
 	const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -43,12 +98,12 @@ function SuperLuminalContent() {
 
 	if (isLoadingDashboard) {
 		return (
-			<div className="fixed inset-0 z-50 flex items-center justify-center bg-(--app-bg)">
+			<div className="superluminal-dashboard fixed inset-0 z-50 flex items-center justify-center bg-(--app-bg)">
 				<div className="sl-loader text-center leading-none select-none">
-					<span className="block text-[13px] font-medium tracking-[0.4em] text-white/40">SUPER</span>
+					<span className="block text-[13px] font-medium tracking-[0.4em] text-(--sl-text-brand)">SUPER</span>
 					<span
 						className="block text-[34px] font-black tracking-[0.08em] text-transparent"
-						style={{ WebkitTextStroke: '1px #00d4ff' }}
+						style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
 					>
 						LUMINAL
 					</span>
@@ -64,17 +119,17 @@ function SuperLuminalContent() {
 			<div className="sticky top-0 z-10 flex items-center gap-3 bg-(--app-bg) px-4 py-3 md:hidden">
 				<button
 					onClick={() => setSidebarOpen(true)}
-					className="flex h-8 w-8 items-center justify-center rounded-md text-white/60 hover:bg-white/10 hover:text-white"
+					className="flex h-8 w-8 items-center justify-center rounded-md text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)"
 				>
 					<svg width="20" height="20" viewBox="0 0 20 20" fill="none">
 						<path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
 					</svg>
 				</button>
 				<div className="text-center leading-none select-none">
-					<span className="block text-[8px] font-medium tracking-[0.3em] text-white/40">SUPER</span>
+					<span className="block text-[8px] font-medium tracking-[0.3em] text-(--sl-text-brand)">SUPER</span>
 					<span
 						className="block text-[18px] font-black tracking-[0.06em] text-transparent"
-						style={{ WebkitTextStroke: '1px #00d4ff' }}
+						style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
 					>
 						LUMINAL
 					</span>
@@ -88,19 +143,19 @@ function SuperLuminalContent() {
 			>
 				<div className="hidden flex-col items-center gap-2 pb-5 md:flex">
 					<div className="text-center leading-none select-none">
-						<span className="block text-[11px] font-medium tracking-[0.4em] text-white/40">SUPER</span>
+						<span className="block text-[11px] font-medium tracking-[0.4em] text-(--sl-text-brand)">SUPER</span>
 						<span
 							className="block text-[28px] font-black tracking-[0.08em] text-transparent"
-							style={{ WebkitTextStroke: '1px #00d4ff' }}
+							style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
 						>
 							LUMINAL
 						</span>
 					</div>
-					<span className="sl-powered-badge text-[10px] tracking-wide text-white/35">
+					<span className="sl-powered-badge text-[10px] tracking-wide text-(--text-secondary)">
 						Powered by <span className="sl-powered-brand font-semibold">DefiLlama</span>
 					</span>
 				</div>
-				<div className="mb-3 hidden h-px bg-white/[0.04] md:block" />
+				<div className="mb-3 hidden h-px bg-(--sl-divider) md:block" />
 				<nav className="flex flex-col gap-0.5">
 					{tabs.map((tab) => (
 						<button
@@ -117,6 +172,34 @@ function SuperLuminalContent() {
 						</button>
 					))}
 				</nav>
+				<div className="mt-auto flex items-center justify-end pt-4">
+					<button
+						onClick={toggleTheme}
+						className="flex h-8 w-8 items-center justify-center rounded-lg text-(--text-secondary) transition-colors hover:bg-(--sl-hover-bg) hover:text-(--text-primary)"
+					>
+						{isDark ? (
+							<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+								<circle cx="8" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.5" />
+								<path
+									d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"
+									stroke="currentColor"
+									strokeWidth="1.5"
+									strokeLinecap="round"
+								/>
+							</svg>
+						) : (
+							<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+								<path
+									d="M14 9.68A6.5 6.5 0 0 1 6.32 2 6.5 6.5 0 1 0 14 9.68Z"
+									stroke="currentColor"
+									strokeWidth="1.5"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+							</svg>
+						)}
+					</button>
+				</div>
 			</aside>
 
 			<div className="flex flex-1 flex-col gap-4 p-5 md:ml-56">
@@ -139,7 +222,10 @@ function SuperLuminalContent() {
 
 				{activeTab !== 'dashboard' &&
 					tabs.map((tab) => {
-						if (tab.id !== activeTab || !tab.component) return null
+						if (tab.id !== activeTab) return null
+						if (!tab.component) {
+							return <ComingSoonSection key={tab.id} tabId={tab.id} />
+						}
 						const TabComponent = tab.component
 						return (
 							<Suspense
@@ -147,10 +233,12 @@ function SuperLuminalContent() {
 								fallback={
 									<div className="flex flex-1 items-center justify-center py-20">
 										<div className="sl-loader text-center leading-none select-none">
-											<span className="block text-[13px] font-medium tracking-[0.4em] text-white/40">SUPER</span>
+											<span className="block text-[13px] font-medium tracking-[0.4em] text-(--sl-text-brand)">
+												SUPER
+											</span>
 											<span
 												className="block text-[34px] font-black tracking-[0.08em] text-transparent"
-												style={{ WebkitTextStroke: '1px #00d4ff' }}
+												style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
 											>
 												LUMINAL
 											</span>
@@ -159,6 +247,11 @@ function SuperLuminalContent() {
 								}
 							>
 								<TabComponent />
+								{tab.source && (
+									<p className="pt-4 pb-2 text-center text-xs tracking-wide text-(--text-tertiary)">
+										Data provided by {tab.source} API
+									</p>
+								)}
 							</Suspense>
 						)
 					})}
