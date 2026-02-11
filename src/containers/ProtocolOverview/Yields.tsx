@@ -2,12 +2,15 @@ import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
 import { LocalLoader } from '~/components/Loaders'
 import { getYieldPageData } from '~/containers/Yields/queries/index'
+import { useVolatility } from '~/containers/Yields/queries/client'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import { slug } from '~/utils'
 import { sluggifyProtocol } from '~/utils/cache-client'
 
 export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }) {
 	const protocolSlug = slug(protocol)
+	const { data: volatility } = useVolatility()
+	
 	const {
 		data: poolsList,
 		isLoading,
@@ -38,6 +41,16 @@ export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }
 		retry: 0
 	})
 
+	const poolsWithVolatility = React.useMemo(() => {
+		if (!poolsList) return poolsList
+		return poolsList.map((pool) => ({
+			...pool,
+			apyMedian30d: volatility?.[pool.configID]?.[1] ?? null,
+			apyStd30d: volatility?.[pool.configID]?.[2] ?? null,
+			cv30d: volatility?.[pool.configID]?.[3] ?? null
+		}))
+	}, [poolsList, volatility])
+
 	return (
 		<>
 			<div className="flex flex-1 flex-col gap-1 xl:flex-row">
@@ -62,7 +75,7 @@ export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }
 							<p className="p-2">{error instanceof Error ? error.message : 'Failed to fetch'}</p>
 						</div>
 					) : (
-						<YieldsPoolsTable data={poolsList} />
+						<YieldsPoolsTable data={poolsWithVolatility} />
 					)}
 				</div>
 			</div>
