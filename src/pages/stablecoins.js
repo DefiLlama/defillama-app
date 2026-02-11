@@ -31,12 +31,12 @@ export const getStaticProps = withPerformanceLogging('stablecoins', async () => 
 		topStablecoins: props.filteredPeggedAssets.slice(0, 15).map((s) => ({
 			name: s.name,
 			symbol: s.symbol,
-			mcap: s.mcap,
-			change_7d: s.change_7d,
-			pegType: s.pegType,
-			pegMechanism: s.pegMechanism,
-			pegDeviation: s.pegDeviation,
-			chains: s.chains?.length
+			mcap: s.mcap ?? null,
+			change_7d: s.change_7d ?? null,
+			pegType: s.pegType ?? null,
+			pegMechanism: s.pegMechanism ?? null,
+			pegDeviation: s.pegDeviation ?? null,
+			chains: s.chains?.length ?? null
 		}))
 	}
 	const { questions: entityQuestions } = await fetchEntityQuestions('stablecoins', 'page', stablecoinsContext)

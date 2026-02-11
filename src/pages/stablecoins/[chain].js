@@ -37,7 +37,21 @@ export const getStaticProps = withPerformanceLogging('stablecoins/[chain]', asyn
 		.filter((opt) => props.filteredPeggedAssets.some((asset) => opt.filterFn(asset)))
 		.map((opt) => opt.key)
 
-	const { questions: entityQuestions } = await fetchEntityQuestions(slug(chain), 'chain', { subPage: 'stablecoins' })
+	const { questions: entityQuestions } = await fetchEntityQuestions(slug(chain), 'chain', {
+		subPage: 'stablecoins',
+		totalCount: props.filteredPeggedAssets.length,
+		totalMcap: props.filteredPeggedAssets.reduce((sum, s) => sum + (s.mcap || 0), 0),
+		topStablecoins: props.filteredPeggedAssets.slice(0, 15).map((s) => ({
+			name: s.name,
+			symbol: s.symbol,
+			mcap: s.mcap ?? null,
+			change_7d: s.change_7d ?? null,
+			pegType: s.pegType ?? null,
+			pegMechanism: s.pegMechanism ?? null,
+			pegDeviation: s.pegDeviation ?? null,
+			chains: s.chains?.length ?? null
+		}))
+	})
 
 	return {
 		props: { ...props, availableBackings, availablePegTypes, entityQuestions },

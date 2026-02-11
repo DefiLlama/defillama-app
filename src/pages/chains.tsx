@@ -17,14 +17,14 @@ export const getStaticProps = withPerformanceLogging('chains', async () => {
 		totalChains: data.chains.length,
 		topChains: data.chains.slice(0, 15).map((c) => ({
 			name: c.name,
-			tvl: c.tvl,
-			change_1d: c.change_1d,
-			change_7d: c.change_7d,
-			protocols: c.protocols,
-			totalVolume24h: c.totalVolume24h,
-			totalFees24h: c.totalFees24h,
-			totalRevenue24h: c.totalRevenue24h,
-			stablesMcap: c.stablesMcap
+			tvl: c.tvl ?? null,
+			change_1d: c.change_1d ?? null,
+			change_7d: c.change_7d ?? null,
+			protocols: c.protocols ?? null,
+			totalVolume24h: c.totalVolume24h ?? null,
+			totalFees24h: c.totalFees24h ?? null,
+			totalRevenue24h: c.totalRevenue24h ?? null,
+			stablesMcap: c.stablesMcap ?? null
 		}))
 	}
 	const { questions: entityQuestions } = await fetchEntityQuestions('chains', 'page', chainsContext)

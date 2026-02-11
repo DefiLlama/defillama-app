@@ -60,7 +60,21 @@ export const getStaticProps = withPerformanceLogging(
 
 		if (!data) return { notFound: true }
 
-		const { questions: entityQuestions } = await fetchEntityQuestions(chain, 'chain', { subPage: 'holders-revenue' })
+		const { questions: entityQuestions } = await fetchEntityQuestions(chain, 'chain', {
+			subPage: 'holders-revenue',
+			total24h: data.total24h ?? null,
+			total7d: data.total7d ?? null,
+			change_1d: data.change_1d ?? null,
+			change_7dover7d: data.change_7dover7d ?? null,
+			change_1m: data.change_1m ?? null,
+			topProtocols: data.protocols.slice(0, 15).map((p) => ({
+				name: p.name,
+				holdersRevenue24h: p.total24h ?? null,
+				holdersRevenue7d: p.total7d ?? null,
+				mcap: p.mcap ?? null,
+				chains: p.chains?.slice(0, 3) ?? null
+			}))
+		})
 
 		return {
 			props: { ...data, entityQuestions },

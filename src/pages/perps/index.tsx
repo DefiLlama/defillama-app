@@ -20,18 +20,18 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 	if (!data) return { notFound: true }
 
 	const perpsContext = {
-		total24h: data.total24h,
-		total7d: data.total7d,
-		change_1d: data.change_1d,
-		change_7dover7d: data.change_7dover7d,
-		change_1m: data.change_1m,
-		openInterest: data.openInterest,
+		total24h: data.total24h ?? null,
+		total7d: data.total7d ?? null,
+		change_1d: data.change_1d ?? null,
+		change_7dover7d: data.change_7dover7d ?? null,
+		change_1m: data.change_1m ?? null,
+		openInterest: data.openInterest ?? null,
 		topProtocols: data.protocols.slice(0, 15).map((p) => ({
 			name: p.name,
-			volume24h: p.total24h,
-			volume7d: p.total7d,
-			openInterest: p.openInterest,
-			chains: p.chains?.slice(0, 3)
+			volume24h: p.total24h ?? null,
+			volume7d: p.total7d ?? null,
+			openInterest: p.openInterest ?? null,
+			chains: p.chains?.slice(0, 3) ?? null
 		}))
 	}
 	const { questions: entityQuestions } = await fetchEntityQuestions('perps', 'page', perpsContext)
