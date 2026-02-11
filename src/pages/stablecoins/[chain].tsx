@@ -1,5 +1,6 @@
 import type { GetStaticPaths, GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
+import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { stablecoinBackingOptions, stablecoinPegTypeOptions } from '~/containers/Stablecoins/Filters'
 import { getStablecoinsByChainPageData } from '~/containers/Stablecoins/queries.server'
@@ -16,6 +17,7 @@ type StablecoinsByChainRouteParams = {
 type StablecoinsByChainPageProps = PeggedOverviewPageData & {
 	availableBackings: string[]
 	availablePegTypes: string[]
+	entityQuestions?: string[]
 }
 
 export const getStaticProps = withPerformanceLogging<StablecoinsByChainPageProps>(
@@ -46,8 +48,35 @@ export const getStaticProps = withPerformanceLogging<StablecoinsByChainPageProps
 			.filter((opt) => props.filteredPeggedAssets.some((asset) => opt.filterFn(asset)))
 			.map((opt) => opt.key)
 
+		const stablecoinsContext = {
+			subPage: 'stablecoins',
+			chain: metadata.name,
+			totalCount: props.filteredPeggedAssets.length,
+			totalMcap: props.filteredPeggedAssets.reduce((sum, s) => sum + (s.mcap || 0), 0),
+			topStablecoins: props.filteredPeggedAssets.slice(0, 15).map((s) => {
+				const symbol = typeof s.symbol === 'string' ? s.symbol : null
+				const change7d = typeof s.change_7d === 'number' ? s.change_7d : null
+				const pegType = typeof s.pegType === 'string' ? s.pegType : null
+				const pegMechanism = typeof s.pegMechanism === 'string' ? s.pegMechanism : null
+				const pegDeviation = typeof s.pegDeviation === 'number' ? s.pegDeviation : null
+				const chains = Array.isArray(s.chains) ? s.chains.length : null
+
+				return {
+					name: s.name,
+					symbol,
+					mcap: s.mcap ?? null,
+					change_7d: change7d,
+					pegType,
+					pegMechanism,
+					pegDeviation,
+					chains
+				}
+			})
+		}
+		const { questions: entityQuestions } = await fetchEntityQuestions('stablecoins', 'page', stablecoinsContext)
+
 		return {
-			props: { ...props, availableBackings, availablePegTypes },
+			props: { ...props, availableBackings, availablePegTypes, entityQuestions },
 			revalidate: maxAgeForNext([22])
 		}
 	}
@@ -74,7 +103,8 @@ export default function StablecoinsByChainPage({
 	doublecountedIds,
 	chain,
 	availableBackings,
-	availablePegTypes
+	availablePegTypes,
+	entityQuestions
 }: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
@@ -94,6 +124,7 @@ export default function StablecoinsByChainPage({
 				doublecountedIds={doublecountedIds}
 				availableBackings={availableBackings}
 				availablePegTypes={availablePegTypes}
+				entityQuestions={entityQuestions}
 			/>
 		</Layout>
 	)
