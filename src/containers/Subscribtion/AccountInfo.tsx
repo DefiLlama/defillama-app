@@ -1,4 +1,3 @@
-import { FormEvent, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
@@ -6,15 +5,11 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { AccountHeader } from './components/AccountHeader'
 import { AccountStatus } from './components/AccountStatus'
-import { EmailChangeModal } from './components/EmailChangeModal'
 import { EmailVerificationWarning } from './components/EmailVerificationWarning'
 import { SubscriberContent } from './components/SubscriberContent'
 
 export const AccountInfo = () => {
-	const [newEmail, setNewEmail] = useState('')
-	const [showEmailForm, setShowEmailForm] = useState(false)
-
-	const { user, isAuthenticated, logout, changeEmail, resendVerification, loaders, addEmail } = useAuthContext()
+	const { user, isAuthenticated, logout, resendVerification, loaders } = useAuthContext()
 
 	const {
 		subscription,
@@ -36,16 +31,6 @@ export const AccountInfo = () => {
 	const isWalletUser = user?.email?.includes('@defillama.com')
 
 	const isVerified = user?.verified
-	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault()
-		if (isWalletUser) {
-			await addEmail(newEmail)
-		} else {
-			changeEmail(newEmail)
-		}
-		setNewEmail('')
-		setShowEmailForm(false)
-	}
 
 	const handleResendVerification = async () => {
 		if (user?.email) {
@@ -136,7 +121,6 @@ export const AccountInfo = () => {
 					user={user}
 					isVerified={isVerified}
 					isSubscribed={isSubscribed}
-					onEmailChange={() => setShowEmailForm(true)}
 					subscription={subscription}
 					getPortalSessionUrl={getPortalSessionUrl}
 				/>
@@ -164,16 +148,6 @@ export const AccountInfo = () => {
 					isUsageStatsError={isUsageStatsError}
 				/>
 			</div>
-
-			<EmailChangeModal
-				isOpen={showEmailForm}
-				onClose={() => setShowEmailForm(false)}
-				onSubmit={handleEmailChange}
-				email={newEmail}
-				onEmailChange={setNewEmail}
-				isLoading={isWalletUser ? loaders.addEmail : loaders.changeEmail}
-				isWalletUser={isWalletUser}
-			/>
 		</div>
 	)
 }
