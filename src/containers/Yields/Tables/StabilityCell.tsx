@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { lazy, Suspense, useState } from 'react'
+import { LockIcon } from '~/components/LockIcon'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
@@ -71,7 +72,13 @@ export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellP
 	if (!hasActiveSubscription) {
 		const redactedTooltip = (
 			<div className="flex flex-col gap-1.5 text-xs">
-				<span className="font-semibold">Yield Score · 30d</span>
+				<div className="flex items-center justify-between gap-4">
+					<span className="font-semibold">Yield Score · 30d</span>
+					<span className="inline-flex items-center gap-1 rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-500 dark:text-blue-400">
+						<LockIcon className="h-2.5 w-2.5" />
+						Pro
+					</span>
+				</div>
 				<span className="inline-flex w-fit items-center gap-1 rounded-full bg-gray-500/15 px-2 py-0.5 text-xs font-medium text-gray-400">
 					•••• <span className="opacity-70">••••</span>
 				</span>
@@ -86,7 +93,9 @@ export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellP
 					</div>
 				</div>
 				<span className="text-[10px] opacity-50">Score = σ / avg · lower is more stable</span>
-				<span className="text-[10px] opacity-70">Subscribe for advanced yield intelligence</span>
+				<div className="border-t border-black/10 pt-1.5 dark:border-white/10">
+					<span className="text-[10px] font-medium text-blue-500 dark:text-blue-400">Unlock with Pro</span>
+				</div>
 			</div>
 		)
 
@@ -100,7 +109,9 @@ export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellP
 						}}
 						className="ml-auto flex cursor-pointer flex-col items-end gap-1.5"
 					>
-						<span className="rounded-full bg-gray-500/15 px-4 py-1 dark:bg-(--cards-border)/40">
+						<span className="inline-flex items-center gap-1.5 rounded-full bg-gray-500/15 px-3 py-1 dark:bg-(--cards-border)/40">
+							<LockIcon className="h-3 w-3 text-gray-400 dark:text-gray-500" />
+
 							<span className="text-xs text-gray-400 blur-[3px] select-none dark:text-gray-300">Hidden</span>
 						</span>
 					</button>
