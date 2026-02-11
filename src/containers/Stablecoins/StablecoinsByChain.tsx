@@ -18,12 +18,13 @@ import {
 	stablecoinAttributeOptions,
 	stablecoinBackingOptions,
 	stablecoinPegTypeOptions,
-	type StablecoinFilterOption,
-	type StablecoinFilterableItem
+	type StablecoinFilterOption
 } from '~/containers/Stablecoins/Filters'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from '~/containers/Stablecoins/hooks'
+import type { StablecoinOverviewChartPoint } from '~/containers/Stablecoins/types'
 import {
 	buildStablecoinChartData,
+	type FilteredPeggedAsset,
 	getStablecoinDominance,
 	getStablecoinMcapStatsFromTotals,
 	getStablecoinTopTokenFromChartData
@@ -52,20 +53,8 @@ const STABLECOIN_FILTER_QUERY_KEYS = [
 const UNRELEASED_QUERY_KEY = 'unreleased'
 
 type MultiSeriesCharts = NonNullable<IMultiSeriesChart2Props['charts']>
-type StablecoinFilterableAsset = StablecoinFilterableItem & {
-	name: string
-	mcap: number
-	circulating?: number | null
-	unreleased?: number | null
-	symbol?: string | null
-	delisted?: boolean
-}
-type StablecoinChartDatum = {
-	date: string | number
-	[key: string]: number | string | null | undefined | Record<string, number>
-}
 type StablecoinFilterResolverParams = {
-	filteredPeggedAssets: StablecoinFilterableAsset[]
+	filteredPeggedAssets: FilteredPeggedAsset[]
 	peggedNameToChartDataIndex: Record<string, number>
 	defaultFilteredIndexes: number[]
 	hasActiveStablecoinUrlFilters: boolean
@@ -87,7 +76,7 @@ const stablecoinBackingOptionsMap: Map<string, StablecoinFilterOption> = new Map
 )
 
 const matchesAnySelectedOption = (
-	asset: StablecoinFilterableAsset,
+	asset: FilteredPeggedAsset,
 	selectedOptions: string[],
 	optionsMap: Map<string, StablecoinFilterOption>
 ): boolean => {
@@ -99,11 +88,7 @@ const matchesAnySelectedOption = (
 	return false
 }
 
-const isWithinMcapRange = (
-	asset: StablecoinFilterableAsset,
-	minMcap: number | null,
-	maxMcap: number | null
-): boolean => {
+const isWithinMcapRange = (asset: FilteredPeggedAsset, minMcap: number | null, maxMcap: number | null): boolean => {
 	if (minMcap == null && maxMcap == null) return true
 	if (minMcap != null && asset.mcap < minMcap) return false
 	if (maxMcap != null && asset.mcap > maxMcap) return false
@@ -120,7 +105,7 @@ const resolveFilteredStablecoinData = ({
 	selectedBackings,
 	minMcap,
 	maxMcap
-}: StablecoinFilterResolverParams): { peggedAssets: StablecoinFilterableAsset[]; filteredIndexes: number[] } => {
+}: StablecoinFilterResolverParams): { peggedAssets: FilteredPeggedAsset[]; filteredIndexes: number[] } => {
 	// Fast path: default page load (no URL filters) should avoid per-asset filtering work.
 	if (!hasActiveStablecoinUrlFilters) {
 		return {
@@ -131,7 +116,7 @@ const resolveFilteredStablecoinData = ({
 
 	const chartDataIndexes: number[] = []
 	const seenChartDataIndexes = new Set<number>()
-	const peggedAssets: StablecoinFilterableAsset[] = []
+	const peggedAssets: FilteredPeggedAsset[] = []
 
 	for (const asset of filteredPeggedAssets) {
 		const matchesAttribute = matchesAnySelectedOption(asset, selectedAttributes, stablecoinAttributeOptionsMap)
@@ -160,10 +145,10 @@ const resolveFilteredStablecoinData = ({
 export interface StablecoinsByChainProps {
 	selectedChain?: string
 	chains?: string[]
-	filteredPeggedAssets: StablecoinFilterableAsset[]
+	filteredPeggedAssets: FilteredPeggedAsset[]
 	peggedAssetNames: string[]
 	peggedNameToChartDataIndex: Record<string, number>
-	chartDataByPeggedAsset: StablecoinChartDatum[][]
+	chartDataByPeggedAsset: StablecoinOverviewChartPoint[][]
 	doublecountedIds?: number[]
 	availableBackings: string[]
 	availablePegTypes: string[]
@@ -284,7 +269,7 @@ export function StablecoinsByChain({
 
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label, router.query) }))
 
-	const peggedTotals = useCalcCirculating<StablecoinFilterableAsset>(peggedAssets, includeUnreleased)
+	const peggedTotals = useCalcCirculating<FilteredPeggedAsset>(peggedAssets, includeUnreleased)
 
 	const chainsCirculatingValues = React.useMemo(() => {
 		return preparePieChartData({ data: peggedTotals, sliceIdentifier: 'symbol', sliceValue: 'mcap', limit: 10 })

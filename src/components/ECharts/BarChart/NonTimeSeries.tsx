@@ -67,13 +67,13 @@ export default function NonTimeSeriesBarChart({
 					shadowBlur: 10
 				},
 				itemStyle: {
-					color: 'transparent'
+					color: null as any
 				},
 				areaStyle: {
 					color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
 						{
 							offset: 0,
-							color: 'transparent'
+							color: null as any
 						},
 						{
 							offset: 1,

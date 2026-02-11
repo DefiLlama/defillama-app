@@ -88,19 +88,6 @@ const sumRecordValues = (record: Record<string, number> | undefined): number => 
 	return total
 }
 
-const toOverviewFilteredAssets = (value: unknown): PeggedOverviewPageData['filteredPeggedAssets'] => {
-	if (!Array.isArray(value)) return []
-	const normalized: PeggedOverviewPageData['filteredPeggedAssets'] = []
-	for (const item of value) {
-		if (!item || typeof item !== 'object') continue
-		const candidate = item as Record<string, unknown>
-		if (typeof candidate.name !== 'string') continue
-		if (typeof candidate.mcap !== 'number' || !Number.isFinite(candidate.mcap)) continue
-		normalized.push(candidate as PeggedOverviewPageData['filteredPeggedAssets'][number])
-	}
-	return normalized
-}
-
 function fetchGlobalData({ peggedAssets, chains }: PeggedAssetsInput): StablecoinsGlobalDataCache {
 	const tvlMap: Record<string, number> = {}
 	for (const chain of chains) {
@@ -281,16 +268,14 @@ export async function getStablecoinsByChainPageData(chain: string | null): Promi
 				doublecountedSourceIds: chainData.doublecountedIds
 			})
 
-		const filteredPeggedAssets = toOverviewFilteredAssets(
-			formatPeggedAssetsData({
-				peggedAssets,
-				chartDataByPeggedAsset,
-				priceData,
-				rateData,
-				peggedNameToChartDataIndex,
-				chain: chain ?? undefined
-			})
-		)
+		const filteredPeggedAssets = formatPeggedAssetsData({
+			peggedAssets,
+			chartDataByPeggedAsset,
+			priceData,
+			rateData,
+			peggedNameToChartDataIndex,
+			chain: chain ?? undefined
+		})
 
 		return {
 			chains: fetchGlobalData({ peggedAssets, chains }).chains,

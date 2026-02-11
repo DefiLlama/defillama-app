@@ -170,7 +170,10 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 			fetchJson(`${YIELD_PROJECT_MEDIAN_API}/${protocolName}`)
 				.then((values) => {
 					return values && values.data.length > 0
-						? values.data.map((item: any) => ({ ...item, date: Math.floor(new Date(item.timestamp).getTime() / 1000) }))
+						? values.data.map((item: { timestamp: string }) => ({
+								...item,
+								date: Math.floor(new Date(item.timestamp).getTime() / 1000)
+							}))
 						: null
 				})
 				.catch(() => {

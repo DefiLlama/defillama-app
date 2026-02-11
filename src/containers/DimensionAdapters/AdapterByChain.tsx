@@ -257,7 +257,7 @@ export function AdapterByChain(props: IProps) {
 
 	const instance = useReactTable({
 		data: protocols,
-		columns: getColumnsByType(props.chain !== 'All')[props.type] as any,
+		columns: getColumnsByType(props.chain !== 'All')[props.type],
 		state: {
 			sorting,
 			columnFilters,
@@ -550,10 +550,11 @@ const chainChartsKeys: Partial<Record<IProps['type'], (typeof chainCharts)[keyof
 }
 
 const getColumnsOptions = (type: IProps['type']) =>
-	columnsByType[type].map((c: any) => {
+	columnsByType[type].map((c) => {
+		const col = c as ColumnDef<IAdapterByChainPageData['protocols'][0]> & { accessorKey?: string }
 		let headerName: string
-		if (typeof c.header === 'function') {
-			switch (c.id) {
+		if (typeof col.header === 'function') {
+			switch (col.id) {
 				case 'total24h':
 					if (type === 'Perp Aggregator Volume') {
 						headerName = 'Perp Aggregator Volume 24h'
@@ -562,7 +563,7 @@ const getColumnsOptions = (type: IProps['type']) =>
 					} else if (type === 'DEX Aggregator Volume') {
 						headerName = 'DEX Aggregator Volume 24h'
 					} else {
-						headerName = c.id
+						headerName = col.id ?? ''
 					}
 					break
 				case 'total7d':
@@ -573,7 +574,7 @@ const getColumnsOptions = (type: IProps['type']) =>
 					} else if (type === 'DEX Aggregator Volume') {
 						headerName = 'DEX Aggregator Volume 7d'
 					} else {
-						headerName = c.id
+						headerName = col.id ?? ''
 					}
 					break
 				case 'total30d':
@@ -584,17 +585,17 @@ const getColumnsOptions = (type: IProps['type']) =>
 					} else if (type === 'DEX Aggregator Volume') {
 						headerName = 'DEX Aggregator Volume 30d'
 					} else {
-						headerName = c.id
+						headerName = col.id ?? ''
 					}
 					break
 				default:
-					headerName = c.id
+					headerName = col.id ?? ''
 			}
 		} else {
-			headerName = c.header as string
+			headerName = col.header as string
 		}
 
-		return { name: headerName, key: c.id ?? (c.accessorKey as string) }
+		return { name: headerName, key: col.id ?? (col.accessorKey as string) }
 	})
 
 const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (

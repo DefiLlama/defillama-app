@@ -1,6 +1,6 @@
 import { keepNeededProperties } from '~/api/shared'
 import { formattedNum, getPercentChange, slug } from '~/utils'
-import type { PeggedPricesApiResponse } from './api.types'
+import type { PeggedAssetApi, PeggedPricesApiResponse } from './api.types'
 
 interface IStablecoinToken {
 	symbol: string
@@ -38,12 +38,12 @@ interface IStablecoinAreaChartPoint {
 	[key: string]: number | string
 }
 
-interface IStablecoinStackedValue {
+export interface IStablecoinStackedValue {
 	circulating: number
 	unreleased?: number
 }
 
-type IStablecoinStackedPoint = [string, Record<string, IStablecoinStackedValue>]
+export type IStablecoinStackedPoint = [string, Record<string, IStablecoinStackedValue>]
 
 interface IStablecoinTokenInflowPoint {
 	date: string
@@ -55,7 +55,6 @@ interface IRateChartPoint {
 }
 
 interface IFormattedStablecoinChainRow {
-	[key: string]: unknown
 	name: string
 	circulating: number | null
 	mcap: number | null
@@ -76,26 +75,16 @@ type StablecoinDominanceCandidate = {
 	mcap?: number | null
 }
 
-type StablecoinFormattedAsset = Record<string, unknown> & {
-	name: string
-	gecko_id: string
-	pegType: string
-	chains: string[]
-	price?: number
-	priceSource?: string
-	chainCirculating?: Record<
-		string,
-		{
-			current?: Record<string, number>
-			circulatingPrevDay?: Record<string, number>
-			circulatingPrevWeek?: Record<string, number>
-			circulatingPrevMonth?: Record<string, number>
-		}
-	>
+type StablecoinFormattedAsset = Omit<
+	PeggedAssetApi,
+	'circulating' | 'circulatingPrevDay' | 'circulatingPrevWeek' | 'circulatingPrevMonth'
+> & {
 	circulating?: Record<string, number> | number | null
 	circulatingPrevDay?: Record<string, number> | number | null
 	circulatingPrevWeek?: Record<string, number> | number | null
 	circulatingPrevMonth?: Record<string, number> | number | null
+	minted?: number | null
+	unreleased?: number | null
 	mcap?: number | null
 	change_1d?: number | null
 	change_7d?: number | null
@@ -112,6 +101,39 @@ type StablecoinFormattedAsset = Record<string, unknown> & {
 	}
 }
 
+export interface FilteredPeggedAsset {
+	circulating: number | null
+	minted?: number | null
+	unreleased?: number | null
+	mcap: number | null
+	name: string
+	symbol: string
+	gecko_id: string
+	chains: string[]
+	price?: number
+	pegType: string
+	pegMechanism?: string
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+	change_1d_nol: string | null
+	change_7d_nol: string | null
+	change_1m_nol: string | null
+	pegDeviation?: number | null
+	pegDeviation_1m?: number | null
+	pegDeviationInfo?: {
+		timestamp: number
+		price: number
+		priceSource: string | null
+	}
+	circulatingPrevDay: number | null
+	circulatingPrevWeek: number | null
+	circulatingPrevMonth: number | null
+	delisted?: boolean
+	deprecated?: boolean
+	yieldBearing?: boolean
+}
+
 interface IFormatPeggedAssetsDataParams {
 	chain?: string
 	peggedAssets?: StablecoinFormattedAsset[]
@@ -124,7 +146,7 @@ interface IFormatPeggedAssetsDataParams {
 
 interface IFormatPeggedChainsDataParams {
 	chainList?: string[]
-	peggedChartDataByChain?: Array<Array<Record<string, unknown>> | null>
+	peggedChartDataByChain?: Array<Array<unknown> | null>
 	chainDominances?: Record<string, { symbol: string; mcap: number }>
 	chainsTVLData?: number[]
 }
@@ -135,7 +157,7 @@ const toFiniteNumber = (value: unknown): number | null => {
 }
 
 interface IBuildStablecoinChartDataParams {
-	chartDataByAssetOrChain: Array<Array<Record<string, unknown>> | null | undefined>
+	chartDataByAssetOrChain: Array<Array<unknown> | null | undefined>
 	assetsOrChainsList: string[]
 	filteredIndexes?: number[]
 	issuanceType?: string
@@ -342,7 +364,7 @@ export const buildStablecoinChartData = ({
 			const charts = chartDataByAssetOrChain[i]
 			if (!charts || !charts.length || !filteredIndexesSet.has(i) || doublecountedIdsSet.has(i)) continue
 			for (let j = 0; j < charts.length; j++) {
-				const chart = charts[j]
+				const chart = charts[j] as { date: string | number; [key: string]: unknown }
 				const mcap = getPrevStablecoinTotalFromChart([chart], 0, issuanceType) // 'issuanceType' and 'mcap' here are 'circulating' values on /stablecoin pages, and 'mcap' otherwise
 				const prevDayMcap = getPrevStablecoinTotalFromChart([charts[j - 1]], 0, issuanceType)
 				const assetOrChain = assetsOrChainsList[i]
@@ -498,7 +520,7 @@ export const peggedPropertiesToKeep = [
 	'delisted',
 	'deprecated',
 	'yieldBearing'
-]
+] as const satisfies readonly (keyof FilteredPeggedAsset)[]
 
 const getTargetPrice = (pegType: string, ratesChart: IRateChartPoint[], daysBefore: number): number | null => {
 	const currencyTicker = pegType.slice(-3)
@@ -520,17 +542,15 @@ export const formatPeggedAssetsData = ({
 	rateData = [],
 	peggedNameToChartDataIndex = {},
 	peggedAssetProps = [...peggedPropertiesToKeep]
-}: IFormatPeggedAssetsDataParams): Array<Record<string, unknown>> => {
-	let filteredStablecoinAssets = [...peggedAssets]
+}: IFormatPeggedAssetsDataParams): FilteredPeggedAsset[] => {
+	let inputAssets = [...peggedAssets]
 
 	if (chain) {
 		const sluggedChain = slug(chain)
-		filteredStablecoinAssets = filteredStablecoinAssets.filter(({ chains = [] }) =>
-			chains.some((c) => slug(c) === sluggedChain)
-		)
+		inputAssets = inputAssets.filter(({ chains = [] }) => chains.some((c) => slug(c) === sluggedChain))
 	}
 
-	filteredStablecoinAssets = filteredStablecoinAssets.map((pegged) => {
+	const formatted: FilteredPeggedAsset[] = inputAssets.map((pegged) => {
 		const formattedPegged: StablecoinFormattedAsset = { ...pegged }
 		const pegType = formattedPegged.pegType ?? ''
 		const peggedGeckoID = formattedPegged.gecko_id
@@ -652,14 +672,14 @@ export const formatPeggedAssetsData = ({
 			formattedPegged.pegDeviation_1m = undefined
 			formattedPegged.pegDeviationInfo = undefined
 		}
-		return keepNeededProperties(formattedPegged, peggedAssetProps)
+		return keepNeededProperties(formattedPegged, peggedAssetProps) as unknown as FilteredPeggedAsset
 	})
 
 	if (chain) {
-		filteredStablecoinAssets = filteredStablecoinAssets.toSorted((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
+		return formatted.toSorted((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
 	}
 
-	return filteredStablecoinAssets
+	return formatted
 }
 
 export const formatPeggedChainsData = ({

@@ -14,6 +14,10 @@
 		"src/containers/Stablecoins/**/*.ts",
 		"src/containers/Stablecoins/**/*.tsx",
 		"src/containers/RWA/**/*.ts",
-		"src/containers/RWA/**/*.tsx"
+		"src/containers/RWA/**/*.tsx",
+		"src/containers/Forks/**/*.ts",
+		"src/containers/Forks/**/*.tsx",
+		"src/containers/Unlocks/**/*.ts",
+		"src/containers/Unlocks/**/*.tsx"
 	]
 }

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { PEGGEDCHART_API, PEGGEDPRICES_API, PEGGEDRATES_API, PEGGEDS_API } from '~/constants'
-import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
+import type { PeggedAssetApi, PeggedAssetsApiResponse } from '~/containers/Stablecoins/api.types'
+import { type FilteredPeggedAsset, formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
 import { fetchJson } from '~/utils/async'
 
 export function useStablecoinsData(chain: string) {
@@ -9,8 +10,10 @@ export function useStablecoinsData(chain: string) {
 		queryFn: async () => {
 			// Fetch all required data in parallel
 			const [peggedData, chainData, priceData, rateData] = await Promise.all([
-				fetchJson(PEGGEDS_API),
-				fetchJson(`${PEGGEDCHART_API}/${chain === 'All' ? 'all-llama-app' : chain}`),
+				fetchJson<PeggedAssetsApiResponse>(PEGGEDS_API),
+				fetchJson<{ breakdown?: Record<string, unknown[]> }>(
+					`${PEGGEDCHART_API}/${chain === 'All' ? 'all-llama-app' : chain}`
+				),
 				fetchJson(PEGGEDPRICES_API),
 				fetchJson(PEGGEDRATES_API)
 			])
@@ -27,15 +30,15 @@ export function useStablecoinsData(chain: string) {
 			let peggedNameToChartDataIndex: any = {}
 			let lastTimestamp = 0
 
-			chartDataByPeggedAsset = peggedAssets.map((elem: any, i: number) => {
+			chartDataByPeggedAsset = peggedAssets.map((elem: PeggedAssetApi, i: number) => {
 				peggedNameToChartDataIndex[elem.name] = i
-				const charts = breakdown[elem.id] ?? []
+				const charts = (breakdown[elem.id] ?? []) as Array<{ date: number; totalCirculatingUSD?: number }>
 				const formattedCharts = charts
-					.map((chart: any) => ({
+					.map((chart) => ({
 						date: chart.date,
 						mcap: chart.totalCirculatingUSD
 					}))
-					.filter((i: any) => i.mcap !== undefined)
+					.filter((i) => i.mcap !== undefined)
 
 				if (formattedCharts.length > 0) {
 					lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)
@@ -70,7 +73,7 @@ export function useStablecoinsData(chain: string) {
 			})
 
 			// Transform to match our table structure
-			return filteredPeggedAssets.map((asset: any) => ({
+			return filteredPeggedAssets.map((asset: FilteredPeggedAsset) => ({
 				name: asset.name,
 				symbol: asset.symbol,
 				mcap: asset.mcap || 0,

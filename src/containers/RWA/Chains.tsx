@@ -113,7 +113,7 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 	const includeGovernance = governanceQ != null ? toBooleanParam(governanceQ) : false
 
 	const onToggleStablecoins = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
+		const nextQuery: Record<string, string | string[] | undefined> = { ...router.query }
 		if (!includeStablecoins) {
 			nextQuery.includeStablecoins = 'true'
 		} else {
@@ -123,7 +123,7 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 	}, [includeStablecoins, router])
 
 	const onToggleGovernance = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
+		const nextQuery: Record<string, string | string[] | undefined> = { ...router.query }
 		if (!includeGovernance) {
 			nextQuery.includeGovernance = 'true'
 		} else {

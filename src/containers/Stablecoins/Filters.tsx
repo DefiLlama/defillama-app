@@ -9,7 +9,6 @@ import { Select } from '~/components/Select/Select'
 import { useRangeFilter } from '~/hooks/useRangeFilter'
 
 export type StablecoinFilterableItem = {
-	[key: string]: unknown
 	pegDeviation?: number | null
 	yieldBearing?: boolean | null
 	pegMechanism?: string | null

@@ -174,10 +174,12 @@ export const getProtocolOverviewPageData = async ({
 		fetchProtocolOverviewMetrics(displayNameSlug).then(async (data) => {
 			if (!data) return null
 			try {
-				const [tokenCGData, cg_volume_cexs]: [unknown, string[]] = data.gecko_id
+				const [tokenCGData, cg_volume_cexs]: [ICoingeckoFullChartPayload | null, string[]] = data.gecko_id
 					? await Promise.all([
-							fetchJson<{ data?: unknown }>(`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`)
-								.then(({ data }) => data)
+							fetchJson<{ data?: ICoingeckoFullChartPayload }>(
+								`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`
+							)
+								.then(({ data }) => data ?? null)
 								.catch(() => null),
 							fetchJson<{ cg_volume_cexs?: string[] }>(CEXS_API)
 								.then((data) => data.cg_volume_cexs ?? [])
@@ -408,7 +410,7 @@ export const getProtocolOverviewPageData = async ({
 		fetchJson<{ protocols: Array<{ category?: string; name: string; chains: Array<string>; tvl: number }> }>(
 			PROTOCOLS_API
 		).catch(() => ({ protocols: [] })),
-		fetchJson<{ hacks: Array<IHack> }>(HACKS_API).catch(() => ({ hacks: [] })),
+		fetchJson<Array<IHack>>(HACKS_API).catch(() => []),
 		currentProtocolMetadata.bridge
 			? fetchJson<{ dailyVolumes?: Array<{ date: string; depositUSD: number; withdrawUSD: number }> }>(
 					`${BRIDGEVOLUME_API_SLUG}/${displayNameSlug}`
@@ -563,7 +565,7 @@ export const getProtocolOverviewPageData = async ({
 
 	const hacks =
 		(protocolData.id
-			? hacksData?.hacks
+			? hacksData
 					?.filter((hack: IHack) =>
 						isCEX
 							? [hack.name].includes(displayName)
@@ -1072,8 +1074,8 @@ interface ICoingeckoFullChartPayload {
 	coinData?: ICoingeckoCoinData
 }
 
-function getTokenCGData(tokenCGData: unknown, cg_volume_cexs: string[]) {
-	const normalized = (tokenCGData ?? {}) as ICoingeckoFullChartPayload
+function getTokenCGData(tokenCGData: ICoingeckoFullChartPayload | null, cg_volume_cexs: string[]) {
+	const normalized = tokenCGData ?? ({} as ICoingeckoFullChartPayload)
 	const tokenPricePoint = normalized.prices?.[normalized.prices.length - 1]
 	const tokenPrice = tokenPricePoint?.[1] ?? null
 	const tokenInfo = normalized.coinData

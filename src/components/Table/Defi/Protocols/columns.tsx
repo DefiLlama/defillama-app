@@ -671,7 +671,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow, any>[] = [
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
 				meta: {
 					align: 'end',
-					headerHelperText: definitions.perps.common
+					headerHelperText: definitions.perps.protocol['marketShare24h']
 				},
 				size: 180
 			})

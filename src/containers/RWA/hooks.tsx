@@ -53,7 +53,7 @@ const updateNumberRangeQuery = (
 	maxValue: string | number | null | undefined,
 	router: NextRouter
 ) => {
-	const nextQuery: Record<string, any> = { ...router.query }
+	const nextQuery: Record<string, string | string[] | undefined> = { ...router.query }
 	const parsedMin = parseNumberInput(minValue)
 	const parsedMax = parseNumberInput(maxValue)
 	if (parsedMin == null) {
@@ -296,7 +296,7 @@ export const useRWATableQueryParams = ({
 		)
 
 	const setIncludeStablecoins = (value: boolean) => {
-		const nextQuery: Record<string, any> = { ...router.query }
+		const nextQuery: Record<string, string | string[] | undefined> = { ...router.query }
 		if (value) {
 			nextQuery.includeStablecoins = 'true'
 		} else {
@@ -306,7 +306,7 @@ export const useRWATableQueryParams = ({
 	}
 
 	const setIncludeGovernance = (value: boolean) => {
-		const nextQuery: Record<string, any> = { ...router.query }
+		const nextQuery: Record<string, string | string[] | undefined> = { ...router.query }
 		if (value) {
 			nextQuery.includeGovernance = 'true'
 		} else {

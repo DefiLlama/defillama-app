@@ -87,7 +87,7 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 	}, [hasActiveSubscription])
 
 	const userDashboards = useMemo(
-		() => liteDashboards?.map(({ id, name }: any) => ({ name, route: `/pro/${id}` })) ?? [],
+		() => liteDashboards?.map(({ id, name }: { id: string; name: string }) => ({ name, route: `/pro/${id}` })) ?? [],
 		[liteDashboards]
 	)
 	const pinnedMetrics = useSyncExternalStore(

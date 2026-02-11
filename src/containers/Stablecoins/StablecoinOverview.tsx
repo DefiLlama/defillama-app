@@ -13,6 +13,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import { StablecoinAssetChartConfig, StablecoinAssetChartType } from '~/containers/ProDashboard/types'
+import type { ChartPoint } from '~/containers/Stablecoins/api.types'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/containers/Stablecoins/hooks'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
@@ -118,7 +119,7 @@ export const PeggedAssetInfo = ({
 		[handleChartReady]
 	)
 
-	const chainsData: Array<Array<Record<string, unknown>>> = chainsUnique.map((elem: string) => {
+	const chainsData: ChartPoint[][] = chainsUnique.map((elem: string) => {
 		return peggedAssetData.chainBalances[elem].tokens
 	})
 

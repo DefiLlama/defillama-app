@@ -297,7 +297,7 @@ function Filters({
 				/>
 				<button
 					onClick={() => {
-						const nextQuery: Record<string, any> = { ...router.query }
+						const nextQuery: Record<string, string | string[] | undefined> = { ...router.query }
 						for (const key of FILTER_QUERY_KEYS) {
 							delete nextQuery[key]
 						}

@@ -313,7 +313,9 @@ function aggregateProtocolVersions(protocolVersions: AdapterProtocol[]): Adapter
 		...aggregatedRevenue,
 		chains: [...new Set(protocolVersions.flatMap((p) => p.chains))],
 		breakdown24h: mergedBreakdown24h,
-		breakdown30d: mergedBreakdown30d
+		breakdown30d: mergedBreakdown30d,
+		linkedProtocols: undefined,
+		parentProtocol: undefined
 	}
 }
 

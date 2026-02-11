@@ -2,22 +2,29 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import { PEGGEDCHART_API, PEGGEDPRICES_API, PEGGEDRATES_API, PEGGEDS_API } from '~/constants'
-import { buildStablecoinChartData, formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
+import type { PeggedAssetApi, PeggedAssetsApiResponse } from '~/containers/Stablecoins/api.types'
+import {
+	type FilteredPeggedAsset,
+	type IStablecoinStackedPoint,
+	type IStablecoinStackedValue,
+	buildStablecoinChartData,
+	formatPeggedAssetsData
+} from '~/containers/Stablecoins/utils'
 import { getDominancePercent } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 interface UseStablecoinsChartDataResult {
-	peggedAreaTotalData: any[]
-	peggedAreaChartData: any[]
-	chainsCirculatingValues: any[]
-	dataWithExtraPeggedAndDominanceByDay: any[]
-	usdInflows: any[]
-	tokenInflows: any[]
+	peggedAreaTotalData: Array<Record<string, number | string>>
+	peggedAreaChartData: Array<Record<string, number | string>>
+	chainsCirculatingValues: Array<{ name: string; value: number }>
+	dataWithExtraPeggedAndDominanceByDay: Array<Record<string, number | string>>
+	usdInflows: Array<[string | number, number]>
+	tokenInflows: Array<Record<string, number | string>>
 	tokenInflowNames: string[]
 	peggedAssetNames: string[]
 	totalMcapCurrent: number | null
 	isLoading: boolean
-	error: any
+	error: Error | null
 }
 
 export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataResult {
@@ -29,8 +36,10 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 		queryKey: ['stablecoins-chart-data', chain],
 		queryFn: async () => {
 			const [peggedData, chainData, priceData, rateData] = await Promise.all([
-				fetchJson(PEGGEDS_API),
-				fetchJson(`${PEGGEDCHART_API}/${chain === 'All' ? 'all-llama-app' : chain}`),
+				fetchJson<PeggedAssetsApiResponse>(PEGGEDS_API),
+				fetchJson<{ breakdown?: Record<string, Array<{ date: number; totalCirculatingUSD?: number }>> }>(
+					`${PEGGEDCHART_API}/${chain === 'All' ? 'all-llama-app' : chain}`
+				),
 				fetchJson(PEGGEDPRICES_API),
 				fetchJson(PEGGEDRATES_API)
 			])
@@ -42,19 +51,19 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 				return null
 			}
 
-			let chartDataByPeggedAsset: any[] = []
+			let chartDataByPeggedAsset: Array<Array<{ date: number; mcap: number | undefined }>> = []
 			let peggedNameToChartDataIndex: Record<string, number> = {}
 			let lastTimestamp = 0
 
-			chartDataByPeggedAsset = peggedAssets.map((elem: any, i: number) => {
+			chartDataByPeggedAsset = peggedAssets.map((elem: PeggedAssetApi, i: number) => {
 				peggedNameToChartDataIndex[elem.name] = i
 				const charts = breakdown[elem.id] ?? []
 				const formattedCharts = charts
-					.map((chart: any) => ({
+					.map((chart) => ({
 						date: chart.date,
 						mcap: chart.totalCirculatingUSD
 					}))
-					.filter((i: any) => i.mcap !== undefined)
+					.filter((i) => i.mcap !== undefined)
 
 				if (formattedCharts.length > 0) {
 					lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)
@@ -77,7 +86,7 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 				}
 			}
 
-			const peggedAssetNames = peggedAssets.map((p: any) => p.name)
+			const peggedAssetNames = peggedAssets.map((p) => p.name)
 
 			const filteredPeggedAssets = formatPeggedAssetsData({
 				peggedAssets,
@@ -134,7 +143,7 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 
 	const chainsCirculatingValues = useMemo(() => {
 		const assets = rawData?.filteredPeggedAssets || []
-		const sorted = [...assets].sort((a: any, b: any) => (b.mcap || 0) - (a.mcap || 0))
+		const sorted = [...assets].sort((a: FilteredPeggedAsset, b: FilteredPeggedAsset) => (b.mcap || 0) - (a.mcap || 0))
 		return preparePieChartData({ data: sorted, sliceIdentifier: 'symbol', sliceValue: 'mcap', limit: 10 })
 	}, [rawData?.filteredPeggedAssets])
 
@@ -143,20 +152,20 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 		if (stackedDataset.length === 0) return []
 
 		const daySum: Record<string, number> = {}
-		for (const entry of stackedDataset as [string, any][]) {
+		for (const entry of stackedDataset as IStablecoinStackedPoint[]) {
 			const date = entry[0]
 			const values = entry[1]
 			let totalDaySum = 0
-			for (const chainCirculating of Object.values(values) as any[]) {
+			for (const chainCirculating of Object.values(values)) {
 				totalDaySum += chainCirculating?.circulating || 0
 			}
 			daySum[date] = totalDaySum
 		}
 
-		return stackedDataset.map(([date, values]: [string, any]) => {
+		return (stackedDataset as IStablecoinStackedPoint[]).map(([date, values]) => {
 			const shares: Record<string, number> = {}
 			for (const name in values) {
-				const chainCirculating = values[name] as any
+				const chainCirculating: IStablecoinStackedValue = values[name]
 				const circulating = chainCirculating?.circulating || 0
 				shares[name] = getDominancePercent(circulating, daySum[date]) || 0
 			}
@@ -211,10 +220,10 @@ export function useStablecoinChainsList() {
 	return useQuery({
 		queryKey: ['stablecoin-chains-list'],
 		queryFn: async () => {
-			const data = await fetchJson(PEGGEDS_API)
+			const data = await fetchJson<PeggedAssetsApiResponse>(PEGGEDS_API)
 			const chains = data?.chains || []
 			return chains
-				.map((c: any) => {
+				.map((c) => {
 					let tvl = 0
 					if (c.totalCirculatingUSD) {
 						const values = Object.values(c.totalCirculatingUSD) as number[]

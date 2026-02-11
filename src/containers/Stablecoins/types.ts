@@ -5,6 +5,7 @@ import type {
 	PeggedAssetDetailApiResponse,
 	PeggedAssetsApiResponse
 } from './api.types'
+import type { FilteredPeggedAsset } from './utils'
 
 export type StablecoinOverviewChartPoint = {
 	date: number
@@ -26,7 +27,7 @@ export interface StablecoinOverviewChartInputs {
 
 export interface PeggedOverviewPageData {
 	chains: string[]
-	filteredPeggedAssets: Array<{ name: string; mcap: number; [key: string]: unknown }>
+	filteredPeggedAssets: FilteredPeggedAsset[]
 	peggedAssetNames: string[]
 	peggedNameToChartDataIndex: Record<string, number>
 	chartDataByPeggedAsset: StablecoinOverviewChartPoint[][]

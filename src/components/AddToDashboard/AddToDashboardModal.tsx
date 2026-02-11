@@ -6,13 +6,13 @@ import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
-import { type Dashboard, dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
+import { dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
 import type { LlamaAIChartConfig } from '~/containers/ProDashboard/types'
 import { addItemToDashboard } from '~/containers/ProDashboard/utils/dashboardItemsUtils'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import type { DashboardChartConfig, LlamaAIChartInput } from './AddToDashboardButton'
 
-const EMPTY_DASHBOARDS: Dashboard[] = []
+const EMPTY_DASHBOARDS: Array<{ id: string; name: string }> = []
 const EMPTY_UNSUPPORTED_METRICS: string[] = []
 
 interface AddToDashboardModalProps {
@@ -66,7 +66,7 @@ export function AddToDashboardModal({
 	const queryClient = useQueryClient()
 	const { authorizedFetch, isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const { data: dashboardsData, isLoading: isLoadingDashboards } = useGetLiteDashboards()
-	const dashboards = dashboardsData ?? EMPTY_DASHBOARDS
+	const dashboards: Array<{ id: string; name: string }> = dashboardsData ?? EMPTY_DASHBOARDS
 
 	const [search, setSearch] = useState('')
 	const [selectedDashboardId, setSelectedDashboardId] = useState<string | null>(null)
@@ -78,11 +78,7 @@ export function AddToDashboardModal({
 	const filteredDashboards = useMemo(() => {
 		if (!search.trim()) return dashboards
 		const q = search.toLowerCase()
-		return dashboards.filter((d: Dashboard) =>
-			String((d as any).name ?? (d as any).dashboardName ?? '')
-				.toLowerCase()
-				.includes(q)
-		)
+		return dashboards.filter((d) => d.name.toLowerCase().includes(q))
 	}, [dashboards, search])
 
 	const configName = getConfigName(chartConfig, llamaAIChart)
@@ -209,7 +205,7 @@ export function AddToDashboardModal({
 					;(window as any).umami.track('add-to-dashboard-submit', { type: 'existing-dashboard' })
 				}
 
-				const selected = dashboards.find((d: Dashboard) => d.id === selectedDashboardId)
+				const selected = dashboards.find((d) => d.id === selectedDashboardId)
 
 				toast.success(
 					<div>
@@ -279,7 +275,7 @@ export function AddToDashboardModal({
 					<p className="py-4 text-center text-sm pro-text3">No matches found</p>
 				) : (
 					<div className="space-y-1">
-						{filteredDashboards.map((dashboard: Dashboard) => (
+						{filteredDashboards.map((dashboard) => (
 							<button
 								key={dashboard.id}
 								type="button"
@@ -295,9 +291,7 @@ export function AddToDashboardModal({
 								>
 									{selectedDashboardId === dashboard.id && <Icon name="check" className="h-2.5 w-2.5 text-white" />}
 								</div>
-								<span className="truncate">
-									{String((dashboard as any).name ?? (dashboard as any).dashboardName ?? '')}
-								</span>
+								<span className="truncate">{dashboard.name}</span>
 							</button>
 						))}
 					</div>

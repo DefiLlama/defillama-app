@@ -70,7 +70,7 @@ export function RWAAssetsTable({
 		},
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
-		getSubRows: (row: any) => row.subRows,
+		getSubRows: (row) => (row as AssetRow & { subRows?: AssetRow[] }).subRows,
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
 		onColumnSizingChange: setColumnSizing,
@@ -85,9 +85,11 @@ export function RWAAssetsTable({
 
 	const columnsOptions = useMemo(
 		() =>
-			columns.map((c: any) => {
-				const headerName = typeof c.header === 'function' ? (c.id ?? (c.accessorKey as string)) : (c.header as string)
-				return { name: headerName, key: c.id ?? (c.accessorKey as string) }
+			columns.map((c) => {
+				const col = c as ColumnDef<AssetRow> & { accessorKey?: string }
+				const headerName =
+					typeof col.header === 'function' ? (col.id ?? (col.accessorKey as string)) : (col.header as string)
+				return { name: headerName, key: col.id ?? (col.accessorKey as string) }
 			}),
 		[]
 	)

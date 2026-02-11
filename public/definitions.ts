@@ -199,7 +199,9 @@ export const definitions = {
       "change1m": "Month-over-month percentage change in notional volume of all trades including leverage on the perp exchange",
       "change7dover7d": "Change of last 7 days notional volume including leverage over the previous 7 days notional volume including leverage",
       "change30dover30d": "Change of last 30 days notional volume including leverage over the previous 30 days notional volume including leverage",
-      "average1y": "Average monthly notional volume including leverage in the last 12 months"
+      "average1y": "Average monthly notional volume including leverage in the last 12 months",
+      "marketShare24h": "Share of total 24 hours perp volume across tracked protocols",
+      "marketShare7d": "Share of total 7 days perp volume across tracked protocols"
     },
     "chain": {
       "24h": "Notional volume of all trades including leverage on all perp exchanges on the chain in the last 24 hours. Updated daily at 00:00 UTC",

@@ -77,7 +77,7 @@ export function ChainsByAdapter(props: IProps) {
 
 	const instance = useReactTable({
 		data: chains,
-		columns: columnsByType[props.type] as any,
+		columns: columnsByType[props.type],
 		state: {
 			sorting,
 			columnFilters,

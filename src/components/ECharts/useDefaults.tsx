@@ -34,7 +34,7 @@ const CHART_SYMBOLS: Record<string, string> = {
 	'Devs Commits': ''
 }
 
-type TooltipGroupBy = 'daily' | 'weekly' | 'monthly'
+type TooltipGroupBy = 'daily' | 'weekly' | 'monthly' | 'quarterly'
 
 // Helper to get the symbol for a series name in tooltip
 const getSeriesSymbol = (seriesName: string, valueSymbol: string, unlockTokenSymbol: string): string => {
@@ -96,7 +96,8 @@ export function useDefaults({
 	xAxisType = 'time'
 }: IUseDefaultsProps) {
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
-	const tooltipGroupBy: TooltipGroupBy = groupBy === 'weekly' || groupBy === 'monthly' ? groupBy : 'daily'
+	const tooltipGroupBy: TooltipGroupBy =
+		groupBy === 'weekly' || groupBy === 'monthly' || groupBy === 'quarterly' ? groupBy : 'daily'
 
 	const defaults = useMemo(() => {
 		const graphic = {
@@ -469,7 +470,7 @@ export function useDefaults({
 		unlockTokenSymbol,
 		hideOthersInTooltip,
 		tooltipValuesRelative,
-		groupBy,
+		tooltipGroupBy,
 		alwaysShowTooltip,
 		xAxisType
 	])

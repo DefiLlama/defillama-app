@@ -1,7 +1,5 @@
 export type NumericRecord = Record<string, number>
 
-export type UnknownRecord = Record<string, unknown>
-
 export interface PeggedChainApi {
 	name: string
 	tvl: number
@@ -35,7 +33,7 @@ export interface PeggedAssetApi {
 	yieldBearing?: boolean
 	delisted?: boolean
 	deprecated?: boolean
-	[key: string]: unknown
+	doublecounted?: boolean
 }
 
 export interface PeggedAssetsApiResponse {
@@ -67,8 +65,7 @@ export interface ChartPoint {
 	circulating?: NumericRecord
 	unreleased?: NumericRecord
 	bridgedTo?: NumericRecord
-	bridges?: Record<string, unknown>
-	[key: string]: unknown
+	bridges?: Record<string, Record<string, { amount: number }>>
 }
 
 export interface PeggedChartApiResponse {
@@ -117,5 +114,4 @@ export interface PeggedAssetDetailApiResponse {
 	deprecated?: boolean
 	pegType: string
 	chainBalances: Record<string, { tokens: ChartPoint[] }>
-	[key: string]: unknown
 }
