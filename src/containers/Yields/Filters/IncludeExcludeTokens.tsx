@@ -378,7 +378,7 @@ export function IncludeExcludeTokens({
 										</Ariakit.ComboboxItem>
 									) : null}
 									<button
-										className="disabled:text-opacity-50 sticky bottom-0 w-full rounded-md bg-(--old-blue) py-2 text-white disabled:cursor-not-allowed"
+										className="sticky bottom-0 w-full rounded-md bg-(--old-blue) py-2 text-white disabled:cursor-not-allowed disabled:text-white/50"
 										onClick={() => {
 											handlePairTokens(newPairTokens.join('-'))
 											dialogStore.toggle()

@@ -646,7 +646,7 @@ export function ColumnManager({
 								value={customName}
 								onChange={(e) => setCustomName(e.target.value)}
 								placeholder="Column name"
-								className="flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/50 px-2 py-1.5 text-xs text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--primary) focus:outline-none"
+								className="flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/50 px-2 py-1.5 text-xs text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--primary) focus:outline-hidden"
 							/>
 						</div>
 
@@ -659,7 +659,7 @@ export function ColumnManager({
 								onKeyDown={handleExpressionKeyDown}
 								onFocus={() => customExpression && setShowAutocomplete(true)}
 								placeholder="e.g., tvl / mcap, fees24h * 365"
-								className={`w-full rounded-md border bg-(--cards-bg-alt)/50 px-2 py-1.5 pr-8 font-mono text-xs text-(--text-primary) placeholder:text-(--text-tertiary) focus:outline-none ${
+								className={`w-full rounded-md border bg-(--cards-bg-alt)/50 px-2 py-1.5 pr-8 font-mono text-xs text-(--text-primary) placeholder:text-(--text-tertiary) focus:outline-hidden ${
 									customExpression && !expressionValidation.isValid
 										? 'border-red-500'
 										: customExpression && expressionValidation.isValid
@@ -861,7 +861,7 @@ export function ColumnManager({
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
 							placeholder="Search columns..."
-							className="w-full rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/50 py-1.5 pr-2.5 pl-8 text-xs text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--primary) focus:outline-none"
+							className="w-full rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/50 py-1.5 pr-2.5 pl-8 text-xs text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>
 				</div>

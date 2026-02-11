@@ -135,7 +135,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 				onChange={(e) => setTitle(e.target.value)}
 				placeholder="Alert title"
 				disabled={saved}
-				className="w-full rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) placeholder:text-(--text3) focus:border-[#2172E5] focus:outline-none disabled:opacity-50 dark:border-[#222324]"
+				className="w-full rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) placeholder:text-(--text3) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324]"
 			/>
 
 			<div className="flex flex-wrap items-center gap-2">
@@ -143,7 +143,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 					value={frequency}
 					onChange={(e) => setFrequency(e.target.value as 'daily' | 'weekly')}
 					disabled={saved}
-					className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-none disabled:opacity-50 dark:border-[#222324]"
+					className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324]"
 				>
 					<option value="daily">Daily</option>
 					<option value="weekly">Weekly</option>
@@ -154,7 +154,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 						value={dayOfWeek}
 						onChange={(e) => setDayOfWeek(Number(e.target.value))}
 						disabled={saved}
-						className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-none disabled:opacity-50 dark:border-[#222324]"
+						className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324]"
 					>
 						{DAYS_OF_WEEK.map((day, idx) => (
 							<option key={day} value={idx}>
@@ -170,7 +170,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 					value={hour}
 					onChange={(e) => setHour(Number(e.target.value))}
 					disabled={saved}
-					className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-none disabled:opacity-50 dark:border-[#222324]"
+					className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324]"
 				>
 					{Array.from({ length: 24 }, (_, i) => (
 						<option key={i} value={i}>

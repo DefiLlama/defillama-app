@@ -647,7 +647,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 									onClick={() => handleGroupingChange(builder.id, option)}
 									className={`px-2 py-1 text-xs font-medium transition-colors duration-150 ease-in-out sm:px-3 ${index > 0 ? 'border-l border-(--form-control-border)' : ''} ${
 										builder.grouping === option || (!builder.grouping && option === 'day')
-											? 'focus:ring-opacity-50 bg-(--primary) text-white focus:ring-2 focus:ring-(--primary) focus:outline-hidden'
+											? 'bg-(--primary) text-white focus:ring-2 focus:ring-(--primary)/50 focus:outline-hidden'
 											: 'bg-transparent pro-hover-bg pro-text2 focus:ring-1 focus:ring-(--form-control-border) focus:outline-hidden'
 									}`}
 								>

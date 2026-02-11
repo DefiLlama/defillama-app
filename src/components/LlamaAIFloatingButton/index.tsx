@@ -237,7 +237,7 @@ export function LlamaAIFloatingButton() {
 									onChange={(e) => setValue(e.target.value)}
 									onKeyDown={handleKeyDown}
 									placeholder="Ask LlamaAI about TVL, fees, revenue, protocols..."
-									className="min-h-[100px] w-full resize-none rounded-lg border border-[#e6e6e6] bg-[#f9f9f9] p-3 pr-12 text-sm text-black placeholder-[#999] transition-colors outline-none focus:border-[#2172E5] dark:border-[#39393E] dark:bg-[#1a1a1d] dark:text-white dark:placeholder-[#666]"
+									className="min-h-[100px] w-full resize-none rounded-lg border border-[#e6e6e6] bg-[#f9f9f9] p-3 pr-12 text-sm text-black placeholder-[#999] outline-hidden transition-colors focus:border-[#2172E5] dark:border-[#39393E] dark:bg-[#1a1a1d] dark:text-white dark:placeholder-[#666]"
 									rows={4}
 								/>
 								<button

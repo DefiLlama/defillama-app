@@ -76,13 +76,13 @@ export function CustomViewModal({ isOpen, onClose, onSave, existingViewNames }: 
 								}}
 								onKeyDown={handleKeyDown}
 								placeholder="Enter a name for this view..."
-								className="bg-opacity-50 w-full rounded-md border pro-border bg-(--bg-glass) px-3 py-2 pro-text1 placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
+								className="w-full rounded-md border pro-border bg-(--bg-glass)/50 px-3 py-2 pro-text1 placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
 								autoFocus
 							/>
 							{error && <p className="mt-2 text-sm text-(--error)">{error}</p>}
 						</div>
 
-						<div className="bg-opacity-50 pro-bg2 p-4">
+						<div className="bg-(--pro-bg2)/50 p-4">
 							<p className="text-sm pro-text3">
 								This will save your current column configuration including visibility, order, and any custom columns.
 							</p>
