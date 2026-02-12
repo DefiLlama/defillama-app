@@ -161,54 +161,64 @@ export const useFetchProtocolChartData = ({
 		: null
 
 	const denominationGeckoId = isRouterReady ? (selectedDenomination?.geckoId ?? null) : null
-	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } = useQuery<
-		Record<string, number> | null
-	>({
+	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } = useQuery<Record<
+		string,
+		number
+	> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'denomination-price-history', denominationGeckoId],
 		queryFn: () =>
-			fetchJson(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`).then((res: { data?: { prices?: Array<[number, number]> } }) => {
-				if (!res.data?.prices?.length) return null
-				const store: Record<string, number> = {}
-				for (const [date, value] of res.data.prices) {
-					store[String(date)] = value
-					store[String(Math.floor(Number(date) / 1e3))] = value
+			fetchJson(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`).then(
+				(res: { data?: { prices?: Array<[number, number]> } }) => {
+					if (!res.data?.prices?.length) return null
+					const store: Record<string, number> = {}
+					for (const [date, value] of res.data.prices) {
+						store[String(date)] = value
+						store[String(Math.floor(Number(date) / 1e3))] = value
+					}
+					return store
 				}
-				return store
-			}),
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: !!denominationGeckoId
 	})
 
-	const { data: protocolTokenData = null, isLoading: fetchingProtocolTokenData } = useQuery<IDenominationPriceHistory | null>({
-		queryKey: ['protocol-overview', protocolSlug, 'token-price-history', geckoId],
-		queryFn: () =>
-			fetchJson(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then((res: { data?: IDenominationPriceHistory }) =>
-				res.data?.prices?.length ? res.data : { prices: [], mcaps: [], volumes: [] }
-			),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: !!(
-			isRouterReady &&
-			(toggledMetrics.mcap === 'true' ||
-				toggledMetrics.tokenPrice === 'true' ||
-				toggledMetrics.tokenVolume === 'true' ||
-				toggledMetrics.fdv === 'true') &&
-			geckoId
-		)
-	})
+	const { data: protocolTokenData = null, isLoading: fetchingProtocolTokenData } =
+		useQuery<IDenominationPriceHistory | null>({
+			queryKey: ['protocol-overview', protocolSlug, 'token-price-history', geckoId],
+			queryFn: () =>
+				fetchJson(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then(
+					(res: { data?: IDenominationPriceHistory }) =>
+						res.data?.prices?.length ? res.data : { prices: [], mcaps: [], volumes: [] }
+				),
+			staleTime: 60 * 60 * 1000,
+			refetchOnWindowFocus: false,
+			retry: 0,
+			enabled: !!(
+				isRouterReady &&
+				(toggledMetrics.mcap === 'true' ||
+					toggledMetrics.tokenPrice === 'true' ||
+					toggledMetrics.tokenVolume === 'true' ||
+					toggledMetrics.fdv === 'true') &&
+				geckoId
+			)
+		})
 
 	const { data: tokenTotalSupply = null, isLoading: fetchingTokenTotalSupply } = useQuery<number | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'token-supply', geckoId],
-		queryFn: () => fetchJson(`${CACHE_SERVER}/supply/${geckoId}`).then((res: { data?: { total_supply?: number } }) => res.data?.['total_supply'] ?? null),
+		queryFn: () =>
+			fetchJson(`${CACHE_SERVER}/supply/${geckoId}`).then(
+				(res: { data?: { total_supply?: number } }) => res.data?.['total_supply'] ?? null
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: !!(geckoId && toggledMetrics.fdv === 'true' && isRouterReady)
 	})
-	const { data: tokenLiquidityData = null, isLoading: fetchingTokenLiquidity } = useQuery<Array<[string | number, number]> | null>({
+	const { data: tokenLiquidityData = null, isLoading: fetchingTokenLiquidity } = useQuery<Array<
+		[string | number, number]
+	> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'token-liquidity', protocolId],
 		queryFn: () => fetchJson(`${TOKEN_LIQUIDITY_API}/${protocolId.replaceAll('#', '$')}`).catch(() => null),
 		staleTime: 60 * 60 * 1000,
@@ -350,24 +360,23 @@ export const useFetchProtocolChartData = ({
 		(metrics.fees || metrics.revenue) &&
 		isRouterReady
 	)
-	const { data: holdersRevenueDataChart = null, isLoading: fetchingHoldersRevenue } = useQuery<
-		Array<[number, number]> | null
-	>({
-			queryKey: ['protocol-overview', protocolSlug, 'holders-revenue'],
-			queryFn: () =>
-				isHoldersRevenueEnabled
-					? getAdapterProtocolChartData({
-							adapterType: 'fees',
-							dataType: 'dailyHoldersRevenue',
-							protocol: name
-						})
-					: Promise.resolve(null),
-			staleTime: 60 * 60 * 1000,
-			refetchOnWindowFocus: false,
-			retry: 0,
-			enabled: isHoldersRevenueEnabled
-		}
-	)
+	const { data: holdersRevenueDataChart = null, isLoading: fetchingHoldersRevenue } = useQuery<Array<
+		[number, number]
+	> | null>({
+		queryKey: ['protocol-overview', protocolSlug, 'holders-revenue'],
+		queryFn: () =>
+			isHoldersRevenueEnabled
+				? getAdapterProtocolChartData({
+						adapterType: 'fees',
+						dataType: 'dailyHoldersRevenue',
+						protocol: name
+					})
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: isHoldersRevenueEnabled
+	})
 
 	const isBribesEnabled = !!(
 		(toggledMetrics.fees === 'true' || toggledMetrics.revenue === 'true' || toggledMetrics.holdersRevenue === 'true') &&
@@ -430,23 +439,27 @@ export const useFetchProtocolChartData = ({
 	})
 
 	const isPerpsVolumeEnabled = !!(toggledMetrics.perpVolume === 'true' && metrics.perps && isRouterReady)
-	const { data: perpsVolumeDataChart = null, isLoading: fetchingPerpVolume } = useQuery<Array<[number, number]> | null>({
-		queryKey: ['protocol-overview', protocolSlug, 'perp-volume'],
-		queryFn: () =>
-			isPerpsVolumeEnabled
-				? getAdapterProtocolChartData({
-						adapterType: 'derivatives',
-						protocol: name
-					})
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isPerpsVolumeEnabled
-	})
+	const { data: perpsVolumeDataChart = null, isLoading: fetchingPerpVolume } = useQuery<Array<[number, number]> | null>(
+		{
+			queryKey: ['protocol-overview', protocolSlug, 'perp-volume'],
+			queryFn: () =>
+				isPerpsVolumeEnabled
+					? getAdapterProtocolChartData({
+							adapterType: 'derivatives',
+							protocol: name
+						})
+					: Promise.resolve(null),
+			staleTime: 60 * 60 * 1000,
+			refetchOnWindowFocus: false,
+			retry: 0,
+			enabled: isPerpsVolumeEnabled
+		}
+	)
 
 	const isOpenInterestEnabled = !!(toggledMetrics.openInterest === 'true' && metrics.openInterest && isRouterReady)
-	const { data: openInterestDataChart = null, isLoading: fetchingOpenInterest } = useQuery<Array<[number, number]> | null>({
+	const { data: openInterestDataChart = null, isLoading: fetchingOpenInterest } = useQuery<Array<
+		[number, number]
+	> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'open-interest'],
 		queryFn: () =>
 			isOpenInterestEnabled
@@ -467,9 +480,9 @@ export const useFetchProtocolChartData = ({
 		metrics.optionsPremiumVolume &&
 		isRouterReady
 	)
-	const { data: optionsPremiumVolumeDataChart = null, isLoading: fetchingOptionsPremiumVolume } = useQuery<
-		Array<[number, number]> | null
-	>({
+	const { data: optionsPremiumVolumeDataChart = null, isLoading: fetchingOptionsPremiumVolume } = useQuery<Array<
+		[number, number]
+	> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'options-premium-volume'],
 		queryFn: () =>
 			isOptionsPremiumVolumeEnabled
@@ -490,9 +503,9 @@ export const useFetchProtocolChartData = ({
 		metrics.optionsNotionalVolume &&
 		isRouterReady
 	)
-	const { data: optionsNotionalVolumeDataChart = null, isLoading: fetchingOptionsNotionalVolume } = useQuery<
-		Array<[number, number]> | null
-	>({
+	const { data: optionsNotionalVolumeDataChart = null, isLoading: fetchingOptionsNotionalVolume } = useQuery<Array<
+		[number, number]
+	> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'options-notional-volume'],
 		queryFn: () =>
 			isOptionsNotionalVolumeEnabled
@@ -513,9 +526,9 @@ export const useFetchProtocolChartData = ({
 		metrics.dexAggregators &&
 		isRouterReady
 	)
-	const { data: dexAggregatorsVolumeDataChart = null, isLoading: fetchingDexAggregatorVolume } = useQuery<
-		Array<[number, number]> | null
-	>({
+	const { data: dexAggregatorsVolumeDataChart = null, isLoading: fetchingDexAggregatorVolume } = useQuery<Array<
+		[number, number]
+	> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'dex-aggregator-volume'],
 		queryFn: () =>
 			isDexAggregatorsVolumeEnabled
@@ -535,9 +548,9 @@ export const useFetchProtocolChartData = ({
 		metrics.perpsAggregators &&
 		isRouterReady
 	)
-	const { data: perpsAggregatorsVolumeDataChart = null, isLoading: fetchingPerpAggregatorVolume } = useQuery<
-		Array<[number, number]> | null
-	>({
+	const { data: perpsAggregatorsVolumeDataChart = null, isLoading: fetchingPerpAggregatorVolume } = useQuery<Array<
+		[number, number]
+	> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'perp-aggregator-volume'],
 		queryFn: () =>
 			isPerpsAggregatorsVolumeEnabled
@@ -557,9 +570,9 @@ export const useFetchProtocolChartData = ({
 		metrics.bridgeAggregators &&
 		isRouterReady
 	)
-	const { data: bridgeAggregatorsVolumeDataChart = null, isLoading: fetchingBridgeAggregatorVolume } = useQuery<
-		Array<[number, number]> | null
-	>({
+	const { data: bridgeAggregatorsVolumeDataChart = null, isLoading: fetchingBridgeAggregatorVolume } = useQuery<Array<
+		[number, number]
+	> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'bridge-aggregator-volume'],
 		queryFn: () =>
 			isBridgeAggregatorsVolumeEnabled
@@ -590,10 +603,15 @@ export const useFetchProtocolChartData = ({
 			return {
 				...result,
 				unlockUsdChart: Array.isArray(result.unlockUsdChart)
-					? result.unlockUsdChart.map((item): [string | number, number] => {
-							const arr = Array.isArray(item) ? item : [0, 0]
-							return [Number(arr[0]), Number(arr[1])]
-						})
+					? result.unlockUsdChart
+							.filter(
+								(item): item is [string | number, string | number] =>
+									Array.isArray(item) &&
+									item.length >= 2 &&
+									Number.isFinite(Number(item[0])) &&
+									Number.isFinite(Number(item[1]))
+							)
+							.map((item): [number, number] => [Number(item[0]), Number(item[1])])
 					: null
 			}
 		},
@@ -608,20 +626,22 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'treasury'],
 		queryFn: () =>
 			isTreasuryEnabled
-				? fetchJson(`${PROTOCOL_TREASURY_API}/${slug(name)}`).then((data: { chainTvls: Record<string, { tvl?: Array<{ date: string; totalLiquidityUSD?: number }> }> }) => {
-						const store: Record<string, number> = {}
-						for (const chain in data.chainTvls) {
-							if (chain.includes('-')) continue
-							for (const item of data.chainTvls[chain].tvl ?? []) {
-								store[item.date] = (store[item.date] ?? 0) + (item.totalLiquidityUSD ?? 0)
+				? fetchJson(`${PROTOCOL_TREASURY_API}/${slug(name)}`).then(
+						(data: { chainTvls: Record<string, { tvl?: Array<{ date: string; totalLiquidityUSD?: number }> }> }) => {
+							const store: Record<string, number> = {}
+							for (const chain in data.chainTvls) {
+								if (chain.includes('-')) continue
+								for (const item of data.chainTvls[chain].tvl ?? []) {
+									store[item.date] = (store[item.date] ?? 0) + (item.totalLiquidityUSD ?? 0)
+								}
 							}
+							const finalChart: Array<[number, number]> = []
+							for (const date in store) {
+								finalChart.push([+date * 1e3, store[date]])
+							}
+							return finalChart
 						}
-						const finalChart: Array<[number, number]> = []
-						for (const date in store) {
-							finalChart.push([+date * 1e3, store[date]])
-						}
-						return finalChart
-					})
+					)
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -972,7 +992,11 @@ export const useFetchProtocolChartData = ({
 				denominationPriceHistory
 			})
 
-		if (isUnlocksToggled && unlocksAndIncentivesData?.chartData?.documented && unlocksAndIncentivesData.chartData.documented.length > 0) {
+		if (
+			isUnlocksToggled &&
+			unlocksAndIncentivesData?.chartData?.documented &&
+			unlocksAndIncentivesData.chartData.documented.length > 0
+		) {
 			const store: Record<string, number> = {}
 			for (const { timestamp, ...rest } of unlocksAndIncentivesData.chartData.documented) {
 				const dateSec = Math.floor(timestamp / 1e3)
@@ -1012,7 +1036,7 @@ export const useFetchProtocolChartData = ({
 
 		if (medianAPYData)
 			charts['Median APY'] = formatLineChart({
-				data: medianAPYData.map((item): [number, number] => [+item.date * 1e3, Number((item as Record<string, unknown>)['medianAPY']) || 0]),
+				data: medianAPYData.map((item): [number, number] => [+item.date * 1e3, Number(item.medianAPY) || 0]),
 				groupBy,
 				dateInMs: true,
 				denominationPriceHistory: null

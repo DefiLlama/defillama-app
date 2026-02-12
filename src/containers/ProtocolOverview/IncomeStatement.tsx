@@ -76,8 +76,9 @@ export const IncomeStatement = ({
 		if (groupData) {
 			for (const key of Object.keys(groupData)) {
 				if (key === 'timestamp') continue
-				const periodData = groupData[key] as Record<string, { value: number; 'by-label': Record<string, number> }> | undefined
-				const periodTimestamp = (periodData as { timestamp?: number } | undefined)?.timestamp ?? 0
+				const periodData = groupData[key] as
+					| (Record<string, { value: number; 'by-label': Record<string, number> }> & { timestamp?: number })
+					| undefined
 				tableHeaders.push([
 					key,
 					groupKey === 'monthly'
@@ -85,7 +86,7 @@ export const IncomeStatement = ({
 						: groupKey === 'quarterly'
 							? key.split('-').reverse().join(' ')
 							: key,
-					periodTimestamp
+					periodData?.timestamp ?? 0
 				])
 
 				grossProtocolRevenueData[key] = periodData?.['Gross Protocol Revenue'] ?? {
@@ -158,8 +159,9 @@ export const IncomeStatement = ({
 		if (sankeyGroupData) {
 			for (const key of Object.keys(sankeyGroupData)) {
 				if (key === 'timestamp') continue
-				const periodData = sankeyGroupData[key] as Record<string, { value: number; 'by-label': Record<string, number> }> | undefined
-				const periodTimestamp = (periodData as { timestamp?: number } | undefined)?.timestamp ?? 0
+				const periodData = sankeyGroupData[key] as
+					| (Record<string, { value: number; 'by-label': Record<string, number> }> & { timestamp?: number })
+					| undefined
 				sankeyHeaders.push([
 					key,
 					sankeyGroupKey === 'monthly'
@@ -167,7 +169,7 @@ export const IncomeStatement = ({
 						: sankeyGroupKey === 'quarterly'
 							? key.split('-').reverse().join(' ')
 							: key,
-					periodTimestamp
+					periodData?.timestamp ?? 0
 				])
 
 				sankeyGrossProtocolRevenueData[key] = periodData?.['Gross Protocol Revenue'] ?? { value: 0, 'by-label': {} }

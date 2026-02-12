@@ -218,7 +218,7 @@ export const getProtocolOverviewPageData = async ({
 						: [null, []]
 					return { ...data, tokenCGData: tokenCGData ? getTokenCGData(tokenCGData, cg_volume_cexs) : null }
 				} catch (e) {
-					console.log(e)
+					console.log('[HTTP]:[ERROR]:[TOKEN_CG_DATA]:', e)
 					return data
 				}
 			}
@@ -226,8 +226,7 @@ export const getProtocolOverviewPageData = async ({
 		currentProtocolMetadata.tvl
 			? fetchProtocolTvlChart({ protocol: slug(currentProtocolMetadata.displayName ?? '') })
 					.then(
-						(chart) =>
-							chart?.map(([date, value]): [string, number] => [String(Math.floor(date / 1e3)), value]) ?? []
+						(chart) => chart?.map(([date, value]): [string, number] => [String(Math.floor(date / 1e3)), value]) ?? []
 					)
 					.catch((): Array<[string, number]> => [])
 			: Promise.resolve([] as Array<[string, number]>),
@@ -382,12 +381,11 @@ export const getProtocolOverviewPageData = async ({
 		currentProtocolMetadata?.incentives && protocolId
 			? fetchJson(`https://api.llama.fi/emissionsBreakdownAggregated`)
 					.then((data) => {
-						const protocolEmissionsData = data.protocols.find(
-						(item: { name: string; defillamaId: string }) =>
+						const protocolEmissionsData = data.protocols.find((item: { name: string; defillamaId: string }) =>
 							protocolId.startsWith('parent#')
 								? item.name === currentProtocolMetadata.displayName
 								: item.defillamaId === protocolId
-					)
+						)
 
 						if (!protocolEmissionsData) return null
 
@@ -425,7 +423,10 @@ export const getProtocolOverviewPageData = async ({
 			: null,
 		currentProtocolMetadata.expenses && protocolId
 			? fetchJson(PROTOCOLS_EXPENSES_API)
-					.then((data: IProtocolExpenses[]) => data.find((item: IProtocolExpenses) => item.protocolId === protocolId) ?? null)
+					.then(
+						(data: IProtocolExpenses[]) =>
+							data.find((item: IProtocolExpenses) => item.protocolId === protocolId) ?? null
+					)
 					.catch(() => {
 						return null
 					})
@@ -448,7 +449,8 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: null,
 		getProtocolIncomeStatement({ metadata: currentProtocolMetadata }),
-		currentProtocolMetadata.displayName && (oracleProtocols as Record<string, string>)[currentProtocolMetadata.displayName]
+		currentProtocolMetadata.displayName &&
+		(oracleProtocols as Record<string, string>)[currentProtocolMetadata.displayName]
 			? fetchJson(ORACLE_API).then((data): Record<string, number> | null => {
 					const oracleName = (oracleProtocols as Record<string, string>)[currentProtocolMetadata.displayName ?? '']
 					let tvs: Record<string, number> = {}
@@ -623,7 +625,10 @@ export const getProtocolOverviewPageData = async ({
 		chartDenominations.push({ symbol: 'USD', geckoId: null })
 
 		const cmetadata = chainMetadata?.[slug(firstChain)]
-		const chainGasIds = chainCoingeckoIdsForGasNotMcap as Record<string, { geckoId: string; symbol: string; cmcId: string }>
+		const chainGasIds = chainCoingeckoIdsForGasNotMcap as Record<
+			string,
+			{ geckoId: string; symbol: string; cmcId: string }
+		>
 		if (cmetadata && chainGasIds[cmetadata.name]) {
 			chartDenominations.push({
 				symbol: chainGasIds[cmetadata.name].symbol,
@@ -941,7 +946,10 @@ export const getProtocolOverviewPageData = async ({
 		hallmarks: Object.entries(hallmarks)
 			.sort(([a], [b]) => Number(a) - Number(b))
 			.map(([date, event]): [number, string] => [+date * 1e3, event]),
-		rangeHallmarks: rangeHallmarks.map(([date, event]): [[number, number], string] => [[+date[0] * 1e3, +date[1] * 1e3], event]),
+		rangeHallmarks: rangeHallmarks.map(([date, event]): [[number, number], string] => [
+			[+date[0] * 1e3, +date[1] * 1e3],
+			event
+		]),
 		geckoId: protocolData.gecko_id ?? null,
 		governanceApis: governanceApis(protocolData.governanceID) ?? null,
 		incomeStatement,
@@ -989,9 +997,7 @@ function formatAdapterData({ data, methodologyKey }: { data: IAdapterProtocolMet
 
 		const areMethodologiesDifferent = new Set(childMethodologies.map((m) => m[1])).size > 1
 		const topChildMethodology =
-			childProtocols.length > 1
-				? childMethodologies.find((m) => m[0] === childProtocols[0].displayName)
-				: null
+			childProtocols.length > 1 ? childMethodologies.find((m) => m[0] === childProtocols[0].displayName) : null
 
 		return {
 			total24h: data.total24h ?? null,
@@ -1188,6 +1194,7 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 			for (const groupBy in aggregatesMap) {
 				for (const period in aggregatesMap[groupBy]) {
 					for (const label in aggregatesMap[groupBy][period]) {
+						if (label === 'timestamp') continue
 						const entry = aggregatesMap[groupBy][period][label]
 						if (entry && typeof entry === 'object' && 'by-label' in entry) {
 							entry['by-label'] = {}

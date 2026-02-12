@@ -1,10 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
 import { LocalLoader } from '~/components/Loaders'
-import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { useVolatility } from '~/containers/Yields/queries/client'
+import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
-
 import { slug } from '~/utils'
 import { sluggifyProtocol } from '~/utils/cache-client'
 
@@ -21,7 +20,7 @@ export function ProtocolPools({
 }) {
 	const protocolSlug = slug(protocol)
 	const { data: volatility } = useVolatility()
-	
+
 	const {
 		data: poolsList,
 		isLoading,
@@ -74,7 +73,9 @@ export function ProtocolPools({
 					<p className="flex items-center gap-2">
 						<span>Average APY</span>
 						<span>:</span>
-						<span>{data?.averageAPY?.toFixed(2)}%</span>
+						<span>
+							{data?.averageAPY != null && Number.isFinite(data.averageAPY) ? `${data.averageAPY.toFixed(2)}%` : 'N/A'}
+						</span>
 					</p>
 
 					{isLoading ? (

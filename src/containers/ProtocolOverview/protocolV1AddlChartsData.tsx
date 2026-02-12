@@ -329,7 +329,13 @@ function accumulateTokenFlows({
 
 // build unique tokens based on top 10 tokens in usd value on each day
 // also includes tokens with significant flows (outflows/inflows > $100M)
-function getUniqueTokens({ chainTvls, extraTvlsEnabled }: { chainTvls: ChainTvls; extraTvlsEnabled: Record<string, boolean> }) {
+function getUniqueTokens({
+	chainTvls,
+	extraTvlsEnabled
+}: {
+	chainTvls: ChainTvls
+	extraTvlsEnabled: Record<string, boolean>
+}) {
 	const tokenSet: Set<string> = new Set()
 	const tokenFlows: Map<string, number> = new Map()
 	const SIGNIFICANT_FLOW_THRESHOLD = 100_000_000 // $100M
@@ -474,7 +480,15 @@ function storeTokensBreakdown({
 	directory[date] = dir
 }
 
-function buildProtocolV1TokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }: { chainTvls: ChainTvls; extraTvlsEnabled: Record<string, boolean>; tokensUnique: string[] }) {
+function buildProtocolV1TokensBreakdown({
+	chainTvls,
+	extraTvlsEnabled,
+	tokensUnique
+}: {
+	chainTvls: ChainTvls
+	extraTvlsEnabled: Record<string, boolean>
+	tokensUnique: string[]
+}) {
 	const tokensInUsd: Record<string, Record<string, number>> = {}
 	const rawTokens: Record<string, Record<string, number>> = {}
 	const tokensUniqueSet = new Set<string>(tokensUnique)

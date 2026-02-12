@@ -43,7 +43,9 @@ type ChartInterval = (typeof INTERVALS_LIST)[number]
 const isChartInterval = (value: string | null): value is ChartInterval =>
 	value != null && INTERVALS_LIST.includes(value as (typeof INTERVALS_LIST)[number])
 
-const ProtocolCoreChart = lazy(() => import('./ProtocolCoreChart')) as unknown as ComponentType<IProtocolCoreChartProps>
+const ProtocolCoreChart = lazy(() =>
+	import('./ProtocolCoreChart').then((m) => ({ default: m.default as ComponentType<IProtocolCoreChartProps> }))
+)
 
 export function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()

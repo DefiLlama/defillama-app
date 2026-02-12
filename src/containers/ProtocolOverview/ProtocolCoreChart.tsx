@@ -1,6 +1,6 @@
-import * as React from 'react'
 import { MarkAreaComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
+import * as React from 'react'
 import { useEffect, useId, useMemo, useRef } from 'react'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
@@ -199,19 +199,19 @@ export default function ProtocolCoreChart({
 			onReady(instance)
 		}
 
+		const mergedSettings = { ...defaultChartSettings } as Record<string, unknown>
 		if (chartOptions) {
 			for (const option of Object.keys(chartOptions)) {
-				const settings = defaultChartSettings as Record<string, unknown>
 				const opts = chartOptions as Record<string, Record<string, unknown>>
-				if (settings[option]) {
-					settings[option] = mergeDeep(settings[option] as Record<string, unknown>, opts[option])
+				if (mergedSettings[option]) {
+					mergedSettings[option] = mergeDeep(mergedSettings[option] as Record<string, unknown>, opts[option])
 				} else {
-					settings[option] = { ...opts[option] }
+					mergedSettings[option] = { ...opts[option] }
 				}
 			}
 		}
 
-		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+		const { graphic, tooltip, xAxis, yAxis, dataZoom } = mergedSettings as typeof defaultChartSettings
 
 		const finalYAxis: Array<Record<string, unknown>> = []
 
@@ -226,10 +226,7 @@ export default function ProtocolCoreChart({
 				name: '',
 				type: 'value',
 				alignTicks: true,
-				offset:
-					noOffset || index == null || index < 2
-						? 0
-						: prevOffset + (customOffsets[type] ?? 40)
+				offset: noOffset || index == null || index < 2 ? 0 : prevOffset + (customOffsets[type] ?? 40)
 			}
 
 			if (type === 'TVL') {

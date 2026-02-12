@@ -34,7 +34,9 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 
 	const { tvl, tvlByChain, oracleTvs, oracleTvsByChain, toggleOptions } = useFinalTVL(props)
 
-	const { data: chainPrice, isLoading: fetchingChainPrice } = useGetTokenPrice(props.chartDenominations?.[1]?.geckoId ?? undefined)
+	const { data: chainPrice, isLoading: fetchingChainPrice } = useGetTokenPrice(
+		props.chartDenominations?.[1]?.geckoId ?? undefined
+	)
 
 	const formatPrice = (value?: number | string | null): string | number | null => {
 		if (Number.isNaN(Number(value))) return null
@@ -262,13 +264,9 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 
 		return {
 			tvl,
-			tvlByChain: Object.entries(tvlByChainMap).sort(
-				(a, b) => (b as [string, number])[1] - (a as [string, number])[1]
-			) as [string, number][],
+			tvlByChain: Object.entries(tvlByChainMap).sort((a, b) => b[1] - a[1]),
 			oracleTvs,
-			oracleTvsByChain: Object.entries(oracleTvsByChainMap).sort(
-				(a, b) => (b as [string, number])[1] - (a as [string, number])[1]
-			) as [string, number][],
+			oracleTvsByChain: Object.entries(oracleTvsByChainMap).sort((a, b) => b[1] - a[1]),
 			toggleOptions
 		}
 	}, [extraTvlsEnabled, props.currentTvlByChain, props.oracleTvs, props.bribeRevenue, props.tokenTax])
@@ -369,7 +367,14 @@ interface IKeyMetricsProps extends IProtocolOverviewPageData {
 	computedOracleTvs?: number
 }
 
-type AdapterOverviewKey = 'dexVolume' | 'dexAggregatorVolume' | 'perpVolume' | 'perpAggregatorVolume' | 'bridgeAggregatorVolume' | 'optionsPremiumVolume' | 'optionsNotionalVolume'
+type AdapterOverviewKey =
+	| 'dexVolume'
+	| 'dexAggregatorVolume'
+	| 'perpVolume'
+	| 'perpAggregatorVolume'
+	| 'bridgeAggregatorVolume'
+	| 'optionsPremiumVolume'
+	| 'optionsNotionalVolume'
 
 interface StandardMetricConfig {
 	dataProp: AdapterOverviewKey
@@ -419,9 +424,10 @@ function buildStandardVolumeMetrics(
 	label: string
 ) {
 	const entry = (definitions as Record<string, unknown>)[definitionKey]
-	const defs = typeof entry === 'object' && entry !== null && 'protocol' in entry
-		? (entry as { protocol: Record<string, string> }).protocol
-		: undefined
+	const defs =
+		typeof entry === 'object' && entry !== null && 'protocol' in entry
+			? (entry as { protocol: Record<string, string> }).protocol
+			: undefined
 	const metrics = []
 
 	if (data.total30d != null) {
@@ -1282,8 +1288,11 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 									{props.tokenCGData.volume24h.dex ? props.formatPrice(props.tokenCGData.volume24h.dex) : '-'}
 								</span>
 								<span className="text-xs text-(--text-label)">
-									({formattedNum(((props.tokenCGData.volume24h.dex ?? 0) / (props.tokenCGData.volume24h.total ?? 1)) * 100)}% of
-									total)
+									(
+									{formattedNum(
+										((props.tokenCGData.volume24h.dex ?? 0) / (props.tokenCGData.volume24h.total ?? 1)) * 100
+									)}
+									% of total)
 								</span>
 							</span>
 						</p>

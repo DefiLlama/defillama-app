@@ -86,7 +86,9 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 			fetchJson(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 				.then((values: Array<[string | number, string | number]> | null) => {
 					return values && values.length > 0
-						? values.map(([date, val]: [string | number, string | number]) => [+date * 1e3, +val]).sort((a: number[], b: number[]) => a[0] - b[0])
+						? values
+								.map(([date, val]: [string | number, string | number]): [number, number] => [+date * 1e3, +val])
+								.sort((a, b) => a[0] - b[0])
 						: null
 				})
 				.catch(() => []),
@@ -103,7 +105,9 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 			fetchJson(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 				.then((values: Array<[string | number, string | number]> | null) => {
 					return values && values.length > 0
-						? values.map(([date, val]: [string | number, string | number]) => [+date * 1e3, +val]).sort((a: number[], b: number[]) => a[0] - b[0])
+						? values
+								.map(([date, val]: [string | number, string | number]): [number, number] => [+date * 1e3, +val])
+								.sort((a, b) => a[0] - b[0])
 						: null
 				})
 				.catch(() => []),
@@ -121,7 +125,9 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 			fetchJson(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
 				.then((values: Array<[string | number, string | number]> | null) => {
 					return values && values.length > 0
-						? values.map(([date, val]: [string | number, string | number]) => [+date * 1e3, +val]).sort((a: number[], b: number[]) => a[0] - b[0])
+						? values
+								.map(([date, val]: [string | number, string | number]): [number, number] => [+date * 1e3, +val])
+								.sort((a, b) => a[0] - b[0])
 						: null
 				})
 				.catch(() => []),
@@ -162,9 +168,12 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 		queryKey: ['protocol-overview', 'median-apy', protocolName],
 		queryFn: () =>
 			fetchJson(`${YIELD_PROJECT_MEDIAN_API}/${protocolName}`)
-				.then((values: { data: Array<{ timestamp: string; [key: string]: unknown }> } | null) => {
+				.then((values: { data: Array<{ timestamp: string; medianAPY: number; [key: string]: unknown }> } | null) => {
 					return values && values.data.length > 0
-						? values.data.map((item: { timestamp: string; [key: string]: unknown }) => ({ ...item, date: Math.floor(new Date(item.timestamp).getTime() / 1000) }))
+						? values.data.map((item: { timestamp: string; medianAPY: number; [key: string]: unknown }) => ({
+								...item,
+								date: Math.floor(new Date(item.timestamp).getTime() / 1000)
+							}))
 						: null
 				})
 				.catch(() => {

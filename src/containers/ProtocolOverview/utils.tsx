@@ -1,7 +1,7 @@
 import { PEGGEDS_API } from '~/constants'
 import type { IProtocolMetricsV2, IRaise } from '~/containers/ProtocolOverview/types'
-import type { IProtocolWarningBanner } from './api.types'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
+import type { IProtocolWarningBanner } from './api.types'
 
 export const formatRaise = (raise: Omit<IRaise, 'defillamaId'>) => {
 	let text = ''
@@ -45,7 +45,7 @@ export const getProtocolWarningBanners = (protocolData: IProtocolMetricsV2) => {
 			return !Number.isNaN(dateObj.getTime())
 		}
 
-		// Check if it's a string in YYYY-MM-DD format
+		// Check if it's a Date-parseable string
 		if (typeof date === 'string') {
 			const dateObj = new Date(date)
 			return !Number.isNaN(dateObj.getTime())
@@ -76,13 +76,13 @@ export const getProtocolWarningBanners = (protocolData: IProtocolMetricsV2) => {
 	if (protocolData.rugged && protocolData.deadUrl) {
 		banners.push({
 			message: 'This protocol rug pulled user funds, their website is down.',
-			level: 'rug' as const
+			level: 'rug'
 		})
 	} else {
 		if (protocolData.rugged) {
 			banners.push({
 				message: 'This protocol rug pulled user funds.',
-				level: 'rug' as const
+				level: 'rug'
 			})
 		}
 	}
