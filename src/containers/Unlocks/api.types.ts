@@ -5,6 +5,8 @@ export interface EmissionEvent {
 	noOfTokens: number[]
 	description?: string
 	category?: string
+	unlockType?: string
+	rateDurationDays?: number
 }
 
 export interface ProtocolEmission {

@@ -482,7 +482,7 @@ export async function getUnlocksCalendarStaticPropsData(): Promise<{
 		if (!protocol?.events || protocol.tPrice == null) continue
 
 		const validEvents = protocol.events.filter(
-			(event) => event.timestamp !== null && event.noOfTokens && event.noOfTokens.length > 0
+			(event: EmissionEvent) => event.timestamp !== null && event.noOfTokens && event.noOfTokens.length > 0
 		)
 
 		const protocolUnlocksByDate: Record<
@@ -491,7 +491,7 @@ export async function getUnlocksCalendarStaticPropsData(): Promise<{
 		> = {}
 
 		for (const event of validEvents) {
-			const totalTokens = event.noOfTokens.reduce((sum, amount) => sum + amount, 0)
+			const totalTokens = event.noOfTokens.reduce((sum: number, amount: number) => sum + amount, 0)
 			if (totalTokens === 0) continue
 
 			const valueUSD = totalTokens * protocol.tPrice
@@ -859,7 +859,7 @@ function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
 		events: [],
 		token: null,
 		geckoId: null,
-		upcomingEvent: null,
+		upcomingEvent: [],
 		tokenAllocation: {
 			documented: EMPTY_TOKEN_ALLOCATION_SPLIT,
 			realtime: EMPTY_TOKEN_ALLOCATION_SPLIT

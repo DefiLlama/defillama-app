@@ -191,7 +191,7 @@ export async function getProtocolEmissons(protocolName: string): Promise<Protoco
 		events: [],
 		token: null,
 		geckoId: null,
-		upcomingEvent: null,
+		upcomingEvent: [],
 		tokenAllocation: {
 			documented: { current: {}, final: {} },
 			realtime: { current: {}, final: {} }

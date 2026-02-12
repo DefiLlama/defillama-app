@@ -112,7 +112,14 @@ export interface ProtocolEmissionResult {
 	events: EmissionEvent[]
 	token: string | null
 	geckoId: string | null
-	upcomingEvent: EmissionEvent[] | null
+	upcomingEvent: Array<
+		| EmissionEvent
+		| {
+				timestamp: null
+				noOfTokens?: number[]
+				description?: string
+		  }
+	>
 	tokenAllocation: EmissionsTokenAllocation
 	futures: EmissionsFutures
 	categories: EmissionsCategories

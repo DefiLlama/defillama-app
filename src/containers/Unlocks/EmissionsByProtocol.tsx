@@ -16,6 +16,7 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import { Pagination } from './Pagination'
+import type { ProtocolEmissionResult } from './types'
 import { UpcomingEvent } from './UpcomingEvent'
 
 export interface TokenData {
@@ -137,7 +138,7 @@ export function EmissionsByProtocol({
 	initialTokenMarketData,
 	disableClientTokenStatsFetch
 }: {
-	data: IEmission
+	data: IEmission | ProtocolEmissionResult
 	isEmissionsPage?: boolean
 	initialTokenMarketData?: InitialTokenMarketData | null
 	disableClientTokenStatsFetch?: boolean
@@ -166,14 +167,14 @@ const standardGroupColors = {
 }
 
 function processGroupedChartData(
-	chartData: Array<{ timestamp: number; [label: string]: number }>,
+	chartData: Array<{ timestamp: number; [label: string]: number | null }>,
 	categoriesBreakdown: Record<string, string[]>
 ) {
 	return chartData.map((entry) => {
-		const groupedEntry: { timestamp: number } & Record<string, number> = {
+		const groupedEntry: { timestamp: number } & Record<string, number | null> = {
 			timestamp: entry.timestamp,
-			...(entry['Price'] && { Price: entry['Price'] }),
-			...(entry['Market Cap'] && { 'Market Cap': entry['Market Cap'] })
+			...(typeof entry['Price'] === 'number' ? { Price: entry['Price'] } : {}),
+			...(typeof entry['Market Cap'] === 'number' ? { 'Market Cap': entry['Market Cap'] } : {})
 		}
 
 		for (const group in categoriesBreakdown) {
@@ -214,9 +215,9 @@ function getYearStart(timestampMs: number): number {
 }
 
 function groupChartDataByTime(
-	chartData: Array<{ timestamp: number } & Record<string, number>>,
+	chartData: Array<{ timestamp: number } & Record<string, number | null>>,
 	groupBy: TimeGrouping
-): Array<{ timestamp: number } & Record<string, number>> {
+): Array<{ timestamp: number } & Record<string, number | null>> {
 	if (groupBy === 'D') return chartData
 
 	// Most series (unlock amounts, allocations) are additive within a time bucket, but
@@ -226,7 +227,7 @@ function groupChartDataByTime(
 		'Market Cap': 'avg'
 	}
 
-	const grouped: Record<number, Record<string, number>> = {}
+	const grouped: Record<number, Record<string, number | null>> = {}
 	const avgSums: Record<number, Record<string, number>> = {}
 	const avgCounts: Record<number, Record<string, number>> = {}
 	const lastValues: Record<number, Record<string, number>> = {}
@@ -260,7 +261,7 @@ function groupChartDataByTime(
 		for (const key in entry) {
 			if (key === 'timestamp') continue
 			const value = entry[key]
-			if (!Number.isFinite(value)) continue
+			if (typeof value !== 'number' || !Number.isFinite(value)) continue
 
 			const strategy = NON_ADDITIVE_STRATEGIES[key]
 			if (strategy === 'avg') {
@@ -305,7 +306,7 @@ function groupChartDataByTime(
 		}
 	}
 
-	const result: Array<{ timestamp: number } & Record<string, number>> = []
+	const result: Array<{ timestamp: number } & Record<string, number | null>> = []
 	for (const groupKey in grouped) {
 		result.push({ timestamp: +groupKey, ...grouped[groupKey] })
 	}
@@ -314,14 +315,14 @@ function groupChartDataByTime(
 
 function sortStacksByVolatility(
 	stacks: string[],
-	chartData: Array<{ timestamp: number } & Record<string, number>>
+	chartData: Array<{ timestamp: number } & Record<string, number | null>>
 ): string[] {
 	if (!chartData || chartData.length < 2) return stacks
 
 	const volatility: Record<string, number> = {}
 
 	for (const stack of stacks) {
-		const values = chartData.map((d) => Number(d[stack]) || 0)
+		const values = chartData.map((d) => (typeof d[stack] === 'number' ? d[stack] : 0))
 		const min = Math.min(...values)
 		const max = Math.max(...values)
 		volatility[stack] = max - min
@@ -394,7 +395,7 @@ const ChartContainer = ({
 	initialTokenMarketData,
 	disableClientTokenStatsFetch
 }: {
-	data: IEmission
+	data: IEmission | ProtocolEmissionResult
 	isEmissionsPage?: boolean
 	initialTokenMarketData?: InitialTokenMarketData | null
 	disableClientTokenStatsFetch?: boolean
@@ -465,10 +466,15 @@ const ChartContainer = ({
 		? Infinity
 		: (priceChart.data?.data.coinData.market_data?.max_supply ?? undefined)
 	const tokenCircSupplyFromChart = priceChart.data?.data.coinData.market_data?.circulating_supply ?? undefined
-	const tokenPriceFromChart = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 1]?.[1]
-	const tokenMcapFromChart = priceChart.data?.data.mcaps?.[priceChart.data?.data.mcaps?.length - 1]?.[1]
-	const tokenVolumeFromChart = priceChart.data?.data.volumes?.[priceChart.data?.data.volumes?.length - 1]?.[1]
-	const ystdPrice = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 2]?.[1]
+	const tokenPriceFromChartRaw = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 1]?.[1]
+	const tokenMcapFromChartRaw = priceChart.data?.data.mcaps?.[priceChart.data?.data.mcaps?.length - 1]?.[1]
+	const tokenVolumeFromChartRaw = priceChart.data?.data.volumes?.[priceChart.data?.data.volumes?.length - 1]?.[1]
+	const ystdPriceRaw = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 2]?.[1]
+
+	const tokenPriceFromChart = typeof tokenPriceFromChartRaw === 'number' ? tokenPriceFromChartRaw : undefined
+	const tokenMcapFromChart = typeof tokenMcapFromChartRaw === 'number' ? tokenMcapFromChartRaw : undefined
+	const tokenVolumeFromChart = typeof tokenVolumeFromChartRaw === 'number' ? tokenVolumeFromChartRaw : undefined
+	const ystdPrice = typeof ystdPriceRaw === 'number' ? ystdPriceRaw : undefined
 
 	const tokenPrice = tokenPriceFromChart ?? initialTokenMarketData?.price ?? data?.tokenPrice?.price ?? undefined
 	const tokenMcap = tokenMcapFromChart ?? initialTokenMarketData?.mcap ?? data?.meta?.mcap ?? undefined
@@ -546,8 +552,7 @@ const ChartContainer = ({
 						symbol: data.tokenPrice?.symbol,
 						mcap: tokenMcap,
 						maxSupply: data.meta?.maxSupply,
-						name: data.name,
-						tooltipStyles: { position: 'relative', top: 0 },
+						name: data.name ?? '',
 						isProtocolPage: true
 					}}
 				/>
@@ -630,8 +635,9 @@ const ChartContainer = ({
 		const filtered: Array<{ name: string; value: number }> = []
 		for (const item of source) {
 			if (!item) continue
+			if (typeof item.value !== 'number') continue
 			if (!selectedCategories.includes(item.name)) continue
-			filtered.push(item)
+			filtered.push({ name: item.name, value: item.value })
 		}
 		return sortPieChartDataDesc(filtered)
 	}, [pieChartDataRaw, selectedCategories])
@@ -717,7 +723,7 @@ const ChartContainer = ({
 				type: isOverlay ? 'line' : chartType,
 				name,
 				encode: { x: 'timestamp', y: name },
-				color: colors[name],
+				color: (colors as Record<string, string>)[name],
 				...(!isOverlay ? { stack: 'A' } : {}),
 				...(isOverlay ? { yAxisIndex: yIdx + 1, valueSymbol: '$', hideAreaStyle: true } : {})
 			}
@@ -1070,7 +1076,7 @@ export const UnlocksCharts = ({
 	isEmissionsPage
 }: {
 	protocolName: string
-	initialData?: IEmission | null
+	initialData?: IEmission | ProtocolEmissionResult | null
 	initialTokenMarketData?: InitialTokenMarketData | null
 	disableClientTokenStatsFetch?: boolean
 	isEmissionsPage?: boolean
@@ -1086,7 +1092,7 @@ export const UnlocksCharts = ({
 		)
 	}
 
-	const resolvedData: IEmission | null = initialData ?? data
+	const resolvedData: IEmission | ProtocolEmissionResult | null = initialData ?? data
 	if (!resolvedData) {
 		return (
 			<div className="flex flex-1 flex-col items-center justify-center">

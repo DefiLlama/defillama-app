@@ -104,8 +104,8 @@ interface UpcomingEventProps {
 	}>
 	price: number | null | undefined
 	symbol: string | null | undefined
-	mcap: number | null
-	maxSupply: number
+	mcap: number | null | undefined
+	maxSupply: number | null | undefined
 	name: string
 	isProtocolPage?: boolean
 }
