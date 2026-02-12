@@ -7,13 +7,13 @@ export function ForksData({ protocolName }: { protocolName: string }) {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['forks', protocolName],
 		queryFn: () =>
-			getForkPageData(protocolName).then((data) =>
-				data
+			getForkPageData(protocolName).then((result) =>
+				result
 					? {
-							chartData: data.chartData,
+							chartData: result.chartData,
 							tokenLinks: [],
-							token: data.token,
-							filteredProtocols: data.filteredProtocols,
+							token: result.token,
+							filteredProtocols: result.filteredProtocols,
 							parentTokens: []
 						}
 					: null
