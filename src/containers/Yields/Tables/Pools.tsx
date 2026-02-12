@@ -200,7 +200,8 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 	},
 	{
 		header: () => <StabilityHeader />,
-		accessorKey: 'cv30d',
+		id: 'cv30d',
+		accessorFn: (row) => row.cv30d ?? undefined,
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			return (
