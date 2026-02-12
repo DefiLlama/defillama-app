@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { HLP_VAULTS, HlpVaultKey, num, safePostInfo } from '~/utils/hyperliquid'
+import { HLP_VAULTS, type HlpVaultKey, num, safePostInfo } from '~/utils/hyperliquid'
 
 interface RawOpenOrder {
 	coin: string
