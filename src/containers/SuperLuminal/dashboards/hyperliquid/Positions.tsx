@@ -2,8 +2,8 @@ import {
 	getCoreRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	PaginationState,
-	SortingState,
+	type PaginationState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -12,10 +12,10 @@ import type { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { VirtualTable } from '~/components/Table/Table'
 import { formattedNum } from '~/utils'
 import {
-	HlpData,
-	HlpFill,
-	HlpOpenOrder,
-	HlpPosition,
+	type HlpData,
+	type HlpFill,
+	type HlpOpenOrder,
+	type HlpPosition,
 	useHyperliquidHlpFunding,
 	useHyperliquidHlpOpenOrders,
 	useHyperliquidHlpPortfolio,
