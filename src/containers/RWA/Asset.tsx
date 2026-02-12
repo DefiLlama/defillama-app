@@ -345,10 +345,10 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 										{asset.category.map((category, idx) => (
 											<span key={category} className="flex items-center gap-0.5">
 												{category}
-											{definitions.category.values?.[category] ? (
-												<QuestionHelper text={definitions.category.values[category]} />
-											) : null}
-											{idx < asset.category!.length - 1 ? ',' : null}
+												{definitions.category.values?.[category] ? (
+													<QuestionHelper text={definitions.category.values[category]} />
+												) : null}
+												{idx < asset.category!.length - 1 ? ',' : null}
 											</span>
 										))}
 									</span>
@@ -616,5 +616,3 @@ const BASE_TIME_SERIES_CHARTS: Array<{
 		color: CHART_COLORS[2]
 	}
 ]
-
-

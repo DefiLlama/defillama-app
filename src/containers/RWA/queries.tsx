@@ -1,5 +1,4 @@
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
-import { definitions } from './definitions'
 import type { IRWAList } from '~/utils/metadata/types'
 import {
 	getRWAActiveTVLs,
@@ -19,6 +18,7 @@ import type {
 	IRWACategoriesOverviewRow,
 	IRWAPlatformsOverviewRow
 } from './api.types'
+import { definitions } from './definitions'
 import { rwaSlug } from './rwaSlug'
 
 type ChainMetricBreakdown = Record<string, string> | null

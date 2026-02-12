@@ -631,9 +631,7 @@ export const getAllProtocolEmissions = async ({
 					}
 
 					const upcomingEvent: EmissionEvent[] =
-						upcomingTimestamp === null
-							? []
-							: events.filter((e: EmissionEvent) => e.timestamp === upcomingTimestamp)
+						upcomingTimestamp === null ? [] : events.filter((e: EmissionEvent) => e.timestamp === upcomingTimestamp)
 
 					const lastPastTimestamp = coinKey ? lastPastTimestampByCoinKey.get(coinKey) : undefined
 					const lastEvent =
@@ -736,10 +734,7 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 		const list = await fetchEmissionsProtocolsList()
 		if (!list.includes(protocolName)) return emptyResult
 
-		const [res, allEmissions] = await Promise.all([
-			fetchProtocolEmission(protocolName),
-			fetchAllProtocolEmissions()
-		])
+		const [res, allEmissions] = await Promise.all([fetchProtocolEmission(protocolName), fetchAllProtocolEmissions()])
 
 		if (!res) return emptyResult
 
@@ -780,9 +775,7 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 				: {}
 
 		const tokenPriceData = tokenKey ? prices.coins?.[tokenKey] : undefined
-		const tokenPrice: { price?: number; symbol?: string } = tokenPriceData
-			? { ...tokenPriceData }
-			: {}
+		const tokenPrice: { price?: number; symbol?: string } = tokenPriceData ? { ...tokenPriceData } : {}
 
 		let upcomingEvent: EmissionEvent[] = []
 		if (roundedEvents.length > 0) {

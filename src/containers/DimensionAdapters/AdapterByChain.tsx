@@ -189,7 +189,8 @@ export function AdapterByChain(props: IProps) {
 										const cpExtra30d =
 											(enabledSettings.bribes ? (cp.bribes?.total30d ?? 0) : 0) +
 											(enabledSettings.tokentax ? (cp.tokenTax?.total30d ?? 0) : 0)
-										const cpTotal30d = cpBaseTotal30d != null ? cpBaseTotal30d + cpExtra30d : cpExtra30d !== 0 ? cpExtra30d : null
+										const cpTotal30d =
+											cpBaseTotal30d != null ? cpBaseTotal30d + cpExtra30d : cpExtra30d !== 0 ? cpExtra30d : null
 
 										const cpPfOrPs = cp.mcap && cpTotal30d ? getAnnualizedRatio(cp.mcap, cpTotal30d) : null
 

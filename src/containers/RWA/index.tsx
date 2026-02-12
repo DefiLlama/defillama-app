@@ -9,6 +9,7 @@ import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { formattedNum, slug } from '~/utils'
 import type { IRWAAssetsOverview } from './api.types'
 import { RWAAssetsTable } from './AssetsTable'
+import { definitions } from './definitions'
 import { RWAOverviewFilters } from './Filters'
 import {
 	useFilteredRwaAssets,
@@ -21,7 +22,6 @@ import {
 	useRwaChartDataByAssetName,
 	useRwaChartDataByCategory
 } from './hooks'
-import { definitions } from './definitions'
 import { rwaSlug } from './rwaSlug'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>

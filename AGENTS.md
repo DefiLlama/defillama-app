@@ -37,3 +37,8 @@ When moving or renaming types/functions across files:
 2. **ALWAYS update imports** in all files that use the moved type/function
 3. Update imports to point directly to the new location (e.g., `from './api.types'` instead of `from './queries'`)
 4. This ensures clear dependency chains and avoids circular dependencies
+
+## Additional Guidelines
+
+- Follow `.agents/CODING_STANDARDS.md` for code quality, type safety, React patterns, and API conventions.
+- If any rule conflicts, `AGENTS.md` takes precedence.

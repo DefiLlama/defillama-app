@@ -149,14 +149,23 @@ export function EmissionsByProtocol({
 }
 
 const standardGroupColors: Record<string, string> = {
-	noncirculating: '#3f3d56',
-	insiders: '#5470c6',
-	publicSale: '#91cc75',
-	privateSale: '#fac858',
+	noncirculating: '#546fc6',
+	insiders: '#90cc74',
+	publicSale: '#fac759',
+	privateSale: '#fd8353',
 	farming: '#ed6666',
 	airdrop: '#73c0de',
 	liquidity: '#39a371'
 }
+
+const formatUnlockLabel = (label: string) =>
+	label
+		.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+		.replace(/[_-]+/g, ' ')
+		.split(' ')
+		.filter(Boolean)
+		.map((word) => (word === word.toUpperCase() ? word : capitalizeFirstLetter(word.toLowerCase())))
+		.join(' ')
 
 function processGroupedChartData(
 	chartData: Array<{ timestamp: number; [label: string]: number | null }>,
@@ -636,9 +645,27 @@ const ChartContainer = ({
 
 	const pieChartDataAllocationMode = allocationMode === 'current' ? pieChartDataAllocation : groupAllocation
 
+	const formattedPieChartDataAllocationMode = useMemo(
+		() => pieChartDataAllocationMode.map((item) => ({ ...item, name: formatUnlockLabel(item.name) })),
+		[pieChartDataAllocationMode]
+	)
+
 	const allocationPieStackColors = useMemo(
 		() => (allocationMode === 'standard' ? standardGroupColors : stackColors),
 		[allocationMode, stackColors]
+	)
+
+	const formattedAllocationPieStackColors = useMemo(
+		() =>
+			Object.fromEntries(
+				Object.entries(allocationPieStackColors).map(([label, color]) => [formatUnlockLabel(label), color])
+			),
+		[allocationPieStackColors]
+	)
+
+	const formattedAvailableCategories = useMemo(
+		() => availableCategories.map((category) => ({ key: category, name: formatUnlockLabel(category) })),
+		[availableCategories]
 	)
 
 	const chartConfig = useMemo(() => {
@@ -713,7 +740,7 @@ const ChartContainer = ({
 			const isOverlay = yIdx !== -1
 			return {
 				type: isOverlay ? 'line' : chartType,
-				name,
+				name: formatUnlockLabel(name),
 				encode: { x: 'timestamp', y: name },
 				color: colors[name],
 				...(!isOverlay ? { stack: 'A' } : {}),
@@ -895,7 +922,7 @@ const ChartContainer = ({
 								values={TIME_GROUPINGS}
 							/>
 							<SelectWithCombobox
-								allValues={availableCategories}
+								allValues={formattedAvailableCategories}
 								selectedValues={selectedCategories}
 								setSelectedValues={setSelectedCategories}
 								label="Categories"
@@ -937,8 +964,8 @@ const ChartContainer = ({
 								<PieChart
 									showLegend
 									title="Allocation"
-									chartData={pieChartDataAllocationMode}
-									stackColors={allocationPieStackColors}
+									chartData={formattedPieChartDataAllocationMode}
+									stackColors={formattedAllocationPieStackColors}
 									valueSymbol={data.tokenPrice?.symbol ?? ''}
 									legendPosition={allocationPieChartLegendPosition}
 									legendTextStyle={pieChartLegendTextStyle}

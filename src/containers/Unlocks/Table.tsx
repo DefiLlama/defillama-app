@@ -56,8 +56,17 @@ const UNLOCK_TYPES = [
 	'uncategorized'
 ]
 
+const formatUnlockTypeLabel = (type: string) =>
+	type
+		.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+		.replace(/[_-]+/g, ' ')
+		.split(' ')
+		.filter(Boolean)
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+		.join(' ')
+
 const UNLOCK_TYPE_OPTIONS = UNLOCK_TYPES.map((type) => ({
-	name: type.charAt(0).toUpperCase() + type.slice(1),
+	name: formatUnlockTypeLabel(type),
 	key: type
 }))
 
@@ -566,7 +575,9 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		},
 		cell: ({ getValue }) => {
 			const value = getValue<number | undefined>()
-			return <div className="flex h-full items-center justify-end">{value != null ? renderPercentChange(value) : ''}</div>
+			return (
+				<div className="flex h-full items-center justify-end">{value != null ? renderPercentChange(value) : ''}</div>
+			)
 		},
 		meta: {
 			align: 'end',

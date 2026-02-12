@@ -275,26 +275,30 @@ function Filters({
 				/>
 			))}
 			<div className={switchesAndResetClassName}>
-				<Switch
-					label="Stablecoins"
-					value="includeStablecoins"
-					checked={selections.includeStablecoins}
-					onChange={() => {
-						const next = !selections.includeStablecoins
-						startTransition(() => actions.setIncludeStablecoins(next))
-					}}
-					className={nestedMenu ? 'text-base' : undefined}
-				/>
-				<Switch
-					label="Governance Tokens"
-					value="includeGovernance"
-					checked={selections.includeGovernance}
-					onChange={() => {
-						const next = !selections.includeGovernance
-						startTransition(() => actions.setIncludeGovernance(next))
-					}}
-					className={nestedMenu ? 'text-base' : undefined}
-				/>
+				{!modes.isChainMode ? (
+					<Switch
+						label="Stablecoins"
+						value="includeStablecoins"
+						checked={selections.includeStablecoins}
+						onChange={() => {
+							const next = !selections.includeStablecoins
+							startTransition(() => actions.setIncludeStablecoins(next))
+						}}
+						className={nestedMenu ? 'text-base' : undefined}
+					/>
+				) : null}
+				{!modes.isChainMode ? (
+					<Switch
+						label="Governance Tokens"
+						value="includeGovernance"
+						checked={selections.includeGovernance}
+						onChange={() => {
+							const next = !selections.includeGovernance
+							startTransition(() => actions.setIncludeGovernance(next))
+						}}
+						className={nestedMenu ? 'text-base' : undefined}
+					/>
+				) : null}
 				<button
 					onClick={() => {
 						const nextQuery: Record<string, any> = { ...router.query }
