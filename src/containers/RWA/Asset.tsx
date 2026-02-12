@@ -8,6 +8,7 @@ import { CHART_COLORS } from '~/constants/colors'
 import definitions from '~/public/rwa-definitions.json'
 import { chainIconUrl, formattedNum, getBlockExplorer } from '~/utils'
 import type { IRWAAssetData } from './api.types'
+import { BreakdownTooltipContent } from './BreakdownTooltipContent'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -616,12 +617,4 @@ const BASE_TIME_SERIES_CHARTS: Array<{
 	}
 ]
 
-const BreakdownTooltipContent = ({ breakdown }: { breakdown: Array<[string, number]> }) => (
-	<span className="flex flex-col gap-1">
-		{breakdown.map(([chain, tvl]) => (
-			<span key={`${chain}-${tvl}`}>
-				{chain}: {formattedNum(tvl, true)}
-			</span>
-		))}
-	</span>
-)
+

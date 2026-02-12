@@ -6,7 +6,8 @@ import {
 	getRWAStats,
 	getRWAChartDataByTicker,
 	getRWAAssetDataById,
-	getRWAAssetChartData
+	getRWAAssetChartData,
+	toUnixMsTimestamp
 } from './api'
 import type {
 	IFetchedRWAProject,
@@ -19,12 +20,6 @@ import type {
 	IRWAPlatformsOverviewRow
 } from './api.types'
 import { rwaSlug } from './rwaSlug'
-
-function toUnixMsTimestamp(ts: number): number {
-	// API timestamps are historically in unix seconds. Normalize to ms for ECharts time axis.
-	// Keep this tolerant to already-ms values to avoid double conversion.
-	return Number.isFinite(ts) && ts > 0 && ts < 1e12 ? ts * 1e3 : ts
-}
 
 type ChainMetricBreakdown = Record<string, string> | null
 type DefiMetricBreakdown = Record<string, Record<string, string>> | null
@@ -163,7 +158,7 @@ function aggregateRwaMetrics({
 	}
 }
 
-export type RWAAssetsOverviewParams = {
+type RWAAssetsOverviewParams = {
 	chain?: string
 	category?: string
 	platform?: string
@@ -207,8 +202,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		// while still filtering breakdown keys by slug for robustness.
 		let actualChainName: string | null = null
 		if (selectedChain) {
-			for (const rwaId in data) {
-				const match = data[rwaId].chain?.find((c) => rwaSlug(c) === selectedChain)
+			for (const item of data) {
+				const match = item.chain?.find((c) => rwaSlug(c) === selectedChain)
 				if (match) {
 					actualChainName = match
 					break
@@ -222,8 +217,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		// `selectedCategory` comes from the URL and is slugified; resolve a display name (original casing/spaces)
 		let actualCategoryName: string | null = null
 		if (selectedCategory) {
-			for (const rwaId in data) {
-				const match = data[rwaId].category?.find((c) => rwaSlug(c) === selectedCategory)
+			for (const item of data) {
+				const match = item.category?.find((c) => rwaSlug(c) === selectedCategory)
 				if (match) {
 					actualCategoryName = match
 					break
@@ -237,8 +232,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		// `selectedPlatform` comes from the URL and is slugified; resolve a display name (original casing/spaces)
 		let actualPlatformName: string | null = null
 		if (selectedPlatform) {
-			for (const rwaId in data) {
-				const platform = data[rwaId].parentPlatform
+			for (const item of data) {
+				const platform = item.parentPlatform
 				if (platform && rwaSlug(platform) === selectedPlatform) {
 					actualPlatformName = platform
 					break
@@ -623,8 +618,6 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRo
 
 	return rows.sort((a, b) => b.onChainMcap - a.onChainMcap)
 }
-
-export type { IRWAAssetData }
 
 export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {
 	try {

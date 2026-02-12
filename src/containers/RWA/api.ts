@@ -9,7 +9,7 @@ import type {
 	RWAAssetChartRow
 } from './api.types'
 
-function toUnixMsTimestamp(ts: number): number {
+export function toUnixMsTimestamp(ts: number): number {
 	// API timestamps are historically in unix seconds. Normalize to ms for ECharts time axis.
 	// Keep this tolerant to already-ms values to avoid double conversion.
 	return Number.isFinite(ts) && ts > 0 && ts < 1e12 ? ts * 1e3 : ts

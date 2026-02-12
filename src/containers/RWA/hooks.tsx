@@ -41,7 +41,7 @@ const toNumberParam = (p: string | string[] | undefined): number | null => {
 	return parseNumberInput(p)
 }
 
-const toBooleanParam = (p: string | string[] | undefined): boolean => {
+export const toBooleanParam = (p: string | string[] | undefined): boolean => {
 	if (Array.isArray(p)) return p[0] === 'true'
 	return p === 'true'
 }
@@ -183,7 +183,7 @@ export const useRWATableQueryParams = ({
 				: excludeCategoriesSet.size > 0
 					? categories
 					: categories
-		let selectedCategories =
+		const selectedCategories =
 			excludeCategoriesSet.size > 0 ? baseCategories.filter((c) => !excludeCategoriesSet.has(c)) : baseCategories
 
 		const baseAssetClasses =
@@ -192,7 +192,7 @@ export const useRWATableQueryParams = ({
 				: excludeAssetClassesSet.size > 0
 					? assetClasses
 					: assetClasses
-		let selectedAssetClasses =
+		const selectedAssetClasses =
 			excludeAssetClassesSet.size > 0
 				? baseAssetClasses.filter((a) => !excludeAssetClassesSet.has(a))
 				: baseAssetClasses
@@ -203,19 +203,19 @@ export const useRWATableQueryParams = ({
 				: excludeRwaClassificationsSet.size > 0
 					? rwaClassifications
 					: rwaClassifications
-		let selectedRwaClassifications =
+		const selectedRwaClassifications =
 			excludeRwaClassificationsSet.size > 0
 				? baseRwaClassifications.filter((r) => !excludeRwaClassificationsSet.has(r))
 				: baseRwaClassifications
 
 		const baseAccessModels = parseArrayParam(accessModelsQ, accessModels)
-		let selectedAccessModels =
+		const selectedAccessModels =
 			excludeAccessModelsSet.size > 0
 				? baseAccessModels.filter((a) => !excludeAccessModelsSet.has(a))
 				: baseAccessModels
 
 		const baseIssuers = parseArrayParam(issuersQ, issuers)
-		let selectedIssuers =
+		const selectedIssuers =
 			excludeIssuersSet.size > 0 ? baseIssuers.filter((i) => !excludeIssuersSet.has(i)) : baseIssuers
 
 		const minDefiActiveTvlToOnChainMcapPct = toNumberParam(minDefiActiveTvlToOnChainMcapPctQ)
@@ -399,7 +399,6 @@ export const useFilteredRwaAssets = ({
 
 		let totalOnChainMcap = 0
 		let totalActiveMcap = 0
-		let totalOnChainStablecoinMcap = 0
 		let totalOnChainDeFiActiveTvl = 0
 		const totalIssuersSet = new Set<string>()
 
@@ -409,7 +408,6 @@ export const useFilteredRwaAssets = ({
 				filteredAssets,
 				totalOnChainMcap,
 				totalActiveMcap,
-				totalOnChainStablecoinMcap,
 				totalOnChainDeFiActiveTvl,
 				totalIssuersCount: totalIssuersSet.size
 			}
@@ -477,9 +475,6 @@ export const useFilteredRwaAssets = ({
 
 				totalOnChainMcap += onChainMcap
 				totalActiveMcap += activeMcap
-				if (asset.stablecoin) {
-					totalOnChainStablecoinMcap += onChainMcap
-				}
 				totalOnChainDeFiActiveTvl += defiActiveTvl
 				if (asset.issuer) {
 					totalIssuersSet.add(asset.issuer)
@@ -491,7 +486,6 @@ export const useFilteredRwaAssets = ({
 			filteredAssets,
 			totalOnChainMcap,
 			totalActiveMcap,
-			totalOnChainStablecoinMcap,
 			totalOnChainDeFiActiveTvl,
 			totalIssuersCount: totalIssuersSet.size
 		}
@@ -798,13 +792,7 @@ export function useRwaChainBreakdownPieChartData({
 
 type RWAChartMetric = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 
-type RWAChartRowByTicker = { timestamp: number } & Record<string, number>
-
-type RWAChartRowByCategory = { timestamp: number } & Record<string, number>
-
-type RWAChartRowByAssetClass = { timestamp: number } & Record<string, number>
-
-type RWAChartRowByAssetName = { timestamp: number } & Record<string, number>
+type RWAChartRow = { timestamp: number } & Record<string, number>
 
 function sortKeysWithOthersLast(keys: Iterable<string>): string[] {
 	const arr = Array.from(keys).filter(Boolean)
@@ -824,14 +812,14 @@ export function useRwaChartDataByCategory({
 	assets: IRWAAssetsOverview['assets']
 	chartDataByTicker: IRWAAssetsOverview['chartData']
 }): {
-	chartDatasetByCategory: Record<RWAChartMetric, { source: RWAChartRowByCategory[]; dimensions: string[] }>
+	chartDatasetByCategory: Record<RWAChartMetric, { source: RWAChartRow[]; dimensions: string[] }>
 } {
 	return useMemo(() => {
 		const empty = {
 			chartDatasetByCategory: {
-				onChainMcap: { source: [] as RWAChartRowByCategory[], dimensions: ['timestamp'] },
-				activeMcap: { source: [] as RWAChartRowByCategory[], dimensions: ['timestamp'] },
-				defiActiveTvl: { source: [] as RWAChartRowByCategory[], dimensions: ['timestamp'] }
+				onChainMcap: { source: [] as RWAChartRow[], dimensions: ['timestamp'] },
+				activeMcap: { source: [] as RWAChartRow[], dimensions: ['timestamp'] },
+				defiActiveTvl: { source: [] as RWAChartRow[], dimensions: ['timestamp'] }
 			}
 		}
 
@@ -847,11 +835,11 @@ export function useRwaChartDataByCategory({
 			tickerToCategories.set(ticker, asset.category)
 		}
 
-		const aggregate = (rows: RWAChartRowByTicker[], seenCategories: Set<string>): RWAChartRowByCategory[] => {
-			const out: RWAChartRowByCategory[] = []
+		const aggregate = (rows: RWAChartRow[], seenCategories: Set<string>): RWAChartRow[] => {
+			const out: RWAChartRow[] = []
 
 			for (const row of rows ?? []) {
-				const outRow: RWAChartRowByCategory = { timestamp: row.timestamp }
+				const outRow: RWAChartRow = { timestamp: row.timestamp }
 
 				for (const [ticker, value] of Object.entries(row)) {
 					if (ticker === 'timestamp') continue
@@ -899,14 +887,14 @@ export function useRwaChartDataByAssetClass({
 	assets: IRWAAssetsOverview['assets']
 	chartDataByTicker: IRWAAssetsOverview['chartData']
 }): {
-	chartDatasetByAssetClass: Record<RWAChartMetric, { source: RWAChartRowByAssetClass[]; dimensions: string[] }>
+	chartDatasetByAssetClass: Record<RWAChartMetric, { source: RWAChartRow[]; dimensions: string[] }>
 } {
 	return useMemo(() => {
 		const empty = {
 			chartDatasetByAssetClass: {
-				onChainMcap: { source: [] as RWAChartRowByAssetClass[], dimensions: ['timestamp'] },
-				activeMcap: { source: [] as RWAChartRowByAssetClass[], dimensions: ['timestamp'] },
-				defiActiveTvl: { source: [] as RWAChartRowByAssetClass[], dimensions: ['timestamp'] }
+				onChainMcap: { source: [] as RWAChartRow[], dimensions: ['timestamp'] },
+				activeMcap: { source: [] as RWAChartRow[], dimensions: ['timestamp'] },
+				defiActiveTvl: { source: [] as RWAChartRow[], dimensions: ['timestamp'] }
 			}
 		}
 
@@ -922,11 +910,11 @@ export function useRwaChartDataByAssetClass({
 			tickerToAssetClasses.set(ticker, asset.assetClass)
 		}
 
-		const aggregate = (rows: RWAChartRowByTicker[], seenAssetClasses: Set<string>): RWAChartRowByAssetClass[] => {
-			const out: RWAChartRowByAssetClass[] = []
+		const aggregate = (rows: RWAChartRow[], seenAssetClasses: Set<string>): RWAChartRow[] => {
+			const out: RWAChartRow[] = []
 
 			for (const row of rows ?? []) {
-				const outRow: RWAChartRowByAssetClass = { timestamp: row.timestamp }
+				const outRow: RWAChartRow = { timestamp: row.timestamp }
 
 				for (const [ticker, value] of Object.entries(row)) {
 					if (ticker === 'timestamp') continue
@@ -974,14 +962,14 @@ export function useRwaChartDataByAssetName({
 	assets: IRWAAssetsOverview['assets']
 	chartDataByTicker: IRWAAssetsOverview['chartData']
 }): {
-	chartDatasetByAssetName: Record<RWAChartMetric, { source: RWAChartRowByAssetName[]; dimensions: string[] }>
+	chartDatasetByAssetName: Record<RWAChartMetric, { source: RWAChartRow[]; dimensions: string[] }>
 } {
 	return useMemo(() => {
 		const empty = {
 			chartDatasetByAssetName: {
-				onChainMcap: { source: [] as RWAChartRowByAssetName[], dimensions: ['timestamp'] },
-				activeMcap: { source: [] as RWAChartRowByAssetName[], dimensions: ['timestamp'] },
-				defiActiveTvl: { source: [] as RWAChartRowByAssetName[], dimensions: ['timestamp'] }
+				onChainMcap: { source: [] as RWAChartRow[], dimensions: ['timestamp'] },
+				activeMcap: { source: [] as RWAChartRow[], dimensions: ['timestamp'] },
+				defiActiveTvl: { source: [] as RWAChartRow[], dimensions: ['timestamp'] }
 			}
 		}
 
@@ -997,11 +985,11 @@ export function useRwaChartDataByAssetName({
 			tickerToAssetName.set(ticker, name)
 		}
 
-		const aggregate = (rows: RWAChartRowByTicker[], seenAssetNames: Set<string>): RWAChartRowByAssetName[] => {
-			const out: RWAChartRowByAssetName[] = []
+		const aggregate = (rows: RWAChartRow[], seenAssetNames: Set<string>): RWAChartRow[] => {
+			const out: RWAChartRow[] = []
 
 			for (const row of rows ?? []) {
-				const outRow: RWAChartRowByAssetName = { timestamp: row.timestamp }
+				const outRow: RWAChartRow = { timestamp: row.timestamp }
 
 				for (const [ticker, value] of Object.entries(row)) {
 					if (ticker === 'timestamp') continue
