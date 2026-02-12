@@ -223,10 +223,20 @@ export function LinkToMetricOrToolPage({ page, totalTrackedByMetric }: { page: I
 		() => '[]'
 	)
 
+	const dialogStore = Ariakit.useDialogContext()
+
 	const pinnedPages = useMemo(() => JSON.parse(pinnedMetrics), [pinnedMetrics])
 	const isPinned = pinnedPages.includes(page.route)
 
 	const isExternalLink = page.route.startsWith('http')
+	const isCurrentPage = useRouter().pathname === page.route
+
+	const handleClick = (e: React.MouseEvent) => {
+		if (isCurrentPage && dialogStore) {
+			e.preventDefault()
+			dialogStore.hide()
+		}
+	}
 
 	return (
 		<div
@@ -238,6 +248,7 @@ export function LinkToMetricOrToolPage({ page, totalTrackedByMetric }: { page: I
 				href={page.route}
 				target={isExternalLink ? '_blank' : undefined}
 				rel={isExternalLink ? 'noopener noreferrer' : undefined}
+				onClick={handleClick}
 			>
 				<span className="flex w-full flex-wrap items-center gap-1">
 					<span className="font-medium">{page.name}</span>
