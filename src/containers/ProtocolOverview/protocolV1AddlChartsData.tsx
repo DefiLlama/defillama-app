@@ -583,7 +583,7 @@ export const buildProtocolV1AddlChartsData = ({
 		const sourceTvls = protocolData.chainTvls ?? {}
 		for (const chain in sourceTvls) {
 			if (chain.endsWith('-borrowed')) {
-				const chainName = chain.split('-')[0]
+				const chainName = chain.slice(0, chain.lastIndexOf('-'))
 				chainTvls[chainName] = sourceTvls[chain]
 			}
 		}
@@ -682,7 +682,7 @@ export const useFetchProtocolV1AddlChartsData = (
 			const sourceTvls = addlProtocolData?.chainTvls ?? {}
 			for (const chain in sourceTvls) {
 				if (chain.endsWith('-borrowed')) {
-					const chainName = chain.split('-')[0]
+					const chainName = chain.slice(0, chain.lastIndexOf('-'))
 					chainTvls[chainName] = sourceTvls[chain]
 				}
 			}

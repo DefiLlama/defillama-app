@@ -190,7 +190,7 @@ export const useFetchProtocolChartData = ({
 			queryFn: () =>
 				fetchJson(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then(
 					(res: { data?: IDenominationPriceHistory }) =>
-						res.data?.prices?.length ? res.data : { prices: [], mcaps: [], volumes: [] }
+						res.data?.prices?.length ? res.data : null
 				),
 			staleTime: 60 * 60 * 1000,
 			refetchOnWindowFocus: false,

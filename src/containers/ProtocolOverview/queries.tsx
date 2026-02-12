@@ -349,13 +349,15 @@ export const getProtocolOverviewPageData = async ({
 					)
 					.then((res): ITreasuryResult => {
 						if (!res) return null
-						const values = Object.values(res) as Array<number | null>
 						return {
 							majors: res.majors ?? null,
 							stablecoins: res.stablecoins ?? null,
 							ownTokens: res.ownTokens ?? null,
 							others: res.others ?? null,
-							total: values.reduce((acc: number, curr: number | null) => acc + +(curr ?? 0), 0)
+							total: [res.majors, res.stablecoins, res.ownTokens, res.others].reduce(
+								(acc: number, curr) => acc + +(curr ?? 0),
+								0
+							)
 						}
 					})
 					.catch(() => null)
@@ -760,8 +762,10 @@ export const getProtocolOverviewPageData = async ({
 	}
 	for (const mark of protocolData.hallmarks ?? []) {
 		if (Array.isArray(mark[0])) {
-			const rangeDate = mark[0]
-			rangeHallmarks.push([rangeDate, mark[1]])
+			const [start, end] = mark[0]
+			if (typeof start === 'number' && typeof end === 'number') {
+				rangeHallmarks.push([[start, end], mark[1]])
+			}
 		} else {
 			if (!hallmarks[mark[0]]) {
 				hallmarks[mark[0]] = mark[1]
@@ -1096,7 +1100,10 @@ interface ICoingeckoFullChartPayload {
 }
 
 function getTokenCGData(tokenCGData: unknown, cg_volume_cexs: string[]) {
-	const normalized = (tokenCGData ?? {}) as ICoingeckoFullChartPayload
+	const normalized: ICoingeckoFullChartPayload =
+		tokenCGData != null && typeof tokenCGData === 'object' && !Array.isArray(tokenCGData)
+			? (tokenCGData as ICoingeckoFullChartPayload)
+			: {}
 	const tokenPrice = normalized.prices?.length ? normalized.prices[normalized.prices.length - 1][1] : null
 	const tokenInfo = normalized.coinData
 
@@ -1188,7 +1195,10 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 
 		type PeriodEntry = Record<string, { value: number; 'by-label': Record<string, number> }> & { timestamp?: number }
 		type AggregatesMap = Record<string, Record<string, PeriodEntry>>
-		const aggregatesMap = aggregates as unknown as AggregatesMap
+		// IncomeStatementData uses a union key ('monthly' | 'quarterly' | 'yearly') which is structurally
+		// compatible with Record<string, ...>, but TS doesn't allow direct assignment. We widen through
+		// a single cast since the runtime shape is guaranteed to match.
+		const aggregatesMap: AggregatesMap = aggregates as AggregatesMap
 
 		if (protocolsWithFalsyBreakdownMetrics.has(metadata.displayName ?? '')) {
 			for (const groupBy in aggregatesMap) {
