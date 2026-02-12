@@ -135,20 +135,49 @@ interface CoinGeckoBtcPrice {
 	}
 }
 
-export async function getCexVolume(): Promise<number | undefined> {
-	const [cexs, btcPriceRes] = await Promise.all([
-		fetchJson<CoinGeckoExchange[]>(
-			`https://api.llama.fi/cachedExternalResponse?url=${encodeURIComponent(
-				'https://api.coingecko.com/api/v3/exchanges?per_page=250'
-			)}`
-		),
-		fetchJson<CoinGeckoBtcPrice>(
-			`https://api.llama.fi/cachedExternalResponse?url=${encodeURIComponent(
-				'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd'
-			)}`
-		)
-	])
-	const btcPrice = btcPriceRes?.bitcoin?.usd
-	if (!btcPrice || !cexs) return undefined
-	return cexs.filter((c) => c.trust_score >= 9).reduce((sum, c) => sum + c.trade_volume_24h_btc, 0) * btcPrice
+export async function getCexVolume(): Promise<number | null> {
+	try {
+		const [cexs, btcPriceRes] = await Promise.all([
+			fetchJson<CoinGeckoExchange[]>(
+				`https://api.llama.fi/cachedExternalResponse?url=${encodeURIComponent(
+					'https://api.coingecko.com/api/v3/exchanges?per_page=250'
+				)}`
+			),
+			fetchJson<CoinGeckoBtcPrice>(
+				`https://api.llama.fi/cachedExternalResponse?url=${encodeURIComponent(
+					'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd'
+				)}`
+			)
+		])
+		
+		// Validate BTC price exists and is a number
+		const btcPrice = btcPriceRes?.bitcoin?.usd
+		if (typeof btcPrice !== 'number' || isNaN(btcPrice)) {
+			return null
+		}
+		
+		// Validate cexs is an array
+		if (!Array.isArray(cexs)) {
+			console.warn('CEX data is not an array:', typeof cexs)
+			return null
+		}
+		
+		// Validate and calculate with defensive checks
+		const validCexs = cexs.filter((c) => {
+			return c && 
+				typeof c.trust_score === 'number' && 
+				c.trust_score >= 9 &&
+				typeof c.trade_volume_24h_btc === 'number' &&
+				!isNaN(c.trade_volume_24h_btc)
+		})
+		
+		if (validCexs.length === 0) {
+			return null
+		}
+		
+		return validCexs.reduce((sum, c) => sum + c.trade_volume_24h_btc, 0) * btcPrice
+	} catch (error) {
+		console.error('Error fetching CEX volume:', error)
+		return null
+	}
 }

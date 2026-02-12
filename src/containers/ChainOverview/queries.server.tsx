@@ -14,8 +14,8 @@ import {
 } from '~/constants'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import { getCexVolume } from '~/containers/DimensionAdapters/api'
-import { getAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
-import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
+import { getAdapterChainMetrics, getAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
+import type { IAdapterChainMetrics, IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'
 import {
 	getAdapterChainOverview,
 	getAdapterProtocolOverview
@@ -164,10 +164,10 @@ export async function getChainOverviewData({
 			} | null,
 			Record<string, number>,
 			IChainAsset | null,
-			IAdapterProtocolOverview | null,
-			IAdapterProtocolOverview | null,
-			IAdapterProtocolOverview | null,
-			IAdapterProtocolOverview | null,
+			IAdapterChainMetrics | null,
+			IAdapterChainMetrics | null,
+			IAdapterProtocolMetrics | null,
+			IAdapterProtocolMetrics | null,
 			IAdapterChainMetrics | null,
 			number | null,
 			Array<[number, number]> | null,
@@ -273,26 +273,24 @@ export async function getChainOverviewData({
 				})
 			: Promise.resolve(null),
 			currentChainMetadata.chainFees
-				? getAdapterProtocolOverview({
-						adapterType: 'fees',
-						protocol: currentChainMetadata.name,
-						excludeTotalDataChart: true
-					}).catch((err) => {
-						console.log(err)
-						return null
-					})
-				: Promise.resolve(null),
-			currentChainMetadata.chainRevenue
-				? getAdapterProtocolOverview({
-						adapterType: 'fees',
-						protocol: currentChainMetadata.name,
-						excludeTotalDataChart: true,
-						dataType: 'dailyRevenue'
-					}).catch((err) => {
-						console.log(err)
-						return null
-					})
-				: Promise.resolve(null),
+			? getAdapterProtocolMetrics({
+					adapterType: 'fees',
+					protocol: currentChainMetadata.name
+				}).catch((err) => {
+					console.log(err)
+					return null
+				})
+			: Promise.resolve(null),
+		currentChainMetadata.chainRevenue
+			? getAdapterProtocolMetrics({
+					adapterType: 'fees',
+					protocol: currentChainMetadata.name,
+					dataType: 'dailyRevenue'
+				}).catch((err) => {
+					console.log(err)
+					return null
+				})
+			: Promise.resolve(null),
 		currentChainMetadata.perps
 			? getAdapterChainMetrics({
 					adapterType: 'derivatives',
@@ -302,10 +300,7 @@ export async function getChainOverviewData({
 					return null
 				})
 			: Promise.resolve(null),
-			getCexVolume().catch((err) => {
-				console.log('CEX volume fetch error:', err)
-				return undefined
-			}),
+			getCexVolume(),
 			chain === 'All'
 				? getETFData()
 						.then((data) => {

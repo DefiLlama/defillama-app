@@ -17,10 +17,10 @@ This document contains rules and best practices for maintaining full type safety
 
 ### ❌ NEVER Re-export
 ```typescript
-// WRONG - api.ts
+// WRONG - index.ts re-exporting from api.ts
 export { getAdapterChainMetrics } from './api'
 
-// WRONG - queries.tsx
+// WRONG - queries.tsx re-exporting from api.ts  
 export { getAdapterChainMetrics } from './api'
 ```
 

@@ -18,6 +18,8 @@ This document defines the commands and conventions that all AI agents (opencode)
 - **NEVER** use `npx tsc`, `npx eslint`, or any npx commands. Use `bun run` equivalents instead.
 - **NEVER** run `npm run lint`, `npm run typecheck`, or any npm commands.
 
+**Exception:** `npx tsc -p tsconfig.strict.json --skipLibCheck` is allowed for strict type checking during migration (no bun equivalent for project-specific configs).
+
 ## Verification Requirements
 
 When completing any task, you MUST run the following commands to verify code correctness:

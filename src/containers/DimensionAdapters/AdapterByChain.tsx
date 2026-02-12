@@ -205,12 +205,12 @@ export function AdapterByChain(props: IProps) {
 											total1y: addValues(cp.total1y,
 												(enabledSettings.bribes ? (cp.bribes?.total1y ?? 0) : 0) +
 												(enabledSettings.tokentax ? (cp.tokenTax?.total1y ?? 0) : 0)),
-											totalAllTime: addValues(cp.totalAllTime,
-												(enabledSettings.bribes ? (cp.bribes?.totalAllTime ?? 0) : 0) +
-												(enabledSettings.tokentax ? (cp.tokenTax?.totalAllTime ?? 0) : 0)),
-											...(cpPfOrPs ? { pfOrPs: cpPfOrPs } : {})
-										}
-								  })
+										totalAllTime: addValues(cp.totalAllTime,
+											(enabledSettings.bribes ? (cp.bribes?.totalAllTime ?? 0) : 0) +
+											(enabledSettings.tokentax ? (cp.tokenTax?.totalAllTime ?? 0) : 0)),
+										pfOrPs: cpPfOrPs
+									}
+							  })
 								: p.childProtocols
 
 						// Helper to safely add values, preserving null when no extras
@@ -232,7 +232,7 @@ export function AdapterByChain(props: IProps) {
 							totalAllTime: addValues(p.totalAllTime,
 								(enabledSettings.bribes ? (p.bribes?.totalAllTime ?? 0) : 0) +
 								(enabledSettings.tokentax ? (p.tokenTax?.totalAllTime ?? 0) : 0)),
-							...(pfOrPs ? { pfOrPs } : {}),
+							pfOrPs,
 							...(childProtocols ? { childProtocols } : {})
 						}
 					})

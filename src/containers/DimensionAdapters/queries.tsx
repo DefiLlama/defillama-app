@@ -541,11 +541,11 @@ export const getAdapterByChainPageData = async ({
 			protocols: Array<{ name: string; mcap: number | null }>
 			parentProtocols: Array<{ name: string; mcap: number | null }>
 		},
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
 		IAdapterChainOverview | null,
 		IAdapterChainOverview | null,
-		IAdapterChainOverview | null,
-		IAdapterChainOverview | null,
-		IAdapterChainOverview | null
+		IAdapterChainMetrics | null
 	] = await Promise.all([
 		getAdapterChainOverview({
 			adapterType,
@@ -555,19 +555,17 @@ export const getAdapterByChainPageData = async ({
 		}),
 		fetchJson(PROTOCOLS_API),
 		adapterType === 'fees'
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					adapterType,
 					chain,
-					dataType: 'dailyBribesRevenue',
-					excludeTotalDataChart: true
+					dataType: 'dailyBribesRevenue'
 				})
 			: Promise.resolve(null),
 		adapterType === 'fees'
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					adapterType,
 					chain,
-					dataType: 'dailyTokenTaxes',
-					excludeTotalDataChart: true
+					dataType: 'dailyTokenTaxes'
 				})
 			: Promise.resolve(null),
 		hasOpenInterest
@@ -587,10 +585,9 @@ export const getAdapterByChainPageData = async ({
 				})
 			: Promise.resolve(null),
 		adapterType === 'derivatives'
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					adapterType: 'normalized-volume',
-					chain,
-					excludeTotalDataChart: true
+					chain
 				})
 			: Promise.resolve(null)
 	])
@@ -1054,23 +1051,20 @@ export const getChainsByFeesAdapterPageData = async ({
 		}
 
 		const [chainsData, bribesData, tokenTaxesData] = await Promise.all([
-			getAdapterChainOverview({
+			getAdapterChainMetrics({
 				adapterType,
 				dataType,
-				chain: 'All',
-				excludeTotalDataChart: true
+				chain: 'All'
 			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name))),
-			getAdapterChainOverview({
+			getAdapterChainMetrics({
 				adapterType,
 				dataType: 'dailyBribesRevenue',
-				chain: 'All',
-				excludeTotalDataChart: true
+				chain: 'All'
 			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name))),
-			getAdapterChainOverview({
+			getAdapterChainMetrics({
 				adapterType,
 				dataType: 'dailyTokenTaxes',
-				chain: 'All',
-				excludeTotalDataChart: true
+				chain: 'All'
 			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name)))
 		])
 
@@ -1326,18 +1320,16 @@ export const getChainsByREVPageData = async ({
 
 		const protocolsByChainsData = await Promise.allSettled(
 			allChains.map(async (chain) =>
-				getAdapterChainOverview({
+				getAdapterChainMetrics({
 					adapterType: 'fees',
-					chain,
-					excludeTotalDataChart: true
+					chain
 				})
 			)
 		)
 
-		const chainFeesData = await getAdapterChainOverview({
+		const chainFeesData = await getAdapterChainMetrics({
 			adapterType: 'fees',
-			chain: 'All',
-			excludeTotalDataChart: true
+			chain: 'All'
 		})
 
 		const chains = allChains.map((chain, index) => {
