@@ -275,7 +275,7 @@ function Filters({
 				/>
 			))}
 			<div className={switchesAndResetClassName}>
-				{!modes.isChainMode ? (
+				{modes.isChainMode ? (
 					<Switch
 						label="Stablecoins"
 						value="includeStablecoins"
@@ -287,7 +287,7 @@ function Filters({
 						className={nestedMenu ? 'text-base' : undefined}
 					/>
 				) : null}
-				{!modes.isChainMode ? (
+				{modes.isChainMode ? (
 					<Switch
 						label="Governance Tokens"
 						value="includeGovernance"
