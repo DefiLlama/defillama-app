@@ -186,7 +186,7 @@ export interface IRWAAssetData extends IRWAProject {
 	} | null
 }
 
-export const RWA_ASSET_CHART_DIMENSIONS = ['timestamp', 'DeFi Active TVL', 'Active Mcap', 'Onchain Mcap'] as const
+const RWA_ASSET_CHART_DIMENSIONS = ['timestamp', 'DeFi Active TVL', 'Active Mcap', 'Onchain Mcap'] as const
 export type RWAAssetChartDimension = (typeof RWA_ASSET_CHART_DIMENSIONS)[number]
-export type RWAAssetChartSeriesDimension = Exclude<RWAAssetChartDimension, 'timestamp'>
+type RWAAssetChartSeriesDimension = Exclude<RWAAssetChartDimension, 'timestamp'>
 export type RWAAssetChartRow = { timestamp: number } & Partial<Record<RWAAssetChartSeriesDimension, number | null>>

@@ -18,6 +18,8 @@
 		"src/containers/DimensionAdapters/**/*.ts",
 		"src/containers/DimensionAdapters/**/*.tsx",
 		"src/containers/RWA/**/*.ts",
-		"src/containers/RWA/**/*.tsx"
+		"src/containers/RWA/**/*.tsx",
+		"src/containers/Unlocks/**/*.ts",
+		"src/containers/Unlocks/**/*.tsx"
 	]
 }

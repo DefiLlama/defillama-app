@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 
-const Pagination = ({ items, startIndex = 0 }) => {
+interface PaginationProps {
+	items: React.ReactNode[]
+	startIndex?: number
+}
+
+export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 	const [visibleItems, setVisibleItems] = useState(1)
 	const [currentPage, setCurrentPage] = useState(0)
-	const paginationRef = useRef(null)
-	const [touchStart, setTouchStart] = useState(null)
-	const [touchEnd, setTouchEnd] = useState(null)
+	const paginationRef = useRef<HTMLDivElement>(null)
+	const [touchStart, setTouchStart] = useState<number | null>(null)
+	const [touchEnd, setTouchEnd] = useState<number | null>(null)
 	const [isSwiping, setIsSwiping] = useState(false)
 	const [swipeOffset, setSwipeOffset] = useState(0)
 
@@ -46,7 +51,7 @@ const Pagination = ({ items, startIndex = 0 }) => {
 
 	const totalPages = Math.ceil(items.length / Math.max(1, visibleItems))
 
-	const handlePageChange = (pageIndex) => {
+	const handlePageChange = (pageIndex: number) => {
 		setCurrentPage(pageIndex)
 		setSwipeOffset(0)
 	}
@@ -61,13 +66,13 @@ const Pagination = ({ items, startIndex = 0 }) => {
 		handlePageChange(newPage)
 	}
 
-	const onTouchStart = (e) => {
+	const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
 		setTouchEnd(null)
 		setTouchStart(e.targetTouches[0].clientX)
 		setIsSwiping(true)
 	}
 
-	const onTouchMove = (e) => {
+	const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
 		if (!touchStart || !isSwiping) return
 
 		const currentTouch = e.targetTouches[0].clientX
@@ -127,7 +132,7 @@ const Pagination = ({ items, startIndex = 0 }) => {
 				)}
 				<div className="flex flex-1 items-center justify-start overflow-hidden">
 					<div style={contentStyle}>
-						{currentItems.map((item, index) => (
+						{currentItems.map((item: React.ReactNode, index: number) => (
 							<div key={index} className="relative w-full p-2">
 								{item}
 							</div>
@@ -171,5 +176,3 @@ const Pagination = ({ items, startIndex = 0 }) => {
 		</>
 	)
 }
-
-export default Pagination

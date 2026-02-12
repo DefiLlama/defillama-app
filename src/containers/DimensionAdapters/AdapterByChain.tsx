@@ -164,6 +164,10 @@ export function AdapterByChain(props: IProps) {
 						? getProtocolsByCategory(props.protocols, categoriesToFilter)
 						: props.protocols
 
+		// Helper to safely add values, preserving null when no extras
+		const addValues = (base: number | null, extra: number): number | null =>
+			base != null ? base + extra : extra !== 0 ? extra : null
+
 		const finalProtocols =
 			props.adapterType === 'fees'
 				? protocols.map((p) => {
@@ -173,7 +177,7 @@ export function AdapterByChain(props: IProps) {
 						const extra30d =
 							(enabledSettings.bribes ? (p.bribes?.total30d ?? 0) : 0) +
 							(enabledSettings.tokentax ? (p.tokenTax?.total30d ?? 0) : 0)
-						const total30d = baseTotal30d != null ? baseTotal30d + extra30d : extra30d || null
+						const total30d = baseTotal30d != null ? baseTotal30d + extra30d : extra30d !== 0 ? extra30d : null
 
 						const pfOrPs = p.mcap && total30d ? getAnnualizedRatio(p.mcap, total30d) : null
 
@@ -185,13 +189,9 @@ export function AdapterByChain(props: IProps) {
 										const cpExtra30d =
 											(enabledSettings.bribes ? (cp.bribes?.total30d ?? 0) : 0) +
 											(enabledSettings.tokentax ? (cp.tokenTax?.total30d ?? 0) : 0)
-										const cpTotal30d = cpBaseTotal30d != null ? cpBaseTotal30d + cpExtra30d : cpExtra30d || null
+										const cpTotal30d = cpBaseTotal30d != null ? cpBaseTotal30d + cpExtra30d : cpExtra30d !== 0 ? cpExtra30d : null
 
 										const cpPfOrPs = cp.mcap && cpTotal30d ? getAnnualizedRatio(cp.mcap, cpTotal30d) : null
-
-										// Helper to safely add values, preserving null when no extras
-										const addValues = (base: number | null, extra: number): number | null =>
-											base != null ? base + extra : extra || null
 
 										return {
 											...cp,
@@ -220,10 +220,6 @@ export function AdapterByChain(props: IProps) {
 										}
 									})
 								: p.childProtocols
-
-						// Helper to safely add values, preserving null when no extras
-						const addValues = (base: number | null, extra: number): number | null =>
-							base != null ? base + extra : extra || null
 
 						return {
 							...p,

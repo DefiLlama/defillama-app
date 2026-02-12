@@ -1,7 +1,14 @@
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
-import definitions from '~/public/rwa-definitions.json'
+import { definitions } from './definitions'
 import type { IRWAList } from '~/utils/metadata/types'
-import { getRWAActiveTVLs, getRWAStats, getRWAChartDataByTicker, getRWAAssetDataById, getRWAAssetChartData } from './api'
+import {
+	getRWAActiveTVLs,
+	getRWAStats,
+	getRWAChartDataByTicker,
+	getRWAAssetDataById,
+	getRWAAssetChartData,
+	toUnixMsTimestamp
+} from './api'
 import type {
 	IFetchedRWAProject,
 	IRWAChartDataByTicker,
@@ -13,12 +20,6 @@ import type {
 	IRWAPlatformsOverviewRow
 } from './api.types'
 import { rwaSlug } from './rwaSlug'
-
-function toUnixMsTimestamp(ts: number): number {
-	// API timestamps are historically in unix seconds. Normalize to ms for ECharts time axis.
-	// Keep this tolerant to already-ms values to avoid double conversion.
-	return Number.isFinite(ts) && ts > 0 && ts < 1e12 ? ts * 1e3 : ts
-}
 
 type ChainMetricBreakdown = Record<string, string> | null
 type DefiMetricBreakdown = Record<string, Record<string, string>> | null
@@ -157,7 +158,7 @@ function aggregateRwaMetrics({
 	}
 }
 
-export type RWAAssetsOverviewParams = {
+type RWAAssetsOverviewParams = {
 	chain?: string
 	category?: string
 	platform?: string
@@ -201,8 +202,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		// while still filtering breakdown keys by slug for robustness.
 		let actualChainName: string | null = null
 		if (selectedChain) {
-			for (const rwaId in data) {
-				const match = data[rwaId].chain?.find((c) => rwaSlug(c) === selectedChain)
+			for (const item of data) {
+				const match = item.chain?.find((c) => rwaSlug(c) === selectedChain)
 				if (match) {
 					actualChainName = match
 					break
@@ -216,8 +217,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		// `selectedCategory` comes from the URL and is slugified; resolve a display name (original casing/spaces)
 		let actualCategoryName: string | null = null
 		if (selectedCategory) {
-			for (const rwaId in data) {
-				const match = data[rwaId].category?.find((c) => rwaSlug(c) === selectedCategory)
+			for (const item of data) {
+				const match = item.category?.find((c) => rwaSlug(c) === selectedCategory)
 				if (match) {
 					actualCategoryName = match
 					break
@@ -231,8 +232,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		// `selectedPlatform` comes from the URL and is slugified; resolve a display name (original casing/spaces)
 		let actualPlatformName: string | null = null
 		if (selectedPlatform) {
-			for (const rwaId in data) {
-				const platform = data[rwaId].parentPlatform
+			for (const item of data) {
+				const platform = item.parentPlatform
 				if (platform && rwaSlug(platform) === selectedPlatform) {
 					actualPlatformName = platform
 					break
@@ -289,8 +290,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			// Check if asset has actual TVL on the selected chain (from TVL data, not just chain array)
 			const hasChainInTvl = selectedChain
 				? aggregatedMetrics.hasSelectedChainData.onChainMcap ||
-				  aggregatedMetrics.hasSelectedChainData.activeMcap ||
-				  aggregatedMetrics.hasSelectedChainData.defiActiveTvl
+					aggregatedMetrics.hasSelectedChainData.activeMcap ||
+					aggregatedMetrics.hasSelectedChainData.defiActiveTvl
 				: true
 
 			// Use filtered values if chain is selected, otherwise use totals
@@ -484,35 +485,35 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		return {
 			assets: assets.sort((a, b) => (b.onChainMcap?.total ?? 0) - (a.onChainMcap?.total ?? 0)),
 			types: formattedTypes,
-		typeOptions: formattedTypes.map((type) => ({
-			key: type,
-			name: type,
-			help: (definitions.type.values as Record<string, string>)?.[type] ?? null
-		})),
+			typeOptions: formattedTypes.map((type) => ({
+				key: type,
+				name: type,
+				help: definitions.type.values?.[type] ?? null
+			})),
 			assetClasses: formattedAssetClasses,
-		assetClassOptions: formattedAssetClasses.map((assetClass) => ({
-			key: assetClass,
-			name: assetClass,
-			help: (definitions.assetClass.values as Record<string, string>)?.[assetClass] ?? null
-		})),
+			assetClassOptions: formattedAssetClasses.map((assetClass) => ({
+				key: assetClass,
+				name: assetClass,
+				help: definitions.assetClass.values?.[assetClass] ?? null
+			})),
 			rwaClassifications: formattedRwaClassifications,
-		rwaClassificationOptions: formattedRwaClassifications.map((classification) => ({
-			key: classification,
-			name: classification,
-			help: (definitions.rwaClassification.values as Record<string, string>)?.[classification] ?? null
-		})),
+			rwaClassificationOptions: formattedRwaClassifications.map((classification) => ({
+				key: classification,
+				name: classification,
+				help: definitions.rwaClassification.values?.[classification] ?? null
+			})),
 			accessModels: formattedAccessModels,
-		accessModelOptions: formattedAccessModels.map((accessModel) => ({
-			key: accessModel,
-			name: accessModel,
-			help: (definitions.accessModel.values as Record<string, string>)?.[accessModel] ?? null
-		})),
+			accessModelOptions: formattedAccessModels.map((accessModel) => ({
+				key: accessModel,
+				name: accessModel,
+				help: definitions.accessModel.values?.[accessModel] ?? null
+			})),
 			categories: formattedCategories,
-		categoriesOptions: formattedCategories.map((category) => ({
-			key: category,
-			name: category,
-			help: (definitions.category.values as Record<string, string>)?.[category] ?? null
-		})),
+			categoriesOptions: formattedCategories.map((category) => ({
+				key: category,
+				name: category,
+				help: definitions.category.values?.[category] ?? null
+			})),
 			assetNames: selectedPlatform
 				? Array.from(assetNames.entries())
 						.sort((a, b) => b[1] - a[1])
@@ -618,8 +619,6 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRo
 	return rows.sort((a, b) => b.onChainMcap - a.onChainMcap)
 }
 
-export type { IRWAAssetData }
-
 export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {
 	try {
 		const [data, chartDataset]: [IFetchedRWAProject, IRWAAssetData['chartDataset']] = await Promise.all([
@@ -644,16 +643,16 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 		// Get the classification description - use True RWA definition if trueRWA flag
 		const classificationKey = isTrueRWA ? 'True RWA' : data.rwaClassification
 		const rwaClassificationDescription = classificationKey
-			? ((definitions.rwaClassification.values as Record<string, string>)?.[classificationKey] ?? null)
+			? (definitions.rwaClassification.values?.[classificationKey] ?? null)
 			: null
 
 		const accessModelDescription = data.accessModel
-			? (definitions.accessModel.values as Record<string, string>)?.[data.accessModel] ?? null
+			? (definitions.accessModel.values?.[data.accessModel] ?? null)
 			: null
 		// Get asset class descriptions
 		const assetClassDescriptions: Record<string, string> = {}
 		for (const ac of data.assetClass ?? []) {
-			const description = ac ? (definitions.assetClass.values as Record<string, string>)?.[ac] : null
+			const description = ac ? definitions.assetClass.values?.[ac] : null
 			if (description) {
 				assetClassDescriptions[ac] = description
 			}

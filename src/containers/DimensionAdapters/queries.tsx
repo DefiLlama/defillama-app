@@ -18,8 +18,7 @@ import {
 	ADAPTER_TYPES_TO_METADATA_TYPE,
 	isAdapterDataTypeKey
 } from './constants'
-import type { IAdapterChainOverview } from './types'
-import type { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData, IProtocol } from './types'
+import type { IAdapterByChainPageData, IAdapterChainOverview, IChainsByAdapterPageData, IChainsByREVPageData, IProtocol } from './types'
 
 // Type aliases for aggregated protocol data structures
 type BribesData = {

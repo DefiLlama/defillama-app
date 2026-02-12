@@ -3,18 +3,10 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
-import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum } from '~/utils'
 import type { IRWAPlatformsOverviewRow } from './api.types'
+import { definitions } from './definitions'
 import { rwaSlug } from './rwaSlug'
-
-type RWADefinitions = typeof rwaDefinitionsJson & {
-	totalOnChainMcap: { label: string; description: string }
-	totalActiveMcap: { label: string; description: string }
-	totalDefiActiveTvl: { label: string; description: string }
-}
-
-const definitions = rwaDefinitionsJson as RWADefinitions
 
 const columns: ColumnDef<IRWAPlatformsOverviewRow>[] = [
 	{

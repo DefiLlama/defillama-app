@@ -22,11 +22,10 @@ import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
-import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
 import type { IRWAAssetsOverview } from './api.types'
-
-const definitions = rwaDefinitionsJson as typeof rwaDefinitionsJson
+import { BreakdownTooltipContent } from './BreakdownTooltipContent'
+import { definitions } from './definitions'
 
 type AssetRow = IRWAAssetsOverview['assets'][0]
 
@@ -244,7 +243,7 @@ const columns: ColumnDef<AssetRow>[] = [
 		accessorFn: (asset) => asset.type,
 		cell: (info) => {
 			const value = info.getValue() as string
-			const tooltipContent = (definitions.type.values as Record<string, string>)?.[value]
+			const tooltipContent = definitions.type.values?.[value]
 			if (tooltipContent) {
 				return (
 					<Tooltip
@@ -273,8 +272,8 @@ const columns: ColumnDef<AssetRow>[] = [
 			const isTrueRWA = info.row.original.trueRWA
 			// If trueRWA flag, show green color with True RWA definition but display "RWA"
 			const tooltipContent = isTrueRWA
-				? (definitions.rwaClassification.values as Record<string, string>)?.['True RWA']
-				: (definitions.rwaClassification.values as Record<string, string>)?.[value]
+				? definitions.rwaClassification.values?.['True RWA']
+				: definitions.rwaClassification.values?.[value]
 			if (tooltipContent) {
 				return (
 					<Tooltip
@@ -351,7 +350,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			const value = info.getValue() as string[]
 			const tooltipContent = value
 				.map((category) => {
-					const description = (definitions.category.values as Record<string, string>)?.[category]
+					const description = definitions.category.values?.[category]
 					return `${category}:\n${description || '-'}`
 				})
 				.join('\n\n')
@@ -388,7 +387,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			// For single asset class with definition, show tooltip
 			if (assetClasses.length === 1) {
 				const ac = assetClasses[0]
-				const description = (definitions.assetClass.values as Record<string, string>)?.[ac]
+				const description = definitions.assetClass.values?.[ac]
 				if (description) {
 					return (
 						<Tooltip
@@ -405,7 +404,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			const tooltipContent = (
 				<span className="flex flex-col gap-1">
 					{assetClasses.map((ac) => {
-						const description = (definitions.assetClass.values as Record<string, string>)?.[ac]
+						const description = definitions.assetClass.values?.[ac]
 						return (
 							<span key={ac}>
 								<strong>{ac}</strong>: {description || 'No description'}
@@ -611,16 +610,6 @@ const columns: ColumnDef<AssetRow>[] = [
 		size: 120
 	}
 ]
-
-const BreakdownTooltipContent = ({ breakdown }: { breakdown: Array<[string, number]> }) => (
-	<span className="flex flex-col gap-1">
-		{breakdown.map(([chain, tvl]) => (
-			<span key={`${chain}-${tvl}`}>
-				{chain}: {formattedNum(tvl, true)}
-			</span>
-		))}
-	</span>
-)
 
 const TVLBreakdownCell = ({
 	value,

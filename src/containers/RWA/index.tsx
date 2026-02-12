@@ -6,8 +6,8 @@ import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/EChar
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Tooltip } from '~/components/Tooltip'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
-import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
+import type { IRWAAssetsOverview } from './api.types'
 import { RWAAssetsTable } from './AssetsTable'
 import { RWAOverviewFilters } from './Filters'
 import {
@@ -21,7 +21,7 @@ import {
 	useRwaChartDataByAssetName,
 	useRwaChartDataByCategory
 } from './hooks'
-import type { IRWAAssetsOverview } from './api.types'
+import { definitions } from './definitions'
 import { rwaSlug } from './rwaSlug'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -31,14 +31,6 @@ const MultiSeriesChart2 = lazy(
 
 type RWAChartType = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 type RWAOverviewMode = 'chain' | 'category' | 'platform'
-
-type RWADefinitions = typeof rwaDefinitionsJson & {
-	totalOnChainMcap: { label: string; description: string }
-	totalActiveMcap: { label: string; description: string }
-	totalDefiActiveTvl: { label: string; description: string }
-}
-
-const definitions = rwaDefinitionsJson as RWADefinitions
 
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const router = useRouter()

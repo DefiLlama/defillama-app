@@ -7,20 +7,11 @@ import { Switch } from '~/components/Switch'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import rwaDefinitionsJson from '~/public/rwa-definitions.json'
-import { formattedNum } from '~/utils'
-import { chainIconUrl } from '~/utils'
+import { chainIconUrl, formattedNum } from '~/utils'
 import type { IRWAChainsOverviewRow } from './api.types'
+import { definitions } from './definitions'
+import { toBooleanParam } from './hooks'
 import { rwaSlug } from './rwaSlug'
-
-type RWADefinitions = typeof rwaDefinitionsJson & {
-	totalOnChainMcap: { label: string; description: string }
-	totalActiveMcap: { label: string; description: string }
-	totalAssetIssuers: { label: string; description: string }
-	totalDefiActiveTvl: { label: string; description: string }
-}
-
-const definitions = rwaDefinitionsJson as RWADefinitions
 
 const columns: ColumnDef<{
 	chain: string
@@ -97,11 +88,6 @@ const columns: ColumnDef<{
 const columnSizes: ColumnSizesByBreakpoint = {
 	0: { chain: 160 },
 	640: { chain: 220 }
-}
-
-const toBooleanParam = (p: string | string[] | undefined): boolean => {
-	if (Array.isArray(p)) return p[0] === 'true'
-	return p === 'true'
 }
 
 export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) {

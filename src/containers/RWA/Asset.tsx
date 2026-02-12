@@ -5,9 +5,10 @@ import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
-import definitions from '~/public/rwa-definitions.json'
 import { chainIconUrl, formattedNum, getBlockExplorer } from '~/utils'
 import type { IRWAAssetData } from './api.types'
+import { BreakdownTooltipContent } from './BreakdownTooltipContent'
+import { definitions } from './definitions'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -344,10 +345,10 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 										{asset.category.map((category, idx) => (
 											<span key={category} className="flex items-center gap-0.5">
 												{category}
-												{(definitions.category.values as Record<string, string>)?.[category] && (
-													<QuestionHelper text={(definitions.category.values as Record<string, string>)[category]} />
-												)}
-												{idx < asset.category!.length - 1 && ','}
+											{definitions.category.values?.[category] ? (
+												<QuestionHelper text={definitions.category.values[category]} />
+											) : null}
+											{idx < asset.category!.length - 1 ? ',' : null}
 											</span>
 										))}
 									</span>
@@ -616,12 +617,4 @@ const BASE_TIME_SERIES_CHARTS: Array<{
 	}
 ]
 
-const BreakdownTooltipContent = ({ breakdown }: { breakdown: Array<[string, number]> }) => (
-	<span className="flex flex-col gap-1">
-		{breakdown.map(([chain, tvl]) => (
-			<span key={`${chain}-${tvl}`}>
-				{chain}: {formattedNum(tvl, true)}
-			</span>
-		))}
-	</span>
-)
+

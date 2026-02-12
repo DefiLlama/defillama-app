@@ -6,6 +6,13 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, tokenIconUrl } from '~/utils'
 import { generateGoogleCalendarUrl } from '~/utils/calendar'
 
+interface CalendarButtonProps {
+	event: { timestamp: number; noOfTokens: number[][]; symbol: string; description: string }
+	tokenName: string
+	tokenValue: string | null
+	isProtocolPage: boolean
+}
+
 const ProtocolPageButton = () => {
 	return (
 		<Ariakit.MenuButton className="flex items-center gap-2 rounded-sm p-2 hover:bg-(--bg-secondary)">
@@ -26,7 +33,7 @@ const RegularButton = () => {
 	)
 }
 
-export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage }) => {
+const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage }: CalendarButtonProps) => {
 	return (
 		<Ariakit.MenuProvider>
 			{isProtocolPage ? <ProtocolPageButton /> : <RegularButton />}
@@ -45,7 +52,11 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 				<Ariakit.MenuItem
 					render={
 						<a
-							href={generateGoogleCalendarUrl(event, tokenName, tokenValue)}
+							href={generateGoogleCalendarUrl(
+								{ ...event, name: tokenName, noOfTokens: event.noOfTokens.flat() },
+								tokenName,
+								tokenValue ? parseFloat(tokenValue.replace(/[^0-9.-]+/g, '')) || 0 : 0
+							)}
 							target="_blank"
 							rel="noopener noreferrer"
 						/>
@@ -81,6 +92,34 @@ const CountdownTile = ({ value, label }: { value: string; label: string }) => {
 	)
 }
 
+interface UpcomingEventProps {
+	noOfTokens?: number[][]
+	timestamp: number
+	event: Array<{
+		description: string
+		noOfTokens: number[]
+		timestamp: number
+		unlockType?: string
+		rateDurationDays?: number
+	}>
+	price: number | null | undefined
+	symbol: string | null | undefined
+	mcap: number | null | undefined
+	maxSupply: number | null | undefined
+	name: string
+	isProtocolPage?: boolean
+}
+
+interface UnlockBreakdown {
+	name: string
+	perDayAmount: number
+	totalAmount: number
+	displayUnit: string
+	timestamp: number
+	unlockType: string
+	isOngoing: boolean
+}
+
 export const UpcomingEvent = ({
 	noOfTokens = [],
 	timestamp,
@@ -91,42 +130,42 @@ export const UpcomingEvent = ({
 	maxSupply,
 	name,
 	isProtocolPage = false
-}) => {
+}: UpcomingEventProps) => {
 	const tokenSymbol = symbol ? symbol.toUpperCase() : ''
 	const { currentUnlockBreakdown, totalAmount, tokenValue, unlockPercent, unlockPercentFloat } = useMemo(() => {
-		const breakdown = event
+		const breakdown: UnlockBreakdown[] = event
 			.map(({ description, noOfTokens, timestamp, unlockType, rateDurationDays }) => {
 				const regex =
 					/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})/
 				const matches = (description || '').match(regex)
-				const name = matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
+				const eventName = matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
 
-				let perDayAmount, totalAmount, displayUnit
+				let perDayAmount: number, totalAmount: number, displayUnit: string
 				if (unlockType === 'linear') {
-					const isIncrease = description.toLowerCase().includes('increase')
+					const isIncrease = (description || '').toLowerCase().includes('increase')
 					perDayAmount = (isIncrease ? noOfTokens[1] : noOfTokens[0]) / 7
 					totalAmount = perDayAmount * (rateDurationDays || 1)
 					displayUnit = 'per day'
 				} else {
-					perDayAmount = totalAmount = noOfTokens.reduce((sum, amount) => sum + amount, 0)
+					perDayAmount = totalAmount = noOfTokens.reduce((sum: number, amount: number) => sum + amount, 0)
 					displayUnit = ''
 				}
 				const currentTime = Date.now() / 1e3
 				const endTime = timestamp + (rateDurationDays || 0) * 86400
 				const isOngoing = unlockType === 'linear' && currentTime >= timestamp && currentTime <= endTime
 				return {
-					name,
+					name: eventName,
 					perDayAmount,
 					totalAmount,
 					displayUnit,
 					timestamp,
-					unlockType,
+					unlockType: unlockType || 'cliff',
 					isOngoing
 				}
 			})
-			.sort((a, b) => b.totalAmount - a.totalAmount)
+			.sort((a: UnlockBreakdown, b: UnlockBreakdown) => b.totalAmount - a.totalAmount)
 
-		const totalAmount = breakdown.reduce((sum, item) => sum + item.totalAmount, 0)
+		const totalAmount = breakdown.reduce((sum: number, item: UnlockBreakdown) => sum + item.totalAmount, 0)
 		const tokenValue = price ? totalAmount * price : null
 		const unlockPercent = maxSupply ? (totalAmount / maxSupply) * 100 : null
 		const unlockPercentFloat = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
@@ -242,9 +281,9 @@ export const UpcomingEvent = ({
 				</div>
 				{timeLeft > 0 ? (
 					<CalendarButton
-						event={{ timestamp, noOfTokens, symbol, description: '' }}
+						event={{ timestamp, noOfTokens, symbol: symbol || '', description: '' }}
 						tokenName={name}
-						tokenValue={tokenValue ? formattedNum(tokenValue, true) : '-'}
+						tokenValue={tokenValue ? formattedNum(tokenValue, true) : null}
 						isProtocolPage={isProtocolPage}
 					/>
 				) : null}
@@ -377,9 +416,9 @@ export const UpcomingEvent = ({
 			{timeLeft > 0 && (
 				<div className="flex flex-col items-center">
 					<CalendarButton
-						event={{ timestamp, noOfTokens, symbol, description: '' }}
+						event={{ timestamp, noOfTokens, symbol: symbol || '', description: '' }}
 						tokenName={name}
-						tokenValue={tokenValue ? formattedNum(tokenValue, true) : '-'}
+						tokenValue={tokenValue ? formattedNum(tokenValue, true) : null}
 						isProtocolPage={isProtocolPage}
 					/>
 					<span className="invisible mt-1 text-xs leading-none font-medium text-(--text-meta) select-none">Sec</span>
