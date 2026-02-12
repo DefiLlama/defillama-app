@@ -3,19 +3,21 @@ import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContex
 import { ChartGrid } from '~/containers/ProDashboard/components/ChartGrid'
 import { EmptyState } from '~/containers/ProDashboard/components/EmptyState'
 import {
+	ProDashboardAPIProvider,
 	useProDashboardCatalog,
 	useProDashboardDashboard,
 	useProDashboardItemsState
 } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { getSuperLuminalConfig } from './config'
-import { DashboardTabConfig, getDashboardModule } from './registry'
+import { type DashboardTabConfig, getDashboardModule } from './registry'
 
 const NOOP = () => {}
 
 const PROJECTS = [
-	{ id: 'hyperliquid', name: 'Hyperliquid', comingSoon: false },
-	{ id: 'your-project', name: 'Your Project', comingSoon: true }
+	{ id: 'etherfi', name: 'Ether.fi', dashboardId: '73x90j3b28pfhgx' },
+	{ id: 'spark', name: 'Spark', dashboardId: 'lvp2u48lc11kdy1' },
+	{ id: 'maple', name: 'Maple', dashboardId: 'l5accmh9zooc32q' },
+	{ id: 'your-project', name: 'Your Project', dashboardId: '', comingSoon: true }
 ]
 
 const SKELETON_WIDTHS = [
@@ -61,15 +63,13 @@ function SkeletonTable() {
 	)
 }
 
-function ComingSoonSection({ tabId }: { tabId: string }) {
-	const isReports = tabId === 'reports'
-
+function ComingSoonSection({ label }: { label: string }) {
 	return (
 		<div className="relative">
 			<SkeletonTable />
 			<div className="absolute inset-0 flex items-center justify-center">
 				<span className="rounded-full border border-(--cards-border) bg-(--cards-bg) px-5 py-2.5 text-sm font-semibold tracking-wide text-(--text-secondary) shadow-lg">
-					{isReports ? 'Reports' : 'Investor Calls'} — Coming Soon
+					{label} — Coming Soon
 				</span>
 			</div>
 		</div>
@@ -93,52 +93,124 @@ function ProjectComingSoon() {
 
 const DEFAULT_TABS: DashboardTabConfig[] = [{ id: 'dashboard', label: 'Dashboard' }]
 
-function SuperLuminalContent() {
-	const config = getSuperLuminalConfig()
+function SuperLuminalContent({
+	tabs,
+	activeTab,
+	displayName
+}: {
+	tabs: DashboardTabConfig[]
+	activeTab: string
+	displayName: string
+}) {
 	const { items } = useProDashboardItemsState()
 	const { protocolsLoading } = useProDashboardCatalog()
-	const { dashboardName, isLoadingDashboard } = useProDashboardDashboard()
-
-	const [isDark, toggleTheme] = useDarkModeManager()
-	const [tabs, setTabs] = useState<DashboardTabConfig[]>(DEFAULT_TABS)
-	const [activeTab, setActiveTab] = useState('dashboard')
-	const [activeProject, setActiveProject] = useState('hyperliquid')
-	const [expandedProject, setExpandedProject] = useState<string | null>('hyperliquid')
-	const [sidebarOpen, setSidebarOpen] = useState(false)
-
-	const closeSidebar = useCallback(() => setSidebarOpen(false), [])
-
-	useEffect(() => {
-		if (!config?.dashboardId) return
-		let cancelled = false
-		getDashboardModule(config.dashboardId)?.then((mod) => {
-			if (!cancelled && mod?.tabs) {
-				setTabs(mod.tabs)
-			}
-		})
-		return () => {
-			cancelled = true
-		}
-	}, [config?.dashboardId])
-
-	const displayName = config?.branding.name || dashboardName
-	const isComingSoonProject = PROJECTS.find((p) => p.id === activeProject)?.comingSoon
+	const { isLoadingDashboard } = useProDashboardDashboard()
 
 	if (isLoadingDashboard) {
 		return (
-			<div className="superluminal-dashboard fixed inset-0 z-50 flex items-center justify-center bg-(--app-bg)">
-				<div className="sl-loader text-center leading-none select-none">
-					<span className="block text-[13px] font-medium tracking-[0.4em] text-(--sl-text-brand)">SUPER</span>
+			<div className="flex flex-1 items-center justify-center">
+				<div className="sl-loader text-center leading-tight select-none">
+					<span className="block text-[20px] font-black tracking-[0.12em] text-(--sl-text-brand)">DefiLlama</span>
 					<span
-						className="block text-[34px] font-black tracking-[0.08em] text-transparent"
+						className="block text-[13px] font-bold tracking-[0.2em] uppercase text-transparent"
 						style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
 					>
-						LUMINAL
+						Investor Relationships
 					</span>
 				</div>
 			</div>
 		)
 	}
+
+	return (
+		<>
+			<header className="hidden items-center gap-3 md:flex">
+				<h1 className="text-xl font-semibold tracking-tight pro-text1">
+					{activeTab === 'dashboard' ? displayName || 'Dashboard' : tabs.find((t) => t.id === activeTab)?.label}
+				</h1>
+			</header>
+
+			<div className={activeTab === 'dashboard' ? '' : 'hidden'}>
+				{items.length > 0 && (
+					<div className="w-full">
+						<ChartGrid onAddChartClick={NOOP} />
+					</div>
+				)}
+				{!protocolsLoading && items.length === 0 && <EmptyState onAddChart={NOOP} isReadOnly />}
+			</div>
+
+			{tabs.map((tab) => {
+				if (tab.id === 'dashboard') return null
+				if (!tab.component) {
+					return (
+						<div key={tab.id} className={activeTab === tab.id ? '' : 'hidden'}>
+							<ComingSoonSection label={tab.label} />
+						</div>
+					)
+				}
+				const TabComponent = tab.component
+				return (
+					<div key={tab.id} className={activeTab === tab.id ? '' : 'hidden'}>
+						<Suspense
+							fallback={
+								<div className="flex flex-1 items-center justify-center py-20">
+									<div className="sl-loader text-center leading-tight select-none">
+										<span className="block text-[20px] font-black tracking-[0.12em] text-(--sl-text-brand)">DefiLlama</span>
+										<span
+											className="block text-[13px] font-bold tracking-[0.2em] uppercase text-transparent"
+											style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
+										>
+											Investor Relationships
+										</span>
+									</div>
+								</div>
+							}
+						>
+							<TabComponent />
+							{tab.source && (
+								<p className="pt-4 pb-2 text-center text-xs tracking-wide text-(--text-tertiary)">
+									Data provided by {tab.source} API
+								</p>
+							)}
+						</Suspense>
+					</div>
+				)
+			})}
+		</>
+	)
+}
+
+function SuperLuminalShell() {
+	const [isDark, toggleTheme] = useDarkModeManager()
+	const [tabs, setTabs] = useState<DashboardTabConfig[]>(DEFAULT_TABS)
+	const [activeTab, setActiveTab] = useState('dashboard')
+	const [activeProject, setActiveProject] = useState('etherfi')
+	const [expandedProject, setExpandedProject] = useState<string | null>('etherfi')
+	const [sidebarOpen, setSidebarOpen] = useState(false)
+
+	const closeSidebar = useCallback(() => setSidebarOpen(false), [])
+
+	const activeProjectConfig = PROJECTS.find((p) => p.id === activeProject)
+	const dashboardId = activeProjectConfig?.dashboardId ?? PROJECTS[0].dashboardId
+	const displayName = activeProjectConfig?.name ?? 'Dashboard'
+
+	useEffect(() => {
+		if (!dashboardId) return
+		let cancelled = false
+		const loader = getDashboardModule(dashboardId)
+		if (loader) {
+			loader.then((mod) => {
+				if (!cancelled && mod?.tabs) {
+					setTabs(mod.tabs)
+				}
+			})
+		} else {
+			setTabs(DEFAULT_TABS)
+		}
+		return () => {
+			cancelled = true
+		}
+	}, [dashboardId])
 
 	return (
 		<div className="superluminal-dashboard col-span-full flex min-h-screen flex-col pro-dashboard bg-(--app-bg) md:flex-row">
@@ -153,13 +225,13 @@ function SuperLuminalContent() {
 						<path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
 					</svg>
 				</button>
-				<div className="text-center leading-none select-none">
-					<span className="block text-[8px] font-medium tracking-[0.3em] text-(--sl-text-brand)">SUPER</span>
+				<div className="text-center leading-tight select-none">
+					<span className="block text-[14px] font-black tracking-[0.08em] text-(--sl-text-brand)">DefiLlama</span>
 					<span
-						className="block text-[18px] font-black tracking-[0.06em] text-transparent"
+						className="block text-[8px] font-bold tracking-[0.15em] uppercase text-transparent"
 						style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
 					>
-						LUMINAL
+						Investor Relationships
 					</span>
 				</div>
 			</div>
@@ -169,18 +241,11 @@ function SuperLuminalContent() {
 					sidebarOpen ? 'translate-x-0' : '-translate-x-full'
 				} md:z-10 md:translate-x-0`}
 			>
-				<div className="hidden flex-col items-center gap-2 pb-5 md:flex">
-					<div className="text-center leading-none select-none">
-						<span className="block text-[11px] font-medium tracking-[0.4em] text-(--sl-text-brand)">SUPER</span>
-						<span
-							className="block text-[28px] font-black tracking-[0.08em] text-transparent"
-							style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
-						>
-							LUMINAL
-						</span>
-					</div>
-					<span className="sl-powered-badge text-[10px] tracking-wide text-(--text-secondary)">
-						Powered by <span className="sl-powered-brand font-semibold">DefiLlama</span>
+				<div className="hidden flex-col items-center gap-2.5 pb-3 md:flex">
+					<img src="/assets/defillama.webp" height={36} width={140} className="hidden object-contain dark:block" alt="DefiLlama" />
+					<img src="/assets/defillama-dark.webp" height={36} width={140} className="object-contain dark:hidden" alt="DefiLlama" />
+					<span className="rounded-full border border-(--sl-accent)/40 px-3 py-1 text-[9px] font-semibold tracking-[0.15em] uppercase text-(--sl-accent)/60 select-none">
+						Investor Relationships
 					</span>
 				</div>
 				<div className="mb-3 hidden h-px bg-(--sl-divider) md:block" />
@@ -199,8 +264,8 @@ function SuperLuminalContent() {
 										} else {
 											setActiveProject(project.id)
 											setExpandedProject(project.comingSoon ? expandedProject : project.id)
-											if (!project.comingSoon && tabs.length > 0) {
-												setActiveTab(tabs[0].id)
+											if (!project.comingSoon) {
+												setActiveTab('dashboard')
 											}
 											closeSidebar()
 										}
@@ -290,63 +355,12 @@ function SuperLuminalContent() {
 			</aside>
 
 			<div className="flex flex-1 flex-col gap-4 p-5 md:ml-56">
-				<header className="hidden items-center gap-3 md:flex">
-					<h1 className="text-xl font-semibold tracking-tight pro-text1">
-						{activeTab === 'dashboard' ? displayName || 'Dashboard' : tabs.find((t) => t.id === activeTab)?.label}
-					</h1>
-				</header>
-
-				{isComingSoonProject ? (
+				{activeProjectConfig?.comingSoon ? (
 					<ProjectComingSoon />
 				) : (
-					<>
-						{activeTab === 'dashboard' && (
-							<>
-								{items.length > 0 && (
-									<div className="w-full">
-										<ChartGrid onAddChartClick={NOOP} />
-									</div>
-								)}
-								{!protocolsLoading && items.length === 0 && <EmptyState onAddChart={NOOP} isReadOnly />}
-							</>
-						)}
-
-						{activeTab !== 'dashboard' &&
-							tabs.map((tab) => {
-								if (tab.id !== activeTab) return null
-								if (!tab.component) {
-									return <ComingSoonSection key={tab.id} tabId={tab.id} />
-								}
-								const TabComponent = tab.component
-								return (
-									<Suspense
-										key={tab.id}
-										fallback={
-											<div className="flex flex-1 items-center justify-center py-20">
-												<div className="sl-loader text-center leading-none select-none">
-													<span className="block text-[13px] font-medium tracking-[0.4em] text-(--sl-text-brand)">
-														SUPER
-													</span>
-													<span
-														className="block text-[34px] font-black tracking-[0.08em] text-transparent"
-														style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
-													>
-														LUMINAL
-													</span>
-												</div>
-											</div>
-										}
-									>
-										<TabComponent />
-										{tab.source && (
-											<p className="pt-4 pb-2 text-center text-xs tracking-wide text-(--text-tertiary)">
-												Data provided by {tab.source} API
-											</p>
-										)}
-									</Suspense>
-								)
-							})}
-					</>
+					<ProDashboardAPIProvider key={dashboardId} initialDashboardId={dashboardId}>
+						<SuperLuminalContent tabs={tabs} activeTab={activeTab} displayName={displayName} />
+					</ProDashboardAPIProvider>
 				)}
 			</div>
 		</div>
@@ -356,7 +370,7 @@ function SuperLuminalContent() {
 export default function SuperLuminalDashboard() {
 	return (
 		<AppMetadataProvider>
-			<SuperLuminalContent />
+			<SuperLuminalShell />
 		</AppMetadataProvider>
 	)
 }
