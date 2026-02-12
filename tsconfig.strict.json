@@ -22,6 +22,8 @@
 		"src/containers/Unlocks/**/*.ts",
 		"src/containers/Unlocks/**/*.tsx",
 		"src/containers/ProtocolOverview/**/*.ts",
-		"src/containers/ProtocolOverview/**/*.tsx"
+		"src/containers/ProtocolOverview/**/*.tsx",
+		"src/containers/Hacks/**/*.ts",
+		"src/containers/Hacks/**/*.tsx"
 	]
 }

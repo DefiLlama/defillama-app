@@ -143,8 +143,6 @@ export const ICONS_NFT_CDN = 'https://nft-icons.llamao.fi/icons'
 export const TWITTER_POSTS_API = `${DATASETS_SERVER_URL}/dev-metrics/twitter-files`
 export const TWITTER_POSTS_API_V2 = `${SERVER_URL}/twitter/user`
 
-export const HACKS_API = `${SERVER_URL}/hacks`
-
 const COINS_SERVER_URL = process.env.COINS_SERVER_URL ?? 'https://coins.llama.fi'
 export const COINS_PRICES_API = `${COINS_SERVER_URL}/prices`
 export const COINS_CHART_API = `${COINS_SERVER_URL}/chart`

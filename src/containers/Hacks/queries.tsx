@@ -1,65 +1,28 @@
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
-import { HACKS_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { firstDayOfMonth, formattedNum, slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
-
-export interface IHack {
-	date: number
-	name: string
-	classification: string
-	technique: string
-	amount: number
-	chain?: Array<string>
-	bridgeHack: boolean
-	targetType: string
-	source: string
-	returnedFunds: number | null
-	defillamaId: number
-	parentProtocolId: string
-	language: string | null
-}
-
-export interface IHacksPageData {
-	data: Array<{
-		chains: string[]
-		classification: string
-		date: number
-		target: string
-		amount: number
-		name: string
-		technique: string
-		bridge: boolean
-		link: string
-		language: string
-	}>
-	monthlyHacksChartData: { dataset: MultiSeriesChart2Dataset; charts: IMultiSeriesChart2Props['charts'] }
-	totalHacked: string
-	totalHackedDefi: string
-	totalRugs: string
-	pieChartData: Array<{ name: string; value: number }>
-	chainOptions: string[]
-	techniqueOptions: string[]
-	classificationOptions: string[]
-}
+import { fetchHacks } from './api'
+import type { IHackApiItem } from './api.types'
+import type { IHacksPageData, IProtocolTotalValueLostInHacksByProtocol } from './types'
 
 export async function getHacksPageData(): Promise<IHacksPageData> {
-	const data = (await fetchJson(HACKS_API)).map((h: IHack) => ({
+	const rawHacks = await fetchHacks()
+
+	const data = rawHacks.map((h) => ({
 		chains: h.chain ?? [],
-		classification: h.classification,
+		classification: h.classification ?? '',
 		date: h.date,
 		target: h.targetType,
-		amount: h.amount,
+		amount: h.amount ?? 0,
 		name: h.name,
-		technique: h.technique,
+		technique: h.technique ?? '',
 		bridge: h.bridgeHack,
 		link: h.source ?? '',
 		language: h.language ?? ''
 	}))
 
-	const monthlyHacks: Record<number, number> = {}
+	const monthlyHacks = new Map<number, number>()
 	const chainTotals = new Map<string, number>()
 	const techniqueTotals = new Map<string, number>()
 	const classificationTotals = new Map<string, number>()
@@ -67,22 +30,22 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 	let totalHackedDefiRaw = 0
 	let totalRugsRaw = 0
 
-	const addToTotal = (m: Map<string, number>, key: string | null | undefined, amount: number) => {
+	const addToTotal = (m: Map<string, number>, key: string, amount: number): void => {
 		if (!key) return
 		m.set(key, (m.get(key) ?? 0) + amount)
 	}
 
 	for (const hack of data) {
 		const monthlyDate = firstDayOfMonth(hack.date) * 1e3
-		monthlyHacks[monthlyDate] = (monthlyHacks[monthlyDate] ?? 0) + hack.amount
+		monthlyHacks.set(monthlyDate, (monthlyHacks.get(monthlyDate) ?? 0) + hack.amount)
 
 		totalHackedRaw += hack.amount
 		if (hack.target === 'DeFi Protocol') totalHackedDefiRaw += hack.amount
-		if (hack.bridge === true) totalRugsRaw += hack.amount
+		if (hack.bridge) totalRugsRaw += hack.amount
 
 		addToTotal(techniqueTotals, hack.technique, hack.amount)
 		addToTotal(classificationTotals, hack.classification, hack.amount)
-		for (const c of hack.chains || []) addToTotal(chainTotals, c, hack.amount)
+		for (const c of hack.chains) addToTotal(chainTotals, c, hack.amount)
 	}
 
 	const totalHacked = formattedNum(totalHackedRaw, true)
@@ -93,12 +56,11 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 		data: Array.from(techniqueTotals.entries()).map(([name, value]) => ({ name, value })),
 		limit: 15
 	})
-	const monthlyHacksChartData = []
-	for (const date in monthlyHacks) {
-		monthlyHacksChartData.push([+date, monthlyHacks[date]])
-	}
 
-	const byTotalDescThenNameAsc = (a: [string, number], b: [string, number]) => b[1] - a[1] || a[0].localeCompare(b[0])
+	const monthlyHacksChartData = Array.from(monthlyHacks.entries())
+
+	const byTotalDescThenNameAsc = (a: [string, number], b: [string, number]): number =>
+		b[1] - a[1] || a[0].localeCompare(b[0])
 
 	const chainOptions = Array.from(chainTotals.entries())
 		.sort(byTotalDescThenNameAsc)
@@ -139,9 +101,7 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 	}
 }
 
-export interface IProtocolTotalValueLostInHacksByProtocol {
-	protocols: Array<{ name: string; slug: string; route: string; totalHacked: number; returnedFunds: number }>
-}
+type ProtocolHackRow = IProtocolTotalValueLostInHacksByProtocol['protocols'][number]
 
 export async function getTotalValueLostInHacksByProtocol({
 	protocolMetadata
@@ -149,34 +109,35 @@ export async function getTotalValueLostInHacksByProtocol({
 	protocolMetadata: Record<string, IProtocolMetadata>
 }): Promise<IProtocolTotalValueLostInHacksByProtocol> {
 	try {
-		const data = await fetchJson(HACKS_API)
-		const protocols: Array<IHack> = data.filter((h: IHack) => h.defillamaId)
+		const rawHacks = await fetchHacks()
+		const protocols = rawHacks.filter((h): h is IHackApiItem & { defillamaId: number } => h.defillamaId != null)
 
-		const totalLostByProtocol = protocols.reduce((acc, hack) => {
+		const totalLostByProtocol = new Map<string, ProtocolHackRow>()
+
+		for (const hack of protocols) {
 			const protocol = protocolMetadata[hack.defillamaId]
 			if (protocol) {
-				const name = protocol.displayName || hack.name
-				if (!acc[name]) {
-					acc[name] = {
+				const name = protocol.displayName ?? hack.name
+				const existing = totalLostByProtocol.get(name)
+				if (existing) {
+					existing.totalHacked += hack.amount ?? 0
+					existing.returnedFunds += hack.returnedFunds ?? 0
+				} else {
+					totalLostByProtocol.set(name, {
 						name,
 						slug: slug(name),
 						route: hack.targetType === 'CEX' ? `/cex/${slug(name)}` : `/protocol/${slug(name)}`,
-						totalHacked: 0,
-						returnedFunds: 0
-					}
+						totalHacked: hack.amount ?? 0,
+						returnedFunds: hack.returnedFunds ?? 0
+					})
 				}
-				acc[name].totalHacked += hack.amount ?? 0
-				acc[name].returnedFunds += hack.returnedFunds ?? 0
 			}
-			return acc
-		}, {})
-
-		const finalProtocls = []
-		for (const protocol in totalLostByProtocol) {
-			finalProtocls.push(totalLostByProtocol[protocol])
 		}
-		return { protocols: finalProtocls.sort((a, b) => b.totalHacked - a.totalHacked) }
+
+		const result = Array.from(totalLostByProtocol.values()).sort((a, b) => b.totalHacked - a.totalHacked)
+		return { protocols: result }
 	} catch (error) {
 		console.log(error)
+		return { protocols: [] }
 	}
 }
