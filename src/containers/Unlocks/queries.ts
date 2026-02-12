@@ -9,16 +9,15 @@ import { buildUnlocksMultiSeriesChartForDateRange } from '~/containers/Unlocks/b
 import type { PrecomputedData, UnlocksData } from '~/containers/Unlocks/calendarTypes'
 import { batchFetchHistoricalPrices, capitalizeFirstLetter, getNDistinctColors, roundToNearestHalfHour } from '~/utils'
 import { fetchJson } from '~/utils/async'
-
-type EmissionsDataset = { source: Array<Record<string, number | null>>; dimensions: string[] }
-type EmissionsChartRow = { timestamp: number; [label: string]: number | null }
-type EmissionsChartConfig = Array<{
-	type: 'line'
-	name: string
-	encode: { x: 'timestamp'; y: string }
-	color: string | undefined
-	stack: string
-}>
+import type { EmissionsDataset, EmissionsChartRow, EmissionsChartConfig, EmissionEvent, ProtocolEmission, ProtocolEmissionDetail } from './api.types'
+import type {
+	ProtocolEmissionsChartsResult,
+	ProtocolEmissionsFullResult,
+	ProtocolEmissionsScheduleResult,
+	ProtocolEmissionsPieResult,
+	ProtocolEmissionWithHistory,
+	ProtocolEmissionResult
+} from './types'
 
 function buildEmissionsDataset(chartData: Array<EmissionsChartRow>, stacks: string[]): EmissionsDataset {
 	return {
@@ -37,30 +36,33 @@ function buildEmissionsCharts(stacks: string[], colors: Record<string, string>):
 	}))
 }
 
-type ProtocolEmissionResponse = any
-
-function parseProtocolEmissionApiResponse(raw: any): ProtocolEmissionResponse | null {
+function parseProtocolEmissionApiResponse(raw: unknown): ProtocolEmission | null {
 	if (!raw) return null
 
 	// Many endpoints respond as `{ body: string }`.
-	const body = typeof raw === 'object' && raw !== null && 'body' in raw ? (raw as any).body : raw
+	const body =
+		typeof raw === 'object' && raw !== null && 'body' in raw ? (raw as { body: unknown }).body : raw
 
 	if (body == null) return null
 	if (typeof body === 'string') {
 		try {
-			return JSON.parse(body)
+			return JSON.parse(body) as ProtocolEmission
 		} catch {
 			return null
 		}
 	}
 
-	return body
+	return body as ProtocolEmission
 }
 
-async function fetchProtocolEmission(protocolName: string): Promise<ProtocolEmissionResponse | null> {
+async function fetchProtocolEmission(protocolName: string): Promise<ProtocolEmissionDetail | null> {
 	if (!protocolName) return null
-	const raw = await fetchJson(`${PROTOCOL_EMISSION_API}/${protocolName}`).catch(() => null as any)
-	return parseProtocolEmissionApiResponse(raw)
+	const encodedProtocolName = encodeURIComponent(protocolName)
+	const raw = await fetchJson(`${PROTOCOL_EMISSION_API}/${encodedProtocolName}`).catch((error) => {
+		console.error(`Failed to fetch protocol emission for ${protocolName}:`, error)
+		return null as unknown
+	})
+	return parseProtocolEmissionApiResponse(raw) as ProtocolEmissionDetail | null
 }
 
 function formatEmissionLabel(label: unknown): string {
