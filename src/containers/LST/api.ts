@@ -1,4 +1,4 @@
-import { COINS_PRICES_API, PROTOCOL_API, PROTOCOLS_API, YIELD_POOLS_API } from '~/constants'
+import { COINS_PRICES_API, PROTOCOL_API, PROTOCOLS_API, YIELD_POOLS_API, YIELDS_SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type {
 	ICoinPriceApiResponse,
@@ -7,9 +7,6 @@ import type {
 	IProtocolDetailApiItem,
 	IYieldPoolApiItem
 } from './api.types'
-
-const YIELDS_SERVER_URL = process.env.YIELDS_SERVER_URL ?? 'https://yields.llama.fi'
-const LSD_RATES_API = `${YIELDS_SERVER_URL}/lsdRates`
 
 export async function fetchProtocols(): Promise<{ protocols: ILiteProtocolApiItem[] }> {
 	return fetchJson<{ protocols: ILiteProtocolApiItem[] }>(PROTOCOLS_API)
@@ -20,7 +17,7 @@ export async function fetchYieldPools(): Promise<{ data: IYieldPoolApiItem[] }> 
 }
 
 export async function fetchLsdRates(): Promise<ILsdRateApiItem[]> {
-	return fetchJson<ILsdRateApiItem[]>(LSD_RATES_API)
+	return fetchJson<ILsdRateApiItem[]>(`${YIELDS_SERVER_URL}/lsdRates`)
 }
 
 export async function fetchEthPrice(): Promise<number | null> {

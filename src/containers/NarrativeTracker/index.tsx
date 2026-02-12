@@ -8,9 +8,20 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, renderPercentChange } from '~/utils'
+import type { TimeSeriesEntry } from './api.types'
+import type { CategoryPerformanceProps, IPctChangeRow } from './types'
 
 interface ITreemapChartProps {
-	treeData: any[]
+	treeData: Array<{
+		value: [number, number | null, number | null]
+		name: string
+		path: string
+		children: Array<{
+			value: [number, number, number]
+			name: string
+			path: string
+		}>
+	}>
 	variant?: 'yields' | 'narrative'
 	height?: string
 }
@@ -23,21 +34,26 @@ const TreemapChart = React.lazy(() => import('~/components/ECharts/TreemapChart'
 const DEFAULT_SORTING_STATE = [{ id: 'change', desc: true }]
 
 // for linechart
-function calculateDenominatedChange(data, denominatedCoin) {
+function calculateDenominatedChange(
+	data: TimeSeriesEntry[] | undefined,
+	denominatedCoin: string
+): TimeSeriesEntry[] {
 	// Avoid mutating upstream arrays (performanceTimeSeries is reused across views).
 	const sortedData = [...(data ?? [])].sort((a, b) => a.date - b.date)
-	const denominatedReturns = []
+	if (sortedData.length === 0) return sortedData
 
-	const denominatedCoinDay0 = sortedData?.[0]?.[denominatedCoin]
+	const denominatedCoinDay0 = sortedData[0]?.[denominatedCoin]
 	if (denominatedCoinDay0 == null) return sortedData
 
-	for (const dayData of sortedData) {
-		const newDayData = { date: dayData.date }
+	const denominatedReturns: TimeSeriesEntry[] = []
 
-		for (const category in dayData) {
+	for (const dayData of sortedData) {
+		const newDayData: TimeSeriesEntry = { date: dayData.date }
+
+		for (const [category, value] of Object.entries(dayData)) {
 			if (category !== 'date' && category !== denominatedCoin) {
 				// calculate relative performance
-				const categoryPerformance = 1 + dayData[category] / 100
+				const categoryPerformance = 1 + value / 100
 				const denominatedCoinPerformance = 1 + dayData[denominatedCoin] / 100
 				const relativePerformance = (categoryPerformance / denominatedCoinPerformance - 1) * 100
 
@@ -52,20 +68,22 @@ function calculateDenominatedChange(data, denominatedCoin) {
 }
 
 // for bar + heatmap
-function calculateDenominatedChange2(data, denominatedCoin, field) {
-	// If we don't have a denom coin entry for the current period,
-	// we can't compute a relative return. Return the original data (no-op).
-	const denomRow = data?.find?.((i) => i?.name === denominatedCoin)
-	const denomChangeRaw = denomRow?.[field]
+function calculateDenominatedChange2(
+	data: IPctChangeRow[],
+	denominatedCoin: string,
+	field: string
+): IPctChangeRow[] {
+	const denomRow = data.find((i) => i.name === denominatedCoin)
+	const denomChangeRaw = denomRow?.[field as keyof IPctChangeRow]
 	const denomChange = typeof denomChangeRaw === 'number' ? denomChangeRaw : Number(denomChangeRaw)
 	if (!Number.isFinite(denomChange)) return data
 
 	const denominatedCoinPerformance = 1 + denomChange / 100
 	if (!Number.isFinite(denominatedCoinPerformance) || denominatedCoinPerformance === 0) return data
 
-	const denominatedReturns = []
-	for (const i of data ?? []) {
-		const raw = i?.[field]
+	const denominatedReturns: IPctChangeRow[] = []
+	for (const i of data) {
+		const raw = i[field as keyof IPctChangeRow]
 		const change = typeof raw === 'number' ? raw : Number(raw)
 		if (!Number.isFinite(change)) {
 			denominatedReturns.push({ ...i, [field]: raw })
@@ -82,15 +100,18 @@ function calculateDenominatedChange2(data, denominatedCoin, field) {
 const PERIODS = ['7D', '30D', 'YTD', '365D'] as const
 const DENOMS = ['$', 'BTC', 'ETH', 'SOL'] as const
 
+type Period = (typeof PERIODS)[number]
+type Denom = (typeof DENOMS)[number]
+
 // Unified period configuration to avoid redundant lookups
-const PERIOD_CONFIG: Record<(typeof PERIODS)[number], { field: string; seriesKey: string }> = {
+const PERIOD_CONFIG: Record<Period, { field: string; seriesKey: string }> = {
 	'7D': { field: 'change1W', seriesKey: '7' },
 	'30D': { field: 'change1M', seriesKey: '30' },
 	YTD: { field: 'changeYtd', seriesKey: 'ytd' },
 	'365D': { field: 'change1Y', seriesKey: '365' }
 }
 
-const DENOM_COIN_MAP: Record<(typeof DENOMS)[number], string> = {
+const DENOM_COIN_MAP: Record<Denom, string> = {
 	$: '$',
 	BTC: 'Bitcoin',
 	ETH: 'Ethereum',
@@ -103,10 +124,10 @@ export const CategoryPerformanceContainer = ({
 	areaChartLegend,
 	isCoinPage,
 	categoryName
-}) => {
+}: CategoryPerformanceProps) => {
 	const [tab, setTab] = React.useState('linechart')
-	const [groupBy, setGroupBy] = React.useState<(typeof PERIODS)[number]>('30D')
-	const [groupByDenom, setGroupByDenom] = React.useState<(typeof DENOMS)[number]>('$')
+	const [groupBy, setGroupBy] = React.useState<Period>('30D')
+	const [groupByDenom, setGroupByDenom] = React.useState<Denom>('$')
 
 	const [selectedSeries, setSelectedSeries] = React.useState<string[]>(areaChartLegend ?? [])
 
@@ -127,26 +148,25 @@ export const CategoryPerformanceContainer = ({
 		const { field, seriesKey } = PERIOD_CONFIG[groupBy]
 		const series = performanceTimeSeries?.[seriesKey] ?? []
 
-		const hasTimeSeriesDenom = (coinName: string) => {
+		const hasTimeSeriesDenom = (coinName: string): boolean => {
 			if (!Array.isArray(series) || series.length === 0) return false
-			// Need at least one finite datapoint to denominate.
 			for (const row of series) {
 				if (!row || typeof row !== 'object') continue
-				const v = (row as any)[coinName]
+				const v = row[coinName]
 				const n = typeof v === 'number' ? v : Number(v)
 				if (Number.isFinite(n)) return true
 			}
 			return false
 		}
 
-		const hasPctDenom = (coinName: string) => {
-			const row = pctChanges?.find?.((i) => i?.name === coinName)
-			const v = row?.[field]
+		const hasPctDenom = (coinName: string): boolean => {
+			const row = pctChanges.find((i) => i.name === coinName)
+			const v = row?.[field as keyof IPctChangeRow]
 			const n = typeof v === 'number' ? v : Number(v)
 			return Number.isFinite(n)
 		}
 
-		const disabled: (typeof DENOMS)[number][] = []
+		const disabled: Denom[] = []
 		for (const denom of DENOMS) {
 			if (denom === '$') continue
 			const coinName = DENOM_COIN_MAP[denom]
@@ -177,14 +197,16 @@ export const CategoryPerformanceContainer = ({
 			? pctChangesDenom.filter((i) => !['bitcoin', 'ethereum', 'solana'].includes(i.id))
 			: pctChangesDenom
 
-		const sorted = [...pctChangesDenom].sort((a, b) => b[field] - a[field]).map((i) => ({ ...i, change: i[field] }))
+		const sorted = [...pctChangesDenom]
+			.sort((a, b) => ((b[field as keyof IPctChangeRow] as number) ?? 0) - ((a[field as keyof IPctChangeRow] as number) ?? 0))
+			.map((i) => ({ ...i, change: i[field as keyof IPctChangeRow] as number | null }))
 
-		const treemapChart = sorted.map((i) => ({ ...i, returnField: i[field] }))
+		const treemapData = sorted.map((i) => ({ ...i, returnField: i[field as keyof IPctChangeRow] as number | null }))
 
 		let chart = performanceTimeSeries?.[seriesKey]
 		chart = denomCoin === '$' ? chart : calculateDenominatedChange(chart, denomCoin)
 
-		return { sortedPctChanges: sorted, timeSeries: chart, treemapChart }
+		return { sortedPctChanges: sorted, timeSeries: chart, treemapChart: treemapData }
 	}, [pctChanges, groupBy, performanceTimeSeries, groupByDenom, isCoinPage])
 
 	const selectedCharts = React.useMemo(() => {
@@ -232,17 +254,18 @@ export const CategoryPerformanceContainer = ({
 	}, [areaChartLegend])
 
 	const treemapTreeData = React.useMemo(() => {
-		const safeReturn = (v: number | null | undefined) => {
+		const safeReturn = (v: number | null | undefined): number => {
 			return typeof v === 'number' && Number.isFinite(v) ? parseFloat(v.toFixed(2)) : 0
 		}
 
-		const treeData = []
+		const treeData: ITreemapChartProps['treeData'] = []
 		const cData = treemapChart
 
 		// structure into hierarchy
-		for (let cat of [...new Set(cData.map((p) => p.categoryName))]) {
-			const catData = cData.filter((p) => p.categoryName === cat)
-			const catMcap = catData.map((p) => p.mcap).reduce((a, b) => a + b, 0)
+		const categoryNames = [...new Set(cData.map((p) => p.categoryName ?? ''))]
+		for (const cat of categoryNames) {
+			const catData = cData.filter((p) => (p.categoryName ?? '') === cat)
+			const catMcap = catData.reduce((sum, p) => sum + p.mcap, 0)
 
 			treeData.push({
 				value: [catMcap, null, null],
@@ -251,7 +274,7 @@ export const CategoryPerformanceContainer = ({
 				children: catData.map((p) => ({
 					value: [p.mcap, safeReturn(p.returnField), safeReturn(p.returnField)],
 					name: p.name,
-					path: `${p.categoryName}/${p.name}`
+					path: `${p.categoryName ?? ''}/${p.name}`
 				}))
 			})
 		}
@@ -299,11 +322,11 @@ export const CategoryPerformanceContainer = ({
 				</div>
 
 				<div className="flex items-center justify-end gap-2 p-2">
-					<TagGroup values={PERIODS} selectedValue={groupBy} setValue={(val: typeof groupBy) => setGroupBy(val)} />
+					<TagGroup values={PERIODS} selectedValue={groupBy} setValue={(val) => setGroupBy(val as Period)} />
 					<TagGroup
 						values={DENOMS}
 						selectedValue={groupByDenom}
-						setValue={(val: typeof groupByDenom) => setGroupByDenom(val)}
+						setValue={(val) => setGroupByDenom(val as Denom)}
 						label="Denom (vs):"
 						disabledValues={disabledDenoms}
 					/>
@@ -379,25 +402,7 @@ export const CategoryPerformanceContainer = ({
 	)
 }
 
-interface CategoryPerformanceRow {
-	id: string
-	name: string
-	mcap: number
-	change1W: number
-	change1M: number
-	change1Y: number
-	nbCoins: number
-}
-
-interface CoinPerformanceRow {
-	id: string
-	mcap: number
-	change1W: number
-	change1M: number
-	change1Y: number
-}
-
-const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
+const CoinPerformanceColumn: ColumnDef<IPctChangeRow>[] = [
 	{
 		header: 'Coin',
 		accessorKey: 'name',
@@ -411,7 +416,7 @@ const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 						target="_blank"
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue() as string | null}
+						{getValue<string | null>()}
 					</BasicLink>
 				</span>
 			)
@@ -421,7 +426,7 @@ const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 	{
 		header: 'Δ%',
 		accessorKey: 'change',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>,
 		meta: {
 			align: 'end',
 			headerHelperText: `Shows how a coin has performed over your chosen time period and in your selected denomination (e.g., $, BTC).`
@@ -431,7 +436,7 @@ const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 	{
 		header: 'Market Cap',
 		accessorKey: 'mcap',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		cell: ({ getValue }) => <>{formattedNum(getValue<number>(), true)}</>,
 		meta: {
 			align: 'end'
 		},
@@ -440,7 +445,10 @@ const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 	{
 		header: '24h Volume',
 		accessorKey: 'volume1D',
-		cell: ({ getValue }) => <>{getValue() ? formattedNum(getValue(), true) : null}</>,
+		cell: ({ getValue }) => {
+			const value = getValue<number | null>()
+			return <>{value != null ? formattedNum(value, true) : null}</>
+		},
 		meta: {
 			align: 'end'
 		},
@@ -448,7 +456,7 @@ const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 	}
 ]
 
-const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
+const CategoryPerformanceColumn: ColumnDef<IPctChangeRow>[] = [
 	{
 		header: 'Category',
 		accessorKey: 'name',
@@ -463,14 +471,14 @@ const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
 							target="_blank"
 							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
-							{getValue() as string | null}
+							{getValue<string | null>()}
 						</BasicLink>
 					) : (
 						<BasicLink
 							href={`/narrative-tracker/${row.original.id}`}
 							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
-							{getValue() as string | null}
+							{getValue<string | null>()}
 						</BasicLink>
 					)}
 				</span>
@@ -481,7 +489,7 @@ const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
 	{
 		header: 'Δ%',
 		accessorKey: 'change',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>,
 		meta: {
 			align: 'end',
 			headerHelperText: `Shows how a category of coins has performed over your chosen time period and in your selected denomination (e.g., $, BTC). Method: 1. calculating the percentage change for each individual coin in the category. 2. weighting these changes based on each coin's market capitalization. 3. averaging these weighted changes to get the overall category performance.`
@@ -491,7 +499,7 @@ const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
 	{
 		header: 'Market Cap',
 		accessorKey: 'mcap',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		cell: ({ getValue }) => <>{formattedNum(getValue<number>(), true)}</>,
 		meta: {
 			align: 'end'
 		},
@@ -500,7 +508,10 @@ const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
 	{
 		header: '24h Volume',
 		accessorKey: 'volume1D',
-		cell: ({ getValue }) => <>{getValue() ? formattedNum(getValue(), true) : null}</>,
+		cell: ({ getValue }) => {
+			const value = getValue<number | null>()
+			return <>{value != null ? formattedNum(value, true) : null}</>
+		},
 		meta: {
 			align: 'end'
 		},
