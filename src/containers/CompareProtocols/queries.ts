@@ -20,28 +20,25 @@ export async function getCompareProtocolsPageData(): Promise<{
 		props: {
 			protocols,
 			protocolsList: protocols
-				.reduce<Array<{ value: string; label: string; logo: string; score: number }>>(
-					(acc, protocol) => {
-						acc.push({
-							value: protocol.name,
-							label: protocol.name,
-							logo: tokenIconUrl(protocol.name),
-							score: protocol.tvl?.default?.tvl ?? 0
-						})
-						if (protocol.childProtocols) {
-							for (const childProtocol of protocol.childProtocols) {
-								acc.push({
-									value: childProtocol.name,
-									label: childProtocol.name,
-									logo: tokenIconUrl(childProtocol.name),
-									score: 1
-								})
-							}
+				.reduce<Array<{ value: string; label: string; logo: string; score: number }>>((acc, protocol) => {
+					acc.push({
+						value: protocol.name,
+						label: protocol.name,
+						logo: tokenIconUrl(protocol.name),
+						score: protocol.tvl?.default?.tvl ?? 0
+					})
+					if (protocol.childProtocols) {
+						for (const childProtocol of protocol.childProtocols) {
+							acc.push({
+								value: childProtocol.name,
+								label: childProtocol.name,
+								logo: tokenIconUrl(childProtocol.name),
+								score: 1
+							})
 						}
-						return acc
-					},
-					[]
-				)
+					}
+					return acc
+				}, [])
 				.sort((a, b) => b.score - a.score)
 		},
 		revalidate: maxAgeForNext([22])

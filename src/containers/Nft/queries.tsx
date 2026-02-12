@@ -60,18 +60,19 @@ type NftDataResult = {
 }
 
 type ExtendedNftCollection = RawNftCollection & {
-	volume1d: number | null
-	volume7d: number | null
-	volume30d: number | null
-	sales1d: number | null
+	volume1d: number
+	volume7d: number
+	volume30d: number
+	sales1d: number
 }
 
 export const getNFTData = async (): Promise<NftDataResult> => {
 	try {
 		const [collections, volumes] = await Promise.all([fetchNftCollections(), fetchNftVolumes()])
+		const volumeByCollection = new Map(volumes.map((volume) => [volume.collection, volume] as const))
 
 		const data = collections.map((collection) => {
-			const volume = volumes.find((cx) => cx.collection === collection.collectionId)
+			const volume = volumeByCollection.get(collection.collectionId)
 
 			return {
 				...collection,
@@ -140,9 +141,7 @@ export const getNFTMarketplacesData = async () => {
 		})
 	])
 
-	const volumeSorted = volume
-		.map((v) => ({ ...v, date: new Date(v.day).getTime() }))
-		.sort((a, b) => a.date - b.date)
+	const volumeSorted = volume.map((v) => ({ ...v, date: new Date(v.day).getTime() })).sort((a, b) => a.date - b.date)
 
 	const [volumeData, dominance, volumeChartStacks] = formatNftVolume(volumeSorted, 'sum')
 	const [tradeData, dominanceTrade, tradeChartStacks] = formatNftVolume(volumeSorted, 'count')

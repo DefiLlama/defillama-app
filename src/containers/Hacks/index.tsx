@@ -62,7 +62,18 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 			['Name', 'Date', 'Amount', 'Chains', 'Classification', 'Target', 'Technique', 'Bridge', 'Language', 'Link']
 		]
 		for (const { name, date, amount, chains, classification, target, technique, bridge, language, link } of data) {
-			rows.push([name, date, amount, chains?.join(',') ?? '', classification, target, technique, bridge, language, link])
+			rows.push([
+				name,
+				date,
+				amount,
+				chains?.join(',') ?? '',
+				classification,
+				target,
+				technique,
+				bridge,
+				language,
+				link
+			])
 		}
 		return { filename: 'hacks.csv', rows }
 	}

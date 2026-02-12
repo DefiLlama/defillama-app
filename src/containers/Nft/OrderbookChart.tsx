@@ -142,7 +142,9 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 			tooltip: {
 				trigger: 'axis',
 				confine: true,
-				formatter: function (params: Array<{ marker: string; seriesName: string; value: [number, number, number, number, string] }>) {
+				formatter: function (
+					params: Array<{ marker: string; seriesName: string; value: [number, number, number, number, string] }>
+				) {
 					const point = params?.[0]
 					if (!point) return ''
 

@@ -34,10 +34,7 @@ const TreemapChart = React.lazy(() => import('~/components/ECharts/TreemapChart'
 const DEFAULT_SORTING_STATE = [{ id: 'change', desc: true }]
 
 // for linechart
-function calculateDenominatedChange(
-	data: TimeSeriesEntry[] | undefined,
-	denominatedCoin: string
-): TimeSeriesEntry[] {
+function calculateDenominatedChange(data: TimeSeriesEntry[] | undefined, denominatedCoin: string): TimeSeriesEntry[] {
 	// Avoid mutating upstream arrays (performanceTimeSeries is reused across views).
 	const sortedData = [...(data ?? [])].sort((a, b) => a.date - b.date)
 	if (sortedData.length === 0) return sortedData
@@ -50,8 +47,7 @@ function calculateDenominatedChange(
 	for (const dayData of sortedData) {
 		const newDayData: TimeSeriesEntry = { date: dayData.date }
 		const denominatedCoinValue = asFiniteNumber(dayData[denominatedCoin])
-		const denominatedCoinPerformance =
-			denominatedCoinValue == null ? null : 1 + denominatedCoinValue / 100
+		const denominatedCoinPerformance = denominatedCoinValue == null ? null : 1 + denominatedCoinValue / 100
 		if (!Number.isFinite(denominatedCoinPerformance) || denominatedCoinPerformance === 0) {
 			denominatedReturns.push(newDayData)
 			continue

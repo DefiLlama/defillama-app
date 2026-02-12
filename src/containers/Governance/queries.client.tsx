@@ -70,6 +70,15 @@ function normalizeGovernanceStats(stats: RawGovernanceResponse['stats']): Govern
 	}
 }
 
+function normalizeMetadata(raw: RawGovernanceResponse['metadata']): GovernanceDataEntry['metadata'] {
+	if (!raw) return null
+
+	return {
+		name: typeof raw.name === 'string' ? raw.name : undefined,
+		followersCount: typeof raw.followersCount === 'number' ? raw.followersCount : undefined
+	}
+}
+
 export async function fetchAndFormatGovernanceData(apis: Array<string> | null): Promise<GovernanceDataEntry[]> {
 	if (!apis) return []
 
@@ -79,7 +88,7 @@ export async function fetchAndFormatGovernanceData(apis: Array<string> | null): 
 				const { proposals, activity, maxVotes } = formatGovernanceData(raw)
 
 				return {
-					metadata: (raw.metadata as GovernanceDataEntry['metadata']) ?? null,
+					metadata: normalizeMetadata(raw.metadata),
 					stats: normalizeGovernanceStats(raw.stats),
 					proposals,
 					controversialProposals: [...proposals]
@@ -110,7 +119,7 @@ export function getGovernanceTypeFromApi(apiUrl: string): GovernanceType {
 export const useFetchProtocolGovernanceData = (governanceApis: Array<string> | null) => {
 	const isEnabled = governanceApis != null && governanceApis.length > 0
 	return useQuery({
-		queryKey: ['protocol-governance', JSON.stringify(governanceApis), isEnabled],
+		queryKey: ['protocol-governance', JSON.stringify(governanceApis)],
 		queryFn: isEnabled ? () => fetchAndFormatGovernanceData(governanceApis) : () => Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -136,7 +145,9 @@ function processProposal(proposal: RawProposal): GovernanceProposal {
 		totalVotes,
 		winningChoice: winningIndex >= 0 ? (choices[winningIndex] ?? '') : '',
 		winningPerc:
-			totalVotes !== 0 && winningScore != null ? `(${Number(((winningScore / totalVotes) * 100).toFixed(2))}% of votes)` : ''
+			totalVotes !== 0 && winningScore != null
+				? `(${Number(((winningScore / totalVotes) * 100).toFixed(2))}% of votes)`
+				: ''
 	}
 }
 
@@ -161,6 +172,7 @@ export function formatGovernanceData(data: RawGovernanceResponse): {
 	const activity: GovernanceActivityRow[] = []
 	const maxVotes: GovernanceMaxVotesRow[] = []
 	const statsMonths = data.stats?.months ?? {}
+	const proposalById = new Map(proposals.map((proposal) => [proposal.id, proposal] as const))
 	for (const [date, values] of Object.entries(statsMonths)) {
 		const timestamp = Math.floor(new Date(date).getTime() / 1000)
 		if (!Number.isFinite(timestamp)) continue
@@ -173,7 +185,7 @@ export function formatGovernanceData(data: RawGovernanceResponse): {
 
 		let maxVotesValue = 0
 		for (const proposalId of Array.isArray(values.proposals) ? values.proposals : []) {
-			const votes = proposals.find((p) => p.id === proposalId)?.totalVotes ?? 0
+			const votes = proposalById.get(proposalId)?.totalVotes ?? 0
 			if (votes > maxVotesValue) {
 				maxVotesValue = votes
 			}

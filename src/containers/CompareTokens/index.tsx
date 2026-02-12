@@ -9,7 +9,6 @@ import { LocalLoader } from '~/components/Loaders'
 import { CACHE_SERVER } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
 import { fetchJson } from '~/utils/async'
-
 import type { Protocol } from './types'
 
 const EMPTY_SELECTED_COINS: Record<string, IResponseCGMarketsAPI> = {}
@@ -86,13 +85,7 @@ function computeComparison(
 	return { newPrice, increase }
 }
 
-export function CompareTokens({
-	coinsData,
-	protocols
-}: {
-	coinsData: IResponseCGMarketsAPI[]
-	protocols: Protocol[]
-}) {
+export function CompareTokens({ coinsData, protocols }: { coinsData: IResponseCGMarketsAPI[]; protocols: Protocol[] }) {
 	const router = useRouter()
 	const [isModalOpen, setModalOpen] = useState(0)
 	const coinParam = router.query?.coin
@@ -103,16 +96,10 @@ export function CompareTokens({
 		[coinsData]
 	)
 	const protocolsByGeckoId = useMemo(
-		() =>
-			new Map<string, Protocol>(
-				protocols.flatMap((p) => (p.geckoId ? [[p.geckoId, p] as const] : []))
-			),
+		() => new Map<string, Protocol>(protocols.flatMap((p) => (p.geckoId ? [[p.geckoId, p] as const] : []))),
 		[protocols]
 	)
-	const protocolsByName = useMemo(
-		() => new Map<string, Protocol>(protocols.map((p) => [p.name, p])),
-		[protocols]
-	)
+	const protocolsByName = useMemo(() => new Map<string, Protocol>(protocols.map((p) => [p.name, p])), [protocols])
 
 	const { selectedCoins, coins, compareType } = useMemo(() => {
 		const queryCoins = coinParam ?? ([] as string[])
@@ -339,9 +326,8 @@ export function CompareTokens({
 
 							{comparison != null ? (
 								<p className="text-lg font-bold">
-									$
-									{comparison.newPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}{' '}
-									({comparison.increase.toFixed(2)}x)
+									${comparison.newPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} (
+									{comparison.increase.toFixed(2)}x)
 								</p>
 							) : null}
 						</div>

@@ -483,9 +483,9 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 				/>
 				<div className="w-full border-t border-(--form-control-border) pt-4">
 					<p className="mx-auto max-w-xl text-center text-sm text-(--text-secondary)">
-						Correlation is calculated from log returns built on approximately 20-minute interval price points. A
-						pair must have at least {minReturnPoints} aligned return observations for this period; otherwise,
-						the matrix shows --.
+						Correlation is calculated from log returns built on approximately 20-minute interval price points. A pair
+						must have at least {minReturnPoints} aligned return observations for this period; otherwise, the matrix
+						shows --.
 					</p>
 				</div>
 			</div>

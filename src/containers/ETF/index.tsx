@@ -34,13 +34,16 @@ const DEFAULT_SORTING_STATE = [{ id: 'aum', desc: true }]
 export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETFOverviewProps) => {
 	const [groupBy, setGroupBy] = React.useState<GroupBy>('Weekly')
 	const [tickers, setTickers] = React.useState<string[]>(['Bitcoin', 'Ethereum', 'Solana'])
-	const setTickersFromSelect: React.Dispatch<React.SetStateAction<Array<string> | string>> = React.useCallback((next) => {
-		setTickers((prev) => {
-			const resolved = typeof next === 'function' ? next(prev) : next
-			if (Array.isArray(resolved)) return resolved
-			return resolved ? [resolved] : []
-		})
-	}, [])
+	const setTickersFromSelect: React.Dispatch<React.SetStateAction<Array<string> | string>> = React.useCallback(
+		(next) => {
+			setTickers((prev) => {
+				const resolved = typeof next === 'function' ? next(prev) : next
+				if (Array.isArray(resolved)) return resolved
+				return resolved ? [resolved] : []
+			})
+		},
+		[]
+	)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const chartData = React.useMemo(() => {
@@ -157,9 +160,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 									</p>
 									<p className="flex flex-wrap justify-start gap-4 pl-8">
 										<span className="text-(--text-label)">AUM</span>
-										<span className="ml-auto font-jetbrains text-base font-medium">
-											{formattedNum(aum, true)}
-										</span>
+										<span className="ml-auto font-jetbrains text-base font-medium">{formattedNum(aum, true)}</span>
 									</p>
 								</div>
 							)
@@ -169,11 +170,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 				<div className="flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-2">
 					<div className="flex flex-wrap justify-end gap-2 p-2 pb-0">
 						<h2 className="mr-auto text-lg font-semibold">Flows (Source: Farside)</h2>
-						<TagGroup
-							setValue={(val) => setGroupBy(val as GroupBy)}
-							values={GROUP_BY_LIST}
-							selectedValue={groupBy}
-						/>
+						<TagGroup setValue={(val) => setGroupBy(val as GroupBy)} values={GROUP_BY_LIST} selectedValue={groupBy} />
 						<Select
 							allValues={ASSET_VALUES}
 							selectedValues={tickers}
@@ -239,9 +236,7 @@ const columns: ColumnDef<IETFSnapshotRow>[] = [
 		header: 'Coin',
 		accessorKey: 'chain',
 		enableSorting: true,
-		cell: ({ getValue }) => (
-			<IconsRow links={getValue<string[]>()} url="" iconType="chain" disableLinks={true} />
-		),
+		cell: ({ getValue }) => <IconsRow links={getValue<string[]>()} url="" iconType="chain" disableLinks={true} />,
 		meta: {
 			align: 'end'
 		},
@@ -257,11 +252,7 @@ const columns: ColumnDef<IETFSnapshotRow>[] = [
 			return (
 				<span
 					className={
-						value != null && value > 0
-							? 'text-(--success)'
-							: value != null && value < 0
-								? 'text-(--error)'
-								: ''
+						value != null && value > 0 ? 'text-(--success)' : value != null && value < 0 ? 'text-(--error)' : ''
 					}
 				>
 					{formattedValue}

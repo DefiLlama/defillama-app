@@ -13,7 +13,7 @@ import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { formattedNum, toNiceDayMonthAndYear } from '~/utils'
-import type { GovernanceProposal } from './types'
+import type { GovernanceProposal, GovernanceType } from './types'
 
 export function GovernanceTable({
 	data,
@@ -21,7 +21,7 @@ export function GovernanceTable({
 	filters = null
 }: {
 	data: { proposals: GovernanceProposal[]; controversialProposals: GovernanceProposal[] }
-	governanceType: string
+	governanceType: GovernanceType
 	filters?: React.ReactNode
 }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])

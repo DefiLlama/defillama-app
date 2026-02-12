@@ -8,7 +8,11 @@ export const getStaticProps = withPerformanceLogging('compare-chains', getCompar
 
 const pageName = ['Compare Chains']
 
-export default function CompareChainsPage({ chains }: { chains: Array<{ value: string; label: string; logo: string }> }) {
+export default function CompareChainsPage({
+	chains
+}: {
+	chains: Array<{ value: string; label: string; logo: string }>
+}) {
 	return (
 		<Layout
 			title={`Compare Chains - DefiLlama`}

@@ -456,7 +456,9 @@ const TokenPnlContent = ({
 				<StatsCard label="End Price" value={`$${formattedNum(metrics.endPrice)}`} />
 				<StatsCard
 					label="24h Change"
-					value={coinInfo?.price_change_percentage_24h != null ? formatPercent(coinInfo.price_change_percentage_24h) : '0%'}
+					value={
+						coinInfo?.price_change_percentage_24h != null ? formatPercent(coinInfo.price_change_percentage_24h) : '0%'
+					}
 					subtle={
 						coinInfo?.price_change_24h != null
 							? `${coinInfo.price_change_24h >= 0 ? '+' : ''}$${formattedNum(coinInfo.price_change_24h)}`
@@ -522,7 +524,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 		return {
 			selectedCoins: coins,
 			selectedCoinId: coins[0],
-			selectedCoinInfo: coins[0] ? coinInfoMap.get(coins[0]) ?? null : null
+			selectedCoinInfo: coins[0] ? (coinInfoMap.get(coins[0]) ?? null) : null
 		}
 	}, [coinParam, coinInfoMap])
 

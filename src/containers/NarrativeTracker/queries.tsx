@@ -22,10 +22,9 @@ export async function getCategoryPerformance(): Promise<CategoryPerformanceProps
 
 	const [performanceEntries, info] = await Promise.all([
 		Promise.all(
-			periods.map(async (period): Promise<[string, TimeSeriesEntry[]]> => [
-				period,
-				await fetchCategoryPerformance(period)
-			])
+			periods.map(
+				async (period): Promise<[string, TimeSeriesEntry[]]> => [period, await fetchCategoryPerformance(period)]
+			)
 		),
 		fetchCategoryInfo()
 	])
@@ -109,9 +108,7 @@ export async function getCoinPerformance(categoryId: string): Promise<CategoryPe
 		getCategoryInfo()
 	])
 
-	const coinsUniqueIncludingDenomCoins: Record<string, string> = Object.fromEntries(
-		coinInfo.map((c) => [c.id, c.name])
-	)
+	const coinsUniqueIncludingDenomCoins: Record<string, string> = Object.fromEntries(coinInfo.map((c) => [c.id, c.name]))
 
 	const ts7 = calculateCumulativePercentageChange(prices, coinsUniqueIncludingDenomCoins, 7)
 	const ts30 = calculateCumulativePercentageChange(prices, coinsUniqueIncludingDenomCoins, 30)

@@ -4,13 +4,7 @@ export const get24hChange = (chart: ChartEntry[]): string | number => {
 	if (!chart?.length || chart.length < 2) return 0
 	const yesterday = chart[chart.length - 2]?.[1]
 	const today = chart[chart.length - 1]?.[1]
-	if (
-		yesterday == null ||
-		today == null ||
-		!Number.isFinite(yesterday) ||
-		!Number.isFinite(today) ||
-		yesterday === 0
-	) {
+	if (yesterday == null || today == null || !Number.isFinite(yesterday) || !Number.isFinite(today) || yesterday === 0) {
 		return 0
 	}
 
@@ -21,13 +15,7 @@ export const getNDaysChange = (chart: ChartEntry[], days = 7): string | number =
 	if (!chart?.length || chart.length <= days) return 0
 	const yesterday = chart[chart.length - 1 - days]?.[1]
 	const today = chart[chart.length - 1]?.[1]
-	if (
-		yesterday == null ||
-		today == null ||
-		!Number.isFinite(yesterday) ||
-		!Number.isFinite(today) ||
-		yesterday === 0
-	) {
+	if (yesterday == null || today == null || !Number.isFinite(yesterday) || !Number.isFinite(today) || yesterday === 0) {
 		return 0
 	}
 
