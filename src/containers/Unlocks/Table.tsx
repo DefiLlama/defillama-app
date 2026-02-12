@@ -197,13 +197,13 @@ export const UnlocksTable = ({
 				const filteredUpcomingEvent =
 					selectedUnlockTypes.length === UNLOCK_TYPES.length
 						? protocol.upcomingEvent
-						: protocol.upcomingEvent?.filter(
+						: (protocol.upcomingEvent ?? []).filter(
 								(event) => typeof event.category === 'string' && selectedUnlockTypes.includes(event.category)
 							)
 
 				return {
 					...protocol,
-					upcomingEvent: filteredUpcomingEvent
+					upcomingEvent: filteredUpcomingEvent ?? []
 				}
 			})
 			.filter((protocol) => {
@@ -224,30 +224,25 @@ export const UnlocksTable = ({
 				}
 
 				if (shouldInclude && selectedUnlockTypes.length !== UNLOCK_TYPES.length) {
-					const hasMatchingType = protocol.upcomingEvent?.length > 0
-					if (!hasMatchingType) shouldInclude = false
+					if (protocol.upcomingEvent.length === 0) shouldInclude = false
 				}
 
+				const computeUnlockValue = () =>
+					protocol.upcomingEvent.reduce((sum: number, event) => {
+						if (!event || event.timestamp == null || event.noOfTokens.length === 0 || protocol.tPrice == null)
+							return sum
+						const totalTokens = event.noOfTokens.reduce((s: number, amount: number) => s + amount, 0)
+						return sum + totalTokens * protocol.tPrice
+					}, 0)
+
 				if (shouldInclude && (minUnlockValue !== null || maxUnlockValue !== null)) {
-					const totalUnlockValue =
-						protocol.upcomingEvent?.reduce((sum: number, event) => {
-							if (!event || event.timestamp == null || event.noOfTokens.length === 0 || protocol.tPrice == null)
-								return sum
-							const totalTokens = event.noOfTokens.reduce((s: number, amount: number) => s + amount, 0)
-							return sum + totalTokens * protocol.tPrice
-						}, 0) ?? 0
+					const totalUnlockValue = computeUnlockValue()
 					if (minUnlockValue !== null && totalUnlockValue < minUnlockValue) shouldInclude = false
 					if (maxUnlockValue !== null && totalUnlockValue > maxUnlockValue) shouldInclude = false
 				}
 
 				if (shouldInclude && (minPerc !== '' || maxPerc !== '')) {
-					const totalUnlockValue =
-						protocol.upcomingEvent?.reduce((sum: number, event) => {
-							if (!event || event.timestamp == null || event.noOfTokens.length === 0 || protocol.tPrice == null)
-								return sum
-							const totalTokens = event.noOfTokens.reduce((s: number, amount: number) => s + amount, 0)
-							return sum + totalTokens * protocol.tPrice
-						}, 0) ?? 0
+					const totalUnlockValue = computeUnlockValue()
 					const mcap = protocol.mcap ?? 0
 					const percToUnlockFloat = mcap > 0 ? (totalUnlockValue / mcap) * 100 : 0
 
@@ -463,10 +458,10 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Price',
 		accessorKey: 'tPrice',
-		accessorFn: (row) => (row.tPrice ? +row.tPrice : undefined),
+		accessorFn: (row) => (row.tPrice != null ? +row.tPrice : undefined),
 		cell: ({ row }) => {
-			const value = row.original.tPrice ?? undefined
-			return <div className="flex h-full items-center justify-end">{value ? '$' + value.toFixed(2) : ''}</div>
+			const value = row.original.tPrice
+			return <div className="flex h-full items-center justify-end">{value != null ? '$' + value.toFixed(2) : ''}</div>
 		},
 		meta: {
 			align: 'end'
@@ -476,10 +471,10 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'MCap',
 		accessorKey: 'mcap',
-		accessorFn: (row) => (row.mcap ? +row.mcap : undefined),
+		accessorFn: (row) => (row.mcap != null ? +row.mcap : undefined),
 		cell: ({ row }) => {
-			const value = row.original.mcap ?? undefined
-			if (!value) return null
+			const value = row.original.mcap
+			if (value == null) return null
 			return <div className="flex h-full items-center justify-end">{formattedNum(value, true)}</div>
 		},
 		meta: {
@@ -571,7 +566,7 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		},
 		cell: ({ getValue }) => {
 			const value = getValue<number | undefined>()
-			return <div className="flex h-full items-center justify-end">{value ? renderPercentChange(value) : ''}</div>
+			return <div className="flex h-full items-center justify-end">{value != null ? renderPercentChange(value) : ''}</div>
 		},
 		meta: {
 			align: 'end',

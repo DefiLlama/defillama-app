@@ -75,7 +75,7 @@ export interface EmissionsChartRow {
 	[label: string]: number | null
 }
 
-export interface EmissionsChartConfigItem {
+interface EmissionsChartConfigItem {
 	type: 'line'
 	name: string
 	encode: { x: 'timestamp'; y: string }

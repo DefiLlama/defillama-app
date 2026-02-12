@@ -33,7 +33,7 @@ const RegularButton = () => {
 	)
 }
 
-export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage }: CalendarButtonProps) => {
+const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage }: CalendarButtonProps) => {
 	return (
 		<Ariakit.MenuProvider>
 			{isProtocolPage ? <ProtocolPageButton /> : <RegularButton />}
@@ -283,7 +283,7 @@ export const UpcomingEvent = ({
 					<CalendarButton
 						event={{ timestamp, noOfTokens, symbol: symbol || '', description: '' }}
 						tokenName={name}
-						tokenValue={(tokenValue ? formattedNum(tokenValue, true) : '-') || null}
+						tokenValue={tokenValue ? formattedNum(tokenValue, true) : null}
 						isProtocolPage={isProtocolPage}
 					/>
 				) : null}
@@ -418,7 +418,7 @@ export const UpcomingEvent = ({
 					<CalendarButton
 						event={{ timestamp, noOfTokens, symbol: symbol || '', description: '' }}
 						tokenName={name}
-						tokenValue={(tokenValue ? formattedNum(tokenValue, true) : '-') || null}
+						tokenValue={tokenValue ? formattedNum(tokenValue, true) : null}
 						isProtocolPage={isProtocolPage}
 					/>
 					<span className="invisible mt-1 text-xs leading-none font-medium text-(--text-meta) select-none">Sec</span>

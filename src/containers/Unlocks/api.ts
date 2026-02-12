@@ -11,7 +11,9 @@ function isWrappedBodyResponse(raw: unknown): raw is WrappedBodyResponse {
 }
 
 function isProtocolEmissionDetail(value: unknown): value is ProtocolEmissionDetail {
-	return typeof value === 'object' && value !== null && 'name' in value
+	if (typeof value !== 'object' || value === null) return false
+	const obj = value as Record<string, unknown>
+	return typeof obj.name === 'string' && ('metadata' in obj || 'documentedData' in obj || 'realTimeData' in obj)
 }
 
 function parseProtocolEmissionApiResponse(raw: unknown): ProtocolEmissionDetail | null {

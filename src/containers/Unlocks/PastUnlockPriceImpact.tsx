@@ -6,21 +6,10 @@ import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import type { ProtocolEmissionWithHistory } from './types'
 
-interface ProtocolData {
-	name: string
-	tSymbol: string
-	tPrice: number
-	maxSupply?: number
-	mcap?: number
-	historicalPrice?: Array<[number, number]>
-	lastEvent?: Array<{
-		timestamp: number
-		noOfTokens?: number[]
-		description?: string
-		unlockType?: string
-	}>
-}
+/** Protocols that have confirmed tPrice and tSymbol (caller pre-filters nulls). */
+type ProtocolData = ProtocolEmissionWithHistory & { tPrice: number; tSymbol: string }
 
 interface PastUnlockPriceImpactProps {
 	data: ProtocolData[]
@@ -120,8 +109,8 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 				value: unlockValue,
 				timestamp: latestTimestamp,
 				unlockBreakdown: breakdown,
-				maxSupply: protocol.maxSupply,
-				mcap: protocol.mcap,
+				maxSupply: protocol.maxSupply ?? undefined,
+				mcap: protocol.mcap ?? undefined,
 				price: protocol.tPrice
 			})
 		}

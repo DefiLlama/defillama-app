@@ -15,11 +15,12 @@ import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
+import type { EmissionsChartConfig, EmissionsDataset } from './api.types'
 import { Pagination } from './Pagination'
 import type { ProtocolEmissionResult } from './types'
 import { UpcomingEvent } from './UpcomingEvent'
 
-export interface TokenData {
+interface TokenData {
 	circSupply: number
 	events: Event[]
 	gecko_id: string
@@ -33,16 +34,7 @@ export interface TokenData {
 	unlocksPerDay: number
 }
 
-export type EmissionsDataset = { source: Array<Record<string, number | null>>; dimensions: string[] }
-export type EmissionsChartConfig = Array<{
-	type: 'line'
-	name: string
-	encode: { x: 'timestamp'; y: string }
-	color: string | undefined
-	stack: string
-}>
-
-export interface IEmission {
+interface IEmission {
 	categories: { documented: Array<string>; realtime: Array<string> }
 	categoriesBreakdown: Record<string, string[]> | null
 	chartData: {
@@ -438,7 +430,7 @@ const ChartContainer = ({
 	}, [data.tokenAllocation, dataType])
 	const rawChartData = data.chartData?.[dataType] ?? EMPTY_CHART_DATA
 	const pieChartDataRaw = data.pieChartData?.[dataType]
-	const hallmarks = (data.hallmarks?.[dataType] ?? []) as [number, string][]
+	const hallmarks = data.hallmarks?.[dataType] ?? []
 
 	useEffect(() => {
 		if (categoriesFromData.length > 0) {
