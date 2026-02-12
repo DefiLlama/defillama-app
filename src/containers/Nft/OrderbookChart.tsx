@@ -142,7 +142,7 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 			tooltip: {
 				trigger: 'axis',
 				confine: true,
-				formatter: function (params) {
+				formatter: function (params: Array<{ marker: string; seriesName: string; value: [number, number, number, number, string] }>) {
 					let vals = `<li style="list-style:none">${params[0].marker}${params[0].seriesName}</li>`
 
 					vals += `<li style="list-style:none">Amount :  ${params[0].value[1]}</li>`
@@ -168,7 +168,7 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 				name: 'Price',
 				type: 'log',
 				axisLabel: {
-					formatter: (value) => Number(value.toFixed(2)) + ' ETH',
+					formatter: (value: number) => Number(value.toFixed(2)) + ' ETH',
 					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 				},
 				boundaryGap: false,

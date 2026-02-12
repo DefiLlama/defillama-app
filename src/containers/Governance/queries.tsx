@@ -10,6 +10,7 @@ import {
 import { fetchAndFormatGovernanceData, getGovernanceTypeFromApi } from '~/containers/Governance/queries.client'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import type { GovernanceDataEntry, GovernanceType } from './types'
 
 type GovernanceOverviewProject = { name: string; id: string }
 
@@ -26,8 +27,8 @@ type GovernanceDetailsPageData =
 	| {
 			props: {
 				projectName: string
-				governanceData: Array<any>
-				governanceTypes: Array<'snapshot' | 'compound' | 'tally'>
+				governanceData: Array<GovernanceDataEntry>
+				governanceTypes: Array<GovernanceType>
 			}
 			revalidate: number
 	  }
@@ -64,16 +65,18 @@ async function fetchGovernanceDataForApis(governanceApis: Array<string>) {
 	return { governanceData, governanceTypes }
 }
 
+type RawGovernanceOverview = Record<string, Record<string, unknown> & { states: Record<string, number> }>
+
 export async function getGovernancePageData() {
 	const [snapshot, compound, tally] = await Promise.all([
-		fetchJson(GOVERNANCE_SNAPSHOT_API),
-		fetchJson(GOVERNANCE_COMPOUND_API),
-		fetchJson(GOVERNANCE_TALLY_API)
+		fetchJson<RawGovernanceOverview>(GOVERNANCE_SNAPSHOT_API),
+		fetchJson<RawGovernanceOverview>(GOVERNANCE_COMPOUND_API),
+		fetchJson<RawGovernanceOverview>(GOVERNANCE_TALLY_API)
 	])
 
 	return {
 		props: {
-			data: Object.values({ ...snapshot, ...compound, ...tally }).map((x: { states: { [key: string]: number } }) => ({
+			data: Object.values({ ...snapshot, ...compound, ...tally }).map((x) => ({
 				...x,
 				subRowData: x.states
 			}))

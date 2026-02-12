@@ -32,6 +32,16 @@
 		"src/containers/NarrativeTracker/**/*.ts",
 		"src/containers/NarrativeTracker/**/*.tsx",
 		"src/containers/Correlations/**/*.ts",
-		"src/containers/Correlations/**/*.tsx"
+		"src/containers/Correlations/**/*.tsx",
+		"src/containers/TokenPnl/**/*.ts",
+		"src/containers/TokenPnl/**/*.tsx",
+		"src/containers/Nft/**/*.ts",
+		"src/containers/Nft/**/*.tsx",
+		"src/containers/Governance/**/*.ts",
+		"src/containers/Governance/**/*.tsx",
+		"src/containers/CompareTokens/**/*.ts",
+		"src/containers/CompareTokens/**/*.tsx",
+		"src/containers/CompareChains/**/*.ts",
+		"src/containers/CompareChains/**/*.tsx"
 	]
 }

@@ -5,10 +5,10 @@ import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import {
 	BRIDGEVOLUME_API_SLUG,
 	CACHE_SERVER,
-	NFT_MARKETPLACES_VOLUME_API,
 	PROTOCOL_TREASURY_API,
 	TOKEN_LIQUIDITY_API
 } from '~/constants'
+import { fetchNftMarketplaceVolumes } from '~/containers/Nft/api'
 import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { useFetchProtocolGovernanceData } from '~/containers/Governance/queries.client'
 import {
@@ -788,8 +788,8 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'nft-volume'],
 		queryFn: () =>
 			isNftVolumeEnabled
-				? fetchJson(NFT_MARKETPLACES_VOLUME_API, { timeout: 10_000 })
-						.then((r: Array<{ exchangeName: string; day: string; sumUsd: number }>) =>
+				? fetchNftMarketplaceVolumes()
+						.then((r) =>
 							r
 								.filter((item) => slug(item.exchangeName) === slug(name))
 								.map(({ day, sumUsd }): [number, number] => [new Date(day).getTime(), sumUsd])

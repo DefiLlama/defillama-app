@@ -52,23 +52,7 @@ export const TEMP_CHAIN_NFTS = `${DATASETS_SERVER_URL}/temp/chainNfts`
 export const PROTOCOLS_EXPENSES_API =
 	'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
 
-const NFT_SERVER_URL = 'https://nft.llama.fi'
-export const NFT_COLLECTIONS_API = `${NFT_SERVER_URL}/collections`
-export const NFT_VOLUME_API = `${NFT_SERVER_URL}/volume`
-export const NFT_COLLECTION_API = `${NFT_SERVER_URL}/collection`
-export const NFT_COLLECTION_STATS_API = `${NFT_SERVER_URL}/stats`
-export const NFT_COLLECTION_SALES_API = `${NFT_SERVER_URL}/sales`
-export const NFT_COLLECTION_FLOOR_HISTORY_API = `${NFT_SERVER_URL}/floorHistory`
-export const NFT_COLLECTIONS_ORDERBOOK_API = `${NFT_SERVER_URL}/orderbook`
-export const NFT_MARKETPLACES_STATS_API = `${NFT_SERVER_URL}/exchangeStats`
-export const NFT_MARKETPLACES_VOLUME_API = `${NFT_SERVER_URL}/exchangeVolume`
-export const NFT_ROYALTIES_API = `${NFT_SERVER_URL}/royalties`
-export const NFT_ROYALTY_HISTORY_API = `${NFT_SERVER_URL}/royaltyHistory`
-export const NFT_ROYALTY_API = `${NFT_SERVER_URL}/royalty`
-
-export const NFT_CHART_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/chart'
-export const NFT_CHAINS_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/chains'
-export const NFT_SEARCH_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/search'
+export const NFT_SERVER_URL = 'https://nft.llama.fi'
 
 const STABLECOINS_SERVER_URL = process.env.STABLECOINS_SERVER_URL ?? 'https://stablecoins.llama.fi'
 export const PEGGEDS_API = `${STABLECOINS_SERVER_URL}/stablecoins`

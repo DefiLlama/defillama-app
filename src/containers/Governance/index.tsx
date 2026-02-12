@@ -15,8 +15,9 @@ import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { capitalizeFirstLetter, slug, tokenIconUrl } from '~/utils'
+import type { GovernanceOverviewItem } from './types'
 
-export default function Governance({ data }) {
+export default function Governance({ data }: { data: GovernanceOverviewItem[] }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'successfulPropsalsInLast30Days', desc: true }])
 
@@ -69,37 +70,23 @@ export default function Governance({ data }) {
 	)
 }
 
-const RenderSubComponent = ({ row }) => {
+const RenderSubComponent = ({ row }: { row: { original: GovernanceOverviewItem } }) => {
 	const subRowEntries = Object.entries(row.original.subRowData)
 
 	return (
 		<span className="flex flex-col gap-1 pl-[72px]">
 			{subRowEntries.map(([type, value]) => (
-				<span key={row.original.name + type + value}>{capitalizeFirstLetter(type) + ' Proposals : ' + value}</span>
+				<span key={row.original.name + type + String(value)}>
+					{capitalizeFirstLetter(type) + ' Proposals : ' + value}
+				</span>
 			))}
 		</span>
 	)
 }
 
-const renderSubComponent = ({ row }) => <RenderSubComponent row={row} />
+const renderSubComponent = ({ row }: { row: { original: GovernanceOverviewItem } }) => <RenderSubComponent row={row} />
 
-interface IGovernance {
-	name: string
-	proposalsCount: string
-	followersCount: string
-	strategyCount: string
-	states: {
-		active?: number
-		closed?: number
-	}
-	months: {
-		[month: string]: { proposals: Array<string>; states: { active?: number; closed?: number } }
-	}
-	propsalsInLast30Days: number
-	successfulPropsalsInLast30Days: number
-}
-
-const governanceColumns: ColumnDef<IGovernance>[] = [
+const governanceColumns: ColumnDef<GovernanceOverviewItem>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -110,10 +97,10 @@ const governanceColumns: ColumnDef<IGovernance>[] = [
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<BasicLink
-						href={`/governance/${slug(getValue() as string)}`}
+						href={`/governance/${slug(getValue())}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue() as string}
+						{String(getValue())}
 					</BasicLink>
 				</span>
 			)
