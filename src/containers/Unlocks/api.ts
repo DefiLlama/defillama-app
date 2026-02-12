@@ -3,11 +3,6 @@ import { fetchJson } from '~/utils/async'
 import type { ProtocolEmissionDetail, ProtocolEmission } from './api.types'
 import type { ProtocolEmissionsChartsResult, ProtocolEmissionsFullResult, ProtocolEmissionsScheduleResult, ProtocolEmissionsPieResult, ProtocolEmissionResult } from './types'
 
-// API endpoint constants - constructed from SERVER_URL only
-const EMISSIONS_API = `${SERVER_URL}/emissions`
-const EMISSIONS_LIST_API = `${SERVER_URL}/emissionsProtocolsList`
-const EMISSION_API = `${SERVER_URL}/emission`
-
 function parseProtocolEmissionApiResponse(raw: unknown): ProtocolEmissionDetail | null {
 	if (!raw) return null
 
@@ -30,7 +25,7 @@ function parseProtocolEmissionApiResponse(raw: unknown): ProtocolEmissionDetail 
 export async function fetchProtocolEmission(protocolName: string): Promise<ProtocolEmissionDetail | null> {
 	if (!protocolName) return null
 	const encodedProtocolName = encodeURIComponent(protocolName)
-	const raw = await fetchJson(`${EMISSION_API}/${encodedProtocolName}`).catch((error) => {
+	const raw = await fetchJson(`${SERVER_URL}/emission/${encodedProtocolName}`).catch((error) => {
 		console.error(`Failed to fetch protocol emission for ${protocolName}:`, error)
 		return null as unknown
 	})
@@ -39,7 +34,7 @@ export async function fetchProtocolEmission(protocolName: string): Promise<Proto
 
 export async function getProtocolEmissionsList(): Promise<Array<{ name: string; token: string }>> {
 	try {
-		const res = await fetchJson(EMISSIONS_API)
+		const res = await fetchJson(`${SERVER_URL}/emissions`)
 		if (!Array.isArray(res)) return []
 		return res.map((protocol: ProtocolEmission) => ({
 			name: protocol.name,
@@ -53,7 +48,7 @@ export async function getProtocolEmissionsList(): Promise<Array<{ name: string; 
 
 export async function getAllProtocolEmissionsCached(): Promise<ProtocolEmission[] | null> {
 	try {
-		const res = await fetchJson(EMISSIONS_API)
+		const res = await fetchJson(`${SERVER_URL}/emissions`)
 		if (!Array.isArray(res)) return null
 		return res as ProtocolEmission[]
 	} catch (error) {
@@ -64,7 +59,7 @@ export async function getAllProtocolEmissionsCached(): Promise<ProtocolEmission[
 
 export async function getEmissionsProtocolsListCached(): Promise<string[] | null> {
 	try {
-		const res = await fetchJson(EMISSIONS_LIST_API)
+		const res = await fetchJson(`${SERVER_URL}/emissionsProtocolsList`)
 		if (!Array.isArray(res)) return null
 		return res as string[]
 	} catch (error) {
