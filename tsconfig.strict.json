@@ -30,6 +30,8 @@
 		"src/containers/LST/**/*.ts",
 		"src/containers/LST/**/*.tsx",
 		"src/containers/NarrativeTracker/**/*.ts",
-		"src/containers/NarrativeTracker/**/*.tsx"
+		"src/containers/NarrativeTracker/**/*.tsx",
+		"src/containers/Correlations/**/*.ts",
+		"src/containers/Correlations/**/*.tsx"
 	]
 }
