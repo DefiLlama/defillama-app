@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { getAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
-import { getAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { slug } from '~/utils'
 
 const adapterType = ADAPTER_TYPES.FEES

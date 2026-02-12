@@ -11,7 +11,6 @@ import {
 	getAdapterProtocolMetrics
 } from './api'
 import type { IAdapterProtocolMetrics, IAdapterChainMetrics } from './api.types'
-import type { IAdapterChainOverview } from './types'
 import {
 	ADAPTER_DATA_TYPE_KEYS,
 	ADAPTER_DATA_TYPES,
@@ -19,6 +18,7 @@ import {
 	ADAPTER_TYPES_TO_METADATA_TYPE,
 	isAdapterDataTypeKey
 } from './constants'
+import type { IAdapterChainOverview } from './types'
 import type { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData, IProtocol } from './types'
 
 // Type aliases for aggregated protocol data structures
@@ -272,7 +272,10 @@ function calculateEarnings(
 	}
 }
 
-type AggregatedProtocol = Omit<IAdapterChainMetrics['protocols'][0], 'total24h' | 'total7d' | 'total30d' | 'total1y' | 'totalAllTime'> & {
+type AggregatedProtocol = Omit<
+	IAdapterChainMetrics['protocols'][0],
+	'total24h' | 'total7d' | 'total30d' | 'total1y' | 'totalAllTime'
+> & {
 	total24h: number
 	total7d: number
 	total30d: number
@@ -280,9 +283,7 @@ type AggregatedProtocol = Omit<IAdapterChainMetrics['protocols'][0], 'total24h' 
 	totalAllTime: number
 }
 
-function aggregateProtocolVersions(
-	protocolVersions: IAdapterChainMetrics['protocols']
-): AggregatedProtocol {
+function aggregateProtocolVersions(protocolVersions: IAdapterChainMetrics['protocols']): AggregatedProtocol {
 	const aggregatedRevenue = {
 		total24h: protocolVersions.reduce((sum, p) => sum + (p.total24h ?? 0), 0),
 		total7d: protocolVersions.reduce((sum, p) => sum + (p.total7d ?? 0), 0),
@@ -937,12 +938,12 @@ export const getAdapterByChainPageData = async ({
 				? {
 						methodology:
 							methodology.length > 1
-							? methodology
-									.map((m) => {
-										const children = parentProtocols[protocol].filter((p) => p.methodology === m)
-										return `${children.map((c) => (c.name.startsWith(protocol) ? c.name.replace(protocol, '').trim() : c.name)).join(', ')}: ${m}`
-									})
-									.join('. ')
+								? methodology
+										.map((m) => {
+											const children = parentProtocols[protocol].filter((p) => p.methodology === m)
+											return `${children.map((c) => (c.name.startsWith(protocol) ? c.name.replace(protocol, '').trim() : c.name)).join(', ')}: ${m}`
+										})
+										.join('. ')
 								: methodology[0]
 					}
 				: {}),

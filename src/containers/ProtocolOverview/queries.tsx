@@ -212,7 +212,7 @@ export const getProtocolOverviewPageData = async ({
 		currentProtocolMetadata.fees
 			? getAdapterProtocolMetrics({
 					adapterType: 'fees',
-					protocol: currentProtocolMetadata.displayName,
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'Fees' }))
 					.catch(() => null)
@@ -221,7 +221,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolMetrics({
 					adapterType: 'fees',
 					dataType: 'dailyRevenue',
-					protocol: currentProtocolMetadata.displayName,
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'Revenue' }))
 					.catch(() => null)
@@ -230,7 +230,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolMetrics({
 					adapterType: 'fees',
 					dataType: 'dailyHoldersRevenue',
-					protocol: currentProtocolMetadata.displayName,
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'HoldersRevenue' }))
 					.catch(() => null)
@@ -239,7 +239,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolMetrics({
 					adapterType: 'fees',
 					dataType: 'dailyBribesRevenue',
-					protocol: currentProtocolMetadata.displayName,
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'BribesRevenue' }))
 					.catch(() => null)
@@ -248,7 +248,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolMetrics({
 					adapterType: 'fees',
 					dataType: 'dailyTokenTaxes',
-					protocol: currentProtocolMetadata.displayName,
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'TokenTaxes' }))
 					.catch(() => null)
@@ -256,7 +256,7 @@ export const getProtocolOverviewPageData = async ({
 		currentProtocolMetadata.dexs
 			? getAdapterProtocolMetrics({
 					adapterType: 'dexs',
-					protocol: currentProtocolMetadata.displayName,
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: data.methodology?.['Volume'] ? 'Volume' : 'dexs' }))
 					.catch(() => null)
@@ -264,7 +264,7 @@ export const getProtocolOverviewPageData = async ({
 		currentProtocolMetadata.dexAggregators
 			? getAdapterProtocolMetrics({
 					adapterType: 'aggregators',
-					protocol: currentProtocolMetadata.displayName,
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'dexAggregators' }))
 					.catch(() => null)
@@ -272,7 +272,7 @@ export const getProtocolOverviewPageData = async ({
 		currentProtocolMetadata.perps
 			? getAdapterProtocolMetrics({
 					adapterType: 'derivatives',
-					protocol: currentProtocolMetadata.displayName,
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'perps' }))
 					.catch(() => null)
@@ -281,7 +281,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolMetrics({
 					adapterType: 'open-interest',
 					protocol: currentProtocolMetadata.displayName,
-					dataType: 'openInterestAtEnd',
+					dataType: 'openInterestAtEnd'
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'openInterest' }))
 					.catch(() => null)
@@ -289,7 +289,7 @@ export const getProtocolOverviewPageData = async ({
 		currentProtocolMetadata.perpsAggregators
 			? getAdapterProtocolMetrics({
 					adapterType: 'aggregator-derivatives',
-					protocol: currentProtocolMetadata.displayName,
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'perpsAggregators' }))
 					.catch(() => null)
@@ -297,7 +297,7 @@ export const getProtocolOverviewPageData = async ({
 		currentProtocolMetadata.bridgeAggregators
 			? getAdapterProtocolMetrics({
 					adapterType: 'bridge-aggregators',
-					protocol: currentProtocolMetadata.displayName,
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'bridgeAggregators' }))
 					.catch(() => null)
@@ -306,7 +306,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolMetrics({
 					adapterType: 'options',
 					dataType: 'dailyPremiumVolume',
-					protocol: currentProtocolMetadata.displayName,
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'optionsPremiumVolume' }))
 					.catch(() => null)
@@ -315,7 +315,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolMetrics({
 					adapterType: 'options',
 					dataType: 'dailyNotionalVolume',
-					protocol: currentProtocolMetadata.displayName,
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'optionsNotionalVolume' }))
 					.catch(() => null)

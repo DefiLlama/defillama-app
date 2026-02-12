@@ -32,21 +32,21 @@ export enum ADAPTER_DATA_TYPES {
 export type AdapterDataType = `${ADAPTER_DATA_TYPES}`
 
 export const ADAPTER_DATA_TYPE_KEYS = {
-	'dailyFees': 'df',
-	'dailyRevenue': 'dr',
-	'dailyHoldersRevenue': 'dhr',
-	'dailySupplySideRevenue': 'dssr',
-	'dailyBribesRevenue': 'dbr',
-	'dailyTokenTaxes': 'dtt',
-	'dailyAppRevenue': 'dar',
-	'dailyAppFees': 'daf',
-	'dailyNotionalVolume': 'dnv',
-	'dailyPremiumVolume': 'dpv',
-	'openInterestAtEnd': 'doi',
-	'dailyVolume': 'dv',
-	'dailyBridgeVolume': 'dbv',
-	'dailyNormalizedVolume': 'dnvol',
-	'dailyActiveLiquidity': 'dal'
+	dailyFees: 'df',
+	dailyRevenue: 'dr',
+	dailyHoldersRevenue: 'dhr',
+	dailySupplySideRevenue: 'dssr',
+	dailyBribesRevenue: 'dbr',
+	dailyTokenTaxes: 'dtt',
+	dailyAppRevenue: 'dar',
+	dailyAppFees: 'daf',
+	dailyNotionalVolume: 'dnv',
+	dailyPremiumVolume: 'dpv',
+	openInterestAtEnd: 'doi',
+	dailyVolume: 'dv',
+	dailyBridgeVolume: 'dbv',
+	dailyNormalizedVolume: 'dnvol',
+	dailyActiveLiquidity: 'dal'
 } as const
 
 export type AdapterDataTypeKey = keyof typeof ADAPTER_DATA_TYPE_KEYS
