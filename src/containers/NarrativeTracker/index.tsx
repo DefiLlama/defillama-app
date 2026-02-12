@@ -42,22 +42,32 @@ function calculateDenominatedChange(
 	const sortedData = [...(data ?? [])].sort((a, b) => a.date - b.date)
 	if (sortedData.length === 0) return sortedData
 
-	const denominatedCoinDay0 = sortedData[0]?.[denominatedCoin]
+	const denominatedCoinDay0 = asFiniteNumber(sortedData[0]?.[denominatedCoin])
 	if (denominatedCoinDay0 == null) return sortedData
 
 	const denominatedReturns: TimeSeriesEntry[] = []
 
 	for (const dayData of sortedData) {
 		const newDayData: TimeSeriesEntry = { date: dayData.date }
+		const denominatedCoinValue = asFiniteNumber(dayData[denominatedCoin])
+		const denominatedCoinPerformance =
+			denominatedCoinValue == null ? null : 1 + denominatedCoinValue / 100
+		if (!Number.isFinite(denominatedCoinPerformance) || denominatedCoinPerformance === 0) {
+			denominatedReturns.push(newDayData)
+			continue
+		}
 
 		for (const [category, value] of Object.entries(dayData)) {
 			if (category !== 'date' && category !== denominatedCoin) {
 				// calculate relative performance
-				const categoryPerformance = 1 + value / 100
-				const denominatedCoinPerformance = 1 + dayData[denominatedCoin] / 100
+				const categoryValue = asFiniteNumber(value)
+				if (categoryValue == null) continue
+				const categoryPerformance = 1 + categoryValue / 100
 				const relativePerformance = (categoryPerformance / denominatedCoinPerformance - 1) * 100
 
-				newDayData[category] = relativePerformance
+				if (Number.isFinite(relativePerformance)) {
+					newDayData[category] = relativePerformance
+				}
 			}
 		}
 

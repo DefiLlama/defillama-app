@@ -25,12 +25,7 @@ const columns: Array<ColumnDef<ProtocolRow>> = [
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
 					{row.subRows?.length > 0 ? (
-						<button
-							className="absolute -left-4.5"
-							{...{
-								onClick: row.getToggleExpandedHandler()
-							}}
-						>
+						<button className="absolute -left-4.5" onClick={row.getToggleExpandedHandler()}>
 							{row.getIsExpanded() ? (
 								<>
 									<Icon name="chevron-down" height={16} width={16} />
@@ -119,7 +114,7 @@ export function TotalValueLostContainer({ protocols }: IProtocolTotalValueLostIn
 	return (
 		<Layout
 			title="Total Value Lost in Hacks - DefiLlama"
-			description={`Total Value Lost in Hacks by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Total Value Lost in Hacks by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
 			keywords={`total value lost in hacks, defi total value lost in hacks, net user loss`}
 			canonicalUrl={`/hacks/total-value-lost`}
 			pageName={pageName}

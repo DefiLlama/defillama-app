@@ -33,7 +33,14 @@ const DEFAULT_SORTING_STATE = [{ id: 'aum', desc: true }]
 
 export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETFOverviewProps) => {
 	const [groupBy, setGroupBy] = React.useState<GroupBy>('Weekly')
-	const [tickers, setTickers] = React.useState<Array<string> | string>(['Bitcoin', 'Ethereum', 'Solana'])
+	const [tickers, setTickers] = React.useState<string[]>(['Bitcoin', 'Ethereum', 'Solana'])
+	const setTickersFromSelect: React.Dispatch<React.SetStateAction<Array<string> | string>> = React.useCallback((next) => {
+		setTickers((prev) => {
+			const resolved = typeof next === 'function' ? next(prev) : next
+			if (Array.isArray(resolved)) return resolved
+			return resolved ? [resolved] : []
+		})
+	}, [])
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const chartData = React.useMemo(() => {
@@ -45,6 +52,8 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 		let totalEthereum = 0
 		let totalSolana = 0
 
+		// `flows` keys are unix timestamps (integer-like keys), so `Object.entries(flows)` iterates
+		// in ascending numeric order. Cumulative running totals rely on this ordering.
 		// We intentionally use `bitcoin` as the date anchor while iterating `flows` by `groupBy`.
 		// Rendering later iterates `Object.entries(bitcoin)`, so `ethereum`/`solana` values on dates
 		// without Bitcoin are dropped, while `totalBitcoin`/`totalEthereum`/`totalSolana` stay aligned.
@@ -111,8 +120,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 	}, [flows, groupBy])
 
 	const finalCharts = React.useMemo(() => {
-		const tickerArray = Array.isArray(tickers) ? tickers : [tickers]
-		const filteredCharts = chartData.allCharts.filter((c) => tickerArray.includes(c.name))
+		const filteredCharts = chartData.allCharts.filter((c) => tickers.includes(c.name))
 		const dimensions = ['timestamp', ...filteredCharts.map((c) => c.name)]
 		return {
 			dataset: { source: chartData.source, dimensions },
@@ -169,7 +177,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 						<Select
 							allValues={ASSET_VALUES}
 							selectedValues={tickers}
-							setSelectedValues={setTickers}
+							setSelectedValues={setTickersFromSelect}
 							label={'ETF'}
 							labelType="smol"
 							variant="filter-responsive"

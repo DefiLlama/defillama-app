@@ -298,7 +298,7 @@ export const HacksContainer = ({
 		const techniqueTotals = new Map<string, number>()
 		let totalHackedRaw = 0
 		let totalHackedDefiRaw = 0
-		let totalRugsRaw = 0
+		let totalBridgeHackRaw = 0
 
 		for (const row of filteredData) {
 			const monthTsMs = firstDayOfMonth(row.date) * 1e3
@@ -306,7 +306,7 @@ export const HacksContainer = ({
 
 			totalHackedRaw += row.amount
 			if (row.target === 'DeFi Protocol') totalHackedDefiRaw += row.amount
-			if (row.bridge) totalRugsRaw += row.amount
+			if (row.bridge) totalBridgeHackRaw += row.amount
 
 			if (row.technique) {
 				techniqueTotals.set(row.technique, (techniqueTotals.get(row.technique) ?? 0) + row.amount)
@@ -320,7 +320,7 @@ export const HacksContainer = ({
 		return {
 			totalHacked: formattedNum(totalHackedRaw, true),
 			totalHackedDefi: formattedNum(totalHackedDefiRaw, true),
-			totalRugs: formattedNum(totalRugsRaw, true),
+			totalRugs: formattedNum(totalBridgeHackRaw, true),
 			monthlyHacksChartData: {
 				dataset: {
 					source: monthlySeries.map(([timestamp, value]) => ({ timestamp, 'Total Value Hacked': value })),
