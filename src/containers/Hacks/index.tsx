@@ -427,8 +427,8 @@ const hacksColumns: ColumnDef<IHacksPageData['data'][0]>[] = [
 		header: 'Amount lost',
 		accessorKey: 'amount',
 		cell: ({ getValue }) => {
-			const val = getValue<number>()
-			return <>{val ? formattedNum(val, true) : ''}</>
+			const val = getValue<number | null>()
+			return <>{val != null ? formattedNum(val, true) : ''}</>
 		},
 		size: 140
 	},
@@ -449,7 +449,7 @@ const hacksColumns: ColumnDef<IHacksPageData['data'][0]>[] = [
 				'Classified based on whether the hack targeted a weakness in Infrastructure, Smart Contract Language, Protocol Logic or the interaction between multiple protocols (Ecosystem)'
 		},
 		cell: ({ getValue }) => {
-			const value = String(getValue())
+			const value = getValue<string>()
 			return (
 				<Tooltip content={value} className="inline text-ellipsis">
 					{value}
@@ -463,7 +463,7 @@ const hacksColumns: ColumnDef<IHacksPageData['data'][0]>[] = [
 		enableSorting: false,
 		size: 200,
 		cell: ({ getValue }) => {
-			const value = String(getValue())
+			const value = getValue<string>()
 			return (
 				<Tooltip content={value} className="inline text-ellipsis">
 					{value}

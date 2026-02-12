@@ -22,9 +22,9 @@ interface FiltersInnerProps {
 	selectedChains: string[]
 	selectedTechniques: string[]
 	selectedClassifications: string[]
-	timeOptions: string[]
-	selectedTimeLabel: string
-	setSelectedTime: (label: string) => void
+	timeOptions: TimeLabelKey[]
+	selectedTimeLabel: TimeLabelKey
+	setSelectedTime: (label: TimeLabelKey) => void
 	minLostVal: number | null
 	maxLostVal: number | null
 	handleAmountSubmit: (e: React.FormEvent<HTMLFormElement>) => void
@@ -46,6 +46,7 @@ type TimeLabelKey = keyof typeof TIME_LABEL_TO_KEY
 type TimeValueKey = (typeof TIME_LABEL_TO_KEY)[TimeLabelKey]
 
 const timeOptions: TimeLabelKey[] = ['All', '7D', '30D', '90D', '1Y']
+const isTimeLabelKey = (value: string): value is TimeLabelKey => value in TIME_LABEL_TO_KEY
 
 function buildKeyToLabel(): Record<TimeValueKey, TimeLabelKey> {
 	const result: Partial<Record<TimeValueKey, TimeLabelKey>> = {}
@@ -74,12 +75,11 @@ export function HacksFilters({
 		handleClear: handleAmountClear
 	} = useRangeFilter('minLost', 'maxLost')
 
-	const selectedTimeLabel: string =
+	const selectedTimeLabel: TimeLabelKey =
 		typeof time === 'string' && time in keyToLabel ? keyToLabel[time as TimeValueKey] : 'All'
 
-	const setSelectedTime = (label: string): void => {
-		if (!(label in TIME_LABEL_TO_KEY)) return
-		const key = TIME_LABEL_TO_KEY[label as TimeLabelKey]
+	const setSelectedTime = (label: TimeLabelKey): void => {
+		const key = TIME_LABEL_TO_KEY[label]
 		const nextQuery = { ...router.query }
 		if (key && key !== 'all') nextQuery.time = key
 		else delete nextQuery.time
@@ -209,7 +209,13 @@ const Filters = ({
 			/>
 
 			<div className="px-3 py-2 md:ml-auto md:flex-row md:items-center md:px-0 md:py-0">
-				<TagGroup setValue={setSelectedTime} selectedValue={selectedTimeLabel} values={timeOptions} />
+				<TagGroup
+					setValue={(label) => {
+						if (isTimeLabelKey(label)) setSelectedTime(label)
+					}}
+					selectedValue={selectedTimeLabel}
+					values={timeOptions}
+				/>
 			</div>
 			<button
 				onClick={onClearAll}

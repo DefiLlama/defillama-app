@@ -18,7 +18,7 @@ export const usePriceCharts = (geckoIds: string[]) => {
 			queryKey: ['price_chart', id],
 			queryFn: async (): Promise<CgChartResponse | null> => {
 				const res = await fetchJson<CgChartResponse>(`https://fe-cache.llama.fi/cgchart/${id}`).catch(() => null)
-				if (res?.data.prices) return res
+				if (res?.data?.prices) return res
 				const fallback = await fetchJson<{ prices: Array<[number, number]> }>(
 					`https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=365`
 				)

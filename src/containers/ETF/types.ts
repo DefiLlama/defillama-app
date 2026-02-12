@@ -1,3 +1,5 @@
+import type { IETFSnapshotApiItem } from './api.types'
+
 export interface AssetTotals {
 	[key: string]: {
 		aum: number
@@ -6,20 +8,7 @@ export interface AssetTotals {
 }
 
 /** A processed snapshot row with the `chain` field added for display */
-export interface IETFSnapshotRow {
-	ticker: string
-	issuer: string
-	etf_name: string
-	custodian: string
-	pct_fee: number
-	url: string
-	price: number
-	volume: number
-	aum: number
-	shares: number
-	btc: number
-	flows: number
-	asset: string
+export interface IETFSnapshotRow extends IETFSnapshotApiItem {
 	chain: string[]
 }
 

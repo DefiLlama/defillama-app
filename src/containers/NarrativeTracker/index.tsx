@@ -71,10 +71,10 @@ function calculateDenominatedChange(
 function calculateDenominatedChange2(
 	data: IPctChangeRow[],
 	denominatedCoin: string,
-	field: string
+	field: keyof IPctChangeRow
 ): IPctChangeRow[] {
 	const denomRow = data.find((i) => i.name === denominatedCoin)
-	const denomChangeRaw = denomRow?.[field as keyof IPctChangeRow]
+	const denomChangeRaw = denomRow?.[field]
 	const denomChange = typeof denomChangeRaw === 'number' ? denomChangeRaw : Number(denomChangeRaw)
 	if (!Number.isFinite(denomChange)) return data
 
@@ -83,7 +83,7 @@ function calculateDenominatedChange2(
 
 	const denominatedReturns: IPctChangeRow[] = []
 	for (const i of data) {
-		const raw = i[field as keyof IPctChangeRow]
+		const raw = i[field]
 		const change = typeof raw === 'number' ? raw : Number(raw)
 		if (!Number.isFinite(change)) {
 			denominatedReturns.push({ ...i, [field]: raw })
@@ -104,7 +104,7 @@ type Period = (typeof PERIODS)[number]
 type Denom = (typeof DENOMS)[number]
 
 // Unified period configuration to avoid redundant lookups
-const PERIOD_CONFIG: Record<Period, { field: string; seriesKey: string }> = {
+const PERIOD_CONFIG: Record<Period, { field: keyof IPctChangeRow; seriesKey: string }> = {
 	'7D': { field: 'change1W', seriesKey: '7' },
 	'30D': { field: 'change1M', seriesKey: '30' },
 	YTD: { field: 'changeYtd', seriesKey: 'ytd' },
@@ -116,6 +116,10 @@ const DENOM_COIN_MAP: Record<Denom, string> = {
 	BTC: 'Bitcoin',
 	ETH: 'Ethereum',
 	SOL: 'Solana'
+}
+
+function asFiniteNumber(value: unknown): number | null {
+	return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
 
 export const CategoryPerformanceContainer = ({
@@ -161,7 +165,7 @@ export const CategoryPerformanceContainer = ({
 
 		const hasPctDenom = (coinName: string): boolean => {
 			const row = pctChanges.find((i) => i.name === coinName)
-			const v = row?.[field as keyof IPctChangeRow]
+			const v = row?.[field]
 			const n = typeof v === 'number' ? v : Number(v)
 			return Number.isFinite(n)
 		}
@@ -198,10 +202,14 @@ export const CategoryPerformanceContainer = ({
 			: pctChangesDenom
 
 		const sorted = [...pctChangesDenom]
-			.sort((a, b) => ((b[field as keyof IPctChangeRow] as number) ?? 0) - ((a[field as keyof IPctChangeRow] as number) ?? 0))
-			.map((i) => ({ ...i, change: i[field as keyof IPctChangeRow] as number | null }))
+			.sort((a, b) => {
+				const bValue = asFiniteNumber(b[field]) ?? Number.NEGATIVE_INFINITY
+				const aValue = asFiniteNumber(a[field]) ?? Number.NEGATIVE_INFINITY
+				return bValue - aValue
+			})
+			.map((i) => ({ ...i, change: asFiniteNumber(i[field]) }))
 
-		const treemapData = sorted.map((i) => ({ ...i, returnField: i[field as keyof IPctChangeRow] as number | null }))
+		const treemapData = sorted.map((i) => ({ ...i, returnField: asFiniteNumber(i[field]) }))
 
 		let chart = performanceTimeSeries?.[seriesKey]
 		chart = denomCoin === '$' ? chart : calculateDenominatedChange(chart, denomCoin)

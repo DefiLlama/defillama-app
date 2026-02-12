@@ -8,14 +8,17 @@ function capitalize(s: string): string {
 export async function getETFData(): Promise<ETFOverviewProps> {
 	const [snapshot, flows] = await Promise.all([fetchETFSnapshot(), fetchETFFlows()])
 
-	const maxDate = Math.max(...flows.map((item) => new Date(item.day).getTime()))
+	const maxDate = flows.length > 0 ? Math.max(...flows.map((item) => new Date(item.day).getTime())) : null
 
-	const lastUpdated = new Date(maxDate).toLocaleDateString('en-US', {
-		month: 'long',
-		day: 'numeric',
-		year: 'numeric',
-		timeZone: 'UTC'
-	})
+	const lastUpdated =
+		maxDate == null
+			? 'N/A'
+			: new Date(maxDate).toLocaleDateString('en-US', {
+					month: 'long',
+					day: 'numeric',
+					year: 'numeric',
+					timeZone: 'UTC'
+				})
 
 	const processedSnapshot: IETFSnapshotRow[] = snapshot
 		.map((i) => ({

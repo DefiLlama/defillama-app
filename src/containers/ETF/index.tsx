@@ -45,6 +45,9 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 		let totalEthereum = 0
 		let totalSolana = 0
 
+		// We intentionally use `bitcoin` as the date anchor while iterating `flows` by `groupBy`.
+		// Rendering later iterates `Object.entries(bitcoin)`, so `ethereum`/`solana` values on dates
+		// without Bitcoin are dropped, while `totalBitcoin`/`totalEthereum`/`totalSolana` stay aligned.
 		for (const [flowDate, flowEntry] of Object.entries(flows)) {
 			const date =
 				groupBy === 'Daily' || groupBy === 'Cumulative'
@@ -62,9 +65,9 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 			}
 
 			if (groupBy === 'Cumulative') {
-				totalBitcoin += +(flowEntry['Bitcoin'] ?? 0)
-				totalEthereum += +(flowEntry['Ethereum'] ?? 0)
-				totalSolana += +(flowEntry['Solana'] ?? 0)
+				totalBitcoin += flowEntry['Bitcoin'] ?? 0
+				totalEthereum += flowEntry['Ethereum'] ?? 0
+				totalSolana += flowEntry['Solana'] ?? 0
 			}
 		}
 
@@ -277,7 +280,10 @@ const columns: ColumnDef<IETFSnapshotRow>[] = [
 	{
 		header: 'Volume',
 		accessorKey: 'volume',
-		cell: ({ getValue }) => <>{formattedNum(getValue<number>(), true)}</>,
+		cell: ({ getValue }) => {
+			const value = getValue<number | null>()
+			return <>{value != null ? formattedNum(value, true) : ''}</>
+		},
 		meta: {
 			align: 'end'
 		},
