@@ -9,6 +9,12 @@ import type {
 	RWAAssetChartRow
 } from './api.types'
 
+function toUnixMsTimestamp(ts: number): number {
+	// API timestamps are historically in unix seconds. Normalize to ms for ECharts time axis.
+	// Keep this tolerant to already-ms values to avoid double conversion.
+	return Number.isFinite(ts) && ts > 0 && ts < 1e12 ? ts * 1e3 : ts
+}
+
 export async function getRWAActiveTVLs(): Promise<Array<IFetchedRWAProject>> {
 	return fetchJson<Array<IFetchedRWAProject>>(`${RWA_SERVER_URL}/current?z=0`)
 }
@@ -39,7 +45,10 @@ export async function getRWAChartDataByTicker({
 				? `${RWA_SERVER_URL}/chart/platform/${selectedPlatform}`
 				: `${RWA_SERVER_URL}/chart/chain/all`
 
-	return fetchJson<IRWAChartDataByTicker>(`${chartUrl}/ticker-breakdown`).catch(() => null)
+	return fetchJson<IRWAChartDataByTicker>(`${chartUrl}/ticker-breakdown`).catch((error) => {
+		console.error('Failed to fetch RWA chart data by ticker:', error)
+		return null
+	})
 }
 
 export async function getRWAAssetChartData(assetId: string): Promise<IRWAAssetData['chartDataset']> {
@@ -48,13 +57,12 @@ export async function getRWAAssetChartData(assetId: string): Promise<IRWAAssetDa
 		`${RWA_SERVER_URL}/chart/asset/${encodedAssetId}`
 	)
 		.then((data) => {
-			const source: RWAAssetChartRow[] =
-				(data ?? []).map((item) => ({
-					timestamp: item.timestamp * 1e3,
-					'DeFi Active TVL': item.defiActiveTvl ?? null,
-					'Active Mcap': item.activeMcap ?? null,
-					'Onchain Mcap': item.onChainMcap ?? null
-				})) ?? []
+			const source: RWAAssetChartRow[] = (data ?? []).map((item) => ({
+				timestamp: toUnixMsTimestamp(item.timestamp),
+				'DeFi Active TVL': item.defiActiveTvl ?? null,
+				'Active Mcap': item.activeMcap ?? null,
+				'Onchain Mcap': item.onChainMcap ?? null
+			}))
 
 			const dimensions: RWAAssetChartDimension[] = [
 				'timestamp',
@@ -65,5 +73,8 @@ export async function getRWAAssetChartData(assetId: string): Promise<IRWAAssetDa
 
 			return { source, dimensions }
 		})
-		.catch(() => null)
+		.catch((error) => {
+			console.error('Failed to fetch RWA asset chart data:', error)
+			return null
+		})
 }

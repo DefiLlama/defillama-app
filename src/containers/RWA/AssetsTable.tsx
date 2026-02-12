@@ -92,6 +92,11 @@ export function RWAAssetsTable({
 		[]
 	)
 
+	const selectedColumns = instance
+		.getAllLeafColumns()
+		.filter((col) => col.getIsVisible())
+		.map((col) => col.id)
+
 	const setColumnOptions = (newOptions: string[] | ((prev: string[]) => string[])) => {
 		const resolvedOptions = Array.isArray(newOptions) ? newOptions : newOptions(selectedColumns)
 		const ops = Object.fromEntries(
@@ -99,11 +104,6 @@ export function RWAAssetsTable({
 		)
 		instance.setColumnVisibility(ops)
 	}
-
-	const selectedColumns = instance
-		.getAllLeafColumns()
-		.filter((col) => col.getIsVisible())
-		.map((col) => col.id)
 
 	const prepareCsv = () => {
 		const tableRows = instance.getSortedRowModel().rows
