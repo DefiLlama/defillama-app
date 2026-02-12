@@ -109,12 +109,10 @@ function SuperLuminalContent({
 	if (isLoadingDashboard) {
 		return (
 			<div className="flex flex-1 items-center justify-center">
-				<div className="sl-loader text-center leading-tight select-none">
-					<span className="block text-[20px] font-black tracking-[0.12em] text-(--sl-text-brand)">DefiLlama</span>
-					<span
-						className="block text-[13px] font-bold tracking-[0.2em] uppercase text-transparent"
-						style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
-					>
+				<div className="sl-loader flex flex-col items-center gap-2.5">
+					<img src="/assets/defillama.webp" height={36} width={140} className="hidden object-contain dark:block" alt="DefiLlama" />
+					<img src="/assets/defillama-dark.webp" height={36} width={140} className="object-contain dark:hidden" alt="DefiLlama" />
+					<span className="rounded-full border border-(--sl-accent)/40 px-3 py-1 text-[9px] font-semibold tracking-[0.15em] uppercase text-(--sl-accent)/60 select-none">
 						Investor Relationships
 					</span>
 				</div>
@@ -154,12 +152,10 @@ function SuperLuminalContent({
 						<Suspense
 							fallback={
 								<div className="flex flex-1 items-center justify-center py-20">
-									<div className="sl-loader text-center leading-tight select-none">
-										<span className="block text-[20px] font-black tracking-[0.12em] text-(--sl-text-brand)">DefiLlama</span>
-										<span
-											className="block text-[13px] font-bold tracking-[0.2em] uppercase text-transparent"
-											style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
-										>
+									<div className="sl-loader flex flex-col items-center gap-2.5">
+										<img src="/assets/defillama.webp" height={36} width={140} className="hidden object-contain dark:block" alt="DefiLlama" />
+										<img src="/assets/defillama-dark.webp" height={36} width={140} className="object-contain dark:hidden" alt="DefiLlama" />
+										<span className="rounded-full border border-(--sl-accent)/40 px-3 py-1 text-[9px] font-semibold tracking-[0.15em] uppercase text-(--sl-accent)/60 select-none">
 											Investor Relationships
 										</span>
 									</div>
@@ -214,6 +210,8 @@ function SuperLuminalShell() {
 
 	return (
 		<div className="superluminal-dashboard col-span-full flex min-h-screen flex-col pro-dashboard bg-(--app-bg) md:flex-row">
+			<link rel="preload" href="/assets/defillama.webp" as="image" />
+			<link rel="preload" href="/assets/defillama-dark.webp" as="image" />
 			{sidebarOpen && <div className="fixed inset-0 z-20 bg-black/60 md:hidden" onClick={closeSidebar} />}
 
 			<div className="sticky top-0 z-10 flex items-center gap-3 bg-(--app-bg) px-4 py-3 md:hidden">
@@ -225,13 +223,11 @@ function SuperLuminalShell() {
 						<path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
 					</svg>
 				</button>
-				<div className="text-center leading-tight select-none">
-					<span className="block text-[14px] font-black tracking-[0.08em] text-(--sl-text-brand)">DefiLlama</span>
-					<span
-						className="block text-[8px] font-bold tracking-[0.15em] uppercase text-transparent"
-						style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
-					>
-						Investor Relationships
+				<div className="flex items-center gap-2 select-none">
+					<img src="/assets/defillama.webp" height={24} width={94} className="hidden object-contain dark:block" alt="DefiLlama" />
+					<img src="/assets/defillama-dark.webp" height={24} width={94} className="object-contain dark:hidden" alt="DefiLlama" />
+					<span className="rounded-full border border-(--sl-accent)/40 px-2 py-0.5 text-[7px] font-semibold tracking-[0.12em] uppercase text-(--sl-accent)/60">
+						IR
 					</span>
 				</div>
 			</div>
