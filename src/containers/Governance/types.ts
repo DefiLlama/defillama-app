@@ -32,8 +32,8 @@ export interface GovernanceStats {
 	chainName?: string
 	proposalsCount?: number
 	successfulProposals?: number
-	propsalsInLast30Days?: number
-	successfulPropsalsInLast30Days?: number
+	proposalsInLast30Days?: number
+	successfulProposalsInLast30Days?: number
 	highestTotalScore?: number
 }
 
@@ -59,7 +59,7 @@ export interface GovernanceOverviewItem {
 	successfulProposals?: number
 	states: Record<string, number>
 	months: Record<string, { proposals: string[]; states: { active?: number; closed?: number } }>
-	propsalsInLast30Days: number
-	successfulPropsalsInLast30Days: number
+	proposalsInLast30Days: number
+	successfulProposalsInLast30Days: number
 	subRowData: Record<string, number>
 }

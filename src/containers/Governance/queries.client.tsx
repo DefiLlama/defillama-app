@@ -5,6 +5,7 @@ import type {
 	GovernanceDataEntry,
 	GovernanceMaxVotesRow,
 	GovernanceProposal,
+	GovernanceStats,
 	GovernanceType
 } from './types'
 
@@ -25,6 +26,14 @@ type RawProposal = {
 type RawGovernanceResponse = {
 	metadata?: Record<string, unknown> | null
 	stats?: {
+		chainName?: string
+		proposalsCount?: number
+		successfulProposals?: number
+		proposalsInLast30Days?: number
+		propsalsInLast30Days?: number
+		successfulProposalsInLast30Days?: number
+		successfulPropsalsInLast30Days?: number
+		highestTotalScore?: number
 		months?: Record<
 			string,
 			{
@@ -35,7 +44,30 @@ type RawGovernanceResponse = {
 		>
 		[key: string]: unknown
 	} | null
-	proposals: RawProposal[] | Record<string, RawProposal>
+	proposals?: RawProposal[] | Record<string, RawProposal>
+}
+
+function normalizeGovernanceStats(stats: RawGovernanceResponse['stats']): GovernanceStats | null {
+	if (!stats) return null
+
+	return {
+		chainName: typeof stats.chainName === 'string' ? stats.chainName : undefined,
+		proposalsCount: typeof stats.proposalsCount === 'number' ? stats.proposalsCount : undefined,
+		successfulProposals: typeof stats.successfulProposals === 'number' ? stats.successfulProposals : undefined,
+		proposalsInLast30Days:
+			typeof stats.proposalsInLast30Days === 'number'
+				? stats.proposalsInLast30Days
+				: typeof stats.propsalsInLast30Days === 'number'
+					? stats.propsalsInLast30Days
+					: undefined,
+		successfulProposalsInLast30Days:
+			typeof stats.successfulProposalsInLast30Days === 'number'
+				? stats.successfulProposalsInLast30Days
+				: typeof stats.successfulPropsalsInLast30Days === 'number'
+					? stats.successfulPropsalsInLast30Days
+					: undefined,
+		highestTotalScore: typeof stats.highestTotalScore === 'number' ? stats.highestTotalScore : undefined
+	}
 }
 
 export async function fetchAndFormatGovernanceData(apis: Array<string> | null): Promise<GovernanceDataEntry[]> {
@@ -48,7 +80,7 @@ export async function fetchAndFormatGovernanceData(apis: Array<string> | null): 
 
 				return {
 					metadata: (raw.metadata as GovernanceDataEntry['metadata']) ?? null,
-					stats: (raw.stats as GovernanceDataEntry['stats']) ?? null,
+					stats: normalizeGovernanceStats(raw.stats),
 					proposals,
 					controversialProposals: [...proposals]
 						.sort((a, b) => (b.score_curve ?? 0) - (a.score_curve ?? 0))

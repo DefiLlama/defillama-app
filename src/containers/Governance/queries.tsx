@@ -65,7 +65,14 @@ async function fetchGovernanceDataForApis(governanceApis: Array<string>) {
 	return { governanceData, governanceTypes }
 }
 
-type RawGovernanceOverview = Record<string, Record<string, unknown> & { states: Record<string, number> }>
+type RawGovernanceOverviewItem = Record<string, unknown> & {
+	states?: Record<string, number>
+	proposalsInLast30Days?: number
+	propsalsInLast30Days?: number
+	successfulProposalsInLast30Days?: number
+	successfulPropsalsInLast30Days?: number
+}
+type RawGovernanceOverview = Record<string, RawGovernanceOverviewItem>
 
 export async function getGovernancePageData() {
 	const [snapshot, compound, tally] = await Promise.all([
@@ -76,10 +83,27 @@ export async function getGovernancePageData() {
 
 	return {
 		props: {
-			data: Object.values({ ...snapshot, ...compound, ...tally }).map((x) => ({
-				...x,
-				subRowData: x.states ?? {}
-			}))
+			data: Object.values({ ...snapshot, ...compound, ...tally }).map((x) => {
+				const proposalsInLast30Days =
+					typeof x.proposalsInLast30Days === 'number'
+						? x.proposalsInLast30Days
+						: typeof x.propsalsInLast30Days === 'number'
+							? x.propsalsInLast30Days
+							: 0
+				const successfulProposalsInLast30Days =
+					typeof x.successfulProposalsInLast30Days === 'number'
+						? x.successfulProposalsInLast30Days
+						: typeof x.successfulPropsalsInLast30Days === 'number'
+							? x.successfulPropsalsInLast30Days
+							: 0
+
+				return {
+					...x,
+					proposalsInLast30Days,
+					successfulProposalsInLast30Days,
+					subRowData: x.states ?? {}
+				}
+			})
 		},
 		revalidate: maxAgeForNext([22])
 	}

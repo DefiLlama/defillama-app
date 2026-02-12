@@ -52,14 +52,19 @@ export default function GovernanceProject({
 		[governanceTypes]
 	)
 
-	const data = governanceData?.[categoryIndex]
-	const governanceType = governanceTypes?.[categoryIndex]
+	const safeCategoryIndex = categoryIndex >= 0 && categoryIndex < governanceData.length ? categoryIndex : 0
+	const data = governanceData?.[safeCategoryIndex]
+	const governanceType = governanceTypes?.[safeCategoryIndex] ?? 'tally'
 
 	const filters =
 		categoryLabels.length > 1 ? (
 			<TagGroup
-				selectedValue={categoryLabels[categoryIndex] ?? categoryLabels[0]}
-				setValue={(value) => setCategoryIndex(categoryLabels.indexOf(value as GovernanceTypeLabel))}
+				selectedValue={categoryLabels[safeCategoryIndex] ?? categoryLabels[0]}
+				setValue={(value) => {
+					const idx = categoryLabels.indexOf(value as GovernanceTypeLabel)
+					if (idx === -1) return
+					setCategoryIndex(idx)
+				}}
 				values={categoryLabels}
 				className="ml-auto"
 			/>
@@ -96,8 +101,8 @@ export default function GovernanceProject({
 				{data?.stats?.chainName != null ||
 				data?.stats?.proposalsCount != null ||
 				data?.stats?.successfulProposals != null ||
-				data?.stats?.propsalsInLast30Days != null ||
-				data?.stats?.successfulPropsalsInLast30Days != null ||
+				data?.stats?.proposalsInLast30Days != null ||
+				data?.stats?.successfulProposalsInLast30Days != null ||
 				data?.stats?.highestTotalScore != null ||
 				data?.metadata?.followersCount != null ? (
 					<div className="flex min-h-[46px] w-full flex-wrap items-center gap-x-6 gap-y-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-4 py-3">
@@ -125,17 +130,17 @@ export default function GovernanceProject({
 							</div>
 						) : null}
 
-						{data?.stats?.propsalsInLast30Days != null ? (
+						{data?.stats?.proposalsInLast30Days != null ? (
 							<div className="flex items-baseline gap-1.5">
 								<span className="text-sm text-(--text-label)">Proposals (30d)</span>
-								<span className="text-sm font-medium tabular-nums">{data.stats.propsalsInLast30Days}</span>
+								<span className="text-sm font-medium tabular-nums">{data.stats.proposalsInLast30Days}</span>
 							</div>
 						) : null}
 
-						{data?.stats?.successfulPropsalsInLast30Days != null ? (
+						{data?.stats?.successfulProposalsInLast30Days != null ? (
 							<div className="flex items-baseline gap-1.5">
 								<span className="text-sm text-(--text-label)">Successful (30d)</span>
-								<span className="text-sm font-medium tabular-nums">{data.stats.successfulPropsalsInLast30Days}</span>
+								<span className="text-sm font-medium tabular-nums">{data.stats.successfulProposalsInLast30Days}</span>
 							</div>
 						) : null}
 

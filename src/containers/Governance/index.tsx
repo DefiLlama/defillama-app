@@ -19,7 +19,7 @@ import type { GovernanceOverviewItem } from './types'
 
 export default function Governance({ data }: { data: GovernanceOverviewItem[] }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'successfulPropsalsInLast30Days', desc: true }])
+	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'successfulProposalsInLast30Days', desc: true }])
 
 	const instance = useReactTable({
 		data: data,
@@ -121,13 +121,13 @@ const governanceColumns: ColumnDef<GovernanceOverviewItem>[] = [
 	},
 	{
 		header: 'Proposals in last 30 days',
-		accessorKey: 'propsalsInLast30Days',
+		accessorKey: 'proposalsInLast30Days',
 		size: 200,
 		meta: { align: 'end' }
 	},
 	{
 		header: 'Successful Proposals in last 30 days',
-		accessorKey: 'successfulPropsalsInLast30Days',
+		accessorKey: 'successfulProposalsInLast30Days',
 		size: 280,
 		meta: { align: 'end' }
 	}

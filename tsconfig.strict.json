@@ -42,6 +42,8 @@
 		"src/containers/CompareTokens/**/*.ts",
 		"src/containers/CompareTokens/**/*.tsx",
 		"src/containers/CompareChains/**/*.ts",
-		"src/containers/CompareChains/**/*.tsx"
+		"src/containers/CompareChains/**/*.tsx",
+		"src/containers/CompareProtocols/**/*.ts",
+		"src/containers/CompareProtocols/**/*.tsx"
 	]
 }

@@ -9,11 +9,12 @@ export async function getCompareProtocolsPageData(): Promise<{
 }> {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
-	const { protocols } = await getChainOverviewData({
+	const overviewData = await getChainOverviewData({
 		chain: 'All',
 		chainMetadata: metadataCache.chainMetadata,
 		protocolMetadata: metadataCache.protocolMetadata
 	})
+	const protocols: CompareProtocolsProps['protocols'] = overviewData?.protocols ?? []
 
 	return {
 		props: {

@@ -16,6 +16,7 @@ import {
 	fetchNftVolumes,
 	fetchParentCompanies
 } from './api'
+import type { RawNftCollection } from './api.types'
 import { NFT_MINT_EARNINGS } from './mintEarnings'
 
 type VolumeChartEntry = {
@@ -54,8 +55,15 @@ export const getNFTStatistics = (chart: VolumeChartEntry[]) => {
 
 type NftDataResult = {
 	chart: VolumeChartEntry[]
-	collections: Awaited<ReturnType<typeof fetchNftCollections>>
+	collections: ExtendedNftCollection[]
 	statistics: unknown[]
+}
+
+type ExtendedNftCollection = RawNftCollection & {
+	volume1d: number | null
+	volume7d: number | null
+	volume30d: number | null
+	sales1d: number | null
 }
 
 export const getNFTData = async (): Promise<NftDataResult> => {

@@ -10,7 +10,7 @@ export async function fetchFeesProtocols(): Promise<RawDimensionsOverviewRespons
 	return fetchJson<RawDimensionsOverviewResponse>(
 		`${DIMENSIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 	).catch((err) => {
-		console.log(`Couldn't fetch fees protocols list at path: compare-tokens`, 'Error:', err)
+		console.error(`Couldn't fetch fees protocols list at path: compare-tokens`, 'Error:', err)
 		return { protocols: [] }
 	})
 }
@@ -19,7 +19,7 @@ export async function fetchRevenueProtocols(): Promise<RawDimensionsOverviewResp
 	return fetchJson<RawDimensionsOverviewResponse>(
 		`${DIMENSIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
 	).catch((err) => {
-		console.log(`Couldn't fetch revenue protocols list at path: compare-tokens`, 'Error:', err)
+		console.error(`Couldn't fetch revenue protocols list at path: compare-tokens`, 'Error:', err)
 		return { protocols: [] }
 	})
 }

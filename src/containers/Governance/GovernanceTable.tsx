@@ -185,7 +185,12 @@ const proposalsSnapshotColumns: ColumnDef<GovernanceProposal>[] = [
 	{
 		header: 'Winning Choice',
 		accessorKey: 'winningChoice',
-		cell: (info) => formatText(String(info.getValue()), 20) + ' ' + info.row.original.winningPerc,
+		cell: (info) => {
+			const choice = info.getValue() ?? ''
+			const winningPerc = info.row.original.winningPerc ?? ''
+			const text = `${formatText(String(choice), 20)}${winningPerc ? ` ${winningPerc}` : ''}`.trim()
+			return text || '-'
+		},
 		enableSorting: false,
 		meta: { align: 'end' }
 	},

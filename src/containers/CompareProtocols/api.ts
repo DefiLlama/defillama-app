@@ -8,13 +8,9 @@ export async function fetchProtocol(
 ): Promise<{ protocolData: RawProtocolResponse; protocolName: string } | null> {
 	if (!selectedProtocol) return null
 
-	try {
-		const protocolData = await fetchJson<RawProtocolResponse>(`${PROTOCOL_API}/${slug(selectedProtocol)}`)
-		return {
-			protocolData,
-			protocolName: protocolData.name
-		}
-	} catch (error) {
-		throw new Error(error instanceof Error ? error.message : 'Failed to fetch')
+	const protocolData = await fetchJson<RawProtocolResponse>(`${PROTOCOL_API}/${slug(selectedProtocol)}`)
+	return {
+		protocolData,
+		protocolName: protocolData.name
 	}
 }
