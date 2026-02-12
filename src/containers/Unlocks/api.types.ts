@@ -16,6 +16,11 @@ export interface ProtocolEmission {
 	sources?: unknown
 	tPrice?: number | null
 	tSymbol?: string | null
+	circSupply?: number | null
+	maxSupply?: number | null
+	totalLocked?: number | null
+	mcap?: number | null
+	unlocksPerDay?: number | null
 }
 
 export interface ProtocolEmissionDetail {
@@ -49,7 +54,12 @@ export interface ProtocolEmissionDetail {
 	} | null
 	unlockUsdChart?: unknown[] | null
 	futures?: Record<string, unknown> | null
-	categories?: Record<string, string> | null
+	categories?: Record<string, string[]> | null
+}
+
+export interface TokenAllocationSplit {
+	current: Record<string, number>
+	final: Record<string, number>
 }
 
 // Chart/dataset types used by both API and queries

@@ -49,17 +49,17 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage }:
 					<Icon name="x" className="h-5 w-5" />
 				</Ariakit.PopoverDismiss>
 
-			<Ariakit.MenuItem
-				render={
-					<a
-						href={generateGoogleCalendarUrl(
-							{ ...event, name: tokenName, noOfTokens: event.noOfTokens.flat() },
-							tokenName,
-							tokenValue ? parseFloat(tokenValue.replace(/[^0-9.-]+/g, '')) || 0 : 0
-						)}
-						target="_blank"
-						rel="noopener noreferrer"
-					/>
+				<Ariakit.MenuItem
+					render={
+						<a
+							href={generateGoogleCalendarUrl(
+								{ ...event, name: tokenName, noOfTokens: event.noOfTokens.flat() },
+								tokenName,
+								tokenValue ? parseFloat(tokenValue.replace(/[^0-9.-]+/g, '')) || 0 : 0
+							)}
+							target="_blank"
+							rel="noopener noreferrer"
+						/>
 					}
 					className="flex shrink-0 cursor-pointer items-center gap-2 border-b border-(--bg-border) px-3 py-2 first-of-type:rounded-t-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 				>

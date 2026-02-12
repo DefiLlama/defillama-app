@@ -70,19 +70,22 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 			const lastEvents = protocol.lastEvent?.filter((event) => event.timestamp >= thirtyDaysAgo) || []
 			if (!lastEvents.length) continue
 
-			const eventsByTimestamp = lastEvents.reduce((acc: Record<number, { totalTokens: number; events: typeof lastEvents }>, event) => {
-				const totalTokens = event.noOfTokens?.reduce((sum: number, amount: number) => sum + amount, 0) || 0
-				if (acc[event.timestamp]) {
-					acc[event.timestamp].totalTokens += totalTokens
-					acc[event.timestamp].events.push(event)
-				} else {
-					acc[event.timestamp] = {
-						totalTokens,
-						events: [event]
+			const eventsByTimestamp = lastEvents.reduce(
+				(acc: Record<number, { totalTokens: number; events: typeof lastEvents }>, event) => {
+					const totalTokens = event.noOfTokens?.reduce((sum: number, amount: number) => sum + amount, 0) || 0
+					if (acc[event.timestamp]) {
+						acc[event.timestamp].totalTokens += totalTokens
+						acc[event.timestamp].events.push(event)
+					} else {
+						acc[event.timestamp] = {
+							totalTokens,
+							events: [event]
+						}
 					}
-				}
-				return acc
-			}, {})
+					return acc
+				},
+				{}
+			)
 
 			let latestTimestamp = -Infinity
 			for (const ts of Object.keys(eventsByTimestamp)) {
@@ -99,7 +102,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 
 			const breakdown: UnlockBreakdown[] = (
 				latestEvent.events
-					.flatMap((event: typeof lastEvents[0]) =>
+					.flatMap((event: (typeof lastEvents)[0]) =>
 						event.noOfTokens?.map((amount: number) => ({
 							name: parseDescription(event.description || ''),
 							amount,

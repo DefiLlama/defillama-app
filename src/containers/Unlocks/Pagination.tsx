@@ -6,7 +6,7 @@ interface PaginationProps {
 	startIndex?: number
 }
 
-const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
+export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 	const [visibleItems, setVisibleItems] = useState(1)
 	const [currentPage, setCurrentPage] = useState(0)
 	const paginationRef = useRef<HTMLDivElement>(null)
@@ -176,5 +176,3 @@ const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 		</>
 	)
 }
-
-export default Pagination

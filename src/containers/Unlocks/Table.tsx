@@ -38,7 +38,7 @@ const setColumnOptions = (newOptions: string[]) => {
 }
 
 interface IUnlocksTableProps {
-	protocols: Array<any>
+	protocols: IEmission[]
 	showOnlyWatchlist: boolean
 	projectName: string
 	setProjectName: (value: string) => void
@@ -96,7 +96,7 @@ export const UnlocksTable = ({
 
 	const handleUnlockValueSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		const form = e.target as HTMLFormElement
+		const form = e.currentTarget
 		const minUnlockValue = (form.elements.namedItem('min') as HTMLInputElement)?.value
 		const maxUnlockValue = (form.elements.namedItem('max') as HTMLInputElement)?.value
 		router.push(
@@ -130,7 +130,7 @@ export const UnlocksTable = ({
 
 	const handleUnlockPercSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		const form = e.target as HTMLFormElement
+		const form = e.currentTarget
 		const minUnlockPerc = (form.elements.namedItem('min') as HTMLInputElement)?.value
 		const maxUnlockPerc = (form.elements.namedItem('max') as HTMLInputElement)?.value
 		router.push(
@@ -168,8 +168,6 @@ export const UnlocksTable = ({
 		() => defaultColumns
 	)
 
-
-
 	const selectedOptions = useMemo(() => {
 		const storage = JSON.parse(columnsInStorage)
 		return columnOptions.flatMap((c) => (storage[c.key] ? [c.key] : []))
@@ -199,7 +197,9 @@ export const UnlocksTable = ({
 				const filteredUpcomingEvent =
 					selectedUnlockTypes.length === UNLOCK_TYPES.length
 						? protocol.upcomingEvent
-						: protocol.upcomingEvent?.filter((event) => (event as { category?: string })?.category && selectedUnlockTypes.includes((event as { category?: string }).category!))
+						: protocol.upcomingEvent?.filter(
+								(event) => typeof event.category === 'string' && selectedUnlockTypes.includes(event.category)
+							)
 
 				return {
 					...protocol,
@@ -231,15 +231,9 @@ export const UnlocksTable = ({
 				if (shouldInclude && (minUnlockValue !== null || maxUnlockValue !== null)) {
 					const totalUnlockValue =
 						protocol.upcomingEvent?.reduce((sum: number, event) => {
-							if (
-								!event ||
-								(event as { timestamp?: number | null }).timestamp === null ||
-								!(event as { noOfTokens?: number[] }).noOfTokens ||
-								(event as { noOfTokens?: number[] }).noOfTokens!.length === 0 ||
-								protocol.tPrice == null
-							)
+							if (!event || event.timestamp == null || event.noOfTokens.length === 0 || protocol.tPrice == null)
 								return sum
-							const totalTokens = (event as { noOfTokens: number[] }).noOfTokens.reduce((s: number, amount: number) => s + amount, 0)
+							const totalTokens = event.noOfTokens.reduce((s: number, amount: number) => s + amount, 0)
 							return sum + totalTokens * protocol.tPrice
 						}, 0) ?? 0
 					if (minUnlockValue !== null && totalUnlockValue < minUnlockValue) shouldInclude = false
@@ -249,15 +243,9 @@ export const UnlocksTable = ({
 				if (shouldInclude && (minPerc !== '' || maxPerc !== '')) {
 					const totalUnlockValue =
 						protocol.upcomingEvent?.reduce((sum: number, event) => {
-							if (
-								!event ||
-								(event as { timestamp?: number | null }).timestamp === null ||
-								!(event as { noOfTokens?: number[] }).noOfTokens ||
-								(event as { noOfTokens?: number[] }).noOfTokens!.length === 0 ||
-								protocol.tPrice == null
-							)
+							if (!event || event.timestamp == null || event.noOfTokens.length === 0 || protocol.tPrice == null)
 								return sum
-							const totalTokens = (event as { noOfTokens: number[] }).noOfTokens.reduce((s: number, amount: number) => s + amount, 0)
+							const totalTokens = event.noOfTokens.reduce((s: number, amount: number) => s + amount, 0)
 							return sum + totalTokens * protocol.tPrice
 						}, 0) ?? 0
 					const mcap = protocol.mcap ?? 0
@@ -339,32 +327,32 @@ export const UnlocksTable = ({
 					placement="bottom-start"
 				/>
 
-			<SelectWithCombobox
-				allValues={columnOptions}
-				selectedValues={selectedOptions}
-				setSelectedValues={(values: string[] | ((prev: string[]) => string[])) => {
-					const newValues = typeof values === 'function' ? values(selectedOptions) : values
-					setColumnOptions(newValues)
-				}}
-				nestedMenu={false}
-				label={'Columns'}
-				labelType="smol"
-				variant="filter-responsive"
-			/>
+				<SelectWithCombobox
+					allValues={columnOptions}
+					selectedValues={selectedOptions}
+					setSelectedValues={(values: string[] | ((prev: string[]) => string[])) => {
+						const newValues = typeof values === 'function' ? values(selectedOptions) : values
+						setColumnOptions(newValues)
+					}}
+					nestedMenu={false}
+					label={'Columns'}
+					labelType="smol"
+					variant="filter-responsive"
+				/>
 
-			<SelectWithCombobox
-				allValues={UNLOCK_TYPE_OPTIONS}
-				selectedValues={selectedUnlockTypes}
-				setSelectedValues={(values: string[] | ((prev: string[]) => string[])) => {
-					const keys = typeof values === 'function' ? values(selectedUnlockTypes) : values
-					const isAllSelected = keys.length === UNLOCK_TYPES.length
-					setQueryParam('unlockTypes', isAllSelected ? undefined : keys.join(','))
-				}}
-				nestedMenu={false}
-				label={'Unlock Types'}
-				labelType="smol"
-				variant="filter-responsive"
-			/>
+				<SelectWithCombobox
+					allValues={UNLOCK_TYPE_OPTIONS}
+					selectedValues={selectedUnlockTypes}
+					setSelectedValues={(values: string[] | ((prev: string[]) => string[])) => {
+						const keys = typeof values === 'function' ? values(selectedUnlockTypes) : values
+						const isAllSelected = keys.length === UNLOCK_TYPES.length
+						setQueryParam('unlockTypes', isAllSelected ? undefined : keys.join(','))
+					}}
+					nestedMenu={false}
+					label={'Unlock Types'}
+					labelType="smol"
+					variant="filter-responsive"
+				/>
 
 				<label className="relative w-full sm:max-w-[280px]">
 					<span className="sr-only">Search projects...</span>
@@ -436,11 +424,15 @@ interface IEmission {
 		description: string
 		noOfTokens: number[]
 		timestamp: number
+		category?: string
 	}>
 	upcomingEvent: Array<{
 		description: string
 		noOfTokens: number[]
-		timestamp: number
+		timestamp: number | null
+		category?: string
+		unlockType?: string
+		rateDurationDays?: number
 	}>
 }
 
@@ -449,17 +441,18 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue }) => {
+		cell: ({ row }) => {
+			const protocolName = row.original.name
 			return (
 				<div className="flex h-full items-center">
 					<span className="relative flex items-center gap-2 pl-6">
-						<Bookmark readableName={getValue() as string} data-bookmark className="absolute -left-0.5" />
-						<TokenLogo logo={tokenIconUrl(getValue())} />
+						<Bookmark readableName={protocolName} data-bookmark className="absolute -left-0.5" />
+						<TokenLogo logo={tokenIconUrl(protocolName)} />
 						<BasicLink
-							href={`/unlocks/${slug(getValue() as string)}`}
+							href={`/unlocks/${slug(protocolName)}`}
 							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
-							{getValue() as string}
+							{protocolName}
 						</BasicLink>
 					</span>
 				</div>
@@ -471,11 +464,9 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		header: 'Price',
 		accessorKey: 'tPrice',
 		accessorFn: (row) => (row.tPrice ? +row.tPrice : undefined),
-		cell: ({ getValue }) => {
-			const value = getValue() as number | undefined
-			return (
-				<div className="flex h-full items-center justify-end">{value ? '$' + value.toFixed(2) : ''}</div>
-			)
+		cell: ({ row }) => {
+			const value = row.original.tPrice ?? undefined
+			return <div className="flex h-full items-center justify-end">{value ? '$' + value.toFixed(2) : ''}</div>
 		},
 		meta: {
 			align: 'end'
@@ -486,8 +477,8 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		header: 'MCap',
 		accessorKey: 'mcap',
 		accessorFn: (row) => (row.mcap ? +row.mcap : undefined),
-		cell: ({ getValue }) => {
-			const value = getValue() as number | undefined
+		cell: ({ row }) => {
+			const value = row.original.mcap ?? undefined
 			if (!value) return null
 			return <div className="flex h-full items-center justify-end">{formattedNum(value, true)}</div>
 		},
@@ -579,9 +570,8 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 			return ((priceAfter7d - priceAtUnlock) / priceAtUnlock) * 100
 		},
 		cell: ({ getValue }) => {
-			return (
-				<div className="flex h-full items-center justify-end">{getValue() ? renderPercentChange(getValue()) : ''}</div>
-			)
+			const value = getValue<number | undefined>()
+			return <div className="flex h-full items-center justify-end">{value ? renderPercentChange(value) : ''}</div>
 		},
 		meta: {
 			align: 'end',
@@ -593,14 +583,14 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		header: 'Daily Unlocks',
 		id: 'nextEvent',
 		accessorFn: (row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : undefined),
-		cell: ({ getValue, row }) => {
+		cell: ({ row }) => {
 			if (!row.original.unlocksPerDay) return <div className="flex h-full items-center justify-end"></div>
+			const value =
+				row.original.tPrice && row.original.unlocksPerDay ? row.original.tPrice * row.original.unlocksPerDay : undefined
 
 			return (
 				<div className="flex h-full items-center justify-end">
-					<span className="flex flex-col gap-1">
-						{getValue() ? formattedNum((getValue() as number).toFixed(2), true) : ''}
-					</span>
+					<span className="flex flex-col gap-1">{value ? formattedNum(value.toFixed(2), true) : ''}</span>
 				</div>
 			)
 		},

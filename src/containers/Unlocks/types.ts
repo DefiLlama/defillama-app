@@ -5,7 +5,8 @@ import type {
 	EmissionsChartRow,
 	EmissionsChartConfig,
 	EmissionEvent,
-	ProtocolEmission
+	ProtocolEmission,
+	TokenAllocationSplit
 } from './api.types'
 
 export interface EmissionsChartsData {
@@ -39,13 +40,18 @@ export interface EmissionsStackColors {
 }
 
 export interface EmissionsTokenAllocation {
-	documented: Record<string, number>
-	realtime: Record<string, number>
+	documented: TokenAllocationSplit
+	realtime: TokenAllocationSplit
 }
 
 export interface EmissionsHallmarks {
 	documented: Array<[number, string]>
 	realtime: Array<[number, string]>
+}
+
+export interface EmissionsFutures {
+	openInterest?: number
+	fundingRate?: number
 }
 
 export interface ProtocolEmissionsChartsResult {
@@ -64,12 +70,12 @@ export interface ProtocolEmissionsFullResult {
 	sources: string[]
 	notes: string[]
 	events: EmissionEvent[]
-	futures: Record<string, unknown>
+	futures: EmissionsFutures
 	token: string | null
 	geckoId: string | null
 	name: string | null
 	unlockUsdChart: unknown[] | null
-	categoriesBreakdown: Record<string, string> | null
+	categoriesBreakdown: Record<string, string[]> | null
 	tokenAllocation: EmissionsTokenAllocation
 }
 
@@ -108,11 +114,11 @@ export interface ProtocolEmissionResult {
 	geckoId: string | null
 	upcomingEvent: EmissionEvent[] | null
 	tokenAllocation: EmissionsTokenAllocation
-	futures: Record<string, unknown>
+	futures: EmissionsFutures
 	categories: EmissionsCategories
-	categoriesBreakdown: Record<string, string> | null
+	categoriesBreakdown: Record<string, string[]> | null
 	hallmarks: EmissionsHallmarks
 	name: string | null
-	tokenPrice: Record<string, unknown>
+	tokenPrice: { price?: number | null; symbol?: string | null }
 	unlockUsdChart: unknown[] | null
 }

@@ -1,14 +1,19 @@
 import { SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type { ProtocolEmissionDetail, ProtocolEmission } from './api.types'
-import type { ProtocolEmissionsChartsResult, ProtocolEmissionsFullResult, ProtocolEmissionsScheduleResult, ProtocolEmissionsPieResult, ProtocolEmissionResult } from './types'
+import type {
+	ProtocolEmissionsChartsResult,
+	ProtocolEmissionsFullResult,
+	ProtocolEmissionsScheduleResult,
+	ProtocolEmissionsPieResult,
+	ProtocolEmissionResult
+} from './types'
 
 function parseProtocolEmissionApiResponse(raw: unknown): ProtocolEmissionDetail | null {
 	if (!raw) return null
 
 	// Many endpoints respond as `{ body: string }`.
-	const body =
-		typeof raw === 'object' && raw !== null && 'body' in raw ? (raw as { body: unknown }).body : raw
+	const body = typeof raw === 'object' && raw !== null && 'body' in raw ? (raw as { body: unknown }).body : raw
 
 	if (body == null) return null
 	if (typeof body === 'string') {
@@ -27,7 +32,7 @@ export async function fetchProtocolEmission(protocolName: string): Promise<Proto
 	const encodedProtocolName = encodeURIComponent(protocolName)
 	const raw = await fetchJson(`${SERVER_URL}/emission/${encodedProtocolName}`).catch((error) => {
 		console.error(`Failed to fetch protocol emission for ${protocolName}:`, error)
-		return null as unknown
+		return null
 	})
 	return parseProtocolEmissionApiResponse(raw)
 }
@@ -109,7 +114,10 @@ export async function getProtocolEmissionsForCharts(protocolName: string): Promi
 		name: null,
 		unlockUsdChart: null,
 		categoriesBreakdown: null,
-		tokenAllocation: { documented: {}, realtime: {} }
+		tokenAllocation: {
+			documented: { current: {}, final: {} },
+			realtime: { current: {}, final: {} }
+		}
 	}
 
 	if (!protocolName) return empty
@@ -132,9 +140,7 @@ export async function getProtocolEmissionsForCharts(protocolName: string): Promi
 	}
 }
 
-export async function getProtocolEmissionsScheduleData(
-	protocolName: string
-): Promise<ProtocolEmissionsScheduleResult> {
+export async function getProtocolEmissionsScheduleData(protocolName: string): Promise<ProtocolEmissionsScheduleResult> {
 	const empty: ProtocolEmissionsScheduleResult = {
 		datasets: {
 			documented: { source: [], dimensions: ['timestamp'] },
@@ -186,7 +192,10 @@ export async function getProtocolEmissons(protocolName: string): Promise<Protoco
 		token: null,
 		geckoId: null,
 		upcomingEvent: null,
-		tokenAllocation: { documented: {}, realtime: {} },
+		tokenAllocation: {
+			documented: { current: {}, final: {} },
+			realtime: { current: {}, final: {} }
+		},
 		futures: {},
 		categories: { documented: [], realtime: [] },
 		categoriesBreakdown: null,

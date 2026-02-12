@@ -3,7 +3,10 @@ import { getProtocolEmissons } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
 import type { EmissionEvent } from './api.types'
 
-export function calculateTotalUnlockValue(emissions: { tokenPrice?: { price?: number | null } | null; upcomingEvent?: EmissionEvent[] | null }): number {
+export function calculateTotalUnlockValue(emissions: {
+	tokenPrice?: { price?: number | null } | null
+	upcomingEvent?: EmissionEvent[] | null
+}): number {
 	if (!emissions?.tokenPrice?.price) return 0
 
 	const events = Array.isArray(emissions?.upcomingEvent) ? emissions.upcomingEvent : []

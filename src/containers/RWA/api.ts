@@ -64,12 +64,7 @@ export async function getRWAAssetChartData(assetId: string): Promise<IRWAAssetDa
 				'Onchain Mcap': item.onChainMcap ?? null
 			}))
 
-			const dimensions: RWAAssetChartDimension[] = [
-				'timestamp',
-				'DeFi Active TVL',
-				'Active Mcap',
-				'Onchain Mcap'
-			]
+			const dimensions: RWAAssetChartDimension[] = ['timestamp', 'DeFi Active TVL', 'Active Mcap', 'Onchain Mcap']
 
 			return { source, dimensions }
 		})

@@ -9,13 +9,22 @@ import { buildUnlocksMultiSeriesChartForDateRange } from '~/containers/Unlocks/b
 import type { PrecomputedData, UnlocksData } from '~/containers/Unlocks/calendarTypes'
 import { batchFetchHistoricalPrices, capitalizeFirstLetter, getNDistinctColors, roundToNearestHalfHour } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import type { EmissionsDataset, EmissionsChartRow, EmissionsChartConfig, EmissionEvent, ProtocolEmission, ProtocolEmissionDetail } from './api.types'
-import type { ProtocolEmissionWithHistory } from './types'
+import type {
+	EmissionsDataset,
+	EmissionsChartRow,
+	EmissionsChartConfig,
+	EmissionEvent,
+	ProtocolEmission,
+	ProtocolEmissionDetail,
+	TokenAllocationSplit
+} from './api.types'
 import type { CalendarUnlockEvent } from './calendarTypes'
+import type { ProtocolEmissionResult, ProtocolEmissionWithHistory } from './types'
 
 function buildEmissionsDataset(chartData: Array<EmissionsChartRow>, stacks: string[]): EmissionsDataset {
+	const source: Array<Record<string, number | null>> = chartData.map((row) => ({ ...row }))
 	return {
-		source: chartData as Array<Record<string, number | null>>,
+		source,
 		dimensions: ['timestamp', ...stacks]
 	}
 }
@@ -30,23 +39,22 @@ function buildEmissionsCharts(stacks: string[], colors: Record<string, string>):
 	}))
 }
 
-function parseProtocolEmissionApiResponse(raw: unknown): ProtocolEmission | null {
+function parseProtocolEmissionApiResponse(raw: unknown): ProtocolEmissionDetail | null {
 	if (!raw) return null
 
 	// Many endpoints respond as `{ body: string }`.
-	const body =
-		typeof raw === 'object' && raw !== null && 'body' in raw ? (raw as { body: unknown }).body : raw
+	const body = typeof raw === 'object' && raw !== null && 'body' in raw ? (raw as { body: unknown }).body : raw
 
 	if (body == null) return null
 	if (typeof body === 'string') {
 		try {
-			return JSON.parse(body) as ProtocolEmission
+			return JSON.parse(body) as ProtocolEmissionDetail
 		} catch {
 			return null
 		}
 	}
 
-	return body as ProtocolEmission
+	return body as ProtocolEmissionDetail
 }
 
 async function fetchProtocolEmission(protocolName: string): Promise<ProtocolEmissionDetail | null> {
@@ -54,9 +62,9 @@ async function fetchProtocolEmission(protocolName: string): Promise<ProtocolEmis
 	const encodedProtocolName = encodeURIComponent(protocolName)
 	const raw = await fetchJson(`${PROTOCOL_EMISSION_API}/${encodedProtocolName}`).catch((error) => {
 		console.error(`Failed to fetch protocol emission for ${protocolName}:`, error)
-		return null as unknown
+		return null
 	})
-	return parseProtocolEmissionApiResponse(raw) as ProtocolEmissionDetail | null
+	return parseProtocolEmissionApiResponse(raw)
 }
 
 function formatEmissionLabel(label: unknown): string {
@@ -75,14 +83,55 @@ function roundEmissionEvents(events: EmissionEvent[] | undefined | null): Emissi
 	}))
 }
 
+const EMPTY_TOKEN_ALLOCATION_SPLIT: TokenAllocationSplit = { current: {}, final: {} }
+
+function normalizeTokenAllocation(input: unknown): TokenAllocationSplit {
+	if (!input || typeof input !== 'object') return EMPTY_TOKEN_ALLOCATION_SPLIT
+
+	if ('current' in input || 'final' in input) {
+		const split = input as { current?: unknown; final?: unknown }
+		return {
+			current: split.current && typeof split.current === 'object' ? (split.current as Record<string, number>) : {},
+			final: split.final && typeof split.final === 'object' ? (split.final as Record<string, number>) : {}
+		}
+	}
+
+	// Legacy shape: a single category->allocation map.
+	const flat = input as Record<string, number>
+	return { current: flat, final: flat }
+}
+
+function normalizeCategoriesBreakdown(input: unknown): Record<string, string[]> | null {
+	if (!input || typeof input !== 'object') return null
+
+	const normalized: Record<string, string[]> = {}
+	for (const [group, value] of Object.entries(input)) {
+		if (Array.isArray(value)) {
+			normalized[group] = value.filter((item): item is string => typeof item === 'string')
+			continue
+		}
+
+		if (typeof value === 'string') {
+			normalized[group] = [value]
+		}
+	}
+
+	return normalized
+}
+
 interface EmissionsDataInput {
-	data?: Array<{
-		label?: string | undefined
-		data?: Array<{
-			timestamp: number
-			unlocked?: number | null | undefined
-		}> | undefined
-	}> | null | undefined
+	data?:
+		| Array<{
+				label?: string | undefined
+				data?:
+					| Array<{
+							timestamp: number
+							unlocked?: number | null | undefined
+					  }>
+					| undefined
+		  }>
+		| null
+		| undefined
 	tokenAllocation?: Record<string, number> | null | undefined
 }
 
@@ -90,7 +139,7 @@ function buildEmissionsSeriesAndCategories(input: EmissionsDataInput | null | un
 	series: Record<number, Record<string, number | null>>
 	categories: string[]
 } {
-	const series = {} as Record<number, Record<string, number | null>>
+	const series: Record<number, Record<string, number | null>> = {}
 	const categories: string[] = []
 	const seen = new Set<string>()
 
@@ -258,12 +307,12 @@ export async function getProtocolEmissionsForCharts(protocolName: string) {
 		token: metadata?.token ?? null,
 		geckoId: res?.gecko_id ?? null,
 		tokenAllocation: {
-			documented: documentedData.tokenAllocation ?? {},
-			realtime: realTimeData.tokenAllocation ?? {}
+			documented: normalizeTokenAllocation(documentedData.tokenAllocation),
+			realtime: normalizeTokenAllocation(realTimeData.tokenAllocation)
 		},
 		futures: futures ?? {},
 		categories: emissionCategories,
-		categoriesBreakdown: res?.categories ?? null,
+		categoriesBreakdown: normalizeCategoriesBreakdown(res.categories),
 		hallmarks: {
 			documented: (documentedData.data?.length ?? 0) > 0 ? [[nowSec, 'Today']] : [],
 			realtime: (realTimeData.data?.length ?? 0) > 0 ? [[nowSec, 'Today']] : []
@@ -432,7 +481,7 @@ export async function getUnlocksCalendarStaticPropsData(): Promise<{
 	for (const protocol of data ?? []) {
 		if (!protocol?.events || protocol.tPrice == null) continue
 
-		const validEvents = (protocol.events as UnlockCalendarProtocolEvent[]).filter(
+		const validEvents = protocol.events.filter(
 			(event) => event.timestamp !== null && event.noOfTokens && event.noOfTokens.length > 0
 		)
 
@@ -701,7 +750,9 @@ export const getAllProtocolEmissions = async ({
 					}
 
 					const upcomingEvent =
-						upcomingTimestamp === null ? [{ timestamp: null }] : events.filter((e: EmissionEvent) => e.timestamp === upcomingTimestamp)
+						upcomingTimestamp === null
+							? [{ timestamp: null }]
+							: events.filter((e: EmissionEvent) => e.timestamp === upcomingTimestamp)
 
 					const lastPastTimestamp = coinKey ? lastPastTimestampByCoinKey.get(coinKey) : undefined
 					const lastEvent =
@@ -780,11 +831,11 @@ async function getEmissionsProtocolsListCached(): Promise<string[] | null> {
 	return list
 }
 
-let allProtocolEmissionsPromise: Promise<any[] | null> | null = null
-async function getAllProtocolEmissionsCached(): Promise<any[] | null> {
+let allProtocolEmissionsPromise: Promise<ProtocolEmission[] | null> | null = null
+async function getAllProtocolEmissionsCached(): Promise<ProtocolEmission[] | null> {
 	if (!allProtocolEmissionsPromise) {
 		allProtocolEmissionsPromise = fetchJson(PROTOCOL_EMISSIONS_API)
-			.then((res) => (Array.isArray(res) ? res : null))
+			.then((res) => (Array.isArray(res) ? (res as ProtocolEmission[]) : null))
 			.catch(() => null)
 	}
 	const all = await allProtocolEmissionsPromise
@@ -792,36 +843,49 @@ async function getAllProtocolEmissionsCached(): Promise<any[] | null> {
 	return all
 }
 
-export const getProtocolEmissons = async (protocolName: string) => {
+function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
+	return {
+		chartData: { documented: [], realtime: [] },
+		pieChartData: { documented: [], realtime: [] },
+		stackColors: { documented: {}, realtime: {} },
+		datasets: {
+			documented: { source: [], dimensions: ['timestamp'] },
+			realtime: { source: [], dimensions: ['timestamp'] }
+		},
+		chartsConfigs: { documented: [], realtime: [] },
+		meta: {},
+		sources: [],
+		notes: [],
+		events: [],
+		token: null,
+		geckoId: null,
+		upcomingEvent: null,
+		tokenAllocation: {
+			documented: EMPTY_TOKEN_ALLOCATION_SPLIT,
+			realtime: EMPTY_TOKEN_ALLOCATION_SPLIT
+		},
+		futures: {},
+		categories: { documented: [], realtime: [] },
+		categoriesBreakdown: null,
+		hallmarks: { documented: [], realtime: [] },
+		name: null,
+		tokenPrice: {},
+		unlockUsdChart: null
+	}
+}
+
+export const getProtocolEmissons = async (protocolName: string): Promise<ProtocolEmissionResult> => {
 	try {
+		const emptyResult = createEmptyProtocolEmissionResult()
 		const list = await getEmissionsProtocolsListCached()
-		if (!list?.includes(protocolName))
-			return {
-				chartData: { documented: [], realtime: [] },
-				categories: { documented: [], realtime: [] },
-				datasets: {
-					documented: { source: [], dimensions: ['timestamp'] },
-					realtime: { source: [], dimensions: ['timestamp'] }
-				},
-				chartsConfigs: { documented: [], realtime: [] }
-			}
+		if (!list?.includes(protocolName)) return emptyResult
 
 		const [res, allEmissions] = await Promise.all([
 			fetchProtocolEmission(protocolName),
 			getAllProtocolEmissionsCached()
 		])
 
-		if (!res) {
-			return {
-				chartData: { documented: [], realtime: [] },
-				categories: { documented: [], realtime: [] },
-				datasets: {
-					documented: { source: [], dimensions: ['timestamp'] },
-					realtime: { source: [], dimensions: ['timestamp'] }
-				},
-				chartsConfigs: { documented: [], realtime: [] }
-			}
-		}
+		if (!res) return emptyResult
 
 		const { metadata, name, futures } = res
 
@@ -859,7 +923,10 @@ export const getProtocolEmissons = async (protocolName: string) => {
 					})
 				: {}
 
-		const tokenPrice = (tokenKey && prices?.coins?.[tokenKey]) || {}
+		const tokenPrice =
+			tokenKey && prices && typeof prices === 'object' && 'coins' in prices
+				? ((prices as { coins?: Record<string, { price?: number; symbol?: string }> }).coins?.[tokenKey] ?? {})
+				: {}
 
 		let upcomingEvent = []
 		if (roundedEvents.length > 0) {
@@ -903,12 +970,12 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			geckoId: res?.gecko_id ?? null,
 			upcomingEvent,
 			tokenAllocation: {
-				documented: documentedData.tokenAllocation ?? {},
-				realtime: realTimeData.tokenAllocation ?? {}
+				documented: normalizeTokenAllocation(documentedData.tokenAllocation),
+				realtime: normalizeTokenAllocation(realTimeData.tokenAllocation)
 			},
 			futures: futures ?? {},
 			categories: emissionCategories,
-			categoriesBreakdown: res?.categories ?? null,
+			categoriesBreakdown: normalizeCategoriesBreakdown(res.categories),
 			hallmarks: {
 				documented: (documentedData.data?.length ?? 0) > 0 ? [[nowSec, 'Today']] : [],
 				realtime: (realTimeData.data?.length ?? 0) > 0 ? [[nowSec, 'Today']] : []
@@ -919,15 +986,6 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		}
 	} catch (e) {
 		console.log(e)
-
-		return {
-			chartData: { documented: [], realtime: [] },
-			categories: { documented: [], realtime: [] },
-			datasets: {
-				documented: { source: [], dimensions: ['timestamp'] },
-				realtime: { source: [], dimensions: ['timestamp'] }
-			},
-			chartsConfigs: { documented: [], realtime: [] }
-		}
+		return createEmptyProtocolEmissionResult()
 	}
 }

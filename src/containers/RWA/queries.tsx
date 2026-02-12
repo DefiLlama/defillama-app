@@ -1,7 +1,13 @@
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import definitions from '~/public/rwa-definitions.json'
 import type { IRWAList } from '~/utils/metadata/types'
-import { getRWAActiveTVLs, getRWAStats, getRWAChartDataByTicker, getRWAAssetDataById, getRWAAssetChartData } from './api'
+import {
+	getRWAActiveTVLs,
+	getRWAStats,
+	getRWAChartDataByTicker,
+	getRWAAssetDataById,
+	getRWAAssetChartData
+} from './api'
 import type {
 	IFetchedRWAProject,
 	IRWAChartDataByTicker,
@@ -289,8 +295,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			// Check if asset has actual TVL on the selected chain (from TVL data, not just chain array)
 			const hasChainInTvl = selectedChain
 				? aggregatedMetrics.hasSelectedChainData.onChainMcap ||
-				  aggregatedMetrics.hasSelectedChainData.activeMcap ||
-				  aggregatedMetrics.hasSelectedChainData.defiActiveTvl
+					aggregatedMetrics.hasSelectedChainData.activeMcap ||
+					aggregatedMetrics.hasSelectedChainData.defiActiveTvl
 				: true
 
 			// Use filtered values if chain is selected, otherwise use totals
@@ -484,35 +490,35 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		return {
 			assets: assets.sort((a, b) => (b.onChainMcap?.total ?? 0) - (a.onChainMcap?.total ?? 0)),
 			types: formattedTypes,
-		typeOptions: formattedTypes.map((type) => ({
-			key: type,
-			name: type,
-			help: (definitions.type.values as Record<string, string>)?.[type] ?? null
-		})),
+			typeOptions: formattedTypes.map((type) => ({
+				key: type,
+				name: type,
+				help: (definitions.type.values as Record<string, string>)?.[type] ?? null
+			})),
 			assetClasses: formattedAssetClasses,
-		assetClassOptions: formattedAssetClasses.map((assetClass) => ({
-			key: assetClass,
-			name: assetClass,
-			help: (definitions.assetClass.values as Record<string, string>)?.[assetClass] ?? null
-		})),
+			assetClassOptions: formattedAssetClasses.map((assetClass) => ({
+				key: assetClass,
+				name: assetClass,
+				help: (definitions.assetClass.values as Record<string, string>)?.[assetClass] ?? null
+			})),
 			rwaClassifications: formattedRwaClassifications,
-		rwaClassificationOptions: formattedRwaClassifications.map((classification) => ({
-			key: classification,
-			name: classification,
-			help: (definitions.rwaClassification.values as Record<string, string>)?.[classification] ?? null
-		})),
+			rwaClassificationOptions: formattedRwaClassifications.map((classification) => ({
+				key: classification,
+				name: classification,
+				help: (definitions.rwaClassification.values as Record<string, string>)?.[classification] ?? null
+			})),
 			accessModels: formattedAccessModels,
-		accessModelOptions: formattedAccessModels.map((accessModel) => ({
-			key: accessModel,
-			name: accessModel,
-			help: (definitions.accessModel.values as Record<string, string>)?.[accessModel] ?? null
-		})),
+			accessModelOptions: formattedAccessModels.map((accessModel) => ({
+				key: accessModel,
+				name: accessModel,
+				help: (definitions.accessModel.values as Record<string, string>)?.[accessModel] ?? null
+			})),
 			categories: formattedCategories,
-		categoriesOptions: formattedCategories.map((category) => ({
-			key: category,
-			name: category,
-			help: (definitions.category.values as Record<string, string>)?.[category] ?? null
-		})),
+			categoriesOptions: formattedCategories.map((category) => ({
+				key: category,
+				name: category,
+				help: (definitions.category.values as Record<string, string>)?.[category] ?? null
+			})),
 			assetNames: selectedPlatform
 				? Array.from(assetNames.entries())
 						.sort((a, b) => b[1] - a[1])
@@ -648,7 +654,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			: null
 
 		const accessModelDescription = data.accessModel
-			? (definitions.accessModel.values as Record<string, string>)?.[data.accessModel] ?? null
+			? ((definitions.accessModel.values as Record<string, string>)?.[data.accessModel] ?? null)
 			: null
 		// Get asset class descriptions
 		const assetClassDescriptions: Record<string, string> = {}

@@ -15,7 +15,7 @@ import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
-import Pagination from './Pagination'
+import { Pagination } from './Pagination'
 import { UpcomingEvent } from './UpcomingEvent'
 
 export interface TokenData {
@@ -43,7 +43,7 @@ export type EmissionsChartConfig = Array<{
 
 export interface IEmission {
 	categories: { documented: Array<string>; realtime: Array<string> }
-	categoriesBreakdown: Record<string, string[]>
+	categoriesBreakdown: Record<string, string[]> | null
 	chartData: {
 		documented: Array<{ timestamp: number; [label: string]: number }>
 		realtime: Array<{ timestamp: number; [label: string]: number }>
@@ -54,14 +54,20 @@ export interface IEmission {
 	chartsConfigs: { documented: EmissionsChartConfig; realtime: EmissionsChartConfig }
 	sources: Array<string>
 	notes: Array<string>
-	events: Array<{ description: string; timestamp: string; noOfTokens: number[] }>
+	events: Array<{
+		description?: string
+		timestamp: number
+		noOfTokens: number[]
+		unlockType?: string
+		rateDurationDays?: number
+	}>
 	hallmarks: { documented: Array<[number, string]>; realtime: Array<[number, string]> }
 	tokenPrice: { price?: number | null; symbol?: string | null }
 	tokenAllocation: {
 		documented: { current: { [category: string]: number }; final: { [category: string]: number } }
 		realtime: { current: { [category: string]: number }; final: { [category: string]: number } }
 	}
-	futures: { openInterest: number; fundingRate: number }
+	futures: { openInterest?: number; fundingRate?: number }
 	pieChartData: {
 		documented: Array<{
 			name: string
@@ -73,10 +79,10 @@ export interface IEmission {
 		}>
 	}
 	stackColors: { documented: { [stack: string]: string }; realtime: { [stack: string]: string } }
-	token?: string
-	geckoId?: string
+	token?: string | null
+	geckoId?: string | null
 	name: string
-	meta: TokenData
+	meta: Partial<TokenData>
 }
 
 const getExtendedColors = (baseColors: Record<string, string>, isPriceEnabled: boolean) => {
@@ -527,13 +533,13 @@ const ChartContainer = ({
 				<UpcomingEvent
 					key={ts}
 					{...{
-						event: events.map((e) => ({ ...e, timestamp: Number(e.timestamp) })) as Array<{
-							description: string
-							noOfTokens: number[]
-							timestamp: number
-							unlockType?: string
-							rateDurationDays?: number
-						}>,
+						event: events.map((e) => ({
+							description: e.description ?? '',
+							noOfTokens: e.noOfTokens,
+							timestamp: Number(e.timestamp),
+							unlockType: e.unlockType,
+							rateDurationDays: e.rateDurationDays
+						})),
 						noOfTokens: events.map((x) => x.noOfTokens),
 						timestamp: Number(ts),
 						price: tokenPrice,
@@ -670,7 +676,8 @@ const ChartContainer = ({
 		// In bar (expand-to-100%) mode we need to normalize values per row.
 		// In line mode the displayData rows already contain all needed keys, so pass through directly.
 		if (chartType !== 'bar') {
-			return { source: displayData as unknown as MultiSeriesChart2Dataset['source'], dimensions }
+			const source: MultiSeriesChart2Dataset['source'] = displayData.map((entry) => ({ ...entry }))
+			return { source, dimensions }
 		}
 
 		const overlaySet = new Set(chartConfig.customYAxis)
@@ -710,7 +717,7 @@ const ChartContainer = ({
 				type: isOverlay ? 'line' : chartType,
 				name,
 				encode: { x: 'timestamp', y: name },
-				color: colors[name as keyof typeof colors],
+				color: colors[name],
 				...(!isOverlay ? { stack: 'A' } : {}),
 				...(isOverlay ? { yAxisIndex: yIdx + 1, valueSymbol: '$', hideAreaStyle: true } : {})
 			}
@@ -1079,7 +1086,7 @@ export const UnlocksCharts = ({
 		)
 	}
 
-	const resolvedData = initialData ?? data
+	const resolvedData: IEmission | null = initialData ?? data
 	if (!resolvedData) {
 		return (
 			<div className="flex flex-1 flex-col items-center justify-center">
@@ -1089,8 +1096,8 @@ export const UnlocksCharts = ({
 	}
 
 	return (
-					<ChartContainer
-						data={resolvedData as IEmission}
+		<ChartContainer
+			data={resolvedData}
 			isEmissionsPage={isEmissionsPage}
 			initialTokenMarketData={initialTokenMarketData}
 			disableClientTokenStatsFetch={disableClientTokenStatsFetch}

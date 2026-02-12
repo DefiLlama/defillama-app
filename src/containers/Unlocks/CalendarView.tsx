@@ -198,15 +198,15 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 						Reset
 					</button>
 				</div>
-			<TagGroup
-				selectedValue={viewMode}
-				setValue={(value: string) => {
-					const newValue = value as (typeof VIEW_MODES)[number]
-					setQueryParams({ view: newValue === 'Month' ? undefined : newValue })
-				}}
-				values={VIEW_MODES as unknown as string[]}
-				className="ml-auto"
-			/>
+				<TagGroup
+					selectedValue={viewMode}
+					setValue={(value: string) => {
+						const newValue = value as (typeof VIEW_MODES)[number]
+						setQueryParams({ view: newValue === 'Month' ? undefined : newValue })
+					}}
+					values={[...VIEW_MODES]}
+					className="ml-auto"
+				/>
 				<button
 					onClick={() => setQueryParams({ watchlist: showOnlyWatchlist ? undefined : 'true' })}
 					className="flex items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white px-3 py-1.5 text-xs text-black dark:bg-black dark:text-white"
@@ -325,11 +325,7 @@ const chartOptions = {
 			let tooltipContent = `<div class="font-semibold mb-1">${dateStr}</div>`
 			let totalValue = 0
 
-			const getValue = (param: {
-				data?: unknown
-				value?: unknown
-				seriesName?: string
-			}) => {
+			const getValue = (param: { data?: unknown; value?: unknown; seriesName?: string }) => {
 				const dataObj =
 					param?.data && typeof param.data === 'object' && !Array.isArray(param.data)
 						? (param.data as Record<string, unknown>)
