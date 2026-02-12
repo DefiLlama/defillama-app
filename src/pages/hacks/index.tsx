@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { HacksContainer } from '~/containers/Hacks'
 import { getHacksPageData } from '~/containers/Hacks/queries'

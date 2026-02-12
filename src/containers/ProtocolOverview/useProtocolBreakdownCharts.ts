@@ -13,6 +13,8 @@ type InflowsDataset = {
 	source: Array<{ timestamp: number; 'USD Inflows': number }>
 	dimensions: ['timestamp', 'USD Inflows']
 }
+/** Maximum allowed difference (in milliseconds) between chart latest timestamps for alignment. */
+const MAX_BREAKDOWN_TIMESTAMP_ALIGNMENT_DIFF_MS = 24 * 60 * 60 * 1e3
 
 interface IUseProtocolBreakdownChartsParams {
 	protocol: string
@@ -43,13 +45,60 @@ interface IUseProtocolBreakdownChartsResult {
 
 type IUseProtocolBreakdownChartsComputed = Omit<IUseProtocolBreakdownChartsResult, 'isLoading'>
 
+const getLatestChartTimestamp = (chart: Array<[number, unknown]>): number | null => {
+	if (chart.length === 0) return null
+	const lastPoint = chart[chart.length - 1]
+	return lastPoint && Number.isFinite(lastPoint[0]) ? lastPoint[0] : null
+}
+
+/**
+ * Compute per-chart alignment info: for each chart whose latest timestamp is within
+ * `maxDiff` of the global most-recent timestamp, we map its latest → mostRecent.
+ */
+const buildTimestampAlignment = (
+	charts: Array<Array<[number, unknown]> | null | undefined>
+): { mostRecent: number | null; perChart: Map<number, number> } => {
+	const perChart = new Map<number, number>()
+	let mostRecent: number | null = null
+
+	for (const [i, chart] of charts.entries()) {
+		if (!chart?.length) continue
+		const latest = getLatestChartTimestamp(chart)
+		if (latest == null) continue
+		perChart.set(i, latest)
+		if (mostRecent == null || latest > mostRecent) mostRecent = latest
+	}
+
+	return { mostRecent, perChart }
+}
+
+const alignTimestamp = (
+	timestamp: number,
+	chartIndex: number,
+	alignment: { mostRecent: number | null; perChart: Map<number, number> },
+	maxDiff: number
+): number => {
+	const latest = alignment.perChart.get(chartIndex)
+	if (
+		latest != null &&
+		alignment.mostRecent != null &&
+		Math.abs(alignment.mostRecent - latest) <= maxDiff &&
+		timestamp === latest
+	) {
+		return alignment.mostRecent
+	}
+	return timestamp
+}
+
 const aggregateValueCharts = (charts: Array<IProtocolValueChart | null | undefined>): IProtocolValueChart | null => {
 	const summedByTimestamp = new Map<number, number>()
+	const alignment = buildTimestampAlignment(charts)
 
-	for (const chart of charts) {
+	for (const [chartIndex, chart] of charts.entries()) {
 		if (!chart?.length) continue
 		for (const [timestamp, value] of chart) {
-			summedByTimestamp.set(timestamp, (summedByTimestamp.get(timestamp) ?? 0) + value)
+			const aligned = alignTimestamp(timestamp, chartIndex, alignment, MAX_BREAKDOWN_TIMESTAMP_ALIGNMENT_DIFF_MS)
+			summedByTimestamp.set(aligned, (summedByTimestamp.get(aligned) ?? 0) + value)
 		}
 	}
 
@@ -59,15 +108,17 @@ const aggregateValueCharts = (charts: Array<IProtocolValueChart | null | undefin
 
 const aggregateBreakdownCharts = (charts: Array<BreakdownChart | null | undefined>): BreakdownChart | null => {
 	const summedByTimestamp = new Map<number, Record<string, number>>()
+	const alignment = buildTimestampAlignment(charts)
 
-	for (const chart of charts) {
+	for (const [chartIndex, chart] of charts.entries()) {
 		if (!chart?.length) continue
 		for (const [timestamp, values] of chart) {
-			const current = summedByTimestamp.get(timestamp) ?? {}
+			const aligned = alignTimestamp(timestamp, chartIndex, alignment, MAX_BREAKDOWN_TIMESTAMP_ALIGNMENT_DIFF_MS)
+			const current = summedByTimestamp.get(aligned) ?? {}
 			for (const key in values) {
 				current[key] = (current[key] ?? 0) + values[key]
 			}
-			summedByTimestamp.set(timestamp, current)
+			summedByTimestamp.set(aligned, current)
 		}
 	}
 

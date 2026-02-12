@@ -29,7 +29,7 @@ import {
 	toNiceDayMonthAndYear,
 	toNumberOrNullFromQueryParam
 } from '~/utils'
-import { HacksFilters } from './Filterss'
+import { HacksFilters } from './Filters'
 import type { IHacksPageData } from './queries'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>

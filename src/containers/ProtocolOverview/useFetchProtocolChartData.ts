@@ -27,6 +27,8 @@ import type { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetr
 
 type ChartInterval = 'daily' | 'weekly' | 'monthly' | 'cumulative'
 type V2ChartPoint = [string | number, number]
+/** Maximum allowed difference (in seconds) between chart latest timestamps for alignment. */
+const MAX_TVL_TIMESTAMP_ALIGNMENT_DIFF_SEC = 24 * 60 * 60
 
 const toUnixSeconds = (timestamp: string | number): number | null => {
 	const parsed = Number(timestamp)
@@ -34,28 +36,43 @@ const toUnixSeconds = (timestamp: string | number): number | null => {
 	return parsed >= 1e12 ? Math.floor(parsed / 1e3) : Math.floor(parsed)
 }
 
+const getLatestTimestamp = (chart: Array<[string | number, number]>): number | null => {
+	if (chart.length === 0) return null
+	const lastPoint = chart[chart.length - 1]
+	return lastPoint ? toUnixSeconds(lastPoint[0]) : null
+}
+
+interface ExtraTvlChartsResult {
+	charts: Record<string, Record<string, number>>
+	latestTimestamps: Record<string, number>
+}
+
 const buildExtraTvlCharts = (
 	chartByKey: Record<string, Array<V2ChartPoint> | null>
-): Record<string, Record<string, number>> => {
-	const store: Record<string, Record<string, number>> = {}
+): ExtraTvlChartsResult => {
+	const charts: Record<string, Record<string, number>> = {}
+	const latestTimestamps: Record<string, number> = {}
 
 	for (const key in chartByKey) {
 		const chart = chartByKey[key]
 		if (!chart || chart.length === 0) continue
 
 		const byDate: Record<string, number> = {}
+		let maxTimestamp: number | null = null
 		for (const [timestamp, value] of chart) {
 			const dateInSec = toUnixSeconds(timestamp)
 			if (dateInSec == null) continue
 			byDate[String(dateInSec)] = value
+			if (maxTimestamp == null || dateInSec > maxTimestamp) maxTimestamp = dateInSec
 		}
 
 		if (Object.keys(byDate).length > 0) {
-			store[key] = byDate
+			charts[key] = byDate
+			if (maxTimestamp != null) latestTimestamps[key] = maxTimestamp
 		}
 	}
 
-	return store
+	return { charts, latestTimestamps }
 }
 
 const buildTvlChart = ({
@@ -67,7 +84,7 @@ const buildTvlChart = ({
 	denominationPriceHistory
 }: {
 	tvlChartData: Array<[string, number]>
-	extraTvlCharts: Record<string, Record<string, number>>
+	extraTvlCharts: ExtraTvlChartsResult
 	tvlSettings: Record<string, boolean>
 	currentTvlByChain: Record<string, number> | null
 	groupBy: ChartInterval
@@ -87,13 +104,62 @@ const buildTvlChart = ({
 	const store: Record<string, number> = {}
 	const isWeekly = groupBy === 'weekly'
 	const isMonthly = groupBy === 'monthly'
+	const latestMainTvlTimestamp = getLatestTimestamp(tvlChartData)
+	let mostRecentTvlTimestamp = latestMainTvlTimestamp
+
+	for (const extra of extraTvls) {
+		const extraLatestTimestamp = extraTvlCharts.latestTimestamps[extra]
+		if (extraLatestTimestamp == null) continue
+		if (mostRecentTvlTimestamp == null || extraLatestTimestamp > mostRecentTvlTimestamp) {
+			mostRecentTvlTimestamp = extraLatestTimestamp
+		}
+	}
+
+	const shouldNormalizeMainTvlLatest =
+		latestMainTvlTimestamp != null &&
+		mostRecentTvlTimestamp != null &&
+		Math.abs(mostRecentTvlTimestamp - latestMainTvlTimestamp) <= MAX_TVL_TIMESTAMP_ALIGNMENT_DIFF_SEC
 
 	for (const [rawDate, value] of tvlChartData) {
 		const dateInSec = toUnixSeconds(rawDate)
 		if (dateInSec == null) continue
-		const dateKey = isWeekly ? lastDayOfWeek(dateInSec) : isMonthly ? firstDayOfMonth(dateInSec) : dateInSec
+		const alignedDateInSec =
+			shouldNormalizeMainTvlLatest && dateInSec === latestMainTvlTimestamp
+				? mostRecentTvlTimestamp!
+				: dateInSec
+		const dateKey = isWeekly
+			? lastDayOfWeek(alignedDateInSec)
+			: isMonthly
+				? firstDayOfMonth(alignedDateInSec)
+				: alignedDateInSec
+		let extrasAtTimestamp = 0
+		for (const extra of extraTvls) {
+			const extraChart = extraTvlCharts.charts[extra]
+			if (!extraChart) continue
+			let extraValue = extraChart[String(dateInSec)]
+			if (extraValue == null && alignedDateInSec !== dateInSec) {
+				extraValue = extraChart[String(alignedDateInSec)]
+			}
+
+			// Align only near the latest timestamp so we don't shift stale charts.
+			if (
+				extraValue == null &&
+				latestMainTvlTimestamp != null &&
+				dateInSec === latestMainTvlTimestamp &&
+				mostRecentTvlTimestamp != null
+			) {
+				const extraLatestTimestamp = extraTvlCharts.latestTimestamps[extra]
+				if (
+					extraLatestTimestamp != null &&
+					Math.abs(mostRecentTvlTimestamp - extraLatestTimestamp) <= MAX_TVL_TIMESTAMP_ALIGNMENT_DIFF_SEC
+				) {
+					extraValue = extraChart[String(extraLatestTimestamp)]
+				}
+			}
+			extrasAtTimestamp += extraValue ?? 0
+		}
 		store[String(dateKey)] =
-			value + extraTvls.reduce((acc, curr) => acc + (extraTvlCharts[curr]?.[String(dateInSec)] ?? 0), 0)
+			value + extrasAtTimestamp
 	}
 
 	const finalChart: Array<[number, number | null]> = []
@@ -1021,14 +1087,14 @@ export const useFetchProtocolChartData = ({
 			})
 		}
 
-		if (extraTvlCharts?.staking && isStakingTvlToggled) {
-			const chartData = Object.entries(extraTvlCharts.staking).map(
+		if (extraTvlCharts.charts.staking && isStakingTvlToggled) {
+			const chartData = Object.entries(extraTvlCharts.charts.staking).map(
 				([date, value]) => [+date * 1e3, value] as [number, number]
 			)
 			charts['Staking'] = formatLineChart({ data: chartData, groupBy, dateInMs: true, denominationPriceHistory })
 		}
-		if (extraTvlCharts?.borrowed && isBorrowedTvlToggled) {
-			const chartData = Object.entries(extraTvlCharts.borrowed).map(
+		if (extraTvlCharts.charts.borrowed && isBorrowedTvlToggled) {
+			const chartData = Object.entries(extraTvlCharts.charts.borrowed).map(
 				([date, value]) => [+date * 1e3, value] as [number, number]
 			)
 			charts['Borrowed'] = formatLineChart({ data: chartData, groupBy, dateInMs: true, denominationPriceHistory })
