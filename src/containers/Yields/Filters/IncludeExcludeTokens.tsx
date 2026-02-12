@@ -6,6 +6,8 @@ import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
+const POPULAR_PAIRS = ['USDC-ETH', 'USDC-WETH', 'USDC-USDT', 'USDC-WBTC']
+
 export function IncludeExcludeTokens({
 	tokens,
 	...props
@@ -356,10 +358,47 @@ export function IncludeExcludeTokens({
 					</>
 				) : (
 					<>
-						<div className="-mb-4 flex items-center gap-2">
-							<span>Current pair:</span>
-							<span>{newPairTokens.join('-')}</span>
-						</div>
+						{newPairTokens.length > 0 ? (
+							<div className="-mb-4 flex flex-wrap items-center gap-1.5">
+								<span className="text-sm text-(--text-tertiary)">Pair:</span>
+								{newPairTokens.map((t, i) => (
+									<span
+										key={t + i}
+										className="inline-flex items-center gap-1 rounded-md bg-[#fff7ed] px-2 py-0.5 text-sm font-medium text-[#ea580c] dark:bg-[#1f1b1b] dark:text-[#fb923c]"
+									>
+										{t}
+										<button
+											onClick={() => setNewPairTokens((prev) => prev.filter((_, j) => j !== i))}
+											className="rounded hover:text-[#c2410c] dark:hover:text-[#fdba74]"
+											aria-label={`Remove ${t}`}
+										>
+											<Icon name="x" height={12} width={12} />
+										</button>
+									</span>
+								))}
+							</div>
+						) : (
+							<div className="-mb-2 flex flex-col gap-2">
+								<span className="text-sm text-(--text-tertiary)">Popular pairs</span>
+								<div className="flex flex-wrap gap-1.5">
+									{POPULAR_PAIRS.map((pair) => (
+										<button
+											key={pair}
+											onClick={() => {
+												handlePairTokens(pair)
+												dialogStore.toggle()
+												setNewPairTokens([])
+												setTab('Tokens')
+												setSearchValue('')
+											}}
+											className="rounded-md border border-(--form-control-border) px-2.5 py-1 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg)"
+										>
+											{pair}
+										</button>
+									))}
+								</div>
+							</div>
+						)}
 						<Ariakit.ComboboxProvider
 							value={searchValue}
 							setValue={(value) => {
