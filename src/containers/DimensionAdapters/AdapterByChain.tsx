@@ -168,67 +168,70 @@ export function AdapterByChain(props: IProps) {
 			props.adapterType === 'fees'
 				? protocols.map((p) => {
 						// Always calculate pfOrPs for fees pages (P/F, P/S)
-						const total30d =
-							(p.total30d ?? 0) +
+						// Use null-safe math: if base is null and no extras, result stays null
+						const baseTotal30d = p.total30d
+						const extra30d = 
 							(enabledSettings.bribes ? (p.bribes?.total30d ?? 0) : 0) +
 							(enabledSettings.tokentax ? (p.tokenTax?.total30d ?? 0) : 0)
-
+						const total30d = baseTotal30d != null ? baseTotal30d + extra30d : extra30d || null
+						
 						const pfOrPs = p.mcap && total30d ? getAnnualizedRatio(p.mcap, total30d) : null
 
 						// Only aggregate child protocols when bribes/tokentax is enabled
 						const childProtocols: IProtocol['childProtocols'] =
 							p.childProtocols && (enabledSettings.bribes || enabledSettings.tokentax)
 								? p.childProtocols.map((cp) => {
-										const cpTotal30d =
-											(cp.total30d ?? 0) +
+										const cpBaseTotal30d = cp.total30d
+										const cpExtra30d =
 											(enabledSettings.bribes ? (cp.bribes?.total30d ?? 0) : 0) +
 											(enabledSettings.tokentax ? (cp.tokenTax?.total30d ?? 0) : 0)
-
+										const cpTotal30d = cpBaseTotal30d != null ? cpBaseTotal30d + cpExtra30d : cpExtra30d || null
+										
 										const cpPfOrPs = cp.mcap && cpTotal30d ? getAnnualizedRatio(cp.mcap, cpTotal30d) : null
+
+										// Helper to safely add values, preserving null when no extras
+										const addValues = (base: number | null, extra: number): number | null => 
+											base != null ? base + extra : extra || null
 
 										return {
 											...cp,
-											total24h:
-												(cp.total24h ?? 0) +
+											total24h: addValues(cp.total24h, 
 												(enabledSettings.bribes ? (cp.bribes?.total24h ?? 0) : 0) +
-												(enabledSettings.tokentax ? (cp.tokenTax?.total24h ?? 0) : 0),
-											total7d:
-												(cp.total7d ?? 0) +
+												(enabledSettings.tokentax ? (cp.tokenTax?.total24h ?? 0) : 0)),
+											total7d: addValues(cp.total7d,
 												(enabledSettings.bribes ? (cp.bribes?.total7d ?? 0) : 0) +
-												(enabledSettings.tokentax ? (cp.tokenTax?.total7d ?? 0) : 0),
+												(enabledSettings.tokentax ? (cp.tokenTax?.total7d ?? 0) : 0)),
 											total30d: cpTotal30d,
-											total1y:
-												(cp.total1y ?? 0) +
+											total1y: addValues(cp.total1y,
 												(enabledSettings.bribes ? (cp.bribes?.total1y ?? 0) : 0) +
-												(enabledSettings.tokentax ? (cp.tokenTax?.total1y ?? 0) : 0),
-											totalAllTime:
-												(cp.totalAllTime ?? 0) +
+												(enabledSettings.tokentax ? (cp.tokenTax?.total1y ?? 0) : 0)),
+											totalAllTime: addValues(cp.totalAllTime,
 												(enabledSettings.bribes ? (cp.bribes?.totalAllTime ?? 0) : 0) +
-												(enabledSettings.tokentax ? (cp.tokenTax?.totalAllTime ?? 0) : 0),
+												(enabledSettings.tokentax ? (cp.tokenTax?.totalAllTime ?? 0) : 0)),
 											...(cpPfOrPs ? { pfOrPs: cpPfOrPs } : {})
 										}
-									})
+								  })
 								: p.childProtocols
+
+						// Helper to safely add values, preserving null when no extras
+						const addValues = (base: number | null, extra: number): number | null => 
+							base != null ? base + extra : extra || null
 
 						return {
 							...p,
-							total24h:
-								(p.total24h ?? 0) +
+							total24h: addValues(p.total24h,
 								(enabledSettings.bribes ? (p.bribes?.total24h ?? 0) : 0) +
-								(enabledSettings.tokentax ? (p.tokenTax?.total24h ?? 0) : 0),
-							total7d:
-								(p.total7d ?? 0) +
+								(enabledSettings.tokentax ? (p.tokenTax?.total24h ?? 0) : 0)),
+							total7d: addValues(p.total7d,
 								(enabledSettings.bribes ? (p.bribes?.total7d ?? 0) : 0) +
-								(enabledSettings.tokentax ? (p.tokenTax?.total7d ?? 0) : 0),
+								(enabledSettings.tokentax ? (p.tokenTax?.total7d ?? 0) : 0)),
 							total30d,
-							total1y:
-								(p.total1y ?? 0) +
+							total1y: addValues(p.total1y,
 								(enabledSettings.bribes ? (p.bribes?.total1y ?? 0) : 0) +
-								(enabledSettings.tokentax ? (p.tokenTax?.total1y ?? 0) : 0),
-							totalAllTime:
-								(p.totalAllTime ?? 0) +
+								(enabledSettings.tokentax ? (p.tokenTax?.total1y ?? 0) : 0)),
+							totalAllTime: addValues(p.totalAllTime,
 								(enabledSettings.bribes ? (p.bribes?.totalAllTime ?? 0) : 0) +
-								(enabledSettings.tokentax ? (p.tokenTax?.totalAllTime ?? 0) : 0),
+								(enabledSettings.tokentax ? (p.tokenTax?.totalAllTime ?? 0) : 0)),
 							...(pfOrPs ? { pfOrPs } : {}),
 							...(childProtocols ? { childProtocols } : {})
 						}

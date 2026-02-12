@@ -302,7 +302,10 @@ export async function getChainOverviewData({
 					return null
 				})
 			: Promise.resolve(null),
-			getCexVolume(),
+			getCexVolume().catch((err) => {
+				console.log('CEX volume fetch error:', err)
+				return undefined
+			}),
 			chain === 'All'
 				? getETFData()
 						.then((data) => {

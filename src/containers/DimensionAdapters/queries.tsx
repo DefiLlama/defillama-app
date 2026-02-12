@@ -1047,7 +1047,8 @@ export const getChainsByFeesAdapterPageData = async ({
 		for (const chain in chainMetadata) {
 			const currentChainMetadata = chainMetadata[chain]
 			const sType = adapterType === 'fees' ? (dataType === 'dailyRevenue' ? 'chainRevenue' : 'chainFees') : dataType
-			if (sType in currentChainMetadata) {
+			// Check if key exists AND has truthy value (handles boolean flags correctly)
+			if (sType in currentChainMetadata && currentChainMetadata[sType as keyof IChainMetadata]) {
 				allChainsSet.add(currentChainMetadata.name)
 			}
 		}
@@ -1144,7 +1145,8 @@ export const getChainsByAdapterPageData = async ({
 						? 'chainRevenue'
 						: 'chainFees'
 					: ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]
-			if (sType in currentChainMetadata) {
+			// Check if key exists AND has truthy value (handles boolean flags correctly)
+			if (sType in currentChainMetadata && currentChainMetadata[sType as keyof IChainMetadata]) {
 				allChains.push(currentChainMetadata.name)
 			}
 		}
