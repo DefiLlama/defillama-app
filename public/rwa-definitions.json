@@ -92,11 +92,11 @@
 	},
 	"onChainMcap": {
 		"label": "Onchain Marketcap",
-		"description": "Total USD value of the asset that exists on chain across tracked chains"
+		"description": "Total fully diluted USD value of the asset that exists on chain across tracked chains"
 	},
 	"activeMcap": {
 		"label": "Active Marketcap",
-		"description": "Portion of on chain TVL taking real market risk in user or protocol hands"
+		"description": "Portion of onchain, circulating TVL taking real market risk in user or protocol hands"
 	},
 	"defiActiveTvl": {
 		"label": "DeFi Active TVL",

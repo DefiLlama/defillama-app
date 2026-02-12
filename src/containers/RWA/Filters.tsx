@@ -5,7 +5,7 @@ import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLay
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import type { ExcludeQueryKey, SelectValues } from '~/components/Select/types'
 import { Switch } from '~/components/Switch'
-import type { IRWAAssetsOverview } from './queries'
+import type { IRWAAssetsOverview } from './api.types'
 
 const ratioPercentInputProps = { min: 0, step: '0.01' } as const
 
@@ -262,7 +262,7 @@ function Filters({
 						const form = e.currentTarget
 						const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
 						const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
-						config.onSubmitRange(minValue, maxValue)
+						config.onSubmitRange(minValue ?? null, maxValue ?? null)
 					}}
 					onClear={() => config.onSubmitRange(null, null)}
 					nestedMenu={nestedMenu}
@@ -275,26 +275,30 @@ function Filters({
 				/>
 			))}
 			<div className={switchesAndResetClassName}>
-				<Switch
-					label="Stablecoins"
-					value="includeStablecoins"
-					checked={selections.includeStablecoins}
-					onChange={() => {
-						const next = !selections.includeStablecoins
-						startTransition(() => actions.setIncludeStablecoins(next))
-					}}
-					className={nestedMenu ? 'text-base' : undefined}
-				/>
-				<Switch
-					label="Governance Tokens"
-					value="includeGovernance"
-					checked={selections.includeGovernance}
-					onChange={() => {
-						const next = !selections.includeGovernance
-						startTransition(() => actions.setIncludeGovernance(next))
-					}}
-					className={nestedMenu ? 'text-base' : undefined}
-				/>
+				{modes.isChainMode ? (
+					<Switch
+						label="Stablecoins"
+						value="includeStablecoins"
+						checked={selections.includeStablecoins}
+						onChange={() => {
+							const next = !selections.includeStablecoins
+							startTransition(() => actions.setIncludeStablecoins(next))
+						}}
+						className={nestedMenu ? 'text-base' : undefined}
+					/>
+				) : null}
+				{modes.isChainMode ? (
+					<Switch
+						label="Governance Tokens"
+						value="includeGovernance"
+						checked={selections.includeGovernance}
+						onChange={() => {
+							const next = !selections.includeGovernance
+							startTransition(() => actions.setIncludeGovernance(next))
+						}}
+						className={nestedMenu ? 'text-base' : undefined}
+					/>
+				) : null}
 				<button
 					onClick={() => {
 						const nextQuery: Record<string, any> = { ...router.query }

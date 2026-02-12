@@ -1,4 +1,10 @@
-import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import {
+	type ColumnDef,
+	getCoreRowModel,
+	getSortedRowModel,
+	type SortingState,
+	useReactTable
+} from '@tanstack/react-table'
 import * as React from 'react'
 import { VirtualTable } from '~/components/Table/Table'
 import { Tooltip } from '~/components/Tooltip'

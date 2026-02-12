@@ -1,6 +1,6 @@
-import { IHack } from '../Hacks/queries'
-import { IProtocolMetricsV2, IRaise } from './api.types'
-import { protocolCharts, ProtocolChartsLabels } from './constants'
+import type { IHack } from '../Hacks/queries'
+import type { IProtocolMetricsV2, IRaise } from './api.types'
+import { protocolCharts, type ProtocolChartsLabels } from './constants'
 
 export interface IProtocolPageMetrics {
 	tvl: boolean

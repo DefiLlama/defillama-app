@@ -1,4 +1,4 @@
-import { Dispatch, ReactNode } from 'react'
+import type { Dispatch, ReactNode } from 'react'
 
 export interface ISearchItem {
 	name: string

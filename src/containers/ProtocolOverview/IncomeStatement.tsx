@@ -7,7 +7,7 @@ import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { abbreviateNumber } from '~/utils'
-import { IProtocolOverviewPageData } from './types'
+import type { IProtocolOverviewPageData } from './types'
 
 const SankeyChart = lazy(() => import('~/components/ECharts/SankeyChart'))
 
@@ -220,6 +220,7 @@ export const IncomeStatement = ({
 		// Get breakdown by labels for fees
 		const grossProtocolRevenueByLabelData = sankeyGrossProtocolRevenueData[periodKey]?.['by-label'] ?? {}
 		const costOfRevenueByLabelData = sankeyCostOfRevenueData[periodKey]?.['by-label'] ?? {}
+		const incentivesByLabelData = sankeyIncentivesData[periodKey]?.['by-label'] ?? {}
 
 		const nodes: Array<{
 			name: string
@@ -339,8 +340,31 @@ export const IncomeStatement = ({
 					name: 'Incentives',
 					color: COLORS.red,
 					description: incomeStatement?.methodology?.['Incentives'] ?? '',
+					displayValue: incentives,
 					depth: 2 // Same depth as Gross Profit
 				})
+
+				// Add incentives breakdown if labels are available (sources flow INTO Incentives)
+				let hasIncentivesBreakdown = false
+				for (const _ in incentivesByLabelData) {
+					hasIncentivesBreakdown = true
+					break
+				}
+				if (hasIncentivesBreakdown) {
+					for (const label in incentivesByLabelData) {
+						const value = incentivesByLabelData[label]
+						if (value > 0) {
+							const incentiveLabel = `${label} (Incentive)`
+							nodes.push({
+								name: incentiveLabel,
+								color: COLORS.red,
+								description: incomeStatement?.breakdownMethodology?.['Incentives']?.[label] ?? '',
+								percentageLabel: formatPercent(value, incentives)
+							})
+							links.push({ source: incentiveLabel, target: 'Incentives', value })
+						}
+					}
+				}
 
 				// Both Gross Profit and Incentives flow into Earnings
 				nodes.push({
@@ -685,7 +709,7 @@ export const IncomeStatement = ({
 							<SankeyChart
 								nodes={sankeyData.nodes}
 								links={sankeyData.links}
-								height="450px"
+								height={`${Math.max(450, sankeyData.nodes.length * 50)}px`}
 								onReady={handleSankeyChartReady}
 							/>
 						</Suspense>

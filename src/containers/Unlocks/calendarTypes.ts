@@ -6,19 +6,22 @@ export type UnlocksMultiSeriesChart = {
 	charts: NonNullable<IMultiSeriesChart2Props['charts']>
 }
 
+export interface CalendarUnlockEvent {
+	protocol: string
+	value: number
+	details: string
+	unlockType: string
+	category?: string
+}
+
 export interface DailyUnlocks {
 	totalValue: number
-	events: Array<{
-		protocol: string
-		value: number
-		details: string
-		unlockType: string
-	}>
+	events: Array<CalendarUnlockEvent>
 }
 
 export interface PrecomputedData {
 	monthlyMaxValues: { [monthKey: string]: number }
-	listEvents: { [startDateKey: string]: Array<{ date: string; event: any }> }
+	listEvents: { [startDateKey: string]: Array<{ date: string; event: CalendarUnlockEvent }> }
 	/**
 	 * Optional precomputed chart payloads keyed by:
 	 * - `weekCharts`: start-of-week date key (`YYYY-MM-DD`)
@@ -31,13 +34,7 @@ export interface PrecomputedData {
 export interface UnlocksData {
 	[date: string]: {
 		totalValue: number
-		events: Array<{
-			protocol: string
-			value: number
-			details: string
-			category?: string
-			unlockType: string
-		}>
+		events: Array<CalendarUnlockEvent>
 	}
 }
 

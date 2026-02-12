@@ -3,7 +3,7 @@ import { feesOptions } from '~/components/Filters/options'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
-import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
+import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 

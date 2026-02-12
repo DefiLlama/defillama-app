@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { RefObject } from 'react'
+import type { RefObject } from 'react'
 
 interface InputTextareaProps {
 	combobox: Ariakit.ComboboxStore

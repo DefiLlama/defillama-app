@@ -1,5 +1,5 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import { IFormattedProtocol, IParentProtocol } from '~/api/types'
+import type { IFormattedProtocol, IParentProtocol } from '~/api/types'
 import { formatNum, getPercentChange } from '~/utils'
 
 function addElement(key: string, curr: IFormattedProtocol, acc: any, hasAtleastOnceValue) {

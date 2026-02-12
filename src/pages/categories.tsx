@@ -1,4 +1,4 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
@@ -8,7 +8,7 @@ import { BasicLink } from '~/components/Link'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CATEGORY_API, PROTOCOLS_API } from '~/constants'
-import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
+import { getAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
@@ -25,11 +25,10 @@ const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSer
 export const getStaticProps = withPerformanceLogging('categories', async () => {
 	const [{ protocols }, revenueData, { chart, categories: protocolsByCategory }] = await Promise.all([
 		fetchJson(PROTOCOLS_API),
-		getAdapterChainOverview({
+		getAdapterChainMetrics({
 			adapterType: 'fees',
 			chain: 'All',
-			dataType: 'dailyRevenue',
-			excludeTotalDataChart: true
+			dataType: 'dailyRevenue'
 		}),
 		fetchJson(CATEGORY_API)
 	])

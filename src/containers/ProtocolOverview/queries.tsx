@@ -23,14 +23,15 @@ import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
-import { getAdapterProtocolSummary, IAdapterSummary } from '../DimensionAdapters/queries'
-import { IHack } from '../Hacks/queries'
+import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
+import { getAdapterProtocolMetrics } from '../DimensionAdapters/api'
+import type { IAdapterProtocolMetrics } from '../DimensionAdapters/api.types'
+import type { IHack } from '../Hacks/queries'
 import { protocolCategories } from '../ProtocolsByCategoryOrTag/constants'
 import { fetchProtocolOverviewMetrics, fetchProtocolTvlChart } from './api'
-import { IProtocolMetricsV2 } from './api.types'
-import { protocolCharts, ProtocolChartsLabels } from './constants'
-import {
+import type { IProtocolMetricsV2 } from './api.types'
+import { protocolCharts, type ProtocolChartsLabels } from './constants'
+import type {
 	IArticle,
 	IArticlesResponse,
 	IProtocolExpenses,
@@ -209,125 +210,112 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => [])
 			: Promise.resolve([]),
 		currentProtocolMetadata.fees
-			? getAdapterProtocolSummary({
+			? getAdapterProtocolMetrics({
 					adapterType: 'fees',
-					protocol: currentProtocolMetadata.displayName,
-					excludeTotalDataChart: true
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'Fees' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.revenue
-			? getAdapterProtocolSummary({
+			? getAdapterProtocolMetrics({
 					adapterType: 'fees',
 					dataType: 'dailyRevenue',
-					protocol: currentProtocolMetadata.displayName,
-					excludeTotalDataChart: true
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'Revenue' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.holdersRevenue
-			? getAdapterProtocolSummary({
+			? getAdapterProtocolMetrics({
 					adapterType: 'fees',
 					dataType: 'dailyHoldersRevenue',
-					protocol: currentProtocolMetadata.displayName,
-					excludeTotalDataChart: true
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'HoldersRevenue' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.bribeRevenue
-			? getAdapterProtocolSummary({
+			? getAdapterProtocolMetrics({
 					adapterType: 'fees',
 					dataType: 'dailyBribesRevenue',
-					protocol: currentProtocolMetadata.displayName,
-					excludeTotalDataChart: true
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'BribesRevenue' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.tokenTax
-			? getAdapterProtocolSummary({
+			? getAdapterProtocolMetrics({
 					adapterType: 'fees',
 					dataType: 'dailyTokenTaxes',
-					protocol: currentProtocolMetadata.displayName,
-					excludeTotalDataChart: true
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'TokenTaxes' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.dexs
-			? getAdapterProtocolSummary({
+			? getAdapterProtocolMetrics({
 					adapterType: 'dexs',
-					protocol: currentProtocolMetadata.displayName,
-					excludeTotalDataChart: true
+					protocol: currentProtocolMetadata.displayName
 				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'dexs' }))
+					.then((data) => formatAdapterData({ data, methodologyKey: data.methodology?.['Volume'] ? 'Volume' : 'dexs' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.dexAggregators
-			? getAdapterProtocolSummary({
+			? getAdapterProtocolMetrics({
 					adapterType: 'aggregators',
-					protocol: currentProtocolMetadata.displayName,
-					excludeTotalDataChart: true
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'dexAggregators' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.perps
-			? getAdapterProtocolSummary({
+			? getAdapterProtocolMetrics({
 					adapterType: 'derivatives',
-					protocol: currentProtocolMetadata.displayName,
-					excludeTotalDataChart: true
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'perps' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.openInterest
-			? getAdapterProtocolSummary({
+			? getAdapterProtocolMetrics({
 					adapterType: 'open-interest',
 					protocol: currentProtocolMetadata.displayName,
-					excludeTotalDataChart: true,
 					dataType: 'openInterestAtEnd'
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'openInterest' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.perpsAggregators
-			? getAdapterProtocolSummary({
+			? getAdapterProtocolMetrics({
 					adapterType: 'aggregator-derivatives',
-					protocol: currentProtocolMetadata.displayName,
-					excludeTotalDataChart: true
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'perpsAggregators' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.bridgeAggregators
-			? getAdapterProtocolSummary({
+			? getAdapterProtocolMetrics({
 					adapterType: 'bridge-aggregators',
-					protocol: currentProtocolMetadata.displayName,
-					excludeTotalDataChart: true
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'bridgeAggregators' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.optionsPremiumVolume
-			? getAdapterProtocolSummary({
+			? getAdapterProtocolMetrics({
 					adapterType: 'options',
 					dataType: 'dailyPremiumVolume',
-					protocol: currentProtocolMetadata.displayName,
-					excludeTotalDataChart: true
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'optionsPremiumVolume' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.optionsNotionalVolume
-			? getAdapterProtocolSummary({
+			? getAdapterProtocolMetrics({
 					adapterType: 'options',
 					dataType: 'dailyNotionalVolume',
-					protocol: currentProtocolMetadata.displayName,
-					excludeTotalDataChart: true
+					protocol: currentProtocolMetadata.displayName
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'optionsNotionalVolume' }))
 					.catch(() => null)
@@ -945,7 +933,7 @@ export const getProtocolOverviewPageData = async ({
 	}
 }
 
-function formatAdapterData({ data, methodologyKey }: { data: IAdapterSummary; methodologyKey?: string }) {
+function formatAdapterData({ data, methodologyKey }: { data: IAdapterProtocolMetrics; methodologyKey?: string }) {
 	if (!data) {
 		return null
 	}

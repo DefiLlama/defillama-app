@@ -12,7 +12,7 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import { CalendarDayCell } from './CalendarDayCell'
-import type { CalendarViewProps, DailyUnlocks, DayInfo } from './calendarTypes'
+import type { CalendarViewProps, CalendarUnlockEvent, DailyUnlocks, DayInfo } from './calendarTypes'
 import { generateCalendarDays, generateWeekDays } from './calendarUtils'
 import { DAYS_OF_WEEK } from './constants'
 import { UnlocksListView } from './UnlocksListView'
@@ -105,7 +105,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 		}
 
 		const endKey = currentDate.startOf('day').add(30, 'days').format('YYYY-MM-DD')
-		const events: Array<{ date: Dayjs; event: any }> = []
+		const events: Array<{ date: Dayjs; event: CalendarUnlockEvent }> = []
 
 		for (const dateStr in unlocksData) {
 			if (dateStr >= startKey && dateStr < endKey) {
@@ -200,10 +200,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 				</div>
 				<TagGroup
 					selectedValue={viewMode}
-					setValue={(value: (typeof VIEW_MODES)[number]) =>
-						setQueryParams({ view: value === 'Month' ? undefined : value })
-					}
-					values={VIEW_MODES as unknown as string[]}
+					setValue={(value: string) => {
+						const newValue = value as (typeof VIEW_MODES)[number]
+						setQueryParams({ view: newValue === 'Month' ? undefined : newValue })
+					}}
+					values={[...VIEW_MODES]}
 					className="ml-auto"
 				/>
 				<button
@@ -300,13 +301,20 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 const chartOptions = {
 	tooltip: {
 		trigger: 'axis',
-		formatter: (params: any) => {
-			if (!params || params.length === 0) return ''
+		formatter: (formatterParams: unknown) => {
+			if (!Array.isArray(formatterParams) || formatterParams.length === 0) return ''
+			const params = formatterParams as Array<{
+				data?: unknown
+				value?: unknown
+				axisValue?: number | string
+				seriesName?: string
+				marker?: string
+			}>
 
 			const first = params[0]
 			const ts =
 				first?.data && typeof first.data === 'object' && !Array.isArray(first.data) && 'timestamp' in first.data
-					? Number(first.data.timestamp)
+					? Number((first.data as Record<string, unknown>).timestamp)
 					: Array.isArray(first?.value)
 						? Number(first.value[0])
 						: typeof first?.axisValue === 'number'
@@ -317,10 +325,10 @@ const chartOptions = {
 			let tooltipContent = `<div class="font-semibold mb-1">${dateStr}</div>`
 			let totalValue = 0
 
-			const getValue = (param: any) => {
+			const getValue = (param: { data?: unknown; value?: unknown; seriesName?: string }) => {
 				const dataObj =
 					param?.data && typeof param.data === 'object' && !Array.isArray(param.data)
-						? (param.data as Record<string, any>)
+						? (param.data as Record<string, unknown>)
 						: null
 				const name = param?.seriesName
 				const raw =

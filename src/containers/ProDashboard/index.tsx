@@ -12,8 +12,8 @@ import { EmptyState } from './components/EmptyState'
 import type { UnifiedTableFocusSection } from './components/UnifiedTable/types'
 import { useDashboardEngagement } from './hooks/useDashboardEngagement'
 import {
-	AIGeneratedData,
-	TimePeriod,
+	type AIGeneratedData,
+	type TimePeriod,
 	useProDashboardCatalog,
 	useProDashboardDashboard,
 	useProDashboardItemsState,
@@ -21,8 +21,8 @@ import {
 	useProDashboardTime,
 	useProDashboardUI
 } from './ProDashboardAPIContext'
-import { Dashboard } from './services/DashboardAPI'
-import { DashboardItemConfig } from './types'
+import type { Dashboard } from './services/DashboardAPI'
+import type { DashboardItemConfig } from './types'
 
 const DemoPreview = lazy(() => import('./components/DemoPreview').then((m) => ({ default: m.DemoPreview })))
 

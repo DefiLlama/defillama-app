@@ -1,14 +1,14 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	PaginationState,
-	SortingState,
+	type PaginationState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
@@ -17,7 +17,7 @@ import { useTableSearch } from '~/components/Table/utils'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
-import { TableFilters } from '../../../types'
+import type { TableFilters } from '../../../types'
 import { CategoryFilterModal } from '../../CategoryFilterModal'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'

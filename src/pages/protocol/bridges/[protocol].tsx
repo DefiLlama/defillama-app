@@ -1,4 +1,4 @@
-import { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { BridgeContainerOnClient } from '~/containers/Bridges/BridgeProtocolOverview'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
@@ -6,7 +6,7 @@ import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { slug } from '~/utils'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_TOGGLE_OPTIONS = []

@@ -1,6 +1,6 @@
-import { SetStateAction } from 'react'
-import { Dashboard } from './services/DashboardAPI'
-import { DashboardItemConfig } from './types'
+import type { SetStateAction } from 'react'
+import type { Dashboard } from './services/DashboardAPI'
+import type { DashboardItemConfig } from './types'
 
 export type TimePeriod = '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all' | 'custom'
 

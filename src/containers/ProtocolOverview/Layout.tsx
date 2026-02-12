@@ -8,7 +8,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { TVL_SETTINGS_KEYS_SET, FEES_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { slug, tokenIconUrl } from '~/utils'
-import { IProtocolPageMetrics } from './types'
+import type { IProtocolPageMetrics } from './types'
 
 const tabs = {
 	information: { id: 'information', name: 'Information', route: '/protocol' },

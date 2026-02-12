@@ -2,7 +2,7 @@ import { DIMENSIONS_OVERVIEW_API, PROTOCOLS_API } from '~/constants'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
 import { toInternalSlug } from '~/utils/chainNormalizer'
 import { METRIC_CONFIG_BASE, toSlug } from '~/utils/protocolSplit'
-import { ChartSeries, ProtocolSplitData } from './types'
+import type { ChartSeries, ProtocolSplitData } from './types'
 
 export const DIMENSIONS_METRIC_CONFIG: Record<string, { endpoint: string; dataType?: string; metricName: string }> = {
 	...METRIC_CONFIG_BASE,

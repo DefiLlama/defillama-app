@@ -1,4 +1,4 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -9,7 +9,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import {
 	getTotalValueLostInHacksByProtocol,
-	IProtocolTotalValueLostInHacksByProtocol
+	type IProtocolTotalValueLostInHacksByProtocol
 } from '~/containers/Hacks/queries'
 import Layout from '~/layout'
 import { formattedNum, tokenIconUrl } from '~/utils'

@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { useCallback, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { LoadingDots } from '~/components/Loaders'

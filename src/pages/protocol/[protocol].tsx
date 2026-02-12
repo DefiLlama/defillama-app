@@ -4,10 +4,10 @@ import { PROTOCOLS_API } from '~/constants'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
-import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
+import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(

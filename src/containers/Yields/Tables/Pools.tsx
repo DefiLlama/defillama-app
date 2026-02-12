@@ -1,4 +1,4 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { IconsRow } from '~/components/IconsRow'
@@ -200,7 +200,8 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 	},
 	{
 		header: () => <StabilityHeader />,
-		accessorKey: 'cv30d',
+		id: 'cv30d',
+		accessorFn: (row) => row.cv30d ?? undefined,
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			return (

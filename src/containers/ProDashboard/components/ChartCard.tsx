@@ -1,6 +1,6 @@
 import type * as echarts from 'echarts/core'
 import { lazy, Suspense, useMemo } from 'react'
-import { ISingleSeriesChartProps } from '~/components/ECharts/types'
+import type { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
@@ -11,7 +11,7 @@ import {
 	useProDashboardEditorActions,
 	useProDashboardPermissions
 } from '../ProDashboardAPIContext'
-import { Chain, CHART_TYPES, ChartConfig, Protocol } from '../types'
+import { type Chain, CHART_TYPES, type ChartConfig, type Protocol } from '../types'
 import { convertToCumulative, generateChartColor, getItemIconUrl } from '../utils'
 import { LoadingSpinner } from './LoadingSpinner'
 import { ChartPngExportButton } from './ProTable/ChartPngExportButton'

@@ -9,7 +9,7 @@ export const timeframeOptions = {
 // API endpoints
 export const SERVER_URL = process.env.SERVER_URL ?? 'https://api.llama.fi'
 export const V2_SERVER_URL = process.env.V2_SERVER_URL ?? `${SERVER_URL}/v2`
-const DATASETS_SERVER_URL = process.env.DATASETS_SERVER_URL ?? 'https://defillama-datasets.llama.fi'
+export const DATASETS_SERVER_URL = process.env.DATASETS_SERVER_URL ?? 'https://defillama-datasets.llama.fi'
 export const DATASETS_S3_PATH = 'https://defillama-datasets.s3.eu-central-1.amazonaws.com'
 export const DATASETS_R2_PATH = 'https://defillama-datasets.llama.fi'
 export const CHART_API = `${SERVER_URL}/lite/charts`
@@ -170,12 +170,6 @@ export const RWA_STATS_API_OLD = 'https://api.llama.fi/rwa/stats'
 export const TRADFI_API = process.env.TRADFI_API ?? 'https://api.llama.fi/tradfi'
 
 export const RWA_SERVER_URL = process.env.RWA_SERVER_URL ?? 'https://api.llama.fi/rwa'
-export const RWA_ACTIVE_TVLS_API = `${RWA_SERVER_URL}/current?z=0`
-export const RWA_STATS_API = `${RWA_SERVER_URL}/stats?z=0`
-export const RWA_ID_MAP_API = `${RWA_SERVER_URL}/id-map?z=0`
-export const RWA_LIST_API = `${RWA_SERVER_URL}/list?z=0`
-export const RWA_ASSET_DATA_API = `${RWA_SERVER_URL}/rwa`
-export const RWA_CHART_API = `${RWA_SERVER_URL}/chart`
 
 export const MCP_SERVER = 'https://mcp.llama.fi'
 export const YIELD_TOKEN_CATEGORIES_API = 'https://ask.llama.fi/token-categories/yields'
@@ -221,6 +215,6 @@ export const REV_PROTOCOLS = {
 	arbitrum: ['arbitrum-timeboost'],
 	polygon: ['fastlane'],
 	bsc: ['bloxroute']
-}
+} as const
 
 export const ZERO_FEE_PERPS = new Set(['Lighter Perps', 'Paradex Perps'])

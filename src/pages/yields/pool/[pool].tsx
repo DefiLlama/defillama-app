@@ -17,8 +17,10 @@ import {
 	useYieldChartData,
 	useYieldChartLendBorrow,
 	useYieldConfigData,
-	useYieldPoolData
+	useYieldPoolData,
+	useVolatility
 } from '~/containers/Yields/queries/client'
+import { StabilityCell } from '~/containers/Yields/Tables/StabilityCell'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
@@ -92,6 +94,12 @@ const PageView = (_props) => {
 	const { data: chartBorrow, isLoading: fetchingChartDataBorrow } = useYieldChartLendBorrow(poolId)
 
 	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
+
+	const { data: volatility } = useVolatility()
+	const poolConfigId = poolData.pool
+	const cv30d = poolConfigId ? (volatility?.[poolConfigId]?.[3] ?? null) : null
+	const apyMedian30d = poolConfigId ? (volatility?.[poolConfigId]?.[1] ?? null) : null
+	const apyStd30d = poolConfigId ? (volatility?.[poolConfigId]?.[2] ?? null) : null
 
 	// prepare csv data
 	const prepareCsv = () => {
@@ -310,6 +318,12 @@ const PageView = (_props) => {
 							<span className="font-semibold">30d Avg APY</span>
 							<span className="ml-auto font-jetbrains text-(--apy-pink)">{isLoading ? null : `${apyMean30d}%`}</span>
 						</p>
+						{poolConfigId && (
+							<p className="flex items-center justify-between gap-1">
+								<span className="font-semibold">Yield Score</span>
+								<StabilityCell cv30d={cv30d} apyMedian30d={apyMedian30d} apyStd30d={apyStd30d} />
+							</p>
+						)}
 						<p className="flex items-center justify-between gap-1">
 							<span className="font-semibold">Total Value Locked</span>
 							<span className="ml-auto font-jetbrains text-(--apy-blue)">

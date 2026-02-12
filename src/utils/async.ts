@@ -1,4 +1,4 @@
-import { fetchWithPoolingOnServer, FetchWithPoolingOnServerOptions } from './http-client'
+import { fetchWithPoolingOnServer, type FetchWithPoolingOnServerOptions } from './http-client'
 
 // ─────────────────────────────────────────────────────────────
 // Config: Only 2 knobs instead of 5

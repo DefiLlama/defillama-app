@@ -1,4 +1,4 @@
-import { flexRender, type Row, RowData, Table } from '@tanstack/react-table'
+import { flexRender, type Row, type RowData, type Table } from '@tanstack/react-table'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/router'
 import * as React from 'react'

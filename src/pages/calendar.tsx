@@ -1,11 +1,11 @@
 import * as Ariakit from '@ariakit/react'
 import {
-	ColumnDef,
-	ColumnFiltersState,
+	type ColumnDef,
+	type ColumnFiltersState,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'

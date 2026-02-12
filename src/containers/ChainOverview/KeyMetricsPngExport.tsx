@@ -1,4 +1,4 @@
-import { useState, RefObject } from 'react'
+import { useState, type RefObject } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { useDarkModeManager } from '~/contexts/LocalStorage'

@@ -1,4 +1,4 @@
-import { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext } from 'next'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
@@ -10,17 +10,17 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
-import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
+import { getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
 import { KeyMetrics } from '~/containers/ProtocolOverview'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
-import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
+import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -50,13 +50,13 @@ export const getStaticProps = withPerformanceLogging(
 		const [protocolData, feesData, revenueData, holdersRevenueData, bribeRevenueData, tokenTaxData] = await Promise.all(
 			[
 				fetchProtocolOverviewMetrics(protocol),
-				getAdapterProtocolSummary({
+				getAdapterProtocolOverview({
 					adapterType: 'fees',
 					protocol: metadata[1].displayName,
 					excludeTotalDataChart: false
 				}),
 				metadata[1].revenue
-					? getAdapterProtocolSummary({
+					? getAdapterProtocolOverview({
 							adapterType: 'fees',
 							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
@@ -64,7 +64,7 @@ export const getStaticProps = withPerformanceLogging(
 						}).catch(() => null)
 					: Promise.resolve(null),
 				metadata[1].holdersRevenue
-					? getAdapterProtocolSummary({
+					? getAdapterProtocolOverview({
 							adapterType: 'fees',
 							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
@@ -72,7 +72,7 @@ export const getStaticProps = withPerformanceLogging(
 						}).catch(() => null)
 					: Promise.resolve(null),
 				metadata[1].bribeRevenue
-					? getAdapterProtocolSummary({
+					? getAdapterProtocolOverview({
 							adapterType: 'fees',
 							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
@@ -80,7 +80,7 @@ export const getStaticProps = withPerformanceLogging(
 						}).catch(() => null)
 					: Promise.resolve(null),
 				metadata[1].tokenTax
-					? getAdapterProtocolSummary({
+					? getAdapterProtocolOverview({
 							adapterType: 'fees',
 							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,

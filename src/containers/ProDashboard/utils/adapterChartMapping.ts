@@ -1,4 +1,4 @@
-import { ChartBuilderConfig } from '../types'
+import type { ChartBuilderConfig } from '../types'
 
 export const ADAPTER_TO_DASHBOARD_TYPE: Record<string, string | null> = {
 	dexs: 'volume',

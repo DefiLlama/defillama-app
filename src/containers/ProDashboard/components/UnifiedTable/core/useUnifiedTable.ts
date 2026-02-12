@@ -1,15 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
 import {
-	ColumnOrderState,
+	type ColumnOrderState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getGroupedRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	PaginationState,
-	SortingState,
+	type PaginationState,
+	type SortingState,
 	useReactTable,
-	VisibilityState,
+	type VisibilityState,
 	type Table
 } from '@tanstack/react-table'
 import { useCallback, useEffect, useMemo, useState } from 'react'

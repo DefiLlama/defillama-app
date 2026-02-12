@@ -1,4 +1,4 @@
-import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState } from 'react'
+import { type Dispatch, type RefObject, type SetStateAction, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { useMedia } from '~/hooks/useMedia'

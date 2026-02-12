@@ -1,4 +1,4 @@
-import { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { YIELD_POOLS_API } from '~/constants'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
@@ -8,7 +8,7 @@ import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { ProtocolPools } from '~/containers/ProtocolOverview/Yields'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_TOGGLE_OPTIONS = []

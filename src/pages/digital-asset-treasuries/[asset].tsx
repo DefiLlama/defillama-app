@@ -1,18 +1,22 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import type { GetStaticPropsContext } from 'next'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
-import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import { TRADFI_API } from '~/constants'
-import { getDATOverviewDataByAsset, IDATInstitutions, IDATOverviewDataByAssetProps } from '~/containers/DAT/queries'
+import {
+	getDATOverviewDataByAsset,
+	type IDATInstitutions,
+	type IDATOverviewDataByAssetProps
+} from '~/containers/DAT/queries'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'

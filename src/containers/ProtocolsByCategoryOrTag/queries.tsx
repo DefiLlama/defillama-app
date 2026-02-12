@@ -3,10 +3,11 @@ import { CHART_COLORS } from '~/constants/colors'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { IChainMetadata } from '~/utils/metadata/types'
-import { ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
-import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
-import { IProtocolByCategoryOrTagPageData, IRWAStats } from './types'
+import type { IChainMetadata } from '~/utils/metadata/types'
+import type { ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
+import { getAdapterChainMetrics } from '../DimensionAdapters/api'
+import type { IAdapterChainMetrics } from '../DimensionAdapters/api.types'
+import type { IProtocolByCategoryOrTagPageData, IRWAStats } from './types'
 
 type GetProtocolsByCategoryOrTagParams = {
 	chain?: string
@@ -66,76 +67,69 @@ export async function getProtocolsByCategoryOrTag(
 		rwaStats
 	]: [
 		{ protocols: Array<ILiteProtocol>; parentProtocols: Array<ILiteParentProtocol> },
-		IAdapterOverview | null,
-		IAdapterOverview | null,
-		IAdapterOverview | null,
-		IAdapterOverview | null,
-		IAdapterOverview | null,
-		IAdapterOverview | null,
-		IAdapterOverview | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
 		Record<string, Record<string, number | null>>,
 		Record<string, Array<string>>,
 		Record<string, IRWAStats>
 	] = await Promise.all([
 		fetchJson(PROTOCOLS_API),
 		currentChainMetadata?.fees
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					chain: chain ?? 'All',
-					adapterType: 'fees',
-					excludeTotalDataChart: true
+					adapterType: 'fees'
 				})
 			: null,
 		currentChainMetadata?.fees
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'fees',
-					dataType: 'dailyRevenue',
-					excludeTotalDataChart: true
+					dataType: 'dailyRevenue'
 				})
 			: null,
 		currentChainMetadata?.dexs &&
 		effectiveCategory &&
 		['Dexs', 'DEX Aggregators', 'Prediction Market'].includes(effectiveCategory)
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					chain: chain ?? 'All',
-					adapterType: effectiveCategory === 'DEX Aggregators' ? 'aggregators' : 'dexs',
-					excludeTotalDataChart: true
+					adapterType: effectiveCategory === 'DEX Aggregators' ? 'aggregators' : 'dexs'
 				})
 			: null,
 		currentChainMetadata?.perps && effectiveCategory && ['Derivatives', 'Interface'].includes(effectiveCategory)
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					chain: chain ?? 'All',
-					adapterType: 'derivatives',
-					excludeTotalDataChart: true
+					adapterType: 'derivatives'
 				})
 			: null,
 		currentChainMetadata?.openInterest &&
 		effectiveCategory &&
 		['Derivatives', 'Prediction Market'].includes(effectiveCategory)
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'open-interest',
-					dataType: 'openInterestAtEnd',
-					excludeTotalDataChart: true
+					dataType: 'openInterestAtEnd'
 				}).catch((err) => {
 					console.log(err)
 					return null
 				})
 			: null,
 		currentChainMetadata?.optionsPremiumVolume && effectiveCategory === 'Options'
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'options',
-					dataType: 'dailyPremiumVolume',
-					excludeTotalDataChart: true
+					dataType: 'dailyPremiumVolume'
 				})
 			: null,
 		currentChainMetadata?.optionsNotionalVolume && effectiveCategory === 'Options'
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'options',
-					dataType: 'dailyNotionalVolume',
-					excludeTotalDataChart: true
+					dataType: 'dailyNotionalVolume'
 				})
 			: null,
 		tag

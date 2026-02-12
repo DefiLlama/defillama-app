@@ -1,9 +1,9 @@
 import {
-	ColumnFiltersState,
+	type ColumnFiltersState,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'

@@ -740,19 +740,6 @@ export const formatPercentage = (value: number): string => {
 	return value.toLocaleString(undefined, { maximumFractionDigits: zeroes + 1 })
 }
 
-export function nearestUtcZeroHour(dateString: string | number): number {
-	const date = new Date(dateString)
-
-	if (date.getHours() >= 12) {
-		date.setDate(date.getDate() + 1)
-	}
-
-	const now = new Date()
-	return Date.now() < date.getTime()
-		? Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-		: Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
-}
-
 export function firstDayOfMonth(utcTimestamp: number): number {
 	const date = new Date(utcTimestamp * 1000)
 	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000)

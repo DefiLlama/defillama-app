@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import toast from 'react-hot-toast'
@@ -10,7 +10,7 @@ import { INFLOWS_API } from '~/constants'
 import { formattedNum, slug, toNiceDayMonthAndYear } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { DateFilter } from './DateFilter'
-import { ICex } from './types'
+import type { ICex } from './types'
 
 const DEFAULT_SORTING_STATE = [{ id: 'cleanAssetsTvl', desc: true }]
 

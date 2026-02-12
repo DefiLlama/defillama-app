@@ -1,10 +1,10 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
+	type ColumnDef,
+	type ColumnFiltersState,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
@@ -30,7 +30,7 @@ import {
 	toNumberOrNullFromQueryParam
 } from '~/utils'
 import { HacksFilters } from './Filterss'
-import { IHacksPageData } from './queries'
+import type { IHacksPageData } from './queries'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = React.lazy(

@@ -1,4 +1,4 @@
-import { FormEvent } from 'react'
+import type { FormEvent } from 'react'
 import { Icon } from '~/components/Icon'
 
 interface EmailChangeModalProps {

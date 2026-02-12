@@ -13,13 +13,11 @@ import {
 	TRADFI_API
 } from '~/constants'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
-import {
-	getAdapterChainOverview,
-	getAdapterProtocolSummary,
-	getCexVolume,
-	IAdapterOverview,
-	IAdapterSummary
-} from '~/containers/DimensionAdapters/queries'
+import { getCexVolume } from '~/containers/DimensionAdapters/api'
+import { getAdapterChainMetrics, getAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
+import type { IAdapterChainMetrics, IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'
+import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
+import type { IAdapterChainOverview } from '~/containers/DimensionAdapters/types'
 import { getETFData } from '~/containers/ETF/queries'
 import { fetchStablecoinAssetsApi, fetchStablecoinConfigApi } from '~/containers/Stablecoins/api'
 import { getStablecoinChainMcapSummary } from '~/containers/Stablecoins/queries.server'
@@ -27,8 +25,8 @@ import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getNDistinctColors, getPercentChange, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
-import { ChainChartLabels } from './constants'
+import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
+import type { ChainChartLabels } from './constants'
 import type {
 	IChainAsset,
 	IChainOverviewData,
@@ -137,8 +135,8 @@ export async function getChainOverviewData({
 			{
 				protocols: Array<IProtocol>
 				chains: Array<string>
-				fees: IAdapterOverview | null
-				dexs: IAdapterOverview | null
+				fees: IAdapterChainMetrics | null
+				dexs: IAdapterChainOverview | null
 			},
 			{
 				mcap: number | null
@@ -163,11 +161,11 @@ export async function getChainOverviewData({
 			} | null,
 			Record<string, number>,
 			IChainAsset | null,
-			IAdapterSummary | null,
-			IAdapterSummary | null,
-			IAdapterSummary | null,
-			IAdapterSummary | null,
-			IAdapterOverview | null,
+			IAdapterChainMetrics | null,
+			IAdapterChainMetrics | null,
+			IAdapterProtocolMetrics | null,
+			IAdapterProtocolMetrics | null,
+			IAdapterChainMetrics | null,
 			number | null,
 			Array<[number, number]> | null,
 			Array<[number, number]> | null,
@@ -252,10 +250,9 @@ export async function getChainOverviewData({
 				.then((chainAssets) => (chain !== 'All' ? (chainAssets[currentChainMetadata.name] ?? null) : null))
 				.catch(() => null),
 			currentChainMetadata.revenue && chain !== 'All'
-				? getAdapterChainOverview({
+				? getAdapterChainMetrics({
 						adapterType: 'fees',
 						chain: currentChainMetadata.name,
-						excludeTotalDataChart: true,
 						dataType: 'dailyAppRevenue'
 					}).catch((err) => {
 						console.log(err)
@@ -263,10 +260,9 @@ export async function getChainOverviewData({
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.fees && chain !== 'All'
-				? getAdapterChainOverview({
+				? getAdapterChainMetrics({
 						adapterType: 'fees',
 						chain: currentChainMetadata.name,
-						excludeTotalDataChart: true,
 						dataType: 'dailyAppFees'
 					}).catch((err) => {
 						console.log(err)
@@ -274,20 +270,18 @@ export async function getChainOverviewData({
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.chainFees
-				? getAdapterProtocolSummary({
+				? getAdapterProtocolMetrics({
 						adapterType: 'fees',
-						protocol: currentChainMetadata.name,
-						excludeTotalDataChart: true
+						protocol: currentChainMetadata.name
 					}).catch((err) => {
 						console.log(err)
 						return null
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.chainRevenue
-				? getAdapterProtocolSummary({
+				? getAdapterProtocolMetrics({
 						adapterType: 'fees',
 						protocol: currentChainMetadata.name,
-						excludeTotalDataChart: true,
 						dataType: 'dailyRevenue'
 					}).catch((err) => {
 						console.log(err)
@@ -295,10 +289,9 @@ export async function getChainOverviewData({
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.perps
-				? getAdapterChainOverview({
+				? getAdapterChainMetrics({
 						adapterType: 'derivatives',
-						chain: currentChainMetadata.name,
-						excludeTotalDataChart: true
+						chain: currentChainMetadata.name
 					}).catch((err) => {
 						console.log(err)
 						return null
@@ -696,28 +689,26 @@ export const getProtocolsByChain = async ({
 
 	const [{ protocols, chains, parentProtocols }, fees, revenue, holdersRevenue, dexs, emissionsData]: [
 		{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
-		IAdapterOverview | null,
-		IAdapterOverview | null,
-		IAdapterOverview | null,
-		IAdapterOverview | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainOverview | null,
 		any
 	] = await Promise.all([
 		fetchJson(PROTOCOLS_API),
 		currentChainMetadata.fees
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					adapterType: 'fees',
-					chain: currentChainMetadata.name,
-					excludeTotalDataChart: true
+					chain: currentChainMetadata.name
 				}).catch((err) => {
 					console.log(err)
 					return null
 				})
 			: Promise.resolve(null),
 		currentChainMetadata.fees
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					adapterType: 'fees',
 					chain: currentChainMetadata.name,
-					excludeTotalDataChart: true,
 					dataType: 'dailyRevenue'
 				}).catch((err) => {
 					console.log(err)
@@ -725,10 +716,9 @@ export const getProtocolsByChain = async ({
 				})
 			: Promise.resolve(null),
 		currentChainMetadata.fees
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					adapterType: 'fees',
 					chain: currentChainMetadata.name,
-					excludeTotalDataChart: true,
 					dataType: 'dailyHoldersRevenue'
 				}).catch((err) => {
 					console.log(err)

@@ -6,7 +6,7 @@ import { Nav } from '~/components/Nav'
 import { DesktopSearch } from '~/components/Search'
 import { SearchFallback } from '~/components/Search/Fallback'
 import { Select } from '~/components/Select/Select'
-import { ISEOProps, SEO } from '~/components/SEO'
+import { type ISEOProps, SEO } from '~/components/SEO'
 import { useIsClient } from '~/hooks/useIsClient'
 
 const Toaster = React.lazy(() => import('~/components/Toast').then((m) => ({ default: m.Toast })))

@@ -1,6 +1,6 @@
 import { keepNeededProperties } from '~/api/shared'
 import type { IFormattedProtocol } from '~/api/types'
-import { ILiteProtocol } from '~/containers/ChainOverview/types'
+import type { ILiteProtocol } from '~/containers/ChainOverview/types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getPercentChange } from '~/utils'
 

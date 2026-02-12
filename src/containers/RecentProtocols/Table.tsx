@@ -1,13 +1,13 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnSizingState,
-	ExpandedState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ColumnSizingState,
+	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
@@ -18,7 +18,7 @@ import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { columnSizes, protocolsColumns } from '~/components/Table/Defi/Protocols/columns'
-import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
+import type { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { formattedNum, toNiceDaysAgo } from '~/utils'

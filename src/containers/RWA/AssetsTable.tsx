@@ -1,14 +1,14 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
-	ExpandedState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
+	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import clsx from 'clsx'
@@ -22,11 +22,10 @@ import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
-import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
-import type { IRWAAssetsOverview } from './queries'
-
-const definitions = rwaDefinitionsJson as typeof rwaDefinitionsJson
+import type { IRWAAssetsOverview } from './api.types'
+import { BreakdownTooltipContent } from './BreakdownTooltipContent'
+import { definitions } from './definitions'
 
 type AssetRow = IRWAAssetsOverview['assets'][0]
 
@@ -92,15 +91,18 @@ export function RWAAssetsTable({
 		[]
 	)
 
-	const setColumnOptions = (newOptions: string[]) => {
-		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)]))
-		instance.setColumnVisibility(ops)
-	}
-
 	const selectedColumns = instance
 		.getAllLeafColumns()
 		.filter((col) => col.getIsVisible())
 		.map((col) => col.id)
+
+	const setColumnOptions = (newOptions: string[] | ((prev: string[]) => string[])) => {
+		const resolvedOptions = Array.isArray(newOptions) ? newOptions : newOptions(selectedColumns)
+		const ops = Object.fromEntries(
+			instance.getAllLeafColumns().map((col) => [col.id, resolvedOptions.includes(col.id)])
+		)
+		instance.setColumnVisibility(ops)
+	}
 
 	const prepareCsv = () => {
 		const tableRows = instance.getSortedRowModel().rows
@@ -608,16 +610,6 @@ const columns: ColumnDef<AssetRow>[] = [
 		size: 120
 	}
 ]
-
-const BreakdownTooltipContent = ({ breakdown }: { breakdown: Array<[string, number]> }) => (
-	<span className="flex flex-col gap-1">
-		{breakdown.map(([chain, tvl]) => (
-			<span key={`${chain}-${tvl}`}>
-				{chain}: {formattedNum(tvl, true)}
-			</span>
-		))}
-	</span>
-)
 
 const TVLBreakdownCell = ({
 	value,

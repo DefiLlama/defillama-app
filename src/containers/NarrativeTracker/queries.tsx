@@ -43,11 +43,11 @@ export async function getCoinPerformance(categoryId) {
 		const filterData = (data, timeframe) => {
 			const now = new Date()
 			if (timeframe === 'ytd') {
-				const startOfYear = new Date(now.getFullYear(), 0, 1)
+				const startOfYear = new Date(Date.UTC(now.getUTCFullYear(), 0, 1))
 				return data.filter((item) => new Date(item[1]) >= startOfYear)
 			} else if (typeof timeframe === 'number') {
-				const startDate = new Date(now.setDate(now.getDate() - timeframe))
-				return data.filter((item) => new Date(item[1]) >= startDate)
+				now.setUTCDate(now.getUTCDate() - timeframe)
+				return data.filter((item) => new Date(item[1]) >= now)
 			}
 			return data
 		}

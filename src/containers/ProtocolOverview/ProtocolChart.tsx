@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/router'
-import { ComponentType, lazy, Suspense, useMemo } from 'react'
+import { type ComponentType, lazy, Suspense, useMemo } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -16,7 +16,7 @@ import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useIsClient } from '~/hooks/useIsClient'
 import { capitalizeFirstLetter, slug, tokenIconUrl } from '~/utils'
 import { BAR_CHARTS, protocolCharts } from './constants'
-import { IProtocolOverviewPageData, IToggledMetrics } from './types'
+import type { IProtocolOverviewPageData, IToggledMetrics } from './types'
 import { useFetchProtocolChartData } from './useFetchProtocolChartData'
 
 // Utility function to update any query parameter in URL

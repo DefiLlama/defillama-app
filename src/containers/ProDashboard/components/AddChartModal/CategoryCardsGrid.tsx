@@ -1,6 +1,6 @@
 import { Icon } from '~/components/Icon'
 import { CATEGORY_CARDS } from './CategoryCard'
-import { ChartTabType } from './types'
+import type { ChartTabType } from './types'
 
 interface CategoryCardsGridProps {
 	onSelectCategory: (category: ChartTabType) => void

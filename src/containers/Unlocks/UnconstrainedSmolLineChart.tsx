@@ -7,8 +7,14 @@ import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
+import type { EmissionEvent } from './api.types'
 
 echarts.use([SVGRenderer, LineChart, TooltipComponent, GridComponent, MarkLineComponent])
+
+interface ExtraData {
+	lastEvent?: EmissionEvent[]
+}
+
 export function UnconstrainedSmolLineChart({
 	series,
 	name,
@@ -16,11 +22,11 @@ export function UnconstrainedSmolLineChart({
 	className,
 	extraData
 }: {
-	series: Array<[string, number]>
+	series: Array<[number, number]>
 	name: string
 	color: 'green' | 'red'
 	className?: string
-	extraData?: any
+	extraData?: ExtraData
 }) {
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
@@ -72,7 +78,7 @@ export function UnconstrainedSmolLineChart({
 			tooltip: {
 				trigger: 'axis',
 				confine: false,
-				position: function (point) {
+				position: function (point: number[]) {
 					return [point[0], point[1]]
 				},
 				appendToBody: true,
@@ -83,7 +89,7 @@ export function UnconstrainedSmolLineChart({
 						width: 1
 					}
 				},
-				formatter: (params) => {
+				formatter: (params: Array<{ value: [number, number]; marker: string; dataIndex: number }>) => {
 					const point = params[0]
 					if (!point) return ''
 
@@ -103,21 +109,21 @@ export function UnconstrainedSmolLineChart({
 					tooltipHtml += `<div style="opacity: 0.8; margin-top: 4px;">`
 					if (dayPosition === 0) {
 						if (lastEvent && lastEvent.length > 0) {
-							const parseEventData = (event) => {
-								const { description, noOfTokens, timestamp, category } = event // get category instead of unlockType
+							const parseEventData = (event: EmissionEvent) => {
+								const { description, noOfTokens, timestamp, category } = event
 								const regex =
 									/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})/
 								const matches = description?.match(regex)
 								const name = matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
-								const amount = noOfTokens?.reduce((a, b) => a + b, 0) || 0
+								const amount = noOfTokens?.reduce((a: number, b: number) => a + b, 0) || 0
 								return { name, amount, timestamp, category }
 							}
 
 							// Parse all events and combine data
 							const eventDatas = lastEvent.map(parseEventData)
-							const totalAmount = eventDatas.reduce((sum, event) => sum + event.amount, 0)
+							const totalAmount = eventDatas.reduce((sum: number, event: { amount: number }) => sum + event.amount, 0)
 							const uniqueCategories = Array.from(
-								new Set(eventDatas.flatMap((event) => (event.category ? [event.category] : [])))
+								new Set(eventDatas.flatMap((event: { category?: string }) => (event.category ? [event.category] : [])))
 							)
 
 							tooltipHtml += `<div style="margin-top: 4px; opacity: 1;">`

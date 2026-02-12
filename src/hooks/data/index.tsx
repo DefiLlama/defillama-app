@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { IFormattedProtocol } from '~/api/types'
+import type { IFormattedProtocol } from '~/api/types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from './defi'
 

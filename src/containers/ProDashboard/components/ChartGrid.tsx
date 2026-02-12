@@ -11,7 +11,7 @@ import {
 	useProDashboardEditorActions,
 	useProDashboardPermissions
 } from '../ProDashboardAPIContext'
-import { DashboardItemConfig, StoredColSpan, UnifiedTableConfig } from '../types'
+import type { DashboardItemConfig, StoredColSpan, UnifiedTableConfig } from '../types'
 import { ConfirmationModal } from './ConfirmationModal'
 import {
 	AggregatorsDataset,

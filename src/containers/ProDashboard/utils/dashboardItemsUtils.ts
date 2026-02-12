@@ -1,5 +1,5 @@
-import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
-import { DashboardItemConfig } from '../types'
+import { type Dashboard, dashboardAPI } from '../services/DashboardAPI'
+import type { DashboardItemConfig } from '../types'
 import { cleanItemsForSaving } from './dashboardUtils'
 
 export async function addItemToDashboard(

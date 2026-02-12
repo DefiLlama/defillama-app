@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { lazy, ReactNode, Suspense, useState } from 'react'
+import { lazy, type ReactNode, Suspense, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'

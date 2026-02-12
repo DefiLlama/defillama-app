@@ -1,4 +1,4 @@
-import { ColumnDef, sortingFns } from '@tanstack/react-table'
+import { type ColumnDef, sortingFns } from '@tanstack/react-table'
 import * as React from 'react'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'

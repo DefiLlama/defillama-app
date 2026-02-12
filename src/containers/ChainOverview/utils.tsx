@@ -1,5 +1,5 @@
 import { removedCategoriesFromChainTvlSet } from '~/constants'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import type { IChainAsset, IFormattedChainAsset, ILiteProtocol } from './types'
 
 const excludedCategoriesSet = new Set(['Canonical Bridge'])

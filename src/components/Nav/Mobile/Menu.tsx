@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -11,7 +11,7 @@ import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
 import { mutatePinnedMetrics } from '../pinnedUtils'
 import { PremiumHeader } from '../PremiumHeader'
-import { TNavLink, TNavLinks, TOldNavLink } from '../types'
+import type { TNavLink, TNavLinks, TOldNavLink } from '../types'
 
 const VERTICAL_SORTING_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
 

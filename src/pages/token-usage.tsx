@@ -1,6 +1,12 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
-import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import {
+	type ColumnDef,
+	getCoreRowModel,
+	getSortedRowModel,
+	type SortingState,
+	useReactTable
+} from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { startTransition, Suspense, useMemo, useRef, useState } from 'react'
 import { Announcement } from '~/components/Announcement'

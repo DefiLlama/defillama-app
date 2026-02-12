@@ -1,4 +1,4 @@
-import { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext } from 'next'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
@@ -17,7 +17,7 @@ import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { TVL_SETTINGS_KEYS_SET, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug, tokenIconUrl } from '~/utils'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -358,7 +358,8 @@ export default function Protocols(props) {
 	} = useProtocolBreakdownCharts({
 		protocol,
 		keys: toggledTvlKeys,
-		includeBase: true
+		includeBase: true,
+		inflows: props.metrics?.inflows
 	})
 
 	const protocolSlug = slug(props.name || 'protocol')
@@ -392,7 +393,10 @@ export default function Protocols(props) {
 				</div>
 			) : !hasBreakdownMetrics ? (
 				<div className="col-span-2 flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-					<p className="text-(--text-label)">Breakdown metrics are not available</p>
+					<p className="text-(--text-label)">
+						Breakdown charts are not available for this protocol as it operates on a single chain and token composition
+						data is not accurately trackable.
+					</p>
 				</div>
 			) : (
 				<div className="grid grid-cols-2 gap-2">

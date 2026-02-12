@@ -14,14 +14,14 @@ export class ChartDataTransformer {
 
 				if (interval === 'week') {
 					const weekStart = new Date(date)
-					weekStart.setDate(date.getDate() - date.getDay())
-					weekStart.setHours(0, 0, 0, 0)
+					weekStart.setUTCDate(date.getUTCDate() - date.getUTCDay())
+					weekStart.setUTCHours(0, 0, 0, 0)
 					key = Math.floor(weekStart.getTime() / 1000)
 				} else if (interval === 'month') {
-					key = Math.floor(new Date(date.getFullYear(), date.getMonth(), 1).getTime() / 1000)
+					key = Math.floor(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000)
 				} else if (interval === 'quarter') {
-					const quarter = Math.floor(date.getMonth() / 3)
-					key = Math.floor(new Date(date.getFullYear(), quarter * 3, 1).getTime() / 1000)
+					const quarter = Math.floor(date.getUTCMonth() / 3)
+					key = Math.floor(Date.UTC(date.getUTCFullYear(), quarter * 3, 1) / 1000)
 				} else {
 					key = timestamp
 				}

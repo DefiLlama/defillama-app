@@ -5,7 +5,7 @@ import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
-import { ChartBuilderConfig } from '~/containers/ProDashboard/types'
+import type { ChartBuilderConfig } from '~/containers/ProDashboard/types'
 import { getAdapterBuilderMetric } from '~/containers/ProDashboard/utils/adapterChartMapping'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -129,9 +129,9 @@ export const DimensionProtocolChartByType = ({
 
 	return (
 		<ChartByType
-			data={data}
-			bribeData={bribeData}
-			tokenTaxData={tokenTaxData}
+			data={data ?? []}
+			bribeData={bribeData ?? undefined}
+			tokenTaxData={tokenTaxData ?? undefined}
 			breakdownNames={breakdownNames}
 			title={title}
 			chartType={chartType}
@@ -218,12 +218,12 @@ const ChartByType = ({
 			const existing = aggregatedByDate.get(finalDate)
 			if (existing) {
 				for (const type of selectedTypes) {
-					existing[type] = (existing[type] || 0) + (versions[type] || 0)
+					existing[type] = (existing[type] ?? 0) + (versions[type] ?? 0)
 				}
 			} else {
 				const entry: Record<string, number> = {}
 				for (const type of selectedTypes) {
-					entry[type] = versions[type] || 0
+					entry[type] = versions[type] ?? 0
 				}
 				aggregatedByDate.set(finalDate, entry)
 			}
@@ -236,12 +236,12 @@ const ChartByType = ({
 				const existing = aggregatedByDate.get(finalDate)
 				if (existing) {
 					for (const type of selectedTypes) {
-						existing[type] = (existing[type] || 0) + (versions[type] || 0)
+						existing[type] = (existing[type] ?? 0) + (versions[type] ?? 0)
 					}
 				} else {
 					const entry: Record<string, number> = {}
 					for (const type of selectedTypes) {
-						entry[type] = versions[type] || 0
+						entry[type] = versions[type] ?? 0
 					}
 					aggregatedByDate.set(finalDate, entry)
 				}
@@ -255,12 +255,12 @@ const ChartByType = ({
 				const existing = aggregatedByDate.get(finalDate)
 				if (existing) {
 					for (const type of selectedTypes) {
-						existing[type] = (existing[type] || 0) + (versions[type] || 0)
+						existing[type] = (existing[type] ?? 0) + (versions[type] ?? 0)
 					}
 				} else {
 					const entry: Record<string, number> = {}
 					for (const type of selectedTypes) {
-						entry[type] = versions[type] || 0
+						entry[type] = versions[type] ?? 0
 					}
 					aggregatedByDate.set(finalDate, entry)
 				}
@@ -280,7 +280,7 @@ const ChartByType = ({
 			const entry = aggregatedByDate.get(date)!
 			const row: Record<string, number | null> = { timestamp: date }
 			for (const type of selectedTypes) {
-				const value = entry[type] || 0
+				const value = entry[type] ?? 0
 				if (isCumulative) {
 					cumulative[type] += value
 					row[type] = cumulative[type]
@@ -332,7 +332,7 @@ const ChartByType = ({
 							render={<button />}
 							className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 							data-active={dataInterval === chartInterval}
-							onClick={() => changeChartInterval(dataInterval as any)}
+							onClick={() => changeChartInterval(dataInterval)}
 							key={`${dataInterval}-${chartType}-${title}-${protocolName}`}
 						>
 							{dataInterval.slice(0, 1).toUpperCase()}

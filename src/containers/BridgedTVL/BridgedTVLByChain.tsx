@@ -1,8 +1,14 @@
-import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import {
+	type ColumnDef,
+	getCoreRowModel,
+	getSortedRowModel,
+	type SortingState,
+	useReactTable
+} from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { createInflowsTooltipFormatter, preparePieChartData } from '~/components/ECharts/formatters'
-import { IPieChartProps } from '~/components/ECharts/types'
+import type { IPieChartProps } from '~/components/ECharts/types'
 import { FormattedName } from '~/components/FormattedName'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'

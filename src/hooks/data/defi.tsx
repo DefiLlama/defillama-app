@@ -1,7 +1,7 @@
-import { IOverviewProps } from '~/api/categories/adaptors'
-import { ChainMetricSnapshot, IFormattedProtocol, IParentProtocol, TCompressedChain } from '~/api/types'
+import type { IOverviewProps } from '~/api/categories/adaptors'
+import type { ChainMetricSnapshot, IFormattedProtocol, IParentProtocol, TCompressedChain } from '~/api/types'
 import { removedCategoriesFromChainTvlSet } from '~/constants'
-import { IChainAsset, IChainAssets, IProtocol } from '~/containers/ChainOverview/types'
+import type { IChainAsset, IChainAssets, IProtocol } from '~/containers/ChainOverview/types'
 import { formatNum, getDominancePercent, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
 

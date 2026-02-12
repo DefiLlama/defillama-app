@@ -6,7 +6,7 @@ import { TablePagination } from '../../ProTable/TablePagination'
 import { useYieldsData } from './useYieldsData'
 import { useYieldsTable } from './useYieldsTable'
 import { YieldsColumnManagementPanel } from './YieldsColumnManagementPanel'
-import { YieldsFilters, YieldsFiltersPanel } from './YieldsFiltersPanel'
+import { type YieldsFilters, YieldsFiltersPanel } from './YieldsFiltersPanel'
 import { YieldsTableHeader } from './YieldsTableHeader'
 
 interface YieldsDatasetProps {

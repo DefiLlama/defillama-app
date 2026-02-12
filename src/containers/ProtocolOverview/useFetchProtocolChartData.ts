@@ -19,10 +19,10 @@ import {
 	useFetchProtocolTVLChart
 } from '~/containers/ProtocolOverview/queries.client'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
-import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
+import { firstDayOfMonth, lastDayOfWeek, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { protocolCharts, ProtocolChartsLabels } from './constants'
-import { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from './types'
+import { protocolCharts, type ProtocolChartsLabels } from './constants'
+import type { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from './types'
 
 type ChartInterval = 'daily' | 'weekly' | 'monthly' | 'cumulative'
 type V2ChartPoint = [string | number, number]
@@ -1004,12 +1004,12 @@ export const useFetchProtocolChartData = ({
 			const maxVotes: Record<string, number> = {}
 			for (const gItem of governanceData) {
 				for (const item of gItem.activity ?? []) {
-					const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
+					const date = Math.floor(+item.date / 86400) * 86400
 					totalProposals[date] = (totalProposals[date] ?? 0) + (item['Total'] || 0)
 					successfulProposals[date] = (successfulProposals[date] ?? 0) + (item['Successful'] || 0)
 				}
 				for (const item of gItem.maxVotes ?? []) {
-					const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
+					const date = Math.floor(+item.date / 86400) * 86400
 					maxVotes[date] = (maxVotes[date] ?? 0) + (item['Max Votes'] || 0)
 				}
 			}
