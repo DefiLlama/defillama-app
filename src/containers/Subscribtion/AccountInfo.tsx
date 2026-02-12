@@ -29,7 +29,9 @@ export const AccountInfo = () => {
 		isEnableOverageLoading,
 		usageStats,
 		isUsageStatsLoading,
-		isUsageStatsError
+		isUsageStatsError,
+		cancelSubscription,
+		isCancelSubscriptionLoading
 	} = useSubscribe()
 	const isSubscribed = subscription?.status === 'active'
 	const isLegacyApiSubscription = apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'
@@ -162,6 +164,8 @@ export const AccountInfo = () => {
 					usageStats={usageStats}
 					isUsageStatsLoading={isUsageStatsLoading}
 					isUsageStatsError={isUsageStatsError}
+					cancelSubscription={cancelSubscription}
+					isCancelSubscriptionLoading={isCancelSubscriptionLoading}
 				/>
 			</div>
 

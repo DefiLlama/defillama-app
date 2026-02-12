@@ -20,6 +20,7 @@ interface SubscribeProCardProps {
 	active?: boolean
 	returnUrl?: string
 	onCancelSubscription?: () => void
+	isCancelPending?: boolean
 	billingInterval?: 'year' | 'month'
 	currentBillingInterval?: 'year' | 'month'
 	isTrialAvailable?: boolean
@@ -217,6 +218,7 @@ export function SubscribeProCard({
 	context = 'page',
 	active = false,
 	onCancelSubscription,
+	isCancelPending = false,
 	returnUrl: _returnUrl,
 	billingInterval = 'month',
 	currentBillingInterval
@@ -263,14 +265,16 @@ export function SubscribeProCard({
 								Upgrade to Full Access
 							</button>
 						)}
-						{onCancelSubscription && (
+						{isCancelPending ? (
+							<p className="mt-2 text-center text-sm text-yellow-400">Cancellation scheduled</p>
+						) : onCancelSubscription ? (
 							<button
 								className="mt-2 w-full rounded-lg bg-[#222429] px-4 py-2 text-white transition-colors hover:bg-[#39393E]"
 								onClick={onCancelSubscription}
 							>
 								Cancel Subscription
 							</button>
-						)}
+						) : null}
 					</div>
 				) : (
 					<>
