@@ -28,7 +28,6 @@ const UnconstrainedSmolLineChart = lazy(() =>
 )
 
 const optionsKey = 'unlockTable'
-const filterStatekey = 'unlockTableFilterState'
 
 const setColumnOptions = (newOptions: string[]) => {
 	const ops: Record<string, boolean> = {}
@@ -36,10 +35,6 @@ const setColumnOptions = (newOptions: string[]) => {
 		ops[col.key] = newOptions.includes(col.key)
 	}
 	setStorageItem(optionsKey, JSON.stringify(ops))
-}
-
-const toggleAllOptions = () => {
-	setColumnOptions(columnOptions.map((col) => col.key))
 }
 
 interface IUnlocksTableProps {
@@ -99,11 +94,11 @@ export const UnlocksTable = ({
 	const minPerc = typeof minUnlockPercQuery === 'string' && minUnlockPercQuery !== '' ? Number(minUnlockPercQuery) : ''
 	const maxPerc = typeof maxUnlockPercQuery === 'string' && maxUnlockPercQuery !== '' ? Number(maxUnlockPercQuery) : ''
 
-	const handleUnlockValueSubmit = (e) => {
+	const handleUnlockValueSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		const form = e.target
-		const minUnlockValue = form.min?.value
-		const maxUnlockValue = form.max?.value
+		const form = e.target as HTMLFormElement
+		const minUnlockValue = (form.elements.namedItem('min') as HTMLInputElement)?.value
+		const maxUnlockValue = (form.elements.namedItem('max') as HTMLInputElement)?.value
 		router.push(
 			{
 				pathname: router.pathname,
@@ -133,11 +128,11 @@ export const UnlocksTable = ({
 		)
 	}
 
-	const handleUnlockPercSubmit = (e) => {
+	const handleUnlockPercSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		const form = e.target
-		const minUnlockPerc = form.min?.value
-		const maxUnlockPerc = form.max?.value
+		const form = e.target as HTMLFormElement
+		const minUnlockPerc = (form.elements.namedItem('min') as HTMLInputElement)?.value
+		const maxUnlockPerc = (form.elements.namedItem('max') as HTMLInputElement)?.value
 		router.push(
 			{
 				pathname: router.pathname,
@@ -173,26 +168,7 @@ export const UnlocksTable = ({
 		() => defaultColumns
 	)
 
-	const _filterState = useSyncExternalStore(
-		(callback) => subscribeToStorageKey(filterStatekey, callback),
-		() => getStorageItem(filterStatekey, null),
-		() => null
-	)
 
-	const _setFilter = (key) => (newState) => {
-		const newOptions: Record<string, boolean> = {}
-		for (const column of columnOptions) {
-			newOptions[column.key] = ['name', 'category'].includes(column.key) ? true : column[key] === newState
-		}
-
-		if (columnsInStorage === JSON.stringify(newOptions)) {
-			toggleAllOptions()
-			setStorageItem(filterStatekey, 'null')
-		} else {
-			setStorageItem(optionsKey, JSON.stringify(newOptions))
-			setStorageItem(filterStatekey, newState)
-		}
-	}
 
 	const selectedOptions = useMemo(() => {
 		const storage = JSON.parse(columnsInStorage)
@@ -219,11 +195,11 @@ export const UnlocksTable = ({
 		}
 
 		return protocols
-			.map((protocol) => {
+			.map((protocol: IEmission) => {
 				const filteredUpcomingEvent =
 					selectedUnlockTypes.length === UNLOCK_TYPES.length
 						? protocol.upcomingEvent
-						: protocol.upcomingEvent?.filter((event) => event?.category && selectedUnlockTypes.includes(event.category))
+						: protocol.upcomingEvent?.filter((event) => (event as { category?: string })?.category && selectedUnlockTypes.includes((event as { category?: string }).category!))
 
 				return {
 					...protocol,
@@ -254,16 +230,16 @@ export const UnlocksTable = ({
 
 				if (shouldInclude && (minUnlockValue !== null || maxUnlockValue !== null)) {
 					const totalUnlockValue =
-						protocol.upcomingEvent?.reduce((sum, event) => {
+						protocol.upcomingEvent?.reduce((sum: number, event) => {
 							if (
 								!event ||
-								event.timestamp === null ||
-								!event.noOfTokens ||
-								event.noOfTokens.length === 0 ||
+								(event as { timestamp?: number | null }).timestamp === null ||
+								!(event as { noOfTokens?: number[] }).noOfTokens ||
+								(event as { noOfTokens?: number[] }).noOfTokens!.length === 0 ||
 								protocol.tPrice == null
 							)
 								return sum
-							const totalTokens = event.noOfTokens.reduce((s, amount) => s + amount, 0)
+							const totalTokens = (event as { noOfTokens: number[] }).noOfTokens.reduce((s: number, amount: number) => s + amount, 0)
 							return sum + totalTokens * protocol.tPrice
 						}, 0) ?? 0
 					if (minUnlockValue !== null && totalUnlockValue < minUnlockValue) shouldInclude = false
@@ -272,16 +248,16 @@ export const UnlocksTable = ({
 
 				if (shouldInclude && (minPerc !== '' || maxPerc !== '')) {
 					const totalUnlockValue =
-						protocol.upcomingEvent?.reduce((sum, event) => {
+						protocol.upcomingEvent?.reduce((sum: number, event) => {
 							if (
 								!event ||
-								event.timestamp === null ||
-								!event.noOfTokens ||
-								event.noOfTokens.length === 0 ||
+								(event as { timestamp?: number | null }).timestamp === null ||
+								!(event as { noOfTokens?: number[] }).noOfTokens ||
+								(event as { noOfTokens?: number[] }).noOfTokens!.length === 0 ||
 								protocol.tPrice == null
 							)
 								return sum
-							const totalTokens = event.noOfTokens.reduce((s, amount) => s + amount, 0)
+							const totalTokens = (event as { noOfTokens: number[] }).noOfTokens.reduce((s: number, amount: number) => s + amount, 0)
 							return sum + totalTokens * protocol.tPrice
 						}, 0) ?? 0
 					const mcap = protocol.mcap ?? 0
@@ -363,28 +339,32 @@ export const UnlocksTable = ({
 					placement="bottom-start"
 				/>
 
-				<SelectWithCombobox
-					allValues={columnOptions}
-					selectedValues={selectedOptions}
-					setSelectedValues={setColumnOptions}
-					nestedMenu={false}
-					label={'Columns'}
-					labelType="smol"
-					variant="filter-responsive"
-				/>
+			<SelectWithCombobox
+				allValues={columnOptions}
+				selectedValues={selectedOptions}
+				setSelectedValues={(values: string[] | ((prev: string[]) => string[])) => {
+					const newValues = typeof values === 'function' ? values(selectedOptions) : values
+					setColumnOptions(newValues)
+				}}
+				nestedMenu={false}
+				label={'Columns'}
+				labelType="smol"
+				variant="filter-responsive"
+			/>
 
-				<SelectWithCombobox
-					allValues={UNLOCK_TYPE_OPTIONS}
-					selectedValues={selectedUnlockTypes}
-					setSelectedValues={(values: string[]) => {
-						const isAllSelected = values.length === UNLOCK_TYPES.length
-						setQueryParam('unlockTypes', isAllSelected ? undefined : values.join(','))
-					}}
-					nestedMenu={false}
-					label={'Unlock Types'}
-					labelType="smol"
-					variant="filter-responsive"
-				/>
+			<SelectWithCombobox
+				allValues={UNLOCK_TYPE_OPTIONS}
+				selectedValues={selectedUnlockTypes}
+				setSelectedValues={(values: string[] | ((prev: string[]) => string[])) => {
+					const keys = typeof values === 'function' ? values(selectedUnlockTypes) : values
+					const isAllSelected = keys.length === UNLOCK_TYPES.length
+					setQueryParam('unlockTypes', isAllSelected ? undefined : keys.join(','))
+				}}
+				nestedMenu={false}
+				label={'Unlock Types'}
+				labelType="smol"
+				variant="filter-responsive"
+			/>
 
 				<label className="relative w-full sm:max-w-[280px]">
 					<span className="sr-only">Search projects...</span>
@@ -451,7 +431,7 @@ interface IEmission {
 	tSymbol?: string | null
 	mcap: number | null
 	unlocksPerDay: number | null
-	historicalPrice?: [string, number][]
+	historicalPrice?: [number, number][]
 	lastEvent?: Array<{
 		description: string
 		noOfTokens: number[]
@@ -492,8 +472,9 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		accessorKey: 'tPrice',
 		accessorFn: (row) => (row.tPrice ? +row.tPrice : undefined),
 		cell: ({ getValue }) => {
+			const value = getValue() as number | undefined
 			return (
-				<div className="flex h-full items-center justify-end">{getValue() ? '$' + (+getValue()).toFixed(2) : ''}</div>
+				<div className="flex h-full items-center justify-end">{value ? '$' + value.toFixed(2) : ''}</div>
 			)
 		},
 		meta: {
@@ -506,8 +487,9 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		accessorKey: 'mcap',
 		accessorFn: (row) => (row.mcap ? +row.mcap : undefined),
 		cell: ({ getValue }) => {
-			if (!getValue()) return null
-			return <div className="flex h-full items-center justify-end">{formattedNum(getValue(), true)}</div>
+			const value = getValue() as number | undefined
+			if (!value) return null
+			return <div className="flex h-full items-center justify-end">{formattedNum(value, true)}</div>
 		},
 		meta: {
 			align: 'end'

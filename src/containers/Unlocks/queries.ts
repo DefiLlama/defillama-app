@@ -10,14 +10,8 @@ import type { PrecomputedData, UnlocksData } from '~/containers/Unlocks/calendar
 import { batchFetchHistoricalPrices, capitalizeFirstLetter, getNDistinctColors, roundToNearestHalfHour } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { EmissionsDataset, EmissionsChartRow, EmissionsChartConfig, EmissionEvent, ProtocolEmission, ProtocolEmissionDetail } from './api.types'
-import type {
-	ProtocolEmissionsChartsResult,
-	ProtocolEmissionsFullResult,
-	ProtocolEmissionsScheduleResult,
-	ProtocolEmissionsPieResult,
-	ProtocolEmissionWithHistory,
-	ProtocolEmissionResult
-} from './types'
+import type { ProtocolEmissionWithHistory } from './types'
+import type { CalendarUnlockEvent } from './calendarTypes'
 
 function buildEmissionsDataset(chartData: Array<EmissionsChartRow>, stacks: string[]): EmissionsDataset {
 	return {
@@ -73,7 +67,7 @@ function formatEmissionLabel(label: unknown): string {
 		.join(' ')
 }
 
-function roundEmissionEvents(events: any[] | undefined | null): any[] {
+function roundEmissionEvents(events: EmissionEvent[] | undefined | null): EmissionEvent[] {
 	if (!Array.isArray(events) || events.length === 0) return []
 	return events.map((event) => ({
 		...event,
@@ -81,7 +75,18 @@ function roundEmissionEvents(events: any[] | undefined | null): any[] {
 	}))
 }
 
-function buildEmissionsSeriesAndCategories(input: any): {
+interface EmissionsDataInput {
+	data?: Array<{
+		label?: string | undefined
+		data?: Array<{
+			timestamp: number
+			unlocked?: number | null | undefined
+		}> | undefined
+	}> | null | undefined
+	tokenAllocation?: Record<string, number> | null | undefined
+}
+
+function buildEmissionsSeriesAndCategories(input: EmissionsDataInput | null | undefined): {
 	series: Record<number, Record<string, number | null>>
 	categories: string[]
 } {
@@ -122,10 +127,16 @@ function seriesToChartRows(series: Record<number, Record<string, number | null>>
 
 function buildPieFromChart(chart: EmissionsChartRow[]): Array<{ name: string; value: number | string }> {
 	if (!chart.length) return []
-	const last = chart[chart.length - 1] || ({} as any)
+	const last = chart[chart.length - 1]
+	if (!last) return []
 	const pie: Array<{ name: string; value: number | string }> = []
 	for (const key in last) {
-		if (key !== 'timestamp') pie.push({ name: key, value: (last as any)[key] })
+		if (key !== 'timestamp') {
+			const value = last[key as keyof EmissionsChartRow]
+			if (typeof value === 'number') {
+				pie.push({ name: key, value })
+			}
+		}
 	}
 	return pie
 }
@@ -137,7 +148,7 @@ function buildColorsForPie(pie: Array<{ name: string }>): Record<string, string>
 	return colors
 }
 
-export async function getProtocolUnlockUsdChart(protocolName: string): Promise<any[] | null> {
+export async function getProtocolUnlockUsdChart(protocolName: string): Promise<unknown[] | null> {
 	const res = await fetchProtocolEmission(protocolName)
 	return res?.unlockUsdChart ?? null
 }
@@ -147,7 +158,7 @@ export async function getProtocolEmissionsCharts(protocolName: string): Promise<
 		documented: Array<EmissionsChartRow>
 		realtime: Array<EmissionsChartRow>
 	}
-	unlockUsdChart: any[] | null
+	unlockUsdChart: unknown[] | null
 }> {
 	const empty = { chartData: { documented: [], realtime: [] }, unlockUsdChart: null }
 	if (!protocolName) return empty
@@ -254,8 +265,8 @@ export async function getProtocolEmissionsForCharts(protocolName: string) {
 		categories: emissionCategories,
 		categoriesBreakdown: res?.categories ?? null,
 		hallmarks: {
-			documented: documentedData.data?.length > 0 ? [[nowSec, 'Today']] : [],
-			realtime: realTimeData.data?.length > 0 ? [[nowSec, 'Today']] : []
+			documented: (documentedData.data?.length ?? 0) > 0 ? [[nowSec, 'Today']] : [],
+			realtime: (realTimeData.data?.length ?? 0) > 0 ? [[nowSec, 'Today']] : []
 		},
 		name: name || null,
 		unlockUsdChart: res.unlockUsdChart ?? null
@@ -322,13 +333,24 @@ export async function getProtocolEmissionsScheduleData(protocolName: string): Pr
 	}
 }
 
+interface ProtocolEmissionMeta {
+	name?: string
+	token?: string
+	gecko_id?: string | null
+	events?: EmissionEvent[] | null
+	tPrice?: number | null
+	tSymbol?: string | null
+	totalLocked?: number | null
+	maxSupply?: number | null
+}
+
 export async function getProtocolEmissionsPieData(protocolName: string): Promise<{
 	pieChartData: {
 		documented: Array<{ name: string; value: number | string }>
 		realtime: Array<{ name: string; value: number | string }>
 	}
 	stackColors: { documented: Record<string, string>; realtime: Record<string, string> }
-	meta: any
+	meta: ProtocolEmissionMeta
 }> {
 	const empty = {
 		pieChartData: { documented: [], realtime: [] },
@@ -394,13 +416,15 @@ export async function getUnlocksCalendarStaticPropsData(): Promise<{
 }> {
 	// Import dayjs lazily to keep this server-oriented builder isolated.
 	const dayjs = (await import('dayjs')).default
+	const isBetweenPlugin = (await import('dayjs/plugin/isBetween')).default
+	dayjs.extend(isBetweenPlugin)
 
 	const data = await getAllProtocolEmissionsWithHistory()
 	const unlocksData: UnlocksData = {}
 
 	const precomputedData = {
 		monthlyMaxValues: {} as { [monthKey: string]: number },
-		listEvents: {} as { [startDateKey: string]: Array<{ date: string; event: any }> },
+		listEvents: {} as { [startDateKey: string]: Array<{ date: string; event: CalendarUnlockEvent }> },
 		weekCharts: {} as NonNullable<PrecomputedData['weekCharts']>,
 		monthCharts: {} as NonNullable<PrecomputedData['monthCharts']>
 	} satisfies PrecomputedData
@@ -480,7 +504,7 @@ export async function getUnlocksCalendarStaticPropsData(): Promise<{
 		const endDate = startDate.add(30, 'days')
 		const startDateKey = startDate.format('YYYY-MM-DD')
 
-		const events: Array<{ date: string; event: any }> = []
+		const events: Array<{ date: string; event: CalendarUnlockEvent }> = []
 		for (const dateStr in unlocksData) {
 			const date = dayjs(dateStr)
 			if (date.isBetween(startDate.subtract(1, 'day'), endDate)) {
@@ -532,17 +556,17 @@ export const getAllProtocolEmissionsWithHistory = async ({
 		const coinPrices = await fetchCoinPricesBatched(coinIdsList)
 
 		return res
-			.map((protocol) => {
+			.map((protocol: ProtocolEmission) => {
 				try {
 					let filteredEvents = protocol.events || []
 					if (startDate) {
-						filteredEvents = filteredEvents.filter((e) => e.timestamp >= startDate)
+						filteredEvents = filteredEvents.filter((e: EmissionEvent) => e.timestamp >= startDate)
 					}
 					if (endDate) {
-						filteredEvents = filteredEvents.filter((e) => e.timestamp <= endDate)
+						filteredEvents = filteredEvents.filter((e: EmissionEvent) => e.timestamp <= endDate)
 					}
 
-					filteredEvents = filteredEvents.toSorted((a, b) => a.timestamp - b.timestamp)
+					filteredEvents = filteredEvents.toSorted((a: EmissionEvent, b: EmissionEvent) => a.timestamp - b.timestamp)
 
 					const coin = coinPrices[`coingecko:${protocol.gecko_id}`]
 
@@ -558,12 +582,12 @@ export const getAllProtocolEmissionsWithHistory = async ({
 				}
 			})
 			.filter(Boolean)
-			.sort((a, b) => {
-				const x = a.events[0]?.timestamp
-				const y = b.events[0]?.timestamp
+			.sort((a: ProtocolEmission, b: ProtocolEmission) => {
+				const x = a.events?.[0]?.timestamp
+				const y = b.events?.[0]?.timestamp
 				if (x === y) return 0
-				if (x === null) return 1
-				if (y === null) return -1
+				if (x === null || x === undefined) return 1
+				if (y === null || y === undefined) return -1
 				return x < y ? -1 : 1
 			})
 	} catch (e) {
@@ -575,7 +599,7 @@ export const getAllProtocolEmissionsWithHistory = async ({
 export const getProtocolEmissionsList = async () => {
 	try {
 		const res = await fetchJson(PROTOCOL_EMISSIONS_API)
-		return res.map((protocol) => ({
+		return res.map((protocol: ProtocolEmission) => ({
 			name: protocol.name,
 			token: protocol.token
 		}))
@@ -655,13 +679,13 @@ export const getAllProtocolEmissions = async ({
 				: {}
 
 		return protocols
-			.map((protocol) => {
+			.map((protocol: ProtocolEmission) => {
 				try {
 					const geckoId = protocol?.gecko_id
 					const coinKey = geckoId ? `coingecko:${geckoId}` : null
 
 					const eventsRaw = Array.isArray(protocol?.events) ? protocol.events : []
-					const events = eventsRaw.map((event) => ({
+					const events = eventsRaw.map((event: EmissionEvent) => ({
 						...event,
 						timestamp: typeof event?.timestamp === 'number' ? roundToNearestHalfHour(event.timestamp) : event?.timestamp
 					}))
@@ -677,20 +701,20 @@ export const getAllProtocolEmissions = async ({
 					}
 
 					const upcomingEvent =
-						upcomingTimestamp === null ? [{ timestamp: null }] : events.filter((e) => e.timestamp === upcomingTimestamp)
+						upcomingTimestamp === null ? [{ timestamp: null }] : events.filter((e: EmissionEvent) => e.timestamp === upcomingTimestamp)
 
 					const lastPastTimestamp = coinKey ? lastPastTimestampByCoinKey.get(coinKey) : undefined
 					const lastEvent =
 						typeof lastPastTimestamp === 'number'
 							? events.filter(
-									(e) =>
+									(e: EmissionEvent) =>
 										e.timestamp === lastPastTimestamp && e.category !== 'noncirculating' && e.category !== 'farming'
 								)
 							: []
 
 					let filteredEvents = events
-					if (startDate) filteredEvents = filteredEvents.filter((e) => e.timestamp >= startDate)
-					if (endDate) filteredEvents = filteredEvents.filter((e) => e.timestamp <= endDate)
+					if (startDate) filteredEvents = filteredEvents.filter((e: EmissionEvent) => e.timestamp >= startDate)
+					if (endDate) filteredEvents = filteredEvents.filter((e: EmissionEvent) => e.timestamp <= endDate)
 
 					const coin = coinKey ? coins.coins[coinKey] : null
 					const tSymbol = coin?.symbol ?? null
@@ -719,7 +743,7 @@ export const getAllProtocolEmissions = async ({
 				}
 			})
 			.filter(Boolean)
-			.sort((a, b) => {
+			.sort((a: ProtocolEmissionWithHistory, b: ProtocolEmissionWithHistory) => {
 				const x = a.upcomingEvent?.[0]?.timestamp
 				const y = b.upcomingEvent?.[0]?.timestamp
 				// equal items sort equally
@@ -728,10 +752,10 @@ export const getAllProtocolEmissions = async ({
 				}
 
 				// nulls sort after anything else
-				if (x === null) {
+				if (x === null || x === undefined) {
 					return 1
 				}
-				if (y === null) {
+				if (y === null || y === undefined) {
 					return -1
 				}
 
@@ -886,8 +910,8 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			categories: emissionCategories,
 			categoriesBreakdown: res?.categories ?? null,
 			hallmarks: {
-				documented: documentedData.data?.length > 0 ? [[nowSec, 'Today']] : [],
-				realtime: realTimeData.data?.length > 0 ? [[nowSec, 'Today']] : []
+				documented: (documentedData.data?.length ?? 0) > 0 ? [[nowSec, 'Today']] : [],
+				realtime: (realTimeData.data?.length ?? 0) > 0 ? [[nowSec, 'Today']] : []
 			},
 			name: name || null,
 			tokenPrice,

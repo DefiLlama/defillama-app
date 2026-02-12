@@ -3,9 +3,10 @@ import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import type { ProtocolEmissionWithHistory } from './types'
 
 interface TopUnlocksProps {
-	data: any[]
+	data: ProtocolEmissionWithHistory[]
 	period: number
 	title?: string
 	className?: string
@@ -32,7 +33,7 @@ export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, cla
 				if (protocol.events) {
 					for (const event of protocol.events) {
 						if (event.timestamp >= startTime && event.timestamp <= now) {
-							const totalTokens = event.noOfTokens?.reduce((sum, amount) => sum + amount, 0) || 0
+							const totalTokens = event.noOfTokens?.reduce((sum: number, amount: number) => sum + amount, 0) || 0
 							const existing = timestampGroups.get(event.timestamp) || 0
 							timestampGroups.set(event.timestamp, existing + totalTokens)
 						}
@@ -40,14 +41,14 @@ export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, cla
 				}
 
 				const totalUnlockValue = Array.from(timestampGroups.values()).reduce(
-					(sum, tokens) => sum + tokens * protocol.tPrice,
+					(sum, tokens) => sum + tokens * (protocol.tPrice ?? 0),
 					0
 				)
 
 				if (totalUnlockValue > 0) {
 					protocolUnlocks.set(protocol.name, {
 						name: protocol.name,
-						symbol: protocol.tSymbol,
+						symbol: protocol.tSymbol ?? '',
 						value: totalUnlockValue
 					})
 				}

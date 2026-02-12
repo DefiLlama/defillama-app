@@ -7,8 +7,23 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
 
+interface ProtocolData {
+	name: string
+	tSymbol: string
+	tPrice: number
+	maxSupply?: number
+	mcap?: number
+	historicalPrice?: Array<[number, number]>
+	lastEvent?: Array<{
+		timestamp: number
+		noOfTokens?: number[]
+		description?: string
+		unlockType?: string
+	}>
+}
+
 interface PastUnlockPriceImpactProps {
-	data: any[]
+	data: ProtocolData[]
 	title?: string
 	className?: string
 }
@@ -52,11 +67,11 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 			const now = Date.now() / 1000
 			const thirtyDaysAgo = now - 30 * 24 * 60 * 60
 
-			const lastEvents = protocol.lastEvent.filter((event) => event.timestamp >= thirtyDaysAgo)
+			const lastEvents = protocol.lastEvent?.filter((event) => event.timestamp >= thirtyDaysAgo) || []
 			if (!lastEvents.length) continue
 
-			const eventsByTimestamp = lastEvents.reduce((acc, event) => {
-				const totalTokens = event.noOfTokens?.reduce((sum, amount) => sum + amount, 0) || 0
+			const eventsByTimestamp = lastEvents.reduce((acc: Record<number, { totalTokens: number; events: typeof lastEvents }>, event) => {
+				const totalTokens = event.noOfTokens?.reduce((sum: number, amount: number) => sum + amount, 0) || 0
 				if (acc[event.timestamp]) {
 					acc[event.timestamp].totalTokens += totalTokens
 					acc[event.timestamp].events.push(event)
@@ -84,16 +99,16 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 
 			const breakdown: UnlockBreakdown[] = (
 				latestEvent.events
-					.flatMap((event) =>
+					.flatMap((event: typeof lastEvents[0]) =>
 						event.noOfTokens?.map((amount: number) => ({
-							name: parseDescription(event.description),
+							name: parseDescription(event.description || ''),
 							amount,
 							timestamp: event.timestamp,
 							unlockType: event.unlockType || 'cliff'
 						}))
 					)
-					.filter(Boolean) || []
-			).sort((a, b) => b.amount - a.amount)
+					.filter(Boolean) as UnlockBreakdown[]
+			).sort((a: UnlockBreakdown, b: UnlockBreakdown) => b.amount - a.amount)
 
 			protocolImpacts.set(protocol.name, {
 				name: protocol.name,

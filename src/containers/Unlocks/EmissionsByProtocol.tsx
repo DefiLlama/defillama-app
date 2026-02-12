@@ -342,7 +342,7 @@ const EMPTY_STRING_LIST: string[] = []
 const EMPTY_STACK_COLORS: Record<string, string> = {}
 const EMPTY_ALLOCATION: Record<string, number> = {}
 const EMPTY_TOKEN_ALLOCATION = { current: EMPTY_ALLOCATION, final: EMPTY_ALLOCATION }
-const EMPTY_CHART_DATA: any[] = []
+const EMPTY_CHART_DATA: Array<{ timestamp: number; [key: string]: number | null }> = []
 
 const chunkArray = <T,>(items: T[], size = 1): T[][] => {
 	if (!Number.isFinite(size) || size < 1) return []
@@ -430,8 +430,8 @@ const ChartContainer = ({
 		}
 	}, [data.tokenAllocation, dataType])
 	const rawChartData = data.chartData?.[dataType] ?? EMPTY_CHART_DATA
-	const pieChartData = data.pieChartData?.[dataType] ?? EMPTY_CHART_DATA
-	const hallmarks = data.hallmarks?.[dataType] ?? EMPTY_CHART_DATA
+	const pieChartDataRaw = data.pieChartData?.[dataType]
+	const hallmarks = (data.hallmarks?.[dataType] ?? []) as [number, string][]
 
 	useEffect(() => {
 		if (categoriesFromData.length > 0) {
@@ -523,13 +523,19 @@ const ChartContainer = ({
 
 	const paginationItems = useMemo(
 		() =>
-			sortedEvents.map(([ts, events]: any) => (
+			sortedEvents.map(([ts, events]) => (
 				<UpcomingEvent
 					key={ts}
 					{...{
-						event: events,
-						noOfTokens: events.map((x: any) => x.noOfTokens),
-						timestamp: ts,
+						event: events.map((e) => ({ ...e, timestamp: Number(e.timestamp) })) as Array<{
+							description: string
+							noOfTokens: number[]
+							timestamp: number
+							unlockType?: string
+							rateDurationDays?: number
+						}>,
+						noOfTokens: events.map((x) => x.noOfTokens),
+						timestamp: Number(ts),
 						price: tokenPrice,
 						symbol: data.tokenPrice?.symbol,
 						mcap: tokenMcap,
@@ -574,7 +580,7 @@ const ChartContainer = ({
 	const displayData = useMemo(() => {
 		let result = chartData
 		if (allocationMode === 'standard' && data.categoriesBreakdown) {
-			result = processGroupedChartData(chartData || ([] as any), data.categoriesBreakdown)
+			result = processGroupedChartData(chartData || [], data.categoriesBreakdown)
 		}
 		return groupChartDataByTime(result || [], timeGrouping)
 	}, [allocationMode, chartData, data.categoriesBreakdown, timeGrouping])
@@ -614,14 +620,15 @@ const ChartContainer = ({
 	}, [tokenAllocation])
 
 	const pieChartDataAllocation = useMemo(() => {
+		const source = pieChartDataRaw ?? []
 		const filtered: Array<{ name: string; value: number }> = []
-		for (const item of pieChartData as Array<{ name: string; value: number }>) {
+		for (const item of source) {
 			if (!item) continue
 			if (!selectedCategories.includes(item.name)) continue
 			filtered.push(item)
 		}
 		return sortPieChartDataDesc(filtered)
-	}, [pieChartData, selectedCategories])
+	}, [pieChartDataRaw, selectedCategories])
 
 	const pieChartDataAllocationMode = allocationMode === 'current' ? pieChartDataAllocation : groupAllocation
 
@@ -703,7 +710,7 @@ const ChartContainer = ({
 				type: isOverlay ? 'line' : chartType,
 				name,
 				encode: { x: 'timestamp', y: name },
-				color: colors[name],
+				color: colors[name as keyof typeof colors],
 				...(!isOverlay ? { stack: 'A' } : {}),
 				...(isOverlay ? { yAxisIndex: yIdx + 1, valueSymbol: '$', hideAreaStyle: true } : {})
 			}
@@ -1082,8 +1089,8 @@ export const UnlocksCharts = ({
 	}
 
 	return (
-		<ChartContainer
-			data={resolvedData as any}
+					<ChartContainer
+						data={resolvedData as IEmission}
 			isEmissionsPage={isEmissionsPage}
 			initialTokenMarketData={initialTokenMarketData}
 			disableClientTokenStatsFetch={disableClientTokenStatsFetch}
