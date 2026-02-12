@@ -18,7 +18,8 @@ export async function getRWAStats(): Promise<IRWAStatsResponse> {
 }
 
 export async function getRWAAssetDataById(assetId: string): Promise<IFetchedRWAProject> {
-	return fetchJson<IFetchedRWAProject>(`${RWA_SERVER_URL}/rwa/${assetId}`)
+	const encodedAssetId = encodeURIComponent(assetId)
+	return fetchJson<IFetchedRWAProject>(`${RWA_SERVER_URL}/rwa/${encodedAssetId}`)
 }
 
 export async function getRWAChartDataByTicker({
@@ -42,8 +43,9 @@ export async function getRWAChartDataByTicker({
 }
 
 export async function getRWAAssetChartData(assetId: string): Promise<IRWAAssetData['chartDataset']> {
+	const encodedAssetId = encodeURIComponent(assetId)
 	return fetchJson<Array<{ timestamp: number; onChainMcap: number; activeMcap: number; defiActiveTvl: number }>>(
-		`${RWA_SERVER_URL}/chart/asset/${assetId}`
+		`${RWA_SERVER_URL}/chart/asset/${encodedAssetId}`
 	)
 		.then((data) => {
 			const source: RWAAssetChartRow[] =

@@ -36,13 +36,6 @@ export interface IFetchedRWAProject {
 	activeMcapData?: boolean
 }
 
-export type IRWAChartData = Array<{
-	timestamp: number
-	onChainMcap: number
-	activeMcap: number
-	defiActiveTvl: number
-}>
-
 export interface IRWAStatsResponse {
 	totalOnChainMcap: number
 	totalActiveMcap: number

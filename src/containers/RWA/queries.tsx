@@ -157,8 +157,6 @@ function aggregateRwaMetrics({
 	}
 }
 
-export type { IRWAChainsOverviewRow, IRWACategoriesOverviewRow, IRWAPlatformsOverviewRow }
-
 export type RWAAssetsOverviewParams = {
 	chain?: string
 	category?: string
