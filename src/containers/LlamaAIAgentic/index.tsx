@@ -10,9 +10,10 @@ import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHe
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { AgenticSidebar } from './AgenticSidebar'
 import { ChartRenderer } from './ChartRenderer'
+import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArtifact'
 import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
 import { fetchAgenticResponse } from './fetchAgenticResponse'
-import type { SpawnProgressData } from './fetchAgenticResponse'
+import type { SpawnProgressData, CsvExport } from './fetchAgenticResponse'
 import type { ChartConfiguration, Message } from './types'
 
 const TOOL_LABELS: Record<string, string> = {
@@ -22,7 +23,8 @@ const TOOL_LABELS: Record<string, string> = {
 	generate_chart: 'Generating visualization',
 	web_search: 'Searching the web',
 	x_search: 'Searching X/Twitter',
-	spawn_agent: 'Spawning research agents'
+	spawn_agent: 'Spawning research agents',
+	export_csv: 'Exporting CSV'
 }
 
 interface ToolCall {
@@ -78,6 +80,7 @@ export function AgenticChat() {
 	const [isStreaming, setIsStreaming] = useState(false)
 	const [streamingText, setStreamingText] = useState('')
 	const [streamingCharts, setStreamingCharts] = useState<ChartSet[]>([])
+	const [streamingCsvExports, setStreamingCsvExports] = useState<CsvExport[]>([])
 	const [streamingCitations, setStreamingCitations] = useState<string[]>([])
 	const [activeToolCalls, setActiveToolCalls] = useState<ToolCall[]>([])
 	const [error, setError] = useState<string | null>(null)
@@ -203,6 +206,7 @@ export function AgenticChat() {
 				content: m.content,
 				charts: m.charts && m.chartData ? [{ charts: m.charts, chartData: m.chartData }] : undefined,
 				citations: m.citations,
+				csvExports: m.csvExports,
 				id: m.id,
 				timestamp: m.timestamp ? new Date(m.timestamp).getTime() : undefined
 			}))
@@ -245,6 +249,7 @@ export function AgenticChat() {
 		setError(null)
 		setStreamingText('')
 		setStreamingCharts([])
+		setStreamingCsvExports([])
 		setStreamingCitations([])
 		setActiveToolCalls([])
 		setSpawnProgress(new Map())
@@ -269,6 +274,7 @@ export function AgenticChat() {
 					content: m.content,
 					charts: m.charts && m.chartData ? [{ charts: m.charts, chartData: m.chartData }] : undefined,
 					citations: m.citations,
+					csvExports: m.csvExports,
 					id: m.id,
 					timestamp: m.timestamp ? new Date(m.timestamp).getTime() : undefined
 				}))
@@ -303,6 +309,7 @@ export function AgenticChat() {
 			setIsStreaming(true)
 			setStreamingText('')
 			setStreamingCharts([])
+			setStreamingCsvExports([])
 			setStreamingCitations([])
 			setActiveToolCalls([])
 			setSpawnProgress(new Map())
@@ -323,6 +330,7 @@ export function AgenticChat() {
 
 			let accumulatedText = ''
 			let accumulatedCharts: ChartSet[] = []
+			let accumulatedCsvExports: CsvExport[] = []
 			let accumulatedCitations: string[] = []
 			let hasStartedText = false
 			let spawnStarted = false
@@ -352,6 +360,10 @@ export function AgenticChat() {
 						setActiveToolCalls([])
 						accumulatedCharts = [...accumulatedCharts, { charts, chartData }]
 						setStreamingCharts(accumulatedCharts)
+					},
+					onCsvExport: (exports) => {
+						accumulatedCsvExports = [...accumulatedCsvExports, ...exports]
+						setStreamingCsvExports(accumulatedCsvExports)
 					},
 					onCitations: (citations) => {
 						accumulatedCitations = [...new Set([...accumulatedCitations, ...citations])]
@@ -402,11 +414,13 @@ export function AgenticChat() {
 								role: 'assistant',
 								content: accumulatedText || undefined,
 								charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined,
+								csvExports: accumulatedCsvExports.length > 0 ? accumulatedCsvExports : undefined,
 								citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined
 							}
 						])
 						setStreamingText('')
 						setStreamingCharts([])
+						setStreamingCsvExports([])
 						setStreamingCitations([])
 						setActiveToolCalls([])
 						setSpawnProgress(new Map())
@@ -426,12 +440,14 @@ export function AgenticChat() {
 								role: 'assistant',
 								content: accumulatedText || undefined,
 								charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined,
+								csvExports: accumulatedCsvExports.length > 0 ? accumulatedCsvExports : undefined,
 								citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined
 							}
 						])
 					}
 					setStreamingText('')
 					setStreamingCharts([])
+					setStreamingCsvExports([])
 					setStreamingCitations([])
 					setActiveToolCalls([])
 					setSpawnProgress(new Map())
@@ -530,10 +546,11 @@ export function AgenticChat() {
 											activeToolCalls.map((tc) => <ToolIndicator key={tc.id} label={tc.label} name={tc.name} />)
 										)}
 
-										{isStreaming && (streamingText || streamingCharts.length > 0 || streamingCitations.length > 0) && (
+										{isStreaming && (streamingText || streamingCharts.length > 0 || streamingCsvExports.length > 0 || streamingCitations.length > 0) && (
 											<InlineContent
 												text={streamingText}
 												chartSets={streamingCharts}
+												csvExports={streamingCsvExports}
 												citations={streamingCitations}
 												isStreaming
 											/>
@@ -736,32 +753,49 @@ const SpawnProgressCard = memo(function SpawnProgressCard({
 function InlineContent({
 	text,
 	chartSets,
+	csvExports = [],
 	citations,
 	isStreaming = false
 }: {
 	text: string
 	chartSets: ChartSet[]
+	csvExports?: CsvExport[]
 	citations: string[]
 	isStreaming?: boolean
 }) {
 	const chartIndex = useMemo(() => buildChartIndex(chartSets), [chartSets])
+	const csvIndex = useMemo(() => {
+		const m = new Map<string, CsvExport>()
+		for (const csv of csvExports) m.set(csv.id, csv)
+		return m
+	}, [csvExports])
 
-	const { parts, referencedIds } = useMemo(() => {
+	const { parts, referencedChartIds, referencedCsvIds } = useMemo(() => {
 		const parsed = parseArtifactPlaceholders(text)
-		return { parts: parsed.parts, referencedIds: parsed.chartIds }
+		return { parts: parsed.parts, referencedChartIds: parsed.chartIds, referencedCsvIds: parsed.csvIds }
 	}, [text])
+
+	const hasInlineRefs = referencedChartIds.size > 0 || referencedCsvIds.size > 0
 
 	const unreferencedCharts = useMemo(() => {
 		const all: { chart: ChartConfiguration; chartData: Record<string, any[]> }[] = []
 		for (const [id, entry] of chartIndex) {
-			if (!referencedIds.has(id)) all.push(entry)
+			if (!referencedChartIds.has(id)) all.push(entry)
 		}
 		return all
-	}, [chartIndex, referencedIds])
+	}, [chartIndex, referencedChartIds])
+
+	const unreferencedCsvs = useMemo(() => {
+		const all: CsvExport[] = []
+		for (const [id, csv] of csvIndex) {
+			if (!referencedCsvIds.has(id)) all.push(csv)
+		}
+		return all
+	}, [csvIndex, referencedCsvIds])
 
 	return (
 		<div className="flex flex-col gap-2.5">
-			{referencedIds.size > 0
+			{hasInlineRefs
 				? parts.map((part, i) => {
 						if (part.type === 'chart' && part.chartId) {
 							const entry = chartIndex.get(part.chartId)
@@ -784,6 +818,18 @@ function InlineContent({
 							}
 							return null
 						}
+						if (part.type === 'csv' && part.csvId) {
+							const csv = csvIndex.get(part.csvId)
+							if (csv) {
+								return (
+									<CSVExportArtifact
+										key={`inline-csv-${part.csvId}-${i}`}
+										csvExport={csv}
+									/>
+								)
+							}
+							return null
+						}
 						if (!part.content) return null
 						return (
 							<MarkdownRenderer
@@ -802,9 +848,13 @@ function InlineContent({
 						/>
 					)}
 			{isStreaming && text && <span className="inline-block h-4 w-0.5 animate-pulse bg-(--old-blue)" />}
-			{referencedIds.size === 0 &&
+			{!hasInlineRefs &&
 				unreferencedCharts.map((entry, i) => (
 					<ChartRenderer key={`chart-${entry.chart.id || i}`} charts={[entry.chart]} chartData={entry.chartData} />
+				))}
+			{!hasInlineRefs &&
+				unreferencedCsvs.map((csv) => (
+					<CSVExportArtifact key={`csv-${csv.id}`} csvExport={csv} />
 				))}
 		</div>
 	)
@@ -858,6 +908,6 @@ function MessageBubble({ message }: { message: Message }) {
 	}
 
 	return (
-		<InlineContent text={message.content || ''} chartSets={message.charts || []} citations={message.citations || []} />
+		<InlineContent text={message.content || ''} chartSets={message.charts || []} csvExports={message.csvExports} citations={message.citations || []} />
 	)
 }

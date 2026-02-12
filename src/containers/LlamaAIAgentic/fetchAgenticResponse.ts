@@ -1,6 +1,14 @@
 import { MCP_SERVER } from '~/constants'
 import type { ChartConfiguration } from './types'
 
+export interface CsvExport {
+	id: string
+	title: string
+	url: string
+	rowCount: number
+	filename: string
+}
+
 export interface SpawnProgressData {
 	agentId: string
 	status: 'started' | 'tool_call' | 'completed' | 'error'
@@ -17,6 +25,7 @@ interface AgenticSSECallbacks {
 	onSpawnProgress: (data: SpawnProgressData) => void
 	onSessionId: (sessionId: string) => void
 	onCitations: (citations: string[]) => void
+	onCsvExport?: (exports: CsvExport[]) => void
 	onTitle?: (title: string) => void
 	onError: (content: string) => void
 	onDone: () => void
@@ -115,6 +124,9 @@ export async function fetchAgenticResponse({
 							break
 						case 'charts':
 							callbacks.onCharts(data.charts || [], data.chartData || {})
+							break
+						case 'csv_export':
+							callbacks.onCsvExport?.(data.exports || [])
 							break
 						case 'spawn_progress':
 							callbacks.onSpawnProgress(data)

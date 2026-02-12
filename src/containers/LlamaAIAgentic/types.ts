@@ -58,10 +58,19 @@ export interface ChartConfiguration {
 	}
 }
 
+export interface CsvExport {
+	id: string
+	title: string
+	url: string
+	rowCount: number
+	filename: string
+}
+
 export interface Message {
 	role: 'user' | 'assistant'
 	content?: string
 	charts?: Array<{ charts: ChartConfiguration[]; chartData: Record<string, any[]> }>
+	csvExports?: CsvExport[]
 	citations?: string[]
 	images?: Array<{ url: string; mimeType: string; filename?: string }>
 	id?: string
