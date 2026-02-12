@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { HLP_VAULTS, HlpVaultKey, num, resolveWindowStart, safePostInfo } from '~/utils/hyperliquid'
+import { HLP_VAULTS, type HlpVaultKey, num, resolveWindowStart, safePostInfo } from '~/utils/hyperliquid'
 
 interface RawFundingEvent {
 	delta: {

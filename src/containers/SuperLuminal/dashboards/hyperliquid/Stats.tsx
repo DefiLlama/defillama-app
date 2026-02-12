@@ -2,8 +2,8 @@ import {
 	getCoreRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	PaginationState,
-	SortingState,
+	type PaginationState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -18,14 +18,14 @@ import { VirtualTable } from '~/components/Table/Table'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
 import {
-	PerpMarket,
-	PredictedFunding,
-	SpotMarket,
+	type PerpMarket,
+	type PredictedFunding,
+	type SpotMarket,
 	useHyperliquidPerps,
 	useHyperliquidPredictedFundings,
 	useHyperliquidSpot,
 	useHyperliquidWs,
-	WsSubscription
+	type WsSubscription
 } from './api'
 
 const ALL_MIDS_SUB: WsSubscription[] = [{ type: 'allMids' }]
