@@ -1,239 +1,77 @@
-import { SERVER_URL } from '~/constants'
+import { DATASETS_SERVER_URL, SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type { ProtocolEmissionDetail, ProtocolEmission } from './api.types'
-import type {
-	ProtocolEmissionsChartsResult,
-	ProtocolEmissionsFullResult,
-	ProtocolEmissionsScheduleResult,
-	ProtocolEmissionsPieResult,
-	ProtocolEmissionResult
-} from './types'
+
+interface WrappedBodyResponse {
+	body: unknown
+}
+
+function isWrappedBodyResponse(raw: unknown): raw is WrappedBodyResponse {
+	return typeof raw === 'object' && raw !== null && 'body' in raw
+}
+
+function isProtocolEmissionDetail(value: unknown): value is ProtocolEmissionDetail {
+	return typeof value === 'object' && value !== null && 'name' in value
+}
 
 function parseProtocolEmissionApiResponse(raw: unknown): ProtocolEmissionDetail | null {
 	if (!raw) return null
 
 	// Many endpoints respond as `{ body: string }`.
-	const body = typeof raw === 'object' && raw !== null && 'body' in raw ? (raw as { body: unknown }).body : raw
+	const body = isWrappedBodyResponse(raw) ? raw.body : raw
 
 	if (body == null) return null
 	if (typeof body === 'string') {
 		try {
-			return JSON.parse(body) as ProtocolEmissionDetail
+			const parsed: unknown = JSON.parse(body)
+			return isProtocolEmissionDetail(parsed) ? parsed : null
 		} catch {
 			return null
 		}
 	}
 
-	return body as ProtocolEmissionDetail
+	return isProtocolEmissionDetail(body) ? body : null
 }
 
+/**
+ * Fetch emission data for a single protocol
+ */
 export async function fetchProtocolEmission(protocolName: string): Promise<ProtocolEmissionDetail | null> {
 	if (!protocolName) return null
 	const encodedProtocolName = encodeURIComponent(protocolName)
-	const raw = await fetchJson(`${SERVER_URL}/emission/${encodedProtocolName}`).catch((error) => {
+	try {
+		const raw = await fetchJson<unknown>(`${SERVER_URL}/emission/${encodedProtocolName}`)
+		return parseProtocolEmissionApiResponse(raw)
+	} catch (error) {
 		console.error(`Failed to fetch protocol emission for ${protocolName}:`, error)
 		return null
-	})
-	return parseProtocolEmissionApiResponse(raw)
+	}
 }
 
-export async function getProtocolEmissionsList(): Promise<Array<{ name: string; token: string }>> {
+/**
+ * Fetch all protocol emissions data
+ */
+export async function fetchAllProtocolEmissions(): Promise<ProtocolEmission[]> {
 	try {
-		const res = await fetchJson(`${SERVER_URL}/emissions`)
+		const res = await fetchJson<ProtocolEmission[]>(`${SERVER_URL}/emissions`)
 		if (!Array.isArray(res)) return []
-		return res.map((protocol: ProtocolEmission) => ({
-			name: protocol.name,
-			token: protocol.token
-		}))
+		return res
 	} catch (error) {
-		console.error('Failed to fetch protocol emissions list:', error)
+		console.error('Failed to fetch all protocol emissions:', error)
 		return []
 	}
 }
 
-export async function getAllProtocolEmissionsCached(): Promise<ProtocolEmission[] | null> {
+/**
+ * Fetch the list of protocol names that have emissions data
+ */
+export async function fetchEmissionsProtocolsList(): Promise<string[]> {
 	try {
-		const res = await fetchJson(`${SERVER_URL}/emissions`)
-		if (!Array.isArray(res)) return null
-		return res as ProtocolEmission[]
-	} catch (error) {
-		console.error('Failed to fetch all protocol emissions:', error)
-		return null
-	}
-}
-
-export async function getEmissionsProtocolsListCached(): Promise<string[] | null> {
-	try {
-		const res = await fetchJson(`${SERVER_URL}/emissionsProtocolsList`)
-		if (!Array.isArray(res)) return null
-		return res as string[]
+		const res = await fetchJson<string[]>(`${DATASETS_SERVER_URL}/emissionsProtocolsList`)
+		if (!Array.isArray(res)) return []
+		return res
 	} catch (error) {
 		console.error('Failed to fetch emissions protocols list:', error)
-		return null
-	}
-}
-
-export async function getProtocolEmissionsCharts(protocolName: string): Promise<ProtocolEmissionsChartsResult> {
-	const empty: ProtocolEmissionsChartsResult = {
-		chartData: { documented: [], realtime: [] },
-		unlockUsdChart: null
-	}
-
-	if (!protocolName) return empty
-
-	const res = await fetchProtocolEmission(protocolName)
-	if (!res) return empty
-
-	return {
-		chartData: {
-			documented: [], // Will be populated by buildEmissionsSeriesAndCategories
-			realtime: []
-		},
-		unlockUsdChart: res.unlockUsdChart ?? null
-	}
-}
-
-export async function getProtocolEmissionsForCharts(protocolName: string): Promise<ProtocolEmissionsFullResult> {
-	const empty: ProtocolEmissionsFullResult = {
-		chartData: { documented: [], realtime: [] },
-		pieChartData: { documented: [], realtime: [] },
-		stackColors: { documented: {}, realtime: {} },
-		datasets: {
-			documented: { source: [], dimensions: ['timestamp'] },
-			realtime: { source: [], dimensions: ['timestamp'] }
-		},
-		chartsConfigs: { documented: [], realtime: [] },
-		categories: { documented: [], realtime: [] },
-		hallmarks: { documented: [], realtime: [] },
-		sources: [],
-		notes: [],
-		events: [],
-		futures: {},
-		token: null,
-		geckoId: null,
-		name: null,
-		unlockUsdChart: null,
-		categoriesBreakdown: null,
-		tokenAllocation: {
-			documented: { current: {}, final: {} },
-			realtime: { current: {}, final: {} }
-		}
-	}
-
-	if (!protocolName) return empty
-
-	const res = await fetchProtocolEmission(protocolName)
-	if (!res) return empty
-
-	const { metadata, name, futures } = res
-
-	// These would be populated by the helper functions in queries.ts
-	return {
-		...empty,
-		sources: metadata?.sources ?? [],
-		notes: metadata?.notes ?? [],
-		token: metadata?.token ?? null,
-		geckoId: res?.gecko_id ?? null,
-		name: name || null,
-		futures: futures ?? {},
-		unlockUsdChart: res.unlockUsdChart ?? null
-	}
-}
-
-export async function getProtocolEmissionsScheduleData(protocolName: string): Promise<ProtocolEmissionsScheduleResult> {
-	const empty: ProtocolEmissionsScheduleResult = {
-		datasets: {
-			documented: { source: [], dimensions: ['timestamp'] },
-			realtime: { source: [], dimensions: ['timestamp'] }
-		},
-		chartsConfigs: { documented: [], realtime: [] },
-		categories: { documented: [], realtime: [] },
-		hallmarks: { documented: [], realtime: [] }
-	}
-
-	const res = await fetchProtocolEmission(protocolName)
-	if (!res) return empty
-
-	// Populated by helper functions
-	return empty
-}
-
-export async function getProtocolEmissionsPieData(protocolName: string): Promise<ProtocolEmissionsPieResult> {
-	const empty: ProtocolEmissionsPieResult = {
-		pieChartData: { documented: [], realtime: [] },
-		stackColors: { documented: {}, realtime: {} },
-		meta: {}
-	}
-
-	const res = await fetchProtocolEmission(protocolName)
-	if (!res) return empty
-
-	// Get all emissions to find meta
-	const allEmissions = await getAllProtocolEmissionsCached()
-	const meta = allEmissions?.find((p) => p?.token === res?.metadata?.token) ?? {}
-
-	return { ...empty, meta }
-}
-
-export async function getProtocolEmissons(protocolName: string): Promise<ProtocolEmissionResult> {
-	const empty: ProtocolEmissionResult = {
-		chartData: { documented: [], realtime: [] },
-		pieChartData: { documented: [], realtime: [] },
-		stackColors: { documented: {}, realtime: {} },
-		datasets: {
-			documented: { source: [], dimensions: ['timestamp'] },
-			realtime: { source: [], dimensions: ['timestamp'] }
-		},
-		chartsConfigs: { documented: [], realtime: [] },
-		meta: {},
-		sources: [],
-		notes: [],
-		events: [],
-		token: null,
-		geckoId: null,
-		upcomingEvent: [],
-		tokenAllocation: {
-			documented: { current: {}, final: {} },
-			realtime: { current: {}, final: {} }
-		},
-		futures: {},
-		categories: { documented: [], realtime: [] },
-		categoriesBreakdown: null,
-		hallmarks: { documented: [], realtime: [] },
-		name: null,
-		tokenPrice: {},
-		unlockUsdChart: null
-	}
-
-	try {
-		const list = await getEmissionsProtocolsListCached()
-		if (!list?.includes(protocolName)) {
-			return empty
-		}
-
-		const [res, allEmissions] = await Promise.all([
-			fetchProtocolEmission(protocolName),
-			getAllProtocolEmissionsCached()
-		])
-
-		if (!res) {
-			return empty
-		}
-
-		const { metadata, name, futures } = res
-
-		return {
-			...empty,
-			meta: allEmissions?.find((p) => p?.token === metadata?.token) ?? {},
-			sources: metadata?.sources ?? [],
-			notes: metadata?.notes ?? [],
-			token: metadata?.token ?? null,
-			geckoId: res?.gecko_id ?? null,
-			name: name || null,
-			futures: futures ?? {}
-		}
-	} catch (error) {
-		console.error(`Failed to get protocol emissions for ${protocolName}:`, error)
-		return empty
+		return []
 	}
 }

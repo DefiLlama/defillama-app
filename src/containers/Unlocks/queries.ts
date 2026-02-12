@@ -1,25 +1,24 @@
 import { fetchCoinPrices as fetchCoinPricesBatched } from '~/api'
-import {
-	COINS_PRICES_API,
-	PROTOCOL_EMISSION_API,
-	PROTOCOL_EMISSIONS_API,
-	PROTOCOL_EMISSIONS_LIST_API
-} from '~/constants'
+import { COINS_PRICES_API } from '~/constants'
 import { buildUnlocksMultiSeriesChartForDateRange } from '~/containers/Unlocks/buildUnlocksMultiSeriesChart'
 import type { PrecomputedData, UnlocksData } from '~/containers/Unlocks/calendarTypes'
 import { batchFetchHistoricalPrices, capitalizeFirstLetter, getNDistinctColors, roundToNearestHalfHour } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { fetchProtocolEmission, fetchAllProtocolEmissions, fetchEmissionsProtocolsList } from './api'
 import type {
 	EmissionsDataset,
 	EmissionsChartRow,
 	EmissionsChartConfig,
 	EmissionEvent,
 	ProtocolEmission,
-	ProtocolEmissionDetail,
 	TokenAllocationSplit
 } from './api.types'
 import type { CalendarUnlockEvent } from './calendarTypes'
-import type { ProtocolEmissionResult, ProtocolEmissionWithHistory } from './types'
+import type { ProtocolEmissionResult } from './types'
+
+interface CoinPricesResponse {
+	coins?: Record<string, { price?: number; symbol?: string }>
+}
 
 function buildEmissionsDataset(chartData: Array<EmissionsChartRow>, stacks: string[]): EmissionsDataset {
 	const source: Array<Record<string, number | null>> = chartData.map((row) => ({ ...row }))
@@ -37,34 +36,6 @@ function buildEmissionsCharts(stacks: string[], colors: Record<string, string>):
 		color: colors[name],
 		stack: 'A'
 	}))
-}
-
-function parseProtocolEmissionApiResponse(raw: unknown): ProtocolEmissionDetail | null {
-	if (!raw) return null
-
-	// Many endpoints respond as `{ body: string }`.
-	const body = typeof raw === 'object' && raw !== null && 'body' in raw ? (raw as { body: unknown }).body : raw
-
-	if (body == null) return null
-	if (typeof body === 'string') {
-		try {
-			return JSON.parse(body) as ProtocolEmissionDetail
-		} catch {
-			return null
-		}
-	}
-
-	return body as ProtocolEmissionDetail
-}
-
-async function fetchProtocolEmission(protocolName: string): Promise<ProtocolEmissionDetail | null> {
-	if (!protocolName) return null
-	const encodedProtocolName = encodeURIComponent(protocolName)
-	const raw = await fetchJson(`${PROTOCOL_EMISSION_API}/${encodedProtocolName}`).catch((error) => {
-		console.error(`Failed to fetch protocol emission for ${protocolName}:`, error)
-		return null
-	})
-	return parseProtocolEmissionApiResponse(raw)
 }
 
 function formatEmissionLabel(label: unknown): string {
@@ -85,20 +56,26 @@ function roundEmissionEvents(events: EmissionEvent[] | undefined | null): Emissi
 
 const EMPTY_TOKEN_ALLOCATION_SPLIT: TokenAllocationSplit = { current: {}, final: {} }
 
-function normalizeTokenAllocation(input: unknown): TokenAllocationSplit {
-	if (!input || typeof input !== 'object') return EMPTY_TOKEN_ALLOCATION_SPLIT
+function isNumberRecord(value: unknown): value is Record<string, number> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
 
-	if ('current' in input || 'final' in input) {
-		const split = input as { current?: unknown; final?: unknown }
+function hasCurrentOrFinal(input: object): input is { current?: unknown; final?: unknown } {
+	return 'current' in input || 'final' in input
+}
+
+function normalizeTokenAllocation(input: unknown): TokenAllocationSplit {
+	if (!isNumberRecord(input)) return EMPTY_TOKEN_ALLOCATION_SPLIT
+
+	if (hasCurrentOrFinal(input)) {
 		return {
-			current: split.current && typeof split.current === 'object' ? (split.current as Record<string, number>) : {},
-			final: split.final && typeof split.final === 'object' ? (split.final as Record<string, number>) : {}
+			current: isNumberRecord(input.current) ? input.current : {},
+			final: isNumberRecord(input.final) ? input.final : {}
 		}
 	}
 
-	// Legacy shape: a single category->allocation map.
-	const flat = input as Record<string, number>
-	return { current: flat, final: flat }
+	// Legacy shape: a single category->allocation map - input is already narrowed to Record<string, number>
+	return { current: input, final: input }
 }
 
 function normalizeCategoriesBreakdown(input: unknown): Record<string, string[]> | null {
@@ -179,9 +156,9 @@ function buildPieFromChart(chart: EmissionsChartRow[]): Array<{ name: string; va
 	const last = chart[chart.length - 1]
 	if (!last) return []
 	const pie: Array<{ name: string; value: number | string }> = []
-	for (const key in last) {
+	for (const key of Object.keys(last)) {
 		if (key !== 'timestamp') {
-			const value = last[key as keyof EmissionsChartRow]
+			const value = last[key]
 			if (typeof value === 'number') {
 				pie.push({ name: key, value })
 			}
@@ -425,8 +402,8 @@ export async function getProtocolEmissionsPieData(protocolName: string): Promise
 		realtime: buildColorsForPie(pieChartData.realtime)
 	}
 
-	const allEmissions = await getAllProtocolEmissionsCached()
-	const meta = allEmissions?.find((p) => p?.token === res?.metadata?.token) ?? {}
+	const allEmissions = await fetchAllProtocolEmissions()
+	const meta = allEmissions.find((p) => p?.token === res?.metadata?.token) ?? {}
 
 	return { pieChartData, stackColors, meta }
 }
@@ -471,12 +448,12 @@ export async function getUnlocksCalendarStaticPropsData(): Promise<{
 	const data = await getAllProtocolEmissionsWithHistory()
 	const unlocksData: UnlocksData = {}
 
-	const precomputedData = {
-		monthlyMaxValues: {} as { [monthKey: string]: number },
-		listEvents: {} as { [startDateKey: string]: Array<{ date: string; event: CalendarUnlockEvent }> },
-		weekCharts: {} as NonNullable<PrecomputedData['weekCharts']>,
-		monthCharts: {} as NonNullable<PrecomputedData['monthCharts']>
-	} satisfies PrecomputedData
+	const precomputedData: PrecomputedData = {
+		monthlyMaxValues: {},
+		listEvents: {},
+		weekCharts: {},
+		monthCharts: {}
+	}
 
 	for (const protocol of data ?? []) {
 		if (!protocol?.events || protocol.tPrice == null) continue
@@ -571,19 +548,23 @@ export async function getUnlocksCalendarStaticPropsData(): Promise<{
 	const weekStart = dayjs().startOf('week')
 	const weekKey = weekStart.format('YYYY-MM-DD')
 	const weekDates = Array.from({ length: 7 }, (_, i) => weekStart.add(i, 'day').format('YYYY-MM-DD'))
-	precomputedData.weekCharts[weekKey] = buildUnlocksMultiSeriesChartForDateRange({
-		dates: weekDates,
-		unlocksData
-	})
+	if (precomputedData.weekCharts) {
+		precomputedData.weekCharts[weekKey] = buildUnlocksMultiSeriesChartForDateRange({
+			dates: weekDates,
+			unlocksData
+		})
+	}
 
 	const monthStart = dayjs().startOf('month')
 	const daysInMonth = monthStart.endOf('month').date()
 	const monthDates = Array.from({ length: daysInMonth }, (_, i) => monthStart.date(i + 1).format('YYYY-MM-DD'))
 	const monthKey = `${monthStart.year()}-${monthStart.month().toString().padStart(2, '0')}`
-	precomputedData.monthCharts[monthKey] = buildUnlocksMultiSeriesChartForDateRange({
-		dates: monthDates,
-		unlocksData
-	})
+	if (precomputedData.monthCharts) {
+		precomputedData.monthCharts[monthKey] = buildUnlocksMultiSeriesChartForDateRange({
+			dates: monthDates,
+			unlocksData
+		})
+	}
 
 	return { unlocksData, precomputedData }
 }
@@ -596,15 +577,15 @@ export const getAllProtocolEmissionsWithHistory = async ({
 	endDate?: number
 } = {}) => {
 	try {
-		const res = await fetchJson(PROTOCOL_EMISSIONS_API)
+		const protocols = await fetchAllProtocolEmissions()
 
 		const coinIdsList: string[] = []
-		for (const p of res) {
+		for (const p of protocols) {
 			if (p.gecko_id) coinIdsList.push(`coingecko:${p.gecko_id}`)
 		}
 		const coinPrices = await fetchCoinPricesBatched(coinIdsList)
 
-		return res
+		return protocols
 			.map((protocol: ProtocolEmission) => {
 				try {
 					let filteredEvents = protocol.events || []
@@ -630,8 +611,8 @@ export const getAllProtocolEmissionsWithHistory = async ({
 					return null
 				}
 			})
-			.filter(Boolean)
-			.sort((a: ProtocolEmission, b: ProtocolEmission) => {
+			.filter(<T>(x: T | null): x is T => x !== null)
+			.sort((a, b) => {
 				const x = a.events?.[0]?.timestamp
 				const y = b.events?.[0]?.timestamp
 				if (x === y) return 0
@@ -647,8 +628,8 @@ export const getAllProtocolEmissionsWithHistory = async ({
 
 export const getProtocolEmissionsList = async () => {
 	try {
-		const res = await fetchJson(PROTOCOL_EMISSIONS_API)
-		return res.map((protocol: ProtocolEmission) => ({
+		const protocols = await fetchAllProtocolEmissions()
+		return protocols.map((protocol: ProtocolEmission) => ({
 			name: protocol.name,
 			token: protocol.token
 		}))
@@ -668,7 +649,7 @@ export const getAllProtocolEmissions = async ({
 	getHistoricalPrices?: boolean
 } = {}) => {
 	try {
-		const protocols = await fetchJson(PROTOCOL_EMISSIONS_API)
+		const protocols = await fetchAllProtocolEmissions()
 		const nowSec = Date.now() / 1000
 		const weekAgoSec = nowSec - 7 * 24 * 60 * 60
 
@@ -793,8 +774,8 @@ export const getAllProtocolEmissions = async ({
 					return null
 				}
 			})
-			.filter(Boolean)
-			.sort((a: ProtocolEmissionWithHistory, b: ProtocolEmissionWithHistory) => {
+			.filter(<T>(x: T | null): x is T => x !== null)
+			.sort((a, b) => {
 				const x = a.upcomingEvent?.[0]?.timestamp
 				const y = b.upcomingEvent?.[0]?.timestamp
 				// equal items sort equally
@@ -816,31 +797,6 @@ export const getAllProtocolEmissions = async ({
 		console.log(e)
 		return []
 	}
-}
-
-let emissionsProtocolsListPromise: Promise<string[] | null> | null = null
-async function getEmissionsProtocolsListCached(): Promise<string[] | null> {
-	if (!emissionsProtocolsListPromise) {
-		emissionsProtocolsListPromise = fetchJson(PROTOCOL_EMISSIONS_LIST_API)
-			.then((res) => (Array.isArray(res) ? res : null))
-			.catch(() => null)
-	}
-	const list = await emissionsProtocolsListPromise
-	// If it failed once, allow a retry next time.
-	if (!list) emissionsProtocolsListPromise = null
-	return list
-}
-
-let allProtocolEmissionsPromise: Promise<ProtocolEmission[] | null> | null = null
-async function getAllProtocolEmissionsCached(): Promise<ProtocolEmission[] | null> {
-	if (!allProtocolEmissionsPromise) {
-		allProtocolEmissionsPromise = fetchJson(PROTOCOL_EMISSIONS_API)
-			.then((res) => (Array.isArray(res) ? (res as ProtocolEmission[]) : null))
-			.catch(() => null)
-	}
-	const all = await allProtocolEmissionsPromise
-	if (!all) allProtocolEmissionsPromise = null
-	return all
 }
 
 function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
@@ -877,12 +833,12 @@ function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
 export const getProtocolEmissons = async (protocolName: string): Promise<ProtocolEmissionResult> => {
 	try {
 		const emptyResult = createEmptyProtocolEmissionResult()
-		const list = await getEmissionsProtocolsListCached()
-		if (!list?.includes(protocolName)) return emptyResult
+		const list = await fetchEmissionsProtocolsList()
+		if (!list.includes(protocolName)) return emptyResult
 
 		const [res, allEmissions] = await Promise.all([
 			fetchProtocolEmission(protocolName),
-			getAllProtocolEmissionsCached()
+			fetchAllProtocolEmissions()
 		])
 
 		if (!res) return emptyResult
@@ -915,18 +871,18 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 		const nowSec = Date.now() / 1000
 
 		const tokenKey = metadata?.token
-		const prices =
+		const prices: CoinPricesResponse =
 			typeof tokenKey === 'string' && tokenKey
-				? await fetchJson(`${COINS_PRICES_API}/current/${tokenKey}?searchWidth=4h`).catch((err) => {
+				? await fetchJson<CoinPricesResponse>(`${COINS_PRICES_API}/current/${tokenKey}?searchWidth=4h`).catch((err) => {
 						console.log(err)
 						return {}
 					})
 				: {}
 
-		const tokenPrice =
-			tokenKey && prices && typeof prices === 'object' && 'coins' in prices
-				? ((prices as { coins?: Record<string, { price?: number; symbol?: string }> }).coins?.[tokenKey] ?? {})
-				: {}
+		const tokenPriceData = tokenKey ? prices.coins?.[tokenKey] : undefined
+		const tokenPrice: { price?: number; symbol?: string } = tokenPriceData
+			? { ...tokenPriceData }
+			: {}
 
 		let upcomingEvent = []
 		if (roundedEvents.length > 0) {
