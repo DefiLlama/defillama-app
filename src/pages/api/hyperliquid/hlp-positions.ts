@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { HLP_VAULTS, HlpVaultKey, num, nullableNum, safePostInfo } from '~/utils/hyperliquid'
+import { HLP_VAULTS, type HlpVaultKey, num, nullableNum, safePostInfo } from '~/utils/hyperliquid'
 
 interface RawPosition {
 	type: 'oneWay'

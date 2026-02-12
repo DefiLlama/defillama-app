@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { formattedNum } from '~/utils'
-import { pushBounded, useHyperliquidL2Book, useHyperliquidPerps, useHyperliquidWsChannels, WsSubscription } from './api'
+import { pushBounded, useHyperliquidL2Book, useHyperliquidPerps, useHyperliquidWsChannels, type WsSubscription } from './api'
 
 interface Trade {
 	coin: string
