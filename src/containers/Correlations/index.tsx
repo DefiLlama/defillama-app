@@ -127,9 +127,17 @@ interface CorrelationCellProps {
 	correlations: Record<string, Record<string, number | null>>
 	alignedPointCounts: Record<string, Record<string, number>>
 	returnPointCounts: Record<string, Record<string, number>>
+	requiredReturnPoints: number
 }
 
-function CorrelationCell({ coinId, coin1Id, correlations, alignedPointCounts, returnPointCounts }: CorrelationCellProps) {
+function CorrelationCell({
+	coinId,
+	coin1Id,
+	correlations,
+	alignedPointCounts,
+	returnPointCounts,
+	requiredReturnPoints
+}: CorrelationCellProps) {
 	const corr = correlations[coinId]?.[coin1Id] ?? null
 	const aligned = alignedPointCounts[coinId]?.[coin1Id] ?? 0
 	const returns = returnPointCounts[coinId]?.[coin1Id] ?? 0
@@ -143,7 +151,7 @@ function CorrelationCell({ coinId, coin1Id, correlations, alignedPointCounts, re
 
 	return (
 		<td
-			title={`Aligned prices: ${aligned}\nReturns used: ${returns}\nMinimum required: ${MIN_RETURN_POINTS}`}
+			title={`Aligned prices: ${aligned}\nReturns used: ${returns}\nMinimum required: ${requiredReturnPoints}`}
 			style={{ backgroundColor }}
 			className="relative h-12 w-12 hover:after:pointer-events-none hover:after:absolute hover:after:top-[-5000px] hover:after:left-0 hover:after:h-[10000px] hover:after:w-full hover:after:bg-[rgba(59,130,246,0.12)] hover:after:content-['']"
 		>
@@ -159,9 +167,13 @@ const PERIOD_MS: Record<Period, number> = {
 	'1m': 30 * 24 * 60 * 60 * 1000,
 	'1y': 365 * 24 * 60 * 60 * 1000
 }
+const MIN_RETURN_POINTS_BY_PERIOD: Record<Period, number> = {
+	'7d': 5,
+	'1m': 20,
+	'1y': 30
+}
 const DEFAULT_PERIOD: Period = '1y'
 const CORRELATION_BUCKET_MS = 20 * 60 * 1000
-const MIN_RETURN_POINTS = 30
 
 const isPeriod = (value: string): value is Period => {
 	return PERIODS.includes(value as Period)
@@ -223,6 +235,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 			{ shallow: true }
 		)
 	}
+	const minReturnPoints = MIN_RETURN_POINTS_BY_PERIOD[period]
 	const coins = useMemo(() => Object.values(selectedCoins).filter(Boolean), [selectedCoins])
 	const coinIds = useMemo(() => coins.map((c) => c.id), [coins])
 	const { data: priceChart, isLoading } = usePriceCharts(coinIds)
@@ -271,7 +284,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 				pointCountResult[id0][id1] = prices0.length
 				returnCountResult[id0][id1] = returnPointCount
 
-				if (returnPointCount < MIN_RETURN_POINTS) {
+				if (returnPointCount < minReturnPoints) {
 					correlationResult[id0][id1] = null
 					continue
 				}
@@ -293,7 +306,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 			alignedPointCounts: pointCountResult,
 			returnPointCounts: returnCountResult
 		}
-	}, [isLoading, period, coins, priceChart])
+	}, [isLoading, period, coins, priceChart, minReturnPoints])
 
 	useEffect(() => {
 		if (!router.isReady) return
@@ -425,6 +438,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 														correlations={correlations}
 														alignedPointCounts={alignedPointCounts}
 														returnPointCounts={returnPointCounts}
+														requiredReturnPoints={minReturnPoints}
 													/>
 												)
 											)}
@@ -470,7 +484,8 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 				<div className="w-full border-t border-(--form-control-border) pt-4">
 					<p className="mx-auto max-w-xl text-center text-sm text-(--text-secondary)">
 						Correlation is calculated from log returns built on approximately 20-minute interval price points. A
-						pair must have at least {MIN_RETURN_POINTS} aligned return observations; otherwise, the matrix shows --.
+						pair must have at least {minReturnPoints} aligned return observations for this period; otherwise,
+						the matrix shows --.
 					</p>
 				</div>
 			</div>

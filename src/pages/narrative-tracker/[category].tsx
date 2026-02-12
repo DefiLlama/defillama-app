@@ -6,12 +6,17 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('category-performance', async ({ params }) => {
-	const categoryId = Array.isArray(params.category) ? params.category[0] : params.category
+	const rawCategory = params?.category
+	const categoryId = Array.isArray(rawCategory) ? rawCategory[0] : rawCategory
+	if (typeof categoryId !== 'string' || categoryId.length === 0) {
+		return { notFound: true }
+	}
 	const data = await getCoinPerformance(categoryId)
 
 	return {
 		props: {
-			...data
+			...data,
+			categoryId
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -29,13 +34,17 @@ export async function getStaticPaths() {
 
 const pageName = ['Narrative Tracker', 'by', 'Category']
 
-export default function Returns(props: CategoryPerformanceProps) {
+interface CategoryPageProps extends CategoryPerformanceProps {
+	categoryId: string
+}
+
+export default function Returns(props: CategoryPageProps) {
 	return (
 		<Layout
 			title={`Narrative Tracker - DefiLlama`}
 			description={`Narrative Tracker by ${props.categoryName ?? 'Category'}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`narrative tracker, defi narrative tracker, narrative tracker by ${props.categoryName ?? 'category'}`}
-			canonicalUrl={`/narrative-tracker`}
+			canonicalUrl={`/narrative-tracker/${props.categoryId}`}
 			pageName={pageName}
 		>
 			<CategoryPerformanceContainer {...props} />

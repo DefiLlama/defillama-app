@@ -57,7 +57,7 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 		limit: 15
 	})
 
-	const monthlyHacksChartData = Array.from(monthlyHacks.entries())
+	const monthlyHacksChartData = Array.from(monthlyHacks.entries()).sort((a, b) => a[0] - b[0])
 
 	const byTotalDescThenNameAsc = (a: [string, number], b: [string, number]): number =>
 		b[1] - a[1] || a[0].localeCompare(b[0])
