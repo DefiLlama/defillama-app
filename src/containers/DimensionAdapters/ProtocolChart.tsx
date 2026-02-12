@@ -129,9 +129,9 @@ export const DimensionProtocolChartByType = ({
 
 	return (
 		<ChartByType
-			data={data}
-			bribeData={bribeData}
-			tokenTaxData={tokenTaxData}
+			data={data ?? []}
+			bribeData={bribeData ?? undefined}
+			tokenTaxData={tokenTaxData ?? undefined}
 			breakdownNames={breakdownNames}
 			title={title}
 			chartType={chartType}

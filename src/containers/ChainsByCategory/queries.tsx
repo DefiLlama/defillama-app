@@ -1,10 +1,8 @@
 import { ACTIVE_USERS_API, CHAINS_ASSETS, TEMP_CHAIN_NFTS } from '~/constants'
 import type { IChainAssets } from '~/containers/ChainOverview/types'
-import {
-	getAdapterChainOverview,
-	getDimensionAdapterOverviewOfAllChains,
-	type IAdapterOverview
-} from '~/containers/DimensionAdapters/queries'
+import { getAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
+import { getDimensionAdapterOverviewOfAllChains } from '~/containers/DimensionAdapters/queries'
+import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { getNDistinctColors, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -33,23 +31,21 @@ export const getChainsByCategory = async ({
 	] = await Promise.all([
 		fetchJson(`https://api.llama.fi/chains2/${category}`) as Promise<IChainsByCategory>,
 		getDimensionAdapterOverviewOfAllChains({ adapterType: 'dexs', dataType: 'dailyVolume', chainMetadata }),
-		getAdapterChainOverview({
+		getAdapterChainMetrics({
 			adapterType: 'fees',
-			chain: 'All',
-			excludeTotalDataChart: true
+			chain: 'All'
 		}).catch((err) => {
 			console.log(err)
 			return null
-		}) as Promise<IAdapterOverview | null>,
-		getAdapterChainOverview({
+		}) as Promise<IAdapterChainMetrics | null>,
+		getAdapterChainMetrics({
 			adapterType: 'fees',
 			chain: 'All',
-			excludeTotalDataChart: true,
 			dataType: 'dailyRevenue'
 		}).catch((err) => {
 			console.log(err)
 			return null
-		}) as Promise<IAdapterOverview | null>,
+		}) as Promise<IAdapterChainMetrics | null>,
 		fetchStablecoinAssetsApi(),
 		fetchJson(ACTIVE_USERS_API).catch(() => ({})) as Promise<
 			Record<

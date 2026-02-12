@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
+import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
+import { getAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { slug } from '~/utils'
 
 const adapterType = ADAPTER_TYPES.FEES
@@ -15,11 +16,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		if (chainList.length === 0) {
 			// No chains selected, return all protocols
-			const data = await getAdapterChainOverview({
+			const data = await getAdapterChainMetrics({
 				adapterType,
 				dataType,
-				chain: 'All',
-				excludeTotalDataChart: true
+				chain: 'All'
 			})
 
 			const protocols = data.protocols || []

@@ -104,13 +104,22 @@ export function ChainsByAdapter(props: IProps) {
 		columnSizes
 	})
 
-	const prepareCsv = () => {
-		const header = ['Chain', 'Total 1d', 'Total 1m']
-		const csvdata = chains.map((protocol) => {
-			return [protocol.name, protocol.total24h, protocol.total30d]
+	const prepareCsv = (): { filename: string; rows: Array<Array<string | number | boolean>> } => {
+		const visibleColumns = instance.getVisibleLeafColumns()
+		const headers = visibleColumns.map((col) =>
+			typeof col.columnDef.header === 'string' ? col.columnDef.header : col.id
+		)
+
+		const rows = [headers]
+		instance.getFilteredRowModel().rows.forEach((row) => {
+			const cells = visibleColumns.map((col) => {
+				const value = row.getValue(col.id)
+				return value === null || value === undefined ? '' : String(value)
+			})
+			rows.push(cells)
 		})
 
-		return { filename: `${props.type}-chains-protocols.csv`, rows: [header, ...csvdata] }
+		return { filename: `${props.type}-chains-protocols.csv`, rows }
 	}
 
 	return (

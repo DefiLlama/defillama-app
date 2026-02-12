@@ -11,7 +11,7 @@ import { getNDistinctColors, getPercentChange, getPrevTvlFromChart } from '~/uti
 import { fetchJson } from '~/utils/async'
 import { Stats } from '../ChainOverview/Stats'
 import type { IChainOverviewData } from '../ChainOverview/types'
-import type { IAdapterOverview, IAdapterSummary } from '../DimensionAdapters/queries'
+import type { IAdapterChainOverview, IAdapterProtocolOverview } from '../DimensionAdapters/types'
 
 const MultiSeriesChart2: any = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -63,9 +63,9 @@ export const getChainData = async (chain: string) => {
 	const { chain: chainData } = (await fetchJson(`/api/cache/chain/${chain}`)) as {
 		chain: {
 			chainOverviewData: IChainOverviewData
-			dexVolumeChart: IAdapterOverview['totalDataChart']
-			chainFeesChart: IAdapterSummary['totalDataChart']
-			chainRevenueChart: IAdapterSummary['totalDataChart']
+			dexVolumeChart: IAdapterChainOverview['totalDataChart']
+			chainFeesChart: IAdapterProtocolOverview['totalDataChart']
+			chainRevenueChart: IAdapterProtocolOverview['totalDataChart']
 		}
 	}
 

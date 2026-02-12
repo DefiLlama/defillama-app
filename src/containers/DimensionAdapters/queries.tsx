@@ -10,14 +10,28 @@ import {
 	getAdapterProtocolChartData,
 	getAdapterProtocolMetrics
 } from './api'
-import type { IAdapterOverview, IAdapterSummary } from './api.types'
-import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
-import type { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
+import type { IAdapterProtocolMetrics, IAdapterChainMetrics } from './api.types'
+import type { IAdapterChainOverview } from './types'
+import {
+	ADAPTER_DATA_TYPE_KEYS,
+	ADAPTER_DATA_TYPES,
+	ADAPTER_TYPES,
+	ADAPTER_TYPES_TO_METADATA_TYPE,
+	isAdapterDataTypeKey
+} from './constants'
+import type { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData, IProtocol } from './types'
 
-export { getAdapterChainChartData, getAdapterChainChartDataByProtocolBreakdown } from './api'
-export { getAdapterChainMetrics, getAdapterProtocolChartData, getAdapterProtocolChartDataByBreakdownType } from './api'
-export { getAdapterProtocolMetrics, getCexVolume } from './api'
-export type { IAdapterOverview, IAdapterSummary } from './api.types'
+// Type aliases for aggregated protocol data structures
+type BribesData = {
+	total24h: number | null
+	total7d: number | null
+	total30d: number | null
+	total1y: number | null
+	totalAllTime: number | null
+}
+type OpenInterestData = { total24h: number | null; doublecounted: boolean }
+type ActiveLiquidityData = { total24h: number | null; doublecounted: boolean }
+type NormalizedVolumeData = { total24h: number | null }
 
 //breakdown is using chain internal name so we need to map it
 let chainMappingCache: Record<string, string> | null = null
@@ -63,7 +77,7 @@ export async function getAdapterChainOverview({
 			excludeTotalDataChart ? Promise.resolve([]) : getAdapterChainChartData({ adapterType, chain, dataType })
 		])
 
-		return { ...overviewData, totalDataChart } as IAdapterOverview
+		return { ...overviewData, totalDataChart } as IAdapterChainOverview
 	} else {
 		//earnings we don't need to filter by chain, instead we filter it later on
 		const [overviewData, totalDataChart, emissionsData, chainMapping] = await Promise.all([
@@ -75,7 +89,7 @@ export async function getAdapterChainOverview({
 			getChainMapping()
 		])
 
-		const earningsData = processEarningsData(overviewData, emissionsData)
+		const earningsData = processEarningsData({ ...overviewData, totalDataChart }, emissionsData)
 
 		let filteredEarningsData = earningsData
 		let chainSpecificTotal24h = 0
@@ -165,11 +179,11 @@ export async function getAdapterChainOverview({
 			total30d: chainSpecificTotal30d,
 			total1y: chainSpecificTotal1y,
 			protocols: filteredEarningsData
-		} as IAdapterOverview
+		} as IAdapterChainOverview
 	}
 }
 
-export async function getAdapterProtocolSummary({
+export async function getAdapterProtocolOverview({
 	adapterType,
 	protocol,
 	excludeTotalDataChart,
@@ -187,7 +201,7 @@ export async function getAdapterProtocolSummary({
 		excludeTotalDataChart ? Promise.resolve([]) : getAdapterProtocolChartData({ adapterType, protocol, dataType })
 	])
 
-	return { ...overviewData, totalDataChart } as IAdapterSummary
+	return { ...overviewData, totalDataChart } as IAdapterProtocolMetrics & { totalDataChart: Array<[number, number]> }
 }
 
 async function getEmissionsData() {
@@ -195,26 +209,58 @@ async function getEmissionsData() {
 	return data
 }
 
-function findEmissionsForProtocol(protocolVersions: any[], emissionsData: any) {
+type EmissionsProtocol = {
+	defillamaId: string
+	name: string
+	linked?: string[]
+	emission24h?: number
+	emission7d?: number
+	emission30d?: number
+	emission1y?: number
+	emissionAllTime?: number
+}
+
+type ProtocolVersion = {
+	defillamaId: string
+	parentProtocol?: string
+	name: string
+	displayName: string
+	category?: string
+}
+
+function findEmissionsForProtocol(
+	protocolVersions: ProtocolVersion[],
+	emissionsData: { protocols: EmissionsProtocol[] }
+): EmissionsProtocol | undefined {
 	const parentKey = protocolVersions[0].parentProtocol || protocolVersions[0].defillamaId
 
-	let emissions = emissionsData.protocols.find((p) => {
+	let emissions = emissionsData.protocols.find((p: { defillamaId: string; linked?: string[] }) => {
 		if (p.defillamaId === parentKey) return true
-		if (protocolVersions.some((pv) => p.defillamaId === pv.defillamaId)) return true
-		if (p.linked && protocolVersions.some((pv) => p.linked.includes(pv.defillamaId))) return true
+		if (protocolVersions.some((pv: { defillamaId: string }) => p.defillamaId === pv.defillamaId)) return true
+		if (p.linked && protocolVersions.some((pv: { defillamaId: string }) => p.linked!.includes(pv.defillamaId)))
+			return true
 		return false
 	})
 
 	// Special case for Chain category protocols
 	if (!emissions && protocolVersions.length === 1 && protocolVersions[0].category === 'Chain') {
 		const protocol = protocolVersions[0]
-		emissions = emissionsData.protocols.find((p) => p.name === protocol.name || p.name === protocol.displayName)
+		emissions = emissionsData.protocols.find(
+			(p: { name: string }) => p.name === protocol.name || p.name === protocol.displayName
+		)
 	}
 
 	return emissions
 }
 
-function calculateEarnings(protocolData: any, emissions: any) {
+type ProtocolWithEarnings = IAdapterChainMetrics['protocols'][0] & {
+	_emissions?: EmissionsProtocol
+}
+
+function calculateEarnings(
+	protocolData: IAdapterChainMetrics['protocols'][0],
+	emissions?: EmissionsProtocol
+): ProtocolWithEarnings {
 	return {
 		...protocolData,
 		total24h: (protocolData.total24h ?? 0) - (emissions?.emission24h ?? 0),
@@ -226,7 +272,17 @@ function calculateEarnings(protocolData: any, emissions: any) {
 	}
 }
 
-function aggregateProtocolVersions(protocolVersions: any[]) {
+type AggregatedProtocol = Omit<IAdapterChainMetrics['protocols'][0], 'total24h' | 'total7d' | 'total30d' | 'total1y' | 'totalAllTime'> & {
+	total24h: number
+	total7d: number
+	total30d: number
+	total1y: number
+	totalAllTime: number
+}
+
+function aggregateProtocolVersions(
+	protocolVersions: IAdapterChainMetrics['protocols']
+): AggregatedProtocol {
 	const aggregatedRevenue = {
 		total24h: protocolVersions.reduce((sum, p) => sum + (p.total24h ?? 0), 0),
 		total7d: protocolVersions.reduce((sum, p) => sum + (p.total7d ?? 0), 0),
@@ -235,8 +291,8 @@ function aggregateProtocolVersions(protocolVersions: any[]) {
 		totalAllTime: protocolVersions.reduce((sum, p) => sum + (p.totalAllTime ?? 0), 0)
 	}
 
-	const breakdowns24h: any[] = []
-	const breakdowns30d: any[] = []
+	const breakdowns24h: Record<string, Record<string, number>>[] = []
+	const breakdowns30d: Record<string, Record<string, number>>[] = []
 	for (const p of protocolVersions) {
 		if (p.breakdown24h) breakdowns24h.push(p.breakdown24h)
 		if (p.breakdown30d) breakdowns30d.push(p.breakdown30d)
@@ -253,14 +309,12 @@ function aggregateProtocolVersions(protocolVersions: any[]) {
 		...aggregatedRevenue,
 		chains: [...new Set(protocolVersions.flatMap((p) => p.chains))],
 		breakdown24h: mergedBreakdown24h,
-		breakdown30d: mergedBreakdown30d,
-		linkedProtocols: undefined,
-		parentProtocol: undefined
+		breakdown30d: mergedBreakdown30d
 	}
 }
 
 function mergeBreakdowns(breakdowns: Record<string, Record<string, number>>[]) {
-	const merged = {}
+	const merged: Record<string, Record<string, number>> = {}
 	for (const breakdown of breakdowns) {
 		if (!breakdown) continue
 		for (const chainName in breakdown) {
@@ -277,8 +331,10 @@ function mergeBreakdowns(breakdowns: Record<string, Record<string, number>>[]) {
 	return merged
 }
 
-function groupProtocolsByParent(protocols: any[]) {
-	const protocolGroups = new Map<string, any[]>()
+function groupProtocolsByParent<T extends { parentProtocol?: string; defillamaId: string }>(
+	protocols: T[]
+): Map<string, T[]> {
+	const protocolGroups = new Map<string, T[]>()
 
 	for (const protocol of protocols) {
 		const parentKey = protocol.parentProtocol || protocol.defillamaId
@@ -291,18 +347,18 @@ function groupProtocolsByParent(protocols: any[]) {
 	return protocolGroups
 }
 
-function processGroupedProtocols(
-	protocolGroups: Map<string, any[]>,
-	processor: (protocolVersions: any[], parentKey: string) => any
-) {
-	const processedData = []
+function processGroupedProtocols<T, R>(
+	protocolGroups: Map<string, T[]>,
+	processor: (protocolVersions: T[], parentKey: string) => R
+): R[] {
+	const processedData: R[] = []
 	for (const [parentKey, protocolVersions] of protocolGroups) {
 		processedData.push(processor(protocolVersions, parentKey))
 	}
 	return processedData
 }
 
-function processEarningsData(data: IAdapterOverview, emissionsData: any) {
+function processEarningsData(data: IAdapterChainOverview, emissionsData: { protocols: EmissionsProtocol[] }) {
 	const protocolGroups = groupProtocolsByParent(data.protocols)
 
 	return processGroupedProtocols(protocolGroups, (protocolVersions, _parentKey) => {
@@ -317,7 +373,7 @@ function processEarningsData(data: IAdapterOverview, emissionsData: any) {
 	})
 }
 
-function processRevenueDataForMatching(protocols: any[]) {
+function processRevenueDataForMatching(protocols: IAdapterChainMetrics['protocols']) {
 	const protocolGroups = groupProtocolsByParent(protocols)
 
 	return processGroupedProtocols(protocolGroups, (protocolVersions, parentKey) => {
@@ -340,8 +396,27 @@ function processRevenueDataForMatching(protocols: any[]) {
 	})
 }
 
-function matchRevenueToEarnings(revenueData: any[], earningsProtocols: any[]) {
-	const matchedData = {}
+function matchRevenueToEarnings(
+	revenueData: Array<{
+		parentKey: string
+		name: string
+		displayName: string
+		defillamaId: string
+		groupedName: string
+		total24h: number | null
+		total7d: number | null
+		total30d: number | null
+		total1y: number | null
+		totalAllTime: number | null
+	}>,
+	earningsProtocols: Array<{
+		parentProtocol: string
+		defillamaId: string
+		name: string
+		displayName: string
+	}>
+) {
+	const matchedData: Record<string, BribesData> = {}
 
 	for (const revenueProtocol of revenueData) {
 		const matchingEarningsProtocol = earningsProtocols.find((earningsProto) => {
@@ -461,16 +536,16 @@ export const getAdapterByChainPageData = async ({
 		activeLiquidityData,
 		normalizedVolumeData
 	]: [
-		IAdapterOverview,
+		IAdapterChainOverview,
 		{
 			protocols: Array<{ name: string; mcap: number | null }>
 			parentProtocols: Array<{ name: string; mcap: number | null }>
 		},
-		IAdapterOverview | null,
-		IAdapterOverview | null,
-		IAdapterOverview | null,
-		IAdapterOverview | null,
-		IAdapterOverview | null
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainOverview | null,
+		IAdapterChainOverview | null,
+		IAdapterChainMetrics | null
 	] = await Promise.all([
 		getAdapterChainOverview({
 			adapterType,
@@ -480,19 +555,17 @@ export const getAdapterByChainPageData = async ({
 		}),
 		fetchJson(PROTOCOLS_API),
 		adapterType === 'fees'
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					adapterType,
 					chain,
-					dataType: 'dailyBribesRevenue',
-					excludeTotalDataChart: true
+					dataType: 'dailyBribesRevenue'
 				})
 			: Promise.resolve(null),
 		adapterType === 'fees'
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					adapterType,
 					chain,
-					dataType: 'dailyTokenTaxes',
-					excludeTotalDataChart: true
+					dataType: 'dailyTokenTaxes'
 				})
 			: Promise.resolve(null),
 		hasOpenInterest
@@ -512,15 +585,14 @@ export const getAdapterByChainPageData = async ({
 				})
 			: Promise.resolve(null),
 		adapterType === 'derivatives'
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					adapterType: 'normalized-volume',
-					chain,
-					excludeTotalDataChart: true
+					chain
 				})
 			: Promise.resolve(null)
 	])
 
-	const protocolsMcap = {}
+	const protocolsMcap: Record<string, number | null> = {}
 	for (const protocol of protocolsData.protocols) {
 		protocolsMcap[protocol.name] = protocol.mcap ?? null
 	}
@@ -528,13 +600,13 @@ export const getAdapterByChainPageData = async ({
 		protocolsMcap[protocol.name] = protocol.mcap ?? null
 	}
 
-	const allProtocols = [...data.protocols]
+	const allProtocols: IAdapterChainOverview['protocols'] = [...data.protocols]
 
-	let bribesProtocols = {}
-	let tokenTaxesProtocols = {}
-	let openInterestProtocols: Record<string, { total24h: number | null; doublecounted: boolean }> = {}
-	let activeLiquidityProtocols: Record<string, { total24h: number | null; doublecounted: boolean }> = {}
-	let normalizedVolumeProtocols: Record<string, { total24h: number | null }> = {}
+	let bribesProtocols: Record<string, BribesData> = {}
+	let tokenTaxesProtocols: Record<string, BribesData> = {}
+	let openInterestProtocols: Record<string, OpenInterestData> = {}
+	let activeLiquidityProtocols: Record<string, ActiveLiquidityData> = {}
+	let normalizedVolumeProtocols: Record<string, NormalizedVolumeData> = {}
 
 	if (dataType === 'dailyEarnings') {
 		if (bribesData) {
@@ -548,88 +620,147 @@ export const getAdapterByChainPageData = async ({
 		}
 	} else {
 		bribesProtocols =
-			bribesData?.protocols.reduce((acc, p) => {
-				acc[p.name] = {
-					total24h: p.total24h ?? null,
-					total7d: p.total7d ?? null,
-					total30d: p.total30d ?? null,
-					total1y: p.total1y ?? null,
-					totalAllTime: p.totalAllTime ?? null
-				}
+			bribesData?.protocols.reduce(
+				(
+					acc: Record<
+						string,
+						{
+							total24h: number | null
+							total7d: number | null
+							total30d: number | null
+							total1y: number | null
+							totalAllTime: number | null
+						}
+					>,
+					p: {
+						name: string
+						total24h: number | null
+						total7d: number | null
+						total30d: number | null
+						total1y: number | null
+						totalAllTime: number | null
+					}
+				) => {
+					acc[p.name] = {
+						total24h: p.total24h ?? null,
+						total7d: p.total7d ?? null,
+						total30d: p.total30d ?? null,
+						total1y: p.total1y ?? null,
+						totalAllTime: p.totalAllTime ?? null
+					}
 
-				const protocolExists = allProtocols.find((ap) => ap.name === p.name)
-				if (!protocolExists) {
-					allProtocols.push({
-						...p,
-						total24h: null,
-						total7d: null,
-						total30d: null,
-						total1y: null,
-						totalAllTime: null
-					})
-				}
+					const protocolExists = allProtocols.find((ap: { name: string }) => ap.name === p.name)
+					if (!protocolExists) {
+						allProtocols.push({
+							...p,
+							total24h: null,
+							total7d: null,
+							total30d: null,
+							total1y: null,
+							totalAllTime: null
+						} as unknown as IAdapterChainOverview['protocols'][0])
+					}
 
-				return acc
-			}, {}) ?? {}
+					return acc
+				},
+				{}
+			) ?? {}
 
 		tokenTaxesProtocols =
-			tokenTaxesData?.protocols.reduce((acc, p) => {
-				acc[p.name] = {
-					total24h: p.total24h ?? null,
-					total7d: p.total7d ?? null,
-					total30d: p.total30d ?? null,
-					total1y: p.total1y ?? null,
-					totalAllTime: p.totalAllTime ?? null
-				}
+			tokenTaxesData?.protocols.reduce(
+				(
+					acc: Record<
+						string,
+						{
+							total24h: number | null
+							total7d: number | null
+							total30d: number | null
+							total1y: number | null
+							totalAllTime: number | null
+						}
+					>,
+					p: {
+						name: string
+						total24h: number | null
+						total7d: number | null
+						total30d: number | null
+						total1y: number | null
+						totalAllTime: number | null
+					}
+				) => {
+					acc[p.name] = {
+						total24h: p.total24h ?? null,
+						total7d: p.total7d ?? null,
+						total30d: p.total30d ?? null,
+						total1y: p.total1y ?? null,
+						totalAllTime: p.totalAllTime ?? null
+					}
 
-				const protocolExists = allProtocols.find((ap) => ap.name === p.name)
-				if (!protocolExists) {
-					allProtocols.push({
-						...p,
-						total24h: null,
-						total7d: null,
-						total30d: null,
-						total1y: null,
-						totalAllTime: null
-					})
-				}
+					const protocolExists = allProtocols.find((ap: { name: string }) => ap.name === p.name)
+					if (!protocolExists) {
+						allProtocols.push({
+							...p,
+							total24h: null,
+							total7d: null,
+							total30d: null,
+							total1y: null,
+							totalAllTime: null
+						} as unknown as IAdapterChainOverview['protocols'][0])
+					}
 
-				return acc
-			}, {}) ?? {}
+					return acc
+				},
+				{}
+			) ?? {}
 	}
 
 	if (openInterestData) {
-		openInterestProtocols = openInterestData.protocols.reduce((acc, p) => {
-			acc[p.name] = {
-				total24h: p.total24h ?? null,
-				doublecounted: !!p.doublecounted
-			}
-			return acc
-		}, {})
+		openInterestProtocols = openInterestData.protocols.reduce(
+			(
+				acc: Record<string, { total24h: number | null; doublecounted: boolean }>,
+				p: { name: string; total24h: number | null; doublecounted?: boolean }
+			) => {
+				acc[p.name] = {
+					total24h: p.total24h ?? null,
+					doublecounted: !!p.doublecounted
+				}
+				return acc
+			},
+			{}
+		)
 	}
 
 	if (activeLiquidityData) {
-		activeLiquidityProtocols = activeLiquidityData.protocols.reduce((acc, p) => {
-			acc[p.name] = {
-				total24h: p.total24h ?? null,
-				doublecounted: !!p.doublecounted
-			}
-			return acc
-		}, {})
+		activeLiquidityProtocols = activeLiquidityData.protocols.reduce(
+			(
+				acc: Record<string, { total24h: number | null; doublecounted: boolean }>,
+				p: { name: string; total24h: number | null; doublecounted?: boolean }
+			) => {
+				acc[p.name] = {
+					total24h: p.total24h ?? null,
+					doublecounted: !!p.doublecounted
+				}
+				return acc
+			},
+			{}
+		)
 	}
 
 	if (normalizedVolumeData) {
-		normalizedVolumeProtocols = normalizedVolumeData.protocols.reduce((acc, p) => {
-			if (p.name === 'Extended') return acc
-			acc[p.name] = {
-				total24h: p.total24h ?? null
-			}
-			return acc
-		}, {})
+		normalizedVolumeProtocols = normalizedVolumeData.protocols.reduce(
+			(acc: Record<string, { total24h: number | null }>, p: { name: string; total24h: number | null }) => {
+				if (p.name === 'Extended') return acc
+				acc[p.name] = {
+					total24h: p.total24h ?? null
+				}
+				return acc
+			},
+			{}
+		)
 	}
 
-	const protocols = {}
-	const parentProtocols = {}
+	const protocols: Record<string, IProtocol> = {}
+	const parentProtocols: Record<string, IProtocol[]> = {}
 	const categories = new Set<string>()
 
 	for (const protocol of allProtocols) {
@@ -648,12 +779,8 @@ export const getAdapterByChainPageData = async ({
 							protocol.methodology?.['TokenTaxes'])
 				: null
 
-		const pf =
-			protocolsMcap[protocol.name] && protocol.total30d
-				? getAnnualizedRatio(protocolsMcap[protocol.name], protocol.total30d)
-				: null
-
-		const ps =
+		// Calculate P/F or P/S ratio (same calculation, context depends on dataType)
+		const pfOrPs =
 			protocolsMcap[protocol.name] && protocol.total30d
 				? getAnnualizedRatio(protocolsMcap[protocol.name], protocol.total30d)
 				: null
@@ -672,8 +799,7 @@ export const getAdapterByChainPageData = async ({
 			mcap: protocolsMcap[protocol.name] ?? null,
 			...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
 			...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
-			...(pf ? { pf } : {}),
-			...(ps ? { ps } : {}),
+			...(pfOrPs ? { pfOrPs } : {}),
 			...(methodology ? { methodology: methodology.endsWith('.') ? methodology.slice(0, -1) : methodology } : {}),
 			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
 			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {}),
@@ -782,8 +908,7 @@ export const getAdapterByChainPageData = async ({
 		}
 		const methodology: Array<string> = Array.from(methodologySet)
 
-		const pf = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
-		const ps = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
+		const pfOrPs = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
 
 		let topProtocol = parentProtocols[protocol][0]
 		for (const p of parentProtocols[protocol]) {
@@ -807,18 +932,17 @@ export const getAdapterByChainPageData = async ({
 			childProtocols: parentProtocols[protocol],
 			...(bribes ? { bribes } : {}),
 			...(tokenTax ? { tokenTax } : {}),
-			...(pf ? { pf } : {}),
-			...(ps ? { ps } : {}),
+			...(pfOrPs ? { pfOrPs } : {}),
 			...(methodology.length > 0
 				? {
 						methodology:
 							methodology.length > 1
-								? methodology
-										.map((m) => {
-											const children = parentProtocols[protocol].filter((p) => p.methodology === m)
-											return `${children.map((c) => (c.name.startsWith(protocol) ? c.name.replace(protocol, '').trim() : c.name)).join(', ')}: ${m}`
-										})
-										.join('. ')
+							? methodology
+									.map((m) => {
+										const children = parentProtocols[protocol].filter((p) => p.methodology === m)
+										return `${children.map((c) => (c.name.startsWith(protocol) ? c.name.replace(protocol, '').trim() : c.name)).join(', ')}: ${m}`
+									})
+									.join('. ')
 								: methodology[0]
 					}
 				: {}),
@@ -831,15 +955,9 @@ export const getAdapterByChainPageData = async ({
 	}
 
 	let finalProtocols = []
-	if (route === 'pf') {
+	if (route === 'pf' || route === 'ps') {
 		for (const protocol in protocols) {
-			if (protocols[protocol].pf != null) {
-				finalProtocols.push(protocols[protocol])
-			}
-		}
-	} else if (route === 'ps') {
-		for (const protocol in protocols) {
-			if (protocols[protocol].ps != null) {
+			if (protocols[protocol].pfOrPs != null) {
 				finalProtocols.push(protocols[protocol])
 			}
 		}
@@ -849,15 +967,10 @@ export const getAdapterByChainPageData = async ({
 		}
 	}
 
-	if (route === 'pf') {
+	if (route === 'pf' || route === 'ps') {
 		finalProtocols = finalProtocols.sort(
 			(a: IAdapterByChainPageData['protocols'][0], b: IAdapterByChainPageData['protocols'][0]) =>
-				(b.pf ?? 0) - (a.pf ?? 0)
-		)
-	} else if (route === 'ps') {
-		finalProtocols = finalProtocols.sort(
-			(a: IAdapterByChainPageData['protocols'][0], b: IAdapterByChainPageData['protocols'][0]) =>
-				(b.ps ?? 0) - (a.ps ?? 0)
+				(b.pfOrPs ?? 0) - (a.pfOrPs ?? 0)
 		)
 	} else {
 		finalProtocols = finalProtocols.sort(
@@ -931,34 +1044,36 @@ export const getChainsByFeesAdapterPageData = async ({
 		for (const chain in chainMetadata) {
 			const currentChainMetadata = chainMetadata[chain]
 			const sType = adapterType === 'fees' ? (dataType === 'dailyRevenue' ? 'chainRevenue' : 'chainFees') : dataType
-			if (sType && currentChainMetadata[sType]) {
+			// Check if key exists AND has truthy value (handles boolean flags correctly)
+			if (sType in currentChainMetadata && currentChainMetadata[sType as keyof IChainMetadata]) {
 				allChainsSet.add(currentChainMetadata.name)
 			}
 		}
 
 		const [chainsData, bribesData, tokenTaxesData] = await Promise.all([
-			getAdapterChainOverview({
+			getAdapterChainMetrics({
 				adapterType,
 				dataType,
-				chain: 'All',
-				excludeTotalDataChart: true
+				chain: 'All'
 			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name))),
-			getAdapterChainOverview({
+			getAdapterChainMetrics({
 				adapterType,
 				dataType: 'dailyBribesRevenue',
-				chain: 'All',
-				excludeTotalDataChart: true
+				chain: 'All'
 			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name))),
-			getAdapterChainOverview({
+			getAdapterChainMetrics({
 				adapterType,
 				dataType: 'dailyTokenTaxes',
-				chain: 'All',
-				excludeTotalDataChart: true
+				chain: 'All'
 			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name)))
 		])
 
-		const bribesByChain = {}
-		const tokenTaxesByChain = {}
+		const bribesByChain: Record<string, { total24h: number | null; total7d: number | null; total30d: number | null }> =
+			{}
+		const tokenTaxesByChain: Record<
+			string,
+			{ total24h: number | null; total7d: number | null; total30d: number | null }
+		> = {}
 
 		for (const chain of bribesData) {
 			bribesByChain[chain.name] = {
@@ -998,7 +1113,7 @@ export const getChainsByFeesAdapterPageData = async ({
 			allChains: chains.map((c) => c.name)
 		}
 	} catch (error) {
-		postRuntimeLogs(error)
+		postRuntimeLogs(String(error))
 		throw error
 	}
 }
@@ -1024,7 +1139,8 @@ export const getChainsByAdapterPageData = async ({
 						? 'chainRevenue'
 						: 'chainFees'
 					: ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]
-			if (sType && currentChainMetadata[sType]) {
+			// Check if key exists AND has truthy value (handles boolean flags correctly)
+			if (sType in currentChainMetadata && currentChainMetadata[sType as keyof IChainMetadata]) {
 				allChains.push(currentChainMetadata.name)
 			}
 		}
@@ -1084,10 +1200,14 @@ export const getChainsByAdapterPageData = async ({
 			})
 		])
 
-		const bribesByChain = {}
-		const tokenTaxesByChain = {}
-		const openInterestByChain = {}
-		const activeLiquidityByChain = {}
+		const bribesByChain: Record<string, { total24h: number | null; total7d: number | null; total30d: number | null }> =
+			{}
+		const tokenTaxesByChain: Record<
+			string,
+			{ total24h: number | null; total7d: number | null; total30d: number | null }
+		> = {}
+		const openInterestByChain: Record<string, number | null> = {}
+		const activeLiquidityByChain: Record<string, number | null> = {}
 		const chartDimensions = ['timestamp', ...allChains]
 		const chainNameByKey = Object.entries(chainMetadata).reduce(
 			(acc, [metadataKey, chain]) => {
@@ -1179,7 +1299,7 @@ export const getChainsByAdapterPageData = async ({
 			allChains: chains.map((c) => c.name)
 		}
 	} catch (error) {
-		postRuntimeLogs(error)
+		postRuntimeLogs(String(error))
 		throw error
 	}
 }
@@ -1200,24 +1320,23 @@ export const getChainsByREVPageData = async ({
 
 		const protocolsByChainsData = await Promise.allSettled(
 			allChains.map(async (chain) =>
-				getAdapterChainOverview({
+				getAdapterChainMetrics({
 					adapterType: 'fees',
-					chain,
-					excludeTotalDataChart: true
+					chain
 				})
 			)
 		)
 
-		const chainFeesData = await getAdapterChainOverview({
+		const chainFeesData = await getAdapterChainMetrics({
 			adapterType: 'fees',
-			chain: 'All',
-			excludeTotalDataChart: true
+			chain: 'All'
 		})
 
 		const chains = allChains.map((chain, index) => {
 			const chainFees = chainFeesData.protocols.find((p) => p.slug === chain)
 			const protocols = protocolsByChainsData[index].status === 'fulfilled' ? protocolsByChainsData[index].value : null
-			const chainRevProtocols = new Set(REV_PROTOCOLS[chain] ?? [])
+			const chainRevProtocols =
+				chain in REV_PROTOCOLS ? new Set(REV_PROTOCOLS[chain as keyof typeof REV_PROTOCOLS]) : new Set<string>()
 			return {
 				name: chainMetadata[chain].name,
 				slug: chain,
@@ -1237,7 +1356,7 @@ export const getChainsByREVPageData = async ({
 
 		return { chains: chains.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0)) }
 	} catch (error) {
-		postRuntimeLogs(error)
+		postRuntimeLogs(String(error))
 		throw error
 	}
 }
@@ -1255,9 +1374,10 @@ export async function getDimensionAdapterOverviewOfAllChains({
 		const chains: Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }> = {}
 		for (const chain in chainMetadata) {
 			const currentChainMetadata = chainMetadata[chain]
-			const adapterMetadata = currentChainMetadata?.[ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]]
-			if (!adapterMetadata) continue
-			const dataKey = ADAPTER_DATA_TYPE_KEYS[dataType] ?? null
+			const metadataKey = ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]
+			if (!(metadataKey in currentChainMetadata)) continue
+			const dataKey = isAdapterDataTypeKey(dataType) ? ADAPTER_DATA_TYPE_KEYS[dataType] : null
+			if (!dataKey) continue
 			const value = currentChainMetadata.dimAgg?.[adapterType]?.[dataKey]
 			if (!value) continue
 			chains[currentChainMetadata.name] = value
@@ -1265,7 +1385,7 @@ export async function getDimensionAdapterOverviewOfAllChains({
 
 		return chains
 	} catch (error) {
-		postRuntimeLogs(error)
+		postRuntimeLogs(String(error))
 		throw error
 	}
 }

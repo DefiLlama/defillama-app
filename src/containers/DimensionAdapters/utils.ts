@@ -1,8 +1,10 @@
-export type AsyncReturnType<T extends (...args: any) => Promise<any>> = T extends (...args: any) => Promise<infer R>
+export type AsyncReturnType<T extends (...args: any[]) => Promise<any>> = T extends (
+	...args: any[]
+) => Promise<infer R>
 	? R
-	: any
+	: never
 
-function onlyUnique(value, index, self) {
+function onlyUnique<T>(value: T, index: number, self: T[]) {
 	return self.indexOf(value) === index
 }
 

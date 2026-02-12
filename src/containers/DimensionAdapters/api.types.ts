@@ -1,8 +1,100 @@
 import { ADAPTER_TYPES } from './constants'
 
-export interface IAdapterOverview {
-	totalDataChart: Array<[number, number]> // date, value
+export type AdapterType = `${ADAPTER_TYPES}`
+
+// Full type for single protocol metrics response
+export interface IAdapterProtocolMetrics {
+	chain: string | null
+	allChains: Array<string>
+	total24h: number
+	total48hto24h: number
+	total7d: number
+	total14dto7d: number
+	total60dto30d: number
+	total30d: number
+	change_1d: number
+	change_7d: number
+	change_1m: number
+	change_7dover7d: number
+	change_30dover30d: number
+	totalAllTime: number
+	defillamaId: string
+	name: string
+	displayName: string
+	module: string | null
+	category: string | null
+	logo: string
+	chains: Array<string>
+	protocolType: string
+	methodologyURL: string | null
+	methodology: Record<string, string> | null
+	parentProtocol: string | null
+	slug: string
+	linkedProtocols: Array<string>
+	id: string
+	doublecounted?: boolean | null
+	disabled?: boolean
+	gecko_id: string | null
+	description: string | null
+	url: string
+	github: Array<string>
+	governanceID: Array<string> | null
+	treasury: string | null
+	cmcId: string | null
+	defaultChartView?: 'daily' | 'weekly' | 'monthly' | null
+	hasLabelBreakdown?: boolean
+	twitter?: string
+	stablecoins?: Array<string>
+	symbol?: string
+	address?: string
+	hallmarks?: Array<unknown> | null
+	wrongLiquidity?: boolean
+	forkedFrom?: Array<string> | null
+	audits?: string | null
+	audit_links?: Array<string> | null
+	tokenRights?: {
+		rights: Array<{
+			label: string
+			hasRight: boolean
+			details: string
+		}>
+		governanceData: {
+			rights: string
+			details: string
+			feeSwitchStatus: string
+			feeSwitchDetails: string
+		}
+		holdersRevenueAndValueAccrual: {
+			buybacks: string
+			dividends: string
+			burns: string
+			primaryValueAccrual: string
+		}
+		tokenAlignment: {
+			fundraising: string
+			raiseDetailsLink: {
+				label: string
+				url: string
+			}
+			associatedEntities: Array<string>
+			equityRevenueCapture: string
+			equityStatement: string
+		}
+	}
+	childProtocols?: Array<{
+		name: string
+		defillamaId: string
+		displayName: string
+		methodologyURL: string
+		methodology: Record<string, string>
+		breakdownMethodology: Record<string, Record<string, string>>
+		defaultChartView?: 'daily' | 'weekly' | 'monthly' | null
+	}>
+}
+
+export interface IAdapterChainMetrics {
 	breakdown24h: number | null
+	breakdown30d: number | null
 	chain: string | null
 	allChains: Array<string>
 	total24h: number
@@ -19,6 +111,7 @@ export interface IAdapterOverview {
 	change_30dover30d: number
 	total7DaysAgo: number
 	total30DaysAgo: number
+	totalAllTime: number
 	protocols: Array<{
 		total24h: number
 		total48hto24h: number
@@ -58,55 +151,6 @@ export interface IAdapterOverview {
 	}>
 }
 
-export interface IAdapterSummary {
-	name: string
-	defillamaId: string
-	disabled: boolean
-	displayName: string
-	module: string
-	category?: string | null
-	logo: string | null
-	chains: Array<string>
-	methodologyURL: string
-	methodology: Record<string, string>
-	gecko_id: string | null
-	forkedFrom?: Array<string> | null
-	twitter?: string | null
-	audits?: string | null
-	description: string | null
-	address?: string | null
-	url: string
-	audit_links?: Array<string> | null
-	versionKey: string | null
-	cmcId: string | null
-	id: string
-	github: Array<string>
-	governanceID: null
-	treasury: null
-	parentProtocol?: string | null
-	previousNames?: string | null
-	latestFetchIsOk: boolean
-	slug: string
-	protocolType?: string | null
-	total24h?: number | null
-	total48hto24h?: number | null
-	total7d?: number | null
-	total30d?: number | null
-	totalAllTime?: number | null
-	totalDataChart: Array<[number, number]>
-	linkedProtocols?: string[]
-	defaultChartView?: 'daily' | 'weekly' | 'monthly'
-	doublecounted?: boolean
-	hasLabelBreakdown?: boolean
-	breakdownMethodology?: Record<string, Record<string, string>>
-	childProtocols?: Array<{
-		name: string
-		defillamaId: string
-		displayName: string
-		methodologyURL: string
-		methodology: Record<string, string>
-		breakdownMethodology: Record<string, Record<string, string>>
-	}>
-}
+export type IAdapterChart = Array<[number, number]>
 
-export type AdapterType = `${ADAPTER_TYPES}`
+export type IAdapterBreakdownChartData = Array<[number, Record<string, number>]>

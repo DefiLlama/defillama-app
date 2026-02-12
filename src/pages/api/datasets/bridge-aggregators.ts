@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
+import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
+import { getAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { slug } from '~/utils'
 
 const adapterType = ADAPTER_TYPES.BRIDGE_AGGREGATORS
@@ -13,10 +14,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const chainList = typeof chains === 'string' ? [chains] : chains || []
 
 		if (chainList.length === 0 || chainList.includes('All')) {
-			const data = await getAdapterChainOverview({
+			const data = await getAdapterChainMetrics({
 				adapterType,
-				chain: 'All',
-				excludeTotalDataChart: true
+				chain: 'All'
 			})
 
 			const protocols = data.protocols || []
