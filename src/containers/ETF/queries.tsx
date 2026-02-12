@@ -1,54 +1,52 @@
-import { ETF_FLOWS_API, ETF_SNAPSHOT_API } from '~/constants'
-import { fetchJson } from '~/utils/async'
+import { fetchETFFlows, fetchETFSnapshot } from './api'
+import type { AssetTotals, ETFOverviewProps, IETFSnapshotRow, IProcessedFlows } from './types'
 
-interface AssetTotals {
-	[key: string]: {
-		aum: number
-		flows: number
-	}
+function capitalize(s: string): string {
+	return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-export async function getETFData() {
-	const [snapshot, flows] = await Promise.all([ETF_SNAPSHOT_API, ETF_FLOWS_API].map((url) => fetchJson(url)))
+export async function getETFData(): Promise<ETFOverviewProps> {
+	const [snapshot, flows] = await Promise.all([fetchETFSnapshot(), fetchETFFlows()])
 
 	const maxDate = Math.max(...flows.map((item) => new Date(item.day).getTime()))
 
-	const formattedDate = new Date(maxDate).toLocaleDateString('en-US', {
+	const lastUpdated = new Date(maxDate).toLocaleDateString('en-US', {
 		month: 'long',
 		day: 'numeric',
 		year: 'numeric',
 		timeZone: 'UTC'
 	})
 
-	const processedSnapshot = snapshot
+	const processedSnapshot: IETFSnapshotRow[] = snapshot
 		.map((i) => ({
 			...i,
-			chain: [i.asset.charAt(0).toUpperCase() + i.asset.slice(1)]
+			chain: [capitalize(i.asset)]
 		}))
 		.sort((a, b) => b.flows - a.flows)
 
-	const processedFlows = flows.reduce((acc, { gecko_id, day, total_flow_usd }) => {
+	const processedFlows: IProcessedFlows = {}
+	for (const { gecko_id, day, total_flow_usd } of flows) {
 		const timestamp = Math.floor(new Date(day).getTime() / 1000 / 86400) * 86400
-		acc[timestamp] = {
+		processedFlows[timestamp] = {
+			...processedFlows[timestamp],
 			date: timestamp,
-			...acc[timestamp],
-			[gecko_id.charAt(0).toUpperCase() + gecko_id.slice(1)]: total_flow_usd
+			[capitalize(gecko_id)]: total_flow_usd
 		}
-		return acc
-	}, {})
+	}
 
-	const totalsByAsset = processedSnapshot.reduce((acc: AssetTotals, item) => {
-		acc[item.asset.toLowerCase()] = {
-			aum: (acc[item.asset.toLowerCase()]?.aum || 0) + item.aum,
-			flows: (acc[item.asset.toLowerCase()]?.flows || 0) + item.flows
+	const totalsByAsset: AssetTotals = {}
+	for (const item of processedSnapshot) {
+		const key = item.asset.toLowerCase()
+		totalsByAsset[key] = {
+			aum: (totalsByAsset[key]?.aum ?? 0) + item.aum,
+			flows: (totalsByAsset[key]?.flows ?? 0) + item.flows
 		}
-		return acc
-	}, {})
+	}
 
 	return {
 		snapshot: processedSnapshot,
 		flows: processedFlows,
 		totalsByAsset,
-		lastUpdated: formattedDate
+		lastUpdated
 	}
 }

@@ -107,9 +107,6 @@ export const YIELD_PROJECT_MEDIAN_API = `${YIELDS_SERVER_URL}/medianProject`
 export const LSD_RATES_API = `${YIELDS_SERVER_URL}/lsdRates`
 export const YIELD_VOLATILITY_API = '/api/datasets/volatility'
 
-const ETF_SERVER_URL = process.env.ETF_SERVER_URL ?? 'https://etfs.llama.fi'
-export const ETF_SNAPSHOT_API = `${ETF_SERVER_URL}/snapshot`
-export const ETF_FLOWS_API = `${ETF_SERVER_URL}/flows`
 
 export const LIQUIDATIONS_HISTORICAL_R2_PATH = `${DATASETS_R2_PATH}/liqs`
 

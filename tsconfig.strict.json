@@ -24,6 +24,8 @@
 		"src/containers/ProtocolOverview/**/*.ts",
 		"src/containers/ProtocolOverview/**/*.tsx",
 		"src/containers/Hacks/**/*.ts",
-		"src/containers/Hacks/**/*.tsx"
+		"src/containers/Hacks/**/*.tsx",
+		"src/containers/ETF/**/*.ts",
+		"src/containers/ETF/**/*.tsx"
 	]
 }
