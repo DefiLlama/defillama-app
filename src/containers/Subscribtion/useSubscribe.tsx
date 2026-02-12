@@ -37,7 +37,7 @@ export interface Subscription {
 	metadata?: {
 		isTrial?: boolean
 		trial_started_at?: string
-		cancel_at_period_end?: string
+		isCanceled?: string
 	}
 }
 
