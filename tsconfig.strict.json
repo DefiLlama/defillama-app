@@ -26,6 +26,8 @@
 		"src/containers/Hacks/**/*.ts",
 		"src/containers/Hacks/**/*.tsx",
 		"src/containers/ETF/**/*.ts",
-		"src/containers/ETF/**/*.tsx"
+		"src/containers/ETF/**/*.tsx",
+		"src/containers/LST/**/*.ts",
+		"src/containers/LST/**/*.tsx"
 	]
 }

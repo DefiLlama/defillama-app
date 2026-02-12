@@ -12,12 +12,21 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { firstDayOfMonth, formattedNum, renderPercentChange, lastDayOfWeek } from '~/utils'
+import type { ILSTTokenRow, LSTOverviewProps } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const GROUP_BY = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 type GroupByType = (typeof GROUP_BY)[number]
+
+const GROUP_BY_TO_TOOLTIP: Record<GroupByType, 'daily' | 'weekly' | 'monthly' | 'cumulative'> = {
+	Daily: 'daily',
+	Weekly: 'weekly',
+	Monthly: 'monthly',
+	Cumulative: 'cumulative'
+}
+
 const DEFAULT_SORTING_STATE = [{ id: 'stakedEth', desc: true }]
 
 const ETHPegTooltipContent = ({ marketRate, expectedRate }: { marketRate: number; expectedRate: number }) => {
@@ -38,20 +47,7 @@ const McapTooltipContent = ({ mcap, tvl }: { mcap: number; tvl: number }) => {
 	)
 }
 
-interface ILSDRow {
-	name: string
-	stakedEth: number
-	tvl: number
-	marketShare: number
-	ethPeg: number
-	pegInfo: string
-	marketRate: number
-	expectedRate: number
-	logo: string
-	mcap: number
-}
-
-const LSDColumn: ColumnDef<ILSDRow>[] = [
+const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -67,7 +63,7 @@ const LSDColumn: ColumnDef<ILSDRow>[] = [
 						href={`/protocol/${nameSlug}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue() as string | null}
+						{getValue<string | null>()}
 					</BasicLink>
 				</span>
 			)
@@ -77,7 +73,7 @@ const LSDColumn: ColumnDef<ILSDRow>[] = [
 	{
 		header: 'Staked ETH',
 		accessorKey: 'stakedEth',
-		cell: ({ getValue }) => <>{formattedNum(getValue())}</>,
+		cell: ({ getValue }) => <>{formattedNum(getValue<number>())}</>,
 		meta: {
 			align: 'end'
 		},
@@ -86,7 +82,7 @@ const LSDColumn: ColumnDef<ILSDRow>[] = [
 	{
 		header: 'TVL',
 		accessorKey: 'stakedEthInUsd',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		cell: ({ getValue }) => <>{formattedNum(getValue<number>(), true)}</>,
 		meta: {
 			align: 'end'
 		},
@@ -95,7 +91,7 @@ const LSDColumn: ColumnDef<ILSDRow>[] = [
 	{
 		header: '7d Change',
 		accessorKey: 'stakedEthPctChange7d',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>,
 		meta: {
 			align: 'end'
 		},
@@ -104,7 +100,7 @@ const LSDColumn: ColumnDef<ILSDRow>[] = [
 	{
 		header: '30d Change',
 		accessorKey: 'stakedEthPctChange30d',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>,
 		meta: {
 			align: 'end'
 		},
@@ -114,7 +110,7 @@ const LSDColumn: ColumnDef<ILSDRow>[] = [
 		header: 'Market Share',
 		accessorKey: 'marketShare',
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue<number | null>()
 			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
@@ -126,12 +122,12 @@ const LSDColumn: ColumnDef<ILSDRow>[] = [
 		header: 'LST',
 		accessorKey: 'lsdSymbol',
 		cell: ({ getValue, row }) => {
-			const value = getValue()
+			const value = getValue<string | null>()
 			const stringValue = typeof value === 'string' ? value : ''
 			if (!row.original.pegInfo) return stringValue
 			return (
 				<span className="flex items-center justify-end gap-1">
-					{row.original.pegInfo && <QuestionHelper text={row.original.pegInfo} />}
+					{row.original.pegInfo ? <QuestionHelper text={row.original.pegInfo} /> : null}
 					{stringValue}
 				</span>
 			)
@@ -148,11 +144,14 @@ const LSDColumn: ColumnDef<ILSDRow>[] = [
 			return (
 				<Tooltip
 					content={
-						<ETHPegTooltipContent marketRate={row.original?.marketRate} expectedRate={row.original?.expectedRate} />
+						<ETHPegTooltipContent
+							marketRate={row.original?.marketRate ?? 0}
+							expectedRate={row.original?.expectedRate ?? 0}
+						/>
 					}
 					className="justify-end"
 				>
-					{getValue() ? renderPercentChange(getValue()) : null}
+					{getValue<number | null>() != null ? renderPercentChange(getValue<number | null>()) : null}
 				</Tooltip>
 			)
 		},
@@ -169,10 +168,10 @@ const LSDColumn: ColumnDef<ILSDRow>[] = [
 		cell: ({ getValue, row }) => {
 			return (
 				<Tooltip
-					content={<McapTooltipContent mcap={row.original.mcap} tvl={row.original.tvl} />}
+					content={<McapTooltipContent mcap={row.original.mcap ?? 0} tvl={row.original.stakedEthInUsd} />}
 					className="justify-end"
 				>
-					{(getValue() ?? null) as string | null}
+					{getValue<string | null>() ?? null}
 				</Tooltip>
 			)
 		},
@@ -185,7 +184,7 @@ const LSDColumn: ColumnDef<ILSDRow>[] = [
 		header: 'LST APR',
 		accessorKey: 'apy',
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue<number | null>()
 			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
@@ -197,7 +196,7 @@ const LSDColumn: ColumnDef<ILSDRow>[] = [
 		header: 'Fee',
 		accessorKey: 'fee',
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue<number | null>()
 			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
@@ -218,7 +217,7 @@ export const LSTOverview = ({
 	lsdColors,
 	inflowsChartData,
 	barChartStacks
-}) => {
+}: LSTOverviewProps) => {
 	const [tab, setTab] = React.useState('breakdown')
 	const [groupBy, setGroupBy] = React.useState<GroupByType>('Weekly')
 	const [selectedBreakdownTokens, setSelectedBreakdownTokens] = React.useState<string[]>(tokens ?? [])
@@ -227,15 +226,7 @@ export const LSTOverview = ({
 	const selectedInflowTokensSet = React.useMemo(() => new Set(selectedInflowTokens), [selectedInflowTokens])
 
 	const inflowsTooltipFormatter = React.useMemo(() => {
-		const gb =
-			groupBy === 'Weekly'
-				? 'weekly'
-				: groupBy === 'Monthly'
-					? 'monthly'
-					: groupBy === 'Cumulative'
-						? 'cumulative'
-						: 'daily'
-		return createInflowsTooltipFormatter({ groupBy: gb, valueSymbol: 'ETH' })
+		return createInflowsTooltipFormatter({ groupBy: GROUP_BY_TO_TOOLTIP[groupBy], valueSymbol: 'ETH' })
 	}, [groupBy])
 
 	const { chartInstance: breakdownChartInstance, handleChartReady: handleBreakdownReady } = useGetChartInstance()
@@ -244,32 +235,31 @@ export const LSTOverview = ({
 	const breakdownExportTitle = 'LST Breakdown (Dominance)'
 
 	const inflowsData = React.useMemo(() => {
-		const store = {}
+		const store: Record<string | number, Record<string, number>> = {}
 
 		const isWeekly = groupBy === 'Weekly'
 		const isMonthly = groupBy === 'Monthly'
 		const isCumulative = groupBy === 'Cumulative'
-		const totalByToken = {}
-		for (const date in inflowsChartData) {
-			for (const token in inflowsChartData[date]) {
+		const totalByToken: Record<string, number> = {}
+
+		for (const [date, dateEntry] of Object.entries(inflowsChartData)) {
+			for (const [token, value] of Object.entries(dateEntry)) {
 				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
 				if (!store[dateKey]) {
 					store[dateKey] = {}
 				}
 				store[dateKey][token] =
-					(store[dateKey][token] || 0) + inflowsChartData[date][token] + (totalByToken[token] || 0)
+					(store[dateKey][token] ?? 0) + value + (totalByToken[token] ?? 0)
 
 				if (isCumulative) {
-					totalByToken[token] = (totalByToken[token] || 0) + inflowsChartData[date][token]
+					totalByToken[token] = (totalByToken[token] ?? 0) + value
 				}
 			}
 		}
-		const finalData = []
 
-		for (const date in store) {
-			const dateStore = store[date]
-			dateStore.date = date
-			finalData.push(dateStore)
+		const finalData: Array<Record<string, number>> = []
+		for (const [date, dateStore] of Object.entries(store)) {
+			finalData.push({ ...dateStore, date: +date })
 		}
 
 		return finalData

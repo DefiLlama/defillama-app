@@ -1,6 +1,7 @@
 import { maxAgeForNext } from '~/api'
 import { LSTOverview } from '~/containers/LST'
 import { getLSDPageData } from '~/containers/LST/queries'
+import type { LSTOverviewProps } from '~/containers/LST/types'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -15,7 +16,7 @@ export const getStaticProps = withPerformanceLogging('lsd', async () => {
 
 const pageName = ['LSTs: Overview']
 
-export default function LSDs(props) {
+export default function LSDs(props: LSTOverviewProps) {
 	return (
 		<Layout
 			title={`Liquid Staking Tokens - DefiLlama`}

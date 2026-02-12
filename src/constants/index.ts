@@ -104,7 +104,6 @@ export const YIELD_CHART_LEND_BORROW_API = `${YIELDS_SERVER_URL}/chartLendBorrow
 export const YIELD_CONFIG_POOL_API = `${YIELDS_SERVER_URL}/configPool`
 export const YIELD_PERPS_API = `${YIELDS_SERVER_URL}/perps`
 export const YIELD_PROJECT_MEDIAN_API = `${YIELDS_SERVER_URL}/medianProject`
-export const LSD_RATES_API = `${YIELDS_SERVER_URL}/lsdRates`
 export const YIELD_VOLATILITY_API = '/api/datasets/volatility'
 
 
