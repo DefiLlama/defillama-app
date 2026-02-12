@@ -221,6 +221,6 @@ export const REV_PROTOCOLS = {
 	arbitrum: ['arbitrum-timeboost'],
 	polygon: ['fastlane'],
 	bsc: ['bloxroute']
-}
+} as const
 
 export const ZERO_FEE_PERPS = new Set(['Lighter Perps', 'Paradex Perps'])

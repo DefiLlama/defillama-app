@@ -32,7 +32,7 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 			fees24h: p.total24h ?? null,
 			fees7d: p.total7d ?? null,
 			mcap: p.mcap ?? null,
-			pf: p.pf ?? null,
+			pf: p.pfOrPs ?? null,
 			chains: p.chains?.slice(0, 3) ?? null
 		}))
 	}

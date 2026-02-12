@@ -40,7 +40,7 @@ import { setStorageItem } from '~/contexts/localStorageStore'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { AdapterByChainChart } from './ChainChart'
-import type { IAdapterByChainPageData } from './types'
+import type { IAdapterByChainPageData, IProtocol } from './types'
 
 type TPageType =
 	| 'Fees'
@@ -99,13 +99,16 @@ const pageTypeByDefinition: Partial<Record<TPageType, Record<string, string>>> =
 	'Options Notional Volume': definitions.optionsNotional.chain,
 	Earnings: definitions.earnings.chain
 }
-const getProtocolsByCategory = (protocols: IAdapterByChainPageData['protocols'], categoriesToFilter: Array<string>) => {
-	const final = []
+const getProtocolsByCategory = (
+	protocols: IAdapterByChainPageData['protocols'],
+	categoriesToFilter: Array<string>
+): IProtocol[] => {
+	const final: IProtocol[] = []
 
 	for (const protocol of protocols) {
 		if (protocol.childProtocols) {
-			const childProtocols = protocol.childProtocols.filter((childProtocol) =>
-				categoriesToFilter.includes(childProtocol.category)
+			const childProtocols = protocol.childProtocols.filter(
+				(childProtocol) => childProtocol.category && categoriesToFilter.includes(childProtocol.category)
 			)
 
 			if (childProtocols.length === protocol.childProtocols.length) {
@@ -119,7 +122,7 @@ const getProtocolsByCategory = (protocols: IAdapterByChainPageData['protocols'],
 			continue
 		}
 
-		if (categoriesToFilter.includes(protocol.category)) {
+		if (protocol.category && categoriesToFilter.includes(protocol.category)) {
 			final.push(protocol)
 			continue
 		}
@@ -152,82 +155,81 @@ export function AdapterByChain(props: IProps) {
 
 		const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
 
-		const protocols =
+		const protocols: IProtocol[] =
 			props.categories.length === 0
 				? props.protocols
 				: selectedCategories.length === 0
-					? []
+					? ([] as IProtocol[])
 					: categoriesToFilter.length > 0
 						? getProtocolsByCategory(props.protocols, categoriesToFilter)
 						: props.protocols
 
 		const finalProtocols =
-			props.adapterType === 'fees' && (enabledSettings.bribes || enabledSettings.tokentax)
+			props.adapterType === 'fees'
 				? protocols.map((p) => {
-						const childProtocols = p.childProtocols
-							? p.childProtocols.map((cp) => {
-									const total30d =
-										cp.total30d +
-										(enabledSettings.bribes ? (cp.bribes?.total30d ?? 0) : 0) +
-										(enabledSettings.tokentax ? (cp.tokenTax?.total30d ?? 0) : 0)
-
-									let pf = cp.mcap && cp.total30d ? getAnnualizedRatio(cp.mcap, total30d) : null
-									let ps = cp.mcap && cp.revenue?.total30d ? getAnnualizedRatio(cp.mcap, total30d) : null
-
-									return {
-										...cp,
-										total24h:
-											cp.total24h +
-											(enabledSettings.bribes ? (cp.bribes?.total24h ?? 0) : 0) +
-											(enabledSettings.tokentax ? (cp.tokenTax?.total24h ?? 0) : 0),
-										total7d:
-											cp.total7d +
-											(enabledSettings.bribes ? (cp.bribes?.total7d ?? 0) : 0) +
-											(enabledSettings.tokentax ? (cp.tokenTax?.total7d ?? 0) : 0),
-										total30d,
-										total1y:
-											cp.total1y +
-											(enabledSettings.bribes ? (cp.bribes?.total1y ?? 0) : 0) +
-											(enabledSettings.tokentax ? (cp.tokenTax?.total1y ?? 0) : 0),
-										totalAllTime:
-											cp.totalAllTime +
-											(enabledSettings.bribes ? (cp.bribes?.totalAllTime ?? 0) : 0) +
-											(enabledSettings.tokentax ? (cp.tokenTax?.totalAllTime ?? 0) : 0),
-										...(pf ? { pf } : {}),
-										...(ps ? { ps } : {})
-									}
-								})
-							: null
-
+						// Always calculate pfOrPs for fees pages (P/F, P/S)
 						const total30d =
-							p.total30d +
+							(p.total30d ?? 0) +
 							(enabledSettings.bribes ? (p.bribes?.total30d ?? 0) : 0) +
 							(enabledSettings.tokentax ? (p.tokenTax?.total30d ?? 0) : 0)
 
-						const pf = p.mcap && total30d ? getAnnualizedRatio(p.mcap, total30d) : null
-						const ps = p.mcap && p.revenue?.total30d ? getAnnualizedRatio(p.mcap, total30d) : null
+						const pfOrPs = p.mcap && total30d ? getAnnualizedRatio(p.mcap, total30d) : null
+
+						// Only aggregate child protocols when bribes/tokentax is enabled
+						const childProtocols: IProtocol['childProtocols'] =
+							p.childProtocols && (enabledSettings.bribes || enabledSettings.tokentax)
+								? p.childProtocols.map((cp) => {
+										const cpTotal30d =
+											(cp.total30d ?? 0) +
+											(enabledSettings.bribes ? (cp.bribes?.total30d ?? 0) : 0) +
+											(enabledSettings.tokentax ? (cp.tokenTax?.total30d ?? 0) : 0)
+
+										const cpPfOrPs = cp.mcap && cpTotal30d ? getAnnualizedRatio(cp.mcap, cpTotal30d) : null
+
+										return {
+											...cp,
+											total24h:
+												(cp.total24h ?? 0) +
+												(enabledSettings.bribes ? (cp.bribes?.total24h ?? 0) : 0) +
+												(enabledSettings.tokentax ? (cp.tokenTax?.total24h ?? 0) : 0),
+											total7d:
+												(cp.total7d ?? 0) +
+												(enabledSettings.bribes ? (cp.bribes?.total7d ?? 0) : 0) +
+												(enabledSettings.tokentax ? (cp.tokenTax?.total7d ?? 0) : 0),
+											total30d: cpTotal30d,
+											total1y:
+												(cp.total1y ?? 0) +
+												(enabledSettings.bribes ? (cp.bribes?.total1y ?? 0) : 0) +
+												(enabledSettings.tokentax ? (cp.tokenTax?.total1y ?? 0) : 0),
+											totalAllTime:
+												(cp.totalAllTime ?? 0) +
+												(enabledSettings.bribes ? (cp.bribes?.totalAllTime ?? 0) : 0) +
+												(enabledSettings.tokentax ? (cp.tokenTax?.totalAllTime ?? 0) : 0),
+											...(cpPfOrPs ? { pfOrPs: cpPfOrPs } : {})
+										}
+									})
+								: p.childProtocols
 
 						return {
 							...p,
 							total24h:
-								p.total24h +
+								(p.total24h ?? 0) +
 								(enabledSettings.bribes ? (p.bribes?.total24h ?? 0) : 0) +
 								(enabledSettings.tokentax ? (p.tokenTax?.total24h ?? 0) : 0),
 							total7d:
-								p.total7d +
+								(p.total7d ?? 0) +
 								(enabledSettings.bribes ? (p.bribes?.total7d ?? 0) : 0) +
 								(enabledSettings.tokentax ? (p.tokenTax?.total7d ?? 0) : 0),
 							total30d,
 							total1y:
-								p.total1y +
+								(p.total1y ?? 0) +
 								(enabledSettings.bribes ? (p.bribes?.total1y ?? 0) : 0) +
 								(enabledSettings.tokentax ? (p.tokenTax?.total1y ?? 0) : 0),
 							totalAllTime:
-								p.totalAllTime +
+								(p.totalAllTime ?? 0) +
 								(enabledSettings.bribes ? (p.bribes?.totalAllTime ?? 0) : 0) +
 								(enabledSettings.tokentax ? (p.tokenTax?.totalAllTime ?? 0) : 0),
-							...(pf ? { pf } : {}),
-							...(ps ? { ps } : {}),
+							...(pfOrPs ? { pfOrPs } : {}),
 							...(childProtocols ? { childProtocols } : {})
 						}
 					})
@@ -285,45 +287,30 @@ export function AdapterByChain(props: IProps) {
 		columnSizes,
 		columnOrders
 	})
-	const prepareCsv = () => {
-		const header = [
-			'Protocol',
-			'Category',
-			'Chains',
-			'Total 1d',
-			'Total 7d',
-			'Total 1m',
-			'Total 1y',
-			'Total All Time',
-			'Market Cap',
-			'P/F',
-			'P/S'
-		]
+	const prepareCsv = (): { filename: string; rows: Array<Array<string | number | boolean>> } => {
+		const visibleColumns = instance.getVisibleLeafColumns()
+		const headers = visibleColumns.map((col) =>
+			typeof col.columnDef.header === 'string' ? col.columnDef.header : col.id
+		)
 
-		const csvdata = protocols.map((protocol) => {
-			return [
-				protocol.name,
-				protocol.category,
-				protocol.chains.join(', '),
-				protocol.total24h,
-				protocol.total7d,
-				protocol.total30d,
-				protocol.total1y,
-				protocol.totalAllTime,
-				protocol.mcap,
-				protocol.pf,
-				protocol.ps
-			]
+		const rows = [headers]
+		instance.getFilteredRowModel().rows.forEach((row) => {
+			const cells = visibleColumns.map((col) => {
+				const value = row.getValue(col.id)
+				return value === null || value === undefined ? '' : String(value)
+			})
+			rows.push(cells)
 		})
 
-		return { filename: `${props.type}-${props.chain}-protocols.csv`, rows: [header, ...csvdata] }
+		return { filename: `${props.type}-${props.chain}-protocols.csv`, rows }
 	}
 
 	const metricName = props.type
 	const columnsKey = `columns-${props.type}`
 
-	const setColumnOptions = (newOptions: string[]) => {
-		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)]))
+	const setColumnOptions: React.Dispatch<React.SetStateAction<string[]>> = (newOptions) => {
+		const options = typeof newOptions === 'function' ? newOptions(selectedColumns) : newOptions
+		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, options.includes(col.id)]))
 		setStorageItem(columnsKey, JSON.stringify(ops))
 		instance.setColumnVisibility(ops)
 	}
@@ -336,7 +323,7 @@ export function AdapterByChain(props: IProps) {
 	return (
 		<>
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
-			{props.entityQuestions?.length > 0 && (
+			{props.entityQuestions && props.entityQuestions.length > 0 && (
 				<EntityQuestionsStrip
 					questions={props.entityQuestions}
 					entitySlug={pageSlugByType[props.type] || slug(props.type)}
@@ -357,16 +344,16 @@ export function AdapterByChain(props: IProps) {
 						{props.total24h != null ? (
 							<p className="flex flex-col">
 								<span className="flex flex-col">
-									{pageTypeByDefinition[props.type]?.['24h'] ? (
-										<Tooltip
-											content={pageTypeByDefinition[props.type]['24h']}
-											className="text-(--text-label) underline decoration-dotted"
-										>
-											{metricName} (24h)
-										</Tooltip>
-									) : (
-										<span className="text-(--text-label)">{metricName} (24h)</span>
-									)}
+									{(() => {
+										const definition = pageTypeByDefinition[props.type]?.['24h']
+										return definition ? (
+											<Tooltip content={definition} className="text-(--text-label) underline decoration-dotted">
+												{metricName} (24h)
+											</Tooltip>
+										) : (
+											<span className="text-(--text-label)">{metricName} (24h)</span>
+										)
+									})()}
 									<span className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
 										{formattedNum(props.total24h, true)}
 									</span>
@@ -399,16 +386,16 @@ export function AdapterByChain(props: IProps) {
 							) : null}
 							{props.total30d != null ? (
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
-									{pageTypeByDefinition[props.type]?.['30d'] ? (
-										<Tooltip
-											content={pageTypeByDefinition[props.type]['30d']}
-											className="text-(--text-label) underline decoration-dotted"
-										>
-											{metricName} (30d)
-										</Tooltip>
-									) : (
-										<span className="text-(--text-label)">{metricName} (30d)</span>
-									)}
+									{(() => {
+										const definition = pageTypeByDefinition[props.type]?.['30d']
+										return definition ? (
+											<Tooltip content={definition} className="text-(--text-label) underline decoration-dotted">
+												{metricName} (30d)
+											</Tooltip>
+										) : (
+											<span className="text-(--text-label)">{metricName} (30d)</span>
+										)
+									})()}
 									<span className="ml-auto font-jetbrains">{formattedNum(props.total30d, true)}</span>
 								</p>
 							) : null}
@@ -542,8 +529,8 @@ const chainChartsKeys: Partial<Record<IProps['type'], (typeof chainCharts)[keyof
 	'Perp Volume': 'perpsVolume'
 }
 
-const getColumnsOptions = (type) =>
-	columnsByType[type].map((c: any) => {
+const getColumnsOptions = (type: IProps['type']) =>
+	columnsByType[type].map((c) => {
 		let headerName: string
 		if (typeof c.header === 'function') {
 			switch (c.id) {
@@ -581,13 +568,13 @@ const getColumnsOptions = (type) =>
 					}
 					break
 				default:
-					headerName = c.id
+					headerName = c.id ?? ''
 			}
 		} else {
 			headerName = c.header as string
 		}
 
-		return { name: headerName, key: c.id ?? (c.accessorKey as string) }
+		return { name: headerName, key: c.id ?? ('accessorKey' in c ? (c.accessorKey as string) : '') }
 	})
 
 const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
@@ -611,11 +598,15 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 			const value = getValue() as string
 
 			const basePath =
-				['Chain', 'Rollup'].includes(row.original.category) && row.original.slug !== 'berachain-incentive-buys'
+				row.original.category &&
+				['Chain', 'Rollup'].includes(row.original.category) &&
+				row.original.slug !== 'berachain-incentive-buys'
 					? 'chain'
 					: 'protocol'
 			const chartKey =
-				['Chain', 'Rollup'].includes(row.original.category) && row.original.slug !== 'berachain-incentive-buys'
+				row.original.category &&
+				['Chain', 'Rollup'].includes(row.original.category) &&
+				row.original.slug !== 'berachain-incentive-buys'
 					? (chainChartsKeys[type] ?? protocolChartsKeys[type])
 					: protocolChartsKeys[type]
 
@@ -654,12 +645,14 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 							{value}
 						</BasicLink>
 
-						<Tooltip
-							content={<ProtocolChainsComponent chains={row.original.chains} />}
-							className="text-[0.7rem] text-(--text-disabled)"
-						>
-							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
-						</Tooltip>
+						{row.original.chains && (
+							<Tooltip
+								content={<ProtocolChainsComponent chains={row.original.chains} />}
+								className="text-[0.7rem] text-(--text-disabled)"
+							>
+								{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
+							</Tooltip>
+						)}
 					</span>
 				</span>
 			)
@@ -1535,9 +1528,9 @@ const getColumnsByType = (
 				size: 128
 			},
 			{
-				id: 'pf',
+				id: 'pfOrPs',
 				header: 'P/F',
-				accessorFn: (protocol) => protocol.pf,
+				accessorFn: (protocol) => protocol.pfOrPs,
 				cell: (info) => <>{info.getValue() != null ? info.getValue() : null}</>,
 				meta: {
 					align: 'center',
@@ -1570,9 +1563,9 @@ const getColumnsByType = (
 				size: 128
 			},
 			{
-				id: 'ps',
+				id: 'pfOrPs',
 				header: 'P/S',
-				accessorFn: (protocol) => protocol.ps,
+				accessorFn: (protocol) => protocol.pfOrPs,
 				cell: (info) => <>{info.getValue() != null ? info.getValue() : null}</>,
 				meta: {
 					align: 'center',

@@ -13,13 +13,14 @@ import {
 	TRADFI_API
 } from '~/constants'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
+import { getCexVolume } from '~/containers/DimensionAdapters/api'
+import { getAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
+import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
 import {
 	getAdapterChainOverview,
-	getAdapterProtocolSummary,
-	getCexVolume,
-	type IAdapterOverview,
-	type IAdapterSummary
+	getAdapterProtocolOverview
 } from '~/containers/DimensionAdapters/queries'
+import type { IAdapterChainOverview, IAdapterProtocolOverview } from '~/containers/DimensionAdapters/types'
 import { getETFData } from '~/containers/ETF/queries'
 import { fetchStablecoinAssetsApi, fetchStablecoinConfigApi } from '~/containers/Stablecoins/api'
 import { getStablecoinChainMcapSummary } from '~/containers/Stablecoins/queries.server'
@@ -134,12 +135,12 @@ export async function getChainOverviewData({
 			chainStablecoins
 		]: [
 			ILiteChart,
-			{
-				protocols: Array<IProtocol>
-				chains: Array<string>
-				fees: IAdapterOverview | null
-				dexs: IAdapterOverview | null
-			},
+		{
+			protocols: Array<IProtocol>
+			chains: Array<string>
+			fees: IAdapterChainMetrics | null
+			dexs: IAdapterChainOverview | null
+		},
 			{
 				mcap: number | null
 				change7dUsd: number | null
@@ -163,11 +164,11 @@ export async function getChainOverviewData({
 			} | null,
 			Record<string, number>,
 			IChainAsset | null,
-			IAdapterSummary | null,
-			IAdapterSummary | null,
-			IAdapterSummary | null,
-			IAdapterSummary | null,
-			IAdapterOverview | null,
+			IAdapterProtocolOverview | null,
+			IAdapterProtocolOverview | null,
+			IAdapterProtocolOverview | null,
+			IAdapterProtocolOverview | null,
+			IAdapterChainMetrics | null,
 			number | null,
 			Array<[number, number]> | null,
 			Array<[number, number]> | null,
@@ -251,30 +252,28 @@ export async function getChainOverviewData({
 			fetchJson(CHAINS_ASSETS)
 				.then((chainAssets) => (chain !== 'All' ? (chainAssets[currentChainMetadata.name] ?? null) : null))
 				.catch(() => null),
-			currentChainMetadata.revenue && chain !== 'All'
-				? getAdapterChainOverview({
-						adapterType: 'fees',
-						chain: currentChainMetadata.name,
-						excludeTotalDataChart: true,
-						dataType: 'dailyAppRevenue'
-					}).catch((err) => {
-						console.log(err)
-						return null
-					})
-				: Promise.resolve(null),
-			currentChainMetadata.fees && chain !== 'All'
-				? getAdapterChainOverview({
-						adapterType: 'fees',
-						chain: currentChainMetadata.name,
-						excludeTotalDataChart: true,
-						dataType: 'dailyAppFees'
-					}).catch((err) => {
-						console.log(err)
-						return null
-					})
-				: Promise.resolve(null),
+		currentChainMetadata.revenue && chain !== 'All'
+			? getAdapterChainMetrics({
+					adapterType: 'fees',
+					chain: currentChainMetadata.name,
+					dataType: 'dailyAppRevenue'
+				}).catch((err) => {
+					console.log(err)
+					return null
+				})
+			: Promise.resolve(null),
+		currentChainMetadata.fees && chain !== 'All'
+			? getAdapterChainMetrics({
+					adapterType: 'fees',
+					chain: currentChainMetadata.name,
+					dataType: 'dailyAppFees'
+				}).catch((err) => {
+					console.log(err)
+					return null
+				})
+			: Promise.resolve(null),
 			currentChainMetadata.chainFees
-				? getAdapterProtocolSummary({
+				? getAdapterProtocolOverview({
 						adapterType: 'fees',
 						protocol: currentChainMetadata.name,
 						excludeTotalDataChart: true
@@ -284,7 +283,7 @@ export async function getChainOverviewData({
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.chainRevenue
-				? getAdapterProtocolSummary({
+				? getAdapterProtocolOverview({
 						adapterType: 'fees',
 						protocol: currentChainMetadata.name,
 						excludeTotalDataChart: true,
@@ -294,16 +293,15 @@ export async function getChainOverviewData({
 						return null
 					})
 				: Promise.resolve(null),
-			currentChainMetadata.perps
-				? getAdapterChainOverview({
-						adapterType: 'derivatives',
-						chain: currentChainMetadata.name,
-						excludeTotalDataChart: true
-					}).catch((err) => {
-						console.log(err)
-						return null
-					})
-				: Promise.resolve(null),
+		currentChainMetadata.perps
+			? getAdapterChainMetrics({
+					adapterType: 'derivatives',
+					chain: currentChainMetadata.name
+				}).catch((err) => {
+					console.log(err)
+					return null
+				})
+			: Promise.resolve(null),
 			getCexVolume(),
 			chain === 'All'
 				? getETFData()
@@ -696,28 +694,26 @@ export const getProtocolsByChain = async ({
 
 	const [{ protocols, chains, parentProtocols }, fees, revenue, holdersRevenue, dexs, emissionsData]: [
 		{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
-		IAdapterOverview | null,
-		IAdapterOverview | null,
-		IAdapterOverview | null,
-		IAdapterOverview | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainOverview | null,
 		any
 	] = await Promise.all([
 		fetchJson(PROTOCOLS_API),
 		currentChainMetadata.fees
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					adapterType: 'fees',
-					chain: currentChainMetadata.name,
-					excludeTotalDataChart: true
+					chain: currentChainMetadata.name
 				}).catch((err) => {
 					console.log(err)
 					return null
 				})
 			: Promise.resolve(null),
 		currentChainMetadata.fees
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					adapterType: 'fees',
 					chain: currentChainMetadata.name,
-					excludeTotalDataChart: true,
 					dataType: 'dailyRevenue'
 				}).catch((err) => {
 					console.log(err)
@@ -725,10 +721,9 @@ export const getProtocolsByChain = async ({
 				})
 			: Promise.resolve(null),
 		currentChainMetadata.fees
-			? getAdapterChainOverview({
+			? getAdapterChainMetrics({
 					adapterType: 'fees',
 					chain: currentChainMetadata.name,
-					excludeTotalDataChart: true,
 					dataType: 'dailyHoldersRevenue'
 				}).catch((err) => {
 					console.log(err)

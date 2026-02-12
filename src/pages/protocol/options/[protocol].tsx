@@ -9,7 +9,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
-import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
+import { getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
 import { KeyMetrics } from '~/containers/ProtocolOverview'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
@@ -50,14 +50,14 @@ export const getStaticProps = withPerformanceLogging(
 		const [protocolData, premiumVolumeData, notionalVolumeData] = await Promise.all([
 			fetchProtocolOverviewMetrics(protocol),
 			metadata[1].optionsPremiumVolume
-				? getAdapterProtocolSummary({
+				? getAdapterProtocolOverview({
 						adapterType: 'options',
 						protocol: metadata[1].displayName,
 						excludeTotalDataChart: false
 					}).catch(() => null)
 				: null,
 			metadata[1].optionsNotionalVolume
-				? getAdapterProtocolSummary({
+				? getAdapterProtocolOverview({
 						adapterType: 'options',
 						protocol: metadata[1].displayName,
 						excludeTotalDataChart: false,
