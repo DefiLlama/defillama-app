@@ -493,7 +493,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 			if (startParam != null && startParam !== startDate) {
 				handleStartDateChange(startParam)
 			}
-			if (endParam != null && endParam !== startDate) {
+			if (endParam != null && endParam !== endDate) {
 				handleEndDateChange(endParam)
 			}
 		}

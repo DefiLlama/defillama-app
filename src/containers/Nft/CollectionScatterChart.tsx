@@ -107,27 +107,23 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 			tooltip: {
 				showDelay: 0,
 				confine: true,
-			formatter: function (params: {
-				value: [number, number]
-				marker: string
-				seriesName: string
-			}) {
-				const chartdate = formatTooltipChartDate(params.value[0], 'daily')
+				formatter: function (params: { value: [number, number]; marker: string; seriesName: string }) {
+					const chartdate = formatTooltipChartDate(params.value[0], 'daily')
 
-				let vals =
-					chartdate +
-					'<li style="list-style:none">' +
-					params.marker +
-					params.seriesName +
-					':' +
-					'&nbsp;&nbsp;' +
-					params.value[1].toFixed(2) +
-					'&nbsp;' +
-					'ETH' +
-					'</li>'
+					let vals =
+						chartdate +
+						'<li style="list-style:none">' +
+						params.marker +
+						params.seriesName +
+						':' +
+						'&nbsp;&nbsp;' +
+						params.value[1].toFixed(2) +
+						'&nbsp;' +
+						'ETH' +
+						'</li>'
 
-				if (params.seriesName !== 'Volume') {
-					const date = new Date(params.value[0]).getTime()
+					if (params.seriesName !== 'Volume') {
+						const date = new Date(params.value[0]).getTime()
 
 						vals +=
 							'<li style="list-style:none">' +

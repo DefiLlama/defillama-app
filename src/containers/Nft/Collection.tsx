@@ -52,7 +52,8 @@ export function NFTCollectionContainer() {
 		floorHistory?.source != null && Array.isArray(floorHistory.source) && floorHistory.source.length > 0
 			? floorHistory.source[floorHistory.source.length - 1]
 			: null
-	const floorPrice = lastFloorRow != null ? lastFloorRow['Floor Price'] : null
+	const floorPriceRaw = lastFloorRow != null ? Number(lastFloorRow['Floor Price']) : null
+	const floorPrice = typeof floorPriceRaw === 'number' && Number.isFinite(floorPriceRaw) ? floorPriceRaw : null
 	const volume24h = stats.length > 0 ? (stats[stats.length - 1]?.[1] ?? null) : null
 
 	const includeOutliers = router.isReady && router.query.includeOutliers === 'true'

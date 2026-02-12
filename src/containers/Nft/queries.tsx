@@ -190,13 +190,13 @@ export const getNFTCollectionEarnings = async () => {
 					name: c.name,
 					displayName: c.name,
 					logo: c.image,
-				chains: ['Ethereum'],
-				total24h: royalty?.usd1D ?? null,
-				total7d: royalty?.usd7D ?? null,
-				total30d: royalty?.usd30D ?? null,
-				totalRoyaltyEarnings: royalty?.usdLifetime ?? null,
-				totalMintEarnings: mintEarnings != null ? Number(mintEarnings.usdSales) || null : null,
-				totalEarnings: (royalty?.usdLifetime ?? 0) + (mintEarnings != null ? Number(mintEarnings.usdSales) || 0 : 0)
+					chains: ['Ethereum'],
+					total24h: royalty?.usd1D ?? null,
+					total7d: royalty?.usd7D ?? null,
+					total30d: royalty?.usd30D ?? null,
+					totalRoyaltyEarnings: royalty?.usdLifetime ?? null,
+					totalMintEarnings: mintEarnings != null ? Number(mintEarnings.usdSales) || null : null,
+					totalEarnings: (royalty?.usdLifetime ?? 0) + (mintEarnings != null ? Number(mintEarnings.usdSales) || 0 : 0)
 				}
 			})
 			.filter((c): c is NonNullable<typeof c> => c != null)
@@ -232,14 +232,14 @@ export const getNFTCollectionEarnings = async () => {
 				defillamaId: subCollections.join('+'),
 				name: parent.name,
 				displayName: parent.name,
-			chains: ['Ethereum'],
-			total24h,
-			total7d,
-			total30d,
-			totalRoyaltyEarnings,
-			totalMintEarnings,
-			totalEarnings,
-			subRows: subCollectionEarnings
+				chains: ['Ethereum'],
+				total24h,
+				total7d,
+				total30d,
+				totalRoyaltyEarnings,
+				totalMintEarnings,
+				totalEarnings,
+				subRows: subCollectionEarnings
 			}
 		})
 
@@ -264,7 +264,7 @@ export const getNFTRoyaltyHistory = async (slug: string) => {
 			fetchNftRoyalty(slug)
 		])
 
-	const safeChart: Array<[number, number]> = Array.isArray(royaltyChart) ? royaltyChart : []
+		const safeChart: Array<[number, number]> = Array.isArray(royaltyChart) ? royaltyChart : []
 		const formattedData = formatBarChart({
 			data: safeChart,
 			groupBy: 'daily',

@@ -50,7 +50,7 @@ export async function fetchAndFormatGovernanceData(apis: Array<string> | null): 
 					metadata: (raw.metadata as GovernanceDataEntry['metadata']) ?? null,
 					stats: (raw.stats as GovernanceDataEntry['stats']) ?? null,
 					proposals,
-					controversialProposals: proposals
+					controversialProposals: [...proposals]
 						.sort((a, b) => (b.score_curve ?? 0) - (a.score_curve ?? 0))
 						.slice(0, 10),
 					activity,
