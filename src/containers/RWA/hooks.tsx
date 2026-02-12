@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import { useMemo } from 'react'
 import { CHART_COLORS } from '~/constants/colors'
-import type { IRWAAssetsOverview } from './queries'
+import type { IRWAAssetsOverview } from './api.types'
 import { rwaSlug } from './rwaSlug'
 
 type PieChartDatum = { name: string; value: number }
@@ -843,7 +843,7 @@ export function useRwaChartDataByCategory({
 		for (const asset of assets) {
 			const ticker = asset.ticker
 			if (!ticker) continue
-			if (asset.category.length === 0) continue
+			if (!asset.category || asset.category.length === 0) continue
 			tickerToCategories.set(ticker, asset.category)
 		}
 
@@ -918,7 +918,7 @@ export function useRwaChartDataByAssetClass({
 		for (const asset of assets) {
 			const ticker = asset.ticker
 			if (!ticker) continue
-			if (asset.assetClass.length === 0) continue
+			if (!asset.assetClass || asset.assetClass.length === 0) continue
 			tickerToAssetClasses.set(ticker, asset.assetClass)
 		}
 

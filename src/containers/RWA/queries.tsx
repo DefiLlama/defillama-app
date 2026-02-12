@@ -1,184 +1,18 @@
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
-import { RWA_ACTIVE_TVLS_API, RWA_ASSET_DATA_API, RWA_CHART_API, RWA_STATS_API } from '~/constants'
 import definitions from '~/public/rwa-definitions.json'
-import { fetchJson } from '~/utils/async'
 import type { IRWAList } from '~/utils/metadata/types'
+import { getRWAActiveTVLs, getRWAStats, getRWAChartDataByTicker, getRWAAssetDataById, getRWAAssetChartData } from './api'
+import type {
+	IFetchedRWAProject,
+	IRWAChartDataByTicker,
+	IRWAProject,
+	IRWAAssetsOverview,
+	IRWAAssetData,
+	IRWAChainsOverviewRow,
+	IRWACategoriesOverviewRow,
+	IRWAPlatformsOverviewRow
+} from './api.types'
 import { rwaSlug } from './rwaSlug'
-
-interface IFetchedRWAProject {
-	id: string
-	ticker: string
-	assetName: string | null
-	website?: string[] | null
-	twitter?: string[] | null
-	primaryChain?: string | null
-	chain: string[] | null
-	contracts: Record<string, Array<string>> | null
-	category?: string[] | null
-	assetClass?: string[] | null
-	type?: string | null
-	rwaClassification: string | null
-	accessModel: 'Permissioned' | 'Permissionless' | 'Non-transferable' | 'Custodial Only' | 'Unknown'
-	issuer?: string | null
-	issuerSourceLink?: string[] | null
-	issuerRegistryInfo?: string[] | null
-	isin?: string | null
-	attestationLinks?: string[] | null
-	attestations?: boolean | null
-	redeemable?: boolean | null
-	cexListed?: boolean | null
-	kycForMintRedeem?: boolean | null
-	kycAllowlistedWhitelistedToTransferHold?: boolean | null
-	transferable?: boolean | null
-	selfCustody?: boolean | null
-	descriptionNotes?: string[] | null
-	parentPlatform?: string | null
-	stablecoin?: boolean | null
-	governance?: boolean | null
-	defiActiveTvl?: Record<string, Record<string, string>> | null
-	onChainMcap?: Record<string, string> | null
-	activeMcap?: Record<string, string> | null
-	price?: number | null
-	activeMcapData?: boolean
-}
-
-type IRWAChartData = Array<{ timestamp: number; onChainMcap: number; activeMcap: number; defiActiveTvl: number }>
-
-interface IRWAStatsResponse {
-	totalOnChainMcap: number
-	totalActiveMcap: number
-	totalDefiActiveTvl: number
-	totalAssets: number
-	totalIssuers: number
-	byChain: Record<
-		string,
-		{
-			base: {
-				onChainMcap: number
-				activeMcap: number
-				defiActiveTvl: number
-				assetCount: number
-				assetIssuers: Array<string>
-			}
-			stablecoinsOnly: {
-				onChainMcap: number
-				activeMcap: number
-				defiActiveTvl: number
-				assetCount: number
-				assetIssuers: Array<string>
-			}
-			governanceOnly: {
-				onChainMcap: number
-				activeMcap: number
-				defiActiveTvl: number
-				assetCount: number
-				assetIssuers: Array<string>
-			}
-			stablecoinsAndGovernance: {
-				onChainMcap: number
-				activeMcap: number
-				defiActiveTvl: number
-				assetCount: number
-				assetIssuers: Array<string>
-			}
-		}
-	>
-	byCategory: Record<
-		string,
-		{
-			onChainMcap: number
-			activeMcap: number
-			defiActiveTvl: number
-			assetCount: number
-			assetIssuers: number
-		}
-	>
-	byPlatform?: Record<
-		string,
-		{
-			onChainMcap: number
-			activeMcap: number
-			defiActiveTvl: number
-			assetCount: number
-			assetIssuers: number
-		}
-	>
-}
-
-export interface IRWAProject extends Omit<IFetchedRWAProject, 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'> {
-	trueRWA: boolean
-	onChainMcap: {
-		total: number
-		breakdown: Array<[string, number]>
-	} | null
-	activeMcap: {
-		total: number
-		breakdown: Array<[string, number]>
-	} | null
-	defiActiveTvl: {
-		total: number
-		breakdown: Array<[string, number]>
-	} | null
-	// Chain-level breakdown (used for chain pie chart); kept separate from `defiActiveTvl.breakdown` which is by protocol.
-	defiActiveTvlByChain?: {
-		total: number
-		breakdown: Array<[string, number]>
-	} | null
-}
-
-export interface IRWAAssetsOverview {
-	assets: Array<IRWAProject>
-	types: Array<string>
-	typeOptions: Array<{ key: string; name: string; help?: string }>
-	assetClasses: Array<string>
-	assetClassOptions: Array<{ key: string; name: string; help?: string }>
-	rwaClassifications: Array<string>
-	rwaClassificationOptions: Array<{ key: string; name: string; help?: string }>
-	accessModels: Array<string>
-	accessModelOptions: Array<{ key: string; name: string; help?: string }>
-	categories: Array<string>
-	categoriesOptions: Array<{ key: string; name: string; help?: string }>
-	assetNames: Array<string>
-	categoryValues: Array<{ name: string; value: number }>
-	issuers: Array<string>
-	platformLinks: Array<{ label: string; to: string }>
-	selectedPlatform: string
-	chainLinks: Array<{ label: string; to: string }>
-	selectedChain: string
-	categoryLinks: Array<{ label: string; to: string }>
-	selectedCategory: string
-	totals: {
-		onChainMcap: number
-		activeMcap: number
-		defiActiveTvl: number
-		issuers: string[]
-		stablecoins: {
-			onChainMcap: number
-			activeMcap: number
-			defiActiveTvl: number
-			issuers: string[]
-		}
-		governance: {
-			onChainMcap: number
-			activeMcap: number
-			defiActiveTvl: number
-			issuers: string[]
-		}
-		stablecoinsAndGovernance: {
-			onChainMcap: number
-			activeMcap: number
-			defiActiveTvl: number
-			issuers: string[]
-		}
-	}
-	chartData: IRWAChartDataByTicker | null
-}
-
-interface IRWAChartDataByTicker {
-	onChainMcap: Array<{ timestamp: number } & Record<string, number>>
-	activeMcap: Array<{ timestamp: number } & Record<string, number>>
-	defiActiveTvl: Array<{ timestamp: number } & Record<string, number>>
-}
 
 function toUnixMsTimestamp(ts: number): number {
 	// API timestamps are historically in unix seconds. Normalize to ms for ECharts time axis.
@@ -323,10 +157,6 @@ function aggregateRwaMetrics({
 	}
 }
 
-export type IRWAChainsOverviewRow = NonNullable<IRWAStatsResponse['byChain']>[string] & { chain: string }
-export type IRWACategoriesOverviewRow = NonNullable<IRWAStatsResponse['byCategory']>[string] & { category: string }
-export type IRWAPlatformsOverviewRow = NonNullable<IRWAStatsResponse['byPlatform']>[string] & { platform: string }
-
 export type RWAAssetsOverviewParams = {
 	chain?: string
 	category?: string
@@ -344,17 +174,9 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		const selectedCount = Number(!!selectedChain) + Number(!!selectedCategory) + Number(!!selectedPlatform)
 		if (selectedCount > 1) return null
 
-		const chartUrl = selectedChain
-			? `${RWA_CHART_API}/chain/${selectedChain}`
-			: selectedCategory
-				? `${RWA_CHART_API}/category/${selectedCategory}`
-				: selectedPlatform
-					? `${RWA_CHART_API}/platform/${selectedPlatform}`
-					: `${RWA_CHART_API}/chain/all`
-
 		const [data, chartData]: [Array<IFetchedRWAProject>, IRWAChartDataByTicker | null] = await Promise.all([
-			fetchJson(RWA_ACTIVE_TVLS_API),
-			fetchJson(`${chartUrl}/ticker-breakdown`).catch(() => null)
+			getRWAActiveTVLs(),
+			getRWAChartDataByTicker({ selectedChain, selectedCategory, selectedPlatform })
 		])
 
 		if (!data) {
@@ -467,8 +289,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			// Check if asset has actual TVL on the selected chain (from TVL data, not just chain array)
 			const hasChainInTvl = selectedChain
 				? aggregatedMetrics.hasSelectedChainData.onChainMcap ||
-					aggregatedMetrics.hasSelectedChainData.activeMcap ||
-					aggregatedMetrics.hasSelectedChainData.defiActiveTvl
+				  aggregatedMetrics.hasSelectedChainData.activeMcap ||
+				  aggregatedMetrics.hasSelectedChainData.defiActiveTvl
 				: true
 
 			// Use filtered values if chain is selected, otherwise use totals
@@ -662,35 +484,35 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		return {
 			assets: assets.sort((a, b) => (b.onChainMcap?.total ?? 0) - (a.onChainMcap?.total ?? 0)),
 			types: formattedTypes,
-			typeOptions: formattedTypes.map((type) => ({
-				key: type,
-				name: type,
-				help: definitions.type.values?.[type] ?? null
-			})),
+		typeOptions: formattedTypes.map((type) => ({
+			key: type,
+			name: type,
+			help: (definitions.type.values as Record<string, string>)?.[type] ?? null
+		})),
 			assetClasses: formattedAssetClasses,
-			assetClassOptions: formattedAssetClasses.map((assetClass) => ({
-				key: assetClass,
-				name: assetClass,
-				help: definitions.assetClass.values?.[assetClass] ?? null
-			})),
+		assetClassOptions: formattedAssetClasses.map((assetClass) => ({
+			key: assetClass,
+			name: assetClass,
+			help: (definitions.assetClass.values as Record<string, string>)?.[assetClass] ?? null
+		})),
 			rwaClassifications: formattedRwaClassifications,
-			rwaClassificationOptions: formattedRwaClassifications.map((classification) => ({
-				key: classification,
-				name: classification,
-				help: definitions.rwaClassification.values?.[classification] ?? null
-			})),
+		rwaClassificationOptions: formattedRwaClassifications.map((classification) => ({
+			key: classification,
+			name: classification,
+			help: (definitions.rwaClassification.values as Record<string, string>)?.[classification] ?? null
+		})),
 			accessModels: formattedAccessModels,
-			accessModelOptions: formattedAccessModels.map((accessModel) => ({
-				key: accessModel,
-				name: accessModel,
-				help: definitions.accessModel.values?.[accessModel] ?? null
-			})),
+		accessModelOptions: formattedAccessModels.map((accessModel) => ({
+			key: accessModel,
+			name: accessModel,
+			help: (definitions.accessModel.values as Record<string, string>)?.[accessModel] ?? null
+		})),
 			categories: formattedCategories,
-			categoriesOptions: formattedCategories.map((category) => ({
-				key: category,
-				name: category,
-				help: definitions.category.values?.[category] ?? null
-			})),
+		categoriesOptions: formattedCategories.map((category) => ({
+			key: category,
+			name: category,
+			help: (definitions.category.values as Record<string, string>)?.[category] ?? null
+		})),
 			assetNames: selectedPlatform
 				? Array.from(assetNames.entries())
 						.sort((a, b) => b[1] - a[1])
@@ -740,7 +562,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 }
 
 export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[]> {
-	const data = await fetchJson<IRWAStatsResponse>(RWA_STATS_API)
+	const data = await getRWAStats()
 	if (!data?.byChain) {
 		throw new Error('Failed to get RWA stats')
 	}
@@ -759,7 +581,7 @@ export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[]> {
 }
 
 export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverviewRow[]> {
-	const data = await fetchJson<IRWAStatsResponse>(RWA_STATS_API)
+	const data = await getRWAStats()
 	if (!data?.byCategory) {
 		throw new Error('Failed to get RWA stats')
 	}
@@ -778,7 +600,7 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 }
 
 export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRow[]> {
-	const data = await fetchJson<IRWAStatsResponse>(RWA_STATS_API)
+	const data = await getRWAStats()
 	if (!data?.byPlatform) {
 		throw new Error('Failed to get RWA stats')
 	}
@@ -796,40 +618,13 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRo
 	return rows.sort((a, b) => b.onChainMcap - a.onChainMcap)
 }
 
-export interface IRWAAssetData extends IRWAProject {
-	slug: string
-	rwaClassificationDescription: string | null
-	accessModelDescription: string | null
-	assetClassDescriptions: Record<string, string>
-	chartDataset: {
-		source: RWAAssetChartRow[]
-		// Subset of allowed dimensions (some assets may not have all series).
-		dimensions: RWAAssetChartDimension[]
-	} | null
-}
-
-const RWA_ASSET_CHART_DIMENSIONS = ['timestamp', 'DeFi Active TVL', 'Active Mcap', 'Onchain Mcap'] as const
-type RWAAssetChartDimension = (typeof RWA_ASSET_CHART_DIMENSIONS)[number]
-type RWAAssetChartSeriesDimension = Exclude<RWAAssetChartDimension, 'timestamp'>
-type RWAAssetChartRow = { timestamp: number } & Partial<Record<RWAAssetChartSeriesDimension, number | null>>
+export type { IRWAAssetData }
 
 export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {
 	try {
 		const [data, chartDataset]: [IFetchedRWAProject, IRWAAssetData['chartDataset']] = await Promise.all([
-			fetchJson(`${RWA_ASSET_DATA_API}/${assetId}`),
-			fetchJson(`${RWA_CHART_API}/asset/${assetId}`)
-				.then((data: IRWAChartData) => {
-					const source =
-						(data ?? []).map((item) => ({
-							timestamp: item.timestamp * 1e3,
-							'DeFi Active TVL': item.defiActiveTvl ?? null,
-							'Active Mcap': item.activeMcap ?? null,
-							'Onchain Mcap': item.onChainMcap ?? null
-						})) ?? []
-
-					return { source: ensureChronologicalRows(source), dimensions: [...RWA_ASSET_CHART_DIMENSIONS] }
-				})
-				.catch(() => null)
+			getRWAAssetDataById(assetId),
+			getRWAAssetChartData(assetId)
 		])
 
 		if (!data) {
@@ -849,14 +644,16 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 		// Get the classification description - use True RWA definition if trueRWA flag
 		const classificationKey = isTrueRWA ? 'True RWA' : data.rwaClassification
 		const rwaClassificationDescription = classificationKey
-			? (definitions.rwaClassification.values?.[classificationKey] ?? null)
+			? ((definitions.rwaClassification.values as Record<string, string>)?.[classificationKey] ?? null)
 			: null
 
-		const accessModelDescription = definitions.accessModel.values?.[data.accessModel] ?? null
+		const accessModelDescription = data.accessModel
+			? (definitions.accessModel.values as Record<string, string>)?.[data.accessModel] ?? null
+			: null
 		// Get asset class descriptions
 		const assetClassDescriptions: Record<string, string> = {}
 		for (const ac of data.assetClass ?? []) {
-			const description = ac ? definitions.assetClass.values?.[ac] : null
+			const description = ac ? (definitions.assetClass.values as Record<string, string>)?.[ac] : null
 			if (description) {
 				assetClassDescriptions[ac] = description
 			}

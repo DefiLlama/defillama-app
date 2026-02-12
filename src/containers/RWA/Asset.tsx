@@ -7,7 +7,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import definitions from '~/public/rwa-definitions.json'
 import { chainIconUrl, formattedNum, getBlockExplorer } from '~/utils'
-import type { IRWAAssetData } from './queries'
+import type { IRWAAssetData } from './api.types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -149,7 +149,7 @@ const ChainBadge = ({
 						</p>
 					) : null}
 				</div>
-				{contracts?.length > 0 ? (
+				{contracts && contracts.length > 0 ? (
 					<>
 						{contracts.map((address) => (
 							<ContractItem key={`${chain}-${address}`} chain={chain} address={address} />
@@ -344,8 +344,8 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 										{asset.category.map((category, idx) => (
 											<span key={category} className="flex items-center gap-0.5">
 												{category}
-												{definitions.category.values?.[category] && (
-													<QuestionHelper text={definitions.category.values[category]} />
+												{(definitions.category.values as Record<string, string>)?.[category] && (
+													<QuestionHelper text={(definitions.category.values as Record<string, string>)[category]} />
 												)}
 												{idx < asset.category!.length - 1 && ','}
 											</span>
@@ -430,12 +430,12 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							/>
 							<KYCItem
 								label={definitions.kycForMintRedeem.label}
-								required={asset.kycForMintRedeem}
+								required={asset.kycForMintRedeem ?? null}
 								description={definitions.kycForMintRedeem.description}
 							/>
 							<KYCItem
 								label={definitions.kycAllowlistedWhitelistedToTransferHold.label}
-								required={asset.kycAllowlistedWhitelistedToTransferHold}
+								required={asset.kycAllowlistedWhitelistedToTransferHold ?? null}
 								description={definitions.kycAllowlistedWhitelistedToTransferHold.description}
 							/>
 							<ClassificationItem

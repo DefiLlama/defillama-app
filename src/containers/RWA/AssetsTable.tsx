@@ -24,7 +24,7 @@ import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
-import type { IRWAAssetsOverview } from './queries'
+import type { IRWAAssetsOverview } from './api.types'
 
 const definitions = rwaDefinitionsJson as typeof rwaDefinitionsJson
 
@@ -92,15 +92,18 @@ export function RWAAssetsTable({
 		[]
 	)
 
-	const setColumnOptions = (newOptions: string[]) => {
-		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)]))
-		instance.setColumnVisibility(ops)
-	}
-
 	const selectedColumns = instance
 		.getAllLeafColumns()
 		.filter((col) => col.getIsVisible())
 		.map((col) => col.id)
+
+	const setColumnOptions = (newOptions: string[] | ((prev: string[]) => string[])) => {
+		const resolvedOptions = Array.isArray(newOptions) ? newOptions : newOptions(selectedColumns)
+		const ops = Object.fromEntries(
+			instance.getAllLeafColumns().map((col) => [col.id, resolvedOptions.includes(col.id)])
+		)
+		instance.setColumnVisibility(ops)
+	}
 
 	const prepareCsv = () => {
 		const tableRows = instance.getSortedRowModel().rows
@@ -241,7 +244,7 @@ const columns: ColumnDef<AssetRow>[] = [
 		accessorFn: (asset) => asset.type,
 		cell: (info) => {
 			const value = info.getValue() as string
-			const tooltipContent = definitions.type.values?.[value]
+			const tooltipContent = (definitions.type.values as Record<string, string>)?.[value]
 			if (tooltipContent) {
 				return (
 					<Tooltip
@@ -270,8 +273,8 @@ const columns: ColumnDef<AssetRow>[] = [
 			const isTrueRWA = info.row.original.trueRWA
 			// If trueRWA flag, show green color with True RWA definition but display "RWA"
 			const tooltipContent = isTrueRWA
-				? definitions.rwaClassification.values?.['True RWA']
-				: definitions.rwaClassification.values?.[value]
+				? (definitions.rwaClassification.values as Record<string, string>)?.['True RWA']
+				: (definitions.rwaClassification.values as Record<string, string>)?.[value]
 			if (tooltipContent) {
 				return (
 					<Tooltip
@@ -348,7 +351,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			const value = info.getValue() as string[]
 			const tooltipContent = value
 				.map((category) => {
-					const description = definitions.category.values?.[category]
+					const description = (definitions.category.values as Record<string, string>)?.[category]
 					return `${category}:\n${description || '-'}`
 				})
 				.join('\n\n')
@@ -385,7 +388,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			// For single asset class with definition, show tooltip
 			if (assetClasses.length === 1) {
 				const ac = assetClasses[0]
-				const description = definitions.assetClass.values?.[ac]
+				const description = (definitions.assetClass.values as Record<string, string>)?.[ac]
 				if (description) {
 					return (
 						<Tooltip
@@ -402,7 +405,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			const tooltipContent = (
 				<span className="flex flex-col gap-1">
 					{assetClasses.map((ac) => {
-						const description = definitions.assetClass.values?.[ac]
+						const description = (definitions.assetClass.values as Record<string, string>)?.[ac]
 						return (
 							<span key={ac}>
 								<strong>{ac}</strong>: {description || 'No description'}

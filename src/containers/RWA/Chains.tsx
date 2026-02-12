@@ -10,7 +10,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum } from '~/utils'
 import { chainIconUrl } from '~/utils'
-import type { IRWAChainsOverviewRow } from './queries'
+import type { IRWAChainsOverviewRow } from './api.types'
 import { rwaSlug } from './rwaSlug'
 
 type RWADefinitions = typeof rwaDefinitionsJson & {
