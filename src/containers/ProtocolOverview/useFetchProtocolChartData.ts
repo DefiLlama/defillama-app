@@ -18,6 +18,7 @@ import {
 	useFetchProtocolTransactions,
 	useFetchProtocolTVLChart
 } from '~/containers/ProtocolOverview/queries.client'
+import type { EmissionsChartRow } from '~/containers/Unlocks/api.types'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { firstDayOfMonth, lastDayOfWeek, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -121,7 +122,7 @@ const buildUsdInflowsFromTvlChart = (tvlChart: Array<[number, number | null]>): 
 	for (let i = 1; i < tvlChart.length; i++) {
 		const [timestamp, value] = tvlChart[i]
 		const previousValue = tvlChart[i - 1][1]
-		if (!Number.isFinite(value) || !Number.isFinite(previousValue)) continue
+		if (value == null || previousValue == null || !Number.isFinite(value) || !Number.isFinite(previousValue)) continue
 		inflows.push([Math.floor(timestamp / 1e3), value - previousValue])
 	}
 
@@ -161,11 +162,11 @@ export const useFetchProtocolChartData = ({
 
 	const denominationGeckoId = isRouterReady ? (selectedDenomination?.geckoId ?? null) : null
 	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } = useQuery<
-		Record<string, number>
+		Record<string, number> | null
 	>({
 		queryKey: ['protocol-overview', protocolSlug, 'denomination-price-history', denominationGeckoId],
 		queryFn: () =>
-			fetchJson(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`).then((res) => {
+			fetchJson(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`).then((res: { data?: { prices?: Array<[number, number]> } }) => {
 				if (!res.data?.prices?.length) return null
 				const store: Record<string, number> = {}
 				for (const [date, value] of res.data.prices) {
@@ -180,10 +181,10 @@ export const useFetchProtocolChartData = ({
 		enabled: !!denominationGeckoId
 	})
 
-	const { data: protocolTokenData = null, isLoading: fetchingProtocolTokenData } = useQuery<IDenominationPriceHistory>({
+	const { data: protocolTokenData = null, isLoading: fetchingProtocolTokenData } = useQuery<IDenominationPriceHistory | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'token-price-history', geckoId],
 		queryFn: () =>
-			fetchJson(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then((res) =>
+			fetchJson(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then((res: { data?: IDenominationPriceHistory }) =>
 				res.data?.prices?.length ? res.data : { prices: [], mcaps: [], volumes: [] }
 			),
 		staleTime: 60 * 60 * 1000,
@@ -199,15 +200,15 @@ export const useFetchProtocolChartData = ({
 		)
 	})
 
-	const { data: tokenTotalSupply = null, isLoading: fetchingTokenTotalSupply } = useQuery({
+	const { data: tokenTotalSupply = null, isLoading: fetchingTokenTotalSupply } = useQuery<number | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'token-supply', geckoId],
-		queryFn: () => fetchJson(`${CACHE_SERVER}/supply/${geckoId}`).then((res) => res.data?.['total_supply']),
+		queryFn: () => fetchJson(`${CACHE_SERVER}/supply/${geckoId}`).then((res: { data?: { total_supply?: number } }) => res.data?.['total_supply'] ?? null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: !!(geckoId && toggledMetrics.fdv === 'true' && isRouterReady)
 	})
-	const { data: tokenLiquidityData = null, isLoading: fetchingTokenLiquidity } = useQuery({
+	const { data: tokenLiquidityData = null, isLoading: fetchingTokenLiquidity } = useQuery<Array<[string | number, number]> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'token-liquidity', protocolId],
 		queryFn: () => fetchJson(`${TOKEN_LIQUIDITY_API}/${protocolId.replaceAll('#', '$')}`).catch(() => null),
 		staleTime: 60 * 60 * 1000,
@@ -312,7 +313,7 @@ export const useFetchProtocolChartData = ({
 	)
 
 	const isFeesEnabled = !!(toggledMetrics.fees === 'true' && metrics.fees && isRouterReady)
-	const { data: feesDataChart = null, isLoading: fetchingFees } = useQuery<Array<[number, number]>>({
+	const { data: feesDataChart = null, isLoading: fetchingFees } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'fees'],
 		queryFn: () =>
 			isFeesEnabled
@@ -328,7 +329,7 @@ export const useFetchProtocolChartData = ({
 	})
 
 	const isRevenueEnabled = !!(toggledMetrics.revenue === 'true' && metrics.revenue && isRouterReady)
-	const { data: revenueDataChart = null, isLoading: fetchingRevenue } = useQuery<Array<[number, number]>>({
+	const { data: revenueDataChart = null, isLoading: fetchingRevenue } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'revenue'],
 		queryFn: () =>
 			isRevenueEnabled
@@ -349,8 +350,9 @@ export const useFetchProtocolChartData = ({
 		(metrics.fees || metrics.revenue) &&
 		isRouterReady
 	)
-	const { data: holdersRevenueDataChart = null, isLoading: fetchingHoldersRevenue } = useQuery<Array<[number, number]>>(
-		{
+	const { data: holdersRevenueDataChart = null, isLoading: fetchingHoldersRevenue } = useQuery<
+		Array<[number, number]> | null
+	>({
 			queryKey: ['protocol-overview', protocolSlug, 'holders-revenue'],
 			queryFn: () =>
 				isHoldersRevenueEnabled
@@ -373,7 +375,7 @@ export const useFetchProtocolChartData = ({
 		metrics.bribes &&
 		isRouterReady
 	)
-	const { data: bribesDataChart = null, isLoading: fetchingBribes } = useQuery<Array<[number, number]>>({
+	const { data: bribesDataChart = null, isLoading: fetchingBribes } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'bribes'],
 		queryFn: () =>
 			isBribesEnabled
@@ -395,7 +397,7 @@ export const useFetchProtocolChartData = ({
 		metrics.tokenTax &&
 		isRouterReady
 	)
-	const { data: tokenTaxesDataChart = null, isLoading: fetchingTokenTaxes } = useQuery<Array<[number, number]>>({
+	const { data: tokenTaxesDataChart = null, isLoading: fetchingTokenTaxes } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'token-taxes'],
 		queryFn: () =>
 			isTokenTaxesEnabled
@@ -412,7 +414,7 @@ export const useFetchProtocolChartData = ({
 	})
 
 	const isDexVolumeEnabled = !!(toggledMetrics.dexVolume === 'true' && metrics.dexs && isRouterReady)
-	const { data: dexVolumeDataChart = null, isLoading: fetchingDexVolume } = useQuery<Array<[number, number]>>({
+	const { data: dexVolumeDataChart = null, isLoading: fetchingDexVolume } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'dex-volume'],
 		queryFn: () =>
 			isDexVolumeEnabled
@@ -428,7 +430,7 @@ export const useFetchProtocolChartData = ({
 	})
 
 	const isPerpsVolumeEnabled = !!(toggledMetrics.perpVolume === 'true' && metrics.perps && isRouterReady)
-	const { data: perpsVolumeDataChart = null, isLoading: fetchingPerpVolume } = useQuery<Array<[number, number]>>({
+	const { data: perpsVolumeDataChart = null, isLoading: fetchingPerpVolume } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'perp-volume'],
 		queryFn: () =>
 			isPerpsVolumeEnabled
@@ -444,7 +446,7 @@ export const useFetchProtocolChartData = ({
 	})
 
 	const isOpenInterestEnabled = !!(toggledMetrics.openInterest === 'true' && metrics.openInterest && isRouterReady)
-	const { data: openInterestDataChart = null, isLoading: fetchingOpenInterest } = useQuery<Array<[number, number]>>({
+	const { data: openInterestDataChart = null, isLoading: fetchingOpenInterest } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'open-interest'],
 		queryFn: () =>
 			isOpenInterestEnabled
@@ -466,7 +468,7 @@ export const useFetchProtocolChartData = ({
 		isRouterReady
 	)
 	const { data: optionsPremiumVolumeDataChart = null, isLoading: fetchingOptionsPremiumVolume } = useQuery<
-		Array<[number, number]>
+		Array<[number, number]> | null
 	>({
 		queryKey: ['protocol-overview', protocolSlug, 'options-premium-volume'],
 		queryFn: () =>
@@ -489,7 +491,7 @@ export const useFetchProtocolChartData = ({
 		isRouterReady
 	)
 	const { data: optionsNotionalVolumeDataChart = null, isLoading: fetchingOptionsNotionalVolume } = useQuery<
-		Array<[number, number]>
+		Array<[number, number]> | null
 	>({
 		queryKey: ['protocol-overview', protocolSlug, 'options-notional-volume'],
 		queryFn: () =>
@@ -512,7 +514,7 @@ export const useFetchProtocolChartData = ({
 		isRouterReady
 	)
 	const { data: dexAggregatorsVolumeDataChart = null, isLoading: fetchingDexAggregatorVolume } = useQuery<
-		Array<[number, number]>
+		Array<[number, number]> | null
 	>({
 		queryKey: ['protocol-overview', protocolSlug, 'dex-aggregator-volume'],
 		queryFn: () =>
@@ -534,7 +536,7 @@ export const useFetchProtocolChartData = ({
 		isRouterReady
 	)
 	const { data: perpsAggregatorsVolumeDataChart = null, isLoading: fetchingPerpAggregatorVolume } = useQuery<
-		Array<[number, number]>
+		Array<[number, number]> | null
 	>({
 		queryKey: ['protocol-overview', protocolSlug, 'perp-aggregator-volume'],
 		queryFn: () =>
@@ -556,7 +558,7 @@ export const useFetchProtocolChartData = ({
 		isRouterReady
 	)
 	const { data: bridgeAggregatorsVolumeDataChart = null, isLoading: fetchingBridgeAggregatorVolume } = useQuery<
-		Array<[number, number]>
+		Array<[number, number]> | null
 	>({
 		queryKey: ['protocol-overview', protocolSlug, 'bridge-aggregator-volume'],
 		queryFn: () =>
@@ -577,9 +579,24 @@ export const useFetchProtocolChartData = ({
 		(metrics.unlocks || metrics.incentives) &&
 		isRouterReady
 	)
-	const { data: unlocksAndIncentivesData = null, isLoading: fetchingUnlocksAndIncentives } = useQuery({
+	const { data: unlocksAndIncentivesData = null, isLoading: fetchingUnlocksAndIncentives } = useQuery<{
+		chartData: { documented: Array<EmissionsChartRow>; realtime: Array<EmissionsChartRow> }
+		unlockUsdChart: Array<[string | number, number]> | null
+	} | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'unlocks'],
-		queryFn: () => (isUnlocksEnabled ? getProtocolEmissionsCharts(slug(name)) : Promise.resolve(null)),
+		queryFn: async () => {
+			if (!isUnlocksEnabled) return null
+			const result = await getProtocolEmissionsCharts(slug(name))
+			return {
+				...result,
+				unlockUsdChart: Array.isArray(result.unlockUsdChart)
+					? result.unlockUsdChart.map((item): [string | number, number] => {
+							const arr = Array.isArray(item) ? item : [0, 0]
+							return [Number(arr[0]), Number(arr[1])]
+						})
+					: null
+			}
+		},
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -587,11 +604,11 @@ export const useFetchProtocolChartData = ({
 	})
 
 	const isTreasuryEnabled = !!(toggledMetrics.treasury === 'true' && metrics.treasury && isRouterReady)
-	const { data: treasuryData = null, isLoading: fetchingTreasury } = useQuery({
+	const { data: treasuryData = null, isLoading: fetchingTreasury } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'treasury'],
 		queryFn: () =>
 			isTreasuryEnabled
-				? fetchJson(`${PROTOCOL_TREASURY_API}/${slug(name)}`).then((data) => {
+				? fetchJson(`${PROTOCOL_TREASURY_API}/${slug(name)}`).then((data: { chainTvls: Record<string, { tvl?: Array<{ date: string; totalLiquidityUSD?: number }> }> }) => {
 						const store: Record<string, number> = {}
 						for (const chain in data.chainTvls) {
 							if (chain.includes('-')) continue
@@ -629,12 +646,12 @@ export const useFetchProtocolChartData = ({
 	const fetchingUsdInflows = false
 
 	const isBridgeVolumeEnabled = !!(toggledMetrics.bridgeVolume === 'true' && isRouterReady)
-	const { data: bridgeVolumeData = null, isLoading: fetchingBridgeVolume } = useQuery({
+	const { data: bridgeVolumeData = null, isLoading: fetchingBridgeVolume } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'bridge-volume'],
 		queryFn: () =>
 			isBridgeVolumeEnabled
 				? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(name)}`)
-						.then((data) => {
+						.then((data: { dailyVolumes: Array<{ date: string; depositUSD: number; withdrawUSD: number }> }) => {
 							const store: Record<string, number> = {}
 							for (const item of data.dailyVolumes) {
 								store[item.date] = (store[item.date] ?? 0) + (item.depositUSD + item.withdrawUSD) / 2
@@ -681,17 +698,17 @@ export const useFetchProtocolChartData = ({
 	)
 
 	const isNftVolumeEnabled = !!(toggledMetrics.nftVolume === 'true' && metrics.nfts && isRouterReady)
-	const { data: nftVolumeData = null, isLoading: fetchingNftVolume } = useQuery({
+	const { data: nftVolumeData = null, isLoading: fetchingNftVolume } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'nft-volume'],
 		queryFn: () =>
 			isNftVolumeEnabled
 				? fetchJson(NFT_MARKETPLACES_VOLUME_API, { timeout: 10_000 })
-						.then((r) =>
+						.then((r: Array<{ exchangeName: string; day: string; sumUsd: number }>) =>
 							r
 								.filter((item) => slug(item.exchangeName) === slug(name))
-								.map(({ day, sumUsd }) => [new Date(day).getTime(), sumUsd])
+								.map(({ day, sumUsd }): [number, number] => [new Date(day).getTime(), sumUsd])
 						)
-						.catch(() => [])
+						.catch((): Array<[number, number]> => [])
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -799,9 +816,9 @@ export const useFetchProtocolChartData = ({
 					dateInMs: true,
 					denominationPriceHistory
 				})
-			if (isFdvToggled && Number.isFinite(tokenTotalSupply))
+			if (isFdvToggled && tokenTotalSupply != null && Number.isFinite(tokenTotalSupply))
 				charts['FDV'] = formatLineChart({
-					data: protocolTokenData.prices.map(([date, price]) => [date, price * (tokenTotalSupply as number)]),
+					data: protocolTokenData.prices.map(([date, price]): [number, number] => [date, price * tokenTotalSupply]),
 					groupBy,
 					dateInMs: true,
 					denominationPriceHistory
@@ -955,13 +972,16 @@ export const useFetchProtocolChartData = ({
 				denominationPriceHistory
 			})
 
-		if (isUnlocksToggled && unlocksAndIncentivesData?.chartData?.documented.length > 0) {
+		if (isUnlocksToggled && unlocksAndIncentivesData?.chartData?.documented && unlocksAndIncentivesData.chartData.documented.length > 0) {
 			const store: Record<string, number> = {}
 			for (const { timestamp, ...rest } of unlocksAndIncentivesData.chartData.documented) {
 				const dateSec = Math.floor(timestamp / 1e3)
 				const dateKey = isWeekly ? lastDayOfWeek(dateSec) : isMonthly ? firstDayOfMonth(dateSec) : dateSec
 				let total = 0
-				for (const label in rest) total += rest[label]
+				for (const label in rest) {
+					const val = rest[label]
+					if (val != null) total += val
+				}
 				store[dateKey] = (store[dateKey] ?? 0) + total
 			}
 			charts['Unlocks'] = Object.entries(store).map(([date, value]) => [+date * 1e3, value] as [number, number])
@@ -992,7 +1012,7 @@ export const useFetchProtocolChartData = ({
 
 		if (medianAPYData)
 			charts['Median APY'] = formatLineChart({
-				data: medianAPYData.map((item) => [+item.date * 1e3, item.medianAPY]),
+				data: medianAPYData.map((item): [number, number] => [+item.date * 1e3, Number((item as Record<string, unknown>)['medianAPY']) || 0]),
 				groupBy,
 				dateInMs: true,
 				denominationPriceHistory: null
@@ -1010,7 +1030,7 @@ export const useFetchProtocolChartData = ({
 				}
 				for (const item of gItem.maxVotes ?? []) {
 					const date = Math.floor(+item.date / 86400) * 86400
-					maxVotes[date] = (maxVotes[date] ?? 0) + (item['Max Votes'] || 0)
+					maxVotes[date] = (maxVotes[date] ?? 0) + (Number(item['Max Votes']) || 0)
 				}
 			}
 			charts['Total Proposals'] = Object.entries(totalProposals).map(
@@ -1031,21 +1051,21 @@ export const useFetchProtocolChartData = ({
 			})
 		if (activeAddressesData && isActiveAddressesToggled)
 			charts['Active Addresses'] = formatBarChart({
-				data: activeAddressesData,
+				data: activeAddressesData.map((item): [number, number] => [item[0], item[1]]),
 				groupBy,
 				denominationPriceHistory: null,
 				dateInMs: true
 			})
 		if (newAddressesData && isNewAddressesToggled)
 			charts['New Addresses'] = formatBarChart({
-				data: newAddressesData,
+				data: newAddressesData.map((item): [number, number] => [item[0], item[1]]),
 				groupBy,
 				denominationPriceHistory: null,
 				dateInMs: true
 			})
 		if (transactionsData && isTransactionsToggled)
 			charts['Transactions'] = formatBarChart({
-				data: transactionsData,
+				data: transactionsData.map((item): [number, number] => [item[0], item[1]]),
 				groupBy,
 				denominationPriceHistory: null,
 				dateInMs: true

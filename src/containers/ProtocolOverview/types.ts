@@ -43,7 +43,7 @@ interface IAdapterOverview {
 	methodology?: string | null
 	methodologyURL?: string | null
 	breakdownMethodology?: Record<string, string> | null
-	childMethodologies?: Array<[string, string | null, string | null, Record<string, string> | null]>
+	childMethodologies?: Array<[string, string | null, string | null]>
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
 }
 
@@ -172,7 +172,7 @@ export interface IProtocolOverviewPageData {
 			Record<string, Record<string, { value: number; 'by-label': Record<string, number> }>> & { timestamp?: number }
 		>
 		labelsByType: Record<string, Array<string>>
-		methodology: string
+		methodology: Record<string, string>
 		breakdownMethodology: Record<string, Record<string, string>>
 		hasOtherTokenHolderFlows: boolean
 	} | null

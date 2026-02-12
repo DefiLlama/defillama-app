@@ -74,6 +74,14 @@ export function Select({
 		? (value: string) =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), [value], defaultSelectedValues)
 		: (value: string) => setSelectedValuesProp([value])
+	const toggleMultiValue = (value: string) => {
+		const currentValues = Array.isArray(selectedValues) ? selectedValues : selectedValues ? [selectedValues] : []
+		if (currentValues.includes(value)) {
+			setSelectedValues(currentValues.filter((currentValue) => currentValue !== value))
+			return
+		}
+		setSelectedValues([...currentValues, value])
+	}
 
 	const [viewableMatches, setViewableMatches] = React.useState(6)
 
@@ -121,7 +129,22 @@ export function Select({
 					{allValues.slice(0, viewableMatches).map((option) => (
 						<NestedMenuItem
 							key={valuesAreAnArrayOfStrings ? option : option.key}
-							render={<Ariakit.SelectItem value={valuesAreAnArrayOfStrings ? option : option.key} />}
+							render={
+								<Ariakit.SelectItem
+									value={valuesAreAnArrayOfStrings ? option : option.key}
+									setValueOnClick={!showCheckboxes}
+									hideOnClick={!showCheckboxes}
+									onClick={
+										showCheckboxes
+											? (event) => {
+													event.preventDefault()
+													event.stopPropagation()
+													toggleMultiValue(valuesAreAnArrayOfStrings ? option : option.key)
+												}
+											: undefined
+									}
+								/>
+							}
 							hideOnClick={false}
 							className="flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 						>
@@ -230,6 +253,17 @@ export function Select({
 							<Ariakit.SelectItem
 								key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
 								value={valuesAreAnArrayOfStrings ? option : option.key}
+								setValueOnClick={!showCheckboxes}
+								hideOnClick={!showCheckboxes}
+								onClick={
+									showCheckboxes
+										? (event) => {
+												event.preventDefault()
+												event.stopPropagation()
+												toggleMultiValue(valuesAreAnArrayOfStrings ? option : option.key)
+											}
+										: undefined
+								}
 								className="group flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 							>
 								{valuesAreAnArrayOfStrings ? (

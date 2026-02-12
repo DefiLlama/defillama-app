@@ -34,7 +34,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 
 	const { tvl, tvlByChain, oracleTvs, oracleTvsByChain, toggleOptions } = useFinalTVL(props)
 
-	const { data: chainPrice, isLoading: fetchingChainPrice } = useGetTokenPrice(props.chartDenominations?.[1]?.geckoId)
+	const { data: chainPrice, isLoading: fetchingChainPrice } = useGetTokenPrice(props.chartDenominations?.[1]?.geckoId ?? undefined)
 
 	const formatPrice = (value?: number | string | null): string | number | null => {
 		if (Number.isNaN(Number(value))) return null
@@ -56,8 +56,8 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 		<ProtocolOverviewLayout
 			isCEX={props.isCEX}
 			name={props.name}
-			category={props.category}
-			otherProtocols={props.otherProtocols}
+			category={props.category ?? ''}
+			otherProtocols={props.otherProtocols ?? undefined}
 			toggleOptions={toggleOptions}
 			metrics={props.metrics}
 			warningBanners={props.warningBanners}
@@ -168,7 +168,7 @@ function ProtocolHeader({
 					hasTvl={props.metrics.tvl}
 					value={tvl}
 					name={props.name}
-					category={props.category === 'Oracle' ? null : props.category}
+					category={props.category === 'Oracle' ? '' : (props.category ?? '')}
 					valueByChain={tvlByChain}
 					formatPrice={formatPrice}
 				/>
@@ -182,12 +182,13 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 
 	return useMemo(() => {
 		let tvl = 0
-		const tvlByChainMap = {}
-		let toggleOptions = []
+		const tvlByChainMap: Record<string, number> = {}
+		let toggleOptions: Array<{ name: string; key: string }> = []
 		let oracleTvs = 0
-		const oracleTvsByChainMap = {}
+		const oracleTvsByChainMap: Record<string, number> = {}
 
-		for (const chain in props.currentTvlByChain ?? {}) {
+		const currentTvlByChain = props.currentTvlByChain ?? {}
+		for (const chain in currentTvlByChain) {
 			if (isTvlSettingsKey(chain)) {
 				const option = tvlOptionsMap.get(chain)
 				if (option) {
@@ -199,13 +200,13 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 			const [chainName, extraTvlKey] = chain.split('-')
 
 			if (!extraTvlKey) {
-				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + props.currentTvlByChain[chain]
+				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + currentTvlByChain[chain]
 				continue
 			}
 
 			const normalizedExtraKey = extraTvlKey.toLowerCase()
 			if (isTvlSettingsKey(normalizedExtraKey) && extraTvlsEnabled[normalizedExtraKey]) {
-				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + props.currentTvlByChain[chain]
+				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + currentTvlByChain[chain]
 				continue
 			}
 		}
@@ -215,7 +216,8 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 		}
 
 		// Process oracle TVS by chain
-		for (const chain in props.oracleTvs ?? {}) {
+		const oracleTvsData = props.oracleTvs ?? {}
+		for (const chain in oracleTvsData) {
 			if (isTvlSettingsKey(chain)) {
 				const option = tvlOptionsMap.get(chain)
 				if (option) {
@@ -229,13 +231,13 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 			const [chainName, extraTvlKey] = chain.split('-')
 
 			if (!extraTvlKey) {
-				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + props.oracleTvs[chain]
+				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + oracleTvsData[chain]
 				continue
 			}
 
 			const normalizedExtraKey = extraTvlKey.toLowerCase()
 			if (isTvlSettingsKey(normalizedExtraKey) && extraTvlsEnabled[normalizedExtraKey]) {
-				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + props.oracleTvs[chain]
+				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + oracleTvsData[chain]
 				continue
 			}
 		}
@@ -367,8 +369,10 @@ interface IKeyMetricsProps extends IProtocolOverviewPageData {
 	computedOracleTvs?: number
 }
 
+type AdapterOverviewKey = 'dexVolume' | 'dexAggregatorVolume' | 'perpVolume' | 'perpAggregatorVolume' | 'bridgeAggregatorVolume' | 'optionsPremiumVolume' | 'optionsNotionalVolume'
+
 interface StandardMetricConfig {
-	dataProp: string
+	dataProp: AdapterOverviewKey
 	definitionKey: string
 	label: string
 	dataType: string
@@ -414,7 +418,10 @@ function buildStandardVolumeMetrics(
 	definitionKey: string,
 	label: string
 ) {
-	const defs = definitions[definitionKey]?.protocol
+	const entry = (definitions as Record<string, unknown>)[definitionKey]
+	const defs = typeof entry === 'object' && entry !== null && 'protocol' in entry
+		? (entry as { protocol: Record<string, string> }).protocol
+		: undefined
 	const metrics = []
 
 	if (data.total30d != null) {
@@ -475,7 +482,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 
 	const isOracleProtocol = props.oracleTvs != null
 	const primaryValue = isOracleProtocol ? props.computedOracleTvs : props.tvl
-	const { title: primaryLabel } = getPrimaryValueLabelType(isOracleProtocol ? 'Oracle' : props.category)
+	const { title: primaryLabel } = getPrimaryValueLabelType(isOracleProtocol ? 'Oracle' : (props.category ?? ''))
 
 	const hasTvlData = isOracleProtocol
 		? props.oracleTvs != null
@@ -504,12 +511,12 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				/>
 			</div>
 			<div className="flex flex-col" ref={containerRef}>
-				{props.oracleTvs ? <TVL formatPrice={props.formatPrice} {...props} /> : null}
-				<Fees formatPrice={props.formatPrice} {...props} />
-				<Revenue formatPrice={props.formatPrice} {...props} />
-				<HoldersRevenue formatPrice={props.formatPrice} {...props} />
-				<Incentives formatPrice={props.formatPrice} {...props} />
-				<Earnings formatPrice={props.formatPrice} {...props} />
+				{props.oracleTvs ? <TVL {...props} /> : null}
+				<Fees {...props} />
+				<Revenue {...props} />
+				<HoldersRevenue {...props} />
+				<Incentives {...props} />
+				<Earnings {...props} />
 				{STANDARD_METRICS.map((config) => {
 					const data = props[config.dataProp]
 					if (!data) return null
@@ -543,8 +550,8 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 						dataType="Open Interest"
 					/>
 				) : null}
-				<BridgeVolume formatPrice={props.formatPrice} {...props} />
-				<TokenCGData formatPrice={props.formatPrice} {...props} />
+				<BridgeVolume {...props} />
+				<TokenCGData {...props} />
 				{props.currentTvlByChain?.staking != null ? (
 					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 						<span className="text-(--text-label)">Staked</span>
@@ -914,7 +921,7 @@ function Earnings(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	if (earnings30d) {
+	if (earnings30d != null) {
 		metrics.push({
 			name: 'Earnings (Annualized)',
 			tooltipContent: definitions.earnings.protocol['annualized'],
@@ -1275,7 +1282,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 									{props.tokenCGData.volume24h.dex ? props.formatPrice(props.tokenCGData.volume24h.dex) : '-'}
 								</span>
 								<span className="text-xs text-(--text-label)">
-									({formattedNum((props.tokenCGData.volume24h.dex / props.tokenCGData.volume24h.total) * 100)}% of
+									({formattedNum(((props.tokenCGData.volume24h.dex ?? 0) / (props.tokenCGData.volume24h.total ?? 1)) * 100)}% of
 									total)
 								</span>
 							</span>
@@ -1642,7 +1649,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 								key={`${props.name}-github-${github}`}
 							>
 								<Icon name="github" className="h-3 w-3" />
-								<span>{props.github.length === 1 ? 'GitHub' : github}</span>
+								<span>{props.github?.length === 1 ? 'GitHub' : github}</span>
 							</a>
 						))
 					: null}
@@ -1803,7 +1810,7 @@ const MethodologyByAdapter = ({
 	)
 }
 
-function _Unlocks(props: IProtocolOverviewPageData) {
+export function _Unlocks(props: IProtocolOverviewPageData) {
 	const unlocks = props.unlocks
 	if (!unlocks) return null
 	return (
@@ -1846,7 +1853,7 @@ function _Unlocks(props: IProtocolOverviewPageData) {
 	)
 }
 
-function _Governance(props: IProtocolOverviewPageData) {
+export function _Governance(props: IProtocolOverviewPageData) {
 	const governance = props.governance
 	if (!governance) return null
 	return (

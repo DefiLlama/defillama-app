@@ -4,10 +4,21 @@ import { LocalLoader } from '~/components/Loaders'
 import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { useVolatility } from '~/containers/Yields/queries/client'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
+
 import { slug } from '~/utils'
 import { sluggifyProtocol } from '~/utils/cache-client'
 
-export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }) {
+export function ProtocolPools({
+	protocol,
+	data,
+	parentProtocol,
+	otherProtocols
+}: {
+	protocol: string
+	data: { noOfPoolsTracked: number | null; averageAPY: number | null } | null
+	parentProtocol?: string
+	otherProtocols?: Array<string>
+}) {
 	const protocolSlug = slug(protocol)
 	const { data: volatility } = useVolatility()
 	
@@ -24,7 +35,7 @@ export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }
 						?.filter(
 							(p) =>
 								p.project === protocolSlug ||
-								(parentProtocol ? false : otherProtocols?.map((p) => sluggifyProtocol(p)).includes(p.project))
+								(parentProtocol ? false : otherProtocols?.map((op) => sluggifyProtocol(op)).includes(p.project))
 						)
 						.map((i) => ({
 							...i,
@@ -63,7 +74,7 @@ export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }
 					<p className="flex items-center gap-2">
 						<span>Average APY</span>
 						<span>:</span>
-						<span>{data?.averageAPY.toFixed(2)}%</span>
+						<span>{data?.averageAPY?.toFixed(2)}%</span>
 					</p>
 
 					{isLoading ? (
@@ -75,7 +86,7 @@ export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }
 							<p className="p-2">{error instanceof Error ? error.message : 'Failed to fetch'}</p>
 						</div>
 					) : (
-						<YieldsPoolsTable data={poolsWithVolatility} />
+						<YieldsPoolsTable data={poolsWithVolatility ?? []} />
 					)}
 				</div>
 			</div>

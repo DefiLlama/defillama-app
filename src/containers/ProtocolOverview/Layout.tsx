@@ -152,7 +152,7 @@ export function ProtocolOverviewLayout({
 			keywords={seoKeywords || `${name.toLowerCase()} defillama`}
 			canonicalUrl={`/protocol/${slug(name)}`}
 			metricFilters={toggleOptions}
-			metricFiltersLabel={metricFiltersLabel}
+			metricFiltersLabel={metricFiltersLabel ?? undefined}
 		>
 			{(category === 'Uncollateralized Lending' || category === 'RWA Lending') && (
 				<p className="relative rounded-md border border-(--bg-color) bg-(--btn-bg) p-2 text-center text-xs text-black dark:text-white">
@@ -187,11 +187,11 @@ export function ProtocolOverviewLayout({
 
 			<div className="isolate flex flex-1 flex-col gap-2">
 				<div className="flex w-full overflow-x-auto text-xs font-medium">
-					{otherProtocols?.length > 1 ? (
+					{(otherProtocols?.length ?? 0) > 1 ? (
 						<Ariakit.MenuProvider>
 							<Ariakit.MenuButton className="mr-4 flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
 								<TokenLogo logo={tokenIconUrl(name)} size={16} />
-								<span className="whitespace-nowrap">{name === otherProtocols[0] ? `${name} (Combined)` : name}</span>
+								<span className="whitespace-nowrap">{name === otherProtocols?.[0] ? `${name} (Combined)` : name}</span>
 								<Ariakit.MenuButtonArrow />
 							</Ariakit.MenuButton>
 							<Ariakit.Menu
@@ -208,7 +208,7 @@ export function ProtocolOverviewLayout({
 									<Icon name="x" className="h-5 w-5" />
 								</Ariakit.PopoverDismiss>
 
-								{otherProtocols.map((value, i) => {
+								{otherProtocols?.map((value, i) => {
 									return (
 										<Ariakit.MenuItem
 											key={`navigate to /protocol/${slug(value)}`}

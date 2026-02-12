@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import * as React from 'react'
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
@@ -21,7 +22,7 @@ export function Flag({
 	const dialogStore = Ariakit.useDialogStore()
 	const successDialogStore = Ariakit.useDialogStore()
 
-	const onSubmit = async (e) => {
+	const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 		setError(false)
 		setLoading(true)

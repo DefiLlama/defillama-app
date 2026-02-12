@@ -1,5 +1,6 @@
 import { PEGGEDS_API } from '~/constants'
 import type { IProtocolMetricsV2, IRaise } from '~/containers/ProtocolOverview/types'
+import type { IProtocolWarningBanner } from './api.types'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 
 export const formatRaise = (raise: Omit<IRaise, 'defillamaId'>) => {
@@ -54,7 +55,7 @@ export const getProtocolWarningBanners = (protocolData: IProtocolMetricsV2) => {
 	}
 
 	const warningBanners = protocolData.warningBanners ?? []
-	const banners = []
+	const banners: IProtocolWarningBanner[] = []
 	for (const banner of warningBanners) {
 		if (!banner.until || banner.until === 'forever') {
 			banners.push(banner)
@@ -75,13 +76,13 @@ export const getProtocolWarningBanners = (protocolData: IProtocolMetricsV2) => {
 	if (protocolData.rugged && protocolData.deadUrl) {
 		banners.push({
 			message: 'This protocol rug pulled user funds, their website is down.',
-			level: 'rug'
+			level: 'rug' as const
 		})
 	} else {
 		if (protocolData.rugged) {
 			banners.push({
 				message: 'This protocol rug pulled user funds.',
-				level: 'rug'
+				level: 'rug' as const
 			})
 		}
 	}

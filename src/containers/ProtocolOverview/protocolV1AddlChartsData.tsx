@@ -329,7 +329,7 @@ function accumulateTokenFlows({
 
 // build unique tokens based on top 10 tokens in usd value on each day
 // also includes tokens with significant flows (outflows/inflows > $100M)
-function getUniqueTokens({ chainTvls, extraTvlsEnabled }) {
+function getUniqueTokens({ chainTvls, extraTvlsEnabled }: { chainTvls: ChainTvls; extraTvlsEnabled: Record<string, boolean> }) {
 	const tokenSet: Set<string> = new Set()
 	const tokenFlows: Map<string, number> = new Map()
 	const SIGNIFICANT_FLOW_THRESHOLD = 100_000_000 // $100M
@@ -412,9 +412,16 @@ function storeTokensBreakdown({
 	tokensUniqueSet,
 	directory,
 	hideBigTokens = false,
-	dateToTokensInUsd = null as Map<number, Record<string, number>> | null
+	dateToTokensInUsd = null
+}: {
+	date: number
+	tokens: Record<string, number>
+	tokensUniqueSet: Set<string>
+	directory: Record<string | number, Record<string, number>>
+	hideBigTokens?: boolean
+	dateToTokensInUsd?: Map<number, Record<string, number>> | null
 }) {
-	const tokensOfTheDay = {}
+	const tokensOfTheDay: Record<string, number> = {}
 	// filters tokens that have no name or their value is near zero
 	for (const token in tokens) {
 		if (token.startsWith('UNKNOWN') || tokens[token] < 1) continue
@@ -441,7 +448,7 @@ function storeTokensBreakdown({
 		tokensOfTheDay[token] = tokens[token]
 	}
 
-	const tokensToShow = {}
+	const tokensToShow: Record<string, number> = {}
 	let remainingTokensSum = 0
 
 	// split tokens of the day into tokens present in top 10 tokens list and add tvl of remaining tokens into category named 'Others'
@@ -458,19 +465,19 @@ function storeTokensBreakdown({
 		tokensToShow['Others'] = remainingTokensSum
 	}
 
-	const dir = { date, ...(directory[date] ?? {}) }
+	const dir: Record<string, number> = { date, ...(directory[date] ?? {}) }
 
 	for (const token in tokensToShow) {
-		dir[token] = (dir[token] || 0) + tokensToShow[token]
+		dir[token] = (dir[token] ?? 0) + tokensToShow[token]
 	}
 
 	directory[date] = dir
 }
 
-function buildProtocolV1TokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
-	const tokensInUsd = {}
-	const rawTokens = {}
-	const tokensUniqueSet = new Set(tokensUnique)
+function buildProtocolV1TokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }: { chainTvls: ChainTvls; extraTvlsEnabled: Record<string, boolean>; tokensUnique: string[] }) {
+	const tokensInUsd: Record<string, Record<string, number>> = {}
+	const rawTokens: Record<string, Record<string, number>> = {}
+	const tokensUniqueSet = new Set<string>(tokensUnique)
 
 	for (const chain in chainTvls) {
 		const name = chain.toLowerCase()
@@ -559,10 +566,11 @@ export const buildProtocolV1AddlChartsData = ({
 	let chainTvls = protocolData.chainTvls ?? {}
 	if (isBorrowed) {
 		chainTvls = {}
-		for (const chain in protocolData.chainTvls ?? {}) {
+		const sourceTvls = protocolData.chainTvls ?? {}
+		for (const chain in sourceTvls) {
 			if (chain.endsWith('-borrowed')) {
 				const chainName = chain.split('-')[0]
-				chainTvls[chainName] = protocolData.chainTvls[chain]
+				chainTvls[chainName] = sourceTvls[chain]
 			}
 		}
 	}
@@ -656,11 +664,12 @@ export const useFetchProtocolV1AddlChartsData = (
 
 	const historicalChainTvls = useMemo(() => {
 		if (isBorrowed) {
-			const chainTvls = {}
-			for (const chain in addlProtocolData?.chainTvls ?? {}) {
+			const chainTvls: ChainTvls = {}
+			const sourceTvls = addlProtocolData?.chainTvls ?? {}
+			for (const chain in sourceTvls) {
 				if (chain.endsWith('-borrowed')) {
 					const chainName = chain.split('-')[0]
-					chainTvls[chainName] = addlProtocolData?.chainTvls[chain]
+					chainTvls[chainName] = sourceTvls[chain]
 				}
 			}
 			return chainTvls
