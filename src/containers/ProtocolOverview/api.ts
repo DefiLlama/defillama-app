@@ -20,13 +20,6 @@ const appendOptionalQueryParams = (url: string, params: Pick<IProtocolChartV2Par
 		: `${parsedUrl.pathname}${parsedUrl.search}`
 }
 
-const normalizeTimestampToMs = (timestamp: unknown): number | null => {
-	const numericTimestamp = Number(timestamp)
-	if (!Number.isFinite(numericTimestamp)) return null
-	return numericTimestamp < 1e12 ? numericTimestamp * 1e3 : numericTimestamp
-}
-
-// TODO need to update on server
 const normalizeProtocolValueChart = (values: unknown): IProtocolValueChart | null => {
 	if (!Array.isArray(values)) return null
 
@@ -35,17 +28,16 @@ const normalizeProtocolValueChart = (values: unknown): IProtocolValueChart | nul
 		if (!Array.isArray(item) || item.length < 2) continue
 
 		const [timestamp, value] = item
-		const timestampMs = normalizeTimestampToMs(timestamp)
+		const numericTimestamp = Number(timestamp)
 		const numericValue = Number(value)
-		if (timestampMs == null || !Number.isFinite(numericValue)) continue
+		if (!Number.isFinite(numericTimestamp) || !Number.isFinite(numericValue)) continue
 
-		points.push([timestampMs, numericValue])
+		points.push([numericTimestamp * 1e3, numericValue])
 	}
 
 	return points.sort((a, b) => a[0] - b[0])
 }
 
-// TODO need to update on server
 const normalizeProtocolChainBreakdownChart = (values: unknown): IProtocolChainBreakdownChart | null => {
 	if (!Array.isArray(values)) return null
 
@@ -54,15 +46,14 @@ const normalizeProtocolChainBreakdownChart = (values: unknown): IProtocolChainBr
 		if (!Array.isArray(item) || item.length < 2) continue
 
 		const [timestamp, value] = item
-		const timestampMs = normalizeTimestampToMs(timestamp)
-		if (timestampMs == null || !value || typeof value !== 'object' || Array.isArray(value)) continue
-		points.push([timestampMs, value as IProtocolChainBreakdownValue])
+		const numericTimestamp = Number(timestamp)
+		if (!Number.isFinite(numericTimestamp) || !value || typeof value !== 'object' || Array.isArray(value)) continue
+		points.push([numericTimestamp * 1e3, value as IProtocolChainBreakdownValue])
 	}
 
 	return points.sort((a, b) => a[0] - b[0])
 }
 
-// TODO need to update on server
 const normalizeProtocolTokenBreakdownChart = (values: unknown): IProtocolTokenBreakdownChart | null => {
 	if (!Array.isArray(values)) return null
 
@@ -71,9 +62,9 @@ const normalizeProtocolTokenBreakdownChart = (values: unknown): IProtocolTokenBr
 		if (!Array.isArray(item) || item.length < 2) continue
 
 		const [timestamp, value] = item
-		const timestampMs = normalizeTimestampToMs(timestamp)
-		if (timestampMs == null || !value || typeof value !== 'object' || Array.isArray(value)) continue
-		points.push([timestampMs, value as IProtocolTokenBreakdownValue])
+		const numericTimestamp = Number(timestamp)
+		if (!Number.isFinite(numericTimestamp) || !value || typeof value !== 'object' || Array.isArray(value)) continue
+		points.push([numericTimestamp * 1e3, value as IProtocolTokenBreakdownValue])
 	}
 
 	return points.sort((a, b) => a[0] - b[0])

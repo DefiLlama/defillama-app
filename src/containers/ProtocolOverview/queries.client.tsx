@@ -84,9 +84,11 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 		queryKey: ['protocol-overview', 'active-users', protocolId],
 		queryFn: () =>
 			fetchJson(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
-				.then((values) => {
+				.then((values: Array<[string | number, string | number]> | null) => {
 					return values && values.length > 0
-						? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
+						? values
+								.map(([date, val]: [string | number, string | number]): [number, number] => [+date * 1e3, +val])
+								.sort((a, b) => a[0] - b[0])
 						: null
 				})
 				.catch(() => []),
@@ -101,9 +103,11 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 		queryKey: ['protocol-overview', 'new-users', protocolId],
 		queryFn: () =>
 			fetchJson(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
-				.then((values) => {
+				.then((values: Array<[string | number, string | number]> | null) => {
 					return values && values.length > 0
-						? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
+						? values
+								.map(([date, val]: [string | number, string | number]): [number, number] => [+date * 1e3, +val])
+								.sort((a, b) => a[0] - b[0])
 						: null
 				})
 				.catch(() => []),
@@ -119,9 +123,11 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 		queryKey: ['protocol-overview', 'transactions', protocolId],
 		queryFn: () =>
 			fetchJson(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
-				.then((values) => {
+				.then((values: Array<[string | number, string | number]> | null) => {
 					return values && values.length > 0
-						? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
+						? values
+								.map(([date, val]: [string | number, string | number]): [number, number] => [+date * 1e3, +val])
+								.sort((a, b) => a[0] - b[0])
 						: null
 				})
 				.catch(() => []),
@@ -162,9 +168,12 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 		queryKey: ['protocol-overview', 'median-apy', protocolName],
 		queryFn: () =>
 			fetchJson(`${YIELD_PROJECT_MEDIAN_API}/${protocolName}`)
-				.then((values) => {
+				.then((values: { data: Array<{ timestamp: string; medianAPY: number; [key: string]: unknown }> } | null) => {
 					return values && values.data.length > 0
-						? values.data.map((item) => ({ ...item, date: Math.floor(new Date(item.timestamp).getTime() / 1000) }))
+						? values.data.map((item: { timestamp: string; medianAPY: number; [key: string]: unknown }) => ({
+								...item,
+								date: Math.floor(new Date(item.timestamp).getTime() / 1000)
+							}))
 						: null
 				})
 				.catch(() => {
@@ -176,7 +185,7 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 	})
 }
 
-export const useGetProtocolsList = ({ chain }) => {
+export const useGetProtocolsList = ({ chain }: { chain: string }) => {
 	const { data, isLoading } = useQuery({
 		queryKey: ['protocol-overview', 'protocols-list', PROTOCOLS_API],
 		queryFn: () => fetchApi(PROTOCOLS_API),
@@ -190,7 +199,7 @@ export const useGetProtocolsList = ({ chain }) => {
 
 			return {
 				fullProtocolsList: formatProtocolsData({
-					chain: chain === 'All' ? null : chain,
+					chain: chain === 'All' ? undefined : chain,
 					protocols,
 					removeBridges: true
 				}),
@@ -229,7 +238,7 @@ export function useFetchProtocolTVLChart({
 	breakdownType,
 	enabled = true
 }: IProtocolChartParams): UseQueryResult<IProtocolValueChart | IProtocolAnyBreakdownChart | null> {
-	return useQuery<IProtocolValueChart | IProtocolAnyBreakdownChart | null>(
+	return useQuery<IProtocolChartQueryData, Error, IProtocolChartQueryData, IProtocolChartQueryKey>(
 		getProtocolTvlChartQueryOptions({ protocol, key, currency, breakdownType, enabled })
 	)
 }

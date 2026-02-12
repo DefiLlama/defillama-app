@@ -20,6 +20,8 @@
 		"src/containers/RWA/**/*.ts",
 		"src/containers/RWA/**/*.tsx",
 		"src/containers/Unlocks/**/*.ts",
-		"src/containers/Unlocks/**/*.tsx"
+		"src/containers/Unlocks/**/*.tsx",
+		"src/containers/ProtocolOverview/**/*.ts",
+		"src/containers/ProtocolOverview/**/*.tsx"
 	]
 }

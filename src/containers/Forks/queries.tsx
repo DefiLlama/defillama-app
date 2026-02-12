@@ -3,7 +3,7 @@ import { FORK_API, PROTOCOLS_API } from '~/constants'
 import { getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
-export async function getForkPageData(fork = null) {
+export async function getForkPageData(fork: string | null = null) {
 	try {
 		const [{ chart = {}, forks = {} }, { protocols }] = await Promise.all(
 			[FORK_API, PROTOCOLS_API].map((url) => fetchJson(url))
