@@ -91,7 +91,7 @@ export const BRIDGETX_API = `${BRIDGES_SERVER_URL}/transactions`
 export const BRIDGEINFLOWS_API = `${SERVER_URL}/chain-assets/historical-flows`
 export const NETFLOWS_API = `${BRIDGES_SERVER_URL}/netflows`
 
-const YIELDS_SERVER_URL = process.env.YIELDS_SERVER_URL ?? 'https://yields.llama.fi'
+export const YIELDS_SERVER_URL = process.env.YIELDS_SERVER_URL ?? 'https://yields.llama.fi'
 export const YIELD_POOLS_API = `${YIELDS_SERVER_URL}/pools`
 export const YIELD_POOLS_LAMBDA_API = `${YIELDS_SERVER_URL}/poolsEnriched`
 export const YIELD_CHART_API = `${YIELDS_SERVER_URL}/chart`
@@ -104,12 +104,9 @@ export const YIELD_CHART_LEND_BORROW_API = `${YIELDS_SERVER_URL}/chartLendBorrow
 export const YIELD_CONFIG_POOL_API = `${YIELDS_SERVER_URL}/configPool`
 export const YIELD_PERPS_API = `${YIELDS_SERVER_URL}/perps`
 export const YIELD_PROJECT_MEDIAN_API = `${YIELDS_SERVER_URL}/medianProject`
-export const LSD_RATES_API = `${YIELDS_SERVER_URL}/lsdRates`
 export const YIELD_VOLATILITY_API = '/api/datasets/volatility'
 
-const ETF_SERVER_URL = process.env.ETF_SERVER_URL ?? 'https://etfs.llama.fi'
-export const ETF_SNAPSHOT_API = `${ETF_SERVER_URL}/snapshot`
-export const ETF_FLOWS_API = `${ETF_SERVER_URL}/flows`
+export const ETF_SERVER_URL = process.env.ETF_SERVER_URL ?? 'https://etfs.llama.fi'
 
 export const LIQUIDATIONS_HISTORICAL_R2_PATH = `${DATASETS_R2_PATH}/liqs`
 
@@ -143,8 +140,6 @@ export const ICONS_NFT_CDN = 'https://nft-icons.llamao.fi/icons'
 export const TWITTER_POSTS_API = `${DATASETS_SERVER_URL}/dev-metrics/twitter-files`
 export const TWITTER_POSTS_API_V2 = `${SERVER_URL}/twitter/user`
 
-export const HACKS_API = `${SERVER_URL}/hacks`
-
 const COINS_SERVER_URL = process.env.COINS_SERVER_URL ?? 'https://coins.llama.fi'
 export const COINS_PRICES_API = `${COINS_SERVER_URL}/prices`
 export const COINS_CHART_API = `${COINS_SERVER_URL}/chart`
@@ -152,11 +147,7 @@ export const COINS_MCAPS_API = 'https://coins.llama.fi/mcaps' // pro api does no
 
 export const CACHE_SERVER = 'https://fe-cache.llama.fi'
 
-const FDV_SERVER_URL = process.env.FDV_SERVER_URL ?? 'https://fdv-server.llama.fi'
-export const CATEGORY_PERFORMANCE_API = `${FDV_SERVER_URL}/performance`
-export const CATEGORY_COIN_PRICES_API = `${FDV_SERVER_URL}/prices`
-export const CATEGORY_INFO_API = `${FDV_SERVER_URL}/info`
-export const COINS_INFO_API = `${FDV_SERVER_URL}/coinInfo`
+export const FDV_SERVER_URL = process.env.FDV_SERVER_URL ?? 'https://fdv-server.llama.fi'
 
 export const LIQUIDITY_API = `${DATASETS_SERVER_URL}/liquidity.json`
 

@@ -8,20 +8,9 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { firstDayOfMonth, formattedNum, lastDayOfWeek } from '~/utils'
+import type { ETFOverviewProps, IETFSnapshotRow } from './types'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
-
-interface TransformedFlow {
-	date: string
-	[key: string]: string | number
-}
-
-interface AssetTotals {
-	[key: string]: {
-		aum: number
-		flows: number
-	}
-}
 
 const ASSETS = [
 	{ key: 'bitcoin', name: 'Bitcoin', iconUrl: 'https://icons.llamao.fi/icons/protocols/bitcoin' },
@@ -29,60 +18,71 @@ const ASSETS = [
 	{ key: 'solana', name: 'Solana', iconUrl: 'https://icons.llamao.fi/icons/protocols/solana' }
 ] as const
 
-export interface ETFOverviewProps {
-	snapshot: Array<{
-		asset: string
-		aum: number
-		flows: number
-		ticker: string
-	}>
-	flows: TransformedFlow[]
-	lastUpdated: string
-	totalsByAsset: AssetTotals
+const GROUP_BY_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
+type GroupBy = (typeof GROUP_BY_LIST)[number]
+
+const GROUP_BY_TO_CHART_GROUP: Record<GroupBy, 'daily' | 'weekly' | 'monthly'> = {
+	Daily: 'daily',
+	Weekly: 'weekly',
+	Monthly: 'monthly',
+	Cumulative: 'daily'
 }
 
-const groupByList = ['Daily', 'Weekly', 'Monthly', 'Cumulative']
 const ASSET_VALUES = ['Bitcoin', 'Ethereum', 'Solana'] as const
 const DEFAULT_SORTING_STATE = [{ id: 'aum', desc: true }]
 
 export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETFOverviewProps) => {
-	const [groupBy, setGroupBy] = React.useState<(typeof groupByList)[number]>('Weekly')
-	const [tickers, setTickers] = React.useState(['Bitcoin', 'Ethereum', 'Solana'])
+	const [groupBy, setGroupBy] = React.useState<GroupBy>('Weekly')
+	const [tickers, setTickers] = React.useState<string[]>(['Bitcoin', 'Ethereum', 'Solana'])
+	const setTickersFromSelect: React.Dispatch<React.SetStateAction<Array<string> | string>> = React.useCallback((next) => {
+		setTickers((prev) => {
+			const resolved = typeof next === 'function' ? next(prev) : next
+			if (Array.isArray(resolved)) return resolved
+			return resolved ? [resolved] : []
+		})
+	}, [])
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const chartData = React.useMemo(() => {
-		const bitcoin = {}
-		const ethereum = {}
-		const solana = {}
+		const bitcoin: Record<string | number, number> = {}
+		const ethereum: Record<string | number, number> = {}
+		const solana: Record<string | number, number> = {}
 
 		let totalBitcoin = 0
 		let totalEthereum = 0
 		let totalSolana = 0
-		for (const flowDate in flows) {
-			const date = ['Daily', 'Cumulative'].includes(groupBy)
-				? flowDate
-				: groupBy === 'Weekly'
-					? lastDayOfWeek(+flowDate)
-					: firstDayOfMonth(+flowDate)
 
-			bitcoin[date] = (bitcoin[date] || 0) + (flows[flowDate]['Bitcoin'] ?? 0) + totalBitcoin
-			if (flows[flowDate]['Ethereum']) {
-				ethereum[date] = (ethereum[date] || 0) + (flows[flowDate]['Ethereum'] ?? 0) + totalEthereum
+		// `flows` keys are unix timestamps (integer-like keys), so `Object.entries(flows)` iterates
+		// in ascending numeric order. Cumulative running totals rely on this ordering.
+		// We intentionally use `bitcoin` as the date anchor while iterating `flows` by `groupBy`.
+		// Rendering later iterates `Object.entries(bitcoin)`, so `ethereum`/`solana` values on dates
+		// without Bitcoin are dropped, while `totalBitcoin`/`totalEthereum`/`totalSolana` stay aligned.
+		for (const [flowDate, flowEntry] of Object.entries(flows)) {
+			const date =
+				groupBy === 'Daily' || groupBy === 'Cumulative'
+					? flowDate
+					: groupBy === 'Weekly'
+						? lastDayOfWeek(+flowDate)
+						: firstDayOfMonth(+flowDate)
+
+			bitcoin[date] = (bitcoin[date] ?? 0) + (flowEntry['Bitcoin'] ?? 0) + totalBitcoin
+			if (flowEntry['Ethereum'] != null) {
+				ethereum[date] = (ethereum[date] ?? 0) + (flowEntry['Ethereum'] ?? 0) + totalEthereum
 			}
-			if (flows[flowDate]['Solana']) {
-				solana[date] = (solana[date] || 0) + (flows[flowDate]['Solana'] ?? 0) + totalSolana
+			if (flowEntry['Solana'] != null) {
+				solana[date] = (solana[date] ?? 0) + (flowEntry['Solana'] ?? 0) + totalSolana
 			}
 
 			if (groupBy === 'Cumulative') {
-				totalBitcoin += +(flows[flowDate]['Bitcoin'] ?? 0)
-				totalEthereum += +(flows[flowDate]['Ethereum'] ?? 0)
-				totalSolana += +(flows[flowDate]['Solana'] ?? 0)
+				totalBitcoin += flowEntry['Bitcoin'] ?? 0
+				totalEthereum += flowEntry['Ethereum'] ?? 0
+				totalSolana += flowEntry['Solana'] ?? 0
 			}
 		}
 
-		const seriesType = (groupBy === 'Cumulative' ? 'line' : 'bar') as 'line' | 'bar'
+		const seriesType: 'line' | 'bar' = groupBy === 'Cumulative' ? 'line' : 'bar'
 		const source: Array<Record<string, number | null>> = []
-		for (const date in bitcoin) {
+		for (const [date] of Object.entries(bitcoin)) {
 			source.push({
 				timestamp: +date * 1000,
 				Bitcoin: bitcoin[date] ?? null,
@@ -108,7 +108,13 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 					stack: 'Ethereum',
 					color: '#6B7280'
 				},
-				{ type: seriesType, name: 'Solana', encode: { x: 'timestamp', y: 'Solana' }, stack: 'Solana', color: '#9945FF' }
+				{
+					type: seriesType,
+					name: 'Solana',
+					encode: { x: 'timestamp', y: 'Solana' },
+					stack: 'Solana',
+					color: '#9945FF'
+				}
 			]
 		}
 	}, [flows, groupBy])
@@ -133,7 +139,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 
 					<div className="flex flex-col gap-4">
 						{ASSETS.map(({ key, name, iconUrl }) => {
-							const flows = totalsByAsset[key]?.flows ?? 0
+							const assetFlows = totalsByAsset[key]?.flows ?? 0
 							const aum = totalsByAsset[key]?.aum ?? 0
 							return (
 								<div key={key} className="flex flex-col gap-1">
@@ -144,14 +150,16 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 									<p className="flex flex-wrap justify-start gap-4 pl-8">
 										<span className="text-(--text-label)">Flows</span>
 										<span
-											className={`ml-auto font-jetbrains text-base font-medium ${flows > 0 ? 'text-(--success)' : flows < 0 ? 'text-(--error)' : ''}`}
+											className={`ml-auto font-jetbrains text-base font-medium ${assetFlows > 0 ? 'text-(--success)' : assetFlows < 0 ? 'text-(--error)' : ''}`}
 										>
-											{formattedNum(flows, true)}
+											{formattedNum(assetFlows, true)}
 										</span>
 									</p>
 									<p className="flex flex-wrap justify-start gap-4 pl-8">
 										<span className="text-(--text-label)">AUM</span>
-										<span className="ml-auto font-jetbrains text-base font-medium">{formattedNum(aum, true)}</span>
+										<span className="ml-auto font-jetbrains text-base font-medium">
+											{formattedNum(aum, true)}
+										</span>
 									</p>
 								</div>
 							)
@@ -161,11 +169,15 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 				<div className="flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-2">
 					<div className="flex flex-wrap justify-end gap-2 p-2 pb-0">
 						<h2 className="mr-auto text-lg font-semibold">Flows (Source: Farside)</h2>
-						<TagGroup setValue={(val) => setGroupBy(val)} values={groupByList} selectedValue={groupBy} />
+						<TagGroup
+							setValue={(val) => setGroupBy(val as GroupBy)}
+							values={GROUP_BY_LIST}
+							selectedValue={groupBy}
+						/>
 						<Select
 							allValues={ASSET_VALUES}
 							selectedValues={tickers}
-							setSelectedValues={setTickers}
+							setSelectedValues={setTickersFromSelect}
 							label={'ETF'}
 							labelType="smol"
 							variant="filter-responsive"
@@ -177,7 +189,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 						<MultiSeriesChart2
 							dataset={finalCharts.dataset}
 							charts={finalCharts.charts}
-							groupBy={groupBy === 'Cumulative' ? 'daily' : (groupBy.toLowerCase() as 'daily' | 'weekly' | 'monthly')}
+							groupBy={GROUP_BY_TO_CHART_GROUP[groupBy]}
 							onReady={handleChartReady}
 						/>
 					</React.Suspense>
@@ -195,22 +207,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 	)
 }
 
-interface IETFRow {
-	ticker: string
-	issuer: string
-	etf_name: string
-	custodian: string
-	pct_fee: number
-	url: string
-	price: number
-	volume: number
-	aum: number
-	shares: number
-	btc: number
-	flows: number
-}
-
-const columns: ColumnDef<IETFRow>[] = [
+const columns: ColumnDef<IETFSnapshotRow>[] = [
 	{
 		header: 'Ticker',
 		accessorKey: 'ticker',
@@ -223,7 +220,7 @@ const columns: ColumnDef<IETFRow>[] = [
 						href={row.original.url}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue() as string | null}
+						{getValue<string | null>()}
 					</BasicLink>
 				</span>
 			)
@@ -243,7 +240,7 @@ const columns: ColumnDef<IETFRow>[] = [
 		accessorKey: 'chain',
 		enableSorting: true,
 		cell: ({ getValue }) => (
-			<IconsRow links={getValue() as Array<string>} url="" iconType="chain" disableLinks={true} />
+			<IconsRow links={getValue<string[]>()} url="" iconType="chain" disableLinks={true} />
 		),
 		meta: {
 			align: 'end'
@@ -254,11 +251,19 @@ const columns: ColumnDef<IETFRow>[] = [
 		header: 'Flows',
 		accessorKey: 'flows',
 		cell: ({ getValue }) => {
-			const value = getValue() as number | null
+			const value = getValue<number | null>()
 			const formattedValue = value != null ? formattedNum(value, true) : null
 
 			return (
-				<span className={`${value && value > 0 ? 'text-(--success)' : value && value < 0 ? 'text-(--error)' : ''}`}>
+				<span
+					className={
+						value != null && value > 0
+							? 'text-(--success)'
+							: value != null && value < 0
+								? 'text-(--error)'
+								: ''
+					}
+				>
 					{formattedValue}
 				</span>
 			)
@@ -271,7 +276,10 @@ const columns: ColumnDef<IETFRow>[] = [
 	{
 		header: 'AUM',
 		accessorKey: 'aum',
-		cell: ({ getValue }) => <>{getValue() !== null ? formattedNum(getValue(), true) : null}</>,
+		cell: ({ getValue }) => {
+			const value = getValue<number | null>()
+			return <>{value != null ? formattedNum(value, true) : null}</>
+		},
 		meta: {
 			align: 'end'
 		},
@@ -280,7 +288,10 @@ const columns: ColumnDef<IETFRow>[] = [
 	{
 		header: 'Volume',
 		accessorKey: 'volume',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		cell: ({ getValue }) => {
+			const value = getValue<number | null>()
+			return <>{value != null ? formattedNum(value, true) : ''}</>
+		},
 		meta: {
 			align: 'end'
 		},

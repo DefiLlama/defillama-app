@@ -22,6 +22,16 @@
 		"src/containers/Unlocks/**/*.ts",
 		"src/containers/Unlocks/**/*.tsx",
 		"src/containers/ProtocolOverview/**/*.ts",
-		"src/containers/ProtocolOverview/**/*.tsx"
+		"src/containers/ProtocolOverview/**/*.tsx",
+		"src/containers/Hacks/**/*.ts",
+		"src/containers/Hacks/**/*.tsx",
+		"src/containers/ETF/**/*.ts",
+		"src/containers/ETF/**/*.tsx",
+		"src/containers/LST/**/*.ts",
+		"src/containers/LST/**/*.tsx",
+		"src/containers/NarrativeTracker/**/*.ts",
+		"src/containers/NarrativeTracker/**/*.tsx",
+		"src/containers/Correlations/**/*.ts",
+		"src/containers/Correlations/**/*.tsx"
 	]
 }

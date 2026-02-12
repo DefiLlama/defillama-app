@@ -2,7 +2,6 @@ import {
 	ACTIVE_USERS_API,
 	BRIDGEVOLUME_API_SLUG,
 	CEXS_API,
-	HACKS_API,
 	LIQUIDITY_API,
 	ORACLE_API,
 	oracleProtocols,
@@ -19,15 +18,16 @@ import {
 } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
+import { getAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
+import type { IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'
+import { fetchHacks } from '~/containers/Hacks/api'
+import type { IHackApiItem } from '~/containers/Hacks/api.types'
+import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
-import { getAdapterProtocolMetrics } from '../DimensionAdapters/api'
-import type { IAdapterProtocolMetrics } from '../DimensionAdapters/api.types'
-import type { IHack } from '../Hacks/queries'
-import { protocolCategories } from '../ProtocolsByCategoryOrTag/constants'
 import { fetchProtocolOverviewMetrics, fetchProtocolTvlChart } from './api'
 import type { IProtocolMetricsV2 } from './api.types'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
@@ -197,7 +197,7 @@ export const getProtocolOverviewPageData = async ({
 		{ protocols?: Record<string, { name?: string }> } | null,
 		Array<ILiquidityInfoItem>,
 		{ protocols: Array<ILiteProtocolItem> },
-		Array<IHack>,
+		Array<IHackApiItem>,
 		IBridgeVolumeResult,
 		IProtocolOverviewPageData['incomeStatement'],
 		Record<string, number> | null
@@ -444,7 +444,7 @@ export const getProtocolOverviewPageData = async ({
 				})
 			: [],
 		fetchJson(PROTOCOLS_API).catch(() => ({ protocols: [] })),
-		fetchJson(HACKS_API).catch(() => []),
+		fetchHacks().catch(() => []),
 		currentProtocolMetadata.bridge
 			? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(currentProtocolMetadata.displayName)}`)
 					.then((data) => data.dailyVolumes || null)
@@ -599,12 +599,12 @@ export const getProtocolOverviewPageData = async ({
 	const hacks =
 		(protocolData.id
 			? hacksData
-					?.filter((hack: IHack) =>
+					?.filter((hack: IHackApiItem) =>
 						isCEX
 							? [hack.name].includes(currentProtocolMetadata.displayName ?? '')
 							: [String(hack.defillamaId), String(hack.parentProtocolId)].includes(String(protocolId))
 					)
-					?.sort((a: IHack, b: IHack) => a.date - b.date)
+					?.sort((a: IHackApiItem, b: IHackApiItem) => a.date - b.date)
 			: null) ?? null
 
 	const protocolMetrics = getProtocolMetricFlags({
