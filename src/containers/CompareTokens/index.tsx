@@ -10,9 +10,9 @@ import { CACHE_SERVER } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
 import { fetchJson } from '~/utils/async'
 
-const EMPTY_SELECTED_COINS: Record<string, IResponseCGMarketsAPI> = {}
+import type { Protocol } from './types'
 
-type Protocol = { geckoId?: string; name: string; tvl?: number; fees?: number; revenue?: number }
+const EMPTY_SELECTED_COINS: Record<string, IResponseCGMarketsAPI> = {}
 
 type CompareType = { label: string; value: string }
 
