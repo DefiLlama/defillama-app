@@ -5,7 +5,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum } from '~/utils'
-import type { IRWAPlatformsOverviewRow } from './queries'
+import type { IRWAPlatformsOverviewRow } from './api.types'
 import { rwaSlug } from './rwaSlug'
 
 type RWADefinitions = typeof rwaDefinitionsJson & {

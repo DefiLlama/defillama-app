@@ -21,7 +21,7 @@ import {
 	useRwaChartDataByAssetName,
 	useRwaChartDataByCategory
 } from './hooks'
-import type { IRWAAssetsOverview } from './queries'
+import type { IRWAAssetsOverview } from './api.types'
 import { rwaSlug } from './rwaSlug'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -548,10 +548,10 @@ const pieChartLegendPosition = {
 	left: 'center',
 	top: 'bottom',
 	orient: 'horizontal',
-	formatter: function (name) {
+	formatter: function (name: string) {
 		return name
 	}
-} as any
+} as const
 const pieChartLegendTextStyle = { fontSize: 14 }
 
 const PIE_CHART_TYPES = [
