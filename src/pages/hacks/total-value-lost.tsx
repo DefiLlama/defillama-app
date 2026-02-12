@@ -1,6 +1,6 @@
 import { maxAgeForNext } from '~/api'
-import { TotalValueLostContainer } from '~/containers/Hacks/TotalValueLost'
 import { getTotalValueLostInHacksByProtocol } from '~/containers/Hacks/queries'
+import { TotalValueLostContainer } from '~/containers/Hacks/TotalValueLost'
 import type { IProtocolTotalValueLostInHacksByProtocol } from '~/containers/Hacks/types'
 import { withPerformanceLogging } from '~/utils/perf'
 

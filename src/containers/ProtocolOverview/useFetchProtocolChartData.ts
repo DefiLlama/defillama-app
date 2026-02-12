@@ -2,15 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
-import {
-	BRIDGEVOLUME_API_SLUG,
-	CACHE_SERVER,
-	NFT_MARKETPLACES_VOLUME_API,
-	PROTOCOL_TREASURY_API,
-	TOKEN_LIQUIDITY_API
-} from '~/constants'
+import { BRIDGEVOLUME_API_SLUG, CACHE_SERVER, PROTOCOL_TREASURY_API, TOKEN_LIQUIDITY_API } from '~/constants'
 import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { useFetchProtocolGovernanceData } from '~/containers/Governance/queries.client'
+import { fetchNftMarketplaceVolumes } from '~/containers/Nft/api'
 import {
 	useFetchProtocolActiveUsers,
 	useFetchProtocolMedianAPY,
@@ -47,9 +42,7 @@ interface ExtraTvlChartsResult {
 	latestTimestamps: Record<string, number>
 }
 
-const buildExtraTvlCharts = (
-	chartByKey: Record<string, Array<V2ChartPoint> | null>
-): ExtraTvlChartsResult => {
+const buildExtraTvlCharts = (chartByKey: Record<string, Array<V2ChartPoint> | null>): ExtraTvlChartsResult => {
 	const charts: Record<string, Record<string, number>> = {}
 	const latestTimestamps: Record<string, number> = {}
 
@@ -124,9 +117,7 @@ const buildTvlChart = ({
 		const dateInSec = toUnixSeconds(rawDate)
 		if (dateInSec == null) continue
 		const alignedDateInSec =
-			shouldNormalizeMainTvlLatest && dateInSec === latestMainTvlTimestamp
-				? mostRecentTvlTimestamp!
-				: dateInSec
+			shouldNormalizeMainTvlLatest && dateInSec === latestMainTvlTimestamp ? mostRecentTvlTimestamp! : dateInSec
 		const dateKey = isWeekly
 			? lastDayOfWeek(alignedDateInSec)
 			: isMonthly
@@ -158,8 +149,7 @@ const buildTvlChart = ({
 			}
 			extrasAtTimestamp += extraValue ?? 0
 		}
-		store[String(dateKey)] =
-			value + extrasAtTimestamp
+		store[String(dateKey)] = value + extrasAtTimestamp
 	}
 
 	const finalChart: Array<[number, number | null]> = []
@@ -255,8 +245,7 @@ export const useFetchProtocolChartData = ({
 			queryKey: ['protocol-overview', protocolSlug, 'token-price-history', geckoId],
 			queryFn: () =>
 				fetchJson(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then(
-					(res: { data?: IDenominationPriceHistory }) =>
-						res.data?.prices?.length ? res.data : null
+					(res: { data?: IDenominationPriceHistory }) => (res.data?.prices?.length ? res.data : null)
 				),
 			staleTime: 60 * 60 * 1000,
 			refetchOnWindowFocus: false,
@@ -788,8 +777,8 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'nft-volume'],
 		queryFn: () =>
 			isNftVolumeEnabled
-				? fetchJson(NFT_MARKETPLACES_VOLUME_API, { timeout: 10_000 })
-						.then((r: Array<{ exchangeName: string; day: string; sumUsd: number }>) =>
+				? fetchNftMarketplaceVolumes()
+						.then((r) =>
 							r
 								.filter((item) => slug(item.exchangeName) === slug(name))
 								.map(({ day, sumUsd }): [number, number] => [new Date(day).getTime(), sumUsd])

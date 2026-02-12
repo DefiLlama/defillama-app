@@ -31,7 +31,9 @@ const PROTOCOL_NAME_OVERRIDES: Record<string, string> = {
 function formatPoolName(project: string): string {
 	return project
 		.split('-')
-		.map((i) => (i === 'stakewise' ? 'StakeWise' : i === 'eth' ? i.toUpperCase() : i.charAt(0).toUpperCase() + i.slice(1)))
+		.map((i) =>
+			i === 'stakewise' ? 'StakeWise' : i === 'eth' ? i.toUpperCase() : i.charAt(0).toUpperCase() + i.slice(1)
+		)
 		.join(' ')
 }
 
@@ -159,7 +161,15 @@ export async function getLSDPageData(): Promise<LSTOverviewProps> {
 				protocol.name === 'Crypto.com Liquid Staking' ? protocol.chainTvls['Cronos'] : protocol.chainTvls['Ethereum']
 
 			if (!p?.tokens?.length) {
-				return { name: protocol.name, logo: protocol.logo, mcap: protocol.mcap, stakedEth: 0, stakedEthInUsd: 0, stakedEthPctChange7d: null as number | null, stakedEthPctChange30d: null as number | null }
+				return {
+					name: protocol.name,
+					logo: protocol.logo,
+					mcap: protocol.mcap,
+					stakedEth: 0,
+					stakedEthInUsd: 0,
+					stakedEthPctChange7d: null as number | null,
+					stakedEthPctChange30d: null as number | null
+				}
 			}
 
 			const lastDate = p.tokens[p.tokens.length - 1].date
@@ -213,9 +223,7 @@ export async function getLSDPageData(): Promise<LSTOverviewProps> {
 		const pegInfo = type === 'rebase' ? rebase : type === 'accruing' ? valueAccruing : null
 		const mcap = p.mcap
 		const mcaptvlRaw =
-			mcap != null && p.stakedEthInUsd !== 0
-				? formatNum(+mcap.toFixed(2) / +p.stakedEthInUsd.toFixed(2))
-				: null
+			mcap != null && p.stakedEthInUsd !== 0 ? formatNum(+mcap.toFixed(2) / +p.stakedEthInUsd.toFixed(2)) : null
 		const mcaptvl = mcaptvlRaw != null ? +mcaptvlRaw : null
 
 		return {

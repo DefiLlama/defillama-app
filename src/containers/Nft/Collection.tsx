@@ -23,12 +23,17 @@ const OrderbookChart = React.lazy(() => import('./OrderbookChart')) as React.FC<
 
 export function NFTCollectionContainer() {
 	const router = useRouter()
+	const collectionSlug =
+		typeof router.query.collection === 'string'
+			? router.query.collection
+			: Array.isArray(router.query.collection)
+				? router.query.collection[0]
+				: null
+
 	const { data: collectionData, isLoading: fetchingData } = useQuery({
-		queryKey: ['collection-data', router.query.collection],
-		queryFn: () =>
-			getNFTCollection(
-				typeof router.query.collection === 'string' ? router.query.collection : router.query.collection[0]
-			),
+		queryKey: ['collection-data', collectionSlug],
+		queryFn: () => (collectionSlug != null ? getNFTCollection(collectionSlug) : Promise.resolve(undefined)),
+		enabled: collectionSlug != null,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0
@@ -48,31 +53,30 @@ export function NFTCollectionContainer() {
 		)
 	}
 	const { name, data, stats, sales, salesExOutliers, salesMedian1d, address, floorHistory, orderbook } = collectionData
+	const collectionName = name ?? 'NFTs'
+	const primaryCollection = data?.[0]
 	const lastFloorRow =
-		floorHistory?.source && Array.isArray(floorHistory.source) && floorHistory.source.length > 0
+		floorHistory?.source != null && Array.isArray(floorHistory.source) && floorHistory.source.length > 0
 			? floorHistory.source[floorHistory.source.length - 1]
 			: null
-	const floorPriceRaw =
-		lastFloorRow && Object.prototype.hasOwnProperty.call(lastFloorRow, 'Floor Price')
-			? Number(lastFloorRow['Floor Price'])
-			: null
+	const floorPriceRaw = lastFloorRow != null ? Number(lastFloorRow['Floor Price']) : null
 	const floorPrice = typeof floorPriceRaw === 'number' && Number.isFinite(floorPriceRaw) ? floorPriceRaw : null
-	const volume24h = stats ? stats[stats.length - 1]?.[1] : null
+	const volume24h = stats.length > 0 ? (stats[stats.length - 1]?.[1] ?? null) : null
 
 	const includeOutliers = router.isReady && router.query.includeOutliers === 'true'
 
 	return (
 		<Layout
-			title={(name || 'NFTs') + ' - DefiLlama'}
-			description={`Track ${name || 'NFTs'} - View floor price, 24h volume and total supply of ${name}. Real-time DeFi analytics from DefiLlama.`}
-			keywords={`${name || 'NFTs'} floor price, ${name} 24h volume, ${name} total supply`}
+			title={collectionName + ' - DefiLlama'}
+			description={`Track ${collectionName} - View floor price, 24h volume and total supply of ${collectionName}. Real-time DeFi analytics from DefiLlama.`}
+			keywords={`${collectionName} floor price, ${collectionName} 24h volume, ${collectionName} total supply`}
 			canonicalUrl={`/nfts/collection/${router.query.collection}`}
 		>
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<h1 className="flex items-center gap-2 text-xl">
-						<TokenLogo logo={data[0].image} fallbackLogo={data?.[0]?.image} size={48} />
-						<FormattedName text={name} fontWeight={700} />
+						<TokenLogo logo={primaryCollection?.image} fallbackLogo={primaryCollection?.image} size={48} />
+						<FormattedName text={name ?? ''} fontWeight={700} />
 					</h1>
 
 					<p className="flex flex-col gap-1 text-base">
@@ -85,13 +89,13 @@ export function NFTCollectionContainer() {
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-(--text-label)">24h Volume</span>
 						<span className="font-jetbrains text-2xl font-semibold">
-							{volume24h ? volume24h.toFixed(2) + ' ETH' : ''}
+							{volume24h != null ? volume24h.toFixed(2) + ' ETH' : ''}
 						</span>
 					</p>
 
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-(--text-label)">Total Supply</span>
-						<span className="font-jetbrains text-2xl font-semibold">{data?.[0]?.totalSupply}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{primaryCollection?.totalSupply}</span>
 					</p>
 
 					<a
@@ -124,7 +128,7 @@ export function NFTCollectionContainer() {
 					<React.Suspense fallback={<></>}>
 						<CollectionScatterChart
 							sales={includeOutliers ? sales : salesExOutliers}
-							salesMedian1d={salesMedian1d as any}
+							salesMedian1d={salesMedian1d}
 							volume={stats}
 						/>
 					</React.Suspense>

@@ -248,8 +248,7 @@ export const LSTOverview = ({
 				if (!store[dateKey]) {
 					store[dateKey] = {}
 				}
-				store[dateKey][token] =
-					(store[dateKey][token] ?? 0) + value + (totalByToken[token] ?? 0)
+				store[dateKey][token] = (store[dateKey][token] ?? 0) + value + (totalByToken[token] ?? 0)
 
 				if (isCumulative) {
 					totalByToken[token] = (totalByToken[token] ?? 0) + value
