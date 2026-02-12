@@ -794,6 +794,16 @@ type RWAChartMetric = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 
 type RWAChartRow = { timestamp: number } & Record<string, number>
 
+type RWAChartDataset = { source: RWAChartRow[]; dimensions: string[] }
+
+function emptyChartDataset(): RWAChartDataset {
+	return { source: [], dimensions: ['timestamp'] }
+}
+
+function emptyChartDatasets(): Record<RWAChartMetric, RWAChartDataset> {
+	return { onChainMcap: emptyChartDataset(), activeMcap: emptyChartDataset(), defiActiveTvl: emptyChartDataset() }
+}
+
 function sortKeysWithOthersLast(keys: Iterable<string>): string[] {
 	const arr = Array.from(keys).filter(Boolean)
 	return arr.sort((a, b) => {
@@ -815,13 +825,7 @@ export function useRwaChartDataByCategory({
 	chartDatasetByCategory: Record<RWAChartMetric, { source: RWAChartRow[]; dimensions: string[] }>
 } {
 	return useMemo(() => {
-		const empty = {
-			chartDatasetByCategory: {
-				onChainMcap: { source: [] as RWAChartRow[], dimensions: ['timestamp'] },
-				activeMcap: { source: [] as RWAChartRow[], dimensions: ['timestamp'] },
-				defiActiveTvl: { source: [] as RWAChartRow[], dimensions: ['timestamp'] }
-			}
-		}
+		const empty = { chartDatasetByCategory: emptyChartDatasets() }
 
 		if (!enabled) return empty
 		if (!chartDataByTicker) return empty
@@ -890,13 +894,7 @@ export function useRwaChartDataByAssetClass({
 	chartDatasetByAssetClass: Record<RWAChartMetric, { source: RWAChartRow[]; dimensions: string[] }>
 } {
 	return useMemo(() => {
-		const empty = {
-			chartDatasetByAssetClass: {
-				onChainMcap: { source: [] as RWAChartRow[], dimensions: ['timestamp'] },
-				activeMcap: { source: [] as RWAChartRow[], dimensions: ['timestamp'] },
-				defiActiveTvl: { source: [] as RWAChartRow[], dimensions: ['timestamp'] }
-			}
-		}
+		const empty = { chartDatasetByAssetClass: emptyChartDatasets() }
 
 		if (!enabled) return empty
 		if (!chartDataByTicker) return empty
@@ -965,13 +963,7 @@ export function useRwaChartDataByAssetName({
 	chartDatasetByAssetName: Record<RWAChartMetric, { source: RWAChartRow[]; dimensions: string[] }>
 } {
 	return useMemo(() => {
-		const empty = {
-			chartDatasetByAssetName: {
-				onChainMcap: { source: [] as RWAChartRow[], dimensions: ['timestamp'] },
-				activeMcap: { source: [] as RWAChartRow[], dimensions: ['timestamp'] },
-				defiActiveTvl: { source: [] as RWAChartRow[], dimensions: ['timestamp'] }
-			}
-		}
+		const empty = { chartDatasetByAssetName: emptyChartDatasets() }
 
 		if (!enabled) return empty
 		if (!chartDataByTicker) return empty

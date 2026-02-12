@@ -148,11 +148,11 @@ export function EmissionsByProtocol({
 	)
 }
 
-const standardGroupColors = {
-	noncirculating: '#546fc6',
-	insiders: '#90cc74',
-	publicSale: '#fac759',
-	privateSale: '#fd8353',
+const standardGroupColors: Record<string, string> = {
+	noncirculating: '#3f3d56',
+	insiders: '#5470c6',
+	publicSale: '#91cc75',
+	privateSale: '#fac858',
 	farming: '#ed6666',
 	airdrop: '#73c0de',
 	liquidity: '#39a371'
@@ -715,7 +715,7 @@ const ChartContainer = ({
 				type: isOverlay ? 'line' : chartType,
 				name,
 				encode: { x: 'timestamp', y: name },
-				color: (colors as Record<string, string>)[name],
+				color: colors[name],
 				...(!isOverlay ? { stack: 'A' } : {}),
 				...(isOverlay ? { yAxisIndex: yIdx + 1, valueSymbol: '$', hideAreaStyle: true } : {})
 			}

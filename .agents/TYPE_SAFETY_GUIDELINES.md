@@ -1,331 +1,254 @@
-# AI Agent Type Safety Guidelines
+# Code Quality & Type Safety Guidelines
 
-This document contains rules and best practices for maintaining full type safety in the DefiLlama codebase. All AI agents must follow these guidelines.
+Rules for AI agents working on the DefiLlama codebase. These are derived from real mistakes found during migration — follow them strictly.
 
-## Core Principles
+## Banned Patterns
 
-1. **Prefer inference over explicit types** when TypeScript can properly infer from context
-2. **Add explicit types only when**:
-   - Type inference fails or produces `any`
-   - Types are too complex to read in hover tooltips
-   - Function return types need to match a specific interface
-   - Variable types are widened incorrectly (e.g., empty arrays)
-3. **Never use `any`** - use `unknown` if type is truly unknown
-4. **No re-exports** - always import from source
+### Never use `as` type assertions
 
-## Import/Export Rules
+The only allowed uses of `as` are:
+- `as const` for literal types
+- `as HTMLInputElement` (or similar) for DOM element access via `namedItem()`
+- `as Record<string, unknown>` after a runtime `typeof x === 'object'` check (TypeScript limitation)
+- `as [string, string]` for tuple literals like `['50%', '70%']`
 
-### ❌ NEVER Re-export
+Everything else must be replaced:
+
 ```typescript
-// WRONG - index.ts re-exporting from api.ts
-export { getAdapterChainMetrics } from './api'
+// BANNED - casting to silence type errors
+data as IMyType
+getValue() as string
+colors as Record<string, string>
+{} as Record<string, number>
+.filter(Boolean) as MyType[]
 
-// WRONG - queries.tsx re-exporting from api.ts  
-export { getAdapterChainMetrics } from './api'
+// CORRECT alternatives
+// 1. Type the variable at declaration
+const data: IMyType = fetchData()
+
+// 2. Use getValue<T>() generic
+const value = getValue<string>()
+
+// 3. Type the source, not the usage
+const colors: Record<string, string> = { ... }
+
+// 4. Use a type predicate for .filter()
+.filter((item): item is MyType => item != null)
+
+// 5. For empty arrays, type the variable or use a typed constant
+const items: MyType[] = []
+// or
+function emptyList(): MyType[] { return [] }
 ```
 
-### ✅ Always Import from Source
+### Never use `any`
+
 ```typescript
-// CORRECT - ChainsByCategory/queries.tsx
-import { getAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
+// BANNED
+function process(data: any) { ... }
+const chart: any[] = []
+(param as any)
+
+// CORRECT
+function process(data: unknown) { ... }   // then narrow with type guards
+const chart: ChartRow[] = []
+// fix the actual type mismatch instead of casting
 ```
 
-## Type Inference vs Explicit Types
+### Never use `&&` for JSX conditional rendering
 
-### ✅ When to Rely on Inference
+The `&&` operator can render `0`, `""`, or `NaN` to the DOM.
+
+```tsx
+// BANNED
+{count && <Badge>{count}</Badge>}
+{value && <Display value={value} />}
+
+// CORRECT
+{count ? <Badge>{count}</Badge> : null}
+{value != null ? <Display value={value} /> : null}
+```
+
+### Never use `|| null` or `|| 0` with numeric values
+
+The `||` operator treats `0` as falsy, which is almost always a bug with numbers.
+
 ```typescript
-// ✅ TypeScript infers correctly from context
-const childProtocols: IProtocol['childProtocols'] = p.childProtocols?.map((cp) => ({
-  ...cp,
-  pfOrPs: cp.mcap ? calculateRatio(cp.mcap, cp.total30d) : null
-}))
+// BANNED - 0 is a valid value that gets swallowed
+const total = baseValue || 0
+const result = extra || null
 
-// ✅ Generic functions infer types from parameters
-function groupByParent<T extends { parentProtocol?: string }>(protocols: T[]): Map<string, T[]> {
-  const groups = new Map<string, T[]>()
-  // ...
-  return groups
+// CORRECT
+const total = baseValue ?? 0
+const result = extra !== 0 ? extra : null
+// or if you want null-only fallback:
+const result = extra ?? null  // but this passes 0 through
+```
+
+### Never use `for...in` on arrays
+
+`for...in` iterates over string keys and includes prototype properties.
+
+```typescript
+// BANNED
+for (const idx in myArray) {
+  doSomething(myArray[idx])
+}
+
+// CORRECT
+for (const item of myArray) {
+  doSomething(item)
 }
 ```
 
-### ✅ When to Add Explicit Types
+### Never use `let` when `const` suffices
 
-#### 1. Complex Ternary Expressions
+If a variable is assigned once and never reassigned, use `const`.
+
+### Never duplicate code across files
+
+Common patterns to extract:
+- Helper functions used in 2+ files -> shared module
+- Type definitions duplicated across files -> single source of truth
+- React components duplicated across files -> shared component file
+- JSON imports with type casts -> single re-export module (see definitions pattern below)
+
+## Required Patterns
+
+### Type JSON imports via a re-export module
+
+When a JSON file is imported across multiple files and needs type widening:
+
 ```typescript
-// Without explicit type: inferred as (IProtocol | never)[]
-const protocols =
-  props.categories.length === 0
-    ? props.protocols
-    : selectedCategories.length === 0
-      ? []  // TypeScript infers as any[] here!
-      : props.protocols
+// definitions.ts - single source of truth
+import dataJson from '~/public/data.json'
 
-// ✅ Add explicit type
-const protocols: IProtocol[] =
-  props.categories.length === 0
-    ? props.protocols
-    : selectedCategories.length === 0
-      ? ([] as IProtocol[])
-      : props.protocols
-```
-
-#### 2. Function Return Types
-```typescript
-// ✅ Add when returning interface-matching objects
-const prepareCsv = (): { filename: string; rows: Array<Array<string | number | boolean>> } => {
-  const visibleColumns = instance.getVisibleLeafColumns()
-  // ...
-  return { filename: `${type}-chains.csv`, rows }
+// Widen specific fields for dynamic key access
+type WithLookupValues<T> = {
+  [K in keyof T]: T[K] extends { values: Record<string, string> }
+    ? Omit<T[K], 'values'> & { values: Record<string, string> }
+    : T[K]
 }
 
-// ✅ Add when function is passed as prop
-const getProtocolsByCategory = (protocols: IProtocol[], categories: string[]): IProtocol[] => {
-  const final: IProtocol[] = []
-  // ...
-  return final
-}
+export const definitions: WithLookupValues<typeof dataJson> = dataJson
 ```
 
-#### 3. Variable Declarations with Empty Arrays
-```typescript
-// ❌ TypeScript infers as any[]
-const final = []
+Then import from the module, never from the JSON directly:
 
-// ✅ Explicit type annotation
-const final: IProtocol[] = []
+```typescript
+// CORRECT
+import { definitions } from './definitions'
+
+// BANNED
+import definitions from '~/public/data.json'
 ```
 
-## Strict Null Checks
+### Use `?? 0` instead of `|| 0` for numeric fallbacks
 
-### ✅ Handle Nullable Properties
 ```typescript
-// IProtocol chains can be null
-interface IProtocol {
-  chains: string[] | null
-}
-
-// ✅ Always check before accessing
-{row.original.chains && (
-  <Tooltip content={<ChainsComponent chains={row.original.chains} />}>
-    {`${row.original.chains.length} chains`}
-  </Tooltip>
-)}
+const total = value ?? 0        // only replaces null/undefined
+const total = value || 0        // WRONG: also replaces 0, NaN, ""
 ```
 
-### ✅ Optional Chaining with Nullish Coalescing
+### Use `!= null` instead of truthy checks for values that can be 0
+
 ```typescript
-// ✅ Safe property access
-total24h: (protocolData.total24h ?? 0) - (emissions?.emission24h ?? 0)
+// BANNED - hides $0.00 values
+if (value) { show(value) }
+
+// CORRECT - only excludes null/undefined
+if (value != null) { show(value) }
 ```
 
-## Eliminating `any` Types
+### Unexport internal-only items
 
-### Before/After Examples
+If a function, type, or constant is only used within its own file, do not export it.
 
-#### Example 1: Function Parameters
 ```typescript
-// ❌ Before
-function findEmissions(protocolVersions: any[], emissionsData: any) {
-  // ...
-}
+// BANNED - only used in this file
+export const INTERNAL_CONSTANT = 'foo'
+export type InternalHelper = { ... }
 
-// ✅ After
-type ProtocolVersion = {
-  defillamaId: string
-  parentProtocol?: string
-  name: string
-}
-
-type EmissionsProtocol = {
-  defillamaId: string
-  name: string
-  linked?: string[]
-}
-
-function findEmissions(
-  protocolVersions: ProtocolVersion[],
-  emissionsData: { protocols: EmissionsProtocol[] }
-): EmissionsProtocol | undefined {
-  // ...
-}
+// CORRECT
+const INTERNAL_CONSTANT = 'foo'
+type InternalHelper = { ... }
 ```
 
-#### Example 2: Generic Type Helpers
-```typescript
-// ❌ Before
-export type AsyncReturnType<T extends (...args: any) => Promise<any>> = 
-  T extends (...args: any) => Promise<infer R> ? R : any
+### Use type predicates for `.filter()` narrowing
 
-// ✅ After  
-export type AsyncReturnType<T extends (...args: unknown[]) => Promise<unknown>> =
-  T extends (...args: unknown[]) => Promise<infer R> ? R : never
+```typescript
+// BANNED
+items.filter(Boolean) as NonNullable<T>[]
+
+// CORRECT
+items.filter((item): item is NonNullable<T> => item != null)
 ```
 
-## Derived Types from API
+### Import from source, never re-export
 
-### ✅ Use Pick/Omit from API Types
 ```typescript
-type ApiProtocol = IAdapterChainMetrics['protocols'][0]
+// BANNED - re-exporting from queries.tsx
+export type { IRWAAssetData }  // when it's defined in api.types.ts
 
-// ✅ Extract and make numeric fields nullable for UI
-export type IProtocol = Pick<ApiProtocol, 'name' | 'slug' | 'logo' | 'chains'> & {
-  category: ApiProtocol['category'] | null
-  total24h: number | null
-  total7d: number | null
-  // ... other nullable fields
+// CORRECT - import directly from source
+import type { IRWAAssetData } from './api.types'
+```
+
+### Merge duplicate imports from the same module
+
+```typescript
+// BANNED
+import { foo } from './utils'
+import { bar } from './utils'
+
+// CORRECT
+import { foo, bar } from './utils'
+```
+
+## API Layer Conventions
+
+### API fetch functions go in `api.ts`
+
+All direct `fetch`/`fetchJson` calls must live in `api.ts`. Business logic in `queries.ts` imports from `api.ts`.
+
+### URL constants stay private to `api.ts`
+
+Do not export API URL constants. The `api.ts` file owns the URLs internally.
+
+### Use `fetchJson<T>()` with generics
+
+```typescript
+export async function fetchData(): Promise<MyType[]> {
+  return fetchJson<MyType[]>(`${SERVER_URL}/endpoint`)
 }
 ```
 
-### ✅ Define Intermediate Types
+### No module-level promise caching
+
 ```typescript
-// ✅ For aggregated/computed data
-type AggregatedProtocol = Omit<ApiProtocol, 'total24h' | 'total7d' | 'total30d' | 'total1y' | 'totalAllTime'> & {
-  total24h: number
-  total7d: number
-  total30d: number
-  total1y: number
-  totalAllTime: number
+// BANNED
+let promise: Promise<Data> | null = null
+export function getData() {
+  if (!promise) promise = fetch(...)
+  return promise
+}
+
+// CORRECT - let the caller handle caching (SWR, React Query, etc.)
+export async function getData(): Promise<Data> {
+  return fetchJson<Data>(url)
 }
 ```
 
-## Type Aliases vs Interfaces
+## Verification
 
-### ✅ Use `type` for:
-- Mapped types (Pick, Omit, Record)
-- Union types
-- Complex transformations
-
-```typescript
-export type IProtocol = {
-  [K in keyof Pick<ApiProtocol, ...>]: ApiProtocol[K] | null
-} & {
-  mcap: number | null
-}
-```
-
-### ✅ Use `interface` for:
-- Object shapes that will be implemented
-- When you need declaration merging (rare)
-- Public API definitions
-
-```typescript
-export interface IAdapterChainOverview extends IAdapterChainMetrics {
-  totalDataChart: IAdapterChart
-}
-```
-
-## Constants and Enums
-
-### ✅ Enums (already strictly typed)
-```typescript
-export enum ADAPTER_TYPES {
-  DEXS = 'dexs',
-  FEES = 'fees',
-  // ...
-}
-
-export type AdapterType = `${ADAPTER_TYPES}`
-```
-
-### ✅ Objects with `as const`
-```typescript
-export const ADAPTER_DATA_TYPE_KEYS = {
-  'dailyFees': 'df',
-  'dailyRevenue': 'dr',
-  // ...
-} as const
-
-export type AdapterDataTypeKey = keyof typeof ADAPTER_DATA_TYPE_KEYS
-```
-
-## Verification Commands
-
-Always run these to verify type safety:
+Always run all of these before considering work complete:
 
 ```bash
-# Check TypeScript errors
-bun run ts
+bun run ts                    # TypeScript errors
+bun run lint                  # Linting errors
 
-# Check linting
-bun run lint
-
-# Check strict mode (optional, for deep verification)
-npx tsc -p tsconfig.strict.json --skipLibCheck
+# Strict mode for specific folders:
+npx tsc -p tsconfig.strict.json --skipLibCheck 2>&1 | grep "containers/FolderName"
 ```
 
-## Common Issues and Solutions
-
-### Issue: "Parameter 'x' implicitly has an 'any' type"
-**Solution**: Add explicit type annotation to the parameter or ensure the array being mapped has a proper type.
-
-### Issue: "Type 'X' is not assignable to type 'Y'"
-**Solution**: Check if types need to be made nullable or if the interface definition needs updating.
-
-### Issue: Hover tooltip shows `any`
-**Solution**: Add explicit type annotation to help the IDE and TypeScript.
-
-### Issue: "Cannot find name 'X'"
-**Solution**: Check if type is imported properly. Do not re-export; import from source.
-
-## Migration to Strict Type Safety
-
-We use `tsconfig.strict.json` for gradual migration to full strict mode.
-
-### How It Works
-
-1. **Base config** (`tsconfig.json`) - Relaxed settings for development
-2. **Strict config** (`tsconfig.strict.json`) - Full strict mode, includes specific folders only
-3. **Add folders** to `include` array as they become ready
-4. **Goal** - Eventually all code passes strict checks
-
-### Adding a Folder
-
-1. **Update `tsconfig.strict.json`**:
-   ```json
-   "include": [
-     "src/containers/DimensionAdapters/**/*.ts",
-     "src/containers/NewFolder/**/*.ts"
-   ]
-   ```
-
-2. **Run strict check**:
-   ```bash
-   npx tsc -p tsconfig.strict.json --skipLibCheck
-   ```
-
-3. **Fix errors** using the principles above
-
-4. **Verify**:
-   ```bash
-   bun run ts
-   bun run lint
-   ```
-
-### Strict Mode Requirements
-
-All code in strict folders must follow these rules (in addition to guidelines above):
-
-1. **No implicit `any`** - All parameters must have explicit types or proper inference context
-2. **No explicit `any`** - Replace with proper types or `unknown`
-3. **Strict null checks** - Handle nullable values with `?.` or `if (x)` checks
-4. **No unused variables/parameters** - Remove or prefix with `_` if intentionally unused
-5. **All code paths return** - Ensure functions always return a value
-6. **Proper inference** - IDE tooltips must show actual types, never `any`
-
-### Migration Checklist
-
-- [ ] Run `npx tsc -p tsconfig.strict.json --skipLibCheck` - should show 0 errors
-- [ ] No `any` types in the folder
-- [ ] IDE hover shows proper types everywhere
-- [ ] `bun run ts` passes
-- [ ] `bun run lint` passes
-
-## Summary Checklist
-
-- [ ] No `any` types (except in type utilities with proper constraints)
-- [ ] No re-exports of functions/types
-- [ ] `as const` on object constants that need literal types
-- [ ] Proper null checks for nullable properties
-- [ ] Return types on functions that match interface contracts
-- [ ] Explicit types on variables initialized with empty arrays
-- [ ] All imports go directly to source files
+Never run `bun run build` — it will fail due to API rate limits.

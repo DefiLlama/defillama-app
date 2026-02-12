@@ -1,3 +1,9 @@
 import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 
-export const definitions = rwaDefinitionsJson
+type WithLookupValues<T> = {
+	[K in keyof T]: T[K] extends { values: Record<string, string> }
+		? Omit<T[K], 'values'> & { values: Record<string, string> }
+		: T[K]
+}
+
+export const definitions: WithLookupValues<typeof rwaDefinitionsJson> = rwaDefinitionsJson

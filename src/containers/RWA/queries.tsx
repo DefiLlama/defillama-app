@@ -1,5 +1,5 @@
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
-import definitions from '~/public/rwa-definitions.json'
+import { definitions } from './definitions'
 import type { IRWAList } from '~/utils/metadata/types'
 import {
 	getRWAActiveTVLs,
@@ -488,31 +488,31 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			typeOptions: formattedTypes.map((type) => ({
 				key: type,
 				name: type,
-				help: (definitions.type.values as Record<string, string>)?.[type] ?? null
+				help: definitions.type.values?.[type] ?? null
 			})),
 			assetClasses: formattedAssetClasses,
 			assetClassOptions: formattedAssetClasses.map((assetClass) => ({
 				key: assetClass,
 				name: assetClass,
-				help: (definitions.assetClass.values as Record<string, string>)?.[assetClass] ?? null
+				help: definitions.assetClass.values?.[assetClass] ?? null
 			})),
 			rwaClassifications: formattedRwaClassifications,
 			rwaClassificationOptions: formattedRwaClassifications.map((classification) => ({
 				key: classification,
 				name: classification,
-				help: (definitions.rwaClassification.values as Record<string, string>)?.[classification] ?? null
+				help: definitions.rwaClassification.values?.[classification] ?? null
 			})),
 			accessModels: formattedAccessModels,
 			accessModelOptions: formattedAccessModels.map((accessModel) => ({
 				key: accessModel,
 				name: accessModel,
-				help: (definitions.accessModel.values as Record<string, string>)?.[accessModel] ?? null
+				help: definitions.accessModel.values?.[accessModel] ?? null
 			})),
 			categories: formattedCategories,
 			categoriesOptions: formattedCategories.map((category) => ({
 				key: category,
 				name: category,
-				help: (definitions.category.values as Record<string, string>)?.[category] ?? null
+				help: definitions.category.values?.[category] ?? null
 			})),
 			assetNames: selectedPlatform
 				? Array.from(assetNames.entries())
@@ -643,16 +643,16 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 		// Get the classification description - use True RWA definition if trueRWA flag
 		const classificationKey = isTrueRWA ? 'True RWA' : data.rwaClassification
 		const rwaClassificationDescription = classificationKey
-			? ((definitions.rwaClassification.values as Record<string, string>)?.[classificationKey] ?? null)
+			? (definitions.rwaClassification.values?.[classificationKey] ?? null)
 			: null
 
 		const accessModelDescription = data.accessModel
-			? ((definitions.accessModel.values as Record<string, string>)?.[data.accessModel] ?? null)
+			? (definitions.accessModel.values?.[data.accessModel] ?? null)
 			: null
 		// Get asset class descriptions
 		const assetClassDescriptions: Record<string, string> = {}
 		for (const ac of data.assetClass ?? []) {
-			const description = ac ? (definitions.assetClass.values as Record<string, string>)?.[ac] : null
+			const description = ac ? definitions.assetClass.values?.[ac] : null
 			if (description) {
 				assetClassDescriptions[ac] = description
 			}

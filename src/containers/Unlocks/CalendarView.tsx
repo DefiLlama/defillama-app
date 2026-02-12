@@ -302,6 +302,7 @@ const chartOptions = {
 	tooltip: {
 		trigger: 'axis',
 		formatter: (formatterParams: unknown) => {
+			if (!Array.isArray(formatterParams) || formatterParams.length === 0) return ''
 			const params = formatterParams as Array<{
 				data?: unknown
 				value?: unknown
@@ -309,7 +310,6 @@ const chartOptions = {
 				seriesName?: string
 				marker?: string
 			}>
-			if (!params || params.length === 0) return ''
 
 			const first = params[0]
 			const ts =
