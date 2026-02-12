@@ -16,12 +16,10 @@ export default function SuperLuminalPage() {
 			<Suspense
 				fallback={
 					<div className="superluminal-dashboard fixed inset-0 z-50 flex items-center justify-center bg-(--app-bg)">
-						<div className="sl-loader text-center leading-tight select-none">
-							<span className="block text-[20px] font-black tracking-[0.12em] text-(--sl-text-brand)">DefiLlama</span>
-							<span
-								className="block text-[13px] font-bold tracking-[0.2em] uppercase text-transparent"
-								style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
-							>
+						<div className="sl-loader flex flex-col items-center gap-2.5">
+							<img src="/assets/defillama.webp" height={36} width={140} className="hidden object-contain dark:block" alt="DefiLlama" />
+							<img src="/assets/defillama-dark.webp" height={36} width={140} className="object-contain dark:hidden" alt="DefiLlama" />
+							<span className="rounded-full border border-(--sl-accent)/40 px-3 py-1 text-[9px] font-semibold tracking-[0.15em] uppercase text-(--sl-accent)/60 select-none">
 								Investor Relationships
 							</span>
 						</div>

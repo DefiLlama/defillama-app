@@ -454,14 +454,13 @@
 }
 
 @keyframes sl-pulse-glow {
-	0%,
-	100% {
-		text-shadow: 0 0 8px color-mix(in srgb, var(--sl-stroke-brand) 20%, transparent);
+	0%, 100% {
+		opacity: 0.5;
+		filter: drop-shadow(0 0 4px rgba(33, 114, 229, 0.1));
 	}
 	50% {
-		text-shadow:
-			0 0 20px color-mix(in srgb, var(--sl-stroke-brand) 50%, transparent),
-			0 0 40px color-mix(in srgb, var(--sl-stroke-brand) 20%, transparent);
+		opacity: 1;
+		filter: drop-shadow(0 0 24px rgba(33, 114, 229, 0.4)) drop-shadow(0 0 8px rgba(33, 114, 229, 0.2));
 	}
 }
 
