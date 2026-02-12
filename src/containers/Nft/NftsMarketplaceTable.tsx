@@ -34,13 +34,17 @@ const EthIcon = () => (
 	</svg>
 )
 
-const EthVolumeCell = ({ value }: { value: unknown }) =>
-	value != null ? (
+const EthVolumeCell = ({ value }: { value: unknown }) => {
+	const numericValue = Number(value)
+	if (!Number.isFinite(numericValue)) return null
+
+	return (
 		<span className="flex flex-nowrap items-center justify-end gap-1">
-			<span>{Number(value).toFixed(2)}</span>
+			<span>{numericValue.toFixed(2)}</span>
 			<EthIcon />
 		</span>
-	) : null
+	)
+}
 
 const columns: ColumnDef<INftMarketplace>[] = [
 	{
@@ -95,7 +99,10 @@ const columns: ColumnDef<INftMarketplace>[] = [
 		header: 'Market Share',
 		accessorKey: 'pctOfTotal',
 		size: 150,
-		cell: (info) => <>{info.getValue() != null ? Number(info.getValue()).toFixed(2) + '%' : null}</>,
+		cell: (info) => {
+			const numericValue = Number(info.getValue())
+			return <>{Number.isFinite(numericValue) ? numericValue.toFixed(2) + '%' : null}</>
+		},
 		meta: {
 			align: 'end',
 			headerHelperText: 'based on Volume 1d'
@@ -146,7 +153,8 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 
 	return (
 		<>
-			<div className="relative ml-auto w-full sm:max-w-[280px]">
+			<label className="relative ml-auto w-full sm:max-w-[280px]">
+				<span className="sr-only">Search marketplaces</span>
 				<Icon
 					name="search"
 					height={16}
@@ -161,7 +169,7 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 					placeholder="Search marketplace..."
 					className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 				/>
-			</div>
+			</label>
 			<VirtualTable instance={instance} />
 		</>
 	)

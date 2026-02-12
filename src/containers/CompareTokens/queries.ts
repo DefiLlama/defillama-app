@@ -24,7 +24,7 @@ export async function getCompareTokensPageData(): Promise<CompareTokensPageData>
 		{ name: string; geckoId: string | null; tvl: number | null; fees: number | null; revenue: number | null }
 	> = {}
 
-	for (const protocol of tvlProtocols.parentProtocols) {
+	for (const protocol of tvlProtocols?.parentProtocols ?? []) {
 		parentProtocols[protocol.id] = {
 			name: protocol.name,
 			geckoId: protocol.gecko_id ?? null,
@@ -34,19 +34,19 @@ export async function getCompareTokensPageData(): Promise<CompareTokensPageData>
 		}
 	}
 
-	const llamaProtocols: Protocol[] = tvlProtocols.protocols.map((protocol) => {
+	const llamaProtocols: Protocol[] = (tvlProtocols?.protocols ?? []).map((protocol) => {
 		const fees = feesProtocols.protocols.find((fp) => fp.defillamaId === protocol.defillamaId)?.total24h ?? null
 		const revenue = revenueProtocols.protocols.find((fp) => fp.defillamaId === protocol.defillamaId)?.total24h ?? null
 
 		if (protocol.parentProtocol && parentProtocols[protocol.parentProtocol]) {
-			if (protocol.tvl) {
+			if (protocol.tvl != null) {
 				parentProtocols[protocol.parentProtocol].tvl =
 					(parentProtocols[protocol.parentProtocol].tvl ?? 0) + protocol.tvl
 			}
-			if (fees) {
+			if (fees != null) {
 				parentProtocols[protocol.parentProtocol].fees = (parentProtocols[protocol.parentProtocol].fees ?? 0) + fees
 			}
-			if (revenue) {
+			if (revenue != null) {
 				parentProtocols[protocol.parentProtocol].revenue =
 					(parentProtocols[protocol.parentProtocol].revenue ?? 0) + revenue
 			}

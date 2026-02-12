@@ -1,9 +1,9 @@
 export type RawProtocolResponse = {
 	name: string
-	chainTvls: Record<
+	chainTvls?: Record<
 		string,
 		{
-			tvl: Array<{ date: number; totalLiquidityUSD: number }>
+			tvl?: Array<{ date: number; totalLiquidityUSD: number }>
 		}
 	>
 }

@@ -16,8 +16,8 @@ type RawProposal = {
 	discussion: string
 	start: number
 	end: number
-	scores: number[]
-	choices: string[]
+	scores?: number[] | null
+	choices?: string[] | null
 	scores_total: number
 	score_curve?: number
 }
@@ -91,12 +91,18 @@ function stripUndefined<T>(obj: T): T {
 }
 
 function processProposal(proposal: RawProposal): GovernanceProposal {
-	const winningScore = proposal.scores.length > 0 ? Math.max(...proposal.scores) : undefined
-	const totalVotes = proposal.scores.reduce((acc, curr) => acc + curr, 0)
+	const scores = (proposal.scores ?? []).filter((score): score is number => Number.isFinite(score))
+	const choices = Array.isArray(proposal.choices) ? proposal.choices : []
+	const winningScore = scores.length > 0 ? Math.max(...scores) : undefined
+	const winningIndex = winningScore != null ? scores.findIndex((score) => score === winningScore) : -1
+	const totalVotes = scores.reduce((acc, curr) => acc + curr, 0)
+
 	return {
 		...proposal,
+		scores,
+		choices,
 		totalVotes,
-		winningChoice: winningScore != null ? (proposal.choices[proposal.scores.findIndex((x) => x === winningScore)] ?? '') : '',
+		winningChoice: winningIndex >= 0 ? (choices[winningIndex] ?? '') : '',
 		winningPerc:
 			totalVotes !== 0 && winningScore != null ? `(${Number(((winningScore / totalVotes) * 100).toFixed(2))}% of votes)` : ''
 	}
@@ -108,12 +114,14 @@ export function formatGovernanceData(data: RawGovernanceResponse): {
 	maxVotes: GovernanceMaxVotesRow[]
 } {
 	const proposals: GovernanceProposal[] = []
-	if (Array.isArray(data.proposals)) {
-		for (const proposal of data.proposals) {
+	const rawProposals = data?.proposals
+
+	if (Array.isArray(rawProposals)) {
+		for (const proposal of rawProposals) {
 			proposals.push(processProposal(proposal))
 		}
-	} else {
-		for (const [, proposal] of Object.entries(data.proposals)) {
+	} else if (rawProposals != null && typeof rawProposals === 'object') {
+		for (const [, proposal] of Object.entries(rawProposals)) {
 			proposals.push(processProposal(proposal))
 		}
 	}
@@ -122,20 +130,25 @@ export function formatGovernanceData(data: RawGovernanceResponse): {
 	const maxVotes: GovernanceMaxVotesRow[] = []
 	const statsMonths = data.stats?.months ?? {}
 	for (const [date, values] of Object.entries(statsMonths)) {
+		const timestamp = Math.floor(new Date(date).getTime() / 1000)
+		if (!Number.isFinite(timestamp)) continue
+
 		activity.push({
-			date: Math.floor(new Date(date).getTime() / 1000),
+			date: timestamp,
 			Total: values.total ?? 0,
 			Successful: values.successful ?? 0
 		})
+
 		let maxVotesValue = 0
-		for (const proposalId of values.proposals ?? []) {
+		for (const proposalId of Array.isArray(values.proposals) ? values.proposals : []) {
 			const votes = proposals.find((p) => p.id === proposalId)?.totalVotes ?? 0
 			if (votes > maxVotesValue) {
 				maxVotesValue = votes
 			}
 		}
+
 		maxVotes.push({
-			date: Math.floor(new Date(date).getTime() / 1000),
+			date: timestamp,
 			'Max Votes': maxVotesValue.toFixed(2)
 		})
 	}

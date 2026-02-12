@@ -98,7 +98,13 @@ const TitleCell = ({ info }: { info: { row: { original: GovernanceProposal }; ge
 
 const ControversyCell = ({ info }: { info: { getValue: () => unknown } }) => {
 	const value = info.getValue()
-	return <>{value != null ? Number(value).toFixed(2) : ''}</>
+	const numericValue = Number(value)
+	return <>{Number.isFinite(numericValue) ? numericValue.toFixed(2) : ''}</>
+}
+
+const DateCell = ({ info }: { info: { getValue: () => unknown } }) => {
+	const timestamp = Number(info.getValue())
+	return <>{Number.isFinite(timestamp) ? toNiceDayMonthAndYear(timestamp) : ''}</>
 }
 
 const proposalsCompoundColumns: ColumnDef<GovernanceProposal>[] = [
@@ -111,13 +117,13 @@ const proposalsCompoundColumns: ColumnDef<GovernanceProposal>[] = [
 	{
 		header: 'Start',
 		accessorKey: 'start',
-		cell: (info) => toNiceDayMonthAndYear(Number(info.getValue())),
+		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
 	},
 	{
 		header: 'End',
 		accessorKey: 'end',
-		cell: (info) => toNiceDayMonthAndYear(Number(info.getValue())),
+		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
 	},
 	{
@@ -150,13 +156,13 @@ const proposalsSnapshotColumns: ColumnDef<GovernanceProposal>[] = [
 	{
 		header: 'Start',
 		accessorKey: 'start',
-		cell: (info) => toNiceDayMonthAndYear(Number(info.getValue())),
+		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
 	},
 	{
 		header: 'End',
 		accessorKey: 'end',
-		cell: (info) => toNiceDayMonthAndYear(Number(info.getValue())),
+		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
 	},
 	{
@@ -213,13 +219,13 @@ const proposalsTallyColumns: ColumnDef<GovernanceProposal>[] = [
 	{
 		header: 'Start',
 		accessorKey: 'start',
-		cell: (info) => toNiceDayMonthAndYear(Number(info.getValue())),
+		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
 	},
 	{
 		header: 'End',
 		accessorKey: 'end',
-		cell: (info) => toNiceDayMonthAndYear(Number(info.getValue())),
+		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
 	},
 	{

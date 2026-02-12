@@ -263,6 +263,11 @@ export const getNFTRoyaltyHistory = async (slug: string) => {
 			fetchNftCollection(slug),
 			fetchNftRoyalty(slug)
 		])
+		if (!Array.isArray(collection) || collection.length === 0 || !Array.isArray(royalty) || royalty.length === 0) {
+			return {
+				royaltyHistory: []
+			}
+		}
 
 		const safeChart: Array<[number, number]> = Array.isArray(royaltyChart) ? royaltyChart : []
 		const formattedData = formatBarChart({
@@ -298,7 +303,7 @@ export const getNFTRoyaltyHistory = async (slug: string) => {
 				url: collection[0].projectUrl,
 				twitter: collection[0].twitterUsername,
 				category: 'Nft',
-				totalDataChart: royaltyChart,
+				totalDataChart: safeChart,
 				earningsChart,
 				total24h: royalty[0].usd1D,
 				total7d: royalty[0].usd7D,
@@ -319,14 +324,22 @@ export const getNFTRoyaltyHistory = async (slug: string) => {
 }
 
 const flagOutliers = (sales: Array<[number, number]>): Array<[number, number, boolean]> => {
+	if (sales.length < 2) return sales.map((sale) => [sale[0], sale[1], false] as [number, number, boolean])
+
 	const values = sales.map((s) => s[1])
 	const mean = values.reduce((acc, val) => acc + val, 0) / values.length
 	const std = Math.sqrt(values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (values.length - 1))
+	if (!Number.isFinite(std) || std === 0) {
+		return sales.map((sale) => [sale[0], sale[1], false] as [number, number, boolean])
+	}
+
 	const scores = values.map((s) => Math.abs((s - mean) / std))
 	return sales.map((s, i) => [s[0], s[1], scores[i] >= 4] as [number, number, boolean])
 }
 
 const median = (sales: number[]): number => {
+	if (sales.length === 0) return 0
+
 	const middle = Math.floor(sales.length / 2)
 
 	if (sales.length % 2 === 0) {

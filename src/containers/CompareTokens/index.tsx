@@ -25,13 +25,13 @@ const compareTypes: CompareType[] = [
 	{ label: 'Fees', value: 'fees' }
 ]
 
-type SupplyResponse = { data: { total_supply: string | number } }
+type SupplyResponse = { data?: { total_supply?: string | number | null } }
 
 function getCompareValues(
 	type: string,
 	coin0: IResponseCGMarketsAPI,
 	coin1: IResponseCGMarketsAPI,
-	fdvData: [{ coins: Record<string, { price: number }> }, SupplyResponse, SupplyResponse],
+	fdvData: [{ coins: Record<string, { price?: number }> }, SupplyResponse, SupplyResponse],
 	protocolsByGeckoId: Map<string, Protocol>,
 	protocolsByName: Map<string, Protocol>
 ): [number | null, number | null] {
@@ -41,8 +41,11 @@ function getCompareValues(
 	switch (type) {
 		case 'mcap':
 			return [coin0.market_cap ?? null, coin1.market_cap ?? null]
-		case 'fdv':
-			return [Number(fdvData[1].data.total_supply), Number(fdvData[2].data.total_supply)]
+		case 'fdv': {
+			const supply0 = Number(fdvData[1]?.data?.total_supply)
+			const supply1 = Number(fdvData[2]?.data?.total_supply)
+			return [Number.isFinite(supply0) ? supply0 : null, Number.isFinite(supply1) ? supply1 : null]
+		}
 		case 'volume':
 			return [coin0.total_volume ?? null, coin1.total_volume ?? null]
 		case 'tvl':
@@ -60,7 +63,7 @@ function computeComparison(
 	compareType: CompareType,
 	selectedCoins: Array<IResponseCGMarketsAPI | undefined>,
 	coinPrices: number[],
-	fdvData: [{ coins: Record<string, { price: number }> }, SupplyResponse, SupplyResponse],
+	fdvData: [{ coins: Record<string, { price?: number }> }, SupplyResponse, SupplyResponse],
 	protocolsByGeckoId: Map<string, Protocol>,
 	protocolsByName: Map<string, Protocol>
 ): { newPrice: number; increase: number } | null {
@@ -69,10 +72,18 @@ function computeComparison(
 	if (!coin0 || !coin1) return null
 
 	const [val0, val1] = getCompareValues(compareType.value, coin0, coin1, fdvData, protocolsByGeckoId, protocolsByName)
-	if (val0 == null || val1 == null || val0 === 0) return null
+	if (val0 == null || val1 == null || !Number.isFinite(val0) || !Number.isFinite(val1) || val0 === 0) return null
 
-	const newPrice = (coinPrices[1] * val1) / val0
-	return { newPrice, increase: newPrice / coinPrices[0] }
+	const basePrice = coinPrices[0]
+	const quotePrice = coinPrices[1]
+	if (!Number.isFinite(basePrice) || !Number.isFinite(quotePrice) || basePrice === 0) return null
+
+	const newPrice = (quotePrice * val1) / val0
+	if (!Number.isFinite(newPrice)) return null
+	const increase = newPrice / basePrice
+	if (!Number.isFinite(increase)) return null
+
+	return { newPrice, increase }
 }
 
 export function CompareTokens({
@@ -137,12 +148,12 @@ export function CompareTokens({
 
 	const comparison = useMemo(() => {
 		if (fdvData == null || coins.length !== 2) return null
-		const coinPrices = coins.map((c) => fdvData[0].coins[`coingecko:${c}`].price)
+		const coinPrices = coins.map((c) => fdvData[0].coins[`coingecko:${c}`]?.price ?? NaN)
 		return computeComparison(
 			compareType,
 			selectedCoins,
 			coinPrices,
-			fdvData as [{ coins: Record<string, { price: number }> }, SupplyResponse, SupplyResponse],
+			fdvData as [{ coins: Record<string, { price?: number }> }, SupplyResponse, SupplyResponse],
 			protocolsByGeckoId,
 			protocolsByName
 		)

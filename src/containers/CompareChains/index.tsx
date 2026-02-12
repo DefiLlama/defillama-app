@@ -335,7 +335,7 @@ const formatTvlChart = ({
 	}
 
 	const finalTvlChart: Array<[number, number]> = []
-	for (const date of Object.keys(store)) {
+	for (const date of Object.keys(store).sort((a, b) => Number(a) - Number(b))) {
 		finalTvlChart.push([+date, store[date]])
 	}
 

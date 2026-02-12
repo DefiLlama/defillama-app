@@ -78,7 +78,7 @@ export async function getGovernancePageData() {
 		props: {
 			data: Object.values({ ...snapshot, ...compound, ...tally }).map((x) => ({
 				...x,
-				subRowData: x.states
+				subRowData: x.states ?? {}
 			}))
 		},
 		revalidate: maxAgeForNext([22])

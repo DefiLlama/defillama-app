@@ -93,7 +93,7 @@ const calculateAnnualizedVolatility = (series: PricePoint[]): number => {
 	for (let i = 1; i < series.length; i++) {
 		const prev = series[i - 1].price
 		const curr = series[i].price
-		if (prev === 0) continue
+		if (prev === 0 || !Number.isFinite(prev) || !Number.isFinite(curr)) continue
 		returns.push((curr - prev) / prev)
 	}
 	if (returns.length < 2) return 0
@@ -110,7 +110,14 @@ const calculateYAxisConfigFromPrices = (prices: number[]): { min: number; max: n
 	const max = Math.max(...prices)
 	const range = max - min
 
-	if (range === 0) return { min: min - min * 0.1, max: max + max * 0.1, interval: max * 0.1 }
+	if (range === 0) {
+		const padding = max === 0 ? 1 : Math.abs(max) * 0.1
+		return {
+			min: Math.min(0, min - padding),
+			max: max + padding,
+			interval: padding
+		}
+	}
 
 	const magnitude = Math.pow(10, Math.floor(Math.log10(range)))
 	const normalized = range / magnitude

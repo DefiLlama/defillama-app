@@ -16,6 +16,8 @@ const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
 
+type ProtocolChainTvls = Record<string, { tvl?: Array<{ date: number; totalLiquidityUSD: number }> }>
+
 export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsProps) {
 	const router = useRouter()
 
@@ -46,10 +48,7 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 		const formattedData = results
 			.filter((r) => r.data != null)
 			.map((res) => ({
-				protocolChartData: (res.data!.protocolData.chainTvls ?? {}) as Record<
-					string,
-					{ tvl: Array<{ date: number; totalLiquidityUSD: number }> }
-				>,
+				protocolChartData: (res.data?.protocolData.chainTvls ?? {}) as ProtocolChainTvls,
 				protocolName: res.data!.protocolData.name
 			}))
 
@@ -65,7 +64,10 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 				if (chain.includes('-') || chain === 'offers') continue
 				if (chain in extraTvlEnabled && !extraTvlEnabled[chain]) continue
 
-				for (const { date, totalLiquidityUSD } of protocol.protocolChartData[chain].tvl) {
+				const chainTvl = protocol.protocolChartData[chain]?.tvl
+				if (!Array.isArray(chainTvl)) continue
+
+				for (const { date, totalLiquidityUSD } of chainTvl) {
 					chartsByProtocol[protocol.protocolName][date] =
 						(chartsByProtocol[protocol.protocolName][date] ?? 0) + totalLiquidityUSD
 				}
