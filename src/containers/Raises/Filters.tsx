@@ -1,6 +1,5 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import * as React from 'react'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
@@ -64,7 +63,7 @@ function Filters({
 
 	return (
 		<>
-			{investors && investors.length > 0 && (
+			{investors != null && investors.length > 0 ? (
 				<SelectWithCombobox
 					label="Investors"
 					allValues={investors}
@@ -75,9 +74,9 @@ function Filters({
 					includeQueryKey="investor"
 					excludeQueryKey="excludeInvestor"
 				/>
-			)}
+			) : null}
 
-			{chains && chains.length > 0 && (
+			{chains != null && chains.length > 0 ? (
 				<SelectWithCombobox
 					label="Chains"
 					allValues={chains}
@@ -88,9 +87,9 @@ function Filters({
 					includeQueryKey="chain"
 					excludeQueryKey="excludeChain"
 				/>
-			)}
+			) : null}
 
-			{sectors && sectors.length > 0 && (
+			{sectors != null && sectors.length > 0 ? (
 				<SelectWithCombobox
 					label="Sectors"
 					allValues={sectors}
@@ -101,9 +100,9 @@ function Filters({
 					includeQueryKey="sector"
 					excludeQueryKey="excludeSector"
 				/>
-			)}
+			) : null}
 
-			{rounds && rounds.length > 0 && (
+			{rounds != null && rounds.length > 0 ? (
 				<SelectWithCombobox
 					label="Rounds"
 					allValues={rounds}
@@ -114,7 +113,7 @@ function Filters({
 					includeQueryKey="round"
 					excludeQueryKey="excludeRound"
 				/>
-			)}
+			) : null}
 
 			<RaisedRange nestedMenu={nestedMenu} placement="bottom-start" />
 

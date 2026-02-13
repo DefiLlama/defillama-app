@@ -1,4 +1,3 @@
-import { maxAgeForNext } from '~/api'
 import {
 	GOVERNANCE_COMPOUND_API,
 	GOVERNANCE_SNAPSHOT_API,
@@ -23,17 +22,14 @@ function normalizeDatasetsHost(url: string) {
 }
 
 type GovernanceDetailsPageData =
-	| { notFound: true; props: null }
+	| { notFound: true }
 	| {
-			props: {
-				projectName: string
-				governanceData: Array<GovernanceDataEntry>
-				governanceTypes: Array<GovernanceType>
-			}
-			revalidate: number
+			projectName: string
+			governanceData: Array<GovernanceDataEntry>
+			governanceTypes: Array<GovernanceType>
 	  }
 
-type GovernanceDetailsPageDataWithProps = Exclude<GovernanceDetailsPageData, { notFound: true; props: null }>
+type GovernanceDetailsPageDataWithProps = Exclude<GovernanceDetailsPageData, { notFound: true }>
 
 function governanceIdToApiUrl(gid: string) {
 	const trimmed = (gid ?? '').trim()
@@ -152,10 +148,7 @@ function normalizeGovernanceOverviewItem(raw: RawGovernanceOverviewItem): Govern
 	}
 }
 
-export async function getGovernancePageData(): Promise<{
-	props: { data: GovernanceOverviewItem[] }
-	revalidate: number
-}> {
+export async function getGovernancePageData(): Promise<{ data: GovernanceOverviewItem[] }> {
 	const [snapshot, compound, tally] = await Promise.all([
 		fetchJson<RawGovernanceOverview>(GOVERNANCE_SNAPSHOT_API),
 		fetchJson<RawGovernanceOverview>(GOVERNANCE_COMPOUND_API),
@@ -167,10 +160,7 @@ export async function getGovernancePageData(): Promise<{
 	)
 
 	return {
-		props: {
-			data
-		},
-		revalidate: maxAgeForNext([22])
+		data
 	}
 }
 
@@ -187,12 +177,9 @@ export async function getGovernanceDetailsPageData(
 		const governanceApis = governanceIdsToApis(input.governanceIDs ?? [])
 		const { governanceData, governanceTypes } = await fetchGovernanceDataForApis(governanceApis)
 		return {
-			props: {
-				projectName: input.projectName,
-				governanceData,
-				governanceTypes
-			},
-			revalidate: maxAgeForNext([22])
+			projectName: input.projectName,
+			governanceData,
+			governanceTypes
 		}
 	}
 
@@ -214,7 +201,7 @@ export async function getGovernanceDetailsPageData(
 	const tallyProject = Object.values(tally).find((p) => slug(p.name) === normalizedProject)
 
 	if (!snapshotProject && !compoundProject && !tallyProject) {
-		return { notFound: true, props: null }
+		return { notFound: true }
 	}
 
 	// Build a list of governanceIDs, then fetch/format in parallel.
@@ -236,14 +223,11 @@ export async function getGovernanceDetailsPageData(
 	const governanceApis = governanceIdsToApis(governanceIDs)
 	const { governanceData, governanceTypes } = await fetchGovernanceDataForApis(governanceApis)
 
-	if (!governanceData || governanceData.length === 0) return { notFound: true, props: null }
+	if (!governanceData || governanceData.length === 0) return { notFound: true }
 
 	return {
-		props: {
-			projectName: snapshotProject?.name ?? tallyProject?.name ?? compoundProject?.name ?? project,
-			governanceData,
-			governanceTypes
-		},
-		revalidate: maxAgeForNext([22])
+		projectName: snapshotProject?.name ?? tallyProject?.name ?? compoundProject?.name ?? project,
+		governanceData,
+		governanceTypes
 	}
 }

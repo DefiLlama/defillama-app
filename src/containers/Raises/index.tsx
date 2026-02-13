@@ -9,6 +9,7 @@ import { formattedNum } from '~/utils'
 import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
 import { RaisesTable } from './Table'
+import type { IRaise } from './types'
 
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -16,7 +17,16 @@ const MultiSeriesChart2 = React.lazy(
 
 const RAISES_PAGE_NAME = ['Raises Overview']
 
-const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
+interface RaisesContainerProps {
+	raises: IRaise[]
+	investors: string[]
+	rounds: string[]
+	sectors: string[]
+	chains: string[]
+	investorName: string | null
+}
+
+const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName }: RaisesContainerProps) => {
 	const { pathname } = useRouter()
 
 	const {

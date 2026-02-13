@@ -1,19 +1,25 @@
-import { BRIDGEINFLOWS_API, CHAIN_ASSETS_FLOWS, CHAINS_ASSETS } from '~/constants'
 import { slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
+import { fetchBridgeInflows, fetchChainAssetsFlows1d, fetchChainsAssets } from './api'
+import type { RawChainAsset, RawChainAssetsFlowEntry, RawChainsAssetsResponse } from './api.types'
 
-export async function getBridgedTVLByChain(chain?: string) {
+export interface BridgedTVLData {
+	chains: Array<{ label: string; to: string }>
+	assets: RawChainsAssetsResponse
+	flows1d: Record<string, RawChainAssetsFlowEntry> | null
+	chainData: RawChainAsset | null
+	inflows: Array<Record<string, number>>
+	tokenInflowNames: string[]
+}
+
+export async function getBridgedTVLByChain(chain?: string): Promise<BridgedTVLData> {
 	const [assets, flows1d, inflows] = await Promise.all([
-		fetchJson(CHAINS_ASSETS),
-		fetchJson(CHAIN_ASSETS_FLOWS + '/24h').catch(() => null),
-		chain
-			? fetchJson(`${BRIDGEINFLOWS_API}/${sluggify(chain)}/1d`)
-					.then((data) => data.data.map((item) => ({ ...item.data, date: item.timestamp })))
-					.catch(() => [])
-			: []
+		fetchChainsAssets(),
+		fetchChainAssetsFlows1d(),
+		chain ? fetchBridgeInflows(sluggify(chain)) : []
 	])
-	let chainData = null
+
+	let chainData: RawChainAsset | null = null
 	if (chain) {
 		const targetSlug = slug(chain)
 		for (const key in assets ?? {}) {
@@ -33,7 +39,7 @@ export async function getBridgedTVLByChain(chain?: string) {
 		}
 	}
 
-	const assetEntries: [string, any][] = []
+	const assetEntries: [string, RawChainAsset][] = []
 	for (const key in assets ?? {}) {
 		assetEntries.push([key, assets[key]])
 	}

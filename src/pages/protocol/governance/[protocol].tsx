@@ -35,7 +35,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
-		const { props: governanceProps } = await getGovernanceDetailsPageData({
+		const governanceProps = await getGovernanceDetailsPageData({
 			governanceIDs: protocolData.governanceID ?? [],
 			projectName: protocolData.name
 		})

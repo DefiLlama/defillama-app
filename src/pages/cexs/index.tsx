@@ -1,18 +1,13 @@
 import { maxAgeForNext } from '~/api'
-import { CEXS_API } from '~/constants'
 import { Cexs } from '~/containers/Cexs'
-import type { ICex } from '~/containers/Cexs/types'
+import { getCexsPageData } from '~/containers/Cexs/queries'
 import Layout from '~/layout'
-import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
-	const data: { cexs: Array<ICex> } = await fetchJson(CEXS_API)
-
+	const data = await getCexsPageData()
 	return {
-		props: {
-			cexs: data.cexs.sort((a, b) => (b.cleanAssetsTvl ?? 0) - (a.cleanAssetsTvl ?? 0)) ?? []
-		},
+		props: data,
 		revalidate: maxAgeForNext([22])
 	}
 })
@@ -31,4 +26,4 @@ export default function CexsPage({ cexs }) {
 			<Cexs cexs={cexs} />
 		</Layout>
 	)
-} // triggerr
+}

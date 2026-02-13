@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { BridgedTVLChainsList } from '~/containers/BridgedTVL/BridgedTVLChainsList'
 import { getBridgedTVLByChain } from '~/containers/BridgedTVL/queries'

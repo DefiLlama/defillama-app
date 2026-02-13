@@ -1,11 +1,3 @@
-export const timeframeOptions = {
-	// WEEK: '1 week',
-	MONTH: '1 month',
-	// THREE_MONTHS: '3 months',
-	YEAR: '1 year',
-	ALL_TIME: 'All time'
-}
-
 // API endpoints
 export const SERVER_URL = process.env.SERVER_URL ?? 'https://api.llama.fi'
 export const V2_SERVER_URL = process.env.V2_SERVER_URL ?? `${SERVER_URL}/v2`

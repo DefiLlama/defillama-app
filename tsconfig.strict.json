@@ -44,6 +44,14 @@
 		"src/containers/CompareChains/**/*.ts",
 		"src/containers/CompareChains/**/*.tsx",
 		"src/containers/CompareProtocols/**/*.ts",
-		"src/containers/CompareProtocols/**/*.tsx"
+		"src/containers/CompareProtocols/**/*.tsx",
+		"src/containers/Cexs/**/*.ts",
+		"src/containers/Cexs/**/*.tsx",
+		"src/containers/BridgedTVL/**/*.ts",
+		"src/containers/BridgedTVL/**/*.tsx",
+		"src/containers/Raises/**/*.ts",
+		"src/containers/Raises/**/*.tsx",
+		"src/containers/Treasuries/**/*.ts",
+		"src/containers/Treasuries/**/*.tsx"
 	]
 }

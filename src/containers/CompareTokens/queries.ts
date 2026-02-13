@@ -1,15 +1,12 @@
-import { getAllCGTokensList, maxAgeForNext } from '~/api'
+import { getAllCGTokensList } from '~/api'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { fetchFeesProtocols, fetchProtocolsList, fetchRevenueProtocols } from './api'
 import type { RawDimensionsOverviewResponse, RawProtocolsResponse } from './api.types'
 import type { Protocol } from './types'
 
 type CompareTokensPageData = {
-	props: {
-		coinsData: Array<IResponseCGMarketsAPI & { label: string; value: string }>
-		protocols: Protocol[]
-	}
-	revalidate: number
+	coinsData: Array<IResponseCGMarketsAPI & { label: string; value: string }>
+	protocols: Protocol[]
 }
 
 export async function getCompareTokensPageData(): Promise<CompareTokensPageData> {
@@ -83,10 +80,7 @@ export async function getCompareTokensPageData(): Promise<CompareTokensPageData>
 	})
 
 	return {
-		props: {
-			coinsData: coinsData.map((coin) => ({ ...coin, label: coin.symbol.toUpperCase(), value: coin.id })),
-			protocols: [...Object.values(parentProtocols), ...llamaProtocols]
-		},
-		revalidate: maxAgeForNext([22])
+		coinsData: coinsData.map((coin) => ({ ...coin, label: coin.symbol.toUpperCase(), value: coin.id })),
+		protocols: [...Object.values(parentProtocols), ...llamaProtocols]
 	}
 }

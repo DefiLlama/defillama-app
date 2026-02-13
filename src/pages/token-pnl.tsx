@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { TokenPnl } from '~/containers/TokenPnl'
 import Layout from '~/layout'

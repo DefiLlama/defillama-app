@@ -1,3 +1,4 @@
+import { maxAgeForNext } from '~/api'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { CompareTokens } from '~/containers/CompareTokens'
 import { getCompareTokensPageData } from '~/containers/CompareTokens/queries'
@@ -5,7 +6,13 @@ import type { Protocol } from '~/containers/CompareTokens/types'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticProps = withPerformanceLogging('compare-tokens', getCompareTokensPageData)
+export const getStaticProps = withPerformanceLogging('compare-tokens', async () => {
+	const data = await getCompareTokensPageData()
+	return {
+		props: data,
+		revalidate: maxAgeForNext([22])
+	}
+})
 
 export default function Compare({
 	coinsData,

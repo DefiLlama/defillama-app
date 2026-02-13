@@ -1,4 +1,5 @@
 import type { GetStaticPropsContext } from 'next'
+import { maxAgeForNext } from '~/api'
 import GovernanceProject from '~/containers/Governance/GovernanceProject'
 import { getGovernanceDetailsPageData } from '~/containers/Governance/queries'
 import Layout from '~/layout'
@@ -8,11 +9,18 @@ import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging(
 	'governance/[project]',
 	async ({ params }: GetStaticPropsContext<{ project: string }>) => {
+		const revalidate = maxAgeForNext([22])
+
 		if (!params?.project) {
-			return { notFound: true, props: null }
+			return { notFound: true, revalidate }
 		}
 
-		return getGovernanceDetailsPageData({ project: params.project })
+		const data = await getGovernanceDetailsPageData({ project: params.project })
+		if ('notFound' in data) {
+			return { notFound: true, revalidate }
+		}
+
+		return { props: data, revalidate }
 	}
 )
 
