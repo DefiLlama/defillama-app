@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 const DUNE_API_URL = 'https://api.dune.com/api/v1'
-const DUNE_API_KEY = process.env.DUNE_API_KEY
+const DUNE_API_KEY = 'YdjmcWGRqalcfxfIdyqCH0e7jIRHJzUL'
 
 const ALLOWED_QUERY_IDS = new Set([
 	'5441979',
@@ -27,7 +27,7 @@ function refreshInBackground(queryId: string) {
 	console.log(`[dune] background REFRESH started query=${queryId}`)
 
 	fetch(`${DUNE_API_URL}/query/${queryId}/results`, {
-		headers: { 'X-Dune-API-Key': 'YdjmcWGRqalcfxfIdyqCH0e7jIRHJzUL' }
+		headers: { 'X-Dune-API-Key': DUNE_API_KEY }
 	})
 		.then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
 		.then((data) => {
