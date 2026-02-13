@@ -159,15 +159,40 @@ const readStablecoinNumericFromChart = (
 	return typeof raw === 'number' && Number.isFinite(raw) ? raw : null
 }
 
+const normalizeStablecoinBridges = (value: unknown): StablecoinBridges => {
+	if (value == null || typeof value !== 'object' || Array.isArray(value)) return null
+
+	const normalized: NonNullable<StablecoinBridges> = {}
+
+	for (const [bridgeId, sourcesValue] of Object.entries(value)) {
+		if (sourcesValue == null || typeof sourcesValue !== 'object' || Array.isArray(sourcesValue)) continue
+
+		const normalizedSources: Record<string, { amount: number }> = {}
+		for (const [sourceChain, sourceValue] of Object.entries(sourcesValue)) {
+			if (sourceValue == null || typeof sourceValue !== 'object' || Array.isArray(sourceValue)) continue
+			const amountRaw = (sourceValue as Record<string, unknown>).amount
+			const amount = typeof amountRaw === 'number' ? amountRaw : Number(amountRaw)
+			if (!Number.isFinite(amount)) continue
+			normalizedSources[sourceChain] = { amount }
+		}
+
+		if (Object.keys(normalizedSources).length > 0) {
+			normalized[bridgeId] = normalizedSources
+		}
+	}
+
+	return Object.keys(normalized).length > 0 ? normalized : null
+}
+
 const readStablecoinBridgesFromChart = (
 	chart: StablecoinChartDataPoint[] | null | undefined,
 	daysBefore: number,
 	issuanceType: string
 ): StablecoinBridges => {
+	// `getPrevStablecoinTotalFromChart` returns `unknown` for pegType='bridges';
+	// normalize it to the `StablecoinBridges` runtime shape (bridgeId -> sourceChain -> { amount }).
 	const bridges = getPrevStablecoinTotalFromChart(chart, daysBefore, issuanceType, 'bridges')
-	if (bridges == null || typeof bridges !== 'object') return null
-	// Runtime shape validation: bridges should be Record<string, Record<string, { amount: number }>>
-	return bridges as StablecoinBridges
+	return normalizeStablecoinBridges(bridges)
 }
 
 const buildOverviewChartInputs = ({

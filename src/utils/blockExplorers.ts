@@ -183,8 +183,9 @@ export const getProtocolTokenUrlOnExplorer = (address: string = '') => {
 	const [chain, chainAddress] = newAddress.split(':')
 	const explorer = blockExplorers[chain]
 
-	if (explorer && isMultiExplorer(explorer)) {
-		return `${explorer[0][0]}${chainAddress}`
+	if (explorer) {
+		const first: ExplorerEntry = isMultiExplorer(explorer) ? explorer[0] : explorer
+		return `${first[0]}${chainAddress}`
 	}
 
 	return null

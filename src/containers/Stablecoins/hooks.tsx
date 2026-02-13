@@ -283,7 +283,7 @@ export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: 
 							bridgedTo,
 							minted,
 							dominance,
-							mcaptvl: mcaptvl !== null ? +(formatNum(+mcaptvl) ?? 0) : null,
+							mcaptvl: null,
 							name: parentName,
 							subRows: [...subChains, childData]
 						}

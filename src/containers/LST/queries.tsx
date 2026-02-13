@@ -92,8 +92,10 @@ export async function getLSDPageData(): Promise<LSTOverviewProps> {
 				return { date: i.date, tokens: { ETH: ethVal + bscVal } }
 			})
 		}
-		beth.chainTvls['Ethereum'].tokens = combineBethChains('tokens')
-		beth.chainTvls['Ethereum'].tokensInUsd = combineBethChains('tokensInUsd')
+		if (beth.chainTvls['Ethereum']) {
+			beth.chainTvls['Ethereum'].tokens = combineBethChains('tokens')
+			beth.chainTvls['Ethereum'].tokensInUsd = combineBethChains('tokensInUsd')
+		}
 	}
 
 	const PRICE_DIFF_THRESHOLD = 0.01

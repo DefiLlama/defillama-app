@@ -65,16 +65,17 @@ export const setThemeCookie = (isDarkMode: boolean): void => {
 	document.cookie = cookieString
 }
 
-export const parseThemeCookie = (cookieString: string): Theme => {
+export const parseThemeCookie = (cookieString: string, cookieName: string = 'defillama-theme'): Theme => {
 	if (!cookieString) return 'dark'
 
 	const cookies = cookieString.split(';')
-	const themeCookie = cookies.find((cookie) => cookie.trim().startsWith(`${THEME_COOKIE_NAME}=`))
+	const themeCookie = cookies.find((cookie) => cookie.trim().startsWith(`${cookieName}=`))
 
 	if (themeCookie) {
 		const parts = themeCookie.split('=')
 		if (parts.length >= 2 && parts[1]) {
-			return sanitizeThemeValue(parts[1])
+			const trimmed = String(parts[1]).trim()
+			return trimmed === 'dark' || trimmed === 'light' ? trimmed : 'dark'
 		}
 	}
 

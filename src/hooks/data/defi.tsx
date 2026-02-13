@@ -296,6 +296,8 @@ export function groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled }: I
 	})
 
 	const chainsWithExtraTvlsAndDominanceByDay = chainsWithExtraTvlsByDay.map((entry) => {
+		// `entry` is built from numeric day sums above ({ date: Number(date), ...tvls }),
+		// so this cast narrows to the concrete runtime shape used for dominance math.
 		const { date, ...values } = entry as { date: number } & Record<string, number>
 		const shares: Record<string, number | string> = {}
 
@@ -704,6 +706,12 @@ export const formatProtocolsList2 = ({
 		tvlPrevMonth: number | null
 	}
 	const nullTvlEntry: MutableTvlEntry = { tvl: null, tvlPrevDay: null, tvlPrevWeek: null, tvlPrevMonth: null }
+	const coerceTvlDefaults = (entry: MutableTvlEntry): TvlEntry => ({
+		tvl: entry.tvl ?? 0,
+		tvlPrevDay: entry.tvlPrevDay ?? 0,
+		tvlPrevWeek: entry.tvlPrevWeek ?? 0,
+		tvlPrevMonth: entry.tvlPrevMonth ?? 0
+	})
 
 	const shouldModifyTvl = Object.values(extraTvlsEnabled).some((t) => t) || minTvl !== null || maxTvl !== null
 
@@ -714,8 +722,7 @@ export const formatProtocolsList2 = ({
 		return acc + value
 	}
 
-	const getTvlEntry = (tvlRecord: Record<string, TvlEntry>, key: string): TvlEntry | undefined =>
-		(tvlRecord as Record<string, TvlEntry>)[key]
+	const getTvlEntry = (tvlRecord: Record<string, TvlEntry>, key: string): TvlEntry | undefined => tvlRecord[key]
 
 	const processTvl = (tvlRecord: Record<string, TvlEntry>, base: MutableTvlEntry): MutableTvlEntry => {
 		for (const tvlKey in tvlRecord) {
@@ -790,10 +797,11 @@ export const formatProtocolsList2 = ({
 						(minTvl != null ? (childDefaultTvl.tvl ?? 0) >= minTvl : true) &&
 						(maxTvl != null ? (childDefaultTvl.tvl ?? 0) <= maxTvl : true)
 					) {
+						const normalizedChildDefaultTvl = coerceTvlDefaults(childDefaultTvl)
 						childProtocols.push({
 							...child,
 							strikeTvl,
-							tvl: child.tvl == null ? null : ({ default: childDefaultTvl as TvlEntry } as IProtocol['tvl']),
+							tvl: child.tvl == null ? null : ({ default: normalizedChildDefaultTvl } as IProtocol['tvl']),
 							tvlChange,
 							mcaptvl
 						})
@@ -803,10 +811,11 @@ export const formatProtocolsList2 = ({
 					(minTvl != null ? (defaultTvl.tvl ?? 0) >= minTvl : true) &&
 					(maxTvl != null ? (defaultTvl.tvl ?? 0) <= maxTvl : true)
 				) {
+					const normalizedDefaultTvl = coerceTvlDefaults(defaultTvl)
 					final.push({
 						...protocol,
 						strikeTvl,
-						tvl: protocol.tvl == null ? null : ({ default: defaultTvl as TvlEntry } as IProtocol['tvl']),
+						tvl: protocol.tvl == null ? null : ({ default: normalizedDefaultTvl } as IProtocol['tvl']),
 						childProtocols,
 						tvlChange,
 						mcaptvl
@@ -817,10 +826,11 @@ export const formatProtocolsList2 = ({
 					(minTvl != null ? (defaultTvl.tvl ?? 0) >= minTvl : true) &&
 					(maxTvl != null ? (defaultTvl.tvl ?? 0) <= maxTvl : true)
 				) {
+					const normalizedDefaultTvl = coerceTvlDefaults(defaultTvl)
 					final.push({
 						...protocol,
 						strikeTvl,
-						tvl: protocol.tvl == null ? null : ({ default: defaultTvl as TvlEntry } as IProtocol['tvl']),
+						tvl: protocol.tvl == null ? null : ({ default: normalizedDefaultTvl } as IProtocol['tvl']),
 						tvlChange,
 						mcaptvl
 					})

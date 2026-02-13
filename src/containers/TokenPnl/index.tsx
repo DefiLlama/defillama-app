@@ -553,8 +553,18 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 			queryFn: () =>
 				fetchPriceSeries(tokenId, start, end).then((series): ComparisonEntry | null => {
 					if (series.length === 0) return null
-					const startPrice = series[0].price
-					const endPrice = series[series.length - 1].price
+					const firstPoint = series[0]
+					const lastPoint = series[series.length - 1]
+					if (
+						firstPoint == null ||
+						lastPoint == null ||
+						!Number.isFinite(firstPoint.price) ||
+						!Number.isFinite(lastPoint.price)
+					) {
+						return null
+					}
+					const startPrice = firstPoint.price
+					const endPrice = lastPoint.price
 					const percentChange = startPrice !== 0 ? ((endPrice - startPrice) / startPrice) * 100 : 0
 					const absoluteChange = endPrice - startPrice
 					const coin = coinInfoMap.get(tokenId)

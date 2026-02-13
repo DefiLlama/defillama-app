@@ -378,24 +378,22 @@ export const buildStablecoinChartData = ({
 
 						unformattedTotalData[date] = (unformattedTotalData[date] ?? 0) + mcap
 
-						if (mcap !== null) {
-							if (stackedDatasetObject[date] == undefined) {
-								stackedDatasetObject[date] = {}
-							}
-							const unreleasedValue =
-								issuanceType === 'circulating'
-									? (getPrevStablecoinTotalFromChart([chart], 0, 'unreleased') ?? undefined)
-									: undefined
-							const b = stackedDatasetObject[date][assetOrChain]
-							const hasFiniteUnreleased = typeof unreleasedValue === 'number' && Number.isFinite(unreleasedValue)
-							stackedDatasetObject[date][assetOrChain] = {
-								...b,
-								circulating: mcap ?? 0,
-								...(hasFiniteUnreleased ? { unreleased: unreleasedValue } : {})
-							}
+						if (stackedDatasetObject[date] == undefined) {
+							stackedDatasetObject[date] = {}
+						}
+						const unreleasedValue =
+							issuanceType === 'circulating'
+								? (getPrevStablecoinTotalFromChart([chart], 0, 'unreleased') ?? undefined)
+								: undefined
+						const b = stackedDatasetObject[date][assetOrChain]
+						const hasFiniteUnreleased = typeof unreleasedValue === 'number' && Number.isFinite(unreleasedValue)
+						stackedDatasetObject[date][assetOrChain] = {
+							...b,
+							circulating: mcap,
+							...(hasFiniteUnreleased ? { unreleased: unreleasedValue } : {})
 						}
 
-						const diff = (mcap ?? 0) - (prevDayMcap ?? 0)
+						const diff = mcap - (prevDayMcap ?? 0)
 						// the first day's inflow is not added to prevent large inflows on the day token is first tracked
 						if (assetAddedToInflows[assetOrChain]) {
 							unformattedTokenInflowData[date] = unformattedTokenInflowData[date] || {}
@@ -642,7 +640,7 @@ export const formatPeggedAssetsData = ({
 	})
 
 	if (chain) {
-		return mappedAssets.toSorted((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
+		return [...mappedAssets].sort((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
 	}
 
 	return mappedAssets
@@ -698,7 +696,7 @@ export const formatPeggedChainsData = ({
 		}
 	})
 
-	formattedStablecoinChains = formattedStablecoinChains.toSorted((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
+	formattedStablecoinChains = [...formattedStablecoinChains].sort((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
 
 	return formattedStablecoinChains
 }

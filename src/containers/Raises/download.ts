@@ -20,7 +20,7 @@ export const prepareRaisesCsv = ({ raises }: { raises: IRaise[] }) => {
 		]
 	]
 
-	const sortedRaises = raises.sort((a, b) => b.date - a.date)
+	const sortedRaises = [...raises].sort((a, b) => b.date - a.date)
 	for (const item of sortedRaises) {
 		rows.push([
 			item.name,

@@ -341,9 +341,9 @@ export function peggedAssetIconUrl(name: unknown): string {
 
 export function renderPercentChange(
 	percent: unknown,
-	noSign?: boolean,
-	fontWeight?: number,
-	returnTextOnly?: true
+	noSign: boolean | undefined,
+	fontWeight: number | undefined,
+	returnTextOnly: true
 ): string | null
 export function renderPercentChange(
 	percent: unknown,

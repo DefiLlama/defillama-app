@@ -1,4 +1,4 @@
-import type { IProtocolMetricsV2, IRaise } from '~/containers/ProtocolOverview/types'
+import type { IProtocolMetricsV2, IRaise } from '~/containers/ProtocolOverview/api.types'
 import { postRuntimeLogs } from '~/utils/async'
 import type { IProtocolWarningBanner } from './api.types'
 

@@ -1,4 +1,4 @@
-import type { IRaise } from '~/containers/ProtocolOverview/types'
+import type { IRaise } from '~/containers/ProtocolOverview/api.types'
 import type { IJSON } from './categories/adaptors/types'
 
 interface Protocol {

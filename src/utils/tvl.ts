@@ -1,4 +1,4 @@
-interface TvlChartData {
+export interface TvlChartData {
 	tvl?: [number, number][]
 	liquidstaking?: [number, number][]
 	doublecounted?: [number, number][]

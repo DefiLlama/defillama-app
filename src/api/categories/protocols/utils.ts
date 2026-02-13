@@ -151,7 +151,7 @@ export const formatProtocolsData = ({
 			p.change_1d = getPercentChange(p.tvl, p.tvlPrevDay)
 			p.change_7d = getPercentChange(p.tvl, p.tvlPrevWeek)
 			p.change_1m = getPercentChange(p.tvl, p.tvlPrevMonth)
-			p.mcaptvl = protocol.mcap && p.tvl ? +formatNum(+protocol.mcap.toFixed(2) / +(p.tvl as number).toFixed(2)) : null
+			p.mcaptvl = protocol.mcap && p.tvl ? +(formatNum(protocol.mcap / (p.tvl as number)) ?? 0) : null
 
 			final = [...final, p]
 		}

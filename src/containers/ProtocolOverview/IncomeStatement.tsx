@@ -789,7 +789,7 @@ const IncomeStatementByLabel = ({
 								content={
 									<PerformanceTooltipContent
 										currentValue={data[header[0]].value}
-										previousValue={tableHeaders[i + 1] ? data[tableHeaders[i + 1][0]].value : null}
+										previousValue={tableHeaders[i + 1] ? (data[tableHeaders[i + 1][0]]?.value ?? null) : null}
 										groupBy={groupBy}
 										dataType={dataType}
 									/>
@@ -827,13 +827,15 @@ const IncomeStatementByLabel = ({
 								>
 									{data[header[0]]?.['by-label']?.[breakdownlabel] == null ? null : i !== 0 &&
 									  tableHeaders[i + 1] &&
-									  data[tableHeaders[i + 1][0]]['by-label']?.[breakdownlabel] ? (
+									  data[tableHeaders[i + 1][0]]?.['by-label']?.[breakdownlabel] ? (
 										<Tooltip
 											content={
 												<PerformanceTooltipContent
 													currentValue={data[header[0]]['by-label']?.[breakdownlabel]}
 													previousValue={
-														tableHeaders[i + 1] ? data[tableHeaders[i + 1][0]]['by-label']?.[breakdownlabel] : null
+														tableHeaders[i + 1]
+															? (data[tableHeaders[i + 1][0]]?.['by-label']?.[breakdownlabel] ?? null)
+															: null
 													}
 													groupBy={groupBy}
 													dataType={dataType}
