@@ -10,7 +10,7 @@ export function useRangeFilter(minKey: string, maxKey: string) {
 		const minVal = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
 		const maxVal = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
 
-		const nextQuery: Record<string, any> = { ...router.query }
+		const nextQuery: Record<string, string | string[] | undefined> = { ...router.query }
 		if (minVal) nextQuery[minKey] = minVal
 		else delete nextQuery[minKey]
 		if (maxVal) nextQuery[maxKey] = maxVal
@@ -19,7 +19,7 @@ export function useRangeFilter(minKey: string, maxKey: string) {
 	}
 
 	const handleClear = () => {
-		const nextQuery: Record<string, any> = { ...router.query }
+		const nextQuery: Record<string, string | string[] | undefined> = { ...router.query }
 		delete nextQuery[minKey]
 		delete nextQuery[maxKey]
 		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })

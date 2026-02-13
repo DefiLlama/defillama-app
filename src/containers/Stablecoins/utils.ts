@@ -27,12 +27,6 @@ interface IStablecoinMcapStats {
 	mcapChartData14d: Array<[number, number]> | null
 }
 
-export interface IStablecoinTopTokenCandidate {
-	symbol?: string | null
-	mcap?: number | null
-	delisted?: boolean
-}
-
 interface IStablecoinAreaChartPoint {
 	date: string
 	[key: string]: number | string
@@ -54,8 +48,7 @@ interface IRateChartPoint {
 	rates?: Record<string, string | number>
 }
 
-interface IFormattedStablecoinChainRow {
-	[key: string]: unknown
+export interface IFormattedStablecoinChainRow {
 	name: string
 	circulating: number | null
 	mcap: number | null
@@ -84,6 +77,7 @@ type StablecoinFormattedAsset = Omit<
 	circulatingPrevDay?: Record<string, number> | number | null
 	circulatingPrevWeek?: Record<string, number> | number | null
 	circulatingPrevMonth?: Record<string, number> | number | null
+	unreleased?: number | null
 	mcap?: number | null
 	change_1d?: number | null
 	change_7d?: number | null
@@ -100,14 +94,65 @@ type StablecoinFormattedAsset = Omit<
 	}
 }
 
+const peggedAssetPickKeys = [
+	'circulating',
+	'unreleased',
+	'mcap',
+	'name',
+	'symbol',
+	'gecko_id',
+	'chains',
+	'price',
+	'pegType',
+	'pegMechanism',
+	'change_1d',
+	'change_7d',
+	'change_1m',
+	'change_1d_nol',
+	'change_7d_nol',
+	'change_1m_nol',
+	'pegDeviation',
+	'pegDeviation_1m',
+	'pegDeviationInfo',
+	'circulatingPrevDay',
+	'circulatingPrevWeek',
+	'circulatingPrevMonth',
+	'delisted',
+	'deprecated',
+	'yieldBearing'
+] as const
+
+/**
+ * The output type of `formatPeggedAssetsData`. `Pick<StablecoinFormattedAsset, …>` carries
+ * union types (e.g. `circulating: Record | number`) that are already resolved to narrower
+ * concrete types by the formatting logic, so we override those fields here.
+ */
+export type FormattedStablecoinAsset = Omit<
+	Pick<StablecoinFormattedAsset, (typeof peggedAssetPickKeys)[number]>,
+	'circulating' | 'circulatingPrevDay' | 'circulatingPrevWeek' | 'circulatingPrevMonth' | 'price'
+> & {
+	circulating?: number | null
+	circulatingPrevDay?: number | null
+	circulatingPrevWeek?: number | null
+	circulatingPrevMonth?: number | null
+	price?: number | null
+}
+
+/**
+ * Base constraint for chart data points processed by `getPrevStablecoinTotalFromChart`
+ * and `buildStablecoinChartData`. Requires a `date` field; other fields are accessed
+ * via runtime string keys with `typeof` checks (using allowed `as Record<string, unknown>`
+ * cast after `typeof === 'object'` validation).
+ */
+export type StablecoinChartDataPoint = { date: string | number }
+
 interface IFormatPeggedAssetsDataParams {
 	chain?: string
 	peggedAssets?: StablecoinFormattedAsset[]
-	chartDataByPeggedAsset?: Array<Array<Record<string, unknown>> | null | undefined>
+	chartDataByPeggedAsset?: Array<Array<StablecoinChartDataPoint> | null | undefined>
 	priceData?: StablecoinPricesResponse
 	rateData?: IRateChartPoint[]
 	peggedNameToChartDataIndex?: Record<string, number>
-	peggedAssetProps?: string[]
 }
 
 interface IFormatPeggedChainsDataParams {
@@ -123,7 +168,7 @@ const toFiniteNumber = (value: unknown): number | null => {
 }
 
 interface IBuildStablecoinChartDataParams {
-	chartDataByAssetOrChain: Array<Array<Record<string, unknown>> | null | undefined>
+	chartDataByAssetOrChain: Array<Array<StablecoinChartDataPoint> | null | undefined>
 	assetsOrChainsList: string[]
 	filteredIndexes?: number[]
 	issuanceType?: string
@@ -132,7 +177,7 @@ interface IBuildStablecoinChartDataParams {
 	doublecountedIds?: number[]
 }
 
-interface IBuildStablecoinChartDataResult {
+export interface IBuildStablecoinChartDataResult {
 	peggedAreaChartData: IStablecoinAreaChartPoint[]
 	peggedAreaTotalData: IStablecoinMcapPoint[]
 	stackedDataset: IStablecoinStackedPoint[]
@@ -142,19 +187,19 @@ interface IBuildStablecoinChartDataResult {
 }
 
 export function getPrevStablecoinTotalFromChart(
-	chart: Array<unknown> | null | undefined,
+	chart: Array<StablecoinChartDataPoint> | null | undefined,
 	daysBefore: number,
 	issuanceType: string,
 	pegType: 'bridges'
 ): unknown
 export function getPrevStablecoinTotalFromChart(
-	chart: Array<unknown> | null | undefined,
+	chart: Array<StablecoinChartDataPoint> | null | undefined,
 	daysBefore: number,
 	issuanceType: string,
 	pegType?: string
 ): number | null
 export function getPrevStablecoinTotalFromChart(
-	chart: Array<unknown> | null | undefined,
+	chart: Array<StablecoinChartDataPoint> | null | undefined,
 	daysBefore: number,
 	issuanceType: string,
 	pegType = ''
@@ -163,7 +208,10 @@ export function getPrevStablecoinTotalFromChart(
 	const prevChart = chart[chart.length - 1 - daysBefore]
 	if (!prevChart || typeof prevChart !== 'object') return null
 
-	const issuanceTotals = (prevChart as Record<string, unknown>)[issuanceType]
+	// Dynamic key access — the issuanceType varies at runtime ('mcap', 'circulating', 'totalCirculatingUSD', etc.)
+	// so we use the allowed `as Record<string, unknown>` cast after the `typeof === 'object'` check above.
+	const chartRecord = prevChart as Record<string, unknown>
+	const issuanceTotals = chartRecord[issuanceType]
 	if (!pegType) {
 		if (typeof issuanceTotals === 'number') {
 			return Number.isFinite(issuanceTotals) ? issuanceTotals : null
@@ -173,8 +221,9 @@ export function getPrevStablecoinTotalFromChart(
 			return Number.isFinite(numeric) ? numeric : null
 		}
 		if (!issuanceTotals || typeof issuanceTotals !== 'object') return null
+		const totalsRecord = issuanceTotals as Record<string, unknown>
 		let total = 0
-		for (const value of Object.values(issuanceTotals as Record<string, unknown>)) {
+		for (const value of Object.values(totalsRecord)) {
 			const numeric = typeof value === 'number' ? value : Number(value)
 			if (Number.isFinite(numeric)) total += numeric
 		}
@@ -182,7 +231,8 @@ export function getPrevStablecoinTotalFromChart(
 	}
 
 	if (!issuanceTotals || typeof issuanceTotals !== 'object') return null
-	const target = (issuanceTotals as Record<string, unknown>)[pegType]
+	const totalsRecord = issuanceTotals as Record<string, unknown>
+	const target = totalsRecord[pegType]
 	if (pegType === 'bridges') return target
 	const numeric = typeof target === 'number' ? target : Number(target)
 	return Number.isFinite(numeric) ? numeric : null
@@ -203,23 +253,6 @@ export const getStablecoinDominance = (
 }
 
 const DEFAULT_TOP_TOKEN: IStablecoinToken = { symbol: 'USDT', mcap: 0 }
-
-const getStablecoinTopTokenFromAssets = (
-	assets: ReadonlyArray<IStablecoinTopTokenCandidate> | null | undefined
-): IStablecoinToken => {
-	if (!assets?.length) return DEFAULT_TOP_TOKEN
-
-	// Keep this aligned with /stablecoins page behavior: delisted rows are removed before selecting the top token.
-	const sorted = assets.filter((asset) => !asset?.delisted).toSorted((a, b) => (b?.mcap ?? 0) - (a?.mcap ?? 0))
-
-	const topAsset = sorted[0]
-	if (!topAsset?.symbol) return DEFAULT_TOP_TOKEN
-
-	return {
-		symbol: topAsset.symbol,
-		mcap: topAsset.mcap ?? 0
-	}
-}
 
 export const getStablecoinTopTokenFromChartData = (
 	rows: ReadonlyArray<IStablecoinAreaChartPoint> | null | undefined
@@ -397,9 +430,9 @@ export const buildStablecoinChartData = ({
 			}
 		})
 
-	const stackedDataset = Object.entries(stackedDatasetObject).sort(
+	const stackedDataset: IStablecoinStackedPoint[] = Object.entries(stackedDatasetObject).sort(
 		([a], [b]) => Number(a) - Number(b)
-	) as IStablecoinStackedPoint[]
+	)
 
 	const secondsInDay = 3600 * 24
 	let zeroTokenInflows = 0
@@ -426,12 +459,7 @@ export const buildStablecoinChartData = ({
 				zeroUsdInflows++
 			}
 
-			let hasTokenDayDifference = false
-			for (const _ in tokenDayDifference) {
-				hasTokenDayDifference = true
-				break
-			}
-			if (!hasTokenDayDifference) {
+			if (Object.keys(tokenDayDifference).length === 0) {
 				zeroTokenInflows++
 			}
 
@@ -459,35 +487,6 @@ export const buildStablecoinChartData = ({
 	return { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows }
 }
 
-const peggedPropertiesToKeep = [
-	'circulating',
-	'minted',
-	'unreleased',
-	'mcap',
-	'name',
-	'symbol',
-	'gecko_id',
-	'chains',
-	'price',
-	'pegType',
-	'pegMechanism',
-	'change_1d',
-	'change_7d',
-	'change_1m',
-	'change_1d_nol',
-	'change_7d_nol',
-	'change_1m_nol',
-	'pegDeviation',
-	'pegDeviation_1m',
-	'pegDeviationInfo',
-	'circulatingPrevDay',
-	'circulatingPrevWeek',
-	'circulatingPrevMonth',
-	'delisted',
-	'deprecated',
-	'yieldBearing'
-]
-
 const getTargetPrice = (pegType: string, ratesChart: IRateChartPoint[], daysBefore: number): number | null => {
 	const currencyTicker = pegType.slice(-3)
 	if (currencyTicker === 'USD') {
@@ -506,19 +505,16 @@ export const formatPeggedAssetsData = ({
 	chartDataByPeggedAsset = [],
 	priceData = [],
 	rateData = [],
-	peggedNameToChartDataIndex = {},
-	peggedAssetProps = [...peggedPropertiesToKeep]
-}: IFormatPeggedAssetsDataParams): Array<Record<string, unknown>> => {
-	let filteredStablecoinAssets = [...peggedAssets]
+	peggedNameToChartDataIndex = {}
+}: IFormatPeggedAssetsDataParams): FormattedStablecoinAsset[] => {
+	let inputAssets = [...peggedAssets]
 
 	if (chain) {
 		const sluggedChain = slug(chain)
-		filteredStablecoinAssets = filteredStablecoinAssets.filter(({ chains = [] }) =>
-			chains.some((c) => slug(c) === sluggedChain)
-		)
+		inputAssets = inputAssets.filter(({ chains = [] }) => chains.some((c) => slug(c) === sluggedChain))
 	}
 
-	filteredStablecoinAssets = filteredStablecoinAssets.map((pegged) => {
+	const mappedAssets: FormattedStablecoinAsset[] = inputAssets.map((pegged) => {
 		const formattedPegged: StablecoinFormattedAsset = { ...pegged }
 		const pegType = formattedPegged.pegType ?? ''
 		const peggedGeckoID = formattedPegged.gecko_id
@@ -538,22 +534,17 @@ export const formatPeggedAssetsData = ({
 				? (chainCirculating.circulatingPrevMonth?.[pegType] ?? null)
 				: null
 		} else {
-			const circulatingMap =
-				typeof formattedPegged.circulating === 'object' && formattedPegged.circulating != null
-					? (formattedPegged.circulating as Record<string, number>)
-					: null
+			const circulatingRaw = formattedPegged.circulating
+			const circulatingMap = typeof circulatingRaw === 'object' && circulatingRaw != null ? circulatingRaw : null
+			const circulatingPrevDayRaw = formattedPegged.circulatingPrevDay
 			const circulatingPrevDayMap =
-				typeof formattedPegged.circulatingPrevDay === 'object' && formattedPegged.circulatingPrevDay != null
-					? (formattedPegged.circulatingPrevDay as Record<string, number>)
-					: null
+				typeof circulatingPrevDayRaw === 'object' && circulatingPrevDayRaw != null ? circulatingPrevDayRaw : null
+			const circulatingPrevWeekRaw = formattedPegged.circulatingPrevWeek
 			const circulatingPrevWeekMap =
-				typeof formattedPegged.circulatingPrevWeek === 'object' && formattedPegged.circulatingPrevWeek != null
-					? (formattedPegged.circulatingPrevWeek as Record<string, number>)
-					: null
+				typeof circulatingPrevWeekRaw === 'object' && circulatingPrevWeekRaw != null ? circulatingPrevWeekRaw : null
+			const circulatingPrevMonthRaw = formattedPegged.circulatingPrevMonth
 			const circulatingPrevMonthMap =
-				typeof formattedPegged.circulatingPrevMonth === 'object' && formattedPegged.circulatingPrevMonth != null
-					? (formattedPegged.circulatingPrevMonth as Record<string, number>)
-					: null
+				typeof circulatingPrevMonthRaw === 'object' && circulatingPrevMonthRaw != null ? circulatingPrevMonthRaw : null
 			formattedPegged.circulating = circulatingMap?.[pegType] ?? 0
 			formattedPegged.circulatingPrevDay = circulatingPrevDayMap?.[pegType] ?? null
 			formattedPegged.circulatingPrevWeek = circulatingPrevWeekMap?.[pegType] ?? null
@@ -606,7 +597,7 @@ export const formatPeggedAssetsData = ({
 			for (let i = 0; i < 30; i++) {
 				const historicalPrices = priceData[priceData.length - i - 1]
 				const historicalTargetPrice = getTargetPrice(pegType, rateData, i)
-				const historicalPrice = toFiniteNumber(historicalPrices?.prices?.[peggedGeckoID])
+				const historicalPrice = peggedGeckoID != null ? toFiniteNumber(historicalPrices?.prices?.[peggedGeckoID]) : null
 				if (historicalPrice && historicalTargetPrice) {
 					const timestamp = historicalPrices?.date
 					const deviation = historicalPrice - historicalTargetPrice
@@ -640,14 +631,21 @@ export const formatPeggedAssetsData = ({
 			formattedPegged.pegDeviation_1m = undefined
 			formattedPegged.pegDeviationInfo = undefined
 		}
-		return keepNeededProperties(formattedPegged, peggedAssetProps)
+		// Narrow `price` from `string | number | null` to `number | null` (resolved above).
+		formattedPegged.price = price
+		const picked = keepNeededProperties(formattedPegged, peggedAssetPickKeys)
+		// After formatting, circulating/circulatingPrev* are always `number | null`
+		// and price is `number | null`. The Pick type is wider because
+		// StablecoinFormattedAsset carries the pre-formatting union types.
+		// Runtime values are already narrowed; annotate the return.
+		return picked as FormattedStablecoinAsset
 	})
 
 	if (chain) {
-		filteredStablecoinAssets = filteredStablecoinAssets.toSorted((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
+		return mappedAssets.toSorted((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
 	}
 
-	return filteredStablecoinAssets as Array<Record<string, unknown>>
+	return mappedAssets
 }
 
 export const formatPeggedChainsData = ({
@@ -677,7 +675,7 @@ export const formatPeggedChainsData = ({
 				}
 			: null
 
-		let mcaptvl = mcap && latestChainTVL ? +formatNum(mcap / latestChainTVL) : null
+		let mcaptvl = mcap && latestChainTVL ? +(formatNum(mcap / latestChainTVL) ?? 0) : null
 		if (mcaptvl == 0) {
 			mcaptvl = null
 		}

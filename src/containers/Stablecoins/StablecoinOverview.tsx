@@ -13,18 +13,24 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import type { StablecoinAssetChartConfig, StablecoinAssetChartType } from '~/containers/ProDashboard/types'
-import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/containers/Stablecoins/hooks'
+import {
+	parseBooleanQueryParam,
+	useCalcCirculating,
+	useCalcGroupExtraPeggedByDay,
+	useGroupBridgeData
+} from '~/containers/Stablecoins/hooks'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer, peggedAssetIconUrl, slug } from '~/utils'
 import { StablecoinByChainUsageTable } from './StablecoinUsageByChainTable'
+import type { PeggedAssetPageProps } from './types'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-const risksHelperTexts = {
+const risksHelperTexts: Record<string, string> = {
 	algorithmic:
 		'Algorithmic assets have their pegs maintained by mechanisms that influence supply and demand. They may be partially collateralized or over-collateralized, but usually do not have a redemption mechanism for their reserve assets. Risks of algorithmic assets include smart contract risk, price collapse due to bank run or other mechanism failure, and de-pegging.',
 	'fiat-backed':
@@ -43,14 +49,7 @@ const CHART_TYPE_TO_API_TYPE: Record<string, StablecoinAssetChartType> = {
 const CHART_TYPE_VALUES = ['Total Circ', 'Pie', 'Dominance', 'Area'] as const
 const UNRELEASED_QUERY_KEY = 'unreleased'
 
-const parseBooleanQueryParam = (value: string | string[] | undefined): boolean => {
-	if (Array.isArray(value)) return value.some((v) => parseBooleanQueryParam(v))
-	if (typeof value !== 'string') return false
-	const normalized = value.trim().toLowerCase()
-	return normalized === 'true' || normalized === '1' || normalized === 'yes'
-}
-
-export default function PeggedContainer(props) {
+export default function PeggedContainer(props: PeggedAssetPageProps) {
 	let { name, symbol } = props.peggedAssetData
 	const nameWithSymbol = name + (symbol && symbol !== '-' ? ` (${symbol})` : '')
 	return (
@@ -82,7 +81,7 @@ export const PeggedAssetInfo = ({
 	unreleased,
 	mcap,
 	bridgeInfo
-}) => {
+}: PeggedAssetPageProps) => {
 	const router = useRouter()
 	let {
 		name,
@@ -100,13 +99,13 @@ export const PeggedAssetInfo = ({
 	} = peggedAssetData
 	const logo = peggedAssetIconUrl(name)
 
-	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
+	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address ?? '')
 
 	const [chartType, setChartType] = React.useState('Pie')
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const onChartTypeChange = React.useCallback(
-		(nextChartType: (typeof CHART_TYPE_VALUES)[number]) => {
+		(nextChartType: string) => {
 			// Clear previous refs immediately to avoid exporting a stale chart
 			handleChartReady(null)
 			setChartType(nextChartType)
@@ -114,9 +113,7 @@ export const PeggedAssetInfo = ({
 		[handleChartReady]
 	)
 
-	const chainsData: Array<Array<Record<string, unknown>>> = chainsUnique.map((elem: string) => {
-		return peggedAssetData.chainBalances[elem].tokens
-	})
+	const chainsData = chainsUnique.map((elem) => peggedAssetData.chainBalances[elem]?.tokens ?? [])
 
 	const { peggedAreaChartData, stackedDataset } = React.useMemo(
 		() =>
@@ -146,10 +143,7 @@ export const PeggedAssetInfo = ({
 		void router.replace({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true, scroll: false })
 	}, [includeUnreleased, router])
 
-	const chainTotals = useCalcCirculating<Parameters<typeof useGroupBridgeData>[0][number]>(
-		chainCirculatings,
-		includeUnreleased
-	)
+	const chainTotals = useCalcCirculating(chainCirculatings, includeUnreleased)
 
 	const chainsCirculatingValues = React.useMemo(() => {
 		return preparePieChartData({ data: chainTotals, sliceIdentifier: 'name', sliceValue: 'circulating', limit: 10 })
@@ -180,13 +174,13 @@ export const PeggedAssetInfo = ({
 	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
 
 	const getImageExportTitle = () => {
-		const chartTypeMap = {
+		const chartTypeMap: Record<string, string> = {
 			'Total Circ': 'Total Circulating',
 			Pie: 'Distribution by Chain',
 			Dominance: 'Chain Dominance',
 			Area: 'Circulating by Chain'
 		}
-		return `${name} - ${chartTypeMap[chartType] || chartType}`
+		return `${name} - ${chartTypeMap[chartType] ?? chartType}`
 	}
 
 	const getImageExportFilename = () => {
@@ -250,7 +244,7 @@ export const PeggedAssetInfo = ({
 						}
 						return row
 					})
-					.filter(Boolean),
+					.filter((row): row is Record<string, number> => row != null),
 				dimensions: ['timestamp', ...chainsUnique]
 			},
 			dominanceCharts: chainsUnique.map((name) => ({
@@ -263,7 +257,7 @@ export const PeggedAssetInfo = ({
 		[dataWithExtraPeggedAndDominanceByDay, chainsUnique]
 	)
 
-	const hasInfo = description || pegMechanism || mintRedeemDescription || auditLinks?.length > 0
+	const hasInfo = description || pegMechanism || mintRedeemDescription || (auditLinks != null && auditLinks.length > 0)
 
 	return (
 		<>
@@ -299,7 +293,7 @@ export const PeggedAssetInfo = ({
 								<span className="font-jetbrains">{formattedNum(displayedTotalCirculating)}</span>
 							</p>
 						) : null}
-						{unreleased > 0 ? (
+						{unreleased != null && unreleased > 0 ? (
 							<p className="flex flex-wrap items-center justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 								<label className="flex cursor-pointer items-center gap-2 text-(--text-label)">
 									<input
@@ -394,10 +388,10 @@ export const PeggedAssetInfo = ({
 									<QuestionHelper text="Audits are not a security guarantee" />
 									<span>:</span>
 								</span>
-								{auditLinks?.length > 0 ? (
+								{auditLinks != null && auditLinks.length > 0 ? (
 									<Menu
 										name="Yes"
-										options={typeof auditLinks === 'string' ? [auditLinks] : auditLinks}
+										options={auditLinks}
 										isExternal
 										className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 									/>

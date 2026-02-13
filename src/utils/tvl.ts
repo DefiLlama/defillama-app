@@ -1,10 +1,17 @@
-export const processAdjustedTvl = (data: any): [number, number][] => {
-	const { tvl = [], liquidstaking = [], doublecounted = [], dcAndLsOverlap = [] } = data || {}
+interface TvlChartData {
+	tvl?: [number, number][]
+	liquidstaking?: [number, number][]
+	doublecounted?: [number, number][]
+	dcAndLsOverlap?: [number, number][]
+}
 
-	const extraTvlCharts = {
-		liquidstaking: {} as Record<number, number>,
-		doublecounted: {} as Record<number, number>,
-		dcAndLsOverlap: {} as Record<number, number>
+export const processAdjustedTvl = (data: TvlChartData | null | undefined): [number, number][] => {
+	const { tvl = [], liquidstaking = [], doublecounted = [], dcAndLsOverlap = [] } = data ?? {}
+
+	const extraTvlCharts: Record<'liquidstaking' | 'doublecounted' | 'dcAndLsOverlap', Record<number, number>> = {
+		liquidstaking: {},
+		doublecounted: {},
+		dcAndLsOverlap: {}
 	}
 
 	for (const [date, totalLiquidityUSD] of liquidstaking) {
@@ -76,7 +83,9 @@ const getChainFromDerivedKey = (key: string, type: AdjustKey): string | null => 
 	return key.endsWith(suffix) ? key.slice(0, -suffix.length) : null
 }
 
-const toPairs = (arr: any[] | undefined): [number, number][] => {
+type TvlDataEntry = { date: number | string; totalLiquidityUSD: number | string } | [number | string, number | string]
+
+const toPairs = (arr: readonly TvlDataEntry[] | undefined): [number, number][] => {
 	if (!Array.isArray(arr)) return []
 	const byDay = new Map<number, { ts: number; v: number }>()
 
@@ -86,10 +95,10 @@ const toPairs = (arr: any[] | undefined): [number, number][] => {
 
 		if (Array.isArray(d)) {
 			tsRaw = Number(d[0])
-			vRaw = Math.trunc(Number(d[1]) || 0)
+			vRaw = Math.trunc(Number(d[1]) || 0) // || needed: NaN fallback
 		} else {
-			tsRaw = Number(d?.date)
-			vRaw = Math.trunc(Number(d?.totalLiquidityUSD) || 0)
+			tsRaw = Number(d.date)
+			vRaw = Math.trunc(Number(d.totalLiquidityUSD) || 0) // || needed: NaN fallback
 		}
 
 		if (!Number.isFinite(tsRaw) || !Number.isFinite(vRaw)) continue
@@ -132,7 +141,7 @@ export const processAdjustedProtocolTvl = (
 		if (isIgnoreKey(key)) continue
 
 		const adjustType = getAdjustType(key)
-		const pairs = toPairs(val.tvl as any[])
+		const pairs = toPairs(val.tvl)
 
 		let include = true
 		let chainScope: string | null = null

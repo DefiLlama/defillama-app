@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { IFormattedProtocol } from '~/api/types'
+import type { IFormattedProtocol, TCompressedChain } from '~/api/types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from './defi'
 
@@ -26,7 +26,10 @@ export const useCalcStakePool2Tvl = (
 }
 
 // returns tvl by day for a group of tokens
-export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
+export const useCalcGroupExtraTvlsByDay = (
+	chains: Readonly<Array<TCompressedChain>>,
+	tvlTypes: Record<string, string> | null = null
+) => {
 	const [extraTvls] = useLocalStorageSettingsManager('tvl')
 
 	return useMemo(
@@ -36,7 +39,15 @@ export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
 }
 
 // returns tvl by day for a single token
-export function formatChartTvlsByDay({ data, extraTvlsEnabled, key: _key }) {
+export function formatChartTvlsByDay({
+	data,
+	extraTvlsEnabled,
+	key: _key
+}: {
+	data: ReadonlyArray<[string, Record<string, number>]>
+	extraTvlsEnabled: Record<string, boolean>
+	key: string
+}) {
 	return data.map(([date, values]) => {
 		let sum = values.tvl || 0
 

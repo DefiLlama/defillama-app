@@ -2,7 +2,7 @@ const THEME_COOKIE_NAME = 'defillama-theme'
 
 type Theme = 'dark' | 'light'
 
-const VALID_THEME_VALUES = new Set<Theme>(['dark', 'light'])
+const VALID_THEME_VALUES: ReadonlySet<string> = new Set<string>(['dark', 'light'])
 
 const isSecureContext = (): boolean => {
 	if (typeof window === 'undefined') {
@@ -11,13 +11,15 @@ const isSecureContext = (): boolean => {
 	return window.location.protocol === 'https:' || window.location.hostname === 'localhost'
 }
 
+const isTheme = (value: string): value is Theme => VALID_THEME_VALUES.has(value)
+
 const sanitizeThemeValue = (value: string | null | undefined): Theme => {
 	if (!value) return 'dark'
 	const trimmed = String(value).trim()
-	return VALID_THEME_VALUES.has(trimmed as Theme) ? (trimmed as Theme) : 'dark'
+	return isTheme(trimmed) ? trimmed : 'dark'
 }
 
-const validateOrigin = (origin: string | undefined, allowedOrigins: string[]): boolean => {
+export const validateOrigin = (origin: string | undefined, allowedOrigins: string[]): boolean => {
 	if (!origin) return false
 	try {
 		const originUrl = new URL(origin)
@@ -63,7 +65,7 @@ export const setThemeCookie = (isDarkMode: boolean): void => {
 	document.cookie = cookieString
 }
 
-const parseThemeCookie = (cookieString: string): Theme => {
+export const parseThemeCookie = (cookieString: string): Theme => {
 	if (!cookieString) return 'dark'
 
 	const cookies = cookieString.split(';')

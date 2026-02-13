@@ -1,7 +1,14 @@
 // Inline helper to avoid circular dependency with index.js
 const capitalizeFirstLetter = (word: string) => (word ? word.charAt(0).toUpperCase() + word.slice(1) : '')
 
-const blockExplorers = {
+type ExplorerEntry = [url: string, name: string]
+type BlockExplorerValue = ExplorerEntry | ExplorerEntry[]
+
+function isMultiExplorer(value: BlockExplorerValue): value is ExplorerEntry[] {
+	return Array.isArray(value[0])
+}
+
+const blockExplorers: Record<string, BlockExplorerValue> = {
 	ethereum: [
 		['https://etherscan.io/token/', 'Etherscan'],
 		['https://eth.blockscout.com/token/', 'Blockscout']
@@ -146,7 +153,8 @@ export const getBlockExplorer = (address: string = '') => {
 	const [chain, chainAddress] = address.split(':')
 	const explorer = blockExplorers[chain]
 	if (explorer) {
-		explorers = (explorer[0].length === 2 ? explorer : [explorer]).map((e) => ({
+		const normalized: ExplorerEntry[] = isMultiExplorer(explorer) ? explorer : [explorer]
+		explorers = normalized.map((e) => ({
 			blockExplorerLink: e[0] + chainAddress,
 			blockExplorerName: e[1]
 		}))
@@ -175,7 +183,7 @@ export const getProtocolTokenUrlOnExplorer = (address: string = '') => {
 	const [chain, chainAddress] = newAddress.split(':')
 	const explorer = blockExplorers[chain]
 
-	if (explorer && explorer[0]?.length === 2) {
+	if (explorer && isMultiExplorer(explorer)) {
 		return `${explorer[0][0]}${chainAddress}`
 	}
 
