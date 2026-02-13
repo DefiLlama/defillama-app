@@ -139,12 +139,18 @@ export async function getInvestorRaisesPageData(
 		}
 	}
 
+	if (investorName == null) {
+		return {
+			notFound: true
+		}
+	}
+
 	const filters = getRaisesFiltersList({ raises: data.raises, investorName: investorSlug })
 
 	return {
 		raises,
 		...filters,
-		investorName: investorName!
+		investorName
 	}
 }
 
@@ -156,9 +162,11 @@ export async function getInvestorsPageData(): Promise<IInvestorsPageData> {
 	for (const raise of data.raises ?? []) {
 		const raiseDateMs = raise.date * 1000
 
-		for (const leadInvestor of raise.leadInvestors ?? []) {
-			dealsByInvestor[leadInvestor] = dealsByInvestor[leadInvestor] ?? createInvestorDealsAccumulator(leadInvestor)
-			const investorDeals = dealsByInvestor[leadInvestor]
+		const investors = new Set([...(raise.leadInvestors ?? []), ...(raise.otherInvestors ?? [])])
+
+		for (const investorName of investors) {
+			dealsByInvestor[investorName] = dealsByInvestor[investorName] ?? createInvestorDealsAccumulator(investorName)
+			const investorDeals = dealsByInvestor[investorName]
 
 			if (raiseDateMs >= now - LAST_30_DAYS_IN_MS) {
 				updateTimespan(investorDeals.last30d, raise)
@@ -183,4 +191,3 @@ export async function getInvestorsPageData(): Promise<IInvestorsPageData> {
 
 	return { investors }
 }
-

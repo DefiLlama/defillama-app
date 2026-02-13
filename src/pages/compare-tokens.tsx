@@ -1,5 +1,5 @@
-import type { IResponseCGMarketsAPI } from '~/api/types'
 import { maxAgeForNext } from '~/api'
+import type { IResponseCGMarketsAPI } from '~/api/types'
 import { CompareTokens } from '~/containers/CompareTokens'
 import { getCompareTokensPageData } from '~/containers/CompareTokens/queries'
 import type { Protocol } from '~/containers/CompareTokens/types'

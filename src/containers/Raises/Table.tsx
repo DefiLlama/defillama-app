@@ -172,7 +172,13 @@ export const raisesColumnOrders: ColumnOrdersByBreakpoint = {
 	]
 }
 
-export function RaisesTable({ raises, prepareCsv }: { raises: IRaiseRow[]; prepareCsv: () => { filename: string; rows: (string | number | boolean)[][] } }) {
+export function RaisesTable({
+	raises,
+	prepareCsv
+}: {
+	raises: IRaiseRow[]
+	prepareCsv: () => { filename: string; rows: (string | number | boolean)[][] }
+}) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])

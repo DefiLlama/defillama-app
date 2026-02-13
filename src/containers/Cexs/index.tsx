@@ -42,9 +42,7 @@ const getOutflowsByTimerange = async (
 					}
 					return undefined
 				})
-				.filter(
-					(item): item is readonly [string, { outflows?: number }] => item != null && item[0] != null
-				)
+				.filter((item): item is readonly [string, { outflows?: number }] => item != null && item[0] != null)
 
 			toast.dismiss(loadingToastId)
 

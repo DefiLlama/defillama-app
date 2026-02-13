@@ -124,8 +124,8 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 							const form = e.target as HTMLFormElement
 							const startDate = form.startDate?.value
 							const endDate = form.endDate?.value
-						const startHour = parseInt(form.startHour?.value ?? '0')
-						const endHour = parseInt(form.endHour?.value ?? '0')
+							const startHour = parseInt(form.startHour?.value ?? '0')
+							const endHour = parseInt(form.endHour?.value ?? '0')
 
 							// Create timestamps in milliseconds
 							const startTimestamp = new Date(`${startDate}T${startHour.toString().padStart(2, '0')}:00:00Z`).getTime()

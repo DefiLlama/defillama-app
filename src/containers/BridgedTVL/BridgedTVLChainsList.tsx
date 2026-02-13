@@ -1,12 +1,12 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { IBridgedRow } from './types'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import type { RawChainsAssetsResponse, RawChainAssetsFlowEntry } from './api.types'
+import type { IBridgedRow } from './types'
 
 interface BridgedTVLChainsListProps {
 	assets: RawChainsAssetsResponse
@@ -74,15 +74,16 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
+			const value = getValue<string>()
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={chainIconUrl(getValue<string>())} />
+					<TokenLogo logo={chainIconUrl(value)} />
 					<BasicLink
-						href={`/bridged/${slug(getValue<string>())}`}
+						href={`/bridged/${slug(value)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{String(getValue())}
+						{value}
 					</BasicLink>
 				</span>
 			)

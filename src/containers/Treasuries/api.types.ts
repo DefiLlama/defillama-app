@@ -17,11 +17,11 @@ export interface RawTreasuryProtocol {
 	twitter: string
 	slug: string
 	tvl: number
-	chainTvls: Record<string, number>
+	chainTvls?: Record<string, number>
 	change_1h: number | null
 	change_1d: number | null
 	change_7d: number | null
-	tokenBreakdowns: {
+	tokenBreakdowns?: {
 		ownTokens: number
 		stablecoins: number
 		majors: number

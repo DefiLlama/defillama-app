@@ -1,4 +1,4 @@
-import type { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { InvestorContainer } from '~/containers/Raises/Investor'
 import { getInvestorRaisesPageData } from '~/containers/Raises/queries'
@@ -29,7 +29,7 @@ export async function getStaticPaths() {
 	}
 }
 
-const Raises = (props) => {
+const Raises = (props: InferGetStaticPropsType<typeof getStaticProps>) => {
 	return <InvestorContainer {...props} />
 }
 

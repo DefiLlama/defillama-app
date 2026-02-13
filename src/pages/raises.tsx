@@ -12,7 +12,7 @@ export const getStaticProps = withPerformanceLogging('raises', async () => {
 })
 
 const Raises = (props) => {
-	return <RaisesContainer {...props} investorName={null} />
+	return <RaisesContainer {...props} />
 }
 
 export default Raises

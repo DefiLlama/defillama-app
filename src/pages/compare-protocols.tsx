@@ -1,5 +1,5 @@
-import { tvlOptions } from '~/components/Filters/options'
 import { maxAgeForNext } from '~/api'
+import { tvlOptions } from '~/components/Filters/options'
 import { CompareProtocols } from '~/containers/CompareProtocols'
 import { getCompareProtocolsPageData } from '~/containers/CompareProtocols/queries'
 import type { CompareProtocolsProps } from '~/containers/CompareProtocols/types'

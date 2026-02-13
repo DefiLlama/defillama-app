@@ -134,8 +134,7 @@ export function BridgedTVLByChain({
 						<span className="text-(--text-label)">Total</span>
 						<span className="font-jetbrains text-2xl font-semibold">
 							{formattedNum(
-								+(chainData?.total?.total ?? 0) +
-									(chainData?.ownTokens?.total ? +chainData.ownTokens.total : 0),
+								+(chainData?.total?.total ?? 0) + (chainData?.ownTokens?.total ? +chainData.ownTokens.total : 0),
 								true
 							)}
 						</span>

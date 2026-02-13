@@ -4,12 +4,20 @@ import type { RawTreasuryProtocol } from './api.types'
 import type { INetProjectTreasury, ITreasuryRow } from './types'
 
 function transformTreasury(t: RawTreasuryProtocol): ITreasuryRow {
+	const tb = t.tokenBreakdowns ?? {
+		ownTokens: 0,
+		stablecoins: 0,
+		majors: 0,
+		others: 0
+	}
+
 	return {
 		...t,
-		ownTokens: t.tokenBreakdowns.ownTokens,
-		stablecoins: t.tokenBreakdowns.stablecoins,
-		majors: t.tokenBreakdowns.majors,
-		others: t.tokenBreakdowns.others,
+		tokenBreakdowns: tb,
+		ownTokens: tb.ownTokens,
+		stablecoins: tb.stablecoins,
+		majors: tb.majors,
+		others: tb.others,
 		coreTvl: t.tvl,
 		tvl: t.tvl + (t.chainTvls?.['OwnTokens'] ?? 0),
 		mcap: t.mcap === 0 ? null : t.mcap

@@ -1,5 +1,5 @@
-import { tvlOptions } from '~/components/Filters/options'
 import { maxAgeForNext } from '~/api'
+import { tvlOptions } from '~/components/Filters/options'
 import { CompareChains } from '~/containers/CompareChains'
 import { getCompareChainsPageData } from '~/containers/CompareChains/queries'
 import Layout from '~/layout'

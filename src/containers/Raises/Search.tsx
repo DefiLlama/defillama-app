@@ -106,7 +106,7 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 	return (
 		<>
 			{!hideIcon ? (
-				<button onClick={() => setOpen?.(!open)} className="absolute top-2 left-2 opacity-50">
+				<button onClick={() => setOpen?.((prev) => !prev)} className="absolute top-2 left-2 opacity-50">
 					{open ? (
 						<>
 							<span className="sr-only">Close Search</span>

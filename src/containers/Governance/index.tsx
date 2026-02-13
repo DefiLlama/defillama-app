@@ -100,7 +100,7 @@ const governanceColumns: ColumnDef<GovernanceOverviewItem>[] = [
 						href={`/governance/${slug(getValue())}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{String(getValue())}
+						{getValue<string>()}
 					</BasicLink>
 				</span>
 			)

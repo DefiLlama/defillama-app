@@ -6,10 +6,10 @@ import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
-import type { IRaise } from './types'
 import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
 import { RaisesTable } from './Table'
+import type { IRaise } from './types'
 
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')

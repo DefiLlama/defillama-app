@@ -20,15 +20,15 @@ export async function getCexsPageData(): Promise<CexsPageData> {
 			oi: c.oi ?? null,
 			derivVolume: c.derivVolume ?? null,
 			leverage: c.leverage ?? null,
-			...(c.slug !== undefined ? { slug: c.slug } : {}),
+			...(c.slug != null ? { slug: c.slug } : {}),
 			...(c.coin != null ? { coin: c.coin } : {}),
-			...(c.coinSymbol !== undefined ? { coinSymbol: c.coinSymbol } : {}),
+			...(c.coinSymbol != null ? { coinSymbol: c.coinSymbol } : {}),
 			...(c.walletsLink != null ? { walletsLink: c.walletsLink } : {}),
 			...(c.cgId != null ? { cgId: c.cgId } : {}),
-			...(c.cgDeriv !== undefined ? { cgDeriv: c.cgDeriv } : {}),
-			...(c.lastAuditDate !== undefined ? { lastAuditDate: c.lastAuditDate } : {}),
+			...(c.cgDeriv != null ? { cgDeriv: c.cgDeriv } : {}),
+			...(c.lastAuditDate != null ? { lastAuditDate: c.lastAuditDate } : {}),
 			...(c.auditor !== undefined ? { auditor: c.auditor } : {}),
-			...(c.auditLink !== undefined ? { auditLink: c.auditLink } : {})
+			...(c.auditLink != null ? { auditLink: c.auditLink } : {})
 		}
 
 		return normalizedCex

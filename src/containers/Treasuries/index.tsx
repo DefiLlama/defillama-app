@@ -241,7 +241,8 @@ const columns: ColumnDef<ITreasuryRow>[] = [
 		accessorKey: 'mcap',
 		id: 'mcap',
 		cell: (info) => {
-			return <>{info.getValue() === null ? null : formattedNum(info.getValue(), true)}</>
+			const value = info.getValue<number | null>()
+			return <>{value === null ? null : formattedNum(value, true)}</>
 		},
 		size: 128,
 		meta: {
