@@ -93,6 +93,30 @@ function ProjectComingSoon() {
 
 const DEFAULT_TABS: DashboardTabConfig[] = [{ id: 'dashboard', label: 'Dashboard' }]
 
+function useProjectTabs(projects: typeof PROJECTS) {
+	const [tabsByProject, setTabsByProject] = useState<Record<string, DashboardTabConfig[]>>({})
+
+	useEffect(() => {
+		let cancelled = false
+		for (const project of projects) {
+			if (!project.dashboardId || project.comingSoon) continue
+			const loader = getDashboardModule(project.dashboardId)
+			if (loader) {
+				loader.then((mod) => {
+					if (!cancelled && mod?.tabs) {
+						setTabsByProject((prev) => (prev[project.id] === mod.tabs ? prev : { ...prev, [project.id]: mod.tabs }))
+					}
+				})
+			}
+		}
+		return () => {
+			cancelled = true
+		}
+	}, [projects])
+
+	return tabsByProject
+}
+
 function SuperLuminalContent({
 	tabs,
 	activeTab,
@@ -178,7 +202,7 @@ function SuperLuminalContent({
 
 function SuperLuminalShell() {
 	const [isDark, toggleTheme] = useDarkModeManager()
-	const [tabs, setTabs] = useState<DashboardTabConfig[]>(DEFAULT_TABS)
+	const tabsByProject = useProjectTabs(PROJECTS)
 	const [activeTab, setActiveTab] = useState('dashboard')
 	const [activeProject, setActiveProject] = useState('etherfi')
 	const [expandedProject, setExpandedProject] = useState<string | null>('etherfi')
@@ -189,24 +213,7 @@ function SuperLuminalShell() {
 	const activeProjectConfig = PROJECTS.find((p) => p.id === activeProject)
 	const dashboardId = activeProjectConfig?.dashboardId ?? PROJECTS[0].dashboardId
 	const displayName = activeProjectConfig?.name ?? 'Dashboard'
-
-	useEffect(() => {
-		if (!dashboardId) return
-		let cancelled = false
-		const loader = getDashboardModule(dashboardId)
-		if (loader) {
-			loader.then((mod) => {
-				if (!cancelled && mod?.tabs) {
-					setTabs(mod.tabs)
-				}
-			})
-		} else {
-			setTabs(DEFAULT_TABS)
-		}
-		return () => {
-			cancelled = true
-		}
-	}, [dashboardId])
+	const tabs = tabsByProject[activeProject] ?? DEFAULT_TABS
 
 	return (
 		<div className="superluminal-dashboard col-span-full flex min-h-screen flex-col pro-dashboard bg-(--app-bg) md:flex-row">
@@ -297,7 +304,7 @@ function SuperLuminalShell() {
 
 								{isExpanded && (
 									<div className="ml-3 flex flex-col gap-0.5 border-l border-(--sl-divider) pt-1 pl-2">
-										{tabs.map((tab) => (
+										{(tabsByProject[project.id] ?? DEFAULT_TABS).map((tab) => (
 											<button
 												key={tab.id}
 												onClick={() => {
