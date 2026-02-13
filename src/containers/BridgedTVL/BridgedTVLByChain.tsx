@@ -78,7 +78,7 @@ export function BridgedTVLByChain({
 		}
 		const pieChartData = preparePieChartData({ data: breakdown, limit: 10 })
 
-		const tableData: BridgedChainRow[] = Object.entries(category?.breakdown ?? {}).map(([name, value]) => ({
+		const tableData: BridgedChainRow[] = Object.entries(rawBreakdown).map(([name, value]) => ({
 			name: name?.toLowerCase() === name ? name?.toUpperCase() : name,
 			value
 		}))

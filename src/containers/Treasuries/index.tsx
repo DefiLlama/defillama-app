@@ -57,9 +57,8 @@ export function Treasuries({ data, entity }: { data: ITreasuryRow[]; entity: boo
 			}
 			return csvRow
 		})
-		const headerRow: (string | number | boolean)[] = headers
-		const dataRows = dataToDownload.map((row) => headers.map((header) => row[header]))
-		const rows: (string | number | boolean)[][] = [headerRow, ...dataRows]
+		const dataRows: (string | number)[][] = dataToDownload.map((row) => headers.map((header) => row[header]))
+		const rows: (string | number)[][] = [headers, ...dataRows]
 		return { filename: 'treasuries.csv', rows }
 	}
 
@@ -121,20 +120,20 @@ const columns: ColumnDef<ITreasuryRow>[] = [
 		enableSorting: false,
 		cell: (info) => {
 			const breakdown = info.getValue<ITreasuryRow['tokenBreakdowns']>()
-			const entries = Object.entries(breakdown)
+			const entries = Object.entries(breakdown) as Array<[keyof ITreasuryRow['tokenBreakdowns'], number]>
 			let totalBreakdown = 0
 
 			for (const [, val] of entries) {
 				totalBreakdown += val
 			}
 
-			const breakdownDominance: Record<string, number> = {}
+			const breakdownDominance = new Map<keyof ITreasuryRow['tokenBreakdowns'], number>()
 
 			for (const [key, val] of entries) {
-				breakdownDominance[key] = getDominancePercent(val, totalBreakdown)
+				breakdownDominance.set(key, getDominancePercent(val, totalBreakdown))
 			}
 
-			const dominance = Object.entries(breakdownDominance).sort((a, b) => b[1] - a[1])
+			const dominance = Array.from(breakdownDominance.entries()).sort((a, b) => b[1] - a[1])
 
 			if (totalBreakdown < 1) {
 				return <></>
@@ -251,45 +250,23 @@ const columns: ColumnDef<ITreasuryRow>[] = [
 	}
 ]
 
-const breakdownColor = (type: string) => {
-	if (type === 'stablecoins') {
-		return '#16a34a'
-	}
-
-	if (type === 'majors') {
-		return '#2563eb'
-	}
-
-	if (type === 'ownTokens') {
-		return '#f97316'
-	}
-
-	if (type === 'others') {
-		return '#6d28d9'
-	}
-
-	return '#f85149'
+const BREAKDOWN_COLORS: Record<string, string> = {
+	stablecoins: '#16a34a',
+	majors: '#2563eb',
+	ownTokens: '#f97316',
+	others: '#6d28d9'
 }
 
-const formatBreakdownType = (type: string) => {
-	if (type === 'stablecoins') {
-		return 'Stablecoins'
-	}
-
-	if (type === 'majors') {
-		return 'Majors'
-	}
-
-	if (type === 'ownTokens') {
-		return 'Own Tokens'
-	}
-
-	if (type === 'others') {
-		return 'Others'
-	}
-
-	return type
+const BREAKDOWN_LABELS: Record<string, string> = {
+	stablecoins: 'Stablecoins',
+	majors: 'Majors',
+	ownTokens: 'Own Tokens',
+	others: 'Others'
 }
+
+const breakdownColor = (type: string) => BREAKDOWN_COLORS[type] ?? '#f85149'
+
+const formatBreakdownType = (type: string) => BREAKDOWN_LABELS[type] ?? type
 
 const Breakdown = ({ data }: { data: [string, number] }) => {
 	const color = breakdownColor(data[0])

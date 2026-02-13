@@ -73,6 +73,7 @@ function updateTimespan(timespan: InvestorDealsAccumulatorTimespan, raise: IRais
 
 	if (raise.amount != null) {
 		timespan.amounts.push(raise.amount)
+		// "Top" fields track the single largest deal amount in the timespan.
 		if (raise.amount > timespan.topAmount) {
 			timespan.topCategory = raise.category ?? null
 			timespan.topRound = raise.round ?? null
@@ -139,18 +140,13 @@ export async function getInvestorRaisesPageData(
 		}
 	}
 
-	if (investorName == null) {
-		return {
-			notFound: true
-		}
-	}
-
-	const filters = getRaisesFiltersList({ raises: data.raises, investorName: investorSlug })
+	const filters = getRaisesFiltersList({ raises: data.raises, investorName })
 
 	return {
 		raises,
 		...filters,
-		investorName
+		// `raises` is non-empty only when a matching investor was found in the loop above.
+		investorName: investorName!
 	}
 }
 

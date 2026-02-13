@@ -1,3 +1,4 @@
+import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import RaisesContainer from '~/containers/Raises'
 import { getRaisesPageData } from '~/containers/Raises/queries'
@@ -11,7 +12,7 @@ export const getStaticProps = withPerformanceLogging('raises', async () => {
 	}
 })
 
-const Raises = (props) => {
+const Raises = (props: InferGetStaticPropsType<typeof getStaticProps>) => {
 	return <RaisesContainer {...props} />
 }
 

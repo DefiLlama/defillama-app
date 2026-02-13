@@ -5,13 +5,13 @@ import { Icon } from '~/components/Icon'
 import { toNiceDayMonthAndYear, toNiceDayMonthAndYearAndTime } from '~/utils'
 
 const formatDateForInput = (timestamp: number | null) => {
-	if (!timestamp) return ''
+	if (timestamp == null) return ''
 	const date = new Date(timestamp)
 	return date.toISOString().split('T')[0]
 }
 
 const getHourFromTimestamp = (timestamp: number | null) => {
-	if (!timestamp) return '0'
+	if (timestamp == null) return '0'
 	const date = new Date(timestamp)
 	return date.getUTCHours().toString()
 }
@@ -22,7 +22,7 @@ const getTodayString = () => {
 }
 
 const isAtMidnight = (timestamp: number | null) => {
-	if (!timestamp) return true
+	if (timestamp == null) return true
 	const date = new Date(timestamp)
 	return date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date.getUTCSeconds() === 0
 }
@@ -85,7 +85,7 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 		<Ariakit.PopoverProvider>
 			<Ariakit.PopoverDisclosure className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
 				<span>Custom Range Inflows</span>
-				{startDate || endDate ? (
+				{startDate != null || endDate != null ? (
 					<span className="text-(--link-text)">
 						{' '}
 						{startDate != null
@@ -124,8 +124,8 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 							const form = e.target as HTMLFormElement
 							const startDate = form.startDate?.value
 							const endDate = form.endDate?.value
-							const startHour = parseInt(form.startHour?.value ?? '0')
-							const endHour = parseInt(form.endHour?.value ?? '0')
+							const startHour = parseInt(form.startHour?.value ?? '0', 10)
+							const endHour = parseInt(form.endHour?.value ?? '0', 10)
 
 							// Create timestamps in milliseconds
 							const startTimestamp = new Date(`${startDate}T${startHour.toString().padStart(2, '0')}:00:00Z`).getTime()

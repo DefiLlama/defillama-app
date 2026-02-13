@@ -17,6 +17,7 @@ import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { toNiceDayMonthYear } from '~/utils'
+import type { IRaise } from './types'
 
 const columnResizeMode = 'onChange'
 
@@ -31,21 +32,7 @@ const formatRaise = (n: number) => {
 	return `${n}m`
 }
 
-interface IRaiseRow {
-	name: string
-	date: number
-	amount: number | null
-	round: string
-	category: string
-	sector: string
-	leadInvestors: string[]
-	otherInvestors: string[]
-	source: string
-	valuation: number | null
-	chains: string[]
-}
-
-export const raisesColumns: ColumnDef<IRaiseRow>[] = [
+export const raisesColumns: ColumnDef<IRaise>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -176,7 +163,7 @@ export function RaisesTable({
 	raises,
 	prepareCsv
 }: {
-	raises: IRaiseRow[]
+	raises: IRaise[]
 	prepareCsv: () => { filename: string; rows: (string | number | boolean)[][] }
 }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
