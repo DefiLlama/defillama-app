@@ -59,7 +59,7 @@ export function useMetricAvailability(
 	])
 }
 
-export function useFilteredMetrics(metrics: MetricWithAvailability[], showOnlyValid: boolean = true) {
+function useFilteredMetrics(metrics: MetricWithAvailability[], showOnlyValid: boolean = true) {
 	return useMemo(() => {
 		if (!showOnlyValid) return metrics
 		return metrics.filter((m) => m.isValid)

@@ -10,7 +10,7 @@ import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
 import { formattedNum, getBlockExplorer } from '~/utils'
 
-export type BridgeTokensTableRow = {
+type BridgeTokensTableRow = {
 	symbol: string
 	deposited?: number
 	withdrawn?: number

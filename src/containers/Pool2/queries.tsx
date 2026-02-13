@@ -1,5 +1,5 @@
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
-import { CHART_API, PROTOCOLS_API } from '~/constants'
+import { CHART_API, CHAINS_API_V2, PROTOCOLS_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
@@ -55,7 +55,7 @@ export async function getPool2TVLByChain({
 				postRuntimeLogs(`Pool2 TVL by Chain: ${chain}: ${err instanceof Error ? err.message : err}`)
 				return null
 			}),
-		fetchJson('https://api.llama.fi/chains2/All').then((data) =>
+		fetchJson(`${CHAINS_API_V2}/All`).then((data) =>
 			data.chainTvls.flatMap((chain) => (chain.extraTvl?.pool2?.tvl ? [chain.name] : []))
 		)
 	])

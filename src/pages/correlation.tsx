@@ -1,4 +1,5 @@
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
+import type { IResponseCGMarketsAPI } from '~/api/types'
 import Correlations from '~/containers/Correlations'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -13,7 +14,7 @@ export const getStaticProps = withPerformanceLogging('correlation', async () => 
 	}
 })
 
-export default function Compare({ coinsData }) {
+export default function Compare({ coinsData }: { coinsData: Array<IResponseCGMarketsAPI> }) {
 	return (
 		<Layout
 			title={`Correlations - DefiLlama`}

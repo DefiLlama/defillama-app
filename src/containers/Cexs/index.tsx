@@ -6,16 +6,19 @@ import toast from 'react-hot-toast'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { INFLOWS_API } from '~/constants'
 import { formattedNum, slug, toNiceDayMonthAndYear } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { fetchCexInflows } from './api'
 import { DateFilter } from './DateFilter'
 import type { ICex } from './types'
 
 const DEFAULT_SORTING_STATE = [{ id: 'cleanAssetsTvl', desc: true }]
 
-const getOutflowsByTimerange = async (startTime, endTime, cexData) => {
-	let loadingToastId
+const getOutflowsByTimerange = async (
+	startTime: number | null,
+	endTime: number | null,
+	cexData: ICex[]
+): Promise<Record<string, { outflows?: number }>> => {
+	let loadingToastId: string | undefined
 	try {
 		if (startTime && endTime) {
 			loadingToastId = toast.loading('Fetching inflows data...')
@@ -23,13 +26,11 @@ const getOutflowsByTimerange = async (startTime, endTime, cexData) => {
 			const cexsApiResults = await Promise.allSettled(
 				cexData.map(async (c) => {
 					if (c.slug === undefined) {
-						return [null, null]
+						return [null, null] as const
 					} else {
-						const res = await fetchJson(
-							`${INFLOWS_API}/${c.slug}/${startTime / 1e3}?end=${endTime / 1e3}&tokensToExclude=${c.coin ?? ''}`
-						)
+						const res = await fetchCexInflows(c.slug, startTime / 1e3, endTime / 1e3, c.coin ?? '')
 
-						return [c.slug, res]
+						return [c.slug, res] as const
 					}
 				})
 			)
@@ -39,8 +40,9 @@ const getOutflowsByTimerange = async (startTime, endTime, cexData) => {
 					if (result.status === 'fulfilled') {
 						return result.value
 					}
+					return undefined
 				})
-				.filter(Boolean)
+				.filter((item): item is readonly [string, { outflows?: number }] => item != null && item[0] != null)
 
 			toast.dismiss(loadingToastId)
 
@@ -51,6 +53,7 @@ const getOutflowsByTimerange = async (startTime, endTime, cexData) => {
 		toast.error('Failed to fetch inflows data')
 		return {}
 	}
+	return {}
 }
 
 const getDateTimestamp = (dateString: string | string[] | undefined): number | null => {
@@ -76,7 +79,7 @@ export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 	const cexsWithCustomRange = useMemo(() => {
 		return cexs.map((cex) => ({
 			...cex,
-			customRange: customRangeInflows[cex.slug]?.outflows
+			customRange: cex.slug != null ? customRangeInflows[cex.slug]?.outflows : undefined
 		}))
 	}, [cexs, customRangeInflows])
 
@@ -107,13 +110,13 @@ const columns: ColumnDef<ICex>[] = [
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					{row.original.slug === undefined ? (
-						(getValue() as string | null)
+						getValue<string>()
 					) : (
 						<BasicLink
 							href={`/cex/${slug(row.original.slug)}`}
 							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
-							{getValue() as string | null}
+							{getValue<string>()}
 						</BasicLink>
 					)}
 				</span>
@@ -129,7 +132,8 @@ const columns: ColumnDef<ICex>[] = [
 					<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" className="ml-auto" />
 				)
 			}
-			return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+			const value = info.getValue<number | null>()
+			return <>{value != null ? formattedNum(value, true) : null}</>
 		},
 		size: 120,
 		meta: {
@@ -148,7 +152,8 @@ const columns: ColumnDef<ICex>[] = [
 					<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" className="ml-auto" />
 				)
 			}
-			if (info.getValue() == null) return null
+			const value = info.getValue<number | null>()
+			if (value == null) return null
 
 			const helperText =
 				coinSymbol === undefined
@@ -158,7 +163,7 @@ const columns: ColumnDef<ICex>[] = [
 			return (
 				<span className="flex items-center justify-end gap-1">
 					<QuestionHelper text={helperText} />
-					<span>{formattedNum(info.getValue(), true)}</span>
+					<span>{formattedNum(value, true)}</span>
 				</span>
 			)
 		},
@@ -173,7 +178,7 @@ const columns: ColumnDef<ICex>[] = [
 		accessorKey: 'inflows_24h',
 		size: 120,
 		cell: (info) => {
-			const value = info.getValue() as number | null
+			const value = info.getValue<number | null>()
 			return (
 				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
 					{value != null ? formattedNum(value, true) : ''}
@@ -189,7 +194,7 @@ const columns: ColumnDef<ICex>[] = [
 		accessorKey: 'inflows_1w',
 		size: 120,
 		cell: (info) => {
-			const value = info.getValue() as number | null
+			const value = info.getValue<number | null>()
 			return (
 				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
 					{value != null ? formattedNum(value, true) : ''}
@@ -205,7 +210,7 @@ const columns: ColumnDef<ICex>[] = [
 		accessorKey: 'inflows_1m',
 		size: 120,
 		cell: (info) => {
-			const value = info.getValue() as number | null
+			const value = info.getValue<number | null>()
 			return (
 				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
 					{value != null ? formattedNum(value, true) : ''}
@@ -219,7 +224,10 @@ const columns: ColumnDef<ICex>[] = [
 	{
 		header: 'Spot Volume',
 		accessorKey: 'spotVolume',
-		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		cell: (info) => {
+			const value = info.getValue<number | null>()
+			return value != null ? formattedNum(value, true) : null
+		},
 		size: 125,
 		meta: {
 			align: 'end'
@@ -228,7 +236,10 @@ const columns: ColumnDef<ICex>[] = [
 	{
 		header: '24h Open Interest',
 		accessorKey: 'oi',
-		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		cell: (info) => {
+			const value = info.getValue<number | null>()
+			return value != null ? formattedNum(value, true) : null
+		},
 		size: 160,
 		meta: {
 			align: 'end'
@@ -237,7 +248,10 @@ const columns: ColumnDef<ICex>[] = [
 	{
 		header: 'Avg Leverage',
 		accessorKey: 'leverage',
-		cell: (info) => (info.getValue() != null ? Number(Number(info.getValue()).toFixed(2)) + 'x' : null),
+		cell: (info) => {
+			const value = info.getValue<number | null>()
+			return value != null ? Number(Number(value).toFixed(2)) + 'x' : null
+		},
 		size: 130,
 		meta: {
 			align: 'end'
@@ -249,7 +263,7 @@ const columns: ColumnDef<ICex>[] = [
 		accessorFn: (row) => row.customRange ?? undefined,
 		size: 200,
 		cell: (info) => {
-			const value = info.getValue() as number | null
+			const value = info.getValue<number | undefined>()
 			return (
 				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
 					{value != null ? formattedNum(value, true) : ''}
@@ -263,7 +277,7 @@ const columns: ColumnDef<ICex>[] = [
 	{
 		header: 'Auditor',
 		accessorKey: 'auditor',
-		cell: ({ getValue }) => <>{(getValue() ?? null) as string | null}</>,
+		cell: ({ getValue }) => <>{getValue<string | null>() ?? null}</>,
 		size: 100,
 		meta: {
 			align: 'end'
@@ -272,7 +286,10 @@ const columns: ColumnDef<ICex>[] = [
 	{
 		header: 'Last audit date',
 		accessorKey: 'lastAuditDate',
-		cell: ({ getValue }) => <>{getValue() === undefined ? null : toNiceDayMonthAndYear(getValue() as number)}</>,
+		cell: ({ getValue }) => {
+			const value = getValue<number | undefined>()
+			return <>{value === undefined ? null : toNiceDayMonthAndYear(value)}</>
+		},
 		size: 130,
 		meta: {
 			align: 'end'

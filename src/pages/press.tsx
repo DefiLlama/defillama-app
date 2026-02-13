@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { oldBlue } from '~/constants/colors'
 import Layout from '~/layout'

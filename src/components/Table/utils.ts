@@ -2,7 +2,7 @@ import type { ColumnOrderState, ColumnSizingState, Table } from '@tanstack/react
 import { startTransition, useDeferredValue, useEffect, useState } from 'react'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 
-export type BreakpointMap<T> = Record<number, T>
+type BreakpointMap<T> = Record<number, T>
 export type ColumnSizesByBreakpoint = BreakpointMap<ColumnSizingState>
 export type ColumnOrdersByBreakpoint = BreakpointMap<ColumnOrderState>
 

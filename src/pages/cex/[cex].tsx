@@ -1,11 +1,10 @@
 import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { CEXS_API } from '~/constants'
+import { fetchCexs } from '~/containers/Cexs/api'
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
@@ -49,7 +48,17 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
-	const { cexs } = await fetchJson(CEXS_API)
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
+	const { cexs } = await fetchCexs()
 
 	const paths = cexs
 		.filter((cex) => cex.slug)

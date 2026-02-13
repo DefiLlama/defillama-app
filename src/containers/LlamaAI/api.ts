@@ -2,6 +2,9 @@ import { MCP_SERVER } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type { EntityQuestionsResponse } from './types'
 
+/**
+ * Fetch suggested follow-up questions for an entity context.
+ */
 export async function fetchEntityQuestions(
 	entitySlug: string,
 	entityType: 'protocol' | 'chain' | 'page',

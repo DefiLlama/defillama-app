@@ -1,11 +1,11 @@
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import type { IRWAList } from '~/utils/metadata/types'
 import {
-	getRWAActiveTVLs,
-	getRWAStats,
-	getRWAChartDataByTicker,
-	getRWAAssetDataById,
-	getRWAAssetChartData,
+	fetchRWAActiveTVLs,
+	fetchRWAStats,
+	fetchRWAChartDataByTicker,
+	fetchRWAAssetDataById,
+	fetchRWAAssetChartData,
 	toUnixMsTimestamp
 } from './api'
 import type {
@@ -176,8 +176,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		if (selectedCount > 1) return null
 
 		const [data, chartData]: [Array<IFetchedRWAProject>, IRWAChartDataByTicker | null] = await Promise.all([
-			getRWAActiveTVLs(),
-			getRWAChartDataByTicker({ selectedChain, selectedCategory, selectedPlatform })
+			fetchRWAActiveTVLs(),
+			fetchRWAChartDataByTicker({ selectedChain, selectedCategory, selectedPlatform })
 		])
 
 		if (!data) {
@@ -563,7 +563,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 }
 
 export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[]> {
-	const data = await getRWAStats()
+	const data = await fetchRWAStats()
 	if (!data?.byChain) {
 		throw new Error('Failed to get RWA stats')
 	}
@@ -582,7 +582,7 @@ export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[]> {
 }
 
 export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverviewRow[]> {
-	const data = await getRWAStats()
+	const data = await fetchRWAStats()
 	if (!data?.byCategory) {
 		throw new Error('Failed to get RWA stats')
 	}
@@ -601,7 +601,7 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 }
 
 export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRow[]> {
-	const data = await getRWAStats()
+	const data = await fetchRWAStats()
 	if (!data?.byPlatform) {
 		throw new Error('Failed to get RWA stats')
 	}
@@ -622,8 +622,8 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRo
 export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {
 	try {
 		const [data, chartDataset]: [IFetchedRWAProject, IRWAAssetData['chartDataset']] = await Promise.all([
-			getRWAAssetDataById(assetId),
-			getRWAAssetChartData(assetId)
+			fetchRWAAssetDataById(assetId),
+			fetchRWAAssetChartData(assetId)
 		])
 
 		if (!data) {

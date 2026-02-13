@@ -9,7 +9,7 @@ echarts.use([LineChart, GridComponent, TooltipComponent, CanvasRenderer])
 
 type PrimitiveSparklinePoint = [number, number | null | undefined]
 
-export interface SparklineChartProps {
+interface SparklineChartProps {
 	data?: PrimitiveSparklinePoint[]
 	color?: string
 	areaColor?: string

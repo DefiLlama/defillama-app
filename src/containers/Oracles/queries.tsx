@@ -17,7 +17,7 @@ interface IOracleApiResponse {
 }
 
 // - used in /oracles and /oracles/[name]
-export async function getOraclePageData(oracle = null, chain = null) {
+async function getOraclePageData(oracle = null, chain = null) {
 	try {
 		const [{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle }, { protocols }]: [
 			IOracleApiResponse,
@@ -162,7 +162,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 	}
 }
 
-export async function getOraclePageDataByChain(chain: string) {
+async function getOraclePageDataByChain(chain: string) {
 	try {
 		const [{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle }, { protocols }]: [
 			IOracleApiResponse,

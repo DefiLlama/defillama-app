@@ -1,108 +1,166 @@
-export type NumericRecord = Record<string, number>
-
-export type UnknownRecord = Record<string, unknown>
-
-export interface PeggedChainApi {
-	name: string
-	tvl: number
-	totalCirculatingUSD: NumericRecord
+export interface StablecoinsListResponse {
+	peggedAssets: StablecoinListAsset[]
+	chains: StablecoinListChain[]
 }
 
-export interface PeggedAssetApi {
+export interface StablecoinListAsset {
 	id: string
 	name: string
 	symbol: string
-	gecko_id: string
+	gecko_id: string | null
 	chains: string[]
 	pegType: string
-	chainBalances: Record<string, { tokens: ChartPoint[] }>
-	chainCirculating?: Record<
+	pegMechanism: string
+	priceSource: string | null
+	price: number | string | null
+	circulating: Record<string, number>
+	circulatingPrevDay: Record<string, number>
+	circulatingPrevWeek: Record<string, number>
+	circulatingPrevMonth: Record<string, number>
+	chainCirculating: Record<
 		string,
 		{
-			current?: NumericRecord
-			circulatingPrevDay?: NumericRecord
-			circulatingPrevWeek?: NumericRecord
-			circulatingPrevMonth?: NumericRecord
+			current: Record<string, number>
+			circulatingPrevDay: Record<string, number>
+			circulatingPrevWeek: Record<string, number>
+			circulatingPrevMonth: Record<string, number>
 		}
 	>
-	circulating?: NumericRecord
-	circulatingPrevDay?: NumericRecord
-	circulatingPrevWeek?: NumericRecord
-	circulatingPrevMonth?: NumericRecord
-	price?: number
-	priceSource?: string
-	pegMechanism?: string
-	yieldBearing?: boolean
-	delisted?: boolean
 	deprecated?: boolean
-	[key: string]: unknown
+	yieldBearing?: boolean
 }
 
-export interface PeggedAssetsApiResponse {
-	peggedAssets: PeggedAssetApi[]
-	chains: PeggedChainApi[]
+interface StablecoinListChain {
+	gecko_id: string
+	tokenSymbol: string
+	name: string
+	totalCirculatingUSD: Record<string, number>
 }
 
-export interface ConfigApiResponse {
-	chainCoingeckoIds: Record<
-		string,
-		{
-			symbol?: string
-			stablecoins?: string[]
-			parent?: {
-				chain: string
-				types: string[]
-			}
-		}
-	>
+export interface StablecoinDetailResponse {
+	id: string
+	name: string
+	address: string | null
+	symbol: string
+	url: string
+	description: string
+	mintRedeemDescription: string
+	onCoinGecko: string
+	gecko_id: string | null
+	cmcId: string | null
+	pegType: string
+	pegMechanism: string
+	priceSource: string
+	auditLinks: string[] | null
+	twitter: string
+	wiki: string | null
+	price: number | null
+	module?: string
+	deprecated?: boolean
+	delisted?: boolean
+	yieldBearing?: boolean
+	doublecounted?: boolean
+	deadFrom?: string
+	tokens: StablecoinDetailToken[]
+	chainBalances: Record<string, { tokens: StablecoinChainBalanceToken[] }>
+	currentChainBalances: Record<string, Record<string, number>>
 }
 
-export interface ChartPoint {
+interface StablecoinDetailToken {
 	date: number
-	totalCirculatingUSD?: NumericRecord
-	totalCirculating?: NumericRecord
-	totalUnreleased?: NumericRecord
-	totalBridgedToUSD?: NumericRecord
-	totalMintedUSD?: NumericRecord
-	circulating?: NumericRecord
-	unreleased?: NumericRecord
-	bridgedTo?: NumericRecord
-	bridges?: Record<string, unknown>
-	[key: string]: unknown
+	circulating?: Record<string, number>
+	unreleased?: Record<string, number>
+	minted?: Record<string, number> | number
+	bridgedTo?: Record<string, number> | number
 }
 
-export interface PeggedChartApiResponse {
-	aggregated?: ChartPoint[]
-	breakdown?: Record<string, ChartPoint[]>
+interface StablecoinChainBalanceToken {
+	date: number
+	circulating?: Record<string, number>
+	unreleased?: Record<string, number>
+	minted?: StablecoinChainBalanceAmount
+	bridgedTo?: StablecoinChainBalanceAmount
+}
+
+type StablecoinChainBalanceAmount = Record<string, number | StablecoinBridgeBreakdown>
+
+type StablecoinBridgeBreakdown = Record<string, StablecoinBridgeValue>
+
+type StablecoinBridgeValue =
+	| number
+	| { amount: number; source: string }
+	| { amount?: never; source: string }
+	| Record<string, { amount: number }>
+
+export interface StablecoinChartResponse {
+	aggregated?: StablecoinChartPoint[]
+	breakdown?: Record<string, StablecoinChartPoint[]>
 	doublecountedIds?: string[]
 }
 
-export interface PeggedDominanceAllApiResponse {
-	dominanceMap: Record<string, Array<{ greatestMcap?: { symbol: string; mcap: number } }>>
-	chainChartMap: Record<string, ChartPoint[]>
+export interface StablecoinChartPoint {
+	date: string
+	totalCirculatingUSD?: Record<string, number>
+	totalCirculating?: Record<string, number>
+	totalUnreleased?: Record<string, number>
+	totalBridgedToUSD?: Record<string, number>
+	totalMintedUSD?: Record<string, number>
 }
 
-export type PeggedPricesApiResponse = Array<{
+export interface StablecoinDominanceResponse {
+	dominanceMap: Record<string, StablecoinDominanceEntry[]>
+	chainChartMap: Record<string, StablecoinDominanceChartPoint[]>
+}
+
+interface StablecoinDominanceEntry {
+	date: string
+	totalCirculatingUSD: Record<string, number>
+	greatestMcap?: {
+		gecko_id: string
+		symbol: string
+		mcap: number
+	}
+}
+
+interface StablecoinDominanceChartPoint {
+	date: string
+	totalCirculatingUSD?: Record<string, number>
+	totalCirculating?: Record<string, number>
+	totalUnreleased?: Record<string, number>
+	totalBridgedToUSD?: Record<string, number>
+	totalMintedUSD?: Record<string, number>
+}
+
+export type StablecoinRecentCoinsDataResponse = Record<string, StablecoinRecentCoinDataPoint[]>
+
+interface StablecoinRecentCoinDataPoint {
+	date: string
+	totalCirculatingUSD?: Record<string, number>
+	totalCirculating?: Record<string, number>
+	totalUnreleased?: Record<string, number>
+	totalBridgedToUSD?: Record<string, number>
+	totalMintedUSD?: Record<string, number>
+}
+
+export type StablecoinPricesResponse = StablecoinPriceSnapshot[]
+
+interface StablecoinPriceSnapshot {
 	date: number
 	prices?: Record<string, string | number>
-}>
-
-export type PeggedRatesApiResponse = Array<{
-	date: number
-	rates?: Record<string, string | number>
-}>
-
-export type PeggedConfigApiResponse = Record<string, string>
-
-export interface BridgeInfo {
-	name: string
-	link?: string
 }
 
-export type BridgeInfoMap = Record<string, BridgeInfo>
+export type StablecoinRatesResponse = StablecoinRateSnapshot[]
 
-export interface PeggedAssetDetailApiResponse {
-	pegType: string
-	chainBalances: Record<string, { tokens: ChartPoint[] }>
-	[key: string]: unknown
+interface StablecoinRateSnapshot {
+	date: number
+	rates?: Record<string, number>
+}
+
+export type StablecoinConfigResponse = Record<string, string>
+
+export type StablecoinBridgeInfoResponse = Record<string, StablecoinBridgeInfo>
+
+interface StablecoinBridgeInfo {
+	name: string
+	link?: string
 }

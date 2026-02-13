@@ -138,7 +138,7 @@ export interface ModalState {
 	selectedUnlocksChartType: 'total' | 'schedule' | 'allocation' | 'locked-unlocked'
 }
 
-export interface ModalActions {
+interface ModalActions {
 	setSelectedMainTab: (tab: MainTabType) => void
 	setSelectedChartTab: (tab: ChartTabType) => void
 	setChartMode: (mode: ChartModeType) => void

@@ -9,40 +9,100 @@ import { LocalLoader } from '~/components/Loaders'
 import { CACHE_SERVER } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
 import { fetchJson } from '~/utils/async'
+import type { Protocol } from './types'
 
 const EMPTY_SELECTED_COINS: Record<string, IResponseCGMarketsAPI> = {}
 
-export function CompareTokens({
-	coinsData,
-	protocols
-}: {
-	coinsData: IResponseCGMarketsAPI[]
-	protocols: Array<{ geckoId?: string; name: string; tvl?: number; fees?: number; revenue?: number }>
-}) {
+type CompareType = { label: string; value: string }
+
+const compareTypes: CompareType[] = [
+	{ label: 'Mcap', value: 'mcap' },
+	{ label: 'FDV', value: 'fdv' },
+	{ label: 'TVL', value: 'tvl' },
+	{ label: 'Volume', value: 'volume' },
+	{ label: 'Revenue', value: 'revenue' },
+	{ label: 'Fees', value: 'fees' }
+]
+
+type SupplyResponse = { data?: { total_supply?: string | number | null } }
+
+function getCompareValues(
+	type: string,
+	coin0: IResponseCGMarketsAPI,
+	coin1: IResponseCGMarketsAPI,
+	fdvData: [{ coins: Record<string, { price?: number }> }, SupplyResponse, SupplyResponse],
+	protocolsByGeckoId: Map<string, Protocol>,
+	protocolsByName: Map<string, Protocol>
+): [number | null, number | null] {
+	const p0 = protocolsByGeckoId.get(coin0.id) ?? protocolsByName.get(coin0.name)
+	const p1 = protocolsByGeckoId.get(coin1.id) ?? protocolsByName.get(coin1.name)
+
+	switch (type) {
+		case 'mcap':
+			return [coin0.market_cap ?? null, coin1.market_cap ?? null]
+		case 'fdv': {
+			const supply0 = Number(fdvData[1]?.data?.total_supply)
+			const supply1 = Number(fdvData[2]?.data?.total_supply)
+			return [Number.isFinite(supply0) ? supply0 : null, Number.isFinite(supply1) ? supply1 : null]
+		}
+		case 'volume':
+			return [coin0.total_volume ?? null, coin1.total_volume ?? null]
+		case 'tvl':
+			return [p0?.tvl ?? null, p1?.tvl ?? null]
+		case 'fees':
+			return [p0?.fees ?? null, p1?.fees ?? null]
+		case 'revenue':
+			return [p0?.revenue ?? null, p1?.revenue ?? null]
+		default:
+			return [null, null]
+	}
+}
+
+function computeComparison(
+	compareType: CompareType,
+	selectedCoins: Array<IResponseCGMarketsAPI | undefined>,
+	coinPrices: number[],
+	fdvData: [{ coins: Record<string, { price?: number }> }, SupplyResponse, SupplyResponse],
+	protocolsByGeckoId: Map<string, Protocol>,
+	protocolsByName: Map<string, Protocol>
+): { newPrice: number; increase: number } | null {
+	const coin0 = selectedCoins[0]
+	const coin1 = selectedCoins[1]
+	if (!coin0 || !coin1) return null
+
+	const [val0, val1] = getCompareValues(compareType.value, coin0, coin1, fdvData, protocolsByGeckoId, protocolsByName)
+	if (val0 == null || val1 == null || !Number.isFinite(val0) || !Number.isFinite(val1) || val0 === 0) return null
+
+	const basePrice = coinPrices[0]
+	const quotePrice = coinPrices[1]
+	if (!Number.isFinite(basePrice) || !Number.isFinite(quotePrice) || basePrice === 0) return null
+
+	const newPrice = (quotePrice * val1) / val0
+	if (!Number.isFinite(newPrice)) return null
+	const increase = newPrice / basePrice
+	if (!Number.isFinite(increase)) return null
+
+	return { newPrice, increase }
+}
+
+export function CompareTokens({ coinsData, protocols }: { coinsData: IResponseCGMarketsAPI[]; protocols: Protocol[] }) {
 	const router = useRouter()
 	const [isModalOpen, setModalOpen] = useState(0)
 	const coinParam = router.query?.coin
 	const typeParam = router.query?.type
 
-	// Build lookup maps for O(1) access
 	const coinsDataById = useMemo(
 		() => new Map<string, IResponseCGMarketsAPI>(coinsData.map((c) => [c.id, c])),
 		[coinsData]
 	)
 	const protocolsByGeckoId = useMemo(
-		() =>
-			new Map<string, (typeof protocols)[number]>(
-				protocols.flatMap((p) => (p.geckoId ? [[p.geckoId!, p] as const] : []))
-			),
+		() => new Map<string, Protocol>(protocols.flatMap((p) => (p.geckoId ? [[p.geckoId, p] as const] : []))),
 		[protocols]
 	)
-	const protocolsByName = useMemo(
-		() => new Map<string, (typeof protocols)[number]>(protocols.map((p) => [p.name, p])),
-		[protocols]
-	)
+	const protocolsByName = useMemo(() => new Map<string, Protocol>(protocols.map((p) => [p.name, p])), [protocols])
 
 	const { selectedCoins, coins, compareType } = useMemo(() => {
-		const queryCoins = coinParam || ([] as Array<string>)
+		const queryCoins = coinParam ?? ([] as string[])
 
 		const coins = Array.isArray(queryCoins) ? queryCoins : [queryCoins]
 
@@ -51,21 +111,21 @@ export function CompareTokens({
 			value: 'fdv'
 		}
 		return {
-			selectedCoins: (queryCoins && coins.map((coin) => coinsDataById.get(coin))) || ([] as IResponseCGMarketsAPI[]),
+			selectedCoins: coins.map((coin) => coinsDataById.get(coin)),
 			coins,
 			compareType
 		}
 	}, [coinParam, typeParam, coinsDataById])
 
-	const { data: fdvData = null, error: _fdvError } = useQuery({
+	const { data: fdvData = null } = useQuery({
 		queryKey: [`fdv-${coins.join('-')}`],
 		queryFn:
-			coins.length == 2
+			coins.length === 2
 				? () =>
 						Promise.all([
 							fetchCoinPrices(coins.map((c) => `coingecko:${c}`)).then((coins) => ({ coins })),
-							fetchJson(`${CACHE_SERVER}/supply/${coins[0]}`),
-							fetchJson(`${CACHE_SERVER}/supply/${coins[1]}`)
+							fetchJson<SupplyResponse>(`${CACHE_SERVER}/supply/${coins[0]}`),
+							fetchJson<SupplyResponse>(`${CACHE_SERVER}/supply/${coins[1]}`)
 						])
 				: () => null,
 		staleTime: 60 * 60 * 1000,
@@ -73,60 +133,18 @@ export function CompareTokens({
 		retry: 0
 	})
 
-	let newPrice, increase
-
-	if (fdvData !== null) {
-		let coinPrices = coins.map((c) => fdvData[0].coins[`coingecko:${c}`].price)
-
-		if (compareType.value === 'mcap') {
-			if (selectedCoins[0]['market_cap'] && selectedCoins[1]['market_cap']) {
-				newPrice = (coinPrices[1] * selectedCoins[1]['market_cap']) / selectedCoins[0]['market_cap']
-				increase = newPrice / coinPrices[0]
-			}
-		}
-		if (compareType.value === 'fdv') {
-			let fdvs = [fdvData[1], fdvData[2]].map((f) => Number(f.data.total_supply))
-			newPrice = (coinPrices[1] * fdvs[1]) / fdvs[0]
-			increase = newPrice / coinPrices[0]
-			// console.log(coinPrices, fdvs, fdvData)
-		}
-		if (compareType.value === 'volume') {
-			if (selectedCoins[0]['total_volume'] && selectedCoins[1]['total_volume']) {
-				newPrice = (coinPrices[1] * selectedCoins[1]['total_volume']) / selectedCoins[0]['total_volume']
-				increase = newPrice / coinPrices[0]
-			}
-		}
-
-		if (compareType.value === 'tvl') {
-			const protocol0 = protocolsByGeckoId.get(selectedCoins[0].id) ?? protocolsByName.get(selectedCoins[0].name)
-			const protocol1 = protocolsByGeckoId.get(selectedCoins[1].id) ?? protocolsByName.get(selectedCoins[1].name)
-			const tvlData = [protocol0?.tvl ?? null, protocol1?.tvl ?? null]
-			if (tvlData[0] !== null && tvlData[1] !== null) {
-				newPrice = (coinPrices[1] * tvlData[1]) / tvlData[0]
-				increase = newPrice / coinPrices[0]
-			}
-		}
-
-		if (compareType.value === 'fees') {
-			const protocol0 = protocolsByGeckoId.get(selectedCoins[0].id) ?? protocolsByName.get(selectedCoins[0].name)
-			const protocol1 = protocolsByGeckoId.get(selectedCoins[1].id) ?? protocolsByName.get(selectedCoins[1].name)
-			const feesData = [protocol0?.fees ?? null, protocol1?.fees ?? null]
-			if (feesData[0] !== null && feesData[1] !== null) {
-				newPrice = (coinPrices[1] * feesData[1]) / feesData[0]
-				increase = newPrice / coinPrices[0]
-			}
-		}
-
-		if (compareType.value === 'revenue') {
-			const protocol0 = protocolsByGeckoId.get(selectedCoins[0].id) ?? protocolsByName.get(selectedCoins[0].name)
-			const protocol1 = protocolsByGeckoId.get(selectedCoins[1].id) ?? protocolsByName.get(selectedCoins[1].name)
-			const revenueData = [protocol0?.revenue ?? null, protocol1?.revenue ?? null]
-			if (revenueData[0] !== null && revenueData[1] !== null) {
-				newPrice = (coinPrices[1] * revenueData[1]) / revenueData[0]
-				increase = newPrice / coinPrices[0]
-			}
-		}
-	}
+	const comparison = useMemo(() => {
+		if (fdvData == null || coins.length !== 2) return null
+		const coinPrices = coins.map((c) => fdvData[0].coins[`coingecko:${c}`]?.price ?? NaN)
+		return computeComparison(
+			compareType,
+			selectedCoins,
+			coinPrices,
+			fdvData as [{ coins: Record<string, { price?: number }> }, SupplyResponse, SupplyResponse],
+			protocolsByGeckoId,
+			protocolsByName
+		)
+	}, [fdvData, coins, compareType, selectedCoins, protocolsByGeckoId, protocolsByName])
 
 	const dialogStore = Ariakit.useDialogStore()
 
@@ -138,7 +156,7 @@ export function CompareTokens({
 			<div className="relative mx-auto flex w-full max-w-sm flex-col items-center gap-2 lg:-left-[116px]">
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center">
 					<div className="relative w-full sm:max-w-[280px]">
-						{selectedCoins[0] ? (
+						{selectedCoins[0] != null ? (
 							<img
 								alt={''}
 								src={selectedCoins[0].image}
@@ -147,7 +165,6 @@ export function CompareTokens({
 								loading="lazy"
 								onError={(e) => {
 									const img = e.currentTarget
-									// Prevent infinite error loops if the fallback also fails
 									img.onerror = null
 									img.src = '/assets/placeholder.png'
 								}}
@@ -162,51 +179,16 @@ export function CompareTokens({
 							/>
 						)}
 						<input
-							value={selectedCoins[0]?.name}
+							value={selectedCoins[0]?.name ?? ''}
 							onClick={() => {
 								setModalOpen(1)
 								dialogStore.toggle()
 							}}
+							readOnly
 							placeholder="Search coins..."
 							className="min-h-8 w-full rounded-md border border-(--form-control-border) bg-white px-2 py-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</div>
-					{/* <ReactSelect
-						options={coinsData}
-						value={selectedCoins[0]}
-						onChange={(coin: any) => {
-							router.push(
-								{
-									pathname: router.pathname,
-									query: {
-										...router.query,
-										coin: coins.length === 0 ? [coin.id] : [coin.id, coins[1]]
-									}
-								},
-								undefined,
-								{ shallow: true }
-							)
-						}}
-						aria-label="Select Coin"
-						placeholder="Select Coin"
-						components={{ Option, SingleValue, Menu }}
-						styles={{
-							option: (base) => ({
-								...base,
-								display: 'flex',
-								alignItems: 'center',
-								gap: '4px'
-							}),
-							singleValue: (base) => ({
-								...base,
-								display: 'flex',
-								alignItems: 'center',
-								gap: '4px',
-								color: 'var(--color)'
-							})
-						}}
-						filterOption={createFilter({ ignoreAccents: false })}
-					/> */}
 					<button
 						onClick={() => {
 							if (coins.length > 1) {
@@ -228,45 +210,8 @@ export function CompareTokens({
 						<Icon name="repeat" height={16} width={16} />
 						<span className="sr-only">Switch tokens</span>
 					</button>
-					{/* <ReactSelect
-						options={coinsData}
-						value={selectedCoins[1]}
-						onChange={(coin: any) => {
-							router.push(
-								{
-									pathname: router.pathname,
-									query: {
-										...router.query,
-										coin: coins.length === 0 ? [coin.id] : [coins[0], coin.id]
-									}
-								},
-								undefined,
-								{ shallow: true }
-							)
-						}}
-						aria-label="Select Coin"
-						placeholder="Select Coin"
-						components={{ Option, SingleValue, Menu }}
-						styles={{
-							option: (base) => ({
-								...base,
-								display: 'flex',
-								alignItems: 'center',
-								gap: '4px'
-							}),
-							singleValue: (base) => ({
-								...base,
-								display: 'flex',
-								alignItems: 'center',
-								gap: '4px',
-								color: 'var(--color)'
-							})
-						}}
-						style={{ width: '100%' }}
-						filterOption={createFilter({ ignoreAccents: false })}
-					/> */}
 					<div className="relative w-full sm:max-w-[280px]">
-						{selectedCoins[1] ? (
+						{selectedCoins[1] != null ? (
 							<img
 								alt={''}
 								src={selectedCoins[1].image}
@@ -275,7 +220,6 @@ export function CompareTokens({
 								loading="lazy"
 								onError={(e) => {
 									const img = e.currentTarget
-									// Prevent infinite error loops if the fallback also fails
 									img.onerror = null
 									img.src = '/assets/placeholder.png'
 								}}
@@ -290,11 +234,12 @@ export function CompareTokens({
 							/>
 						)}
 						<input
-							value={selectedCoins[1]?.name}
+							value={selectedCoins[1]?.name ?? ''}
 							onClick={() => {
 								setModalOpen(2)
 								dialogStore.toggle()
 							}}
+							readOnly
 							placeholder="Search coins..."
 							className="min-h-8 w-full rounded-md border border-(--form-control-border) bg-white px-2 py-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
@@ -302,7 +247,7 @@ export function CompareTokens({
 				</div>
 				<Ariakit.MenuProvider>
 					<Ariakit.MenuButton className="relative flex w-full cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md bg-(--btn2-bg) px-3 py-2 text-(--text-primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)">
-						<span>{compareType?.label}</span>
+						<span>{compareType.label}</span>
 						<Ariakit.MenuButtonArrow />
 					</Ariakit.MenuButton>
 					<Ariakit.Menu
@@ -341,7 +286,7 @@ export function CompareTokens({
 					</Ariakit.Menu>
 				</Ariakit.MenuProvider>
 				{coins.length === 2 ? (
-					fdvData === null ? (
+					fdvData == null ? (
 						<div className="m-auto flex min-h-[360px] items-center justify-center">
 							<LocalLoader />
 						</div>
@@ -351,7 +296,7 @@ export function CompareTokens({
 								<span className="flex items-center gap-1">
 									<img
 										alt={''}
-										src={selectedCoins[0].image}
+										src={selectedCoins[0]?.image}
 										height={'20px'}
 										width={'20px'}
 										loading="lazy"
@@ -360,13 +305,13 @@ export function CompareTokens({
 										}}
 										className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 									/>
-									<span>{selectedCoins[0].symbol.toUpperCase()}</span>
+									<span>{selectedCoins[0]?.symbol?.toUpperCase()}</span>
 								</span>
 								<span>WITH THE {compareType.label.toUpperCase()} OF</span>
 								<span className="flex items-center gap-1">
 									<img
 										alt={''}
-										src={selectedCoins[1].image}
+										src={selectedCoins[1]?.image}
 										height={'20px'}
 										width={'20px'}
 										loading="lazy"
@@ -375,19 +320,14 @@ export function CompareTokens({
 										}}
 										className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 									/>
-									<span>{selectedCoins[1].symbol.toUpperCase()}</span>
+									<span>{selectedCoins[1]?.symbol?.toUpperCase()}</span>
 								</span>
 							</h2>
 
-							{newPrice !== undefined && increase !== undefined ? (
+							{comparison != null ? (
 								<p className="text-lg font-bold">
-									$
-									{newPrice.toLocaleString(
-										undefined, // leave undefined to use the visitor's browser
-										// locale or a string like 'en-US' to override it.
-										{ maximumFractionDigits: 2 }
-									)}{' '}
-									({increase.toFixed(2)}x)
+									${comparison.newPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} (
+									{comparison.increase.toFixed(2)}x)
 								</p>
 							) : null}
 						</div>
@@ -421,12 +361,3 @@ export function CompareTokens({
 		</>
 	)
 }
-
-const compareTypes = [
-	{ label: 'Mcap', value: 'mcap' },
-	{ label: 'FDV', value: 'fdv' },
-	{ label: 'TVL', value: 'tvl' },
-	{ label: 'Volume', value: 'volume' },
-	{ label: 'Revenue', value: 'revenue' },
-	{ label: 'Fees', value: 'fees' }
-]

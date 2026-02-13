@@ -43,7 +43,7 @@ const getStartOfTimeFrame = (date: Date, frame: string) => {
 	}
 }
 
-export function groupByTimeFrame(data, timeFrame) {
+function groupByTimeFrame(data, timeFrame) {
 	if (timeFrame === 'daily') return data
 	const groupedData = data.reduce(
 		(acc, [timestamp, ...values]) => {
@@ -71,7 +71,7 @@ export function groupByTimeFrame(data, timeFrame) {
 	return result
 }
 
-export function cumulativeSum(data) {
+function cumulativeSum(data) {
 	let cumulativeData = []
 
 	let runningTotal1 = 0

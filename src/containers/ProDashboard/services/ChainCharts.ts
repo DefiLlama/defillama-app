@@ -1,15 +1,15 @@
 import {
 	CACHE_SERVER,
-	CHAINS_ASSETS_CHART,
 	CHART_API,
 	DIMENSIONS_OVERVIEW_API,
 	DIMENSIONS_SUMMARY_API,
-	PEGGEDCHART_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_GAS_USED_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API
 } from '~/constants'
+import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
+import { fetchStablecoinChartApi } from '~/containers/Stablecoins/api'
 import { toDisplayName } from '~/utils/chainNormalizer'
 import { processAdjustedTvl } from '~/utils/tvl'
 import { convertToNumberFormat, normalizeHourlyToDaily } from '../utils'
@@ -136,8 +136,7 @@ export default class ChainCharts {
 		if (!chain) return []
 		const apiChain = toDisplayName(chain)
 		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
-		const response = await fetch(`${PEGGEDCHART_API}/${encodedChain}`)
-		const data = await response.json()
+		const data = await fetchStablecoinChartApi(encodedChain)
 
 		if (!data.aggregated || !Array.isArray(data.aggregated)) return []
 
@@ -189,20 +188,29 @@ export default class ChainCharts {
 		const chainNames = this.getChainNames(chain)
 
 		if (chainNames.length === 1) {
-			const response = await fetch(`${CHAINS_ASSETS_CHART}/${chain}`)
-			const data = await response.json()
+			const data = await fetchChainAssetsChart(chain).catch(() => null)
 			if (!Array.isArray(data)) return []
-			return data.map((item: any) => [parseInt(item.timestamp, 10), parseFloat(item.data?.total) || 0])
+			return data.map((item) => [Number(item.timestamp), Number(item.data?.total) || 0])
 		}
 
-		return this.fetchAndMergeChains(
-			chainNames,
-			(chainName) => `${CHAINS_ASSETS_CHART}/${chainName}`,
-			(data) => {
-				if (!Array.isArray(data)) return []
-				return data.map((item: any) => [parseInt(item.timestamp, 10), parseFloat(item.data?.total) || 0])
+		try {
+			const responses = await Promise.all(
+				chainNames.map((chainName) => fetchChainAssetsChart(chainName).catch(() => null))
+			)
+			const mergedMap = new Map<number, number>()
+			for (const data of responses) {
+				if (!Array.isArray(data)) continue
+				for (const item of data) {
+					const timestamp = Number(item.timestamp)
+					const value = Number(item.data?.total) || 0
+					mergedMap.set(timestamp, value)
+				}
 			}
-		)
+			return Array.from(mergedMap.entries()).sort((a, b) => a[0] - b[0])
+		} catch (error) {
+			console.log('Error merging chain assets data:', error)
+			return []
+		}
 	}
 
 	private static async getTokenData(geckoId: string) {

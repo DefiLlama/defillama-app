@@ -1,4 +1,4 @@
-export interface ProtocolSplitData {
+interface ProtocolSplitData {
 	series: {
 		name: string
 		data: [number, number][]

@@ -1,74 +1,102 @@
-import {
-	CONFIG_API,
-	PEGGED_API,
-	PEGGEDCHART_API,
-	PEGGEDCHART_COINS_RECENT_DATA_API,
-	PEGGEDCHART_DOMINANCE_ALL_API,
-	PEGGEDCONFIG_API,
-	PEGGEDPRICES_API,
-	PEGGEDRATES_API,
-	PEGGEDS_API
-} from '~/constants'
+import { STABLECOINS_SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type {
-	BridgeInfoMap,
-	ConfigApiResponse,
-	PeggedAssetDetailApiResponse,
-	PeggedAssetsApiResponse,
-	PeggedChartApiResponse,
-	PeggedConfigApiResponse,
-	PeggedDominanceAllApiResponse,
-	PeggedPricesApiResponse,
-	PeggedRatesApiResponse
+	StablecoinBridgeInfoResponse,
+	StablecoinChartResponse,
+	StablecoinConfigResponse,
+	StablecoinDetailResponse,
+	StablecoinDominanceResponse,
+	StablecoinPricesResponse,
+	StablecoinRatesResponse,
+	StablecoinRecentCoinsDataResponse,
+	StablecoinsListResponse
 } from './api.types'
 
-export const fetchStablecoinAssetsApi = async (): Promise<PeggedAssetsApiResponse> => {
-	return fetchJson(PEGGEDS_API) as Promise<PeggedAssetsApiResponse>
+const PEGGEDS_API = `${STABLECOINS_SERVER_URL}/stablecoins`
+const PEGGED_API = `${STABLECOINS_SERVER_URL}/stablecoin`
+const PEGGEDCHART_API = `${STABLECOINS_SERVER_URL}/stablecoincharts2`
+const PEGGEDCHART_DOMINANCE_ALL_API = `${STABLECOINS_SERVER_URL}/stablecoincharts2/all-dominance-chain-breakdown`
+const PEGGEDCHART_COINS_RECENT_DATA_API = `${STABLECOINS_SERVER_URL}/stablecoincharts2/recent-protocol-data`
+const PEGGEDCONFIG_API = `${STABLECOINS_SERVER_URL}/config`
+const PEGGEDPRICES_API = `${STABLECOINS_SERVER_URL}/stablecoinprices`
+const PEGGEDRATES_API = `${STABLECOINS_SERVER_URL}/rates`
+
+/**
+ * Fetch the stablecoin assets list.
+ */
+export const fetchStablecoinAssetsApi = async (options?: {
+	includePrices?: boolean
+}): Promise<StablecoinsListResponse> => {
+	const url =
+		options?.includePrices === undefined ? PEGGEDS_API : `${PEGGEDS_API}?includePrices=${options.includePrices}`
+
+	return fetchJson<StablecoinsListResponse>(url)
 }
 
-export const fetchStablecoinPricesApi = async (): Promise<PeggedPricesApiResponse> => {
-	return fetchJson(PEGGEDPRICES_API) as Promise<PeggedPricesApiResponse>
+/**
+ * Fetch stablecoin price snapshots.
+ */
+export const fetchStablecoinPricesApi = async (): Promise<StablecoinPricesResponse> => {
+	return fetchJson<StablecoinPricesResponse>(PEGGEDPRICES_API)
 }
 
-export const fetchStablecoinRatesApi = async (): Promise<PeggedRatesApiResponse> => {
-	return fetchJson(PEGGEDRATES_API) as Promise<PeggedRatesApiResponse>
+/**
+ * Fetch stablecoin lending and savings rates.
+ */
+export const fetchStablecoinRatesApi = async (): Promise<StablecoinRatesResponse> => {
+	return fetchJson<StablecoinRatesResponse>(PEGGEDRATES_API)
 }
 
-export const fetchStablecoinConfigApi = async (): Promise<ConfigApiResponse> => {
-	return fetchJson(CONFIG_API) as Promise<ConfigApiResponse>
+/**
+ * Fetch pegged-asset configuration metadata.
+ */
+export const fetchStablecoinPeggedConfigApi = async (): Promise<StablecoinConfigResponse> => {
+	return fetchJson<StablecoinConfigResponse>(PEGGEDCONFIG_API)
 }
 
-export const fetchStablecoinPeggedConfigApi = async (): Promise<PeggedConfigApiResponse> => {
-	return fetchJson(PEGGEDCONFIG_API) as Promise<PeggedConfigApiResponse>
-}
-
-export const fetchStablecoinBridgeInfoApi = async (): Promise<BridgeInfoMap> => {
-	return fetchJson(
+/**
+ * Fetch stablecoin bridge information by asset.
+ */
+export const fetchStablecoinBridgeInfoApi = async (): Promise<StablecoinBridgeInfoResponse> => {
+	return fetchJson<StablecoinBridgeInfoResponse>(
 		'https://llama-stablecoins-data.s3.eu-central-1.amazonaws.com/bridgeInfo.json'
-	) as Promise<BridgeInfoMap>
+	)
 }
 
-export const fetchStablecoinChartApi = async (chainLabel: string): Promise<PeggedChartApiResponse> => {
-	return fetchJson(`${PEGGEDCHART_API}/${chainLabel}`) as Promise<PeggedChartApiResponse>
+/**
+ * Fetch stablecoin chart data for a chain.
+ */
+export const fetchStablecoinChartApi = async (chainLabel: string): Promise<StablecoinChartResponse> => {
+	return fetchJson<StablecoinChartResponse>(`${PEGGEDCHART_API}/${chainLabel}`)
 }
 
-export const fetchStablecoinChartAllApi = async (): Promise<PeggedChartApiResponse> => {
-	return fetchJson(`${PEGGEDCHART_API}/all`) as Promise<PeggedChartApiResponse>
+/**
+ * Fetch aggregated stablecoin chart data across all chains.
+ */
+export const fetchStablecoinChartAllApi = async (): Promise<StablecoinChartResponse> => {
+	return fetchJson<StablecoinChartResponse>(`${PEGGEDCHART_API}/all`)
 }
 
-export const fetchStablecoinDominanceAllApi = async (): Promise<PeggedDominanceAllApiResponse> => {
-	return fetchJson(PEGGEDCHART_DOMINANCE_ALL_API) as Promise<PeggedDominanceAllApiResponse>
+/**
+ * Fetch global stablecoin dominance chart data.
+ */
+export const fetchStablecoinDominanceAllApi = async (): Promise<StablecoinDominanceResponse> => {
+	return fetchJson<StablecoinDominanceResponse>(PEGGEDCHART_DOMINANCE_ALL_API)
 }
 
-export const fetchStablecoinAssetApi = async (peggedId: string): Promise<PeggedAssetDetailApiResponse | null> => {
-	return fetchJson(`${PEGGED_API}/${peggedId}`)
-		.then((data) => data as PeggedAssetDetailApiResponse)
-		.catch((e) => {
-			console.log(`Failed to fetch ${PEGGED_API}/${peggedId}: ${e}`)
-			return null
-		})
+/**
+ * Fetch details for a single stablecoin.
+ *
+ * Returns `null` only when the upstream API responds with a literal `null` body.
+ * Network/HTTP failures are not converted to `null` and will throw.
+ */
+export const fetchStablecoinAssetApi = async (peggedId: string): Promise<StablecoinDetailResponse | null> => {
+	return fetchJson<StablecoinDetailResponse | null>(`${PEGGED_API}/${peggedId}`)
 }
 
-export const fetchStablecoinRecentCoinsDataApi = async (): Promise<Record<string, unknown[]>> => {
-	return fetchJson(PEGGEDCHART_COINS_RECENT_DATA_API) as Promise<Record<string, unknown[]>>
+/**
+ * Fetch recent per-coin chart points for stablecoins.
+ */
+export const fetchStablecoinRecentCoinsDataApi = async (): Promise<StablecoinRecentCoinsDataResponse> => {
+	return fetchJson<StablecoinRecentCoinsDataResponse>(PEGGEDCHART_COINS_RECENT_DATA_API)
 }

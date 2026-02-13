@@ -119,7 +119,7 @@ export interface NormalizedRow {
 	original?: any
 }
 
-export interface ExportableColumn {
+interface ExportableColumn {
 	id: string
 	header: string
 	isVisible: boolean

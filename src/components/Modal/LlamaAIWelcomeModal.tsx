@@ -7,7 +7,7 @@ interface LlamaAIWelcomeModalProps {
 	onClose: () => void
 }
 
-export function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProps) {
+function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProps) {
 	return (
 		<Ariakit.DialogProvider open={isOpen} setOpen={(open) => !open && onClose()}>
 			<Ariakit.Dialog

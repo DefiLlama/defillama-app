@@ -1,11 +1,5 @@
-interface IRaisesFilters {
-	investors: Array<string>
-	rounds: Array<string>
-	sectors: Array<string>
-	chains: Array<string>
-}
-
 import { slug } from '~/utils'
+import type { IRaisesFilters } from './types'
 
 type RaiseLike = {
 	leadInvestors?: Array<string>
@@ -13,7 +7,7 @@ type RaiseLike = {
 	round?: string
 	category?: string
 	chains?: Array<string>
-	amount?: number
+	amount?: number | null
 }
 
 type GetRaisesFiltersListArgs = {

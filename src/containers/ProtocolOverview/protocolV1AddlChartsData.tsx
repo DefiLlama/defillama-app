@@ -564,7 +564,7 @@ function buildProtocolV1TokensBreakdown({
 	return { tokenBreakdownUSD, tokenBreakdownPieChart: pieChartData, tokenBreakdown }
 }
 
-export const buildProtocolV1AddlChartsData = ({
+const buildProtocolV1AddlChartsData = ({
 	protocolData,
 	extraTvlsEnabled,
 	isBorrowed,

@@ -62,7 +62,7 @@ export const toYearMonth = (date: number): string => {
 	return dayjs.utc(dayjs.unix(date)).format('YYYY-MM')
 }
 
-export const toNiceDate = (date: number): string => {
+const toNiceDate = (date: number): string => {
 	return dayjs.utc(dayjs.unix(date)).format('MMM DD')
 }
 
@@ -684,7 +684,7 @@ export function downloadCSV(filename: string, csvData: CsvData, options: CSVDown
 	}
 }
 
-export function downloadDatasetCSV({
+function downloadDatasetCSV({
 	data,
 	columns,
 	columnHeaders = {},
@@ -745,7 +745,7 @@ export function firstDayOfMonth(utcTimestamp: number): number {
 	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000)
 }
 
-export function firstDayOfQuarter(utcTimestamp: number): number {
+function firstDayOfQuarter(utcTimestamp: number): number {
 	const date = new Date(utcTimestamp * 1000)
 	const month = date.getUTCMonth()
 	const quarterStartMonth = Math.floor(month / 3) * 3
@@ -807,7 +807,7 @@ function hslToHex(h: number, s: number, l: number): string {
 	return `#${f(0)}${f(8)}${f(4)}`
 }
 
-export const chunks = <T,>(array: T[], size: number): T[][] => {
+const chunks = <T,>(array: T[], size: number): T[][] => {
 	const result: T[][] = []
 	for (let i = 0; i < array.length; i += size) {
 		result.push(array.slice(i, i + size))

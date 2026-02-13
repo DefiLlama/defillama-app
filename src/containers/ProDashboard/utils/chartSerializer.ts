@@ -5,7 +5,7 @@ import { getSupportedChainCharts, getUnsupportedChainCharts } from './chainChart
 import { generateItemId } from './dashboardUtils'
 import { getSupportedProtocolCharts, getUnsupportedProtocolCharts } from './protocolChartMapping'
 
-export interface ProtocolChartSerializationParams {
+interface ProtocolChartSerializationParams {
 	protocolId: string
 	protocolName: string
 	geckoId?: string | null
@@ -54,7 +54,7 @@ export function serializeProtocolChartToMultiChart(params: ProtocolChartSerializ
 	return { multiChart, unsupportedMetrics: unsupported }
 }
 
-export interface ChainChartSerializationParams {
+interface ChainChartSerializationParams {
 	chainName: string
 	geckoId?: string | null
 	toggledMetrics: ChainChartLabels[]

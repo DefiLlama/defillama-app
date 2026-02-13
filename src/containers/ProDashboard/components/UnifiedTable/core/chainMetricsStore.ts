@@ -9,7 +9,7 @@ export const setChainMetrics = (metrics: Record<string, ChainMetrics> | undefine
 	}
 }
 
-export const getChainMetrics = (): Record<string, ChainMetrics> => {
+const getChainMetrics = (): Record<string, ChainMetrics> => {
 	return currentChainMetrics
 }
 

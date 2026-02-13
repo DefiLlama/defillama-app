@@ -1,12 +1,12 @@
 import type {
-	BridgeInfoMap,
-	ChartPoint,
-	PeggedAssetApi,
-	PeggedAssetDetailApiResponse,
-	PeggedAssetsApiResponse
+	StablecoinBridgeInfoResponse,
+	StablecoinChartPoint,
+	StablecoinDetailResponse,
+	StablecoinListAsset,
+	StablecoinsListResponse
 } from './api.types'
 
-export type StablecoinOverviewChartPoint = {
+type StablecoinOverviewChartPoint = {
 	date: number
 	mcap: Record<string, number>
 }
@@ -36,7 +36,7 @@ export interface PeggedOverviewPageData {
 
 export interface PeggedChainsPageData {
 	chainCirculatings: Array<Record<string, unknown>>
-	chartData: ChartPoint[]
+	chartData: StablecoinChartPoint[]
 	peggedChartDataByChain: Array<Array<{ date: number; mcap: number | null }> | null>
 	chainList: string[]
 	chainsGroupbyParent: Record<string, Record<string, string[]>>
@@ -58,11 +58,11 @@ export interface PeggedAssetPageProps {
 		name: string
 		symbol: string
 	}>
-	peggedAssetData: PeggedAssetDetailApiResponse
+	peggedAssetData: StablecoinDetailResponse
 	totalCirculating: number | null
 	unreleased: number | null
 	mcap: number | null
-	bridgeInfo: BridgeInfoMap
+	bridgeInfo: StablecoinBridgeInfoResponse
 }
 
 export interface PeggedChainMcapSummary {
@@ -74,10 +74,10 @@ export interface PeggedChainMcapSummary {
 	mcapChartData: Array<[number, number]> | null
 }
 
-export type PeggedAssetsInput = Pick<PeggedAssetsApiResponse, 'peggedAssets' | 'chains'>
+export type PeggedAssetsInput = Pick<StablecoinsListResponse, 'peggedAssets' | 'chains'>
 
 export type PeggedAssetsForChartInput = {
-	peggedAssets: PeggedAssetApi[]
-	breakdown: Record<string, ChartPoint[]>
+	peggedAssets: StablecoinListAsset[]
+	breakdown: Record<string, StablecoinChartPoint[]>
 	doublecountedSourceIds?: string[]
 }

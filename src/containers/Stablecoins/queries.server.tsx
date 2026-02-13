@@ -7,6 +7,7 @@ import {
 	getStablecoinMcapStatsFromTotals,
 	getStablecoinTopTokenFromChartData
 } from '~/containers/Stablecoins/utils'
+import { fetchLlamaConfig } from '~/api'
 import { getPercentChange, slug } from '~/utils'
 import { postRuntimeLogs } from '~/utils/async'
 import { getObjectCache, setObjectCache } from '~/utils/cache-client'
@@ -16,14 +17,13 @@ import {
 	fetchStablecoinBridgeInfoApi,
 	fetchStablecoinChartAllApi,
 	fetchStablecoinChartApi,
-	fetchStablecoinConfigApi,
 	fetchStablecoinDominanceAllApi,
 	fetchStablecoinPeggedConfigApi,
 	fetchStablecoinPricesApi,
 	fetchStablecoinRatesApi,
 	fetchStablecoinRecentCoinsDataApi
 } from './api'
-import type { ChartPoint, PeggedAssetApi } from './api.types'
+import type { StablecoinChartPoint, StablecoinListAsset } from './api.types'
 import type {
 	PeggedAssetPageProps,
 	PeggedAssetsForChartInput,
@@ -57,7 +57,7 @@ async function withStablecoinsCache<T>(key: string, fetcher: () => Promise<T>): 
 	}
 }
 
-export const getStablecoinAssets = () =>
+const getStablecoinAssets = () =>
 	withStablecoinsCache('pegged-assets', () =>
 		fetchStablecoinAssetsApi().then(({ peggedAssets, chains }) => ({
 			protocolsDict: peggedAssets.reduce(
@@ -65,19 +65,19 @@ export const getStablecoinAssets = () =>
 					acc[slug(curr.name)] = curr
 					return acc
 				},
-				{} as Record<string, PeggedAssetApi>
+				{} as Record<string, StablecoinListAsset>
 			),
 			peggedAssets,
 			chains
 		}))
 	)
 
-export const getStablecoinPrices = () => withStablecoinsCache('pegged-prices', fetchStablecoinPricesApi)
-export const getStablecoinRates = () => withStablecoinsCache('pegged-rates', fetchStablecoinRatesApi)
-export const getStablecoinConfigData = () => withStablecoinsCache('config', fetchStablecoinConfigApi)
-export const getStablecoinPeggedConfigData = () => withStablecoinsCache('pegged-config', fetchStablecoinPeggedConfigApi)
+const getStablecoinPrices = () => withStablecoinsCache('pegged-prices', fetchStablecoinPricesApi)
+const getStablecoinRates = () => withStablecoinsCache('pegged-rates', fetchStablecoinRatesApi)
+const getStablecoinConfigData = () => withStablecoinsCache('config', fetchLlamaConfig)
+const getStablecoinPeggedConfigData = () => withStablecoinsCache('pegged-config', fetchStablecoinPeggedConfigApi)
 
-export const getStablecoinBridgeInfo = () => withStablecoinsCache('bridge-info', fetchStablecoinBridgeInfoApi)
+const getStablecoinBridgeInfo = () => withStablecoinsCache('bridge-info', fetchStablecoinBridgeInfoApi)
 
 const sumRecordValues = (record: Record<string, number> | undefined): number => {
 	if (!record) return 0
@@ -104,7 +104,7 @@ const toOverviewFilteredAssets = (value: unknown): PeggedOverviewPageData['filte
 function fetchGlobalData({ peggedAssets, chains }: PeggedAssetsInput): StablecoinsGlobalDataCache {
 	const tvlMap: Record<string, number> = {}
 	for (const chain of chains) {
-		tvlMap[chain.name] = chain.tvl
+		tvlMap[chain.name] = sumRecordValues(chain.totalCirculatingUSD)
 	}
 	const chainList = chains
 		.toSorted((a, b) => sumRecordValues(b.totalCirculatingUSD) - sumRecordValues(a.totalCirculatingUSD))
@@ -125,13 +125,15 @@ function fetchGlobalData({ peggedAssets, chains }: PeggedAssetsInput): Stablecoi
 
 type StablecoinSeriesPoint = { date: number; mcap: Record<string, number> }
 
-const toStablecoinSeriesPoint = (chart: ChartPoint): StablecoinSeriesPoint | null => {
+const toStablecoinSeriesPoint = (chart: StablecoinChartPoint): StablecoinSeriesPoint | null => {
 	const mcap = chart.totalCirculatingUSD
 	if (!mcap || typeof mcap !== 'object') return null
-	return { date: chart.date, mcap }
+	const date = Number(chart.date)
+	if (!Number.isFinite(date)) return null
+	return { date, mcap }
 }
 
-const normalizeStablecoinSeries = (charts: ChartPoint[] | undefined): StablecoinSeriesPoint[] => {
+const normalizeStablecoinSeries = (charts: StablecoinChartPoint[] | undefined): StablecoinSeriesPoint[] => {
 	if (!charts?.length) return []
 	const normalized: StablecoinSeriesPoint[] = []
 	for (const chart of charts) {
@@ -334,7 +336,9 @@ export async function getStablecoinChainsPageData(): Promise<PeggedChainsPageDat
 			}
 		}
 
-		const peggedChartDataByChain = chainList.map((chain) => chainChartMap[chain] ?? null) as Array<ChartPoint[] | null>
+		const peggedChartDataByChain = chainList.map((chain) => chainChartMap[chain] ?? null) as Array<
+			StablecoinChartPoint[] | null
+		>
 
 		const peggedDomDataByChain = chainList.map((chain) => dominanceMap[chain])
 
@@ -358,27 +362,31 @@ export async function getStablecoinChainsPageData(): Promise<PeggedChainsPageDat
 
 		const formattedPeggedChartDataByChain = peggedChartDataByChain.map((charts) => {
 			if (!charts) return null
-			const formattedCharts = charts.map((chart) => {
-				const rawMcap = chart.totalCirculatingUSD
-				let mcap: number | null = null
-				if (typeof rawMcap === 'number' && Number.isFinite(rawMcap)) {
-					mcap = rawMcap
-				} else if (rawMcap && typeof rawMcap === 'object') {
-					let total = 0
-					let hasFinite = false
-					for (const value of Object.values(rawMcap as Record<string, unknown>)) {
-						const numeric = typeof value === 'number' ? value : Number(value)
-						if (!Number.isFinite(numeric)) continue
-						total += numeric
-						hasFinite = true
+			const formattedCharts = charts
+				.map((chart) => {
+					const date = Number(chart.date)
+					if (!Number.isFinite(date)) return null
+
+					const rawMcap = chart.totalCirculatingUSD
+					let mcap: number | null = null
+					if (rawMcap && typeof rawMcap === 'object') {
+						let total = 0
+						let hasFinite = false
+						for (const value of Object.values(rawMcap as Record<string, unknown>)) {
+							const numeric = typeof value === 'number' ? value : Number(value)
+							if (!Number.isFinite(numeric)) continue
+							total += numeric
+							hasFinite = true
+						}
+						mcap = hasFinite ? total : null
 					}
-					mcap = hasFinite ? total : null
-				}
-				return {
-					date: chart.date,
-					mcap
-				}
-			})
+
+					return {
+						date,
+						mcap
+					}
+				})
+				.filter(Boolean) as Array<{ date: number; mcap: number | null }>
 			return formattedCharts
 		})
 

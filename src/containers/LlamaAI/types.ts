@@ -81,7 +81,7 @@ export interface AlertIntent {
 	}>
 }
 
-export interface AlertConfig {
+interface AlertConfig {
 	frequency: 'daily' | 'weekly'
 	hour: number
 	timezone: string
@@ -194,7 +194,7 @@ export interface MetadataItem {
 	metadata: any
 }
 
-export interface AlertItem {
+interface AlertItem {
 	type: 'alert'
 	id: string
 	alertId: string
@@ -214,32 +214,32 @@ export type StreamItem =
 	| AlertItem
 
 // Type guards for stream items
-export function isMarkdownItem(item: StreamItem): item is MarkdownItem {
+function isMarkdownItem(item: StreamItem): item is MarkdownItem {
 	return item.type === 'markdown'
 }
 
-export function isChartItem(item: StreamItem): item is ChartItem {
+function isChartItem(item: StreamItem): item is ChartItem {
 	return item.type === 'chart'
 }
 
-export function isCsvItem(item: StreamItem): item is CsvItem {
+function isCsvItem(item: StreamItem): item is CsvItem {
 	return item.type === 'csv'
 }
 
-export function isAlertItem(item: StreamItem): item is AlertItem {
+function isAlertItem(item: StreamItem): item is AlertItem {
 	return item.type === 'alert'
 }
 
-export function isArtifactItem(item: StreamItem): item is ChartItem | CsvItem {
+function isArtifactItem(item: StreamItem): item is ChartItem | CsvItem {
 	return item.type === 'chart' || item.type === 'csv'
 }
 
-export function isRenderableItem(item: StreamItem): boolean {
+function isRenderableItem(item: StreamItem): boolean {
 	return item.type !== 'metadata'
 }
 
 // Message format with items
-export interface Message {
+interface Message {
 	id: string
 	role: 'user' | 'assistant'
 	content?: string // For user messages

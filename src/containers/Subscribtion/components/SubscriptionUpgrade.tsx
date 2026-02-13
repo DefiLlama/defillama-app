@@ -5,7 +5,7 @@ interface SubscriptionUpgradeProps {
 	loading?: 'stripe' | 'llamapay' | null
 }
 
-export const SubscriptionUpgrade = ({ onSubscribe, loading = null }: SubscriptionUpgradeProps) => {
+const SubscriptionUpgrade = ({ onSubscribe, loading = null }: SubscriptionUpgradeProps) => {
 	const handleSubscribe = (paymentMethod: 'stripe' | 'llamapay') => {
 		onSubscribe(paymentMethod, (checkoutUrl) => {
 			window.location.href = checkoutUrl

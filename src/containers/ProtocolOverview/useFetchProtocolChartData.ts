@@ -2,15 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
-import {
-	BRIDGEVOLUME_API_SLUG,
-	CACHE_SERVER,
-	NFT_MARKETPLACES_VOLUME_API,
-	PROTOCOL_TREASURY_API,
-	TOKEN_LIQUIDITY_API
-} from '~/constants'
-import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
+import { BRIDGEVOLUME_API_SLUG, CACHE_SERVER, PROTOCOL_TREASURY_API, TOKEN_LIQUIDITY_API } from '~/constants'
+import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { useFetchProtocolGovernanceData } from '~/containers/Governance/queries.client'
+import { fetchNftMarketplaceVolumes } from '~/containers/Nft/api'
 import {
 	useFetchProtocolActiveUsers,
 	useFetchProtocolMedianAPY,
@@ -47,9 +42,7 @@ interface ExtraTvlChartsResult {
 	latestTimestamps: Record<string, number>
 }
 
-const buildExtraTvlCharts = (
-	chartByKey: Record<string, Array<V2ChartPoint> | null>
-): ExtraTvlChartsResult => {
+const buildExtraTvlCharts = (chartByKey: Record<string, Array<V2ChartPoint> | null>): ExtraTvlChartsResult => {
 	const charts: Record<string, Record<string, number>> = {}
 	const latestTimestamps: Record<string, number> = {}
 
@@ -124,9 +117,7 @@ const buildTvlChart = ({
 		const dateInSec = toUnixSeconds(rawDate)
 		if (dateInSec == null) continue
 		const alignedDateInSec =
-			shouldNormalizeMainTvlLatest && dateInSec === latestMainTvlTimestamp
-				? mostRecentTvlTimestamp!
-				: dateInSec
+			shouldNormalizeMainTvlLatest && dateInSec === latestMainTvlTimestamp ? mostRecentTvlTimestamp! : dateInSec
 		const dateKey = isWeekly
 			? lastDayOfWeek(alignedDateInSec)
 			: isMonthly
@@ -158,8 +149,7 @@ const buildTvlChart = ({
 			}
 			extrasAtTimestamp += extraValue ?? 0
 		}
-		store[String(dateKey)] =
-			value + extrasAtTimestamp
+		store[String(dateKey)] = value + extrasAtTimestamp
 	}
 
 	const finalChart: Array<[number, number | null]> = []
@@ -255,8 +245,7 @@ export const useFetchProtocolChartData = ({
 			queryKey: ['protocol-overview', protocolSlug, 'token-price-history', geckoId],
 			queryFn: () =>
 				fetchJson(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then(
-					(res: { data?: IDenominationPriceHistory }) =>
-						res.data?.prices?.length ? res.data : null
+					(res: { data?: IDenominationPriceHistory }) => (res.data?.prices?.length ? res.data : null)
 				),
 			staleTime: 60 * 60 * 1000,
 			refetchOnWindowFocus: false,
@@ -393,7 +382,7 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'fees'],
 		queryFn: () =>
 			isFeesEnabled
-				? getAdapterProtocolChartData({
+				? fetchAdapterProtocolChartData({
 						adapterType: 'fees',
 						protocol: name
 					})
@@ -409,7 +398,7 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'revenue'],
 		queryFn: () =>
 			isRevenueEnabled
-				? getAdapterProtocolChartData({
+				? fetchAdapterProtocolChartData({
 						adapterType: 'fees',
 						dataType: 'dailyRevenue',
 						protocol: name
@@ -432,7 +421,7 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'holders-revenue'],
 		queryFn: () =>
 			isHoldersRevenueEnabled
-				? getAdapterProtocolChartData({
+				? fetchAdapterProtocolChartData({
 						adapterType: 'fees',
 						dataType: 'dailyHoldersRevenue',
 						protocol: name
@@ -454,7 +443,7 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'bribes'],
 		queryFn: () =>
 			isBribesEnabled
-				? getAdapterProtocolChartData({
+				? fetchAdapterProtocolChartData({
 						adapterType: 'fees',
 						dataType: 'dailyBribesRevenue',
 						protocol: name
@@ -476,7 +465,7 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'token-taxes'],
 		queryFn: () =>
 			isTokenTaxesEnabled
-				? getAdapterProtocolChartData({
+				? fetchAdapterProtocolChartData({
 						adapterType: 'fees',
 						dataType: 'dailyTokenTaxes',
 						protocol: name
@@ -493,7 +482,7 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'dex-volume'],
 		queryFn: () =>
 			isDexVolumeEnabled
-				? getAdapterProtocolChartData({
+				? fetchAdapterProtocolChartData({
 						adapterType: 'dexs',
 						protocol: name
 					})
@@ -510,7 +499,7 @@ export const useFetchProtocolChartData = ({
 			queryKey: ['protocol-overview', protocolSlug, 'perp-volume'],
 			queryFn: () =>
 				isPerpsVolumeEnabled
-					? getAdapterProtocolChartData({
+					? fetchAdapterProtocolChartData({
 							adapterType: 'derivatives',
 							protocol: name
 						})
@@ -529,7 +518,7 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'open-interest'],
 		queryFn: () =>
 			isOpenInterestEnabled
-				? getAdapterProtocolChartData({
+				? fetchAdapterProtocolChartData({
 						adapterType: 'open-interest',
 						protocol: name,
 						dataType: 'openInterestAtEnd'
@@ -552,7 +541,7 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'options-premium-volume'],
 		queryFn: () =>
 			isOptionsPremiumVolumeEnabled
-				? getAdapterProtocolChartData({
+				? fetchAdapterProtocolChartData({
 						adapterType: 'options',
 						dataType: 'dailyPremiumVolume',
 						protocol: name
@@ -575,7 +564,7 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'options-notional-volume'],
 		queryFn: () =>
 			isOptionsNotionalVolumeEnabled
-				? getAdapterProtocolChartData({
+				? fetchAdapterProtocolChartData({
 						adapterType: 'options',
 						dataType: 'dailyNotionalVolume',
 						protocol: name
@@ -598,7 +587,7 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'dex-aggregator-volume'],
 		queryFn: () =>
 			isDexAggregatorsVolumeEnabled
-				? getAdapterProtocolChartData({
+				? fetchAdapterProtocolChartData({
 						adapterType: 'aggregators',
 						protocol: name
 					})
@@ -620,7 +609,7 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'perp-aggregator-volume'],
 		queryFn: () =>
 			isPerpsAggregatorsVolumeEnabled
-				? getAdapterProtocolChartData({
+				? fetchAdapterProtocolChartData({
 						adapterType: 'aggregator-derivatives',
 						protocol: name
 					})
@@ -642,7 +631,7 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'bridge-aggregator-volume'],
 		queryFn: () =>
 			isBridgeAggregatorsVolumeEnabled
-				? getAdapterProtocolChartData({
+				? fetchAdapterProtocolChartData({
 						adapterType: 'bridge-aggregators',
 						protocol: name
 					})
@@ -788,8 +777,8 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'nft-volume'],
 		queryFn: () =>
 			isNftVolumeEnabled
-				? fetchJson(NFT_MARKETPLACES_VOLUME_API, { timeout: 10_000 })
-						.then((r: Array<{ exchangeName: string; day: string; sumUsd: number }>) =>
+				? fetchNftMarketplaceVolumes()
+						.then((r) =>
 							r
 								.filter((item) => slug(item.exchangeName) === slug(name))
 								.map(({ day, sumUsd }): [number, number] => [new Date(day).getTime(), sumUsd])

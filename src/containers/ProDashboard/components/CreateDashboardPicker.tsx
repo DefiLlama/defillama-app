@@ -16,7 +16,7 @@ import type { DashboardItemConfig } from '../types'
 import { CHART_TYPES } from '../types'
 import type { ComparisonPreset } from './ComparisonWizard/types'
 
-const _CreateDashboardModal = lazy(() =>
+const CreateDashboardModal = lazy(() =>
 	import('./CreateDashboardModal').then((m) => ({ default: m.CreateDashboardModal }))
 )
 

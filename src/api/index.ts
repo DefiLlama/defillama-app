@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { CG_TOKEN_API, COINS_MCAPS_API, COINS_PRICES_API, TOKEN_LIST_API, CACHE_SERVER } from '~/constants'
+import { CACHE_SERVER, CG_TOKEN_API, COINS_MCAPS_API, COINS_PRICES_API, CONFIG_API, TOKEN_LIST_API } from '~/constants'
 import { fetchApi, fetchJson, postRuntimeLogs } from '~/utils/async'
 import type { IResponseCGMarketsAPI } from './types'
 
@@ -12,7 +12,7 @@ function getCGMarketsDataURLs() {
 	return urls
 }
 
-export const useFetchCoingeckoTokensList = () => {
+const useFetchCoingeckoTokensList = () => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['coingeckotokenslist'],
 		queryFn: () => fetchApi(getCGMarketsDataURLs())
@@ -25,7 +25,7 @@ export const useFetchCoingeckoTokensList = () => {
 	}
 }
 
-export async function retryCoingeckoRequest(func, retries) {
+async function retryCoingeckoRequest(func, retries) {
 	for (let i = 0; i < retries; i++) {
 		try {
 			const resp = await func()
@@ -46,6 +46,24 @@ export async function getAllCGTokensList(): Promise<Array<IResponseCGMarketsAPI>
 	return data
 }
 
+interface LlamaConfigResponse {
+	chainCoingeckoIds: Record<
+		string,
+		{
+			symbol?: string
+			stablecoins?: string[]
+			parent?: {
+				chain: string
+				types: string[]
+			}
+		}
+	>
+}
+
+export async function fetchLlamaConfig(): Promise<LlamaConfigResponse> {
+	return fetchJson<LlamaConfigResponse>(CONFIG_API)
+}
+
 //:00 -> adapters start running, they take up to 15mins
 //:20 -> storeProtocols starts running, sets cache expiry to :21 of next hour
 //:22 -> we rebuild all pages
@@ -58,7 +76,7 @@ export function maxAgeForNext(minutesForRollover: number[] = [22]) {
 	return maxAge
 }
 
-export async function fetchChainMcaps(chains: Array<[string, string]>) {
+async function fetchChainMcaps(chains: Array<[string, string]>) {
 	if (chains.length === 0) {
 		return {}
 	}
@@ -165,7 +183,7 @@ type PriceObject = {
 	timestamp: number
 }
 
-export type TokenMarketData = {
+type TokenMarketData = {
 	price: number | null
 	prevPrice: number | null
 	priceChangePercent: number | null

@@ -16,7 +16,7 @@ import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/compon
 import { getBlockExplorerForTx } from '~/containers/Bridges/utils'
 import { formattedNum, getBlockExplorer, slug, toNiceDayAndHour } from '~/utils'
 
-export type LargeTxsData = {
+type LargeTxsData = {
 	date: number
 	txHash: string
 	bridge: string

@@ -113,7 +113,7 @@ export type MultiSeriesChart2SeriesConfig = {
 	large?: boolean
 }
 
-export type MultiSeriesChart2ExportButtons =
+type MultiSeriesChart2ExportButtons =
 	| 'auto'
 	| 'hidden'
 	| {

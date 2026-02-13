@@ -1,43 +1,36 @@
 import {
 	ACTIVE_USERS_API,
 	BRIDGEVOLUME_API_SLUG,
-	CEXS_API,
-	HACKS_API,
 	LIQUIDITY_API,
 	ORACLE_API,
 	oracleProtocols,
-	PROTOCOL_EMISSION_API2,
 	PROTOCOL_GOVERNANCE_COMPOUND_API,
 	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
 	PROTOCOL_GOVERNANCE_TALLY_API,
 	PROTOCOLS_API,
-	PROTOCOLS_EXPENSES_API,
-	PROTOCOLS_TREASURY,
 	V2_SERVER_URL,
 	YIELD_CONFIG_API,
 	YIELD_POOLS_API
 } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
+import { fetchCexs } from '~/containers/Cexs/api'
+import { fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
+import type { IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'
+import { fetchHacks } from '~/containers/Hacks/api'
+import type { IHackApiItem } from '~/containers/Hacks/api.types'
+import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
+import { fetchTreasuries } from '~/containers/Treasuries/api'
+import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
-import { getAdapterProtocolMetrics } from '../DimensionAdapters/api'
-import type { IAdapterProtocolMetrics } from '../DimensionAdapters/api.types'
-import type { IHack } from '../Hacks/queries'
-import { protocolCategories } from '../ProtocolsByCategoryOrTag/constants'
-import { fetchProtocolOverviewMetrics, fetchProtocolTvlChart } from './api'
-import type { IProtocolMetricsV2 } from './api.types'
+import { fetchProtocolExpenses, fetchProtocolOverviewMetrics, fetchProtocolTvlChart } from './api'
+import type { IProtocolMetricsV2, IProtocolExpenses } from './api.types'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
-import type {
-	IArticle,
-	IArticlesResponse,
-	IProtocolExpenses,
-	IProtocolOverviewPageData,
-	IProtocolPageMetrics
-} from './types'
+import type { IArticle, IArticlesResponse, IProtocolOverviewPageData, IProtocolPageMetrics } from './types'
 import { getProtocolWarningBanners } from './utils'
 
 const isProtocolChartsLabel = (value: string): value is ProtocolChartsLabels => value in protocolCharts
@@ -197,7 +190,7 @@ export const getProtocolOverviewPageData = async ({
 		{ protocols?: Record<string, { name?: string }> } | null,
 		Array<ILiquidityInfoItem>,
 		{ protocols: Array<ILiteProtocolItem> },
-		Array<IHack>,
+		Array<IHackApiItem>,
 		IBridgeVolumeResult,
 		IProtocolOverviewPageData['incomeStatement'],
 		Record<string, number> | null
@@ -211,7 +204,7 @@ export const getProtocolOverviewPageData = async ({
 								fetchJson(`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`)
 									.then(({ data: cgData }) => cgData)
 									.catch(() => null),
-								fetchJson(CEXS_API)
+								fetchCexs()
 									.then((cexData) => cexData.cg_volume_cexs)
 									.catch(() => [])
 							])
@@ -231,7 +224,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch((): Array<[string, number]> => [])
 			: Promise.resolve([] as Array<[string, number]>),
 		currentProtocolMetadata.fees
-			? getAdapterProtocolMetrics({
+			? fetchAdapterProtocolMetrics({
 					adapterType: 'fees',
 					protocol: currentProtocolMetadata.displayName ?? ''
 				})
@@ -239,7 +232,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.revenue
-			? getAdapterProtocolMetrics({
+			? fetchAdapterProtocolMetrics({
 					adapterType: 'fees',
 					dataType: 'dailyRevenue',
 					protocol: currentProtocolMetadata.displayName ?? ''
@@ -248,7 +241,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.holdersRevenue
-			? getAdapterProtocolMetrics({
+			? fetchAdapterProtocolMetrics({
 					adapterType: 'fees',
 					dataType: 'dailyHoldersRevenue',
 					protocol: currentProtocolMetadata.displayName ?? ''
@@ -257,7 +250,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.bribeRevenue
-			? getAdapterProtocolMetrics({
+			? fetchAdapterProtocolMetrics({
 					adapterType: 'fees',
 					dataType: 'dailyBribesRevenue',
 					protocol: currentProtocolMetadata.displayName ?? ''
@@ -266,7 +259,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.tokenTax
-			? getAdapterProtocolMetrics({
+			? fetchAdapterProtocolMetrics({
 					adapterType: 'fees',
 					dataType: 'dailyTokenTaxes',
 					protocol: currentProtocolMetadata.displayName ?? ''
@@ -275,7 +268,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.dexs
-			? getAdapterProtocolMetrics({
+			? fetchAdapterProtocolMetrics({
 					adapterType: 'dexs',
 					protocol: currentProtocolMetadata.displayName ?? ''
 				})
@@ -283,7 +276,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.dexAggregators
-			? getAdapterProtocolMetrics({
+			? fetchAdapterProtocolMetrics({
 					adapterType: 'aggregators',
 					protocol: currentProtocolMetadata.displayName ?? ''
 				})
@@ -291,7 +284,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.perps
-			? getAdapterProtocolMetrics({
+			? fetchAdapterProtocolMetrics({
 					adapterType: 'derivatives',
 					protocol: currentProtocolMetadata.displayName ?? ''
 				})
@@ -299,7 +292,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.openInterest
-			? getAdapterProtocolMetrics({
+			? fetchAdapterProtocolMetrics({
 					adapterType: 'open-interest',
 					protocol: currentProtocolMetadata.displayName ?? '',
 					dataType: 'openInterestAtEnd'
@@ -308,7 +301,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.perpsAggregators
-			? getAdapterProtocolMetrics({
+			? fetchAdapterProtocolMetrics({
 					adapterType: 'aggregator-derivatives',
 					protocol: currentProtocolMetadata.displayName ?? ''
 				})
@@ -316,7 +309,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.bridgeAggregators
-			? getAdapterProtocolMetrics({
+			? fetchAdapterProtocolMetrics({
 					adapterType: 'bridge-aggregators',
 					protocol: currentProtocolMetadata.displayName ?? ''
 				})
@@ -324,7 +317,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.optionsPremiumVolume
-			? getAdapterProtocolMetrics({
+			? fetchAdapterProtocolMetrics({
 					adapterType: 'options',
 					dataType: 'dailyPremiumVolume',
 					protocol: currentProtocolMetadata.displayName ?? ''
@@ -333,7 +326,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.optionsNotionalVolume
-			? getAdapterProtocolMetrics({
+			? fetchAdapterProtocolMetrics({
 					adapterType: 'options',
 					dataType: 'dailyNotionalVolume',
 					protocol: currentProtocolMetadata.displayName ?? ''
@@ -342,7 +335,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.treasury
-			? fetchJson(PROTOCOLS_TREASURY)
+			? fetchTreasuries()
 					.then(
 						(res: Array<{ id: string; tokenBreakdowns?: Record<string, number | null> }>) =>
 							res.find((item) => item.id === `${protocolId}-treasury`)?.tokenBreakdowns ?? null
@@ -404,7 +397,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: null,
 		currentProtocolMetadata?.emissions && protocolId
-			? fetchJson(`${PROTOCOL_EMISSION_API2}/${slug(currentProtocolMetadata.displayName)}`)
+			? fetchProtocolEmissionFromDatasets(slug(currentProtocolMetadata.displayName))
 					.then((data) => data?.supplyMetrics?.adjustedSupply ?? null)
 					.catch(() => null)
 			: null,
@@ -424,11 +417,8 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: null,
 		currentProtocolMetadata.expenses && protocolId
-			? fetchJson(PROTOCOLS_EXPENSES_API)
-					.then(
-						(data: IProtocolExpenses[]) =>
-							data.find((item: IProtocolExpenses) => item.protocolId === protocolId) ?? null
-					)
+			? fetchProtocolExpenses()
+					.then((data) => data.find((item) => item.protocolId === protocolId) ?? null)
 					.catch(() => {
 						return null
 					})
@@ -444,7 +434,7 @@ export const getProtocolOverviewPageData = async ({
 				})
 			: [],
 		fetchJson(PROTOCOLS_API).catch(() => ({ protocols: [] })),
-		fetchJson(HACKS_API).catch(() => []),
+		fetchHacks().catch(() => []),
 		currentProtocolMetadata.bridge
 			? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(currentProtocolMetadata.displayName)}`)
 					.then((data) => data.dailyVolumes || null)
@@ -599,12 +589,12 @@ export const getProtocolOverviewPageData = async ({
 	const hacks =
 		(protocolData.id
 			? hacksData
-					?.filter((hack: IHack) =>
+					?.filter((hack: IHackApiItem) =>
 						isCEX
 							? [hack.name].includes(currentProtocolMetadata.displayName ?? '')
 							: [String(hack.defillamaId), String(hack.parentProtocolId)].includes(String(protocolId))
 					)
-					?.sort((a: IHack, b: IHack) => a.date - b.date)
+					?.sort((a: IHackApiItem, b: IHackApiItem) => a.date - b.date)
 			: null) ?? null
 
 	const protocolMetrics = getProtocolMetricFlags({

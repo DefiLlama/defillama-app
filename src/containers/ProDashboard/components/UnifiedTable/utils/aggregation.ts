@@ -210,6 +210,6 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 	return aggregated
 }
 
-export function extractLeafRows(nodes: NormalizedRow[] | undefined): NormalizedRow[] {
+function extractLeafRows(nodes: NormalizedRow[] | undefined): NormalizedRow[] {
 	return nodes ? [...nodes] : []
 }

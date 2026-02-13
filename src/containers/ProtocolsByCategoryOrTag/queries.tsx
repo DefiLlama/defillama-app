@@ -5,7 +5,7 @@ import { slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import type { ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
-import { getAdapterChainMetrics } from '../DimensionAdapters/api'
+import { fetchAdapterChainMetrics } from '../DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '../DimensionAdapters/api.types'
 import type { IProtocolByCategoryOrTagPageData, IRWAStats } from './types'
 
@@ -80,13 +80,13 @@ export async function getProtocolsByCategoryOrTag(
 	] = await Promise.all([
 		fetchJson(PROTOCOLS_API),
 		currentChainMetadata?.fees
-			? getAdapterChainMetrics({
+			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'fees'
 				})
 			: null,
 		currentChainMetadata?.fees
-			? getAdapterChainMetrics({
+			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'fees',
 					dataType: 'dailyRevenue'
@@ -95,13 +95,13 @@ export async function getProtocolsByCategoryOrTag(
 		currentChainMetadata?.dexs &&
 		effectiveCategory &&
 		['Dexs', 'DEX Aggregators', 'Prediction Market'].includes(effectiveCategory)
-			? getAdapterChainMetrics({
+			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: effectiveCategory === 'DEX Aggregators' ? 'aggregators' : 'dexs'
 				})
 			: null,
 		currentChainMetadata?.perps && effectiveCategory && ['Derivatives', 'Interface'].includes(effectiveCategory)
-			? getAdapterChainMetrics({
+			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'derivatives'
 				})
@@ -109,7 +109,7 @@ export async function getProtocolsByCategoryOrTag(
 		currentChainMetadata?.openInterest &&
 		effectiveCategory &&
 		['Derivatives', 'Prediction Market'].includes(effectiveCategory)
-			? getAdapterChainMetrics({
+			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'open-interest',
 					dataType: 'openInterestAtEnd'
@@ -119,14 +119,14 @@ export async function getProtocolsByCategoryOrTag(
 				})
 			: null,
 		currentChainMetadata?.optionsPremiumVolume && effectiveCategory === 'Options'
-			? getAdapterChainMetrics({
+			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'options',
 					dataType: 'dailyPremiumVolume'
 				})
 			: null,
 		currentChainMetadata?.optionsNotionalVolume && effectiveCategory === 'Options'
-			? getAdapterChainMetrics({
+			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'options',
 					dataType: 'dailyNotionalVolume'

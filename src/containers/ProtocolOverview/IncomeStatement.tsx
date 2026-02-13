@@ -17,7 +17,7 @@ const EMPTY_BREAKDOWN_METHODOLOGY: Record<string, string> = {}
 
 const formatIncomeValue = (value: number): string => abbreviateNumber(value, 2, '$') ?? '$0'
 
-export type IncomeStatementView = 'table' | 'sankey' | 'both'
+type IncomeStatementView = 'table' | 'sankey' | 'both'
 
 interface IncomeStatementProps {
 	name: string

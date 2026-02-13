@@ -209,7 +209,7 @@ export interface LlamaAIChartConfig {
 
 export type UnifiedRowHeaderType = 'parent-protocol' | 'protocol' | 'chain' | 'category'
 
-export type UnlocksDataType = 'documented' | 'realtime'
+type UnlocksDataType = 'documented' | 'realtime'
 
 export interface UnlocksScheduleConfig {
 	id: string
@@ -220,7 +220,7 @@ export interface UnlocksScheduleConfig {
 	colSpan?: StoredColSpan
 }
 
-export type UnlocksPieChartType = 'allocation' | 'locked-unlocked'
+type UnlocksPieChartType = 'allocation' | 'locked-unlocked'
 
 export interface UnlocksPieConfig {
 	id: string
@@ -615,7 +615,7 @@ export const getChainChartTypes = (): string[] => {
 	]
 }
 
-export interface BaseDatasetItem {
+interface BaseDatasetItem {
 	id: string
 	name: string
 	slug?: string
@@ -649,6 +649,6 @@ export interface DexItem extends BaseDatasetItem {
 // oxlint-disable-next-line typescript/no-empty-object-type
 export interface AggregatorItem extends BaseDatasetItem {}
 
-export const isMulti = (x: DashboardItemConfig): x is MultiChartConfig => x.kind === 'multi'
-export const isText = (x: DashboardItemConfig): x is TextConfig => x.kind === 'text'
-export const isMetric = (x: DashboardItemConfig): x is MetricConfig => x.kind === 'metric'
+const isMulti = (x: DashboardItemConfig): x is MultiChartConfig => x.kind === 'multi'
+const isText = (x: DashboardItemConfig): x is TextConfig => x.kind === 'text'
+const isMetric = (x: DashboardItemConfig): x is MetricConfig => x.kind === 'metric'

@@ -1,6 +1,6 @@
 import type { MetricGroup } from '../types'
 
-export type ColumnRenderType =
+type ColumnRenderType =
 	| 'usd'
 	| 'percent'
 	| 'ratio'
@@ -10,7 +10,7 @@ export type ColumnRenderType =
 	| 'meta-chains'
 	| 'meta-oracles'
 
-export interface ColumnDictionaryItem {
+interface ColumnDictionaryItem {
 	id: string
 	header: string
 	description?: string

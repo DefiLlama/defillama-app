@@ -1,4 +1,4 @@
-export const THEME_COOKIE_NAME = 'defillama-theme'
+const THEME_COOKIE_NAME = 'defillama-theme'
 
 type Theme = 'dark' | 'light'
 
@@ -17,7 +17,7 @@ const sanitizeThemeValue = (value: string | null | undefined): Theme => {
 	return VALID_THEME_VALUES.has(trimmed as Theme) ? (trimmed as Theme) : 'dark'
 }
 
-export const validateOrigin = (origin: string | undefined, allowedOrigins: string[]): boolean => {
+const validateOrigin = (origin: string | undefined, allowedOrigins: string[]): boolean => {
 	if (!origin) return false
 	try {
 		const originUrl = new URL(origin)
@@ -63,7 +63,7 @@ export const setThemeCookie = (isDarkMode: boolean): void => {
 	document.cookie = cookieString
 }
 
-export const parseThemeCookie = (cookieString: string): Theme => {
+const parseThemeCookie = (cookieString: string): Theme => {
 	if (!cookieString) return 'dark'
 
 	const cookies = cookieString.split(';')

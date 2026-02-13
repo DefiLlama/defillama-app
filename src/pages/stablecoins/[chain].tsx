@@ -82,6 +82,16 @@ export const getStaticProps = withPerformanceLogging<StablecoinsByChainPageProps
 )
 
 export const getStaticPaths: GetStaticPaths<StablecoinsByChainRouteParams> = async () => {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	const { chains } = await fetchStablecoinAssetsApi()
 
 	const paths = chains.slice(0, 20).map((chain) => ({

@@ -80,7 +80,7 @@ interface AutocompleteSuggestion {
 	category: string
 }
 
-export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }: CustomColumnBuilderProps) {
+function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }: CustomColumnBuilderProps) {
 	const [name, setName] = useState('')
 	const [expression, setExpression] = useState('')
 	const [format, setFormat] = useState<ColumnFormat>('number')

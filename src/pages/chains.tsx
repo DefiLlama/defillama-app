@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChainsByCategory } from '~/containers/ChainsByCategory'
 import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'

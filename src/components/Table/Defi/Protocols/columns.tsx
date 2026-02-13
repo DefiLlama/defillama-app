@@ -994,7 +994,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	}
 ]
 
-export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
+const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -1213,7 +1213,7 @@ export const columnSizes: ColumnSizesByBreakpoint = {
 	}
 }
 
-export const ProtocolTvlCell = ({ value, rowValues }) => {
+const ProtocolTvlCell = ({ value, rowValues }) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	let text = null

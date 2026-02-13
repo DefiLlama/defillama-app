@@ -1,12 +1,14 @@
-import { ACTIVE_USERS_API, CHAINS_ASSETS, TEMP_CHAIN_NFTS } from '~/constants'
+import { ACTIVE_USERS_API, CHAINS_API_V2 } from '~/constants'
+import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
 import type { IChainAssets } from '~/containers/ChainOverview/types'
-import { getAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
+import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
 import { getDimensionAdapterOverviewOfAllChains } from '~/containers/DimensionAdapters/queries'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { getNDistinctColors, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { IChainMetadata } from '~/utils/metadata/types'
+import { fetchNftsVolumeByChain } from '../Nft/api'
 import type { IChainsByCategory, IChainsByCategoryData } from './types'
 
 export const getChainsByCategory = async ({
@@ -29,16 +31,16 @@ export const getChainsByCategory = async ({
 		chainNftsVolume,
 		appRevenue
 	] = await Promise.all([
-		fetchJson(`https://api.llama.fi/chains2/${category}`) as Promise<IChainsByCategory>,
+		fetchJson(`${CHAINS_API_V2}/${encodeURIComponent(category)}`) as Promise<IChainsByCategory>,
 		getDimensionAdapterOverviewOfAllChains({ adapterType: 'dexs', dataType: 'dailyVolume', chainMetadata }),
-		getAdapterChainMetrics({
+		fetchAdapterChainMetrics({
 			adapterType: 'fees',
 			chain: 'All'
 		}).catch((err) => {
 			console.log(err)
 			return null
 		}) as Promise<IAdapterChainMetrics | null>,
-		getAdapterChainMetrics({
+		fetchAdapterChainMetrics({
 			adapterType: 'fees',
 			chain: 'All',
 			dataType: 'dailyRevenue'
@@ -58,8 +60,8 @@ export const getChainsByCategory = async ({
 				}
 			>
 		>,
-		fetchJson(CHAINS_ASSETS) as Promise<IChainAssets>,
-		fetchJson(TEMP_CHAIN_NFTS) as Promise<Record<string, number>>,
+		fetchChainsAssets() as Promise<IChainAssets>,
+		fetchNftsVolumeByChain(),
 		getDimensionAdapterOverviewOfAllChains({ adapterType: 'fees', dataType: 'dailyAppRevenue', chainMetadata })
 	])
 

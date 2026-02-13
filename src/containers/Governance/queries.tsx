@@ -1,4 +1,3 @@
-import { maxAgeForNext } from '~/api'
 import {
 	GOVERNANCE_COMPOUND_API,
 	GOVERNANCE_SNAPSHOT_API,
@@ -10,6 +9,7 @@ import {
 import { fetchAndFormatGovernanceData, getGovernanceTypeFromApi } from '~/containers/Governance/queries.client'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import type { GovernanceDataEntry, GovernanceOverviewItem, GovernanceType } from './types'
 
 type GovernanceOverviewProject = { name: string; id: string }
 
@@ -22,17 +22,14 @@ function normalizeDatasetsHost(url: string) {
 }
 
 type GovernanceDetailsPageData =
-	| { notFound: true; props: null }
+	| { notFound: true }
 	| {
-			props: {
-				projectName: string
-				governanceData: Array<any>
-				governanceTypes: Array<'snapshot' | 'compound' | 'tally'>
-			}
-			revalidate: number
+			projectName: string
+			governanceData: Array<GovernanceDataEntry>
+			governanceTypes: Array<GovernanceType>
 	  }
 
-type GovernanceDetailsPageDataWithProps = Exclude<GovernanceDetailsPageData, { notFound: true; props: null }>
+type GovernanceDetailsPageDataWithProps = Exclude<GovernanceDetailsPageData, { notFound: true }>
 
 function governanceIdToApiUrl(gid: string) {
 	const trimmed = (gid ?? '').trim()
@@ -64,21 +61,106 @@ async function fetchGovernanceDataForApis(governanceApis: Array<string>) {
 	return { governanceData, governanceTypes }
 }
 
-export async function getGovernancePageData() {
-	const [snapshot, compound, tally] = await Promise.all([
-		fetchJson(GOVERNANCE_SNAPSHOT_API),
-		fetchJson(GOVERNANCE_COMPOUND_API),
-		fetchJson(GOVERNANCE_TALLY_API)
-	])
+type RawGovernanceOverviewItem = Record<string, unknown> & {
+	name?: string
+	proposalsCount?: string | number
+	followersCount?: string | number
+	strategyCount?: string | number
+	successfulProposals?: number | string
+	states?: Record<string, number | string>
+	months?: Record<
+		string,
+		{
+			proposals?: unknown
+			states?: { active?: unknown; closed?: unknown }
+		}
+	>
+	proposalsInLast30Days?: number | string
+	propsalsInLast30Days?: number | string
+	successfulProposalsInLast30Days?: number | string
+	successfulPropsalsInLast30Days?: number | string
+}
+type RawGovernanceOverview = Record<string, RawGovernanceOverviewItem>
+
+const toFiniteNumber = (value: unknown): number | null => {
+	if (typeof value === 'number' && Number.isFinite(value)) return value
+	if (typeof value === 'string') {
+		const numericValue = Number(value)
+		return Number.isFinite(numericValue) ? numericValue : null
+	}
+	return null
+}
+
+const toCountString = (value: unknown): string => {
+	if (typeof value === 'string') return value
+	const numericValue = toFiniteNumber(value)
+	return numericValue != null ? String(numericValue) : '0'
+}
+
+function normalizeGovernanceOverviewItem(raw: RawGovernanceOverviewItem): GovernanceOverviewItem {
+	const states: Record<string, number> = {}
+	for (const [state, value] of Object.entries(raw.states ?? {})) {
+		const numericValue = toFiniteNumber(value)
+		if (numericValue != null) {
+			states[state] = numericValue
+		}
+	}
+
+	const months: GovernanceOverviewItem['months'] = {}
+	for (const [month, monthData] of Object.entries(raw.months ?? {})) {
+		if (monthData == null || typeof monthData !== 'object') {
+			months[month] = { proposals: [], states: {} }
+			continue
+		}
+
+		const proposalsRaw = (monthData as { proposals?: unknown }).proposals
+		const proposals = Array.isArray(proposalsRaw) ? proposalsRaw.filter((p): p is string => typeof p === 'string') : []
+
+		const monthStatesRaw = (monthData as { states?: { active?: unknown; closed?: unknown } }).states
+		const active = toFiniteNumber(monthStatesRaw?.active)
+		const closed = toFiniteNumber(monthStatesRaw?.closed)
+		months[month] = {
+			proposals,
+			states: {
+				...(active != null ? { active } : {}),
+				...(closed != null ? { closed } : {})
+			}
+		}
+	}
+
+	const proposalsInLast30Days =
+		toFiniteNumber(raw.proposalsInLast30Days) ?? toFiniteNumber(raw.propsalsInLast30Days) ?? 0
+	const successfulProposalsInLast30Days =
+		toFiniteNumber(raw.successfulProposalsInLast30Days) ?? toFiniteNumber(raw.successfulPropsalsInLast30Days) ?? 0
+	const successfulProposals = toFiniteNumber(raw.successfulProposals)
 
 	return {
-		props: {
-			data: Object.values({ ...snapshot, ...compound, ...tally }).map((x: { states: { [key: string]: number } }) => ({
-				...x,
-				subRowData: x.states
-			}))
-		},
-		revalidate: maxAgeForNext([22])
+		name: typeof raw.name === 'string' ? raw.name : '',
+		proposalsCount: toCountString(raw.proposalsCount),
+		followersCount: toCountString(raw.followersCount),
+		strategyCount: toCountString(raw.strategyCount),
+		...(successfulProposals != null ? { successfulProposals } : {}),
+		states,
+		months,
+		proposalsInLast30Days,
+		successfulProposalsInLast30Days,
+		subRowData: states
+	}
+}
+
+export async function getGovernancePageData(): Promise<{ data: GovernanceOverviewItem[] }> {
+	const [snapshot, compound, tally] = await Promise.all([
+		fetchJson<RawGovernanceOverview>(GOVERNANCE_SNAPSHOT_API),
+		fetchJson<RawGovernanceOverview>(GOVERNANCE_COMPOUND_API),
+		fetchJson<RawGovernanceOverview>(GOVERNANCE_TALLY_API)
+	])
+
+	const data: GovernanceOverviewItem[] = Object.values({ ...snapshot, ...compound, ...tally }).map((item) =>
+		normalizeGovernanceOverviewItem(item)
+	)
+
+	return {
+		data
 	}
 }
 
@@ -95,12 +177,9 @@ export async function getGovernanceDetailsPageData(
 		const governanceApis = governanceIdsToApis(input.governanceIDs ?? [])
 		const { governanceData, governanceTypes } = await fetchGovernanceDataForApis(governanceApis)
 		return {
-			props: {
-				projectName: input.projectName,
-				governanceData,
-				governanceTypes
-			},
-			revalidate: maxAgeForNext([22])
+			projectName: input.projectName,
+			governanceData,
+			governanceTypes
 		}
 	}
 
@@ -122,7 +201,7 @@ export async function getGovernanceDetailsPageData(
 	const tallyProject = Object.values(tally).find((p) => slug(p.name) === normalizedProject)
 
 	if (!snapshotProject && !compoundProject && !tallyProject) {
-		return { notFound: true, props: null }
+		return { notFound: true }
 	}
 
 	// Build a list of governanceIDs, then fetch/format in parallel.
@@ -144,14 +223,11 @@ export async function getGovernanceDetailsPageData(
 	const governanceApis = governanceIdsToApis(governanceIDs)
 	const { governanceData, governanceTypes } = await fetchGovernanceDataForApis(governanceApis)
 
-	if (!governanceData || governanceData.length === 0) return { notFound: true, props: null }
+	if (!governanceData || governanceData.length === 0) return { notFound: true }
 
 	return {
-		props: {
-			projectName: snapshotProject?.name ?? tallyProject?.name ?? compoundProject?.name ?? project,
-			governanceData,
-			governanceTypes
-		},
-		revalidate: maxAgeForNext([22])
+		projectName: snapshotProject?.name ?? tallyProject?.name ?? compoundProject?.name ?? project,
+		governanceData,
+		governanceTypes
 	}
 }

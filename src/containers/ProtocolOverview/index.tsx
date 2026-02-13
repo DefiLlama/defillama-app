@@ -1819,7 +1819,7 @@ const MethodologyByAdapter = ({
 	)
 }
 
-export function _Unlocks(props: IProtocolOverviewPageData) {
+function _Unlocks(props: IProtocolOverviewPageData) {
 	const unlocks = props.unlocks
 	if (!unlocks) return null
 	return (
@@ -1862,7 +1862,7 @@ export function _Unlocks(props: IProtocolOverviewPageData) {
 	)
 }
 
-export function _Governance(props: IProtocolOverviewPageData) {
+function _Governance(props: IProtocolOverviewPageData) {
 	const governance = props.governance
 	if (!governance) return null
 	return (

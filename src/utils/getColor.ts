@@ -1,7 +1,7 @@
 import { oldBlue } from '~/constants/colors'
 import { fetchJson } from './async'
 
-export const getColor = async (path: string) => {
+const getColor = async (path: string) => {
 	try {
 		if (!path) return oldBlue
 
@@ -18,7 +18,7 @@ export const getColor = async (path: string) => {
 }
 
 // Get unique generated color for color fallback
-export const getGeneratedColor = (index: number): string => {
+const getGeneratedColor = (index: number): string => {
 	if (index === 0) return oldBlue
 
 	// HSL-to-HEX logic

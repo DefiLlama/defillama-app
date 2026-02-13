@@ -1,29 +1,25 @@
 import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
-import { PROTOCOLS_API } from '~/constants'
 import { CompareChains } from '~/containers/CompareChains'
+import { getCompareChainsPageData } from '~/containers/CompareChains/queries'
 import Layout from '~/layout'
-import { chainIconUrl } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticProps = async () => {
-	const chains = await fetchJson(PROTOCOLS_API).then((pData) =>
-		pData?.chains?.map((val) => ({
-			value: val,
-			label: val,
-			logo: chainIconUrl(val)
-		}))
-	)
-
+export const getStaticProps = withPerformanceLogging('compare-chains', async () => {
+	const data = await getCompareChainsPageData()
 	return {
-		props: { chains },
+		props: data,
 		revalidate: maxAgeForNext([22])
 	}
-}
+})
 
 const pageName = ['Compare Chains']
 
-export default function CompareChainsPage({ chains }) {
+export default function CompareChainsPage({
+	chains
+}: {
+	chains: Array<{ value: string; label: string; logo: string }>
+}) {
 	return (
 		<Layout
 			title={`Compare Chains - DefiLlama`}

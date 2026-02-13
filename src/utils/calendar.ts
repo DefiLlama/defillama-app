@@ -12,7 +12,7 @@ interface UnlockEvent {
 	noOfTokens: number[]
 }
 
-export function formatGoogleCalendarDates(timestamp: number) {
+function formatGoogleCalendarDates(timestamp: number) {
 	const start = dayjs.unix(timestamp).utc()
 	const end = start.add(1, 'hour')
 	return `${start.format('YYYYMMDD[T]HHmmss[Z]')}/${end.format('YYYYMMDD[T]HHmmss[Z]')}`

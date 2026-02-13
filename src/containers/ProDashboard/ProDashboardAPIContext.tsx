@@ -65,7 +65,7 @@ const shallowArrayEqual = <T,>(a: T[] | null | undefined, b: T[] | null | undefi
 
 export type { TimePeriod, CustomTimePeriod } from './dashboardReducer'
 
-export interface AISessionData {
+interface AISessionData {
 	rating?: number
 	feedback?: string
 	mode: 'create' | 'iterate'
@@ -76,7 +76,7 @@ export interface AISessionData {
 	prompt: string
 }
 
-export interface AISessionState {
+interface AISessionState {
 	sessionId: string
 	mode: 'create' | 'iterate'
 	timestamp: string
@@ -86,7 +86,7 @@ export interface AISessionState {
 
 export type AIGeneratedData = Record<string, AISessionData>
 
-export interface AIGenerationContext {
+interface AIGenerationContext {
 	sessionId: string
 	mode: 'create' | 'iterate'
 	timestamp: string

@@ -325,7 +325,7 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 	)
 }
 
-export const useFetchBridgeVolumeOnAllChains = (protocol?: string | null) => {
+const useFetchBridgeVolumeOnAllChains = (protocol?: string | null) => {
 	return useQuery({
 		queryKey: ['bridged-volume-on-all-chains', protocol],
 		queryFn: protocol

@@ -1,44 +1,48 @@
 import { formatBarChart } from '~/components/ECharts/utils'
-import {
-	NFT_COLLECTION_API,
-	NFT_COLLECTION_FLOOR_HISTORY_API,
-	NFT_COLLECTION_SALES_API,
-	NFT_COLLECTION_STATS_API,
-	NFT_COLLECTIONS_API,
-	NFT_COLLECTIONS_ORDERBOOK_API,
-	NFT_MARKETPLACES_STATS_API,
-	NFT_MARKETPLACES_VOLUME_API,
-	NFT_ROYALTIES_API,
-	NFT_ROYALTY_API,
-	NFT_ROYALTY_HISTORY_API,
-	NFT_VOLUME_API
-} from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { getDominancePercent, getNDistinctColors } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import {
+	fetchNftCollection,
+	fetchNftCollectionFloorHistory,
+	fetchNftCollectionOrderbook,
+	fetchNftCollectionSales,
+	fetchNftCollectionStats,
+	fetchNftCollections,
+	fetchNftMarketplaceStats,
+	fetchNftMarketplaceVolumes,
+	fetchNftRoyalties,
+	fetchNftRoyalty,
+	fetchNftRoyaltyHistory,
+	fetchNftVolumes,
+	fetchParentCompanies
+} from './api'
+import type { RawNftCollection } from './api.types'
 import { NFT_MINT_EARNINGS } from './mintEarnings'
 
-export const getNFTStatistics = (chart) => {
-	const { totalVolume, totalVolumeUSD } = (chart.length &&
-		chart.reduce((volumes, data) => {
-			if (volumes.totalVolumeUSD >= 0 && volumes.totalVolume >= 0) {
-				volumes.totalVolumeUSD += data.volumeUSD ?? 0
-				volumes.totalVolume += data.volume ?? 0
-			} else {
-				volumes.totalVolumeUSD = data.volumeUSD ?? 0
-				volumes.totalVolume = data.volume ?? 0
-			}
-			return volumes
-		}, {})) || {
+type VolumeChartEntry = {
+	volumeUSD?: number
+	volume?: number
+}
+
+const getNFTStatistics = (chart: VolumeChartEntry[]) => {
+	const { totalVolume, totalVolumeUSD } = (chart.length > 0
+		? chart.reduce(
+				(volumes, data) => {
+					volumes.totalVolumeUSD += data.volumeUSD ?? 0
+					volumes.totalVolume += data.volume ?? 0
+					return volumes
+				},
+				{ totalVolumeUSD: 0, totalVolume: 0 }
+			)
+		: null) ?? {
 		totalVolume: 0,
 		totalVolumeUSD: 0
 	}
 
-	const dailyVolume = chart.length ? chart[chart.length - 1]?.volume || 0 : 0
-	const dailyVolumeUSD = chart.length ? chart[chart.length - 1]?.volumeUSD || 0 : 0
-	const dailyChange = chart.length
-		? ((dailyVolumeUSD - chart[chart.length - 2]?.volumeUSD) / chart[chart.length - 2]?.volumeUSD) * 100
-		: 0
+	const dailyVolume = chart.length > 0 ? (chart[chart.length - 1]?.volume ?? 0) : 0
+	const dailyVolumeUSD = chart.length > 0 ? (chart[chart.length - 1]?.volumeUSD ?? 0) : 0
+	const prevDayVolumeUSD = chart.length > 1 ? (chart[chart.length - 2]?.volumeUSD ?? 0) : 0
+	const dailyChange = prevDayVolumeUSD !== 0 ? ((dailyVolumeUSD - prevDayVolumeUSD) / prevDayVolumeUSD) * 100 : 0
 
 	return {
 		totalVolumeUSD,
@@ -49,20 +53,29 @@ export const getNFTStatistics = (chart) => {
 	}
 }
 
-export const getNFTData = async () => {
-	try {
-		// const chart = await fetchJson(NFT_CHART_API)
-		const [collections, volumes] = await Promise.all([
-			fetchJson(NFT_COLLECTIONS_API, { timeout: 60_000 }),
-			fetchJson(NFT_VOLUME_API, { timeout: 60_000 })
-		])
-		// const statistics = getNFTStatistics(chart)
+type NftDataResult = {
+	chart: VolumeChartEntry[]
+	collections: ExtendedNftCollection[]
+	statistics: unknown[]
+}
 
-		const data = collections.map((colleciton) => {
-			const volume = volumes.find((cx) => cx.collection === colleciton.collectionId)
+type ExtendedNftCollection = RawNftCollection & {
+	volume1d: number
+	volume7d: number
+	volume30d: number
+	sales1d: number
+}
+
+export const getNFTData = async (): Promise<NftDataResult> => {
+	try {
+		const [collections, volumes] = await Promise.all([fetchNftCollections(), fetchNftVolumes()])
+		const volumeByCollection = new Map(volumes.map((volume) => [volume.collection, volume] as const))
+
+		const data = collections.map((collection) => {
+			const volume = volumeByCollection.get(collection.collectionId)
 
 			return {
-				...colleciton,
+				...collection,
 				volume1d: Number((volume?.['1DayVolume'] ?? 0).toFixed(2)),
 				volume7d: Number((volume?.['7DayVolume'] ?? 0).toFixed(2)),
 				volume30d: Number((volume?.['30DayVolume'] ?? 0).toFixed(2)),
@@ -80,39 +93,37 @@ export const getNFTData = async () => {
 		return {
 			chart: [],
 			collections: [],
-			statistics: {}
+			statistics: []
 		}
 	}
 }
 
-const formatNftVolume = (volume, column) => {
-	const sumByDay = {}
-	const chartStacks = {}
-	const volumeData = volume.reduce(
-		(acc, curr) => {
-			const date = Math.floor(Number(curr.date) / 1000)
-			if (!acc[date]) {
-				acc[date] = {}
-			}
+type NftVolumeRow = Record<string, number>
 
-			chartStacks[curr.exchangeName] = 'stackA'
+const formatNftVolume = (
+	volume: Array<{ date: number; exchangeName: string; sum: number; count: number }>,
+	column: 'sum' | 'count'
+): [Record<string, NftVolumeRow>, Array<Record<string, number>>, Record<string, string>] => {
+	const sumByDay: Record<string, number> = {}
+	const chartStacks: Record<string, string> = {}
+	const volumeData: Record<string, NftVolumeRow> = {}
 
-			sumByDay[date] = (sumByDay[date] || 0) + curr[column]
-
-			acc[date][curr.exchangeName] = Number(curr[column]?.toFixed(3))
-
-			return acc
-		},
-		{} as {
-			[date: string]: { [exchangeName: string]: number }
+	for (const curr of volume) {
+		const date = Math.floor(Number(curr.date) / 1000)
+		if (!volumeData[date]) {
+			volumeData[date] = {}
 		}
-	)
 
-	const dominance = []
-	for (const date in volumeData) {
-		const value = { date: Math.floor(Number(date)) }
-		for (const exchangeName in volumeData[date]) {
-			value[exchangeName] = getDominancePercent(volumeData[date][exchangeName], sumByDay[date])
+		chartStacks[curr.exchangeName] = 'stackA'
+		sumByDay[date] = (sumByDay[date] ?? 0) + curr[column]
+		volumeData[date][curr.exchangeName] = Number(curr[column]?.toFixed(3))
+	}
+
+	const dominance: Array<Record<string, number>> = []
+	for (const [date, exchanges] of Object.entries(volumeData)) {
+		const value: Record<string, number> = { date: Math.floor(Number(date)) }
+		for (const [exchangeName, exchangeValue] of Object.entries(exchanges)) {
+			value[exchangeName] = getDominancePercent(exchangeValue, sumByDay[date])
 		}
 		dominance.push(value)
 	}
@@ -122,12 +133,10 @@ const formatNftVolume = (volume, column) => {
 
 export const getNFTMarketplacesData = async () => {
 	const [data, volume] = await Promise.all([
-		fetchJson(NFT_MARKETPLACES_STATS_API).catch(() => {
-			console.log(`[HTTP] [ERROR] ${NFT_MARKETPLACES_STATS_API}`)
+		fetchNftMarketplaceStats().catch(() => {
 			return []
 		}),
-		fetchJson(NFT_MARKETPLACES_VOLUME_API).catch(() => {
-			console.log(`[HTTP] [ERROR] ${NFT_MARKETPLACES_VOLUME_API}`)
+		fetchNftMarketplaceVolumes().catch(() => {
 			return []
 		})
 	])
@@ -138,7 +147,7 @@ export const getNFTMarketplacesData = async () => {
 	const [tradeData, dominanceTrade, tradeChartStacks] = formatNftVolume(volumeSorted, 'count')
 
 	const marketplaces = Object.keys(volumeChartStacks)
-	const colors = {}
+	const colors: Record<string, string> = {}
 	const allColors = getNDistinctColors(marketplaces.length)
 	for (let i = 0; i < marketplaces.length; i++) {
 		colors[marketplaces[i]] = allColors[i]
@@ -149,14 +158,14 @@ export const getNFTMarketplacesData = async () => {
 		data,
 		volume: Object.entries(volumeData)
 			.sort(([a], [b]) => Number(a) - Number(b))
-			.map(([date, values]: [string, { [exchangeName: string]: number }]) => ({
+			.map(([date, values]) => ({
 				date,
 				...values
 			})),
 		dominance,
 		trades: Object.entries(tradeData)
 			.sort(([a], [b]) => Number(a) - Number(b))
-			.map(([date, values]: [string, { [exchangeName: string]: number }]) => ({
+			.map(([date, values]) => ({
 				date,
 				...values
 			})),
@@ -171,11 +180,9 @@ export const getNFTMarketplacesData = async () => {
 export const getNFTCollectionEarnings = async () => {
 	try {
 		const [parentCompanies, royalties, collections] = await Promise.all([
-			fetchJson(
-				'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/nfts/output/parentCompanies.json'
-			),
-			fetchJson(NFT_ROYALTIES_API),
-			fetchJson(NFT_COLLECTIONS_API, { timeout: 60_000 })
+			fetchParentCompanies(),
+			fetchNftRoyalties(),
+			fetchNftCollections()
 		])
 
 		const collectionEarnings = collections
@@ -183,7 +190,7 @@ export const getNFTCollectionEarnings = async () => {
 				const royalty = royalties.find((r) => `0x${r.collection}` === c.collectionId)
 				const mintEarnings = NFT_MINT_EARNINGS.find((r) => r.contractAddress === c.collectionId)
 
-				if (!royalty && !mintEarnings) return {}
+				if (!royalty && !mintEarnings) return null
 
 				return {
 					defillamaId: c.collectionId,
@@ -195,11 +202,11 @@ export const getNFTCollectionEarnings = async () => {
 					total7d: royalty?.usd7D ?? null,
 					total30d: royalty?.usd30D ?? null,
 					totalRoyaltyEarnings: royalty?.usdLifetime ?? null,
-					totalMintEarnings: mintEarnings?.usdSales ?? null,
-					totalEarnings: (royalty?.usdLifetime ?? 0) + (mintEarnings?.usdSales ?? 0)
+					totalMintEarnings: mintEarnings != null ? Number(mintEarnings.usdSales) || null : null,
+					totalEarnings: (royalty?.usdLifetime ?? 0) + (mintEarnings != null ? Number(mintEarnings.usdSales) || 0 : 0)
 				}
 			})
-			.filter((c) => c.defillamaId)
+			.filter((c): c is NonNullable<typeof c> => c != null)
 
 		const duplicateCollections = new Set<string>()
 
@@ -258,13 +265,18 @@ export const getNFTCollectionEarnings = async () => {
 
 export const getNFTRoyaltyHistory = async (slug: string) => {
 	try {
-		let [royaltyChart, collection, royalty] = await Promise.all([
-			fetchJson(`${NFT_ROYALTY_HISTORY_API}/${slug}`),
-			fetchJson(`${NFT_COLLECTION_API}/${slug}`),
-			fetchJson(`${NFT_ROYALTY_API}/${slug}`)
+		const [royaltyChart, collection, royalty] = await Promise.all([
+			fetchNftRoyaltyHistory(slug),
+			fetchNftCollection(slug),
+			fetchNftRoyalty(slug)
 		])
+		if (!Array.isArray(collection) || collection.length === 0 || !Array.isArray(royalty) || royalty.length === 0) {
+			return {
+				royaltyHistory: []
+			}
+		}
 
-		const safeChart = Array.isArray(royaltyChart) ? royaltyChart : []
+		const safeChart: Array<[number, number]> = Array.isArray(royaltyChart) ? royaltyChart : []
 		const formattedData = formatBarChart({
 			data: safeChart,
 			groupBy: 'daily',
@@ -273,7 +285,7 @@ export const getNFTRoyaltyHistory = async (slug: string) => {
 		})
 		const earningsChart = {
 			dataset: {
-				source: formattedData.map(([timestamp, value]) => ({ timestamp, Earnings: value })),
+				source: formattedData.map(([timestamp, value]) => ({ timestamp, Earnings: value ?? 0 })),
 				dimensions: ['timestamp', 'Earnings']
 			},
 			charts: [
@@ -298,7 +310,7 @@ export const getNFTRoyaltyHistory = async (slug: string) => {
 				url: collection[0].projectUrl,
 				twitter: collection[0].twitterUsername,
 				category: 'Nft',
-				totalDataChart: royaltyChart,
+				totalDataChart: safeChart,
 				earningsChart,
 				total24h: royalty[0].usd1D,
 				total7d: royalty[0].usd7D,
@@ -318,17 +330,23 @@ export const getNFTRoyaltyHistory = async (slug: string) => {
 	}
 }
 
-const flagOutliers = (sales) => {
+const flagOutliers = (sales: Array<[number, number]>): Array<[number, number, boolean]> => {
+	if (sales.length < 2) return sales.map((sale) => [sale[0], sale[1], false] as [number, number, boolean])
+
 	const values = sales.map((s) => s[1])
 	const mean = values.reduce((acc, val) => acc + val, 0) / values.length
 	const std = Math.sqrt(values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (values.length - 1))
-	// zscores
+	if (!Number.isFinite(std) || std === 0) {
+		return sales.map((sale) => [sale[0], sale[1], false] as [number, number, boolean])
+	}
+
 	const scores = values.map((s) => Math.abs((s - mean) / std))
-	// sigma threshold
-	return sales.map((s, i) => [...s, scores[i] >= 4])
+	return sales.map((s, i) => [s[0], s[1], scores[i] >= 4] as [number, number, boolean])
 }
 
-const median = (sales) => {
+const median = (sales: number[]): number => {
+	if (sales.length === 0) return 0
+
 	const middle = Math.floor(sales.length / 2)
 
 	if (sales.length % 2 === 0) {
@@ -339,14 +357,12 @@ const median = (sales) => {
 
 export const getNFTCollection = async (slug: string) => {
 	try {
-		let [data, sales, stats, floorHistory, orderbook] = await Promise.all([
-			fetchJson(`${NFT_COLLECTION_API}/${slug}`),
-			fetchJson(`${NFT_COLLECTION_SALES_API}?collectionId=${slug}`).then((data) =>
-				data && Array.isArray(data) ? data.map((i) => [i[0] * 1000, i[1]]) : []
-			),
-			fetchJson(`${NFT_COLLECTION_STATS_API}/${slug}`),
-			fetchJson(`${NFT_COLLECTION_FLOOR_HISTORY_API}/${slug}`),
-			fetchJson(`${NFT_COLLECTIONS_ORDERBOOK_API}/${slug}`)
+		const [data, sales, stats, floorHistory, orderbook] = await Promise.all([
+			fetchNftCollection(slug),
+			fetchNftCollectionSales(slug),
+			fetchNftCollectionStats(slug),
+			fetchNftCollectionFloorHistory(slug),
+			fetchNftCollectionOrderbook(slug)
 		])
 
 		const salesExOutliers = flagOutliers(sales).filter((i) => i[2] === false)
@@ -358,29 +374,25 @@ export const getNFTCollection = async (slug: string) => {
 		const x = 6
 		const u = 3600 * x * 1000
 
-		const hourlyT = []
-		if (X.length) {
-			// round up
+		const hourlyT: number[] = []
+		if (X.length > 0) {
 			const start = Math.ceil(X[0][0] / u) * u
 			const stop = Math.ceil(X[X.length - 1][0] / u) * u
-			// create hourly timestamps
 			for (let timestamp = start; timestamp <= stop; timestamp += u) {
 				hourlyT.push(timestamp)
 			}
 		}
 
-		// calc median
-		// 24h or 7days rolling median depending on nb of datapoints
+		// calc median - 24h or 7days rolling median depending on nb of datapoints
 		const medianWindow = X.length > 300 ? 24 : 24 * 7
-		const salesMedian1d = hourlyT.map((hour) => {
-			// daily offset
+		const salesMedian1d: Array<[number, number]> = hourlyT.map((hour) => {
 			const offset = hour - 3600 * 1000 * medianWindow
-			const valuesInRange = X.reduce((acc, [timestamp, value]) => {
+			const valuesInRange = X.reduce<number[]>((acc, [timestamp, value]) => {
 				if (timestamp >= offset && timestamp <= hour) {
 					acc.push(value)
 				}
 				return acc
-			}, []).sort((a, b) => a - b) // sort values, required for median
+			}, []).sort((a, b) => a - b)
 			const medianValue = median(valuesInRange)
 			return [hour, medianValue]
 		})
@@ -388,9 +400,9 @@ export const getNFTCollection = async (slug: string) => {
 		return {
 			data,
 			sales,
-			salesExOutliers,
+			salesExOutliers: salesExOutliers.map((s) => [s[0], s[1]] as [number, number]),
 			salesMedian1d,
-			stats: stats.map((item) => [Math.floor(new Date(item.day).getTime() / 1000), item.sum]),
+			stats: stats.map((item) => [Math.floor(new Date(item.day).getTime() / 1000), item.sum] as [number, number]),
 			name: data?.[0]?.name ?? null,
 			address: slug,
 			floorHistory: {
@@ -404,5 +416,6 @@ export const getNFTCollection = async (slug: string) => {
 		}
 	} catch (e) {
 		console.log(e)
+		return undefined
 	}
 }

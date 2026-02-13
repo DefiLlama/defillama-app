@@ -7,7 +7,7 @@ export const ROW_HEADER_GROUPING_COLUMN_IDS: Record<UnifiedRowHeaderType, string
 	category: '__group_category'
 }
 
-export const GROUPING_COLUMN_ID_SET = new Set<string>(Object.values(ROW_HEADER_GROUPING_COLUMN_IDS))
+const GROUPING_COLUMN_ID_SET = new Set<string>(Object.values(ROW_HEADER_GROUPING_COLUMN_IDS))
 
 export type GroupingColumnId = (typeof ROW_HEADER_GROUPING_COLUMN_IDS)[keyof typeof ROW_HEADER_GROUPING_COLUMN_IDS]
 

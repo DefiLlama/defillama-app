@@ -9,11 +9,17 @@ export interface EmissionEvent {
 	rateDurationDays?: number
 }
 
+interface TokenPriceSnapshot {
+	symbol?: string | null
+	price?: number | null
+}
+
 export interface ProtocolEmission {
 	name: string
 	token: string
 	gecko_id?: string | null
 	events?: EmissionEvent[] | null
+	tokenPrice?: TokenPriceSnapshot[] | null
 	unlockEvents?: unknown
 	sources?: unknown
 	tPrice?: number | null
@@ -58,6 +64,21 @@ export interface ProtocolEmissionDetail {
 	futures?: Record<string, unknown> | null
 	categories?: Record<string, string[]> | null
 }
+
+export interface EmissionSupplyMetrics {
+	maxSupply: number
+	adjustedSupply: number
+	tbdAmount: number
+	incentiveAmount: number
+	nonIncentiveAmount: number
+}
+
+export interface ProtocolEmissionSupplyMetricsEntry {
+	name: string
+	supplyMetrics: EmissionSupplyMetrics
+}
+
+export type ProtocolEmissionSupplyMetricsMap = Record<string, ProtocolEmissionSupplyMetricsEntry>
 
 export interface TokenAllocationSplit {
 	current: Record<string, number>

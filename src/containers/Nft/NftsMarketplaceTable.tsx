@@ -27,20 +27,39 @@ interface INftMarketplace {
 	weeklyChange: string
 }
 
+const EthIcon = () => (
+	<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
+		<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
+		<path d="M5.56641 5.11627L2.77631 6.74082L0 5.11627L2.78244 8.99999L5.56641 5.11627Z"></path>
+	</svg>
+)
+
+const EthVolumeCell = ({ value }: { value: unknown }) => {
+	const numericValue = Number(value)
+	if (!Number.isFinite(numericValue)) return null
+
+	return (
+		<span className="flex flex-nowrap items-center justify-end gap-1">
+			<span>{numericValue.toFixed(2)}</span>
+			<EthIcon />
+		</span>
+	)
+}
+
 const columns: ColumnDef<INftMarketplace>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'exchangeName',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const name = getValue()
+			const name = String(getValue())
 			const icon = row.original.exchangeName.toLowerCase().replace(' aggregator', '').replace(' ', '-')
 
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo logo={`https://icons.llamao.fi/icons/protocols/${icon}`} data-lgonly />
-					<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{name as string}</span>
+					<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{name}</span>
 				</span>
 			)
 		},
@@ -60,21 +79,7 @@ const columns: ColumnDef<INftMarketplace>[] = [
 		header: 'Volume 1d',
 		accessorKey: '1DayVolume',
 		size: 130,
-		cell: (info) => (
-			<>
-				{info.getValue() != null ? (
-					<span className="flex flex-nowrap items-center justify-end gap-1">
-						<span>{(+info.getValue()).toFixed(2)}</span>
-						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
-							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
-							<path d="M5.56641 5.11627L2.77631 6.74082L0 5.11627L2.78244 8.99999L5.56641 5.11627Z"></path>
-						</svg>
-					</span>
-				) : (
-					''
-				)}
-			</>
-		),
+		cell: (info) => <EthVolumeCell value={info.getValue()} />,
 		meta: {
 			align: 'end',
 			headerHelperText: '24h rolling volume'
@@ -84,21 +89,7 @@ const columns: ColumnDef<INftMarketplace>[] = [
 		header: 'Volume 7d',
 		accessorKey: '7DayVolume',
 		size: 130,
-		cell: (info) => (
-			<>
-				{info.getValue() != null ? (
-					<span className="flex flex-nowrap items-center justify-end gap-1">
-						<span>{(+info.getValue()).toFixed(2)}</span>
-						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
-							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
-							<path d="M5.56641 5.11627L2.77631 6.74082L0 5.11627L2.78244 8.99999L5.56641 5.11627Z"></path>
-						</svg>
-					</span>
-				) : (
-					''
-				)}
-			</>
-		),
+		cell: (info) => <EthVolumeCell value={info.getValue()} />,
 		meta: {
 			align: 'end',
 			headerHelperText: '7day rolling volume'
@@ -108,7 +99,10 @@ const columns: ColumnDef<INftMarketplace>[] = [
 		header: 'Market Share',
 		accessorKey: 'pctOfTotal',
 		size: 150,
-		cell: (info) => <>{info.getValue() != null ? (+info.getValue()).toFixed(2) + '%' : null}</>,
+		cell: (info) => {
+			const numericValue = Number(info.getValue())
+			return <>{Number.isFinite(numericValue) ? numericValue.toFixed(2) + '%' : null}</>
+		},
 		meta: {
 			align: 'end',
 			headerHelperText: 'based on Volume 1d'
@@ -159,21 +153,24 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 
 	return (
 		<>
-			<div className="relative ml-auto w-full sm:max-w-[280px]">
-				<Icon
-					name="search"
-					height={16}
-					width={16}
-					className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
-				/>
-				<input
-					value={marketplaceName}
-					onChange={(e) => {
-						setMarketplaceName(e.target.value)
-					}}
-					placeholder="Search marketplace..."
-					className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
-				/>
+			<div className="flex items-center justify-end gap-2 p-3">
+				<label className="relative ml-auto w-full sm:max-w-[280px]">
+					<span className="sr-only">Search marketplaces</span>
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+					/>
+					<input
+						value={marketplaceName}
+						onChange={(e) => {
+							setMarketplaceName(e.target.value)
+						}}
+						placeholder="Search marketplace..."
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
+					/>
+				</label>
 			</div>
 			<VirtualTable instance={instance} />
 		</>

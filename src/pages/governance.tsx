@@ -1,9 +1,16 @@
+import { maxAgeForNext } from '~/api'
 import Governance from '~/containers/Governance'
 import { getGovernancePageData } from '~/containers/Governance/queries'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticProps = withPerformanceLogging('governance', getGovernancePageData)
+export const getStaticProps = withPerformanceLogging('governance', async () => {
+	const data = await getGovernancePageData()
+	return {
+		props: data,
+		revalidate: maxAgeForNext([22])
+	}
+})
 
 const pageName = ['Governance']
 

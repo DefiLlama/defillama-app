@@ -1,33 +1,34 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
-import { BasicLink } from '~/components/Link'
-import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { TokenLogo } from '~/components/TokenLogo'
-import { TEMP_CHAIN_NFTS } from '~/constants'
+import { fetchNftsVolumeByChain } from '~/containers/Nft/api'
+import { NftsByChain, type INftChainRow } from '~/containers/Nft/NftsByChain'
 import Layout from '~/layout'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { chainIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const getMetadataChainKey = (chain: string): string => {
+	if (chain === 'optimism') return 'op-mainnet'
+	if (chain === 'immutablex') return 'immutable-zkevm'
+	return chain
+}
 
 export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
-	const data = await fetchJson<Record<string, number>>(TEMP_CHAIN_NFTS)
+	const data = await fetchNftsVolumeByChain()
 
 	if (!data) return { notFound: true }
 
-	const chains = []
-	for (const chain in data) {
-		const name =
-			metadataCache.chainMetadata[
-				chain === 'optimism' ? 'op-mainnet' : chain === 'immutablex' ? 'immutable-zkevm' : chain
-			]?.name
-		chains.push({
+	const chains: INftChainRow[] = Object.entries(data).map(([chain, total24h]) => {
+		const metadataChainKey = getMetadataChainKey(chain)
+		const name = metadataCache.chainMetadata[metadataChainKey]?.name ?? chain
+
+		return {
 			name,
 			logo: chainIconUrl(chain),
-			total24h: data[chain]
-		})
-	}
+			total24h
+		}
+	})
 
 	return {
 		props: { chains: chains.sort((a, b) => b.total24h - a.total24h) },
@@ -36,9 +37,8 @@ export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => 
 })
 
 const pageName = ['Chains', 'ranked by', 'NFT Volume']
-const DEFAULT_SORTING_STATE = [{ id: 'total24h', desc: true }]
 
-export default function NftsOnAllChains(props) {
+export default function NftsOnAllChains(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="NFTs Volume by Chain - DefiLlama"
@@ -47,53 +47,7 @@ export default function NftsOnAllChains(props) {
 			canonicalUrl={`/nfts/chains`}
 			pageName={pageName}
 		>
-			<TableWithSearch
-				data={props.chains}
-				columns={columns}
-				placeholder={'Search protocols...'}
-				columnToSearch={'name'}
-				header="Protocol Rankings"
-				sortingState={DEFAULT_SORTING_STATE}
-			/>
+			<NftsByChain {...props} />
 		</Layout>
 	)
 }
-
-const columns: ColumnDef<any>[] = [
-	{
-		id: 'name',
-		header: 'Name',
-		accessorFn: (protocol) => protocol.name,
-		enableSorting: false,
-		cell: ({ getValue, row }) => {
-			const value = getValue() as string
-
-			return (
-				<span className="relative flex items-center gap-2">
-					<span className="vf-row-index shrink-0" aria-hidden="true" />
-
-					<TokenLogo logo={row.original.logo} data-lgonly />
-
-					<BasicLink
-						href={`/chain/${slug(value)}`}
-						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-					>
-						{value}
-					</BasicLink>
-				</span>
-			)
-		},
-		size: 280
-	},
-	{
-		id: 'total24h',
-		header: 'NFT Volume 24h',
-		accessorFn: (protocol) => protocol.total24h,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Sum of volume across all NFT exchanges on the chain in the last 24 hours'
-		},
-		size: 128
-	}
-]

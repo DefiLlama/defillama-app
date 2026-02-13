@@ -1149,7 +1149,7 @@ const defaultColumns = JSON.stringify({
 	revenue_24h: true
 })
 
-export const ProtocolTvlCell = ({ rowValues }) => {
+const ProtocolTvlCell = ({ rowValues }) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	let text = null

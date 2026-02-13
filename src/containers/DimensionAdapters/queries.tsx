@@ -5,10 +5,10 @@ import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import {
-	getAdapterChainChartData,
-	getAdapterChainMetrics,
-	getAdapterProtocolChartData,
-	getAdapterProtocolMetrics
+	fetchAdapterChainChartData,
+	fetchAdapterChainMetrics,
+	fetchAdapterProtocolChartData,
+	fetchAdapterProtocolMetrics
 } from './api'
 import type { IAdapterProtocolMetrics, IAdapterChainMetrics } from './api.types'
 import {
@@ -78,18 +78,18 @@ export async function getAdapterChainOverview({
 }) {
 	if (dataType !== 'dailyEarnings') {
 		const [overviewData, totalDataChart] = await Promise.all([
-			getAdapterChainMetrics({ adapterType, chain, dataType }),
-			excludeTotalDataChart ? Promise.resolve([]) : getAdapterChainChartData({ adapterType, chain, dataType })
+			fetchAdapterChainMetrics({ adapterType, chain, dataType }),
+			excludeTotalDataChart ? Promise.resolve([]) : fetchAdapterChainChartData({ adapterType, chain, dataType })
 		])
 
 		return { ...overviewData, totalDataChart } as IAdapterChainOverview
 	} else {
 		//earnings we don't need to filter by chain, instead we filter it later on
 		const [overviewData, totalDataChart, emissionsData, chainMapping] = await Promise.all([
-			getAdapterChainMetrics({ adapterType, chain: 'All', dataType: 'dailyRevenue' }),
+			fetchAdapterChainMetrics({ adapterType, chain: 'All', dataType: 'dailyRevenue' }),
 			excludeTotalDataChart
 				? Promise.resolve([])
-				: getAdapterChainChartData({ adapterType, chain, dataType: 'dailyRevenue' }),
+				: fetchAdapterChainChartData({ adapterType, chain, dataType: 'dailyRevenue' }),
 			getEmissionsData(),
 			getChainMapping()
 		])
@@ -202,8 +202,8 @@ export async function getAdapterProtocolOverview({
 	if (protocol == 'All') throw new Error('Protocol cannot be All')
 
 	const [overviewData, totalDataChart] = await Promise.all([
-		getAdapterProtocolMetrics({ adapterType, protocol, dataType }),
-		excludeTotalDataChart ? Promise.resolve([]) : getAdapterProtocolChartData({ adapterType, protocol, dataType })
+		fetchAdapterProtocolMetrics({ adapterType, protocol, dataType }),
+		excludeTotalDataChart ? Promise.resolve([]) : fetchAdapterProtocolChartData({ adapterType, protocol, dataType })
 	])
 
 	return { ...overviewData, totalDataChart } as IAdapterProtocolMetrics & { totalDataChart: Array<[number, number]> }
@@ -561,14 +561,14 @@ export const getAdapterByChainPageData = async ({
 		}),
 		fetchJson(PROTOCOLS_API),
 		adapterType === 'fees'
-			? getAdapterChainMetrics({
+			? fetchAdapterChainMetrics({
 					adapterType,
 					chain,
 					dataType: 'dailyBribesRevenue'
 				})
 			: Promise.resolve(null),
 		adapterType === 'fees'
-			? getAdapterChainMetrics({
+			? fetchAdapterChainMetrics({
 					adapterType,
 					chain,
 					dataType: 'dailyTokenTaxes'
@@ -591,7 +591,7 @@ export const getAdapterByChainPageData = async ({
 				})
 			: Promise.resolve(null),
 		adapterType === 'derivatives'
-			? getAdapterChainMetrics({
+			? fetchAdapterChainMetrics({
 					adapterType: 'normalized-volume',
 					chain
 				})
@@ -1057,17 +1057,17 @@ export const getChainsByFeesAdapterPageData = async ({
 		}
 
 		const [chainsData, bribesData, tokenTaxesData] = await Promise.all([
-			getAdapterChainMetrics({
+			fetchAdapterChainMetrics({
 				adapterType,
 				dataType,
 				chain: 'All'
 			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name))),
-			getAdapterChainMetrics({
+			fetchAdapterChainMetrics({
 				adapterType,
 				dataType: 'dailyBribesRevenue',
 				chain: 'All'
 			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name))),
-			getAdapterChainMetrics({
+			fetchAdapterChainMetrics({
 				adapterType,
 				dataType: 'dailyTokenTaxes',
 				chain: 'All'
@@ -1326,14 +1326,14 @@ export const getChainsByREVPageData = async ({
 
 		const protocolsByChainsData = await Promise.allSettled(
 			allChains.map(async (chain) =>
-				getAdapterChainMetrics({
+				fetchAdapterChainMetrics({
 					adapterType: 'fees',
 					chain
 				})
 			)
 		)
 
-		const chainFeesData = await getAdapterChainMetrics({
+		const chainFeesData = await fetchAdapterChainMetrics({
 			adapterType: 'fees',
 			chain: 'All'
 		})

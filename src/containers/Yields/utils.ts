@@ -255,7 +255,7 @@ export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoute
 	return lendBorrowPairs.concat(cdpPairs)
 }
 
-export const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
+const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
 
 export const findStrategyPools = ({ pools, tokenToLend, tokenToBorrow, allPools, cdpRoutes, customLTV }) => {
 	// prepare leveraged lending (loop) pools

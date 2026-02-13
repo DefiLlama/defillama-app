@@ -5,7 +5,7 @@ import { Icon } from '~/components/Icon'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 
 // change 'value' for new announcements
-export const ANNOUNCEMENT = {
+const ANNOUNCEMENT = {
 	defi: {
 		key: 'defi-flag-announcement',
 		value: 'defi6'

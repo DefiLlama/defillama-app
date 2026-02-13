@@ -29,14 +29,14 @@ export enum TABLE_CATEGORIES {
 	TVL = 'TVL'
 }
 
-export enum TABLE_PERIODS {
+enum TABLE_PERIODS {
 	ONE_DAY = '1d',
 	SEVEN_DAYS = '7d',
 	ONE_MONTH = '1m'
 }
 
-export const TABLE_CATEGORIES_VALUES = Object.values(TABLE_CATEGORIES) as Array<string>
-export const TABLE_PERIODS_VALUES = Object.values(TABLE_PERIODS) as Array<string>
+const TABLE_CATEGORIES_VALUES = Object.values(TABLE_CATEGORIES) as Array<string>
+const TABLE_PERIODS_VALUES = Object.values(TABLE_PERIODS) as Array<string>
 
 export const protocolsByChainTableColumns = [
 	{ name: 'Name', key: 'name' },
@@ -346,7 +346,7 @@ export const protocolsByChainTableColumns = [
 	}
 ]
 
-export const defaultColumns = JSON.stringify({
+const defaultColumns = JSON.stringify({
 	name: true,
 	category: true,
 	oracles: false,
@@ -501,7 +501,7 @@ const ProtocolsTable = ({
 	)
 }
 
-export function ProtocolsByChainTable({
+function ProtocolsByChainTable({
 	data,
 	useStickyHeader = true
 }: {

@@ -10,7 +10,7 @@ interface ComposerItemsCarouselProps {
 	composerItems: ChartConfig[]
 }
 
-export function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselProps) {
+function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselProps) {
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const { getProtocolInfo } = useProDashboardCatalog()
 

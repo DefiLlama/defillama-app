@@ -9,7 +9,10 @@ import type {
 } from './api.types'
 import { ADAPTER_TYPES, ADAPTER_DATA_TYPES } from './constants'
 
-export async function getAdapterChainMetrics({
+/**
+ * Fetch adapter metrics for a chain and data type.
+ */
+export async function fetchAdapterChainMetrics({
 	adapterType,
 	chain,
 	dataType
@@ -27,7 +30,10 @@ export async function getAdapterChainMetrics({
 	return fetchJson<IAdapterChainMetrics>(metricsUrl, { timeout: 30_000 })
 }
 
-export async function getAdapterProtocolMetrics({
+/**
+ * Fetch adapter metrics for a protocol and data type.
+ */
+export async function fetchAdapterProtocolMetrics({
 	adapterType,
 	protocol,
 	dataType
@@ -45,7 +51,10 @@ export async function getAdapterProtocolMetrics({
 	return fetchJson<IAdapterProtocolMetrics>(metricsUrl, { timeout: 30_000 })
 }
 
-export async function getAdapterChainChartData({
+/**
+ * Fetch adapter chart data for a chain and data type.
+ */
+export async function fetchAdapterChainChartData({
 	adapterType,
 	chain,
 	dataType
@@ -68,7 +77,10 @@ export async function getAdapterChainChartData({
 	return fetchJson<IAdapterChart>(totalDataChartUrl, { timeout: 30_000 })
 }
 
-export async function getAdapterProtocolChartData({
+/**
+ * Fetch adapter chart data for a single protocol.
+ */
+export async function fetchAdapterProtocolChartData({
 	adapterType,
 	protocol,
 	dataType
@@ -86,7 +98,10 @@ export async function getAdapterProtocolChartData({
 	return fetchJson<IAdapterChart>(totalDataChartUrl, { timeout: 30_000 })
 }
 
-export async function getAdapterProtocolChartDataByBreakdownType({
+/**
+ * Fetch adapter protocol chart data by breakdown type.
+ */
+export async function fetchAdapterProtocolChartDataByBreakdownType({
 	adapterType,
 	protocol,
 	dataType,
@@ -106,7 +121,10 @@ export async function getAdapterProtocolChartDataByBreakdownType({
 	return fetchJson<IAdapterBreakdownChartData>(totalDataChartUrl, { timeout: 30_000 })
 }
 
-export async function getAdapterChainChartDataByProtocolBreakdown({
+/**
+ * Fetch adapter chain chart data broken down by protocol.
+ */
+async function fetchAdapterChainChartDataByProtocolBreakdown({
 	adapterType,
 	chain,
 	dataType
@@ -135,7 +153,10 @@ interface CoinGeckoBtcPrice {
 	}
 }
 
-export async function getCexVolume(): Promise<number | null> {
+/**
+ * Fetch estimated global CEX volume from CoinGecko exchange data.
+ */
+export async function fetchCexVolume(): Promise<number | null> {
 	try {
 		const [cexs, btcPriceRes] = await Promise.all([
 			fetchJson<CoinGeckoExchange[]>(

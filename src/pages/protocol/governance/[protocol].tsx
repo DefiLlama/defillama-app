@@ -35,7 +35,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
-		const { props: governanceProps } = await getGovernanceDetailsPageData({
+		const governanceProps = await getGovernanceDetailsPageData({
 			governanceIDs: protocolData.governanceID ?? [],
 			projectName: protocolData.name
 		})
@@ -57,6 +57,16 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 

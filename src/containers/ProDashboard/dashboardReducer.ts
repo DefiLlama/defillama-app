@@ -39,7 +39,7 @@ export type DashboardAction =
 	| { type: 'SET_SHOW_ITERATE_DASHBOARD_MODAL'; payload: boolean }
 	| { type: 'APPLY_DASHBOARD'; payload: Dashboard }
 
-export const INITIAL_DASHBOARD_STATE: DashboardState = {
+const INITIAL_DASHBOARD_STATE: DashboardState = {
 	items: [],
 	timePeriod: '365d',
 	customTimePeriod: null,

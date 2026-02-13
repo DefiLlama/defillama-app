@@ -14,7 +14,7 @@ export interface ChatSession {
 	shareToken?: string
 }
 
-export interface ConversationExchange {
+interface ConversationExchange {
 	question: string
 	response: {
 		answer: string
@@ -26,7 +26,7 @@ export interface ConversationExchange {
 	timestamp: number
 }
 
-export interface PaginationState {
+interface PaginationState {
 	hasMore: boolean
 	isLoadingMore: boolean
 	cursor?: number

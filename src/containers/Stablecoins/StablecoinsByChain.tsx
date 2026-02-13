@@ -157,7 +157,7 @@ const resolveFilteredStablecoinData = ({
 	return { peggedAssets, filteredIndexes: chartDataIndexes }
 }
 
-export interface StablecoinsByChainProps {
+interface StablecoinsByChainProps {
 	selectedChain?: string
 	chains?: string[]
 	filteredPeggedAssets: StablecoinFilterableAsset[]

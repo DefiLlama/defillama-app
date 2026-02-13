@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
+import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import { slug } from '~/utils'
@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const chainList = typeof chains === 'string' ? [chains] : chains || []
 
 		if (chainList.length === 0) {
-			const data = await getAdapterChainMetrics({
+			const data = await fetchAdapterChainMetrics({
 				adapterType,
 				dataType: undefined,
 				chain: 'All'

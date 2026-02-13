@@ -4,7 +4,7 @@ import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { Flag } from './Flag'
 
-export const RowWithSubRows = ({
+const RowWithSubRows = ({
 	subRows,
 	protocolName,
 	dataType,

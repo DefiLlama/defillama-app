@@ -1,77 +1,45 @@
-import type { GetStaticPropsContext } from 'next'
-import * as React from 'react'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
-import { RAISES_API } from '~/constants'
 import { InvestorContainer } from '~/containers/Raises/Investor'
-import { getRaisesFiltersList } from '~/containers/Raises/utils'
-import { slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { getInvestorRaisesPageData } from '~/containers/Raises/queries'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
 	'raises/[investorName]',
 	async ({ params }: GetStaticPropsContext<{ investorName: string }>) => {
+		const revalidate = maxAgeForNext([22])
+
 		if (!params?.investorName) {
-			return { notFound: true, props: null }
+			return { notFound: true, revalidate }
 		}
 
-		const name = params.investorName
-		const data = await fetchJson(RAISES_API)
-
-		const raises = []
-
-		let investorName = null
-
-		for (const raise of data.raises) {
-			let isInvestor = false
-
-			for (const leadInvestor of raise.leadInvestors ?? []) {
-				if (slug(leadInvestor.toLowerCase()) === name) {
-					investorName = leadInvestor
-					isInvestor = true
-				}
-			}
-
-			for (const otherInvestor of raise.otherInvestors ?? []) {
-				if (slug(otherInvestor.toLowerCase()) === name) {
-					investorName = otherInvestor
-					isInvestor = true
-				}
-			}
-
-			if (isInvestor) {
-				raises.push(raise)
-			}
+		const data = await getInvestorRaisesPageData(params.investorName)
+		if ('notFound' in data) {
+			return { notFound: true, revalidate }
 		}
 
-		if (raises.length === 0) {
-			return {
-				notFound: true,
-				revalidate: maxAgeForNext([22])
-			}
-		}
-
-		const filters = getRaisesFiltersList({ raises: data.raises, investorName: name })
-
-		return {
-			props: {
-				raises,
-				...filters,
-				investorName
-			},
-			revalidate: maxAgeForNext([22])
-		}
+		return { props: data, revalidate }
 	}
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return {
 		paths: [],
 		fallback: 'blocking'
 	}
 }
 
-const Raises = (props) => {
+const Raises = (props: InferGetStaticPropsType<typeof getStaticProps>) => {
 	return <InvestorContainer {...props} />
 }
 

@@ -61,7 +61,7 @@ export interface ProtocolAdaptorSummaryResponse extends ProtocolAdaptorSummary {
 
 ///////////////////////////////////////////////////////////////////
 export type IJSON<T> = { [key: string]: T }
-export type ProtocolAdaptorSummary = {
+type ProtocolAdaptorSummary = {
 	name: string
 	category?: string
 	logo: string

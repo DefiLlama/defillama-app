@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { CHART_COLORS } from '~/constants/colors'
 import { toYearMonth } from '~/utils'
+import type { IRaise } from './types'
 
 // Helper to parse exclude query param to Set
 const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
@@ -11,7 +12,15 @@ const parseExcludeParam = (param: string | string[] | undefined): Set<string> =>
 	return new Set(param)
 }
 
-export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
+interface UseRaisesDataParams {
+	raises: IRaise[]
+	investors: string[]
+	rounds: string[]
+	sectors: string[]
+	chains: string[]
+}
+
+export function useRaisesData({ raises, investors, rounds, sectors, chains }: UseRaisesDataParams) {
 	const { query } = useRouter()
 
 	const {
@@ -93,8 +102,8 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 		selectedChains = excludeChainsSet.size > 0 ? selectedChains.filter((c) => !excludeChainsSet.has(c)) : selectedChains
 
 		const raisesByCategory: { [category: string]: number } = {}
-		const fundingRoundsByMonth = {}
-		const monthlyInvestment = {}
+		const fundingRoundsByMonth: Record<string, number> = {}
+		const monthlyInvestment: Record<string, number> = {}
 		const investmentByRounds: { [round: string]: number } = {}
 
 		const minimumAmountRaised =
@@ -196,7 +205,7 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 			}
 
 			if (raise.category) {
-				raisesByCategory[raise.category] = (raisesByCategory[raise.category] || 0) + 1
+				raisesByCategory[raise.category] = (raisesByCategory[raise.category] ?? 0) + 1
 			}
 
 			return true

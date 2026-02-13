@@ -1,4 +1,4 @@
-import type { IHack } from '../Hacks/queries'
+import type { IHackApiItem } from '../Hacks/api.types'
 import type { IProtocolMetricsV2, IRaise } from './api.types'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
 
@@ -158,7 +158,7 @@ export interface IProtocolOverviewPageData {
 	isCEX?: boolean
 	hasKeyMetrics?: boolean
 	competitors?: Array<{ name: string; tvl: number }>
-	hacks: Array<IHack>
+	hacks: Array<IHackApiItem>
 	chartDenominations: Array<{ symbol: string; geckoId?: string | null }>
 	chartColors: Record<string, string>
 	availableCharts: ProtocolChartsLabels[]
@@ -218,15 +218,6 @@ export interface IArticle {
 	date: string
 	href: string
 	imgSrc: string | null
-}
-
-export interface IProtocolExpenses {
-	protocolId: string
-	headcount: number
-	annualUsdCost: Record<string, number>
-	sources?: Array<string> | null
-	notes?: Array<string> | null
-	lastUpdate?: string | null
 }
 
 // date in the chart is in ms

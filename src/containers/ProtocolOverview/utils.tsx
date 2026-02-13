@@ -1,9 +1,8 @@
-import { PEGGEDS_API } from '~/constants'
 import type { IProtocolMetricsV2, IRaise } from '~/containers/ProtocolOverview/types'
-import { fetchJson, postRuntimeLogs } from '~/utils/async'
+import { postRuntimeLogs } from '~/utils/async'
 import type { IProtocolWarningBanner } from './api.types'
 
-export const formatRaise = (raise: Omit<IRaise, 'defillamaId'>) => {
+const formatRaise = (raise: Omit<IRaise, 'defillamaId'>) => {
 	let text = ''
 
 	if (raise.round) {
@@ -87,24 +86,6 @@ export const getProtocolWarningBanners = (protocolData: IProtocolMetricsV2) => {
 		}
 	}
 	return banners
-}
-
-interface IPeggedAsset {
-	id: string
-	name: string
-	symbol: string
-	pegType: string
-	pegMechanism: string
-}
-
-export const getStablecoinsList = async (): Promise<{ peggedAssets: IPeggedAsset[] }> => {
-	try {
-		const data = await fetchJson(PEGGEDS_API)
-		return data
-	} catch (error) {
-		postRuntimeLogs(`[ERROR] Failed to fetch stablecoins list: ${error}`)
-		return { peggedAssets: [] }
-	}
 }
 
 export const filterStablecoinsFromTokens = (

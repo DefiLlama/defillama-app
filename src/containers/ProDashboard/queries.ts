@@ -420,7 +420,7 @@ function getChartQueryFn(
 	}
 }
 
-export function useChartData(
+function useChartData(
 	type: string,
 	itemType: 'chain' | 'protocol',
 	item: string,
@@ -442,9 +442,9 @@ export function useChartData(
 	})
 }
 
-export { generateChartKey, getChartQueryKey, getChartQueryFn }
+export { getChartQueryKey, getChartQueryFn }
 
-export function useChains() {
+function useChains() {
 	return useQuery({
 		queryKey: ['chains'],
 		queryFn: async () => {
@@ -589,7 +589,7 @@ export function useChartsData(charts, timePeriod?: TimePeriod, customPeriod?: Cu
 	})
 }
 
-export function useAvailableChartTypes(
+function useAvailableChartTypes(
 	item: string | null,
 	itemType: 'chain' | 'protocol',
 	geckoId?: string | null,

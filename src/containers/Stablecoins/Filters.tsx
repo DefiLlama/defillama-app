@@ -372,7 +372,7 @@ function ResetAllStablecoinFilters({ pathname }: { pathname: string; nestedMenu:
 	)
 }
 
-export function PeggedFiltersDropdowns({
+function PeggedFiltersDropdowns({
 	pathname,
 	nestedMenu,
 	prepareCsv,

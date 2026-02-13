@@ -63,7 +63,7 @@ export const useYieldConfigData = (project) => {
 	})
 }
 
-export const useYieldPageData = () => {
+const useYieldPageData = () => {
 	return useQuery({
 		queryKey: [YIELD_POOLS_API, YIELD_CONFIG_API],
 		queryFn: () => fetchApi([YIELD_POOLS_API, YIELD_CONFIG_API]),
@@ -73,7 +73,7 @@ export const useYieldPageData = () => {
 	})
 }
 
-export const useFetchProjectsList = () => {
+const useFetchProjectsList = () => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: [YIELD_POOLS_API, YIELD_CONFIG_API],
 		queryFn: () => fetchApi([YIELD_POOLS_API, YIELD_CONFIG_API]),
@@ -108,7 +108,7 @@ export const useVolatility = () => {
 	})
 }
 
-export const useYields = () => {
+const useYields = () => {
 	const { data = {} } = useQuery({
 		queryKey: [YIELD_POOLS_API],
 		queryFn: () => fetchApi(YIELD_POOLS_API),
