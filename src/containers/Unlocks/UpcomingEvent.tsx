@@ -240,7 +240,7 @@ export const UpcomingEvent = ({
 		rerender((value) => value + 1)
 	})
 
-	const renderBreakdownRow = (item: UnlockBreakdown, variant: 'protocol' | 'hover') => {
+	const renderBreakdownRow = (item: UnlockBreakdown, variant: 'protocol' | 'hover', index: number) => {
 		const RowTag = variant === 'protocol' ? 'div' : 'span'
 		const LineTag = variant === 'protocol' ? 'div' : 'span'
 		const iconSize = variant === 'protocol' ? 14 : 16
@@ -249,7 +249,7 @@ export const UpcomingEvent = ({
 		const isOngoing = item.endTime != null && nowSec >= item.timestamp && nowSec <= item.endTime
 
 		return (
-			<RowTag className={rowClass} key={item.name + item.totalAmount}>
+			<RowTag className={rowClass} key={`${item.name}-${item.totalAmount}-${index}`}>
 				<LineTag className="flex items-center justify-between gap-2 text-sm">
 					<span className="flex items-center gap-1.5">
 						{item.name}
@@ -275,7 +275,8 @@ export const UpcomingEvent = ({
 				</LineTag>
 				<LineTag className="flex items-center justify-between gap-2 text-xs text-(--text-meta)">
 					<span>
-						{formattedNum(item.percentage)}% {item.percentageFloat ? <>({formattedNum(item.percentageFloat)}% of float)</> : null}
+						{item.percentage != null ? `${formattedNum(item.percentage)}%` : '-'}{' '}
+						{item.percentageFloat ? <>({formattedNum(item.percentageFloat)}% of float)</> : null}
 					</span>
 					<span className="inline-flex items-baseline gap-1">
 						{formattedNum(isLinearPerDay ? item.perDayAmount : item.totalAmount)} {tokenSymbol}
@@ -334,9 +335,9 @@ export const UpcomingEvent = ({
 					</div>
 				</div>
 				<hr className="border-(--bg-border)" />
-				<div className="flex flex-col gap-3">
-					{currentUnlockBreakdown.map((item) => renderBreakdownRow(item, 'protocol'))}
-				</div>
+					<div className="flex flex-col gap-3">
+						{currentUnlockBreakdown.map((item, i) => renderBreakdownRow(item, 'protocol', i))}
+					</div>
 				{timeLeft > 0 ? (
 					<CalendarButton
 						event={{ timestamp, noOfTokens, symbol: symbol || '', description: '' }}
@@ -405,7 +406,9 @@ export const UpcomingEvent = ({
 						</span>
 					</span>
 					<hr className="border-(--bg-border)" />
-					<div className="flex flex-col gap-4">{currentUnlockBreakdown.map((item) => renderBreakdownRow(item, 'hover'))}</div>
+						<div className="flex flex-col gap-4">
+							{currentUnlockBreakdown.map((item, i) => renderBreakdownRow(item, 'hover', i))}
+						</div>
 					<hr className="border-(--bg-border)" />
 
 					<span className="flex flex-col gap-1">
