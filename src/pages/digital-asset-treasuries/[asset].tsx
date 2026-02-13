@@ -36,7 +36,7 @@ export async function getStaticPaths() {
 	}
 
 	const slugs = await getDATAssetPaths()
-	const paths = slugs.map((s) => `/digital-asset-treasuries/${s}`)
+	const paths = slugs.map((asset) => ({ params: { asset } }))
 
 	return { paths, fallback: false }
 }

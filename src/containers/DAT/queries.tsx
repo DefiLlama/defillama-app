@@ -34,17 +34,24 @@ function breakdownColor(type: string): string | null {
 	}
 }
 
+const RESERVED_DYNAMIC_COLOR_OFFSET = 6
+const EXTRA_DYNAMIC_COLOR_BUFFER = RESERVED_DYNAMIC_COLOR_OFFSET + 1
+const EXCLUDED_DISTINCT_COLOR = '#673AB7'
+
 function buildColorByAsset(res: IDATInstitutionsResponse): Record<string, string> {
 	const colorByAsset: Record<string, string> = {}
 	const assetKeys = Object.keys(res.assetMetadata)
-	const colors = getNDistinctColors(assetKeys.length + 7).filter((color) => color !== '#673AB7')
+	// Keep a small offset so fallback colors do not overlap too closely with fixed asset colors.
+	const colors = getNDistinctColors(assetKeys.length + EXTRA_DYNAMIC_COLOR_BUFFER).filter(
+		(color) => color !== EXCLUDED_DISTINCT_COLOR
+	)
 	let i = 0
 	for (const asset of assetKeys) {
 		const color = breakdownColor(res.assetMetadata[asset].name)
 		if (color != null) {
 			colorByAsset[asset] = color
 		} else {
-			colorByAsset[asset] = colors[i + 6]
+			colorByAsset[asset] = colors[i + RESERVED_DYNAMIC_COLOR_OFFSET]
 		}
 		i++
 	}
@@ -455,6 +462,26 @@ export async function getDATCompanyData(company: string): Promise<IDATCompanyPag
 	}
 	assetsBreakdownData.sort((a, b) => (b.usdValue ?? 0) - (a.usdValue ?? 0))
 
+	let firstAnnouncementDate: string | null = null
+	let lastAnnouncementDate: string | null = null
+	let firstAnnouncementTimestamp = Number.POSITIVE_INFINITY
+	let lastAnnouncementTimestamp = Number.NEGATIVE_INFINITY
+
+	for (const transaction of data.transactions) {
+		const reportDate = transaction.report_date
+		const reportTimestamp = new Date(reportDate).getTime()
+		if (!Number.isFinite(reportTimestamp)) continue
+
+		if (reportTimestamp < firstAnnouncementTimestamp) {
+			firstAnnouncementTimestamp = reportTimestamp
+			firstAnnouncementDate = reportDate
+		}
+		if (reportTimestamp > lastAnnouncementTimestamp) {
+			lastAnnouncementTimestamp = reportTimestamp
+			lastAnnouncementDate = reportDate
+		}
+	}
+
 	return {
 		name: data.name,
 		ticker: data.ticker,
@@ -463,8 +490,8 @@ export async function getDATCompanyData(company: string): Promise<IDATCompanyPag
 		priceChange24h: data.priceChange24h,
 		totalCost: data.totalCost,
 		totalUsdValue: data.totalUsdValue,
-		firstAnnouncementDate: data.transactions[data.transactions.length - 1]?.report_date ?? null,
-		lastAnnouncementDate: data.transactions[0]?.report_date ?? null,
+		firstAnnouncementDate,
+		lastAnnouncementDate,
 		realized_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][7] : null,
 		realistic_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][8] : null,
 		max_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][9] : null,

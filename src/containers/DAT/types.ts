@@ -4,9 +4,6 @@ import type { IDATInstitutionHolding, IDATInstitutionMetadata } from './api.type
 // ── Overview page (digital-asset-treasuries/index) ──────────────────────
 
 export interface IDATInstitutionOverview extends Omit<IDATInstitutionMetadata, 'holdings'> {
-	realized_mNAV: number | null
-	realistic_mNAV: number | null
-	max_mNAV: number | null
 	holdings: Array<{
 		name: string
 		ticker: string
@@ -39,9 +36,6 @@ export interface IDATInstitutionOverviewByAsset extends Omit<
 	IDATInstitutionMetadata,
 	'holdings' | 'totalUsdValue' | 'totalCost'
 > {
-	realized_mNAV: number | null
-	realistic_mNAV: number | null
-	max_mNAV: number | null
 	holdings: IDATInstitutionHolding
 }
 

@@ -410,10 +410,13 @@ const columns: ColumnDef<TransactionRow>[] = [
 		header: 'Source URL',
 		accessorKey: 'source_url',
 		cell: ({ getValue }) => {
+			const url = getValue<string>()
+			if (!url) return null
+
 			return (
 				<a
 					className="flex items-center justify-center gap-4 rounded-md bg-(--btn2-bg) p-1.5 hover:bg-(--btn2-hover-bg)"
-					href={getValue<string>()}
+					href={url}
 					target="_blank"
 					rel="noopener noreferrer"
 				>

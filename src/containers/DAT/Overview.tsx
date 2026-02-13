@@ -309,15 +309,18 @@ const overviewColumns: ColumnDef<IDATOverviewPageProps['institutions'][0]>[] = [
 		cell: ({ getValue, row }) => {
 			const price = getValue<number>()
 			if (price == null) return null
-			if (row.original.priceChange24h == null) return <>{formattedNum(price, true)}</>
+			const priceChange24h = row.original.priceChange24h
+			if (priceChange24h == null) return <>{formattedNum(price, true)}</>
 			return (
 				<Tooltip
 					content={
 						<>
 							24h change:{' '}
 							<span
-								className={row.original.priceChange24h > 0 ? 'text-(--success)' : 'text-(--error)'}
-							>{`${row.original.priceChange24h > 0 ? '+' : ''}${row.original.priceChange24h.toFixed(2)}%`}</span>
+								className={
+									priceChange24h > 0 ? 'text-(--success)' : priceChange24h < 0 ? 'text-(--error)' : ''
+								}
+							>{`${priceChange24h > 0 ? '+' : ''}${priceChange24h.toFixed(2)}%`}</span>
 						</>
 					}
 					className="justify-end underline decoration-dotted"

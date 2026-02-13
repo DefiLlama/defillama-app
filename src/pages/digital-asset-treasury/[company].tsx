@@ -33,7 +33,7 @@ export async function getStaticPaths() {
 	}
 
 	const slugs = await getDATCompanyPaths()
-	const paths = slugs.map((s) => ({ params: { company: s } }))
+	const paths = slugs.map((company) => ({ params: { company } }))
 	return { paths, fallback: false }
 }
 
