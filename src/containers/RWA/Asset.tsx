@@ -237,81 +237,69 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 
 			{/* Stats Row */}
 			<div className="flex flex-wrap gap-2">
-				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<Tooltip
-						content={definitions.onChainMcap.description}
-						className="text-(--text-label) underline decoration-dotted"
-					>
-						{definitions.onChainMcap.label}
-					</Tooltip>
-					{onChainMcap?.breakdown != null ? (
-						<Tooltip
-							content={
-								<BreakdownTooltipContent
-									breakdown={onChainMcap.breakdown}
-									description={definitions.onChainMcap.description}
-								/>
-							}
-							className="font-jetbrains text-xl font-semibold"
-						>
-							{onChainMcap?.total != null ? formattedNum(onChainMcap.total, true) : '-'}
-						</Tooltip>
-					) : (
-						<span className="font-jetbrains text-xl font-semibold">
-							{onChainMcap?.total != null ? formattedNum(onChainMcap.total, true) : '-'}
-						</span>
-					)}
-				</p>
-				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<Tooltip
-						content={definitions.activeMcap.description}
-						className="text-(--text-label) underline decoration-dotted"
-					>
-						{definitions.activeMcap.label}
-					</Tooltip>
-					{activeMcap?.breakdown != null ? (
-						<Tooltip
-							content={
-								<BreakdownTooltipContent
-									breakdown={activeMcap.breakdown}
-									description={definitions.activeMcap.description}
-								/>
-							}
-							className="font-jetbrains text-xl font-semibold"
-						>
-							{activeMcap?.total != null ? formattedNum(activeMcap.total, true) : '-'}
-						</Tooltip>
-					) : (
-						<span className="font-jetbrains text-xl font-semibold">
-							{activeMcap?.total != null ? formattedNum(activeMcap.total, true) : '-'}
-						</span>
-					)}
-				</p>
-				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<Tooltip
-						content={definitions.defiActiveTvl.description}
-						className="text-(--text-label) underline decoration-dotted"
-					>
-						{definitions.defiActiveTvl.label}
-					</Tooltip>
-					{defiActiveTv?.breakdown != null ? (
-						<Tooltip
-							content={
-								<BreakdownTooltipContent
-									breakdown={defiActiveTv.breakdown}
-									description={definitions.defiActiveTvl.description}
-								/>
-							}
-							className="font-jetbrains text-xl font-semibold"
-						>
-							{defiActiveTv?.total != null ? formattedNum(defiActiveTv.total, true) : '$0'}
-						</Tooltip>
-					) : (
-						<span className="font-jetbrains text-xl font-semibold">
-							{defiActiveTv?.total != null ? formattedNum(defiActiveTv.total, true) : '$0'}
-						</span>
-					)}
-				</p>
+				<Tooltip
+					content={
+						onChainMcap?.breakdown != null ? (
+							<BreakdownTooltipContent
+								breakdown={onChainMcap.breakdown}
+								description={definitions.onChainMcap.description}
+							/>
+						) : (
+							definitions.onChainMcap.description
+						)
+					}
+					render={
+						<p className="flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3" />
+					}
+				>
+					<span className="text-(--text-label) underline decoration-dotted">{definitions.onChainMcap.label}</span>
+					<span className="font-jetbrains text-xl font-semibold">
+						{onChainMcap?.total != null ? formattedNum(onChainMcap.total, true) : '-'}
+					</span>
+				</Tooltip>
+
+				<Tooltip
+					content={
+						activeMcap?.breakdown != null ? (
+							<BreakdownTooltipContent
+								breakdown={activeMcap.breakdown}
+								description={definitions.activeMcap.description}
+							/>
+						) : (
+							definitions.activeMcap.description
+						)
+					}
+					render={
+						<p className="flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3" />
+					}
+				>
+					<span className="text-(--text-label) underline decoration-dotted">{definitions.activeMcap.label}</span>
+					<span className="font-jetbrains text-xl font-semibold">
+						{activeMcap?.total != null ? formattedNum(activeMcap.total, true) : '-'}
+					</span>
+				</Tooltip>
+
+				<Tooltip
+					content={
+						defiActiveTv?.breakdown != null ? (
+							<BreakdownTooltipContent
+								breakdown={defiActiveTv.breakdown}
+								description={definitions.defiActiveTvl.description}
+							/>
+						) : (
+							definitions.defiActiveTvl.description
+						)
+					}
+					render={
+						<p className="flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3" />
+					}
+				>
+					<span className="text-(--text-label) underline decoration-dotted">{definitions.defiActiveTvl.label}</span>
+					<span className="font-jetbrains text-xl font-semibold">
+						{defiActiveTv?.total != null ? formattedNum(defiActiveTv.total, true) : '$0'}
+					</span>
+				</Tooltip>
+
 				{asset.price != null ? (
 					<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<span className="text-(--text-label)">{asset.ticker ?? 'Token'} Price</span>
