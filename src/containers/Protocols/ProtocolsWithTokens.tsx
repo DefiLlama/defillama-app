@@ -9,16 +9,10 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
-import type { IProtocolsWithTokensByChainPageData } from './queries'
+import type { IProtocolsWithTokensByChainPageData, ITokenMetricProtocolRow, TokenMetricType } from './types'
+import { parseExcludeParam } from './utils'
 
 const chainLikeCategories = new Set(['Chain', 'Rollup'])
-
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
 
 export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) {
 	const router = useRouter()
@@ -39,9 +33,12 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 					: props.categories
 
 		// Filter out excludes
-		selectedCategories = excludeSet.size > 0 ? selectedCategories.filter((c) => !excludeSet.has(c)) : selectedCategories
+		selectedCategories =
+			excludeSet.size > 0 ? selectedCategories.filter((c) => !excludeSet.has(c)) : selectedCategories
 
-		const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
+		const categoriesToFilter = selectedCategories.filter(
+			(c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none'
+		)
 
 		const protocols =
 			props.categories.length === 0
@@ -72,7 +69,7 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 				compact
 				customFilters={
 					<>
-						{props.categories.length > 0 && (
+						{props.categories.length > 0 ? (
 							<SelectWithCombobox
 								allValues={props.categories}
 								selectedValues={selectedCategories}
@@ -83,7 +80,7 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 								labelType="smol"
 								variant="filter-responsive"
 							/>
-						)}
+						) : null}
 					</>
 				}
 				sortingState={sortingState}
@@ -92,17 +89,17 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 	)
 }
 
-const getProtocolsByCategory = (
+function getProtocolsByCategory(
 	protocols: IProtocolsWithTokensByChainPageData['protocols'],
 	categoriesToFilter: Array<string>
-) => {
-	const final = []
+): ITokenMetricProtocolRow[] {
+	const final: ITokenMetricProtocolRow[] = []
 	const categoriesToFilterSet = new Set(categoriesToFilter)
 
 	for (const protocol of protocols) {
 		if (protocol.subRows) {
 			const childProtocols = protocol.subRows.filter((childProtocol) =>
-				categoriesToFilterSet.has(childProtocol.category)
+				categoriesToFilterSet.has(childProtocol.category ?? '')
 			)
 
 			if (childProtocols.length) {
@@ -112,7 +109,7 @@ const getProtocolsByCategory = (
 			continue
 		}
 
-		if (categoriesToFilterSet.has(protocol.category)) {
+		if (categoriesToFilterSet.has(protocol.category ?? '')) {
 			final.push(protocol)
 			continue
 		}
@@ -121,13 +118,13 @@ const getProtocolsByCategory = (
 	return final
 }
 
-const chainChartsKeys = {
+const chainChartsKeys: Record<string, string> = {
 	mcap: 'chainTokenMcap',
 	price: 'chainTokenPrice',
 	fdv: 'chainTokenFdv'
 }
 
-const protocolChartsKeys = {
+const protocolChartsKeys: Record<string, string> = {
 	mcap: 'mcap',
 	price: 'price',
 	fdv: 'fdv'
@@ -144,9 +141,7 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	</span>
 )
 
-const defaultColumns = (
-	type: IProtocolsWithTokensByChainPageData['type']
-): ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] => {
+function defaultColumns(type: TokenMetricType): ColumnDef<ITokenMetricProtocolRow>[] {
 	return [
 		{
 			id: 'name',
@@ -154,11 +149,13 @@ const defaultColumns = (
 			accessorFn: (protocol) => protocol.name,
 			enableSorting: false,
 			cell: ({ getValue, row }) => {
-				const value = getValue() as string
+				const value = getValue<string>()
 
-				const basePath = chainLikeCategories.has(row.original.category) ? 'chain' : 'protocol'
+				const basePath = chainLikeCategories.has(row.original.category ?? '') ? 'chain' : 'protocol'
 				const chartKey =
-					(chainLikeCategories.has(row.original.category) ? chainChartsKeys[type] : protocolChartsKeys[type]) ?? null
+					(chainLikeCategories.has(row.original.category ?? '')
+						? chainChartsKeys[type]
+						: protocolChartsKeys[type]) ?? null
 
 				return (
 					<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
@@ -222,17 +219,16 @@ const defaultColumns = (
 			header: 'Category',
 			accessorFn: (protocol) => protocol.category,
 			enableSorting: false,
-			cell: ({ getValue }) =>
-				getValue() ? (
-					<BasicLink
-						href={`/protocols/${slug(getValue() as string)}`}
-						className="text-sm font-medium text-(--link-text)"
-					>
-						{getValue() as string}
+			cell: ({ getValue }) => {
+				const value = getValue<string | null>()
+				return value ? (
+					<BasicLink href={`/protocols/${slug(value)}`} className="text-sm font-medium text-(--link-text)">
+						{value}
 					</BasicLink>
 				) : (
 					''
-				),
+				)
+			},
 			size: 128,
 			meta: {
 				align: 'end'
@@ -241,7 +237,7 @@ const defaultColumns = (
 	]
 }
 
-const mcapColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] = [
+const mcapColumns: ColumnDef<ITokenMetricProtocolRow>[] = [
 	...defaultColumns('mcap'),
 	{
 		id: 'mcap',
@@ -255,7 +251,7 @@ const mcapColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]
 	}
 ]
 
-const fdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] = [
+const fdvColumns: ColumnDef<ITokenMetricProtocolRow>[] = [
 	...defaultColumns('fdv'),
 	{
 		id: 'fdv',
@@ -269,7 +265,7 @@ const fdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>
 	}
 ]
 
-const priceColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] = [
+const priceColumns: ColumnDef<ITokenMetricProtocolRow>[] = [
 	...defaultColumns('price'),
 	{
 		id: 'price',
@@ -283,7 +279,7 @@ const priceColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0
 	}
 ]
 
-const outstandingFdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] = [
+const outstandingFdvColumns: ColumnDef<ITokenMetricProtocolRow>[] = [
 	...defaultColumns('outstanding-fdv'),
 	{
 		id: 'outstanding-fdv',
@@ -299,8 +295,8 @@ const outstandingFdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['prot
 	}
 ]
 
-function getMetricNameAndColumns(type: IProtocolsWithTokensByChainPageData['type']): {
-	columns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[]
+function getMetricNameAndColumns(type: TokenMetricType): {
+	columns: ColumnDef<ITokenMetricProtocolRow>[]
 	sortingState: SortingState
 } {
 	switch (type) {

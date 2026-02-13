@@ -22,6 +22,15 @@ import type { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { formattedNum, toNiceDaysAgo } from '~/utils'
+import type { IRecentProtocol } from './types'
+
+/** Row type after applyExtraTvl adds change/mcaptvl fields. */
+type RecentProtocolTableRow = IRecentProtocol & {
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+	mcaptvl: number | null
+}
 
 export function RecentlyListedProtocolsTable({
 	data,
@@ -29,15 +38,13 @@ export function RecentlyListedProtocolsTable({
 	chainList,
 	forkedList
 }: {
-	data: Array<IProtocolRow>
+	data: RecentProtocolTableRow[]
 	queries: {
 		[key: string]: string | string[]
 	}
 	selectedChains: Array<string>
 	chainList: Array<string>
-	forkedList: {
-		[name: string]: boolean
-	}
+	forkedList?: Record<string, boolean>
 }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'listedAt' }])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -46,9 +53,20 @@ export function RecentlyListedProtocolsTable({
 
 	const router = useRouter()
 
+	/**
+	 * protocolsColumns is typed as ColumnDef<IProtocolRow>[], but our RecentProtocolTableRow
+	 * is structurally compatible for all fields the columns actually access (name, tvl,
+	 * change_1d/7d/1m, mcap, mcaptvl, chains, deprecated, listedAt, category, etc.).
+	 * We cast here because IProtocolRow has a legacy chainTvls intersection type that is
+	 * unsatisfiable by any real data shape.
+	 */
+	const columns = (
+		router.pathname === '/airdrops' ? airdropsColumns : recentlyListedProtocolsColumns
+	) as unknown as ColumnDef<RecentProtocolTableRow>[]
+
 	const instance = useReactTable({
 		data,
-		columns: router.pathname === '/airdrops' ? airdropsColumns : recentlyListedProtocolsColumns,
+		columns,
 		state: {
 			sorting,
 			expanded,
@@ -59,7 +77,6 @@ export function RecentlyListedProtocolsTable({
 			sortUndefined: 'last'
 		},
 		onExpandedChange: setExpanded,
-		getSubRows: (row: IProtocolRow) => row.subRows,
 		onSortingChange: setSorting,
 		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,
@@ -148,7 +165,10 @@ const listedAtColumn: ColumnDef<IProtocolRow> = {
 const recentlyListedProtocolsColumns: ColumnDef<IProtocolRow>[] = [
 	...protocolsColumns.slice(0, 3),
 	listedAtColumn,
-	...protocolsColumns.slice(3, -1).filter((c: any) => !['volume_7d', 'fees_7d', 'revenue_7d'].includes(c.accessorKey))
+	...protocolsColumns.slice(3, -1).filter((c: ColumnDef<IProtocolRow>) => {
+		const key = 'accessorKey' in c ? c.accessorKey : undefined
+		return !['volume_7d', 'fees_7d', 'revenue_7d'].includes(key as string)
+	})
 ]
 
 const airdropsColumns: ColumnDef<IProtocolRow>[] = [
@@ -163,7 +183,10 @@ const airdropsColumns: ColumnDef<IProtocolRow>[] = [
 		}
 	},
 	listedAtColumn,
-	...protocolsColumns.slice(3, -1).filter((c: any) => !['volume_7d', 'fees_7d', 'revenue_7d'].includes(c.accessorKey))
+	...protocolsColumns.slice(3, -1).filter((c: ColumnDef<IProtocolRow>) => {
+		const key = 'accessorKey' in c ? c.accessorKey : undefined
+		return !['volume_7d', 'fees_7d', 'revenue_7d'].includes(key as string)
+	})
 ]
 
 function HideForkedProtocols() {
