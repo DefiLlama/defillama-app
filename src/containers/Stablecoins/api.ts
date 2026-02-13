@@ -84,8 +84,8 @@ export const fetchStablecoinDominanceAllApi = async (): Promise<StablecoinDomina
 	return fetchJson<StablecoinDominanceResponse>(PEGGEDCHART_DOMINANCE_ALL_API)
 }
 
-export const fetchStablecoinAssetApi = async (peggedId: string): Promise<StablecoinDetailResponse> => {
-	return fetchJson<StablecoinDetailResponse>(`${PEGGED_API}/${peggedId}`)
+export const fetchStablecoinAssetApi = async (peggedId: string): Promise<StablecoinDetailResponse | null> => {
+	return fetchJson<StablecoinDetailResponse | null>(`${PEGGED_API}/${peggedId}`)
 }
 
 /**

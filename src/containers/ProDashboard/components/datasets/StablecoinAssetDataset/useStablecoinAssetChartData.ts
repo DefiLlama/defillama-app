@@ -39,6 +39,9 @@ export function useStablecoinAssetChartData(stablecoinSlug: string): UseStableco
 			}
 
 			const res = await fetchStablecoinAssetApi(peggedID)
+			if (!res) {
+				return null
+			}
 
 			const chainsUnique: string[] = Object.keys(res.chainBalances || {})
 

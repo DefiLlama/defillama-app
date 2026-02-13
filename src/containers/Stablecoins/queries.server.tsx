@@ -417,6 +417,7 @@ export const getStablecoinAssetPageData = async (
 			fetchStablecoinRecentCoinsDataApi(),
 			getStablecoinBridgeInfo()
 		])
+		if (!res) return null
 
 		const peggedChart = recentCoinsData[peggedID]
 		const pegType = res.pegType ?? ''
