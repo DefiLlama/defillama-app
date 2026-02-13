@@ -3,13 +3,13 @@ import {
 	CHART_API,
 	DIMENSIONS_OVERVIEW_API,
 	DIMENSIONS_SUMMARY_API,
-	PEGGEDCHART_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_GAS_USED_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API
 } from '~/constants'
 import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
+import { fetchStablecoinChartApi } from '~/containers/Stablecoins/api'
 import { toDisplayName } from '~/utils/chainNormalizer'
 import { processAdjustedTvl } from '~/utils/tvl'
 import { convertToNumberFormat, normalizeHourlyToDaily } from '../utils'
@@ -136,8 +136,7 @@ export default class ChainCharts {
 		if (!chain) return []
 		const apiChain = toDisplayName(chain)
 		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
-		const response = await fetch(`${PEGGEDCHART_API}/${encodedChain}`)
-		const data = await response.json()
+		const data = await fetchStablecoinChartApi(encodedChain)
 
 		if (!data.aggregated || !Array.isArray(data.aggregated)) return []
 

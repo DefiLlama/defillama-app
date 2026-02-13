@@ -1,4 +1,5 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
+import { fetchLlamaConfig } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import {
 	CHART_API,
@@ -17,7 +18,7 @@ import type { IAdapterChainMetrics, IAdapterProtocolMetrics } from '~/containers
 import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
 import type { IAdapterChainOverview } from '~/containers/DimensionAdapters/types'
 import { getETFData } from '~/containers/ETF/queries'
-import { fetchStablecoinAssetsApi, fetchStablecoinConfigApi } from '~/containers/Stablecoins/api'
+import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { getStablecoinChainMcapSummary } from '~/containers/Stablecoins/queries.server'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
 import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
@@ -353,7 +354,7 @@ export async function getChainOverviewData({
 			chain === 'All' ? getDATInflows() : Promise.resolve(null),
 			chain !== 'All' ? fetchStablecoinAssetsApi().catch(() => null) : Promise.resolve(null),
 			chain !== 'All'
-				? fetchStablecoinConfigApi()
+				? fetchLlamaConfig()
 						.then((data) => data.chainCoingeckoIds?.[currentChainMetadata.name]?.stablecoins ?? null)
 						.catch(() => null)
 				: Promise.resolve(null)

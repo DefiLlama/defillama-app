@@ -1,7 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { PEGGEDCHART_API, PEGGEDPRICES_API, PEGGEDRATES_API, PEGGEDS_API } from '~/constants'
+import {
+	fetchStablecoinAssetsApi,
+	fetchStablecoinChartApi,
+	fetchStablecoinPricesApi,
+	fetchStablecoinRatesApi
+} from '~/containers/Stablecoins/api'
 import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
-import { fetchJson } from '~/utils/async'
 
 export function useStablecoinsData(chain: string) {
 	return useQuery({
@@ -9,10 +13,10 @@ export function useStablecoinsData(chain: string) {
 		queryFn: async () => {
 			// Fetch all required data in parallel
 			const [peggedData, chainData, priceData, rateData] = await Promise.all([
-				fetchJson(PEGGEDS_API),
-				fetchJson(`${PEGGEDCHART_API}/${chain === 'All' ? 'all-llama-app' : chain}`),
-				fetchJson(PEGGEDPRICES_API),
-				fetchJson(PEGGEDRATES_API)
+				fetchStablecoinAssetsApi(),
+				fetchStablecoinChartApi(chain === 'All' ? 'all-llama-app' : chain),
+				fetchStablecoinPricesApi(),
+				fetchStablecoinRatesApi()
 			])
 
 			const { peggedAssets } = peggedData

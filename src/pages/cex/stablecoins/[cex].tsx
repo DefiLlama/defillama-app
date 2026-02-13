@@ -14,10 +14,10 @@ import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
 import {
 	filterStablecoinsFromTokens,
-	getStablecoinsList,
 	groupTokensByPegMechanism,
 	groupTokensByPegType
 } from '~/containers/ProtocolOverview/utils'
+import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -235,7 +235,7 @@ function useStablecoinData(protocolName: string) {
 		dataUpdatedAt: stablecoinsListUpdatedAt
 	} = useQuery({
 		queryKey: ['cex', 'stablecoins', 'list', 'v1'],
-		queryFn: () => getStablecoinsList(),
+		queryFn: () => fetchStablecoinAssetsApi(),
 		staleTime: 6 * 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0

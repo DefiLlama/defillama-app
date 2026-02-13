@@ -37,16 +37,7 @@ export const TOKEN_LIST_API = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 
 export const NFT_SERVER_URL = 'https://nft.llama.fi'
 
-const STABLECOINS_SERVER_URL = process.env.STABLECOINS_SERVER_URL ?? 'https://stablecoins.llama.fi'
-export const PEGGEDS_API = `${STABLECOINS_SERVER_URL}/stablecoins`
-export const PEGGED_API = `${STABLECOINS_SERVER_URL}/stablecoin`
-export const PEGGEDCHART_API = `${STABLECOINS_SERVER_URL}/stablecoincharts2`
-export const PEGGEDCHART_DOMINANCE_ALL_API = `${STABLECOINS_SERVER_URL}/stablecoincharts2/all-dominance-chain-breakdown`
-export const PEGGEDCHART_COINS_RECENT_DATA_API = `${STABLECOINS_SERVER_URL}/stablecoincharts2/recent-protocol-data`
-export const PEGGEDCONFIG_API = `${STABLECOINS_SERVER_URL}/config`
-// const PEGGEDDOMINANCE_API = `${STABLECOINS_SERVER_URL}/stablecoindominance`
-export const PEGGEDPRICES_API = `${STABLECOINS_SERVER_URL}/stablecoinprices`
-export const PEGGEDRATES_API = `${STABLECOINS_SERVER_URL}/rates`
+export const STABLECOINS_SERVER_URL = process.env.STABLECOINS_SERVER_URL ?? 'https://stablecoins.llama.fi'
 
 const BRIDGES_SERVER_URL = process.env.BRIDGES_SERVER_URL ?? 'https://bridges.llama.fi'
 export const BRIDGEDAYSTATS_API = `${BRIDGES_SERVER_URL}/bridgedaystats`

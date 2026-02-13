@@ -18,10 +18,3 @@ type RawParentProtocol = {
 	name: string
 	gecko_id?: string | null
 }
-
-export type RawDimensionsOverviewResponse = {
-	protocols: Array<{
-		defillamaId: string
-		total24h?: number | null
-	}>
-}

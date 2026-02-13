@@ -1,6 +1,7 @@
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
-import { DIMENSIONS_OVERVIEW_API, YIELD_POOLS_API } from '~/constants'
+import { YIELD_POOLS_API } from '~/constants'
+import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import Layout from '~/layout'
 import { fetchApi } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -9,8 +10,16 @@ export const getStaticProps = withPerformanceLogging('about', async () => {
 	const [protocolsRaw, yields, fees, dexs] = await Promise.all([
 		getSimpleProtocolsPageData(),
 		fetchApi(YIELD_POOLS_API),
-		fetchApi(`${DIMENSIONS_OVERVIEW_API}/fees?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`),
-		fetchApi(`${DIMENSIONS_OVERVIEW_API}/dexs?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`)
+		fetchAdapterChainMetrics({
+			adapterType: 'fees',
+			chain: 'All',
+			dataType: 'dailyRevenue'
+		}),
+		fetchAdapterChainMetrics({
+			adapterType: 'dexs',
+			chain: 'All',
+			dataType: 'dailyVolume'
+		})
 	])
 
 	return {
