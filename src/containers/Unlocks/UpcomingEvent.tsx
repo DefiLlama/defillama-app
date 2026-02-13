@@ -69,7 +69,9 @@ const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage }: Calend
 
 				<Ariakit.MenuItem
 					render={
-						<a href={`/api/calendar/${tokenName}?timestamp=${event.timestamp}&value=${tokenValue}&name=${tokenName}`} />
+						<a
+							href={`/api/calendar/${tokenName}?timestamp=${event.timestamp}&value=${tokenValue ?? ''}&name=${tokenName}`}
+						/>
 					}
 					className="flex shrink-0 cursor-pointer items-center gap-2 px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 				>

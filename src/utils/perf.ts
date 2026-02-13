@@ -55,7 +55,7 @@ export const withPerformanceLogging = <T extends object>(
 
 type FetchOverCacheOptions = RequestInit & { ttl?: string | number; silent?: boolean; timeout?: number }
 
-const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOverCacheOptions): Promise<Response> => {
+export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOverCacheOptions): Promise<Response> => {
 	const cacheKey = 'defillama-cache:' + url.toString().replace(/^https?:\/\//, '')
 	const cache = REDIS_URL ? await getCache(cacheKey) : null
 
@@ -93,7 +93,7 @@ const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOverCacheOp
 
 			const arrayBuffer = await response.arrayBuffer()
 			const Body = Buffer.from(arrayBuffer)
-			const ContentType = response.headers.get('Content-Type')
+			const ContentType = response.headers.get('Content-Type') ?? 'application/octet-stream'
 			StatusCode = response.status
 			const StatusText = response.statusText
 			const payload: RedisCachePayload = {

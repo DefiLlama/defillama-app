@@ -346,7 +346,12 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: 'Bridged TVL',
 		accessorKey: 'chainAssets',
-		accessorFn: (row) => (row.chainAssets?.total?.total ? +(+row.chainAssets.total.total).toFixed(2) : undefined),
+		accessorFn: (row) => {
+			const total = row.chainAssets?.total
+			if (total == null) return undefined
+			const raw = typeof total === 'object' ? (total as { total: string }).total : String(total)
+			return raw ? +(+raw).toFixed(2) : undefined
+		},
 		cell: ({ row }) => {
 			const chainAssets: any = row.original.chainAssets
 			if (!chainAssets?.total?.total) return null

@@ -356,13 +356,17 @@ function useChainsChartFilterState() {
 
 	const setSelectedValues: React.Dispatch<React.SetStateAction<Array<string> | string>> = (action) => {
 		const resolved = typeof action === 'function' ? action(selectedValues) : action
-		const valuesArray = Array.isArray(resolved) ? resolved : [resolved]
+		const valuesArray = (Array.isArray(resolved) ? resolved : [resolved]).filter(
+			(value): value is string => typeof value === 'string'
+		)
+		const selectedSet = new Set(valuesArray)
+
 		router.push(
 			{
 				query: {
 					chains: router.query.chains,
-					...valuesArray.reduce<Record<string, string>>((acc, value) => {
-						acc[value] = 'true'
+					...supportedCharts.reduce<Record<string, string>>((acc, chart) => {
+						acc[chart.key] = selectedSet.has(chart.key) ? 'true' : 'false'
 						return acc
 					}, {})
 				}

@@ -7,8 +7,8 @@ import {
 	PROTOCOL_API,
 	PROTOCOLS_API
 } from '~/constants'
-import { fetchStablecoinChartAllApi, fetchStablecoinDominanceAllApi } from '~/containers/Stablecoins/api'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
+import { fetchStablecoinChartAllApi, fetchStablecoinDominanceAllApi } from '~/containers/Stablecoins/api'
 import {
 	buildChainMatchSet as buildChainMatchSetFromNormalizer,
 	toDimensionsSlug,

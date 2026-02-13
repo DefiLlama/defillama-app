@@ -125,7 +125,7 @@ export const subscribeToStorageKey = (key: string, callback: StorageListener) =>
 	}
 }
 
-const subscribeToStorageKeys = (keys: string[], callback: StorageListener) => {
+export const subscribeToStorageKeys = (keys: string[], callback: StorageListener) => {
 	const uniqueKeys = Array.from(new Set(keys))
 	const unsubs = uniqueKeys.map((key) => subscribeToStorageKey(key, callback))
 
@@ -136,7 +136,7 @@ const subscribeToStorageKeys = (keys: string[], callback: StorageListener) => {
 	}
 }
 
-const subscribeToAnyStorage = (callback: StorageListener) => {
+export const subscribeToAnyStorage = (callback: StorageListener) => {
 	ensureStorageListener()
 
 	if (!anyListeners.has(callback)) {
@@ -208,7 +208,7 @@ export const removeStorageItem = (key: string) => {
 	}
 }
 
-const getStorageJSON = <T>(key: string, fallback: T) => {
+export const getStorageJSON = <T>(key: string, fallback: T) => {
 	const raw = getStorageItem(key, null)
 	if (!raw) return fallback
 	try {
@@ -218,6 +218,6 @@ const getStorageJSON = <T>(key: string, fallback: T) => {
 	}
 }
 
-const setStorageJSON = (key: string, value: unknown) => {
+export const setStorageJSON = (key: string, value: unknown) => {
 	setStorageItem(key, JSON.stringify(value))
 }

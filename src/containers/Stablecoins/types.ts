@@ -5,6 +5,7 @@ import type {
 	StablecoinListAsset,
 	StablecoinsListResponse
 } from './api.types'
+import type { FormattedStablecoinAsset, IFormattedStablecoinChainRow } from './utils'
 
 type StablecoinOverviewChartPoint = {
 	date: number
@@ -26,7 +27,7 @@ export interface StablecoinOverviewChartInputs {
 
 export interface PeggedOverviewPageData {
 	chains: string[]
-	filteredPeggedAssets: Array<{ name: string; mcap: number; [key: string]: unknown }>
+	filteredPeggedAssets: FormattedStablecoinAsset[]
 	peggedAssetNames: string[]
 	peggedNameToChartDataIndex: Record<string, number>
 	chartDataByPeggedAsset: StablecoinOverviewChartPoint[][]
@@ -35,12 +36,14 @@ export interface PeggedOverviewPageData {
 }
 
 export interface PeggedChainsPageData {
-	chainCirculatings: Array<Record<string, unknown>>
+	chainCirculatings: IFormattedStablecoinChainRow[]
 	chartData: StablecoinChartPoint[]
 	peggedChartDataByChain: Array<Array<{ date: number; mcap: number | null }> | null>
 	chainList: string[]
 	chainsGroupbyParent: Record<string, Record<string, string[]>>
 }
+
+export type StablecoinBridges = Record<string, Record<string, { amount: number }>> | null
 
 export interface PeggedAssetPageProps {
 	chainsUnique: string[]
@@ -54,7 +57,7 @@ export interface PeggedAssetPageProps {
 		circulatingPrevWeek: number | null
 		circulatingPrevMonth: number | null
 		bridgedAmount: number | null
-		bridges: unknown
+		bridges: StablecoinBridges
 		name: string
 		symbol: string
 	}>

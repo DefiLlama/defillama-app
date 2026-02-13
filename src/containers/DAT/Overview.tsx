@@ -102,8 +102,7 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 						if (!p) continue
 						const pData = asRecord(p.data) ?? {}
 						const pValueArray = Array.isArray(p.value) ? p.value : undefined
-						const seriesValue =
-							(typeof p.seriesName === 'string' ? pData[p.seriesName] : undefined) ?? pValueArray?.[1]
+						const seriesValue = (typeof p.seriesName === 'string' ? pData[p.seriesName] : undefined) ?? pValueArray?.[1]
 						if (!seriesValue) continue
 						const numericValue = typeof seriesValue === 'number' ? seriesValue : Number(seriesValue)
 						if (!numericValue) continue
@@ -317,9 +316,7 @@ const overviewColumns: ColumnDef<IDATOverviewPageProps['institutions'][0]>[] = [
 						<>
 							24h change:{' '}
 							<span
-								className={
-									priceChange24h > 0 ? 'text-(--success)' : priceChange24h < 0 ? 'text-(--error)' : ''
-								}
+								className={priceChange24h > 0 ? 'text-(--success)' : priceChange24h < 0 ? 'text-(--error)' : ''}
 							>{`${priceChange24h > 0 ? '+' : ''}${priceChange24h.toFixed(2)}%`}</span>
 						</>
 					}

@@ -54,6 +54,15 @@
 		"src/containers/Treasuries/**/*.ts",
 		"src/containers/Treasuries/**/*.tsx",
 		"src/containers/DAT/**/*.ts",
-		"src/containers/DAT/**/*.tsx"
+		"src/containers/DAT/**/*.tsx",
+		"src/containers/Stablecoins/**/*.ts",
+		"src/containers/Stablecoins/**/*.tsx",
+		"src/api/shared.ts",
+		"src/utils/**/*.ts",
+		"src/utils/**/*.tsx",
+		"src/contexts/**/*.ts",
+		"src/contexts/**/*.tsx",
+		"src/hooks/**/*.ts",
+		"src/hooks/**/*.tsx"
 	]
 }

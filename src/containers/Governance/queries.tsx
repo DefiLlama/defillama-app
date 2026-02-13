@@ -148,6 +148,98 @@ function normalizeGovernanceOverviewItem(raw: RawGovernanceOverviewItem): Govern
 	}
 }
 
+const mergeNumberRecord = (base: Record<string, number>, incoming: Record<string, number>): Record<string, number> => {
+	const merged: Record<string, number> = { ...base }
+
+	for (const [key, value] of Object.entries(incoming)) {
+		merged[key] = (merged[key] ?? 0) + value
+	}
+
+	return merged
+}
+
+const mergeMonths = (
+	base: GovernanceOverviewItem['months'],
+	incoming: GovernanceOverviewItem['months']
+): GovernanceOverviewItem['months'] => {
+	const merged: GovernanceOverviewItem['months'] = { ...base }
+
+	for (const [month, monthData] of Object.entries(incoming)) {
+		const existingMonthData = merged[month]
+
+		if (!existingMonthData) {
+			merged[month] = monthData
+			continue
+		}
+
+		const active = (existingMonthData.states.active ?? 0) + (monthData.states.active ?? 0)
+		const closed = (existingMonthData.states.closed ?? 0) + (monthData.states.closed ?? 0)
+
+		merged[month] = {
+			proposals: Array.from(new Set([...existingMonthData.proposals, ...monthData.proposals])),
+			states: {
+				...(existingMonthData.states.active != null || monthData.states.active != null ? { active } : {}),
+				...(existingMonthData.states.closed != null || monthData.states.closed != null ? { closed } : {})
+			}
+		}
+	}
+
+	return merged
+}
+
+const mergeGovernanceOverviewItems = (
+	base: GovernanceOverviewItem,
+	incoming: GovernanceOverviewItem
+): GovernanceOverviewItem => {
+	const proposalsCount = (toFiniteNumber(base.proposalsCount) ?? 0) + (toFiniteNumber(incoming.proposalsCount) ?? 0)
+	const followersCount = (toFiniteNumber(base.followersCount) ?? 0) + (toFiniteNumber(incoming.followersCount) ?? 0)
+	const strategyCount = (toFiniteNumber(base.strategyCount) ?? 0) + (toFiniteNumber(incoming.strategyCount) ?? 0)
+	const successfulProposals = (base.successfulProposals ?? 0) + (incoming.successfulProposals ?? 0)
+	const hasSuccessfulProposals = base.successfulProposals != null || incoming.successfulProposals != null
+
+	const states = mergeNumberRecord(base.states, incoming.states)
+
+	return {
+		name: base.name || incoming.name,
+		proposalsCount: toCountString(proposalsCount),
+		followersCount: toCountString(followersCount),
+		strategyCount: toCountString(strategyCount),
+		...(hasSuccessfulProposals ? { successfulProposals } : {}),
+		states,
+		months: mergeMonths(base.months, incoming.months),
+		proposalsInLast30Days: base.proposalsInLast30Days + incoming.proposalsInLast30Days,
+		successfulProposalsInLast30Days: base.successfulProposalsInLast30Days + incoming.successfulProposalsInLast30Days,
+		subRowData: states
+	}
+}
+
+const buildGovernanceOverviewData = (datasets: RawGovernanceOverview[]): GovernanceOverviewItem[] => {
+	const mergedByProject = new Map<string, GovernanceOverviewItem>()
+
+	for (const dataset of datasets) {
+		if (dataset == null || typeof dataset !== 'object' || Array.isArray(dataset)) {
+			continue
+		}
+
+		for (const [rawKey, item] of Object.entries(dataset)) {
+			if (item == null || typeof item !== 'object' || Array.isArray(item)) {
+				continue
+			}
+
+			const normalizedItem = normalizeGovernanceOverviewItem(item as RawGovernanceOverviewItem)
+			const projectKey = slug(normalizedItem.name || rawKey) || rawKey
+			const existingItem = mergedByProject.get(projectKey)
+
+			mergedByProject.set(
+				projectKey,
+				existingItem ? mergeGovernanceOverviewItems(existingItem, normalizedItem) : normalizedItem
+			)
+		}
+	}
+
+	return Array.from(mergedByProject.values())
+}
+
 export async function getGovernancePageData(): Promise<{ data: GovernanceOverviewItem[] }> {
 	const [snapshot, compound, tally] = await Promise.all([
 		fetchJson<RawGovernanceOverview>(GOVERNANCE_SNAPSHOT_API),
@@ -155,9 +247,7 @@ export async function getGovernancePageData(): Promise<{ data: GovernanceOvervie
 		fetchJson<RawGovernanceOverview>(GOVERNANCE_TALLY_API)
 	])
 
-	const data: GovernanceOverviewItem[] = Object.values({ ...snapshot, ...compound, ...tally }).map((item) =>
-		normalizeGovernanceOverviewItem(item)
-	)
+	const data = buildGovernanceOverviewData([snapshot, compound, tally])
 
 	return {
 		data

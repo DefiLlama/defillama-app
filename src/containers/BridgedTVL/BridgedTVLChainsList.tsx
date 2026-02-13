@@ -43,6 +43,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }: BridgedTVLChai
 				Native: row?.native?.total
 			}
 		})
+		if (csvData.length === 0) return { filename: 'bridged-chains.csv', rows: [] }
 		const headers = Object.keys(csvData[0])
 		const rows = [headers].concat(csvData.map((row) => headers.map((header) => String(row[header] ?? ''))))
 

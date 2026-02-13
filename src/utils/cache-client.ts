@@ -5,8 +5,7 @@ import {
 	TRAILING_DASH_REGEX
 } from './regex-constants'
 
-// let redis = null as null | import('ioredis').Redis
-let redis = null
+let redis: import('ioredis').Redis | null = null
 const REDIS_URL = process.env.REDIS_URL as string
 const USE_REDIS = !!process.env.USE_REDIS
 const EXT_REDIS_URL = process.env.EXT_REDIS_URL as string | undefined
@@ -90,7 +89,7 @@ export const setCache = async (payload: RedisCachePayload, ttl?: string | number
 	}
 }
 
-export const setPageBuildTimes = async (pageUrl, cacheObject) => {
+export const setPageBuildTimes = async (pageUrl: string, cacheObject: unknown) => {
 	if (!redis) {
 		return false
 	}
@@ -105,7 +104,7 @@ export const setPageBuildTimes = async (pageUrl, cacheObject) => {
 	}
 }
 
-const isCpusHot = async () => {
+export const isCpusHot = async () => {
 	return false
 	/*
 	if (!redis) {
@@ -169,7 +168,7 @@ export const getCache = async (Key: string) => {
 	}
 }
 
-const deleteCache = async (Key: string) => {
+export const deleteCache = async (Key: string) => {
 	if (!redis) {
 		return true
 	}
@@ -184,7 +183,7 @@ const deleteCache = async (Key: string) => {
 	}
 }
 
-export const setObjectCache = async (key: string, data: any, ttl = 3600) => {
+export const setObjectCache = async (key: string, data: unknown, ttl = 3600) => {
 	if (!redis) {
 		return false
 	}
@@ -199,11 +198,19 @@ export const setObjectCache = async (key: string, data: any, ttl = 3600) => {
 	}
 }
 
-export const getObjectCache = async (key: string) => {
+export const getObjectCache = async <T = unknown>(key: string): Promise<T | null> => {
 	if (!redis) {
 		return null
 	}
 
-	const res = await redis.get(key)
-	return res ? JSON.parse(res) : null
+	try {
+		const res = await redis.get(key)
+		if (!res) return null
+		const parsed: unknown = JSON.parse(res)
+		return parsed as T
+	} catch (error) {
+		console.log('[error] [cache] [failed to get]', key)
+		console.log(error)
+		return null
+	}
 }

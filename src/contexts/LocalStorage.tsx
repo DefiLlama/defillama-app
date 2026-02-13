@@ -11,7 +11,6 @@ export const THEME_SYNC_KEY = 'defillama-theme' as const
 const valuesOf = <T extends Record<string, string>>(obj: T) => Object.values(obj) as Array<T[keyof T]>
 
 export const DARK_MODE = 'DARK_MODE' as const
-const UNRELEASED = 'unreleased' as const
 export const DEFAULT_PORTFOLIO_NAME = 'main' as const
 const BRIDGES_SHOWING_TXS = 'BRIDGES_SHOWING_TXS' as const
 export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES' as const
@@ -116,7 +115,7 @@ const BRIDGES_SETTINGS = { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES } as c
 
 export type TvlSettingsKey = (typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS]
 export type FeesSettingKey = (typeof FEES_SETTINGS)[keyof typeof FEES_SETTINGS]
-type YieldsSettingKey = (typeof YIELDS_SETTINGS)[keyof typeof YIELDS_SETTINGS]
+export type YieldsSettingKey = (typeof YIELDS_SETTINGS)[keyof typeof YIELDS_SETTINGS]
 type NftSettingKey = (typeof NFT_SETTINGS)[keyof typeof NFT_SETTINGS]
 type LiquidationsSettingKey = (typeof LIQS_SETTINGS)[keyof typeof LIQS_SETTINGS]
 type BridgesSettingKey = (typeof BRIDGES_SETTINGS)[keyof typeof BRIDGES_SETTINGS]
@@ -192,7 +191,7 @@ export function subscribeToLocalStorage(callback: () => void) {
 	return subscribeToStorageKey(DEFILLAMA, callback)
 }
 
-function subscribeToPinnedMetrics(callback: () => void) {
+export function subscribeToPinnedMetrics(callback: () => void) {
 	return subscribeToStorageKey(PINNED_METRICS_KEY, callback)
 }
 
@@ -266,8 +265,9 @@ export const updateAllSettingsInLsAndUrl = (keys: Partial<Record<SettingKey, boo
 
 	const url = new URL(window.location.href)
 
-	for (const key in keys) {
-		if (keys[key]) {
+	const keysRecord: Record<string, boolean | undefined> = keys
+	for (const key in keysRecord) {
+		if (keysRecord[key]) {
 			url.searchParams.set(key, 'true')
 		} else {
 			url.searchParams.delete(key)
@@ -357,7 +357,7 @@ const updateAllSettings = (keys: Partial<Record<SettingKey, boolean>>) => {
 	writeAppStorage({ ...(current as AppStorage), ...keys })
 }
 
-function useManageAppSettings(): [SettingsStore, (keys: Partial<Record<SettingKey, boolean>>) => void] {
+export function useManageAppSettings(): [SettingsStore, (keys: Partial<Record<SettingKey, boolean>>) => void] {
 	const store = useSyncExternalStore(
 		subscribeToLocalStorage,
 		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
@@ -555,7 +555,7 @@ export function useCustomColumns() {
 	}
 }
 
-function useLlamaAIWelcome(): [boolean, () => void] {
+export function useLlamaAIWelcome(): [boolean, () => void] {
 	const store = useSyncExternalStore(
 		subscribeToLocalStorage,
 		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',

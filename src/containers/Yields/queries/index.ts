@@ -1,5 +1,4 @@
 import { fetchCoinPrices } from '~/api'
-import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import {
 	PROTOCOLS_API,
 	YIELD_TOKEN_CATEGORIES_API,
@@ -11,6 +10,7 @@ import {
 	YIELD_POOLS_API,
 	YIELD_URL_API
 } from '~/constants'
+import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { fetchApi } from '~/utils/async'
 import { formatYieldsPageData } from './utils'
 

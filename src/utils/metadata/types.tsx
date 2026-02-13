@@ -3,6 +3,7 @@ export interface IChainMetadata {
 	dexs?: boolean
 	name: string
 	activeUsers?: boolean
+	activeLiquidity?: boolean
 	fees?: boolean
 	revenue?: boolean
 	chainFees?: boolean
@@ -18,12 +19,12 @@ export interface IChainMetadata {
 	inflows?: boolean
 	chainAssets?: boolean
 	gecko_id?: string
-	tokenSymbol?: string
+	tokenSymbol?: string | null
 	github?: boolean
 	id: string
 	protocolCount?: number
 	incentives?: boolean
-	dimAgg?: Record<string, Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>>
+	dimAgg?: Record<string, Record<string, { '24h'?: number | null; '7d'?: number | null; '30d'?: number | null }>>
 }
 
 export interface IProtocolMetadata {

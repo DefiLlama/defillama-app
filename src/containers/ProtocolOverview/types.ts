@@ -33,8 +33,6 @@ export interface IProtocolPageMetrics {
 	tokenRights: boolean
 }
 
-export type { ITokenRights, IProtocolMetricsV2, IRaise } from './api.types'
-
 interface IAdapterOverview {
 	total24h: number | null
 	total7d: number | null

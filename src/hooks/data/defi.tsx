@@ -6,10 +6,10 @@ import { formatNum, getDominancePercent, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
 
 interface IData {
-	tvl: number
-	tvlPrevDay: number
-	tvlPrevWeek: number
-	tvlPrevMonth: number
+	tvl: number | null
+	tvlPrevDay: number | null
+	tvlPrevWeek: number | null
+	tvlPrevMonth: number | null
 	extraTvl?: {
 		[key: string]: { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
 	}
@@ -26,8 +26,18 @@ interface IFormattedDataWithExtraTvlProps {
 	chainAssets?: IChainAssets
 }
 
+interface IFormattedChainAssetsSummary {
+	total: string | number
+	ownTokens: string | null
+	canonical: string | null
+	native: string | null
+	thirdParty: string | null
+}
+
+type ChainAssetsField = IFormattedChainAssetsSummary | IChainAsset | null
+
 export interface IFormattedDataWithExtraTvl {
-	chainAssets?: IChainAsset | null
+	chainAssets?: ChainAssetsField
 	tvl: number
 	tvlPrevDay: number
 	tvlPrevWeek: number
@@ -39,7 +49,7 @@ export interface IFormattedDataWithExtraTvl {
 	mcaptvl: number | null
 	name: string
 	subRows?: Array<{
-		chainAssets?: IChainAsset | null
+		chainAssets?: ChainAssetsField
 		tvl: number
 		tvlPrevDay: number
 		tvlPrevWeek: number
@@ -151,7 +161,12 @@ export function formatDataWithExtraTvls({
 		let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
 		let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
 
-		const mcaptvl = mcap && finalTvl ? +formatNum(+mcap.toFixed(2) / +finalTvl.toFixed(2)) : null
+		const mcapNum = mcap ?? null
+		const tvlNum = finalTvl
+		const mcaptvl =
+			mcapNum != null && tvlNum != null && tvlNum !== 0
+				? +(formatNum(+mcapNum.toFixed(2) / +tvlNum.toFixed(2)) ?? 0)
+				: null
 
 		let assets = null
 
@@ -174,15 +189,15 @@ export function formatDataWithExtraTvls({
 		return {
 			...props,
 			chainAssets: assets,
-			tvl: finalTvl < 0 ? 0 : finalTvl,
-			tvlPrevDay: finalTvlPrevDay < 0 ? 0 : finalTvlPrevDay,
-			tvlPrevWeek: finalTvlPrevWeek < 0 ? 0 : finalTvlPrevWeek,
-			tvlPrevMonth: finalTvlPrevMonth < 0 ? 0 : finalTvlPrevMonth,
+			tvl: finalTvl != null && finalTvl < 0 ? 0 : (finalTvl ?? 0),
+			tvlPrevDay: finalTvlPrevDay != null && finalTvlPrevDay < 0 ? 0 : (finalTvlPrevDay ?? 0),
+			tvlPrevWeek: finalTvlPrevWeek != null && finalTvlPrevWeek < 0 ? 0 : (finalTvlPrevWeek ?? 0),
+			tvlPrevMonth: finalTvlPrevMonth != null && finalTvlPrevMonth < 0 ? 0 : (finalTvlPrevMonth ?? 0),
 			change_1d: change1d,
 			change_7d: change7d,
 			change_1m: change1m,
-			mcap,
-			mcaptvl: mcaptvl ?? undefined
+			mcap: mcap ?? null,
+			mcaptvl
 		}
 	})
 
@@ -190,16 +205,18 @@ export function formatDataWithExtraTvls({
 		return updatedProtocols.sort((a, b) => b.tvl - a.tvl)
 	} else {
 		return updatedProtocols.sort((a, b) => {
+			const aVal = a[defaultSortingColumn as keyof typeof a]
+			const bVal = b[defaultSortingColumn as keyof typeof b]
 			if (dir === 'asc') {
-				return a[defaultSortingColumn] - b[defaultSortingColumn]
-			} else return b[defaultSortingColumn] - a[defaultSortingColumn]
+				return (Number(aVal) || 0) - (Number(bVal) || 0)
+			} else return (Number(bVal) || 0) - (Number(aVal) || 0)
 		})
 	}
 }
 
 interface IGroupTvlsByDay {
 	chains: Readonly<Array<TCompressedChain>>
-	tvlTypes: any
+	tvlTypes: Record<string, string> | null
 	extraTvlsEnabled: Record<string, boolean>
 }
 
@@ -218,7 +235,7 @@ type DimensionDatasetItem = {
 	change_7d?: number
 	change_1m?: number
 	chains?: string[]
-	chainBreakdown?: Record<string, any>
+	chainBreakdown?: Record<string, unknown>
 }
 
 export function groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled }: IGroupTvlsByDay) {
@@ -235,7 +252,7 @@ export function groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled }: I
 		extraTvls = mappedExtraTvls
 	}
 
-	const daySum = {}
+	const daySum: Record<string, number> = {}
 
 	const chainsWithExtraTvlsByDay = chains.map(([date, values]) => {
 		const tvls: IChainTvl = {}
@@ -278,8 +295,11 @@ export function groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled }: I
 		return { date: Number(date), ...tvls }
 	})
 
-	const chainsWithExtraTvlsAndDominanceByDay = chainsWithExtraTvlsByDay.map(({ date, ...values }) => {
-		const shares = {}
+	const chainsWithExtraTvlsAndDominanceByDay = chainsWithExtraTvlsByDay.map((entry) => {
+		// `entry` is built from numeric day sums above ({ date: Number(date), ...tvls }),
+		// so this cast narrows to the concrete runtime shape used for dominance math.
+		const { date, ...values } = entry as { date: number } & Record<string, number>
+		const shares: Record<string, number | string> = {}
 
 		for (const value in values) {
 			shares[value] = getDominancePercent(values[value], daySum[date])
@@ -325,28 +345,33 @@ export const formatProtocolsList = ({
 
 	const mergeChainBreakdown = (
 		existing: Record<string, ChainMetricSnapshot> | undefined,
-		incoming?: Record<string, any>
+		incoming?: Record<string, unknown>
 	): Record<string, ChainMetricSnapshot> | undefined => {
 		if (!incoming) return existing
 		const next: Record<string, ChainMetricSnapshot> = { ...(existing ?? {}) }
 		for (const key in incoming) {
 			const rawValue = incoming[key]
-			if (!rawValue) continue
-			const value = rawValue as ChainMetricSnapshot & { chain?: string }
+			if (!rawValue || typeof rawValue !== 'object') continue
+			const value = rawValue as Record<string, unknown>
 			const chainLabel = typeof value.chain === 'string' && value.chain.trim().length ? value.chain : key
 			const normalizedKey =
 				typeof chainLabel === 'string' && chainLabel.trim().length
 					? chainLabel.trim().toLowerCase()
 					: key.trim().toLowerCase()
 			next[normalizedKey] = {
-				...value,
+				...(value as ChainMetricSnapshot),
 				chain: chainLabel
 			}
 		}
 		return next
 	}
 
-	const getChainBreakdown = (item: any) => item?.chainBreakdown as Record<string, ChainMetricSnapshot> | undefined
+	const getChainBreakdown = (item: object): Record<string, unknown> | undefined => {
+		const rec = item as Record<string, unknown>
+		return typeof rec.chainBreakdown === 'object' && rec.chainBreakdown != null
+			? (rec.chainBreakdown as Record<string, unknown>)
+			: undefined
+	}
 
 	const allProtocols: Record<string, IFormattedProtocol> = {}
 
@@ -366,7 +391,7 @@ export const formatProtocolsList = ({
 				strikeTvl = true
 			}
 
-			if (removedCategoriesFromChainTvlSet.has(props.category)) {
+			if (props.category != null && removedCategoriesFromChainTvlSet.has(props.category)) {
 				strikeTvl = true
 			}
 
@@ -407,7 +432,13 @@ export const formatProtocolsList = ({
 		let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
 		let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
 
-		const mcaptvl = mcap && finalTvl ? +formatNum(+mcap.toFixed(2) / +finalTvl.toFixed(2)) : null
+		let mcaptvl: number | null = null
+		{
+			const t = finalTvl
+			if (mcap != null && t != null && t !== 0) {
+				mcaptvl = +(formatNum(+mcap.toFixed(2) / +t.toFixed(2)) ?? 0)
+			}
+		}
 
 		allProtocols[name?.toLowerCase()] = {
 			...props,
@@ -421,7 +452,7 @@ export const formatProtocolsList = ({
 			change_7d: change7d,
 			change_1m: change1m,
 			mcap,
-			mcaptvl: mcaptvl ?? undefined,
+			mcaptvl,
 			strikeTvl
 		}
 	}
@@ -550,7 +581,7 @@ export const formatProtocolsList = ({
 			earnings_24h: protocol.total24h ?? previous.earnings_24h,
 			earnings_7d: protocol.total7d ?? previous.earnings_7d,
 			earnings_30d: protocol.total30d ?? previous.earnings_30d,
-			earnings_1y: (protocol as any)?.total1y ?? previous.earnings_1y,
+			earnings_1y: protocol.total1y ?? previous.earnings_1y,
 			earningsChange_1d: protocol.change_1d ?? previous.earningsChange_1d,
 			earningsChange_7d: protocol.change_7d ?? previous.earningsChange_7d,
 			earningsChange_1m: protocol.change_1m ?? previous.earningsChange_1m,
@@ -667,11 +698,48 @@ export const formatProtocolsList2 = ({
 	minTvl: number | null
 	maxTvl: number | null
 }): IProtocol[] => {
+	type TvlEntry = { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
+	type MutableTvlEntry = {
+		tvl: number | null
+		tvlPrevDay: number | null
+		tvlPrevWeek: number | null
+		tvlPrevMonth: number | null
+	}
+	const nullTvlEntry: MutableTvlEntry = { tvl: null, tvlPrevDay: null, tvlPrevWeek: null, tvlPrevMonth: null }
+	const coerceTvlDefaults = (entry: MutableTvlEntry): TvlEntry => ({
+		tvl: entry.tvl ?? 0,
+		tvlPrevDay: entry.tvlPrevDay ?? 0,
+		tvlPrevWeek: entry.tvlPrevWeek ?? 0,
+		tvlPrevMonth: entry.tvlPrevMonth ?? 0
+	})
+
 	const shouldModifyTvl = Object.values(extraTvlsEnabled).some((t) => t) || minTvl !== null || maxTvl !== null
 
 	if (!shouldModifyTvl) return protocols
 
-	const final = []
+	const addOrNull = (acc: number | null | undefined, value: number | null | undefined) => {
+		if (acc == null || value == null) return null
+		return acc + value
+	}
+
+	const getTvlEntry = (tvlRecord: Record<string, TvlEntry>, key: string): TvlEntry | undefined => tvlRecord[key]
+
+	const processTvl = (tvlRecord: Record<string, TvlEntry>, base: MutableTvlEntry): MutableTvlEntry => {
+		for (const tvlKey in tvlRecord) {
+			if (extraTvlsEnabled[tvlKey] && tvlKey !== 'doublecounted' && tvlKey !== 'liquidstaking') {
+				const entry = getTvlEntry(tvlRecord, tvlKey)
+				if (entry) {
+					base.tvl = addOrNull(base.tvl, entry.tvl)
+					base.tvlPrevDay = addOrNull(base.tvlPrevDay, entry.tvlPrevDay)
+					base.tvlPrevWeek = addOrNull(base.tvlPrevWeek, entry.tvlPrevWeek)
+					base.tvlPrevMonth = addOrNull(base.tvlPrevMonth, entry.tvlPrevMonth)
+				}
+			}
+		}
+		return base
+	}
+
+	const final: IProtocol[] = []
 	for (const protocol of protocols) {
 		if (protocol.tvl == null) {
 			if (minTvl === null && maxTvl === null) {
@@ -680,26 +748,13 @@ export const formatProtocolsList2 = ({
 		} else {
 			let strikeTvl = protocol.strikeTvl ?? false
 
-			let defaultTvl = { ...(protocol.tvl?.default ?? ({} as any)) }
+			const defaultTvl: MutableTvlEntry = { ...(protocol.tvl?.default ?? nullTvlEntry) }
 
 			if (strikeTvl && (extraTvlsEnabled['liquidstaking'] || extraTvlsEnabled['doublecounted'])) {
 				strikeTvl = false
 			}
 
-			const addOrNull = (acc: number | null | undefined, value: number | null | undefined) => {
-				if (acc == null || value == null) return null
-				return (acc ?? 0) + (value ?? 0)
-			}
-
-			for (const tvlKey in protocol.tvl) {
-				// if tvlKey is doublecounted or liquidstaking just strike tvl but do not add them
-				if (extraTvlsEnabled[tvlKey] && tvlKey !== 'doublecounted' && tvlKey !== 'liquidstaking') {
-					defaultTvl.tvl = addOrNull(defaultTvl.tvl, protocol.tvl[tvlKey].tvl)
-					defaultTvl.tvlPrevDay = addOrNull(defaultTvl.tvlPrevDay, protocol.tvl[tvlKey].tvlPrevDay)
-					defaultTvl.tvlPrevWeek = addOrNull(defaultTvl.tvlPrevWeek, protocol.tvl[tvlKey].tvlPrevWeek)
-					defaultTvl.tvlPrevMonth = addOrNull(defaultTvl.tvlPrevMonth, protocol.tvl[tvlKey].tvlPrevMonth)
-				}
-			}
+			processTvl(protocol.tvl, defaultTvl)
 
 			const tvlChange = {
 				change1d: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevDay),
@@ -708,71 +763,74 @@ export const formatProtocolsList2 = ({
 			}
 
 			const mcaptvl =
-				protocol.mcap && defaultTvl.tvl ? +formatNum(+protocol.mcap.toFixed(2) / +defaultTvl.tvl.toFixed(2)) : null
+				protocol.mcap != null && defaultTvl.tvl
+					? +(formatNum(+protocol.mcap.toFixed(2) / +defaultTvl.tvl.toFixed(2)) ?? 0)
+					: null
 
 			if (protocol.childProtocols) {
-				const childProtocols = []
+				const childProtocols: IProtocol['childProtocols'] = []
 				for (const child of protocol.childProtocols) {
 					let strikeTvl = child.strikeTvl ?? false
 
-					let defaultTvl = { ...(child.tvl?.default ?? ({} as any)) }
+					const childDefaultTvl: MutableTvlEntry = { ...(child.tvl?.default ?? nullTvlEntry) }
 
 					if (strikeTvl && (extraTvlsEnabled['liquidstaking'] || extraTvlsEnabled['doublecounted'])) {
 						strikeTvl = false
 					}
 
-					const addOrNull = (acc: number | null | undefined, value: number | null | undefined) => {
-						if (acc == null || value == null) return null
-						return (acc ?? 0) + (value ?? 0)
+					if (child.tvl) {
+						processTvl(child.tvl, childDefaultTvl)
 					}
 
-					for (const tvlKey in child.tvl) {
-						// if tvlKey is doublecounted or liquidstaking just strike tvl but do not add them
-						if (extraTvlsEnabled[tvlKey] && tvlKey !== 'doublecounted' && tvlKey !== 'liquidstaking') {
-							defaultTvl.tvl = addOrNull(defaultTvl.tvl, child.tvl[tvlKey].tvl)
-							defaultTvl.tvlPrevDay = addOrNull(defaultTvl.tvlPrevDay, child.tvl[tvlKey].tvlPrevDay)
-							defaultTvl.tvlPrevWeek = addOrNull(defaultTvl.tvlPrevWeek, child.tvl[tvlKey].tvlPrevWeek)
-							defaultTvl.tvlPrevMonth = addOrNull(defaultTvl.tvlPrevMonth, child.tvl[tvlKey].tvlPrevMonth)
-						}
-					}
 					const tvlChange = {
-						change1d: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevDay),
-						change7d: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevWeek),
-						change1m: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevMonth)
+						change1d: getPercentChange(childDefaultTvl.tvl, childDefaultTvl.tvlPrevDay),
+						change7d: getPercentChange(childDefaultTvl.tvl, childDefaultTvl.tvlPrevWeek),
+						change1m: getPercentChange(childDefaultTvl.tvl, childDefaultTvl.tvlPrevMonth)
 					}
 
 					const mcaptvl =
-						child.mcap && defaultTvl.tvl ? +formatNum(+child.mcap.toFixed(2) / +defaultTvl.tvl.toFixed(2)) : null
+						child.mcap != null && childDefaultTvl.tvl
+							? +(formatNum(+child.mcap.toFixed(2) / +childDefaultTvl.tvl.toFixed(2)) ?? 0)
+							: null
 
 					if (
-						(minTvl != null ? defaultTvl.tvl >= minTvl : true) &&
-						(maxTvl != null ? defaultTvl.tvl <= maxTvl : true)
+						(minTvl != null ? (childDefaultTvl.tvl ?? 0) >= minTvl : true) &&
+						(maxTvl != null ? (childDefaultTvl.tvl ?? 0) <= maxTvl : true)
 					) {
+						const normalizedChildDefaultTvl = coerceTvlDefaults(childDefaultTvl)
 						childProtocols.push({
 							...child,
 							strikeTvl,
-							tvl: child.tvl == null ? null : { default: defaultTvl },
+							tvl: child.tvl == null ? null : ({ default: normalizedChildDefaultTvl } as IProtocol['tvl']),
 							tvlChange,
 							mcaptvl
 						})
 					}
 				}
-				if ((minTvl != null ? defaultTvl.tvl >= minTvl : true) && (maxTvl != null ? defaultTvl.tvl <= maxTvl : true)) {
+				if (
+					(minTvl != null ? (defaultTvl.tvl ?? 0) >= minTvl : true) &&
+					(maxTvl != null ? (defaultTvl.tvl ?? 0) <= maxTvl : true)
+				) {
+					const normalizedDefaultTvl = coerceTvlDefaults(defaultTvl)
 					final.push({
 						...protocol,
 						strikeTvl,
-						tvl: protocol.tvl == null ? null : { default: defaultTvl },
+						tvl: protocol.tvl == null ? null : ({ default: normalizedDefaultTvl } as IProtocol['tvl']),
 						childProtocols,
 						tvlChange,
 						mcaptvl
 					})
 				}
 			} else {
-				if ((minTvl != null ? defaultTvl.tvl >= minTvl : true) && (maxTvl != null ? defaultTvl.tvl <= maxTvl : true)) {
+				if (
+					(minTvl != null ? (defaultTvl.tvl ?? 0) >= minTvl : true) &&
+					(maxTvl != null ? (defaultTvl.tvl ?? 0) <= maxTvl : true)
+				) {
+					const normalizedDefaultTvl = coerceTvlDefaults(defaultTvl)
 					final.push({
 						...protocol,
 						strikeTvl,
-						tvl: protocol.tvl == null ? null : { default: defaultTvl },
+						tvl: protocol.tvl == null ? null : ({ default: normalizedDefaultTvl } as IProtocol['tvl']),
 						tvlChange,
 						mcaptvl
 					})

@@ -32,8 +32,7 @@ export const fetchChain = async ({
 			protocol: chain,
 			excludeTotalDataChart: false,
 			dataType: 'dailyRevenue'
-		}).catch(() => null),
-		[]
+		}).catch(() => null)
 	])
 
 	return {

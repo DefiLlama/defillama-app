@@ -248,9 +248,7 @@ function byAssetColumns({
 							<>
 								24h change:{' '}
 								<span
-									className={
-										priceChange24h > 0 ? 'text-(--success)' : priceChange24h < 0 ? 'text-(--error)' : ''
-									}
+									className={priceChange24h > 0 ? 'text-(--success)' : priceChange24h < 0 ? 'text-(--error)' : ''}
 								>{`${priceChange24h > 0 ? '+' : ''}${priceChange24h.toFixed(2)}%`}</span>
 							</>
 						}

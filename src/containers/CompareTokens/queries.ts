@@ -62,9 +62,7 @@ export async function getCompareTokensPageData(): Promise<CompareTokensPageData>
 	}
 
 	const feesByProtocolId = new Map(feesProtocols.map((fp) => [fp.defillamaId, fp.total24h ?? null] as const))
-	const revenueByProtocolId = new Map(
-		revenueProtocols.map((fp) => [fp.defillamaId, fp.total24h ?? null] as const)
-	)
+	const revenueByProtocolId = new Map(revenueProtocols.map((fp) => [fp.defillamaId, fp.total24h ?? null] as const))
 
 	const llamaProtocols: Protocol[] = (tvlProtocols?.protocols ?? []).map((protocol) => {
 		const fees = feesByProtocolId.get(protocol.defillamaId) ?? null
