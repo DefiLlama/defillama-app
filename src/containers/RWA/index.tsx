@@ -422,6 +422,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 									dataset={selectedTimeSeriesDataset}
 									hideDefaultLegend={false}
 									stacked
+									showTotalInTooltip
+									tooltipTotalPosition="top"
 									onReady={handleMultiSeriesChart2Ready}
 								/>
 							</Suspense>
