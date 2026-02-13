@@ -239,8 +239,9 @@ export const UpcomingEvent = ({
 						({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp: _timestamp, isOngoing }) => {
 							const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
 							const usdValue = price ? (isLinearPerDay ? perDayAmount * price : totalAmount * price) : null
+							const totalUsdValue = price ? totalAmount * price : null
 							const percentage = maxSupply ? (totalAmount / maxSupply) * 100 : null
-							const percentageFloat = usdValue && mcap ? (usdValue / mcap) * 100 : null
+							const percentageFloat = totalUsdValue && mcap ? (totalUsdValue / mcap) * 100 : null
 							return (
 								<div className="flex flex-col gap-0.5" key={name + totalAmount}>
 									<div className="flex items-center justify-between gap-2 text-sm">
@@ -350,14 +351,15 @@ export const UpcomingEvent = ({
 					</span>
 					<hr className="border-(--bg-border)" />
 					<span className="flex flex-col gap-4">
-						{currentUnlockBreakdown.map(
-							({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp: _timestamp, isOngoing }) => {
-								const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
-								const usdValue = price ? (isLinearPerDay ? perDayAmount * price : totalAmount * price) : null
-								const percentage = maxSupply ? (totalAmount / maxSupply) * 100 : null
-								const percentageFloat = usdValue && mcap ? (usdValue / mcap) * 100 : null
-								return (
-									<span className="flex flex-col gap-1" key={name + totalAmount}>
+					{currentUnlockBreakdown.map(
+						({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp: _timestamp, isOngoing }) => {
+							const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
+							const usdValue = price ? (isLinearPerDay ? perDayAmount * price : totalAmount * price) : null
+							const totalUsdValue = price ? totalAmount * price : null
+							const percentage = maxSupply ? (totalAmount / maxSupply) * 100 : null
+							const percentageFloat = totalUsdValue && mcap ? (totalUsdValue / mcap) * 100 : null
+							return (
+								<span className="flex flex-col gap-1" key={name + totalAmount}>
 										<span className="flex items-center justify-between gap-2">
 											<span className="flex items-center gap-2">
 												{name}
