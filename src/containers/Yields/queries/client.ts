@@ -46,7 +46,7 @@ export const useYieldChartLendBorrow = (configID: string | null) => {
 		enabled: !!configID
 	})
 }
-const useConfigPool = (configIDs) => {
+export const useConfigPool = (configIDs) => {
 	const url = configIDs ? `${YIELD_CONFIG_POOL_API}/${configIDs}` : null
 	return useQuery({ queryKey: ['yield-config-pool', url], queryFn: () => fetchApi(url), staleTime: 60 * 60 * 1000 })
 }

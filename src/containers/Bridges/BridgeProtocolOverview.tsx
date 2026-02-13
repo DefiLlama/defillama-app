@@ -279,7 +279,7 @@ const BridgeInfo = ({
 	)
 }
 
-function BridgeProtocolOverview(props) {
+export function BridgeProtocolOverview(props) {
 	return (
 		<Layout
 			title={`${props.displayName}: Bridge Volume - DefiLlama`}
