@@ -15,20 +15,20 @@ export function toUnixMsTimestamp(ts: number): number {
 	return Number.isFinite(ts) && ts > 0 && ts < 1e12 ? ts * 1e3 : ts
 }
 
-export async function getRWAActiveTVLs(): Promise<Array<IFetchedRWAProject>> {
+export async function fetchRWAActiveTVLs(): Promise<Array<IFetchedRWAProject>> {
 	return fetchJson<Array<IFetchedRWAProject>>(`${RWA_SERVER_URL}/current?z=0`)
 }
 
-export async function getRWAStats(): Promise<IRWAStatsResponse> {
+export async function fetchRWAStats(): Promise<IRWAStatsResponse> {
 	return fetchJson<IRWAStatsResponse>(`${RWA_SERVER_URL}/stats?z=0`)
 }
 
-export async function getRWAAssetDataById(assetId: string): Promise<IFetchedRWAProject> {
+export async function fetchRWAAssetDataById(assetId: string): Promise<IFetchedRWAProject> {
 	const encodedAssetId = encodeURIComponent(assetId)
 	return fetchJson<IFetchedRWAProject>(`${RWA_SERVER_URL}/rwa/${encodedAssetId}`)
 }
 
-export async function getRWAChartDataByTicker({
+export async function fetchRWAChartDataByTicker({
 	selectedChain,
 	selectedCategory,
 	selectedPlatform
@@ -51,7 +51,7 @@ export async function getRWAChartDataByTicker({
 	})
 }
 
-export async function getRWAAssetChartData(assetId: string): Promise<IRWAAssetData['chartDataset']> {
+export async function fetchRWAAssetChartData(assetId: string): Promise<IRWAAssetData['chartDataset']> {
 	const encodedAssetId = encodeURIComponent(assetId)
 	return fetchJson<Array<{ timestamp: number; onChainMcap: number; activeMcap: number; defiActiveTvl: number }>>(
 		`${RWA_SERVER_URL}/chart/asset/${encodedAssetId}`

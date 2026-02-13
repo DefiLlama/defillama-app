@@ -27,3 +27,13 @@ export interface RawBridgeInflowDataPoint {
 export type RawBridgeInflowsResponse = {
 	data: RawBridgeInflowDataPoint[]
 }
+
+export interface RawChainAssetsChartDataPoint {
+	timestamp: number
+	data: {
+		total: number | string
+		ownTokens?: number | string
+	}
+}
+
+export type RawChainAssetsChartResponse = RawChainAssetsChartDataPoint[]

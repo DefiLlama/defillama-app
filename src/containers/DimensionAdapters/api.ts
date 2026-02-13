@@ -9,7 +9,7 @@ import type {
 } from './api.types'
 import { ADAPTER_TYPES, ADAPTER_DATA_TYPES } from './constants'
 
-export async function getAdapterChainMetrics({
+export async function fetchAdapterChainMetrics({
 	adapterType,
 	chain,
 	dataType
@@ -27,7 +27,7 @@ export async function getAdapterChainMetrics({
 	return fetchJson<IAdapterChainMetrics>(metricsUrl, { timeout: 30_000 })
 }
 
-export async function getAdapterProtocolMetrics({
+export async function fetchAdapterProtocolMetrics({
 	adapterType,
 	protocol,
 	dataType
@@ -45,7 +45,7 @@ export async function getAdapterProtocolMetrics({
 	return fetchJson<IAdapterProtocolMetrics>(metricsUrl, { timeout: 30_000 })
 }
 
-export async function getAdapterChainChartData({
+export async function fetchAdapterChainChartData({
 	adapterType,
 	chain,
 	dataType
@@ -68,7 +68,7 @@ export async function getAdapterChainChartData({
 	return fetchJson<IAdapterChart>(totalDataChartUrl, { timeout: 30_000 })
 }
 
-export async function getAdapterProtocolChartData({
+export async function fetchAdapterProtocolChartData({
 	adapterType,
 	protocol,
 	dataType
@@ -86,7 +86,7 @@ export async function getAdapterProtocolChartData({
 	return fetchJson<IAdapterChart>(totalDataChartUrl, { timeout: 30_000 })
 }
 
-export async function getAdapterProtocolChartDataByBreakdownType({
+export async function fetchAdapterProtocolChartDataByBreakdownType({
 	adapterType,
 	protocol,
 	dataType,
@@ -106,7 +106,7 @@ export async function getAdapterProtocolChartDataByBreakdownType({
 	return fetchJson<IAdapterBreakdownChartData>(totalDataChartUrl, { timeout: 30_000 })
 }
 
-export async function getAdapterChainChartDataByProtocolBreakdown({
+export async function fetchAdapterChainChartDataByProtocolBreakdown({
 	adapterType,
 	chain,
 	dataType
@@ -135,7 +135,7 @@ interface CoinGeckoBtcPrice {
 	}
 }
 
-export async function getCexVolume(): Promise<number | null> {
+export async function fetchCexVolume(): Promise<number | null> {
 	try {
 		const [cexs, btcPriceRes] = await Promise.all([
 			fetchJson<CoinGeckoExchange[]>(

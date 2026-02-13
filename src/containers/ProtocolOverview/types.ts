@@ -220,15 +220,6 @@ export interface IArticle {
 	imgSrc: string | null
 }
 
-export interface IProtocolExpenses {
-	protocolId: string
-	headcount: number
-	annualUsdCost: Record<string, number>
-	sources?: Array<string> | null
-	notes?: Array<string> | null
-	lastUpdate?: string | null
-}
-
 // date in the chart is in ms
 export interface IDenominationPriceHistory {
 	prices: Array<[number, number]>

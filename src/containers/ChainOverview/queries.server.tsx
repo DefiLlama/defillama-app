@@ -1,31 +1,33 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { tvlOptions } from '~/components/Filters/options'
 import {
-	CHAINS_ASSETS,
 	CHART_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
 	PROTOCOLS_API,
-	PROTOCOLS_TREASURY,
-	RAISES_API,
 	REV_PROTOCOLS,
 	TRADFI_API
 } from '~/constants'
+import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
-import { getCexVolume } from '~/containers/DimensionAdapters/api'
-import { getAdapterChainMetrics, getAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
+import { fetchCexVolume } from '~/containers/DimensionAdapters/api'
+import { fetchAdapterChainMetrics, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterChainMetrics, IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'
 import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
 import type { IAdapterChainOverview } from '~/containers/DimensionAdapters/types'
 import { getETFData } from '~/containers/ETF/queries'
 import { fetchStablecoinAssetsApi, fetchStablecoinConfigApi } from '~/containers/Stablecoins/api'
 import { getStablecoinChainMcapSummary } from '~/containers/Stablecoins/queries.server'
+import { fetchTreasuries } from '~/containers/Treasuries/api'
+import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
 import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getNDistinctColors, getPercentChange, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
+import { fetchRaises } from '../Raises/api'
+import type { RawRaisesResponse } from '../Raises/api.types'
 import type { ChainChartLabels } from './constants'
 import type {
 	IChainAsset,
@@ -35,8 +37,6 @@ import type {
 	ILiteParentProtocol,
 	ILiteProtocol,
 	IProtocol,
-	IRaises,
-	ITreasury,
 	TVL_TYPES
 } from './types'
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
@@ -150,8 +150,8 @@ export async function getChainOverviewData({
 			number | null,
 			number | string,
 			number | null,
-			{ raises: Array<IRaises> },
-			Array<ITreasury> | null,
+			RawRaisesResponse,
+			RawTreasuriesResponse | null,
 			{
 				market_data?: {
 					current_price?: { usd?: string | null }
@@ -231,8 +231,8 @@ export async function getChainOverviewData({
 				: fetchJson(`${PROTOCOL_NEW_USERS_API}/chain$${currentChainMetadata.name}`)
 						.then((data: Array<[number, number]>) => data?.[data?.length - 1]?.[1] ?? null)
 						.catch(() => null),
-			fetchJson(RAISES_API),
-			chain === 'All' ? Promise.resolve(null) : fetchJson(PROTOCOLS_TREASURY),
+			fetchRaises(),
+			chain === 'All' ? Promise.resolve(null) : fetchTreasuries(),
 			currentChainMetadata.gecko_id
 				? fetchJson(
 						`https://pro-api.coingecko.com/api/v3/coins/${currentChainMetadata.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false`,
@@ -246,11 +246,11 @@ export async function getChainOverviewData({
 			chain && chain !== 'All'
 				? fetchJson(`https://defillama-datasets.llama.fi/temp/chainNfts`)
 				: Promise.resolve(null),
-			fetchJson(CHAINS_ASSETS)
+			fetchChainsAssets()
 				.then((chainAssets) => (chain !== 'All' ? (chainAssets[currentChainMetadata.name] ?? null) : null))
 				.catch(() => null),
 			currentChainMetadata.revenue && chain !== 'All'
-				? getAdapterChainMetrics({
+				? fetchAdapterChainMetrics({
 						adapterType: 'fees',
 						chain: currentChainMetadata.name,
 						dataType: 'dailyAppRevenue'
@@ -260,7 +260,7 @@ export async function getChainOverviewData({
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.fees && chain !== 'All'
-				? getAdapterChainMetrics({
+				? fetchAdapterChainMetrics({
 						adapterType: 'fees',
 						chain: currentChainMetadata.name,
 						dataType: 'dailyAppFees'
@@ -270,7 +270,7 @@ export async function getChainOverviewData({
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.chainFees
-				? getAdapterProtocolMetrics({
+				? fetchAdapterProtocolMetrics({
 						adapterType: 'fees',
 						protocol: currentChainMetadata.name
 					}).catch((err) => {
@@ -279,7 +279,7 @@ export async function getChainOverviewData({
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.chainRevenue
-				? getAdapterProtocolMetrics({
+				? fetchAdapterProtocolMetrics({
 						adapterType: 'fees',
 						protocol: currentChainMetadata.name,
 						dataType: 'dailyRevenue'
@@ -289,7 +289,7 @@ export async function getChainOverviewData({
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.perps
-				? getAdapterChainMetrics({
+				? fetchAdapterChainMetrics({
 						adapterType: 'derivatives',
 						chain: currentChainMetadata.name
 					}).catch((err) => {
@@ -297,7 +297,7 @@ export async function getChainOverviewData({
 						return null
 					})
 				: Promise.resolve(null),
-			getCexVolume(),
+			fetchCexVolume(),
 			chain === 'All'
 				? getETFData()
 						.then((data) => {
@@ -697,7 +697,7 @@ export const getProtocolsByChain = async ({
 	] = await Promise.all([
 		fetchJson(PROTOCOLS_API),
 		currentChainMetadata.fees
-			? getAdapterChainMetrics({
+			? fetchAdapterChainMetrics({
 					adapterType: 'fees',
 					chain: currentChainMetadata.name
 				}).catch((err) => {
@@ -706,7 +706,7 @@ export const getProtocolsByChain = async ({
 				})
 			: Promise.resolve(null),
 		currentChainMetadata.fees
-			? getAdapterChainMetrics({
+			? fetchAdapterChainMetrics({
 					adapterType: 'fees',
 					chain: currentChainMetadata.name,
 					dataType: 'dailyRevenue'
@@ -716,7 +716,7 @@ export const getProtocolsByChain = async ({
 				})
 			: Promise.resolve(null),
 		currentChainMetadata.fees
-			? getAdapterChainMetrics({
+			? fetchAdapterChainMetrics({
 					adapterType: 'fees',
 					chain: currentChainMetadata.name,
 					dataType: 'dailyHoldersRevenue'

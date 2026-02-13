@@ -1,9 +1,9 @@
-import { CEXS_API, INFLOWS_API } from '~/constants'
+import { INFLOWS_API, SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type { RawCexsResponse } from './api.types'
 
 export async function fetchCexs(): Promise<RawCexsResponse> {
-	return fetchJson<RawCexsResponse>(CEXS_API)
+	return fetchJson<RawCexsResponse>(`${SERVER_URL}/cexs`)
 }
 
 export async function fetchCexInflows(

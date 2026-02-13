@@ -1,6 +1,6 @@
 import { slug } from '~/utils'
 import { sluggify } from '~/utils/cache-client'
-import { fetchBridgeInflows, fetchChainAssetsFlows1d, fetchChainsAssets } from './api'
+import { fetchChainAssetsFlows1d, fetchChainAssetsHistoricalFlows, fetchChainsAssets } from './api'
 import type { RawChainAsset, RawChainAssetsFlowEntry, RawChainsAssetsResponse } from './api.types'
 
 export interface BridgedTVLData {
@@ -16,7 +16,7 @@ export async function getBridgedTVLByChain(chain?: string): Promise<BridgedTVLDa
 	const [assets, flows1d, inflows] = await Promise.all([
 		fetchChainsAssets(),
 		fetchChainAssetsFlows1d(),
-		chain ? fetchBridgeInflows(sluggify(chain)) : []
+		chain ? fetchChainAssetsHistoricalFlows(sluggify(chain)) : []
 	])
 
 	let chainData: RawChainAsset | null = null

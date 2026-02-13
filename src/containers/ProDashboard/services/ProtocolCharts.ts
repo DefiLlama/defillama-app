@@ -8,7 +8,7 @@ import {
 	TOKEN_LIQUIDITY_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
-import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
+import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
@@ -59,7 +59,7 @@ export default class ProtocolCharts {
 	}
 	static async summary(protocol: string, type: string, dataType?: string): Promise<[number, number][]> {
 		if (!protocol) return []
-		const data = await getAdapterProtocolChartData({
+		const data = await fetchAdapterProtocolChartData({
 			adapterType: type as `${ADAPTER_TYPES}`,
 			protocol,
 			dataType: dataType as `${ADAPTER_DATA_TYPES}`

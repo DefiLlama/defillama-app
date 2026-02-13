@@ -2,8 +2,7 @@
 export const SERVER_URL = process.env.SERVER_URL ?? 'https://api.llama.fi'
 export const V2_SERVER_URL = process.env.V2_SERVER_URL ?? `${SERVER_URL}/v2`
 export const DATASETS_SERVER_URL = process.env.DATASETS_SERVER_URL ?? 'https://defillama-datasets.llama.fi'
-export const DATASETS_S3_PATH = 'https://defillama-datasets.s3.eu-central-1.amazonaws.com'
-export const DATASETS_R2_PATH = 'https://defillama-datasets.llama.fi'
+
 export const CHART_API = `${SERVER_URL}/lite/charts`
 export const CHAIN_TVL_API = `${V2_SERVER_URL}/chains`
 export const PROTOCOLS_API = `${SERVER_URL}/lite/protocols2?b=2`
@@ -18,14 +17,16 @@ export const CATEGORY_CHART_API = `${SERVER_URL}/charts/categories`
 export const TAGS_CHART_API = `${SERVER_URL}/charts/tags`
 export const PROTOCOLS_BY_TOKEN_API = `${SERVER_URL}/tokenProtocols`
 export const PROTOCOL_TREASURY_API = `${SERVER_URL}/treasury`
-export const PROTOCOLS_TREASURY = `${SERVER_URL}/treasuries`
+
 export const PROTOCOL_EMISSIONS_API = `${SERVER_URL}/emissions`
 export const PROTOCOL_EMISSIONS_LIST_API = `${DATASETS_SERVER_URL}/emissionsProtocolsList`
 export const PROTOCOL_EMISSION_API = `${SERVER_URL}/emission`
 export const PROTOCOL_EMISSION_API2 = `${DATASETS_SERVER_URL}/emissions`
 export const EMISSION_BREAKDOWN_API = `${SERVER_URL}/emissionsBreakdown`
 export const EMISSION_SUPPLY_METRICS = `${DATASETS_SERVER_URL}/emissionsSupplyMetrics`
+
 export const INFLOWS_API = `${SERVER_URL}/inflows`
+
 export const ACTIVE_USERS_API = `${SERVER_URL}/activeUsers`
 export const PROTOCOL_ACTIVE_USERS_API = `${SERVER_URL}/userData/users`
 export const PROTOCOL_TRANSACTIONS_API = `${SERVER_URL}/userData/txs`
@@ -38,11 +39,8 @@ export const GOVERNANCE_COMPOUND_API = `${DATASETS_SERVER_URL}/governance-cache/
 export const PROTOCOL_GOVERNANCE_COMPOUND_API = `${DATASETS_SERVER_URL}/governance-cache/compound`
 export const GOVERNANCE_TALLY_API = `${DATASETS_SERVER_URL}/governance-cache/overview/tally.json`
 export const PROTOCOL_GOVERNANCE_TALLY_API = `${DATASETS_SERVER_URL}/governance-cache/tally`
-export const TOKEN_LIST_API = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
-export const TEMP_CHAIN_NFTS = `${DATASETS_SERVER_URL}/temp/chainNfts`
 
-export const PROTOCOLS_EXPENSES_API =
-	'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
+export const TOKEN_LIST_API = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 
 export const NFT_SERVER_URL = 'https://nft.llama.fi'
 
@@ -64,7 +62,7 @@ export const BRIDGEVOLUME_API = `${BRIDGES_SERVER_URL}/bridgevolume`
 export const BRIDGEVOLUME_API_SLUG = `${BRIDGES_SERVER_URL}/bridgevolume/slug`
 export const BRIDGELARGETX_API = `${BRIDGES_SERVER_URL}/largetransactions`
 export const BRIDGETX_API = `${BRIDGES_SERVER_URL}/transactions`
-export const BRIDGEINFLOWS_API = `${SERVER_URL}/chain-assets/historical-flows`
+
 export const NETFLOWS_API = `${BRIDGES_SERVER_URL}/netflows`
 
 export const YIELDS_SERVER_URL = process.env.YIELDS_SERVER_URL ?? 'https://yields.llama.fi'
@@ -84,13 +82,10 @@ export const YIELD_VOLATILITY_API = '/api/datasets/volatility'
 
 export const ETF_SERVER_URL = process.env.ETF_SERVER_URL ?? 'https://etfs.llama.fi'
 
-export const LIQUIDATIONS_HISTORICAL_R2_PATH = `${DATASETS_R2_PATH}/liqs`
+export const LIQUIDATIONS_HISTORICAL_R2_PATH = `${DATASETS_SERVER_URL}/liqs`
 
 export const CHAINS_API = `${SERVER_URL}/chains`
-export const CHAINS_ASSETS = `${SERVER_URL}/chain-assets/chains`
 export const CHAINS_API_V2 = `${SERVER_URL}/chains2`
-export const CHAIN_ASSETS_FLOWS = `${SERVER_URL}/chain-assets/flows`
-export const CHAINS_ASSETS_CHART = `${SERVER_URL}/chain-assets/chart`
 
 export const DIMENSIONS_OVERVIEW_API = `${SERVER_URL}/overview`
 export const DIMENSIONS_SUMMARY_API = `${SERVER_URL}/summary`
@@ -103,9 +98,6 @@ export const USER_METRICS_CHAIN_API_BY_DATE = 'https://6tklng2o7b.execute-api.eu
 export const USER_METRICS_ALL_API = 'https://users.llama.fi/all'
 
 export const TOKEN_LIQUIDITY_API = `${SERVER_URL}/historicalLiquidity`
-
-export const RAISES_API = `${SERVER_URL}/raises`
-export const CEXS_API = `${SERVER_URL}/cexs`
 
 export const CG_TOKEN_API =
 	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=<PLACEHOLDER>'

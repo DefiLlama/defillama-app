@@ -11,7 +11,7 @@ import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug } from '~/utils'
-import { getAdapterProtocolChartDataByBreakdownType } from './api'
+import { fetchAdapterProtocolChartDataByBreakdownType } from './api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
@@ -40,7 +40,7 @@ export const DimensionProtocolChartByType = ({
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['dimension-adapter-chart-breakdown', protocolName, adapterType, dataType ?? null, chartType],
 		queryFn: () =>
-			getAdapterProtocolChartDataByBreakdownType({
+			fetchAdapterProtocolChartDataByBreakdownType({
 				adapterType,
 				protocol: protocolName,
 				dataType,
@@ -67,7 +67,7 @@ export const DimensionProtocolChartByType = ({
 		],
 		queryFn: feesSettings.bribes
 			? () =>
-					getAdapterProtocolChartDataByBreakdownType({
+					fetchAdapterProtocolChartDataByBreakdownType({
 						adapterType,
 						protocol: protocolName,
 						dataType: 'dailyBribesRevenue',
@@ -96,7 +96,7 @@ export const DimensionProtocolChartByType = ({
 		],
 		queryFn: feesSettings.tokentax
 			? () =>
-					getAdapterProtocolChartDataByBreakdownType({
+					fetchAdapterProtocolChartDataByBreakdownType({
 						adapterType,
 						protocol: protocolName,
 						dataType: 'dailyTokenTaxes',

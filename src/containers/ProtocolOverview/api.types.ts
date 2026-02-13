@@ -167,3 +167,12 @@ export interface IProtocolChartV2Params {
 	currency?: string
 	breakdownType?: ProtocolChartBreakdownType
 }
+
+export interface IProtocolExpenses {
+	protocolId: string
+	headcount: number
+	annualUsdCost: Record<string, number>
+	sources?: Array<string> | null
+	notes?: Array<string> | null
+	lastUpdate?: string | null
+}

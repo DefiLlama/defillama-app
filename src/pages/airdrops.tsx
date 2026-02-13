@@ -1,7 +1,8 @@
 import { maxAgeForNext } from '~/api'
 import { getAirdropDirectoryData, getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
-import { FORK_API, RAISES_API } from '~/constants'
+import { FORK_API } from '~/constants'
+import { fetchRaises } from '~/containers/Raises/api'
 import { RecentProtocols } from '~/containers/RecentProtocols'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
@@ -119,7 +120,7 @@ export const getStaticProps = withPerformanceLogging('airdrops', async () => {
 	const [protocolsRaw, { forks }, { raises }, claimableAirdrops] = await Promise.all([
 		getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls', 'defillamaId']),
 		fetchJson(FORK_API),
-		fetchJson(RAISES_API),
+		fetchRaises(),
 		getAirdropDirectoryData()
 	])
 

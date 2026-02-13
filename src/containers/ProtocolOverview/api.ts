@@ -9,6 +9,7 @@ import type {
 	IProtocolChartV2Params,
 	IProtocolTvlMetrics
 } from './api.types'
+import type { IProtocolExpenses } from './api.types'
 
 const appendOptionalQueryParams = (url: string, params: Pick<IProtocolChartV2Params, 'key' | 'currency'>) => {
 	const parsedUrl = new URL(url, 'http://placeholder')
@@ -315,4 +316,10 @@ export async function fetchProtocolTreasuryChart({
 		return fetchProtocolTreasuryTokenBreakdownChart({ protocol, key, currency })
 	}
 	return fetchProtocolTreasuryValueChart({ protocol, key, currency })
+}
+
+export async function fetchProtocolExpenses(): Promise<IProtocolExpenses[]> {
+	return fetchJson<IProtocolExpenses[]>(
+		'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
+	)
 }

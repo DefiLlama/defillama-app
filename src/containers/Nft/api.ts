@@ -1,4 +1,4 @@
-import { NFT_SERVER_URL } from '~/constants'
+import { DATASETS_SERVER_URL, NFT_SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type {
 	RawCollectionDetail,
@@ -70,4 +70,8 @@ export async function fetchParentCompanies(): Promise<RawParentCompany[]> {
 	return fetchJson<RawParentCompany[]>(
 		'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/nfts/output/parentCompanies.json'
 	)
+}
+
+export async function fetchNftsVolumeByChain(): Promise<Record<string, number>> {
+	return fetchJson<Record<string, number>>(`${DATASETS_SERVER_URL}/temp/chainNfts`)
 }
