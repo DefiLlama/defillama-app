@@ -1,10 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import { PEGGED_API, PEGGEDCONFIG_API, PEGGEDS_API } from '~/constants'
+import {
+	fetchStablecoinAssetApi,
+	fetchStablecoinAssetsApi,
+	fetchStablecoinPeggedConfigApi
+} from '~/containers/Stablecoins/api'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { getDominancePercent } from '~/utils'
-import { fetchJson } from '~/utils/async'
 
 interface UseStablecoinAssetChartDataResult {
 	peggedAreaTotalData: any[]
@@ -29,27 +32,31 @@ export function useStablecoinAssetChartData(stablecoinSlug: string): UseStableco
 		queryFn: async () => {
 			if (!stablecoinSlug) return null
 
-			const peggedNameToPeggedIDMapping = await fetchJson(PEGGEDCONFIG_API)
+			const peggedNameToPeggedIDMapping = await fetchStablecoinPeggedConfigApi()
 			const peggedID = peggedNameToPeggedIDMapping[stablecoinSlug]
 			if (!peggedID) {
 				return null
 			}
 
-			const res = await fetchJson(`${PEGGED_API}/${peggedID}`)
-			if (!res) return null
+			const res = await fetchStablecoinAssetApi(peggedID)
+			if (!res) {
+				return null
+			}
 
 			const chainsUnique: string[] = Object.keys(res.chainBalances || {})
 
 			const chainsData: any[] = chainsUnique.map((chain: string) => {
 				return res.chainBalances[chain]?.tokens || []
 			})
+			const stablecoinName = typeof res.name === 'string' ? res.name : ''
+			const stablecoinSymbol = typeof res.symbol === 'string' ? res.symbol : ''
 
 			return {
 				peggedAssetData: res,
 				chainsUnique,
 				chainsData,
-				stablecoinName: res.name,
-				stablecoinSymbol: res.symbol
+				stablecoinName,
+				stablecoinSymbol
 			}
 		},
 		staleTime: 5 * 60 * 1000,
@@ -169,7 +176,7 @@ export function useStablecoinAssetsList() {
 	return useQuery({
 		queryKey: ['stablecoin-assets-list'],
 		queryFn: async () => {
-			const data = await fetchJson(PEGGEDS_API)
+			const data = await fetchStablecoinAssetsApi()
 			const peggedAssets = data?.peggedAssets || []
 			return peggedAssets
 				.map((asset: any) => {

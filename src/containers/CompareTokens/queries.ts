@@ -1,7 +1,10 @@
 import { getAllCGTokensList } from '~/api'
 import type { IResponseCGMarketsAPI } from '~/api/types'
-import { fetchFeesProtocols, fetchProtocolsList, fetchRevenueProtocols } from './api'
-import type { RawDimensionsOverviewResponse, RawProtocolsResponse } from './api.types'
+import { fetchAdapterChainMetrics } from '../DimensionAdapters/api'
+import type { IAdapterChainMetrics } from '../DimensionAdapters/api.types'
+import { ADAPTER_TYPES } from '../DimensionAdapters/constants'
+import { fetchProtocolsList } from './api'
+import type { RawProtocolsResponse } from './api.types'
 import type { Protocol } from './types'
 
 type CompareTokensPageData = {
@@ -11,7 +14,7 @@ type CompareTokensPageData = {
 
 export async function getCompareTokensPageData(): Promise<CompareTokensPageData> {
 	const emptyProtocolsResponse: RawProtocolsResponse = { protocols: [], chains: [], parentProtocols: [] }
-	const emptyDimensionsResponse: RawDimensionsOverviewResponse = { protocols: [] }
+	const emptyAdapterProtocols: IAdapterChainMetrics['protocols'] = []
 
 	const [coinsData, tvlProtocols, feesProtocols, revenueProtocols] = await Promise.all([
 		getAllCGTokensList().catch((error) => {
@@ -22,14 +25,25 @@ export async function getCompareTokensPageData(): Promise<CompareTokensPageData>
 			console.log(`Couldn't fetch TVL protocols list at path: compare-tokens`, 'Error:', error)
 			return emptyProtocolsResponse
 		}),
-		fetchFeesProtocols().catch((error) => {
-			console.log(`Couldn't fetch fees protocols list at path: compare-tokens`, 'Error:', error)
-			return emptyDimensionsResponse
-		}),
-		fetchRevenueProtocols().catch((error) => {
-			console.log(`Couldn't fetch revenue protocols list at path: compare-tokens`, 'Error:', error)
-			return emptyDimensionsResponse
+		fetchAdapterChainMetrics({
+			adapterType: ADAPTER_TYPES.FEES,
+			chain: 'All'
 		})
+			.then((response) => response.protocols)
+			.catch((error) => {
+				console.log(`Couldn't fetch fees protocols list at path: compare-tokens`, 'Error:', error)
+				return emptyAdapterProtocols
+			}),
+		fetchAdapterChainMetrics({
+			adapterType: ADAPTER_TYPES.FEES,
+			chain: 'All',
+			dataType: 'dailyRevenue'
+		})
+			.then((response) => response.protocols)
+			.catch((error) => {
+				console.log(`Couldn't fetch revenue protocols list at path: compare-tokens`, 'Error:', error)
+				return emptyAdapterProtocols
+			})
 	])
 
 	const parentProtocols: Record<
@@ -47,9 +61,9 @@ export async function getCompareTokensPageData(): Promise<CompareTokensPageData>
 		}
 	}
 
-	const feesByProtocolId = new Map(feesProtocols.protocols.map((fp) => [fp.defillamaId, fp.total24h ?? null] as const))
+	const feesByProtocolId = new Map(feesProtocols.map((fp) => [fp.defillamaId, fp.total24h ?? null] as const))
 	const revenueByProtocolId = new Map(
-		revenueProtocols.protocols.map((fp) => [fp.defillamaId, fp.total24h ?? null] as const)
+		revenueProtocols.map((fp) => [fp.defillamaId, fp.total24h ?? null] as const)
 	)
 
 	const llamaProtocols: Protocol[] = (tvlProtocols?.protocols ?? []).map((protocol) => {

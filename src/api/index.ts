@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { CG_TOKEN_API, COINS_MCAPS_API, COINS_PRICES_API, TOKEN_LIST_API, CACHE_SERVER } from '~/constants'
+import { CACHE_SERVER, CG_TOKEN_API, COINS_MCAPS_API, COINS_PRICES_API, CONFIG_API, TOKEN_LIST_API } from '~/constants'
 import { fetchApi, fetchJson, postRuntimeLogs } from '~/utils/async'
 import type { IResponseCGMarketsAPI } from './types'
 
@@ -44,6 +44,24 @@ export async function getAllCGTokensList(): Promise<Array<IResponseCGMarketsAPI>
 	const data = await fetchJson(TOKEN_LIST_API)
 
 	return data
+}
+
+interface LlamaConfigResponse {
+	chainCoingeckoIds: Record<
+		string,
+		{
+			symbol?: string
+			stablecoins?: string[]
+			parent?: {
+				chain: string
+				types: string[]
+			}
+		}
+	>
+}
+
+export async function fetchLlamaConfig(): Promise<LlamaConfigResponse> {
+	return fetchJson<LlamaConfigResponse>(CONFIG_API)
 }
 
 //:00 -> adapters start running, they take up to 15mins

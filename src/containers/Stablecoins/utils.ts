@@ -1,6 +1,6 @@
 import { keepNeededProperties } from '~/api/shared'
 import { formatNum, formattedNum, getPercentChange, slug } from '~/utils'
-import type { PeggedPricesApiResponse } from './api.types'
+import type { StablecoinChartPoint, StablecoinListAsset, StablecoinPricesResponse } from './api.types'
 
 interface IStablecoinToken {
 	symbol: string
@@ -76,22 +76,10 @@ type StablecoinDominanceCandidate = {
 	mcap?: number | null
 }
 
-type StablecoinFormattedAsset = Record<string, unknown> & {
-	name: string
-	gecko_id: string
-	pegType: string
-	chains: string[]
-	price?: number
-	priceSource?: string
-	chainCirculating?: Record<
-		string,
-		{
-			current?: Record<string, number>
-			circulatingPrevDay?: Record<string, number>
-			circulatingPrevWeek?: Record<string, number>
-			circulatingPrevMonth?: Record<string, number>
-		}
-	>
+type StablecoinFormattedAsset = Omit<
+	StablecoinListAsset,
+	'circulating' | 'circulatingPrevDay' | 'circulatingPrevWeek' | 'circulatingPrevMonth'
+> & {
 	circulating?: Record<string, number> | number | null
 	circulatingPrevDay?: Record<string, number> | number | null
 	circulatingPrevWeek?: Record<string, number> | number | null
@@ -116,7 +104,7 @@ interface IFormatPeggedAssetsDataParams {
 	chain?: string
 	peggedAssets?: StablecoinFormattedAsset[]
 	chartDataByPeggedAsset?: Array<Array<Record<string, unknown>> | null | undefined>
-	priceData?: PeggedPricesApiResponse
+	priceData?: StablecoinPricesResponse
 	rateData?: IRateChartPoint[]
 	peggedNameToChartDataIndex?: Record<string, number>
 	peggedAssetProps?: string[]
@@ -124,7 +112,7 @@ interface IFormatPeggedAssetsDataParams {
 
 interface IFormatPeggedChainsDataParams {
 	chainList?: string[]
-	peggedChartDataByChain?: Array<Array<Record<string, unknown>> | null>
+	peggedChartDataByChain?: Array<StablecoinChartPoint[] | null>
 	chainDominances?: Record<string, { symbol: string; mcap: number }>
 	chainsTVLData?: number[]
 }
@@ -534,7 +522,8 @@ export const formatPeggedAssetsData = ({
 		const formattedPegged: StablecoinFormattedAsset = { ...pegged }
 		const pegType = formattedPegged.pegType ?? ''
 		const peggedGeckoID = formattedPegged.gecko_id
-		const price = formattedPegged.price
+		const rawPrice = formattedPegged.price
+		const price = typeof rawPrice === 'number' ? rawPrice : rawPrice != null ? Number(rawPrice) : null
 		const priceSource = formattedPegged.priceSource ?? null
 		if (chain) {
 			const chainCirculating = formattedPegged.chainCirculating?.[chain]
@@ -611,12 +600,12 @@ export const formatPeggedAssetsData = ({
 				: `+${change_1m_nol}`
 
 		if (pegType !== 'peggedVAR' && price) {
-			let targetPrice = getTargetPrice(pegType, rateData, 0)
+			const targetPrice = getTargetPrice(pegType, rateData, 0)
 			formattedPegged.pegDeviation = getPercentChange(price, targetPrice)
 			let greatestDeviation = 0
 			for (let i = 0; i < 30; i++) {
 				const historicalPrices = priceData[priceData.length - i - 1]
-				let historicalTargetPrice = getTargetPrice(pegType, rateData, i)
+				const historicalTargetPrice = getTargetPrice(pegType, rateData, i)
 				const historicalPrice = toFiniteNumber(historicalPrices?.prices?.[peggedGeckoID])
 				if (historicalPrice && historicalTargetPrice) {
 					const timestamp = historicalPrices?.date
@@ -633,7 +622,7 @@ export const formatPeggedAssetsData = ({
 					}
 				}
 			}
-			if (Math.abs(greatestDeviation) < Math.abs(price - targetPrice)) {
+			if (targetPrice != null && Math.abs(greatestDeviation) < Math.abs(price - targetPrice)) {
 				greatestDeviation = price - targetPrice
 				if (0.02 < Math.abs(greatestDeviation)) {
 					formattedPegged.pegDeviationInfo = {
@@ -643,7 +632,8 @@ export const formatPeggedAssetsData = ({
 					}
 				}
 			}
-			formattedPegged.pegDeviation_1m = getPercentChange(targetPrice + greatestDeviation, targetPrice)
+			formattedPegged.pegDeviation_1m =
+				targetPrice != null ? getPercentChange(targetPrice + greatestDeviation, targetPrice) : null
 		} else {
 			// Avoid leaking stale peg data into filters/table (e.g. when price is missing or peg is variable).
 			formattedPegged.pegDeviation = undefined
@@ -657,7 +647,7 @@ export const formatPeggedAssetsData = ({
 		filteredStablecoinAssets = filteredStablecoinAssets.toSorted((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
 	}
 
-	return filteredStablecoinAssets
+	return filteredStablecoinAssets as Array<Record<string, unknown>>
 }
 
 export const formatPeggedChainsData = ({

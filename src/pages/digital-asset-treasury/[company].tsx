@@ -345,6 +345,16 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	const data = await fetchJson(`${TRADFI_API}/institutions`)
 	const tickers = new Set<string>()
 	for (const institutionId in data.institutionMetadata) {

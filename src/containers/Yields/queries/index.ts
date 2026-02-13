@@ -1,6 +1,6 @@
 import { fetchCoinPrices } from '~/api'
+import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import {
-	PEGGEDS_API,
 	PROTOCOLS_API,
 	YIELD_TOKEN_CATEGORIES_API,
 	YIELD_CHAIN_API,
@@ -116,7 +116,7 @@ export async function getYieldPageData() {
 
 	// build USD-pegged symbols list (min length 2)
 	try {
-		const stablecoins = await fetchApi(`${PEGGEDS_API}?includePrices=false`)
+		const stablecoins = await fetchStablecoinAssetsApi({ includePrices: false })
 		const usdPeggedSymbols = Array.from(
 			new Set(
 				(stablecoins?.peggedAssets || [])

@@ -4,11 +4,10 @@ import {
 	CHART_API,
 	DIMENSIONS_OVERVIEW_API,
 	DIMENSIONS_SUMMARY_API,
-	PEGGEDCHART_API,
-	PEGGEDCHART_DOMINANCE_ALL_API,
 	PROTOCOL_API,
 	PROTOCOLS_API
 } from '~/constants'
+import { fetchStablecoinChartAllApi, fetchStablecoinDominanceAllApi } from '~/containers/Stablecoins/api'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
 import {
 	buildChainMatchSet as buildChainMatchSetFromNormalizer,
@@ -563,12 +562,7 @@ async function getAllProtocolsTopChainsStablecoinsData(
 	chainCategories?: string[]
 ): Promise<ProtocolChainData> {
 	try {
-		const dominanceResp = await fetch(PEGGEDCHART_DOMINANCE_ALL_API)
-		if (!dominanceResp.ok) {
-			throw new Error(`Failed to fetch stablecoin dominance data: ${dominanceResp.statusText}`)
-		}
-
-		const dominanceJson = await dominanceResp.json()
+		const dominanceJson = await fetchStablecoinDominanceAllApi()
 		const chainChartMap: Record<string, any[]> = dominanceJson?.chainChartMap ?? {}
 
 		const includeSet = chains && chains.length > 0 ? buildChainMatchSet(chains) : new Set<string>()
@@ -667,27 +661,24 @@ async function getAllProtocolsTopChainsStablecoinsData(
 
 		let totalPairs: [number, number][] = []
 		try {
-			const aggregatedResp = await fetch(`${PEGGEDCHART_API}/all`)
-			if (aggregatedResp.ok) {
-				const aggregatedJson = await aggregatedResp.json()
-				const aggregatedArray: any[] = Array.isArray(aggregatedJson?.aggregated) ? aggregatedJson.aggregated : []
-				totalPairs = filterOutToday(
-					normalizeDailyPairs(
-						aggregatedArray
-							.map((item: any) => {
-								const rawTs = item?.date ?? item?.timestamp
-								if (rawTs == null) return null
-								let ts = Number(rawTs)
-								if (!Number.isFinite(ts)) return null
-								if (ts > 1e12) ts = Math.floor(ts / 1000)
-								const usd = sumStablecoinUsd(item?.totalCirculatingUSD)
-								if (!Number.isFinite(usd)) return null
-								return [ts, usd] as [number, number]
-							})
-							.filter(Boolean) as [number, number][]
-					)
+			const aggregatedJson = await fetchStablecoinChartAllApi()
+			const aggregatedArray: any[] = Array.isArray(aggregatedJson?.aggregated) ? aggregatedJson.aggregated : []
+			totalPairs = filterOutToday(
+				normalizeDailyPairs(
+					aggregatedArray
+						.map((item: any) => {
+							const rawTs = item?.date ?? item?.timestamp
+							if (rawTs == null) return null
+							let ts = Number(rawTs)
+							if (!Number.isFinite(ts)) return null
+							if (ts > 1e12) ts = Math.floor(ts / 1000)
+							const usd = sumStablecoinUsd(item?.totalCirculatingUSD)
+							if (!Number.isFinite(usd)) return null
+							return [ts, usd] as [number, number]
+						})
+						.filter(Boolean) as [number, number][]
 				)
-			}
+			)
 		} catch (err) {
 			console.log('Failed to fetch aggregated stablecoin series for chains builder:', err)
 		}

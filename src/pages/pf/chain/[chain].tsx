@@ -13,6 +13,16 @@ const adapterType = ADAPTER_TYPES.FEES
 const type = 'P/F'
 
 export const getStaticPaths = async () => {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 

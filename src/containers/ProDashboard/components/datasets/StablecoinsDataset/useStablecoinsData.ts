@@ -1,7 +1,22 @@
 import { useQuery } from '@tanstack/react-query'
-import { PEGGEDCHART_API, PEGGEDPRICES_API, PEGGEDRATES_API, PEGGEDS_API } from '~/constants'
+import {
+	fetchStablecoinAssetsApi,
+	fetchStablecoinChartApi,
+	fetchStablecoinPricesApi,
+	fetchStablecoinRatesApi
+} from '~/containers/Stablecoins/api'
+import type { StablecoinChartPoint } from '~/containers/Stablecoins/api.types'
 import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
-import { fetchJson } from '~/utils/async'
+
+type StablecoinChartMcapPoint = {
+	date: number
+	mcap: Record<string, number>
+}
+
+const toFiniteNumber = (value: unknown, fallback: number): number => {
+	const numeric = typeof value === 'number' ? value : Number(value)
+	return Number.isFinite(numeric) ? numeric : fallback
+}
 
 export function useStablecoinsData(chain: string) {
 	return useQuery({
@@ -9,10 +24,10 @@ export function useStablecoinsData(chain: string) {
 		queryFn: async () => {
 			// Fetch all required data in parallel
 			const [peggedData, chainData, priceData, rateData] = await Promise.all([
-				fetchJson(PEGGEDS_API),
-				fetchJson(`${PEGGEDCHART_API}/${chain === 'All' ? 'all-llama-app' : chain}`),
-				fetchJson(PEGGEDPRICES_API),
-				fetchJson(PEGGEDRATES_API)
+				fetchStablecoinAssetsApi(),
+				fetchStablecoinChartApi(chain === 'All' ? 'all-llama-app' : chain),
+				fetchStablecoinPricesApi(),
+				fetchStablecoinRatesApi()
 			])
 
 			const { peggedAssets } = peggedData
@@ -23,19 +38,19 @@ export function useStablecoinsData(chain: string) {
 			}
 
 			// Build chart data by pegged asset
-			let chartDataByPeggedAsset = []
-			let peggedNameToChartDataIndex: any = {}
+			let chartDataByPeggedAsset: StablecoinChartMcapPoint[][] = []
+			const peggedNameToChartDataIndex: Record<string, number> = {}
 			let lastTimestamp = 0
 
-			chartDataByPeggedAsset = peggedAssets.map((elem: any, i: number) => {
+			chartDataByPeggedAsset = peggedAssets.map((elem, i: number) => {
 				peggedNameToChartDataIndex[elem.name] = i
 				const charts = breakdown[elem.id] ?? []
 				const formattedCharts = charts
-					.map((chart: any) => ({
-						date: chart.date,
+					.map((chart: StablecoinChartPoint) => ({
+						date: Number(chart.date),
 						mcap: chart.totalCirculatingUSD
 					}))
-					.filter((i: any) => i.mcap !== undefined)
+					.filter((point): point is StablecoinChartMcapPoint => point.mcap !== undefined)
 
 				if (formattedCharts.length > 0) {
 					lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)
@@ -70,19 +85,22 @@ export function useStablecoinsData(chain: string) {
 			})
 
 			// Transform to match our table structure
-			return filteredPeggedAssets.map((asset: any) => ({
-				name: asset.name,
-				symbol: asset.symbol,
-				mcap: asset.mcap || 0,
-				price: asset.price || 1,
-				change_1d: asset.change_1d || 0,
-				change_7d: asset.change_7d || 0,
-				change_1m: asset.change_1m || 0,
-				pegDeviation: asset.pegDeviation,
-				chains: asset.chains || [],
-				pegType: asset.pegType,
-				gecko_id: asset.gecko_id
-			}))
+			return filteredPeggedAssets.map((asset) => {
+				const typedAsset = asset as Record<string, unknown>
+				return {
+					name: typeof typedAsset.name === 'string' ? typedAsset.name : '',
+					symbol: typeof typedAsset.symbol === 'string' ? typedAsset.symbol : '',
+					mcap: toFiniteNumber(typedAsset.mcap, 0),
+					price: toFiniteNumber(typedAsset.price, 1),
+					change_1d: toFiniteNumber(typedAsset.change_1d, 0),
+					change_7d: toFiniteNumber(typedAsset.change_7d, 0),
+					change_1m: toFiniteNumber(typedAsset.change_1m, 0),
+					pegDeviation: typedAsset.pegDeviation,
+					chains: Array.isArray(typedAsset.chains) ? (typedAsset.chains as string[]) : [],
+					pegType: typeof typedAsset.pegType === 'string' ? typedAsset.pegType : '',
+					gecko_id: typeof typedAsset.gecko_id === 'string' ? typedAsset.gecko_id : null
+				}
+			})
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		refetchInterval: 5 * 60 * 1000 // 5 minutes
