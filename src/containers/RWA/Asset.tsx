@@ -246,7 +246,12 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					</Tooltip>
 					{onChainMcap?.breakdown != null ? (
 						<Tooltip
-							content={<BreakdownTooltipContent breakdown={onChainMcap.breakdown} />}
+							content={
+								<BreakdownTooltipContent
+									breakdown={onChainMcap.breakdown}
+									description={definitions.onChainMcap.description}
+								/>
+							}
 							className="font-jetbrains text-xl font-semibold"
 						>
 							{onChainMcap?.total != null ? formattedNum(onChainMcap.total, true) : '-'}
@@ -266,7 +271,12 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					</Tooltip>
 					{activeMcap?.breakdown != null ? (
 						<Tooltip
-							content={<BreakdownTooltipContent breakdown={activeMcap.breakdown} />}
+							content={
+								<BreakdownTooltipContent
+									breakdown={activeMcap.breakdown}
+									description={definitions.activeMcap.description}
+								/>
+							}
 							className="font-jetbrains text-xl font-semibold"
 						>
 							{activeMcap?.total != null ? formattedNum(activeMcap.total, true) : '-'}
@@ -286,7 +296,12 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					</Tooltip>
 					{defiActiveTv?.breakdown != null ? (
 						<Tooltip
-							content={<BreakdownTooltipContent breakdown={defiActiveTv.breakdown} />}
+							content={
+								<BreakdownTooltipContent
+									breakdown={defiActiveTv.breakdown}
+									description={definitions.defiActiveTvl.description}
+								/>
+							}
 							className="font-jetbrains text-xl font-semibold"
 						>
 							{defiActiveTv?.total != null ? formattedNum(defiActiveTv.total, true) : '$0'}
