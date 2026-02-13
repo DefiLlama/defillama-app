@@ -83,7 +83,16 @@ const getChainFromDerivedKey = (key: string, type: AdjustKey): string | null => 
 	return key.endsWith(suffix) ? key.slice(0, -suffix.length) : null
 }
 
-type TvlDataEntry = { date: number | string; totalLiquidityUSD: number | string } | [number | string, number | string]
+type TvlObjectEntry = {
+	date?: number | string | null
+	totalLiquidityUSD?: number | string | null
+}
+
+type TvlDataEntry = TvlObjectEntry | [number | string, number | string] | null | undefined
+
+const isTvlObjectEntry = (value: TvlDataEntry): value is TvlObjectEntry => {
+	return value != null && typeof value === 'object' && !Array.isArray(value)
+}
 
 const toPairs = (arr: readonly TvlDataEntry[] | undefined): [number, number][] => {
 	if (!Array.isArray(arr)) return []
@@ -96,9 +105,11 @@ const toPairs = (arr: readonly TvlDataEntry[] | undefined): [number, number][] =
 		if (Array.isArray(d)) {
 			tsRaw = Number(d[0])
 			vRaw = Math.trunc(Number(d[1]) || 0) // || needed: NaN fallback
-		} else {
+		} else if (isTvlObjectEntry(d)) {
 			tsRaw = Number(d.date)
 			vRaw = Math.trunc(Number(d.totalLiquidityUSD) || 0) // || needed: NaN fallback
+		} else {
+			continue
 		}
 
 		if (!Number.isFinite(tsRaw) || !Number.isFinite(vRaw)) continue

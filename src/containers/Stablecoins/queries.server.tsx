@@ -362,8 +362,9 @@ export async function getStablecoinChainsPageData(): Promise<PeggedChainsPageDat
 						let total = 0
 						let hasFinite = false
 						for (const value of Object.values(rawMcap)) {
-							if (!Number.isFinite(value)) continue
-							total += value
+							const numeric = Number(value)
+							if (!Number.isFinite(numeric)) continue
+							total += numeric
 							hasFinite = true
 						}
 						mcap = hasFinite ? total : null
