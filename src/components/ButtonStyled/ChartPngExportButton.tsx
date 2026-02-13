@@ -124,7 +124,27 @@ export function ChartPngExportButton({
 					}
 				}
 
-				currentOptions.textStyle = { ...(currentOptions.textStyle ?? {}), fontSize: 24 }
+				const isSankeyChart =
+					Array.isArray(currentOptions.series) &&
+					currentOptions.series.some(
+						(series) => typeof series === 'object' && series != null && 'type' in series && series.type === 'sankey'
+					)
+				const isPieChart =
+					Array.isArray(currentOptions.series) &&
+					currentOptions.series.some(
+						(series) => typeof series === 'object' && series != null && 'type' in series && series.type === 'pie'
+					)
+				const isTreemapChart =
+					Array.isArray(currentOptions.series) &&
+					currentOptions.series.some(
+						(series) => typeof series === 'object' && series != null && 'type' in series && series.type === 'treemap'
+					)
+
+				// Treemap labels rely on local rich-text sizing. A global textStyle boost makes
+				// inline label text (e.g. "DeFi Active TVL") too large vs the value text.
+				if (!isTreemapChart) {
+					currentOptions.textStyle = { ...(currentOptions.textStyle ?? {}), fontSize: 24 }
+				}
 
 				if (currentOptions.xAxis) {
 					// @ts-expect-error - all options are in array format
@@ -178,13 +198,6 @@ export function ChartPngExportButton({
 				}
 
 				// Handle Sankey chart series - scale up labels for export
-				const isSankeyChart =
-					Array.isArray(currentOptions.series) && currentOptions.series.some((s: any) => s.type === 'sankey')
-				const isPieChart =
-					Array.isArray(currentOptions.series) && currentOptions.series.some((s: any) => s.type === 'pie')
-				const isTreemapChart =
-					Array.isArray(currentOptions.series) && currentOptions.series.some((s: any) => s.type === 'treemap')
-
 				if (isSankeyChart && Array.isArray(currentOptions.series)) {
 					currentOptions.series = currentOptions.series.map((series: any) => {
 						if (series.type === 'sankey') {
