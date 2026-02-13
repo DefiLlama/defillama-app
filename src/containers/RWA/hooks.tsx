@@ -695,6 +695,83 @@ export function useRwaAssetNamePieChartData({
 	}, [assets, enabled, selectedAssetNames])
 }
 
+export function useRwaAssetPlatformPieChartData({
+	enabled,
+	assets
+}: {
+	enabled: boolean
+	assets: IRWAAssetsOverview['assets']
+}) {
+	return useMemo(() => {
+		const MAX_LABELS = 24
+		const UNKNOWN = 'Unknown'
+		const OTHERS = 'Others'
+
+		if (!enabled || assets.length === 0) {
+			return {
+				assetPlatformOnChainMcapPieChartData: [] as PieChartDatum[],
+				assetPlatformActiveMcapPieChartData: [] as PieChartDatum[],
+				assetPlatformDefiActiveTvlPieChartData: [] as PieChartDatum[],
+				assetPlatformPieChartStackColors: {}
+			}
+		}
+
+		// Coalesce by slug to avoid casing/spacing duplicates in platform names.
+		const totalsBySlug = new Map<string, { label: string; onChain: number; active: number; defi: number }>()
+		for (const asset of assets) {
+			const platformRaw = asset.parentPlatform as unknown
+			const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
+			const normalizedPlatforms = platformCandidates
+				.map((platform) => (typeof platform === 'string' ? platform.trim() : ''))
+				.filter((platform): platform is string => platform.length > 0)
+			const platforms = normalizedPlatforms.length > 0 ? Array.from(new Set(normalizedPlatforms)) : [UNKNOWN]
+
+			for (const platform of platforms) {
+				const key = rwaSlug(platform)
+				const prev = totalsBySlug.get(key) ?? { label: platform, onChain: 0, active: 0, defi: 0 }
+
+				// Prefer a non-Unknown label if we previously only had Unknown.
+				if (prev.label === UNKNOWN && platform !== UNKNOWN) prev.label = platform
+
+				prev.onChain += asset.onChainMcap?.total ?? 0
+				prev.active += asset.activeMcap?.total ?? 0
+				prev.defi += asset.defiActiveTvl?.total ?? 0
+				totalsBySlug.set(key, prev)
+			}
+		}
+
+		const colorOrder = Array.from(totalsBySlug.values())
+			.map((x) => x.label)
+			.filter(Boolean)
+			.sort()
+		// Keep existing label colors stable while ensuring "Others" exists.
+		if (!colorOrder.includes(OTHERS)) colorOrder.push(OTHERS)
+		const assetPlatformPieChartStackColors = buildStackColors(colorOrder)
+
+		const limitChartData = (data: PieChartDatum[]) => {
+			if (data.length <= MAX_LABELS) return data
+			const head = data.slice(0, MAX_LABELS - 1)
+			const othersValue = data.slice(MAX_LABELS - 1).reduce((sum, d) => sum + d.value, 0)
+			return othersValue > 0 ? [...head, { name: OTHERS, value: othersValue }] : head
+		}
+
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
+			limitChartData(
+				Array.from(totalsBySlug.values())
+					.map((v) => ({ name: v.label || UNKNOWN, value: v[metric] }))
+					.filter((x) => x.value > 0)
+					.sort((a, b) => b.value - a.value)
+			)
+
+		return {
+			assetPlatformOnChainMcapPieChartData: toSortedChartData('onChain'),
+			assetPlatformActiveMcapPieChartData: toSortedChartData('active'),
+			assetPlatformDefiActiveTvlPieChartData: toSortedChartData('defi'),
+			assetPlatformPieChartStackColors
+		}
+	}, [assets, enabled])
+}
+
 export function useRwaChainBreakdownPieChartData({
 	enabled,
 	assets
