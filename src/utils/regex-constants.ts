@@ -4,7 +4,7 @@
  */
 
 // Whitespace patterns
-export const WHITESPACE_REGEX = /\s+/g
+const WHITESPACE_REGEX = /\s+/g
 
 // Sluggify patterns - used for URL slug generation
 export const NON_WORD_SLASH_REGEX = /[^\w/]+/g

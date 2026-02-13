@@ -4,7 +4,6 @@ import {
 	LIQUIDITY_API,
 	ORACLE_API,
 	oracleProtocols,
-	PROTOCOL_EMISSION_API2,
 	PROTOCOL_GOVERNANCE_COMPOUND_API,
 	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
 	PROTOCOL_GOVERNANCE_TALLY_API,
@@ -22,6 +21,7 @@ import { fetchHacks } from '~/containers/Hacks/api'
 import type { IHackApiItem } from '~/containers/Hacks/api.types'
 import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
+import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
@@ -397,7 +397,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: null,
 		currentProtocolMetadata?.emissions && protocolId
-			? fetchJson(`${PROTOCOL_EMISSION_API2}/${slug(currentProtocolMetadata.displayName)}`)
+			? fetchProtocolEmissionFromDatasets(slug(currentProtocolMetadata.displayName))
 					.then((data) => data?.supplyMetrics?.adjustedSupply ?? null)
 					.catch(() => null)
 			: null,

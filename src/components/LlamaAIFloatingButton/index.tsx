@@ -5,8 +5,8 @@ import { useEntityQuestions } from '~/containers/LlamaAI/hooks/useEntityQuestion
 import { useSuggestedQuestions } from '~/containers/LlamaAI/hooks/useSuggestedQuestions'
 import { useMedia } from '~/hooks/useMedia'
 
-export const PENDING_PROMPT_KEY = 'llamaai-pending-prompt'
-export const PENDING_PAGE_CONTEXT_KEY = 'llamaai-pending-page-context'
+const PENDING_PROMPT_KEY = 'llamaai-pending-prompt'
+const PENDING_PAGE_CONTEXT_KEY = 'llamaai-pending-page-context'
 
 const FALLBACK_SUGGESTIONS = [
 	'Which protocols have growing TVL and revenue but declining token prices?',

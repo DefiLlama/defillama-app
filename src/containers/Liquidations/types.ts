@@ -1,1 +1,3 @@
-export type SelectedSeries = Record<string, boolean> | null
+type SelectedSeries = Record<string, boolean> | null
+
+export {}

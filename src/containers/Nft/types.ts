@@ -1,4 +1,4 @@
-export interface ISale {
+interface ISale {
 	aggregatorAddress?: string | null
 	aggregatorName?: string | null
 	blockNumber: number

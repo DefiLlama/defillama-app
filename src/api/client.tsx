@@ -53,7 +53,7 @@ interface IDenominationPriceHistory {
 	volumes: Array<[number, number]>
 }
 
-export const useDenominationPriceHistory = (geckoId?: string) => {
+const useDenominationPriceHistory = (geckoId?: string) => {
 	let url = geckoId ? `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true` : null
 	const isEnabled = !!url
 	return useQuery<IDenominationPriceHistory>({

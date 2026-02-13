@@ -2,10 +2,16 @@ import { DIMENSIONS_OVERVIEW_API, PROTOCOLS_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type { RawDimensionsOverviewResponse, RawProtocolsResponse } from './api.types'
 
+/**
+ * Fetch the protocol list used for token comparisons.
+ */
 export async function fetchProtocolsList(): Promise<RawProtocolsResponse> {
 	return fetchJson<RawProtocolsResponse>(PROTOCOLS_API)
 }
 
+/**
+ * Fetch protocols with fee data for compare-tokens.
+ */
 export async function fetchFeesProtocols(): Promise<RawDimensionsOverviewResponse> {
 	return fetchJson<RawDimensionsOverviewResponse>(
 		`${DIMENSIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
@@ -15,6 +21,9 @@ export async function fetchFeesProtocols(): Promise<RawDimensionsOverviewRespons
 	})
 }
 
+/**
+ * Fetch protocols with revenue data for compare-tokens.
+ */
 export async function fetchRevenueProtocols(): Promise<RawDimensionsOverviewResponse> {
 	return fetchJson<RawDimensionsOverviewResponse>(
 		`${DIMENSIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`

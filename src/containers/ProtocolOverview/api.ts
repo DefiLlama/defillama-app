@@ -71,12 +71,18 @@ const normalizeProtocolTokenBreakdownChart = (values: unknown): IProtocolTokenBr
 	return points.sort((a, b) => a[0] - b[0])
 }
 
+/**
+ * Fetch aggregate TVL metrics for a protocol.
+ */
 export const fetchProtocolOverviewMetrics = async (protocol: string): Promise<IProtocolTvlMetrics | null> => {
 	return fetchJson(`${V2_SERVER_URL}/metrics/tvl/protocol/${protocol}`)
 		.then((data) => data as IProtocolTvlMetrics)
 		.catch(() => null)
 }
 
+/**
+ * Fetch protocol chart values for the provided chart path.
+ */
 const fetchProtocolValueChart = async ({
 	path,
 	key,
@@ -92,6 +98,9 @@ const fetchProtocolValueChart = async ({
 		.catch(() => null)
 }
 
+/**
+ * Fetch protocol chain-breakdown chart values for the provided chart path.
+ */
 const fetchProtocolChainBreakdownChart = async ({
 	path,
 	key,
@@ -107,6 +116,9 @@ const fetchProtocolChainBreakdownChart = async ({
 		.catch(() => null)
 }
 
+/**
+ * Fetch protocol token-breakdown chart values for the provided chart path.
+ */
 const fetchProtocolTokenBreakdownChart = async ({
 	path,
 	key,
@@ -137,6 +149,9 @@ const buildProtocolChartPath = ({
 	return (breakdownType ? `${basePath}/${breakdownType}` : basePath).replaceAll('#', '$')
 }
 
+/**
+ * Fetch protocol metric chart values for a namespace.
+ */
 const fetchProtocolMetricValueChart = async ({
 	namespace,
 	protocol,
@@ -152,6 +167,9 @@ const fetchProtocolMetricValueChart = async ({
 	})
 }
 
+/**
+ * Fetch protocol metric chart values grouped by chain.
+ */
 const fetchProtocolMetricChainBreakdownChart = async ({
 	namespace,
 	protocol,
@@ -167,6 +185,9 @@ const fetchProtocolMetricChainBreakdownChart = async ({
 	})
 }
 
+/**
+ * Fetch protocol metric chart values grouped by token.
+ */
 const fetchProtocolMetricTokenBreakdownChart = async ({
 	namespace,
 	protocol,
@@ -182,6 +203,9 @@ const fetchProtocolMetricTokenBreakdownChart = async ({
 	})
 }
 
+/**
+ * Fetch protocol TVL value chart data.
+ */
 const fetchProtocolTvlValueChart = async ({
 	protocol,
 	key,
@@ -195,6 +219,9 @@ const fetchProtocolTvlValueChart = async ({
 	})
 }
 
+/**
+ * Fetch protocol TVL chart data grouped by chain.
+ */
 const fetchProtocolTvlChainBreakdownChart = async ({
 	protocol,
 	key,
@@ -208,6 +235,9 @@ const fetchProtocolTvlChainBreakdownChart = async ({
 	})
 }
 
+/**
+ * Fetch protocol TVL chart data grouped by token.
+ */
 export const fetchProtocolTvlTokenBreakdownChart = async ({
 	protocol,
 	key,
@@ -221,6 +251,9 @@ export const fetchProtocolTvlTokenBreakdownChart = async ({
 	})
 }
 
+/**
+ * Fetch protocol treasury value chart data.
+ */
 const fetchProtocolTreasuryValueChart = async ({
 	protocol,
 	key,
@@ -234,6 +267,9 @@ const fetchProtocolTreasuryValueChart = async ({
 	})
 }
 
+/**
+ * Fetch protocol treasury chart data grouped by chain.
+ */
 const fetchProtocolTreasuryChainBreakdownChart = async ({
 	protocol,
 	key,
@@ -247,6 +283,9 @@ const fetchProtocolTreasuryChainBreakdownChart = async ({
 	})
 }
 
+/**
+ * Fetch protocol treasury chart data grouped by token.
+ */
 export const fetchProtocolTreasuryTokenBreakdownChart = async ({
 	protocol,
 	key,
@@ -260,6 +299,9 @@ export const fetchProtocolTreasuryTokenBreakdownChart = async ({
 	})
 }
 
+/**
+ * Fetch protocol TVL chart data with optional breakdown selection.
+ */
 export function fetchProtocolTvlChart(
 	params: IProtocolChartV2Params & { breakdownType: 'chain-breakdown' }
 ): Promise<IProtocolChainBreakdownChart | null>
@@ -289,6 +331,9 @@ export async function fetchProtocolTvlChart({
 	return fetchProtocolTvlValueChart({ protocol, key, currency })
 }
 
+/**
+ * Fetch protocol treasury chart data with optional breakdown selection.
+ */
 export function fetchProtocolTreasuryChart(
 	params: IProtocolChartV2Params & { breakdownType: 'chain-breakdown' }
 ): Promise<IProtocolChainBreakdownChart | null>
@@ -318,6 +363,9 @@ export async function fetchProtocolTreasuryChart({
 	return fetchProtocolTreasuryValueChart({ protocol, key, currency })
 }
 
+/**
+ * Fetch protocol expense entries from the public expenses dataset.
+ */
 export async function fetchProtocolExpenses(): Promise<IProtocolExpenses[]> {
 	return fetchJson<IProtocolExpenses[]>(
 		'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'

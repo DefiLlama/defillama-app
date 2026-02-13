@@ -6,7 +6,7 @@ import type {
 	PeggedAssetsApiResponse
 } from './api.types'
 
-export type StablecoinOverviewChartPoint = {
+type StablecoinOverviewChartPoint = {
 	date: number
 	mcap: Record<string, number>
 }

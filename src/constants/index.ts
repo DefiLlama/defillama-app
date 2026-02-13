@@ -18,13 +18,6 @@ export const TAGS_CHART_API = `${SERVER_URL}/charts/tags`
 export const PROTOCOLS_BY_TOKEN_API = `${SERVER_URL}/tokenProtocols`
 export const PROTOCOL_TREASURY_API = `${SERVER_URL}/treasury`
 
-export const PROTOCOL_EMISSIONS_API = `${SERVER_URL}/emissions`
-export const PROTOCOL_EMISSIONS_LIST_API = `${DATASETS_SERVER_URL}/emissionsProtocolsList`
-export const PROTOCOL_EMISSION_API = `${SERVER_URL}/emission`
-export const PROTOCOL_EMISSION_API2 = `${DATASETS_SERVER_URL}/emissions`
-export const EMISSION_BREAKDOWN_API = `${SERVER_URL}/emissionsBreakdown`
-export const EMISSION_SUPPLY_METRICS = `${DATASETS_SERVER_URL}/emissionsSupplyMetrics`
-
 export const INFLOWS_API = `${SERVER_URL}/inflows`
 
 export const ACTIVE_USERS_API = `${SERVER_URL}/activeUsers`
@@ -51,7 +44,7 @@ export const PEGGEDCHART_API = `${STABLECOINS_SERVER_URL}/stablecoincharts2`
 export const PEGGEDCHART_DOMINANCE_ALL_API = `${STABLECOINS_SERVER_URL}/stablecoincharts2/all-dominance-chain-breakdown`
 export const PEGGEDCHART_COINS_RECENT_DATA_API = `${STABLECOINS_SERVER_URL}/stablecoincharts2/recent-protocol-data`
 export const PEGGEDCONFIG_API = `${STABLECOINS_SERVER_URL}/config`
-export const PEGGEDDOMINANCE_API = `${STABLECOINS_SERVER_URL}/stablecoindominance`
+const PEGGEDDOMINANCE_API = `${STABLECOINS_SERVER_URL}/stablecoindominance`
 export const PEGGEDPRICES_API = `${STABLECOINS_SERVER_URL}/stablecoinprices`
 export const PEGGEDRATES_API = `${STABLECOINS_SERVER_URL}/rates`
 
@@ -90,12 +83,12 @@ export const CHAINS_API_V2 = `${SERVER_URL}/chains2`
 export const DIMENSIONS_OVERVIEW_API = `${SERVER_URL}/overview`
 export const DIMENSIONS_SUMMARY_API = `${SERVER_URL}/summary`
 
-export const getProtocolFEConfig = (id: string) => `${SERVER_URL}/config/smol/protocol-${id}.json`.replace('#', '-')
+const getProtocolFEConfig = (id: string) => `${SERVER_URL}/config/smol/protocol-${id}.json`.replace('#', '-')
 
-export const USER_METRICS_PROTOCOL_API = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/stats'
-export const USER_METRICS_CHAIN_API = 'https://users.llama.fi/chain'
-export const USER_METRICS_CHAIN_API_BY_DATE = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/chain'
-export const USER_METRICS_ALL_API = 'https://users.llama.fi/all'
+const USER_METRICS_PROTOCOL_API = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/stats'
+const USER_METRICS_CHAIN_API = 'https://users.llama.fi/chain'
+const USER_METRICS_CHAIN_API_BY_DATE = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/chain'
+const USER_METRICS_ALL_API = 'https://users.llama.fi/all'
 
 export const TOKEN_LIQUIDITY_API = `${SERVER_URL}/historicalLiquidity`
 
@@ -103,9 +96,9 @@ export const CG_TOKEN_API =
 	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=<PLACEHOLDER>'
 
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'
-export const ICONS_NFT_CDN = 'https://nft-icons.llamao.fi/icons'
+const ICONS_NFT_CDN = 'https://nft-icons.llamao.fi/icons'
 
-export const TWITTER_POSTS_API = `${DATASETS_SERVER_URL}/dev-metrics/twitter-files`
+const TWITTER_POSTS_API = `${DATASETS_SERVER_URL}/dev-metrics/twitter-files`
 export const TWITTER_POSTS_API_V2 = `${SERVER_URL}/twitter/user`
 
 const COINS_SERVER_URL = process.env.COINS_SERVER_URL ?? 'https://coins.llama.fi'
@@ -135,7 +128,7 @@ export const YIELD_TOKEN_CATEGORIES_API = 'https://ask.llama.fi/token-categories
 export const SEARCH_API_URL = 'https://search-core.defillama.com/multi-search'
 export const SEARCH_API_TOKEN = process.env.NEXT_PUBLIC_SEARCH_API_TOKEN
 
-export const removedCategoriesFromChainTvl = [
+const removedCategoriesFromChainTvl = [
 	'Chain',
 	'CEX',
 	'Infrastructure',

@@ -9,6 +9,9 @@ import type {
 } from './api.types'
 import { ADAPTER_TYPES, ADAPTER_DATA_TYPES } from './constants'
 
+/**
+ * Fetch adapter metrics for a chain and data type.
+ */
 export async function fetchAdapterChainMetrics({
 	adapterType,
 	chain,
@@ -27,6 +30,9 @@ export async function fetchAdapterChainMetrics({
 	return fetchJson<IAdapterChainMetrics>(metricsUrl, { timeout: 30_000 })
 }
 
+/**
+ * Fetch adapter metrics for a protocol and data type.
+ */
 export async function fetchAdapterProtocolMetrics({
 	adapterType,
 	protocol,
@@ -45,6 +51,9 @@ export async function fetchAdapterProtocolMetrics({
 	return fetchJson<IAdapterProtocolMetrics>(metricsUrl, { timeout: 30_000 })
 }
 
+/**
+ * Fetch adapter chart data for a chain and data type.
+ */
 export async function fetchAdapterChainChartData({
 	adapterType,
 	chain,
@@ -68,6 +77,9 @@ export async function fetchAdapterChainChartData({
 	return fetchJson<IAdapterChart>(totalDataChartUrl, { timeout: 30_000 })
 }
 
+/**
+ * Fetch adapter chart data for a single protocol.
+ */
 export async function fetchAdapterProtocolChartData({
 	adapterType,
 	protocol,
@@ -86,6 +98,9 @@ export async function fetchAdapterProtocolChartData({
 	return fetchJson<IAdapterChart>(totalDataChartUrl, { timeout: 30_000 })
 }
 
+/**
+ * Fetch adapter protocol chart data by breakdown type.
+ */
 export async function fetchAdapterProtocolChartDataByBreakdownType({
 	adapterType,
 	protocol,
@@ -106,7 +121,10 @@ export async function fetchAdapterProtocolChartDataByBreakdownType({
 	return fetchJson<IAdapterBreakdownChartData>(totalDataChartUrl, { timeout: 30_000 })
 }
 
-export async function fetchAdapterChainChartDataByProtocolBreakdown({
+/**
+ * Fetch adapter chain chart data broken down by protocol.
+ */
+async function fetchAdapterChainChartDataByProtocolBreakdown({
 	adapterType,
 	chain,
 	dataType
@@ -135,6 +153,9 @@ interface CoinGeckoBtcPrice {
 	}
 }
 
+/**
+ * Fetch estimated global CEX volume from CoinGecko exchange data.
+ */
 export async function fetchCexVolume(): Promise<number | null> {
 	try {
 		const [cexs, btcPriceRes] = await Promise.all([

@@ -29,7 +29,7 @@ export enum ADAPTER_DATA_TYPES {
 	DAILY_ACTIVE_LIQUIDITY = 'dailyActiveLiquidity'
 }
 
-export type AdapterDataType = `${ADAPTER_DATA_TYPES}`
+type AdapterDataType = `${ADAPTER_DATA_TYPES}`
 
 export const ADAPTER_DATA_TYPE_KEYS = {
 	dailyFees: 'df',
@@ -49,14 +49,14 @@ export const ADAPTER_DATA_TYPE_KEYS = {
 	dailyActiveLiquidity: 'dal'
 } as const
 
-export type AdapterDataTypeKey = keyof typeof ADAPTER_DATA_TYPE_KEYS
+type AdapterDataTypeKey = keyof typeof ADAPTER_DATA_TYPE_KEYS
 
 // Type guard to check if a string is a valid AdapterDataTypeKey
 export function isAdapterDataTypeKey(key: string): key is AdapterDataTypeKey {
 	return key in ADAPTER_DATA_TYPE_KEYS
 }
 
-export const VOLUME_TYPE_ADAPTERS = [
+const VOLUME_TYPE_ADAPTERS = [
 	'dexs',
 	'derivatives',
 	'options',

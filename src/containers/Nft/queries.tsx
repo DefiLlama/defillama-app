@@ -24,7 +24,7 @@ type VolumeChartEntry = {
 	volume?: number
 }
 
-export const getNFTStatistics = (chart: VolumeChartEntry[]) => {
+const getNFTStatistics = (chart: VolumeChartEntry[]) => {
 	const { totalVolume, totalVolumeUSD } = (chart.length > 0
 		? chart.reduce(
 				(volumes, data) => {

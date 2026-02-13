@@ -216,7 +216,7 @@ export const getStablecoinDominance = (
 
 const DEFAULT_TOP_TOKEN: IStablecoinToken = { symbol: 'USDT', mcap: 0 }
 
-export const getStablecoinTopTokenFromAssets = (
+const getStablecoinTopTokenFromAssets = (
 	assets: ReadonlyArray<IStablecoinTopTokenCandidate> | null | undefined
 ): IStablecoinToken => {
 	if (!assets?.length) return DEFAULT_TOP_TOKEN
@@ -471,7 +471,7 @@ export const buildStablecoinChartData = ({
 	return { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows }
 }
 
-export const peggedPropertiesToKeep = [
+const peggedPropertiesToKeep = [
 	'circulating',
 	'minted',
 	'unreleased',

@@ -10,7 +10,7 @@ const CAPTURE_WIDTH = 1280
 const CAPTURE_HEIGHT = 720
 const CAPTURE_TIMEOUT = 1500
 
-export async function captureChartById(chartId: string, title: string, isDark: boolean): Promise<CapturedChart | null> {
+async function captureChartById(chartId: string, title: string, isDark: boolean): Promise<CapturedChart | null> {
 	const wrapper = document.querySelector(`[data-chart-id="${chartId}"]`) as HTMLElement
 	if (!wrapper) return null
 

@@ -53,9 +53,9 @@ export const withPerformanceLogging = <T extends object>(
 	}
 }
 
-export type FetchOverCacheOptions = RequestInit & { ttl?: string | number; silent?: boolean; timeout?: number }
+type FetchOverCacheOptions = RequestInit & { ttl?: string | number; silent?: boolean; timeout?: number }
 
-export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOverCacheOptions): Promise<Response> => {
+const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOverCacheOptions): Promise<Response> => {
 	const cacheKey = 'defillama-cache:' + url.toString().replace(/^https?:\/\//, '')
 	const cache = REDIS_URL ? await getCache(cacheKey) : null
 

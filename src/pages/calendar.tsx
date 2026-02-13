@@ -16,18 +16,18 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
-import { PROTOCOL_EMISSIONS_API } from '~/constants'
 import calendarEvents from '~/constants/calendar'
+import { fetchAllProtocolEmissions } from '~/containers/Unlocks/api'
+import type { ProtocolEmission } from '~/containers/Unlocks/api.types'
 import Layout from '~/layout'
 import { formatPercentage, slug, toNiceDayMonthYear, toNiceHour } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('calendar', async () => {
-	const res = await fetchJson(PROTOCOL_EMISSIONS_API).catch(() => [])
+	const res = await fetchAllProtocolEmissions()
 
-	const emissions = res.map((protocol) => {
-		const unlocksByDate = {}
+	const emissions = res.map((protocol: ProtocolEmission) => {
+		const unlocksByDate: Record<number, number> = {}
 		for (const e of protocol.events ?? []) {
 			if (e.timestamp < Date.now() / 1000 || (e.noOfTokens.length === 1 && e.noOfTokens[0] === 0)) continue
 			unlocksByDate[e.timestamp] =

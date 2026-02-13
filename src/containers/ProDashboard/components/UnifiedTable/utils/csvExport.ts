@@ -26,7 +26,7 @@ export function getRowsAtGroupLevel(table: Table<NormalizedRow>, level: UnifiedR
 	return result
 }
 
-export function getGroupedRowCsvValue(row: Row<NormalizedRow>, columnId: string, percentColumns: Set<string>): string {
+function getGroupedRowCsvValue(row: Row<NormalizedRow>, columnId: string, percentColumns: Set<string>): string {
 	const display = getRowDisplayProps(row)
 
 	if (columnId === 'name') {

@@ -137,7 +137,7 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 	})
 }
 
-export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
+const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 	const isEnabled = !!protocolId
 	return useQuery({
 		queryKey: ['protocol-overview', 'gas-used', protocolId],
@@ -152,7 +152,7 @@ export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 		enabled: isEnabled
 	})
 }
-export const useFetchProtocolTokenLiquidity = (token: string | null) => {
+const useFetchProtocolTokenLiquidity = (token: string | null) => {
 	const isEnabled = !!token
 	return useQuery({
 		queryKey: ['protocol-overview', 'token-liquidity', token],
@@ -185,7 +185,7 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 	})
 }
 
-export const useGetProtocolsList = ({ chain }: { chain: string }) => {
+const useGetProtocolsList = ({ chain }: { chain: string }) => {
 	const { data, isLoading } = useQuery({
 		queryKey: ['protocol-overview', 'protocols-list', PROTOCOLS_API],
 		queryFn: () => fetchApi(PROTOCOLS_API),
@@ -213,7 +213,7 @@ export const useGetProtocolsList = ({ chain }: { chain: string }) => {
 	return { fullProtocolsList, parentProtocols, isLoading }
 }
 
-export const useFetchProtocolTwitter = (twitter?: string | null) => {
+const useFetchProtocolTwitter = (twitter?: string | null) => {
 	const isEnabled = !!twitter
 	return useQuery({
 		queryKey: ['protocol-overview', 'twitter-data', twitter],

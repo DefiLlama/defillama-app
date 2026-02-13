@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import * as React from 'react'
 import { Icon } from './Icon'
 
-export interface NestedMenuItemProps extends Ariakit.MenuItemProps {
+interface NestedMenuItemProps extends Ariakit.MenuItemProps {
 	ref?: React.Ref<HTMLDivElement>
 }
 
@@ -10,7 +10,7 @@ export function NestedMenuItem({ ref, ...props }: NestedMenuItemProps) {
 	return <Ariakit.MenuItem ref={ref} {...props} className={`${props.className ?? ''}`} />
 }
 
-export interface NestedMenuProps extends Ariakit.MenuButtonProps<'div'> {
+interface NestedMenuProps extends Ariakit.MenuButtonProps<'div'> {
 	label: React.ReactNode
 	ref?: React.Ref<HTMLDivElement>
 }

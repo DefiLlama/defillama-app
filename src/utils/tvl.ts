@@ -52,7 +52,7 @@ export type ProtocolChainTvls = Record<
 	}
 >
 
-export interface AdjustProtocolTvlOptions {
+interface AdjustProtocolTvlOptions {
 	includeChains?: string[]
 	excludeChains?: string[]
 	filterMode?: 'include' | 'exclude'

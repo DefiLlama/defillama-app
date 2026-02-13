@@ -6,7 +6,7 @@ import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 const toArray = <T,>(value: T | T[]): T[] => (Array.isArray(value) ? value : [value])
 
-export const YIELD_PRESETS = {
+const YIELD_PRESETS = {
 	stables: {
 		label: 'Stables',
 		description: 'USD, EURC stablecoins with single exposure, $1M+ TVL',

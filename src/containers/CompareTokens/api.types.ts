@@ -4,7 +4,7 @@ export type RawProtocolsResponse = {
 	parentProtocols: RawParentProtocol[]
 }
 
-export type RawLiteProtocol = {
+type RawLiteProtocol = {
 	defillamaId: string
 	name: string
 	mcap?: number | null
@@ -13,7 +13,7 @@ export type RawLiteProtocol = {
 	parentProtocol?: string | null
 }
 
-export type RawParentProtocol = {
+type RawParentProtocol = {
 	id: string
 	name: string
 	gecko_id?: string | null

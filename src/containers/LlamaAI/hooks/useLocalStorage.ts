@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from 'react'
  * @param initialValue - Default value when key doesn't exist
  * @returns Tuple of [storedValue, setValue] similar to useState
  */
-export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
+function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
 	// Get initial value from localStorage or use fallback
 	const readValue = useCallback((): T => {
 		if (typeof window === 'undefined') {

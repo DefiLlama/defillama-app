@@ -154,7 +154,7 @@ export function normalizeChainSlug(chain: string | null | undefined): string | n
 	return toInternalSlug(chain)
 }
 
-export const CHAIN_SLUG_ALIASES: Record<string, string> = {
+const CHAIN_SLUG_ALIASES: Record<string, string> = {
 	optimism: 'op-mainnet',
 	'op mainnet': 'op-mainnet',
 	binance: 'bsc',

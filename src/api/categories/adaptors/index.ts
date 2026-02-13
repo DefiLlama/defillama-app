@@ -48,7 +48,7 @@ export interface IOverviewProps {
 	parentProtocols?: Array<IParentProtocol>
 }
 
-export type IJoin2ReturnType = Array<IJSON<number | string> & { date: string }>
+type IJoin2ReturnType = Array<IJSON<number | string> & { date: string }>
 
 // - used in /fees and /fees/chain/[chain]
 export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: string }) => {

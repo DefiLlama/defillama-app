@@ -1184,7 +1184,7 @@ function getUTCTimestamp(timestamp: number) {
 	return Math.round(timestamp / msPerDay) * msPerDay
 }
 
-export const getDATInflows = async () => {
+const getDATInflows = async () => {
 	try {
 		const data: IDATInflow = await fetchJson(`${TRADFI_API}/institutions`)
 		const weeklyInflows: Record<number, number> = {}

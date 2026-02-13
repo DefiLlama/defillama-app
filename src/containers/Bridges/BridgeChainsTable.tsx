@@ -18,7 +18,7 @@ import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/compon
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum } from '~/utils'
 
-export type BridgeChainsTableRow = {
+type BridgeChainsTableRow = {
 	name: string
 	prevDayNetFlow?: number
 	prevDayUsdDeposits?: number

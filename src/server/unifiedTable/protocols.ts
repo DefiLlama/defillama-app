@@ -19,7 +19,7 @@ export interface ChainMetrics {
 	protocolCount: number | null
 }
 
-export interface ProtocolsTableResult {
+interface ProtocolsTableResult {
 	rows: NormalizedRow[]
 	chainMetrics?: Record<string, ChainMetrics>
 }

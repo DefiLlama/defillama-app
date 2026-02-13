@@ -15,10 +15,10 @@ export const getDataUrl = (symbol: string, timestamp: number) => {
 }
 
 // making aliases so the hints are more readable
-export type Address = string
-export type PrefixAddress = string
-export type Chain = string
-export type Protocol = string
+type Address = string
+type PrefixAddress = string
+type Chain = string
+type Protocol = string
 
 export interface Position {
 	owner: Address
@@ -76,7 +76,7 @@ export type ChartData = {
 	totalPositions: number
 }
 
-export type LiquidationsChartSeries = {
+type LiquidationsChartSeries = {
 	key: string
 	label: string
 	usd: number[]

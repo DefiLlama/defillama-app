@@ -3,7 +3,7 @@ import { MCP_SERVER } from '~/constants'
 import type { SuggestedQuestionsResponse } from '../types'
 
 /** Query key for suggested questions - use for cache invalidation */
-export const SUGGESTED_QUESTIONS_QUERY_KEY = ['suggested-questions'] as const
+const SUGGESTED_QUESTIONS_QUERY_KEY = ['suggested-questions'] as const
 
 async function fetchSuggestedQuestions(): Promise<SuggestedQuestionsResponse> {
 	const response = await fetch(`${MCP_SERVER}/suggested-questions`)

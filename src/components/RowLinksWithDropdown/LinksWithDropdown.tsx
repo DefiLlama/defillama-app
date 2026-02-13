@@ -132,7 +132,7 @@ export function LinksWithDropdown({
 	)
 }
 
-export function LinkItem({ option, activeLink, ...props }: { option: ILink; activeLink: string; [key: string]: any }) {
+function LinkItem({ option, activeLink, ...props }: { option: ILink; activeLink: string; [key: string]: any }) {
 	const isActive = option.label === activeLink
 
 	return (

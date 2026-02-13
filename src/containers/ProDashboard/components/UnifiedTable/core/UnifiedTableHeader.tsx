@@ -4,12 +4,12 @@ import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import type { ActiveFilterChip } from '../utils/filterChips'
 import { CsvExportDropdown, type CsvExportLevel } from './CsvExportDropdown'
 
-export interface GroupingOption {
+interface GroupingOption {
 	id: string
 	label: string
 }
 
-export interface UnifiedTableHeaderProps {
+interface UnifiedTableHeaderProps {
 	title: string
 	scopeDescription: string
 	rowHeadersSummary: string | null

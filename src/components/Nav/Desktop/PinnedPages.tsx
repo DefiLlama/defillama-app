@@ -79,15 +79,7 @@ export function PinnedPages({ pinnedPages, asPath }: { pinnedPages: Array<TNavLi
 	)
 }
 
-export const PinnedPageRow = ({
-	page,
-	asPath,
-	isReordering
-}: {
-	page: TNavLink
-	asPath: string
-	isReordering: boolean
-}) => {
+const PinnedPageRow = ({ page, asPath, isReordering }: { page: TNavLink; asPath: string; isReordering: boolean }) => {
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
 		id: page.route,
 		disabled: !isReordering

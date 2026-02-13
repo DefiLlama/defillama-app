@@ -18,7 +18,7 @@ import { MarkdownRenderer } from './MarkdownRenderer'
 import { SuggestedActions } from './PromptResponse'
 import { ResearchProgress } from './ResearchProgress'
 
-export interface StreamItemRendererProps {
+interface StreamItemRendererProps {
 	item: StreamItem
 	/** Map of artifact IDs to their items for O(1) lookup in MarkdownRenderer */
 	artifactIndex: Map<string, ChartItem | CsvItem>

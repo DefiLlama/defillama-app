@@ -47,7 +47,7 @@ interface LiteDashboard {
 	name: string
 }
 
-export interface DashboardError {
+interface DashboardError {
 	message: string
 	status: number
 }

@@ -33,7 +33,7 @@ export function useProtocolsFilterState(options: { key: string; name: string }[]
 	return { selectedValues, setSelectedValues }
 }
 
-export function useFeesFilterState(_props?: { [key: string]: any }) {
+function useFeesFilterState(_props?: { [key: string]: any }) {
 	const [extraTvlsEnabled, _updater] = useLocalStorageSettingsManager('fees')
 
 	const filters = feesOptions.map((o) => o.key)
@@ -51,7 +51,7 @@ export function useFeesFilterState(_props?: { [key: string]: any }) {
 	return { selectedValues, setSelectedValues }
 }
 
-export function useTvlAndFeesFilterState({
+function useTvlAndFeesFilterState({
 	options
 }: {
 	options: {

@@ -15,7 +15,7 @@ export interface ISearchItem {
 	symbol?: string
 }
 
-export interface IBaseSearchProps {
+interface IBaseSearchProps {
 	data?: ISearchItem[] | null
 	loading?: boolean
 	onSearchTermChange?: (searchValue: string) => void
@@ -30,18 +30,18 @@ export interface IBaseSearchProps {
 	customSearchRoute?: string
 }
 
-export interface ICommonSearchProps {
+interface ICommonSearchProps {
 	onItemClick?: IBaseSearchProps['onItemClick']
 }
 
-export enum SETS {
+enum SETS {
 	PROTOCOLS = 'protocols',
 	CHAINS = 'chains',
 	GROUPED_CHAINS = 'grouped_chains',
 	CATEGORIES = 'categories'
 }
 
-export interface IGetSearchList {
+interface IGetSearchList {
 	data: ISearchItem[]
 	loading: boolean
 	error?: boolean

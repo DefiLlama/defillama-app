@@ -312,7 +312,7 @@ function buildBridgeChainsMultiSeriesChart({
 	}
 }
 
-export async function getBridgePageData(bridge: string) {
+async function getBridgePageData(bridge: string) {
 	const { bridges } = await getBridges()
 	const bridgeData = bridges.filter((obj) => slug(obj.displayName) === slug(bridge))[0]
 

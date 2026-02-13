@@ -18,7 +18,7 @@ import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/compon
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
 
-export type BridgesTableRow = {
+type BridgesTableRow = {
 	displayName: string
 	icon?: string
 	chains: Array<string>

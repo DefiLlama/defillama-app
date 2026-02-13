@@ -11,7 +11,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { getBlockExplorerForAddress } from '~/containers/Bridges/utils'
 import { formattedNum } from '~/utils'
 
-export type BridgeAddressesTableRow = {
+type BridgeAddressesTableRow = {
 	address: string
 	deposited?: number
 	withdrawn?: number

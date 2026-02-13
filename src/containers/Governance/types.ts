@@ -37,7 +37,7 @@ export interface GovernanceStats {
 	highestTotalScore?: number
 }
 
-export interface GovernanceMetadata {
+interface GovernanceMetadata {
 	name?: string
 	followersCount?: number
 }

@@ -24,7 +24,7 @@ const formatLabel = (header: string, group?: string) => {
 	return `${header} · ${group.charAt(0).toUpperCase()}${group.slice(1)}`
 }
 
-export function SortingSelector({
+function SortingSelector({
 	columnOrder,
 	columnVisibility,
 	sorting,

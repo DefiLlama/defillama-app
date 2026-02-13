@@ -5,6 +5,9 @@ import type { PricePoint } from './types'
 
 const DAY_IN_SECONDS = 86_400
 
+/**
+ * Fetch historical price points for a token and time range.
+ */
 export async function fetchPriceSeries(
 	tokenId: string,
 	start: number | null,

@@ -6,13 +6,13 @@ import { highlightWord } from '../utils/textUtils'
 import { useGetEntities } from './useGetEntities'
 import { detectTrigger, calculateComboboxPlacement } from './useTriggerDetection'
 
-export interface EntityData {
+interface EntityData {
 	id: string
 	name: string
 	type: string
 }
 
-export interface UseEntityComboboxOptions {
+interface UseEntityComboboxOptions {
 	promptInputRef: RefObject<HTMLTextAreaElement>
 	highlightRef: RefObject<HTMLDivElement>
 	setValue: (value: string) => void

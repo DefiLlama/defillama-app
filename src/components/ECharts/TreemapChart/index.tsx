@@ -11,7 +11,7 @@ echarts.use([TitleComponent, TooltipComponent, ToolboxComponent, DataZoomCompone
 
 type TreemapVariant = 'yields' | 'narrative'
 
-export interface IChartProps {
+interface IChartProps {
 	treeData: any[]
 	variant?: TreemapVariant
 	height?: string

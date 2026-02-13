@@ -1073,7 +1073,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 	}
 }
 
-export type ProtocolChainSplitParams = {
+type ProtocolChainSplitParams = {
 	protocol?: string
 	metric: string
 	chains: string[]

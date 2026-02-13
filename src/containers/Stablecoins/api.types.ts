@@ -1,8 +1,8 @@
-export type NumericRecord = Record<string, number>
+type NumericRecord = Record<string, number>
 
-export type UnknownRecord = Record<string, unknown>
+type UnknownRecord = Record<string, unknown>
 
-export interface PeggedChainApi {
+interface PeggedChainApi {
 	name: string
 	tvl: number
 	totalCirculatingUSD: NumericRecord
@@ -94,7 +94,7 @@ export type PeggedRatesApiResponse = Array<{
 
 export type PeggedConfigApiResponse = Record<string, string>
 
-export interface BridgeInfo {
+interface BridgeInfo {
 	name: string
 	link?: string
 }

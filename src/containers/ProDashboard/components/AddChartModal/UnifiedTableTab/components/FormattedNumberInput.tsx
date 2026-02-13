@@ -29,7 +29,7 @@ const parseNumberWithAbbreviation = (input: string): number | undefined => {
 	return suffix ? base * multipliers[suffix] : base
 }
 
-export function FormattedNumberInput({
+function FormattedNumberInput({
 	value,
 	onChange,
 	placeholder,

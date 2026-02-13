@@ -31,7 +31,7 @@ export const YIELDS_EVENTS = {
 	YIELD_SCORE_CLICK: 'yields-yield-score-click'
 } as const
 
-export type YieldsEventName = (typeof YIELDS_EVENTS)[keyof typeof YIELDS_EVENTS]
+type YieldsEventName = (typeof YIELDS_EVENTS)[keyof typeof YIELDS_EVENTS]
 
 export function trackYieldsEvent(eventName: YieldsEventName, data?: Record<string, string | number | boolean>): void {
 	if (typeof window !== 'undefined' && (window as any).umami) {
@@ -41,7 +41,7 @@ export function trackYieldsEvent(eventName: YieldsEventName, data?: Record<strin
 
 // Debounced version for range inputs
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
-export function trackYieldsEventDebounced(
+function trackYieldsEventDebounced(
 	eventName: YieldsEventName,
 	data?: Record<string, string | number | boolean>,
 	delay = 1000

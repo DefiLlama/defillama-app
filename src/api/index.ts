@@ -12,7 +12,7 @@ function getCGMarketsDataURLs() {
 	return urls
 }
 
-export const useFetchCoingeckoTokensList = () => {
+const useFetchCoingeckoTokensList = () => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['coingeckotokenslist'],
 		queryFn: () => fetchApi(getCGMarketsDataURLs())
@@ -25,7 +25,7 @@ export const useFetchCoingeckoTokensList = () => {
 	}
 }
 
-export async function retryCoingeckoRequest(func, retries) {
+async function retryCoingeckoRequest(func, retries) {
 	for (let i = 0; i < retries; i++) {
 		try {
 			const resp = await func()
@@ -58,7 +58,7 @@ export function maxAgeForNext(minutesForRollover: number[] = [22]) {
 	return maxAge
 }
 
-export async function fetchChainMcaps(chains: Array<[string, string]>) {
+async function fetchChainMcaps(chains: Array<[string, string]>) {
 	if (chains.length === 0) {
 		return {}
 	}
@@ -165,7 +165,7 @@ type PriceObject = {
 	timestamp: number
 }
 
-export type TokenMarketData = {
+type TokenMarketData = {
 	price: number | null
 	prevPrice: number | null
 	priceChangePercent: number | null

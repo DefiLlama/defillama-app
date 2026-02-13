@@ -279,7 +279,7 @@ const BridgeInfo = ({
 	)
 }
 
-export function BridgeProtocolOverview(props) {
+function BridgeProtocolOverview(props) {
 	return (
 		<Layout
 			title={`${props.displayName}: Bridge Volume - DefiLlama`}
@@ -325,7 +325,7 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 	)
 }
 
-export const useFetchBridgeVolumeOnAllChains = (protocol?: string | null) => {
+const useFetchBridgeVolumeOnAllChains = (protocol?: string | null) => {
 	return useQuery({
 		queryKey: ['bridged-volume-on-all-chains', protocol],
 		queryFn: protocol

@@ -15,18 +15,30 @@ import type {
 
 const encodeSlug = (slug: string): string => encodeURIComponent(slug)
 
+/**
+ * Fetch all tracked NFT collections.
+ */
 export async function fetchNftCollections(): Promise<RawNftCollection[]> {
 	return fetchJson<RawNftCollection[]>(`${NFT_SERVER_URL}/collections`, { timeout: 60_000 })
 }
 
+/**
+ * Fetch aggregate NFT volume data.
+ */
 export async function fetchNftVolumes(): Promise<RawNftVolume[]> {
 	return fetchJson<RawNftVolume[]>(`${NFT_SERVER_URL}/volume`, { timeout: 60_000 })
 }
 
+/**
+ * Fetch metadata for a single NFT collection.
+ */
 export async function fetchNftCollection(slug: string): Promise<RawCollectionDetail[]> {
 	return fetchJson<RawCollectionDetail[]>(`${NFT_SERVER_URL}/collection/${encodeSlug(slug)}`)
 }
 
+/**
+ * Fetch sales history for a single NFT collection.
+ */
 export async function fetchNftCollectionSales(slug: string): Promise<Array<[number, number]>> {
 	const data = await fetchJson<Array<[number, number]> | null>(
 		`${NFT_SERVER_URL}/sales?collectionId=${encodeSlug(slug)}`
@@ -34,44 +46,74 @@ export async function fetchNftCollectionSales(slug: string): Promise<Array<[numb
 	return data != null && Array.isArray(data) ? data.map((i) => [i[0] * 1000, i[1]] as [number, number]) : []
 }
 
+/**
+ * Fetch current stats for a single NFT collection.
+ */
 export async function fetchNftCollectionStats(slug: string): Promise<RawCollectionStats[]> {
 	return fetchJson<RawCollectionStats[]>(`${NFT_SERVER_URL}/stats/${encodeSlug(slug)}`)
 }
 
+/**
+ * Fetch floor-price history for a single NFT collection.
+ */
 export async function fetchNftCollectionFloorHistory(slug: string): Promise<RawFloorHistoryEntry[]> {
 	return fetchJson<RawFloorHistoryEntry[]>(`${NFT_SERVER_URL}/floorHistory/${encodeSlug(slug)}`)
 }
 
+/**
+ * Fetch orderbook entries for a single NFT collection.
+ */
 export async function fetchNftCollectionOrderbook(slug: string): Promise<RawOrderbookEntry[]> {
 	return fetchJson<RawOrderbookEntry[]>(`${NFT_SERVER_URL}/orderbook/${encodeSlug(slug)}`)
 }
 
+/**
+ * Fetch aggregate stats for NFT marketplaces.
+ */
 export async function fetchNftMarketplaceStats(): Promise<RawNftMarketplaceStats[]> {
 	return fetchJson<RawNftMarketplaceStats[]>(`${NFT_SERVER_URL}/exchangeStats`)
 }
 
+/**
+ * Fetch trading volume data for NFT marketplaces.
+ */
 export async function fetchNftMarketplaceVolumes(): Promise<RawNftMarketplaceVolume[]> {
 	return fetchJson<RawNftMarketplaceVolume[]>(`${NFT_SERVER_URL}/exchangeVolume`, { timeout: 60_000 })
 }
 
+/**
+ * Fetch royalty rates across NFT collections.
+ */
 export async function fetchNftRoyalties(): Promise<RawRoyalty[]> {
 	return fetchJson<RawRoyalty[]>(`${NFT_SERVER_URL}/royalties`)
 }
 
+/**
+ * Fetch royalty history for a single NFT collection.
+ */
 export async function fetchNftRoyaltyHistory(slug: string): Promise<Array<[number, number]>> {
 	return fetchJson<Array<[number, number]>>(`${NFT_SERVER_URL}/royaltyHistory/${encodeSlug(slug)}`)
 }
 
+/**
+ * Fetch royalty details for a single NFT collection.
+ */
 export async function fetchNftRoyalty(slug: string): Promise<RawRoyalty[]> {
 	return fetchJson<RawRoyalty[]>(`${NFT_SERVER_URL}/royalty/${encodeSlug(slug)}`)
 }
 
+/**
+ * Fetch parent-company mappings for NFT projects.
+ */
 export async function fetchParentCompanies(): Promise<RawParentCompany[]> {
 	return fetchJson<RawParentCompany[]>(
 		'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/nfts/output/parentCompanies.json'
 	)
 }
 
+/**
+ * Fetch NFT volume totals grouped by chain.
+ */
 export async function fetchNftsVolumeByChain(): Promise<Record<string, number>> {
 	return fetchJson<Record<string, number>>(`${DATASETS_SERVER_URL}/temp/chainNfts`)
 }

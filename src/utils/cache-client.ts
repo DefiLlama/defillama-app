@@ -50,7 +50,7 @@ export const sluggifyProtocol = (input: string) => {
  * @property {string} Body - base64 encoded string of the content via Buffer.toString('base64')
  * @property {string} ContentType - the content type of the content, e.g. image/jpeg, text/html, etc.
  */
-export type RedisCacheObject = {
+type RedisCacheObject = {
 	Body: string
 	ContentType: string
 	StatusCode?: number
@@ -105,7 +105,7 @@ export const setPageBuildTimes = async (pageUrl, cacheObject) => {
 	}
 }
 
-export const isCpusHot = async () => {
+const isCpusHot = async () => {
 	return false
 	/*
 	if (!redis) {
@@ -169,7 +169,7 @@ export const getCache = async (Key: string) => {
 	}
 }
 
-export const deleteCache = async (Key: string) => {
+const deleteCache = async (Key: string) => {
 	if (!redis) {
 		return true
 	}

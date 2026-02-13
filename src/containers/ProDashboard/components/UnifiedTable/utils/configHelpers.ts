@@ -124,7 +124,7 @@ export function applyRowHeaderVisibilityRules(
 	return nextVisibility
 }
 
-export interface ApplyPresetOptions {
+interface ApplyPresetOptions {
 	preset: UnifiedTablePreset
 	includeRowHeaderRules?: boolean
 	mergeWithDefaults?: boolean
@@ -164,13 +164,13 @@ export function applyPresetToConfig(options: ApplyPresetOptions): {
 	}
 }
 
-export interface InitializeConfigOptions {
+interface InitializeConfigOptions {
 	existingConfig?: Partial<UnifiedTableConfig>
 	presetId?: string
 	includeDefaults?: boolean
 }
 
-export function initializeUnifiedTableConfig(options: InitializeConfigOptions): {
+function initializeUnifiedTableConfig(options: InitializeConfigOptions): {
 	columnOrder: string[]
 	columnVisibility: VisibilityState
 	sorting: SortingState

@@ -29,7 +29,7 @@ interface SubjectMultiPanelProps {
 	hideTabToggle?: boolean
 }
 
-export function SubjectMultiPanel({
+function SubjectMultiPanel({
 	activeTab,
 	onTabChange,
 	selectedChartType,

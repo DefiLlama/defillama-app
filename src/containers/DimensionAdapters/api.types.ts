@@ -1,6 +1,6 @@
 import { ADAPTER_TYPES } from './constants'
 
-export type AdapterType = `${ADAPTER_TYPES}`
+type AdapterType = `${ADAPTER_TYPES}`
 
 // Full type for single protocol metrics response
 export interface IAdapterProtocolMetrics {

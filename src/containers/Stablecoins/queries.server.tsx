@@ -57,7 +57,7 @@ async function withStablecoinsCache<T>(key: string, fetcher: () => Promise<T>): 
 	}
 }
 
-export const getStablecoinAssets = () =>
+const getStablecoinAssets = () =>
 	withStablecoinsCache('pegged-assets', () =>
 		fetchStablecoinAssetsApi().then(({ peggedAssets, chains }) => ({
 			protocolsDict: peggedAssets.reduce(
@@ -72,12 +72,12 @@ export const getStablecoinAssets = () =>
 		}))
 	)
 
-export const getStablecoinPrices = () => withStablecoinsCache('pegged-prices', fetchStablecoinPricesApi)
-export const getStablecoinRates = () => withStablecoinsCache('pegged-rates', fetchStablecoinRatesApi)
-export const getStablecoinConfigData = () => withStablecoinsCache('config', fetchStablecoinConfigApi)
-export const getStablecoinPeggedConfigData = () => withStablecoinsCache('pegged-config', fetchStablecoinPeggedConfigApi)
+const getStablecoinPrices = () => withStablecoinsCache('pegged-prices', fetchStablecoinPricesApi)
+const getStablecoinRates = () => withStablecoinsCache('pegged-rates', fetchStablecoinRatesApi)
+const getStablecoinConfigData = () => withStablecoinsCache('config', fetchStablecoinConfigApi)
+const getStablecoinPeggedConfigData = () => withStablecoinsCache('pegged-config', fetchStablecoinPeggedConfigApi)
 
-export const getStablecoinBridgeInfo = () => withStablecoinsCache('bridge-info', fetchStablecoinBridgeInfoApi)
+const getStablecoinBridgeInfo = () => withStablecoinsCache('bridge-info', fetchStablecoinBridgeInfoApi)
 
 const sumRecordValues = (record: Record<string, number> | undefined): number => {
 	if (!record) return 0

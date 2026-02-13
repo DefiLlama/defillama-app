@@ -46,7 +46,7 @@ export const useYieldChartLendBorrow = (configID: string | null) => {
 		enabled: !!configID
 	})
 }
-export const useConfigPool = (configIDs) => {
+const useConfigPool = (configIDs) => {
 	const url = configIDs ? `${YIELD_CONFIG_POOL_API}/${configIDs}` : null
 	return useQuery({ queryKey: ['yield-config-pool', url], queryFn: () => fetchApi(url), staleTime: 60 * 60 * 1000 })
 }
@@ -63,7 +63,7 @@ export const useYieldConfigData = (project) => {
 	})
 }
 
-export const useYieldPageData = () => {
+const useYieldPageData = () => {
 	return useQuery({
 		queryKey: [YIELD_POOLS_API, YIELD_CONFIG_API],
 		queryFn: () => fetchApi([YIELD_POOLS_API, YIELD_CONFIG_API]),
@@ -73,7 +73,7 @@ export const useYieldPageData = () => {
 	})
 }
 
-export const useFetchProjectsList = () => {
+const useFetchProjectsList = () => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: [YIELD_POOLS_API, YIELD_CONFIG_API],
 		queryFn: () => fetchApi([YIELD_POOLS_API, YIELD_CONFIG_API]),
@@ -108,7 +108,7 @@ export const useVolatility = () => {
 	})
 }
 
-export const useYields = () => {
+const useYields = () => {
 	const { data = {} } = useQuery({
 		queryKey: [YIELD_POOLS_API],
 		queryFn: () => fetchApi(YIELD_POOLS_API),

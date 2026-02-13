@@ -2,7 +2,7 @@ import type * as echarts from 'echarts/core'
 import { ChartCsvExportButton } from './ChartCsvExportButton'
 import { ChartPngExportButton } from './ChartPngExportButton'
 
-export interface ChartExportButtonsProps {
+interface ChartExportButtonsProps {
 	chartInstance: () => echarts.ECharts | null
 	filename?: string
 	title?: string

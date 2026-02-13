@@ -32,7 +32,7 @@ type HeaderValueMeta = {
 	iconUrl?: string | null
 }
 
-export const getHeaderGroupingValue = (row: NormalizedRow, header: UnifiedRowHeaderType): HeaderValueMeta => {
+const getHeaderGroupingValue = (row: NormalizedRow, header: UnifiedRowHeaderType): HeaderValueMeta => {
 	if (header === 'parent-protocol') {
 		const parentId = row.parentProtocolId?.trim()
 		const hasParent = Boolean(parentId)
@@ -240,7 +240,7 @@ export const getRowDisplayProps = (
 	}
 }
 
-export const getChainNameForRow = (row: Row<NormalizedRow>): string | null => {
+const getChainNameForRow = (row: Row<NormalizedRow>): string | null => {
 	if (!row) return null
 	if (!row.getIsGrouped()) {
 		return row.original?.chain ?? null

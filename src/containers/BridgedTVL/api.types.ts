@@ -1,4 +1,4 @@
-export interface RawChainAssetCategory {
+interface RawChainAssetCategory {
 	total: string
 	breakdown: Record<string, string>
 }
@@ -19,7 +19,7 @@ export interface RawChainAssetsFlowEntry {
 
 export type RawChainAssetsFlows1dResponse = Record<string, RawChainAssetsFlowEntry>
 
-export interface RawBridgeInflowDataPoint {
+interface RawBridgeInflowDataPoint {
 	timestamp: number
 	data: Record<string, number>
 }
@@ -28,7 +28,7 @@ export type RawBridgeInflowsResponse = {
 	data: RawBridgeInflowDataPoint[]
 }
 
-export interface RawChainAssetsChartDataPoint {
+interface RawChainAssetsChartDataPoint {
 	timestamp: number
 	data: {
 		total: number | string

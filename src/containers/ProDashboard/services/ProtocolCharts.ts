@@ -3,13 +3,13 @@ import {
 	CACHE_SERVER,
 	PROTOCOL_API,
 	PROTOCOL_API_MINI,
-	PROTOCOL_EMISSION_API,
 	PROTOCOL_TREASURY_API,
 	TOKEN_LIQUIDITY_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { fetchProtocolEmission } from '~/containers/Unlocks/api'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
 import { processAdjustedProtocolTvl, type ProtocolChainTvls } from '~/utils/tvl'
@@ -74,16 +74,20 @@ export default class ProtocolCharts {
 	static async incentives(protocol: string): Promise<[number, number][]> {
 		if (!protocol) return []
 		try {
-			const res = await fetch(`${PROTOCOL_EMISSION_API}/${protocol}`)
-			if (!res.ok) return []
-			const json = await res.json()
-			const body = typeof json?.body === 'string' ? JSON.parse(json.body) : json?.body
-			const chart: any[] = body?.unlockUsdChart ?? []
+			const emission = await fetchProtocolEmission(protocol)
+			const chart = emission?.unlockUsdChart
 			if (!Array.isArray(chart)) return []
-			return chart
-				.filter((x) => Array.isArray(x) && x.length >= 2)
-				.map(([ts, val]) => [Number(ts), Number(val)] as [number, number])
-				.sort((a, b) => a[0] - b[0])
+
+			const points: [number, number][] = []
+			for (const point of chart) {
+				if (!Array.isArray(point) || point.length < 2) continue
+				const ts = Number(point[0])
+				const value = Number(point[1])
+				if (!Number.isFinite(ts) || !Number.isFinite(value)) continue
+				points.push([ts, value])
+			}
+
+			return points.sort((a, b) => a[0] - b[0])
 		} catch (e) {
 			console.log('Error fetching protocol incentives', e)
 			return []

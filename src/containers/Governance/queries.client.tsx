@@ -151,7 +151,7 @@ function processProposal(proposal: RawProposal): GovernanceProposal {
 	}
 }
 
-export function formatGovernanceData(data: RawGovernanceResponse): {
+function formatGovernanceData(data: RawGovernanceResponse): {
 	proposals: GovernanceProposal[]
 	activity: GovernanceActivityRow[]
 	maxVotes: GovernanceMaxVotesRow[]

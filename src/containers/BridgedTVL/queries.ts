@@ -3,7 +3,7 @@ import { sluggify } from '~/utils/cache-client'
 import { fetchChainAssetsFlows1d, fetchChainAssetsHistoricalFlows, fetchChainsAssets } from './api'
 import type { RawChainAsset, RawChainAssetsFlowEntry, RawChainsAssetsResponse } from './api.types'
 
-export interface BridgedTVLData {
+interface BridgedTVLData {
 	chains: Array<{ label: string; to: string }>
 	assets: RawChainsAssetsResponse
 	flows1d: Record<string, RawChainAssetsFlowEntry> | null

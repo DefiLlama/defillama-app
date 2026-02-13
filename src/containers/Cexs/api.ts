@@ -2,10 +2,16 @@ import { INFLOWS_API, SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type { RawCexsResponse } from './api.types'
 
+/**
+ * Fetch centralized exchange summary data.
+ */
 export async function fetchCexs(): Promise<RawCexsResponse> {
 	return fetchJson<RawCexsResponse>(`${SERVER_URL}/cexs`)
 }
 
+/**
+ * Fetch inflow and outflow data for a single exchange.
+ */
 export async function fetchCexInflows(
 	cexSlug: string,
 	startTime: number,

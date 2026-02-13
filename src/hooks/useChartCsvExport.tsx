@@ -1,12 +1,12 @@
 import { useGetChartInstance } from './useGetChartInstance'
 
-export type CsvCell = string | number | boolean
+type CsvCell = string | number | boolean
 
-export interface ChartCsv {
+interface ChartCsv {
 	filename: string
 	rows: Array<Array<CsvCell>>
 }
 
-export function useChartCsvExport() {
+function useChartCsvExport() {
 	return useGetChartInstance()
 }

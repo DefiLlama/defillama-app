@@ -216,7 +216,7 @@ export interface IProtocol extends IChildProtocol {
 	childProtocols?: Array<IChildProtocol>
 }
 
-export interface ITreasury {
+interface ITreasury {
 	id: string
 	name: string
 	address: string | null

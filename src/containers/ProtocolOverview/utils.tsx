@@ -3,7 +3,7 @@ import type { IProtocolMetricsV2, IRaise } from '~/containers/ProtocolOverview/t
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import type { IProtocolWarningBanner } from './api.types'
 
-export const formatRaise = (raise: Omit<IRaise, 'defillamaId'>) => {
+const formatRaise = (raise: Omit<IRaise, 'defillamaId'>) => {
 	let text = ''
 
 	if (raise.round) {

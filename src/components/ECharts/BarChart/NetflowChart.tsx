@@ -13,7 +13,7 @@ import { fetchJson } from '~/utils/async'
 
 echarts.use([BarChart, TooltipComponent, GridComponent, CanvasRenderer])
 
-export interface NetflowChartProps {
+interface NetflowChartProps {
 	height?: number | string
 	onReady?: (instance: echarts.ECharts | null) => void
 }

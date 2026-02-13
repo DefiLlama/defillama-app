@@ -1,4 +1,4 @@
-export interface RawCex {
+interface RawCex {
 	name: string
 	slug?: string
 	coin?: string | null

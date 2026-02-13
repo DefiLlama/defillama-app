@@ -1,7 +1,9 @@
 import { fetchCoinPrices, getAllCGTokensList } from '~/api'
 import type { IResponseCGMarketsAPI } from '~/api/types'
-import { EMISSION_SUPPLY_METRICS, PROTOCOLS_API } from '~/constants'
+import { PROTOCOLS_API } from '~/constants'
 import type { ILiteProtocol } from '~/containers/ChainOverview/types'
+import { fetchEmissionSupplyMetrics } from '~/containers/Unlocks/api'
+import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.types'
 import { slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
@@ -305,20 +307,8 @@ export async function getProtocolsAdjustedFDVsByChain({
 			chains: Array<string>
 			parentProtocols: Array<{ id: string; name: string; chains: Array<string>; gecko_id?: string }>
 		},
-		Record<
-			string,
-			{
-				name: string
-				supplyMetrics: {
-					maxSupply: number
-					adjustedSupply: number
-					tbdAmount: number
-					incentiveAmount: number
-					nonIncentiveAmount: number
-				}
-			}
-		>
-	] = await Promise.all([fetchJson(PROTOCOLS_API), fetchJson(EMISSION_SUPPLY_METRICS)])
+		ProtocolEmissionSupplyMetricsMap
+	] = await Promise.all([fetchJson(PROTOCOLS_API), fetchEmissionSupplyMetrics()])
 
 	const parentProtocolsMap = new Map(parentProtocols.map((p) => [p.id, p]))
 

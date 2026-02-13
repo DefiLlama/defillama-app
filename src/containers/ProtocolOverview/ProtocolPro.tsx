@@ -33,7 +33,7 @@ export function SortableItem({ id, isTable, children, ...rest }: SortableItemPro
 		</div>
 	)
 }
-export const ChartTypes = {
+const ChartTypes = {
 	tvl: 'TVL',
 	mcap: 'MCAP',
 	tokenPrice: 'Token Price',
