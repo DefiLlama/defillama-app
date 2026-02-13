@@ -52,6 +52,8 @@
 		"src/containers/Raises/**/*.ts",
 		"src/containers/Raises/**/*.tsx",
 		"src/containers/Treasuries/**/*.ts",
-		"src/containers/Treasuries/**/*.tsx"
+		"src/containers/Treasuries/**/*.tsx",
+		"src/containers/DAT/**/*.ts",
+		"src/containers/DAT/**/*.tsx"
 	]
 }
