@@ -17,6 +17,7 @@ import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import type { IRaise } from './types'
 import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
 import { raisesColumnOrders, raisesColumns } from './Table'
@@ -33,7 +34,7 @@ const handleDownloadJson = () => {
 	window.open('https://api.llama.fi/raises', '_blank', 'noopener,noreferrer')
 }
 
-function RaisesByInvestorTable({ raises, prepareCsv }) {
+function RaisesByInvestorTable({ raises, prepareCsv }: { raises: IRaise[]; prepareCsv: () => { filename: string; rows: (string | number | boolean)[][] } }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -94,7 +95,16 @@ function RaisesByInvestorTable({ raises, prepareCsv }) {
 
 const pageName = ['Deals by Investor']
 
-export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
+interface InvestorContainerProps {
+	raises: IRaise[]
+	investors: string[]
+	rounds: string[]
+	sectors: string[]
+	chains: string[]
+	investorName: string
+}
+
+export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, investorName }: InvestorContainerProps) => {
 	const {
 		filteredRaisesList,
 		selectedInvestors,

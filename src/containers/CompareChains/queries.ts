@@ -1,4 +1,3 @@
-import { maxAgeForNext } from '~/api'
 import { PROTOCOLS_API } from '~/constants'
 import { chainIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -13,10 +12,7 @@ type ChainOption = {
 	logo: string
 }
 
-export async function getCompareChainsPageData(): Promise<{
-	props: { chains: ChainOption[] }
-	revalidate: number
-}> {
+export async function getCompareChainsPageData(): Promise<{ chains: ChainOption[] }> {
 	const pData = await fetchJson<RawProtocolsResponse>(PROTOCOLS_API)
 	const chains: ChainOption[] = (pData?.chains ?? []).map((val) => ({
 		value: val,
@@ -25,7 +21,6 @@ export async function getCompareChainsPageData(): Promise<{
 	}))
 
 	return {
-		props: { chains },
-		revalidate: maxAgeForNext([22])
+		chains
 	}
 }

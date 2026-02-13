@@ -1,8 +1,9 @@
 import { toNiceCsvDate } from '~/utils'
+import type { IRaise } from './types'
 
 // prepare csv data
-export const prepareRaisesCsv = ({ raises }) => {
-	const rows: (string | number)[][] = [
+export const prepareRaisesCsv = ({ raises }: { raises: IRaise[] }) => {
+	const rows: (string | number | boolean)[][] = [
 		[
 			'Name',
 			'Timestamp',
@@ -37,5 +38,5 @@ export const prepareRaisesCsv = ({ raises }) => {
 		])
 	}
 
-	return { filename: `raises.csv`, rows: rows as (string | number | boolean)[][] }
+	return { filename: `raises.csv`, rows }
 }

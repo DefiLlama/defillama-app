@@ -27,7 +27,7 @@ const isAtMidnight = (timestamp: number | null) => {
 	return date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date.getUTCSeconds() === 0
 }
 
-export const DateFilter = ({ startDate, endDate }) => {
+export const DateFilter = ({ startDate, endDate }: { startDate: number | null; endDate: number | null }) => {
 	const router = useRouter()
 	const [localStartDate, setLocalStartDate] = useState(formatDateForInput(startDate))
 	const [localEndDate, setLocalEndDate] = useState(formatDateForInput(endDate))
@@ -35,7 +35,7 @@ export const DateFilter = ({ startDate, endDate }) => {
 	const [localEndHour, setLocalEndHour] = useState(getHourFromTimestamp(endDate))
 	const maxDate = getTodayString()
 
-	const handleStartDateChange = (e) => {
+	const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const newStartDate = e.target.value
 		setLocalStartDate(newStartDate)
 
@@ -46,7 +46,7 @@ export const DateFilter = ({ startDate, endDate }) => {
 		}
 	}
 
-	const handleEndDateChange = (e) => {
+	const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const newEndDate = e.target.value
 		setLocalEndDate(newEndDate)
 
@@ -57,11 +57,11 @@ export const DateFilter = ({ startDate, endDate }) => {
 		}
 	}
 
-	const handleStartHourChange = (e) => {
+	const handleStartHourChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		setLocalStartHour(e.target.value)
 	}
 
-	const handleEndHourChange = (e) => {
+	const handleEndHourChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		setLocalEndHour(e.target.value)
 	}
 
@@ -88,13 +88,17 @@ export const DateFilter = ({ startDate, endDate }) => {
 				{startDate || endDate ? (
 					<span className="text-(--link-text)">
 						{' '}
-						{isAtMidnight(startDate)
-							? toNiceDayMonthAndYear(startDate / 1000)
-							: toNiceDayMonthAndYearAndTime(startDate / 1000)}{' '}
+						{startDate != null
+							? isAtMidnight(startDate)
+								? toNiceDayMonthAndYear(startDate / 1000)
+								: toNiceDayMonthAndYearAndTime(startDate / 1000)
+							: null}{' '}
 						-{' '}
-						{isAtMidnight(endDate)
-							? toNiceDayMonthAndYear(endDate / 1000)
-							: toNiceDayMonthAndYearAndTime(endDate / 1000)}
+						{endDate != null
+							? isAtMidnight(endDate)
+								? toNiceDayMonthAndYear(endDate / 1000)
+								: toNiceDayMonthAndYearAndTime(endDate / 1000)
+							: null}
 					</span>
 				) : null}
 				<Ariakit.PopoverDisclosureArrow className="h-3 w-3 shrink-0" />
@@ -120,8 +124,8 @@ export const DateFilter = ({ startDate, endDate }) => {
 							const form = e.target as HTMLFormElement
 							const startDate = form.startDate?.value
 							const endDate = form.endDate?.value
-							const startHour = parseInt(form.startHour?.value || '0')
-							const endHour = parseInt(form.endHour?.value || '0')
+						const startHour = parseInt(form.startHour?.value ?? '0')
+						const endHour = parseInt(form.endHour?.value ?? '0')
 
 							// Create timestamps in milliseconds
 							const startTimestamp = new Date(`${startDate}T${startHour.toString().padStart(2, '0')}:00:00Z`).getTime()

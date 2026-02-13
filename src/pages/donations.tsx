@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { PROTOCOLS_API } from '~/constants'
 import Layout from '~/layout'

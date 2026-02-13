@@ -6,7 +6,7 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { slug } from '~/utils'
 
-export function RaisesSearch({ list }) {
+export function RaisesSearch({ list }: { list?: string[] }) {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 	const matches = useMemo(() => {
@@ -66,7 +66,7 @@ export function RaisesSearch({ list }) {
 					</Ariakit.PopoverDismiss>
 					{matches.length ? (
 						<Ariakit.ComboboxList ref={comboboxRef}>
-							{matches.slice(0, viewableMatches).map((option) => (
+							{matches.slice(0, viewableMatches).map((option: string) => (
 								<Row key={option} name={option} setOpen={setOpen} />
 							))}
 							{matches.length > viewableMatches ? (
@@ -106,7 +106,7 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 	return (
 		<>
 			{!hideIcon ? (
-				<button onClick={(prev) => setOpen(!prev)} className="absolute top-2 left-2 opacity-50">
+				<button onClick={() => setOpen?.(!open)} className="absolute top-2 left-2 opacity-50">
 					{open ? (
 						<>
 							<span className="sr-only">Close Search</span>
@@ -134,7 +134,7 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 	)
 }
 
-const Row = ({ name, setOpen }) => {
+const Row = ({ name, setOpen }: { name: string; setOpen: (open: boolean) => void }) => {
 	const [loading, setLoading] = useState(false)
 	const router = useRouter()
 

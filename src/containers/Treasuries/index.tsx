@@ -1,4 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table'
+import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
@@ -7,13 +8,20 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import Layout from '~/layout'
 import { formattedNum, getDominancePercent, tokenIconUrl } from '~/utils'
+import type { ITreasuryRow } from './types'
 
 const pageName = ['Projects', 'ranked by', 'Treasury']
 const entityPageName = ['Entities', 'ranked by', 'Treasury']
 
-export function Treasuries({ data, entity }) {
+export function Treasuries({ data, entity }: { data: ITreasuryRow[]; entity: boolean }) {
 	const tableColumns = useMemo(
-		() => (entity ? columns.filter((c: any) => !['ownTokens', 'coreTvl', 'mcap'].includes(c.accessorKey)) : columns),
+		() =>
+			entity
+				? columns.filter((c) => {
+						const key = 'accessorKey' in c ? String(c.accessorKey) : ''
+						return !['ownTokens', 'coreTvl', 'mcap'].includes(key)
+					})
+				: columns,
 		[entity]
 	)
 
@@ -33,7 +41,7 @@ export function Treasuries({ data, entity }) {
 			'Change 1m'
 		]
 		const dataToDownload = data.map((row) => {
-			return {
+			const csvRow: Record<string, string | number> = {
 				Name: row.name,
 				Category: row.category,
 				'Own Tokens': row.ownTokens,
@@ -42,15 +50,20 @@ export function Treasuries({ data, entity }) {
 				'Other Tokens': row.others,
 				'Total excl. own tokens': row.coreTvl,
 				'Total Treasury': row.tvl,
-				Mcap: row.mcap,
-				'Change 1d': row.change_1d,
-				'Change 7d': row.change_7d,
-				'Change 1m': row.change_1m
+				Mcap: row.mcap ?? '',
+				'Change 1d': row.change_1d ?? '',
+				'Change 7d': row.change_7d ?? '',
+				'Change 1m': row.change_1m ?? ''
 			}
+			return csvRow
 		})
-		const rows = [headers].concat(dataToDownload.map((row) => headers.map((header) => row[header])))
-		return { filename: 'treasuries.csv', rows: rows as (string | number | boolean)[][] }
+		const headerRow: (string | number | boolean)[] = headers
+		const dataRows = dataToDownload.map((row) => headers.map((header) => row[header]))
+		const rows: (string | number | boolean)[][] = [headerRow, ...dataRows]
+		return { filename: 'treasuries.csv', rows }
 	}
+
+	const sortingState = entity ? [{ id: 'tvl', desc: true }] : [{ id: 'coreTvl', desc: true }]
 
 	return (
 		<Layout
@@ -66,7 +79,7 @@ export function Treasuries({ data, entity }) {
 				columnToSearch={'name'}
 				placeholder={'Search projects...'}
 				header={'Treasuries'}
-				sortingState={entity ? [{ id: 'tvl', desc: true }] : [{ id: 'coreTvl', desc: true }]}
+				sortingState={sortingState}
 				customFilters={
 					<>
 						<CSVDownloadButton prepareCsv={prepareCsv} />
@@ -77,14 +90,14 @@ export function Treasuries({ data, entity }) {
 	)
 }
 
-export const columns: ColumnDef<any>[] = [
+const columns: ColumnDef<ITreasuryRow>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const name = (getValue() as string).split(' (treasury)')[0]
-			const slug = (row.original.slug as string).split('-(treasury)')[0]
+			const name = getValue<string>().split(' (treasury)')[0]
+			const slug = row.original.slug.split('-(treasury)')[0]
 
 			return (
 				<span className="relative flex items-center gap-2">
@@ -107,22 +120,21 @@ export const columns: ColumnDef<any>[] = [
 		id: 'tokenBreakdowns0',
 		enableSorting: false,
 		cell: (info) => {
-			const breakdown = info.getValue() as { [type: string]: number }
+			const breakdown = info.getValue<ITreasuryRow['tokenBreakdowns']>()
+			const entries = Object.entries(breakdown)
 			let totalBreakdown = 0
 
-			for (const type in breakdown) {
-				totalBreakdown += breakdown[type]
+			for (const [, val] of entries) {
+				totalBreakdown += val
 			}
 
-			const breakdownDominance = {}
+			const breakdownDominance: Record<string, number> = {}
 
-			for (const value in breakdown) {
-				breakdownDominance[value] = getDominancePercent(breakdown[value], totalBreakdown)
+			for (const [key, val] of entries) {
+				breakdownDominance[key] = getDominancePercent(val, totalBreakdown)
 			}
 
-			const dominance = Object.entries(breakdownDominance).sort(
-				(a: [string, number], b: [string, number]) => b[1] - a[1]
-			)
+			const dominance = Object.entries(breakdownDominance).sort((a, b) => b[1] - a[1])
 
 			if (totalBreakdown < 1) {
 				return <></>
@@ -136,7 +148,6 @@ export const columns: ColumnDef<any>[] = [
 				>
 					{dominance.map((dom) => {
 						const color = breakdownColor(dom[0])
-						const _name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
 
 						return (
 							<div
@@ -239,7 +250,7 @@ export const columns: ColumnDef<any>[] = [
 	}
 ]
 
-const breakdownColor = (type) => {
+const breakdownColor = (type: string) => {
 	if (type === 'stablecoins') {
 		return '#16a34a'
 	}
@@ -259,7 +270,7 @@ const breakdownColor = (type) => {
 	return '#f85149'
 }
 
-const formatBreakdownType = (type) => {
+const formatBreakdownType = (type: string) => {
 	if (type === 'stablecoins') {
 		return 'Stablecoins'
 	}
@@ -279,19 +290,28 @@ const formatBreakdownType = (type) => {
 	return type
 }
 
-const Breakdown = ({ data }) => {
+const Breakdown = ({ data }: { data: [string, number] }) => {
 	const color = breakdownColor(data[0])
 	const name = `${formatBreakdownType(data[0])} (${data[1]}%)`
 
 	return (
 		<span className="flex flex-nowrap items-center gap-1">
-			<span style={{ '--color': color } as any} className="h-4 w-4 rounded-xs bg-(--color)"></span>
+			<span
+				style={{ '--color': color } as CSSProperties & Record<`--${string}`, string>}
+				className="h-4 w-4 rounded-xs bg-(--color)"
+			></span>
 			<span>{name}</span>
 		</span>
 	)
 }
 
-const BreakdownTooltipContent = ({ dominance, protocolName }) => {
+const BreakdownTooltipContent = ({
+	dominance,
+	protocolName
+}: {
+	dominance: [string, number][]
+	protocolName: string
+}) => {
 	return (
 		<span className="flex flex-col gap-1">
 			{dominance.map((dom) => (

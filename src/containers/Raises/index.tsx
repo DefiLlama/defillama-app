@@ -6,6 +6,7 @@ import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
+import type { IRaise } from './types'
 import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
 import { RaisesTable } from './Table'
@@ -16,7 +17,16 @@ const MultiSeriesChart2 = React.lazy(
 
 const RAISES_PAGE_NAME = ['Raises Overview']
 
-const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
+interface RaisesContainerProps {
+	raises: IRaise[]
+	investors: string[]
+	rounds: string[]
+	sectors: string[]
+	chains: string[]
+	investorName: string | null
+}
+
+const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName }: RaisesContainerProps) => {
 	const { pathname } = useRouter()
 
 	const {

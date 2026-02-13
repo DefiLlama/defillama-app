@@ -1,21 +1,12 @@
-import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { RAISES_API } from '~/constants'
 import RaisesContainer from '~/containers/Raises'
-import { getRaisesFiltersList } from '~/containers/Raises/utils'
-import { fetchJson } from '~/utils/async'
+import { getRaisesPageData } from '~/containers/Raises/queries'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('raises', async () => {
-	const data = await fetchJson(RAISES_API)
-
-	const filters = getRaisesFiltersList({ raises: data.raises })
-
+	const data = await getRaisesPageData()
 	return {
-		props: {
-			raises: data.raises,
-			...filters
-		},
+		props: data,
 		revalidate: maxAgeForNext([22])
 	}
 })

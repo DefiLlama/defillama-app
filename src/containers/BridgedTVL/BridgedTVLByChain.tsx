@@ -17,13 +17,30 @@ import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
+import type { RawChainAsset } from './api.types'
+
+interface BridgedChainRow {
+	name: string
+	value: string
+}
+
+type ChainAssetKey = keyof RawChainAsset
+
+interface BridgedTVLByChainProps {
+	chainData: RawChainAsset | null
+	chains: Array<{ label: string; to: string }>
+	chain: string
+	inflows: Array<Record<string, number>>
+	tokenInflowNames: string[]
+	chainName?: string
+}
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const INFLOWS_TOOLTIP_FORMATTER_USD = createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: '$' })
 
-const bridgedChainColumns: ColumnDef<any>[] = [
+const bridgedChainColumns: ColumnDef<BridgedChainRow>[] = [
 	{
 		header: 'Token',
 		accessorKey: 'name',
@@ -39,16 +56,29 @@ const bridgedChainColumns: ColumnDef<any>[] = [
 	}
 ]
 
-export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInflowNames, chainName = 'All Chains' }) {
-	const [chartType, setChartType] = React.useState('total')
+export function BridgedTVLByChain({
+	chainData,
+	chains,
+	chain,
+	inflows,
+	tokenInflowNames,
+	chainName = 'All Chains'
+}: BridgedTVLByChainProps) {
+	const [chartType, setChartType] = React.useState<ChainAssetKey | 'inflows'>('total')
 	const { chartInstance: exportChartInstance, handleChartReady: onChartReady } = useGetChartInstance()
 	const [selectedTokens, setSelectedTokens] = React.useState<string[]>(tokenInflowNames ?? [])
 	const selectedChartsSet = React.useMemo(() => new Set(selectedTokens), [selectedTokens])
 
 	const { pieChartData, tableData } = React.useMemo(() => {
-		const pieChartData = preparePieChartData({ data: chainData?.[chartType]?.breakdown ?? {}, limit: 10 })
+		const category = chartType !== 'inflows' ? chainData?.[chartType] : undefined
+		const rawBreakdown = category?.breakdown ?? {}
+		const breakdown: Record<string, number> = {}
+		for (const key in rawBreakdown) {
+			breakdown[key] = Number(rawBreakdown[key])
+		}
+		const pieChartData = preparePieChartData({ data: breakdown, limit: 10 })
 
-		const tableData = Object.entries(chainData?.[chartType]?.breakdown ?? {}).map(([name, value]) => ({
+		const tableData: BridgedChainRow[] = Object.entries(category?.breakdown ?? {}).map(([name, value]) => ({
 			name: name?.toLowerCase() === name ? name?.toUpperCase() : name,
 			value
 		}))
@@ -60,10 +90,10 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 		if (!tokenInflowNames?.length) return { inflowsDataset: null, inflowsCharts: [] }
 		return {
 			inflowsDataset: {
-				source: inflows.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				source: inflows.map(({ date, ...rest }: Record<string, number>) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...tokenInflowNames]
 			},
-			inflowsCharts: tokenInflowNames.map((name) => ({
+			inflowsCharts: tokenInflowNames.map((name: string) => ({
 				type: 'bar' as const,
 				name,
 				encode: { x: 'timestamp', y: name },
@@ -104,7 +134,8 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 						<span className="text-(--text-label)">Total</span>
 						<span className="font-jetbrains text-2xl font-semibold">
 							{formattedNum(
-								+chainData?.total.total + (+chainData?.ownTokens?.total ? +chainData?.ownTokens?.total : 0),
+								+(chainData?.total?.total ?? 0) +
+									(chainData?.ownTokens?.total ? +chainData.ownTokens.total : 0),
 								true
 							)}
 						</span>
@@ -136,7 +167,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 						<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 							{chartTypes.map(({ type, name }) =>
-								Boolean(chainData[type]?.total) && chainData[type]?.total !== '0' ? (
+								Boolean(chainData?.[type]?.total) && chainData?.[type]?.total !== '0' ? (
 									<button
 										className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 										data-active={chartType === type}
@@ -209,7 +240,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 	)
 }
 
-const chartTypes = [
+const chartTypes: Array<{ type: ChainAssetKey; name: string }> = [
 	{ type: 'total', name: 'Total' },
 	{ type: 'canonical', name: 'Canonical' },
 	{ type: 'native', name: 'Native' },
