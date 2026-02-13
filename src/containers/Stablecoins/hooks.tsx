@@ -203,7 +203,7 @@ export const useCalcGroupExtraPeggedByDay = (chains: IStackedDatasetPoint[], inc
 			const shares: Record<string, number> = {}
 
 			for (const key of Object.keys(values)) {
-				shares[key] = getDominancePercent(values[key], daySum[date] ?? 0) ?? 0
+				shares[key] = getDominancePercent(values[key], daySum[date] ?? 0)
 			}
 
 			return { date, ...shares }

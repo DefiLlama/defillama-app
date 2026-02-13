@@ -217,8 +217,16 @@ const buildGovernanceOverviewData = (datasets: RawGovernanceOverview[]): Governa
 	const mergedByProject = new Map<string, GovernanceOverviewItem>()
 
 	for (const dataset of datasets) {
+		if (dataset == null || typeof dataset !== 'object' || Array.isArray(dataset)) {
+			continue
+		}
+
 		for (const [rawKey, item] of Object.entries(dataset)) {
-			const normalizedItem = normalizeGovernanceOverviewItem(item)
+			if (item == null || typeof item !== 'object' || Array.isArray(item)) {
+				continue
+			}
+
+			const normalizedItem = normalizeGovernanceOverviewItem(item as RawGovernanceOverviewItem)
 			const projectKey = slug(normalizedItem.name || rawKey) || rawKey
 			const existingItem = mergedByProject.get(projectKey)
 
