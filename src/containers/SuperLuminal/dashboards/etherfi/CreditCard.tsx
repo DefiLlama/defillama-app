@@ -44,20 +44,10 @@ function KpiSkeleton({ label }: { label: string }) {
 	)
 }
 
-function FullPageLoader() {
-	return (
-		<div className="flex min-h-[60vh] items-center justify-center">
-			<div className="h-6 w-6 animate-spin rounded-full border-2 border-(--text-disabled) border-t-transparent" />
-		</div>
-	)
-}
-
 export default function CreditCard() {
 	const { fees, revenue, isLoading: metricsLoading } = useEtherfiCashMetrics()
 	const { tvlChart, inflowsChart, isLoading: tvlLoading } = useEtherfiCashTvlChart()
 	const { feesChart, revenueChart, holdersRevenueChart, isLoading: feesLoading } = useEtherfiCashFeesCharts()
-
-	const allLoading = metricsLoading && tvlLoading && feesLoading
 
 	const hasHoldersRevenue = useMemo(
 		() => holdersRevenueChart.some((d) => d['Holders Revenue'] !== 0),
@@ -77,8 +67,6 @@ export default function CreditCard() {
 			inflows: prevInflow != null ? formattedNum(prevInflow, true) : '—'
 		}
 	}, [fees, revenue, tvlChart, inflowsChart, metricsLoading, tvlLoading])
-
-	if (allLoading) return <FullPageLoader />
 
 	return (
 		<div className="flex flex-col gap-4">

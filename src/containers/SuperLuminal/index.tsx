@@ -175,7 +175,7 @@ function SuperLuminalContent({
 					<div key={tab.id} className={activeTab === tab.id ? '' : 'hidden'}>
 						<Suspense
 							fallback={
-								<div className="flex flex-1 items-center justify-center py-20">
+								<div className="flex min-h-[60vh] items-center justify-center py-20">
 									<div className="sl-loader flex flex-col items-center gap-2.5">
 										<img src="/assets/defillama.webp" height={36} width={140} className="hidden object-contain dark:block" alt="DefiLlama" />
 										<img src="/assets/defillama-dark.webp" height={36} width={140} className="object-contain dark:hidden" alt="DefiLlama" />
