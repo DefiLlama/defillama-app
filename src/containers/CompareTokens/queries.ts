@@ -2,6 +2,7 @@ import { getAllCGTokensList } from '~/api'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { fetchAdapterChainMetrics } from '../DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '../DimensionAdapters/api.types'
+import { ADAPTER_TYPES } from '../DimensionAdapters/constants'
 import { fetchProtocolsList } from './api'
 import type { RawProtocolsResponse } from './api.types'
 import type { Protocol } from './types'
@@ -25,7 +26,7 @@ export async function getCompareTokensPageData(): Promise<CompareTokensPageData>
 			return emptyProtocolsResponse
 		}),
 		fetchAdapterChainMetrics({
-			adapterType: 'fees',
+			adapterType: ADAPTER_TYPES.FEES,
 			chain: 'All'
 		})
 			.then((response) => response.protocols)
@@ -34,7 +35,7 @@ export async function getCompareTokensPageData(): Promise<CompareTokensPageData>
 				return emptyAdapterProtocols
 			}),
 		fetchAdapterChainMetrics({
-			adapterType: 'fees',
+			adapterType: ADAPTER_TYPES.FEES,
 			chain: 'All',
 			dataType: 'dailyRevenue'
 		})

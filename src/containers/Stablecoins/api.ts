@@ -84,6 +84,12 @@ export const fetchStablecoinDominanceAllApi = async (): Promise<StablecoinDomina
 	return fetchJson<StablecoinDominanceResponse>(PEGGEDCHART_DOMINANCE_ALL_API)
 }
 
+/**
+ * Fetch details for a single stablecoin.
+ *
+ * Returns `null` only when the upstream API responds with a literal `null` body.
+ * Network/HTTP failures are not converted to `null` and will throw.
+ */
 export const fetchStablecoinAssetApi = async (peggedId: string): Promise<StablecoinDetailResponse | null> => {
 	return fetchJson<StablecoinDetailResponse | null>(`${PEGGED_API}/${peggedId}`)
 }

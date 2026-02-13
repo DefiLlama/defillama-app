@@ -369,9 +369,7 @@ export async function getStablecoinChainsPageData(): Promise<PeggedChainsPageDat
 
 					const rawMcap = chart.totalCirculatingUSD
 					let mcap: number | null = null
-					if (typeof rawMcap === 'number' && Number.isFinite(rawMcap)) {
-						mcap = rawMcap
-					} else if (rawMcap && typeof rawMcap === 'object') {
+					if (rawMcap && typeof rawMcap === 'object') {
 						let total = 0
 						let hasFinite = false
 						for (const value of Object.values(rawMcap as Record<string, unknown>)) {
