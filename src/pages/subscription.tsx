@@ -10,7 +10,7 @@ export default function Subscribe() {
 
 	return (
 		<WalletProvider>
-			<SubscribeLayout>
+			<SubscribeLayout returnUrl={returnUrl}>
 				<SubscribeHome returnUrl={returnUrl} />
 			</SubscribeLayout>
 		</WalletProvider>

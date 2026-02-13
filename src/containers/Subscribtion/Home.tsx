@@ -110,7 +110,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 								</button>
 								<p className="mt-2 text-center text-xs text-[#8a8c90]">Cancel anytime • Crypto and Card payments</p>
 								<button
-									onClick={() => router.push('/account')}
+									onClick={() => router.push(`/account?returnUrl=${encodeURIComponent(router.asPath)}`)}
 									className="mt-3 flex w-full items-center justify-center gap-2 text-sm text-[#8a8c90] transition-colors hover:text-white"
 								>
 									<Icon name="settings" height={14} width={14} />
@@ -158,7 +158,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 							<h2 className="text-2xl font-bold text-white">You're subscribed!</h2>
 							<p className="text-[#8a8c90]">Manage your subscription and view your account details.</p>
 							<button
-								onClick={() => router.push('/account')}
+								onClick={() => router.push(`/account?returnUrl=${encodeURIComponent(router.asPath)}`)}
 								className="rounded-lg bg-[#5C5CF9] px-8 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0]"
 							>
 								Go to Account

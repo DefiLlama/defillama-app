@@ -22,10 +22,21 @@ export function LinkToPage({
 }) {
 	const isActive = route === asPath.split('/?')[0].split('?')[0]
 	const isExternal = route.startsWith('http')
+	
+	// Add returnUrl for subscription and account routes
+	const getHref = () => {
+		if (isExternal) {
+			return route
+		}
+		if (route === '/subscription' || route === '/account') {
+			return `${route}?returnUrl=${encodeURIComponent(asPath)}`
+		}
+		return route
+	}
 
 	return (
 		<BasicLink
-			href={route}
+			href={getHref()}
 			data-linkactive={isActive}
 			data-umami-event={umamiEvent}
 			target={isExternal ? '_blank' : undefined}

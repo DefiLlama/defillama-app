@@ -1,8 +1,10 @@
+import { useRouter } from 'next/router'
 import { BasicLink } from '~/components/Link'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks/useIsClient'
 
 export const PremiumHeader = () => {
+	const { asPath } = useRouter()
 	const { hasActiveSubscription, isAuthenticated, loaders } = useAuthContext()
 	const hasMounted = useIsClient()
 
@@ -15,7 +17,7 @@ export const PremiumHeader = () => {
 			<p className="mb-1 flex items-center gap-2">
 				<span className="text-xs font-medium tracking-wide opacity-65">PREMIUM</span>
 				<BasicLink
-					href="/subscription"
+					href={`/subscription?returnUrl=${encodeURIComponent(asPath)}`}
 					className={`relative inline-flex items-center rounded-full border border-[#C99A4A]/50 bg-gradient-to-r from-[#C99A4A]/15 via-[#C99A4A]/5 to-[#C99A4A]/15 px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#996F1F] shadow-[0_0_8px_rgba(201,154,74,0.3)] transition-shadow hover:shadow-[0_0_12px_rgba(201,154,74,0.5)] dark:border-[#FDE0A9]/50 dark:from-[#FDE0A9]/20 dark:via-[#FDE0A9]/10 dark:to-[#FDE0A9]/20 dark:text-[#FDE0A9] dark:shadow-[0_0_8px_rgba(253,224,169,0.25)] dark:hover:shadow-[0_0_12px_rgba(253,224,169,0.4)] ${showFreeTrial ? '' : 'invisible'}`}
 				>
 					Try free

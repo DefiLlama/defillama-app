@@ -381,7 +381,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 								/>
 								<div className="flex flex-col gap-3">
 									<BasicLink
-										href="/subscription"
+										href={`/subscription?returnUrl=${encodeURIComponent(_finalReturnUrl)}`}
 										data-umami-event="subscribe-modal-goto-page"
 										className="mt-3 block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
 									>
