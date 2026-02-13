@@ -881,11 +881,29 @@ function emptyChartDatasets(): Record<RWAChartMetric, RWAChartDataset> {
 	return { onChainMcap: emptyChartDataset(), activeMcap: emptyChartDataset(), defiActiveTvl: emptyChartDataset() }
 }
 
-function sortKeysWithOthersLast(keys: Iterable<string>): string[] {
+function sortKeysByLatestTimestampValue(rows: RWAChartRow[], keys: Iterable<string>): string[] {
 	const arr = Array.from(keys).filter(Boolean)
+	if (arr.length === 0) return arr
+
+	let latestRow: RWAChartRow | null = null
+	let latestTimestamp = Number.NEGATIVE_INFINITY
+	for (const row of rows) {
+		if (!Number.isFinite(row.timestamp)) continue
+		if (row.timestamp >= latestTimestamp) {
+			latestTimestamp = row.timestamp
+			latestRow = row
+		}
+	}
+
 	return arr.sort((a, b) => {
 		if (a === 'Others') return 1
 		if (b === 'Others') return -1
+
+		const aValueRaw = latestRow?.[a]
+		const bValueRaw = latestRow?.[b]
+		const aValue = typeof aValueRaw === 'number' && Number.isFinite(aValueRaw) ? aValueRaw : 0
+		const bValue = typeof bValueRaw === 'number' && Number.isFinite(bValueRaw) ? bValueRaw : 0
+		if (aValue !== bValue) return bValue - aValue
 		return a.localeCompare(b)
 	})
 }
@@ -951,9 +969,12 @@ export function useRwaChartDataByCategory({
 
 		return {
 			chartDatasetByCategory: {
-				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenOnChain)] },
-				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenActive)] },
-				defiActiveTvl: { source: defiActiveTvl, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenDefi)] }
+				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)] },
+				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)] },
+				defiActiveTvl: {
+					source: defiActiveTvl,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
+				}
 			}
 		}
 	}, [assets, chartDataByTicker, enabled])
@@ -1020,9 +1041,12 @@ export function useRwaChartDataByAssetClass({
 
 		return {
 			chartDatasetByAssetClass: {
-				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenOnChain)] },
-				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenActive)] },
-				defiActiveTvl: { source: defiActiveTvl, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenDefi)] }
+				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)] },
+				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)] },
+				defiActiveTvl: {
+					source: defiActiveTvl,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
+				}
 			}
 		}
 	}, [assets, chartDataByTicker, enabled])
@@ -1087,9 +1111,12 @@ export function useRwaChartDataByAssetName({
 
 		return {
 			chartDatasetByAssetName: {
-				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenOnChain)] },
-				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenActive)] },
-				defiActiveTvl: { source: defiActiveTvl, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenDefi)] }
+				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)] },
+				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)] },
+				defiActiveTvl: {
+					source: defiActiveTvl,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
+				}
 			}
 		}
 	}, [assets, chartDataByTicker, enabled])

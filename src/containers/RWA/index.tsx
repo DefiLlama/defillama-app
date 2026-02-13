@@ -1,11 +1,14 @@
+import type * as echarts from 'echarts/core'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo } from 'react'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
+import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
 import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
+import { CHART_COLORS } from '~/constants/colors'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { formattedNum, slug } from '~/utils'
 import type { IRWAAssetsOverview } from './api.types'
@@ -30,9 +33,25 @@ const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
+interface ITreemapChartProps {
+	treeData: RwaTreemapNode[]
+	variant?: 'yields' | 'narrative' | 'rwa'
+	height?: string
+	onReady?: (instance: echarts.ECharts | null) => void
+	valueLabel?: string
+}
+const TreemapChart = lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapChartProps>
 
 type RWAChartType = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 type RWAOverviewMode = 'chain' | 'category' | 'platform'
+type RwaPieChartDatum = { name: string; value: number }
+type RwaTreemapNode = {
+	name: string
+	path: string
+	value: [number, number | null, number | null]
+	itemStyle?: { color?: string }
+	children?: RwaTreemapNode[]
+}
 
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const router = useRouter()
@@ -48,7 +67,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			? router.query.chartType
 			: 'activeMcap'
 	const chartView =
-		typeof router.query.chartView === 'string' && router.query.chartView === 'pie' ? 'pie' : 'timeSeries'
+		typeof router.query.chartView === 'string' &&
+		(router.query.chartView === 'pie' || router.query.chartView === 'treemap')
+			? router.query.chartView
+			: 'timeSeries'
 	const chartTypeKey = chartType as RWAChartType
 
 	const {
@@ -289,14 +311,19 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 
 	const { chartInstance: multiSeriesChart2Instance, handleChartReady: handleMultiSeriesChart2Ready } =
 		useChartImageExport()
-	const timeSeriesChartTitle =
+	const chartMetricLabel =
 		chartType === 'onChainMcap' ? 'Onchain Mcap' : chartType === 'activeMcap' ? 'Active Mcap' : 'DeFi Active TVL'
 	const selectedModeLabel = getSelectedModeLabel(mode, props)
-	const timeSeriesChartFilename = `rwa-time-series-chart-${slug(timeSeriesChartTitle)}-${rwaSlug(selectedModeLabel)}`
+	const exportChartTitle = getRwaExportChartTitle({
+		mode,
+		metricLabel: chartMetricLabel,
+		selectedModeLabel
+	})
+	const timeSeriesChartFilename = `rwa-time-series-chart-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
 	const { chartInstance: pieChartInstance, handleChartReady: handlePieChartReady } = useChartImageExport()
-	const pieChartTitle =
-		chartType === 'onChainMcap' ? 'Onchain Mcap' : chartType === 'activeMcap' ? 'Active Mcap' : 'DeFi Active TVL'
-	const pieChartFilename = `rwa-pie-${slug(pieChartTitle)}-${rwaSlug(selectedModeLabel)}`
+	const pieChartFilename = `rwa-pie-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
+	const { chartInstance: treemapChartInstance, handleChartReady: handleTreemapChartReady } = useChartImageExport()
+	const treemapChartFilename = `rwa-treemap-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
 
 	const chartDatasetByMode =
 		mode === 'category'
@@ -312,6 +339,18 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			: chartTypeKey === 'activeMcap'
 				? activeMcapPieChartData
 				: defiActiveTvlPieChartData
+	const valueSortedPieChartStackColors = useMemo(() => {
+		const stackColors = { ...pieChartStackColors }
+		const sortedData = [...selectedPieChartData]
+			.filter((item) => Number.isFinite(item.value) && item.value > 0)
+			.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name))
+
+		for (const [index, item] of sortedData.entries()) {
+			stackColors[item.name] = CHART_COLORS[index % CHART_COLORS.length]
+		}
+
+		return stackColors
+	}, [pieChartStackColors, selectedPieChartData])
 
 	const chartTypeSwitch = (
 		<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
@@ -339,8 +378,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			setSelectedValues={(value) => {
 				const selectedView = Array.isArray(value) ? value[0] : value
 
-				if (selectedView === 'pie') {
-					router.push({ pathname: router.pathname, query: { ...router.query, chartView: 'pie' } }, undefined, {
+				if (selectedView === 'pie' || selectedView === 'treemap') {
+					router.push({ pathname: router.pathname, query: { ...router.query, chartView: selectedView } }, undefined, {
 						shallow: true
 					})
 					return
@@ -354,7 +393,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				} = router.query
 				router.push({ pathname: router.pathname, query: { ...restQuery } }, undefined, { shallow: true })
 			}}
-			label={chartView === 'pie' ? 'Pie Chart' : 'Time Series'}
+			label={chartView === 'pie' ? 'Pie Chart' : chartView === 'treemap' ? 'Treemap Chart' : 'Time Series'}
 			labelType="none"
 			variant="filter"
 		/>
@@ -381,6 +420,14 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				: isChainMode && nonTimeSeriesChartBreakdown === 'assetClass'
 					? 'assetClass'
 					: 'default'
+	const selectedPieChartBreakdownLabel =
+		selectedPieChartBreakdown === 'chain'
+			? 'Chain'
+			: selectedPieChartBreakdown === 'platform'
+				? 'Asset Platform'
+				: selectedPieChartBreakdown === 'assetClass'
+					? 'Asset Class'
+					: pieChartBreakdownDefaultLabel
 	const pieChartBreakdownSwitch = (
 		<Select
 			allValues={pieChartBreakdownOptions}
@@ -447,19 +494,16 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					{ shallow: true }
 				)
 			}}
-			label={
-				selectedPieChartBreakdown === 'chain'
-					? 'Chain'
-					: selectedPieChartBreakdown === 'platform'
-						? 'Asset Platform'
-						: selectedPieChartBreakdown === 'assetClass'
-							? 'Asset Class'
-						: pieChartBreakdownDefaultLabel
-			}
+			label={selectedPieChartBreakdownLabel}
 			labelType="none"
 			variant="filter"
 		/>
 	)
+
+	const treemapTreeData = useMemo(() => {
+		if (chartView !== 'treemap') return []
+		return buildRwaTreemapTreeData(selectedPieChartData, selectedPieChartBreakdownLabel, valueSortedPieChartStackColors)
+	}, [chartView, selectedPieChartData, selectedPieChartBreakdownLabel, valueSortedPieChartStackColors])
 
 	return (
 		<>
@@ -553,7 +597,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 								<ChartPngExportButton
 									chartInstance={multiSeriesChart2Instance}
 									filename={timeSeriesChartFilename}
-									title={timeSeriesChartTitle}
+									title={exportChartTitle}
 								/>
 							</div>
 							<Suspense fallback={<div className="min-h-[360px]" />}>
@@ -568,28 +612,48 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 							</Suspense>
 						</div>
 					) : null}
-					{chartView === 'pie' ? (
-						<div className="flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					{chartView === 'pie' || chartView === 'treemap' ? (
+						<div
+							className={`flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) ${
+								chartView === 'treemap' ? 'min-h-[652px]' : 'min-h-[412px]'
+							}`}
+						>
 							<div className="flex flex-wrap items-center justify-end gap-2 p-3 pb-0">
 								{chartTypeSwitch}
 								{chartViewSwitch}
 								{pieChartBreakdownSwitch}
-								<ChartCsvExportButton chartInstance={pieChartInstance} filename={pieChartFilename} />
+								{chartView === 'treemap' ? <ChartRestoreButton chartInstance={treemapChartInstance} /> : null}
+								{chartView === 'pie' || chartView === 'treemap' ? (
+									<ChartCsvExportButton
+										chartInstance={chartView === 'treemap' ? treemapChartInstance : pieChartInstance}
+										filename={chartView === 'treemap' ? treemapChartFilename : pieChartFilename}
+									/>
+								) : null}
 								<ChartPngExportButton
-									chartInstance={pieChartInstance}
-									filename={`${pieChartFilename}.png`}
-									title={pieChartTitle}
+									chartInstance={chartView === 'treemap' ? treemapChartInstance : pieChartInstance}
+									filename={chartView === 'treemap' ? treemapChartFilename : `${pieChartFilename}.png`}
+									title={exportChartTitle}
 								/>
 							</div>
-							<Suspense fallback={<div className="min-h-[360px]" />}>
-								<PieChart
-									chartData={selectedPieChartData}
-									stackColors={pieChartStackColors}
-									radius={pieChartRadius}
-									legendPosition={pieChartLegendPosition}
-									legendTextStyle={pieChartLegendTextStyle}
-									onReady={handlePieChartReady}
-								/>
+							<Suspense fallback={<div className={chartView === 'treemap' ? 'min-h-[600px]' : 'min-h-[360px]'} />}>
+								{chartView === 'pie' ? (
+									<PieChart
+										chartData={selectedPieChartData}
+										stackColors={valueSortedPieChartStackColors}
+										radius={pieChartRadius}
+										legendPosition={pieChartLegendPosition}
+										legendTextStyle={pieChartLegendTextStyle}
+										onReady={handlePieChartReady}
+									/>
+								) : (
+									<TreemapChart
+										treeData={treemapTreeData}
+										variant="rwa"
+										height="600px"
+										onReady={handleTreemapChartReady}
+										valueLabel={chartMetricLabel}
+									/>
+								)}
 							</Suspense>
 						</div>
 					) : null}
@@ -640,6 +704,50 @@ const getSelectedModeLabel = (mode: RWAOverviewMode, props: IRWAAssetsOverview) 
 	return props.selectedChain
 }
 
+const getRwaExportChartTitle = ({
+	mode,
+	metricLabel,
+	selectedModeLabel
+}: {
+	mode: RWAOverviewMode
+	metricLabel: string
+	selectedModeLabel: string
+}) => {
+	if (mode === 'category') return `RWA ${metricLabel} by Category`
+	if (!selectedModeLabel || selectedModeLabel === 'All') return `RWA ${metricLabel}`
+	return `RWA ${metricLabel} on ${selectedModeLabel}`
+}
+
+const buildRwaTreemapTreeData = (
+	pieData: RwaPieChartDatum[],
+	breakdownLabel: string,
+	stackColors: Record<string, string>
+): RwaTreemapNode[] => {
+	const data = (pieData ?? []).filter((item) => Number.isFinite(item.value) && item.value > 0)
+	if (data.length === 0) return []
+
+	const total = data.reduce((sum, item) => sum + item.value, 0)
+	const rootLabel = breakdownLabel || 'Breakdown'
+	const children: RwaTreemapNode[] = data.map((item, index) => {
+		const sharePct = total > 0 ? Number(((item.value / total) * 100).toFixed(2)) : 0
+		return {
+			name: item.name,
+			path: `${rootLabel}/${item.name}`,
+			value: [item.value, sharePct, sharePct],
+			itemStyle: { color: stackColors[item.name] ?? CHART_COLORS[index % CHART_COLORS.length] }
+		}
+	})
+
+	return [
+		{
+			name: rootLabel,
+			path: rootLabel,
+			value: [total, 100, 100],
+			children
+		}
+	]
+}
+
 const pieChartRadius = ['50%', '70%'] as [string, string]
 const pieChartLegendPosition = {
 	left: 'center',
@@ -658,8 +766,9 @@ const PIE_CHART_TYPES = [
 ]
 
 const CHART_VIEW_OPTIONS = [
-	{ key: 'timeSeries', name: 'Time Series' },
-	{ key: 'pie', name: 'Pie Chart' }
+	{ key: 'timeSeries', name: 'Time Series Chart' },
+	{ key: 'pie', name: 'Pie Chart' },
+	{ key: 'treemap', name: 'Treemap Chart' }
 ]
 
 const validPieChartTypes = new Set(PIE_CHART_TYPES.map(({ key }) => key))
