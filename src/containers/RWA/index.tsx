@@ -57,6 +57,13 @@ type RWAOverviewMode = 'chain' | 'category' | 'platform'
 
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const router = useRouter()
+	const pushShallowQuery = (query: Record<string, any>) => {
+		router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+	}
+	const pushShallowMergedQuery = (patch: Record<string, any>) => {
+		pushShallowQuery({ ...router.query, ...patch })
+	}
+	const getSelectedFilterValue = (value: string | string[]) => (Array.isArray(value) ? value[0] : value)
 
 	const mode = getRWAOverviewMode(props)
 	const isChainMode = mode === 'chain'
@@ -381,9 +388,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 					data-active={chartType === key}
 					onClick={() => {
-						router.push({ pathname: router.pathname, query: { ...router.query, chartType: key } }, undefined, {
-							shallow: true
-						})
+						pushShallowMergedQuery({ chartType: key })
 					}}
 				>
 					{label}
@@ -397,12 +402,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			allValues={CHART_VIEW_OPTIONS}
 			selectedValues={chartView}
 			setSelectedValues={(value) => {
-				const selectedView = Array.isArray(value) ? value[0] : value
+				const selectedView = getSelectedFilterValue(value)
 
 				if (selectedView === 'pie' || selectedView === 'treemap') {
-					router.push({ pathname: router.pathname, query: { ...router.query, chartView: selectedView } }, undefined, {
-						shallow: true
-					})
+					pushShallowMergedQuery({ chartView: selectedView })
 					return
 				}
 
@@ -412,7 +415,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					pieChartBreakdown: _pieChartBreakdown,
 					...restQuery
 				} = router.query
-				router.push({ pathname: router.pathname, query: { ...restQuery } }, undefined, { shallow: true })
+				pushShallowQuery({ ...restQuery })
 			}}
 			label={chartView === 'pie' ? 'Pie Chart' : chartView === 'treemap' ? 'Treemap Chart' : 'Time Series'}
 			labelType="none"
@@ -468,7 +471,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			allValues={pieChartBreakdownOptions}
 			selectedValues={selectedPieChartBreakdown}
 			setSelectedValues={(value) => {
-				const selectedBreakdown = Array.isArray(value) ? value[0] : value
+				const selectedBreakdown = getSelectedFilterValue(value)
 				const applyBreakdownChange = (nextBreakdown: 'default' | 'chain' | 'platform' | 'assetClass') => {
 					const nextNonTimeSeriesChartBreakdown = nextBreakdown === 'default' ? null : nextBreakdown
 					const nextTreemapParentGrouping = getRwaTreemapParentGrouping({
@@ -488,7 +491,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					} else {
 						delete nextQuery.nonTimeSeriesChartBreakdown
 					}
-					router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+					pushShallowQuery(nextQuery)
 				}
 
 				if (selectedBreakdown === 'chain' && canBreakdownByChain) {
@@ -517,21 +520,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			allValues={treemapNestedByOptions}
 			selectedValues={treemapNestedBy}
 			setSelectedValues={(value) => {
-				const selectedNestedBy = Array.isArray(value) ? value[0] : value
+				const selectedNestedBy = getSelectedFilterValue(value)
 				if (selectedNestedBy !== 'none' && selectedNestedBy !== 'assetClass' && selectedNestedBy !== 'assetName') return
 				const normalizedNestedBy = normalizeTreemapNestedByForParentGrouping({
 					parentGrouping: treemapParentGrouping,
 					nestedBy: selectedNestedBy
 				})
-
-				router.push(
-					{
-						pathname: router.pathname,
-						query: { ...router.query, treemapNestedBy: normalizedNestedBy }
-					},
-					undefined,
-					{ shallow: true }
-				)
+				pushShallowMergedQuery({ treemapNestedBy: normalizedNestedBy })
 			}}
 			label={`Nested by: ${treemapNestedByLabel}`}
 			labelType="none"
