@@ -12,7 +12,6 @@ import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
 import type { IProtocol } from './types'
 
-// Type definitions for ECharts treemap tooltip and label formatters
 interface TreemapTooltipInfo {
 	treePathInfo?: Array<{ name: string }>
 	value?: number
@@ -39,18 +38,15 @@ export function ProtocolsTreemap({ protocols, chainName, height = '600px' }: Pro
 	const [mode, setMode] = useState<TreemapMode>('tvl')
 	const [isFocused, setIsFocused] = useState(false)
 	const [refreshKey, setRefreshKey] = useState(0)
-	// chartRef is only used for useChartResize hook which requires a RefObject
 	const chartRef = useRef<echarts.ECharts | null>(null)
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const { chartInstance, handleChartReady } = useChartImageExport()
 
 	const handleReset = useCallback(() => {
-		// Force chart refresh by updating refresh key
 		setRefreshKey((prev) => prev + 1)
-		setIsFocused(false) // Also unfocus when resetting
+		setIsFocused(false)
 	}, [])
 
-	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
 	const treeData = useMemo(() => {
@@ -58,7 +54,6 @@ export function ProtocolsTreemap({ protocols, chainName, height = '600px' }: Pro
 		const categoryMap = new Map<string, Array<{ name: string; value: number; itemStyle?: { color: string } }>>()
 
 		for (const protocol of protocols) {
-			// Get value based on mode
 			const value = mode === 'tvl' ? (protocol.tvl?.default?.tvl ?? 0) : (protocol.fees?.total24h ?? 0)
 
 			if (value <= 0) continue
@@ -68,7 +63,6 @@ export function ProtocolsTreemap({ protocols, chainName, height = '600px' }: Pro
 				categoryMap.set(category, [])
 			}
 
-			// Generate consistent color for each protocol
 			const color = generateConsistentChartColor(protocol.name, '#1f67d2', 'protocol')
 
 			categoryMap.get(category)!.push({
@@ -80,7 +74,6 @@ export function ProtocolsTreemap({ protocols, chainName, height = '600px' }: Pro
 			})
 		}
 
-		// Build hierarchical tree structure
 		const tree: Array<{
 			name: string
 			value: number
@@ -98,7 +91,6 @@ export function ProtocolsTreemap({ protocols, chainName, height = '600px' }: Pro
 			}
 		}
 
-		// Sort categories by total value
 		return tree.sort((a, b) => b.value - a.value)
 	}, [protocols, mode])
 
@@ -109,7 +101,6 @@ export function ProtocolsTreemap({ protocols, chainName, height = '600px' }: Pro
 		let instance: echarts.ECharts | null = null
 
 		try {
-			// Dispose existing instance if it exists (for refresh)
 			const existingInstance = echarts.getInstanceByDom(el)
 			if (existingInstance) {
 				existingInstance.dispose()
@@ -121,7 +112,6 @@ export function ProtocolsTreemap({ protocols, chainName, height = '600px' }: Pro
 				return
 			}
 
-			// Keep chartRef and hook instance in sync
 			chartRef.current = instance
 			handleChartReady(instance)
 
@@ -158,12 +148,12 @@ export function ProtocolsTreemap({ protocols, chainName, height = '600px' }: Pro
 				backgroundColor: 'transparent',
 				graphic,
 				legend: {
-					show: false // Explicitly hide legend to prevent it from showing in PNG export
+					show: false
 				},
 				toolbox: {
-					show: false, // Hide toolbox UI but enable restore feature for programmatic use
+					show: false,
 					feature: {
-						restore: {} // Enable restore feature (even though UI is hidden)
+						restore: {}
 					}
 				},
 				tooltip: {
@@ -180,7 +170,6 @@ export function ProtocolsTreemap({ protocols, chainName, height = '600px' }: Pro
 						const pct = totalValue > 0 ? ((value / totalValue) * 100).toFixed(2) : '0'
 
 						if (treePath.length > 1) {
-							// Protocol level
 							return [
 								`<div style="font-weight:600;margin-bottom:4px">${treePath[1]}</div>`,
 								`<div>Category: ${treePath[0]}</div>`,
@@ -188,7 +177,6 @@ export function ProtocolsTreemap({ protocols, chainName, height = '600px' }: Pro
 								`<div>Share: ${pct}%</div>`
 							].join('')
 						} else if (treePath.length === 1) {
-							// Category level
 							return [
 								`<div style="font-weight:600;margin-bottom:4px">${treePath[0]}</div>`,
 								`<div>${metricLabel}: ${formattedNum(value, true)}</div>`,
@@ -247,7 +235,6 @@ export function ProtocolsTreemap({ protocols, chainName, height = '600px' }: Pro
 						},
 						levels: [
 							{
-								// Category level - hide category labels
 								itemStyle: {
 									borderColor: 'transparent',
 									borderWidth: 0,
@@ -258,7 +245,6 @@ export function ProtocolsTreemap({ protocols, chainName, height = '600px' }: Pro
 								}
 							},
 							{
-								// Protocol level
 								itemStyle: {
 									borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
 									borderWidth: 1,
@@ -302,7 +288,6 @@ export function ProtocolsTreemap({ protocols, chainName, height = '600px' }: Pro
 		}
 	}, [id, treeData, isDark, mode, refreshKey, handleChartReady])
 
-	// Consolidated event listeners for chart interactions
 	useEffect(() => {
 		const el = document.getElementById(id)
 		if (!el) return
