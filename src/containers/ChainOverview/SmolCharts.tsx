@@ -25,6 +25,9 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'svg' })
 		chartRef.current = instance
 
+		// Cache tooltip DOM elements per bar to prevent img flickering and re-requests when revisiting bars
+		const tooltipElCache = new Map<number, HTMLDivElement>()
+
 		instance.setOption({
 			animation: false,
 			grid: {
@@ -83,7 +86,12 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 				trigger: 'axis',
 				confine: false,
 				formatter: function (params) {
-					return params.reduce((prev, curr) => {
+					const dataIndex = params[0]?.dataIndex ?? -1
+					const cached = tooltipElCache.get(dataIndex)
+					if (cached) return cached
+
+					const el = document.createElement('div')
+					el.innerHTML = params.reduce((prev, curr) => {
 						return (
 							(prev +=
 								'<li style="list-style:none;display:flex;align-items:center;gap:4px;">' +
@@ -94,6 +102,8 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 								formattedNum(curr.value[1])) + '</li>'
 						)
 					}, '')
+					tooltipElCache.set(dataIndex, el)
+					return el
 				}
 			},
 			series: {

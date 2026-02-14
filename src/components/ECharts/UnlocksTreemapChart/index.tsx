@@ -253,6 +253,9 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
 		chartRef.current = instance
 
+		// Cache tooltip DOM elements per node to prevent img flickering and re-requests when revisiting nodes
+		const tooltipElCache = new Map<string, HTMLDivElement>()
+
 		const option = {
 			title: {
 				textStyle: {
@@ -265,6 +268,11 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 				formatter: (info: any) => {
 					const { data, treePathInfo } = info
 					const { name, value, iconUrl } = data
+
+					const cacheKey = `${name}-${value}`
+					const cached = tooltipElCache.get(cacheKey)
+					if (cached) return cached
+
 					const pathNames = treePathInfo.map((item) => item.name).slice(0, -1)
 
 					let pathDisplay = pathNames.join(' > ')
@@ -281,7 +289,10 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					content += `<strong style="font-weight: 600;">${pathDisplay}${name}</strong><br/>`
 					content += `<span style="opacity: 0.85;">Value:</span> <strong style="font-weight: 600;">${formattedNum(value, true)}</strong>`
 					content += `</div>`
-					return content
+					const el = document.createElement('div')
+					el.innerHTML = content
+					tooltipElCache.set(cacheKey, el)
+					return el
 				},
 				backgroundColor: isDark ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
 				borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)',
