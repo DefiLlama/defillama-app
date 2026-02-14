@@ -695,6 +695,83 @@ export function useRwaAssetNamePieChartData({
 	}, [assets, enabled, selectedAssetNames])
 }
 
+export function useRwaAssetPlatformPieChartData({
+	enabled,
+	assets
+}: {
+	enabled: boolean
+	assets: IRWAAssetsOverview['assets']
+}) {
+	return useMemo(() => {
+		const MAX_LABELS = 24
+		const UNKNOWN = 'Unknown'
+		const OTHERS = 'Others'
+
+		if (!enabled || assets.length === 0) {
+			return {
+				assetPlatformOnChainMcapPieChartData: [] as PieChartDatum[],
+				assetPlatformActiveMcapPieChartData: [] as PieChartDatum[],
+				assetPlatformDefiActiveTvlPieChartData: [] as PieChartDatum[],
+				assetPlatformPieChartStackColors: {}
+			}
+		}
+
+		// Coalesce by slug to avoid casing/spacing duplicates in platform names.
+		const totalsBySlug = new Map<string, { label: string; onChain: number; active: number; defi: number }>()
+		for (const asset of assets) {
+			const platformRaw = asset.parentPlatform as unknown
+			const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
+			const normalizedPlatforms = platformCandidates
+				.map((platform) => (typeof platform === 'string' ? platform.trim() : ''))
+				.filter((platform): platform is string => platform.length > 0)
+			const platforms = normalizedPlatforms.length > 0 ? Array.from(new Set(normalizedPlatforms)) : [UNKNOWN]
+
+			for (const platform of platforms) {
+				const key = rwaSlug(platform)
+				const prev = totalsBySlug.get(key) ?? { label: platform, onChain: 0, active: 0, defi: 0 }
+
+				// Prefer a non-Unknown label if we previously only had Unknown.
+				if (prev.label === UNKNOWN && platform !== UNKNOWN) prev.label = platform
+
+				prev.onChain += asset.onChainMcap?.total ?? 0
+				prev.active += asset.activeMcap?.total ?? 0
+				prev.defi += asset.defiActiveTvl?.total ?? 0
+				totalsBySlug.set(key, prev)
+			}
+		}
+
+		const colorOrder = Array.from(totalsBySlug.values())
+			.map((x) => x.label)
+			.filter(Boolean)
+			.sort()
+		// Keep existing label colors stable while ensuring "Others" exists.
+		if (!colorOrder.includes(OTHERS)) colorOrder.push(OTHERS)
+		const assetPlatformPieChartStackColors = buildStackColors(colorOrder)
+
+		const limitChartData = (data: PieChartDatum[]) => {
+			if (data.length <= MAX_LABELS) return data
+			const head = data.slice(0, MAX_LABELS - 1)
+			const othersValue = data.slice(MAX_LABELS - 1).reduce((sum, d) => sum + d.value, 0)
+			return othersValue > 0 ? [...head, { name: OTHERS, value: othersValue }] : head
+		}
+
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
+			limitChartData(
+				Array.from(totalsBySlug.values())
+					.map((v) => ({ name: v.label || UNKNOWN, value: v[metric] }))
+					.filter((x) => x.value > 0)
+					.sort((a, b) => b.value - a.value)
+			)
+
+		return {
+			assetPlatformOnChainMcapPieChartData: toSortedChartData('onChain'),
+			assetPlatformActiveMcapPieChartData: toSortedChartData('active'),
+			assetPlatformDefiActiveTvlPieChartData: toSortedChartData('defi'),
+			assetPlatformPieChartStackColors
+		}
+	}, [assets, enabled])
+}
+
 export function useRwaChainBreakdownPieChartData({
 	enabled,
 	assets
@@ -804,11 +881,29 @@ function emptyChartDatasets(): Record<RWAChartMetric, RWAChartDataset> {
 	return { onChainMcap: emptyChartDataset(), activeMcap: emptyChartDataset(), defiActiveTvl: emptyChartDataset() }
 }
 
-function sortKeysWithOthersLast(keys: Iterable<string>): string[] {
+function sortKeysByLatestTimestampValue(rows: RWAChartRow[], keys: Iterable<string>): string[] {
 	const arr = Array.from(keys).filter(Boolean)
+	if (arr.length === 0) return arr
+
+	let latestRow: RWAChartRow | null = null
+	let latestTimestamp = Number.NEGATIVE_INFINITY
+	for (const row of rows) {
+		if (!Number.isFinite(row.timestamp)) continue
+		if (row.timestamp >= latestTimestamp) {
+			latestTimestamp = row.timestamp
+			latestRow = row
+		}
+	}
+
 	return arr.sort((a, b) => {
 		if (a === 'Others') return 1
 		if (b === 'Others') return -1
+
+		const aValueRaw = latestRow?.[a]
+		const bValueRaw = latestRow?.[b]
+		const aValue = typeof aValueRaw === 'number' && Number.isFinite(aValueRaw) ? aValueRaw : 0
+		const bValue = typeof bValueRaw === 'number' && Number.isFinite(bValueRaw) ? bValueRaw : 0
+		if (aValue !== bValue) return bValue - aValue
 		return a.localeCompare(b)
 	})
 }
@@ -874,9 +969,12 @@ export function useRwaChartDataByCategory({
 
 		return {
 			chartDatasetByCategory: {
-				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenOnChain)] },
-				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenActive)] },
-				defiActiveTvl: { source: defiActiveTvl, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenDefi)] }
+				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)] },
+				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)] },
+				defiActiveTvl: {
+					source: defiActiveTvl,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
+				}
 			}
 		}
 	}, [assets, chartDataByTicker, enabled])
@@ -943,9 +1041,12 @@ export function useRwaChartDataByAssetClass({
 
 		return {
 			chartDatasetByAssetClass: {
-				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenOnChain)] },
-				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenActive)] },
-				defiActiveTvl: { source: defiActiveTvl, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenDefi)] }
+				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)] },
+				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)] },
+				defiActiveTvl: {
+					source: defiActiveTvl,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
+				}
 			}
 		}
 	}, [assets, chartDataByTicker, enabled])
@@ -1010,9 +1111,12 @@ export function useRwaChartDataByAssetName({
 
 		return {
 			chartDatasetByAssetName: {
-				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenOnChain)] },
-				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenActive)] },
-				defiActiveTvl: { source: defiActiveTvl, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenDefi)] }
+				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)] },
+				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)] },
+				defiActiveTvl: {
+					source: defiActiveTvl,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
+				}
 			}
 		}
 	}, [assets, chartDataByTicker, enabled])

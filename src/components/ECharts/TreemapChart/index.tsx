@@ -9,12 +9,14 @@ import { formattedNum } from '~/utils'
 
 echarts.use([TitleComponent, TooltipComponent, ToolboxComponent, DataZoomComponent, EChartTreemap, CanvasRenderer])
 
-type TreemapVariant = 'yields' | 'narrative'
+type TreemapVariant = 'yields' | 'narrative' | 'rwa'
 
 interface IChartProps {
 	treeData: any[]
 	variant?: TreemapVariant
 	height?: string
+	onReady?: (instance: echarts.ECharts | null) => void
+	valueLabel?: string
 }
 
 const visualMin = -100
@@ -68,45 +70,65 @@ function addColorGradientField(chartDataTree) {
 	}
 }
 
-export default function TreemapChart({ treeData, variant = 'yields', height }: IChartProps) {
+export default function TreemapChart({ treeData, variant = 'yields', height, onReady, valueLabel = 'Market Cap' }: IChartProps) {
 	const id = useId()
+	const isNarrativeVariant = variant === 'narrative'
+	const isRwaVariant = variant === 'rwa'
+	const isNarrativeLike = isNarrativeVariant || isRwaVariant
 
 	const [isDark] = useDarkModeManager()
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const onReadyRef = useRef(onReady)
+	onReadyRef.current = onReady
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
 	const chartDataTree = useMemo(() => {
 		const cloned = cloneTreeData(treeData ?? [])
-		addColorGradientField(cloned)
+		// RWA treemap uses explicit item colors from caller, no red/green gradient mapping.
+		if (!isRwaVariant) addColorGradientField(cloned)
 		return cloned
-	}, [treeData])
+	}, [isRwaVariant, treeData])
 
 	useEffect(() => {
 		const el = document.getElementById(id)
 		if (!el) return
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
 		chartRef.current = instance
+		onReadyRef.current?.(instance)
+		const watermarkHeight = 40
+		const watermarkWidth = Math.round((389 / 133) * watermarkHeight)
 
 		const option = {
-			title:
-				variant === 'narrative'
-					? {
-							textStyle: {
-								fontFamily: 'sans-serif',
-								fontWeight: 600,
-								color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-							}
-						}
-					: {
+			...(isNarrativeLike
+				? {}
+				: {
+						title: {
 							text: 'APY Trends - 1d Change',
 							textStyle: {
 								fontFamily: 'sans-serif',
 								fontWeight: 600,
 								color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 							}
-						},
+						}
+					}),
+			graphic: [
+				{
+					type: 'image',
+					zlevel: 10,
+					z: 999,
+					silent: true,
+					left: 'center',
+					top: 'middle',
+					style: {
+						image: isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp',
+						width: watermarkWidth,
+						height: watermarkHeight,
+						opacity: 0.3
+					}
+				}
+			],
 			tooltip: {
 				formatter: function (info) {
 					let treePathInfo = info.treePathInfo
@@ -127,6 +149,18 @@ export default function TreemapChart({ treeData, variant = 'yields', height }: I
 						}
 					}
 
+					if (isRwaVariant) {
+						if (treePath.length > 1) {
+							return [
+								`${treePath[1]}<br>`,
+								`${valueLabel}: ${formattedNum(info.value[0], true)}<br>`,
+								`Share: ${Number.isFinite(info.value[1]) ? info.value[1] : 0}%<br>`
+							].join('')
+						} else {
+							return null
+						}
+					}
+
 					if (treePath.length > 1) {
 						return [
 							`Project: ${treePath[0]}<br>`,
@@ -140,36 +174,57 @@ export default function TreemapChart({ treeData, variant = 'yields', height }: I
 					}
 				}
 			},
-			toolbox: {
-				feature: {
-					restore: {}
-				}
-			},
+			...(isRwaVariant ? {} : { toolbox: { feature: { restore: {} } } }),
 			series: [
 				{
 					name: 'All',
 					type: 'treemap',
-					visualMin: visualMin,
-					visualMax: visualMax,
-					visualDimension: 3,
-					...(variant === 'narrative'
+					...(isRwaVariant
+						? {
+								top: 12,
+								left: 12,
+								right: 12,
+								bottom: 12
+							}
+						: isNarrativeVariant
+							? {
+									top: 0,
+									left: 0,
+									right: 0,
+									bottom: 0
+								}
+							: {}),
+					...(isRwaVariant
+						? {}
+						: {
+								visualMin: visualMin,
+								visualMax: visualMax,
+								visualDimension: 3
+							}),
+					...(isNarrativeVariant
 						? {
 								roam: false,
 								nodeClick: false,
 								breadcrumb: { show: false }
 							}
-						: {
-								breadcrumb: {
-									itemStyle: {
-										color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.4)'
-									},
-									textStyle: {
-										fontFamily: 'sans-serif',
-										fontWeight: 400,
-										color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-									}
+						: isRwaVariant
+							? {
+									roam: true,
+									nodeClick: 'zoomToNode',
+									breadcrumb: { show: false }
 								}
-							}),
+							: {
+									breadcrumb: {
+										itemStyle: {
+											color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.4)'
+										},
+										textStyle: {
+											fontFamily: 'sans-serif',
+											fontWeight: 400,
+											color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+										}
+									}
+								}),
 					label: {
 						position: 'insideTopRight',
 						formatter: function (params) {
@@ -182,6 +237,12 @@ export default function TreemapChart({ treeData, variant = 'yields', height }: I
 												`Return: {apy| ${params.value[1]}%}`,
 												`Market Cap: {mcap| ${formattedNum(params.value[0], true)}}`
 											]
+										: isRwaVariant
+											? [
+													`{name|${params.data.path.split('/').slice(-1)[0]}}`,
+													`${valueLabel}: {apy| ${formattedNum(params.value[0], true)}}`,
+													`Share: {apy| ${Number.isFinite(params.value[1]) ? params.value[1] : 0}%}`
+												]
 										: [
 												`{name|${params.data.path.split('/').slice(-1)[0]}}`,
 												`Spot: {apy| ${params.value[1]}%}`,
@@ -225,8 +286,12 @@ export default function TreemapChart({ treeData, variant = 'yields', height }: I
 							}
 						},
 						{
-							color: ['#942e38', '#aaa', '#269f3c'],
-							colorMappingBy: 'value',
+							...(isRwaVariant
+								? {}
+								: {
+										color: ['#942e38', '#aaa', '#269f3c'],
+										colorMappingBy: 'value'
+									}),
 							itemStyle: {
 								borderColor: '#555',
 								borderWidth: 5,
@@ -239,7 +304,7 @@ export default function TreemapChart({ treeData, variant = 'yields', height }: I
 							}
 						},
 						{
-							colorSaturation: [0, 1],
+							...(isRwaVariant ? {} : { colorSaturation: [0, 1] }),
 							itemStyle: {
 								borderWidth: 5,
 								gapWidth: 1,
@@ -255,9 +320,10 @@ export default function TreemapChart({ treeData, variant = 'yields', height }: I
 
 		return () => {
 			chartRef.current = null
+			onReadyRef.current?.(null)
 			instance.dispose()
 		}
-	}, [id, chartDataTree, isDark, variant])
+	}, [id, chartDataTree, isDark, isNarrativeLike, isNarrativeVariant, isRwaVariant, variant, valueLabel])
 
 	useEffect(() => {
 		const instance = chartRef.current
@@ -272,7 +338,7 @@ export default function TreemapChart({ treeData, variant = 'yields', height }: I
 
 	const resolvedHeight = height ?? (variant === 'narrative' ? '533px' : '800px')
 
-	if (variant === 'narrative') {
+	if (isNarrativeLike) {
 		return <div id={id} className="my-auto w-full" style={{ height: resolvedHeight }} />
 	}
 
