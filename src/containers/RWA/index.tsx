@@ -28,6 +28,17 @@ import {
 	useRwaChartDataByCategory
 } from './hooks'
 import { rwaSlug } from './rwaSlug'
+import {
+	buildRwaNestedTreemapTreeData,
+	buildRwaTreemapTreeData,
+	canBuildRwaNestedTreemap,
+	getRwaTreemapParentGrouping,
+	getTreemapNestedByOptions,
+	normalizeTreemapNestedByForParentGrouping,
+	resolveTreemapNestedByOnParentGroupingChange,
+	validTreemapNestedBy
+} from './treemap'
+import type { RWAChartType, RwaTreemapNestedBy, RwaTreemapNode } from './treemap'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = lazy(
@@ -42,19 +53,17 @@ interface ITreemapChartProps {
 }
 const TreemapChart = lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapChartProps>
 
-type RWAChartType = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 type RWAOverviewMode = 'chain' | 'category' | 'platform'
-type RwaPieChartDatum = { name: string; value: number }
-type RwaTreemapNode = {
-	name: string
-	path: string
-	value: [number, number | null, number | null]
-	itemStyle?: { color?: string }
-	children?: RwaTreemapNode[]
-}
 
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const router = useRouter()
+	const pushShallowQuery = (query: Record<string, any>) => {
+		router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+	}
+	const pushShallowMergedQuery = (patch: Record<string, any>) => {
+		pushShallowQuery({ ...router.query, ...patch })
+	}
+	const getSelectedFilterValue = (value: string | string[]) => (Array.isArray(value) ? value[0] : value)
 
 	const mode = getRWAOverviewMode(props)
 	const isChainMode = mode === 'chain'
@@ -71,6 +80,11 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		(router.query.chartView === 'pie' || router.query.chartView === 'treemap')
 			? router.query.chartView
 			: 'timeSeries'
+	const treemapNestedByQuery =
+		typeof router.query.treemapNestedBy === 'string' &&
+		validTreemapNestedBy.has(router.query.treemapNestedBy as RwaTreemapNestedBy)
+			? (router.query.treemapNestedBy as RwaTreemapNestedBy)
+			: null
 	const chartTypeKey = chartType as RWAChartType
 
 	const {
@@ -374,9 +388,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 					data-active={chartType === key}
 					onClick={() => {
-						router.push({ pathname: router.pathname, query: { ...router.query, chartType: key } }, undefined, {
-							shallow: true
-						})
+						pushShallowMergedQuery({ chartType: key })
 					}}
 				>
 					{label}
@@ -390,12 +402,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			allValues={CHART_VIEW_OPTIONS}
 			selectedValues={chartView}
 			setSelectedValues={(value) => {
-				const selectedView = Array.isArray(value) ? value[0] : value
+				const selectedView = getSelectedFilterValue(value)
 
 				if (selectedView === 'pie' || selectedView === 'treemap') {
-					router.push({ pathname: router.pathname, query: { ...router.query, chartView: selectedView } }, undefined, {
-						shallow: true
-					})
+					pushShallowMergedQuery({ chartView: selectedView })
 					return
 				}
 
@@ -405,7 +415,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					pieChartBreakdown: _pieChartBreakdown,
 					...restQuery
 				} = router.query
-				router.push({ pathname: router.pathname, query: { ...restQuery } }, undefined, { shallow: true })
+				pushShallowQuery({ ...restQuery })
 			}}
 			label={chartView === 'pie' ? 'Pie Chart' : chartView === 'treemap' ? 'Treemap Chart' : 'Time Series'}
 			labelType="none"
@@ -442,73 +452,83 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				: selectedPieChartBreakdown === 'assetClass'
 					? 'Asset Class'
 					: pieChartBreakdownDefaultLabel
+	const treemapParentGrouping = getRwaTreemapParentGrouping({
+		mode,
+		nonTimeSeriesChartBreakdown,
+		canBreakdownByChain
+	})
+	const treemapNestedBy = normalizeTreemapNestedByForParentGrouping({
+		parentGrouping: treemapParentGrouping,
+		nestedBy: treemapNestedByQuery
+	})
+	const treemapNestedByOptions = getTreemapNestedByOptions(treemapParentGrouping)
+	const isNestedTreemapSupported = canBuildRwaNestedTreemap({
+		parentGrouping: treemapParentGrouping,
+		childGrouping: treemapNestedBy
+	})
 	const pieChartBreakdownSwitch = (
 		<Select
 			allValues={pieChartBreakdownOptions}
 			selectedValues={selectedPieChartBreakdown}
 			setSelectedValues={(value) => {
-				const selectedBreakdown = Array.isArray(value) ? value[0] : value
+				const selectedBreakdown = getSelectedFilterValue(value)
+				const applyBreakdownChange = (nextBreakdown: 'default' | 'chain' | 'platform' | 'assetClass') => {
+					const nextNonTimeSeriesChartBreakdown = nextBreakdown === 'default' ? null : nextBreakdown
+					const nextTreemapParentGrouping = getRwaTreemapParentGrouping({
+						mode,
+						nonTimeSeriesChartBreakdown: nextNonTimeSeriesChartBreakdown,
+						canBreakdownByChain
+					})
+					const nextTreemapNestedBy = resolveTreemapNestedByOnParentGroupingChange({
+						currentParentGrouping: treemapParentGrouping,
+						nextParentGrouping: nextTreemapParentGrouping,
+						currentNestedBy: treemapNestedBy
+					})
+
+					const nextQuery: Record<string, any> = { ...router.query, treemapNestedBy: nextTreemapNestedBy }
+					if (nextNonTimeSeriesChartBreakdown) {
+						nextQuery.nonTimeSeriesChartBreakdown = nextNonTimeSeriesChartBreakdown
+					} else {
+						delete nextQuery.nonTimeSeriesChartBreakdown
+					}
+					pushShallowQuery(nextQuery)
+				}
 
 				if (selectedBreakdown === 'chain' && canBreakdownByChain) {
-					router.push(
-						{
-							pathname: router.pathname,
-							query: { ...router.query, nonTimeSeriesChartBreakdown: 'chain' }
-						},
-						undefined,
-						{ shallow: true }
-					)
+					applyBreakdownChange('chain')
 					return
 				}
-
-				if (selectedBreakdown === 'chain') {
-					const { nonTimeSeriesChartBreakdown: _nonTimeSeriesChartBreakdown, ...restQuery } = router.query
-					router.push(
-						{
-							pathname: router.pathname,
-							query: { ...restQuery }
-						},
-						undefined,
-						{ shallow: true }
-					)
-					return
-				}
-
 				if (selectedBreakdown === 'platform') {
-					router.push(
-						{
-							pathname: router.pathname,
-							query: { ...router.query, nonTimeSeriesChartBreakdown: 'platform' }
-						},
-						undefined,
-						{ shallow: true }
-					)
+					applyBreakdownChange('platform')
 					return
 				}
-
 				if (selectedBreakdown === 'assetClass') {
-					router.push(
-						{
-							pathname: router.pathname,
-							query: { ...router.query, nonTimeSeriesChartBreakdown: 'assetClass' }
-						},
-						undefined,
-						{ shallow: true }
-					)
+					applyBreakdownChange('assetClass')
 					return
 				}
-
-				const { nonTimeSeriesChartBreakdown: _nonTimeSeriesChartBreakdown, ...restQuery } = router.query
-				router.push(
-					{
-						pathname: router.pathname,
-						query: { ...restQuery }
-					},
-					undefined,
-					{ shallow: true }
-				)
+				applyBreakdownChange('default')
 			}}
 			label={selectedPieChartBreakdownLabel}
+			labelType="none"
+			variant="filter"
+		/>
+	)
+	const treemapNestedByLabel =
+		treemapNestedBy === 'assetName' ? 'Asset Name' : treemapNestedBy === 'assetClass' ? 'Asset Class' : 'No Grouping'
+	const treemapNestedBySwitch = (
+		<Select
+			allValues={treemapNestedByOptions}
+			selectedValues={treemapNestedBy}
+			setSelectedValues={(value) => {
+				const selectedNestedBy = getSelectedFilterValue(value)
+				if (selectedNestedBy !== 'none' && selectedNestedBy !== 'assetClass' && selectedNestedBy !== 'assetName') return
+				const normalizedNestedBy = normalizeTreemapNestedByForParentGrouping({
+					parentGrouping: treemapParentGrouping,
+					nestedBy: selectedNestedBy
+				})
+				pushShallowMergedQuery({ treemapNestedBy: normalizedNestedBy })
+			}}
+			label={`Nested by: ${treemapNestedByLabel}`}
 			labelType="none"
 			variant="filter"
 		/>
@@ -516,8 +536,27 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 
 	const treemapTreeData = useMemo(() => {
 		if (chartView !== 'treemap') return []
-		return buildRwaTreemapTreeData(selectedPieChartData, selectedPieChartBreakdownLabel, valueSortedPieChartStackColors)
-	}, [chartView, selectedPieChartData, selectedPieChartBreakdownLabel, valueSortedPieChartStackColors])
+		if (isNestedTreemapSupported) {
+			const nestedTreeData = buildRwaNestedTreemapTreeData({
+				assets: filteredAssets,
+				metric: chartTypeKey,
+				rootLabel: selectedPieChartBreakdownLabel,
+				parentGrouping: treemapParentGrouping,
+				childGrouping: treemapNestedBy
+			})
+			if (nestedTreeData.length > 0) return nestedTreeData
+		}
+		return buildRwaTreemapTreeData(selectedPieChartData, selectedPieChartBreakdownLabel)
+	}, [
+		chartView,
+		chartTypeKey,
+		filteredAssets,
+		isNestedTreemapSupported,
+		selectedPieChartData,
+		selectedPieChartBreakdownLabel,
+		treemapNestedBy,
+		treemapParentGrouping
+	])
 
 	return (
 		<>
@@ -650,6 +689,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 								{chartTypeSwitch}
 								{chartViewSwitch}
 								{pieChartBreakdownSwitch}
+								{chartView === 'treemap' ? treemapNestedBySwitch : null}
 								{chartView === 'treemap' ? <ChartRestoreButton chartInstance={treemapChartInstance} /> : null}
 								{chartView === 'pie' || chartView === 'treemap' ? (
 									<ChartCsvExportButton
@@ -744,36 +784,6 @@ const getRwaExportChartTitle = ({
 	if (mode === 'category') return `RWA ${metricLabel} by Category`
 	if (!selectedModeLabel || selectedModeLabel === 'All') return `RWA ${metricLabel}`
 	return `RWA ${metricLabel} on ${selectedModeLabel}`
-}
-
-const buildRwaTreemapTreeData = (
-	pieData: RwaPieChartDatum[],
-	breakdownLabel: string,
-	stackColors: Record<string, string>
-): RwaTreemapNode[] => {
-	const data = (pieData ?? []).filter((item) => Number.isFinite(item.value) && item.value > 0)
-	if (data.length === 0) return []
-
-	const total = data.reduce((sum, item) => sum + item.value, 0)
-	const rootLabel = breakdownLabel || 'Breakdown'
-	const children: RwaTreemapNode[] = data.map((item, index) => {
-		const sharePct = total > 0 ? Number(((item.value / total) * 100).toFixed(2)) : 0
-		return {
-			name: item.name,
-			path: `${rootLabel}/${item.name}`,
-			value: [item.value, sharePct, sharePct],
-			itemStyle: { color: stackColors[item.name] ?? CHART_COLORS[index % CHART_COLORS.length] }
-		}
-	})
-
-	return [
-		{
-			name: rootLabel,
-			path: rootLabel,
-			value: [total, 100, 100],
-			children
-		}
-	]
 }
 
 const pieChartRadius = ['50%', '70%'] as [string, string]
