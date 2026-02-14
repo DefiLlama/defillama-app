@@ -81,6 +81,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
+		selectedRedeemableStates,
+		selectedAttestationsStates,
+		selectedCexListedStates,
+		selectedKycForMintRedeemStates,
+		selectedKycAllowlistedWhitelistedToTransferHoldStates,
+		selectedTransferableStates,
+		selectedSelfCustodyStates,
 		minDefiActiveTvlToOnChainMcapPct,
 		maxDefiActiveTvlToOnChainMcapPct,
 		minActiveMcapToOnChainMcapPct,
@@ -93,7 +100,14 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		setActiveMcapToOnChainMcapPctRange,
 		setDefiActiveTvlToActiveMcapPctRange,
 		setIncludeStablecoins,
-		setIncludeGovernance
+		setIncludeGovernance,
+		setRedeemableStates,
+		setAttestationsStates,
+		setCexListedStates,
+		setKycForMintRedeemStates,
+		setKycAllowlistedWhitelistedToTransferHoldStates,
+		setTransferableStates,
+		setSelfCustodyStates
 	} = useRWATableQueryParams({
 		assetNames: props.assetNames,
 		types: props.types,
@@ -117,6 +131,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			selectedAccessModels,
 			selectedIssuers,
 			selectedTypes,
+			selectedRedeemableStates,
+			selectedAttestationsStates,
+			selectedCexListedStates,
+			selectedKycForMintRedeemStates,
+			selectedKycAllowlistedWhitelistedToTransferHoldStates,
+			selectedTransferableStates,
+			selectedSelfCustodyStates,
 			includeStablecoins,
 			includeGovernance,
 			minDefiActiveTvlToOnChainMcapPct,
@@ -298,14 +319,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		return baseLinks.map((link) => ({ ...link, to: `${link.to}${qs}` }))
 	}, [isChainMode, mode, props.categoryLinks, props.platformLinks, props.chainLinks, router.query])
 
-	const showFilters =
-		(props.typeOptions.length > 1 ||
-			props.categoriesOptions.length > 1 ||
-			props.assetClassOptions.length > 1 ||
-			props.rwaClassificationOptions.length > 1 ||
-			props.accessModelOptions.length > 1 ||
-			props.issuers.length > 1) &&
-		props.assets.length > 1
+	const showFilters = props.assets.length > 1
 
 	const showCharts = props.assets.length > 1
 
@@ -531,6 +545,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					selectedRwaClassifications,
 					selectedAccessModels,
 					selectedIssuers,
+					selectedRedeemableStates,
+					selectedAttestationsStates,
+					selectedCexListedStates,
+					selectedKycForMintRedeemStates,
+					selectedKycAllowlistedWhitelistedToTransferHoldStates,
+					selectedTransferableStates,
+					selectedSelfCustodyStates,
 					minDefiActiveTvlToOnChainMcapPct,
 					maxDefiActiveTvlToOnChainMcapPct,
 					minActiveMcapToOnChainMcapPct,
@@ -545,7 +566,14 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					setActiveMcapToOnChainMcapPctRange,
 					setDefiActiveTvlToActiveMcapPctRange,
 					setIncludeStablecoins,
-					setIncludeGovernance
+					setIncludeGovernance,
+					setRedeemableStates,
+					setAttestationsStates,
+					setCexListedStates,
+					setKycForMintRedeemStates,
+					setKycAllowlistedWhitelistedToTransferHoldStates,
+					setTransferableStates,
+					setSelfCustodyStates
 				}}
 			/>
 			<div className="flex flex-col gap-2 md:flex-row md:items-center">
