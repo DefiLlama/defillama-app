@@ -269,7 +269,8 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					const { data, treePathInfo } = info
 					const { name, value, iconUrl } = data
 
-					const cacheKey = `${name}-${value}`
+					const treePath = treePathInfo.map((item: { name: string }) => item.name).join('/')
+					const cacheKey = `${treePath}-${value}`
 					const cached = tooltipElCache.get(cacheKey)
 					if (cached) return cached
 
