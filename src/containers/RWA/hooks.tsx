@@ -969,8 +969,14 @@ export function useRwaChartDataByCategory({
 
 		return {
 			chartDatasetByCategory: {
-				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)] },
-				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)] },
+				onChainMcap: {
+					source: onChainMcap,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)]
+				},
+				activeMcap: {
+					source: activeMcap,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)]
+				},
 				defiActiveTvl: {
 					source: defiActiveTvl,
 					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
@@ -1041,8 +1047,14 @@ export function useRwaChartDataByAssetClass({
 
 		return {
 			chartDatasetByAssetClass: {
-				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)] },
-				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)] },
+				onChainMcap: {
+					source: onChainMcap,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)]
+				},
+				activeMcap: {
+					source: activeMcap,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)]
+				},
 				defiActiveTvl: {
 					source: defiActiveTvl,
 					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
@@ -1111,8 +1123,14 @@ export function useRwaChartDataByAssetName({
 
 		return {
 			chartDatasetByAssetName: {
-				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)] },
-				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)] },
+				onChainMcap: {
+					source: onChainMcap,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)]
+				},
+				activeMcap: {
+					source: activeMcap,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)]
+				},
 				defiActiveTvl: {
 					source: defiActiveTvl,
 					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]

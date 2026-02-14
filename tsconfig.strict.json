@@ -49,6 +49,8 @@
 		"src/containers/Cexs/**/*.tsx",
 		"src/containers/BridgedTVL/**/*.ts",
 		"src/containers/BridgedTVL/**/*.tsx",
+		"src/containers/Protocols/**/*.ts",
+		"src/containers/Protocols/**/*.tsx",
 		"src/containers/Raises/**/*.ts",
 		"src/containers/Raises/**/*.tsx",
 		"src/containers/Treasuries/**/*.ts",

@@ -335,9 +335,9 @@ export const UpcomingEvent = ({
 					</div>
 				</div>
 				<hr className="border-(--bg-border)" />
-					<div className="flex flex-col gap-3">
-						{currentUnlockBreakdown.map((item, i) => renderBreakdownRow(item, 'protocol', i))}
-					</div>
+				<div className="flex flex-col gap-3">
+					{currentUnlockBreakdown.map((item, i) => renderBreakdownRow(item, 'protocol', i))}
+				</div>
 				{timeLeft > 0 ? (
 					<CalendarButton
 						event={{ timestamp, noOfTokens, symbol: symbol || '', description: '' }}
@@ -378,11 +378,11 @@ export const UpcomingEvent = ({
 								<CountdownTile value={String(seconds).padStart(2, '0')} label="Sec" />
 							</div>
 						</div>
-						) : (
-							<span className="text-sm text-(--text-meta)" suppressHydrationWarning>
-								{formatTimeAgo(timestamp)}
-							</span>
-						)}
+					) : (
+						<span className="text-sm text-(--text-meta)" suppressHydrationWarning>
+							{formatTimeAgo(timestamp)}
+						</span>
+					)}
 				</Ariakit.HovercardAnchor>
 				<Ariakit.HovercardDisclosure />
 				<Ariakit.Hovercard
@@ -406,9 +406,9 @@ export const UpcomingEvent = ({
 						</span>
 					</span>
 					<hr className="border-(--bg-border)" />
-						<div className="flex flex-col gap-4">
-							{currentUnlockBreakdown.map((item, i) => renderBreakdownRow(item, 'hover', i))}
-						</div>
+					<div className="flex flex-col gap-4">
+						{currentUnlockBreakdown.map((item, i) => renderBreakdownRow(item, 'hover', i))}
+					</div>
 					<hr className="border-(--bg-border)" />
 
 					<span className="flex flex-col gap-1">

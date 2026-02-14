@@ -11,7 +11,11 @@ interface ChartRestoreButtonProps {
 	smol?: boolean
 }
 
-export function ChartRestoreButton({ chartInstance, className = DEFAULT_CLASSNAME, smol = true }: ChartRestoreButtonProps) {
+export function ChartRestoreButton({
+	chartInstance,
+	className = DEFAULT_CLASSNAME,
+	smol = true
+}: ChartRestoreButtonProps) {
 	const router = useRouter()
 
 	const handleRestore = () => {

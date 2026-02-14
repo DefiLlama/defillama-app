@@ -70,7 +70,13 @@ function addColorGradientField(chartDataTree) {
 	}
 }
 
-export default function TreemapChart({ treeData, variant = 'yields', height, onReady, valueLabel = 'Market Cap' }: IChartProps) {
+export default function TreemapChart({
+	treeData,
+	variant = 'yields',
+	height,
+	onReady,
+	valueLabel = 'Market Cap'
+}: IChartProps) {
 	const id = useId()
 	const isNarrativeVariant = variant === 'narrative'
 	const isRwaVariant = variant === 'rwa'
@@ -243,11 +249,11 @@ export default function TreemapChart({ treeData, variant = 'yields', height, onR
 													`${valueLabel}: {apy| ${formattedNum(params.value[0], true)}}`,
 													`Share: {apy| ${Number.isFinite(params.value[1]) ? params.value[1] : 0}%}`
 												]
-										: [
-												`{name|${params.data.path.split('/').slice(-1)[0]}}`,
-												`Spot: {apy| ${params.value[1]}%}`,
-												`Change {apy| ${params.value[2]}%}`
-											]
+											: [
+													`{name|${params.data.path.split('/').slice(-1)[0]}}`,
+													`Spot: {apy| ${params.value[1]}%}`,
+													`Change {apy| ${params.value[2]}%}`
+												]
 							} else {
 								arr = [params.name]
 							}

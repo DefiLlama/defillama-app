@@ -1,6 +1,7 @@
 import type { ColumnDef, SortingState } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -9,15 +10,22 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
-import type { IProtocolsWithTokensByChainPageData } from './queries'
+import type { IProtocolsWithTokensByChainPageData, ITokenMetricProtocolRow, TokenMetricType } from './types'
+import { parseExcludeParam } from './utils'
 
 const chainLikeCategories = new Set(['Chain', 'Rollup'])
 
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
+function getCsvHeaderLabel(columnId: string, header: unknown): string {
+	if (typeof header === 'string') return header
+	if (typeof header === 'number' || typeof header === 'boolean') return String(header)
+	return columnId
+}
+
+function getCsvCellValue(value: unknown): string | number | boolean {
+	if (value == null) return ''
+	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
+	if (Array.isArray(value)) return value.join(', ')
+	return JSON.stringify(value)
 }
 
 export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) {
@@ -68,11 +76,10 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 				columns={columns}
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
-				header="Protocol Rankings"
 				compact
-				customFilters={
+				customFilters={({ instance }) => (
 					<>
-						{props.categories.length > 0 && (
+						{props.categories.length > 0 ? (
 							<SelectWithCombobox
 								allValues={props.categories}
 								selectedValues={selectedCategories}
@@ -83,36 +90,56 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 								labelType="smol"
 								variant="filter-responsive"
 							/>
-						)}
+						) : null}
+						<CSVDownloadButton
+							prepareCsv={() => {
+								const visibleColumns = instance
+									.getAllLeafColumns()
+									.filter((column) => column.getIsVisible() && !column.columnDef.meta?.hidden)
+								const headers = visibleColumns.map((column) => getCsvHeaderLabel(column.id, column.columnDef.header))
+								const rows = instance
+									.getRowModel()
+									.rows.map((row) => visibleColumns.map((column) => getCsvCellValue(row.getValue(column.id))))
+
+								return {
+									filename: `protocols-with-tokens-${props.type}-${slug(props.chain)}.csv`,
+									rows: [headers, ...rows]
+								}
+							}}
+							smol
+						/>
 					</>
-				}
+				)}
 				sortingState={sortingState}
 			/>
 		</>
 	)
 }
 
-const getProtocolsByCategory = (
+function getProtocolsByCategory(
 	protocols: IProtocolsWithTokensByChainPageData['protocols'],
 	categoriesToFilter: Array<string>
-) => {
-	const final = []
+): ITokenMetricProtocolRow[] {
+	const final: ITokenMetricProtocolRow[] = []
 	const categoriesToFilterSet = new Set(categoriesToFilter)
 
 	for (const protocol of protocols) {
 		if (protocol.subRows) {
 			const childProtocols = protocol.subRows.filter((childProtocol) =>
-				categoriesToFilterSet.has(childProtocol.category)
+				categoriesToFilterSet.has(childProtocol.category ?? '')
 			)
 
 			if (childProtocols.length) {
-				final.push(protocol)
+				final.push({
+					...protocol,
+					subRows: childProtocols
+				})
 			}
 
 			continue
 		}
 
-		if (categoriesToFilterSet.has(protocol.category)) {
+		if (categoriesToFilterSet.has(protocol.category ?? '')) {
 			final.push(protocol)
 			continue
 		}
@@ -121,13 +148,13 @@ const getProtocolsByCategory = (
 	return final
 }
 
-const chainChartsKeys = {
+const chainChartsKeys: Partial<Record<TokenMetricType, string>> = {
 	mcap: 'chainTokenMcap',
 	price: 'chainTokenPrice',
 	fdv: 'chainTokenFdv'
 }
 
-const protocolChartsKeys = {
+const protocolChartsKeys: Partial<Record<TokenMetricType, string>> = {
 	mcap: 'mcap',
 	price: 'price',
 	fdv: 'fdv'
@@ -144,9 +171,7 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	</span>
 )
 
-const defaultColumns = (
-	type: IProtocolsWithTokensByChainPageData['type']
-): ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] => {
+function defaultColumns(type: TokenMetricType): ColumnDef<ITokenMetricProtocolRow>[] {
 	return [
 		{
 			id: 'name',
@@ -154,11 +179,13 @@ const defaultColumns = (
 			accessorFn: (protocol) => protocol.name,
 			enableSorting: false,
 			cell: ({ getValue, row }) => {
-				const value = getValue() as string
+				const value = getValue<string>()
 
-				const basePath = chainLikeCategories.has(row.original.category) ? 'chain' : 'protocol'
+				const basePath = chainLikeCategories.has(row.original.category ?? '') ? 'chain' : 'protocol'
 				const chartKey =
-					(chainLikeCategories.has(row.original.category) ? chainChartsKeys[type] : protocolChartsKeys[type]) ?? null
+					(chainLikeCategories.has(row.original.category ?? '') ? chainChartsKeys[type] : protocolChartsKeys[type]) ??
+					null
+				const chartQuery = chartKey ? `?tvl=false&events=false&${chartKey}=true` : ''
 
 				return (
 					<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
@@ -172,12 +199,12 @@ const defaultColumns = (
 								{row.getIsExpanded() ? (
 									<>
 										<Icon name="chevron-down" height={16} width={16} />
-										<span className="sr-only">View child protocols</span>
+										<span className="sr-only">Hide child protocols</span>
 									</>
 								) : (
 									<>
 										<Icon name="chevron-right" height={16} width={16} />
-										<span className="sr-only">Hide child protocols</span>
+										<span className="sr-only">View child protocols</span>
 									</>
 								)}
 							</button>
@@ -189,9 +216,7 @@ const defaultColumns = (
 						{row.original.chains.length ? (
 							<span className="-my-2 flex flex-col">
 								<BasicLink
-									href={`/${basePath}/${row.original.slug}${
-										chartKey ? `?tvl=false&events=false&${chartKey}=true` : ''
-									}`}
+									href={`/${basePath}/${row.original.slug}${chartQuery}`}
 									className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 								>
 									{value}
@@ -206,7 +231,7 @@ const defaultColumns = (
 							</span>
 						) : (
 							<BasicLink
-								href={`/${basePath}/${row.original.slug}?tvl=false&events=false&${chartKey}=true`}
+								href={`/${basePath}/${row.original.slug}${chartQuery}`}
 								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
 								{value}
@@ -222,17 +247,16 @@ const defaultColumns = (
 			header: 'Category',
 			accessorFn: (protocol) => protocol.category,
 			enableSorting: false,
-			cell: ({ getValue }) =>
-				getValue() ? (
-					<BasicLink
-						href={`/protocols/${slug(getValue() as string)}`}
-						className="text-sm font-medium text-(--link-text)"
-					>
-						{getValue() as string}
+			cell: ({ getValue }) => {
+				const value = getValue<string | null>()
+				return value ? (
+					<BasicLink href={`/protocols/${slug(value)}`} className="text-sm font-medium text-(--link-text)">
+						{value}
 					</BasicLink>
 				) : (
 					''
-				),
+				)
+			},
 			size: 128,
 			meta: {
 				align: 'end'
@@ -241,7 +265,7 @@ const defaultColumns = (
 	]
 }
 
-const mcapColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] = [
+const mcapColumns: ColumnDef<ITokenMetricProtocolRow>[] = [
 	...defaultColumns('mcap'),
 	{
 		id: 'mcap',
@@ -255,7 +279,7 @@ const mcapColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]
 	}
 ]
 
-const fdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] = [
+const fdvColumns: ColumnDef<ITokenMetricProtocolRow>[] = [
 	...defaultColumns('fdv'),
 	{
 		id: 'fdv',
@@ -269,7 +293,7 @@ const fdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>
 	}
 ]
 
-const priceColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] = [
+const priceColumns: ColumnDef<ITokenMetricProtocolRow>[] = [
 	...defaultColumns('price'),
 	{
 		id: 'price',
@@ -283,7 +307,7 @@ const priceColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0
 	}
 ]
 
-const outstandingFdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] = [
+const outstandingFdvColumns: ColumnDef<ITokenMetricProtocolRow>[] = [
 	...defaultColumns('outstanding-fdv'),
 	{
 		id: 'outstanding-fdv',
@@ -299,8 +323,8 @@ const outstandingFdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['prot
 	}
 ]
 
-function getMetricNameAndColumns(type: IProtocolsWithTokensByChainPageData['type']): {
-	columns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[]
+function getMetricNameAndColumns(type: TokenMetricType): {
+	columns: ColumnDef<ITokenMetricProtocolRow>[]
 	sortingState: SortingState
 } {
 	switch (type) {

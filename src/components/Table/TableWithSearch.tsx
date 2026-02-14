@@ -87,7 +87,7 @@ export function TableWithSearch({
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
 				{header ? <h1 className="mr-auto text-lg font-semibold">{header}</h1> : null}
 				{columnToSearch ? (
-					<label className="relative w-full sm:max-w-70">
+					<label className={`relative w-full sm:max-w-70 ${header ? '' : 'mr-auto'}`}>
 						<span className="sr-only">{placeholder}</span>
 						<Icon
 							name="search"
