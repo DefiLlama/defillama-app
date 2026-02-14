@@ -1,6 +1,7 @@
 import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
+import { getProtocolCategoryPresentation } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { ProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag'
 import { getProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag/queries'
 import Layout from '~/layout'
@@ -82,13 +83,14 @@ const toggleOptions = tvlOptions.filter((key) => !['doublecounted', 'liquidstaki
 
 export default function Protocols(props) {
 	const categoryLabel = props.category ?? props.tag ?? ''
-	const displayCategoryLabel =
-		props.effectiveCategory === 'RWA' && props.category ? 'Real World Assets on Chain (RWA)' : categoryLabel
-	const titleLabel = props.effectiveCategory === 'RWA' ? displayCategoryLabel : categoryLabel
-	const titleSuffix = props.effectiveCategory === 'RWA' ? 'Rankings' : 'Protocols Rankings'
-	const title = `${capitalizeFirstLetter(titleLabel)} ${titleSuffix} - DefiLlama`
-	const description = `${displayCategoryLabel} Rankings on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
-	const keywords = `${displayCategoryLabel} rankings, defi ${displayCategoryLabel} rankings`.toLowerCase()
+	const presentation = getProtocolCategoryPresentation({
+		label: categoryLabel,
+		effectiveCategory: props.effectiveCategory,
+		isTagPage: !!props.tag && !props.category
+	})
+	const title = `${capitalizeFirstLetter(presentation.seoLabel)} ${presentation.titleSuffix} - DefiLlama`
+	const description = `${presentation.seoLabel} Rankings on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
+	const keywords = `${presentation.seoLabel} rankings, defi ${presentation.seoLabel} rankings`.toLowerCase()
 	const canonicalChainSuffix = props.chain ? `/${props.chain}` : ''
 	return (
 		<Layout
