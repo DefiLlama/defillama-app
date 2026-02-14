@@ -22,6 +22,16 @@ interface TreemapLabelParams {
 	value?: number
 }
 
+function escapeHtml(str: string): string {
+	if (typeof str !== 'string') return ''
+	return str
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;')
+}
+
 echarts.use([TooltipComponent, GraphicComponent, EChartTreemap, CanvasRenderer])
 
 type TreemapMode = 'tvl' | 'fees'
@@ -170,15 +180,18 @@ export function ProtocolsTreemap({ protocols, chainName, height = '600px' }: Pro
 						const pct = totalValue > 0 ? ((value / totalValue) * 100).toFixed(2) : '0'
 
 						if (treePath.length > 1) {
+							const protocolName = escapeHtml(treePath[1])
+							const categoryName = escapeHtml(treePath[0])
 							return [
-								`<div style="font-weight:600;margin-bottom:4px">${treePath[1]}</div>`,
-								`<div>Category: ${treePath[0]}</div>`,
+								`<div style="font-weight:600;margin-bottom:4px">${protocolName}</div>`,
+								`<div>Category: ${categoryName}</div>`,
 								`<div>${metricLabel}: ${formattedNum(value, true)}</div>`,
 								`<div>Share: ${pct}%</div>`
 							].join('')
 						} else if (treePath.length === 1) {
+							const categoryName = escapeHtml(treePath[0])
 							return [
-								`<div style="font-weight:600;margin-bottom:4px">${treePath[0]}</div>`,
+								`<div style="font-weight:600;margin-bottom:4px">${categoryName}</div>`,
 								`<div>${metricLabel}: ${formattedNum(value, true)}</div>`,
 								`<div>Share: ${pct}%</div>`
 							].join('')
