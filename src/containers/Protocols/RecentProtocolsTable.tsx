@@ -20,7 +20,6 @@ import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
-import type { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -91,9 +90,6 @@ export function RecentlyListedProtocolsTable({
 	forkedList
 }: {
 	data: RecentProtocolTableRow[]
-	queries: {
-		[key: string]: string | string[]
-	}
 	selectedChains: Array<string>
 	selectedCategories: Array<string>
 	chainList: Array<string>
@@ -107,16 +103,7 @@ export function RecentlyListedProtocolsTable({
 
 	const router = useRouter()
 
-	/**
-	 * protocolsColumns is typed as ColumnDef<IProtocolRow>[], but our RecentProtocolTableRow
-	 * is structurally compatible for all fields the columns actually access (name, tvl,
-	 * change_1d/7d/1m, mcap, mcaptvl, chains, deprecated, listedAt, category, etc.).
-	 * We cast here because IProtocolRow has a legacy chainTvls intersection type that is
-	 * unsatisfiable by any real data shape.
-	 */
-	const columns = (router.pathname === '/airdrops'
-		? airdropsColumns
-		: recentlyListedProtocolsColumns) as unknown as ColumnDef<RecentProtocolTableRow>[]
+	const columns = router.pathname === '/airdrops' ? airdropsColumns : recentlyListedProtocolsColumns
 
 	const instance = useReactTable({
 		data,
@@ -243,13 +230,13 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	</span>
 )
 
-const protocolsColumns: ColumnDef<IProtocolRow>[] = [
+const protocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue<string>()
 
 			return (
 				<span
@@ -266,12 +253,12 @@ const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 							{row.getIsExpanded() ? (
 								<>
 									<Icon name="chevron-down" height={16} width={16} />
-									<span className="sr-only">View child protocols</span>
+									<span className="sr-only">Hide child protocols</span>
 								</>
 							) : (
 								<>
 									<Icon name="chevron-right" height={16} width={16} />
-									<span className="sr-only">Hide child protocols</span>
+									<span className="sr-only">View child protocols</span>
 								</>
 							)}
 						</button>
@@ -329,17 +316,16 @@ const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 
 			return false
 		},
-		cell: ({ getValue }) =>
-			getValue() ? (
-				<BasicLink
-					href={`/protocols/${getValue()}`}
-					className="text-sm font-medium whitespace-nowrap text-(--link-text)"
-				>
-					{getValue() as string | null}
+		cell: ({ getValue }) => {
+			const value = getValue<string | null>()
+			return value ? (
+				<BasicLink href={`/protocols/${slug(value)}`} className="text-sm font-medium whitespace-nowrap text-(--link-text)">
+					{value}
 				</BasicLink>
 			) : (
 				''
-			),
+			)
+		},
 		size: 140
 	},
 	{
@@ -385,9 +371,7 @@ const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
-		cell: (info) => {
-			return <>{(info.getValue() ?? null) as string | null}</>
-		},
+		cell: (info) => <>{info.getValue() ?? null}</>,
 		size: 100,
 		meta: {
 			align: 'end'
@@ -434,7 +418,8 @@ const columnSizes = {
 	}
 }
 
-type ProtocolTvlRow = IProtocolRow & {
+type ProtocolTvlRow = RecentProtocolTableRow & {
+	strikeTvl?: boolean
 	parentExcluded?: boolean
 	isParentProtocol?: boolean
 }
@@ -498,40 +483,48 @@ function ProtocolTvlCell({ value, rowValues }: { value: unknown; rowValues: Prot
 	)
 }
 
-const listedAtColumn: ColumnDef<IProtocolRow> = {
+const listedAtColumn: ColumnDef<RecentProtocolTableRow> = {
 	header: 'Listed At',
 	accessorKey: 'listedAt',
-	cell: ({ getValue }) => toNiceDaysAgo(getValue() as number),
+	cell: ({ getValue }) => {
+		const listedAt = getValue<number | null>()
+		return listedAt != null ? toNiceDaysAgo(listedAt) : ''
+	},
 	size: 120,
 	meta: {
-		align: 'end' as const
+		align: 'end'
 	}
 }
 
-const recentlyListedProtocolsColumns: ColumnDef<IProtocolRow>[] = [
+const hiddenRecentColumns = new Set(['volume_7d', 'fees_7d', 'revenue_7d'])
+
+const recentlyListedProtocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 	...protocolsColumns.slice(0, 3),
 	listedAtColumn,
-	...protocolsColumns.slice(3, -1).filter((c: ColumnDef<IProtocolRow>) => {
-		const key = 'accessorKey' in c ? c.accessorKey : undefined
-		return !['volume_7d', 'fees_7d', 'revenue_7d'].includes(key as string)
+	...protocolsColumns.slice(3, -1).filter((column) => {
+		const accessorKey = 'accessorKey' in column ? column.accessorKey : undefined
+		return typeof accessorKey !== 'string' || !hiddenRecentColumns.has(accessorKey)
 	})
 ]
 
-const airdropsColumns: ColumnDef<IProtocolRow>[] = [
+const airdropsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 	...protocolsColumns.slice(0, 3),
 	{
 		header: 'Total Money Raised',
 		accessorKey: 'totalRaised',
-		cell: ({ getValue }) => <>{getValue() ? formattedNum(getValue(), true) : ''}</>,
+		cell: ({ getValue }) => {
+			const totalRaised = getValue<number | null>()
+			return <>{totalRaised != null ? formattedNum(totalRaised, true) : ''}</>
+		},
 		size: 168,
 		meta: {
-			align: 'end' as const
+			align: 'end'
 		}
 	},
 	listedAtColumn,
-	...protocolsColumns.slice(3, -1).filter((c: ColumnDef<IProtocolRow>) => {
-		const key = 'accessorKey' in c ? c.accessorKey : undefined
-		return !['volume_7d', 'fees_7d', 'revenue_7d'].includes(key as string)
+	...protocolsColumns.slice(3, -1).filter((column) => {
+		const accessorKey = 'accessorKey' in column ? column.accessorKey : undefined
+		return typeof accessorKey !== 'string' || !hiddenRecentColumns.has(accessorKey)
 	})
 ]
 

@@ -10,7 +10,7 @@ import { RecentlyListedProtocolsTable } from './RecentProtocolsTable'
 import type { IRecentProtocol, IRecentProtocolsPageData } from './types'
 import { applyExtraTvl, getSelectedChainFilters, parseExcludeParam } from './utils'
 
-export function RecentProtocols({ protocols, chainList, forkedList, claimableAirdrops }: IRecentProtocolsPageData) {
+export function RecentProtocols({ protocols, chainList, categories, forkedList, claimableAirdrops }: IRecentProtocolsPageData) {
 	const router = useRouter()
 	const {
 		chain,
@@ -19,8 +19,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 		excludeCategory,
 		hideForks,
 		minTvl: minTvlQuery,
-		maxTvl: maxTvlQuery,
-		...queries
+		maxTvl: maxTvlQuery
 	} = router.query
 
 	const minTvl = toNumberOrNullFromQueryParam(minTvlQuery)
@@ -30,14 +29,6 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 	const hasCategoryParam = Object.prototype.hasOwnProperty.call(router.query, 'category')
 
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-
-	const categories = useMemo(() => {
-		const categorySet = new Set<string>()
-		for (const protocol of protocols) {
-			if (protocol.category) categorySet.add(protocol.category)
-		}
-		return Array.from(categorySet).sort((a, b) => a.localeCompare(b))
-	}, [protocols])
 
 	const { selectedChains, selectedCategories, data } = useMemo(() => {
 		const excludeChainSet = parseExcludeParam(excludeChain)
@@ -109,37 +100,35 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 				if (!chainsToSelectSet.has(chainName.toLowerCase())) continue
 
 				for (const sectionName in protocol.chainTvls) {
-					const sanitisedChainName = sectionName.startsWith(`${chainName}-`)
-						? sectionName.split('-')[1]?.toLowerCase()
-						: sectionName.toLowerCase()
+					const isBaseChainSection = sectionName.toLowerCase() === chainName.toLowerCase()
+					const isExtraTvlSection = sectionName.startsWith(`${chainName}-`)
+					if (!isBaseChainSection && !isExtraTvlSection) continue
 
-					if (chainsToSelectSet.has(sanitisedChainName ?? '') && chainName.toLowerCase() === sanitisedChainName) {
-						const values = protocol.chainTvls[sectionName]
+					const values = protocol.chainTvls[sectionName]
 
-						if (sectionName.startsWith(`${chainName}-`)) {
-							const sectionToAdd = sectionName.split('-')[1]
-							if (sectionToAdd) {
-								if (!extraTvl[sectionToAdd]) {
-									extraTvl[sectionToAdd] = { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }
-								}
-								extraTvl[sectionToAdd].tvl += values.tvl ?? 0
-								extraTvl[sectionToAdd].tvlPrevDay += values.tvlPrevDay ?? 0
-								extraTvl[sectionToAdd].tvlPrevWeek += values.tvlPrevWeek ?? 0
-								extraTvl[sectionToAdd].tvlPrevMonth += values.tvlPrevMonth ?? 0
-							}
-						} else {
-							if (values.tvl) {
-								tvl = (tvl ?? 0) + values.tvl
-							}
-							if (values.tvlPrevDay) {
-								tvlPrevDay = (tvlPrevDay ?? 0) + values.tvlPrevDay
-							}
-							if (values.tvlPrevWeek) {
-								tvlPrevWeek = (tvlPrevWeek ?? 0) + values.tvlPrevWeek
-							}
-							if (values.tvlPrevMonth) {
-								tvlPrevMonth = (tvlPrevMonth ?? 0) + values.tvlPrevMonth
-							}
+					if (isExtraTvlSection) {
+						const sectionToAdd = sectionName.slice(chainName.length + 1)
+						if (!sectionToAdd) continue
+
+						if (!extraTvl[sectionToAdd]) {
+							extraTvl[sectionToAdd] = { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }
+						}
+						extraTvl[sectionToAdd].tvl += values.tvl ?? 0
+						extraTvl[sectionToAdd].tvlPrevDay += values.tvlPrevDay ?? 0
+						extraTvl[sectionToAdd].tvlPrevWeek += values.tvlPrevWeek ?? 0
+						extraTvl[sectionToAdd].tvlPrevMonth += values.tvlPrevMonth ?? 0
+					} else {
+						if (values.tvl != null) {
+							tvl = (tvl ?? 0) + values.tvl
+						}
+						if (values.tvlPrevDay != null) {
+							tvlPrevDay = (tvlPrevDay ?? 0) + values.tvlPrevDay
+						}
+						if (values.tvlPrevWeek != null) {
+							tvlPrevWeek = (tvlPrevWeek ?? 0) + values.tvlPrevWeek
+						}
+						if (values.tvlPrevMonth != null) {
+							tvlPrevMonth = (tvlPrevMonth ?? 0) + values.tvlPrevMonth
 						}
 					}
 				}
@@ -305,10 +294,11 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 							<form
 								onSubmit={(e) => {
 									e.preventDefault()
-									const form = e.target as HTMLFormElement
-									const textarea = form.namedItem('address') as HTMLTextAreaElement
+									const formData = new FormData(e.currentTarget)
+									const addressesInput = formData.get('address')
+									if (typeof addressesInput !== 'string') return
 									checkEligibleAirdrops({
-										addresses: textarea.value
+										addresses: addressesInput
 											.split('\n')
 											.join(',')
 											.split(',')
@@ -350,7 +340,6 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 
 			<RecentlyListedProtocolsTable
 				data={data}
-				queries={queries}
 				selectedChains={selectedChains}
 				selectedCategories={selectedCategories}
 				chainList={chainList}

@@ -1,7 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { lazy, Suspense } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -11,25 +10,20 @@ import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
 import type { ExtraTvlMetric, IExtraTvlByChainPageData, IExtraTvlProtocolRow } from './types'
 
-const MultiSeriesChart2 = lazy(
-	() => import('~/components/ECharts/MultiSeriesChart2')
-) as React.FC<IMultiSeriesChart2Props>
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-const METRIC_LABELS: Record<ExtraTvlMetric, { header: string; headerHelperText: string; sortId: string }> = {
+const METRIC_LABELS: Record<ExtraTvlMetric, { header: string; headerHelperText: string }> = {
 	borrowed: {
 		header: 'Total Borrowed',
-		headerHelperText: 'Sum of value currently borrowed across all active loans on a Lending protocol',
-		sortId: 'value'
+		headerHelperText: 'Sum of value currently borrowed across all active loans on a Lending protocol'
 	},
 	staking: {
 		header: 'Total Staked',
-		headerHelperText: 'Sum of value currently staked across all staking protocols',
-		sortId: 'value'
+		headerHelperText: 'Sum of value currently staked across all staking protocols'
 	},
 	pool2: {
 		header: 'Pool2 TVL',
-		headerHelperText: 'Sum of value in Pool2 liquidity pools',
-		sortId: 'value'
+		headerHelperText: 'Sum of value in Pool2 liquidity pools'
 	}
 }
 
@@ -164,12 +158,12 @@ function buildColumns(metric: ExtraTvlMetric): ColumnDef<IExtraTvlProtocolRow>[]
 								{row.getIsExpanded() ? (
 									<>
 										<Icon name="chevron-down" height={16} width={16} />
-										<span className="sr-only">View child protocols</span>
+										<span className="sr-only">Hide child protocols</span>
 									</>
 								) : (
 									<>
 										<Icon name="chevron-right" height={16} width={16} />
-										<span className="sr-only">Hide child protocols</span>
+										<span className="sr-only">View child protocols</span>
 									</>
 								)}
 							</button>

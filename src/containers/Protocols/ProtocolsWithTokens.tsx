@@ -130,7 +130,10 @@ function getProtocolsByCategory(
 			)
 
 			if (childProtocols.length) {
-				final.push(protocol)
+				final.push({
+					...protocol,
+					subRows: childProtocols
+				})
 			}
 
 			continue
@@ -182,6 +185,7 @@ function defaultColumns(type: TokenMetricType): ColumnDef<ITokenMetricProtocolRo
 				const chartKey =
 					(chainLikeCategories.has(row.original.category ?? '') ? chainChartsKeys[type] : protocolChartsKeys[type]) ??
 					null
+				const chartQuery = chartKey ? `?tvl=false&events=false&${chartKey}=true` : ''
 
 				return (
 					<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
@@ -195,12 +199,12 @@ function defaultColumns(type: TokenMetricType): ColumnDef<ITokenMetricProtocolRo
 								{row.getIsExpanded() ? (
 									<>
 										<Icon name="chevron-down" height={16} width={16} />
-										<span className="sr-only">View child protocols</span>
+										<span className="sr-only">Hide child protocols</span>
 									</>
 								) : (
 									<>
 										<Icon name="chevron-right" height={16} width={16} />
-										<span className="sr-only">Hide child protocols</span>
+										<span className="sr-only">View child protocols</span>
 									</>
 								)}
 							</button>
@@ -212,9 +216,7 @@ function defaultColumns(type: TokenMetricType): ColumnDef<ITokenMetricProtocolRo
 						{row.original.chains.length ? (
 							<span className="-my-2 flex flex-col">
 								<BasicLink
-									href={`/${basePath}/${row.original.slug}${
-										chartKey ? `?tvl=false&events=false&${chartKey}=true` : ''
-									}`}
+									href={`/${basePath}/${row.original.slug}${chartQuery}`}
 									className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 								>
 									{value}
@@ -229,7 +231,7 @@ function defaultColumns(type: TokenMetricType): ColumnDef<ITokenMetricProtocolRo
 							</span>
 						) : (
 							<BasicLink
-								href={`/${basePath}/${row.original.slug}?tvl=false&events=false&${chartKey}=true`}
+								href={`/${basePath}/${row.original.slug}${chartQuery}`}
 								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
 								{value}

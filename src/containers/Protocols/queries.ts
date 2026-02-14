@@ -9,8 +9,8 @@ import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { postRuntimeLogs } from '~/utils/async'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { AIRDROP_EXCLUDE } from './airdrop-exclude'
-import { fetchChartData, fetchChainsWithExtraTvl, fetchForks, fetchProtocols } from './api'
-import type { ChartResponse, ParentProtocolLite, ProtocolLite } from './api.types'
+import { fetchAirdropsConfig, fetchChartData, fetchChainsWithExtraTvl, fetchProtocols } from './api'
+import type { ParentProtocolLite, ProtocolLite } from './api.types'
 import type {
 	ExtraTvlMetric,
 	IExtraTvlByChainPageData,
@@ -18,22 +18,17 @@ import type {
 	IProtocolsWithTokensByChainPageData,
 	IRecentProtocol,
 	IRecentProtocolsPageData,
-	ITokenMetricProtocolRow,
-	TokenMetricType
+	ITokenMetricProtocolRow
 } from './types'
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function buildForkedList(forks: Record<string, string[]>): Record<string, boolean> {
-	const forkedList: Record<string, boolean> = {}
-	for (const list of Object.values(forks)) {
-		for (const f of list) {
-			forkedList[f] = true
-		}
-	}
-	return forkedList
+function sortCategoriesByTvl(categoryTvlMap: Map<string, number>): string[] {
+	return Array.from(categoryTvlMap.entries())
+		.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+		.map(([category]) => category)
 }
 
 function extractExtraTvl(
@@ -53,12 +48,23 @@ function extractExtraTvl(
 // ---------------------------------------------------------------------------
 
 export async function getRecentProtocols(): Promise<IRecentProtocolsPageData> {
-	const [{ protocols, chains }, forks] = await Promise.all([fetchProtocols(), fetchForks()])
+	const { protocols, chains } = await fetchProtocols()
 
 	const recentProtocols: IRecentProtocol[] = []
+	const forkedList: Record<string, boolean> = {}
+	const categoryTvlMap = new Map<string, number>()
 
 	for (const protocol of protocols) {
 		if (protocol.listedAt == null) continue
+
+		const isForkedProtocol = Array.isArray(protocol.forkedFrom) && protocol.forkedFrom.length > 0
+		if (isForkedProtocol) {
+			forkedList[protocol.name] = true
+		}
+
+		if (protocol.category) {
+			categoryTvlMap.set(protocol.category, (categoryTvlMap.get(protocol.category) ?? 0) + (protocol.tvl ?? 0))
+		}
 
 		recentProtocols.push({
 			name: protocol.name,
@@ -76,7 +82,7 @@ export async function getRecentProtocols(): Promise<IRecentProtocolsPageData> {
 			listedAt: protocol.listedAt,
 			defillamaId: protocol.defillamaId,
 			...(protocol.deprecated != null ? { deprecated: protocol.deprecated } : {}),
-			...(protocol.forkedFrom != null && Array.isArray(protocol.forkedFrom) ? { forkedFrom: protocol.forkedFrom } : {}),
+			...(isForkedProtocol ? { forkedFrom: protocol.forkedFrom } : {}),
 			extraTvl: extractExtraTvl(protocol)
 		})
 	}
@@ -86,14 +92,13 @@ export async function getRecentProtocols(): Promise<IRecentProtocolsPageData> {
 	return {
 		protocols: recentProtocols,
 		chainList: chains,
-		forkedList: buildForkedList(forks)
+		categories: sortCategoriesByTvl(categoryTvlMap),
+		forkedList
 	}
 }
 
 async function getAirdropDirectoryData(): Promise<Array<{ name: string; page: string; title?: string }>> {
-	const { fetchJson } = await import('~/utils/async')
-	const airdrops: Record<string, { endTime?: number; isActive: boolean; page?: string; name?: string }> =
-		await fetchJson('https://airdrops.llama.fi/config')
+	const airdrops = await fetchAirdropsConfig()
 
 	const now = Date.now()
 	const result: Array<{ name: string; page: string; title?: string }> = []
@@ -108,9 +113,8 @@ async function getAirdropDirectoryData(): Promise<Array<{ name: string; page: st
 }
 
 export async function getAirdropsProtocols(): Promise<IRecentProtocolsPageData> {
-	const [{ protocols, chains, parentProtocols }, forks, { raises }, claimableAirdrops] = await Promise.all([
+	const [{ protocols, chains, parentProtocols }, { raises }, claimableAirdrops] = await Promise.all([
 		fetchProtocols(),
-		fetchForks(),
 		fetchRaises(),
 		getAirdropDirectoryData()
 	])
@@ -134,11 +138,22 @@ export async function getAirdropsProtocols(): Promise<IRecentProtocolsPageData> 
 	}
 
 	const airdropsProtocols: IRecentProtocol[] = []
+	const forkedList: Record<string, boolean> = {}
+	const categoryTvlMap = new Map<string, number>()
 
 	for (const protocol of protocols) {
 		if (protocol.symbol != null && protocol.symbol !== '-') continue
 		if (AIRDROP_EXCLUDE.has(protocol.name)) continue
 		if (protocol.parentProtocol != null && parents[protocol.parentProtocol]) continue
+
+		const isForkedProtocol = Array.isArray(protocol.forkedFrom) && protocol.forkedFrom.length > 0
+		if (isForkedProtocol) {
+			forkedList[protocol.name] = true
+		}
+
+		if (protocol.category) {
+			categoryTvlMap.set(protocol.category, (categoryTvlMap.get(protocol.category) ?? 0) + (protocol.tvl ?? 0))
+		}
 
 		airdropsProtocols.push({
 			name: protocol.name,
@@ -156,7 +171,7 @@ export async function getAirdropsProtocols(): Promise<IRecentProtocolsPageData> 
 			listedAt: protocol.listedAt ?? 1624728920,
 			defillamaId: protocol.defillamaId,
 			...(protocol.deprecated !== undefined ? { deprecated: protocol.deprecated } : {}),
-			...(protocol.forkedFrom ? { forkedFrom: protocol.forkedFrom } : {}),
+			...(isForkedProtocol ? { forkedFrom: protocol.forkedFrom } : {}),
 			extraTvl: extractExtraTvl(protocol),
 			totalRaised: raisesById.get(protocol.defillamaId) ?? 0
 		})
@@ -167,7 +182,8 @@ export async function getAirdropsProtocols(): Promise<IRecentProtocolsPageData> 
 	return {
 		protocols: airdropsProtocols,
 		chainList: chains,
-		forkedList: buildForkedList(forks),
+		categories: sortCategoriesByTvl(categoryTvlMap),
+		forkedList,
 		claimableAirdrops
 	}
 }
@@ -177,7 +193,7 @@ export async function getAirdropsProtocols(): Promise<IRecentProtocolsPageData> 
 // ---------------------------------------------------------------------------
 
 interface ExtraTvlMetricConfig {
-	chartKey: keyof ChartResponse
+	chartKey: Parameters<typeof fetchChainsWithExtraTvl>[0]
 	suffix: string
 	label: string
 	basePath: string
@@ -219,6 +235,7 @@ export async function getExtraTvlByChain({
 
 	const finalProtocols: IExtraTvlProtocolRow[] = []
 	const parentChildren: Record<string, Array<{ row: IExtraTvlProtocolRow; prevMonthValue: number }>> = {}
+	const parentProtocolsMap = new Map(parentProtocols.map((parentProtocol) => [parentProtocol.id, parentProtocol]))
 
 	for (const protocol of protocols) {
 		let totalValue: number | null = null
@@ -247,17 +264,17 @@ export async function getExtraTvlByChain({
 		}
 
 		if (protocol.parentProtocol) {
-			parentChildren[protocol.parentProtocol] = [
-				...(parentChildren[protocol.parentProtocol] ?? []),
-				{ row: p, prevMonthValue: totalPrevMonth ?? 0 }
-			]
+			if (!parentChildren[protocol.parentProtocol]) {
+				parentChildren[protocol.parentProtocol] = []
+			}
+			parentChildren[protocol.parentProtocol].push({ row: p, prevMonthValue: totalPrevMonth ?? 0 })
 		} else {
 			finalProtocols.push(p)
 		}
 	}
 
 	for (const parentId in parentChildren) {
-		const parent = parentProtocols.find((p) => p.id === parentId)
+		const parent = parentProtocolsMap.get(parentId)
 		if (!parent) continue
 
 		const childrenWithPrevMonth = parentChildren[parentId]
@@ -308,7 +325,7 @@ export async function getExtraTvlByChain({
 		],
 		totalValue: chart[chart.length - 1][1],
 		change24h:
-			chart.length > 2 ? +getPercentChange(chart[chart.length - 1][1], chart[chart.length - 2][1]).toFixed(2) : null,
+			chart.length > 1 ? +getPercentChange(chart[chart.length - 1][1], chart[chart.length - 2][1]).toFixed(2) : null,
 		metric
 	}
 }
@@ -417,7 +434,7 @@ export async function getProtocolsMarketCapsByChain({
 		chain,
 		chains: buildChainLinks(chains, '/mcaps'),
 		categories: Array.from(categories),
-		type: 'mcap' as TokenMetricType
+		type: 'mcap'
 	}
 }
 
@@ -449,7 +466,7 @@ export async function getProtocolsFDVsByChain({
 		chain,
 		chains: buildChainLinks(chains, '/fdv'),
 		categories: Array.from(categories),
-		type: 'fdv' as TokenMetricType
+		type: 'fdv'
 	}
 }
 
@@ -485,7 +502,7 @@ export async function getProtocolsTokenPricesByChain({
 		chain,
 		chains: buildChainLinks(chains, '/token-prices'),
 		categories: Array.from(categories),
-		type: 'price' as TokenMetricType
+		type: 'price'
 	}
 }
 
@@ -529,7 +546,7 @@ export async function getProtocolsAdjustedFDVsByChain({
 		const slugName = slug(name)
 		const adjustedSupply = emissionsSupplyMetrics[slugName]?.supplyMetrics?.adjustedSupply
 		const price = prices[`coingecko:${geckoId}`]?.price
-		if (adjustedSupply && price) return price * adjustedSupply
+		if (adjustedSupply != null && price != null) return price * adjustedSupply
 		return null
 	}
 
@@ -551,6 +568,6 @@ export async function getProtocolsAdjustedFDVsByChain({
 				.map((c) => ({ label: c, to: `/outstanding-fdv/chain/${slug(c)}` }))
 		],
 		categories: Array.from(categories),
-		type: 'outstanding-fdv' as TokenMetricType
+		type: 'outstanding-fdv'
 	}
 }

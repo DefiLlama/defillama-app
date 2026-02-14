@@ -346,9 +346,9 @@ export function ProtocolsTableWithSearch({
 	columns
 }: {
 	data: Array<IProtocolRow>
-	addlColumns?: Array<string>
+	addlColumns?: Array<keyof typeof protocolAddlColumns>
 	removeColumns?: Array<string>
-	columns?: ColumnDef<any>[]
+	columns?: ColumnDef<IProtocolRow>[]
 }) {
 	const columnsToUse = columns ?? protocolsColumns
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
@@ -358,12 +358,15 @@ export function ProtocolsTableWithSearch({
 
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 
-	const columnsData = React.useMemo(() => {
+	const columnsData = React.useMemo<ColumnDef<IProtocolRow>[]>(() => {
 		if (!addlColumns && !removeColumns) return columnsToUse
 		const removeColumnsSet = removeColumns ? new Set(removeColumns) : null
 		return [
-			...(columnsToUse as any).filter((c) => !removeColumnsSet || !removeColumnsSet.has((c as any).accessorKey)),
-			...(addlColumns ?? []).map((x) => protocolAddlColumns[x])
+			...columnsToUse.filter((column) => {
+				const accessorKey = 'accessorKey' in column ? column.accessorKey : undefined
+				return !removeColumnsSet || typeof accessorKey !== 'string' || !removeColumnsSet.has(accessorKey)
+			}),
+			...(addlColumns ?? []).map((columnKey) => protocolAddlColumns[columnKey])
 		]
 	}, [addlColumns, removeColumns, columnsToUse])
 

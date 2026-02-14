@@ -40,7 +40,7 @@ export interface ITokenMetricProtocolRow {
 	slug: string
 	category: string | null
 	chains: string[]
-	value: number
+	value: number | null
 	subRows?: ITokenMetricProtocolRow[]
 }
 
@@ -89,6 +89,7 @@ export interface IRecentProtocol {
 export interface IRecentProtocolsPageData {
 	protocols: IRecentProtocol[]
 	chainList: string[]
+	categories: string[]
 	forkedList: Record<string, boolean>
 	claimableAirdrops?: Array<{ name: string; page: string; title?: string }>
 }
