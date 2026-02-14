@@ -63,7 +63,7 @@ export async function getStaticPaths() {
 
 	const res = await fetchJson(PROTOCOLS_API)
 	const slugs = new Set()
-	const excludeCategories = new Set(['Bridge', 'Canonical Bridge'])
+	const excludeCategories = new Set(['Bridge', 'Canonical Bridge', 'Staking Pool'])
 	for (const protocol of res.protocols) {
 		if (excludeCategories.has(protocol.category ?? '')) {
 			continue

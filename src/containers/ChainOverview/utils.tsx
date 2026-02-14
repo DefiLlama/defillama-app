@@ -2,7 +2,7 @@ import { removedCategoriesFromChainTvlSet } from '~/constants'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import type { IChainAsset, IFormattedChainAsset, ILiteProtocol } from './types'
 
-const excludedCategoriesSet = new Set(['Canonical Bridge'])
+const excludedCategoriesSet = new Set(['Canonical Bridge', 'Staking Pool'])
 
 export const toFilterProtocol = ({
 	protocolMetadata,

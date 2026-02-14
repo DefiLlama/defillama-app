@@ -302,7 +302,8 @@ export async function getExtraTvlByChain({
 		})
 	}
 
-	const change24hPct = chart.length > 1 ? getPercentChange(chart[chart.length - 1][1], chart[chart.length - 2][1]) : null
+	const change24hPct =
+		chart.length > 1 ? getPercentChange(chart[chart.length - 1][1], chart[chart.length - 2][1]) : null
 	const change24h = change24hPct == null || !Number.isFinite(change24hPct) ? null : +change24hPct.toFixed(2)
 
 	return {
