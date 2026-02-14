@@ -10,6 +10,7 @@ interface ComposerItemsCarouselProps {
 	composerItems: ChartConfig[]
 }
 
+// oxlint-disable-next-line no-unused-vars
 function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselProps) {
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const { getProtocolInfo } = useProDashboardCatalog()

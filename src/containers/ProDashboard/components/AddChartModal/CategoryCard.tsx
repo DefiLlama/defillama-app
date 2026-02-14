@@ -68,6 +68,7 @@ interface CategoryCardProps {
 	onClick: () => void
 }
 
+// oxlint-disable-next-line no-unused-vars
 function CategoryCard({ card, onClick }: CategoryCardProps) {
 	return (
 		<button

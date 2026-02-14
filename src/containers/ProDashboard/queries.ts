@@ -10,6 +10,7 @@ import ProtocolCharts from './services/ProtocolCharts'
 import { CHART_TYPES, getChainChartTypes, getProtocolChartTypes } from './types'
 import { groupData } from './utils'
 
+// oxlint-disable-next-line no-unused-vars
 function generateChartKey(
 	type: string,
 	itemType: 'chain' | 'protocol',
@@ -420,6 +421,7 @@ function getChartQueryFn(
 	}
 }
 
+// oxlint-disable-next-line no-unused-vars
 function useChartData(
 	type: string,
 	itemType: 'chain' | 'protocol',
@@ -444,6 +446,7 @@ function useChartData(
 
 export { getChartQueryKey, getChartQueryFn }
 
+// oxlint-disable-next-line no-unused-vars
 function useChains() {
 	return useQuery({
 		queryKey: ['chains'],
@@ -589,6 +592,7 @@ export function useChartsData(charts, timePeriod?: TimePeriod, customPeriod?: Cu
 	})
 }
 
+// oxlint-disable-next-line no-unused-vars
 function useAvailableChartTypes(
 	item: string | null,
 	itemType: 'chain' | 'protocol',

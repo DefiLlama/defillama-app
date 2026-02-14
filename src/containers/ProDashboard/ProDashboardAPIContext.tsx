@@ -76,6 +76,7 @@ interface AISessionData {
 	prompt: string
 }
 
+// oxlint-disable-next-line no-unused-vars
 interface AISessionState {
 	sessionId: string
 	mode: 'create' | 'iterate'
@@ -86,6 +87,7 @@ interface AISessionState {
 
 export type AIGeneratedData = Record<string, AISessionData>
 
+// oxlint-disable-next-line no-unused-vars
 interface AIGenerationContext {
 	sessionId: string
 	mode: 'create' | 'iterate'

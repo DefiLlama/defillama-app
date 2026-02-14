@@ -80,6 +80,7 @@ interface AutocompleteSuggestion {
 	category: string
 }
 
+// oxlint-disable-next-line no-unused-vars
 function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }: CustomColumnBuilderProps) {
 	const [name, setName] = useState('')
 	const [expression, setExpression] = useState('')

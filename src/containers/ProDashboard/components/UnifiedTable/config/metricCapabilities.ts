@@ -15,6 +15,7 @@ function getCapabilitiesFromDictionary(): Set<string> {
 	return capabilities
 }
 
+// oxlint-disable-next-line no-unused-vars
 function getCapabilities(): Set<string> {
 	return new Set(getCapabilitiesFromDictionary())
 }

@@ -137,6 +137,7 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 	})
 }
 
+// oxlint-disable-next-line no-unused-vars
 const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 	const isEnabled = !!protocolId
 	return useQuery({
@@ -152,6 +153,7 @@ const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 		enabled: isEnabled
 	})
 }
+// oxlint-disable-next-line no-unused-vars
 const useFetchProtocolTokenLiquidity = (token: string | null) => {
 	const isEnabled = !!token
 	return useQuery({
@@ -185,6 +187,7 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 	})
 }
 
+// oxlint-disable-next-line no-unused-vars
 const useGetProtocolsList = ({ chain }: { chain: string }) => {
 	const { data, isLoading } = useQuery({
 		queryKey: ['protocol-overview', 'protocols-list', PROTOCOLS_API],
@@ -213,6 +216,7 @@ const useGetProtocolsList = ({ chain }: { chain: string }) => {
 	return { fullProtocolsList, parentProtocols, isLoading }
 }
 
+// oxlint-disable-next-line no-unused-vars
 const useFetchProtocolTwitter = (twitter?: string | null) => {
 	const isEnabled = !!twitter
 	return useQuery({

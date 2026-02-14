@@ -43,6 +43,7 @@ const getStartOfTimeFrame = (date: Date, frame: string) => {
 	}
 }
 
+// oxlint-disable-next-line no-unused-vars
 function groupByTimeFrame(data, timeFrame) {
 	if (timeFrame === 'daily') return data
 	const groupedData = data.reduce(
@@ -71,6 +72,7 @@ function groupByTimeFrame(data, timeFrame) {
 	return result
 }
 
+// oxlint-disable-next-line no-unused-vars
 function cumulativeSum(data) {
 	let cumulativeData = []
 

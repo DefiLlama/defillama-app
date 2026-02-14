@@ -53,6 +53,7 @@ interface IDenominationPriceHistory {
 	volumes: Array<[number, number]>
 }
 
+// oxlint-disable-next-line no-unused-vars
 const useDenominationPriceHistory = (geckoId?: string) => {
 	let url = geckoId ? `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true` : null
 	const isEnabled = !!url

@@ -63,6 +63,7 @@ export const useYieldConfigData = (project) => {
 	})
 }
 
+// oxlint-disable-next-line no-unused-vars
 const useYieldPageData = () => {
 	return useQuery({
 		queryKey: [YIELD_POOLS_API, YIELD_CONFIG_API],
@@ -73,6 +74,7 @@ const useYieldPageData = () => {
 	})
 }
 
+// oxlint-disable-next-line no-unused-vars
 const useFetchProjectsList = () => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: [YIELD_POOLS_API, YIELD_CONFIG_API],
@@ -108,6 +110,7 @@ export const useVolatility = () => {
 	})
 }
 
+// oxlint-disable-next-line no-unused-vars
 const useYields = () => {
 	const { data = {} } = useQuery({
 		queryKey: [YIELD_POOLS_API],

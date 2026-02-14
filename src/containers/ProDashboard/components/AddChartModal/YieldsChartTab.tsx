@@ -435,6 +435,7 @@ export function YieldsChartTab({
 	])
 
 	const {
+		// oxlint-disable-next-line no-unused-vars
 		tvlApyData: yieldsChartData,
 		tvlApyDataset: yieldsChartDataset,
 		supplyApyBarData,

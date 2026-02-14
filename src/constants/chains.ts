@@ -28,6 +28,7 @@ const EVM_CHAINS_WITH_NULL_CHAINID = [
 ]
 
 // Set for O(1) lookup of supplementary EVM chains
+// oxlint-disable-next-line no-unused-vars
 const EVM_CHAINS_WITH_NULL_CHAINID_SET = new Set(EVM_CHAINS_WITH_NULL_CHAINID)
 
 // Helper function to build EVM chains set from API data

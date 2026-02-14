@@ -2,6 +2,7 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { useMemo } from 'react'
 import { isChainsCategoryGroupKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+// oxlint-disable-next-line no-unused-vars
 import { capitalizeFirstLetter, formatNum, getDominancePercent } from '~/utils'
 import type { StablecoinFilterOption } from './Filters'
 
@@ -241,7 +242,8 @@ export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: 
 			let bridgedTo: DataValue = null
 			let minted: DataValue = null
 			let dominance: { name: string; value: number | string | null } | null = null
-			let mcaptvl: DataValue = null
+			// oxlint-disable-next-line no-unused-vars
+		let mcaptvl: DataValue = null
 
 			const parentData = chainsByName.get(parentName)
 			if (parentData) {

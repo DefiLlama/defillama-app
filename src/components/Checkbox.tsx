@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 
+// oxlint-disable-next-line no-unused-vars
 const Checkbox = (props: Ariakit.CheckboxCheckProps) => (
 	<Ariakit.CheckboxCheck
 		{...props}

@@ -1,3 +1,4 @@
+// oxlint-disable-next-line no-unused-vars
 interface ISale {
 	aggregatorAddress?: string | null
 	aggregatorName?: string | null

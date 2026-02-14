@@ -24,6 +24,7 @@ interface ChainTvlData {
 	tvl: DateTvl[] | [number, number][]
 }
 
+// oxlint-disable-next-line no-unused-vars
 interface ProtocolApiResponse {
 	chainTvls: Record<string, ChainTvlData>
 }

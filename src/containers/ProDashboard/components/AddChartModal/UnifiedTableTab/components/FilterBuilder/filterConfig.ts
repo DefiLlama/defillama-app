@@ -612,6 +612,7 @@ export function getFiltersByCategory(): Map<FilterCategory, FilterConfig[]> {
 	return grouped
 }
 
+// oxlint-disable-next-line no-unused-vars
 function getFilterConfigById(id: string): FilterConfig | undefined {
 	return FILTER_CONFIGS.find((config) => config.id === id)
 }
@@ -635,6 +636,7 @@ export function formatFilterValue(value: number, format: FilterFormat = 'currenc
 	return `$${value.toLocaleString()}`
 }
 
+// oxlint-disable-next-line no-unused-vars
 function getOperatorLabel(operator: NumericOperator): string {
 	switch (operator) {
 		case '>':

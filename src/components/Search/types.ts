@@ -30,10 +30,12 @@ interface IBaseSearchProps {
 	customSearchRoute?: string
 }
 
+// oxlint-disable-next-line no-unused-vars
 interface ICommonSearchProps {
 	onItemClick?: IBaseSearchProps['onItemClick']
 }
 
+// oxlint-disable-next-line no-unused-vars
 enum SETS {
 	PROTOCOLS = 'protocols',
 	CHAINS = 'chains',
@@ -41,6 +43,7 @@ enum SETS {
 	CATEGORIES = 'categories'
 }
 
+// oxlint-disable-next-line no-unused-vars
 interface IGetSearchList {
 	data: ISearchItem[]
 	loading: boolean

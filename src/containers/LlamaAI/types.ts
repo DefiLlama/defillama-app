@@ -81,6 +81,7 @@ export interface AlertIntent {
 	}>
 }
 
+// oxlint-disable-next-line no-unused-vars
 interface AlertConfig {
 	frequency: 'daily' | 'weekly'
 	hour: number
@@ -214,31 +215,38 @@ export type StreamItem =
 	| AlertItem
 
 // Type guards for stream items
+// oxlint-disable-next-line no-unused-vars
 function isMarkdownItem(item: StreamItem): item is MarkdownItem {
 	return item.type === 'markdown'
 }
 
+// oxlint-disable-next-line no-unused-vars
 function isChartItem(item: StreamItem): item is ChartItem {
 	return item.type === 'chart'
 }
 
+// oxlint-disable-next-line no-unused-vars
 function isCsvItem(item: StreamItem): item is CsvItem {
 	return item.type === 'csv'
 }
 
+// oxlint-disable-next-line no-unused-vars
 function isAlertItem(item: StreamItem): item is AlertItem {
 	return item.type === 'alert'
 }
 
+// oxlint-disable-next-line no-unused-vars
 function isArtifactItem(item: StreamItem): item is ChartItem | CsvItem {
 	return item.type === 'chart' || item.type === 'csv'
 }
 
+// oxlint-disable-next-line no-unused-vars
 function isRenderableItem(item: StreamItem): boolean {
 	return item.type !== 'metadata'
 }
 
 // Message format with items
+// oxlint-disable-next-line no-unused-vars
 interface Message {
 	id: string
 	role: 'user' | 'assistant'

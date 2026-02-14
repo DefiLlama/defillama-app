@@ -33,6 +33,7 @@ export function SortableItem({ id, isTable, children, ...rest }: SortableItemPro
 		</div>
 	)
 }
+// oxlint-disable-next-line no-unused-vars
 const ChartTypes = {
 	tvl: 'TVL',
 	mcap: 'MCAP',

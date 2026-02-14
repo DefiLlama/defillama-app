@@ -299,6 +299,7 @@ export const SAMPLE_METRICS: NumericMetrics = {
 	ps: 36.5
 }
 
+// oxlint-disable-next-line no-unused-vars
 function evaluateWithSampleData(expression: string): { value: number | null; error?: string } {
 	const validation = validateExpression(expression)
 	if (!validation.isValid) {

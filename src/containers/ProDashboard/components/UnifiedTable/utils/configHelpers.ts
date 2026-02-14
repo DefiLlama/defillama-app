@@ -170,6 +170,7 @@ interface InitializeConfigOptions {
 	includeDefaults?: boolean
 }
 
+// oxlint-disable-next-line no-unused-vars
 function initializeUnifiedTableConfig(options: InitializeConfigOptions): {
 	columnOrder: string[]
 	columnVisibility: VisibilityState

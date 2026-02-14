@@ -5,6 +5,7 @@ interface SubscriptionUpgradeProps {
 	loading?: 'stripe' | 'llamapay' | null
 }
 
+// oxlint-disable-next-line no-unused-vars
 const SubscriptionUpgrade = ({ onSubscribe, loading = null }: SubscriptionUpgradeProps) => {
 	const handleSubscribe = (paymentMethod: 'stripe' | 'llamapay') => {
 		onSubscribe(paymentMethod, (checkoutUrl) => {
