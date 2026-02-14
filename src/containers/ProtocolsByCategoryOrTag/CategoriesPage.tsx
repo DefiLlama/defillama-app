@@ -54,12 +54,12 @@ const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 							{row.getIsExpanded() ? (
 								<>
 									<Icon name="chevron-down" height={16} width={16} />
-									<span className="sr-only">View child protocols</span>
+									<span className="sr-only">Hide tags</span>
 								</>
 							) : (
 								<>
 									<Icon name="chevron-right" height={16} width={16} />
-									<span className="sr-only">Hide child protocols</span>
+									<span className="sr-only">View tags</span>
 								</>
 							)}
 						</button>
@@ -284,9 +284,7 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 						<CSVDownloadButton
 							prepareCsv={() => {
 								const visibleColumns = instance.getAllLeafColumns().filter((column) => column.getIsVisible())
-								const headers = visibleColumns.map((column) =>
-									getCsvHeaderLabel(column.id, column.columnDef.header)
-								)
+								const headers = visibleColumns.map((column) => getCsvHeaderLabel(column.id, column.columnDef.header))
 								const rows = instance
 									.getRowModel()
 									.rows.map((row) => visibleColumns.map((column) => getCsvCellValue(row.getValue(column.id))))
