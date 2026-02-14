@@ -12,19 +12,60 @@ import { applyExtraTvl, getSelectedChainFilters, parseExcludeParam } from './uti
 
 export function RecentProtocols({ protocols, chainList, forkedList, claimableAirdrops }: IRecentProtocolsPageData) {
 	const router = useRouter()
-	const { chain, excludeChain, hideForks, minTvl: minTvlQuery, maxTvl: maxTvlQuery, ...queries } = router.query
+	const {
+		chain,
+		excludeChain,
+		category,
+		excludeCategory,
+		hideForks,
+		minTvl: minTvlQuery,
+		maxTvl: maxTvlQuery,
+		...queries
+	} = router.query
 
 	const minTvl = toNumberOrNullFromQueryParam(minTvlQuery)
 	const maxTvl = toNumberOrNullFromQueryParam(maxTvlQuery)
 
 	const toHideForkedProtocols = hideForks === 'true'
+	const hasCategoryParam = Object.prototype.hasOwnProperty.call(router.query, 'category')
 
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
-	const { selectedChains, data } = useMemo(() => {
-		const excludeSet = parseExcludeParam(excludeChain)
+	const categories = useMemo(() => {
+		const categorySet = new Set<string>()
+		for (const protocol of protocols) {
+			if (protocol.category) categorySet.add(protocol.category)
+		}
+		return Array.from(categorySet).sort((a, b) => a.localeCompare(b))
+	}, [protocols])
+
+	const { selectedChains, selectedCategories, data } = useMemo(() => {
+		const excludeChainSet = parseExcludeParam(excludeChain)
 		let selectedChains = getSelectedChainFilters(chain, chainList)
-		selectedChains = excludeSet.size > 0 ? selectedChains.filter((c) => !excludeSet.has(c)) : selectedChains
+		selectedChains = excludeChainSet.size > 0 ? selectedChains.filter((c) => !excludeChainSet.has(c)) : selectedChains
+
+		const excludeCategorySet = parseExcludeParam(excludeCategory)
+		let selectedCategories =
+			categories.length > 0 && hasCategoryParam && category === ''
+				? []
+				: category
+					? typeof category === 'string'
+						? [category]
+						: category
+					: categories
+
+		selectedCategories =
+			excludeCategorySet.size > 0
+				? selectedCategories.filter((selectedCategory) => !excludeCategorySet.has(selectedCategory))
+				: selectedCategories
+
+		const categoriesToFilterSet = new Set(
+			selectedCategories
+				.filter(
+					(selectedCategory) => selectedCategory.toLowerCase() !== 'all' && selectedCategory.toLowerCase() !== 'none'
+				)
+				.map((selectedCategory) => selectedCategory.toLowerCase())
+		)
 
 		const chainsToSelectSet = new Set(selectedChains.map((t) => t.toLowerCase()))
 
@@ -36,6 +77,15 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 		for (const protocol of protocols) {
 			// filter out forked protocols
 			if (toHideForkedProtocols && forkedList?.[protocol.name]) continue
+
+			// filter out protocols by category
+			if (categories.length > 0) {
+				if (selectedCategories.length === 0) continue
+				if (categoriesToFilterSet.size > 0) {
+					const protocolCategory = protocol.category?.toLowerCase() ?? ''
+					if (!categoriesToFilterSet.has(protocolCategory)) continue
+				}
+			}
 
 			// filter if a protocol has at least one selected chain
 			let includesChain = false
@@ -52,10 +102,8 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 			let tvlPrevDay: number | null = null
 			let tvlPrevWeek: number | null = null
 			let tvlPrevMonth: number | null = null
-			const extraTvl: Record<
-				string,
-				{ tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
-			> = {}
+			const extraTvl: Record<string, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }> =
+				{}
 
 			for (const chainName of protocol.chains) {
 				if (!chainsToSelectSet.has(chainName.toLowerCase())) continue
@@ -114,11 +162,25 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 			const rangeFiltered = withExtraTvl.filter(
 				(p) => (minTvl != null ? p.tvl >= minTvl : true) && (maxTvl != null ? p.tvl <= maxTvl : true)
 			)
-			return { data: rangeFiltered, selectedChains }
+			return { data: rangeFiltered, selectedChains, selectedCategories }
 		}
 
-		return { data: withExtraTvl, selectedChains }
-	}, [protocols, chain, excludeChain, chainList, forkedList, toHideForkedProtocols, minTvl, maxTvl, extraTvlsEnabled])
+		return { data: withExtraTvl, selectedChains, selectedCategories }
+	}, [
+		protocols,
+		chain,
+		excludeChain,
+		category,
+		excludeCategory,
+		hasCategoryParam,
+		chainList,
+		categories,
+		forkedList,
+		toHideForkedProtocols,
+		minTvl,
+		maxTvl,
+		extraTvlsEnabled
+	])
 
 	const {
 		data: eligibleAirdrops,
@@ -290,7 +352,9 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 				data={data}
 				queries={queries}
 				selectedChains={selectedChains}
+				selectedCategories={selectedCategories}
 				chainList={chainList}
+				categories={categories}
 				forkedList={forkedList}
 			/>
 		</>

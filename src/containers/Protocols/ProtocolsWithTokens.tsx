@@ -1,6 +1,7 @@
 import type { ColumnDef, SortingState } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -13,6 +14,19 @@ import type { IProtocolsWithTokensByChainPageData, ITokenMetricProtocolRow, Toke
 import { parseExcludeParam } from './utils'
 
 const chainLikeCategories = new Set(['Chain', 'Rollup'])
+
+function getCsvHeaderLabel(columnId: string, header: unknown): string {
+	if (typeof header === 'string') return header
+	if (typeof header === 'number' || typeof header === 'boolean') return String(header)
+	return columnId
+}
+
+function getCsvCellValue(value: unknown): string | number | boolean {
+	if (value == null) return ''
+	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
+	if (Array.isArray(value)) return value.join(', ')
+	return JSON.stringify(value)
+}
 
 export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) {
 	const router = useRouter()
@@ -33,12 +47,9 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 					: props.categories
 
 		// Filter out excludes
-		selectedCategories =
-			excludeSet.size > 0 ? selectedCategories.filter((c) => !excludeSet.has(c)) : selectedCategories
+		selectedCategories = excludeSet.size > 0 ? selectedCategories.filter((c) => !excludeSet.has(c)) : selectedCategories
 
-		const categoriesToFilter = selectedCategories.filter(
-			(c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none'
-		)
+		const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
 
 		const protocols =
 			props.categories.length === 0
@@ -65,9 +76,8 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 				columns={columns}
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
-				header="Protocol Rankings"
 				compact
-				customFilters={
+				customFilters={({ instance }) => (
 					<>
 						{props.categories.length > 0 ? (
 							<SelectWithCombobox
@@ -81,8 +91,25 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 								variant="filter-responsive"
 							/>
 						) : null}
+						<CSVDownloadButton
+							prepareCsv={() => {
+								const visibleColumns = instance
+									.getAllLeafColumns()
+									.filter((column) => column.getIsVisible() && !column.columnDef.meta?.hidden)
+								const headers = visibleColumns.map((column) => getCsvHeaderLabel(column.id, column.columnDef.header))
+								const rows = instance
+									.getRowModel()
+									.rows.map((row) => visibleColumns.map((column) => getCsvCellValue(row.getValue(column.id))))
+
+								return {
+									filename: `protocols-with-tokens-${props.type}-${slug(props.chain)}.csv`,
+									rows: [headers, ...rows]
+								}
+							}}
+							smol
+						/>
 					</>
-				}
+				)}
 				sortingState={sortingState}
 			/>
 		</>
@@ -153,9 +180,8 @@ function defaultColumns(type: TokenMetricType): ColumnDef<ITokenMetricProtocolRo
 
 				const basePath = chainLikeCategories.has(row.original.category ?? '') ? 'chain' : 'protocol'
 				const chartKey =
-					(chainLikeCategories.has(row.original.category ?? '')
-						? chainChartsKeys[type]
-						: protocolChartsKeys[type]) ?? null
+					(chainLikeCategories.has(row.original.category ?? '') ? chainChartsKeys[type] : protocolChartsKeys[type]) ??
+					null
 
 				return (
 					<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>

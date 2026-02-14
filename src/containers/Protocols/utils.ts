@@ -90,10 +90,7 @@ export function parseExcludeParam(param: string | string[] | undefined): Set<str
 }
 
 /** Resolve selected chain filters from a query param against the full chain list. */
-export function getSelectedChainFilters(
-	chainQueryParam: string | string[] | undefined,
-	allChains: string[]
-): string[] {
+export function getSelectedChainFilters(chainQueryParam: string | string[] | undefined, allChains: string[]): string[] {
 	if (chainQueryParam) {
 		if (typeof chainQueryParam === 'string') {
 			return chainQueryParam === 'All' ? allChains : chainQueryParam === 'None' ? [] : [chainQueryParam]

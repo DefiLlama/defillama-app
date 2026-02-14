@@ -44,9 +44,8 @@ export async function airdropsEligibilityCheck({ addresses }: { addresses: Array
 						page: entry?.page ?? null,
 						token: entry?.token ?? null,
 						tokenSymbol: entry?.tokenSymbol ?? null,
-						isActive: endTime != null
-							? new Date().getTime() < new Date(endTime * 1000).getTime()
-							: (entry?.isActive ?? false)
+						isActive:
+							endTime != null ? new Date().getTime() < new Date(endTime * 1000).getTime() : (entry?.isActive ?? false)
 					}
 				})
 				.filter((x) => x.isActive)

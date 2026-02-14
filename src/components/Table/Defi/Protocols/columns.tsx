@@ -994,7 +994,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	}
 ]
 
-const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
+export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',

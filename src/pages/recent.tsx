@@ -1,6 +1,6 @@
 import { maxAgeForNext } from '~/api'
-import { RecentProtocols } from '~/containers/Protocols/RecentProtocols'
 import { getRecentProtocols } from '~/containers/Protocols/queries'
+import { RecentProtocols } from '~/containers/Protocols/RecentProtocols'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 

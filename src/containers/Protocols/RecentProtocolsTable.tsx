@@ -12,16 +12,22 @@ import {
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import * as React from 'react'
+import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
-import { columnSizes, protocolsColumns } from '~/components/Table/Defi/Protocols/columns'
 import type { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
-import { formattedNum, toNiceDaysAgo } from '~/utils'
+import { TokenLogo } from '~/components/TokenLogo'
+import { Tooltip } from '~/components/Tooltip'
+import { removedCategoriesFromChainTvlSet } from '~/constants'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { chainIconUrl, formattedNum, renderPercentChange, slug, toNiceDaysAgo, tokenIconUrl } from '~/utils'
 import type { IRecentProtocol } from './types'
 
 /** Row type after applyExtraTvl adds change/mcaptvl fields. */
@@ -32,10 +38,56 @@ type RecentProtocolTableRow = IRecentProtocol & {
 	mcaptvl: number | null
 }
 
+function normaliseCategoryFilterValues(values: unknown): string[] {
+	if (Array.isArray(values)) {
+		return values.filter((value): value is string => typeof value === 'string')
+	}
+
+	if (typeof values === 'string') {
+		return [values]
+	}
+
+	return []
+}
+
+function areCategoryFiltersEqual(current: unknown, next: string[] | undefined): boolean {
+	const currentValues = normaliseCategoryFilterValues(current).map((value) => value.toLowerCase())
+	const nextValues = (next ?? []).map((value) => value.toLowerCase())
+
+	if (currentValues.length !== nextValues.length) return false
+
+	const currentSet = new Set(currentValues)
+	for (const value of nextValues) {
+		if (!currentSet.has(value)) return false
+	}
+
+	return true
+}
+
+function getCsvHeaderLabel(columnId: string, header: unknown): string {
+	if (typeof header === 'string') return header
+	if (typeof header === 'number' || typeof header === 'boolean') return String(header)
+	return columnId
+}
+
+function getCsvCellValue(columnId: string, value: unknown): string | number | boolean {
+	if (value == null) return ''
+	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+		if (columnId === 'listedAt' && typeof value === 'number') {
+			return new Date(value * 1000).toLocaleDateString()
+		}
+		return value
+	}
+	if (Array.isArray(value)) return value.join(', ')
+	return JSON.stringify(value)
+}
+
 export function RecentlyListedProtocolsTable({
 	data,
 	selectedChains,
+	selectedCategories,
 	chainList,
+	categories,
 	forkedList
 }: {
 	data: RecentProtocolTableRow[]
@@ -43,7 +95,9 @@ export function RecentlyListedProtocolsTable({
 		[key: string]: string | string[]
 	}
 	selectedChains: Array<string>
+	selectedCategories: Array<string>
 	chainList: Array<string>
+	categories: Array<string>
 	forkedList?: Record<string, boolean>
 }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'listedAt' }])
@@ -60,9 +114,9 @@ export function RecentlyListedProtocolsTable({
 	 * We cast here because IProtocolRow has a legacy chainTvls intersection type that is
 	 * unsatisfiable by any real data shape.
 	 */
-	const columns = (
-		router.pathname === '/airdrops' ? airdropsColumns : recentlyListedProtocolsColumns
-	) as unknown as ColumnDef<RecentProtocolTableRow>[]
+	const columns = (router.pathname === '/airdrops'
+		? airdropsColumns
+		: recentlyListedProtocolsColumns) as unknown as ColumnDef<RecentProtocolTableRow>[]
 
 	const instance = useReactTable({
 		data,
@@ -90,21 +144,34 @@ export function RecentlyListedProtocolsTable({
 
 	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
-	const prepareCsv = () => {
-		const headers = ['Name', 'TVL', 'Change 1d', 'Change 7d', 'Change 1m', 'Listed At', 'Chains']
-		const csvData = data.map((row) => {
-			return {
-				Name: row.name,
-				Chains: row.chains.join(', '),
-				TVL: row.tvl,
-				'Change 1d': row.change_1d,
-				'Change 7d': row.change_7d,
-				'Change 1m': row.change_1m,
-				'Listed At': new Date(row.listedAt * 1000).toLocaleDateString()
-			}
+	React.useEffect(() => {
+		const categoryColumn = instance.getColumn('category')
+		if (!categoryColumn || categories.length === 0) return
+
+		const categoryFilterValues = selectedCategories.filter((selectedCategory) => {
+			const lowerCategory = selectedCategory.toLowerCase()
+			return lowerCategory !== 'all' && lowerCategory !== 'none'
 		})
-		const rows = [headers, ...csvData.map((row) => headers.map((header) => row[header]))]
-		return { filename: 'protocols.csv', rows: rows as (string | number | boolean)[][] }
+		const nextFilterValue = categoryFilterValues.length === categories.length ? undefined : categoryFilterValues
+
+		if (areCategoryFiltersEqual(categoryColumn.getFilterValue(), nextFilterValue)) return
+
+		React.startTransition(() => {
+			categoryColumn.setFilterValue(nextFilterValue)
+		})
+	}, [instance, categories, selectedCategories])
+
+	const prepareCsv = () => {
+		const visibleColumns = instance
+			.getAllLeafColumns()
+			.filter((column) => column.getIsVisible() && !column.columnDef.meta?.hidden)
+
+		const headers = visibleColumns.map((column) => getCsvHeaderLabel(column.id, column.columnDef.header))
+		const rows = instance
+			.getRowModel()
+			.rows.map((row) => visibleColumns.map((column) => getCsvCellValue(column.id, row.getValue(column.id))))
+
+		return { filename: 'protocols.csv', rows: [headers, ...rows] }
 	}
 
 	return (
@@ -129,6 +196,8 @@ export function RecentlyListedProtocolsTable({
 				</label>
 
 				<div className="flex items-start gap-2 max-sm:w-full max-sm:flex-col sm:items-center">
+					{forkedList ? <HideForkedProtocols /> : null}
+
 					<div className="flex w-full items-center gap-2 sm:w-auto">
 						<SelectWithCombobox
 							label="Chains"
@@ -139,12 +208,21 @@ export function RecentlyListedProtocolsTable({
 							labelType="smol"
 							variant="filter-responsive"
 						/>
+						{categories.length > 0 ? (
+							<SelectWithCombobox
+								label="Category"
+								allValues={categories}
+								selectedValues={selectedCategories}
+								includeQueryKey="category"
+								excludeQueryKey="excludeCategory"
+								labelType="smol"
+								variant="filter-responsive"
+							/>
+						) : null}
 						<TVLRange triggerClassName="w-full sm:w-auto" />
 					</div>
 
-					{forkedList ? <HideForkedProtocols /> : null}
-
-					<CSVDownloadButton prepareCsv={prepareCsv} />
+					<CSVDownloadButton prepareCsv={prepareCsv} smol />
 				</div>
 			</div>
 			<VirtualTable instance={instance} />
@@ -152,11 +230,279 @@ export function RecentlyListedProtocolsTable({
 	)
 }
 
+const whiteLabeledVaultProviders = new Set(['Veda'])
+
+const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
+	<span className="flex flex-col gap-1">
+		{chains.map((chain) => (
+			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
+				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<span>{chain}</span>
+			</span>
+		))}
+	</span>
+)
+
+const protocolsColumns: ColumnDef<IProtocolRow>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row }) => {
+			const value = getValue() as string
+
+			return (
+				<span
+					className="relative flex items-center gap-2"
+					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
+				>
+					{row.subRows?.length > 0 ? (
+						<button
+							className="absolute -left-0.5"
+							{...{
+								onClick: row.getToggleExpandedHandler()
+							}}
+						>
+							{row.getIsExpanded() ? (
+								<>
+									<Icon name="chevron-down" height={16} width={16} />
+									<span className="sr-only">View child protocols</span>
+								</>
+							) : (
+								<>
+									<Icon name="chevron-right" height={16} width={16} />
+									<span className="sr-only">Hide child protocols</span>
+								</>
+							)}
+						</button>
+					) : (
+						<Bookmark readableName={value} data-lgonly data-bookmark />
+					)}
+
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
+
+					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+
+					<span className="-my-2 flex flex-col">
+						{row.original?.deprecated ? (
+							<BasicLink
+								href={`/protocol/${slug(value)}`}
+								className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+							>
+								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
+								<Tooltip content="Deprecated" className="text-(--error)">
+									<Icon name="alert-triangle" height={14} width={14} />
+								</Tooltip>
+							</BasicLink>
+						) : (
+							<BasicLink
+								href={`/protocol/${slug(value)}`}
+								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+							>{`${value}`}</BasicLink>
+						)}
+
+						<Tooltip content={<ProtocolChainsComponent chains={row.original.chains} />} className="text-[0.7rem]">
+							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
+						</Tooltip>
+					</span>
+					{value === 'SyncDEX Finance' && (
+						<Tooltip content={'Many users have reported issues with this protocol'}>
+							<Icon name="alert-triangle" height={14} width={14} />
+						</Tooltip>
+					)}
+				</span>
+			)
+		},
+		size: 240
+	},
+	{
+		header: 'Category',
+		accessorKey: 'category',
+		filterFn: (row, columnId, filterValue) => {
+			const selectedCategories = normaliseCategoryFilterValues(filterValue)
+			if (selectedCategories.length === 0) return false
+
+			const rowCategory = `${row.getValue(columnId) ?? ''}`.toLowerCase()
+			for (const selectedCategory of selectedCategories) {
+				if (rowCategory === selectedCategory.toLowerCase()) return true
+			}
+
+			return false
+		},
+		cell: ({ getValue }) =>
+			getValue() ? (
+				<BasicLink
+					href={`/protocols/${getValue()}`}
+					className="text-sm font-medium whitespace-nowrap text-(--link-text)"
+				>
+					{getValue() as string | null}
+				</BasicLink>
+			) : (
+				''
+			),
+		size: 140
+	},
+	{
+		header: 'TVL',
+		accessorKey: 'tvl',
+		cell: ({ getValue, row }) => <ProtocolTvlCell value={getValue()} rowValues={row.original} />,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Sum of value of all coins held in smart contracts of the protocol'
+		},
+		size: 120
+	},
+	{
+		header: '1d TVL Change',
+		accessorKey: 'change_1d',
+		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Change in TVL in the last 24 hours'
+		},
+		size: 140
+	},
+	{
+		header: '7d TVL Change',
+		accessorKey: 'change_7d',
+		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Change in TVL in the last 7 days'
+		},
+		size: 140
+	},
+	{
+		header: '1m TVL Change',
+		accessorKey: 'change_1m',
+		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Change in TVL in the last 30 days'
+		},
+		size: 140
+	},
+	{
+		header: 'Mcap/TVL',
+		accessorKey: 'mcaptvl',
+		cell: (info) => {
+			return <>{(info.getValue() ?? null) as string | null}</>
+		},
+		size: 100,
+		meta: {
+			align: 'end'
+		}
+	}
+]
+
+const columnSizes = {
+	0: {
+		rank: 60,
+		compare: 80,
+		name: 180,
+		category: 140,
+		change_1d: 140,
+		change_7d: 140,
+		change_1m: 140,
+		tvl: 120,
+		mcaptvl: 110,
+		totalRaised: 168
+	},
+	1024: {
+		rank: 60,
+		compare: 80,
+		name: 240,
+		category: 140,
+		change_1d: 140,
+		change_7d: 140,
+		change_1m: 140,
+		tvl: 120,
+		mcaptvl: 110,
+		totalRaised: 168
+	},
+	1280: {
+		rank: 60,
+		compare: 80,
+		name: 200,
+		category: 140,
+		change_1d: 140,
+		change_7d: 140,
+		change_1m: 140,
+		tvl: 120,
+		mcaptvl: 110,
+		totalRaised: 168
+	}
+}
+
+type ProtocolTvlRow = IProtocolRow & {
+	parentExcluded?: boolean
+	isParentProtocol?: boolean
+}
+
+function ProtocolTvlCell({ value, rowValues }: { value: unknown; rowValues: ProtocolTvlRow }) {
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+	const tvlValue = typeof value === 'number' ? value : null
+
+	let text: string | null = null
+
+	if (rowValues.strikeTvl) {
+		if (!extraTvlsEnabled['doublecounted']) {
+			text =
+				'This protocol deposits into another protocol and is subtracted from total TVL because "Double Count" toggle is off'
+		}
+
+		if (!extraTvlsEnabled['liquidstaking']) {
+			text =
+				'This protocol is under Liquid Staking category and is subtracted from total TVL because "Liquid Staking" toggle is off'
+		}
+
+		if (!extraTvlsEnabled['doublecounted'] && !extraTvlsEnabled['liquidstaking']) {
+			text =
+				'This protocol deposits into another protocol or is under Liquid Staking category, so it is subtracted from total TVL because both "Liquid Staking" and "Double Count" toggles are off'
+		}
+
+		if (whiteLabeledVaultProviders.has(rowValues.name)) {
+			text =
+				'This protocol issues white-labeled vaults which may result in TVL being counted by another protocol (e.g., double counted).'
+		}
+
+		if (removedCategoriesFromChainTvlSet.has(rowValues.category)) {
+			text = `${rowValues.category} protocols are not counted into Chain TVL`
+		}
+
+		if (text && rowValues.isParentProtocol) {
+			text = 'Some sub-protocols are excluded from chain tvl'
+		}
+	}
+
+	if (!text && !rowValues.parentExcluded) {
+		return <>{tvlValue != null ? formattedNum(tvlValue, true) : null}</>
+	}
+
+	return (
+		<span className="flex items-center justify-end gap-1">
+			{text ? <QuestionHelper text={text} /> : null}
+			{rowValues.parentExcluded ? (
+				<QuestionHelper
+					text={"There's some internal doublecounting that is excluded from parent TVL, so sum won't match"}
+				/>
+			) : null}
+			<span
+				style={{
+					color: rowValues.strikeTvl ? 'var(--text-disabled)' : 'inherit'
+				}}
+			>
+				{tvlValue != null ? formattedNum(tvlValue, true) : null}
+			</span>
+		</span>
+	)
+}
+
 const listedAtColumn: ColumnDef<IProtocolRow> = {
 	header: 'Listed At',
 	accessorKey: 'listedAt',
 	cell: ({ getValue }) => toNiceDaysAgo(getValue() as number),
-	size: 140,
+	size: 120,
 	meta: {
 		align: 'end' as const
 	}
@@ -177,7 +523,7 @@ const airdropsColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Total Money Raised',
 		accessorKey: 'totalRaised',
 		cell: ({ getValue }) => <>{getValue() ? formattedNum(getValue(), true) : ''}</>,
-		size: 180,
+		size: 168,
 		meta: {
 			align: 'end' as const
 		}

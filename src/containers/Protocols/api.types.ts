@@ -48,5 +48,3 @@ export interface ChartResponse {
 	liquidstaking: Array<[string, number]>
 	dcAndLsOverlap: Array<[string, number]>
 }
-
-

@@ -1,5 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { lazy, Suspense } from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -33,6 +34,19 @@ const METRIC_LABELS: Record<ExtraTvlMetric, { header: string; headerHelperText: 
 }
 
 const DEFAULT_SORTING_STATE = [{ id: 'value', desc: true }]
+
+function getCsvHeaderLabel(columnId: string, header: unknown): string {
+	if (typeof header === 'string') return header
+	if (typeof header === 'number' || typeof header === 'boolean') return String(header)
+	return columnId
+}
+
+function getCsvCellValue(value: unknown): string | number | boolean {
+	if (value == null) return ''
+	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
+	if (Array.isArray(value)) return value.join(', ')
+	return JSON.stringify(value)
+}
 
 export function ExtraTvlByChain(props: IExtraTvlByChainPageData) {
 	const metricInfo = METRIC_LABELS[props.metric]
@@ -82,7 +96,26 @@ export function ExtraTvlByChain(props: IExtraTvlByChainPageData) {
 				columns={buildColumns(props.metric)}
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
-				header="Protocol Rankings"
+				compact
+				customFilters={({ instance }) => (
+					<CSVDownloadButton
+						prepareCsv={() => {
+							const visibleColumns = instance
+								.getAllLeafColumns()
+								.filter((column) => column.getIsVisible() && !column.columnDef.meta?.hidden)
+							const headers = visibleColumns.map((column) => getCsvHeaderLabel(column.id, column.columnDef.header))
+							const rows = instance
+								.getRowModel()
+								.rows.map((row) => visibleColumns.map((column) => getCsvCellValue(row.getValue(column.id))))
+
+							return {
+								filename: `protocols-${props.metric}-${slug(props.chain)}.csv`,
+								rows: [headers, ...rows]
+							}
+						}}
+						smol
+					/>
+				)}
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>

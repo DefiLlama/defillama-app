@@ -16,9 +16,7 @@ export async function fetchChartData(chain?: string): Promise<ChartResponse> {
 }
 
 /** Fetch chain list with extraTvl info from chains2/All. Returns chain names that have the given extraTvl key. */
-export async function fetchChainsWithExtraTvl(
-	extraTvlKey: string
-): Promise<string[]> {
+export async function fetchChainsWithExtraTvl(extraTvlKey: string): Promise<string[]> {
 	const data = await fetchJson<{
 		chainTvls: Array<{ name: string; extraTvl?: Record<string, { tvl: number }> }>
 	}>(`${CHAINS_API_V2}/All`)
