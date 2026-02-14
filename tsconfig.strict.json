@@ -59,6 +59,8 @@
 		"src/containers/DAT/**/*.tsx",
 		"src/containers/Stablecoins/**/*.ts",
 		"src/containers/Stablecoins/**/*.tsx",
+		"src/containers/ProtocolsByCategoryOrTag/**/*.ts",
+		"src/containers/ProtocolsByCategoryOrTag/**/*.tsx",
 		"src/api/shared.ts",
 		"src/utils/**/*.ts",
 		"src/utils/**/*.tsx",
