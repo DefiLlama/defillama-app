@@ -9,6 +9,18 @@ type PieChartDatum = { name: string; value: number }
 const RWA_ATTRIBUTE_FILTER_STATES = ['yes', 'no', 'unknown'] as const
 type RWAAttributeFilterState = (typeof RWA_ATTRIBUTE_FILTER_STATES)[number]
 const RWA_ATTRIBUTE_FILTER_STATE_SET = new Set<RWAAttributeFilterState>(RWA_ATTRIBUTE_FILTER_STATES)
+const DEFAULT_EXCLUDED_TYPES = new Set(['Wrapper'])
+
+const toUniqueNonEmptyValues = (values: Array<string> | null | undefined): string[] => {
+	if (!values || values.length === 0) return []
+	const out = new Set<string>()
+	for (const value of values) {
+		const normalized = typeof value === 'string' ? value.trim() : ''
+		if (!normalized) continue
+		out.add(normalized)
+	}
+	return Array.from(out)
+}
 
 const buildStackColors = (order: string[]) => {
 	const stackColors: Record<string, string> = {}
@@ -191,13 +203,24 @@ export const useRWATableQueryParams = ({
 		includeGovernance
 	} = useMemo(() => {
 		// If query param is 'None', return empty array. If no param, return all (default). Otherwise parse the array.
-		const parseArrayParam = (param: string | string[] | undefined, allValues: string[]): string[] => {
+		const parseArrayParam = (
+			param: string | string[] | undefined,
+			allValues: string[],
+			validSet: Set<string>
+		): string[] => {
 			if (param === 'None') return []
 			if (!param) return allValues
 			const arr = toArrayParam(param)
-			const validSet = new Set(allValues)
 			return arr.filter((v) => validSet.has(v))
 		}
+
+		const assetNamesValidSet = new Set(assetNames)
+		const typesValidSet = new Set(types)
+		const categoriesValidSet = new Set(categories)
+		const assetClassesValidSet = new Set(assetClasses)
+		const rwaClassificationsValidSet = new Set(rwaClassifications)
+		const accessModelsValidSet = new Set(accessModels)
+		const issuersValidSet = new Set(issuers)
 
 		// Parse exclude sets
 		const excludeAssetNamesSet = parseExcludeParam(excludeAssetNamesQ)
@@ -218,17 +241,16 @@ export const useRWATableQueryParams = ({
 		// - if include param missing but exclude param exists, selection is (all - excluded), NOT "defaults - excluded"
 		const baseAssetNames =
 			assetNamesQ != null
-				? parseArrayParam(assetNamesQ, assetNames)
+				? parseArrayParam(assetNamesQ, assetNames, assetNamesValidSet)
 				: excludeAssetNamesSet.size > 0
 					? assetNames
 					: assetNames
 		const selectedAssetNames =
 			excludeAssetNamesSet.size > 0 ? baseAssetNames.filter((a) => !excludeAssetNamesSet.has(a)) : baseAssetNames
 
-		const DEFAULT_EXCLUDED_TYPES = new Set(['Wrapper'])
 		const baseTypes =
 			typesQ != null
-				? parseArrayParam(typesQ, types)
+				? parseArrayParam(typesQ, types, typesValidSet)
 				: excludeTypesSet.size > 0
 					? types
 					: types.filter((t) => !DEFAULT_EXCLUDED_TYPES.has(t))
@@ -236,7 +258,7 @@ export const useRWATableQueryParams = ({
 
 		const baseCategories =
 			categoriesQ != null
-				? parseArrayParam(categoriesQ, categories)
+				? parseArrayParam(categoriesQ, categories, categoriesValidSet)
 				: excludeCategoriesSet.size > 0
 					? categories
 					: categories
@@ -245,7 +267,7 @@ export const useRWATableQueryParams = ({
 
 		const baseAssetClasses =
 			assetClassesQ != null
-				? parseArrayParam(assetClassesQ, assetClasses)
+				? parseArrayParam(assetClassesQ, assetClasses, assetClassesValidSet)
 				: excludeAssetClassesSet.size > 0
 					? assetClasses
 					: assetClasses
@@ -256,7 +278,7 @@ export const useRWATableQueryParams = ({
 
 		const baseRwaClassifications =
 			rwaClassificationsQ != null
-				? parseArrayParam(rwaClassificationsQ, rwaClassifications)
+				? parseArrayParam(rwaClassificationsQ, rwaClassifications, rwaClassificationsValidSet)
 				: excludeRwaClassificationsSet.size > 0
 					? rwaClassifications
 					: rwaClassifications
@@ -265,13 +287,13 @@ export const useRWATableQueryParams = ({
 				? baseRwaClassifications.filter((r) => !excludeRwaClassificationsSet.has(r))
 				: baseRwaClassifications
 
-		const baseAccessModels = parseArrayParam(accessModelsQ, accessModels)
+		const baseAccessModels = parseArrayParam(accessModelsQ, accessModels, accessModelsValidSet)
 		const selectedAccessModels =
 			excludeAccessModelsSet.size > 0
 				? baseAccessModels.filter((a) => !excludeAccessModelsSet.has(a))
 				: baseAccessModels
 
-		const baseIssuers = parseArrayParam(issuersQ, issuers)
+		const baseIssuers = parseArrayParam(issuersQ, issuers, issuersValidSet)
 		const selectedIssuers =
 			excludeIssuersSet.size > 0 ? baseIssuers.filter((i) => !excludeIssuersSet.has(i)) : baseIssuers
 
@@ -693,10 +715,12 @@ export function useRWAAssetCategoryPieChartData({
 		const categoryTotals = new Map<string, { onChain: number; active: number; defi: number }>()
 
 		for (const asset of assets) {
-			for (const category of asset.category ?? []) {
+			for (const category of toUniqueNonEmptyValues(asset.category)) {
 				if (!category || !selectedCategoriesSet.has(category)) continue
 
 				const prev = categoryTotals.get(category) ?? { onChain: 0, active: 0, defi: 0 }
+				// Intentional full-count behavior for multi-category assets.
+				// To migrate to split-even later, divide each metric by asset.category.length here.
 				prev.onChain += asset.onChainMcap?.total ?? 0
 				prev.active += asset.activeMcap?.total ?? 0
 				prev.defi += asset.defiActiveTvl?.total ?? 0
@@ -745,10 +769,12 @@ export function useRwaCategoryAssetClassPieChartData({
 		const assetClassTotals = new Map<string, { onChain: number; active: number; defi: number }>()
 
 		for (const asset of assets) {
-			for (const assetClass of asset.assetClass ?? []) {
+			for (const assetClass of toUniqueNonEmptyValues(asset.assetClass)) {
 				if (!assetClass || !selectedAssetClassesSet.has(assetClass)) continue
 
 				const prev = assetClassTotals.get(assetClass) ?? { onChain: 0, active: 0, defi: 0 }
+				// Intentional full-count behavior for multi-asset-class assets.
+				// To migrate to split-even later, divide each metric by asset.assetClass.length here.
 				prev.onChain += asset.onChainMcap?.total ?? 0
 				prev.active += asset.activeMcap?.total ?? 0
 				prev.defi += asset.defiActiveTvl?.total ?? 0
@@ -891,6 +917,8 @@ export function useRwaAssetPlatformPieChartData({
 				// Prefer a non-Unknown label if we previously only had Unknown.
 				if (prev.label === UNKNOWN && platform !== UNKNOWN) prev.label = platform
 
+				// Intentional full-count behavior for assets mapped to multiple platforms.
+				// To migrate to split-even later, divide each metric by platforms.length here.
 				prev.onChain += asset.onChainMcap?.total ?? 0
 				prev.active += asset.activeMcap?.total ?? 0
 				prev.defi += asset.defiActiveTvl?.total ?? 0
@@ -1084,12 +1112,19 @@ export function useRwaChartDataByCategory({
 		if (!chartDataByTicker) return empty
 
 		// Build ticker -> categories lookup from filtered assets.
-		const tickerToCategories = new Map<string, string[]>()
+		// Use a Set per ticker to avoid both duplicate category labels and ticker-collision overwrites.
+		const tickerToCategories = new Map<string, Set<string>>()
 		for (const asset of assets) {
 			const ticker = asset.ticker
 			if (!ticker) continue
-			if (!asset.category || asset.category.length === 0) continue
-			tickerToCategories.set(ticker, asset.category)
+			const categories = toUniqueNonEmptyValues(asset.category)
+			if (categories.length === 0) continue
+
+			const tickerCategories = tickerToCategories.get(ticker) ?? new Set<string>()
+			for (const category of categories) {
+				tickerCategories.add(category)
+			}
+			tickerToCategories.set(ticker, tickerCategories)
 		}
 
 		const aggregate = (rows: RWAChartRow[], seenCategories: Set<string>): RWAChartRow[] => {
@@ -1103,9 +1138,11 @@ export function useRwaChartDataByCategory({
 					if (!Number.isFinite(value) || value === 0) continue
 
 					const categories = tickerToCategories.get(ticker)
-					if (!categories) continue
+					if (!categories || categories.size === 0) continue
 
 					for (const category of categories) {
+						// Intentional full-count behavior across all category memberships.
+						// To migrate to split-even later, add value / categories.length instead.
 						seenCategories.add(category)
 						outRow[category] = (outRow[category] ?? 0) + value
 					}
@@ -1162,12 +1199,19 @@ export function useRwaChartDataByAssetClass({
 		if (!chartDataByTicker) return empty
 
 		// Build ticker -> asset classes lookup from filtered assets.
-		const tickerToAssetClasses = new Map<string, string[]>()
+		// Use a Set per ticker to avoid both duplicate class labels and ticker-collision overwrites.
+		const tickerToAssetClasses = new Map<string, Set<string>>()
 		for (const asset of assets) {
 			const ticker = asset.ticker
 			if (!ticker) continue
-			if (!asset.assetClass || asset.assetClass.length === 0) continue
-			tickerToAssetClasses.set(ticker, asset.assetClass)
+			const assetClasses = toUniqueNonEmptyValues(asset.assetClass)
+			if (assetClasses.length === 0) continue
+
+			const tickerAssetClasses = tickerToAssetClasses.get(ticker) ?? new Set<string>()
+			for (const assetClass of assetClasses) {
+				tickerAssetClasses.add(assetClass)
+			}
+			tickerToAssetClasses.set(ticker, tickerAssetClasses)
 		}
 
 		const aggregate = (rows: RWAChartRow[], seenAssetClasses: Set<string>): RWAChartRow[] => {
@@ -1181,9 +1225,11 @@ export function useRwaChartDataByAssetClass({
 					if (!Number.isFinite(value) || value === 0) continue
 
 					const assetClasses = tickerToAssetClasses.get(ticker)
-					if (!assetClasses) continue
+					if (!assetClasses || assetClasses.size === 0) continue
 
 					for (const assetClass of assetClasses) {
+						// Intentional full-count behavior across all asset-class memberships.
+						// To migrate to split-even later, add value / assetClasses.length instead.
 						seenAssetClasses.add(assetClass)
 						outRow[assetClass] = (outRow[assetClass] ?? 0) + value
 					}
@@ -1239,13 +1285,17 @@ export function useRwaChartDataByAssetName({
 		if (!enabled) return empty
 		if (!chartDataByTicker) return empty
 
-		// Build ticker -> asset name lookup from filtered assets.
-		const tickerToAssetName = new Map<string, string>()
+		// Build ticker -> asset names lookup from filtered assets.
+		// Use a Set per ticker to avoid ticker-collision overwrites.
+		const tickerToAssetNames = new Map<string, Set<string>>()
 		for (const asset of assets) {
 			const ticker = asset.ticker
 			if (!ticker) continue
-			const name = asset.assetName || asset.ticker
-			tickerToAssetName.set(ticker, name)
+			const name = (asset.assetName || asset.ticker || '').trim()
+			if (!name) continue
+			const names = tickerToAssetNames.get(ticker) ?? new Set<string>()
+			names.add(name)
+			tickerToAssetNames.set(ticker, names)
 		}
 
 		const aggregate = (rows: RWAChartRow[], seenAssetNames: Set<string>): RWAChartRow[] => {
@@ -1258,11 +1308,15 @@ export function useRwaChartDataByAssetName({
 					if (ticker === 'timestamp') continue
 					if (!Number.isFinite(value) || value === 0) continue
 
-					const assetName = tickerToAssetName.get(ticker)
-					if (!assetName) continue
+					const assetNames = tickerToAssetNames.get(ticker)
+					if (!assetNames || assetNames.size === 0) continue
 
-					seenAssetNames.add(assetName)
-					outRow[assetName] = (outRow[assetName] ?? 0) + value
+					// Intentional full-count behavior across all ticker->assetName mappings.
+					// To migrate to split-even later, add value / assetNames.size instead.
+					for (const assetName of assetNames) {
+						seenAssetNames.add(assetName)
+						outRow[assetName] = (outRow[assetName] ?? 0) + value
+					}
 				}
 
 				out.push(outRow)
