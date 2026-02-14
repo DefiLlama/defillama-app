@@ -1,9 +1,8 @@
 import { CHART_API, CHAINS_API_V2, PROTOCOLS_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
-import type { ChartResponse, ProtocolsResponse } from './api.types'
+import type { ChartResponse, ExtraTvlChartKey, ProtocolsResponse } from './api.types'
 
 const FORK_API = `${PROTOCOLS_API.split('/lite')[0]}/forks`
-type ExtraTvlChartKey = 'borrowed' | 'staking' | 'pool2'
 
 /** Fetch all protocols from lite/protocols2. */
 export async function fetchProtocols(): Promise<ProtocolsResponse> {

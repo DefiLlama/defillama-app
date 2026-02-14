@@ -11,7 +11,7 @@ export interface ProtocolLite {
 	tvlPrevDay: number
 	tvlPrevWeek: number
 	tvlPrevMonth: number
-	mcap: number
+	mcap: number | null
 	defillamaId: string
 	geckoId?: string
 	parentProtocol?: string
@@ -36,15 +36,17 @@ export interface ProtocolsResponse {
 	parentProtocols: ParentProtocolLite[]
 }
 
+export type ExtraTvlChartKey = 'borrowed' | 'staking' | 'pool2'
+
 /** Response from lite/charts (with optional chain). */
 export interface ChartResponse {
-	tvl: Array<[string, number]>
-	staking: Array<[string, number]>
-	borrowed: Array<[string, number]>
-	pool2: Array<[string, number]>
-	vesting: Array<[string, number]>
-	offers: Array<[string, number]>
-	doublecounted: Array<[string, number]>
-	liquidstaking: Array<[string, number]>
-	dcAndLsOverlap: Array<[string, number]>
+	tvl?: Array<[string, number]>
+	staking?: Array<[string, number]>
+	borrowed?: Array<[string, number]>
+	pool2?: Array<[string, number]>
+	vesting?: Array<[string, number]>
+	offers?: Array<[string, number]>
+	doublecounted?: Array<[string, number]>
+	liquidstaking?: Array<[string, number]>
+	dcAndLsOverlap?: Array<[string, number]>
 }

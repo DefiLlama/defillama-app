@@ -148,13 +148,13 @@ function getProtocolsByCategory(
 	return final
 }
 
-const chainChartsKeys: Record<string, string> = {
+const chainChartsKeys: Partial<Record<TokenMetricType, string>> = {
 	mcap: 'chainTokenMcap',
 	price: 'chainTokenPrice',
 	fdv: 'chainTokenFdv'
 }
 
-const protocolChartsKeys: Record<string, string> = {
+const protocolChartsKeys: Partial<Record<TokenMetricType, string>> = {
 	mcap: 'mcap',
 	price: 'price',
 	fdv: 'fdv'

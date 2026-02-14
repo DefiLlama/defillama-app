@@ -10,7 +10,7 @@ import { postRuntimeLogs } from '~/utils/async'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { AIRDROP_EXCLUDE } from './airdrop-exclude'
 import { fetchAirdropsConfig, fetchChartData, fetchChainsWithExtraTvl, fetchProtocols } from './api'
-import type { ParentProtocolLite, ProtocolLite } from './api.types'
+import type { ExtraTvlChartKey, ParentProtocolLite, ProtocolLite } from './api.types'
 import type {
 	ExtraTvlMetric,
 	IExtraTvlByChainPageData,
@@ -193,7 +193,7 @@ export async function getAirdropsProtocols(): Promise<IRecentProtocolsPageData> 
 // ---------------------------------------------------------------------------
 
 interface ExtraTvlMetricConfig {
-	chartKey: Parameters<typeof fetchChainsWithExtraTvl>[0]
+	chartKey: ExtraTvlChartKey
 	suffix: string
 	label: string
 	basePath: string
@@ -242,13 +242,17 @@ export async function getExtraTvlByChain({
 		let totalPrevMonth: number | null = null
 
 		for (const ctvl in protocol.chainTvls) {
-			if (ctvl.includes(config.suffix) && (chain === 'All' ? true : ctvl.split('-')[0] === chain)) {
+			const isMetricSection = ctvl.endsWith(config.suffix)
+			const matchesChain = chain === 'All' || ctvl === `${chain}${config.suffix}`
+			if (isMetricSection && matchesChain) {
 				totalValue = (totalValue ?? 0) + protocol.chainTvls[ctvl].tvl
 				totalPrevMonth = (totalPrevMonth ?? 0) + protocol.chainTvls[ctvl].tvlPrevMonth
 			}
 		}
 
 		if (totalValue == null) continue
+
+		const pct = totalPrevMonth != null && totalValue != null ? getPercentChange(totalValue, totalPrevMonth) : null
 
 		const p: IExtraTvlProtocolRow = {
 			name: protocol.name,
@@ -257,10 +261,7 @@ export async function getExtraTvlByChain({
 			category: protocol.category,
 			chains: (protocol.defillamaId ? protocolMetadata[protocol.defillamaId]?.chains : null) ?? protocol.chains ?? [],
 			value: totalValue,
-			change_1m:
-				totalPrevMonth != null && totalValue != null
-					? Number(getPercentChange(totalValue, totalPrevMonth)?.toFixed(2) ?? 0)
-					: null
+			change_1m: pct != null ? Number(pct.toFixed(2)) : null
 		}
 
 		if (protocol.parentProtocol) {
@@ -287,6 +288,7 @@ export async function getExtraTvlByChain({
 			if (child.category) categorySet.add(child.category)
 		}
 		const categories = Array.from(categorySet)
+		const pct = totalValue != null && totalPrevMonth != null ? getPercentChange(totalValue, totalPrevMonth) : null
 
 		finalProtocols.push({
 			name: parent.name,
@@ -295,13 +297,13 @@ export async function getExtraTvlByChain({
 			category: categories.length > 1 ? null : (categories[0] ?? null),
 			chains: Array.from(new Set(children.flatMap((p) => p.chains))),
 			value: totalValue,
-			change_1m:
-				totalValue != null && totalPrevMonth != null
-					? Number(getPercentChange(totalValue, totalPrevMonth)?.toFixed(2) ?? 0)
-					: null,
+			change_1m: pct != null ? Number(pct.toFixed(2)) : null,
 			subRows: children
 		})
 	}
+
+	const change24hPct = chart.length > 1 ? getPercentChange(chart[chart.length - 1][1], chart[chart.length - 2][1]) : null
+	const change24h = change24hPct == null || !Number.isFinite(change24hPct) ? null : +change24hPct.toFixed(2)
 
 	return {
 		protocols: finalProtocols.sort((a, b) => (b.value ?? 0) - (a.value ?? 0)),
@@ -324,8 +326,7 @@ export async function getExtraTvlByChain({
 			}
 		],
 		totalValue: chart[chart.length - 1][1],
-		change24h:
-			chart.length > 1 ? +getPercentChange(chart[chart.length - 1][1], chart[chart.length - 2][1]).toFixed(2) : null,
+		change24h,
 		metric
 	}
 }
