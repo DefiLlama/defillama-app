@@ -43,9 +43,17 @@ export const buildRwaTreemapTreeData = (
 	pieData: RwaPieChartDatum[],
 	breakdownLabel: string
 ): RwaTreemapNode[] => {
-	const data = (pieData ?? [])
-		.filter((item) => Number.isFinite(item.value) && item.value > 0)
-		.map((item) => ({ ...item, name: sanitizeTreemapLabel(item.name) }))
+	const totalsByLabel = new Map<string, number>()
+	for (const item of pieData ?? []) {
+		if (!Number.isFinite(item.value) || item.value <= 0) continue
+		const label = sanitizeTreemapLabel(item.name)
+		if (!label) continue
+		totalsByLabel.set(label, (totalsByLabel.get(label) ?? 0) + item.value)
+	}
+
+	const data = Array.from(totalsByLabel.entries())
+		.map(([name, value]) => ({ name, value }))
+		.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name))
 	if (data.length === 0) return []
 
 	const total = data.reduce((sum, item) => sum + item.value, 0)
@@ -160,36 +168,32 @@ const normalizeLabelsBySlug = (values: Array<string | null | undefined>, fallbac
 }
 
 const getAssetGroupsByGrouping = (asset: IRWAProject, grouping: RwaTreemapParentGrouping | RwaTreemapNestedBy): string[] => {
-	if (grouping === 'none') {
-		return []
+	switch (grouping) {
+		case 'none':
+			return []
+		case 'assetName':
+			return normalizeLabels([asset.assetName || asset.ticker])
+		case 'assetClass':
+			return normalizeLabels(asset.assetClass ?? [])
+		case 'category':
+			return normalizeLabels(asset.category ?? [])
+		case 'platform': {
+			const platformRaw = asset.parentPlatform as unknown
+			const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
+			return normalizeLabelsBySlug(
+				platformCandidates.map((platform) => (typeof platform === 'string' ? platform : null)),
+				'Unknown'
+			)
+		}
+		case 'chain':
+		default: {
+			const chains = [
+				...(asset.chain ?? []),
+				typeof asset.primaryChain === 'string' ? asset.primaryChain : null
+			] as Array<string | null | undefined>
+			return normalizeLabelsBySlug(chains, 'Unknown')
+		}
 	}
-
-	if (grouping === 'assetName') {
-		return normalizeLabels([asset.assetName || asset.ticker])
-	}
-
-	if (grouping === 'assetClass') {
-		return normalizeLabels(asset.assetClass ?? [])
-	}
-
-	if (grouping === 'category') {
-		return normalizeLabels(asset.category ?? [])
-	}
-
-	if (grouping === 'platform') {
-		const platformRaw = asset.parentPlatform as unknown
-		const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
-		return normalizeLabelsBySlug(
-			platformCandidates.map((platform) => (typeof platform === 'string' ? platform : null)),
-			'Unknown'
-		)
-	}
-
-	const chains = [
-		...(asset.chain ?? []),
-		typeof asset.primaryChain === 'string' ? asset.primaryChain : null
-	] as Array<string | null | undefined>
-	return normalizeLabelsBySlug(chains, 'Unknown')
 }
 
 const sanitizeTreemapLabel = (value: string): string => {

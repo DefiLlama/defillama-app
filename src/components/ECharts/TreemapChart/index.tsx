@@ -38,14 +38,6 @@ const visualMax = 100
 const visualMinBound = -40
 const visualMaxBound = 40
 
-function cloneTreeData(nodes: any[]): any[] {
-	return (nodes ?? []).map((node) => ({
-		...node,
-		value: Array.isArray(node?.value) ? [...node.value] : node?.value,
-		children: node?.children ? cloneTreeData(node.children) : node?.children
-	}))
-}
-
 function normalizeTreemapValue(rawValue: unknown): Array<number | null> {
 	if (Array.isArray(rawValue)) {
 		const value = [...rawValue] as Array<number | null>
@@ -141,7 +133,7 @@ export default function TreemapChart({
 	useChartResize(chartRef)
 
 	const chartDataTree = useMemo(() => {
-		const cloned = normalizeTreemapNodes(cloneTreeData(treeData ?? []))
+		const cloned = normalizeTreemapNodes(treeData ?? [])
 		// RWA treemap uses explicit item colors from caller, no red/green gradient mapping.
 		if (!isRwaVariant) addColorGradientField(cloned)
 		return cloned
@@ -197,8 +189,8 @@ export default function TreemapChart({
 			],
 			tooltip: {
 				formatter: function (info) {
-					let treePathInfo = info.treePathInfo
-					let treePath = []
+					const treePathInfo = Array.isArray(info?.treePathInfo) ? info.treePathInfo : []
+					const treePath: string[] = []
 					for (let i = 1; i < treePathInfo.length; i++) {
 						treePath.push(treePathInfo[i].name)
 					}
@@ -220,9 +212,10 @@ export default function TreemapChart({
 							const n = typeof value === 'number' ? value : Number(value)
 							return Number.isFinite(n) ? Number(n.toFixed(2)) : 0
 						}
-						const metricValue = formattedNum(info.value[0], true)
-						const share = formatPct(info.value[1])
-						const shareOfTotal = formatPct(info.value[2])
+						const normalizedValue = normalizeTreemapValue(info.value)
+						const metricValue = formattedNum(normalizedValue[0], true)
+						const share = formatPct(normalizedValue[1])
+						const shareOfTotal = formatPct(normalizedValue[2])
 
 						// Nested RWA treemap shape can be:
 						// [Parent, Child] (e.g. Category -> Asset Class) or [Leaf].
@@ -256,7 +249,7 @@ export default function TreemapChart({
 							`1d Change: ${info.value[2]}%`
 						].join('')
 					} else {
-						return `Project: ${treePath[0]}`
+						return `Project: ${treePath[0] || info.name || ''}`
 					}
 				}
 			},
@@ -321,33 +314,37 @@ export default function TreemapChart({
 						position: 'insideTopRight',
 						formatter: function (params) {
 							let arr
-							if (params?.data?.path?.split('/')?.length > 1) {
+							const path = typeof params?.data?.path === 'string' ? params.data.path : ''
+							const pathParts = path ? path.split('/') : []
+							if (pathParts.length > 1) {
 								const hasChildren = Array.isArray(params?.data?.children) && params.data.children.length > 0
 								if (isRwaVariant && hasChildren) {
 									// Parent nodes: show the group name directly for visibility.
 									return String(params.name ?? '')
 								}
 
+								const normalizedValue = normalizeTreemapValue(params?.value)
+
 								arr =
 									variant === 'narrative'
 										? [
-												`{name|${params.data.path.split('/').slice(-1)[0]}}`,
-												`Return: {apy| ${params.value[1]}%}`,
-												`Market Cap: {mcap| ${formattedNum(params.value[0], true)}}`
+												`{name|${pathParts[pathParts.length - 1]}}`,
+												`Return: {apy| ${normalizedValue[1] ?? 0}%}`,
+												`Market Cap: {mcap| ${formattedNum(normalizedValue[0], true)}}`
 											]
 										: isRwaVariant
 											? [
-													`${params.data.path.split('/').slice(-1)[0]}`,
-													`${valueLabel}: ${formattedNum(params.value[0], true)}`,
-													`Share: ${Number.isFinite(params.value[1]) ? params.value[1] : 0}%`
+													`${pathParts[pathParts.length - 1]}`,
+													`${valueLabel}: ${formattedNum(normalizedValue[0], true)}`,
+													`Share: ${Number.isFinite(normalizedValue[1]) ? normalizedValue[1] : 0}%`
 												]
 											: [
-													`{name|${params.data.path.split('/').slice(-1)[0]}}`,
-													`Spot: {apy| ${params.value[1]}%}`,
-													`Change {apy| ${params.value[2]}%}`
+													`{name|${pathParts[pathParts.length - 1]}}`,
+													`Spot: {apy| ${normalizedValue[1] ?? 0}%}`,
+													`Change {apy| ${normalizedValue[2] ?? 0}%}`
 												]
 							} else {
-								arr = [params.name]
+								arr = [String(params.name ?? '')]
 							}
 							return arr.join('\n')
 						},
