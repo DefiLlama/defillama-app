@@ -85,6 +85,7 @@ const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 	},
 	{
 		header: 'Combined TVL',
+		id: 'tvl',
 		accessorFn: (row) => row.tvl,
 		size: 135,
 		meta: {
@@ -97,6 +98,7 @@ const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 	},
 	{
 		header: '1d TVL Change',
+		id: 'change_1d',
 		accessorFn: (row) => row.change_1d,
 		size: 140,
 		meta: {
@@ -106,6 +108,7 @@ const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 	},
 	{
 		header: '7d TVL Change',
+		id: 'change_7d',
 		accessorFn: (row) => row.change_7d,
 		size: 140,
 		meta: {
@@ -115,6 +118,7 @@ const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 	},
 	{
 		header: '1m TVL Change',
+		id: 'change_1m',
 		accessorFn: (row) => row.change_1m,
 		size: 140,
 		meta: {
@@ -124,6 +128,7 @@ const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 	},
 	{
 		header: 'Combined 24h Revenue',
+		id: 'revenue',
 		accessorFn: (row) => row.revenue,
 		size: 200,
 		meta: {
@@ -181,7 +186,7 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 			type: 'line' as const,
 			name: categoryName,
 			encode: { x: 'timestamp', y: categoryName },
-			stack: categoryName,
+			stack: 'stackA',
 			color: categoryColors[categoryName]
 		}))
 

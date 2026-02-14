@@ -1,4 +1,4 @@
-import type { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import { PROTOCOLS_API } from '~/constants/index'
@@ -92,7 +92,7 @@ export async function getStaticPaths() {
 
 const toggleOptions = tvlOptions.filter((key) => !['doublecounted', 'liquidstaking'].includes(key.key))
 
-export default function Protocols(props) {
+export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	const categoryLabel = props.category ?? props.tag ?? ''
 	const presentation = getProtocolCategoryPresentation({
 		label: categoryLabel,

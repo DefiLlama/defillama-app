@@ -83,17 +83,17 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 					timestampKey == null
 						? 0
 						: toggledSettings.reduce((sum, e) => sum + (props.extraTvlCharts[e]?.[timestampKey] ?? 0), 0)
-			const currentTvlValue = typeof row.TVL === 'number' ? row.TVL : Number(row.TVL ?? 0)
-			const safeCurrentTvlValue = Number.isFinite(currentTvlValue) ? currentTvlValue : 0
-			const nextTvlValue = safeCurrentTvlValue + extraSum
-			const timestamp = row.timestamp
+				const currentTvlValue = typeof row.TVL === 'number' ? row.TVL : Number(row.TVL ?? 0)
+				const safeCurrentTvlValue = Number.isFinite(currentTvlValue) ? currentTvlValue : 0
+				const nextTvlValue = safeCurrentTvlValue + extraSum
+				const timestamp = row.timestamp
 
-			if (shouldMirrorBorrowedChart) {
-				return { ...row, timestamp, TVL: nextTvlValue, Borrowed: nextTvlValue }
+				if (shouldMirrorBorrowedChart) {
+					return { ...row, timestamp, TVL: nextTvlValue, Borrowed: nextTvlValue }
+				}
+
+				return { ...row, timestamp, TVL: nextTvlValue }
 			}
-
-			return { ...row, timestamp, TVL: nextTvlValue }
-		}
 		)
 
 		return {
@@ -131,11 +131,13 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 
 		const dataBySeries = new Map<string, Map<number, number | null>>()
 		const dimensionOrder: string[] = []
-		const groupedSeries = chartSeries.map((series) => {
+		const groupedSeries: Array<(typeof chartSeries)[number]> = []
+		for (const series of chartSeries) {
 			const yDimension = typeof series.encode.y === 'string' ? series.encode.y : null
 
 			if (!yDimension) {
-				return series
+				groupedSeries.push(series)
+				continue
 			}
 
 			dimensionOrder.push(yDimension)
@@ -167,11 +169,11 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 
 			dataBySeries.set(yDimension, new Map(groupedData.map(([timestamp, value]) => [timestamp, value])))
 
-			return {
+			groupedSeries.push({
 				...series,
 				type: series.type === 'bar' && groupBy === 'cumulative' ? 'line' : series.type
-			}
-		})
+			})
+		}
 
 		const timestamps = new Set<number>()
 		for (const points of dataBySeries.values()) {
@@ -223,7 +225,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 			if (value == null) return ''
 			if (typeof value === 'number' || typeof value === 'boolean') return value
 			const normalizedValue = String(value)
-			return normalizedValue.includes(',') ? `"${normalizedValue}"` : normalizedValue
+			const escapedValue = normalizedValue.replace(/"/g, '""')
+			return escapedValue.includes(',') ? `"${escapedValue}"` : escapedValue
 		}
 
 		const headers = categoryColumns.map(getHeaderLabel)

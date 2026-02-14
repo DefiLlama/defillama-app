@@ -595,8 +595,8 @@ export async function getProtocolsByCategoryOrTag(
 			return acc
 		}, {})
 
-		if (extraTvls.excludeParent != null) {
-			tvl = (tvl ?? 0) - extraTvls.excludeParent
+		if (extraTvls.excludeParent != null && tvl != null) {
+			tvl = Math.max(0, tvl - extraTvls.excludeParent)
 		}
 
 		const borrowed = extraTvls.borrowed ?? null
@@ -835,7 +835,7 @@ function getCategoryKeysFromApi(
 export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCategoriesPageData> {
 	const [{ protocols }, revenueData, { chart, categories }]: [
 		ProtocolsApiResponse,
-		IAdapterChainMetrics,
+		IAdapterChainMetrics | null,
 		CategoriesApiResponse
 	] = await Promise.all([
 		fetchJson<ProtocolsApiResponse>(PROTOCOLS_API),
@@ -843,7 +843,7 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 			adapterType: 'fees',
 			chain: 'All',
 			dataType: 'dailyRevenue'
-		}),
+		}).catch(() => null),
 		fetchJson<CategoriesApiResponse>(CATEGORY_API)
 	])
 
@@ -853,7 +853,7 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 	}
 
 	const revenueByProtocol: Record<string, number> = {}
-	for (const protocol of revenueData.protocols ?? []) {
+	for (const protocol of revenueData?.protocols ?? []) {
 		revenueByProtocol[protocol.defillamaId] = protocol.total24h ?? 0
 	}
 
@@ -891,6 +891,7 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 
 	for (const protocol of protocols) {
 		const categoryName = protocol.category
+		if (!categoryName) continue
 		const protocolRevenue = revenueByProtocol[protocol.defillamaId] ?? 0
 		const protocolTvl = protocol.tvl ?? 0
 		const protocolTvlPrevDay = protocol.tvlPrevDay ?? 0
