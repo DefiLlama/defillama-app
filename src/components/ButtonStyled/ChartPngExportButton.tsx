@@ -16,7 +16,7 @@ const approximateTextWidth = (text: string, fontSize: number) => {
 }
 
 const DEFAULT_CLASSNAME =
-	'flex items-center justify-center gap-1 rounded-md border border-blue-500 px-2 py-1.5 text-xs text-blue-500 hover:bg-(--link-hover-bg) hover:text-white focus-visible:bg-(--link-hover-bg) focus-visible:text-white disabled:text-(--text-disabled)'
+	'flex items-center justify-center gap-1 rounded-md border border-blue-500 px-2 py-1.5 text-xs text-blue-500 hover:bg-(--link-hover-bg) hover:text-black dark:hover:text-white focus-visible:bg-(--link-hover-bg) focus-visible:text-white disabled:text-(--text-disabled)'
 
 interface ChartPngExportButtonProps {
 	chartInstance: () => echarts.ECharts | null

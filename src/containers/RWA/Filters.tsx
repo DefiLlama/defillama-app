@@ -51,6 +51,17 @@ const FILTER_QUERY_KEYS = [
 	'selfCustodyStates'
 ] as const
 
+const CHART_QUERY_KEYS = [
+	'chartType',
+	'chartView',
+	'nonTimeSeriesChartBreakdown',
+	'treemapNestedBy',
+	// Legacy key kept for cleanup when present in shared links/bookmarks.
+	'pieChartBreakdown'
+] as const
+
+const RESETTABLE_QUERY_KEYS = [...FILTER_QUERY_KEYS, ...CHART_QUERY_KEYS] as const
+
 const formatPercentRange = (minPercent: number | null, maxPercent: number | null) => {
 	const minLabel = minPercent != null ? `${minPercent.toLocaleString()}%` : 'no min'
 	const maxLabel = maxPercent != null ? `${maxPercent.toLocaleString()}%` : 'no max'
@@ -246,9 +257,9 @@ function Filters({
 
 	const defaultSelectedTypes = options.typeOptions.flatMap((option) => (option.key !== 'Wrapper' ? [option.key] : []))
 
-	// Determine active filters purely from URL query.
+	// Determine active filters/chart controls purely from URL query.
 	// Selected arrays often default to "all values" when there is no query set.
-	const hasActiveFilters = FILTER_QUERY_KEYS.some((key) => router.query[key] != null)
+	const hasActiveFilters = RESETTABLE_QUERY_KEYS.some((key) => router.query[key] != null)
 
 	const switchesAndResetClassName = nestedMenu
 		? 'mt-2 flex flex-col gap-3 border-t border-(--form-control-border) px-3 pt-3'
@@ -479,7 +490,7 @@ function Filters({
 				<button
 					onClick={() => {
 						const nextQuery: Record<string, any> = { ...router.query }
-						for (const key of FILTER_QUERY_KEYS) {
+						for (const key of RESETTABLE_QUERY_KEYS) {
 							delete nextQuery[key]
 						}
 						router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
