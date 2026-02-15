@@ -284,14 +284,12 @@ export async function getDATCompanyData(company: string): Promise<IDATCompanyPag
 		const transactionRows = ensureChronologicalPairs(
 			data.transactions
 				.filter((item) => item.asset === assetKey)
-				.map(
-					(item): [number, number, number | null, number | null] => [
-						Math.floor(new Date(item.end_date ?? item.start_date).getTime() / 1000),
-						item.type === 'sale' ? -Number(item.amount) : Number(item.amount),
-						item.avg_price ? Number(item.avg_price) : null,
-						item.usd_value ? Number(item.usd_value) : null
-					]
-				)
+				.map((item): [number, number, number | null, number | null] => [
+					Math.floor(new Date(item.end_date ?? item.start_date).getTime() / 1000),
+					item.type === 'sale' ? -Number(item.amount) : Number(item.amount),
+					item.avg_price != null ? Number(item.avg_price) : null,
+					item.usd_value != null ? Number(item.usd_value) : null
+				])
 		)
 
 		let totalAmount = 0

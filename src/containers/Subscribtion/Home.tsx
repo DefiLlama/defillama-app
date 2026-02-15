@@ -23,6 +23,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>('month')
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
+	// oxlint-disable-next-line no-unused-vars
 	const [showEmailForm, setShowEmailForm] = useState(false)
 	const [showReturnModal, setShowReturnModal] = useState(false)
 	const [hasShownModal, setHasShownModal] = useState(false)

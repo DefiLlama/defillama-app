@@ -16,6 +16,7 @@ import type { DashboardItemConfig } from '../types'
 import { CHART_TYPES } from '../types'
 import type { ComparisonPreset } from './ComparisonWizard/types'
 
+// oxlint-disable-next-line no-unused-vars
 const CreateDashboardModal = lazy(() =>
 	import('./CreateDashboardModal').then((m) => ({ default: m.CreateDashboardModal }))
 )

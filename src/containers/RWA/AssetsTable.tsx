@@ -49,7 +49,7 @@ export function RWAAssetsTable({
 		if (!deferredSearchValue) return assets
 
 		return matchSorter(assets, deferredSearchValue, {
-			keys: ['name', 'ticker'],
+			keys: ['assetName', 'ticker'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
 	}, [assets, deferredSearchValue])
@@ -437,6 +437,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			<TVLBreakdownCell
 				value={info.getValue() as number | null | undefined}
 				breakdown={info.row.original.defiActiveTvl?.breakdown}
+				description={definitions.defiActiveTvl.description}
 			/>
 		),
 		meta: {
@@ -452,6 +453,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			<TVLBreakdownCell
 				value={info.getValue() as number | null | undefined}
 				breakdown={info.row.original.activeMcap?.breakdown}
+				description={definitions.activeMcap.description}
 			/>
 		),
 		meta: {
@@ -467,6 +469,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			<TVLBreakdownCell
 				value={info.getValue() as number | null | undefined}
 				breakdown={info.row.original.onChainMcap?.breakdown}
+				description={definitions.onChainMcap.description}
 			/>
 		),
 		size: 168,
@@ -613,10 +616,12 @@ const columns: ColumnDef<AssetRow>[] = [
 
 const TVLBreakdownCell = ({
 	value,
-	breakdown
+	breakdown,
+	description
 }: {
 	value: number | null | undefined
 	breakdown: Array<[string, number]> | null | undefined
+	description: string
 }) => {
 	if (value == null) {
 		return null
@@ -628,7 +633,7 @@ const TVLBreakdownCell = ({
 
 	return (
 		<Tooltip
-			content={<BreakdownTooltipContent breakdown={breakdown} />}
+			content={<BreakdownTooltipContent breakdown={breakdown} description={description} />}
 			className="justify-end underline decoration-dotted"
 		>
 			{formattedNum(value, true)}

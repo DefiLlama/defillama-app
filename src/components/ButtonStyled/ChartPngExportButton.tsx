@@ -124,7 +124,27 @@ export function ChartPngExportButton({
 					}
 				}
 
-				currentOptions.textStyle = { ...(currentOptions.textStyle ?? {}), fontSize: 24 }
+				const isSankeyChart =
+					Array.isArray(currentOptions.series) &&
+					currentOptions.series.some(
+						(series) => typeof series === 'object' && series != null && 'type' in series && series.type === 'sankey'
+					)
+				const isPieChart =
+					Array.isArray(currentOptions.series) &&
+					currentOptions.series.some(
+						(series) => typeof series === 'object' && series != null && 'type' in series && series.type === 'pie'
+					)
+				const isTreemapChart =
+					Array.isArray(currentOptions.series) &&
+					currentOptions.series.some(
+						(series) => typeof series === 'object' && series != null && 'type' in series && series.type === 'treemap'
+					)
+
+				// Treemap labels rely on local rich-text sizing. A global textStyle boost makes
+				// inline label text (e.g. "DeFi Active TVL") too large vs the value text.
+				if (!isTreemapChart) {
+					currentOptions.textStyle = { ...(currentOptions.textStyle ?? {}), fontSize: 24 }
+				}
 
 				if (currentOptions.xAxis) {
 					// @ts-expect-error - all options are in array format
@@ -178,11 +198,6 @@ export function ChartPngExportButton({
 				}
 
 				// Handle Sankey chart series - scale up labels for export
-				const isSankeyChart =
-					Array.isArray(currentOptions.series) && currentOptions.series.some((s: any) => s.type === 'sankey')
-				const isPieChart =
-					Array.isArray(currentOptions.series) && currentOptions.series.some((s: any) => s.type === 'pie')
-
 				if (isSankeyChart && Array.isArray(currentOptions.series)) {
 					currentOptions.series = currentOptions.series.map((series: any) => {
 						if (series.type === 'sankey') {
@@ -220,7 +235,7 @@ export function ChartPngExportButton({
 				const legendFontSize = 24
 				const legendItemWidth = 48
 				const originalLegendShow = legendArray.length > 0 ? legendArray.some((l: any) => l?.show !== false) : false
-				const shouldShowLegendForExport = !isSankeyChart && (!isPieChart || originalLegendShow)
+				const shouldShowLegendForExport = !isSankeyChart && !isTreemapChart && (!isPieChart || originalLegendShow)
 
 				// Legend sizing needs legend item names, not series names (pie legend uses data item names).
 				const legendItems: string[] =
@@ -333,7 +348,26 @@ export function ChartPngExportButton({
 								}
 							: undefined
 					},
-					left: 14
+					left: 14,
+					top: baseTopPadding
+				}
+
+				// Treemap export layout:
+				// - Keep equal horizontal and bottom padding
+				// - Push the chart body down to leave a clear gap under the title
+				if (isTreemapChart && Array.isArray(currentOptions.series)) {
+					currentOptions.series = currentOptions.series.map((series: any) => {
+						if (series?.type !== 'treemap') return series
+
+						return {
+							...series,
+							top: gridTop,
+							left: 16,
+							right: 16,
+							bottom: 16,
+							breadcrumb: { ...(series?.breadcrumb ?? {}), show: false }
+						}
+					})
 				}
 
 				// Set options on the temporary chart with any modifications you want

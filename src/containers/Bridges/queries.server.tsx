@@ -312,6 +312,7 @@ function buildBridgeChainsMultiSeriesChart({
 	}
 }
 
+// oxlint-disable-next-line no-unused-vars
 async function getBridgePageData(bridge: string) {
 	const { bridges } = await getBridges()
 	const bridgeData = bridges.filter((obj) => slug(obj.displayName) === slug(bridge))[0]

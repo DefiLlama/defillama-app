@@ -240,6 +240,7 @@ export const getRowDisplayProps = (
 	}
 }
 
+// oxlint-disable-next-line no-unused-vars
 const getChainNameForRow = (row: Row<NormalizedRow>): string | null => {
 	if (!row) return null
 	if (!row.getIsGrouped()) {

@@ -27,6 +27,7 @@ export interface StablecoinListAsset {
 		}
 	>
 	deprecated?: boolean
+	delisted?: boolean
 	yieldBearing?: boolean
 }
 
@@ -74,7 +75,7 @@ interface StablecoinDetailToken {
 	bridgedTo?: Record<string, number> | number
 }
 
-interface StablecoinChainBalanceToken {
+export type StablecoinChainBalanceToken = {
 	date: number
 	circulating?: Record<string, number>
 	unreleased?: Record<string, number>
@@ -82,11 +83,11 @@ interface StablecoinChainBalanceToken {
 	bridgedTo?: StablecoinChainBalanceAmount
 }
 
-type StablecoinChainBalanceAmount = Record<string, number | StablecoinBridgeBreakdown>
+export type StablecoinChainBalanceAmount = Record<string, number | StablecoinBridgeBreakdown>
 
-type StablecoinBridgeBreakdown = Record<string, StablecoinBridgeValue>
+export type StablecoinBridgeBreakdown = Record<string, StablecoinBridgeValue>
 
-type StablecoinBridgeValue =
+export type StablecoinBridgeValue =
 	| number
 	| { amount: number; source: string }
 	| { amount?: never; source: string }
@@ -98,7 +99,7 @@ export interface StablecoinChartResponse {
 	doublecountedIds?: string[]
 }
 
-export interface StablecoinChartPoint {
+export type StablecoinChartPoint = {
 	date: string
 	totalCirculatingUSD?: Record<string, number>
 	totalCirculating?: Record<string, number>

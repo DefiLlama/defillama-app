@@ -29,6 +29,7 @@ interface SubjectMultiPanelProps {
 	hideTabToggle?: boolean
 }
 
+// oxlint-disable-next-line no-unused-vars
 function SubjectMultiPanel({
 	activeTab,
 	onTabChange,

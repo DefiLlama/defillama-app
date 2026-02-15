@@ -12,6 +12,7 @@ function getCGMarketsDataURLs() {
 	return urls
 }
 
+// oxlint-disable-next-line no-unused-vars
 const useFetchCoingeckoTokensList = () => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['coingeckotokenslist'],
@@ -25,6 +26,7 @@ const useFetchCoingeckoTokensList = () => {
 	}
 }
 
+// oxlint-disable-next-line no-unused-vars
 async function retryCoingeckoRequest(func, retries) {
 	for (let i = 0; i < retries; i++) {
 		try {
@@ -76,6 +78,7 @@ export function maxAgeForNext(minutesForRollover: number[] = [22]) {
 	return maxAge
 }
 
+// oxlint-disable-next-line no-unused-vars
 async function fetchChainMcaps(chains: Array<[string, string]>) {
 	if (chains.length === 0) {
 		return {}

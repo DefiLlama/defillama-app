@@ -17,15 +17,21 @@ import {
 	PeggedFilters,
 	stablecoinAttributeOptions,
 	stablecoinBackingOptions,
-	stablecoinPegTypeOptions
+	stablecoinPegTypeOptions,
+	type StablecoinFilterOption
 } from '~/containers/Stablecoins/Filters'
-import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from '~/containers/Stablecoins/hooks'
+import {
+	parseBooleanQueryParam,
+	useCalcCirculating,
+	useCalcGroupExtraPeggedByDay
+} from '~/containers/Stablecoins/hooks'
 import {
 	buildStablecoinChartData,
+	type FormattedStablecoinAsset,
 	getStablecoinDominance,
 	getStablecoinMcapStatsFromTotals,
 	getStablecoinTopTokenFromChartData,
-	type IStablecoinTopTokenCandidate
+	type StablecoinChartDataPoint
 } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, slug, toNiceCsvDate, toNumberOrNullFromQueryParam } from '~/utils'
@@ -51,21 +57,9 @@ const STABLECOIN_FILTER_QUERY_KEYS = [
 const UNRELEASED_QUERY_KEY = 'unreleased'
 
 type MultiSeriesCharts = NonNullable<IMultiSeriesChart2Props['charts']>
-type StablecoinFilterableAsset = IStablecoinTopTokenCandidate & {
-	name: string
-	mcap: number
-	[key: string]: unknown
-}
-type StablecoinChartDatum = {
-	date: string | number
-	[key: string]: number | string | null | undefined | Record<string, number>
-}
-type StablecoinFilterOption = {
-	key: string
-	filterFn: (item: StablecoinFilterableAsset) => boolean
-}
+
 type StablecoinFilterResolverParams = {
-	filteredPeggedAssets: StablecoinFilterableAsset[]
+	filteredPeggedAssets: FormattedStablecoinAsset[]
 	peggedNameToChartDataIndex: Record<string, number>
 	defaultFilteredIndexes: number[]
 	hasActiveStablecoinUrlFilters: boolean
@@ -87,7 +81,7 @@ const stablecoinBackingOptionsMap: Map<string, StablecoinFilterOption> = new Map
 )
 
 const matchesAnySelectedOption = (
-	asset: StablecoinFilterableAsset,
+	asset: FormattedStablecoinAsset,
 	selectedOptions: string[],
 	optionsMap: Map<string, StablecoinFilterOption>
 ): boolean => {
@@ -100,13 +94,14 @@ const matchesAnySelectedOption = (
 }
 
 const isWithinMcapRange = (
-	asset: StablecoinFilterableAsset,
+	asset: FormattedStablecoinAsset,
 	minMcap: number | null,
 	maxMcap: number | null
 ): boolean => {
 	if (minMcap == null && maxMcap == null) return true
-	if (minMcap != null && asset.mcap < minMcap) return false
-	if (maxMcap != null && asset.mcap > maxMcap) return false
+	const mcap = asset.mcap ?? 0
+	if (minMcap != null && mcap < minMcap) return false
+	if (maxMcap != null && mcap > maxMcap) return false
 	return true
 }
 
@@ -120,7 +115,7 @@ const resolveFilteredStablecoinData = ({
 	selectedBackings,
 	minMcap,
 	maxMcap
-}: StablecoinFilterResolverParams): { peggedAssets: StablecoinFilterableAsset[]; filteredIndexes: number[] } => {
+}: StablecoinFilterResolverParams): { peggedAssets: FormattedStablecoinAsset[]; filteredIndexes: number[] } => {
 	// Fast path: default page load (no URL filters) should avoid per-asset filtering work.
 	if (!hasActiveStablecoinUrlFilters) {
 		return {
@@ -131,7 +126,7 @@ const resolveFilteredStablecoinData = ({
 
 	const chartDataIndexes: number[] = []
 	const seenChartDataIndexes = new Set<number>()
-	const peggedAssets: StablecoinFilterableAsset[] = []
+	const peggedAssets: FormattedStablecoinAsset[] = []
 
 	for (const asset of filteredPeggedAssets) {
 		const matchesAttribute = matchesAnySelectedOption(asset, selectedAttributes, stablecoinAttributeOptionsMap)
@@ -160,10 +155,10 @@ const resolveFilteredStablecoinData = ({
 interface StablecoinsByChainProps {
 	selectedChain?: string
 	chains?: string[]
-	filteredPeggedAssets: StablecoinFilterableAsset[]
+	filteredPeggedAssets: FormattedStablecoinAsset[]
 	peggedAssetNames: string[]
 	peggedNameToChartDataIndex: Record<string, number>
-	chartDataByPeggedAsset: StablecoinChartDatum[][]
+	chartDataByPeggedAsset: StablecoinChartDataPoint[][]
 	doublecountedIds?: number[]
 	availableBackings: string[]
 	availablePegTypes: string[]
@@ -284,7 +279,7 @@ export function StablecoinsByChain({
 
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label, router.query) }))
 
-	const peggedTotals = useCalcCirculating<StablecoinFilterableAsset>(peggedAssets, includeUnreleased)
+	const peggedTotals = useCalcCirculating<FormattedStablecoinAsset>(peggedAssets, includeUnreleased)
 
 	const chainsCirculatingValues = React.useMemo(() => {
 		return preparePieChartData({ data: peggedTotals, sliceIdentifier: 'symbol', sliceValue: 'mcap', limit: 10 })
@@ -296,7 +291,7 @@ export function StablecoinsByChain({
 	)
 
 	const prepareCsv = () => {
-		const rows = [['Timestamp', 'Date', ...filteredPeggedNames, 'Total']]
+		const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', ...filteredPeggedNames, 'Total']]
 		const sortedData = [...stackedData].sort((a, b) => a.date - b.date)
 		for (const day of sortedData) {
 			rows.push([
@@ -308,7 +303,7 @@ export function StablecoinsByChain({
 				}, 0)
 			])
 		}
-		return { filename: 'stablecoins.csv', rows: rows as (string | number | boolean)[][] }
+		return { filename: 'stablecoins.csv', rows }
 	}
 
 	let title = `Stablecoins Market Cap`
@@ -420,7 +415,7 @@ export function StablecoinsByChain({
 						}
 						return row
 					})
-					.filter(Boolean),
+					.filter((row): row is Record<string, number> => row != null),
 				dimensions: ['timestamp', ...filteredPeggedNames]
 			},
 			dominanceCharts: filteredPeggedNames.map((name, i) => ({
@@ -471,14 +466,14 @@ export function StablecoinsByChain({
 	return (
 		<>
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
-			{entityQuestions?.length > 0 && (
+			{entityQuestions != null && entityQuestions.length > 0 ? (
 				<EntityQuestionsStrip
 					questions={entityQuestions}
 					entitySlug="stablecoins"
 					entityType="page"
 					entityName="Stablecoins"
 				/>
-			)}
+			) : null}
 
 			<PeggedFilters
 				pathname={selectedChain === 'All' ? '/stablecoins' : `/stablecoins/${selectedChain}`}
@@ -748,12 +743,6 @@ const tokenColors: Record<string, string> = {
 	USDTB: '#C0C0C0',
 	FDUSD: '#00FF00',
 	Others: '#FF1493'
-}
-const parseBooleanQueryParam = (value: string | string[] | undefined): boolean => {
-	if (Array.isArray(value)) return value.some((v) => parseBooleanQueryParam(v))
-	if (typeof value !== 'string') return false
-	const normalized = value.trim().toLowerCase()
-	return normalized === 'true' || normalized === '1' || normalized === 'yes'
 }
 const chartOptions = {
 	grid: {

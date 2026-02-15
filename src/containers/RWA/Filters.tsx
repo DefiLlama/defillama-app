@@ -1,13 +1,23 @@
 import { useRouter } from 'next/router'
 import { startTransition } from 'react'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
+import { Icon } from '~/components/Icon'
+import { NestedMenu, NestedMenuItem } from '~/components/NestedMenu'
 import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import type { ExcludeQueryKey, SelectValues } from '~/components/Select/types'
 import { Switch } from '~/components/Switch'
 import type { IRWAAssetsOverview } from './api.types'
+import { definitions } from './definitions'
 
 const ratioPercentInputProps = { min: 0, step: '0.01' } as const
+const ATTRIBUTE_FILTER_STATES = ['yes', 'no', 'unknown'] as const
+type RWAAttributeFilterState = (typeof ATTRIBUTE_FILTER_STATES)[number]
+const ATTRIBUTE_FILTER_STATE_LABELS: Record<RWAAttributeFilterState, string> = {
+	yes: 'Yes',
+	no: 'No',
+	unknown: 'Unknown'
+}
 
 const FILTER_QUERY_KEYS = [
 	'assetNames',
@@ -31,7 +41,14 @@ const FILTER_QUERY_KEYS = [
 	'minDefiActiveTvlToActiveMcapPct',
 	'maxDefiActiveTvlToActiveMcapPct',
 	'includeStablecoins',
-	'includeGovernance'
+	'includeGovernance',
+	'redeemableStates',
+	'attestationsStates',
+	'cexListedStates',
+	'kycForMintRedeemStates',
+	'kycAllowlistedWhitelistedToTransferHoldStates',
+	'transferableStates',
+	'selfCustodyStates'
 ] as const
 
 const formatPercentRange = (minPercent: number | null, maxPercent: number | null) => {
@@ -63,6 +80,13 @@ type RWAFilterSelections = {
 	selectedRwaClassifications: string[]
 	selectedAccessModels: string[]
 	selectedIssuers: string[]
+	selectedRedeemableStates: RWAAttributeFilterState[]
+	selectedAttestationsStates: RWAAttributeFilterState[]
+	selectedCexListedStates: RWAAttributeFilterState[]
+	selectedKycForMintRedeemStates: RWAAttributeFilterState[]
+	selectedKycAllowlistedWhitelistedToTransferHoldStates: RWAAttributeFilterState[]
+	selectedTransferableStates: RWAAttributeFilterState[]
+	selectedSelfCustodyStates: RWAAttributeFilterState[]
 	minDefiActiveTvlToOnChainMcapPct: number | null
 	maxDefiActiveTvlToOnChainMcapPct: number | null
 	minActiveMcapToOnChainMcapPct: number | null
@@ -79,6 +103,13 @@ type RWAFilterActions = {
 	setDefiActiveTvlToActiveMcapPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
 	setIncludeStablecoins: (value: boolean) => void
 	setIncludeGovernance: (value: boolean) => void
+	setRedeemableStates: (values: RWAAttributeFilterState[]) => void
+	setAttestationsStates: (values: RWAAttributeFilterState[]) => void
+	setCexListedStates: (values: RWAAttributeFilterState[]) => void
+	setKycForMintRedeemStates: (values: RWAAttributeFilterState[]) => void
+	setKycAllowlistedWhitelistedToTransferHoldStates: (values: RWAAttributeFilterState[]) => void
+	setTransferableStates: (values: RWAAttributeFilterState[]) => void
+	setSelfCustodyStates: (values: RWAAttributeFilterState[]) => void
 }
 
 type RWAOverviewFiltersProps = {
@@ -87,6 +118,106 @@ type RWAOverviewFiltersProps = {
 	options: RWAFilterOptions
 	selections: RWAFilterSelections
 	actions: RWAFilterActions
+}
+
+type RWAAttributeFilterConfig = {
+	queryKey: string
+	label: string
+	selectedStates: RWAAttributeFilterState[]
+	onUpdateStates: (values: RWAAttributeFilterState[]) => void
+}
+
+const toggleAttributeFilterState = (
+	selectedStates: RWAAttributeFilterState[],
+	state: RWAAttributeFilterState
+): RWAAttributeFilterState[] => {
+	const selectedSet = new Set(selectedStates)
+	if (selectedSet.has(state)) {
+		selectedSet.delete(state)
+	} else {
+		selectedSet.add(state)
+	}
+	return ATTRIBUTE_FILTER_STATES.filter((value) => selectedSet.has(value))
+}
+
+function AttributesFilter({
+	nestedMenu,
+	attributeFilters
+}: {
+	nestedMenu?: boolean
+	attributeFilters: RWAAttributeFilterConfig[]
+}) {
+	const useDesktopPortal = !nestedMenu
+
+	const activeAttributeFiltersCount = attributeFilters.filter(
+		(filter) => filter.selectedStates.length !== ATTRIBUTE_FILTER_STATES.length
+	).length
+
+	const trigger =
+		activeAttributeFiltersCount > 0 ? (
+			<>
+				<span>Attributes: </span>
+				<span className="text-(--link)">{activeAttributeFiltersCount} active</span>
+			</>
+		) : (
+			<span>Attributes</span>
+		)
+
+	const renderAttributeSubmenus = () =>
+		attributeFilters.map((filter) => {
+			const subMenuLabel =
+				filter.selectedStates.length === ATTRIBUTE_FILTER_STATES.length
+					? filter.label
+					: `${filter.label} (${filter.selectedStates.length}/3)`
+
+			return (
+				<NestedMenu
+					key={filter.queryKey}
+					label={subMenuLabel}
+					menuPortal={useDesktopPortal}
+					className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) sm:rounded-none"
+				>
+					{ATTRIBUTE_FILTER_STATES.map((state) => {
+						const isSelected = filter.selectedStates.includes(state)
+						return (
+							<NestedMenuItem
+								key={`${filter.queryKey}-${state}`}
+								hideOnClick={false}
+								onClick={(event) => {
+									event.preventDefault()
+									event.stopPropagation()
+									filter.onUpdateStates(toggleAttributeFilterState(filter.selectedStates, state))
+								}}
+								className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+							>
+								<span>{ATTRIBUTE_FILTER_STATE_LABELS[state]}</span>
+								<span className="flex h-3.5 w-3.5 items-center justify-center">
+									{isSelected ? <Icon name="check" height={12} width={12} className="text-(--link)" /> : null}
+								</span>
+							</NestedMenuItem>
+						)
+					})}
+				</NestedMenu>
+			)
+		})
+
+	if (nestedMenu) {
+		return (
+			<NestedMenu label={trigger} menuPortal={useDesktopPortal}>
+				{renderAttributeSubmenus()}
+			</NestedMenu>
+		)
+	}
+
+	return (
+		<NestedMenu
+			label={trigger}
+			menuPortal={useDesktopPortal}
+			buttonVariant="filter"
+		>
+			{renderAttributeSubmenus()}
+		</NestedMenu>
+	)
 }
 
 export function RWAOverviewFilters(props: RWAOverviewFiltersProps) {
@@ -225,6 +356,51 @@ function Filters({
 		}
 	]
 
+	const attributeFilters: RWAAttributeFilterConfig[] = [
+		{
+			queryKey: 'redeemableStates',
+			label: definitions.redeemable.label,
+			selectedStates: selections.selectedRedeemableStates,
+			onUpdateStates: actions.setRedeemableStates
+		},
+		{
+			queryKey: 'attestationsStates',
+			label: definitions.attestations.label,
+			selectedStates: selections.selectedAttestationsStates,
+			onUpdateStates: actions.setAttestationsStates
+		},
+		{
+			queryKey: 'cexListedStates',
+			label: definitions.cexListed.label,
+			selectedStates: selections.selectedCexListedStates,
+			onUpdateStates: actions.setCexListedStates
+		},
+		{
+			queryKey: 'kycForMintRedeemStates',
+			label: definitions.kycForMintRedeem.label,
+			selectedStates: selections.selectedKycForMintRedeemStates,
+			onUpdateStates: actions.setKycForMintRedeemStates
+		},
+		{
+			queryKey: 'kycAllowlistedWhitelistedToTransferHoldStates',
+			label: definitions.kycAllowlistedWhitelistedToTransferHold.label,
+			selectedStates: selections.selectedKycAllowlistedWhitelistedToTransferHoldStates,
+			onUpdateStates: actions.setKycAllowlistedWhitelistedToTransferHoldStates
+		},
+		{
+			queryKey: 'transferableStates',
+			label: definitions.transferable.label,
+			selectedStates: selections.selectedTransferableStates,
+			onUpdateStates: actions.setTransferableStates
+		},
+		{
+			queryKey: 'selfCustodyStates',
+			label: definitions.selfCustody.label,
+			selectedStates: selections.selectedSelfCustodyStates,
+			onUpdateStates: actions.setSelfCustodyStates
+		}
+	]
+
 	return (
 		<>
 			{selectFilters.map((config) =>
@@ -243,6 +419,7 @@ function Filters({
 					/>
 				) : null
 			)}
+			<AttributesFilter nestedMenu={nestedMenu} attributeFilters={attributeFilters} />
 			{rangeFilters.map((config) => (
 				<FilterBetweenRange
 					key={config.name}

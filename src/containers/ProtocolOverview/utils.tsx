@@ -1,7 +1,8 @@
-import type { IProtocolMetricsV2, IRaise } from '~/containers/ProtocolOverview/types'
+import type { IProtocolMetricsV2, IRaise } from '~/containers/ProtocolOverview/api.types'
 import { postRuntimeLogs } from '~/utils/async'
 import type { IProtocolWarningBanner } from './api.types'
 
+// oxlint-disable-next-line no-unused-vars
 const formatRaise = (raise: Omit<IRaise, 'defillamaId'>) => {
 	let text = ''
 

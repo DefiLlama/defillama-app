@@ -1,31 +1,14 @@
 import { maxAgeForNext } from '~/api'
-import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
-import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
-import { FORK_API } from '~/constants'
-import { RecentProtocols } from '~/containers/RecentProtocols'
+import { getRecentProtocols } from '~/containers/Protocols/queries'
+import { RecentProtocols } from '~/containers/Protocols/RecentProtocols'
 import Layout from '~/layout'
-import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('recent', async () => {
-	const protocolsRaw = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls'])
-	const { forks } = await fetchJson(FORK_API)
-
-	const protocols = protocolsRaw.protocols.filter((p) => p.listedAt).sort((a, b) => b.listedAt - a.listedAt)
-	const forkedList: { [name: string]: boolean } = {}
-
-	Object.values(forks).map((list: string[]) => {
-		list.map((f) => {
-			forkedList[f] = true
-		})
-	})
+	const data = await getRecentProtocols()
 
 	return {
-		props: {
-			protocols,
-			chainList: protocolsRaw.chains,
-			forkedList
-		},
+		props: data,
 		revalidate: maxAgeForNext([22])
 	}
 })

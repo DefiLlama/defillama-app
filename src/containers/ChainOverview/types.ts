@@ -216,6 +216,7 @@ export interface IProtocol extends IChildProtocol {
 	childProtocols?: Array<IChildProtocol>
 }
 
+// oxlint-disable-next-line no-unused-vars
 interface ITreasury {
 	id: string
 	name: string

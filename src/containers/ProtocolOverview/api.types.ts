@@ -142,23 +142,27 @@ type ProtocolChartBreakdownType = 'chain-breakdown' | 'token-breakdown'
 type IProtocolChartTimestamp = string | number
 
 type IProtocolValueChartRawPoint = [IProtocolChartTimestamp, number]
+// oxlint-disable-next-line no-unused-vars
 type IProtocolValueChartRaw = IProtocolValueChartRawPoint[]
 type IProtocolValueChartPoint = [number, number]
 export type IProtocolValueChart = IProtocolValueChartPoint[]
 
 export type IProtocolChainBreakdownValue = Record<string, number>
 type IProtocolChainBreakdownChartRawPoint = [IProtocolChartTimestamp, IProtocolChainBreakdownValue]
+// oxlint-disable-next-line no-unused-vars
 type IProtocolChainBreakdownChartRaw = IProtocolChainBreakdownChartRawPoint[]
 type IProtocolChainBreakdownChartPoint = [number, IProtocolChainBreakdownValue]
 export type IProtocolChainBreakdownChart = IProtocolChainBreakdownChartPoint[]
 
 export type IProtocolTokenBreakdownValue = Record<string, number>
 type IProtocolTokenBreakdownChartRawPoint = [IProtocolChartTimestamp, IProtocolTokenBreakdownValue]
+// oxlint-disable-next-line no-unused-vars
 type IProtocolTokenBreakdownChartRaw = IProtocolTokenBreakdownChartRawPoint[]
 type IProtocolTokenBreakdownChartPoint = [number, IProtocolTokenBreakdownValue]
 export type IProtocolTokenBreakdownChart = IProtocolTokenBreakdownChartPoint[]
 
 export type IProtocolTvlMetrics = IProtocolMetricsV2
+// oxlint-disable-next-line no-unused-vars
 type IProtocolTreasuryMetrics = IProtocolMetricsV2
 
 export interface IProtocolChartV2Params {

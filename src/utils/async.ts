@@ -386,7 +386,7 @@ export const fetchApi = async (url: string | Array<string>) => {
 // ─────────────────────────────────────────────────────────────
 // Response handlers (kept for backward compatibility)
 // ─────────────────────────────────────────────────────────────
-async function handleFetchResponse(res: Response): Promise<any> {
+export async function handleFetchResponse(res: Response): Promise<unknown> {
 	if (res.ok) {
 		return res.json()
 	}

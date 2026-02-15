@@ -1,6 +1,6 @@
 import { maxAgeForNext } from '~/api'
-import { ProtocolsWithTokens } from '~/containers/ProtocolsWithTokens'
-import { getProtocolsFDVsByChain } from '~/containers/ProtocolsWithTokens/queries'
+import { ProtocolsWithTokens } from '~/containers/Protocols/ProtocolsWithTokens'
+import { getProtocolsFDVsByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 

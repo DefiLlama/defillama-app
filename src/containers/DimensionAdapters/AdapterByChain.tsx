@@ -73,8 +73,8 @@ const SUPPORTED_OLD_VIEWS: TPageType[] = [
 ]
 
 const defaultSortingByType: Partial<Record<TPageType, SortingState>> & { default: SortingState } = {
-	'P/F': [{ desc: true, id: 'pf' }],
-	'P/S': [{ desc: true, id: 'ps' }],
+	'P/F': [{ desc: true, id: 'pfOrPs' }],
+	'P/S': [{ desc: true, id: 'pfOrPs' }],
 	default: [{ desc: true, id: 'total24h' }]
 }
 

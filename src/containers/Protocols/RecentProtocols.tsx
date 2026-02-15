@@ -3,156 +3,173 @@ import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
-import { useCalcStakePool2Tvl } from '~/hooks/data'
-import { getPercentChange, toNumberOrNullFromQueryParam } from '~/utils'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { toNumberOrNullFromQueryParam } from '~/utils'
 import { airdropsEligibilityCheck } from './airdrops'
-import { RecentlyListedProtocolsTable } from './Table'
+import { RecentlyListedProtocolsTable } from './RecentProtocolsTable'
+import type { IRecentProtocol, IRecentProtocolsPageData } from './types'
+import { applyExtraTvl, getSelectedChainFilters, parseExcludeParam } from './utils'
 
-function getSelectedChainFilters(chainQueryParam, allChains): string[] {
-	if (chainQueryParam) {
-		if (typeof chainQueryParam === 'string') {
-			return chainQueryParam === 'All' ? allChains : chainQueryParam === 'None' ? [] : [chainQueryParam]
-		} else {
-			return Array.isArray(chainQueryParam) ? chainQueryParam : []
-		}
-	} else return allChains
-}
-
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
-
-function _getSelectedCategoryFilters(categoryQueryParam, allCategories): string[] {
-	if (categoryQueryParam) {
-		if (typeof categoryQueryParam === 'string') {
-			return categoryQueryParam === 'All' ? allCategories : categoryQueryParam === 'None' ? [] : [categoryQueryParam]
-		} else {
-			return Array.isArray(categoryQueryParam) ? categoryQueryParam : []
-		}
-	} else return allCategories
-}
-
-interface IRecentProtocolProps {
-	protocols: any
-	chainList: string[]
-	forkedList?: { [name: string]: boolean }
-	claimableAirdrops?: Array<{ name: string; page: string; title?: string }>
-}
-
-export function RecentProtocols({ protocols, chainList, forkedList, claimableAirdrops }: IRecentProtocolProps) {
+export function RecentProtocols({ protocols, chainList, categories, forkedList, claimableAirdrops }: IRecentProtocolsPageData) {
 	const router = useRouter()
-	const { chain, excludeChain, hideForks, minTvl: minTvlQuery, maxTvl: maxTvlQuery, ...queries } = router.query
+	const {
+		chain,
+		excludeChain,
+		category,
+		excludeCategory,
+		hideForks,
+		minTvl: minTvlQuery,
+		maxTvl: maxTvlQuery
+	} = router.query
 
 	const minTvl = toNumberOrNullFromQueryParam(minTvlQuery)
 	const maxTvl = toNumberOrNullFromQueryParam(maxTvlQuery)
 
-	const toHideForkedProtocols = hideForks && typeof hideForks === 'string' && hideForks === 'true'
+	const toHideForkedProtocols = hideForks === 'true'
+	const hasCategoryParam = Object.prototype.hasOwnProperty.call(router.query, 'category')
 
-	const { selectedChains, data } = useMemo(() => {
-		const excludeSet = parseExcludeParam(excludeChain)
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+
+	const { selectedChains, selectedCategories, data } = useMemo(() => {
+		const excludeChainSet = parseExcludeParam(excludeChain)
 		let selectedChains = getSelectedChainFilters(chain, chainList)
-		selectedChains = excludeSet.size > 0 ? selectedChains.filter((c) => !excludeSet.has(c)) : selectedChains
+		selectedChains = excludeChainSet.size > 0 ? selectedChains.filter((c) => !excludeChainSet.has(c)) : selectedChains
 
-		const _chainsToSelectSet = new Set(selectedChains.map((t) => t.toLowerCase()))
+		const excludeCategorySet = parseExcludeParam(excludeCategory)
+		let selectedCategories =
+			categories.length > 0 && hasCategoryParam && category === ''
+				? []
+				: category
+					? typeof category === 'string'
+						? [category]
+						: category
+					: categories
+
+		selectedCategories =
+			excludeCategorySet.size > 0
+				? selectedCategories.filter((selectedCategory) => !excludeCategorySet.has(selectedCategory))
+				: selectedCategories
+
+		const categoriesToFilterSet = new Set(
+			selectedCategories
+				.filter(
+					(selectedCategory) => selectedCategory.toLowerCase() !== 'all' && selectedCategory.toLowerCase() !== 'none'
+				)
+				.map((selectedCategory) => selectedCategory.toLowerCase())
+		)
+
+		const chainsToSelectSet = new Set(selectedChains.map((t) => t.toLowerCase()))
 
 		// TVL range should work with min-only, max-only, or both.
-		// Values are parsed via `toNumberOrNullFromQueryParam`, so invalid inputs become null.
 		const isValidTvlRange = minTvl != null || maxTvl != null
 
-		const data = protocols
-			.filter((protocol) => {
-				let toFilter = true
+		const filteredProtocols: IRecentProtocol[] = []
 
-				// filter out protocols that are forks
-				if (toHideForkedProtocols && forkedList) {
-					toFilter = !forkedList[protocol.name]
+		for (const protocol of protocols) {
+			// filter out forked protocols
+			if (toHideForkedProtocols && forkedList?.[protocol.name]) continue
+
+			// filter out protocols by category
+			if (categories.length > 0) {
+				if (selectedCategories.length === 0) continue
+				if (categoriesToFilterSet.size > 0) {
+					const protocolCategory = protocol.category?.toLowerCase() ?? ''
+					if (!categoriesToFilterSet.has(protocolCategory)) continue
 				}
+			}
 
-				let includesChain = false
-				for (const chain of protocol.chains) {
-					// filter if a protocol has at least of one selected chain
-					if (!includesChain) {
-						includesChain = _chainsToSelectSet.has(chain.toLowerCase())
-					}
+			// filter if a protocol has at least one selected chain
+			let includesChain = false
+			for (const c of protocol.chains) {
+				if (chainsToSelectSet.has(c.toLowerCase())) {
+					includesChain = true
+					break
 				}
+			}
+			if (!includesChain) continue
 
-				toFilter = toFilter && includesChain
+			// Recalculate TVLs scoped to selected chains
+			let tvl = 0
+			let tvlPrevDay: number | null = null
+			let tvlPrevWeek: number | null = null
+			let tvlPrevMonth: number | null = null
+			const extraTvl: Record<string, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }> =
+				{}
 
-				return toFilter
-			})
-			.map((p) => {
-				let tvl = 0
-				let tvlPrevDay = null
-				let tvlPrevWeek = null
-				let tvlPrevMonth = null
-				let extraTvl = {}
+			for (const chainName of protocol.chains) {
+				if (!chainsToSelectSet.has(chainName.toLowerCase())) continue
 
-				for (const chainName of p.chains) {
-					// continue if chainsToSelect does not include chainName
-					if (!_chainsToSelectSet.has(chainName.toLowerCase())) {
-						continue
-					}
+				for (const sectionName in protocol.chainTvls) {
+					const isBaseChainSection = sectionName.toLowerCase() === chainName.toLowerCase()
+					const isExtraTvlSection = sectionName.startsWith(`${chainName}-`)
+					if (!isBaseChainSection && !isExtraTvlSection) continue
 
-					for (const sectionName in p.chainTvls) {
-						const _sanitisedChainName = sectionName.startsWith(`${chainName}-`)
-							? sectionName.split('-')[1]?.toLowerCase()
-							: sectionName.toLowerCase()
+					const values = protocol.chainTvls[sectionName]
 
-						// add only if chainsToSelect includes sanitisedChainName and chainName equals sanitisedChainName
-						if (_chainsToSelectSet.has(_sanitisedChainName) && chainName.toLowerCase() === _sanitisedChainName) {
-							const _values = p.chainTvls[sectionName]
+					if (isExtraTvlSection) {
+						const sectionToAdd = sectionName.slice(chainName.length + 1)
+						if (!sectionToAdd) continue
 
-							// only add tvl values where chainName is strictly equal to sectionName, else check if its extraTvl and add
-							if (sectionName.startsWith(`${chainName}-`)) {
-								const sectionToAdd = sectionName.split('-')[1]
-								extraTvl[sectionToAdd] = (extraTvl[sectionToAdd] || 0) + _values
-							} else {
-								if (_values.tvl) {
-									tvl = (tvl || 0) + _values.tvl
-								}
-								if (_values.tvlPrevDay) {
-									tvlPrevDay = (tvlPrevDay || 0) + _values.tvlPrevDay
-								}
-								if (_values.tvlPrevWeek) {
-									tvlPrevWeek = (tvlPrevWeek || 0) + _values.tvlPrevWeek
-								}
-								if (_values.tvlPrevMonth) {
-									tvlPrevMonth = (tvlPrevMonth || 0) + _values.tvlPrevMonth
-								}
-							}
+						if (!extraTvl[sectionToAdd]) {
+							extraTvl[sectionToAdd] = { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }
+						}
+						extraTvl[sectionToAdd].tvl += values.tvl ?? 0
+						extraTvl[sectionToAdd].tvlPrevDay += values.tvlPrevDay ?? 0
+						extraTvl[sectionToAdd].tvlPrevWeek += values.tvlPrevWeek ?? 0
+						extraTvl[sectionToAdd].tvlPrevMonth += values.tvlPrevMonth ?? 0
+					} else {
+						if (values.tvl != null) {
+							tvl = (tvl ?? 0) + values.tvl
+						}
+						if (values.tvlPrevDay != null) {
+							tvlPrevDay = (tvlPrevDay ?? 0) + values.tvlPrevDay
+						}
+						if (values.tvlPrevWeek != null) {
+							tvlPrevWeek = (tvlPrevWeek ?? 0) + values.tvlPrevWeek
+						}
+						if (values.tvlPrevMonth != null) {
+							tvlPrevMonth = (tvlPrevMonth ?? 0) + values.tvlPrevMonth
 						}
 					}
 				}
+			}
 
-				return {
-					...p,
-					tvl,
-					tvlPrevDay,
-					tvlPrevWeek,
-					tvlPrevMonth,
-					change_1d: getPercentChange(tvl, tvlPrevDay),
-					change_7d: getPercentChange(tvl, tvlPrevWeek),
-					change_1m: getPercentChange(tvl, tvlPrevMonth),
-					listedAt: p.listedAt
-				}
+			filteredProtocols.push({
+				...protocol,
+				tvl,
+				tvlPrevDay,
+				tvlPrevWeek,
+				tvlPrevMonth,
+				extraTvl
 			})
-
-		if (isValidTvlRange) {
-			const filteredProtocols = data.filter(
-				(protocol) =>
-					(minTvl != null ? protocol.tvl >= minTvl : true) && (maxTvl != null ? protocol.tvl <= maxTvl : true)
-			)
-
-			return { data: filteredProtocols, selectedChains }
 		}
 
-		return { data, selectedChains }
-	}, [protocols, chain, excludeChain, chainList, forkedList, toHideForkedProtocols, minTvl, maxTvl])
+		// Apply extraTvl toggles (staking/pool2/borrowed)
+		const withExtraTvl = applyExtraTvl(filteredProtocols, extraTvlsEnabled)
 
-	const protocolsData = useCalcStakePool2Tvl(data)
+		if (isValidTvlRange) {
+			const rangeFiltered = withExtraTvl.filter(
+				(p) => (minTvl != null ? p.tvl >= minTvl : true) && (maxTvl != null ? p.tvl <= maxTvl : true)
+			)
+			return { data: rangeFiltered, selectedChains, selectedCategories }
+		}
+
+		return { data: withExtraTvl, selectedChains, selectedCategories }
+	}, [
+		protocols,
+		chain,
+		excludeChain,
+		category,
+		excludeCategory,
+		hasCategoryParam,
+		chainList,
+		categories,
+		forkedList,
+		toHideForkedProtocols,
+		minTvl,
+		maxTvl,
+		extraTvlsEnabled
+	])
 
 	const {
 		data: eligibleAirdrops,
@@ -188,7 +205,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 						}}
 						className="flex items-center gap-1 rounded-md bg-(--link-button) px-2.5 py-1 text-sm font-medium whitespace-nowrap dark:bg-(--link-hover-bg)"
 					>
-						🪂 Check airdrops for address
+						Check airdrops for address
 					</button>
 
 					<Ariakit.Dialog store={airdropCheckerDialog} className="dialog">
@@ -277,9 +294,11 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 							<form
 								onSubmit={(e) => {
 									e.preventDefault()
-									const form = e.target as HTMLFormElement
+									const formData = new FormData(e.currentTarget)
+									const addressesInput = formData.get('address')
+									if (typeof addressesInput !== 'string') return
 									checkEligibleAirdrops({
-										addresses: form.address.value
+										addresses: addressesInput
 											.split('\n')
 											.join(',')
 											.split(',')
@@ -308,7 +327,9 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 								</button>
 								{errorFetchingEligibleAirdrops ? (
 									<p className="text-center text-red-500">
-										{(errorFetchingEligibleAirdrops as any)?.message ?? 'Failed to fetch'}
+										{errorFetchingEligibleAirdrops instanceof Error
+											? errorFetchingEligibleAirdrops.message
+											: 'Failed to fetch'}
 									</p>
 								) : null}
 							</form>
@@ -318,10 +339,11 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 			) : null}
 
 			<RecentlyListedProtocolsTable
-				data={protocolsData}
-				queries={queries}
+				data={data}
 				selectedChains={selectedChains}
+				selectedCategories={selectedCategories}
 				chainList={chainList}
+				categories={categories}
 				forkedList={forkedList}
 			/>
 		</>

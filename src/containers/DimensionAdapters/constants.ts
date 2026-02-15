@@ -29,6 +29,7 @@ export enum ADAPTER_DATA_TYPES {
 	DAILY_ACTIVE_LIQUIDITY = 'dailyActiveLiquidity'
 }
 
+// oxlint-disable-next-line no-unused-vars
 type AdapterDataType = `${ADAPTER_DATA_TYPES}`
 
 export const ADAPTER_DATA_TYPE_KEYS = {
@@ -56,6 +57,7 @@ export function isAdapterDataTypeKey(key: string): key is AdapterDataTypeKey {
 	return key in ADAPTER_DATA_TYPE_KEYS
 }
 
+// oxlint-disable-next-line no-unused-vars
 const VOLUME_TYPE_ADAPTERS = [
 	'dexs',
 	'derivatives',

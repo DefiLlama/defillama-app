@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
-import type { ITokenRights } from './types'
+import type { ITokenRights } from './api.types'
 
 type StatusTone = 'positive' | 'negative' | 'warning' | 'neutral'
 

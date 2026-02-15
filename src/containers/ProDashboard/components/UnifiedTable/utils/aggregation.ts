@@ -210,6 +210,7 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 	return aggregated
 }
 
+// oxlint-disable-next-line no-unused-vars
 function extractLeafRows(nodes: NormalizedRow[] | undefined): NormalizedRow[] {
 	return nodes ? [...nodes] : []
 }

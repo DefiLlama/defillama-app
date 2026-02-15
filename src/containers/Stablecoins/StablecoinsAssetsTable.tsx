@@ -25,7 +25,7 @@ import { formattedNum, peggedAssetIconUrl as stablecoinAssetIconUrl, renderPerce
 type StablecoinDeviationInfo = {
 	timestamp: number
 	price: number
-	priceSource: string | number
+	priceSource: string | number | null
 }
 
 type StablecoinsTableInputRow = {
@@ -344,11 +344,11 @@ const formatPriceSource: Record<string, string> = {
 	kaddex: 'Kaddex'
 }
 
-function pegDeviationText(pegDeviationInfo: { timestamp: number; price: number; priceSource: string | number }) {
+function pegDeviationText(pegDeviationInfo: { timestamp: number; price: number; priceSource: string | number | null }) {
 	const { timestamp, price, priceSource } = pegDeviationInfo
 	const date = new Date(timestamp * 1000).toISOString().slice(0, 10)
-	const source = formatPriceSource[String(priceSource)]
-	return `On ${date}, ${source ?? `source ${String(priceSource)}`} reported a price of $${formattedNum(price)}.`
+	const sourceLabel = priceSource != null ? formatPriceSource[String(priceSource)] : undefined
+	return `On ${date}, ${sourceLabel ?? (priceSource != null ? `source ${String(priceSource)}` : 'an unknown source')} reported a price of $${formattedNum(price)}.`
 }
 
 export function StablecoinsTable({ data }: { data: StablecoinRow[] }) {

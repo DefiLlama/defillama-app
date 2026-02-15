@@ -119,6 +119,7 @@ export interface NormalizedRow {
 	original?: any
 }
 
+// oxlint-disable-next-line no-unused-vars
 interface ExportableColumn {
 	id: string
 	header: string

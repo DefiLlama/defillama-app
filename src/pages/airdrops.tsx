@@ -1,173 +1,14 @@
 import { maxAgeForNext } from '~/api'
-import { getAirdropDirectoryData, getSimpleProtocolsPageData } from '~/api/categories/protocols'
-import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
-import { FORK_API } from '~/constants'
-import { fetchRaises } from '~/containers/Raises/api'
-import { RecentProtocols } from '~/containers/RecentProtocols'
+import { getAirdropsProtocols } from '~/containers/Protocols/queries'
+import { RecentProtocols } from '~/containers/Protocols/RecentProtocols'
 import Layout from '~/layout'
-import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const exclude = [
-	'DeerFi',
-	'FireDAO',
-	'Robo-Advisor for Yield',
-	'SenpaiSwap',
-	'Zunami Protocol',
-	'NowSwap',
-	'NeoBurger',
-	'MochiFi',
-	'StakeHound',
-	'Lightning Network',
-	'Secret Bridge',
-	'Karura Swap',
-	'Karura Liquid-Staking',
-	'Karura Dollar (kUSD)',
-	'Tezos Liquidity Baking',
-	'Notional',
-	'Tinlake',
-	'Kuu Finance',
-	'COTI Treasury',
-	'Terra Bridge',
-	'Parallel Liquid Crowdloan',
-	'Parallel Liquid Staking',
-	'Parallel Lending',
-	'Parallel AMM',
-	'Parallel DAOfi',
-	'Algofi Lend',
-	'Algofi Swap',
-	'BNBMiner Finance',
-	'Gnosis Protocol v1',
-	'Multi-Chain Miner',
-	'Swap Cat',
-	'FLRLoans',
-	'Pando Leaf',
-	'Pando Rings',
-	'4Swap',
-	'REX Staking',
-	'Sapphire Mine',
-	'MM Stableswap',
-	'MM Stableswap Polygon',
-	'Sushi Furo',
-	'Sushi Trident',
-	'Poly Network',
-	'Frax Swap',
-	'Kava Mint',
-	'Quarry',
-	'Canto Dex',
-	'Katana DEX',
-	'Canto Lending',
-	'OKCSwap',
-	'Fraxlend',
-	'Tesseract',
-	'Spartacus Exchange',
-	'NerveSwap',
-	'NULS POCM',
-	'NerveBridge',
-	'Djed Stablecoin',
-	'USK',
-	'Bow',
-	'FIN',
-	'Black Whale',
-	'CALC',
-	'BAO Ballast',
-	'BAO Baskets',
-	'BAO Markets',
-	'BAO Swap',
-	'RealT RMM Marketplace',
-	'Bifrost Liquid Crowdloan',
-	'Kava Boost',
-	'Kava Earn',
-	'Kava Liquid',
-	'Algo Liquid Governance',
-	'WanLend',
-	'sKCS',
-	'Lachain Yield Market',
-	'Ladex Exchange',
-	'Oswap',
-	'BabelFish',
-	'ThetaSwap',
-	'MooniSwap',
-	'Talent Protocol',
-	'RealT Tokens',
-	'TTswap',
-	'Ethereum Foundation',
-	'THORWallet DEX',
-	'Nouns',
-	'Libre Swap',
-	'Omax Swap',
-	'Zeniq Swap',
-	'LaDAO Xocolatl',
-	'Meter Passport',
-	'Metavault Binary Options',
-	'Wan Bridge',
-	'DarkAuto',
-	'Crescent Dex',
-	'Lago Bridge',
-	'Ostable',
-	'Oswap AMM',
-	'WBTC',
-	'Binance staked ETH',
-	'Coinbase Wrapped Staked ETH',
-	'hBTC',
-	'Mantle Staked ETH',
-	'Jupiter Perpetual Exchange',
-	'Binance Staked SOL',
-	'Binance Bitcoin'
-]
-
 export const getStaticProps = withPerformanceLogging('airdrops', async () => {
-	const [protocolsRaw, { forks }, { raises }, claimableAirdrops] = await Promise.all([
-		getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls', 'defillamaId']),
-		fetchJson(FORK_API),
-		fetchRaises(),
-		getAirdropDirectoryData()
-	])
-
-	const parents = protocolsRaw.parentProtocols.reduce((acc, p) => {
-		if (p.gecko_id) {
-			acc[p.id] = true
-		}
-		return acc
-	}, {})
-	const protocols = protocolsRaw.protocols
-		.filter(
-			(token) =>
-				(token.symbol === null || token.symbol === '-') &&
-				!exclude.includes(token.name) &&
-				parents[token.parentProtocol] === undefined
-		)
-		.map((p) => ({
-			listedAt: 1624728920,
-			totalRaised: raises
-				.filter((r) => (r.defillamaId && p.defillamaId ? r.defillamaId.toString() === p.defillamaId.toString() : false))
-				.reduce((acc, curr) => {
-					const amount = curr.amount || 0
-
-					if (!Number.isNaN(amount)) {
-						acc += amount * 1e6
-					}
-					return acc
-				}, 0),
-			...p
-		}))
-		.sort((a, b) => a.listedAt - b.listedAt)
-
-	const forkedList: { [name: string]: boolean } = {}
-
-	for (const list of Object.values(forks) as string[][]) {
-		for (const f of list) {
-			forkedList[f] = true
-		}
-	}
+	const data = await getAirdropsProtocols()
 
 	return {
-		props: {
-			protocols,
-			chainList: protocolsRaw.chains,
-			forkedList,
-			claimableAirdrops
-		},
+		props: data,
 		revalidate: maxAgeForNext([22])
 	}
 })
@@ -177,7 +18,7 @@ const pageName = ['Tokenless protocols']
 export default function Protocols(props) {
 	return (
 		<Layout
-			title="Tokenless protocols that may airdrop 🧑‍🌾 - DefiLlama"
+			title="Tokenless protocols that may airdrop - DefiLlama"
 			description={`Tokenless protocols that may airdrop. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`tokenless protocols, DeFi airdrops, potential airdrops, crypto airdrops, DefiLlama airdrops`}
 			canonicalUrl={`/airdrops`}

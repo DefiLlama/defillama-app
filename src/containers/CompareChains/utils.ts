@@ -1,5 +1,6 @@
 type ChartEntry = [number, number]
 
+// oxlint-disable-next-line no-unused-vars
 const get24hChange = (chart: ChartEntry[]): string | number => {
 	if (!chart?.length || chart.length < 2) return 0
 	const yesterday = chart[chart.length - 2]?.[1]
@@ -11,6 +12,7 @@ const get24hChange = (chart: ChartEntry[]): string | number => {
 	return (((today - yesterday) / yesterday) * 100).toFixed(2)
 }
 
+// oxlint-disable-next-line no-unused-vars
 const getNDaysChange = (chart: ChartEntry[], days = 7): string | number => {
 	if (!chart?.length || chart.length <= days) return 0
 	const yesterday = chart[chart.length - 1 - days]?.[1]
@@ -22,6 +24,7 @@ const getNDaysChange = (chart: ChartEntry[], days = 7): string | number => {
 	return (((today - yesterday) / yesterday) * 100).toFixed(2)
 }
 
+// oxlint-disable-next-line no-unused-vars
 const getTotalNDaysSum = (chart: ChartEntry[], days = 7): number => {
 	if (!chart?.length) return 0
 	return chart

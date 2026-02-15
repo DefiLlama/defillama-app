@@ -14,6 +14,7 @@ export interface ChatSession {
 	shareToken?: string
 }
 
+// oxlint-disable-next-line no-unused-vars
 interface ConversationExchange {
 	question: string
 	response: {
@@ -26,6 +27,7 @@ interface ConversationExchange {
 	timestamp: number
 }
 
+// oxlint-disable-next-line no-unused-vars
 interface PaginationState {
 	hasMore: boolean
 	isLoadingMore: boolean

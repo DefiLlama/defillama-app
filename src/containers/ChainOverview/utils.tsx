@@ -2,7 +2,7 @@ import { removedCategoriesFromChainTvlSet } from '~/constants'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import type { IChainAsset, IFormattedChainAsset, ILiteProtocol } from './types'
 
-const excludedCategoriesSet = new Set(['Canonical Bridge'])
+const excludedCategoriesSet = new Set(['Canonical Bridge', 'Staking Pool'])
 
 export const toFilterProtocol = ({
 	protocolMetadata,
@@ -43,6 +43,7 @@ const getStartOfTimeFrame = (date: Date, frame: string) => {
 	}
 }
 
+// oxlint-disable-next-line no-unused-vars
 function groupByTimeFrame(data, timeFrame) {
 	if (timeFrame === 'daily') return data
 	const groupedData = data.reduce(
@@ -71,6 +72,7 @@ function groupByTimeFrame(data, timeFrame) {
 	return result
 }
 
+// oxlint-disable-next-line no-unused-vars
 function cumulativeSum(data) {
 	let cumulativeData = []
 

@@ -18,6 +18,7 @@ const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSer
 const pageName = ['Oracles', 'ranked by', 'TVS']
 const DEFAULT_SORTING_STATE = [{ id: 'tvs', desc: true }]
 
+// oxlint-disable-next-line no-unused-vars
 const OraclesByChain = ({ chartData, tokensProtocols, tokens, tokenLinks, oraclesColors, chainsByOracle, chain }) => {
 	const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = useCalcGroupExtraTvlsByDay(chartData)
 	const { tokenTvls, tokensList } = React.useMemo(() => {

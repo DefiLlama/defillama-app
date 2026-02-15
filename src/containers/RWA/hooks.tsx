@@ -6,6 +6,9 @@ import type { IRWAAssetsOverview } from './api.types'
 import { rwaSlug } from './rwaSlug'
 
 type PieChartDatum = { name: string; value: number }
+const RWA_ATTRIBUTE_FILTER_STATES = ['yes', 'no', 'unknown'] as const
+type RWAAttributeFilterState = (typeof RWA_ATTRIBUTE_FILTER_STATES)[number]
+const RWA_ATTRIBUTE_FILTER_STATE_SET = new Set<RWAAttributeFilterState>(RWA_ATTRIBUTE_FILTER_STATES)
 
 const buildStackColors = (order: string[]) => {
 	const stackColors: Record<string, string> = {}
@@ -46,6 +49,23 @@ export const toBooleanParam = (p: string | string[] | undefined): boolean => {
 	return p === 'true'
 }
 
+const parseAttributeFilterStatesParam = (param: string | string[] | undefined): RWAAttributeFilterState[] => {
+	if (!param) return [...RWA_ATTRIBUTE_FILTER_STATES]
+
+	const values = toArrayParam(param).map((value) => value.toLowerCase())
+	if (values.some((value) => value === 'none')) return []
+
+	const selectedSet = new Set<RWAAttributeFilterState>()
+	for (const value of values) {
+		if (RWA_ATTRIBUTE_FILTER_STATE_SET.has(value as RWAAttributeFilterState)) {
+			selectedSet.add(value as RWAAttributeFilterState)
+		}
+	}
+
+	if (selectedSet.size === 0) return [...RWA_ATTRIBUTE_FILTER_STATES]
+	return RWA_ATTRIBUTE_FILTER_STATES.filter((value) => selectedSet.has(value))
+}
+
 const updateNumberRangeQuery = (
 	minKey: string,
 	maxKey: string,
@@ -66,6 +86,29 @@ const updateNumberRangeQuery = (
 	} else {
 		nextQuery[maxKey] = String(parsedMax)
 	}
+	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+}
+
+const updateAttributeFilterStatesQuery = (
+	queryKey: string,
+	values: RWAAttributeFilterState[],
+	router: NextRouter
+) => {
+	const nextQuery: Record<string, any> = { ...router.query }
+	const selectedSet = new Set<RWAAttributeFilterState>()
+	for (const value of values) {
+		if (RWA_ATTRIBUTE_FILTER_STATE_SET.has(value)) selectedSet.add(value)
+	}
+
+	const normalizedStates = RWA_ATTRIBUTE_FILTER_STATES.filter((value) => selectedSet.has(value))
+	if (normalizedStates.length === RWA_ATTRIBUTE_FILTER_STATES.length) {
+		delete nextQuery[queryKey]
+	} else if (normalizedStates.length === 0) {
+		nextQuery[queryKey] = 'none'
+	} else {
+		nextQuery[queryKey] = normalizedStates.length === 1 ? normalizedStates[0] : normalizedStates
+	}
+
 	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 }
 
@@ -113,7 +156,14 @@ export const useRWATableQueryParams = ({
 		minDefiActiveTvlToActiveMcapPct: minDefiActiveTvlToActiveMcapPctQ,
 		maxDefiActiveTvlToActiveMcapPct: maxDefiActiveTvlToActiveMcapPctQ,
 		includeStablecoins: stablecoinsQ,
-		includeGovernance: governanceQ
+		includeGovernance: governanceQ,
+		redeemableStates: redeemableStatesQ,
+		attestationsStates: attestationsStatesQ,
+		cexListedStates: cexListedStatesQ,
+		kycForMintRedeemStates: kycForMintRedeemStatesQ,
+		kycAllowlistedWhitelistedToTransferHoldStates: kycAllowlistedWhitelistedToTransferHoldStatesQ,
+		transferableStates: transferableStatesQ,
+		selfCustodyStates: selfCustodyStatesQ
 	} = router.query
 
 	const {
@@ -124,6 +174,13 @@ export const useRWATableQueryParams = ({
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
+		selectedRedeemableStates,
+		selectedAttestationsStates,
+		selectedCexListedStates,
+		selectedKycForMintRedeemStates,
+		selectedKycAllowlistedWhitelistedToTransferHoldStates,
+		selectedTransferableStates,
+		selectedSelfCustodyStates,
 		minDefiActiveTvlToOnChainMcapPct,
 		maxDefiActiveTvlToOnChainMcapPct,
 		minActiveMcapToOnChainMcapPct,
@@ -218,6 +275,16 @@ export const useRWATableQueryParams = ({
 		const selectedIssuers =
 			excludeIssuersSet.size > 0 ? baseIssuers.filter((i) => !excludeIssuersSet.has(i)) : baseIssuers
 
+		const selectedRedeemableStates = parseAttributeFilterStatesParam(redeemableStatesQ)
+		const selectedAttestationsStates = parseAttributeFilterStatesParam(attestationsStatesQ)
+		const selectedCexListedStates = parseAttributeFilterStatesParam(cexListedStatesQ)
+		const selectedKycForMintRedeemStates = parseAttributeFilterStatesParam(kycForMintRedeemStatesQ)
+		const selectedKycAllowlistedWhitelistedToTransferHoldStates = parseAttributeFilterStatesParam(
+			kycAllowlistedWhitelistedToTransferHoldStatesQ
+		)
+		const selectedTransferableStates = parseAttributeFilterStatesParam(transferableStatesQ)
+		const selectedSelfCustodyStates = parseAttributeFilterStatesParam(selfCustodyStatesQ)
+
 		const minDefiActiveTvlToOnChainMcapPct = toNumberParam(minDefiActiveTvlToOnChainMcapPctQ)
 		const maxDefiActiveTvlToOnChainMcapPct = toNumberParam(maxDefiActiveTvlToOnChainMcapPctQ)
 		const minActiveMcapToOnChainMcapPct = toNumberParam(minActiveMcapToOnChainMcapPctQ)
@@ -233,6 +300,13 @@ export const useRWATableQueryParams = ({
 			selectedRwaClassifications,
 			selectedAccessModels,
 			selectedIssuers,
+			selectedRedeemableStates,
+			selectedAttestationsStates,
+			selectedCexListedStates,
+			selectedKycForMintRedeemStates,
+			selectedKycAllowlistedWhitelistedToTransferHoldStates,
+			selectedTransferableStates,
+			selectedSelfCustodyStates,
 			minDefiActiveTvlToOnChainMcapPct,
 			maxDefiActiveTvlToOnChainMcapPct,
 			minActiveMcapToOnChainMcapPct,
@@ -257,6 +331,13 @@ export const useRWATableQueryParams = ({
 		excludeAccessModelsQ,
 		issuersQ,
 		excludeIssuersQ,
+		redeemableStatesQ,
+		attestationsStatesQ,
+		cexListedStatesQ,
+		kycForMintRedeemStatesQ,
+		kycAllowlistedWhitelistedToTransferHoldStatesQ,
+		transferableStatesQ,
+		selfCustodyStatesQ,
 		minDefiActiveTvlToOnChainMcapPctQ,
 		maxDefiActiveTvlToOnChainMcapPctQ,
 		minActiveMcapToOnChainMcapPctQ,
@@ -315,6 +396,21 @@ export const useRWATableQueryParams = ({
 		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}
 
+	const setRedeemableStates = (values: RWAAttributeFilterState[]) =>
+		updateAttributeFilterStatesQuery('redeemableStates', values, router)
+	const setAttestationsStates = (values: RWAAttributeFilterState[]) =>
+		updateAttributeFilterStatesQuery('attestationsStates', values, router)
+	const setCexListedStates = (values: RWAAttributeFilterState[]) =>
+		updateAttributeFilterStatesQuery('cexListedStates', values, router)
+	const setKycForMintRedeemStates = (values: RWAAttributeFilterState[]) =>
+		updateAttributeFilterStatesQuery('kycForMintRedeemStates', values, router)
+	const setKycAllowlistedWhitelistedToTransferHoldStates = (values: RWAAttributeFilterState[]) =>
+		updateAttributeFilterStatesQuery('kycAllowlistedWhitelistedToTransferHoldStates', values, router)
+	const setTransferableStates = (values: RWAAttributeFilterState[]) =>
+		updateAttributeFilterStatesQuery('transferableStates', values, router)
+	const setSelfCustodyStates = (values: RWAAttributeFilterState[]) =>
+		updateAttributeFilterStatesQuery('selfCustodyStates', values, router)
+
 	return {
 		selectedAssetNames,
 		selectedTypes,
@@ -323,6 +419,13 @@ export const useRWATableQueryParams = ({
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
+		selectedRedeemableStates,
+		selectedAttestationsStates,
+		selectedCexListedStates,
+		selectedKycForMintRedeemStates,
+		selectedKycAllowlistedWhitelistedToTransferHoldStates,
+		selectedTransferableStates,
+		selectedSelfCustodyStates,
 		minDefiActiveTvlToOnChainMcapPct,
 		maxDefiActiveTvlToOnChainMcapPct,
 		minActiveMcapToOnChainMcapPct,
@@ -331,6 +434,13 @@ export const useRWATableQueryParams = ({
 		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
 		includeGovernance,
+		setRedeemableStates,
+		setAttestationsStates,
+		setCexListedStates,
+		setKycForMintRedeemStates,
+		setKycAllowlistedWhitelistedToTransferHoldStates,
+		setTransferableStates,
+		setSelfCustodyStates,
 		setDefiActiveTvlToOnChainMcapPctRange,
 		setActiveMcapToOnChainMcapPctRange,
 		setDefiActiveTvlToActiveMcapPctRange,
@@ -355,6 +465,11 @@ const meetsRatioPercent = (
 	return true
 }
 
+const toAttributeFilterState = (value: boolean | null | undefined): RWAAttributeFilterState => {
+	if (value == null) return 'unknown'
+	return value ? 'yes' : 'no'
+}
+
 export const useFilteredRwaAssets = ({
 	assets,
 	isPlatformMode,
@@ -365,6 +480,13 @@ export const useFilteredRwaAssets = ({
 	selectedRwaClassifications,
 	selectedAccessModels,
 	selectedIssuers,
+	selectedRedeemableStates,
+	selectedAttestationsStates,
+	selectedCexListedStates,
+	selectedKycForMintRedeemStates,
+	selectedKycAllowlistedWhitelistedToTransferHoldStates,
+	selectedTransferableStates,
+	selectedSelfCustodyStates,
 	includeStablecoins,
 	includeGovernance,
 	minDefiActiveTvlToOnChainMcapPct,
@@ -383,6 +505,13 @@ export const useFilteredRwaAssets = ({
 	selectedRwaClassifications: string[]
 	selectedAccessModels: string[]
 	selectedIssuers: string[]
+	selectedRedeemableStates: RWAAttributeFilterState[]
+	selectedAttestationsStates: RWAAttributeFilterState[]
+	selectedCexListedStates: RWAAttributeFilterState[]
+	selectedKycForMintRedeemStates: RWAAttributeFilterState[]
+	selectedKycAllowlistedWhitelistedToTransferHoldStates: RWAAttributeFilterState[]
+	selectedTransferableStates: RWAAttributeFilterState[]
+	selectedSelfCustodyStates: RWAAttributeFilterState[]
 	includeStablecoins: boolean
 	includeGovernance: boolean
 	minDefiActiveTvlToOnChainMcapPct: number | null
@@ -420,6 +549,15 @@ export const useFilteredRwaAssets = ({
 		const selectedRwaClassificationsSet = new Set(selectedRwaClassifications)
 		const selectedAccessModelsSet = new Set(selectedAccessModels)
 		const selectedIssuersSet = new Set(selectedIssuers)
+		const selectedRedeemableStatesSet = new Set(selectedRedeemableStates)
+		const selectedAttestationsStatesSet = new Set(selectedAttestationsStates)
+		const selectedCexListedStatesSet = new Set(selectedCexListedStates)
+		const selectedKycForMintRedeemStatesSet = new Set(selectedKycForMintRedeemStates)
+		const selectedKycAllowlistedWhitelistedToTransferHoldStatesSet = new Set(
+			selectedKycAllowlistedWhitelistedToTransferHoldStates
+		)
+		const selectedTransferableStatesSet = new Set(selectedTransferableStates)
+		const selectedSelfCustodyStatesSet = new Set(selectedSelfCustodyStates)
 
 		for (const asset of assets) {
 			// Only filter by asset name in platform mode.
@@ -434,6 +572,19 @@ export const useFilteredRwaAssets = ({
 				continue
 			}
 			if (!includeGovernance && asset.governance) {
+				continue
+			}
+			if (
+				!selectedRedeemableStatesSet.has(toAttributeFilterState(asset.redeemable)) ||
+				!selectedAttestationsStatesSet.has(toAttributeFilterState(asset.attestations)) ||
+				!selectedCexListedStatesSet.has(toAttributeFilterState(asset.cexListed)) ||
+				!selectedKycForMintRedeemStatesSet.has(toAttributeFilterState(asset.kycForMintRedeem)) ||
+				!selectedKycAllowlistedWhitelistedToTransferHoldStatesSet.has(
+					toAttributeFilterState(asset.kycAllowlistedWhitelistedToTransferHold)
+				) ||
+				!selectedTransferableStatesSet.has(toAttributeFilterState(asset.transferable)) ||
+				!selectedSelfCustodyStatesSet.has(toAttributeFilterState(asset.selfCustody))
+			) {
 				continue
 			}
 
@@ -499,6 +650,13 @@ export const useFilteredRwaAssets = ({
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
+		selectedRedeemableStates,
+		selectedAttestationsStates,
+		selectedCexListedStates,
+		selectedKycForMintRedeemStates,
+		selectedKycAllowlistedWhitelistedToTransferHoldStates,
+		selectedTransferableStates,
+		selectedSelfCustodyStates,
 		includeStablecoins,
 		includeGovernance,
 		minDefiActiveTvlToOnChainMcapPct,
@@ -695,6 +853,83 @@ export function useRwaAssetNamePieChartData({
 	}, [assets, enabled, selectedAssetNames])
 }
 
+export function useRwaAssetPlatformPieChartData({
+	enabled,
+	assets
+}: {
+	enabled: boolean
+	assets: IRWAAssetsOverview['assets']
+}) {
+	return useMemo(() => {
+		const MAX_LABELS = 24
+		const UNKNOWN = 'Unknown'
+		const OTHERS = 'Others'
+
+		if (!enabled || assets.length === 0) {
+			return {
+				assetPlatformOnChainMcapPieChartData: [] as PieChartDatum[],
+				assetPlatformActiveMcapPieChartData: [] as PieChartDatum[],
+				assetPlatformDefiActiveTvlPieChartData: [] as PieChartDatum[],
+				assetPlatformPieChartStackColors: {}
+			}
+		}
+
+		// Coalesce by slug to avoid casing/spacing duplicates in platform names.
+		const totalsBySlug = new Map<string, { label: string; onChain: number; active: number; defi: number }>()
+		for (const asset of assets) {
+			const platformRaw = asset.parentPlatform as unknown
+			const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
+			const normalizedPlatforms = platformCandidates
+				.map((platform) => (typeof platform === 'string' ? platform.trim() : ''))
+				.filter((platform): platform is string => platform.length > 0)
+			const platforms = normalizedPlatforms.length > 0 ? Array.from(new Set(normalizedPlatforms)) : [UNKNOWN]
+
+			for (const platform of platforms) {
+				const key = rwaSlug(platform)
+				const prev = totalsBySlug.get(key) ?? { label: platform, onChain: 0, active: 0, defi: 0 }
+
+				// Prefer a non-Unknown label if we previously only had Unknown.
+				if (prev.label === UNKNOWN && platform !== UNKNOWN) prev.label = platform
+
+				prev.onChain += asset.onChainMcap?.total ?? 0
+				prev.active += asset.activeMcap?.total ?? 0
+				prev.defi += asset.defiActiveTvl?.total ?? 0
+				totalsBySlug.set(key, prev)
+			}
+		}
+
+		const colorOrder = Array.from(totalsBySlug.values())
+			.map((x) => x.label)
+			.filter(Boolean)
+			.sort()
+		// Keep existing label colors stable while ensuring "Others" exists.
+		if (!colorOrder.includes(OTHERS)) colorOrder.push(OTHERS)
+		const assetPlatformPieChartStackColors = buildStackColors(colorOrder)
+
+		const limitChartData = (data: PieChartDatum[]) => {
+			if (data.length <= MAX_LABELS) return data
+			const head = data.slice(0, MAX_LABELS - 1)
+			const othersValue = data.slice(MAX_LABELS - 1).reduce((sum, d) => sum + d.value, 0)
+			return othersValue > 0 ? [...head, { name: OTHERS, value: othersValue }] : head
+		}
+
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
+			limitChartData(
+				Array.from(totalsBySlug.values())
+					.map((v) => ({ name: v.label || UNKNOWN, value: v[metric] }))
+					.filter((x) => x.value > 0)
+					.sort((a, b) => b.value - a.value)
+			)
+
+		return {
+			assetPlatformOnChainMcapPieChartData: toSortedChartData('onChain'),
+			assetPlatformActiveMcapPieChartData: toSortedChartData('active'),
+			assetPlatformDefiActiveTvlPieChartData: toSortedChartData('defi'),
+			assetPlatformPieChartStackColors
+		}
+	}, [assets, enabled])
+}
+
 export function useRwaChainBreakdownPieChartData({
 	enabled,
 	assets
@@ -804,11 +1039,29 @@ function emptyChartDatasets(): Record<RWAChartMetric, RWAChartDataset> {
 	return { onChainMcap: emptyChartDataset(), activeMcap: emptyChartDataset(), defiActiveTvl: emptyChartDataset() }
 }
 
-function sortKeysWithOthersLast(keys: Iterable<string>): string[] {
+function sortKeysByLatestTimestampValue(rows: RWAChartRow[], keys: Iterable<string>): string[] {
 	const arr = Array.from(keys).filter(Boolean)
+	if (arr.length === 0) return arr
+
+	let latestRow: RWAChartRow | null = null
+	let latestTimestamp = Number.NEGATIVE_INFINITY
+	for (const row of rows) {
+		if (!Number.isFinite(row.timestamp)) continue
+		if (row.timestamp >= latestTimestamp) {
+			latestTimestamp = row.timestamp
+			latestRow = row
+		}
+	}
+
 	return arr.sort((a, b) => {
 		if (a === 'Others') return 1
 		if (b === 'Others') return -1
+
+		const aValueRaw = latestRow?.[a]
+		const bValueRaw = latestRow?.[b]
+		const aValue = typeof aValueRaw === 'number' && Number.isFinite(aValueRaw) ? aValueRaw : 0
+		const bValue = typeof bValueRaw === 'number' && Number.isFinite(bValueRaw) ? bValueRaw : 0
+		if (aValue !== bValue) return bValue - aValue
 		return a.localeCompare(b)
 	})
 }
@@ -874,9 +1127,18 @@ export function useRwaChartDataByCategory({
 
 		return {
 			chartDatasetByCategory: {
-				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenOnChain)] },
-				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenActive)] },
-				defiActiveTvl: { source: defiActiveTvl, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenDefi)] }
+				onChainMcap: {
+					source: onChainMcap,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)]
+				},
+				activeMcap: {
+					source: activeMcap,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)]
+				},
+				defiActiveTvl: {
+					source: defiActiveTvl,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
+				}
 			}
 		}
 	}, [assets, chartDataByTicker, enabled])
@@ -943,9 +1205,18 @@ export function useRwaChartDataByAssetClass({
 
 		return {
 			chartDatasetByAssetClass: {
-				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenOnChain)] },
-				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenActive)] },
-				defiActiveTvl: { source: defiActiveTvl, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenDefi)] }
+				onChainMcap: {
+					source: onChainMcap,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)]
+				},
+				activeMcap: {
+					source: activeMcap,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)]
+				},
+				defiActiveTvl: {
+					source: defiActiveTvl,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
+				}
 			}
 		}
 	}, [assets, chartDataByTicker, enabled])
@@ -1010,9 +1281,18 @@ export function useRwaChartDataByAssetName({
 
 		return {
 			chartDatasetByAssetName: {
-				onChainMcap: { source: onChainMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenOnChain)] },
-				activeMcap: { source: activeMcap, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenActive)] },
-				defiActiveTvl: { source: defiActiveTvl, dimensions: ['timestamp', ...sortKeysWithOthersLast(seenDefi)] }
+				onChainMcap: {
+					source: onChainMcap,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)]
+				},
+				activeMcap: {
+					source: activeMcap,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)]
+				},
+				defiActiveTvl: {
+					source: defiActiveTvl,
+					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
+				}
 			}
 		}
 	}, [assets, chartDataByTicker, enabled])

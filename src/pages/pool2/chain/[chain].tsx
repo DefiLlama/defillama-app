@@ -1,15 +1,12 @@
 import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { Pool2ProtocolsTVLByChain } from '~/containers/Pool2/Pool2ByChain'
-import { getPool2TVLByChain } from '~/containers/Pool2/queries'
+import { ExtraTvlByChain } from '~/containers/Protocols/ExtraTvlByChain'
+import { getExtraTvlByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticPaths = async () => {
-	// When this is true (in preview environments) don't
-	// prerender any static pages
-	// (faster builds, but slower initial page load)
 	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
@@ -29,8 +26,9 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const data = await getPool2TVLByChain({
+		const data = await getExtraTvlByChain({
 			chain: metadataCache.chainMetadata[chain].name,
+			metric: 'pool2',
 			protocolMetadata: metadataCache.protocolMetadata
 		})
 
@@ -54,7 +52,7 @@ export default function Pool2TVLByChain(props) {
 			canonicalUrl={`/pool2/chain/${props.chain}`}
 			pageName={pageName}
 		>
-			<Pool2ProtocolsTVLByChain {...props} />
+			<ExtraTvlByChain {...props} />
 		</Layout>
 	)
 }

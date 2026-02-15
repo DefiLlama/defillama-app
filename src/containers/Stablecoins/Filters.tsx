@@ -1,30 +1,42 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import * as React from 'react'
 import { useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { Select } from '~/components/Select/Select'
 import { useRangeFilter } from '~/hooks/useRangeFilter'
+import type { FormattedStablecoinAsset } from './utils'
 
-export const stablecoinAttributeOptions = [
+type StablecoinFilterableItem = Pick<
+	FormattedStablecoinAsset,
+	'pegDeviation' | 'yieldBearing' | 'pegMechanism' | 'pegType'
+>
+
+export type StablecoinFilterOption = {
+	name: string
+	key: string
+	filterFn: (item: StablecoinFilterableItem) => boolean
+	help: string
+}
+
+export const stablecoinAttributeOptions: StablecoinFilterOption[] = [
 	{
 		name: 'Stable',
 		key: 'STABLE',
-		filterFn: (item) => typeof item?.pegDeviation === 'number' && Math.abs(item.pegDeviation) <= 10,
+		filterFn: (item) => typeof item.pegDeviation === 'number' && Math.abs(item.pegDeviation) <= 10,
 		help: 'Show stablecoins within 10% of peg'
 	},
 	{
 		name: 'Yield Bearing',
 		key: 'YIELDBEARING',
-		filterFn: (item) => !!item?.yieldBearing,
+		filterFn: (item) => !!item.yieldBearing,
 		help: 'Show yield-bearing stablecoins'
 	},
 	{
 		name: 'Unknown',
 		key: 'UNKNOWN',
-		filterFn: (item) => typeof item?.pegDeviation !== 'number',
+		filterFn: (item) => typeof item.pegDeviation !== 'number',
 		help: 'Show stablecoins with no deviation data'
 	},
 	{
@@ -33,15 +45,15 @@ export const stablecoinAttributeOptions = [
 		// Yield-bearing assets intentionally render '-' for peg deviation columns,
 		// so exclude them from the "Depegged" filter to avoid showing "no peg data" rows.
 		filterFn: (item) =>
-			!item?.yieldBearing &&
-			typeof item?.pegDeviation === 'number' &&
+			!item.yieldBearing &&
+			typeof item.pegDeviation === 'number' &&
 			Number.isFinite(item.pegDeviation) &&
 			Math.abs(item.pegDeviation) > 10,
 		help: 'Show stablecoins depegged by more than 10%'
 	}
 ]
 
-export const stablecoinBackingOptions = [
+export const stablecoinBackingOptions: StablecoinFilterOption[] = [
 	{
 		name: 'Fiat',
 		key: 'FIATSTABLES',
@@ -62,7 +74,7 @@ export const stablecoinBackingOptions = [
 	}
 ]
 
-export const stablecoinPegTypeOptions = [
+export const stablecoinPegTypeOptions: StablecoinFilterOption[] = [
 	{
 		name: 'USD',
 		key: 'PEGGEDUSD',

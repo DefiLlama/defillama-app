@@ -30,6 +30,7 @@ export function Toast() {
 	)
 }
 
+// oxlint-disable-next-line no-unused-vars
 const ErrorToast = ({ title, description }) => {
 	return (
 		<div className="flex flex-col gap-2">

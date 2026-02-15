@@ -649,6 +649,9 @@ export interface DexItem extends BaseDatasetItem {
 // oxlint-disable-next-line typescript/no-empty-object-type
 export interface AggregatorItem extends BaseDatasetItem {}
 
+// oxlint-disable-next-line no-unused-vars
 const isMulti = (x: DashboardItemConfig): x is MultiChartConfig => x.kind === 'multi'
+// oxlint-disable-next-line no-unused-vars
 const isText = (x: DashboardItemConfig): x is TextConfig => x.kind === 'text'
+// oxlint-disable-next-line no-unused-vars
 const isMetric = (x: DashboardItemConfig): x is MetricConfig => x.kind === 'metric'

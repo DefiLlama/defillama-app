@@ -23,7 +23,7 @@ import { chainIconUrl, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const excludeChainsStatic = new Set([...TVL_SETTINGS_KEYS, 'offers', 'dcAndLsOverlap', 'excludeParent'])
-const excludeCategories = new Set(['Bridge', 'Canonical Bridge'])
+const excludeCategories = new Set(['Bridge', 'Canonical Bridge', 'Staking Pool'])
 const COLUMN_HELPER = createColumnHelper<any>()
 
 // Helper to parse exclude query param to Set

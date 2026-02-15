@@ -124,6 +124,7 @@ export async function fetchAdapterProtocolChartDataByBreakdownType({
 /**
  * Fetch adapter chain chart data broken down by protocol.
  */
+// oxlint-disable-next-line no-unused-vars
 async function fetchAdapterChainChartDataByProtocolBreakdown({
 	adapterType,
 	chain,

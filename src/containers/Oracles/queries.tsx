@@ -17,6 +17,7 @@ interface IOracleApiResponse {
 }
 
 // - used in /oracles and /oracles/[name]
+// oxlint-disable-next-line no-unused-vars
 async function getOraclePageData(oracle = null, chain = null) {
 	try {
 		const [{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle }, { protocols }]: [
@@ -162,6 +163,7 @@ async function getOraclePageData(oracle = null, chain = null) {
 	}
 }
 
+// oxlint-disable-next-line no-unused-vars
 async function getOraclePageDataByChain(chain: string) {
 	try {
 		const [{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle }, { protocols }]: [

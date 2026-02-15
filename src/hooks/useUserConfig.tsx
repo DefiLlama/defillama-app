@@ -146,9 +146,9 @@ export function useUserConfig() {
 	}, [isAuthenticated, authorizedFetch])
 
 	const saveConfig = useCallback(
-		async (config: UserConfig): Promise<UserConfig> => {
+		async (config: UserConfig): Promise<UserConfig | undefined> => {
 			if (!isAuthenticated || !authorizedFetch) {
-				return
+				return undefined
 			}
 			try {
 				await authorizedFetch(`${AUTH_SERVER}/user/config`, {
@@ -161,7 +161,7 @@ export function useUserConfig() {
 
 				return config
 			} catch {
-				return
+				return undefined
 			}
 		},
 		[isAuthenticated, authorizedFetch]
@@ -184,7 +184,7 @@ export function useUserConfig() {
 		mutateAsync: saveConfigAsync,
 		isPending: isSavingConfig,
 		isError: isErrorSavingConfig
-	} = useMutation<UserConfig, Error, UserConfig>({
+	} = useMutation<UserConfig | undefined, Error, UserConfig>({
 		mutationFn: saveConfig,
 		onSuccess: (savedConfig) => {
 			queryClient.setQueryData(USER_CONFIG_QUERY_KEY, savedConfig)

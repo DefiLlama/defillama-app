@@ -138,6 +138,7 @@ export interface ModalState {
 	selectedUnlocksChartType: 'total' | 'schedule' | 'allocation' | 'locked-unlocked'
 }
 
+// oxlint-disable-next-line no-unused-vars
 interface ModalActions {
 	setSelectedMainTab: (tab: MainTabType) => void
 	setSelectedChartTab: (tab: ChartTabType) => void

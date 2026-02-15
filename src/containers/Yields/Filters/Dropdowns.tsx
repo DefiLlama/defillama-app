@@ -47,7 +47,9 @@ export function YieldFilterDropdowns({
 	excludeRewardApy,
 	nestedMenu,
 	includeLsdApy,
+	// oxlint-disable-next-line no-unused-vars
 	showMedianApy,
+	// oxlint-disable-next-line no-unused-vars
 	showStdDev,
 	prepareCsv
 }: IDropdownMenusProps) {

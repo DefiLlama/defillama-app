@@ -33,6 +33,7 @@ export function useProtocolsFilterState(options: { key: string; name: string }[]
 	return { selectedValues, setSelectedValues }
 }
 
+// oxlint-disable-next-line no-unused-vars
 function useFeesFilterState(_props?: { [key: string]: any }) {
 	const [extraTvlsEnabled, _updater] = useLocalStorageSettingsManager('fees')
 
@@ -51,6 +52,7 @@ function useFeesFilterState(_props?: { [key: string]: any }) {
 	return { selectedValues, setSelectedValues }
 }
 
+// oxlint-disable-next-line no-unused-vars
 function useTvlAndFeesFilterState({
 	options
 }: {

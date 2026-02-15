@@ -24,6 +24,7 @@ const formatLabel = (header: string, group?: string) => {
 	return `${header} · ${group.charAt(0).toUpperCase()}${group.slice(1)}`
 }
 
+// oxlint-disable-next-line no-unused-vars
 function SortingSelector({
 	columnOrder,
 	columnVisibility,

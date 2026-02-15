@@ -29,6 +29,7 @@ const parseNumberWithAbbreviation = (input: string): number | undefined => {
 	return suffix ? base * multipliers[suffix] : base
 }
 
+// oxlint-disable-next-line no-unused-vars
 function FormattedNumberInput({
 	value,
 	onChange,

@@ -1,4 +1,4 @@
-import type { IRaise } from '~/containers/ProtocolOverview/types'
+import type { IRaise } from '~/containers/ProtocolOverview/api.types'
 import type { IJSON } from './categories/adaptors/types'
 
 interface Protocol {
@@ -145,6 +145,7 @@ interface IProtocol extends Omit<IProtocolResponse, 'tvl' | 'currentChainTvls' |
 	pool2?: number
 }
 
+// oxlint-disable-next-line no-unused-vars
 interface IChain {
 	tvl: number
 	tvlPrevDay: number
@@ -160,12 +161,14 @@ interface IChain {
 	chainId: number | null
 }
 
+// oxlint-disable-next-line no-unused-vars
 interface IChainData {
 	date: number
 	Deposits: number
 	Withdrawals: number
 }
 
+// oxlint-disable-next-line no-unused-vars
 interface IChainGeckoId {
 	geckoId: string
 	symbol: string

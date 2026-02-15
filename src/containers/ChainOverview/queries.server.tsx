@@ -1,5 +1,5 @@
-import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { fetchLlamaConfig } from '~/api'
+import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { tvlOptions } from '~/components/Filters/options'
 import {
 	CHART_API,

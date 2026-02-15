@@ -59,6 +59,7 @@ export function useMetricAvailability(
 	])
 }
 
+// oxlint-disable-next-line no-unused-vars
 function useFilteredMetrics(metrics: MetricWithAvailability[], showOnlyValid: boolean = true) {
 	return useMemo(() => {
 		if (!showOnlyValid) return metrics
