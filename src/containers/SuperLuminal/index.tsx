@@ -128,9 +128,9 @@ function SuperLuminalContent({
 }) {
 	const { items } = useProDashboardItemsState()
 	const { protocolsLoading } = useProDashboardCatalog()
-	const { isLoadingDashboard } = useProDashboardDashboard()
+	const { isLoadingDashboard, currentDashboard } = useProDashboardDashboard()
 
-	if (isLoadingDashboard) {
+	if (isLoadingDashboard || !currentDashboard) {
 		return (
 			<div className="flex flex-1 items-center justify-center">
 				<div className="sl-loader flex flex-col items-center gap-2.5">
