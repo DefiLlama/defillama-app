@@ -134,9 +134,21 @@ function SuperLuminalContent({
 		return (
 			<div className="flex flex-1 items-center justify-center">
 				<div className="sl-loader flex flex-col items-center gap-2.5">
-					<img src="/assets/defillama.webp" height={36} width={140} className="hidden object-contain dark:block" alt="DefiLlama" />
-					<img src="/assets/defillama-dark.webp" height={36} width={140} className="object-contain dark:hidden" alt="DefiLlama" />
-					<span className="rounded-full border border-(--sl-accent)/40 px-3 py-1 text-[9px] font-semibold tracking-[0.15em] uppercase text-(--sl-accent)/60 select-none">
+					<img
+						src="/assets/defillama.webp"
+						height={36}
+						width={140}
+						className="hidden object-contain dark:block"
+						alt="DefiLlama"
+					/>
+					<img
+						src="/assets/defillama-dark.webp"
+						height={36}
+						width={140}
+						className="object-contain dark:hidden"
+						alt="DefiLlama"
+					/>
+					<span className="rounded-full border border-(--sl-accent)/40 px-3 py-1 text-[9px] font-semibold tracking-[0.15em] text-(--sl-accent)/60 uppercase select-none">
 						Investor Relationships
 					</span>
 				</div>
@@ -177,9 +189,21 @@ function SuperLuminalContent({
 							fallback={
 								<div className="flex min-h-[60vh] items-center justify-center py-20">
 									<div className="sl-loader flex flex-col items-center gap-2.5">
-										<img src="/assets/defillama.webp" height={36} width={140} className="hidden object-contain dark:block" alt="DefiLlama" />
-										<img src="/assets/defillama-dark.webp" height={36} width={140} className="object-contain dark:hidden" alt="DefiLlama" />
-										<span className="rounded-full border border-(--sl-accent)/40 px-3 py-1 text-[9px] font-semibold tracking-[0.15em] uppercase text-(--sl-accent)/60 select-none">
+										<img
+											src="/assets/defillama.webp"
+											height={36}
+											width={140}
+											className="hidden object-contain dark:block"
+											alt="DefiLlama"
+										/>
+										<img
+											src="/assets/defillama-dark.webp"
+											height={36}
+											width={140}
+											className="object-contain dark:hidden"
+											alt="DefiLlama"
+										/>
+										<span className="rounded-full border border-(--sl-accent)/40 px-3 py-1 text-[9px] font-semibold tracking-[0.15em] text-(--sl-accent)/60 uppercase select-none">
 											Investor Relationships
 										</span>
 									</div>
@@ -187,11 +211,6 @@ function SuperLuminalContent({
 							}
 						>
 							<TabComponent />
-							{tab.source && (
-								<p className="pt-4 pb-2 text-center text-xs tracking-wide text-(--text-tertiary)">
-									Data provided by {tab.source} API
-								</p>
-							)}
 						</Suspense>
 					</div>
 				)
@@ -231,9 +250,21 @@ function SuperLuminalShell() {
 					</svg>
 				</button>
 				<div className="flex items-center gap-2 select-none">
-					<img src="/assets/defillama.webp" height={24} width={94} className="hidden object-contain dark:block" alt="DefiLlama" />
-					<img src="/assets/defillama-dark.webp" height={24} width={94} className="object-contain dark:hidden" alt="DefiLlama" />
-					<span className="rounded-full border border-(--sl-accent)/40 px-2 py-0.5 text-[7px] font-semibold tracking-[0.12em] uppercase text-(--sl-accent)/60">
+					<img
+						src="/assets/defillama.webp"
+						height={24}
+						width={94}
+						className="hidden object-contain dark:block"
+						alt="DefiLlama"
+					/>
+					<img
+						src="/assets/defillama-dark.webp"
+						height={24}
+						width={94}
+						className="object-contain dark:hidden"
+						alt="DefiLlama"
+					/>
+					<span className="rounded-full border border-(--sl-accent)/40 px-2 py-0.5 text-[7px] font-semibold tracking-[0.12em] text-(--sl-accent)/60 uppercase">
 						IR
 					</span>
 				</div>
@@ -245,9 +276,21 @@ function SuperLuminalShell() {
 				} md:z-10 md:translate-x-0`}
 			>
 				<div className="hidden flex-col items-center gap-2.5 pb-3 md:flex">
-					<img src="/assets/defillama.webp" height={36} width={140} className="hidden object-contain dark:block" alt="DefiLlama" />
-					<img src="/assets/defillama-dark.webp" height={36} width={140} className="object-contain dark:hidden" alt="DefiLlama" />
-					<span className="rounded-full border border-(--sl-accent)/40 px-3 py-1 text-[9px] font-semibold tracking-[0.15em] uppercase text-(--sl-accent)/60 select-none">
+					<img
+						src="/assets/defillama.webp"
+						height={36}
+						width={140}
+						className="hidden object-contain dark:block"
+						alt="DefiLlama"
+					/>
+					<img
+						src="/assets/defillama-dark.webp"
+						height={36}
+						width={140}
+						className="object-contain dark:hidden"
+						alt="DefiLlama"
+					/>
+					<span className="rounded-full border border-(--sl-accent)/40 px-3 py-1 text-[9px] font-semibold tracking-[0.15em] text-(--sl-accent)/60 uppercase select-none">
 						Investor Relationships
 					</span>
 				</div>
