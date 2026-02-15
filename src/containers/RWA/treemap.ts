@@ -1,3 +1,4 @@
+import { CHART_COLORS } from '~/constants/colors'
 import type { IRWAAssetsOverview, IRWAProject } from './api.types'
 import { rwaSlug } from './rwaSlug'
 
@@ -15,17 +16,7 @@ export type RwaTreemapNode = {
 	children?: RwaTreemapNode[]
 }
 
-const ECHARTS_DEFAULT_COLORS = [
-	'#2563EB', // blue
-	'#DC2626', // red
-	'#16A34A', // green
-	'#9333EA', // purple
-	'#EA580C', // orange
-	'#0891B2', // cyan
-	'#DB2777', // pink
-	'#CA8A04', // amber
-	'#4F46E5' // indigo
-]
+const TREEMAP_COLORS = CHART_COLORS
 
 export const TREEMAP_NESTED_BY_OPTIONS = [
 	{ key: 'none', name: 'No Grouping' },
@@ -58,14 +49,16 @@ export const buildRwaTreemapTreeData = (
 
 	const total = data.reduce((sum, item) => sum + item.value, 0)
 	const rootLabel = breakdownLabel || 'Breakdown'
-	const colorMap = buildColorMapFromPalette(data.map((item) => item.name))
-	const children: RwaTreemapNode[] = data.map((item) => {
+	// Assign colors in value-descending order so the biggest block gets CHART_COLORS[0].
+	const children: RwaTreemapNode[] = data.map((item, index) => {
 		const sharePct = total > 0 ? Number(((item.value / total) * 100).toFixed(2)) : 0
+		const color =
+			index < TREEMAP_COLORS.length ? TREEMAP_COLORS[index] : createGeneratedColor(index - TREEMAP_COLORS.length)
 		return {
 			name: item.name,
 			path: `${rootLabel}/${item.name}`,
 			value: [item.value, sharePct, sharePct],
-			itemStyle: { color: colorMap[item.name] }
+			itemStyle: { color }
 		}
 	})
 
@@ -203,22 +196,47 @@ const sanitizeTreemapLabel = (value: string): string => {
 	return richWrapperMatch ? richWrapperMatch[1] : trimmed
 }
 
+/** Convert HSL values to a hex color (#RRGGBB) so downstream helpers (hexToHsl) can parse it. */
+const hslToHex = (h: number, s: number, l: number): string => {
+	const sNorm = s / 100
+	const lNorm = l / 100
+	const a = sNorm * Math.min(lNorm, 1 - lNorm)
+	const f = (n: number) => {
+		const k = (n + h / 30) % 12
+		const c = lNorm - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
+		return Math.round(255 * Math.max(0, Math.min(1, c)))
+			.toString(16)
+			.padStart(2, '0')
+	}
+	return `#${f(0)}${f(8)}${f(4)}`
+}
+
 const createGeneratedColor = (index: number): string => {
 	const hue = (index * 137.508) % 360
 	const saturation = 62 + (index % 3) * 8
 	// Keep fallback colors away from very light tones (can look white on charts).
 	const lightness = 40 + (index % 4) * 4
-	return `hsl(${hue.toFixed(2)}deg ${saturation}% ${lightness}%)`
+	return hslToHex(hue, saturation, lightness)
 }
 
-const buildColorMapFromPalette = (labels: string[]): Record<string, string> => {
+/**
+ * Build a color map for treemap parent groups with maximally-spaced hues.
+ * Uses golden angle stepping (137.508°) so consecutive items (which are the
+ * biggest, most visually dominant groups) always land ~137.5° apart on the
+ * color wheel — guaranteeing distinct hue families for their child shades.
+ */
+const buildHueSpacedColorMap = (labels: string[]): Record<string, string> => {
+	const unique = Array.from(new Set(labels))
+	if (unique.length === 0) return {}
+
 	const colorMap: Record<string, string> = {}
-	const orderedLabels = Array.from(new Set(labels)).sort((a, b) => a.localeCompare(b))
-	for (const [index, label] of orderedLabels.entries()) {
-		colorMap[label] =
-			index < ECHARTS_DEFAULT_COLORS.length
-				? ECHARTS_DEFAULT_COLORS[index]
-				: createGeneratedColor(index - ECHARTS_DEFAULT_COLORS.length)
+	const startHue = 210
+	const saturation = 65
+	const lightness = 48
+
+	for (let i = 0; i < unique.length; i++) {
+		const hue = (startHue + i * 137.508) % 360
+		colorMap[unique[i]] = hslToHex(hue, saturation, lightness)
 	}
 	return colorMap
 }
@@ -270,7 +288,7 @@ const deriveChildShades = (parentHex: string, count: number): string[] => {
 		// Small hue offset per child gives extra distinction when many children.
 		const hueOffset = count > 2 ? (i - (count - 1) / 2) * 4 : 0
 		const childH = ((h + hueOffset) % 360 + 360) % 360
-		shades.push(`hsl(${childH.toFixed(1)}deg ${childS.toFixed(0)}% ${childL.toFixed(0)}%)`)
+		shades.push(hslToHex(childH, childS, childL))
 	}
 	return shades
 }
@@ -339,12 +357,12 @@ export const buildRwaNestedTreemapTreeData = ({
 	if (!Number.isFinite(total) || total <= 0) return []
 
 	const resolvedRootLabel = rootLabel || getRwaTreemapGroupingLabel(parentGrouping)
-	const parentColorMap = buildColorMapFromPalette(parentRows.map((row) => row.parentLabel))
+	const parentColorMap = buildHueSpacedColorMap(parentRows.map((row) => row.parentLabel))
 
 	const parentNodes: RwaTreemapNode[] = parentRows.map((row) => {
 		const parentPath = `${resolvedRootLabel}/${row.parentLabel}`
 		const parentSharePct = Number(((row.parentTotal / total) * 100).toFixed(2))
-		const parentColor = parentColorMap[row.parentLabel] ?? ECHARTS_DEFAULT_COLORS[0]
+		const parentColor = parentColorMap[row.parentLabel] ?? TREEMAP_COLORS[0]
 		const childShades = deriveChildShades(parentColor, row.childRows.length)
 		const childNodes: RwaTreemapNode[] = row.childRows.map(([childLabel, childTotal], childIndex) => {
 			const childSharePct = Number(((childTotal / row.parentTotal) * 100).toFixed(2))

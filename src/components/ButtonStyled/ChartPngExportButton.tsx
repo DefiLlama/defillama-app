@@ -9,10 +9,80 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { downloadDataURL } from '~/utils'
 
 const IMAGE_EXPORT_WIDTH = 1280
+const IMAGE_EXPORT_HEIGHT = 720
 const approximateTextWidth = (text: string, fontSize: number) => {
 	if (!text) return 0
 	const averageCharWidthRatio = 0.6
 	return text.length * fontSize * averageCharWidthRatio
+}
+
+/**
+ * Export a treemap chart by capturing directly from the original ECharts instance.
+ * This preserves the current zoom/drill-down state which getOption() loses.
+ * The captured chart is composited onto a canvas with a title overlay.
+ */
+async function exportTreemapWithZoom(
+	chart: echarts.ECharts,
+	title: string | undefined,
+	isDark: boolean
+): Promise<string | null> {
+	try {
+		// Capture exactly what the user sees, including any zoom state.
+		// Use a high pixel ratio for sharp output regardless of viewport size.
+		const chartDataURL = chart.getDataURL({
+			type: 'png',
+			pixelRatio: 4,
+			backgroundColor: isDark ? '#0b1214' : '#ffffff',
+			excludeComponents: ['toolbox']
+		})
+
+		const chartImg = new Image()
+		await new Promise<void>((resolve, reject) => {
+			chartImg.onload = () => resolve()
+			chartImg.onerror = reject
+			chartImg.src = chartDataURL
+		})
+
+		const dpr = 2
+		const canvas = document.createElement('canvas')
+		canvas.width = IMAGE_EXPORT_WIDTH * dpr
+		canvas.height = IMAGE_EXPORT_HEIGHT * dpr
+		const ctx = canvas.getContext('2d')
+		if (!ctx) return null
+
+		ctx.scale(dpr, dpr)
+
+		// Background
+		ctx.fillStyle = isDark ? '#0b1214' : '#ffffff'
+		ctx.fillRect(0, 0, IMAGE_EXPORT_WIDTH, IMAGE_EXPORT_HEIGHT)
+
+		// Title
+		const titleText = title || ''
+		let chartTop = 12
+		if (titleText) {
+			ctx.font = '600 28px sans-serif'
+			ctx.fillStyle = isDark ? '#ffffff' : '#000000'
+			ctx.fillText(titleText, 14, 36)
+			chartTop = 52
+		}
+
+		// Draw the captured chart image, scaled to fit the export canvas.
+		const chartAreaW = IMAGE_EXPORT_WIDTH - 24
+		const chartAreaH = IMAGE_EXPORT_HEIGHT - chartTop - 12
+		const imgAspect = chartImg.width / chartImg.height
+		let drawW = chartAreaW
+		let drawH = drawW / imgAspect
+		if (drawH > chartAreaH) {
+			drawH = chartAreaH
+			drawW = drawH * imgAspect
+		}
+		ctx.drawImage(chartImg, 12, chartTop, drawW, drawH)
+
+		return canvas.toDataURL('image/png')
+	} catch (error) {
+		console.log('Treemap direct export failed:', error)
+		return null
+	}
 }
 
 const DEFAULT_CLASSNAME =
@@ -56,6 +126,21 @@ export function ChartPngExportButton({
 			}
 			setIsLoading(true)
 
+			// Detect treemap early — treemaps need a direct capture from the original
+			// chart to preserve the current zoom state (getOption() loses zoom info).
+			const earlyOptions = _chartInstance.getOption()
+			const isTreemapExport =
+				Array.isArray(earlyOptions.series) &&
+				earlyOptions.series.some(
+					(series) => typeof series === 'object' && series != null && 'type' in series && series.type === 'treemap'
+				)
+
+			let dataURL: string
+
+			if (isTreemapExport) {
+				dataURL = await exportTreemapWithZoom(_chartInstance, title, isDark)
+			} else {
+
 			// Create a temporary container for the cloned chart
 			const tempContainer = document.createElement('div')
 			tempContainer.style.width = `${IMAGE_EXPORT_WIDTH}px`
@@ -65,7 +150,6 @@ export function ChartPngExportButton({
 			tempContainer.style.top = '0'
 			document.body.appendChild(tempContainer)
 
-			let dataURL: string
 			try {
 				// Create a new chart instance on the temporary container
 				const tempChart = echarts.init(tempContainer, null, {
@@ -435,6 +519,8 @@ export function ChartPngExportButton({
 				// Remove the temporary container
 				document.body.removeChild(tempContainer)
 			}
+
+			} // end else (non-treemap path)
 
 			if (!dataURL) return
 			const imageFilename = `${filename || 'chart'}_${new Date().toISOString().split('T')[0]}.png`
