@@ -1,8 +1,11 @@
+import * as Ariakit from '@ariakit/react'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { MarkdownRenderer } from '~/containers/LlamaAI/components/MarkdownRenderer'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
+import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimitModal'
+import { ResponseControls } from '~/containers/LlamaAI/components/ResponseControls'
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
@@ -12,8 +15,8 @@ import { AgenticSidebar } from './AgenticSidebar'
 import { ChartRenderer } from './ChartRenderer'
 import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArtifact'
 import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
-import { fetchAgenticResponse } from './fetchAgenticResponse'
-import type { SpawnProgressData, CsvExport } from './fetchAgenticResponse'
+import { fetchAgenticResponse, checkActiveExecution, resumeAgenticStream } from './fetchAgenticResponse'
+import type { SpawnProgressData, CsvExport, AgenticSSECallbacks } from './fetchAgenticResponse'
 import type { ChartConfiguration, Message } from './types'
 
 const TOOL_LABELS: Record<string, string> = {
@@ -89,6 +92,10 @@ export function AgenticChat() {
 	const [spawnStartTime, setSpawnStartTime] = useState(0)
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(null)
+	const [lastFailedPrompt, setLastFailedPrompt] = useState<string | null>(null)
+	const [rateLimitDetails, setRateLimitDetails] = useState<{ period: string; limit: number; resetTime: string | null } | null>(null)
+	const researchModalStore = Ariakit.useDialogStore()
+	const currentMessageIdRef = useRef<string | null>(null)
 	const [paginationState, setPaginationState] = useState<{
 		hasMore: boolean
 		cursor: number | null
@@ -207,7 +214,7 @@ export function AgenticChat() {
 				charts: m.charts && m.chartData ? [{ charts: m.charts, chartData: m.chartData }] : undefined,
 				citations: m.citations,
 				csvExports: m.csvExports,
-				id: m.id,
+				id: m.messageId,
 				timestamp: m.timestamp ? new Date(m.timestamp).getTime() : undefined
 			}))
 
@@ -247,6 +254,7 @@ export function AgenticChat() {
 		setSessionId(null)
 		setSessionTitle(null)
 		setError(null)
+		setLastFailedPrompt(null)
 		setStreamingText('')
 		setStreamingCharts([])
 		setStreamingCsvExports([])
@@ -275,7 +283,7 @@ export function AgenticChat() {
 					charts: m.charts && m.chartData ? [{ charts: m.charts, chartData: m.chartData }] : undefined,
 					citations: m.citations,
 					csvExports: m.csvExports,
-					id: m.id,
+					id: m.messageId,
 					timestamp: m.timestamp ? new Date(m.timestamp).getTime() : undefined
 				}))
 
@@ -291,13 +299,132 @@ export function AgenticChat() {
 					cursor: result.pagination?.cursor || null,
 					isLoadingMore: false
 				})
+
+				const { active } = await checkActiveExecution(selectedSessionId, authorizedFetch)
+				if (active) {
+					setIsStreaming(true)
+					setStreamingText('')
+					setStreamingCharts([])
+					setStreamingCsvExports([])
+					setStreamingCitations([])
+					setActiveToolCalls([])
+					setSpawnProgress(new Map())
+					setSpawnStartTime(0)
+
+					let accumulatedText = ''
+					let accumulatedCharts: ChartSet[] = []
+					let accumulatedCsvExports: CsvExport[] = []
+					let accumulatedCitations: string[] = []
+					let hasStartedText = false
+					let spawnStarted = false
+
+					const controller = new AbortController()
+					abortControllerRef.current = controller
+
+					const callbacks: AgenticSSECallbacks = {
+						onToken: (content) => {
+							if (!hasStartedText) {
+								hasStartedText = true
+								setActiveToolCalls([])
+								setSpawnProgress(new Map())
+								setSpawnStartTime(0)
+							}
+							accumulatedText += content
+							setStreamingText(accumulatedText)
+						},
+						onCharts: (charts, chartData) => {
+							setActiveToolCalls([])
+							accumulatedCharts = [...accumulatedCharts, { charts, chartData }]
+							setStreamingCharts(accumulatedCharts)
+						},
+						onCsvExport: (exports) => {
+							accumulatedCsvExports = [...accumulatedCsvExports, ...exports]
+							setStreamingCsvExports(accumulatedCsvExports)
+						},
+						onCitations: (citations) => {
+							accumulatedCitations = [...new Set([...accumulatedCitations, ...citations])]
+							setStreamingCitations(accumulatedCitations)
+						},
+						onProgress: (toolName) => {
+							const label = TOOL_LABELS[toolName] || toolName
+							const id = ++toolCallIdRef.current
+							setActiveToolCalls((prev) => [...prev, { id, name: toolName, label }])
+						},
+						onSpawnProgress: (data: SpawnProgressData) => {
+							if (data.status === 'started' && !spawnStarted) {
+								spawnStarted = true
+								setSpawnStartTime(Date.now())
+							}
+							setSpawnProgress((prev) => {
+								const next = new Map(prev)
+								const existing = prev.get(data.agentId)
+								next.set(data.agentId, {
+									...existing,
+									id: data.agentId,
+									status: data.status,
+									tool: data.tool ?? existing?.tool,
+									toolCount: data.toolCount ?? existing?.toolCount,
+									chartCount: data.chartCount ?? existing?.chartCount,
+									findingsPreview: data.findingsPreview ?? existing?.findingsPreview
+								})
+								return next
+							})
+						},
+						onSessionId: () => {},
+						onMessageId: (messageId) => {
+							currentMessageIdRef.current = messageId
+						},
+						onTitle: (title) => {
+							setSessionTitle(title)
+							updateSessionTitle({ sessionId: selectedSessionId, title }).catch(() => {})
+							moveSessionToTop(selectedSessionId)
+						},
+						onError: (content) => {
+							setError(content)
+						},
+						onDone: () => {
+							setMessages((prev) => [
+								...prev,
+								{
+									role: 'assistant',
+									content: accumulatedText || undefined,
+									charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined,
+									csvExports: accumulatedCsvExports.length > 0 ? accumulatedCsvExports : undefined,
+									citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined,
+									id: currentMessageIdRef.current || undefined
+								}
+							])
+							currentMessageIdRef.current = null
+							setStreamingText('')
+							setStreamingCharts([])
+							setStreamingCsvExports([])
+							setStreamingCitations([])
+							setActiveToolCalls([])
+							setSpawnProgress(new Map())
+							setSpawnStartTime(0)
+							setIsStreaming(false)
+						}
+					}
+
+					resumeAgenticStream({
+						sessionId: selectedSessionId,
+						callbacks,
+						abortSignal: controller.signal,
+						fetchFn: authorizedFetch
+					}).catch((err: any) => {
+						if (err?.name === 'AbortError') return
+						setIsStreaming(false)
+					}).finally(() => {
+						abortControllerRef.current = null
+					})
+				}
 			} catch {
 				setError('Failed to restore session')
 			} finally {
 				setRestoringSessionId(null)
 			}
 		},
-		[sessionId, restoreSession, sessions]
+		[sessionId, restoreSession, sessions, authorizedFetch, updateSessionTitle, moveSessionToTop]
 	)
 
 	const handleSubmit = useCallback(
@@ -306,6 +433,7 @@ export function AgenticChat() {
 			if (!trimmed || isStreaming) return
 
 			setError(null)
+			setLastFailedPrompt(null)
 			setIsStreaming(true)
 			setStreamingText('')
 			setStreamingCharts([])
@@ -397,6 +525,9 @@ export function AgenticChat() {
 					onSessionId: (id) => {
 						setSessionId(id)
 					},
+					onMessageId: (messageId) => {
+						currentMessageIdRef.current = messageId
+					},
 					onTitle: (title) => {
 						setSessionTitle(title)
 						if (currentSessionId) {
@@ -415,9 +546,11 @@ export function AgenticChat() {
 								content: accumulatedText || undefined,
 								charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined,
 								csvExports: accumulatedCsvExports.length > 0 ? accumulatedCsvExports : undefined,
-								citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined
+								citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined,
+								id: currentMessageIdRef.current || undefined
 							}
 						])
+						currentMessageIdRef.current = null
 						setStreamingText('')
 						setStreamingCharts([])
 						setStreamingCsvExports([])
@@ -430,9 +563,19 @@ export function AgenticChat() {
 				}
 			})
 				.catch((err: any) => {
-					if (err?.name !== 'AbortError') {
-						setError(err?.message || 'Failed to get response')
+					if (err?.name === 'AbortError') return
+					if (err?.code === 'USAGE_LIMIT_EXCEEDED') {
+						setRateLimitDetails({
+							period: err.details?.period || 'lifetime',
+							limit: err.details?.limit || 0,
+							resetTime: err.details?.resetTime || null
+						})
+						researchModalStore.show()
+						setIsStreaming(false)
+						return
 					}
+					setError(err?.message || 'Failed to get response')
+					setLastFailedPrompt(trimmed)
 					if (accumulatedText || accumulatedCharts.length > 0) {
 						setMessages((prev) => [
 							...prev,
@@ -458,7 +601,7 @@ export function AgenticChat() {
 					abortControllerRef.current = null
 				})
 		},
-		[isStreaming, sessionId, isResearchMode, authorizedFetch, createFakeSession, updateSessionTitle, moveSessionToTop]
+		[isStreaming, sessionId, isResearchMode, authorizedFetch, createFakeSession, updateSessionTitle, moveSessionToTop, researchModalStore]
 	)
 
 	const handleStopRequest = useCallback(() => {
@@ -531,7 +674,7 @@ export function AgenticChat() {
 											</div>
 										)}
 										{messages.map((msg, i) => (
-											<MessageBubble key={i} message={msg} />
+											<MessageBubble key={i} message={msg} sessionId={sessionId} isStreaming={isStreaming} />
 										))}
 
 										{isStreaming &&
@@ -559,6 +702,17 @@ export function AgenticChat() {
 										{error && (
 											<div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
 												<p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+												{lastFailedPrompt && (
+													<button
+														onClick={() => {
+															setError(null)
+															handleSubmit(lastFailedPrompt)
+														}}
+														className="mt-1 w-fit rounded-md bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
+													>
+														Retry
+													</button>
+												)}
 											</div>
 										)}
 									</div>
@@ -598,6 +752,14 @@ export function AgenticChat() {
 					</>
 				)}
 			</div>
+			{rateLimitDetails && (
+				<ResearchLimitModal
+					dialogStore={researchModalStore}
+					period={rateLimitDetails.period}
+					limit={rateLimitDetails.limit}
+					resetTime={rateLimitDetails.resetTime}
+				/>
+			)}
 		</div>
 	)
 }
@@ -881,7 +1043,7 @@ function ToolIndicator({ label, name }: { label: string; name: string }) {
 	)
 }
 
-function MessageBubble({ message }: { message: Message }) {
+function MessageBubble({ message, sessionId, isStreaming: parentIsStreaming }: { message: Message; sessionId: string | null; isStreaming: boolean }) {
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
 
 	if (message.role === 'user') {
@@ -908,6 +1070,15 @@ function MessageBubble({ message }: { message: Message }) {
 	}
 
 	return (
-		<InlineContent text={message.content || ''} chartSets={message.charts || []} csvExports={message.csvExports} citations={message.citations || []} />
+		<div>
+			<InlineContent text={message.content || ''} chartSets={message.charts || []} csvExports={message.csvExports} citations={message.citations || []} />
+			{message.id && !parentIsStreaming && (
+				<ResponseControls
+					messageId={message.id}
+					content={message.content}
+					sessionId={sessionId}
+				/>
+			)}
+		</div>
 	)
 }
