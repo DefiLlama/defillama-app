@@ -16,15 +16,15 @@ export type RwaTreemapNode = {
 }
 
 const ECHARTS_DEFAULT_COLORS = [
-	'#5470C6',
-	'#91CC75',
-	'#FAC858',
-	'#EE6666',
-	'#73C0DE',
-	'#3BA272',
-	'#FC8452',
-	'#9A60B4',
-	'#EA7CCC'
+	'#2563EB', // blue
+	'#DC2626', // red
+	'#16A34A', // green
+	'#9333EA', // purple
+	'#EA580C', // orange
+	'#0891B2', // cyan
+	'#DB2777', // pink
+	'#CA8A04', // amber
+	'#4F46E5' // indigo
 ]
 
 export const TREEMAP_NESTED_BY_OPTIONS = [
@@ -223,6 +223,58 @@ const buildColorMapFromPalette = (labels: string[]): Record<string, string> => {
 	return colorMap
 }
 
+/** Convert a hex color (#RRGGBB) to [hue 0-360, saturation 0-100, lightness 0-100]. */
+const hexToHsl = (hex: string): [number, number, number] => {
+	const r = parseInt(hex.slice(1, 3), 16) / 255
+	const g = parseInt(hex.slice(3, 5), 16) / 255
+	const b = parseInt(hex.slice(5, 7), 16) / 255
+	const max = Math.max(r, g, b)
+	const min = Math.min(r, g, b)
+	let h = 0
+	let s = 0
+	const l = (max + min) / 2
+
+	if (max !== min) {
+		const d = max - min
+		s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+		if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6
+		else if (max === g) h = ((b - r) / d + 2) / 6
+		else h = ((r - g) / d + 4) / 6
+	}
+
+	return [h * 360, s * 100, l * 100]
+}
+
+/**
+ * Derive child shade colors from a parent hex color.
+ * Children share the parent's hue family but spread across a wide lightness
+ * range with slight hue shifts, producing clearly distinct blocks per group.
+ */
+const deriveChildShades = (parentHex: string, count: number): string[] => {
+	if (count <= 0) return []
+	if (count === 1) return [parentHex]
+
+	const [h, s] = hexToHsl(parentHex)
+
+	// Wide lightness spread — from deep shade to medium-light — for maximum
+	// visual distinction. Text remains readable via the textBorder outline.
+	const minL = 25
+	const maxL = 65
+	// Keep saturation vivid so the hue stays recognisable at every lightness.
+	const childS = Math.max(55, Math.min(85, s))
+	const shades: string[] = []
+
+	for (let i = 0; i < count; i++) {
+		const ratio = count > 1 ? i / (count - 1) : 0.5
+		const childL = minL + ratio * (maxL - minL)
+		// Small hue offset per child gives extra distinction when many children.
+		const hueOffset = count > 2 ? (i - (count - 1) / 2) * 4 : 0
+		const childH = ((h + hueOffset) % 360 + 360) % 360
+		shades.push(`hsl(${childH.toFixed(1)}deg ${childS.toFixed(0)}% ${childL.toFixed(0)}%)`)
+	}
+	return shades
+}
+
 const getRwaTreemapGroupingLabel = (grouping: RwaTreemapParentGrouping): string => {
 	if (grouping === 'assetClass') return 'Asset Class'
 	if (grouping === 'assetName') return 'Asset Name'
@@ -288,21 +340,20 @@ export const buildRwaNestedTreemapTreeData = ({
 
 	const resolvedRootLabel = rootLabel || getRwaTreemapGroupingLabel(parentGrouping)
 	const parentColorMap = buildColorMapFromPalette(parentRows.map((row) => row.parentLabel))
-	const childColorMap = buildColorMapFromPalette(
-		parentRows.flatMap((row) => row.childRows.map(([childLabel]) => `${row.parentLabel}::${childLabel}`))
-	)
+
 	const parentNodes: RwaTreemapNode[] = parentRows.map((row) => {
 		const parentPath = `${resolvedRootLabel}/${row.parentLabel}`
 		const parentSharePct = Number(((row.parentTotal / total) * 100).toFixed(2))
-		const childNodes: RwaTreemapNode[] = row.childRows.map(([childLabel, childTotal]) => {
+		const parentColor = parentColorMap[row.parentLabel] ?? ECHARTS_DEFAULT_COLORS[0]
+		const childShades = deriveChildShades(parentColor, row.childRows.length)
+		const childNodes: RwaTreemapNode[] = row.childRows.map(([childLabel, childTotal], childIndex) => {
 			const childSharePct = Number(((childTotal / row.parentTotal) * 100).toFixed(2))
 			const childShareOfTotalPct = Number(((childTotal / total) * 100).toFixed(2))
-			const childKey = `${row.parentLabel}::${childLabel}`
 			return {
 				name: childLabel,
 				path: `${parentPath}/${childLabel}`,
 				value: [childTotal, childSharePct, childShareOfTotalPct],
-				itemStyle: { color: childColorMap[childKey] }
+				itemStyle: { color: childShades[childIndex] }
 			}
 		})
 
@@ -310,7 +361,7 @@ export const buildRwaNestedTreemapTreeData = ({
 			name: row.parentLabel,
 			path: parentPath,
 			value: [row.parentTotal, parentSharePct, parentSharePct],
-			itemStyle: { color: parentColorMap[row.parentLabel] },
+			itemStyle: { color: parentColor },
 			children: childNodes
 		}
 	})

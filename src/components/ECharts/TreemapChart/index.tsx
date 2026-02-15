@@ -312,6 +312,13 @@ export default function TreemapChart({
 						: {}),
 					label: {
 						position: 'insideTopRight',
+						...(isRwaVariant
+							? {
+									color: '#fff',
+									textBorderColor: 'rgba(0,0,0,0.35)',
+									textBorderWidth: 2
+								}
+							: {}),
 						formatter: function (params) {
 							let arr
 							const path = typeof params?.data?.path === 'string' ? params.data.path : ''
@@ -367,20 +374,23 @@ export default function TreemapChart({
 						color: isDark ? '#fff' : '#111'
 					},
 					itemStyle: {
-						borderColor: '#fff'
+						borderColor: isRwaVariant ? (isDark ? '#2d3139' : '#d1d5db') : '#fff'
 					},
 					levels: [
 						{
 							itemStyle: {
-								borderColor: '#777',
+								borderColor: isRwaVariant ? (isDark ? '#2d3139' : '#d1d5db') : '#777',
 								borderWidth: 0,
-								gapWidth: 1
+								gapWidth: 1,
+								...(isRwaVariant ? { color: isDark ? '#374151' : '#e5e7eb' } : {})
 							},
 							upperLabel: isRwaVariant
 								? {
 										show: true,
 										height: 22,
-										color: isDark ? '#fff' : '#111'
+										padding: [0, 4],
+										color: isDark ? '#fff' : '#1f2937',
+										...(isDark ? { textBorderColor: 'rgba(0,0,0,0.3)', textBorderWidth: 2 } : {})
 									}
 								: {
 										show: false
@@ -395,8 +405,8 @@ export default function TreemapChart({
 									}),
 							itemStyle: isRwaVariant
 								? {
-										borderColor: '#fff',
-										borderWidth: 1,
+										borderColor: isDark ? '#2d3139' : '#d1d5db',
+										borderWidth: 2,
 										gapWidth: 1
 									}
 								: {
@@ -404,9 +414,26 @@ export default function TreemapChart({
 										borderWidth: 5,
 										gapWidth: 1
 									},
+							...(isRwaVariant
+								? {
+										upperLabel: {
+											show: true,
+											height: 22,
+											padding: [0, 2],
+											color: isDark ? '#fff' : '#1f2937',
+											...(isDark
+												? {
+														backgroundColor: 'rgba(55,65,81,0.88)',
+														textBorderColor: 'rgba(0,0,0,0.3)',
+														textBorderWidth: 2
+													}
+												: { backgroundColor: 'rgba(229,231,235,0.92)' })
+										}
+									}
+								: {}),
 							emphasis: {
 								itemStyle: {
-									borderColor: isRwaVariant ? '#fff' : '#ddd'
+									borderColor: isRwaVariant ? (isDark ? '#2d3139' : '#d1d5db') : '#ddd'
 								}
 							}
 						},
@@ -416,7 +443,7 @@ export default function TreemapChart({
 								? {
 										borderWidth: 1,
 										gapWidth: 0,
-										borderColor: '#fff'
+										borderColor: isDark ? '#2d3139' : '#d1d5db'
 									}
 								: {
 										borderWidth: 5,
@@ -436,17 +463,7 @@ export default function TreemapChart({
 			onReadyRef.current?.(null)
 			instance.dispose()
 		}
-	}, [
-		id,
-		chartDataTree,
-		isDark,
-		isNarrativeLike,
-		isNarrativeVariant,
-		isRwaVariant,
-		rwaRootLabel,
-		variant,
-		valueLabel
-	])
+	}, [id, chartDataTree, isDark, isNarrativeLike, isNarrativeVariant, isRwaVariant, rwaRootLabel, variant, valueLabel])
 
 	useEffect(() => {
 		const instance = chartRef.current
