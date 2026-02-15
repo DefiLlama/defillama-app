@@ -22,9 +22,9 @@
 
 // 	const chainsByOracle = data?.chainsByOracle ?? {}
 
-// 	const chainsLits = [...new Set(Object.values(chainsByOracle).flat())]
+// 	const chainsList = [...new Set(Object.values(chainsByOracle).flat())]
 
-// 	const paths = chainsLits.slice(0, 10).map((chain) => {
+// 	const paths = chainsList.slice(0, 10).map((chain) => {
 // 		return {
 // 			params: { chain }
 // 		}

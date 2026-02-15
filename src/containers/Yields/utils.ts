@@ -418,7 +418,7 @@ export const findStrategyPools = ({ pools, tokenToLend, tokenToBorrow, allPools,
 	// - profitable strategy only (delta > 0)
 	// - require at least 1% delta compared to baseline (we could even increase this, otherwise we show lots of
 	// strategies which have higher yield compared to just depositing on lending protocol but by
-	// a smol amount only, so not really worth the effort)
+	// a small amount only, so not really worth the effort)
 	// - if deposit token and borrow token are the same, then the farm can't have higher apy then just depositing on the lending protocol
 	// (cause in this case the strategy makes no sense, would be better to just got to the farm directly)
 	finalPools = finalPools
