@@ -9,15 +9,14 @@ import {
 	useProDashboardItemsState
 } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { SUPERLUMINAL_PROJECTS } from './config'
 import { Logo } from './Logo'
 import { type DashboardTabConfig, getDashboardModule } from './registry'
 
 const NOOP = () => {}
 
-const PROJECTS = [
-	{ id: 'etherfi', name: 'Ether.fi', dashboardId: '73x90j3b28pfhgx' },
-	{ id: 'spark', name: 'Spark', dashboardId: 'lvp2u48lc11kdy1' },
-	{ id: 'maple', name: 'Maple', dashboardId: 'l5accmh9zooc32q' },
+const ALL_PROJECTS = [
+	...SUPERLUMINAL_PROJECTS.map((p) => ({ ...p, comingSoon: false })),
 	{ id: 'your-project', name: 'Your Project', dashboardId: '', comingSoon: true }
 ]
 
@@ -94,7 +93,7 @@ function ProjectComingSoon() {
 
 const DEFAULT_TABS: DashboardTabConfig[] = [{ id: 'dashboard', label: 'Overview' }]
 
-function useProjectTabs(projects: typeof PROJECTS) {
+function useProjectTabs(projects: typeof ALL_PROJECTS) {
 	const [tabsByProject, setTabsByProject] = useState<Record<string, DashboardTabConfig[]>>({})
 
 	useEffect(() => {
@@ -185,18 +184,22 @@ function SuperLuminalContent({
 	)
 }
 
-function SuperLuminalShell() {
+function SuperLuminalShell({ protocol }: { protocol?: string }) {
 	const [isDark, toggleTheme] = useDarkModeManager()
-	const tabsByProject = useProjectTabs(PROJECTS)
+
+	const visibleProjects = protocol ? ALL_PROJECTS.filter((p) => p.id === protocol) : ALL_PROJECTS
+	const defaultProject = visibleProjects[0]?.id ?? ALL_PROJECTS[0].id
+
+	const tabsByProject = useProjectTabs(visibleProjects)
 	const [activeTab, setActiveTab] = useState('dashboard')
-	const [activeProject, setActiveProject] = useState('etherfi')
-	const [expandedProject, setExpandedProject] = useState<string | null>('etherfi')
+	const [activeProject, setActiveProject] = useState(defaultProject)
+	const [expandedProject, setExpandedProject] = useState<string | null>(defaultProject)
 	const [sidebarOpen, setSidebarOpen] = useState(false)
 
 	const closeSidebar = useCallback(() => setSidebarOpen(false), [])
 
-	const activeProjectConfig = PROJECTS.find((p) => p.id === activeProject)
-	const dashboardId = activeProjectConfig?.dashboardId ?? PROJECTS[0].dashboardId
+	const activeProjectConfig = visibleProjects.find((p) => p.id === activeProject)
+	const dashboardId = activeProjectConfig?.dashboardId ?? visibleProjects[0]?.dashboardId ?? ALL_PROJECTS[0].dashboardId
 	const displayName = activeProjectConfig?.name ?? 'Dashboard'
 	const tabs = tabsByProject[activeProject] ?? DEFAULT_TABS
 
@@ -227,7 +230,7 @@ function SuperLuminalShell() {
 				<div className="mb-3 hidden h-px bg-(--sl-divider) md:block" />
 
 				<nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
-					{PROJECTS.map((project) => {
+					{visibleProjects.map((project) => {
 						const isActive = activeProject === project.id
 						const isExpanded = expandedProject === project.id && !project.comingSoon
 
@@ -343,10 +346,10 @@ function SuperLuminalShell() {
 	)
 }
 
-export default function SuperLuminalDashboard() {
+export default function SuperLuminalDashboard({ protocol }: { protocol?: string }) {
 	return (
 		<AppMetadataProvider>
-			<SuperLuminalShell />
+			<SuperLuminalShell protocol={protocol} />
 		</AppMetadataProvider>
 	)
 }
