@@ -132,11 +132,7 @@ function SuperLuminalContent({
 	const { isLoadingDashboard, currentDashboard } = useProDashboardDashboard()
 
 	if (isLoadingDashboard || !currentDashboard) {
-		return (
-			<div className="flex flex-1 items-center justify-center">
-				<Logo animate />
-			</div>
-		)
+		return null
 	}
 
 	return (
@@ -168,13 +164,7 @@ function SuperLuminalContent({
 				const TabComponent = tab.component
 				return (
 					<div key={tab.id}>
-						<Suspense
-							fallback={
-								<div className="flex min-h-[60vh] items-center justify-center py-20">
-									<Logo animate />
-								</div>
-							}
-						>
+						<Suspense fallback={<div className="min-h-[60vh]" />}>
 							<TabComponent />
 						</Suspense>
 					</div>
@@ -201,8 +191,6 @@ function SuperLuminalShell() {
 
 	return (
 		<div className="superluminal-dashboard col-span-full flex min-h-screen flex-col pro-dashboard bg-(--app-bg) md:flex-row">
-			<link rel="preload" href="/assets/defillama.webp" as="image" />
-			<link rel="preload" href="/assets/defillama-dark.webp" as="image" />
 			{sidebarOpen && <div className="fixed inset-0 z-20 bg-black/60 md:hidden" onClick={closeSidebar} />}
 
 			<div className="sticky top-0 z-10 flex items-center gap-3 bg-(--app-bg) px-4 py-3 md:hidden">
