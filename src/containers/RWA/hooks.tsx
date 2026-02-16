@@ -101,11 +101,7 @@ const updateNumberRangeQuery = (
 	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 }
 
-const updateAttributeFilterStatesQuery = (
-	queryKey: string,
-	values: RWAAttributeFilterState[],
-	router: NextRouter
-) => {
+const updateAttributeFilterStatesQuery = (queryKey: string, values: RWAAttributeFilterState[], router: NextRouter) => {
 	const nextQuery: Record<string, any> = { ...router.query }
 	const selectedSet = new Set<RWAAttributeFilterState>()
 	for (const value of values) {

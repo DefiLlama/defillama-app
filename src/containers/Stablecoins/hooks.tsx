@@ -243,7 +243,7 @@ export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: 
 			let minted: DataValue = null
 			let dominance: { name: string; value: number | string | null } | null = null
 			// oxlint-disable-next-line no-unused-vars
-		let mcaptvl: DataValue = null
+			let mcaptvl: DataValue = null
 
 			const parentData = chainsByName.get(parentName)
 			if (parentData) {

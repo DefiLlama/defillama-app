@@ -645,17 +645,22 @@ async function fetchBreakdownDatasetsByMetric(
 }
 
 export async function getRWAChainsOverview(): Promise<IRWAChainsOverview> {
-	const [data, baseChartDatasets, stablecoinChartDatasets, governanceChartDatasets, stablecoinAndGovernanceChartDatasets] =
-		await Promise.all([
-			fetchRWAStats(),
-			fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData),
-			fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, { includeStablecoin: true }),
-			fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, { includeGovernance: true }),
-			fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, {
-				includeStablecoin: true,
-				includeGovernance: true
-			})
-		])
+	const [
+		data,
+		baseChartDatasets,
+		stablecoinChartDatasets,
+		governanceChartDatasets,
+		stablecoinAndGovernanceChartDatasets
+	] = await Promise.all([
+		fetchRWAStats(),
+		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData),
+		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, { includeStablecoin: true }),
+		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, { includeGovernance: true }),
+		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, {
+			includeStablecoin: true,
+			includeGovernance: true
+		})
+	])
 
 	if (!data?.byChain) {
 		throw new Error('Failed to get RWA stats')

@@ -1,9 +1,9 @@
 import { useRouter } from 'next/router'
 import { startTransition } from 'react'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
+import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { Icon } from '~/components/Icon'
 import { NestedMenu, NestedMenuItem } from '~/components/NestedMenu'
-import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import type { ExcludeQueryKey, SelectValues } from '~/components/Select/types'
 import { Switch } from '~/components/Switch'
@@ -221,11 +221,7 @@ function AttributesFilter({
 	}
 
 	return (
-		<NestedMenu
-			label={trigger}
-			menuPortal={useDesktopPortal}
-			buttonVariant="filter"
-		>
+		<NestedMenu label={trigger} menuPortal={useDesktopPortal} buttonVariant="filter">
 			{renderAttributeSubmenus()}
 		</NestedMenu>
 	)

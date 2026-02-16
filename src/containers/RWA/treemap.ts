@@ -30,10 +30,7 @@ export const TREEMAP_NESTED_BY_NON_CATEGORY_OPTIONS = TREEMAP_NESTED_BY_OPTIONS.
 
 export const validTreemapNestedBy = new Set<RwaTreemapNestedBy>(TREEMAP_NESTED_BY_OPTIONS.map(({ key }) => key))
 
-export const buildRwaTreemapTreeData = (
-	pieData: RwaPieChartDatum[],
-	breakdownLabel: string
-): RwaTreemapNode[] => {
+export const buildRwaTreemapTreeData = (pieData: RwaPieChartDatum[], breakdownLabel: string): RwaTreemapNode[] => {
 	const totalsByLabel = new Map<string, number>()
 	for (const item of pieData ?? []) {
 		if (!Number.isFinite(item.value) || item.value <= 0) continue
@@ -160,7 +157,10 @@ const normalizeLabelsBySlug = (values: Array<string | null | undefined>, fallbac
 	return Array.from(bySlug.values())
 }
 
-const getAssetGroupsByGrouping = (asset: IRWAProject, grouping: RwaTreemapParentGrouping | RwaTreemapNestedBy): string[] => {
+const getAssetGroupsByGrouping = (
+	asset: IRWAProject,
+	grouping: RwaTreemapParentGrouping | RwaTreemapNestedBy
+): string[] => {
 	switch (grouping) {
 		case 'none':
 			return []
@@ -287,7 +287,7 @@ const deriveChildShades = (parentHex: string, count: number): string[] => {
 		const childL = minL + ratio * (maxL - minL)
 		// Small hue offset per child gives extra distinction when many children.
 		const hueOffset = count > 2 ? (i - (count - 1) / 2) * 4 : 0
-		const childH = ((h + hueOffset) % 360 + 360) % 360
+		const childH = (((h + hueOffset) % 360) + 360) % 360
 		shades.push(hslToHex(childH, childS, childL))
 	}
 	return shades

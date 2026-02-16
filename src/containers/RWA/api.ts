@@ -68,10 +68,7 @@ export async function fetchRWAChartDataByTicker({
 
 type RWABreakdownChartType = 'chain' | 'category' | 'platform'
 
-function createRWABreakdownChartUrl(
-	chartType: RWABreakdownChartType,
-	params: IRWABreakdownChartParams = {}
-): string {
+function createRWABreakdownChartUrl(chartType: RWABreakdownChartType, params: IRWABreakdownChartParams = {}): string {
 	const searchParams = new URLSearchParams()
 
 	if (params.key && params.key !== 'onChainMcap') {

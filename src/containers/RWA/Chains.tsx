@@ -219,10 +219,7 @@ export function RWAChainsTable({
 					onChange={onToggleGovernance}
 				/>
 			</div>
-			<RWAOverviewBreakdownChart
-				datasets={selectedChartDatasets}
-				stackLabel="Chains"
-			/>
+			<RWAOverviewBreakdownChart datasets={selectedChartDatasets} stackLabel="Chains" />
 			<TableWithSearch
 				data={data}
 				columns={columns}
