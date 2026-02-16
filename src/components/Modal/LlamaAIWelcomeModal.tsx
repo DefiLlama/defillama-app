@@ -7,7 +7,8 @@ interface LlamaAIWelcomeModalProps {
 	onClose: () => void
 }
 
-export function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProps) {
+// oxlint-disable-next-line no-unused-vars
+function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProps) {
 	return (
 		<Ariakit.DialogProvider open={isOpen} setOpen={(open) => !open && onClose()}>
 			<Ariakit.Dialog

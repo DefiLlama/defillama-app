@@ -5,6 +5,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { CHART_COLORS } from '~/constants/colors'
 import { GovernanceTable } from '~/containers/Governance/GovernanceTable'
 import { chainIconUrl, formattedNum, tokenIconUrl } from '~/utils'
+import type { GovernanceDataEntry, GovernanceType } from './types'
 
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -33,8 +34,8 @@ function governanceTypeToLabel(t: string): GovernanceTypeLabel {
 
 interface GovernanceProjectProps {
 	projectName: string
-	governanceData: any[]
-	governanceTypes: string[]
+	governanceData: GovernanceDataEntry[]
+	governanceTypes: GovernanceType[]
 	initialCategoryIndex?: number
 }
 
@@ -51,21 +52,26 @@ export default function GovernanceProject({
 		[governanceTypes]
 	)
 
-	const data = governanceData?.[categoryIndex]
-	const governanceType = governanceTypes?.[categoryIndex]
+	const safeCategoryIndex = categoryIndex >= 0 && categoryIndex < governanceData.length ? categoryIndex : 0
+	const data = governanceData?.[safeCategoryIndex]
+	const governanceType = governanceTypes?.[safeCategoryIndex] ?? 'tally'
 
 	const filters =
 		categoryLabels.length > 1 ? (
 			<TagGroup
-				selectedValue={categoryLabels[categoryIndex] ?? categoryLabels[0]}
-				setValue={(value) => setCategoryIndex(categoryLabels.indexOf(value as any))}
+				selectedValue={categoryLabels[safeCategoryIndex] ?? categoryLabels[0]}
+				setValue={(value) => {
+					const idx = categoryLabels.indexOf(value as GovernanceTypeLabel)
+					if (idx === -1) return
+					setCategoryIndex(idx)
+				}}
 				values={categoryLabels}
 				className="ml-auto"
 			/>
 		) : null
 
 	const activityDataset = React.useMemo<MultiSeriesChart2Dataset>(() => {
-		const source = (data?.activity ?? []).map((row: any) => ({
+		const source = (data?.activity ?? []).map((row) => ({
 			timestamp: Number(row.date) * 1e3,
 			Total: row.Total ?? 0,
 			Successful: row.Successful ?? 0
@@ -74,14 +80,14 @@ export default function GovernanceProject({
 	}, [data?.activity])
 
 	const maxVotesDataset = React.useMemo<MultiSeriesChart2Dataset>(() => {
-		const source = (data?.maxVotes ?? []).map((row: any) => ({
+		const source = (data?.maxVotes ?? []).map((row) => ({
 			timestamp: Number(row.date) * 1e3,
 			'Max Votes': row['Max Votes'] == null ? 0 : Number(row['Max Votes'])
 		}))
 		return { source, dimensions: ['timestamp', 'Max Votes'] }
 	}, [data?.maxVotes])
 
-	const name = data.metadata?.name ?? projectName
+	const name = data?.metadata?.name ?? projectName
 
 	return (
 		<>
@@ -92,15 +98,15 @@ export default function GovernanceProject({
 					{filters}
 				</div>
 
-				{data.stats?.chainName != null ||
-				data.stats?.proposalsCount != null ||
-				data.stats?.successfulProposals != null ||
-				data.stats?.propsalsInLast30Days != null ||
-				data.stats?.successfulPropsalsInLast30Days != null ||
-				data.stats?.highestTotalScore != null ||
-				data.metadata?.followersCount != null ? (
+				{data?.stats?.chainName != null ||
+				data?.stats?.proposalsCount != null ||
+				data?.stats?.successfulProposals != null ||
+				data?.stats?.proposalsInLast30Days != null ||
+				data?.stats?.successfulProposalsInLast30Days != null ||
+				data?.stats?.highestTotalScore != null ||
+				data?.metadata?.followersCount != null ? (
 					<div className="flex min-h-[46px] w-full flex-wrap items-center gap-x-6 gap-y-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-4 py-3">
-						{data.stats?.chainName ? (
+						{data?.stats?.chainName != null ? (
 							<div className="flex items-center gap-1.5">
 								<span className="text-sm text-(--text-label)">Chain</span>
 								<span className="flex items-center gap-1 text-sm font-medium">
@@ -110,42 +116,42 @@ export default function GovernanceProject({
 							</div>
 						) : null}
 
-						{data.stats?.proposalsCount != null ? (
+						{data?.stats?.proposalsCount != null ? (
 							<div className="flex items-baseline gap-1.5">
 								<span className="text-sm text-(--text-label)">Total Proposals</span>
 								<span className="text-sm font-medium tabular-nums">{data.stats.proposalsCount}</span>
 							</div>
 						) : null}
 
-						{data.stats?.successfulProposals != null ? (
+						{data?.stats?.successfulProposals != null ? (
 							<div className="flex items-baseline gap-1.5">
 								<span className="text-sm text-(--text-label)">Successful</span>
 								<span className="text-sm font-medium tabular-nums">{data.stats.successfulProposals}</span>
 							</div>
 						) : null}
 
-						{data.stats?.propsalsInLast30Days != null ? (
+						{data?.stats?.proposalsInLast30Days != null ? (
 							<div className="flex items-baseline gap-1.5">
 								<span className="text-sm text-(--text-label)">Proposals (30d)</span>
-								<span className="text-sm font-medium tabular-nums">{data.stats.propsalsInLast30Days}</span>
+								<span className="text-sm font-medium tabular-nums">{data.stats.proposalsInLast30Days}</span>
 							</div>
 						) : null}
 
-						{data.stats?.successfulPropsalsInLast30Days != null ? (
+						{data?.stats?.successfulProposalsInLast30Days != null ? (
 							<div className="flex items-baseline gap-1.5">
 								<span className="text-sm text-(--text-label)">Successful (30d)</span>
-								<span className="text-sm font-medium tabular-nums">{data.stats.successfulPropsalsInLast30Days}</span>
+								<span className="text-sm font-medium tabular-nums">{data.stats.successfulProposalsInLast30Days}</span>
 							</div>
 						) : null}
 
-						{data.stats?.highestTotalScore != null ? (
+						{data?.stats?.highestTotalScore != null ? (
 							<div className="flex items-baseline gap-1.5">
 								<span className="text-sm text-(--text-label)">Max Total Votes</span>
 								<span className="text-sm font-medium tabular-nums">{formattedNum(data.stats.highestTotalScore)}</span>
 							</div>
 						) : null}
 
-						{data.metadata?.followersCount != null ? (
+						{data?.metadata?.followersCount != null ? (
 							<div className="flex items-baseline gap-1.5">
 								<span className="text-sm text-(--text-label)">Followers</span>
 								<span className="text-sm font-medium tabular-nums">{formattedNum(data.metadata.followersCount)}</span>
@@ -159,7 +165,7 @@ export default function GovernanceProject({
 						<React.Suspense fallback={<div className="min-h-[398px]" />}>
 							<MultiSeriesChart2
 								title="Activity"
-								dataset={activityDataset?.source?.length ? activityDataset : EMPTY_ACTIVITY_DATASET}
+								dataset={activityDataset?.source?.length > 0 ? activityDataset : EMPTY_ACTIVITY_DATASET}
 								charts={ACTIVITY_CHARTS}
 								valueSymbol=""
 								exportButtons={{ png: true, csv: true }}
@@ -170,7 +176,7 @@ export default function GovernanceProject({
 						<React.Suspense fallback={<div className="min-h-[398px]" />}>
 							<MultiSeriesChart2
 								title="Max Votes"
-								dataset={maxVotesDataset?.source?.length ? maxVotesDataset : EMPTY_MAXVOTES_DATASET}
+								dataset={maxVotesDataset?.source?.length > 0 ? maxVotesDataset : EMPTY_MAXVOTES_DATASET}
 								charts={MAX_VOTES_CHARTS}
 								valueSymbol=""
 								exportButtons={{ png: true, csv: true }}
@@ -179,7 +185,7 @@ export default function GovernanceProject({
 					</div>
 				</div>
 			</div>
-			<GovernanceTable data={data} governanceType={governanceType} />
+			{data != null ? <GovernanceTable data={data} governanceType={governanceType} /> : null}
 		</>
 	)
 }

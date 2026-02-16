@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { CHAINS_API_V2, PROTOCOLS_API } from '~/constants'
-import { CustomTimePeriod, TimePeriod } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import type { CustomTimePeriod, TimePeriod } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
@@ -13,7 +13,7 @@ import { AriakitMultiSelect } from '../AriakitMultiSelect'
 import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedMultiSelect } from '../AriakitVirtualizedMultiSelect'
 import { AriakitVirtualizedSelect } from '../AriakitVirtualizedSelect'
-import { ChartBuilderConfig } from './types'
+import type { ChartBuilderConfig } from './types'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 const TreeMapBuilderChart = lazy(() => import('~/components/ECharts/TreeMapBuilderChart'))

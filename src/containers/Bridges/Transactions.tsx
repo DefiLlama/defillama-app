@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { useCallback, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { LoadingDots } from '~/components/Loaders'
@@ -298,7 +298,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 								onChange={(e) => handleStartDateChange(e.target.value)}
 								max={maxDate}
 								required
-								className="placeholder:text-opacity-40 cursor-pointer rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black dark:bg-black dark:text-white dark:scheme-dark"
+								className="cursor-pointer rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black placeholder:opacity-40 dark:bg-black dark:text-white dark:scheme-dark"
 							/>
 						</label>
 						<label className="flex min-w-35 flex-1 flex-col gap-2">
@@ -311,13 +311,13 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 								min={startDate}
 								max={maxDate}
 								required
-								className="placeholder:text-opacity-40 cursor-pointer rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black dark:bg-black dark:text-white dark:scheme-dark"
+								className="cursor-pointer rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black placeholder:opacity-40 dark:bg-black dark:text-white dark:scheme-dark"
 							/>
 						</label>
 					</span>
 					<select
 						name="selectedBridge"
-						className="placeholder:text-opacity-40 rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black dark:bg-black dark:text-white"
+						className="rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black placeholder:opacity-40 dark:bg-black dark:text-white"
 						required
 					>
 						<option value="">--Please choose a bridge--</option>

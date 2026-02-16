@@ -1,30 +1,42 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import * as React from 'react'
 import { useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { Select } from '~/components/Select/Select'
 import { useRangeFilter } from '~/hooks/useRangeFilter'
+import type { FormattedStablecoinAsset } from './utils'
 
-export const stablecoinAttributeOptions = [
+type StablecoinFilterableItem = Pick<
+	FormattedStablecoinAsset,
+	'pegDeviation' | 'yieldBearing' | 'pegMechanism' | 'pegType'
+>
+
+export type StablecoinFilterOption = {
+	name: string
+	key: string
+	filterFn: (item: StablecoinFilterableItem) => boolean
+	help: string
+}
+
+export const stablecoinAttributeOptions: StablecoinFilterOption[] = [
 	{
 		name: 'Stable',
 		key: 'STABLE',
-		filterFn: (item) => typeof item?.pegDeviation === 'number' && Math.abs(item.pegDeviation) <= 10,
+		filterFn: (item) => typeof item.pegDeviation === 'number' && Math.abs(item.pegDeviation) <= 10,
 		help: 'Show stablecoins within 10% of peg'
 	},
 	{
 		name: 'Yield Bearing',
 		key: 'YIELDBEARING',
-		filterFn: (item) => !!item?.yieldBearing,
+		filterFn: (item) => !!item.yieldBearing,
 		help: 'Show yield-bearing stablecoins'
 	},
 	{
 		name: 'Unknown',
 		key: 'UNKNOWN',
-		filterFn: (item) => typeof item?.pegDeviation !== 'number',
+		filterFn: (item) => typeof item.pegDeviation !== 'number',
 		help: 'Show stablecoins with no deviation data'
 	},
 	{
@@ -33,15 +45,15 @@ export const stablecoinAttributeOptions = [
 		// Yield-bearing assets intentionally render '-' for peg deviation columns,
 		// so exclude them from the "Depegged" filter to avoid showing "no peg data" rows.
 		filterFn: (item) =>
-			!item?.yieldBearing &&
-			typeof item?.pegDeviation === 'number' &&
+			!item.yieldBearing &&
+			typeof item.pegDeviation === 'number' &&
 			Number.isFinite(item.pegDeviation) &&
 			Math.abs(item.pegDeviation) > 10,
 		help: 'Show stablecoins depegged by more than 10%'
 	}
 ]
 
-export const stablecoinBackingOptions = [
+export const stablecoinBackingOptions: StablecoinFilterOption[] = [
 	{
 		name: 'Fiat',
 		key: 'FIATSTABLES',
@@ -62,7 +74,7 @@ export const stablecoinBackingOptions = [
 	}
 ]
 
-export const stablecoinPegTypeOptions = [
+export const stablecoinPegTypeOptions: StablecoinFilterOption[] = [
 	{
 		name: 'USD',
 		key: 'PEGGEDUSD',
@@ -204,13 +216,13 @@ function Attribute({ nestedMenu }: { nestedMenu: boolean; pathname?: string }) {
 
 		const allKeys = stablecoinAttributeOptions.map((o) => o.key)
 
-		const includeRaw = parseIncludeParam(attribute as any, allKeys)
+		const includeRaw = parseIncludeParam(attribute, allKeys)
 		const includeNormalized = includeRaw.flatMap((a) => {
 			const key = normalizeAttributeKey(a)
 			return key ? [key] : []
 		})
 
-		const excludeSetRaw = parseExcludeParam(excludeAttribute as any)
+		const excludeSetRaw = parseExcludeParam(excludeAttribute)
 		const excludeSetNormalized = new Set(
 			Array.from(excludeSetRaw).flatMap((a) => {
 				const key = normalizeAttributeKey(a)
@@ -255,8 +267,8 @@ function BackingType({
 
 	const selectedValues = useMemo(() => {
 		const allKeys = backingOptions.map((o) => o.key)
-		const include = parseIncludeParam(backing as any, allKeys)
-		const excludeSet = parseExcludeParam(excludeBacking as any)
+		const include = parseIncludeParam(backing, allKeys)
+		const excludeSet = parseExcludeParam(excludeBacking)
 		return include.filter((k) => !excludeSet.has(k))
 	}, [backing, excludeBacking, backingOptions])
 
@@ -293,8 +305,8 @@ function PegType({
 
 	const selectedValues = useMemo(() => {
 		const allKeys = pegTypeOptions.map((o) => o.key)
-		const include = parseIncludeParam(pegtype as any, allKeys)
-		const excludeSet = parseExcludeParam(excludePegtype as any)
+		const include = parseIncludeParam(pegtype, allKeys)
+		const excludeSet = parseExcludeParam(excludePegtype)
 		return include.filter((k) => !excludeSet.has(k))
 	}, [pegtype, excludePegtype, pegTypeOptions])
 
@@ -372,7 +384,7 @@ function ResetAllStablecoinFilters({ pathname }: { pathname: string; nestedMenu:
 	)
 }
 
-export function PeggedFiltersDropdowns({
+function PeggedFiltersDropdowns({
 	pathname,
 	nestedMenu,
 	prepareCsv,

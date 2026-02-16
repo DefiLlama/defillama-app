@@ -9,7 +9,7 @@ echarts.use([BarChart, GridComponent, CanvasRenderer])
 
 type PrimitiveBarPoint = [number, number | null | undefined]
 
-export interface BarSparklineProps {
+interface BarSparklineProps {
 	data?: PrimitiveBarPoint[]
 	className?: string
 	height?: number | string

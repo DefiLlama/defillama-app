@@ -1,17 +1,29 @@
 import { MCP_SERVER } from '~/constants'
 import { fetchJson } from '~/utils/async'
-import { EntityQuestionsResponse } from './types'
+import type { EntityQuestionsResponse } from './types'
 
+/**
+ * Fetch suggested follow-up questions for an entity context.
+ */
 export async function fetchEntityQuestions(
 	entitySlug: string,
-	entityType: 'protocol' | 'chain'
+	entityType: 'protocol' | 'chain' | 'page',
+	context?: Record<string, any>
 ): Promise<EntityQuestionsResponse> {
 	try {
+		if (context) {
+			const res = await fetchJson(`${MCP_SERVER}/suggested-questions`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ entity: entitySlug, entityType, context })
+			})
+			return res
+		}
 		const data = await fetchJson<EntityQuestionsResponse>(
 			`${MCP_SERVER}/suggested-questions?entity=${encodeURIComponent(entitySlug)}&entityType=${encodeURIComponent(entityType)}`
 		)
 		return data
 	} catch {
-		return { questions: [], suggestGlobal: false } // Fail silently - no questions is fine
+		return { questions: [], suggestGlobal: false }
 	}
 }

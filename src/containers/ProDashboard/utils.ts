@@ -61,18 +61,18 @@ export const normalizeHourlyToDaily = (
 	return result.sort((a, b) => a[0] - b[0])
 }
 
-export const getStartOfWeek = (date: Date): Date => {
+const getStartOfWeek = (date: Date): Date => {
 	const dt = new Date(date.getFullYear(), date.getMonth(), date.getDate())
 	const day = dt.getDay()
 	const diff = dt.getDate() - day + (day === 0 ? -6 : 1)
 	return new Date(dt.setDate(diff))
 }
 
-export const getStartOfMonth = (date: Date): Date => {
+const getStartOfMonth = (date: Date): Date => {
 	return new Date(date.getFullYear(), date.getMonth(), 1)
 }
 
-export const getStartOfQuarter = (date: Date): Date => {
+const getStartOfQuarter = (date: Date): Date => {
 	const month = date.getMonth()
 	const quarterStartMonth = Math.floor(month / 3) * 3
 	return new Date(date.getFullYear(), quarterStartMonth, 1)

@@ -8,7 +8,7 @@ import { getStorageItem, removeStorageItem, setStorageItem, subscribeToStorageKe
 import { handleSimpleFetchResponse } from '~/utils/async'
 import pb from '~/utils/pocketbase'
 
-export interface SubscriptionRequest {
+interface SubscriptionRequest {
 	redirectUrl: string
 	cancelUrl: string
 	provider: string
@@ -17,7 +17,7 @@ export interface SubscriptionRequest {
 	isTrial?: boolean
 }
 
-export interface SubscriptionCreateResponse {
+interface SubscriptionCreateResponse {
 	subscriptionId: string
 	checkoutUrl: string
 }
@@ -41,7 +41,7 @@ export interface Subscription {
 	}
 }
 
-export interface SubscriptionResponse {
+interface SubscriptionResponse {
 	subscription: Subscription
 }
 

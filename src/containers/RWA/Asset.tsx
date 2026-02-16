@@ -5,9 +5,10 @@ import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
-import definitions from '~/public/rwa-definitions.json'
 import { chainIconUrl, formattedNum, getBlockExplorer } from '~/utils'
-import type { IRWAAssetData } from './queries'
+import type { IRWAAssetData } from './api.types'
+import { BreakdownTooltipContent } from './BreakdownTooltipContent'
+import { definitions } from './definitions'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -149,7 +150,7 @@ const ChainBadge = ({
 						</p>
 					) : null}
 				</div>
-				{contracts?.length > 0 ? (
+				{contracts && contracts.length > 0 ? (
 					<>
 						{contracts.map((address) => (
 							<ContractItem key={`${chain}-${address}`} chain={chain} address={address} />
@@ -236,66 +237,69 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 
 			{/* Stats Row */}
 			<div className="flex flex-wrap gap-2">
-				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<Tooltip
-						content={definitions.onChainMcap.description}
-						className="text-(--text-label) underline decoration-dotted"
-					>
-						{definitions.onChainMcap.label}
-					</Tooltip>
-					{onChainMcap?.breakdown != null ? (
-						<Tooltip
-							content={<BreakdownTooltipContent breakdown={onChainMcap.breakdown} />}
-							className="font-jetbrains text-xl font-semibold"
-						>
-							{onChainMcap?.total != null ? formattedNum(onChainMcap.total, true) : '-'}
-						</Tooltip>
-					) : (
-						<span className="font-jetbrains text-xl font-semibold">
-							{onChainMcap?.total != null ? formattedNum(onChainMcap.total, true) : '-'}
-						</span>
-					)}
-				</p>
-				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<Tooltip
-						content={definitions.activeMcap.description}
-						className="text-(--text-label) underline decoration-dotted"
-					>
-						{definitions.activeMcap.label}
-					</Tooltip>
-					{activeMcap?.breakdown != null ? (
-						<Tooltip
-							content={<BreakdownTooltipContent breakdown={activeMcap.breakdown} />}
-							className="font-jetbrains text-xl font-semibold"
-						>
-							{activeMcap?.total != null ? formattedNum(activeMcap.total, true) : '-'}
-						</Tooltip>
-					) : (
-						<span className="font-jetbrains text-xl font-semibold">
-							{activeMcap?.total != null ? formattedNum(activeMcap.total, true) : '-'}
-						</span>
-					)}
-				</p>
-				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<Tooltip
-						content={definitions.defiActiveTvl.description}
-						className="text-(--text-label) underline decoration-dotted"
-					>
-						{definitions.defiActiveTvl.label}
-					</Tooltip>
-					{defiActiveTv?.breakdown != null ? (
-						<Tooltip
-							content={<BreakdownTooltipContent breakdown={defiActiveTv.breakdown} />}
-							className="font-jetbrains text-xl font-semibold"
-						>
-							{defiActiveTv?.total != null ? formattedNum(defiActiveTv.total, true) : '$0'}
-						</Tooltip>
-					) : (
-						<span className="font-jetbrains text-xl font-semibold">
-							{defiActiveTv?.total != null ? formattedNum(defiActiveTv.total, true) : '$0'}
-						</span>
-					)}
-				</p>
+				<Tooltip
+					content={
+						onChainMcap?.breakdown != null ? (
+							<BreakdownTooltipContent
+								breakdown={onChainMcap.breakdown}
+								description={definitions.onChainMcap.description}
+							/>
+						) : (
+							definitions.onChainMcap.description
+						)
+					}
+					render={
+						<p className="flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3" />
+					}
+				>
+					<span className="text-(--text-label) underline decoration-dotted">{definitions.onChainMcap.label}</span>
+					<span className="font-jetbrains text-xl font-semibold">
+						{onChainMcap?.total != null ? formattedNum(onChainMcap.total, true) : '-'}
+					</span>
+				</Tooltip>
+
+				<Tooltip
+					content={
+						activeMcap?.breakdown != null ? (
+							<BreakdownTooltipContent
+								breakdown={activeMcap.breakdown}
+								description={definitions.activeMcap.description}
+							/>
+						) : (
+							definitions.activeMcap.description
+						)
+					}
+					render={
+						<p className="flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3" />
+					}
+				>
+					<span className="text-(--text-label) underline decoration-dotted">{definitions.activeMcap.label}</span>
+					<span className="font-jetbrains text-xl font-semibold">
+						{activeMcap?.total != null ? formattedNum(activeMcap.total, true) : '-'}
+					</span>
+				</Tooltip>
+
+				<Tooltip
+					content={
+						defiActiveTv?.breakdown != null ? (
+							<BreakdownTooltipContent
+								breakdown={defiActiveTv.breakdown}
+								description={definitions.defiActiveTvl.description}
+							/>
+						) : (
+							definitions.defiActiveTvl.description
+						)
+					}
+					render={
+						<p className="flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3" />
+					}
+				>
+					<span className="text-(--text-label) underline decoration-dotted">{definitions.defiActiveTvl.label}</span>
+					<span className="font-jetbrains text-xl font-semibold">
+						{defiActiveTv?.total != null ? formattedNum(defiActiveTv.total, true) : '$0'}
+					</span>
+				</Tooltip>
+
 				{asset.price != null ? (
 					<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<span className="text-(--text-label)">{asset.ticker ?? 'Token'} Price</span>
@@ -344,10 +348,10 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 										{asset.category.map((category, idx) => (
 											<span key={category} className="flex items-center gap-0.5">
 												{category}
-												{definitions.category.values?.[category] && (
+												{definitions.category.values?.[category] ? (
 													<QuestionHelper text={definitions.category.values[category]} />
-												)}
-												{idx < asset.category!.length - 1 && ','}
+												) : null}
+												{idx < asset.category!.length - 1 ? ',' : null}
 											</span>
 										))}
 									</span>
@@ -430,12 +434,12 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							/>
 							<KYCItem
 								label={definitions.kycForMintRedeem.label}
-								required={asset.kycForMintRedeem}
+								required={asset.kycForMintRedeem ?? null}
 								description={definitions.kycForMintRedeem.description}
 							/>
 							<KYCItem
 								label={definitions.kycAllowlistedWhitelistedToTransferHold.label}
-								required={asset.kycAllowlistedWhitelistedToTransferHold}
+								required={asset.kycAllowlistedWhitelistedToTransferHold ?? null}
 								description={definitions.kycAllowlistedWhitelistedToTransferHold.description}
 							/>
 							<ClassificationItem
@@ -615,13 +619,3 @@ const BASE_TIME_SERIES_CHARTS: Array<{
 		color: CHART_COLORS[2]
 	}
 ]
-
-const BreakdownTooltipContent = ({ breakdown }: { breakdown: Array<[string, number]> }) => (
-	<span className="flex flex-col gap-1">
-		{breakdown.map(([chain, tvl]) => (
-			<span key={`${chain}-${tvl}`}>
-				{chain}: {formattedNum(tvl, true)}
-			</span>
-		))}
-	</span>
-)

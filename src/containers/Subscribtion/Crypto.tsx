@@ -81,7 +81,8 @@ export const PaymentButton = ({
 	)
 }
 
-export const ProApiKey = () => {
+// oxlint-disable-next-line no-unused-vars
+const ProApiKey = () => {
 	const { isAuthenticated, loaders, authorizedFetch } = useAuthContext()
 	const { subscription } = useSubscribe()
 	const isSubscribed = subscription?.status === 'active'

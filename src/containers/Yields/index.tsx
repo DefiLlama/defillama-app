@@ -4,6 +4,7 @@ import { Announcement } from '~/components/Announcement'
 import { LocalLoader } from '~/components/Loaders'
 import { YieldFiltersV2 } from './Filters'
 import { useFormatYieldQueryParams } from './hooks'
+import { useVolatility } from './queries/client'
 import { YieldsPoolsTable } from './Tables/Pools'
 import { toFilterPool } from './utils'
 
@@ -19,7 +20,9 @@ const ALL_YIELD_COLUMNS = [
 	'showLTV',
 	'showTotalSupplied',
 	'showTotalBorrowed',
-	'showAvailable'
+	'showAvailable',
+	'showMedianApy',
+	'showStdDev'
 ]
 
 const YieldPage = ({
@@ -36,6 +39,7 @@ const YieldPage = ({
 	const { query, pathname, push } = useRouter()
 
 	const [loading, setLoading] = React.useState(true)
+	const { data: volatility } = useVolatility()
 
 	const {
 		selectedProjects,
@@ -145,7 +149,10 @@ const YieldPage = ({
 					totalAvailableUsd: curr.totalAvailableUsd,
 					ltv: curr.ltv,
 					lsdTokenOnly: curr.lsdTokenOnly,
-					poolMeta: curr.poolMeta
+					poolMeta: curr.poolMeta,
+					apyMedian30d: volatility?.[curr.pool]?.[1] ?? null,
+					apyStd30d: volatility?.[curr.pool]?.[2] ?? null,
+					cv30d: volatility?.[curr.pool]?.[3] ?? null
 				})
 			} else return acc
 		}, [])
@@ -165,7 +172,8 @@ const YieldPage = ({
 		pathname,
 		pairTokens,
 		usdPeggedSymbols,
-		tokenCategories
+		tokenCategories,
+		volatility
 	])
 	const prepareCsv = () => {
 		const headers = [
@@ -196,7 +204,10 @@ const YieldPage = ({
 			'Total Supply USD',
 			'Total Borrow USD',
 			'Total Available USD',
-			'Pool Meta'
+			'Pool Meta',
+			'APY Median 30d',
+			'APY Std Dev 30d',
+			'CV 30d'
 		]
 		const csvData = poolsData.map((row) => {
 			return {
@@ -227,7 +238,10 @@ const YieldPage = ({
 				'Total Supply USD': row.totalSupplyUsd,
 				'Total Borrow USD': row.totalBorrowUsd,
 				'Total Available USD': row.totalAvailableUsd,
-				'Pool Meta': row.poolMeta
+				'Pool Meta': row.poolMeta,
+				'APY Median 30d': row.apyMedian30d,
+				'APY Std Dev 30d': row.apyStd30d,
+				'CV 30d': row.cv30d
 			}
 		})
 
@@ -284,6 +298,8 @@ const YieldPage = ({
 				enabledColumns={ALL_YIELD_COLUMNS}
 				resetFilters={true}
 				includeLsdApy={true}
+				showMedianApy={true}
+				showStdDev={true}
 				prepareCsv={prepareCsv}
 				showPresetFilters
 			/>

@@ -1,15 +1,22 @@
-import { ColumnDef } from '@tanstack/react-table'
-import * as React from 'react'
+import type { ColumnDef } from '@tanstack/react-table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
+import type { RawChainsAssetsResponse, RawChainAssetsFlowEntry } from './api.types'
+import type { IBridgedRow } from './types'
+
+interface BridgedTVLChainsListProps {
+	assets: RawChainsAssetsResponse
+	chains: Array<{ label: string; to: string }>
+	flows1d: Record<string, RawChainAssetsFlowEntry> | null
+}
 
 const DEFAULT_SORTING_STATE = [{ id: 'total', desc: true }]
 
-export function BridgedTVLChainsList({ assets, chains, flows1d }) {
+export function BridgedTVLChainsList({ assets, chains, flows1d }: BridgedTVLChainsListProps) {
 	const data = Object.keys(assets)
 		.map((name) => {
 			const chainAssets = assets?.[name]
@@ -22,10 +29,10 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 			}
 		})
 		.filter((row) => row?.total)
-		.sort((a, b) => b.total.total - a.total.total)
+		.sort((a, b) => Number(b.total.total) - Number(a.total.total))
 
 	const prepareCsv = () => {
-		const csvData = data.map((row) => {
+		const csvData: Record<string, string | number | undefined>[] = data.map((row) => {
 			return {
 				Chain: row.name,
 				Total: row.total?.total,
@@ -36,8 +43,9 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 				Native: row?.native?.total
 			}
 		})
+		if (csvData.length === 0) return { filename: 'bridged-chains.csv', rows: [] }
 		const headers = Object.keys(csvData[0])
-		const rows = [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
+		const rows = [headers].concat(csvData.map((row) => headers.map((header) => String(row[header] ?? ''))))
 
 		return { filename: 'bridged-chains.csv', rows }
 	}
@@ -61,31 +69,22 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 	)
 }
 
-interface IBridgedRow {
-	name: string
-	total?: { total?: string }
-	thirdParty?: { total?: string }
-	canonical?: { total?: string }
-	ownTokens?: { total?: string }
-	native?: { total?: string }
-	change_24h: number
-}
-
 const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 	{
 		header: () => 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
+			const value = getValue<string>()
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={chainIconUrl(getValue())} />
+					<TokenLogo logo={chainIconUrl(value)} />
 					<BasicLink
-						href={`/bridged/${slug(getValue() as string)}`}
+						href={`/bridged/${slug(value)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue() as any}
+						{value}
 					</BasicLink>
 				</span>
 			)
@@ -96,7 +95,7 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 		header: 'Total Bridged',
 		accessorKey: 'total',
 		accessorFn: (row) => row.total?.total ?? undefined,
-		cell: (info: any) => {
+		cell: (info) => {
 			const value = info.getValue()
 			if (!value) return <></>
 			return <>{formattedNum(value, true)}</>

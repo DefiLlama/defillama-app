@@ -3,7 +3,8 @@ import { BRIDGES_API, BRIDGEVOLUME_API } from '~/constants'
 import { fetchApi, fetchJson } from '~/utils/async'
 import { getBridgeOverviewPageData } from './queries.server'
 
-export const useFetchBridgeList = () => {
+// oxlint-disable-next-line no-unused-vars
+const useFetchBridgeList = () => {
 	return useQuery({ queryKey: [BRIDGES_API], queryFn: () => fetchApi(BRIDGES_API) })
 }
 

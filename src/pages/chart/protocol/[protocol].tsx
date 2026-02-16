@@ -1,15 +1,15 @@
 import type { GetStaticPropsContext } from 'next'
 import { useRouter } from 'next/router'
-import { ComponentType, lazy, Suspense, useEffect, useMemo } from 'react'
+import { type ComponentType, lazy, Suspense, useEffect, useMemo } from 'react'
 import { maxAgeForNext } from '~/api'
 import { LocalLoader } from '~/components/Loaders'
 import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/constants'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
-import { IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
+import type { IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
 import { useFetchProtocolChartData } from '~/containers/ProtocolOverview/useFetchProtocolChartData'
 import { TVL_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
 import { slug } from '~/utils'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const ProtocolCoreChart = lazy(() => import('~/containers/ProtocolOverview/ProtocolCoreChart')) as ComponentType<any>
@@ -54,6 +54,16 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 

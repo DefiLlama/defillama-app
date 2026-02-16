@@ -3,6 +3,7 @@ import * as React from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
+import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { tvlOptions } from '~/components/Filters/options'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import {
@@ -13,7 +14,7 @@ import {
 import Layout from '~/layout'
 import { formatNum, getPercentChange } from '~/utils'
 import { ChainsByCategoryTable } from './Table'
-import { IChainsByCategoryData } from './types'
+import type { IChainsByCategoryData } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -28,8 +29,9 @@ export function ChainsByCategory({
 	tvlChartsByChain,
 	totalTvlByDate,
 	description,
-	keywords
-}: IChainsByCategoryData) {
+	keywords,
+	entityQuestions
+}: IChainsByCategoryData & { entityQuestions?: string[] }) {
 	const { pieChartData, dominanceCharts } = useFormatChartData({
 		tvlChartsByChain,
 		totalTvlByDate,
@@ -49,6 +51,9 @@ export function ChainsByCategory({
 			pageName={pageName}
 		>
 			<RowLinksWithDropdown links={allCategories} activeLink={category} />
+			{entityQuestions?.length > 0 && (
+				<EntityQuestionsStrip questions={entityQuestions} entitySlug="chains" entityType="page" entityName="Chains" />
+			)}
 
 			<div className="flex flex-col gap-2 xl:flex-row">
 				<div className="relative isolate flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">

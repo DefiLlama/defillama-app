@@ -355,12 +355,16 @@ function createTooltipFormatter({
 	groupBy,
 	valueSymbol,
 	seriesSymbols,
-	maxItems
+	maxItems,
+	showTotalInTooltip,
+	tooltipTotalPosition
 }: {
 	groupBy: GroupBy
 	valueSymbol: string
 	seriesSymbols?: Map<string, string>
 	maxItems?: number
+	showTotalInTooltip?: boolean
+	tooltipTotalPosition?: 'top' | 'bottom'
 }) {
 	return (params: any) => {
 		const items = Array.isArray(params) ? params : params ? [params] : []
@@ -395,16 +399,24 @@ function createTooltipFormatter({
 		const shouldCap = Number.isFinite(cap) && cap > 0
 		const cappedVals = shouldCap && vals.length > cap ? vals.slice(0, cap) : vals
 		const remaining = shouldCap && vals.length > cap ? vals.length - cap : 0
+		const total = vals.reduce((sum, curr) => sum + curr[2], 0)
+		const totalLine =
+			showTotalInTooltip && vals.length > 0
+				? `<li style="list-style:none;font-weight:600;">Total: ${formatAxisLabel(total, valueSymbol)}</li>`
+				: ''
 
-		return (
-			chartdate +
-			cappedVals.reduce(
-				(prev, curr) =>
-					prev + `<li style="list-style:none;">${curr[0]} ${curr[1]}: ${formatAxisLabel(curr[2], curr[3])}</li>`,
-				''
-			) +
-			(remaining > 0 ? `<li style="list-style:none;opacity:0.7;">+${remaining} more</li>` : '')
+		const valueLines = cappedVals.reduce(
+			(prev, curr) =>
+				prev + `<li style="list-style:none;">${curr[0]} ${curr[1]}: ${formatAxisLabel(curr[2], curr[3])}</li>`,
+			''
 		)
+		const remainingLine = remaining > 0 ? `<li style="list-style:none;opacity:0.7;">+${remaining} more</li>` : ''
+
+		if (tooltipTotalPosition === 'top') {
+			return chartdate + totalLine + valueLines + remainingLine
+		}
+
+		return chartdate + valueLines + remainingLine + totalLine
 	}
 }
 
@@ -422,6 +434,8 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		stacked = false,
 		solidChartAreaStyle = false,
 		hideDataZoom,
+		showTotalInTooltip = false,
+		tooltipTotalPosition = 'bottom',
 		onReady,
 		hideDefaultLegend = true,
 		selectedCharts,
@@ -603,8 +617,16 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	}, [effectiveCharts])
 
 	const tooltipFormatter = useMemo(
-		() => createTooltipFormatter({ groupBy: groupBySafe, valueSymbol, seriesSymbols, maxItems: tooltipMaxItems }),
-		[groupBySafe, valueSymbol, seriesSymbols, tooltipMaxItems]
+		() =>
+			createTooltipFormatter({
+				groupBy: groupBySafe,
+				valueSymbol,
+				seriesSymbols,
+				maxItems: tooltipMaxItems,
+				showTotalInTooltip,
+				tooltipTotalPosition
+			}),
+		[groupBySafe, valueSymbol, seriesSymbols, tooltipMaxItems, showTotalInTooltip, tooltipTotalPosition]
 	)
 
 	const exportFilename = exportButtonsConfig?.filename || (title ? slug(title) : 'multi-series-chart')

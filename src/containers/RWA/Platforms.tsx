@@ -1,20 +1,13 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
-import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum } from '~/utils'
-import type { IRWAPlatformsOverviewRow } from './queries'
+import type { IRWABreakdownDatasetsByMetric, IRWAPlatformsOverviewRow } from './api.types'
+import { definitions } from './definitions'
+import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
 import { rwaSlug } from './rwaSlug'
-
-type RWADefinitions = typeof rwaDefinitionsJson & {
-	totalOnChainMcap: { label: string; description: string }
-	totalActiveMcap: { label: string; description: string }
-	totalDefiActiveTvl: { label: string; description: string }
-}
-
-const definitions = rwaDefinitionsJson as RWADefinitions
 
 const columns: ColumnDef<IRWAPlatformsOverviewRow>[] = [
 	{
@@ -77,35 +70,44 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	640: { platform: 240 }
 }
 
-export function RWAPlatformsTable({ platforms }: { platforms: IRWAPlatformsOverviewRow[] }) {
+export function RWAPlatformsTable({
+	platforms,
+	chartDatasets
+}: {
+	platforms: IRWAPlatformsOverviewRow[]
+	chartDatasets: IRWABreakdownDatasetsByMetric
+}) {
 	return (
-		<TableWithSearch
-			data={platforms}
-			columns={columns}
-			placeholder="Search platforms..."
-			columnToSearch="platform"
-			header="Platforms"
-			columnSizes={columnSizes}
-			customFilters={({ instance }) => (
-				<CSVDownloadButton
-					prepareCsv={() => {
-						const filename = 'rwa-platforms.csv'
+		<div className="flex flex-col gap-2">
+			<RWAOverviewBreakdownChart datasets={chartDatasets} stackLabel="Platforms" />
+			<TableWithSearch
+				data={platforms}
+				columns={columns}
+				placeholder="Search platforms..."
+				columnToSearch="platform"
+				header="Platforms"
+				columnSizes={columnSizes}
+				customFilters={({ instance }) => (
+					<CSVDownloadButton
+						prepareCsv={() => {
+							const filename = 'rwa-platforms.csv'
 
-						const headers = columns.map((c) => (typeof c.header === 'string' ? c.header : (c.id ?? '')))
-						const columnIds = columns.map((c) => c.id as string)
+							const headers = columns.map((c) => (typeof c.header === 'string' ? c.header : (c.id ?? '')))
+							const columnIds = columns.map((c) => c.id as string)
 
-						const rows = instance
-							.getRowModel()
-							.rows.map((row) =>
-								columnIds.map((columnId) => (row.getValue(columnId) ?? '') as string | number | boolean)
-							)
+							const rows = instance
+								.getRowModel()
+								.rows.map((row) =>
+									columnIds.map((columnId) => (row.getValue(columnId) ?? '') as string | number | boolean)
+								)
 
-						return { filename, rows: [headers, ...rows] }
-					}}
-					smol
-				/>
-			)}
-			sortingState={[{ id: 'onChainMcap', desc: true }]}
-		/>
+							return { filename, rows: [headers, ...rows] }
+						}}
+						smol
+					/>
+				)}
+				sortingState={[{ id: 'onChainMcap', desc: true }]}
+			/>
+		</div>
 	)
 }

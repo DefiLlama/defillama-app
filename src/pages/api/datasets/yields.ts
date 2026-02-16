@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next'
+import type { NextApiRequest, NextApiResponse } from 'next'
 import {
 	PROTOCOLS_API,
 	YIELD_CHAIN_API,

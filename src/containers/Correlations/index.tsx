@@ -1,23 +1,33 @@
 import * as Ariakit from '@ariakit/react'
 import Router, { useRouter } from 'next/router'
 import { useEffect, useMemo, useState } from 'react'
-import { IResponseCGMarketsAPI } from '~/api/types'
+import type { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
 import { TagGroup } from '~/components/TagGroup'
 import { useIsClient } from '~/hooks/useIsClient'
 import { FAQ } from './Faq'
+import type { PricePoint } from './hooks'
 import { usePriceCharts } from './hooks'
-import { pearsonCorrelationCoefficient } from './util'
+import { pearsonCorrelationCoefficient, toPairedLogReturns } from './util'
 
-export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins }: any) {
+interface CoinsPickerProps {
+	coinsData: Array<IResponseCGMarketsAPI>
+	selectCoin: (coin: IResponseCGMarketsAPI) => void
+	dialogStore: Ariakit.DialogStore
+	selectedCoins: Record<string, IResponseCGMarketsAPI>
+	/** Accepted for API compatibility with callers but not used internally. */
+	queryCoins?: string[]
+}
+
+export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins }: CoinsPickerProps) {
 	const [search, setSearch] = useState('')
 	const filteredCoins =
 		search === ''
 			? coinsData
 			: coinsData.filter(
-					(coin) =>
-						(coin?.symbol?.toLowerCase().includes(search.toLowerCase()) ||
-							coin?.name?.toLowerCase().includes(search.toLowerCase())) &&
+					(coin: IResponseCGMarketsAPI) =>
+						(coin.symbol?.toLowerCase().includes(search.toLowerCase()) ||
+							coin.name?.toLowerCase().includes(search.toLowerCase())) &&
 						!selectedCoins[coin.id]
 				)
 
@@ -45,7 +55,7 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins 
 					/>
 					<input
 						value={search}
-						onChange={(e) => setSearch(e.target?.value)}
+						onChange={(e) => setSearch(e.target.value)}
 						placeholder="Search token..."
 						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white dark:placeholder:text-[#919296]"
 						autoFocus
@@ -111,20 +121,90 @@ function CoinImage({ src }: { src: string }) {
 	)
 }
 
+interface CorrelationCellProps {
+	coinId: string
+	coin1Id: string
+	correlations: Record<string, Record<string, number | null>>
+	alignedPointCounts: Record<string, Record<string, number>>
+	returnPointCounts: Record<string, Record<string, number>>
+	requiredReturnPoints: number
+}
+
+function CorrelationCell({
+	coinId,
+	coin1Id,
+	correlations,
+	alignedPointCounts,
+	returnPointCounts,
+	requiredReturnPoints
+}: CorrelationCellProps) {
+	const corr = correlations[coinId]?.[coin1Id] ?? null
+	const aligned = alignedPointCounts[coinId]?.[coin1Id] ?? 0
+	const returns = returnPointCounts[coinId]?.[coin1Id] ?? 0
+
+	const backgroundColor =
+		corr != null
+			? corr > 0
+				? `rgba(53, 222, 59, ${Math.abs(corr)})`
+				: `rgba(255, 0, 0, ${Math.abs(corr)})`
+			: undefined
+
+	return (
+		<td
+			title={`Aligned prices: ${aligned}\nReturns used: ${returns}\nMinimum required: ${requiredReturnPoints}`}
+			style={{ backgroundColor }}
+			className="relative h-12 w-12 hover:after:pointer-events-none hover:after:absolute hover:after:top-[-5000px] hover:after:left-0 hover:after:h-[10000px] hover:after:w-full hover:after:bg-[rgba(59,130,246,0.12)] hover:after:content-['']"
+		>
+			{corr == null ? '--' : corr.toFixed(2)}
+		</td>
+	)
+}
+
 const PERIODS = ['7d', '1m', '1y'] as const
 type Period = (typeof PERIODS)[number]
-const PERIOD_DAYS: Record<Period, number> = { '7d': 7, '1m': 30, '1y': 365 }
+const PERIOD_MS: Record<Period, number> = {
+	'7d': 7 * 24 * 60 * 60 * 1000,
+	'1m': 30 * 24 * 60 * 60 * 1000,
+	'1y': 365 * 24 * 60 * 60 * 1000
+}
+const MIN_RETURN_POINTS_BY_PERIOD: Record<Period, number> = {
+	'7d': 5,
+	'1m': 20,
+	'1y': 30
+}
 const DEFAULT_PERIOD: Period = '1y'
+const CORRELATION_BUCKET_MS = 20 * 60 * 1000
 
 const isPeriod = (value: string): value is Period => {
 	return PERIODS.includes(value as Period)
 }
 
-export default function Correlations({ coinsData }) {
+const bucketPointsByTime = (points: PricePoint[], fromTimestamp: number) => {
+	const buckets = new Map<number, number>()
+	for (const point of points) {
+		if (point.timestamp < fromTimestamp) continue
+		const bucketTimestamp = Math.floor(point.timestamp / CORRELATION_BUCKET_MS) * CORRELATION_BUCKET_MS
+		// Keep the most recent price in each bucket.
+		buckets.set(bucketTimestamp, point.price)
+	}
+	return buckets
+}
+
+interface CorrelationData {
+	correlations: Record<string, Record<string, number | null>>
+	alignedPointCounts: Record<string, Record<string, number>>
+	returnPointCounts: Record<string, Record<string, number>>
+}
+
+interface CorrelationsProps {
+	coinsData: Array<IResponseCGMarketsAPI>
+}
+
+export default function Correlations({ coinsData }: CorrelationsProps) {
 	const router = useRouter()
-	const queryCoins = useMemo(() => {
+	const queryCoins = useMemo<string[]>(() => {
 		const coinQuery = router.query.coin
-		if (!coinQuery) return [] as Array<string>
+		if (!coinQuery) return []
 		return Array.isArray(coinQuery) ? coinQuery.filter(Boolean) : coinQuery.split(',').filter(Boolean)
 	}, [router.query.coin])
 
@@ -155,39 +235,78 @@ export default function Correlations({ coinsData }) {
 			{ shallow: true }
 		)
 	}
+	const minReturnPoints = MIN_RETURN_POINTS_BY_PERIOD[period]
 	const coins = useMemo(() => Object.values(selectedCoins).filter(Boolean), [selectedCoins])
 	const coinIds = useMemo(() => coins.map((c) => c.id), [coins])
 	const { data: priceChart, isLoading } = usePriceCharts(coinIds)
 
-	const correlations = useMemo(() => {
-		if (isLoading || coins.length === 0) return {}
-		const periodLength = PERIOD_DAYS[period]
-		const result: Record<string, Record<string, string | number>> = {}
+	const { correlations, alignedPointCounts, returnPointCounts } = useMemo<CorrelationData>(() => {
+		if (isLoading || coins.length === 0) {
+			return { correlations: {}, alignedPointCounts: {}, returnPointCounts: {} }
+		}
+		const fromTimestamp = Date.now() - PERIOD_MS[period]
+		const correlationResult: Record<string, Record<string, number | null>> = {}
+		const pointCountResult: Record<string, Record<string, number>> = {}
+		const returnCountResult: Record<string, Record<string, number>> = {}
+		const bucketedSeriesById: Record<string, Map<number, number>> = {}
+		for (const coin of coins) {
+			bucketedSeriesById[coin.id] = bucketPointsByTime(priceChart[coin.id] ?? [], fromTimestamp)
+		}
 
 		for (let i = 0; i < coins.length; i++) {
 			const id0 = coins[i].id
-			result[id0] = {}
+			correlationResult[id0] = {}
+			pointCountResult[id0] = {}
+			returnCountResult[id0] = {}
 			for (let j = i + 1; j < coins.length; j++) {
 				const id1 = coins[j].id
-				const chart0 = priceChart[id0]?.slice(-periodLength)
-				const chart1 = priceChart[id1]?.slice(-periodLength)
-				const len = Math.min(chart0?.length ?? 0, chart1?.length ?? 0)
-				if (len === 0) {
-					result[id0][id1] = 0
+				const bucketed0 = bucketedSeriesById[id0] ?? new Map<number, number>()
+				const bucketed1 = bucketedSeriesById[id1] ?? new Map<number, number>()
+				const [smallerSeries, largerSeries] =
+					bucketed0.size <= bucketed1.size ? [bucketed0, bucketed1] : [bucketed1, bucketed0]
+				const prices0: number[] = []
+				const prices1: number[] = []
+
+				for (const [timestamp, price] of smallerSeries.entries()) {
+					const otherPrice = largerSeries.get(timestamp)
+					if (otherPrice === undefined) continue
+					if (smallerSeries === bucketed0) {
+						prices0.push(price)
+						prices1.push(otherPrice)
+					} else {
+						prices0.push(otherPrice)
+						prices1.push(price)
+					}
+				}
+
+				const { returns0, returns1 } = toPairedLogReturns(prices0, prices1)
+				const returnPointCount = returns0.length
+				pointCountResult[id0][id1] = prices0.length
+				returnCountResult[id0][id1] = returnPointCount
+
+				if (returnPointCount < minReturnPoints) {
+					correlationResult[id0][id1] = null
 					continue
 				}
-				const corr = pearsonCorrelationCoefficient(chart0.slice(0, len), chart1.slice(0, len))
-				result[id0][id1] = corr
+
+				const corr = pearsonCorrelationCoefficient(returns0, returns1)
+				correlationResult[id0][id1] = corr
 			}
 		}
 		// Mirror: corr(A,B) === corr(B,A)
 		for (let i = 0; i < coins.length; i++) {
 			for (let j = 0; j < i; j++) {
-				result[coins[i].id][coins[j].id] = result[coins[j].id][coins[i].id]
+				correlationResult[coins[i].id][coins[j].id] = correlationResult[coins[j].id][coins[i].id]
+				pointCountResult[coins[i].id][coins[j].id] = pointCountResult[coins[j].id][coins[i].id]
+				returnCountResult[coins[i].id][coins[j].id] = returnCountResult[coins[j].id][coins[i].id]
 			}
 		}
-		return result
-	}, [isLoading, period, coins, priceChart])
+		return {
+			correlations: correlationResult,
+			alignedPointCounts: pointCountResult,
+			returnPointCounts: returnCountResult
+		}
+	}, [isLoading, period, coins, priceChart, minReturnPoints])
 
 	useEffect(() => {
 		if (!router.isReady) return
@@ -312,20 +431,15 @@ export default function Correlations({ coinsData }) {
 														<CoinImage src={coin.image} />
 													</td>
 												) : (
-													<td
+													<CorrelationCell
 														key={`c-${coin.id}-${coin1.id}`}
-														style={{
-															backgroundColor:
-																correlations[coin.id]?.[coin1.id] !== undefined
-																	? +correlations[coin.id][coin1.id] > 0
-																		? `rgba(53, 222, 59, ${Number(correlations[coin.id][coin1.id])})`
-																		: `rgba(255, 0, 0, ${-Number(correlations[coin.id][coin1.id])})`
-																	: undefined
-														}}
-														className="relative h-12 w-12 hover:after:pointer-events-none hover:after:absolute hover:after:top-[-5000px] hover:after:left-0 hover:after:h-[10000px] hover:after:w-full hover:after:bg-[rgba(59,130,246,0.12)] hover:after:content-['']"
-													>
-														{correlations[coin.id]?.[coin1.id] ?? ''}
-													</td>
+														coinId={coin.id}
+														coin1Id={coin1.id}
+														correlations={correlations}
+														alignedPointCounts={alignedPointCounts}
+														returnPointCounts={returnPointCounts}
+														requiredReturnPoints={minReturnPoints}
+													/>
 												)
 											)}
 										</tr>
@@ -369,9 +483,9 @@ export default function Correlations({ coinsData }) {
 				/>
 				<div className="w-full border-t border-(--form-control-border) pt-4">
 					<p className="mx-auto max-w-xl text-center text-sm text-(--text-secondary)">
-						Correlation is calculated by using each day as a single data point, and this calculation depends on the
-						selected period. For example, if you select a period of one year, the correlation will be computed from 365
-						data points.
+						Correlation is calculated from log returns built on approximately 20-minute interval price points. A pair
+						must have at least {minReturnPoints} aligned return observations for this period; otherwise, the matrix
+						shows --.
 					</p>
 				</div>
 			</div>

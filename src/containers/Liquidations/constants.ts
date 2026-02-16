@@ -165,7 +165,8 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 // Disabled assets that are intentionally excluded from the default list.
 // Keep these here (not as commented-out entries in `DEFAULT_ASSETS_LIST_RAW`) so the updater script
 // can refresh ordering without dropping them.
-export const DISABLED_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
+// oxlint-disable-next-line no-unused-vars
+const DISABLED_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 	{
 		name: 'Binance Beacon ETH',
 		symbol: 'BETH'
@@ -232,4 +233,5 @@ const buildProtocolNamesMapReverse = (): { [name: string]: string } => {
 	}
 	return result
 }
-export const PROTOCOL_NAMES_MAP_REVERSE = buildProtocolNamesMapReverse()
+// oxlint-disable-next-line no-unused-vars
+const PROTOCOL_NAMES_MAP_REVERSE = buildProtocolNamesMapReverse()

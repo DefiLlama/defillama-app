@@ -4,7 +4,7 @@ import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { maxAgeForNext } from '~/api'
 import { LocalLoader } from '~/components/Loaders'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
-import { BAR_CHARTS, ChainChartLabels, chainCharts } from '~/containers/ChainOverview/constants'
+import { BAR_CHARTS, type ChainChartLabels, chainCharts } from '~/containers/ChainOverview/constants'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
 import { TVL_SETTINGS } from '~/contexts/LocalStorage'
@@ -18,15 +18,11 @@ const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative']
 export const getStaticProps = withPerformanceLogging(
 	'chart/chain/[chain]',
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
-		if (!params?.chain) {
-			return { notFound: true, props: null }
-		}
-
-		const chain = params.chain
+		const chain = !params.chain || params.chain === 'all' ? 'All' : params.chain
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
 		const data = await getChainOverviewData({
-			chain,
+			chain: chain,
 			chainMetadata: metadataCache.chainMetadata,
 			protocolMetadata: metadataCache.protocolMetadata
 		})
@@ -43,6 +39,16 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 

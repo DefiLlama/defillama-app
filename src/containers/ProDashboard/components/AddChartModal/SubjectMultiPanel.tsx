@@ -6,7 +6,7 @@ import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import { getItemIconUrl } from '../../utils'
-import { ChartTabType } from './types'
+import type { ChartTabType } from './types'
 
 interface Option {
 	value: string
@@ -29,7 +29,8 @@ interface SubjectMultiPanelProps {
 	hideTabToggle?: boolean
 }
 
-export function SubjectMultiPanel({
+// oxlint-disable-next-line no-unused-vars
+function SubjectMultiPanel({
 	activeTab,
 	onTabChange,
 	selectedChartType,

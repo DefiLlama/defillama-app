@@ -15,13 +15,7 @@ interface IChainLogo {
 	disableLink?: boolean
 }
 
-export const ChainLogo = ({
-	chain,
-	url,
-	iconType,
-	yieldRewardsSymbol,
-	disableLink: disableLinks = false
-}: IChainLogo) => {
+const ChainLogo = ({ chain, url, iconType, yieldRewardsSymbol, disableLink: disableLinks = false }: IChainLogo) => {
 	if (yieldRewardsSymbol || disableLinks) {
 		return (
 			<Tooltip content={disableLinks ? chain : yieldRewardsSymbol}>

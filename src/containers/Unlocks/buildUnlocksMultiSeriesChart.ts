@@ -4,14 +4,14 @@ import { COLOR_PALETTE } from './constants'
 
 type UnlockEvent = { protocol: string; value: number }
 
-export type UnlocksLikeData = Record<
+type UnlocksLikeData = Record<
 	string,
 	{
 		events?: UnlockEvent[]
 	}
 >
 
-export type UnlocksMultiSeriesChartResult = {
+type UnlocksMultiSeriesChartResult = {
 	dataset: MultiSeriesChart2Dataset
 	charts: NonNullable<IMultiSeriesChart2Props['charts']>
 }

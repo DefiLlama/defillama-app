@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import clsx from 'clsx'
-import { FormEventHandler, InputHTMLAttributes, ReactNode } from 'react'
+import type { FormEventHandler, InputHTMLAttributes, ReactNode } from 'react'
 import { NestedMenu } from '~/components/NestedMenu'
 import { Icon } from '../Icon'
 

@@ -113,7 +113,7 @@ export type MultiSeriesChart2SeriesConfig = {
 	large?: boolean
 }
 
-export type MultiSeriesChart2ExportButtons =
+type MultiSeriesChart2ExportButtons =
 	| 'auto'
 	| 'hidden'
 	| {
@@ -164,6 +164,16 @@ export type IMultiSeriesChart2Props = MultiSeriesChart2BaseProps & {
 	 * This helps keep hover/tooltip updates smooth on charts with many series (50+).
 	 */
 	tooltipMaxItems?: number
+	/**
+	 * Show a computed total line in the tooltip using the displayed numeric series values.
+	 * Useful for stacked-style aggregate views where all series share a unit.
+	 */
+	showTotalInTooltip?: boolean
+	/**
+	 * Placement for the total line when `showTotalInTooltip` is enabled.
+	 * Defaults to `'bottom'`.
+	 */
+	tooltipTotalPosition?: 'top' | 'bottom'
 	/**
 	 * Controls the built-in export toolbar.
 	 * - `'auto'` (default): show exports when the chart has series, unless `onReady` is provided.

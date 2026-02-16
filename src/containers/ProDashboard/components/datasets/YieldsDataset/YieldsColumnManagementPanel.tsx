@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 
-export const yieldsColumnMetadata = {
+const yieldsColumnMetadata = {
 	pool: { name: 'Pool', description: 'The name of the yield pool or strategy' },
 	project: { name: 'Project', description: 'The protocol offering this yield opportunity' },
 	chains: { name: 'Chain', description: 'The blockchain network where the pool operates' },

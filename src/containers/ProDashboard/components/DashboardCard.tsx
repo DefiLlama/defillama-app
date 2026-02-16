@@ -3,8 +3,8 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
-import { Dashboard } from '../services/DashboardAPI'
-import { DashboardItemConfig } from '../types'
+import type { Dashboard } from '../services/DashboardAPI'
+import type { DashboardItemConfig } from '../types'
 import { ConfirmationModal } from './ConfirmationModal'
 
 interface DashboardCardProps {

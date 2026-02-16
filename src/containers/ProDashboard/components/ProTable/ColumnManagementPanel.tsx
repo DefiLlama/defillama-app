@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { protocolsByChainTableColumns, TABLE_CATEGORIES } from '~/components/Table/Defi/Protocols'
 import { Tooltip } from '~/components/Tooltip'
-import { CustomView } from '../../types'
+import type { CustomView } from '../../types'
 import { CustomColumnPanel } from './CustomColumnPanel'
 
 const metricDescriptions: Record<string, string> = {

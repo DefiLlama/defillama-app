@@ -1,14 +1,14 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
-	ExpandedState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
+	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import clsx from 'clsx'
@@ -22,11 +22,10 @@ import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
-import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
-import type { IRWAAssetsOverview } from './queries'
-
-const definitions = rwaDefinitionsJson as typeof rwaDefinitionsJson
+import type { IRWAAssetsOverview } from './api.types'
+import { BreakdownTooltipContent } from './BreakdownTooltipContent'
+import { definitions } from './definitions'
 
 type AssetRow = IRWAAssetsOverview['assets'][0]
 
@@ -50,7 +49,7 @@ export function RWAAssetsTable({
 		if (!deferredSearchValue) return assets
 
 		return matchSorter(assets, deferredSearchValue, {
-			keys: ['name', 'ticker'],
+			keys: ['assetName', 'ticker'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
 	}, [assets, deferredSearchValue])
@@ -92,15 +91,18 @@ export function RWAAssetsTable({
 		[]
 	)
 
-	const setColumnOptions = (newOptions: string[]) => {
-		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)]))
-		instance.setColumnVisibility(ops)
-	}
-
 	const selectedColumns = instance
 		.getAllLeafColumns()
 		.filter((col) => col.getIsVisible())
 		.map((col) => col.id)
+
+	const setColumnOptions = (newOptions: string[] | ((prev: string[]) => string[])) => {
+		const resolvedOptions = Array.isArray(newOptions) ? newOptions : newOptions(selectedColumns)
+		const ops = Object.fromEntries(
+			instance.getAllLeafColumns().map((col) => [col.id, resolvedOptions.includes(col.id)])
+		)
+		instance.setColumnVisibility(ops)
+	}
 
 	const prepareCsv = () => {
 		const tableRows = instance.getSortedRowModel().rows
@@ -435,6 +437,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			<TVLBreakdownCell
 				value={info.getValue() as number | null | undefined}
 				breakdown={info.row.original.defiActiveTvl?.breakdown}
+				description={definitions.defiActiveTvl.description}
 			/>
 		),
 		meta: {
@@ -450,6 +453,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			<TVLBreakdownCell
 				value={info.getValue() as number | null | undefined}
 				breakdown={info.row.original.activeMcap?.breakdown}
+				description={definitions.activeMcap.description}
 			/>
 		),
 		meta: {
@@ -465,6 +469,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			<TVLBreakdownCell
 				value={info.getValue() as number | null | undefined}
 				breakdown={info.row.original.onChainMcap?.breakdown}
+				description={definitions.onChainMcap.description}
 			/>
 		),
 		size: 168,
@@ -609,22 +614,14 @@ const columns: ColumnDef<AssetRow>[] = [
 	}
 ]
 
-const BreakdownTooltipContent = ({ breakdown }: { breakdown: Array<[string, number]> }) => (
-	<span className="flex flex-col gap-1">
-		{breakdown.map(([chain, tvl]) => (
-			<span key={`${chain}-${tvl}`}>
-				{chain}: {formattedNum(tvl, true)}
-			</span>
-		))}
-	</span>
-)
-
 const TVLBreakdownCell = ({
 	value,
-	breakdown
+	breakdown,
+	description
 }: {
 	value: number | null | undefined
 	breakdown: Array<[string, number]> | null | undefined
+	description: string
 }) => {
 	if (value == null) {
 		return null
@@ -636,7 +633,7 @@ const TVLBreakdownCell = ({
 
 	return (
 		<Tooltip
-			content={<BreakdownTooltipContent breakdown={breakdown} />}
+			content={<BreakdownTooltipContent breakdown={breakdown} description={description} />}
 			className="justify-end underline decoration-dotted"
 		>
 			{formattedNum(value, true)}

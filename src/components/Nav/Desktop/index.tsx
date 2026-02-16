@@ -5,7 +5,7 @@ import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
 import { PremiumHeader } from '../PremiumHeader'
 import { ThemeSwitch } from '../ThemeSwitch'
-import { TNavLink, TNavLinks, TOldNavLink } from '../types'
+import type { TNavLink, TNavLinks, TOldNavLink } from '../types'
 import { LinkToPage } from './shared'
 
 const PinnedPages = React.lazy(() => import('./PinnedPages').then((mod) => ({ default: mod.PinnedPages })))

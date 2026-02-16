@@ -1,14 +1,14 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
-	ExpandedState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
+	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
@@ -87,7 +87,7 @@ export function TableWithSearch({
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
 				{header ? <h1 className="mr-auto text-lg font-semibold">{header}</h1> : null}
 				{columnToSearch ? (
-					<label className="relative w-full sm:max-w-70">
+					<label className={`relative w-full sm:max-w-70 ${header ? '' : 'mr-auto'}`}>
 						<span className="sr-only">{placeholder}</span>
 						<Icon
 							name="search"

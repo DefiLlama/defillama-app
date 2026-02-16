@@ -1,11 +1,11 @@
 import {
-	ColumnFiltersState,
-	ColumnOrderState,
+	type ColumnFiltersState,
+	type ColumnOrderState,
 	type ColumnDef,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
@@ -17,6 +17,7 @@ import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { toNiceDayMonthYear } from '~/utils'
+import type { IRaise } from './types'
 
 const columnResizeMode = 'onChange'
 
@@ -31,21 +32,7 @@ const formatRaise = (n: number) => {
 	return `${n}m`
 }
 
-export interface IRaiseRow {
-	name: string
-	date: string
-	amount: number
-	round: string
-	category: string
-	sector: string
-	leadInvestors: string[]
-	otherInvestors: string[]
-	source: string
-	valuation: number
-	chains: string[]
-}
-
-export const raisesColumns: ColumnDef<IRaiseRow>[] = [
+export const raisesColumns: ColumnDef<IRaise>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -56,12 +43,15 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 		size: 120,
 		header: 'Date',
 		accessorKey: 'date',
-		cell: ({ getValue }) => <>{toNiceDayMonthYear(getValue() as number)}</>
+		cell: ({ getValue }) => <>{toNiceDayMonthYear(getValue<number>())}</>
 	},
 	{
 		header: 'Amount Raised',
 		accessorKey: 'amount',
-		cell: ({ getValue }) => <>{getValue() ? '$' + formatRaise(getValue() as number) : ''}</>,
+		cell: ({ getValue }) => {
+			const value = getValue<number | null>()
+			return <>{value != null ? '$' + formatRaise(value) : ''}</>
+		},
 		size: 140
 	},
 	{ header: 'Round', accessorKey: 'round', enableSorting: false, size: 140 },
@@ -71,7 +61,8 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 		size: 160,
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <Tooltip content={getValue() as string}>{getValue() as string}</Tooltip>
+			const value = getValue<string>()
+			return <Tooltip content={value}>{value}</Tooltip>
 		}
 	},
 	{
@@ -80,7 +71,8 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 		size: 140,
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <Tooltip content={getValue() as string}>{getValue() as string}</Tooltip>
+			const value = getValue<string>()
+			return <Tooltip content={value}>{value}</Tooltip>
 		}
 	},
 	{
@@ -89,9 +81,7 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 		size: 120,
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			const value = getValue() as Array<string>
-			const formattedValue = value.join(', ')
-
+			const formattedValue = getValue<string[]>().join(', ')
 			return <Tooltip content={formattedValue}>{formattedValue}</Tooltip>
 		}
 	},
@@ -102,7 +92,7 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<a
-				href={getValue() as string}
+				href={getValue<string>()}
 				target="_blank"
 				rel="noopener noreferrer"
 				className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover)"
@@ -115,14 +105,17 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 	{
 		header: 'Valuation',
 		accessorKey: 'valuation',
-		cell: ({ getValue }) => <>{getValue() ? '$' + formatRaise(getValue() as number) : ''}</>,
+		cell: ({ getValue }) => {
+			const value = getValue<number | null>()
+			return <>{value != null ? '$' + formatRaise(value) : ''}</>
+		},
 		size: 100
 	},
 	{
 		header: 'Chains',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
+		cell: ({ getValue }) => <IconsRow links={getValue<string[]>()} url="/chain" iconType="chain" />,
 		size: 80
 	},
 	{
@@ -131,9 +124,7 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 		size: 400,
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			const value = getValue() as Array<string>
-			const formattedValue = value.join(', ')
-
+			const formattedValue = getValue<string[]>().join(', ')
 			return <Tooltip content={formattedValue}>{formattedValue}</Tooltip>
 		}
 	}
@@ -168,7 +159,13 @@ export const raisesColumnOrders: ColumnOrdersByBreakpoint = {
 	]
 }
 
-export function RaisesTable({ raises, prepareCsv }) {
+export function RaisesTable({
+	raises,
+	prepareCsv
+}: {
+	raises: IRaise[]
+	prepareCsv: () => { filename: string; rows: (string | number | boolean)[][] }
+}) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])

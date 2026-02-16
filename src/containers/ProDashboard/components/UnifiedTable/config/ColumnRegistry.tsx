@@ -1,4 +1,4 @@
-import { ColumnDef, Row, type CellContext } from '@tanstack/react-table'
+import { type ColumnDef, type Row, type CellContext } from '@tanstack/react-table'
 import { type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
@@ -22,6 +22,7 @@ import { COLUMN_DICTIONARY_BY_ID } from './ColumnDictionary'
 import { isColumnSupported } from './metricCapabilities'
 
 declare module '@tanstack/table-core' {
+	// oxlint-disable-next-line no-unused-vars
 	interface ColumnMeta<TData, TValue> {
 		align?: 'start' | 'center' | 'end'
 		hidden?: boolean
@@ -37,6 +38,7 @@ const renderUsd = (value: number | null | undefined) => {
 	return <span className="pro-text2">{formattedNum(value, true)}</span>
 }
 
+// oxlint-disable-next-line no-unused-vars
 const renderNumber = (value: number | null | undefined) => {
 	if (value == null) {
 		return renderDash()

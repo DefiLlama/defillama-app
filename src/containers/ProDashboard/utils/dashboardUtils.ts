@@ -1,4 +1,4 @@
-import { ChartConfig, DashboardItemConfig, MultiChartConfig, ProtocolsTableConfig, TextConfig } from '../types'
+import type { ChartConfig, DashboardItemConfig, MultiChartConfig, ProtocolsTableConfig, TextConfig } from '../types'
 
 // Valid chart types accepted by the API
 const VALID_PROTOCOL_CHART_TYPES = new Set([

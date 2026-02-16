@@ -204,7 +204,7 @@ const toCsvValue = (columnId: string, row: NormalizedRow, customColumns?: Custom
 	return typeof value === 'number' ? String(value) : ''
 }
 
-export function UnifiedTable({
+function UnifiedTable({
 	config,
 	previewMode = false,
 	columnOrderOverride,

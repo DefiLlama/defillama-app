@@ -1,4 +1,6 @@
-import { CEXS_API, PEGGEDS_API, PROTOCOLS_API } from '~/constants/index'
+import { PROTOCOLS_API } from '~/constants/index'
+import { fetchCexs } from '~/containers/Cexs/api'
+import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import defillamaPages from '~/public/pages.json'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -54,8 +56,8 @@ function SiteMap() {
 export async function getServerSideProps({ res }) {
 	const [{ protocols, chains, protocolCategories, parentProtocols }, stablecoins, cexs] = await Promise.all([
 		fetchJson(PROTOCOLS_API),
-		fetchJson(PEGGEDS_API).then(({ peggedAssets }) => peggedAssets),
-		fetchJson(CEXS_API).then(({ cexs }) => cexs)
+		fetchStablecoinAssetsApi().then(({ peggedAssets }) => peggedAssets),
+		fetchCexs().then(({ cexs }) => cexs)
 	])
 
 	const sitemap = generateSiteMap(

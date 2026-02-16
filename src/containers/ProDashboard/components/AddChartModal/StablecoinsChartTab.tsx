@@ -3,12 +3,12 @@ import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/E
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import {
-	StablecoinAssetInfo,
+	type StablecoinAssetInfo,
 	useStablecoinAssetChartData,
 	useStablecoinAssetsList
 } from '~/containers/ProDashboard/components/datasets/StablecoinAssetDataset/useStablecoinAssetChartData'
 import {
-	StablecoinChainInfo,
+	type StablecoinChainInfo,
 	useStablecoinChainsList,
 	useStablecoinsChartData
 } from '~/containers/ProDashboard/components/datasets/StablecoinsDataset/useStablecoinsChartData'
@@ -19,7 +19,7 @@ import {
 } from '~/containers/ProDashboard/utils/colorManager'
 import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { AriakitSelect } from '../AriakitSelect'
-import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
+import { AriakitVirtualizedSelect, type VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>

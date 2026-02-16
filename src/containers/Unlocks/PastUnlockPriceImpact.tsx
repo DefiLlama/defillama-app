@@ -6,9 +6,13 @@ import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import type { ProtocolEmissionWithHistory } from './types'
+
+/** Protocols that have confirmed tPrice and tSymbol (caller pre-filters nulls). */
+type ProtocolData = ProtocolEmissionWithHistory & { tPrice: number; tSymbol: string }
 
 interface PastUnlockPriceImpactProps {
-	data: any[]
+	data: ProtocolData[]
 	title?: string
 	className?: string
 }
@@ -52,22 +56,25 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 			const now = Date.now() / 1000
 			const thirtyDaysAgo = now - 30 * 24 * 60 * 60
 
-			const lastEvents = protocol.lastEvent.filter((event) => event.timestamp >= thirtyDaysAgo)
+			const lastEvents = protocol.lastEvent?.filter((event) => event.timestamp >= thirtyDaysAgo) || []
 			if (!lastEvents.length) continue
 
-			const eventsByTimestamp = lastEvents.reduce((acc, event) => {
-				const totalTokens = event.noOfTokens?.reduce((sum, amount) => sum + amount, 0) || 0
-				if (acc[event.timestamp]) {
-					acc[event.timestamp].totalTokens += totalTokens
-					acc[event.timestamp].events.push(event)
-				} else {
-					acc[event.timestamp] = {
-						totalTokens,
-						events: [event]
+			const eventsByTimestamp = lastEvents.reduce(
+				(acc: Record<number, { totalTokens: number; events: typeof lastEvents }>, event) => {
+					const totalTokens = event.noOfTokens?.reduce((sum: number, amount: number) => sum + amount, 0) || 0
+					if (acc[event.timestamp]) {
+						acc[event.timestamp].totalTokens += totalTokens
+						acc[event.timestamp].events.push(event)
+					} else {
+						acc[event.timestamp] = {
+							totalTokens,
+							events: [event]
+						}
 					}
-				}
-				return acc
-			}, {})
+					return acc
+				},
+				{}
+			)
 
 			let latestTimestamp = -Infinity
 			for (const ts of Object.keys(eventsByTimestamp)) {
@@ -82,18 +89,17 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 			const priceAfter7d = protocol.historicalPrice[protocol.historicalPrice.length - 1][1]
 			const impact = ((priceAfter7d - priceAtUnlock) / priceAtUnlock) * 100
 
-			const breakdown: UnlockBreakdown[] = (
-				latestEvent.events
-					.flatMap((event) =>
-						event.noOfTokens?.map((amount: number) => ({
-							name: parseDescription(event.description),
-							amount,
-							timestamp: event.timestamp,
-							unlockType: event.unlockType || 'cliff'
-						}))
-					)
-					.filter(Boolean) || []
-			).sort((a, b) => b.amount - a.amount)
+			const breakdown: UnlockBreakdown[] = latestEvent.events
+				.flatMap((event: (typeof lastEvents)[0]) =>
+					event.noOfTokens?.map((amount: number) => ({
+						name: parseDescription(event.description || ''),
+						amount,
+						timestamp: event.timestamp,
+						unlockType: event.unlockType || 'cliff'
+					}))
+				)
+				.filter((item): item is UnlockBreakdown => item != null)
+				.sort((a, b) => b.amount - a.amount)
 
 			protocolImpacts.set(protocol.name, {
 				name: protocol.name,
@@ -102,8 +108,8 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 				value: unlockValue,
 				timestamp: latestTimestamp,
 				unlockBreakdown: breakdown,
-				maxSupply: protocol.maxSupply,
-				mcap: protocol.mcap,
+				maxSupply: protocol.maxSupply ?? undefined,
+				mcap: protocol.mcap ?? undefined,
 				price: protocol.tPrice
 			})
 		}

@@ -1,11 +1,11 @@
-import { ChainChartLabels } from '~/containers/ChainOverview/constants'
-import { ProtocolChartsLabels } from '~/containers/ProtocolOverview/constants'
-import { ChartConfig, MultiChartConfig } from '../types'
+import type { ChainChartLabels } from '~/containers/ChainOverview/constants'
+import type { ProtocolChartsLabels } from '~/containers/ProtocolOverview/constants'
+import type { ChartConfig, MultiChartConfig } from '../types'
 import { getSupportedChainCharts, getUnsupportedChainCharts } from './chainChartMapping'
 import { generateItemId } from './dashboardUtils'
 import { getSupportedProtocolCharts, getUnsupportedProtocolCharts } from './protocolChartMapping'
 
-export interface ProtocolChartSerializationParams {
+interface ProtocolChartSerializationParams {
 	protocolId: string
 	protocolName: string
 	geckoId?: string | null
@@ -54,7 +54,7 @@ export function serializeProtocolChartToMultiChart(params: ProtocolChartSerializ
 	return { multiChart, unsupportedMetrics: unsupported }
 }
 
-export interface ChainChartSerializationParams {
+interface ChainChartSerializationParams {
 	chainName: string
 	geckoId?: string | null
 	toggledMetrics: ChainChartLabels[]

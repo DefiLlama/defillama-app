@@ -1,4 +1,4 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { IconsRow } from '~/components/IconsRow'
 import { QuestionHelper } from '~/components/QuestionHelper'

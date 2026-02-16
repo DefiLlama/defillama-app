@@ -1,4 +1,4 @@
-import { fetchWithPoolingOnServer, FetchWithPoolingOnServerOptions } from './http-client'
+import { fetchWithPoolingOnServer, type FetchWithPoolingOnServerOptions } from './http-client'
 
 // ─────────────────────────────────────────────────────────────
 // Config: Only 2 knobs instead of 5
@@ -37,7 +37,7 @@ export function isTransientError(err: unknown): boolean {
 	return TRANSIENT_ERRORS.some((t) => msg.includes(t))
 }
 
-export function isRetryableStatus(status: number): boolean {
+function isRetryableStatus(status: number): boolean {
 	return status === 408 || status === 429 || (status >= 500 && status < 600)
 }
 
@@ -386,7 +386,7 @@ export const fetchApi = async (url: string | Array<string>) => {
 // ─────────────────────────────────────────────────────────────
 // Response handlers (kept for backward compatibility)
 // ─────────────────────────────────────────────────────────────
-export async function handleFetchResponse(res: Response): Promise<any> {
+export async function handleFetchResponse(res: Response): Promise<unknown> {
 	if (res.ok) {
 		return res.json()
 	}

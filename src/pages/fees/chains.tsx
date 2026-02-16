@@ -2,7 +2,7 @@ import { maxAgeForNext } from '~/api'
 import { ChainsByAdapter } from '~/containers/DimensionAdapters/ChainsByAdapter'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getChainsByFeesAdapterPageData } from '~/containers/DimensionAdapters/queries'
-import { IChainsByAdapterPageData } from '~/containers/DimensionAdapters/types'
+import type { IChainsByAdapterPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 

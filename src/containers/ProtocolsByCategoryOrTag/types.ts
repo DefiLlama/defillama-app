@@ -1,4 +1,4 @@
-import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 
 export interface IRWAStats {
 	volumeUsd1d: number
@@ -14,6 +14,21 @@ export interface IRWAStats {
 	selfCustody?: boolean
 }
 
+interface IProtocolMetricTotals {
+	total24h: number | null
+	total7d: number | null
+	total30d: number | null
+}
+
+interface IProtocolPerpMetricTotals extends IProtocolMetricTotals {
+	doublecounted?: boolean
+	zeroFeePerp?: boolean
+}
+
+interface IProtocolOpenInterestTotals {
+	total24h: number | null
+}
+
 interface IProtocolByCategory {
 	name: string
 	slug: string
@@ -22,13 +37,13 @@ interface IProtocolByCategory {
 	tvl: number | null
 	extraTvls: Record<string, number>
 	mcap: number | null
-	fees?: Record<string, number> | null
-	revenue?: Record<string, number> | null
-	dexVolume?: Record<string, number>
-	perpVolume?: Record<string, number> & { doublecounted?: boolean; zeroFeePerp?: boolean }
-	openInterest?: { total24h: number }
-	optionsPremium?: Record<string, number> | null
-	optionsNotional?: Record<string, number> | null
+	fees?: IProtocolMetricTotals | null
+	revenue?: IProtocolMetricTotals | null
+	dexVolume?: IProtocolMetricTotals | null
+	perpVolume?: IProtocolPerpMetricTotals | null
+	openInterest?: IProtocolOpenInterestTotals | null
+	optionsPremium?: IProtocolMetricTotals | null
+	optionsNotional?: IProtocolMetricTotals | null
 	tags: Array<string>
 	rwaStats?: IRWAStats | null
 	borrowed?: number | null
@@ -47,7 +62,7 @@ export interface IProtocolByCategoryOrTagPageData {
 	effectiveCategory: string | null
 	chains: Array<{ label: string; to: string }>
 	chain: string
-	charts: { dataset: IMultiSeriesChart2Props['dataset']; charts: IMultiSeriesChart2Props['charts'] }
+	charts: { dataset: IMultiSeriesChart2Props['dataset']; charts: NonNullable<IMultiSeriesChart2Props['charts']> }
 	fees7d: number | null
 	revenue7d: number | null
 	dexVolume7d: number | null
@@ -55,5 +70,38 @@ export interface IProtocolByCategoryOrTagPageData {
 	openInterest: number | null
 	optionsPremium7d: number | null
 	optionsNotional7d: number | null
-	extraTvlCharts: Record<string, Record<string, number>>
+	extraTvlCharts: Record<string, Record<string | number, number | null>>
+}
+
+export interface IProtocolsCategoriesExtraTvlPoint {
+	tvl: number
+	tvlPrevDay: number
+	tvlPrevWeek: number
+	tvlPrevMonth: number
+}
+
+export interface IProtocolsCategoriesTableRow {
+	name: string
+	protocols: number
+	tvl: number
+	tvlPrevDay: number
+	tvlPrevWeek: number
+	tvlPrevMonth: number
+	revenue: number
+	extraTvls: Record<string, IProtocolsCategoriesExtraTvlPoint>
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+	description: string
+	subRows?: Array<IProtocolsCategoriesTableRow>
+}
+
+export type IProtocolsCategoriesChartRow = Record<string, number | null> & { timestamp: number }
+
+export interface IProtocolsCategoriesPageData {
+	categories: Array<string>
+	tableData: Array<IProtocolsCategoriesTableRow>
+	chartSource: Array<IProtocolsCategoriesChartRow>
+	categoryColors: Record<string, string>
+	extraTvlCharts: Record<string, Record<string, Record<number, number>>>
 }

@@ -3,11 +3,11 @@ import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import {
 	CHART_TYPES,
-	ChartConfig,
-	DashboardItemConfig,
-	MetricConfig,
-	MultiChartConfig,
-	UnifiedTableConfig
+	type ChartConfig,
+	type DashboardItemConfig,
+	type MetricConfig,
+	type MultiChartConfig,
+	type UnifiedTableConfig
 } from '../../types'
 import { generateItemId } from '../../utils/dashboardUtils'
 import { ComparisonWizardProvider, useComparisonWizardContext } from './ComparisonWizardContext'

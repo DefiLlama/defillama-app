@@ -1,13 +1,14 @@
 import { MarkAreaComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
+import * as React from 'react'
 import { useEffect, useId, useMemo, useRef } from 'react'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
 import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
-import { BAR_CHARTS, ProtocolChartsLabels, yAxisByChart } from './constants'
+import { BAR_CHARTS, type ProtocolChartsLabels, yAxisByChart } from './constants'
 
-const customOffsets = {
+const customOffsets: Record<string, number> = {
 	Contributors: 60,
 	'Contributors Commits': 80,
 	'Devs Commits': 70,
@@ -15,6 +16,23 @@ const customOffsets = {
 }
 
 echarts.use([MarkAreaComponent])
+
+export interface IProtocolCoreChartProps {
+	chartData: Record<string, Array<[string | number, number | null]>>
+	chartColors: Record<string, string>
+	valueSymbol?: string
+	color?: string
+	hallmarks: Array<[number, string]> | null
+	rangeHallmarks: Array<[[number, number], string]> | null
+	chartOptions?: Record<string, Record<string, unknown>>
+	height?: string
+	unlockTokenSymbol?: string | null
+	isThemeDark: boolean
+	groupBy?: string
+	hideDataZoom?: boolean
+	onReady?: (instance: echarts.ECharts | null) => void
+	style?: React.CSSProperties
+}
 
 export default function ProtocolCoreChart({
 	chartData,
@@ -31,7 +49,7 @@ export default function ProtocolCoreChart({
 	hideDataZoom = false,
 	onReady,
 	...props
-}) {
+}: IProtocolCoreChartProps) {
 	const id = useId()
 	const isCumulative = groupBy === 'cumulative'
 	const chartRef = useRef<echarts.ECharts | null>(null)
@@ -44,7 +62,7 @@ export default function ProtocolCoreChart({
 		valueSymbol,
 		tooltipSort: false,
 		hideLegend: true,
-		unlockTokenSymbol,
+		unlockTokenSymbol: unlockTokenSymbol ?? '',
 		isThemeDark,
 		groupBy:
 			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly'].includes(groupBy)
@@ -55,7 +73,7 @@ export default function ProtocolCoreChart({
 	const { series, allYAxis } = useMemo(() => {
 		const uniqueYAxis = new Set()
 
-		const stacks = Object.keys(chartData) as any
+		const stacks = Object.keys(chartData) as ProtocolChartsLabels[]
 
 		for (const stack of stacks) {
 			uniqueYAxis.add(yAxisByChart[stack])
@@ -63,7 +81,7 @@ export default function ProtocolCoreChart({
 
 		const indexByYAxis = Object.fromEntries(
 			Array.from(uniqueYAxis).map((yAxis, index) => [yAxis, index === 0 ? undefined : index])
-		) as Record<ProtocolChartsLabels, number | undefined>
+		) as Record<string, number | undefined>
 
 		const series = stacks.map((stack, index) => {
 			const stackColor = chartColors[stack]
@@ -106,7 +124,7 @@ export default function ProtocolCoreChart({
 					: {}),
 				markLine: {},
 				data: chartData[stack] ?? [],
-				...(index === 0 && rangeHallmarks?.length > 0
+				...(index === 0 && (rangeHallmarks?.length ?? 0) > 0
 					? {
 							markArea: {
 								itemStyle: {
@@ -117,7 +135,7 @@ export default function ProtocolCoreChart({
 									fontWeight: 600,
 									color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 								},
-								data: rangeHallmarks.map(([date, event]) => [
+								data: (rangeHallmarks ?? []).map(([date, event]: [[number, number], string]) => [
 									{
 										name: event,
 										xAxis: date[0]
@@ -132,11 +150,11 @@ export default function ProtocolCoreChart({
 			}
 		})
 
-		if (series.length > 0 && hallmarks?.length > 0) {
+		if (series.length > 0 && (hallmarks?.length ?? 0) > 0) {
 			series[0] = {
 				...series[0],
 				markLine: {
-					data: hallmarks.map(([date, event], index) => [
+					data: (hallmarks ?? []).map(([date, event]: [number, string], index: number) => [
 						{
 							name: event,
 							xAxis: date,
@@ -152,7 +170,7 @@ export default function ProtocolCoreChart({
 							name: 'end',
 							xAxis: date,
 							yAxis: 'max',
-							y: Math.max(hallmarks.length * 20 - index * 20, 20)
+							y: Math.max((hallmarks?.length ?? 0) * 20 - index * 20, 20)
 						}
 					])
 				}
@@ -181,32 +199,34 @@ export default function ProtocolCoreChart({
 			onReady(instance)
 		}
 
-		for (const option in chartOptions) {
-			if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
-			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
+		const mergedSettings = { ...defaultChartSettings } as Record<string, unknown>
+		if (chartOptions) {
+			for (const option of Object.keys(chartOptions)) {
+				const opts = chartOptions as Record<string, Record<string, unknown>>
+				if (mergedSettings[option]) {
+					mergedSettings[option] = mergeDeep(mergedSettings[option] as Record<string, unknown>, opts[option])
+				} else {
+					mergedSettings[option] = { ...opts[option] }
+				}
 			}
 		}
 
-		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+		const { graphic, tooltip, xAxis, yAxis, dataZoom } = mergedSettings as typeof defaultChartSettings
 
-		const finalYAxis = []
+		const finalYAxis: Array<Record<string, unknown>> = []
 
 		const noOffset = allYAxis.length < 3
 
 		const chartsInSeries = new Set(series.map((s) => s.name))
 
 		for (const [type, index] of allYAxis) {
-			const options = {
+			const prevOffset = (finalYAxis[finalYAxis.length - 1]?.offset as number | undefined) ?? 0
+			const options: Record<string, unknown> = {
 				...yAxis,
 				name: '',
 				type: 'value',
 				alignTicks: true,
-				offset:
-					noOffset || index == null || index < 2
-						? 0
-						: (finalYAxis[finalYAxis.length - 1]?.offset ?? 0) + (customOffsets[type] || 40)
+				offset: noOffset || index == null || index < 2 ? 0 : prevOffset + (customOffsets[type] ?? 40)
 			}
 
 			if (type === 'TVL') {
@@ -337,7 +357,7 @@ export default function ProtocolCoreChart({
 				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => `${formattedNum(value)} ${unlockTokenSymbol}`
+						formatter: (value: number) => `${formattedNum(value)} ${unlockTokenSymbol}`
 					},
 					axisLine: {
 						show: true,
@@ -354,7 +374,7 @@ export default function ProtocolCoreChart({
 				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => formattedNum(value)
+						formatter: (value: number) => formattedNum(value)
 					},
 					axisLine: {
 						show: true,
@@ -375,7 +395,7 @@ export default function ProtocolCoreChart({
 				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => formattedNum(value)
+						formatter: (value: number) => formattedNum(value)
 					},
 					axisLine: {
 						show: true,
@@ -405,7 +425,7 @@ export default function ProtocolCoreChart({
 				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => `${value}%`
+						formatter: (value: number) => `${value}%`
 					},
 					axisLine: {
 						show: true,
@@ -436,7 +456,7 @@ export default function ProtocolCoreChart({
 				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => formattedNum(value)
+						formatter: (value: number) => formattedNum(value)
 					},
 					axisLine: {
 						show: true,
@@ -453,7 +473,7 @@ export default function ProtocolCoreChart({
 				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => formattedNum(value)
+						formatter: (value: number) => formattedNum(value)
 					},
 					axisLine: {
 						show: true,
@@ -484,7 +504,7 @@ export default function ProtocolCoreChart({
 				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => `${value} tweets`
+						formatter: (value: number) => `${value} tweets`
 					},
 					axisLine: {
 						show: true,
@@ -522,7 +542,7 @@ export default function ProtocolCoreChart({
 			grid: {
 				left: 12,
 				bottom: hideDataZoom ? 12 : 68,
-				top: rangeHallmarks?.length > 0 ? 18 : 12,
+				top: (rangeHallmarks?.length ?? 0) > 0 ? 18 : 12,
 				right: 12,
 				outerBoundsMode: 'same',
 				outerBoundsContain: 'axisLabel'

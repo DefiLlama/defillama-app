@@ -6,7 +6,7 @@ import { UNIFIED_TABLE_COLUMN_DICTIONARY } from './ColumnDictionary'
 const ALWAYS_INCLUDE = new Set(['name'])
 let CAPABILITIES_CACHE: Set<string> | null = null
 
-export function getCapabilitiesFromDictionary(): Set<string> {
+function getCapabilitiesFromDictionary(): Set<string> {
 	if (CAPABILITIES_CACHE) return CAPABILITIES_CACHE
 
 	const ids = UNIFIED_TABLE_COLUMN_DICTIONARY.map((column) => column.id)
@@ -15,7 +15,8 @@ export function getCapabilitiesFromDictionary(): Set<string> {
 	return capabilities
 }
 
-export function getCapabilities(): Set<string> {
+// oxlint-disable-next-line no-unused-vars
+function getCapabilities(): Set<string> {
 	return new Set(getCapabilitiesFromDictionary())
 }
 
@@ -31,14 +32,11 @@ export function isColumnSupported(id: string, validCustomColumnIds?: Set<string>
 	return getCapabilitiesFromDictionary().has(id)
 }
 
-export function filterByCapabilities(ids: string[], validCustomColumnIds?: Set<string>): string[] {
+function filterByCapabilities(ids: string[], validCustomColumnIds?: Set<string>): string[] {
 	return ids.filter((id) => isColumnSupported(id, validCustomColumnIds))
 }
 
-export function pruneVisibility(
-	visibility: VisibilityState | undefined,
-	validCustomColumnIds?: Set<string>
-): VisibilityState {
+function pruneVisibility(visibility: VisibilityState | undefined, validCustomColumnIds?: Set<string>): VisibilityState {
 	if (!visibility) return {}
 	const result: VisibilityState = {}
 	for (const key in visibility) {
@@ -49,12 +47,12 @@ export function pruneVisibility(
 	return result
 }
 
-export function sanitizeSorting(sorting: SortingState | undefined, validCustomColumnIds?: Set<string>): SortingState {
+function sanitizeSorting(sorting: SortingState | undefined, validCustomColumnIds?: Set<string>): SortingState {
 	if (!sorting) return []
 	return sorting.filter((sort) => isColumnSupported(sort.id, validCustomColumnIds))
 }
 
-export function getValidCustomColumnIds(customColumns?: CustomColumnDefinition[]): Set<string> {
+function getValidCustomColumnIds(customColumns?: CustomColumnDefinition[]): Set<string> {
 	if (!customColumns || customColumns.length === 0) return new Set()
 	return new Set(
 		customColumns

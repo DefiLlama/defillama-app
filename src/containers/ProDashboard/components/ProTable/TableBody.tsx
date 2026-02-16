@@ -1,4 +1,4 @@
-import { flexRender, Table } from '@tanstack/react-table'
+import { flexRender, type Table } from '@tanstack/react-table'
 import type { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { ReorderableHeader } from './ReorderableHeader'
 

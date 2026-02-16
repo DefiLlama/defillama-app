@@ -2,20 +2,22 @@ import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useMemo } from 'react'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
-import { CACHE_SERVER, CHAINS_ASSETS_CHART, RAISES_API } from '~/constants'
+import { CACHE_SERVER } from '~/constants'
+import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
-import { getAdapterChainChartData, getAdapterProtocolChartData } from '~/containers/DimensionAdapters/queries'
+import { fetchAdapterChainChartData, fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import {
 	useFetchProtocolActiveUsers,
 	useFetchProtocolNewUsers,
 	useFetchProtocolTransactions
 } from '~/containers/ProtocolOverview/queries.client'
+import { fetchRaises } from '~/containers/Raises/api'
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
 import { getProtocolUnlockUsdChart } from '~/containers/Unlocks/queries'
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getPercentChange, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { ChainChartLabels } from './constants'
+import type { ChainChartLabels } from './constants'
 
 const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000
 
@@ -127,7 +129,7 @@ export const useFetchChainChartData = ({
 		queryKey: ['chainFees', selectedChain, isChainFeesEnabled],
 		queryFn: () =>
 			isChainFeesEnabled
-				? getAdapterProtocolChartData({
+				? fetchAdapterProtocolChartData({
 						adapterType: 'fees',
 						protocol: selectedChain
 					})
@@ -143,7 +145,7 @@ export const useFetchChainChartData = ({
 		queryKey: ['chainRevenue', selectedChain, isChainRevenueEnabled],
 		queryFn: () =>
 			isChainRevenueEnabled
-				? getAdapterProtocolChartData({
+				? fetchAdapterProtocolChartData({
 						adapterType: 'fees',
 						protocol: selectedChain,
 						dataType: 'dailyRevenue'
@@ -160,7 +162,7 @@ export const useFetchChainChartData = ({
 		queryKey: ['dexVolume', selectedChain, isDexVolumeEnabled],
 		queryFn: () =>
 			isDexVolumeEnabled
-				? getAdapterChainChartData({
+				? fetchAdapterChainChartData({
 						chain: selectedChain,
 						adapterType: 'dexs'
 					})
@@ -176,7 +178,7 @@ export const useFetchChainChartData = ({
 		queryKey: ['perpVolume', selectedChain, isPerpsVolumeEnabled],
 		queryFn: () =>
 			isPerpsVolumeEnabled
-				? getAdapterChainChartData({
+				? fetchAdapterChainChartData({
 						chain: selectedChain,
 						adapterType: 'derivatives'
 					})
@@ -192,7 +194,7 @@ export const useFetchChainChartData = ({
 		queryKey: ['chainAppFees', selectedChain, isChainAppFeesEnabled],
 		queryFn: () =>
 			isChainAppFeesEnabled
-				? getAdapterChainChartData({
+				? fetchAdapterChainChartData({
 						adapterType: 'fees',
 						chain: selectedChain,
 						dataType: 'dailyAppFees'
@@ -211,7 +213,7 @@ export const useFetchChainChartData = ({
 		queryKey: ['chainAppRevenue', selectedChain, isChainAppRevenueEnabled],
 		queryFn: () =>
 			isChainAppRevenueEnabled
-				? getAdapterChainChartData({
+				? fetchAdapterChainChartData({
 						adapterType: 'fees',
 						chain: selectedChain,
 						dataType: 'dailyAppRevenue'
@@ -243,7 +245,7 @@ export const useFetchChainChartData = ({
 	const isBridgedTvlEnabled = toggledChartsSet.has('Bridged TVL')
 	const { data: bridgedTvlData = null, isLoading: fetchingBridgedTvlData } = useQuery({
 		queryKey: ['Bridged TVL', selectedChain, isBridgedTvlEnabled],
-		queryFn: isBridgedTvlEnabled ? () => fetchJson(`${CHAINS_ASSETS_CHART}/${selectedChain}`) : () => null,
+		queryFn: isBridgedTvlEnabled ? () => fetchChainAssetsChart(selectedChain) : () => null,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -255,7 +257,7 @@ export const useFetchChainChartData = ({
 		queryKey: ['raisesChart', selectedChain, isRaisesEnabled],
 		queryFn: () =>
 			isRaisesEnabled
-				? fetchJson(`${RAISES_API}`).then((data) => {
+				? fetchRaises().then((data) => {
 						const store = (data?.raises ?? []).reduce(
 							(acc, curr) => {
 								acc[curr.date] = (acc[curr.date] ?? 0) + +(curr.amount ?? 0)

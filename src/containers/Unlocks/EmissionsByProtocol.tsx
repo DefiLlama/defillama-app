@@ -15,10 +15,12 @@ import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
-import Pagination from './Pagination'
+import type { EmissionsChartConfig, EmissionsDataset } from './api.types'
+import { Pagination } from './Pagination'
+import type { ProtocolEmissionResult } from './types'
 import { UpcomingEvent } from './UpcomingEvent'
 
-export interface TokenData {
+interface TokenData {
 	circSupply: number
 	events: Event[]
 	gecko_id: string
@@ -32,18 +34,9 @@ export interface TokenData {
 	unlocksPerDay: number
 }
 
-export type EmissionsDataset = { source: Array<Record<string, number | null>>; dimensions: string[] }
-export type EmissionsChartConfig = Array<{
-	type: 'line'
-	name: string
-	encode: { x: 'timestamp'; y: string }
-	color: string | undefined
-	stack: string
-}>
-
-export interface IEmission {
+interface IEmission {
 	categories: { documented: Array<string>; realtime: Array<string> }
-	categoriesBreakdown: Record<string, string[]>
+	categoriesBreakdown: Record<string, string[]> | null
 	chartData: {
 		documented: Array<{ timestamp: number; [label: string]: number }>
 		realtime: Array<{ timestamp: number; [label: string]: number }>
@@ -54,14 +47,20 @@ export interface IEmission {
 	chartsConfigs: { documented: EmissionsChartConfig; realtime: EmissionsChartConfig }
 	sources: Array<string>
 	notes: Array<string>
-	events: Array<{ description: string; timestamp: string; noOfTokens: number[] }>
+	events: Array<{
+		description?: string
+		timestamp: number
+		noOfTokens: number[]
+		unlockType?: string
+		rateDurationDays?: number
+	}>
 	hallmarks: { documented: Array<[number, string]>; realtime: Array<[number, string]> }
 	tokenPrice: { price?: number | null; symbol?: string | null }
 	tokenAllocation: {
 		documented: { current: { [category: string]: number }; final: { [category: string]: number } }
 		realtime: { current: { [category: string]: number }; final: { [category: string]: number } }
 	}
-	futures: { openInterest: number; fundingRate: number }
+	futures: { openInterest?: number; fundingRate?: number }
 	pieChartData: {
 		documented: Array<{
 			name: string
@@ -73,10 +72,10 @@ export interface IEmission {
 		}>
 	}
 	stackColors: { documented: { [stack: string]: string }; realtime: { [stack: string]: string } }
-	token?: string
-	geckoId?: string
+	token?: string | null
+	geckoId?: string | null
 	name: string
-	meta: TokenData
+	meta: Partial<TokenData>
 }
 
 const getExtendedColors = (baseColors: Record<string, string>, isPriceEnabled: boolean) => {
@@ -131,7 +130,7 @@ export function EmissionsByProtocol({
 	initialTokenMarketData,
 	disableClientTokenStatsFetch
 }: {
-	data: IEmission
+	data: IEmission | ProtocolEmissionResult
 	isEmissionsPage?: boolean
 	initialTokenMarketData?: InitialTokenMarketData | null
 	disableClientTokenStatsFetch?: boolean
@@ -149,7 +148,7 @@ export function EmissionsByProtocol({
 	)
 }
 
-const standardGroupColors = {
+const standardGroupColors: Record<string, string> = {
 	noncirculating: '#546fc6',
 	insiders: '#90cc74',
 	publicSale: '#fac759',
@@ -159,15 +158,24 @@ const standardGroupColors = {
 	liquidity: '#39a371'
 }
 
+const formatUnlockLabel = (label: string) =>
+	label
+		.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+		.replace(/[_-]+/g, ' ')
+		.split(' ')
+		.filter(Boolean)
+		.map((word) => (word === word.toUpperCase() ? word : capitalizeFirstLetter(word.toLowerCase())))
+		.join(' ')
+
 function processGroupedChartData(
-	chartData: Array<{ timestamp: number; [label: string]: number }>,
+	chartData: Array<{ timestamp: number; [label: string]: number | null }>,
 	categoriesBreakdown: Record<string, string[]>
 ) {
 	return chartData.map((entry) => {
-		const groupedEntry: { timestamp: number } & Record<string, number> = {
+		const groupedEntry: { timestamp: number } & Record<string, number | null> = {
 			timestamp: entry.timestamp,
-			...(entry['Price'] && { Price: entry['Price'] }),
-			...(entry['Market Cap'] && { 'Market Cap': entry['Market Cap'] })
+			...(typeof entry['Price'] === 'number' ? { Price: entry['Price'] } : {}),
+			...(typeof entry['Market Cap'] === 'number' ? { 'Market Cap': entry['Market Cap'] } : {})
 		}
 
 		for (const group in categoriesBreakdown) {
@@ -208,9 +216,9 @@ function getYearStart(timestampMs: number): number {
 }
 
 function groupChartDataByTime(
-	chartData: Array<{ timestamp: number } & Record<string, number>>,
+	chartData: Array<{ timestamp: number } & Record<string, number | null>>,
 	groupBy: TimeGrouping
-): Array<{ timestamp: number } & Record<string, number>> {
+): Array<{ timestamp: number } & Record<string, number | null>> {
 	if (groupBy === 'D') return chartData
 
 	// Most series (unlock amounts, allocations) are additive within a time bucket, but
@@ -220,7 +228,7 @@ function groupChartDataByTime(
 		'Market Cap': 'avg'
 	}
 
-	const grouped: Record<number, Record<string, number>> = {}
+	const grouped: Record<number, Record<string, number | null>> = {}
 	const avgSums: Record<number, Record<string, number>> = {}
 	const avgCounts: Record<number, Record<string, number>> = {}
 	const lastValues: Record<number, Record<string, number>> = {}
@@ -254,7 +262,7 @@ function groupChartDataByTime(
 		for (const key in entry) {
 			if (key === 'timestamp') continue
 			const value = entry[key]
-			if (!Number.isFinite(value)) continue
+			if (typeof value !== 'number' || !Number.isFinite(value)) continue
 
 			const strategy = NON_ADDITIVE_STRATEGIES[key]
 			if (strategy === 'avg') {
@@ -299,7 +307,7 @@ function groupChartDataByTime(
 		}
 	}
 
-	const result: Array<{ timestamp: number } & Record<string, number>> = []
+	const result: Array<{ timestamp: number } & Record<string, number | null>> = []
 	for (const groupKey in grouped) {
 		result.push({ timestamp: +groupKey, ...grouped[groupKey] })
 	}
@@ -308,14 +316,14 @@ function groupChartDataByTime(
 
 function sortStacksByVolatility(
 	stacks: string[],
-	chartData: Array<{ timestamp: number } & Record<string, number>>
+	chartData: Array<{ timestamp: number } & Record<string, number | null>>
 ): string[] {
 	if (!chartData || chartData.length < 2) return stacks
 
 	const volatility: Record<string, number> = {}
 
 	for (const stack of stacks) {
-		const values = chartData.map((d) => Number(d[stack]) || 0)
+		const values = chartData.map((d) => (typeof d[stack] === 'number' ? d[stack] : 0))
 		const min = Math.min(...values)
 		const max = Math.max(...values)
 		volatility[stack] = max - min
@@ -342,7 +350,7 @@ const EMPTY_STRING_LIST: string[] = []
 const EMPTY_STACK_COLORS: Record<string, string> = {}
 const EMPTY_ALLOCATION: Record<string, number> = {}
 const EMPTY_TOKEN_ALLOCATION = { current: EMPTY_ALLOCATION, final: EMPTY_ALLOCATION }
-const EMPTY_CHART_DATA: any[] = []
+const EMPTY_CHART_DATA: Array<{ timestamp: number; [key: string]: number | null }> = []
 
 const chunkArray = <T,>(items: T[], size = 1): T[][] => {
 	if (!Number.isFinite(size) || size < 1) return []
@@ -388,7 +396,7 @@ const ChartContainer = ({
 	initialTokenMarketData,
 	disableClientTokenStatsFetch
 }: {
-	data: IEmission
+	data: IEmission | ProtocolEmissionResult
 	isEmissionsPage?: boolean
 	initialTokenMarketData?: InitialTokenMarketData | null
 	disableClientTokenStatsFetch?: boolean
@@ -430,8 +438,8 @@ const ChartContainer = ({
 		}
 	}, [data.tokenAllocation, dataType])
 	const rawChartData = data.chartData?.[dataType] ?? EMPTY_CHART_DATA
-	const pieChartData = data.pieChartData?.[dataType] ?? EMPTY_CHART_DATA
-	const hallmarks = data.hallmarks?.[dataType] ?? EMPTY_CHART_DATA
+	const pieChartDataRaw = data.pieChartData?.[dataType]
+	const hallmarks = data.hallmarks?.[dataType] ?? []
 
 	useEffect(() => {
 		if (categoriesFromData.length > 0) {
@@ -459,10 +467,15 @@ const ChartContainer = ({
 		? Infinity
 		: (priceChart.data?.data.coinData.market_data?.max_supply ?? undefined)
 	const tokenCircSupplyFromChart = priceChart.data?.data.coinData.market_data?.circulating_supply ?? undefined
-	const tokenPriceFromChart = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 1]?.[1]
-	const tokenMcapFromChart = priceChart.data?.data.mcaps?.[priceChart.data?.data.mcaps?.length - 1]?.[1]
-	const tokenVolumeFromChart = priceChart.data?.data.volumes?.[priceChart.data?.data.volumes?.length - 1]?.[1]
-	const ystdPrice = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 2]?.[1]
+	const tokenPriceFromChartRaw = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 1]?.[1]
+	const tokenMcapFromChartRaw = priceChart.data?.data.mcaps?.[priceChart.data?.data.mcaps?.length - 1]?.[1]
+	const tokenVolumeFromChartRaw = priceChart.data?.data.volumes?.[priceChart.data?.data.volumes?.length - 1]?.[1]
+	const ystdPriceRaw = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 2]?.[1]
+
+	const tokenPriceFromChart = typeof tokenPriceFromChartRaw === 'number' ? tokenPriceFromChartRaw : undefined
+	const tokenMcapFromChart = typeof tokenMcapFromChartRaw === 'number' ? tokenMcapFromChartRaw : undefined
+	const tokenVolumeFromChart = typeof tokenVolumeFromChartRaw === 'number' ? tokenVolumeFromChartRaw : undefined
+	const ystdPrice = typeof ystdPriceRaw === 'number' ? ystdPriceRaw : undefined
 
 	const tokenPrice = tokenPriceFromChart ?? initialTokenMarketData?.price ?? data?.tokenPrice?.price ?? undefined
 	const tokenMcap = tokenMcapFromChart ?? initialTokenMarketData?.mcap ?? data?.meta?.mcap ?? undefined
@@ -523,19 +536,24 @@ const ChartContainer = ({
 
 	const paginationItems = useMemo(
 		() =>
-			sortedEvents.map(([ts, events]: any) => (
+			sortedEvents.map(([ts, events]) => (
 				<UpcomingEvent
 					key={ts}
 					{...{
-						event: events,
-						noOfTokens: events.map((x: any) => x.noOfTokens),
-						timestamp: ts,
+						event: events.map((e) => ({
+							description: e.description ?? '',
+							noOfTokens: e.noOfTokens,
+							timestamp: Number(e.timestamp),
+							unlockType: e.unlockType,
+							rateDurationDays: e.rateDurationDays
+						})),
+						noOfTokens: events.map((x) => x.noOfTokens),
+						timestamp: Number(ts),
 						price: tokenPrice,
 						symbol: data.tokenPrice?.symbol,
 						mcap: tokenMcap,
 						maxSupply: data.meta?.maxSupply,
-						name: data.name,
-						tooltipStyles: { position: 'relative', top: 0 },
+						name: data.name ?? '',
 						isProtocolPage: true
 					}}
 				/>
@@ -574,7 +592,7 @@ const ChartContainer = ({
 	const displayData = useMemo(() => {
 		let result = chartData
 		if (allocationMode === 'standard' && data.categoriesBreakdown) {
-			result = processGroupedChartData(chartData || ([] as any), data.categoriesBreakdown)
+			result = processGroupedChartData(chartData || [], data.categoriesBreakdown)
 		}
 		return groupChartDataByTime(result || [], timeGrouping)
 	}, [allocationMode, chartData, data.categoriesBreakdown, timeGrouping])
@@ -614,20 +632,40 @@ const ChartContainer = ({
 	}, [tokenAllocation])
 
 	const pieChartDataAllocation = useMemo(() => {
+		const source = pieChartDataRaw ?? []
 		const filtered: Array<{ name: string; value: number }> = []
-		for (const item of pieChartData as Array<{ name: string; value: number }>) {
+		for (const item of source) {
 			if (!item) continue
+			if (typeof item.value !== 'number') continue
 			if (!selectedCategories.includes(item.name)) continue
-			filtered.push(item)
+			filtered.push({ name: item.name, value: item.value })
 		}
 		return sortPieChartDataDesc(filtered)
-	}, [pieChartData, selectedCategories])
+	}, [pieChartDataRaw, selectedCategories])
 
 	const pieChartDataAllocationMode = allocationMode === 'current' ? pieChartDataAllocation : groupAllocation
+
+	const formattedPieChartDataAllocationMode = useMemo(
+		() => pieChartDataAllocationMode.map((item) => ({ ...item, name: formatUnlockLabel(item.name) })),
+		[pieChartDataAllocationMode]
+	)
 
 	const allocationPieStackColors = useMemo(
 		() => (allocationMode === 'standard' ? standardGroupColors : stackColors),
 		[allocationMode, stackColors]
+	)
+
+	const formattedAllocationPieStackColors = useMemo(
+		() =>
+			Object.fromEntries(
+				Object.entries(allocationPieStackColors).map(([label, color]) => [formatUnlockLabel(label), color])
+			),
+		[allocationPieStackColors]
+	)
+
+	const formattedAvailableCategories = useMemo(
+		() => availableCategories.map((category) => ({ key: category, name: formatUnlockLabel(category) })),
+		[availableCategories]
 	)
 
 	const chartConfig = useMemo(() => {
@@ -663,7 +701,8 @@ const ChartContainer = ({
 		// In bar (expand-to-100%) mode we need to normalize values per row.
 		// In line mode the displayData rows already contain all needed keys, so pass through directly.
 		if (chartType !== 'bar') {
-			return { source: displayData as unknown as MultiSeriesChart2Dataset['source'], dimensions }
+			const source: MultiSeriesChart2Dataset['source'] = displayData.map((entry) => ({ ...entry }))
+			return { source, dimensions }
 		}
 
 		const overlaySet = new Set(chartConfig.customYAxis)
@@ -701,7 +740,7 @@ const ChartContainer = ({
 			const isOverlay = yIdx !== -1
 			return {
 				type: isOverlay ? 'line' : chartType,
-				name,
+				name: formatUnlockLabel(name),
 				encode: { x: 'timestamp', y: name },
 				color: colors[name],
 				...(!isOverlay ? { stack: 'A' } : {}),
@@ -883,7 +922,7 @@ const ChartContainer = ({
 								values={TIME_GROUPINGS}
 							/>
 							<SelectWithCombobox
-								allValues={availableCategories}
+								allValues={formattedAvailableCategories}
 								selectedValues={selectedCategories}
 								setSelectedValues={setSelectedCategories}
 								label="Categories"
@@ -925,8 +964,8 @@ const ChartContainer = ({
 								<PieChart
 									showLegend
 									title="Allocation"
-									chartData={pieChartDataAllocationMode}
-									stackColors={allocationPieStackColors}
+									chartData={formattedPieChartDataAllocationMode}
+									stackColors={formattedAllocationPieStackColors}
 									valueSymbol={data.tokenPrice?.symbol ?? ''}
 									legendPosition={allocationPieChartLegendPosition}
 									legendTextStyle={pieChartLegendTextStyle}
@@ -1056,7 +1095,7 @@ export const UnlocksCharts = ({
 	isEmissionsPage
 }: {
 	protocolName: string
-	initialData?: IEmission | null
+	initialData?: IEmission | ProtocolEmissionResult | null
 	initialTokenMarketData?: InitialTokenMarketData | null
 	disableClientTokenStatsFetch?: boolean
 	isEmissionsPage?: boolean
@@ -1072,7 +1111,7 @@ export const UnlocksCharts = ({
 		)
 	}
 
-	const resolvedData = initialData ?? data
+	const resolvedData: IEmission | ProtocolEmissionResult | null = initialData ?? data
 	if (!resolvedData) {
 		return (
 			<div className="flex flex-1 flex-col items-center justify-center">
@@ -1083,7 +1122,7 @@ export const UnlocksCharts = ({
 
 	return (
 		<ChartContainer
-			data={resolvedData as any}
+			data={resolvedData}
 			isEmissionsPage={isEmissionsPage}
 			initialTokenMarketData={initialTokenMarketData}
 			disableClientTokenStatsFetch={disableClientTokenStatsFetch}

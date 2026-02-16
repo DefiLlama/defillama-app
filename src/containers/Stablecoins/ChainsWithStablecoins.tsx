@@ -1,22 +1,54 @@
+import { useRouter } from 'next/router'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import type { IPieChartProps } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/ProDashboard/types'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
-import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/containers/Stablecoins/hooks'
-import { getStablecoinDominance } from '~/containers/Stablecoins/utils'
+import {
+	parseBooleanQueryParam,
+	useCalcCirculating,
+	useCalcGroupExtraPeggedByDay,
+	useGroupChainsPegged
+} from '~/containers/Stablecoins/hooks'
+import {
+	getStablecoinDominance,
+	type IBuildStablecoinChartDataResult,
+	type IFormattedStablecoinChainRow
+} from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, toNiceCsvDate } from '~/utils'
-import { PeggedChainsTable } from './Table'
+import { StablecoinsChainsTable } from './StablecoinsChainsTable'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+const UNRELEASED_QUERY_KEY = 'unreleased'
+
+type MultiSeriesCharts = NonNullable<IMultiSeriesChart2Props['charts']>
+
+interface ChainsWithStablecoinsProps {
+	chainCirculatings: IFormattedStablecoinChainRow[]
+	chainList: string[]
+	chainsGroupbyParent: Record<string, Record<string, string[]>>
+	change1d: string
+	change7d: string
+	change30d: string
+	totalMcapCurrent: number | null
+	change1d_nol: string
+	change7d_nol: string
+	change30d_nol: string
+	peggedAreaChartData: IBuildStablecoinChartDataResult['peggedAreaChartData']
+	peggedAreaTotalData: {
+		dataset: MultiSeriesChart2Dataset
+		charts: MultiSeriesCharts
+	}
+	stackedDataset: IBuildStablecoinChartDataResult['stackedDataset']
+}
 
 const mapChartTypeToConfig = (displayType: string): StablecoinChartType => {
 	const mapping: Record<string, StablecoinChartType> = {
@@ -28,7 +60,7 @@ const mapChartTypeToConfig = (displayType: string): StablecoinChartType => {
 		'USD Inflows': 'usdInflows',
 		'Token Inflows': 'tokenInflows'
 	}
-	return mapping[displayType] || 'totalMcap'
+	return mapping[displayType] ?? 'totalMcap'
 }
 
 export function ChainsWithStablecoins({
@@ -45,30 +77,41 @@ export function ChainsWithStablecoins({
 	peggedAreaChartData,
 	peggedAreaTotalData,
 	stackedDataset
-}) {
+}: ChainsWithStablecoinsProps) {
+	const router = useRouter()
 	const [chartType, setChartType] = React.useState('Pie')
 	const chartTypeList = ['Total Market Cap', 'Chain Market Caps', 'Pie', 'Dominance']
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const filteredPeggedAssets = chainCirculatings
-	const chainTotals = useCalcCirculating(filteredPeggedAssets)
+	const includeUnreleased = React.useMemo(
+		() => parseBooleanQueryParam(router.query[UNRELEASED_QUERY_KEY]),
+		[router.query]
+	)
+	const chainTotals = useCalcCirculating<Parameters<typeof useGroupChainsPegged>[0][number]>(
+		filteredPeggedAssets,
+		includeUnreleased
+	)
 
-	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
+	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(
+		stackedDataset,
+		includeUnreleased
+	)
 
 	const prepareCsv = () => {
-		const rows = [['Timestamp', 'Date', ...chainList, 'Total']]
-		const sortedData = stackedData.sort((a, b) => a.date - b.date)
+		const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', ...chainList, 'Total']]
+		const sortedData = [...stackedData].sort((a, b) => a.date - b.date)
 		for (const day of sortedData) {
 			rows.push([
 				day.date,
 				toNiceCsvDate(day.date),
-				...chainList.map((chain) => day[chain] ?? ''),
-				chainList.reduce((acc, curr) => {
+				...chainList.map((chain: string) => day[chain] ?? ''),
+				chainList.reduce((acc: number, curr: string) => {
 					return (acc += day[curr] ?? 0)
 				}, 0)
 			])
 		}
-		return { filename: 'stablecoinsChainTotals.csv', rows: rows as (string | number | boolean)[][] }
+		return { filename: 'stablecoinsChainTotals.csv', rows }
 	}
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
@@ -77,7 +120,7 @@ export function ChainsWithStablecoins({
 	if (chainTotals.length > 0) {
 		const topChainData = chainTotals[0]
 		topChain.name = topChainData.name
-		topChain.mcap = topChainData.mcap
+		topChain.mcap = topChainData.mcap ?? 0
 	}
 
 	const dominance = getStablecoinDominance(topChain, totalMcapCurrent)
@@ -91,7 +134,19 @@ export function ChainsWithStablecoins({
 	const { chainMcapsDataset, chainMcapsCharts } = React.useMemo(
 		() => ({
 			chainMcapsDataset: {
-				source: peggedAreaChartData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				source: peggedAreaChartData
+					.map(({ date, ...rest }) => {
+						const timestamp = Number(date) * 1e3
+						if (!Number.isFinite(timestamp)) return null
+						const row: Record<string, number> = { timestamp }
+						for (const chain of chainList) {
+							const raw = rest[chain]
+							const value = typeof raw === 'number' ? raw : Number(raw)
+							row[chain] = Number.isFinite(value) ? value : 0
+						}
+						return row
+					})
+					.filter((row): row is Record<string, number> => row !== null),
 				dimensions: ['timestamp', ...chainList]
 			},
 			chainMcapsCharts: chainList.map((name) => ({
@@ -107,7 +162,19 @@ export function ChainsWithStablecoins({
 	const { dominanceDataset, dominanceCharts } = React.useMemo(
 		() => ({
 			dominanceDataset: {
-				source: dataWithExtraPeggedAndDominanceByDay.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				source: dataWithExtraPeggedAndDominanceByDay
+					.map(({ date, ...rest }) => {
+						const timestamp = Number(date) * 1e3
+						if (!Number.isFinite(timestamp)) return null
+						const row: Record<string, number> = { timestamp }
+						for (const chain of chainList) {
+							const raw = rest[chain]
+							const value = typeof raw === 'number' ? raw : Number(raw)
+							row[chain] = Number.isFinite(value) ? value : 0
+						}
+						return row
+					})
+					.filter((row): row is Record<string, number> => row !== null),
 				dimensions: ['timestamp', ...chainList]
 			},
 			dominanceCharts: chainList.map((name) => ({
@@ -269,7 +336,7 @@ export function ChainsWithStablecoins({
 				</div>
 			</div>
 
-			<PeggedChainsTable data={groupedChains} />
+			<StablecoinsChainsTable data={groupedChains} />
 		</>
 	)
 }

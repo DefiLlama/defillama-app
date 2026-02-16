@@ -1,13 +1,13 @@
 import * as Ariakit from '@ariakit/react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { useRouter } from 'next/router'
-import { FormEvent, useState } from 'react'
+import { type FormEvent, useState } from 'react'
 import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Turnstile } from '~/components/Turnstile'
-import { PromotionalEmailsValue, useAuthContext } from '~/containers/Subscribtion/auth'
+import { type PromotionalEmailsValue, useAuthContext } from '~/containers/Subscribtion/auth'
 
 export const SignInModal = ({
 	text,

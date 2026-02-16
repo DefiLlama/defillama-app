@@ -1,20 +1,20 @@
-export type TokenRightLabel = 'Governance' | 'Treasury' | 'Revenue'
+type TokenRightLabel = 'Governance' | 'Treasury' | 'Revenue'
 
-export interface ITokenRight {
+interface ITokenRight {
 	label: TokenRightLabel | (string & {})
 	hasRight: boolean
 	details?: string
 }
 
-export type GovernanceRights = 'NONE' | 'LIMITED' | 'FULL'
-export type FeeSwitchStatus = 'ON' | 'OFF' | 'PENDING' | 'UNKNOWN'
+type GovernanceRights = 'NONE' | 'LIMITED' | 'FULL'
+type FeeSwitchStatus = 'ON' | 'OFF' | 'PENDING' | 'UNKNOWN'
 
-export interface IGovernanceLink {
+interface IGovernanceLink {
 	label: string
 	url: string
 }
 
-export interface IGovernanceData {
+interface IGovernanceData {
 	rights: GovernanceRights
 	details?: string
 	feeSwitchStatus?: FeeSwitchStatus
@@ -22,11 +22,11 @@ export interface IGovernanceData {
 	links?: IGovernanceLink[]
 }
 
-export type BuybacksStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
-export type DividendsStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
-export type BurnsStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
+type BuybacksStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
+type DividendsStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
+type BurnsStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
 
-export interface IHoldersRevenueAndValueAccrual {
+interface IHoldersRevenueAndValueAccrual {
 	buybacks?: BuybacksStatus
 	dividends?: DividendsStatus
 	burns?: BurnsStatus
@@ -34,15 +34,15 @@ export interface IHoldersRevenueAndValueAccrual {
 	primaryValueAccrual?: string
 }
 
-export type FundraisingType = 'EQUITY' | 'TOKEN' | 'NONE' | 'UNKNOWN'
-export type EquityRevenueCaptureStatus = 'ACTIVE' | 'INACTIVE' | 'PARTIAL' | 'UNKNOWN'
+type FundraisingType = 'EQUITY' | 'TOKEN' | 'NONE' | 'UNKNOWN'
+type EquityRevenueCaptureStatus = 'ACTIVE' | 'INACTIVE' | 'PARTIAL' | 'UNKNOWN'
 
-export interface ITokenAlignmentLink {
+interface ITokenAlignmentLink {
 	label: string
 	url: string
 }
 
-export interface ITokenAlignment {
+interface ITokenAlignment {
 	fundraising?: FundraisingType
 	raiseDetailsLink?: ITokenAlignmentLink
 	associatedEntities?: string[]
@@ -50,7 +50,7 @@ export interface ITokenAlignment {
 	equityStatement?: string
 }
 
-export interface IProtocolResource {
+interface IProtocolResource {
 	label: string
 	address?: string
 	url?: string
@@ -116,7 +116,6 @@ export interface IProtocolMetricsV2 {
 	parentProtocol?: string
 	governanceID?: Array<string>
 	github?: Array<string>
-	chainTvls?: Record<string, IProtocolChainTvlEntry>
 	currentChainTvls?: Record<string, number>
 	isParentProtocol?: boolean
 	mcap: number | null
@@ -134,16 +133,50 @@ export interface IProtocolMetricsV2 {
 	wrongLiquidity?: boolean
 }
 
-export type IProtocolChartV2RawPoint = [string, number]
-export type IProtocolChartV2Raw = IProtocolChartV2RawPoint[]
-export type IProtocolChartV2Point = [number, number]
-export type IProtocolChartV2 = IProtocolChartV2Point[]
+export interface IProtocolOverviewMetricsV1 extends IProtocolMetricsV2 {
+	chainTvls: Record<string, IProtocolChainTvlEntry>
+}
 
-export type ProtocolChartBreakdownType = 'chain-breakdown' | 'token-breakdown'
+type ProtocolChartBreakdownType = 'chain-breakdown' | 'token-breakdown'
+
+type IProtocolChartTimestamp = string | number
+
+type IProtocolValueChartRawPoint = [IProtocolChartTimestamp, number]
+// oxlint-disable-next-line no-unused-vars
+type IProtocolValueChartRaw = IProtocolValueChartRawPoint[]
+type IProtocolValueChartPoint = [number, number]
+export type IProtocolValueChart = IProtocolValueChartPoint[]
+
+export type IProtocolChainBreakdownValue = Record<string, number>
+type IProtocolChainBreakdownChartRawPoint = [IProtocolChartTimestamp, IProtocolChainBreakdownValue]
+// oxlint-disable-next-line no-unused-vars
+type IProtocolChainBreakdownChartRaw = IProtocolChainBreakdownChartRawPoint[]
+type IProtocolChainBreakdownChartPoint = [number, IProtocolChainBreakdownValue]
+export type IProtocolChainBreakdownChart = IProtocolChainBreakdownChartPoint[]
+
+export type IProtocolTokenBreakdownValue = Record<string, number>
+type IProtocolTokenBreakdownChartRawPoint = [IProtocolChartTimestamp, IProtocolTokenBreakdownValue]
+// oxlint-disable-next-line no-unused-vars
+type IProtocolTokenBreakdownChartRaw = IProtocolTokenBreakdownChartRawPoint[]
+type IProtocolTokenBreakdownChartPoint = [number, IProtocolTokenBreakdownValue]
+export type IProtocolTokenBreakdownChart = IProtocolTokenBreakdownChartPoint[]
+
+export type IProtocolTvlMetrics = IProtocolMetricsV2
+// oxlint-disable-next-line no-unused-vars
+type IProtocolTreasuryMetrics = IProtocolMetricsV2
 
 export interface IProtocolChartV2Params {
 	protocol: string
 	key?: string
 	currency?: string
 	breakdownType?: ProtocolChartBreakdownType
+}
+
+export interface IProtocolExpenses {
+	protocolId: string
+	headcount: number
+	annualUsdCost: Record<string, number>
+	sources?: Array<string> | null
+	notes?: Array<string> | null
+	lastUpdate?: string | null
 }

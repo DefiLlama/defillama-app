@@ -1,4 +1,4 @@
-import { Dispatch, ReactNode } from 'react'
+import type { Dispatch, ReactNode } from 'react'
 
 export interface ISearchItem {
 	name: string
@@ -15,7 +15,7 @@ export interface ISearchItem {
 	symbol?: string
 }
 
-export interface IBaseSearchProps {
+interface IBaseSearchProps {
 	data?: ISearchItem[] | null
 	loading?: boolean
 	onSearchTermChange?: (searchValue: string) => void
@@ -30,18 +30,21 @@ export interface IBaseSearchProps {
 	customSearchRoute?: string
 }
 
-export interface ICommonSearchProps {
+// oxlint-disable-next-line no-unused-vars
+interface ICommonSearchProps {
 	onItemClick?: IBaseSearchProps['onItemClick']
 }
 
-export enum SETS {
+// oxlint-disable-next-line no-unused-vars
+enum SETS {
 	PROTOCOLS = 'protocols',
 	CHAINS = 'chains',
 	GROUPED_CHAINS = 'grouped_chains',
 	CATEGORIES = 'categories'
 }
 
-export interface IGetSearchList {
+// oxlint-disable-next-line no-unused-vars
+interface IGetSearchList {
 	data: ISearchItem[]
 	loading: boolean
 	error?: boolean

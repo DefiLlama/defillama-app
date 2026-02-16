@@ -1,6 +1,7 @@
+import type { RawRaise } from '~/containers/Raises/api.types'
 import { TVL_SETTINGS } from '~/contexts/LocalStorage'
-import { IChainMetadata } from '~/utils/metadata/types'
-import { ChainChartLabels } from './constants'
+import type { IChainMetadata } from '~/utils/metadata/types'
+import type { ChainChartLabels } from './constants'
 
 export interface IChainOverviewData {
 	chain: string
@@ -64,7 +65,7 @@ export interface IChainOverviewData {
 	users: { activeUsers: number | null; newUsers: number | null; transactions: number | null }
 	inflows: { netInflows: number | null } | null
 	treasury: { tvl: number | null; tokenBreakdowns: Record<string, number> | null } | null
-	chainRaises: Array<IRaises> | null
+	chainRaises: Array<RawRaise> | null
 	chainAssets: IFormattedChainAsset | null
 	devMetrics: null
 	nfts: { total24h: number | null }
@@ -215,23 +216,8 @@ export interface IProtocol extends IChildProtocol {
 	childProtocols?: Array<IChildProtocol>
 }
 
-export interface IRaises {
-	date: number
-	name: string
-	round: string
-	amount: number
-	chains: Array<string>
-	sector: string
-	category: string
-	categoryGroup: string
-	source: string
-	leadInvestors: []
-	otherInvestors: Array<string>
-	valuation: string | null
-	defillamaId?: string
-}
-
-export interface ITreasury {
+// oxlint-disable-next-line no-unused-vars
+interface ITreasury {
 	id: string
 	name: string
 	address: string | null

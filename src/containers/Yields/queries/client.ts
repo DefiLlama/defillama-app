@@ -6,8 +6,10 @@ import {
 	YIELD_CONFIG_API,
 	YIELD_CONFIG_POOL_API,
 	YIELD_POOLS_API,
-	YIELD_POOLS_LAMBDA_API
+	YIELD_POOLS_LAMBDA_API,
+	YIELD_VOLATILITY_API
 } from '~/constants'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { fetchApi } from '~/utils/async'
 import { formatYieldsPageData } from './utils'
 
@@ -61,7 +63,8 @@ export const useYieldConfigData = (project) => {
 	})
 }
 
-export const useYieldPageData = () => {
+// oxlint-disable-next-line no-unused-vars
+const useYieldPageData = () => {
 	return useQuery({
 		queryKey: [YIELD_POOLS_API, YIELD_CONFIG_API],
 		queryFn: () => fetchApi([YIELD_POOLS_API, YIELD_CONFIG_API]),
@@ -71,7 +74,8 @@ export const useYieldPageData = () => {
 	})
 }
 
-export const useFetchProjectsList = () => {
+// oxlint-disable-next-line no-unused-vars
+const useFetchProjectsList = () => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: [YIELD_POOLS_API, YIELD_CONFIG_API],
 		queryFn: () => fetchApi([YIELD_POOLS_API, YIELD_CONFIG_API]),
@@ -89,7 +93,25 @@ export const useFetchProjectsList = () => {
 	}
 }
 
-export const useYields = () => {
+export const useVolatility = () => {
+	const { authorizedFetch, hasActiveSubscription, isAuthenticated } = useAuthContext()
+
+	return useQuery({
+		queryKey: [YIELD_VOLATILITY_API, hasActiveSubscription],
+		queryFn: async () => {
+			const res = await authorizedFetch(YIELD_VOLATILITY_API)
+			if (!res || !res.ok) return {}
+			return res.json()
+		},
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: isAuthenticated && !!hasActiveSubscription
+	})
+}
+
+// oxlint-disable-next-line no-unused-vars
+const useYields = () => {
 	const { data = {} } = useQuery({
 		queryKey: [YIELD_POOLS_API],
 		queryFn: () => fetchApi(YIELD_POOLS_API),

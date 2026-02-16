@@ -1,7 +1,7 @@
-import { IRaise } from '~/containers/ProtocolOverview/types'
-import { IJSON } from './categories/adaptors/types'
+import type { IRaise } from '~/containers/ProtocolOverview/api.types'
+import type { IJSON } from './categories/adaptors/types'
 
-export interface Protocol {
+interface Protocol {
 	id: string
 	name: string
 	address?: string | null
@@ -67,7 +67,7 @@ export interface IChainTvl {
 	}
 }
 
-export interface ITvlsWithChangesByChain {
+interface ITvlsWithChangesByChain {
 	[key: string]: {
 		tvl: number | null
 		tvlPrevDay: number | null
@@ -76,11 +76,11 @@ export interface ITvlsWithChangesByChain {
 	}
 }
 
-export interface ITvlsByChain {
+interface ITvlsByChain {
 	[chain: string]: number
 }
 
-export interface ProtocolTvls {
+interface ProtocolTvls {
 	tvl: number | null
 	tvlPrevDay: number | null
 	tvlPrevWeek: number | null
@@ -109,7 +109,7 @@ export interface ChainMetricSnapshot {
 	revenueChange_1m?: number | null
 }
 
-export interface IProtocolResponse extends Protocol {
+interface IProtocolResponse extends Protocol {
 	otherProtocols?: Array<string>
 	methodology?: string
 	misrepresentedTokens?: boolean
@@ -131,7 +131,7 @@ export interface IProtocolResponse extends Protocol {
 	}
 }
 
-export interface IProtocol extends Omit<IProtocolResponse, 'tvl' | 'currentChainTvls' | 'chainTvls'> {
+interface IProtocol extends Omit<IProtocolResponse, 'tvl' | 'currentChainTvls' | 'chainTvls'> {
 	slug: string
 	tvl: number
 	chain: string
@@ -145,7 +145,8 @@ export interface IProtocol extends Omit<IProtocolResponse, 'tvl' | 'currentChain
 	pool2?: number
 }
 
-export interface IChain {
+// oxlint-disable-next-line no-unused-vars
+interface IChain {
 	tvl: number
 	tvlPrevDay: number
 	tvlPrevWeek: number
@@ -160,19 +161,21 @@ export interface IChain {
 	chainId: number | null
 }
 
-export interface IChainData {
+// oxlint-disable-next-line no-unused-vars
+interface IChainData {
 	date: number
 	Deposits: number
 	Withdrawals: number
 }
 
-export interface IChainGeckoId {
+// oxlint-disable-next-line no-unused-vars
+interface IChainGeckoId {
 	geckoId: string
 	symbol: string
 	cmcId: string
 	categories: string[]
 }
-export type LiteProtocol = Pick<
+type LiteProtocol = Pick<
 	IProtocol,
 	| 'category'
 	| 'chains'

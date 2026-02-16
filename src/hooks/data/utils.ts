@@ -1,11 +1,17 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import { IFormattedProtocol, IParentProtocol } from '~/api/types'
+import type { IFormattedProtocol, IParentProtocol } from '~/api/types'
 import { formatNum, getPercentChange } from '~/utils'
 
-function addElement(key: string, curr: IFormattedProtocol, acc: any, hasAtleastOnceValue) {
-	if (curr[key] || curr[key] === 0) {
+function addElement(
+	key: string,
+	curr: IFormattedProtocol,
+	acc: Record<string, number | null | undefined>,
+	hasAtleastOnceValue: Record<string, boolean>
+) {
+	const value = (curr as unknown as Record<string, unknown>)[key]
+	if (typeof value === 'number') {
 		hasAtleastOnceValue[key] = true
-		acc[key] = (acc[key] ?? 0) + curr[key]
+		acc[key] = (acc[key] ?? 0) + value
 	} else {
 		if (!hasAtleastOnceValue[key]) {
 			acc[key] = undefined
@@ -13,13 +19,22 @@ function addElement(key: string, curr: IFormattedProtocol, acc: any, hasAtleastO
 	}
 }
 
+interface GroupAccumulator {
+	mcap: number
+	tvl: number
+	tvlPrevDay: number | null
+	tvlPrevWeek: number | null
+	tvlPrevMonth: number | null
+	[key: string]: number | null | undefined
+}
+
 // group protocols so we can show child protocols inside an accordion in a table
 const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noSubrows?: boolean) => {
 	let strikeTvl = false
 	let parentExcluded = false
-	const categories = new Set()
+	const categories = new Set<string | null>()
 
-	const hasAtleastOnceValue = {}
+	const hasAtleastOnceValue: Record<string, boolean> = {}
 	let weightedVolumeChange = 0
 	let totalVolumeWeight = 0
 	let weightedPerpsVolumeChange = 0
@@ -53,7 +68,7 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		cumulativeFees,
 		treasuryRevenue_24h,
 		supplySideRevenue_24h
-	} = protocols.reduce(
+	} = protocols.reduce<GroupAccumulator>(
 		(acc, curr) => {
 			if (curr.strikeTvl) {
 				strikeTvl = true
@@ -71,9 +86,10 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 			}
 
 			if (curr?.extraTvl?.excludeParent) {
-				for (const key of ['tvl', 'tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth']) {
-					if (curr.extraTvl.excludeParent[key]) {
-						acc[key] -= curr.extraTvl.excludeParent[key]
+				for (const key of ['tvl', 'tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'] as const) {
+					const excludeVal = curr.extraTvl.excludeParent[key]
+					if (excludeVal) {
+						acc[key] = (acc[key] ?? 0) - excludeVal
 					}
 				}
 			}
@@ -182,21 +198,21 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 	const pf = getAnnualizedRatio(finalMcap, fees_30d)
 	const ps = getAnnualizedRatio(finalMcap, revenue_30d)
 
-	let mcaptvl = null
+	let mcaptvl: number | null = null
 	if (tvl && finalMcap) {
-		mcaptvl = +formatNum(+finalMcap.toFixed(2) / +tvl.toFixed(2))
+		mcaptvl = +(formatNum(+finalMcap.toFixed(2) / +tvl.toFixed(2)) ?? 0)
 	}
 
 	const oracleSet = new Set<string>()
 	const oraclesByChainAgg: Record<string, Set<string>> = {}
-	const addOracles = (obj: any) => {
-		if (Array.isArray(obj?.oracles)) {
-			for (const o of obj.oracles as string[]) {
+	const addOracles = (obj: { oracles?: string[]; oraclesByChain?: Record<string, string[]> }) => {
+		if (Array.isArray(obj.oracles)) {
+			for (const o of obj.oracles) {
 				oracleSet.add(o)
 			}
 		}
-		if (obj?.oraclesByChain) {
-			for (const k in obj.oraclesByChain as Record<string, string[]>) {
+		if (obj.oraclesByChain) {
+			for (const k in obj.oraclesByChain) {
 				const set = (oraclesByChainAgg[k] = oraclesByChainAgg[k] || new Set<string>())
 				for (const o of obj.oraclesByChain[k] || []) {
 					set.add(o)
@@ -254,18 +270,18 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		pf,
 		ps,
 		mcap: finalMcap,
-		mcaptvl: mcaptvl ?? undefined,
+		mcaptvl,
 		extraTvl: {},
 		symbol: null,
 		category: categories.size > 1 ? null : Array.from(categories).join(', '),
 		subRows: noSubrows ? null : [...protocols],
-		chainTvls: {}, // TODO cleanup
+		chainTvls: {},
 		strikeTvl,
 		parentExcluded,
 		isParentProtocol: true,
 		oracles: Array.from(oracleSet).sort((a, b) => a.localeCompare(b)),
 		oraclesByChain: aggregatedOraclesByChain
-	}
+	} as IFormattedProtocol
 }
 
 export const groupProtocols = (
@@ -287,5 +303,5 @@ export const groupProtocols = (
 		}
 	}
 
-	return data.sort((a, b) => b.tvl - a.tvl)
+	return data.sort((a, b) => (b.tvl ?? 0) - (a.tvl ?? 0))
 }

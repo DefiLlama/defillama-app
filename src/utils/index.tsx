@@ -74,9 +74,9 @@ export const toNiceDateYear = (date: number): string => dayjs.utc(dayjs.unix(dat
 
 export const toNiceDayMonthYear = (date: number): string => dayjs.utc(dayjs.unix(date)).format('DD MMM YYYY')
 
-const toK = (num: number): string | null => {
+const toK = (num: number): string => {
 	if ((!num && num !== 0) || Number.isNaN(Number(num))) {
-		return null
+		return '0'
 	}
 
 	const stringifiedNum = Number(num).toFixed(0)
@@ -339,6 +339,24 @@ export function peggedAssetIconUrl(name: unknown): string {
 	return `${ICONS_CDN}/pegged/${encodeURIComponent(String(name).toLowerCase().split(' ').join('-'))}?w=48&h=48`
 }
 
+export function renderPercentChange(
+	percent: unknown,
+	noSign: boolean | undefined,
+	fontWeight: number | undefined,
+	returnTextOnly: true
+): string | null
+export function renderPercentChange(
+	percent: unknown,
+	noSign?: boolean,
+	fontWeight?: number,
+	returnTextOnly?: false
+): React.JSX.Element | null
+export function renderPercentChange(
+	percent: unknown,
+	noSign?: boolean,
+	fontWeight?: number,
+	returnTextOnly?: boolean
+): string | null | React.JSX.Element
 export function renderPercentChange(
 	percent: unknown,
 	noSign?: boolean,
@@ -740,19 +758,6 @@ export const formatPercentage = (value: number): string => {
 	return value.toLocaleString(undefined, { maximumFractionDigits: zeroes + 1 })
 }
 
-export function nearestUtcZeroHour(dateString: string | number): number {
-	const date = new Date(dateString)
-
-	if (date.getHours() >= 12) {
-		date.setDate(date.getDate() + 1)
-	}
-
-	const now = new Date()
-	return Date.now() < date.getTime()
-		? Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-		: Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
-}
-
 export function firstDayOfMonth(utcTimestamp: number): number {
 	const date = new Date(utcTimestamp * 1000)
 	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000)
@@ -820,7 +825,7 @@ function hslToHex(h: number, s: number, l: number): string {
 	return `#${f(0)}${f(8)}${f(4)}`
 }
 
-export const chunks = <T,>(array: T[], size: number): T[][] => {
+const chunks = <T,>(array: T[], size: number): T[][] => {
 	const result: T[][] = []
 	for (let i = 0; i < array.length; i += size) {
 		result.push(array.slice(i, i + size))
@@ -882,7 +887,7 @@ export function roundToNearestHalfHour(timestamp: number): number {
 	return Math.floor(date.getTime() / 1000)
 }
 
-export function formatValue(value: unknown, formatType: string = 'auto'): string | null | React.JSX.Element {
+export function formatValue(value: unknown, formatType: string = 'auto'): string | null {
 	switch (formatType) {
 		case 'usd':
 			return formattedNum(value, true)
@@ -891,15 +896,15 @@ export function formatValue(value: unknown, formatType: string = 'auto'): string
 		case 'percent': {
 			const num = typeof value === 'number' ? value : Number(value)
 			if (!Number.isNaN(num) && num !== 0 && Math.abs(num) < 1) {
-				return renderPercentChange(num * 100, true, 400, true) as string
+				return renderPercentChange(num * 100, true, 400, true)
 			}
-			return renderPercentChange(value, true, 400, true) as string
+			return renderPercentChange(value, true, 400, true)
 		}
 		case 'auto':
 		default: {
 			const num = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN
 			if (!Number.isNaN(num)) {
-				if (num !== 0 && Math.abs(num) < 1) return renderPercentChange(num * 100, true, 400, true) as string
+				if (num !== 0 && Math.abs(num) < 1) return renderPercentChange(num * 100, true, 400, true)
 				if (Math.abs(num) > 1000) return formattedNum(num, true)
 				return formattedNum(num)
 			}

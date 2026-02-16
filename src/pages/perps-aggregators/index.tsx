@@ -2,7 +2,7 @@ import { maxAgeForNext } from '~/api'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
-import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
+import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -13,7 +13,8 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 	const data = await getAdapterByChainPageData({
 		adapterType,
 		chain: 'All',
-		route: 'perps-aggregators'
+		route: 'perps-aggregators',
+		metricName: type
 	}).catch((e) => console.info(`Chain page data not found ${adapterType} : ALL_CHAINS`, e))
 
 	if (!data) return { notFound: true }

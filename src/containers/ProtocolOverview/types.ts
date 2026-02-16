@@ -1,10 +1,9 @@
-import { IHack } from '../Hacks/queries'
-import { IProtocolMetricsV2, IRaise } from './api.types'
-import { protocolCharts, ProtocolChartsLabels } from './constants'
+import type { IHackApiItem } from '../Hacks/api.types'
+import type { IProtocolMetricsV2, IRaise } from './api.types'
+import { protocolCharts, type ProtocolChartsLabels } from './constants'
 
 export interface IProtocolPageMetrics {
 	tvl: boolean
-	tvlTab: boolean
 	dexs: boolean
 	perps: boolean
 	openInterest: boolean
@@ -34,8 +33,6 @@ export interface IProtocolPageMetrics {
 	tokenRights: boolean
 }
 
-export type { ITokenRights, IProtocolMetricsV2, IRaise } from './api.types'
-
 interface IAdapterOverview {
 	total24h: number | null
 	total7d: number | null
@@ -44,7 +41,7 @@ interface IAdapterOverview {
 	methodology?: string | null
 	methodologyURL?: string | null
 	breakdownMethodology?: Record<string, string> | null
-	childMethodologies?: Array<[string, string | null, string | null, Record<string, string> | null]>
+	childMethodologies?: Array<[string, string | null, string | null]>
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
 }
 
@@ -159,7 +156,7 @@ export interface IProtocolOverviewPageData {
 	isCEX?: boolean
 	hasKeyMetrics?: boolean
 	competitors?: Array<{ name: string; tvl: number }>
-	hacks: Array<IHack>
+	hacks: Array<IHackApiItem>
 	chartDenominations: Array<{ symbol: string; geckoId?: string | null }>
 	chartColors: Record<string, string>
 	availableCharts: ProtocolChartsLabels[]
@@ -173,7 +170,7 @@ export interface IProtocolOverviewPageData {
 			Record<string, Record<string, { value: number; 'by-label': Record<string, number> }>> & { timestamp?: number }
 		>
 		labelsByType: Record<string, Array<string>>
-		methodology: string
+		methodology: Record<string, string>
 		breakdownMethodology: Record<string, Record<string, string>>
 		hasOtherTokenHolderFlows: boolean
 	} | null
@@ -219,15 +216,6 @@ export interface IArticle {
 	date: string
 	href: string
 	imgSrc: string | null
-}
-
-export interface IProtocolExpenses {
-	protocolId: string
-	headcount: number
-	annualUsdCost: Record<string, number>
-	sources?: Array<string> | null
-	notes?: Array<string> | null
-	lastUpdate?: string | null
 }
 
 // date in the chart is in ms

@@ -22,7 +22,7 @@ export interface NotificationSettings {
 	protocols?: Record<string, MetricType[]>
 }
 
-export interface NotificationPreference {
+interface NotificationPreference {
 	id: string
 	userId: string
 	settings: NotificationSettings
@@ -32,7 +32,7 @@ export interface NotificationPreference {
 	updated: string
 }
 
-export interface SaveNotificationPreferencesRequest {
+interface SaveNotificationPreferencesRequest {
 	portfolioName: string
 	settings: NotificationSettings
 	frequency: 'daily' | 'weekly'

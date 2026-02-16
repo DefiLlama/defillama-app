@@ -1,10 +1,10 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
+	type ColumnDef,
+	type ColumnFiltersState,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
@@ -13,8 +13,17 @@ import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { formattedNum, toNiceDayMonthAndYear } from '~/utils'
+import type { GovernanceProposal, GovernanceType } from './types'
 
-export function GovernanceTable({ data, governanceType, filters = null }) {
+export function GovernanceTable({
+	data,
+	governanceType,
+	filters = null
+}: {
+	data: { proposals: GovernanceProposal[]; controversialProposals: GovernanceProposal[] }
+	governanceType: GovernanceType
+	filters?: React.ReactNode
+}) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'start', desc: true }])
 	const [filterControversialProposals, setFilterProposals] = React.useState(false)
@@ -77,48 +86,50 @@ export function GovernanceTable({ data, governanceType, filters = null }) {
 	)
 }
 
-interface IProposal {
-	title: string
-	state: 'open' | 'closed'
-	link: string
-	discussion: string
-	winningPerc: string
-	winningChoice: string
-	scores_total: number
+const TitleCell = ({ info }: { info: { row: { original: GovernanceProposal }; getValue: () => unknown } }) => {
+	const title = formatText(String(info.getValue()), 40)
+	if (!info.row.original.link) return <>{title}</>
+	return (
+		<a href={info.row.original.link} target="_blank" rel="noopener noreferrer">
+			{title}
+		</a>
+	)
 }
 
-const proposalsCompoundColumns: ColumnDef<IProposal>[] = [
+const ControversyCell = ({ info }: { info: { getValue: () => unknown } }) => {
+	const value = info.getValue()
+	const numericValue = Number(value)
+	return <>{Number.isFinite(numericValue) ? numericValue.toFixed(2) : ''}</>
+}
+
+const DateCell = ({ info }: { info: { getValue: () => unknown } }) => {
+	const timestamp = Number(info.getValue())
+	return <>{Number.isFinite(timestamp) ? toNiceDayMonthAndYear(timestamp) : ''}</>
+}
+
+const proposalsCompoundColumns: ColumnDef<GovernanceProposal>[] = [
 	{
 		header: 'Title',
 		accessorKey: 'title',
 		enableSorting: false,
-		cell: (info) => {
-			if (!info.row.original.link) {
-				return formatText(info.getValue() as string, 40)
-			}
-			return (
-				<a href={info.row.original.link} target="_blank" rel="noopener noreferrer">
-					{formatText(info.getValue() as string, 40)}
-				</a>
-			)
-		}
+		cell: (info) => <TitleCell info={info} />
 	},
 	{
 		header: 'Start',
 		accessorKey: 'start',
-		cell: (info) => toNiceDayMonthAndYear(info.getValue() as number),
+		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
 	},
 	{
 		header: 'End',
 		accessorKey: 'end',
-		cell: (info) => toNiceDayMonthAndYear(info.getValue() as number),
+		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
 	},
 	{
 		header: 'State',
 		accessorKey: 'state',
-		cell: (info) => info.getValue() || '',
+		cell: (info) => String(info.getValue() ?? ''),
 		meta: { align: 'end' }
 	},
 	{
@@ -130,37 +141,28 @@ const proposalsCompoundColumns: ColumnDef<IProposal>[] = [
 	{
 		header: 'Controversy',
 		accessorKey: 'score_curve',
-		cell: (info) => (info.getValue() != null ? (info.getValue() as number).toFixed(2) : ''),
+		cell: (info) => <ControversyCell info={info} />,
 		meta: { align: 'end', headerHelperText: 'It is calculated by number of votes * how close result is to 50%' }
 	}
 ]
 
-const proposalsSnapshotColumns: ColumnDef<IProposal>[] = [
+const proposalsSnapshotColumns: ColumnDef<GovernanceProposal>[] = [
 	{
 		header: 'Title',
 		accessorKey: 'title',
 		enableSorting: false,
-		cell: (info) => {
-			if (!info.row.original.link) {
-				return formatText(info.getValue() as string, 40)
-			}
-			return (
-				<a href={info.row.original.link} target="_blank" rel="noopener noreferrer">
-					{formatText(info.getValue() as string, 40)}
-				</a>
-			)
-		}
+		cell: (info) => <TitleCell info={info} />
 	},
 	{
 		header: 'Start',
 		accessorKey: 'start',
-		cell: (info) => toNiceDayMonthAndYear(info.getValue() as number),
+		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
 	},
 	{
 		header: 'End',
 		accessorKey: 'end',
-		cell: (info) => toNiceDayMonthAndYear(info.getValue() as number),
+		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
 	},
 	{
@@ -183,15 +185,19 @@ const proposalsSnapshotColumns: ColumnDef<IProposal>[] = [
 	{
 		header: 'Winning Choice',
 		accessorKey: 'winningChoice',
-		cell: (info) => formatText(info.getValue() as string, 20) + ' ' + info.row.original.winningPerc,
+		cell: (info) => {
+			const choice = info.getValue() ?? ''
+			const winningPerc = info.row.original.winningPerc ?? ''
+			const text = `${formatText(String(choice), 20)}${winningPerc ? ` ${winningPerc}` : ''}`.trim()
+			return text || '-'
+		},
 		enableSorting: false,
 		meta: { align: 'end' }
 	},
 	{
 		header: 'Controversy',
-
 		accessorKey: 'score_curve',
-		cell: (info) => (info.getValue() != null ? (info.getValue() as number).toFixed(2) : ''),
+		cell: (info) => <ControversyCell info={info} />,
 		meta: { align: 'end', headerHelperText: 'It is calculated by number of votes * how close result is to 50%' }
 	},
 	{
@@ -200,7 +206,7 @@ const proposalsSnapshotColumns: ColumnDef<IProposal>[] = [
 		enableSorting: false,
 		cell: (info) =>
 			info.getValue() ? (
-				<a href={info.getValue() as string} target="_blank" rel="noopener noreferrer">
+				<a href={String(info.getValue())} target="_blank" rel="noopener noreferrer">
 					View
 				</a>
 			) : null,
@@ -208,38 +214,29 @@ const proposalsSnapshotColumns: ColumnDef<IProposal>[] = [
 	}
 ]
 
-const proposalsTallyColumns: ColumnDef<IProposal>[] = [
+const proposalsTallyColumns: ColumnDef<GovernanceProposal>[] = [
 	{
 		header: 'Title',
 		accessorKey: 'title',
 		enableSorting: false,
-		cell: (info) => {
-			if (!info.row.original.link) {
-				return formatText(info.getValue() as string, 40)
-			}
-			return (
-				<a href={info.row.original.link} target="_blank" rel="noopener noreferrer">
-					{formatText(info.getValue() as string, 40)}
-				</a>
-			)
-		}
+		cell: (info) => <TitleCell info={info} />
 	},
 	{
 		header: 'Start',
 		accessorKey: 'start',
-		cell: (info) => toNiceDayMonthAndYear(info.getValue() as number),
+		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
 	},
 	{
 		header: 'End',
 		accessorKey: 'end',
-		cell: (info) => toNiceDayMonthAndYear(info.getValue() as number),
+		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
 	},
 	{
 		header: 'State',
 		accessorKey: 'state',
-		cell: (info) => info.getValue() || '',
+		cell: (info) => String(info.getValue() ?? ''),
 		meta: { align: 'end' }
 	},
 	{
@@ -251,7 +248,7 @@ const proposalsTallyColumns: ColumnDef<IProposal>[] = [
 	{
 		header: 'Controversy',
 		accessorKey: 'score_curve',
-		cell: (info) => (info.getValue() != null ? (info.getValue() as number).toFixed(2) : ''),
+		cell: (info) => <ControversyCell info={info} />,
 		meta: { align: 'end', headerHelperText: 'It is calculated by number of votes * how close result is to 50%' }
 	}
 ]

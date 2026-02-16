@@ -5,7 +5,7 @@ import { IncomeStatement } from '~/containers/ProtocolOverview/IncomeStatement'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { useAppMetadata } from '../AppMetadataContext'
 import { useProDashboardCatalog } from '../ProDashboardAPIContext'
-import { IncomeStatementConfig } from '../types'
+import type { IncomeStatementConfig } from '../types'
 import { getItemIconUrl } from '../utils'
 import { LoadingSpinner } from './LoadingSpinner'
 

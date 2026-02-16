@@ -30,7 +30,8 @@ export function Toast() {
 	)
 }
 
-export const ErrorToast = ({ title, description }) => {
+// oxlint-disable-next-line no-unused-vars
+const ErrorToast = ({ title, description }) => {
 	return (
 		<div className="flex flex-col gap-2">
 			<p className="flex items-center gap-2 text-base font-semibold text-[#B53B35] dark:text-[#E24A42]">

@@ -1,4 +1,5 @@
-export interface ISale {
+// oxlint-disable-next-line no-unused-vars
+interface ISale {
 	aggregatorAddress?: string | null
 	aggregatorName?: string | null
 	blockNumber: number
@@ -14,10 +15,10 @@ export interface ISale {
 }
 
 export interface ICollectionScatterChartProps {
-	sales: Array<ISale>
+	sales: Array<[number, number]>
 	height?: string
-	salesMedian1d: Array<ISale>
-	volume: any
+	salesMedian1d: Array<[number, number]>
+	volume: Array<[number, number]>
 }
 
 export interface IOrderBookChartProps {

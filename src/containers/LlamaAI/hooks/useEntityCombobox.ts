@@ -1,18 +1,18 @@
 import * as Ariakit from '@ariakit/react'
-import { RefObject, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { type RefObject, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { getAnchorRect, replaceValue } from '../utils/entitySuggestions'
 import { setInputSize } from '../utils/scrollUtils'
 import { highlightWord } from '../utils/textUtils'
 import { useGetEntities } from './useGetEntities'
 import { detectTrigger, calculateComboboxPlacement } from './useTriggerDetection'
 
-export interface EntityData {
+interface EntityData {
 	id: string
 	name: string
 	type: string
 }
 
-export interface UseEntityComboboxOptions {
+interface UseEntityComboboxOptions {
 	promptInputRef: RefObject<HTMLTextAreaElement>
 	highlightRef: RefObject<HTMLDivElement>
 	setValue: (value: string) => void

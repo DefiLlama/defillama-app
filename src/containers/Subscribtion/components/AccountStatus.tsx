@@ -7,7 +7,7 @@ import { BasicLink } from '~/components/Link'
 import { resolveUserEmail } from '~/components/Nav/Account'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { formatEthAddress } from '~/utils'
-import { AuthModel } from '~/utils/pocketbase'
+import type { AuthModel } from '~/utils/pocketbase'
 
 interface AccountStatusProps {
 	user: AuthModel
@@ -284,7 +284,7 @@ export const AccountStatus = ({
 										const newValue = currentValue === 'off' ? 'on' : 'off'
 										setPromotionalEmails(newValue)
 									}}
-									className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 focus:ring-2 focus:ring-[#5C5CF9] focus:ring-offset-2 focus:ring-offset-[#1a1b1f] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
+									className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 focus:ring-2 focus:ring-[#5C5CF9] focus:ring-offset-2 focus:ring-offset-[#1a1b1f] focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 ${
 										user?.promotionalEmails === 'initial' || user?.promotionalEmails === 'on'
 											? 'bg-[#5C5CF9]'
 											: 'bg-[#39393E]'

@@ -3,18 +3,17 @@ import { useQueries, useQuery } from '@tanstack/react-query'
 import type * as echarts from 'echarts/core'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
-import { IResponseCGMarketsAPI } from '~/api/types'
+import type { IResponseCGMarketsAPI } from '~/api/types'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/formatters'
-import { IMultiSeriesChart2Props } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
-import { COINS_CHART_API } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { fetchPriceSeries } from './api'
 import { ComparisonPanel } from './ComparisonPanel'
 import { DailyPnLGrid } from './DailyPnLGrid'
 import { DateInput } from './DateInput'
@@ -57,10 +56,10 @@ type TokenPnlResult = {
 	primaryColor: string
 }
 
-const unixToDateString = (unixTimestamp?: number) => {
-	if (!unixTimestamp) return ''
+const unixToDateString = (unixTimestamp?: number): string => {
+	if (unixTimestamp == null) return ''
 	const date = new Date(unixTimestamp * 1000)
-	return date.toISOString().split('T')[0]
+	return date.toISOString().split('T')[0] ?? ''
 }
 
 const dateStringToUnix = (dateString: string | null | undefined): number | null => {
@@ -70,7 +69,7 @@ const dateStringToUnix = (dateString: string | null | undefined): number | null 
 	return Math.floor(timestamp / 1000)
 }
 
-const calculateMaxDrawdown = (series: PricePoint[]) => {
+const calculateMaxDrawdown = (series: PricePoint[]): number => {
 	if (series.length === 0) return 0
 	let peak = series[0].price
 	let maxDrawdown = 0
@@ -88,13 +87,13 @@ const calculateMaxDrawdown = (series: PricePoint[]) => {
 	return Math.abs(maxDrawdown)
 }
 
-const calculateAnnualizedVolatility = (series: PricePoint[]) => {
+const calculateAnnualizedVolatility = (series: PricePoint[]): number => {
 	if (series.length < 2) return 0
 	const returns: number[] = []
 	for (let i = 1; i < series.length; i++) {
 		const prev = series[i - 1].price
 		const curr = series[i].price
-		if (!prev) continue
+		if (prev === 0 || !Number.isFinite(prev) || !Number.isFinite(curr)) continue
 		returns.push((curr - prev) / prev)
 	}
 	if (returns.length < 2) return 0
@@ -104,14 +103,21 @@ const calculateAnnualizedVolatility = (series: PricePoint[]) => {
 	return dailyVol * Math.sqrt(365) * 100
 }
 
-const calculateYAxisConfigFromPrices = (prices: number[]) => {
-	if (!prices.length) return { min: 0, max: 0, interval: 1000 }
+const calculateYAxisConfigFromPrices = (prices: number[]): { min: number; max: number; interval: number } => {
+	if (prices.length === 0) return { min: 0, max: 0, interval: 1000 }
 
 	const min = Math.min(...prices)
 	const max = Math.max(...prices)
 	const range = max - min
 
-	if (range === 0) return { min: min - min * 0.1, max: max + max * 0.1, interval: max * 0.1 }
+	if (range === 0) {
+		const padding = max === 0 ? 1 : Math.abs(max) * 0.1
+		return {
+			min: Math.min(0, min - padding),
+			max: max + padding,
+			interval: padding
+		}
+	}
 
 	const magnitude = Math.pow(10, Math.floor(Math.log10(range)))
 	const normalized = range / magnitude
@@ -125,45 +131,21 @@ const calculateYAxisConfigFromPrices = (prices: number[]) => {
 	}
 }
 
-type RawPriceEntry = {
-	timestamp?: number
-	price?: number
-}
-
-const fetchPriceSeries = async (tokenId: string, start: number | null, end: number | null) => {
-	if (!tokenId || !start || !end || end <= start) return [] as PricePoint[]
-	const key = `coingecko:${tokenId}`
-	const spanInDays = Math.max(1, Math.ceil((end - start) / DAY_IN_SECONDS))
-	const url = `${COINS_CHART_API}/${key}?start=${start}&span=${spanInDays}&searchWidth=600`
-	const response = await fetchJson(url)
-	const raw: RawPriceEntry[] = response?.coins?.[key]?.prices ?? []
-	return raw
-		.filter(
-			(entry): entry is { timestamp: number; price: number } =>
-				typeof entry?.price === 'number' && typeof entry?.timestamp === 'number'
-		)
-		.map((entry) => ({
-			timestamp: entry.timestamp,
-			price: entry.price
-		}))
-		.sort((a: PricePoint, b: PricePoint) => a.timestamp - b.timestamp)
-}
-
 const computeTokenPnl = async (params: {
 	id: string
 	start: number | null
 	end: number | null
-	coinInfo?: IResponseCGMarketsAPI
+	coinInfo?: IResponseCGMarketsAPI | null
 }): Promise<TokenPnlResult | null> => {
 	const { id, start, end, coinInfo } = params
-	if (!id || !start || !end || end <= start) return null
+	if (!id || start == null || end == null || end <= start) return null
 
 	const series = await fetchPriceSeries(id, start, end)
 
-	if (!series.length) {
+	if (series.length === 0) {
 		const primaryColor = '#10b981'
 		return {
-			coinInfo,
+			coinInfo: coinInfo ?? undefined,
 			priceSeries: [],
 			timeline: [],
 			metrics: {
@@ -199,7 +181,7 @@ const computeTokenPnl = async (params: {
 
 	const startPrice = series[0].price
 	const endPrice = series[series.length - 1].price
-	const percentChange = startPrice ? ((endPrice - startPrice) / startPrice) * 100 : 0
+	const percentChange = startPrice !== 0 ? ((endPrice - startPrice) / startPrice) * 100 : 0
 	const absoluteChange = endPrice - startPrice
 	const isPositive = endPrice >= startPrice
 	const primaryColor = isPositive ? '#10b981' : '#ef4444'
@@ -213,7 +195,7 @@ const computeTokenPnl = async (params: {
 	const dataPoints: Array<[number, number]> = []
 
 	const firstPoint = series[0]
-	if (firstPoint && firstPoint.timestamp !== start) {
+	if (firstPoint.timestamp !== start) {
 		dataPoints.push([start * 1000, firstPoint.price])
 	}
 
@@ -226,16 +208,15 @@ const computeTokenPnl = async (params: {
 		} else {
 			const prev = series[index - 1]
 			const delta = point.price - prev.price
-			const pct = prev.price ? (delta / prev.price) * 100 : 0
+			const pct = prev.price !== 0 ? (delta / prev.price) * 100 : 0
 			timeline.push({ ...point, change: delta, percentChange: pct })
 		}
 
-		// Prepare chart data
 		dataPoints.push([point.timestamp * 1000, point.price])
 	}
 
 	const lastPoint = series[series.length - 1]
-	if (lastPoint && lastPoint.timestamp !== end) {
+	if (lastPoint.timestamp !== end) {
 		dataPoints.push([end * 1000, lastPoint.price])
 	}
 	dataPoints.sort((a, b) => a[0] - b[0])
@@ -262,7 +243,7 @@ const computeTokenPnl = async (params: {
 	const yAxisConfig = calculateYAxisConfigFromPrices(prices)
 
 	return {
-		coinInfo,
+		coinInfo: coinInfo ?? undefined,
 		priceSeries: series,
 		timeline,
 		metrics: {
@@ -391,7 +372,7 @@ const TokenPnlContent = ({
 		)
 	}
 
-	if (!pnlData || !pnlData.priceSeries.length) {
+	if (!pnlData || pnlData.priceSeries.length === 0) {
 		return (
 			<div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<p className="text-lg font-semibold">No historical data available for this range.</p>
@@ -402,12 +383,13 @@ const TokenPnlContent = ({
 
 	const { metrics, timeline, coinInfo, currentPrice, chartData } = pnlData
 	const { percentChange, isProfit, holdingPeriodDays, annualizedReturn, absoluteChange } = metrics
-	const quantityValue = quantity ? absoluteChange * quantity : absoluteChange
+	const quantityValue = quantity !== 0 ? absoluteChange * quantity : absoluteChange
 	const formattedQuantityValue = formattedNum(Math.abs(quantityValue), false)
 	const formattedAbsoluteChange = formattedNum(Math.abs(absoluteChange), false)
-	const quantityLabel = quantity
-		? `${formattedNum(quantity, false)} tokens → ${quantityValue >= 0 ? '+$' : '-$'}${formattedQuantityValue}`
-		: `${absoluteChange >= 0 ? '+$' : '-$'}${formattedAbsoluteChange} per token`
+	const quantityLabel =
+		quantity !== 0
+			? `${formattedNum(quantity, false)} tokens → ${quantityValue >= 0 ? '+$' : '-$'}${formattedQuantityValue}`
+			: `${absoluteChange >= 0 ? '+$' : '-$'}${formattedAbsoluteChange} per token`
 
 	return (
 		<div className="flex flex-1 flex-col gap-2">
@@ -474,9 +456,11 @@ const TokenPnlContent = ({
 				<StatsCard label="End Price" value={`$${formattedNum(metrics.endPrice)}`} />
 				<StatsCard
 					label="24h Change"
-					value={coinInfo?.price_change_percentage_24h ? formatPercent(coinInfo.price_change_percentage_24h) : '0%'}
+					value={
+						coinInfo?.price_change_percentage_24h != null ? formatPercent(coinInfo.price_change_percentage_24h) : '0%'
+					}
 					subtle={
-						coinInfo?.price_change_24h
+						coinInfo?.price_change_24h != null
 							? `${coinInfo.price_change_24h >= 0 ? '+' : ''}$${formattedNum(coinInfo.price_change_24h)}`
 							: undefined
 					}
@@ -515,10 +499,10 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 			const startParam = isValidDate(router.query.start) ? unixToDateString(Number(router.query.start)) : null
 			const endParam = isValidDate(router.query.end) ? unixToDateString(Number(router.query.end)) : null
 
-			if (startParam && startParam !== startDate) {
+			if (startParam != null && startParam !== startDate) {
 				handleStartDateChange(startParam)
 			}
-			if (endParam && endParam !== endDate) {
+			if (endParam != null && endParam !== endDate) {
 				handleEndDateChange(endParam)
 			}
 		}
@@ -535,12 +519,12 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	const [quantityInput, setQuantityInput] = useState('')
 
 	const { selectedCoins, selectedCoinId, selectedCoinInfo } = useMemo(() => {
-		const queryCoins = coinParam || ['bitcoin']
+		const queryCoins = coinParam ?? ['bitcoin']
 		const coins = Array.isArray(queryCoins) ? queryCoins : [queryCoins]
 		return {
 			selectedCoins: coins,
 			selectedCoinId: coins[0],
-			selectedCoinInfo: coins[0] ? coinInfoMap.get(coins[0]) : null
+			selectedCoinInfo: coins[0] ? (coinInfoMap.get(coins[0]) ?? null) : null
 		}
 	}, [coinParam, coinInfoMap])
 
@@ -557,7 +541,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	} = useQuery({
 		queryKey: ['token-pnl', selectedCoinId, start, end],
 		queryFn: () => computeTokenPnl({ id: selectedCoinId, start, end, coinInfo: selectedCoinInfo }),
-		enabled: !!(router.isReady && selectedCoinId && start && end && end > start),
+		enabled: !!(router.isReady && selectedCoinId && start != null && end != null && end > start),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0
@@ -567,11 +551,21 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 		queries: DEFAULT_COMPARISON_IDS.map((tokenId) => ({
 			queryKey: ['token-pnl-comparison-item', tokenId, start, end],
 			queryFn: () =>
-				fetchPriceSeries(tokenId, start, end).then((series) => {
-					if (!series.length) return null
-					const startPrice = series[0].price
-					const endPrice = series[series.length - 1].price
-					const percentChange = startPrice ? ((endPrice - startPrice) / startPrice) * 100 : 0
+				fetchPriceSeries(tokenId, start, end).then((series): ComparisonEntry | null => {
+					if (series.length === 0) return null
+					const firstPoint = series[0]
+					const lastPoint = series[series.length - 1]
+					if (
+						firstPoint == null ||
+						lastPoint == null ||
+						!Number.isFinite(firstPoint.price) ||
+						!Number.isFinite(lastPoint.price)
+					) {
+						return null
+					}
+					const startPrice = firstPoint.price
+					const endPrice = lastPoint.price
+					const percentChange = startPrice !== 0 ? ((endPrice - startPrice) / startPrice) * 100 : 0
 					const absoluteChange = endPrice - startPrice
 					const coin = coinInfoMap.get(tokenId)
 					return {
@@ -583,9 +577,9 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 						absoluteChange,
 						startPrice,
 						endPrice
-					} as ComparisonEntry
+					}
 				}),
-			enabled: !!(router.isReady && start && end && end > start),
+			enabled: !!(router.isReady && start != null && end != null && end > start),
 			staleTime: 60 * 60 * 1000,
 			refetchOnWindowFocus: false,
 			retry: 0
@@ -593,7 +587,11 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	})
 
 	const comparisonData = useMemo(
-		() => comparisonQueries.flatMap((q) => (q.data ? [q.data] : [])) as ComparisonEntry[],
+		() =>
+			comparisonQueries.flatMap((q): ComparisonEntry[] => {
+				const d = q.data
+				return d != null ? [d] : []
+			}),
 		[comparisonQueries]
 	)
 
@@ -603,7 +601,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	}, [quantityInput])
 
 	const chartOptions = useMemo<TokenPnlChartOptions | undefined>(() => {
-		if (!pnlData || !start || !end) return undefined
+		if (!pnlData || start == null || end == null) return undefined
 
 		const { metrics, yAxisConfig: yAxis } = pnlData
 		const startPrice = metrics.startPrice
@@ -640,7 +638,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 				},
 				formatter: (items: TooltipItem | TooltipItem[]) => {
 					const itemsArray = Array.isArray(items) ? items : [items]
-					if (!itemsArray?.length) return ''
+					if (itemsArray.length === 0) return ''
 
 					const point = itemsArray[0]
 					const row = point?.data ?? {}
@@ -648,14 +646,14 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 						(typeof row.timestamp === 'number' ? row.timestamp : undefined) ??
 						(Array.isArray(point?.value) ? point.value[0] : undefined)
 					const seriesValue =
-						(typeof point?.seriesName === 'string' ? row?.[point.seriesName] : undefined) ??
+						(typeof point?.seriesName === 'string' ? row[point.seriesName] : undefined) ??
 						(Array.isArray(point?.value) ? point.value[1] : undefined)
 					const price = typeof seriesValue === 'number' ? seriesValue : Number(seriesValue ?? 0)
-					const changeFromStart = startPrice ? ((price - startPrice) / startPrice) * 100 : 0
+					const changeFromStart = startPrice !== 0 ? ((price - startPrice) / startPrice) * 100 : 0
 					const changeColor = changeFromStart >= 0 ? '#10b981' : '#ef4444'
 					const changeSign = changeFromStart >= 0 ? '+' : ''
 
-					const chartdate = timestamp ? formatTooltipChartDate(Number(timestamp), 'daily') : ''
+					const chartdate = timestamp != null ? formatTooltipChartDate(Number(timestamp), 'daily') : ''
 
 					return `<div style="background: var(--cards-bg); border: 1px solid var(--cards-border); box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16); color: var(--text-primary); border-radius: 8px; padding: 8px 10px; font-size: 11px; line-height: 1.35; white-space: nowrap;">
 						<div style="color: var(--text-secondary); margin-bottom: 2px;">${chartdate}</div>
@@ -736,7 +734,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 							onClick={() => dialogStore.toggle()}
 							className="flex items-center gap-2 rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm text-(--text-primary)"
 						>
-							{selectedCoinInfo ? (
+							{selectedCoinInfo != null ? (
 								<>
 									<img
 										src={selectedCoinInfo.image}

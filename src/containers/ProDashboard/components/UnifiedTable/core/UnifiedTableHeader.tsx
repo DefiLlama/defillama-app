@@ -4,12 +4,12 @@ import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import type { ActiveFilterChip } from '../utils/filterChips'
 import { CsvExportDropdown, type CsvExportLevel } from './CsvExportDropdown'
 
-export interface GroupingOption {
+interface GroupingOption {
 	id: string
 	label: string
 }
 
-export interface UnifiedTableHeaderProps {
+interface UnifiedTableHeaderProps {
 	title: string
 	scopeDescription: string
 	rowHeadersSummary: string | null
@@ -168,7 +168,7 @@ export function UnifiedTableHeader({
 						value={searchTerm}
 						onChange={(event) => onSearchChange(event.target.value)}
 						placeholder="Search protocols, chains, categories..."
-						className="w-full rounded-md border border-(--divider) bg-(--cards-bg) py-2 pr-3 pl-9 text-sm text-(--text-primary) focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/30 focus:outline-none"
+						className="w-full rounded-md border border-(--divider) bg-(--cards-bg) py-2 pr-3 pl-9 text-sm text-(--text-primary) focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/30 focus:outline-hidden"
 					/>
 				</div>
 				{hasFilters ? (

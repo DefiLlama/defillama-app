@@ -1,22 +1,22 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	PaginationState,
-	SortingState,
+	type PaginationState,
+	type SortingState,
 	useReactTable,
-	VisibilityState
+	type VisibilityState
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { useTableSearch } from '~/components/Table/utils'
 import { toInternalSlug } from '~/utils/chainNormalizer'
 import { yieldsDatasetColumns } from './columns'
-import { YieldsFilters } from './YieldsFiltersPanel'
+import type { YieldsFilters } from './YieldsFiltersPanel'
 
 const YIELDS_COLUMN_PRESETS: Record<string, string[]> = {
 	essential: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase', 'apyReward'],

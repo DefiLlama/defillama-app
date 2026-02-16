@@ -1,36 +1,35 @@
+import { fetchLlamaConfig } from '~/api'
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { tvlOptions } from '~/components/Filters/options'
 import {
-	CHAINS_ASSETS,
 	CHART_API,
-	CONFIG_API,
-	PEGGEDS_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
 	PROTOCOLS_API,
-	PROTOCOLS_TREASURY,
-	RAISES_API,
 	REV_PROTOCOLS,
 	TRADFI_API
 } from '~/constants'
+import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
-import {
-	getAdapterChainOverview,
-	getAdapterProtocolSummary,
-	getCexVolume,
-	IAdapterOverview,
-	IAdapterSummary
-} from '~/containers/DimensionAdapters/queries'
+import { fetchCexVolume } from '~/containers/DimensionAdapters/api'
+import { fetchAdapterChainMetrics, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
+import type { IAdapterChainMetrics, IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'
+import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
+import type { IAdapterChainOverview } from '~/containers/DimensionAdapters/types'
 import { getETFData } from '~/containers/ETF/queries'
-import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
-import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
+import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
+import { getStablecoinChainMcapSummary } from '~/containers/Stablecoins/queries.server'
+import { fetchTreasuries } from '~/containers/Treasuries/api'
+import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
 import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getNDistinctColors, getPercentChange, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
-import { ChainChartLabels } from './constants'
+import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
+import { fetchRaises } from '../Raises/api'
+import type { RawRaisesResponse } from '../Raises/api.types'
+import type { ChainChartLabels } from './constants'
 import type {
 	IChainAsset,
 	IChainOverviewData,
@@ -39,8 +38,6 @@ import type {
 	ILiteParentProtocol,
 	ILiteProtocol,
 	IProtocol,
-	IRaises,
-	ITreasury,
 	TVL_TYPES
 } from './types'
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
@@ -139,8 +136,8 @@ export async function getChainOverviewData({
 			{
 				protocols: Array<IProtocol>
 				chains: Array<string>
-				fees: IAdapterOverview | null
-				dexs: IAdapterOverview | null
+				fees: IAdapterChainMetrics | null
+				dexs: IAdapterChainOverview | null
 			},
 			{
 				mcap: number | null
@@ -154,8 +151,8 @@ export async function getChainOverviewData({
 			number | null,
 			number | string,
 			number | null,
-			{ raises: Array<IRaises> },
-			Array<ITreasury> | null,
+			RawRaisesResponse,
+			RawTreasuriesResponse | null,
 			{
 				market_data?: {
 					current_price?: { usd?: string | null }
@@ -165,11 +162,11 @@ export async function getChainOverviewData({
 			} | null,
 			Record<string, number>,
 			IChainAsset | null,
-			IAdapterSummary | null,
-			IAdapterSummary | null,
-			IAdapterSummary | null,
-			IAdapterSummary | null,
-			IAdapterOverview | null,
+			IAdapterChainMetrics | null,
+			IAdapterChainMetrics | null,
+			IAdapterProtocolMetrics | null,
+			IAdapterProtocolMetrics | null,
+			IAdapterChainMetrics | null,
 			number | null,
 			Array<[number, number]> | null,
 			Array<[number, number]> | null,
@@ -198,58 +195,10 @@ export async function getChainOverviewData({
 			}),
 			getProtocolsByChain({ chain, chainMetadata, protocolMetadata }),
 			currentChainMetadata.stablecoins
-				? getPeggedOverviewPageData(chain === 'All' ? null : currentChainMetadata.name)
-						.then((data) => {
-							const { peggedAreaChartData, peggedAreaTotalData } = buildStablecoinChartData({
-								chartDataByAssetOrChain: data?.chartDataByPeggedAsset,
-								assetsOrChainsList: data?.peggedAssetNames,
-								filteredIndexes: Object.values(data?.peggedNameToChartDataIndex || {}),
-								issuanceType: 'mcap',
-								selectedChain: chain === 'All' ? 'All' : currentChainMetadata.name,
-								doublecountedIds: data?.doublecountedIds
-							})
-							let totalMcapCurrent = (peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap ?? null) as
-								| number
-								| null
-							let totalMcapPrevWeek = (peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap ?? null) as
-								| number
-								| null
-							const percentChange =
-								totalMcapCurrent != null && totalMcapPrevWeek != null
-									? getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
-									: null
-
-							let topToken = { symbol: 'USDT', mcap: 0 }
-
-							if (peggedAreaChartData && peggedAreaChartData.length > 0) {
-								const recentMcaps = peggedAreaChartData[peggedAreaChartData.length - 1]
-
-								for (const token in recentMcaps) {
-									if (token !== 'date' && recentMcaps[token] > topToken.mcap) {
-										topToken = { symbol: token, mcap: recentMcaps[token] }
-									}
-								}
-							}
-
-							const dominance = getStablecoinDominance(topToken, totalMcapCurrent)
-
-							return {
-								mcap: totalMcapCurrent ?? null,
-								change7dUsd:
-									totalMcapCurrent != null && totalMcapPrevWeek != null ? totalMcapCurrent - totalMcapPrevWeek : null,
-								change7d: percentChange ?? null,
-								topToken,
-								dominance: dominance ?? null,
-								mcapChartData:
-									peggedAreaTotalData && peggedAreaTotalData.length >= 14
-										? peggedAreaTotalData.slice(-14).map((p) => [+p.date * 1000, p.Mcap ?? 0] as [number, number])
-										: null
-							}
-						})
-						.catch((err) => {
-							console.log('ERROR fetching stablecoins data of chain', currentChainMetadata.name, err)
-							return null
-						})
+				? getStablecoinChainMcapSummary(chain === 'All' ? null : currentChainMetadata.name).catch((err) => {
+						console.log('ERROR fetching stablecoins data of chain', currentChainMetadata.name, err)
+						return null
+					})
 				: Promise.resolve(null),
 			!currentChainMetadata.inflows
 				? Promise.resolve(null)
@@ -283,8 +232,8 @@ export async function getChainOverviewData({
 				: fetchJson(`${PROTOCOL_NEW_USERS_API}/chain$${currentChainMetadata.name}`)
 						.then((data: Array<[number, number]>) => data?.[data?.length - 1]?.[1] ?? null)
 						.catch(() => null),
-			fetchJson(RAISES_API),
-			chain === 'All' ? Promise.resolve(null) : fetchJson(PROTOCOLS_TREASURY),
+			fetchRaises(),
+			chain === 'All' ? Promise.resolve(null) : fetchTreasuries(),
 			currentChainMetadata.gecko_id
 				? fetchJson(
 						`https://pro-api.coingecko.com/api/v3/coins/${currentChainMetadata.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false`,
@@ -298,14 +247,13 @@ export async function getChainOverviewData({
 			chain && chain !== 'All'
 				? fetchJson(`https://defillama-datasets.llama.fi/temp/chainNfts`)
 				: Promise.resolve(null),
-			fetchJson(CHAINS_ASSETS)
+			fetchChainsAssets()
 				.then((chainAssets) => (chain !== 'All' ? (chainAssets[currentChainMetadata.name] ?? null) : null))
 				.catch(() => null),
 			currentChainMetadata.revenue && chain !== 'All'
-				? getAdapterChainOverview({
+				? fetchAdapterChainMetrics({
 						adapterType: 'fees',
 						chain: currentChainMetadata.name,
-						excludeTotalDataChart: true,
 						dataType: 'dailyAppRevenue'
 					}).catch((err) => {
 						console.log(err)
@@ -313,10 +261,9 @@ export async function getChainOverviewData({
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.fees && chain !== 'All'
-				? getAdapterChainOverview({
+				? fetchAdapterChainMetrics({
 						adapterType: 'fees',
 						chain: currentChainMetadata.name,
-						excludeTotalDataChart: true,
 						dataType: 'dailyAppFees'
 					}).catch((err) => {
 						console.log(err)
@@ -324,20 +271,18 @@ export async function getChainOverviewData({
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.chainFees
-				? getAdapterProtocolSummary({
+				? fetchAdapterProtocolMetrics({
 						adapterType: 'fees',
-						protocol: currentChainMetadata.name,
-						excludeTotalDataChart: true
+						protocol: currentChainMetadata.name
 					}).catch((err) => {
 						console.log(err)
 						return null
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.chainRevenue
-				? getAdapterProtocolSummary({
+				? fetchAdapterProtocolMetrics({
 						adapterType: 'fees',
 						protocol: currentChainMetadata.name,
-						excludeTotalDataChart: true,
 						dataType: 'dailyRevenue'
 					}).catch((err) => {
 						console.log(err)
@@ -345,16 +290,15 @@ export async function getChainOverviewData({
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.perps
-				? getAdapterChainOverview({
+				? fetchAdapterChainMetrics({
 						adapterType: 'derivatives',
-						chain: currentChainMetadata.name,
-						excludeTotalDataChart: true
+						chain: currentChainMetadata.name
 					}).catch((err) => {
 						console.log(err)
 						return null
 					})
 				: Promise.resolve(null),
-			getCexVolume(),
+			fetchCexVolume(),
 			chain === 'All'
 				? getETFData()
 						.then((data) => {
@@ -408,9 +352,9 @@ export async function getChainOverviewData({
 						.catch(() => null)
 				: Promise.resolve(null),
 			chain === 'All' ? getDATInflows() : Promise.resolve(null),
-			chain !== 'All' ? fetchJson(PEGGEDS_API).catch(() => null) : Promise.resolve(null),
+			chain !== 'All' ? fetchStablecoinAssetsApi().catch(() => null) : Promise.resolve(null),
 			chain !== 'All'
-				? fetchJson(CONFIG_API)
+				? fetchLlamaConfig()
 						.then((data) => data.chainCoingeckoIds?.[currentChainMetadata.name]?.stablecoins ?? null)
 						.catch(() => null)
 				: Promise.resolve(null)
@@ -746,28 +690,26 @@ export const getProtocolsByChain = async ({
 
 	const [{ protocols, chains, parentProtocols }, fees, revenue, holdersRevenue, dexs, emissionsData]: [
 		{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
-		IAdapterOverview | null,
-		IAdapterOverview | null,
-		IAdapterOverview | null,
-		IAdapterOverview | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainOverview | null,
 		any
 	] = await Promise.all([
 		fetchJson(PROTOCOLS_API),
 		currentChainMetadata.fees
-			? getAdapterChainOverview({
+			? fetchAdapterChainMetrics({
 					adapterType: 'fees',
-					chain: currentChainMetadata.name,
-					excludeTotalDataChart: true
+					chain: currentChainMetadata.name
 				}).catch((err) => {
 					console.log(err)
 					return null
 				})
 			: Promise.resolve(null),
 		currentChainMetadata.fees
-			? getAdapterChainOverview({
+			? fetchAdapterChainMetrics({
 					adapterType: 'fees',
 					chain: currentChainMetadata.name,
-					excludeTotalDataChart: true,
 					dataType: 'dailyRevenue'
 				}).catch((err) => {
 					console.log(err)
@@ -775,10 +717,9 @@ export const getProtocolsByChain = async ({
 				})
 			: Promise.resolve(null),
 		currentChainMetadata.fees
-			? getAdapterChainOverview({
+			? fetchAdapterChainMetrics({
 					adapterType: 'fees',
 					chain: currentChainMetadata.name,
-					excludeTotalDataChart: true,
 					dataType: 'dailyHoldersRevenue'
 				}).catch((err) => {
 					console.log(err)
@@ -1244,7 +1185,7 @@ function getUTCTimestamp(timestamp: number) {
 	return Math.round(timestamp / msPerDay) * msPerDay
 }
 
-export const getDATInflows = async () => {
+const getDATInflows = async () => {
 	try {
 		const data: IDATInflow = await fetchJson(`${TRADFI_API}/institutions`)
 		const weeklyInflows: Record<number, number> = {}

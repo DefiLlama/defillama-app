@@ -26,14 +26,22 @@ export const YIELDS_EVENTS = {
 	// Pool
 	POOL_CLICK: 'yields-pool-click',
 	POOL_EXTERNAL_LINK: 'yields-pool-external-link',
-	PROJECT_FILTER_CLICK: 'yields-project-filter-click'
+	PROJECT_FILTER_CLICK: 'yields-project-filter-click',
+	// Premium
+	YIELD_SCORE_CLICK: 'yields-yield-score-click'
 } as const
 
-export type YieldsEventName = (typeof YIELDS_EVENTS)[keyof typeof YIELDS_EVENTS]
+type YieldsEventName = (typeof YIELDS_EVENTS)[keyof typeof YIELDS_EVENTS]
+
+declare global {
+	interface Window {
+		umami?: { track: (eventName: string, data?: Record<string, string | number | boolean>) => void }
+	}
+}
 
 export function trackYieldsEvent(eventName: YieldsEventName, data?: Record<string, string | number | boolean>): void {
-	if (typeof window !== 'undefined' && (window as any).umami) {
-		;(window as any).umami.track(eventName, data)
+	if (typeof window !== 'undefined' && window.umami) {
+		window.umami.track(eventName, data)
 	}
 }
 

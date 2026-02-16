@@ -3,7 +3,7 @@ import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
 import { useDebounce } from '~/hooks/useDebounce'
 import { handleSimpleFetchResponse } from '~/utils/async'
 
-export interface EntityResult {
+interface EntityResult {
 	id: string
 	name: string
 	logo: string | null
@@ -40,7 +40,7 @@ async function searchApi(query: SearchQuery): Promise<EntityResult[]> {
 /**
  * Fetch entities (chains, protocols, stablecoins, categories) matching the query.
  */
-export async function fetchEntities(query: string): Promise<EntityResult[]> {
+async function fetchEntities(query: string): Promise<EntityResult[]> {
 	return searchApi({
 		indexUid: 'pages',
 		limit: 10,

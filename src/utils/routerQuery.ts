@@ -1,14 +1,14 @@
 import type { ParsedUrlQueryInput } from 'querystring'
 import type { NextRouter } from 'next/router'
 
-export type QueryParamInput = string | string[] | undefined | null
+type QueryParamInput = string | string[] | undefined | null
 
 export function readSingleQueryValue(value: QueryParamInput): string | undefined {
 	if (Array.isArray(value)) return value[0]
 	return value ?? undefined
 }
 
-export function buildUpdatedQuery(
+function buildUpdatedQuery(
 	currentQuery: Record<string, unknown>,
 	updates: Record<string, string | undefined>
 ): ParsedUrlQueryInput {

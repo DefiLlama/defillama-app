@@ -1,10 +1,16 @@
-import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import {
+	type ColumnDef,
+	getCoreRowModel,
+	getSortedRowModel,
+	type SortingState,
+	useReactTable
+} from '@tanstack/react-table'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
 import { formattedNum, getBlockExplorer } from '~/utils'
 
-export type BridgeTokensTableRow = {
+type BridgeTokensTableRow = {
 	symbol: string
 	deposited?: number
 	withdrawn?: number

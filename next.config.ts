@@ -567,6 +567,11 @@ const nextConfig: NextConfig = {
 				source: '/protocols/rwa/:chain',
 				destination: '/rwa/chain/:chain',
 				permanent: true
+			},
+			{
+				source: '/dats',
+				destination: '/digital-asset-treasuries',
+				permanent: true
 			}
 		]
 	},

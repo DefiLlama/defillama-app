@@ -1,14 +1,18 @@
 import { getTokenMarketDataFromCgChart } from '~/api'
 import { getProtocolEmissons } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
+import type { EmissionEvent } from './api.types'
 
-export function calculateTotalUnlockValue(emissions: any): number {
+export function calculateTotalUnlockValue(emissions: {
+	tokenPrice?: { price?: number | null } | null
+	upcomingEvent?: EmissionEvent[] | null
+}): number {
 	if (!emissions?.tokenPrice?.price) return 0
 
 	const events = Array.isArray(emissions?.upcomingEvent) ? emissions.upcomingEvent : []
-	const totalAmount = events.reduce((sum, event) => {
+	const totalAmount = events.reduce((sum: number, event: EmissionEvent) => {
 		const tokens = Array.isArray(event?.noOfTokens) ? event.noOfTokens : []
-		const eventTotal = tokens.reduce((eventSum, amount) => eventSum + (Number(amount) || 0), 0)
+		const eventTotal = tokens.reduce((eventSum: number, amount: number) => eventSum + (Number(amount) || 0), 0)
 		return sum + eventTotal
 	}, 0)
 
@@ -44,7 +48,7 @@ export function getEventCountdown(timestamp: number | null | undefined): string 
 export async function getProtocolUnlocksStaticPropsData(protocolParam: string) {
 	const normalizedName = slug(protocolParam)
 
-	const emissions = await getProtocolEmissons(normalizedName).catch(() => null as any)
+	const emissions = await getProtocolEmissons(normalizedName).catch(() => null)
 	const geckoId = emissions?.geckoId ?? emissions?.meta?.gecko_id ?? null
 	const initialTokenMarketData = geckoId ? await getTokenMarketDataFromCgChart(geckoId).catch(() => null) : null
 

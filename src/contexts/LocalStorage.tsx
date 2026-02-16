@@ -11,12 +11,11 @@ export const THEME_SYNC_KEY = 'defillama-theme' as const
 const valuesOf = <T extends Record<string, string>>(obj: T) => Object.values(obj) as Array<T[keyof T]>
 
 export const DARK_MODE = 'DARK_MODE' as const
-export const UNRELEASED = 'unreleased' as const
 export const DEFAULT_PORTFOLIO_NAME = 'main' as const
-export const BRIDGES_SHOWING_TXS = 'BRIDGES_SHOWING_TXS' as const
+const BRIDGES_SHOWING_TXS = 'BRIDGES_SHOWING_TXS' as const
 export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES' as const
-export const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS' as const
-export const LLAMA_AI_WELCOME_SHOWN = 'LLAMA_AI_WELCOME_SHOWN' as const
+const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS' as const
+const LLAMA_AI_WELCOME_SHOWN = 'LLAMA_AI_WELCOME_SHOWN' as const
 
 const YIELDS_SAVED_FILTERS = 'YIELDS_SAVED_FILTERS' as const
 const CUSTOM_COLUMNS = 'CUSTOM_COLUMNS' as const
@@ -76,7 +75,7 @@ export const YIELDS_SETTINGS = {
 } as const
 
 // NFT
-export const NFT_SETTINGS = {
+const NFT_SETTINGS = {
 	DISPLAY_USD: 'DISPLAY_USD',
 	HIDE_LAST_DAY: 'HIDE_LAST_DAY'
 } as const
@@ -112,17 +111,17 @@ export const LIQS_SETTINGS = {
 } as const
 
 // BRIDGES
-export const BRIDGES_SETTINGS = { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES } as const
+const BRIDGES_SETTINGS = { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES } as const
 
 export type TvlSettingsKey = (typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS]
 export type FeesSettingKey = (typeof FEES_SETTINGS)[keyof typeof FEES_SETTINGS]
 export type YieldsSettingKey = (typeof YIELDS_SETTINGS)[keyof typeof YIELDS_SETTINGS]
-export type NftSettingKey = (typeof NFT_SETTINGS)[keyof typeof NFT_SETTINGS]
-export type LiquidationsSettingKey = (typeof LIQS_SETTINGS)[keyof typeof LIQS_SETTINGS]
-export type BridgesSettingKey = (typeof BRIDGES_SETTINGS)[keyof typeof BRIDGES_SETTINGS]
-export type ChainsCategoryGroupKey = (typeof CHAINS_CATEGORY_GROUP_SETTINGS)[number]['key']
+type NftSettingKey = (typeof NFT_SETTINGS)[keyof typeof NFT_SETTINGS]
+type LiquidationsSettingKey = (typeof LIQS_SETTINGS)[keyof typeof LIQS_SETTINGS]
+type BridgesSettingKey = (typeof BRIDGES_SETTINGS)[keyof typeof BRIDGES_SETTINGS]
+type ChainsCategoryGroupKey = (typeof CHAINS_CATEGORY_GROUP_SETTINGS)[number]['key']
 
-export type SettingKey =
+type SettingKey =
 	| TvlSettingsKey
 	| FeesSettingKey
 	| NftSettingKey
@@ -130,7 +129,7 @@ export type SettingKey =
 	| BridgesSettingKey
 	| ChainsCategoryGroupKey
 
-export type KeysFor<T extends TSETTINGTYPE> = T extends 'tvl'
+type KeysFor<T extends TSETTINGTYPE> = T extends 'tvl'
 	? TvlSettingsKey
 	: T extends 'fees'
 		? FeesSettingKey
@@ -150,7 +149,7 @@ type YieldFilterValue = string | number | boolean
 type YieldSavedFilter = Record<string, YieldFilterValue>
 type YieldSavedFilters = Record<string, YieldSavedFilter>
 export type WatchlistStore = Record<string, Record<string, string>>
-export type SettingsStore = Partial<Record<SettingKey, boolean>>
+type SettingsStore = Partial<Record<SettingKey, boolean>>
 
 export type CustomColumnDef = {
 	name: string
@@ -177,11 +176,11 @@ const CHAINS_CATEGORY_GROUP_KEYS = CHAINS_CATEGORY_GROUP_SETTINGS.map((g) => g.k
 const CHAINS_CATEGORY_GROUP_KEYS_SET = new Set<string>(CHAINS_CATEGORY_GROUP_KEYS)
 export const TVL_SETTINGS_KEYS = valuesOf(TVL_SETTINGS)
 export const TVL_SETTINGS_KEYS_SET = new Set<string>(TVL_SETTINGS_KEYS)
-export const FEES_SETTINGS_KEYS = valuesOf(FEES_SETTINGS)
+const FEES_SETTINGS_KEYS = valuesOf(FEES_SETTINGS)
 export const FEES_SETTINGS_KEYS_SET = new Set<string>(FEES_SETTINGS_KEYS)
-export const NFT_SETTINGS_KEYS = valuesOf(NFT_SETTINGS)
-export const LIQS_SETTINGS_KEYS = valuesOf(LIQS_SETTINGS)
-export const BRIDGES_SETTINGS_KEYS = valuesOf(BRIDGES_SETTINGS)
+const NFT_SETTINGS_KEYS = valuesOf(NFT_SETTINGS)
+const LIQS_SETTINGS_KEYS = valuesOf(LIQS_SETTINGS)
+const BRIDGES_SETTINGS_KEYS = valuesOf(BRIDGES_SETTINGS)
 
 export const isTvlSettingsKey = (value: string): value is TvlSettingsKey => TVL_SETTINGS_KEYS_SET.has(value)
 export const isFeesSettingKey = (value: string): value is FeesSettingKey => FEES_SETTINGS_KEYS_SET.has(value)
@@ -266,8 +265,9 @@ export const updateAllSettingsInLsAndUrl = (keys: Partial<Record<SettingKey, boo
 
 	const url = new URL(window.location.href)
 
-	for (const key in keys) {
-		if (keys[key]) {
+	const keysRecord: Record<string, boolean | undefined> = keys
+	for (const key in keysRecord) {
+		if (keysRecord[key]) {
 			url.searchParams.set(key, 'true')
 		} else {
 			url.searchParams.delete(key)
@@ -279,7 +279,7 @@ export const updateAllSettingsInLsAndUrl = (keys: Partial<Record<SettingKey, boo
 	writeAppStorage({ ...(current as AppStorage), ...keys })
 }
 
-export type TSETTINGTYPE =
+type TSETTINGTYPE =
 	| 'tvl'
 	| 'fees'
 	| 'tvl_fees'
@@ -352,7 +352,7 @@ export function useLocalStorageSettingsManager<T extends TSETTINGTYPE>(
 	return [settings, (key: KeysFor<T>) => updateSetting(key)]
 }
 
-export const updateAllSettings = (keys: Partial<Record<SettingKey, boolean>>) => {
+const updateAllSettings = (keys: Partial<Record<SettingKey, boolean>>) => {
 	const current = readAppStorage()
 	writeAppStorage({ ...(current as AppStorage), ...keys })
 }

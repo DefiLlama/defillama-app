@@ -4,12 +4,13 @@ import { useMemo, useRef } from 'react'
 import { CHAINS_API, PROTOCOLS_API } from '~/constants'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { toDisplayName } from '~/utils/chainNormalizer'
-import { CustomTimePeriod, TimePeriod } from './ProDashboardAPIContext'
+import type { CustomTimePeriod, TimePeriod } from './ProDashboardAPIContext'
 import ChainCharts from './services/ChainCharts'
 import ProtocolCharts from './services/ProtocolCharts'
 import { CHART_TYPES, getChainChartTypes, getProtocolChartTypes } from './types'
 import { groupData } from './utils'
 
+// oxlint-disable-next-line no-unused-vars
 function generateChartKey(
 	type: string,
 	itemType: 'chain' | 'protocol',
@@ -420,7 +421,8 @@ function getChartQueryFn(
 	}
 }
 
-export function useChartData(
+// oxlint-disable-next-line no-unused-vars
+function useChartData(
 	type: string,
 	itemType: 'chain' | 'protocol',
 	item: string,
@@ -442,9 +444,10 @@ export function useChartData(
 	})
 }
 
-export { generateChartKey, getChartQueryKey, getChartQueryFn }
+export { getChartQueryKey, getChartQueryFn }
 
-export function useChains() {
+// oxlint-disable-next-line no-unused-vars
+function useChains() {
 	return useQuery({
 		queryKey: ['chains'],
 		queryFn: async () => {
@@ -589,7 +592,8 @@ export function useChartsData(charts, timePeriod?: TimePeriod, customPeriod?: Cu
 	})
 }
 
-export function useAvailableChartTypes(
+// oxlint-disable-next-line no-unused-vars
+function useAvailableChartTypes(
 	item: string | null,
 	itemType: 'chain' | 'protocol',
 	geckoId?: string | null,

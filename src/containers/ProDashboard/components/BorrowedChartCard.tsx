@@ -1,7 +1,10 @@
 import { lazy, Suspense, useMemo } from 'react'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
-import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
+import {
+	formatProtocolV1TvlsByChain,
+	useFetchProtocolV1AddlChartsData
+} from '~/containers/ProtocolOverview/protocolV1AddlChartsData'
 import { download, toNiceCsvDate } from '~/utils'
 import { BORROWED_CHART_OPTIONS, BORROWED_CHART_TYPE_LABELS } from '../borrowedChartConstants'
 import { useChartImageExport } from '../hooks/useChartImageExport'
@@ -31,11 +34,11 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const { chartInstance, handleChartReady } = useChartImageExport()
 
-	const { data: addlData, historicalChainTvls, isLoading } = useFetchProtocolAddlChartsData(protocolName, true)
+	const { data: addlData, historicalChainTvls, isLoading } = useFetchProtocolV1AddlChartsData(protocolName, true)
 
 	const { chainsSplit, chainsUnique } = useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
-		const chainsSplit = formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled: {} })
+		const chainsSplit = formatProtocolV1TvlsByChain({ historicalChainTvls, extraTvlsEnabled: {} })
 		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
 		const chainsUnique: string[] = []
 		for (const key in lastEntry) {

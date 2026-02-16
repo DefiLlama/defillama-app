@@ -29,7 +29,8 @@ const parseNumberWithAbbreviation = (input: string): number | undefined => {
 	return suffix ? base * multipliers[suffix] : base
 }
 
-export function FormattedNumberInput({
+// oxlint-disable-next-line no-unused-vars
+function FormattedNumberInput({
 	value,
 	onChange,
 	placeholder,
@@ -97,7 +98,7 @@ export function FormattedNumberInput({
 					onFocus={handleFocus}
 					onBlur={handleBlur}
 					placeholder={placeholder}
-					className={`h-9 w-full rounded-md border px-3 text-sm transition outline-none ${prefix ? 'pl-6' : ''} ${
+					className={`h-9 w-full rounded-md border px-3 text-sm outline-hidden transition ${prefix ? 'pl-6' : ''} ${
 						error
 							? 'border-red-500 focus:border-red-600'
 							: 'border-(--cards-border) bg-(--cards-bg2) text-(--text-primary) focus:border-(--primary)'

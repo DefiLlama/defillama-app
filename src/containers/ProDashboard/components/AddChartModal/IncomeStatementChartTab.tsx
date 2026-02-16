@@ -5,7 +5,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { IncomeStatement } from '~/containers/ProtocolOverview/IncomeStatement'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { useAppMetadata } from '../../AppMetadataContext'
-import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
+import { AriakitVirtualizedSelect, type VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
 
 interface IncomeStatementChartTabProps {
 	selectedIncomeStatementProtocol: string | null

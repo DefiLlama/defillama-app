@@ -171,7 +171,7 @@ export function evaluateExpression(expression: string, metrics: NumericMetrics):
 	}
 }
 
-export interface AvailableVariable {
+interface AvailableVariable {
 	key: string
 	name: string
 	group: string
@@ -195,7 +195,7 @@ function getAllVariables(): AvailableVariable[] {
 	return ALL_VARIABLES_CACHE
 }
 
-export interface GetAvailableVariablesOptions {
+interface GetAvailableVariablesOptions {
 	groups?: string[]
 	keys?: string[]
 }
@@ -299,7 +299,8 @@ export const SAMPLE_METRICS: NumericMetrics = {
 	ps: 36.5
 }
 
-export function evaluateWithSampleData(expression: string): { value: number | null; error?: string } {
+// oxlint-disable-next-line no-unused-vars
+function evaluateWithSampleData(expression: string): { value: number | null; error?: string } {
 	const validation = validateExpression(expression)
 	if (!validation.isValid) {
 		return { value: null, error: validation.error }

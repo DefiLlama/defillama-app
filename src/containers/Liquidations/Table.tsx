@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import {
-	ColumnDef,
+	type ColumnDef,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
@@ -20,14 +20,14 @@ import { fetchJson } from '~/utils/async'
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
 
-export interface ILiquidableProtocolRow {
+interface ILiquidableProtocolRow {
 	name: string
 	changes24h: number | null
 	liquidableAmount: number
 	dangerousAmount: number
 }
 
-export interface ILiquidablePositionsRow {
+interface ILiquidablePositionsRow {
 	protocolName: string
 	chainName: string
 	owner?: {
@@ -212,7 +212,7 @@ const NameCell = (props: { value: string }) => {
 	return <ChainName {...props} />
 }
 
-export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] = [
+const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -283,7 +283,7 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 	}
 ]
 
-export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] = [
+const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] = [
 	{
 		header: 'Protocol',
 		accessorKey: 'protocolName',
@@ -366,7 +366,7 @@ export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] 
 	}
 ]
 
-export function LiquidatableProtocolsTable({ data }: { data: ILiquidableProtocolRow[] }) {
+function LiquidatableProtocolsTable({ data }: { data: ILiquidableProtocolRow[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'liquidableAmount' }])
 
 	const instance = useReactTable({
@@ -387,7 +387,7 @@ export function LiquidatableProtocolsTable({ data }: { data: ILiquidableProtocol
 	return <VirtualTable instance={instance} />
 }
 
-export function LiquidatablePositionsTable({ data }: { data: ILiquidablePositionsRow[] }) {
+function LiquidatablePositionsTable({ data }: { data: ILiquidablePositionsRow[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'value' }])
 
 	const instance = useReactTable({

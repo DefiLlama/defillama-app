@@ -79,7 +79,7 @@ export const MultiSelectCombobox = ({
 						))}
 					</div>
 				) : null}
-				<Ariakit.Combobox placeholder={placeholder} className="w-full flex-1 px-3 py-2 text-base outline-none" />
+				<Ariakit.Combobox placeholder={placeholder} className="w-full flex-1 px-3 py-2 text-base outline-hidden" />
 				{open ? (
 					<Icon name="x" className="absolute top-0 right-2 bottom-0 my-auto h-4 w-4" />
 				) : (

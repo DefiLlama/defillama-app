@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-export type DebouncedFunction<T extends (...args: any[]) => void> = ((...args: Parameters<T>) => void) & {
+type DebouncedFunction<T extends (...args: any[]) => void> = ((...args: Parameters<T>) => void) & {
 	cancel: () => void
 	flush: () => void
 }

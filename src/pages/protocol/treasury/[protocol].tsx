@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext } from 'next'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
@@ -9,14 +9,18 @@ import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { TokenLogo } from '~/components/TokenLogo'
-import { PROTOCOL_TREASURY_API } from '~/constants'
+import {
+	fetchProtocolOverviewMetrics,
+	fetchProtocolTreasuryTokenBreakdownChart
+} from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
-import { buildProtocolAddlChartsData, getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
+import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
+import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
+import { useProtocolBreakdownCharts } from '~/containers/ProtocolOverview/useProtocolBreakdownCharts'
+import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug, tokenIconUrl } from '~/utils'
-import { fetchJson } from '~/utils/async'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_TOGGLE_OPTIONS = []
@@ -26,6 +30,14 @@ const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSer
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 type MultiSeriesCharts = NonNullable<IMultiSeriesChart2Props['charts']>
+
+interface TreasuryPageProps {
+	name: string
+	otherProtocols: string[]
+	category: string | null
+	metrics: IProtocolPageMetrics
+	warningBanners: ReturnType<typeof getProtocolWarningBanners>
+}
 
 function updateSelectionOnListChange(selected: string[], all: string[]) {
 	if (all.length === 0) return []
@@ -198,9 +210,13 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const protocolData = await getProtocol(protocol)
+		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 
-		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
+		if (!protocolData) {
+			return { notFound: true, props: null }
+		}
+
+		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
 		return {
 			props: {
@@ -216,122 +232,72 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocols(props) {
+export default function Protocols(props: TreasuryPageProps) {
 	const router = useRouter()
+	const protocol = slug(props.name ?? '')
 
-	// includeOwnTokens is true by default, unless explicitly set to 'false' in query params
-	// Only read query params after router is ready to avoid hydration mismatch
-	const includeOwnTokens = !router.isReady || router.query.includeOwnTokens !== 'false'
+	// includeOwnTokens is off by default and only enabled via URL query.
+	// Read query params only when router is ready to avoid hydration mismatch.
+	const includeOwnTokens = router.isReady && router.query.includeOwnTokens === 'true'
 
-	const { data, isLoading, isFetching } = useQuery({
-		queryKey: ['treasury', props.name],
-		queryFn: () => fetchJson(`${PROTOCOL_TREASURY_API}/${props.name}`),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0
+	const extraKeys = React.useMemo(() => (includeOwnTokens ? ['OwnTokens'] : []), [includeOwnTokens])
+
+	const {
+		isLoading,
+		valueDataset,
+		valueCharts,
+		tokensUnique,
+		tokenUSDDataset,
+		tokenUSDCharts,
+		tokenRawDataset,
+		tokenRawCharts,
+		tokenBreakdownPieChart
+	} = useProtocolBreakdownCharts({
+		protocol,
+		keys: extraKeys,
+		includeBase: true,
+		source: 'treasury',
+		inflows: props.metrics?.inflows
 	})
 
-	const hasOwnTokens = React.useMemo(
-		() => Object.keys(data?.chainTvls ?? {}).some((chain) => chain.endsWith('OwnTokens')),
-		[data?.chainTvls]
-	)
+	const { data: ownTokensBreakdown } = useQuery({
+		queryKey: ['protocolTreasuryOwnTokensAvailable', protocol],
+		queryFn: () => fetchProtocolTreasuryTokenBreakdownChart({ protocol, key: 'OwnTokens' }),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: !!protocol
+	})
+
+	const hasOwnTokens = (ownTokensBreakdown?.length ?? 0) > 0
+	const hasBreakdownMetrics =
+		(tokenBreakdownPieChart?.length ?? 0) > 0 ||
+		!!valueDataset ||
+		(tokenRawDataset && tokensUnique.length > 0) ||
+		(tokenUSDDataset && tokensUnique.length > 0)
 
 	const toggleIncludeOwnTokens = React.useCallback(
 		(event: React.ChangeEvent<HTMLInputElement>) => {
 			const nextIncludeOwnTokens = event.currentTarget.checked
 			const { includeOwnTokens: _inc, ...restQuery } = router.query
-			const nextQuery = nextIncludeOwnTokens ? restQuery : { ...restQuery, includeOwnTokens: 'false' }
+			const nextQuery = nextIncludeOwnTokens ? { ...restQuery, includeOwnTokens: 'true' } : restQuery
 			router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 		},
 		[router]
 	)
-
-	const { tokenBreakdown, tokenBreakdownUSD, tokenBreakdownPieChart, tokensUnique, historicalTreasury } =
-		React.useMemo(() => {
-			const filteredChainTvls: Record<string, any> = {}
-
-			for (const chain in data?.chainTvls ?? {}) {
-				if (chain.includes('-')) continue
-				if (!includeOwnTokens && chain.endsWith('OwnTokens')) continue
-				filteredChainTvls[chain] = data.chainTvls[chain]
-			}
-
-			const addl = buildProtocolAddlChartsData({
-				protocolData: { name: props.name, chainTvls: filteredChainTvls },
-				extraTvlsEnabled: {}
-			})
-
-			const totalsByDate: Record<string, number> = {}
-			for (const chain in filteredChainTvls) {
-				for (const { date, totalLiquidityUSD } of filteredChainTvls[chain]?.tvl ?? []) {
-					const key = String(date)
-					totalsByDate[key] = (totalsByDate[key] || 0) + (totalLiquidityUSD ?? 0)
-				}
-			}
-
-			const historicalTreasury = Object.entries(totalsByDate)
-				.map(([date, value]) => [Number(date), value] as [number, number])
-				.sort(([a], [b]) => a - b)
-
-			return {
-				tokenBreakdown: (addl as any)?.tokenBreakdown ?? [],
-				tokenBreakdownUSD: (addl as any)?.tokenBreakdownUSD ?? [],
-				tokenBreakdownPieChart: (addl as any)?.tokenBreakdownPieChart ?? [],
-				tokensUnique: (addl as any)?.tokensUnique ?? [],
-				historicalTreasury
-			}
-		}, [data, includeOwnTokens, props.name])
-
-	const { historicalTreasuryDataset, historicalTreasuryCharts } = React.useMemo(() => {
-		if (!historicalTreasury?.length) return { historicalTreasuryDataset: null, historicalTreasuryCharts: [] as any[] }
-
-		return {
-			historicalTreasuryDataset: {
-				source: historicalTreasury.map(([date, value]) => ({ timestamp: +date * 1e3, Treasury: value })),
-				dimensions: ['timestamp', 'Treasury']
-			},
-			historicalTreasuryCharts: [
-				{
-					type: 'line' as const,
-					name: 'Treasury',
-					encode: { x: 'timestamp', y: 'Treasury' }
-				}
-			]
-		}
-	}, [historicalTreasury])
-
-	const { tokenRawDataset, tokenRawCharts } = React.useMemo(() => {
-		if (!tokenBreakdown?.length || tokensUnique.length === 0) return { tokenRawDataset: null, tokenRawCharts: [] }
-		return {
-			tokenRawDataset: {
-				source: tokenBreakdown.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...tokensUnique]
-			},
-			tokenRawCharts: tokensUnique.map((name) => ({
-				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name }
-			}))
-		}
-	}, [tokenBreakdown, tokensUnique])
-
-	const { tokenUSDDataset, tokenUSDCharts } = React.useMemo(() => {
-		if (!tokenBreakdownUSD?.length || tokensUnique.length === 0) return { tokenUSDDataset: null, tokenUSDCharts: [] }
-		return {
-			tokenUSDDataset: {
-				source: tokenBreakdownUSD.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...tokensUnique]
-			},
-			tokenUSDCharts: tokensUnique.map((name) => ({
-				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name }
-			}))
-		}
-	}, [tokenBreakdownUSD, tokensUnique])
 
 	return (
 		<ProtocolOverviewLayout
@@ -343,72 +309,74 @@ export default function Protocols(props) {
 			warningBanners={props.warningBanners}
 			toggleOptions={EMPTY_TOGGLE_OPTIONS}
 		>
-			{isLoading || isFetching ? (
+			<div className="col-span-full flex flex-wrap items-center justify-end gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<div className="mr-auto flex items-center gap-2">
+					<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+					<h1 className="text-xl font-bold">{props.name} Treasury</h1>
+				</div>
+				{hasOwnTokens ? (
+					<Switch
+						value="includeOwnTokens"
+						label="Include own tokens"
+						checked={includeOwnTokens}
+						onChange={toggleIncludeOwnTokens}
+						className="ml-auto gap-2"
+					/>
+				) : null}
+			</div>
+			{isLoading ? (
 				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
 				</div>
+			) : !hasBreakdownMetrics ? (
+				<div className="col-span-full flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+					<p className="text-(--text-label)">Breakdown metrics are not available</p>
+				</div>
 			) : (
-				<>
-					<div className="col-span-full flex flex-wrap items-center justify-end gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-						<div className="mr-auto flex items-center gap-2">
-							<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
-							<h1 className="text-xl font-bold">{props.name} Treasury</h1>
-						</div>
-						{hasOwnTokens ? (
-							<Switch
-								value="includeOwnTokens"
-								label="Include own tokens"
-								checked={includeOwnTokens}
-								onChange={toggleIncludeOwnTokens}
-								className="ml-auto gap-2"
-							/>
-						) : null}
-					</div>
-					<div className="grid grid-cols-2 gap-2">
-						{tokenBreakdownPieChart?.length ? (
-							<TokensBreakdownPieChartCard
-								key={tokenBreakdownPieChart.map((d) => d.name).join('|')}
-								protocolName={props.name}
-								chartData={tokenBreakdownPieChart}
-							/>
-						) : null}
+				<div className="grid grid-cols-2 gap-2">
+					{tokenBreakdownPieChart?.length ? (
+						<TokensBreakdownPieChartCard
+							key={tokenBreakdownPieChart.map((d) => d.name).join('|')}
+							protocolName={props.name}
+							chartData={tokenBreakdownPieChart}
+						/>
+					) : null}
 
-						{historicalTreasuryDataset ? (
-							<HistoricalTreasuryChartCard
-								key="historical-treasury"
-								protocolName={props.name}
-								dataset={historicalTreasuryDataset}
-								charts={historicalTreasuryCharts}
-							/>
-						) : null}
+					{valueDataset ? (
+						<HistoricalTreasuryChartCard
+							key="historical-treasury"
+							protocolName={props.name}
+							dataset={valueDataset}
+							charts={valueCharts}
+						/>
+					) : null}
 
-						{tokenRawDataset && tokensUnique.length > 0 ? (
-							<TokensMultiSeriesChartCard
-								key={`${tokensUnique.join('|')}:treasury-tokens-breakdown-raw`}
-								title="Tokens Breakdown"
-								protocolName={props.name}
-								allTokens={tokensUnique}
-								dataset={tokenRawDataset}
-								charts={tokenRawCharts}
-								exportSuffix="treasury-tokens-breakdown-raw"
-								valueSymbol=""
-							/>
-						) : null}
+					{tokenRawDataset && tokensUnique.length > 0 ? (
+						<TokensMultiSeriesChartCard
+							key={`${tokensUnique.join('|')}:treasury-tokens-breakdown-raw`}
+							title="Tokens Breakdown"
+							protocolName={props.name}
+							allTokens={tokensUnique}
+							dataset={tokenRawDataset}
+							charts={tokenRawCharts}
+							exportSuffix="treasury-tokens-breakdown-raw"
+							valueSymbol=""
+						/>
+					) : null}
 
-						{tokenUSDDataset && tokensUnique.length > 0 ? (
-							<TokensMultiSeriesChartCard
-								key={`${tokensUnique.join('|')}:treasury-tokens-usd`}
-								title="Tokens (USD)"
-								protocolName={props.name}
-								allTokens={tokensUnique}
-								dataset={tokenUSDDataset}
-								charts={tokenUSDCharts}
-								exportSuffix="treasury-tokens-usd"
-								valueSymbol="$"
-							/>
-						) : null}
-					</div>
-				</>
+					{tokenUSDDataset && tokensUnique.length > 0 ? (
+						<TokensMultiSeriesChartCard
+							key={`${tokensUnique.join('|')}:treasury-tokens-usd`}
+							title="Tokens (USD)"
+							protocolName={props.name}
+							allTokens={tokensUnique}
+							dataset={tokenUSDDataset}
+							charts={tokenUSDCharts}
+							exportSuffix="treasury-tokens-usd"
+							valueSymbol="$"
+						/>
+					) : null}
+				</div>
 			)}
 		</ProtocolOverviewLayout>
 	)

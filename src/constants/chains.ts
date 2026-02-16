@@ -2,7 +2,7 @@ import { toDisplayName } from '~/utils/chainNormalizer'
 
 // EVM-compatible chains that have null chainId in the API but are actually EVM
 // Also includes chain name variants that appear in yields data but not in chains API
-export const EVM_CHAINS_WITH_NULL_CHAINID = [
+const EVM_CHAINS_WITH_NULL_CHAINID = [
 	'Kava',
 	'Canto',
 	'Sei',
@@ -28,7 +28,8 @@ export const EVM_CHAINS_WITH_NULL_CHAINID = [
 ]
 
 // Set for O(1) lookup of supplementary EVM chains
-export const EVM_CHAINS_WITH_NULL_CHAINID_SET = new Set(EVM_CHAINS_WITH_NULL_CHAINID)
+// oxlint-disable-next-line no-unused-vars
+const EVM_CHAINS_WITH_NULL_CHAINID_SET = new Set(EVM_CHAINS_WITH_NULL_CHAINID)
 
 // Helper function to build EVM chains set from API data
 // chainData is the response from api.llama.fi/chains

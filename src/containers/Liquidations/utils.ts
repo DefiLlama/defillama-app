@@ -1,5 +1,4 @@
 import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
-import { formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { PROTOCOL_NAMES_MAP, SYMBOL_MAP, WRAPPED_GAS_TOKENS } from './constants'
 
@@ -16,10 +15,10 @@ export const getDataUrl = (symbol: string, timestamp: number) => {
 }
 
 // making aliases so the hints are more readable
-export type Address = string
-export type PrefixAddress = string
-export type Chain = string
-export type Protocol = string
+type Address = string
+type PrefixAddress = string
+type Chain = string
+type Protocol = string
 
 export interface Position {
 	owner: Address
@@ -77,7 +76,7 @@ export type ChartData = {
 	totalPositions: number
 }
 
-export type LiquidationsChartSeries = {
+type LiquidationsChartSeries = {
 	key: string
 	label: string
 	usd: number[]

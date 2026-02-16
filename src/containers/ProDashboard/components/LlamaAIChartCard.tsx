@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
 import { ChartRenderer } from '~/containers/LlamaAI/components/ChartRenderer'
-import { LlamaAIChartConfig } from '../types'
+import type { LlamaAIChartConfig } from '../types'
 import { LoadingSpinner } from './LoadingSpinner'
 
 interface LlamaAIChartCardProps {

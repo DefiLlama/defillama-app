@@ -1,4 +1,4 @@
-import { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext } from 'next'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
@@ -9,17 +9,15 @@ import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
 import { oldBlue } from '~/constants/colors'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
-import {
-	formatTvlsByChain,
-	getProtocolWarningBanners,
-	useFetchProtocolAddlChartsData
-} from '~/containers/ProtocolOverview/utils'
+import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
+import { useProtocolBreakdownCharts } from '~/containers/ProtocolOverview/useProtocolBreakdownCharts'
+import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { TVL_SETTINGS_KEYS_SET, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug, tokenIconUrl } from '~/utils'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -53,17 +51,17 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const protocolData = await getProtocol(protocol)
+		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 
 		if (!protocolData) {
 			return { notFound: true, props: null }
 		}
 
-		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
+		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
 		const toggleOptions = []
 
-		for (const chain in protocolData.chainTvls) {
+		for (const chain in protocolData.currentChainTvls) {
 			if (TVL_SETTINGS_KEYS_SET.has(chain)) {
 				const option = tvlOptionsMap.get(chain as any)
 				if (option) {
@@ -88,6 +86,16 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
@@ -335,112 +343,45 @@ function InflowsByTokenChartCard({
 }
 
 export default function Protocols(props) {
-	const {
-		data: addlProtocolData,
-		historicalChainTvls,
-		isLoading,
-		isFetching: _isFetching
-	} = useFetchProtocolAddlChartsData(props.name)
-	const {
-		usdInflows,
-		tokenInflows,
-		tokensUnique: rawTokensUnique,
-		tokenBreakdown,
-		tokenBreakdownUSD,
-		tokenBreakdownPieChart
-	} = addlProtocolData || {}
-	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
-	const tokensUnique = React.useMemo(() => rawTokensUnique ?? [], [rawTokensUnique])
+	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
+	const protocol = slug(props.name ?? '')
+	const toggledTvlKeys = React.useMemo(() => {
+		const availableTvlKeys: string[] = (props.toggleOptions ?? []).map((option) => option.key)
+		return availableTvlKeys.filter((key) => tvlSettings[key])
+	}, [props.toggleOptions, tvlSettings])
 
-	const { chainsSplit, chainsUnique } = React.useMemo(() => {
-		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
-		const chainsSplit = formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled })
-		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
-		const chainsUnique: string[] = []
-		for (const key in lastEntry) {
-			if (!Object.prototype.hasOwnProperty.call(lastEntry, key)) continue
-			if (key !== 'date') chainsUnique.push(key)
-		}
-		return { chainsSplit, chainsUnique }
-	}, [historicalChainTvls, extraTvlsEnabled])
+	const {
+		isLoading,
+		chainsUnique,
+		tokensUnique,
+		chainsDataset,
+		chainsCharts,
+		tokenUSDDataset,
+		tokenUSDCharts,
+		tokenRawDataset,
+		tokenRawCharts,
+		tokenBreakdownUSD,
+		tokenBreakdownPieChart,
+		usdInflowsDataset,
+		tokenInflowsDataset,
+		tokenInflowsCharts
+	} = useProtocolBreakdownCharts({
+		protocol,
+		keys: toggledTvlKeys,
+		includeBase: true,
+		inflows: props.metrics?.inflows
+	})
+
 	const protocolSlug = slug(props.name || 'protocol')
 	const buildFilename = (suffix: string) => `${protocolSlug}-${slug(suffix)}`
 	const buildTitle = (suffix: string) => (props.name ? `${props.name} – ${suffix}` : suffix)
-
-	const { chainsDataset, chainsCharts } = React.useMemo(() => {
-		if (!chainsSplit) return { chainsDataset: null, chainsCharts: [] }
-		return {
-			chainsDataset: {
-				source: chainsSplit.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...chainsUnique]
-			},
-			chainsCharts: chainsUnique.map((name) => ({
-				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name }
-			}))
-		}
-	}, [chainsSplit, chainsUnique])
-
-	const { tokenUSDDataset, tokenUSDCharts } = React.useMemo(() => {
-		if (!tokenBreakdownUSD?.length || tokenBreakdownUSD.length <= 1)
-			return { tokenUSDDataset: null, tokenUSDCharts: [] }
-		return {
-			tokenUSDDataset: {
-				source: tokenBreakdownUSD.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...tokensUnique]
-			},
-			tokenUSDCharts: tokensUnique.map((name) => ({
-				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name }
-			}))
-		}
-	}, [tokenBreakdownUSD, tokensUnique])
-
-	const { tokenRawDataset, tokenRawCharts } = React.useMemo(() => {
-		if (!tokenBreakdown?.length || tokenBreakdown.length <= 1) return { tokenRawDataset: null, tokenRawCharts: [] }
-		return {
-			tokenRawDataset: {
-				source: tokenBreakdown.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...tokensUnique]
-			},
-			tokenRawCharts: tokensUnique.map((name) => ({
-				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name }
-			}))
-		}
-	}, [tokenBreakdown, tokensUnique])
-
-	const usdInflowsDataset = React.useMemo(
-		() =>
-			usdInflows?.length > 0
-				? {
-						source: usdInflows.map(([d, v]) => ({ timestamp: +d * 1e3, 'USD Inflows': v })),
-						dimensions: ['timestamp', 'USD Inflows']
-					}
-				: null,
-		[usdInflows]
-	)
-
-	const { tokenInflowsDataset, tokenInflowsCharts } = React.useMemo(() => {
-		if (!tokenInflows?.length) return { tokenInflowsDataset: null, tokenInflowsCharts: [] }
-		return {
-			tokenInflowsDataset: {
-				source: tokenInflows.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...tokensUnique]
-			},
-			tokenInflowsCharts: tokensUnique.map((name) => ({
-				type: 'bar' as const,
-				name,
-				encode: { x: 'timestamp', y: name },
-				// BarChart auto-stacked when `customLegendOptions` was used (no explicit stacks),
-				// so keep stacked token inflows behavior in MultiSeriesChart2.
-				stack: 'tokenInflows'
-			}))
-		}
-	}, [tokenInflows, tokensUnique])
+	const hasBreakdownMetrics =
+		(chainsDataset && chainsUnique?.length > 1) ||
+		(tokenUSDDataset && tokensUnique?.length > 0) ||
+		(tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && tokenBreakdownPieChart?.length > 0) ||
+		(tokenRawDataset && tokensUnique?.length > 0) ||
+		usdInflowsDataset ||
+		(tokenInflowsDataset && tokensUnique?.length > 0)
 
 	return (
 		<ProtocolOverviewLayout
@@ -459,6 +400,13 @@ export default function Protocols(props) {
 			{isLoading ? (
 				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
+				</div>
+			) : !hasBreakdownMetrics ? (
+				<div className="col-span-2 flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+					<p className="text-(--text-label)">
+						Breakdown charts are not available for this protocol as it operates on a single chain and token composition
+						data is not accurately trackable.
+					</p>
 				</div>
 			) : (
 				<div className="grid grid-cols-2 gap-2">

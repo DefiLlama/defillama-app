@@ -1,6 +1,8 @@
-import { ColumnDef } from '@tanstack/react-table'
-import { lazy, Suspense, useMemo } from 'react'
+import type { ColumnDef } from '@tanstack/react-table'
+import { lazy, Suspense, useMemo, useState } from 'react'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -9,14 +11,17 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formatNum, formattedNum, slug } from '~/utils'
-import { protocolCategories } from './constants'
-import { IProtocolByCategoryOrTagPageData } from './types'
+import { getProtocolCategoryColumnBehavior, getProtocolCategoryPresentation } from './constants'
+import type { IProtocolByCategoryOrTagPageData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
+const CHART_INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
+type ChartInterval = (typeof CHART_INTERVALS_LIST)[number]
 
-const defaultSortingState: Partial<Record<keyof typeof protocolCategories, { id: string; desc: boolean }[]>> = {
+const defaultSortingState: Partial<Record<string, { id: string; desc: boolean }[]>> = {
 	'Trading App': [{ id: 'revenue_7d', desc: true }],
 	Derivatives: [{ id: 'perp_volume_24h', desc: true }],
 	Interface: [{ id: 'perp_volume_24h', desc: true }],
@@ -38,10 +43,24 @@ const defaultSortingState: Partial<Record<keyof typeof protocolCategories, { id:
 
 export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {
 	const name = props.category ?? props.tag ?? ''
+	const [groupBy, setGroupBy] = useState<ChartInterval>('daily')
+	const { chartInstance, handleChartReady } = useGetChartInstance()
+	const categoryPresentation = useMemo(
+		() =>
+			getProtocolCategoryPresentation({
+				label: name,
+				effectiveCategory: props.effectiveCategory,
+				isTagPage: !!props.tag && !props.category
+			}),
+		[name, props.effectiveCategory, props.tag, props.category]
+	)
 
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 
-	const { finalProtocols, charts } = useMemo(() => {
+	const { finalProtocols, charts } = useMemo<{
+		finalProtocols: IProtocolByCategoryOrTagPageData['protocols']
+		charts: IProtocolByCategoryOrTagPageData['charts']
+	}>(() => {
 		const toggledSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 
 		if (toggledSettings.length === 0) return { finalProtocols: props.protocols, charts: props.charts }
@@ -55,10 +74,26 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 			return { ...protocol, tvl }
 		})
 
-		const finalSource = props.charts.dataset.source.map((row) => {
-			const extraSum = toggledSettings.reduce((sum, e) => sum + (props.extraTvlCharts[e]?.[row.timestamp] ?? 0), 0)
-			return { ...row, TVL: ((row.TVL as number) ?? 0) + extraSum }
-		})
+		const shouldMirrorBorrowedChart = props.effectiveCategory === 'Lending' && toggledSettings.includes('borrowed')
+
+		const finalSource: IProtocolByCategoryOrTagPageData['charts']['dataset']['source'] =
+			props.charts.dataset.source.map((row) => {
+				const timestampKey = row.timestamp
+				const extraSum =
+					timestampKey == null
+						? 0
+						: toggledSettings.reduce((sum, e) => sum + (props.extraTvlCharts[e]?.[timestampKey] ?? 0), 0)
+				const currentTvlValue = typeof row.TVL === 'number' ? row.TVL : Number(row.TVL ?? 0)
+				const safeCurrentTvlValue = Number.isFinite(currentTvlValue) ? currentTvlValue : 0
+				const nextTvlValue = safeCurrentTvlValue + extraSum
+				const timestamp = row.timestamp
+
+				if (shouldMirrorBorrowedChart) {
+					return { ...row, timestamp, TVL: nextTvlValue, Borrowed: nextTvlValue }
+				}
+
+				return { ...row, timestamp, TVL: nextTvlValue }
+			})
 
 		return {
 			finalProtocols,
@@ -67,29 +102,141 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				dataset: { ...props.charts.dataset, source: finalSource }
 			}
 		}
-	}, [tvlSettings, props.protocols, props.charts, props.extraTvlCharts])
+	}, [tvlSettings, props.protocols, props.charts, props.extraTvlCharts, props.effectiveCategory])
+
+	const chartSeries = useMemo(() => charts.charts ?? [], [charts.charts])
 
 	const categoryColumns = useMemo(() => {
 		return columns(props.effectiveCategory)
 	}, [props.effectiveCategory])
 
-	const prepareCsv = () => {
-		const headers = categoryColumns.map((col) => col.header as string)
-		const rows = finalProtocols.map((protocol) => {
-			return categoryColumns.map((col: any) => {
-				const value =
-					'accessorFn' in col && col.accessorFn
-						? col?.accessorFn?.(protocol)
-						: protocol[col.id as keyof typeof protocol]
-				if (value == null) return ''
-				if (typeof value === 'number') return value
-				return String(value).includes(',') ? `"${String(value)}"` : String(value)
+	const hasBarCharts = useMemo(() => {
+		return chartSeries.some((series) => {
+			if (series.type !== 'bar') return false
+			const yDimension = typeof series.encode.y === 'string' ? series.encode.y : null
+			if (!yDimension) return false
+
+			return charts.dataset.source.some((row) => {
+				const rawValue = row[yDimension]
+				if (rawValue == null) return false
+				const value = typeof rawValue === 'number' ? rawValue : Number(rawValue)
+				return Number.isFinite(value)
 			})
 		})
+	}, [chartSeries, charts.dataset.source])
+
+	const groupedCharts = useMemo(() => {
+		if (!hasBarCharts) return charts
+
+		const dataBySeries = new Map<string, Map<number, number | null>>()
+		const dimensionOrder: string[] = []
+		const groupedSeries: Array<(typeof chartSeries)[number]> = []
+		for (const series of chartSeries) {
+			const yDimension = typeof series.encode.y === 'string' ? series.encode.y : null
+
+			if (!yDimension) {
+				groupedSeries.push(series)
+				continue
+			}
+
+			dimensionOrder.push(yDimension)
+
+			const rawData: Array<[number, number]> = []
+			for (const row of charts.dataset.source) {
+				const timestamp = Number(row.timestamp)
+				const rawValue = row[yDimension]
+				if (rawValue == null) continue
+				const value = typeof rawValue === 'number' ? rawValue : Number(rawValue)
+				if (!Number.isFinite(timestamp) || !Number.isFinite(value)) continue
+				rawData.push([timestamp, value])
+			}
+
+			const groupedData =
+				series.type === 'bar'
+					? formatBarChart({
+							data: rawData,
+							groupBy,
+							dateInMs: true,
+							denominationPriceHistory: null
+						})
+					: formatLineChart({
+							data: rawData,
+							groupBy,
+							dateInMs: true,
+							denominationPriceHistory: null
+						})
+
+			dataBySeries.set(yDimension, new Map(groupedData.map(([timestamp, value]) => [timestamp, value])))
+
+			groupedSeries.push({
+				...series,
+				type: series.type === 'bar' && groupBy === 'cumulative' ? 'line' : series.type
+			})
+		}
+
+		const timestamps = new Set<number>()
+		for (const points of dataBySeries.values()) {
+			for (const timestamp of points.keys()) {
+				timestamps.add(timestamp)
+			}
+		}
+
+		const sortedTimestamps = Array.from(timestamps).sort((a, b) => a - b)
+
+		return {
+			...charts,
+			dataset: {
+				source: sortedTimestamps.map((timestamp) => {
+					const row: Record<string, number | null> = { timestamp }
+					for (const dimension of dimensionOrder) {
+						row[dimension] = dataBySeries.get(dimension)?.get(timestamp) ?? null
+					}
+					return row
+				}),
+				dimensions: ['timestamp', ...dimensionOrder]
+			},
+			charts: groupedSeries
+		}
+	}, [charts, chartSeries, groupBy, hasBarCharts])
+
+	const chartGroupBy = groupBy === 'cumulative' ? 'daily' : groupBy
+
+	const prepareCsv = () => {
+		const getHeaderLabel = (column: Column): string => {
+			if (typeof column.header === 'string') return column.header
+			return typeof column.id === 'string' ? column.id : ''
+		}
+
+		const getProtocolValue = (column: Column, protocol: (typeof finalProtocols)[number]): unknown => {
+			if ('accessorFn' in column && typeof column.accessorFn === 'function') {
+				return column.accessorFn(protocol, 0)
+			}
+
+			if (typeof protocol === 'object' && protocol !== null && typeof column.id === 'string' && column.id in protocol) {
+				const protocolKey = column.id as keyof typeof protocol
+				return protocol[protocolKey]
+			}
+
+			return null
+		}
+
+		const toCsvCellValue = (value: unknown): string | number | boolean => {
+			if (value == null) return ''
+			if (typeof value === 'number' || typeof value === 'boolean') return value
+			const normalizedValue = String(value)
+			const escapedValue = normalizedValue.replace(/"/g, '""')
+			return escapedValue.includes(',') ? `"${escapedValue}"` : escapedValue
+		}
+
+		const headers = categoryColumns.map(getHeaderLabel)
+		const rows = finalProtocols.map((protocol) =>
+			categoryColumns.map((column) => toCsvCellValue(getProtocolValue(column, protocol)))
+		)
+		const csvRows: Array<Array<string | number | boolean>> = [headers, ...rows]
 
 		return {
 			filename: `defillama-${name}-${props.chain || 'all'}-protocols.csv`,
-			rows: [headers, ...rows] as (string | number | boolean)[][]
+			rows: csvRows
 		}
 	}
 
@@ -99,9 +246,9 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					{props.chain === 'All' ? (
-						<h1 className="text-lg font-semibold">{`${name} Protocols`}</h1>
+						<h1 className="text-lg font-semibold">{categoryPresentation.headingLabel}</h1>
 					) : (
-						<h1 className="text-lg font-semibold">{`${name} Protocols on ${props.chain}`}</h1>
+						<h1 className="text-lg font-semibold">{`${categoryPresentation.headingLabel} on ${props.chain}`}</h1>
 					)}
 					<div className="mb-auto flex flex-1 flex-col gap-2">
 						{props.charts.dataset?.source.length > 0 && (
@@ -183,7 +330,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 										</Tooltip>
 										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 									</p>
-								) : props.effectiveCategory === 'DEX Aggregators' ? (
+								) : props.effectiveCategory === 'DEX Aggregators' || props.effectiveCategory === 'DEX Aggregator' ? (
 									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 										<Tooltip
 											content={definitions.dexAggregators.protocol['7d']}
@@ -231,21 +378,57 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 					</div>
 				</div>
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<Suspense fallback={<div className="min-h-[398px]" />}>
-						<MultiSeriesChart2 dataset={charts.dataset} charts={charts.charts} valueSymbol="$" exportButtons="auto" />
+					<div className="flex items-center justify-end gap-2 p-2 pb-0">
+						{hasBarCharts ? (
+							<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
+								{CHART_INTERVALS_LIST.map((dataInterval) => (
+									<Tooltip
+										content={`${dataInterval.slice(0, 1).toUpperCase()}${dataInterval.slice(1)}`}
+										render={<button />}
+										className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+										data-active={groupBy === dataInterval}
+										onClick={() => {
+											setGroupBy(dataInterval)
+										}}
+										key={`${name}-category-groupBy-${dataInterval}`}
+									>
+										{dataInterval.slice(0, 1).toUpperCase()}
+									</Tooltip>
+								))}
+							</div>
+						) : null}
+						<ChartExportButtons
+							chartInstance={chartInstance}
+							filename={`protocols-${slug(name)}-${slug(props.chain || 'all')}`}
+							title={
+								props.chain === 'All'
+									? categoryPresentation.headingLabel
+									: `${categoryPresentation.headingLabel} on ${props.chain}`
+							}
+						/>
+					</div>
+					<Suspense fallback={<div className="min-h-[360px]" />}>
+						<MultiSeriesChart2
+							dataset={groupedCharts.dataset}
+							charts={groupedCharts.charts}
+							groupBy={chartGroupBy}
+							hideDefaultLegend={false}
+							valueSymbol="$"
+							onReady={handleChartReady}
+						/>
 					</Suspense>
 				</div>
 			</div>
 			<TableWithSearch
 				data={finalProtocols}
 				columns={categoryColumns}
-				placeholder="Search protocols..."
+				placeholder={categoryPresentation.searchPlaceholder}
 				columnToSearch="name"
-				header={props.effectiveCategory === 'RWA' ? 'Assets Rankings' : 'Protocol Rankings'}
+				header={categoryPresentation.tableHeader}
 				sortingState={defaultSortingState[name] ?? [{ id: 'tvl', desc: true }]}
 				customFilters={
 					<>
-						<CSVDownloadButton prepareCsv={prepareCsv} />
+						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</>
 				}
 			/>
@@ -277,7 +460,7 @@ const nameColumn: Column = {
 	accessorFn: (protocol) => protocol.name,
 	enableSorting: false,
 	cell: ({ getValue, row }) => {
-		const value = getValue() as string
+		const value = getValue<string>()
 
 		return (
 			<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-8' : 'pl-4'}`}>
@@ -858,6 +1041,38 @@ const predictionMarketVolume24hColumn: Column = {
 	size: 148
 }
 
+const cryptoCardIssuerVolume7dColumn: Column = {
+	id: 'crypto_card_issuer_volume_7d',
+	header: 'Volume 7d',
+	accessorFn: (protocol) => protocol.dexVolume?.total7d,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	meta: {
+		align: 'end'
+	},
+	size: 140
+}
+
+const cryptoCardIssuerVolume30dColumn: Column = {
+	id: 'crypto_card_issuer_volume_30d',
+	header: 'Volume 30d',
+	accessorFn: (protocol) => protocol.dexVolume?.total30d,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	meta: {
+		align: 'end'
+	},
+	size: 148
+}
+
+const cryptoCardIssuerVolume24hColumn: Column = {
+	id: 'crypto_card_issuer_volume_24h',
+	header: 'Volume 24h',
+	accessorFn: (protocol) => protocol.dexVolume?.total24h,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	meta: {
+		align: 'end'
+	},
+	size: 148
+}
 // ============================================================================
 // Lending Columns
 // ============================================================================
@@ -982,9 +1197,16 @@ const optionsNotional30dColumn: Column = {
 // ============================================================================
 
 const getVolumeColumn = (category: string | null, period: '7d' | '30d' | '24h'): Column | null => {
-	const volumeColumns = {
+	if (category == null) return null
+
+	const volumeColumns: Record<string, Record<'7d' | '30d' | '24h', Column>> = {
 		Dexs: { '7d': dexVolume7dColumn, '30d': dexVolume30dColumn, '24h': dexVolume24hColumn },
 		'DEX Aggregators': {
+			'7d': dexAggregatorVolume7dColumn,
+			'30d': dexAggregatorVolume30dColumn,
+			'24h': dexAggregatorVolume24hColumn
+		},
+		'DEX Aggregator': {
 			'7d': dexAggregatorVolume7dColumn,
 			'30d': dexAggregatorVolume30dColumn,
 			'24h': dexAggregatorVolume24hColumn
@@ -993,34 +1215,42 @@ const getVolumeColumn = (category: string | null, period: '7d' | '30d' | '24h'):
 			'7d': predictionMarketVolume7dColumn,
 			'30d': predictionMarketVolume30dColumn,
 			'24h': predictionMarketVolume24hColumn
+		},
+		'Crypto Card Issuer': {
+			'7d': cryptoCardIssuerVolume7dColumn,
+			'30d': cryptoCardIssuerVolume30dColumn,
+			'24h': cryptoCardIssuerVolume24hColumn
 		}
 	}
+
 	return volumeColumns[category]?.[period] ?? null
 }
 
 const columns = (effectiveCategory: IProtocolByCategoryOrTagPageData['effectiveCategory']): Column[] => {
+	const columnBehavior = getProtocolCategoryColumnBehavior(effectiveCategory)
+
 	return [
 		// Base
 		nameColumn,
 
 		// RWA Asset Class
-		effectiveCategory === 'RWA' ? rwaAssetClassColumn('RWA') : null,
+		columnBehavior.showRwaAssetClass ? rwaAssetClassColumn('RWA') : null,
 
 		// Perp columns (Derivatives & Interface)
-		effectiveCategory === 'Derivatives' || effectiveCategory === 'Interface' ? perpVolume24hColumn : null,
-		effectiveCategory === 'Derivatives' ? openInterestColumn : null,
-		effectiveCategory === 'Derivatives' || effectiveCategory === 'Interface' ? perpVolume7dColumn : null,
-		effectiveCategory === 'Derivatives' || effectiveCategory === 'Interface' ? perpVolume30dColumn : null,
+		columnBehavior.showPerpColumns ? perpVolume24hColumn : null,
+		columnBehavior.showOpenInterest ? openInterestColumn : null,
+		columnBehavior.showPerpColumns ? perpVolume7dColumn : null,
+		columnBehavior.showPerpColumns ? perpVolume30dColumn : null,
 
 		// TVL (not for Interface)
-		effectiveCategory !== 'Interface' ? tvlColumn(effectiveCategory) : null,
+		columnBehavior.showTvl ? tvlColumn(effectiveCategory) : null,
 
 		// RWA stats
-		...(effectiveCategory === 'RWA' ? rwaStatsColumns : []),
+		...(columnBehavior.showRwaStats ? rwaStatsColumns : []),
 
 		// Volume & Fees & Revenue 7d
 		getVolumeColumn(effectiveCategory, '7d'),
-		...(effectiveCategory === 'Options' ? [optionsPremium7dColumn, optionsNotional7dColumn] : []),
+		...(columnBehavior.showOptionColumns ? [optionsPremium7dColumn, optionsNotional7dColumn] : []),
 		fees7dColumn,
 		revenue7dColumn,
 
@@ -1029,17 +1259,17 @@ const columns = (effectiveCategory: IProtocolByCategoryOrTagPageData['effectiveC
 
 		// Volume & Fees & Revenue 30d
 		getVolumeColumn(effectiveCategory, '30d'),
-		...(effectiveCategory === 'Options' ? [optionsPremium30dColumn, optionsNotional30dColumn] : []),
+		...(columnBehavior.showOptionColumns ? [optionsPremium30dColumn, optionsNotional30dColumn] : []),
 		fees30dColumn,
 		revenue30dColumn,
 
 		// Volume & Fees & Revenue 24h
 		getVolumeColumn(effectiveCategory, '24h'),
-		...(effectiveCategory === 'Options' ? [optionsPremium24hColumn, optionsNotional24hColumn] : []),
+		...(columnBehavior.showOptionColumns ? [optionsPremium24hColumn, optionsNotional24hColumn] : []),
 		fees24hColumn,
 		revenue24hColumn,
 
 		// Lending
-		...(effectiveCategory === 'Lending' ? lendingColumns : [])
+		...(columnBehavior.showLendingColumns ? lendingColumns : [])
 	].filter((col): col is Column => col !== null)
 }

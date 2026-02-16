@@ -1,6 +1,6 @@
 import { formatProtocolsData } from '~/api/categories/protocols/utils'
 import { ORACLE_API, PROTOCOLS_API } from '~/constants'
-import { ILiteParentProtocol, ILiteProtocol } from '~/containers/ChainOverview/types'
+import type { ILiteParentProtocol, ILiteProtocol } from '~/containers/ChainOverview/types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -17,7 +17,8 @@ interface IOracleApiResponse {
 }
 
 // - used in /oracles and /oracles/[name]
-export async function getOraclePageData(oracle = null, chain = null) {
+// oxlint-disable-next-line no-unused-vars
+async function getOraclePageData(oracle = null, chain = null) {
 	try {
 		const [{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle }, { protocols }]: [
 			IOracleApiResponse,
@@ -162,7 +163,8 @@ export async function getOraclePageData(oracle = null, chain = null) {
 	}
 }
 
-export async function getOraclePageDataByChain(chain: string) {
+// oxlint-disable-next-line no-unused-vars
+async function getOraclePageDataByChain(chain: string) {
 	try {
 		const [{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle }, { protocols }]: [
 			IOracleApiResponse,

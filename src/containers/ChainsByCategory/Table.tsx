@@ -1,12 +1,12 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ExpandedState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
@@ -23,7 +23,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
+import type { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
 
@@ -346,7 +346,12 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: 'Bridged TVL',
 		accessorKey: 'chainAssets',
-		accessorFn: (row) => (row.chainAssets?.total?.total ? +(+row.chainAssets.total.total).toFixed(2) : undefined),
+		accessorFn: (row) => {
+			const total = row.chainAssets?.total
+			if (total == null) return undefined
+			const raw = typeof total === 'object' ? (total as { total: string }).total : String(total)
+			return raw ? +(+raw).toFixed(2) : undefined
+		},
 		cell: ({ row }) => {
 			const chainAssets: any = row.original.chainAssets
 			if (!chainAssets?.total?.total) return null

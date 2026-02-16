@@ -109,6 +109,22 @@ export function ChainOverview(props: IChainOverviewData) {
 
 const linksToOtherLlamaApps = [
 	{
+		name: 'LlamaSearch',
+		description: 'Fastest way to find any crypto project',
+		href: 'https://search.defillama.com',
+		icon: (
+			<img
+				src="/assets/logo_white.webp"
+				loading="lazy"
+				alt=""
+				height={44}
+				width={44}
+				className="z-10 h-[44px] w-[44px] object-contain"
+			/>
+		),
+		background: <span className="llama-app-background" />
+	},
+	{
 		name: 'LlamaSwap',
 		description: 'No fees DEX aggregator',
 		href: 'https://swap.defillama.com',

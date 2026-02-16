@@ -1,12 +1,22 @@
-import { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { ProtocolsWithTokens } from '~/containers/ProtocolsWithTokens'
-import { getProtocolsAdjustedFDVsByChain } from '~/containers/ProtocolsWithTokens/queries'
+import { ProtocolsWithTokens } from '~/containers/Protocols/ProtocolsWithTokens'
+import { getProtocolsAdjustedFDVsByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticPaths = async () => {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 

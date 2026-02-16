@@ -412,7 +412,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 						onKeyDown={handleKeyDown}
 						placeholder="e.g. 10, 1k, 1m"
 						autoFocus
-						className="h-6 flex-1 rounded border border-current/20 bg-black/30 px-2 text-[11px] outline-none placeholder:opacity-50 focus:border-current/50"
+						className="h-6 flex-1 rounded border border-current/20 bg-black/30 px-2 text-[11px] outline-hidden placeholder:opacity-50 focus:border-current/50"
 					/>
 					{suffix && <span className="text-[10px] opacity-70">{suffix}</span>}
 				</div>
@@ -444,7 +444,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 				value={filter.operator || '>='}
 				setValue={(val) => handleOperatorChange(val as NumericOperator)}
 			>
-				<Ariakit.Select className="flex h-6 w-full cursor-pointer items-center justify-between rounded border border-current/20 bg-black/30 px-2 text-[11px] outline-none focus:border-current/50">
+				<Ariakit.Select className="flex h-6 w-full cursor-pointer items-center justify-between rounded border border-current/20 bg-black/30 px-2 text-[11px] outline-hidden focus:border-current/50">
 					<Ariakit.SelectValue />
 					<Ariakit.SelectArrow />
 				</Ariakit.Select>
@@ -476,7 +476,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 						onKeyDown={handleKeyDown}
 						placeholder="Min"
 						autoFocus
-						className="h-6 flex-1 rounded border border-current/20 bg-black/30 px-2 text-[11px] outline-none placeholder:opacity-50 focus:border-current/50"
+						className="h-6 flex-1 rounded border border-current/20 bg-black/30 px-2 text-[11px] outline-hidden placeholder:opacity-50 focus:border-current/50"
 					/>
 					<span className="text-[10px] opacity-70">-</span>
 					<input
@@ -486,7 +486,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 						onChange={(e) => handleMaxValueChange(e.target.value)}
 						onKeyDown={handleKeyDown}
 						placeholder="Max"
-						className="h-6 flex-1 rounded border border-current/20 bg-black/30 px-2 text-[11px] outline-none placeholder:opacity-50 focus:border-current/50"
+						className="h-6 flex-1 rounded border border-current/20 bg-black/30 px-2 text-[11px] outline-hidden placeholder:opacity-50 focus:border-current/50"
 					/>
 					{suffix && <span className="text-[10px] opacity-70">{suffix}</span>}
 				</div>
@@ -501,7 +501,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 						onKeyDown={handleKeyDown}
 						placeholder="e.g. 10, 1k, 1m"
 						autoFocus
-						className="h-6 flex-1 rounded border border-current/20 bg-black/30 px-2 text-[11px] outline-none placeholder:opacity-50 focus:border-current/50"
+						className="h-6 flex-1 rounded border border-current/20 bg-black/30 px-2 text-[11px] outline-hidden placeholder:opacity-50 focus:border-current/50"
 					/>
 					{suffix && <span className="text-[10px] opacity-70">{suffix}</span>}
 				</div>
@@ -702,7 +702,7 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 						onChange={(e) => setSearch(e.target.value)}
 						placeholder="Search filters..."
 						aria-label="Search filters"
-						className="h-8 w-full rounded-md border border-(--cards-border) bg-(--cards-bg2) pr-8 pl-8 text-xs text-(--text-primary) transition-colors outline-none focus:border-(--primary)"
+						className="h-8 w-full rounded-md border border-(--cards-border) bg-(--cards-bg2) pr-8 pl-8 text-xs text-(--text-primary) outline-hidden transition-colors focus:border-(--primary)"
 					/>
 					{search && (
 						<button

@@ -1,11 +1,24 @@
+import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import type { IAdapterChainMetrics, IAdapterChart, IAdapterProtocolMetrics } from './api.types'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
 
-interface IProtocol {
-	name: string
-	slug: string
-	logo: string
-	chains: Array<string>
-	category: string | null
+// Chain-level adapter data with chart
+export interface IAdapterChainOverview extends IAdapterChainMetrics {
+	totalDataChart: IAdapterChart
+}
+
+// Single protocol adapter data with chart
+export interface IAdapterProtocolOverview extends IAdapterProtocolMetrics {
+	totalDataChart: IAdapterChart
+}
+
+type ApiProtocol = IAdapterChainMetrics['protocols'][0]
+
+// Extract base fields from API protocol type
+// String fields remain non-nullable (they always exist in API response)
+// Numeric fields are nullable for UI layer (can be missing in aggregated data)
+export type IProtocol = Pick<ApiProtocol, 'name' | 'slug' | 'logo' | 'chains'> & {
+	category: ApiProtocol['category'] | null
 	total24h: number | null
 	total7d: number | null
 	total30d: number | null
@@ -27,25 +40,23 @@ interface IProtocol {
 		totalAllTime: number | null
 	}
 	openInterest?: number | null
-	pf?: number | null
-	ps?: number | null
+	activeLiquidity?: number | null
+	normalizedVolume24h?: number | null
+	pfOrPs?: number | null
 	methodology?: string | null
 	doublecounted?: boolean
 	zeroFeePerp?: boolean
-}
-
-interface IAdapterByChainPageProtocol extends IProtocol {
 	childProtocols?: Array<IProtocol>
 }
 
 export interface IAdapterByChainPageData {
 	chain: string
 	chains: Array<{ label: string; to: string }>
-	protocols: Array<IAdapterByChainPageProtocol>
+	protocols: Array<IProtocol>
 	categories: Array<string>
 	adapterType: `${ADAPTER_TYPES}`
 	dataType: `${ADAPTER_DATA_TYPES}` | null
-	chartData: Array<[number, number]>
+	chartData: MultiSeriesChart2Dataset
 	total24h: number | null
 	total7d: number | null
 	total30d: number | null
@@ -54,12 +65,14 @@ export interface IAdapterByChainPageData {
 	change_1m: number | null
 	change_7dover7d: number | null
 	openInterest: number | null
+	entityQuestions?: string[]
+	activeLiquidity: number | null
 }
 
 export interface IChainsByAdapterPageData {
 	adapterType: `${ADAPTER_TYPES}`
 	dataType: `${ADAPTER_DATA_TYPES}` | null
-	chartData: Array<[number, Record<string, number>]>
+	chartData: MultiSeriesChart2Dataset
 	chains: Array<{
 		name: string
 		logo: string
@@ -69,6 +82,7 @@ export interface IChainsByAdapterPageData {
 		bribes?: { total24h: number | null; total7d: number | null; total30d: number | null }
 		tokenTax?: { total24h: number | null; total7d: number | null; total30d: number | null }
 		openInterest?: number | null
+		activeLiquidity?: number | null
 	}>
 	allChains: Array<string>
 }

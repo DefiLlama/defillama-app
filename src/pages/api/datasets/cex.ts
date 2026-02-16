@@ -1,6 +1,7 @@
-import { NextApiRequest, NextApiResponse } from 'next'
-import { IChainTvl } from '~/api/types'
-import { CEXS_API, COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
+import type { NextApiRequest, NextApiResponse } from 'next'
+import type { IChainTvl } from '~/api/types'
+import { COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
+import { fetchCexs } from '~/containers/Cexs/api'
 import { fetchJson } from '~/utils/async'
 
 const hour24ms = ((Date.now() - 24 * 60 * 60 * 1000) / 1000).toFixed(0)
@@ -48,7 +49,7 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 				}
 			}),
 			fetchJson(`${COINS_PRICES_API}/current/coingecko:bitcoin`),
-			fetchJson(CEXS_API)
+			fetchCexs()
 		])
 
 		spot = spotData

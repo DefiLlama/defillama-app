@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import {
 	createContext,
-	ReactNode,
+	type ReactNode,
 	useCallback,
 	useContext,
 	useEffect,
@@ -13,11 +13,11 @@ import {
 } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { CustomTimePeriod, dashboardReducer, initDashboardState, TimePeriod } from './dashboardReducer'
+import { type CustomTimePeriod, dashboardReducer, initDashboardState, type TimePeriod } from './dashboardReducer'
 import { useAutoSave, useDashboardAPI, useDashboardPermissions } from './hooks'
 import { useChartsData, useProtocolsAndChains } from './queries'
-import { Dashboard } from './services/DashboardAPI'
-import {
+import type { Dashboard } from './services/DashboardAPI'
+import type {
 	Chain,
 	ChartBuilderConfig,
 	ChartConfig,
@@ -65,7 +65,7 @@ const shallowArrayEqual = <T,>(a: T[] | null | undefined, b: T[] | null | undefi
 
 export type { TimePeriod, CustomTimePeriod } from './dashboardReducer'
 
-export interface AISessionData {
+interface AISessionData {
 	rating?: number
 	feedback?: string
 	mode: 'create' | 'iterate'
@@ -76,7 +76,8 @@ export interface AISessionData {
 	prompt: string
 }
 
-export interface AISessionState {
+// oxlint-disable-next-line no-unused-vars
+interface AISessionState {
 	sessionId: string
 	mode: 'create' | 'iterate'
 	timestamp: string
@@ -86,7 +87,8 @@ export interface AISessionState {
 
 export type AIGeneratedData = Record<string, AISessionData>
 
-export interface AIGenerationContext {
+// oxlint-disable-next-line no-unused-vars
+interface AIGenerationContext {
 	sessionId: string
 	mode: 'create' | 'iterate'
 	timestamp: string

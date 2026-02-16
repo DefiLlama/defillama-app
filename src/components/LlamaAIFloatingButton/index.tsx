@@ -5,8 +5,8 @@ import { useEntityQuestions } from '~/containers/LlamaAI/hooks/useEntityQuestion
 import { useSuggestedQuestions } from '~/containers/LlamaAI/hooks/useSuggestedQuestions'
 import { useMedia } from '~/hooks/useMedia'
 
-export const PENDING_PROMPT_KEY = 'llamaai-pending-prompt'
-export const PENDING_PAGE_CONTEXT_KEY = 'llamaai-pending-page-context'
+const PENDING_PROMPT_KEY = 'llamaai-pending-prompt'
+const PENDING_PAGE_CONTEXT_KEY = 'llamaai-pending-page-context'
 
 const FALLBACK_SUGGESTIONS = [
 	'Which protocols have growing TVL and revenue but declining token prices?',
@@ -25,6 +25,18 @@ function useEntityContext() {
 	if (path.startsWith('/chain/') && !path.includes('/chain/All')) {
 		const slug = path.split('/chain/')[1]?.split(/[?#]/)[0]
 		return slug ? { entitySlug: slug, entityType: 'chain' as const } : null
+	}
+	const pageRoutes: Record<string, string> = {
+		'/perps': 'perps',
+		'/stablecoins': 'stablecoins',
+		'/chains': 'chains',
+		'/fees': 'fees',
+		'/revenue': 'revenue'
+	}
+	for (const [route, slug] of Object.entries(pageRoutes)) {
+		if (path === route || path.startsWith(`${route}?`) || path.startsWith(`${route}/`)) {
+			return { entitySlug: slug, entityType: 'page' as const }
+		}
 	}
 	return null
 }
@@ -45,7 +57,7 @@ export function consumePendingPrompt(): string | null {
 }
 
 export function setPendingPageContext(
-	context: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string } | null
+	context: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string } | null
 ) {
 	if (typeof window === 'undefined') return
 	if (context) {
@@ -57,7 +69,7 @@ export function setPendingPageContext(
 
 export function consumePendingPageContext(): {
 	entitySlug?: string
-	entityType?: 'protocol' | 'chain'
+	entityType?: 'protocol' | 'chain' | 'page'
 	route: string
 } | null {
 	if (typeof window === 'undefined') return null
@@ -237,7 +249,7 @@ export function LlamaAIFloatingButton() {
 									onChange={(e) => setValue(e.target.value)}
 									onKeyDown={handleKeyDown}
 									placeholder="Ask LlamaAI about TVL, fees, revenue, protocols..."
-									className="min-h-[100px] w-full resize-none rounded-lg border border-[#e6e6e6] bg-[#f9f9f9] p-3 pr-12 text-sm text-black placeholder-[#999] transition-colors outline-none focus:border-[#2172E5] dark:border-[#39393E] dark:bg-[#1a1a1d] dark:text-white dark:placeholder-[#666]"
+									className="min-h-[100px] w-full resize-none rounded-lg border border-[#e6e6e6] bg-[#f9f9f9] p-3 pr-12 text-sm text-black placeholder-[#999] outline-hidden transition-colors focus:border-[#2172E5] dark:border-[#39393E] dark:bg-[#1a1a1d] dark:text-white dark:placeholder-[#666]"
 									rows={4}
 								/>
 								<button

@@ -2,7 +2,7 @@ import type { IParentProtocol } from '~/api/types'
 import { DIMENSIONS_OVERVIEW_API } from '~/constants'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummaryResponse } from './types'
+import type { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummaryResponse } from './types'
 
 export const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
 	if (numerator == null || denominator == null) {
@@ -48,7 +48,7 @@ export interface IOverviewProps {
 	parentProtocols?: Array<IParentProtocol>
 }
 
-export type IJoin2ReturnType = Array<IJSON<number | string> & { date: string }>
+type IJoin2ReturnType = Array<IJSON<number | string> & { date: string }>
 
 // - used in /fees and /fees/chain/[chain]
 export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: string }) => {

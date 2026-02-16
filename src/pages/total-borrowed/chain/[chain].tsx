@@ -1,12 +1,19 @@
-import { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { BorrowedProtocolsTVLByChain } from '~/containers/TotalBorrowed/BorrowedByChain'
-import { getTotalBorrowedByChain } from '~/containers/TotalBorrowed/queries'
+import { ExtraTvlByChain } from '~/containers/Protocols/ExtraTvlByChain'
+import { getExtraTvlByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticPaths = async () => {
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
@@ -19,8 +26,9 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const data = await getTotalBorrowedByChain({
+		const data = await getExtraTvlByChain({
 			chain: metadataCache.chainMetadata[chain].name,
+			metric: 'borrowed',
 			protocolMetadata: metadataCache.protocolMetadata
 		})
 
@@ -44,7 +52,7 @@ export default function TotalBorrowedByChain(props) {
 			canonicalUrl={`/total-borrowed/chain/${props.chain}`}
 			pageName={pageName}
 		>
-			<BorrowedProtocolsTVLByChain {...props} />
+			<ExtraTvlByChain {...props} />
 		</Layout>
 	)
 }

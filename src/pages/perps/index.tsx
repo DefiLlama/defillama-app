@@ -2,6 +2,7 @@ import { maxAgeForNext } from '~/api'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
+import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -13,13 +14,31 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 		adapterType,
 		chain: 'All',
 		route: 'perps',
-		hasOpenInterest: true
+		hasOpenInterest: true,
+		metricName: type
 	}).catch((e) => console.info(`Chain page data not found ${adapterType} : ALL_CHAINS`, e))
 
 	if (!data) return { notFound: true }
 
+	const perpsContext = {
+		total24h: data.total24h ?? null,
+		total7d: data.total7d ?? null,
+		change_1d: data.change_1d ?? null,
+		change_7dover7d: data.change_7dover7d ?? null,
+		change_1m: data.change_1m ?? null,
+		openInterest: data.openInterest ?? null,
+		topProtocols: data.protocols.slice(0, 15).map((p) => ({
+			name: p.name,
+			volume24h: p.total24h ?? null,
+			volume7d: p.total7d ?? null,
+			openInterest: p.openInterest ?? null,
+			chains: p.chains?.slice(0, 3) ?? null
+		}))
+	}
+	const { questions: entityQuestions } = await fetchEntityQuestions('perps', 'page', perpsContext)
+
 	return {
-		props: data,
+		props: { ...data, entityQuestions },
 		revalidate: maxAgeForNext([22])
 	}
 })

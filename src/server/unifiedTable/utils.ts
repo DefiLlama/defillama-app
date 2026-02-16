@@ -1,7 +1,8 @@
 import type { UnifiedTableConfig } from '~/containers/ProDashboard/types'
 import { toInternalSlug } from '~/utils/chainNormalizer'
 
-export interface LensTotals {
+// oxlint-disable-next-line no-unused-vars
+interface LensTotals {
 	tvl_base: number | null
 	volume_dexs_1d: number | null
 	volume_dexs_7d: number | null
@@ -34,7 +35,7 @@ export const computeShare = (part: number | null | undefined, total: number | nu
 	return (part / total) * 100
 }
 
-export const normalizeChainList = (chains?: string[] | null): string[] => {
+const normalizeChainList = (chains?: string[] | null): string[] => {
 	if (!chains || !chains.length) return []
 
 	if (!Array.isArray(chains)) {
@@ -87,7 +88,8 @@ export const resolveLogoUrl = (slug: string | null | undefined) => {
 	return `https://icons.llamao.fi/icons/protocols/${slug}?w=48&h=48`
 }
 
-export const resolveChainLogo = (slug: string | null | undefined) => {
+// oxlint-disable-next-line no-unused-vars
+const resolveChainLogo = (slug: string | null | undefined) => {
 	if (!slug) return null
 	return `https://icons.llamao.fi/icons/chains/rsz_${slug}?w=48&h=48`
 }

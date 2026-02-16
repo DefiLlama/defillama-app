@@ -1,9 +1,25 @@
+import * as React from 'react'
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { Flag } from './Flag'
 
-export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, rowValue, helperText }) => {
+// oxlint-disable-next-line no-unused-vars
+const RowWithSubRows = ({
+	subRows,
+	protocolName,
+	dataType,
+	rowHeader,
+	rowValue,
+	helperText
+}: {
+	subRows: React.ReactNode
+	protocolName?: string
+	dataType?: string
+	rowHeader: React.ReactNode
+	rowValue: React.ReactNode
+	helperText?: string
+}) => {
 	const [open, setOpen] = useState(false)
 	return (
 		<>

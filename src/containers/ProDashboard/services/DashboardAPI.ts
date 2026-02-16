@@ -1,6 +1,6 @@
 import { AUTH_SERVER } from '../../../constants'
-import { CustomTimePeriod, TimePeriod } from '../ProDashboardAPIContext'
-import { DashboardItemConfig } from '../types'
+import type { CustomTimePeriod, TimePeriod } from '../ProDashboardAPIContext'
+import type { DashboardItemConfig } from '../types'
 
 export interface Dashboard {
 	id: string
@@ -47,7 +47,7 @@ interface LiteDashboard {
 	name: string
 }
 
-export interface DashboardError {
+interface DashboardError {
 	message: string
 	status: number
 }

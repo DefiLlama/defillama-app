@@ -6,6 +6,13 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, tokenIconUrl } from '~/utils'
 import { generateGoogleCalendarUrl } from '~/utils/calendar'
 
+interface CalendarButtonProps {
+	event: { timestamp: number; noOfTokens: number[][]; symbol: string; description: string }
+	tokenName: string
+	tokenValue: string | null
+	isProtocolPage: boolean
+}
+
 const ProtocolPageButton = () => {
 	return (
 		<Ariakit.MenuButton className="flex items-center gap-2 rounded-sm p-2 hover:bg-(--bg-secondary)">
@@ -26,7 +33,7 @@ const RegularButton = () => {
 	)
 }
 
-export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage }) => {
+const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage }: CalendarButtonProps) => {
 	return (
 		<Ariakit.MenuProvider>
 			{isProtocolPage ? <ProtocolPageButton /> : <RegularButton />}
@@ -45,7 +52,11 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 				<Ariakit.MenuItem
 					render={
 						<a
-							href={generateGoogleCalendarUrl(event, tokenName, tokenValue)}
+							href={generateGoogleCalendarUrl(
+								{ ...event, name: tokenName, noOfTokens: event.noOfTokens.flat() },
+								tokenName,
+								tokenValue ? parseFloat(tokenValue.replace(/[^0-9.-]+/g, '')) || 0 : 0
+							)}
 							target="_blank"
 							rel="noopener noreferrer"
 						/>
@@ -58,7 +69,9 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 
 				<Ariakit.MenuItem
 					render={
-						<a href={`/api/calendar/${tokenName}?timestamp=${event.timestamp}&value=${tokenValue}&name=${tokenName}`} />
+						<a
+							href={`/api/calendar/${tokenName}?timestamp=${event.timestamp}&value=${tokenValue ?? ''}&name=${tokenName}`}
+						/>
 					}
 					className="flex shrink-0 cursor-pointer items-center gap-2 px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 				>
@@ -81,6 +94,80 @@ const CountdownTile = ({ value, label }: { value: string; label: string }) => {
 	)
 }
 
+interface UpcomingEventProps {
+	noOfTokens?: number[][]
+	timestamp: number
+	event: Array<{
+		description: string
+		noOfTokens: number[]
+		timestamp: number
+		unlockType?: string
+		rateDurationDays?: number
+	}>
+	price: number | null | undefined
+	symbol: string | null | undefined
+	mcap: number | null | undefined
+	maxSupply: number | null | undefined
+	name: string
+	isProtocolPage?: boolean
+}
+
+interface UnlockBreakdown {
+	name: string
+	perDayAmount: number
+	totalAmount: number
+	displayUnit: string
+	timestamp: number
+	unlockType: string
+	endTime: number | null
+	usdValue: number | null
+	percentage: number | null
+	percentageFloat: number | null
+}
+
+const formatTimeAgo = (timestamp: number) => {
+	const now = dayjs()
+	const eventDate = dayjs.unix(timestamp)
+
+	const elapsedYears = now.diff(eventDate, 'year')
+	const afterYears = eventDate.add(elapsedYears, 'year')
+	const elapsedMonths = now.diff(afterYears, 'month')
+	const afterMonths = afterYears.add(elapsedMonths, 'month')
+	const elapsedDays = now.diff(afterMonths, 'day')
+
+	if (elapsedYears > 0) {
+		return elapsedMonths > 0 ? `${elapsedYears}Y ${elapsedMonths}M ago` : `${elapsedYears}Y ago`
+	}
+
+	if (elapsedMonths > 0) {
+		return elapsedDays > 0 ? `${elapsedMonths}M ${elapsedDays}D ago` : `${elapsedMonths}M ago`
+	}
+
+	if (elapsedDays > 0) {
+		return `${elapsedDays}D ago`
+	}
+
+	const elapsedHours = now.diff(eventDate, 'hour')
+	if (elapsedHours > 0) {
+		return `${elapsedHours}H ago`
+	}
+
+	return 'just now'
+}
+
+const formatCountdownBadge = (days: number, hours: number, minutes: number, seconds: number) => {
+	if (days < 365) {
+		return `${days}D ${hours}H ${minutes}M ${seconds}S`
+	}
+
+	const years = Math.floor(days / 365)
+	const remainingDays = days % 365
+	const months = Math.floor(remainingDays / 30)
+	const daysRemainder = remainingDays % 30
+
+	return `${years}Y ${months}MO ${daysRemainder}D ${hours}H ${minutes}M ${seconds}S`
+}
+
 export const UpcomingEvent = ({
 	noOfTokens = [],
 	timestamp,
@@ -91,42 +178,50 @@ export const UpcomingEvent = ({
 	maxSupply,
 	name,
 	isProtocolPage = false
-}) => {
+}: UpcomingEventProps) => {
+	const nowSec = Date.now() / 1e3
 	const tokenSymbol = symbol ? symbol.toUpperCase() : ''
 	const { currentUnlockBreakdown, totalAmount, tokenValue, unlockPercent, unlockPercentFloat } = useMemo(() => {
-		const breakdown = event
+		const breakdown: UnlockBreakdown[] = event
 			.map(({ description, noOfTokens, timestamp, unlockType, rateDurationDays }) => {
 				const regex =
 					/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})/
 				const matches = (description || '').match(regex)
-				const name = matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
+				const eventName = matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
 
-				let perDayAmount, totalAmount, displayUnit
+				let perDayAmount: number, totalAmount: number, displayUnit: string
 				if (unlockType === 'linear') {
-					const isIncrease = description.toLowerCase().includes('increase')
+					const isIncrease = (description || '').toLowerCase().includes('increase')
 					perDayAmount = (isIncrease ? noOfTokens[1] : noOfTokens[0]) / 7
 					totalAmount = perDayAmount * (rateDurationDays || 1)
 					displayUnit = 'per day'
 				} else {
-					perDayAmount = totalAmount = noOfTokens.reduce((sum, amount) => sum + amount, 0)
+					perDayAmount = totalAmount = noOfTokens.reduce((sum: number, amount: number) => sum + amount, 0)
 					displayUnit = ''
 				}
-				const currentTime = Date.now() / 1e3
-				const endTime = timestamp + (rateDurationDays || 0) * 86400
-				const isOngoing = unlockType === 'linear' && currentTime >= timestamp && currentTime <= endTime
+				const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
+				const usdValue = price ? (isLinearPerDay ? perDayAmount * price : totalAmount * price) : null
+				const totalUsdValue = price ? totalAmount * price : null
+				const percentage = maxSupply ? (totalAmount / maxSupply) * 100 : null
+				const percentageFloat = totalUsdValue && mcap ? (totalUsdValue / mcap) * 100 : null
+				const endTime = unlockType === 'linear' ? timestamp + (rateDurationDays || 0) * 86400 : null
+
 				return {
-					name,
+					name: eventName,
 					perDayAmount,
 					totalAmount,
 					displayUnit,
 					timestamp,
-					unlockType,
-					isOngoing
+					unlockType: unlockType || 'cliff',
+					endTime,
+					usdValue,
+					percentage,
+					percentageFloat
 				}
 			})
-			.sort((a, b) => b.totalAmount - a.totalAmount)
+			.sort((a: UnlockBreakdown, b: UnlockBreakdown) => b.totalAmount - a.totalAmount)
 
-		const totalAmount = breakdown.reduce((sum, item) => sum + item.totalAmount, 0)
+		const totalAmount = breakdown.reduce((sum: number, item: UnlockBreakdown) => sum + item.totalAmount, 0)
 		const tokenValue = price ? totalAmount * price : null
 		const unlockPercent = maxSupply ? (totalAmount / maxSupply) * 100 : null
 		const unlockPercentFloat = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
@@ -144,6 +239,53 @@ export const UpcomingEvent = ({
 	const onCountdownTick = useEffectEvent(() => {
 		rerender((value) => value + 1)
 	})
+
+	const renderBreakdownRow = (item: UnlockBreakdown, variant: 'protocol' | 'hover', index: number) => {
+		const RowTag = variant === 'protocol' ? 'div' : 'span'
+		const LineTag = variant === 'protocol' ? 'div' : 'span'
+		const iconSize = variant === 'protocol' ? 14 : 16
+		const rowClass = variant === 'protocol' ? 'flex flex-col gap-0.5' : 'flex flex-col gap-1'
+		const isLinearPerDay = item.unlockType === 'linear' && item.displayUnit === 'per day'
+		const isOngoing = item.endTime != null && nowSec >= item.timestamp && nowSec <= item.endTime
+
+		return (
+			<RowTag className={rowClass} key={`${item.name}-${item.totalAmount}-${index}`}>
+				<LineTag className="flex items-center justify-between gap-2 text-sm">
+					<span className="flex items-center gap-1.5">
+						{item.name}
+						{isOngoing && ' (Ongoing)'}
+						<Ariakit.TooltipProvider>
+							<Ariakit.TooltipAnchor>
+								<Icon
+									name={item.unlockType === 'linear' ? 'linear-unlock' : 'cliff-unlock'}
+									height={iconSize}
+									width={iconSize}
+									className="text-(--text-meta)"
+								/>
+							</Ariakit.TooltipAnchor>
+							<Ariakit.Tooltip className="z-50 rounded-md bg-(--bg-secondary) px-2 py-1 text-xs">
+								{item.unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
+							</Ariakit.Tooltip>
+						</Ariakit.TooltipProvider>
+					</span>
+					<span className="inline-flex items-baseline gap-1 font-medium">
+						{item.usdValue ? formattedNum(item.usdValue, true) : '-'}
+						{isLinearPerDay ? <span className="text-xs text-(--text-meta)">/ day</span> : null}
+					</span>
+				</LineTag>
+				<LineTag className="flex items-center justify-between gap-2 text-xs text-(--text-meta)">
+					<span>
+						{item.percentage != null ? `${formattedNum(item.percentage)}%` : '-'}{' '}
+						{item.percentageFloat ? <>({formattedNum(item.percentageFloat)}% of float)</> : null}
+					</span>
+					<span className="inline-flex items-baseline gap-1">
+						{formattedNum(isLinearPerDay ? item.perDayAmount : item.totalAmount)} {tokenSymbol}
+						{isLinearPerDay ? <span className="text-xs text-(--text-meta)">/ day</span> : null}
+					</span>
+				</LineTag>
+			</RowTag>
+		)
+	}
 
 	useEffect(() => {
 		const now = Date.now() / 1e3
@@ -183,68 +325,24 @@ export const UpcomingEvent = ({
 								className="mt-1 rounded-md bg-(--bg-border) px-2 py-1 text-xs font-medium tabular-nums"
 								suppressHydrationWarning
 							>
-								{days}D {hours}H {minutes}M {seconds}S
+								{formatCountdownBadge(days, hours, minutes, seconds)}
 							</span>
 						) : (
 							<span className="mt-1 rounded-md bg-(--bg-border) px-2 py-1 text-xs font-medium">
-								{Math.abs(days)} days ago
+								{formatTimeAgo(timestamp)}
 							</span>
 						)}
 					</div>
 				</div>
 				<hr className="border-(--bg-border)" />
 				<div className="flex flex-col gap-3">
-					{currentUnlockBreakdown.map(
-						({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp: _timestamp, isOngoing }) => {
-							const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
-							const usdValue = price ? (isLinearPerDay ? perDayAmount * price : totalAmount * price) : null
-							const percentage = maxSupply ? (totalAmount / maxSupply) * 100 : null
-							const percentageFloat = usdValue && mcap ? (usdValue / mcap) * 100 : null
-							return (
-								<div className="flex flex-col gap-0.5" key={name + totalAmount}>
-									<div className="flex items-center justify-between gap-2 text-sm">
-										<span className="flex items-center gap-1.5">
-											{name}
-											{isOngoing && ' (Ongoing)'}
-											<Ariakit.TooltipProvider>
-												<Ariakit.TooltipAnchor>
-													<Icon
-														name={unlockType === 'linear' ? 'linear-unlock' : 'cliff-unlock'}
-														height={14}
-														width={14}
-														className="text-(--text-meta)"
-													/>
-												</Ariakit.TooltipAnchor>
-												<Ariakit.Tooltip className="z-50 rounded-md bg-(--bg-secondary) px-2 py-1 text-xs">
-													{unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
-												</Ariakit.Tooltip>
-											</Ariakit.TooltipProvider>
-										</span>
-										<span className="inline-flex items-baseline gap-1 font-medium">
-											{usdValue ? formattedNum(usdValue, true) : '-'}
-											{isLinearPerDay ? <span className="text-xs text-(--text-meta)">/ day</span> : null}
-										</span>
-									</div>
-									<div className="flex items-center justify-between gap-2 text-xs text-(--text-meta)">
-										<span>
-											{formattedNum(percentage)}%{' '}
-											{percentageFloat ? <>({formattedNum(percentageFloat)}% of float)</> : null}
-										</span>
-										<span className="inline-flex items-baseline gap-1">
-											{formattedNum(isLinearPerDay ? perDayAmount : totalAmount)} {tokenSymbol}
-											{isLinearPerDay ? <span className="text-xs text-(--text-meta)">/ day</span> : null}
-										</span>
-									</div>
-								</div>
-							)
-						}
-					)}
+					{currentUnlockBreakdown.map((item, i) => renderBreakdownRow(item, 'protocol', i))}
 				</div>
 				{timeLeft > 0 ? (
 					<CalendarButton
-						event={{ timestamp, noOfTokens, symbol, description: '' }}
+						event={{ timestamp, noOfTokens, symbol: symbol || '', description: '' }}
 						tokenName={name}
-						tokenValue={tokenValue ? formattedNum(tokenValue, true) : '-'}
+						tokenValue={tokenValue ? formattedNum(tokenValue, true) : null}
 						isProtocolPage={isProtocolPage}
 					/>
 				) : null}
@@ -282,7 +380,7 @@ export const UpcomingEvent = ({
 						</div>
 					) : (
 						<span className="text-sm text-(--text-meta)" suppressHydrationWarning>
-							{Math.abs(days)} {Math.abs(days) === 1 ? 'day' : 'days'} ago
+							{formatTimeAgo(timestamp)}
 						</span>
 					)}
 				</Ariakit.HovercardAnchor>
@@ -308,53 +406,9 @@ export const UpcomingEvent = ({
 						</span>
 					</span>
 					<hr className="border-(--bg-border)" />
-					<span className="flex flex-col gap-4">
-						{currentUnlockBreakdown.map(
-							({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp: _timestamp, isOngoing }) => {
-								const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
-								const usdValue = price ? (isLinearPerDay ? perDayAmount * price : totalAmount * price) : null
-								const percentage = maxSupply ? (totalAmount / maxSupply) * 100 : null
-								const percentageFloat = usdValue && mcap ? (usdValue / mcap) * 100 : null
-								return (
-									<span className="flex flex-col gap-1" key={name + totalAmount}>
-										<span className="flex items-center justify-between gap-2">
-											<span className="flex items-center gap-2">
-												{name}
-												{isOngoing && ' (Ongoing)'}
-												<Ariakit.TooltipProvider>
-													<Ariakit.TooltipAnchor>
-														<Icon
-															name={unlockType === 'linear' ? 'linear-unlock' : 'cliff-unlock'}
-															height={16}
-															width={16}
-															className="text-(--text-meta)"
-														/>
-													</Ariakit.TooltipAnchor>
-													<Ariakit.Tooltip className="z-50 rounded-md bg-(--bg-secondary) px-2 py-1 text-xs">
-														{unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
-													</Ariakit.Tooltip>
-												</Ariakit.TooltipProvider>
-											</span>
-											<span className="inline-flex items-baseline gap-1 font-medium">
-												{usdValue ? formattedNum(usdValue, true) : '-'}
-												{isLinearPerDay && <span className="text-xs text-(--text-meta)">/ day</span>}
-											</span>
-										</span>
-										<span className="flex items-center justify-between gap-2 text-xs text-(--text-meta)">
-											<span>
-												{formattedNum(percentage)}%{' '}
-												{percentageFloat ? <>({formattedNum(percentageFloat)}% of float)</> : null}
-											</span>
-											<span className="inline-flex items-baseline gap-1">
-												{formattedNum(isLinearPerDay ? perDayAmount : totalAmount)} {tokenSymbol}
-												{isLinearPerDay && <span className="text-xs text-(--text-meta)">/ day</span>}
-											</span>
-										</span>
-									</span>
-								)
-							}
-						)}
-					</span>
+					<div className="flex flex-col gap-4">
+						{currentUnlockBreakdown.map((item, i) => renderBreakdownRow(item, 'hover', i))}
+					</div>
 					<hr className="border-(--bg-border)" />
 
 					<span className="flex flex-col gap-1">
@@ -377,9 +431,9 @@ export const UpcomingEvent = ({
 			{timeLeft > 0 && (
 				<div className="flex flex-col items-center">
 					<CalendarButton
-						event={{ timestamp, noOfTokens, symbol, description: '' }}
+						event={{ timestamp, noOfTokens, symbol: symbol || '', description: '' }}
 						tokenName={name}
-						tokenValue={tokenValue ? formattedNum(tokenValue, true) : '-'}
+						tokenValue={tokenValue ? formattedNum(tokenValue, true) : null}
 						isProtocolPage={isProtocolPage}
 					/>
 					<span className="invisible mt-1 text-xs leading-none font-medium text-(--text-meta) select-none">Sec</span>

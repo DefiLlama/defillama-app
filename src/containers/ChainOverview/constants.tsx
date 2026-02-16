@@ -25,8 +25,10 @@ export const chainCharts = {
 } as const
 
 export type ChainChartLabels = keyof typeof chainCharts
-export const allCharts = Object.keys(chainCharts) as ChainChartLabels[]
-export type ChainChartByQueryParams = (typeof chainCharts)[keyof typeof chainCharts]
+// oxlint-disable-next-line no-unused-vars
+const allCharts = Object.keys(chainCharts) as ChainChartLabels[]
+// oxlint-disable-next-line no-unused-vars
+type ChainChartByQueryParams = (typeof chainCharts)[keyof typeof chainCharts]
 
 export const yAxisByChart: {
 	[K in keyof typeof chainCharts]: ChainChartLabels

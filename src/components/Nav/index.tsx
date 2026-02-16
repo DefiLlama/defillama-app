@@ -5,7 +5,7 @@ import { getStorageItem, subscribeToStorageKey } from '~/contexts/localStorageSt
 import defillamaPages from '~/public/pages.json'
 import { BasicLink } from '../Link'
 import { DesktopNav } from './Desktop'
-import { TNavLinks, TOldNavLink } from './types'
+import type { TNavLinks, TOldNavLink } from './types'
 
 const MobileNav = lazy(() => import('./Mobile').then((m) => ({ default: m.MobileNav })))
 const MobileFallback = () => {

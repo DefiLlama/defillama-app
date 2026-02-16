@@ -1,4 +1,4 @@
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
+import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import { Bookmark } from '~/components/Bookmark'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
@@ -11,7 +11,7 @@ import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '../../utils'
-import { IProtocolRow } from './types'
+import type { IProtocolRow } from './types'
 
 const whiteLabeledVaultProviders = new Set(['Veda'])
 
@@ -35,7 +35,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue<string>()
 
 			return (
 				<span
@@ -106,14 +106,16 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Category',
 		accessorKey: 'category',
 		enableSorting: false,
-		cell: ({ getValue }) =>
-			getValue() ? (
-				<BasicLink href={`/protocols/${getValue()}`} className="text-sm font-medium text-(--link-text)">
-					{getValue() as string | null}
+		cell: ({ getValue }) => {
+			const value = getValue<string | null>()
+			return value ? (
+				<BasicLink href={`/protocols/${slug(value)}`} className="text-sm font-medium text-(--link-text)">
+					{value}
 				</BasicLink>
 			) : (
 				''
-			),
+			)
+		},
 		size: 140,
 		meta: {
 			align: 'end'
@@ -123,15 +125,15 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		id: 'oracles',
 		header: 'Oracles',
 		accessorFn: (row) => {
-			const direct = Array.isArray((row as any).oracles) ? ((row as any).oracles as string[]) : []
+			const direct = Array.isArray(row.oracles) ? row.oracles : []
 			if (direct.length) return direct
-			const byChain = (row as any).oraclesByChain as Record<string, string[]> | undefined
+			const byChain = row.oraclesByChain
 			if (!byChain) return []
 			return Array.from(new Set(Object.values(byChain).flat()))
 		},
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			const oracles = (getValue() as string[]) || []
+			const oracles = getValue<string[]>()
 			if (!oracles.length) return ''
 			const visible = oracles.slice(0, 3)
 			const extra = oracles.length - visible.length
@@ -160,7 +162,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Chains',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
+		cell: ({ getValue }) => <IconsRow links={getValue<string[]>()} url="/chain" iconType="chain" />,
 		meta: {
 			align: 'end',
 			headerHelperText: "Chains are ordered by protocol's highest TVL on each chain"
@@ -862,7 +864,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue<string>()
 
 			return (
 				<span
@@ -931,14 +933,16 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'Category',
 		accessorKey: 'category',
-		cell: ({ getValue }) =>
-			getValue() ? (
-				<BasicLink href={`/protocols/${getValue()}`} className="text-sm font-medium text-(--link-text)">
-					{getValue() as string | null}
+		cell: ({ getValue }) => {
+			const value = getValue<string | null>()
+			return value ? (
+				<BasicLink href={`/protocols/${slug(value)}`} className="text-sm font-medium text-(--link-text)">
+					{value}
 				</BasicLink>
 			) : (
 				''
-			),
+			)
+		},
 		size: 140
 	},
 	{
@@ -984,9 +988,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
-		cell: (info) => {
-			return <>{(info.getValue() ?? null) as string | null}</>
-		},
+		cell: (info) => <>{info.getValue() ?? null}</>,
 		size: 100,
 		meta: {
 			align: 'end'
@@ -1000,7 +1002,7 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue<string>()
 
 			return (
 				<span
@@ -1069,14 +1071,16 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'Category',
 		accessorKey: 'category',
-		cell: ({ getValue }) =>
-			getValue() ? (
-				<BasicLink href={`/protocols/${getValue()}`} className="text-sm font-medium text-(--link-text)">
-					{getValue() as string | null}
+		cell: ({ getValue }) => {
+			const value = getValue<string | null>()
+			return value ? (
+				<BasicLink href={`/protocols/${slug(value)}`} className="text-sm font-medium text-(--link-text)">
+					{value}
 				</BasicLink>
 			) : (
 				''
-			),
+			)
+		},
 		size: 140
 	},
 	{
@@ -1091,38 +1095,44 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 	}
 ]
 
-export const protocolAddlColumns = {
+export const protocolAddlColumns: Record<'borrowed' | 'supplied' | 'suppliedTvl', ColumnDef<IProtocolRow>> = {
 	borrowed: {
 		header: 'Borrowed',
 		accessorKey: 'borrowed',
 		cell: (info) => {
-			return <>{info.getValue() && formattedNum(info.getValue())}</>
+			const rawValue = info.getValue()
+			const value = typeof rawValue === 'number' ? rawValue : null
+			return <>{value != null ? formattedNum(value) : null}</>
 		},
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end' as const
 		}
 	},
 	supplied: {
 		header: 'Supplied',
 		accessorKey: 'supplied',
 		cell: (info) => {
-			return <>{info.getValue() && formattedNum(info.getValue())}</>
+			const rawValue = info.getValue()
+			const value = typeof rawValue === 'number' ? rawValue : null
+			return <>{value != null ? formattedNum(value) : null}</>
 		},
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end' as const
 		}
 	},
 	suppliedTvl: {
 		header: 'Supplied/TVL',
 		accessorKey: 'suppliedTvl',
 		cell: (info) => {
-			return <>{info.getValue() && formattedNum(info.getValue())}</>
+			const rawValue = info.getValue()
+			const value = typeof rawValue === 'number' ? rawValue : null
+			return <>{value != null ? formattedNum(value) : null}</>
 		},
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end' as const
 		}
 	}
 }
@@ -1213,10 +1223,16 @@ export const columnSizes: ColumnSizesByBreakpoint = {
 	}
 }
 
-export const ProtocolTvlCell = ({ value, rowValues }) => {
-	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+type ProtocolTvlRow = IProtocolRow & {
+	parentExcluded?: boolean
+	isParentProtocol?: boolean
+}
 
-	let text = null
+const ProtocolTvlCell = ({ value, rowValues }: { value: unknown; rowValues: ProtocolTvlRow }) => {
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+	const tvlValue = typeof value === 'number' ? value : null
+
+	let text: string | null = null
 
 	if (rowValues.strikeTvl) {
 		if (!extraTvlsEnabled['doublecounted']) {
@@ -1249,7 +1265,7 @@ export const ProtocolTvlCell = ({ value, rowValues }) => {
 	}
 
 	if (!text && !rowValues.parentExcluded) {
-		return <>{value != null ? formattedNum(value, true) : null}</>
+		return <>{tvlValue != null ? formattedNum(tvlValue, true) : null}</>
 	}
 
 	return (
@@ -1265,7 +1281,7 @@ export const ProtocolTvlCell = ({ value, rowValues }) => {
 					color: rowValues.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 				}}
 			>
-				{value != null ? formattedNum(value, true) : null}
+				{tvlValue != null ? formattedNum(tvlValue, true) : null}
 			</span>
 		</span>
 	)

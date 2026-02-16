@@ -1,5 +1,5 @@
-import { ChartConfig, DashboardItemConfig } from '../../types'
-import { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType } from './types'
+import type { ChartConfig, DashboardItemConfig } from '../../types'
+import type { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType } from './types'
 
 interface SubmitButtonProps {
 	editItem?: DashboardItemConfig | null

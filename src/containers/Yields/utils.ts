@@ -1,4 +1,4 @@
-import { calculateLoopAPY, YieldsData } from '~/containers/Yields/queries/index'
+import { calculateLoopAPY, type YieldsData } from '~/containers/Yields/queries/index'
 import { attributeOptions, attributeOptionsMap } from './Filters/Attributes'
 
 interface IToFilterPool {
@@ -255,7 +255,7 @@ export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoute
 	return lendBorrowPairs.concat(cdpPairs)
 }
 
-export const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
+const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
 
 export const findStrategyPools = ({ pools, tokenToLend, tokenToBorrow, allPools, cdpRoutes, customLTV }) => {
 	// prepare leveraged lending (loop) pools

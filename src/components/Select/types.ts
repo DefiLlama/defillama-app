@@ -1,9 +1,12 @@
+import type { ReactNode } from 'react'
+
 export type SelectOption = {
 	key: string
 	name: string
 	help?: string
 	isCustom?: boolean
 	customIndex?: number
+	icon?: ReactNode
 }
 
 export type SelectValues = ReadonlyArray<SelectOption> | ReadonlyArray<string>

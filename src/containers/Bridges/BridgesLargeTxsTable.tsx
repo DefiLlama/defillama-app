@@ -1,10 +1,10 @@
 import {
-	ColumnDef,
-	ColumnOrderState,
-	ColumnSizingState,
+	type ColumnDef,
+	type ColumnOrderState,
+	type ColumnSizingState,
 	getCoreRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
@@ -16,7 +16,7 @@ import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/compon
 import { getBlockExplorerForTx } from '~/containers/Bridges/utils'
 import { formattedNum, getBlockExplorer, slug, toNiceDayAndHour } from '~/utils'
 
-export type LargeTxsData = {
+type LargeTxsData = {
 	date: number
 	txHash: string
 	bridge: string

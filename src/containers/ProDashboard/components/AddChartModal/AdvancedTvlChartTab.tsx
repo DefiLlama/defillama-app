@@ -5,11 +5,14 @@ import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { oldBlue } from '~/constants/colors'
-import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
+import {
+	formatProtocolV1TvlsByChain,
+	useFetchProtocolV1AddlChartsData
+} from '~/containers/ProtocolOverview/protocolV1AddlChartsData'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import ProtocolCharts from '../../services/ProtocolCharts'
 import { AriakitSelect } from '../AriakitSelect'
-import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
+import { AriakitVirtualizedSelect, type VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -90,11 +93,11 @@ export function AdvancedTvlChartTab({
 		data: addlData,
 		historicalChainTvls,
 		isLoading: isAddlLoading
-	} = useFetchProtocolAddlChartsData(selectedAdvancedTvlProtocol || '')
+	} = useFetchProtocolV1AddlChartsData(selectedAdvancedTvlProtocol || '')
 
 	const { chainsSplit, chainsUnique } = useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
-		const chainsSplit = formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled })
+		const chainsSplit = formatProtocolV1TvlsByChain({ historicalChainTvls, extraTvlsEnabled })
 		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
 		const chainsUnique: string[] = []
 		for (const key in lastEntry) {

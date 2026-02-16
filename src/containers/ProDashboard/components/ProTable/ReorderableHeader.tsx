@@ -16,6 +16,7 @@ interface ReorderableHeaderProps {
 
 export function ReorderableHeader({
 	children,
+	// oxlint-disable-next-line no-unused-vars
 	columnId,
 	canSort,
 	isSorted,

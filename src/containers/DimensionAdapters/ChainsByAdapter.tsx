@@ -1,13 +1,13 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import { useMemo, useState } from 'react'
@@ -23,7 +23,7 @@ import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug } from '~/utils'
 import { ChainsByAdapterChart } from './ChainChart'
-import { IChainsByAdapterPageData } from './types'
+import type { IChainsByAdapterPageData } from './types'
 
 type TPageType =
 	| 'Fees'
@@ -104,13 +104,22 @@ export function ChainsByAdapter(props: IProps) {
 		columnSizes
 	})
 
-	const prepareCsv = () => {
-		const header = ['Chain', 'Total 1d', 'Total 1m']
-		const csvdata = chains.map((protocol) => {
-			return [protocol.name, protocol.total24h, protocol.total30d]
+	const prepareCsv = (): { filename: string; rows: Array<Array<string | number | boolean>> } => {
+		const visibleColumns = instance.getVisibleLeafColumns()
+		const headers = visibleColumns.map((col) =>
+			typeof col.columnDef.header === 'string' ? col.columnDef.header : col.id
+		)
+
+		const rows = [headers]
+		instance.getFilteredRowModel().rows.forEach((row) => {
+			const cells = visibleColumns.map((col) => {
+				const value = row.getValue(col.id)
+				return value === null || value === undefined ? '' : String(value)
+			})
+			rows.push(cells)
 		})
 
-		return { filename: `${props.type}-chains-protocols.csv`, rows: [header, ...csvdata] }
+		return { filename: `${props.type}-chains-protocols.csv`, rows }
 	}
 
 	return (
@@ -128,9 +137,7 @@ export function ChainsByAdapter(props: IProps) {
 					</a>
 				</Announcement>
 			)}
-			{props.adapterType !== 'fees' && (
-				<ChainsByAdapterChart chartData={props.chartData} allChains={props.allChains} type={props.type} />
-			)}
+			{props.adapterType !== 'fees' && <ChainsByAdapterChart chartData={props.chartData} allChains={props.allChains} />}
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-end gap-4 p-2">
 					<label className="relative mr-auto w-full sm:max-w-[280px]">
@@ -534,6 +541,17 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.normalizedVolume.chain['24h']
+			},
+			size: 160
+		},
+		{
+			id: 'activeLiquidity',
+			header: 'Active Liquidity',
+			accessorFn: (protocol) => protocol.activeLiquidity,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.activeLiquidity.chain
 			},
 			size: 160
 		},

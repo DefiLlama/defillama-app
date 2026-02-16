@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer } from 'react'
-import { ChartConfig, DashboardItemConfig, MetricAggregator, MetricChartType } from '../../types'
+import type { ChartConfig, DashboardItemConfig, MetricAggregator, MetricChartType } from '../../types'
 import { initializeFromEditItem, modalReducer } from './modalReducer'
-import { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType } from './types'
+import type { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType } from './types'
 
 export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: boolean) {
 	const [state, dispatch] = useReducer(modalReducer, editItem, initializeFromEditItem)

@@ -1,9 +1,11 @@
-import { NextApiRequest, NextApiResponse } from 'next'
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
+import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import { slug } from '~/utils'
 
 const adapterType = ADAPTER_TYPES.DEXS
+const metricName = 'DEX Volume'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
@@ -12,10 +14,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const chainList = typeof chains === 'string' ? [chains] : chains || []
 
 		if (chainList.length === 0) {
-			const data = await getAdapterChainOverview({
+			const data = await fetchAdapterChainMetrics({
 				adapterType,
-				chain: 'All',
-				excludeTotalDataChart: true
+				chain: 'All'
 			})
 
 			const protocols = data.protocols || []
@@ -39,7 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				const data = await getAdapterByChainPageData({
 					adapterType,
 					chain: chainData.name,
-					route: 'dexs'
+					route: 'dexs',
+					metricName
 				}).catch((e) => {
 					console.info(`Chain page data not found ${adapterType} : chain:${chainName}`, e)
 					return null

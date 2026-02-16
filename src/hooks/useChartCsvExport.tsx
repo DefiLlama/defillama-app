@@ -1,6 +1,6 @@
 import { useGetChartInstance } from './useGetChartInstance'
 
-export type CsvCell = string | number | boolean
+type CsvCell = string | number | boolean
 
 export interface ChartCsv {
 	filename: string

@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/router'
-import { ComponentType, lazy, Suspense, useMemo } from 'react'
+import { type ComponentType, lazy, Suspense, useMemo } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -15,8 +15,9 @@ import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/L
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useIsClient } from '~/hooks/useIsClient'
 import { capitalizeFirstLetter, slug, tokenIconUrl } from '~/utils'
-import { BAR_CHARTS, protocolCharts } from './constants'
-import { IProtocolOverviewPageData, IToggledMetrics } from './types'
+import { BAR_CHARTS, type ProtocolChartsLabels, protocolCharts } from './constants'
+import type { IProtocolCoreChartProps } from './ProtocolCoreChart'
+import type { IProtocolOverviewPageData, IToggledMetrics } from './types'
 import { useFetchProtocolChartData } from './useFetchProtocolChartData'
 
 // Utility function to update any query parameter in URL
@@ -42,19 +43,9 @@ type ChartInterval = (typeof INTERVALS_LIST)[number]
 const isChartInterval = (value: string | null): value is ChartInterval =>
 	value != null && INTERVALS_LIST.includes(value as (typeof INTERVALS_LIST)[number])
 
-interface IProtocolCoreChartProps {
-	chartData: Record<string, Array<[string | number, number]>>
-	chartColors: Record<string, string>
-	isThemeDark: boolean
-	valueSymbol: string
-	groupBy: ChartInterval
-	hallmarks: IProtocolOverviewPageData['hallmarks'] | null
-	rangeHallmarks: IProtocolOverviewPageData['rangeHallmarks'] | null
-	unlockTokenSymbol: string | null
-	onReady: (instance: unknown) => void
-}
-
-const ProtocolCoreChart = lazy(() => import('./ProtocolCoreChart')) as ComponentType<IProtocolCoreChartProps>
+const ProtocolCoreChart = lazy(() =>
+	import('./ProtocolCoreChart').then((m) => ({ default: m.default as ComponentType<IProtocolCoreChartProps> }))
+)
 
 export function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
@@ -69,8 +60,8 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 	)
 
 	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultToggledCharts } = useMemo(() => {
-		const chartsByVisibility = {}
-		for (const chartLabel in protocolCharts) {
+		const chartsByVisibility: Record<string, 'true' | 'false'> = {}
+		for (const chartLabel of Object.keys(protocolCharts) as ProtocolChartsLabels[]) {
 			const chartKey = protocolCharts[chartLabel]
 			chartsByVisibility[chartKey] = searchParams.get(chartKey) === 'true' ? 'true' : 'false'
 		}
@@ -351,6 +342,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 						</div>
 					) : null}
 					<EmbedChart />
+					<AddToDashboardButton chartConfig={multiChart} unsupportedMetrics={unsupportedMetrics} smol />
 					<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					<ChartPngExportButton
 						chartInstance={overviewChartInstance}
@@ -358,7 +350,6 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 						title={overviewImageTitle}
 						iconUrl={tokenIconUrl(props.name)}
 					/>
-					<AddToDashboardButton chartConfig={multiChart} unsupportedMetrics={unsupportedMetrics} smol />
 				</div>
 			</div>
 			<div className="flex min-h-[360px] flex-col">

@@ -1,14 +1,17 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import { IconsRow } from '~/components/IconsRow'
 import { ImageWithFallback } from '~/components/ImageWithFallback'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
 import { formattedNum, renderPercentChange } from '~/utils'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
+import { StabilityCell, StabilityHeader } from './StabilityCell'
 import type { IYieldsTableProps, IYieldTableRow } from './types'
 
 const uniswapV3 = 'For Uniswap V3 we assume a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
@@ -193,6 +196,52 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		size: 125,
 		meta: {
 			align: 'end'
+		}
+	},
+	{
+		header: () => <StabilityHeader />,
+		id: 'cv30d',
+		accessorFn: (row) => row.cv30d ?? undefined,
+		enableSorting: true,
+		cell: ({ getValue, row }) => {
+			return (
+				<StabilityCell
+					cv30d={getValue() as number | null}
+					apyMedian30d={row.original.apyMedian30d}
+					apyStd30d={row.original.apyStd30d}
+				/>
+			)
+		},
+		size: 110,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Measures yield consistency over the last 30 days.'
+		}
+	},
+	{
+		header: '30d Median APY',
+		accessorKey: 'apyMedian30d',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{renderPercentChange(info.getValue(), true)}</>
+		},
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: '30-day median APY — more robust than average, resistant to outlier spikes.'
+		}
+	},
+	{
+		header: '30d Std Dev',
+		accessorKey: 'apyStd30d',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{renderPercentChange(info.getValue(), true)}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Standard deviation of daily APY over the last 30 days. Measures yield volatility.'
 		}
 	},
 	{
@@ -445,6 +494,9 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
+		'cv30d',
+		'apyMedian30d',
+		'apyStd30d',
 		'apyChart30d',
 		'volumeUsd1d',
 		'volumeUsd7d',
@@ -471,6 +523,9 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
+		'cv30d',
+		'apyMedian30d',
+		'apyStd30d',
 		'apyChart30d',
 		'volumeUsd1d',
 		'volumeUsd7d',
@@ -497,6 +552,9 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
+		'cv30d',
+		'apyMedian30d',
+		'apyStd30d',
 		'volumeUsd1d',
 		'volumeUsd7d',
 		'apyBaseInception',
@@ -523,6 +581,9 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
+		'cv30d',
+		'apyMedian30d',
+		'apyStd30d',
 		'volumeUsd1d',
 		'volumeUsd7d',
 		'apyBaseInception',
@@ -552,6 +613,9 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		apyBase7d: 130,
 		il7d: 90,
 		apyMean30d: 125,
+		cv30d: 110,
+		apyMedian30d: 140,
+		apyStd30d: 120,
 		volumeUsd1d: 140,
 		volumeUsd7d: 140,
 		apyBaseInception: 150,
@@ -578,6 +642,9 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		apyBase7d: 140,
 		il7d: 90,
 		apyMean30d: 125,
+		cv30d: 110,
+		apyMedian30d: 140,
+		apyStd30d: 120,
 		volumeUsd1d: 140,
 		volumeUsd7d: 140,
 		apyBaseInception: 150,
@@ -604,6 +671,9 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		apyBase7d: 140,
 		il7d: 90,
 		apyMean30d: 125,
+		cv30d: 110,
+		apyMedian30d: 140,
+		apyStd30d: 120,
 		volumeUsd1d: 140,
 		volumeUsd7d: 140,
 		apyBaseInception: 150,
@@ -630,6 +700,9 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		apyBase7d: 140,
 		il7d: 90,
 		apyMean30d: 125,
+		cv30d: 110,
+		apyMedian30d: 140,
+		apyStd30d: 120,
 		volumeUsd1d: 140,
 		volumeUsd7d: 140,
 		apyBaseInception: 150,
@@ -656,6 +729,9 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		apyBase7d: 140,
 		il7d: 90,
 		apyMean30d: 125,
+		cv30d: 110,
+		apyMedian30d: 140,
+		apyStd30d: 120,
 		volumeUsd1d: 140,
 		volumeUsd7d: 140,
 		apyBaseInception: 150,
@@ -682,6 +758,9 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		apyBase7d: 140,
 		il7d: 90,
 		apyMean30d: 125,
+		cv30d: 110,
+		apyMedian30d: 140,
+		apyStd30d: 120,
 		volumeUsd1d: 140,
 		volumeUsd7d: 140,
 		apyBaseInception: 150,
@@ -708,6 +787,9 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		apyBase7d: 140,
 		il7d: 90,
 		apyMean30d: 125,
+		cv30d: 110,
+		apyMedian30d: 140,
+		apyStd30d: 120,
 		volumeUsd1d: 140,
 		volumeUsd7d: 140,
 		apyBaseInception: 150,
@@ -724,6 +806,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 
 export function YieldsPoolsTable(props: IYieldsTableProps) {
 	const router = useRouter()
+	const { hasActiveSubscription } = useAuthContext()
 	const {
 		show7dBaseApy,
 		show7dIL,
@@ -737,8 +820,20 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 		showTotalSupplied,
 		showTotalBorrowed,
 		showAvailable,
-		showLTV
+		showLTV,
+		showMedianApy,
+		showStdDev
 	} = router.query
+
+	const resolvedColumns = useMemo(() => {
+		if (hasActiveSubscription) return columns
+		return columns.map((col) => {
+			if ('accessorKey' in col && col.accessorKey === 'cv30d') {
+				return { ...col, enableSorting: false }
+			}
+			return col
+		})
+	}, [hasActiveSubscription])
 
 	const columnVisibility =
 		includeLsdApy === 'true'
@@ -758,7 +853,10 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					totalSupplyUsd: showTotalSupplied === 'true',
 					totalBorrowUsd: showTotalBorrowed === 'true',
 					totalAvailableUsd: showAvailable === 'true',
-					ltv: showLTV === 'true'
+					ltv: showLTV === 'true',
+					cv30d: true,
+					apyMedian30d: hasActiveSubscription && showMedianApy === 'true',
+					apyStd30d: hasActiveSubscription && showStdDev === 'true'
 				}
 			: {
 					apyBase7d: show7dBaseApy === 'true',
@@ -776,13 +874,16 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					totalSupplyUsd: showTotalSupplied === 'true',
 					totalBorrowUsd: showTotalBorrowed === 'true',
 					totalAvailableUsd: showAvailable === 'true',
-					ltv: showLTV === 'true'
+					ltv: showLTV === 'true',
+					cv30d: true,
+					apyMedian30d: hasActiveSubscription && showMedianApy === 'true',
+					apyStd30d: hasActiveSubscription && showStdDev === 'true'
 				}
 
 	return (
 		<YieldsTableWrapper
 			{...props}
-			columns={columns}
+			columns={resolvedColumns}
 			columnSizes={columnSizes}
 			columnOrders={columnOrders}
 			columnVisibility={columnVisibility}

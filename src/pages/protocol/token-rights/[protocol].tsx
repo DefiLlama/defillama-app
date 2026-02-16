@@ -1,15 +1,15 @@
-import { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { tvlOptionsMap } from '~/components/Filters/options'
 import { TokenLogo } from '~/components/TokenLogo'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
+import type { ITokenRights } from '~/containers/ProtocolOverview/api.types'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import { TokenRights } from '~/containers/ProtocolOverview/TokenRights'
-import type { IProtocolOverviewPageData, IProtocolPageMetrics, ITokenRights } from '~/containers/ProtocolOverview/types'
+import type { IProtocolOverviewPageData, IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
-import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { slug, tokenIconUrl } from '~/utils'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_OTHER_PROTOCOLS: string[] = []
@@ -49,23 +49,14 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		// Uses the updateProtocol endpoint under the hood (`getProtocol` -> `PROTOCOL_API`).
-		const protocolData = await getProtocol(protocol)
+		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 
 		if (!protocolData?.tokenRights) {
 			return { notFound: true, props: null }
 		}
 
-		const computedMetrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
+		const computedMetrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 		const metrics: IProtocolPageMetrics = { ...computedMetrics, tokenRights: true }
-
-		const toggleOptions: Array<{ name: string; key: string }> = []
-		for (const chain in protocolData.chainTvls ?? {}) {
-			if (TVL_SETTINGS_KEYS_SET.has(chain)) {
-				const option = tvlOptionsMap.get(chain as any)
-				if (option) toggleOptions.push(option)
-			}
-		}
 
 		const props: TokenRightsPageProps = {
 			name: protocolData.name,
@@ -75,7 +66,7 @@ export const getStaticProps = withPerformanceLogging(
 			category: protocolData.category ?? null,
 			metrics,
 			warningBanners: getProtocolWarningBanners(protocolData),
-			toggleOptions,
+			toggleOptions: [],
 			tokenRights: protocolData.tokenRights
 		}
 
@@ -84,6 +75,16 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 

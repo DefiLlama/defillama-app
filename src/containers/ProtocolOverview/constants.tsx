@@ -41,7 +41,8 @@ export const protocolCharts = {
 } as const
 
 export type ProtocolChartsLabels = keyof typeof protocolCharts
-export const allCharts = Object.keys(protocolCharts) as ProtocolChartsLabels[]
+// oxlint-disable-next-line no-unused-vars
+const allCharts = Object.keys(protocolCharts) as ProtocolChartsLabels[]
 export type ProtocolChartsQueryParams = (typeof protocolCharts)[keyof typeof protocolCharts]
 
 export const yAxisByChart: {

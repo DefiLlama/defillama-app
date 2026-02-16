@@ -325,7 +325,8 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 	)
 }
 
-export const useFetchBridgeVolumeOnAllChains = (protocol?: string | null) => {
+// oxlint-disable-next-line no-unused-vars
+const useFetchBridgeVolumeOnAllChains = (protocol?: string | null) => {
 	return useQuery({
 		queryKey: ['bridged-volume-on-all-chains', protocol],
 		queryFn: protocol

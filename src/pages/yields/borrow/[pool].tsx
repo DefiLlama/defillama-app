@@ -1,4 +1,4 @@
-import { GetServerSideProps } from 'next'
+import type { GetServerSideProps } from 'next'
 import Layout from '~/layout'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {

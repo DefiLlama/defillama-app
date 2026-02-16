@@ -1,12 +1,13 @@
-import { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import GovernanceProject from '~/containers/Governance/GovernanceProject'
 import { getGovernanceDetailsPageData } from '~/containers/Governance/queries'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { slug } from '~/utils'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
@@ -32,9 +33,9 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const protocolData = await getProtocol(protocol)
-		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
-		const { props: governanceProps } = await getGovernanceDetailsPageData({
+		const protocolData = await fetchProtocolOverviewMetrics(protocol)
+		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const governanceProps = await getGovernanceDetailsPageData({
 			governanceIDs: protocolData.governanceID ?? [],
 			projectName: protocolData.name
 		})
@@ -56,6 +57,16 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 

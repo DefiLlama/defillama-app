@@ -10,11 +10,10 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { oldBlue } from '~/constants/colors'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
-import { formatTvlsByChainFromTokens, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useProtocolBreakdownCharts } from '~/containers/ProtocolOverview/useProtocolBreakdownCharts'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -28,7 +27,7 @@ interface CexAssetsPageProps {
 	parentProtocol: string | null
 	otherProtocols: string[]
 	category: string | null
-	metrics: Pick<IProtocolPageMetrics, 'tvlTab' | 'stablecoins'>
+	metrics: Pick<IProtocolPageMetrics, 'tvl' | 'stablecoins'>
 	ownToken: string | null
 }
 
@@ -53,7 +52,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		const protocolData = await getProtocol(exchangeName)
+		const protocolData = await fetchProtocolOverviewMetrics(exchangeName)
 
 		if (!protocolData) {
 			return { notFound: true, props: null }
@@ -65,7 +64,7 @@ export const getStaticProps = withPerformanceLogging(
 				parentProtocol: protocolData.parentProtocol ?? null,
 				otherProtocols: protocolData.otherProtocols ?? [],
 				category: protocolData.category ?? null,
-				metrics: { tvlTab: true, stablecoins: true },
+				metrics: { tvl: true, stablecoins: true },
 				ownToken: exchangeData.coin ?? null
 			},
 			revalidate: maxAgeForNext([22])
@@ -74,6 +73,16 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
@@ -360,124 +369,50 @@ function InflowsByTokenChartCard({
 
 export default function Protocols(props: CexAssetsPageProps) {
 	const router = useRouter()
-	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
-	// includeOwnTokens is true by default, unless explicitly set to 'false' in query params
-	// Only read query params after router is ready to avoid hydration mismatch
-	const includeOwnTokens = !router.isReady || router.query.includeOwnTokens !== 'false'
-	const tokenToExclude = !includeOwnTokens ? props.ownToken : null
+	// includeOwnTokens is off by default and only enabled via URL query.
+	// Read query params only when router is ready to avoid hydration mismatch.
+	const includeOwnTokens = router.isReady && router.query.includeOwnTokens === 'true'
+	const protocol = slug(props.name ?? '')
+	const extraKeys = React.useMemo(() => {
+		if (!includeOwnTokens || !props.ownToken) return []
+		return ['OwnTokens']
+	}, [includeOwnTokens, props.ownToken])
 
 	const {
-		data: addlProtocolData,
-		historicalChainTvls,
 		isLoading,
-		isFetching: _isFetching
-	} = useFetchProtocolAddlChartsData(props.name, false, tokenToExclude)
-	const {
-		usdInflows,
-		tokenInflows,
-		tokensUnique: rawTokensUnique,
-		tokenBreakdown,
+		chainsUnique,
+		tokensUnique,
+		chainsDataset,
+		chainsCharts,
+		tokenUSDDataset,
+		tokenUSDCharts,
+		tokenRawDataset,
+		tokenRawCharts,
 		tokenBreakdownUSD,
-		tokenBreakdownPieChart
-	} = addlProtocolData || {}
-
-	const tokensUnique = React.useMemo(() => rawTokensUnique ?? [], [rawTokensUnique])
+		tokenBreakdownPieChart,
+		usdInflowsDataset,
+		tokenInflowsDataset,
+		tokenInflowsCharts
+	} = useProtocolBreakdownCharts({
+		protocol,
+		keys: extraKeys,
+		includeBase: true
+	})
 
 	const toggleIncludeOwnTokens = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const nextIncludeOwnTokens = event.currentTarget.checked
 		const { includeOwnTokens: _inc, ...restQuery } = router.query
-		const nextQuery = nextIncludeOwnTokens ? restQuery : { ...restQuery, includeOwnTokens: 'false' }
+		const nextQuery = nextIncludeOwnTokens ? { ...restQuery, includeOwnTokens: 'true' } : restQuery
 		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}
-
-	const { chainsSplit, chainsUnique } = React.useMemo(() => {
-		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
-		// For CEX, calculate TVL by chain from tokensInUsd (summing all token values per chain)
-		// This also respects the tokenToExclude filter
-		const chainsSplit = formatTvlsByChainFromTokens({ historicalChainTvls, extraTvlsEnabled, tokenToExclude })
-		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
-		const chainsUnique: string[] = []
-		for (const key in lastEntry) {
-			if (key !== 'date') chainsUnique.push(key)
-		}
-		return { chainsSplit, chainsUnique }
-	}, [historicalChainTvls, extraTvlsEnabled, tokenToExclude])
-
-	const { chainsDataset, chainsCharts } = React.useMemo(() => {
-		if (!chainsSplit) return { chainsDataset: null, chainsCharts: [] }
-		return {
-			chainsDataset: {
-				source: chainsSplit.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...chainsUnique]
-			},
-			chainsCharts: chainsUnique.map((name) => ({
-				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name }
-			}))
-		}
-	}, [chainsSplit, chainsUnique])
-
-	const { tokenUSDDataset, tokenUSDCharts } = React.useMemo(() => {
-		if (!tokenBreakdownUSD?.length || tokenBreakdownUSD.length <= 1)
-			return { tokenUSDDataset: null, tokenUSDCharts: [] }
-		return {
-			tokenUSDDataset: {
-				source: tokenBreakdownUSD.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...tokensUnique]
-			},
-			tokenUSDCharts: tokensUnique.map((name) => ({
-				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name }
-			}))
-		}
-	}, [tokenBreakdownUSD, tokensUnique])
-
-	const { tokenRawDataset, tokenRawCharts } = React.useMemo(() => {
-		if (!tokenBreakdown?.length || tokenBreakdown.length <= 1) return { tokenRawDataset: null, tokenRawCharts: [] }
-		return {
-			tokenRawDataset: {
-				source: tokenBreakdown.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...tokensUnique]
-			},
-			tokenRawCharts: tokensUnique.map((name) => ({
-				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name }
-			}))
-		}
-	}, [tokenBreakdown, tokensUnique])
-
-	const usdInflowsDataset = React.useMemo(
-		() =>
-			usdInflows?.length > 0
-				? {
-						source: usdInflows.map(([d, v]) => ({ timestamp: +d * 1e3, 'USD Inflows': v })),
-						dimensions: ['timestamp', 'USD Inflows']
-					}
-				: null,
-		[usdInflows]
-	)
-
-	const { tokenInflowsDataset, tokenInflowsCharts } = React.useMemo(() => {
-		if (!tokenInflows?.length) return { tokenInflowsDataset: null, tokenInflowsCharts: [] }
-		return {
-			tokenInflowsDataset: {
-				source: tokenInflows.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...tokensUnique]
-			},
-			tokenInflowsCharts: tokensUnique.map((name) => ({
-				type: 'bar' as const,
-				name,
-				encode: { x: 'timestamp', y: name },
-				// BarChart auto-stacked when `customLegendOptions` was used (no explicit stacks),
-				// so keep stacked token inflows behavior in MultiSeriesChart2.
-				stack: 'tokenInflows'
-			}))
-		}
-	}, [tokenInflows, tokensUnique])
+	const hasBreakdownMetrics =
+		(chainsDataset && chainsUnique?.length > 1) ||
+		(tokenUSDDataset && tokensUnique?.length > 0) ||
+		(tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && tokenBreakdownPieChart?.length > 0) ||
+		(tokenRawDataset && tokensUnique?.length > 0) ||
+		usdInflowsDataset ||
+		(tokenInflowsDataset && tokensUnique?.length > 0)
 
 	return (
 		<ProtocolOverviewLayout
@@ -488,80 +423,82 @@ export default function Protocols(props: CexAssetsPageProps) {
 			tab="assets"
 			isCEX={true}
 		>
+			<div className="col-span-full flex items-center justify-end rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				<div className="mr-auto flex items-center gap-2">
+					<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+					<h1 className="text-xl font-bold">{props.name}</h1>
+				</div>
+
+				{props.ownToken ? (
+					<Switch
+						value="includeOwnTokens"
+						label={`Include own tokens (${props.ownToken})`}
+						checked={includeOwnTokens}
+						onChange={toggleIncludeOwnTokens}
+						className="gap-2"
+					/>
+				) : null}
+			</div>
 			{isLoading ? (
 				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
 				</div>
+			) : !hasBreakdownMetrics ? (
+				<div className="col-span-full flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+					<p className="text-(--text-label)">Breakdown metrics are not available</p>
+				</div>
 			) : (
-				<>
-					<div className="col-span-full flex items-center justify-end rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-						<div className="mr-auto flex items-center gap-2">
-							<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
-							<h1 className="text-xl font-bold">{props.name}</h1>
-						</div>
+				<div className="grid grid-cols-2 gap-2">
+					{chainsDataset && chainsUnique?.length > 1 ? (
+						<ChainsChartCard
+							key={chainsUnique.join('|')}
+							protocolName={props.name}
+							allChains={chainsUnique}
+							dataset={chainsDataset}
+							charts={chainsCharts}
+						/>
+					) : null}
 
-						{props.ownToken ? (
-							<Switch
-								value="includeOwnTokens"
-								label={`Include own tokens (${props.ownToken})`}
-								checked={includeOwnTokens}
-								onChange={toggleIncludeOwnTokens}
-								className="gap-2"
-							/>
-						) : null}
-					</div>
-					<div className="grid grid-cols-2 gap-2">
-						{chainsDataset && chainsUnique?.length > 1 ? (
-							<ChainsChartCard
-								key={chainsUnique.join('|')}
-								protocolName={props.name}
-								allChains={chainsUnique}
-								dataset={chainsDataset}
-								charts={chainsCharts}
-							/>
-						) : null}
+					{tokenUSDDataset && tokensUnique?.length > 0 ? (
+						<TokenValuesUSDChartCard
+							key={tokensUnique.join('|')}
+							protocolName={props.name}
+							allTokens={tokensUnique}
+							dataset={tokenUSDDataset}
+							charts={tokenUSDCharts}
+						/>
+					) : null}
 
-						{tokenUSDDataset && tokensUnique?.length > 0 ? (
-							<TokenValuesUSDChartCard
-								key={tokensUnique.join('|')}
-								protocolName={props.name}
-								allTokens={tokensUnique}
-								dataset={tokenUSDDataset}
-								charts={tokenUSDCharts}
-							/>
-						) : null}
+					{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && tokenBreakdownPieChart?.length > 0 ? (
+						<TokensBreakdownPieChartCard
+							key={tokenBreakdownPieChart.map((d) => d.name).join('|')}
+							chartData={tokenBreakdownPieChart}
+							protocolName={props.name}
+						/>
+					) : null}
 
-						{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && tokenBreakdownPieChart?.length > 0 ? (
-							<TokensBreakdownPieChartCard
-								key={tokenBreakdownPieChart.map((d) => d.name).join('|')}
-								chartData={tokenBreakdownPieChart}
-								protocolName={props.name}
-							/>
-						) : null}
+					{tokenRawDataset && tokensUnique?.length > 0 ? (
+						<TokenBalancesRawChartCard
+							key={tokensUnique.join('|')}
+							protocolName={props.name}
+							allTokens={tokensUnique}
+							dataset={tokenRawDataset}
+							charts={tokenRawCharts}
+						/>
+					) : null}
 
-						{tokenRawDataset && tokensUnique?.length > 0 ? (
-							<TokenBalancesRawChartCard
-								key={tokensUnique.join('|')}
-								protocolName={props.name}
-								allTokens={tokensUnique}
-								dataset={tokenRawDataset}
-								charts={tokenRawCharts}
-							/>
-						) : null}
+					{usdInflowsDataset ? <USDInflowsChartCard protocolName={props.name} dataset={usdInflowsDataset} /> : null}
 
-						{usdInflowsDataset ? <USDInflowsChartCard protocolName={props.name} dataset={usdInflowsDataset} /> : null}
-
-						{tokenInflowsDataset && tokensUnique?.length > 0 ? (
-							<InflowsByTokenChartCard
-								key={tokensUnique.join('|')}
-								protocolName={props.name}
-								allTokens={tokensUnique}
-								dataset={tokenInflowsDataset}
-								charts={tokenInflowsCharts}
-							/>
-						) : null}
-					</div>
-				</>
+					{tokenInflowsDataset && tokensUnique?.length > 0 ? (
+						<InflowsByTokenChartCard
+							key={tokensUnique.join('|')}
+							protocolName={props.name}
+							allTokens={tokensUnique}
+							dataset={tokenInflowsDataset}
+							charts={tokenInflowsCharts}
+						/>
+					) : null}
+				</div>
 			)}
 		</ProtocolOverviewLayout>
 	)

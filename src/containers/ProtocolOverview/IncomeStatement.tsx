@@ -7,7 +7,7 @@ import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { abbreviateNumber } from '~/utils'
-import { IProtocolOverviewPageData } from './types'
+import type { IProtocolOverviewPageData } from './types'
 
 const SankeyChart = lazy(() => import('~/components/ECharts/SankeyChart'))
 
@@ -17,7 +17,7 @@ const EMPTY_BREAKDOWN_METHODOLOGY: Record<string, string> = {}
 
 const formatIncomeValue = (value: number): string => abbreviateNumber(value, 2, '$') ?? '$0'
 
-export type IncomeStatementView = 'table' | 'sankey' | 'both'
+type IncomeStatementView = 'table' | 'sankey' | 'both'
 
 interface IncomeStatementProps {
 	name: string
@@ -62,60 +62,67 @@ export const IncomeStatement = ({
 		tokenHolderNetIncomeByLabels,
 		othersTokenHolderFlowsByLabels
 	} = useMemo(() => {
-		const groupKey = groupBy.toLowerCase()
-		const tableHeaders = [] as [string, string, number][]
-		const grossProtocolRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const costOfRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const grossProfitData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const incentivesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const earningsData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const tokenHolderNetIncomeData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const othersTokenHolderFlowsData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const groupKey = groupBy.toLowerCase() as 'monthly' | 'quarterly' | 'yearly'
+		const tableHeaders: Array<[string, string, number]> = []
+		const grossProtocolRevenueData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const costOfRevenueData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const grossProfitData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const incentivesData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const earningsData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const tokenHolderNetIncomeData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const othersTokenHolderFlowsData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
 
-		for (const key in incomeStatement?.data?.[groupKey] ?? {}) {
-			tableHeaders.push([
-				key,
-				groupKey === 'monthly'
-					? dayjs.utc(key).format('MMM YYYY')
-					: groupKey === 'quarterly'
-						? key.split('-').reverse().join(' ')
-						: key,
-				incomeStatement?.data?.[groupKey]?.[key]?.timestamp ?? 0
-			])
+		const groupData = incomeStatement?.data?.[groupKey]
+		if (groupData) {
+			for (const key of Object.keys(groupData)) {
+				if (key === 'timestamp') continue
+				const periodData = groupData[key] as
+					| (Record<string, { value: number; 'by-label': Record<string, number> }> & { timestamp?: number })
+					| undefined
+				tableHeaders.push([
+					key,
+					groupKey === 'monthly'
+						? dayjs.utc(key).format('MMM YYYY')
+						: groupKey === 'quarterly'
+							? key.split('-').reverse().join(' ')
+							: key,
+					periodData?.timestamp ?? 0
+				])
 
-			grossProtocolRevenueData[key] = incomeStatement?.data?.[groupKey]?.[key]?.['Gross Protocol Revenue'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				grossProtocolRevenueData[key] = periodData?.['Gross Protocol Revenue'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			costOfRevenueData[key] = incomeStatement?.data?.[groupKey]?.[key]?.['Cost Of Revenue'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				costOfRevenueData[key] = periodData?.['Cost Of Revenue'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			grossProfitData[key] = incomeStatement?.data?.[groupKey]?.[key]?.['Gross Profit'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				grossProfitData[key] = periodData?.['Gross Profit'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			incentivesData[key] = incomeStatement?.data?.[groupKey]?.[key]?.['Incentives'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				incentivesData[key] = periodData?.['Incentives'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			earningsData[key] = incomeStatement?.data?.[groupKey]?.[key]?.['Earnings'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				earningsData[key] = periodData?.['Earnings'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			tokenHolderNetIncomeData[key] = incomeStatement?.data?.[groupKey]?.[key]?.['Token Holder Net Income'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				tokenHolderNetIncomeData[key] = periodData?.['Token Holder Net Income'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			othersTokenHolderFlowsData[key] = incomeStatement?.data?.[groupKey]?.[key]?.['Others Token Holder Flows'] ?? {
-				value: 0,
-				'by-label': {}
+				othersTokenHolderFlowsData[key] = periodData?.['Others Token Holder Flows'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 			}
 		}
 
@@ -139,55 +146,58 @@ export const IncomeStatement = ({
 
 	// Compute Sankey chart data for the selected period
 	const { sankeyData, sankeyPeriodOptions, validSankeyPeriod } = useMemo(() => {
-		const sankeyGroupKey = sankeyGroupBy.toLowerCase()
-		const sankeyHeaders = [] as [string, string, number][]
-		const sankeyGrossProtocolRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const sankeyCostOfRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const sankeyGrossProfitData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const sankeyIncentivesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const sankeyEarningsData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const sankeyTokenHolderNetIncomeData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const sankeyGroupKey = sankeyGroupBy.toLowerCase() as 'monthly' | 'quarterly' | 'yearly'
+		const sankeyHeaders: Array<[string, string, number]> = []
+		const sankeyGrossProtocolRevenueData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const sankeyCostOfRevenueData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const sankeyGrossProfitData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const sankeyIncentivesData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const sankeyEarningsData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const sankeyTokenHolderNetIncomeData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
 
-		for (const key in incomeStatement?.data?.[sankeyGroupKey] ?? {}) {
-			sankeyHeaders.push([
-				key,
-				sankeyGroupKey === 'monthly'
-					? dayjs.utc(key).format('MMM YYYY')
-					: sankeyGroupKey === 'quarterly'
-						? key.split('-').reverse().join(' ')
-						: key,
-				incomeStatement?.data?.[sankeyGroupKey]?.[key]?.timestamp ?? 0
-			])
+		const sankeyGroupData = incomeStatement?.data?.[sankeyGroupKey]
+		if (sankeyGroupData) {
+			for (const key of Object.keys(sankeyGroupData)) {
+				if (key === 'timestamp') continue
+				const periodData = sankeyGroupData[key] as
+					| (Record<string, { value: number; 'by-label': Record<string, number> }> & { timestamp?: number })
+					| undefined
+				sankeyHeaders.push([
+					key,
+					sankeyGroupKey === 'monthly'
+						? dayjs.utc(key).format('MMM YYYY')
+						: sankeyGroupKey === 'quarterly'
+							? key.split('-').reverse().join(' ')
+							: key,
+					periodData?.timestamp ?? 0
+				])
 
-			sankeyGrossProtocolRevenueData[key] = incomeStatement?.data?.[sankeyGroupKey]?.[key]?.[
-				'Gross Protocol Revenue'
-			] ?? { value: 0, 'by-label': {} }
+				sankeyGrossProtocolRevenueData[key] = periodData?.['Gross Protocol Revenue'] ?? { value: 0, 'by-label': {} }
 
-			sankeyCostOfRevenueData[key] = incomeStatement?.data?.[sankeyGroupKey]?.[key]?.['Cost Of Revenue'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				sankeyCostOfRevenueData[key] = periodData?.['Cost Of Revenue'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			sankeyGrossProfitData[key] = incomeStatement?.data?.[sankeyGroupKey]?.[key]?.['Gross Profit'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				sankeyGrossProfitData[key] = periodData?.['Gross Profit'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			sankeyIncentivesData[key] = incomeStatement?.data?.[sankeyGroupKey]?.[key]?.['Incentives'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				sankeyIncentivesData[key] = periodData?.['Incentives'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			sankeyEarningsData[key] = incomeStatement?.data?.[sankeyGroupKey]?.[key]?.['Earnings'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				sankeyEarningsData[key] = periodData?.['Earnings'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			sankeyTokenHolderNetIncomeData[key] = incomeStatement?.data?.[sankeyGroupKey]?.[key]?.[
-				'Token Holder Net Income'
-			] ?? {
-				value: 0,
-				'by-label': {}
+				sankeyTokenHolderNetIncomeData[key] = periodData?.['Token Holder Net Income'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 			}
 		}
 
@@ -220,6 +230,7 @@ export const IncomeStatement = ({
 		// Get breakdown by labels for fees
 		const grossProtocolRevenueByLabelData = sankeyGrossProtocolRevenueData[periodKey]?.['by-label'] ?? {}
 		const costOfRevenueByLabelData = sankeyCostOfRevenueData[periodKey]?.['by-label'] ?? {}
+		const incentivesByLabelData = sankeyIncentivesData[periodKey]?.['by-label'] ?? {}
 
 		const nodes: Array<{
 			name: string
@@ -339,8 +350,31 @@ export const IncomeStatement = ({
 					name: 'Incentives',
 					color: COLORS.red,
 					description: incomeStatement?.methodology?.['Incentives'] ?? '',
+					displayValue: incentives,
 					depth: 2 // Same depth as Gross Profit
 				})
+
+				// Add incentives breakdown if labels are available (sources flow INTO Incentives)
+				let hasIncentivesBreakdown = false
+				for (const _ in incentivesByLabelData) {
+					hasIncentivesBreakdown = true
+					break
+				}
+				if (hasIncentivesBreakdown) {
+					for (const label in incentivesByLabelData) {
+						const value = incentivesByLabelData[label]
+						if (value > 0) {
+							const incentiveLabel = `${label} (Incentive)`
+							nodes.push({
+								name: incentiveLabel,
+								color: COLORS.red,
+								description: incomeStatement?.breakdownMethodology?.['Incentives']?.[label] ?? '',
+								percentageLabel: formatPercent(value, incentives)
+							})
+							links.push({ source: incentiveLabel, target: 'Incentives', value })
+						}
+					}
+				}
 
 				// Both Gross Profit and Incentives flow into Earnings
 				nodes.push({
@@ -685,7 +719,7 @@ export const IncomeStatement = ({
 							<SankeyChart
 								nodes={sankeyData.nodes}
 								links={sankeyData.links}
-								height="450px"
+								height={`${Math.max(450, sankeyData.nodes.length * 50)}px`}
 								onReady={handleSankeyChartReady}
 							/>
 						</Suspense>
@@ -755,7 +789,7 @@ const IncomeStatementByLabel = ({
 								content={
 									<PerformanceTooltipContent
 										currentValue={data[header[0]].value}
-										previousValue={tableHeaders[i + 1] ? data[tableHeaders[i + 1][0]].value : null}
+										previousValue={tableHeaders[i + 1] ? (data[tableHeaders[i + 1][0]]?.value ?? null) : null}
 										groupBy={groupBy}
 										dataType={dataType}
 									/>
@@ -793,13 +827,15 @@ const IncomeStatementByLabel = ({
 								>
 									{data[header[0]]?.['by-label']?.[breakdownlabel] == null ? null : i !== 0 &&
 									  tableHeaders[i + 1] &&
-									  data[tableHeaders[i + 1][0]]['by-label']?.[breakdownlabel] ? (
+									  data[tableHeaders[i + 1][0]]?.['by-label']?.[breakdownlabel] ? (
 										<Tooltip
 											content={
 												<PerformanceTooltipContent
 													currentValue={data[header[0]]['by-label']?.[breakdownlabel]}
 													previousValue={
-														tableHeaders[i + 1] ? data[tableHeaders[i + 1][0]]['by-label']?.[breakdownlabel] : null
+														tableHeaders[i + 1]
+															? (data[tableHeaders[i + 1][0]]?.['by-label']?.[breakdownlabel] ?? null)
+															: null
 													}
 													groupBy={groupBy}
 													dataType={dataType}
@@ -830,8 +866,8 @@ const PerformanceTooltipContent = ({
 	dataType,
 	label
 }: {
-	currentValue: number
-	previousValue: number
+	currentValue: number | null
+	previousValue: number | null
 	groupBy: 'Yearly' | 'Quarterly' | 'Monthly'
 	dataType:
 		| 'gross protocol revenue'
@@ -843,7 +879,7 @@ const PerformanceTooltipContent = ({
 		| 'others token holder flows'
 	label?: string
 }) => {
-	if (previousValue == null) return null
+	if (previousValue == null || currentValue == null) return null
 	const valueChange = currentValue - previousValue
 	const percentageChange = previousValue !== 0 ? (valueChange / Math.abs(previousValue)) * 100 : 0
 	const percentageChangeText =

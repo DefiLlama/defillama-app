@@ -24,9 +24,9 @@ import { TVL_SETTINGS_KEYS, useDarkModeManager, useLocalStorageSettingsManager }
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, chainIconUrl, downloadCSV, formattedNum, slug } from '~/utils'
-import { BAR_CHARTS, ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
+import { BAR_CHARTS, type ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
 import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
-import { IChainOverviewData } from './types'
+import type { IChainOverviewData } from './types'
 import { useFetchChainChartData } from './useFetchChainChartData'
 
 const ChainCoreChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
