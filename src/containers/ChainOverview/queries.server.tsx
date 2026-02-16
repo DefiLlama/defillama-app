@@ -675,11 +675,13 @@ export async function getChainOverviewData({
 export const getProtocolsByChain = async ({
 	chain,
 	chainMetadata,
-	protocolMetadata
+	protocolMetadata,
+	oracle = null
 }: {
 	chain: string
 	chainMetadata: Record<string, IChainMetadata>
 	protocolMetadata: Record<string, IProtocolMetadata>
+	oracle?: string | null
 }) => {
 	const currentChainMetadata: IChainMetadata =
 		chain === 'All'
@@ -687,6 +689,29 @@ export const getProtocolsByChain = async ({
 			: chainMetadata[slug(chain)]
 
 	if (!currentChainMetadata) return null
+
+	const normalizedOracle = oracle ? slug(oracle) : null
+	const protocolMatchesOracleFilter = (protocol: ILiteProtocol): boolean => {
+		if (!normalizedOracle) return true
+
+		if (protocol.oraclesByChain && Object.keys(protocol.oraclesByChain).length > 0) {
+			if (chain !== 'All') {
+				const chainEntry = Object.entries(protocol.oraclesByChain).find(([chainName]) => {
+					return slug(chainName) === slug(currentChainMetadata.name)
+				})
+
+				if (!chainEntry) return false
+
+				return chainEntry[1].some((oracleName) => slug(oracleName) === normalizedOracle)
+			}
+
+			return Object.values(protocol.oraclesByChain).some((oracleNames) => {
+				return oracleNames.some((oracleName) => slug(oracleName) === normalizedOracle)
+			})
+		}
+
+		return (protocol.oracles ?? []).some((oracleName) => slug(oracleName) === normalizedOracle)
+	}
 
 	const [{ protocols, chains, parentProtocols }, fees, revenue, holdersRevenue, dexs, emissionsData]: [
 		{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
@@ -837,6 +862,7 @@ export const getProtocolsByChain = async ({
 		if (
 			!protocol.defillamaId.startsWith('chain#') &&
 			protocolMetadata[protocol.defillamaId] &&
+			protocolMatchesOracleFilter(protocol) &&
 			toFilterProtocol({
 				protocolMetadata: protocolMetadata[protocol.defillamaId],
 				protocolData: protocol,

@@ -1,63 +1,66 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import type { IPieChartProps } from '~/components/ECharts/types'
 import { tvlOptions } from '~/components/Filters/options'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
 import Layout from '~/layout'
-import { formattedNum } from '~/utils'
+import { formattedNum, slug } from '~/utils'
+import { useOraclesData, type IOracleTableRow } from './useOraclesData'
 
-const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
-
+const PieChart = React.lazy(() => import('~/components/ECharts/PieChart'))
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const pageName = ['Oracles', 'ranked by', 'TVS']
 const DEFAULT_SORTING_STATE = [{ id: 'tvs', desc: true }]
 
-// oxlint-disable-next-line no-unused-vars
-const OraclesByChain = ({ chartData, tokensProtocols, tokens, tokenLinks, oraclesColors, chainsByOracle, chain }) => {
-	const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = useCalcGroupExtraTvlsByDay(chartData)
-	const { tokenTvls, tokensList } = React.useMemo(() => {
-		const tvls = Object.entries(chainsWithExtraTvlsByDay[chainsWithExtraTvlsByDay.length - 1])
-			.filter((item) => item[0] !== 'date')
-			.map((token) => ({ name: token[0], value: token[1] ?? 0 }) as { name: string; value: number })
-			.sort((a, b) => b.value - a.value)
+interface IOraclesByChainProps {
+	chartData: Array<[number, Record<string, { tvl: number }>]>
+	tokensProtocols: Record<string, number>
+	tokens: Array<string>
+	tokenLinks: Array<{ label: string; to: string }>
+	oraclesColors: Record<string, string>
+	chainsByOracle: Record<string, Array<string>>
+	chain: string | null
+}
 
-		const tokenTvls = preparePieChartData({
-			data: tvls,
+export const OraclesByChain = ({
+	chartData,
+	tokensProtocols,
+	tokens,
+	tokenLinks,
+	oraclesColors,
+	chainsByOracle,
+	chain
+}: IOraclesByChainProps) => {
+	const oraclesData = useOraclesData({
+		chartData,
+		tokens,
+		tokensProtocols,
+		oraclesColors
+	})
+	const { tableData, pieChartData, dominanceCharts, dataset } = oraclesData
+
+	// Merge chains data into table rows
+	const tableDataWithChains = React.useMemo(() => {
+		return tableData.map((row) => ({
+			...row,
+			chains: chainsByOracle[row.name] ?? [],
+			chainsCount: (chainsByOracle[row.name] ?? []).length
+		}))
+	}, [tableData, chainsByOracle])
+
+	// Prepare pie chart data with colors
+	const pieData = React.useMemo(() => {
+		return preparePieChartData({
+			data: pieChartData,
 			limit: 5
 		})
-		const tokensList = tvls.map(({ name, value }) => {
-			return {
-				name,
-				protocolsSecured: tokensProtocols[name],
-				tvs: value,
-				chains: chainsByOracle[name]
-			}
-		})
+	}, [pieChartData])
 
-		return { tokenTvls, tokensList }
-	}, [chainsWithExtraTvlsByDay, tokensProtocols, chainsByOracle])
-
-	const { dominanceDataset, dominanceCharts } = React.useMemo(() => {
-		return {
-			dominanceDataset: {
-				source: chainsWithExtraTvlsAndDominanceByDay.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...tokens]
-			},
-			dominanceCharts: tokens.map((name) => ({
-				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name },
-				color: oraclesColors[name],
-				stack: 'dominance'
-			}))
-		}
-	}, [chainsWithExtraTvlsAndDominanceByDay, tokens, oraclesColors])
+	const activeLink = chain ?? 'All'
 
 	return (
 		<Layout
@@ -68,13 +71,13 @@ const OraclesByChain = ({ chartData, tokensProtocols, tokens, tokenLinks, oracle
 			metricFilters={tvlOptions}
 			pageName={pageName}
 		>
-			<RowLinksWithDropdown links={tokenLinks} activeLink={chain || 'All'} />
+			<RowLinksWithDropdown links={tokenLinks} activeLink={activeLink} />
 
 			<div className="flex flex-col gap-1 xl:flex-row">
 				<div className="relative isolate flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<PieChart
-							chartData={tokenTvls}
+							chartData={pieData}
 							stackColors={oraclesColors}
 							exportButtons={{ png: true, csv: true, filename: 'oracles-tvs-pie', pngTitle: 'Oracles TVS' }}
 						/>
@@ -83,7 +86,7 @@ const OraclesByChain = ({ chartData, tokensProtocols, tokens, tokenLinks, oracle
 				<div className="flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<MultiSeriesChart2
-							dataset={dominanceDataset}
+							dataset={dataset}
 							charts={dominanceCharts}
 							stacked={true}
 							expandTo100Percent={true}
@@ -93,20 +96,21 @@ const OraclesByChain = ({ chartData, tokensProtocols, tokens, tokenLinks, oracle
 					</React.Suspense>
 				</div>
 			</div>
+
 			<React.Suspense
 				fallback={
 					<div
-						style={{ minHeight: `${tokensList.length * 50 + 200}px` }}
+						style={{ minHeight: `${tableDataWithChains.length * 50 + 200}px` }}
 						className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
 					/>
 				}
 			>
 				<TableWithSearch
-					data={tokensList}
+					data={tableDataWithChains}
 					columns={columns}
-					columnToSearch={'name'}
-					placeholder={'Search oracles...'}
-					header={'Oracle Rankings'}
+					columnToSearch="name"
+					placeholder="Search oracles..."
+					header="Oracle Rankings"
 					sortingState={DEFAULT_SORTING_STATE}
 				/>
 			</React.Suspense>
@@ -114,26 +118,20 @@ const OraclesByChain = ({ chartData, tokensProtocols, tokens, tokenLinks, oracle
 	)
 }
 
-interface IOraclesRow {
-	name: string
-	protocolsSecured: number
-	tvs: number
-}
-
-const columns: ColumnDef<IOraclesRow>[] = [
+const columns: ColumnDef<IOracleTableRow>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
+			const name = getValue<string>()
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<BasicLink
-						href={`/oracles/${getValue()}`}
+						href={`/oracles/${slug(name)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 					>
-						{getValue() as string}
+						{name}
 					</BasicLink>
 				</span>
 			)
@@ -143,18 +141,24 @@ const columns: ColumnDef<IOraclesRow>[] = [
 		header: 'Chains',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			return <IconsRow links={getValue() as Array<string>} url="/oracles/chain" iconType="chain" />
-		},
 		size: 200,
+		cell: ({ row }) => {
+			const chains = row.original.chains ?? []
+			return (
+				<div className="flex items-center justify-end gap-1 overflow-hidden">
+					<IconsRow links={chains} url="/oracles/chain" iconType="chain" />
+				</div>
+			)
+		},
 		meta: {
 			align: 'end',
 			headerHelperText: 'Chains secured by the oracle'
 		}
 	},
 	{
-		header: 'Protocols Secured',
+		header: 'Protocols',
 		accessorKey: 'protocolsSecured',
+		size: 100,
 		meta: {
 			align: 'end'
 		}
@@ -162,10 +166,15 @@ const columns: ColumnDef<IOraclesRow>[] = [
 	{
 		header: 'TVS',
 		accessorKey: 'tvs',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		enableSorting: true,
+		size: 140,
+		cell: ({ getValue }) => {
+			const value = getValue<number>()
+			return <span>{formattedNum(value, true)}</span>
+		},
 		meta: {
 			align: 'end',
-			headerHelperText: 'Total Value Secured by the Oracle. Excludes CeFi'
+			headerHelperText: 'Total Value Secured by the Oracle'
 		}
 	}
 ]

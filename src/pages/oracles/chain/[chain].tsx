@@ -1,60 +1,44 @@
-// import * as React from 'react'
-// import { maxAgeForNext } from '~/api'
-// import { OraclesByChain } from '~/containers/Oracles'
-// import { getOraclePageData, getOraclePageDataByChain } from '~/containers/Oracles/queries'
-// import { withPerformanceLogging } from '~/utils/perf'
+import type { InferGetStaticPropsType } from 'next'
+import { maxAgeForNext } from '~/api'
+import { OraclesByChain } from '~/containers/Oracles'
+import { getOraclePageData, getOraclePageDataByChain } from '~/containers/Oracles/queries'
+import { slug } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
 
-// export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({ params: { chain } }) => {
-// 	const data = await getOraclePageDataByChain(chain as string)
+export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({ params }) => {
+	if (!params?.chain) {
+		return { notFound: true, props: null }
+	}
 
-// 	if (!data) {
-// 		return { notFound: true }
-// 	}
+	const chain = Array.isArray(params.chain) ? params.chain[0] : params.chain
+	const data = await getOraclePageDataByChain(chain)
 
-// 	return {
-// 		props: { ...data },
-// 		revalidate: maxAgeForNext([22])
-// 	}
-// })
+	if (!data || 'notFound' in data) {
+		return { notFound: true }
+	}
 
-// export async function getStaticPaths() {
-// 	const data = await getOraclePageData()
+	return {
+		props: { ...data },
+		revalidate: maxAgeForNext([22])
+	}
+})
 
-// 	const chainsByOracle = data?.chainsByOracle ?? {}
+export async function getStaticPaths() {
+	const data = await getOraclePageData()
 
-// 	const chainsLits = [...new Set(Object.values(chainsByOracle).flat())]
+	const chainsByOracle = data && 'chainsByOracle' in data ? data.chainsByOracle : {}
 
-// 	const paths = chainsLits.slice(0, 10).map((chain) => {
-// 		return {
-// 			params: { chain }
-// 		}
-// 	})
+	const chainsList = [...new Set(Object.values(chainsByOracle).flat())]
 
-// 	return { paths, fallback: 'blocking' }
-// }
+	const paths = chainsList.slice(0, 10).map((chain) => {
+		return {
+			params: { chain: slug(chain) }
+		}
+	})
 
-// export default function OraclesPage(props) {
-// 	return <OraclesByChain {...props} />
-// }
+	return { paths, fallback: 'blocking' }
+}
 
-import { BasicLink } from '~/components/Link'
-import { TemporarilyDisabledPage } from '~/components/TemporarilyDisabledPage'
-
-export default function OraclesChainPage() {
-	return (
-		<TemporarilyDisabledPage
-			title="Oracles temporarily disabled - DefiLlama"
-			description="Oracles dashboards are temporarily disabled and will be back shortly."
-			canonicalUrl="/oracles"
-		>
-			<p>The Oracles dashboards are temporarily disabled while we perform maintenance. We&apos;ll be back shortly.</p>
-			<p>
-				In the meantime, check out{' '}
-				<BasicLink href="/metrics" className="underline">
-					other dashboards
-				</BasicLink>
-				.
-			</p>
-		</TemporarilyDisabledPage>
-	)
+export default function OraclesPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
+	return <OraclesByChain {...props} />
 }
