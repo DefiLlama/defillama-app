@@ -13,7 +13,11 @@ export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({
 	const chain = Array.isArray(params.chain) ? params.chain[0] : params.chain
 	const data = await getOraclePageDataByChain(chain)
 
-	if (!data || 'notFound' in data) {
+	if (data === null) {
+		throw new Error(`Failed to load /oracles/chain/${chain} page data`)
+	}
+
+	if ('notFound' in data) {
 		return { notFound: true }
 	}
 

@@ -73,19 +73,28 @@ export const OracleOverview = ({
 		}
 		protocolsData.sort((a, b) => b.tvs - a.tvs)
 
-		const finalChartData = chainChartData
-			? formatChartTvlsByDay({ data: chainChartData, extraTvlsEnabled, key: 'TVS' })
-			: (() => {
-					const points: Array<[number, number]> = []
-					for (const [timestampInSeconds, values] of chartData) {
-						let value = 0
-						for (const oracleName in values) {
-							value += values[oracleName]?.tvl ?? 0
+		const chartDataForFormatting: Array<[number, Record<string, number>]> = chainChartData
+			? chainChartData
+			: chartData.map(([timestampInSeconds, values]) => {
+					const totals: Record<string, number> = { tvl: 0 }
+					for (const oracleName in values) {
+						const oracleValues = values[oracleName]
+						for (const [metricName, metricValue] of Object.entries(oracleValues ?? {})) {
+							if (metricName === 'tvl') {
+								totals.tvl += metricValue ?? 0
+							} else {
+								totals[metricName] = (totals[metricName] ?? 0) + (metricValue ?? 0)
+							}
 						}
-						points.push([timestampInSeconds * 1e3, value])
 					}
-					return points
-				})()
+					return [timestampInSeconds, totals]
+				})
+
+		const finalChartData = formatChartTvlsByDay({
+			data: chartDataForFormatting,
+			extraTvlsEnabled,
+			key: 'TVS'
+		})
 
 		const totalValue = finalChartData[finalChartData.length - 1]?.[1] ?? 0
 		const datasetSource: Array<{ timestamp: number; TVS: number }> = []
@@ -117,17 +126,16 @@ export const OracleOverview = ({
 		}
 	}, [chainChartData, chartData, extraTvlsEnabled, filteredProtocols])
 
-	const topProtocol = protocolsData[0]
-	const topProtocolDominanceData = topProtocol ? { tvl: topProtocol.tvs } : {}
-	const dominance = getTokenDominance(topProtocolDominanceData, totalValue)
-	const dominanceText = dominance ?? 0
+	const topProtocol = protocolsData[0] ?? null
+	const dominance = topProtocol ? getTokenDominance({ tvl: topProtocol.tvs }, totalValue) : null
+	const dominanceText = dominance == null ? null : String(dominance)
 	const displayToken = token ?? 'Oracle'
 	const dominanceLabel = topProtocol ? `${topProtocol.name} Dominance` : 'Top Protocol Dominance'
 	const canonicalUrl = token ? `/oracles/${slug(token)}${chain ? `/${slug(chain)}` : ''}` : '/oracles'
 
 	return (
 		<Layout
-			title={`Oracles - DefiLlama`}
+			title={`${token ?? 'Oracles'} - DefiLlama`}
 			description={`Total Value Secured by Oracles. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`blockchain oracles , total value secured by oracles, defi total value secured by oracles`}
 			canonicalUrl={canonicalUrl}
@@ -145,7 +153,9 @@ export const OracleOverview = ({
 					</p>
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">{dominanceLabel}</span>
-						<span className="font-jetbrains text-2xl font-semibold">{dominanceText}%</span>
+						<span className="font-jetbrains text-2xl font-semibold">
+							{dominanceText === null ? 'N/A' : `${dominanceText}%`}
+						</span>
 					</p>
 				</div>
 

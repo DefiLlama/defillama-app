@@ -61,13 +61,14 @@ export const OraclesByChain = ({
 	}, [pieChartData])
 
 	const activeLink = chain ?? 'All'
+	const canonicalUrl = chain ? `/oracles/chain/${slug(chain)}` : '/oracles'
 
 	return (
 		<Layout
 			title={`Oracles - DefiLlama`}
 			description={`Track total value secured by oracles on all chains. View protocols secured by the oracle, breakdown by chain, and DeFi oracles on DefiLlama.`}
 			keywords={`oracles, oracles on all chains, oracles on DeFi protocols, DeFi oracles, protocols secured by the oracle`}
-			canonicalUrl={`/oracles`}
+			canonicalUrl={canonicalUrl}
 			metricFilters={tvlOptions}
 			pageName={pageName}
 		>

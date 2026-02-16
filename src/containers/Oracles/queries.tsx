@@ -272,18 +272,17 @@ export async function getOraclePageData(
 		}
 
 		const shouldFetchProtocolData = canonicalOracle !== null
-		const protocolDataPromise: Promise<TProtocolsApiResponse> = shouldFetchProtocolData
-			? fetchJson(PROTOCOLS_API)
-			: Promise.resolve(EMPTY_PROTOCOLS_API_RESPONSE)
-
-		const [protocolBreakdown, chainBreakdown, oracleChart, oracleChainBreakdown, protocolsTableData] = await Promise.all([
-			canonicalOracle ? Promise.resolve(null) : fetchOracleProtocolBreakdownChart(),
-			canonicalOracle ? Promise.resolve(null) : fetchOracleChainBreakdownChart(),
-			canonicalOracle ? fetchOracleProtocolChart({ protocol: canonicalOracle }) : Promise.resolve(null),
-			canonicalOracle ? fetchOracleProtocolChainBreakdownChart({ protocol: canonicalOracle }) : Promise.resolve(null),
-			getOracleProtocolsTableData({ oracle: canonicalOracle, chain: canonicalChain })
-		])
-		const { protocols } = await protocolDataPromise
+		const [protocolBreakdown, chainBreakdown, oracleChart, oracleChainBreakdown, protocolsTableData, { protocols }] =
+			await Promise.all([
+				canonicalOracle ? Promise.resolve(null) : fetchOracleProtocolBreakdownChart(),
+				canonicalOracle ? Promise.resolve(null) : fetchOracleChainBreakdownChart(),
+				canonicalOracle ? fetchOracleProtocolChart({ protocol: canonicalOracle }) : Promise.resolve(null),
+				canonicalOracle ? fetchOracleProtocolChainBreakdownChart({ protocol: canonicalOracle }) : Promise.resolve(null),
+				getOracleProtocolsTableData({ oracle: canonicalOracle, chain: canonicalChain }),
+				shouldFetchProtocolData
+					? fetchJson<TProtocolsApiResponse>(PROTOCOLS_API)
+					: Promise.resolve(EMPTY_PROTOCOLS_API_RESPONSE)
+			])
 
 		const chartData: TOracleChartData = canonicalOracle
 			? toSingleOracleChartData(canonicalOracle, oracleChart ?? [])
@@ -359,21 +358,15 @@ export async function getOraclePageData(
 			oraclesColors: buildColors(oraclesUnique)
 		}
 	} catch (e) {
-		console.log(e)
+		console.error('[getOraclePageData] failed', { oracle, chain }, e)
 		return null
 	}
 }
 
 export async function getOraclesPagePaths(): Promise<Array<{ params: { oracle: string } }>> {
 	const metrics = await fetchOracleMetrics()
-	const paths: Array<{ params: { oracle: string } }> = []
-	let i = 0
-	for (const oracle in metrics.oracles) {
-		if (i >= 10) break
-		paths.push({ params: { oracle: slug(oracle) } })
-		i++
-	}
-	return paths
+	const oracleNames = Object.keys(metrics.oracles ?? {}).toSorted((a, b) => a.localeCompare(b))
+	return oracleNames.slice(0, 10).map((oracle) => ({ params: { oracle: slug(oracle) } }))
 }
 
 export async function getOraclePageDataByChain(chain: string): Promise<IOracleChainPageData | INotFoundResponse | null> {
@@ -431,7 +424,7 @@ export async function getOraclePageDataByChain(chain: string): Promise<IOracleCh
 			oraclesColors: buildColors(oraclesUnique)
 		}
 	} catch (e) {
-		console.log(e)
+		console.error('[getOraclePageDataByChain] failed', { chain }, e)
 		return null
 	}
 }
