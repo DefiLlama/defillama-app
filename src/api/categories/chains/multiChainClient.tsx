@@ -170,9 +170,10 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 	const isLoading = queries.some((q) => q.isLoading)
 	const error = queries.find((q) => q.error)?.error
 
-	const queryDatas = queries.map((q) => q.data)
+	const dataKey = queries.map((q) => q.dataUpdatedAt).join(',')
 
 	const data = useMemo(() => {
+		const queryDatas = queries.map((q) => q.data)
 		if (shouldFetchAll && queryDatas[0]) return queryDatas[0].protocols
 
 		const protocolsMap = new Map<string, any>()
@@ -221,7 +222,8 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 		}
 
 		return Array.from(protocolsMap.values()).map((protocol) => finalizeAggregatedProtocol(protocol))
-	}, [shouldFetchAll, queryDatas])
+		// oxlint-disable-next-line react-hooks/exhaustive-deps
+	}, [shouldFetchAll, dataKey])
 
 	return { data, isLoading, error }
 }
@@ -241,9 +243,10 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 	const isLoading = queries.some((q) => q.isLoading)
 	const error = queries.find((q) => q.error)?.error
 
-	const queryDatas = queries.map((q) => q.data)
+	const dataKey = queries.map((q) => q.dataUpdatedAt).join(',')
 
 	const data = useMemo(() => {
+		const queryDatas = queries.map((q) => q.data)
 		if (shouldFetchAll && queryDatas[0]) return queryDatas[0].protocols
 
 		const protocolsMap = new Map<string, any>()
@@ -317,7 +320,8 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 		return Array.from(protocolsMap.values()).map((protocol) =>
 			finalizeAggregatedProtocol(protocol, { computeRatios: true })
 		)
-	}, [shouldFetchAll, queryDatas])
+		// oxlint-disable-next-line react-hooks/exhaustive-deps
+	}, [shouldFetchAll, dataKey])
 
 	return { data, isLoading, error }
 }
@@ -340,9 +344,10 @@ export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
 	const isLoading = queries.some((q) => q.isLoading)
 	const error = queries.find((q) => q.error)?.error
 
-	const queryDatas = queries.map((q) => q.data)
+	const dataKey = queries.map((q) => q.dataUpdatedAt).join(',')
 
 	const data = useMemo(() => {
+		const queryDatas = queries.map((q) => q.data)
 		if (shouldFetchAll && queryDatas[0]) return queryDatas[0].protocols
 
 		const protocolsMap = new Map<string, any>()
@@ -387,7 +392,8 @@ export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
 		}
 
 		return Array.from(protocolsMap.values()).map((protocol) => finalizeAggregatedProtocol(protocol))
-	}, [shouldFetchAll, queryDatas])
+		// oxlint-disable-next-line react-hooks/exhaustive-deps
+	}, [shouldFetchAll, dataKey])
 
 	return { data, isLoading, error }
 }
@@ -407,9 +413,10 @@ export function useGetProtocolsOpenInterestByMultiChain(chains: string[]) {
 	const isLoading = queries.some((q) => q.isLoading)
 	const error = queries.find((q) => q.error)?.error
 
-	const queryDatas = queries.map((q) => q.data)
+	const dataKey = queries.map((q) => q.dataUpdatedAt).join(',')
 
 	const data = useMemo(() => {
+		const queryDatas = queries.map((q) => q.data)
 		if (shouldFetchAll && queryDatas[0]) return queryDatas[0].protocols
 
 		const protocolsMap = new Map<string, any>()
@@ -445,7 +452,8 @@ export function useGetProtocolsOpenInterestByMultiChain(chains: string[]) {
 		}
 
 		return Array.from(protocolsMap.values())
-	}, [shouldFetchAll, queryDatas])
+		// oxlint-disable-next-line react-hooks/exhaustive-deps
+	}, [shouldFetchAll, dataKey])
 
 	return { data, isLoading, error }
 }

@@ -4,11 +4,12 @@ import { ReorderableHeader } from './ReorderableHeader'
 
 interface TableBodyProps {
 	table: Table<IProtocolRow> | null
+	isLoading?: boolean
 	moveColumnUp?: (columnId: string) => void
 	moveColumnDown?: (columnId: string) => void
 }
 
-export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProps) {
+export function TableBody({ table, isLoading, moveColumnUp, moveColumnDown }: TableBodyProps) {
 	if (!table) {
 		return (
 			<div
@@ -70,38 +71,53 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 					))}
 				</thead>
 				<tbody>
-					{table.getRowModel().rows.map((row) => (
-						<tr key={row.id} className="border-b border-(--divider) hover:bg-(--bg-tertiary)">
-							{row.getVisibleCells().map((cell, cellIndex) => (
-								<td
-									key={cell.id}
-									className={`border-r border-(--divider) px-1 py-2 last:border-r-0 sm:px-2 ${
-										cell.column.columnDef.meta?.align === 'end' ? 'text-right' : 'text-left'
-									}`}
-									style={{
-										minWidth: cellIndex === 0 ? '120px' : '60px',
-										maxWidth: cellIndex === 0 ? '250px' : '150px',
-										width: cell.column.columnDef.size
-									}}
-								>
-									{cellIndex === 0 ? (
-										<div className="min-h-[20px]">{flexRender(cell.column.columnDef.cell, cell.getContext())}</div>
-									) : (
-										<div
-											className="truncate"
-											title={
-												typeof cell.getValue() === 'string' || typeof cell.getValue() === 'number'
-													? String(cell.getValue())
-													: ''
-											}
-										>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</div>
-									)}
-								</td>
-							))}
+					{table.getRowModel().rows.length === 0 ? (
+						<tr>
+							<td colSpan={table.getAllLeafColumns().length} className="py-8 text-center">
+								{isLoading ? (
+									<div className="flex items-center justify-center gap-2">
+										<div className="h-5 w-5 animate-spin rounded-full border-b-2 border-(--primary)" />
+										<span className="text-(--text-tertiary)">Loading data...</span>
+									</div>
+								) : (
+									<span className="text-(--text-tertiary)">No protocols found</span>
+								)}
+							</td>
 						</tr>
-					))}
+					) : (
+						table.getRowModel().rows.map((row) => (
+							<tr key={row.id} className="border-b border-(--divider) hover:bg-(--bg-tertiary)">
+								{row.getVisibleCells().map((cell, cellIndex) => (
+									<td
+										key={cell.id}
+										className={`border-r border-(--divider) px-1 py-2 last:border-r-0 sm:px-2 ${
+											cell.column.columnDef.meta?.align === 'end' ? 'text-right' : 'text-left'
+										}`}
+										style={{
+											minWidth: cellIndex === 0 ? '120px' : '60px',
+											maxWidth: cellIndex === 0 ? '250px' : '150px',
+											width: cell.column.columnDef.size
+										}}
+									>
+										{cellIndex === 0 ? (
+											<div className="min-h-[20px]">{flexRender(cell.column.columnDef.cell, cell.getContext())}</div>
+										) : (
+											<div
+												className="truncate"
+												title={
+													typeof cell.getValue() === 'string' || typeof cell.getValue() === 'number'
+														? String(cell.getValue())
+														: ''
+												}
+											>
+												{flexRender(cell.column.columnDef.cell, cell.getContext())}
+											</div>
+										)}
+									</td>
+								))}
+							</tr>
+						))
+					)}
 				</tbody>
 			</table>
 		</div>
