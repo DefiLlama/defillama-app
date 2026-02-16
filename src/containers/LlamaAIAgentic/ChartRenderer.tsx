@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
+import { lazy, memo, Suspense, useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTooltipValue } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
@@ -7,6 +7,7 @@ import { adaptCandlestickData, adaptChartData, adaptMultiSeriesData } from './ch
 import { areChartDataEqual, areChartsEqual, areStringArraysEqual } from './chartComparison'
 import { ChartControls } from './ChartControls'
 import { ChartDataTransformer } from './chartDataTransformer'
+import { saveChartToDashboard } from './fetchAgenticResponse'
 import type { ChartConfiguration } from './types'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -24,12 +25,52 @@ interface ChartRendererProps {
 	hasError?: boolean
 	chartTypes?: string[]
 	resizeTrigger?: number
+	sessionId?: string | null
+	fetchFn?: typeof fetch
 }
 
 interface SingleChartProps {
 	config: ChartConfiguration
 	data: any[]
 	isActive: boolean
+	sessionId?: string | null
+	fetchFn?: typeof fetch
+}
+
+function SaveChartButton({ chartId, title, sessionId, fetchFn }: { chartId: string; title: string; sessionId: string; fetchFn?: typeof fetch }) {
+	const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+
+	const handleSave = useCallback(async () => {
+		setState('saving')
+		try {
+			await saveChartToDashboard(sessionId, chartId, title, fetchFn)
+			setState('saved')
+		} catch {
+			setState('error')
+			setTimeout(() => setState('idle'), 2000)
+		}
+	}, [sessionId, chartId, title, fetchFn])
+
+	if (state === 'saved') {
+		return (
+			<span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+				<Icon name="check-circle" height={14} width={14} />
+				Saved
+			</span>
+		)
+	}
+
+	return (
+		<button
+			onClick={handleSave}
+			disabled={state === 'saving'}
+			className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-[#666] transition-colors hover:bg-[#f0f0f0] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white disabled:opacity-50"
+			title="Save to Dashboard"
+		>
+			<Icon name="bookmark" height={14} width={14} />
+			{state === 'saving' ? 'Saving...' : state === 'error' ? 'Failed' : 'Save'}
+		</button>
+	)
 }
 
 type ChartState = {
@@ -68,7 +109,7 @@ const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
 	}
 }
 
-function SingleChart({ config, data, isActive }: SingleChartProps) {
+function SingleChart({ config, data, isActive, sessionId, fetchFn }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, {
 		stacked: config.displayOptions?.defaultStacked || false,
 		percentage: config.displayOptions?.defaultPercentage || false,
@@ -262,6 +303,13 @@ function SingleChart({ config, data, isActive }: SingleChartProps) {
 			return { filename, rows: [] }
 		}
 
+		const chartToolbar = (
+			<div className="flex items-center justify-end gap-1 p-2 pt-0">
+				{sessionId && <SaveChartButton chartId={config.id} title={config.title} sessionId={sessionId} fetchFn={fetchFn} />}
+				<CSVDownloadButton prepareCsv={prepareCsv} smol />
+			</div>
+		)
+
 		if (!hasData) {
 			return (
 				<div className="flex flex-col items-center justify-center gap-2 p-1 py-8 text-[#666] dark:text-[#919296]">
@@ -281,9 +329,7 @@ function SingleChart({ config, data, isActive }: SingleChartProps) {
 				if (isTimeSeriesChart) {
 					chartContent = (
 						<Suspense fallback={<div className="h-[338px]" />}>
-							<div className="flex items-center justify-end gap-1 p-2 pt-0">
-								<CSVDownloadButton prepareCsv={prepareCsv} smol />
-							</div>
+							{chartToolbar}
 							<BarChart
 								key={chartKey}
 								chartData={adaptedChart.data}
@@ -328,9 +374,7 @@ function SingleChart({ config, data, isActive }: SingleChartProps) {
 					}
 					chartContent = (
 						<Suspense fallback={<div className="h-[338px]" />}>
-							<div className="flex items-center justify-end gap-1 p-2 pt-0">
-								<CSVDownloadButton prepareCsv={prepareCsv} smol />
-							</div>
+							{chartToolbar}
 							<MultiSeriesChart key={chartKey} {...multiSeriesProps} />
 						</Suspense>
 					)
@@ -343,9 +387,7 @@ function SingleChart({ config, data, isActive }: SingleChartProps) {
 				const hbarValues = hbarData.map(([, val]) => val)
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<div className="flex items-center justify-end gap-1 p-2 pt-0">
-							<CSVDownloadButton prepareCsv={prepareCsv} smol />
-						</div>
+						{chartToolbar}
 						<HBarChart
 							key={chartKey}
 							categories={hbarCategories}
@@ -361,9 +403,7 @@ function SingleChart({ config, data, isActive }: SingleChartProps) {
 			case 'area':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<div className="flex items-center justify-end gap-1 p-2 pt-0">
-							<CSVDownloadButton prepareCsv={prepareCsv} smol />
-						</div>
+						{chartToolbar}
 						<AreaChart
 							key={chartKey}
 							chartData={adaptedChart.data}
@@ -378,9 +418,7 @@ function SingleChart({ config, data, isActive }: SingleChartProps) {
 			case 'multi-series':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<div className="flex items-center justify-end gap-1 p-2 pt-0">
-							<CSVDownloadButton prepareCsv={prepareCsv} smol />
-						</div>
+						{chartToolbar}
 						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
 					</Suspense>
 				)
@@ -392,7 +430,7 @@ function SingleChart({ config, data, isActive }: SingleChartProps) {
 						<PieChart
 							key={chartKey}
 							{...(adaptedChart.props as IPieChartProps)}
-							customComponents={<CSVDownloadButton prepareCsv={prepareCsv} smol />}
+							customComponents={chartToolbar}
 						/>
 					</Suspense>
 				)
@@ -401,9 +439,7 @@ function SingleChart({ config, data, isActive }: SingleChartProps) {
 			case 'scatter':
 				chartContent = (
 					<Suspense fallback={<div className="h-[360px]" />}>
-						<div className="flex items-center justify-end gap-1 p-2 pt-0">
-							<CSVDownloadButton prepareCsv={prepareCsv} smol />
-						</div>
+						{chartToolbar}
 						<ScatterChart
 							key={chartKey}
 							{...(adaptedChart.props as IScatterChartProps)}
@@ -485,9 +521,11 @@ export function ChartRenderer({
 	isLoading = false,
 	hasError = false,
 	chartTypes,
-	resizeTrigger = 0
+	resizeTrigger = 0,
+	sessionId,
+	fetchFn
 }: ChartRendererProps) {
-	return <ChartRendererMemoized {...{ charts, chartData, isLoading, hasError, chartTypes, resizeTrigger }} />
+	return <ChartRendererMemoized {...{ charts, chartData, isLoading, hasError, chartTypes, resizeTrigger, sessionId, fetchFn }} />
 }
 
 function ChartRendererImpl({
@@ -496,7 +534,9 @@ function ChartRendererImpl({
 	isLoading = false,
 	hasError = false,
 	chartTypes,
-	resizeTrigger = 0
+	resizeTrigger = 0,
+	sessionId,
+	fetchFn
 }: ChartRendererProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [activeTabIndex, setActiveTab] = useReducer((state: number, action: number) => action, 0)
@@ -562,6 +602,8 @@ function ChartRendererImpl({
 					config={chart}
 					data={Array.isArray(chartData) ? chartData : chartData?.[chart.datasetName || chart.id] || []}
 					isActive={!hasMultipleCharts || activeTabIndex === index}
+					sessionId={sessionId}
+					fetchFn={fetchFn}
 				/>
 			))}
 		</div>
@@ -573,6 +615,7 @@ const ChartRendererMemoized = memo(ChartRendererImpl, (prev, next) => {
 		prev.isLoading === next.isLoading &&
 		prev.hasError === next.hasError &&
 		prev.resizeTrigger === next.resizeTrigger &&
+		prev.sessionId === next.sessionId &&
 		areStringArraysEqual(prev.chartTypes, next.chartTypes) &&
 		areChartsEqual(prev.charts, next.charts) &&
 		areChartDataEqual(prev.chartData, next.chartData)

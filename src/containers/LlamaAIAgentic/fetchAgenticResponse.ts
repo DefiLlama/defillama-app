@@ -1,5 +1,5 @@
 import { MCP_SERVER } from '~/constants'
-import type { ChartConfiguration } from './types'
+import type { ChartConfiguration, AlertCreatedData } from './types'
 
 export interface CsvExport {
 	id: string
@@ -18,6 +18,8 @@ export interface SpawnProgressData {
 	findingsPreview?: string
 }
 
+export type { AlertCreatedData }
+
 export interface AgenticSSECallbacks {
 	onToken: (content: string) => void
 	onCharts: (charts: ChartConfiguration[], chartData: Record<string, any[]>) => void
@@ -26,6 +28,7 @@ export interface AgenticSSECallbacks {
 	onSessionId: (sessionId: string) => void
 	onCitations: (citations: string[]) => void
 	onCsvExport?: (exports: CsvExport[]) => void
+	onAlertCreated?: (data: AlertCreatedData) => void
 	onTitle?: (title: string) => void
 	onMessageId?: (messageId: string) => void
 	onError: (content: string) => void
@@ -87,6 +90,9 @@ function parseSSEStream(reader: ReadableStreamDefaultReader<Uint8Array>, callbac
 							case 'csv_export':
 								callbacks.onCsvExport?.(data.exports || [])
 								break
+							case 'alert_created':
+								callbacks.onAlertCreated?.(data)
+								break
 							case 'spawn_progress':
 								callbacks.onSpawnProgress(data)
 								break
@@ -144,6 +150,10 @@ export async function fetchAgenticResponse({
 	if (researchMode) {
 		requestBody.researchMode = true
 	}
+
+	try {
+		requestBody.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+	} catch {}
 
 	if (images && images.length > 0) {
 		requestBody.images = images
@@ -214,4 +224,22 @@ export async function resumeAgenticStream({
 	}
 
 	return parseSSEStream(res.body.getReader(), callbacks, abortSignal)
+}
+
+export async function saveChartToDashboard(
+	sessionId: string,
+	chartId: string,
+	title?: string,
+	fetchFn?: typeof fetch
+): Promise<{ id: string; title: string; alreadySaved: boolean }> {
+	const res = await (fetchFn || fetch)(`${MCP_SERVER}/agentic/save-chart`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ sessionId, chartId, title })
+	})
+	if (!res.ok) {
+		const data = await res.json().catch(() => null)
+		throw new Error(data?.error || 'Failed to save chart')
+	}
+	return res.json()
 }

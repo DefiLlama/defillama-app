@@ -66,12 +66,20 @@ export interface CsvExport {
 	filename: string
 }
 
+export interface AlertCreatedData {
+	id: string
+	title: string
+	schedule_expression: string
+	next_run_at: string
+}
+
 export interface Message {
 	role: 'user' | 'assistant'
 	content?: string
 	charts?: Array<{ charts: ChartConfiguration[]; chartData: Record<string, any[]> }>
 	csvExports?: CsvExport[]
 	citations?: string[]
+	alerts?: AlertCreatedData[]
 	images?: Array<{ url: string; mimeType: string; filename?: string }>
 	id?: string
 	timestamp?: number

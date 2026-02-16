@@ -17,7 +17,7 @@ import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArti
 import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
 import { fetchAgenticResponse, checkActiveExecution, resumeAgenticStream } from './fetchAgenticResponse'
 import type { SpawnProgressData, CsvExport, AgenticSSECallbacks } from './fetchAgenticResponse'
-import type { ChartConfiguration, Message } from './types'
+import type { ChartConfiguration, Message, AlertCreatedData } from './types'
 
 const TOOL_LABELS: Record<string, string> = {
 	execute_sql: 'Querying database',
@@ -27,7 +27,8 @@ const TOOL_LABELS: Record<string, string> = {
 	web_search: 'Searching the web',
 	x_search: 'Searching X/Twitter',
 	spawn_agent: 'Spawning research agents',
-	export_csv: 'Exporting CSV'
+	export_csv: 'Exporting CSV',
+	create_alert: 'Creating alert'
 }
 
 interface ToolCall {
@@ -84,6 +85,7 @@ export function AgenticChat() {
 	const [streamingText, setStreamingText] = useState('')
 	const [streamingCharts, setStreamingCharts] = useState<ChartSet[]>([])
 	const [streamingCsvExports, setStreamingCsvExports] = useState<CsvExport[]>([])
+	const [streamingAlerts, setStreamingAlerts] = useState<AlertCreatedData[]>([])
 	const [streamingCitations, setStreamingCitations] = useState<string[]>([])
 	const [activeToolCalls, setActiveToolCalls] = useState<ToolCall[]>([])
 	const [error, setError] = useState<string | null>(null)
@@ -258,6 +260,7 @@ export function AgenticChat() {
 		setStreamingText('')
 		setStreamingCharts([])
 		setStreamingCsvExports([])
+		setStreamingAlerts([])
 		setStreamingCitations([])
 		setActiveToolCalls([])
 		setSpawnProgress(new Map())
@@ -306,6 +309,7 @@ export function AgenticChat() {
 					setStreamingText('')
 					setStreamingCharts([])
 					setStreamingCsvExports([])
+					setStreamingAlerts([])
 					setStreamingCitations([])
 					setActiveToolCalls([])
 					setSpawnProgress(new Map())
@@ -314,6 +318,7 @@ export function AgenticChat() {
 					let accumulatedText = ''
 					let accumulatedCharts: ChartSet[] = []
 					let accumulatedCsvExports: CsvExport[] = []
+					let accumulatedAlerts: AlertCreatedData[] = []
 					let accumulatedCitations: string[] = []
 					let hasStartedText = false
 					let spawnStarted = false
@@ -340,6 +345,10 @@ export function AgenticChat() {
 						onCsvExport: (exports) => {
 							accumulatedCsvExports = [...accumulatedCsvExports, ...exports]
 							setStreamingCsvExports(accumulatedCsvExports)
+						},
+						onAlertCreated: (data) => {
+							accumulatedAlerts = [...accumulatedAlerts, data]
+							setStreamingAlerts(accumulatedAlerts)
 						},
 						onCitations: (citations) => {
 							accumulatedCitations = [...new Set([...accumulatedCitations, ...citations])]
@@ -390,6 +399,7 @@ export function AgenticChat() {
 									content: accumulatedText || undefined,
 									charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined,
 									csvExports: accumulatedCsvExports.length > 0 ? accumulatedCsvExports : undefined,
+									alerts: accumulatedAlerts.length > 0 ? accumulatedAlerts : undefined,
 									citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined,
 									id: currentMessageIdRef.current || undefined
 								}
@@ -398,6 +408,7 @@ export function AgenticChat() {
 							setStreamingText('')
 							setStreamingCharts([])
 							setStreamingCsvExports([])
+							setStreamingAlerts([])
 							setStreamingCitations([])
 							setActiveToolCalls([])
 							setSpawnProgress(new Map())
@@ -438,6 +449,7 @@ export function AgenticChat() {
 			setStreamingText('')
 			setStreamingCharts([])
 			setStreamingCsvExports([])
+			setStreamingAlerts([])
 			setStreamingCitations([])
 			setActiveToolCalls([])
 			setSpawnProgress(new Map())
@@ -459,6 +471,7 @@ export function AgenticChat() {
 			let accumulatedText = ''
 			let accumulatedCharts: ChartSet[] = []
 			let accumulatedCsvExports: CsvExport[] = []
+			let accumulatedAlerts: AlertCreatedData[] = []
 			let accumulatedCitations: string[] = []
 			let hasStartedText = false
 			let spawnStarted = false
@@ -492,6 +505,10 @@ export function AgenticChat() {
 					onCsvExport: (exports) => {
 						accumulatedCsvExports = [...accumulatedCsvExports, ...exports]
 						setStreamingCsvExports(accumulatedCsvExports)
+					},
+					onAlertCreated: (data) => {
+						accumulatedAlerts = [...accumulatedAlerts, data]
+						setStreamingAlerts(accumulatedAlerts)
 					},
 					onCitations: (citations) => {
 						accumulatedCitations = [...new Set([...accumulatedCitations, ...citations])]
@@ -546,6 +563,7 @@ export function AgenticChat() {
 								content: accumulatedText || undefined,
 								charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined,
 								csvExports: accumulatedCsvExports.length > 0 ? accumulatedCsvExports : undefined,
+								alerts: accumulatedAlerts.length > 0 ? accumulatedAlerts : undefined,
 								citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined,
 								id: currentMessageIdRef.current || undefined
 							}
@@ -554,6 +572,7 @@ export function AgenticChat() {
 						setStreamingText('')
 						setStreamingCharts([])
 						setStreamingCsvExports([])
+						setStreamingAlerts([])
 						setStreamingCitations([])
 						setActiveToolCalls([])
 						setSpawnProgress(new Map())
@@ -674,7 +693,7 @@ export function AgenticChat() {
 											</div>
 										)}
 										{messages.map((msg, i) => (
-											<MessageBubble key={i} message={msg} sessionId={sessionId} isStreaming={isStreaming} />
+											<MessageBubble key={i} message={msg} sessionId={sessionId} isStreaming={isStreaming} fetchFn={authorizedFetch} />
 										))}
 
 										{isStreaming &&
@@ -689,13 +708,16 @@ export function AgenticChat() {
 											activeToolCalls.map((tc) => <ToolIndicator key={tc.id} label={tc.label} name={tc.name} />)
 										)}
 
-										{isStreaming && (streamingText || streamingCharts.length > 0 || streamingCsvExports.length > 0 || streamingCitations.length > 0) && (
+										{isStreaming && (streamingText || streamingCharts.length > 0 || streamingCsvExports.length > 0 || streamingAlerts.length > 0 || streamingCitations.length > 0) && (
 											<InlineContent
 												text={streamingText}
 												chartSets={streamingCharts}
 												csvExports={streamingCsvExports}
+												alerts={streamingAlerts}
 												citations={streamingCitations}
 												isStreaming
+												sessionId={sessionId}
+												fetchFn={authorizedFetch}
 											/>
 										)}
 
@@ -916,14 +938,20 @@ function InlineContent({
 	text,
 	chartSets,
 	csvExports = [],
+	alerts = [],
 	citations,
-	isStreaming = false
+	isStreaming = false,
+	sessionId,
+	fetchFn
 }: {
 	text: string
 	chartSets: ChartSet[]
 	csvExports?: CsvExport[]
+	alerts?: AlertCreatedData[]
 	citations: string[]
 	isStreaming?: boolean
+	sessionId?: string | null
+	fetchFn?: typeof fetch
 }) {
 	const chartIndex = useMemo(() => buildChartIndex(chartSets), [chartSets])
 	const csvIndex = useMemo(() => {
@@ -964,7 +992,7 @@ function InlineContent({
 							if (entry) {
 								return (
 									<div key={`inline-chart-${part.chartId}-${i}`} className="my-2">
-										<ChartRenderer charts={[entry.chart]} chartData={entry.chartData} />
+										<ChartRenderer charts={[entry.chart]} chartData={entry.chartData} sessionId={sessionId} fetchFn={fetchFn} />
 									</div>
 								)
 							}
@@ -1012,12 +1040,45 @@ function InlineContent({
 			{isStreaming && text && <span className="inline-block h-4 w-0.5 animate-pulse bg-(--old-blue)" />}
 			{!hasInlineRefs &&
 				unreferencedCharts.map((entry, i) => (
-					<ChartRenderer key={`chart-${entry.chart.id || i}`} charts={[entry.chart]} chartData={entry.chartData} />
+					<ChartRenderer key={`chart-${entry.chart.id || i}`} charts={[entry.chart]} chartData={entry.chartData} sessionId={sessionId} fetchFn={fetchFn} />
 				))}
 			{!hasInlineRefs &&
 				unreferencedCsvs.map((csv) => (
 					<CSVExportArtifact key={`csv-${csv.id}`} csvExport={csv} />
 				))}
+			{alerts.map((alert) => (
+				<AlertConfirmation key={alert.id} alert={alert} />
+			))}
+		</div>
+	)
+}
+
+function AlertConfirmation({ alert }: { alert: AlertCreatedData }) {
+	const nextRun = (() => {
+		try {
+			return new Date(alert.next_run_at).toLocaleString(undefined, {
+				weekday: 'short',
+				month: 'short',
+				day: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit'
+			})
+		} catch {
+			return alert.next_run_at
+		}
+	})()
+
+	return (
+		<div className="my-2 flex items-center gap-3 rounded-lg border border-[#e6e6e6] bg-white p-3 dark:border-[#222324] dark:bg-[#181A1C]">
+			<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-500/10">
+				<Icon name="check" className="h-5 w-5 text-green-500" />
+			</div>
+			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
+				<span className="text-sm font-medium text-(--text1)">Alert Scheduled</span>
+				<span className="text-xs text-(--text3)">
+					{alert.schedule_expression} &middot; Next: {nextRun}
+				</span>
+			</div>
 		</div>
 	)
 }
@@ -1043,7 +1104,7 @@ function ToolIndicator({ label, name }: { label: string; name: string }) {
 	)
 }
 
-function MessageBubble({ message, sessionId, isStreaming: parentIsStreaming }: { message: Message; sessionId: string | null; isStreaming: boolean }) {
+function MessageBubble({ message, sessionId, isStreaming: parentIsStreaming, fetchFn }: { message: Message; sessionId: string | null; isStreaming: boolean; fetchFn?: typeof fetch }) {
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
 
 	if (message.role === 'user') {
@@ -1071,7 +1132,7 @@ function MessageBubble({ message, sessionId, isStreaming: parentIsStreaming }: {
 
 	return (
 		<div>
-			<InlineContent text={message.content || ''} chartSets={message.charts || []} csvExports={message.csvExports} citations={message.citations || []} />
+			<InlineContent text={message.content || ''} chartSets={message.charts || []} csvExports={message.csvExports} alerts={message.alerts} citations={message.citations || []} sessionId={sessionId} fetchFn={fetchFn} />
 			{message.id && !parentIsStreaming && (
 				<ResponseControls
 					messageId={message.id}
