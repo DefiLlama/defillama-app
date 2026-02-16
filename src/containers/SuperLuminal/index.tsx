@@ -9,6 +9,7 @@ import {
 	useProDashboardItemsState
 } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { Logo } from './Logo'
 import { type DashboardTabConfig, getDashboardModule } from './registry'
 
 const NOOP = () => {}
@@ -133,25 +134,7 @@ function SuperLuminalContent({
 	if (isLoadingDashboard || !currentDashboard) {
 		return (
 			<div className="flex flex-1 items-center justify-center">
-				<div className="sl-loader flex flex-col items-center gap-2.5">
-					<img
-						src="/assets/defillama.webp"
-						height={36}
-						width={140}
-						className="hidden object-contain dark:block"
-						alt="DefiLlama"
-					/>
-					<img
-						src="/assets/defillama-dark.webp"
-						height={36}
-						width={140}
-						className="object-contain dark:hidden"
-						alt="DefiLlama"
-					/>
-					<span className="rounded-full border border-(--sl-accent)/40 px-3 py-1 text-[9px] font-semibold tracking-[0.15em] text-(--sl-accent)/60 uppercase select-none">
-						Investor Relationships
-					</span>
-				</div>
+				<Logo animate />
 			</div>
 		)
 	}
@@ -174,39 +157,21 @@ function SuperLuminalContent({
 			</div>
 
 			{tabs.map((tab) => {
-				if (tab.id === 'dashboard') return null
+				if (tab.id === 'dashboard' || activeTab !== tab.id) return null
 				if (!tab.component) {
 					return (
-						<div key={tab.id} className={activeTab === tab.id ? '' : 'hidden'}>
+						<div key={tab.id}>
 							<ComingSoonSection label={tab.label} />
 						</div>
 					)
 				}
 				const TabComponent = tab.component
 				return (
-					<div key={tab.id} className={activeTab === tab.id ? '' : 'hidden'}>
+					<div key={tab.id}>
 						<Suspense
 							fallback={
 								<div className="flex min-h-[60vh] items-center justify-center py-20">
-									<div className="sl-loader flex flex-col items-center gap-2.5">
-										<img
-											src="/assets/defillama.webp"
-											height={36}
-											width={140}
-											className="hidden object-contain dark:block"
-											alt="DefiLlama"
-										/>
-										<img
-											src="/assets/defillama-dark.webp"
-											height={36}
-											width={140}
-											className="object-contain dark:hidden"
-											alt="DefiLlama"
-										/>
-										<span className="rounded-full border border-(--sl-accent)/40 px-3 py-1 text-[9px] font-semibold tracking-[0.15em] text-(--sl-accent)/60 uppercase select-none">
-											Investor Relationships
-										</span>
-									</div>
+									<Logo animate />
 								</div>
 							}
 						>
@@ -249,25 +214,7 @@ function SuperLuminalShell() {
 						<path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
 					</svg>
 				</button>
-				<div className="flex items-center gap-2 select-none">
-					<img
-						src="/assets/defillama.webp"
-						height={24}
-						width={94}
-						className="hidden object-contain dark:block"
-						alt="DefiLlama"
-					/>
-					<img
-						src="/assets/defillama-dark.webp"
-						height={24}
-						width={94}
-						className="object-contain dark:hidden"
-						alt="DefiLlama"
-					/>
-					<span className="rounded-full border border-(--sl-accent)/40 px-2 py-0.5 text-[7px] font-semibold tracking-[0.12em] text-(--sl-accent)/60 uppercase">
-						IR
-					</span>
-				</div>
+				<Logo size="sm" />
 			</div>
 
 			<aside
@@ -275,24 +222,8 @@ function SuperLuminalShell() {
 					sidebarOpen ? 'translate-x-0' : '-translate-x-full'
 				} md:z-10 md:translate-x-0`}
 			>
-				<div className="hidden flex-col items-center gap-2.5 pb-3 md:flex">
-					<img
-						src="/assets/defillama.webp"
-						height={36}
-						width={140}
-						className="hidden object-contain dark:block"
-						alt="DefiLlama"
-					/>
-					<img
-						src="/assets/defillama-dark.webp"
-						height={36}
-						width={140}
-						className="object-contain dark:hidden"
-						alt="DefiLlama"
-					/>
-					<span className="rounded-full border border-(--sl-accent)/40 px-3 py-1 text-[9px] font-semibold tracking-[0.15em] text-(--sl-accent)/60 uppercase select-none">
-						Investor Relationships
-					</span>
+				<div className="hidden flex-col items-center pb-3 md:flex">
+					<Logo />
 				</div>
 				<div className="mb-3 hidden h-px bg-(--sl-divider) md:block" />
 
