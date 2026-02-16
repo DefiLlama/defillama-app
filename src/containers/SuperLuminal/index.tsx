@@ -175,6 +175,9 @@ function SuperLuminalContent({
 						<Suspense fallback={<div className="min-h-[60vh]" />}>
 							<TabComponent />
 						</Suspense>
+						{tab.source && tab.source !== 'DefiLlama' && (
+							<p className="mt-6 text-center text-xs text-(--text-disabled)">Data source: {tab.source}</p>
+						)}
 					</div>
 				)
 			})}
