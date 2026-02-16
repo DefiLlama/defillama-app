@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useState } from 'react'
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import { ChartGrid } from '~/containers/ProDashboard/components/ChartGrid'
 import { EmptyState } from '~/containers/ProDashboard/components/EmptyState'
@@ -131,6 +131,14 @@ function SuperLuminalContent({
 	const { protocolsLoading } = useProDashboardCatalog()
 	const { isLoadingDashboard, currentDashboard } = useProDashboardDashboard()
 
+	const initialTab = useRef(activeTab)
+
+	useEffect(() => {
+		if (activeTab !== initialTab.current) {
+			window.dispatchEvent(new Event('resize'))
+		}
+	}, [activeTab])
+
 	if (isLoadingDashboard || !currentDashboard) {
 		return null
 	}
@@ -153,17 +161,17 @@ function SuperLuminalContent({
 			</div>
 
 			{tabs.map((tab) => {
-				if (tab.id === 'dashboard' || activeTab !== tab.id) return null
+				if (tab.id === 'dashboard') return null
 				if (!tab.component) {
 					return (
-						<div key={tab.id}>
+						<div key={tab.id} className={activeTab === tab.id ? '' : 'hidden'}>
 							<ComingSoonSection label={tab.label} />
 						</div>
 					)
 				}
 				const TabComponent = tab.component
 				return (
-					<div key={tab.id}>
+					<div key={tab.id} className={activeTab === tab.id ? '' : 'hidden'}>
 						<Suspense fallback={<div className="min-h-[60vh]" />}>
 							<TabComponent />
 						</Suspense>
