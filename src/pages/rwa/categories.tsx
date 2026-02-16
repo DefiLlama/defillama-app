@@ -9,7 +9,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging(`rwa/categories`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const rwaList = metadataCache.rwaList
-	const categories = await getRWACategoriesOverview()
+	const { rows: categories, chartDatasets } = await getRWACategoriesOverview()
 
 	if (!categories) {
 		throw new Error('categories not found in RWA list')
@@ -26,6 +26,7 @@ export const getStaticProps = withPerformanceLogging(`rwa/categories`, async () 
 	return {
 		props: {
 			categories,
+			chartDatasets,
 			categoryLinks: [{ label: 'All', to: '/rwa/categories' }, ...categoryLinks]
 		},
 		revalidate: maxAgeForNext([22])
@@ -34,7 +35,7 @@ export const getStaticProps = withPerformanceLogging(`rwa/categories`, async () 
 
 const pageName = ['RWA Categories']
 
-export default function RWACategoriesPage({ categories, categoryLinks }) {
+export default function RWACategoriesPage({ categories, categoryLinks, chartDatasets }) {
 	return (
 		<Layout
 			title="RWA Categories - DefiLlama"
@@ -44,7 +45,7 @@ export default function RWACategoriesPage({ categories, categoryLinks }) {
 			canonicalUrl={`/rwa/categories`}
 		>
 			<RowLinksWithDropdown links={categoryLinks} activeLink={'All'} />
-			<RWACategoriesTable categories={categories} />
+			<RWACategoriesTable categories={categories} chartDatasets={chartDatasets} />
 		</Layout>
 	)
 }
