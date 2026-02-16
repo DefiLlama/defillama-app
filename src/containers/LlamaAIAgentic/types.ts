@@ -66,9 +66,15 @@ export interface CsvExport {
 	filename: string
 }
 
-export interface AlertCreatedData {
-	id: string
+export interface AlertProposedData {
+	alertId: string
 	title: string
+	alertIntent: {
+		frequency: 'daily' | 'weekly'
+		hour: number
+		timezone: string
+		dayOfWeek?: number
+	}
 	schedule_expression: string
 	next_run_at: string
 }
@@ -79,7 +85,8 @@ export interface Message {
 	charts?: Array<{ charts: ChartConfiguration[]; chartData: Record<string, any[]> }>
 	csvExports?: CsvExport[]
 	citations?: string[]
-	alerts?: AlertCreatedData[]
+	alerts?: AlertProposedData[]
+	savedAlertIds?: string[]
 	images?: Array<{ url: string; mimeType: string; filename?: string }>
 	id?: string
 	timestamp?: number

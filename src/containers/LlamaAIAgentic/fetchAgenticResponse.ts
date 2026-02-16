@@ -1,5 +1,5 @@
 import { MCP_SERVER } from '~/constants'
-import type { ChartConfiguration, AlertCreatedData } from './types'
+import type { ChartConfiguration, AlertProposedData } from './types'
 
 export interface CsvExport {
 	id: string
@@ -18,7 +18,7 @@ export interface SpawnProgressData {
 	findingsPreview?: string
 }
 
-export type { AlertCreatedData }
+export type { AlertProposedData }
 
 export interface AgenticSSECallbacks {
 	onToken: (content: string) => void
@@ -28,7 +28,7 @@ export interface AgenticSSECallbacks {
 	onSessionId: (sessionId: string) => void
 	onCitations: (citations: string[]) => void
 	onCsvExport?: (exports: CsvExport[]) => void
-	onAlertCreated?: (data: AlertCreatedData) => void
+	onAlertProposed?: (data: AlertProposedData) => void
 	onTitle?: (title: string) => void
 	onMessageId?: (messageId: string) => void
 	onError: (content: string) => void
@@ -90,8 +90,8 @@ function parseSSEStream(reader: ReadableStreamDefaultReader<Uint8Array>, callbac
 							case 'csv_export':
 								callbacks.onCsvExport?.(data.exports || [])
 								break
-							case 'alert_created':
-								callbacks.onAlertCreated?.(data)
+							case 'alert_proposed':
+								callbacks.onAlertProposed?.(data)
 								break
 							case 'spawn_progress':
 								callbacks.onSpawnProgress(data)

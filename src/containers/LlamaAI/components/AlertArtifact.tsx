@@ -31,6 +31,7 @@ interface AlertArtifactProps {
 	alertIntent: AlertIntent
 	messageId?: string
 	savedAlertIds?: string[]
+	defaultTitle?: string
 }
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -60,10 +61,11 @@ export const AlertArtifact = memo(function AlertArtifact({
 	alertId,
 	alertIntent,
 	messageId,
-	savedAlertIds
+	savedAlertIds,
+	defaultTitle
 }: AlertArtifactProps) {
 	const { authorizedFetch, isAuthenticated } = useAuthContext()
-	const [title, setTitle] = useState(alertId.replace(/_/g, ' '))
+	const [title, setTitle] = useState(defaultTitle || alertId.replace(/_/g, ' '))
 	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(alertIntent.frequency ?? 'daily')
 	const [hour, setHour] = useState(alertIntent.hour ?? 9)
 	const [dayOfWeek, setDayOfWeek] = useState(alertIntent.dayOfWeek ?? 1)
@@ -91,6 +93,8 @@ export const AlertArtifact = memo(function AlertArtifact({
 			setSaved(true)
 		}
 	})
+
+	const canSave = !!messageId && !isSaving && !saved && !!title.trim()
 
 	const handleSave = () => {
 		if (!messageId) return
@@ -183,7 +187,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 
 				<button
 					onClick={handleSave}
-					disabled={isSaving || saved || !title.trim()}
+					disabled={!canSave}
 					className="ml-auto flex items-center gap-1.5 rounded-md bg-[#2172E5] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1a5cc7] disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{saved ? (

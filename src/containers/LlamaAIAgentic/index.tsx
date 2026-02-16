@@ -17,7 +17,8 @@ import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArti
 import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
 import { fetchAgenticResponse, checkActiveExecution, resumeAgenticStream } from './fetchAgenticResponse'
 import type { SpawnProgressData, CsvExport, AgenticSSECallbacks } from './fetchAgenticResponse'
-import type { ChartConfiguration, Message, AlertCreatedData } from './types'
+import type { ChartConfiguration, Message, AlertProposedData } from './types'
+import { AlertArtifact } from '~/containers/LlamaAI/components/AlertArtifact'
 
 const TOOL_LABELS: Record<string, string> = {
 	execute_sql: 'Querying database',
@@ -85,7 +86,7 @@ export function AgenticChat() {
 	const [streamingText, setStreamingText] = useState('')
 	const [streamingCharts, setStreamingCharts] = useState<ChartSet[]>([])
 	const [streamingCsvExports, setStreamingCsvExports] = useState<CsvExport[]>([])
-	const [streamingAlerts, setStreamingAlerts] = useState<AlertCreatedData[]>([])
+	const [streamingAlerts, setStreamingAlerts] = useState<AlertProposedData[]>([])
 	const [streamingCitations, setStreamingCitations] = useState<string[]>([])
 	const [activeToolCalls, setActiveToolCalls] = useState<ToolCall[]>([])
 	const [error, setError] = useState<string | null>(null)
@@ -286,6 +287,21 @@ export function AgenticChat() {
 					charts: m.charts && m.chartData ? [{ charts: m.charts, chartData: m.chartData }] : undefined,
 					citations: m.citations,
 					csvExports: m.csvExports,
+					alerts: m.metadata?.alertIntent
+						? [{
+							alertId: m.metadata?.savedAlertId || `restored_${m.messageId}`,
+							title: m.metadata?.alertIntent?.dataQuery || '',
+							alertIntent: {
+								frequency: m.metadata.alertIntent.frequency || 'daily',
+								hour: m.metadata.alertIntent.hour ?? 9,
+								timezone: m.metadata.alertIntent.timezone || 'UTC',
+								dayOfWeek: m.metadata.alertIntent.dayOfWeek,
+							},
+							schedule_expression: '',
+							next_run_at: '',
+						}]
+						: undefined,
+					savedAlertIds: m.savedAlertIds,
 					id: m.messageId,
 					timestamp: m.timestamp ? new Date(m.timestamp).getTime() : undefined
 				}))
@@ -318,7 +334,7 @@ export function AgenticChat() {
 					let accumulatedText = ''
 					let accumulatedCharts: ChartSet[] = []
 					let accumulatedCsvExports: CsvExport[] = []
-					let accumulatedAlerts: AlertCreatedData[] = []
+					let accumulatedAlerts: AlertProposedData[] = []
 					let accumulatedCitations: string[] = []
 					let hasStartedText = false
 					let spawnStarted = false
@@ -346,7 +362,7 @@ export function AgenticChat() {
 							accumulatedCsvExports = [...accumulatedCsvExports, ...exports]
 							setStreamingCsvExports(accumulatedCsvExports)
 						},
-						onAlertCreated: (data) => {
+						onAlertProposed: (data) => {
 							accumulatedAlerts = [...accumulatedAlerts, data]
 							setStreamingAlerts(accumulatedAlerts)
 						},
@@ -392,6 +408,8 @@ export function AgenticChat() {
 							setError(content)
 						},
 						onDone: () => {
+							const finalMessageId = currentMessageIdRef.current || undefined
+							currentMessageIdRef.current = null
 							setMessages((prev) => [
 								...prev,
 								{
@@ -401,10 +419,9 @@ export function AgenticChat() {
 									csvExports: accumulatedCsvExports.length > 0 ? accumulatedCsvExports : undefined,
 									alerts: accumulatedAlerts.length > 0 ? accumulatedAlerts : undefined,
 									citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined,
-									id: currentMessageIdRef.current || undefined
+									id: finalMessageId
 								}
 							])
-							currentMessageIdRef.current = null
 							setStreamingText('')
 							setStreamingCharts([])
 							setStreamingCsvExports([])
@@ -471,7 +488,7 @@ export function AgenticChat() {
 			let accumulatedText = ''
 			let accumulatedCharts: ChartSet[] = []
 			let accumulatedCsvExports: CsvExport[] = []
-			let accumulatedAlerts: AlertCreatedData[] = []
+			let accumulatedAlerts: AlertProposedData[] = []
 			let accumulatedCitations: string[] = []
 			let hasStartedText = false
 			let spawnStarted = false
@@ -506,7 +523,7 @@ export function AgenticChat() {
 						accumulatedCsvExports = [...accumulatedCsvExports, ...exports]
 						setStreamingCsvExports(accumulatedCsvExports)
 					},
-					onAlertCreated: (data) => {
+					onAlertProposed: (data) => {
 						accumulatedAlerts = [...accumulatedAlerts, data]
 						setStreamingAlerts(accumulatedAlerts)
 					},
@@ -556,6 +573,8 @@ export function AgenticChat() {
 						setError(content)
 					},
 					onDone: () => {
+						const finalMessageId = currentMessageIdRef.current || undefined
+						currentMessageIdRef.current = null
 						setMessages((prev) => [
 							...prev,
 							{
@@ -565,10 +584,9 @@ export function AgenticChat() {
 								csvExports: accumulatedCsvExports.length > 0 ? accumulatedCsvExports : undefined,
 								alerts: accumulatedAlerts.length > 0 ? accumulatedAlerts : undefined,
 								citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined,
-								id: currentMessageIdRef.current || undefined
+								id: finalMessageId
 							}
 						])
-						currentMessageIdRef.current = null
 						setStreamingText('')
 						setStreamingCharts([])
 						setStreamingCsvExports([])
@@ -714,6 +732,7 @@ export function AgenticChat() {
 												chartSets={streamingCharts}
 												csvExports={streamingCsvExports}
 												alerts={streamingAlerts}
+												messageId={currentMessageIdRef.current || undefined}
 												citations={streamingCitations}
 												isStreaming
 												sessionId={sessionId}
@@ -939,6 +958,8 @@ function InlineContent({
 	chartSets,
 	csvExports = [],
 	alerts = [],
+	savedAlertIds,
+	messageId,
 	citations,
 	isStreaming = false,
 	sessionId,
@@ -947,7 +968,9 @@ function InlineContent({
 	text: string
 	chartSets: ChartSet[]
 	csvExports?: CsvExport[]
-	alerts?: AlertCreatedData[]
+	alerts?: AlertProposedData[]
+	savedAlertIds?: string[]
+	messageId?: string
 	citations: string[]
 	isStreaming?: boolean
 	sessionId?: string | null
@@ -1047,38 +1070,15 @@ function InlineContent({
 					<CSVExportArtifact key={`csv-${csv.id}`} csvExport={csv} />
 				))}
 			{alerts.map((alert) => (
-				<AlertConfirmation key={alert.id} alert={alert} />
+				<AlertArtifact
+					key={alert.alertId}
+					alertId={alert.alertId}
+					defaultTitle={alert.title}
+					alertIntent={{ ...alert.alertIntent, detected: true, toolExecutions: [] }}
+					messageId={messageId}
+					savedAlertIds={savedAlertIds}
+				/>
 			))}
-		</div>
-	)
-}
-
-function AlertConfirmation({ alert }: { alert: AlertCreatedData }) {
-	const nextRun = (() => {
-		try {
-			return new Date(alert.next_run_at).toLocaleString(undefined, {
-				weekday: 'short',
-				month: 'short',
-				day: 'numeric',
-				hour: '2-digit',
-				minute: '2-digit'
-			})
-		} catch {
-			return alert.next_run_at
-		}
-	})()
-
-	return (
-		<div className="my-2 flex items-center gap-3 rounded-lg border border-[#e6e6e6] bg-white p-3 dark:border-[#222324] dark:bg-[#181A1C]">
-			<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-500/10">
-				<Icon name="check" className="h-5 w-5 text-green-500" />
-			</div>
-			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-				<span className="text-sm font-medium text-(--text1)">Alert Scheduled</span>
-				<span className="text-xs text-(--text3)">
-					{alert.schedule_expression} &middot; Next: {nextRun}
-				</span>
-			</div>
 		</div>
 	)
 }
@@ -1132,7 +1132,7 @@ function MessageBubble({ message, sessionId, isStreaming: parentIsStreaming, fet
 
 	return (
 		<div>
-			<InlineContent text={message.content || ''} chartSets={message.charts || []} csvExports={message.csvExports} alerts={message.alerts} citations={message.citations || []} sessionId={sessionId} fetchFn={fetchFn} />
+			<InlineContent text={message.content || ''} chartSets={message.charts || []} csvExports={message.csvExports} alerts={message.alerts} savedAlertIds={message.savedAlertIds} messageId={message.id} citations={message.citations || []} sessionId={sessionId} fetchFn={fetchFn} />
 			{message.id && !parentIsStreaming && (
 				<ResponseControls
 					messageId={message.id}
