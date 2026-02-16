@@ -14,11 +14,12 @@ const ALLOWED_QUERY_IDS = new Set([
 	'5449746',
 	'5305217',
 	'5305223',
-	'5449825'
+	'5449825',
+	'6370257'
 ])
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000
-const REDIS_TTL_S = 48 * 60 * 60
+const REDIS_TTL_S = 0 // infinite – never evict cached data so dashboards stay up even if the API key expires
 const refreshing = new Set<string>()
 
 function cacheKey(queryId: string) {
