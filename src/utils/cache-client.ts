@@ -7,7 +7,7 @@ import {
 
 let redis: import('ioredis').Redis | null = null
 const REDIS_URL = process.env.REDIS_URL as string
-const USE_REDIS = !!process.env.USE_REDIS
+const USE_REDIS = !!process.env.REDIS_URL
 const EXT_REDIS_URL = process.env.EXT_REDIS_URL as string | undefined
 const IS_RUNTIME = !!process.env.IS_RUNTIME
 
