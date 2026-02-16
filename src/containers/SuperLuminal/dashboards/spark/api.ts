@@ -214,30 +214,6 @@ export function useSLLAllocatedAssets() {
 	}, [query])
 }
 
-export function useSLLActualRevenueDaily() {
-	const query = useQuery({
-		queryKey: ['dune-sll-actual-revenue-daily'],
-		queryFn: () => fetchDuneQuery<ActualRevenueRow>('5870774'),
-		staleTime: 10 * 60 * 1000,
-		refetchOnWindowFocus: false
-	})
-
-	return useMemo(() => {
-		const rows = query.data?.result?.rows ?? []
-		const protocolTokens = [...new Set(rows.map((r) => r['protocol-token']))].sort()
-		const colors = assignColors(protocolTokens)
-
-		const revenueByProtocol = pivotByDate(rows, 'protocol-token', 'tw_net_rev_interest_usd')
-
-		return {
-			...query,
-			revenueByProtocol,
-			protocolTokens,
-			colors
-		}
-	}, [query])
-}
-
 export function useSLLSparklendDaily() {
 	const query = useQuery({
 		queryKey: ['dune-sll-sparklend-daily'],
