@@ -92,7 +92,7 @@ function ProjectComingSoon() {
 	)
 }
 
-const DEFAULT_TABS: DashboardTabConfig[] = [{ id: 'dashboard', label: 'Dashboard' }]
+const DEFAULT_TABS: DashboardTabConfig[] = [{ id: 'dashboard', label: 'Overview' }]
 
 function useProjectTabs(projects: typeof PROJECTS) {
 	const [tabsByProject, setTabsByProject] = useState<Record<string, DashboardTabConfig[]>>({})
