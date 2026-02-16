@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { getObjectCache, setObjectCache } from '~/utils/cache-client'
 
 const DUNE_API_URL = 'https://api.dune.com/api/v1'
 const DUNE_API_KEY = 'YdjmcWGRqalcfxfIdyqCH0e7jIRHJzUL'
@@ -17,9 +18,13 @@ const ALLOWED_QUERY_IDS = new Set([
 	'5449825'
 ])
 
-const cache = new Map<string, { data: unknown; fetchedAt: number }>()
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000
+const REDIS_TTL_S = 48 * 60 * 60
 const refreshing = new Set<string>()
+
+function cacheKey(queryId: string) {
+	return `dune:query:${queryId}`
+}
 
 function refreshInBackground(queryId: string) {
 	if (refreshing.has(queryId)) return
@@ -30,8 +35,8 @@ function refreshInBackground(queryId: string) {
 		headers: { 'X-Dune-API-Key': DUNE_API_KEY }
 	})
 		.then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-		.then((data) => {
-			cache.set(queryId, { data, fetchedAt: Date.now() })
+		.then(async (data) => {
+			await setObjectCache(cacheKey(queryId), { data, fetchedAt: Date.now() }, REDIS_TTL_S)
 			console.log(`[dune] background REFRESH done query=${queryId}`)
 		})
 		.catch((err) => console.log(`[dune] background REFRESH failed query=${queryId}`, err))
@@ -53,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		return res.status(500).json({ error: 'DUNE_API_KEY not configured' })
 	}
 
-	const cached = cache.get(queryId)
+	const cached = await getObjectCache<{ data: unknown; fetchedAt: number }>(cacheKey(queryId))
 
 	if (cached) {
 		const ageMs = Date.now() - cached.fetchedAt
@@ -61,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		console.log(`[dune] cache HIT query=${queryId} age=${Math.round(ageMs / 1000)}s stale=${isStale}`)
 		if (isStale) refreshInBackground(queryId)
 		res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=1800')
-		return res.status(200).json(cached.data)
+		return res.status(200).json({ ...cached.data as object, cacheHit: true })
 	}
 
 	console.log(`[dune] cache MISS query=${queryId}, fetching from Dune API`)
@@ -77,11 +82,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		}
 
 		const data = await response.json()
-		cache.set(queryId, { data, fetchedAt: Date.now() })
+		await setObjectCache(cacheKey(queryId), { data, fetchedAt: Date.now() }, REDIS_TTL_S)
 		console.log(`[dune] cache SET query=${queryId}`)
 
 		res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=1800')
-		return res.status(200).json(data)
+		return res.status(200).json({ ...data, cacheHit: false })
 	} catch (error) {
 		console.log('Failed to fetch Dune query results', error)
 		return res.status(500).json({ error: 'Failed to fetch Dune data' })
