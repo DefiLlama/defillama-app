@@ -14,7 +14,6 @@ import { formattedNum } from '~/utils'
 import {
 	type SparklendDailyRow,
 	useSLLActualRevenue,
-	useSLLActualRevenueDaily,
 	useSLLAllocatedAssets,
 	useSLLRevenueProjection,
 	useSLLSparklendDaily
@@ -192,17 +191,11 @@ export default function LiquidityLayer() {
 		colors: balColors,
 		isLoading: balLoading
 	} = useSLLAllocatedAssets()
-	const {
-		revenueByProtocol: dailyRevenueByProtocol,
-		protocolTokens: dailyRevTokens,
-		colors: dailyRevColors,
-		isLoading: dailyRevLoading
-	} = useSLLActualRevenueDaily()
+
 	const { rows: sparklendRows, isLoading: sparklendLoading } = useSLLSparklendDaily()
 
 	const revStacks = useMemo(() => makeStacks(revTokens), [revTokens])
 	const projStacks = useMemo(() => makeStacks(projTokens), [projTokens])
-	const dailyRevStacks = useMemo(() => makeStacks(dailyRevTokens), [dailyRevTokens])
 
 	const yieldCostStacks: Record<string, string> = {
 		'Gross Yield': 'a',
@@ -270,22 +263,6 @@ export default function LiquidityLayer() {
 				</ChartCard>
 			)}
 
-			{dailyRevLoading ? (
-				<CardSkeleton title="SLL Net Revenue by Protocol (Daily)" />
-			) : (
-				<ChartCard title="SLL Net Revenue by Protocol (Daily)">
-					<BarChart
-						chartData={dailyRevenueByProtocol}
-						stacks={dailyRevStacks}
-						stackColors={dailyRevColors}
-						valueSymbol="$"
-						title=""
-						height="400px"
-						chartOptions={SCROLL_LEGEND}
-					/>
-				</ChartCard>
-			)}
-
 			{revLoading ? (
 				<CardSkeleton title="Gross Yield vs Borrow Costs (Monthly)" />
 			) : (
@@ -336,11 +313,7 @@ export default function LiquidityLayer() {
 				</ChartCard>
 			)}
 
-			{sparklendLoading ? (
-				<CardSkeleton title="Sparklend Daily Revenue" />
-			) : (
-				<SparklendTable data={sparklendRows} />
-			)}
+			{sparklendLoading ? <CardSkeleton title="Sparklend Daily Revenue" /> : <SparklendTable data={sparklendRows} />}
 		</div>
 	)
 }
