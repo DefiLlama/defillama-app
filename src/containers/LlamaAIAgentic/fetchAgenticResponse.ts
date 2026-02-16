@@ -42,6 +42,7 @@ interface FetchAgenticResponseParams {
 	abortSignal?: AbortSignal
 	researchMode?: boolean
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
+	pageContext?: { entitySlug?: string; entityType?: string; route: string }
 	fetchFn?: typeof fetch
 }
 
@@ -134,6 +135,7 @@ export async function fetchAgenticResponse({
 	abortSignal,
 	researchMode,
 	images,
+	pageContext,
 	fetchFn
 }: FetchAgenticResponseParams) {
 	const doFetch = fetchFn || fetch
@@ -157,6 +159,10 @@ export async function fetchAgenticResponse({
 
 	if (images && images.length > 0) {
 		requestBody.images = images
+	}
+
+	if (pageContext) {
+		requestBody.pageContext = pageContext
 	}
 
 	const response = await doFetch(`${MCP_SERVER}/agentic`, {

@@ -9,6 +9,8 @@ import { ResponseControls } from '~/containers/LlamaAI/components/ResponseContro
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
+import { useStreamNotification } from '~/containers/LlamaAI/hooks/useStreamNotification'
+import { consumePendingPrompt, consumePendingPageContext } from '~/components/LlamaAIFloatingButton'
 import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { AgenticSidebar } from './AgenticSidebar'
@@ -19,6 +21,7 @@ import { fetchAgenticResponse, checkActiveExecution, resumeAgenticStream } from 
 import type { SpawnProgressData, CsvExport, AgenticSSECallbacks } from './fetchAgenticResponse'
 import type { ChartConfiguration, Message, AlertProposedData } from './types'
 import { AlertArtifact } from '~/containers/LlamaAI/components/AlertArtifact'
+import { AlertsModal } from '~/containers/LlamaAI/components/AlertsModal'
 
 const TOOL_LABELS: Record<string, string> = {
 	execute_sql: 'Querying database',
@@ -78,6 +81,8 @@ export function AgenticChat() {
 		isUpdatingTitle
 	} = useSessionMutations()
 	const { sidebarVisible, toggleSidebar } = useSidebarVisibility()
+	const { notify, requestPermission } = useStreamNotification()
+	const alertsModalStore = Ariakit.useDialogStore()
 
 	const [messages, setMessages] = useState<Message[]>([])
 	const [sessionId, setSessionId] = useState<string | null>(null)
@@ -431,6 +436,7 @@ export function AgenticChat() {
 							setSpawnProgress(new Map())
 							setSpawnStartTime(0)
 							setIsStreaming(false)
+							notify()
 						}
 					}
 
@@ -452,14 +458,15 @@ export function AgenticChat() {
 				setRestoringSessionId(null)
 			}
 		},
-		[sessionId, restoreSession, sessions, authorizedFetch, updateSessionTitle, moveSessionToTop]
+		[sessionId, restoreSession, sessions, authorizedFetch, updateSessionTitle, moveSessionToTop, notify]
 	)
 
 	const handleSubmit = useCallback(
-		(prompt: string, _entities?: Array<{ term: string; slug: string }>, images?: Array<{ data: string; mimeType: string; filename?: string }>) => {
+		(prompt: string, _entities?: Array<{ term: string; slug: string }>, images?: Array<{ data: string; mimeType: string; filename?: string }>, pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string }) => {
 			const trimmed = prompt.trim()
 			if (!trimmed || isStreaming) return
 
+			requestPermission()
 			setError(null)
 			setLastFailedPrompt(null)
 			setIsStreaming(true)
@@ -501,6 +508,7 @@ export function AgenticChat() {
 				sessionId: currentSessionId,
 				researchMode: isResearchMode,
 				images: images?.length ? images : undefined,
+				pageContext,
 				abortSignal: controller.signal,
 				fetchFn: authorizedFetch,
 				callbacks: {
@@ -596,6 +604,7 @@ export function AgenticChat() {
 						setSpawnProgress(new Map())
 						setSpawnStartTime(0)
 						setIsStreaming(false)
+						notify()
 					}
 				}
 			})
@@ -638,11 +647,22 @@ export function AgenticChat() {
 					abortControllerRef.current = null
 				})
 		},
-		[isStreaming, sessionId, isResearchMode, authorizedFetch, createFakeSession, updateSessionTitle, moveSessionToTop, researchModalStore]
+		[isStreaming, sessionId, isResearchMode, authorizedFetch, createFakeSession, updateSessionTitle, moveSessionToTop, researchModalStore, requestPermission, notify]
 	)
 
 	const handleStopRequest = useCallback(() => {
 		abortControllerRef.current?.abort()
+	}, [])
+
+	const handleSubmitRef = useRef(handleSubmit)
+	handleSubmitRef.current = handleSubmit
+
+	useEffect(() => {
+		const pendingPrompt = consumePendingPrompt()
+		const pendingPageContext = consumePendingPageContext()
+		if (pendingPrompt) {
+			handleSubmitRef.current(pendingPrompt, undefined, undefined, pendingPageContext ?? undefined)
+		}
 	}, [])
 
 	if (!user) {
@@ -697,6 +717,7 @@ export function AgenticChat() {
 							isResearchMode={isResearchMode}
 							setIsResearchMode={setIsResearchMode}
 							researchUsage={null}
+							onOpenAlerts={alertsModalStore.show}
 						/>
 					</div>
 				) : (
@@ -788,6 +809,7 @@ export function AgenticChat() {
 								isResearchMode={isResearchMode}
 								setIsResearchMode={setIsResearchMode}
 								researchUsage={null}
+								onOpenAlerts={alertsModalStore.show}
 							/>
 						</div>
 					</>
@@ -801,6 +823,7 @@ export function AgenticChat() {
 					resetTime={rateLimitDetails.resetTime}
 				/>
 			)}
+			<AlertsModal dialogStore={alertsModalStore} />
 		</div>
 	)
 }
