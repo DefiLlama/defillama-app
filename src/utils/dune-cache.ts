@@ -36,6 +36,10 @@ export async function set(key: string, data: unknown, ttlSeconds: number): Promi
 		const json = JSON.stringify(data)
 		const compressed = await gzipAsync(Buffer.from(json))
 		const payload = compressed.toString('base64')
-		await client.set(key, payload, 'EX', ttlSeconds)
+		if (ttlSeconds > 0) {
+			await client.set(key, payload, 'EX', ttlSeconds)
+		} else {
+			await client.set(key, payload)
+		}
 	} catch {}
 }
