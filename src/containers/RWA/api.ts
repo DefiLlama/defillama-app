@@ -5,6 +5,9 @@ import type {
 	IRWAStatsResponse,
 	IRWAChartDataByTicker,
 	IRWAAssetData,
+	IRWABreakdownChartParams,
+	IRWABreakdownChartResponse,
+	IRWABreakdownChartRow,
 	RWAAssetChartDimension,
 	RWAAssetChartRow
 } from './api.types'
@@ -61,6 +64,87 @@ export async function fetchRWAChartDataByTicker({
 		console.error('Failed to fetch RWA chart data by ticker:', error)
 		return null
 	})
+}
+
+type RWABreakdownChartType = 'chain' | 'category' | 'platform'
+
+function createRWABreakdownChartUrl(chartType: RWABreakdownChartType, params: IRWABreakdownChartParams = {}): string {
+	const searchParams = new URLSearchParams()
+
+	if (params.key && params.key !== 'onChainMcap') {
+		searchParams.set('key', params.key)
+	}
+	if (params.includeStablecoin) {
+		searchParams.set('includeStablecoin', 'true')
+	}
+	if (params.includeGovernance) {
+		searchParams.set('includeGovernance', 'true')
+	}
+
+	const queryString = searchParams.toString()
+	return `${RWA_SERVER_URL}/chart/${chartType}-breakdown${queryString ? `?${queryString}` : ''}`
+}
+
+function normalizeRWABreakdownChartRows(rows: IRWABreakdownChartResponse): IRWABreakdownChartResponse {
+	const normalizedRows: IRWABreakdownChartResponse = []
+
+	for (const row of rows ?? []) {
+		const timestampRaw = Number(row.timestamp)
+		if (!Number.isFinite(timestampRaw)) continue
+
+		const normalizedRow: IRWABreakdownChartRow = { timestamp: toUnixMsTimestamp(timestampRaw) }
+
+		for (const [key, value] of Object.entries(row)) {
+			if (key === 'timestamp') continue
+			const numericValue = Number(value)
+			if (!Number.isFinite(numericValue)) continue
+			normalizedRow[key] = numericValue
+		}
+
+		normalizedRows.push(normalizedRow)
+	}
+
+	return normalizedRows.toSorted((a, b) => a.timestamp - b.timestamp)
+}
+
+async function fetchRWABreakdownChartData(
+	chartType: RWABreakdownChartType,
+	params: IRWABreakdownChartParams = {}
+): Promise<IRWABreakdownChartResponse | null> {
+	const url = createRWABreakdownChartUrl(chartType, params)
+	return fetchJson<IRWABreakdownChartResponse>(url)
+		.then((rows) => normalizeRWABreakdownChartRows(rows ?? []))
+		.catch((error) => {
+			console.error(`Failed to fetch RWA ${chartType} breakdown chart data:`, error)
+			return null
+		})
+}
+
+/**
+ * Fetch chain-level RWA breakdown chart data.
+ */
+export async function fetchRWAChainBreakdownChartData(
+	params: IRWABreakdownChartParams = {}
+): Promise<IRWABreakdownChartResponse | null> {
+	return fetchRWABreakdownChartData('chain', params)
+}
+
+/**
+ * Fetch category-level RWA breakdown chart data.
+ */
+export async function fetchRWACategoryBreakdownChartData(
+	params: IRWABreakdownChartParams = {}
+): Promise<IRWABreakdownChartResponse | null> {
+	return fetchRWABreakdownChartData('category', params)
+}
+
+/**
+ * Fetch platform-level RWA breakdown chart data.
+ */
+export async function fetchRWAPlatformBreakdownChartData(
+	params: IRWABreakdownChartParams = {}
+): Promise<IRWABreakdownChartResponse | null> {
+	return fetchRWABreakdownChartData('platform', params)
 }
 
 /**

@@ -2,8 +2,11 @@ import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import type { IRWAList } from '~/utils/metadata/types'
 import {
 	fetchRWAActiveTVLs,
+	fetchRWAChainBreakdownChartData,
+	fetchRWACategoryBreakdownChartData,
 	fetchRWAStats,
 	fetchRWAChartDataByTicker,
+	fetchRWAPlatformBreakdownChartData,
 	fetchRWAAssetDataById,
 	fetchRWAAssetChartData,
 	toUnixMsTimestamp
@@ -11,12 +14,19 @@ import {
 import type {
 	IFetchedRWAProject,
 	IRWAChartDataByTicker,
+	IRWABreakdownChartParams,
+	IRWABreakdownChartResponse,
+	IRWABreakdownDatasetsByMetric,
 	IRWAProject,
 	IRWAAssetsOverview,
 	IRWAAssetData,
+	IRWAChainsOverview,
 	IRWAChainsOverviewRow,
+	IRWACategoriesOverview,
 	IRWACategoriesOverviewRow,
-	IRWAPlatformsOverviewRow
+	IRWAPlatformsOverview,
+	IRWAPlatformsOverviewRow,
+	RWAChartMetricKey
 } from './api.types'
 import { definitions } from './definitions'
 import { rwaSlug } from './rwaSlug'
@@ -562,8 +572,96 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 	}
 }
 
-export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[]> {
-	const data = await fetchRWAStats()
+const RWA_CHART_METRIC_KEYS: RWAChartMetricKey[] = ['onChainMcap', 'activeMcap', 'defiActiveTvl']
+
+const emptyRwaBreakdownDataset = () => ({ source: [], dimensions: ['timestamp'] })
+
+function sortBreakdownSeriesByLatestTimestampValue(rows: IRWABreakdownChartResponse, keys: Iterable<string>): string[] {
+	const seriesKeys = Array.from(keys).filter(Boolean)
+	if (seriesKeys.length === 0) return seriesKeys
+
+	let latestRow: IRWABreakdownChartResponse[number] | null = null
+	let latestTimestamp = Number.NEGATIVE_INFINITY
+	for (const row of rows) {
+		if (!Number.isFinite(row.timestamp)) continue
+		if (row.timestamp >= latestTimestamp) {
+			latestTimestamp = row.timestamp
+			latestRow = row
+		}
+	}
+
+	return seriesKeys.sort((a, b) => {
+		const aValueRaw = latestRow?.[a]
+		const bValueRaw = latestRow?.[b]
+		const aValue = typeof aValueRaw === 'number' && Number.isFinite(aValueRaw) ? aValueRaw : 0
+		const bValue = typeof bValueRaw === 'number' && Number.isFinite(bValueRaw) ? bValueRaw : 0
+		if (aValue !== bValue) return bValue - aValue
+		return a.localeCompare(b)
+	})
+}
+
+function toBreakdownChartDataset(rows: IRWABreakdownChartResponse | null) {
+	if (!rows || rows.length === 0) return emptyRwaBreakdownDataset()
+
+	const source: IRWABreakdownChartResponse = []
+	const seenSeries = new Set<string>()
+
+	for (const row of ensureChronologicalRows(rows)) {
+		const timestamp = Number(row.timestamp)
+		if (!Number.isFinite(timestamp)) continue
+
+		const normalizedRow: IRWABreakdownChartResponse[number] = { timestamp }
+		for (const [series, value] of Object.entries(row)) {
+			if (series === 'timestamp') continue
+			const numericValue = Number(value)
+			if (!Number.isFinite(numericValue)) continue
+			seenSeries.add(series)
+			normalizedRow[series] = numericValue
+		}
+
+		source.push(normalizedRow)
+	}
+
+	if (source.length === 0) return emptyRwaBreakdownDataset()
+
+	return {
+		source,
+		dimensions: ['timestamp', ...sortBreakdownSeriesByLatestTimestampValue(source, seenSeries)]
+	}
+}
+
+async function fetchBreakdownDatasetsByMetric(
+	fetcher: (params: IRWABreakdownChartParams) => Promise<IRWABreakdownChartResponse | null>,
+	params: Omit<IRWABreakdownChartParams, 'key'> = {}
+): Promise<IRWABreakdownDatasetsByMetric> {
+	const requests = RWA_CHART_METRIC_KEYS.map((key) => fetcher({ ...params, key }))
+	const [onChainMcapRows, activeMcapRows, defiActiveTvlRows] = await Promise.all(requests)
+
+	return {
+		onChainMcap: toBreakdownChartDataset(onChainMcapRows),
+		activeMcap: toBreakdownChartDataset(activeMcapRows),
+		defiActiveTvl: toBreakdownChartDataset(defiActiveTvlRows)
+	}
+}
+
+export async function getRWAChainsOverview(): Promise<IRWAChainsOverview> {
+	const [
+		data,
+		baseChartDatasets,
+		stablecoinChartDatasets,
+		governanceChartDatasets,
+		stablecoinAndGovernanceChartDatasets
+	] = await Promise.all([
+		fetchRWAStats(),
+		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData),
+		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, { includeStablecoin: true }),
+		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, { includeGovernance: true }),
+		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, {
+			includeStablecoin: true,
+			includeGovernance: true
+		})
+	])
+
 	if (!data?.byChain) {
 		throw new Error('Failed to get RWA stats')
 	}
@@ -578,11 +676,26 @@ export async function getRWAChainsOverview(): Promise<IRWAChainsOverviewRow[]> {
 		})
 	}
 
-	return rows.sort((a, b) => (b.base?.onChainMcap ?? 0) - (a.base?.onChainMcap ?? 0))
+	return {
+		rows: rows.sort((a, b) => (b.base?.onChainMcap ?? 0) - (a.base?.onChainMcap ?? 0)),
+		chartDatasets: {
+			base: baseChartDatasets,
+			includeStablecoin: stablecoinChartDatasets,
+			includeGovernance: governanceChartDatasets,
+			includeStablecoinAndGovernance: stablecoinAndGovernanceChartDatasets
+		}
+	}
 }
 
-export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverviewRow[]> {
-	const data = await fetchRWAStats()
+export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview> {
+	const [data, chartDatasets] = await Promise.all([
+		fetchRWAStats(),
+		fetchBreakdownDatasetsByMetric(fetchRWACategoryBreakdownChartData, {
+			includeStablecoin: true,
+			includeGovernance: true
+		})
+	])
+
 	if (!data?.byCategory) {
 		throw new Error('Failed to get RWA stats')
 	}
@@ -597,11 +710,21 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 		})
 	}
 
-	return rows.sort((a, b) => b.onChainMcap - a.onChainMcap)
+	return {
+		rows: rows.sort((a, b) => b.onChainMcap - a.onChainMcap),
+		chartDatasets
+	}
 }
 
-export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRow[]> {
-	const data = await fetchRWAStats()
+export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverview> {
+	const [data, chartDatasets] = await Promise.all([
+		fetchRWAStats(),
+		fetchBreakdownDatasetsByMetric(fetchRWAPlatformBreakdownChartData, {
+			includeStablecoin: true,
+			includeGovernance: true
+		})
+	])
+
 	if (!data?.byPlatform) {
 		throw new Error('Failed to get RWA stats')
 	}
@@ -616,7 +739,10 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverviewRo
 		})
 	}
 
-	return rows.sort((a, b) => b.onChainMcap - a.onChainMcap)
+	return {
+		rows: rows.sort((a, b) => b.onChainMcap - a.onChainMcap),
+		chartDatasets
+	}
 }
 
 export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {

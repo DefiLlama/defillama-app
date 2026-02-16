@@ -10,7 +10,13 @@ import { RecentlyListedProtocolsTable } from './RecentProtocolsTable'
 import type { IRecentProtocol, IRecentProtocolsPageData } from './types'
 import { applyExtraTvl, getSelectedChainFilters, parseExcludeParam } from './utils'
 
-export function RecentProtocols({ protocols, chainList, categories, forkedList, claimableAirdrops }: IRecentProtocolsPageData) {
+export function RecentProtocols({
+	protocols,
+	chainList,
+	categories,
+	forkedList,
+	claimableAirdrops
+}: IRecentProtocolsPageData) {
 	const router = useRouter()
 	const {
 		chain,

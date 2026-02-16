@@ -1,4 +1,11 @@
-import { CATEGORY_API, CATEGORY_CHART_API, PROTOCOLS_API, RWA_STATS_API_OLD, TAGS_CHART_API, ZERO_FEE_PERPS } from '~/constants'
+import {
+	CATEGORY_API,
+	CATEGORY_CHART_API,
+	PROTOCOLS_API,
+	RWA_STATS_API_OLD,
+	TAGS_CHART_API,
+	ZERO_FEE_PERPS
+} from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { TVL_SETTINGS_KEYS, TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { getNDistinctColors, getPercentChange, slug, tokenIconUrl } from '~/utils'
@@ -280,9 +287,7 @@ export async function getProtocolsByCategoryOrTag(
 			: null,
 		currentChainMetadata?.dexs &&
 		effectiveCategory &&
-		['Dexs', 'DEX Aggregator', 'DEX Aggregators', 'Prediction Market', 'Crypto Card Issuer'].includes(
-			effectiveCategory
-		)
+		['Dexs', 'DEX Aggregator', 'DEX Aggregators', 'Prediction Market', 'Crypto Card Issuer'].includes(effectiveCategory)
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: isDexAggregatorCategory ? 'aggregators' : 'dexs'
@@ -349,7 +354,7 @@ export async function getProtocolsByCategoryOrTag(
 	])
 
 	const chainsLookupKey = tag ?? category
-	const chains = chainsLookupKey ? chainsByCategoriesOrTags?.[chainsLookupKey] ?? [] : []
+	const chains = chainsLookupKey ? (chainsByCategoriesOrTags?.[chainsLookupKey] ?? []) : []
 
 	const adapterDataStore: Record<string, AdapterProtocolData> = {}
 	const getOrCreateAdapterProtocolData = ({
@@ -548,7 +553,10 @@ export async function getProtocolsByCategoryOrTag(
 		}
 
 		if (protocol.parentProtocol) {
-			parentProtocolsStore[protocol.parentProtocol] = [...(parentProtocolsStore[protocol.parentProtocol] ?? []), finalData]
+			parentProtocolsStore[protocol.parentProtocol] = [
+				...(parentProtocolsStore[protocol.parentProtocol] ?? []),
+				finalData
+			]
 		} else {
 			protocolsStore[protocol.defillamaId] = finalData
 		}
@@ -818,9 +826,7 @@ function toCategoryTableRow({
 	return categoryRow
 }
 
-function getCategoryKeysFromApi(
-	categories: CategoriesApiResponse['categories']
-): Array<string> {
+function getCategoryKeysFromApi(categories: CategoriesApiResponse['categories']): Array<string> {
 	if (Array.isArray(categories)) {
 		return categories.filter((categoryName): categoryName is string => typeof categoryName === 'string')
 	}

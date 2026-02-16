@@ -4,8 +4,9 @@ import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { formattedNum } from '~/utils'
-import type { IRWACategoriesOverviewRow } from './api.types'
+import type { IRWABreakdownDatasetsByMetric, IRWACategoriesOverviewRow } from './api.types'
 import { definitions } from './definitions'
+import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
 import { rwaSlug } from './rwaSlug'
 
 const columns: ColumnDef<IRWACategoriesOverviewRow>[] = [
@@ -77,35 +78,44 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	640: { category: 240 }
 }
 
-export function RWACategoriesTable({ categories }: { categories: IRWACategoriesOverviewRow[] }) {
+export function RWACategoriesTable({
+	categories,
+	chartDatasets
+}: {
+	categories: IRWACategoriesOverviewRow[]
+	chartDatasets: IRWABreakdownDatasetsByMetric
+}) {
 	return (
-		<TableWithSearch
-			data={categories}
-			columns={columns}
-			placeholder="Search categories..."
-			columnToSearch="category"
-			header="Categories"
-			columnSizes={columnSizes}
-			customFilters={({ instance }) => (
-				<CSVDownloadButton
-					prepareCsv={() => {
-						const filename = 'rwa-categories.csv'
+		<div className="flex flex-col gap-2">
+			<RWAOverviewBreakdownChart datasets={chartDatasets} stackLabel="Categories" />
+			<TableWithSearch
+				data={categories}
+				columns={columns}
+				placeholder="Search categories..."
+				columnToSearch="category"
+				header="Categories"
+				columnSizes={columnSizes}
+				customFilters={({ instance }) => (
+					<CSVDownloadButton
+						prepareCsv={() => {
+							const filename = 'rwa-categories.csv'
 
-						const headers = columns.map((c) => (typeof c.header === 'string' ? c.header : (c.id ?? '')))
-						const columnIds = columns.map((c) => c.id as string)
+							const headers = columns.map((c) => (typeof c.header === 'string' ? c.header : (c.id ?? '')))
+							const columnIds = columns.map((c) => c.id as string)
 
-						const rows = instance
-							.getRowModel()
-							.rows.map((row) =>
-								columnIds.map((columnId) => (row.getValue(columnId) ?? '') as string | number | boolean)
-							)
+							const rows = instance
+								.getRowModel()
+								.rows.map((row) =>
+									columnIds.map((columnId) => (row.getValue(columnId) ?? '') as string | number | boolean)
+								)
 
-						return { filename, rows: [headers, ...rows] }
-					}}
-					smol
-				/>
-			)}
-			sortingState={[{ id: 'onChainMcap', desc: true }]}
-		/>
+							return { filename, rows: [headers, ...rows] }
+						}}
+						smol
+					/>
+				)}
+				sortingState={[{ id: 'onChainMcap', desc: true }]}
+			/>
+		</div>
 	)
 }

@@ -8,9 +8,10 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum } from '~/utils'
-import type { IRWAChainsOverviewRow } from './api.types'
+import type { IRWAChainBreakdownDatasetsByToggle, IRWAChainsOverviewRow } from './api.types'
 import { definitions } from './definitions'
 import { toBooleanParam } from './hooks'
+import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
 import { rwaSlug } from './rwaSlug'
 
 const columns: ColumnDef<{
@@ -90,7 +91,13 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	640: { chain: 220 }
 }
 
-export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) {
+export function RWAChainsTable({
+	chains,
+	chartDatasets
+}: {
+	chains: IRWAChainsOverviewRow[]
+	chartDatasets: IRWAChainBreakdownDatasetsByToggle
+}) {
 	const router = useRouter()
 	const stablecoinsQ = router.query.includeStablecoins as string | string[] | undefined
 	const governanceQ = router.query.includeGovernance as string | string[] | undefined
@@ -186,53 +193,66 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 		})
 	}, [chains, includeGovernance, includeStablecoins])
 
+	const selectedChartDatasets = includeStablecoins
+		? includeGovernance
+			? chartDatasets.includeStablecoinAndGovernance
+			: chartDatasets.includeStablecoin
+		: includeGovernance
+			? chartDatasets.includeGovernance
+			: chartDatasets.base
+
 	return (
-		<TableWithSearch
-			data={data}
-			columns={columns}
-			placeholder="Search chains..."
-			columnToSearch="chain"
-			header="Chains"
-			columnSizes={columnSizes}
-			customFilters={({ instance }) => (
-				<>
-					<CSVDownloadButton
-						prepareCsv={() => {
-							const filenameParts = ['rwa-chains']
-							if (includeStablecoins) filenameParts.push('stablecoins')
-							if (includeGovernance) filenameParts.push('governance')
-							const filename = `${filenameParts.join('-')}.csv`
+		<div className="flex flex-col gap-2">
+			<div className="flex flex-wrap items-center justify-end gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<Switch
+					label="Stablecoins"
+					value="includeStablecoins"
+					checked={includeStablecoins}
+					help="Include stablecoin-token assets in chain totals/columns."
+					onChange={onToggleStablecoins}
+				/>
+				<Switch
+					label="Governance Tokens"
+					value="includeGovernance"
+					checked={includeGovernance}
+					help="Include governance-token assets in chain totals/columns."
+					onChange={onToggleGovernance}
+				/>
+			</div>
+			<RWAOverviewBreakdownChart datasets={selectedChartDatasets} stackLabel="Chains" />
+			<TableWithSearch
+				data={data}
+				columns={columns}
+				placeholder="Search chains..."
+				columnToSearch="chain"
+				header="Chains"
+				columnSizes={columnSizes}
+				customFilters={({ instance }) => (
+					<>
+						<CSVDownloadButton
+							prepareCsv={() => {
+								const filenameParts = ['rwa-chains']
+								if (includeStablecoins) filenameParts.push('stablecoins')
+								if (includeGovernance) filenameParts.push('governance')
+								const filename = `${filenameParts.join('-')}.csv`
 
-							const headers = columns.map((c) => (typeof c.header === 'string' ? c.header : (c.id ?? '')))
-							const columnIds = columns.map((c) => c.id as string)
+								const headers = columns.map((c) => (typeof c.header === 'string' ? c.header : (c.id ?? '')))
+								const columnIds = columns.map((c) => c.id as string)
 
-							const rows = instance
-								.getRowModel()
-								.rows.map((row) =>
-									columnIds.map((columnId) => (row.getValue(columnId) ?? '') as string | number | boolean)
-								)
+								const rows = instance
+									.getRowModel()
+									.rows.map((row) =>
+										columnIds.map((columnId) => (row.getValue(columnId) ?? '') as string | number | boolean)
+									)
 
-							return { filename, rows: [headers, ...rows] }
-						}}
-						smol
-					/>
-					<Switch
-						label="Stablecoins"
-						value="includeStablecoins"
-						checked={includeStablecoins}
-						help="Include stablecoin-token assets in chain totals/columns."
-						onChange={onToggleStablecoins}
-					/>
-					<Switch
-						label="Governance Tokens"
-						value="includeGovernance"
-						checked={includeGovernance}
-						help="Include governance-token assets in chain totals/columns."
-						onChange={onToggleGovernance}
-					/>
-				</>
-			)}
-			sortingState={[{ id: 'totalOnChainMcap', desc: true }]}
-		/>
+								return { filename, rows: [headers, ...rows] }
+							}}
+							smol
+						/>
+					</>
+				)}
+				sortingState={[{ id: 'totalOnChainMcap', desc: true }]}
+			/>
+		</div>
 	)
 }

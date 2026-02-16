@@ -1,9 +1,9 @@
 import { useRouter } from 'next/router'
 import { startTransition } from 'react'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
+import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { Icon } from '~/components/Icon'
 import { NestedMenu, NestedMenuItem } from '~/components/NestedMenu'
-import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import type { ExcludeQueryKey, SelectValues } from '~/components/Select/types'
 import { Switch } from '~/components/Switch'
@@ -50,6 +50,17 @@ const FILTER_QUERY_KEYS = [
 	'transferableStates',
 	'selfCustodyStates'
 ] as const
+
+const CHART_QUERY_KEYS = [
+	'chartType',
+	'chartView',
+	'nonTimeSeriesChartBreakdown',
+	'treemapNestedBy',
+	// Legacy key kept for cleanup when present in shared links/bookmarks.
+	'pieChartBreakdown'
+] as const
+
+const RESETTABLE_QUERY_KEYS = [...FILTER_QUERY_KEYS, ...CHART_QUERY_KEYS] as const
 
 const formatPercentRange = (minPercent: number | null, maxPercent: number | null) => {
 	const minLabel = minPercent != null ? `${minPercent.toLocaleString()}%` : 'no min'
@@ -210,11 +221,7 @@ function AttributesFilter({
 	}
 
 	return (
-		<NestedMenu
-			label={trigger}
-			menuPortal={useDesktopPortal}
-			buttonVariant="filter"
-		>
+		<NestedMenu label={trigger} menuPortal={useDesktopPortal} buttonVariant="filter">
 			{renderAttributeSubmenus()}
 		</NestedMenu>
 	)
@@ -246,9 +253,9 @@ function Filters({
 
 	const defaultSelectedTypes = options.typeOptions.flatMap((option) => (option.key !== 'Wrapper' ? [option.key] : []))
 
-	// Determine active filters purely from URL query.
+	// Determine active filters/chart controls purely from URL query.
 	// Selected arrays often default to "all values" when there is no query set.
-	const hasActiveFilters = FILTER_QUERY_KEYS.some((key) => router.query[key] != null)
+	const hasActiveFilters = RESETTABLE_QUERY_KEYS.some((key) => router.query[key] != null)
 
 	const switchesAndResetClassName = nestedMenu
 		? 'mt-2 flex flex-col gap-3 border-t border-(--form-control-border) px-3 pt-3'
@@ -479,7 +486,7 @@ function Filters({
 				<button
 					onClick={() => {
 						const nextQuery: Record<string, any> = { ...router.query }
-						for (const key of FILTER_QUERY_KEYS) {
+						for (const key of RESETTABLE_QUERY_KEYS) {
 							delete nextQuery[key]
 						}
 						router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })

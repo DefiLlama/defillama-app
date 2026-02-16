@@ -9,7 +9,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging(`rwa/platforms`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const rwaList = metadataCache.rwaList
-	const platforms = await getRWAPlatformsOverview()
+	const { rows: platforms, chartDatasets } = await getRWAPlatformsOverview()
 
 	if (!platforms) {
 		throw new Error('platforms not found in RWA list')
@@ -27,6 +27,7 @@ export const getStaticProps = withPerformanceLogging(`rwa/platforms`, async () =
 	return {
 		props: {
 			platforms,
+			chartDatasets,
 			platformLinks: [{ label: 'All', to: '/rwa/platforms' }, ...platformLinks]
 		},
 		revalidate: maxAgeForNext([22])
@@ -35,7 +36,7 @@ export const getStaticProps = withPerformanceLogging(`rwa/platforms`, async () =
 
 const pageName = ['RWA Platforms']
 
-export default function RWAPlatformsPage({ platforms, platformLinks }) {
+export default function RWAPlatformsPage({ platforms, platformLinks, chartDatasets }) {
 	return (
 		<Layout
 			title="RWA Platforms - DefiLlama"
@@ -45,7 +46,7 @@ export default function RWAPlatformsPage({ platforms, platformLinks }) {
 			canonicalUrl={`/rwa/platform`}
 		>
 			<RowLinksWithDropdown links={platformLinks} activeLink={'All'} />
-			<RWAPlatformsTable platforms={platforms} />
+			<RWAPlatformsTable platforms={platforms} chartDatasets={chartDatasets} />
 		</Layout>
 	)
 }

@@ -595,24 +595,6 @@
       "totalTrackedKey": "treasury.entities"
     },
     {
-      "name": "Raises: Overview",
-      "route": "/raises",
-      "category": "Raises",
-      "description": "Total amount of capital raised by a project",
-      "totalTrackedKey": "raises.total",
-      "oldCategory": "Raises",
-      "oldName": "Overview"
-    },
-    {
-      "name": "Investors",
-      "route": "/raises/investors",
-      "category": "Raises",
-      "description": "List of investors that have invested in a project",
-      "totalTrackedKey": "raises.investors",
-      "oldCategory": "Raises",
-      "oldName": "Investors"
-    },
-    {
       "name": "RWA: Overview",
       "route": "/rwa",
       "category": "RWA",
@@ -638,6 +620,24 @@
       "route": "/rwa/platforms",
       "category": "RWA",
       "description": "Overview of all Real World Assets (RWAs) by platform"
+    },
+    {
+      "name": "Raises: Overview",
+      "route": "/raises",
+      "category": "Raises",
+      "description": "Total amount of capital raised by a project",
+      "totalTrackedKey": "raises.total",
+      "oldCategory": "Raises",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Investors",
+      "route": "/raises/investors",
+      "category": "Raises",
+      "description": "List of investors that have invested in a project",
+      "totalTrackedKey": "raises.investors",
+      "oldCategory": "Raises",
+      "oldName": "Investors"
     },
     {
       "name": "CEXs",
@@ -713,17 +713,17 @@
       "oldName": "Correlations Matrix"
     },
     {
+      "name": "Sheets",
+      "route": "/sheets",
+      "category": "Tools",
+      "description": "Access DeFi data right in your spreadsheets"
+    },
+    {
       "name": "DeFi Watchlist",
       "route": "/watchlist",
       "category": "Tools",
       "description": "Watchlist of all protocols on DefiLlama",
       "oldName": "Watchlist"
-    },
-    {
-      "name": "Sheets",
-      "route": "/sheets",
-      "category": "Tools",
-      "description": "Access DeFi data right in your spreadsheets"
     },
     {
       "name": "Yields: Watchlist",

@@ -76,8 +76,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 
 		const shouldMirrorBorrowedChart = props.effectiveCategory === 'Lending' && toggledSettings.includes('borrowed')
 
-		const finalSource: IProtocolByCategoryOrTagPageData['charts']['dataset']['source'] = props.charts.dataset.source.map(
-			(row) => {
+		const finalSource: IProtocolByCategoryOrTagPageData['charts']['dataset']['source'] =
+			props.charts.dataset.source.map((row) => {
 				const timestampKey = row.timestamp
 				const extraSum =
 					timestampKey == null
@@ -93,8 +93,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				}
 
 				return { ...row, timestamp, TVL: nextTvlValue }
-			}
-		)
+			})
 
 		return {
 			finalProtocols,
@@ -331,8 +330,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 										</Tooltip>
 										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 									</p>
-								) : props.effectiveCategory === 'DEX Aggregators' ||
-								  props.effectiveCategory === 'DEX Aggregator' ? (
+								) : props.effectiveCategory === 'DEX Aggregators' || props.effectiveCategory === 'DEX Aggregator' ? (
 									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 										<Tooltip
 											content={definitions.dexAggregators.protocol['7d']}

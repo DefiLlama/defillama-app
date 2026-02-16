@@ -1,5 +1,11 @@
 import { TreemapChart as EChartTreemap } from 'echarts/charts'
-import { DataZoomComponent, TitleComponent, ToolboxComponent, TooltipComponent } from 'echarts/components'
+import {
+	DataZoomComponent,
+	GraphicComponent,
+	TitleComponent,
+	ToolboxComponent,
+	TooltipComponent
+} from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useId, useMemo, useRef } from 'react'
@@ -7,7 +13,15 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
 
-echarts.use([TitleComponent, TooltipComponent, ToolboxComponent, DataZoomComponent, EChartTreemap, CanvasRenderer])
+echarts.use([
+	TitleComponent,
+	TooltipComponent,
+	ToolboxComponent,
+	DataZoomComponent,
+	EChartTreemap,
+	CanvasRenderer,
+	GraphicComponent
+])
 
 type TreemapVariant = 'yields' | 'narrative' | 'rwa'
 
@@ -24,11 +38,39 @@ const visualMax = 100
 const visualMinBound = -40
 const visualMaxBound = 40
 
-function cloneTreeData(nodes: any[]): any[] {
+function normalizeTreemapValue(rawValue: unknown): Array<number | null> {
+	if (Array.isArray(rawValue)) {
+		const value = [...rawValue] as Array<number | null>
+		while (value.length < 3) value.push(null)
+
+		const n0 = typeof value[0] === 'number' ? value[0] : Number(value[0])
+		value[0] = Number.isFinite(n0) ? n0 : 0
+
+		for (let idx = 1; idx <= 2; idx++) {
+			const current = value[idx]
+			if (current == null) {
+				value[idx] = null
+				continue
+			}
+			const n = typeof current === 'number' ? current : Number(current)
+			value[idx] = Number.isFinite(n) ? n : null
+		}
+
+		return value
+	}
+
+	if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
+		return [rawValue, null, null]
+	}
+
+	return [0, null, null]
+}
+
+function normalizeTreemapNodes(nodes: any[]): any[] {
 	return (nodes ?? []).map((node) => ({
 		...node,
-		value: Array.isArray(node?.value) ? [...node.value] : node?.value,
-		children: node?.children ? cloneTreeData(node.children) : node?.children
+		value: normalizeTreemapValue(node?.value),
+		children: node?.children ? normalizeTreemapNodes(node.children) : node?.children
 	}))
 }
 
@@ -91,11 +133,21 @@ export default function TreemapChart({
 	useChartResize(chartRef)
 
 	const chartDataTree = useMemo(() => {
-		const cloned = cloneTreeData(treeData ?? [])
+		const cloned = normalizeTreemapNodes(treeData ?? [])
 		// RWA treemap uses explicit item colors from caller, no red/green gradient mapping.
 		if (!isRwaVariant) addColorGradientField(cloned)
 		return cloned
 	}, [isRwaVariant, treeData])
+
+	const rwaRootLabel = useMemo(() => {
+		if (!isRwaVariant) return 'All'
+		for (const node of chartDataTree ?? []) {
+			const path = typeof node?.path === 'string' ? node.path : ''
+			const root = path.split('/')[0]?.trim()
+			if (root) return root
+		}
+		return 'RWA'
+	}, [chartDataTree, isRwaVariant])
 
 	useEffect(() => {
 		const el = document.getElementById(id)
@@ -137,8 +189,8 @@ export default function TreemapChart({
 			],
 			tooltip: {
 				formatter: function (info) {
-					let treePathInfo = info.treePathInfo
-					let treePath = []
+					const treePathInfo = Array.isArray(info?.treePathInfo) ? info.treePathInfo : []
+					const treePath: string[] = []
 					for (let i = 1; i < treePathInfo.length; i++) {
 						treePath.push(treePathInfo[i].name)
 					}
@@ -156,15 +208,36 @@ export default function TreemapChart({
 					}
 
 					if (isRwaVariant) {
-						if (treePath.length > 1) {
-							return [
-								`${treePath[1]}<br>`,
-								`${valueLabel}: ${formattedNum(info.value[0], true)}<br>`,
-								`Share: ${Number.isFinite(info.value[1]) ? info.value[1] : 0}%<br>`
-							].join('')
-						} else {
-							return null
+						const formatPct = (value: unknown): number => {
+							const n = typeof value === 'number' ? value : Number(value)
+							return Number.isFinite(n) ? Number(n.toFixed(2)) : 0
 						}
+						const normalizedValue = normalizeTreemapValue(info.value)
+						const metricValue = formattedNum(normalizedValue[0], true)
+						const share = formatPct(normalizedValue[1])
+						const shareOfTotal = formatPct(normalizedValue[2])
+
+						// Nested RWA treemap shape can be:
+						// [Parent, Child] (e.g. Category -> Asset Class) or [Leaf].
+						if (treePath.length >= 2) {
+							const parent = treePath[treePath.length - 2]
+							const child = treePath[treePath.length - 1]
+							return [
+								`Parent: ${parent}<br>`,
+								`Child: ${child}<br>`,
+								`${valueLabel}: ${metricValue}<br>`,
+								`Share of Parent: ${share}%<br>`,
+								`Share of Total: ${shareOfTotal}%<br>`
+							].join('')
+						}
+
+						if (treePath.length === 1) {
+							const label = treePath[treePath.length - 1]
+							return [`${label}<br>`, `${valueLabel}: ${metricValue}<br>`, `Share: ${share}%<br>`].join('')
+						}
+
+						const rootLabel = treePath[0] || info.name || 'RWA'
+						return [`${rootLabel}<br>`, `${valueLabel}: ${metricValue}<br>`].join('')
 					}
 
 					if (treePath.length > 1) {
@@ -176,14 +249,14 @@ export default function TreemapChart({
 							`1d Change: ${info.value[2]}%`
 						].join('')
 					} else {
-						return `Project: ${treePath[0]}`
+						return `Project: ${treePath[0] || info.name || ''}`
 					}
 				}
 			},
 			...(isRwaVariant ? {} : { toolbox: { feature: { restore: {} } } }),
 			series: [
 				{
-					name: 'All',
+					name: isRwaVariant ? rwaRootLabel : 'All',
 					type: 'treemap',
 					...(isRwaVariant
 						? {
@@ -231,31 +304,54 @@ export default function TreemapChart({
 										}
 									}
 								}),
+					...(isRwaVariant
+						? {
+								// Keep RWA node color stable on hover; tooltip still works.
+								emphasis: { disabled: true }
+							}
+						: {}),
 					label: {
 						position: 'insideTopRight',
+						...(isRwaVariant
+							? {
+									color: '#fff',
+									textBorderColor: 'rgba(0,0,0,0.35)',
+									textBorderWidth: 2
+								}
+							: {}),
 						formatter: function (params) {
 							let arr
-							if (params?.data?.path?.split('/')?.length > 1) {
+							const path = typeof params?.data?.path === 'string' ? params.data.path : ''
+							const pathParts = path ? path.split('/') : []
+							if (pathParts.length > 1) {
+								const hasChildren = Array.isArray(params?.data?.children) && params.data.children.length > 0
+								if (isRwaVariant && hasChildren) {
+									// Parent nodes: show the group name directly for visibility.
+									return String(params.name ?? '')
+								}
+
+								const normalizedValue = normalizeTreemapValue(params?.value)
+
 								arr =
 									variant === 'narrative'
 										? [
-												`{name|${params.data.path.split('/').slice(-1)[0]}}`,
-												`Return: {apy| ${params.value[1]}%}`,
-												`Market Cap: {mcap| ${formattedNum(params.value[0], true)}}`
+												`{name|${pathParts[pathParts.length - 1]}}`,
+												`Return: {apy| ${normalizedValue[1] ?? 0}%}`,
+												`Market Cap: {mcap| ${formattedNum(normalizedValue[0], true)}}`
 											]
 										: isRwaVariant
 											? [
-													`{name|${params.data.path.split('/').slice(-1)[0]}}`,
-													`${valueLabel}: {apy| ${formattedNum(params.value[0], true)}}`,
-													`Share: {apy| ${Number.isFinite(params.value[1]) ? params.value[1] : 0}%}`
+													`${pathParts[pathParts.length - 1]}`,
+													`${valueLabel}: ${formattedNum(normalizedValue[0], true)}`,
+													`Share: ${Number.isFinite(normalizedValue[1]) ? normalizedValue[1] : 0}%`
 												]
 											: [
-													`{name|${params.data.path.split('/').slice(-1)[0]}}`,
-													`Spot: {apy| ${params.value[1]}%}`,
-													`Change {apy| ${params.value[2]}%}`
+													`{name|${pathParts[pathParts.length - 1]}}`,
+													`Spot: {apy| ${normalizedValue[1] ?? 0}%}`,
+													`Change {apy| ${normalizedValue[2] ?? 0}%}`
 												]
 							} else {
-								arr = [params.name]
+								arr = [String(params.name ?? '')]
 							}
 							return arr.join('\n')
 						},
@@ -275,21 +371,30 @@ export default function TreemapChart({
 					upperLabel: {
 						show: true,
 						height: 20,
-						color: '#fff'
+						color: isDark ? '#fff' : '#111'
 					},
 					itemStyle: {
-						borderColor: '#fff'
+						borderColor: isRwaVariant ? (isDark ? '#2d3139' : '#d1d5db') : '#fff'
 					},
 					levels: [
 						{
 							itemStyle: {
-								borderColor: '#777',
+								borderColor: isRwaVariant ? (isDark ? '#2d3139' : '#d1d5db') : '#777',
 								borderWidth: 0,
-								gapWidth: 1
+								gapWidth: 1,
+								...(isRwaVariant ? { color: isDark ? '#374151' : '#e5e7eb' } : {})
 							},
-							upperLabel: {
-								show: false
-							}
+							upperLabel: isRwaVariant
+								? {
+										show: true,
+										height: 22,
+										padding: [0, 4],
+										color: isDark ? '#fff' : '#1f2937',
+										...(isDark ? { textBorderColor: 'rgba(0,0,0,0.3)', textBorderWidth: 2 } : {})
+									}
+								: {
+										show: false
+									}
 						},
 						{
 							...(isRwaVariant
@@ -298,38 +403,67 @@ export default function TreemapChart({
 										color: ['#942e38', '#aaa', '#269f3c'],
 										colorMappingBy: 'value'
 									}),
-							itemStyle: {
-								borderColor: '#555',
-								borderWidth: 5,
-								gapWidth: 1
-							},
+							itemStyle: isRwaVariant
+								? {
+										borderColor: isDark ? '#2d3139' : '#d1d5db',
+										borderWidth: 2,
+										gapWidth: 1
+									}
+								: {
+										borderColor: '#555',
+										borderWidth: 5,
+										gapWidth: 1
+									},
+							...(isRwaVariant
+								? {
+										upperLabel: {
+											show: true,
+											height: 22,
+											padding: [0, 2],
+											color: isDark ? '#fff' : '#1f2937',
+											...(isDark
+												? {
+														backgroundColor: 'rgba(55,65,81,0.88)',
+														textBorderColor: 'rgba(0,0,0,0.3)',
+														textBorderWidth: 2
+													}
+												: { backgroundColor: 'rgba(229,231,235,0.92)' })
+										}
+									}
+								: {}),
 							emphasis: {
 								itemStyle: {
-									borderColor: '#ddd'
+									borderColor: isRwaVariant ? (isDark ? '#2d3139' : '#d1d5db') : '#ddd'
 								}
 							}
 						},
 						{
 							...(isRwaVariant ? {} : { colorSaturation: [0, 1] }),
-							itemStyle: {
-								borderWidth: 5,
-								gapWidth: 1,
-								borderColorSaturation: 0.6
-							}
+							itemStyle: isRwaVariant
+								? {
+										borderWidth: 1,
+										gapWidth: 0,
+										borderColor: isDark ? '#2d3139' : '#d1d5db'
+									}
+								: {
+										borderWidth: 5,
+										gapWidth: 1,
+										borderColorSaturation: 0.6
+									}
 						}
 					],
 					data: chartDataTree
 				}
 			]
 		}
-		instance.setOption(option)
+		instance.setOption(option, { notMerge: true, lazyUpdate: true })
 
 		return () => {
 			chartRef.current = null
 			onReadyRef.current?.(null)
 			instance.dispose()
 		}
-	}, [id, chartDataTree, isDark, isNarrativeLike, isNarrativeVariant, isRwaVariant, variant, valueLabel])
+	}, [id, chartDataTree, isDark, isNarrativeLike, isNarrativeVariant, isRwaVariant, rwaRootLabel, variant, valueLabel])
 
 	useEffect(() => {
 		const instance = chartRef.current
