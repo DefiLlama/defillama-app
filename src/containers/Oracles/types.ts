@@ -2,13 +2,13 @@ import type { ILiteProtocol } from '~/containers/ChainOverview/types'
 
 export type OracleProtocolsCount = Record<string, number>
 export type OracleBreakdownItem = { timestamp: number } & Record<string, number>
-export type OracleChartData = Array<[number, Record<string, Record<string, number>>]>
+export type OracleChartData = Array<OracleBreakdownItem>
 export type OracleOverviewChartDataPoint = { timestamp: number } & Record<string, number>
 export type OracleOverviewChartData = Array<OracleOverviewChartDataPoint>
 
 export interface OracleProtocolWithBreakdown extends ILiteProtocol {
 	tvl: number
-	extraTvl: Record<string, { tvl: number }>
+	extraTvl: Record<string, number>
 	strikeTvl: boolean
 }
 

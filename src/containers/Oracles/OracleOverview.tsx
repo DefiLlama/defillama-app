@@ -10,21 +10,12 @@ import { CHART_COLORS } from '~/constants/colors'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, getTokenDominance, slug, tokenIconUrl } from '~/utils'
 import { useOracleOverviewExtraSeries } from './queries.client'
-import type { OracleOverviewPageData, OracleProtocolWithBreakdown } from './types'
+import { getEnabledExtraApiKeys } from './tvl'
+import type { OracleOverviewPageData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-interface IProtocolDominanceData {
-	name: string
-	tvs: number
-}
-
-interface IProtocolTableRow {
-	name: string
-	category: string
-	tvl: number
-	strikeTvl: boolean
-}
+type IProtocolTableRow = OracleOverviewPageData['protocolTableData'][number]
 
 const DEFAULT_PROTOCOL_TABLE_SORTING_STATE = [{ id: 'tvl', desc: true }]
 
@@ -55,22 +46,6 @@ function getStrikeTvlText({
 	}
 
 	return text
-}
-
-function getProtocolTvs({
-	protocol,
-	extraTvlsEnabled
-}: {
-	protocol: OracleProtocolWithBreakdown
-	extraTvlsEnabled: Record<string, boolean>
-}): number {
-	return calculateTvsWithEnabledExtrasOnly({
-		values: Object.fromEntries([
-			['tvl', protocol.tvl],
-			...Object.entries(protocol.extraTvl ?? {}).map(([key, value]) => [key, value.tvl])
-		]),
-		extraTvlsEnabled
-	})
 }
 
 function calculateTvsWithEnabledExtrasOnly({
@@ -134,6 +109,7 @@ export const OracleOverview = ({
 				header: 'Category',
 				accessorKey: 'category',
 				enableSorting: false,
+				cell: ({ getValue }) => getValue<string | null>() ?? 'Unknown',
 				meta: {
 					align: 'center'
 				}
@@ -158,14 +134,7 @@ export const OracleOverview = ({
 		],
 		[extraTvlsEnabled]
 	)
-	const enabledExtraApiKeys = useMemo(() => {
-		const apiKeys: Array<string> = []
-		for (const [key, isEnabled] of Object.entries(extraTvlsEnabled)) {
-			if (!isEnabled) continue
-			apiKeys.push(key)
-		}
-		return apiKeys.toSorted((a, b) => a.localeCompare(b))
-	}, [extraTvlsEnabled])
+	const enabledExtraApiKeys = useMemo(() => getEnabledExtraApiKeys(extraTvlsEnabled), [extraTvlsEnabled])
 
 	const { isFetchingExtraSeries, extraTvsByTimestamp } = useOracleOverviewExtraSeries({
 		enabledExtraApiKeys,
@@ -173,60 +142,34 @@ export const OracleOverview = ({
 		chain
 	})
 
-	const tableData = useMemo<Array<IProtocolTableRow>>(() => {
-		if (enabledExtraApiKeys.length === 0) {
-			return protocolTableData
-				.map((protocol) => ({
-					name: protocol.name,
-					category: protocol.category ?? 'Unknown',
-					tvl: protocol.tvl,
-					strikeTvl: protocol.strikeTvl
-				}))
-				.toSorted((a, b) => b.tvl - a.tvl)
-		}
-
-		return protocolTableData
-			.map((protocol) => {
-				const extraTvlValues: Record<string, number> = {}
-				for (const [key, value] of Object.entries(protocol.extraTvl ?? {})) {
-					extraTvlValues[key] = value.tvl
-				}
-
-				const tvl = calculateTvsWithEnabledExtrasOnly({
-					values: { tvl: protocol.tvl, ...extraTvlValues },
-					extraTvlsEnabled
-				})
-
-				return {
-					name: protocol.name,
-					category: protocol.category ?? 'Unknown',
-					tvl,
-					strikeTvl: protocol.strikeTvl
-				}
-			})
-			.toSorted((a, b) => b.tvl - a.tvl)
-	}, [enabledExtraApiKeys.length, extraTvlsEnabled, protocolTableData])
-
-	const { protocolsData, totalValue } = useMemo(() => {
-		const protocolsData: Array<IProtocolDominanceData> = []
-		for (const protocol of protocolTableData) {
-			protocolsData.push({
-				name: protocol.name,
-				tvs: getProtocolTvs({ protocol, extraTvlsEnabled })
-			})
-		}
-		protocolsData.sort((a, b) => b.tvs - a.tvs)
-
+	const { tableData, totalValue } = useMemo(() => {
 		const totalValue =
-			enabledExtraApiKeys.length > 0
-				? calculateTvsWithEnabledExtrasOnly({
+			enabledExtraApiKeys.length === 0
+				? tvl
+				: calculateTvsWithEnabledExtrasOnly({
 						values: { tvl, ...extraTvl },
 						extraTvlsEnabled
 					})
-				: tvl
+
+		const tableData: Array<IProtocolTableRow> =
+			enabledExtraApiKeys.length === 0
+				? protocolTableData
+				: protocolTableData
+						.map((protocol) => {
+							const protocolTvl = calculateTvsWithEnabledExtrasOnly({
+								values: { tvl: protocol.tvl, ...(protocol.extraTvl ?? {}) },
+								extraTvlsEnabled
+							})
+
+							return {
+								...protocol,
+								tvl: protocolTvl
+							}
+						})
+						.toSorted((a, b) => b.tvl - a.tvl)
 
 		return {
-			protocolsData,
+			tableData,
 			totalValue
 		}
 	}, [enabledExtraApiKeys.length, extraTvl, extraTvlsEnabled, protocolTableData, tvl])
@@ -273,8 +216,8 @@ export const OracleOverview = ({
 		}
 	}, [chartData, enabledExtraApiKeys.length, extraTvsByTimestamp, isFetchingExtraSeries, oracle])
 
-	const topProtocol = protocolsData[0] ?? null
-	const dominance = topProtocol ? getTokenDominance({ tvl: topProtocol.tvs }, totalValue) : null
+	const topProtocol = tableData[0] ?? null
+	const dominance = topProtocol ? getTokenDominance({ tvl: topProtocol.tvl }, totalValue) : null
 	const dominanceText = dominance == null ? null : String(dominance)
 	const displayOracle = oracle ?? 'Oracle'
 	const dominanceLabel = topProtocol ? `${topProtocol.name} Dominance` : 'Top Protocol Dominance'

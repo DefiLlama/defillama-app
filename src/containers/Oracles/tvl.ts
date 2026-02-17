@@ -39,3 +39,13 @@ export function calculateTvsWithExtraToggles({
 
 	return sum
 }
+
+export function getEnabledExtraApiKeys(extraTvlsEnabled: Record<string, boolean>): string[] {
+	const apiKeys: string[] = []
+	for (const [settingKey, enabled] of Object.entries(extraTvlsEnabled)) {
+		if (!enabled || settingKey.toLowerCase() === 'tvl') continue
+		apiKeys.push(settingKey)
+	}
+
+	return apiKeys.toSorted((a, b) => a.localeCompare(b))
+}

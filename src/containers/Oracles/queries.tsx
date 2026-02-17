@@ -1,7 +1,7 @@
 import { PROTOCOLS_API } from '~/constants'
 import type { ILiteParentProtocol, ILiteProtocol } from '~/containers/ChainOverview/types'
-import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { toStrikeTvl } from '~/containers/ChainOverview/utils'
+import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { getNDistinctColors, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import {
@@ -27,6 +27,10 @@ type TProtocolsApiResponse = {
 	parentProtocols: Array<ILiteParentProtocol>
 }
 
+function isExtraTvlKey(value: string): boolean {
+	return TVL_SETTINGS_KEYS_SET.has(value) || value === 'dcAndLsOveralp'
+}
+
 function resolveCanonicalName(value: string, options: Array<string>): string | null {
 	const normalizedValue = slug(value)
 
@@ -47,25 +51,10 @@ function getAllChains(chainsByOracle: Record<string, Array<string>>): Array<stri
 	return Array.from(new Set(Object.values(chainsByOracle).flat()))
 }
 
-function toOracleTvlBreakdownChartData(protocolBreakdown: ReadonlyArray<OracleBreakdownItem>): OracleChartData {
-	return protocolBreakdown.map((dayData) => {
-		const values: Record<string, Record<string, number>> = {}
-		for (const [name, value] of Object.entries(dayData)) {
-			if (name === 'timestamp') continue
-			values[name] = { tvl: value }
-		}
-		return [dayData.timestamp, values]
-	})
-}
-
-function toSingleOracleChartData(
-	oracle: string,
-	chartData: Awaited<ReturnType<typeof fetchOracleProtocolChart>>
-): OracleOverviewChartData {
-	return chartData.map(([timestamp, value]) => ({
-		timestamp,
-		[oracle]: value
-	}))
+function buildMultiOracleChartDataFromBreakdown(
+	protocolBreakdown: ReadonlyArray<OracleBreakdownItem>
+): OracleChartData {
+	return protocolBreakdown.map((dayData) => ({ ...dayData }))
 }
 
 function buildOracleProtocolBreakdown({
@@ -74,9 +63,9 @@ function buildOracleProtocolBreakdown({
 }: {
 	protocolOracleData: Record<string, number> | undefined
 	chain: string | null
-}): { tvl: number; extraTvl: Record<string, { tvl: number }> } {
+}): { tvl: number; extraTvl: Record<string, number> } {
 	let tvl = 0
-	const extraTvl: Record<string, { tvl: number }> = {}
+	const extraTvl: Record<string, number> = {}
 
 	if (!protocolOracleData) {
 		return { tvl, extraTvl }
@@ -94,14 +83,12 @@ function buildOracleProtocolBreakdown({
 			if (chainName !== chain || metricNameParts.length === 0) continue
 
 			const metricName = metricNameParts.join('-')
-			const currentValue = extraTvl[metricName]?.tvl ?? 0
-			extraTvl[metricName] = { tvl: currentValue + value }
+			extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
 			continue
 		}
 
-		if (TVL_SETTINGS_KEYS_SET.has(breakdownKey)) {
-			const currentValue = extraTvl[breakdownKey]?.tvl ?? 0
-			extraTvl[breakdownKey] = { tvl: currentValue + value }
+		if (isExtraTvlKey(breakdownKey)) {
+			extraTvl[breakdownKey] = (extraTvl[breakdownKey] ?? 0) + value
 		} else {
 			tvl += value
 		}
@@ -128,8 +115,8 @@ export async function getOraclesListPageData({
 	}
 
 	const chartData = canonicalChain
-		? toOracleTvlBreakdownChartData(await fetchOracleChainProtocolBreakdownChart({ chain: canonicalChain }))
-		: toOracleTvlBreakdownChartData(await fetchOracleProtocolBreakdownChart())
+		? buildMultiOracleChartDataFromBreakdown(await fetchOracleChainProtocolBreakdownChart({ chain: canonicalChain }))
+		: buildMultiOracleChartDataFromBreakdown(await fetchOracleProtocolBreakdownChart())
 	const latestTvlByChain: Record<string, number> = {}
 
 	const tableData: Array<OracleTableDataRow> = []
@@ -145,7 +132,7 @@ export async function getOraclesListPageData({
 		for (const protocolName in oraclesTVS[oracle]) {
 			for (const chainOrExtraTvlKey in oraclesTVS[oracle][protocolName]) {
 				const value = oraclesTVS[oracle][protocolName][chainOrExtraTvlKey]
-				if (!chainOrExtraTvlKey.includes('-') && !TVL_SETTINGS_KEYS_SET.has(chainOrExtraTvlKey)) {
+				if (!chainOrExtraTvlKey.includes('-') && !isExtraTvlKey(chainOrExtraTvlKey)) {
 					latestTvlByChain[chainOrExtraTvlKey] = (latestTvlByChain[chainOrExtraTvlKey] ?? 0) + value
 				}
 
@@ -162,7 +149,7 @@ export async function getOraclesListPageData({
 						}
 					}
 				} else {
-					if (TVL_SETTINGS_KEYS_SET.has(chainOrExtraTvlKey)) {
+					if (isExtraTvlKey(chainOrExtraTvlKey)) {
 						extraTvl[chainOrExtraTvlKey] = (extraTvl[chainOrExtraTvlKey] ?? 0) + value
 					} else {
 						tvl += value
@@ -256,7 +243,11 @@ export async function getOracleDetailPageData({
 			fetchJson<TProtocolsApiResponse>(PROTOCOLS_API)
 		])
 		protocols = fetchedProtocols
-		chartData = toSingleOracleChartData(canonicalOracle, oracleChart ?? [])
+		chartData =
+			oracleChart?.map(([timestamp, value]) => ({
+				timestamp,
+				[canonicalOracle]: value
+			})) ?? []
 	}
 
 	const oracleProtocols = oraclesTVS[canonicalOracle] ?? {}
@@ -278,7 +269,7 @@ export async function getOracleDetailPageData({
 					}
 				}
 			} else {
-				if (TVL_SETTINGS_KEYS_SET.has(chainOrExtraTvlKey)) {
+				if (isExtraTvlKey(chainOrExtraTvlKey)) {
 					extraTvl[chainOrExtraTvlKey] = (extraTvl[chainOrExtraTvlKey] ?? 0) + value
 				} else {
 					tvl += value
@@ -308,8 +299,8 @@ export async function getOracleDetailPageData({
 			tvl: protocolTvl,
 			extraTvl: protocolExtraTvl,
 			strikeTvl: toStrikeTvl(protocolData, {
-				liquidstaking: !!protocolExtraTvl.liquidstaking,
-				doublecounted: !!protocolExtraTvl.doublecounted
+				liquidstaking: protocolExtraTvl.liquidstaking !== undefined,
+				doublecounted: protocolExtraTvl.doublecounted !== undefined
 			})
 		})
 	}
