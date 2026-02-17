@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense, useState } from 'react'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
-import { LlamaAI } from '~/containers/LlamaAI'
+import { AgenticChat } from '~/containers/LlamaAIAgentic'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks/useIsClient'
 import Layout from '~/layout'
@@ -86,10 +86,11 @@ export default function SessionPage() {
 	}
 
 	return (
-		<LlamaAI
-			initialSessionId={sessionId as string}
-			showDebug={Boolean(user?.flags?.['is_llama'])}
-			key={`llamai-session-page-${sessionId}`}
-		/>
+		<Layout
+			title="LlamaAI - DefiLlama"
+			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
+		>
+			<AgenticChat initialSessionId={sessionId as string} key={`session-${sessionId}`} />
+		</Layout>
 	)
 }

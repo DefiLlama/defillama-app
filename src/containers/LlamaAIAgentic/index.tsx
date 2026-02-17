@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import Router from 'next/router'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
@@ -10,6 +11,7 @@ import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
 import { useStreamNotification } from '~/containers/LlamaAI/hooks/useStreamNotification'
+import { MCP_SERVER } from '~/constants'
 import { consumePendingPrompt, consumePendingPageContext } from '~/components/LlamaAIFloatingButton'
 import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -22,6 +24,7 @@ import type { SpawnProgressData, CsvExport, AgenticSSECallbacks } from './fetchA
 import type { ChartConfiguration, Message, AlertProposedData } from './types'
 import { AlertArtifact } from '~/containers/LlamaAI/components/AlertArtifact'
 import { AlertsModal } from '~/containers/LlamaAI/components/AlertsModal'
+import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
 
 const TOOL_LABELS: Record<string, string> = {
 	execute_sql: 'Querying database',
@@ -68,7 +71,30 @@ function formatTime(seconds: number): string {
 	return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
 }
 
-export function AgenticChat() {
+export interface SharedSession {
+	session: { sessionId: string; title: string; createdAt: string; isPublic: boolean }
+	messages: Array<{
+		role: 'user' | 'assistant'
+		content: string
+		messageId?: string
+		timestamp: number
+		images?: Array<{ url: string; mimeType: string; filename?: string }>
+		metadata?: any
+		charts?: any[]
+		chartData?: any[] | Record<string, any[]>
+		citations?: string[]
+		csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
+	}>
+	isPublicView: true
+}
+
+interface AgenticChatProps {
+	initialSessionId?: string
+	sharedSession?: SharedSession
+	readOnly?: boolean
+}
+
+export function AgenticChat({ initialSessionId, sharedSession, readOnly = false }: AgenticChatProps = {}) {
 	const { authorizedFetch, user } = useAuthContext()
 	const { sessions, isLoading: isLoadingSessions, moveSessionToTop } = useSessionList()
 	const {
@@ -83,6 +109,7 @@ export function AgenticChat() {
 	const { sidebarVisible, toggleSidebar } = useSidebarVisibility()
 	const { notify, requestPermission } = useStreamNotification()
 	const alertsModalStore = Ariakit.useDialogStore()
+	const settingsModalStore = Ariakit.useDialogStore()
 
 	const [messages, setMessages] = useState<Message[]>([])
 	const [sessionId, setSessionId] = useState<string | null>(null)
@@ -96,6 +123,11 @@ export function AgenticChat() {
 	const [activeToolCalls, setActiveToolCalls] = useState<ToolCall[]>([])
 	const [error, setError] = useState<string | null>(null)
 	const [isResearchMode, setIsResearchMode] = useState(false)
+	const [customInstructions, setCustomInstructions] = useState(() =>
+		typeof window !== 'undefined' ? localStorage.getItem('llamaai-custom-instructions') || '' : ''
+	)
+	const customInstructionsRef = useRef(customInstructions)
+	customInstructionsRef.current = customInstructions
 	const [spawnProgress, setSpawnProgress] = useState<Map<string, SpawnAgentStatus>>(new Map())
 	const [spawnStartTime, setSpawnStartTime] = useState(0)
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
@@ -138,6 +170,20 @@ export function AgenticChat() {
 	useEffect(() => {
 		paginationRef.current = paginationState
 	}, [paginationState])
+
+	useEffect(() => {
+		if (!user) return
+		authorizedFetch(`${MCP_SERVER}/user-settings`)
+			.then((res) => (res.ok ? res.json() : null))
+			.then((data) => {
+				const serverValue = data?.settings?.customInstructions
+				if (typeof serverValue === 'string') {
+					setCustomInstructions(serverValue)
+					localStorage.setItem('llamaai-custom-instructions', serverValue)
+				}
+			})
+			.catch(() => {})
+	}, [user])
 
 	useEffect(() => {
 		const container = scrollContainerRef.current
@@ -276,7 +322,10 @@ export function AgenticChat() {
 		setShowScrollToBottom(false)
 		setPaginationState({ hasMore: false, cursor: null, isLoadingMore: false })
 		promptInputRef.current?.focus()
-	}, [])
+		if (initialSessionId) {
+			Router.push('/ai/chat', undefined, { shallow: true })
+		}
+	}, [initialSessionId])
 
 	const handleSessionSelect = useCallback(
 		async (selectedSessionId: string) => {
@@ -509,6 +558,7 @@ export function AgenticChat() {
 				researchMode: isResearchMode,
 				images: images?.length ? images : undefined,
 				pageContext,
+				customInstructions: customInstructionsRef.current || undefined,
 				abortSignal: controller.signal,
 				fetchFn: authorizedFetch,
 				callbacks: {
@@ -657,15 +707,45 @@ export function AgenticChat() {
 	const handleSubmitRef = useRef(handleSubmit)
 	handleSubmitRef.current = handleSubmit
 
+	const handleSessionSelectRef = useRef(handleSessionSelect)
+	handleSessionSelectRef.current = handleSessionSelect
+
 	useEffect(() => {
+		if (initialSessionId || sharedSession) return
 		const pendingPrompt = consumePendingPrompt()
 		const pendingPageContext = consumePendingPageContext()
 		if (pendingPrompt) {
 			handleSubmitRef.current(pendingPrompt, undefined, undefined, pendingPageContext ?? undefined)
 		}
-	}, [])
+	}, [initialSessionId, sharedSession])
 
-	if (!user) {
+	useEffect(() => {
+		if (initialSessionId) {
+			handleSessionSelectRef.current(initialSessionId)
+		}
+	}, [initialSessionId])
+
+	useEffect(() => {
+		if (!sharedSession) return
+		const mapped: Message[] = sharedSession.messages.map((m) => ({
+			role: m.role,
+			content: m.content || undefined,
+			charts:
+				m.charts && m.chartData
+					? [{ charts: m.charts, chartData: (Array.isArray(m.chartData) ? { default: m.chartData } : m.chartData) as Record<string, any[]> }]
+					: undefined,
+			csvExports: m.csvExports,
+			citations: m.citations,
+			images: m.images,
+			id: m.messageId
+		}))
+		setMessages(mapped)
+		setSessionId(sharedSession.session.sessionId)
+		setSessionTitle(sharedSession.session.title)
+		isFirstMessageRef.current = false
+	}, [sharedSession])
+
+	if (!user && !readOnly) {
 		return (
 			<div className="flex flex-1 items-center justify-center">
 				<p className="text-sm text-[#666] dark:text-[#919296]">Please log in to use LlamaAI</p>
@@ -675,7 +755,7 @@ export function AgenticChat() {
 
 	return (
 		<div className="relative isolate flex h-[calc(100dvh-68px)] flex-nowrap overflow-hidden max-lg:flex-col lg:h-[calc(100dvh-72px)]">
-			{sidebarVisible ? (
+			{!readOnly && (sidebarVisible ? (
 				<>
 					<AgenticSidebar
 						sessions={sessions}
@@ -690,12 +770,14 @@ export function AgenticChat() {
 						isDeletingSession={isDeletingSession}
 						isUpdatingTitle={isUpdatingTitle}
 						shouldAnimate={shouldAnimateSidebar}
+						onOpenSettings={settingsModalStore.show}
+						hasCustomInstructions={customInstructions.trim().length > 0}
 					/>
 					<div className="flex min-h-11 lg:hidden" />
 				</>
 			) : (
 				<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
-			)}
+			))}
 
 			<div
 				className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
@@ -704,21 +786,23 @@ export function AgenticChat() {
 					<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
 						<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
 							<img src="/assets/llamaai/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-							<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
+							<h1 className="text-center text-2xl font-semibold">{readOnly ? sessionTitle || 'Shared Conversation' : 'What can I help you with?'}</h1>
 						</div>
-						<PromptInput
-							handleSubmit={handleSubmit}
-							promptInputRef={promptInputRef}
-							isPending={false}
-							handleStopRequest={handleStopRequest}
-							isStreaming={isStreaming}
-							restoreRequest={null}
-							placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
-							isResearchMode={isResearchMode}
-							setIsResearchMode={setIsResearchMode}
-							researchUsage={null}
-							onOpenAlerts={alertsModalStore.show}
-						/>
+						{!readOnly && (
+							<PromptInput
+								handleSubmit={handleSubmit}
+								promptInputRef={promptInputRef}
+								isPending={false}
+								handleStopRequest={handleStopRequest}
+								isStreaming={isStreaming}
+								restoreRequest={null}
+								placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
+								isResearchMode={isResearchMode}
+								setIsResearchMode={setIsResearchMode}
+								researchUsage={null}
+								onOpenAlerts={alertsModalStore.show}
+							/>
+						)}
 					</div>
 				) : (
 					<>
@@ -732,7 +816,7 @@ export function AgenticChat() {
 											</div>
 										)}
 										{messages.map((msg, i) => (
-											<MessageBubble key={i} message={msg} sessionId={sessionId} isStreaming={isStreaming} fetchFn={authorizedFetch} />
+											<MessageBubble key={i} message={msg} sessionId={sessionId} isStreaming={isStreaming} fetchFn={authorizedFetch} readOnly={readOnly} />
 										))}
 
 										{isStreaming &&
@@ -796,26 +880,28 @@ export function AgenticChat() {
 							</Tooltip>
 						</div>
 
-						<div className="relative mx-auto w-full max-w-3xl pb-2.5">
-							<div className="absolute -top-8 right-0 left-0 h-9 bg-gradient-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
-							<PromptInput
-								handleSubmit={handleSubmit}
-								promptInputRef={promptInputRef}
-								isPending={false}
-								handleStopRequest={handleStopRequest}
-								isStreaming={isStreaming}
-								restoreRequest={null}
-								placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
-								isResearchMode={isResearchMode}
-								setIsResearchMode={setIsResearchMode}
-								researchUsage={null}
-								onOpenAlerts={alertsModalStore.show}
-							/>
-						</div>
+						{!readOnly && (
+							<div className="relative mx-auto w-full max-w-3xl pb-2.5">
+								<div className="absolute -top-8 right-0 left-0 h-9 bg-gradient-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
+								<PromptInput
+									handleSubmit={handleSubmit}
+									promptInputRef={promptInputRef}
+									isPending={false}
+									handleStopRequest={handleStopRequest}
+									isStreaming={isStreaming}
+									restoreRequest={null}
+									placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
+									isResearchMode={isResearchMode}
+									setIsResearchMode={setIsResearchMode}
+									researchUsage={null}
+									onOpenAlerts={alertsModalStore.show}
+								/>
+							</div>
+						)}
 					</>
 				)}
 			</div>
-			{rateLimitDetails && (
+			{!readOnly && rateLimitDetails && (
 				<ResearchLimitModal
 					dialogStore={researchModalStore}
 					period={rateLimitDetails.period}
@@ -823,7 +909,15 @@ export function AgenticChat() {
 					resetTime={rateLimitDetails.resetTime}
 				/>
 			)}
-			<AlertsModal dialogStore={alertsModalStore} />
+			{!readOnly && <AlertsModal dialogStore={alertsModalStore} />}
+			{!readOnly && (
+				<SettingsModal
+					dialogStore={settingsModalStore}
+					customInstructions={customInstructions}
+					onCustomInstructionsChange={setCustomInstructions}
+					fetchFn={authorizedFetch}
+				/>
+			)}
 		</div>
 	)
 }
@@ -1127,7 +1221,7 @@ function ToolIndicator({ label, name }: { label: string; name: string }) {
 	)
 }
 
-function MessageBubble({ message, sessionId, isStreaming: parentIsStreaming, fetchFn }: { message: Message; sessionId: string | null; isStreaming: boolean; fetchFn?: typeof fetch }) {
+function MessageBubble({ message, sessionId, isStreaming: parentIsStreaming, fetchFn, readOnly = false }: { message: Message; sessionId: string | null; isStreaming: boolean; fetchFn?: typeof fetch; readOnly?: boolean }) {
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
 
 	if (message.role === 'user') {
@@ -1155,12 +1249,13 @@ function MessageBubble({ message, sessionId, isStreaming: parentIsStreaming, fet
 
 	return (
 		<div>
-			<InlineContent text={message.content || ''} chartSets={message.charts || []} csvExports={message.csvExports} alerts={message.alerts} savedAlertIds={message.savedAlertIds} messageId={message.id} citations={message.citations || []} sessionId={sessionId} fetchFn={fetchFn} />
+			<InlineContent text={message.content || ''} chartSets={message.charts || []} csvExports={message.csvExports} alerts={readOnly ? undefined : message.alerts} savedAlertIds={message.savedAlertIds} messageId={message.id} citations={message.citations || []} sessionId={sessionId} fetchFn={fetchFn} />
 			{message.id && !parentIsStreaming && (
 				<ResponseControls
 					messageId={message.id}
 					content={message.content}
 					sessionId={sessionId}
+					readOnly={readOnly}
 				/>
 			)}
 		</div>

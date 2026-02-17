@@ -19,6 +19,8 @@ interface AgenticSidebarProps {
 	isDeletingSession: boolean
 	isUpdatingTitle: boolean
 	shouldAnimate?: boolean
+	onOpenSettings?: () => void
+	hasCustomInstructions?: boolean
 }
 
 function getGroupName(lastActivity: string) {
@@ -49,7 +51,9 @@ export function AgenticSidebar({
 	onUpdateTitle,
 	isDeletingSession,
 	isUpdatingTitle,
-	shouldAnimate = false
+	shouldAnimate = false,
+	onOpenSettings,
+	hasCustomInstructions
 }: AgenticSidebarProps) {
 	const sidebarRef = useRef<HTMLDivElement>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -188,6 +192,23 @@ export function AgenticSidebar({
 					</div>
 				)}
 			</div>
+
+			{onOpenSettings && (
+				<div className="border-t border-[#e6e6e6] p-3 dark:border-[#222324]">
+					<button
+						onClick={onOpenSettings}
+						className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs text-[#666] transition-colors hover:bg-[#f0f0f0] hover:text-[#1a1a1a] dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
+					>
+						<div className="relative">
+							<Icon name="settings" height={14} width={14} />
+							{hasCustomInstructions && (
+								<span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-[#1853A8] dark:bg-[#4B86DB]" />
+							)}
+						</div>
+						<span>Settings</span>
+					</button>
+				</div>
+			)}
 		</div>
 	)
 }

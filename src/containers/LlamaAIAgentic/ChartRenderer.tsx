@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTooltipValue } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
@@ -7,7 +7,7 @@ import { adaptCandlestickData, adaptChartData, adaptMultiSeriesData } from './ch
 import { areChartDataEqual, areChartsEqual, areStringArraysEqual } from './chartComparison'
 import { ChartControls } from './ChartControls'
 import { ChartDataTransformer } from './chartDataTransformer'
-import { saveChartToDashboard } from './fetchAgenticResponse'
+import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import type { ChartConfiguration } from './types'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -35,42 +35,6 @@ interface SingleChartProps {
 	isActive: boolean
 	sessionId?: string | null
 	fetchFn?: typeof fetch
-}
-
-function SaveChartButton({ chartId, title, sessionId, fetchFn }: { chartId: string; title: string; sessionId: string; fetchFn?: typeof fetch }) {
-	const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
-
-	const handleSave = useCallback(async () => {
-		setState('saving')
-		try {
-			await saveChartToDashboard(sessionId, chartId, title, fetchFn)
-			setState('saved')
-		} catch {
-			setState('error')
-			setTimeout(() => setState('idle'), 2000)
-		}
-	}, [sessionId, chartId, title, fetchFn])
-
-	if (state === 'saved') {
-		return (
-			<span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-				<Icon name="check-circle" height={14} width={14} />
-				Saved
-			</span>
-		)
-	}
-
-	return (
-		<button
-			onClick={handleSave}
-			disabled={state === 'saving'}
-			className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-[#666] transition-colors hover:bg-[#f0f0f0] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white disabled:opacity-50"
-			title="Save to Dashboard"
-		>
-			<Icon name="bookmark" height={14} width={14} />
-			{state === 'saving' ? 'Saving...' : state === 'error' ? 'Failed' : 'Save'}
-		</button>
-	)
 }
 
 type ChartState = {
@@ -305,7 +269,7 @@ function SingleChart({ config, data, isActive, sessionId, fetchFn }: SingleChart
 
 		const chartToolbar = (
 			<div className="flex items-center justify-end gap-1 p-2 pt-0">
-				{sessionId && <SaveChartButton chartId={config.id} title={config.title} sessionId={sessionId} fetchFn={fetchFn} />}
+				{sessionId && <AddToDashboardButton chartConfig={null} llamaAIChart={{ sessionId, chartId: config.id, title: config.title }} smol />}
 				<CSVDownloadButton prepareCsv={prepareCsv} smol />
 			</div>
 		)

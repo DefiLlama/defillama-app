@@ -43,6 +43,7 @@ interface FetchAgenticResponseParams {
 	researchMode?: boolean
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
 	pageContext?: { entitySlug?: string; entityType?: string; route: string }
+	customInstructions?: string
 	fetchFn?: typeof fetch
 }
 
@@ -136,6 +137,7 @@ export async function fetchAgenticResponse({
 	researchMode,
 	images,
 	pageContext,
+	customInstructions,
 	fetchFn
 }: FetchAgenticResponseParams) {
 	const doFetch = fetchFn || fetch
@@ -163,6 +165,10 @@ export async function fetchAgenticResponse({
 
 	if (pageContext) {
 		requestBody.pageContext = pageContext
+	}
+
+	if (customInstructions) {
+		requestBody.customInstructions = customInstructions
 	}
 
 	const response = await doFetch(`${MCP_SERVER}/agentic`, {
@@ -232,20 +238,4 @@ export async function resumeAgenticStream({
 	return parseSSEStream(res.body.getReader(), callbacks, abortSignal)
 }
 
-export async function saveChartToDashboard(
-	sessionId: string,
-	chartId: string,
-	title?: string,
-	fetchFn?: typeof fetch
-): Promise<{ id: string; title: string; alreadySaved: boolean }> {
-	const res = await (fetchFn || fetch)(`${MCP_SERVER}/agentic/save-chart`, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ sessionId, chartId, title })
-	})
-	if (!res.ok) {
-		const data = await res.json().catch(() => null)
-		throw new Error(data?.error || 'Failed to save chart')
-	}
-	return res.json()
-}
+

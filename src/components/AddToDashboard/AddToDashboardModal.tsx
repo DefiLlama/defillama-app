@@ -114,16 +114,33 @@ export function AddToDashboardModal({
 		let chartToAdd: any
 
 		if (llamaAIChart) {
-			const res = await authorizedFetch(`${MCP_SERVER}/charts`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ messageId: llamaAIChart.messageId, chartId: llamaAIChart.chartId })
-			})
-			if (!res.ok) {
-				toast.error('Failed to save chart')
-				return
+			let savedChartId: string
+
+			if (llamaAIChart.sessionId) {
+				const res = await authorizedFetch(`${MCP_SERVER}/agentic/save-chart`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ sessionId: llamaAIChart.sessionId, chartId: llamaAIChart.chartId, title: chartName || llamaAIChart.title })
+				})
+				if (!res.ok) {
+					toast.error('Failed to save chart')
+					return
+				}
+				const data = await res.json()
+				savedChartId = data.id
+			} else {
+				const res = await authorizedFetch(`${MCP_SERVER}/charts`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ messageId: llamaAIChart.messageId, chartId: llamaAIChart.chartId })
+				})
+				if (!res.ok) {
+					toast.error('Failed to save chart')
+					return
+				}
+				const data = await res.json()
+				savedChartId = data.id
 			}
-			const { id: savedChartId } = await res.json()
 
 			chartToAdd = {
 				id: crypto.randomUUID(),

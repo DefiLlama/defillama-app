@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { LoadingDots } from '~/components/Loaders'
 import { MCP_SERVER } from '~/constants'
-import { LlamaAI } from '~/containers/LlamaAI'
+import { AgenticChat } from '~/containers/LlamaAIAgentic'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
@@ -107,11 +107,11 @@ export default function SharedConversationPage() {
 	}
 
 	return (
-		<LlamaAI
-			sharedSession={session}
-			isPublicView={true}
-			readOnly={true}
-			showDebug={Boolean(user?.flags?.['is_llama'])}
-		/>
+		<Layout
+			title="LlamaAI - DefiLlama"
+			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
+		>
+			<AgenticChat sharedSession={session as any} readOnly />
+		</Layout>
 	)
 }
