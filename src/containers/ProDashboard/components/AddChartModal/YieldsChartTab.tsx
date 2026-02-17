@@ -44,7 +44,7 @@ const tvlApyCharts = [
 		type: 'line' as const,
 		name: 'APY',
 		encode: { x: 'timestamp', y: 'APY' },
-		color: '#fd3c99',
+		color: '#cc3e82',
 		yAxisIndex: 0,
 		valueSymbol: '%'
 	},
@@ -52,7 +52,7 @@ const tvlApyCharts = [
 		type: 'line' as const,
 		name: 'TVL',
 		encode: { x: 'timestamp', y: 'TVL' },
-		color: '#4f8fea',
+		color: '#3e79cc',
 		yAxisIndex: 1,
 		valueSymbol: '$'
 	}
@@ -1076,13 +1076,13 @@ export function YieldsChartTab({
 										<div className="mb-3 flex gap-4">
 											<div className="flex flex-col">
 												<span className="text-[10px] pro-text3 uppercase">Latest APY</span>
-												<span className="font-jetbrains text-base font-semibold" style={{ color: '#fd3c99' }}>
+												<span className="font-jetbrains text-base font-semibold" style={{ color: '#cc3e82' }}>
 													{latestYieldData.apy}%
 												</span>
 											</div>
 											<div className="flex flex-col">
 												<span className="text-[10px] pro-text3 uppercase">TVL</span>
-												<span className="font-jetbrains text-base font-semibold" style={{ color: '#4f8fea' }}>
+												<span className="font-jetbrains text-base font-semibold" style={{ color: '#3e79cc' }}>
 													{formattedNum(latestYieldData.tvl, true)}
 												</span>
 											</div>

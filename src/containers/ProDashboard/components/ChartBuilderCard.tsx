@@ -19,7 +19,7 @@ import { ProTableCSVButton } from './ProTable/CsvButton'
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 const TreeMapBuilderChart = lazy(() => import('~/components/ECharts/TreeMapBuilderChart'))
 
-const DEFAULT_SERIES_COLOR = '#3366ff'
+const DEFAULT_SERIES_COLOR = '#3e61cc'
 const EMPTY_SERIES_COLORS: Record<string, string> = {}
 const EMPTY_SERIES_NAMES: string[] = []
 const HEX_COLOR_REGEX = /^#([0-9a-f]{3}){1,2}$/i

@@ -1,81 +1,81 @@
 export const EXTENDED_COLOR_PALETTE = [
-	'#E91E63', // Hot Pink
-	'#2196F3', // Bright Blue
-	'#4CAF50', // Green
-	'#FF9800', // Orange
-	'#9C27B0', // Purple
-	'#00BCD4', // Cyan
-	'#FF5722', // Deep Orange
-	'#3F51B5', // Indigo
-	'#8BC34A', // Light Green
-	'#FFC107', // Amber
-	'#673AB7', // Deep Purple
-	'#009688', // Teal
-	'#F44336', // Red
-	'#03A9F4', // Light Blue
-	'#CDDC39', // Lime
-	'#FF6F00', // Dark Orange
-	'#7C4DFF', // Light Purple
-	'#00E676', // Green Accent
-	'#FF4081', // Pink Accent
-	'#1976D2', // Dark Blue
-	'#FDD835', // Yellow
-	'#6A1B9A', // Dark Purple
-	'#00ACC1', // Dark Cyan
-	'#D32F2F', // Dark Red
-	'#40C4FF', // Light Cyan
-	'#76FF03', // Light Lime
-	'#E040FB', // Purple Accent
-	'#00C853', // Dark Green
-	'#FF6E40', // Deep Orange Accent
-	'#448AFF', // Blue Accent
-	'#FFD600', // Dark Yellow
-	'#AA00FF', // Purple A700
-	'#00E5FF', // Cyan Accent
-	'#FF3D00', // Deep Orange A400
-	'#1DE9B6', // Teal Accent
-	'#D500F9' // Purple A400
+	'#cc3e6d',
+	'#4691ce',
+	'#4cae4f',
+	'#c98e36',
+	'#972da9',
+	'#2d9ba9',
+	'#cc5f3e',
+	'#4051b5',
+	'#8bc34b',
+	'#cba63a',
+	'#673ab6',
+	'#29998e',
+	'#cc473e',
+	'#3394c1',
+	'#c0ce46',
+	'#c97636',
+	'#633ecc',
+	'#30b575',
+	'#b9315f',
+	'#3175b9',
+	'#ccb23e',
+	'#65258d',
+	'#298c99',
+	'#cb3a3a',
+	'#3e9fcc',
+	'#7bcb3a',
+	'#b63ecc',
+	'#2a9d5a',
+	'#cc683e',
+	'#3e72cc',
+	'#c9b136',
+	'#9836c9',
+	'#36bbc9',
+	'#c94e36',
+	'#3acba6',
+	'#b034c5'
 ]
 
 export const COLOR_PALETTE_2 = [
-	'#FF5722', // Deep Orange
-	'#40C4FF', // Light Cyan
-	'#9C27B0', // Purple
-	'#4CAF50', // Green
-	'#7c2d12', // brown
-	'#E91E63', // hot pink
-	'#1f67d2', // old blue
-	'#8BC34A', // Light Green
-	'#673AB7', // Deep Purple
-	'#A0522D', // Light Shiny Brown
-	'#FF1493', // Deep Pink
-	'#00ACC1', // Dark Cyan
-	'#CDDC39', // Lime
-	'#D500F9', // Purple A400,
-	'#BC8F8F', // Rosy Brown
-	'#FF4081', // Pink Accent
-	'#2196F3', // Bright Blue
-	'#00E676', // Green Accent
-	'#7C4DFF', // Light Purple
-	'#DEB887', // Burlywood
-	'#E74C3C', // Alizarin Red
-	'#3498DB', // Peter River Blue
-	'#2E8B57', // Sea Green
-	'#8A2BE2', // Blue Violet
-	'#D2B48C', // Tan
-	'#FFC107', // Amber
-	'#03A9F4', // Light Blue
-	'#228B22', // Forest Green
-	'#9370DB', // Medium Purple
-	'#FF9800', // Orange
-	'#8B7D6B', // Dark Khaki
-	'#1976D2', // Dark Blue
-	'#76FF03', // Light Lime
-	'#6A1B9A', // Dark Purple
-	'#CD853F', // Peru Brown
-	'#FF4500', // Orange Red
-	'#0080FF', // Azure Blue
-	'#32CD32' // Lime Green
+	'#cc5f3e',
+	'#3e9fcc',
+	'#972da9',
+	'#4cae4f',
+	'#994529',
+	'#cc3e6d',
+	'#326abd',
+	'#8bc34b',
+	'#673ab6',
+	'#9f512d',
+	'#ce468e',
+	'#298c99',
+	'#c0ce46',
+	'#b034c5',
+	'#a36666',
+	'#b9315f',
+	'#4691ce',
+	'#30b575',
+	'#633ecc',
+	'#ca8e3f',
+	'#cc4c3e',
+	'#4295cd',
+	'#2e8a56',
+	'#8942cd',
+	'#ba8c4f',
+	'#cba63a',
+	'#3394c1',
+	'#299929',
+	'#6d3ecc',
+	'#c98e36',
+	'#8a7d6a',
+	'#3175b9',
+	'#7bcb3a',
+	'#65258d',
+	'#cd8742',
+	'#c95d36',
+	'#3680c9',
+	'#36c936'
 ]
 
 function simpleHash(str: string): number {

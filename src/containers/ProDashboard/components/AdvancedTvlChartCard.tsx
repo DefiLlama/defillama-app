@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useMemo } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
-import { oldBlue } from '~/constants/colors'
+const dashboardBlue = '#326abd'
 import {
 	formatProtocolV1TvlsByChain,
 	useFetchProtocolV1AddlChartsData
@@ -271,7 +271,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 							hideDownloadButton={true}
 							hideDataZoom={true}
 							hallmarks={EMPTY_HALLMARKS}
-							color={oldBlue}
+							color={dashboardBlue}
 							chartOptions={chartOptions}
 							height="360px"
 							onReady={handleChartReady}
@@ -354,7 +354,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<BarChart
 							chartData={filteredChartData.usdInflows ?? EMPTY_CHART_DATA}
-							color={oldBlue}
+							color={dashboardBlue}
 							title=""
 							valueSymbol="$"
 							hideDownloadButton={true}

@@ -4,7 +4,7 @@ import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/E
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
-import { oldBlue } from '~/constants/colors'
+const dashboardBlue = '#326abd'
 import {
 	formatProtocolV1TvlsByChain,
 	useFetchProtocolV1AddlChartsData
@@ -195,7 +195,7 @@ export function AdvancedTvlChartTab({
 							valueSymbol="$"
 							hideDefaultLegend={true}
 							hallmarks={EMPTY_HALLMARKS}
-							color={oldBlue}
+							color={dashboardBlue}
 							chartOptions={chartOptions}
 						/>
 					</Suspense>
@@ -281,7 +281,7 @@ export function AdvancedTvlChartTab({
 							</div>
 						}
 					>
-						<BarChart chartData={resolvedUsdInflows} color={oldBlue} title="" chartOptions={inflowsChartOptions} />
+						<BarChart chartData={resolvedUsdInflows} color={dashboardBlue} title="" chartOptions={inflowsChartOptions} />
 					</Suspense>
 				)
 			case 'tokenInflows':

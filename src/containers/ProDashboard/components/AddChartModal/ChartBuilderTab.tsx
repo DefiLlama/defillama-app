@@ -22,7 +22,7 @@ const EMPTY_PROTOCOLS: any[] = []
 const EMPTY_CATEGORIES: string[] = []
 const EMPTY_SELECT_OPTIONS: Array<{ value: string; label: string }> = []
 
-const DEFAULT_SERIES_COLOR = '#3366ff'
+const DEFAULT_SERIES_COLOR = '#3e61cc'
 const HEX_COLOR_REGEX = /^#([0-9a-f]{3}){1,2}$/i
 
 interface ChartBuilderTabProps {

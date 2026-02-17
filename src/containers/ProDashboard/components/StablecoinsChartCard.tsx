@@ -220,7 +220,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 							hideDefaultLegend={true}
 							hideDownloadButton={true}
 							hallmarks={EMPTY_HALLMARKS}
-							color="#4f8fea"
+							color="#3e79cc"
 							chartOptions={chartOptions}
 							onReady={handleChartReady}
 						/>
@@ -296,7 +296,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 					>
 						<BarChart
 							chartData={filteredChartData.usdInflows}
-							color="#4f8fea"
+							color="#3e79cc"
 							title=""
 							hideDownloadButton={true}
 							onReady={handleChartReady}
@@ -360,7 +360,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 				<div className="mb-2 flex gap-4">
 					<div className="flex flex-col">
 						<span className="text-[10px] pro-text3 uppercase">Total Market Cap</span>
-						<span className="font-jetbrains text-sm font-semibold" style={{ color: '#4f8fea' }}>
+						<span className="font-jetbrains text-sm font-semibold" style={{ color: '#3e79cc' }}>
 							{formattedNum(latestMcap, true)}
 						</span>
 					</div>

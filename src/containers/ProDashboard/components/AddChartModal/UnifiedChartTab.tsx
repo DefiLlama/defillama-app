@@ -718,7 +718,7 @@ export function UnifiedChartTab({
 								>
 									<input
 										type="color"
-										value={item.color || '#3366ff'}
+										value={item.color || '#3e61cc'}
 										onChange={(e) => onComposerItemColorChange(item.id, e.target.value)}
 										className="h-4 w-4 cursor-pointer rounded border-0 bg-transparent p-0"
 									/>
