@@ -1,9 +1,10 @@
+import type { InferGetStaticPropsType } from 'next'
+import Link from 'next/link'
 import { maxAgeForNext } from '~/api'
 import { PROTOCOLS_API } from '~/constants/index'
 import { ChainOverview } from '~/containers/ChainOverview'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
-import Link from 'next/link'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -69,7 +70,7 @@ export async function getStaticPaths() {
 	return { paths, fallback: 'blocking' }
 }
 
-export default function Chain(props) {
+export default function Chain(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title={props.metadata.name === 'All' ? 'DefiLlama - DeFi Dashboard' : `${props.metadata.name} - DefiLlama`}

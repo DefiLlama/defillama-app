@@ -1,3 +1,4 @@
+import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { RWAOverview } from '~/containers/RWA'
 import { getRWAAssetsOverview } from '~/containers/RWA/queries'
@@ -19,7 +20,7 @@ export const getStaticProps = withPerformanceLogging(`rwa/index`, async () => {
 
 const pageName = ['RWA']
 
-export default function RWAPage(props) {
+export default function RWAPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="Real World Assets - DefiLlama"

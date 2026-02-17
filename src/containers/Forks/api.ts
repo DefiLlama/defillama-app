@@ -1,11 +1,7 @@
 import { V2_SERVER_URL } from '~/constants'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import type {
-	IForkMetrics,
-	IForkProtocolBreakdownChart,
-	IForkProtocolChart
-} from './api.types'
+import type { IForkMetrics, IForkProtocolBreakdownChart, IForkProtocolChart } from './api.types'
 
 function appendKeyParam(url: string, key?: string): string {
 	if (!key) return url

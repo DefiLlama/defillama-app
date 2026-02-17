@@ -1,3 +1,4 @@
+import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { Treasuries } from '~/containers/Treasuries'
 import { getEntitiesPageData } from '~/containers/Treasuries/queries'
@@ -14,7 +15,7 @@ export const getStaticProps = withPerformanceLogging('entities', async () => {
 	}
 })
 
-export default function Entities(props) {
+export default function Entities(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="Entities - DefiLlama"

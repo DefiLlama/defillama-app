@@ -1,4 +1,4 @@
-import type { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { BridgedTVLByChain } from '~/containers/BridgedTVL/BridgedTVLByChain'
 import { getBridgedTVLByChain } from '~/containers/BridgedTVL/queries'
@@ -45,7 +45,7 @@ export async function getStaticPaths() {
 
 const pageName = ['Bridged TVL', 'by', 'Chain']
 
-export default function Bridged(props) {
+export default function Bridged(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	if (!props.chainData) {
 		return <div>Not found</div>
 	}

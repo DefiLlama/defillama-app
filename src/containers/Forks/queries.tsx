@@ -65,7 +65,13 @@ export async function getForksListPageData(): Promise<ForkOverviewPageData | nul
 			sortedForks.map((f) => ({ label: f, to: `/forks/${slug(f)}` }))
 		)
 
-		return { forks: sortedForks, forkLinks, forkColors, tableData, chartData: Array.isArray(chartData) ? chartData : [] }
+		return {
+			forks: sortedForks,
+			forkLinks,
+			forkColors,
+			tableData,
+			chartData: Array.isArray(chartData) ? chartData : []
+		}
 	} catch (error) {
 		console.error('Error fetching forks list page data', error)
 		return null

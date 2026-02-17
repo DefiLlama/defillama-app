@@ -1,4 +1,4 @@
-import type { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
@@ -212,7 +212,7 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocols(props) {
+export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	const protocol = slug(props.name ?? '')
 	const {
 		isLoading,

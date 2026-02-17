@@ -29,12 +29,21 @@ export const getStaticProps = withPerformanceLogging('oracles/[oracle]/[chain]',
 })
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
 export default function OraclesOracleChainPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	const canonicalUrl =
-		props.oracle && props.chain ? `/oracles/${slug(props.oracle)}/${slug(props.chain)}` : '/oracles'
+	const canonicalUrl = props.oracle && props.chain ? `/oracles/${slug(props.oracle)}/${slug(props.chain)}` : '/oracles'
 	return (
 		<Layout
 			title={`${props.oracle ?? 'Oracles'} - DefiLlama`}

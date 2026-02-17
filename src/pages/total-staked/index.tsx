@@ -1,3 +1,4 @@
+import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { ExtraTvlByChain } from '~/containers/Protocols/ExtraTvlByChain'
 import { getExtraTvlByChain } from '~/containers/Protocols/queries'
@@ -22,7 +23,7 @@ export const getStaticProps = withPerformanceLogging(`total-staked/index`, async
 
 const pageName = ['Protocols', 'ranked by', 'Total Value Staked']
 
-export default function TotalStaked(props) {
+export default function TotalStaked(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="Total Staked - DefiLlama"

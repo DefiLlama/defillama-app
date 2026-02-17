@@ -1,12 +1,12 @@
 import { useQueries } from '@tanstack/react-query'
 import * as React from 'react'
-import type { OracleBreakdownItem } from './types'
 import {
 	fetchOracleChainProtocolBreakdownChart,
 	fetchOracleProtocolBreakdownChart,
 	fetchOracleProtocolChainBreakdownChart,
 	fetchOracleProtocolChart
 } from './api'
+import type { OracleBreakdownItem } from './types'
 
 export function useOraclesByChainExtraBreakdowns({
 	enabledExtraApiKeys,
@@ -98,8 +98,7 @@ export function useOracleOverviewExtraSeries({
 			const data = query.data ?? []
 
 			const normalizedApiKey = apiKey.toLowerCase()
-			const shouldSubtract =
-				normalizedApiKey === 'dcandlsoverlap' && shouldSubtractOverlapSeries
+			const shouldSubtract = normalizedApiKey === 'dcandlsoverlap' && shouldSubtractOverlapSeries
 			const sign = shouldSubtract ? -1 : 1
 
 			for (const [timestampInSeconds, value] of data) {

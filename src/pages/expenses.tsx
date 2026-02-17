@@ -1,4 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table'
+import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -46,7 +47,7 @@ export const getStaticProps = withPerformanceLogging('expenses', async () => {
 const pageName = ['Protocols', 'ranked by', 'Expenses']
 const DEFAULT_SORTING_STATE = [{ id: 'sumAnnualUsdExpenses', desc: true }]
 
-export default function Protocols(props) {
+export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title={`Protocol Expenses - DefiLlama`}

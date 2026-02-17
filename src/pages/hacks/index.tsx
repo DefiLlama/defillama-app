@@ -1,3 +1,4 @@
+import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { HacksContainer } from '~/containers/Hacks'
 import { getHacksPageData } from '~/containers/Hacks/queries'
@@ -14,7 +15,7 @@ export const getStaticProps = withPerformanceLogging('hacks', async () => {
 	}
 })
 
-export default function Hacks(props) {
+export default function Hacks(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="Hacks - DefiLlama"

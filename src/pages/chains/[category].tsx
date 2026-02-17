@@ -1,4 +1,4 @@
-import type { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import { ChainsByCategory } from '~/containers/ChainsByCategory'
@@ -55,7 +55,7 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Chains(props) {
+export default function Chains(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title={`${props.category} Chains DeFi TVL - DefiLlama`}

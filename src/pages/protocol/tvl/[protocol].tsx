@@ -1,4 +1,4 @@
-import type { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
@@ -342,7 +342,7 @@ function InflowsByTokenChartCard({
 	)
 }
 
-export default function Protocols(props) {
+export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const protocol = slug(props.name ?? '')
 	const toggledTvlKeys = React.useMemo(() => {

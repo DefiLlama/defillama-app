@@ -1,4 +1,4 @@
-import type { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
@@ -124,7 +124,7 @@ export async function getStaticPaths() {
 
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
-export default function Protocols(props) {
+export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	const [groupBy, setGroupBy] = useState<(typeof INTERVALS_LIST)[number]>(props.defaultChartView)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 

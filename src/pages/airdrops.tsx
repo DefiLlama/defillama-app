@@ -1,3 +1,4 @@
+import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { getAirdropsProtocols } from '~/containers/Protocols/queries'
 import { RecentProtocols } from '~/containers/Protocols/RecentProtocols'
@@ -15,7 +16,7 @@ export const getStaticProps = withPerformanceLogging('airdrops', async () => {
 
 const pageName = ['Tokenless protocols']
 
-export default function Protocols(props) {
+export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="Tokenless protocols that may airdrop - DefiLlama"

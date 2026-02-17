@@ -1,3 +1,4 @@
+import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { Treasuries } from '~/containers/Treasuries'
 import { getTreasuryPageData } from '~/containers/Treasuries/queries'
@@ -14,7 +15,7 @@ export const getStaticProps = withPerformanceLogging('treasuries', async () => {
 	}
 })
 
-export default function TreasuriesPage(props) {
+export default function TreasuriesPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="Treasuries - DefiLlama"
