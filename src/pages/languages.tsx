@@ -5,7 +5,7 @@ import type {
 	MultiSeriesChart2Dataset,
 	MultiSeriesChart2SeriesConfig
 } from '~/components/ECharts/types'
-import { LANGS_API } from '~/constants'
+import { SERVER_URL } from '~/constants'
 import Layout from '~/layout'
 import { getDominancePercent, getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -64,7 +64,7 @@ function buildCharts(keys: string[], colors: Record<string, string>, stack?: str
 }
 
 export const getStaticProps = withPerformanceLogging('languages', async () => {
-	const data = await fetchJson(LANGS_API)
+	const data = await fetchJson(`${SERVER_URL}/langs`)
 
 	const { dataset: tvlDataset, keys: langsUnique } = buildDataset(data.chart, 'absolute')
 	const { dataset: dominanceDataset } = buildDataset(data.chart, 'dominance')

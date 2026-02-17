@@ -6,7 +6,6 @@ import {
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
-	PROTOCOLS_API,
 	REV_PROTOCOLS,
 	TRADFI_API
 } from '~/constants'
@@ -18,6 +17,8 @@ import type { IAdapterChainMetrics, IAdapterProtocolMetrics } from '~/containers
 import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
 import type { IAdapterChainOverview } from '~/containers/DimensionAdapters/types'
 import { getETFData } from '~/containers/ETF/queries'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { getStablecoinChainMcapSummary } from '~/containers/Stablecoins/queries.server'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
@@ -35,7 +36,6 @@ import type {
 	IChainOverviewData,
 	IChildProtocol,
 	ILiteChart,
-	ILiteParentProtocol,
 	ILiteProtocol,
 	IProtocol,
 	TVL_TYPES
@@ -676,12 +676,14 @@ export const getProtocolsByChain = async ({
 	chain,
 	chainMetadata,
 	protocolMetadata,
-	oracle = null
+	oracle = null,
+	fork = null
 }: {
 	chain: string
 	chainMetadata: Record<string, IChainMetadata>
 	protocolMetadata: Record<string, IProtocolMetadata>
 	oracle?: string | null
+	fork?: string | null
 }) => {
 	const currentChainMetadata: IChainMetadata =
 		chain === 'All'
@@ -691,6 +693,14 @@ export const getProtocolsByChain = async ({
 	if (!currentChainMetadata) return null
 
 	const normalizedOracle = oracle ? slug(oracle) : null
+	const normalizedFork = fork ? slug(fork) : null
+
+	const protocolMatchesForkFilter = (protocol: ILiteProtocol): boolean => {
+		if (!normalizedFork) return true
+
+		return protocol.forkedFrom?.some((forkName) => slug(forkName) === normalizedFork) ?? false
+	}
+
 	const protocolMatchesOracleFilter = (protocol: ILiteProtocol): boolean => {
 		if (!normalizedOracle) return true
 
@@ -714,14 +724,14 @@ export const getProtocolsByChain = async ({
 	}
 
 	const [{ protocols, chains, parentProtocols }, fees, revenue, holdersRevenue, dexs, emissionsData]: [
-		{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
+		ProtocolsResponse,
 		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
 		IAdapterChainOverview | null,
 		any
 	] = await Promise.all([
-		fetchJson(PROTOCOLS_API),
+		fetchProtocols(),
 		currentChainMetadata.fees
 			? fetchAdapterChainMetrics({
 					adapterType: 'fees',
@@ -862,6 +872,7 @@ export const getProtocolsByChain = async ({
 		if (
 			!protocol.defillamaId.startsWith('chain#') &&
 			protocolMetadata[protocol.defillamaId] &&
+			protocolMatchesForkFilter(protocol) &&
 			protocolMatchesOracleFilter(protocol) &&
 			toFilterProtocol({
 				protocolMetadata: protocolMetadata[protocol.defillamaId],
@@ -921,7 +932,7 @@ export const getProtocolsByChain = async ({
 				}
 			}
 
-			const childStore: IChildProtocol = {
+			const childStore: IChildProtocol & { defillamaId: string } = {
 				name: protocolMetadata[protocol.defillamaId].displayName,
 				slug: slug(protocolMetadata[protocol.defillamaId].displayName),
 				chains: protocolMetadata[protocol.defillamaId].chains,
@@ -939,7 +950,8 @@ export const getProtocolsByChain = async ({
 								liquidstaking: !!tvls?.liquidstaking,
 								doublecounted: !!tvls?.doublecounted
 							})
-						: false
+						: false,
+				defillamaId: protocol.defillamaId
 			}
 
 			if (protocol.deprecated) {
@@ -991,8 +1003,17 @@ export const getProtocolsByChain = async ({
 		}
 	}
 
+	// Keep protocols ungrouped when filtering leaves only one child under a parent.
+	for (const parentId in parentStore) {
+		if (parentStore[parentId].length !== 1) continue
+		const onlyChild = parentStore[parentId][0] as IChildProtocol & { defillamaId?: string }
+		if (onlyChild.defillamaId) {
+			protocolsStore[onlyChild.defillamaId] = onlyChild
+		}
+	}
+
 	for (const parentProtocol of parentProtocols) {
-		if (parentStore[parentProtocol.id]) {
+		if (parentStore[parentProtocol.id] && parentStore[parentProtocol.id].length > 1) {
 			const parentTvl = parentStore[parentProtocol.id].some((child) => child.tvl !== null)
 				? parentStore[parentProtocol.id].reduce(
 						(acc, curr) => {
