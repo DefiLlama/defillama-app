@@ -85,6 +85,15 @@ export const SubscriberContent = ({
 		}
 	}
 
+	async function handleManageSubscription(type: 'llamafeed' | 'api') {
+		const sub = type === 'llamafeed' ? llamafeedSubscription : apiSubscription
+		if (sub?.provider === 'stripe') {
+			await createPortalSession()
+		} else {
+			window.open('https://subscriptions.llamapay.io/', '_blank')
+		}
+	}
+
 	return (
 		<>
 			<div className="mb-3 flex flex-col items-center sm:mb-4">
@@ -417,17 +426,17 @@ export const SubscriberContent = ({
 												<span className="text-xs font-medium text-white sm:text-sm">Active</span>
 											</div>
 										)}
-										<button
-											onClick={
-												hasProSubscription
-													? () => createPortalSession()
+											<button
+												onClick={
+													hasProSubscription
+														? () => handleManageSubscription('llamafeed')
 													: hasApiSubscription
-														? () => createPortalSession()
+														? () => handleManageSubscription('api')
 														: undefined
-											}
-											disabled={isPortalSessionLoading}
-											className="flex items-center gap-1.5 rounded-lg bg-[#5C5CF9]/10 px-3 py-1.5 text-xs font-medium text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/20 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
-										>
+												}
+												disabled={isPortalSessionLoading}
+												className="flex items-center gap-1.5 rounded-lg bg-[#5C5CF9]/10 px-3 py-1.5 text-xs font-medium text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/20 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
+											>
 											{isPortalSessionLoading ? (
 												<>
 													<span className="h-3 w-3 animate-spin rounded-full border-2 border-[#5C5CF9]/30 border-t-[#5C5CF9]"></span>
