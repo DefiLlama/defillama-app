@@ -11,6 +11,21 @@ export interface MapleLoanManager {
 	accountedInterest: string
 }
 
+export interface MaplePoolMeta {
+	_id: string
+	poolName: string
+	strategy: string | null
+	cardDescription: string | null
+	poolCategory: { _id: string; name: string } | null
+	collateralType: { _id: string; name: string } | null
+}
+
+export interface MapleWithdrawalManager {
+	id: string
+	cycleDuration: string
+	windowDuration: string
+}
+
 export interface MaplePool {
 	id: string
 	name: string
@@ -21,6 +36,20 @@ export interface MaplePool {
 	unrealizedLosses: string
 	liquidityCap: string
 	loanManager: MapleLoanManager
+	totalAssets: string
+	principalOut: string
+	numPositions: string
+	numActiveLoans: string
+	numDefaultedLoans: number
+	depositedAssets: string
+	withdrawnAssets: string
+	coverLiquidated: string
+	delegateManagementFeeRate: string
+	platformManagementFeeRate: string
+	openToPublic: boolean
+	symbol: string
+	poolMeta: MaplePoolMeta | null
+	withdrawalManager: MapleWithdrawalManager | null
 }
 
 export interface MapleOpenTermLoan {
@@ -30,6 +59,16 @@ export interface MapleOpenTermLoan {
 	interestRate: string
 	isCalled: boolean
 	isImpaired: boolean
+	interestPaid: string
+	fundingDate: string
+	startDate: string
+	state: string
+	paymentIntervalDays: string
+	gracePeriodSeconds: string
+	delegateServiceFeeRate: string
+	platformServiceFeeRate: string
+	lateInterestPremium: string
+	lateFeeRate: string
 }
 
 export interface MaplePoolWithLoans {
@@ -58,6 +97,30 @@ export interface SyrupTx {
 	account: { id: string }
 }
 
+export interface SyrupGlobals {
+	apy: string
+	tvl: string
+}
+
+export interface StSyrup {
+	id: string
+	totalSupply: string
+	freeAssets: string
+	issuanceRate: string
+	vestingPeriodFinish: string
+	lastUpdated: string
+	precision: number
+	asset: { id: string }
+}
+
+export interface SyrupDripTx {
+	id: string
+	timestamp: string
+	type: string
+	amount: string
+	account: { id: string }
+}
+
 const STALE_TIME = 10 * 60 * 1000
 
 async function fetchMapleQuery<T>(queryName: string): Promise<T> {
@@ -82,6 +145,10 @@ export function parseTokenAmount(value: string, decimals: number): number {
 }
 
 export function parseInterestRate(value: string): number {
+	return Number(value) / 10000
+}
+
+export function parseFeeRate(value: string): number {
 	return Number(value) / 10000
 }
 
@@ -139,6 +206,48 @@ export function useSyrupTxes() {
 
 	return useMemo(() => {
 		const txes = query.data?.data?.syrupTxes ?? []
+		return { ...query, txes }
+	}, [query])
+}
+
+export function useSyrupGlobals() {
+	const query = useQuery({
+		queryKey: ['maple-syrup-globals'],
+		queryFn: () => fetchMapleQuery<{ data: { syrupGlobals: SyrupGlobals } }>('syrupGlobals'),
+		staleTime: STALE_TIME,
+		refetchOnWindowFocus: false
+	})
+
+	return useMemo(() => {
+		const globals = query.data?.data?.syrupGlobals ?? null
+		return { ...query, globals }
+	}, [query])
+}
+
+export function useStSyrupState() {
+	const query = useQuery({
+		queryKey: ['maple-st-syrup-state'],
+		queryFn: () => fetchMapleQuery<{ data: { stSyrups: StSyrup[] } }>('stSyrupState'),
+		staleTime: STALE_TIME,
+		refetchOnWindowFocus: false
+	})
+
+	return useMemo(() => {
+		const state = query.data?.data?.stSyrups?.[0] ?? null
+		return { ...query, state }
+	}, [query])
+}
+
+export function useSyrupDripTxes() {
+	const query = useQuery({
+		queryKey: ['maple-syrup-drip-txes'],
+		queryFn: () => fetchMapleQuery<{ data: { syrupDripTxes: SyrupDripTx[] } }>('syrupDripTxes'),
+		staleTime: STALE_TIME,
+		refetchOnWindowFocus: false
+	})
+
+	return useMemo(() => {
+		const txes = query.data?.data?.syrupDripTxes ?? []
 		return { ...query, txes }
 	}, [query])
 }

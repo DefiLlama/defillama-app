@@ -36,7 +36,8 @@ export default function BarChart({
 	enableImageExport,
 	imageExportFilename,
 	imageExportTitle,
-	orientation = 'vertical'
+	orientation = 'vertical',
+	xAxisType = 'time'
 }: IBarChartProps) {
 	const id = useId()
 	const shouldEnableExport = enableImageExport ?? (!!title && !hideDownloadButton)
@@ -133,15 +134,23 @@ export default function BarChart({
 				}
 			}
 
-			for (const { date, ...item } of chartData) {
-				for (const stack of selectedStacks) {
-					stackedSeries[stack]?.data?.push([+date * 1e3, item[stack] || 0])
+			if (xAxisType === 'category') {
+				for (const { name, ...item } of chartData) {
+					for (const stack of selectedStacks) {
+						series[stack]?.data?.push([name, item[stack] || 0])
+					}
+				}
+			} else {
+				for (const { date, ...item } of chartData) {
+					for (const stack of selectedStacks) {
+						series[stack]?.data?.push([+date * 1e3, item[stack] || 0])
+					}
 				}
 			}
 
 			return Object.values(stackedSeries).map((s: any) => (s.data.length === 0 ? { ...s, large: false } : s))
 		}
-	}, [chartData, color, defaultStacks, stackColors, stackKeys, selectedStacks])
+	}, [chartData, color, defaultStacks, stackColors, stackKeys, selectedStacks, xAxisType])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
 	const hasNotifiedReadyRef = useRef(false)
@@ -251,6 +260,12 @@ export default function BarChart({
 			rows = [['Timestamp', 'Date', 'Value']]
 			for (const [date, value] of chartData ?? []) {
 				rows.push([date, toNiceCsvDate(date), value])
+			}
+		} else if (xAxisType === 'category') {
+			rows = [['Name', ...selectedStacks]]
+			for (const item of chartData ?? []) {
+				const { name, ...rest } = item
+				rows.push([name, ...selectedStacks.map((stack) => rest[stack] ?? '')])
 			}
 		} else {
 			rows = [['Timestamp', 'Date', ...selectedStacks]]
