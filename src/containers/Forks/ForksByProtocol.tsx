@@ -11,7 +11,7 @@ import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, getTokenDominance, slug, tokenIconUrl } from '~/utils'
 import { useForkByProtocolExtraSeries } from './queries.client'
 import { calculateTvlWithExtraToggles, getEnabledExtraApiKeys } from './tvl'
-import type { ForkPageData, ForkProtocolWithBreakdown } from './types'
+import type { ForkByProtocolPageData, ForkProtocolWithBreakdown } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -37,7 +37,7 @@ function getStrikeTvlText({
 	return null
 }
 
-export const ForksByProtocol = ({ fork, forkLinks, protocolTableData, chartData }: ForkPageData) => {
+export const ForksByProtocol = ({ fork, forkLinks, protocolTableData, chartData }: ForkByProtocolPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const enabledExtraApiKeys = useMemo(() => getEnabledExtraApiKeys(extraTvlsEnabled), [extraTvlsEnabled])
 	const { isFetchingExtraSeries, extraTvsByTimestamp } = useForkByProtocolExtraSeries({

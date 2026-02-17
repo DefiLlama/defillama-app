@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { LocalLoader } from '~/components/Loaders'
 import { ForksByProtocol } from '~/containers/Forks/ForksByProtocol'
-import { getForkPageData } from '~/containers/Forks/queries'
+import { getForksByProtocolPageData } from '~/containers/Forks/queries'
 
 export function ForksData({ protocolName }: { protocolName: string }) {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['forks', protocolName],
-		queryFn: () => getForkPageData({ fork: protocolName }),
+		queryFn: () => getForksByProtocolPageData({ fork: protocolName }),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0

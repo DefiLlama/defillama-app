@@ -2,7 +2,7 @@ import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import { ForksByProtocol } from '~/containers/Forks/ForksByProtocol'
-import { getForkPageData } from '~/containers/Forks/queries'
+import { getForksByProtocolPageData } from '~/containers/Forks/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -15,7 +15,7 @@ export const getStaticProps = withPerformanceLogging('forks/[fork]', async ({ pa
 	}
 
 	const forkParam = Array.isArray(params.fork) ? params.fork[0] : params.fork
-	const data = await getForkPageData({ fork: forkParam })
+	const data = await getForksByProtocolPageData({ fork: forkParam })
 
 	if (!data) {
 		return { notFound: true, props: null }

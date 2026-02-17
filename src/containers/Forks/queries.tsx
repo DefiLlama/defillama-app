@@ -5,7 +5,7 @@ import { getNDistinctColors, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { fetchForkMetrics, fetchForkProtocolBreakdownChart, fetchForkProtocolChart } from './api'
 import { getForkToOriginalTvlPercent } from './tvl'
-import type { ForkOverviewPageData, ForkPageData } from './types'
+import type { ForkOverviewPageData, ForkByProtocolPageData } from './types'
 
 type TProtocolsApiResponse = {
 	protocols: Array<ILiteProtocol>
@@ -63,7 +63,7 @@ export async function getForksListPageData(): Promise<ForkOverviewPageData | nul
 }
 
 // - /forks/:fork
-export async function getForkPageData({ fork }: { fork: string }): Promise<ForkPageData | null> {
+export async function getForksByProtocolPageData({ fork }: { fork: string }): Promise<ForkByProtocolPageData | null> {
 	const [metrics, { protocols: fetchedProtocols }] = await Promise.all([
 		fetchForkMetrics(),
 		fetchJson<TProtocolsApiResponse>(PROTOCOLS_API)

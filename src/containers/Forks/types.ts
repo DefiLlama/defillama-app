@@ -31,7 +31,7 @@ export interface ForkOverviewPageData {
 }
 
 // - /forks/:fork page data
-export interface ForkPageData {
+export interface ForkByProtocolPageData {
 	fork: string
 	forkLinks: Array<ForkLink>
 	protocolTableData: Array<ForkProtocolWithBreakdown>
