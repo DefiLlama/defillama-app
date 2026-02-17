@@ -4,49 +4,10 @@ import { lazy, useMemo, useState } from 'react'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { VirtualTable } from '~/components/Table/Table'
 import { formattedNum } from '~/utils'
-import { useMapleActivePools, parseWad } from './api'
+import { useMapleActivePools, parseWad, parseFeeRate } from './api'
+import { ChartCard, CardSkeleton, KpiCard, KpiSkeleton, Pagination, formatPct } from './shared'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
-
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
-	return (
-		<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-			<h3 className="mb-3 text-sm font-medium text-(--text-label)">{title}</h3>
-			{children}
-		</div>
-	)
-}
-
-function CardSkeleton({ title }: { title: string }) {
-	return (
-		<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-			<h3 className="mb-3 text-sm font-medium text-(--text-label)">{title}</h3>
-			<div className="flex h-[400px] items-center justify-center">
-				<div className="h-5 w-5 animate-spin rounded-full border-2 border-(--text-disabled) border-t-transparent" />
-			</div>
-		</div>
-	)
-}
-
-function KpiCard({ label, value }: { label: string; value: string | number | null }) {
-	return (
-		<div className="flex flex-col gap-1 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-			<span className="text-xs font-medium tracking-wide text-(--text-label)">{label}</span>
-			<span className="text-2xl font-semibold text-(--text-primary)">{value ?? '—'}</span>
-		</div>
-	)
-}
-
-function KpiSkeleton({ label }: { label: string }) {
-	return (
-		<div className="flex flex-col gap-1 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-			<span className="text-xs font-medium tracking-wide text-(--text-label)">{label}</span>
-			<div className="h-8 w-24 animate-pulse rounded bg-(--text-disabled) opacity-20" />
-		</div>
-	)
-}
-
-const formatPct = (v: number | null) => (v != null ? `${v.toFixed(2)}%` : '—')
 
 interface PoolRow {
 	name: string
@@ -54,12 +15,15 @@ interface PoolRow {
 	tvlUsd: number
 	spotApy: number
 	numOpenTermLoans: number
-	principalOut: number
+	utilization: number
+	numPositions: number
+	feeRate: number
+	openToPublic: boolean
 	unrealizedLosses: number
 }
 
 const poolColumns: ColumnDef<PoolRow>[] = [
-	{ header: 'Pool', accessorKey: 'name', size: 260 },
+	{ header: 'Pool', accessorKey: 'name', size: 220 },
 	{ header: 'Asset', accessorKey: 'asset', size: 80 },
 	{
 		header: 'TVL',
@@ -75,13 +39,33 @@ const poolColumns: ColumnDef<PoolRow>[] = [
 		meta: { align: 'end' as const },
 		size: 100
 	},
+	{
+		header: 'Utilization',
+		accessorKey: 'utilization',
+		cell: ({ getValue }) => formatPct(getValue<number>()),
+		meta: { align: 'end' as const },
+		size: 100
+	},
+	{
+		header: 'Depositors',
+		accessorKey: 'numPositions',
+		cell: ({ getValue }) => formattedNum(getValue<number>(), false),
+		meta: { align: 'end' as const },
+		size: 100
+	},
 	{ header: 'Open Loans', accessorKey: 'numOpenTermLoans', meta: { align: 'end' as const }, size: 100 },
 	{
-		header: 'Unrealized Losses',
-		accessorKey: 'unrealizedLosses',
-		cell: ({ getValue }) => formattedNum(getValue<number>(), true),
+		header: 'Fees',
+		accessorKey: 'feeRate',
+		cell: ({ getValue }) => formatPct(getValue<number>()),
 		meta: { align: 'end' as const },
-		size: 150
+		size: 80
+	},
+	{
+		header: 'Access',
+		accessorKey: 'openToPublic',
+		cell: ({ getValue }) => (getValue<boolean>() ? 'Public' : 'Permissioned'),
+		size: 110
 	}
 ]
 
@@ -111,41 +95,30 @@ function PoolsTable({ data }: { data: PoolRow[] }) {
 	)
 }
 
-function Pagination({ table }: { table: ReturnType<typeof useReactTable<PoolRow>> }) {
-	const { pageIndex, pageSize } = table.getState().pagination
-	const total = table.getFilteredRowModel().rows.length
-
-	return (
-		<div className="mt-2 flex items-center justify-between text-xs text-(--text-label)">
-			<span>
-				{pageIndex * pageSize + 1}–{Math.min((pageIndex + 1) * pageSize, total)} of {total}
-			</span>
-			<div className="flex gap-2">
-				<button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="disabled:opacity-30">
-					← Prev
-				</button>
-				<button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="disabled:opacity-30">
-					Next →
-				</button>
-			</div>
-		</div>
-	)
-}
-
 export default function PoolsOverview() {
 	const { pools, isLoading } = useMapleActivePools()
 
 	const poolRows = useMemo<PoolRow[]>(() => {
 		return pools
-			.map((p) => ({
-				name: p.name,
-				asset: p.asset.symbol,
-				tvlUsd: parseFloat(p.tvlUsd),
-				spotApy: parseWad(p.spotApy),
-				numOpenTermLoans: parseInt(p.numOpenTermLoans),
-				principalOut: parseFloat(p.loanManager.principalOut),
-				unrealizedLosses: parseFloat(p.unrealizedLosses)
-			}))
+			.map((p) => {
+				const totalAssets = parseFloat(p.totalAssets)
+				const principalOut = parseFloat(p.principalOut)
+				const utilization = totalAssets > 0 ? (principalOut / totalAssets) * 100 : 0
+				const delegateFee = parseFeeRate(p.delegateManagementFeeRate)
+				const platformFee = parseFeeRate(p.platformManagementFeeRate)
+				return {
+					name: p.name,
+					asset: p.asset.symbol,
+					tvlUsd: parseFloat(p.tvlUsd),
+					spotApy: parseWad(p.spotApy, 28),
+					numOpenTermLoans: parseInt(p.numOpenTermLoans),
+					utilization,
+					numPositions: parseInt(p.numPositions),
+					feeRate: delegateFee + platformFee,
+					openToPublic: p.openToPublic,
+					unrealizedLosses: parseFloat(p.unrealizedLosses)
+				}
+			})
 			.sort((a, b) => b.tvlUsd - a.tvlUsd)
 	}, [pools])
 
@@ -153,15 +126,18 @@ export default function PoolsOverview() {
 		if (isLoading || pools.length === 0) return null
 
 		const totalTvl = poolRows.reduce((s, p) => s + p.tvlUsd, 0)
-		const totalLoans = poolRows.reduce((s, p) => s + p.numOpenTermLoans, 0)
+		const totalDepositors = poolRows.reduce((s, p) => s + p.numPositions, 0)
 		const weightedApySum = poolRows.reduce((s, p) => s + p.spotApy * p.tvlUsd, 0)
 		const avgApy = totalTvl > 0 ? weightedApySum / totalTvl : 0
+		const weightedUtilSum = poolRows.reduce((s, p) => s + p.utilization * p.tvlUsd, 0)
+		const avgUtil = totalTvl > 0 ? weightedUtilSum / totalTvl : 0
 
 		return {
 			totalTvl: formattedNum(totalTvl, true),
 			activePools: pools.length,
-			totalLoans,
-			avgApy: `${avgApy.toFixed(2)}%`
+			totalDepositors: formattedNum(totalDepositors, false),
+			avgApy: `${avgApy.toFixed(2)}%`,
+			avgUtil: `${avgUtil.toFixed(1)}%`
 		}
 	}, [pools, poolRows, isLoading])
 
@@ -169,6 +145,13 @@ export default function PoolsOverview() {
 		return poolRows
 			.filter((p) => p.tvlUsd >= 10000)
 			.map((p) => ({ name: p.name, TVL: p.tvlUsd }))
+	}, [poolRows])
+
+	const utilizationChartData = useMemo(() => {
+		return poolRows
+			.filter((p) => p.tvlUsd >= 10000 && p.utilization > 0)
+			.sort((a, b) => b.utilization - a.utilization)
+			.map((p) => ({ name: p.name, Utilization: p.utilization }))
 	}, [poolRows])
 
 	const apyChartData = useMemo(() => {
@@ -180,38 +163,59 @@ export default function PoolsOverview() {
 
 	return (
 		<div className="flex flex-col gap-4">
-			<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+			<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
 				{kpis ? (
 					<>
 						<KpiCard label="Total TVL" value={kpis.totalTvl} />
 						<KpiCard label="Active Pools" value={kpis.activePools} />
-						<KpiCard label="Total Active Loans" value={kpis.totalLoans} />
+						<KpiCard label="Total Depositors" value={kpis.totalDepositors} />
 						<KpiCard label="Avg Pool APY" value={kpis.avgApy} />
+						<KpiCard label="Avg Utilization" value={kpis.avgUtil} />
 					</>
 				) : (
 					<>
 						<KpiSkeleton label="Total TVL" />
 						<KpiSkeleton label="Active Pools" />
-						<KpiSkeleton label="Total Active Loans" />
+						<KpiSkeleton label="Total Depositors" />
 						<KpiSkeleton label="Avg Pool APY" />
+						<KpiSkeleton label="Avg Utilization" />
 					</>
 				)}
 			</div>
 
-			{isLoading ? (
-				<CardSkeleton title="TVL by Pool" />
-			) : (
-				<ChartCard title="TVL by Pool">
-					<BarChart
-						chartData={tvlChartData}
-						stacks={{ TVL: 'a' }}
-						stackColors={{ TVL: '#4FC3F7' }}
-						valueSymbol="$"
-						title=""
-						height="400px"
-					/>
-				</ChartCard>
-			)}
+			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+				{isLoading ? (
+					<CardSkeleton title="TVL by Pool" />
+				) : (
+					<ChartCard title="TVL by Pool">
+						<BarChart
+							chartData={tvlChartData}
+							stacks={{ TVL: 'a' }}
+							stackColors={{ TVL: '#4FC3F7' }}
+							valueSymbol="$"
+							title=""
+							height="400px"
+							xAxisType="category"
+						/>
+					</ChartCard>
+				)}
+
+				{isLoading ? (
+					<CardSkeleton title="Pool Utilization" />
+				) : utilizationChartData.length > 0 ? (
+					<ChartCard title="Pool Utilization">
+						<BarChart
+							chartData={utilizationChartData}
+							stacks={{ Utilization: 'a' }}
+							stackColors={{ Utilization: '#AB47BC' }}
+							valueSymbol="%"
+							title=""
+							height="400px"
+							xAxisType="category"
+						/>
+					</ChartCard>
+				) : null}
+			</div>
 
 			{isLoading ? (
 				<CardSkeleton title="Spot APY by Pool" />
@@ -224,6 +228,7 @@ export default function PoolsOverview() {
 						valueSymbol="%"
 						title=""
 						height="400px"
+						xAxisType="category"
 					/>
 				</ChartCard>
 			) : null}

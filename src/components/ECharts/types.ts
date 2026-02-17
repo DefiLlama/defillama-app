@@ -76,6 +76,7 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 		[stack: string]: string
 	}
 	orientation?: 'vertical' | 'horizontal'
+	xAxisType?: 'time' | 'category'
 }
 
 export type MultiSeriesChart2Dataset = {

@@ -141,7 +141,10 @@ export function useDefaults({
 			trigger: 'axis',
 			confine: true,
 			formatter: function (params) {
-				let chartdate = formatTooltipChartDate(params[0].value[0], groupBy)
+				let chartdate =
+					typeof params[0].value[0] === 'string'
+						? `<strong>${params[0].value[0]}</strong><br/>`
+						: formatTooltipChartDate(params[0].value[0], groupBy)
 
 				let vals
 				let filteredParams = params.filter((item) => item.value[1] !== '-' && item.value[1])

@@ -4,48 +4,10 @@ import { lazy, useMemo, useState } from 'react'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { VirtualTable } from '~/components/Table/Table'
 import { formattedNum } from '~/utils'
-import { assignColors } from '../spark/api'
 import { useMaplePoolsWithLoans, parseInterestRate, parseTokenAmount } from './api'
+import { ChartCard, CardSkeleton, KpiCard, KpiSkeleton, Pagination, formatPct } from './shared'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
-
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
-	return (
-		<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-			<h3 className="mb-3 text-sm font-medium text-(--text-label)">{title}</h3>
-			{children}
-		</div>
-	)
-}
-
-function CardSkeleton({ title }: { title: string }) {
-	return (
-		<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-			<h3 className="mb-3 text-sm font-medium text-(--text-label)">{title}</h3>
-			<div className="flex h-[400px] items-center justify-center">
-				<div className="h-5 w-5 animate-spin rounded-full border-2 border-(--text-disabled) border-t-transparent" />
-			</div>
-		</div>
-	)
-}
-
-function KpiCard({ label, value }: { label: string; value: string | number | null }) {
-	return (
-		<div className="flex flex-col gap-1 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-			<span className="text-xs font-medium tracking-wide text-(--text-label)">{label}</span>
-			<span className="text-2xl font-semibold text-(--text-primary)">{value ?? '—'}</span>
-		</div>
-	)
-}
-
-function KpiSkeleton({ label }: { label: string }) {
-	return (
-		<div className="flex flex-col gap-1 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-			<span className="text-xs font-medium tracking-wide text-(--text-label)">{label}</span>
-			<div className="h-8 w-24 animate-pulse rounded bg-(--text-disabled) opacity-20" />
-		</div>
-	)
-}
 
 interface LoanRow {
 	id: string
@@ -56,6 +18,11 @@ interface LoanRow {
 	interestRate: number
 	isCalled: boolean
 	isImpaired: boolean
+	interestPaid: number
+	fundingDate: number
+	ageDays: number
+	state: string
+	paymentIntervalDays: number
 }
 
 const loanColumns: ColumnDef<LoanRow>[] = [
@@ -66,29 +33,53 @@ const loanColumns: ColumnDef<LoanRow>[] = [
 			const addr = getValue<string>()
 			return `${addr.slice(0, 6)}...${addr.slice(-4)}`
 		},
-		size: 140
+		size: 130
 	},
-	{ header: 'Pool', accessorKey: 'pool', size: 220 },
-	{ header: 'Asset', accessorKey: 'asset', size: 80 },
+	{ header: 'Pool', accessorKey: 'pool', size: 180 },
 	{
 		header: 'Principal',
 		accessorKey: 'principal',
 		cell: ({ getValue }) => formattedNum(getValue<number>(), true),
 		meta: { align: 'end' as const },
-		size: 140
+		size: 130
 	},
 	{
-		header: 'Interest Rate',
+		header: 'Rate',
 		accessorKey: 'interestRate',
-		cell: ({ getValue }) => `${getValue<number>().toFixed(2)}%`,
+		cell: ({ getValue }) => formatPct(getValue<number>()),
 		meta: { align: 'end' as const },
-		size: 110
+		size: 80
 	},
 	{
-		header: 'Called',
-		accessorKey: 'isCalled',
-		cell: ({ getValue }) => (getValue<boolean>() ? 'Yes' : 'No'),
+		header: 'State',
+		accessorKey: 'state',
 		size: 80
+	},
+	{
+		header: 'Age',
+		accessorKey: 'ageDays',
+		cell: ({ getValue }) => {
+			const days = getValue<number>()
+			if (days <= 0) return '< 1d'
+			if (days < 30) return `${days}d`
+			return `${Math.floor(days / 30)}mo`
+		},
+		meta: { align: 'end' as const },
+		size: 70
+	},
+	{
+		header: 'Interest Paid',
+		accessorKey: 'interestPaid',
+		cell: ({ getValue }) => formattedNum(getValue<number>(), true),
+		meta: { align: 'end' as const },
+		size: 120
+	},
+	{
+		header: 'Pay Interval',
+		accessorKey: 'paymentIntervalDays',
+		cell: ({ getValue }) => `${getValue<number>()}d`,
+		meta: { align: 'end' as const },
+		size: 90
 	},
 	{
 		header: 'Impaired',
@@ -127,27 +118,6 @@ function LoansTable({ data }: { data: LoanRow[] }) {
 	)
 }
 
-function Pagination({ table }: { table: ReturnType<typeof useReactTable<LoanRow>> }) {
-	const { pageIndex, pageSize } = table.getState().pagination
-	const total = table.getFilteredRowModel().rows.length
-
-	return (
-		<div className="mt-2 flex items-center justify-between text-xs text-(--text-label)">
-			<span>
-				{pageIndex * pageSize + 1}–{Math.min((pageIndex + 1) * pageSize, total)} of {total}
-			</span>
-			<div className="flex gap-2">
-				<button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="disabled:opacity-30">
-					← Prev
-				</button>
-				<button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="disabled:opacity-30">
-					Next →
-				</button>
-			</div>
-		</div>
-	)
-}
-
 const RATE_BUCKETS = [
 	{ label: '0-2%', min: 0, max: 2 },
 	{ label: '2-4%', min: 2, max: 4 },
@@ -156,13 +126,25 @@ const RATE_BUCKETS = [
 	{ label: '10%+', min: 10, max: Infinity }
 ]
 
+const AGE_BUCKETS = [
+	{ label: '< 1mo', min: 0, max: 30 },
+	{ label: '1-3mo', min: 30, max: 90 },
+	{ label: '3-6mo', min: 90, max: 180 },
+	{ label: '6-12mo', min: 180, max: 365 },
+	{ label: '1y+', min: 365, max: Infinity }
+]
+
 export default function Loans() {
 	const { pools, isLoading } = useMaplePoolsWithLoans()
+
+	const nowSec = useMemo(() => Math.floor(Date.now() / 1000), [])
 
 	const loanRows = useMemo<LoanRow[]>(() => {
 		const rows: LoanRow[] = []
 		for (const pool of pools) {
 			for (const loan of pool.openTermLoans) {
+				const fundingTs = parseInt(loan.fundingDate)
+				const ageDays = fundingTs > 0 ? Math.floor((nowSec - fundingTs) / 86400) : 0
 				rows.push({
 					id: loan.id,
 					borrower: loan.borrower.id,
@@ -171,26 +153,33 @@ export default function Loans() {
 					principal: parseTokenAmount(loan.principalOwed, pool.asset.decimals),
 					interestRate: parseInterestRate(loan.interestRate),
 					isCalled: loan.isCalled,
-					isImpaired: loan.isImpaired
+					isImpaired: loan.isImpaired,
+					interestPaid: parseTokenAmount(loan.interestPaid, pool.asset.decimals),
+					fundingDate: fundingTs,
+					ageDays,
+					state: loan.state,
+					paymentIntervalDays: parseInt(loan.paymentIntervalDays)
 				})
 			}
 		}
 		return rows.sort((a, b) => b.principal - a.principal)
-	}, [pools])
+	}, [pools, nowSec])
 
 	const kpis = useMemo(() => {
 		if (isLoading || loanRows.length === 0) return null
 
 		const totalPrincipal = loanRows.reduce((s, l) => s + l.principal, 0)
-		const impaired = loanRows.filter((l) => l.isImpaired).length
+		const totalInterestPaid = loanRows.reduce((s, l) => s + l.interestPaid, 0)
 		const weightedRateSum = loanRows.reduce((s, l) => s + l.interestRate * l.principal, 0)
 		const avgRate = totalPrincipal > 0 ? weightedRateSum / totalPrincipal : 0
+		const avgAge = loanRows.length > 0 ? loanRows.reduce((s, l) => s + l.ageDays, 0) / loanRows.length : 0
 
 		return {
 			totalLoans: loanRows.length,
 			totalPrincipal: formattedNum(totalPrincipal, true),
 			avgRate: `${avgRate.toFixed(2)}%`,
-			impaired
+			totalInterestPaid: formattedNum(totalInterestPaid, true),
+			avgAge: `${Math.round(avgAge)}d`
 		}
 	}, [loanRows, isLoading])
 
@@ -204,12 +193,17 @@ export default function Loans() {
 			.map(([name, principal]) => ({ name, Principal: principal }))
 	}, [loanRows])
 
-	const poolNames = useMemo(() => principalByPool.map((p) => p.name), [principalByPool])
-	const poolColors = useMemo(() => assignColors(poolNames), [poolNames])
-
 	const rateDistribution = useMemo(() => {
 		return RATE_BUCKETS.map((bucket) => {
 			const matching = loanRows.filter((l) => l.interestRate >= bucket.min && l.interestRate < bucket.max)
+			const principal = matching.reduce((s, l) => s + l.principal, 0)
+			return { name: bucket.label, Principal: principal }
+		}).filter((b) => b.Principal > 0)
+	}, [loanRows])
+
+	const ageDistribution = useMemo(() => {
+		return AGE_BUCKETS.map((bucket) => {
+			const matching = loanRows.filter((l) => l.ageDays >= bucket.min && l.ageDays < bucket.max)
 			const principal = matching.reduce((s, l) => s + l.principal, 0)
 			return { name: bucket.label, Principal: principal, Count: matching.length }
 		}).filter((b) => b.Principal > 0)
@@ -217,20 +211,22 @@ export default function Loans() {
 
 	return (
 		<div className="flex flex-col gap-4">
-			<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+			<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
 				{kpis ? (
 					<>
 						<KpiCard label="Active Loans" value={kpis.totalLoans} />
 						<KpiCard label="Total Principal" value={kpis.totalPrincipal} />
 						<KpiCard label="Avg Interest Rate" value={kpis.avgRate} />
-						<KpiCard label="Impaired Loans" value={kpis.impaired} />
+						<KpiCard label="Total Interest Paid" value={kpis.totalInterestPaid} />
+						<KpiCard label="Avg Loan Age" value={kpis.avgAge} />
 					</>
 				) : (
 					<>
 						<KpiSkeleton label="Active Loans" />
 						<KpiSkeleton label="Total Principal" />
 						<KpiSkeleton label="Avg Interest Rate" />
-						<KpiSkeleton label="Impaired Loans" />
+						<KpiSkeleton label="Total Interest Paid" />
+						<KpiSkeleton label="Avg Loan Age" />
 					</>
 				)}
 			</div>
@@ -242,28 +238,48 @@ export default function Loans() {
 					<BarChart
 						chartData={principalByPool}
 						stacks={{ Principal: 'a' }}
-						stackColors={Object.fromEntries(poolNames.map((n) => [n, poolColors[n] ?? '#4FC3F7']))}
+						stackColors={{ Principal: '#4FC3F7' }}
 						valueSymbol="$"
 						title=""
 						height="400px"
+						xAxisType="category"
 					/>
 				</ChartCard>
 			) : null}
 
-			{isLoading ? (
-				<CardSkeleton title="Interest Rate Distribution" />
-			) : rateDistribution.length > 0 ? (
-				<ChartCard title="Interest Rate Distribution">
-					<BarChart
-						chartData={rateDistribution}
-						stacks={{ Principal: 'a' }}
-						stackColors={{ Principal: '#FFA726' }}
-						valueSymbol="$"
-						title=""
-						height="400px"
-					/>
-				</ChartCard>
-			) : null}
+			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+				{isLoading ? (
+					<CardSkeleton title="Interest Rate Distribution" />
+				) : rateDistribution.length > 0 ? (
+					<ChartCard title="Interest Rate Distribution">
+						<BarChart
+							chartData={rateDistribution}
+							stacks={{ Principal: 'a' }}
+							stackColors={{ Principal: '#FFA726' }}
+							valueSymbol="$"
+							title=""
+							height="400px"
+							xAxisType="category"
+						/>
+					</ChartCard>
+				) : null}
+
+				{isLoading ? (
+					<CardSkeleton title="Loan Age Distribution" />
+				) : ageDistribution.length > 0 ? (
+					<ChartCard title="Loan Age Distribution">
+						<BarChart
+							chartData={ageDistribution}
+							stacks={{ Principal: 'a' }}
+							stackColors={{ Principal: '#7E57C2' }}
+							valueSymbol="$"
+							title=""
+							height="400px"
+							xAxisType="category"
+						/>
+					</ChartCard>
+				) : null}
+			</div>
 
 			{isLoading ? <CardSkeleton title="Open-Term Loans" /> : <LoansTable data={loanRows} />}
 		</div>
