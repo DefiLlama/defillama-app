@@ -25,7 +25,12 @@ const GAINERS_SORTING_STATE: SortingState = [{ id: 'change_1d', desc: true }]
 const LOSERS_SORTING_STATE: SortingState = [{ id: 'change_1d', desc: false }]
 
 type RawProtocol = ProtocolsResponse['protocols'][number]
-type ExtraTvlEntry = { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
+type ExtraTvlEntry = {
+	tvl: number | null
+	tvlPrevDay: number | null
+	tvlPrevWeek: number | null
+	tvlPrevMonth: number | null
+}
 type ProtocolRow = RawProtocol & {
 	extraTvl: Record<string, ExtraTvlEntry>
 	change_1d: number | null
@@ -95,7 +100,7 @@ const topGainersAndLosersColumns: ColumnDef<ProtocolRow>[] = [
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
 		cell: (info) => {
-			return <>{(info.getValue() ?? null) as string | null}</>
+			return <>{info.getValue<number | null>() ?? null}</>
 		},
 		size: 120,
 		meta: {

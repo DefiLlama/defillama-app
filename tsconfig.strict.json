@@ -63,6 +63,8 @@
 		"src/containers/Stablecoins/**/*.tsx",
 		"src/containers/ProtocolsByCategoryOrTag/**/*.ts",
 		"src/containers/ProtocolsByCategoryOrTag/**/*.tsx",
+		"src/containers/Forks/**/*.ts",
+		"src/containers/Forks/**/*.tsx",
 		"src/api/shared.ts",
 		"src/utils/**/*.ts",
 		"src/utils/**/*.tsx",

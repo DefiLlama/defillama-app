@@ -1,7 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import type { IPieChartProps } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -14,7 +13,7 @@ import { useForksOverviewExtraSeries } from './queries.client'
 import { getEnabledExtraApiKeys, getForkToOriginalTvlPercent } from './tvl'
 import type { ForkOverviewPageData } from './types'
 
-const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+const PieChart = React.lazy(() => import('~/components/ECharts/PieChart'))
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -139,7 +138,9 @@ export const ForksOverview = ({
 		const tvls = latestData
 			? Object.entries(latestData)
 					.filter(([key]) => key !== 'timestamp')
-					.map(([name, value]) => ({ name, value: value as number }))
+					.flatMap(([name, value]) => {
+						return typeof value === 'number' && Number.isFinite(value) ? [{ name, value }] : []
+					})
 					.sort((a, b) => b.value - a.value)
 			: []
 

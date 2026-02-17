@@ -7,13 +7,13 @@ import type { ForkOverviewPageData, ForkByProtocolPageData } from './types'
 
 // - /forks
 export async function getForksListPageData(): Promise<ForkOverviewPageData | null> {
-	const [metrics, { protocols: fetchedProtocols }] = await Promise.all([
+	const [metrics, { protocols: fetchedProtocols }, chartData] = await Promise.all([
 		fetchForkMetrics(),
-		fetchProtocols()
+		fetchProtocols(),
+		fetchForkProtocolBreakdownChart()
 	])
 
 	const forkNames = Object.keys(metrics)
-	const chartData = await fetchForkProtocolBreakdownChart()
 
 	// Get latest TVL by fork from the last chart data point
 	const latestTvlByFork: Record<string, number> = {}
@@ -61,6 +61,7 @@ export async function getForksByProtocolPageData({ fork }: { fork: string }): Pr
 	const metrics = await fetchForkMetrics()
 
 	const forkNames = Object.keys(metrics)
+	const sortedForkNames = [...forkNames].sort((a, b) => a.localeCompare(b))
 	const normalizedFork = fork.toLowerCase()
 	const canonicalFork = forkNames.find((f) => slug(f) === normalizedFork || f.toLowerCase() === normalizedFork)
 
@@ -82,7 +83,7 @@ export async function getForksByProtocolPageData({ fork }: { fork: string }): Pr
 
 	// Build fork links
 	const forkLinks = [{ label: 'All', to: '/forks' }].concat(
-		forkNames.map((f) => ({ label: f, to: `/forks/${slug(f)}` }))
+		sortedForkNames.map((f) => ({ label: f, to: `/forks/${slug(f)}` }))
 	)
 
 	return { fork: canonicalFork, forkLinks, protocolTableData, chartData }

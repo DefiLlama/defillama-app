@@ -4,9 +4,10 @@ export interface IForkMetrics {
 }
 
 // Protocol breakdown chart item with timestamp and dynamic fork keys
-type IForkProtocolBreakdownChartItem = {
+interface IForkProtocolBreakdownChartItem {
 	timestamp: number
-} & Record<string, number>
+	[key: string]: number
+}
 
 export type IForkProtocolBreakdownChart = IForkProtocolBreakdownChartItem[]
 

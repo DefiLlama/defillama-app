@@ -951,7 +951,9 @@ export const getProtocolsByChain = async ({
 								doublecounted: !!tvls?.doublecounted
 							})
 						: false
-			}
+			} as IChildProtocol & { defillamaId: string }
+
+			;(childStore as IChildProtocol & { defillamaId: string }).defillamaId = protocol.defillamaId
 
 			if (protocol.deprecated) {
 				childStore.deprecated = true
@@ -1002,8 +1004,17 @@ export const getProtocolsByChain = async ({
 		}
 	}
 
+	// Keep protocols ungrouped when filtering leaves only one child under a parent.
+	for (const parentId in parentStore) {
+		if (parentStore[parentId].length !== 1) continue
+		const onlyChild = parentStore[parentId][0] as IChildProtocol & { defillamaId?: string }
+		if (onlyChild.defillamaId) {
+			protocolsStore[onlyChild.defillamaId] = onlyChild
+		}
+	}
+
 	for (const parentProtocol of parentProtocols) {
-		if (parentStore[parentProtocol.id]) {
+		if (parentStore[parentProtocol.id] && parentStore[parentProtocol.id].length > 1) {
 			const parentTvl = parentStore[parentProtocol.id].some((child) => child.tvl !== null)
 				? parentStore[parentProtocol.id].reduce(
 						(acc, curr) => {
