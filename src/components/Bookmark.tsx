@@ -19,7 +19,7 @@ export function Bookmark({ readableName, configID, isChain, ...props }: IBookmar
 	const urlPath = isYieldsPage ? '/yields/watchlist' : '/watchlist'
 
 	const watchlistType = isChain ? 'chains' : isYieldsPage ? 'yields' : 'defi'
-	const watchlistNameKey = isYieldsPage ? configID : readableName
+	const watchlistNameKey = isYieldsPage ? (configID ?? readableName) : readableName
 
 	const { savedProtocols, addProtocol, removeProtocol } = useBookmarks(watchlistType)
 

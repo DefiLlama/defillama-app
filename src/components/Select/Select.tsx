@@ -1,9 +1,9 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { Icon } from '../Icon'
-import { NestedMenu, NestedMenuItem } from '../NestedMenu'
-import { Tooltip } from '../Tooltip'
+import { Icon } from '~/components/Icon'
+import { NestedMenu, NestedMenuItem } from '~/components/NestedMenu'
+import { Tooltip } from '~/components/Tooltip'
 import { updateQueryFromSelected } from './query'
 import type { ExcludeQueryKey, SelectValues, SelectTriggerVariant } from './types'
 import { SELECT_TRIGGER_VARIANTS } from './types'
@@ -52,28 +52,44 @@ export function Select({
 	defaultSelectedValues
 }: ISelect) {
 	const router = useRouter()
-	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
+
+	const getOptionKey = React.useCallback((option: string | { key: string }) => {
+		return typeof option === 'string' ? option : option.key
+	}, [])
+
+	const isSelectOption = React.useCallback((option: string | { key: string; name: string; help?: string }) => {
+		return typeof option !== 'string'
+	}, [])
+
+	const setSelectedValuesFromState = React.useCallback(
+		(values: string[] | string) => {
+			if (setSelectedValuesProp) {
+				setSelectedValuesProp(values)
+			}
+		},
+		[setSelectedValuesProp]
+	)
 
 	// Helper to extract keys from allValues
 	const getAllKeys = React.useCallback(() => allValues.map((v) => (typeof v === 'string' ? v : v.key)), [allValues])
 
 	// If includeQueryKey is provided, use URL-based functions; otherwise derive from setSelectedValues
-	const setSelectedValues = includeQueryKey
+	const setSelectedValues: (values: string[] | string) => void = includeQueryKey
 		? (values: string[] | string) =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), values, defaultSelectedValues)
-		: setSelectedValuesProp
+		: setSelectedValuesFromState
 	const clearAll = includeQueryKey
 		? () =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), 'None', defaultSelectedValues)
-		: () => setSelectedValuesProp([])
+		: () => setSelectedValuesFromState([])
 	const toggleAll = includeQueryKey
 		? () =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), null, defaultSelectedValues)
-		: () => setSelectedValuesProp(getAllKeys())
+		: () => setSelectedValuesFromState(getAllKeys())
 	const selectOnlyOne = includeQueryKey
 		? (value: string) =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), [value], defaultSelectedValues)
-		: (value: string) => setSelectedValuesProp([value])
+		: (value: string) => setSelectedValuesFromState([value])
 	const toggleMultiValue = (value: string) => {
 		const currentValues = Array.isArray(selectedValues) ? selectedValues : selectedValues ? [selectedValues] : []
 		if (currentValues.includes(value)) {
@@ -101,8 +117,10 @@ export function Select({
 		setTimeout(() => {
 			const items = selectRef.current?.querySelectorAll('[role="option"]')
 			if (items && items.length > previousCount) {
-				const firstNewItem = items[previousCount] as HTMLElement
-				firstNewItem?.focus()
+				const firstNewItem = items.item(previousCount)
+				if (firstNewItem instanceof HTMLElement) {
+					firstNewItem.focus()
+				}
 			}
 		}, 0)
 	}
@@ -128,10 +146,10 @@ export function Select({
 					) : null}
 					{allValues.slice(0, viewableMatches).map((option) => (
 						<NestedMenuItem
-							key={valuesAreAnArrayOfStrings ? option : option.key}
+							key={getOptionKey(option)}
 							render={
 								<Ariakit.SelectItem
-									value={valuesAreAnArrayOfStrings ? option : option.key}
+									value={getOptionKey(option)}
 									setValueOnClick={!showCheckboxes}
 									hideOnClick={!showCheckboxes}
 									onClick={
@@ -139,7 +157,7 @@ export function Select({
 											? (event) => {
 													event.preventDefault()
 													event.stopPropagation()
-													toggleMultiValue(valuesAreAnArrayOfStrings ? option : option.key)
+													toggleMultiValue(getOptionKey(option))
 												}
 											: undefined
 									}
@@ -148,15 +166,15 @@ export function Select({
 							hideOnClick={false}
 							className="flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 						>
-							{valuesAreAnArrayOfStrings ? (
+							{typeof option === 'string' ? (
 								<span>{option}</span>
-							) : option.help ? (
+							) : isSelectOption(option) && option.help ? (
 								<Tooltip content={option.help}>
 									<span className="mr-1">{option.name}</span>
 									<Icon name="help-circle" height={15} width={15} />
 								</Tooltip>
 							) : (
-								<span>{option.name}</span>
+								<span>{isSelectOption(option) ? option.name : option}</span>
 							)}
 							{showCheckboxes ? (
 								<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
@@ -251,8 +269,8 @@ export function Select({
 
 						{allValues.slice(0, viewableMatches).map((option) => (
 							<Ariakit.SelectItem
-								key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
-								value={valuesAreAnArrayOfStrings ? option : option.key}
+								key={`${label}-${getOptionKey(option)}`}
+								value={getOptionKey(option)}
 								setValueOnClick={!showCheckboxes}
 								hideOnClick={!showCheckboxes}
 								onClick={
@@ -260,28 +278,28 @@ export function Select({
 										? (event) => {
 												event.preventDefault()
 												event.stopPropagation()
-												toggleMultiValue(valuesAreAnArrayOfStrings ? option : option.key)
+												toggleMultiValue(getOptionKey(option))
 											}
 										: undefined
 								}
 								className="group flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 							>
-								{valuesAreAnArrayOfStrings ? (
+								{typeof option === 'string' ? (
 									<span>{option}</span>
-								) : option.help ? (
+								) : isSelectOption(option) && option.help ? (
 									<Tooltip content={option.help}>
 										<span className="mr-1">{option.name}</span>
 										<Icon name="help-circle" height={15} width={15} />
 									</Tooltip>
 								) : (
-									<span>{option.name}</span>
+									<span>{isSelectOption(option) ? option.name : option}</span>
 								)}
 
 								{showCheckboxes ? (
 									<button
 										onClick={(e) => {
 											e.stopPropagation()
-											selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
+											selectOnlyOne(getOptionKey(option))
 										}}
 										className="invisible text-xs font-medium text-(--link) underline group-hover:visible group-focus-visible:visible"
 									>

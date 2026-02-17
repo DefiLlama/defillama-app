@@ -1,5 +1,4 @@
-// oxlint-disable-next-line no-unused-vars
-const ProgressBar = ({ pct }: { pct: number }) => {
+export const ProgressBar = ({ pct }: { pct: number }) => {
 	return (
 		<div className="relative h-2 w-full overflow-hidden rounded-full bg-[#2a2c32] shadow-inner backdrop-blur-xs">
 			<div
@@ -13,5 +12,3 @@ const ProgressBar = ({ pct }: { pct: number }) => {
 		</div>
 	)
 }
-
-export {}

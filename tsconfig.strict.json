@@ -71,6 +71,9 @@
 		"src/contexts/**/*.ts",
 		"src/contexts/**/*.tsx",
 		"src/hooks/**/*.ts",
-		"src/hooks/**/*.tsx"
-	]
+		"src/hooks/**/*.tsx",
+		"src/components/**/*.ts",
+		"src/components/**/*.tsx"
+	],
+	"exclude": ["src/components/ECharts/**/*"]
 }

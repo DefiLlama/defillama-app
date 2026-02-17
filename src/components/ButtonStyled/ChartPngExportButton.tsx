@@ -135,7 +135,7 @@ export function ChartPngExportButton({
 					(series) => typeof series === 'object' && series != null && 'type' in series && series.type === 'treemap'
 				)
 
-			let dataURL: string
+			let dataURL: string | null
 
 			if (isTreemapExport) {
 				dataURL = await exportTreemapWithZoom(_chartInstance, title, isDark)
@@ -261,7 +261,7 @@ export function ChartPngExportButton({
 						// @ts-expect-error - all options are in array format
 						currentOptions.graphic = currentOptions.graphic.map((graphic) => {
 							if (graphic.elements) {
-								graphic.elements = graphic.elements.map((element) => {
+								graphic.elements = graphic.elements.map((element: any) => {
 									if (element.style?.image?.startsWith('/assets/defillama-')) {
 										const originalWidth = 389
 										const originalHeight = 133

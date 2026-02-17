@@ -62,7 +62,17 @@ export function Announcement({
 		() => null
 	)
 
-	if (notCancellable ? false : JSON.parse(store)?.value === routeAnnouncementValue) {
+	let announcementValue: string | undefined
+	if (typeof store === 'string') {
+		try {
+			const parsed = JSON.parse(store) as { value?: string }
+			announcementValue = parsed?.value
+		} catch {
+			announcementValue = undefined
+		}
+	}
+
+	if (!notCancellable && announcementValue === routeAnnouncementValue) {
 		return null
 	}
 

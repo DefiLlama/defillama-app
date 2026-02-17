@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
+import type { FormEvent } from 'react'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
@@ -14,9 +15,9 @@ export function AvailableRange({
 }) {
 	const router = useRouter()
 
-	const handleSubmit = (e) => {
+	const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		const form = e.target
+		const form = e.currentTarget
 		const minAvailable = form.min?.value
 		const maxAvailable = form.max?.value
 

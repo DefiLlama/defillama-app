@@ -672,7 +672,9 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
 				meta: {
 					align: 'end',
-					headerHelperText: definitions.perps.protocol['marketShare24h']
+					headerHelperText:
+						(definitions.perps.protocol as Record<string, string>)['marketShare24h'] ??
+						definitions.perps.protocol['24h']
 				},
 				size: 180
 			})
@@ -828,13 +830,16 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 
 	columnHelper.accessor('openInterest', {
 		header: 'Open Interest',
-		cell: (info) => <>{info.getValue() != null && info.getValue() > 0 ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => {
+			const value = info.getValue()
+			return <>{typeof value === 'number' && value > 0 ? formattedNum(value, true) : null}</>
+		},
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.openInterest.protocol
 		},
 		size: 140
-	}),
+	}) as ColumnDef<IProtocolRow>,
 
 	columnHelper.accessor('holdersRevenueChange_30dover30d', {
 		header: 'Holders Revenue 30d Change',
@@ -844,17 +849,20 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			headerHelperText: definitions.holdersRevenue.protocol['change30dover30d']
 		},
 		size: 200
-	}),
+	}) as ColumnDef<IProtocolRow>,
 
 	columnHelper.accessor('mcap', {
 		header: 'Market Cap',
-		cell: ({ getValue }) => <>{getValue() != null && getValue() > 0 ? formattedNum(getValue(), true) : null}</>,
+		cell: ({ getValue }) => {
+			const value = getValue()
+			return <>{typeof value === 'number' && value > 0 ? formattedNum(value, true) : null}</>
+		},
 		meta: {
 			align: 'end',
 			headerHelperText: 'Market capitalization of the protocol token'
 		},
 		size: 120
-	})
+	}) as ColumnDef<IProtocolRow>
 ]
 
 export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
@@ -988,7 +996,7 @@ const ProtocolTvlCell = ({ value, rowValues }: { value: unknown; rowValues: Prot
 				'This protocol issues white-labeled vaults which may result in TVL being counted by another protocol (e.g., double counted).'
 		}
 
-		if (removedCategoriesFromChainTvlSet.has(rowValues.category)) {
+		if (rowValues.category && removedCategoriesFromChainTvlSet.has(rowValues.category)) {
 			text = `${rowValues.category} protocols are not counted into Chain TVL`
 		}
 

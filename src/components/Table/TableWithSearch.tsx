@@ -22,13 +22,13 @@ interface ITableWithSearchProps {
 	columns: ColumnDef<any>[]
 	placeholder?: string
 	columnToSearch?: string
-	customFilters?: React.ReactNode | ((ctx: { instance: ReturnType<typeof useReactTable> }) => React.ReactNode)
-	header?: string
-	renderSubComponent?: (row: any) => React.ReactNode
+	customFilters?: React.ReactNode | ((ctx: { instance: ReturnType<typeof useReactTable> }) => React.ReactNode) | null
+	header?: string | null
+	renderSubComponent?: ((props: { row: any }) => React.ReactNode) | null
 	columnSizes?: ColumnSizesByBreakpoint | null
 	columnOrders?: ColumnOrdersByBreakpoint | null
-	sortingState: SortingState
-	rowSize?: number
+	sortingState?: SortingState
+	rowSize?: number | null
 	compact?: boolean
 }
 
@@ -42,7 +42,7 @@ export function TableWithSearch({
 	renderSubComponent = null,
 	columnSizes = null,
 	columnOrders = null,
-	sortingState = null,
+	sortingState = [],
 	rowSize = null,
 	compact = false
 }: ITableWithSearchProps) {
@@ -107,7 +107,12 @@ export function TableWithSearch({
 				) : null}
 				{typeof customFilters === 'function' ? customFilters({ instance }) : customFilters}
 			</div>
-			<VirtualTable instance={instance} renderSubComponent={renderSubComponent} rowSize={rowSize} compact={compact} />
+			<VirtualTable
+				instance={instance}
+				renderSubComponent={renderSubComponent ?? undefined}
+				rowSize={rowSize ?? undefined}
+				compact={compact}
+			/>
 		</div>
 	)
 }
