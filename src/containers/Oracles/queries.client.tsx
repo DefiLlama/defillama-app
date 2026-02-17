@@ -60,7 +60,7 @@ export function useOracleOverviewExtraSeries({
 		queries: enabledExtraApiKeys.map((key) => ({
 			queryKey: ['oracle', 'overview', 'chart', oracle ?? 'unknown', chain ?? 'all', key],
 			queryFn: async () => {
-				if (!oracle) return null
+				if (!oracle) return []
 				if (chain) {
 					const chainBreakdown = await fetchOracleProtocolChainBreakdownChart({
 						protocol: oracle,
@@ -95,14 +95,14 @@ export function useOracleOverviewExtraSeries({
 			const query = extraChartQueries[index]
 			const apiKey = enabledExtraApiKeys[index]
 			if (!apiKey) continue
-			if (!query.data) continue
+			const data = query.data ?? []
 
 			const normalizedApiKey = apiKey.toLowerCase()
 			const shouldSubtract =
 				normalizedApiKey === 'dcandlsoverlap' && shouldSubtractOverlapSeries
 			const sign = shouldSubtract ? -1 : 1
 
-			for (const [timestampInSeconds, value] of query.data) {
+			for (const [timestampInSeconds, value] of data) {
 				if (!Number.isFinite(timestampInSeconds) || !Number.isFinite(value)) continue
 				const currentByApiKey = result.get(timestampInSeconds) ?? 0
 				result.set(timestampInSeconds, currentByApiKey + value * sign)

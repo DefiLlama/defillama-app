@@ -56,21 +56,21 @@ function buildMultiOracleChartDataFromBreakdown(
 	return protocolBreakdown.map((dayData) => ({ ...dayData }))
 }
 
-function buildOracleProtocolBreakdown({
-	protocolOracleData,
+function aggregateTvlFromBreakdown({
+	data,
 	chain
 }: {
-	protocolOracleData: Record<string, number> | undefined
+	data: Record<string, number> | undefined
 	chain: string | null
 }): { tvl: number; extraTvl: Record<string, number> } {
 	let tvl = 0
 	const extraTvl: Record<string, number> = {}
 
-	if (!protocolOracleData) {
+	if (!data) {
 		return { tvl, extraTvl }
 	}
 
-	for (const [breakdownKey, value] of Object.entries(protocolOracleData)) {
+	for (const [breakdownKey, value] of Object.entries(data)) {
 		if (isExtraTvlKey(breakdownKey)) {
 			continue
 		}
@@ -100,6 +100,19 @@ function buildOracleProtocolBreakdown({
 	}
 
 	return { tvl, extraTvl }
+}
+
+function buildOracleProtocolBreakdown({
+	protocolOracleData,
+	chain
+}: {
+	protocolOracleData: Record<string, number> | undefined
+	chain: string | null
+}): { tvl: number; extraTvl: Record<string, number> } {
+	return aggregateTvlFromBreakdown({
+		data: protocolOracleData,
+		chain
+	})
 }
 
 // - /oracles, /oracles/chain/:chain
@@ -135,37 +148,20 @@ export async function getOraclesListPageData({
 		const extraTvl: Record<string, number> = {}
 		let protocolsSecured = 0
 		for (const protocolName in oraclesTVS[oracle]) {
-			for (const chainOrExtraTvlKey in oraclesTVS[oracle][protocolName]) {
-				const value = oraclesTVS[oracle][protocolName][chainOrExtraTvlKey]
-				if (isExtraTvlKey(chainOrExtraTvlKey)) {
-					continue
-				}
+			const protocolBreakdown = oraclesTVS[oracle][protocolName]
+			const { tvl: protocolTvl, extraTvl: protocolExtraTvl } = aggregateTvlFromBreakdown({
+				data: protocolBreakdown,
+				chain: canonicalChain
+			})
+			tvl += protocolTvl
+			for (const [extraKey, extraValue] of Object.entries(protocolExtraTvl)) {
+				extraTvl[extraKey] = (extraTvl[extraKey] ?? 0) + extraValue
+			}
 
-				if (!chainOrExtraTvlKey.includes('-') && !isExtraTvlKey(chainOrExtraTvlKey)) {
-					latestTvlByChain[chainOrExtraTvlKey] = (latestTvlByChain[chainOrExtraTvlKey] ?? 0) + value
-				}
-
-				if (canonicalChain) {
-					if (canonicalChain === chainOrExtraTvlKey) {
-						tvl += value
-					}
-
-					const metricPrefix = `${canonicalChain}-`
-					if (chainOrExtraTvlKey.startsWith(metricPrefix)) {
-						const metricName = chainOrExtraTvlKey.slice(metricPrefix.length)
-						if (!metricName || !isExtraTvlKey(metricName)) continue
-						extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
-					}
-				} else {
-					if (!chainOrExtraTvlKey.includes('-')) {
-						tvl += value
-					} else {
-						const separatorIndex = chainOrExtraTvlKey.indexOf('-')
-						const metricName = chainOrExtraTvlKey.slice(separatorIndex + 1)
-						if (!metricName || !isExtraTvlKey(metricName)) continue
-						extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
-					}
-				}
+			for (const chainOrExtraTvlKey in protocolBreakdown) {
+				const value = protocolBreakdown[chainOrExtraTvlKey]
+				if (chainOrExtraTvlKey.includes('-') || isExtraTvlKey(chainOrExtraTvlKey)) continue
+				latestTvlByChain[chainOrExtraTvlKey] = (latestTvlByChain[chainOrExtraTvlKey] ?? 0) + value
 			}
 			protocolsSecured += 1
 		}
@@ -265,33 +261,13 @@ export async function getOracleDetailPageData({
 	let tvl = 0
 	const extraTvl: Record<string, number> = {}
 	for (const protocolName in oracleProtocols) {
-		for (const chainOrExtraTvlKey in oracleProtocols[protocolName]) {
-			const value = oracleProtocols[protocolName][chainOrExtraTvlKey]
-			if (isExtraTvlKey(chainOrExtraTvlKey)) {
-				continue
-			}
-
-			if (canonicalChain) {
-				if (canonicalChain === chainOrExtraTvlKey) {
-					tvl += value
-				}
-
-				const metricPrefix = `${canonicalChain}-`
-				if (chainOrExtraTvlKey.startsWith(metricPrefix)) {
-					const metricName = chainOrExtraTvlKey.slice(metricPrefix.length)
-					if (!metricName || !isExtraTvlKey(metricName)) continue
-					extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
-				}
-			} else {
-				if (!chainOrExtraTvlKey.includes('-')) {
-					tvl += value
-				} else {
-					const separatorIndex = chainOrExtraTvlKey.indexOf('-')
-					const metricName = chainOrExtraTvlKey.slice(separatorIndex + 1)
-					if (!metricName || !isExtraTvlKey(metricName)) continue
-					extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
-				}
-			}
+		const { tvl: protocolTvl, extraTvl: protocolExtraTvl } = aggregateTvlFromBreakdown({
+			data: oracleProtocols[protocolName],
+			chain: canonicalChain
+		})
+		tvl += protocolTvl
+		for (const [extraKey, extraValue] of Object.entries(protocolExtraTvl)) {
+			extraTvl[extraKey] = (extraTvl[extraKey] ?? 0) + extraValue
 		}
 	}
 
