@@ -77,6 +77,7 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 	}
 	groupBy?: 'daily' | 'weekly' | 'monthly'
 	orientation?: 'vertical' | 'horizontal'
+	xAxisType?: 'time' | 'category'
 }
 
 export interface IHBarChartProps {
