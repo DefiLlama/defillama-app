@@ -10,7 +10,7 @@ import { CHART_COLORS } from '~/constants/colors'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, getTokenDominance, slug, tokenIconUrl } from '~/utils'
 import { useOracleOverviewExtraSeries } from './queries.client'
-import { getEnabledExtraApiKeys } from './tvl'
+import { calculateTvsWithExtraToggles, getEnabledExtraApiKeys } from './tvl'
 import type { OracleOverviewPageData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -46,29 +46,6 @@ function getStrikeTvlText({
 	}
 
 	return text
-}
-
-function calculateTvsWithEnabledExtrasOnly({
-	values,
-	extraTvlsEnabled
-}: {
-	values: Record<string, number>
-	extraTvlsEnabled: Record<string, boolean>
-}): number {
-	let tvs = values.tvl ?? 0
-
-	for (const [extraName, value] of Object.entries(values)) {
-		const normalizedName = extraName.toLowerCase()
-
-		if (normalizedName === 'doublecounted' || normalizedName === 'liquidstaking' || normalizedName === 'dcandlsoverlap')
-			continue
-
-		if (extraTvlsEnabled[normalizedName] && normalizedName !== 'doublecounted' && normalizedName !== 'liquidstaking') {
-			tvs += value
-		}
-	}
-
-	return tvs
 }
 
 export const OracleOverview = ({
@@ -146,7 +123,7 @@ export const OracleOverview = ({
 		const totalValue =
 			enabledExtraApiKeys.length === 0
 				? tvl
-				: calculateTvsWithEnabledExtrasOnly({
+				: calculateTvsWithExtraToggles({
 						values: { tvl, ...extraTvl },
 						extraTvlsEnabled
 					})
@@ -156,7 +133,7 @@ export const OracleOverview = ({
 				? protocolTableData
 				: protocolTableData
 						.map((protocol) => {
-							const protocolTvl = calculateTvsWithEnabledExtrasOnly({
+								const protocolTvl = calculateTvsWithExtraToggles({
 								values: { tvl: protocol.tvl, ...(protocol.extraTvl ?? {}) },
 								extraTvlsEnabled
 							})

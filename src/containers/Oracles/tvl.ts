@@ -11,28 +11,14 @@ export function calculateTvsWithExtraToggles({
 		const normalizedMetricName = metricName.toLowerCase()
 		if (normalizedMetricName === 'tvl') continue
 
-		if (normalizedMetricName === 'doublecounted' && !extraTvlsEnabled.doublecounted) {
-			sum -= metricValue ?? 0
-			continue
-		}
-
-		if (normalizedMetricName === 'liquidstaking' && !extraTvlsEnabled.liquidstaking) {
-			sum -= metricValue ?? 0
-			continue
-		}
-
 		if (normalizedMetricName === 'dcandlsoverlap') {
-			if (!extraTvlsEnabled.doublecounted || !extraTvlsEnabled.liquidstaking) {
-				sum += metricValue ?? 0
+			if (extraTvlsEnabled.doublecounted && extraTvlsEnabled.liquidstaking) {
+				sum -= metricValue ?? 0
 			}
 			continue
 		}
 
-		if (
-			extraTvlsEnabled[normalizedMetricName] &&
-			normalizedMetricName !== 'doublecounted' &&
-			normalizedMetricName !== 'liquidstaking'
-		) {
+		if (extraTvlsEnabled[normalizedMetricName]) {
 			sum += metricValue ?? 0
 		}
 	}
@@ -40,11 +26,17 @@ export function calculateTvsWithExtraToggles({
 	return sum
 }
 
+const DC_AND_LS_OVERLAP_API_KEY = 'dcAndLsOverlap'
+
 export function getEnabledExtraApiKeys(extraTvlsEnabled: Record<string, boolean>): string[] {
 	const apiKeys: string[] = []
 	for (const [settingKey, enabled] of Object.entries(extraTvlsEnabled)) {
 		if (!enabled || settingKey.toLowerCase() === 'tvl') continue
 		apiKeys.push(settingKey)
+	}
+
+	if (extraTvlsEnabled.doublecounted && extraTvlsEnabled.liquidstaking) {
+		apiKeys.push(DC_AND_LS_OVERLAP_API_KEY)
 	}
 
 	return apiKeys.toSorted((a, b) => a.localeCompare(b))

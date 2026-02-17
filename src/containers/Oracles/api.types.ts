@@ -6,14 +6,14 @@ export interface IOracleMetrics {
 }
 
 // Protocol breakdown chart item with timestamp and dynamic oracle keys
-export type IOracleProtocolBreakdownChartItem = {
+type IOracleProtocolBreakdownChartItem = {
 	timestamp: number
 } & Record<string, number>
 
 export type IOracleProtocolBreakdownChart = IOracleProtocolBreakdownChartItem[]
 
 // Chain breakdown chart item with timestamp and dynamic chain keys
-export type IOracleChainBreakdownChartItem = {
+type IOracleChainBreakdownChartItem = {
 	timestamp: number
 } & Record<string, number>
 
@@ -29,14 +29,14 @@ export type IOracleChart = Array<[number, number]>
 export type IOracleChainChart = Array<[number, number]>
 
 // Protocol chain breakdown chart item with timestamp and dynamic chain keys
-export type IOracleProtocolChainBreakdownChartItem = {
+type IOracleProtocolChainBreakdownChartItem = {
 	timestamp: number
 } & Record<string, number>
 
 export type IOracleProtocolChainBreakdownChart = IOracleProtocolChainBreakdownChartItem[]
 
 // Chain protocol breakdown chart item with timestamp and dynamic protocol keys
-export type IOracleChainProtocolBreakdownChartItem = {
+type IOracleChainProtocolBreakdownChartItem = {
 	timestamp: number
 } & Record<string, number>
 

@@ -115,3 +115,10 @@ export async function fetchOracleChainProtocolBreakdownChart({
 	const url = appendKeyParam(`${V2_SERVER_URL}/chart/oracle/chain/${slug(chain)}/protocol-breakdown`, key)
 	return fetchJson<IOracleChainProtocolBreakdownChart>(url, { timeout: 30_000 })
 }
+
+// TODO on server
+// we should not include pool2, borrowed etc in "oracleTVS" in /v2/metrics/oracle
+// lets also not include (or verify) staking, doublecounted, pool2, borrowed etc in per chain metric like "Ethereum" in oraclesTVS
+// not include pool2, borrowed etc on each timestamp in /v2/chart/oracle/protocol/:oracle/chain-breakdown
+// not include (or verify) staking, doublecounted, pool2, borrowed etc values in chart api responses if "key" is missing in url query params
+// also return dcandlsoverlap per chain in oraclesTVS in /v2/metrics/oracle endpoint, support for dcandlsoverlap key too on chart apis

@@ -89,18 +89,28 @@ export function useOracleOverviewExtraSeries({
 	const isFetchingExtraSeries = extraChartQueries.some((query) => query.isLoading || query.isFetching)
 
 	const extraTvsByTimestamp = React.useMemo(() => {
+		const shouldSubtractOverlapSeries =
+			enabledExtraApiKeys.includes('doublecounted') && enabledExtraApiKeys.includes('liquidstaking')
 		const result = new Map<number, number>()
-		for (const query of extraChartQueries) {
+		for (let index = 0; index < extraChartQueries.length; index++) {
+			const query = extraChartQueries[index]
+			const apiKey = enabledExtraApiKeys[index]
+			if (!apiKey) continue
 			if (!query.data) continue
+
+			const normalizedApiKey = apiKey.toLowerCase()
+			const shouldSubtract =
+				normalizedApiKey === 'dcandlsoverlap' && shouldSubtractOverlapSeries
+			const sign = shouldSubtract ? -1 : 1
 
 			for (const [timestampInSeconds, value] of query.data) {
 				if (!Number.isFinite(timestampInSeconds) || !Number.isFinite(value)) continue
-				const current = result.get(timestampInSeconds) ?? 0
-				result.set(timestampInSeconds, current + value)
+				const currentByApiKey = result.get(timestampInSeconds) ?? 0
+				result.set(timestampInSeconds, currentByApiKey + value * sign)
 			}
 		}
 		return result
-	}, [extraChartQueries])
+	}, [enabledExtraApiKeys, extraChartQueries])
 
 	return {
 		isFetchingExtraSeries,

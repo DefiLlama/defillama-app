@@ -16,7 +16,6 @@ import type {
 	OracleChartData,
 	OracleOverviewPageData,
 	OraclesByChainPageData,
-	OracleOverviewChartData,
 	OracleProtocolWithBreakdown,
 	OracleTableDataRow
 } from './types'
@@ -28,7 +27,7 @@ type TProtocolsApiResponse = {
 }
 
 function isExtraTvlKey(value: string): boolean {
-	return TVL_SETTINGS_KEYS_SET.has(value) || value === 'dcAndLsOveralp'
+	return TVL_SETTINGS_KEYS_SET.has(value) || value === 'dcAndLsOverlap'
 }
 
 function resolveCanonicalName(value: string, options: Array<string>): string | null {
@@ -219,7 +218,7 @@ export async function getOracleDetailPageData({
 		return null
 	}
 
-	let chartData: OracleOverviewChartData = []
+	let chartData: OracleChartData = []
 	let protocols: Array<ILiteProtocol> = []
 
 	if (canonicalChain) {
@@ -228,7 +227,7 @@ export async function getOracleDetailPageData({
 			fetchJson<TProtocolsApiResponse>(PROTOCOLS_API)
 		])
 		protocols = fetchedProtocols
-		chartData = fetchedOracleChainBreakdown.reduce<OracleOverviewChartData>((acc, dayData) => {
+		chartData = fetchedOracleChainBreakdown.reduce<OracleChartData>((acc, dayData) => {
 			const chainValue = dayData[canonicalChain]
 			if (typeof chainValue !== 'number') return acc
 			acc.push({
