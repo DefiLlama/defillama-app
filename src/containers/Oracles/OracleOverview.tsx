@@ -209,7 +209,7 @@ export const OracleOverview = ({
 					</p>
 				</div>
 
-				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					{isFetchingExtraSeries ? (
 						<p className="my-auto flex min-h-[398px] items-center justify-center gap-1 text-center text-xs">
 							Loading
