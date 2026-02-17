@@ -4,21 +4,15 @@ import { tvlOptions } from '~/components/Filters/options'
 import { OraclesByChain } from '~/containers/Oracles/OraclesByChain'
 import { getOraclesListPageData } from '~/containers/Oracles/queries'
 import Layout from '~/layout'
-import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Oracles', 'ranked by', 'TVS']
 
-export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({ params }) => {
-	if (!params?.chain) {
-		return { notFound: true, props: null }
-	}
-
-	const chain = Array.isArray(params.chain) ? params.chain[0] : params.chain
-	const data = await getOraclesListPageData({ chain })
+export const getStaticProps = withPerformanceLogging('oracles', async () => {
+	const data = await getOraclesListPageData()
 
 	if (!data) {
-		return { notFound: true, props: null }
+		throw new Error('Failed to load /oracles page data')
 	}
 
 	return {
@@ -27,18 +21,13 @@ export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({
 	}
 })
 
-export async function getStaticPaths() {
-	return { paths: [], fallback: 'blocking' }
-}
-
 export default function OraclesPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	const canonicalUrl = props.chain ? `/oracles/chain/${slug(props.chain)}` : '/oracles'
 	return (
 		<Layout
 			title="Oracles - DefiLlama"
 			description="Track total value secured by oracles on all chains. View protocols secured by the oracle, breakdown by chain, and DeFi oracles on DefiLlama."
 			keywords="oracles, oracles on all chains, oracles on DeFi protocols, DeFi oracles, protocols secured by the oracle"
-			canonicalUrl={canonicalUrl}
+			canonicalUrl="/oracles"
 			metricFilters={tvlOptions}
 			pageName={pageName}
 		>

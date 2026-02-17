@@ -1,8 +1,12 @@
 import { maxAgeForNext } from '~/api'
+import { tvlOptions } from '~/components/Filters/options'
 import { ChainsByCategory } from '~/containers/ChainsByCategory'
 import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
+import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const pageName = ['Chains']
 
 export const getStaticProps = withPerformanceLogging('chains', async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
@@ -35,5 +39,17 @@ export const getStaticProps = withPerformanceLogging('chains', async () => {
 })
 
 export default function Chains(props) {
-	return <ChainsByCategory {...props} />
+	return (
+		<Layout
+			title={`${props.category} Chains DeFi TVL - DefiLlama`}
+			description={props.description}
+			keywords={props.keywords}
+			canonicalUrl="/chains"
+			metricFilters={tvlOptions}
+			metricFiltersLabel="Include in TVL"
+			pageName={pageName}
+		>
+			<ChainsByCategory {...props} />
+		</Layout>
+	)
 }

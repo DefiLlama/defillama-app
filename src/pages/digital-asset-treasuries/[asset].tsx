@@ -2,8 +2,11 @@ import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { DATByAsset } from '~/containers/DAT/ByAsset'
 import { getDATOverviewDataByAsset, getDATAssetPaths } from '~/containers/DAT/queries'
+import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
 
 export const getStaticProps = withPerformanceLogging(
 	'digital-asset-treasuries/[asset]',
@@ -42,5 +45,15 @@ export async function getStaticPaths() {
 }
 
 export default function TreasuriesByAssetPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	return <DATByAsset {...props} />
+	return (
+		<Layout
+			title={`${props.metadata.name} Treasury Holdings - DefiLlama`}
+			description={`Track institutions that own ${props.metadata.name} (${props.metadata.ticker}) as part of their corporate treasury. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${props.metadata.name} (${props.metadata.ticker}) treasury holdings, ${props.metadata.name} (${props.metadata.ticker}) corporate treasury, ${props.metadata.name} (${props.metadata.ticker}) treasury holdings by institution, ${props.metadata.name} (${props.metadata.ticker}) treasury holdings by company, ${props.metadata.name} (${props.metadata.ticker}) DATs, ${props.metadata.name} (${props.metadata.ticker}) digital asset treasury`}
+			canonicalUrl={`/digital-asset-treasuries/${props.asset}`}
+			pageName={pageName}
+		>
+			<DATByAsset {...props} />
+		</Layout>
+	)
 }

@@ -8,7 +8,6 @@ import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { getNFTCollection } from '~/containers/Nft/queries'
-import Layout from '~/layout'
 import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types'
 
 const CollectionScatterChart = React.lazy(
@@ -40,20 +39,12 @@ export function NFTCollectionContainer() {
 	})
 	if (fetchingData || !collectionData) {
 		return (
-			<Layout
-				title={'NFT Collection - DefiLlama'}
-				description=""
-				keywords=""
-				canonicalUrl={`/nfts/collection/${router.query.collection}`}
-			>
-				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-					{fetchingData || !router.isReady ? <LocalLoader /> : <p>Failed to load collection data.</p>}
-				</div>
-			</Layout>
+			<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				{fetchingData || !router.isReady ? <LocalLoader /> : <p>Failed to load collection data.</p>}
+			</div>
 		)
 	}
 	const { name, data, stats, sales, salesExOutliers, salesMedian1d, address, floorHistory, orderbook } = collectionData
-	const collectionName = name ?? 'NFTs'
 	const primaryCollection = data?.[0]
 	const lastFloorRow =
 		floorHistory?.source != null && Array.isArray(floorHistory.source) && floorHistory.source.length > 0
@@ -66,12 +57,7 @@ export function NFTCollectionContainer() {
 	const includeOutliers = router.isReady && router.query.includeOutliers === 'true'
 
 	return (
-		<Layout
-			title={collectionName + ' - DefiLlama'}
-			description={`Track ${collectionName} - View floor price, 24h volume and total supply of ${collectionName}. Real-time DeFi analytics from DefiLlama.`}
-			keywords={`${collectionName} floor price, ${collectionName} 24h volume, ${collectionName} total supply`}
-			canonicalUrl={`/nfts/collection/${router.query.collection}`}
-		>
+		<>
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<h1 className="flex items-center gap-2 text-xl">
@@ -151,6 +137,6 @@ export function NFTCollectionContainer() {
 					</div>
 				) : null}
 			</div>
-		</Layout>
+		</>
 	)
 }

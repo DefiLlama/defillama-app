@@ -44,7 +44,7 @@ export function formatChartTvlsByDay({
 	extraTvlsEnabled,
 	key: _key
 }: {
-	data: ReadonlyArray<[string, Record<string, number>]>
+	data: ReadonlyArray<[number | string, Record<string, number>]>
 	extraTvlsEnabled: Record<string, boolean>
 	key: string
 }) {

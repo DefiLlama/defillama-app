@@ -15,7 +15,6 @@ import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { RaisesFilters } from '~/containers/Raises/Filters'
-import Layout from '~/layout'
 import { slug } from '~/utils'
 import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
@@ -99,8 +98,6 @@ function RaisesByInvestorTable({
 	)
 }
 
-const pageName = ['Deals by Investor']
-
 interface InvestorContainerProps {
 	raises: IRaise[]
 	investors: string[]
@@ -140,13 +137,7 @@ export const InvestorContainer = ({
 	}
 
 	return (
-		<Layout
-			title={`Raises - DefiLlama`}
-			description={`Track ${investorName} investments, total funding amount, and total funding rounds on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${investorName.toLowerCase()} investments, total funding amount, total funding rounds`}
-			canonicalUrl={`/raises/${slug(investorName)}`}
-			pageName={pageName}
-		>
+		<>
 			<Announcement notCancellable>
 				<span>Are we missing any funding round?</span>{' '}
 				<a
@@ -250,6 +241,6 @@ export const InvestorContainer = ({
 				</div>
 			</div>
 			<RaisesByInvestorTable raises={filteredRaisesList} prepareCsv={prepareCsv} />
-		</Layout>
+		</>
 	)
 }

@@ -16,7 +16,7 @@ interface ILayoutProps extends ISEOProps {
 	metricFilters?: { name: string; key: string }[]
 	metricFiltersLabel?: string
 	pageName?: Array<string>
-	annonuncement?: React.ReactNode
+	announcement?: React.ReactNode
 }
 
 function Layout({
@@ -28,7 +28,7 @@ function Layout({
 	pageName,
 	metricFilters,
 	metricFiltersLabel,
-	annonuncement,
+	announcement,
 	...props
 }: ILayoutProps) {
 	const isClient = useIsClient()
@@ -48,7 +48,7 @@ function Layout({
 						<MetricFilters options={metricFilters} label={metricFiltersLabel} />
 					)}
 				</span>
-				{annonuncement ? <Announcement>{annonuncement}</Announcement> : null}
+				{announcement ? <Announcement>{announcement}</Announcement> : null}
 				{pageName ? <MetricsAndTools currentMetric={pageName} /> : null}
 				{children}
 			</main>
