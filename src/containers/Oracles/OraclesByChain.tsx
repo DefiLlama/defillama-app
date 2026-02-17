@@ -52,7 +52,7 @@ function mergeExtraChartData({
 
 	for (const [apiKey, chart] of Object.entries(extraBreakdownsByApiKey)) {
 		const metricName = apiKey
-		if (!metricName || metricName === 'tvl') continue
+		if (!metricName) continue
 
 		for (const dayData of chart) {
 			const timestamp = dayData.timestamp
@@ -86,7 +86,7 @@ export const OraclesByChain = ({
 	const enabledExtraApiKeys = React.useMemo(() => {
 		const apiKeys = new Set<string>()
 		for (const [settingKey, enabled] of Object.entries(extraTvlsEnabled)) {
-			if (!enabled || settingKey.toLowerCase() === 'tvl') continue
+			if (!enabled) continue
 			apiKeys.add(settingKey)
 		}
 		return Array.from(apiKeys).toSorted((a, b) => a.localeCompare(b))
@@ -131,11 +131,7 @@ export const OraclesByChain = ({
 			tableData: tableDataWithAdjustedTvl,
 			pieData
 		}
-	}, [
-		extraTvlsEnabled,
-		enabledExtraApiKeys.length,
-		tableData
-	])
+	}, [extraTvlsEnabled, enabledExtraApiKeys.length, tableData])
 
 	const dominanceData = React.useMemo(() => {
 		const effectiveChartData = shouldApplyExtraTvlFormatting
@@ -182,14 +178,7 @@ export const OraclesByChain = ({
 			dominanceCharts,
 			dominanceDataset: { source, dimensions }
 		}
-	}, [
-		chartData,
-		extraBreakdownsByApiKey,
-		extraTvlsEnabled,
-		oracles,
-		shouldApplyExtraTvlFormatting,
-		oraclesColors
-	])
+	}, [chartData, extraBreakdownsByApiKey, extraTvlsEnabled, oracles, shouldApplyExtraTvlFormatting, oraclesColors])
 
 	const activeLink = chain ?? 'All'
 

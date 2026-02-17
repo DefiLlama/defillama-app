@@ -79,7 +79,7 @@ export default function Chain(props) {
 			metricFilters={props.tvlAndFeesOptions}
 			metricFiltersLabel="Include in TVL"
 			pageName={pageName}
-			annonuncement={<Announcement />}
+			announcement={<Announcement />}
 		>
 			<ChainOverview {...props} />
 		</Layout>

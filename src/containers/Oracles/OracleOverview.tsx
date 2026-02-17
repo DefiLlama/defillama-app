@@ -2,6 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { lazy, Suspense, useMemo } from 'react'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -9,7 +10,6 @@ import { CHART_COLORS } from '~/constants/colors'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, getTokenDominance, slug, tokenIconUrl } from '~/utils'
 import { useOracleOverviewExtraSeries } from './queries.client'
-import { calculateTvsWithExtraToggles } from './tvl'
 import type { OracleOverviewPageData, OracleProtocolWithBreakdown } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -23,51 +23,39 @@ interface IProtocolTableRow {
 	name: string
 	category: string
 	tvl: number
+	strikeTvl: boolean
 }
 
 const DEFAULT_PROTOCOL_TABLE_SORTING_STATE = [{ id: 'tvl', desc: true }]
 
-const protocolColumns: ColumnDef<IProtocolTableRow>[] = [
-	{
-		header: 'Name',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue }) => {
-			const name = getValue<string>()
-			return (
-				<span className="flex items-center gap-2">
-					<span className="vf-row-index shrink-0" aria-hidden="true" />
+function getStrikeTvlText({
+	row,
+	extraTvlsEnabled
+}: {
+	row: IProtocolTableRow
+	extraTvlsEnabled: Record<string, boolean>
+}): string | null {
+	if (!row.strikeTvl) return null
 
-					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
+	let text = null
 
-					<BasicLink
-						href={`/protocol/${slug(name)}`}
-						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
-					>
-						{name}
-					</BasicLink>
-				</span>
-			)
-		}
-	},
-	{
-		header: 'Category',
-		accessorKey: 'category',
-		enableSorting: false,
-		meta: {
-			align: 'center'
-		}
-	},
-	{
-		header: 'TVL',
-		accessorKey: 'tvl',
-		enableSorting: true,
-		cell: ({ getValue }) => formattedNum(getValue<number>(), true),
-		meta: {
-			align: 'center'
-		}
+	if (!extraTvlsEnabled['doublecounted']) {
+		text =
+			'This protocol deposits into another protocol and is subtracted from total TVL because "Double Count" toggle is off'
 	}
-]
+
+	if (!extraTvlsEnabled['liquidstaking']) {
+		text =
+			'This protocol is under Liquid Staking category and is subtracted from total TVL because "Liquid Staking" toggle is off'
+	}
+
+	if (!extraTvlsEnabled['doublecounted'] && !extraTvlsEnabled['liquidstaking']) {
+		text =
+			'This protocol deposits into another protocol or is under Liquid Staking category, so it is subtracted from total TVL because both "Liquid Staking" and "Double Count" toggles are off'
+	}
+
+	return text
+}
 
 function getProtocolTvs({
 	protocol,
@@ -76,34 +64,32 @@ function getProtocolTvs({
 	protocol: OracleProtocolWithBreakdown
 	extraTvlsEnabled: Record<string, boolean>
 }): number {
-	let tvs = protocol.tvl
+	return calculateTvsWithEnabledExtrasOnly({
+		values: Object.fromEntries([
+			['tvl', protocol.tvl],
+			...Object.entries(protocol.extraTvl ?? {}).map(([key, value]) => [key, value.tvl])
+		]),
+		extraTvlsEnabled
+	})
+}
 
-	for (const [extraName, values] of Object.entries(protocol.extraTvl ?? {})) {
+function calculateTvsWithEnabledExtrasOnly({
+	values,
+	extraTvlsEnabled
+}: {
+	values: Record<string, number>
+	extraTvlsEnabled: Record<string, boolean>
+}): number {
+	let tvs = values.tvl ?? 0
+
+	for (const [extraName, value] of Object.entries(values)) {
 		const normalizedName = extraName.toLowerCase()
 
-		if (normalizedName === 'doublecounted' && !extraTvlsEnabled.doublecounted) {
-			tvs -= values.tvl
+		if (normalizedName === 'doublecounted' || normalizedName === 'liquidstaking' || normalizedName === 'dcandlsoverlap')
 			continue
-		}
 
-		if (normalizedName === 'liquidstaking' && !extraTvlsEnabled.liquidstaking) {
-			tvs -= values.tvl
-			continue
-		}
-
-		if (normalizedName === 'dcandlsoverlap') {
-			if (!extraTvlsEnabled.doublecounted || !extraTvlsEnabled.liquidstaking) {
-				tvs += values.tvl
-			}
-			continue
-		}
-
-		if (
-			extraTvlsEnabled[normalizedName] &&
-			normalizedName !== 'doublecounted' &&
-			normalizedName !== 'liquidstaking'
-		) {
-			tvs += values.tvl
+		if (extraTvlsEnabled[normalizedName] && normalizedName !== 'doublecounted' && normalizedName !== 'liquidstaking') {
+			tvs += value
 		}
 	}
 
@@ -120,10 +106,62 @@ export const OracleOverview = ({
 	chain = null
 }: OracleOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+	const protocolColumns = useMemo<ColumnDef<IProtocolTableRow>[]>(
+		() => [
+			{
+				header: 'Name',
+				accessorKey: 'name',
+				enableSorting: false,
+				cell: ({ getValue }) => {
+					const name = getValue<string>()
+					return (
+						<span className="flex items-center gap-2">
+							<span className="vf-row-index shrink-0" aria-hidden="true" />
+
+							<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
+
+							<BasicLink
+								href={`/protocol/${slug(name)}`}
+								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
+							>
+								{name}
+							</BasicLink>
+						</span>
+					)
+				}
+			},
+			{
+				header: 'Category',
+				accessorKey: 'category',
+				enableSorting: false,
+				meta: {
+					align: 'center'
+				}
+			},
+			{
+				header: 'TVL',
+				accessorKey: 'tvl',
+				enableSorting: true,
+				cell: ({ row }) => {
+					const strikeText = getStrikeTvlText({ row: row.original, extraTvlsEnabled })
+					return (
+						<span className="flex items-center justify-center gap-1">
+							{strikeText ? <QuestionHelper text={strikeText} /> : null}
+							<span className={strikeText ? 'text-(--text-disabled)' : ''}>{formattedNum(row.original.tvl, true)}</span>
+						</span>
+					)
+				},
+				meta: {
+					align: 'center'
+				}
+			}
+		],
+		[extraTvlsEnabled]
+	)
 	const enabledExtraApiKeys = useMemo(() => {
 		const apiKeys: Array<string> = []
 		for (const [key, isEnabled] of Object.entries(extraTvlsEnabled)) {
-			if (!isEnabled || key.toLowerCase() === 'tvl') continue
+			if (!isEnabled) continue
 			apiKeys.push(key)
 		}
 		return apiKeys.toSorted((a, b) => a.localeCompare(b))
@@ -141,7 +179,8 @@ export const OracleOverview = ({
 				.map((protocol) => ({
 					name: protocol.name,
 					category: protocol.category ?? 'Unknown',
-					tvl: protocol.tvl
+					tvl: protocol.tvl,
+					strikeTvl: protocol.strikeTvl
 				}))
 				.toSorted((a, b) => b.tvl - a.tvl)
 		}
@@ -153,7 +192,7 @@ export const OracleOverview = ({
 					extraTvlValues[key] = value.tvl
 				}
 
-				const tvl = calculateTvsWithExtraToggles({
+				const tvl = calculateTvsWithEnabledExtrasOnly({
 					values: { tvl: protocol.tvl, ...extraTvlValues },
 					extraTvlsEnabled
 				})
@@ -161,7 +200,8 @@ export const OracleOverview = ({
 				return {
 					name: protocol.name,
 					category: protocol.category ?? 'Unknown',
-					tvl
+					tvl,
+					strikeTvl: protocol.strikeTvl
 				}
 			})
 			.toSorted((a, b) => b.tvl - a.tvl)
@@ -179,7 +219,7 @@ export const OracleOverview = ({
 
 		const totalValue =
 			enabledExtraApiKeys.length > 0
-				? calculateTvsWithExtraToggles({
+				? calculateTvsWithEnabledExtrasOnly({
 						values: { tvl, ...extraTvl },
 						extraTvlsEnabled
 					})
@@ -231,13 +271,7 @@ export const OracleOverview = ({
 				}
 			]
 		}
-	}, [
-		chartData,
-		enabledExtraApiKeys.length,
-		extraTvsByTimestamp,
-		isFetchingExtraSeries,
-		oracle
-	])
+	}, [chartData, enabledExtraApiKeys.length, extraTvsByTimestamp, isFetchingExtraSeries, oracle])
 
 	const topProtocol = protocolsData[0] ?? null
 	const dominance = topProtocol ? getTokenDominance({ tvl: topProtocol.tvs }, totalValue) : null

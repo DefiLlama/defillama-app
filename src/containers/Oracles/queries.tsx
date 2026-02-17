@@ -1,6 +1,7 @@
 import { PROTOCOLS_API } from '~/constants'
 import type { ILiteParentProtocol, ILiteProtocol } from '~/containers/ChainOverview/types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
+import { toStrikeTvl } from '~/containers/ChainOverview/utils'
 import { getNDistinctColors, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import {
@@ -305,7 +306,11 @@ export async function getOracleDetailPageData({
 		protocolTableData.push({
 			...protocolData,
 			tvl: protocolTvl,
-			extraTvl: protocolExtraTvl
+			extraTvl: protocolExtraTvl,
+			strikeTvl: toStrikeTvl(protocolData, {
+				liquidstaking: !!protocolExtraTvl.liquidstaking,
+				doublecounted: !!protocolExtraTvl.doublecounted
+			})
 		})
 	}
 

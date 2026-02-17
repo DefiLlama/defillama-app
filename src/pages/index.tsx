@@ -42,7 +42,7 @@ export default function HomePage(props: InferGetStaticPropsType<typeof getStatic
 			metricFilters={props.tvlAndFeesOptions}
 			metricFiltersLabel="Include in TVL"
 			pageName={pageName}
-			annonuncement={<Announcement />}
+			announcement={<Announcement />}
 		>
 			<ChainOverview {...props} />
 		</Layout>

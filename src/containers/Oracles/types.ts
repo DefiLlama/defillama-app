@@ -9,6 +9,7 @@ export type OracleOverviewChartData = Array<OracleOverviewChartDataPoint>
 export interface OracleProtocolWithBreakdown extends ILiteProtocol {
 	tvl: number
 	extraTvl: Record<string, { tvl: number }>
+	strikeTvl: boolean
 }
 
 export interface OracleLink {
