@@ -1,12 +1,8 @@
-import type { ILiteProtocol } from '~/containers/ChainOverview/types'
+import type { IProtocol } from '~/containers/ChainOverview/types'
 
 interface ForkLink {
 	label: string
 	to: string
-}
-
-export interface ForkProtocolWithBreakdown extends ILiteProtocol {
-	strikeTvl: boolean
 }
 
 export interface ForkTableDataRow {
@@ -34,6 +30,6 @@ export interface ForkOverviewPageData {
 export interface ForkByProtocolPageData {
 	fork: string
 	forkLinks: Array<ForkLink>
-	protocolTableData: Array<ForkProtocolWithBreakdown>
+	protocolTableData: Array<IProtocol>
 	chartData: ForkProtocolChartData
 }

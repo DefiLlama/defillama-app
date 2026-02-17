@@ -1,21 +1,15 @@
-import { PROTOCOLS_API } from '~/constants'
-import type { ILiteProtocol } from '~/containers/ChainOverview/types'
-import { toStrikeTvl } from '~/containers/ChainOverview/utils'
+import { getProtocolsByChain } from '~/containers/ChainOverview/queries.server'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { getNDistinctColors, slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import { fetchForkMetrics, fetchForkProtocolBreakdownChart, fetchForkProtocolChart } from './api'
 import { getForkToOriginalTvlPercent } from './tvl'
 import type { ForkOverviewPageData, ForkByProtocolPageData } from './types'
-
-type TProtocolsApiResponse = {
-	protocols: Array<ILiteProtocol>
-}
 
 // - /forks
 export async function getForksListPageData(): Promise<ForkOverviewPageData | null> {
 	const [metrics, { protocols: fetchedProtocols }] = await Promise.all([
 		fetchForkMetrics(),
-		fetchJson<TProtocolsApiResponse>(PROTOCOLS_API)
+		fetchProtocols()
 	])
 
 	const forkNames = Object.keys(metrics)
@@ -64,10 +58,7 @@ export async function getForksListPageData(): Promise<ForkOverviewPageData | nul
 
 // - /forks/:fork
 export async function getForksByProtocolPageData({ fork }: { fork: string }): Promise<ForkByProtocolPageData | null> {
-	const [metrics, { protocols: fetchedProtocols }] = await Promise.all([
-		fetchForkMetrics(),
-		fetchJson<TProtocolsApiResponse>(PROTOCOLS_API)
-	])
+	const metrics = await fetchForkMetrics()
 
 	const forkNames = Object.keys(metrics)
 	const normalizedFork = fork.toLowerCase()
@@ -77,23 +68,17 @@ export async function getForksByProtocolPageData({ fork }: { fork: string }): Pr
 		return null
 	}
 
-	// Fetch chart data for this specific fork - returns [timestamp, value] tuples
-	const chartData = await fetchForkProtocolChart({ protocol: canonicalFork })
-
-	// Build protocol table data
-	const protocolsByName = new Map(fetchedProtocols.map((p) => [p.name, p]))
-	const forkedProtocolNames = metrics[canonicalFork] ?? []
-	const protocolTableData = forkedProtocolNames
-		.map((name) => {
-			const protocol = protocolsByName.get(name)
-			if (!protocol) return null
-			return {
-				...protocol,
-				strikeTvl: toStrikeTvl(protocol, { liquidstaking: false, doublecounted: false })
-			}
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const [chartData, protocolsByChainData] = await Promise.all([
+		fetchForkProtocolChart({ protocol: canonicalFork }),
+		getProtocolsByChain({
+			chain: 'All',
+			chainMetadata: metadataCache.chainMetadata,
+			protocolMetadata: metadataCache.protocolMetadata,
+			fork: canonicalFork
 		})
-		.filter((p): p is NonNullable<typeof p> => p != null)
-		.sort((a, b) => b.tvl - a.tvl)
+	])
+	const protocolTableData = protocolsByChainData?.protocols ?? []
 
 	// Build fork links
 	const forkLinks = [{ label: 'All', to: '/forks' }].concat(
