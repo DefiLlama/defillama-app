@@ -86,11 +86,6 @@ function getProtocolTvs({
 			continue
 		}
 
-		if ((normalizedName === 'doublecounted' || normalizedName === 'd') && !extraTvlsEnabled.doublecounted) {
-			tvs -= values.tvl
-			continue
-		}
-
 		if (normalizedName === 'liquidstaking' && !extraTvlsEnabled.liquidstaking) {
 			tvs -= values.tvl
 			continue
@@ -106,8 +101,7 @@ function getProtocolTvs({
 		if (
 			extraTvlsEnabled[normalizedName] &&
 			normalizedName !== 'doublecounted' &&
-			normalizedName !== 'liquidstaking' &&
-			normalizedName !== 'd'
+			normalizedName !== 'liquidstaking'
 		) {
 			tvs += values.tvl
 		}
