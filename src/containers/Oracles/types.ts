@@ -16,25 +16,29 @@ export interface OracleLink {
 	to: string
 }
 
-export interface OraclePageData {
-	chain: string | null
-	chainChartData: OracleOverviewChartData | null
-	chainsByOracle: Record<string, Array<string>>
-	oracles: Array<string>
-	oracleLinks: Array<OracleLink>
-	oracle: string | null
-	oracleProtocolsCount: OracleProtocolsCount
-	filteredProtocols: Array<OracleProtocolWithBreakdown>
-	chartData: OracleOverviewChartData
-	oraclesColors: Record<string, string>
+export interface OracleTableDataRow {
+	name: string
+	tvl: number
+	extraTvl: Record<string, number>
+	protocolsSecured: number
+	chains: Array<string>
 }
 
-export interface OracleChainPageData {
+export interface OracleOverviewPageData {
 	chain: string | null
-	chainsByOracle: Record<string, Array<string>>
+	chainLinks: Array<OracleLink>
+	oracle: string | null
+	tvl: number
+	extraTvl: Record<string, number>
+	protocolTableData: Array<OracleProtocolWithBreakdown>
+	chartData: OracleOverviewChartData
+}
+
+export interface OraclesByChainPageData {
+	chain: string | null
 	oracles: Array<string>
-	oracleLinks: Array<OracleLink>
-	oracleProtocolsCount: OracleProtocolsCount
+	chainLinks: Array<OracleLink>
+	tableData: Array<OracleTableDataRow>
 	chartData: OracleChartData
 	oraclesColors: Record<string, string>
 }

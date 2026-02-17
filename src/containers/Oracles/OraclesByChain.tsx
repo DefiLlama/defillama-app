@@ -1,5 +1,3 @@
-import { useQueries } from '@tanstack/react-query'
-import type { UseQueryResult } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
@@ -10,24 +8,21 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, slug } from '~/utils'
-import { fetchOracleChainProtocolBreakdownChart, fetchOracleProtocolBreakdownChart } from './api'
+import { useOraclesByChainExtraBreakdowns } from './queries.client'
 import { calculateTvsWithExtraToggles } from './tvl'
-import type { OracleBreakdownItem, OracleChainPageData, OracleChartData } from './types'
+import type { OracleBreakdownItem, OracleChartData, OraclesByChainPageData } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart'))
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-const DEFAULT_SORTING_STATE = [{ id: 'tvs', desc: true }]
-
-type IOraclesByChainProps = Pick<
-	OracleChainPageData,
-	'chartData' | 'oracleProtocolsCount' | 'oracles' | 'oracleLinks' | 'oraclesColors' | 'chainsByOracle' | 'chain'
->
+const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
 
 interface IOracleTableRowData {
 	name: string
 	protocolsSecured: number
-	tvs: number
+	tvl: number
+	extraTvl: Record<string, number>
+	chains: string[]
 }
 
 interface IOracleDominanceChart {
@@ -65,6 +60,7 @@ function mergeExtraChartData({
 
 			for (const [oracleName, value] of Object.entries(dayData)) {
 				if (oracleName === 'timestamp') continue
+				if (!Number.isFinite(value)) continue
 				const currentValues = valuesByOracle[oracleName] ?? { tvl: 0 }
 				currentValues[metricName] = value
 				valuesByOracle[oracleName] = currentValues
@@ -79,76 +75,75 @@ function mergeExtraChartData({
 
 export const OraclesByChain = ({
 	chartData,
-	oracleProtocolsCount,
+	tableData,
 	oracles,
-	oracleLinks,
+	chainLinks,
 	oraclesColors,
-	chainsByOracle,
 	chain
-}: IOraclesByChainProps) => {
+}: OraclesByChainPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const enabledExtraApiKeys = React.useMemo(() => {
 		const apiKeys = new Set<string>()
 		for (const [settingKey, enabled] of Object.entries(extraTvlsEnabled)) {
-			if (!enabled) continue
+			if (!enabled || settingKey.toLowerCase() === 'tvl') continue
 			apiKeys.add(settingKey)
 		}
 		return Array.from(apiKeys).toSorted((a, b) => a.localeCompare(b))
 	}, [extraTvlsEnabled])
 
-	const extraBreakdownQueries = useQueries({
-		queries: enabledExtraApiKeys.map((apiKey) => ({
-			queryKey: ['oracles', 'extra-breakdown', chain ?? 'all', apiKey],
-			queryFn: () =>
-				chain
-					? fetchOracleChainProtocolBreakdownChart({ chain, key: apiKey })
-					: fetchOracleProtocolBreakdownChart({ key: apiKey }),
-			enabled: enabledExtraApiKeys.length > 0,
-			staleTime: 5 * 60 * 1_000,
-			refetchOnWindowFocus: false
-		}))
-	}) as Array<UseQueryResult<Array<OracleBreakdownItem>>>
-
-	const extraBreakdownsByApiKey = React.useMemo(() => {
-		const result: Record<string, Array<OracleBreakdownItem>> = {}
-		for (let index = 0; index < enabledExtraApiKeys.length; index++) {
-			const apiKey = enabledExtraApiKeys[index]
-			const chart = extraBreakdownQueries[index]?.data
-			if (chart) {
-				result[apiKey] = chart
-			}
-		}
-		return result
-	}, [enabledExtraApiKeys, extraBreakdownQueries])
-
-	const isFetchingExtraBreakdowns = extraBreakdownQueries.some((query) => query.isLoading || query.isFetching)
+	const { extraBreakdownsByApiKey, isFetchingExtraBreakdowns } = useOraclesByChainExtraBreakdowns({
+		enabledExtraApiKeys,
+		chain
+	})
 
 	const shouldApplyExtraTvlFormatting = enabledExtraApiKeys.length > 0 && !isFetchingExtraBreakdowns
 
-	const effectiveChartData = React.useMemo(() => {
-		if (!shouldApplyExtraTvlFormatting) return chartData
-		return mergeExtraChartData({
-			baseChartData: chartData,
-			extraBreakdownsByApiKey
-		})
-	}, [chartData, extraBreakdownsByApiKey, shouldApplyExtraTvlFormatting])
+	const tableAndPieData = React.useMemo(() => {
+		if (enabledExtraApiKeys.length === 0) {
+			const pieData = preparePieChartData({
+				data: tableData.map((row) => ({ name: row.name, value: row.tvl })),
+				limit: 5
+			})
 
-	const effectiveData = React.useMemo(() => {
-		const latestValues = effectiveChartData[effectiveChartData.length - 1]?.[1] ?? {}
-		const tableData = oracles
-			.map((oracleName) => ({
-				name: oracleName,
-				protocolsSecured: oracleProtocolsCount[oracleName] ?? 0,
-				tvs: shouldApplyExtraTvlFormatting
-					? calculateTvsWithExtraToggles({
-							values: latestValues[oracleName] ?? { tvl: 0 },
-							extraTvlsEnabled
-						})
-					: (latestValues[oracleName]?.tvl ?? 0)
+			return {
+				tableData,
+				pieData
+			}
+		}
+
+		const tableDataWithAdjustedTvl = tableData
+			.map((row) => ({
+				...row,
+				tvl: calculateTvsWithExtraToggles({
+					values: { tvl: row.tvl, ...row.extraTvl },
+					extraTvlsEnabled
+				})
 			}))
-			.toSorted((a, b) => b.tvs - a.tvs)
-		const pieChartData = tableData.map((row) => ({ name: row.name, value: row.tvs }))
+			.toSorted((a, b) => b.tvl - a.tvl)
+		const pieChartData = tableDataWithAdjustedTvl.map((row) => ({ name: row.name, value: row.tvl }))
+		const pieData = preparePieChartData({
+			data: pieChartData,
+			limit: 5
+		})
+
+		return {
+			tableData: tableDataWithAdjustedTvl,
+			pieData
+		}
+	}, [
+		extraTvlsEnabled,
+		enabledExtraApiKeys.length,
+		tableData
+	])
+
+	const dominanceData = React.useMemo(() => {
+		const effectiveChartData = shouldApplyExtraTvlFormatting
+			? mergeExtraChartData({
+					baseChartData: chartData,
+					extraBreakdownsByApiKey
+				})
+			: chartData
 		const dimensions = ['timestamp', ...oracles]
 		const source: Array<Record<string, number>> = []
 
@@ -184,86 +179,65 @@ export const OraclesByChain = ({
 		}))
 
 		return {
-			tableData,
-			pieChartData,
 			dominanceCharts,
 			dominanceDataset: { source, dimensions }
 		}
 	}, [
-		effectiveChartData,
+		chartData,
+		extraBreakdownsByApiKey,
 		extraTvlsEnabled,
-		oracleProtocolsCount,
 		oracles,
 		shouldApplyExtraTvlFormatting,
 		oraclesColors
 	])
 
-	// Merge chains data into table rows
-	const tableDataWithChains = React.useMemo(() => {
-		return effectiveData.tableData.map((row) => ({
-			...row,
-			chains: chainsByOracle[row.name] ?? [],
-			chainsCount: (chainsByOracle[row.name] ?? []).length
-		}))
-	}, [effectiveData.tableData, chainsByOracle])
-
-	// Prepare pie chart data with colors
-	const pieData = React.useMemo(() => {
-		return preparePieChartData({
-			data: effectiveData.pieChartData,
-			limit: 5
-		})
-	}, [effectiveData.pieChartData])
-
 	const activeLink = chain ?? 'All'
 
 	return (
 		<>
-			<RowLinksWithDropdown links={oracleLinks} activeLink={activeLink} />
+			<RowLinksWithDropdown links={chainLinks} activeLink={activeLink} />
 
-			{isFetchingExtraBreakdowns ? (
-				<div className="flex min-h-[808px] flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) xl:min-h-[400px]">
-					<p className="flex items-center justify-center gap-1 text-center text-xs">
-						Loading
-						<LoadingDots />
-					</p>
+			<div className="flex flex-col gap-2 xl:flex-row">
+				<div className="relative isolate flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<React.Suspense fallback={<div className="min-h-[398px]" />}>
+						<PieChart
+							chartData={tableAndPieData.pieData}
+							stackColors={oraclesColors}
+							exportButtons={{ png: true, csv: true, filename: 'oracles-tvs-pie', pngTitle: 'Oracles TVS' }}
+						/>
+					</React.Suspense>
 				</div>
-			) : (
-				<div className="flex flex-col gap-2 xl:flex-row">
-					<div className="relative isolate flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-						<React.Suspense fallback={<div className="min-h-[398px]" />}>
-							<PieChart
-								chartData={pieData}
-								stackColors={oraclesColors}
-								exportButtons={{ png: true, csv: true, filename: 'oracles-tvs-pie', pngTitle: 'Oracles TVS' }}
-							/>
-						</React.Suspense>
-					</div>
-					<div className="flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					{isFetchingExtraBreakdowns ? (
+						<p className="my-auto flex min-h-[398px] items-center justify-center gap-1 text-center text-xs">
+							Loading
+							<LoadingDots />
+						</p>
+					) : (
 						<React.Suspense fallback={<div className="min-h-[398px]" />}>
 							<MultiSeriesChart2
-								dataset={effectiveData.dominanceDataset}
-								charts={effectiveData.dominanceCharts}
+								dataset={dominanceData.dominanceDataset}
+								charts={dominanceData.dominanceCharts}
 								stacked={true}
 								expandTo100Percent={true}
 								hideDefaultLegend
 								valueSymbol="%"
 							/>
 						</React.Suspense>
-					</div>
+					)}
 				</div>
-			)}
+			</div>
 
 			<React.Suspense
 				fallback={
 					<div
-						style={{ minHeight: `${tableDataWithChains.length * 50 + 200}px` }}
+						style={{ minHeight: `${tableAndPieData.tableData.length * 50 + 200}px` }}
 						className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
 					/>
 				}
 			>
 				<TableWithSearch
-					data={tableDataWithChains}
+					data={tableAndPieData.tableData}
 					columns={columns}
 					columnToSearch="name"
 					placeholder="Search oracles..."
@@ -275,7 +249,7 @@ export const OraclesByChain = ({
 	)
 }
 
-type IOracleTableRow = IOracleTableRowData & { chains: string[]; chainsCount: number }
+type IOracleTableRow = IOracleTableRowData
 
 const columns: ColumnDef<IOracleTableRow>[] = [
 	{
@@ -324,7 +298,7 @@ const columns: ColumnDef<IOracleTableRow>[] = [
 	},
 	{
 		header: 'TVS',
-		accessorKey: 'tvs',
+		accessorKey: 'tvl',
 		enableSorting: true,
 		size: 140,
 		cell: ({ getValue }) => {

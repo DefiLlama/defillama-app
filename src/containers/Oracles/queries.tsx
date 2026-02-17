@@ -6,7 +6,6 @@ import { fetchJson } from '~/utils/async'
 import {
 	fetchOracleMetrics,
 	fetchOracleProtocolBreakdownChart,
-	fetchOracleChainBreakdownChart,
 	fetchOracleProtocolChart,
 	fetchOracleProtocolChainBreakdownChart,
 	fetchOracleChainProtocolBreakdownChart
@@ -14,24 +13,17 @@ import {
 import type {
 	OracleBreakdownItem,
 	OracleChartData,
-	OracleChainPageData,
-	OraclePageData,
+	OracleOverviewPageData,
+	OraclesByChainPageData,
 	OracleOverviewChartData,
 	OracleProtocolWithBreakdown,
-	OracleProtocolsCount
+	OracleTableDataRow
 } from './types'
 
-type TOracleTvsByOracle = Record<string, Record<string, Record<string, number>>>
 type TProtocolsApiResponse = {
 	protocols: Array<ILiteProtocol>
 	chains: Array<string>
 	parentProtocols: Array<ILiteParentProtocol>
-}
-
-const EMPTY_PROTOCOLS_API_RESPONSE: TProtocolsApiResponse = {
-	protocols: [],
-	chains: [],
-	parentProtocols: []
 }
 
 function resolveCanonicalName(value: string, options: Array<string>): string | null {
@@ -75,99 +67,10 @@ function toSingleOracleChartData(
 	}))
 }
 
-function toSingleChainChartData(
-	oracle: string,
-	chain: string,
-	chainBreakdown: Awaited<ReturnType<typeof fetchOracleProtocolChainBreakdownChart>>
-): OracleOverviewChartData {
-	const chartData: OracleOverviewChartData = []
-	for (const dayData of chainBreakdown) {
-		const chainValue = dayData[chain]
-		if (typeof chainValue !== 'number') {
-			continue
-		}
-		chartData.push({
-			timestamp: dayData.timestamp,
-			[oracle]: chainValue
-		})
-	}
-	return chartData
-}
-
-function getLatestTvlByChain(chainBreakdown: ReadonlyArray<OracleBreakdownItem> | null): Record<string, number> {
-	if (!chainBreakdown || chainBreakdown.length === 0) {
-		return {}
-	}
-
-	const latestDayData = chainBreakdown[chainBreakdown.length - 1]
-
-	const latestTvlByChain: Record<string, number> = {}
-	for (const [chainName, value] of Object.entries(latestDayData)) {
-		if (chainName === 'timestamp') continue
-		if (!chainName.includes('-') && !TVL_SETTINGS_KEYS_SET.has(chainName)) {
-			latestTvlByChain[chainName] = value
-		}
-	}
-	return latestTvlByChain
-}
-
-function buildColors(oracles: Array<string>): Record<string, string> {
-	const allColors = getNDistinctColors(oracles.length)
-	const colors: Record<string, string> = {}
-
-	for (let i = 0; i < oracles.length; i++) {
-		colors[oracles[i]] = allColors[i]
-	}
-
-	colors['Others'] = '#AAAAAA'
-
-	return colors
-}
-
-function buildOracleProtocolsCount(oraclesTVS: TOracleTvsByOracle): OracleProtocolsCount {
-	const oracleProtocolsCount: OracleProtocolsCount = {}
-	for (const [oracleName, protocolsByOracle] of Object.entries(oraclesTVS)) {
-		let protocolsCount = 0
-		for (const _protocolName in protocolsByOracle ?? {}) {
-			protocolsCount += 1
-		}
-		oracleProtocolsCount[oracleName] = protocolsCount
-	}
-	return oracleProtocolsCount
-}
-
-function buildOracleProtocolsCountByChain({
-	protocols,
-	chain,
-	oracles
-}: {
-	protocols: ReadonlyArray<ILiteProtocol>
-	chain: string
-	oracles: ReadonlyArray<string>
-}): OracleProtocolsCount {
-	const oracleProtocolsCount: OracleProtocolsCount = {}
-	for (const oracleName of oracles) {
-		oracleProtocolsCount[oracleName] = 0
-	}
-
-	for (const protocol of protocols) {
-		if (!protocol.chains.includes(chain)) continue
-		const protocolOracles = protocol.oraclesByChain?.[chain] ?? protocol.oracles ?? []
-		for (const oracleName of new Set(protocolOracles)) {
-			if (oracleName in oracleProtocolsCount) {
-				oracleProtocolsCount[oracleName] += 1
-			}
-		}
-	}
-	return oracleProtocolsCount
-}
-
 function buildOracleProtocolBreakdown({
-	protocol,
 	protocolOracleData,
 	chain
 }: {
-	protocol: ILiteProtocol
 	protocolOracleData: Record<string, number> | undefined
 	chain: string | null
 }): { tvl: number; extraTvl: Record<string, { tvl: number }> } {
@@ -179,24 +82,28 @@ function buildOracleProtocolBreakdown({
 	}
 
 	for (const [breakdownKey, value] of Object.entries(protocolOracleData)) {
-		const keyParts = breakdownKey.split('-')
-		if (keyParts.length === 1 && !protocol.chains.includes(keyParts[0])) {
+		if (chain) {
+			if (breakdownKey === chain) {
+				tvl += value
+				continue
+			}
+
+			if (!breakdownKey.includes('-')) continue
+			const [chainName, ...metricNameParts] = breakdownKey.split('-')
+			if (chainName !== chain || metricNameParts.length === 0) continue
+
+			const metricName = metricNameParts.join('-')
+			const currentValue = extraTvl[metricName]?.tvl ?? 0
+			extraTvl[metricName] = { tvl: currentValue + value }
 			continue
 		}
 
-		const chainName = keyParts[0]
-		if (chain && chainName !== chain) {
-			continue
-		}
-
-		const category = keyParts.length > 1 ? keyParts.slice(1).join('-') : 'tvl'
-		if (category === 'tvl') {
+		if (TVL_SETTINGS_KEYS_SET.has(breakdownKey)) {
+			const currentValue = extraTvl[breakdownKey]?.tvl ?? 0
+			extraTvl[breakdownKey] = { tvl: currentValue + value }
+		} else {
 			tvl += value
-			continue
 		}
-
-		const currentValue = extraTvl[category]?.tvl ?? 0
-		extraTvl[category] = { tvl: currentValue + value }
 	}
 
 	return { tvl, extraTvl }
@@ -207,11 +114,8 @@ export async function getOraclesListPageData({
 	chain = null
 }: {
 	chain?: string | null
-} = {}): Promise<OracleChainPageData | null> {
-	const [metrics, { protocols }]: [Awaited<ReturnType<typeof fetchOracleMetrics>>, TProtocolsApiResponse] = await Promise.all([
-		fetchOracleMetrics(),
-		chain ? fetchJson<TProtocolsApiResponse>(PROTOCOLS_API) : Promise.resolve(EMPTY_PROTOCOLS_API_RESPONSE)
-	])
+} = {}): Promise<OraclesByChainPageData | null> {
+	const metrics = await fetchOracleMetrics()
 
 	const chainsByOracle = metrics.chainsByOracle ?? {}
 	const oraclesTVS = metrics.oraclesTVS ?? {}
@@ -222,45 +126,88 @@ export async function getOraclesListPageData({
 		return null
 	}
 
-	const [chartBreakdown, chainBreakdown] = await Promise.all([
-		canonicalChain
-			? fetchOracleChainProtocolBreakdownChart({ chain: canonicalChain })
-			: fetchOracleProtocolBreakdownChart(),
-		fetchOracleChainBreakdownChart()
-	])
+	const chartData = canonicalChain
+		? (await fetchOracleChainProtocolBreakdownChart({ chain: canonicalChain })).map((dayData) => {
+				const values: Record<string, Record<string, number>> = {}
+				for (const [name, value] of Object.entries(dayData)) {
+					if (name === 'timestamp') continue
+					values[name] = { tvl: value }
+				}
+				return [dayData.timestamp, values] as [number, Record<string, Record<string, number>>]
+			})
+		: toOracleTvlBreakdownChartData(await fetchOracleProtocolBreakdownChart())
+	const latestTvlByChain: Record<string, number> = {}
 
-	const chartData = toOracleTvlBreakdownChartData(chartBreakdown)
-	const latestChartData = chartData[chartData.length - 1]?.[1] ?? {}
-	const sortedOracles = Object.entries(latestChartData).toSorted(([, a], [, b]) => (b.tvl ?? 0) - (a.tvl ?? 0))
-	const oracles: Array<string> = []
-	for (const [oracleName] of sortedOracles) {
-		if (!canonicalChain || chainsByOracle[oracleName]?.includes(canonicalChain)) {
-			oracles.push(oracleName)
+	const tableData: Array<OracleTableDataRow> = []
+	for (const oracle in oraclesTVS) {
+		const chains = chainsByOracle[oracle] ?? []
+		if (canonicalChain && !chains.includes(canonicalChain)) {
+			continue
 		}
+
+		let tvl = 0
+		const extraTvl: Record<string, number> = {}
+		let protocolsSecured = 0
+		for (const protocolName in oraclesTVS[oracle]) {
+			for (const chainOrExtraTvlKey in oraclesTVS[oracle][protocolName]) {
+				const value = oraclesTVS[oracle][protocolName][chainOrExtraTvlKey]
+				if (!chainOrExtraTvlKey.includes('-') && !TVL_SETTINGS_KEYS_SET.has(chainOrExtraTvlKey)) {
+					latestTvlByChain[chainOrExtraTvlKey] = (latestTvlByChain[chainOrExtraTvlKey] ?? 0) + value
+				}
+
+				if (canonicalChain) {
+					if (canonicalChain === chainOrExtraTvlKey) {
+						tvl += value
+					}
+
+					if (chainOrExtraTvlKey.includes('-')) {
+						const [chainName, ...metricNameParts] = chainOrExtraTvlKey.split('-')
+						if (chainName === canonicalChain && metricNameParts.length > 0) {
+							const metricName = metricNameParts.join('-')
+							extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
+						}
+					}
+				} else {
+					if (TVL_SETTINGS_KEYS_SET.has(chainOrExtraTvlKey)) {
+						extraTvl[chainOrExtraTvlKey] = (extraTvl[chainOrExtraTvlKey] ?? 0) + value
+					} else {
+						tvl += value
+					}
+				}
+			}
+			protocolsSecured += 1
+		}
+		tableData.push({
+			name: oracle,
+			tvl,
+			extraTvl,
+			protocolsSecured,
+			chains
+		})
+	}
+	tableData.sort((a, b) => b.tvl - a.tvl)
+
+	const oracles = tableData.map((row) => row.name)
+	const oraclesColors: Record<string, string> = {
+		Others: '#AAAAAA'
+	}
+	const sortedColors = getNDistinctColors(oracles.length)
+	for (let i = 0; i < oracles.length; i++) {
+		oraclesColors[oracles[i]] = sortedColors[i]
 	}
 
-	const oracleProtocolsCount = canonicalChain
-		? buildOracleProtocolsCountByChain({
-				protocols,
-				chain: canonicalChain,
-				oracles: Object.keys(chainsByOracle)
-			})
-		: buildOracleProtocolsCount(oraclesTVS)
-
-	const latestTvlByChain = getLatestTvlByChain(chainBreakdown)
-	const uniqueChains = getAllChains(chainsByOracle).toSorted((a, b) => (latestTvlByChain[b] ?? 0) - (latestTvlByChain[a] ?? 0))
-	const oracleLinks = [{ label: 'All', to: `/oracles` }].concat(
+	const uniqueChains = getAllChains(chainsByOracle).toSorted(
+		(a, b) => (latestTvlByChain[b] ?? 0) - (latestTvlByChain[a] ?? 0)
+	)
+	const chainLinks = [{ label: 'All', to: `/oracles` }].concat(
 		uniqueChains.map((c) => ({ label: c, to: `/oracles/chain/${slug(c)}` }))
 	)
 
-	const oraclesColors = buildColors(oracles)
-
 	return {
 		chain: canonicalChain,
-		chainsByOracle,
 		oracles,
-		oracleLinks,
-		oracleProtocolsCount,
+		chainLinks,
+		tableData,
 		chartData,
 		oraclesColors
 	}
@@ -273,8 +220,9 @@ export async function getOracleDetailPageData({
 }: {
 	oracle: string
 	chain?: string | null
-}): Promise<OraclePageData | null> {
+}): Promise<OracleOverviewPageData | null> {
 	const metrics = await fetchOracleMetrics()
+	const oracleProtocolNamesByOracle = metrics.oracles ?? {}
 	const chainsByOracle = metrics.chainsByOracle ?? {}
 	const oraclesTVS = metrics.oraclesTVS ?? {}
 
@@ -290,65 +238,96 @@ export async function getOracleDetailPageData({
 		return null
 	}
 
-	const [oracleChart, oracleChainBreakdown, { protocols }] = await Promise.all([
-		fetchOracleProtocolChart({ protocol: canonicalOracle }),
-		fetchOracleProtocolChainBreakdownChart({ protocol: canonicalOracle }),
-		fetchJson<TProtocolsApiResponse>(PROTOCOLS_API)
-	])
+	let chartData: OracleOverviewChartData = []
+	let protocols: Array<ILiteProtocol> = []
 
-	const chartData = toSingleOracleChartData(canonicalOracle, oracleChart ?? [])
-	const chainChartData =
-		canonicalChain && oracleChainBreakdown
-			? toSingleChainChartData(canonicalOracle, canonicalChain, oracleChainBreakdown)
-			: null
+	if (canonicalChain) {
+		const [fetchedOracleChainBreakdown, { protocols: fetchedProtocols }] = await Promise.all([
+			fetchOracleProtocolChainBreakdownChart({ protocol: canonicalOracle }),
+			fetchJson<TProtocolsApiResponse>(PROTOCOLS_API)
+		])
+		protocols = fetchedProtocols
+		chartData = fetchedOracleChainBreakdown.reduce<OracleOverviewChartData>((acc, dayData) => {
+			const chainValue = dayData[canonicalChain]
+			if (typeof chainValue !== 'number') return acc
+			acc.push({
+				timestamp: dayData.timestamp,
+				[canonicalOracle]: chainValue
+			})
+			return acc
+		}, [])
+	} else {
+		const [oracleChart, { protocols: fetchedProtocols }] = await Promise.all([
+			fetchOracleProtocolChart({ protocol: canonicalOracle }),
+			fetchJson<TProtocolsApiResponse>(PROTOCOLS_API)
+		])
+		protocols = fetchedProtocols
+		chartData = toSingleOracleChartData(canonicalOracle, oracleChart ?? [])
+	}
 
 	const oracleProtocols = oraclesTVS[canonicalOracle] ?? {}
-	const filteredProtocols: Array<OracleProtocolWithBreakdown> = []
-	for (const protocolData of protocols) {
-		if (!(protocolData.name in oracleProtocols)) continue
-		if (canonicalChain && !protocolData.chains.includes(canonicalChain)) continue
+	let tvl = 0
+	const extraTvl: Record<string, number> = {}
+	for (const protocolName in oracleProtocols) {
+		for (const chainOrExtraTvlKey in oracleProtocols[protocolName]) {
+			const value = oracleProtocols[protocolName][chainOrExtraTvlKey]
+			if (canonicalChain) {
+				if (canonicalChain === chainOrExtraTvlKey) {
+					tvl += value
+				}
 
-		const breakdown = buildOracleProtocolBreakdown({
-			protocol: protocolData,
-			protocolOracleData: oracleProtocols[protocolData.name],
+				if (chainOrExtraTvlKey.includes('-')) {
+					const [chainName, ...metricNameParts] = chainOrExtraTvlKey.split('-')
+					if (chainName === canonicalChain && metricNameParts.length > 0) {
+						const metricName = metricNameParts.join('-')
+						extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
+					}
+				}
+			} else {
+				if (TVL_SETTINGS_KEYS_SET.has(chainOrExtraTvlKey)) {
+					extraTvl[chainOrExtraTvlKey] = (extraTvl[chainOrExtraTvlKey] ?? 0) + value
+				} else {
+					tvl += value
+				}
+			}
+		}
+	}
+
+	const protocolsByName = new Map(protocols.map((protocol) => [protocol.name, protocol]))
+	const protocolsSupportingCanonicalChain = canonicalChain
+		? new Set(protocols.filter((protocol) => protocol.chains.includes(canonicalChain)).map((protocol) => protocol.name))
+		: null
+	const orderedOracleProtocolNames = oracleProtocolNamesByOracle[canonicalOracle] ?? []
+	const protocolTableData: Array<OracleProtocolWithBreakdown> = []
+	for (const protocolName of orderedOracleProtocolNames) {
+		const protocolData = protocolsByName.get(protocolName)
+		if (!protocolData) continue
+		if (protocolsSupportingCanonicalChain && !protocolsSupportingCanonicalChain.has(protocolName)) continue
+
+		const { tvl: protocolTvl, extraTvl: protocolExtraTvl } = buildOracleProtocolBreakdown({
+			protocolOracleData: oracleProtocols[protocolName],
 			chain: canonicalChain
 		})
 
-		filteredProtocols.push({
+		protocolTableData.push({
 			...protocolData,
-			tvl: breakdown.tvl,
-			extraTvl: breakdown.extraTvl
+			tvl: protocolTvl,
+			extraTvl: protocolExtraTvl
 		})
 	}
-	filteredProtocols.sort((a, b) => b.tvl - a.tvl)
 
-	const latestOracleTvlByChain = getLatestTvlByChain(oracleChainBreakdown)
-	const oracleChains = (chainsByOracle[canonicalOracle] ?? []).toSorted(
-		(a, b) => (latestOracleTvlByChain[b] ?? 0) - (latestOracleTvlByChain[a] ?? 0)
-	)
-	const oracleLinks = [{ label: 'All', to: `/oracles/${slug(canonicalOracle)}` }].concat(
+	const oracleChains = chainsByOracle[canonicalOracle] ?? []
+	const chainLinks = [{ label: 'All', to: `/oracles/${slug(canonicalOracle)}` }].concat(
 		oracleChains.map((c) => ({ label: c, to: `/oracles/${slug(canonicalOracle)}/${slug(c)}` }))
 	)
 
-	const oraclesColors = buildColors([canonicalOracle])
-	const oracleProtocolsCount = buildOracleProtocolsCount(oraclesTVS)
-
 	return {
 		chain: canonicalChain ?? null,
-		chainChartData,
-		chainsByOracle,
-		oracles: [canonicalOracle],
-		oracleLinks,
+		chainLinks,
 		oracle: canonicalOracle,
-		oracleProtocolsCount,
-		filteredProtocols,
-		chartData,
-		oraclesColors
+		tvl,
+		extraTvl,
+		protocolTableData,
+		chartData
 	}
-}
-
-export async function getOraclesPagePaths(): Promise<Array<{ params: { oracle: string } }>> {
-	const metrics = await fetchOracleMetrics()
-	const oracleNames = Object.keys(metrics.oracles ?? {}).toSorted((a, b) => a.localeCompare(b))
-	return oracleNames.slice(0, 10).map((oracle) => ({ params: { oracle: slug(oracle) } }))
 }

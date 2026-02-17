@@ -22,6 +22,12 @@ export type IOracleChainBreakdownChart = IOracleChainBreakdownChartItem[]
 // Protocol chart data as tuple of [timestamp, value]
 export type IOracleProtocolChart = Array<[number, number]>
 
+// Oracle total chart data as tuple of [timestamp, value]
+export type IOracleChart = Array<[number, number]>
+
+// Chain chart data as tuple of [timestamp, value]
+export type IOracleChainChart = Array<[number, number]>
+
 // Protocol chain breakdown chart item with timestamp and dynamic chain keys
 export type IOracleProtocolChainBreakdownChartItem = {
 	timestamp: number

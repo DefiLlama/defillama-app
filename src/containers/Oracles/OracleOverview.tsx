@@ -1,13 +1,16 @@
-import { useQueries } from '@tanstack/react-query'
-import type { UseQueryResult } from '@tanstack/react-query'
+import type { ColumnDef } from '@tanstack/react-table'
 import { lazy, Suspense, useMemo } from 'react'
+import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { TokenLogo } from '~/components/TokenLogo'
 import { CHART_COLORS } from '~/constants/colors'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { formattedNum, getTokenDominance } from '~/utils'
-import { fetchOracleProtocolChainBreakdownChart, fetchOracleProtocolChart } from './api'
-import type { OraclePageData, OracleProtocolWithBreakdown } from './types'
+import { formattedNum, getTokenDominance, slug, tokenIconUrl } from '~/utils'
+import { useOracleOverviewExtraSeries } from './queries.client'
+import { calculateTvsWithExtraToggles } from './tvl'
+import type { OracleOverviewPageData, OracleProtocolWithBreakdown } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -15,6 +18,56 @@ interface IProtocolDominanceData {
 	name: string
 	tvs: number
 }
+
+interface IProtocolTableRow {
+	name: string
+	category: string
+	tvl: number
+}
+
+const DEFAULT_PROTOCOL_TABLE_SORTING_STATE = [{ id: 'tvl', desc: true }]
+
+const protocolColumns: ColumnDef<IProtocolTableRow>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			const name = getValue<string>()
+			return (
+				<span className="flex items-center gap-2">
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
+
+					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
+
+					<BasicLink
+						href={`/protocol/${slug(name)}`}
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
+					>
+						{name}
+					</BasicLink>
+				</span>
+			)
+		}
+	},
+	{
+		header: 'Category',
+		accessorKey: 'category',
+		enableSorting: false,
+		meta: {
+			align: 'center'
+		}
+	},
+	{
+		header: 'TVL',
+		accessorKey: 'tvl',
+		enableSorting: true,
+		cell: ({ getValue }) => formattedNum(getValue<number>(), true),
+		meta: {
+			align: 'center'
+		}
+	}
+]
 
 function getProtocolTvs({
 	protocol,
@@ -35,19 +88,15 @@ function getProtocolTvs({
 	return tvs
 }
 
-type IOracleOverviewProps = Pick<
-	OraclePageData,
-	'chartData' | 'oracleLinks' | 'oracle' | 'filteredProtocols' | 'chain' | 'chainChartData'
->
-
 export const OracleOverview = ({
 	chartData,
-	oracleLinks,
+	chainLinks,
 	oracle,
-	filteredProtocols,
-	chain = null,
-	chainChartData = null
-}: IOracleOverviewProps) => {
+	tvl,
+	extraTvl,
+	protocolTableData,
+	chain = null
+}: OracleOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const enabledExtraApiKeys = useMemo(() => {
 		const apiKeys: Array<string> = []
@@ -58,64 +107,73 @@ export const OracleOverview = ({
 		return apiKeys.toSorted((a, b) => a.localeCompare(b))
 	}, [extraTvlsEnabled])
 
-	const extraChartQueries = useQueries({
-		queries: enabledExtraApiKeys.map((key) => ({
-			queryKey: ['oracle', 'overview', 'chart', oracle ?? 'unknown', chain ?? 'all', key],
-			queryFn: async () => {
-				if (!oracle) return null
-				if (chain) {
-					const chainBreakdown = await fetchOracleProtocolChainBreakdownChart({
-						protocol: oracle,
-						key
-					})
-					const series: Array<[number, number]> = []
-					for (const row of chainBreakdown) {
-						const value = row[chain]
-						if (!Number.isFinite(row.timestamp) || !Number.isFinite(value)) continue
-						series.push([row.timestamp, value])
-					}
-					return series
+	const { isFetchingExtraSeries, extraTvsByTimestamp } = useOracleOverviewExtraSeries({
+		enabledExtraApiKeys,
+		oracle,
+		chain
+	})
+
+	const tableData = useMemo<Array<IProtocolTableRow>>(() => {
+		if (enabledExtraApiKeys.length === 0) {
+			return protocolTableData
+				.map((protocol) => ({
+					name: protocol.name,
+					category: protocol.category ?? 'Unknown',
+					tvl: protocol.tvl
+				}))
+				.toSorted((a, b) => b.tvl - a.tvl)
+		}
+
+		return protocolTableData
+			.map((protocol) => {
+				const extraTvlValues: Record<string, number> = {}
+				for (const [key, value] of Object.entries(protocol.extraTvl ?? {})) {
+					extraTvlValues[key] = value.tvl
 				}
-				return fetchOracleProtocolChart({
-					protocol: oracle,
-					key
+
+				const tvl = calculateTvsWithExtraToggles({
+					values: { tvl: protocol.tvl, ...extraTvlValues },
+					extraTvlsEnabled
 				})
-			},
-			enabled: Boolean(oracle),
-			staleTime: 5 * 60 * 1_000,
-			refetchOnWindowFocus: false
-		}))
-	}) as Array<UseQueryResult<Array<[number, number]> | null>>
 
-	const isFetchingExtraSeries = extraChartQueries.some((query) => query.isLoading || query.isFetching)
+				return {
+					name: protocol.name,
+					category: protocol.category ?? 'Unknown',
+					tvl
+				}
+			})
+			.toSorted((a, b) => b.tvl - a.tvl)
+	}, [enabledExtraApiKeys.length, extraTvlsEnabled, protocolTableData])
 
-	const { protocolsData, dataset, charts, totalValue } = useMemo(() => {
+	const { protocolsData, totalValue } = useMemo(() => {
 		const protocolsData: Array<IProtocolDominanceData> = []
-		for (const protocol of filteredProtocols) {
+		for (const protocol of protocolTableData) {
 			protocolsData.push({
 				name: protocol.name,
-				tvs: isFetchingExtraSeries ? protocol.tvl : getProtocolTvs({ protocol, extraTvlsEnabled })
+				tvs: getProtocolTvs({ protocol, extraTvlsEnabled })
 			})
 		}
 		protocolsData.sort((a, b) => b.tvs - a.tvs)
 
-		const chartBreakdownByTimestamp = chainChartData ?? chartData
+		const totalValue =
+			enabledExtraApiKeys.length > 0
+				? calculateTvsWithExtraToggles({
+						values: { tvl, ...extraTvl },
+						extraTvlsEnabled
+					})
+				: tvl
+
+		return {
+			protocolsData,
+			totalValue
+		}
+	}, [enabledExtraApiKeys.length, extraTvl, extraTvlsEnabled, protocolTableData, tvl])
+
+	const { dataset, charts } = useMemo(() => {
+		const chartBreakdownByTimestamp = chartData
 		const selectedOracle =
 			oracle ?? Object.keys(chartBreakdownByTimestamp[0] ?? {}).find((key) => key !== 'timestamp') ?? ''
 		const shouldApplyExtraSeries = enabledExtraApiKeys.length > 0 && !isFetchingExtraSeries
-		const extraTvsByTimestamp = new Map<number, number>()
-
-		if (shouldApplyExtraSeries) {
-			for (const query of extraChartQueries) {
-				if (!query.data) continue
-
-				for (const [timestampInSeconds, value] of query.data) {
-					if (!Number.isFinite(timestampInSeconds) || !Number.isFinite(value)) continue
-					const current = extraTvsByTimestamp.get(timestampInSeconds) ?? 0
-					extraTvsByTimestamp.set(timestampInSeconds, current + value)
-				}
-			}
-		}
 
 		const datasetSource: Array<{ timestamp: number; TVS: number }> = []
 
@@ -136,10 +194,7 @@ export const OracleOverview = ({
 				TVS: tvsValue
 			})
 		}
-		const totalValue = datasetSource[datasetSource.length - 1]?.TVS ?? 0
-
 		return {
-			protocolsData,
 			dataset: {
 				source: datasetSource,
 				dimensions: ['timestamp', 'TVS']
@@ -152,16 +207,12 @@ export const OracleOverview = ({
 					color: CHART_COLORS[0],
 					stack: 'TVS'
 				}
-			],
-			totalValue
+			]
 		}
 	}, [
-		chainChartData,
 		chartData,
 		enabledExtraApiKeys.length,
-		extraChartQueries,
-		extraTvlsEnabled,
-		filteredProtocols,
+		extraTvsByTimestamp,
 		isFetchingExtraSeries,
 		oracle
 	])
@@ -174,7 +225,7 @@ export const OracleOverview = ({
 
 	return (
 		<>
-			<RowLinksWithDropdown links={oracleLinks} activeLink={chain ?? 'All'} />
+			<RowLinksWithDropdown links={chainLinks} activeLink={chain ?? 'All'} />
 
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
@@ -209,6 +260,25 @@ export const OracleOverview = ({
 					)}
 				</div>
 			</div>
+
+			<Suspense
+				fallback={
+					<div
+						style={{ minHeight: `${tableData.length * 50 + 200}px` }}
+						className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
+					/>
+				}
+			>
+				<TableWithSearch
+					data={tableData}
+					columns={protocolColumns}
+					columnToSearch="name"
+					placeholder="Search protocols..."
+					header="Protocols"
+					sortingState={DEFAULT_PROTOCOL_TABLE_SORTING_STATE}
+					compact
+				/>
+			</Suspense>
 		</>
 	)
 }
