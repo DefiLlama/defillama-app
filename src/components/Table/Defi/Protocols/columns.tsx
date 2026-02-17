@@ -10,7 +10,6 @@ import { removedCategoriesFromChainTvlSet } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '../../utils'
 import type { IProtocolRow } from './types'
 
 const whiteLabeledVaultProviders = new Set(['Veda'])
@@ -673,7 +672,9 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
 				meta: {
 					align: 'end',
-					headerHelperText: definitions.perps.protocol['marketShare24h']
+					headerHelperText:
+						(definitions.perps.protocol as Record<string, string>)['marketShare24h'] ??
+						definitions.perps.protocol['24h']
 				},
 				size: 180
 			})
@@ -829,13 +830,16 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 
 	columnHelper.accessor('openInterest', {
 		header: 'Open Interest',
-		cell: (info) => <>{info.getValue() != null && info.getValue() > 0 ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => {
+			const value = info.getValue()
+			return <>{typeof value === 'number' && value > 0 ? formattedNum(value, true) : null}</>
+		},
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.openInterest.protocol
 		},
 		size: 140
-	}),
+	}) as ColumnDef<IProtocolRow>,
 
 	columnHelper.accessor('holdersRevenueChange_30dover30d', {
 		header: 'Holders Revenue 30d Change',
@@ -845,155 +849,20 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			headerHelperText: definitions.holdersRevenue.protocol['change30dover30d']
 		},
 		size: 200
-	}),
+	}) as ColumnDef<IProtocolRow>,
 
 	columnHelper.accessor('mcap', {
 		header: 'Market Cap',
-		cell: ({ getValue }) => <>{getValue() != null && getValue() > 0 ? formattedNum(getValue(), true) : null}</>,
+		cell: ({ getValue }) => {
+			const value = getValue()
+			return <>{typeof value === 'number' && value > 0 ? formattedNum(value, true) : null}</>
+		},
 		meta: {
 			align: 'end',
 			headerHelperText: 'Market capitalization of the protocol token'
 		},
 		size: 120
-	})
-]
-
-export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
-	{
-		header: 'Name',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row }) => {
-			const value = getValue<string>()
-
-			return (
-				<span
-					className="relative flex items-center gap-2"
-					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
-				>
-					{row.subRows?.length > 0 ? (
-						<button
-							className="absolute -left-0.5"
-							{...{
-								onClick: row.getToggleExpandedHandler()
-							}}
-						>
-							{row.getIsExpanded() ? (
-								<>
-									<Icon name="chevron-down" height={16} width={16} />
-									<span className="sr-only">View child protocols</span>
-								</>
-							) : (
-								<>
-									<Icon name="chevron-right" height={16} width={16} />
-									<span className="sr-only">Hide child protocols</span>
-								</>
-							)}
-						</button>
-					) : (
-						<Bookmark readableName={value} data-lgonly data-bookmark />
-					)}
-
-					<span className="vf-row-index shrink-0" aria-hidden="true" />
-
-					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
-
-					<span className="-my-2 flex flex-col">
-						{row.original?.deprecated ? (
-							<BasicLink
-								href={`/protocol/${slug(value)}`}
-								className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-							>
-								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
-								<Tooltip content="Deprecated" className="text-(--error)">
-									<Icon name="alert-triangle" height={14} width={14} />
-								</Tooltip>
-							</BasicLink>
-						) : (
-							<BasicLink
-								href={`/protocol/${slug(value)}`}
-								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-							>{`${value}`}</BasicLink>
-						)}
-
-						<Tooltip content={<ProtocolChainsComponent chains={row.original.chains} />} className="text-[0.7rem]">
-							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
-						</Tooltip>
-					</span>
-					{value === 'SyncDEX Finance' && (
-						<Tooltip content={'Many users have reported issues with this protocol'}>
-							<Icon name="alert-triangle" height={14} width={14} />
-						</Tooltip>
-					)}
-				</span>
-			)
-		},
-		size: 240
-	},
-	{
-		header: 'Category',
-		accessorKey: 'category',
-		cell: ({ getValue }) => {
-			const value = getValue<string | null>()
-			return value ? (
-				<BasicLink href={`/protocols/${slug(value)}`} className="text-sm font-medium text-(--link-text)">
-					{value}
-				</BasicLink>
-			) : (
-				''
-			)
-		},
-		size: 140
-	},
-	{
-		header: 'TVL',
-		accessorKey: 'tvl',
-		cell: ({ getValue, row }) => <ProtocolTvlCell value={getValue()} rowValues={row.original} />,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Sum of value of all coins held in smart contracts of the protocol'
-		},
-		size: 120
-	},
-	{
-		header: '1d TVL Change',
-		accessorKey: 'change_1d',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Change in TVL in the last 24 hours'
-		},
-		size: 140
-	},
-	{
-		header: '7d TVL Change',
-		accessorKey: 'change_7d',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Change in TVL in the last 7 days'
-		},
-		size: 140
-	},
-	{
-		header: '1m TVL Change',
-		accessorKey: 'change_1m',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Change in TVL in the last 30 days'
-		},
-		size: 140
-	},
-	{
-		header: 'Mcap/TVL',
-		accessorKey: 'mcaptvl',
-		cell: (info) => <>{info.getValue() ?? null}</>,
-		size: 100,
-		meta: {
-			align: 'end'
-		}
-	}
+	}) as ColumnDef<IProtocolRow>
 ]
 
 export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
@@ -1095,134 +964,6 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 	}
 ]
 
-export const protocolAddlColumns: Record<'borrowed' | 'supplied' | 'suppliedTvl', ColumnDef<IProtocolRow>> = {
-	borrowed: {
-		header: 'Borrowed',
-		accessorKey: 'borrowed',
-		cell: (info) => {
-			const rawValue = info.getValue()
-			const value = typeof rawValue === 'number' ? rawValue : null
-			return <>{value != null ? formattedNum(value) : null}</>
-		},
-		size: 120,
-		meta: {
-			align: 'end' as const
-		}
-	},
-	supplied: {
-		header: 'Supplied',
-		accessorKey: 'supplied',
-		cell: (info) => {
-			const rawValue = info.getValue()
-			const value = typeof rawValue === 'number' ? rawValue : null
-			return <>{value != null ? formattedNum(value) : null}</>
-		},
-		size: 120,
-		meta: {
-			align: 'end' as const
-		}
-	},
-	suppliedTvl: {
-		header: 'Supplied/TVL',
-		accessorKey: 'suppliedTvl',
-		cell: (info) => {
-			const rawValue = info.getValue()
-			const value = typeof rawValue === 'number' ? rawValue : null
-			return <>{value != null ? formattedNum(value) : null}</>
-		},
-		size: 120,
-		meta: {
-			align: 'end' as const
-		}
-	}
-}
-
-// key: min width of window/screen
-// values: table columns order
-export const columnOrders: ColumnOrdersByBreakpoint = {
-	0: [
-		'rank',
-		'compare',
-		'name',
-		'tvl',
-		'change_7d',
-		'category',
-		'change_1m',
-		'change_1d',
-		'fees_7d',
-		'revenue_7d',
-		'volume_7d',
-		'mcaptvl'
-	],
-	480: [
-		'rank',
-		'compare',
-		'name',
-		'change_7d',
-		'tvl',
-		'category',
-		'change_1m',
-		'change_1d',
-		'fees_7d',
-		'revenue_7d',
-		'volume_7d',
-		'mcaptvl'
-	],
-	1024: [
-		'rank',
-		'compare',
-		'name',
-		'category',
-		'change_1d',
-		'change_7d',
-		'change_1m',
-		'tvl',
-		'fees_7d',
-		'revenue_7d',
-		'volume_7d',
-		'mcaptvl'
-	]
-}
-
-export const columnSizes: ColumnSizesByBreakpoint = {
-	0: {
-		rank: 60,
-		compare: 80,
-		name: 180,
-		category: 140,
-		change_1d: 110,
-		change_7d: 110,
-		change_1m: 110,
-		tvl: 120,
-		mcaptvl: 110,
-		totalRaised: 180
-	},
-	1024: {
-		rank: 60,
-		compare: 80,
-		name: 240,
-		category: 140,
-		change_1d: 120,
-		change_7d: 110,
-		change_1m: 110,
-		tvl: 120,
-		mcaptvl: 110,
-		totalRaised: 180
-	},
-	1280: {
-		rank: 60,
-		compare: 80,
-		name: 200,
-		category: 140,
-		change_1d: 110,
-		change_7d: 110,
-		change_1m: 110,
-		tvl: 120,
-		mcaptvl: 110,
-		totalRaised: 180
-	}
-}
-
 type ProtocolTvlRow = IProtocolRow & {
 	parentExcluded?: boolean
 	isParentProtocol?: boolean
@@ -1255,7 +996,7 @@ const ProtocolTvlCell = ({ value, rowValues }: { value: unknown; rowValues: Prot
 				'This protocol issues white-labeled vaults which may result in TVL being counted by another protocol (e.g., double counted).'
 		}
 
-		if (removedCategoriesFromChainTvlSet.has(rowValues.category)) {
+		if (rowValues.category && removedCategoriesFromChainTvlSet.has(rowValues.category)) {
 			text = `${rowValues.category} protocols are not counted into Chain TVL`
 		}
 

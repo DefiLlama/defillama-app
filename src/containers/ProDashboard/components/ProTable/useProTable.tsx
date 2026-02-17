@@ -443,15 +443,22 @@ export function useProTable(
 	onFilterClick?: () => void,
 	options?: UseProTableOptions
 ) {
-	const { fullProtocolsList, parentProtocols } = useGetProtocolsListMultiChain(chains)
-	const { data: chainProtocolsVolumes } = useGetProtocolsVolumeByMultiChain(chains)
-	const { data: chainProtocolsFees } = useGetProtocolsFeesAndRevenueByMultiChain(chains)
-	const { data: chainProtocolsPerps } = useGetProtocolsPerpsVolumeByMultiChain(chains)
-	const { data: chainProtocolsOpenInterest } = useGetProtocolsOpenInterestByMultiChain(chains)
+	const { fullProtocolsList, parentProtocols, isLoading: isLoadingProtocols } = useGetProtocolsListMultiChain(chains)
+	const { data: chainProtocolsVolumes, isLoading: isLoadingVolumes } = useGetProtocolsVolumeByMultiChain(chains)
+	const { data: chainProtocolsFees, isLoading: isLoadingFees } = useGetProtocolsFeesAndRevenueByMultiChain(chains)
+	const { data: chainProtocolsPerps, isLoading: isLoadingPerps } = useGetProtocolsPerpsVolumeByMultiChain(chains)
+	const { data: chainProtocolsOpenInterest, isLoading: isLoadingOI } = useGetProtocolsOpenInterestByMultiChain(chains)
 	const { data: chainProtocolsEarnings } = useGetProtocolsEarningsByMultiChain(chains)
 	const { data: chainProtocolsAggregators } = useGetProtocolsAggregatorsByMultiChain(chains)
 	const { data: chainProtocolsBridgeAggregators } = useGetProtocolsBridgeAggregatorsByMultiChain(chains)
 	const { data: chainProtocolsOptions } = useGetProtocolsOptionsVolumeByMultiChain(chains)
+	const isLoading =
+		isLoadingProtocols ||
+		isLoadingVolumes ||
+		isLoadingFees ||
+		isLoadingPerps ||
+		isLoadingOI ||
+		fullProtocolsList.length === 0
 	const finalProtocolsList = React.useMemo(() => {
 		if (!fullProtocolsList) return []
 
@@ -1292,6 +1299,7 @@ export function useProTable(
 
 	return {
 		table,
+		isLoading,
 		showColumnPanel,
 		setShowColumnPanel,
 		searchTerm,

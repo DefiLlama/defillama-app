@@ -21,7 +21,6 @@ import {
 } from '~/containers/Stablecoins/hooks'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import Layout from '~/layout'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer, peggedAssetIconUrl, slug } from '~/utils'
 import { StablecoinByChainUsageTable } from './StablecoinUsageByChainTable'
 import type { PeggedAssetPageProps } from './types'
@@ -50,24 +49,17 @@ const CHART_TYPE_VALUES = ['Total Circ', 'Pie', 'Dominance', 'Area'] as const
 const UNRELEASED_QUERY_KEY = 'unreleased'
 
 export default function PeggedContainer(props: PeggedAssetPageProps) {
-	let { name, symbol } = props.peggedAssetData
-	const nameWithSymbol = name + (symbol && symbol !== '-' ? ` (${symbol})` : '')
 	return (
-		<Layout
-			title={`${nameWithSymbol} - DefiLlama`}
-			description={`Track ${nameWithSymbol} supply, market cap, price, and inflows on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${nameWithSymbol.toLowerCase()} total supply, ${nameWithSymbol.toLowerCase()} market cap, ${nameWithSymbol.toLowerCase()} price, ${nameWithSymbol.toLowerCase()} circulating, ${nameWithSymbol.toLowerCase()} stats`}
-			canonicalUrl={`/stablecoin/${slug(name)}`}
-		>
+		<>
 			<LinkPreviewCard
 				stablePage={true}
-				cardName={name}
-				token={name}
-				logo={peggedAssetIconUrl(name)}
+				cardName={props.peggedAssetData.name}
+				token={props.peggedAssetData.name}
+				logo={peggedAssetIconUrl(props.peggedAssetData.name)}
 				tvl={formattedNum(props.mcap, true)?.toString()}
 			/>
 			<PeggedAssetInfo {...props} />
-		</Layout>
+		</>
 	)
 }
 

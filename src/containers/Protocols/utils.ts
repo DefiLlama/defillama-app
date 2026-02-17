@@ -10,9 +10,6 @@ interface TvlEntry {
 
 /**
  * Apply extraTvl toggles (staking, pool2, borrowed, etc.) to protocol TVL values.
- * Replaces the old `useCalcStakePool2Tvl` hook's `formatDataWithExtraTvls` logic
- * for the RecentProtocols / Airdrops pages.
- *
  * `extraTvlsEnabled` comes from `useLocalStorageSettingsManager('tvl')`.
  */
 export function applyExtraTvl(

@@ -110,7 +110,7 @@ export interface ILiteProtocol {
 	category: string
 	tags?: Array<string>
 	chains: Array<string>
-	mcap: number
+	mcap: number | null
 	name: string
 	symbol: string
 	logo: string
@@ -135,7 +135,7 @@ export interface ILiteProtocol {
 	parentProtocol?: string
 	oracles?: Array<string>
 	oraclesByChain?: Record<string, Array<string>>
-	forkedFrom?: string
+	forkedFrom?: Array<string>
 	listedAt?: number
 	deprecated?: boolean
 }

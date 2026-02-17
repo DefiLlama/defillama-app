@@ -2,21 +2,17 @@ import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { tvlOptions } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import Layout from '~/layout'
 import { formattedNum, getPercentChange, renderPercentChange, slug } from '~/utils'
 import { categoriesPageExcludedExtraTvls } from './constants'
 import type { IProtocolsCategoriesPageData, IProtocolsCategoriesTableRow } from './types'
 
 const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
-const pageName = ['Protocol Categories']
-const finalTvlOptions = tvlOptions.filter((option) => !categoriesPageExcludedExtraTvls.has(option.key))
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -233,14 +229,7 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 	}, [enabledTvls, tableData])
 
 	return (
-		<Layout
-			title="Categories - DefiLlama"
-			description="Combined TVL, Revenue and other metrics by category of all protocols that are tracked by DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
-			keywords="protocols categories, defi categories"
-			canonicalUrl="/categories"
-			metricFilters={finalTvlOptions}
-			pageName={pageName}
-		>
+		<>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-3">
 					<h1 className="mr-auto text-xl font-semibold">TVL by Category</h1>
@@ -300,6 +289,6 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 					sortingState={DEFAULT_SORTING_STATE}
 				/>
 			</React.Suspense>
-		</Layout>
+		</>
 	)
 }

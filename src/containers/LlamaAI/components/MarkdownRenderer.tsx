@@ -14,6 +14,16 @@ import { CSVExportArtifact, CSVExportLoading, type CSVExport } from './CSVExport
 
 const MARKDOWN_REMARK_PLUGINS = [remarkGfm]
 const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]
+const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
+
+function normalizeSourceUrl(url: string): string {
+	for (const prefix of SOURCE_URL_PREFIXES_TO_REPLACE) {
+		if (url.startsWith(prefix)) {
+			return `https://defillama.com${url.slice(prefix.length)}`
+		}
+	}
+	return url
+}
 
 interface InlineChartConfig {
 	resizeTrigger?: number
@@ -317,20 +327,23 @@ export function MarkdownRenderer({
 						<Icon name="chevron-down" height={14} width={14} />
 					</summary>
 					<div className="flex flex-col gap-2.5 pt-2.5">
-						{citations.map((url, index) => (
-							<a
-								key={`citation-${index}-${url}`}
-								href={url}
-								target="_blank"
-								rel="noopener noreferrer"
-								className={`group flex items-start gap-2.5 rounded-lg border border-[#e6e6e6] p-2 hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12 dark:border-[#222324]`}
-							>
-								<span className="rounded bg-[rgba(0,0,0,0.04)] px-1.5 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
-									{index + 1}
-								</span>
-								<span className="overflow-hidden text-ellipsis whitespace-nowrap">{url}</span>
-							</a>
-						))}
+						{citations.map((url, index) => {
+							const normalizedUrl = normalizeSourceUrl(url)
+							return (
+								<a
+									key={`citation-${index}-${url}`}
+									href={normalizedUrl}
+									target="_blank"
+									rel="noopener noreferrer"
+									className={`group flex items-start gap-2.5 rounded-lg border border-[#e6e6e6] p-2 hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12 dark:border-[#222324]`}
+								>
+									<span className="rounded bg-[rgba(0,0,0,0.04)] px-1.5 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
+										{index + 1}
+									</span>
+									<span className="overflow-hidden text-ellipsis whitespace-nowrap">{normalizedUrl}</span>
+								</a>
+							)
+						})}
 					</div>
 				</details>
 			)}

@@ -2,8 +2,6 @@ import { CHART_API, CHAINS_API_V2, PROTOCOLS_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type { ChartResponse, ExtraTvlChartKey, ProtocolsResponse } from './api.types'
 
-const FORK_API = `${PROTOCOLS_API.split('/lite')[0]}/forks`
-
 /** Fetch all protocols from lite/protocols2. */
 export async function fetchProtocols(): Promise<ProtocolsResponse> {
 	return fetchJson<ProtocolsResponse>(PROTOCOLS_API)
@@ -22,12 +20,6 @@ export async function fetchChainsWithExtraTvl(extraTvlKey: ExtraTvlChartKey): Pr
 	}>(`${CHAINS_API_V2}/All`)
 
 	return data.chainTvls.flatMap((chain) => (chain.extraTvl?.[extraTvlKey]?.tvl ? [chain.name] : []))
-}
-
-/** Fetch fork data. */
-export async function fetchForks(): Promise<Record<string, string[]>> {
-	const data = await fetchJson<{ forks: Record<string, string[]> }>(FORK_API)
-	return data.forks
 }
 
 /** Fetch active and historical airdrop config registry. */

@@ -5,26 +5,43 @@ import {
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import type { InferGetStaticPropsType } from 'next'
 import { useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
-import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
-import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { Bookmark } from '~/components/Bookmark'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
-import type { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { VirtualTable } from '~/components/Table/Table'
 import { splitArrayByFalsyValues } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { useCalcStakePool2Tvl } from '~/hooks/data'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
+import { TVL_SETTINGS_KEYS_SET, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, getPercentChange, renderPercentChange, slug, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const GAINERS_SORTING_STATE: SortingState = [{ id: 'change_1d', desc: true }]
 const LOSERS_SORTING_STATE: SortingState = [{ id: 'change_1d', desc: false }]
 
-const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
+type RawProtocol = ProtocolsResponse['protocols'][number]
+type ExtraTvlEntry = {
+	tvl: number | null
+	tvlPrevDay: number | null
+	tvlPrevWeek: number | null
+	tvlPrevMonth: number | null
+}
+type ProtocolBaseRow = RawProtocol & {
+	extraTvl: Record<string, ExtraTvlEntry>
+}
+type ProtocolRow = ProtocolBaseRow & {
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+	mcaptvl: number | null
+}
+
+const topGainersAndLosersColumns: ColumnDef<ProtocolRow>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -84,9 +101,7 @@ const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
-		cell: (info) => {
-			return <>{(info.getValue() ?? null) as string | null}</>
-		},
+		cell: (info) => info.getValue<number | null>(),
 		size: 120,
 		meta: {
 			align: 'end'
@@ -94,7 +109,7 @@ const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 	}
 ]
 
-function TopGainersAndLosersTable({ data, sortingState }: { data: Array<IProtocolRow>; sortingState: SortingState }) {
+function TopGainersAndLosersTable({ data, sortingState }: { data: Array<ProtocolRow>; sortingState: SortingState }) {
 	const [sorting, setSorting] = useState<SortingState>(sortingState)
 
 	const instance = useReactTable({
@@ -115,25 +130,81 @@ function TopGainersAndLosersTable({ data, sortingState }: { data: Array<IProtoco
 }
 
 export const getStaticProps = withPerformanceLogging('top-gainers-and-losers', async () => {
-	const { protocols } = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl'])
+	const { protocols } = await fetchProtocols()
+
+	const rows: ProtocolBaseRow[] = protocols.map((protocol) => {
+		const extraTvl: Record<string, ExtraTvlEntry> = {}
+		for (const key in protocol.chainTvls) {
+			if (TVL_SETTINGS_KEYS_SET.has(key)) {
+				extraTvl[key] = protocol.chainTvls[key]
+			}
+		}
+
+		return {
+			...protocol,
+			extraTvl
+		}
+	})
 
 	return {
 		props: {
-			protocols
+			protocols: rows
 		},
 		revalidate: maxAgeForNext([22])
 	}
 })
 
-export default function TopGainersLosers({ protocols }) {
-	const data = useCalcStakePool2Tvl(protocols)
+export default function TopGainersLosers({ protocols }: InferGetStaticPropsType<typeof getStaticProps>) {
+	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
+	const data = useMemo<Array<ProtocolRow>>(() => {
+		return protocols.map((protocol) => {
+			let finalTvl: number | null = protocol.tvl
+			let finalTvlPrevDay: number | null = protocol.tvlPrevDay
+			let finalTvlPrevWeek: number | null = protocol.tvlPrevWeek
+			let finalTvlPrevMonth: number | null = protocol.tvlPrevMonth
+
+			for (const extraTvlType in protocol.extraTvl ?? {}) {
+				const key = extraTvlType.toLowerCase()
+				const entry = protocol.extraTvl?.[extraTvlType]
+				if (!entry || !tvlSettings[key] || key === 'doublecounted' || key === 'liquidstaking') continue
+
+				const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = entry
+				if (tvl != null) finalTvl = (finalTvl ?? 0) + tvl
+				if (tvlPrevDay != null) finalTvlPrevDay = (finalTvlPrevDay ?? 0) + tvlPrevDay
+				if (tvlPrevWeek != null) finalTvlPrevWeek = (finalTvlPrevWeek ?? 0) + tvlPrevWeek
+				if (tvlPrevMonth != null) finalTvlPrevMonth = (finalTvlPrevMonth ?? 0) + tvlPrevMonth
+			}
+
+			const tvl = finalTvl != null && finalTvl < 0 ? 0 : (finalTvl ?? 0)
+			const tvlPrevDay = finalTvlPrevDay != null && finalTvlPrevDay < 0 ? 0 : (finalTvlPrevDay ?? 0)
+			const tvlPrevWeek = finalTvlPrevWeek != null && finalTvlPrevWeek < 0 ? 0 : (finalTvlPrevWeek ?? 0)
+			const tvlPrevMonth = finalTvlPrevMonth != null && finalTvlPrevMonth < 0 ? 0 : (finalTvlPrevMonth ?? 0)
+			const mcaptvl = protocol.mcap != null && tvl !== 0 ? +(protocol.mcap / tvl).toFixed(2) : null
+
+			return {
+				...protocol,
+				tvl,
+				tvlPrevDay,
+				tvlPrevWeek,
+				tvlPrevMonth,
+				change_1d: getPercentChange(tvl, tvlPrevDay),
+				change_7d: getPercentChange(tvl, tvlPrevWeek),
+				change_1m: getPercentChange(tvl, tvlPrevMonth),
+				mcaptvl
+			}
+		})
+	}, [protocols, tvlSettings])
+
 	const { topGainers, topLosers } = useMemo(() => {
 		const values = splitArrayByFalsyValues(data, 'change_1d')
 		const sortedData = values[0].sort((a, b) => b['change_1d'] - a['change_1d'])
+		const n = sortedData.length
+		const topCount = Math.min(5, n)
+		const bottomCount = Math.min(5, n - topCount)
 
 		return {
-			topGainers: sortedData.slice(0, 5),
-			topLosers: sortedData.slice(-5).reverse()
+			topGainers: sortedData.slice(0, topCount),
+			topLosers: bottomCount > 0 ? sortedData.slice(-bottomCount).reverse() : []
 		}
 	}, [data])
 

@@ -18,6 +18,8 @@ export interface ProtocolLite {
 	listedAt?: number
 	deprecated?: boolean
 	forkedFrom?: string[]
+	oracles?: string[]
+	oraclesByChain?: Record<string, string[]>
 }
 
 /** Raw parent protocol from the lite/protocols2 API. */

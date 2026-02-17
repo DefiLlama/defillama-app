@@ -1,4 +1,4 @@
-import type { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { RWAOverview } from '~/containers/RWA'
 import { getRWAAssetsOverview } from '~/containers/RWA/queries'
@@ -62,7 +62,7 @@ export const getStaticProps = withPerformanceLogging(
 
 const pageName = ['RWA']
 
-export default function RWAPage(props) {
+export default function RWAPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title={`${props.chainName} - RWA - DefiLlama`}

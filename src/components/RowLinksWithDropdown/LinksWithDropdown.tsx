@@ -122,7 +122,9 @@ export function LinksWithDropdown({
 			{/* Show dropdown when any links overflow */}
 			{hasOverflow ? (
 				<OtherLinks
-					name={isLinkInDropdown ? activeLink : (alternativeOthersText ?? 'Others')}
+					name={
+						isLinkInDropdown ? (activeLink ?? alternativeOthersText ?? 'Others') : (alternativeOthersText ?? 'Others')
+					}
 					isActive={isLinkInDropdown}
 					options={links}
 					className="mr-1"
@@ -132,7 +134,7 @@ export function LinksWithDropdown({
 	)
 }
 
-function LinkItem({ option, activeLink, ...props }: { option: ILink; activeLink: string; [key: string]: any }) {
+function LinkItem({ option, activeLink, ...props }: { option: ILink; activeLink?: string; [key: string]: any }) {
 	const isActive = option.label === activeLink
 
 	return (

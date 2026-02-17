@@ -357,7 +357,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 		}
 	}, [dialogStore])
 
-	const _finalReturnUrl = returnUrl ?? router.asPath
+	const finalReturnUrl = returnUrl ?? router.asPath
 
 	return (
 		<WalletProvider>
@@ -370,7 +370,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 				>
 					<span className="mx-auto flex h-full w-full max-w-[440px] flex-col">
 						{isSignInModalOpen ? (
-							<SignInForm text="Already a subscriber? Sign In" dialogStore={dialogStore} returnUrl={returnUrl} />
+							<SignInForm text="Already a subscriber? Sign In" dialogStore={dialogStore} returnUrl={finalReturnUrl} />
 						) : (
 							<>
 								<Ariakit.DialogDismiss className="ml-auto rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white">

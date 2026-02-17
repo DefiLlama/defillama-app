@@ -1,3 +1,4 @@
+import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
@@ -31,7 +32,7 @@ export const getStaticProps = withPerformanceLogging('watchlist', async () => {
 	}
 })
 
-export default function Portfolio(props) {
+export default function Portfolio(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title={`Watchlist - DefiLlama`}

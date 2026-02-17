@@ -82,7 +82,7 @@ function ProContent({
 	const { deleteDashboard, handleCreateDashboard, handleGenerateDashboard } = useProDashboardDashboard()
 	const { createDashboardDialogStore, showGenerateDashboardModal, setShowGenerateDashboardModal } = useProDashboardUI()
 	const [comparisonPreset, setComparisonPreset] = useState<ComparisonPreset | null>(null)
-	const createDialogOpen = createDashboardDialogStore.useState('open')
+	const createDialogOpen = Ariakit.useStoreState(createDashboardDialogStore, 'open')
 	const [dialogWasOpen, setDialogWasOpen] = useState(false)
 
 	const selectedPage =

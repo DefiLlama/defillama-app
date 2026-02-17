@@ -45,3 +45,6 @@ next-env.d.ts
 .cache
 
 .overseer
+
+# generated at build time
+/public/robots.txt

@@ -1,4 +1,4 @@
-import type { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { ProtocolsWithTokens } from '~/containers/Protocols/ProtocolsWithTokens'
 import { getProtocolsFDVsByChain } from '~/containers/Protocols/queries'
@@ -45,7 +45,7 @@ export const getStaticProps = withPerformanceLogging(
 
 const pageName = ['Protocols', 'ranked by', 'Fully Diluted Valuation']
 
-export default function ProtocolsFdvByChain(props) {
+export default function ProtocolsFdvByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title={`${props.chain} Protocol Fully Diluted Valuations - DefiLlama`}

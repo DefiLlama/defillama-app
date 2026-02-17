@@ -1,9 +1,13 @@
-import type { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
+import { tvlOptions } from '~/components/Filters/options'
 import { ChainsByCategory } from '~/containers/ChainsByCategory'
 import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
+import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const pageName = ['Chains']
 
 export const getStaticProps = withPerformanceLogging(
 	'chains/[category]',
@@ -51,6 +55,18 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Chains(props) {
-	return <ChainsByCategory {...props} />
+export default function Chains(props: InferGetStaticPropsType<typeof getStaticProps>) {
+	return (
+		<Layout
+			title={`${props.category} Chains DeFi TVL - DefiLlama`}
+			description={props.description}
+			keywords={props.keywords}
+			canonicalUrl={`/chains${props.category === 'All' ? '' : `/${props.category}`}`}
+			metricFilters={tvlOptions}
+			metricFiltersLabel="Include in TVL"
+			pageName={pageName}
+		>
+			<ChainsByCategory {...props} />
+		</Layout>
+	)
 }

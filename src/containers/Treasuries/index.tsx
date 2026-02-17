@@ -6,12 +6,8 @@ import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import Layout from '~/layout'
 import { formattedNum, getDominancePercent, tokenIconUrl } from '~/utils'
 import type { ITreasuryRow } from './types'
-
-const pageName = ['Projects', 'ranked by', 'Treasury']
-const entityPageName = ['Entities', 'ranked by', 'Treasury']
 
 export function Treasuries({ data, entity }: { data: ITreasuryRow[]; entity: boolean }) {
 	const tableColumns = useMemo(
@@ -65,27 +61,19 @@ export function Treasuries({ data, entity }: { data: ITreasuryRow[]; entity: boo
 	const sortingState = entity ? [{ id: 'tvl', desc: true }] : [{ id: 'coreTvl', desc: true }]
 
 	return (
-		<Layout
-			title={`Treasuries - DefiLlama`}
-			description={`Track treasuries on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`blockchain project treasuries, blockchain entity treasuries, protocol treasuries, entity treasuries`}
-			canonicalUrl={entity ? `/entities` : `/treasuries`}
-			pageName={entity ? entityPageName : pageName}
-		>
-			<TableWithSearch
-				data={data}
-				columns={tableColumns}
-				columnToSearch={'name'}
-				placeholder={'Search projects...'}
-				header={'Treasuries'}
-				sortingState={sortingState}
-				customFilters={
-					<>
-						<CSVDownloadButton prepareCsv={prepareCsv} />
-					</>
-				}
-			/>
-		</Layout>
+		<TableWithSearch
+			data={data}
+			columns={tableColumns}
+			columnToSearch={'name'}
+			placeholder={'Search projects...'}
+			header={'Treasuries'}
+			sortingState={sortingState}
+			customFilters={
+				<>
+					<CSVDownloadButton prepareCsv={prepareCsv} />
+				</>
+			}
+		/>
 	)
 }
 

@@ -4,22 +4,18 @@ import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
-import { tvlOptions } from '~/components/Filters/options'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import {
 	CHAINS_CATEGORY_GROUP_SETTINGS,
 	TVL_SETTINGS_KEYS,
 	useLocalStorageSettingsManager
 } from '~/contexts/LocalStorage'
-import Layout from '~/layout'
 import { formatNum, getPercentChange } from '~/utils'
 import { ChainsByCategoryTable } from './Table'
 import type { IChainsByCategoryData } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
-
-const pageName = ['Chains']
 
 export function ChainsByCategory({
 	chains,
@@ -28,8 +24,6 @@ export function ChainsByCategory({
 	category,
 	tvlChartsByChain,
 	totalTvlByDate,
-	description,
-	keywords,
 	entityQuestions
 }: IChainsByCategoryData & { entityQuestions?: string[] }) {
 	const { pieChartData, dominanceCharts } = useFormatChartData({
@@ -41,15 +35,7 @@ export function ChainsByCategory({
 	const { showByGroup, chainsTableData } = useGroupAndFormatChains({ chains, category })
 
 	return (
-		<Layout
-			title={`${category} Chains DeFi TVL - DefiLlama`}
-			description={description}
-			keywords={keywords}
-			canonicalUrl={`/chains${category === 'All' ? '' : `/${category}`}`}
-			metricFilters={tvlOptions}
-			metricFiltersLabel="Include in TVL"
-			pageName={pageName}
-		>
+		<>
 			<RowLinksWithDropdown links={allCategories} activeLink={category} />
 			{entityQuestions?.length > 0 && (
 				<EntityQuestionsStrip questions={entityQuestions} entitySlug="chains" entityType="page" entityName="Chains" />
@@ -89,7 +75,7 @@ export function ChainsByCategory({
 			>
 				<ChainsByCategoryTable data={chainsTableData} showByGroup={showByGroup} />
 			</React.Suspense>
-		</Layout>
+		</>
 	)
 }
 

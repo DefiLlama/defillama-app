@@ -1,3 +1,4 @@
+import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { ExtraTvlByChain } from '~/containers/Protocols/ExtraTvlByChain'
 import { getExtraTvlByChain } from '~/containers/Protocols/queries'
@@ -22,7 +23,7 @@ export const getStaticProps = withPerformanceLogging(`total-borrowed/index`, asy
 
 const pageName = ['Protocols', 'ranked by', 'Total Value Borrowed']
 
-export default function TotalBorrowed(props) {
+export default function TotalBorrowed(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="Total Borrowed - DefiLlama"

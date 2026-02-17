@@ -571,30 +571,6 @@
       "oldName": "Calendar"
     },
     {
-      "name": "Treasuries",
-      "route": "/treasuries",
-      "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, including its own token and breakdown of assets held",
-      "totalTrackedKey": "treasury.protocols",
-      "tab": "Protocols",
-      "oldName": "Treasuries"
-    },
-    {
-      "name": "Net Project Treasury",
-      "route": "/net-project-treasury",
-      "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, excluding its own token",
-      "totalTrackedKey": "treasury.protocols",
-      "tab": "Protocols"
-    },
-    {
-      "name": "Treasury: Entities",
-      "route": "/entities",
-      "category": "Treasury",
-      "description": "Treasury by entity",
-      "totalTrackedKey": "treasury.entities"
-    },
-    {
       "name": "RWA: Overview",
       "route": "/rwa",
       "category": "RWA",
@@ -620,6 +596,30 @@
       "route": "/rwa/platforms",
       "category": "RWA",
       "description": "Overview of all Real World Assets (RWAs) by platform"
+    },
+    {
+      "name": "Treasuries",
+      "route": "/treasuries",
+      "category": "Treasury",
+      "description": "Value of tokens owned by a protocol, including its own token and breakdown of assets held",
+      "totalTrackedKey": "treasury.protocols",
+      "tab": "Protocols",
+      "oldName": "Treasuries"
+    },
+    {
+      "name": "Net Project Treasury",
+      "route": "/net-project-treasury",
+      "category": "Treasury",
+      "description": "Value of tokens owned by a protocol, excluding its own token",
+      "totalTrackedKey": "treasury.protocols",
+      "tab": "Protocols"
+    },
+    {
+      "name": "Treasury: Entities",
+      "route": "/entities",
+      "category": "Treasury",
+      "description": "Treasury by entity",
+      "totalTrackedKey": "treasury.entities"
     },
     {
       "name": "Raises: Overview",
@@ -680,19 +680,19 @@
       "oldName": "Governance"
     },
     {
+      "name": "Safe Harbor Agreements",
+      "route": "/safe-harbor-agreements",
+      "category": "Others",
+      "description": "Overview of protocols with Safe Harbor Agreements",
+      "totalTrackedKey": "safeHarbor.protocols"
+    },
+    {
       "name": "Expenses by Protocol",
       "route": "/expenses",
       "category": "Others",
       "description": "Breakdown of annual operational expenses by protocol",
       "totalTrackedKey": "expenses.protocols",
       "tab": "Protocols"
-    },
-    {
-      "name": "Safe Harbor Agreements",
-      "route": "/safe-harbor-agreements",
-      "category": "Others",
-      "description": "Overview of protocols with Safe Harbor Agreements",
-      "totalTrackedKey": "safeHarbor.protocols"
     }
   ],
   "Tools": [

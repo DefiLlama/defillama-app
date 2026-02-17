@@ -131,6 +131,37 @@ const getRwaMetricValue = (asset: IRWAProject, metric: RWAChartType): number => 
 	return asset.onChainMcap?.total ?? 0
 }
 
+type RwaMetricByChainRow = { label: string; value: number }
+
+const getRwaMetricBreakdownByChain = (asset: IRWAProject, metric: RWAChartType): RwaMetricByChainRow[] => {
+	const breakdown =
+		metric === 'activeMcap'
+			? asset.activeMcap?.breakdown
+			: metric === 'defiActiveTvl'
+				? asset.defiActiveTvlByChain?.breakdown
+				: asset.onChainMcap?.breakdown
+	if (!breakdown || breakdown.length === 0) return []
+
+	const UNKNOWN = 'Unknown'
+	const totalsBySlug = new Map<string, RwaMetricByChainRow>()
+
+	for (const [chainRaw, valueRaw] of breakdown) {
+		const value = valueRaw ?? 0
+		if (!Number.isFinite(value) || value <= 0) continue
+
+		const label = sanitizeTreemapLabel((chainRaw ?? '').trim()) || UNKNOWN
+		const key = rwaSlug(label)
+		if (!key) continue
+
+		const prev = totalsBySlug.get(key) ?? { label, value: 0 }
+		if (prev.label === UNKNOWN && label !== UNKNOWN) prev.label = label
+		prev.value += value
+		totalsBySlug.set(key, prev)
+	}
+
+	return Array.from(totalsBySlug.values()).sort((a, b) => b.value - a.value || a.label.localeCompare(b.label))
+}
+
 const normalizeLabels = (values: Array<string | null | undefined>): string[] => {
 	const out = new Set<string>()
 	for (const value of values) {
@@ -319,12 +350,28 @@ export const buildRwaNestedTreemapTreeData = ({
 	const nestedTotals = new Map<string, Map<string, number>>()
 
 	for (const asset of assets) {
+		const childGroups = getAssetGroupsByGrouping(asset, childGrouping)
+		if (childGroups.length === 0) continue
+
+		if (parentGrouping === 'chain') {
+			const metricByChain = getRwaMetricBreakdownByChain(asset, metric)
+			if (metricByChain.length === 0) continue
+
+			for (const { label: parentGroup, value: metricValue } of metricByChain) {
+				const childTotals = nestedTotals.get(parentGroup) ?? new Map<string, number>()
+				for (const childGroup of childGroups) {
+					childTotals.set(childGroup, (childTotals.get(childGroup) ?? 0) + metricValue)
+				}
+				nestedTotals.set(parentGroup, childTotals)
+			}
+			continue
+		}
+
 		const metricValue = getRwaMetricValue(asset, metric)
 		if (!Number.isFinite(metricValue) || metricValue <= 0) continue
 
 		const parentGroups = getAssetGroupsByGrouping(asset, parentGrouping)
-		const childGroups = getAssetGroupsByGrouping(asset, childGrouping)
-		if (parentGroups.length === 0 || childGroups.length === 0) continue
+		if (parentGroups.length === 0) continue
 
 		// Intentional full-count behavior: if an asset belongs to multiple parent/child groups,
 		// we add the full metric to each membership. To migrate to split-even, divide metricValue here.

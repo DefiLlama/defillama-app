@@ -1,3 +1,4 @@
+import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { ProtocolsWithTokens } from '~/containers/Protocols/ProtocolsWithTokens'
 import { getProtocolsTokenPricesByChain } from '~/containers/Protocols/queries'
@@ -18,7 +19,7 @@ export const getStaticProps = withPerformanceLogging(`protocols-token-prices/ind
 
 const pageName = ['Protocols', 'ranked by', 'Token Price']
 
-export default function ProtocolsTokenPrices(props) {
+export default function ProtocolsTokenPrices(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="Token Prices - DefiLlama"

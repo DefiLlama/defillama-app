@@ -1,3 +1,4 @@
+import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { BridgedTVLChainsList } from '~/containers/BridgedTVL/BridgedTVLChainsList'
 import { getBridgedTVLByChain } from '~/containers/BridgedTVL/queries'
@@ -15,7 +16,7 @@ export const getStaticProps = withPerformanceLogging('bridged', async () => {
 
 const pageName = ['Chains', 'ranked by', 'Bridged TVL']
 
-export default function Chains(props) {
+export default function Chains(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title={`Bridged TVL - DefiLlama`}

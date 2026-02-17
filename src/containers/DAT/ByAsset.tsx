@@ -9,13 +9,11 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
 import type { IDATOverviewDataByAssetProps } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
 const DEFAULT_SORTING_STATE = [{ id: 'totalAssetAmount', desc: true }]
 
 function prepareAssetBreakdownCsv(
@@ -67,7 +65,6 @@ function prepareAssetBreakdownCsv(
 }
 
 export function DATByAsset({
-	asset,
 	allAssets,
 	metadata,
 	dailyFlowsChart,
@@ -85,13 +82,7 @@ export function DATByAsset({
 	const columns = useMemo(() => byAssetColumns({ symbol: metadata.ticker }), [metadata.ticker])
 
 	return (
-		<Layout
-			title={`${metadata.name} Treasury Holdings - DefiLlama`}
-			description={`Track institutions that own ${metadata.name} (${metadata.ticker}) as part of their corporate treasury. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${metadata.name} (${metadata.ticker}) treasury holdings, ${metadata.name} (${metadata.ticker}) corporate treasury, ${metadata.name} (${metadata.ticker}) treasury holdings by institution, ${metadata.name} (${metadata.ticker}) treasury holdings by company, ${metadata.name} (${metadata.ticker}) DATs, ${metadata.name} (${metadata.ticker}) digital asset treasury`}
-			canonicalUrl={`/digital-asset-treasuries/${asset}`}
-			pageName={pageName}
-		>
+		<>
 			<RowLinksWithDropdown links={allAssets} activeLink={metadata.name} />
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
@@ -169,7 +160,7 @@ export function DATByAsset({
 				sortingState={DEFAULT_SORTING_STATE}
 				customFilters={<CSVDownloadButton prepareCsv={handlePrepareAssetBreakdownCsv} />}
 			/>
-		</Layout>
+		</>
 	)
 }
 

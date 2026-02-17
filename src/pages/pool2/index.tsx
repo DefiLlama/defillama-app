@@ -1,3 +1,4 @@
+import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { ExtraTvlByChain } from '~/containers/Protocols/ExtraTvlByChain'
 import { getExtraTvlByChain } from '~/containers/Protocols/queries'
@@ -22,7 +23,7 @@ export const getStaticProps = withPerformanceLogging(`pool2/index`, async () => 
 
 const pageName = ['Protocols', 'ranked by', 'Pool2 TVL']
 
-export default function Pool2TVL(props) {
+export default function Pool2TVL(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="Pool2 TVL - DefiLlama"
