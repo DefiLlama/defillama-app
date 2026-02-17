@@ -84,7 +84,7 @@ export function AddToDashboardModal({
 	const configName = getConfigName(chartConfig, llamaAIChart)
 	const prevOpenRef = useRef(false)
 
-	const isOpen = dialogStore.getState().open
+	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 
 	useEffect(() => {
 		if (isOpen && !prevOpenRef.current) {
