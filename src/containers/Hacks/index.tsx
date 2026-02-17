@@ -21,7 +21,6 @@ import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import Layout from '~/layout'
 import { firstDayOfMonth, formattedNum, toNiceDayMonthAndYear, toNumberOrNullFromQueryParam } from '~/utils'
 import { HacksFilters } from './Filters'
 import type { IHacksPageData } from './types'
@@ -108,8 +107,6 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 }
 
 const chartTypeList = ['Monthly Sum', 'Total Hacked by Technique']
-
-const pageName = ['Hacks: Overview']
 
 const getTimeSinceSeconds = (timeQuery: string | undefined): number | null => {
 	if (typeof timeQuery !== 'string') return null
@@ -361,13 +358,7 @@ export const HacksContainer = ({
 	const displayPieChartData = derivedStats?.pieChartData ?? pieChartData
 
 	return (
-		<Layout
-			title={`Hacks - DefiLlama`}
-			description={`Track hacks on all chains and DeFi protocols. View total value lost, breakdown by technique, and DeFi hacks on DefiLlama.`}
-			keywords={`total value hacked, total value lost in hacks, blockchain hacks, hacks on DeFi protocols, DeFi hacks`}
-			canonicalUrl={`/hacks`}
-			pageName={pageName}
-		>
+		<>
 			<HacksFilters
 				chainOptions={chainOptions}
 				techniqueOptions={techniqueOptions}
@@ -417,7 +408,7 @@ export const HacksContainer = ({
 				</div>
 			</div>
 			<HacksTable data={filteredData} />
-		</Layout>
+		</>
 	)
 }
 

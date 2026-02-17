@@ -4,7 +4,6 @@ import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { RaisesFilters } from '~/containers/Raises/Filters'
-import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
@@ -14,8 +13,6 @@ import type { IRaise } from './types'
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
-
-const RAISES_PAGE_NAME = ['Raises Overview']
 
 interface RaisesContainerProps {
 	raises: IRaise[]
@@ -50,13 +47,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 	}
 
 	return (
-		<Layout
-			title={`Raises - DefiLlama`}
-			description={`Track recent raises, total funding amount, and total funding rounds on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`recent raises, total funding amount, total funding rounds`}
-			canonicalUrl={`/raises`}
-			pageName={RAISES_PAGE_NAME}
-		>
+		<>
 			<Announcement notCancellable>
 				<span>Are we missing any funding round?</span>{' '}
 				<a
@@ -115,7 +106,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 			</div>
 
 			<RaisesTable raises={filteredRaisesList} prepareCsv={prepareCsv} />
-		</Layout>
+		</>
 	)
 }
 

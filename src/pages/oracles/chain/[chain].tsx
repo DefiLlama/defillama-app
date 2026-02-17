@@ -1,9 +1,13 @@
 import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
+import { tvlOptions } from '~/components/Filters/options'
 import { OraclesByChain } from '~/containers/Oracles'
-import { getOraclePageData, getOraclePageDataByChain } from '~/containers/Oracles/queries'
+import { getOraclesListPageData } from '~/containers/Oracles/queries'
+import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const pageName = ['Oracles', 'ranked by', 'TVS']
 
 export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({ params }) => {
 	if (!params?.chain) {
@@ -11,38 +15,34 @@ export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({
 	}
 
 	const chain = Array.isArray(params.chain) ? params.chain[0] : params.chain
-	const data = await getOraclePageDataByChain(chain)
+	const data = await getOraclesListPageData({ chain })
 
-	if (data === null) {
-		throw new Error(`Failed to load /oracles/chain/${chain} page data`)
-	}
-
-	if ('notFound' in data) {
-		return { notFound: true }
+	if (!data) {
+		return { notFound: true, props: null }
 	}
 
 	return {
-		props: { ...data },
+		props: data,
 		revalidate: maxAgeForNext([22])
 	}
 })
 
 export async function getStaticPaths() {
-	const data = await getOraclePageData()
-
-	const chainsByOracle = data && 'chainsByOracle' in data ? data.chainsByOracle : {}
-
-	const chainsList = [...new Set(Object.values(chainsByOracle).flat())]
-
-	const paths = chainsList.slice(0, 10).map((chain) => {
-		return {
-			params: { chain: slug(chain) }
-		}
-	})
-
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export default function OraclesPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	return <OraclesByChain {...props} />
+	const canonicalUrl = props.chain ? `/oracles/chain/${slug(props.chain)}` : '/oracles'
+	return (
+		<Layout
+			title="Oracles - DefiLlama"
+			description="Track total value secured by oracles on all chains. View protocols secured by the oracle, breakdown by chain, and DeFi oracles on DefiLlama."
+			keywords="oracles, oracles on all chains, oracles on DeFi protocols, DeFi oracles, protocols secured by the oracle"
+			canonicalUrl={canonicalUrl}
+			metricFilters={tvlOptions}
+			pageName={pageName}
+		>
+			<OraclesByChain {...props} />
+		</Layout>
+	)
 }

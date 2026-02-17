@@ -10,7 +10,6 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import Layout from '~/layout'
 import { firstDayOfMonth, formattedNum, lastDayOfWeek, slug } from '~/utils'
 import type { IDATOverviewPageProps } from './types'
 
@@ -28,7 +27,6 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
 	return typeof value === 'object' && value != null ? (value as Record<string, unknown>) : undefined
 }
 
-const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
 const DEFAULT_SORTING_STATE = [{ id: 'totalUsdValue', desc: true }]
 
 function prepareInstitutionsCsv(institutions: IDATOverviewPageProps['institutions']) {
@@ -171,13 +169,7 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 	const handlePrepareInstitutionsCsv = () => prepareInstitutionsCsv(institutions)
 
 	return (
-		<Layout
-			title={`Digital Asset Treasuries - DefiLlama`}
-			description={`Track institutions that own digital assets as part of their corporate treasury. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`digital asset treasury, digital asset treasuries, digital asset treasury by institution, digital asset treasury by company, digital asset treasury by asset`}
-			canonicalUrl={`/digital-asset-treasuries`}
-			pageName={pageName}
-		>
+		<>
 			<RowLinksWithDropdown links={allAssets} activeLink={'All'} />
 			<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-between gap-2 p-2 pb-0">
@@ -214,7 +206,7 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 				sortingState={DEFAULT_SORTING_STATE}
 				customFilters={<CSVDownloadButton prepareCsv={handlePrepareInstitutionsCsv} />}
 			/>
-		</Layout>
+		</>
 	)
 }
 

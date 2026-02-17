@@ -1,80 +1,223 @@
+import { useQuery } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import { tvlOptions } from '~/components/Filters/options'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import Layout from '~/layout'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, slug } from '~/utils'
-import { useOraclesData, type IOracleTableRow } from './useOraclesData'
+import { fetchOracleChainProtocolBreakdownChart, fetchOracleProtocolBreakdownChart } from './api'
+import { calculateTvsWithExtraToggles } from './tvl'
+import type { OracleBreakdownItem, OracleChainPageData, OracleChartData } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart'))
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-const pageName = ['Oracles', 'ranked by', 'TVS']
 const DEFAULT_SORTING_STATE = [{ id: 'tvs', desc: true }]
 
-interface IOraclesByChainProps {
-	chartData: Array<[number, Record<string, { tvl: number }>]>
-	tokensProtocols: Record<string, number>
-	tokens: Array<string>
-	tokenLinks: Array<{ label: string; to: string }>
-	oraclesColors: Record<string, string>
-	chainsByOracle: Record<string, Array<string>>
-	chain: string | null
+type IOraclesByChainProps = Pick<
+	OracleChainPageData,
+	'chartData' | 'oracleProtocolsCount' | 'oracles' | 'oracleLinks' | 'oraclesColors' | 'chainsByOracle' | 'chain'
+>
+
+interface IOracleTableRowData {
+	name: string
+	protocolsSecured: number
+	tvs: number
+}
+
+interface IOracleDominanceChart {
+	type: 'line'
+	name: string
+	encode: { x: string; y: string }
+	color: string
+	stack: string
+}
+
+function mergeExtraChartData({
+	baseChartData,
+	extraBreakdownsByApiKey
+}: {
+	baseChartData: OracleChartData
+	extraBreakdownsByApiKey: Record<string, Array<OracleBreakdownItem>>
+}): OracleChartData {
+	const mergedByTimestamp = new Map<number, Record<string, Record<string, number>>>()
+
+	for (const [timestamp, valuesByOracle] of baseChartData) {
+		const copiedValuesByOracle: Record<string, Record<string, number>> = {}
+		for (const [oracleName, values] of Object.entries(valuesByOracle)) {
+			copiedValuesByOracle[oracleName] = { ...values }
+		}
+		mergedByTimestamp.set(timestamp, copiedValuesByOracle)
+	}
+
+	for (const [apiKey, chart] of Object.entries(extraBreakdownsByApiKey)) {
+		const metricName = apiKey
+		if (!metricName || metricName === 'tvl') continue
+
+		for (const dayData of chart) {
+			const timestamp = dayData.timestamp
+			const valuesByOracle = mergedByTimestamp.get(timestamp) ?? {}
+
+			for (const [oracleName, value] of Object.entries(dayData)) {
+				if (oracleName === 'timestamp') continue
+				const currentValues = valuesByOracle[oracleName] ?? { tvl: 0 }
+				currentValues[metricName] = value
+				valuesByOracle[oracleName] = currentValues
+			}
+
+			mergedByTimestamp.set(timestamp, valuesByOracle)
+		}
+	}
+
+	return Array.from(mergedByTimestamp.entries()).toSorted((a, b) => a[0] - b[0])
 }
 
 export const OraclesByChain = ({
 	chartData,
-	tokensProtocols,
-	tokens,
-	tokenLinks,
+	oracleProtocolsCount,
+	oracles,
+	oracleLinks,
 	oraclesColors,
 	chainsByOracle,
 	chain
 }: IOraclesByChainProps) => {
-	const oraclesData = useOraclesData({
-		chartData,
-		tokens,
-		tokensProtocols,
-		oraclesColors
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+
+	const enabledExtraApiKeys = React.useMemo(() => {
+		const apiKeys = new Set<string>()
+		for (const [settingKey, enabled] of Object.entries(extraTvlsEnabled)) {
+			if (!enabled) continue
+			apiKeys.add(settingKey)
+		}
+		return Array.from(apiKeys).toSorted((a, b) => a.localeCompare(b))
+	}, [extraTvlsEnabled])
+
+	const { data: extraBreakdownsByApiKey = {}, isFetching: isFetchingExtraBreakdowns } = useQuery<
+		Record<string, Array<OracleBreakdownItem>>
+	>({
+		queryKey: ['oracles', 'extra-breakdown', chain ?? 'all', enabledExtraApiKeys.join(',')],
+		queryFn: async () => {
+			const entries = await Promise.all(
+				enabledExtraApiKeys.map(async (apiKey) => {
+					const chart = chain
+						? await fetchOracleChainProtocolBreakdownChart({ chain, key: apiKey })
+						: await fetchOracleProtocolBreakdownChart({ key: apiKey })
+					return [apiKey, chart] as const
+				})
+			)
+
+			const result: Record<string, Array<OracleBreakdownItem>> = {}
+			for (const [apiKey, chart] of entries) {
+				result[apiKey] = chart
+			}
+			return result
+		},
+		enabled: enabledExtraApiKeys.length > 0,
+		staleTime: 5 * 60 * 1_000,
+		refetchOnWindowFocus: false
 	})
-	const { tableData, pieChartData, dominanceCharts, dataset } = oraclesData
+
+	const shouldApplyExtraTvlFormatting = enabledExtraApiKeys.length > 0 && !isFetchingExtraBreakdowns
+
+	const effectiveChartData = React.useMemo(() => {
+		if (!shouldApplyExtraTvlFormatting) return chartData
+		return mergeExtraChartData({
+			baseChartData: chartData,
+			extraBreakdownsByApiKey
+		})
+	}, [chartData, extraBreakdownsByApiKey, shouldApplyExtraTvlFormatting])
+
+	const effectiveData = React.useMemo(() => {
+		const latestValues = effectiveChartData[effectiveChartData.length - 1]?.[1] ?? {}
+		const tableData = oracles
+			.map((oracleName) => ({
+				name: oracleName,
+				protocolsSecured: oracleProtocolsCount[oracleName] ?? 0,
+				tvs: shouldApplyExtraTvlFormatting
+					? calculateTvsWithExtraToggles({
+							values: latestValues[oracleName] ?? { tvl: 0 },
+							extraTvlsEnabled
+						})
+					: (latestValues[oracleName]?.tvl ?? 0)
+			}))
+			.toSorted((a, b) => b.tvs - a.tvs)
+		const pieChartData = tableData.map((row) => ({ name: row.name, value: row.tvs }))
+		const dimensions = ['timestamp', ...oracles]
+		const source: Array<Record<string, number>> = []
+
+		for (const [timestampInSeconds, valuesByOracle] of effectiveChartData) {
+			let dayTotal = 0
+			const valuesWithExtraTvls: Record<string, number> = {}
+			for (const oracleName of oracles) {
+				const oracleTvs = shouldApplyExtraTvlFormatting
+					? calculateTvsWithExtraToggles({
+							values: valuesByOracle[oracleName] ?? { tvl: 0 },
+							extraTvlsEnabled
+						})
+					: (valuesByOracle[oracleName]?.tvl ?? 0)
+				valuesWithExtraTvls[oracleName] = oracleTvs
+				dayTotal += oracleTvs
+			}
+
+			if (dayTotal === 0) continue
+
+			const point: Record<string, number> = { timestamp: timestampInSeconds * 1e3 }
+			for (const oracleName of oracles) {
+				point[oracleName] = (valuesWithExtraTvls[oracleName] / dayTotal) * 100
+			}
+			source.push(point)
+		}
+
+		const dominanceCharts: Array<IOracleDominanceChart> = oracles.map((name) => ({
+			type: 'line',
+			name,
+			encode: { x: 'timestamp', y: name },
+			color: oraclesColors[name] ?? '#ccc',
+			stack: 'dominance'
+		}))
+
+		return {
+			tableData,
+			pieChartData,
+			dominanceCharts,
+			dominanceDataset: { source, dimensions }
+		}
+	}, [
+		effectiveChartData,
+		extraTvlsEnabled,
+		oracleProtocolsCount,
+		oracles,
+		shouldApplyExtraTvlFormatting,
+		oraclesColors
+	])
 
 	// Merge chains data into table rows
 	const tableDataWithChains = React.useMemo(() => {
-		return tableData.map((row) => ({
+		return effectiveData.tableData.map((row) => ({
 			...row,
 			chains: chainsByOracle[row.name] ?? [],
 			chainsCount: (chainsByOracle[row.name] ?? []).length
 		}))
-	}, [tableData, chainsByOracle])
+	}, [effectiveData.tableData, chainsByOracle])
 
 	// Prepare pie chart data with colors
 	const pieData = React.useMemo(() => {
 		return preparePieChartData({
-			data: pieChartData,
+			data: effectiveData.pieChartData,
 			limit: 5
 		})
-	}, [pieChartData])
+	}, [effectiveData.pieChartData])
 
 	const activeLink = chain ?? 'All'
-	const canonicalUrl = chain ? `/oracles/chain/${slug(chain)}` : '/oracles'
 
 	return (
-		<Layout
-			title={`Oracles - DefiLlama`}
-			description={`Track total value secured by oracles on all chains. View protocols secured by the oracle, breakdown by chain, and DeFi oracles on DefiLlama.`}
-			keywords={`oracles, oracles on all chains, oracles on DeFi protocols, DeFi oracles, protocols secured by the oracle`}
-			canonicalUrl={canonicalUrl}
-			metricFilters={tvlOptions}
-			pageName={pageName}
-		>
-			<RowLinksWithDropdown links={tokenLinks} activeLink={activeLink} />
+		<>
+			<RowLinksWithDropdown links={oracleLinks} activeLink={activeLink} />
 
-			<div className="flex flex-col gap-1 xl:flex-row">
+			<div className="flex flex-col gap-2 xl:flex-row">
 				<div className="relative isolate flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<PieChart
@@ -87,8 +230,8 @@ export const OraclesByChain = ({
 				<div className="flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<MultiSeriesChart2
-							dataset={dataset}
-							charts={dominanceCharts}
+							dataset={effectiveData.dominanceDataset}
+							charts={effectiveData.dominanceCharts}
 							stacked={true}
 							expandTo100Percent={true}
 							hideDefaultLegend
@@ -115,9 +258,11 @@ export const OraclesByChain = ({
 					sortingState={DEFAULT_SORTING_STATE}
 				/>
 			</React.Suspense>
-		</Layout>
+		</>
 	)
 }
+
+type IOracleTableRow = IOracleTableRowData & { chains: string[]; chainsCount: number }
 
 const columns: ColumnDef<IOracleTableRow>[] = [
 	{

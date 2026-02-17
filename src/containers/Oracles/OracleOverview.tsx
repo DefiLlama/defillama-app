@@ -1,23 +1,12 @@
 import { lazy, Suspense, useMemo } from 'react'
-import { tvlOptions } from '~/components/Filters/options'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { CHART_COLORS } from '~/constants/colors'
-import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
-import type { IProtocol } from '~/containers/ChainOverview/types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { formatChartTvlsByDay } from '~/hooks/data'
-import Layout from '~/layout'
-import { formattedNum, getTokenDominance, slug } from '~/utils'
+import { formattedNum, getTokenDominance } from '~/utils'
+import { calculateTvsWithExtraToggles, hasExtraTvlsToggled } from './tvl'
+import type { OraclePageData, OracleProtocolWithBreakdown, OracleSingleChartData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
-
-const pageName = ['Protocols TVS', 'by', 'Oracle']
-
-interface IOracleProtocolData {
-	name: string
-	tvl: number
-	extraTvl?: Record<string, { tvl: number }>
-}
 
 interface IProtocolDominanceData {
 	name: string
@@ -28,7 +17,7 @@ function getProtocolTvs({
 	protocol,
 	extraTvlsEnabled
 }: {
-	protocol: IOracleProtocolData
+	protocol: OracleProtocolWithBreakdown
 	extraTvlsEnabled: Record<string, boolean>
 }): number {
 	let tvs = protocol.tvl
@@ -43,22 +32,16 @@ function getProtocolTvs({
 	return tvs
 }
 
-interface IOracleOverviewProps {
-	chartData: Array<[number, Record<string, { tvl: number }>]>
-	tokenLinks: Array<{ label: string; to: string }>
-	token: string | null
-	filteredProtocols: Array<IOracleProtocolData>
-	protocolsTableData: Array<IProtocol>
-	chain?: string | null
-	chainChartData?: Array<[number, Record<string, number>]> | null
-}
+type IOracleOverviewProps = Pick<
+	OraclePageData,
+	'chartData' | 'oracleLinks' | 'oracle' | 'filteredProtocols' | 'chain' | 'chainChartData'
+>
 
 export const OracleOverview = ({
 	chartData,
-	tokenLinks,
-	token,
+	oracleLinks,
+	oracle,
 	filteredProtocols,
-	protocolsTableData,
 	chain = null,
 	chainChartData = null
 }: IOracleOverviewProps) => {
@@ -73,39 +56,33 @@ export const OracleOverview = ({
 		}
 		protocolsData.sort((a, b) => b.tvs - a.tvs)
 
-		const chartDataForFormatting: Array<[number, Record<string, number>]> = chainChartData
+		const chartBreakdownByTimestamp: OracleSingleChartData = chainChartData
 			? chainChartData
 			: chartData.map(([timestampInSeconds, values]) => {
-					const totals: Record<string, number> = { tvl: 0 }
-					for (const oracleName in values) {
-						const oracleValues = values[oracleName]
-						for (const [metricName, metricValue] of Object.entries(oracleValues ?? {})) {
-							if (metricName === 'tvl') {
-								totals.tvl += metricValue ?? 0
-							} else {
-								totals[metricName] = (totals[metricName] ?? 0) + (metricValue ?? 0)
-							}
-						}
-					}
-					return [timestampInSeconds, totals]
+					const selectedOracle = oracle ?? Object.keys(values)[0] ?? ''
+					return [timestampInSeconds, values[selectedOracle] ?? { tvl: 0 }]
 				})
 
-		const finalChartData = formatChartTvlsByDay({
-			data: chartDataForFormatting,
-			extraTvlsEnabled,
-			key: 'TVS'
-		})
-
-		const totalValue = finalChartData[finalChartData.length - 1]?.[1] ?? 0
+		const shouldApplyExtraTvlFormatting = hasExtraTvlsToggled(extraTvlsEnabled)
 		const datasetSource: Array<{ timestamp: number; TVS: number }> = []
-		for (const point of finalChartData) {
-			const timestamp = point[0]
-			const value = point[1]
-			if (typeof timestamp !== 'number' || typeof value !== 'number') {
+
+		for (const [timestampInSeconds, values] of chartBreakdownByTimestamp) {
+			if (!Number.isFinite(timestampInSeconds)) {
 				continue
 			}
-			datasetSource.push({ timestamp, TVS: value })
+
+			const tvsValue = shouldApplyExtraTvlFormatting
+				? calculateTvsWithExtraToggles({ values, extraTvlsEnabled })
+				: (values.tvl ?? 0)
+
+			if (!Number.isFinite(tvsValue)) continue
+
+			datasetSource.push({
+				timestamp: timestampInSeconds * 1e3,
+				TVS: tvsValue
+			})
 		}
+		const totalValue = datasetSource[datasetSource.length - 1]?.TVS ?? 0
 
 		return {
 			protocolsData,
@@ -124,29 +101,21 @@ export const OracleOverview = ({
 			],
 			totalValue
 		}
-	}, [chainChartData, chartData, extraTvlsEnabled, filteredProtocols])
+	}, [chainChartData, chartData, extraTvlsEnabled, filteredProtocols, oracle])
 
 	const topProtocol = protocolsData[0] ?? null
 	const dominance = topProtocol ? getTokenDominance({ tvl: topProtocol.tvs }, totalValue) : null
 	const dominanceText = dominance == null ? null : String(dominance)
-	const displayToken = token ?? 'Oracle'
+	const displayOracle = oracle ?? 'Oracle'
 	const dominanceLabel = topProtocol ? `${topProtocol.name} Dominance` : 'Top Protocol Dominance'
-	const canonicalUrl = token ? `/oracles/${slug(token)}${chain ? `/${slug(chain)}` : ''}` : '/oracles'
 
 	return (
-		<Layout
-			title={`${token ?? 'Oracles'} - DefiLlama`}
-			description={`Total Value Secured by Oracles. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`blockchain oracles , total value secured by oracles, defi total value secured by oracles`}
-			canonicalUrl={canonicalUrl}
-			metricFilters={tvlOptions}
-			pageName={pageName}
-		>
-			<RowLinksWithDropdown links={tokenLinks} activeLink={chain ?? 'All'} />
+		<>
+			<RowLinksWithDropdown links={oracleLinks} activeLink={chain ?? 'All'} />
 
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
-					<h1 className="text-xl font-semibold">{displayToken}</h1>
+					<h1 className="text-xl font-semibold">{displayOracle}</h1>
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Total Value Secured (USD)</span>
 						<span className="font-jetbrains text-2xl font-semibold">{formattedNum(totalValue, true)}</span>
@@ -170,8 +139,6 @@ export const OracleOverview = ({
 					</Suspense>
 				</div>
 			</div>
-
-			<ChainProtocolsTable protocols={protocolsTableData} />
-		</Layout>
+		</>
 	)
 }

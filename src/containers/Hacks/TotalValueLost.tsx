@@ -6,13 +6,11 @@ import { BasicLink } from '~/components/Link'
 import { Select } from '~/components/Select/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
-import Layout from '~/layout'
 import { formattedNum, tokenIconUrl } from '~/utils'
 import type { IProtocolTotalValueLostInHacksByProtocol } from './types'
 
 type ProtocolRow = IProtocolTotalValueLostInHacksByProtocol['protocols'][number]
 
-const pageName = ['Protocols', 'ranked by', 'Total Value Lost in Hacks']
 const DEFAULT_SORTING_STATE = [{ id: 'Net User Loss', desc: true }]
 
 const columns: Array<ColumnDef<ProtocolRow>> = [
@@ -112,13 +110,7 @@ export function TotalValueLostContainer({ protocols }: IProtocolTotalValueLostIn
 	}
 
 	return (
-		<Layout
-			title="Total Value Lost in Hacks - DefiLlama"
-			description="Total Value Lost in Hacks by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
-			keywords={`total value lost in hacks, defi total value lost in hacks, net user loss`}
-			canonicalUrl={`/hacks/total-value-lost`}
-			pageName={pageName}
-		>
+		<>
 			<TableWithSearch
 				data={protocols}
 				columns={filteredColumns}
@@ -141,6 +133,6 @@ export function TotalValueLostContainer({ protocols }: IProtocolTotalValueLostIn
 				}
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
-		</Layout>
+		</>
 	)
 }

@@ -2,7 +2,11 @@ import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { InvestorContainer } from '~/containers/Raises/Investor'
 import { getInvestorRaisesPageData } from '~/containers/Raises/queries'
+import Layout from '~/layout'
+import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const pageName = ['Deals by Investor']
 
 export const getStaticProps = withPerformanceLogging(
 	'raises/[investorName]',
@@ -40,7 +44,18 @@ export async function getStaticPaths() {
 }
 
 const Raises = (props: InferGetStaticPropsType<typeof getStaticProps>) => {
-	return <InvestorContainer {...props} />
+	const investorName = props.investorName
+	return (
+		<Layout
+			title="Raises - DefiLlama"
+			description={`Track ${investorName} investments, total funding amount, and total funding rounds on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${investorName.toLowerCase()} investments, total funding amount, total funding rounds`}
+			canonicalUrl={`/raises/${slug(investorName)}`}
+			pageName={pageName}
+		>
+			<InvestorContainer {...props} />
+		</Layout>
+	)
 }
 
 export default Raises

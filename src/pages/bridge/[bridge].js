@@ -1,6 +1,7 @@
 import { maxAgeForNext } from '~/api'
 import { BridgeProtocolOverview } from '~/containers/Bridges/BridgeProtocolOverview'
 import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
+import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 // todo check name in metadata
@@ -40,5 +41,14 @@ export async function getStaticPaths() {
 }
 
 export default function Bridge(props) {
-	return <BridgeProtocolOverview {...props} />
+	return (
+		<Layout
+			title={`${props.displayName}: Bridge Volume - DefiLlama`}
+			description={`Track bridge volume and cross-chain transfers on ${props.displayName}. View bridged assets, transfer volumes, and DeFi bridge analytics from DefiLlama.`}
+			keywords={`bridge volume ${props.displayName}, cross-chain transfers ${props.displayName}, DeFi bridges ${props.displayName}, bridged assets ${props.displayName}, bridge protocol ${props.displayName}`}
+			canonicalUrl={`/bridges/${props.displayName}`}
+		>
+			<BridgeProtocolOverview {...props} />
+		</Layout>
+	)
 }

@@ -10,6 +10,11 @@ import type {
 	IOracleChainProtocolBreakdownChart
 } from './api.types'
 
+function appendKeyParam(url: string, key?: string): string {
+	if (!key) return url
+	return `${url}?key=${encodeURIComponent(key)}`
+}
+
 /**
  * Fetch oracle metrics.
  */
@@ -20,15 +25,25 @@ export async function fetchOracleMetrics(): Promise<IOracleMetrics> {
 /**
  * Fetch oracle protocol breakdown chart data.
  */
-export async function fetchOracleProtocolBreakdownChart(): Promise<IOracleProtocolBreakdownChart> {
-	return fetchJson<IOracleProtocolBreakdownChart>(`${V2_SERVER_URL}/chart/oracle/protocol-breakdown`, { timeout: 30_000 })
+export async function fetchOracleProtocolBreakdownChart({
+	key
+}: {
+	key?: string
+} = {}): Promise<IOracleProtocolBreakdownChart> {
+	const url = appendKeyParam(`${V2_SERVER_URL}/chart/oracle/protocol-breakdown`, key)
+	return fetchJson<IOracleProtocolBreakdownChart>(url, { timeout: 30_000 })
 }
 
 /**
  * Fetch oracle chain breakdown chart data.
  */
-export async function fetchOracleChainBreakdownChart(): Promise<IOracleChainBreakdownChart> {
-	return fetchJson<IOracleChainBreakdownChart>(`${V2_SERVER_URL}/chart/oracle/chain-breakdown`, { timeout: 30_000 })
+export async function fetchOracleChainBreakdownChart({
+	key
+}: {
+	key?: string
+} = {}): Promise<IOracleChainBreakdownChart> {
+	const url = appendKeyParam(`${V2_SERVER_URL}/chart/oracle/chain-breakdown`, key)
+	return fetchJson<IOracleChainBreakdownChart>(url, { timeout: 30_000 })
 }
 
 /**
@@ -47,11 +62,13 @@ export async function fetchOracleProtocolChart({
  * Fetch oracle protocol chain breakdown chart data.
  */
 export async function fetchOracleProtocolChainBreakdownChart({
-	protocol
+	protocol,
+	key
 }: {
 	protocol: string
+	key?: string
 }): Promise<IOracleProtocolChainBreakdownChart> {
-	const url = `${V2_SERVER_URL}/chart/oracle/protocol/${slug(protocol)}/chain-breakdown`
+	const url = appendKeyParam(`${V2_SERVER_URL}/chart/oracle/protocol/${slug(protocol)}/chain-breakdown`, key)
 	return fetchJson<IOracleProtocolChainBreakdownChart>(url, { timeout: 30_000 })
 }
 
@@ -59,10 +76,12 @@ export async function fetchOracleProtocolChainBreakdownChart({
  * Fetch oracle chain protocol breakdown chart data.
  */
 export async function fetchOracleChainProtocolBreakdownChart({
-	chain
+	chain,
+	key
 }: {
 	chain: string
+	key?: string
 }): Promise<IOracleChainProtocolBreakdownChart> {
-	const url = `${V2_SERVER_URL}/chart/oracle/chain/${slug(chain)}/protocol-breakdown`
+	const url = appendKeyParam(`${V2_SERVER_URL}/chart/oracle/chain/${slug(chain)}/protocol-breakdown`, key)
 	return fetchJson<IOracleChainProtocolBreakdownChart>(url, { timeout: 30_000 })
 }

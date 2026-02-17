@@ -1,8 +1,13 @@
 import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
+import { tvlOptions } from '~/components/Filters/options'
 import { OracleOverview } from '~/containers/Oracles/OracleOverview'
-import { getOraclePageData, getOraclesPagePaths } from '~/containers/Oracles/queries'
+import { getOracleDetailPageData } from '~/containers/Oracles/queries'
+import Layout from '~/layout'
+import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const pageName = ['Protocols TVS', 'by', 'Oracle']
 
 export const getStaticProps = withPerformanceLogging('oracles/[oracle]', async ({ params }) => {
 	if (!params?.oracle) {
@@ -10,27 +15,34 @@ export const getStaticProps = withPerformanceLogging('oracles/[oracle]', async (
 	}
 
 	const oracle = Array.isArray(params.oracle) ? params.oracle[0] : params.oracle
-	const data = await getOraclePageData({ oracle })
-
-	if (data && 'notFound' in data) {
-		return { notFound: true }
-	}
+	const data = await getOracleDetailPageData({ oracle })
 
 	if (!data) {
-		throw new Error(`Failed to load /oracles/${oracle} page data`)
+		return { notFound: true, props: null }
 	}
 
 	return {
-		props: { ...data },
+		props: data,
 		revalidate: maxAgeForNext([22])
 	}
 })
 
 export async function getStaticPaths() {
-	const paths = await getOraclesPagePaths()
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export default function OraclesPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	return <OracleOverview {...props} />
+	const canonicalUrl = props.oracle ? `/oracles/${slug(props.oracle)}` : '/oracles'
+	return (
+		<Layout
+			title={`${props.oracle ?? 'Oracles'} - DefiLlama`}
+			description="Total Value Secured by Oracles. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
+			keywords="blockchain oracles , total value secured by oracles, defi total value secured by oracles"
+			canonicalUrl={canonicalUrl}
+			metricFilters={tvlOptions}
+			pageName={pageName}
+		>
+			<OracleOverview {...props} />
+		</Layout>
+	)
 }
