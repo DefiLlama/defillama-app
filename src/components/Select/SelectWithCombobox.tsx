@@ -2,9 +2,9 @@ import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { Icon } from '../Icon'
-import { NestedMenu, NestedMenuItem } from '../NestedMenu'
-import { Tooltip } from '../Tooltip'
+import { Icon } from '~/components/Icon'
+import { NestedMenu, NestedMenuItem } from '~/components/NestedMenu'
+import { Tooltip } from '~/components/Tooltip'
 import { updateQueryFromSelected } from './query'
 import type { ExcludeQueryKey, SelectOption, SelectTriggerVariant, SelectValues } from './types'
 import { SELECT_TRIGGER_VARIANTS } from './types'
@@ -62,26 +62,45 @@ export function SelectWithCombobox({
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 	const showCheckboxes = Array.isArray(selectedValues)
 
+	const isStringValue = React.useCallback((value: string | SelectOption): value is string => {
+		return typeof value === 'string'
+	}, [])
+
+	const getOptionKey = React.useCallback(
+		(value: string | SelectOption) => {
+			return isStringValue(value) ? value : value.key
+		},
+		[isStringValue]
+	)
+	const setSelectedValuesFromState = React.useCallback(
+		(values: string[]) => {
+			if (setSelectedValuesProp) {
+				setSelectedValuesProp(values)
+			}
+		},
+		[setSelectedValuesProp]
+	)
+
 	// Helper to extract keys from allValues
 	const getAllKeys = React.useCallback(() => allValues.map((v) => (typeof v === 'string' ? v : v.key)), [allValues])
 
 	// If includeQueryKey is provided, use URL-based functions; otherwise derive from setSelectedValues
-	const setSelectedValues = includeQueryKey
+	const setSelectedValues: (values: string[]) => void = includeQueryKey
 		? (values: string[]) =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), values, defaultSelectedValues)
-		: setSelectedValuesProp
+		: setSelectedValuesFromState
 	const clearAll = includeQueryKey
 		? () =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), 'None', defaultSelectedValues)
-		: () => setSelectedValuesProp([])
+		: () => setSelectedValuesFromState([])
 	const toggleAll = includeQueryKey
 		? () =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), null, defaultSelectedValues)
-		: () => setSelectedValuesProp(getAllKeys())
+		: () => setSelectedValuesFromState(getAllKeys())
 	const selectOnlyOne = includeQueryKey
 		? (value: string) =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), [value], defaultSelectedValues)
-		: (value: string) => setSelectedValuesProp([value])
+		: (value: string) => setSelectedValuesFromState([value])
 
 	const [searchValue, setSearchValue] = React.useState('')
 	const deferredSearchValue = React.useDeferredValue(searchValue)
@@ -90,15 +109,23 @@ export function SelectWithCombobox({
 		if (!deferredSearchValue) return allValues
 
 		if (valuesAreAnArrayOfStrings) {
-			return matchSorter(allValues as ReadonlyArray<string>, deferredSearchValue, {
-				threshold: matchSorter.rankings.CONTAINS
-			})
+			return matchSorter(
+				allValues.filter((value): value is string => typeof value === 'string'),
+				deferredSearchValue,
+				{
+					threshold: matchSorter.rankings.CONTAINS
+				}
+			)
 		}
 
-		return matchSorter(allValues as ReadonlyArray<SelectOption>, deferredSearchValue, {
-			keys: ['name'],
-			threshold: matchSorter.rankings.CONTAINS
-		})
+		return matchSorter(
+			allValues.filter((value): value is SelectOption => typeof value !== 'string'),
+			deferredSearchValue,
+			{
+				keys: ['name'],
+				threshold: matchSorter.rankings.CONTAINS
+			}
+		)
 	}, [valuesAreAnArrayOfStrings, allValues, deferredSearchValue])
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
@@ -115,8 +142,10 @@ export function SelectWithCombobox({
 		setTimeout(() => {
 			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
 			if (items && items.length > previousCount) {
-				const firstNewItem = items[previousCount] as HTMLElement
-				firstNewItem?.focus()
+				const firstNewItem = items.item(previousCount)
+				if (firstNewItem instanceof HTMLElement) {
+					firstNewItem.focus()
+				}
 			}
 		}, 0)
 	}
@@ -157,22 +186,22 @@ export function SelectWithCombobox({
 						<Ariakit.ComboboxList>
 							{matches.slice(0, viewableMatches).map((option) => (
 								<NestedMenuItem
-									key={valuesAreAnArrayOfStrings ? option : option.key}
-									render={<Ariakit.SelectItem value={valuesAreAnArrayOfStrings ? option : option.key} />}
+									key={getOptionKey(option)}
+									render={<Ariakit.SelectItem value={getOptionKey(option)} />}
 									hideOnClick={false}
 									className="flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 								>
-									{valuesAreAnArrayOfStrings ? (
+									{isStringValue(option) ? (
 										<span>{option}</span>
-									) : option.help ? (
+									) : !isStringValue(option) && option.help ? (
 										<Tooltip content={option.help}>
 											<span className="mr-1">{option.name}</span>
 											<Icon name="help-circle" height={15} width={15} />
 										</Tooltip>
 									) : (
 										<span className="inline-flex items-center gap-1.5">
-											{option.name}
-											{option.icon}
+											{isStringValue(option) ? option : option.name}
+											{isStringValue(option) ? null : option.icon}
 										</span>
 									)}
 									{showCheckboxes ? (
@@ -282,27 +311,28 @@ export function SelectWithCombobox({
 							<Ariakit.ComboboxList ref={comboboxRef}>
 								{matches.slice(0, viewableMatches).map((option) => {
 									const isCustom = typeof option === 'object' && option.isCustom
+									const customIndex = typeof option === 'object' ? option.customIndex : undefined
 									return (
 										<Ariakit.SelectItem
-											key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
-											value={valuesAreAnArrayOfStrings ? option : option.key}
+											key={`${label}-${getOptionKey(option)}`}
+											value={getOptionKey(option)}
 											className="group flex shrink-0 cursor-pointer items-center justify-start gap-2 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md last-of-type:border-b-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 											render={<Ariakit.ComboboxItem />}
 										>
-											{valuesAreAnArrayOfStrings ? (
+											{isStringValue(option) ? (
 												<span>{option}</span>
-											) : option.help ? (
+											) : !isStringValue(option) && option.help ? (
 												<Tooltip content={option.help}>
 													<span className="mr-1">{option.name}</span>
 													<Icon name="help-circle" height={15} width={15} />
 												</Tooltip>
 											) : (
 												<span className="inline-flex items-center gap-1.5">
-													{option.name}
-													{option.icon}
+													{isStringValue(option) ? option : option.name}
+													{isStringValue(option) ? null : option.icon}
 												</span>
 											)}
-											{isCustom && typeof option.customIndex === 'number' && (
+											{isCustom && typeof customIndex === 'number' ? (
 												<span className="ml-2 flex gap-1">
 													<button
 														type="button"
@@ -310,7 +340,7 @@ export function SelectWithCombobox({
 														className="rounded-sm p-1 hover:bg-(--btn-hover-bg)"
 														onClick={(e) => {
 															e.stopPropagation()
-															onEditCustomColumn?.(option.customIndex)
+															onEditCustomColumn?.(customIndex)
 														}}
 														title="Edit custom column"
 													>
@@ -322,19 +352,19 @@ export function SelectWithCombobox({
 														className="rounded-sm p-1 hover:bg-red-100 dark:hover:bg-red-900"
 														onClick={(e) => {
 															e.stopPropagation()
-															onDeleteCustomColumn?.(option.customIndex)
+															onDeleteCustomColumn?.(customIndex)
 														}}
 														title="Delete custom column"
 													>
 														<Icon name="trash-2" height={14} width={14} />
 													</button>
 												</span>
-											)}
+											) : null}
 											{showCheckboxes ? (
 												<button
 													onClick={(e) => {
 														e.stopPropagation()
-														selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
+														selectOnlyOne(getOptionKey(option))
 													}}
 													className="invisible text-xs font-medium text-(--link) underline group-hover:visible group-focus-visible:visible"
 												>

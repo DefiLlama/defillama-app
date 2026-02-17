@@ -1,5 +1,3 @@
-import * as React from 'react'
-
 export function SortIcon({ dir }: { dir: string | boolean }) {
 	return (
 		<div className="relative top-px flex shrink-0 flex-col">

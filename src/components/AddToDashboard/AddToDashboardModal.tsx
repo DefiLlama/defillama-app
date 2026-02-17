@@ -78,13 +78,13 @@ export function AddToDashboardModal({
 	const filteredDashboards = useMemo(() => {
 		if (!search.trim()) return dashboards
 		const q = search.toLowerCase()
-		return dashboards.filter((d) => d.name.toLowerCase().includes(q))
+		return dashboards.filter((d: (typeof dashboards)[number]) => d.name.toLowerCase().includes(q))
 	}, [dashboards, search])
 
 	const configName = getConfigName(chartConfig, llamaAIChart)
 	const prevOpenRef = useRef(false)
 
-	const isOpen = dialogStore.useState('open')
+	const isOpen = dialogStore.getState().open
 
 	useEffect(() => {
 		if (isOpen && !prevOpenRef.current) {
@@ -205,7 +205,7 @@ export function AddToDashboardModal({
 					;(window as any).umami.track('add-to-dashboard-submit', { type: 'existing-dashboard' })
 				}
 
-				const selected = dashboards.find((d) => d.id === selectedDashboardId)
+				const selected = dashboards.find((d: (typeof dashboards)[number]) => d.id === selectedDashboardId)
 
 				toast.success(
 					<div>
@@ -275,7 +275,7 @@ export function AddToDashboardModal({
 					<p className="py-4 text-center text-sm pro-text3">No matches found</p>
 				) : (
 					<div className="space-y-1">
-						{filteredDashboards.map((dashboard) => (
+						{filteredDashboards.map((dashboard: (typeof dashboards)[number]) => (
 							<button
 								key={dashboard.id}
 								type="button"

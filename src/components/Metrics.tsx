@@ -27,7 +27,7 @@ const trending = [{ category: 'Trending', metrics: trendingPages as Array<IPage>
 
 const metricsByCategory = trending.concat(
 	Object.entries(
-		defillamaPages.Metrics.reduce((acc, metric) => {
+		defillamaPages.Metrics.reduce<Record<string, IPage[]>>((acc, metric) => {
 			const category = metric.category || 'Others'
 			acc[category] = acc[category] || []
 			acc[category].push({
@@ -71,7 +71,7 @@ export function Metrics({
 	useEffect(() => {
 		if (currentCategory && canDismiss) {
 			const el = document.querySelector(`[data-category="${currentCategory}"]`)
-			if (el && hasScrolledToCategoryRef.current !== `${currentCategory}-true`) {
+			if (el && hasScrolledToCategoryRef && hasScrolledToCategoryRef.current !== `${currentCategory}-true`) {
 				requestAnimationFrame(() => {
 					hasScrolledToCategoryRef.current = `${currentCategory}-true`
 					el.scrollIntoView({ behavior: 'smooth', block: 'start' })

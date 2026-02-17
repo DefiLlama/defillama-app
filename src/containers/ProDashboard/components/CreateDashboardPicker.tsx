@@ -39,7 +39,7 @@ interface CreateDashboardPickerProps {
 
 export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset }: CreateDashboardPickerProps) {
 	const [mode, setMode] = useState<PickerMode>('picker')
-	const isOpen = dialogStore.useState('open')
+	const isOpen = dialogStore.getState().open
 	const { protocols, chains } = useProDashboardCatalog()
 	const { protocolsBySlug } = useAppMetadata()
 	const appliedPresetRef = useRef(false)

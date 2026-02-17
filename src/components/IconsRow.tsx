@@ -60,7 +60,7 @@ interface IIconsRowProps {
 	iconsAlignment?: 'start' | 'end'
 }
 
-const isChain = (chain) => {
+const isChain = (chain: string) => {
 	return ['ethereum', 'avalanche', 'optimism', 'near', 'metis', 'aurora'].includes(chain.toLowerCase())
 }
 
@@ -74,7 +74,7 @@ export const IconsRow = ({
 	urlPrefix = '',
 	iconsAlignment = 'end'
 }: IIconsRowProps) => {
-	const mainWrapEl = useRef(null)
+	const mainWrapEl = useRef<HTMLDivElement>(null)
 	const { width: mainWrapWidth } = useResize(mainWrapEl)
 
 	const { visibleChains, hoverChains } = useMemo(() => {

@@ -1,5 +1,3 @@
-import type { Dispatch, ReactNode } from 'react'
-
 export interface ISearchItem {
 	name: string
 	route:
@@ -13,41 +11,4 @@ export interface ISearchItem {
 	logo?: string | null
 	fallbackLogo?: string | null
 	symbol?: string
-}
-
-interface IBaseSearchProps {
-	data?: ISearchItem[] | null
-	loading?: boolean
-	onSearchTermChange?: (searchValue: string) => void
-	customPath?: (item: string) => string
-	onItemClick?: (item: ISearchItem) => void
-	filters?: ReactNode
-	placeholder?: string
-	value?: string | null
-	className?: string
-	variant?: 'primary' | 'secondary'
-	skipSearching?: boolean
-	customSearchRoute?: string
-}
-
-// oxlint-disable-next-line no-unused-vars
-interface ICommonSearchProps {
-	onItemClick?: IBaseSearchProps['onItemClick']
-}
-
-// oxlint-disable-next-line no-unused-vars
-enum SETS {
-	PROTOCOLS = 'protocols',
-	CHAINS = 'chains',
-	GROUPED_CHAINS = 'grouped_chains',
-	CATEGORIES = 'categories'
-}
-
-// oxlint-disable-next-line no-unused-vars
-interface IGetSearchList {
-	data: ISearchItem[]
-	loading: boolean
-	error?: boolean
-	onSearchTermChange?: Dispatch<any>
-	onItemClick?: (item: any) => void
 }

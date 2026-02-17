@@ -18,9 +18,9 @@ export const RowLinksWithDropdown = (props: IRowLinksProps) => {
 			<span className="sm:hidden">
 				<OtherLinks
 					name={
-						props.links.find((link) => link.label === props.activeLink)
-							? props.activeLink
-							: (props.alternativeOthersText ?? 'Others')
+						props.links.find((link) => link.label === props.activeLink)?.label ??
+						props.alternativeOthersText ??
+						'Others'
 					}
 					options={props.links}
 					isActive={true}

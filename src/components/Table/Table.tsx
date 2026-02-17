@@ -1,5 +1,5 @@
 import { flexRender, type Row, type RowData, type Table } from '@tanstack/react-table'
-import { useWindowVirtualizer } from '@tanstack/react-virtual'
+import { type VirtualItem, useWindowVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { useEffect, useEffectEvent, useRef } from 'react'
@@ -307,6 +307,79 @@ export function VirtualTable({
 		)
 	}
 
+	const renderTableRow = (rowTorender: Row<any>, i: number, virtualRow?: VirtualItem) => {
+		const trStyle: React.CSSProperties = {
+			display: 'grid',
+			gridTemplateColumns,
+			minWidth: `${totalTableWidth}px`,
+			...(skipVirtualization || !virtualRow
+				? { position: 'relative' }
+				: {
+						position: 'absolute',
+						top: 0,
+						left: 0,
+						width: '100%',
+						height: `${virtualRow.size}px`,
+						opacity: rowTorender.original.disabled ? 0.3 : 1,
+						transform: `translateY(${virtualRow.start - rowVirtualizer.options.scrollMargin}px)`
+					})
+		}
+
+		return (
+			<React.Fragment key={rowTorender.id}>
+				<div
+					style={{
+						...trStyle,
+						...(rowTorender.depth > 0
+							? {
+									['--vf-subrow-index' as string]: `"${subRowOrdinalById.get(rowTorender.id) ?? rowTorender.index + 1}"`
+								}
+							: null)
+					}}
+					data-depth={rowTorender.depth}
+					className="vf-row"
+				>
+					{rowTorender
+						.getVisibleCells()
+						.filter((cell) => !cell.column.columnDef.meta?.hidden)
+						.map((cell) => {
+							const textAlign = cell.column.columnDef.meta?.align ?? 'start'
+							const isSticky = cell.column.id === firstColumnId
+							return (
+								<div
+									key={cell.id}
+									data-ligther={stripedBg && i % 2 === 0}
+									data-chainpage={isChainPage}
+									className={`overflow-hidden border-t border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap ${
+										compact
+											? 'flex items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10'
+											: ''
+									}`}
+									style={{
+										textAlign,
+										justifyContent: compact
+											? textAlign === 'center'
+												? 'center'
+												: textAlign === 'end'
+													? 'flex-end'
+													: 'flex-start'
+											: undefined,
+										position: isSticky ? 'sticky' : undefined,
+										left: isSticky ? 0 : undefined,
+										zIndex: isSticky ? 1 : undefined,
+										background: isSticky ? 'var(--cards-bg)' : undefined
+									}}
+								>
+									{flexRender(cell.column.columnDef.cell, cell.getContext())}
+								</div>
+							)
+						})}
+				</div>
+				{renderSubComponent && rowTorender.getIsExpanded() ? <>{renderSubComponent({ row: rowTorender })}</> : null}
+			</React.Fragment>
+		)
+	}
+
 	return (
 		<div
 			{...props}
@@ -393,79 +466,9 @@ export function VirtualTable({
 							}
 				}
 			>
-				{(skipVirtualization ? rows : virtualItems).map((row, i) => {
-					const rowTorender = skipVirtualization ? row : rows[row.index]
-					const trStyle: React.CSSProperties = {
-						display: 'grid',
-						gridTemplateColumns,
-						minWidth: `${totalTableWidth}px`,
-						...(skipVirtualization
-							? { position: 'relative' }
-							: {
-									position: 'absolute',
-									top: 0,
-									left: 0,
-									width: '100%',
-									height: `${row.size}px`,
-									opacity: rowTorender.original.disabled ? 0.3 : 1,
-									transform: `translateY(${row.start - rowVirtualizer.options.scrollMargin}px)`
-								})
-					}
-
-					return (
-						<React.Fragment key={rowTorender.id}>
-							<div
-								style={{
-									...trStyle,
-									...(rowTorender.depth > 0
-										? {
-												['--vf-subrow-index' as string]: `"${subRowOrdinalById.get(rowTorender.id) ?? rowTorender.index + 1}"`
-											}
-										: null)
-								}}
-								data-depth={rowTorender.depth}
-								className="vf-row"
-							>
-								{rowTorender
-									.getVisibleCells()
-									.filter((cell) => !cell.column.columnDef.meta?.hidden)
-									.map((cell) => {
-										const textAlign = cell.column.columnDef.meta?.align ?? 'start'
-										const isSticky = cell.column.id === firstColumnId
-										return (
-											<div
-												key={cell.id}
-												data-ligther={stripedBg && i % 2 === 0}
-												data-chainpage={isChainPage}
-												className={`overflow-hidden border-t border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap ${
-													compact
-														? 'flex items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10'
-														: ''
-												}`}
-												style={{
-													textAlign,
-													justifyContent: compact
-														? textAlign === 'center'
-															? 'center'
-															: textAlign === 'end'
-																? 'flex-end'
-																: 'flex-start'
-														: undefined,
-													position: isSticky ? 'sticky' : undefined,
-													left: isSticky ? 0 : undefined,
-													zIndex: isSticky ? 1 : undefined,
-													background: isSticky ? 'var(--cards-bg)' : undefined
-												}}
-											>
-												{flexRender(cell.column.columnDef.cell, cell.getContext())}
-											</div>
-										)
-									})}
-							</div>
-							{renderSubComponent && rowTorender.getIsExpanded() && <>{renderSubComponent({ row: rowTorender })}</>}
-						</React.Fragment>
-					)
-				})}
+				{skipVirtualization
+					? rows.map((row, i) => renderTableRow(row, i))
+					: virtualItems.map((virtualRow, i) => renderTableRow(rows[virtualRow.index], i, virtualRow))}
 			</div>
 
 			{/* Sticky horizontal scrollbar */}

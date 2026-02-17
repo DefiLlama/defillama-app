@@ -62,15 +62,16 @@ const getSizingForKeys = (
 	return sizing
 }
 
-export function splitArrayByFalsyValues(data, column) {
+export function splitArrayByFalsyValues<T extends object, K extends keyof T>(data: T[], column: K) {
 	return data.reduce(
 		(acc, curr) => {
-			if (!curr[column] && curr[column] !== 0) {
+			const value = curr[column]
+			if (!value && value !== 0) {
 				acc[1].push(curr)
 			} else acc[0].push(curr)
 			return acc
 		},
-		[[], []]
+		[[], []] as [T[], T[]]
 	)
 }
 
@@ -124,12 +125,13 @@ export function useTableSearch<T>({
 	columnToSearch
 }: {
 	instance: Table<T>
-	columnToSearch: string
+	columnToSearch?: string
 }): [string, (value: string) => void] {
 	const [search, setSearch] = useState('')
 	const deferredSearch = useDeferredValue(search)
 
 	useEffect(() => {
+		if (!columnToSearch) return
 		const column = instance.getColumn(columnToSearch)
 		if (!column) return
 
