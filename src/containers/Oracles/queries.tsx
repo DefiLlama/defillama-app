@@ -16,9 +16,9 @@ import type {
 	OracleChartData,
 	OracleChainPageData,
 	OraclePageData,
+	OracleOverviewChartData,
 	OracleProtocolWithBreakdown,
-	OracleProtocolsCount,
-	OracleSingleChartData
+	OracleProtocolsCount
 } from './types'
 
 type TOracleTvsByOracle = Record<string, Record<string, Record<string, number>>>
@@ -68,21 +68,28 @@ function toOracleTvlBreakdownChartData(protocolBreakdown: ReadonlyArray<OracleBr
 function toSingleOracleChartData(
 	oracle: string,
 	chartData: Awaited<ReturnType<typeof fetchOracleProtocolChart>>
-): OracleChartData {
-	return chartData.map(([timestamp, value]) => [timestamp, { [oracle]: { tvl: value } }])
+): OracleOverviewChartData {
+	return chartData.map(([timestamp, value]) => ({
+		timestamp,
+		[oracle]: value
+	}))
 }
 
 function toSingleChainChartData(
+	oracle: string,
 	chain: string,
 	chainBreakdown: Awaited<ReturnType<typeof fetchOracleProtocolChainBreakdownChart>>
-): OracleSingleChartData {
-	const chartData: OracleSingleChartData = []
+): OracleOverviewChartData {
+	const chartData: OracleOverviewChartData = []
 	for (const dayData of chainBreakdown) {
 		const chainValue = dayData[chain]
 		if (typeof chainValue !== 'number') {
 			continue
 		}
-		chartData.push([dayData.timestamp, { tvl: chainValue }])
+		chartData.push({
+			timestamp: dayData.timestamp,
+			[oracle]: chainValue
+		})
 	}
 	return chartData
 }
@@ -217,9 +224,9 @@ export async function getOraclesListPageData({
 
 	const [chartBreakdown, chainBreakdown] = await Promise.all([
 		canonicalChain
-			? fetchOracleChainProtocolBreakdownChart({ chain: canonicalChain, key: 'tvl' })
-			: fetchOracleProtocolBreakdownChart({ key: 'tvl' }),
-		fetchOracleChainBreakdownChart({ key: 'tvl' })
+			? fetchOracleChainProtocolBreakdownChart({ chain: canonicalChain })
+			: fetchOracleProtocolBreakdownChart(),
+		fetchOracleChainBreakdownChart()
 	])
 
 	const chartData = toOracleTvlBreakdownChartData(chartBreakdown)
@@ -285,13 +292,15 @@ export async function getOracleDetailPageData({
 
 	const [oracleChart, oracleChainBreakdown, { protocols }] = await Promise.all([
 		fetchOracleProtocolChart({ protocol: canonicalOracle }),
-		fetchOracleProtocolChainBreakdownChart({ protocol: canonicalOracle, key: 'tvl' }),
+		fetchOracleProtocolChainBreakdownChart({ protocol: canonicalOracle }),
 		fetchJson<TProtocolsApiResponse>(PROTOCOLS_API)
 	])
 
 	const chartData = toSingleOracleChartData(canonicalOracle, oracleChart ?? [])
 	const chainChartData =
-		canonicalChain && oracleChainBreakdown ? toSingleChainChartData(canonicalChain, oracleChainBreakdown) : null
+		canonicalChain && oracleChainBreakdown
+			? toSingleChainChartData(canonicalOracle, canonicalChain, oracleChainBreakdown)
+			: null
 
 	const oracleProtocols = oraclesTVS[canonicalOracle] ?? {}
 	const filteredProtocols: Array<OracleProtocolWithBreakdown> = []

@@ -3,7 +3,8 @@ import type { ILiteProtocol } from '~/containers/ChainOverview/types'
 export type OracleProtocolsCount = Record<string, number>
 export type OracleBreakdownItem = { timestamp: number } & Record<string, number>
 export type OracleChartData = Array<[number, Record<string, Record<string, number>>]>
-export type OracleSingleChartData = Array<[number, Record<string, number>]>
+export type OracleOverviewChartDataPoint = { timestamp: number } & Record<string, number>
+export type OracleOverviewChartData = Array<OracleOverviewChartDataPoint>
 
 export interface OracleProtocolWithBreakdown extends ILiteProtocol {
 	tvl: number
@@ -17,14 +18,14 @@ export interface OracleLink {
 
 export interface OraclePageData {
 	chain: string | null
-	chainChartData: OracleSingleChartData | null
+	chainChartData: OracleOverviewChartData | null
 	chainsByOracle: Record<string, Array<string>>
 	oracles: Array<string>
 	oracleLinks: Array<OracleLink>
 	oracle: string | null
 	oracleProtocolsCount: OracleProtocolsCount
 	filteredProtocols: Array<OracleProtocolWithBreakdown>
-	chartData: OracleChartData
+	chartData: OracleOverviewChartData
 	oraclesColors: Record<string, string>
 }
 

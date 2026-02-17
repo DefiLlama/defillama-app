@@ -50,11 +50,13 @@ export async function fetchOracleChainBreakdownChart({
  * Fetch oracle chart data for a specific protocol.
  */
 export async function fetchOracleProtocolChart({
-	protocol
+	protocol,
+	key
 }: {
 	protocol: string
+	key?: string
 }): Promise<IOracleProtocolChart> {
-	const url = `${V2_SERVER_URL}/chart/oracle/protocol/${slug(protocol)}`
+	const url = appendKeyParam(`${V2_SERVER_URL}/chart/oracle/protocol/${slug(protocol)}`, key)
 	return fetchJson<IOracleProtocolChart>(url, { timeout: 30_000 })
 }
 

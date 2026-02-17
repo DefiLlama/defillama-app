@@ -1,9 +1,11 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQueries } from '@tanstack/react-query'
+import type { UseQueryResult } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
+import { LoadingDots } from '~/components/Loaders'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -95,30 +97,32 @@ export const OraclesByChain = ({
 		return Array.from(apiKeys).toSorted((a, b) => a.localeCompare(b))
 	}, [extraTvlsEnabled])
 
-	const { data: extraBreakdownsByApiKey = {}, isFetching: isFetchingExtraBreakdowns } = useQuery<
-		Record<string, Array<OracleBreakdownItem>>
-	>({
-		queryKey: ['oracles', 'extra-breakdown', chain ?? 'all', enabledExtraApiKeys.join(',')],
-		queryFn: async () => {
-			const entries = await Promise.all(
-				enabledExtraApiKeys.map(async (apiKey) => {
-					const chart = chain
-						? await fetchOracleChainProtocolBreakdownChart({ chain, key: apiKey })
-						: await fetchOracleProtocolBreakdownChart({ key: apiKey })
-					return [apiKey, chart] as const
-				})
-			)
+	const extraBreakdownQueries = useQueries({
+		queries: enabledExtraApiKeys.map((apiKey) => ({
+			queryKey: ['oracles', 'extra-breakdown', chain ?? 'all', apiKey],
+			queryFn: () =>
+				chain
+					? fetchOracleChainProtocolBreakdownChart({ chain, key: apiKey })
+					: fetchOracleProtocolBreakdownChart({ key: apiKey }),
+			enabled: enabledExtraApiKeys.length > 0,
+			staleTime: 5 * 60 * 1_000,
+			refetchOnWindowFocus: false
+		}))
+	}) as Array<UseQueryResult<Array<OracleBreakdownItem>>>
 
-			const result: Record<string, Array<OracleBreakdownItem>> = {}
-			for (const [apiKey, chart] of entries) {
+	const extraBreakdownsByApiKey = React.useMemo(() => {
+		const result: Record<string, Array<OracleBreakdownItem>> = {}
+		for (let index = 0; index < enabledExtraApiKeys.length; index++) {
+			const apiKey = enabledExtraApiKeys[index]
+			const chart = extraBreakdownQueries[index]?.data
+			if (chart) {
 				result[apiKey] = chart
 			}
-			return result
-		},
-		enabled: enabledExtraApiKeys.length > 0,
-		staleTime: 5 * 60 * 1_000,
-		refetchOnWindowFocus: false
-	})
+		}
+		return result
+	}, [enabledExtraApiKeys, extraBreakdownQueries])
+
+	const isFetchingExtraBreakdowns = extraBreakdownQueries.some((query) => query.isLoading || query.isFetching)
 
 	const shouldApplyExtraTvlFormatting = enabledExtraApiKeys.length > 0 && !isFetchingExtraBreakdowns
 
@@ -217,29 +221,38 @@ export const OraclesByChain = ({
 		<>
 			<RowLinksWithDropdown links={oracleLinks} activeLink={activeLink} />
 
-			<div className="flex flex-col gap-2 xl:flex-row">
-				<div className="relative isolate flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<React.Suspense fallback={<div className="min-h-[398px]" />}>
-						<PieChart
-							chartData={pieData}
-							stackColors={oraclesColors}
-							exportButtons={{ png: true, csv: true, filename: 'oracles-tvs-pie', pngTitle: 'Oracles TVS' }}
-						/>
-					</React.Suspense>
+			{isFetchingExtraBreakdowns ? (
+				<div className="flex min-h-[808px] flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) xl:min-h-[400px]">
+					<p className="flex items-center justify-center gap-1 text-center text-xs">
+						Loading
+						<LoadingDots />
+					</p>
 				</div>
-				<div className="flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<React.Suspense fallback={<div className="min-h-[398px]" />}>
-						<MultiSeriesChart2
-							dataset={effectiveData.dominanceDataset}
-							charts={effectiveData.dominanceCharts}
-							stacked={true}
-							expandTo100Percent={true}
-							hideDefaultLegend
-							valueSymbol="%"
-						/>
-					</React.Suspense>
+			) : (
+				<div className="flex flex-col gap-2 xl:flex-row">
+					<div className="relative isolate flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<React.Suspense fallback={<div className="min-h-[398px]" />}>
+							<PieChart
+								chartData={pieData}
+								stackColors={oraclesColors}
+								exportButtons={{ png: true, csv: true, filename: 'oracles-tvs-pie', pngTitle: 'Oracles TVS' }}
+							/>
+						</React.Suspense>
+					</div>
+					<div className="flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<React.Suspense fallback={<div className="min-h-[398px]" />}>
+							<MultiSeriesChart2
+								dataset={effectiveData.dominanceDataset}
+								charts={effectiveData.dominanceCharts}
+								stacked={true}
+								expandTo100Percent={true}
+								hideDefaultLegend
+								valueSymbol="%"
+							/>
+						</React.Suspense>
+					</div>
 				</div>
-			</div>
+			)}
 
 			<React.Suspense
 				fallback={
