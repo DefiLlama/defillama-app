@@ -110,7 +110,7 @@ export interface ILiteProtocol {
 	category: string
 	tags?: Array<string>
 	chains: Array<string>
-	mcap: number
+	mcap: number | null
 	name: string
 	symbol: string
 	logo: string

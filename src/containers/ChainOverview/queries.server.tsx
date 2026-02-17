@@ -932,7 +932,7 @@ export const getProtocolsByChain = async ({
 				}
 			}
 
-			const childStore: IChildProtocol = {
+			const childStore: IChildProtocol & { defillamaId: string } = {
 				name: protocolMetadata[protocol.defillamaId].displayName,
 				slug: slug(protocolMetadata[protocol.defillamaId].displayName),
 				chains: protocolMetadata[protocol.defillamaId].chains,
@@ -950,10 +950,9 @@ export const getProtocolsByChain = async ({
 								liquidstaking: !!tvls?.liquidstaking,
 								doublecounted: !!tvls?.doublecounted
 							})
-						: false
-			} as IChildProtocol & { defillamaId: string }
-
-			;(childStore as IChildProtocol & { defillamaId: string }).defillamaId = protocol.defillamaId
+						: false,
+				defillamaId: protocol.defillamaId
+			}
 
 			if (protocol.deprecated) {
 				childStore.deprecated = true

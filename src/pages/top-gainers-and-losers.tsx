@@ -31,8 +31,10 @@ type ExtraTvlEntry = {
 	tvlPrevWeek: number | null
 	tvlPrevMonth: number | null
 }
-type ProtocolRow = RawProtocol & {
+type ProtocolBaseRow = RawProtocol & {
 	extraTvl: Record<string, ExtraTvlEntry>
+}
+type ProtocolRow = ProtocolBaseRow & {
 	change_1d: number | null
 	change_7d: number | null
 	change_1m: number | null
@@ -99,9 +101,7 @@ const topGainersAndLosersColumns: ColumnDef<ProtocolRow>[] = [
 	{
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
-		cell: (info) => {
-			return <>{info.getValue<number | null>() ?? null}</>
-		},
+		cell: (info) => info.getValue<number | null>(),
 		size: 120,
 		meta: {
 			align: 'end'
@@ -132,21 +132,17 @@ function TopGainersAndLosersTable({ data, sortingState }: { data: Array<Protocol
 export const getStaticProps = withPerformanceLogging('top-gainers-and-losers', async () => {
 	const { protocols } = await fetchProtocols()
 
-	const rows: ProtocolRow[] = protocols.map((protocol) => {
+	const rows: ProtocolBaseRow[] = protocols.map((protocol) => {
 		const extraTvl: Record<string, ExtraTvlEntry> = {}
 		for (const key in protocol.chainTvls) {
-			if (TVL_SETTINGS_KEYS_SET.has(key) || key === 'excludeParent') {
+			if (TVL_SETTINGS_KEYS_SET.has(key)) {
 				extraTvl[key] = protocol.chainTvls[key]
 			}
 		}
 
 		return {
 			...protocol,
-			extraTvl,
-			change_1d: getPercentChange(protocol.tvl, protocol.tvlPrevDay),
-			change_7d: getPercentChange(protocol.tvl, protocol.tvlPrevWeek),
-			change_1m: getPercentChange(protocol.tvl, protocol.tvlPrevMonth),
-			mcaptvl: protocol.mcap != null && protocol.tvl ? +(protocol.mcap / protocol.tvl).toFixed(2) : null
+			extraTvl
 		}
 	})
 
@@ -201,11 +197,14 @@ export default function TopGainersLosers({ protocols }: InferGetStaticPropsType<
 
 	const { topGainers, topLosers } = useMemo(() => {
 		const values = splitArrayByFalsyValues(data, 'change_1d')
-		const sortedData = values[0].toSorted((a, b) => b['change_1d'] - a['change_1d'])
+		const sortedData = values[0].sort((a, b) => b['change_1d'] - a['change_1d'])
+		const n = sortedData.length
+		const topCount = Math.min(5, n)
+		const bottomCount = Math.min(5, n - topCount)
 
 		return {
-			topGainers: sortedData.slice(0, 5),
-			topLosers: sortedData.slice(-5).reverse()
+			topGainers: sortedData.slice(0, topCount),
+			topLosers: bottomCount > 0 ? sortedData.slice(-bottomCount).reverse() : []
 		}
 	}, [data])
 
