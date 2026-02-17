@@ -14,7 +14,8 @@ import type {
 
 function appendKeyParam(url: string, key?: string): string {
 	if (!key) return url
-	return `${url}?key=${encodeURIComponent(key)}`
+	const separator = url.includes('?') ? '&' : '?'
+	return `${url}${separator}key=${encodeURIComponent(key)}`
 }
 
 /**

@@ -71,25 +71,31 @@ function buildOracleProtocolBreakdown({
 	}
 
 	for (const [breakdownKey, value] of Object.entries(protocolOracleData)) {
+		if (isExtraTvlKey(breakdownKey)) {
+			continue
+		}
+
 		if (chain) {
 			if (breakdownKey === chain) {
 				tvl += value
 				continue
 			}
 
-			if (!breakdownKey.includes('-')) continue
-			const [chainName, ...metricNameParts] = breakdownKey.split('-')
-			if (chainName !== chain || metricNameParts.length === 0) continue
-
-			const metricName = metricNameParts.join('-')
+			const metricPrefix = `${chain}-`
+			if (!breakdownKey.startsWith(metricPrefix)) continue
+			const metricName = breakdownKey.slice(metricPrefix.length)
+			if (!metricName || !isExtraTvlKey(metricName)) continue
 			extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
 			continue
 		}
 
-		if (isExtraTvlKey(breakdownKey)) {
-			extraTvl[breakdownKey] = (extraTvl[breakdownKey] ?? 0) + value
-		} else {
+		if (!breakdownKey.includes('-')) {
 			tvl += value
+		} else {
+			const separatorIndex = breakdownKey.indexOf('-')
+			const metricName = breakdownKey.slice(separatorIndex + 1)
+			if (!metricName || !isExtraTvlKey(metricName)) continue
+			extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
 		}
 	}
 
@@ -131,6 +137,10 @@ export async function getOraclesListPageData({
 		for (const protocolName in oraclesTVS[oracle]) {
 			for (const chainOrExtraTvlKey in oraclesTVS[oracle][protocolName]) {
 				const value = oraclesTVS[oracle][protocolName][chainOrExtraTvlKey]
+				if (isExtraTvlKey(chainOrExtraTvlKey)) {
+					continue
+				}
+
 				if (!chainOrExtraTvlKey.includes('-') && !isExtraTvlKey(chainOrExtraTvlKey)) {
 					latestTvlByChain[chainOrExtraTvlKey] = (latestTvlByChain[chainOrExtraTvlKey] ?? 0) + value
 				}
@@ -140,18 +150,20 @@ export async function getOraclesListPageData({
 						tvl += value
 					}
 
-					if (chainOrExtraTvlKey.includes('-')) {
-						const [chainName, ...metricNameParts] = chainOrExtraTvlKey.split('-')
-						if (chainName === canonicalChain && metricNameParts.length > 0) {
-							const metricName = metricNameParts.join('-')
-							extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
-						}
+					const metricPrefix = `${canonicalChain}-`
+					if (chainOrExtraTvlKey.startsWith(metricPrefix)) {
+						const metricName = chainOrExtraTvlKey.slice(metricPrefix.length)
+						if (!metricName || !isExtraTvlKey(metricName)) continue
+						extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
 					}
 				} else {
-					if (isExtraTvlKey(chainOrExtraTvlKey)) {
-						extraTvl[chainOrExtraTvlKey] = (extraTvl[chainOrExtraTvlKey] ?? 0) + value
-					} else {
+					if (!chainOrExtraTvlKey.includes('-')) {
 						tvl += value
+					} else {
+						const separatorIndex = chainOrExtraTvlKey.indexOf('-')
+						const metricName = chainOrExtraTvlKey.slice(separatorIndex + 1)
+						if (!metricName || !isExtraTvlKey(metricName)) continue
+						extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
 					}
 				}
 			}
@@ -176,7 +188,7 @@ export async function getOraclesListPageData({
 		oraclesColors[oracles[i]] = sortedColors[i]
 	}
 
-	const uniqueChains = getAllChains(chainsByOracle).toSorted(
+	const uniqueChains = [...getAllChains(chainsByOracle)].sort(
 		(a, b) => (latestTvlByChain[b] ?? 0) - (latestTvlByChain[a] ?? 0)
 	)
 	const chainLinks = [{ label: 'All', to: `/oracles` }].concat(
@@ -255,23 +267,29 @@ export async function getOracleDetailPageData({
 	for (const protocolName in oracleProtocols) {
 		for (const chainOrExtraTvlKey in oracleProtocols[protocolName]) {
 			const value = oracleProtocols[protocolName][chainOrExtraTvlKey]
+			if (isExtraTvlKey(chainOrExtraTvlKey)) {
+				continue
+			}
+
 			if (canonicalChain) {
 				if (canonicalChain === chainOrExtraTvlKey) {
 					tvl += value
 				}
 
-				if (chainOrExtraTvlKey.includes('-')) {
-					const [chainName, ...metricNameParts] = chainOrExtraTvlKey.split('-')
-					if (chainName === canonicalChain && metricNameParts.length > 0) {
-						const metricName = metricNameParts.join('-')
-						extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
-					}
+				const metricPrefix = `${canonicalChain}-`
+				if (chainOrExtraTvlKey.startsWith(metricPrefix)) {
+					const metricName = chainOrExtraTvlKey.slice(metricPrefix.length)
+					if (!metricName || !isExtraTvlKey(metricName)) continue
+					extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
 				}
 			} else {
-				if (isExtraTvlKey(chainOrExtraTvlKey)) {
-					extraTvl[chainOrExtraTvlKey] = (extraTvl[chainOrExtraTvlKey] ?? 0) + value
-				} else {
+				if (!chainOrExtraTvlKey.includes('-')) {
 					tvl += value
+				} else {
+					const separatorIndex = chainOrExtraTvlKey.indexOf('-')
+					const metricName = chainOrExtraTvlKey.slice(separatorIndex + 1)
+					if (!metricName || !isExtraTvlKey(metricName)) continue
+					extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
 				}
 			}
 		}

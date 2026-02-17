@@ -22,7 +22,6 @@ export function useOraclesByChainExtraBreakdowns({
 				chain
 					? fetchOracleChainProtocolBreakdownChart({ chain, key: apiKey })
 					: fetchOracleProtocolBreakdownChart({ key: apiKey }),
-			enabled: enabledExtraApiKeys.length > 0,
 			staleTime: 5 * 60 * 1_000,
 			refetchOnWindowFocus: false
 		}))

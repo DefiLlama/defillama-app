@@ -28,24 +28,15 @@ function getStrikeTvlText({
 }): string | null {
 	if (!row.strikeTvl) return null
 
-	let text = null
-
-	if (!extraTvlsEnabled['doublecounted']) {
-		text =
-			'This protocol deposits into another protocol and is subtracted from total TVL because "Double Count" toggle is off'
-	}
-
-	if (!extraTvlsEnabled['liquidstaking']) {
-		text =
-			'This protocol is under Liquid Staking category and is subtracted from total TVL because "Liquid Staking" toggle is off'
-	}
-
 	if (!extraTvlsEnabled['doublecounted'] && !extraTvlsEnabled['liquidstaking']) {
-		text =
-			'This protocol deposits into another protocol or is under Liquid Staking category, so it is subtracted from total TVL because both "Liquid Staking" and "Double Count" toggles are off'
+		return 'This protocol deposits into another protocol or is under Liquid Staking category, so it is subtracted from total TVL because both "Liquid Staking" and "Double Count" toggles are off'
+	} else if (!extraTvlsEnabled['doublecounted']) {
+		return 'This protocol deposits into another protocol and is subtracted from total TVL because "Double Count" toggle is off'
+	} else if (!extraTvlsEnabled['liquidstaking']) {
+		return 'This protocol is under Liquid Staking category and is subtracted from total TVL because "Liquid Staking" toggle is off'
 	}
 
-	return text
+	return null
 }
 
 export const OracleOverview = ({
@@ -133,7 +124,7 @@ export const OracleOverview = ({
 				? protocolTableData
 				: protocolTableData
 						.map((protocol) => {
-								const protocolTvl = calculateTvsWithExtraToggles({
+							const protocolTvl = calculateTvsWithExtraToggles({
 								values: { tvl: protocol.tvl, ...(protocol.extraTvl ?? {}) },
 								extraTvlsEnabled
 							})
@@ -143,7 +134,7 @@ export const OracleOverview = ({
 								tvl: protocolTvl
 							}
 						})
-						.toSorted((a, b) => b.tvl - a.tvl)
+						.sort((a, b) => b.tvl - a.tvl)
 
 		return {
 			tableData,
