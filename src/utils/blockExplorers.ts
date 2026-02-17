@@ -139,7 +139,8 @@ const blockExplorers: Record<string, BlockExplorerValue> = {
 	sty: ['https://www.storyscan.xyz/token/', 'Storyscan'],
 	formnetwork: ['https://explorer.form.network/', 'Form Network Explorer'],
 	hemi: ['https://explorer.hemi.xyz/address/', 'Hemi Block Explorer'],
-	ogpu: ['https://ogpuscan.io/address/', 'Ogpuscan']
+	ogpu: ['https://ogpuscan.io/address/', 'Ogpuscan'],
+	keeta: ['https://explorer.keeta.com/token/', 'Keeta Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
