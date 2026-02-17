@@ -127,14 +127,7 @@ export async function getOraclesListPageData({
 	}
 
 	const chartData = canonicalChain
-		? (await fetchOracleChainProtocolBreakdownChart({ chain: canonicalChain })).map((dayData) => {
-				const values: Record<string, Record<string, number>> = {}
-				for (const [name, value] of Object.entries(dayData)) {
-					if (name === 'timestamp') continue
-					values[name] = { tvl: value }
-				}
-				return [dayData.timestamp, values] as [number, Record<string, Record<string, number>>]
-			})
+		? toOracleTvlBreakdownChartData(await fetchOracleChainProtocolBreakdownChart({ chain: canonicalChain }))
 		: toOracleTvlBreakdownChartData(await fetchOracleProtocolBreakdownChart())
 	const latestTvlByChain: Record<string, number> = {}
 

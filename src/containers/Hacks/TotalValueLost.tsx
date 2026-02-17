@@ -110,29 +110,27 @@ export function TotalValueLostContainer({ protocols }: IProtocolTotalValueLostIn
 	}
 
 	return (
-		<>
-			<TableWithSearch
-				data={protocols}
-				columns={filteredColumns}
-				placeholder="Search..."
-				columnToSearch="Name"
-				header="Total Value Lost in Hacks"
-				compact
-				customFilters={
-					<>
-						<Select
-							allValues={columnIds}
-							selectedValues={selectedColumns}
-							setSelectedValues={setSelectedColumns}
-							label="Columns"
-							labelType="smol"
-							variant="filter-responsive"
-						/>
-						<CSVDownloadButton prepareCsv={prepareCsv} smol />
-					</>
-				}
-				sortingState={DEFAULT_SORTING_STATE}
-			/>
-		</>
+		<TableWithSearch
+			data={protocols}
+			columns={filteredColumns}
+			placeholder="Search..."
+			columnToSearch="Name"
+			header="Total Value Lost in Hacks"
+			compact
+			customFilters={
+				<>
+					<Select
+						allValues={columnIds}
+						selectedValues={selectedColumns}
+						setSelectedValues={setSelectedColumns}
+						label="Columns"
+						labelType="smol"
+						variant="filter-responsive"
+					/>
+					<CSVDownloadButton prepareCsv={prepareCsv} smol />
+				</>
+			}
+			sortingState={DEFAULT_SORTING_STATE}
+		/>
 	)
 }

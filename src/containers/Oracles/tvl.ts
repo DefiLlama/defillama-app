@@ -19,13 +19,19 @@ export function calculateTvsWithExtraToggles({
 
 	for (const [metricName, metricValue] of Object.entries(values)) {
 		const normalizedMetricName = metricName.toLowerCase()
+		if (normalizedMetricName === 'tvl') continue
 
 		if (normalizedMetricName === 'doublecounted' && !extraTvlsEnabled.doublecounted) {
 			sum -= metricValue ?? 0
 			continue
 		}
 
-		if ((normalizedMetricName === 'liquidstaking' || normalizedMetricName === 'd') && !extraTvlsEnabled.liquidstaking) {
+		if ((normalizedMetricName === 'doublecounted' || normalizedMetricName === 'd') && !extraTvlsEnabled.doublecounted) {
+			sum -= metricValue ?? 0
+			continue
+		}
+
+		if (normalizedMetricName === 'liquidstaking' && !extraTvlsEnabled.liquidstaking) {
 			sum -= metricValue ?? 0
 			continue
 		}
@@ -40,7 +46,8 @@ export function calculateTvsWithExtraToggles({
 		if (
 			extraTvlsEnabled[normalizedMetricName] &&
 			normalizedMetricName !== 'doublecounted' &&
-			normalizedMetricName !== 'liquidstaking'
+			normalizedMetricName !== 'liquidstaking' &&
+			normalizedMetricName !== 'd'
 		) {
 			sum += metricValue ?? 0
 		}

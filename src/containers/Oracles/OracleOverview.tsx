@@ -80,7 +80,35 @@ function getProtocolTvs({
 
 	for (const [extraName, values] of Object.entries(protocol.extraTvl ?? {})) {
 		const normalizedName = extraName.toLowerCase()
-		if (extraTvlsEnabled[normalizedName] && normalizedName !== 'doublecounted' && normalizedName !== 'liquidstaking') {
+
+		if (normalizedName === 'doublecounted' && !extraTvlsEnabled.doublecounted) {
+			tvs -= values.tvl
+			continue
+		}
+
+		if ((normalizedName === 'doublecounted' || normalizedName === 'd') && !extraTvlsEnabled.doublecounted) {
+			tvs -= values.tvl
+			continue
+		}
+
+		if (normalizedName === 'liquidstaking' && !extraTvlsEnabled.liquidstaking) {
+			tvs -= values.tvl
+			continue
+		}
+
+		if (normalizedName === 'dcandlsoverlap') {
+			if (!extraTvlsEnabled.doublecounted || !extraTvlsEnabled.liquidstaking) {
+				tvs += values.tvl
+			}
+			continue
+		}
+
+		if (
+			extraTvlsEnabled[normalizedName] &&
+			normalizedName !== 'doublecounted' &&
+			normalizedName !== 'liquidstaking' &&
+			normalizedName !== 'd'
+		) {
 			tvs += values.tvl
 		}
 	}

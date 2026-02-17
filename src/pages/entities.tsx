@@ -17,7 +17,7 @@ export const getStaticProps = withPerformanceLogging('entities', async () => {
 export default function Entities(props) {
 	return (
 		<Layout
-			title="Treasuries - DefiLlama"
+			title="Entities - DefiLlama"
 			description="Track treasuries on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
 			keywords="blockchain project treasuries, blockchain entity treasuries, protocol treasuries, entity treasuries"
 			canonicalUrl="/entities"

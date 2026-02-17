@@ -1,7 +1,8 @@
+import Link from 'next/link'
+import type { InferGetStaticPropsType } from 'next/types'
 import { maxAgeForNext } from '~/api'
 import { ChainOverview } from '~/containers/ChainOverview'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
-import Link from 'next/link'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -31,7 +32,7 @@ export const getStaticProps = withPerformanceLogging('index', async () => {
 	}
 })
 
-export default function HomePage(props) {
+export default function HomePage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="DefiLlama - DeFi Dashboard"

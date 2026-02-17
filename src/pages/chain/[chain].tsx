@@ -75,7 +75,7 @@ export default function Chain(props) {
 			title={props.metadata.name === 'All' ? 'DefiLlama - DeFi Dashboard' : `${props.metadata.name} - DefiLlama`}
 			description={props.description}
 			keywords={props.keywords}
-			canonicalUrl={props.metadata.name === 'All' ? '' : `/chain/${props.metadata.name}`}
+			canonicalUrl={props.metadata.name === 'All' ? '' : `/chain/${slug(props.metadata.name)}`}
 			metricFilters={props.tvlAndFeesOptions}
 			metricFiltersLabel="Include in TVL"
 			pageName={pageName}

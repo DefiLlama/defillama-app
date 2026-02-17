@@ -10,12 +10,13 @@ export default function Collection(props) {
 			: Array.isArray(router.query.collection)
 				? router.query.collection[0]
 				: ''
+	const canonicalUrl = router.isReady && collection ? `/nfts/collection/${collection}` : '/nfts/collection'
 	return (
 		<Layout
 			title="NFT Collection - DefiLlama"
 			description=""
 			keywords=""
-			canonicalUrl={`/nfts/collection/${collection}`}
+			canonicalUrl={canonicalUrl}
 		>
 			<NFTCollectionContainer {...props} />
 		</Layout>

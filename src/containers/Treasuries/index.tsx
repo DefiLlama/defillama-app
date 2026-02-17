@@ -61,21 +61,19 @@ export function Treasuries({ data, entity }: { data: ITreasuryRow[]; entity: boo
 	const sortingState = entity ? [{ id: 'tvl', desc: true }] : [{ id: 'coreTvl', desc: true }]
 
 	return (
-		<>
-			<TableWithSearch
-				data={data}
-				columns={tableColumns}
-				columnToSearch={'name'}
-				placeholder={'Search projects...'}
-				header={'Treasuries'}
-				sortingState={sortingState}
-				customFilters={
-					<>
-						<CSVDownloadButton prepareCsv={prepareCsv} />
-					</>
-				}
-			/>
-		</>
+		<TableWithSearch
+			data={data}
+			columns={tableColumns}
+			columnToSearch={'name'}
+			placeholder={'Search projects...'}
+			header={'Treasuries'}
+			sortingState={sortingState}
+			customFilters={
+				<>
+					<CSVDownloadButton prepareCsv={prepareCsv} />
+				</>
+			}
+		/>
 	)
 }
 
