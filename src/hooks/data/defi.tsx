@@ -1,8 +1,8 @@
 import type { IOverviewProps } from '~/api/categories/adaptors'
-import type { ChainMetricSnapshot, IFormattedProtocol, IParentProtocol, TCompressedChain } from '~/api/types'
+import type { ChainMetricSnapshot, IFormattedProtocol, IParentProtocol } from '~/api/types'
 import { removedCategoriesFromChainTvlSet } from '~/constants'
 import type { IChainAsset, IChainAssets, IProtocol } from '~/containers/ChainOverview/types'
-import { formatNum, getDominancePercent, getPercentChange } from '~/utils'
+import { formatNum, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
 
 interface IData {
@@ -214,16 +214,6 @@ export function formatDataWithExtraTvls({
 	}
 }
 
-interface IGroupTvlsByDay {
-	chains: Readonly<Array<TCompressedChain>>
-	tvlTypes: Record<string, string> | null
-	extraTvlsEnabled: Record<string, boolean>
-}
-
-interface IChainTvl {
-	[key: string]: number
-}
-
 type DimensionDatasetItem = {
 	name?: string
 	displayName?: string
@@ -236,79 +226,6 @@ type DimensionDatasetItem = {
 	change_1m?: number
 	chains?: string[]
 	chainBreakdown?: Record<string, unknown>
-}
-
-export function groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled }: IGroupTvlsByDay) {
-	let extraTvls = { ...extraTvlsEnabled }
-
-	let tvlKey = 'tvl'
-	if (tvlTypes !== null) {
-		tvlKey = tvlTypes[tvlKey]
-		const mappedExtraTvls: Record<string, boolean> = {}
-		for (const toggle in extraTvls) {
-			const val = extraTvls[toggle]
-			mappedExtraTvls[tvlTypes[toggle]] = val
-		}
-		extraTvls = mappedExtraTvls
-	}
-
-	const daySum: Record<string, number> = {}
-
-	const chainsWithExtraTvlsByDay = chains.map(([date, values]) => {
-		const tvls: IChainTvl = {}
-		let totalDaySum = 0
-
-		for (const name in values) {
-			const chainTvls = values[name] as IChainTvl
-			let sum = chainTvls[tvlKey]
-			totalDaySum += chainTvls[tvlKey] || 0
-
-			for (const c in chainTvls) {
-				if ((c === 'doublecounted' || c === 'd') && !extraTvls['doublecounted']) {
-					sum -= chainTvls[c]
-					totalDaySum -= chainTvls[c]
-				}
-
-				if ((c === 'liquidstaking' || c === 'l') && !extraTvls['liquidstaking']) {
-					sum -= chainTvls[c]
-					totalDaySum -= chainTvls[c]
-				}
-
-				if (c.toLowerCase() === 'dcandlsoverlap' || c === 'dl') {
-					if (!extraTvls['doublecounted'] || !extraTvls['liquidstaking']) {
-						sum += chainTvls[c]
-						totalDaySum += chainTvls[c]
-					}
-				}
-
-				if (extraTvls[c.toLowerCase()] && c !== 'doublecounted' && c !== 'liquidstaking') {
-					sum += chainTvls[c]
-					totalDaySum += chainTvls[c]
-				}
-			}
-
-			tvls[name] = sum
-		}
-
-		daySum[date] = totalDaySum
-
-		return { date: Number(date), ...tvls }
-	})
-
-	const chainsWithExtraTvlsAndDominanceByDay = chainsWithExtraTvlsByDay.map((entry) => {
-		// `entry` is built from numeric day sums above ({ date: Number(date), ...tvls }),
-		// so this cast narrows to the concrete runtime shape used for dominance math.
-		const { date, ...values } = entry as { date: number } & Record<string, number>
-		const shares: Record<string, number | string> = {}
-
-		for (const value in values) {
-			shares[value] = getDominancePercent(values[value], daySum[date])
-		}
-
-		return { date, ...shares }
-	})
-
-	return { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay }
 }
 
 export const formatProtocolsList = ({

@@ -11,7 +11,6 @@ export const PROTOCOL_API_MINI = `${SERVER_URL}/_fe/updatedProtocol-mini`
 export const CONFIG_API = `${SERVER_URL}/config`
 export const LANGS_API = `${SERVER_URL}/langs`
 export const ORACLE_API = `${SERVER_URL}/oracles`
-export const FORK_API = `${SERVER_URL}/forks`
 export const CATEGORY_API = `${SERVER_URL}/categories`
 export const CATEGORY_CHART_API = `${SERVER_URL}/charts/categories`
 export const TAGS_CHART_API = `${SERVER_URL}/charts/tags`

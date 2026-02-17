@@ -1,83 +1,104 @@
-import { formatProtocolsData } from '~/api/categories/protocols/utils'
-import { FORK_API, PROTOCOLS_API } from '~/constants'
-import { getNDistinctColors } from '~/utils'
+import { PROTOCOLS_API } from '~/constants'
+import type { ILiteProtocol } from '~/containers/ChainOverview/types'
+import { toStrikeTvl } from '~/containers/ChainOverview/utils'
+import { getNDistinctColors, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { fetchForkMetrics, fetchForkProtocolBreakdownChart, fetchForkProtocolChart } from './api'
+import { getForkToOriginalTvlPercent } from './tvl'
+import type { ForkOverviewPageData, ForkPageData } from './types'
 
-export async function getForkPageData(fork: string | null = null) {
-	try {
-		const [{ chart = {}, forks = {} }, { protocols }] = await Promise.all(
-			[FORK_API, PROTOCOLS_API].map((url) => fetchJson(url))
-		)
+type TProtocolsApiResponse = {
+	protocols: Array<ILiteProtocol>
+}
 
-		const forkExists = !fork || forks[fork]
+// - /forks
+export async function getForksListPageData(): Promise<ForkOverviewPageData | null> {
+	const [metrics, { protocols: fetchedProtocols }] = await Promise.all([
+		fetchForkMetrics(),
+		fetchJson<TProtocolsApiResponse>(PROTOCOLS_API)
+	])
 
-		if (!forkExists) {
-			return null
-		}
+	const forkNames = Object.keys(metrics)
+	const chartData = await fetchForkProtocolBreakdownChart()
 
-		let chartData = Object.entries(chart)
-
-		const forksUnique = Object.entries(chartData[chartData.length - 1][1])
-			.sort((a, b) => b[1].tvl - a[1].tvl)
-			.map((fr) => fr[0])
-
-		const protocolsData = formatProtocolsData({ protocols })
-
-		let parentTokens = []
-
-		if (fork) {
-			let data = []
-			for (const [date, tokens] of chartData) {
-				const value = tokens[fork]
-				if (value) {
-					data.push([date, value])
-				}
-			}
-			chartData = data
-			const protocol = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase())
-			if (protocol) {
-				parentTokens.push(protocol)
-			}
-		} else {
-			for (const fork of forksUnique) {
-				const protocol = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase())
-				if (protocol) {
-					parentTokens.push(protocol)
-				}
+	// Get latest TVL by fork from the last chart data point
+	const latestTvlByFork: Record<string, number> = {}
+	if (chartData.length > 0) {
+		const lastDay = chartData[chartData.length - 1]
+		for (const key in lastDay) {
+			if (key !== 'timestamp') {
+				latestTvlByFork[key] = lastDay[key]
 			}
 		}
+	}
 
-		const forksProtocols = {}
+	// Sort forks by TVL
+	const sortedForks = forkNames.sort((a, b) => (latestTvlByFork[b] ?? 0) - (latestTvlByFork[a] ?? 0))
 
-		for (const frk in forks) {
-			forksProtocols[frk] = forks[frk]?.length
-		}
+	// Get fork colors
+	const forkColors: Record<string, string> = { Others: '#AAAAAA' }
+	const sortedColors = getNDistinctColors(sortedForks.length)
+	sortedForks.forEach((fork, i) => {
+		forkColors[fork] = sortedColors[i]
+	})
 
-		let forkLinks = [{ label: 'All', to: `/forks` }].concat(
-			forksUnique.map((o: string) => ({ label: o, to: `/forks/${o}` }))
-		)
+	// Build table data
+	const protocolsByName = new Map(fetchedProtocols.map((p) => [p.name, p]))
+	const tableData = sortedForks.map((forkName) => {
+		const forkedProtocols = metrics[forkName]?.length ?? 0
+		const tvl = latestTvlByFork[forkName] ?? 0
+		const parentProtocol = protocolsByName.get(forkName)
+		const parentTvl = parentProtocol?.tvl
+		const ftot = getForkToOriginalTvlPercent(tvl, parentTvl)
 
-		const filteredProtocols = formatProtocolsData({ fork, protocols })
+		return { name: forkName, tvl, forkedProtocols, parentTvl: parentTvl ?? null, ftot }
+	})
 
-		const allColors = getNDistinctColors(forksUnique.length)
-		const colors = {}
-		for (let i = 0; i < forksUnique.length; i++) {
-			colors[forksUnique[i]] = allColors[i]
-		}
-		colors['Others'] = '#AAAAAA'
+	// Build fork links
+	const forkLinks = [{ label: 'All', to: '/forks' }].concat(
+		sortedForks.map((f) => ({ label: f, to: `/forks/${slug(f)}` }))
+	)
 
-		return {
-			tokens: forksUnique,
-			tokenLinks: forkLinks,
-			token: fork,
-			tokensProtocols: forksProtocols,
-			filteredProtocols,
-			chartData,
-			parentTokens,
-			forkColors: colors
-		}
-	} catch (e) {
-		console.log(e)
+	return { forks: sortedForks, forkLinks, forkColors, tableData, chartData }
+}
+
+// - /forks/:fork
+export async function getForkPageData({ fork }: { fork: string }): Promise<ForkPageData | null> {
+	const [metrics, { protocols: fetchedProtocols }] = await Promise.all([
+		fetchForkMetrics(),
+		fetchJson<TProtocolsApiResponse>(PROTOCOLS_API)
+	])
+
+	const forkNames = Object.keys(metrics)
+	const normalizedFork = fork.toLowerCase()
+	const canonicalFork = forkNames.find((f) => slug(f) === normalizedFork || f.toLowerCase() === normalizedFork)
+
+	if (!canonicalFork) {
 		return null
 	}
+
+	// Fetch chart data for this specific fork - returns [timestamp, value] tuples
+	const chartData = await fetchForkProtocolChart({ protocol: canonicalFork })
+
+	// Build protocol table data
+	const protocolsByName = new Map(fetchedProtocols.map((p) => [p.name, p]))
+	const forkedProtocolNames = metrics[canonicalFork] ?? []
+	const protocolTableData = forkedProtocolNames
+		.map((name) => {
+			const protocol = protocolsByName.get(name)
+			if (!protocol) return null
+			return {
+				...protocol,
+				strikeTvl: toStrikeTvl(protocol, { liquidstaking: false, doublecounted: false })
+			}
+		})
+		.filter((p): p is NonNullable<typeof p> => p != null)
+		.sort((a, b) => b.tvl - a.tvl)
+
+	// Build fork links
+	const forkLinks = [{ label: 'All', to: '/forks' }].concat(
+		forkNames.map((f) => ({ label: f, to: `/forks/${slug(f)}` }))
+	)
+
+	return { fork: canonicalFork, forkLinks, protocolTableData, chartData }
 }

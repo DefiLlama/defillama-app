@@ -289,8 +289,6 @@ export interface IFormattedProtocol extends LiteProtocol {
 	optionsVolumeByChain?: Record<string, ChainMetricSnapshot>
 }
 
-export type TCompressedChain = [string, { [chain: string]: { [dataType: string]: number } }]
-
 export interface IResponseCGMarketsAPI {
 	ath: number
 	ath_change_percentage: number
