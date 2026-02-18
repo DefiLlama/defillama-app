@@ -615,8 +615,8 @@ export const getAllProtocolEmissions = async ({
 			}
 		}
 
-			// Use Object.keys().length for O(1) check instead of for..in loop
-			const hasPriceRequests = Object.keys(priceReqs).length > 0
+		// Use Object.keys().length for O(1) check instead of for..in loop
+		const hasPriceRequests = Object.keys(priceReqs).length > 0
 		const historicalPrices =
 			getHistoricalPrices && hasPriceRequests ? (await batchFetchHistoricalPrices(priceReqs)).results : {}
 

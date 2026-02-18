@@ -275,13 +275,13 @@ export async function getLendBorrowData() {
 	}
 	const cdpPools = [...cdpPoolSet]
 	// Build lookup map for O(1) borrow data access
-	const dataBorrowByPool = new Map<string, typeof dataBorrow[0]>()
+	const dataBorrowByPool = new Map<string, (typeof dataBorrow)[0]>()
 	for (const item of dataBorrow) {
 		dataBorrowByPool.set(item.pool, item)
 	}
 
 	// Build lookup map for compound pools by underlying token
-	const compoundPoolsByToken = new Map<string, typeof compoundPools[0]>()
+	const compoundPoolsByToken = new Map<string, (typeof compoundPools)[0]>()
 	for (const pool of compoundPools) {
 		if (pool.underlyingTokens?.[0]) {
 			compoundPoolsByToken.set(pool.underlyingTokens[0].toLowerCase(), pool)
@@ -289,7 +289,7 @@ export async function getLendBorrowData() {
 	}
 
 	// Build lookup map for aave pools by underlying token
-	const aavePoolsByToken = new Map<string, typeof aavev2Pools[0]>()
+	const aavePoolsByToken = new Map<string, (typeof aavev2Pools)[0]>()
 	for (const pool of aavev2Pools) {
 		if (pool.underlyingTokens?.[0]) {
 			aavePoolsByToken.set(pool.underlyingTokens[0].toLowerCase(), pool)
@@ -324,9 +324,7 @@ export async function getLendBorrowData() {
 				totalAvailableUsd = compoundData?.totalSupplyUsd - compoundData?.totalBorrowUsd
 			} else if (p.project === 'morpho-aave') {
 				// O(1) Map lookup instead of O(n) .find()
-				const aaveData = x.underlyingTokens?.[0]
-					? aavePoolsByToken.get(x.underlyingTokens[0].toLowerCase())
-					: undefined
+				const aaveData = x.underlyingTokens?.[0] ? aavePoolsByToken.get(x.underlyingTokens[0].toLowerCase()) : undefined
 				totalAvailableUsd = aaveData?.totalSupplyUsd - aaveData?.totalBorrowUsd
 			} else if (p.project === 'morpho-blue') {
 				totalAvailableUsd = x.debtCeilingUsd

@@ -190,12 +190,12 @@ export const getNFTCollectionEarnings = async () => {
 		])
 
 		// Build lookup maps for O(1) collection access instead of O(n) .find() calls
-		const royaltiesByCollection = new Map<string, typeof royalties[0]>()
+		const royaltiesByCollection = new Map<string, (typeof royalties)[0]>()
 		for (const royalty of royalties) {
 			royaltiesByCollection.set(`0x${royalty.collection}`, royalty)
 		}
 
-		const mintEarningsByContract = new Map<string, typeof NFT_MINT_EARNINGS[0]>()
+		const mintEarningsByContract = new Map<string, (typeof NFT_MINT_EARNINGS)[0]>()
 		for (const earning of NFT_MINT_EARNINGS) {
 			mintEarningsByContract.set(earning.contractAddress, earning)
 		}

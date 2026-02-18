@@ -96,8 +96,8 @@ export const getChainsByCategory = async ({
 	}) as Array<{ name: string; mcap: number }>
 
 	// Build lookup maps for O(1) protocol access instead of O(n) .find() calls
-	const feesByDisplayName = new Map<string, typeof fees.protocols[0]>()
-	const revenueByDisplayName = new Map<string, typeof revenue.protocols[0]>()
+	const feesByDisplayName = new Map<string, (typeof fees.protocols)[0]>()
+	const revenueByDisplayName = new Map<string, (typeof revenue.protocols)[0]>()
 	if (fees?.protocols) {
 		for (const protocol of fees.protocols) {
 			feesByDisplayName.set(protocol.displayName, protocol)

@@ -281,7 +281,12 @@ export function AdvancedTvlChartTab({
 							</div>
 						}
 					>
-						<BarChart chartData={resolvedUsdInflows} color={dashboardBlue} title="" chartOptions={inflowsChartOptions} />
+						<BarChart
+							chartData={resolvedUsdInflows}
+							color={dashboardBlue}
+							title=""
+							chartOptions={inflowsChartOptions}
+						/>
 					</Suspense>
 				)
 			case 'tokenInflows':

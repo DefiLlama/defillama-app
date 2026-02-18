@@ -315,7 +315,7 @@ export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: 
 			}
 		}
 		// Use for..in instead of Object.values() to avoid intermediate array
-		const finalDataArray: typeof finalData[string][] = []
+		const finalDataArray: (typeof finalData)[string][] = []
 		for (const key in finalData) {
 			finalDataArray.push(finalData[key])
 		}
@@ -441,13 +441,11 @@ export const useGroupBridgeData = (
 			}
 		}
 		// Use for..in instead of Object.values() to avoid intermediate array
-		const finalDataArray: typeof finalData[string][] = []
+		const finalDataArray: (typeof finalData)[string][] = []
 		for (const key in finalData) {
 			finalDataArray.push(finalData[key])
 		}
-		return finalDataArray
-			.filter((chain) => chain.name)
-			.sort((a, b) => b.circulating - a.circulating)
+		return finalDataArray.filter((chain) => chain.name).sort((a, b) => b.circulating - a.circulating)
 	}, [chains, bridgeInfoObject])
 
 	return data
