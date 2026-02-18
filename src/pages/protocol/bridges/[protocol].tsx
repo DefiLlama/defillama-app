@@ -1,7 +1,8 @@
 import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
-import { BridgeContainerOnClient } from '~/containers/Bridges/BridgeProtocolOverview'
+import { BridgeInfo } from '~/containers/Bridges/BridgeProtocolOverview'
+import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
@@ -34,7 +35,14 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const protocolData = await fetchProtocolOverviewMetrics(protocol)
+		const [protocolData, bridgeData] = await Promise.all([
+			fetchProtocolOverviewMetrics(protocol),
+			getBridgePageDatanew(protocol)
+		])
+
+		if (!bridgeData) {
+			return { notFound: true, props: null }
+		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
@@ -44,7 +52,8 @@ export const getStaticProps = withPerformanceLogging(
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
-				warningBanners: getProtocolWarningBanners(protocolData)
+				warningBanners: getProtocolWarningBanners(protocolData),
+				bridgeData
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -65,7 +74,7 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocols({ clientSide: _clientSide, protocolData: _protocolData, ...props }) {
+export default function Protocols({ bridgeData, ...props }) {
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
@@ -76,8 +85,8 @@ export default function Protocols({ clientSide: _clientSide, protocolData: _prot
 			warningBanners={props.warningBanners}
 			toggleOptions={EMPTY_TOGGLE_OPTIONS}
 		>
-			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<BridgeContainerOnClient protocol={props.name} />
+			<div className="flex flex-col gap-10 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+				<BridgeInfo {...bridgeData} />
 			</div>
 		</ProtocolOverviewLayout>
 	)

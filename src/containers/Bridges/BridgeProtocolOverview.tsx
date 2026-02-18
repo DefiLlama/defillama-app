@@ -24,7 +24,7 @@ type ChartType = (typeof CHART_TYPES)[number]
 
 const GROUP_BY_VALUES = ['daily', 'weekly', 'monthly'] as const
 
-const BridgeInfo = ({
+export const BridgeInfo = ({
 	displayName,
 	logo,
 	chains,
