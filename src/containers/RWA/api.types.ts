@@ -1,20 +1,25 @@
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 
+type RWANumberMap = Record<string, number>
+type RWAContractsByChain = Record<string, string[]>
+type RWATvlByChain = Record<string, Record<string, number>>
+type RWAHoldersByChain = Record<string, string[]>
+
 // Raw API response types
 export interface IFetchedRWAProject {
 	id: string
 	ticker: string
-	assetName: string | null
+	assetName?: string | null
 	website?: string[] | null
 	twitter?: string[] | null
 	primaryChain?: string | null
-	chain: string[] | null
-	contracts: Record<string, Array<string>> | null
+	chain?: string[] | null
+	contracts?: RWAContractsByChain | null
 	category?: string[] | null
 	assetClass?: string[] | null
 	type?: string | null
-	rwaClassification: string | null
-	accessModel: 'Permissioned' | 'Permissionless' | 'Non-transferable' | 'Custodial Only' | 'Unknown'
+	rwaClassification?: string | null
+	accessModel?: 'Permissioned' | 'Permissionless' | 'Non-transferable' | 'Custodial Only' | 'Unknown'
 	issuer?: string | null
 	issuerSourceLink?: string[] | null
 	issuerRegistryInfo?: string[] | null
@@ -31,11 +36,20 @@ export interface IFetchedRWAProject {
 	parentPlatform?: string | null
 	stablecoin?: boolean | null
 	governance?: boolean | null
-	defiActiveTvl?: Record<string, Record<string, string>> | null
-	onChainMcap?: Record<string, string> | null
-	activeMcap?: Record<string, string> | null
+	defiActiveTvl?: RWATvlByChain | null
+	onChainMcap?: RWANumberMap | null
+	activeMcap?: RWANumberMap | null
 	price?: number | null
 	activeMcapData?: boolean
+	projectId?: string | string[] | false
+	coingeckoId?: string | false
+	oracleProvider?: string | false
+	oracleProofLink?: string | false
+	logo?: string | string[] | false
+	rwaGithub?: string | false
+	dateOfLastAttestation?: string | null
+	attestationFrequency?: string | string[] | null
+	holdersToRemove?: RWAHoldersByChain | null
 }
 
 export interface IRWAStatsResponse {

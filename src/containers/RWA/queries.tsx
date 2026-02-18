@@ -31,8 +31,8 @@ import type {
 import { definitions } from './definitions'
 import { rwaSlug } from './rwaSlug'
 
-type ChainMetricBreakdown = Record<string, string> | null
-type DefiMetricBreakdown = Record<string, Record<string, string>> | null
+type ChainMetricBreakdown = Record<string, number | string> | null
+type DefiMetricBreakdown = Record<string, Record<string, number | string>> | null
 
 type AggregatedRwaMetrics = {
 	totals: {

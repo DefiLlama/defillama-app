@@ -10,6 +10,8 @@ import { downloadDataURL } from '~/utils'
 
 const IMAGE_EXPORT_WIDTH = 1280
 const IMAGE_EXPORT_HEIGHT = 720
+const TREEMAP_EXPORT_PORTRAIT_WIDTH = 720
+const TREEMAP_EXPORT_PORTRAIT_HEIGHT = 1280
 const approximateTextWidth = (text: string, fontSize: number) => {
 	if (!text) return 0
 	const averageCharWidthRatio = 0.6
@@ -43,10 +45,14 @@ async function exportTreemapWithZoom(
 			chartImg.src = chartDataURL
 		})
 
+		const imageAspect = chartImg.width / Math.max(1, chartImg.height)
+		const isPortraitCapture = imageAspect < 1
+		const exportWidth = isPortraitCapture ? TREEMAP_EXPORT_PORTRAIT_WIDTH : IMAGE_EXPORT_WIDTH
+		const exportHeight = isPortraitCapture ? TREEMAP_EXPORT_PORTRAIT_HEIGHT : IMAGE_EXPORT_HEIGHT
 		const dpr = 2
 		const canvas = document.createElement('canvas')
-		canvas.width = IMAGE_EXPORT_WIDTH * dpr
-		canvas.height = IMAGE_EXPORT_HEIGHT * dpr
+		canvas.width = exportWidth * dpr
+		canvas.height = exportHeight * dpr
 		const ctx = canvas.getContext('2d')
 		if (!ctx) return null
 
@@ -54,7 +60,7 @@ async function exportTreemapWithZoom(
 
 		// Background
 		ctx.fillStyle = isDark ? '#0b1214' : '#ffffff'
-		ctx.fillRect(0, 0, IMAGE_EXPORT_WIDTH, IMAGE_EXPORT_HEIGHT)
+		ctx.fillRect(0, 0, exportWidth, exportHeight)
 
 		// Title
 		const titleText = title || ''
@@ -67,8 +73,8 @@ async function exportTreemapWithZoom(
 		}
 
 		// Draw the captured chart image, scaled to fit the export canvas.
-		const chartAreaW = IMAGE_EXPORT_WIDTH - 24
-		const chartAreaH = IMAGE_EXPORT_HEIGHT - chartTop - 12
+		const chartAreaW = exportWidth - 24
+		const chartAreaH = exportHeight - chartTop - 12
 		const imgAspect = chartImg.width / chartImg.height
 		let drawW = chartAreaW
 		let drawH = drawW / imgAspect
@@ -76,7 +82,8 @@ async function exportTreemapWithZoom(
 			drawH = chartAreaH
 			drawW = drawH * imgAspect
 		}
-		ctx.drawImage(chartImg, 12, chartTop, drawW, drawH)
+		const drawX = 12 + (chartAreaW - drawW) / 2
+		ctx.drawImage(chartImg, drawX, chartTop, drawW, drawH)
 
 		return canvas.toDataURL('image/png')
 	} catch (error) {

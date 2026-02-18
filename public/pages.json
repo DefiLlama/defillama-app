@@ -546,31 +546,6 @@
       "tab": "Protocols"
     },
     {
-      "name": "Unlocks: Overview",
-      "route": "/unlocks",
-      "category": "Unlocks",
-      "description": "Overview of token emissions by protocol",
-      "totalTrackedKey": "emissions.protocols",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols",
-      "oldCategory": "Unlocks",
-      "oldName": "Overview"
-    },
-    {
-      "name": "Unlocks: Calendar",
-      "route": "/unlocks/calendar",
-      "category": "Unlocks",
-      "description": "Upcoming total token emissions by date",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols",
-      "oldCategory": "Unlocks",
-      "oldName": "Calendar"
-    },
-    {
       "name": "RWA: Overview",
       "route": "/rwa",
       "category": "RWA",
@@ -596,6 +571,31 @@
       "route": "/rwa/platforms",
       "category": "RWA",
       "description": "Overview of all Real World Assets (RWAs) by platform"
+    },
+    {
+      "name": "Unlocks: Overview",
+      "route": "/unlocks",
+      "category": "Unlocks",
+      "description": "Overview of token emissions by protocol",
+      "totalTrackedKey": "emissions.protocols",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols",
+      "oldCategory": "Unlocks",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Unlocks: Calendar",
+      "route": "/unlocks/calendar",
+      "category": "Unlocks",
+      "description": "Upcoming total token emissions by date",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols",
+      "oldCategory": "Unlocks",
+      "oldName": "Calendar"
     },
     {
       "name": "Treasuries",
