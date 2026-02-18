@@ -260,12 +260,13 @@ export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: 
 			}
 
 			let addedChildren = false
+			// O(1) Set lookup for already added children (built once per parent)
+			const alreadyAddedNames = new Set((finalData[parentName]?.subRows ?? []).map((p) => p.name))
+
 			for (const type in groupData[parentName]) {
 				if (!isChainsCategoryGroupKey(type) || groupsEnabled[type] !== true) {
 					continue
 				}
-			// O(1) Set lookup for already added children
-			const alreadyAddedNames = new Set((finalData[parentName]?.subRows ?? []).map((p) => p.name))
 
 			for (const child of groupData[parentName][type]) {
 				const childData = chainsByName.get(child)

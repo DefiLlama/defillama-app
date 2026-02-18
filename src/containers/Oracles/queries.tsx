@@ -140,9 +140,8 @@ export async function getOraclesListPageData({
 	const tableData: Array<OracleTableDataRow> = []
 	for (const oracle in oraclesTVS) {
 		const chains = chainsByOracle[oracle] ?? []
-		// O(1) Set lookup instead of O(n) .includes()
-		const chainSet = new Set(chains)
-		if (canonicalChain && !chainSet.has(canonicalChain)) {
+		// Single lookup: .includes() is more efficient than creating a Set
+		if (canonicalChain && !chains.includes(canonicalChain)) {
 			continue
 		}
 
@@ -278,13 +277,12 @@ export async function getOracleDetailPageData({
 
 	const protocolsByName = new Map(protocols.map((protocol) => [protocol.name, protocol]))
 	// Pre-build Set of protocols supporting the canonical chain using for..of instead of filter+map
+	// Note: Single lookup per protocol, so direct .includes() is more efficient than Set creation
 	let protocolsSupportingCanonicalChain: Set<string> | null = null
 	if (canonicalChain) {
 		protocolsSupportingCanonicalChain = new Set<string>()
 		for (const protocol of protocols) {
-			// O(1) Set lookup per protocol's chains instead of O(n) .includes()
-			const protocolChainSet = new Set(protocol.chains)
-			if (protocolChainSet.has(canonicalChain)) {
+			if (protocol.chains.includes(canonicalChain)) {
 				protocolsSupportingCanonicalChain.add(protocol.name)
 			}
 		}
