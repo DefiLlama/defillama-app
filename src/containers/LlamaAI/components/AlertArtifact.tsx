@@ -116,7 +116,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 					<span className="text-sm font-medium text-(--text1)">Sign in to save alerts</span>
-					<span className="text-xs text-(--text3)">Scheduled alerts require authentication</span>
+					<span className="text-xs text-(--text3)">Scheduled alerts require authentication.</span>
 				</div>
 			</div>
 		)
