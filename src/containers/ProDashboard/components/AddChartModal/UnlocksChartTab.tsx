@@ -40,10 +40,6 @@ const UNLOCKS_CHART_TYPES = [
 	{ value: 'allocation', label: 'Allocation' },
 	{ value: 'locked-unlocked', label: 'Locked/Unlocked %' }
 ]
-const UNLOCKS_CHART_TYPE_LABELS = new Map<string, string>()
-for (const chartType of UNLOCKS_CHART_TYPES) {
-	UNLOCKS_CHART_TYPE_LABELS.set(chartType.value, chartType.label)
-}
 
 const EMPTY_CHART_DATA: any[] = []
 const EMPTY_STACKS: string[] = []
@@ -200,13 +196,9 @@ export function UnlocksChartTab({
 
 	useEffect(() => {
 		if (!availableChartTypes.has(selectedUnlocksChartType)) {
-			let nextType: (typeof UNLOCKS_CHART_TYPES)[number] | undefined
-			for (const chartType of UNLOCKS_CHART_TYPES) {
-				if (availableChartTypes.has(chartType.value as 'total' | 'schedule' | 'allocation' | 'locked-unlocked')) {
-					nextType = chartType
-					break
-				}
-			}
+			const nextType = UNLOCKS_CHART_TYPES.find((type) =>
+				availableChartTypes.has(type.value as 'total' | 'schedule' | 'allocation' | 'locked-unlocked')
+			)
 			if (nextType) {
 				onSelectedUnlocksChartTypeChange(nextType.value as 'total' | 'schedule' | 'allocation' | 'locked-unlocked')
 			}
@@ -221,7 +213,7 @@ export function UnlocksChartTab({
 
 	const hasSelection = Boolean(selectedUnlocksProtocol)
 	const previewTitle = selectedUnlocksProtocolName || selectedUnlocksProtocol || ''
-	const selectedChartLabel = UNLOCKS_CHART_TYPE_LABELS.get(selectedUnlocksChartType) || ''
+	const selectedChartLabel = UNLOCKS_CHART_TYPES.find((t) => t.value === selectedUnlocksChartType)?.label || ''
 
 	const renderChart = () => {
 		if (isLoading) {

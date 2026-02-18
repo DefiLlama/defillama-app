@@ -594,23 +594,9 @@ export const FILTER_CONFIGS: FilterConfig[] = [
 		booleanKey: 'hasMcapTVLRatio'
 	}
 ]
-const FILTER_CONFIGS_BY_ID = new Map<string, FilterConfig>()
-for (const config of FILTER_CONFIGS) {
-	FILTER_CONFIGS_BY_ID.set(config.id, config)
-}
 
 export function getFiltersForProtocols(): FilterConfig[] {
-	const filters: FilterConfig[] = []
-	for (const config of FILTER_CONFIGS) {
-		const strategies = config.strategies
-		for (const strategy of strategies) {
-			if (strategy === 'protocols') {
-				filters.push(config)
-				break
-			}
-		}
-	}
-	return filters
+	return FILTER_CONFIGS.filter((config) => config.strategies.includes('protocols'))
 }
 
 export function getFiltersByCategory(): Map<FilterCategory, FilterConfig[]> {
@@ -628,7 +614,7 @@ export function getFiltersByCategory(): Map<FilterCategory, FilterConfig[]> {
 
 // oxlint-disable-next-line no-unused-vars
 function getFilterConfigById(id: string): FilterConfig | undefined {
-	return FILTER_CONFIGS_BY_ID.get(id)
+	return FILTER_CONFIGS.find((config) => config.id === id)
 }
 
 export function formatFilterValue(value: number, format: FilterFormat = 'currency'): string {

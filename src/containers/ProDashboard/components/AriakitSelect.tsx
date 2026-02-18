@@ -30,19 +30,12 @@ export function AriakitSelect({
 	className = ''
 }: AriakitSelectProps) {
 	const popover = usePopoverStore({ placement: 'bottom-start' })
-	const optionsByValue = useMemo(() => {
-		const map = new Map<string, SelectOption>()
-		for (const option of options) {
-			map.set(option.value, option)
-		}
-		return map
-	}, [options])
 
 	const selectedLabel = useMemo(() => {
 		if (!selectedValue) return placeholder
-		const selected = optionsByValue.get(selectedValue)
+		const selected = options.find((opt) => opt.value === selectedValue)
 		return selected?.label || selectedValue
-	}, [selectedValue, optionsByValue, placeholder])
+	}, [selectedValue, options, placeholder])
 
 	return (
 		<div className={className}>

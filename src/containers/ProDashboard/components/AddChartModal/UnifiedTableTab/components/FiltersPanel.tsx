@@ -19,7 +19,6 @@ interface FiltersPanelProps {
 export function FiltersPanel({ chains, filters, availableChains, onChainsChange, onFiltersChange }: FiltersPanelProps) {
 	const { protocols } = useProDashboardCatalog()
 	const [categoryMode, setCategoryMode] = useState<'include' | 'exclude'>('include')
-	const chainsSet = useMemo(() => new Set(chains), [chains])
 
 	const chainSelectOptions = useMemo(() => {
 		if (availableChains.some((option) => option.value === 'All')) {
@@ -30,12 +29,12 @@ export function FiltersPanel({ chains, filters, availableChains, onChainsChange,
 	}, [availableChains])
 
 	const selectedChainValues = useMemo<string[]>(() => {
-		if (chainsSet.has('All')) {
+		if (chains.includes('All')) {
 			return ['All']
 		}
 
 		return chains
-	}, [chains, chainsSet])
+	}, [chains])
 
 	const categoryOptions = useMemo(() => {
 		if (!protocols || protocols.length === 0) return []
@@ -96,11 +95,8 @@ export function FiltersPanel({ chains, filters, availableChains, onChainsChange,
 				}
 			}
 			if (protocol?.oraclesByChain) {
-				const oraclesByChain = protocol.oraclesByChain as Record<string, string[]>
-				for (const chainName in oraclesByChain) {
-					for (const oracle of oraclesByChain[chainName]) {
-						add(oracle, weight)
-					}
+				for (const oracle of Object.values(protocol.oraclesByChain as Record<string, string[]>).flat()) {
+					add(oracle, weight)
 				}
 			}
 		}
@@ -145,7 +141,7 @@ export function FiltersPanel({ chains, filters, availableChains, onChainsChange,
 		}
 
 		if (values.includes('All')) {
-			if (!chainsSet.has('All')) {
+			if (!chains.includes('All')) {
 				onChainsChange(['All'])
 				return
 			}

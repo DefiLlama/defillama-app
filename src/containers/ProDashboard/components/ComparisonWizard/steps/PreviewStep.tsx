@@ -42,7 +42,6 @@ export function PreviewStep() {
 	const { state, actions } = useComparisonWizardContext()
 	const { getProtocolInfo } = useProDashboardCatalog()
 	const [tagInput, setTagInput] = useState('')
-	const metricsForCardsSet = useMemo(() => new Set(state.metricsForCards), [state.metricsForCards])
 
 	const selectedItemLabels = useMemo(() => {
 		return state.selectedItems.map((item) => {
@@ -205,7 +204,7 @@ export function PreviewStep() {
 						{state.selectedMetrics.map((metric) => {
 							const info = CHART_TYPES[metric as keyof typeof CHART_TYPES]
 							const label = info?.title || metric
-							const isSelected = metricsForCardsSet.has(metric)
+							const isSelected = state.metricsForCards.includes(metric)
 							return (
 								<label
 									key={metric}

@@ -38,10 +38,6 @@ const AGGREGATION_OPTIONS: Array<{ id: ColumnAggregation; label: string; descrip
 	{ id: 'first', label: 'First', description: 'Use first row value only' },
 	{ id: 'none', label: 'None', description: 'Show dash (-) for grouped rows' }
 ]
-const AGGREGATION_LABELS = new Map<ColumnAggregation, string>()
-for (const option of AGGREGATION_OPTIONS) {
-	AGGREGATION_LABELS.set(option.id, option.label)
-}
 
 const EXAMPLE_PRESETS = [
 	{
@@ -328,7 +324,7 @@ function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }: Custo
 		return () => document.removeEventListener('click', handleClickOutside)
 	}, [])
 
-	const _aggregationLabel = AGGREGATION_LABELS.get(aggregation) ?? aggregation
+	const _aggregationLabel = AGGREGATION_OPTIONS.find((a) => a.id === aggregation)?.label ?? aggregation
 
 	return (
 		<div className="space-y-4">
@@ -549,7 +545,7 @@ function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }: Custo
 										{col.format}
 									</span>
 									<span className="rounded-md border pro-border bg-(--bg-glass) px-1.5 py-0.5 text-[10px] font-medium text-(--text-tertiary)">
-										{AGGREGATION_LABELS.get(col.aggregation) ?? col.aggregation}
+										{AGGREGATION_OPTIONS.find((a) => a.id === col.aggregation)?.label ?? col.aggregation}
 									</span>
 								</div>
 								<code className="block truncate text-xs pro-text3">{col.expression}</code>

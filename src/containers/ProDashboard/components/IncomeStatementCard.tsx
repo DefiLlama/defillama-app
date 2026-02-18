@@ -53,11 +53,9 @@ export function IncomeStatementCard({ config }: IncomeStatementCardProps) {
 
 	const hasData = useMemo(() => {
 		if (!incomeStatement?.data) return false
-		return (['monthly', 'quarterly', 'yearly'] as const).some((key) => {
-			const periodData = incomeStatement.data[key] ?? {}
-			for (const _period in periodData) return true
-			return false
-		})
+		return (['monthly', 'quarterly', 'yearly'] as const).some(
+			(key) => Object.keys(incomeStatement.data[key] ?? {}).length > 0
+		)
 	}, [incomeStatement])
 
 	const hasIncentives = Boolean(record?.flags?.incentives || record?.flags?.emissions)

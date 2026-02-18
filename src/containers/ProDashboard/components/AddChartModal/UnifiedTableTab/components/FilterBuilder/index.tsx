@@ -540,12 +540,7 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 
 		for (const { key, label } of FILTER_CATEGORIES) {
 			const categoryFilters = filtersByCategory.get(key) ?? EMPTY_CATEGORY_FILTERS
-			const matchingFilters: FilterConfig[] = []
-			for (const filter of categoryFilters) {
-				if (filter.label.toLowerCase().includes(searchLower)) {
-					matchingFilters.push(filter)
-				}
-			}
+			const matchingFilters = categoryFilters.filter((f) => f.label.toLowerCase().includes(searchLower))
 
 			if (matchingFilters.length > 0) {
 				result.push({ category: key, label, filters: matchingFilters })

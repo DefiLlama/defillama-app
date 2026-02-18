@@ -215,16 +215,10 @@ export default class ProtocolCharts {
 			if (!histRes.ok) return []
 			const hist = await histRes.json()
 			if (!Array.isArray(hist)) return []
-			const parsed: [number, number][] = []
-			for (const item of hist) {
-				if (!Array.isArray(item) || item.length < 2) continue
-				const t = Number(item[0])
-				const v = Number(item[1])
-				if (!Number.isFinite(t) || !Number.isFinite(v)) continue
-				parsed.push([t, v])
-			}
-			parsed.sort((a, b) => a[0] - b[0])
-			return parsed
+			return hist
+				.filter((x) => Array.isArray(x) && x.length >= 2)
+				.map(([ts, val]) => [Number(ts), Number(val)] as [number, number])
+				.sort((a, b) => a[0] - b[0])
 		} catch (e) {
 			console.log('Error fetching token liquidity', e)
 			return []

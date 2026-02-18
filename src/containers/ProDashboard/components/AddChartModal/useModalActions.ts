@@ -18,8 +18,6 @@ import { EXTENDED_COLOR_PALETTE } from '../../utils/colorManager'
 import type { ChartTabType, MainTabType } from './types'
 import { useModalState } from './useModalState'
 
-const CHAIN_GECKO_CHART_TYPES = new Set(['chainMcap', 'chainPrice'])
-
 export function useModalActions(
 	editItem: DashboardItemConfig | null | undefined,
 	isOpen: boolean,
@@ -47,29 +45,15 @@ export function useModalActions(
 	} = useProDashboardEditorActions()
 
 	const { state, actions } = useModalState(editItem, isOpen)
-	const chainsByName = useMemo(() => {
-		const map = new Map<string, Chain>()
-		for (const chain of chains) {
-			map.set(chain.name, chain)
-		}
-		return map
-	}, [chains])
-	const protocolsBySlug = useMemo(() => {
-		const map = new Map<string, Protocol>()
-		for (const protocol of protocols) {
-			map.set(protocol.slug, protocol)
-		}
-		return map
-	}, [protocols])
 
 	const selectedProtocolData = useMemo(
-		() => (state.selectedProtocol ? protocolsBySlug.get(state.selectedProtocol) : undefined),
-		[protocolsBySlug, state.selectedProtocol]
+		() => protocols.find((p: Protocol) => p.slug === state.selectedProtocol),
+		[protocols, state.selectedProtocol]
 	)
 
 	const selectedChainData = useMemo(
-		() => (state.selectedChain ? chainsByName.get(state.selectedChain) : undefined),
-		[chainsByName, state.selectedChain]
+		() => chains.find((c: Chain) => c.name === state.selectedChain),
+		[chains, state.selectedChain]
 	)
 
 	const chainOptions = useMemo(
@@ -197,7 +181,7 @@ export function useModalActions(
 							? [state.selectedChain]
 							: []
 				for (const chainName of chainsToUse) {
-					const chain = chainsByName.get(chainName)
+					const chain = chains.find((c: Chain) => c.name === chainName)
 					const filteredTypes = chartTypesToAdd.filter((chartType) => {
 						return !state.composerItems.some((item) => item.chain === chainName && item.type === chartType)
 					})
@@ -209,7 +193,7 @@ export function useModalActions(
 							chain: chainName,
 							type: chartType,
 							grouping: targetGrouping,
-							geckoId: CHAIN_GECKO_CHART_TYPES.has(chartType) ? chain?.gecko_id : undefined,
+							geckoId: ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined,
 							color: EXTENDED_COLOR_PALETTE[(colorStartIndex + idx) % EXTENDED_COLOR_PALETTE.length]
 						}))
 						actions.setComposerItems((prev) => [...prev, ...newCharts])
@@ -225,7 +209,7 @@ export function useModalActions(
 							? [state.selectedProtocol]
 							: []
 				for (const slug of protocolsToUse) {
-					const protocol = protocolsBySlug.get(slug)
+					const protocol = protocols.find((p: Protocol) => p.slug === slug)
 					const filteredTypes = chartTypesToAdd.filter((chartType) => {
 						return !state.composerItems.some((item) => item.protocol === slug && item.type === chartType)
 					})
@@ -250,8 +234,8 @@ export function useModalActions(
 		},
 		[
 			actions,
-			chainsByName,
-			protocolsBySlug,
+			chains,
+			protocols,
 			state.composerItems,
 			state.selectedChain,
 			state.selectedChains,
@@ -284,10 +268,10 @@ export function useModalActions(
 					const isGroupable = CHART_TYPES[nextType]?.groupable
 					let geckoId: string | null | undefined
 					if (item.chain) {
-						const chain = chainsByName.get(item.chain)
-						geckoId = CHAIN_GECKO_CHART_TYPES.has(nextType) ? chain?.gecko_id : undefined
+						const chain = chains.find((c: Chain) => c.name === item.chain)
+						geckoId = ['chainMcap', 'chainPrice'].includes(nextType) ? chain?.gecko_id : undefined
 					} else if (item.protocol) {
-						const protocol = protocolsBySlug.get(item.protocol)
+						const protocol = protocols.find((p: Protocol) => p.slug === item.protocol)
 						geckoId = protocol?.geckoId
 					}
 					return {
@@ -302,7 +286,7 @@ export function useModalActions(
 			actions.setSelectedChartType(nextType)
 			actions.setSelectedChartTypes([nextType])
 		},
-		[actions, chainsByName, protocolsBySlug]
+		[actions, chains, protocols]
 	)
 
 	const handleMainTabChange = useCallback(
@@ -377,7 +361,7 @@ export function useModalActions(
 				state.selectedChartTab === 'unlocks' &&
 				state.selectedUnlocksProtocol
 			) {
-				const protocol = state.selectedUnlocksProtocol ? protocolsBySlug.get(state.selectedUnlocksProtocol) : undefined
+				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedUnlocksProtocol)
 				if (state.selectedUnlocksChartType === 'schedule') {
 					newItem = {
 						id: editItem.id,
@@ -462,7 +446,7 @@ export function useModalActions(
 					items: state.composerItems
 				} as MultiChartConfig
 			} else if (state.selectedMainTab === 'charts' && state.selectedChartTab === 'chain' && state.selectedChain) {
-				const chain = state.selectedChain ? chainsByName.get(state.selectedChain) : undefined
+				const chain = chains.find((c: Chain) => c.name === state.selectedChain)
 				const chartType = state.selectedChartTypes[0] || state.selectedChartType
 				const chartTypeDetails = CHART_TYPES[chartType]
 				newItem = {
@@ -472,14 +456,14 @@ export function useModalActions(
 					protocol: undefined,
 					type: chartType,
 					grouping: chartTypeDetails?.groupable ? 'day' : undefined,
-					geckoId: CHAIN_GECKO_CHART_TYPES.has(chartType) ? chain?.gecko_id : undefined
+					geckoId: ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
 				} as ChartConfig
 			} else if (
 				state.selectedMainTab === 'charts' &&
 				state.selectedChartTab === 'protocol' &&
 				state.selectedProtocol
 			) {
-				const protocol = state.selectedProtocol ? protocolsBySlug.get(state.selectedProtocol) : undefined
+				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
 				const chartType = state.selectedChartTypes[0] || state.selectedChartType
 				const chartTypeDetails = CHART_TYPES[chartType]
 				newItem = {
@@ -689,7 +673,7 @@ export function useModalActions(
 				state.selectedChartTab === 'unlocks' &&
 				state.selectedUnlocksProtocol
 			) {
-				const protocol = state.selectedUnlocksProtocol ? protocolsBySlug.get(state.selectedUnlocksProtocol) : undefined
+				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedUnlocksProtocol)
 				if (state.selectedUnlocksChartType === 'schedule') {
 					handleAddUnlocksSchedule(
 						state.selectedUnlocksProtocol,
@@ -776,13 +760,13 @@ export function useModalActions(
 					}
 				} else if (state.chartCreationMode === 'separate' && state.selectedChartTypes.length > 0) {
 					if (state.selectedChain) {
-						const chain = state.selectedChain ? chainsByName.get(state.selectedChain) : undefined
+						const chain = chains.find((c: Chain) => c.name === state.selectedChain)
 						for (const chartType of state.selectedChartTypes) {
-							const geckoId = CHAIN_GECKO_CHART_TYPES.has(chartType) ? chain?.gecko_id : undefined
+							const geckoId = ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
 							handleAddChart(state.selectedChain, chartType, 'chain', geckoId)
 						}
 					} else if (state.selectedProtocol) {
-						const protocol = state.selectedProtocol ? protocolsBySlug.get(state.selectedProtocol) : undefined
+						const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
 						for (const chartType of state.selectedChartTypes) {
 							handleAddChart(
 								state.selectedProtocol,
@@ -873,8 +857,8 @@ export function useModalActions(
 	}, [
 		editItem,
 		state,
-		chainsByName,
-		protocolsBySlug,
+		chains,
+		protocols,
 		handleEditItem,
 		handleAddMultiChart,
 		handleAddChart,

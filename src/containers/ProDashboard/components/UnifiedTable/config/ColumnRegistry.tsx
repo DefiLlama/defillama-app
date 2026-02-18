@@ -638,13 +638,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 		ratios: 'Ratios'
 	}
 
-	let nameColumn: ColumnDef<NormalizedRow> | undefined
-	for (const column of allColumns) {
-		if (column.id === 'name') {
-			nameColumn = column
-			break
-		}
-	}
+	const nameColumn = allColumns.find((col) => col.id === 'name')
 	const metaColumns = allColumns.filter((col) => {
 		const columnId = String(col.id)
 		const dictEntry = COLUMN_DICTIONARY_BY_ID.get(columnId)

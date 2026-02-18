@@ -399,15 +399,15 @@ export function ProDashboardAPIProvider({
 	const getCurrentRatingSession = useCallback(() => {
 		if (!isAuthenticated || !currentDashboard?.aiGenerated || !user?.id) return null
 
-		const unratedSessions: Array<{ sessionId: string } & AISessionData> = []
-		for (const sessionId in currentDashboard.aiGenerated) {
-			const sessionData = currentDashboard.aiGenerated[sessionId]
-			if (sessionData.userId !== user.id || sessionData.rating !== undefined || sessionData.skipped) continue
-			unratedSessions.push({
+		const unratedSessions = Object.entries(currentDashboard.aiGenerated)
+			.filter(
+				([_, sessionData]: [string, AISessionData]) =>
+					sessionData.userId === user.id && sessionData.rating === undefined && !sessionData.skipped
+			)
+			.map(([sessionId, sessionData]) => ({
 				sessionId,
 				...sessionData
-			})
-		}
+			}))
 
 		if (unratedSessions.length === 0) return null
 
@@ -518,15 +518,15 @@ export function ProDashboardAPIProvider({
 	const autoSkipOlderSessionsForRating = useCallback(async () => {
 		if (!isAuthenticated || !currentDashboard?.aiGenerated || !user?.id || !dashboardId) return
 
-		const unratedSessions: Array<{ sessionId: string } & AISessionData> = []
-		for (const sessionId in currentDashboard.aiGenerated) {
-			const sessionData = currentDashboard.aiGenerated[sessionId]
-			if (sessionData.userId !== user.id || sessionData.rating !== undefined || sessionData.skipped) continue
-			unratedSessions.push({
+		const unratedSessions = Object.entries(currentDashboard.aiGenerated)
+			.filter(
+				([_, sessionData]: [string, AISessionData]) =>
+					sessionData.userId === user.id && sessionData.rating === undefined && !sessionData.skipped
+			)
+			.map(([sessionId, sessionData]) => ({
 				sessionId,
 				...sessionData
-			})
-		}
+			}))
 
 		if (unratedSessions.length <= 1) return
 

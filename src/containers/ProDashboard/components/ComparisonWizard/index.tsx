@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import {
@@ -36,13 +36,6 @@ function ComparisonWizardContent({ onComplete, comparisonPreset }: ComparisonWiz
 	const [isGenerating, setIsGenerating] = useState(false)
 	const { setComparisonType, setSelectedItems, setStep } = actions
 	const appliedPresetRef = useRef(false)
-	const availableMetricsByMetric = useMemo(() => {
-		const map = new Map<string, (typeof availableMetrics)[number]>()
-		for (const metric of availableMetrics) {
-			map.set(metric.metric, metric)
-		}
-		return map
-	}, [availableMetrics])
 
 	useEffect(() => {
 		if (!comparisonPreset || appliedPresetRef.current) return
@@ -68,7 +61,7 @@ function ComparisonWizardContent({ onComplete, comparisonPreset }: ComparisonWiz
 		return selectedMetrics
 			.map((metric) => {
 				const chartTypeInfo = CHART_TYPES[metric as keyof typeof CHART_TYPES]
-				const metricInfo = availableMetricsByMetric.get(metric)
+				const metricInfo = availableMetrics.find((m) => m.metric === metric)
 
 				const chartItems: ChartConfig[] = selectedItems
 					.filter((item) => {

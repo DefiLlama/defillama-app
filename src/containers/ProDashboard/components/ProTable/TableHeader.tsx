@@ -50,30 +50,16 @@ export function TableHeader({
 	}, [chains])
 	const [showCustomViewDropdown, setShowCustomViewDropdown] = React.useState(false)
 	const dropdownRef = React.useRef<HTMLDivElement>(null)
-	const customViewsById = React.useMemo(() => {
-		const map = new Map<string, CustomView>()
-		for (const customView of customViews) {
-			map.set(customView.id, customView)
-		}
-		return map
-	}, [customViews])
 
 	const activeCustomView = React.useMemo(
-		() => (activePreset ? customViewsById.get(activePreset) : undefined),
-		[customViewsById, activePreset]
+		() => customViews.find((v) => v.id === activePreset),
+		[customViews, activePreset]
 	)
 	const existingViewNames = React.useMemo(() => customViews.map((v) => v.name), [customViews])
 	const datasetPresets = React.useMemo(
 		() => columnPresets.filter((preset) => preset.group === 'dataset' || preset.group == null),
 		[columnPresets]
 	)
-	const datasetActivePresetIds = React.useMemo(() => {
-		const ids = new Set<string>()
-		for (const preset of datasetPresets) {
-			ids.add(preset.id)
-		}
-		return ids
-	}, [datasetPresets])
 
 	const datasetPopover = usePopoverStore({ placement: 'bottom-start' })
 
@@ -126,7 +112,7 @@ export function TableHeader({
 									<PopoverDisclosure
 										store={datasetPopover}
 										className={`flex items-center gap-1 rounded-md border px-3 py-1.5 text-sm whitespace-nowrap transition-colors ${
-											(activePreset != null && datasetActivePresetIds.has(activePreset))
+											moreDatasets.some((p) => p.id === activePreset)
 												? 'border-(--primary) bg-(--primary) text-white'
 												: 'pro-border pro-bg1 pro-hover-bg pro-text1'
 										}`}

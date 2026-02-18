@@ -46,13 +46,7 @@ export function YieldsTableHeader({
 		return `${chains.length} Chains Yields`
 	}, [chains])
 
-	const presetKeys = React.useMemo(() => {
-		const keys: string[] = []
-		for (const presetKey in columnPresets) {
-			keys.push(presetKey)
-		}
-		return keys
-	}, [columnPresets])
+	const presetKeys = React.useMemo(() => Object.keys(columnPresets), [columnPresets])
 
 	return (
 		<div className="mb-3">

@@ -11,7 +11,6 @@ interface CustomViewModalProps {
 export function CustomViewModal({ isOpen, onClose, onSave, existingViewNames }: CustomViewModalProps) {
 	const [viewName, setViewName] = React.useState('')
 	const [error, setError] = React.useState<string | null>(null)
-	const existingViewNamesSet = React.useMemo(() => new Set(existingViewNames), [existingViewNames])
 
 	React.useEffect(() => {
 		if (isOpen) {
@@ -26,7 +25,7 @@ export function CustomViewModal({ isOpen, onClose, onSave, existingViewNames }: 
 			return
 		}
 
-		if (existingViewNamesSet.has(viewName.trim())) {
+		if (existingViewNames.includes(viewName.trim())) {
 			setError('A view with this name already exists')
 			return
 		}

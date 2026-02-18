@@ -24,10 +24,7 @@ const yieldsColumnMetadata = {
 	ltv: { name: 'LTV', description: 'Loan-to-Value ratio - Maximum borrowing capacity' }
 }
 
-const yieldsColumnKeys: string[] = []
-for (const columnKey in yieldsColumnMetadata) {
-	yieldsColumnKeys.push(columnKey)
-}
+const yieldsColumnKeys = Object.keys(yieldsColumnMetadata)
 
 const columnGroups = [
 	{

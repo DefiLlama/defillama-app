@@ -6,8 +6,6 @@ import type { ChartConfig } from '../../types'
 import { groupData } from '../../utils'
 
 const EMPTY_SERIES: [string, number][] = []
-const PROTOCOL_GECKO_TYPES = new Set(['tokenMcap', 'tokenPrice', 'tokenVolume'])
-const CHAIN_GECKO_TYPES = new Set(['chainMcap', 'chainPrice'])
 
 export function useComposerItemsData(composerItems: ChartConfig[], timePeriod: TimePeriod) {
 	const queries = useQueries({
@@ -16,8 +14,8 @@ export function useComposerItemsData(composerItems: ChartConfig[], timePeriod: T
 			const itemName = item.protocol || item.chain || ''
 
 			const needsGeckoId =
-				(itemType === 'protocol' && PROTOCOL_GECKO_TYPES.has(item.type)) ||
-				(itemType === 'chain' && CHAIN_GECKO_TYPES.has(item.type))
+				(itemType === 'protocol' && ['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(item.type)) ||
+				(itemType === 'chain' && ['chainMcap', 'chainPrice'].includes(item.type))
 
 			const isEnabled = !!itemName && !!item.type && (!needsGeckoId || !!item.geckoId)
 

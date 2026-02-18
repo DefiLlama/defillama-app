@@ -64,7 +64,6 @@ const barChartColors = { Base: CHART_COLORS[0], Reward: CHART_COLORS[1] }
 const liquidityChartColors = { Supplied: CHART_COLORS[0], Borrowed: CHART_COLORS[1], Available: CHART_COLORS[2] }
 const liquidityLegendOptions = ['Supplied', 'Borrowed', 'Available']
 const EMPTY_YIELDS_DATA: any[] = []
-const BORROW_CHART_TYPES = new Set(['borrow-apy', 'net-borrow-apy', 'pool-liquidity'])
 
 export function YieldsChartTab({
 	selectedYieldPool,
@@ -100,17 +99,6 @@ export function YieldsChartTab({
 	const chainPopover = usePopoverStore({ placement: 'bottom-start' })
 	const projectPopover = usePopoverStore({ placement: 'bottom-start' })
 	const tokenPopover = usePopoverStore({ placement: 'bottom-start' })
-	const selectedYieldChainsSet = useMemo(() => new Set(selectedYieldChains), [selectedYieldChains])
-	const selectedYieldProjectsSet = useMemo(() => new Set(selectedYieldProjects), [selectedYieldProjects])
-	const selectedYieldCategoriesSet = useMemo(() => new Set(selectedYieldCategories), [selectedYieldCategories])
-	const selectedYieldTokensSet = useMemo(() => new Set(selectedYieldTokens), [selectedYieldTokens])
-	const yieldsDataByConfigId = useMemo(() => {
-		const map = new Map<string, any>()
-		for (const pool of yieldsData as any[]) {
-			map.set(pool.configID, pool)
-		}
-		return map
-	}, [yieldsData])
 
 	const chainOptions = useMemo(() => {
 		const chainTvlMap = new Map<string, number>()
@@ -139,18 +127,10 @@ export function YieldsChartTab({
 	}, [yieldsData])
 
 	const categoryOptions = useMemo(
-		() => {
-			const categoriesSet = new Set<string>()
-			for (const pool of yieldsData as any[]) {
-				const category = pool.category
-				if (category) {
-					categoriesSet.add(category)
-				}
-			}
-			const categories = Array.from(categoriesSet)
-			categories.sort()
-			return categories.map((cat: string) => ({ value: cat, label: cat }))
-		},
+		() =>
+			[...new Set(yieldsData.map((p: any) => p.category).filter(Boolean))]
+				.sort()
+				.map((cat: string) => ({ value: cat, label: cat })),
 		[yieldsData]
 	)
 
@@ -245,7 +225,7 @@ export function YieldsChartTab({
 	}, [tokenOpen, tokenVirtualizer])
 
 	const toggleChain = (value: string) => {
-		if (selectedYieldChainsSet.has(value)) {
+		if (selectedYieldChains.includes(value)) {
 			onSelectedYieldChainsChange(selectedYieldChains.filter((v) => v !== value))
 		} else {
 			onSelectedYieldChainsChange([...selectedYieldChains, value])
@@ -253,7 +233,7 @@ export function YieldsChartTab({
 	}
 
 	const toggleProject = (value: string) => {
-		if (selectedYieldProjectsSet.has(value)) {
+		if (selectedYieldProjects.includes(value)) {
 			onSelectedYieldProjectsChange(selectedYieldProjects.filter((v) => v !== value))
 		} else {
 			onSelectedYieldProjectsChange([...selectedYieldProjects, value])
@@ -261,7 +241,7 @@ export function YieldsChartTab({
 	}
 
 	const toggleToken = (value: string) => {
-		if (selectedYieldTokensSet.has(value)) {
+		if (selectedYieldTokens.includes(value)) {
 			onSelectedYieldTokensChange(selectedYieldTokens.filter((v) => v !== value))
 		} else {
 			onSelectedYieldTokensChange([...selectedYieldTokens, value])
@@ -275,15 +255,15 @@ export function YieldsChartTab({
 
 	const filteredPools = useMemo(() => {
 		return yieldsData.filter((pool: any) => {
-			if (selectedYieldChainsSet.size > 0 && !selectedYieldChainsSet.has(pool.chains[0])) {
+			if (selectedYieldChains.length > 0 && !selectedYieldChains.includes(pool.chains[0])) {
 				return false
 			}
 
-			if (selectedYieldProjectsSet.size > 0 && !selectedYieldProjectsSet.has(pool.project)) {
+			if (selectedYieldProjects.length > 0 && !selectedYieldProjects.includes(pool.project)) {
 				return false
 			}
 
-			if (selectedYieldCategoriesSet.size > 0 && !selectedYieldCategoriesSet.has(pool.category)) {
+			if (selectedYieldCategories.length > 0 && !selectedYieldCategories.includes(pool.category)) {
 				return false
 			}
 
@@ -334,9 +314,9 @@ export function YieldsChartTab({
 		})
 	}, [
 		yieldsData,
-		selectedYieldChainsSet,
-		selectedYieldProjectsSet,
-		selectedYieldCategoriesSet,
+		selectedYieldChains,
+		selectedYieldProjects,
+		selectedYieldCategories,
 		normalizedSelectedTokens,
 		minTvl,
 		maxTvl
@@ -376,8 +356,8 @@ export function YieldsChartTab({
 
 	const selectedPoolData = useMemo(() => {
 		if (!selectedYieldPool) return null
-		return yieldsDataByConfigId.get(selectedYieldPool.configID) || null
-	}, [selectedYieldPool, yieldsDataByConfigId])
+		return yieldsData.find((p: any) => p.configID === selectedYieldPool.configID) || null
+	}, [selectedYieldPool, yieldsData])
 
 	const { data: selectedYieldChartData, isLoading: selectedYieldChartLoading } = useYieldChartData(
 		selectedYieldPool?.configID || null
@@ -435,18 +415,13 @@ export function YieldsChartTab({
 	useEffect(() => {
 		if (!selectedYieldPool) return
 
-		const isBorrowType = BORROW_CHART_TYPES.has(selectedYieldChartType)
+		const borrowTypes = ['borrow-apy', 'net-borrow-apy', 'pool-liquidity']
+		const isBorrowType = borrowTypes.includes(selectedYieldChartType)
 
 		if (isBorrowType && borrowChartLoading) return
 		if (!isBorrowType && selectedYieldChartLoading) return
 
-		let currentTypeAvailable = false
-		for (const chartType of availableChartTypes) {
-			if (chartType.value === selectedYieldChartType && chartType.available) {
-				currentTypeAvailable = true
-				break
-			}
-		}
+		const currentTypeAvailable = availableChartTypes.find((t) => t.value === selectedYieldChartType && t.available)
 		if (!currentTypeAvailable) {
 			onSelectedYieldChartTypeChange('tvl-apy')
 		}
@@ -474,7 +449,8 @@ export function YieldsChartTab({
 		borrowData: borrowChartData
 	})
 
-	const isPreviewLoading = BORROW_CHART_TYPES.has(selectedYieldChartType)
+	const borrowTypes = ['borrow-apy', 'net-borrow-apy', 'pool-liquidity']
+	const isPreviewLoading = borrowTypes.includes(selectedYieldChartType)
 		? selectedYieldChartLoading || borrowChartLoading
 		: selectedYieldChartLoading
 
@@ -539,7 +515,7 @@ export function YieldsChartTab({
 											{chainVirtualizer.getVirtualItems().map((row) => {
 												const option = filteredChainOptions[row.index]
 												if (!option) return null
-												const isActive = selectedYieldChainsSet.has(option.value)
+												const isActive = selectedYieldChains.includes(option.value)
 												const iconUrl = getItemIconUrl('chain', null, option.value)
 												return (
 													<button
@@ -649,7 +625,7 @@ export function YieldsChartTab({
 											{projectVirtualizer.getVirtualItems().map((row) => {
 												const option = filteredProjectOptions[row.index]
 												if (!option) return null
-												const isActive = selectedYieldProjectsSet.has(option.value)
+												const isActive = selectedYieldProjects.includes(option.value)
 												const iconUrl = getItemIconUrl('protocol', null, option.value)
 												return (
 													<button
@@ -759,7 +735,7 @@ export function YieldsChartTab({
 											{tokenVirtualizer.getVirtualItems().map((row) => {
 												const option = filteredTokenOptions[row.index]
 												if (!option) return null
-												const isActive = selectedYieldTokensSet.has(option.value)
+												const isActive = selectedYieldTokens.includes(option.value)
 												return (
 													<button
 														key={option.value}
@@ -1062,7 +1038,8 @@ export function YieldsChartTab({
 						{selectedYieldPool && (
 							<div className="flex flex-wrap gap-1.5 border-b border-(--cards-border) bg-(--cards-bg) px-3 py-2">
 								{availableChartTypes.map((type) => {
-									const isLoading = borrowChartLoading && BORROW_CHART_TYPES.has(type.value)
+									const isLoading =
+										borrowChartLoading && ['borrow-apy', 'net-borrow-apy', 'pool-liquidity'].includes(type.value)
 									const isActive = selectedYieldChartType === type.value
 									return (
 										<button

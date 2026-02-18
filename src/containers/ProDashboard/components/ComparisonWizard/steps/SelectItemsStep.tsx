@@ -152,13 +152,7 @@ export function SelectItemsStep() {
 
 		if (search.trim()) {
 			const searchLower = search.toLowerCase()
-			const searchFiltered: Option[] = []
-			for (const option of filtered) {
-				if (option.label.toLowerCase().includes(searchLower)) {
-					searchFiltered.push(option)
-				}
-			}
-			filtered = searchFiltered
+			filtered = filtered.filter((o) => o.label.toLowerCase().includes(searchLower))
 		}
 
 		return filtered

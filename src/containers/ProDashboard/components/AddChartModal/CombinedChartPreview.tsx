@@ -9,8 +9,6 @@ const CHART_OPTIONS = {
 	xAxis: { show: true },
 	yAxis: { show: true }
 }
-const NON_MONETARY_TYPES = new Set(['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed'])
-const PERCENT_METRIC_TYPES = new Set(['medianApy'])
 
 interface CombinedChartPreviewProps {
 	composerItems: ChartConfig[]
@@ -54,11 +52,13 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 				const meta = CHART_TYPES[item.type]
 				const displayName = item.protocol ? getProtocolInfo(item.protocol)?.name || item.protocol : item.chain || ''
 
-				if (NON_MONETARY_TYPES.has(item.type)) {
+				const nonMonetaryTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
+				const percentMetricTypes = ['medianApy']
+				if (nonMonetaryTypes.includes(item.type)) {
 					hasNonMonetaryMetrics = true
 				}
 
-				if (!PERCENT_METRIC_TYPES.has(item.type)) {
+				if (!percentMetricTypes.includes(item.type)) {
 					allPercentMetrics = false
 				}
 

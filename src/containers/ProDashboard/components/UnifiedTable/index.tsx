@@ -164,11 +164,7 @@ const sanitizeFilters = (filters: TableFilters): TableFilters | undefined => {
 
 const metricFromColumn = (columnId: string) => columnId
 
-const toCsvValue = (
-	columnId: string,
-	row: NormalizedRow,
-	customColumnsById?: Map<string, CustomColumnDefinition>
-): string => {
+const toCsvValue = (columnId: string, row: NormalizedRow, customColumns?: CustomColumnDefinition[]): string => {
 	if (columnId === 'name') {
 		return row.name
 	}
@@ -182,7 +178,7 @@ const toCsvValue = (
 	}
 
 	if (columnId.startsWith('custom_')) {
-		const customCol = customColumnsById?.get(columnId)
+		const customCol = customColumns?.find((c) => c.id === columnId)
 		if (customCol) {
 			const value = evaluateExpression(customCol.expression, row.metrics)
 			if (value === null) return ''
@@ -235,13 +231,6 @@ function UnifiedTable({
 	} = config
 	const hydratingRef = useRef(false)
 	const canEditFilters = !previewMode && !isReadOnly
-	const customColumnsById = useMemo(() => {
-		const map = new Map<string, CustomColumnDefinition>()
-		for (const customColumn of config.customColumns ?? []) {
-			map.set(customColumn.id, customColumn)
-		}
-		return map
-	}, [config.customColumns])
 	const resolvedRowHeaders = useMemo(() => sanitizeRowHeaders(getDefaultRowHeaders(config)), [config])
 	const filterChips = useMemo(() => getActiveFilterChips(config.filters), [config.filters])
 	const activeFilterCount = filterChips.length
@@ -250,12 +239,8 @@ function UnifiedTable({
 		if (!PROTOCOL_GROUPING_OPTIONS.length) {
 			return undefined
 		}
-		for (const option of PROTOCOL_GROUPING_OPTIONS) {
-			if (rowHeadersMatch(option.headers, resolvedRowHeaders)) {
-				return option.id
-			}
-		}
-		return undefined
+		const match = PROTOCOL_GROUPING_OPTIONS.find((option) => rowHeadersMatch(option.headers, resolvedRowHeaders))
+		return match?.id
 	}, [resolvedRowHeaders])
 
 	const effectiveColumnOrder = previewMode ? (columnOrderOverride ?? getDefaultColumnOrder(config)) : columnOrderState
@@ -364,10 +349,7 @@ function UnifiedTable({
 		}
 	})
 	const rowCount = unifiedTable.table.getRowModel().rows.length
-	let expandedCount = 0
-	for (const _rowId in unifiedTable.expanded) {
-		expandedCount++
-	}
+	const expandedCount = Object.keys(unifiedTable.expanded).length
 	const rowStateVersion = `${rowCount}:${expandedCount}`
 
 	const persistConfigChanges = useCallback(
@@ -465,12 +447,12 @@ function UnifiedTable({
 		const insertIndex = nameIndex >= 0 ? nameIndex + 1 : 0
 		const headers = [...columnHeaders.slice(0, insertIndex), 'Chain', ...columnHeaders.slice(insertIndex)]
 		const csvRows = sortedLeafRows.map((row) => {
-			const rowData = leafColumns.map((column) => toCsvValue(column.id, row, customColumnsById))
+			const rowData = leafColumns.map((column) => toCsvValue(column.id, row, config.customColumns))
 			return [...rowData.slice(0, insertIndex), row.chain ?? '', ...rowData.slice(insertIndex)]
 		})
 
 		downloadCSV(`unified-table.csv`, [headers, ...csvRows])
-	}, [customColumnsById, unifiedTable.table])
+	}, [config.customColumns, unifiedTable.table])
 
 	const handleCsvClick = () => {
 		if (!unifiedTable.leafRows.length) return
@@ -505,8 +487,7 @@ function UnifiedTable({
 	const title = 'Protocols overview'
 	const scopeDescription = useMemo(() => {
 		const selectedChains = (config.params?.chains ?? EMPTY_CHAINS).filter((value): value is string => Boolean(value))
-		const selectedChainsSet = new Set(selectedChains)
-		if (!selectedChains.length || selectedChainsSet.has('All')) {
+		if (!selectedChains.length || selectedChains.includes('All')) {
 			return 'Scope: All chains'
 		}
 		if (selectedChains.length <= 3) {

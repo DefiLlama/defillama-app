@@ -35,10 +35,6 @@ const TREEMAP_VALUE_OPTIONS = [
 	{ name: 'Sum 7d', key: 'sum7d' },
 	{ name: 'Sum 30d', key: 'sum30d' }
 ]
-const TREEMAP_VALUE_OPTION_NAMES = new Map<string, string>()
-for (const option of TREEMAP_VALUE_OPTIONS) {
-	TREEMAP_VALUE_OPTION_NAMES.set(option.key, option.name)
-}
 const VALUE_TYPE_OPTIONS = [
 	{ name: 'Show absolute ($)', key: '$ Absolute' },
 	{ name: 'Show percentage (%)', key: '% Percentage' }
@@ -147,7 +143,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 	const isTvlChart = config.metric === 'tvl' || config.metric === 'stablecoins'
 	const treemapValue = config.treemapValue || 'latest'
 	const treemapMode = isTvlChart ? 'latest' : treemapValue
-	const treemapLabel = TREEMAP_VALUE_OPTION_NAMES.get(treemapMode) || TREEMAP_VALUE_OPTIONS[0].name
+	const treemapLabel =
+		TREEMAP_VALUE_OPTIONS.find((option) => option.key === treemapMode)?.name || TREEMAP_VALUE_OPTIONS[0].name
 	const hideOthersOptions = useMemo(
 		() => buildHideOthersOptions(config.mode, config.limit),
 		[config.mode, config.limit]
@@ -546,23 +543,14 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			}
 		}
 		const timestamps = Array.from(timestampSet).sort((a, b) => a - b)
-		const seriesDataMaps = chartSeries.map((serie) => {
-			const dataMap = new Map<number, number>()
-			for (const [timestamp, value] of serie.data as [number, number][]) {
-				if (!dataMap.has(timestamp)) {
-					dataMap.set(timestamp, value)
-				}
-			}
-			return dataMap
-		})
 
 		const headers = ['Date', ...chartSeries.map((s: any) => s.name)]
 
 		const rows = timestamps.map((timestamp) => {
 			const row = [new Date(timestamp * 1000).toLocaleDateString()]
-			for (const dataMap of seriesDataMaps) {
-				const value = dataMap.get(timestamp)
-				row.push(value != null ? value.toString() : '')
+			for (const s of chartSeries) {
+				const dataPoint = s.data.find(([t]: [number, number]) => t === timestamp)
+				row.push(dataPoint ? dataPoint[1].toString() : '0')
 			}
 			return row
 		})

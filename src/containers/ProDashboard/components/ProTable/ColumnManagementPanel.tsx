@@ -77,8 +77,6 @@ const metricDescriptions: Record<string, string> = {
 	cumulativeFees_share: 'Percentage of total cumulative fees across all protocols',
 	cumulativeVolume_share: 'Percentage of total cumulative volume across all protocols'
 }
-const TVL_META_KEYS = new Set(['name', 'category'])
-const FEES_REVENUE_CATEGORIES = new Set([TABLE_CATEGORIES.FEES, TABLE_CATEGORIES.REVENUE])
 
 interface CustomColumn {
 	id: string
@@ -131,15 +129,8 @@ const ColumnButton = ({
 	toggleColumnVisibility: (columnKey: string, isVisible: boolean) => void
 	customColumns: CustomColumn[]
 }) => {
-	const customColumnsById = React.useMemo(() => {
-		const map = new Map<string, CustomColumn>()
-		for (const customColumn of customColumns) {
-			map.set(customColumn.id, customColumn)
-		}
-		return map
-	}, [customColumns])
 	const description = isCustom
-		? customColumnsById.get(column.key)?.expression || 'Custom column'
+		? customColumns.find((c) => c.id === column.key)?.expression || 'Custom column'
 		: metricDescriptions[column.key] || ''
 
 	if (isActive) {
@@ -231,12 +222,11 @@ export function ColumnManagementPanel({
 	activeViewId
 }: ColumnManagementPanelProps) {
 	const [activeTab, setActiveTab] = React.useState<'columns' | 'custom' | 'views'>('columns')
-	const searchLower = React.useMemo(() => searchTerm.toLowerCase(), [searchTerm])
 
 	// Filter columns by search term (including custom columns in standard tab)
 	const filteredColumns = React.useMemo(() => {
-		return protocolsByChainTableColumns.filter((column) => column.name.toLowerCase().includes(searchLower))
-	}, [searchLower])
+		return protocolsByChainTableColumns.filter((column) => column.name.toLowerCase().includes(searchTerm.toLowerCase()))
+	}, [searchTerm])
 
 	const percentageShareColumns = React.useMemo(() => {
 		const usdValuedMetrics = [
@@ -277,25 +267,11 @@ export function ColumnManagementPanel({
 	const allColumnsForDisplay = React.useMemo(() => {
 		return [...protocolsByChainTableColumns, ...percentageShareColumns, ...customColumnsForStandardView]
 	}, [customColumnsForStandardView, percentageShareColumns])
-	const allColumnsForDisplayByKey = React.useMemo(() => {
-		const map = new Map<string, (typeof allColumnsForDisplay)[number]>()
-		for (const column of allColumnsForDisplay) {
-			map.set(column.key, column)
-		}
-		return map
-	}, [allColumnsForDisplay])
-	const customColumnIdsSet = React.useMemo(() => {
-		const set = new Set<string>()
-		for (const customColumn of customColumns) {
-			set.add(customColumn.id)
-		}
-		return set
-	}, [customColumns])
 
 	// Filter percentage share columns by search term
 	const filteredPercentageColumns = React.useMemo(() => {
-		return percentageShareColumns.filter((column) => column.name.toLowerCase().includes(searchLower))
-	}, [percentageShareColumns, searchLower])
+		return percentageShareColumns.filter((column) => column.name.toLowerCase().includes(searchTerm.toLowerCase()))
+	}, [percentageShareColumns, searchTerm])
 
 	const columnGroups = React.useMemo(() => {
 		const groups = [
@@ -312,12 +288,14 @@ export function ColumnManagementPanel({
 			{
 				title: 'TVL & Market',
 				columns: filteredColumns.filter(
-					(col) => col.category === TABLE_CATEGORIES.TVL || TVL_META_KEYS.has(col.key)
+					(col) => col.category === TABLE_CATEGORIES.TVL || ['name', 'category'].includes(col.key)
 				)
 			},
 			{
 				title: 'Fees & Revenue',
-				columns: filteredColumns.filter((col) => FEES_REVENUE_CATEGORIES.has(col.category))
+				columns: filteredColumns.filter((col) =>
+					[TABLE_CATEGORIES.FEES, TABLE_CATEGORIES.REVENUE].includes(col.category)
+				)
 			},
 			{
 				title: 'Volume & Other',
@@ -421,9 +399,9 @@ export function ColumnManagementPanel({
 								{columnOrder
 									.filter((key) => currentColumns[key])
 									.map((columnKey) => {
-										const column = allColumnsForDisplayByKey.get(columnKey)
+										const column = allColumnsForDisplay.find((col) => col.key === columnKey)
 										if (!column) return null
-										const isCustom = customColumnIdsSet.has(columnKey)
+										const isCustom = customColumns.some((customCol) => customCol.id === columnKey)
 										return (
 											<ColumnButton
 												key={columnKey}

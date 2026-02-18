@@ -6,7 +6,6 @@ import { MetricCard } from '../components/MetricCard'
 export function SelectMetricsStep() {
 	const { state, actions, availableMetrics } = useComparisonWizardContext()
 	const [showInvalid, setShowInvalid] = useState(false)
-	const selectedMetricsSet = useMemo(() => new Set(state.selectedMetrics), [state.selectedMetrics])
 
 	const validMetrics = useMemo(() => availableMetrics.filter((m) => m.isValid), [availableMetrics])
 	const invalidMetrics = useMemo(() => availableMetrics.filter((m) => !m.isValid), [availableMetrics])
@@ -77,7 +76,7 @@ export function SelectMetricsStep() {
 						<MetricCard
 							key={metric.metric}
 							metric={metric}
-							isSelected={selectedMetricsSet.has(metric.metric)}
+							isSelected={state.selectedMetrics.includes(metric.metric)}
 							onToggle={() => actions.toggleMetric(metric.metric)}
 							disabled={!metric.isValid}
 							itemLabel={typeLabel}

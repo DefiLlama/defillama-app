@@ -48,7 +48,6 @@ export function GroupingOptions({ rowHeaders, onToggleRowHeader }: GroupingOptio
 
 		return labels.map((header) => formatGroupingLabel(header)).join(' → ')
 	}, [rowHeaders])
-	const rowHeadersSet = useMemo(() => new Set(rowHeaders), [rowHeaders])
 
 	return (
 		<>
@@ -57,7 +56,7 @@ export function GroupingOptions({ rowHeaders, onToggleRowHeader }: GroupingOptio
 			</div>
 			<div className="grid gap-2 border-t border-(--cards-border)/70 pt-2 sm:grid-cols-2">
 				{groupingOptions.map((option) => {
-					const active = rowHeadersSet.has(option.value)
+					const active = rowHeaders.includes(option.value)
 					return (
 						<button
 							key={option.value}

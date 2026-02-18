@@ -111,14 +111,13 @@ export function applyRowHeaderVisibilityRules(
 	baseVisibility: VisibilityState
 ): VisibilityState {
 	const nextVisibility = { ...baseVisibility }
-	const rowHeadersSet = new Set(rowHeaders)
 
-	if (rowHeadersSet.has('chain')) {
+	if (rowHeaders.includes('chain')) {
 		nextVisibility.chains = false
 		nextVisibility.category = false
 	}
 
-	if (rowHeadersSet.has('category')) {
+	if (rowHeaders.includes('category')) {
 		nextVisibility.category = false
 	}
 

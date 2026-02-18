@@ -396,13 +396,9 @@ function getChartQueryFn(
 					}
 				})
 			)
-			const seriesList: [number, number][][] = []
-			for (const res of settled) {
-				const value = res.status === 'fulfilled' ? res.value : ([] as [number, number][])
-				if (Array.isArray(value)) {
-					seriesList.push(value)
-				}
-			}
+			const seriesList = settled
+				.map((res) => (res.status === 'fulfilled' ? res.value : ([] as [number, number][])))
+				.filter((arr) => Array.isArray(arr))
 
 			const acc = new Map<number, number>()
 			for (const series of seriesList) {

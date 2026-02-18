@@ -60,18 +60,9 @@ export function UnifiedTableHeader({
 	const hasFilters = filterChips.length > 0
 	const canMutateFilters = filtersEditable && Boolean(onFilterRemove)
 	const isGroupingInteractive = Boolean(onGroupingChange)
-	let groupingSelectValue = ''
-	if (groupingOptions) {
-		groupingSelectValue = groupingOptions[0]?.id || ''
-		if (selectedGroupingId) {
-			for (const option of groupingOptions) {
-				if (option.id === selectedGroupingId) {
-					groupingSelectValue = option.id
-					break
-				}
-			}
-		}
-	}
+	const groupingSelectValue = groupingOptions
+		? groupingOptions.find((option) => option.id === selectedGroupingId)?.id || groupingOptions[0]?.id || ''
+		: ''
 
 	return (
 		<div className="mb-3 flex flex-col gap-2">

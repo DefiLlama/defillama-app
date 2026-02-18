@@ -51,8 +51,7 @@ function reducer(state: ComparisonWizardState, action: WizardAction): Comparison
 				metricsForCards: []
 			}
 		case 'TOGGLE_SELECTED_ITEM': {
-			const selectedItemsSet = new Set(state.selectedItems)
-			const isRemoving = selectedItemsSet.has(action.item)
+			const isRemoving = state.selectedItems.includes(action.item)
 			if (isRemoving) {
 				return {
 					...state,
@@ -73,8 +72,7 @@ function reducer(state: ComparisonWizardState, action: WizardAction): Comparison
 			}
 		}
 		case 'TOGGLE_METRIC': {
-			const selectedMetricsSet = new Set(state.selectedMetrics)
-			const isRemoving = selectedMetricsSet.has(action.metric)
+			const isRemoving = state.selectedMetrics.includes(action.metric)
 			const metrics = isRemoving
 				? state.selectedMetrics.filter((m) => m !== action.metric)
 				: [...state.selectedMetrics, action.metric]
@@ -88,8 +86,7 @@ function reducer(state: ComparisonWizardState, action: WizardAction): Comparison
 		case 'SELECT_ALL_METRICS':
 			return { ...state, selectedMetrics: action.metrics }
 		case 'TOGGLE_METRIC_FOR_CARD': {
-			const metricsForCardsSet = new Set(state.metricsForCards)
-			const metricsForCards = metricsForCardsSet.has(action.metric)
+			const metricsForCards = state.metricsForCards.includes(action.metric)
 				? state.metricsForCards.filter((m) => m !== action.metric)
 				: [...state.metricsForCards, action.metric]
 			return { ...state, metricsForCards }
@@ -105,7 +102,7 @@ function reducer(state: ComparisonWizardState, action: WizardAction): Comparison
 		case 'SET_TAGS':
 			return { ...state, tags: action.tags }
 		case 'ADD_TAG':
-			return new Set(state.tags).has(action.tag) ? state : { ...state, tags: [...state.tags, action.tag] }
+			return state.tags.includes(action.tag) ? state : { ...state, tags: [...state.tags, action.tag] }
 		case 'REMOVE_TAG':
 			return { ...state, tags: state.tags.filter((t) => t !== action.tag) }
 		case 'SET_DESCRIPTION':

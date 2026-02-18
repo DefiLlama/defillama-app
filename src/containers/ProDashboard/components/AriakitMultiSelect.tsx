@@ -26,26 +26,18 @@ export function AriakitMultiSelect({
 	maxSelections = 100
 }: AriakitMultiSelectProps) {
 	const popover = usePopoverStore({ placement: 'bottom-start' })
-	const selectedValuesSet = useMemo(() => new Set(selectedValues), [selectedValues])
-	const optionsByValue = useMemo(() => {
-		const map = new Map<string, MultiSelectOption>()
-		for (const option of options) {
-			map.set(option.value, option)
-		}
-		return map
-	}, [options])
 
 	const buttonLabel = useMemo(() => {
 		if (selectedValues.length === 0) return placeholder
 		if (selectedValues.length === 1) {
-			const selected = optionsByValue.get(selectedValues[0])
+			const selected = options.find((opt) => opt.value === selectedValues[0])
 			return selected?.label || selectedValues[0]
 		}
 		return `${selectedValues.length} selected`
-	}, [selectedValues, optionsByValue, placeholder])
+	}, [selectedValues, options, placeholder])
 
 	const toggleValue = (value: string) => {
-		if (selectedValuesSet.has(value)) {
+		if (selectedValues.includes(value)) {
 			onChange(selectedValues.filter((v) => v !== value))
 		} else {
 			if (selectedValues.length < maxSelections) {
@@ -99,7 +91,7 @@ export function AriakitMultiSelect({
 									<div className="px-3 py-2 text-center text-xs pro-text3">No options available.</div>
 								)}
 								{options.map((option) => {
-									const isActive = selectedValuesSet.has(option.value)
+									const isActive = selectedValues.includes(option.value)
 									const isDisabled = option.disabled || (!isActive && isMaxReached)
 									return (
 										<button

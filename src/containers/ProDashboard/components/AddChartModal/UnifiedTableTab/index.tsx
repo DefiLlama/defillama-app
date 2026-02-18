@@ -58,8 +58,7 @@ type TabKey = 'setup' | 'columns' | 'filters'
 const countActiveFilters = (filters: TableFilters | undefined): number => {
 	if (!filters) return 0
 	let count = 0
-	for (const key in filters) {
-		const value = filters[key]
+	for (const value of Object.values(filters)) {
 		if (value == null) continue
 		if (Array.isArray(value)) {
 			if (value.length) count++
@@ -78,20 +77,11 @@ const countActiveFilters = (filters: TableFilters | undefined): number => {
 
 const arraysEqual = (a: string[], b: string[]) => {
 	if (a.length !== b.length) return false
-	for (let i = 0; i < a.length; i++) {
-		if (a[i] !== b[i]) return false
-	}
-	return true
+	return a.every((value, index) => value === b[index])
 }
 
 const visibilityEqual = (a: VisibilityState, b: VisibilityState) => {
-	const keys = new Set<string>()
-	for (const key in a) {
-		keys.add(key)
-	}
-	for (const key in b) {
-		keys.add(key)
-	}
+	const keys = new Set([...Object.keys(a), ...Object.keys(b)])
 	for (const key of keys) {
 		const aValue = key in a ? a[key] : true
 		const bValue = key in b ? b[key] : true
@@ -255,7 +245,6 @@ function TabContent({
 		() => getOrderedCustomColumnIds(columnOrder, customColumns),
 		[columnOrder, customColumns]
 	)
-	const customColumnIdsSet = useMemo(() => new Set(customColumnIds), [customColumnIds])
 
 	const presetDefaults = useMemo(() => {
 		if (activePreset) {
@@ -277,7 +266,7 @@ function TabContent({
 		}
 		const baseOrder = [allColumns[0], ...allColumns.slice(1)]
 		const baseVisibility = allColumns.reduce<VisibilityState>((acc, id) => {
-			acc[id] = id === 'name' || customColumnIdsSet.has(id)
+			acc[id] = id === 'name' || customColumnIds.includes(id)
 			return acc
 		}, {})
 		return {
@@ -285,7 +274,7 @@ function TabContent({
 			visibility: baseVisibility,
 			sorting: [] as SortingState
 		}
-	}, [activePreset, allColumns, customColumnIds, customColumnIdsSet, columnVisibility, customColumns])
+	}, [activePreset, allColumns, customColumnIds, columnVisibility, customColumns])
 
 	const presetSortingFallback = useMemo<SortingState>(() => {
 		return normalizeSorting(activePreset?.defaultSorting)
@@ -482,8 +471,7 @@ function TabContent({
 
 	const activeFilterCount = activeFilterPills.length
 
-	const chainsSet = useMemo(() => new Set(chains), [chains])
-	const scopeCount = chainsSet.has('All') ? 0 : 1
+	const scopeCount = chains.includes('All') ? 0 : 1
 
 	const filterCount = countActiveFilters(filters)
 	const totalFilterCount = scopeCount + filterCount
@@ -534,14 +522,7 @@ function TabContent({
 
 	useEffect(() => {
 		if (availableTabs.length === 0) return
-		let hasActiveTab = false
-		for (const tab of availableTabs) {
-			if (tab.key === activeTab) {
-				hasActiveTab = true
-				break
-			}
-		}
-		if (!hasActiveTab) {
+		if (!availableTabs.some((tab) => tab.key === activeTab)) {
 			setActiveTab(availableTabs[0].key)
 		}
 	}, [availableTabs, activeTab])

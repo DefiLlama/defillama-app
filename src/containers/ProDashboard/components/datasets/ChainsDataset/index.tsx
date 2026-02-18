@@ -210,10 +210,9 @@ export function ChainsDataset({
 		if (presetColumns) {
 			const allColumns = instance.getAllColumns()
 			const newVisibility: Record<string, boolean> = {}
-			const presetColumnsSet = new Set(presetColumns)
 
 			for (const column of allColumns) {
-				newVisibility[column.id] = presetColumnsSet.has(column.id)
+				newVisibility[column.id] = presetColumns.includes(column.id)
 			}
 
 			instance.setColumnVisibility(newVisibility)
@@ -321,9 +320,8 @@ export function ChainsDataset({
 			if (presetColumns) {
 				const allColumns = instance.getAllColumns()
 				const newVisibility: Record<string, boolean> = {}
-				const presetColumnsSet = new Set(presetColumns)
 				for (const column of allColumns) {
-					newVisibility[column.id] = presetColumnsSet.has(column.id)
+					newVisibility[column.id] = presetColumns.includes(column.id)
 				}
 				setColumnVisibility(newVisibility)
 				setColumnOrder(presetColumns)

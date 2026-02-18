@@ -43,10 +43,7 @@ export function useStablecoinAssetChartData(stablecoinSlug: string): UseStableco
 				return null
 			}
 
-			const chainsUnique: string[] = []
-			for (const chainName in res.chainBalances || {}) {
-				chainsUnique.push(chainName)
-			}
+			const chainsUnique: string[] = Object.keys(res.chainBalances || {})
 
 			const chainsData: any[] = chainsUnique.map((chain: string) => {
 				return res.chainBalances[chain]?.tokens || []
@@ -181,19 +178,18 @@ export function useStablecoinAssetsList() {
 		queryFn: async () => {
 			const data = await fetchStablecoinAssetsApi()
 			const peggedAssets = data?.peggedAssets || []
-			const assets: StablecoinAssetInfo[] = []
-			for (const asset of peggedAssets) {
-				const mcap = asset.circulating?.peggedUSD || 0
-				if (mcap <= 0) continue
-				assets.push({
-					name: asset.name,
-					symbol: asset.symbol,
-					mcap,
-					geckoId: asset.gecko_id
+			return peggedAssets
+				.map((asset: any) => {
+					const mcap = asset.circulating?.peggedUSD || 0
+					return {
+						name: asset.name,
+						symbol: asset.symbol,
+						mcap,
+						geckoId: asset.gecko_id
+					}
 				})
-			}
-			assets.sort((a: StablecoinAssetInfo, b: StablecoinAssetInfo) => b.mcap - a.mcap)
-			return assets
+				.filter((a: StablecoinAssetInfo) => a.mcap > 0)
+				.sort((a: StablecoinAssetInfo, b: StablecoinAssetInfo) => b.mcap - a.mcap)
 		},
 		staleTime: 60 * 60 * 1000
 	})
