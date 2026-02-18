@@ -284,7 +284,10 @@ export async function getLendBorrowData() {
 	const compoundPoolsByToken = new Map<string, (typeof compoundPools)[0]>()
 	for (const pool of compoundPools) {
 		if (pool.underlyingTokens?.[0]) {
-			compoundPoolsByToken.set(pool.underlyingTokens[0].toLowerCase(), pool)
+			const tokenKey = pool.underlyingTokens[0].toLowerCase()
+			if (!compoundPoolsByToken.has(tokenKey)) {
+				compoundPoolsByToken.set(tokenKey, pool)
+			}
 		}
 	}
 
@@ -292,7 +295,10 @@ export async function getLendBorrowData() {
 	const aavePoolsByToken = new Map<string, (typeof aavev2Pools)[0]>()
 	for (const pool of aavev2Pools) {
 		if (pool.underlyingTokens?.[0]) {
-			aavePoolsByToken.set(pool.underlyingTokens[0].toLowerCase(), pool)
+			const tokenKey = pool.underlyingTokens[0].toLowerCase()
+			if (!aavePoolsByToken.has(tokenKey)) {
+				aavePoolsByToken.set(tokenKey, pool)
+			}
 		}
 	}
 
