@@ -61,16 +61,16 @@ export const formatProtocolsData = ({
 		if (oracle) {
 			// Convert to Set for O(1) lookup instead of O(n) .includes()
 			let oracleSet: Set<string> | undefined
-			if (protocol.oracles) {
-				oracleSet = new Set(protocol.oracles)
-			} else if (protocol.oraclesByChain) {
+			if (protocol.oraclesByChain) {
 				oracleSet = new Set(
 					chain
 						? protocol.oraclesByChain[chain] || []
 						: Object.values(protocol.oraclesByChain).flat()
 				)
+			} else if (protocol.oracles) {
+				oracleSet = new Set(protocol.oracles)
 			}
-			toFilter = toFilter && oracleSet?.has(oracle)
+			toFilter = toFilter && (oracleSet?.has(oracle) ?? false)
 		}
 
 		if (fork) {

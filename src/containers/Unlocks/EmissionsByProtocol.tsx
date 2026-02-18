@@ -588,7 +588,7 @@ const ChartContainer = ({
 		allocationMode === 'standard'
 			? (() => {
 					const categories: string[] = []
-					for (const category in data.categoriesBreakdown) {
+					for (const category in data.categoriesBreakdown || {}) {
 						categories.push(category)
 					}
 					return categories

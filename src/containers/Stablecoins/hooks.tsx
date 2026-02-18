@@ -268,13 +268,13 @@ export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: 
 					continue
 				}
 
-			for (const child of groupData[parentName][type]) {
-				const childData = chainsByName.get(child)
+				for (const child of groupData[parentName][type]) {
+					const childData = chainsByName.get(child)
 
-				// O(1) Set lookup instead of O(n) .find()
-				const alreadyAdded = alreadyAddedNames.has(child)
+					// O(1) Set lookup instead of O(n) .find()
+					const alreadyAdded = alreadyAddedNames.has(child)
 
-				if (childData && !alreadyAdded) {
+					if (childData && !alreadyAdded) {
 						mcap = (mcap ?? 0) + (childData.mcap ?? 0)
 						unreleased = (unreleased ?? 0) + (childData.unreleased ?? 0)
 						bridgedTo = (bridgedTo ?? 0) + (childData.bridgedTo ?? 0)
@@ -295,6 +295,7 @@ export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: 
 							subRows: [...subChains, childData]
 						}
 						addedChains.add(child)
+						alreadyAddedNames.add(child)
 						addedChildren = true
 					}
 				}
@@ -314,11 +315,11 @@ export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: 
 			}
 		}
 		// Use for..in instead of Object.values() to avoid intermediate array
-	const finalDataArray: typeof finalData[string][] = []
-	for (const key in finalData) {
-		finalDataArray.push(finalData[key])
-	}
-	return finalDataArray.sort((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
+		const finalDataArray: typeof finalData[string][] = []
+		for (const key in finalData) {
+			finalDataArray.push(finalData[key])
+		}
+		return finalDataArray.sort((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
 	}, [chains, groupData, groupsEnabled])
 
 	return data
