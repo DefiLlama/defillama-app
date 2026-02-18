@@ -187,7 +187,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				}
 			})
 			.catch(() => {})
-	}, [user])
+	}, [user, authorizedFetch])
 
 	useEffect(() => {
 		const container = scrollContainerRef.current
@@ -734,6 +734,13 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const handleSubmitRef = useRef(handleSubmit)
 	handleSubmitRef.current = handleSubmit
 
+	const handleActionClick = useCallback(
+		(message: string) => {
+			if (!isStreaming) handleSubmit(message)
+		},
+		[isStreaming, handleSubmit]
+	)
+
 	const handleSessionSelectRef = useRef(handleSessionSelect)
 	handleSessionSelectRef.current = handleSessionSelect
 
@@ -853,16 +860,22 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 												<span className="text-xs text-[#666] dark:text-[#919296]">Loading older messages...</span>
 											</div>
 										)}
-										{messages.map((msg, i) => (
-											<MessageBubble
-												key={i}
-												message={msg}
-												sessionId={sessionId}
-												isStreaming={isStreaming}
-												fetchFn={authorizedFetch}
-												readOnly={readOnly}
-											/>
-										))}
+										{messages.map((msg, i) => {
+											const nextMsg = messages[i + 1]
+											const nextUser = nextMsg?.role === 'user' ? nextMsg.content : undefined
+											return (
+												<MessageBubble
+													key={i}
+													message={msg}
+													sessionId={sessionId}
+													isStreaming={isStreaming}
+													fetchFn={authorizedFetch}
+													readOnly={readOnly}
+													onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
+													nextUserMessage={nextUser}
+												/>
+											)
+										})}
 
 										{isStreaming &&
 											activeToolCalls.length === 0 &&
@@ -1120,6 +1133,117 @@ const SpawnProgressCard = memo(function SpawnProgressCard({
 	)
 })
 
+function ActionButtonGroup({
+	actions,
+	onActionClick,
+	nextUserMessage
+}: {
+	actions: Array<{ label: string; message: string }>
+	onActionClick?: (message: string) => void
+	nextUserMessage?: string
+}) {
+	const alreadyClicked = nextUserMessage
+		? (actions.find((a) => !a.message.startsWith('url:') && a.message === nextUserMessage)?.message ?? null)
+		: null
+	const [clicked, setClicked] = useState<string | null>(alreadyClicked)
+	const isClicked = clicked !== null
+
+	return (
+		<div className="flex flex-wrap items-center gap-2.5">
+			{actions.map((action, j) => {
+				const isUrl = action.message.startsWith('url:')
+				const isPrimary = j === 0 && !isUrl
+
+				if (isUrl) {
+					const href = action.message.slice(4)
+					return (
+						<a
+							key={j}
+							href={href.startsWith('http') ? href : `https://defillama.com${href}`}
+							target={href.startsWith('http') ? '_blank' : undefined}
+							rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
+							onClick={(e) => {
+								if (!href.startsWith('http')) {
+									e.preventDefault()
+									Router.push(href)
+								}
+							}}
+							className="inline-flex items-center gap-1.5 rounded-full border border-[#2172e5]/15 bg-[#2172e5]/[0.03] px-4 py-2 text-sm font-medium text-[#2172e5] transition-all duration-150 hover:border-[#2172e5]/35 hover:bg-[#2172e5]/[0.08] active:scale-[0.97] dark:border-[#4190f7]/15 dark:bg-[#4190f7]/[0.03] dark:text-[#4190f7] dark:hover:border-[#4190f7]/35 dark:hover:bg-[#4190f7]/[0.08]"
+						>
+							{action.label}
+							<svg
+								width="12"
+								height="12"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							>
+								<path d="M7 17L17 7" />
+								<path d="M7 7h10v10" />
+							</svg>
+						</a>
+					)
+				}
+
+				if (isPrimary) {
+					return (
+						<button
+							key={j}
+							type="button"
+							disabled={isClicked || !onActionClick}
+							onClick={() => {
+								if (onActionClick && !isClicked) {
+									setClicked(action.message)
+									onActionClick(action.message)
+								}
+							}}
+							className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-150 ${
+								!isClicked
+									? onActionClick
+										? 'bg-[#2172e5] text-white hover:bg-[#1b5fbd] active:scale-[0.97] dark:bg-[#4190f7] dark:hover:bg-[#3279de]'
+										: 'bg-[#e6e6e6] text-[#999] dark:bg-[#333] dark:text-[#666]'
+									: clicked === action.message
+										? 'bg-[#2172e5] text-white dark:bg-[#4190f7]'
+										: 'pointer-events-none bg-[#e6e6e6] text-[#999] opacity-50 dark:bg-[#333] dark:text-[#666]'
+							}`}
+						>
+							{action.label}
+						</button>
+					)
+				}
+
+				return (
+					<button
+						key={j}
+						type="button"
+						disabled={isClicked || !onActionClick}
+						onClick={() => {
+							if (onActionClick && !isClicked) {
+								setClicked(action.message)
+								onActionClick(action.message)
+							}
+						}}
+						className={`rounded-full border px-5 py-2.5 text-sm font-medium transition-all duration-150 ${
+							!isClicked
+								? onActionClick
+									? 'border-[#2172e5]/20 text-[#2172e5] hover:border-[#2172e5]/40 hover:bg-[#2172e5]/[0.06] active:scale-[0.97] dark:border-[#4190f7]/20 dark:text-[#4190f7] dark:hover:border-[#4190f7]/40 dark:hover:bg-[#4190f7]/[0.06]'
+									: 'border-[#e6e6e6] text-[#999] dark:border-[#333] dark:text-[#666]'
+								: clicked === action.message
+									? 'border-[#2172e5] bg-[#2172e5]/10 text-[#2172e5] dark:border-[#4190f7] dark:bg-[#4190f7]/10 dark:text-[#4190f7]'
+									: 'pointer-events-none border-[#e6e6e6] text-[#999] opacity-50 dark:border-[#333] dark:text-[#666]'
+						}`}
+					>
+						{action.label}
+					</button>
+				)
+			})}
+		</div>
+	)
+}
+
 function InlineContent({
 	text,
 	chartSets,
@@ -1130,7 +1254,9 @@ function InlineContent({
 	citations,
 	isStreaming = false,
 	sessionId,
-	fetchFn
+	fetchFn,
+	onActionClick,
+	nextUserMessage
 }: {
 	text: string
 	chartSets: ChartSet[]
@@ -1142,6 +1268,8 @@ function InlineContent({
 	isStreaming?: boolean
 	sessionId?: string | null
 	fetchFn?: typeof fetch
+	onActionClick?: (message: string) => void
+	nextUserMessage?: string
 }) {
 	const chartIndex = useMemo(() => buildChartIndex(chartSets), [chartSets])
 	const csvIndex = useMemo(() => {
@@ -1150,12 +1278,48 @@ function InlineContent({
 		return m
 	}, [csvExports])
 
-	const { parts, referencedChartIds, referencedCsvIds } = useMemo(() => {
+	const { parts, referencedChartIds, referencedCsvIds, hasActions } = useMemo(() => {
 		const parsed = parseArtifactPlaceholders(text)
-		return { parts: parsed.parts, referencedChartIds: parsed.chartIds, referencedCsvIds: parsed.csvIds }
+		return {
+			parts: parsed.parts,
+			referencedChartIds: parsed.chartIds,
+			referencedCsvIds: parsed.csvIds,
+			hasActions: parsed.actionItems.length > 0
+		}
 	}, [text])
 
-	const hasInlineRefs = referencedChartIds.size > 0 || referencedCsvIds.size > 0
+	const hasInlineRefs = referencedChartIds.size > 0 || referencedCsvIds.size > 0 || hasActions
+
+	const groupedParts = useMemo(() => {
+		const result: Array<
+			(typeof parts)[number] | { type: 'action-group'; actions: Array<{ label: string; message: string }> }
+		> = []
+		let currentActionGroup: Array<{ label: string; message: string }> = []
+
+		for (let idx = 0; idx < parts.length; idx++) {
+			const part = parts[idx]
+			if (part.type === 'action' && part.actionLabel && part.actionMessage) {
+				currentActionGroup.push({ label: part.actionLabel, message: part.actionMessage })
+			} else if (
+				currentActionGroup.length > 0 &&
+				part.type === 'text' &&
+				!part.content.trim() &&
+				parts.slice(idx + 1).some((p) => p.type === 'action')
+			) {
+				continue
+			} else {
+				if (currentActionGroup.length > 0) {
+					result.push({ type: 'action-group', actions: [...currentActionGroup] })
+					currentActionGroup = []
+				}
+				result.push(part)
+			}
+		}
+		if (currentActionGroup.length > 0) {
+			result.push({ type: 'action-group', actions: currentActionGroup })
+		}
+		return result
+	}, [parts])
 
 	const unreferencedCharts = useMemo(() => {
 		const all: { chart: ChartConfiguration; chartData: Record<string, any[]> }[] = []
@@ -1176,8 +1340,18 @@ function InlineContent({
 	return (
 		<div className="flex flex-col gap-2.5">
 			{hasInlineRefs
-				? parts.map((part, i) => {
-						if (part.type === 'chart' && part.chartId) {
+				? groupedParts.map((part, i) => {
+						if ('actions' in part && part.type === 'action-group') {
+							return (
+								<ActionButtonGroup
+									key={`actions-${i}`}
+									actions={part.actions}
+									onActionClick={onActionClick}
+									nextUserMessage={nextUserMessage}
+								/>
+							)
+						}
+						if (part.type === 'chart' && 'chartId' in part && part.chartId) {
 							const entry = chartIndex.get(part.chartId)
 							if (entry) {
 								return (
@@ -1203,22 +1377,25 @@ function InlineContent({
 							}
 							return null
 						}
-						if (part.type === 'csv' && part.csvId) {
+						if (part.type === 'csv' && 'csvId' in part && part.csvId) {
 							const csv = csvIndex.get(part.csvId)
 							if (csv) {
 								return <CSVExportArtifact key={`inline-csv-${part.csvId}-${i}`} csvExport={csv} />
 							}
 							return null
 						}
-						if (!part.content) return null
-						return (
-							<MarkdownRenderer
-								key={`text-${i}`}
-								content={part.content}
-								citations={citations.length > 0 ? citations : undefined}
-								isStreaming={isStreaming}
-							/>
-						)
+						if ('content' in part && !part.content) return null
+						if ('content' in part) {
+							return (
+								<MarkdownRenderer
+									key={`text-${i}`}
+									content={part.content}
+									citations={citations.length > 0 ? citations : undefined}
+									isStreaming={isStreaming}
+								/>
+							)
+						}
+						return null
 					})
 				: text && (
 						<MarkdownRenderer
@@ -1266,7 +1443,7 @@ function TypingIndicator() {
 function ToolIndicator({ label, name }: { label: string; name: string }) {
 	return (
 		<div className="flex items-center gap-2 py-1.5">
-			<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-(--old-blue)" />
+			<img src="/assets/llamaai/llamaai_animation.webp" alt="" className="h-5 w-5 shrink-0" />
 			<span className="text-xs text-[#666] dark:text-[#919296]">
 				{label} <span className="font-mono text-[10px] opacity-60">{name}</span>
 			</span>
@@ -1279,13 +1456,17 @@ function MessageBubble({
 	sessionId,
 	isStreaming: parentIsStreaming,
 	fetchFn,
-	readOnly = false
+	readOnly = false,
+	onActionClick,
+	nextUserMessage
 }: {
 	message: Message
 	sessionId: string | null
 	isStreaming: boolean
 	fetchFn?: typeof fetch
 	readOnly?: boolean
+	onActionClick?: (message: string) => void
+	nextUserMessage?: string
 }) {
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
 
@@ -1324,6 +1505,8 @@ function MessageBubble({
 				citations={message.citations || []}
 				sessionId={sessionId}
 				fetchFn={fetchFn}
+				onActionClick={onActionClick}
+				nextUserMessage={nextUserMessage}
 			/>
 			{message.id && !parentIsStreaming && (
 				<ResponseControls messageId={message.id} content={message.content} sessionId={sessionId} readOnly={readOnly} />

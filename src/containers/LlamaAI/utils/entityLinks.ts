@@ -9,6 +9,10 @@ export function getEntityUrl(type: string, slug: string): string {
 			return `/yields/pool/${slug}`
 		case 'category':
 			return `/protocols/${slug}`
+		case 'stablecoin':
+			return `/stablecoin/${slug}`
+		case 'cex':
+			return `/cex/${slug}`
 		default:
 			return `/${type}/${slug}`
 	}
@@ -22,9 +26,12 @@ export function getEntityIcon(type: string, slug: string): string {
 	switch (type) {
 		case 'protocol':
 		case 'subprotocol':
+		case 'cex':
 			return `https://icons.llamao.fi/icons/protocols/${slug}?w=48&h=48`
 		case 'chain':
 			return `https://icons.llamao.fi/icons/chains/rsz_${slug}?w=48&h=48`
+		case 'stablecoin':
+			return `https://icons.llamao.fi/icons/pegged/${slug}?w=48&h=48`
 		default:
 			return ''
 	}
