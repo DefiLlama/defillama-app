@@ -27,13 +27,15 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	</span>
 )
 
+// TODO move to containers/ProDashboard/components/ProTable/columns.tsx
 export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		id: 'name',
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const value = getValue<string>()
 
 			return (
@@ -64,7 +66,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 						<Bookmark readableName={value} data-lgonly data-bookmark />
 					)}
 
-					<span className="vf-row-index shrink-0" aria-hidden="true" />
+					<span className="shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
@@ -863,105 +865,6 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		},
 		size: 120
 	}) as ColumnDef<IProtocolRow>
-]
-
-export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
-	{
-		header: 'Name',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row }) => {
-			const value = getValue<string>()
-
-			return (
-				<span
-					className="relative flex items-center gap-2"
-					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
-				>
-					{row.subRows?.length > 0 ? (
-						<button
-							className="absolute -left-0.5"
-							{...{
-								onClick: row.getToggleExpandedHandler()
-							}}
-						>
-							{row.getIsExpanded() ? (
-								<>
-									<Icon name="chevron-down" height={16} width={16} />
-									<span className="sr-only">View child protocols</span>
-								</>
-							) : (
-								<>
-									<Icon name="chevron-right" height={16} width={16} />
-									<span className="sr-only">Hide child protocols</span>
-								</>
-							)}
-						</button>
-					) : (
-						<Bookmark readableName={value} data-lgonly data-bookmark />
-					)}
-
-					<span className="vf-row-index shrink-0" aria-hidden="true" />
-
-					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
-
-					<span className="-my-2 flex flex-col">
-						{row.original?.deprecated ? (
-							<BasicLink
-								href={`/protocol/${slug(value)}`}
-								className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-							>
-								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
-								<Tooltip content="Deprecated" className="text-(--error)">
-									<Icon name="alert-triangle" height={14} width={14} />
-								</Tooltip>
-							</BasicLink>
-						) : (
-							<BasicLink
-								href={`/protocol/${slug(value)}`}
-								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-							>{`${value}`}</BasicLink>
-						)}
-
-						<Tooltip content={<ProtocolChainsComponent chains={row.original.chains} />} className="text-[0.7rem]">
-							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
-						</Tooltip>
-					</span>
-					{value === 'SyncDEX Finance' && (
-						<Tooltip content={'Many users have reported issues with this protocol'}>
-							<Icon name="alert-triangle" height={14} width={14} />
-						</Tooltip>
-					)}
-				</span>
-			)
-		},
-		size: 240
-	},
-	{
-		header: 'Category',
-		accessorKey: 'category',
-		cell: ({ getValue }) => {
-			const value = getValue<string | null>()
-			return value ? (
-				<BasicLink href={`/protocols/${slug(value)}`} className="text-sm font-medium text-(--link-text)">
-					{value}
-				</BasicLink>
-			) : (
-				''
-			)
-		},
-		size: 140
-	},
-	{
-		header: 'TVS',
-		accessorKey: 'tvs',
-		id: 'tvl',
-		cell: ({ getValue, row }) => <ProtocolTvlCell value={getValue()} rowValues={row.original} />,
-		meta: {
-			align: 'end'
-		},
-		size: 120
-	}
 ]
 
 type ProtocolTvlRow = IProtocolRow & {
