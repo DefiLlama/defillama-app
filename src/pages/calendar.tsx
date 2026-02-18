@@ -97,13 +97,11 @@ export default function Protocols({ emissions }) {
 			})
 		}
 
-		for (const typeEntry of calendarEvents) {
-			const eventType = typeEntry[0]
-			const items = typeEntry[1]
-			for (const item of items) {
+		for (const [eventType, items] of calendarEvents) {
+			for (const [ts, name] of items) {
 				events.push({
-					name: item[1],
-					timestamp: new Date(item[0]).getTime(),
+					name,
+					timestamp: new Date(ts).getTime(),
 					type: eventType
 				})
 			}

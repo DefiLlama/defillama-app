@@ -328,7 +328,7 @@ export const ChainProtocolsTable = ({
 			if (typeof col.columnDef.header === 'string') {
 				return col.columnDef.header
 			}
-			return col.id
+			return col.id ?? ''
 		})
 
 		const rows = instance.getSortedRowModel().rows.map((row) => {
@@ -351,9 +351,10 @@ export const ChainProtocolsTable = ({
 					return value
 				} else if (typeof value === 'number') {
 					return value
+				} else if (Array.isArray(value)) {
+					return value.join(', ')
 				} else {
-					const str = String(value)
-					return str.includes(',') ? `"${str}"` : str
+					return ''
 				}
 			})
 		})

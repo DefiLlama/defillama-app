@@ -42,19 +42,17 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }: BridgedTVLChai
 
 		const headers = columns.map((column) => {
 			const header = column.columnDef.header
-			if (typeof header === 'function') {
-				return String((header as () => unknown)() ?? column.id ?? '')
-			}
 			if (typeof header === 'string') {
-				return String(header)
+				return header
 			}
-			return String(column.id ?? '')
+			return column.id ?? ''
 		})
 		const dataRows: Array<Array<string | number | boolean>> = tableRows.map((row) =>
 			columns.map((column) => {
 				const value = row.getValue(column.id)
 				if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
-				return value == null ? '' : String(value)
+				if (Array.isArray(value)) return value.join(', ')
+				return ''
 			})
 		)
 		const rows: Array<Array<string | number | boolean>> = [headers, ...dataRows]
@@ -79,7 +77,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }: BridgedTVLChai
 
 const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 	{
-		header: () => 'Name',
+		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {

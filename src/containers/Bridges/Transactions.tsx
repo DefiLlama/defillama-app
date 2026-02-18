@@ -269,7 +269,8 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 				columns.map((column) => {
 					const value = row.getValue(column.id)
 					if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
-					return value == null ? '' : String(value)
+					if (Array.isArray(value)) return value.join(', ')
+					return ''
 				})
 			)
 			const rows: Array<Array<string | number | boolean>> = [headers, ...dataRows]

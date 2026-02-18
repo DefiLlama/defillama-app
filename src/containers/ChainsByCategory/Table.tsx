@@ -111,7 +111,7 @@ export function ChainsByCategoryTable({
 			if (typeof col.columnDef.header === 'string') {
 				return col.columnDef.header
 			}
-			return col.id
+			return col.id ?? ''
 		})
 
 		const rows = instance.getSortedRowModel().rows.map((row) => {
@@ -121,8 +121,9 @@ export function ChainsByCategoryTable({
 
 				const value = cell.getValue()
 				if (value == null) return ''
-
-				return value
+				if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
+				if (Array.isArray(value)) return value.join(', ')
+				return ''
 			})
 		})
 
