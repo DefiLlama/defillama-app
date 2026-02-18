@@ -27,6 +27,7 @@ export const DEFAULT_COLUMN_ORDER = [
 ]
 
 export const DEFAULT_UNIFIED_TABLE_SORTING: Array<{ id: string; desc: boolean }> = [{ id: 'tvl', desc: true }]
+const HIDDEN_TAGS = new Set(['dominance', 'cumulative', 'specialized', 'share'])
 
 export const DEFAULT_COLUMN_VISIBILITY: Record<string, boolean> = UNIFIED_TABLE_COLUMN_DICTIONARY.reduce<
 	Record<string, boolean>
@@ -36,14 +37,18 @@ export const DEFAULT_COLUMN_VISIBILITY: Record<string, boolean> = UNIFIED_TABLE_
 		return acc
 	}
 
-	if (
-		column.tags?.includes('dominance') ||
-		column.tags?.includes('cumulative') ||
-		column.tags?.includes('specialized') ||
-		column.tags?.includes('share')
-	) {
-		acc[column.id] = false
-		return acc
+	if (column.tags) {
+		let hasHiddenTag = false
+		for (const tag of column.tags) {
+			if (HIDDEN_TAGS.has(tag)) {
+				hasHiddenTag = true
+				break
+			}
+		}
+		if (hasHiddenTag) {
+			acc[column.id] = false
+			return acc
+		}
 	}
 
 	acc[column.id] = true

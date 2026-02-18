@@ -6,6 +6,8 @@ import { LoadingSpinner } from './LoadingSpinner'
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart'))
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart'))
+const USER_METRIC_TYPES = new Set(['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed'])
+const PERCENT_METRIC_TYPES = new Set(['medianApy'])
 
 interface ChartPreviewProps {
 	data: [number, number][] | undefined
@@ -19,9 +21,7 @@ interface ChartPreviewProps {
 export function ChartPreview({ data, chartType, color, isLoading, hasError, itemName: _itemName }: ChartPreviewProps) {
 	const chartTypeDetails = CHART_TYPES[chartType]
 
-	const userMetricTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
-	const percentMetricTypes = ['medianApy']
-	const valueSymbol = userMetricTypes.includes(chartType) ? '' : percentMetricTypes.includes(chartType) ? '%' : '$'
+	const valueSymbol = USER_METRIC_TYPES.has(chartType) ? '' : PERCENT_METRIC_TYPES.has(chartType) ? '%' : '$'
 
 	if (isLoading) {
 		return (

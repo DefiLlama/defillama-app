@@ -99,6 +99,10 @@ const AGGREGATION_OPTIONS: Array<{ id: ColumnAggregation; label: string; descrip
 	{ id: 'first', label: 'First', description: 'Use first row value only' },
 	{ id: 'none', label: 'None', description: 'Show dash (-) for grouped rows' }
 ]
+const AGGREGATION_LABELS = new Map<ColumnAggregation, string>()
+for (const option of AGGREGATION_OPTIONS) {
+	AGGREGATION_LABELS.set(option.id, option.label)
+}
 
 const EXAMPLE_PRESETS = [
 	{ name: 'TVL/MCap', expression: 'tvl / mcap', format: 'ratio' as ColumnFormat },
@@ -118,10 +122,14 @@ interface AutocompleteSuggestion {
 
 const NAME_COLUMN: ColumnMeta = { id: 'name', header: 'Name', group: 'meta' }
 
-const getColumnMeta = (id: string, customColumns?: CustomColumnDefinition[]): ColumnMeta | null => {
+const getColumnMeta = (
+	id: string,
+	customColumns?: CustomColumnDefinition[],
+	customColumnsById?: Map<string, CustomColumnDefinition>
+): ColumnMeta | null => {
 	if (id === 'name') return NAME_COLUMN
 	if (id.startsWith('custom_')) {
-		const customCol = customColumns?.find((c) => c.id === id)
+		const customCol = customColumnsById?.get(id) ?? customColumns?.find((c) => c.id === id)
 		if (customCol) {
 			return { id: customCol.id, header: customCol.name, group: 'custom' }
 		}
@@ -136,9 +144,12 @@ const getColumnMeta = (id: string, customColumns?: CustomColumnDefinition[]): Co
 	}
 }
 
-const buildAllColumns = (customColumns?: CustomColumnDefinition[]): ColumnMeta[] => {
+const buildAllColumns = (
+	customColumns?: CustomColumnDefinition[],
+	customColumnsById?: Map<string, CustomColumnDefinition>
+): ColumnMeta[] => {
 	const dictionaryMetas = UNIFIED_TABLE_COLUMN_DICTIONARY.filter((column) => isColumnSupported(column.id))
-		.map(({ id }) => getColumnMeta(id))
+		.map(({ id }) => getColumnMeta(id, customColumns, customColumnsById))
 		.filter((meta): meta is ColumnMeta => Boolean(meta))
 
 	const customMetas: ColumnMeta[] = (customColumns ?? EMPTY_CUSTOM_COLUMNS).map((col) => ({
@@ -177,8 +188,15 @@ export function ColumnManager({
 	const [autocompleteFilter, setAutocompleteFilter] = useState('')
 	const expressionInputRef = useRef<HTMLInputElement>(null)
 	const aggregationTouchedRef = useRef(false)
+	const customColumnsById = useMemo(() => {
+		const map = new Map<string, CustomColumnDefinition>()
+		for (const customColumn of customColumns ?? EMPTY_CUSTOM_COLUMNS) {
+			map.set(customColumn.id, customColumn)
+		}
+		return map
+	}, [customColumns])
 
-	const allColumns = useMemo(() => buildAllColumns(customColumns), [customColumns])
+	const allColumns = useMemo(() => buildAllColumns(customColumns, customColumnsById), [customColumns, customColumnsById])
 	const allColumnIds = useMemo(() => new Set(allColumns.map((c) => c.id)), [allColumns])
 
 	const visibleSet = useMemo(() => {
@@ -484,7 +502,7 @@ export function ColumnManager({
 		return () => document.removeEventListener('click', handleClickOutside)
 	}, [])
 
-	const activeColumn = activeId ? getColumnMeta(String(activeId), customColumns) : null
+	const activeColumn = activeId ? getColumnMeta(String(activeId), customColumns, customColumnsById) : null
 
 	const currentSorting = sorting?.[0]
 	const currentSortColumn = currentSorting?.id ?? ''
@@ -493,9 +511,9 @@ export function ColumnManager({
 	const selectableColumnsForSort = useMemo(() => {
 		return columnOrder
 			.filter((id) => columnVisibility[id] ?? true)
-			.map((id) => getColumnMeta(id, customColumns))
+			.map((id) => getColumnMeta(id, customColumns, customColumnsById))
 			.filter((meta): meta is ColumnMeta => Boolean(meta))
-	}, [columnOrder, columnVisibility, customColumns])
+	}, [columnOrder, columnVisibility, customColumns, customColumnsById])
 
 	const handleSortColumnChange = (value: string) => {
 		if (!onSortingChange) return
@@ -548,7 +566,7 @@ export function ColumnManager({
 							<SortableContext items={selectedColumns} strategy={horizontalListSortingStrategy}>
 								<div className="flex flex-wrap gap-1.5">
 									{selectedColumns.map((columnId, index) => {
-										const meta = getColumnMeta(columnId, customColumns)
+										const meta = getColumnMeta(columnId, customColumns, customColumnsById)
 										if (!meta) return null
 										return (
 											<SortableChip
@@ -804,7 +822,7 @@ export function ColumnManager({
 											{col.format}
 										</span>
 										<span className="rounded border border-(--cards-border) bg-(--cards-bg) px-1 py-0.5 text-[9px] text-(--text-tertiary)">
-											{AGGREGATION_OPTIONS.find((a) => a.id === col.aggregation)?.label}
+											{AGGREGATION_LABELS.get(col.aggregation) ?? col.aggregation}
 										</span>
 									</div>
 									<code className="block truncate text-[10px] text-(--text-tertiary)">{col.expression}</code>
@@ -988,8 +1006,12 @@ function SortingSection({
 
 	const selectedLabel = useMemo(() => {
 		if (!currentSortColumn) return 'No sorting'
-		const selected = selectableColumns.find((col) => col.id === currentSortColumn)
-		return selected?.header || currentSortColumn
+		for (const column of selectableColumns) {
+			if (column.id === currentSortColumn) {
+				return column.header
+			}
+		}
+		return currentSortColumn
 	}, [currentSortColumn, selectableColumns])
 
 	return (

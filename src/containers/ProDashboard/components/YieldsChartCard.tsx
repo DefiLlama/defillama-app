@@ -46,6 +46,7 @@ const barChartStacks = { Base: 'a', Reward: 'a' }
 const barChartColors = { Base: CHART_COLORS[0], Reward: CHART_COLORS[1] }
 const liquidityChartColors = { Supplied: CHART_COLORS[0], Borrowed: CHART_COLORS[1], Available: CHART_COLORS[2] }
 const liquidityLegendOptions = ['Supplied', 'Borrowed', 'Available']
+const BORROW_DATA_CHART_TYPES = new Set(['borrow-apy', 'net-borrow-apy', 'pool-liquidity'])
 
 export function YieldsChartCard({ config }: YieldsChartCardProps) {
 	const { poolConfigId, poolName, project, chain, chartType = 'tvl-apy' } = config
@@ -54,7 +55,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 
 	const { data: chart, isLoading: fetchingChartData, isError: chartError } = useYieldChartData(poolConfigId)
 
-	const needsBorrowData = ['borrow-apy', 'net-borrow-apy', 'pool-liquidity'].includes(chartType)
+	const needsBorrowData = BORROW_DATA_CHART_TYPES.has(chartType)
 	const {
 		data: borrowChart,
 		isLoading: fetchingBorrowData,

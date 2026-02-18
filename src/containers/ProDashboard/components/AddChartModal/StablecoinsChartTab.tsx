@@ -55,6 +55,14 @@ const STABLECOIN_ASSET_CHART_TYPES = [
 	{ value: 'chainPie', label: 'Pie' },
 	{ value: 'chainDominance', label: 'Chain Dominance' }
 ]
+const STABLECOIN_CHAIN_CHART_TYPE_LABELS = new Map<string, string>()
+for (const chartType of STABLECOIN_CHAIN_CHART_TYPES) {
+	STABLECOIN_CHAIN_CHART_TYPE_LABELS.set(chartType.value, chartType.label)
+}
+const STABLECOIN_ASSET_CHART_TYPE_LABELS = new Map<string, string>()
+for (const chartType of STABLECOIN_ASSET_CHART_TYPES) {
+	STABLECOIN_ASSET_CHART_TYPE_LABELS.set(chartType.value, chartType.label)
+}
 
 const chartOptions = {
 	grid: {
@@ -174,8 +182,8 @@ export function StablecoinsChartTab({
 
 	const chartTypeLabel =
 		stablecoinMode === 'chain'
-			? STABLECOIN_CHAIN_CHART_TYPES.find((t) => t.value === selectedStablecoinChartType)?.label || ''
-			: STABLECOIN_ASSET_CHART_TYPES.find((t) => t.value === selectedStablecoinAssetChartType)?.label || ''
+			? STABLECOIN_CHAIN_CHART_TYPE_LABELS.get(selectedStablecoinChartType) || ''
+			: STABLECOIN_ASSET_CHART_TYPE_LABELS.get(selectedStablecoinAssetChartType) || ''
 
 	const handleAssetChange = (option: VirtualizedSelectOption) => {
 		onSelectedStablecoinAssetChange(option.value)

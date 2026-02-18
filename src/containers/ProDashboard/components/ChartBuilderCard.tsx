@@ -35,6 +35,10 @@ const TREEMAP_VALUE_OPTIONS = [
 	{ name: 'Sum 7d', key: 'sum7d' },
 	{ name: 'Sum 30d', key: 'sum30d' }
 ]
+const TREEMAP_VALUE_OPTION_NAMES = new Map<string, string>()
+for (const option of TREEMAP_VALUE_OPTIONS) {
+	TREEMAP_VALUE_OPTION_NAMES.set(option.key, option.name)
+}
 const VALUE_TYPE_OPTIONS = [
 	{ name: 'Show absolute ($)', key: '$ Absolute' },
 	{ name: 'Show percentage (%)', key: '% Percentage' }
@@ -143,8 +147,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 	const isTvlChart = config.metric === 'tvl' || config.metric === 'stablecoins'
 	const treemapValue = config.treemapValue || 'latest'
 	const treemapMode = isTvlChart ? 'latest' : treemapValue
-	const treemapLabel =
-		TREEMAP_VALUE_OPTIONS.find((option) => option.key === treemapMode)?.name || TREEMAP_VALUE_OPTIONS[0].name
+	const treemapLabel = TREEMAP_VALUE_OPTION_NAMES.get(treemapMode) || TREEMAP_VALUE_OPTIONS[0].name
 	const hideOthersOptions = useMemo(
 		() => buildHideOthersOptions(config.mode, config.limit),
 		[config.mode, config.limit]
@@ -559,7 +562,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			const row = [new Date(timestamp * 1000).toLocaleDateString()]
 			for (const dataMap of seriesDataMaps) {
 				const value = dataMap.get(timestamp)
-				row.push(value != null ? value.toString() : '0')
+				row.push(value != null ? value.toString() : '')
 			}
 			return row
 		})

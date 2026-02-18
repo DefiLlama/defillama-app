@@ -37,9 +37,9 @@ interface ChartRendererProps {
 	onChartReady: (instance: echarts.ECharts | null) => void
 }
 
-const userMetricTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
-const percentMetricTypes = ['medianApy']
-const ratioMetricTypes = ['pfRatio', 'psRatio']
+const USER_METRIC_TYPES = new Set(['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed'])
+const PERCENT_METRIC_TYPES = new Set(['medianApy'])
+const RATIO_METRIC_TYPES = new Set(['pfRatio', 'psRatio'])
 const CUMULATIVE_DISPLAY_OPTIONS = [
 	{ name: 'Show individual values', key: 'Individual' },
 	{ name: 'Show cumulative values', key: 'Cumulative' }
@@ -82,9 +82,9 @@ function ChartRenderer({
 	}
 
 	const valueSymbol =
-		userMetricTypes.includes(type) || ratioMetricTypes.includes(type)
+		USER_METRIC_TYPES.has(type) || RATIO_METRIC_TYPES.has(type)
 			? ''
-			: percentMetricTypes.includes(type)
+			: PERCENT_METRIC_TYPES.has(type)
 				? '%'
 				: '$'
 	const todayTimestamp = Math.floor(Date.now() / 1000)

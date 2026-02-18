@@ -13,12 +13,14 @@ const SUGGESTED_TAGS = ['DeFi', 'NFT', 'Analytics', 'DEX', 'Lending', 'L2']
 
 const viewModes = ['grid', 'list'] as const
 type ViewMode = (typeof viewModes)[number]
+const viewModesSet = new Set<string>(viewModes)
 const DEFAULT_PAGE_LIMIT = 20
 const itemsPerPageOptions = [
 	{ key: '20', name: '20' },
 	{ key: '40', name: '40' },
 	{ key: '100', name: '100' }
 ] as const
+const itemsPerPageOptionKeys = new Set<string>(itemsPerPageOptions.map((option) => option.key))
 const sortOptions = [
 	{ key: 'popular', name: 'Most Popular' },
 	{ key: 'recent', name: 'Recently Created' },
@@ -26,12 +28,14 @@ const sortOptions = [
 	{ key: 'trending', name: 'Trending' }
 ] as const
 type SortOption = (typeof sortOptions)[number]
+const sortOptionsByKey = new Map<string, SortOption>(sortOptions.map((option) => [option.key, option]))
 const timeFrameOptions = [
 	{ key: '1d', name: 'Last 24 hours' },
 	{ key: '7d', name: 'Last 7 days' },
 	{ key: '30d', name: 'Last 30 days' }
 ] as const
 type TimeFrameOption = (typeof timeFrameOptions)[number]
+const timeFrameOptionsByKey = new Map<string, TimeFrameOption>(timeFrameOptions.map((option) => [option.key, option]))
 
 export function DashboardDiscovery() {
 	const router = useRouter()
@@ -47,15 +51,15 @@ export function DashboardDiscovery() {
 		selectedPage,
 		itemsPerPage
 	} = useMemo(() => {
-		const viewMode = typeof view === 'string' && viewModes.includes(view as ViewMode) ? (view as ViewMode) : 'grid'
+		const viewMode = typeof view === 'string' && viewModesSet.has(view) ? (view as ViewMode) : 'grid'
 		const selectedTags = tag ? (typeof tag === 'string' ? [tag] : tag) : []
 		const selectedSortBy =
 			typeof sortBy === 'string'
-				? (sortOptions.find((option) => option.key === sortBy) ?? sortOptions[0])
+				? (sortOptionsByKey.get(sortBy) ?? sortOptions[0])
 				: sortOptions[0]
 		const selectedTimeFrame =
 			typeof timeFrame === 'string'
-				? (timeFrameOptions.find((option) => option.key === timeFrame) ?? timeFrameOptions[1])
+				? (timeFrameOptionsByKey.get(timeFrame) ?? timeFrameOptions[1])
 				: timeFrameOptions[1]
 		const searchQuery = typeof query === 'string' ? query : ''
 		const selectedPage = typeof page === 'string' && !Number.isNaN(Number(page)) ? parseInt(page) : 1
@@ -63,7 +67,7 @@ export function DashboardDiscovery() {
 		let itemsPerPage = DEFAULT_PAGE_LIMIT
 		if (typeof limit === 'string' && !Number.isNaN(Number(limit))) {
 			const parsed = parseInt(limit, 10)
-			if (itemsPerPageOptions.some((option) => option.key === parsed.toString())) {
+			if (itemsPerPageOptionKeys.has(parsed.toString())) {
 				itemsPerPage = parsed
 			}
 		}
@@ -81,6 +85,7 @@ export function DashboardDiscovery() {
 			itemsPerPage
 		}
 	}, [view, tag, sortBy, query, page, limit, timeFrame])
+	const selectedTagsSet = useMemo(() => new Set(selectedTags), [selectedTags])
 
 	const { dashboards, isLoading, totalPages, totalItems } = useDashboardDiscovery({
 		query: searchQuery,
@@ -93,7 +98,7 @@ export function DashboardDiscovery() {
 	})
 
 	const handleTagClick = (tag: string) => {
-		if (router.query.tag && router.query.tag.includes(tag)) {
+		if (selectedTagsSet.has(tag)) {
 			return
 		}
 
@@ -309,14 +314,18 @@ export function DashboardDiscovery() {
 								<button
 									key={`pro-dashboard-tag-${tag}`}
 									onClick={() => {
-										const { tag: currentTag, ...query } = router.query
+						const { tag: currentTag, ...query } = router.query
 										const newQuery: Record<string, any> = query
-										if (currentTag && currentTag.includes(tag)) {
-											if (Array.isArray(currentTag)) {
-												newQuery.tag = currentTag.filter((t) => t !== tag)
-											} else {
-												delete newQuery.tag
-											}
+						if (currentTag) {
+							const currentTags = Array.isArray(currentTag) ? currentTag : [currentTag]
+							const currentTagSet = new Set(currentTags)
+							if (currentTagSet.has(tag)) {
+								if (Array.isArray(currentTag)) {
+									newQuery.tag = currentTag.filter((t) => t !== tag)
+								} else {
+									delete newQuery.tag
+								}
+							}
 										}
 
 										router.push(

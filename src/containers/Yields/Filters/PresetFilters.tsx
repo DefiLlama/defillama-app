@@ -70,7 +70,7 @@ const YIELD_PRESETS = {
 const ALL_PRESET_FILTER_KEYS = (() => {
 	const keys = new Set<string>()
 	for (const presetKey in YIELD_PRESETS) {
-		const preset = YIELD_PRESETS[presetKey]
+		const preset = YIELD_PRESETS[presetKey as PresetKey]
 		for (const filterKey in preset.filters) {
 			keys.add(filterKey)
 		}

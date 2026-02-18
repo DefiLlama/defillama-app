@@ -88,15 +88,7 @@ export class ChartDataTransformer {
 		}
 
 		const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b)
-		const seriesDataMaps = series.map((item) => {
-			const dataMap = new Map<number, number>()
-			for (const [timestamp, value] of item.data as [number, number][]) {
-				if (!dataMap.has(timestamp)) {
-					dataMap.set(timestamp, value)
-				}
-			}
-			return dataMap
-		})
+		const seriesDataMaps = series.map((item) => new Map(item.data as [number, number][]))
 
 		const totals = new Map<number, number>()
 		for (const timestamp of sortedTimestamps) {

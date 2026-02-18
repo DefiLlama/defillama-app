@@ -18,6 +18,8 @@ import { EXTENDED_COLOR_PALETTE } from '../../utils/colorManager'
 import type { ChartTabType, MainTabType } from './types'
 import { useModalState } from './useModalState'
 
+const CHAIN_GECKO_CHART_TYPES = new Set(['chainMcap', 'chainPrice'])
+
 export function useModalActions(
 	editItem: DashboardItemConfig | null | undefined,
 	isOpen: boolean,
@@ -207,7 +209,7 @@ export function useModalActions(
 							chain: chainName,
 							type: chartType,
 							grouping: targetGrouping,
-							geckoId: ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined,
+							geckoId: CHAIN_GECKO_CHART_TYPES.has(chartType) ? chain?.gecko_id : undefined,
 							color: EXTENDED_COLOR_PALETTE[(colorStartIndex + idx) % EXTENDED_COLOR_PALETTE.length]
 						}))
 						actions.setComposerItems((prev) => [...prev, ...newCharts])
@@ -283,7 +285,7 @@ export function useModalActions(
 					let geckoId: string | null | undefined
 					if (item.chain) {
 						const chain = chainsByName.get(item.chain)
-						geckoId = ['chainMcap', 'chainPrice'].includes(nextType) ? chain?.gecko_id : undefined
+						geckoId = CHAIN_GECKO_CHART_TYPES.has(nextType) ? chain?.gecko_id : undefined
 					} else if (item.protocol) {
 						const protocol = protocolsBySlug.get(item.protocol)
 						geckoId = protocol?.geckoId
@@ -470,7 +472,7 @@ export function useModalActions(
 					protocol: undefined,
 					type: chartType,
 					grouping: chartTypeDetails?.groupable ? 'day' : undefined,
-					geckoId: ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
+					geckoId: CHAIN_GECKO_CHART_TYPES.has(chartType) ? chain?.gecko_id : undefined
 				} as ChartConfig
 			} else if (
 				state.selectedMainTab === 'charts' &&
@@ -776,7 +778,7 @@ export function useModalActions(
 					if (state.selectedChain) {
 						const chain = state.selectedChain ? chainsByName.get(state.selectedChain) : undefined
 						for (const chartType of state.selectedChartTypes) {
-							const geckoId = ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
+							const geckoId = CHAIN_GECKO_CHART_TYPES.has(chartType) ? chain?.gecko_id : undefined
 							handleAddChart(state.selectedChain, chartType, 'chain', geckoId)
 						}
 					} else if (state.selectedProtocol) {

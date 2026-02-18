@@ -19,6 +19,8 @@ import { YieldsChartTab } from './YieldsChartTab'
 
 const PROTOCOL_CHART_TYPES = getProtocolChartTypes()
 const CHAIN_CHART_TYPES = getChainChartTypes()
+const SPECIALTY_TABS: ChartTabType[] = ['yields', 'stablecoins', 'advanced-tvl', 'borrowed', 'income-statement', 'unlocks']
+const SPECIALTY_TABS_SET = new Set<ChartTabType>(SPECIALTY_TABS)
 
 interface UnifiedChartTabProps {
 	selectedChartTab: ChartTabType
@@ -180,9 +182,8 @@ export function UnifiedChartTab({
 	onSelectedUnlocksProtocolNameChange,
 	onSelectedUnlocksChartTypeChange
 }: UnifiedChartTabPropsExtended) {
-	const specialtyTabs = ['yields', 'stablecoins', 'advanced-tvl', 'borrowed', 'income-statement', 'unlocks']
 	const [viewMode, setViewMode] = useState<ManualChartViewMode>(() =>
-		specialtyTabs.includes(selectedChartTab) || composerItems.length > 0 ? 'form' : 'cards'
+		SPECIALTY_TABS_SET.has(selectedChartTab) || composerItems.length > 0 ? 'form' : 'cards'
 	)
 
 	const protocolChartTypes = PROTOCOL_CHART_TYPES
@@ -237,8 +238,14 @@ export function UnifiedChartTab({
 	}, [composerItems])
 	const defaultChartType = useMemo(() => {
 		if (composerItems.length === 0) return 'tvl'
-		const matchingItem = composerItems.find((item) => (selectedChartTab === 'chain' ? item.chain : item.protocol))
-		return (matchingItem || composerItems[0])?.type || 'tvl'
+		for (const item of composerItems) {
+			if (selectedChartTab === 'chain') {
+				if (item.chain) return item.type || 'tvl'
+			} else if (item.protocol) {
+				return item.type || 'tvl'
+			}
+		}
+		return composerItems[0]?.type || 'tvl'
 	}, [composerItems, selectedChartTab])
 
 	useEffect(() => {
@@ -264,11 +271,19 @@ export function UnifiedChartTab({
 			const isSelected = selectedEntitiesForCurrentTypeSet.has(entityValue)
 
 			if (isSelected) {
-				const itemToRemove = composerItems.find(
-					(item) =>
-						item.type === selectedChartTypeSingle &&
-						(selectedChartTab === 'chain' ? item.chain === entityValue : item.protocol === entityValue)
-				)
+				let itemToRemove: ChartConfig | undefined
+				for (const item of composerItems) {
+					if (item.type !== selectedChartTypeSingle) continue
+					if (selectedChartTab === 'chain') {
+						if (item.chain === entityValue) {
+							itemToRemove = item
+							break
+						}
+					} else if (item.protocol === entityValue) {
+						itemToRemove = item
+						break
+					}
+				}
 				if (itemToRemove) {
 					onRemoveFromComposer(itemToRemove.id)
 				}

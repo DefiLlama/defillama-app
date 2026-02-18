@@ -15,7 +15,7 @@ import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/L
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useIsClient } from '~/hooks/useIsClient'
 import { capitalizeFirstLetter, slug, tokenIconUrl } from '~/utils'
-import { BAR_CHARTS, protocolCharts } from './constants'
+import { BAR_CHARTS, protocolCharts, type ProtocolChartsLabels } from './constants'
 import type { IProtocolCoreChartProps } from './ProtocolCoreChart'
 import type { IProtocolOverviewPageData, IToggledMetrics } from './types'
 import { useFetchProtocolChartData } from './useFetchProtocolChartData'
@@ -61,7 +61,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 
 	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultToggledCharts } = useMemo(() => {
 		const chartsByVisibility: Record<string, 'true' | 'false'> = {}
-		for (const chartLabel in protocolCharts) {
+		for (const chartLabel of Object.keys(protocolCharts) as ProtocolChartsLabels[]) {
 			const chartKey = protocolCharts[chartLabel]
 			chartsByVisibility[chartKey] = searchParams.get(chartKey) === 'true' ? 'true' : 'false'
 		}

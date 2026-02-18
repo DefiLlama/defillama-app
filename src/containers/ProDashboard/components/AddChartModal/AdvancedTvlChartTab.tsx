@@ -38,6 +38,10 @@ const ADVANCED_TVL_CHART_TYPES = [
 	{ value: 'usdInflows', label: 'USD Inflows' },
 	{ value: 'tokenInflows', label: 'Inflows by Token' }
 ]
+const ADVANCED_TVL_CHART_TYPE_LABELS = new Map<string, string>()
+for (const chartType of ADVANCED_TVL_CHART_TYPES) {
+	ADVANCED_TVL_CHART_TYPE_LABELS.set(chartType.value, chartType.label)
+}
 
 const chartOptions = {
 	grid: {
@@ -166,7 +170,7 @@ export function AdvancedTvlChartTab({
 		onSelectedAdvancedTvlChartTypeChange('tvl')
 	}
 
-	const chartTypeLabel = ADVANCED_TVL_CHART_TYPES.find((t) => t.value === selectedAdvancedTvlChartType)?.label || ''
+	const chartTypeLabel = ADVANCED_TVL_CHART_TYPE_LABELS.get(selectedAdvancedTvlChartType) || ''
 
 	const renderChart = () => {
 		if (isLoading) {

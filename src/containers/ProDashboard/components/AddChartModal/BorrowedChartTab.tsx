@@ -14,6 +14,10 @@ import { AriakitVirtualizedSelect, type VirtualizedSelectOption } from '../Ariak
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+const BORROWED_CHART_TYPE_LABELS = new Map<string, string>()
+for (const chartType of BORROWED_CHART_TYPES) {
+	BORROWED_CHART_TYPE_LABELS.set(chartType.value, chartType.label)
+}
 const EMPTY_CHART_DATA: any[] = []
 const EMPTY_STACKS: string[] = []
 const EMPTY_ADDL_DATA: {
@@ -124,14 +128,20 @@ export function BorrowedChartTab({
 		}
 
 		if (!availableChartTypes.has(selectedBorrowedChartType)) {
-			const nextChartType = BORROWED_CHART_TYPES.find((type) => availableChartTypes.has(type.value))?.value
+			let nextChartType: string | undefined
+			for (const chartType of BORROWED_CHART_TYPES) {
+				if (availableChartTypes.has(chartType.value)) {
+					nextChartType = chartType.value
+					break
+				}
+			}
 			if (nextChartType && nextChartType !== selectedBorrowedChartType) {
 				onSelectedBorrowedChartTypeChange(nextChartType)
 			}
 		}
 	}, [hasProtocolSelection, availableChartTypes, selectedBorrowedChartType, onSelectedBorrowedChartTypeChange])
 
-	const chartTypeLabel = BORROWED_CHART_TYPES.find((t) => t.value === selectedBorrowedChartType)?.label || ''
+	const chartTypeLabel = BORROWED_CHART_TYPE_LABELS.get(selectedBorrowedChartType) || ''
 	const previewTitle = chartTypeLabel
 		? `${selectedBorrowedProtocolName} - ${chartTypeLabel}`
 		: selectedBorrowedProtocolName || ''

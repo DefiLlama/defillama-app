@@ -28,7 +28,8 @@ export function highlightWord(text: string, words: string[]) {
 	const escapedWords: string[] = []
 	for (const word of words) {
 		if (!word || !word.trim()) continue
-		escapedWords.push(word.replace(REGEX_ESCAPE_PATTERN, '\\$&'))
+		const escapedWord = escapeHtml(word)
+		escapedWords.push(escapedWord.replace(REGEX_ESCAPE_PATTERN, '\\$&'))
 	}
 
 	if (escapedWords.length === 0) return escapedText

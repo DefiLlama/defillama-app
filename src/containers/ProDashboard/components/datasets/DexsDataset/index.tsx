@@ -101,7 +101,8 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 			change_7d: 100
 		}
 
-		const hasChains = chains && chains.length > 0 && !chains.includes('All')
+		const chainsSet = chains ? new Set(chains) : null
+		const hasChains = Boolean(chains && chains.length > 0 && chainsSet && !chainsSet.has('All'))
 		const defaultVisibility = {
 			change_1d: !hasChains,
 			change_7d: !hasChains

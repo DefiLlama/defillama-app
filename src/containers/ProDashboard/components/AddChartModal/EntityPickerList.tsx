@@ -31,6 +31,7 @@ export function EntityPickerList({
 }: EntityPickerListProps) {
 	const [search, setSearch] = useState('')
 	const listRef = useRef<HTMLDivElement | null>(null)
+	const selectedEntitiesSet = useMemo(() => new Set(selectedEntities), [selectedEntities])
 
 	const filteredEntities = useMemo(() => {
 		if (!search) return entities
@@ -98,7 +99,7 @@ export function EntityPickerList({
 						{virtualizer.getVirtualItems().map((row) => {
 							const entity = filteredEntities[row.index]
 							if (!entity) return null
-							const isSelected = selectedEntities.includes(entity.value)
+							const isSelected = selectedEntitiesSet.has(entity.value)
 							const iconUrl = getItemIconUrl(mode, null, entity.value)
 							const isChild = entity.isChild
 

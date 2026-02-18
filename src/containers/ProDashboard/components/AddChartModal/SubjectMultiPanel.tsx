@@ -50,6 +50,8 @@ function SubjectMultiPanel({
 	const isPopoverOpen = popover.useState('open')
 	const { availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
 	const { protocols, chains } = useProDashboardCatalog()
+	const selectedChainsSet = useMemo(() => new Set(selectedChains), [selectedChains])
+	const selectedProtocolsSet = useMemo(() => new Set(selectedProtocols), [selectedProtocols])
 
 	const baseChainOptions = useMemo(() => chainOptions.filter((o) => o.value !== 'All'), [chainOptions])
 
@@ -59,7 +61,8 @@ function SubjectMultiPanel({
 		for (const c of chains) {
 			const geckoId = (c as any).gecko_id
 			const types = availableChainChartTypes(c.name, { hasGeckoId: !!geckoId })
-			if (types.includes(selectedChartType)) s.add(c.name)
+			const typesSet = new Set(types)
+			if (typesSet.has(selectedChartType)) s.add(c.name)
 		}
 		return s
 	}, [selectedChartType, chains, availableChainChartTypes])
@@ -77,7 +80,8 @@ function SubjectMultiPanel({
 			if (!p.slug) continue
 			const geckoId = (p as any).geckoId
 			const types = availableProtocolChartTypes(p.slug, { hasGeckoId: !!geckoId })
-			if (types.includes(selectedChartType)) s.add(p.slug)
+			const typesSet = new Set(types)
+			if (typesSet.has(selectedChartType)) s.add(p.slug)
 		}
 		return s
 	}, [selectedChartType, protocols, availableProtocolChartTypes])
@@ -127,7 +131,7 @@ function SubjectMultiPanel({
 	])
 
 	const toggleChain = (value: string) => {
-		if (selectedChains.includes(value)) {
+		if (selectedChainsSet.has(value)) {
 			onSelectedChainsChange(selectedChains.filter((v) => v !== value))
 		} else {
 			onSelectedChainsChange([...selectedChains, value])
@@ -135,7 +139,7 @@ function SubjectMultiPanel({
 	}
 
 	const toggleProtocol = (value: string) => {
-		if (selectedProtocols.includes(value)) {
+		if (selectedProtocolsSet.has(value)) {
 			onSelectedProtocolsChange(selectedProtocols.filter((v) => v !== value))
 		} else {
 			onSelectedProtocolsChange([...selectedProtocols, value])
@@ -288,7 +292,7 @@ function SubjectMultiPanel({
 								? chainVirtualizer.getVirtualItems().map((row) => {
 										const option = filteredChainOptions[row.index]
 										if (!option) return null
-										const isActive = selectedChains.includes(option.value)
+										const isActive = selectedChainsSet.has(option.value)
 										const iconUrl = getItemIconUrl('chain', null, option.value)
 										return (
 											<button
@@ -330,7 +334,7 @@ function SubjectMultiPanel({
 								: protocolVirtualizer.getVirtualItems().map((row) => {
 										const option = filteredProtocolOptions[row.index]
 										if (!option) return null
-										const isActive = selectedProtocols.includes(option.value)
+										const isActive = selectedProtocolsSet.has(option.value)
 										const iconUrl = getItemIconUrl('protocol', option, option.value)
 										return (
 											<button

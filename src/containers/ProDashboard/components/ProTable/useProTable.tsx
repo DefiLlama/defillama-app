@@ -633,12 +633,25 @@ export function useProTable(
 		}
 		return userConfig?.tableViews as CustomView[]
 	}, [userConfig])
+	const customViewsById = React.useMemo(() => {
+		const map = new Map<string, CustomView>()
+		for (const view of customViews) {
+			map.set(view.id, view)
+		}
+		return map
+	}, [customViews])
 
 	const onApplyInitialCustomView = React.useEffectEvent((initialViewId: string | undefined, views: CustomView[]) => {
 		if (!initialViewId || views.length === 0) {
 			return
 		}
-		const view = views.find((v) => v.id === initialViewId)
+		let view: CustomView | undefined
+		for (const customView of views) {
+			if (customView.id === initialViewId) {
+				view = customView
+				break
+			}
+		}
 		let hasVisibility = false
 		for (const _ in columnVisibility) {
 			hasVisibility = true
@@ -726,10 +739,14 @@ export function useProTable(
 	// Create custom columns with filter button
 	const columnsWithFilter = React.useMemo(() => {
 		if (!onFilterClick) return { name: null, category: null, oracles: null }
+		const protocolsByChainColumnsById = new Map<string, (typeof protocolsByChainColumns)[number]>()
+		for (const column of protocolsByChainColumns) {
+			protocolsByChainColumnsById.set(column.id, column)
+		}
 
-		const originalNameColumn = protocolsByChainColumns.find((col) => col.id === 'name')
-		const originalCategoryColumn = protocolsByChainColumns.find((col) => col.id === 'category')
-		const originalOraclesColumn = protocolsByChainColumns.find((col) => col.id === 'oracles')
+		const originalNameColumn = protocolsByChainColumnsById.get('name')
+		const originalCategoryColumn = protocolsByChainColumnsById.get('category')
+		const originalOraclesColumn = protocolsByChainColumnsById.get('oracles')
 
 		const hasActiveFilters =
 			filters &&
@@ -1033,17 +1050,25 @@ export function useProTable(
 	const addOption = React.useCallback(
 		(newOptions: string[]) => {
 			if (!table) return
-			const ops = Object.fromEntries(table.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)]))
+			const newOptionsSet = new Set(newOptions)
+			const ops = Object.fromEntries(table.getAllLeafColumns().map((col) => [col.id, newOptionsSet.has(col.id)]))
 			setColumnVisibility(ops)
 		},
 		[table]
 	)
 
 	const columnPresets = COLUMN_PRESETS
+	const columnPresetsById = React.useMemo(() => {
+		const map = new Map<string, ColumnPresetDefinition>()
+		for (const preset of columnPresets) {
+			map.set(preset.id, preset)
+		}
+		return map
+	}, [columnPresets])
 
 	const applyPreset = React.useCallback(
 		(presetId: string) => {
-			const preset = columnPresets.find((item) => item.id === presetId)
+			const preset = columnPresetsById.get(presetId)
 			if (!preset) return
 
 			addOption(preset.columns)
@@ -1063,7 +1088,7 @@ export function useProTable(
 				setActiveDatasetMetric(null)
 			}
 		},
-		[addOption, columnPresets]
+		[addOption, columnPresetsById]
 	)
 
 	React.useEffect(() => {
@@ -1074,13 +1099,13 @@ export function useProTable(
 
 	React.useEffect(() => {
 		if (options?.initialActivePresetId && !activeDatasetMetric) {
-			const preset = columnPresets.find((p) => p.id === options.initialActivePresetId)
+			const preset = columnPresetsById.get(options.initialActivePresetId)
 			if (preset && preset.group === 'dataset' && preset.sort && preset.sort.length > 0) {
 				setActiveDatasetMetric(preset.sort[0].id)
 				setSorting(preset.sort.map((rule) => ({ ...rule })))
 			}
 		}
-	}, [options?.initialActivePresetId, columnPresets, activeDatasetMetric])
+	}, [options?.initialActivePresetId, columnPresetsById, activeDatasetMetric])
 
 	const leafVisibilityKey = table
 		? table
@@ -1261,7 +1286,7 @@ export function useProTable(
 
 	const loadCustomView = React.useCallback(
 		(viewId: string) => {
-			const view = customViews.find((v) => v.id === viewId)
+			const view = customViewsById.get(viewId)
 			if (view) {
 				setColumnOrder(view.columnOrder)
 				setColumnVisibility(view.columnVisibility)
@@ -1271,7 +1296,7 @@ export function useProTable(
 				setActiveDatasetMetric(null)
 			}
 		},
-		[customViews]
+		[customViewsById]
 	)
 
 	// Extract unique categories from all protocols

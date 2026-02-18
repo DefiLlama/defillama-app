@@ -78,7 +78,10 @@ const countActiveFilters = (filters: TableFilters | undefined): number => {
 
 const arraysEqual = (a: string[], b: string[]) => {
 	if (a.length !== b.length) return false
-	return a.every((value, index) => value === b[index])
+	for (let i = 0; i < a.length; i++) {
+		if (a[i] !== b[i]) return false
+	}
+	return true
 }
 
 const visibilityEqual = (a: VisibilityState, b: VisibilityState) => {
@@ -252,6 +255,7 @@ function TabContent({
 		() => getOrderedCustomColumnIds(columnOrder, customColumns),
 		[columnOrder, customColumns]
 	)
+	const customColumnIdsSet = useMemo(() => new Set(customColumnIds), [customColumnIds])
 
 	const presetDefaults = useMemo(() => {
 		if (activePreset) {
@@ -273,7 +277,7 @@ function TabContent({
 		}
 		const baseOrder = [allColumns[0], ...allColumns.slice(1)]
 		const baseVisibility = allColumns.reduce<VisibilityState>((acc, id) => {
-			acc[id] = id === 'name' || customColumnIds.includes(id)
+			acc[id] = id === 'name' || customColumnIdsSet.has(id)
 			return acc
 		}, {})
 		return {
@@ -281,7 +285,7 @@ function TabContent({
 			visibility: baseVisibility,
 			sorting: [] as SortingState
 		}
-	}, [activePreset, allColumns, customColumnIds, columnVisibility, customColumns])
+	}, [activePreset, allColumns, customColumnIds, customColumnIdsSet, columnVisibility, customColumns])
 
 	const presetSortingFallback = useMemo<SortingState>(() => {
 		return normalizeSorting(activePreset?.defaultSorting)
@@ -478,7 +482,8 @@ function TabContent({
 
 	const activeFilterCount = activeFilterPills.length
 
-	const scopeCount = chains.includes('All') ? 0 : 1
+	const chainsSet = useMemo(() => new Set(chains), [chains])
+	const scopeCount = chainsSet.has('All') ? 0 : 1
 
 	const filterCount = countActiveFilters(filters)
 	const totalFilterCount = scopeCount + filterCount
@@ -529,7 +534,14 @@ function TabContent({
 
 	useEffect(() => {
 		if (availableTabs.length === 0) return
-		if (!availableTabs.some((tab) => tab.key === activeTab)) {
+		let hasActiveTab = false
+		for (const tab of availableTabs) {
+			if (tab.key === activeTab) {
+				hasActiveTab = true
+				break
+			}
+		}
+		if (!hasActiveTab) {
 			setActiveTab(availableTabs[0].key)
 		}
 	}, [availableTabs, activeTab])

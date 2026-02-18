@@ -17,6 +17,8 @@ const CHAIN_METRIC_KEYS: (keyof ChainMetrics)[] = [
 	'stablesShare',
 	'volume24hShare'
 ]
+const CHAIN_METRIC_KEYS_SET = new Set<keyof ChainMetrics>(CHAIN_METRIC_KEYS)
+const RATIO_VARIABLES = new Set(['mcaptvl', 'pf', 'ps'])
 
 const EXPR_CACHE_MAX_SIZE = 100
 const expressionCache = new Map<string, ReturnType<typeof parser.parse>>()
@@ -336,7 +338,7 @@ const isChainLevelGrouping = (leafRows: Row<NormalizedRow>[]): boolean => {
 
 const createAggregationFn = (def: CustomColumnDefinition) => {
 	const expressionVars = getExpressionVariables(def.expression)
-	const usesChainMetrics = expressionVars.some((v) => CHAIN_METRIC_KEYS.includes(v as keyof ChainMetrics))
+	const usesChainMetrics = expressionVars.some((v) => CHAIN_METRIC_KEYS_SET.has(v as keyof ChainMetrics))
 
 	return (_columnId: string, leafRows: Row<NormalizedRow>[]): number | null => {
 		if (!leafRows.length) return null
@@ -449,7 +451,7 @@ export function formatPreviewNumber(
 
 export function getDefaultAggregation(expression: string): CustomColumnDefinition['aggregation'] {
 	const vars = getExpressionVariables(expression)
-	const hasRatioVars = vars.some((v) => ['mcaptvl', 'pf', 'ps'].includes(v))
+	const hasRatioVars = vars.some((v) => RATIO_VARIABLES.has(v))
 	const hasDivision = expression.includes('/')
 
 	if (hasRatioVars || hasDivision) {

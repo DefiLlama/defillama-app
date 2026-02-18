@@ -40,9 +40,16 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }: BridgedTVLChai
 		const tableRows = instance.getRowModel().rows
 		if (columns.length === 0 || tableRows.length === 0) return { filename: 'bridged-chains.csv', rows: [] }
 
-		const headers = columns.map((column) =>
-			typeof column.columnDef.header === 'string' ? column.columnDef.header : (column.id ?? '')
-		)
+		const headers = columns.map((column) => {
+			const header = column.columnDef.header
+			if (typeof header === 'function') {
+				return String((header as () => unknown)() ?? column.id ?? '')
+			}
+			if (typeof header === 'string') {
+				return String(header)
+			}
+			return String(column.id ?? '')
+		})
 		const dataRows: Array<Array<string | number | boolean>> = tableRows.map((row) =>
 			columns.map((column) => {
 				const value = row.getValue(column.id)

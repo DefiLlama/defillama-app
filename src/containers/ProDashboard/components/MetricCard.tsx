@@ -57,6 +57,8 @@ const AGGREGATOR_SUMMARY_LABELS: Record<MetricAggregator, string> = {
 	growth: 'growth',
 	movingavg: 'moving average'
 }
+const PERCENT_METRIC_TYPES = new Set(['medianApy'])
+const NUMBER_METRIC_TYPES = new Set(['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed'])
 
 const toSentenceCase = (phrase: string) => {
 	if (!phrase) return ''
@@ -99,9 +101,9 @@ export function MetricCard({ metric }: MetricCardProps) {
 		const label = metric.label?.trim()
 		const displayTitle = label && label.length > 0 ? label : baseTitle
 
-		let auto: 'currency' | 'number' | 'percent' = ['medianApy'].includes(metric.type)
+		let auto: 'currency' | 'number' | 'percent' = PERCENT_METRIC_TYPES.has(metric.type)
 			? 'percent'
-			: ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed'].includes(metric.type)
+			: NUMBER_METRIC_TYPES.has(metric.type)
 				? 'number'
 				: 'currency'
 

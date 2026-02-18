@@ -22,11 +22,13 @@ export function useMetricAvailability(
 					const chainMeta = chainsByName.get(item)
 					const hasGeckoId = !!chainMeta?.gecko_id
 					const types = availableChainChartTypes(item, { hasGeckoId })
-					return types.includes(metric)
+					const typesSet = new Set(types)
+					return typesSet.has(metric)
 				} else {
 					const protocol = getProtocolInfo(item)
 					const types = availableProtocolChartTypes(item, { hasGeckoId: !!protocol?.geckoId })
-					return types.includes(metric)
+					const typesSet = new Set(types)
+					return typesSet.has(metric)
 				}
 			}).length
 

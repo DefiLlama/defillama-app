@@ -48,6 +48,13 @@ export function AriakitVirtualizedSelect({
 		if (!search) return options
 		return matchSorter(options, search, { keys: ['label', 'value'] })
 	}, [options, search])
+	const optionsByValue = useMemo(() => {
+		const map = new Map<string, VirtualizedSelectOption>()
+		for (const option of options) {
+			map.set(option.value, option)
+		}
+		return map
+	}, [options])
 
 	const virtualizer = useVirtualizer({
 		count: filteredOptions.length,
@@ -65,7 +72,7 @@ export function AriakitVirtualizedSelect({
 		}
 	}, [isPopoverOpen, filteredOptions.length, virtualizer])
 
-	const selectedOption = options.find((opt) => opt.value === selectedValue)
+	const selectedOption = selectedValue ? optionsByValue.get(selectedValue) : undefined
 
 	const selectedLabel = selectedOption?.label || placeholder
 

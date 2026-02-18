@@ -443,18 +443,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 								<div className="text-lg font-semibold pro-text1">{protocolCount}</div>
 								<div className="text-xs text-(--text-tertiary)">
 									{(() => {
-											let overlap = 0
-											for (const protocol of rawData) {
-												if (!protocol.tokens) continue
-												let tokenCount = 0
-												for (const _token in protocol.tokens) {
-													tokenCount++
-													if (tokenCount > 1) {
-														overlap++
-														break
-													}
-												}
-											}
+										const overlap = protocolOverlap?.shared ?? 0
 										return overlap > 0 ? `${overlap} use multiple` : 'Total count'
 									})()}
 								</div>

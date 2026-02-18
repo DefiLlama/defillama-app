@@ -39,6 +39,14 @@ const WINDOW_OPTIONS: Array<{ value: MetricWindow; label: string; description: s
 	{ value: '3y', label: '3 years', description: 'Last 3 years' },
 	{ value: 'all', label: 'All time', description: 'Entire history' }
 ]
+const AGGREGATOR_LABEL_BY_VALUE = new Map<MetricAggregator, string>()
+for (const option of AGGREGATOR_OPTIONS) {
+	AGGREGATOR_LABEL_BY_VALUE.set(option.value, option.label)
+}
+const WINDOW_LABEL_BY_VALUE = new Map<MetricWindow, string>()
+for (const option of WINDOW_OPTIONS) {
+	WINDOW_LABEL_BY_VALUE.set(option.value, option.label)
+}
 
 type ActiveToken = 'aggregator' | 'metric' | 'subject' | 'window' | null
 
@@ -249,6 +257,13 @@ export function MetricSentenceBuilder({
 		() => protocolOptions.find((option) => option.value === metricProtocol) || null,
 		[protocolOptions, metricProtocol]
 	)
+	const protocolOptionsByValue = useMemo(() => {
+		const map = new Map<string, (typeof protocolOptions)[number]>()
+		for (const option of protocolOptions) {
+			map.set(option.value, option)
+		}
+		return map
+	}, [protocolOptions])
 
 	const allowedChainNamesForMetric = useMemo(() => {
 		if (!metricType) return null as Set<string> | null
@@ -256,7 +271,8 @@ export function MetricSentenceBuilder({
 		for (const chain of chains) {
 			const geckoId = (chain as any).gecko_id
 			const types = availableChainChartTypes(chain.name, { hasGeckoId: !!geckoId })
-			if (types.includes(metricType)) s.add(chain.name)
+			const typesSet = new Set(types)
+			if (typesSet.has(metricType)) s.add(chain.name)
 		}
 		return s
 	}, [metricType, chains, availableChainChartTypes])
@@ -278,7 +294,8 @@ export function MetricSentenceBuilder({
 			if (!protocol.slug) continue
 			const geckoId = (protocol as any).geckoId
 			const types = availableProtocolChartTypes(protocol.slug, { hasGeckoId: !!geckoId })
-			if (types.includes(metricType)) s.add(protocol.slug)
+			const typesSet = new Set(types)
+			if (typesSet.has(metricType)) s.add(protocol.slug)
 		}
 		return s
 	}, [metricType, protocols, availableProtocolChartTypes])
@@ -307,20 +324,14 @@ export function MetricSentenceBuilder({
 		overscan: 8
 	})
 
-	const aggregatorLabel = useMemo(
-		() => AGGREGATOR_OPTIONS.find((option) => option.value === aggregator)?.label ?? 'Latest',
-		[aggregator]
-	)
+	const aggregatorLabel = useMemo(() => AGGREGATOR_LABEL_BY_VALUE.get(aggregator) ?? 'Latest', [aggregator])
 
 	const metricLabel = useMemo(() => {
 		if (!metricType) return 'metric'
 		return CHART_TYPES[metricType as keyof typeof CHART_TYPES]?.title || metricType
 	}, [metricType])
 
-	const windowLabel = useMemo(
-		() => WINDOW_OPTIONS.find((option) => option.value === metricWindow)?.label ?? 'window',
-		[metricWindow]
-	)
+	const windowLabel = useMemo(() => WINDOW_LABEL_BY_VALUE.get(metricWindow) ?? 'window', [metricWindow])
 
 	const subjectLabel = useMemo(() => {
 		if (metricSubjectType === 'chain') {
@@ -328,10 +339,10 @@ export function MetricSentenceBuilder({
 			return metricChain
 		}
 		if (!metricProtocol) return 'a protocol'
-		const option = protocolOptions.find((opt) => opt.value === metricProtocol)
+		const option = protocolOptionsByValue.get(metricProtocol)
 		if (!option) return metricProtocol
 		return option.label
-	}, [metricSubjectType, metricChain, metricProtocol, protocolOptions])
+	}, [metricSubjectType, metricChain, metricProtocol, protocolOptionsByValue])
 
 	const filteredMetrics = useMemo(() => {
 		if (!searchTerm) return baseMetricTypes

@@ -62,7 +62,7 @@ export default function NetflowChart({ height, onReady }: NetflowChartProps) {
 			csvRows.push({
 				Chain: chain,
 				Inflow: item.value > 0 ? item.value : 0,
-				Outflow: item.value < 0 ? item.value : 0,
+				Outflow: item.value < 0 ? Math.abs(item.value) : 0,
 				'Net Flow': item.value
 			})
 		}

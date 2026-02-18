@@ -218,7 +218,10 @@ export default class ProtocolCharts {
 			const parsed: [number, number][] = []
 			for (const item of hist) {
 				if (!Array.isArray(item) || item.length < 2) continue
-				parsed.push([Number(item[0]), Number(item[1])])
+				const t = Number(item[0])
+				const v = Number(item[1])
+				if (!Number.isFinite(t) || !Number.isFinite(v)) continue
+				parsed.push([t, v])
 			}
 			parsed.sort((a, b) => a[0] - b[0])
 			return parsed

@@ -40,6 +40,14 @@ export function AriakitVirtualizedMultiSelect({
 		if (!search) return options
 		return matchSorter(options, search, { keys: ['label', 'value'] })
 	}, [options, search])
+	const selectedValuesSet = useMemo(() => new Set(selectedValues), [selectedValues])
+	const optionsByValue = useMemo(() => {
+		const map = new Map<string, MultiSelectOption>()
+		for (const option of options) {
+			map.set(option.value, option)
+		}
+		return map
+	}, [options])
 
 	const virtualizer = useVirtualizer({
 		count: filteredOptions.length,
@@ -67,11 +75,11 @@ export function AriakitVirtualizedMultiSelect({
 		selectedValues.length === 0
 			? placeholder
 			: selectedValues.length === 1
-				? options.find((opt) => opt.value === selectedValues[0])?.label || selectedValues[0]
+				? optionsByValue.get(selectedValues[0])?.label || selectedValues[0]
 				: `${selectedValues.length} selected`
 
 	const toggleValue = (value: string) => {
-		if (selectedValues.includes(value)) {
+		if (selectedValuesSet.has(value)) {
 			onChange(selectedValues.filter((v) => v !== value))
 		} else {
 			if (selectedValues.length < maxSelections) {
@@ -159,7 +167,7 @@ export function AriakitVirtualizedMultiSelect({
 										{virtualizer.getVirtualItems().map((virtualRow) => {
 											const option = filteredOptions[virtualRow.index]
 											if (!option) return null
-											const isActive = selectedValues.includes(option.value)
+											const isActive = selectedValuesSet.has(option.value)
 											const isDisabled = option.disabled || (!isActive && isMaxReached)
 											const iconUrl = renderIcon ? renderIcon(option) : option.logo
 											return (

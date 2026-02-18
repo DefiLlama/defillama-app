@@ -3,7 +3,8 @@ import { fetchJson } from '~/utils/async'
 
 export function useRevenueData(chains?: string[]) {
 	// If "All" is selected, treat it as no filter (empty array)
-	const filteredChains = chains?.includes('All') ? [] : chains
+	const chainsSet = chains ? new Set(chains) : null
+	const filteredChains = chainsSet?.has('All') ? [] : chains
 
 	const queryParams =
 		filteredChains && filteredChains.length > 0

@@ -82,8 +82,8 @@ export default function Protocols({ emissions }) {
 	}, [type])
 	const selectedOptionsSet = React.useMemo(() => new Set(selectedOptions), [selectedOptions])
 
-	const allEvents = (() => {
-		const events: Array<{ name: string; timestamp: Date; type: string; link?: string }> = []
+	const allEvents = React.useMemo(() => {
+		const events: Array<{ name: string; timestamp: number; type: string; link?: string }> = []
 		for (const emission of emissions) {
 			const tokens = emission.unlock[1]
 			const tokenValue = emission.tPrice ? tokens * emission.tPrice : null
@@ -91,7 +91,7 @@ export default function Protocols({ emissions }) {
 			if (unlockPercent === null || unlockPercent <= 4) continue
 			events.push({
 				name: `${emission.tSymbol} ${formatPercentage(unlockPercent)}% unlock`,
-				timestamp: new Date(emission.unlock[0] * 1e3),
+				timestamp: emission.unlock[0] * 1e3,
 				type: 'Unlock',
 				link: emission.name
 			})
@@ -103,22 +103,22 @@ export default function Protocols({ emissions }) {
 			for (const item of items) {
 				events.push({
 					name: item[1],
-					timestamp: new Date(item[0]),
+					timestamp: new Date(item[0]).getTime(),
 					type: eventType
 				})
 			}
 		}
 
-		const now = new Date()
-		const filteredEvents: Array<{ name: string; timestamp: Date; type: string; link?: string }> = []
+		const now = Date.now()
+		const filteredEvents: Array<{ name: string; timestamp: number; type: string; link?: string }> = []
 		for (const event of events) {
 			if (event.timestamp >= now && selectedOptionsSet.has(event.type)) {
 				filteredEvents.push(event)
 			}
 		}
-		filteredEvents.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+		filteredEvents.sort((a, b) => a.timestamp - b.timestamp)
 		return filteredEvents
-	})()
+	}, [emissions, selectedOptionsSet])
 
 	const instance = useReactTable({
 		data: allEvents,

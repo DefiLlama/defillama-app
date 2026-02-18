@@ -26,14 +26,14 @@ export function EmbedChart() {
 		}
 
 		const extras = []
-		for (const option in tvlSettings) {
-			if (tvlSettings[option]) {
+		for (const [option, enabled] of Object.entries(tvlSettings)) {
+			if (enabled) {
 				extras.push(`include_${option}_in_tvl=true`)
 			}
 		}
 
-		for (const option in feesSettings) {
-			if (feesSettings[option]) {
+		for (const [option, enabled] of Object.entries(feesSettings)) {
+			if (enabled) {
 				extras.push(`include_${option}_in_fees=true`)
 			}
 		}
