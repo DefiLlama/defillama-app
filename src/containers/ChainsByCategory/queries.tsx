@@ -96,7 +96,10 @@ export const getChainsByCategory = async ({
 	}) as Array<{ name: string; mcap: number }>
 	const stablesChainMcapMap = new Map<string, number>()
 	for (const stableChain of stablesChainMcaps) {
-		stablesChainMcapMap.set(slug(stableChain.name), stableChain.mcap)
+		const stableSlug = slug(stableChain.name)
+		if (!stablesChainMcapMap.has(stableSlug)) {
+			stablesChainMcapMap.set(stableSlug, stableChain.mcap)
+		}
 	}
 
 	// Build lookup maps for O(1) protocol access instead of O(n) .find() calls
@@ -104,12 +107,16 @@ export const getChainsByCategory = async ({
 	const revenueByDisplayName = new Map<string, (typeof revenue.protocols)[0]>()
 	if (fees?.protocols) {
 		for (const protocol of fees.protocols) {
-			feesByDisplayName.set(protocol.displayName, protocol)
+			if (!feesByDisplayName.has(protocol.displayName)) {
+				feesByDisplayName.set(protocol.displayName, protocol)
+			}
 		}
 	}
 	if (revenue?.protocols) {
 		for (const protocol of revenue.protocols) {
-			revenueByDisplayName.set(protocol.displayName, protocol)
+			if (!revenueByDisplayName.has(protocol.displayName)) {
+				revenueByDisplayName.set(protocol.displayName, protocol)
+			}
 		}
 	}
 

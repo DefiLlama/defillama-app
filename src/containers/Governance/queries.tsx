@@ -294,15 +294,24 @@ export async function getGovernanceDetailsPageData(
 
 	for (const key in snapshot) {
 		const p = snapshot[key]
-		snapshotBySlug.set(slug(p.name), p)
+		const projectSlug = slug(p.name)
+		if (!snapshotBySlug.has(projectSlug)) {
+			snapshotBySlug.set(projectSlug, p)
+		}
 	}
 	for (const key in compound) {
 		const p = compound[key]
-		compoundBySlug.set(slug(p.name), p)
+		const projectSlug = slug(p.name)
+		if (!compoundBySlug.has(projectSlug)) {
+			compoundBySlug.set(projectSlug, p)
+		}
 	}
 	for (const key in tally) {
 		const p = tally[key]
-		tallyBySlug.set(slug(p.name), p)
+		const projectSlug = slug(p.name)
+		if (!tallyBySlug.has(projectSlug)) {
+			tallyBySlug.set(projectSlug, p)
+		}
 	}
 
 	const snapshotProject = snapshotBySlug.get(normalizedProject)
