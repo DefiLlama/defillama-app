@@ -56,7 +56,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const currentYear = useMemo(() => filterYear ?? dayjs().year(), [filterYear])
+	const currentYear = filterYear ?? dayjs().year()
 
 	const protocolLabel = (protocol: string, value: number, iconUrl: string) => ({
 		show: true,

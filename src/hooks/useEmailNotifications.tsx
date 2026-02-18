@@ -79,7 +79,12 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				throw new Error(errorMessage)
 			}
 
-			const data = await response.json()
+			let data: any = null
+			try {
+				data = await response.json()
+			} catch {
+				return null
+			}
 			if (!data || data.preferences == null) {
 				return null
 			}

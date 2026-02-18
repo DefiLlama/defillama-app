@@ -96,7 +96,7 @@ async function renderClonedChartExport(
 	// Create a new chart instance on the temporary container
 	const tempChart = echarts.init(tempContainer, null, {
 		width: IMAGE_EXPORT_WIDTH,
-		height: 720
+		height: IMAGE_EXPORT_HEIGHT
 	})
 
 	try {

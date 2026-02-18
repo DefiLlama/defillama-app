@@ -195,7 +195,7 @@ export const SessionItem = memo(function SessionItem({
 										}
 									}
 								} catch (error) {
-									console.log(error)
+									console.error(error)
 									toast.error('Failed to copy link')
 								}
 							}}

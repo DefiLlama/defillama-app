@@ -538,12 +538,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				body: JSON.stringify({ email })
 			})
 			if (!response.ok) {
-				const data = await response.json()
 				let errorMessage = 'Failed to add email'
-				if (data) {
-					if (data.message) {
-						errorMessage = data.message
+				try {
+					const text = await response.text()
+					if (text) {
+						const data = JSON.parse(text)
+						if (data?.message) {
+							errorMessage = data.message
+						} else if (data?.error) {
+							errorMessage = data.error
+						}
 					}
+				} catch {
+					// Ignore parsing failures and use fallback message.
 				}
 				throw new Error(errorMessage)
 			}

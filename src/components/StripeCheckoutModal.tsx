@@ -24,6 +24,25 @@ const formatAmount = (cents: number, currency: string) => {
 	}).format(amount)
 }
 
+const getFriendlyPaymentStatus = (status: string) => {
+	switch (status) {
+		case 'requires_action':
+			return 'Requires additional authentication. Please complete the verification step and try again.'
+		case 'processing':
+			return 'Payment is processing. This may take a few minutes, please check your account shortly.'
+		case 'requires_capture':
+			return 'Payment is authorized and awaiting final confirmation.'
+		case 'requires_payment_method':
+			return 'Payment failed. Please use a different payment method and try again.'
+		case 'requires_confirmation':
+			return 'Payment needs confirmation. Please submit again to continue.'
+		case 'canceled':
+			return 'Payment was canceled. Please try again when ready.'
+		default:
+			return 'Payment is pending confirmation. Please check your account for updates.'
+	}
+}
+
 interface StripeCheckoutModalProps {
 	isOpen: boolean
 	onClose: () => void
@@ -123,6 +142,11 @@ export function StripeCheckoutModal({
 							prorationCredit,
 							newSubscriptionPrice
 						})
+					} else {
+						console.warn(
+							'Upgrade pricing payload inconsistency: data.amount is present but data.currency is missing.',
+							data
+						)
 					}
 				}
 
@@ -317,7 +341,7 @@ function UpgradePaymentForm({ onError }: { onError: (error: string) => void }) {
 					queryClient.invalidateQueries({ queryKey: ['subscription'] })
 					window.location.href = `${window.location.origin}/account?success=true`
 				} else {
-					onError(`Payment ${paymentIntent.status}. Please check your account for confirmation.`)
+					onError(getFriendlyPaymentStatus(paymentIntent.status))
 				}
 			}
 		} catch (err) {

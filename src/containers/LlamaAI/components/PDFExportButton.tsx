@@ -39,6 +39,11 @@ export function PDFExportButton({ sessionId, messageId, charts = EMPTY_CHARTS, e
 			try {
 				setIsLoading(true)
 
+				if (exportType === 'single_message' && !messageId) {
+					toast.error('Unable to export this message. Please try again from a specific message.')
+					return
+				}
+
 				let chartImages: CapturedChart[] = []
 				if (charts.length > 0) {
 					toast.loading('Capturing charts...', { id: 'pdf-export' })
@@ -60,9 +65,7 @@ export function PDFExportButton({ sessionId, messageId, charts = EMPTY_CHARTS, e
 				}
 
 				if (exportType === 'single_message') {
-					if (messageId) {
-						requestBody.messageId = messageId
-					}
+					requestBody.messageId = messageId
 				}
 
 				const response = await authorizedFetch(`${MCP_SERVER}/export/pdf`, {

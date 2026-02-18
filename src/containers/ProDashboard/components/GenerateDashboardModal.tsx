@@ -138,8 +138,6 @@ export function GenerateDashboardModal({
 			return
 		}
 
-		setIsLoading(true)
-
 		let sanitizedItems = EMPTY_DASHBOARD_ITEMS
 		if (mode === 'iterate' && existingDashboard && existingDashboard.items) {
 			sanitizedItems = sanitizeItemsForAPI(existingDashboard.items)
@@ -196,6 +194,8 @@ export function GenerateDashboardModal({
 			descriptionForGenerate = existingDashboard.description
 		}
 
+		setIsLoading(true)
+
 		try {
 			const response = await authorizedFetch(`${MCP_SERVER}/dashboard-creator`, {
 				method: 'POST',
@@ -224,7 +224,7 @@ export function GenerateDashboardModal({
 
 			const items = data.dashboardConfig.items as DashboardItemConfig[]
 			let sessionId: string | undefined
-			if (data.metadata) {
+			if (data.metadata && typeof data.metadata.sessionId === 'string') {
 				sessionId = data.metadata.sessionId
 			}
 			let generationMode: 'create' | 'iterate' = mode

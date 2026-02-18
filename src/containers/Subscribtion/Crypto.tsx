@@ -81,6 +81,20 @@ export const PaymentButton = ({
 	)
 }
 
+const getErrorMessageFromResponse = async (response: Response) => {
+	const statusInfo = `${response.status} ${response.statusText}`.trim()
+	let details = ''
+	try {
+		const text = await response.text()
+		if (text) {
+			details = text
+		}
+	} catch {
+		// Ignore body parsing errors and rely on status text.
+	}
+	return details ? `${statusInfo}: ${details}` : statusInfo
+}
+
 // oxlint-disable-next-line no-unused-vars
 const ProApiKey = () => {
 	const { isAuthenticated, loaders, authorizedFetch } = useAuthContext()
@@ -89,20 +103,6 @@ const ProApiKey = () => {
 
 	const [apiKey, setApiKey] = useState<string | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
-
-	const getErrorMessageFromResponse = async (response: Response) => {
-		const statusInfo = `${response.status} ${response.statusText}`.trim()
-		let details = ''
-		try {
-			const text = await response.text()
-			if (text) {
-				details = text
-			}
-		} catch {
-			// Ignore body parsing errors and rely on status text.
-		}
-		return details ? `${statusInfo}: ${details}` : statusInfo
-	}
 
 	useEffect(() => {
 		const fetchApiKey = async () => {
