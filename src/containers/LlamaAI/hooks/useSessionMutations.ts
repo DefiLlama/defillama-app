@@ -145,7 +145,12 @@ export function useSessionMutations() {
 	})
 
 	const createFakeSession = useCallback(() => {
-		const sessionId = crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2) + Date.now().toString(36)
+		const sessionId =
+			crypto?.randomUUID?.() ??
+			'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+				const r = (Math.random() * 16) | 0
+				return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
+			})
 		const title = 'New Chat'
 
 		if (user) {
