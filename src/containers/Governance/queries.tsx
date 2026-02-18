@@ -286,9 +286,28 @@ export async function getGovernanceDetailsPageData(
 	])
 
 	const normalizedProject = slug(project)
-	const snapshotProject = Object.values(snapshot).find((p) => slug(p.name) === normalizedProject)
-	const compoundProject = Object.values(compound).find((p) => slug(p.name) === normalizedProject)
-	const tallyProject = Object.values(tally).find((p) => slug(p.name) === normalizedProject)
+
+	// Build lookup maps by slug for O(1) access instead of O(n) Object.values().find()
+	const snapshotBySlug = new Map<string, GovernanceOverviewProject>()
+	const compoundBySlug = new Map<string, GovernanceOverviewProject>()
+	const tallyBySlug = new Map<string, GovernanceOverviewProject>()
+
+	for (const key in snapshot) {
+		const p = snapshot[key]
+		snapshotBySlug.set(slug(p.name), p)
+	}
+	for (const key in compound) {
+		const p = compound[key]
+		compoundBySlug.set(slug(p.name), p)
+	}
+	for (const key in tally) {
+		const p = tally[key]
+		tallyBySlug.set(slug(p.name), p)
+	}
+
+	const snapshotProject = snapshotBySlug.get(normalizedProject)
+	const compoundProject = compoundBySlug.get(normalizedProject)
+	const tallyProject = tallyBySlug.get(normalizedProject)
 
 	if (!snapshotProject && !compoundProject && !tallyProject) {
 		return { notFound: true }

@@ -588,12 +588,16 @@ const ChartContainer = ({
 		allocationMode === 'standard'
 			? (() => {
 					const categories: string[] = []
-					for (const category in data.categoriesBreakdown || {}) {
+					for (const category in data.categoriesBreakdown) {
 						categories.push(category)
 					}
 					return categories
 				})()
-			: categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
+			: (() => {
+					// O(1) Set lookup instead of O(n) array .includes()
+					const excludedSet = new Set(['Market Cap', 'Price'])
+					return categoriesFromData.filter((cat) => !excludedSet.has(cat))
+				})()
 
 	const displayData = useMemo(() => {
 		let result = chartData
@@ -612,7 +616,9 @@ const ChartContainer = ({
 				}
 				return categories
 			} else if (categoriesFromData.length > 0) {
-				return categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
+				// O(1) Set lookup instead of O(n) array .includes()
+				const excludedSet = new Set(['Market Cap', 'Price'])
+				return categoriesFromData.filter((cat) => !excludedSet.has(cat))
 			}
 			return []
 		})

@@ -85,11 +85,29 @@ export const getChainsByCategory = async ({
 	colorsByChain['Others'] = '#AAAAAA'
 
 	const stablesChainMcaps = stablecoins.chains.map((chain) => {
+		let total = 0
+		for (const key in chain.totalCirculatingUSD) {
+			total += chain.totalCirculatingUSD[key]
+		}
 		return {
 			name: chain.name,
-			mcap: Object.values(chain.totalCirculatingUSD).reduce((a: number, b: number) => a + b)
+			mcap: total
 		}
 	}) as Array<{ name: string; mcap: number }>
+
+	// Build lookup maps for O(1) protocol access instead of O(n) .find() calls
+	const feesByDisplayName = new Map<string, typeof fees.protocols[0]>()
+	const revenueByDisplayName = new Map<string, typeof revenue.protocols[0]>()
+	if (fees?.protocols) {
+		for (const protocol of fees.protocols) {
+			feesByDisplayName.set(protocol.displayName, protocol)
+		}
+	}
+	if (revenue?.protocols) {
+		for (const protocol of revenue.protocols) {
+			revenueByDisplayName.set(protocol.displayName, protocol)
+		}
+	}
 
 	let stackedDataset = rest.stackedDataset
 	if (sampledChart) {
@@ -137,12 +155,15 @@ export const getChainsByCategory = async ({
 		chains: chainTvls.map((chain) => {
 			const name = slug(chain.name)
 			const nftVolume = chainNftsVolume[name] ?? null
-			const totalFees24h = fees?.protocols?.find((x) => x.displayName === chain.name)?.total24h ?? null
-			const totalFees7d = fees?.protocols?.find((x) => x.displayName === chain.name)?.total7d ?? null
-			const totalFees30d = fees?.protocols?.find((x) => x.displayName === chain.name)?.total30d ?? null
-			const totalRevenue24h = revenue?.protocols?.find((x) => x.displayName === chain.name)?.total24h ?? null
-			const totalRevenue7d = revenue?.protocols?.find((x) => x.displayName === chain.name)?.total7d ?? null
-			const totalRevenue30d = revenue?.protocols?.find((x) => x.displayName === chain.name)?.total30d ?? null
+			// O(1) Map lookups instead of O(n) .find() calls
+			const feesProtocol = feesByDisplayName.get(chain.name)
+			const totalFees24h = feesProtocol?.total24h ?? null
+			const totalFees7d = feesProtocol?.total7d ?? null
+			const totalFees30d = feesProtocol?.total30d ?? null
+			const revenueProtocol = revenueByDisplayName.get(chain.name)
+			const totalRevenue24h = revenueProtocol?.total24h ?? null
+			const totalRevenue7d = revenueProtocol?.total7d ?? null
+			const totalRevenue30d = revenueProtocol?.total30d ?? null
 			const totalAppRevenue24h = appRevenue?.[chain.name]?.['24h'] ?? null
 			const totalAppRevenue7d = appRevenue?.[chain.name]?.['7d'] ?? null
 			const totalAppRevenue30d = appRevenue?.[chain.name]?.['30d'] ?? null

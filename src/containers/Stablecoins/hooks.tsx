@@ -264,12 +264,16 @@ export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: 
 				if (!isChainsCategoryGroupKey(type) || groupsEnabled[type] !== true) {
 					continue
 				}
-				for (const child of groupData[parentName][type]) {
-					const childData = chainsByName.get(child)
+			// O(1) Set lookup for already added children
+			const alreadyAddedNames = new Set((finalData[parentName]?.subRows ?? []).map((p) => p.name))
 
-					const alreadyAdded = (finalData[parentName]?.subRows ?? []).find((p) => p.name === child)
+			for (const child of groupData[parentName][type]) {
+				const childData = chainsByName.get(child)
 
-					if (childData && alreadyAdded === undefined) {
+				// O(1) Set lookup instead of O(n) .find()
+				const alreadyAdded = alreadyAddedNames.has(child)
+
+				if (childData && !alreadyAdded) {
 						mcap = (mcap ?? 0) + (childData.mcap ?? 0)
 						unreleased = (unreleased ?? 0) + (childData.unreleased ?? 0)
 						bridgedTo = (bridgedTo ?? 0) + (childData.bridgedTo ?? 0)
@@ -308,7 +312,12 @@ export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: 
 				finalData[item.name] = item
 			}
 		}
-		return Object.values(finalData).sort((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
+		// Use for..in instead of Object.values() to avoid intermediate array
+	const finalDataArray: typeof finalData[string][] = []
+	for (const key in finalData) {
+		finalDataArray.push(finalData[key])
+	}
+	return finalDataArray.sort((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
 	}, [chains, groupData, groupsEnabled])
 
 	return data
@@ -429,7 +438,12 @@ export const useGroupBridgeData = (
 				}
 			}
 		}
-		return Object.values(finalData)
+		// Use for..in instead of Object.values() to avoid intermediate array
+		const finalDataArray: typeof finalData[string][] = []
+		for (const key in finalData) {
+			finalDataArray.push(finalData[key])
+		}
+		return finalDataArray
 			.filter((chain) => chain.name)
 			.sort((a, b) => b.circulating - a.circulating)
 	}, [chains, bridgeInfoObject])

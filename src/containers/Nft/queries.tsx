@@ -189,10 +189,22 @@ export const getNFTCollectionEarnings = async () => {
 			fetchNftCollections()
 		])
 
+		// Build lookup maps for O(1) collection access instead of O(n) .find() calls
+		const royaltiesByCollection = new Map<string, typeof royalties[0]>()
+		for (const royalty of royalties) {
+			royaltiesByCollection.set(`0x${royalty.collection}`, royalty)
+		}
+
+		const mintEarningsByContract = new Map<string, typeof NFT_MINT_EARNINGS[0]>()
+		for (const earning of NFT_MINT_EARNINGS) {
+			mintEarningsByContract.set(earning.contractAddress, earning)
+		}
+
 		const collectionEarnings = collections
 			.map((c) => {
-				const royalty = royalties.find((r) => `0x${r.collection}` === c.collectionId)
-				const mintEarnings = NFT_MINT_EARNINGS.find((r) => r.contractAddress === c.collectionId)
+				// O(1) Map lookups instead of O(n) .find() calls
+				const royalty = royaltiesByCollection.get(c.collectionId)
+				const mintEarnings = mintEarningsByContract.get(c.collectionId)
 
 				if (!royalty && !mintEarnings) return null
 

@@ -140,7 +140,9 @@ export async function getOraclesListPageData({
 	const tableData: Array<OracleTableDataRow> = []
 	for (const oracle in oraclesTVS) {
 		const chains = chainsByOracle[oracle] ?? []
-		if (canonicalChain && !chains.includes(canonicalChain)) {
+		// O(1) Set lookup instead of O(n) .includes()
+		const chainSet = new Set(chains)
+		if (canonicalChain && !chainSet.has(canonicalChain)) {
 			continue
 		}
 
@@ -275,9 +277,18 @@ export async function getOracleDetailPageData({
 	}
 
 	const protocolsByName = new Map(protocols.map((protocol) => [protocol.name, protocol]))
-	const protocolsSupportingCanonicalChain = canonicalChain
-		? new Set(protocols.filter((protocol) => protocol.chains.includes(canonicalChain)).map((protocol) => protocol.name))
-		: null
+	// Pre-build Set of protocols supporting the canonical chain using for..of instead of filter+map
+	let protocolsSupportingCanonicalChain: Set<string> | null = null
+	if (canonicalChain) {
+		protocolsSupportingCanonicalChain = new Set<string>()
+		for (const protocol of protocols) {
+			// O(1) Set lookup per protocol's chains instead of O(n) .includes()
+			const protocolChainSet = new Set(protocol.chains)
+			if (protocolChainSet.has(canonicalChain)) {
+				protocolsSupportingCanonicalChain.add(protocol.name)
+			}
+		}
+	}
 	const orderedOracleProtocolNames = oracleProtocolNamesByOracle[canonicalOracle] ?? []
 	const protocolTableData: Array<OracleProtocolWithBreakdown> = []
 	for (const protocolName of orderedOracleProtocolNames) {
