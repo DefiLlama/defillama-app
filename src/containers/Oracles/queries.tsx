@@ -276,8 +276,8 @@ export async function getOracleDetailPageData({
 	}
 
 	const protocolsByName = new Map(protocols.map((protocol) => [protocol.name, protocol]))
-	// Pre-build Set of protocols supporting the canonical chain using for..of instead of filter+map
-	// Note: Single lookup per protocol, so direct .includes() is more efficient than Set creation
+	// Build one Set for repeated membership checks in the table loop.
+	// The per-protocol chain test remains a single cheap `.includes()` call.
 	let protocolsSupportingCanonicalChain: Set<string> | null = null
 	if (canonicalChain) {
 		protocolsSupportingCanonicalChain = new Set<string>()

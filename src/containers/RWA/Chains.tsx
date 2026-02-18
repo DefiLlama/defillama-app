@@ -9,6 +9,7 @@ import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum } from '~/utils'
 import type { IRWAChainBreakdownDatasetsByToggle, IRWAChainsOverviewRow } from './api.types'
+import { formatCsvRowValues } from './csvUtils'
 import { definitions } from './definitions'
 import { toBooleanParam } from './hooks'
 import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
@@ -239,16 +240,7 @@ export function RWAChainsTable({
 								const headers = columns.map((c) => (typeof c.header === 'string' ? c.header : (c.id ?? '')))
 								const columnIds = columns.map((c) => c.id as string)
 
-								const rows = instance.getRowModel().rows.map((row) =>
-									columnIds.map((columnId) => {
-										const value = row.getValue(columnId)
-										if (value == null) return ''
-										if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean')
-											return value
-										if (Array.isArray(value)) return value.join(', ')
-										return ''
-									})
-								)
+								const rows = instance.getRowModel().rows.map((row) => formatCsvRowValues(row, columnIds))
 
 								return { filename, rows: [headers, ...rows] }
 							}}

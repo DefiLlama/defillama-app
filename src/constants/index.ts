@@ -77,22 +77,13 @@ export const CHAINS_API_V2 = `${SERVER_URL}/chains2`
 export const DIMENSIONS_OVERVIEW_API = `${SERVER_URL}/overview`
 export const DIMENSIONS_SUMMARY_API = `${SERVER_URL}/summary`
 
-// const getProtocolFEConfig = (id: string) => `${SERVER_URL}/config/smol/protocol-${id}.json`.replace('#', '-')
-
-// const USER_METRICS_PROTOCOL_API = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/stats'
-// const USER_METRICS_CHAIN_API = 'https://users.llama.fi/chain'
-// const USER_METRICS_CHAIN_API_BY_DATE = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/chain'
-// const USER_METRICS_ALL_API = 'https://users.llama.fi/all'
-
 export const TOKEN_LIQUIDITY_API = `${SERVER_URL}/historicalLiquidity`
 
 export const CG_TOKEN_API =
 	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=<PLACEHOLDER>'
 
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'
-// const ICONS_NFT_CDN = 'https://nft-icons.llamao.fi/icons'
 
-// const TWITTER_POSTS_API = `${DATASETS_SERVER_URL}/dev-metrics/twitter-files`
 export const TWITTER_POSTS_API_V2 = `${SERVER_URL}/twitter/user`
 
 const COINS_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/coins` : 'https://coins.llama.fi'

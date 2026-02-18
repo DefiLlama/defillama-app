@@ -321,11 +321,13 @@ export async function getLendBorrowData() {
 				const compoundData = x.underlyingTokens?.[0]
 					? compoundPoolsByToken.get(x.underlyingTokens[0].toLowerCase())
 					: undefined
-				totalAvailableUsd = compoundData?.totalSupplyUsd - compoundData?.totalBorrowUsd
+				totalAvailableUsd = compoundData
+					? (compoundData.totalSupplyUsd ?? 0) - (compoundData.totalBorrowUsd ?? 0)
+					: null
 			} else if (p.project === 'morpho-aave') {
 				// O(1) Map lookup instead of O(n) .find()
 				const aaveData = x.underlyingTokens?.[0] ? aavePoolsByToken.get(x.underlyingTokens[0].toLowerCase()) : undefined
-				totalAvailableUsd = aaveData?.totalSupplyUsd - aaveData?.totalBorrowUsd
+				totalAvailableUsd = aaveData ? (aaveData.totalSupplyUsd ?? 0) - (aaveData.totalBorrowUsd ?? 0) : null
 			} else if (p.project === 'morpho-blue') {
 				totalAvailableUsd = x.debtCeilingUsd
 			} else if (x.totalSupplyUsd === null && x.totalBorrowUsd === null) {

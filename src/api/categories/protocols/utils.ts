@@ -53,28 +53,25 @@ export const formatProtocolsData = ({
 		}
 
 		if (chain) {
-			// Convert to Set for O(1) lookup instead of O(n) .includes()
-			const chainSet = protocol.chains ? new Set(protocol.chains) : new Set<string>()
-			toFilter = toFilter && chainSet.has(chain)
+			toFilter = toFilter && (protocol.chains?.includes(chain) ?? false)
 		}
 
 		if (oracle) {
-			// Convert to Set for O(1) lookup instead of O(n) .includes()
-			let oracleSet: Set<string> | undefined
 			if (protocol.oraclesByChain) {
-				oracleSet = new Set(
-					chain ? protocol.oraclesByChain[chain] || [] : Object.values(protocol.oraclesByChain).flat()
-				)
+				toFilter =
+					toFilter &&
+					(chain
+						? (protocol.oraclesByChain[chain]?.includes(oracle) ?? false)
+						: Object.values(protocol.oraclesByChain).flat().includes(oracle))
 			} else if (protocol.oracles) {
-				oracleSet = new Set(protocol.oracles)
+				toFilter = toFilter && protocol.oracles.includes(oracle)
+			} else {
+				toFilter = false
 			}
-			toFilter = toFilter && (oracleSet?.has(oracle) ?? false)
 		}
 
 		if (fork) {
-			// Convert to Set for O(1) lookup instead of O(n) .includes()
-			const forkSet = protocol.forkedFrom ? new Set(protocol.forkedFrom) : new Set<string>()
-			toFilter = toFilter && forkSet.has(fork)
+			toFilter = toFilter && (protocol.forkedFrom?.includes(fork) ?? false)
 		}
 
 		if (category) {
@@ -105,9 +102,7 @@ export const formatProtocolsData = ({
 					p.tvlPrevMonth = 0
 
 					for (const ochain in protocol.oraclesByChain) {
-						// O(1) Set lookup instead of O(n) .includes()
-						const oracleSet = new Set(protocol.oraclesByChain[ochain])
-						if (oracleSet.has(oracle)) {
+						if (protocol.oraclesByChain[ochain]?.includes(oracle)) {
 							p.tvl += protocol.chainTvls[ochain]?.tvl ?? 0
 							p.tvlPrevDay += protocol.chainTvls[ochain]?.tvlPrevDay ?? 0
 							p.tvlPrevWeek += protocol.chainTvls[ochain]?.tvlPrevWeek ?? 0
@@ -118,6 +113,15 @@ export const formatProtocolsData = ({
 			}
 
 			p.extraTvl = {}
+			const filteredChains: string[] = []
+			if (oracle && protocol.oraclesByChain) {
+				for (const chainName in protocol.oraclesByChain) {
+					if (protocol.oraclesByChain[chainName]?.includes(oracle)) {
+						filteredChains.push(chainName)
+					}
+				}
+				p.chains = filteredChains
+			}
 
 			for (const sectionName in protocol.chainTvls) {
 				if (chain) {
@@ -127,11 +131,7 @@ export const formatProtocolsData = ({
 				} else if (oracle && protocol.oraclesByChain) {
 					const sectionParts = sectionName.split('-')
 					const chainKey = sectionParts[0]
-					// O(1) Set lookup instead of O(n) .includes()
-					const chainOracleSet = protocol.oraclesByChain[chainKey]
-						? new Set(protocol.oraclesByChain[chainKey])
-						: new Set<string>()
-					if (sectionParts.length > 1 && chainOracleSet.has(oracle)) {
+					if (sectionParts.length > 1 && protocol.oraclesByChain[chainKey]?.includes(oracle)) {
 						const prop = sectionParts[1]
 						if (!p.extraTvl[prop]) {
 							p.extraTvl[prop] = {
@@ -146,16 +146,6 @@ export const formatProtocolsData = ({
 						p.extraTvl[prop].tvlPrevWeek += protocol.chainTvls[sectionName].tvlPrevWeek
 						p.extraTvl[prop].tvlPrevMonth += protocol.chainTvls[sectionName].tvlPrevMonth
 					}
-
-					const filteredChains: string[] = []
-					for (const chain in protocol.oraclesByChain) {
-						// O(1) Set lookup instead of O(n) .includes()
-						const oSet = new Set(protocol.oraclesByChain[chain])
-						if (oSet.has(oracle)) {
-							filteredChains.push(chain)
-						}
-					}
-					p.chains = filteredChains
 				} else {
 					if (TVL_SETTINGS_KEYS_SET.has(sectionName) || sectionName === 'excludeParent') {
 						p.extraTvl[sectionName] = protocol.chainTvls[sectionName]

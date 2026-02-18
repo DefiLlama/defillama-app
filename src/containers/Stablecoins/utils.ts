@@ -224,6 +224,7 @@ export function getPrevStablecoinTotalFromChart(
 		const totalsRecord = issuanceTotals as Record<string, unknown>
 		let total = 0
 		for (const key in totalsRecord) {
+			if (!Object.hasOwn(totalsRecord, key)) continue
 			const value = totalsRecord[key]
 			const numeric = typeof value === 'number' ? value : Number(value)
 			if (Number.isFinite(numeric)) total += numeric
@@ -265,6 +266,7 @@ export const getStablecoinTopTokenFromChartData = (
 	let topMcap = DEFAULT_TOP_TOKEN.mcap
 
 	for (const key in latestRow) {
+		if (!Object.prototype.hasOwnProperty.call(latestRow, key)) continue
 		if (key === 'date') continue
 		const rawValue = latestRow[key]
 		const value = typeof rawValue === 'number' ? rawValue : Number(rawValue)

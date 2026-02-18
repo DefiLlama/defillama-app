@@ -65,6 +65,7 @@ function isStringKeyedObject(value: unknown): value is Record<string, unknown> {
 function toNumberRecord(obj: Record<string, unknown>): Record<string, number> {
 	const result: Record<string, number> = {}
 	for (const key in obj) {
+		if (!Object.prototype.hasOwnProperty.call(obj, key)) continue
 		const val = obj[key]
 		if (typeof val === 'number' && Number.isFinite(val)) {
 			result[key] = val
@@ -615,8 +616,13 @@ export const getAllProtocolEmissions = async ({
 			}
 		}
 
-		// Use Object.keys().length for O(1) check instead of for..in loop
-		const hasPriceRequests = Object.keys(priceReqs).length > 0
+		let hasPriceRequests = false
+		for (const coinKey in priceReqs) {
+			if (Object.prototype.hasOwnProperty.call(priceReqs, coinKey)) {
+				hasPriceRequests = true
+				break
+			}
+		}
 		const historicalPrices =
 			getHistoricalPrices && hasPriceRequests ? (await batchFetchHistoricalPrices(priceReqs)).results : {}
 

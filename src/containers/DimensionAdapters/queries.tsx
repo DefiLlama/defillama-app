@@ -608,10 +608,10 @@ export const getAdapterByChainPageData = async ({
 
 	const allProtocols: IAdapterChainOverview['protocols'] = [...data.protocols]
 
-	// Build protocol lookup Map for O(1) membership testing instead of O(n) .find()
-	const allProtocolsByName = new Map<string, boolean>()
+	// Build protocol lookup Set for O(1) membership testing instead of O(n) .find()
+	const allProtocolsByName = new Set<string>()
 	for (const protocol of allProtocols) {
-		allProtocolsByName.set(protocol.name, true)
+		allProtocolsByName.add(protocol.name)
 	}
 
 	let bribesProtocols: Record<string, BribesData> = {}
@@ -663,7 +663,7 @@ export const getAdapterByChainPageData = async ({
 
 					// O(1) Map lookup instead of O(n) .find()
 					if (!allProtocolsByName.has(p.name)) {
-						allProtocolsByName.set(p.name, true)
+						allProtocolsByName.add(p.name)
 						allProtocols.push({
 							...p,
 							total24h: null,
@@ -711,7 +711,7 @@ export const getAdapterByChainPageData = async ({
 
 					// O(1) Map lookup instead of O(n) .find()
 					if (!allProtocolsByName.has(p.name)) {
-						allProtocolsByName.set(p.name, true)
+						allProtocolsByName.add(p.name)
 						allProtocols.push({
 							...p,
 							total24h: null,

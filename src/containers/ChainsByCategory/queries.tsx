@@ -94,6 +94,10 @@ export const getChainsByCategory = async ({
 			mcap: total
 		}
 	}) as Array<{ name: string; mcap: number }>
+	const stablesChainMcapMap = new Map<string, number>()
+	for (const stableChain of stablesChainMcaps) {
+		stablesChainMcapMap.set(slug(stableChain.name), stableChain.mcap)
+	}
 
 	// Build lookup maps for O(1) protocol access instead of O(n) .find() calls
 	const feesByDisplayName = new Map<string, (typeof fees.protocols)[0]>()
@@ -170,7 +174,7 @@ export const getChainsByCategory = async ({
 			const totalVolume24h = dexs?.[chain.name]?.['24h'] ?? null
 			const totalVolume7d = dexs?.[chain.name]?.['7d'] ?? null
 			const totalVolume30d = dexs?.[chain.name]?.['30d'] ?? null
-			const stablesMcap = stablesChainMcaps.find((x) => slug(x.name) === name)?.mcap ?? null
+			const stablesMcap = stablesChainMcapMap.get(name) ?? null
 			const users = activeUsers['chain#' + name]?.users?.value
 			const protocols = chainMetadata[name]?.protocolCount ?? chain.protocols ?? 0
 			const tvl =

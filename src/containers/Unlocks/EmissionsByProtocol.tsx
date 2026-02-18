@@ -87,6 +87,8 @@ const getExtendedColors = (baseColors: Record<string, string>, isPriceEnabled: b
 	return extended
 }
 
+const EXCLUDED_CHART_CATEGORIES = new Set(['Market Cap', 'Price'])
+
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
@@ -594,9 +596,7 @@ const ChartContainer = ({
 					return categories
 				})()
 			: (() => {
-					// O(1) Set lookup instead of O(n) array .includes()
-					const excludedSet = new Set(['Market Cap', 'Price'])
-					return categoriesFromData.filter((cat) => !excludedSet.has(cat))
+					return categoriesFromData.filter((cat) => !EXCLUDED_CHART_CATEGORIES.has(cat))
 				})()
 
 	const displayData = useMemo(() => {
@@ -616,9 +616,7 @@ const ChartContainer = ({
 				}
 				return categories
 			} else if (categoriesFromData.length > 0) {
-				// O(1) Set lookup instead of O(n) array .includes()
-				const excludedSet = new Set(['Market Cap', 'Price'])
-				return categoriesFromData.filter((cat) => !excludedSet.has(cat))
+				return categoriesFromData.filter((cat) => !EXCLUDED_CHART_CATEGORIES.has(cat))
 			}
 			return []
 		})

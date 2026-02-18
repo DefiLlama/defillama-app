@@ -232,8 +232,9 @@ export const getNFTCollectionEarnings = async () => {
 				duplicateCollections.add(address)
 				return address
 			})
+			const subCollectionSet = new Set(subCollections)
 
-			const subCollectionEarnings = collectionEarnings.filter((c) => subCollections.includes(c.defillamaId))
+			const subCollectionEarnings = collectionEarnings.filter((c) => subCollectionSet.has(c.defillamaId))
 
 			let total24h = 0
 			let total7d = 0
