@@ -63,7 +63,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			})
 
 			if (!response.ok) {
-				if (response.status === 404) {
+				if (response.status === 404 || response.status === 401) {
 					return null
 				}
 

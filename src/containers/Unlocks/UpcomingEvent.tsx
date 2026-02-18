@@ -181,7 +181,6 @@ export const UpcomingEvent = ({
 	name,
 	isProtocolPage = false
 }: UpcomingEventProps) => {
-	const nowSec = useMemo(() => Date.now() / 1e3, [])
 	const tokenSymbol = symbol ? symbol.toUpperCase() : ''
 	const { currentUnlockBreakdown, totalAmount, tokenValue, unlockPercent, unlockPercentFloat } = useMemo(() => {
 		const breakdown: UnlockBreakdown[] = event
@@ -232,6 +231,7 @@ export const UpcomingEvent = ({
 	}, [event, price, maxSupply, mcap])
 
 	const [nowMs, setNowMs] = useState(() => Date.now())
+	const nowSec = nowMs / 1e3
 	const timeLeft = timestamp - nowMs / 1e3
 	const days = Math.floor(timeLeft / 86400)
 	const hours = Math.floor((timeLeft - 86400 * days) / 3600)
