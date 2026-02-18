@@ -1,6 +1,7 @@
 import type { InferGetStaticPropsType } from 'next'
 import Link from 'next/link'
 import { maxAgeForNext } from '~/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { PROTOCOLS_API } from '~/constants/index'
 import { ChainOverview } from '~/containers/ChainOverview'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
@@ -54,7 +55,7 @@ export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'

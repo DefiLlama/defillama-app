@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import type { IChainTvl } from '~/api/types'
-import { COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
+import { COINGECKO_KEY, COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
 import { fetchCexs } from '~/containers/Cexs/api'
 import { fetchJson } from '~/utils/async'
 
@@ -40,12 +40,12 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 		const [spotData, derivsData, priceData, cexData] = await Promise.all([
 			fetchJson(`https://pro-api.coingecko.com/api/v3/exchanges?per_page=250`, {
 				headers: {
-					'x-cg-pro-api-key': process.env.CG_KEY
+					'x-cg-pro-api-key': COINGECKO_KEY
 				}
 			}),
 			fetchJson(`https://pro-api.coingecko.com/api/v3/derivatives/exchanges?per_page=1000`, {
 				headers: {
-					'x-cg-pro-api-key': process.env.CG_KEY
+					'x-cg-pro-api-key': COINGECKO_KEY
 				}
 			}),
 			fetchJson(`${COINS_PRICES_API}/current/coingecko:bitcoin`),

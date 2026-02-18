@@ -68,10 +68,7 @@ export function useDebounce<T>(valueOrCallback: T, delay: number) {
 		delayRef.current = normalizedDelay
 	})
 
-	const debounced = useMemo(
-		() => createDebounced(handlerRef, delayRef),
-		[]
-	)
+	const debounced = useMemo(() => createDebounced(handlerRef, delayRef), [])
 
 	useEffect(() => {
 		return () => {

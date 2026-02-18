@@ -1,6 +1,7 @@
 import type { InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { ForksByProtocol } from '~/containers/Forks/ForksByProtocol'
 import { getForksByProtocolPageData } from '~/containers/Forks/queries'
 import Layout from '~/layout'
@@ -31,7 +32,7 @@ export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'

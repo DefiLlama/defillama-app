@@ -169,7 +169,6 @@ export function KeyMetricsPngExportButton({
 				}
 			}
 
-
 			const containerWidth = container.getBoundingClientRect().width
 			const canvasWidth = Math.max(400, Math.min(600, containerWidth))
 

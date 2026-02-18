@@ -1,5 +1,6 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { DATByAsset } from '~/containers/DAT/ByAsset'
 import { getDATOverviewDataByAsset, getDATAssetPaths } from '~/containers/DAT/queries'
 import Layout from '~/layout'
@@ -31,7 +32,7 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'

@@ -156,7 +156,10 @@ export function Stats(props: IStatsProps) {
 
 			const enabledParams = TVL_SETTINGS_KEYS.flatMap((key) => (tvlSettings[key] ? [`${key}=true`] : []))
 			const chainDatasetName = chainsNamesMap[props.metadata.name] || props.metadata.id || props.metadata.name
-			const url = `https://api.llama.fi/simpleChainDataset/${chainDatasetName}?${enabledParams.join('&')}`.replaceAll(' ', '%20')
+			const url = `https://api.llama.fi/simpleChainDataset/${chainDatasetName}?${enabledParams.join('&')}`.replaceAll(
+				' ',
+				'%20'
+			)
 
 			try {
 				const response = await fetch(url)

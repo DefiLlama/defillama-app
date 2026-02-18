@@ -2,24 +2,14 @@ import {
 	GOVERNANCE_COMPOUND_API,
 	GOVERNANCE_SNAPSHOT_API,
 	GOVERNANCE_TALLY_API,
-	PROTOCOL_GOVERNANCE_COMPOUND_API,
-	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
-	PROTOCOL_GOVERNANCE_TALLY_API
-} from '~/constants'
+	governanceIdsToApis
+} from '~/containers/Governance/api'
 import { fetchAndFormatGovernanceData, getGovernanceTypeFromApi } from '~/containers/Governance/queries.client'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { GovernanceDataEntry, GovernanceOverviewItem, GovernanceType } from './types'
 
 type GovernanceOverviewProject = { name: string; id: string }
-
-function normalizeDatasetsHost(url: string) {
-	// Keep behavior consistent with the protocol governance route.
-	return url.replace(
-		process.env.DATASETS_SERVER_URL ?? 'https://defillama-datasets.llama.fi',
-		'https://defillama-datasets.llama.fi'
-	)
-}
 
 type GovernanceDetailsPageData =
 	| { notFound: true }
@@ -30,30 +20,6 @@ type GovernanceDetailsPageData =
 	  }
 
 type GovernanceDetailsPageDataWithProps = Exclude<GovernanceDetailsPageData, { notFound: true }>
-
-function governanceIdToApiUrl(gid: string) {
-	const trimmed = (gid ?? '').trim()
-	if (!trimmed) return null
-
-	const api = trimmed.startsWith('snapshot:')
-		? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${trimmed.split('snapshot:')[1].replace(/(:|'|')/g, '/')}.json`
-		: trimmed.startsWith('compound:')
-			? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${trimmed.split('compound:')[1].replace(/(:|'|')/g, '/')}.json`
-			: trimmed.startsWith('tally:')
-				? `${PROTOCOL_GOVERNANCE_TALLY_API}/${trimmed.split('tally:')[1].replace(/(:|'|')/g, '/')}.json`
-				: `${PROTOCOL_GOVERNANCE_TALLY_API}/${trimmed.replace(/(:|'|')/g, '/')}.json`
-
-	return normalizeDatasetsHost(api).toLowerCase()
-}
-
-function governanceIdsToApis(governanceIDs: Array<string>) {
-	const apis: string[] = []
-	for (const id of governanceIDs ?? []) {
-		const url = governanceIdToApiUrl(id)
-		if (url) apis.push(url)
-	}
-	return apis
-}
 
 async function fetchGovernanceDataForApis(governanceApis: Array<string>) {
 	const governanceData = await fetchAndFormatGovernanceData(governanceApis)

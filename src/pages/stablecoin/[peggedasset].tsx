@@ -1,5 +1,6 @@
 import type { GetStaticPaths, GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { maxAgeForNext } from '~/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { getStablecoinAssetPageData } from '~/containers/Stablecoins/queries.server'
 import StablecoinAssetOverview from '~/containers/Stablecoins/StablecoinOverview'
@@ -39,7 +40,7 @@ export const getStaticPaths: GetStaticPaths<StablecoinAssetRouteParams> = async 
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'

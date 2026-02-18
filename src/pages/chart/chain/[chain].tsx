@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { maxAgeForNext } from '~/api'
 import { LocalLoader } from '~/components/Loaders'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { BAR_CHARTS, type ChainChartLabels, chainCharts } from '~/containers/ChainOverview/constants'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
@@ -42,7 +43,7 @@ export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'

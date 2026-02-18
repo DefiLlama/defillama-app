@@ -232,7 +232,9 @@ export function GenerateDashboardModal({
 				generationMode = data.metadata.mode
 			}
 
-			let aiGenerationContext: { sessionId: string; mode: 'create' | 'iterate'; timestamp: string; prompt: string } | undefined
+			let aiGenerationContext:
+				| { sessionId: string; mode: 'create' | 'iterate'; timestamp: string; prompt: string }
+				| undefined
 			if (sessionId) {
 				aiGenerationContext = {
 					sessionId,

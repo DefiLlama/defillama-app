@@ -3,6 +3,7 @@ import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { LinkPreviewCard } from '~/components/SEO'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { LiquidationsContainer } from '~/containers/Liquidations'
 import {
 	getLatestLiquidationsChartData,
@@ -40,7 +41,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'

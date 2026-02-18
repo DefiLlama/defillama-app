@@ -4,9 +4,6 @@ import {
 	LIQUIDITY_API,
 	ORACLE_API,
 	oracleProtocols,
-	PROTOCOL_GOVERNANCE_COMPOUND_API,
-	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
-	PROTOCOL_GOVERNANCE_TALLY_API,
 	PROTOCOLS_API,
 	V2_SERVER_URL,
 	YIELD_CONFIG_API,
@@ -17,6 +14,7 @@ import { CHART_COLORS } from '~/constants/colors'
 import { fetchCexs } from '~/containers/Cexs/api'
 import { fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'
+import { governanceIdsToApis } from '~/containers/Governance/api'
 import { fetchHacks } from '~/containers/Hacks/api'
 import type { IHackApiItem } from '~/containers/Hacks/api.types'
 import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
@@ -957,7 +955,7 @@ export const getProtocolOverviewPageData = async ({
 			event
 		]),
 		geckoId: protocolData.gecko_id ?? null,
-		governanceApis: governanceApis(protocolData.governanceID) ?? null,
+		governanceApis: governanceIdsToApis(protocolData.governanceID ?? []),
 		incomeStatement,
 		warningBanners: getProtocolWarningBanners(protocolData),
 		defaultChartView:
@@ -1144,26 +1142,6 @@ function getTokenCGData(tokenCGData: unknown, cg_volume_cexs: string[]) {
 		symbol: tokenInfo?.['symbol'] ? tokenInfo.symbol.toUpperCase() : null
 	}
 }
-
-const governanceApis = (governanceID: Array<string> | undefined) =>
-	(
-		governanceID?.map((gid: string) =>
-			gid.startsWith('snapshot:')
-				? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${gid.split('snapshot:')[1].replace(/(:|' |')/g, '/')}.json`
-				: gid.startsWith('compound:')
-					? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${gid.split('compound:')[1].replace(/(:|' |')/g, '/')}.json`
-					: gid.startsWith('tally:')
-						? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1].replace(/(:|' |')/g, '/')}.json`
-						: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replace(/(:|' |')/g, '/')}.json`
-		) ?? []
-	)
-		.map((g: string) =>
-			g.replace(
-				process.env.DATASETS_SERVER_URL ?? 'https://defillama-datasets.llama.fi',
-				'https://defillama-datasets.llama.fi'
-			)
-		)
-		.map((g: string) => g.toLowerCase())
 
 const protocolsWithFalsyBreakdownMetrics = new Set(['Jupiter'])
 

@@ -27,13 +27,6 @@ export const PROTOCOL_TRANSACTIONS_API = `${SERVER_URL}/userData/txs`
 export const PROTOCOL_GAS_USED_API = `${SERVER_URL}/userData/gas`
 export const PROTOCOL_NEW_USERS_API = `${SERVER_URL}/userData/newusers`
 
-export const GOVERNANCE_SNAPSHOT_API = `${DATASETS_SERVER_URL}/governance-cache/overview/snapshot.json`
-export const PROTOCOL_GOVERNANCE_SNAPSHOT_API = `${DATASETS_SERVER_URL}/governance-cache/snapshot`
-export const GOVERNANCE_COMPOUND_API = `${DATASETS_SERVER_URL}/governance-cache/overview/compound.json`
-export const PROTOCOL_GOVERNANCE_COMPOUND_API = `${DATASETS_SERVER_URL}/governance-cache/compound`
-export const GOVERNANCE_TALLY_API = `${DATASETS_SERVER_URL}/governance-cache/overview/tally.json`
-export const PROTOCOL_GOVERNANCE_TALLY_API = `${DATASETS_SERVER_URL}/governance-cache/tally`
-
 export const TOKEN_LIST_API = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 
 export const NFT_SERVER_URL = 'https://nft.llama.fi'
@@ -112,6 +105,10 @@ export const MCP_SERVER = 'https://mcp.llama.fi'
 export const YIELD_TOKEN_CATEGORIES_API = 'https://ask.llama.fi/token-categories/yields'
 export const SEARCH_API_URL = 'https://search-core.defillama.com/multi-search'
 export const SEARCH_API_TOKEN = process.env.NEXT_PUBLIC_SEARCH_API_TOKEN
+
+export const COINGECKO_KEY = process.env.CG_KEY
+
+export const SKIP_BUILD_STATIC_GENERATION = !['false', '0'].includes(process.env.SKIP_BUILD_STATIC_GENERATION)
 
 const removedCategoriesFromChainTvl = [
 	'Chain',
