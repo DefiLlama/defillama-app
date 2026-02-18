@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { LoadingDots } from '~/components/Loaders'
-import { MCP_SERVER } from '~/constants'
+import { MCP_SERVER, SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { LlamaAI } from '~/containers/LlamaAI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
