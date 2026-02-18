@@ -1386,11 +1386,12 @@ function InlineContent({
 						}
 						if ('content' in part && !part.content) return null
 						if ('content' in part) {
+							const isLastText = !groupedParts.slice(i + 1).some((p) => 'content' in p && p.content)
 							return (
 								<MarkdownRenderer
 									key={`text-${i}`}
 									content={part.content}
-									citations={citations.length > 0 ? citations : undefined}
+									citations={isLastText && citations.length > 0 ? citations : undefined}
 									isStreaming={isStreaming}
 								/>
 							)
