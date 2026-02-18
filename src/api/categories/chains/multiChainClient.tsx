@@ -176,8 +176,9 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 	const dataKey = queries.map((q) => q.dataUpdatedAt).join(',')
 
 	const data = useMemo(() => {
-		if (!dataKey) return []
 		const queryDatas = queriesRef.current.map((q) => q.data)
+		// dataKey is intentionally read only to retrigger memo when query data timestamps change.
+		void dataKey
 		if (shouldFetchAll && queryDatas[0]) return queryDatas[0].protocols
 
 		const protocolsMap = new Map<string, any>()
@@ -252,8 +253,9 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 	const dataKey = queries.map((q) => q.dataUpdatedAt).join(',')
 
 	const data = useMemo(() => {
-		if (!dataKey) return []
 		const queryDatas = queriesRef.current.map((q) => q.data)
+		// dataKey is intentionally read only to retrigger memo when query data timestamps change.
+		void dataKey
 		if (shouldFetchAll && queryDatas[0]) return queryDatas[0].protocols
 
 		const protocolsMap = new Map<string, any>()
@@ -356,8 +358,9 @@ export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
 	const dataKey = queries.map((q) => q.dataUpdatedAt).join(',')
 
 	const data = useMemo(() => {
-		if (!dataKey) return []
 		const queryDatas = queriesRef.current.map((q) => q.data)
+		// dataKey is intentionally read only to retrigger memo when query data timestamps change.
+		void dataKey
 		if (shouldFetchAll && queryDatas[0]) return queryDatas[0].protocols
 
 		const protocolsMap = new Map<string, any>()
@@ -428,8 +431,9 @@ export function useGetProtocolsOpenInterestByMultiChain(chains: string[]) {
 	const dataKey = queries.map((q) => q.dataUpdatedAt).join(',')
 
 	const data = useMemo(() => {
-		if (!dataKey) return []
 		const queryDatas = queriesRef.current.map((q) => q.data)
+		// dataKey is intentionally read only to retrigger memo when query data timestamps change.
+		void dataKey
 		if (shouldFetchAll && queryDatas[0]) return queryDatas[0].protocols
 
 		const protocolsMap = new Map<string, any>()

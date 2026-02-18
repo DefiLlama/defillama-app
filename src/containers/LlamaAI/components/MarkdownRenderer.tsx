@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
@@ -155,16 +155,11 @@ export function MarkdownRenderer({
 		return { content: processedContent, linkMap }
 	}, [content, citations])
 
-	const linkMapRef = useRef(processedData.linkMap)
-	useEffect(() => {
-		linkMapRef.current = processedData.linkMap
-	})
-
 	const markdownComponents = useMemo(
 		() => ({
 			a: (props: any) => {
-				if (!props.href && props.children && linkMapRef.current.has(props.children)) {
-					const llamaUrl = linkMapRef.current.get(props.children)
+				if (!props.href && props.children && processedData.linkMap.has(props.children)) {
+					const llamaUrl = processedData.linkMap.get(props.children)
 					return EntityLinkRenderer({ ...props, href: llamaUrl })
 				}
 				return EntityLinkRenderer(props)
@@ -185,7 +180,7 @@ export function MarkdownRenderer({
 			ul: ({ children }: { children: React.ReactNode }) => <ul className="grid list-disc gap-1 pl-4">{children}</ul>,
 			ol: ({ children }: { children: React.ReactNode }) => <ol className="grid list-decimal gap-1 pl-4">{children}</ol>
 		}),
-		[isStreaming]
+		[isStreaming, processedData.linkMap]
 	)
 
 	const renderMarkdownSection = (markdownContent: string, key: string) => (

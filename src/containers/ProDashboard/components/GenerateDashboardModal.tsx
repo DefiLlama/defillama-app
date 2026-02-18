@@ -228,8 +228,8 @@ export function GenerateDashboardModal({
 				sessionId = data.metadata.sessionId
 			}
 			let generationMode: 'create' | 'iterate' = mode
-			if (data.metadata && data.metadata.mode) {
-				generationMode = data.metadata.mode as 'create' | 'iterate'
+			if (data.metadata && (data.metadata.mode === 'create' || data.metadata.mode === 'iterate')) {
+				generationMode = data.metadata.mode
 			}
 
 			let aiGenerationContext: { sessionId: string; mode: 'create' | 'iterate'; timestamp: string; prompt: string } | undefined
@@ -260,7 +260,7 @@ export function GenerateDashboardModal({
 			setTouchedFields({})
 			onClose()
 		} catch (error) {
-			console.log('Failed to generate dashboard:', error)
+			console.error('Failed to generate dashboard:', error)
 			toast.error('Failed to generate dashboard. Please try again.')
 		} finally {
 			setIsLoading(false)

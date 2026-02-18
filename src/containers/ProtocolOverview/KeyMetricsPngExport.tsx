@@ -149,10 +149,6 @@ export function KeyMetricsPngExportButton({
 
 		setIsLoading(true)
 
-		const hasPrimaryValue = hasTvlData && primaryValue != null
-		const formattedPrimaryValue = hasPrimaryValue ? String(formatPrice(primaryValue) ?? '') : ''
-		const dpr = window.devicePixelRatio || 1
-		const primaryValueHeight = hasPrimaryValue ? 72 : 0
 		const bgColor = isDark ? '#0b1214' : '#ffffff'
 		const textColor = isDark ? '#ffffff' : '#000000'
 		const labelColor = isDark ? '#d1d1d1' : '#666666'
@@ -160,12 +156,15 @@ export function KeyMetricsPngExportButton({
 		const watermarkSrc = isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp'
 
 		try {
+			const hasPrimaryValue = hasTvlData && primaryValue != null
+			const formattedPrimaryValue = hasPrimaryValue ? String(formatPrice(primaryValue) ?? '') : ''
+			const dpr = window.devicePixelRatio || 1
+			const primaryValueHeight = hasPrimaryValue ? 72 : 0
 			const container = containerRef.current
 			const rows = extractRows(container)
 
 			if (!hasPrimaryValue) {
 				if (rows.length === 0) {
-					setIsLoading(false)
 					return
 				}
 			}
@@ -185,7 +184,6 @@ export function KeyMetricsPngExportButton({
 			canvas.height = canvasHeight * dpr
 			const ctx = canvas.getContext('2d')
 			if (!ctx) {
-				setIsLoading(false)
 				return
 			}
 

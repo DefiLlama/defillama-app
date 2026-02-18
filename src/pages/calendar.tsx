@@ -312,7 +312,7 @@ export const calendarColumns: ColumnDef<any>[] = [
 
 const SimpleUpcomingEvent = ({ timestamp, name }) => {
 	const [nowMs, setNowMs] = React.useState(() => Date.now())
-	const timeLeft = timestamp - nowMs / 1e3
+	const timeLeft = Math.max(0, timestamp - nowMs / 1e3)
 	const days = Math.floor(timeLeft / 86400)
 	const hours = Math.floor((timeLeft - 86400 * days) / 3600)
 	const minutes = Math.floor((timeLeft - 86400 * days - 3600 * hours) / 60)

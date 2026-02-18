@@ -383,10 +383,7 @@ export function CustomColumnPanel({
 			const parser = new Parser()
 			const expr = parser.parse(newColumnExpression)
 			const result = expr.evaluate(sampleData)
-			let validResult: number | null = null
-			if (typeof result === 'number') {
-				validResult = result
-			}
+			const validResult: number | undefined = typeof result === 'number' ? result : undefined
 			setLiveValidation({ isValid: true, result: validResult })
 		} catch (error) {
 			let errorMsg = error.message

@@ -316,6 +316,8 @@ function UpgradePaymentForm({ onError }: { onError: (error: string) => void }) {
 				if (paymentIntent.status === 'succeeded') {
 					queryClient.invalidateQueries({ queryKey: ['subscription'] })
 					window.location.href = `${window.location.origin}/account?success=true`
+				} else {
+					onError(`Payment ${paymentIntent.status}. Please check your account for confirmation.`)
 				}
 			}
 		} catch (err) {

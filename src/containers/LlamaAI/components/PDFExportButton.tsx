@@ -77,7 +77,17 @@ export function PDFExportButton({ sessionId, messageId, charts = EMPTY_CHARTS, e
 
 				let pdfErrorMsg = 'Failed to generate PDF'
 				if (data.error) {
-					pdfErrorMsg = data.error
+					if (typeof data.error === 'string') {
+						pdfErrorMsg = data.error
+					} else if (data.error && typeof data.error.message === 'string') {
+						pdfErrorMsg = data.error.message
+					} else {
+						try {
+							pdfErrorMsg = JSON.stringify(data.error)
+						} catch {
+							pdfErrorMsg = 'Failed to generate PDF'
+						}
+					}
 				}
 				if (!response.ok) {
 					throw new Error(pdfErrorMsg)

@@ -181,21 +181,22 @@ export const SessionItem = memo(function SessionItem({
 							<Icon name="x" className="h-5 w-5" />
 						</Ariakit.PopoverDismiss>
 						<Ariakit.MenuItem
-							onClick={() => {
+							onClick={async () => {
 								try {
 									if (session.isPublic) {
 										if (session.shareToken) {
-											navigator.clipboard.writeText(`${window.location.origin}/ai/chat/shared/${session.shareToken}`)
+											await navigator.clipboard.writeText(
+												`${window.location.origin}/ai/chat/shared/${session.shareToken}`
+											)
+											setIsCopyingLink(true)
+											setTimeout(() => {
+												setIsCopyingLink(false)
+											}, 500)
 										}
 									}
 								} catch (error) {
 									console.log(error)
 									toast.error('Failed to copy link')
-								} finally {
-									setIsCopyingLink(true)
-									setTimeout(() => {
-										setIsCopyingLink(false)
-									}, 500)
 								}
 							}}
 							hideOnClick={false}

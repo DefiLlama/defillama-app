@@ -55,36 +55,36 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				return null
 			}
 
-			try {
-				const url = new URL(`${AUTH_SERVER}/watchlist/preferences`)
-				url.searchParams.append('portfolioName', portfolioName)
+			const url = new URL(`${AUTH_SERVER}/watchlist/preferences`)
+			url.searchParams.append('portfolioName', portfolioName)
 
-				const response = await authorizedFetch(url.toString(), {
-					method: 'GET'
-				})
+			const response = await authorizedFetch(url.toString(), {
+				method: 'GET'
+			})
 
-				if (!response.ok) {
-					if (response.status === 404) {
-						return null
-					}
-					if (response.status === 401) {
-						return null
-					}
-					throw new Error('Failed to fetch notification preferences')
+			if (!response.ok) {
+				if (response.status === 404) {
+					return null
 				}
 
-				const data = await response.json()
-
-				console.log('API response:', data)
-				let result = null
-				if (data.preferences) {
-					result = data.preferences
+				let errorMessage = 'Failed to fetch notification preferences'
+				try {
+					const errorData = await response.json()
+					if (errorData?.message) {
+						errorMessage = errorData.message
+					}
+				} catch {
+					// Ignore response parsing errors and keep default message.
 				}
-				return result
-			} catch (error) {
-				console.log('Error fetching notification preferences:', error)
+				throw new Error(errorMessage)
+			}
+
+			const data = await response.json()
+			if (!data || data.preferences == null) {
 				return null
 			}
+
+			return data.preferences
 		},
 		enabled: isAuthenticated && !!portfolioName,
 		staleTime: 1000 * 60 * 5, // 5 minutes

@@ -99,8 +99,9 @@ async function renderClonedChartExport(
 		height: 720
 	})
 
-	// Get the current options from the original chart
-	const currentOptions = originalChart.getOption()
+	try {
+		// Get the current options from the original chart
+		const currentOptions = originalChart.getOption()
 
 	let iconBase64: string | null = null
 	if (iconUrl) {
@@ -396,64 +397,65 @@ async function renderClonedChartExport(
 		})
 	}
 
-	// Set options on the temporary chart with any modifications you want
-	tempChart.setOption(currentOptions)
+		// Set options on the temporary chart with any modifications you want
+		tempChart.setOption(currentOptions)
 
-	// Only set legend for non-Sankey charts (Sankey doesn't use legends)
-	if (shouldShowLegendForExport) {
-		tempChart.setOption({
-			legend: {
-				show: true,
-				textStyle: {
-					fontSize: 24,
-					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-				},
-				itemHeight: 24,
-				itemWidth: 48,
-				itemGap: legendItemGap,
-				top: legendTop,
-				right: 16,
-				...(expandLegend
-					? { type: 'plain', padding: [0, 0, 0, 0], ...(canShareRow ? {} : { left: 16 }) }
-					: { type: 'scroll', padding: [0, 0, 0, 18] }),
-				pageButtonPosition: 'end'
-			}
-		})
-	}
-
-	// Wait for the chart (including async image loading) to finish rendering.
-	// In some cases (many series, large data) the render event may not fire reliably,
-	// so we also add a timeout fallback to avoid hanging forever.
-	await new Promise<void>((resolve) => {
-		let timeoutId: ReturnType<typeof setTimeout> | null = null
-
-		const handler = () => {
-			if (timeoutId) {
-				clearTimeout(timeoutId)
-			}
-			tempChart.off('rendered', handler as any)
-			resolve()
+		// Only set legend for non-Sankey charts (Sankey doesn't use legends)
+		if (shouldShowLegendForExport) {
+			tempChart.setOption({
+				legend: {
+					show: true,
+					textStyle: {
+						fontSize: 24,
+						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+					},
+					itemHeight: 24,
+					itemWidth: 48,
+					itemGap: legendItemGap,
+					top: legendTop,
+					right: 16,
+					...(expandLegend
+						? { type: 'plain', padding: [0, 0, 0, 0], ...(canShareRow ? {} : { left: 16 }) }
+						: { type: 'scroll', padding: [0, 0, 0, 18] }),
+					pageButtonPosition: 'end'
+				}
+			})
 		}
 
-		timeoutId = setTimeout(() => {
-			tempChart.off('rendered', handler as any)
-			resolve()
-		}, 1500)
+		// Wait for the chart (including async image loading) to finish rendering.
+		// In some cases (many series, large data) the render event may not fire reliably,
+		// so we also add a timeout fallback to avoid hanging forever.
+		await new Promise<void>((resolve) => {
+			let timeoutId: ReturnType<typeof setTimeout> | null = null
 
-		tempChart.on('rendered', handler as any)
-	})
+			const handler = () => {
+				if (timeoutId) {
+					clearTimeout(timeoutId)
+				}
+				tempChart.off('rendered', handler as any)
+				resolve()
+			}
 
-	// Get the data URL from the temporary chart
-	const dataURL = tempChart.getDataURL({
-		type: 'png',
-		pixelRatio: 2,
-		backgroundColor: isDark ? '#0b1214' : '#ffffff',
-		excludeComponents: ['toolbox', 'dataZoom']
-	})
+			timeoutId = setTimeout(() => {
+				tempChart.off('rendered', handler as any)
+				resolve()
+			}, 1500)
 
-	// Clean up the temporary chart
-	tempChart.dispose()
-	return dataURL
+			tempChart.on('rendered', handler as any)
+		})
+
+		// Get the data URL from the temporary chart
+		const dataURL = tempChart.getDataURL({
+			type: 'png',
+			pixelRatio: 2,
+			backgroundColor: isDark ? '#0b1214' : '#ffffff',
+			excludeComponents: ['toolbox', 'dataZoom']
+		})
+
+		return dataURL
+	} finally {
+		tempChart.dispose()
+	}
 }
 
 const DEFAULT_CLASSNAME =

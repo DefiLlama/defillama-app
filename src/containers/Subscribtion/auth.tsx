@@ -529,29 +529,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const addEmail = useMutation({
 		mutationFn: async (email: string) => {
-			try {
-				const response = await fetch(`${AUTH_SERVER}/add-email`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${pb.authStore.token}`
-					},
-					body: JSON.stringify({ email })
-				})
-				if (!response.ok) {
-					const data = await response.json()
-					let errorMessage = 'Failed to add email'
-					if (data) {
-						if (data.message) {
-							errorMessage = data.message
-						}
+			const response = await fetch(`${AUTH_SERVER}/add-email`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${pb.authStore.token}`
+				},
+				body: JSON.stringify({ email })
+			})
+			if (!response.ok) {
+				const data = await response.json()
+				let errorMessage = 'Failed to add email'
+				if (data) {
+					if (data.message) {
+						errorMessage = data.message
 					}
-					throw new Error(errorMessage)
 				}
-				toast.success('Email added successfully')
-			} catch (error: any) {
-				toast.error(error.message || 'Failed to add email')
+				throw new Error(errorMessage)
 			}
+		},
+		onSuccess: () => {
+			toast.success('Email added successfully')
+		},
+		onError: (error: any) => {
+			toast.error(error.message || 'Failed to add email')
 		}
 	})
 
