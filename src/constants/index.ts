@@ -1,7 +1,10 @@
 // API endpoints
-export const SERVER_URL = process.env.SERVER_URL ?? 'https://api.llama.fi'
-export const V2_SERVER_URL = process.env.V2_SERVER_URL ?? `${SERVER_URL}/v2`
-export const DATASETS_SERVER_URL = process.env.DATASETS_SERVER_URL ?? 'https://defillama-datasets.llama.fi'
+const API_KEY = process.env.API_KEY
+export const SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/api` : 'https://api.llama.fi'
+export const V2_SERVER_URL = `${SERVER_URL}/v2`
+export const DATASETS_SERVER_URL = API_KEY
+	? `https://pro-api.llama.fi/${API_KEY}/datasets`
+	: 'https://defillama-datasets.llama.fi'
 
 export const CHART_API = `${SERVER_URL}/lite/charts`
 export const CHAIN_TVL_API = `${V2_SERVER_URL}/chains`
@@ -35,9 +38,11 @@ export const TOKEN_LIST_API = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 
 export const NFT_SERVER_URL = 'https://nft.llama.fi'
 
-export const STABLECOINS_SERVER_URL = process.env.STABLECOINS_SERVER_URL ?? 'https://stablecoins.llama.fi'
+export const STABLECOINS_SERVER_URL = API_KEY
+	? `https://pro-api.llama.fi/${API_KEY}/stablecoins`
+	: 'https://stablecoins.llama.fi'
 
-const BRIDGES_SERVER_URL = process.env.BRIDGES_SERVER_URL ?? 'https://bridges.llama.fi'
+const BRIDGES_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/bridges` : 'https://bridges.llama.fi'
 export const BRIDGEDAYSTATS_API = `${BRIDGES_SERVER_URL}/bridgedaystats`
 export const BRIDGES_API = `${BRIDGES_SERVER_URL}/bridges`
 export const BRIDGEVOLUME_API = `${BRIDGES_SERVER_URL}/bridgevolume`
@@ -47,7 +52,7 @@ export const BRIDGETX_API = `${BRIDGES_SERVER_URL}/transactions`
 
 export const NETFLOWS_API = `${BRIDGES_SERVER_URL}/netflows`
 
-export const YIELDS_SERVER_URL = process.env.YIELDS_SERVER_URL ?? 'https://yields.llama.fi'
+export const YIELDS_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/yields` : 'https://yields.llama.fi'
 export const YIELD_POOLS_API = `${YIELDS_SERVER_URL}/pools`
 export const YIELD_POOLS_LAMBDA_API = `${YIELDS_SERVER_URL}/poolsEnriched`
 export const YIELD_CHART_API = `${YIELDS_SERVER_URL}/chart`
@@ -62,7 +67,7 @@ export const YIELD_PERPS_API = `${YIELDS_SERVER_URL}/perps`
 export const YIELD_PROJECT_MEDIAN_API = `${YIELDS_SERVER_URL}/medianProject`
 export const YIELD_VOLATILITY_API = '/api/datasets/volatility'
 
-export const ETF_SERVER_URL = process.env.ETF_SERVER_URL ?? 'https://etfs.llama.fi'
+export const ETF_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/etfs` : 'https://etfs.llama.fi'
 
 export const LIQUIDATIONS_HISTORICAL_R2_PATH = `${DATASETS_SERVER_URL}/liqs`
 
@@ -90,14 +95,14 @@ export const ICONS_CDN = 'https://icons.llamao.fi/icons'
 // const TWITTER_POSTS_API = `${DATASETS_SERVER_URL}/dev-metrics/twitter-files`
 export const TWITTER_POSTS_API_V2 = `${SERVER_URL}/twitter/user`
 
-const COINS_SERVER_URL = process.env.COINS_SERVER_URL ?? 'https://coins.llama.fi'
+const COINS_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/coins` : 'https://coins.llama.fi'
 export const COINS_PRICES_API = `${COINS_SERVER_URL}/prices`
 export const COINS_CHART_API = `${COINS_SERVER_URL}/chart`
 export const COINS_MCAPS_API = 'https://coins.llama.fi/mcaps' // pro api does not support this endpoint
 
 export const CACHE_SERVER = 'https://fe-cache.llama.fi'
 
-export const FDV_SERVER_URL = process.env.FDV_SERVER_URL ?? 'https://fdv-server.llama.fi'
+export const FDV_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/fdv` : 'https://fdv-server.llama.fi'
 
 export const LIQUIDITY_API = `${DATASETS_SERVER_URL}/liquidity.json`
 
@@ -110,7 +115,7 @@ export const RWA_STATS_API_OLD = 'https://api.llama.fi/rwa/stats'
 
 export const TRADFI_API = process.env.TRADFI_API ?? 'https://api.llama.fi/tradfi'
 
-export const RWA_SERVER_URL = process.env.RWA_SERVER_URL ?? 'https://api.llama.fi/rwa'
+export const RWA_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/rwa` : 'https://api.llama.fi/rwa'
 
 export const MCP_SERVER = 'https://mcp.llama.fi'
 export const YIELD_TOKEN_CATEGORIES_API = 'https://ask.llama.fi/token-categories/yields'
