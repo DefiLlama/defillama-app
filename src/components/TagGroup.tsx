@@ -32,6 +32,7 @@ export const TagGroup = ({
 			{values.map((value) => {
 				return (
 					<button
+						type="button"
 						className={button}
 						disabled={disabledValuesSet?.has(value)}
 						data-active={value === selectedValue}

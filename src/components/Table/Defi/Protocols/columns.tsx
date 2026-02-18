@@ -45,6 +45,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				>
 					{row.subRows?.length > 0 ? (
 						<button
+							type="button"
 							className="absolute -left-0.5"
 							{...{
 								onClick: row.getToggleExpandedHandler()
@@ -100,6 +101,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				</span>
 			)
 		},
+		sortUndefined: 'last',
 		size: 240
 	},
 	{
@@ -117,6 +119,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				''
 			)
 		},
+		sortUndefined: 'last',
 		size: 140,
 		meta: {
 			align: 'end'
@@ -153,6 +156,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				</span>
 			)
 		},
+		sortUndefined: 'last',
 		size: 180,
 		meta: {
 			align: 'end'
@@ -168,6 +172,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			align: 'end',
 			headerHelperText: "Chains are ordered by protocol's highest TVL on each chain"
 		},
+		sortUndefined: 'last',
 		size: 200
 	},
 	columnHelper.group({
@@ -181,6 +186,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 					align: 'end',
 					headerHelperText: 'Value of all coins held in smart contracts of the protocol'
 				},
+				sortUndefined: 'last',
 				size: 120
 			}),
 			columnHelper.accessor('change_1d', {
@@ -190,6 +196,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 24 hours'
 				},
+				sortUndefined: 'last',
 				size: 140
 			}),
 			columnHelper.accessor('change_7d', {
@@ -199,11 +206,13 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 7 days'
 				},
+				sortUndefined: 'last',
 				size: 140
 			}),
 			columnHelper.accessor('change_1m', {
 				header: '1m Change',
 				cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 30 days'
@@ -217,6 +226,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 					return <>{info.getValue() ?? null}</>
 				},
 				size: 110,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: 'Market cap / TVL ratio'
@@ -233,42 +243,49 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('earnings_24h', {
 				header: 'Earnings 24h',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.earnings.protocol['24h'] },
 				size: 140
 			}),
 			columnHelper.accessor('earningsChange_1d', {
 				header: 'Earnings Change 1d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.earnings.protocol['change1d'] },
 				size: 170
 			}),
 			columnHelper.accessor('earnings_7d', {
 				header: 'Earnings 7d',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.earnings.protocol['7d'] },
 				size: 140
 			}),
 			columnHelper.accessor('earningsChange_7d', {
 				header: 'Earnings Change 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.earnings.protocol['change7d'] },
 				size: 180
 			}),
 			columnHelper.accessor('earnings_30d', {
 				header: 'Earnings 30d',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.earnings.protocol['30d'] },
 				size: 140
 			}),
 			columnHelper.accessor('earningsChange_1m', {
 				header: 'Earnings Change 1m',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.earnings.protocol['change1m'] },
 				size: 180
 			}),
 			columnHelper.accessor('earnings_1y', {
 				header: 'Earnings 1y',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.earnings.protocol['1y'] },
 				size: 150
 			})
@@ -284,6 +301,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('fees_24h', {
 				header: 'Fees 24h',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['24h']
@@ -293,6 +311,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('revenue_24h', {
 				header: 'Revenue 24h',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['24h']
@@ -302,6 +321,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('fees_7d', {
 				header: 'Fees 7d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['7d']
@@ -311,6 +331,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('feesChange_1d', {
 				header: 'Fees Change 1d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['change1d']
@@ -320,6 +341,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('feesChange_7d', {
 				header: 'Fees Change 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['change7d']
@@ -329,6 +351,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('revenue_7d', {
 				header: 'Revenue 7d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['7d']
@@ -338,6 +361,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('revenueChange_1d', {
 				header: 'Revenue Change 1d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['change1d']
@@ -347,6 +371,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('revenueChange_7d', {
 				header: 'Revenue Change 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['change7d']
@@ -356,6 +381,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('feesChange_7dover7d', {
 				header: 'Fees Change 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['change7dover7d']
@@ -365,6 +391,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('fees_30d', {
 				header: 'Fees 30d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['30d']
@@ -374,6 +401,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('feesChange_1m', {
 				header: 'Fees Change 1m',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['change1m']
@@ -383,6 +411,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('revenue_30d', {
 				header: 'Revenue 30d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['30d']
@@ -392,6 +421,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('revenueChange_1m', {
 				header: 'Revenue Change 1m',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['change1m']
@@ -401,6 +431,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('feesChange_30dover30d', {
 				header: 'Fees Change 30d (vs prev 30d)',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['change30dover30d']
@@ -410,6 +441,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('revenueChange_7dover7d', {
 				header: 'Revenue Change 7d (vs prev 7d)',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['change7dover7d']
@@ -419,6 +451,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('revenueChange_30dover30d', {
 				header: 'Revenue Change 30d (vs prev 30d)',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['change30dover30d']
@@ -428,6 +461,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('fees_1y', {
 				header: 'Fees 1Y',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['1y']
@@ -437,6 +471,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('average_1y', {
 				header: 'Monthly Avg 1Y Fees',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['average1y']
@@ -446,6 +481,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('revenue_1y', {
 				header: 'Revenue 1Y',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['average1y']
@@ -455,6 +491,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('average_revenue_1y', {
 				header: 'Monthly Avg 1Y Revenue',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['monthlyAverage1y']
@@ -464,6 +501,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('holdersRevenue30d', {
 				header: 'Holders Revenue 30d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.holdersRevenue.protocol['30d']
@@ -482,6 +520,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('cumulativeFees', {
 				header: 'Cumulative Fees',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['cumulative']
@@ -491,6 +530,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('holderRevenue_24h', {
 				header: 'Holders Revenue 24h',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.holdersRevenue.protocol['24h']
@@ -500,6 +540,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('pf', {
 				header: 'P/F',
 				cell: (info) => <>{info.getValue() != null ? info.getValue() + 'x' : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['pf']
@@ -509,6 +550,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('ps', {
 				header: 'P/S',
 				cell: (info) => <>{info.getValue() != null ? info.getValue() + 'x' : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['ps']
@@ -528,6 +570,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('volume_24h', {
 				header: 'Spot Volume 24h',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['24h']
@@ -537,6 +580,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('volume_7d', {
 				header: 'Spot Volume 7d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['7d']
@@ -546,6 +590,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('volume_30d', {
 				header: 'Spot Volume 30d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['30d']
@@ -555,6 +600,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('volumeChange_1d', {
 				header: 'Spot Change 1d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['change1d']
@@ -564,6 +610,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('volumeChange_7d', {
 				header: 'Spot Change 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['change7d']
@@ -573,6 +620,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('volumeChange_1m', {
 				header: 'Spot Change 1m',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['change1m']
@@ -582,6 +630,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('cumulativeVolume', {
 				header: 'Spot Cumulative Volume',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['cumulative']
@@ -591,6 +640,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('volumeDominance_24h', {
 				header: 'Spot Volume % 24h',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['marketShare24h']
@@ -600,6 +650,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('volumeMarketShare7d', {
 				header: 'Spot Volume % 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['marketShare7d']
@@ -618,6 +669,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('perps_volume_24h', {
 				header: 'Perp Volume 24h',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.perps.protocol['24h']
@@ -627,6 +679,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('perps_volume_7d', {
 				header: 'Perp Volume 7d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.perps.protocol['7d']
@@ -636,6 +689,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('perps_volume_30d', {
 				header: 'Perp Volume 30d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.perps.protocol['30d']
@@ -645,6 +699,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('perps_volume_change_1d', {
 				header: 'Perp Volume Change 1d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.perps.protocol['change1d']
@@ -654,6 +709,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('perps_volume_change_7d', {
 				header: 'Perp Volume Change 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.perps.protocol['change7d']
@@ -663,6 +719,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('perps_volume_change_1m', {
 				header: 'Perp Volume Change 1m',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.perps.protocol['change1m']
@@ -672,6 +729,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('perps_volume_dominance_24h', {
 				header: 'Perp Volume % 24h',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText:
@@ -693,42 +751,49 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('aggregators_volume_24h', {
 				header: 'Agg Volume 24h',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['24h'] },
 				size: 150
 			}),
 			columnHelper.accessor('aggregators_volume_change_1d', {
 				header: 'Agg Volume Change 1d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['change1d'] },
 				size: 190
 			}),
 			columnHelper.accessor('aggregators_volume_7d', {
 				header: 'Agg Volume 7d',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['7d'] },
 				size: 150
 			}),
 			columnHelper.accessor('aggregators_volume_change_7d', {
 				header: 'Agg Volume Change 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['change7d'] },
 				size: 190
 			}),
 			columnHelper.accessor('aggregators_volume_30d', {
 				header: 'Agg Volume 30d',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['30d'] },
 				size: 160
 			}),
 			columnHelper.accessor('aggregators_volume_dominance_24h', {
 				header: 'Agg Volume % 24h',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['marketShare24h'] },
 				size: 180
 			}),
 			columnHelper.accessor('aggregators_volume_marketShare7d', {
 				header: 'Agg Volume % 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['marketShare7d'] },
 				size: 180
 			})
@@ -745,36 +810,42 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('bridge_aggregators_volume_24h', {
 				header: 'Bridge Agg Volume 24h',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['24h'] },
 				size: 180
 			}),
 			columnHelper.accessor('bridge_aggregators_volume_change_1d', {
 				header: 'Bridge Agg Change 1d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['change1d'] },
 				size: 200
 			}),
 			columnHelper.accessor('bridge_aggregators_volume_7d', {
 				header: 'Bridge Agg Volume 7d',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['7d'] },
 				size: 180
 			}),
 			columnHelper.accessor('bridge_aggregators_volume_change_7d', {
 				header: 'Bridge Agg Change 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['change7d'] },
 				size: 200
 			}),
 			columnHelper.accessor('bridge_aggregators_volume_30d', {
 				header: 'Bridge Agg Volume 30d',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['30d'] },
 				size: 180
 			}),
 			columnHelper.accessor('bridge_aggregators_volume_dominance_24h', {
 				header: 'Bridge Agg % 24h',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['marketShare24h'] },
 				size: 180
 			})
@@ -791,36 +862,42 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			columnHelper.accessor('options_volume_24h', {
 				header: 'Options Volume 24h',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.optionsPremium.protocol['24h'] },
 				size: 160
 			}),
 			columnHelper.accessor('options_volume_change_1d', {
 				header: 'Options Change 1d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.optionsPremium.protocol['change1d'] },
 				size: 180
 			}),
 			columnHelper.accessor('options_volume_7d', {
 				header: 'Options Volume 7d',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.optionsPremium.protocol['7d'] },
 				size: 160
 			}),
 			columnHelper.accessor('options_volume_change_7d', {
 				header: 'Options Change 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.optionsPremium.protocol['change7d'] },
 				size: 180
 			}),
 			columnHelper.accessor('options_volume_30d', {
 				header: 'Options Volume 30d',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.optionsPremium.protocol['30d'] },
 				size: 160
 			}),
 			columnHelper.accessor('options_volume_dominance_24h', {
 				header: 'Options Volume % 24h',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+				sortUndefined: 'last',
 				meta: { align: 'end', headerHelperText: definitions.optionsPremium.protocol['marketShare24h'] },
 				size: 180
 			})
@@ -836,6 +913,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			const value = info.getValue()
 			return <>{typeof value === 'number' && value > 0 ? formattedNum(value, true) : null}</>
 		},
+		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.openInterest.protocol
@@ -846,6 +924,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 	columnHelper.accessor('holdersRevenueChange_30dover30d', {
 		header: 'Holders Revenue 30d Change',
 		cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
+		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.holdersRevenue.protocol['change30dover30d']
@@ -859,6 +938,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			const value = getValue()
 			return <>{typeof value === 'number' && value > 0 ? formattedNum(value, true) : null}</>
 		},
+		sortUndefined: 'last',
 		meta: {
 			align: 'end',
 			headerHelperText: 'Market capitalization of the protocol token'
