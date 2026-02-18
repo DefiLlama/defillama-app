@@ -237,8 +237,8 @@ function TrialCsvLimitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
 						<div className="flex items-start gap-3">
 							<Icon name="check" height={20} width={20} className="mt-0.5 shrink-0 text-green-500" />
 							<p className="text-sm text-[#c5c5c5]">
-								Please wait a few minutes and refresh the page after upgrading, the upgrade might take a few
-								minutes to apply.
+								Please wait a few minutes and refresh the page after upgrading, the upgrade might take a few minutes to
+								apply.
 							</p>
 						</div>
 					</div>
@@ -260,8 +260,8 @@ function TrialCsvLimitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
 							<div className="flex flex-col gap-2">
 								<p className="font-semibold text-yellow-500">CSV download limit reached</p>
 								<p className="text-sm text-[#c5c5c5]">
-									Trial accounts are limited to 1 CSV download. To download more CSVs, upgrade to a full
-									subscription ($49/month).
+									Trial accounts are limited to 1 CSV download. To download more CSVs, upgrade to a full subscription
+									($49/month).
 								</p>
 							</div>
 						</div>

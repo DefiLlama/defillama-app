@@ -213,11 +213,15 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		let actualChainName: string | null = null
 		if (selectedChain) {
 			for (const item of data) {
-				const match = item.chain?.find((c) => rwaSlug(c) === selectedChain)
-				if (match) {
-					actualChainName = match
-					break
+				if (item.chain) {
+					for (const c of item.chain) {
+						if (rwaSlug(c) === selectedChain) {
+							actualChainName = c
+							break
+						}
+					}
 				}
+				if (actualChainName) break
 			}
 			if (!actualChainName) {
 				return null
@@ -228,11 +232,15 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		let actualCategoryName: string | null = null
 		if (selectedCategory) {
 			for (const item of data) {
-				const match = item.category?.find((c) => rwaSlug(c) === selectedCategory)
-				if (match) {
-					actualCategoryName = match
-					break
+				if (item.category) {
+					for (const c of item.category) {
+						if (rwaSlug(c) === selectedCategory) {
+							actualCategoryName = c
+							break
+						}
+					}
 				}
+				if (actualCategoryName) break
 			}
 			if (!actualCategoryName) {
 				return null

@@ -608,6 +608,12 @@ export const getAdapterByChainPageData = async ({
 
 	const allProtocols: IAdapterChainOverview['protocols'] = [...data.protocols]
 
+	// Build protocol lookup Set for O(1) membership testing instead of O(n) .find()
+	const allProtocolsByName = new Set<string>()
+	for (const protocol of allProtocols) {
+		allProtocolsByName.add(protocol.name)
+	}
+
 	let bribesProtocols: Record<string, BribesData> = {}
 	let tokenTaxesProtocols: Record<string, BribesData> = {}
 	let openInterestProtocols: Record<string, OpenInterestData> = {}
@@ -655,8 +661,9 @@ export const getAdapterByChainPageData = async ({
 						totalAllTime: p.totalAllTime ?? null
 					}
 
-					const protocolExists = allProtocols.find((ap: { name: string }) => ap.name === p.name)
-					if (!protocolExists) {
+					// O(1) Map lookup instead of O(n) .find()
+					if (!allProtocolsByName.has(p.name)) {
+						allProtocolsByName.add(p.name)
 						allProtocols.push({
 							...p,
 							total24h: null,
@@ -702,8 +709,9 @@ export const getAdapterByChainPageData = async ({
 						totalAllTime: p.totalAllTime ?? null
 					}
 
-					const protocolExists = allProtocols.find((ap: { name: string }) => ap.name === p.name)
-					if (!protocolExists) {
+					// O(1) Map lookup instead of O(n) .find()
+					if (!allProtocolsByName.has(p.name)) {
+						allProtocolsByName.add(p.name)
 						allProtocols.push({
 							...p,
 							total24h: null,

@@ -257,15 +257,16 @@ export async function getLendBorrowData() {
 	dataBorrow = dataBorrow.filter((p) => p.ltv <= 1)
 
 	// for morpho: if totalSupplyUsd < totalBorrowUsd on morpho
-	const configIdsCompound: string[] = []
-	const configIdsAave: string[] = []
+	const configIdsCompound = new Set<string>()
+	const configIdsAave = new Set<string>()
 	for (const p of pools) {
-		if (p.project === 'compound') configIdsCompound.push(p.pool)
+		if (p.project === 'compound') configIdsCompound.add(p.pool)
 		if (p.project === 'aave-v2' && p.chain === 'Ethereum' && !p.symbol.toLowerCase().includes('amm'))
-			configIdsAave.push(p.pool)
+			configIdsAave.add(p.pool)
 	}
-	const compoundPools = dataBorrow.filter((p) => configIdsCompound.includes(p.pool))
-	const aavev2Pools = dataBorrow.filter((p) => configIdsAave.includes(p.pool))
+	// O(1) Set lookup instead of O(n) array .includes()
+	const compoundPools = dataBorrow.filter((p) => configIdsCompound.has(p.pool))
+	const aavev2Pools = dataBorrow.filter((p) => configIdsAave.has(p.pool))
 
 	const tokenSymbols = new Set<string>()
 	const cdpPoolSet = new Set<string>()
@@ -273,9 +274,38 @@ export async function getLendBorrowData() {
 		if (p.category === 'CDP') cdpPoolSet.add(p.pool)
 	}
 	const cdpPools = [...cdpPoolSet]
+	// Build lookup map for O(1) borrow data access
+	const dataBorrowByPool = new Map<string, (typeof dataBorrow)[0]>()
+	for (const item of dataBorrow) {
+		dataBorrowByPool.set(item.pool, item)
+	}
+
+	// Build lookup map for compound pools by underlying token
+	const compoundPoolsByToken = new Map<string, (typeof compoundPools)[0]>()
+	for (const pool of compoundPools) {
+		if (pool.underlyingTokens?.[0]) {
+			const tokenKey = pool.underlyingTokens[0].toLowerCase()
+			if (!compoundPoolsByToken.has(tokenKey)) {
+				compoundPoolsByToken.set(tokenKey, pool)
+			}
+		}
+	}
+
+	// Build lookup map for aave pools by underlying token
+	const aavePoolsByToken = new Map<string, (typeof aavev2Pools)[0]>()
+	for (const pool of aavev2Pools) {
+		if (pool.underlyingTokens?.[0]) {
+			const tokenKey = pool.underlyingTokens[0].toLowerCase()
+			if (!aavePoolsByToken.has(tokenKey)) {
+				aavePoolsByToken.set(tokenKey, pool)
+			}
+		}
+	}
+
 	pools = pools
 		.map((p) => {
-			const x = dataBorrow.find((i) => i.pool === p.pool)
+			// O(1) Map lookup instead of O(n) .find()
+			const x = dataBorrowByPool.get(p.pool)
 			// for some projects we haven't added the new fields yet, dataBorrow will thus be smaller;
 			// hence the check for undefined
 			if (x === undefined) return null
@@ -293,15 +323,17 @@ export async function getLendBorrowData() {
 			// instead we display the compound available pool liq together with a tooltip to clarify this
 			let totalAvailableUsd
 			if (p.project === 'morpho-compound') {
-				const compoundData = compoundPools.find(
-					(a) => a.underlyingTokens[0].toLowerCase() === x.underlyingTokens[0].toLowerCase()
-				)
-				totalAvailableUsd = compoundData?.totalSupplyUsd - compoundData?.totalBorrowUsd
+				// O(1) Map lookup instead of O(n) .find()
+				const compoundData = x.underlyingTokens?.[0]
+					? compoundPoolsByToken.get(x.underlyingTokens[0].toLowerCase())
+					: undefined
+				totalAvailableUsd = compoundData
+					? (compoundData.totalSupplyUsd ?? 0) - (compoundData.totalBorrowUsd ?? 0)
+					: null
 			} else if (p.project === 'morpho-aave') {
-				const aaveData = aavev2Pools.find(
-					(a) => a.underlyingTokens[0].toLowerCase() === x.underlyingTokens[0].toLowerCase()
-				)
-				totalAvailableUsd = aaveData?.totalSupplyUsd - aaveData?.totalBorrowUsd
+				// O(1) Map lookup instead of O(n) .find()
+				const aaveData = x.underlyingTokens?.[0] ? aavePoolsByToken.get(x.underlyingTokens[0].toLowerCase()) : undefined
+				totalAvailableUsd = aaveData ? (aaveData.totalSupplyUsd ?? 0) - (aaveData.totalBorrowUsd ?? 0) : null
 			} else if (p.project === 'morpho-blue') {
 				totalAvailableUsd = x.debtCeilingUsd
 			} else if (x.totalSupplyUsd === null && x.totalBorrowUsd === null) {

@@ -120,7 +120,14 @@ export const formatProtocolsList = ({
 
 	const allProtocols: Record<string, IFormattedProtocol> = {}
 
-	const shouldModifyTvl = Object.values(checkExtras).some((t) => t)
+	// Use for..in loop instead of Object.values() for better performance
+	let shouldModifyTvl = false
+	for (const key in checkExtras) {
+		if (checkExtras[key]) {
+			shouldModifyTvl = true
+			break
+		}
+	}
 
 	for (const protocol of protocols) {
 		const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, mcap, name, ...props } = protocol
@@ -384,7 +391,11 @@ export const formatProtocolsList = ({
 		optionsVolumeByChain: mergeChainBreakdown(protocol.optionsVolumeByChain, item.chainBreakdown)
 	}))
 
-	const finalProtocols = Object.values(allProtocols)
+	// Use for..in loop instead of Object.values() to avoid intermediate array
+	const finalProtocols: IFormattedProtocol[] = []
+	for (const key in allProtocols) {
+		finalProtocols.push(allProtocols[key])
+	}
 
 	const totalSpot24h = finalProtocols.reduce((sum, protocol) => sum + (protocol.volume_24h ?? 0), 0)
 	const totalSpot7d = finalProtocols.reduce((sum, protocol) => sum + (protocol.volume_7d ?? 0), 0)
@@ -458,7 +469,16 @@ export const formatProtocolsList2 = ({
 		tvlPrevMonth: entry.tvlPrevMonth ?? 0
 	})
 
-	const shouldModifyTvl = Object.values(extraTvlsEnabled).some((t) => t) || minTvl !== null || maxTvl !== null
+	// Use for..in loop instead of Object.values() for better performance
+	let shouldModifyTvl = minTvl !== null || maxTvl !== null
+	if (!shouldModifyTvl) {
+		for (const key in extraTvlsEnabled) {
+			if (extraTvlsEnabled[key]) {
+				shouldModifyTvl = true
+				break
+			}
+		}
+	}
 
 	if (!shouldModifyTvl) return protocols
 

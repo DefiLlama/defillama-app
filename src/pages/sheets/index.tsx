@@ -49,7 +49,10 @@ export default function Sheets() {
 				<footer className="mt-10 border-t border-[#39393E]/40">
 					<p className="mx-auto max-w-[1200px] px-4 pt-6 text-center text-[13px] text-[#8a8c90] sm:px-6 md:px-8">
 						If you have any questions or feedback, send it to{' '}
-						<a href="mailto:support@defillama.com" className="text-[#b4b7bc] underline transition-colors hover:text-white">
+						<a
+							href="mailto:support@defillama.com"
+							className="text-[#b4b7bc] underline transition-colors hover:text-white"
+						>
 							support@defillama.com
 						</a>
 					</p>

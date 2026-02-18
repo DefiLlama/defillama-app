@@ -140,6 +140,7 @@ export async function getOraclesListPageData({
 	const tableData: Array<OracleTableDataRow> = []
 	for (const oracle in oraclesTVS) {
 		const chains = chainsByOracle[oracle] ?? []
+		// Single lookup: .includes() is more efficient than creating a Set
 		if (canonicalChain && !chains.includes(canonicalChain)) {
 			continue
 		}
@@ -275,9 +276,17 @@ export async function getOracleDetailPageData({
 	}
 
 	const protocolsByName = new Map(protocols.map((protocol) => [protocol.name, protocol]))
-	const protocolsSupportingCanonicalChain = canonicalChain
-		? new Set(protocols.filter((protocol) => protocol.chains.includes(canonicalChain)).map((protocol) => protocol.name))
-		: null
+	// Build one Set for repeated membership checks in the table loop.
+	// The per-protocol chain test remains a single cheap `.includes()` call.
+	let protocolsSupportingCanonicalChain: Set<string> | null = null
+	if (canonicalChain) {
+		protocolsSupportingCanonicalChain = new Set<string>()
+		for (const protocol of protocols) {
+			if (protocol.chains.includes(canonicalChain)) {
+				protocolsSupportingCanonicalChain.add(protocol.name)
+			}
+		}
+	}
 	const orderedOracleProtocolNames = oracleProtocolNamesByOracle[canonicalOracle] ?? []
 	const protocolTableData: Array<OracleProtocolWithBreakdown> = []
 	for (const protocolName of orderedOracleProtocolNames) {

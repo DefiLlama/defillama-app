@@ -53,7 +53,7 @@ export const formatProtocolsData = ({
 		}
 
 		if (chain) {
-			toFilter = toFilter && protocol.chains?.includes(chain)
+			toFilter = toFilter && (protocol.chains?.includes(chain) ?? false)
 		}
 
 		if (oracle) {
@@ -61,15 +61,17 @@ export const formatProtocolsData = ({
 				toFilter =
 					toFilter &&
 					(chain
-						? protocol.oraclesByChain[chain]?.includes(oracle)
+						? (protocol.oraclesByChain[chain]?.includes(oracle) ?? false)
 						: Object.values(protocol.oraclesByChain).flat().includes(oracle))
+			} else if (protocol.oracles) {
+				toFilter = toFilter && protocol.oracles.includes(oracle)
 			} else {
-				toFilter = toFilter && protocol.oracles?.includes(oracle)
+				toFilter = false
 			}
 		}
 
 		if (fork) {
-			toFilter = toFilter && protocol.forkedFrom?.includes(fork)
+			toFilter = toFilter && (protocol.forkedFrom?.includes(fork) ?? false)
 		}
 
 		if (category) {
@@ -100,7 +102,7 @@ export const formatProtocolsData = ({
 					p.tvlPrevMonth = 0
 
 					for (const ochain in protocol.oraclesByChain) {
-						if (protocol.oraclesByChain[ochain].includes(oracle)) {
+						if (protocol.oraclesByChain[ochain]?.includes(oracle)) {
 							p.tvl += protocol.chainTvls[ochain]?.tvl ?? 0
 							p.tvlPrevDay += protocol.chainTvls[ochain]?.tvlPrevDay ?? 0
 							p.tvlPrevWeek += protocol.chainTvls[ochain]?.tvlPrevWeek ?? 0
@@ -111,6 +113,15 @@ export const formatProtocolsData = ({
 			}
 
 			p.extraTvl = {}
+			const filteredChains: string[] = []
+			if (oracle && protocol.oraclesByChain) {
+				for (const chainName in protocol.oraclesByChain) {
+					if (protocol.oraclesByChain[chainName]?.includes(oracle)) {
+						filteredChains.push(chainName)
+					}
+				}
+				p.chains = filteredChains
+			}
 
 			for (const sectionName in protocol.chainTvls) {
 				if (chain) {
@@ -118,8 +129,10 @@ export const formatProtocolsData = ({
 						p.extraTvl[sectionName.split('-')[1]] = protocol.chainTvls[sectionName]
 					}
 				} else if (oracle && protocol.oraclesByChain) {
-					if (sectionName.includes('-') && protocol.oraclesByChain[sectionName.split('-')[0]]?.includes(oracle)) {
-						const prop = sectionName.split('-')[1]
+					const sectionParts = sectionName.split('-')
+					const chainKey = sectionParts[0]
+					if (sectionParts.length > 1 && protocol.oraclesByChain[chainKey]?.includes(oracle)) {
+						const prop = sectionParts[1]
 						if (!p.extraTvl[prop]) {
 							p.extraTvl[prop] = {
 								tvl: 0,
@@ -133,14 +146,6 @@ export const formatProtocolsData = ({
 						p.extraTvl[prop].tvlPrevWeek += protocol.chainTvls[sectionName].tvlPrevWeek
 						p.extraTvl[prop].tvlPrevMonth += protocol.chainTvls[sectionName].tvlPrevMonth
 					}
-
-					const filteredChains: string[] = []
-					for (const chain in protocol.oraclesByChain) {
-						if (protocol.oraclesByChain[chain].includes(oracle)) {
-							filteredChains.push(chain)
-						}
-					}
-					p.chains = filteredChains
 				} else {
 					if (TVL_SETTINGS_KEYS_SET.has(sectionName) || sectionName === 'excludeParent') {
 						p.extraTvl[sectionName] = protocol.chainTvls[sectionName]

@@ -92,7 +92,7 @@ const linksToOtherLlamaApps = [
 		href: 'https://search.defillama.com',
 		icon: (
 			<img
-				src="/assets/logo_white.webp"
+				src="/assets/llamasearch.svg"
 				loading="lazy"
 				alt=""
 				height={44}

@@ -189,10 +189,27 @@ export const getNFTCollectionEarnings = async () => {
 			fetchNftCollections()
 		])
 
+		// Build lookup maps for O(1) collection access instead of O(n) .find() calls
+		const royaltiesByCollection = new Map<string, (typeof royalties)[0]>()
+		for (const royalty of royalties) {
+			const collectionId = `0x${royalty.collection}`
+			if (!royaltiesByCollection.has(collectionId)) {
+				royaltiesByCollection.set(collectionId, royalty)
+			}
+		}
+
+		const mintEarningsByContract = new Map<string, (typeof NFT_MINT_EARNINGS)[0]>()
+		for (const earning of NFT_MINT_EARNINGS) {
+			if (!mintEarningsByContract.has(earning.contractAddress)) {
+				mintEarningsByContract.set(earning.contractAddress, earning)
+			}
+		}
+
 		const collectionEarnings = collections
 			.map((c) => {
-				const royalty = royalties.find((r) => `0x${r.collection}` === c.collectionId)
-				const mintEarnings = NFT_MINT_EARNINGS.find((r) => r.contractAddress === c.collectionId)
+				// O(1) Map lookups instead of O(n) .find() calls
+				const royalty = royaltiesByCollection.get(c.collectionId)
+				const mintEarnings = mintEarningsByContract.get(c.collectionId)
 
 				if (!royalty && !mintEarnings) return null
 
@@ -220,8 +237,9 @@ export const getNFTCollectionEarnings = async () => {
 				duplicateCollections.add(address)
 				return address
 			})
+			const subCollectionSet = new Set(subCollections)
 
-			const subCollectionEarnings = collectionEarnings.filter((c) => subCollections.includes(c.defillamaId))
+			const subCollectionEarnings = collectionEarnings.filter((c) => subCollectionSet.has(c.defillamaId))
 
 			let total24h = 0
 			let total7d = 0
