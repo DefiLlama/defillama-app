@@ -202,11 +202,30 @@ function PortfolioNotifications({
 	const { protocolsCount, protocolsFirstMetrics, chainsCount, chainsFirstMetrics } = useMemo(() => {
 		const protocols = preferences?.settings?.protocols
 		const chains = preferences?.settings?.chains
+		let protocolsCount = 0
+		let protocolsFirstMetrics = ''
+		let chainsCount = 0
+		let chainsFirstMetrics = ''
+
+		for (const protocolId in protocols) {
+			protocolsCount++
+			if (protocolsCount === 1) {
+				protocolsFirstMetrics = protocols[protocolId]?.map(mapAPIMetricToUI).join(', ') ?? ''
+			}
+		}
+
+		for (const chainId in chains) {
+			chainsCount++
+			if (chainsCount === 1) {
+				chainsFirstMetrics = chains[chainId]?.map(mapAPIMetricToUI).join(', ') ?? ''
+			}
+		}
+
 		return {
-			protocolsCount: protocols ? Object.keys(protocols).length : 0,
-			protocolsFirstMetrics: protocols ? Object.values(protocols)[0]?.map(mapAPIMetricToUI).join(', ') : '',
-			chainsCount: chains ? Object.keys(chains).length : 0,
-			chainsFirstMetrics: chains ? Object.values(chains)[0]?.map(mapAPIMetricToUI).join(', ') : ''
+			protocolsCount,
+			protocolsFirstMetrics,
+			chainsCount,
+			chainsFirstMetrics
 		}
 	}, [preferences?.settings?.protocols, preferences?.settings?.chains])
 

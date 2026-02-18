@@ -716,7 +716,16 @@ export function downloadDatasetCSV({
 			return
 		}
 
-		const finalColumns = columns || Object.keys(data[0] || {})
+		const finalColumns =
+			columns ||
+			(() => {
+				const inferredColumns: string[] = []
+				const firstRow = data[0] || {}
+				for (const column in firstRow) {
+					inferredColumns.push(column)
+				}
+				return inferredColumns
+			})()
 		const headers = finalColumns.map((col) => columnHeaders[col] || col)
 
 		const rows = data.map((item) =>

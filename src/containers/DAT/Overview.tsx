@@ -117,7 +117,10 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 	}, [groupBy])
 
 	const { chartData } = useMemo(() => {
-		const assetKeys = Object.keys(dailyFlowsByAsset)
+		const assetKeys: string[] = []
+		for (const asset in dailyFlowsByAsset) {
+			assetKeys.push(asset)
+		}
 		const rowMap = new Map<number, Record<string, number | null>>()
 
 		if (['Weekly', 'Monthly'].includes(groupBy)) {

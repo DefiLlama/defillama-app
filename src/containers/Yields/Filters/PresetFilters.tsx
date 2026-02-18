@@ -67,7 +67,16 @@ const YIELD_PRESETS = {
 	}
 } as const
 
-const ALL_PRESET_FILTER_KEYS = new Set(Object.values(YIELD_PRESETS).flatMap((preset) => Object.keys(preset.filters)))
+const ALL_PRESET_FILTER_KEYS = (() => {
+	const keys = new Set<string>()
+	for (const presetKey in YIELD_PRESETS) {
+		const preset = YIELD_PRESETS[presetKey]
+		for (const filterKey in preset.filters) {
+			keys.add(filterKey)
+		}
+	}
+	return keys
+})()
 
 type PresetKey = keyof typeof YIELD_PRESETS
 
@@ -83,7 +92,12 @@ export function PresetFilters({ className }: PresetFiltersProps) {
 		const active = new Set<PresetKey>()
 
 		for (const [key, preset] of Object.entries(YIELD_PRESETS)) {
-			if (Object.keys(preset.filters).length === 0) continue
+			let hasFilters = false
+			for (const _filterKey in preset.filters) {
+				hasFilters = true
+				break
+			}
+			if (!hasFilters) continue
 
 			const isActive = Object.entries(preset.filters).every(([filterKey, filterValue]) => {
 				const queryValue = query[filterKey]
@@ -128,7 +142,13 @@ export function PresetFilters({ className }: PresetFiltersProps) {
 		<div className={`flex flex-col gap-2 ${className ?? ''}`}>
 			<span className="text-xs text-(--text-secondary)">Curated Presets</span>
 			<div className="flex flex-wrap items-center gap-2">
-				{(Object.keys(YIELD_PRESETS) as PresetKey[]).map((key) => {
+				{(() => {
+					const presetKeys: PresetKey[] = []
+					for (const presetKey in YIELD_PRESETS) {
+						presetKeys.push(presetKey as PresetKey)
+					}
+					return presetKeys
+				})().map((key) => {
 					const preset = YIELD_PRESETS[key]
 					const isActive = activePresets.has(key)
 

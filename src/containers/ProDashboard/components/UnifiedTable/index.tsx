@@ -349,7 +349,10 @@ function UnifiedTable({
 		}
 	})
 	const rowCount = unifiedTable.table.getRowModel().rows.length
-	const expandedCount = Object.keys(unifiedTable.expanded).length
+	let expandedCount = 0
+	for (const _rowId in unifiedTable.expanded) {
+		expandedCount++
+	}
 	const rowStateVersion = `${rowCount}:${expandedCount}`
 
 	const persistConfigChanges = useCallback(

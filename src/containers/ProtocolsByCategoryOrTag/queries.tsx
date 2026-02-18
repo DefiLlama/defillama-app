@@ -832,7 +832,11 @@ function getCategoryKeysFromApi(categories: CategoriesApiResponse['categories'])
 	}
 
 	if (categories != null && typeof categories === 'object') {
-		return Object.keys(categories)
+		const categoryKeys: string[] = []
+		for (const categoryName in categories) {
+			categoryKeys.push(categoryName)
+		}
+		return categoryKeys
 	}
 
 	return []
@@ -946,9 +950,13 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 
 	const categoryKeysFromApi = getCategoryKeysFromApi(categories)
 	const fallbackCategoryKeysFromRows = Array.from(categoryRows.keys())
-	const fallbackCategoryKeysFromChart = Object.values(chart ?? {}).flatMap((chartByCategory) =>
-		Object.keys(chartByCategory)
-	)
+	const fallbackCategoryKeysFromChart = Object.values(chart ?? {}).flatMap((chartByCategory) => {
+		const categoryKeys: string[] = []
+		for (const categoryName in chartByCategory) {
+			categoryKeys.push(categoryName)
+		}
+		return categoryKeys
+	})
 	const categoryKeys = Array.from(
 		new Set(
 			categoryKeysFromApi.length > 0

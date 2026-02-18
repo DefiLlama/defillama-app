@@ -1,12 +1,12 @@
 import { useMutation } from '@tanstack/react-query'
-import type { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef, Table } from '@tanstack/react-table'
 import { useCallback, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { LoadingDots } from '~/components/Loaders'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { BRIDGETX_API } from '~/constants'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
-import { toNiceCsvDate, toNiceDayAndHour } from '~/utils'
+import { toNiceDayAndHour } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 type BridgeTransaction = {
@@ -255,32 +255,29 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 
 	const tableData = useMemo(() => transactions.map(transformTransactionForTable), [transactions])
 
-	const prepareCsv = useCallback(() => {
-		const filename = `bridge-transactions_${startDate}_${endDate}.csv`
-		if (transactions.length === 0) return { filename, rows: [] }
+	const prepareCsv = useCallback(
+		(instance: Table<any>) => {
+			const filename = `bridge-transactions_${startDate}_${endDate}.csv`
+			const columns = instance.getVisibleLeafColumns()
+			const tableRows = instance.getRowModel().rows
+			if (columns.length === 0 || tableRows.length === 0) return { filename, rows: [] }
 
-		const csvData = transactions.map((tx) => {
-			const timestamp = Math.floor(new Date(tx.ts).getTime() / 1000)
-			return {
-				Timestamp: timestamp,
-				Date: toNiceCsvDate(timestamp),
-				Bridge: tx.bridge_name,
-				Chain: tx.chain,
-				Type: tx.is_deposit ? 'deposit' : 'withdrawal',
-				Token: tx.token,
-				Amount: tx.amount,
-				USD_Value: tx.usd_value,
-				From: tx.tx_from,
-				To: tx.tx_to,
-				Hash: tx.tx_hash
-			}
-		})
+			const headers = columns.map((column) =>
+				typeof column.columnDef.header === 'string' ? column.columnDef.header : (column.id ?? '')
+			)
+			const dataRows: Array<Array<string | number | boolean>> = tableRows.map((row) =>
+				columns.map((column) => {
+					const value = row.getValue(column.id)
+					if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
+					return value == null ? '' : String(value)
+				})
+			)
+			const rows: Array<Array<string | number | boolean>> = [headers, ...dataRows]
 
-		const headers = Object.keys(csvData[0])
-		const rows = [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
-
-		return { filename, rows }
-	}, [transactions, startDate, endDate])
+			return { filename, rows }
+		},
+		[startDate, endDate]
+	)
 
 	return (
 		<div className="mt-4 flex flex-col gap-4 lg:mt-10">
@@ -351,12 +348,12 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 					data={tableData}
 					columns={bridgeTransactionsColumns}
 					header="Bridge Transactions"
-					customFilters={
+					customFilters={({ instance }) => (
 						<div className="flex items-center justify-between gap-3">
 							<span>({transactions.length.toLocaleString()}) transactions</span>
-							<CSVDownloadButton prepareCsv={prepareCsv} />
+							<CSVDownloadButton prepareCsv={() => prepareCsv(instance)} />
 						</div>
-					}
+					)}
 					sortingState={[{ id: 'date', desc: true }]}
 				/>
 			)}

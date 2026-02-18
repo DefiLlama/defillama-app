@@ -235,6 +235,7 @@ export function useYieldsTable({
 			const preset = YIELDS_COLUMN_PRESETS[presetName as keyof typeof YIELDS_COLUMN_PRESETS]
 			if (preset && table) {
 				const newVisibility = {}
+				const presetSet = new Set(preset)
 				const allColumnIds = yieldsDatasetColumns
 					.map((col) => {
 						if (typeof col.id === 'string') return col.id
@@ -244,7 +245,7 @@ export function useYieldsTable({
 					.filter(Boolean)
 
 				for (const colId of allColumnIds) {
-					newVisibility[colId] = preset.includes(colId)
+					newVisibility[colId] = presetSet.has(colId)
 				}
 
 				setColumnVisibility(newVisibility)
@@ -394,6 +395,7 @@ export function useYieldsTable({
 	const availableTokens = React.useMemo(() => {
 		if (!data) return []
 		const tokenTvlMap = new Map<string, number>()
+		const excludedTokenFragments = new Set(['LP', 'V2', 'V3', 'POOL', 'VAULT', 'FARM'])
 
 		for (const row of data) {
 			if (row.pool && row.tvl) {
@@ -401,7 +403,7 @@ export function useYieldsTable({
 				const tokens = row.pool.split(separators)
 				for (const token of tokens) {
 					const cleaned = token.trim().toUpperCase()
-					if (cleaned && cleaned.length >= 2 && !['LP', 'V2', 'V3', 'POOL', 'VAULT', 'FARM'].includes(cleaned)) {
+					if (cleaned && cleaned.length >= 2 && !excludedTokenFragments.has(cleaned)) {
 						const currentTvl = tokenTvlMap.get(cleaned) || 0
 						tokenTvlMap.set(cleaned, currentTvl + row.tvl)
 					}

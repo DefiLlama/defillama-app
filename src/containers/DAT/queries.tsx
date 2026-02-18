@@ -40,13 +40,16 @@ const EXCLUDED_DISTINCT_COLOR = '#673AB7'
 
 function buildColorByAsset(res: IDATInstitutionsResponse): Record<string, string> {
 	const colorByAsset: Record<string, string> = {}
-	const assetKeys = Object.keys(res.assetMetadata)
+	let totalAssets = 0
+	for (const _asset in res.assetMetadata) {
+		totalAssets++
+	}
 	// Keep a small offset so fallback colors do not overlap too closely with fixed asset colors.
-	const colors = getNDistinctColors(assetKeys.length + EXTRA_DYNAMIC_COLOR_BUFFER).filter(
+	const colors = getNDistinctColors(totalAssets + EXTRA_DYNAMIC_COLOR_BUFFER).filter(
 		(color) => color !== EXCLUDED_DISTINCT_COLOR
 	)
 	let i = 0
-	for (const asset of assetKeys) {
+	for (const asset in res.assetMetadata) {
 		const color = breakdownColor(res.assetMetadata[asset].name)
 		if (color != null) {
 			colorByAsset[asset] = color

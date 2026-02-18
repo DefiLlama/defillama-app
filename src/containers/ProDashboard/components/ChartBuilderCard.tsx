@@ -543,14 +543,23 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			}
 		}
 		const timestamps = Array.from(timestampSet).sort((a, b) => a - b)
+		const seriesDataMaps = chartSeries.map((serie) => {
+			const dataMap = new Map<number, number>()
+			for (const [timestamp, value] of serie.data as [number, number][]) {
+				if (!dataMap.has(timestamp)) {
+					dataMap.set(timestamp, value)
+				}
+			}
+			return dataMap
+		})
 
 		const headers = ['Date', ...chartSeries.map((s: any) => s.name)]
 
 		const rows = timestamps.map((timestamp) => {
 			const row = [new Date(timestamp * 1000).toLocaleDateString()]
-			for (const s of chartSeries) {
-				const dataPoint = s.data.find(([t]: [number, number]) => t === timestamp)
-				row.push(dataPoint ? dataPoint[1].toString() : '0')
+			for (const dataMap of seriesDataMaps) {
+				const value = dataMap.get(timestamp)
+				row.push(value != null ? value.toString() : '0')
 			}
 			return row
 		})

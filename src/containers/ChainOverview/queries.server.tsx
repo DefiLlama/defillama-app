@@ -698,26 +698,45 @@ export const getProtocolsByChain = async ({
 	const protocolMatchesForkFilter = (protocol: ILiteProtocol): boolean => {
 		if (!normalizedFork) return true
 
-		return protocol.forkedFrom?.some((forkName) => slug(forkName) === normalizedFork) ?? false
+		const forkedFrom = protocol.forkedFrom
+		if (!forkedFrom) return false
+		for (const forkName of forkedFrom) {
+			if (slug(forkName) === normalizedFork) return true
+		}
+		return false
 	}
 
 	const protocolMatchesOracleFilter = (protocol: ILiteProtocol): boolean => {
 		if (!normalizedOracle) return true
 
-		if (protocol.oraclesByChain && Object.keys(protocol.oraclesByChain).length > 0) {
+		const oraclesByChain = protocol.oraclesByChain
+		let hasOraclesByChain = false
+		for (const _chain in oraclesByChain) {
+			hasOraclesByChain = true
+			break
+		}
+
+		if (hasOraclesByChain) {
 			if (chain !== 'All') {
-				const chainEntry = Object.entries(protocol.oraclesByChain).find(([chainName]) => {
-					return slug(chainName) === slug(currentChainMetadata.name)
-				})
-
-				if (!chainEntry) return false
-
-				return chainEntry[1].some((oracleName) => slug(oracleName) === normalizedOracle)
+				const normalizedChainName = slug(currentChainMetadata.name)
+				for (const chainName in oraclesByChain) {
+					if (slug(chainName) !== normalizedChainName) continue
+					const oracleNames = oraclesByChain[chainName]
+					for (const oracleName of oracleNames) {
+						if (slug(oracleName) === normalizedOracle) return true
+					}
+					return false
+				}
+				return false
 			}
 
-			return Object.values(protocol.oraclesByChain).some((oracleNames) => {
-				return oracleNames.some((oracleName) => slug(oracleName) === normalizedOracle)
-			})
+			for (const chainName in oraclesByChain) {
+				const oracleNames = oraclesByChain[chainName]
+				for (const oracleName of oracleNames) {
+					if (slug(oracleName) === normalizedOracle) return true
+				}
+			}
+			return false
 		}
 
 		return (protocol.oracles ?? []).some((oracleName) => slug(oracleName) === normalizedOracle)

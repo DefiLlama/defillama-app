@@ -494,17 +494,19 @@ export const getProtocolOverviewPageData = async ({
 	)
 
 	const tokenLiquidity = yieldsConfig?.protocols
-		? Object.entries(liquidityAggregated)
-				.filter((x: [string, Record<string, number>]) => !!yieldsConfig.protocols?.[x[0]]?.name)
-				.map((p: [string, Record<string, number>]) =>
-					Object.entries(p[1]).map((c: [string, number]): [string, string, number] => [
-						yieldsConfig.protocols?.[p[0]]?.name ?? '',
-						c[0],
-						Number(c[1])
-					])
-				)
-				.flat()
-				.sort((a: [string, string, number], b: [string, string, number]) => b[2] - a[2])
+		? (() => {
+				const rows: Array<[string, string, number]> = []
+				for (const protocolSlug in liquidityAggregated) {
+					const protocolName = yieldsConfig.protocols?.[protocolSlug]?.name
+					if (!protocolName) continue
+					const chainValues = liquidityAggregated[protocolSlug]
+					for (const chainName in chainValues) {
+						rows.push([protocolName, chainName, Number(chainValues[chainName])])
+					}
+				}
+				rows.sort((a: [string, string, number], b: [string, string, number]) => b[2] - a[2])
+				return rows
+			})()
 		: ([] as Array<[string, string, number]>)
 
 	const raises =
@@ -540,28 +542,36 @@ export const getProtocolOverviewPageData = async ({
 
 	const competitors =
 		liteProtocolsData && protocolData.category
-			? liteProtocolsData.protocols
-					.filter((p) => {
-						if (p.category) {
-							return (
-								p.category.toLowerCase() === protocolData.category.toLowerCase() &&
-								p.name.toLowerCase() !== protocolData.name?.toLowerCase() &&
-								p.chains.some((c) => protocolChainsSet.has(c))
-							)
-						} else return false
-					})
-					.map((p) => {
-						let commonChains = 0
+			? (() => {
+					const rows: Array<{ name: string; tvl: number; commonChains: number }> = []
+					const currentCategory = protocolData.category.toLowerCase()
+					const currentName = protocolData.name?.toLowerCase()
+					for (const protocol of liteProtocolsData.protocols) {
+						if (!protocol.category) continue
+						if (protocol.category.toLowerCase() !== currentCategory) continue
+						if (protocol.name.toLowerCase() === currentName) continue
+						const candidateChainsSet = new Set(protocol.chains)
+						let hasCommonChain = false
+						for (const chain of candidateChainsSet) {
+							if (protocolChainsSet.has(chain)) {
+								hasCommonChain = true
+								break
+							}
+						}
+						if (!hasCommonChain) continue
 
+						let commonChains = 0
 						for (const chain of protocolData?.chains ?? []) {
-							if (p.chains.includes(chain)) {
+							if (candidateChainsSet.has(chain)) {
 								commonChains += 1
 							}
 						}
 
-						return { name: p.name, tvl: p.tvl, commonChains }
-					})
-					.sort((a, b) => b.tvl - a.tvl)
+						rows.push({ name: protocol.name, tvl: protocol.tvl, commonChains })
+					}
+					rows.sort((a, b) => b.tvl - a.tvl)
+					return rows
+				})()
 			: []
 
 	const competitorsSet = new Set<string>()
@@ -581,10 +591,12 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 
-	const competitorsList = Array.from(competitorsSet)
-		.map((protocolName) => competitorsMap.get(protocolName))
-		.filter((competitor): competitor is (typeof competitors)[number] => Boolean(competitor))
-		.map(({ name, tvl }) => ({ name, tvl }))
+	const competitorsList: Array<{ name: string; tvl: number }> = []
+	for (const protocolName of competitorsSet) {
+		const competitor = competitorsMap.get(protocolName)
+		if (!competitor) continue
+		competitorsList.push({ name: competitor.name, tvl: competitor.tvl })
+	}
 
 	const hacks =
 		(protocolData.id

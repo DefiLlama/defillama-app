@@ -45,15 +45,29 @@ export function useModalActions(
 	} = useProDashboardEditorActions()
 
 	const { state, actions } = useModalState(editItem, isOpen)
+	const chainsByName = useMemo(() => {
+		const map = new Map<string, Chain>()
+		for (const chain of chains) {
+			map.set(chain.name, chain)
+		}
+		return map
+	}, [chains])
+	const protocolsBySlug = useMemo(() => {
+		const map = new Map<string, Protocol>()
+		for (const protocol of protocols) {
+			map.set(protocol.slug, protocol)
+		}
+		return map
+	}, [protocols])
 
 	const selectedProtocolData = useMemo(
-		() => protocols.find((p: Protocol) => p.slug === state.selectedProtocol),
-		[protocols, state.selectedProtocol]
+		() => (state.selectedProtocol ? protocolsBySlug.get(state.selectedProtocol) : undefined),
+		[protocolsBySlug, state.selectedProtocol]
 	)
 
 	const selectedChainData = useMemo(
-		() => chains.find((c: Chain) => c.name === state.selectedChain),
-		[chains, state.selectedChain]
+		() => (state.selectedChain ? chainsByName.get(state.selectedChain) : undefined),
+		[chainsByName, state.selectedChain]
 	)
 
 	const chainOptions = useMemo(
@@ -181,7 +195,7 @@ export function useModalActions(
 							? [state.selectedChain]
 							: []
 				for (const chainName of chainsToUse) {
-					const chain = chains.find((c: Chain) => c.name === chainName)
+					const chain = chainsByName.get(chainName)
 					const filteredTypes = chartTypesToAdd.filter((chartType) => {
 						return !state.composerItems.some((item) => item.chain === chainName && item.type === chartType)
 					})
@@ -209,7 +223,7 @@ export function useModalActions(
 							? [state.selectedProtocol]
 							: []
 				for (const slug of protocolsToUse) {
-					const protocol = protocols.find((p: Protocol) => p.slug === slug)
+					const protocol = protocolsBySlug.get(slug)
 					const filteredTypes = chartTypesToAdd.filter((chartType) => {
 						return !state.composerItems.some((item) => item.protocol === slug && item.type === chartType)
 					})
@@ -234,8 +248,8 @@ export function useModalActions(
 		},
 		[
 			actions,
-			chains,
-			protocols,
+			chainsByName,
+			protocolsBySlug,
 			state.composerItems,
 			state.selectedChain,
 			state.selectedChains,
@@ -268,10 +282,10 @@ export function useModalActions(
 					const isGroupable = CHART_TYPES[nextType]?.groupable
 					let geckoId: string | null | undefined
 					if (item.chain) {
-						const chain = chains.find((c: Chain) => c.name === item.chain)
+						const chain = chainsByName.get(item.chain)
 						geckoId = ['chainMcap', 'chainPrice'].includes(nextType) ? chain?.gecko_id : undefined
 					} else if (item.protocol) {
-						const protocol = protocols.find((p: Protocol) => p.slug === item.protocol)
+						const protocol = protocolsBySlug.get(item.protocol)
 						geckoId = protocol?.geckoId
 					}
 					return {
@@ -286,7 +300,7 @@ export function useModalActions(
 			actions.setSelectedChartType(nextType)
 			actions.setSelectedChartTypes([nextType])
 		},
-		[actions, chains, protocols]
+		[actions, chainsByName, protocolsBySlug]
 	)
 
 	const handleMainTabChange = useCallback(
@@ -361,7 +375,7 @@ export function useModalActions(
 				state.selectedChartTab === 'unlocks' &&
 				state.selectedUnlocksProtocol
 			) {
-				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedUnlocksProtocol)
+				const protocol = state.selectedUnlocksProtocol ? protocolsBySlug.get(state.selectedUnlocksProtocol) : undefined
 				if (state.selectedUnlocksChartType === 'schedule') {
 					newItem = {
 						id: editItem.id,
@@ -446,7 +460,7 @@ export function useModalActions(
 					items: state.composerItems
 				} as MultiChartConfig
 			} else if (state.selectedMainTab === 'charts' && state.selectedChartTab === 'chain' && state.selectedChain) {
-				const chain = chains.find((c: Chain) => c.name === state.selectedChain)
+				const chain = state.selectedChain ? chainsByName.get(state.selectedChain) : undefined
 				const chartType = state.selectedChartTypes[0] || state.selectedChartType
 				const chartTypeDetails = CHART_TYPES[chartType]
 				newItem = {
@@ -463,7 +477,7 @@ export function useModalActions(
 				state.selectedChartTab === 'protocol' &&
 				state.selectedProtocol
 			) {
-				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
+				const protocol = state.selectedProtocol ? protocolsBySlug.get(state.selectedProtocol) : undefined
 				const chartType = state.selectedChartTypes[0] || state.selectedChartType
 				const chartTypeDetails = CHART_TYPES[chartType]
 				newItem = {
@@ -673,7 +687,7 @@ export function useModalActions(
 				state.selectedChartTab === 'unlocks' &&
 				state.selectedUnlocksProtocol
 			) {
-				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedUnlocksProtocol)
+				const protocol = state.selectedUnlocksProtocol ? protocolsBySlug.get(state.selectedUnlocksProtocol) : undefined
 				if (state.selectedUnlocksChartType === 'schedule') {
 					handleAddUnlocksSchedule(
 						state.selectedUnlocksProtocol,
@@ -760,13 +774,13 @@ export function useModalActions(
 					}
 				} else if (state.chartCreationMode === 'separate' && state.selectedChartTypes.length > 0) {
 					if (state.selectedChain) {
-						const chain = chains.find((c: Chain) => c.name === state.selectedChain)
+						const chain = state.selectedChain ? chainsByName.get(state.selectedChain) : undefined
 						for (const chartType of state.selectedChartTypes) {
 							const geckoId = ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
 							handleAddChart(state.selectedChain, chartType, 'chain', geckoId)
 						}
 					} else if (state.selectedProtocol) {
-						const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
+						const protocol = state.selectedProtocol ? protocolsBySlug.get(state.selectedProtocol) : undefined
 						for (const chartType of state.selectedChartTypes) {
 							handleAddChart(
 								state.selectedProtocol,
@@ -857,8 +871,8 @@ export function useModalActions(
 	}, [
 		editItem,
 		state,
-		chains,
-		protocols,
+		chainsByName,
+		protocolsBySlug,
 		handleEditItem,
 		handleAddMultiChart,
 		handleAddChart,

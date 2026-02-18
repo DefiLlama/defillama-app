@@ -147,7 +147,10 @@ export const getNFTMarketplacesData = async () => {
 	const [volumeData, dominance, volumeChartStacks] = formatNftVolume(volumeSorted, 'sum')
 	const [tradeData, dominanceTrade, tradeChartStacks] = formatNftVolume(volumeSorted, 'count')
 
-	const marketplaces = Object.keys(volumeChartStacks)
+	const marketplaces: string[] = []
+	for (const marketplace in volumeChartStacks) {
+		marketplaces.push(marketplace)
+	}
 	const colors: Record<string, string> = {}
 	const allColors = getNDistinctColors(marketplaces.length)
 	for (let i = 0; i < marketplaces.length; i++) {

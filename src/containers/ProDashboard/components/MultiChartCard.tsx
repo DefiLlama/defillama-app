@@ -282,15 +282,21 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		}
 
 		const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b)
+		const processedSeriesDataMaps = processedSeries.map((serie) => {
+			const dataMap = new Map<number, number>()
+			for (const [timestamp, value] of serie.data) {
+				if (!dataMap.has(timestamp)) {
+					dataMap.set(timestamp, value)
+				}
+			}
+			return dataMap
+		})
 
 		const totals = new Map<number, number>()
 		for (const timestamp of sortedTimestamps) {
 			let total = 0
-			for (const serie of processedSeries) {
-				const dataPoint = serie.data.find(([t]) => t === timestamp)
-				if (dataPoint) {
-					total += dataPoint[1]
-				}
+			for (const dataMap of processedSeriesDataMaps) {
+				total += dataMap.get(timestamp) ?? 0
 			}
 			totals.set(timestamp, total)
 		}
@@ -313,10 +319,10 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			'#a56abe'
 		]
 
-		const seriesWithAverages = processedSeries.map((serie) => {
+		const seriesWithAverages = processedSeries.map((serie, serieIndex) => {
+			const dataMap = processedSeriesDataMaps[serieIndex]
 			const percentageData: [number, number][] = sortedTimestamps.map((timestamp) => {
-				const dataPoint = serie.data.find(([t]) => t === timestamp)
-				const value = dataPoint ? dataPoint[1] : 0
+				const value = dataMap.get(timestamp) ?? 0
 				const total = totals.get(timestamp) || 0
 				const percentage = total > 0 ? (value / total) * 100 : 0
 				return [timestamp, percentage]
@@ -355,14 +361,23 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			}
 		}
 		const timestamps = Array.from(timestampSet).sort((a, b) => a - b)
+		const seriesDataMaps = series.map((serie) => {
+			const dataMap = new Map<number, number>()
+			for (const [timestamp, value] of serie.data) {
+				if (!dataMap.has(timestamp)) {
+					dataMap.set(timestamp, value)
+				}
+			}
+			return dataMap
+		})
 
 		const headers = ['Date', ...series.map((s) => s.name)]
 
 		const rows = timestamps.map((timestamp) => {
 			const row = [new Date(timestamp * 1000).toLocaleDateString()]
-			for (const s of series) {
-				const dataPoint = s.data.find(([t]) => t === timestamp)
-				row.push(dataPoint ? dataPoint[1].toString() : '0')
+			for (const dataMap of seriesDataMaps) {
+				const value = dataMap.get(timestamp)
+				row.push(value != null ? value.toString() : '0')
 			}
 			return row
 		})

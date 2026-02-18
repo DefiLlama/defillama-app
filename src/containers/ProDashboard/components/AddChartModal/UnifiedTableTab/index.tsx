@@ -58,7 +58,8 @@ type TabKey = 'setup' | 'columns' | 'filters'
 const countActiveFilters = (filters: TableFilters | undefined): number => {
 	if (!filters) return 0
 	let count = 0
-	for (const value of Object.values(filters)) {
+	for (const key in filters) {
+		const value = filters[key]
 		if (value == null) continue
 		if (Array.isArray(value)) {
 			if (value.length) count++
@@ -81,7 +82,13 @@ const arraysEqual = (a: string[], b: string[]) => {
 }
 
 const visibilityEqual = (a: VisibilityState, b: VisibilityState) => {
-	const keys = new Set([...Object.keys(a), ...Object.keys(b)])
+	const keys = new Set<string>()
+	for (const key in a) {
+		keys.add(key)
+	}
+	for (const key in b) {
+		keys.add(key)
+	}
 	for (const key of keys) {
 		const aValue = key in a ? a[key] : true
 		const bValue = key in b ? b[key] : true

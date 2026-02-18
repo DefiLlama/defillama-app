@@ -93,9 +93,11 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
 		const chainsSplit = formatProtocolV1TvlsByChain({ historicalChainTvls, extraTvlsEnabled })
 		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
-		const chainsUnique = Object.keys(lastEntry)
-			.filter((key) => key !== 'date')
-			.sort((a, b) => (lastEntry[b] ?? 0) - (lastEntry[a] ?? 0))
+		const chainsUnique: string[] = []
+		for (const key in lastEntry) {
+			if (key !== 'date') chainsUnique.push(key)
+		}
+		chainsUnique.sort((a, b) => (lastEntry[b] ?? 0) - (lastEntry[a] ?? 0))
 		return { chainsSplit, chainsUnique }
 	}, [historicalChainTvls, extraTvlsEnabled])
 

@@ -586,7 +586,13 @@ const ChartContainer = ({
 
 	const availableCategories =
 		allocationMode === 'standard'
-			? Object.keys(data.categoriesBreakdown || {})
+			? (() => {
+					const categories: string[] = []
+					for (const category in data.categoriesBreakdown || {}) {
+						categories.push(category)
+					}
+					return categories
+				})()
 			: categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
 
 	const displayData = useMemo(() => {
@@ -600,7 +606,11 @@ const ChartContainer = ({
 	useEffect(() => {
 		setSelectedCategories(() => {
 			if (allocationMode === 'standard' && data.categoriesBreakdown) {
-				return Object.keys(data.categoriesBreakdown)
+				const categories: string[] = []
+				for (const category in data.categoriesBreakdown) {
+					categories.push(category)
+				}
+				return categories
 			} else if (categoriesFromData.length > 0) {
 				return categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
 			}
@@ -633,11 +643,12 @@ const ChartContainer = ({
 
 	const pieChartDataAllocation = useMemo(() => {
 		const source = pieChartDataRaw ?? []
+		const selectedCategoriesSet = new Set(selectedCategories)
 		const filtered: Array<{ name: string; value: number }> = []
 		for (const item of source) {
 			if (!item) continue
 			if (typeof item.value !== 'number') continue
-			if (!selectedCategories.includes(item.name)) continue
+			if (!selectedCategoriesSet.has(item.name)) continue
 			filtered.push({ name: item.name, value: item.value })
 		}
 		return sortPieChartDataDesc(filtered)

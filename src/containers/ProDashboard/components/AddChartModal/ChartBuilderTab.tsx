@@ -385,9 +385,12 @@ export function ChartBuilderTab({
 					const millis = rawTimestamp < 10000000000 ? rawTimestamp * 1000 : rawTimestamp
 					const chartdate = new Date(millis).toLocaleDateString()
 
-					let filteredParams = params.filter(
-						(item: any) => item.value[1] !== '-' && item.value[1] !== null && item.value[1] !== undefined
-					)
+					const filteredParams: any[] = []
+					for (const item of params) {
+						if (item.value[1] !== '-' && item.value[1] !== null && item.value[1] !== undefined) {
+							filteredParams.push(item)
+						}
+					}
 					filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
 
 					const formatValue = (value: number) => {

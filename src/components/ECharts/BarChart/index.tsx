@@ -45,6 +45,7 @@ export default function BarChart({
 
 	const { defaultStacks, stackKeys, selectedStacks } = useMemo(() => {
 		const values = stacks || {}
+		const legendOptionsSet = legendOptions ? new Set(legendOptions) : null
 
 		let hasValues = false
 		for (const _ in values) {
@@ -61,7 +62,7 @@ export default function BarChart({
 		const selected: string[] = []
 		for (const s in values) {
 			keys.push(s)
-			if (!legendOptions || !customLegendName || legendOptions.includes(s)) {
+			if (!legendOptionsSet || !customLegendName || legendOptionsSet.has(s)) {
 				selected.push(s)
 			}
 		}

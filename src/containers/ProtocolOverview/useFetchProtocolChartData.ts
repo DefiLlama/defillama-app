@@ -59,7 +59,12 @@ const buildExtraTvlCharts = (chartByKey: Record<string, Array<V2ChartPoint> | nu
 			if (maxTimestamp == null || dateInSec > maxTimestamp) maxTimestamp = dateInSec
 		}
 
-		if (Object.keys(byDate).length > 0) {
+		let hasByDate = false
+		for (const _date in byDate) {
+			hasByDate = true
+			break
+		}
+		if (hasByDate) {
 			charts[key] = byDate
 			if (maxTimestamp != null) latestTimestamps[key] = maxTimestamp
 		}

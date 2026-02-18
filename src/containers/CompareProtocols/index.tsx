@@ -60,7 +60,7 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 				chartsByProtocol[protocol.protocolName] = {}
 			}
 
-			for (const chain of Object.keys(protocol.protocolChartData)) {
+			for (const chain in protocol.protocolChartData) {
 				if (chain.includes('-') || chain === 'offers') continue
 				if (chain in extraTvlEnabled && !extraTvlEnabled[chain]) continue
 
@@ -76,14 +76,18 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 		}
 
 		const distinctColors = getNDistinctColors(totalProtocols)
-		const seriesNames = Object.keys(chartsByProtocol)
+		const seriesNames: string[] = []
+		for (const protocolName in chartsByProtocol) {
+			seriesNames.push(protocolName)
+		}
 
 		const rowMap = new Map<number, Record<string, number>>()
 		for (const protocolName of seriesNames) {
-			for (const date of Object.keys(chartsByProtocol[protocolName])) {
+			const protocolChart = chartsByProtocol[protocolName]
+			for (const date in protocolChart) {
 				const ts = +date * 1e3
 				const row = rowMap.get(ts) ?? { timestamp: ts }
-				row[protocolName] = chartsByProtocol[protocolName][+date]
+				row[protocolName] = protocolChart[+date]
 				rowMap.set(ts, row)
 			}
 		}

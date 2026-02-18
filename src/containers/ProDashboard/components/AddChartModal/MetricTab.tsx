@@ -49,14 +49,28 @@ export function MetricTab(props: MetricTabProps) {
 	const protocolList = protocols as Protocol[]
 	const chainList = chains as Chain[]
 	const { availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
+	const protocolsBySlug = useMemo(() => {
+		const map = new Map<string, Protocol>()
+		for (const protocol of protocolList) {
+			map.set(protocol.slug, protocol)
+		}
+		return map
+	}, [protocolList])
+	const chainsByName = useMemo(() => {
+		const map = new Map<string, Chain>()
+		for (const chain of chainList) {
+			map.set(chain.name, chain)
+		}
+		return map
+	}, [chainList])
 
 	const availableTypes = useMemo(() => {
 		if (metricSubjectType === 'protocol' && metricProtocol) {
-			const geckoId = protocolList.find((p) => p.slug === metricProtocol)?.geckoId
+			const geckoId = protocolsBySlug.get(metricProtocol)?.geckoId
 			return availableProtocolChartTypes(metricProtocol, { hasGeckoId: !!geckoId })
 		}
 		if (metricSubjectType === 'chain' && metricChain) {
-			const geckoId = chainList.find((c) => c.name === metricChain)?.gecko_id
+			const geckoId = chainsByName.get(metricChain)?.gecko_id
 			return availableChainChartTypes(metricChain, { hasGeckoId: !!geckoId })
 		}
 		return []
@@ -64,15 +78,15 @@ export function MetricTab(props: MetricTabProps) {
 		metricSubjectType,
 		metricProtocol,
 		metricChain,
-		protocolList,
-		chainList,
+		protocolsBySlug,
+		chainsByName,
 		availableProtocolChartTypes,
 		availableChainChartTypes
 	])
 
 	const selectedSubject = useMemo(() => {
 		if (metricSubjectType === 'protocol' && metricProtocol) {
-			const geckoId = protocolList.find((p) => p.slug === metricProtocol)?.geckoId
+			const geckoId = protocolsBySlug.get(metricProtocol)?.geckoId
 			return {
 				itemType: 'protocol' as const,
 				protocol: metricProtocol,
@@ -80,11 +94,11 @@ export function MetricTab(props: MetricTabProps) {
 			}
 		}
 		if (metricSubjectType === 'chain' && metricChain) {
-			const geckoId = chainList.find((c) => c.name === metricChain)?.gecko_id
+			const geckoId = chainsByName.get(metricChain)?.gecko_id
 			return { itemType: 'chain' as const, chain: metricChain, geckoId }
 		}
 		return null
-	}, [metricSubjectType, metricProtocol, metricChain, protocolList, chainList])
+	}, [metricSubjectType, metricProtocol, metricChain, protocolsBySlug, chainsByName])
 
 	const previewMetric = useMemo(() => {
 		if (!selectedSubject || !metricType) return null

@@ -199,9 +199,12 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 	}, [rawData])
 
 	const topCategories = useMemo(() => {
-		return (Object.entries(categoryBreakdown) as Array<[string, CategoryStats]>)
-			.sort(([, a], [, b]) => b.amount - a.amount)
-			.slice(0, 3)
+		const categoryEntries: Array<[string, CategoryStats]> = []
+		for (const category in categoryBreakdown) {
+			categoryEntries.push([category, categoryBreakdown[category]])
+		}
+		categoryEntries.sort(([, a], [, b]) => b.amount - a.amount)
+		return categoryEntries.slice(0, 3)
 	}, [categoryBreakdown])
 
 	const protocolOverlap = useMemo(() => {
@@ -440,7 +443,18 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 								<div className="text-lg font-semibold pro-text1">{protocolCount}</div>
 								<div className="text-xs text-(--text-tertiary)">
 									{(() => {
-										const overlap = rawData.filter((p) => p.tokens && Object.keys(p.tokens).length > 1).length
+											let overlap = 0
+											for (const protocol of rawData) {
+												if (!protocol.tokens) continue
+												let tokenCount = 0
+												for (const _token in protocol.tokens) {
+													tokenCount++
+													if (tokenCount > 1) {
+														overlap++
+														break
+													}
+												}
+											}
 										return overlap > 0 ? `${overlap} use multiple` : 'Total count'
 									})()}
 								</div>

@@ -88,15 +88,21 @@ export class ChartDataTransformer {
 		}
 
 		const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b)
+		const seriesDataMaps = series.map((item) => {
+			const dataMap = new Map<number, number>()
+			for (const [timestamp, value] of item.data as [number, number][]) {
+				if (!dataMap.has(timestamp)) {
+					dataMap.set(timestamp, value)
+				}
+			}
+			return dataMap
+		})
 
 		const totals = new Map<number, number>()
 		for (const timestamp of sortedTimestamps) {
 			let total = 0
-			for (const s of series) {
-				const dataPoint = s.data.find(([t]: [number, number]) => t === timestamp)
-				if (dataPoint) {
-					total += dataPoint[1]
-				}
+			for (const dataMap of seriesDataMaps) {
+				total += dataMap.get(timestamp) ?? 0
 			}
 			totals.set(timestamp, total)
 		}
@@ -119,10 +125,10 @@ export class ChartDataTransformer {
 			'#D7BDE2'
 		]
 
-		const seriesWithAverages = series.map((s, _serieIndex) => {
+		const seriesWithAverages = series.map((s, serieIndex) => {
+			const dataMap = seriesDataMaps[serieIndex]
 			const percentageData: [number, number][] = sortedTimestamps.map((timestamp) => {
-				const dataPoint = s.data.find(([t]: [number, number]) => t === timestamp)
-				const value = dataPoint ? dataPoint[1] : 0
+				const value = dataMap.get(timestamp) ?? 0
 				const total = totals.get(timestamp) || 0
 				const percentage = total > 0 ? (value / total) * 100 : 0
 				return [timestamp, percentage]

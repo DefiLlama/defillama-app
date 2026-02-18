@@ -27,22 +27,28 @@ const isColumnOrderEqual = (current: ColumnOrderState, next: ColumnOrderState) =
 
 const isColumnSizingEqual = (current: ColumnSizingState, next: ColumnSizingState) => {
 	if (current === next) return true
-	const currentKeys = Object.keys(current)
-	const nextKeys = Object.keys(next)
-	if (currentKeys.length !== nextKeys.length) return false
-	for (const key of currentKeys) {
+	let currentKeyCount = 0
+	for (const key in current) {
+		currentKeyCount++
 		if (current[key] !== next[key]) return false
 	}
+
+	let nextKeyCount = 0
+	for (const _key in next) {
+		nextKeyCount++
+	}
+
+	if (currentKeyCount !== nextKeyCount) return false
 	return true
 }
 
 const getSizingForKeys = (
-	keys: string[],
+	keysSource: ColumnSizingState,
 	currentSizing?: ColumnSizingState,
 	columns?: Array<{ id: string; getSize?: () => number }>
 ) => {
 	const sizing: ColumnSizingState = {}
-	for (const key of keys) {
+	for (const key in keysSource) {
 		const value = currentSizing?.[key]
 		if (value != null) {
 			sizing[key] = value
@@ -50,7 +56,7 @@ const getSizingForKeys = (
 	}
 	if (columns) {
 		const columnsById = new Map(columns.map((col) => [col.id, col]))
-		for (const key of keys) {
+		for (const key in keysSource) {
 			if (sizing[key] == null) {
 				const size = columnsById.get(key)?.getSize?.()
 				if (size != null) {
@@ -106,7 +112,7 @@ function sortColumnSizesAndOrders({
 
 	if (columnSizes && currentSizing != null) {
 		const size = getBreakpointValue(columnSizes)
-		const effectiveSizing = size ? getSizingForKeys(Object.keys(size), currentSizing, columns) : currentSizing
+		const effectiveSizing = size ? getSizingForKeys(size, currentSizing, columns) : currentSizing
 		if (size !== undefined && effectiveSizing != null && !isColumnSizingEqual(effectiveSizing, size)) {
 			instance.setColumnSizing(size)
 		}

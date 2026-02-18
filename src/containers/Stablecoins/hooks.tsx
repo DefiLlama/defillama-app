@@ -203,7 +203,7 @@ export const useCalcGroupExtraPeggedByDay = (chains: IStackedDatasetPoint[], inc
 		return data.map(({ date, ...values }): IExtraPeggedByDayPoint => {
 			const shares: Record<string, number> = {}
 
-			for (const key of Object.keys(values)) {
+			for (const key in values) {
 				shares[key] = getDominancePercent(values[key], daySum[date] ?? 0)
 			}
 
@@ -344,10 +344,16 @@ export const useGroupBridgeData = (
 					}
 				}
 			} else {
-				const parentBridgeIDsArray = Object.keys(parentBridges)
+				const parentBridgeIDsArray: string[] = []
+				for (const parentBridgeId in parentBridges) {
+					parentBridgeIDsArray.push(parentBridgeId)
+				}
 				const parentFirstBridgeID = parentBridgeIDsArray[0]
 				const parentFirstBridgeInfo = bridgeInfoObject[parentFirstBridgeID] ?? { name: 'not-found' }
-				const parentFirstBridgeSourcesArray = Object.keys(parentBridges[parentFirstBridgeID])
+				const parentFirstBridgeSourcesArray: string[] = []
+				for (const sourceChain in parentBridges[parentFirstBridgeID]) {
+					parentFirstBridgeSourcesArray.push(sourceChain)
+				}
 				if (
 					parentBridgeIDsArray.length === 1 &&
 					parentFirstBridgeSourcesArray.length === 1 &&

@@ -26,6 +26,7 @@ const normalizeWatchlistStore = (value: unknown): WatchlistStore | null => {
 	if (!isRecord(value)) return null
 
 	const normalized: WatchlistStore = {}
+	let hasNormalizedPortfolios = false
 	for (const [portfolio, protocols] of Object.entries(value)) {
 		if (!isRecord(protocols)) continue
 		const normalizedProtocols: Record<string, string> = {}
@@ -34,12 +35,18 @@ const normalizeWatchlistStore = (value: unknown): WatchlistStore | null => {
 				normalizedProtocols[slug] = name
 			}
 		}
-		if (Object.keys(normalizedProtocols).length > 0) {
+		let hasNormalizedProtocols = false
+		for (const _protocol in normalizedProtocols) {
+			hasNormalizedProtocols = true
+			break
+		}
+		if (hasNormalizedProtocols) {
 			normalized[portfolio] = normalizedProtocols
+			hasNormalizedPortfolios = true
 		}
 	}
 
-	return Object.keys(normalized).length > 0 ? normalized : null
+	return hasNormalizedPortfolios ? normalized : null
 }
 
 const mergeWatchlists = (local: WatchlistStore | null, remote: WatchlistStore | null): WatchlistStore | null => {

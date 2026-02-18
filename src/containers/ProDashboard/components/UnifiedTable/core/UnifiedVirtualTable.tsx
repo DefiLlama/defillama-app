@@ -43,7 +43,13 @@ export function UnifiedVirtualTable({
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
-	const expandedCount = Object.keys(table.getState().expanded ?? {}).length
+	let expandedCount = 0
+	const expandedState = table.getState().expanded
+	if (expandedState && typeof expandedState === 'object') {
+		for (const _rowId in expandedState) {
+			expandedCount++
+		}
+	}
 
 	useLayoutEffect(() => {
 		rowVirtualizer.measure()

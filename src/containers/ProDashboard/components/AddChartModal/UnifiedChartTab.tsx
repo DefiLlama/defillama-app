@@ -189,6 +189,20 @@ export function UnifiedChartTab({
 	const chainChartTypes = CHAIN_CHART_TYPES
 	const { loading: metaLoading, availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
 	const { protocols, chains } = useProDashboardCatalog()
+	const protocolsBySlug = useMemo(() => {
+		const map = new Map<string, any>()
+		for (const protocol of protocols) {
+			map.set(protocol.slug, protocol)
+		}
+		return map
+	}, [protocols])
+	const chainsByName = useMemo(() => {
+		const map = new Map<string, any>()
+		for (const chain of chains) {
+			map.set(chain.name, chain)
+		}
+		return map
+	}, [chains])
 
 	const handleSelectCategory = (category: ChartTabType) => {
 		onChartTabChange(category)
@@ -241,12 +255,13 @@ export function UnifiedChartTab({
 			.map((item) => (selectedChartTab === 'chain' ? item.chain : item.protocol))
 			.filter(Boolean) as string[]
 	}, [composerItems, selectedChartTypeSingle, selectedChartTab])
+	const selectedEntitiesForCurrentTypeSet = useMemo(() => new Set(selectedEntitiesForCurrentType), [selectedEntitiesForCurrentType])
 
 	const handleEntityToggle = useCallback(
 		(entityValue: string) => {
 			if (!selectedChartTypeSingle) return
 
-			const isSelected = selectedEntitiesForCurrentType.includes(entityValue)
+			const isSelected = selectedEntitiesForCurrentTypeSet.has(entityValue)
 
 			if (isSelected) {
 				const itemToRemove = composerItems.find(
@@ -266,7 +281,7 @@ export function UnifiedChartTab({
 		},
 		[
 			selectedChartTypeSingle,
-			selectedEntitiesForCurrentType,
+			selectedEntitiesForCurrentTypeSet,
 			composerItems,
 			selectedChartTab,
 			onRemoveFromComposer,
@@ -285,10 +300,10 @@ export function UnifiedChartTab({
 	const _instantAvailableChartTypes = useMemo(() => {
 		let available: string[] = []
 		if (selectedChartTab === 'protocol' && selectedProtocol) {
-			const geckoId = protocols.find((p: any) => p.slug === selectedProtocol)?.geckoId
+			const geckoId = protocolsBySlug.get(selectedProtocol)?.geckoId
 			available = availableProtocolChartTypes(selectedProtocol, { hasGeckoId: !!geckoId })
 		} else if (selectedChartTab === 'chain' && selectedChain) {
-			const geckoId = chains.find((c: any) => c.name === selectedChain)?.gecko_id
+			const geckoId = chainsByName.get(selectedChain)?.gecko_id
 			available = availableChainChartTypes(selectedChain, { hasGeckoId: !!geckoId })
 		}
 
@@ -303,8 +318,8 @@ export function UnifiedChartTab({
 		selectedChartTab,
 		selectedProtocol,
 		selectedChain,
-		protocols,
-		chains,
+		protocolsBySlug,
+		chainsByName,
 		availableProtocolChartTypes,
 		availableChainChartTypes,
 		protocolChartTypes,
@@ -327,10 +342,11 @@ export function UnifiedChartTab({
 
 	const chartTypeOptions = useMemo(() => {
 		const chartTypesOrder = selectedChartTab === 'chain' ? chainChartTypes : protocolChartTypes
+		const globalAvailableChartTypesSet = new Set(globalAvailableChartTypes)
 		return chartTypesOrder.map((type) => ({
 			value: type,
 			label: CHART_TYPES[type as keyof typeof CHART_TYPES]?.title || type,
-			available: globalAvailableChartTypes.includes(type)
+			available: globalAvailableChartTypesSet.has(type)
 		}))
 	}, [globalAvailableChartTypes, selectedChartTab, chainChartTypes, protocolChartTypes])
 
@@ -338,11 +354,11 @@ export function UnifiedChartTab({
 		if (!bulkChartType) return new Set<string>()
 		const getAvailableTypes = (item: ChartConfig) => {
 			if (item.chain) {
-				const geckoId = chains.find((c: any) => c.name === item.chain)?.gecko_id
+				const geckoId = chainsByName.get(item.chain)?.gecko_id
 				return availableChainChartTypes(item.chain, { hasGeckoId: !!geckoId })
 			}
 			if (item.protocol) {
-				const geckoId = protocols.find((p: any) => p.slug === item.protocol)?.geckoId
+				const geckoId = protocolsBySlug.get(item.protocol)?.geckoId
 				return availableProtocolChartTypes(item.protocol, { hasGeckoId: !!geckoId })
 			}
 			return []
@@ -351,15 +367,22 @@ export function UnifiedChartTab({
 		if (!firstItem) return new Set<string>()
 		const intersection = new Set(getAvailableTypes(firstItem))
 		for (const item of restItems) {
-			const available = getAvailableTypes(item)
+			const availableSet = new Set(getAvailableTypes(item))
 			for (const type of Array.from(intersection)) {
-				if (!available.includes(type)) {
+				if (!availableSet.has(type)) {
 					intersection.delete(type)
 				}
 			}
 		}
 		return intersection
-	}, [bulkChartType, composerItems, chains, protocols, availableChainChartTypes, availableProtocolChartTypes])
+	}, [
+		bulkChartType,
+		composerItems,
+		chainsByName,
+		protocolsBySlug,
+		availableChainChartTypes,
+		availableProtocolChartTypes
+	])
 
 	const bulkChartTypeOptions = useMemo(() => {
 		if (!bulkChartType) return []
@@ -376,15 +399,17 @@ export function UnifiedChartTab({
 
 		if (selectedChartTab === 'chain') {
 			return chainOptions.filter((chain) => {
-				const geckoId = chains.find((c: any) => c.name === chain.value)?.gecko_id
+				const geckoId = chainsByName.get(chain.value)?.gecko_id
 				const available = availableChainChartTypes(chain.value, { hasGeckoId: !!geckoId })
-				return available.includes(selectedChartTypeSingle)
+				const availableSet = new Set(available)
+				return availableSet.has(selectedChartTypeSingle)
 			})
 		} else {
 			return protocolOptions.filter((protocol) => {
-				const geckoId = protocols.find((p: any) => p.slug === protocol.value)?.geckoId
+				const geckoId = protocolsBySlug.get(protocol.value)?.geckoId
 				const available = availableProtocolChartTypes(protocol.value, { hasGeckoId: !!geckoId })
-				return available.includes(selectedChartTypeSingle)
+				const availableSet = new Set(available)
+				return availableSet.has(selectedChartTypeSingle)
 			})
 		}
 	}, [
@@ -392,8 +417,8 @@ export function UnifiedChartTab({
 		selectedChartTab,
 		chainOptions,
 		protocolOptions,
-		chains,
-		protocols,
+		chainsByName,
+		protocolsBySlug,
 		availableChainChartTypes,
 		availableProtocolChartTypes
 	])

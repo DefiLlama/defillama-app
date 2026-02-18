@@ -161,7 +161,12 @@ function ProDashboardContent() {
 									<span>Private</span>
 								</p>
 							)}
-							{currentDashboard?.aiGenerated && Object.keys(currentDashboard.aiGenerated).length > 0 ? (
+							{(() => {
+								const aiGenerated = currentDashboard?.aiGenerated
+								if (!aiGenerated) return false
+								for (const _key in aiGenerated) return true
+								return false
+							})() ? (
 								<p className="flex items-center gap-1 rounded-md bg-pro-blue-100 px-2 py-1.25 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
 									<Icon name="sparkles" height={14} width={14} />
 									<span className="text-xs font-medium">AI Generated</span>

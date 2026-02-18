@@ -111,13 +111,13 @@ export function ChainsByAdapter(props: IProps) {
 		)
 
 		const rows = [headers]
-		instance.getFilteredRowModel().rows.forEach((row) => {
+		for (const row of instance.getFilteredRowModel().rows) {
 			const cells = visibleColumns.map((col) => {
 				const value = row.getValue(col.id)
 				return value === null || value === undefined ? '' : String(value)
 			})
 			rows.push(cells)
-		})
+		}
 
 		return { filename: `${props.type}-chains-protocols.csv`, rows }
 	}

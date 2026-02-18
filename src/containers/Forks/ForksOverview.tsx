@@ -111,11 +111,11 @@ export const ForksOverview = ({
 	const { tableData, tokenTvls, dominanceDataset, dominanceCharts, chartColors } = React.useMemo(() => {
 		const latestData = mergedChartData.length > 0 ? mergedChartData[mergedChartData.length - 1] : null
 		const chartForkKeys = new Set(forks)
-		mergedChartData.forEach((entry) => {
-			Object.keys(entry).forEach((key) => {
+		for (const entry of mergedChartData) {
+			for (const key in entry) {
 				if (key !== 'timestamp') chartForkKeys.add(key)
-			})
-		})
+			}
+		}
 		const sortedChartForks = Array.from(chartForkKeys).sort(
 			(a, b) => Number(latestData?.[b] ?? 0) - Number(latestData?.[a] ?? 0)
 		)
@@ -147,11 +147,12 @@ export const ForksOverview = ({
 		const tokenTvls = preparePieChartData({ data: tvls, limit: 5 })
 		const chartColors: Record<string, string> = { ...forkColors }
 
-		sortedChartForks.forEach((name, index) => {
+		for (let index = 0; index < sortedChartForks.length; index++) {
+			const name = sortedChartForks[index]
 			if (!chartColors[name]) {
 				chartColors[name] = CHART_COLORS[index % CHART_COLORS.length]
 			}
-		})
+		}
 
 		const dominanceDataset = {
 			source: mergedChartData.map((entry) => {
@@ -166,9 +167,9 @@ export const ForksOverview = ({
 				const totalTvl = valuesInRow.reduce((sum, [, value]) => sum + value, 0)
 				if (totalTvl <= 0) return row
 
-				valuesInRow.forEach(([forkName, value]) => {
+				for (const [forkName, value] of valuesInRow) {
 					row[forkName] = (value / totalTvl) * 100
-				})
+				}
 
 				return row
 			}),

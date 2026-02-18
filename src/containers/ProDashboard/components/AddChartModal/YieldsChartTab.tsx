@@ -127,10 +127,18 @@ export function YieldsChartTab({
 	}, [yieldsData])
 
 	const categoryOptions = useMemo(
-		() =>
-			[...new Set(yieldsData.map((p: any) => p.category).filter(Boolean))]
-				.sort()
-				.map((cat: string) => ({ value: cat, label: cat })),
+		() => {
+			const categoriesSet = new Set<string>()
+			for (const pool of yieldsData as any[]) {
+				const category = pool.category
+				if (category) {
+					categoriesSet.add(category)
+				}
+			}
+			const categories = Array.from(categoriesSet)
+			categories.sort()
+			return categories.map((cat: string) => ({ value: cat, label: cat }))
+		},
 		[yieldsData]
 	)
 
