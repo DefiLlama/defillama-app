@@ -372,10 +372,14 @@ const getChartDataByChainAndInterval = ({
 	}
 
 	// 2) Rank top-10 within each grouped bucket.
-	const sortedDates = Array.from(groupedValuesByDate.entries())
-		.filter(([, groupedValues]) => Object.keys(groupedValues).length > 0)
-		.map(([date]) => date)
-		.sort((a, b) => a - b)
+	const sortedDates: number[] = []
+	for (const [date, groupedValues] of groupedValuesByDate.entries()) {
+		for (const _key in groupedValues) {
+			sortedDates.push(date)
+			break
+		}
+	}
+	sortedDates.sort((a, b) => a - b)
 	const rankedTopByDate = new Map<number, Record<string, number>>()
 	const othersByDate = new Map<number, number>()
 	const uniqTopChains = new Set<string>()
@@ -416,17 +420,20 @@ const getChartDataByChainAndInterval = ({
 		})
 	}
 
-	const zeroesByChain: Record<string, number> = {}
+	let startingZeroDatesToSlice = Number.POSITIVE_INFINITY
 	for (const chain in finalData) {
 		if (chain === 'Others') continue
-		zeroesByChain[chain] = Math.max(
+		const zeroIndex = Math.max(
 			finalData[chain].findIndex((date) => date[1] !== 0),
 			0
 		)
+		if (zeroIndex < startingZeroDatesToSlice) {
+			startingZeroDatesToSlice = zeroIndex
+		}
 	}
-
-	const zeroValues = Object.values(zeroesByChain)
-	const startingZeroDatesToSlice = zeroValues.length > 0 ? Math.min(...zeroValues) : 0
+	if (!Number.isFinite(startingZeroDatesToSlice)) {
+		startingZeroDatesToSlice = 0
+	}
 	for (const chain in finalData) {
 		finalData[chain] = finalData[chain].slice(startingZeroDatesToSlice)
 		if (!isCumulative) continue

@@ -288,8 +288,12 @@ function useStablecoinData(protocolName: string) {
 			for (const [rawDate, tokens] of tokenBreakdownData) {
 				const date = rawDate > 1e12 ? Math.floor(rawDate / 1e3) : rawDate
 				const stablecoinsOnly = filterStablecoinsFromTokens(tokens, stablecoinSymbols)
-
-				if (Object.keys(stablecoinsOnly).length === 0) continue
+				let hasStablecoins = false
+				for (const _token in stablecoinsOnly) {
+					hasStablecoins = true
+					break
+				}
+				if (!hasStablecoins) continue
 
 				for (const token in stablecoinsOnly) {
 					stablecoinTokensUniqueSet.add(token)

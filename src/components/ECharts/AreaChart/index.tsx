@@ -263,11 +263,18 @@ export default function AreaChart({
 				index++
 			}
 
+			const legendOptionsSet = legendOptions ? new Set(legendOptions) : null
 			for (const { date, ...item } of chartData) {
-				const sumOfTheDay = Object.values(item).reduce((acc: number, curr: number) => (acc += curr), 0) as number
+				let sumOfTheDay = 0
+				for (const stack of chartsStack) {
+					const rawValue = item[stack]
+					if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
+						sumOfTheDay += rawValue
+					}
+				}
 
 				for (const stack of chartsStack) {
-					if ((legendOptions && customLegendName ? legendOptions.includes(stack) : true) && series[stack]) {
+					if ((legendOptionsSet && customLegendName ? legendOptionsSet.has(stack) : true) && series[stack]) {
 						const rawValue = item[stack] || 0
 
 						const value = expandTo100Percent ? (sumOfTheDay ? (rawValue / sumOfTheDay) * 100 : 0) : rawValue

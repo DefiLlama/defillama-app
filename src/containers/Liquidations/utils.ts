@@ -158,7 +158,11 @@ export const buildLiquidationsChartSeries = (chartData: ChartData): Liquidations
 	const buildGroup = (stackBy: 'protocols' | 'chains') => {
 		const chartDataBins = chartData.chartDataBins[stackBy]
 		const liquidablesByGroup = chartData.totalLiquidables[stackBy]
-		const keys = Object.keys(chartDataBins).sort((a, b) => {
+		const keys: string[] = []
+		for (const key in chartDataBins) {
+			keys.push(key)
+		}
+		keys.sort((a, b) => {
 			const aValue = liquidablesByGroup[a] ?? 0
 			const bValue = liquidablesByGroup[b] ?? 0
 			if (bValue !== aValue) return bValue - aValue

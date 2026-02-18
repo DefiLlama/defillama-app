@@ -94,11 +94,11 @@ export function ColumnFilters({ nestedMenu, enabledColumns }: IColumnFiltersProp
 		}
 
 		const prevSet = prevSelectionRef.current
-		newOptions.forEach((column) => {
+		for (const column of newOptions) {
 			if (!prevSet.has(column)) {
 				trackYieldsEvent(YIELDS_EVENTS.FILTER_COLUMN, { column })
 			}
-		})
+		}
 		prevSelectionRef.current = new Set(newOptions)
 
 		router.push(

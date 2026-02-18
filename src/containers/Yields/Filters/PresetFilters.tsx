@@ -67,9 +67,26 @@ const YIELD_PRESETS = {
 	}
 } as const
 
-const ALL_PRESET_FILTER_KEYS = new Set(Object.values(YIELD_PRESETS).flatMap((preset) => Object.keys(preset.filters)))
-
 type PresetKey = keyof typeof YIELD_PRESETS
+
+const PRESET_KEYS: PresetKey[] = (() => {
+	const keys: PresetKey[] = []
+	for (const presetKey in YIELD_PRESETS) {
+		keys.push(presetKey as PresetKey)
+	}
+	return keys
+})()
+
+const ALL_PRESET_FILTER_KEYS = (() => {
+	const keys = new Set<string>()
+	for (const presetKey of PRESET_KEYS) {
+		const preset = YIELD_PRESETS[presetKey]
+		for (const filterKey in preset.filters) {
+			keys.add(filterKey)
+		}
+	}
+	return keys
+})()
 
 interface PresetFiltersProps {
 	className?: string
@@ -83,8 +100,6 @@ export function PresetFilters({ className }: PresetFiltersProps) {
 		const active = new Set<PresetKey>()
 
 		for (const [key, preset] of Object.entries(YIELD_PRESETS)) {
-			if (Object.keys(preset.filters).length === 0) continue
-
 			const isActive = Object.entries(preset.filters).every(([filterKey, filterValue]) => {
 				const queryValue = query[filterKey]
 				if (!queryValue) return false
@@ -128,7 +143,7 @@ export function PresetFilters({ className }: PresetFiltersProps) {
 		<div className={`flex flex-col gap-2 ${className ?? ''}`}>
 			<span className="text-xs text-(--text-secondary)">Curated Presets</span>
 			<div className="flex flex-wrap items-center gap-2">
-				{(Object.keys(YIELD_PRESETS) as PresetKey[]).map((key) => {
+				{PRESET_KEYS.map((key) => {
 					const preset = YIELD_PRESETS[key]
 					const isActive = activePresets.has(key)
 

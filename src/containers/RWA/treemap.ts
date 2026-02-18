@@ -386,17 +386,21 @@ export const buildRwaNestedTreemapTreeData = ({
 
 	if (nestedTotals.size === 0) return []
 
-	const parentRows = Array.from(nestedTotals.entries())
-		.map(([parentLabel, childTotals]) => {
-			const childRows = Array.from(childTotals.entries())
-				.filter(([, value]) => Number.isFinite(value) && value > 0)
-				.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-
-			const parentTotal = childRows.reduce((sum, [, value]) => sum + value, 0)
-			return { parentLabel, parentTotal, childRows }
-		})
-		.filter((row) => row.parentTotal > 0)
-		.sort((a, b) => b.parentTotal - a.parentTotal || a.parentLabel.localeCompare(b.parentLabel))
+	const parentRows: Array<{ parentLabel: string; parentTotal: number; childRows: Array<[string, number]> }> = []
+	for (const [parentLabel, childTotals] of nestedTotals.entries()) {
+		const childRows: Array<[string, number]> = []
+		let parentTotal = 0
+		for (const [childLabel, value] of childTotals.entries()) {
+			if (!Number.isFinite(value) || value <= 0) continue
+			childRows.push([childLabel, value])
+			parentTotal += value
+		}
+		childRows.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+		if (parentTotal > 0) {
+			parentRows.push({ parentLabel, parentTotal, childRows })
+		}
+	}
+	parentRows.sort((a, b) => b.parentTotal - a.parentTotal || a.parentLabel.localeCompare(b.parentLabel))
 
 	if (parentRows.length === 0) return []
 

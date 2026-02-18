@@ -144,8 +144,15 @@ export const OracleOverview = ({
 
 	const { dataset, charts } = useMemo(() => {
 		const chartBreakdownByTimestamp = chartData
-		const selectedOracle =
-			oracle ?? Object.keys(chartBreakdownByTimestamp[0] ?? {}).find((key) => key !== 'timestamp') ?? ''
+		let firstOracle = ''
+		const firstPoint = chartBreakdownByTimestamp[0] ?? {}
+		for (const key in firstPoint) {
+			if (key !== 'timestamp') {
+				firstOracle = key
+				break
+			}
+		}
+		const selectedOracle = oracle ?? firstOracle
 		const shouldApplyExtraSeries = enabledExtraApiKeys.length > 0 && !isFetchingExtraSeries
 
 		const datasetSource: Array<{ timestamp: number; TVS: number }> = []

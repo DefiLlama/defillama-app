@@ -80,34 +80,43 @@ export default function Protocols({ emissions }) {
 
 		return selectedOptions
 	}, [type])
+	const selectedOptionsSet = React.useMemo(() => new Set(selectedOptions), [selectedOptions])
 
-	const allEvents = emissions
-		.map((e) => {
-			const tokens = e.unlock[1]
-			const tokenValue = e.tPrice ? tokens * e.tPrice : null
-			const unlockPercent = tokenValue && e.mcap ? (tokenValue / e.mcap) * 100 : null
-			if (unlockPercent === null || unlockPercent <= 4) return null
-			return {
-				name: `${e.tSymbol} ${formatPercentage(unlockPercent)}% unlock`,
-				timestamp: new Date(e.unlock[0] * 1e3),
+	const allEvents = React.useMemo(() => {
+		const events: Array<{ name: string; timestamp: number; type: string; link?: string }> = []
+		for (const emission of emissions) {
+			const tokens = emission.unlock[1]
+			const tokenValue = emission.tPrice ? tokens * emission.tPrice : null
+			const unlockPercent = tokenValue && emission.mcap ? (tokenValue / emission.mcap) * 100 : null
+			if (unlockPercent === null || unlockPercent <= 4) continue
+			events.push({
+				name: `${emission.tSymbol} ${formatPercentage(unlockPercent)}% unlock`,
+				timestamp: emission.unlock[0] * 1e3,
 				type: 'Unlock',
-				link: e.name
+				link: emission.name
+			})
+		}
+
+		for (const [eventType, items] of calendarEvents) {
+			for (const [ts, name] of items) {
+				events.push({
+					name,
+					timestamp: new Date(ts).getTime(),
+					type: eventType
+				})
 			}
-		})
-		.filter((e) => e !== null)
-		.concat(
-			calendarEvents
-				.map((type) =>
-					type[1].map((e) => ({
-						name: e[1],
-						timestamp: new Date(e[0]),
-						type: type[0]
-					}))
-				)
-				.flat()
-		)
-		.filter((e) => e.timestamp >= new Date() && selectedOptions.includes(e.type))
-		.sort((a, b) => a.timestamp - b.timestamp)
+		}
+
+		const now = Date.now()
+		const filteredEvents: Array<{ name: string; timestamp: number; type: string; link?: string }> = []
+		for (const event of events) {
+			if (event.timestamp >= now && selectedOptionsSet.has(event.type)) {
+				filteredEvents.push(event)
+			}
+		}
+		filteredEvents.sort((a, b) => a.timestamp - b.timestamp)
+		return filteredEvents
+	}, [emissions, selectedOptionsSet])
 
 	const instance = useReactTable({
 		data: allEvents,

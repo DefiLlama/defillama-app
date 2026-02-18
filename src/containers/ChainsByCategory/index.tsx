@@ -92,7 +92,11 @@ const useFormatChartData = ({
 	const data = React.useMemo(() => {
 		const toggledTvlSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 		const recentTvlByChain: Record<string, number> = {}
-		const chainNames = Object.keys(tvlChartsByChain['tvl'] ?? {})
+		const tvlByChain = tvlChartsByChain['tvl'] ?? {}
+		const chainNames: string[] = []
+		for (const chain in tvlByChain) {
+			chainNames.push(chain)
+		}
 
 		const rowMap = new Map<number, Record<string, number | null>>()
 

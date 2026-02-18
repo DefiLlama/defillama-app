@@ -428,14 +428,14 @@ export function UpcomingUnlocksChart({
 					const breakdown = params[0].value[2]
 
 					// Calculate percentages and sort by value
-					const tokenBreakdown = tokens
-						.map(([token, color]) => ({
-							token,
-							color,
-							value: breakdown[token] || 0
-						}))
-						.filter((item) => item.value > 0)
-						.sort((a, b) => b.value - a.value)
+					const tokenBreakdown: Array<{ token: string; color: string; value: number }> = []
+					for (const [token, color] of tokens) {
+						const value = breakdown[token] || 0
+						if (value > 0) {
+							tokenBreakdown.push({ token, color, value })
+						}
+					}
+					tokenBreakdown.sort((a, b) => b.value - a.value)
 
 					const tooltipContent =
 						chartdate +

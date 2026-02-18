@@ -418,7 +418,10 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 		const watchlist = (parsedStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
 			[DEFAULT_PORTFOLIO_NAME]: {}
 		}
-		const portfolios = Object.keys(watchlist)
+		const portfolios: string[] = []
+		for (const portfolioName in watchlist) {
+			portfolios.push(portfolioName)
+		}
 		const selectedPortfolio =
 			(parsedStore[selectedPortfolioKey as keyof AppStorage] as string) ?? DEFAULT_PORTFOLIO_NAME
 

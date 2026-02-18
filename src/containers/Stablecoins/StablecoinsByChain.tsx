@@ -694,7 +694,10 @@ function handleRouting(selectedChain: string, queryParams: Record<string, string
 
 	let params = ''
 
-	const filterKeys = Object.keys(filters)
+	const filterKeys: string[] = []
+	for (const filterKey in filters) {
+		filterKeys.push(filterKey)
+	}
 	for (let index = 0; index < filterKeys.length; index++) {
 		const filter = filterKeys[index]
 		// append '?' before all query params and '&' bertween diff params

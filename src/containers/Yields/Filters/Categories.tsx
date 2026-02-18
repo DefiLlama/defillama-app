@@ -31,11 +31,11 @@ export function FiltersByCategory({
 			excludeQueryKey="excludeCategory"
 			onValuesChange={(values) => {
 				const prevSet = prevSelectionRef.current
-				values.forEach((category) => {
+				for (const category of values) {
 					if (!prevSet.has(category)) {
 						trackYieldsEvent(YIELDS_EVENTS.FILTER_CATEGORY, { category })
 					}
-				})
+				}
 				prevSelectionRef.current = new Set(values)
 			}}
 		/>

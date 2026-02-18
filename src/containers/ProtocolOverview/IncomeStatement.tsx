@@ -74,7 +74,7 @@ export const IncomeStatement = ({
 
 		const groupData = incomeStatement?.data?.[groupKey]
 		if (groupData) {
-			for (const key of Object.keys(groupData)) {
+			for (const key in groupData) {
 				if (key === 'timestamp') continue
 				const periodData = groupData[key] as
 					| (Record<string, { value: number; 'by-label': Record<string, number> }> & { timestamp?: number })
@@ -157,7 +157,7 @@ export const IncomeStatement = ({
 
 		const sankeyGroupData = incomeStatement?.data?.[sankeyGroupKey]
 		if (sankeyGroupData) {
-			for (const key of Object.keys(sankeyGroupData)) {
+			for (const key in sankeyGroupData) {
 				if (key === 'timestamp') continue
 				const periodData = sankeyGroupData[key] as
 					| (Record<string, { value: number; 'by-label': Record<string, number> }> & { timestamp?: number })

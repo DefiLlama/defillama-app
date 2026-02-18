@@ -18,7 +18,6 @@ const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSer
 
 function getCsvHeaderLabel(columnId: string, header: unknown): string {
 	if (typeof header === 'string') return header
-	if (typeof header === 'number' || typeof header === 'boolean') return String(header)
 	return columnId
 }
 
@@ -26,7 +25,7 @@ function getCsvCellValue(value: unknown): string | number | boolean {
 	if (value == null) return ''
 	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
 	if (Array.isArray(value)) return value.join(', ')
-	return JSON.stringify(value)
+	return ''
 }
 
 const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [

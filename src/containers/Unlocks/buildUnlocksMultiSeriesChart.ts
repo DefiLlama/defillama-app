@@ -38,7 +38,11 @@ export function buildUnlocksMultiSeriesChartForDateRange({
 		}
 	}
 
-	const sortedProtocols = Object.keys(protocolTotals).sort((a, b) => protocolTotals[b] - protocolTotals[a])
+	const sortedProtocols: string[] = []
+	for (const protocol in protocolTotals) {
+		sortedProtocols.push(protocol)
+	}
+	sortedProtocols.sort((a, b) => protocolTotals[b] - protocolTotals[a])
 
 	// Keep rendering behavior consistent with the old BarChart:
 	// if there are no protocol series, still render a 0-valued series.

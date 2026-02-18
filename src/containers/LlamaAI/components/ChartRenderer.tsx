@@ -334,7 +334,12 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 						valuesByKey[key][s.name] = val
 					}
 				}
-				for (const key of Object.keys(valuesByKey).sort((a, b) => +a - +b)) {
+				const sortedKeys: string[] = []
+				for (const key in valuesByKey) {
+					sortedKeys.push(key)
+				}
+				sortedKeys.sort((a, b) => +a - +b)
+				for (const key of sortedKeys) {
 					const base = isTimeSeries ? [key, new Date(+key * 1e3).toLocaleDateString()] : [key]
 					rows.push([...base, ...seriesNames.map((name: string) => valuesByKey[key][name] ?? '')])
 				}

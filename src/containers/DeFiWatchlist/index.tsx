@@ -202,11 +202,30 @@ function PortfolioNotifications({
 	const { protocolsCount, protocolsFirstMetrics, chainsCount, chainsFirstMetrics } = useMemo(() => {
 		const protocols = preferences?.settings?.protocols
 		const chains = preferences?.settings?.chains
+		let protocolsCount = 0
+		let protocolsFirstMetrics = ''
+		let chainsCount = 0
+		let chainsFirstMetrics = ''
+
+		for (const protocolId in protocols ?? {}) {
+			protocolsCount++
+			if (protocolsCount === 1) {
+				protocolsFirstMetrics = protocols[protocolId]?.map(mapAPIMetricToUI).join(', ') ?? ''
+			}
+		}
+
+		for (const chainId in chains ?? {}) {
+			chainsCount++
+			if (chainsCount === 1) {
+				chainsFirstMetrics = chains[chainId]?.map(mapAPIMetricToUI).join(', ') ?? ''
+			}
+		}
+
 		return {
-			protocolsCount: protocols ? Object.keys(protocols).length : 0,
-			protocolsFirstMetrics: protocols ? Object.values(protocols)[0]?.map(mapAPIMetricToUI).join(', ') : '',
-			chainsCount: chains ? Object.keys(chains).length : 0,
-			chainsFirstMetrics: chains ? Object.values(chains)[0]?.map(mapAPIMetricToUI).join(', ') : ''
+			protocolsCount,
+			protocolsFirstMetrics,
+			chainsCount,
+			chainsFirstMetrics
 		}
 	}, [preferences?.settings?.protocols, preferences?.settings?.chains])
 
@@ -655,6 +674,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 	const [showPositive, setShowPositive] = useState(true)
 	const [showNegative, setShowNegative] = useState(true)
 	const [selectedChains, setSelectedChains] = useState<string[]>([])
+	const selectedChainsSet = useMemo(() => new Set(selectedChains), [selectedChains])
 
 	const availableChains = useMemo(() => {
 		const chainSet = new Set<string>()
@@ -681,8 +701,13 @@ function TopMovers({ protocols }: TopMoversProps) {
 					chains: p.chains || []
 				}))
 
-			if (selectedChains.length > 0) {
-				candidates = candidates.filter((p) => p.chains.some((chain) => selectedChains.includes(chain)))
+			if (selectedChainsSet.size > 0) {
+				candidates = candidates.filter((protocolEntry) => {
+					for (const chain of protocolEntry.chains) {
+						if (selectedChainsSet.has(chain)) return true
+					}
+					return false
+				})
 			}
 
 			if (!showPositive && !showNegative) {
@@ -698,7 +723,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 		}
 
 		return movers
-	}, [protocols, showPositive, showNegative, selectedChains])
+	}, [protocols, showPositive, showNegative, selectedChainsSet])
 
 	const chainOptions = useMemo(() => {
 		return availableChains.map((chain) => ({

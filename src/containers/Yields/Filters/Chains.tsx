@@ -75,11 +75,11 @@ export function FilterByChain({ chainList = [], selectedChains, evmChains, neste
 			const skipTracking = isSelectAll || justAddedAllEvm
 			if (!skipTracking) {
 				const prevSet = prevSelectionRef.current
-				finalValues.forEach((c) => {
+				for (const c of finalValues) {
 					if (!prevSet.has(c)) {
 						trackYieldsEvent(YIELDS_EVENTS.FILTER_CHAIN, { chain: c })
 					}
-				})
+				}
 				prevSelectionRef.current = new Set(finalValues)
 			}
 

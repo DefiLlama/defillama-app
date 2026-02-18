@@ -428,7 +428,7 @@ function UnifiedTable({
 
 		const columnHeaders = leafColumns.map((column) => {
 			const header = column.columnDef.header
-			return typeof header === 'string' ? header : column.id
+			return typeof header === 'string' ? header : (column.id ?? '')
 		})
 
 		const sortedLeafRows: NormalizedRow[] = []

@@ -140,7 +140,13 @@ function buildProtocolV1Inflows({
 			let tokenDayDifference: Record<string, number> = {}
 
 			// Iterate all tokens that changed
-			const allTokens = new Set([...Object.keys(currentTokens), ...Object.keys(oldTokens)])
+			const allTokens = new Set<string>()
+			for (const token in currentTokens) {
+				allTokens.add(token)
+			}
+			for (const token in oldTokens) {
+				allTokens.add(token)
+			}
 
 			for (const token of allTokens) {
 				// Skip excluded token

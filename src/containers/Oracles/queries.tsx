@@ -214,7 +214,10 @@ export async function getOracleDetailPageData({
 	const chainsByOracle = metrics.chainsByOracle ?? {}
 	const oraclesTVS = metrics.oraclesTVS ?? {}
 
-	const oracleNames = Object.keys(oraclesTVS)
+	const oracleNames: string[] = []
+	for (const oracleName in oraclesTVS) {
+		oracleNames.push(oracleName)
+	}
 	const canonicalOracle = resolveCanonicalName(oracle, oracleNames)
 	if (!canonicalOracle) {
 		return null

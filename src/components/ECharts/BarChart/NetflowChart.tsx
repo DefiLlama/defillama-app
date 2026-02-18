@@ -38,34 +38,40 @@ export default function NetflowChart({ height, onReady }: NetflowChartProps) {
 	})
 
 	const { positiveData, negativeData, chains, csvSource } = useMemo(() => {
-		const nonZeroData = (data ?? [])
-			.filter((item) => item.net_flow !== '0')
-			.map((item) => ({
+		const nonZeroData: Array<{ chain: string; value: number }> = []
+		for (const item of data ?? []) {
+			if (item.net_flow === '0') continue
+			nonZeroData.push({
 				chain: item.chain,
 				value: Number(item.net_flow)
-			}))
-			.sort((a, b) => Math.abs(a.value) - Math.abs(b.value))
-			.slice(-15)
-			.sort((a, b) => a.value - b.value)
-			.map((item) => ({
-				chain: capitalizeFirstLetter(item.chain),
-				value: item.value
-			}))
+			})
+		}
+		nonZeroData.sort((a, b) => Math.abs(a.value) - Math.abs(b.value))
+		const slicedData = nonZeroData.slice(-15)
+		slicedData.sort((a, b) => a.value - b.value)
 
-		const positive = nonZeroData.map((item) => (item.value > 0 ? item.value : 0))
-		const negative = nonZeroData.map((item) => (item.value < 0 ? item.value : 0))
-		const chainNames = nonZeroData.map((item) => item.chain)
+		const positive: number[] = []
+		const negative: number[] = []
+		const chainNames: string[] = []
+		const csvRows: Array<{ Chain: string; Inflow: number; Outflow: number; 'Net Flow': number }> = []
+		for (const item of slicedData) {
+			const chain = capitalizeFirstLetter(item.chain)
+			chainNames.push(chain)
+			positive.push(item.value > 0 ? item.value : 0)
+			negative.push(item.value < 0 ? item.value : 0)
+			csvRows.push({
+				Chain: chain,
+				Inflow: item.value > 0 ? item.value : 0,
+				Outflow: item.value < 0 ? Math.abs(item.value) : 0,
+				'Net Flow': item.value
+			})
+		}
 
 		return {
 			positiveData: positive,
 			negativeData: negative,
 			chains: chainNames,
-			csvSource: nonZeroData.map((item) => ({
-				Chain: item.chain,
-				Inflow: item.value > 0 ? item.value : 0,
-				Outflow: item.value < 0 ? item.value : 0,
-				'Net Flow': item.value
-			}))
+			csvSource: csvRows
 		}
 	}, [data])
 

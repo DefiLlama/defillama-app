@@ -188,13 +188,16 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 			if (typeof col.columnDef.header === 'string') {
 				return col.columnDef.header
 			}
-			return col.id
+			return col.id ?? ''
 		})
 
 		const dataRows = table.getFilteredRowModel().rows.map((row) =>
 			visibleColumns.map((col) => {
 				const value = row.getValue(col.id)
-				return value ?? ''
+				if (value == null) return ''
+				if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
+				if (Array.isArray(value)) return value.join(', ')
+				return ''
 			})
 		)
 

@@ -28,7 +28,10 @@ export async function getForksListPageData(): Promise<ForkOverviewPageData | nul
 			fetchForkProtocolBreakdownChart()
 		])
 
-		const forkNames = Object.keys(metrics)
+		const forkNames: string[] = []
+		for (const forkName in metrics) {
+			forkNames.push(forkName)
+		}
 		const sortedForks = sortForksByLatestTvl(forkNames, chartData)
 
 		const latestTvlByFork: Record<string, number> = {}
@@ -44,9 +47,9 @@ export async function getForksListPageData(): Promise<ForkOverviewPageData | nul
 		// Get fork colors
 		const forkColors: Record<string, string> = { Others: '#AAAAAA' }
 		const sortedColors = getNDistinctColors(sortedForks.length)
-		sortedForks.forEach((fork, i) => {
-			forkColors[fork] = sortedColors[i]
-		})
+		for (let i = 0; i < sortedForks.length; i++) {
+			forkColors[sortedForks[i]] = sortedColors[i]
+		}
 
 		// Build table data
 		const protocolsByName = new Map(fetchedProtocols.map((p) => [p.name, p]))
@@ -82,7 +85,10 @@ export async function getForksListPageData(): Promise<ForkOverviewPageData | nul
 export async function getForksByProtocolPageData({ fork }: { fork: string }): Promise<ForkByProtocolPageData | null> {
 	try {
 		const metrics = await fetchForkMetrics()
-		const forkNames = Object.keys(metrics)
+		const forkNames: string[] = []
+		for (const forkName in metrics) {
+			forkNames.push(forkName)
+		}
 		const normalizedFork = fork.toLowerCase()
 		const canonicalFork = forkNames.find((f) => slug(f) === normalizedFork || f.toLowerCase() === normalizedFork)
 

@@ -330,7 +330,10 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 		}
 
 		const rowMap = new Map<number, Record<string, number>>()
-		const seriesNames = Object.keys(seriesData)
+		const seriesNames: string[] = []
+		for (const seriesName in seriesData) {
+			seriesNames.push(seriesName)
+		}
 		for (const name of seriesNames) {
 			for (const [timestamp, value] of seriesData[name]) {
 				const row = rowMap.get(timestamp) ?? { timestamp }

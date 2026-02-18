@@ -339,7 +339,7 @@ export function ChainsDataset({
 		const headers = instance
 			.getVisibleFlatColumns()
 			.filter((col) => col.id !== 'expand')
-			.map((col) => col.columnDef.header || col.id)
+			.map((col) => (typeof col.columnDef.header === 'string' ? col.columnDef.header : (col.id ?? '')))
 
 		const rows = instance.getFilteredRowModel().rows.map((row) => {
 			return instance
@@ -348,7 +348,9 @@ export function ChainsDataset({
 				.map((col) => {
 					const value = row.getValue(col.id)
 					if (value == null) return ''
-					if (typeof value === 'object') return JSON.stringify(value)
+					if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value)
+					if (Array.isArray(value)) return value.join(', ')
+					if (typeof value === 'object') return ''
 					return String(value)
 				})
 		})

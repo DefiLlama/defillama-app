@@ -492,7 +492,11 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 
 	const hasTvlData = isOracleProtocol
 		? props.oracleTvs != null
-		: props.metrics.tvl && props.currentTvlByChain != null && Object.keys(props.currentTvlByChain).length > 0
+		: (() => {
+				if (!props.metrics.tvl || props.currentTvlByChain == null) return false
+				for (const _chain in props.currentTvlByChain) return true
+				return false
+			})()
 
 	return (
 		<div className="flex flex-1 flex-col gap-2">

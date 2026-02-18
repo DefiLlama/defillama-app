@@ -827,5 +827,7 @@ function safeNumber(value: unknown): number {
 }
 
 function isEmptyObject(value: unknown): boolean {
-	return !!value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0
+	if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+	for (const _key in value) return false
+	return true
 }

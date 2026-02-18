@@ -77,7 +77,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 			)
 
 			let latestTimestamp = -Infinity
-			for (const ts of Object.keys(eventsByTimestamp)) {
+			for (const ts in eventsByTimestamp) {
 				const num = Number(ts)
 				if (num > latestTimestamp) latestTimestamp = num
 			}
@@ -89,17 +89,18 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 			const priceAfter7d = protocol.historicalPrice[protocol.historicalPrice.length - 1][1]
 			const impact = ((priceAfter7d - priceAtUnlock) / priceAtUnlock) * 100
 
-			const breakdown: UnlockBreakdown[] = latestEvent.events
-				.flatMap((event: (typeof lastEvents)[0]) =>
-					event.noOfTokens?.map((amount: number) => ({
+			const breakdown: UnlockBreakdown[] = []
+			for (const event of latestEvent.events) {
+				for (const amount of event.noOfTokens ?? []) {
+					breakdown.push({
 						name: parseDescription(event.description || ''),
 						amount,
 						timestamp: event.timestamp,
 						unlockType: event.unlockType || 'cliff'
-					}))
-				)
-				.filter((item): item is UnlockBreakdown => item != null)
-				.sort((a, b) => b.amount - a.amount)
+					})
+				}
+			}
+			breakdown.sort((a, b) => b.amount - a.amount)
 
 			protocolImpacts.set(protocol.name, {
 				name: protocol.name,

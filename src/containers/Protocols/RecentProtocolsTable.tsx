@@ -65,7 +65,6 @@ function areCategoryFiltersEqual(current: unknown, next: string[] | undefined): 
 
 function getCsvHeaderLabel(columnId: string, header: unknown): string {
 	if (typeof header === 'string') return header
-	if (typeof header === 'number' || typeof header === 'boolean') return String(header)
 	return columnId
 }
 
@@ -78,7 +77,7 @@ function getCsvCellValue(columnId: string, value: unknown): string | number | bo
 		return value
 	}
 	if (Array.isArray(value)) return value.join(', ')
-	return JSON.stringify(value)
+	return ''
 }
 
 export function RecentlyListedProtocolsTable({

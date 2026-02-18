@@ -15,7 +15,7 @@ import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/L
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useIsClient } from '~/hooks/useIsClient'
 import { capitalizeFirstLetter, slug, tokenIconUrl } from '~/utils'
-import { BAR_CHARTS, type ProtocolChartsLabels, protocolCharts } from './constants'
+import { BAR_CHARTS, protocolCharts, type ProtocolChartsLabels } from './constants'
 import type { IProtocolCoreChartProps } from './ProtocolCoreChart'
 import type { IProtocolOverviewPageData, IToggledMetrics } from './types'
 import { useFetchProtocolChartData } from './useFetchProtocolChartData'

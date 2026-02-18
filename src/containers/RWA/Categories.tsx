@@ -106,7 +106,13 @@ export function RWACategoriesTable({
 							const rows = instance
 								.getRowModel()
 								.rows.map((row) =>
-									columnIds.map((columnId) => (row.getValue(columnId) ?? '') as string | number | boolean)
+									columnIds.map((columnId) => {
+										const value = row.getValue(columnId)
+										if (value == null) return ''
+										if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
+										if (Array.isArray(value)) return value.join(', ')
+										return ''
+									})
 								)
 
 							return { filename, rows: [headers, ...rows] }

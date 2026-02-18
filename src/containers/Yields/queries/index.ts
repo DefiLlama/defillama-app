@@ -35,7 +35,10 @@ export async function getYieldPageData() {
 		avalanche: 'avax',
 		gnosis: 'xdai'
 	}
-	const priceChainMappingKeys = new Set(Object.keys(priceChainMapping))
+	const priceChainMappingKeys = new Set<string>()
+	for (const chainName in priceChainMapping) {
+		priceChainMappingKeys.add(chainName)
+	}
 
 	// get Price data
 	//
@@ -205,9 +208,12 @@ export async function getYieldMedianData() {
 	data = data.filter((p) => p.timestamp !== '2022-06-04T00:00:00.000Z')
 
 	// add 7day average field
-	data = data
-		.map((e) => ({ ...e, timestamp: e.timestamp.split('T')[0] }))
-		.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+	const formattedData = []
+	for (const entry of data) {
+		formattedData.push({ ...entry, timestamp: entry.timestamp.split('T')[0] })
+	}
+	formattedData.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+	data = formattedData
 	// add rolling 7d avg of median values (first 6days == null)
 	const windowSize = 7
 	const apyMedianValues = data.map((m) => m.medianAPY)

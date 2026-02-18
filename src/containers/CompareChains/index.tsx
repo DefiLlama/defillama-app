@@ -328,14 +328,19 @@ const formatTvlChart = ({
 	}
 
 	// if liquidstaking and doublecounted are toggled, we need to subtract the overlapping tvl so you don't add twice
+	const dates: string[] = []
+	for (const date in store) {
+		dates.push(date)
+	}
 	if (toggledTvlSettingsSet.has('liquidstaking') && toggledTvlSettingsSet.has('doublecounted')) {
-		for (const date of Object.keys(store)) {
+		for (const date of dates) {
 			store[date] -= extraTvlCharts['dcAndLsOverlap']?.[date] ?? 0
 		}
 	}
 
 	const finalTvlChart: Array<[number, number]> = []
-	for (const date of Object.keys(store).sort((a, b) => Number(a) - Number(b))) {
+	dates.sort((a, b) => Number(a) - Number(b))
+	for (const date of dates) {
 		finalTvlChart.push([+date, store[date]])
 	}
 

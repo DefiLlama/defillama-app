@@ -724,11 +724,17 @@ export function useRWAAssetCategoryPieChartData({
 			}
 		}
 
-		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
-			Array.from(categoryTotals.entries())
-				.map(([name, totals]) => ({ name, value: totals[metric] }))
-				.filter((x) => x.value > 0)
-				.sort((a, b) => b.value - a.value)
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') => {
+			const rows: PieChartDatum[] = []
+			for (const [name, totals] of categoryTotals.entries()) {
+				const value = totals[metric]
+				if (value > 0) {
+					rows.push({ name, value })
+				}
+			}
+			rows.sort((a, b) => b.value - a.value)
+			return rows
+		}
 
 		return {
 			assetCategoryOnChainMcapPieChartData: toSortedChartData('onChain'),
@@ -778,11 +784,17 @@ export function useRwaCategoryAssetClassPieChartData({
 			}
 		}
 
-		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
-			Array.from(assetClassTotals.entries())
-				.map(([name, totals]) => ({ name, value: totals[metric] }))
-				.filter((x) => x.value > 0)
-				.sort((a, b) => b.value - a.value)
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') => {
+			const rows: PieChartDatum[] = []
+			for (const [name, totals] of assetClassTotals.entries()) {
+				const value = totals[metric]
+				if (value > 0) {
+					rows.push({ name, value })
+				}
+			}
+			rows.sort((a, b) => b.value - a.value)
+			return rows
+		}
 
 		return {
 			assetClassOnChainMcapPieChartData: toSortedChartData('onChain'),
@@ -836,7 +848,8 @@ export function useRwaAssetNamePieChartData({
 			discoveredNames.add(asset.assetName || asset.ticker)
 		}
 
-		const colorOrder = Array.from(discoveredNames).sort()
+		const colorOrder = Array.from(discoveredNames)
+		colorOrder.sort()
 		// Keep existing label colors stable while ensuring "Others" exists.
 		if (!colorOrder.includes(OTHERS)) colorOrder.push(OTHERS)
 		const assetNamePieChartStackColors = buildStackColors(colorOrder)
@@ -858,13 +871,17 @@ export function useRwaAssetNamePieChartData({
 			return othersValue > 0 ? [...head, { name: OTHERS, value: othersValue }] : head
 		}
 
-		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
-			limitChartData(
-				Array.from(totals.entries())
-					.map(([name, v]) => ({ name, value: v[metric] }))
-					.filter((x) => x.value > 0)
-					.sort((a, b) => b.value - a.value)
-			)
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') => {
+			const rows: PieChartDatum[] = []
+			for (const [name, values] of totals.entries()) {
+				const value = values[metric]
+				if (value > 0) {
+					rows.push({ name, value })
+				}
+			}
+			rows.sort((a, b) => b.value - a.value)
+			return limitChartData(rows)
+		}
 
 		return {
 			assetNameOnChainMcapPieChartData: toSortedChartData('onChain'),
@@ -922,10 +939,13 @@ export function useRwaAssetPlatformPieChartData({
 			}
 		}
 
-		const colorOrder = Array.from(totalsBySlug.values())
-			.map((x) => x.label)
-			.filter(Boolean)
-			.sort()
+		const colorOrder: string[] = []
+		for (const value of totalsBySlug.values()) {
+			if (value.label) {
+				colorOrder.push(value.label)
+			}
+		}
+		colorOrder.sort()
 		// Keep existing label colors stable while ensuring "Others" exists.
 		if (!colorOrder.includes(OTHERS)) colorOrder.push(OTHERS)
 		const assetPlatformPieChartStackColors = buildStackColors(colorOrder)
@@ -937,13 +957,17 @@ export function useRwaAssetPlatformPieChartData({
 			return othersValue > 0 ? [...head, { name: OTHERS, value: othersValue }] : head
 		}
 
-		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
-			limitChartData(
-				Array.from(totalsBySlug.values())
-					.map((v) => ({ name: v.label || UNKNOWN, value: v[metric] }))
-					.filter((x) => x.value > 0)
-					.sort((a, b) => b.value - a.value)
-			)
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') => {
+			const rows: PieChartDatum[] = []
+			for (const value of totalsBySlug.values()) {
+				const metricValue = value[metric]
+				if (metricValue > 0) {
+					rows.push({ name: value.label || UNKNOWN, value: metricValue })
+				}
+			}
+			rows.sort((a, b) => b.value - a.value)
+			return limitChartData(rows)
+		}
 
 		return {
 			assetPlatformOnChainMcapPieChartData: toSortedChartData('onChain'),
@@ -1017,10 +1041,13 @@ export function useRwaChainBreakdownPieChartData({
 			}
 		}
 
-		const colorOrder = Array.from(totalsBySlug.values())
-			.map((x) => x.label)
-			.filter(Boolean)
-			.sort()
+		const colorOrder: string[] = []
+		for (const value of totalsBySlug.values()) {
+			if (value.label) {
+				colorOrder.push(value.label)
+			}
+		}
+		colorOrder.sort()
 		// Keep existing label colors stable while ensuring "Others" exists.
 		if (!colorOrder.includes(OTHERS)) colorOrder.push(OTHERS)
 		const chainPieChartStackColors = buildStackColors(colorOrder)
@@ -1032,13 +1059,17 @@ export function useRwaChainBreakdownPieChartData({
 			return othersValue > 0 ? [...head, { name: OTHERS, value: othersValue }] : head
 		}
 
-		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
-			limitChartData(
-				Array.from(totalsBySlug.values())
-					.map((v) => ({ name: v.label || UNKNOWN, value: v[metric] }))
-					.filter((x) => x.value > 0)
-					.sort((a, b) => b.value - a.value)
-			)
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') => {
+			const rows: PieChartDatum[] = []
+			for (const value of totalsBySlug.values()) {
+				const metricValue = value[metric]
+				if (metricValue > 0) {
+					rows.push({ name: value.label || UNKNOWN, value: metricValue })
+				}
+			}
+			rows.sort((a, b) => b.value - a.value)
+			return limitChartData(rows)
+		}
 
 		return {
 			chainOnChainMcapPieChartData: toSortedChartData('onChain'),

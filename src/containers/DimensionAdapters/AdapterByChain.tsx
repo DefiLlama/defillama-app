@@ -305,18 +305,21 @@ export function AdapterByChain(props: IProps) {
 	})
 	const prepareCsv = (): { filename: string; rows: Array<Array<string | number | boolean>> } => {
 		const visibleColumns = instance.getVisibleLeafColumns()
-		const headers = visibleColumns.map((col) =>
-			typeof col.columnDef.header === 'string' ? col.columnDef.header : col.id
+		const headers: Array<string | number | boolean> = visibleColumns.map((col) =>
+			typeof col.columnDef.header === 'string' ? col.columnDef.header : (col.id ?? '')
 		)
 
-		const rows = [headers]
-		instance.getFilteredRowModel().rows.forEach((row) => {
+		const rows: Array<Array<string | number | boolean>> = [headers]
+		for (const row of instance.getFilteredRowModel().rows) {
 			const cells = visibleColumns.map((col) => {
 				const value = row.getValue(col.id)
-				return value === null || value === undefined ? '' : String(value)
+				if (value == null) return ''
+				if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
+				if (Array.isArray(value)) return value.join(', ')
+				return ''
 			})
 			rows.push(cells)
-		})
+		}
 
 		return { filename: `${props.type}-${props.chain}-protocols.csv`, rows }
 	}
