@@ -47,7 +47,11 @@ interface FetchAgenticResponseParams {
 	fetchFn?: typeof fetch
 }
 
-function parseSSEStream(reader: ReadableStreamDefaultReader<Uint8Array>, callbacks: AgenticSSECallbacks, abortSignal?: AbortSignal) {
+function parseSSEStream(
+	reader: ReadableStreamDefaultReader<Uint8Array>,
+	callbacks: AgenticSSECallbacks,
+	abortSignal?: AbortSignal
+) {
 	const decoder = new TextDecoder()
 	let lineBuffer = ''
 
@@ -237,5 +241,3 @@ export async function resumeAgenticStream({
 
 	return parseSSEStream(res.body.getReader(), callbacks, abortSignal)
 }
-
-

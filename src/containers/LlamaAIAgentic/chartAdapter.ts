@@ -1,5 +1,11 @@
 import { formatTooltipValue } from '~/components/ECharts/formatters'
-import type { IBarChartProps, ICandlestickChartProps, IChartProps, IMultiSeriesChartProps, IPieChartProps } from '~/components/ECharts/types'
+import type {
+	IBarChartProps,
+	ICandlestickChartProps,
+	IChartProps,
+	IMultiSeriesChartProps,
+	IPieChartProps
+} from '~/components/ECharts/types'
 import { formattedNum, getNDistinctColors } from '~/utils'
 import type { ChartConfiguration } from './types'
 
@@ -33,7 +39,7 @@ const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Arr
 }
 
 interface AdaptedChartData {
-	chartType: 'area' | 'bar' | 'line' | 'multi-series' | 'pie' | 'scatter' | 'hbar'
+	chartType: 'area' | 'bar' | 'line' | 'multi-series' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
 	data: [number, number | null][] | [any, number | null][] | Array<{ name: string; value: number }>
 	props: Partial<IChartProps | IBarChartProps | IMultiSeriesChartProps | IPieChartProps>
 	title: string

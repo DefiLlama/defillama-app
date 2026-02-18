@@ -2,29 +2,29 @@ import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { consumePendingPrompt, consumePendingPageContext } from '~/components/LlamaAIFloatingButton'
 import { Tooltip } from '~/components/Tooltip'
+import { MCP_SERVER } from '~/constants'
+import { AlertArtifact } from '~/containers/LlamaAI/components/AlertArtifact'
+import { AlertsModal } from '~/containers/LlamaAI/components/AlertsModal'
+import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArtifact'
+import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
 import { MarkdownRenderer } from '~/containers/LlamaAI/components/MarkdownRenderer'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimitModal'
 import { ResponseControls } from '~/containers/LlamaAI/components/ResponseControls'
+import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
 import { useStreamNotification } from '~/containers/LlamaAI/hooks/useStreamNotification'
-import { MCP_SERVER } from '~/constants'
-import { consumePendingPrompt, consumePendingPageContext } from '~/components/LlamaAIFloatingButton'
 import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { AgenticSidebar } from './AgenticSidebar'
 import { ChartRenderer } from './ChartRenderer'
-import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArtifact'
-import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
 import { fetchAgenticResponse, checkActiveExecution, resumeAgenticStream } from './fetchAgenticResponse'
 import type { SpawnProgressData, CsvExport, AgenticSSECallbacks } from './fetchAgenticResponse'
 import type { ChartConfiguration, Message, AlertProposedData } from './types'
-import { AlertArtifact } from '~/containers/LlamaAI/components/AlertArtifact'
-import { AlertsModal } from '~/containers/LlamaAI/components/AlertsModal'
-import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
 
 const TOOL_LABELS: Record<string, string> = {
 	execute_sql: 'Querying database',
@@ -133,7 +133,11 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(null)
 	const [lastFailedPrompt, setLastFailedPrompt] = useState<string | null>(null)
-	const [rateLimitDetails, setRateLimitDetails] = useState<{ period: string; limit: number; resetTime: string | null } | null>(null)
+	const [rateLimitDetails, setRateLimitDetails] = useState<{
+		period: string
+		limit: number
+		resetTime: string | null
+	} | null>(null)
 	const researchModalStore = Ariakit.useDialogStore()
 	const currentMessageIdRef = useRef<string | null>(null)
 	const [paginationState, setPaginationState] = useState<{
@@ -342,18 +346,20 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					citations: m.citations,
 					csvExports: m.csvExports,
 					alerts: m.metadata?.alertIntent
-						? [{
-							alertId: m.metadata?.savedAlertId || `restored_${m.messageId}`,
-							title: m.metadata?.alertIntent?.dataQuery || '',
-							alertIntent: {
-								frequency: m.metadata.alertIntent.frequency || 'daily',
-								hour: m.metadata.alertIntent.hour ?? 9,
-								timezone: m.metadata.alertIntent.timezone || 'UTC',
-								dayOfWeek: m.metadata.alertIntent.dayOfWeek,
-							},
-							schedule_expression: '',
-							next_run_at: '',
-						}]
+						? [
+								{
+									alertId: m.metadata?.savedAlertId || `restored_${m.messageId}`,
+									title: m.metadata?.alertIntent?.dataQuery || '',
+									alertIntent: {
+										frequency: m.metadata.alertIntent.frequency || 'daily',
+										hour: m.metadata.alertIntent.hour ?? 9,
+										timezone: m.metadata.alertIntent.timezone || 'UTC',
+										dayOfWeek: m.metadata.alertIntent.dayOfWeek
+									},
+									schedule_expression: '',
+									next_run_at: ''
+								}
+							]
 						: undefined,
 					savedAlertIds: m.savedAlertIds,
 					id: m.messageId,
@@ -494,12 +500,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						callbacks,
 						abortSignal: controller.signal,
 						fetchFn: authorizedFetch
-					}).catch((err: any) => {
-						if (err?.name === 'AbortError') return
-						setIsStreaming(false)
-					}).finally(() => {
-						abortControllerRef.current = null
 					})
+						.catch((err: any) => {
+							if (err?.name === 'AbortError') return
+							setIsStreaming(false)
+						})
+						.finally(() => {
+							abortControllerRef.current = null
+						})
 				}
 			} catch {
 				setError('Failed to restore session')
@@ -511,7 +519,12 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	)
 
 	const handleSubmit = useCallback(
-		(prompt: string, _entities?: Array<{ term: string; slug: string }>, images?: Array<{ data: string; mimeType: string; filename?: string }>, pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string }) => {
+		(
+			prompt: string,
+			_entities?: Array<{ term: string; slug: string }>,
+			images?: Array<{ data: string; mimeType: string; filename?: string }>,
+			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string }
+		) => {
 			const trimmed = prompt.trim()
 			if (!trimmed || isStreaming) return
 
@@ -536,8 +549,11 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				isFirstMessageRef.current = false
 			}
 
-			const userImages = images?.map(img => ({ url: img.data, mimeType: img.mimeType, filename: img.filename }))
-			setMessages((prev) => [...prev, { role: 'user', content: trimmed, images: userImages?.length ? userImages : undefined }])
+			const userImages = images?.map((img) => ({ url: img.data, mimeType: img.mimeType, filename: img.filename }))
+			setMessages((prev) => [
+				...prev,
+				{ role: 'user', content: trimmed, images: userImages?.length ? userImages : undefined }
+			])
 			shouldAutoScrollRef.current = true
 			setShowScrollToBottom(false)
 
@@ -697,7 +713,18 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					abortControllerRef.current = null
 				})
 		},
-		[isStreaming, sessionId, isResearchMode, authorizedFetch, createFakeSession, updateSessionTitle, moveSessionToTop, researchModalStore, requestPermission, notify]
+		[
+			isStreaming,
+			sessionId,
+			isResearchMode,
+			authorizedFetch,
+			createFakeSession,
+			updateSessionTitle,
+			moveSessionToTop,
+			researchModalStore,
+			requestPermission,
+			notify
+		]
 	)
 
 	const handleStopRequest = useCallback(() => {
@@ -732,7 +759,15 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			content: m.content || undefined,
 			charts:
 				m.charts && m.chartData
-					? [{ charts: m.charts, chartData: (Array.isArray(m.chartData) ? { default: m.chartData } : m.chartData) as Record<string, any[]> }]
+					? [
+							{
+								charts: m.charts,
+								chartData: (Array.isArray(m.chartData) ? { default: m.chartData } : m.chartData) as Record<
+									string,
+									any[]
+								>
+							}
+						]
 					: undefined,
 			csvExports: m.csvExports,
 			citations: m.citations,
@@ -755,29 +790,30 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	return (
 		<div className="relative isolate flex h-[calc(100dvh-68px)] flex-nowrap overflow-hidden max-lg:flex-col lg:h-[calc(100dvh-72px)]">
-			{!readOnly && (sidebarVisible ? (
-				<>
-					<AgenticSidebar
-						sessions={sessions}
-						isLoading={isLoadingSessions}
-						currentSessionId={sessionId}
-						restoringSessionId={restoringSessionId}
-						onSessionSelect={handleSessionSelect}
-						onNewChat={handleNewChat}
-						handleSidebarToggle={handleSidebarToggle}
-						onDelete={deleteSession}
-						onUpdateTitle={updateSessionTitle}
-						isDeletingSession={isDeletingSession}
-						isUpdatingTitle={isUpdatingTitle}
-						shouldAnimate={shouldAnimateSidebar}
-						onOpenSettings={settingsModalStore.show}
-						hasCustomInstructions={customInstructions.trim().length > 0}
-					/>
-					<div className="flex min-h-11 lg:hidden" />
-				</>
-			) : (
-				<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
-			))}
+			{!readOnly &&
+				(sidebarVisible ? (
+					<>
+						<AgenticSidebar
+							sessions={sessions}
+							isLoading={isLoadingSessions}
+							currentSessionId={sessionId}
+							restoringSessionId={restoringSessionId}
+							onSessionSelect={handleSessionSelect}
+							onNewChat={handleNewChat}
+							handleSidebarToggle={handleSidebarToggle}
+							onDelete={deleteSession}
+							onUpdateTitle={updateSessionTitle}
+							isDeletingSession={isDeletingSession}
+							isUpdatingTitle={isUpdatingTitle}
+							shouldAnimate={shouldAnimateSidebar}
+							onOpenSettings={settingsModalStore.show}
+							hasCustomInstructions={customInstructions.trim().length > 0}
+						/>
+						<div className="flex min-h-11 lg:hidden" />
+					</>
+				) : (
+					<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
+				))}
 
 			<div
 				className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
@@ -786,7 +822,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
 						<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
 							<img src="/assets/llamaai/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-							<h1 className="text-center text-2xl font-semibold">{readOnly ? sessionTitle || 'Shared Conversation' : 'What can I help you with?'}</h1>
+							<h1 className="text-center text-2xl font-semibold">
+								{readOnly ? sessionTitle || 'Shared Conversation' : 'What can I help you with?'}
+							</h1>
 						</div>
 						{!readOnly && (
 							<PromptInput
@@ -816,7 +854,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 											</div>
 										)}
 										{messages.map((msg, i) => (
-											<MessageBubble key={i} message={msg} sessionId={sessionId} isStreaming={isStreaming} fetchFn={authorizedFetch} readOnly={readOnly} />
+											<MessageBubble
+												key={i}
+												message={msg}
+												sessionId={sessionId}
+												isStreaming={isStreaming}
+												fetchFn={authorizedFetch}
+												readOnly={readOnly}
+											/>
 										))}
 
 										{isStreaming &&
@@ -831,19 +876,24 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 											activeToolCalls.map((tc) => <ToolIndicator key={tc.id} label={tc.label} name={tc.name} />)
 										)}
 
-										{isStreaming && (streamingText || streamingCharts.length > 0 || streamingCsvExports.length > 0 || streamingAlerts.length > 0 || streamingCitations.length > 0) && (
-											<InlineContent
-												text={streamingText}
-												chartSets={streamingCharts}
-												csvExports={streamingCsvExports}
-												alerts={streamingAlerts}
-												messageId={currentMessageIdRef.current || undefined}
-												citations={streamingCitations}
-												isStreaming
-												sessionId={sessionId}
-												fetchFn={authorizedFetch}
-											/>
-										)}
+										{isStreaming &&
+											(streamingText ||
+												streamingCharts.length > 0 ||
+												streamingCsvExports.length > 0 ||
+												streamingAlerts.length > 0 ||
+												streamingCitations.length > 0) && (
+												<InlineContent
+													text={streamingText}
+													chartSets={streamingCharts}
+													csvExports={streamingCsvExports}
+													alerts={streamingAlerts}
+													messageId={currentMessageIdRef.current || undefined}
+													citations={streamingCitations}
+													isStreaming
+													sessionId={sessionId}
+													fetchFn={authorizedFetch}
+												/>
+											)}
 
 										{error && (
 											<div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
@@ -1132,7 +1182,12 @@ function InlineContent({
 							if (entry) {
 								return (
 									<div key={`inline-chart-${part.chartId}-${i}`} className="my-2">
-										<ChartRenderer charts={[entry.chart]} chartData={entry.chartData} sessionId={sessionId} fetchFn={fetchFn} />
+										<ChartRenderer
+											charts={[entry.chart]}
+											chartData={entry.chartData}
+											sessionId={sessionId}
+											fetchFn={fetchFn}
+										/>
 									</div>
 								)
 							}
@@ -1151,12 +1206,7 @@ function InlineContent({
 						if (part.type === 'csv' && part.csvId) {
 							const csv = csvIndex.get(part.csvId)
 							if (csv) {
-								return (
-									<CSVExportArtifact
-										key={`inline-csv-${part.csvId}-${i}`}
-										csvExport={csv}
-									/>
-								)
+								return <CSVExportArtifact key={`inline-csv-${part.csvId}-${i}`} csvExport={csv} />
 							}
 							return null
 						}
@@ -1180,12 +1230,15 @@ function InlineContent({
 			{isStreaming && text && <span className="inline-block h-4 w-0.5 animate-pulse bg-(--old-blue)" />}
 			{!hasInlineRefs &&
 				unreferencedCharts.map((entry, i) => (
-					<ChartRenderer key={`chart-${entry.chart.id || i}`} charts={[entry.chart]} chartData={entry.chartData} sessionId={sessionId} fetchFn={fetchFn} />
+					<ChartRenderer
+						key={`chart-${entry.chart.id || i}`}
+						charts={[entry.chart]}
+						chartData={entry.chartData}
+						sessionId={sessionId}
+						fetchFn={fetchFn}
+					/>
 				))}
-			{!hasInlineRefs &&
-				unreferencedCsvs.map((csv) => (
-					<CSVExportArtifact key={`csv-${csv.id}`} csvExport={csv} />
-				))}
+			{!hasInlineRefs && unreferencedCsvs.map((csv) => <CSVExportArtifact key={`csv-${csv.id}`} csvExport={csv} />)}
 			{alerts.map((alert) => (
 				<AlertArtifact
 					key={alert.alertId}
@@ -1221,7 +1274,19 @@ function ToolIndicator({ label, name }: { label: string; name: string }) {
 	)
 }
 
-function MessageBubble({ message, sessionId, isStreaming: parentIsStreaming, fetchFn, readOnly = false }: { message: Message; sessionId: string | null; isStreaming: boolean; fetchFn?: typeof fetch; readOnly?: boolean }) {
+function MessageBubble({
+	message,
+	sessionId,
+	isStreaming: parentIsStreaming,
+	fetchFn,
+	readOnly = false
+}: {
+	message: Message
+	sessionId: string | null
+	isStreaming: boolean
+	fetchFn?: typeof fetch
+	readOnly?: boolean
+}) {
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
 
 	if (message.role === 'user') {
@@ -1249,14 +1314,19 @@ function MessageBubble({ message, sessionId, isStreaming: parentIsStreaming, fet
 
 	return (
 		<div>
-			<InlineContent text={message.content || ''} chartSets={message.charts || []} csvExports={message.csvExports} alerts={readOnly ? undefined : message.alerts} savedAlertIds={message.savedAlertIds} messageId={message.id} citations={message.citations || []} sessionId={sessionId} fetchFn={fetchFn} />
+			<InlineContent
+				text={message.content || ''}
+				chartSets={message.charts || []}
+				csvExports={message.csvExports}
+				alerts={readOnly ? undefined : message.alerts}
+				savedAlertIds={message.savedAlertIds}
+				messageId={message.id}
+				citations={message.citations || []}
+				sessionId={sessionId}
+				fetchFn={fetchFn}
+			/>
 			{message.id && !parentIsStreaming && (
-				<ResponseControls
-					messageId={message.id}
-					content={message.content}
-					sessionId={sessionId}
-					readOnly={readOnly}
-				/>
+				<ResponseControls messageId={message.id} content={message.content} sessionId={sessionId} readOnly={readOnly} />
 			)}
 		</div>
 	)

@@ -120,7 +120,11 @@ export function AddToDashboardModal({
 				const res = await authorizedFetch(`${MCP_SERVER}/agentic/save-chart`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ sessionId: llamaAIChart.sessionId, chartId: llamaAIChart.chartId, title: chartName || llamaAIChart.title })
+					body: JSON.stringify({
+						sessionId: llamaAIChart.sessionId,
+						chartId: llamaAIChart.chartId,
+						title: chartName || llamaAIChart.title
+					})
 				})
 				if (!res.ok) {
 					toast.error('Failed to save chart')

@@ -1,4 +1,5 @@
 import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
+import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTooltipValue } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
@@ -7,7 +8,6 @@ import { adaptCandlestickData, adaptChartData, adaptMultiSeriesData } from './ch
 import { areChartDataEqual, areChartsEqual, areStringArraysEqual } from './chartComparison'
 import { ChartControls } from './ChartControls'
 import { ChartDataTransformer } from './chartDataTransformer'
-import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import type { ChartConfiguration } from './types'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -20,7 +20,7 @@ const ScatterChart = lazy(() => import('~/components/ECharts/ScatterChart'))
 
 interface ChartRendererProps {
 	charts: ChartConfiguration[]
-	chartData: any[]
+	chartData: any[] | Record<string, any[]>
 	isLoading?: boolean
 	hasError?: boolean
 	chartTypes?: string[]
@@ -269,7 +269,13 @@ function SingleChart({ config, data, isActive, sessionId, fetchFn }: SingleChart
 
 		const chartToolbar = (
 			<div className="flex items-center justify-end gap-1 p-2 pt-0">
-				{sessionId && <AddToDashboardButton chartConfig={null} llamaAIChart={{ sessionId, chartId: config.id, title: config.title }} smol />}
+				{sessionId && (
+					<AddToDashboardButton
+						chartConfig={null}
+						llamaAIChart={{ sessionId, chartId: config.id, title: config.title }}
+						smol
+					/>
+				)}
 				<CSVDownloadButton prepareCsv={prepareCsv} smol />
 			</div>
 		)
@@ -391,11 +397,7 @@ function SingleChart({ config, data, isActive, sessionId, fetchFn }: SingleChart
 			case 'pie':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<PieChart
-							key={chartKey}
-							{...(adaptedChart.props as IPieChartProps)}
-							customComponents={chartToolbar}
-						/>
+						<PieChart key={chartKey} {...(adaptedChart.props as IPieChartProps)} customComponents={chartToolbar} />
 					</Suspense>
 				)
 				break
@@ -489,7 +491,11 @@ export function ChartRenderer({
 	sessionId,
 	fetchFn
 }: ChartRendererProps) {
-	return <ChartRendererMemoized {...{ charts, chartData, isLoading, hasError, chartTypes, resizeTrigger, sessionId, fetchFn }} />
+	return (
+		<ChartRendererMemoized
+			{...{ charts, chartData, isLoading, hasError, chartTypes, resizeTrigger, sessionId, fetchFn }}
+		/>
+	)
 }
 
 function ChartRendererImpl({
