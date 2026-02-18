@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 const UMAMI_READY_RETRY_INTERVAL_MS = 500
-const MAX_UMAMI_READY_RETRIES = 120
+const MAX_UMAMI_READY_RETRIES = 10
 
 export function UmamiIdentityTracker() {
 	const { user } = useAuthContext()
@@ -28,6 +28,8 @@ export function UmamiIdentityTracker() {
 
 		if (identifyCurrentUser()) return
 
+		// For the case when userId is already resolved, but window.umami isn't ready yet,
+		// we'll keep trying to identify until succeed/retry limit
 		let retryCount = 0
 		const intervalId = window.setInterval(() => {
 			if (identifyCurrentUser()) {
