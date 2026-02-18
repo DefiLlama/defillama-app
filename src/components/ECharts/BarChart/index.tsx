@@ -44,7 +44,7 @@ export default function BarChart({
 	const [legendOptions, setLegendOptions] = useState(() => (customLegendOptions ? [...customLegendOptions] : []))
 
 	const { defaultStacks, stackKeys, selectedStacks } = useMemo(() => {
-		const values = stacks || {}
+		const values = { ...(stacks || {}) }
 		const legendOptionsSet = legendOptions ? new Set(legendOptions) : null
 
 		let hasValues = false
@@ -179,18 +179,19 @@ export default function BarChart({
 			hasNotifiedReadyRef.current = true
 		}
 
+		const settings = { ...defaultChartSettings }
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
 				// update tooltip formatter
-				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
-			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
+				settings['tooltip'] = { ...settings['inflowsTooltip'] }
+			} else if (settings[option]) {
+				settings[option] = mergeDeep(settings[option], chartOptions[option])
 			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
+				settings[option] = { ...chartOptions[option] }
 			}
 		}
 
-		const { graphic, grid, tooltip, xAxis, yAxis, legend, dataZoom } = defaultChartSettings
+		const { graphic, grid, tooltip, xAxis, yAxis, legend, dataZoom } = settings
 
 		const shouldHideDataZoom =
 			(Array.isArray(series) ? series.every((s) => s.data.length < 2) : series.data.length < 2) || hideDataZoom

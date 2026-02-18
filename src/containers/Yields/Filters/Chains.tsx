@@ -3,6 +3,8 @@ import { useCallback, useMemo, useRef } from 'react'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
+const EMPTY_ARRAY: string[] = []
+
 interface IFiltersByChainProps {
 	chainList: string[]
 	selectedChains: string[]
@@ -10,7 +12,12 @@ interface IFiltersByChainProps {
 	nestedMenu?: boolean
 }
 
-export function FilterByChain({ chainList = [], selectedChains, evmChains, nestedMenu }: IFiltersByChainProps) {
+export function FilterByChain({
+	chainList = EMPTY_ARRAY,
+	selectedChains,
+	evmChains,
+	nestedMenu
+}: IFiltersByChainProps) {
 	const router = useRouter()
 	const { chain } = router.query
 	const prevSelectionRef = useRef<Set<string>>(new Set(selectedChains))

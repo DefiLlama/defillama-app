@@ -342,26 +342,27 @@ export default function AreaChart({
 			hasNotifiedReadyRef.current = true
 		}
 
+		const settings = { ...defaultChartSettings }
 		for (const option in chartOptions) {
 			if (option === 'dataZoom') {
 				if (Array.isArray(chartOptions[option])) {
-					if (defaultChartSettings[option]) {
-						defaultChartSettings[option] = [
-							{ ...defaultChartSettings[option][0], ...(chartOptions[option][0] ?? {}) },
-							{ ...defaultChartSettings[option][1], ...(chartOptions[option][1] ?? {}) }
+					if (settings[option]) {
+						settings[option] = [
+							{ ...settings[option][0], ...(chartOptions[option][0] ?? {}) },
+							{ ...settings[option][1], ...(chartOptions[option][1] ?? {}) }
 						]
 					} else {
-						defaultChartSettings[option] = chartOptions[option]
+						settings[option] = chartOptions[option]
 					}
 				}
-			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
+			} else if (settings[option]) {
+				settings[option] = mergeDeep(settings[option], chartOptions[option])
 			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
+				settings[option] = { ...chartOptions[option] }
 			}
 		}
 
-		const { grid, graphic, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
+		const { grid, graphic, tooltip, xAxis, yAxis, dataZoom, legend } = settings
 
 		instance.setOption({
 			graphic,

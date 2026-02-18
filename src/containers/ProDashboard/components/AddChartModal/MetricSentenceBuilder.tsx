@@ -5,7 +5,8 @@ import {
 	ComboboxProvider,
 	Popover,
 	useComboboxStore,
-	usePopoverStore
+	usePopoverStore,
+	useStoreState
 } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
@@ -144,8 +145,8 @@ export function MetricSentenceBuilder({
 		window: null
 	})
 	const [popoverWidth, setPopoverWidth] = useState(260)
-	const isPopoverOpen = popover.useState('open')
-	const subjectSearchValue = subjectCombobox.useState('value') ?? ''
+	const isPopoverOpen = useStoreState(popover, 'open')
+	const subjectSearchValue = useStoreState(subjectCombobox, 'value') ?? ''
 	const chainListRef = useRef<HTMLDivElement | null>(null)
 	const protocolListRef = useRef<HTMLDivElement | null>(null)
 	const { availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
@@ -241,9 +242,7 @@ export function MetricSentenceBuilder({
 		return Array.from(set)
 	}, [chains, protocols, availableChainChartTypes, availableProtocolChartTypes])
 
-	const baseMetricTypes = useMemo(() => {
-		return availableMetricTypes.length > 0 ? availableMetricTypes : globalAvailableMetricTypes
-	}, [availableMetricTypes, globalAvailableMetricTypes])
+	const baseMetricTypes = availableMetricTypes.length > 0 ? availableMetricTypes : globalAvailableMetricTypes
 
 	const _selectedProtocolOption = useMemo(
 		() => protocolOptions.find((option) => option.value === metricProtocol) || null,

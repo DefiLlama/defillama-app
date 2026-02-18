@@ -17,6 +17,8 @@ import type { ChartTabType, ManualChartViewMode } from './types'
 import { UnlocksChartTab } from './UnlocksChartTab'
 import { YieldsChartTab } from './YieldsChartTab'
 
+const EMPTY_ARRAY: string[] = []
+
 const PROTOCOL_CHART_TYPES = getProtocolChartTypes()
 const CHAIN_CHART_TYPES = getChainChartTypes()
 
@@ -125,16 +127,16 @@ export function UnifiedChartTab({
 	onComposerItemColorChange,
 	onAddToComposer,
 	onRemoveFromComposer,
-	selectedChains: _selectedChains = [],
-	selectedProtocols: _selectedProtocols = [],
+	selectedChains: _selectedChains = EMPTY_ARRAY,
+	selectedProtocols: _selectedProtocols = EMPTY_ARRAY,
 	selectedYieldPool = null,
 	onSelectedChainsChange: _onSelectedChainsChange,
 	onSelectedProtocolsChange: _onSelectedProtocolsChange,
 	onSelectedYieldPoolChange,
-	selectedYieldChains = [],
-	selectedYieldProjects = [],
-	selectedYieldCategories = [],
-	selectedYieldTokens = [],
+	selectedYieldChains = EMPTY_ARRAY,
+	selectedYieldProjects = EMPTY_ARRAY,
+	selectedYieldCategories = EMPTY_ARRAY,
+	selectedYieldTokens = EMPTY_ARRAY,
 	minTvl = null,
 	maxTvl = null,
 	onSelectedYieldChainsChange,

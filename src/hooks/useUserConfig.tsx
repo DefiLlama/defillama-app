@@ -202,7 +202,9 @@ export function useUserConfig() {
 	})
 
 	const saveConfigAsyncRef = useRef(saveConfigAsync)
-	saveConfigAsyncRef.current = saveConfigAsync
+	useEffect(() => {
+		saveConfigAsyncRef.current = saveConfigAsync
+	})
 
 	const syncSettings = useDebounce(async () => {
 		try {

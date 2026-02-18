@@ -81,6 +81,20 @@ export const PaymentButton = ({
 	)
 }
 
+const getErrorMessageFromResponse = async (response: Response) => {
+	const statusInfo = `${response.status} ${response.statusText}`.trim()
+	let details = ''
+	try {
+		const text = await response.text()
+		if (text) {
+			details = text
+		}
+	} catch {
+		// Ignore body parsing errors and rely on status text.
+	}
+	return details ? `${statusInfo}: ${details}` : statusInfo
+}
+
 // oxlint-disable-next-line no-unused-vars
 const ProApiKey = () => {
 	const { isAuthenticated, loaders, authorizedFetch } = useAuthContext()
@@ -97,12 +111,30 @@ const ProApiKey = () => {
 				try {
 					const response = await authorizedFetch(`${AUTH_SERVER}/auth/get-api-key`)
 
-					if (response?.ok) {
-						const data = await response.json()
-						setApiKey(data.result?.key || null)
+					if (!response) {
+						toast.error('Failed to fetch API key: no response from server')
+						setApiKey(null)
+						return
 					}
+
+					if (!response.ok) {
+						const errorMessage = await getErrorMessageFromResponse(response)
+						toast.error(`Failed to fetch API key (${errorMessage})`)
+						setApiKey(null)
+						return
+					}
+
+					const data = await response.json()
+					const key = data?.result?.key
+					if (!key) {
+						toast.error('Failed to fetch API key: response did not include an API key')
+						setApiKey(null)
+						return
+					}
+					setApiKey(key)
 				} catch (error) {
-					console.log('Error fetching API key:', error)
+					console.error('Error fetching API key:', error)
+					toast.error('Failed to fetch API key')
 				} finally {
 					setIsLoading(false)
 				}
@@ -121,12 +153,27 @@ const ProApiKey = () => {
 				method: 'POST'
 			})
 
-			if (response?.ok) {
-				const data = await response.json()
-				setApiKey(data.result?.key || null)
+			if (!response) {
+				toast.error('Failed to generate API key: no response from server')
+				return
 			}
+
+			if (!response.ok) {
+				const errorMessage = await getErrorMessageFromResponse(response)
+				toast.error(`Failed to generate API key (${errorMessage})`)
+				return
+			}
+
+			const data = await response.json()
+			const key = data?.result?.key
+			if (!key) {
+				toast.error('Failed to generate API key: response did not include an API key')
+				return
+			}
+			setApiKey(key)
 		} catch (error) {
-			console.log('Error generating API key:', error)
+			console.error('Error generating API key:', error)
+			toast.error('Failed to generate API key')
 		} finally {
 			setIsLoading(false)
 		}

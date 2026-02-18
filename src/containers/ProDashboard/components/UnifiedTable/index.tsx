@@ -219,11 +219,11 @@ function UnifiedTable({
 	const { handleEditItem } = useProDashboardEditorActions()
 	const { isReadOnly } = useProDashboardPermissions()
 	const [searchTerm, setSearchTerm] = useState('')
-	const [columnOrderState, setColumnOrderState] = useState<ColumnOrderState>(getDefaultColumnOrder(config))
-	const [columnVisibilityState, setColumnVisibilityState] = useState<VisibilityState>(
+	const [columnOrderState, setColumnOrderState] = useState<ColumnOrderState>(() => getDefaultColumnOrder(config))
+	const [columnVisibilityState, setColumnVisibilityState] = useState<VisibilityState>(() =>
 		getDefaultColumnVisibility(config)
 	)
-	const [sortingState, setSortingState] = useState<SortingState>(normalizeSorting(config.defaultSorting))
+	const [sortingState, setSortingState] = useState<SortingState>(() => normalizeSorting(config.defaultSorting))
 	const {
 		columnOrder: configColumnOrder,
 		columnVisibility: configColumnVisibility,
@@ -260,7 +260,7 @@ function UnifiedTable({
 
 	useEffect(() => {
 		if (!previewMode) {
-			setColumnOrderState(
+			setColumnOrderState(() =>
 				getDefaultColumnOrder({
 					columnOrder: configColumnOrder,
 					customColumns: configCustomColumns
@@ -271,7 +271,7 @@ function UnifiedTable({
 
 	useEffect(() => {
 		if (!previewMode) {
-			setColumnVisibilityState(
+			setColumnVisibilityState(() =>
 				getDefaultColumnVisibility({
 					columnVisibility: configColumnVisibility,
 					customColumns: configCustomColumns
@@ -284,7 +284,7 @@ function UnifiedTable({
 		if (!previewMode) {
 			const nextSorting = normalizeSorting(config.defaultSorting)
 			if (!sortingEquals(sortingState, nextSorting)) {
-				setSortingState(nextSorting)
+				setSortingState(() => nextSorting)
 			}
 		}
 	}, [config.defaultSorting, previewMode, sortingState])

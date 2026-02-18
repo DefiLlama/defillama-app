@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { CHAINS_API_V2, PROTOCOLS_API } from '~/constants'
 import type { CustomTimePeriod, TimePeriod } from '~/containers/ProDashboard/ProDashboardAPIContext'
@@ -281,11 +281,13 @@ export function ChartBuilderTab({
 		refetchOnWindowFocus: false
 	})
 
-	const seriesColors = useRef<Record<string, string>>(chartBuilder.seriesColors || {})
+	const seriesColors = chartBuilder.seriesColors
 	let hasCustomSeriesColors = false
-	for (const _ in seriesColors.current) {
-		hasCustomSeriesColors = true
-		break
+	if (seriesColors) {
+		for (const _ in seriesColors) {
+			hasCustomSeriesColors = true
+			break
+		}
 	}
 
 	const visibleSeries = useMemo(() => {
@@ -310,7 +312,7 @@ export function ChartBuilderTab({
 
 	const resolveSeriesColor = useCallback(
 		(seriesName: string, fallback?: string) => {
-			const override = seriesColors[seriesName]
+			const override = seriesColors?.[seriesName]
 			if (override) {
 				return override
 			}
@@ -1043,7 +1045,7 @@ export function ChartBuilderTab({
 							<div className="flex thin-scrollbar items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-2">
 								{visibleSeries.map((series) => {
 									const activeColor = resolveSeriesColor(series.name, series.color)
-									const hasOverride = !!seriesColors[series.name]
+									const hasOverride = !!seriesColors?.[series.name]
 									return (
 										<div
 											key={series.name}

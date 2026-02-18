@@ -1,6 +1,7 @@
 import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { TokenLogo } from '~/components/TokenLogo'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ForksData } from '~/containers/ProtocolOverview/Forks'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
@@ -53,7 +54,7 @@ export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'

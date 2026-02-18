@@ -3,6 +3,7 @@ import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { tvlOptions } from '~/components/Filters/options'
 import {
 	CHART_API,
+	COINGECKO_KEY,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
@@ -239,7 +240,7 @@ export async function getChainOverviewData({
 						`https://pro-api.coingecko.com/api/v3/coins/${currentChainMetadata.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false`,
 						{
 							headers: {
-								'x-cg-pro-api-key': process.env.CG_KEY
+								'x-cg-pro-api-key': COINGECKO_KEY
 							}
 						}
 					).catch(() => ({}))
@@ -320,7 +321,7 @@ export async function getChainOverviewData({
 			chain === 'All'
 				? fetchJson(`https://pro-api.coingecko.com/api/v3/global/market_cap_chart?days=14`, {
 						headers: {
-							'x-cg-pro-api-key': process.env.CG_KEY
+							'x-cg-pro-api-key': COINGECKO_KEY
 						}
 					})
 						.then((data) => data?.market_cap_chart?.market_cap?.slice(0, 14) ?? null)

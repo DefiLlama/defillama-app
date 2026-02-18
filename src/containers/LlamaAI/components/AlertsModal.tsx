@@ -218,7 +218,10 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 					throw new Error('Failed to fetch alerts')
 				}
 				const data = await res.json()
-				return data.alerts || []
+				if (data.alerts) {
+					return data.alerts
+				}
+				return []
 			} catch (error) {
 				console.log('Failed to fetch alerts:', error)
 				throw new Error('Failed to fetch alerts')

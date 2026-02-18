@@ -199,12 +199,17 @@ function ComparisonWizardContent({ onComplete, comparisonPreset }: ComparisonWiz
 				charts[charts.length - 1].colSpan = 2
 			}
 
+			const items: DashboardItemConfig[] = [...metricCards, ...charts]
+			if (table) {
+				items.push(table)
+			}
+
 			onComplete({
 				dashboardName: state.dashboardName.trim(),
 				visibility: state.visibility,
 				tags: state.tags,
 				description: state.description,
-				items: [...metricCards, ...charts, ...(table ? [table] : [])]
+				items
 			})
 		} catch (error) {
 			console.error('Failed to generate comparison dashboard:', error)

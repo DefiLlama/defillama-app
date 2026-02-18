@@ -70,6 +70,15 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 	const runDownload = async (forceLoading = false) => {
 		const shouldSetLoading = forceLoading || hasPrepareCsv(props)
 		if (shouldSetLoading) setStaticLoading(true)
+		const escapeCell = (value: string | number | boolean | null | undefined) => {
+			if (value == null) return ''
+			const str = String(value).replaceAll('\n', ' ').replaceAll('\r', ' ')
+			if (str.includes(',') || str.includes('"')) {
+				return `"${str.replace(/"/g, '""')}"`
+			}
+			return str
+		}
+
 		try {
 			if (hasOnClick(props)) {
 				await Promise.resolve(props.onClick())
@@ -78,15 +87,6 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 
 			if (hasPrepareCsv(props)) {
 				const { filename, rows } = props.prepareCsv()
-
-				const escapeCell = (value: string | number | boolean | null | undefined) => {
-					if (value == null) return ''
-					const str = String(value).replaceAll('\n', ' ').replaceAll('\r', ' ')
-					if (str.includes(',') || str.includes('"')) {
-						return `"${str.replace(/"/g, '""')}"`
-					}
-					return str
-				}
 
 				download(filename, rows.map((row) => row.map((cell) => escapeCell(cell)).join(',')).join('\n'))
 				return true

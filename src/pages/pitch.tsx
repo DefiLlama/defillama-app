@@ -191,8 +191,10 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 			const filtersData: Record<string, any> = {}
 			for (const key in filters) {
 				const v = filters[key]
-				if (v && v.length !== 0) {
-					filtersData[key] = v
+				if (v) {
+					if (v.length !== 0) {
+						filtersData[key] = v
+					}
 				}
 			}
 			const response = await fetch('https://vc-emails.llama.fi/new-payment', {

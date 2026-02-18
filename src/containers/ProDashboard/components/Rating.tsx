@@ -32,8 +32,9 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 		}
 
 		setIsSubmitting(true)
+		const feedbackValue = feedback.trim() || undefined
 		try {
-			await onRate(sessionId, rating, feedback.trim() || undefined)
+			await onRate(sessionId, rating, feedbackValue)
 		} finally {
 			setIsSubmitting(false)
 		}

@@ -45,9 +45,9 @@ function FormattedNumberInput({
 	useEffect(() => {
 		if (!isFocused) {
 			if (value == null) {
-				setDisplayValue('')
+				setDisplayValue(() => '')
 			} else {
-				setDisplayValue(value.toLocaleString())
+				setDisplayValue(() => value.toLocaleString())
 			}
 		}
 	}, [value, isFocused])

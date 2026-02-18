@@ -21,15 +21,15 @@ export default function Account() {
 	useEffect(() => {
 		if (success === 'true' && isAuthenticated && !hasProcessedSuccess) {
 			queryClient.invalidateQueries({ queryKey: ['subscription'] })
-			setHasProcessedSuccess(true)
+			setHasProcessedSuccess(() => true)
 			Router.replace('/account', undefined, { shallow: true })
 		}
 	}, [success, isAuthenticated, hasProcessedSuccess, queryClient, router.query, router.pathname])
 
 	useEffect(() => {
 		if (hasProcessedSuccess && !isSubscriptionLoading && hasActiveSubscription && !hasShownSuccessModal) {
-			setShowSuccessModal(true)
-			setHasShownSuccessModal(true)
+			setShowSuccessModal(() => true)
+			setHasShownSuccessModal(() => true)
 		}
 	}, [hasProcessedSuccess, isSubscriptionLoading, hasActiveSubscription, hasShownSuccessModal])
 

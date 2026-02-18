@@ -136,7 +136,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 
 	useEffect(() => {
 		if (isReadOnly) {
-			setShowColors(false)
+			setShowColors(() => false)
 		}
 	}, [isReadOnly])
 

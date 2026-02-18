@@ -13,6 +13,8 @@ import { FeedbackForm } from './FeedbackForm'
 import { PDFExportButton } from './PDFExportButton'
 import { ShareModalContent } from './ShareModalContent'
 
+const EMPTY_CHARTS: Array<{ id: string; title: string }> = []
+
 interface ResponseControlsProps {
 	messageId?: string
 	content?: string
@@ -28,7 +30,7 @@ export function ResponseControls({
 	initialRating,
 	sessionId,
 	readOnly = false,
-	charts = []
+	charts = EMPTY_CHARTS
 }: ResponseControlsProps) {
 	const [copied, setCopied] = useState(false)
 	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)

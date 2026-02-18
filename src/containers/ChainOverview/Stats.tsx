@@ -154,15 +154,17 @@ export function Stats(props: IStatsProps) {
 				return
 			}
 
-			try {
-				const enabledParams = TVL_SETTINGS_KEYS.flatMap((key) => (tvlSettings[key] ? [`${key}=true`] : []))
-				const url = `https://api.llama.fi/simpleChainDataset/${
-					chainsNamesMap[props.metadata.name] || props.metadata.name
-				}?${enabledParams.join('&')}`.replaceAll(' ', '%20')
+			const enabledParams = TVL_SETTINGS_KEYS.flatMap((key) => (tvlSettings[key] ? [`${key}=true`] : []))
+			const chainDatasetName = chainsNamesMap[props.metadata.name] || props.metadata.id || props.metadata.name
+			const url = `https://api.llama.fi/simpleChainDataset/${chainDatasetName}?${enabledParams.join('&')}`.replaceAll(
+				' ',
+				'%20'
+			)
 
+			try {
 				const response = await fetch(url)
 
-				if (!response || !response.ok) {
+				if (!response.ok) {
 					toast.error('Failed to download CSV data')
 					return
 				}
@@ -943,5 +945,15 @@ const updateRoute = (key, val, router) => {
 }
 
 const chainsNamesMap = {
-	'OP Mainnet': 'Optimism'
+	'OP Mainnet': 'optimism',
+	Gnosis: 'xdai',
+	Avalanche: 'avax',
+	'Arbitrum Nova': 'arbitrum_nova',
+	'ZKsync Era': 'era',
+	'ZKsync Lite': 'zksync',
+	'Hyperliquid L1': 'hyperliquid',
+	'EOS EVM': 'eos_evm',
+	Rootstock: 'rsk',
+	Kaia: 'klaytn',
+	CosmosHub: 'cosmos'
 }

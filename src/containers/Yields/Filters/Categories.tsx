@@ -3,6 +3,8 @@ import { useRef } from 'react'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
+const EMPTY_ARRAY: string[] = []
+
 interface IFiltersByCategoryProps {
 	categoryList: Array<string>
 	selectedCategories: Array<string>
@@ -11,7 +13,7 @@ interface IFiltersByCategoryProps {
 }
 
 export function FiltersByCategory({
-	categoryList = [],
+	categoryList = EMPTY_ARRAY,
 	selectedCategories,
 	nestedMenu,
 	labelType

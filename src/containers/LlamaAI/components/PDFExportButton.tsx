@@ -13,6 +13,8 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { captureAllCharts, type CapturedChart } from '../utils/chartCapture'
 
+const EMPTY_CHARTS: Array<{ id: string; title: string }> = []
+
 interface PDFExportButtonProps {
 	sessionId: string | null
 	messageId?: string | null
@@ -21,7 +23,13 @@ interface PDFExportButtonProps {
 	className?: string
 }
 
-export function PDFExportButton({ sessionId, messageId, charts = [], exportType, className }: PDFExportButtonProps) {
+export function PDFExportButton({
+	sessionId,
+	messageId,
+	charts = EMPTY_CHARTS,
+	exportType,
+	className
+}: PDFExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const { loaders, authorizedFetch, hasActiveSubscription } = useAuthContext()
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
@@ -36,6 +44,11 @@ export function PDFExportButton({ sessionId, messageId, charts = [], exportType,
 		if (!loaders.userLoading && hasActiveSubscription) {
 			try {
 				setIsLoading(true)
+
+				if (exportType === 'single_message' && !messageId) {
+					toast.error('Unable to export this message. Please try again from a specific message.')
+					return
+				}
 
 				let chartImages: CapturedChart[] = []
 				if (charts.length > 0) {
@@ -57,7 +70,7 @@ export function PDFExportButton({ sessionId, messageId, charts = [], exportType,
 					}
 				}
 
-				if (exportType === 'single_message' && messageId) {
+				if (exportType === 'single_message') {
 					requestBody.messageId = messageId
 				}
 
@@ -71,8 +84,25 @@ export function PDFExportButton({ sessionId, messageId, charts = [], exportType,
 
 				const data = await response.json()
 
-				if (!response.ok || !data.success) {
-					throw new Error(data.error || 'Failed to generate PDF')
+				let pdfErrorMsg = 'Failed to generate PDF'
+				if (data.error) {
+					if (typeof data.error === 'string') {
+						pdfErrorMsg = data.error
+					} else if (data.error && typeof data.error.message === 'string') {
+						pdfErrorMsg = data.error.message
+					} else {
+						try {
+							pdfErrorMsg = JSON.stringify(data.error)
+						} catch {
+							pdfErrorMsg = 'Failed to generate PDF'
+						}
+					}
+				}
+				if (!response.ok) {
+					throw new Error(pdfErrorMsg)
+				}
+				if (!data.success) {
+					throw new Error(pdfErrorMsg)
 				}
 
 				toast.success('PDF generated!', { id: 'pdf-export' })

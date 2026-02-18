@@ -24,6 +24,25 @@ const formatAmount = (cents: number, currency: string) => {
 	}).format(amount)
 }
 
+const getFriendlyPaymentStatus = (status: string) => {
+	switch (status) {
+		case 'requires_action':
+			return 'Requires additional authentication. Please complete the verification step and try again.'
+		case 'processing':
+			return 'Payment is processing. This may take a few minutes, please check your account shortly.'
+		case 'requires_capture':
+			return 'Payment is authorized and awaiting final confirmation.'
+		case 'requires_payment_method':
+			return 'Payment failed. Please use a different payment method and try again.'
+		case 'requires_confirmation':
+			return 'Payment needs confirmation. Please submit again to continue.'
+		case 'canceled':
+			return 'Payment was canceled. Please try again when ready.'
+		default:
+			return 'Payment is pending confirmation. Please check your account for updates.'
+	}
+}
+
 interface StripeCheckoutModalProps {
 	isOpen: boolean
 	onClose: () => void
@@ -55,6 +74,7 @@ export function StripeCheckoutModal({
 	} | null>(null)
 
 	const fetchClientSecret = useCallback(async () => {
+		const subscriptionType = type || 'api'
 		try {
 			setError(null)
 
@@ -62,7 +82,7 @@ export function StripeCheckoutModal({
 				redirectUrl: `${window.location.origin}/account?success=true`,
 				cancelUrl: `${window.location.origin}/subscription`,
 				provider: paymentMethod,
-				subscriptionType: type || 'api',
+				subscriptionType,
 				billingInterval,
 				isTrial
 			}
@@ -82,7 +102,11 @@ export function StripeCheckoutModal({
 			const data = await response.json()
 
 			if (!response.ok) {
-				throw new Error(data.message || 'Failed to create subscription')
+				let errorMessage = 'Failed to create subscription'
+				if (data.message) {
+					errorMessage = data.message
+				}
+				throw new Error(errorMessage)
 			}
 
 			if (data.isUpgrade) {
@@ -102,13 +126,28 @@ export function StripeCheckoutModal({
 
 				setUpgradeClientSecret(data.clientSecret)
 
-				if (data.amount !== undefined && data.currency) {
-					setUpgradePricing({
-						amount: data.amount,
-						currency: data.currency,
-						prorationCredit: data.prorationCredit || 0,
-						newSubscriptionPrice: data.newSubscriptionPrice || 0
-					})
+				if (data.amount !== undefined) {
+					if (data.currency) {
+						let prorationCredit = 0
+						if (data.prorationCredit) {
+							prorationCredit = data.prorationCredit
+						}
+						let newSubscriptionPrice = 0
+						if (data.newSubscriptionPrice) {
+							newSubscriptionPrice = data.newSubscriptionPrice
+						}
+						setUpgradePricing({
+							amount: data.amount,
+							currency: data.currency,
+							prorationCredit,
+							newSubscriptionPrice
+						})
+					} else {
+						console.warn(
+							'Upgrade pricing payload inconsistency: data.amount is present but data.currency is missing.',
+							data
+						)
+					}
 				}
 
 				return null
@@ -297,9 +336,13 @@ function UpgradePaymentForm({ onError }: { onError: (error: string) => void }) {
 				throw new Error(confirmError.message)
 			}
 
-			if (paymentIntent?.status === 'succeeded') {
-				queryClient.invalidateQueries({ queryKey: ['subscription'] })
-				window.location.href = `${window.location.origin}/account?success=true`
+			if (paymentIntent) {
+				if (paymentIntent.status === 'succeeded') {
+					queryClient.invalidateQueries({ queryKey: ['subscription'] })
+					window.location.href = `${window.location.origin}/account?success=true`
+				} else {
+					onError(getFriendlyPaymentStatus(paymentIntent.status))
+				}
 			}
 		} catch (err) {
 			onError(err instanceof Error ? err.message : 'Payment failed')

@@ -29,10 +29,10 @@ const isAtMidnight = (timestamp: number | null) => {
 
 export const DateFilter = ({ startDate, endDate }: { startDate: number | null; endDate: number | null }) => {
 	const router = useRouter()
-	const [localStartDate, setLocalStartDate] = useState(formatDateForInput(startDate))
-	const [localEndDate, setLocalEndDate] = useState(formatDateForInput(endDate))
-	const [localStartHour, setLocalStartHour] = useState(getHourFromTimestamp(startDate))
-	const [localEndHour, setLocalEndHour] = useState(getHourFromTimestamp(endDate))
+	const [localStartDate, setLocalStartDate] = useState(() => formatDateForInput(startDate))
+	const [localEndDate, setLocalEndDate] = useState(() => formatDateForInput(endDate))
+	const [localStartHour, setLocalStartHour] = useState(() => getHourFromTimestamp(startDate))
+	const [localEndHour, setLocalEndHour] = useState(() => getHourFromTimestamp(endDate))
 	const maxDate = getTodayString()
 
 	const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {

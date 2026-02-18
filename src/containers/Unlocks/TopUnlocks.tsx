@@ -13,6 +13,7 @@ interface TopUnlocksProps {
 }
 
 export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, className }) => {
+	const now = React.useMemo(() => Date.now() / 1000, [])
 	const { topUnlocks } = React.useMemo(() => {
 		const protocolUnlocks = new Map<
 			string,
@@ -22,8 +23,6 @@ export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, cla
 				value: number
 			}
 		>()
-
-		const now = Date.now() / 1000
 		const startTime = now - period * 24 * 60 * 60
 
 		if (data) {
@@ -60,7 +59,7 @@ export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, cla
 				.sort((a, b) => b.value - a.value)
 				.slice(0, 3)
 		}
-	}, [data, period])
+	}, [data, period, now])
 
 	return (
 		<div className={`text-(--text-primary) ${className ?? ''}`}>

@@ -1,4 +1,4 @@
-import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
+import { Popover, PopoverDisclosure, usePopoverStore, useStoreState } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
@@ -181,9 +181,9 @@ export function YieldsChartTab({
 		return matchSorter(tokenOptions, tokenSearch, { keys: ['label'] })
 	}, [tokenOptions, tokenSearch])
 
-	const chainOpen = chainPopover.useState('open')
-	const projectOpen = projectPopover.useState('open')
-	const tokenOpen = tokenPopover.useState('open')
+	const chainOpen = useStoreState(chainPopover, 'open')
+	const projectOpen = useStoreState(projectPopover, 'open')
+	const tokenOpen = useStoreState(tokenPopover, 'open')
 
 	const chainVirtualizer = useVirtualizer({
 		count: filteredChainOptions.length,

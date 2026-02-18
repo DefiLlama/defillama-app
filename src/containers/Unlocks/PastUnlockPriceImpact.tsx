@@ -33,6 +33,7 @@ const parseDescription = (description: string): string => {
 }
 
 export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ data, title, className }) => {
+	const now = React.useMemo(() => Date.now() / 1000, [])
 	const { topImpacts } = React.useMemo(() => {
 		const protocolImpacts = new Map<
 			string,
@@ -52,8 +53,6 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 		for (const protocol of data ?? []) {
 			if (!protocol.historicalPrice?.length || protocol.historicalPrice.length < 8 || !protocol.lastEvent?.length)
 				continue
-
-			const now = Date.now() / 1000
 			const thirtyDaysAgo = now - 30 * 24 * 60 * 60
 
 			const lastEvents = protocol.lastEvent?.filter((event) => event.timestamp >= thirtyDaysAgo) || []
@@ -120,7 +119,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 				.sort((a, b) => b.value - a.value)
 				.slice(0, 3)
 		}
-	}, [data])
+	}, [data, now])
 
 	return (
 		<div className={`text-(--text-primary) ${className ?? ''}`}>

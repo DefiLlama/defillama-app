@@ -13,7 +13,9 @@ export async function fetchCoreMetadata(): Promise<{
 	const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.json'
 	const CATEGORIES_AND_TAGS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-categoriesAndTags.json'
 	const CEXS_DATA_URL = 'https://api.llama.fi/cexs'
-	const RWA_SERVER_URL = process.env.RWA_SERVER_URL ?? 'https://api.llama.fi/rwa'
+	const RWA_SERVER_URL = process.env.API_KEY
+		? `https://pro-api.llama.fi/${process.env.API_KEY}/rwa`
+		: 'https://api.llama.fi/rwa'
 
 	const [protocols, chains, categoriesAndTags, cexs, rwaList] = await Promise.all([
 		fetchJson(PROTOCOLS_DATA_URL),

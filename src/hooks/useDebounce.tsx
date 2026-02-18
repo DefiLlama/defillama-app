@@ -7,7 +7,10 @@ type DebouncedFunction<T extends (...args: any[]) => void> = ((...args: Paramete
 
 const normalizeDelay = (delay: number) => (Number.isFinite(delay) && delay > 0 ? delay : 0)
 
-const createDebounced = <T extends (...args: any[]) => void>(fn: T, getDelay: () => number): DebouncedFunction<T> => {
+const createDebounced = <T extends (...args: any[]) => void>(
+	fnRef: { current: (...args: any[]) => void },
+	delayRef: { current: number }
+): DebouncedFunction<T> => {
 	let timeoutId: ReturnType<typeof setTimeout> | null = null
 	let lastArgs: Parameters<T> | null = null
 
@@ -16,11 +19,11 @@ const createDebounced = <T extends (...args: any[]) => void>(fn: T, getDelay: ()
 		if (timeoutId !== null) {
 			clearTimeout(timeoutId)
 		}
-		const wait = getDelay()
+		const wait = delayRef.current
 		timeoutId = setTimeout(() => {
 			timeoutId = null
 			if (lastArgs) {
-				fn(...lastArgs)
+				fnRef.current(...lastArgs)
 				lastArgs = null
 			}
 		}, wait)
@@ -39,7 +42,7 @@ const createDebounced = <T extends (...args: any[]) => void>(fn: T, getDelay: ()
 		clearTimeout(timeoutId)
 		timeoutId = null
 		if (lastArgs) {
-			fn(...lastArgs)
+			fnRef.current(...lastArgs)
 			lastArgs = null
 		}
 	}
@@ -55,21 +58,17 @@ export function useDebounce<T>(valueOrCallback: T, delay: number) {
 	const handlerRef = useRef<(...args: any[]) => void>(() => {})
 	const delayRef = useRef(0)
 	const normalizedDelay = normalizeDelay(delay)
-	handlerRef.current = isCallback
-		? (valueOrCallback as (...args: any[]) => void)
-		: (nextValue: T) => {
-				setDebouncedValue(nextValue)
-			}
-	delayRef.current = normalizedDelay
 
-	const debounced = useMemo(
-		() =>
-			createDebounced(
-				(...args: any[]) => handlerRef.current(...args),
-				() => delayRef.current
-			),
-		[]
-	)
+	useEffect(() => {
+		handlerRef.current = isCallback
+			? (valueOrCallback as (...args: any[]) => void)
+			: (nextValue: T) => {
+					setDebouncedValue(nextValue)
+				}
+		delayRef.current = normalizedDelay
+	})
+
+	const debounced = useMemo(() => createDebounced(handlerRef, delayRef), [])
 
 	useEffect(() => {
 		return () => {

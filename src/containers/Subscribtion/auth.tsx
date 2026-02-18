@@ -365,7 +365,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 				if (!response.ok) {
 					const errorData = await response.json()
-					throw new Error(errorData.error || 'Failed to sign in with Ethereum')
+					let errorMessage = 'Failed to sign in with Ethereum'
+					if (errorData.error) {
+						errorMessage = errorData.error
+					}
+					throw new Error(errorMessage)
 				}
 
 				const { password, identity, impersonate } = await response.json()
@@ -441,7 +445,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				let reason = 'Failed to link wallet'
 				try {
 					const data = await response.json()
-					reason = data?.message || data?.error || reason
+					if (data) {
+						if (data.message) {
+							reason = data.message
+						} else if (data.error) {
+							reason = data.error
+						}
+					}
 				} catch {}
 				throw new Error(reason)
 			}
@@ -466,7 +476,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		async (address: string, signMessageFunction: any, onSuccess?: () => void) => {
 			try {
 				await addWalletMutation.mutateAsync({ address, signMessageFunction })
-				onSuccess?.()
+				if (onSuccess) {
+					onSuccess()
+				}
 				return Promise.resolve()
 			} catch (error) {
 				console.log('Add wallet error:', error)
@@ -517,23 +529,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const addEmail = useMutation({
 		mutationFn: async (email: string) => {
-			try {
-				const response = await fetch(`${AUTH_SERVER}/add-email`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${pb.authStore.token}`
-					},
-					body: JSON.stringify({ email })
-				})
-				if (!response.ok) {
-					const data = await response.json()
-					throw new Error(data?.message || 'Failed to add email')
+			const response = await fetch(`${AUTH_SERVER}/add-email`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${pb.authStore.token}`
+				},
+				body: JSON.stringify({ email })
+			})
+			if (!response.ok) {
+				let errorMessage = 'Failed to add email'
+				try {
+					const text = await response.text()
+					if (text) {
+						const data = JSON.parse(text)
+						if (data?.message) {
+							errorMessage = data.message
+						} else if (data?.error) {
+							errorMessage = data.error
+						}
+					}
+				} catch {
+					// Ignore parsing failures and use fallback message.
 				}
-				toast.success('Email added successfully')
-			} catch (error: any) {
-				toast.error(error.message || 'Failed to add email')
+				throw new Error(errorMessage)
 			}
+		},
+		onSuccess: () => {
+			toast.success('Email added successfully')
+		},
+		onError: (error: any) => {
+			toast.error(error.message || 'Failed to add email')
 		}
 	})
 

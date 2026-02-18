@@ -73,7 +73,8 @@ function sanitizeUrlForLogs(input: RequestInfo | URL): string {
 		process.env.SERVER_URL,
 		process.env.server_url,
 		process.env.V2_SERVER_URL,
-		process.env.v2_server_url
+		process.env.v2_server_url,
+		process.env.API_KEY
 	].filter((url): url is string => typeof url === 'string' && url.length > 0)
 
 	for (const candidate of serverUrlCandidates) {

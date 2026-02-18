@@ -79,6 +79,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 		() => '[]'
 	)
 
+	const fallbackTimestamp = useMemo(() => Date.now(), [])
 	const recentProtocols: Array<{ name: string; logo?: string; route: string; count: number; lastVisited: number }> =
 		useMemo(() => {
 			return JSON.parse(recentProtocolsInStorage)
@@ -87,14 +88,14 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 					logo: protocol.logo,
 					route: protocol.route,
 					count: protocol.count ?? 1,
-					lastVisited: protocol.lastVisited ?? Date.now()
+					lastVisited: protocol.lastVisited ?? fallbackTimestamp
 				}))
 				.sort((a, b) => {
 					if (b.count !== a.count) return b.count - a.count
 					return b.lastVisited - a.lastVisited
 				})
 				.slice(0, 6)
-		}, [recentProtocolsInStorage])
+		}, [recentProtocolsInStorage, fallbackTimestamp])
 
 	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
 		e.preventDefault()

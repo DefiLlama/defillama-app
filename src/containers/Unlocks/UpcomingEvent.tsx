@@ -6,6 +6,8 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, tokenIconUrl } from '~/utils'
 import { generateGoogleCalendarUrl } from '~/utils/calendar'
 
+const EMPTY_TOKENS: number[][] = []
+
 interface CalendarButtonProps {
 	event: { timestamp: number; noOfTokens: number[][]; symbol: string; description: string }
 	tokenName: string
@@ -169,7 +171,7 @@ const formatCountdownBadge = (days: number, hours: number, minutes: number, seco
 }
 
 export const UpcomingEvent = ({
-	noOfTokens = [],
+	noOfTokens = EMPTY_TOKENS,
 	timestamp,
 	event,
 	price,
@@ -179,7 +181,6 @@ export const UpcomingEvent = ({
 	name,
 	isProtocolPage = false
 }: UpcomingEventProps) => {
-	const nowSec = Date.now() / 1e3
 	const tokenSymbol = symbol ? symbol.toUpperCase() : ''
 	const { currentUnlockBreakdown, totalAmount, tokenValue, unlockPercent, unlockPercentFloat } = useMemo(() => {
 		const breakdown: UnlockBreakdown[] = event
@@ -229,15 +230,16 @@ export const UpcomingEvent = ({
 		return { currentUnlockBreakdown: breakdown, totalAmount, tokenValue, unlockPercent, unlockPercentFloat }
 	}, [event, price, maxSupply, mcap])
 
-	const timeLeft = timestamp - Date.now() / 1e3
+	const [nowMs, setNowMs] = useState(() => Date.now())
+	const nowSec = nowMs / 1e3
+	const timeLeft = Math.max(0, timestamp - nowMs / 1e3)
 	const days = Math.floor(timeLeft / 86400)
 	const hours = Math.floor((timeLeft - 86400 * days) / 3600)
 	const minutes = Math.floor((timeLeft - 86400 * days - 3600 * hours) / 60)
 	const seconds = Math.floor(timeLeft - 86400 * days - 3600 * hours - minutes * 60)
-	const [_, rerender] = useState(1)
 
 	const onCountdownTick = useEffectEvent(() => {
-		rerender((value) => value + 1)
+		setNowMs(Date.now())
 	})
 
 	const renderBreakdownRow = (item: UnlockBreakdown, variant: 'protocol' | 'hover', index: number) => {

@@ -371,11 +371,14 @@ export const useGroupBridgeData = (
 					parent.bridgedAmount === parent.circulating
 				) {
 					let childData: StablecoinUsageByChainRow
+					const resolvedBridgeInfo =
+						parentFirstBridgeInfo.name === 'Natively Issued'
+							? { ...parentFirstBridgeInfo, name: '-' }
+							: parentFirstBridgeInfo
 					if (parentFirstBridgeInfo.name === 'Natively Issued') {
-						parentFirstBridgeInfo.name = '-'
 						childData = {
 							...parent,
-							bridgeInfo: parentFirstBridgeInfo,
+							bridgeInfo: resolvedBridgeInfo,
 							bridgedAmount: percentBridgedtoDisplay,
 							name: `Natively Issued`
 						}
@@ -383,14 +386,14 @@ export const useGroupBridgeData = (
 						const sourceChain = parentFirstBridgeSourcesArray[0] ?? 'not-found'
 						childData = {
 							...parent,
-							bridgeInfo: parentFirstBridgeInfo,
+							bridgeInfo: resolvedBridgeInfo,
 							bridgedAmount: percentBridgedtoDisplay,
 							name: `Bridged from ${capitalizeFirstLetter(sourceChain)}`
 						}
 					}
 					finalData[parent.name] = {
 						...parent,
-						bridgeInfo: parentFirstBridgeInfo,
+						bridgeInfo: resolvedBridgeInfo,
 						bridgedAmount: percentBridgedtoDisplay,
 						subRows: [childData]
 					}

@@ -87,7 +87,7 @@ export function PromptInput({
 		const { text, entities } = restoreRequest
 
 		entityCombobox.restoreEntities(entities)
-		entityCombobox.isProgrammaticUpdateRef.current = true
+		entityCombobox.setIsProgrammaticUpdate(true)
 		textarea.value = text
 		setValue(text)
 		setInputSize(promptInputRef, highlightRef)

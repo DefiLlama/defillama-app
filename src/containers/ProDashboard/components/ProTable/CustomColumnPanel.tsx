@@ -220,7 +220,11 @@ export function CustomColumnPanel({
 			expr.evaluate(testData)
 			return { isValid: true }
 		} catch (error) {
-			return { isValid: false, error: error.message || 'Invalid expression' }
+			let errorMsg = error.message
+			if (!errorMsg) {
+				errorMsg = 'Invalid expression'
+			}
+			return { isValid: false, error: errorMsg }
 		}
 	}
 
@@ -379,9 +383,14 @@ export function CustomColumnPanel({
 			const parser = new Parser()
 			const expr = parser.parse(newColumnExpression)
 			const result = expr.evaluate(sampleData)
-			setLiveValidation({ isValid: true, result: typeof result === 'number' ? result : null })
+			const validResult: number | undefined = typeof result === 'number' ? result : undefined
+			setLiveValidation({ isValid: true, result: validResult })
 		} catch (error) {
-			setLiveValidation({ isValid: false, error: error.message || 'Invalid expression' })
+			let errorMsg = error.message
+			if (!errorMsg) {
+				errorMsg = 'Invalid expression'
+			}
+			setLiveValidation({ isValid: false, error: errorMsg })
 		}
 	}, [newColumnExpression, sampleData])
 

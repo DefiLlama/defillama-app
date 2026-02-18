@@ -13,6 +13,8 @@ import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
+const EMPTY_SORTING: SortingState = []
+
 interface IYieldsTableWrapper {
 	data: any
 	columns: any
@@ -32,7 +34,7 @@ export const YieldsTableWrapper = ({
 	rowSize,
 	columnVisibility,
 	setColumnVisibility,
-	sortingState = []
+	sortingState = EMPTY_SORTING
 }: IYieldsTableWrapper) => {
 	const [sorting, setSorting] = React.useState<SortingState>([...sortingState])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])

@@ -149,25 +149,31 @@ export function KeyMetricsPngExportButton({
 
 		setIsLoading(true)
 
+		const bgColor = isDark ? '#0b1214' : '#ffffff'
+		const textColor = isDark ? '#ffffff' : '#000000'
+		const labelColor = isDark ? '#d1d1d1' : '#666666'
+		const borderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+		const watermarkSrc = isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp'
+
 		try {
+			const hasPrimaryValue = hasTvlData && primaryValue != null
+			const formattedPrimaryValue = hasPrimaryValue ? String(formatPrice(primaryValue) ?? '') : ''
+			const dpr = window.devicePixelRatio || 1
+			const primaryValueHeight = hasPrimaryValue ? 72 : 0
 			const container = containerRef.current
 			const rows = extractRows(container)
 
-			const hasPrimaryValue = hasTvlData && primaryValue != null
-			const formattedPrimaryValue = hasPrimaryValue ? String(formatPrice(primaryValue) ?? '') : ''
-
-			if (!hasPrimaryValue && rows.length === 0) {
-				setIsLoading(false)
-				return
+			if (!hasPrimaryValue) {
+				if (rows.length === 0) {
+					return
+				}
 			}
 
-			const dpr = window.devicePixelRatio || 1
 			const containerWidth = container.getBoundingClientRect().width
 			const canvasWidth = Math.max(400, Math.min(600, containerWidth))
 
 			const padding = 24
 			const headerHeight = 56
-			const primaryValueHeight = hasPrimaryValue ? 72 : 0
 			const rowHeight = 32
 			const rowsHeight = rows.length * rowHeight
 			const canvasHeight = padding * 2 + headerHeight + primaryValueHeight + rowsHeight
@@ -177,16 +183,10 @@ export function KeyMetricsPngExportButton({
 			canvas.height = canvasHeight * dpr
 			const ctx = canvas.getContext('2d')
 			if (!ctx) {
-				setIsLoading(false)
 				return
 			}
 
 			ctx.scale(dpr, dpr)
-
-			const bgColor = isDark ? '#0b1214' : '#ffffff'
-			const textColor = isDark ? '#ffffff' : '#000000'
-			const labelColor = isDark ? '#d1d1d1' : '#666666'
-			const borderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
 
 			ctx.fillStyle = bgColor
 			fillRoundedRect(ctx, 0, 0, canvasWidth, canvasHeight, 12)
@@ -257,7 +257,6 @@ export function KeyMetricsPngExportButton({
 			}
 
 			try {
-				const watermarkSrc = isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp'
 				const watermarkImg = await loadImage(watermarkSrc)
 				const wmHeight = 48
 				const wmWidth = (watermarkImg.width / watermarkImg.height) * wmHeight
