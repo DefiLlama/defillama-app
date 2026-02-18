@@ -406,26 +406,28 @@ export default function CEXStablecoins(props: {
 	const pegTypesUnique = React.useMemo(() => data?.pegTypesUnique ?? [], [data?.pegTypesUnique])
 	const stablecoinTokensUnique = React.useMemo(() => data?.stablecoinTokensUnique ?? [], [data?.stablecoinTokensUnique])
 
+	const totalStablecoins = data?.totalStablecoins
 	const totalStablecoinsDataset = React.useMemo(() => {
-		if (!data?.totalStablecoins?.length || data.totalStablecoins.length <= 1) return null
+		if (!totalStablecoins?.length || totalStablecoins.length <= 1) return null
 		return {
-			source: data.totalStablecoins.map(({ date, value }) => ({ timestamp: +date * 1e3, Total: value })),
+			source: totalStablecoins.map(({ date, value }) => ({ timestamp: +date * 1e3, Total: value })),
 			dimensions: ['timestamp', 'Total']
 		}
-	}, [data?.totalStablecoins])
+	}, [totalStablecoins])
 	const totalStablecoinsCharts = React.useMemo<MultiSeriesCharts>(
 		() => [{ type: 'line' as const, name: 'Total', encode: { x: 'timestamp', y: 'Total' } }],
 		[]
 	)
 
+	const stablecoinsByPegMechanism = data?.stablecoinsByPegMechanism
 	const { stablecoinsByPegMechanismDataset, stablecoinsByPegMechanismCharts } = React.useMemo(() => {
-		if (!data?.stablecoinsByPegMechanism?.length || data.stablecoinsByPegMechanism.length <= 1) {
+		if (!stablecoinsByPegMechanism?.length || stablecoinsByPegMechanism.length <= 1) {
 			return { stablecoinsByPegMechanismDataset: null, stablecoinsByPegMechanismCharts: [] }
 		}
 
 		return {
 			stablecoinsByPegMechanismDataset: {
-				source: data.stablecoinsByPegMechanism.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				source: stablecoinsByPegMechanism.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...pegMechanismsUnique]
 			},
 			stablecoinsByPegMechanismCharts: pegMechanismsUnique.map((name) => ({
@@ -434,16 +436,17 @@ export default function CEXStablecoins(props: {
 				encode: { x: 'timestamp', y: name }
 			}))
 		}
-	}, [data?.stablecoinsByPegMechanism, pegMechanismsUnique])
+	}, [stablecoinsByPegMechanism, pegMechanismsUnique])
 
+	const stablecoinsByPegType = data?.stablecoinsByPegType
 	const { stablecoinsByPegTypeDataset, stablecoinsByPegTypeCharts } = React.useMemo(() => {
-		if (!data?.stablecoinsByPegType?.length || data.stablecoinsByPegType.length <= 1) {
+		if (!stablecoinsByPegType?.length || stablecoinsByPegType.length <= 1) {
 			return { stablecoinsByPegTypeDataset: null, stablecoinsByPegTypeCharts: [] }
 		}
 
 		return {
 			stablecoinsByPegTypeDataset: {
-				source: data.stablecoinsByPegType.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				source: stablecoinsByPegType.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...pegTypesUnique]
 			},
 			stablecoinsByPegTypeCharts: pegTypesUnique.map((name) => ({
@@ -452,16 +455,17 @@ export default function CEXStablecoins(props: {
 				encode: { x: 'timestamp', y: name }
 			}))
 		}
-	}, [data?.stablecoinsByPegType, pegTypesUnique])
+	}, [stablecoinsByPegType, pegTypesUnique])
 
+	const stablecoinsByToken = data?.stablecoinsByToken
 	const { stablecoinsByTokenDataset, stablecoinsByTokenCharts } = React.useMemo(() => {
-		if (!data?.stablecoinsByToken?.length || data.stablecoinsByToken.length <= 1) {
+		if (!stablecoinsByToken?.length || stablecoinsByToken.length <= 1) {
 			return { stablecoinsByTokenDataset: null, stablecoinsByTokenCharts: [] }
 		}
 
 		return {
 			stablecoinsByTokenDataset: {
-				source: data.stablecoinsByToken.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				source: stablecoinsByToken.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...stablecoinTokensUnique]
 			},
 			stablecoinsByTokenCharts: stablecoinTokensUnique.map((name) => ({
@@ -470,9 +474,10 @@ export default function CEXStablecoins(props: {
 				encode: { x: 'timestamp', y: name }
 			}))
 		}
-	}, [data?.stablecoinsByToken, stablecoinTokensUnique])
+	}, [stablecoinsByToken, stablecoinTokensUnique])
 
-	const pegMechanismPieChartData = React.useMemo(() => data?.pegMechanismPieChart ?? [], [data?.pegMechanismPieChart])
+	const pegMechanismPieChart = data?.pegMechanismPieChart
+	const pegMechanismPieChartData = React.useMemo(() => pegMechanismPieChart ?? [], [pegMechanismPieChart])
 
 	return (
 		<ProtocolOverviewLayout

@@ -201,9 +201,6 @@ function TabContent({
 	const isEditingUnifiedTable = editItem?.kind === 'unified-table'
 	const [showTypeSelector, setShowTypeSelector] = useState(!isEditing && selectedTableType === 'protocols')
 
-	const [localOrder, setLocalOrder] = useState<ColumnOrderState>(columnOrder)
-	const [localVisibility, setLocalVisibility] = useState<VisibilityState>({ ...columnVisibility })
-	const [localSorting, setLocalSorting] = useState<SortingState>(sorting)
 	const initialTab = useMemo<TabKey>(() => {
 		if (focusedSectionOnly === 'filters') return 'filters'
 		if (focusedSectionOnly === 'columns') return 'columns'
@@ -213,18 +210,6 @@ function TabContent({
 		return 'setup'
 	}, [focusedSectionOnly, initialFocusSection])
 	const [activeTab, setActiveTab] = useState<TabKey>(initialTab)
-
-	useEffect(() => {
-		setLocalOrder(columnOrder)
-	}, [columnOrder])
-
-	useEffect(() => {
-		setLocalVisibility({ ...columnVisibility })
-	}, [columnVisibility])
-
-	useEffect(() => {
-		setLocalSorting(sorting)
-	}, [sorting])
 
 	useEffect(() => {
 		setActiveTab((current) => (current === initialTab ? current : initialTab))
@@ -335,10 +320,9 @@ function TabContent({
 			})
 			const baseOrderSet = new Set(presetConfig.columnOrder)
 			const mergedOrder = [...presetConfig.columnOrder, ...customColumnIds.filter((id) => !baseOrderSet.has(id))]
-			const customVisibility = Object.fromEntries(customColumnIds.map((id) => [id, localVisibility[id] ?? true]))
-			setLocalOrder(mergedOrder)
-			setLocalVisibility({ ...presetConfig.columnVisibility, ...customVisibility })
-			setLocalSorting(presetConfig.sorting)
+			const customVisibility = Object.fromEntries(customColumnIds.map((id) => [id, columnVisibility[id] ?? true]))
+			setColumns(mergedOrder, { ...presetConfig.columnVisibility, ...customVisibility })
+			setSorting(presetConfig.sorting)
 		}
 	}
 
@@ -348,13 +332,10 @@ function TabContent({
 	}
 
 	const handleColumnChange = (order: ColumnOrderState, visibility: VisibilityState) => {
-		setLocalOrder(order)
-		setLocalVisibility(visibility)
 		setColumns(order, visibility)
 	}
 
 	const handleSortingChange = (newSorting: SortingState) => {
-		setLocalSorting(newSorting)
 		setSorting(newSorting)
 	}
 
@@ -396,14 +377,11 @@ function TabContent({
 	)
 
 	const isModified =
-		!arraysEqual(localOrder, presetDefaults.order) ||
-		!visibilityEqual(localVisibility, presetDefaults.visibility) ||
-		!sortingEqual(localSorting, presetDefaults.sorting)
+		!arraysEqual(columnOrder, presetDefaults.order) ||
+		!visibilityEqual(columnVisibility, presetDefaults.visibility) ||
+		!sortingEqual(sorting, presetDefaults.sorting)
 
-	const visibleColumnsCount = useMemo(
-		() => localOrder.filter((id) => id !== 'name' && (localVisibility[id] ?? true)).length,
-		[localOrder, localVisibility]
-	)
+	const visibleColumnsCount = columnOrder.filter((id) => id !== 'name' && (columnVisibility[id] ?? true)).length
 
 	const handleAdd = () => {
 		if (editItem) {
@@ -425,12 +403,6 @@ function TabContent({
 		}
 		if (preset.sortBy) {
 			setSorting([
-				{
-					id: preset.sortBy.field,
-					desc: preset.sortBy.direction === 'desc'
-				}
-			])
-			setLocalSorting([
 				{
 					id: preset.sortBy.field,
 					desc: preset.sortBy.direction === 'desc'
@@ -592,14 +564,14 @@ function TabContent({
 							</button>
 						</div>
 						<ColumnManager
-							columnOrder={localOrder}
-							columnVisibility={localVisibility}
+							columnOrder={columnOrder}
+							columnVisibility={columnVisibility}
 							onChange={handleColumnChange}
 							customColumns={customColumns}
 							onAddCustomColumn={addCustomColumn}
 							onUpdateCustomColumn={updateCustomColumn}
 							onRemoveCustomColumn={removeCustomColumn}
-							sorting={localSorting}
+							sorting={sorting}
 							onSortingChange={handleSortingChange}
 							onSortingReset={() => handleSortingChange(presetSortingFallback)}
 						/>

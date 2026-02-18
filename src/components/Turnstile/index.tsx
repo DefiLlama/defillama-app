@@ -15,7 +15,7 @@ export const Turnstile = ({ onVerify, onError, onExpire, className }: TurnstileP
 	useEffect(() => {
 		const isDark =
 			document.documentElement.classList.contains('dark') || window.matchMedia('(prefers-color-scheme: dark)').matches
-		setTheme(isDark ? 'dark' : 'light')
+		setTheme(() => (isDark ? 'dark' : 'light'))
 
 		const observer = new MutationObserver(() => {
 			const isDark = document.documentElement.classList.contains('dark')

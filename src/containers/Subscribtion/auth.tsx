@@ -365,7 +365,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 				if (!response.ok) {
 					const errorData = await response.json()
-					throw new Error(errorData.error || 'Failed to sign in with Ethereum')
+					let errorMessage = 'Failed to sign in with Ethereum'
+					if (errorData.error) {
+						errorMessage = errorData.error
+					}
+					throw new Error(errorMessage)
 				}
 
 				const { password, identity, impersonate } = await response.json()
@@ -441,7 +445,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				let reason = 'Failed to link wallet'
 				try {
 					const data = await response.json()
-					reason = data?.message || data?.error || reason
+					if (data) {
+						if (data.message) {
+							reason = data.message
+						} else if (data.error) {
+							reason = data.error
+						}
+					}
 				} catch {}
 				throw new Error(reason)
 			}
@@ -466,7 +476,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		async (address: string, signMessageFunction: any, onSuccess?: () => void) => {
 			try {
 				await addWalletMutation.mutateAsync({ address, signMessageFunction })
-				onSuccess?.()
+				if (onSuccess) {
+					onSuccess()
+				}
 				return Promise.resolve()
 			} catch (error) {
 				console.log('Add wallet error:', error)
@@ -528,7 +540,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				})
 				if (!response.ok) {
 					const data = await response.json()
-					throw new Error(data?.message || 'Failed to add email')
+					let errorMessage = 'Failed to add email'
+					if (data) {
+						if (data.message) {
+							errorMessage = data.message
+						}
+					}
+					throw new Error(errorMessage)
 				}
 				toast.success('Email added successfully')
 			} catch (error: any) {

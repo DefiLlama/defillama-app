@@ -9,6 +9,7 @@ export const ImageWithFallback = ({
 }) => {
 	return (
 		<img
+			alt=""
 			onError={(e) => {
 				e.currentTarget.src = _fallback
 			}}

@@ -1,5 +1,5 @@
 import { useQueries, useQuery } from '@tanstack/react-query'
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { PROTOCOLS_API } from '~/constants'
 import { fetchApi, fetchJson } from '~/utils/async'
 import {
@@ -167,13 +167,17 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 		}))
 	})
 
+	const queriesRef = useRef(queries)
+	queriesRef.current = queries
+
 	const isLoading = queries.some((q) => q.isLoading)
 	const error = queries.find((q) => q.error)?.error
 
 	const dataKey = queries.map((q) => q.dataUpdatedAt).join(',')
 
 	const data = useMemo(() => {
-		const queryDatas = queries.map((q) => q.data)
+		if (!dataKey) return []
+		const queryDatas = queriesRef.current.map((q) => q.data)
 		if (shouldFetchAll && queryDatas[0]) return queryDatas[0].protocols
 
 		const protocolsMap = new Map<string, any>()
@@ -222,7 +226,6 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 		}
 
 		return Array.from(protocolsMap.values()).map((protocol) => finalizeAggregatedProtocol(protocol))
-		// oxlint-disable-next-line react-hooks/exhaustive-deps
 	}, [shouldFetchAll, dataKey])
 
 	return { data, isLoading, error }
@@ -240,13 +243,17 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 		}))
 	})
 
+	const queriesRef = useRef(queries)
+	queriesRef.current = queries
+
 	const isLoading = queries.some((q) => q.isLoading)
 	const error = queries.find((q) => q.error)?.error
 
 	const dataKey = queries.map((q) => q.dataUpdatedAt).join(',')
 
 	const data = useMemo(() => {
-		const queryDatas = queries.map((q) => q.data)
+		if (!dataKey) return []
+		const queryDatas = queriesRef.current.map((q) => q.data)
 		if (shouldFetchAll && queryDatas[0]) return queryDatas[0].protocols
 
 		const protocolsMap = new Map<string, any>()
@@ -320,7 +327,6 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 		return Array.from(protocolsMap.values()).map((protocol) =>
 			finalizeAggregatedProtocol(protocol, { computeRatios: true })
 		)
-		// oxlint-disable-next-line react-hooks/exhaustive-deps
 	}, [shouldFetchAll, dataKey])
 
 	return { data, isLoading, error }
@@ -341,13 +347,17 @@ export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
 		}))
 	})
 
+	const queriesRef = useRef(queries)
+	queriesRef.current = queries
+
 	const isLoading = queries.some((q) => q.isLoading)
 	const error = queries.find((q) => q.error)?.error
 
 	const dataKey = queries.map((q) => q.dataUpdatedAt).join(',')
 
 	const data = useMemo(() => {
-		const queryDatas = queries.map((q) => q.data)
+		if (!dataKey) return []
+		const queryDatas = queriesRef.current.map((q) => q.data)
 		if (shouldFetchAll && queryDatas[0]) return queryDatas[0].protocols
 
 		const protocolsMap = new Map<string, any>()
@@ -392,7 +402,6 @@ export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
 		}
 
 		return Array.from(protocolsMap.values()).map((protocol) => finalizeAggregatedProtocol(protocol))
-		// oxlint-disable-next-line react-hooks/exhaustive-deps
 	}, [shouldFetchAll, dataKey])
 
 	return { data, isLoading, error }
@@ -410,13 +419,17 @@ export function useGetProtocolsOpenInterestByMultiChain(chains: string[]) {
 		}))
 	})
 
+	const queriesRef = useRef(queries)
+	queriesRef.current = queries
+
 	const isLoading = queries.some((q) => q.isLoading)
 	const error = queries.find((q) => q.error)?.error
 
 	const dataKey = queries.map((q) => q.dataUpdatedAt).join(',')
 
 	const data = useMemo(() => {
-		const queryDatas = queries.map((q) => q.data)
+		if (!dataKey) return []
+		const queryDatas = queriesRef.current.map((q) => q.data)
 		if (shouldFetchAll && queryDatas[0]) return queryDatas[0].protocols
 
 		const protocolsMap = new Map<string, any>()
@@ -452,7 +465,6 @@ export function useGetProtocolsOpenInterestByMultiChain(chains: string[]) {
 		}
 
 		return Array.from(protocolsMap.values())
-		// oxlint-disable-next-line react-hooks/exhaustive-deps
 	}, [shouldFetchAll, dataKey])
 
 	return { data, isLoading, error }

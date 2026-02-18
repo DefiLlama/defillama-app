@@ -60,16 +60,18 @@ interface IIconsRowProps {
 	iconsAlignment?: 'start' | 'end'
 }
 
+const EMPTY_ARRAY: string[] = []
+
 const isChain = (chain: string) => {
 	return ['ethereum', 'avalanche', 'optimism', 'near', 'metis', 'aurora'].includes(chain.toLowerCase())
 }
 
 // todo update links prop to {name: string, iconType: string}
 export const IconsRow = ({
-	links = [],
+	links = EMPTY_ARRAY,
 	url,
 	iconType,
-	yieldRewardsSymbols = [],
+	yieldRewardsSymbols = EMPTY_ARRAY,
 	disableLinks = false,
 	urlPrefix = '',
 	iconsAlignment = 'end'

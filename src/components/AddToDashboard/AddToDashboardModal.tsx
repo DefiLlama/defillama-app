@@ -72,7 +72,7 @@ export function AddToDashboardModal({
 	const [selectedDashboardId, setSelectedDashboardId] = useState<string | null>(null)
 	const [isCreatingNew, setIsCreatingNew] = useState(false)
 	const [newDashboardName, setNewDashboardName] = useState('')
-	const [chartName, setChartName] = useState(getConfigName(chartConfig, llamaAIChart))
+	const [chartName, setChartName] = useState(() => getConfigName(chartConfig, llamaAIChart))
 	const [isAdding, setIsAdding] = useState(false)
 
 	const filteredDashboards = useMemo(() => {
@@ -161,8 +161,10 @@ export function AddToDashboardModal({
 				queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
 				queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
 
-				if (typeof window !== 'undefined' && (window as any).umami) {
-					;(window as any).umami.track('add-to-dashboard-submit', { type: 'new-dashboard' })
+				if (typeof window !== 'undefined') {
+					if ((window as any).umami) {
+						;(window as any).umami.track('add-to-dashboard-submit', { type: 'new-dashboard' })
+					}
 				}
 
 				toast.success(
@@ -183,7 +185,11 @@ export function AddToDashboardModal({
 				)
 				dialogStore.hide()
 			} catch (error: any) {
-				toast.error(error.message || 'Failed to create dashboard')
+				let errorMsg = error.message
+				if (!errorMsg) {
+					errorMsg = 'Failed to create dashboard'
+				}
+				toast.error(errorMsg)
 			} finally {
 				setIsAdding(false)
 			}
@@ -201,15 +207,21 @@ export function AddToDashboardModal({
 				queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
 				queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
 
-				if (typeof window !== 'undefined' && (window as any).umami) {
-					;(window as any).umami.track('add-to-dashboard-submit', { type: 'existing-dashboard' })
+				if (typeof window !== 'undefined') {
+					if ((window as any).umami) {
+						;(window as any).umami.track('add-to-dashboard-submit', { type: 'existing-dashboard' })
+					}
 				}
 
 				const selected = dashboards.find((d: (typeof dashboards)[number]) => d.id === selectedDashboardId)
+				let selectedName = ''
+				if (selected) {
+					selectedName = selected.name
+				}
 
 				toast.success(
 					<div>
-						Added to {selected?.name}!{' '}
+						Added to {selectedName}!{' '}
 						<a
 							href={`/pro/${selectedDashboardId}`}
 							className="underline"
@@ -225,7 +237,11 @@ export function AddToDashboardModal({
 				)
 				dialogStore.hide()
 			} catch (error: any) {
-				toast.error(error.message || 'Failed to add chart')
+				let errorMsg = error.message
+				if (!errorMsg) {
+					errorMsg = 'Failed to add chart'
+				}
+				toast.error(errorMsg)
 			} finally {
 				setIsAdding(false)
 			}

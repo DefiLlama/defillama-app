@@ -220,9 +220,9 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 	const [localMaxValue, setLocalMaxValue] = useState(filter.maxValue?.toString() || '')
 
 	useEffect(() => {
-		setLocalValue(filter.value?.toString() || filter.minValue?.toString() || filter.maxValue?.toString() || '')
-		setLocalMinValue(filter.minValue?.toString() || '')
-		setLocalMaxValue(filter.maxValue?.toString() || '')
+		setLocalValue(() => filter.value?.toString() || filter.minValue?.toString() || filter.maxValue?.toString() || '')
+		setLocalMinValue(() => filter.minValue?.toString() || '')
+		setLocalMaxValue(() => filter.maxValue?.toString() || '')
 	}, [filter.value, filter.minValue, filter.maxValue])
 
 	const minAllowed = config.min ?? 0

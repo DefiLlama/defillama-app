@@ -240,11 +240,12 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 	const coinIds = useMemo(() => coins.map((c) => c.id), [coins])
 	const { data: priceChart, isLoading } = usePriceCharts(coinIds)
 
+	const now = useMemo(() => Date.now(), [])
 	const { correlations, alignedPointCounts, returnPointCounts } = useMemo<CorrelationData>(() => {
 		if (isLoading || coins.length === 0) {
 			return { correlations: {}, alignedPointCounts: {}, returnPointCounts: {} }
 		}
-		const fromTimestamp = Date.now() - PERIOD_MS[period]
+		const fromTimestamp = now - PERIOD_MS[period]
 		const correlationResult: Record<string, Record<string, number | null>> = {}
 		const pointCountResult: Record<string, Record<string, number>> = {}
 		const returnCountResult: Record<string, Record<string, number>> = {}
@@ -306,7 +307,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 			alignedPointCounts: pointCountResult,
 			returnPointCounts: returnCountResult
 		}
-	}, [isLoading, period, coins, priceChart, minReturnPoints])
+	}, [isLoading, period, coins, priceChart, minReturnPoints, now])
 
 	useEffect(() => {
 		if (!router.isReady) return

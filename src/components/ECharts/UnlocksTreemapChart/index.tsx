@@ -50,7 +50,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 	const id = useId()
 	const [isDark] = useDarkModeManager()
 	const [timeView, setTimeView] = useState<TimeView>('Current Year')
-	const [selectedDate, setSelectedDate] = useState(dayjs())
+	const [selectedDate, setSelectedDate] = useState(() => dayjs())
 	const chartRef = useRef<echarts.ECharts | null>(null)
 
 	// Stable resize listener - never re-attaches when dependencies change

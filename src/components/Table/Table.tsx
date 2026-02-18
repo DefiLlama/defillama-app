@@ -2,7 +2,7 @@ import { flexRender, type Row, type RowData, type Table } from '@tanstack/react-
 import { type VirtualItem, useWindowVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { useEffect, useEffectEvent, useRef } from 'react'
+import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { SortIcon } from '~/components/Table/SortIcon'
@@ -72,11 +72,18 @@ export function VirtualTable({
 		return ordById
 	}, [rows])
 
+	const [containerOffset, setContainerOffset] = useState(0)
+	useEffect(() => {
+		if (tableContainerRef.current) {
+			setContainerOffset(tableContainerRef.current.offsetTop)
+		}
+	}, [])
+
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
 		estimateSize: () => rowSize || 50,
 		overscan: 5,
-		scrollMargin: scrollMargin ?? tableContainerRef.current?.offsetTop ?? 0
+		scrollMargin: scrollMargin ?? containerOffset
 	})
 	const virtualItems = rowVirtualizer.getVirtualItems()
 	const tableHeaderRef = useRef<HTMLDivElement>(null)

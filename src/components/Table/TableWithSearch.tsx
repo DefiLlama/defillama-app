@@ -17,6 +17,8 @@ import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders, useTableSearch } from './utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from './utils'
 
+const EMPTY_SORTING: SortingState = []
+
 interface ITableWithSearchProps {
 	data: any[]
 	columns: ColumnDef<any>[]
@@ -42,7 +44,7 @@ export function TableWithSearch({
 	renderSubComponent = null,
 	columnSizes = null,
 	columnOrders = null,
-	sortingState = [],
+	sortingState = EMPTY_SORTING,
 	rowSize = null,
 	compact = false
 }: ITableWithSearchProps) {

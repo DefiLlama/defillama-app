@@ -45,7 +45,7 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 
 	useEffect(() => {
 		if (visibleItems && startIndex) {
-			setCurrentPage(Math.floor(startIndex / visibleItems))
+			setCurrentPage(() => Math.floor(startIndex / visibleItems))
 		}
 	}, [visibleItems, startIndex])
 

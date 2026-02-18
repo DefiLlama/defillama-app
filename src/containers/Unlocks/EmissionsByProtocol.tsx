@@ -513,28 +513,28 @@ const ChartContainer = ({
 
 	const groupedEvents = groupByKey(data.events ?? [], (event) => event.timestamp)
 
+	const nowSec = useMemo(() => Date.now() / 1e3, [])
 	const sortedEvents = useMemo(() => {
-		const now = Date.now() / 1e3
 		const entries = Object.entries(groupedEvents)
 
-		const upcomingEvents = entries.filter(([ts]) => +ts > now).sort(([a], [b]) => +a - +b) // near to far
+		const upcomingEvents = entries.filter(([ts]) => +ts > nowSec).sort(([a], [b]) => +a - +b) // near to far
 
 		const pastEvents =
 			upcomingEvents.length > 0
-				? entries.filter(([ts]) => +ts <= now).sort(([a], [b]) => +a - +b) // oldest to newest
-				: entries.filter(([ts]) => +ts <= now).sort(([a], [b]) => +b - +a) // newest to oldest
+				? entries.filter(([ts]) => +ts <= nowSec).sort(([a], [b]) => +a - +b) // oldest to newest
+				: entries.filter(([ts]) => +ts <= nowSec).sort(([a], [b]) => +b - +a) // newest to oldest
 
 		return upcomingEvents.length > 0 ? [...pastEvents, ...upcomingEvents] : pastEvents
-	}, [groupedEvents])
+	}, [groupedEvents, nowSec])
 
 	const upcomingEventIndex = useMemo(() => {
 		const index = sortedEvents.findIndex((events) => {
 			const event = events[1][0]
 			const { timestamp } = event
-			return +timestamp > Date.now() / 1e3
+			return +timestamp > nowSec
 		})
 		return index === -1 ? 0 : index
-	}, [sortedEvents])
+	}, [sortedEvents, nowSec])
 
 	const paginationItems = useMemo(
 		() =>
@@ -665,10 +665,7 @@ const ChartContainer = ({
 		[pieChartDataAllocationMode]
 	)
 
-	const allocationPieStackColors = useMemo(
-		() => (allocationMode === 'standard' ? standardGroupColors : stackColors),
-		[allocationMode, stackColors]
-	)
+	const allocationPieStackColors = allocationMode === 'standard' ? standardGroupColors : stackColors
 
 	const formattedAllocationPieStackColors = useMemo(
 		() =>

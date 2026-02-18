@@ -13,6 +13,8 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { captureAllCharts, type CapturedChart } from '../utils/chartCapture'
 
+const EMPTY_CHARTS: Array<{ id: string; title: string }> = []
+
 interface PDFExportButtonProps {
 	sessionId: string | null
 	messageId?: string | null
@@ -21,7 +23,7 @@ interface PDFExportButtonProps {
 	className?: string
 }
 
-export function PDFExportButton({ sessionId, messageId, charts = [], exportType, className }: PDFExportButtonProps) {
+export function PDFExportButton({ sessionId, messageId, charts = EMPTY_CHARTS, exportType, className }: PDFExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const { loaders, authorizedFetch, hasActiveSubscription } = useAuthContext()
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
@@ -57,8 +59,10 @@ export function PDFExportButton({ sessionId, messageId, charts = [], exportType,
 					}
 				}
 
-				if (exportType === 'single_message' && messageId) {
-					requestBody.messageId = messageId
+				if (exportType === 'single_message') {
+					if (messageId) {
+						requestBody.messageId = messageId
+					}
 				}
 
 				const response = await authorizedFetch(`${MCP_SERVER}/export/pdf`, {
@@ -71,8 +75,15 @@ export function PDFExportButton({ sessionId, messageId, charts = [], exportType,
 
 				const data = await response.json()
 
-				if (!response.ok || !data.success) {
-					throw new Error(data.error || 'Failed to generate PDF')
+				let pdfErrorMsg = 'Failed to generate PDF'
+				if (data.error) {
+					pdfErrorMsg = data.error
+				}
+				if (!response.ok) {
+					throw new Error(pdfErrorMsg)
+				}
+				if (!data.success) {
+					throw new Error(pdfErrorMsg)
 				}
 
 				toast.success('PDF generated!', { id: 'pdf-export' })

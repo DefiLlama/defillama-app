@@ -45,12 +45,12 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 
 	useEffect(() => {
 		if (dashboardId === 'new') {
-			setIsValidating(false)
+			setIsValidating(() => false)
 			return
 		}
 
 		if (!isLoadingDashboard && (currentDashboard || dashboardVisibility)) {
-			setIsValidating(false)
+			setIsValidating(() => false)
 		}
 	}, [dashboardId, isLoadingDashboard, currentDashboard, dashboardVisibility])
 

@@ -97,9 +97,17 @@ const ProApiKey = () => {
 				try {
 					const response = await authorizedFetch(`${AUTH_SERVER}/auth/get-api-key`)
 
-					if (response?.ok) {
-						const data = await response.json()
-						setApiKey(data.result?.key || null)
+					if (response) {
+						if (response.ok) {
+							const data = await response.json()
+							let key = null
+							if (data.result) {
+								if (data.result.key) {
+									key = data.result.key
+								}
+							}
+							setApiKey(key)
+						}
 					}
 				} catch (error) {
 					console.log('Error fetching API key:', error)
@@ -121,9 +129,17 @@ const ProApiKey = () => {
 				method: 'POST'
 			})
 
-			if (response?.ok) {
-				const data = await response.json()
-				setApiKey(data.result?.key || null)
+			if (response) {
+				if (response.ok) {
+					const data = await response.json()
+					let key = null
+					if (data.result) {
+						if (data.result.key) {
+							key = data.result.key
+						}
+					}
+					setApiKey(key)
+				}
 			}
 		} catch (error) {
 			console.log('Error generating API key:', error)

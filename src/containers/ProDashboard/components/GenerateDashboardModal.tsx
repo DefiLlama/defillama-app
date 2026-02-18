@@ -140,29 +140,63 @@ export function GenerateDashboardModal({
 
 		setIsLoading(true)
 
+		let sanitizedItems = EMPTY_DASHBOARD_ITEMS
+		if (mode === 'iterate' && existingDashboard && existingDashboard.items) {
+			sanitizedItems = sanitizeItemsForAPI(existingDashboard.items)
+		}
+
+		let requestBody: Record<string, unknown>
+		if (mode === 'iterate') {
+			let existingName = ''
+			if (existingDashboard && existingDashboard.dashboardName) {
+				existingName = existingDashboard.dashboardName
+			}
+			requestBody = {
+				message: aiDescription.trim(),
+				mode: 'iterate',
+				existingDashboard: {
+					dashboardName: existingName,
+					items: sanitizedItems,
+					aiGenerated: existingDashboard && existingDashboard.aiGenerated
+				}
+			}
+		} else {
+			requestBody = {
+				message: aiDescription.trim(),
+				dashboardName: dashboardName.trim()
+			}
+		}
+
+		let dashboardNameForGenerate = dashboardName.trim()
+		if (mode === 'iterate') {
+			dashboardNameForGenerate = ''
+			if (existingDashboard && existingDashboard.dashboardName) {
+				dashboardNameForGenerate = existingDashboard.dashboardName
+			}
+		}
+
+		let visibilityForGenerate = visibility
+		if (mode === 'iterate') {
+			visibilityForGenerate = 'private'
+			if (existingDashboard && existingDashboard.visibility) {
+				visibilityForGenerate = existingDashboard.visibility
+			}
+		}
+
+		let tagsForGenerate = tags
+		if (mode === 'iterate') {
+			tagsForGenerate = EMPTY_DASHBOARD_TAGS
+			if (existingDashboard && existingDashboard.tags != null) {
+				tagsForGenerate = existingDashboard.tags
+			}
+		}
+
+		let descriptionForGenerate = ''
+		if (mode === 'iterate' && existingDashboard && existingDashboard.description) {
+			descriptionForGenerate = existingDashboard.description
+		}
+
 		try {
-			// Sanitize items before sending to API to remove invalid values
-			const sanitizedItems =
-				mode === 'iterate' && existingDashboard?.items
-					? sanitizeItemsForAPI(existingDashboard.items)
-					: EMPTY_DASHBOARD_ITEMS
-
-			const requestBody =
-				mode === 'iterate'
-					? {
-							message: aiDescription.trim(),
-							mode: 'iterate',
-							existingDashboard: {
-								dashboardName: existingDashboard?.dashboardName || '',
-								items: sanitizedItems,
-								aiGenerated: existingDashboard?.aiGenerated
-							}
-						}
-					: {
-							message: aiDescription.trim(),
-							dashboardName: dashboardName.trim()
-						}
-
 			const response = await authorizedFetch(`${MCP_SERVER}/dashboard-creator`, {
 				method: 'POST',
 				headers: {
@@ -181,28 +215,40 @@ export function GenerateDashboardModal({
 
 			const data = await response.json()
 
-			if (!data.dashboardConfig || !Array.isArray(data.dashboardConfig.items)) {
+			if (!data.dashboardConfig) {
+				throw new Error('Invalid response format from AI service')
+			}
+			if (!Array.isArray(data.dashboardConfig.items)) {
 				throw new Error('Invalid response format from AI service')
 			}
 
 			const items = data.dashboardConfig.items as DashboardItemConfig[]
-			const sessionId = data.metadata?.sessionId
-			const generationMode = data.metadata?.mode || mode
+			let sessionId: string | undefined
+			if (data.metadata) {
+				sessionId = data.metadata.sessionId
+			}
+			let generationMode: 'create' | 'iterate' = mode
+			if (data.metadata && data.metadata.mode) {
+				generationMode = data.metadata.mode as 'create' | 'iterate'
+			}
+
+			let aiGenerationContext: { sessionId: string; mode: 'create' | 'iterate'; timestamp: string; prompt: string } | undefined
+			if (sessionId) {
+				aiGenerationContext = {
+					sessionId,
+					mode: generationMode,
+					timestamp: new Date().toISOString(),
+					prompt: aiDescription.trim()
+				}
+			}
 
 			onGenerate({
-				dashboardName: mode === 'iterate' ? existingDashboard?.dashboardName || '' : dashboardName.trim(),
-				visibility: mode === 'iterate' ? existingDashboard?.visibility || 'private' : visibility,
-				tags: mode === 'iterate' ? (existingDashboard?.tags ?? EMPTY_DASHBOARD_TAGS) : tags,
-				description: mode === 'iterate' ? existingDashboard?.description || '' : '',
+				dashboardName: dashboardNameForGenerate,
+				visibility: visibilityForGenerate,
+				tags: tagsForGenerate,
+				description: descriptionForGenerate,
 				items,
-				aiGenerationContext: sessionId
-					? {
-							sessionId,
-							mode: generationMode,
-							timestamp: new Date().toISOString(),
-							prompt: aiDescription.trim()
-						}
-					: undefined
+				aiGenerationContext
 			})
 
 			setDashboardName('')

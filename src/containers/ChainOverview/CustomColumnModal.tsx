@@ -59,7 +59,7 @@ export function CustomColumnModal({
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 	useEffect(() => {
 		if (isOpen) {
-			setState({
+			setState(() => ({
 				name: initialName,
 				formula: initialFormula,
 				formatType: initialFormatType,
@@ -68,7 +68,7 @@ export function CustomColumnModal({
 				suggestions: [],
 				highlighted: 0,
 				fieldWarning: null
-			})
+			}))
 		}
 	}, [isOpen, initialName, initialFormula, initialFormatType])
 

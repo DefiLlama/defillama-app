@@ -137,6 +137,8 @@ export const useSubscribe = () => {
 				return
 			}
 
+			const subscriptionType = type || 'api'
+			const userId = user?.id
 			try {
 				if (paymentMethod === 'stripe') {
 					setIsPayingWithStripe(true)
@@ -148,12 +150,12 @@ export const useSubscribe = () => {
 					redirectUrl: `${window.location.origin}/subscription?subscription=success`,
 					cancelUrl: `${window.location.origin}/subscription?subscription=cancelled`,
 					provider: paymentMethod,
-					subscriptionType: type || 'api',
+					subscriptionType,
 					billingInterval,
 					isTrial
 				}
 
-				queryClient.setQueryData(['subscription', user?.id], defaultInactiveSubscription)
+				queryClient.setQueryData(['subscription', userId], defaultInactiveSubscription)
 				queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
 
 				const result = await createSubscription.mutateAsync(subscriptionData)
@@ -165,7 +167,9 @@ export const useSubscribe = () => {
 
 				// Navigate to checkout URL in same window
 				if (result.checkoutUrl) {
-					onSuccess?.(result.checkoutUrl)
+					if (onSuccess) {
+						onSuccess(result.checkoutUrl)
+					}
 					window.location.href = result.checkoutUrl
 				}
 			} catch (error) {

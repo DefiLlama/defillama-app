@@ -164,7 +164,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const promptInputRef = useRef<HTMLTextAreaElement>(null)
 
 	const resetScrollState = useCallback(() => {
-		setShowScrollToBottom(false)
+		setShowScrollToBottom(() => false)
 		shouldAutoScrollRef.current = true
 		isAutoScrollingRef.current = true
 	}, [])
@@ -176,17 +176,16 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	useEffect(() => {
 		if (initialSessionId && !sessionId) {
 			resetScrollState()
-			setSessionId(initialSessionId)
-			setHasRestoredSession(null)
+			setSessionId(() => initialSessionId)
+			setHasRestoredSession(() => null)
 		}
 	}, [initialSessionId, sessionId, resetScrollState])
 
 	useEffect(() => {
 		if (sharedSession) {
 			resetScrollState()
-			// Shared sessions now use role-based format - use messages as-is
-			setMessages(sharedSession.messages)
-			setSessionId(sharedSession.session.sessionId)
+			setMessages(() => sharedSession.messages)
+			setSessionId(() => sharedSession.session.sessionId)
 		}
 	}, [sharedSession, resetScrollState])
 
@@ -265,7 +264,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			!isStreaming
 		) {
 			resetScrollState()
-			setHasRestoredSession(sessionId)
+			setHasRestoredSession(() => sessionId)
 			restoreSession(sessionId)
 				.then((result: any) => {
 					setMessages(result.messages)
@@ -650,7 +649,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			}
 
 			const finalPrompt = prompt.trim()
-			setPrompt(finalPrompt)
+			setPrompt(() => finalPrompt)
 			lastInputRef.current = { text: finalPrompt, entities: preResolved }
 			shouldAutoScrollRef.current = true
 
@@ -675,7 +674,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			}
 
 			const finalPrompt = prompt.trim()
-			setPrompt(finalPrompt)
+			setPrompt(() => finalPrompt)
 			shouldAutoScrollRef.current = true
 
 			if (sessionId) {

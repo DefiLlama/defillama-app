@@ -136,10 +136,9 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 	const isFullView = false
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
+	const now = useMemo(() => Date.now() / 1000, [])
 	const { dataset, charts } = useMemo(() => {
 		if (!protocols || protocols.length === 0) return EMPTY_CHART_RESULT
-
-		const now = Date.now() / 1000
 		const endTs = isFullView ? Infinity : END_TIMESTAMP
 		const isTotalView = viewMode === 'Total View'
 
@@ -222,7 +221,7 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 				color: CHART_COLORS[i % CHART_COLORS.length]
 			}))
 		}
-	}, [protocols, timePeriod, isFullView, viewMode])
+	}, [protocols, timePeriod, isFullView, viewMode, now])
 
 	return (
 		<>

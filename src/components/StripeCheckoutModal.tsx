@@ -55,6 +55,7 @@ export function StripeCheckoutModal({
 	} | null>(null)
 
 	const fetchClientSecret = useCallback(async () => {
+		const subscriptionType = type || 'api'
 		try {
 			setError(null)
 
@@ -62,7 +63,7 @@ export function StripeCheckoutModal({
 				redirectUrl: `${window.location.origin}/account?success=true`,
 				cancelUrl: `${window.location.origin}/subscription`,
 				provider: paymentMethod,
-				subscriptionType: type || 'api',
+				subscriptionType,
 				billingInterval,
 				isTrial
 			}
@@ -82,7 +83,11 @@ export function StripeCheckoutModal({
 			const data = await response.json()
 
 			if (!response.ok) {
-				throw new Error(data.message || 'Failed to create subscription')
+				let errorMessage = 'Failed to create subscription'
+				if (data.message) {
+					errorMessage = data.message
+				}
+				throw new Error(errorMessage)
 			}
 
 			if (data.isUpgrade) {
@@ -102,13 +107,23 @@ export function StripeCheckoutModal({
 
 				setUpgradeClientSecret(data.clientSecret)
 
-				if (data.amount !== undefined && data.currency) {
-					setUpgradePricing({
-						amount: data.amount,
-						currency: data.currency,
-						prorationCredit: data.prorationCredit || 0,
-						newSubscriptionPrice: data.newSubscriptionPrice || 0
-					})
+				if (data.amount !== undefined) {
+					if (data.currency) {
+						let prorationCredit = 0
+						if (data.prorationCredit) {
+							prorationCredit = data.prorationCredit
+						}
+						let newSubscriptionPrice = 0
+						if (data.newSubscriptionPrice) {
+							newSubscriptionPrice = data.newSubscriptionPrice
+						}
+						setUpgradePricing({
+							amount: data.amount,
+							currency: data.currency,
+							prorationCredit,
+							newSubscriptionPrice
+						})
+					}
 				}
 
 				return null
@@ -297,9 +312,11 @@ function UpgradePaymentForm({ onError }: { onError: (error: string) => void }) {
 				throw new Error(confirmError.message)
 			}
 
-			if (paymentIntent?.status === 'succeeded') {
-				queryClient.invalidateQueries({ queryKey: ['subscription'] })
-				window.location.href = `${window.location.origin}/account?success=true`
+			if (paymentIntent) {
+				if (paymentIntent.status === 'succeeded') {
+					queryClient.invalidateQueries({ queryKey: ['subscription'] })
+					window.location.href = `${window.location.origin}/account?success=true`
+				}
 			}
 		} catch (err) {
 			onError(err instanceof Error ? err.message : 'Payment failed')

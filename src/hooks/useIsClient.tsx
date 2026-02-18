@@ -1,11 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
+
+const subscribe = () => () => {}
 
 export const useIsClient = () => {
-	const [isClient, setIsClient] = useState(false)
-
-	useEffect(() => {
-		setIsClient(true)
-	}, [])
-
-	return isClient
+	return useSyncExternalStore(subscribe, () => true, () => false)
 }

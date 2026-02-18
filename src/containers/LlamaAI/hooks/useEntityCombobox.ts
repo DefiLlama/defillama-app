@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { type RefObject, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { type RefObject, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { getAnchorRect, replaceValue } from '../utils/entitySuggestions'
 import { setInputSize } from '../utils/scrollUtils'
 import { highlightWord } from '../utils/textUtils'
@@ -245,6 +245,10 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 
 	const hasRenderedItems = combobox.getState().renderedItems.length > 0
 
+	const setIsProgrammaticUpdate = useCallback((value: boolean) => {
+		isProgrammaticUpdateRef.current = value
+	}, [])
+
 	return {
 		combobox,
 		searchValue,
@@ -254,7 +258,7 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 		isLoading,
 		isTriggerOnly,
 		entitiesRef,
-		isProgrammaticUpdateRef,
+		setIsProgrammaticUpdate,
 		hasRenderedItems,
 		handleScroll,
 		handleChange,

@@ -483,7 +483,7 @@ const TokenPnlContent = ({
 
 export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) {
 	const router = useRouter()
-	const now = Math.floor(Date.now() / 1000) - 60
+	const now = useMemo(() => Math.floor(Date.now() / 1000) - 60, [])
 	const coinParam = router.query?.coin
 
 	const coinInfoMap = useMemo(() => new Map(coinsData.map((coin) => [coin.id, coin])), [coinsData])

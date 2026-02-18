@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { ConfirmationModal } from './ConfirmationModal'
@@ -47,13 +47,6 @@ export function DashboardSettingsModal({
 	const [tagInput, setTagInput] = useState('')
 	const [isDeleting, setIsDeleting] = useState(false)
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-
-	useEffect(() => {
-		setLocalDashboardName(dashboardName)
-		setLocalVisibility(visibility)
-		setLocalTags(tags)
-		setLocalDescription(description)
-	}, [dashboardName, visibility, tags, description])
 
 	const handleSave = () => {
 		onDashboardNameChange(localDashboardName)

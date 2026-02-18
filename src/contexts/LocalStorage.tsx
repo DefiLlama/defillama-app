@@ -321,16 +321,28 @@ export function useLocalStorageSettingsManager<T extends TSETTINGTYPE>(
 	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
 		() => {
+			let urlParams: URLSearchParams | null = null
+			if (isClient) {
+				urlParams = new URLSearchParams(window.location.search)
+			}
 			try {
-				const urlParams = isClient ? new URLSearchParams(window.location.search) : null
-
 				const ps = readAppStorage()
 				const obj = {} as Record<KeysFor<T>, boolean>
 				for (const s of keys) {
 					const storedValue = (ps as SettingsStore)[s as SettingKey]
-					obj[s] =
-						(urlParams && urlParams.get(s) ? urlParams.get(s) === 'true' : null) ??
-						(typeof storedValue === 'boolean' ? storedValue : false)
+					let param: string | null = null
+					if (urlParams) {
+						param = urlParams.get(s)
+					}
+					let value: boolean
+					if (param) {
+						value = param === 'true'
+					} else if (typeof storedValue === 'boolean') {
+						value = storedValue
+					} else {
+						value = false
+					}
+					obj[s] = value
 				}
 
 				return JSON.stringify(obj)

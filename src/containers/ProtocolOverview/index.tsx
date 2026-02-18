@@ -978,11 +978,11 @@ function Earnings(props: IKeyMetricsProps) {
 }
 
 function BridgeVolume(props: IKeyMetricsProps) {
+	const now = useMemo(() => Date.now(), [])
+
 	if (!props.bridgeVolume || props.bridgeVolume.length === 0) return null
 
 	const metrics = []
-
-	const now = Date.now()
 	const oneDayAgo = now - 24 * 60 * 60 * 1000
 	const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000
 	const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000

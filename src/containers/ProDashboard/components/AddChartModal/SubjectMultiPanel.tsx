@@ -1,4 +1,4 @@
-import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
+import { Popover, PopoverDisclosure, usePopoverStore, useStoreState } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -47,7 +47,7 @@ function SubjectMultiPanel({
 	const chainListRef = useRef<HTMLDivElement | null>(null)
 	const protocolListRef = useRef<HTMLDivElement | null>(null)
 	const popover = usePopoverStore({ placement: 'bottom-start' })
-	const isPopoverOpen = popover.useState('open')
+	const isPopoverOpen = useStoreState(popover, 'open')
 	const { availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
 	const { protocols, chains } = useProDashboardCatalog()
 

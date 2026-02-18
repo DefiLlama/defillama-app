@@ -54,7 +54,11 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 						const res = await fetch(`${CHAINS_API_V2}/${encodeURIComponent(cat)}`)
 						if (!res.ok) return { category: cat, chains: [] as string[] }
 						const data = await res.json()
-						return { category: cat, chains: (data?.chainsUnique as string[]) || [] }
+						let chains: string[] = []
+						if (data && data.chainsUnique) {
+							chains = data.chainsUnique as string[]
+						}
+						return { category: cat, chains }
 					} catch {
 						return { category: cat, chains: [] as string[] }
 					}
@@ -79,12 +83,12 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 
 	useEffect(() => {
 		if (!isOpen) {
-			setMode('picker')
+			setMode(() => 'picker')
 			appliedPresetRef.current = false
 			return
 		}
 		if (comparisonPreset && !appliedPresetRef.current) {
-			setMode('comparison')
+			setMode(() => 'comparison')
 			appliedPresetRef.current = true
 		}
 	}, [comparisonPreset, isOpen])

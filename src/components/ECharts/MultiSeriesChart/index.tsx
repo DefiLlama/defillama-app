@@ -139,23 +139,24 @@ export default function MultiSeriesChart({
 
 		updateChartInstance(instance)
 
+		const settings = { ...defaultChartSettings }
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
-				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
-			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
+				settings['tooltip'] = { ...settings['inflowsTooltip'] }
+			} else if (settings[option]) {
+				settings[option] = mergeDeep(settings[option], chartOptions[option])
 			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
+				settings[option] = { ...chartOptions[option] }
 			}
 		}
 
 		if (showAggregateInTooltip && !chartOptions?.tooltip?.formatter) {
-			defaultChartSettings.tooltip = {
-				...defaultChartSettings.aggregateTooltip
+			settings.tooltip = {
+				...settings.aggregateTooltip
 			}
 		}
 
-		const { graphic, tooltip, xAxis, yAxis, dataZoom, legend, grid } = defaultChartSettings
+		const { graphic, tooltip, xAxis, yAxis, dataZoom, legend, grid } = settings
 
 		const metricTypes = new Set(processedSeries.flatMap((s: any) => (s.metricType ? [s.metricType] : [])))
 		const uniqueMetricTypes = Array.from(metricTypes)

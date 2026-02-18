@@ -154,15 +154,18 @@ export function Stats(props: IStatsProps) {
 				return
 			}
 
-			try {
-				const enabledParams = TVL_SETTINGS_KEYS.flatMap((key) => (tvlSettings[key] ? [`${key}=true`] : []))
-				const url = `https://api.llama.fi/simpleChainDataset/${
-					chainsNamesMap[props.metadata.name] || props.metadata.name
-				}?${enabledParams.join('&')}`.replaceAll(' ', '%20')
+			const enabledParams = TVL_SETTINGS_KEYS.flatMap((key) => (tvlSettings[key] ? [`${key}=true`] : []))
+			const chainDatasetName = chainsNamesMap[props.metadata.name] || props.metadata.name
+			const url = `https://api.llama.fi/simpleChainDataset/${chainDatasetName}?${enabledParams.join('&')}`.replaceAll(' ', '%20')
 
+			try {
 				const response = await fetch(url)
 
-				if (!response || !response.ok) {
+				if (!response) {
+					toast.error('Failed to download CSV data')
+					return
+				}
+				if (!response.ok) {
 					toast.error('Failed to download CSV data')
 					return
 				}

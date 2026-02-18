@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import type { PrecomputedData, UnlocksData } from '~/containers/Unlocks/calendarTypes'

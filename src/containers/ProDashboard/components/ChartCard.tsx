@@ -56,6 +56,7 @@ function ChartRenderer({
 	onChartReady
 }: ChartRendererProps) {
 	const chartType = CHART_TYPES[type]
+	const todayTimestamp = useMemo(() => Math.floor(Date.now() / 1000), [])
 
 	if (isLoading) {
 		return (
@@ -87,7 +88,6 @@ function ChartRenderer({
 			: percentMetricTypes.includes(type)
 				? '%'
 				: '$'
-	const todayTimestamp = Math.floor(Date.now() / 1000)
 	const todayHallmarks: [number, string][] | null =
 		type === 'unlocks' ? [[todayTimestamp, toNiceDayMonthYear(todayTimestamp)]] : null
 

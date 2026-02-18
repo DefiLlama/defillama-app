@@ -64,7 +64,10 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				})
 
 				if (!response.ok) {
-					if (response.status === 404 || response.status === 401) {
+					if (response.status === 404) {
+						return null
+					}
+					if (response.status === 401) {
 						return null
 					}
 					throw new Error('Failed to fetch notification preferences')
@@ -73,7 +76,11 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				const data = await response.json()
 
 				console.log('API response:', data)
-				return data.preferences || null
+				let result = null
+				if (data.preferences) {
+					result = data.preferences
+				}
+				return result
 			} catch (error) {
 				console.log('Error fetching notification preferences:', error)
 				return null

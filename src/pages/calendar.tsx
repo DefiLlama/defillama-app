@@ -311,16 +311,15 @@ export const calendarColumns: ColumnDef<any>[] = [
 ]
 
 const SimpleUpcomingEvent = ({ timestamp, name }) => {
-	const timeLeft = timestamp - Date.now() / 1e3
+	const [nowMs, setNowMs] = React.useState(() => Date.now())
+	const timeLeft = timestamp - nowMs / 1e3
 	const days = Math.floor(timeLeft / 86400)
 	const hours = Math.floor((timeLeft - 86400 * days) / 3600)
 	const minutes = Math.floor((timeLeft - 86400 * days - 3600 * hours) / 60)
 	const seconds = Math.floor(timeLeft - 86400 * days - 3600 * hours - minutes * 60)
 
-	const [_, rerender] = React.useState(1)
-
 	React.useEffect(() => {
-		const id = setInterval(() => rerender((value) => value + 1), 1000)
+		const id = setInterval(() => setNowMs(Date.now()), 1000)
 
 		return () => clearInterval(id)
 	}, [])

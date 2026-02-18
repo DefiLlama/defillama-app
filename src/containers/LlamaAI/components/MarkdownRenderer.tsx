@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
@@ -156,7 +156,9 @@ export function MarkdownRenderer({
 	}, [content, citations])
 
 	const linkMapRef = useRef(processedData.linkMap)
-	linkMapRef.current = processedData.linkMap
+	useEffect(() => {
+		linkMapRef.current = processedData.linkMap
+	})
 
 	const markdownComponents = useMemo(
 		() => ({

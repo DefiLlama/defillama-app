@@ -174,10 +174,12 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 	)
 }
 
+const EMPTY_ARRAY: any[] = []
+
 function PortfolioNotifications({
 	selectedPortfolio,
-	filteredProtocols = [],
-	filteredChains = []
+	filteredProtocols = EMPTY_ARRAY,
+	filteredChains = EMPTY_ARRAY
 }: {
 	selectedPortfolio: string
 	filteredProtocols?: any[]
@@ -293,24 +295,34 @@ function PortfolioNotifications({
 
 			const settings: NotificationSettings = {}
 
-			if (protocolMetrics?.length > 0 && filteredProtocols.length > 0) {
-				settings.protocols = {}
-				for (const protocol of filteredProtocols) {
-					const identifier = protocol.slug
-					settings.protocols![identifier] = protocolMetrics.map(mapUIMetricToAPI)
+			if (protocolMetrics) {
+				if (protocolMetrics.length > 0) {
+					if (filteredProtocols.length > 0) {
+						settings.protocols = {}
+						for (const protocol of filteredProtocols) {
+							const identifier = protocol.slug
+							settings.protocols![identifier] = protocolMetrics.map(mapUIMetricToAPI)
+						}
+					}
 				}
 			}
 
-			if (chainMetrics?.length > 0 && filteredChains.length > 0) {
-				settings.chains = {}
-				for (const chain of filteredChains) {
-					settings.chains![chain.name] = chainMetrics.map(mapUIMetricToAPI)
+			if (chainMetrics) {
+				if (chainMetrics.length > 0) {
+					if (filteredChains.length > 0) {
+						settings.chains = {}
+						for (const chain of filteredChains) {
+							settings.chains![chain.name] = chainMetrics.map(mapUIMetricToAPI)
+						}
+					}
 				}
 			}
 
-			if (!settings.protocols && !settings.chains) {
-				toast.error('Unable to save: no valid settings configured')
-				return
+			if (!settings.protocols) {
+				if (!settings.chains) {
+					toast.error('Unable to save: no valid settings configured')
+					return
+				}
 			}
 
 			await savePreferences({

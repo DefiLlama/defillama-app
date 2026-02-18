@@ -26,12 +26,17 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 	// oxlint-disable-next-line no-unused-vars
 	const [showEmailForm, setShowEmailForm] = useState(false)
 	const [showReturnModal, setShowReturnModal] = useState(false)
+	const [prevReturnUrl, setPrevReturnUrl] = useState(returnUrl)
 	const [hasShownModal, setHasShownModal] = useState(false)
+	if (returnUrl !== prevReturnUrl) {
+		setPrevReturnUrl(returnUrl)
+		setHasShownModal(false)
+	}
 
 	const pricingContainer = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
-		setIsClient(true)
+		setIsClient(() => true)
 	}, [])
 
 	useEffect(() => {
@@ -45,15 +50,11 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 			}
 
 			if (!justSignedUp && !isRecentAccount) {
-				setShowReturnModal(true)
-				setHasShownModal(true)
+				setShowReturnModal(() => true)
+				setHasShownModal(() => true)
 			}
 		}
 	}, [isAuthenticated, returnUrl, hasShownModal, loaders.userLoading, user?.created])
-
-	useEffect(() => {
-		setHasShownModal(false)
-	}, [returnUrl])
 
 	const handleResendVerification = async () => {
 		if (user?.email) {

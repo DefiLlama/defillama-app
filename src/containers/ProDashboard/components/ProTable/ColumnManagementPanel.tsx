@@ -5,6 +5,9 @@ import { Tooltip } from '~/components/Tooltip'
 import type { CustomView } from '../../types'
 import { CustomColumnPanel } from './CustomColumnPanel'
 
+const EMPTY_CUSTOM_COLUMNS: CustomColumn[] = []
+const EMPTY_CUSTOM_VIEWS: CustomView[] = []
+
 const metricDescriptions: Record<string, string> = {
 	name: 'Protocol name',
 	category: 'Protocol category or type',
@@ -212,11 +215,11 @@ export function ColumnManagementPanel({
 	toggleColumnVisibility,
 	moveColumnUp,
 	moveColumnDown,
-	customColumns = [],
+	customColumns = EMPTY_CUSTOM_COLUMNS,
 	onAddCustomColumn,
 	onRemoveCustomColumn,
 	onUpdateCustomColumn,
-	customViews = [],
+	customViews = EMPTY_CUSTOM_VIEWS,
 	onLoadView,
 	onDeleteView,
 	activeViewId

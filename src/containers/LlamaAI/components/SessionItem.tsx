@@ -183,8 +183,10 @@ export const SessionItem = memo(function SessionItem({
 						<Ariakit.MenuItem
 							onClick={() => {
 								try {
-									if (session.isPublic && session.shareToken) {
-										navigator.clipboard.writeText(`${window.location.origin}/ai/chat/shared/${session.shareToken}`)
+									if (session.isPublic) {
+										if (session.shareToken) {
+											navigator.clipboard.writeText(`${window.location.origin}/ai/chat/shared/${session.shareToken}`)
+										}
 									}
 								} catch (error) {
 									console.log(error)

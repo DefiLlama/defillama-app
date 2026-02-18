@@ -31,10 +31,10 @@ export default function useWindowSize(): Size {
 		window.addEventListener('resize', handleResize)
 
 		// Set initial size immediately; debounce only subsequent resizes
-		setDebouncedWindowSize({
+		setDebouncedWindowSize(() => ({
 			width: window.innerWidth,
 			height: window.innerHeight
-		})
+		}))
 
 		// Remove event listener on cleanup
 		return () => window.removeEventListener('resize', handleResize)
