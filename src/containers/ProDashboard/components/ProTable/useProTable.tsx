@@ -129,10 +129,11 @@ export function useProTable(
 	onFilterClick?: () => void,
 	options?: UseProTableOptions
 ) {
-	const { finalProtocolsList, isLoading, isEmptyProtocols, categories, availableProtocols, parentProtocols } = useProTableData({
-		chains,
-		filters
-	})
+	const { finalProtocolsList, isLoading, isEmptyProtocols, categories, availableProtocols, parentProtocols } =
+		useProTableData({
+			chains,
+			filters
+		})
 	const onColumnsChange = options?.onColumnsChange
 
 	const initialKnownColumnIdsRef = React.useRef<string[] | null>(null)
@@ -140,7 +141,9 @@ export function useProTable(
 		const baseColumnIds = protocolsByChainTableColumns.map((column) => column.key)
 		const shareColumnIds = SHARE_METRIC_DEFINITIONS.map((metric) => `${metric.key}_share`)
 		const initialCustomColumnIds = (options?.initialCustomColumns ?? []).map((column) => column.id)
-		initialKnownColumnIdsRef.current = Array.from(new Set([...baseColumnIds, ...shareColumnIds, ...initialCustomColumnIds]))
+		initialKnownColumnIdsRef.current = Array.from(
+			new Set([...baseColumnIds, ...shareColumnIds, ...initialCustomColumnIds])
+		)
 	}
 
 	const preferredPresetRef = React.useRef<(typeof COLUMN_PRESETS)[number] | null>(null)

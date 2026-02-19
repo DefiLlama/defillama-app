@@ -23,7 +23,7 @@ interface ITableProps<T extends RowData = any> {
 	scrollMargin?: number
 }
 
-declare module '@tanstack/table-core' {
+declare module '@tanstack/react-table' {
 	interface ColumnMeta<TData extends RowData, TValue> {
 		align?: 'start' | 'end' | 'center'
 		headerHelperText?: string

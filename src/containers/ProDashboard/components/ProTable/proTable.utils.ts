@@ -411,8 +411,8 @@ export const formatProtocolsList = ({
 				strikeTvl = true
 			}
 
-			for (const prop in extraTvl) {
-				const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = extraTvl[prop] ?? {}
+			for (const prop in extraTvl ?? {}) {
+				const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = extraTvl?.[prop] ?? {}
 				if (
 					prop === 'doublecounted' &&
 					!extraTvlsEnabled['doublecounted'] &&

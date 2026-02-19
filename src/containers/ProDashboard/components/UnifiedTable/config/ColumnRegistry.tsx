@@ -23,14 +23,6 @@ import { createCustomColumnDef, validateCustomColumnOnLoad } from '../utils/cust
 import { COLUMN_DICTIONARY_BY_ID } from './ColumnDictionary'
 import { isColumnSupported } from './metricCapabilities'
 
-declare module '@tanstack/table-core' {
-	// oxlint-disable-next-line no-unused-vars
-	interface ColumnMeta<TData, TValue> {
-		align?: 'start' | 'center' | 'end'
-		hidden?: boolean
-	}
-}
-
 const renderDash = () => <span className="pro-text3">-</span>
 
 const renderUsd = (value: number | null | undefined) => {

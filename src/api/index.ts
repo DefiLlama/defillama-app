@@ -25,7 +25,7 @@ export const useFetchCoingeckoTokensList = () => {
 	}
 }
 
-export async function retryCoingeckoRequest<T>(func: () => Promise<T>, retries: number): Promise<T | {}> {
+export async function retryCoingeckoRequest<T>(func: () => Promise<T>, retries: number): Promise<T | null> {
 	for (let i = 0; i < retries; i++) {
 		try {
 			const resp = await func()
@@ -37,7 +37,7 @@ export async function retryCoingeckoRequest<T>(func: () => Promise<T>, retries: 
 			continue
 		}
 	}
-	return {}
+	return null
 }
 
 export async function getAllCGTokensList(): Promise<Array<IResponseCGMarketsAPI>> {
