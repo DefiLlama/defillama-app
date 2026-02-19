@@ -11,7 +11,7 @@ import { getAdapterDashboardType } from '~/containers/ProDashboard/utils/adapter
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug } from '~/utils'
-import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
+import { parseArrayParam, parseExcludeParam, pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import type { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -225,19 +225,6 @@ export const ChainsByAdapterChart = ({
 	}, [router.query.chartType])
 	const effectiveInterval: ChainsByAdapterInterval = chartType === 'Dominance' ? 'Daily' : chartInterval
 	const selectedChains = React.useMemo(() => {
-		const parseArrayParam = (param: string | string[] | undefined, values: string[]): string[] => {
-			if (param === 'None') return []
-			if (!param) return values
-			const selected = Array.isArray(param) ? param.filter(Boolean) : [param].filter(Boolean)
-			const allowed = new Set(values)
-			return selected.filter((value) => allowed.has(value))
-		}
-		const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-			if (!param) return new Set()
-			if (typeof param === 'string') return new Set([param])
-			return new Set(param)
-		}
-
 		const chainsQuery = router.query.chains
 		const excludeChainsQuery = router.query.excludeChains
 		const excludedChainsSet = parseExcludeParam(excludeChainsQuery)

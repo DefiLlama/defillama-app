@@ -22,6 +22,7 @@ import type { ProtocolEmission } from '~/containers/Unlocks/api.types'
 import Layout from '~/layout'
 import { formatPercentage, slug, toNiceDayMonthYear, toNiceHour } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 export const getStaticProps = withPerformanceLogging('calendar', async () => {
 	const res = await fetchAllProtocolEmissions()
@@ -152,17 +153,7 @@ export default function Protocols({ emissions }) {
 					<Ariakit.SelectProvider
 						value={selectedOptions}
 						setValue={(newOptions) => {
-							router.push(
-								{
-									pathname: router.pathname,
-									query: {
-										...router.query,
-										type: newOptions
-									}
-								},
-								undefined,
-								{ shallow: true }
-							)
+							pushShallowQuery(router, { type: newOptions })
 						}}
 					>
 						<Ariakit.Select className="flex cursor-pointer flex-nowrap items-center gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)">
@@ -196,17 +187,7 @@ export default function Protocols({ emissions }) {
 							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
 								<button
 									onClick={() => {
-										router.push(
-											{
-												pathname: router.pathname,
-												query: {
-													...router.query,
-													type: 'None'
-												}
-											},
-											undefined,
-											{ shallow: true }
-										)
+										pushShallowQuery(router, { type: 'None' })
 									}}
 									className="p-3"
 								>
@@ -214,17 +195,7 @@ export default function Protocols({ emissions }) {
 								</button>
 								<button
 									onClick={() => {
-										router.push(
-											{
-												pathname: router.pathname,
-												query: {
-													...router.query,
-													type: 'All'
-												}
-											},
-											undefined,
-											{ shallow: true }
-										)
+										pushShallowQuery(router, { type: 'All' })
 									}}
 									className="p-3"
 								>

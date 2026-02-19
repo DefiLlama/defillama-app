@@ -78,21 +78,3 @@ export function applyExtraTvl(
 		}
 	})
 }
-
-/** Parse a query param that may be string, string[], or undefined into a Set<string>. */
-export function parseExcludeParam(param: string | string[] | undefined): Set<string> {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
-
-/** Resolve selected chain filters from a query param against the full chain list. */
-export function getSelectedChainFilters(chainQueryParam: string | string[] | undefined, allChains: string[]): string[] {
-	if (chainQueryParam) {
-		if (typeof chainQueryParam === 'string') {
-			return chainQueryParam === 'All' ? allChains : chainQueryParam === 'None' ? [] : [chainQueryParam]
-		}
-		return Array.isArray(chainQueryParam) ? chainQueryParam : []
-	}
-	return allChains
-}

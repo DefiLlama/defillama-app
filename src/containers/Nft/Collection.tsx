@@ -8,6 +8,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { getNFTCollection } from '~/containers/Nft/queries'
+import { pushShallowQuery } from '~/utils/routerQuery'
 import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types'
 
 const CollectionScatterChart = React.lazy(
@@ -100,15 +101,7 @@ export function NFTCollectionContainer() {
 							label="Include Outliers"
 							value="showMcapChart"
 							checked={includeOutliers}
-							onChange={() =>
-								router.push(
-									{ pathname: router.pathname, query: { ...router.query, includeOutliers: !includeOutliers } },
-									undefined,
-									{
-										shallow: true
-									}
-								)
-							}
+							onChange={() => pushShallowQuery(router, { includeOutliers: !includeOutliers })}
 						/>
 					</div>
 					<React.Suspense fallback={<></>}>

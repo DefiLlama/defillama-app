@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { AccountInfo } from '~/containers/Subscribtion/AccountInfo'
@@ -10,7 +10,7 @@ import { WalletProvider } from '~/layout/WalletProvider'
 
 export default function Account() {
 	const router = useRouter()
-	const { success } = router.query
+	const success = Array.isArray(router.query.success) ? router.query.success[0] : router.query.success
 	const queryClient = useQueryClient()
 	const { isAuthenticated } = useAuthContext()
 	const { hasActiveSubscription, isSubscriptionLoading } = useSubscribe()
@@ -19,12 +19,21 @@ export default function Account() {
 	const [hasShownSuccessModal, setHasShownSuccessModal] = useState(false)
 
 	useEffect(() => {
-		if (success === 'true' && isAuthenticated && !hasProcessedSuccess) {
-			queryClient.invalidateQueries({ queryKey: ['subscription'] })
-			setHasProcessedSuccess(() => true)
-			Router.replace('/account', undefined, { shallow: true })
-		}
-	}, [success, isAuthenticated, hasProcessedSuccess, queryClient, router.query, router.pathname])
+		if (success !== 'true' || !isAuthenticated || hasProcessedSuccess) return
+
+		void queryClient.invalidateQueries({ queryKey: ['subscription'] })
+		setHasProcessedSuccess(true)
+
+		const { success: _ignoredSuccess, ...nextQuery } = router.query
+		void router.replace(
+			{
+				pathname: router.pathname,
+				query: nextQuery
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}, [success, isAuthenticated, hasProcessedSuccess, queryClient, router])
 
 	useEffect(() => {
 		if (hasProcessedSuccess && !isSubscriptionLoading && hasActiveSubscription && !hasShownSuccessModal) {

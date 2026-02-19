@@ -1,29 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
-import { CACHE_SERVER, CG_TOKEN_API, COINS_MCAPS_API, COINS_PRICES_API, CONFIG_API, TOKEN_LIST_API } from '~/constants'
-import { fetchApi, fetchJson, postRuntimeLogs } from '~/utils/async'
+import { CACHE_SERVER, COINS_MCAPS_API, COINS_PRICES_API, CONFIG_API, TOKEN_LIST_API } from '~/constants'
+import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import type { IResponseCGMarketsAPI } from './types'
-
-function getCGMarketsDataURLs() {
-	const urls: string[] = []
-	const maxPage = 20
-	for (let page = 1; page <= maxPage; page++) {
-		urls.push(`${CG_TOKEN_API.replace('<PLACEHOLDER>', `${page}`)}`)
-	}
-	return urls
-}
-
-export const useFetchCoingeckoTokensList = () => {
-	const { data, isLoading, error } = useQuery({
-		queryKey: ['coingeckotokenslist'],
-		queryFn: () => fetchApi(getCGMarketsDataURLs())
-	})
-
-	return {
-		data: data?.flat(),
-		error,
-		isLoading
-	}
-}
 
 export async function retryCoingeckoRequest<T>(func: () => Promise<T>, retries: number): Promise<T | null> {
 	for (let i = 0; i < retries; i++) {
@@ -40,10 +17,27 @@ export async function retryCoingeckoRequest<T>(func: () => Promise<T>, retries: 
 	return null
 }
 
-export async function getAllCGTokensList(): Promise<Array<IResponseCGMarketsAPI>> {
-	const data = await fetchJson(TOKEN_LIST_API)
+function isCGMarketsApiItem(value: unknown): value is IResponseCGMarketsAPI {
+	if (typeof value !== 'object' || value === null) return false
+	const item = value as Partial<IResponseCGMarketsAPI>
+	return typeof item.id === 'string' && typeof item.symbol === 'string' && typeof item.name === 'string'
+}
 
-	return data
+export async function getAllCGTokensList(): Promise<Array<IResponseCGMarketsAPI>> {
+	const data = await fetchJson<unknown>(TOKEN_LIST_API)
+	if (!Array.isArray(data)) {
+		throw new Error(`[getAllCGTokensList] Expected array response from ${TOKEN_LIST_API}`)
+	}
+
+	const validTokens = data.filter(isCGMarketsApiItem)
+	const malformedCount = data.length - validTokens.length
+	if (malformedCount > 0) {
+		postRuntimeLogs(
+			`[getAllCGTokensList] Skipped ${malformedCount} malformed token entries from ${TOKEN_LIST_API}`
+		)
+	}
+
+	return validTokens
 }
 
 interface LlamaConfigResponse {
@@ -69,8 +63,9 @@ export async function fetchLlamaConfig(): Promise<LlamaConfigResponse> {
 //:22 -> we rebuild all pages
 export function maxAgeForNext(minutesForRollover: number[] = [22]) {
 	// minutesForRollover is an array of minutes in the hour that we want to revalidate
-	const currentMinute = new Date().getMinutes()
-	const currentSecond = new Date().getSeconds()
+	const now = new Date()
+	const currentMinute = now.getMinutes()
+	const currentSecond = now.getSeconds()
 	const nextMinute = minutesForRollover.find((m) => m > currentMinute) ?? Math.min(...minutesForRollover) + 60
 	const maxAge = nextMinute * 60 - currentMinute * 60 - currentSecond
 	return maxAge
@@ -82,9 +77,9 @@ export async function fetchChainMcaps(chains: Array<[string, string]>) {
 	}
 
 	// Filter out chains without gecko_id
-	const validChains = chains
+	const validChains: Array<[string, string]> = chains
 		.filter(([_, geckoId]) => geckoId != null && geckoId !== '')
-		.map(([chain, geckoId]) => [chain, `coingecko:${geckoId}`] as const)
+		.map(([chain, geckoId]) => [chain, geckoId])
 
 	if (validChains.length === 0) {
 		return {}
@@ -92,7 +87,7 @@ export async function fetchChainMcaps(chains: Array<[string, string]>) {
 
 	// Split chains into batches of 10
 	const batchSize = 10
-	const batches = []
+	const batches: Array<readonly [string, string][]> = []
 	for (let i = 0; i < validChains.length; i += batchSize) {
 		batches.push(validChains.slice(i, i + batchSize))
 	}
@@ -103,13 +98,16 @@ export async function fetchChainMcaps(chains: Array<[string, string]>) {
 			const response = await fetchJson(COINS_MCAPS_API, {
 				method: 'POST',
 				body: JSON.stringify({
-					coins: batch
+					coins: batch.map(([_, geckoId]) => `coingecko:${geckoId}`)
 				})
 			})
 			return response
 		} catch (err) {
-			postRuntimeLogs(`Failed to fetch mcaps for batch: ${batch.join(', ')}`)
-			postRuntimeLogs(err)
+			postRuntimeLogs(
+				`Failed to fetch mcaps for batch (${batch.map(([_, geckoId]) => geckoId).join(', ')}): ${
+					err instanceof Error ? err.message : String(err)
+				}`
+			)
 			return {}
 		}
 	})
@@ -123,12 +121,21 @@ export async function fetchChainMcaps(chains: Array<[string, string]>) {
 		Object.assign(mergedMcaps, batchResult)
 	}
 
-	return validChains.reduce<Record<string, number | null>>((acc, [chain, prefixedGeckoId]) => {
+	return validChains.reduce<Record<string, number | null>>((acc, [chain, geckoId]) => {
+		const prefixedGeckoId = `coingecko:${geckoId}`
 		if (mergedMcaps[prefixedGeckoId]) {
 			acc[chain] = mergedMcaps[prefixedGeckoId]?.mcap ?? null
 		}
 		return acc
 	}, {})
+}
+
+type PriceObject = {
+	confidence: number
+	decimals: number
+	price: number
+	symbol: string
+	timestamp: number
 }
 
 export async function fetchCoinPrices(coins: Array<string>) {
@@ -146,7 +153,9 @@ export async function fetchCoinPrices(coins: Array<string>) {
 	// Fetch prices for each batch
 	const batchPromises = batches.map(async (batch) => {
 		try {
-			const response = await fetchJson(`${COINS_PRICES_API}/current/${batch.join(',')}`)
+			const response = await fetchJson<{ coins?: Record<string, PriceObject | undefined> }>(
+				`${COINS_PRICES_API}/current/${batch.join(',')}`
+			)
 			return response.coins ?? {}
 		} catch (err) {
 			postRuntimeLogs(`Failed to fetch prices for batch: ${batch.join(', ')}`)
@@ -159,28 +168,16 @@ export async function fetchCoinPrices(coins: Array<string>) {
 	const batchResults = await Promise.all(batchPromises)
 
 	// Merge all results into a single object
-	const mergedPrices = {}
+	const mergedPrices: Record<string, PriceObject | undefined> = {}
 	for (const batchResult of batchResults) {
 		Object.assign(mergedPrices, batchResult)
 	}
 
-	return coins.reduce(
-		(acc, coin) => {
-			if (mergedPrices[coin]) {
-				acc[coin] = mergedPrices[coin] ?? null
-			}
-			return acc
-		},
-		{} as Record<string, PriceObject>
-	)
-}
-
-type PriceObject = {
-	confidence: number
-	decimals: number
-	price: number
-	symbol: string
-	timestamp: number
+	return coins.reduce<Record<string, PriceObject>>((acc, coin) => {
+		const val = mergedPrices[coin]
+		if (val !== undefined) acc[coin] = val
+		return acc
+	}, {})
 }
 
 type TokenMarketData = {
@@ -194,10 +191,25 @@ type TokenMarketData = {
 	maxSupplyInfinite: boolean | null
 }
 
+type CgChartResponse = {
+	data?: {
+		coinData?: {
+			market_data?: {
+				circulating_supply?: number
+				max_supply?: number
+				max_supply_infinite?: boolean
+			}
+		}
+		prices?: Array<[number, number]>
+		mcaps?: Array<[number, number]>
+		volumes?: Array<[number, number]>
+	}
+}
+
 export async function getTokenMarketDataFromCgChart(geckoId: string): Promise<TokenMarketData | null> {
 	if (!geckoId) return null
 
-	const res = await fetchJson(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).catch(() => null as any)
+	const res = await fetchJson<CgChartResponse>(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).catch(() => null)
 	const data = res?.data
 	if (!data) return null
 

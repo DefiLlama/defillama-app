@@ -6,6 +6,7 @@ import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import type { ExcludeQueryKey } from '~/components/Select/types'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { pushShallowQuery, readSingleQueryValue, toNonEmptyArrayParam } from '~/utils/routerQuery'
 import type { IRWABreakdownDatasetsByMetric, RWAChartMetricKey } from './api.types'
 
 const CHART_TYPE_OPTIONS: Array<{ key: RWAChartMetricKey; label: string }> = [
@@ -21,16 +22,6 @@ const DEFAULT_CHART_TYPE: RWAChartMetricKey = 'activeMcap'
 const EMPTY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
 const STACKS_QUERY_KEY = 'stacks'
 const EXCLUDE_STACKS_QUERY_KEY: ExcludeQueryKey = 'excludeStacks'
-
-const readSingleQueryValue = (value: string | string[] | undefined): string | null => {
-	if (Array.isArray(value)) return value[0] ?? null
-	return typeof value === 'string' ? value : null
-}
-
-const toArrayParam = (value: string | string[] | undefined): string[] => {
-	if (!value) return []
-	return Array.isArray(value) ? value.filter(Boolean) : [value].filter(Boolean)
-}
 
 const isChartMetricKey = (value: string): value is RWAChartMetricKey => {
 	return VALID_CHART_TYPES.has(value as RWAChartMetricKey)
@@ -55,10 +46,12 @@ export function RWAOverviewBreakdownChart({
 		const availableStacks = new Set(stackOptions)
 		if (selectedStacksQ === 'None') return []
 		if (selectedStacksQ != null) {
-			return toArrayParam(selectedStacksQ).filter((stack) => availableStacks.has(stack))
+			return toNonEmptyArrayParam(selectedStacksQ).filter((stack) => availableStacks.has(stack))
 		}
 
-		const excludedStacksSet = new Set(toArrayParam(excludeStacksQ).filter((stack) => availableStacks.has(stack)))
+		const excludedStacksSet = new Set(
+			toNonEmptyArrayParam(excludeStacksQ).filter((stack) => availableStacks.has(stack))
+		)
 		if (excludedStacksSet.size === 0) return [...stackOptions]
 		return stackOptions.filter((stack) => !excludedStacksSet.has(stack))
 	}, [excludeStacksQ, selectedStacksQ, stackOptions])
@@ -66,14 +59,7 @@ export function RWAOverviewBreakdownChart({
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const onSelectChartType = (nextChartType: RWAChartMetricKey) => {
-		const nextQuery: Record<string, string | string[] | undefined> = { ...router.query }
-		if (nextChartType === DEFAULT_CHART_TYPE) {
-			delete nextQuery.chartType
-		} else {
-			nextQuery.chartType = nextChartType
-		}
-
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		pushShallowQuery(router, { chartType: nextChartType === DEFAULT_CHART_TYPE ? undefined : nextChartType })
 	}
 
 	return (

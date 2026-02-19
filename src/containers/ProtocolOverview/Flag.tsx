@@ -1,8 +1,8 @@
 import * as Ariakit from '@ariakit/react'
-import * as React from 'react'
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
+import type { FormSubmitEvent } from '~/types/forms'
 import { fetchJson } from '~/utils/async'
 
 export function Flag({
@@ -22,22 +22,27 @@ export function Flag({
 	const dialogStore = Ariakit.useDialogStore()
 	const successDialogStore = Ariakit.useDialogStore()
 
-	const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+	const onSubmit = async (e: FormSubmitEvent) => {
 		e.preventDefault()
 		setError(false)
 		setLoading(true)
 
-		const form = e.target as HTMLFormElement
+		const form = e.currentTarget
+		const dataTypeValue =
+			(form.elements.namedItem('dataType') as HTMLInputElement | HTMLSelectElement | null)?.value ?? ''
+		const messageValue = (form.elements.namedItem('message') as HTMLTextAreaElement | null)?.value ?? ''
+		const correctSourceValue = (form.elements.namedItem('correctSource') as HTMLTextAreaElement | null)?.value ?? ''
+		const contactValue = (form.elements.namedItem('contact') as HTMLInputElement | null)?.value ?? ''
 
 		const data = await fetchJson('https://api.llama.fi/reportError', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				protocol,
-				dataType: dataType ?? form.dataType?.value ?? '',
-				message: form.message?.value ?? '',
-				correctSource: form.correctSource?.value ?? '',
-				contact: form.contact?.value ?? ''
+				dataType: dataType ?? dataTypeValue,
+				message: messageValue,
+				correctSource: correctSourceValue,
+				contact: contactValue
 			})
 		})
 			.then((data) => {

@@ -4,11 +4,11 @@ import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { toNumberOrNullFromQueryParam } from '~/utils'
+import { parseNumberQueryParam, parseExcludeParam, getSelectedChainFilters } from '~/utils/routerQuery'
 import { airdropsEligibilityCheck } from './airdrops'
 import { RecentlyListedProtocolsTable } from './RecentProtocolsTable'
 import type { IRecentProtocol, IRecentProtocolsPageData } from './types'
-import { applyExtraTvl, getSelectedChainFilters, parseExcludeParam } from './utils'
+import { applyExtraTvl } from './utils'
 
 export function RecentProtocols({
 	protocols,
@@ -28,8 +28,8 @@ export function RecentProtocols({
 		maxTvl: maxTvlQuery
 	} = router.query
 
-	const minTvl = toNumberOrNullFromQueryParam(minTvlQuery)
-	const maxTvl = toNumberOrNullFromQueryParam(maxTvlQuery)
+	const minTvl = parseNumberQueryParam(minTvlQuery)
+	const maxTvl = parseNumberQueryParam(maxTvlQuery)
 
 	const toHideForkedProtocols = hideForks === 'true'
 	const hasCategoryParam = Object.prototype.hasOwnProperty.call(router.query, 'category')

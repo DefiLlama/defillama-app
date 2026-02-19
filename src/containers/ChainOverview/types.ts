@@ -216,44 +216,6 @@ export interface IProtocol extends IChildProtocol {
 	childProtocols?: Array<IChildProtocol>
 }
 
-// oxlint-disable-next-line no-unused-vars
-interface ITreasury {
-	id: string
-	name: string
-	address: string | null
-	symbol: string
-	url: string
-	description: string
-	chain: string
-	logo: string
-	audits: string
-	audit_note: string | null
-	gecko_id: string | number | null
-	cmcId: string | number | null
-	category: string
-	chains: Array<string>
-	module: string
-	treasury: string
-	twitter: string
-	oracles: Array<string>
-	forkedFrom: Array<string>
-	slug: string
-	tvl: number | null
-	chainTvls: {
-		Ethereum: number | null
-	}
-	change_1h: number | null
-	change_1d: number | null
-	change_7d: number | null
-	tokenBreakdowns: {
-		ownTokens: number | null
-		stablecoins: number | null
-		majors: number | null
-		others: number | null
-	}
-	mcap: number | null
-}
-
 export interface IChainAsset {
 	canonical: {
 		total: string

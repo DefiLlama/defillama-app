@@ -8,10 +8,10 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum } from '~/utils'
+import { isTrueQueryParam, pushShallowQuery } from '~/utils/routerQuery'
 import type { IRWAChainBreakdownDatasetsByToggle, IRWAChainsOverviewRow } from './api.types'
 import { formatCsvRowValues } from './csvUtils'
 import { definitions } from './definitions'
-import { toBooleanParam } from './hooks'
 import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
 import { rwaSlug } from './rwaSlug'
 
@@ -103,27 +103,15 @@ export function RWAChainsTable({
 	const stablecoinsQ = router.query.includeStablecoins as string | string[] | undefined
 	const governanceQ = router.query.includeGovernance as string | string[] | undefined
 
-	const includeStablecoins = stablecoinsQ != null ? toBooleanParam(stablecoinsQ) : false
-	const includeGovernance = governanceQ != null ? toBooleanParam(governanceQ) : false
+	const includeStablecoins = stablecoinsQ != null ? isTrueQueryParam(stablecoinsQ) : false
+	const includeGovernance = governanceQ != null ? isTrueQueryParam(governanceQ) : false
 
 	const onToggleStablecoins = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		if (!includeStablecoins) {
-			nextQuery.includeStablecoins = 'true'
-		} else {
-			delete nextQuery.includeStablecoins
-		}
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		pushShallowQuery(router, { includeStablecoins: includeStablecoins ? undefined : 'true' })
 	}, [includeStablecoins, router])
 
 	const onToggleGovernance = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		if (!includeGovernance) {
-			nextQuery.includeGovernance = 'true'
-		} else {
-			delete nextQuery.includeGovernance
-		}
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		pushShallowQuery(router, { includeGovernance: includeGovernance ? undefined : 'true' })
 	}, [includeGovernance, router])
 
 	const data = useMemo(() => {

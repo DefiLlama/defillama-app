@@ -2,6 +2,14 @@ import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import { useMemo } from 'react'
 import { CHART_COLORS } from '~/constants/colors'
+import {
+	toNonEmptyArrayParam,
+	parseExcludeParam,
+	parseNumberInput,
+	parseNumberQueryParam,
+	isTrueQueryParam,
+	pushShallowQuery
+} from '~/utils/routerQuery'
 import type { IRWAAssetsOverview } from './api.types'
 import { rwaSlug } from './rwaSlug'
 
@@ -30,41 +38,10 @@ const buildStackColors = (order: string[]) => {
 	return stackColors
 }
 
-const toArrayParam = (p: string | string[] | undefined): string[] => {
-	if (!p) return []
-	return Array.isArray(p) ? p.filter(Boolean) : [p].filter(Boolean)
-}
-
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
-
-const parseNumberInput = (value: string | number | null | undefined): number | null => {
-	if (value == null) return null
-	if (typeof value === 'number') return Number.isFinite(value) ? value : null
-	const n = Number(value)
-	return Number.isFinite(n) ? n : null
-}
-
-const toNumberParam = (p: string | string[] | undefined): number | null => {
-	if (Array.isArray(p)) {
-		return parseNumberInput(p[0])
-	}
-	return parseNumberInput(p)
-}
-
-export const toBooleanParam = (p: string | string[] | undefined): boolean => {
-	if (Array.isArray(p)) return p[0] === 'true'
-	return p === 'true'
-}
-
 const parseAttributeFilterStatesParam = (param: string | string[] | undefined): RWAAttributeFilterState[] => {
 	if (!param) return [...RWA_ATTRIBUTE_FILTER_STATES]
 
-	const values = toArrayParam(param).map((value) => value.toLowerCase())
+	const values = toNonEmptyArrayParam(param).map((value) => value.toLowerCase())
 	if (values.some((value) => value === 'none')) return []
 
 	const selectedSet = new Set<RWAAttributeFilterState>()
@@ -85,39 +62,31 @@ const updateNumberRangeQuery = (
 	maxValue: string | number | null | undefined,
 	router: NextRouter
 ) => {
-	const nextQuery: Record<string, any> = { ...router.query }
 	const parsedMin = parseNumberInput(minValue)
 	const parsedMax = parseNumberInput(maxValue)
-	if (parsedMin == null) {
-		delete nextQuery[minKey]
-	} else {
-		nextQuery[minKey] = String(parsedMin)
-	}
-	if (parsedMax == null) {
-		delete nextQuery[maxKey]
-	} else {
-		nextQuery[maxKey] = String(parsedMax)
-	}
-	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	pushShallowQuery(router, {
+		[minKey]: parsedMin == null ? undefined : String(parsedMin),
+		[maxKey]: parsedMax == null ? undefined : String(parsedMax)
+	})
 }
 
 const updateAttributeFilterStatesQuery = (queryKey: string, values: RWAAttributeFilterState[], router: NextRouter) => {
-	const nextQuery: Record<string, any> = { ...router.query }
 	const selectedSet = new Set<RWAAttributeFilterState>()
 	for (const value of values) {
 		if (RWA_ATTRIBUTE_FILTER_STATE_SET.has(value)) selectedSet.add(value)
 	}
 
 	const normalizedStates = RWA_ATTRIBUTE_FILTER_STATES.filter((value) => selectedSet.has(value))
-	if (normalizedStates.length === RWA_ATTRIBUTE_FILTER_STATES.length) {
-		delete nextQuery[queryKey]
-	} else if (normalizedStates.length === 0) {
-		nextQuery[queryKey] = 'none'
-	} else {
-		nextQuery[queryKey] = normalizedStates.length === 1 ? normalizedStates[0] : normalizedStates
-	}
-
-	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	pushShallowQuery(router, {
+		[queryKey]:
+			normalizedStates.length === RWA_ATTRIBUTE_FILTER_STATES.length
+				? undefined
+				: normalizedStates.length === 0
+					? 'none'
+					: normalizedStates.length === 1
+						? normalizedStates[0]
+						: normalizedStates
+	})
 }
 
 export const useRWATableQueryParams = ({
@@ -206,7 +175,7 @@ export const useRWATableQueryParams = ({
 		): string[] => {
 			if (param === 'None') return []
 			if (!param) return allValues
-			const arr = toArrayParam(param)
+			const arr = toNonEmptyArrayParam(param)
 			return arr.filter((v) => validSet.has(v))
 		}
 
@@ -230,8 +199,8 @@ export const useRWATableQueryParams = ({
 		// Default toggles:
 		// - category pages: ON (include stablecoins + governance by default)
 		// - other pages: OFF (unless explicitly set in the URL)
-		const includeStablecoins = stablecoinsQ != null ? toBooleanParam(stablecoinsQ) : defaultIncludeStablecoins
-		const includeGovernance = governanceQ != null ? toBooleanParam(governanceQ) : defaultIncludeGovernance
+		const includeStablecoins = stablecoinsQ != null ? isTrueQueryParam(stablecoinsQ) : defaultIncludeStablecoins
+		const includeGovernance = governanceQ != null ? isTrueQueryParam(governanceQ) : defaultIncludeGovernance
 
 		// Build selected arrays with correct "exclude" semantics:
 		// - if include param missing but exclude param exists, selection is (all - excluded), NOT "defaults - excluded"
@@ -303,12 +272,12 @@ export const useRWATableQueryParams = ({
 		const selectedTransferableStates = parseAttributeFilterStatesParam(transferableStatesQ)
 		const selectedSelfCustodyStates = parseAttributeFilterStatesParam(selfCustodyStatesQ)
 
-		const minDefiActiveTvlToOnChainMcapPct = toNumberParam(minDefiActiveTvlToOnChainMcapPctQ)
-		const maxDefiActiveTvlToOnChainMcapPct = toNumberParam(maxDefiActiveTvlToOnChainMcapPctQ)
-		const minActiveMcapToOnChainMcapPct = toNumberParam(minActiveMcapToOnChainMcapPctQ)
-		const maxActiveMcapToOnChainMcapPct = toNumberParam(maxActiveMcapToOnChainMcapPctQ)
-		const minDefiActiveTvlToActiveMcapPct = toNumberParam(minDefiActiveTvlToActiveMcapPctQ)
-		const maxDefiActiveTvlToActiveMcapPct = toNumberParam(maxDefiActiveTvlToActiveMcapPctQ)
+		const minDefiActiveTvlToOnChainMcapPct = parseNumberQueryParam(minDefiActiveTvlToOnChainMcapPctQ)
+		const maxDefiActiveTvlToOnChainMcapPct = parseNumberQueryParam(maxDefiActiveTvlToOnChainMcapPctQ)
+		const minActiveMcapToOnChainMcapPct = parseNumberQueryParam(minActiveMcapToOnChainMcapPctQ)
+		const maxActiveMcapToOnChainMcapPct = parseNumberQueryParam(maxActiveMcapToOnChainMcapPctQ)
+		const minDefiActiveTvlToActiveMcapPct = parseNumberQueryParam(minDefiActiveTvlToActiveMcapPctQ)
+		const maxDefiActiveTvlToActiveMcapPct = parseNumberQueryParam(maxDefiActiveTvlToActiveMcapPctQ)
 
 		return {
 			selectedAssetNames,
@@ -395,23 +364,11 @@ export const useRWATableQueryParams = ({
 		)
 
 	const setIncludeStablecoins = (value: boolean) => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		if (value) {
-			nextQuery.includeStablecoins = 'true'
-		} else {
-			delete nextQuery.includeStablecoins
-		}
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		pushShallowQuery(router, { includeStablecoins: value ? 'true' : 'false' })
 	}
 
 	const setIncludeGovernance = (value: boolean) => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		if (value) {
-			nextQuery.includeGovernance = 'true'
-		} else {
-			delete nextQuery.includeGovernance
-		}
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		pushShallowQuery(router, { includeGovernance: value ? 'true' : 'false' })
 	}
 
 	const setRedeemableStates = (values: RWAAttributeFilterState[]) =>

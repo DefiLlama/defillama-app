@@ -23,6 +23,7 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug, tokenIconUrl } from '~/utils'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 const EMPTY_TOGGLE_OPTIONS = []
 
@@ -293,9 +294,7 @@ export default function Protocols(props: TreasuryPageProps) {
 	const toggleIncludeOwnTokens = React.useCallback(
 		(event: React.ChangeEvent<HTMLInputElement>) => {
 			const nextIncludeOwnTokens = event.currentTarget.checked
-			const { includeOwnTokens: _inc, ...restQuery } = router.query
-			const nextQuery = nextIncludeOwnTokens ? { ...restQuery, includeOwnTokens: 'true' } : restQuery
-			router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+			pushShallowQuery(router, { includeOwnTokens: nextIncludeOwnTokens ? 'true' : undefined })
 		},
 		[router]
 	)

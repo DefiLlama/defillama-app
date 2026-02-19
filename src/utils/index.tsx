@@ -944,12 +944,6 @@ export const formatEthAddress = (address: unknown): string => {
 	return `${address.slice(0, 6)}...${address.slice(-4)}`
 }
 
-export function toNumberOrNullFromQueryParam(value: string | string[] | null | undefined): number | null {
-	const finalValue = value ? (typeof value === 'string' ? value : (value?.[0] ?? null)) : null
-	if (finalValue == null) return null
-	return Number.isNaN(Number(finalValue)) ? null : Number(finalValue)
-}
-
 export const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
 	if (numerator == null || denominator == null) {
 		return null

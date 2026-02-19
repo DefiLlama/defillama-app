@@ -1,4 +1,4 @@
-import type { IFormattedProtocol } from '~/api/types'
+import type { IFormattedProtocol } from './protocol-table.types'
 import type { ILiteProtocol } from '~/containers/ChainOverview/types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getPercentChange, keepNeededProperties } from '~/utils'

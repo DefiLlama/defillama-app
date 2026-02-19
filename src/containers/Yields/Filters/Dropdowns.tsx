@@ -5,6 +5,7 @@ import { TVLRange } from '~/components/Filters/TVLRange'
 import { Switch } from '~/components/Switch'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { pushShallowQuery } from '~/utils/routerQuery'
 import { APYRange } from './APYRange'
 import { YieldAttributes } from './Attributes'
 import { FiltersByCategory } from './Categories'
@@ -60,6 +61,21 @@ export function YieldFilterDropdowns({
 	const shouldExlcudeRewardApy = router.query.excludeRewardApy === 'true'
 
 	const shouldIncludeLsdApy = router.query.includeLsdApy === 'true'
+
+	const safeSelectedAttributes = selectedAttributes ?? []
+	const effectivePathname = pathname || router.pathname
+	const toggleBadDebtFilter = () => {
+		const nextAttributes = isBadDebtToggled
+			? safeSelectedAttributes.filter((attribute) => attribute !== BAD_DEBT_KEY)
+			: [...safeSelectedAttributes, BAD_DEBT_KEY]
+		pushShallowQuery(router, { attribute: nextAttributes }, effectivePathname)
+	}
+	const toggleExcludeRewardApyFilter = () => {
+		pushShallowQuery(router, { excludeRewardApy: !shouldExlcudeRewardApy ? 'true' : undefined }, effectivePathname)
+	}
+	const toggleIncludeLsdApyFilter = () => {
+		pushShallowQuery(router, { includeLsdApy: !shouldIncludeLsdApy ? 'true' : undefined }, effectivePathname)
+	}
 
 	return (
 		<>
@@ -155,26 +171,7 @@ export function YieldFilterDropdowns({
 			{excludeBadDebt && selectedAttributes ? (
 				nestedMenu ? (
 					<label className="flex flex-row-reverse items-center justify-between gap-3 px-3 py-2">
-						<input
-							type="checkbox"
-							value="excludeBadDebt"
-							checked={isBadDebtToggled}
-							onChange={() => {
-								router.push(
-									{
-										pathname: pathname || router.pathname,
-										query: {
-											...router.query,
-											attribute: isBadDebtToggled
-												? selectedAttributes.filter((a) => a !== BAD_DEBT_KEY)
-												: [...selectedAttributes, BAD_DEBT_KEY]
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
-							}}
-						/>
+						<input type="checkbox" value="excludeBadDebt" checked={isBadDebtToggled} onChange={toggleBadDebtFilter} />
 						<span>Exclude bad debt</span>
 					</label>
 				) : (
@@ -182,21 +179,7 @@ export function YieldFilterDropdowns({
 						value="excludeBadDebt"
 						label="Exclude bad debt"
 						checked={isBadDebtToggled}
-						onChange={() => {
-							router.push(
-								{
-									pathname: pathname || router.pathname,
-									query: {
-										...router.query,
-										attribute: isBadDebtToggled
-											? selectedAttributes.filter((a) => a !== BAD_DEBT_KEY)
-											: [...selectedAttributes, BAD_DEBT_KEY]
-									}
-								},
-								undefined,
-								{ shallow: true }
-							)
-						}}
+						onChange={toggleBadDebtFilter}
 					/>
 				)
 			) : null}
@@ -214,19 +197,7 @@ export function YieldFilterDropdowns({
 							type="checkbox"
 							value="excludeRewardApy"
 							checked={shouldExlcudeRewardApy}
-							onChange={() => {
-								router.push(
-									{
-										pathname: pathname || router.pathname,
-										query: {
-											...router.query,
-											excludeRewardApy: !shouldExlcudeRewardApy
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
-							}}
+							onChange={toggleExcludeRewardApyFilter}
 						/>
 						<span>Exclude reward APY</span>
 					</label>
@@ -235,19 +206,7 @@ export function YieldFilterDropdowns({
 						label="Exclude reward APY"
 						value="excludeRewardApy"
 						checked={shouldExlcudeRewardApy}
-						onChange={() => {
-							router.push(
-								{
-									pathname: pathname || router.pathname,
-									query: {
-										...router.query,
-										excludeRewardApy: !shouldExlcudeRewardApy
-									}
-								},
-								undefined,
-								{ shallow: true }
-							)
-						}}
+						onChange={toggleExcludeRewardApyFilter}
 					/>
 				)
 			) : null}
@@ -259,19 +218,7 @@ export function YieldFilterDropdowns({
 							type="checkbox"
 							value="includeLsdApy"
 							checked={shouldIncludeLsdApy}
-							onChange={() => {
-								router.push(
-									{
-										pathname: pathname || router.pathname,
-										query: {
-											...router.query,
-											includeLsdApy: !shouldIncludeLsdApy
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
-							}}
+							onChange={toggleIncludeLsdApyFilter}
 						/>
 						<span>Include LSD APY</span>
 					</label>
@@ -280,19 +227,7 @@ export function YieldFilterDropdowns({
 						label="LSD APY"
 						value="includeLsdApy"
 						checked={shouldIncludeLsdApy}
-						onChange={() => {
-							router.push(
-								{
-									pathname: pathname || router.pathname,
-									query: {
-										...router.query,
-										includeLsdApy: !shouldIncludeLsdApy
-									}
-								},
-								undefined,
-								{ shallow: true }
-							)
-						}}
+						onChange={toggleIncludeLsdApyFilter}
 					/>
 				)
 			) : null}

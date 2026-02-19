@@ -2,8 +2,8 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { useMemo } from 'react'
 import { isChainsCategoryGroupKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-// oxlint-disable-next-line no-unused-vars
-import { capitalizeFirstLetter, formatNum, getDominancePercent } from '~/utils'
+import { capitalizeFirstLetter, getDominancePercent } from '~/utils'
+import { parseExcludeParam } from '~/utils/routerQuery'
 import type { StablecoinFilterOption } from './Filters'
 
 interface IPegged {
@@ -452,20 +452,6 @@ export const useGroupBridgeData = (
 	}, [chains, bridgeInfoObject])
 
 	return data
-}
-
-export const parseBooleanQueryParam = (value: string | string[] | undefined): boolean => {
-	if (Array.isArray(value)) return value.some((v) => parseBooleanQueryParam(v))
-	if (typeof value !== 'string') return false
-	const normalized = value.trim().toLowerCase()
-	return normalized === 'true' || normalized === '1' || normalized === 'yes'
-}
-
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
 }
 
 export const useFormatStablecoinQueryParams = ({

@@ -1,6 +1,24 @@
 import { useQuery } from '@tanstack/react-query'
 import { CACHE_SERVER, COINS_PRICES_API } from '~/constants'
 import { fetchApi } from '~/utils/async'
+import { getAllCGTokensList } from './index'
+
+export const useFetchCoingeckoTokensList = () => {
+	const { data, isLoading, error } = useQuery({
+		queryKey: ['coingecko-tokens-list'],
+		queryFn: getAllCGTokensList,
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		refetchOnMount: false,
+		retry: 1
+	})
+
+	return {
+		data,
+		error,
+		isLoading
+	}
+}
 
 export const useGeckoId = (addressData: string | null) => {
 	const [chain, address] = addressData?.split(':') ?? [null, null]

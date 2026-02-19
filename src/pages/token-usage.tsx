@@ -23,6 +23,7 @@ import { useDebounce } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 const pageName = ['Token', 'usage in', 'Protocols']
 
@@ -94,14 +95,7 @@ export default function Tokens() {
 									value="includeCentraliseExchanges"
 									checked={includeCentraliseExchanges}
 									onChange={() =>
-										router.push(
-											{
-												pathname: router.pathname,
-												query: { ...router.query, includecex: !includeCentraliseExchanges }
-											},
-											undefined,
-											{ shallow: true }
-										)
+										pushShallowQuery(router, { includecex: !includeCentraliseExchanges ? 'true' : undefined })
 									}
 								/>
 								<CSVDownloadButton prepareCsv={prepareCsv} />
@@ -265,7 +259,7 @@ const Search = () => {
 								key={`token-usage-${data.name}`}
 								value={data.name}
 								onClick={() => {
-									router.push(`/token-usage?token=${data.name}`, undefined, { shallow: true }).then(() => {
+									pushShallowQuery(router, { token: data.name }).then(() => {
 										setOpen(false)
 									})
 								}}

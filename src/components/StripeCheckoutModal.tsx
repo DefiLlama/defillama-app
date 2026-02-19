@@ -13,6 +13,7 @@ import { useCallback, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { AUTH_SERVER, STRIPE_PUBLISHABLE_KEY } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import type { FormSubmitEvent } from '~/types/forms'
 
 const stripeInstance = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null
 
@@ -308,7 +309,7 @@ function UpgradePaymentForm({ onError }: { onError: (error: string) => void }) {
 	const stripe = useStripe()
 	const elements = useElements()
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormSubmitEvent) => {
 		e.preventDefault()
 
 		if (!stripe || !elements) {

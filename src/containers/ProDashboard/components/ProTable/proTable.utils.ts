@@ -1,4 +1,4 @@
-import type { ChainMetricSnapshot, IFormattedProtocol, IParentProtocol } from '~/api/types'
+import type { ChainMetricSnapshot, IFormattedProtocol, IParentProtocol } from '~/containers/Protocols/protocol-table.types'
 import { removedCategoriesFromChainTvlSet } from '~/constants'
 import { getAnnualizedRatio, getPercentChange } from '~/utils'
 import type { ProTableDimensionProtocol } from './proTable.types'

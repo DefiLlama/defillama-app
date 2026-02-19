@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import { SubscribeHome } from '~/containers/Subscribtion/Home'
 import { SubscribeLayout } from '~/containers/Subscribtion/Layout'
 import { WalletProvider } from '~/layout/WalletProvider'
-import { safeInternalPath } from '~/utils/url'
+import { safeInternalPath } from '~/utils/routerQuery'
 
 export default function Subscribe() {
 	const router = useRouter()

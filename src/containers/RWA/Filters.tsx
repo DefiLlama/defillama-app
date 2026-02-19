@@ -7,6 +7,7 @@ import { NestedMenu, NestedMenuItem } from '~/components/NestedMenu'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import type { ExcludeQueryKey, SelectValues } from '~/components/Select/types'
 import { Switch } from '~/components/Switch'
+import { pushShallowQuery } from '~/utils/routerQuery'
 import type { IRWAAssetsOverview } from './api.types'
 import { definitions } from './definitions'
 
@@ -485,11 +486,11 @@ function Filters({
 				) : null}
 				<button
 					onClick={() => {
-						const nextQuery: Record<string, any> = { ...router.query }
+						const resetUpdates: Record<string, undefined> = {}
 						for (const key of RESETTABLE_QUERY_KEYS) {
-							delete nextQuery[key]
+							resetUpdates[key] = undefined
 						}
-						router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+						pushShallowQuery(router, resetUpdates)
 					}}
 					disabled={!hasActiveFilters}
 					className={resetButtonClassName}

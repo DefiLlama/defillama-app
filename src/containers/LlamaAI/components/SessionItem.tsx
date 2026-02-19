@@ -9,6 +9,7 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import type { FormSubmitEvent } from '~/types/forms'
 import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
 import { useClickOutside } from '../hooks/useClickOutside'
 
@@ -64,10 +65,10 @@ export const SessionItem = memo(function SessionItem({
 	// Use shared hook for click outside detection
 	useClickOutside(formRef, () => setIsEditing(false), isEditing)
 
-	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
+	const handleSave = async (e: FormSubmitEvent) => {
 		e.preventDefault()
-		const form = e.target as HTMLFormElement
-		const title = form.newTitle.value
+		const form = e.currentTarget
+		const title = (form.elements.namedItem('newTitle') as HTMLInputElement | null)?.value ?? ''
 		if (title.trim() && title !== session.title) {
 			updateSessionTitle({ sessionId: session.sessionId, title: title.trim() }).then(() => {
 				setIsEditing(false)

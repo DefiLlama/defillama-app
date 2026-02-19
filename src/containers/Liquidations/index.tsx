@@ -15,6 +15,7 @@ import {
 } from '~/containers/Liquidations/utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { download, formattedNum, liquidationsIconUrl } from '~/utils'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -282,16 +283,7 @@ export const LiquidationsContainer = (props: {
 						<button
 							data-active={stackBy === 'protocols'}
 							onClick={() => {
-								router.push(
-									{
-										query: {
-											...router.query,
-											stackBy: 'protocols'
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
+								pushShallowQuery(router, { stackBy: 'protocols' })
 							}}
 							className="inline-flex shrink-0 items-center justify-center gap-1 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 						>
@@ -301,16 +293,7 @@ export const LiquidationsContainer = (props: {
 						<button
 							data-active={stackBy === 'chains'}
 							onClick={() => {
-								router.push(
-									{
-										query: {
-											...router.query,
-											stackBy: 'chains'
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
+								pushShallowQuery(router, { stackBy: 'chains' })
 							}}
 							className="inline-flex shrink-0 items-center justify-center gap-1 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 						>

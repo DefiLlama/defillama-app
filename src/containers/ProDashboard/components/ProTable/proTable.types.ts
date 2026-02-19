@@ -1,5 +1,5 @@
 import type { ExpandedState, PaginationState, SortingState } from '@tanstack/react-table'
-import type { IParentProtocol, IFormattedProtocol } from '~/api/types'
+import type { IParentProtocol, IFormattedProtocol } from '~/containers/Protocols/protocol-table.types'
 import type { TableFilters } from '../../types'
 
 export interface IProtocolRow extends IFormattedProtocol {

@@ -5,6 +5,7 @@ import { startTransition, useDeferredValue, useMemo, useRef, useState } from 're
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 const POPULAR_PAIRS = ['USDC-ETH', 'USDC-WETH', 'USDC-USDT', 'USDC-WBTC']
 
@@ -35,13 +36,9 @@ export function IncludeExcludeTokens({
 			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_INCLUDE, { token })
 		}
 
-		router
-			.push({ pathname: router.pathname, query: { ...router.query, token: tokenQueryParams } }, undefined, {
-				shallow: true
-			})
-			.then(() => {
-				dialogStore.toggle()
-			})
+		pushShallowQuery(router, { token: tokenQueryParams }).then(() => {
+			dialogStore.toggle()
+		})
 	}
 
 	const handleTokenExclude = (token: string, action?: 'delete') => {
@@ -52,13 +49,9 @@ export function IncludeExcludeTokens({
 			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_EXCLUDE, { token })
 		}
 
-		router
-			.push({ pathname: router.pathname, query: { ...router.query, excludeToken: tokenQueryParams } }, undefined, {
-				shallow: true
-			})
-			.then(() => {
-				dialogStore.toggle()
-			})
+		pushShallowQuery(router, { excludeToken: tokenQueryParams }).then(() => {
+			dialogStore.toggle()
+		})
 	}
 
 	const handleTokenExact = (token: string, action?: 'delete') => {
@@ -69,13 +62,9 @@ export function IncludeExcludeTokens({
 			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_EXACT, { token })
 		}
 
-		router
-			.push({ pathname: router.pathname, query: { ...router.query, exactToken: tokenQueryParams } }, undefined, {
-				shallow: true
-			})
-			.then(() => {
-				dialogStore.toggle()
-			})
+		pushShallowQuery(router, { exactToken: tokenQueryParams }).then(() => {
+			dialogStore.toggle()
+		})
 	}
 
 	const [searchValue, setSearchValue] = useState('')
@@ -118,9 +107,7 @@ export function IncludeExcludeTokens({
 			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_PAIR, { pair })
 		}
 
-		router.push({ pathname: router.pathname, query: { ...router.query, token_pair: pairQueryParams } }, undefined, {
-			shallow: true
-		})
+		pushShallowQuery(router, { token_pair: pairQueryParams })
 	}
 
 	const tokensComboboxRef = useRef<HTMLDivElement>(null)

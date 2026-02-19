@@ -2,6 +2,7 @@ import { type Dispatch, type RefObject, type SetStateAction, useEffect, useRef, 
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { useMedia } from '~/hooks/useMedia'
+import type { FormSubmitEvent } from '~/types/forms'
 import { useEntityCombobox } from '../hooks/useEntityCombobox'
 import { useImageUpload, fileToBase64 } from '../hooks/useImageUpload'
 import { setInputSize, syncHighlightScroll } from '../utils/scrollUtils'
@@ -184,10 +185,10 @@ export function PromptInput({
 		entityCombobox.handleScroll()
 	}
 
-	const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+	const handleFormSubmit = (e: FormSubmitEvent) => {
 		e.preventDefault()
-		const form = e.target as HTMLFormElement
-		const promptValue = form.prompt.value
+		const form = e.currentTarget
+		const promptValue = (form.elements.namedItem('prompt') as HTMLTextAreaElement | null)?.value ?? ''
 		submitForm(promptValue)
 	}
 

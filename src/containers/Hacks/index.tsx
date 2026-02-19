@@ -21,7 +21,8 @@ import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, formattedNum, toNiceDayMonthAndYear, toNumberOrNullFromQueryParam } from '~/utils'
+import { firstDayOfMonth, formattedNum, toNiceDayMonthAndYear } from '~/utils'
+import { isParamNone, parseArrayParam, parseExcludeParam, parseNumberQueryParam } from '~/utils/routerQuery'
 import { HacksFilters } from './Filters'
 import type { IHacksPageData } from './types'
 
@@ -179,27 +180,6 @@ const applyFilters = (
 	})
 }
 
-const toArrayParam = (p: string | string[] | undefined): string[] => {
-	if (!p) return []
-	return Array.isArray(p) ? p.filter(Boolean) : [p].filter(Boolean)
-}
-
-const isParamNone = (param: string | string[] | undefined) =>
-	param === 'None' || (Array.isArray(param) && param.includes('None'))
-
-const parseArrayParam = (param: string | string[] | undefined, allValues: string[]): string[] => {
-	if (!param) return allValues
-	const values = toArrayParam(param).filter((v) => v !== 'None')
-	const valid = new Set(allValues)
-	return values.filter((value) => valid.has(value))
-}
-
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
-
 export const HacksContainer = ({
 	data,
 	monthlyHacksChartData,
@@ -244,8 +224,8 @@ export const HacksContainer = ({
 		return excludeSet.size > 0 ? selected.filter((c) => !excludeSet.has(c)) : selected
 	}, [classQ, excludeClass, classificationOptions])
 
-	const minLostVal = toNumberOrNullFromQueryParam(minLost)
-	const maxLostVal = toNumberOrNullFromQueryParam(maxLost)
+	const minLostVal = parseNumberQueryParam(minLost)
+	const maxLostVal = parseNumberQueryParam(maxLost)
 
 	const hasActiveFilters =
 		typeof chainQ !== 'undefined' ||

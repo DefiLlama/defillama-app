@@ -28,7 +28,8 @@ import { useCustomColumns, useLocalStorageSettingsManager, type CustomColumnDef 
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, renderPercentChange, slug, toNumberOrNullFromQueryParam } from '~/utils'
+import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
+import { parseNumberQueryParam } from '~/utils/routerQuery'
 import { formatValue } from '../../utils'
 import { CustomColumnModal } from './CustomColumnModal'
 import { replaceAliases, sampleProtocol } from './customColumnsUtils'
@@ -52,8 +53,8 @@ export const ChainProtocolsTable = ({
 
 	const router = useRouter()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-	const minTvl = toNumberOrNullFromQueryParam(router.query.minTvl)
-	const maxTvl = toNumberOrNullFromQueryParam(router.query.maxTvl)
+	const minTvl = parseNumberQueryParam(router.query.minTvl)
+	const maxTvl = parseNumberQueryParam(router.query.maxTvl)
 
 	const finalProtocols = useMemo(() => {
 		return formatProtocolsList2({ protocols, extraTvlsEnabled, minTvl, maxTvl })

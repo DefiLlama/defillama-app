@@ -5,6 +5,9 @@ import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLay
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TagGroup } from '~/components/TagGroup'
 import { useRangeFilter } from '~/hooks/useRangeFilter'
+import { pushShallowQuery } from '~/utils/routerQuery'
+
+type FormSubmitHandler = NonNullable<React.ComponentProps<'form'>['onSubmit']>
 
 interface HacksFiltersProps {
 	chainOptions: Array<string>
@@ -27,7 +30,7 @@ interface FiltersInnerProps {
 	setSelectedTime: (label: TimeLabelKey) => void
 	minLostVal: number | null
 	maxLostVal: number | null
-	handleAmountSubmit: (e: React.FormEvent<HTMLFormElement>) => void
+	handleAmountSubmit: FormSubmitHandler
 	handleAmountClear: () => void
 	hasActiveFilters: boolean
 	onClearAll: () => void
@@ -80,10 +83,7 @@ export function HacksFilters({
 
 	const setSelectedTime = (label: TimeLabelKey): void => {
 		const key = TIME_LABEL_TO_KEY[label]
-		const nextQuery = { ...router.query }
-		if (key && key !== 'all') nextQuery.time = key
-		else delete nextQuery.time
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		pushShallowQuery(router, { time: key && key !== 'all' ? key : undefined })
 	}
 
 	const hasActiveFilters =
@@ -95,16 +95,16 @@ export function HacksFilters({
 		maxLostVal != null
 
 	const onClearAll = (): void => {
-		const nextQuery = { ...router.query }
-		delete nextQuery.chain
-		delete nextQuery.tech
-		delete nextQuery.class
-		delete nextQuery.start
-		delete nextQuery.end
-		delete nextQuery.minLost
-		delete nextQuery.maxLost
-		delete nextQuery.time
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		pushShallowQuery(router, {
+			chain: undefined,
+			tech: undefined,
+			class: undefined,
+			start: undefined,
+			end: undefined,
+			minLost: undefined,
+			maxLost: undefined,
+			time: undefined
+		})
 	}
 
 	return (

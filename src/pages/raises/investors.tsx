@@ -21,6 +21,7 @@ import type { IInvestorsPageData, IInvestorTimespan } from '~/containers/Raises/
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 interface INormalizedInvestor extends IInvestorTimespan {
 	name: string
@@ -204,17 +205,7 @@ const ActiveInvestors = ({ investors }: IInvestorsPageData) => {
 								className="shrink-0 px-2 py-1.5 text-xs font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={dataInterval.value === selectedPeriod}
 								onClick={() => {
-									router.push(
-										{
-											pathname: router.pathname,
-											query: {
-												...router.query,
-												period: dataInterval.value
-											}
-										},
-										undefined,
-										{ shallow: true }
-									)
+									pushShallowQuery(router, { period: dataInterval.value })
 								}}
 								key={`deals-period-${dataInterval.value}`}
 							>
