@@ -2,8 +2,8 @@ import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
 import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { Icon } from '../Icon'
 
 interface IProps {
 	options: { label: string; to: string }[]

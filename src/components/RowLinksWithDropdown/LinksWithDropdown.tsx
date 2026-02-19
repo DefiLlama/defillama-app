@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { BasicLink } from '../Link'
 import { OtherLinks } from './OtherLinks'
 
@@ -14,6 +14,18 @@ interface IRowLinksProps {
 }
 
 const EMPTY_LINKS: ILink[] = []
+const ROW_WRAP_TOLERANCE_PX = 1
+const RESIZE_DEBOUNCE_MS = 100
+
+interface OverflowState {
+	renderMenuOnly: boolean
+	firstOverflowIndex: number | null
+}
+
+const INITIAL_OVERFLOW_STATE: OverflowState = {
+	renderMenuOnly: false,
+	firstOverflowIndex: null
+}
 
 // Renders a row of links and overflow links / links that not fit in viewport are shown in a dropdown
 export function LinksWithDropdown({
@@ -22,84 +34,98 @@ export function LinksWithDropdown({
 	alternativeOthersText,
 	...props
 }: IRowLinksProps) {
-	// null = calculating, 'renderMenu' = narrow screen (show only dropdown), number = index to cut from
-	const [overflowIndex, setOverflowIndex] = useState<number | null | 'renderMenu'>(null)
+	const [overflowState, setOverflowState] = useState<OverflowState>(INITIAL_OVERFLOW_STATE)
+	const priorityNavRef = useRef<HTMLDivElement | null>(null)
+	const linksLayoutSignature = useMemo(() => links.map((link) => link.label).join('\u0001'), [links])
 
 	useEffect(() => {
 		let timeoutId: ReturnType<typeof setTimeout>
 		let rafId: number | null = null
+		let resizeObserver: ResizeObserver | null = null
 
-		const calcOverflowIndex = (linkCount: number) => {
-			if (typeof document !== 'undefined') {
-				// For very narrow screens, show only dropdown menu
-				// Use window.innerWidth so this works even when #priority-nav isn't rendered
-				if (linkCount > 2 && window.innerWidth <= 640) {
-					return 'renderMenu'
-				}
+		const calculateOverflowState = (): OverflowState => {
+			if (typeof window === 'undefined') return INITIAL_OVERFLOW_STATE
 
-				const priorityNav = document.querySelector('#priority-nav')
-				if (!priorityNav) return null
-
-				// Batch all DOM reads upfront to avoid forced reflows
-				const wrapper = priorityNav.getBoundingClientRect()
-
-				// Collect all link elements and their rects in a single batch
-				const linkElements: Element[] = []
-				for (let i = 0; i < linkCount; i++) {
-					const link = document.querySelector(`#priority-nav-el-${i}`)
-					if (link) linkElements.push(link)
-				}
-
-				// Batch read all bounding rects at once (single layout calculation)
-				const linkRects = linkElements.map((link) => link.getBoundingClientRect())
-
-				// Find first link that overflows (without any DOM reads)
-				for (let index = 0; index < linkRects.length; index++) {
-					const linkSize = linkRects[index]
-					// Check if link wrapped to next row OR extends past dropdown reserved space (180px)
-					if (linkSize.top - wrapper.top > wrapper.height || linkSize.left + 16 > wrapper.right - 180) {
-						return index
-					}
-				}
-
-				return null // All links fit
+			// For very narrow screens, show only dropdown menu
+			// Use window.innerWidth so this works even when #priority-nav isn't rendered
+			if (links.length > 2 && window.innerWidth <= 640) {
+				return { renderMenuOnly: true, firstOverflowIndex: null }
 			}
-			return null
+
+			const priorityNav = priorityNavRef.current
+			if (!priorityNav) return INITIAL_OVERFLOW_STATE
+
+			// Batch all DOM reads upfront to avoid forced reflows
+			const wrapper = priorityNav.getBoundingClientRect()
+
+			// Batch read all bounding rects at once (single layout calculation)
+			const linkRects = Array.from(
+				priorityNav.querySelectorAll<HTMLElement>('[data-priority-nav-item]'),
+				(link) => link.getBoundingClientRect()
+			)
+
+			const firstRowTop = linkRects[0]?.top ?? wrapper.top
+
+			// Find first link that overflows (without any DOM reads)
+			for (let index = 0; index < linkRects.length; index++) {
+				const linkSize = linkRects[index]
+				const isWrappedToNextRow = linkSize.top - firstRowTop > ROW_WRAP_TOLERANCE_PX
+
+				// Wrapped links are hidden by max-height and belong to dropdown.
+				if (isWrappedToNextRow) {
+					return { renderMenuOnly: false, firstOverflowIndex: index }
+				}
+			}
+
+			return INITIAL_OVERFLOW_STATE // All links fit
 		}
 
-		const updateOverflowIndex = () => {
-			if (rafId) cancelAnimationFrame(rafId)
+		const updateOverflowState = () => {
+			if (rafId !== null) cancelAnimationFrame(rafId)
 			rafId = requestAnimationFrame(() => {
-				const index = calcOverflowIndex(links.length)
-				setOverflowIndex(index)
+				const nextOverflowState = calculateOverflowState()
+				setOverflowState((prevState) => {
+					const didChange =
+						prevState.renderMenuOnly !== nextOverflowState.renderMenuOnly ||
+						prevState.firstOverflowIndex !== nextOverflowState.firstOverflowIndex
+
+					return didChange ? nextOverflowState : prevState
+				})
 			})
 		}
 
 		// Debounced resize handler
 		const handleResize = () => {
 			clearTimeout(timeoutId)
-			timeoutId = setTimeout(updateOverflowIndex, 100)
+			timeoutId = setTimeout(updateOverflowState, RESIZE_DEBOUNCE_MS)
 		}
 
 		// Calculate on initial render
-		updateOverflowIndex()
+		updateOverflowState()
 
 		window.addEventListener('resize', handleResize, { passive: true })
+		if (typeof ResizeObserver !== 'undefined' && priorityNavRef.current) {
+			resizeObserver = new ResizeObserver(handleResize)
+			resizeObserver.observe(priorityNavRef.current)
+		}
 
 		return () => {
 			clearTimeout(timeoutId)
-			if (rafId) cancelAnimationFrame(rafId)
+			if (rafId !== null) cancelAnimationFrame(rafId)
 			window.removeEventListener('resize', handleResize)
+			resizeObserver?.disconnect()
 		}
-	}, [links.length])
+	}, [links.length, linksLayoutSignature, overflowState.renderMenuOnly])
 
-	const isActiveLinkInList = links.some((link) => link.label === activeLink)
+	const activeLinkIndex = activeLink ? links.findIndex((link) => link.label === activeLink) : -1
+	const isActiveLinkInList = activeLinkIndex >= 0
 
-	const hasOverflow = overflowIndex !== null && typeof overflowIndex === 'number' && overflowIndex > 0
-	const isLinkInDropdown = hasOverflow && links.slice(overflowIndex).some((link) => link.label === activeLink)
+	const overflowIndex = overflowState.renderMenuOnly ? null : overflowState.firstOverflowIndex
+	const hasOverflow = overflowIndex !== null
+	const isLinkInDropdown = overflowIndex !== null && activeLinkIndex >= overflowIndex
 
 	// For narrow screens, show only the dropdown
-	if (overflowIndex === 'renderMenu') {
+	if (overflowState.renderMenuOnly) {
 		return (
 			<OtherLinks
 				name={alternativeOthersText ?? 'Others'}
@@ -113,9 +139,14 @@ export function LinksWithDropdown({
 	return (
 		<>
 			{/* Always render ALL links - CSS handles overflow hiding via max-height + overflow-hidden */}
-			<div className="flex max-h-8 flex-1 flex-wrap gap-2 overflow-hidden p-1" id="priority-nav" {...props}>
+			<div className="flex max-h-8 flex-1 flex-wrap gap-2 overflow-hidden p-1" ref={priorityNavRef} {...props}>
 				{links.map((option, index) => (
-					<LinkItem key={option.label} option={option} activeLink={activeLink} id={`priority-nav-el-${index}`} />
+					<LinkItem
+						key={`link-outside-${option.to}`}
+						option={option}
+						isActive={index === activeLinkIndex}
+						data-priority-nav-item
+					/>
 				))}
 			</div>
 
@@ -127,16 +158,14 @@ export function LinksWithDropdown({
 					}
 					isActive={isLinkInDropdown}
 					options={links}
-					className="mr-1"
+					className="mr-1 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 				/>
 			) : null}
 		</>
 	)
 }
 
-function LinkItem({ option, activeLink, ...props }: { option: ILink; activeLink?: string; [key: string]: any }) {
-	const isActive = option.label === activeLink
-
+function LinkItem({ option, isActive, ...props }: { option: ILink; isActive: boolean; [key: string]: any }) {
 	return (
 		<BasicLink
 			href={option.to}

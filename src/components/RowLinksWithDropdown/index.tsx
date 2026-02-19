@@ -24,7 +24,7 @@ export const RowLinksWithDropdown = (props: IRowLinksProps) => {
 					}
 					options={props.links}
 					isActive={true}
-					className="w-full justify-between"
+					className="h-8.5 w-full justify-between"
 				/>
 			</span>
 			<div className="flex flex-nowrap rounded-md border border-(--cards-border) bg-(--cards-bg) max-sm:hidden">
