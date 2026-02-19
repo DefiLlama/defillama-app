@@ -18,10 +18,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 	const dashboardId = context.params?.dashboardId as string
 
 	if (dashboardId === 'new') {
+		context.res.setHeader('Cache-Control', 'private, no-store')
 		return { props: { dashboardId, serverData: null } }
 	}
 
 	const authToken = getAuthTokenFromRequest(context.req)
+
+	if (authToken) {
+		context.res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate')
+	} else {
+		context.res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600')
+	}
 
 	try {
 		const serverData = await getProDashboardServerData({ dashboardId, authToken })
